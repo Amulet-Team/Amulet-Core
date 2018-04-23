@@ -1,0 +1,3 @@
+pyglet
+numpy
+black
