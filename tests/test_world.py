@@ -92,6 +92,5 @@ class MCEditWorldTestCase(unittest.TestCase):
             self.world.get_blocks(0, 0, 0)
 
 
-
 if __name__ == "__main__":
     unittest.main()
