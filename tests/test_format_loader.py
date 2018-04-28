@@ -7,10 +7,11 @@ from formats import format_loader
 class FormatLoaderTestCase(unittest.TestCase):
 
     def test_has_anvil(self):
-        print(format_loader._formats)
-        self.assertIsInstance(format_loader._formats['anvil'], ModuleType)
-        print(format_loader._formats['anvil'].AnvilWorld)
+        formats = format_loader.loader.get_loaded_formats()
+
+        self.assertTrue("anvil" in formats)
+        self.assertIsInstance(formats["anvil"], ModuleType)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
