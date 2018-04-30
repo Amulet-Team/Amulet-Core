@@ -36,7 +36,7 @@ class _FormatLoader:
             if success:
                 self._loaded_formats[format_name] = module
 
-    def load_format(self, directory):
+    def load_format(self, directory: str) -> (bool, object):
         try:
             format_module = importlib.import_module(os.path.basename(directory))
         # spec = importlib.util.find_spec(directory)
@@ -64,13 +64,13 @@ class _FormatLoader:
 
         return True, format_module
 
-    def get_loaded_formats(self):
+    def get_loaded_formats(self) -> dict:
         return dict(self._loaded_formats)
 
     def reload(self):
         self._find_formats()
 
-    def add_external_format(self, name, module):
+    def add_external_format(self, name, module) -> bool:
         if (
             isinstance(name, str)
             and isinstance(module, types.ModuleType)

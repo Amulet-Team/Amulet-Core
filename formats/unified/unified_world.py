@@ -3,7 +3,6 @@ from typing import Union, Sequence
 
 import numpy
 
-
 class UnifiedWorld:
 
     def __init__(self):
