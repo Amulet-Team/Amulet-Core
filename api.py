@@ -1,4 +1,3 @@
-
 class WorldFormat(object):
 
     @classmethod
