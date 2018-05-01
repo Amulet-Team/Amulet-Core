@@ -4,8 +4,8 @@ import traceback
 import importlib
 import importlib.util
 import glob
-import types
 import time
+from types import ModuleType
 
 
 class _FormatLoader:
@@ -53,14 +53,13 @@ class _FormatLoader:
             )
             return False, None
 
-        for attr in self.REQUIRED_ATTRIBUTES:
-            if not hasattr(format_module, attr):
-                print(
-                    'Disabled the "{}" format due to missing required attributes'.format(
-                        directory
-                    )
+        if not hasattr(format_module, "LEVEL_CLASS"):
+            print(
+                'Disabled the "{}" format due to missing required attributes'.format(
+                    directory
                 )
-                return False, None
+            )
+            return False, None
 
         return True, format_module
 
@@ -70,10 +69,10 @@ class _FormatLoader:
     def reload(self):
         self._find_formats()
 
-    def add_external_format(self, name, module) -> bool:
+    def add_external_format(self, name: str, module: ModuleType) -> bool:
         if (
             isinstance(name, str)
-            and isinstance(module, types.ModuleType)
+            and isinstance(module, ModuleType)
             and name not in self._loaded_formats
         ):
             self._loaded_formats[name] = module
@@ -91,7 +90,7 @@ class _FormatLoader:
 loader = _FormatLoader()
 
 
-def load_world(world_directory):
+def load_world(world_directory: str):
     for format_name, format_module in loader.get_loaded_formats():
         if format_module.identify(world_directory):
             return format_module.LEVEL_CLASS(world_directory)

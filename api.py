@@ -6,3 +6,6 @@ class WorldFormat(object):
 
     def toUnifiedFormat(self):
         raise NotImplementedError()
+
+    def save(self):
+        raise NotImplementedError()
