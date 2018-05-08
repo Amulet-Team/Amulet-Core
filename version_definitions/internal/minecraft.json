@@ -1,0 +1,51 @@
+{
+  "__comment__": "The specifics of this file can change",
+  "minecraft": {
+    "stone": {
+      "name": "Stone",
+      "tex": [
+        1,
+        0
+      ]
+    },
+    "granite": {
+      "name": "Granite",
+      "tex": [
+        4,
+        16
+      ]
+    },
+    "oak_log": {
+      "axis=y": {
+        "name": "Oak Log (Upright)",
+        "tex": [
+          4,
+          1
+        ],
+        "tex_directions": {
+          "TOP": [
+            5,
+            1
+          ],
+          "BOTTOM": [
+            5,
+            1
+          ]
+        },
+        "axis=x": {
+          "name": "Oak Log (East/West)",
+          "tex": [
+            4,
+            1
+          ],
+          "tex_directions": {
+            "SIDES": [
+              5,
+              1
+            ]
+          }
+        }
+      }
+    }
+  }
+}

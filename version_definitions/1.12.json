@@ -1,0 +1,32 @@
+{
+  "minecraft": {
+    "stone": {
+      "variant=stone": {
+        "id": [1,0],
+        "map_to": "internal:minecraft:stone"
+      },
+      "variant=granite": {
+        "id": [1, 1],
+        "map_to": "internal:minecraft:granite"
+      },
+      "variant=smooth_granite": {
+        "id": [1, 2],
+        "map_to": "internal:minecraft:polished_granite"
+      }
+    },
+    "log": {
+      "variant=oak,axis=y": {
+        "id": [17, 0],
+        "map_to": "internal:minecraft:oak_log[axis=y]"
+      },
+      "variant=spruce,axis=y": {
+        "id": [17, 1],
+        "map_to": "internal:minecraft:spruce_log[axis=y]"
+      },
+      "variant=oak,axis=x": {
+        "id": [17, 4],
+        "map_to": "internal:minecraft:oak_log[axis=x]"
+      }
+    }
+  }
+}
