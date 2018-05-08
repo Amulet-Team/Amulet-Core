@@ -96,9 +96,10 @@ if __name__ == "__main__":
         else:
             print("==== Help ====")
             print(
-                "block: Looks up a block from it's internal mapping name (internal -> version)"
+                "block <internal name>: Looks up a block from it's internal mapping name (internal -> version)"
             )
             print(
-                "reverse: Looks up a block from it's internal mapping value (version -> internal)"
+                "reverse <versioned name>: Looks up a block from it's internal mapping value (version -> internal)"
             )
             print("list: Lists all blocks in the current mapping")
+            print("load <version>: Loads the specified version of block definitions")
