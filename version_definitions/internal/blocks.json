@@ -31,19 +31,19 @@
             5,
             1
           ]
-        },
-        "axis=x": {
-          "name": "Oak Log (East/West)",
-          "tex": [
-            4,
+        }
+      },
+      "axis=x": {
+        "name": "Oak Log (East/West)",
+        "tex": [
+          4,
+          1
+        ],
+        "tex_directions": {
+          "SIDES": [
+            5,
             1
-          ],
-          "tex_directions": {
-            "SIDES": [
-              5,
-              1
-            ]
-          }
+          ]
         }
       }
     }
