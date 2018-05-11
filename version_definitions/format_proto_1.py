@@ -11,14 +11,14 @@ class Prototype1:
         result = []
         for key, value in props.items():
             result.append("{}={}".format(key, value))
-        return ','.join(result)
+        return ",".join(result)
 
     @staticmethod
     def string_to_properties(string: str) -> dict:
         result = {}
-        split = string.split(',')
+        split = string.split(",")
         for pair in split:
-            key, value = pair.split('=')
+            key, value = pair.split("=")
             if not value.isdigit() and not value.isalpha():
                 value = float(value)
             elif not value.isalpha():
@@ -36,10 +36,19 @@ class Prototype1:
 
         self._definitions["internal"] = {"minecraft": self.defs_internal["minecraft"]}
 
-        if not os.path.exists("{}.json".format(os.path.join(os.path.dirname(__file__), definitions_to_build, "blocks"))):
+        if not os.path.exists(
+            "{}.json".format(
+                os.path.join(os.path.dirname(__file__), definitions_to_build, "blocks")
+            )
+        ):
             raise FileNotFoundError()
 
-        fp = open("{}.json".format(os.path.join(os.path.dirname(__file__), definitions_to_build, "blocks")), "r")
+        fp = open(
+            "{}.json".format(
+                os.path.join(os.path.dirname(__file__), definitions_to_build, "blocks")
+            ),
+            "r",
+        )
         defs = json.load(fp)
         fp.close()
         self._definitions[definitions_to_build] = {"minecraft": {}}
@@ -67,20 +76,39 @@ class Prototype1:
                         )
                         self.blocks[map_to[map_to.index(":") + 1:]] = block_id
 
-    def get_internal_block(self, resource_location="minecraft", basename="air", properties=None) -> dict:
+    def get_internal_block(
+        self, resource_location="minecraft", basename="air", properties=None
+    ) -> dict:
         if properties:
             properties = self.properties_to_string(properties)
 
         if resource_location in self._definitions["internal"]:
             if basename in self._definitions["internal"][resource_location]:
-                if properties and properties in self._definitions["internal"][resource_location][basename]:
-                    return self._definitions["internal"][resource_location][basename][properties]
+                if (
+                    properties
+                    and properties in self._definitions["internal"][resource_location][
+                        basename
+                    ]
+                ):
+                    return self._definitions["internal"][resource_location][basename][
+                        properties
+                    ]
+
                 elif properties:
-                    raise KeyError("No blockstate definition found for '{}:{}[{}]'".format(resource_location, basename, properties))
+                    raise KeyError(
+                        "No blockstate definition found for '{}:{}[{}]'".format(
+                            resource_location, basename, properties
+                        )
+                    )
+
                 else:
                     return self._definitions["internal"][resource_location][basename]
-        raise KeyError("No blockstate definition found for '{}:{}'".format(resource_location, basename))
 
+        raise KeyError(
+            "No blockstate definition found for '{}:{}'".format(
+                resource_location, basename
+            )
+        )
 
 
 if __name__ == "__main__":
