@@ -16,6 +16,7 @@ Shortcut: `pip -r requirements.txt`
   - Must be ran and have changes committed before pushing a commit\Pull Request
 - Sphinx
 - [sphinx-autodoc-typehints](https://github.com/agronholm/sphinx-autodoc-typehints)
+- [sphinx_rtd_theme](https://github.com/rtfd/sphinx_rtd_theme)
 
 Shortcut: `pip -r requirements-dev.txt` (This also installs the requirements required for running from source)
 
