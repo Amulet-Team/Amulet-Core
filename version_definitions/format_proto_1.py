@@ -26,7 +26,7 @@ class Prototype1:
             result[key] = value
         return result
 
-    def __init__(self, definitions_to_build):
+    def __init__(self, definitions_to_build: str):
         self.blocks = {}
         self._definitions = {}
 
