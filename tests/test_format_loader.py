@@ -30,6 +30,11 @@ class FormatLoaderTestCase(unittest.TestCase):
         self.assertFalse(self.formats["anvil"].identify(get_world_path("1.13 World")))
         self.assertTrue(self.formats["anvil2"].identify(get_world_path("1.13 World")))
 
+    def test_format_loader_identify(self):
+        self.assertEqual(
+            format_loader.loader.identify_world_format_str(get_world_path("1.12.2 World")), "anvil"
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
