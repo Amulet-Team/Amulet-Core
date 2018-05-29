@@ -5,6 +5,10 @@ import os
 from formats import format_loader
 
 
+def get_world_path(name: str) -> str:
+    return os.path.join("worlds", name)
+
+
 class FormatLoaderTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -19,12 +23,12 @@ class FormatLoaderTestCase(unittest.TestCase):
         self.assertIsInstance(self.formats["unified"], ModuleType)
 
     def test_identify_anvil_world(self):
-        self.assertFalse(
-            self.formats["anvil"].identify(os.path.join("worlds", "1.13 World"))
-        )
-        self.assertTrue(
-            self.formats["anvil2"].identify(os.path.join("worlds", "1.13 World"))
-        )
+        self.assertTrue(self.formats["anvil"].identify(get_world_path("1.12.2 World")))
+        self.assertFalse(self.formats["anvil"].identify(get_world_path("1.13 World")))
+
+    def test_identify_anvil2_world(self):
+        self.assertFalse(self.formats["anvil"].identify(get_world_path("1.13 World")))
+        self.assertTrue(self.formats["anvil2"].identify(get_world_path("1.13 World")))
 
 
 if __name__ == "__main__":
