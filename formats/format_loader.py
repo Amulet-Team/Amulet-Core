@@ -53,7 +53,9 @@ class _FormatLoader:
             )
             return False, None
 
-        if not (hasattr(format_module, "LEVEL_CLASS") and hasattr(format_module, "identify")):
+        if not (
+            hasattr(format_module, "LEVEL_CLASS") and hasattr(format_module, "identify")
+        ):
             print(
                 'Disabled the "{}" format due to missing required attributes'.format(
                     directory
@@ -85,13 +87,13 @@ class _FormatLoader:
             raise Exception(
                 "To add an external format you must supply a name and a module object!"
             )
+
     def identify_world_format_str(self, directory: str) -> str:
         for name, module in self._loaded_formats.items():
-            print("{}: {}".format(name, module.identify(directory)))
             if module.identify(directory):
                 return name
-        raise ModuleNotFoundError("Could not find a valid format loader")
 
+        raise ModuleNotFoundError("Could not find a valid format loader")
 
 
 loader = _FormatLoader()

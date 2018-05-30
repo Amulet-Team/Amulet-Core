@@ -4,6 +4,10 @@ class WorldFormat(object):
     """
 
     @classmethod
+    def load(cls, directory: str) -> object:
+        raise NotImplementedError()
+
+    @classmethod
     def fromUnifiedFormat(cls, unified: object) -> object:
         """
         Converts the passed object to the specific implementation

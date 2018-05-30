@@ -32,7 +32,16 @@ class FormatLoaderTestCase(unittest.TestCase):
 
     def test_format_loader_identify(self):
         self.assertEqual(
-            format_loader.loader.identify_world_format_str(get_world_path("1.12.2 World")), "anvil"
+            format_loader.loader.identify_world_format_str(
+                get_world_path("1.12.2 World")
+            ),
+            "anvil",
+        )
+        self.assertEqual(
+            format_loader.loader.identify_world_format_str(
+                get_world_path("1.13 World")
+            ),
+            "anvil2",
         )
 
 
