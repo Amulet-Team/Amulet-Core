@@ -149,7 +149,7 @@ class AnvilWorld(WorldFormat):
             section_blocks = section_blocks.reshape((16,16,16))
             section_blocks.astype(numpy.uint16, copy=False)
 
-            section_data = section_data.reshape((16,16,16))
+            #section_data = section_data.reshape((16,16,16)) # Can't figure out data values yet
 
             blocks[lower:upper, :, :] = section_blocks
 
