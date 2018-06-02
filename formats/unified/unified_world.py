@@ -3,10 +3,42 @@ from typing import Union, Sequence
 
 import numpy
 
-class UnifiedWorld:
+def method_not_implemented(*args, **kwargs):
+    raise NotImplementedError()
+
+class _InternalMappingHandler:
 
     def __init__(self):
-        self._blocks = numpy.full((16, 16, 16), "minecraft:air", dtype=str)
+        self._mapping = {"minecraft:air": 0}
+        self._reverse_mapping = {0: "minecraft:air"}
+        self._next_id = 1
+
+    def add_entry(self, entry: str) -> None:
+        self._mapping[entry] = self._next_id
+        self._reverse_mapping[self._next_id] = entry
+        self._next_id += 1
+
+    def get_entry(self, entry: Union[int, str]) -> Union[int, str]:
+        if isinstance(entry, int):
+            return self._reverse_mapping[entry]
+        else:
+            return self._mapping[entry]
+
+class UnifiedWorld:
+
+    def __init__(self, directory, root_tag, wrapper):
+        self._directory = directory
+        self._root_tag = root_tag
+        self._wrapper = wrapper
+        self.mapping_handler = _InternalMappingHandler()
+
+        self._load_space()
+
+        self._blocks = numpy.zeros((256, 256, 256), dtype=numpy.uint16)
+
+    def _load_space(self):
+        #print(self._root_tag)
+        self._wrapper.d_load_chunk(0,0)
 
     def get_block(self, x: int, y: int, z: int) -> str:
         if not (0 <= y <= 255):

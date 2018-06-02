@@ -110,6 +110,10 @@ class Prototype1:
             )
         )
 
+    def get_block_from_definition(self) -> str:
+        pass
+
+
 
 if __name__ == "__main__":
     ver = input("Version definitions to build: ")
@@ -138,6 +142,7 @@ if __name__ == "__main__":
                         break
 
             else:
+                print(user_input.replace(" ","")[1:-1])
                 numerical_ids = map(int, user_input.replace(" ", "")[1:-1].split(","))
                 numerical_ids = [i for i in numerical_ids]
                 result = None

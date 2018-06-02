@@ -4,10 +4,8 @@ import os
 
 from formats import format_loader
 
-
 def get_world_path(name: str) -> str:
     return os.path.join("worlds", name)
-
 
 class FormatLoaderTestCase(unittest.TestCase):
 
