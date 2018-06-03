@@ -1,6 +1,8 @@
 import gzip
 from io import StringIO
 
+from numpy import ndarray, zeros, uint8
+
 SECTOR_BYTES = 4096
 SECTOR_INTS = SECTOR_BYTES / 4
 CHUNK_HEADER_SIZE = 5
@@ -18,6 +20,18 @@ def region_coords_to_chunk_coords(rx: int, rz: int) -> tuple:
 
 def gunzip(data):
     return gzip.GzipFile(fileobj=StringIO(data)).read()
+
+def fromNibbleArray(arr: ndarray) -> ndarray:
+    shape = arr.shape
+
+    new_arr = zeros((shape[0], shape[1], shape[2] * 2), dtype=uint8)
+
+    new_arr[:, :, ::2] = arr
+    new_arr[:, :, ::2] &= 0xf
+    new_arr[:, :, 1::2] = arr
+    new_arr[:, :, 1::2] >>= 4
+
+    return new_arr
 
 import sys
 

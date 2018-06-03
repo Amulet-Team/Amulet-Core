@@ -1,4 +1,5 @@
 import struct
+import time
 import zlib
 from io import BytesIO
 
@@ -139,23 +140,39 @@ class AnvilWorld(WorldFormat):
         chunk_sections, tile_entities, entities = self._region_manager.load_chunk(0,0)
 
         blocks = numpy.zeros((256,16,16), dtype=numpy.uint16)
+        block_data = numpy.zeros((256,16,16), dtype=numpy.uint8)
+        start_time = time.time()
         for section in chunk_sections:
             lower = section["Y"].value << 4
             upper = (section["Y"].value + 1) << 4
 
             section_blocks = numpy.frombuffer(section["Blocks"].value, dtype=numpy.uint8)
-            section_data = numpy.frombuffer(section["Data"].value, dtype='>u4')
-            print(section_blocks.size)
+            section_data = numpy.frombuffer(section["Data"].value, dtype=numpy.uint8)
             section_blocks = section_blocks.reshape((16,16,16))
             section_blocks.astype(numpy.uint16, copy=False)
 
-            #section_data = section_data.reshape((16,16,16)) # Can't figure out data values yet
+            section_data = section_data.reshape((16,16,8)) # The Byte array is actually just Nibbles, so the size is off
+
+            section_data = world_utils.fromNibbleArray(section_data)
+
+            if "Add" in section:
+                add_blocks = numpy.frombuffer(section["Add"].value, dtype=numpy.uint8)
+                add_blocks = add_blocks.reshape((16, 16, 8))
+                add_blocks = world_utils.fromNibbleArray(add_blocks)
+
+                section_blocks |= (add_blocks.astype(numpy.uint16) << 8)
 
             blocks[lower:upper, :, :] = section_blocks
+            block_data[lower:upper, :, :] = section_data
 
+        end = time.time()
+
+        print("Loading {} sections took: {}".format(len(chunk_sections), end - start_time))
         print("Block at (1,70,3): {}".format(blocks[70,3,1]))
         blocks = numpy.swapaxes(blocks.swapaxes(0, 1), 0, 2)
+        block_data = numpy.swapaxes(block_data.swapaxes(0, 1), 0, 2)
         print("Block at (1,70,3): {}".format(blocks[1, 70, 3]))
+        print("Data value at (1,70,5): {}".format(block_data[1, 70, 5]))
 
         unique_blocks = numpy.unique(blocks)
         print(unique_blocks)
