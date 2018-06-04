@@ -170,12 +170,37 @@ class AnvilWorld(WorldFormat):
         print("Loading {} sections took: {}".format(len(chunk_sections), end - start_time))
         print("Block at (1,70,3): {}".format(blocks[70,3,1]))
         blocks = numpy.swapaxes(blocks.swapaxes(0, 1), 0, 2)
-        block_data = numpy.swapaxes(block_data.swapaxes(0, 1), 0, 2)
+        block_data_array = numpy.swapaxes(block_data.swapaxes(0, 1), 0, 2)
         print("Block at (1,70,3): {}".format(blocks[1, 70, 3]))
-        print("Data value at (1,70,5): {}".format(block_data[1, 70, 5]))
+        print("Data value at (1,70,5): {}".format(block_data_array[1, 70, 5]))
 
-        unique_blocks = numpy.unique(blocks)
-        print(unique_blocks)
+        unique_block_ids = numpy.unique(blocks)
+        unique_block_ids = numpy.delete(unique_block_ids, 0)
+        unique_datas = numpy.unique(block_data_array)
+        print(unique_block_ids)
+        print(unique_datas)
+
+        unique_block = set()
+        for block_data in unique_datas:
+            indices = numpy.where(block_data_array == block_data)
+            #print("{}: {}".format(block_data, indices))
+            #print(numpy.unique(blocks[indices]))
+            for block_id in numpy.unique(blocks[indices]):
+                unique_block.add((block_id, block_data))
+            """
+            for x in indices[0]:
+                for y in indices[1]:
+                    for z in indices[2]:
+                        block_id = blocks[x,y,z]
+                        if block_id == 0:
+                            continue
+                        unique_block.add((block_id, block_data))
+            print("Current Pass: {}".format(unique_block))
+            """
+        print("All Blocks: {}".format(unique_block))
+
+
+
 
 
 
