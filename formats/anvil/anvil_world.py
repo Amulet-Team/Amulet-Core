@@ -135,8 +135,6 @@ class AnvilWorld(WorldFormat):
         return UnifiedWorld(directory, root_tag, wrapper)
 
     def d_load_chunk(self, cx: int, cz: int):
-        rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)
-
         chunk_sections, tile_entities, entities = self._region_manager.load_chunk(0,0)
 
         blocks = numpy.zeros((256,16,16), dtype=numpy.uint16)
@@ -176,17 +174,17 @@ class AnvilWorld(WorldFormat):
 
         unique_block_ids = numpy.unique(blocks)
         unique_block_ids = numpy.delete(unique_block_ids, 0)
-        unique_datas = numpy.unique(block_data_array)
+        unique_block_datas = numpy.unique(block_data_array)
         print(unique_block_ids)
-        print(unique_datas)
+        print(unique_block_datas)
 
-        unique_block = set()
-        for block_data in unique_datas:
+        unique_blocks = set()
+        for block_data in unique_block_datas:
             indices = numpy.where(block_data_array == block_data)
             #print("{}: {}".format(block_data, indices))
             #print(numpy.unique(blocks[indices]))
             for block_id in numpy.unique(blocks[indices]):
-                unique_block.add((block_id, block_data))
+                unique_blocks.add((block_id, block_data))
             """
             for x in indices[0]:
                 for y in indices[1]:
@@ -197,7 +195,13 @@ class AnvilWorld(WorldFormat):
                         unique_block.add((block_id, block_data))
             print("Current Pass: {}".format(unique_block))
             """
-        print("All Blocks: {}".format(unique_block))
+        print("All Blocks: {}".format(unique_blocks))
+        print()
+
+        print("=== Mapped Blocks ===")
+        for block in unique_blocks:
+            internal = self._materials.get_block_from_definition(block)
+            print("{} -> {}".format(block, internal))
 
 
 

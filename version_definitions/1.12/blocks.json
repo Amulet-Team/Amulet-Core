@@ -1,5 +1,9 @@
 {
   "minecraft": {
+    "air": {
+      "id": [0,0],
+      "map_to": "internal:minecraft:air"
+    },
     "stone": {
       "variant=stone": {
         "id": [1,0],

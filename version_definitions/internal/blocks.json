@@ -1,6 +1,10 @@
 {
   "__comment__": "The specifics of this file can change",
   "minecraft": {
+    "air": {
+      "name": "Air",
+      "tex": [0,0]
+    },
     "stone": {
       "name": "Stone",
       "tex": [

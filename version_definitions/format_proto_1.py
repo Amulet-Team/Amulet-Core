@@ -1,7 +1,8 @@
 import json
 import os
 
-import re  # For command-line
+import re
+from typing import Union
 
 
 class Prototype1:
@@ -29,6 +30,8 @@ class Prototype1:
     def __init__(self, definitions_to_build: str):
         self.blocks = {}
         self._definitions = {}
+
+        self.matcher = re.compile(r"^(.)+:(.)+$")
 
         fp = open(os.path.join(os.path.dirname(__file__), "internal", "blocks.json"))
         self.defs_internal = json.load(fp)
@@ -110,8 +113,17 @@ class Prototype1:
             )
         )
 
-    def get_block_from_definition(self) -> str:
-        pass
+    def get_block_from_definition(self, block: Union[str, int]) -> str:
+        if isinstance(block, str) and self.matcher.match(block):
+            for key, value in self.blocks.items():
+                if user_input == value:
+                    return key
+        elif isinstance(block, (list, tuple)):
+            for key, value in self.blocks.items():
+                if value[0] == block[0] and value[1] == block[1]:
+                    return key
+        else:
+            raise IndexError()
 
 
 

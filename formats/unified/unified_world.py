@@ -9,20 +9,22 @@ def method_not_implemented(*args, **kwargs):
 class _InternalMappingHandler:
 
     def __init__(self):
-        self._mapping = {"minecraft:air": 0}
-        self._reverse_mapping = {0: "minecraft:air"}
+        #self._mapping = {"minecraft:air": 0}
+        #self._reverse_mapping = {0: "minecraft:air"}
+        self._mapping = ["minecraft:air"]
         self._next_id = 1
+        self.__getitem__ = self._mapping.__getitem__
+        self.__contains__ = self._mapping.__contains__
 
-    def add_entry(self, entry: str) -> None:
-        self._mapping[entry] = self._next_id
-        self._reverse_mapping[self._next_id] = entry
+    def add_entry(self, entry: str) -> int:
+        if entry in self._mapping:
+            return self.get_entry(entry)
+        self._mapping[self._next_id] = entry
         self._next_id += 1
+        return self._next_id - 1
 
-    def get_entry(self, entry: Union[int, str]) -> Union[int, str]:
-        if isinstance(entry, int):
-            return self._reverse_mapping[entry]
-        else:
-            return self._mapping[entry]
+    def get_entry(self, entry: str) -> int:
+        return self._mapping.index(entry)
 
 class UnifiedWorld:
 
