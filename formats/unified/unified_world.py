@@ -3,14 +3,16 @@ from typing import Union, Sequence
 
 import numpy
 
+
 def method_not_implemented(*args, **kwargs):
     raise NotImplementedError()
+
 
 class _InternalMappingHandler:
 
     def __init__(self):
-        #self._mapping = {"minecraft:air": 0}
-        #self._reverse_mapping = {0: "minecraft:air"}
+        # self._mapping = {"minecraft:air": 0}
+        # self._reverse_mapping = {0: "minecraft:air"}
         self._mapping = ["minecraft:air"]
         self._next_id = 1
         self.__getitem__ = self._mapping.__getitem__
@@ -19,12 +21,14 @@ class _InternalMappingHandler:
     def add_entry(self, entry: str) -> int:
         if entry in self._mapping:
             return self.get_entry(entry)
+
         self._mapping[self._next_id] = entry
         self._next_id += 1
         return self._next_id - 1
 
     def get_entry(self, entry: str) -> int:
         return self._mapping.index(entry)
+
 
 class UnifiedWorld:
 
@@ -39,8 +43,8 @@ class UnifiedWorld:
         self._blocks = numpy.zeros((256, 256, 256), dtype=numpy.uint16)
 
     def _load_space(self):
-        #print(self._root_tag)
-        self._wrapper.d_load_chunk(0,0)
+        # print(self._root_tag)
+        self._wrapper.d_load_chunk(0, 0)
 
     def get_block(self, x: int, y: int, z: int) -> str:
         if not (0 <= y <= 255):

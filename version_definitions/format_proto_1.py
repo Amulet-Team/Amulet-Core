@@ -9,6 +9,12 @@ class Prototype1:
 
     @staticmethod
     def properties_to_string(props: dict) -> str:
+        """
+        Converts a dictionary of blockstate properties to a string
+
+        :param props: The dictionary of blockstate properties
+        :return: The string version of the supplied blockstate properties
+        """
         result = []
         for key, value in props.items():
             result.append("{}={}".format(key, value))
@@ -16,6 +22,12 @@ class Prototype1:
 
     @staticmethod
     def string_to_properties(string: str) -> dict:
+        """
+        Converts a string into a dictionary of blockstate properties
+
+        :param string: The string of blockstate properties
+        :return: The resulting dictionary of blockstate properties
+        """
         result = {}
         split = string.split(",")
         for pair in split:
@@ -82,6 +94,14 @@ class Prototype1:
     def get_internal_block(
         self, resource_location="minecraft", basename="air", properties=None
     ) -> dict:
+        """
+        Returns the versioned definition for the supplied internal block. Internal definitions are loosely based off of the flattened blockstates of Java Edition 1.13
+
+        :param resource_location: The resource location to look in
+        :param basename: The basename of the block
+        :param properties: The properties of the blockstate
+        :return: A dictionary representing the versioned definition of the internal block
+        """
         if properties:
             properties = self.properties_to_string(properties)
 
@@ -114,17 +134,24 @@ class Prototype1:
         )
 
     def get_block_from_definition(self, block: Union[str, int]) -> str:
+        """
+        Returns the internal name of the supplied versioned block
+
+        :param block: The versioned block
+        :return: The internal name that is mapped to the versioned block
+        """
         if isinstance(block, str) and self.matcher.match(block):
             for key, value in self.blocks.items():
                 if user_input == value:
                     return key
+
         elif isinstance(block, (list, tuple)):
             for key, value in self.blocks.items():
                 if value[0] == block[0] and value[1] == block[1]:
                     return key
-        else:
-            raise IndexError()
 
+        else:
+            raise KeyError()
 
 
 if __name__ == "__main__":
@@ -154,7 +181,7 @@ if __name__ == "__main__":
                         break
 
             else:
-                print(user_input.replace(" ","")[1:-1])
+                print(user_input.replace(" ", "")[1:-1])
                 numerical_ids = map(int, user_input.replace(" ", "")[1:-1].split(","))
                 numerical_ids = [i for i in numerical_ids]
                 result = None

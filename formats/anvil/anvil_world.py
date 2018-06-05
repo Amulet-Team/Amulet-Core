@@ -14,6 +14,7 @@ from version_definitions.format_proto_1 import Prototype1
 
 import world_utils
 
+
 class _AnvilRegionManager:
 
     def __init__(self, directory: str):
@@ -31,7 +32,9 @@ class _AnvilRegionManager:
         cx &= 0x1f
         cz &= 0x1f
 
-        chunk_offset = self._loaded_regions[key]["offsets"][(cx & 0x1f) + (cz & 0x1f) * 32]
+        chunk_offset = self._loaded_regions[key]["offsets"][
+            (cx & 0x1f) + (cz & 0x1f) * 32
+        ]
         if chunk_offset == 0:
             raise Exception()
 
@@ -41,10 +44,15 @@ class _AnvilRegionManager:
         if number_of_sectors == 0:
             raise Exception()
 
-        if sector_start + number_of_sectors > len(self._loaded_regions[key]["free_sectors"]):
+        if (
+            sector_start + number_of_sectors
+            > len(self._loaded_regions[key]["free_sectors"])
+        ):
             raise Exception()
 
-        fp = open(path.join(self._directory, "region", "r.{}.{}.mca".format(rx,rz)), 'rb')
+        fp = open(
+            path.join(self._directory, "region", "r.{}.{}.mca".format(rx, rz)), "rb"
+        )
         fp.seek(sector_start * world_utils.SECTOR_BYTES)
         data = fp.read(number_of_sectors * world_utils.SECTOR_BYTES)
         fp.close()
@@ -52,8 +60,8 @@ class _AnvilRegionManager:
         if len(data) < 5:
             raise Exception("Malformed sector/chunk")
 
-        length = struct.unpack_from('>I', data)[0]
-        _format = struct.unpack_from('B', data, 4)[0]
+        length = struct.unpack_from(">I", data)[0]
+        _format = struct.unpack_from("B", data, 4)[0]
         data = data[5:length + 5]
 
         if _format == world_utils.VERSION_GZIP:
@@ -65,9 +73,13 @@ class _AnvilRegionManager:
         print("=== Chunk data ===")
         print(nbt_data)
 
-        return nbt_data["Level"]["Sections"], nbt_data["Level"]["TileEntities"], nbt_data["Level"]["Entities"]
-
-
+        return nbt_data["Level"]["Sections"], nbt_data["Level"][
+            "TileEntities"
+        ], nbt_data[
+            "Level"
+        ][
+            "Entities"
+        ]
 
     def load_region(self, rx: int, rz: int) -> bool:
         key = (rx, rz)
@@ -78,7 +90,7 @@ class _AnvilRegionManager:
         if not path.exists(filename):
             raise FileNotFoundError()
 
-        fp = open(filename, 'rb')
+        fp = open(filename, "rb")
         self._loaded_regions[key] = {}
 
         file_size = path.getsize(filename)
@@ -97,11 +109,17 @@ class _AnvilRegionManager:
         offsets = fp.read(world_utils.SECTOR_BYTES)
         mod_times = fp.read(world_utils.SECTOR_BYTES)
 
-        self._loaded_regions[key]["free_sectors"] = free_sectors = [True] * (file_size // world_utils.SECTOR_BYTES)
+        self._loaded_regions[key]["free_sectors"] = free_sectors = [True] * (
+            file_size // world_utils.SECTOR_BYTES
+        )
         self._loaded_regions[key]["free_sectors"][0:2] = False, False
 
-        self._loaded_regions[key]["offsets"] = offsets = numpy.frombuffer(offsets, dtype='>u4')
-        self._loaded_regions[key]["mod_times"] = numpy.frombuffer(mod_times, dtype='>u4')
+        self._loaded_regions[key]["offsets"] = offsets = numpy.frombuffer(
+            offsets, dtype=">u4"
+        )
+        self._loaded_regions[key]["mod_times"] = numpy.frombuffer(
+            mod_times, dtype=">u4"
+        )
 
         for offset in offsets:
             sector = offset >> 8
@@ -110,12 +128,12 @@ class _AnvilRegionManager:
             for i in range(sector, sector + count):
                 if i >= len(free_sectors):
                     return False
+
                 free_sectors[i] = False
 
         fp.close()
 
         return True
-
 
 
 class AnvilWorld(WorldFormat):
@@ -134,22 +152,28 @@ class AnvilWorld(WorldFormat):
 
         return UnifiedWorld(directory, root_tag, wrapper)
 
-    def d_load_chunk(self, cx: int, cz: int):
-        chunk_sections, tile_entities, entities = self._region_manager.load_chunk(0,0)
+    def d_load_chunk(self, cx: int, cz: int) -> numpy.ndarray:
+        chunk_sections, tile_entities, entities = self._region_manager.load_chunk(
+            cx, cz
+        )
 
-        blocks = numpy.zeros((256,16,16), dtype=numpy.uint16)
-        block_data = numpy.zeros((256,16,16), dtype=numpy.uint8)
+        blocks = numpy.zeros((256, 16, 16), dtype=numpy.uint16)
+        block_data = numpy.zeros((256, 16, 16), dtype=numpy.uint8)
         start_time = time.time()
         for section in chunk_sections:
             lower = section["Y"].value << 4
             upper = (section["Y"].value + 1) << 4
 
-            section_blocks = numpy.frombuffer(section["Blocks"].value, dtype=numpy.uint8)
+            section_blocks = numpy.frombuffer(
+                section["Blocks"].value, dtype=numpy.uint8
+            )
             section_data = numpy.frombuffer(section["Data"].value, dtype=numpy.uint8)
-            section_blocks = section_blocks.reshape((16,16,16))
+            section_blocks = section_blocks.reshape((16, 16, 16))
             section_blocks.astype(numpy.uint16, copy=False)
 
-            section_data = section_data.reshape((16,16,8)) # The Byte array is actually just Nibbles, so the size is off
+            section_data = section_data.reshape(
+                (16, 16, 8)
+            )  # The Byte array is actually just Nibbles, so the size is off
 
             section_data = world_utils.fromNibbleArray(section_data)
 
@@ -165,8 +189,10 @@ class AnvilWorld(WorldFormat):
 
         end = time.time()
 
-        print("Loading {} sections took: {}".format(len(chunk_sections), end - start_time))
-        print("Block at (1,70,3): {}".format(blocks[70,3,1]))
+        print(
+            "Loading {} sections took: {}".format(len(chunk_sections), end - start_time)
+        )
+        print("Block at (1,70,3): {}".format(blocks[70, 3, 1]))
         blocks = numpy.swapaxes(blocks.swapaxes(0, 1), 0, 2)
         block_data_array = numpy.swapaxes(block_data.swapaxes(0, 1), 0, 2)
         print("Block at (1,70,3): {}".format(blocks[1, 70, 3]))
@@ -181,8 +207,8 @@ class AnvilWorld(WorldFormat):
         unique_blocks = set()
         for block_data in unique_block_datas:
             indices = numpy.where(block_data_array == block_data)
-            #print("{}: {}".format(block_data, indices))
-            #print(numpy.unique(blocks[indices]))
+            # print("{}: {}".format(block_data, indices))
+            # print(numpy.unique(blocks[indices]))
             for block_id in numpy.unique(blocks[indices]):
                 unique_blocks.add((block_id, block_data))
             """
@@ -202,12 +228,6 @@ class AnvilWorld(WorldFormat):
         for block in unique_blocks:
             internal = self._materials.get_block_from_definition(block)
             print("{} -> {}".format(block, internal))
-
-
-
-
-
-
 
     def toUnifiedFormat(self) -> object:
         pass

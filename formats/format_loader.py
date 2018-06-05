@@ -99,6 +99,7 @@ class _FormatLoader:
         for name, module in self._loaded_formats.items():
             if module.identify(directory):
                 return module.LEVEL_CLASS.load(directory)
+
         raise ModuleNotFoundError("Could not find a valid format loader")
 
 
