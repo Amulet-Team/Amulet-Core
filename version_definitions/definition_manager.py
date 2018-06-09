@@ -5,7 +5,7 @@ import re
 from typing import Union
 
 
-class Prototype1:
+class DefinitionManager:
 
     @staticmethod
     def properties_to_string(props: dict) -> str:
@@ -156,7 +156,7 @@ class Prototype1:
 
 if __name__ == "__main__":
     ver = input("Version definitions to build: ")
-    proto = Prototype1(ver)
+    proto = DefinitionManager(ver)
     matcher = re.compile(r"^(.)+:(.)+$")
     while True:
         user_input = input(">> ").lower()
@@ -196,7 +196,7 @@ if __name__ == "__main__":
                 print("Block not found")
         elif user_input.startswith("load"):
             user_input = user_input.replace("load ", "")
-            proto = Prototype1(user_input)
+            proto = DefinitionManager(user_input)
             print("Successfully loaded '{}' definitions".format(user_input))
         elif user_input == "list":
             print(proto.blocks)

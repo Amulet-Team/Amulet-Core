@@ -1,7 +1,7 @@
 version_definitions module
 ==========================
 
-.. automodule:: version_definitions.format_proto_1
+.. automodule:: version_definitions.definition_manager
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,12 +1,12 @@
 import unittest
 
-from version_definitions import format_proto_1
+from version_definitions import definition_manager
 
 
 class TestPrototype112(unittest.TestCase):
 
     def setUp(self):
-        self.proto = format_proto_1.Prototype1("1.12")
+        self.proto = definition_manager.DefinitionManager("1.12")
 
     def test_direct_access(self):
         self.assertEqual(self.proto.blocks["minecraft:stone"], [1, 0])
@@ -43,7 +43,7 @@ class TestPrototype112(unittest.TestCase):
 class TestPrototype113(unittest.TestCase):
 
     def setUp(self):
-        self.proto = format_proto_1.Prototype1("1.13")
+        self.proto = definition_manager.DefinitionManager("1.13")
 
     def test_direct_access(self):
         self.assertEqual(self.proto.blocks["minecraft:stone"], "minecraft:stone")

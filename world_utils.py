@@ -92,3 +92,28 @@ def get_size(obj, seen=None):
     elif hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes, bytearray)):
         size += sum([get_size(i, seen) for i in obj])
     return size
+
+
+class InternalMappingHandler:
+
+    def __init__(self):
+        # self._mapping = {"minecraft:air": 0}
+        # self._reverse_mapping = {0: "minecraft:air"}
+        self._mapping = ["minecraft:air"]
+        self._next_id = 1
+        self.__getitem__ = self._mapping.__getitem__
+        self.__contains__ = self._mapping.__contains__
+
+    def add_entry(self, entry: str) -> int:
+        if entry in self._mapping:
+            return self.get_entry(entry)
+
+        self._mapping.insert(self._next_id, entry)
+        self._next_id += 1
+        return self._next_id - 1
+
+    def get_entry(self, entry: str) -> int:
+        return self._mapping.index(entry)
+
+    def __str__(self):
+        return "next_id: {}, {}".format(self._next_id, self._mapping)

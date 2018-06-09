@@ -10,7 +10,7 @@ from nbt import nbt
 from os import path
 
 from formats.unified import UnifiedWorld
-from version_definitions.format_proto_1 import Prototype1
+from version_definitions.definition_manager import DefinitionManager
 
 import world_utils
 
@@ -140,8 +140,9 @@ class AnvilWorld(WorldFormat):
 
     def __init__(self, directory: str):
         self._directory = directory
-        self._materials = Prototype1("1.12")
+        self._materials = DefinitionManager("1.12")
         self._region_manager = _AnvilRegionManager(directory)
+        self.mapping_handler = world_utils.InternalMappingHandler()
 
     @classmethod
     def load(cls, directory: str) -> UnifiedWorld:
@@ -225,9 +226,23 @@ class AnvilWorld(WorldFormat):
         print()
 
         print("=== Mapped Blocks ===")
+        block_test = blocks.copy()
         for block in unique_blocks:
             internal = self._materials.get_block_from_definition(block)
+            internal_id = self.mapping_handler.add_entry(internal)
+
+            block_mask = blocks == block[0]
+            data_mask = block_data_array == block[1]
+
+            mask = block_mask & data_mask
+
+            block_test[mask] = internal_id
+
             print("{} -> {}".format(block, internal))
+            print("{} = {}".format(internal, internal_id))
+
+        print(self.mapping_handler)
+        print(block_test[1, 70, 3])
 
     def toUnifiedFormat(self) -> object:
         pass

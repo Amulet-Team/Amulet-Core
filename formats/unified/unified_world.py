@@ -1,4 +1,3 @@
-import typing
 from typing import Union, Sequence
 
 import numpy
@@ -8,35 +7,13 @@ def method_not_implemented(*args, **kwargs):
     raise NotImplementedError()
 
 
-class _InternalMappingHandler:
-
-    def __init__(self):
-        # self._mapping = {"minecraft:air": 0}
-        # self._reverse_mapping = {0: "minecraft:air"}
-        self._mapping = ["minecraft:air"]
-        self._next_id = 1
-        self.__getitem__ = self._mapping.__getitem__
-        self.__contains__ = self._mapping.__contains__
-
-    def add_entry(self, entry: str) -> int:
-        if entry in self._mapping:
-            return self.get_entry(entry)
-
-        self._mapping[self._next_id] = entry
-        self._next_id += 1
-        return self._next_id - 1
-
-    def get_entry(self, entry: str) -> int:
-        return self._mapping.index(entry)
-
-
 class UnifiedWorld:
 
-    def __init__(self, directory, root_tag, wrapper):
+    def __init__(self, directory: str, root_tag, wrapper):
         self._directory = directory
         self._root_tag = root_tag
         self._wrapper = wrapper
-        self.mapping_handler = _InternalMappingHandler()
+        self.mapping_handler = wrapper.mapping_handler
 
         self._load_space()
 
