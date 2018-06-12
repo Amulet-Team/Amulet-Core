@@ -98,7 +98,7 @@ class _AnvilRegionManager:
             file_size = (file_size | 0xfff) + 1
             fp.truncate(file_size)
 
-        if file_size == 0:
+        if not file_size:
             file_size = world_utils.SECTOR_BYTES * 2
             fp.truncate(file_size)
 
@@ -142,7 +142,8 @@ class AnvilWorld(WorldFormat):
         self._directory = directory
         self._materials = DefinitionManager("1.12")
         self._region_manager = _AnvilRegionManager(directory)
-        self.mapping_handler = world_utils.InternalMappingHandler()
+        self.mapping_handler = world_utils.InternalBlockMap()
+        self.unknown_blocks = {}
 
     @classmethod
     def load(cls, directory: str) -> UnifiedWorld:
@@ -158,7 +159,7 @@ class AnvilWorld(WorldFormat):
             cx, cz
         )
 
-        blocks = numpy.zeros((256, 16, 16), dtype=numpy.uint16)
+        blocks = numpy.zeros((256, 16, 16), dtype=int)
         block_data = numpy.zeros((256, 16, 16), dtype=numpy.uint8)
         start_time = time.time()
         for section in chunk_sections:
@@ -231,6 +232,9 @@ class AnvilWorld(WorldFormat):
             internal = self._materials.get_block_from_definition(block)
             internal_id = self.mapping_handler.add_entry(internal)
 
+            if not internal:
+                self.unknown_blocks[internal_id] = block
+
             block_mask = blocks == block[0]
             data_mask = block_data_array == block[1]
 
@@ -243,6 +247,9 @@ class AnvilWorld(WorldFormat):
 
         print(self.mapping_handler)
         print(block_test[1, 70, 3])
+        print(str(block_test[9, 70, 3]) + " = " + self.mapping_handler.get_entry(block_test[9, 70, 3].item()))
+        print(block_test[1, 70, 3] + 3)
+        print(self.unknown_blocks)
 
     def toUnifiedFormat(self) -> object:
         pass

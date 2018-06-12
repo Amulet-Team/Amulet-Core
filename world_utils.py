@@ -1,5 +1,6 @@
 import gzip
 from io import StringIO
+from typing import Union
 
 from numpy import ndarray, zeros, uint8
 
@@ -94,26 +95,41 @@ def get_size(obj, seen=None):
     return size
 
 
-class InternalMappingHandler:
+class InternalBlockMap:
 
     def __init__(self):
         # self._mapping = {"minecraft:air": 0}
         # self._reverse_mapping = {0: "minecraft:air"}
         self._mapping = ["minecraft:air"]
         self._next_id = 1
-        self.__getitem__ = self._mapping.__getitem__
+        self._next_unknown = 0
+
+        #self.__getitem__ = self._mapping.__getitem__
+        #self.__setitem__ = self._mapping.__setitem__
+        #self.__delitem__ = self._mapping.__delitem__
+
         self.__contains__ = self._mapping.__contains__
 
     def add_entry(self, entry: str) -> int:
         if entry in self._mapping:
             return self.get_entry(entry)
 
-        self._mapping.insert(self._next_id, entry)
+        if not entry:
+            self._mapping.insert(self._next_id, "minecraft:unknown_{}".format(self._next_unknown))
+            self._next_unknown += 1
+        else:
+            self._mapping.insert(self._next_id, entry)
         self._next_id += 1
         return self._next_id - 1
 
-    def get_entry(self, entry: str) -> int:
-        return self._mapping.index(entry)
+    def get_entry(self, entry: Union[str, int]) -> Union[str, int]:
+        if isinstance(entry, str):
+            return self._mapping.index(entry)
+        elif isinstance(entry, int):
+            return self._mapping[entry]
+        else:
+            raise KeyError()
 
     def __str__(self):
         return "next_id: {}, {}".format(self._next_id, self._mapping)
+
