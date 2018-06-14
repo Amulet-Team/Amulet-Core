@@ -1,8 +1,10 @@
 import gzip
 from io import StringIO
-from typing import Union
+from typing import Union, Tuple
 
 from numpy import ndarray, zeros, uint8
+
+Coordinates = Tuple[int, int]
 
 SECTOR_BYTES = 4096
 SECTOR_INTS = SECTOR_BYTES / 4
@@ -11,7 +13,7 @@ VERSION_GZIP = 1
 VERSION_DEFLATE = 2
 
 
-def block_coords_to_chunk_coords(x: int, z: int) -> tuple:
+def block_coords_to_chunk_coords(x: int, z: int) -> Coordinates:
     """
     Converts the supplied block coordinates into chunk coordinates
 
@@ -22,7 +24,7 @@ def block_coords_to_chunk_coords(x: int, z: int) -> tuple:
     return x >> 4, z >> 4
 
 
-def chunk_coords_to_region_coords(cx: int, cz: int) -> tuple:
+def chunk_coords_to_region_coords(cx: int, cz: int) -> Coordinates:
     """
     Converts the supplied chunk coordinates into region coordinates
 
@@ -33,7 +35,7 @@ def chunk_coords_to_region_coords(cx: int, cz: int) -> tuple:
     return cx >> 5, cz >> 5
 
 
-def region_coords_to_chunk_coords(rx: int, rz: int) -> tuple:
+def region_coords_to_chunk_coords(rx: int, rz: int) -> Coordinates:
     """
     Converts the supplied region coordinates into the minimum chunk coordinates of that region
 
@@ -104,9 +106,9 @@ class InternalBlockMap:
         self._next_id = 1
         self._next_unknown = 0
 
-        #self.__getitem__ = self._mapping.__getitem__
-        #self.__setitem__ = self._mapping.__setitem__
-        #self.__delitem__ = self._mapping.__delitem__
+        # self.__getitem__ = self._mapping.__getitem__
+        # self.__setitem__ = self._mapping.__setitem__
+        # self.__delitem__ = self._mapping.__delitem__
 
         self.__contains__ = self._mapping.__contains__
 
@@ -115,7 +117,9 @@ class InternalBlockMap:
             return self.get_entry(entry)
 
         if not entry:
-            self._mapping.insert(self._next_id, "minecraft:unknown_{}".format(self._next_unknown))
+            self._mapping.insert(
+                self._next_id, "minecraft:unknown_{}".format(self._next_unknown)
+            )
             self._next_unknown += 1
         else:
             self._mapping.insert(self._next_id, entry)
@@ -125,11 +129,12 @@ class InternalBlockMap:
     def get_entry(self, entry: Union[str, int]) -> Union[str, int]:
         if isinstance(entry, str):
             return self._mapping.index(entry)
+
         elif isinstance(entry, int):
             return self._mapping[entry]
+
         else:
             raise KeyError()
 
     def __str__(self):
         return "next_id: {}, {}".format(self._next_id, self._mapping)
-

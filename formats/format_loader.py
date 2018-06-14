@@ -6,6 +6,7 @@ import importlib.util
 import glob
 import time
 from types import ModuleType
+from typing import Tuple
 
 
 class _FormatLoader:
@@ -36,7 +37,7 @@ class _FormatLoader:
             if success:
                 self._loaded_formats[format_name] = module
 
-    def load_format(self, directory: str) -> (bool, object):
+    def load_format(self, directory: str) -> Tuple[bool, object]:
         try:
             format_module = importlib.import_module(os.path.basename(directory))
         # spec = importlib.util.find_spec(directory)

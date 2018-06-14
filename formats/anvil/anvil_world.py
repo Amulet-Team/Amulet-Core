@@ -2,6 +2,7 @@ import struct
 import time
 import zlib
 from io import BytesIO
+from typing import Tuple
 
 import numpy
 
@@ -21,7 +22,9 @@ class _AnvilRegionManager:
         self._directory = directory
         self._loaded_regions = {}
 
-    def load_chunk(self, cx: int, cz: int) -> tuple:
+    def load_chunk(
+        self, cx: int, cz: int
+    ) -> Tuple[nbt.TAG_List, nbt.TAG_List, nbt.TAG_List]:
         rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)
         key = (rx, rz)
 
@@ -154,7 +157,7 @@ class AnvilWorld(WorldFormat):
 
         return UnifiedWorld(directory, root_tag, wrapper)
 
-    def d_load_chunk(self, cx: int, cz: int) -> numpy.ndarray:
+    def d_load_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
         chunk_sections, tile_entities, entities = self._region_manager.load_chunk(
             cx, cz
         )
@@ -247,7 +250,11 @@ class AnvilWorld(WorldFormat):
 
         print(self.mapping_handler)
         print(block_test[1, 70, 3])
-        print(str(block_test[9, 70, 3]) + " = " + self.mapping_handler.get_entry(block_test[9, 70, 3].item()))
+        print(
+            str(block_test[9, 70, 3])
+            + " = "
+            + self.mapping_handler.get_entry(block_test[9, 70, 3].item())
+        )
         print(block_test[1, 70, 3] + 3)
         print(self.unknown_blocks)
 
