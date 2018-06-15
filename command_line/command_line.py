@@ -51,6 +51,7 @@ class CommandLineHandler:
             command_parts = user_input.split(" ")
 
             if command_parts[0] in self.commands:
+                print("==== {} Command Help ====".format(command_parts[0].capitalize()))
                 if "-h" in command_parts:
                     self.commands[command_parts[0]].help()
                 else:
