@@ -13,6 +13,7 @@ Welcome to Unified Map Editor's documentation!
    api
    world_utils
    version_definitions
+   command_line
 
 
 
