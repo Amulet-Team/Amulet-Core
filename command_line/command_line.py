@@ -59,6 +59,19 @@ class CommandLineHandler:
     def _execute_command(self, command_parts):
         self._commands[command_parts[0]].run(command_parts)
 
+    def _exit(self, force=False) -> bool:
+        while not self._modes.is_empty():
+            mode = self._modes.peek()
+            result = mode.exit()
+            if force:
+                self._modes.pop()
+            elif not result:
+                print(f"======= Could not exit {mode.display()} ======")
+                return False
+            else:
+                self._modes.pop()
+        return True
+
     def run(self):
         while True:
             user_input = input(f"{' | '.join(self._modes.iter_func())}> ")
@@ -66,25 +79,23 @@ class CommandLineHandler:
             if not user_input:
                 continue
 
-            if user_input == "exit":
+            command_parts = shlex.split(user_input)
+
+            if command_parts[0] == "exit":
+                if not self._exit('-f' in command_parts):
+                    continue
                 break
 
-#            if user_input == "reload":
-#                self.load_commands_and_modes()
-#                print("Successfully reloaded commands and modes")
-#                continue
-
-            if user_input.startswith("help"):
-                parts = user_input.split(" ")
-                if len(parts) > 1:
-                    if parts[1] in self._commands:
-                        print(f"==== {parts[1].capitalize()} Command Help ====")
-                        self._commands[parts[1]].help()
-                    elif parts[1] in self._complex_commands:
-                        print(f"==== {parts[1].capitalize()} Command Help ====")
-                        self._complex_commands[parts[1]].help()
+            if command_parts[0] == "help":
+                if len(command_parts) > 1:
+                    if command_parts[1] in self._commands:
+                        print(f"==== {command_parts[1].capitalize()} Command Help ====")
+                        self._commands[command_parts[1]].help()
+                    elif command_parts[1] in self._complex_commands:
+                        print(f"==== {command_parts[1].capitalize()} Command Help ====")
+                        self._complex_commands[command_parts[1]].help()
                     else:
-                        print(f'help: Command "{parts[1]}" not recognized')
+                        print(f'help: Command "{command_parts[1]}" not recognized')
                         continue
 
                 else:
@@ -99,8 +110,6 @@ class CommandLineHandler:
 
                     for ccmd, inst in self._complex_commands.items():
                         print(f"{ccmd} - {inst.short_help():.51}")
-
-            command_parts = shlex.split(user_input)
 
             if command_parts[0] in self._commands:
                 if "-h" in command_parts:

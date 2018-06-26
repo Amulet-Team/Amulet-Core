@@ -95,6 +95,10 @@ class ComplexCommand:
 
 
 class Mode:
+    """
+    Represents a configurable state that the command line can enter. This is useful for controlling the execution of various
+    commands
+    """
 
     def __init__(self, cmd_line_handler):
         self.handler = cmd_line_handler
@@ -119,7 +123,17 @@ class Mode:
         raise NotImplementedError()
 
     def enter(self):
-        pass
+        """
+        Called when the mode is entered
+
+        :return: Anything returned is ignored
+        """
+        raise NotImplementedError()
 
     def exit(self):
-        pass
+        """
+        Called when the mode is exited
+
+        :return: Return False if the mode is not ready to be exited, other wise return True. If the exit command is supplied a '-f' argument, then the return value is ignored
+        """
+        raise NotImplementedError()

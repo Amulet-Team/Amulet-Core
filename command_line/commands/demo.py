@@ -35,7 +35,7 @@ class EnterTestModeCommand(SimpleCommand):
     command = "enter"
 
     def run(self, args: List[str]):
-        mode = TestMode(self.handler)
+        mode = TestMode(self.handler, '-b' in args)
         self.handler.enter_mode(mode)
 
     def help(self):
@@ -47,8 +47,19 @@ class EnterTestModeCommand(SimpleCommand):
 
 class TestMode(Mode):
 
+    def __init__(self, handler, should_halt_exit=False):
+        super(TestMode, self).__init__(handler)
+        self._block_exit = not should_halt_exit
+
     def before_execution(self, command) -> bool:
         pass
 
     def display(self):
         return "Test Mode"
+
+    def enter(self):
+        print("Entering test mode")
+
+    def exit(self):
+        print("Exiting test mode")
+        return self._block_exit

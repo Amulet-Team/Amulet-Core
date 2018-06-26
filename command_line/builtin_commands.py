@@ -29,6 +29,8 @@ class WorldMode(Mode):
             print("Entered world mode")
 
     def exit(self):
+        if __debug__:
+            print("Exiting world mode")
         if not self._unsaved_changes.is_empty():
             print("You have unsaved changes, do you really want to quit?")
             ans = input("(y/n)> ")
