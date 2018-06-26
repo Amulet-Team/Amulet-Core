@@ -13,6 +13,7 @@ class SimpleStack:
     def peek(self):
         if len(self._data) == 0:
             return None
+
         return self._data[-1]
 
     def is_empty(self) -> bool:

@@ -1,5 +1,6 @@
 from typing import List, Type, Any, Sequence
 
+
 class SimpleCommand:
     """
     Represents a command that can be executed within the command line

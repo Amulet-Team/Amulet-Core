@@ -22,6 +22,7 @@ class WorldMode(Mode):
         if command[0] == "load" and not self._unsaved_changes.is_empty():
             print("You can't load a new world if you currently have unsaved changes")
             return False
+
         return True
 
     def enter(self):
@@ -36,7 +37,9 @@ class WorldMode(Mode):
             ans = input("(y/n)> ")
             if ans == "y":
                 return True
+
             return False
+
         return True
 
 

@@ -30,12 +30,13 @@ class EchoCommand(SimpleCommand):
 
     command = "echo"
 
+
 class EnterTestModeCommand(SimpleCommand):
 
     command = "entertestmode"
 
     def run(self, args: List[str]):
-        mode = TestMode(self.handler, '-b' in args)
+        mode = TestMode(self.handler, "-b" in args)
         self.handler.enter_mode(mode)
 
     def help(self):

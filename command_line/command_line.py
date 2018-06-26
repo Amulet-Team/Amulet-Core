@@ -11,6 +11,7 @@ from api.data_structures import SimpleStack
 
 from command_line import builtin_commands
 
+
 class ModeStack(SimpleStack):
 
     def __init__(self, *args, **kwargs):
@@ -24,11 +25,12 @@ class ModeStack(SimpleStack):
     def get_mode(self, mode_class):
         if not isinstance(mode_class, type):
             raise TypeError("You must pass a Type")
+
         for mode in self._data:
             if isinstance(mode, mode_class):
                 return mode
-        return None
 
+        return None
 
 
 class CommandLineHandler:
@@ -60,6 +62,7 @@ class CommandLineHandler:
         elif not result:
             print(f"======= Could not exit {mode.display()} ======")
             return False
+
         else:
             self._modes.pop()
         return True
@@ -73,6 +76,7 @@ class CommandLineHandler:
             if not result:
                 print(f"======= Could not exit {mode.display()} ======")
                 return False
+
         return True
 
     def run(self):
@@ -82,15 +86,18 @@ class CommandLineHandler:
             if not user_input:
                 continue
 
-            if user_input.count("\"") % 2 != 0 or user_input.count("'") % 2 != 0:
-                print("=== Error: You do not have an even amount of quotations in your entered command, please re-enter your command")
+            if user_input.count('"') % 2 != 0 or user_input.count("'") % 2 != 0:
+                print(
+                    "=== Error: You do not have an even amount of quotations in your entered command, please re-enter your command"
+                )
                 continue
 
             command_parts = shlex.split(user_input)
 
             if command_parts[0] == "exit":
-                if not self._exit('-f' in command_parts):
+                if not self._exit("-f" in command_parts):
                     continue
+
                 break
 
             if command_parts[0] == "help":
@@ -144,7 +151,9 @@ class CommandLineHandler:
             command_name = command.command
 
             if not self.command_regex.match(command_name):
-                print(f"Could not enable command {command_name} since it doesn't have a valid command name/prefix")
+                print(
+                    f"Could not enable command {command_name} since it doesn't have a valid command name/prefix"
+                )
                 continue
 
             if command_name in self.reserved_commands:
@@ -169,6 +178,7 @@ class CommandLineHandler:
                     del self._commands[child.command]
                 self._commands[f"{base_command}.{child.command}"] = command_inst
 
+
 class ReloadCommand(SimpleCommand):
 
     command = "reload"
@@ -184,6 +194,7 @@ class ReloadCommand(SimpleCommand):
         self.handler.load_commands_and_modes()
         print("Successfully reloaded commands and modes")
 
+
 class PopModeCommand(SimpleCommand):
 
     def run(self, args: List[str]):
@@ -196,7 +207,6 @@ class PopModeCommand(SimpleCommand):
         return "Exits the most current mode"
 
     command = "popmode"
-
 
 
 def init():
