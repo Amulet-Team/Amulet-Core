@@ -6,19 +6,16 @@ import sys
 import re
 from typing import List
 
-from api.cmd_line import SimpleCommand, ComplexCommand, Mode
+from api.cmd_line import SimpleCommand, ComplexCommand
 from api.data_structures import SimpleStack
-
-from command_line import builtin_commands
 
 
 class ModeStack(SimpleStack):
 
     def __init__(self, *args, **kwargs):
         super(ModeStack, self).__init__(*args, **kwargs)
-        self.__iter__ = self._data.__iter__
 
-    def iter_func(self):
+    def iter(self):
         for mode in self._data:
             yield mode.display()
 
@@ -36,7 +33,7 @@ class ModeStack(SimpleStack):
 class CommandLineHandler:
 
     reserved_commands = ("help", "exit")
-    command_regex = re.compile(r"^[a-zA-Z]+\d*$")
+    command_regex = re.compile(r"^[a-zA-Z_]+\d*$")
 
     def __init__(self):
 
@@ -81,7 +78,7 @@ class CommandLineHandler:
 
     def run(self):
         while True:
-            user_input = input(f"{' | '.join(self._modes.iter_func())}> ")
+            user_input = input(f"{' | '.join(self._modes.iter())}> ")
 
             if not user_input:
                 continue
@@ -99,6 +96,9 @@ class CommandLineHandler:
                     continue
 
                 break
+
+            if command_parts[0] == PopModeCommand.command:
+                self._commands[command_parts[0]].run(command_parts)
 
             if command_parts[0] == "help":
                 if len(command_parts) > 1:
@@ -206,7 +206,7 @@ class PopModeCommand(SimpleCommand):
     def short_help(self) -> str:
         return "Exits the most current mode"
 
-    command = "popmode"
+    command = "pop_mode"
 
 
 def init():
