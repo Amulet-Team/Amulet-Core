@@ -1,6 +1,6 @@
 from typing import List
 
-from command_line import SimpleCommand, Mode
+from api.cmd_line import SimpleCommand, Mode
 
 
 class TestCommand(SimpleCommand):
@@ -17,10 +17,6 @@ class TestCommand(SimpleCommand):
     command = "test"
 
 
-class TestTestCommand(TestCommand):
-    pass
-
-
 class EchoCommand(SimpleCommand):
 
     def short_help(self) -> str:
@@ -34,10 +30,25 @@ class EchoCommand(SimpleCommand):
 
     command = "echo"
 
+class EnterTestModeCommand(SimpleCommand):
+
+    command = "enter"
+
+    def run(self, args: List[str]):
+        mode = TestMode(self.handler)
+        self.handler.enter_mode(mode)
+
+    def help(self):
+        pass
+
+    def short_help(self) -> str:
+        return "Enters a new mode"
+
 
 class TestMode(Mode):
-    pass
 
+    def before_execution(self, command) -> bool:
+        pass
 
-class TestTestMode(TestMode):
-    pass
+    def display(self):
+        return "Test Mode"
