@@ -49,27 +49,30 @@ class CommandLineHandler:
         self._modes.append(mode)
         mode.enter()
 
-    def exit_mode(self):
-        if len(self._modes) == 0:
+    def exit_mode(self, force=False):
+        if self._modes.is_empty():
             return
 
-        self._modes.peek().exit()
-        self._modes.pop()
+        mode = self._modes.peek()
+        result = mode.exit()
+        if force:
+            self._modes.pop()
+        elif not result:
+            print(f"======= Could not exit {mode.display()} ======")
+            return False
+        else:
+            self._modes.pop()
+        return True
 
     def _execute_command(self, command_parts):
         self._commands[command_parts[0]].run(command_parts)
 
     def _exit(self, force=False) -> bool:
         while not self._modes.is_empty():
-            mode = self._modes.peek()
-            result = mode.exit()
-            if force:
-                self._modes.pop()
-            elif not result:
+            result = self.exit_mode(force)
+            if not result:
                 print(f"======= Could not exit {mode.display()} ======")
                 return False
-            else:
-                self._modes.pop()
         return True
 
     def run(self):
@@ -77,6 +80,10 @@ class CommandLineHandler:
             user_input = input(f"{' | '.join(self._modes.iter_func())}> ")
 
             if not user_input:
+                continue
+
+            if user_input.count("\"") % 2 != 0 or user_input.count("'") % 2 != 0:
+                print("=== Error: You do not have an even amount of quotations in your entered command, please re-enter your command")
                 continue
 
             command_parts = shlex.split(user_input)
@@ -120,7 +127,7 @@ class CommandLineHandler:
                         self._execute_command(command_parts)
                     else:
                         result = self._modes.peek().before_execution(command_parts)
-                        if result:
+                        if result is None or result:
                             self._execute_command(command_parts)
         return 0
 
@@ -137,6 +144,7 @@ class CommandLineHandler:
             command_name = command.command
 
             if not self.command_regex.match(command_name):
+                print(f"Could not enable command {command_name} since it doesn't have a valid command name/prefix")
                 continue
 
             if command_name in self.reserved_commands:
@@ -161,13 +169,6 @@ class CommandLineHandler:
                     del self._commands[child.command]
                 self._commands[f"{base_command}.{child.command}"] = command_inst
 
-        modes = Mode.get_subclasses()
-
-
-# for mode in modes:
-#    print(mode)
-
-
 class ReloadCommand(SimpleCommand):
 
     command = "reload"
@@ -182,6 +183,20 @@ class ReloadCommand(SimpleCommand):
     def run(self, args: List[str]):
         self.handler.load_commands_and_modes()
         print("Successfully reloaded commands and modes")
+
+class PopModeCommand(SimpleCommand):
+
+    def run(self, args: List[str]):
+        self.handler.exit_mode("-f" in args)
+
+    def help(self):
+        pass
+
+    def short_help(self) -> str:
+        return "Exits the most current mode"
+
+    command = "popmode"
+
 
 
 def init():

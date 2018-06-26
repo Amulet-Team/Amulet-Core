@@ -32,7 +32,7 @@ class EchoCommand(SimpleCommand):
 
 class EnterTestModeCommand(SimpleCommand):
 
-    command = "enter"
+    command = "entertestmode"
 
     def run(self, args: List[str]):
         mode = TestMode(self.handler, '-b' in args)
@@ -52,7 +52,7 @@ class TestMode(Mode):
         self._block_exit = not should_halt_exit
 
     def before_execution(self, command) -> bool:
-        pass
+        return True
 
     def display(self):
         return "Test Mode"
