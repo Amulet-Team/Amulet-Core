@@ -16,7 +16,7 @@ class WorldMode(Mode):
         self._unsaved_changes = SimpleStack()
 
     @property
-    def world_path(self):
+    def world_path(self) -> str:
         return self._world_path
 
     def display(self) -> str:
@@ -29,7 +29,7 @@ class WorldMode(Mode):
 
         return True
 
-    def enter(self):
+    def enter(self) -> bool:
         if self.handler.in_mode(WorldMode):
             print("You cannot load a world if another world is already loaded!")
             return False
@@ -37,7 +37,7 @@ class WorldMode(Mode):
             print("Entered world mode")
         return True
 
-    def exit(self):
+    def exit(self) -> bool:
         if __debug__:
             print("Exiting world mode")
         if not self._unsaved_changes.is_empty():
@@ -61,7 +61,7 @@ class WorldCommand(ComplexCommand):
 
     @classmethod
     def help(cls):
-        print("===== World Commands =====")
+        #print("===== World Commands =====")
         print("load - Loads a Minecraft world with the appropriate format loader")
         print("identify - Prints out the identified loader for a given world")
 
@@ -84,10 +84,13 @@ class WorldLoadCommand(SimpleCommand):
         self.handler.enter_mode(world_mode)
 
     def help(self):
-        pass
+        print("Loads a Minecraft world and enters World Mode")
+        print("This command cannot be used once the program")
+        print("has entered a World Mode\n")
+        print("Usage: world.load \"<world filepath>\"")
 
     def short_help(self) -> str:
-        return ""
+        return "Loads a Minecraft world and enters World Mode"
 
 
 class WorldIdentifyCommand(SimpleCommand):
@@ -109,7 +112,15 @@ class WorldIdentifyCommand(SimpleCommand):
         print(f"Format: {identified_format}")
 
     def help(self):
-        pass
+        print("Identifies what format the given Minecraft world is in")
+        print("This command can be used in 2 ways. The first method")
+        print("is to supply a filepath to the world directory along")
+        print("with the command itself. The second method is by loading")
+        print("a world then running the command without any arguments.")
+        print("However, if an argument is given, the format of the given path")
+        print("will be displayed\n")
+        print("Usage: world.identify \"<world filepath>\"")
+        print("Usage (When in World Mode): world.identify")
 
     def short_help(self) -> str:
-        return ""
+        return "Identifies what format the given Minecraft world is in"

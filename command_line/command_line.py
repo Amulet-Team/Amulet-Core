@@ -46,6 +46,7 @@ class CommandLineHandler:
         self._modes = ModeStack()
 
         self._retry_modules = []
+        self._modules = []
         self.load_commands_and_modes()
 
         self.data = {}
@@ -163,15 +164,19 @@ class CommandLineHandler:
             if answer.lower() == 'y':
                 for cmd in cmds:
                     try:
-                        importlib.import_module(os.path.basename(cmd)[:-3])
+                        module = importlib.import_module(os.path.basename(cmd)[:-3])
+                        self._modules.append(module)
                     except ImportError:
                         self._retry_modules.append(os.path.basename(cmd)[:-3])
 
                 for mod in self._retry_modules:
                     try:
-                        importlib.import_module(mod)
+                        module = importlib.import_module(mod)
+                        self._modules.append(module)
                     except ImportError as e:
                         print(f"Couldn't import {mod} due to error: {e}")
+
+        del self._retry_modules
 
         simple_commands = SimpleCommand.get_subclasses()
         for command in simple_commands:
@@ -212,13 +217,16 @@ class ReloadCommand(SimpleCommand):
 
     def help(self):
         print("Running this command reloads all registered commands and modes")
-        print('Usage: "> reload"')
+        print('Usage: reload')
 
     def short_help(self) -> str:
         return "Reloads all registered commands and modes"
 
     def run(self, args: List[str]):
-        self.handler.load_commands_and_modes()
+        #self.handler.load_commands_and_modes()
+        modules = getattr(self.handler, "_modules", ())
+        for mod in modules:
+            importlib.reload(mod)
         print("Successfully reloaded commands and modes")
 
 
@@ -228,7 +236,10 @@ class PopModeCommand(SimpleCommand):
         self.handler.exit_mode("-f" in args)
 
     def help(self):
-        pass
+        print("Exits the most current mode and returns execution")
+        print("to the previous mode. If a mode is unable to be exited")
+        print("the '-f' argument forcefully exits the mode\n")
+        print("Usage: pop_mode <-f>")
 
     def short_help(self) -> str:
         return "Exits the most current mode"

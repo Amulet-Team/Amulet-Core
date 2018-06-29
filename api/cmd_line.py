@@ -115,7 +115,7 @@ class Mode:
     def display(self) -> str:
         raise NotImplementedError()
 
-    def before_execution(self, command) -> bool:
+    def before_execution(self, command: List[str]) -> bool:
         """
         Called before the execution of a command. Return True to run the given command, False to halt the execution.
 

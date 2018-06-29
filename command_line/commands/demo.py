@@ -2,7 +2,6 @@ from typing import List
 
 from api.cmd_line import SimpleCommand, Mode
 
-
 class TestCommand(SimpleCommand):
 
     def short_help(self) -> str:
