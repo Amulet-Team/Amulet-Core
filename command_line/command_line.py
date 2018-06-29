@@ -19,6 +19,10 @@ class ModeStack(SimpleStack):
         for mode in self._data:
             yield mode.display()
 
+    def has_mode(self, mode_class):
+        return self.get_mode(mode_class) is not None
+
+
     def get_mode(self, mode_class):
         if not isinstance(mode_class, type):
             raise TypeError("You must pass a Type")
@@ -40,13 +44,20 @@ class CommandLineHandler:
         self._commands = {}
         self._complex_commands = {}
         self._modes = ModeStack()
+
+        self._retry_modules = []
         self.load_commands_and_modes()
 
         self.data = {}
 
+        self.in_mode = self._modes.has_mode
+        self.get_mode = self._modes.get_mode
+
     def enter_mode(self, mode):
-        self._modes.append(mode)
-        mode.enter()
+        if mode.enter():
+            self._modes.append(mode)
+        else:
+            print(f"=== Error: Could not enter mode: {mode.__class__.__name__}")
 
     def exit_mode(self, force=False):
         if self._modes.is_empty():
@@ -143,8 +154,24 @@ class CommandLineHandler:
         sys.path.insert(0, os.path.join(search_path))
 
         cmds = glob.glob(os.path.join(search_path, "*.py"))
-        for cmd in cmds:
-            module = importlib.import_module(os.path.basename(cmd)[:-3])
+        if cmds:
+            print("Detected loadable 3rd party command-line modules. These modules")
+            print("cannot be verified to be stable and/or contain malicious code. If")
+            print("you enable these modules, you use them at your own risk")
+            answer = input("Would you like to enable them anyway? (y/n)> ")
+
+            if answer.lower() == 'y':
+                for cmd in cmds:
+                    try:
+                        importlib.import_module(os.path.basename(cmd)[:-3])
+                    except ImportError:
+                        self._retry_modules.append(os.path.basename(cmd)[:-3])
+
+                for mod in self._retry_modules:
+                    try:
+                        importlib.import_module(mod)
+                    except ImportError as e:
+                        print(f"Couldn't import {mod} due to error: {e}")
 
         simple_commands = SimpleCommand.get_subclasses()
         for command in simple_commands:

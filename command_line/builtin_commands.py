@@ -15,6 +15,10 @@ class WorldMode(Mode):
         self._world_name = os.path.basename(self._world_path)
         self._unsaved_changes = SimpleStack()
 
+    @property
+    def world_path(self):
+        return self._world_path
+
     def display(self) -> str:
         return self._world_name
 
@@ -26,8 +30,12 @@ class WorldMode(Mode):
         return True
 
     def enter(self):
+        if self.handler.in_mode(WorldMode):
+            print("You cannot load a world if another world is already loaded!")
+            return False
         if __debug__:
             print("Entered world mode")
+        return True
 
     def exit(self):
         if __debug__:
@@ -67,7 +75,10 @@ class WorldLoadCommand(SimpleCommand):
     command = "load"
 
     def run(self, args: List[str]):
-        print(args)
+        if len(args) == 1:
+            print("Usage: >world.load \"<world filepath>\"")
+            return
+
         world_path = args[1]
         world_mode = WorldMode(self.handler, world=world_path)
         self.handler.enter_mode(world_mode)
@@ -84,7 +95,17 @@ class WorldIdentifyCommand(SimpleCommand):
     command = "identify"
 
     def run(self, args: List[str]):
-        identified_format = loader.identify_world_format_str(args[1])
+        if not self.handler.in_mode(WorldMode):
+            if len(args) == 1:
+                print("Usage: >world.identify \"<world filepath>\"")
+                return
+            identified_format = loader.identify_world_format_str(args[1])
+        elif len(args) == 2:
+            identified_format = loader.identify_world_format_str(args[1])
+        else:
+            world_mode = self.handler.get_mode(WorldMode)
+            identified_format = loader.identify_world_format_str(world_mode.world_path)
+
         print(f"Format: {identified_format}")
 
     def help(self):

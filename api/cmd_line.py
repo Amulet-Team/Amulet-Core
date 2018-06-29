@@ -105,7 +105,7 @@ class Mode:
         self.handler = cmd_line_handler
 
     @classmethod
-    def get_subclasses(cls) -> List:
+    def get_subclasses(cls) -> List[Type[Any]]:
         result = []
         for sub in cls.__subclasses__():
             result.append(sub)
@@ -123,18 +123,18 @@ class Mode:
         """
         raise NotImplementedError()
 
-    def enter(self):
+    def enter(self) -> bool:
         """
         Called when the mode is entered
 
-        :return: Anything returned is ignored
+        :return: Return False if the mode is not ready to be entered, otherwise return True.
         """
         raise NotImplementedError()
 
-    def exit(self):
+    def exit(self) -> bool:
         """
         Called when the mode is exited
 
-        :return: Return False if the mode is not ready to be exited, other wise return True. If the exit command is supplied a '-f' argument, then the return value is ignored
+        :return: Return False if the mode is not ready to be exited, otherwise return True. If the exit command is supplied a '-f' argument, then the return value is ignored
         """
         raise NotImplementedError()
