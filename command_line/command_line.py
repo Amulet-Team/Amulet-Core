@@ -4,9 +4,9 @@ import os
 import shlex
 import sys
 import re
-from typing import List
+from typing import List, Type
 
-from api.cmd_line import SimpleCommand, ComplexCommand
+from api.cmd_line import SimpleCommand, ComplexCommand, Mode
 from api.data_structures import SimpleStack
 
 
@@ -22,7 +22,6 @@ class ModeStack(SimpleStack):
     def has_mode(self, mode_class):
         return self.get_mode(mode_class) is not None
 
-
     def get_mode(self, mode_class):
         if not isinstance(mode_class, type):
             raise TypeError("You must pass a Type")
@@ -36,8 +35,26 @@ class ModeStack(SimpleStack):
 
 class CommandLineHandler:
 
-    reserved_commands = ("help", "exit")
-    command_regex = re.compile(r"^[a-zA-Z_]+\d*$")
+    _reserved_commands = ("help", "exit")
+    _command_regex = re.compile(r"^[a-zA-Z_]+\d*$")
+
+    def in_mode(self, mode_class: Type[Mode]) -> bool:
+        """
+        Stub method for checking whether the program is in the specified Mode
+
+        :param mode_class: The class of the Mode to check for
+        :return: True if the program is in the specified Mode, False otherwise
+        """
+        pass
+
+    def get_mode(self, mode_class: Type[Mode]) -> Mode:
+        """
+        Stub method for getting a Mode that the program is in
+
+        :param mode_class: The class of the Mode instance to get
+        :return: The instance of the specified Mode, None if the mode hasn't been entered
+        """
+        pass
 
     def __init__(self):
 
@@ -47,22 +64,34 @@ class CommandLineHandler:
 
         self._retry_modules = []
         self._modules = []
-        self.load_commands_and_modes()
+        self._load_commands_and_modes()
 
         self.data = {}
 
         self.in_mode = self._modes.has_mode
         self.get_mode = self._modes.get_mode
 
-    def enter_mode(self, mode):
+    def enter_mode(self, mode: Mode):
+        """
+        Enters the supplied Mode, but doesn't add it to the ModeStack unless enter() returns True
+
+        :param mode: An instance of Mode to enter
+        """
         if mode.enter():
             self._modes.append(mode)
         else:
             print(f"=== Error: Could not enter mode: {mode.__class__.__name__}")
 
-    def exit_mode(self, force=False):
+    def exit_mode(self, force: bool = False) -> bool:
+        """
+        Exits the most current Mode if the Mode's exit() returns True. If False is returned, the user is
+        notified. If ``force`` is True, then the return value of exit() is ignored.
+
+        :param force: True if the return value of exit() is to be ignored
+        :return: True if the Mode was successfully exited, False otherwise
+        """
         if self._modes.is_empty():
-            return
+            return False
 
         mode = self._modes.peek()
         result = mode.exit()
@@ -88,7 +117,7 @@ class CommandLineHandler:
 
         return True
 
-    def run(self):
+    def _run(self):
         while True:
             user_input = input(f"{' | '.join(self._modes.iter())}> ")
 
@@ -150,7 +179,7 @@ class CommandLineHandler:
                             self._execute_command(command_parts)
         return 0
 
-    def load_commands_and_modes(self):
+    def _load_commands_and_modes(self):
         search_path = os.path.join(os.path.dirname(__file__), "commands")
         sys.path.insert(0, os.path.join(search_path))
 
@@ -161,7 +190,7 @@ class CommandLineHandler:
             print("you enable these modules, you use them at your own risk")
             answer = input("Would you like to enable them anyway? (y/n)> ")
 
-            if answer.lower() == 'y':
+            if answer.lower() == "y":
                 for cmd in cmds:
                     try:
                         module = importlib.import_module(os.path.basename(cmd)[:-3])
@@ -182,13 +211,13 @@ class CommandLineHandler:
         for command in simple_commands:
             command_name = command.command
 
-            if not self.command_regex.match(command_name):
+            if not self._command_regex.match(command_name):
                 print(
                     f"Could not enable command {command_name} since it doesn't have a valid command name/prefix"
                 )
                 continue
 
-            if command_name in self.reserved_commands:
+            if command_name in self._reserved_commands:
                 print(
                     f"Could not enable command {command_name} since another command uses the same prefix!"
                 )
@@ -217,13 +246,13 @@ class ReloadCommand(SimpleCommand):
 
     def help(self):
         print("Running this command reloads all registered commands and modes")
-        print('Usage: reload')
+        print("Usage: reload")
 
     def short_help(self) -> str:
         return "Reloads all registered commands and modes"
 
     def run(self, args: List[str]):
-        #self.handler.load_commands_and_modes()
+        # self.handler.load_commands_and_modes()
         modules = getattr(self.handler, "_modules", ())
         for mod in modules:
             importlib.reload(mod)

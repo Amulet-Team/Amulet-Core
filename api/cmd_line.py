@@ -10,7 +10,7 @@ class SimpleCommand:
         self.handler = cmd_line_handler
 
     @classmethod
-    def get_subclasses(cls) -> List[Type[Any]]:
+    def get_subclasses(cls) -> List[Type["SimpleCommand"]]:
         """
         Utility function to get all classes that extend this one
 
@@ -54,7 +54,7 @@ class ComplexCommand:
     """
 
     @classmethod
-    def get_subclasses(cls) -> List[Type[Any]]:
+    def get_subclasses(cls) -> List[Type["ComplexCommand"]]:
         """
         Utility function to get all classes that extend this one
 
@@ -94,7 +94,6 @@ class ComplexCommand:
         """
         raise NotImplementedError()
 
-
 class Mode:
     """
     Represents a configurable state that the command line can enter. This is useful for controlling the execution of various
@@ -103,14 +102,6 @@ class Mode:
 
     def __init__(self, cmd_line_handler):
         self.handler = cmd_line_handler
-
-    @classmethod
-    def get_subclasses(cls) -> List[Type[Any]]:
-        result = []
-        for sub in cls.__subclasses__():
-            result.append(sub)
-            result.extend(sub.get_subclasses())
-        return result
 
     def display(self) -> str:
         raise NotImplementedError()

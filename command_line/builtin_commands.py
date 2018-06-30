@@ -33,6 +33,7 @@ class WorldMode(Mode):
         if self.handler.in_mode(WorldMode):
             print("You cannot load a world if another world is already loaded!")
             return False
+
         if __debug__:
             print("Entered world mode")
         return True
@@ -61,7 +62,7 @@ class WorldCommand(ComplexCommand):
 
     @classmethod
     def help(cls):
-        #print("===== World Commands =====")
+        # print("===== World Commands =====")
         print("load - Loads a Minecraft world with the appropriate format loader")
         print("identify - Prints out the identified loader for a given world")
 
@@ -76,7 +77,7 @@ class WorldLoadCommand(SimpleCommand):
 
     def run(self, args: List[str]):
         if len(args) == 1:
-            print("Usage: >world.load \"<world filepath>\"")
+            print('Usage: world.load "<world filepath>"')
             return
 
         world_path = args[1]
@@ -87,7 +88,7 @@ class WorldLoadCommand(SimpleCommand):
         print("Loads a Minecraft world and enters World Mode")
         print("This command cannot be used once the program")
         print("has entered a World Mode\n")
-        print("Usage: world.load \"<world filepath>\"")
+        print('Usage: world.load "<world filepath>"')
 
     def short_help(self) -> str:
         return "Loads a Minecraft world and enters World Mode"
@@ -100,8 +101,9 @@ class WorldIdentifyCommand(SimpleCommand):
     def run(self, args: List[str]):
         if not self.handler.in_mode(WorldMode):
             if len(args) == 1:
-                print("Usage: >world.identify \"<world filepath>\"")
+                print('Usage: world.identify "<world filepath>"')
                 return
+
             identified_format = loader.identify_world_format_str(args[1])
         elif len(args) == 2:
             identified_format = loader.identify_world_format_str(args[1])
@@ -119,7 +121,7 @@ class WorldIdentifyCommand(SimpleCommand):
         print("a world then running the command without any arguments.")
         print("However, if an argument is given, the format of the given path")
         print("will be displayed\n")
-        print("Usage: world.identify \"<world filepath>\"")
+        print('Usage: world.identify "<world filepath>"')
         print("Usage (When in World Mode): world.identify")
 
     def short_help(self) -> str:
