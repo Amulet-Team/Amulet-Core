@@ -1,3 +1,5 @@
+from typing import Union, Any
+
 class SimpleStack:
 
     def __init__(self, initial_data=None):
@@ -10,8 +12,8 @@ class SimpleStack:
         self.pop = self._data.pop
         self.append = self._data.append
 
-    def peek(self):
-        if len(self._data) == 0:
+    def peek(self) -> Union[Any, None]:
+        if self.is_empty():
             return None
 
         return self._data[-1]

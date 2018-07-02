@@ -9,7 +9,6 @@ from typing import List, Type
 from api.cmd_line import SimpleCommand, ComplexCommand, Mode
 from api.data_structures import SimpleStack
 
-
 class ModeStack(SimpleStack):
 
     def __init__(self, *args, **kwargs):

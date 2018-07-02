@@ -5,6 +5,7 @@ from api.cmd_line import SimpleCommand, ComplexCommand, Mode
 from api.data_structures import SimpleStack
 
 from formats.format_loader import loader
+from formats.unified import UnifiedWorld
 
 
 class WorldMode(Mode):
@@ -14,9 +15,14 @@ class WorldMode(Mode):
         self._world_path = kwargs.get("world")
         self._world_name = os.path.basename(self._world_path)
         self._unsaved_changes = SimpleStack()
+        self._world = loader.load_world(self._world_path)
 
     @property
     def world_path(self) -> str:
+        return self._world_path
+
+    @property
+    def world(self) -> UnifiedWorld:
         return self._world_path
 
     def display(self) -> str:
