@@ -2,6 +2,8 @@ from typing import Union, Sequence
 
 import numpy
 
+import world_utils
+
 
 def method_not_implemented(*args, **kwargs):
     raise NotImplementedError()
@@ -18,6 +20,9 @@ class UnifiedWorld:
         self._load_space()
 
         self._blocks = numpy.zeros((256, 256, 256), dtype=numpy.uint16)
+
+    def d_load_chunk(self, cx: int, cz: int):
+        return self._wrapper.d_load_chunk(cx, cz)
 
     def _load_space(self):
         # print(self._root_tag)

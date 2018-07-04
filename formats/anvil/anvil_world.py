@@ -258,6 +258,8 @@ class AnvilWorld(WorldFormat):
         print(block_test[1, 70, 3] + 3)
         print(self.unknown_blocks)
 
+        return block_test, {}, {}
+
     def toUnifiedFormat(self) -> object:
         pass
 
