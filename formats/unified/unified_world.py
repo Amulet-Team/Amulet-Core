@@ -1,4 +1,5 @@
-from typing import Union, Sequence
+from typing import Union, Sequence, Tuple
+import functools
 
 import numpy
 
@@ -21,6 +22,10 @@ class UnifiedWorld:
 
         self._blocks = numpy.zeros((256, 256, 256), dtype=numpy.uint16)
 
+    @functools.lru_cache(maxsize=8)
+    def get_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
+        return self._wrapper.d_load_chunk(cx, cz)
+
     def d_load_chunk(self, cx: int, cz: int):
         return self._wrapper.d_load_chunk(cx, cz)
 
@@ -32,7 +37,13 @@ class UnifiedWorld:
         if not (0 <= y <= 255):
             raise IndexError("The supplied Y coordinate must be between 0 and 255")
 
-        return self._blocks[x, y, z]
+        cx, cz = world_utils.block_coords_to_chunk_coords(x, z)
+        offset_x, offset_z = x - 16 * cx, z - 16 * cz
+        blocks, entities, tile_entities = self.get_chunk(cx, cz)
+
+        return blocks[offset_x, y, offset_z].item()
+
+    # return self._blocks[x, y, z]
 
     def get_blocks(self, *args: Union[Sequence[slice], Sequence[int]]) -> numpy.ndarray:
         length = len(args)

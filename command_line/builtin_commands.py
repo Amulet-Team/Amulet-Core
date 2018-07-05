@@ -23,7 +23,7 @@ class WorldMode(Mode):
 
     @property
     def world(self) -> UnifiedWorld:
-        return self._world_path
+        return self._world
 
     def display(self) -> str:
         return self._world_name
