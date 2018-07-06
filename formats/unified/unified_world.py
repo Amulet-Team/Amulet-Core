@@ -4,6 +4,7 @@ import functools
 import numpy
 
 import world_utils
+from api.world import WorldFormat
 
 
 def method_not_implemented(*args, **kwargs):
@@ -12,7 +13,7 @@ def method_not_implemented(*args, **kwargs):
 
 class UnifiedWorld:
 
-    def __init__(self, directory: str, root_tag, wrapper):
+    def __init__(self, directory: str, root_tag, wrapper: WorldFormat):
         self._directory = directory
         self._root_tag = root_tag
         self._wrapper = wrapper
@@ -41,7 +42,7 @@ class UnifiedWorld:
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
         blocks, entities, tile_entities = self.get_chunk(cx, cz)
 
-        return blocks[offset_x, y, offset_z].item()
+        return self.mapping_handler.get_entry(blocks[offset_x, y, offset_z].item())
 
     # return self._blocks[x, y, z]
 

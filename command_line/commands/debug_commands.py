@@ -40,11 +40,12 @@ class GetBlockCommand(SimpleCommand):
         world_mode = self.handler.get_mode(WorldMode)
         world = world_mode.world
 
-        if id_format == "internal":
-            print(f"Block at ({x}, {y}, {z}): {world.get_block(x,y,z)}")
-        else:
-            name = world.mapping_handler.get_entry(world.get_block(x, y, z))
-            print(f"Block at ({x}, {y}, {z}): {name}")
+        # if id_format == "internal":
+        print(f"Block at ({x}, {y}, {z}): {world.get_block(x,y,z)}")
+
+    # else:
+    #    name = world.mapping_handler.get_entry(world.get_block(x, y, z))
+    #    print(f"Block at ({x}, {y}, {z}): {name}")
 
     def help(self):
         pass

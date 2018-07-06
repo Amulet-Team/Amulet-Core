@@ -1,3 +1,8 @@
+from typing import Tuple
+
+import numpy
+
+
 class WorldFormat(object):
     """
     Base class for World objects
@@ -7,8 +12,11 @@ class WorldFormat(object):
     def load(cls, directory: str) -> object:
         raise NotImplementedError()
 
+    def d_load_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
+        raise NotImplementedError()
+
     @classmethod
-    def fromUnifiedFormat(cls, unified: object) -> object:
+    def fromUnifiedFormat(cls, unified: object) -> "WorldFormat":
         """
         Converts the passed object to the specific implementation
 
