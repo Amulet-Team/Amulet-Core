@@ -1,7 +1,10 @@
+import sys
 import os
 import time
 from contextlib import contextmanager
 
+if not hasattr(sys, "testing"):
+    setattr(sys, "testing", True)
 
 def get_world_path(name: str) -> str:
     return os.path.join("worlds", name)

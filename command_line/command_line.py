@@ -8,6 +8,8 @@ from typing import List, Type
 
 from api.cmd_line import SimpleCommand, ComplexCommand, Mode
 from api.data_structures import SimpleStack
+from api.paths import COMMANDS_DIR
+
 
 class ModeStack(SimpleStack):
 
@@ -179,7 +181,7 @@ class CommandLineHandler:
         return 0
 
     def _load_commands_and_modes(self):
-        search_path = os.path.join(os.path.dirname(__file__), "commands")
+        search_path = os.path.join(os.path.dirname(COMMANDS_DIR), "commands")
         sys.path.insert(0, os.path.join(search_path))
 
         cmds = glob.glob(os.path.join(search_path, "*.py"))

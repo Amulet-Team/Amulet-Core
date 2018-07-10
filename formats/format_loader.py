@@ -8,6 +8,8 @@ import time
 from types import ModuleType
 from typing import Tuple
 
+from api.paths import FORMATS_DIR
+
 
 class _FormatLoader:
 
@@ -17,7 +19,7 @@ class _FormatLoader:
 
     _loaded_formats = {}
 
-    def __init__(self, search_directory=__file__):
+    def __init__(self, search_directory=FORMATS_DIR):
         if os.path.isdir(search_directory):
             self.search_directory = search_directory
         else:

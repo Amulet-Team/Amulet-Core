@@ -1,5 +1,6 @@
 from typing import Union, Any
 
+
 class SimpleStack:
 
     def __init__(self, initial_data=None):
@@ -20,3 +21,6 @@ class SimpleStack:
 
     def is_empty(self) -> bool:
         return len(self._data) == 0
+
+    def clear(self):
+        self._data.clear()
