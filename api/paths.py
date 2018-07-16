@@ -1,14 +1,16 @@
 import sys
 import os
 
-from typing import List, Union
+from typing import Sequence, Union
 
 _executable_dir = os.path.dirname(sys.executable)
 _script_base = os.path.dirname(sys.argv[0])
 _package_base = os.path.dirname(os.path.dirname(__file__))
 
 
-def _application_directory(directory: Union[str, List[str]], src_path=None) -> str:
+def _application_directory(
+    directory: Union[str, Sequence[str]], src_path: Union[str, Sequence[str]] = None
+) -> str:
     """
     Returns a path to a directory that is adjusted depending on whether the program is running in a compiled or as source.
     The necessary directories will be created if they aren't already present.
@@ -46,3 +48,4 @@ def _application_directory(directory: Union[str, List[str]], src_path=None) -> s
 
 FORMATS_DIR = _application_directory("formats")
 COMMANDS_DIR = _application_directory("commands", ("command_line", "commands"))
+WORK_DIR = _application_directory("work")

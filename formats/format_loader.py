@@ -20,10 +20,7 @@ class _FormatLoader:
     _loaded_formats = {}
 
     def __init__(self, search_directory=FORMATS_DIR):
-        if os.path.isdir(search_directory):
-            self.search_directory = search_directory
-        else:
-            self.search_directory = os.path.dirname(search_directory)
+        self.search_directory = search_directory
 
         self._find_formats()
 
@@ -42,11 +39,7 @@ class _FormatLoader:
     def load_format(self, directory: str) -> Tuple[bool, object]:
         try:
             format_module = importlib.import_module(os.path.basename(directory))
-        # spec = importlib.util.find_spec(directory)
-        # print('spec', spec)
-        # format_module = importlib.util.module_from_spec(spec)
-        # spec.loader.exec_module(format_module)
-        except Exception as e:
+        except ImportError as e:
             traceback.print_exc()
             time.sleep(0.01)
             print(
