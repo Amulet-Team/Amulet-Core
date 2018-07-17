@@ -24,11 +24,27 @@ class SubBox:
 class SelectionBox:
 
     def __init__(self, boxes: Sequence[SubBox]):
+        if isinstance(boxes, tuple):
+            boxes = list(boxes)
         self._boxes = boxes
-        self.__step = 1
 
     def __iter__(self):
         return itertools.chain.from_iterable(self._boxes)
+
+    def add_box(self, other: SubBox):
+        self._boxes.append(other)
+
+    def is_contiguous(self) -> bool:
+        if len(self._boxes) == 1:
+            return True
+
+        for i in range(len(self._boxes) - 1):
+            sub_box = self._boxes[i]
+            next_box = self._boxes[i + 1]
+            if abs(sub_box.max[0] - next_box.min[0]) > 1 and abs(sub_box.max[1] - next_box.min[1]) > 1 and abs(sub_box.max[2] - next_box.min[2]) > 1:
+                return False
+
+        return True
 
 
 if __name__ == "__main__":
