@@ -20,6 +20,40 @@ class SubBox:
             range(self.min[2], self.max[2]),
         )
 
+    @property
+    def min_x(self):
+        return self.min[0]
+
+    @property
+    def min_y(self):
+        return self.min[1]
+
+    @property
+    def min_z(self):
+        return self.min[2]
+
+    @property
+    def max_x(self):
+        return self.max[0]
+
+    @property
+    def max_y(self):
+        return self.max[1]
+
+    @property
+    def max_z(self):
+        return self.max[2]
+
+    def intersects(self, other: "SubBox") -> bool:
+        return not (
+            self.min_x > other.max_x
+            or self.min_y > other.max_y
+            or self.min_z > other.max_z
+            or self.max_x < other.min_x
+            or self.max_y < other.min_y
+            or self.max_z < other.min_z
+        )
+
 
 class SelectionBox:
 
@@ -41,7 +75,11 @@ class SelectionBox:
         for i in range(len(self._boxes) - 1):
             sub_box = self._boxes[i]
             next_box = self._boxes[i + 1]
-            if abs(sub_box.max[0] - next_box.min[0]) > 1 and abs(sub_box.max[1] - next_box.min[1]) > 1 and abs(sub_box.max[2] - next_box.min[2]) > 1:
+            if (
+                abs(sub_box.max[0] - next_box.min[0]) > 1
+                and abs(sub_box.max[1] - next_box.min[1]) > 1
+                and abs(sub_box.max[2] - next_box.min[2]) > 1
+            ):
                 return False
 
         return True
