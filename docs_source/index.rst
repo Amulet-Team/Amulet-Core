@@ -11,9 +11,10 @@ Welcome to Unified Map Editor's documentation!
    :caption: Contents:
 
    api
-   world_utils
-   version_definitions
    command_line
+   editor
+   version_definitions
+   world_utils
 
 
 

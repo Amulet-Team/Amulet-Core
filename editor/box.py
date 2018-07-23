@@ -8,6 +8,12 @@ Point = namedtuple("Point", ("x", "y", "z"))
 
 
 class SubBox:
+    """
+    A SubBox is a box that can represent the entirety of a SelectionBox or just a subsection
+    of one. This allows for non-rectangular and non-contiguous selections.
+
+    The minimum coordinate point is inclusive while the maximum coordinate point is exclusive.
+    """
 
     def __init__(self, min_point: Point, max_point: Point):
         self.min = min_point
@@ -19,6 +25,9 @@ class SubBox:
             range(self.min[1], self.max[1]),
             range(self.min[2], self.max[2]),
         )
+
+    def __str__(self):
+        return f"({self.min}, {self.max})"
 
     @property
     def min_x(self):
@@ -45,6 +54,12 @@ class SubBox:
         return self.max[2]
 
     def intersects(self, other: "SubBox") -> bool:
+        """
+        Method to check whether this instance of SubBox intersects another SubBox
+
+        :param other: The other SubBox to check for intersection
+        :return: True is the two SubBoxes intersect, False otherwise
+        """
         return not (
             self.min_x > other.max_x
             or self.min_y > other.max_y
@@ -65,8 +80,20 @@ class SelectionBox:
     def __iter__(self):
         return itertools.chain.from_iterable(self._boxes)
 
-    def add_box(self, other: SubBox):
-        self._boxes.append(other)
+    def add_box(self, other: SubBox, do_merge_check=True):
+        if do_merge_check:
+            boxes_to_remove = None
+            new_box = None
+            for box in self._boxes:
+                if (box.min_y == other.min_y and box.max_y == other.max_y) or (box.min_x == other.min_x and box.max_x == other.max_x) or (box.min_z == other.min_z and box.max_z == other.max_z):
+                    boxes_to_remove = box
+                    new_box = SubBox(box.min, other.max)
+                    break
+            if new_box:
+                self._boxes.append(new_box)
+                self._boxes.remove(boxes_to_remove)
+        else:
+            self._boxes.append(other)
 
     def is_contiguous(self) -> bool:
         if len(self._boxes) == 1:
@@ -83,6 +110,9 @@ class SelectionBox:
                 return False
 
         return True
+
+    def is_rectangular(self) -> bool:
+        return len(self._boxes) == 1
 
 
 if __name__ == "__main__":
