@@ -48,7 +48,11 @@ class BoxTestCase(unittest.TestCase):
 
         self.assertEqual(len(box_1._boxes), 1)
 
-        box_1.add_box(box.SubBox((0,0,5), (10,5,10)))
+        box_1.add_box(box.SubBox((0,5,0), (5,10,5)))
+
+        self.assertEqual(len(box_1._boxes), 1)
+
+        box_1.add_box(box.SubBox((0,10,0), (5,15,5)))
 
         self.assertEqual(len(box_1._boxes), 1)
 
