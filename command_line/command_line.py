@@ -67,7 +67,7 @@ class CommandLineHandler:
         self._modules = []
         self._load_commands_and_modes()
 
-        self.data = {}
+        self.persistent_data = {}
 
         self.in_mode = self._modes.has_mode
         self.get_mode = self._modes.get_mode
