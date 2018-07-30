@@ -81,6 +81,13 @@ class SelectionBox:
         return itertools.chain.from_iterable(self._boxes)
 
     def add_box(self, other: SubBox, do_merge_check=True):
+        """
+        Adds a SubBox to the selection box. If `other` is next to another SubBox in the selection, matches in any 2 dimensions, and
+        `do_merge_check` is True, then the 2 boxes will be combined into 1 box.
+
+        :param other: The box to add
+        :param do_merge_check: Boolean flag to merge boxes if able
+        """
         if do_merge_check:
             boxes_to_remove = None
             new_box = None
@@ -122,6 +129,11 @@ class SelectionBox:
         return True
 
     def is_rectangular(self) -> bool:
+        """
+        Checks if the SelectionBox is a rectangle
+
+        :return: True is the selection is a rectangle, False otherwise
+        """
         return len(self._boxes) == 1
 
 

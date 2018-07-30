@@ -36,7 +36,7 @@ class _FormatLoader:
             if success:
                 self._loaded_formats[format_name] = module
                 if __debug__:
-                    print(f"Enabled \"{format_name}\" format, version {getattr(module, '__version__', -1)}")
+                    print(f"[Debug] Enabled \"{format_name}\" format, version {getattr(module, '__version__', -1)}")
 
     def load_format(self, directory: str) -> Tuple[bool, object]:
         try:
