@@ -37,7 +37,7 @@ class BoxTestCase(unittest.TestCase):
 
         self.assertTrue(box_1.is_rectangular())
 
-        sub_box_2 = box.SubBox((6,6,6), (10,10,10))
+        sub_box_2 = box.SubBox((0,5,0), (5,10,5))
         box_1.add_box(sub_box_2)
 
         self.assertTrue(box_1.is_rectangular())
@@ -47,14 +47,17 @@ class BoxTestCase(unittest.TestCase):
         box_1 = box.SelectionBox((sub_box_1,))
 
         self.assertEqual(len(box_1._boxes), 1)
-
         box_1.add_box(box.SubBox((0,5,0), (5,10,5)))
-
         self.assertEqual(len(box_1._boxes), 1)
-
         box_1.add_box(box.SubBox((0,10,0), (5,15,5)))
-
         self.assertEqual(len(box_1._boxes), 1)
+
+
+        box_2 = box.SelectionBox((sub_box_1,))
+        self.assertEqual(len(box_2._boxes), 1)
+        box_2.add_box(box.SubBox((0,6,0), (5,10,5)))
+        print(box_2._boxes)
+        self.assertEqual(len(box_2._boxes), 2)
 
 if __name__ == '__main__':
     unittest.main()

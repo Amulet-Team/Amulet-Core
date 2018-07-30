@@ -88,13 +88,20 @@ class SelectionBox:
                 x_dim = box.min_x == other.min_x and box.max_x == other.max_x
                 y_dim = box.min_y == other.min_y and box.max_y == other.max_y
                 z_dim = box.min_z == other.min_z and box.max_z == other.max_z
-                if (x_dim and y_dim) or (x_dim and z_dim) or (y_dim and z_dim):
+
+                x_border = box.max_x == other.min_x or other.max_x == box.min_x
+                y_border = box.max_y == other.min_y or other.max_y == box.min_y
+                z_border = box.max_z == other.min_z or other.max_z == box.min_z
+
+                if (x_dim and y_dim and z_border) or (x_dim and z_dim and y_border) or (y_dim and z_dim and x_border):
                     boxes_to_remove = box
                     new_box = SubBox(box.min, other.max)
                     break
             if new_box:
                 self._boxes.append(new_box)
                 self._boxes.remove(boxes_to_remove)
+            else:
+                self._boxes.append(other)
         else:
             self._boxes.append(other)
 
