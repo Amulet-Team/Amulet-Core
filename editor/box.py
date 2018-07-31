@@ -71,6 +71,9 @@ class SubBox:
 
 
 class SelectionBox:
+    """
+    Holding class for multiple SubBoxes which allows for non-rectangular and non-contiguous selections
+    """
 
     def __init__(self, boxes: Sequence[SubBox]):
         if isinstance(boxes, tuple):
@@ -100,10 +103,15 @@ class SelectionBox:
                 y_border = box.max_y == other.min_y or other.max_y == box.min_y
                 z_border = box.max_z == other.min_z or other.max_z == box.min_z
 
-                if (x_dim and y_dim and z_border) or (x_dim and z_dim and y_border) or (y_dim and z_dim and x_border):
+                if (
+                    (x_dim and y_dim and z_border)
+                    or (x_dim and z_dim and y_border)
+                    or (y_dim and z_dim and x_border)
+                ):
                     boxes_to_remove = box
                     new_box = SubBox(box.min, other.max)
                     break
+
             if new_box:
                 self._boxes.append(new_box)
                 self._boxes.remove(boxes_to_remove)

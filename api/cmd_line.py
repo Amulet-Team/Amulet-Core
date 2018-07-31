@@ -1,4 +1,12 @@
-from typing import List, Type, Any, Sequence
+from typing import List, Type, Sequence
+import re
+
+_coordinate_regex = re.compile(r"<(?P<x>\d+),(?P<y>\d+),(?P<z>\d+)>")
+
+
+def parse_coordinate(coord: str) -> Sequence[int]:
+    match = _coordinate_regex.match(coord)
+    return int(match.group("x")), int(match.group("y")), int(match.group("z"))
 
 
 class SimpleCommand:
@@ -93,6 +101,7 @@ class ComplexCommand:
         longer will be truncated to 50 characters
         """
         raise NotImplementedError()
+
 
 class Mode:
     """

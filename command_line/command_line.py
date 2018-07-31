@@ -20,10 +20,10 @@ class ModeStack(SimpleStack):
         for mode in self._data:
             yield mode.display()
 
-    def has_mode(self, mode_class):
+    def has_mode(self, mode_class: Type[Mode]):
         return self.get_mode(mode_class) is not None
 
-    def get_mode(self, mode_class):
+    def get_mode(self, mode_class: Type[Mode]):
         if not isinstance(mode_class, type):
             raise TypeError("You must pass a Type")
 

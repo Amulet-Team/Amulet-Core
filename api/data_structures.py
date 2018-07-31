@@ -1,19 +1,21 @@
-from typing import Union, Any
+from typing import Union, Sequence, Callable, TypeVar, Generic
+
+T = TypeVar("T")
 
 
-class SimpleStack:
+class SimpleStack(Generic[T]):
 
-    def __init__(self, initial_data=None):
+    def __init__(self, initial_data: Sequence[T] = None):
         if initial_data:
             self._data = initial_data
         else:
             self._data = []
         self.__contains__ = self._data.__contains__
         self.__len__ = self._data.__len__
-        self.pop = self._data.pop
-        self.append = self._data.append
+        self.pop: Callable[[], T] = self._data.pop
+        self.append: Callable[[T], None] = self._data.append
 
-    def peek(self) -> Union[Any, None]:
+    def peek(self) -> Union[T, None]:
         if self.is_empty():
             return None
 
