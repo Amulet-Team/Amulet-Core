@@ -1,6 +1,8 @@
 import gzip
 from io import StringIO
-from typing import Union, Tuple
+from typing import Union
+
+from api.types import Coordinates
 
 from numpy import ndarray, zeros, uint8
 
@@ -125,6 +127,9 @@ class InternalBlockMap:
             self._mapping.insert(self._next_id, entry)
         self._next_id += 1
         return self._next_id - 1
+
+    def __getitem__(self, item):
+        return self._mapping[item]
 
     def get_entry(self, entry: Union[str, int]) -> Union[str, int]:
         if isinstance(entry, str):

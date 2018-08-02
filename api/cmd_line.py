@@ -1,13 +1,14 @@
-from typing import List, Type, Sequence
+from typing import List, Type, Sequence, Union
 import re
 
 _coordinate_regex = re.compile(r"<(?P<x>\d+),(?P<y>\d+),(?P<z>\d+)>")
 
 
-def parse_coordinate(coord: str) -> Sequence[int]:
+def parse_coordinate(coord: str) -> Union[Sequence[int], None]:
     match = _coordinate_regex.match(coord)
-    return int(match.group("x")), int(match.group("y")), int(match.group("z"))
-
+    if match:
+        return int(match.group("x")), int(match.group("y")), int(match.group("z"))
+    return None
 
 class SimpleCommand:
     """
