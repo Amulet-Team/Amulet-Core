@@ -83,6 +83,9 @@ class SelectionBox:
     def __iter__(self):
         return itertools.chain.from_iterable(self._boxes)
 
+    def __len__(self):
+        return len(self._boxes)
+
     def add_box(self, other: SubBox, do_merge_check=True):
         """
         Adds a SubBox to the selection box. If `other` is next to another SubBox in the selection, matches in any 2 dimensions, and
@@ -113,8 +116,8 @@ class SelectionBox:
                     break
 
             if new_box:
-                self._boxes.append(new_box)
                 self._boxes.remove(boxes_to_remove)
+                self.add_box(new_box)
             else:
                 self._boxes.append(other)
         else:
