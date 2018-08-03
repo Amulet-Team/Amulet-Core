@@ -73,8 +73,6 @@ class _Anvil2RegionManager:
             data = zlib.decompress(data)
 
         nbt_data = nbt.NBTFile(buffer=BytesIO(data))
-        print("=== Chunk data ===")
-        print(nbt_data)
 
         return nbt_data["Level"]["Sections"], nbt_data["Level"][
             "TileEntities"
@@ -198,8 +196,19 @@ class Anvil2World(WorldFormat):
         temp_blocks = numpy.swapaxes(temp_blocks.swapaxes(0, 1), 0, 2)
 
         uniques = numpy.unique(temp_blocks)
-        print("===")
-        print(uniques)
+        uniques = numpy.delete(uniques, numpy.where(uniques == "minecraft:air"))
+        for unique in uniques:
+            internal = self._materials.get_block_from_definition(unique)
+            internal_id = self.mapping_handler.add_entry(internal)
+
+            if not internal:
+                self.unknown_blocks[internal_id] = unique
+
+            mask = temp_blocks == unique
+
+            blocks[mask] = internal_id
+        #print("===")
+        #print(uniques)
 
         #print(blocks[70, 3, 1])
         return blocks, {}, {}

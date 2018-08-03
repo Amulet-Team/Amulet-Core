@@ -142,7 +142,7 @@ class DefinitionManager:
         """
         if isinstance(block, str) and self.matcher.match(block):
             for key, value in self.blocks.items():
-                if user_input == value:
+                if block == value:
                     return key
 
         elif isinstance(block, (list, tuple)):
