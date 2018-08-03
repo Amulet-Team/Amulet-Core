@@ -8,6 +8,7 @@ of Minecraft.
 ### For Running From Source
 - Numpy
 - pyglet
+- NBT
 
 Shortcut: `pip -r requirements.txt`
 
@@ -19,4 +20,5 @@ Shortcut: `pip -r requirements.txt`
 - [sphinx_rtd_theme](https://github.com/rtfd/sphinx_rtd_theme)
 
 Shortcut: `pip -r requirements-dev.txt` (This also installs the requirements required for running from source)
+
 

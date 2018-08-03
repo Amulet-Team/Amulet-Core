@@ -4,6 +4,8 @@ import os
 import shlex
 import sys
 import re
+import traceback
+import time
 from typing import List, Type
 
 from api.cmd_line import SimpleCommand, ComplexCommand, Mode
@@ -107,7 +109,17 @@ class CommandLineHandler:
         return True
 
     def _execute_command(self, command_parts):
-        self._commands[command_parts[0]].run(command_parts)
+        try:
+            self._commands[command_parts[0]].run(command_parts)
+        except Exception as e:
+            cmd = " ".join(command_parts)
+            print("==== Begin Exception Stacktrace ====")
+            time.sleep(0.01)
+            traceback.print_exc()
+            time.sleep(0.01)
+            print("==== End Exception Stacktrace ====")
+            print(f"=== Error: An Exception has occurred while running command: '{cmd}'")
+
 
     def _exit(self, force=False) -> bool:
         while not self._modes.is_empty():
