@@ -1,6 +1,6 @@
 from typing import List
 
-from api.cmd_line import SimpleCommand, Mode
+from command_line.cmd_line import SimpleCommand, Mode
 
 
 class TestCommand(SimpleCommand):

@@ -167,7 +167,7 @@ class Anvil2World(WorldFormat):
         return blockstates
 
     def d_load_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
-        chunk_sections, tile_entities, entities = self._region_manager.load_chunk(cx,cz)
+        chunk_sections, tile_entities, entities = self._region_manager.load_chunk(cx, cz)
 
         blocks = numpy.zeros((16, 256, 16), dtype=int)
         temp_blocks = numpy.ndarray((256, 16, 16), dtype="object")

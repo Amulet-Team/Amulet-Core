@@ -1,7 +1,6 @@
 from typing import List
 
-import world_utils
-from api.cmd_line import SimpleCommand
+from command_line.cmd_line import SimpleCommand
 from command_line.builtin_commands import WorldMode
 
 

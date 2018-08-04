@@ -42,7 +42,7 @@ class UnifiedWorld:
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
         blocks, entities, tile_entities = self.get_chunk(cx, cz)
 
-        return self.mapping_handler[blocks[offset_x, y, offset_z].item()]
+        return self.mapping_handler[blocks[offset_x, y, offset_z]]
 
     # return self._blocks[x, y, z]
 

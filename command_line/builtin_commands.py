@@ -1,7 +1,7 @@
 from typing import Sequence, List, Type
 import os
 
-from api.cmd_line import SimpleCommand, ComplexCommand, Mode
+from command_line.cmd_line import SimpleCommand, ComplexCommand, Mode
 from api.data_structures import SimpleStack
 
 from formats.format_loader import loader
