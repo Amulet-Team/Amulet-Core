@@ -1,9 +1,6 @@
 import gzip
 from io import StringIO
-from typing import Union
-
-from api.types import Coordinates
-
+from typing import Union, Tuple
 from numpy import ndarray, zeros, uint8
 
 Coordinates = Tuple[int, int]

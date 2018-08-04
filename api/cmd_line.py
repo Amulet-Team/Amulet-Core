@@ -10,6 +10,7 @@ def parse_coordinate(coord: str) -> Union[Sequence[int], None]:
         return int(match.group("x")), int(match.group("y")), int(match.group("z"))
     return None
 
+
 class SimpleCommand:
     """
     Represents a command that can be executed within the command line

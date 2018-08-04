@@ -120,7 +120,6 @@ class CommandLineHandler:
             print("==== End Exception Stacktrace ====")
             print(f"=== Error: An Exception has occurred while running command: '{cmd}'")
 
-
     def _exit(self, force=False) -> bool:
         while not self._modes.is_empty():
             result = self.exit_mode(force)
@@ -130,7 +129,7 @@ class CommandLineHandler:
 
         return True
 
-    def _run(self):
+    def run(self):
         while True:
             user_input = input(f"{' | '.join(self._modes.iter())}> ")
 
@@ -178,6 +177,15 @@ class CommandLineHandler:
 
                     for ccmd, inst in self._complex_commands.items():
                         print(f"{ccmd} - {inst.short_help():.51}")
+
+            while command_parts[0] in self._complex_commands:
+                if "-h" in command_parts:
+                    print(f"==== {command_parts[0].capitalize()} Command Help ====")
+                    self._complex_commands[command_parts[0]].help()
+                else:
+                    new_command_parts = [f"{command_parts[0]}.{command_parts[1]}"]
+                    new_command_parts.extend(command_parts[2:])
+                    command_parts = new_command_parts
 
             if command_parts[0] in self._commands:
                 if "-h" in command_parts:
