@@ -8,7 +8,7 @@ import traceback
 import time
 from typing import List, Type
 
-from command_line.cmd_line import SimpleCommand, ComplexCommand, Mode
+from command_line import SimpleCommand, ComplexCommand, Mode
 from api.data_structures import SimpleStack
 from api.paths import COMMANDS_DIR
 

@@ -13,10 +13,10 @@ from os import path
 from formats.unified import UnifiedWorld
 from version_definitions.definition_manager import DefinitionManager
 
-import world_utils
+from utils import world_utils
 
 
-class _Anvil2RegionManager:
+class _AnvilRegionManager:
 
     def __init__(self, directory: str):
         self._directory = directory
@@ -73,6 +73,8 @@ class _Anvil2RegionManager:
             data = zlib.decompress(data)
 
         nbt_data = nbt.NBTFile(buffer=BytesIO(data))
+        print("=== Chunk data ===")
+        print(nbt_data)
 
         return nbt_data["Level"]["Sections"], nbt_data["Level"][
             "TileEntities"
@@ -111,7 +113,7 @@ class _Anvil2RegionManager:
         mod_times = fp.read(world_utils.SECTOR_BYTES)
 
         self._loaded_regions[key]["free_sectors"] = free_sectors = [True] * (
-            file_size // world_utils.SECTOR_BYTES
+                file_size // world_utils.SECTOR_BYTES
         )
         self._loaded_regions[key]["free_sectors"][0:2] = False, False
 
@@ -137,12 +139,12 @@ class _Anvil2RegionManager:
         return True
 
 
-class Anvil2World(WorldFormat):
+class AnvilWorld(WorldFormat):
 
     def __init__(self, directory: str):
         self._directory = directory
-        self._materials = DefinitionManager("1.13")
-        self._region_manager = _Anvil2RegionManager(directory)
+        self._materials = DefinitionManager("1.12")
+        self._region_manager = _AnvilRegionManager(directory)
         self.mapping_handler = world_utils.InternalBlockMap()
         self.unknown_blocks = {}
 
@@ -155,67 +157,108 @@ class Anvil2World(WorldFormat):
 
         return UnifiedWorld(directory, root_tag, wrapper)
 
-    def __read_palette(self, palette: nbt.TAG_List) -> list:
-        blockstates = []
-        for entry in palette:
-            name = entry["Name"].value
-            properties = self._materials.properties_to_string(entry.get("Properties", {}))
-            if properties:
-                blockstates.append(f"{name}[{properties}]")
-            else:
-                blockstates.append(name)
-        return blockstates
-
     def d_load_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
-        chunk_sections, tile_entities, entities = self._region_manager.load_chunk(cx, cz)
+        chunk_sections, tile_entities, entities = self._region_manager.load_chunk(
+            cx, cz
+        )
 
-        blocks = numpy.zeros((16, 256, 16), dtype=int)
-        temp_blocks = numpy.ndarray((256, 16, 16), dtype="object")
-        temp_blocks.fill("minecraft:air")
-
+        blocks = numpy.zeros((256, 16, 16), dtype=int)
+        block_data = numpy.zeros((256, 16, 16), dtype=numpy.uint8)
+        start_time = time.time()
         for section in chunk_sections:
             lower = section["Y"].value << 4
             upper = (section["Y"].value + 1) << 4
 
-            palette = self.__read_palette(section["Palette"])
+            section_blocks = numpy.frombuffer(
+                section["Blocks"].value, dtype=numpy.uint8
+            )
+            section_data = numpy.frombuffer(section["Data"].value, dtype=numpy.uint8)
+            section_blocks = section_blocks.reshape((16, 16, 16))
+            section_blocks.astype(numpy.uint16, copy=False)
 
-            blockstate_array = section["BlockStates"].value
-            blockstate_array = numpy.array(blockstate_array, dtype='>q')
-            bits_per_block = len(blockstate_array) // 64
-            binary_blocks = numpy.unpackbits(blockstate_array[::-1].astype(">i8").view("uint8")).reshape(-1, bits_per_block)
-            before_palette = binary_blocks.dot(2 ** numpy.arange(binary_blocks.shape[1]-1, -1, -1))[::-1]
-            #print(before_palette)
-            #print(section['Palette'])
-            #print(section)
-            #print(type(section["Palette"]))
-            #(numpy.asarray(section["Palette"], dtype="object"))
-            _blocks = numpy.asarray(palette, dtype="object")[before_palette]
+            section_data = section_data.reshape(
+                (16, 16, 8)
+            )  # The Byte array is actually just Nibbles, so the size is off
 
-            temp_blocks[lower:upper, :, :] = _blocks.reshape((16,16,16))
+            section_data = world_utils.fromNibbleArray(section_data)
 
-        temp_blocks = numpy.swapaxes(temp_blocks.swapaxes(0, 1), 0, 2)
+            if "Add" in section:
+                add_blocks = numpy.frombuffer(section["Add"].value, dtype=numpy.uint8)
+                add_blocks = add_blocks.reshape((16, 16, 8))
+                add_blocks = world_utils.fromNibbleArray(add_blocks)
 
-        uniques = numpy.unique(temp_blocks)
-        uniques = numpy.delete(uniques, numpy.where(uniques == "minecraft:air"))
-        for unique in uniques:
-            internal = self._materials.get_block_from_definition(unique)
+                section_blocks |= (add_blocks.astype(numpy.uint16) << 8)
+
+            blocks[lower:upper, :, :] = section_blocks
+            block_data[lower:upper, :, :] = section_data
+
+        end = time.time()
+
+        print(
+            "Loading {} sections took: {}".format(len(chunk_sections), end - start_time)
+        )
+        print("Block at (1,70,3): {}".format(blocks[70, 3, 1]))
+        blocks = numpy.swapaxes(blocks.swapaxes(0, 1), 0, 2)
+        block_data_array = numpy.swapaxes(block_data.swapaxes(0, 1), 0, 2)
+        print("Block at (1,70,3): {}".format(blocks[1, 70, 3]))
+        print("Data value at (1,70,5): {}".format(block_data_array[1, 70, 5]))
+
+        unique_block_ids = numpy.unique(blocks)
+        unique_block_ids = numpy.delete(unique_block_ids, 0)
+        unique_block_datas = numpy.unique(block_data_array)
+        print(unique_block_ids)
+        print(unique_block_datas)
+
+        unique_blocks = set()
+        for block_data in unique_block_datas:
+            indices = numpy.where(block_data_array == block_data)
+            # print("{}: {}".format(block_data, indices))
+            # print(numpy.unique(blocks[indices]))
+            for block_id in numpy.unique(blocks[indices]):
+                unique_blocks.add((block_id, block_data))
+            """
+            for x in indices[0]:
+                for y in indices[1]:
+                    for z in indices[2]:
+                        block_id = blocks[x,y,z]
+                        if block_id == 0:
+                            continue
+                        unique_block.add((block_id, block_data))
+            print("Current Pass: {}".format(unique_block))
+            """
+        print("All Blocks: {}".format(unique_blocks))
+        print()
+
+        print("=== Mapped Blocks ===")
+        block_test = blocks.copy()
+        for block in unique_blocks:
+            internal = self._materials.get_block_from_definition(block)
             internal_id = self.mapping_handler.add_entry(internal)
 
             if not internal:
-                self.unknown_blocks[internal_id] = unique
+                self.unknown_blocks[internal_id] = block
 
-            mask = temp_blocks == unique
+            block_mask = blocks == block[0]
+            data_mask = block_data_array == block[1]
 
-            blocks[mask] = internal_id
-        #print("===")
-        #print(uniques)
+            mask = block_mask & data_mask
 
-        #print(blocks[70, 3, 1])
-        return blocks, {}, {}
+            block_test[mask] = internal_id
 
-    @classmethod
-    def fromUnifiedFormat(cls, unified: object) -> object:
-        pass
+            print("{} -> {}".format(block, internal))
+            print("{} = {}".format(internal, internal_id))
+
+        print(self.mapping_handler)
+        print(block_test[1, 70, 3])
+        print(
+            str(block_test[9, 70, 3])
+            + " = "
+            + self.mapping_handler.get_entry(block_test[9, 70, 3].item())
+        )
+        print(block_test[1, 70, 3] + 3)
+        print(self.unknown_blocks)
+
+        return block_test, {}, {}
 
     def toUnifiedFormat(self) -> object:
         pass
@@ -223,11 +266,15 @@ class Anvil2World(WorldFormat):
     def save(self) -> None:
         pass
 
+    @classmethod
+    def fromUnifiedFormat(cls, unified: object) -> object:
+        pass
+
 
 def identify(directory: str) -> bool:
     if not (
         path.exists(path.join(directory, "region"))
-        or path.exists(path.join(directory, "playerdata"))
+        or path.exists(path.join(directory, "level.dat"))
     ):
         return False
 
@@ -237,24 +284,20 @@ def identify(directory: str) -> bool:
     ):
         return False
 
-    if not (
-        path.exists(path.join(directory, "data"))
-        or path.exists(path.join(directory, "level.dat"))
+    if (
+        not path.exists(path.join(directory, "players"))
+        and not path.exists(path.join(directory, "playerdata"))
     ):
         return False
 
     fp = open(path.join(directory, "level.dat"), "rb")
     root_tag = nbt.NBTFile(fileobj=fp)
     fp.close()
-
-    if "FML" in root_tag:
-        return False
-
     if (
         root_tag.get("Data", nbt.TAG_Compound()).get("Version", nbt.TAG_Compound()).get(
             "Id", nbt.TAG_Int(-1)
         ).value
-        < 1451
+        > 1451
     ):
         return False
 

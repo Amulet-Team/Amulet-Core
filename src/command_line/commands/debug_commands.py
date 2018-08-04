@@ -1,7 +1,7 @@
 from typing import List
 
-from command_line.cmd_line import SimpleCommand
-from command_line.builtin_commands import WorldMode
+from command_line import SimpleCommand
+from command_line import WorldMode
 
 
 class GetBlockCommand(SimpleCommand):

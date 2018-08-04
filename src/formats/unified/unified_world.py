@@ -3,7 +3,7 @@ import functools
 
 import numpy
 
-import world_utils
+from utils import world_utils
 from api.world import WorldFormat
 
 
