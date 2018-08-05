@@ -1,6 +1,6 @@
 world_utils module
 ==================
 
-.. automodule:: world_utils
+.. automodule:: utils.world_utils
     :members:
     :show-inheritance:

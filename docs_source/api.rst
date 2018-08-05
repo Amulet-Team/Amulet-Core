@@ -1,7 +1,7 @@
 api module
 ==========
 
-.. automodule:: api.cmd_line
+.. automodule:: api.box
     :members:
     :show-inheritance:
 
