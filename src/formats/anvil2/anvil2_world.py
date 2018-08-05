@@ -9,7 +9,7 @@ from api import WorldFormat
 from nbt import nbt
 from os import path
 
-from formats.unified import UnifiedWorld
+from api.world import World
 from version_definitions.definition_manager import DefinitionManager
 
 from utils import world_utils
@@ -110,7 +110,7 @@ class _Anvil2RegionManager:
         mod_times = fp.read(world_utils.SECTOR_BYTES)
 
         self._loaded_regions[key]["free_sectors"] = free_sectors = [True] * (
-                file_size // world_utils.SECTOR_BYTES
+            file_size // world_utils.SECTOR_BYTES
         )
         self._loaded_regions[key]["free_sectors"][0:2] = False, False
 
@@ -146,19 +146,21 @@ class Anvil2World(WorldFormat):
         self.unknown_blocks = {}
 
     @classmethod
-    def load(cls, directory: str) -> UnifiedWorld:
+    def load(cls, directory: str) -> World:
         wrapper = cls(directory)
         fp = open(path.join(directory, "level.dat"), "rb")
         root_tag = nbt.NBTFile(fileobj=fp)
         fp.close()
 
-        return UnifiedWorld(directory, root_tag, wrapper)
+        return World(directory, root_tag, wrapper)
 
     def __read_palette(self, palette: nbt.TAG_List) -> list:
         blockstates = []
         for entry in palette:
             name = entry["Name"].value
-            properties = self._materials.properties_to_string(entry.get("Properties", {}))
+            properties = self._materials.properties_to_string(
+                entry.get("Properties", {})
+            )
             if properties:
                 blockstates.append(f"{name}[{properties}]")
             else:
@@ -166,7 +168,9 @@ class Anvil2World(WorldFormat):
         return blockstates
 
     def d_load_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
-        chunk_sections, tile_entities, entities = self._region_manager.load_chunk(cx, cz)
+        chunk_sections, tile_entities, entities = self._region_manager.load_chunk(
+            cx, cz
+        )
 
         blocks = numpy.zeros((16, 256, 16), dtype=int)
         temp_blocks = numpy.ndarray((256, 16, 16), dtype="object")
@@ -179,18 +183,26 @@ class Anvil2World(WorldFormat):
             palette = self.__read_palette(section["Palette"])
 
             blockstate_array = section["BlockStates"].value
-            blockstate_array = numpy.array(blockstate_array, dtype='>q')
+            blockstate_array = numpy.array(blockstate_array, dtype=">q")
             bits_per_block = len(blockstate_array) // 64
-            binary_blocks = numpy.unpackbits(blockstate_array[::-1].astype(">i8").view("uint8")).reshape(-1, bits_per_block)
-            before_palette = binary_blocks.dot(2 ** numpy.arange(binary_blocks.shape[1]-1, -1, -1))[::-1]
-            #print(before_palette)
-            #print(section['Palette'])
-            #print(section)
-            #print(type(section["Palette"]))
-            #(numpy.asarray(section["Palette"], dtype="object"))
+            binary_blocks = numpy.unpackbits(
+                blockstate_array[::-1].astype(">i8").view("uint8")
+            ).reshape(
+                -1, bits_per_block
+            )
+            before_palette = binary_blocks.dot(
+                2 ** numpy.arange(binary_blocks.shape[1] - 1, -1, -1)
+            )[
+                ::-1
+            ]
+            # print(before_palette)
+            # print(section['Palette'])
+            # print(section)
+            # print(type(section["Palette"]))
+            # (numpy.asarray(section["Palette"], dtype="object"))
             _blocks = numpy.asarray(palette, dtype="object")[before_palette]
 
-            temp_blocks[lower:upper, :, :] = _blocks.reshape((16,16,16))
+            temp_blocks[lower:upper, :, :] = _blocks.reshape((16, 16, 16))
 
         temp_blocks = numpy.swapaxes(temp_blocks.swapaxes(0, 1), 0, 2)
 
@@ -206,10 +218,10 @@ class Anvil2World(WorldFormat):
             mask = temp_blocks == unique
 
             blocks[mask] = internal_id
-        #print("===")
-        #print(uniques)
+        # print("===")
+        # print(uniques)
 
-        #print(blocks[70, 3, 1])
+        # print(blocks[70, 3, 1])
         return blocks, {}, {}
 
     @classmethod

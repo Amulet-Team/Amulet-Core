@@ -14,10 +14,6 @@ class FormatLoaderTestCase(unittest.TestCase):
         self.assertTrue("anvil" in self.formats)
         self.assertIsInstance(self.formats["anvil"], ModuleType)
 
-    def test_has_unified(self):
-        self.assertTrue("unified" in self.formats)
-        self.assertIsInstance(self.formats["unified"], ModuleType)
-
     def test_identify_anvil_world(self):
         self.assertTrue(self.formats["anvil"].identify(get_world_path("1.12.2 World")))
         self.assertFalse(self.formats["anvil"].identify(get_world_path("1.13 World")))

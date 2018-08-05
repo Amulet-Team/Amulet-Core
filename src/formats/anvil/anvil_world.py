@@ -10,7 +10,7 @@ from api import WorldFormat
 from nbt import nbt
 from os import path
 
-from formats.unified import UnifiedWorld
+from api.world import World
 from version_definitions.definition_manager import DefinitionManager
 
 from utils import world_utils
@@ -113,7 +113,7 @@ class _AnvilRegionManager:
         mod_times = fp.read(world_utils.SECTOR_BYTES)
 
         self._loaded_regions[key]["free_sectors"] = free_sectors = [True] * (
-                file_size // world_utils.SECTOR_BYTES
+            file_size // world_utils.SECTOR_BYTES
         )
         self._loaded_regions[key]["free_sectors"][0:2] = False, False
 
@@ -149,13 +149,13 @@ class AnvilWorld(WorldFormat):
         self.unknown_blocks = {}
 
     @classmethod
-    def load(cls, directory: str) -> UnifiedWorld:
+    def load(cls, directory: str) -> World:
         wrapper = cls(directory)
         fp = open(path.join(directory, "level.dat"), "rb")
         root_tag = nbt.NBTFile(fileobj=fp)
         fp.close()
 
-        return UnifiedWorld(directory, root_tag, wrapper)
+        return World(directory, root_tag, wrapper)
 
     def d_load_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
         chunk_sections, tile_entities, entities = self._region_manager.load_chunk(

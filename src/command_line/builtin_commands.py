@@ -5,7 +5,7 @@ from command_line import SimpleCommand, ComplexCommand, Mode
 from api.data_structures import SimpleStack
 
 from formats.format_loader import loader
-from formats.unified import UnifiedWorld
+from api.world import World
 
 
 class WorldMode(Mode):
@@ -22,7 +22,7 @@ class WorldMode(Mode):
         return self._world_path
 
     @property
-    def world(self) -> UnifiedWorld:
+    def world(self) -> World:
         return self._world
 
     def display(self) -> str:
@@ -64,13 +64,14 @@ class WorldCommand(ComplexCommand):
 
     @classmethod
     def get_children(cls) -> Sequence[Type[SimpleCommand]]:
-        return WorldLoadCommand, WorldIdentifyCommand
+        return WorldLoadCommand, WorldIdentifyCommand, WorldUnloadCommand
 
     @classmethod
     def help(cls):
         # print("===== World Commands =====")
         print("load - Loads a Minecraft world with the appropriate format loader")
         print("identify - Prints out the identified loader for a given world")
+        print("unload - Unloads the currently opened Minecraft world")
 
     @classmethod
     def short_help(cls) -> str:
@@ -98,6 +99,25 @@ class WorldLoadCommand(SimpleCommand):
 
     def short_help(self) -> str:
         return "Loads a Minecraft world and enters World Mode"
+
+
+class WorldUnloadCommand(SimpleCommand):
+
+    command = "unload"
+
+    def run(self, args: List[str]):
+        if self.handler.in_mode(WorldMode):
+            self.handler.exit_mode()
+        else:
+            print(
+                "=== Error: You must have opened a Minecraft world before unloading it"
+            )
+
+    def help(self):
+        print("Unloads the currently opened Minecraft world")
+
+    def short_help(self) -> str:
+        return "Unloads the currently opened Minecraft world"
 
 
 class WorldIdentifyCommand(SimpleCommand):
