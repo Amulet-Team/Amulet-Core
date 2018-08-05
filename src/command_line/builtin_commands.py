@@ -68,7 +68,6 @@ class WorldCommand(ComplexCommand):
 
     @classmethod
     def help(cls):
-        # print("===== World Commands =====")
         print("load - Loads a Minecraft world with the appropriate format loader")
         print("identify - Prints out the identified loader for a given world")
         print("unload - Unloads the currently opened Minecraft world")

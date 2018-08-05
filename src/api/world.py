@@ -12,14 +12,14 @@ class WorldFormat(object):
     """
 
     @classmethod
-    def load(cls, directory: str) -> object:
+    def load(cls, directory: str) -> "World":
         raise NotImplementedError()
 
     def d_load_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
         raise NotImplementedError()
 
     @classmethod
-    def fromUnifiedFormat(cls, unified: object) -> "WorldFormat":
+    def fromUnifiedFormat(cls, unified: "World") -> "WorldFormat":
         """
         Converts the passed object to the specific implementation
 
@@ -28,7 +28,7 @@ class WorldFormat(object):
         """
         raise NotImplementedError()
 
-    def toUnifiedFormat(self) -> object:
+    def toUnifiedFormat(self) -> "World":
         """
         Converts the current object to the Unified format
         """
@@ -91,8 +91,6 @@ class World:
         blocks, entities, tile_entities = self.get_chunk(cx, cz)
 
         return self.mapping_handler[blocks[offset_x, y, offset_z]]
-
-    # return self._blocks[x, y, z]
 
     def get_blocks(self, *args: Union[Sequence[slice], Sequence[int]]) -> numpy.ndarray:
         length = len(args)
