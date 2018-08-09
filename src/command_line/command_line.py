@@ -1,3 +1,4 @@
+import functools
 import glob
 import importlib
 import os
@@ -6,11 +7,14 @@ import sys
 import re
 import traceback
 import time
+from collections import namedtuple
 from typing import List, Type
 
-from command_line import SimpleCommand, ComplexCommand, Mode
+from command_line import SimpleCommand, ComplexCommand, Mode, command
 from api.data_structures import SimpleStack
 from api.paths import COMMANDS_DIR
+
+Command_Entry = namedtuple("Command", ("run", "short_help", "help"))
 
 
 class ModeStack(SimpleStack):
@@ -118,7 +122,9 @@ class CommandLineHandler:
             traceback.print_exc()
             time.sleep(0.01)
             print("==== End Exception Stacktrace ====")
-            print(f"=== Error: An Exception has occurred while running command: '{cmd}'")
+            print(
+                f"=== Error: An Exception has occurred while running command: '{cmd}'"
+            )
 
     def _exit(self, force=False) -> bool:
         while not self._modes.is_empty():
@@ -178,7 +184,7 @@ class CommandLineHandler:
                     for ccmd, inst in self._complex_commands.items():
                         print(f"{ccmd} - {inst.short_help():.51}")
 
-            while command_parts[0] in self._complex_commands:
+            if command_parts[0] in self._complex_commands:
                 if "-h" in command_parts:
                     print(f"==== {command_parts[0].capitalize()} Command Help ====")
                     self._complex_commands[command_parts[0]].help()
@@ -229,8 +235,12 @@ class CommandLineHandler:
         del self._retry_modules
 
         simple_commands = SimpleCommand.get_subclasses()
-        for command in simple_commands:
-            command_name = command.command
+        for cmd in simple_commands:
+
+            if not getattr(cmd, "registered", False):
+                continue
+
+            command_func, command_name = cmd.command
 
             if not self._command_regex.match(command_name):
                 print(
@@ -243,27 +253,45 @@ class CommandLineHandler:
                     f"Could not enable command {command_name} since another command uses the same prefix!"
                 )
 
-            self._commands[command.command] = command(self)
+            command_instance = cmd(self)
+            self._commands[command_name] = Command_Entry(
+                functools.partial(command_func, command_instance),
+                command_instance.short_help,
+                command_instance.help,
+            )
 
         complex_commands = ComplexCommand.get_subclasses()
-        for command in complex_commands:
-            base_command = command.base
-            children = command.get_children()
+        for cmd in complex_commands:
 
-            self._complex_commands[base_command] = command
+            if not getattr(cmd, "registered", False):
+                continue
 
-            for child in children:
-                command_inst = self._commands.get(child.command)
-                if not command_inst:
-                    command_inst = child(self)
-                else:
-                    del self._commands[child.command]
-                self._commands[f"{base_command}.{child.command}"] = command_inst
+            base_command = cmd.base
+            command_instance = cmd(self)
+
+            self._complex_commands[base_command] = command_instance
+
+            for command_name, func in cmd.sub_commands.items():
+                self._commands[f"{base_command}.{command_name}"] = Command_Entry(
+                    functools.partial(func, command_instance),
+                    command_instance.short_help,
+                    functools.partial(command_instance.help, command_name),
+                )
 
 
+# self._complex_commands[base_command] = command
+
+# for child in children:
+#    command_inst = self._commands.get(child.command)
+#    if not command_inst:
+#        command_inst = child(self)
+#    else:
+#        del self._commands[child.command]
+#    self._commands[f"{base_command}.{child.command}"] = command_inst
+
+
+@command("reload")
 class ReloadCommand(SimpleCommand):
-
-    command = "reload"
 
     def help(self):
         print("Running this command reloads all registered commands and modes")
@@ -280,6 +308,7 @@ class ReloadCommand(SimpleCommand):
         print("Successfully reloaded commands and modes")
 
 
+@command("pop_mode")
 class PopModeCommand(SimpleCommand):
 
     def run(self, args: List[str]):
@@ -293,8 +322,6 @@ class PopModeCommand(SimpleCommand):
 
     def short_help(self) -> str:
         return "Exits the most current mode"
-
-    command = "pop_mode"
 
 
 def init():

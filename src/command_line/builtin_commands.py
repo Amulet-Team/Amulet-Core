@@ -1,7 +1,7 @@
 from typing import Sequence, List, Type
 import os
 
-from command_line import SimpleCommand, ComplexCommand, Mode
+from command_line import SimpleCommand, ComplexCommand, Mode, command, subcommand
 from api.data_structures import SimpleStack
 
 from formats.format_loader import loader
@@ -58,30 +58,11 @@ class WorldMode(Mode):
         return True
 
 
+@command("world")
 class WorldCommand(ComplexCommand):
 
-    base = "world"
-
-    @classmethod
-    def get_children(cls) -> Sequence[Type[SimpleCommand]]:
-        return WorldLoadCommand, WorldIdentifyCommand, WorldUnloadCommand
-
-    @classmethod
-    def help(cls):
-        print("load - Loads a Minecraft world with the appropriate format loader")
-        print("identify - Prints out the identified loader for a given world")
-        print("unload - Unloads the currently opened Minecraft world")
-
-    @classmethod
-    def short_help(cls) -> str:
-        return "Various commands for loading and modifying worlds"
-
-
-class WorldLoadCommand(SimpleCommand):
-
-    command = "load"
-
-    def run(self, args: List[str]):
+    @subcommand("load")
+    def load(self, args: List[str]):
         if len(args) == 1:
             print('Usage: world.load "<world filepath>"')
             return
@@ -90,21 +71,8 @@ class WorldLoadCommand(SimpleCommand):
         world_mode = WorldMode(self.handler, world=world_path)
         self.handler.enter_mode(world_mode)
 
-    def help(self):
-        print("Loads a Minecraft world and enters World Mode")
-        print("This command cannot be used once the program")
-        print("has entered a World Mode\n")
-        print('Usage: world.load "<world filepath>"')
-
-    def short_help(self) -> str:
-        return "Loads a Minecraft world and enters World Mode"
-
-
-class WorldUnloadCommand(SimpleCommand):
-
-    command = "unload"
-
-    def run(self, args: List[str]):
+    @subcommand("unload")
+    def unload(self, args: List[str]):
         if self.handler.in_mode(WorldMode):
             self.handler.exit_mode()
         else:
@@ -112,18 +80,8 @@ class WorldUnloadCommand(SimpleCommand):
                 "=== Error: You must have opened a Minecraft world before unloading it"
             )
 
-    def help(self):
-        print("Unloads the currently opened Minecraft world")
-
-    def short_help(self) -> str:
-        return "Unloads the currently opened Minecraft world"
-
-
-class WorldIdentifyCommand(SimpleCommand):
-
-    command = "identify"
-
-    def run(self, args: List[str]):
+    @subcommand("identify")
+    def identify(self, args: List[str]):
         if not self.handler.in_mode(WorldMode):
             if len(args) == 1:
                 print('Usage: world.identify "<world filepath>"')
@@ -138,16 +96,30 @@ class WorldIdentifyCommand(SimpleCommand):
 
         print(f"Format: {identified_format}")
 
-    def help(self):
-        print("Identifies what format the given Minecraft world is in")
-        print("This command can be used in 2 ways. The first method")
-        print("is to supply a filepath to the world directory along")
-        print("with the command itself. The second method is by loading")
-        print("a world then running the command without any arguments.")
-        print("However, if an argument is given, the format of the given path")
-        print("will be displayed\n")
-        print('Usage: world.identify "<world filepath>"')
-        print("Usage (When in World Mode): world.identify")
+    @classmethod
+    def help(cls, command_name: str = None):
+        if command_name == "load":
+            print("Loads a Minecraft world and enters World Mode")
+            print("This command cannot be used once the program")
+            print("has entered a World Mode\n")
+            print('Usage: world.load "<world filepath>"')
+        elif command_name == "identify":
+            print("Identifies what format the given Minecraft world is in")
+            print("This command can be used in 2 ways. The first method")
+            print("is to supply a filepath to the world directory along")
+            print("with the command itself. The second method is by loading")
+            print("a world then running the command without any arguments.")
+            print("However, if an argument is given, the format of the given path")
+            print("will be displayed\n")
+            print('Usage: world.identify "<world filepath>"')
+            print("Usage (When in World Mode): world.identify")
+        elif command_name == "unload":
+            print("Unloads the currently opened Minecraft world")
+        else:
+            print("load - Loads a Minecraft world with the appropriate format loader")
+            print("identify - Prints out the identified loader for a given world")
+            print("unload - Unloads the currently opened Minecraft world")
 
-    def short_help(self) -> str:
-        return "Identifies what format the given Minecraft world is in"
+    @classmethod
+    def short_help(cls) -> str:
+        return "Various commands for loading and modifying worlds"

@@ -1,12 +1,11 @@
 from typing import List
 
 from command_line import SimpleCommand
-from command_line import WorldMode
+from command_line import WorldMode, command
 
 
+@command("get_block")
 class GetBlockCommand(SimpleCommand):
-
-    command = "get_block"
 
     def run(self, args: List[str]):
         if not self.handler.in_mode(WorldMode):

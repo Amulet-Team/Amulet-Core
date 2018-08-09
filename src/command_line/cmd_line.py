@@ -8,7 +8,24 @@ def parse_coordinate(coord: str) -> Union[Sequence[int], None]:
     match = _coordinate_regex.match(coord)
     if match:
         return int(match.group("x")), int(match.group("y")), int(match.group("z"))
+
     return None
+
+
+def command(*args):
+
+    def decorator(command_class):
+        command_class.registered = False
+        if isinstance(command_class, type):
+            if issubclass(command_class, SimpleCommand):
+                command_class.command = (command_class.run, args[0])
+                command_class.registered = True
+            elif issubclass(command_class, ComplexCommand):
+                command_class.base = args[0]
+                command_class.registered = True
+        return command_class
+
+    return decorator
 
 
 class SimpleCommand:
@@ -58,10 +75,30 @@ class SimpleCommand:
         raise NotImplementedError
 
 
+def subcommand(*args):
+
+    def decorator(f):
+        f.command = (f, args[0])
+        return f
+
+    return decorator
+
+
 class ComplexCommand:
     """
     Represents a base command that holds sub-commands
     """
+
+    def __init_subclass__(cls, **kwargs):
+        cls._persistent_data = {}
+        cls.sub_commands = {}
+        for key, val in cls.__dict__.items():
+            sub_cmd = getattr(val, "command", None)
+            if sub_cmd:
+                cls.sub_commands[sub_cmd[1]] = sub_cmd[0]
+
+    def __init__(self, cmd_line_handler):
+        self.handler = cmd_line_handler
 
     @classmethod
     def get_subclasses(cls) -> List[Type["ComplexCommand"]]:
@@ -77,16 +114,7 @@ class ComplexCommand:
         return result
 
     @classmethod
-    def get_children(cls) -> Sequence[Type[SimpleCommand]]:
-        """
-        Returns the classes of the sub-commands that this base command holds
-
-        :return: All sub-commands of this base command
-        """
-        raise NotImplementedError()
-
-    @classmethod
-    def help(cls):
+    def help(cls, command_name: str = None):
         """
         Abstract method that prints a detailed description of all the commands held by the base command
 
@@ -113,6 +141,9 @@ class Mode:
 
     def __init__(self, cmd_line_handler):
         self.handler = cmd_line_handler
+
+    def __init_subclass__(cls, **kwargs):
+        cls._persistent_data = {}
 
     def display(self) -> str:
         raise NotImplementedError()
