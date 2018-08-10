@@ -1,4 +1,4 @@
-from typing import List, Type, Sequence, Union
+from typing import List, Type, Sequence, Union, Callable
 import re
 
 _coordinate_regex = re.compile(r"<(?P<x>\d+),(?P<y>\d+),(?P<z>\d+)>")
@@ -12,16 +12,23 @@ def parse_coordinate(coord: str) -> Union[Sequence[int], None]:
     return None
 
 
-def command(*args):
+def command(command_name: str) -> Type[Union["SimpleCommand", "ComplexCommand"]]:
+    """
+    Registers a class as a command. If the class' parent is SimpleCommand, then it will use the abstracted methods.
+    If the class' parent is ComplexCommand, then any method decorated with the `subcommand` decorator is registered as
+    a sub-command of the given command name.
+
+    :param command_name: The name used to identify the command, or the base command if using ComplexCommand
+    """
 
     def decorator(command_class):
         command_class.registered = False
         if isinstance(command_class, type):
             if issubclass(command_class, SimpleCommand):
-                command_class.command = (command_class.run, args[0])
+                command_class.command = (command_class.run, command_name)
                 command_class.registered = True
             elif issubclass(command_class, ComplexCommand):
-                command_class.base = args[0]
+                command_class.base = command_name
                 command_class.registered = True
         return command_class
 
@@ -75,10 +82,15 @@ class SimpleCommand:
         raise NotImplementedError
 
 
-def subcommand(*args):
+def subcommand(sub_command_name: str) -> Callable[[List[str]], None]:
+    """
+    Registers the decorated method as a subcommand of the containing ComplexCommand.
+
+    :param sub_command_name: The name/identifier of the subcommand
+    """
 
     def decorator(f):
-        f.command = (f, args[0])
+        f.command = (f, sub_command_name)
         return f
 
     return decorator
@@ -116,9 +128,12 @@ class ComplexCommand:
     @classmethod
     def help(cls, command_name: str = None):
         """
-        Abstract method that prints a detailed description of all the commands held by the base command
+        Abstract method that prints a detailed description of all the commands held by the base command if called
+        with default arguments. If help is called on a specific command, the subcommand's name will supplied with `command_name`
 
         This method expects all information to be printed, nothing returned will be used
+
+        :arg command_name: The name/identifier of the specific command help was called on, None if help was called on the base command of the ComplexCommand
         """
         raise NotImplementedError()
 

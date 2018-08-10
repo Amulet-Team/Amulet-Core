@@ -114,7 +114,8 @@ class WorldCommand(ComplexCommand):
             print('Usage: world.identify "<world filepath>"')
             print("Usage (When in World Mode): world.identify")
         elif command_name == "unload":
-            print("Unloads the currently opened Minecraft world")
+            print("Unloads the currently opened Minecraft world\n")
+            print("Usage: world.unload")
         else:
             print("load - Loads a Minecraft world with the appropriate format loader")
             print("identify - Prints out the identified loader for a given world")
