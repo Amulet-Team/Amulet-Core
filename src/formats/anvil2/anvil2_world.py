@@ -213,10 +213,10 @@ class Anvil2World(WorldFormat):
         return blocks, {}, {}
 
     @classmethod
-    def fromUnifiedFormat(cls, unified: object) -> object:
+    def from_unified_format(cls, unified: object) -> object:
         pass
 
-    def toUnifiedFormat(self) -> object:
+    def to_unified_format(self) -> object:
         pass
 
     def save(self) -> None:

@@ -220,14 +220,14 @@ class AnvilWorld(WorldFormat):
 
         return block_test, {}, {}
 
-    def toUnifiedFormat(self) -> object:
+    def to_unified_format(self) -> object:
         pass
 
     def save(self) -> None:
         pass
 
     @classmethod
-    def fromUnifiedFormat(cls, unified: object) -> object:
+    def from_unified_format(cls, unified: object) -> object:
         pass
 
 

@@ -1,5 +1,5 @@
 import functools
-from typing import Tuple, Union, Sequence, Dict
+from typing import Tuple, Union, Sequence
 
 import numpy
 
@@ -19,7 +19,7 @@ class WorldFormat:
         raise NotImplementedError()
 
     @classmethod
-    def fromUnifiedFormat(cls, unified: "World") -> "WorldFormat":
+    def from_unified_format(cls, unified: "World") -> "WorldFormat":
         """
         Converts the passed object to the specific implementation
 
@@ -28,7 +28,7 @@ class WorldFormat:
         """
         raise NotImplementedError()
 
-    def toUnifiedFormat(self) -> "World":
+    def to_unified_format(self) -> "World":
         """
         Converts the current object to the Unified format
         """
