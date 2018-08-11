@@ -180,12 +180,12 @@ class AnvilWorld(WorldFormat):
                 (16, 16, 8)
             )  # The Byte array is actually just Nibbles, so the size is off
 
-            section_data = world_utils.fromNibbleArray(section_data)
+            section_data = world_utils.from_nibble_array(section_data)
 
             if "Add" in section:
                 add_blocks = numpy.frombuffer(section["Add"].value, dtype=numpy.uint8)
                 add_blocks = add_blocks.reshape((16, 16, 8))
-                add_blocks = world_utils.fromNibbleArray(add_blocks)
+                add_blocks = world_utils.from_nibble_array(add_blocks)
 
                 section_blocks |= (add_blocks.astype(numpy.uint16) << 8)
 

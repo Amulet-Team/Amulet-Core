@@ -38,10 +38,11 @@ class _FormatLoader:
                 if __debug__:
                     print(f"[Debug] Enabled \"{format_name}\" format, version {getattr(module, '__version__', -1)}")
 
-    def load_format(self, directory: str) -> Tuple[bool, object]:
+    @staticmethod
+    def load_format(directory: str) -> Tuple[bool, object]:
         try:
             format_module = importlib.import_module(os.path.basename(directory))
-        except ImportError as e:
+        except ImportError:
             traceback.print_exc()
             time.sleep(0.01)
             print(
@@ -105,8 +106,7 @@ loader = _FormatLoader()
 
 
 def load_world(world_directory: str):
-    for format_name, format_module in loader.get_loaded_formats():
-        if format_module.identify(world_directory):
-            return format_module.LEVEL_CLASS(world_directory)
-
-    return None
+    try:
+        return loader.load_world(world_directory)
+    except ModuleNotFoundError:
+        return None

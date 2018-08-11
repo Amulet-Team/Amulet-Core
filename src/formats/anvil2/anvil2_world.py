@@ -173,8 +173,7 @@ class Anvil2World(WorldFormat):
         )
 
         blocks = numpy.zeros((16, 256, 16), dtype=int)
-        temp_blocks = numpy.ndarray((256, 16, 16), dtype="object")
-        temp_blocks.fill("minecraft:air")
+        temp_blocks = numpy.full((256, 16, 16), "minecraft:air", dtype="object")
 
         for section in chunk_sections:
             lower = section["Y"].value << 4

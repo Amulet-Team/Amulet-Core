@@ -95,7 +95,8 @@ class DefinitionManager:
         self, resource_location="minecraft", basename="air", properties=None
     ) -> dict:
         """
-        Returns the versioned definition for the supplied internal block. Internal definitions are loosely based off of the flattened blockstates of Java Edition 1.13
+        Returns the versioned definition for the supplied internal block.
+        Internal definitions are loosely based off of the flattened blockstates of Java Edition 1.13
 
         :param resource_location: The resource location to look in
         :param basename: The basename of the block
@@ -133,7 +134,7 @@ class DefinitionManager:
             )
         )
 
-    def get_block_from_definition(self, block: Union[str, int]) -> str:
+    def get_block_from_definition(self, block: Union[str, list, tuple]) -> str:
         """
         Returns the internal name of the supplied versioned block
 

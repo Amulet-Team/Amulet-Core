@@ -1,3 +1,4 @@
+import sys
 import gzip
 from io import StringIO
 from typing import Union, Tuple
@@ -52,7 +53,7 @@ def gunzip(data):
     return gzip.GzipFile(fileobj=StringIO(data)).read()
 
 
-def fromNibbleArray(arr: ndarray) -> ndarray:
+def from_nibble_array(arr: ndarray) -> ndarray:
     """
     Unpacks a nibble array into a full size numpy array
 
@@ -69,9 +70,6 @@ def fromNibbleArray(arr: ndarray) -> ndarray:
     new_arr[:, :, 1::2] >>= 4
 
     return new_arr
-
-
-import sys
 
 
 def get_size(obj, seen=None):
