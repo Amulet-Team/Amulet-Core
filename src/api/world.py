@@ -50,7 +50,6 @@ class World:
         self._directory = directory
         self._root_tag = root_tag
         self._wrapper = wrapper
-        self.mapping_handler = wrapper.mapping_handler
 
         self._blocks = numpy.zeros((256, 256, 256), dtype=numpy.uint16)
 
@@ -84,7 +83,7 @@ class World:
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
         blocks, entities, tile_entities = self.get_chunk(cx, cz)
 
-        return self.mapping_handler[blocks[offset_x, y, offset_z]]
+        return self._wrapper.mapping_handler[blocks[offset_x, y, offset_z]]
 
     def get_blocks(self, *args: Union[Sequence[slice], Sequence[int]]) -> numpy.ndarray:
         length = len(args)

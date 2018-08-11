@@ -204,11 +204,16 @@ class Anvil2World(WorldFormat):
         uniques = uniques[uniques != "minecraft:air"]
         for unique in uniques:
             internal = self._materials.get_block_from_definition(unique, default=unique)
-            self.mapping_handler = numpy.append(self.mapping_handler, internal)
+            internal_in_mapping = numpy.where(self.mapping_handler == internal)[0]
+            if len(internal_in_mapping) > 0:
+                internal_id = internal_in_mapping[0]
+            else:
+                internal_id = len(self.mapping_handler)
+                self.mapping_handler = numpy.append(self.mapping_handler, internal)
 
             mask = temp_blocks == unique
 
-            blocks[mask] = len(self.mapping_handler) - 1
+            blocks[mask] = internal_id
 
         return blocks, {}, {}
 

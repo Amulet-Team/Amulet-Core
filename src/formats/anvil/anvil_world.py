@@ -207,16 +207,27 @@ class AnvilWorld(WorldFormat):
         for block in unique_blocks:
             internal = self._materials.get_block_from_definition(block, default="minecraft:unknown_{}")
             if internal == "minecraft:unknown_{}":
-                internal = internal.format(len(self.unknown_blocks))
-                self.unknown_blocks[len(self.mapping_handler)] = block
-            self.mapping_handler = numpy.append(self.mapping_handler, internal)
+                try:
+                    internal_id = list(self.unknown_blocks.values()).index(block)
+                except ValueError:
+                    internal_id = len(self.mapping_handler)
+                    internal = internal.format(len(self.unknown_blocks))
+                    self.unknown_blocks[internal_id] = block
+                    self.mapping_handler = numpy.append(self.mapping_handler, internal)
+            else:
+                internal_in_mapping = numpy.where(self.mapping_handler == internal)[0]
+                if len(internal_in_mapping) > 0:
+                    internal_id = internal_in_mapping[0]
+                else:
+                    internal_id = len(self.mapping_handler)
+                    self.mapping_handler = numpy.append(self.mapping_handler, internal)
 
             block_mask = blocks == block[0]
             data_mask = block_data_array == block[1]
 
             mask = block_mask & data_mask
 
-            block_test[mask] = len(self.mapping_handler) - 1
+            block_test[mask] = internal_id
 
         return block_test, {}, {}
 
