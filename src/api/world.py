@@ -6,7 +6,7 @@ import numpy
 from utils import world_utils
 
 
-class WorldFormat(object):
+class WorldFormat:
     """
     Base class for World objects
     """
@@ -52,8 +52,6 @@ class World:
         self._wrapper = wrapper
         self.mapping_handler = wrapper.mapping_handler
 
-        self._load_space()
-
         self._blocks = numpy.zeros((256, 256, 256), dtype=numpy.uint16)
 
     @functools.lru_cache(maxsize=8)
@@ -69,10 +67,6 @@ class World:
 
     def d_load_chunk(self, cx: int, cz: int):
         return self._wrapper.d_load_chunk(cx, cz)
-
-    def _load_space(self):
-        # print(self._root_tag)
-        self._wrapper.d_load_chunk(0, 0)
 
     def get_block(self, x: int, y: int, z: int) -> str:
         """

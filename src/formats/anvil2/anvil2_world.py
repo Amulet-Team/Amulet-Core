@@ -142,8 +142,7 @@ class Anvil2World(WorldFormat):
         self._directory = directory
         self._materials = DefinitionManager("1.13")
         self._region_manager = _Anvil2RegionManager(directory)
-        self.mapping_handler = world_utils.InternalBlockMap()
-        self.unknown_blocks = {}
+        self.mapping_handler = numpy.array(["minecraft:air"], dtype="object")
 
     @classmethod
     def load(cls, directory: str) -> World:
@@ -194,11 +193,7 @@ class Anvil2World(WorldFormat):
             )[
                 ::-1
             ]
-            # print(before_palette)
-            # print(section['Palette'])
-            # print(section)
-            # print(type(section["Palette"]))
-            # (numpy.asarray(section["Palette"], dtype="object"))
+
             _blocks = numpy.asarray(palette, dtype="object")[before_palette]
 
             temp_blocks[lower:upper, :, :] = _blocks.reshape((16, 16, 16))
@@ -206,21 +201,15 @@ class Anvil2World(WorldFormat):
         temp_blocks = numpy.swapaxes(temp_blocks.swapaxes(0, 1), 0, 2)
 
         uniques = numpy.unique(temp_blocks)
-        uniques = numpy.delete(uniques, numpy.where(uniques == "minecraft:air"))
+        uniques = uniques[uniques != "minecraft:air"]
         for unique in uniques:
-            internal = self._materials.get_block_from_definition(unique)
-            internal_id = self.mapping_handler.add_entry(internal)
-
-            if not internal:
-                self.unknown_blocks[internal_id] = unique
+            internal = self._materials.get_block_from_definition(unique, default=unique)
+            self.mapping_handler = numpy.append(self.mapping_handler, internal)
 
             mask = temp_blocks == unique
 
-            blocks[mask] = internal_id
-        # print("===")
-        # print(uniques)
+            blocks[mask] = len(self.mapping_handler) - 1
 
-        # print(blocks[70, 3, 1])
         return blocks, {}, {}
 
     @classmethod

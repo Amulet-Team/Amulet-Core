@@ -1,5 +1,4 @@
 import struct
-import time
 import zlib
 from io import BytesIO
 from typing import Tuple
@@ -145,7 +144,7 @@ class AnvilWorld(WorldFormat):
         self._directory = directory
         self._materials = DefinitionManager("1.12")
         self._region_manager = _AnvilRegionManager(directory)
-        self.mapping_handler = world_utils.InternalBlockMap()
+        self.mapping_handler = numpy.array(["minecraft:air"], dtype="object")
         self.unknown_blocks = {}
 
     @classmethod
@@ -164,7 +163,6 @@ class AnvilWorld(WorldFormat):
 
         blocks = numpy.zeros((256, 16, 16), dtype=int)
         block_data = numpy.zeros((256, 16, 16), dtype=numpy.uint8)
-        start_time = time.time()
         for section in chunk_sections:
             lower = section["Y"].value << 4
             upper = (section["Y"].value + 1) << 4
@@ -192,71 +190,33 @@ class AnvilWorld(WorldFormat):
             blocks[lower:upper, :, :] = section_blocks
             block_data[lower:upper, :, :] = section_data
 
-        end = time.time()
-
-        print(
-            "Loading {} sections took: {}".format(len(chunk_sections), end - start_time)
-        )
-        print("Block at (1,70,3): {}".format(blocks[70, 3, 1]))
         blocks = numpy.swapaxes(blocks.swapaxes(0, 1), 0, 2)
         block_data_array = numpy.swapaxes(block_data.swapaxes(0, 1), 0, 2)
-        print("Block at (1,70,3): {}".format(blocks[1, 70, 3]))
-        print("Data value at (1,70,5): {}".format(block_data_array[1, 70, 5]))
 
         unique_block_ids = numpy.unique(blocks)
-        unique_block_ids = numpy.delete(unique_block_ids, 0)
-        unique_block_datas = numpy.unique(block_data_array)
-        print(unique_block_ids)
-        print(unique_block_datas)
+        unique_block_ids = unique_block_ids[unique_block_ids != 0]
 
         unique_blocks = set()
-        for block_data in unique_block_datas:
-            indices = numpy.where(block_data_array == block_data)
-            # print("{}: {}".format(block_data, indices))
-            # print(numpy.unique(blocks[indices]))
-            for block_id in numpy.unique(blocks[indices]):
+        for block_id in unique_block_ids:
+            indices = numpy.where(blocks == block_id)
+
+            for block_data in numpy.unique(block_data_array[indices]):
                 unique_blocks.add((block_id, block_data))
-            """
-            for x in indices[0]:
-                for y in indices[1]:
-                    for z in indices[2]:
-                        block_id = blocks[x,y,z]
-                        if block_id == 0:
-                            continue
-                        unique_block.add((block_id, block_data))
-            print("Current Pass: {}".format(unique_block))
-            """
-        print("All Blocks: {}".format(unique_blocks))
-        print()
 
-        print("=== Mapped Blocks ===")
-        block_test = blocks.copy()
+        block_test = numpy.zeros_like(blocks, dtype=int)
         for block in unique_blocks:
-            internal = self._materials.get_block_from_definition(block)
-            internal_id = self.mapping_handler.add_entry(internal)
-
-            if not internal:
-                self.unknown_blocks[internal_id] = block
+            internal = self._materials.get_block_from_definition(block, default="minecraft:unknown_{}")
+            if internal == "minecraft:unknown_{}":
+                internal = internal.format(len(self.unknown_blocks))
+                self.unknown_blocks[len(self.mapping_handler)] = block
+            self.mapping_handler = numpy.append(self.mapping_handler, internal)
 
             block_mask = blocks == block[0]
             data_mask = block_data_array == block[1]
 
             mask = block_mask & data_mask
 
-            block_test[mask] = internal_id
-
-            print("{} -> {}".format(block, internal))
-            print("{} = {}".format(internal, internal_id))
-
-        print(self.mapping_handler)
-        print(block_test[1, 70, 3])
-        print(
-            str(block_test[9, 70, 3])
-            + " = "
-            + self.mapping_handler.get_entry(block_test[9, 70, 3].item())
-        )
-        print(block_test[1, 70, 3] + 3)
-        print(self.unknown_blocks)
+            block_test[mask] = len(self.mapping_handler) - 1
 
         return block_test, {}, {}
 

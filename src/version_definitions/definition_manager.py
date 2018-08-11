@@ -134,22 +134,25 @@ class DefinitionManager:
             )
         )
 
-    def get_block_from_definition(self, block: Union[str, list, tuple]) -> str:
+    def get_block_from_definition(self, block: Union[str, list, tuple], default=None) -> str:
         """
         Returns the internal name of the supplied versioned block
 
         :param block: The versioned block
+        :param default: The default value to return if missing
         :return: The internal name that is mapped to the versioned block
         """
         if isinstance(block, str) and self.matcher.match(block):
             for key, value in self.blocks.items():
                 if block == value:
                     return key
+            return default
 
         elif isinstance(block, (list, tuple)):
             for key, value in self.blocks.items():
                 if value[0] == block[0] and value[1] == block[1]:
                     return key
+            return default
 
         else:
             raise KeyError()
