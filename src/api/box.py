@@ -55,6 +55,10 @@ class SubBox:
     def max_z(self):
         return self.max[2]
 
+    @property
+    def shape(self):
+        return self.max_x - self.min_x, self.max_y - self.min_y, self.max_z - self.min_z
+
     def intersects(self, other: "SubBox") -> bool:
         """
         Method to check whether this instance of SubBox intersects another SubBox

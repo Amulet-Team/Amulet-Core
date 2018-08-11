@@ -1,10 +1,12 @@
 import functools
-from typing import Tuple, Union, Sequence
+import itertools
+from typing import Tuple, Union, Sequence, Generator
 from importlib import import_module
 
 import numpy
 
-from utils import world_utils
+from api.selection import Selection
+from utils.world_utils import block_coords_to_chunk_coords, blocks_slice_to_chunk_slice
 
 
 class WorldFormat:
@@ -80,7 +82,7 @@ class World:
         if not (0 <= y <= 255):
             raise IndexError("The supplied Y coordinate must be between 0 and 255")
 
-        cx, cz = world_utils.block_coords_to_chunk_coords(x, z)
+        cx, cz = block_coords_to_chunk_coords(x, z)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
         blocks, entities, tile_entities = self.get_chunk(cx, cz)
 
@@ -98,6 +100,18 @@ class World:
                 raise IndexError()
 
             return self.get_blocks_slice(s_x, s_y, s_z)
+
+    def get_selections_from_slices(self, x_slice: slice, y_slice: slice, z_slice: slice) -> Generator[Selection, None, None]:
+        first_chunk = block_coords_to_chunk_coords(x_slice.start, z_slice.start)
+        last_chunk = block_coords_to_chunk_coords(x_slice.stop, x_slice.stop)
+        for chunk in itertools.product(
+            range(first_chunk[0], last_chunk[0]+1),
+            range(first_chunk[1], last_chunk[1]+1)
+        ):
+            x_slice_for_chunk = blocks_slice_to_chunk_slice(x_slice) if chunk == first_chunk else slice(None)
+            z_slice_for_chunk = blocks_slice_to_chunk_slice(z_slice) if chunk == last_chunk else slice(None)
+            blocks = self.get_chunk(*chunk)[0]
+            yield Selection(blocks[x_slice_for_chunk, y_slice, z_slice_for_chunk])
 
     def get_blocks_slice(
         self, x_slice: slice, y_slice: slice, z_slice: slice

@@ -46,6 +46,15 @@ def region_coords_to_chunk_coords(rx: int, rz: int) -> Coordinates:
     return rx << 5, rz << 5
 
 
+def blocks_slice_to_chunk_slice(blocks_slice: slice) -> slice:
+    """
+    Converts the supplied blocks slice into chunk slice
+    :param blocks_slice: The slice of the blocks
+    :return: The resulting chunk slice
+    """
+    return slice(blocks_slice.start % 16, blocks_slice.stop % 16)
+
+
 def gunzip(data):
     """
     Decompresses data that is in Gzip format
