@@ -1,5 +1,6 @@
 import functools
 from typing import Tuple, Union, Sequence
+from importlib import import_module
 
 import numpy
 
@@ -110,3 +111,10 @@ class World:
         return self._blocks[
             args[0]:args[1]:args[6], args[2]:args[3]:args[7], args[4]:args[5]:args[8]
         ]
+
+    def run_operation(self, operation_name: str, *args) -> None:
+        operation_module = import_module(f"operations.{operation_name}")
+        operation_class_name = "".join(x.title() for x in operation_name.split("_"))
+        operation_class = getattr(operation_module, operation_class_name)
+        operation_instance = operation_class(*args)
+        operation_instance.run_operation(self)

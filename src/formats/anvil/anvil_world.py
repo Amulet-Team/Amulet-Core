@@ -72,8 +72,6 @@ class _AnvilRegionManager:
             data = zlib.decompress(data)
 
         nbt_data = nbt.NBTFile(buffer=BytesIO(data))
-        print("=== Chunk data ===")
-        print(nbt_data)
 
         return nbt_data["Level"]["Sections"], nbt_data["Level"][
             "TileEntities"

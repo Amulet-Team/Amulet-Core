@@ -1,8 +1,7 @@
 from collections import namedtuple
 import itertools
 
-from typing import Sequence
-
+from typing import Sequence, List
 
 Point = namedtuple("Point", ("x", "y", "z"))
 
@@ -28,6 +27,9 @@ class SubBox:
 
     def __str__(self):
         return f"({self.min}, {self.max})"
+
+    def to_slice(self) -> List[slice]:
+        return [slice(self.min.x, self.max.x), slice(self.min.y, self.max.y), slice(self.min.z, self.max.z)]
 
     @property
     def min_x(self):

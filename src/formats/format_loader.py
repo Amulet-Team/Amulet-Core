@@ -6,9 +6,10 @@ import importlib.util
 import glob
 import time
 from types import ModuleType
-from typing import Tuple
+from typing import Tuple, Optional
 
 from api.paths import FORMATS_DIR
+from api.world import World
 
 
 class _FormatLoader:
@@ -94,7 +95,7 @@ class _FormatLoader:
 
         raise ModuleNotFoundError("Could not find a valid format loader")
 
-    def load_world(self, directory: str) -> object:
+    def load_world(self, directory: str) -> World:
         for name, module in self._loaded_formats.items():
             if module.identify(directory):
                 return module.LEVEL_CLASS.load(directory)
@@ -105,7 +106,7 @@ class _FormatLoader:
 loader = _FormatLoader()
 
 
-def load_world(world_directory: str):
+def load_world(world_directory: str) -> Optional[World]:
     try:
         return loader.load_world(world_directory)
     except ModuleNotFoundError:
