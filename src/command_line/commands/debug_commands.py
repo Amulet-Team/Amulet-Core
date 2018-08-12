@@ -29,7 +29,7 @@ class GetBlockCommand(SimpleCommand):
 
         world_mode = self.handler.get_mode(WorldMode)
         world = world_mode.world
-        blocks, d1, d2 = world.d_load_chunk(cx, cz)
+        blocks, d1, d2 = world.get_chunk(cx, cz)
 
         true_x, true_z = x - cx * 16, z - cz * 16
 

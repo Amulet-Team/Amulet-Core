@@ -13,4 +13,4 @@ class UnifiedWorldTestCase(unittest.TestCase):
         world = self.loader.load_world(get_world_path("1.12.2 World"))
 
     def test_load_anvil2(self):
-        world = self.loader.load_format(get_world_path("1.13 World"))
+        world = self.loader.load_world(get_world_path("1.13 World"))

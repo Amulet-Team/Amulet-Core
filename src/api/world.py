@@ -18,7 +18,7 @@ class WorldFormat:
     def load(cls, directory: str) -> "World":
         raise NotImplementedError()
 
-    def d_load_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
+    def get_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
         raise NotImplementedError()
 
     @classmethod
@@ -54,8 +54,6 @@ class World:
         self._root_tag = root_tag
         self._wrapper = wrapper
 
-        self._blocks = numpy.zeros((256, 256, 256), dtype=numpy.uint16)
-
     @functools.lru_cache(maxsize=8)
     def get_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
         """
@@ -65,10 +63,7 @@ class World:
         :param cz: The Z coordinate of the desired chunk
         :return: The blocks, entities, and tile entities in the chunk
         """
-        return self._wrapper.d_load_chunk(cx, cz)
-
-    def d_load_chunk(self, cx: int, cz: int):
-        return self._wrapper.d_load_chunk(cx, cz)
+        return self._wrapper.get_chunk(cx, cz)
 
     def get_block(self, x: int, y: int, z: int) -> str:
         """

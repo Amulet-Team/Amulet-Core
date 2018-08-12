@@ -154,7 +154,7 @@ class AnvilWorld(WorldFormat):
 
         return World(directory, root_tag, wrapper)
 
-    def d_load_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
+    def get_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
         chunk_sections, tile_entities, entities = self._region_manager.load_chunk(
             cx, cz
         )
