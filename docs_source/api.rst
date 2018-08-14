@@ -1,18 +1,9 @@
 api module
 ==========
 
-.. automodule:: api.box
-    :members:
-    :show-inheritance:
+.. toctree::
+    :maxdepth: 2
+    :caption: API Documentation
+    :glob:
 
-.. automodule:: api.data_structures
-    :members:
-    :show-inheritance:
-
-.. automodule:: api.paths
-    :members:
-    :show-inheritance:
-
-.. automodule:: api.world
-    :members:
-    :show-inheritance:
+    api/*

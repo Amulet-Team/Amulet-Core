@@ -1,5 +1,10 @@
+import os
 from typing import List, Type, Sequence, Union, Callable
 import re
+
+from api.data_structures import SimpleStack
+from api.world import World
+from formats.format_loader import loader
 
 _coordinate_regex = re.compile(r"<(?P<x>\d+),(?P<y>\d+),(?P<z>\d+)>")
 
@@ -186,3 +191,53 @@ class Mode:
         :return: Return False if the mode is not ready to be exited, otherwise return True. If the exit command is supplied a '-f' argument, then the return value is ignored
         """
         raise NotImplementedError()
+
+
+class WorldMode(Mode):
+
+    def __init__(self, cmd_line_handler, **kwargs):
+        super(WorldMode, self).__init__(cmd_line_handler)
+        self._world_path = kwargs.get("world")
+        self._world_name = os.path.basename(self._world_path)
+        self._unsaved_changes = SimpleStack()
+        self._world = loader.load_world(self._world_path)
+
+    @property
+    def world_path(self) -> str:
+        return self._world_path
+
+    @property
+    def world(self) -> World:
+        return self._world
+
+    def display(self) -> str:
+        return self._world_name
+
+    def before_execution(self, cmd) -> bool:
+        if cmd[0] == "load" and not self._unsaved_changes.is_empty():
+            print("You can't load a new world if you currently have unsaved changes")
+            return False
+
+        return True
+
+    def enter(self) -> bool:
+        if self.handler.in_mode(WorldMode):
+            print("You cannot load a world if another world is already loaded!")
+            return False
+
+        if __debug__:
+            print("Entered world mode")
+        return True
+
+    def exit(self) -> bool:
+        if __debug__:
+            print("Exiting world mode")
+        if not self._unsaved_changes.is_empty():
+            print("You have unsaved changes, do you really want to quit?")
+            ans = input("(y/n)> ")
+            if ans == "y":
+                return True
+
+            return False
+
+        return True

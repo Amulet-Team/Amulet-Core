@@ -1,7 +1,7 @@
 from typing import List
 
-from command_line import SimpleCommand
-from command_line import WorldMode, command
+from command_line import SimpleCommand, WorldMode
+from command_line import command
 
 
 @command("get_block")

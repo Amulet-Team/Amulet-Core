@@ -11,6 +11,7 @@ Welcome to Unified Map Editor's documentation!
    :caption: Contents:
 
    api
+   design
    command_line
    version_definitions
    utils

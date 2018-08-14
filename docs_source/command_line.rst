@@ -5,6 +5,6 @@ command_line module
     :members:
     :show-inheritance:
 
-.. automodule:: command_line.cmd_line
+.. automodule:: command_line.command_api
     :members:
     :show-inheritance:

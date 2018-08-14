@@ -1,4 +1,4 @@
-from typing import Union, Sequence, Callable, TypeVar, Generic
+from typing import Union, Sequence, Callable, TypeVar, Generic, Optional
 
 T = TypeVar("T")
 
@@ -15,7 +15,7 @@ class SimpleStack(Generic[T]):
         self.pop: Callable[[], T] = self._data.pop
         self.append: Callable[[T], None] = self._data.append
 
-    def peek(self) -> Union[T, None]:
+    def peek(self) -> Optional[T]:
         if self.is_empty():
             return None
 
