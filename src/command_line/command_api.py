@@ -1,5 +1,5 @@
 import os
-from typing import List, Type, Sequence, Union, Callable
+from typing import List, Type, Sequence, Union, Callable, Any
 import re
 
 from api.data_structures import SimpleStack
@@ -33,14 +33,21 @@ def command(command_name: str) -> Type[Union["SimpleCommand", "ComplexCommand"]]
                 command_class.command = (command_class.run, command_name)
                 command_class.registered = True
             elif issubclass(command_class, ComplexCommand):
-                command_class.base = command_name
+                command_class.base_command = command_name
                 command_class.registered = True
         return command_class
 
     return decorator
 
+class _CommandBase:
 
-class SimpleCommand:
+    def error(self, message: Any):
+        print(f"=== Error: {message}")
+
+    def warning(self, message: Any):
+        print(f"== Warning: {message}")
+
+class SimpleCommand(_CommandBase):
     """
     Represents a command that can be executed within the command line
     """
@@ -101,7 +108,7 @@ def subcommand(sub_command_name: str) -> Callable[[List[str]], None]:
     return decorator
 
 
-class ComplexCommand:
+class ComplexCommand(_CommandBase):
     """
     Represents a base command that holds sub-commands
     """

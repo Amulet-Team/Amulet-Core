@@ -19,6 +19,12 @@
         16
       ]
     },
+    "polished_granite": {
+      "name": "Polished Granite"
+    },
+    "diorite": {
+      "name": "Diorite"
+    },
     "oak_log": {
       "axis=y": {
         "name": "Oak Log (Upright)",

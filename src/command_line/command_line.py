@@ -11,8 +11,11 @@ from collections import namedtuple
 from typing import List, Type
 
 from command_line import SimpleCommand, ComplexCommand, Mode, command
+from command_line import builtin_commands
+
 from api.data_structures import SimpleStack
 from api.paths import COMMANDS_DIR
+
 
 Command_Entry = namedtuple("Command", ("run", "short_help", "help"))
 
@@ -73,7 +76,7 @@ class CommandLineHandler:
         self._modules = []
         self._load_commands_and_modes()
 
-        self.persistent_data = {}
+        self.shared_data = {}
 
         self.in_mode = self._modes.has_mode
         self.get_mode = self._modes.get_mode
@@ -266,7 +269,7 @@ class CommandLineHandler:
             if not getattr(cmd, "registered", False):
                 continue
 
-            base_command = cmd.base
+            base_command = cmd.base_command
             command_instance = cmd(self)
 
             self._complex_commands[base_command] = command_instance
@@ -277,17 +280,6 @@ class CommandLineHandler:
                     command_instance.short_help,
                     functools.partial(command_instance.help, command_name),
                 )
-
-
-# self._complex_commands[base_command] = command
-
-# for child in children:
-#    command_inst = self._commands.get(child.command)
-#    if not command_inst:
-#        command_inst = child(self)
-#    else:
-#        del self._commands[child.command]
-#    self._commands[f"{base_command}.{child.command}"] = command_inst
 
 
 @command("reload")
@@ -301,7 +293,6 @@ class ReloadCommand(SimpleCommand):
         return "Reloads all registered commands and modes"
 
     def run(self, args: List[str]):
-        # self.handler.load_commands_and_modes()
         modules = getattr(self.handler, "_modules", ())
         for mod in modules:
             importlib.reload(mod)

@@ -5,8 +5,8 @@
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 SPHINXPROJ    = UnifiedMapEditor
-SOURCEDIR     = source
-BUILDDIR      = build
+SOURCEDIR     = docs_source
+BUILDDIR      = docs_build
 
 # Put it first so that "make" without argument is like "make help".
 help:

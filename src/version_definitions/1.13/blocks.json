@@ -12,6 +12,10 @@
       "id": "minecraft:polished_granite",
       "map_to": "internal:minecraft:polished_granite"
     },
+    "diorite": {
+      "id": "minecraft:diorite",
+      "map_to": "internal:minecraft:diorite"
+    },
     "oak_log": {
       "axis=y": {
         "id": "minecraft:oak_log[axis=y]",

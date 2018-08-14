@@ -16,6 +16,10 @@
       "variant=smooth_granite": {
         "id": [1, 2],
         "map_to": "internal:minecraft:polished_granite"
+      },
+      "variant=diorite": {
+        "id": [1, 3],
+        "map_to": "internal:minecraft:diorite"
       }
     },
     "log": {
