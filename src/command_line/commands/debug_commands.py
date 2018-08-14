@@ -1,7 +1,7 @@
 from typing import List
 
 from command_line import SimpleCommand, WorldMode
-from command_line import command
+from command_line.command_api import command, parse_coordinates
 
 
 @command("get_block")
@@ -13,7 +13,8 @@ class GetBlockCommand(SimpleCommand):
             return
 
         try:
-            x, y, z = map(int, args[1:4])
+#            x, y, z = map(int, args[1:4])
+            x, y, z = parse_coordinates("".join(args[1:4]))
         except IndexError:
             print("Error: You must supply X, Y, and Z coordinates")
             return

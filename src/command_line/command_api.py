@@ -9,7 +9,7 @@ from formats.format_loader import loader
 _coordinate_regex = re.compile(r"<(?P<x>\d+),(?P<y>\d+),(?P<z>\d+)>")
 
 
-def parse_coordinate(coord: str) -> Union[Sequence[int], None]:
+def parse_coordinates(coord: str) -> Union[Sequence[int], None]:
     match = _coordinate_regex.match(coord)
     if match:
         return int(match.group("x")), int(match.group("y")), int(match.group("z"))
