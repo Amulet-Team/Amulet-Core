@@ -4,6 +4,8 @@ import os
 import re
 from typing import Union
 
+from api.paths import DEFINITIONS_DIR
+
 
 class DefinitionManager:
 
@@ -45,7 +47,7 @@ class DefinitionManager:
 
         self.matcher = re.compile(r"^(.)+:(.)+$")
 
-        fp = open(os.path.join(os.path.dirname(__file__), "internal", "blocks.json"))
+        fp = open(os.path.join(DEFINITIONS_DIR, "internal", "blocks.json"))
         self.defs_internal = json.load(fp)
         fp.close()
 
@@ -53,14 +55,14 @@ class DefinitionManager:
 
         if not os.path.exists(
             "{}.json".format(
-                os.path.join(os.path.dirname(__file__), definitions_to_build, "blocks")
+                os.path.join(DEFINITIONS_DIR, definitions_to_build, "blocks")
             )
         ):
             raise FileNotFoundError()
 
         fp = open(
             "{}.json".format(
-                os.path.join(os.path.dirname(__file__), definitions_to_build, "blocks")
+                os.path.join(DEFINITIONS_DIR, definitions_to_build, "blocks")
             ),
             "r",
         )
@@ -134,7 +136,9 @@ class DefinitionManager:
             )
         )
 
-    def get_block_from_definition(self, block: Union[str, list, tuple], default=None) -> str:
+    def get_block_from_definition(
+        self, block: Union[str, list, tuple], default=None
+    ) -> str:
         """
         Returns the internal name of the supplied versioned block
 
@@ -146,12 +150,14 @@ class DefinitionManager:
             for key, value in self.blocks.items():
                 if block == value:
                     return key
+
             return default
 
         elif isinstance(block, (list, tuple)):
             for key, value in self.blocks.items():
                 if value[0] == block[0] and value[1] == block[1]:
                     return key
+
             return default
 
         else:

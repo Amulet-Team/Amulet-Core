@@ -39,6 +39,7 @@ def command(command_name: str) -> Type[Union["SimpleCommand", "ComplexCommand"]]
 
     return decorator
 
+
 class _CommandBase:
 
     def error(self, message: Any):
@@ -46,6 +47,7 @@ class _CommandBase:
 
     def warning(self, message: Any):
         print(f"== Warning: {message}")
+
 
 class SimpleCommand(_CommandBase):
     """

@@ -11,3 +11,7 @@ paths module
 .. py:data:: FORMATS_DIR
 
     Points to the directory where world format loaders are loaded from
+
+.. py:data:: DEFINITIONS_DIR
+
+    Points to the directory where block/entity/tile entity definitions are loaded from
