@@ -50,4 +50,4 @@ class GetBlockCommand(SimpleCommand):
         pass
 
     def short_help(self) -> str:
-        return "Gets the internal block ID of the specified coords"
+        return "Gets the blockstate of the specified coordinates"

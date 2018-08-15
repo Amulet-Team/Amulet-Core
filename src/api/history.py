@@ -1,12 +1,13 @@
+from typing import List
 
-from api.data_structures import LinkedStack, SimpleStack
+from api.data_structures import SimpleStack
 from api.operation import Operation
 
 
 class HistoryManager:
 
     def __init__(self):
-        self.undo_stack: LinkedStack[Operation] = LinkedStack()
+        self.undo_stack: List[Operation] = []
         self.redo_stack: SimpleStack[Operation] = SimpleStack()
 
     def run_operation(self, operation_instance: Operation):
