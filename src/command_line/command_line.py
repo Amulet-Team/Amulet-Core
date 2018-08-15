@@ -68,6 +68,8 @@ class CommandLineHandler:
 
     def __init__(self):
 
+        self.shared_data = {}
+
         self._commands = {}
         self._complex_commands = {}
         self._modes = ModeStack()
@@ -75,8 +77,6 @@ class CommandLineHandler:
         self._retry_modules = []
         self._modules = []
         self._load_commands_and_modes()
-
-        self.shared_data = {}
 
         self.in_mode = self._modes.has_mode
         self.get_mode = self._modes.get_mode
@@ -192,6 +192,10 @@ class CommandLineHandler:
                     print(f"==== {command_parts[0].capitalize()} Command Help ====")
                     self._complex_commands[command_parts[0]].help()
                 else:
+                    if "." not in command_parts[0]:
+                        print(f'Command "{command_parts[0]}" is not recognized')
+                        continue
+
                     new_command_parts = [f"{command_parts[0]}.{command_parts[1]}"]
                     new_command_parts.extend(command_parts[2:])
                     command_parts = new_command_parts

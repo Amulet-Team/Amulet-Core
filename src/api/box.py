@@ -29,7 +29,11 @@ class SubBox:
         return f"({self.min}, {self.max})"
 
     def to_slice(self) -> List[slice]:
-        return [slice(self.min.x, self.max.x), slice(self.min.y, self.max.y), slice(self.min.z, self.max.z)]
+        return [
+            slice(self.min.x, self.max.x),
+            slice(self.min.y, self.max.y),
+            slice(self.min.z, self.max.z),
+        ]
 
     @property
     def min_x(self):
@@ -81,9 +85,13 @@ class SelectionBox:
     Holding class for multiple SubBoxes which allows for non-rectangular and non-contiguous selections
     """
 
-    def __init__(self, boxes: Sequence[SubBox]):
+    def __init__(self, boxes: Sequence[SubBox] = None):
+        if not boxes:
+            boxes = []
+
         if isinstance(boxes, tuple):
             boxes = list(boxes)
+
         self._boxes = boxes
 
     def __iter__(self):
