@@ -8,6 +8,7 @@ import re
 import traceback
 import time
 from collections import namedtuple
+from pprint import pprint
 from typing import List, Type
 
 from command_line import SimpleCommand, ComplexCommand, Mode, command
@@ -317,6 +318,18 @@ class PopModeCommand(SimpleCommand):
 
     def short_help(self) -> str:
         return "Exits the most current mode"
+
+@command("shared_data")
+class SharedDataCommand(SimpleCommand):
+
+    def run(self, args: List[str]):
+        pprint(self.handler.shared_data)
+
+    def help(self):
+        pass
+
+    def short_help(self):
+        return ""
 
 
 def init():
