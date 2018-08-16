@@ -9,7 +9,7 @@ import traceback
 import time
 from collections import namedtuple
 from pprint import pprint
-from typing import List, Type
+from typing import List, Type, Dict, Any
 
 from command_line import SimpleCommand, ComplexCommand, Mode, command
 from command_line import builtin_commands
@@ -163,6 +163,10 @@ class CommandLineHandler:
             if command_parts[0] == PopModeCommand.command:
                 self._commands[command_parts[0]].run(command_parts)
 
+            if command_parts[0].startswith("$"):
+                self._commands["$"].run(command_parts)
+                continue
+
             if command_parts[0] == "help":
                 if len(command_parts) > 1:
                     if command_parts[1] in self._commands:
@@ -250,7 +254,7 @@ class CommandLineHandler:
 
             command_func, command_name = cmd.command
 
-            if not self._command_regex.match(command_name):
+            if not self._command_regex.match(command_name) and command_name != "$":
                 print(
                     f"Could not enable command {command_name} since it doesn't have a valid command name/prefix"
                 )
@@ -287,6 +291,78 @@ class CommandLineHandler:
                 )
 
 
+class VariableCommand(SimpleCommand):
+    registered = True
+
+    def traverse_dict(self, keys: List[str], create=False) -> Dict[str, Any]:
+        current_dict = self.handler.shared_data
+        for key in keys:
+            if not create and key not in current_dict:
+                print(f"Couldn't find shared data object \"{':'.join(keys)}\"")
+                return {}
+
+            elif create:
+                current_dict[key] = {}
+            current_dict = current_dict[key]
+        return current_dict
+
+    def run(self, args: List[str]):
+        if len(args) == 1 and args[0] == "$":
+            pprint(self.handler.shared_data)
+        elif len(args) == 1:
+            depth = args[0][1:].split(":")
+            current_dict = self.traverse_dict(depth[:-1])
+
+            if depth[-1] in current_dict:
+                print(f"{args[0][1:]}: {str(current_dict[depth[-1]])}")
+            else:
+                print(f'Couldn\'t find shared data object "{args[0][1:]}"')
+        elif len(args) == 2:
+            depth = args[0][1:].split(":")
+            current_dict = self.traverse_dict(depth[:-1])
+
+            if args[1] == "-" and depth[-1] in current_dict:
+                del current_dict[depth[-1]]
+            elif depth[-1] not in current_dict:
+                print(f'Key "{args[0][1:]}" doesn\'t exist')
+
+        elif len(args) == 3:
+            depth = args[0][1:].split(":")
+            current_dict = self.traverse_dict(depth[:-1], create=True)
+
+            if args[1] == "=":
+                current_dict[depth[-1]] = args[2]
+
+    def help(self):
+        print(
+            "Allows viewing and basic manipulation of shared data between commands and the command-line\n"
+        )
+        print("=== Viewing Data ===")
+        print("Shows all saved data:")
+        print("Usage: $\n")
+        print(
+            "Shows a subset of data, with each key of a dictionary being seperated by a ':'"
+        )
+        print("Usage: $base_key:another_key...\n\n")
+        print("=== Manipulating Data ===")
+        print(
+            "Creating an entry is pretty straight forward, values are only stored as strings"
+        )
+        print(
+            "Creating a nested key will automatically create the parent dictionaries if they don't exist\n"
+        )
+        print("To create a new entry:")
+        print("Usage: $test_key = value")
+        print("Usage: $base_key:test_key = value\n")
+        print("To delete an entry:")
+        print("Usage: $test_key -")
+
+    def short_help(self):
+        return "Allows access to shared variables in the command-line"
+
+    command = (run, "$")
+
+
 @command("reload")
 class ReloadCommand(SimpleCommand):
 
@@ -318,18 +394,6 @@ class PopModeCommand(SimpleCommand):
 
     def short_help(self) -> str:
         return "Exits the most current mode"
-
-@command("shared_data")
-class SharedDataCommand(SimpleCommand):
-
-    def run(self, args: List[str]):
-        pprint(self.handler.shared_data)
-
-    def help(self):
-        pass
-
-    def short_help(self):
-        return ""
 
 
 def init():
