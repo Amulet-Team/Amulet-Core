@@ -10,7 +10,7 @@ class BoxCommand(ComplexCommand):
 
     def __init__(self, *args, **kwargs):
         super(BoxCommand, self).__init__(*args, **kwargs)
-        self.handler.shared_data["selection_boxes"] = {}
+        self.handler.shared_data["boxes"] = {}
 
     @subcommand("create")
     def create(self, args: List[str]):
@@ -35,12 +35,12 @@ class BoxCommand(ComplexCommand):
                 p2 = parse_coordinates(args[3 + start])
                 selection_box.add_box(SubBox(p1,p2))
 
-        self.handler.shared_data["selection_boxes"][box_name] = selection_box
+        self.handler.shared_data["boxes"][box_name] = selection_box
 
     @subcommand("list")
     def list(self, args: List[str]):
         print("==== Selection Boxes ====")
-        for name in self.handler.shared_data.get("selection_boxes", {}):
+        for name in self.handler.shared_data.get("boxes", {}):
             print(f"{name}")
 
     @subcommand("info")
@@ -50,11 +50,23 @@ class BoxCommand(ComplexCommand):
             return
 
         name = args[1]
-        box = self.handler.shared_data.get("selection_boxes", {}).get(name)
+        box = self.handler.shared_data.get("boxes", {}).get(name)
 
         if box:
             print(f"==== {name} Info ====")
             print(f"Included sub-boxes: {' '.join(str(b) for b in box._boxes)}")
+
+    @subcommand("delete")
+    def delete(self, args: List[str]):
+        if len(args) < 2:
+            print("Usage: box.delete \"<box name>\"")
+            return
+
+        name = args[1]
+        if name in self.handler.shared_data.get("boxes", {}):
+            del self.handler.shared_data["boxes"][name]
+        else:
+            self.error(f"Box \"{name}\" doesn't exist")
 
 
 
