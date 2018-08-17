@@ -218,7 +218,14 @@ class CommandLineHandler:
                             self._execute_command(command_parts)
         return 0
 
-    def _load_commands_and_modes(self):
+    def _load_commands_and_modes(self, reload = False):
+
+        if reload:
+            self._commands = {}
+            self._complex_commands = {}
+            self._retry_modules = []
+            self._modules = []
+
         search_path = os.path.join(os.path.dirname(COMMANDS_DIR), "commands")
         sys.path.insert(0, os.path.join(search_path))
 
@@ -376,6 +383,9 @@ class ReloadCommand(SimpleCommand):
         modules = getattr(self.handler, "_modules", ())
         for mod in modules:
             importlib.reload(mod)
+        func = getattr(self.handler, "_load_commands_and_modes")
+        if func:
+            func(reload = True)
         print("Successfully reloaded commands and modes")
 
 
