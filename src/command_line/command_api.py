@@ -1,5 +1,5 @@
 import os
-from typing import List, Type, Sequence, Union, Callable, Any
+from typing import List, Type, Sequence, Union, Callable, Any, Optional
 import re
 
 from api.data_structures import SimpleStack
@@ -42,20 +42,38 @@ def command(command_name: str) -> Type[Union["SimpleCommand", "ComplexCommand"]]
 
 class _CommandBase:
 
+    def __init__(self, cmd_handler):
+        self.handler = cmd_handler
+
     def error(self, message: Any):
         print(f"=== Error: {message}")
 
     def warning(self, message: Any):
         print(f"== Warning: {message}")
 
+    def get_shared_data(self, entry_path: str) -> Optional[object]:
+        if entry_path.startswith("$"):
+            entry_path = entry_path[1:]
+
+        depth = entry_path.split(":")
+        current_dict = self.handler.shared_data
+
+        for key in depth[:-1]:
+            if key not in current_dict:
+                return None
+
+            current_dict = current_dict[key]
+
+        if depth[-1] not in current_dict:
+            return None
+
+        return current_dict[depth[-1]]
+
 
 class SimpleCommand(_CommandBase):
     """
     Represents a command that can be executed within the command line
     """
-
-    def __init__(self, cmd_line_handler):
-        self.handler = cmd_line_handler
 
     @classmethod
     def get_subclasses(cls) -> List[Type["SimpleCommand"]]:
@@ -122,9 +140,6 @@ class ComplexCommand(_CommandBase):
             sub_cmd = getattr(val, "command", None)
             if sub_cmd:
                 cls.sub_commands[sub_cmd[1]] = sub_cmd[0]
-
-    def __init__(self, cmd_line_handler):
-        self.handler = cmd_line_handler
 
     @classmethod
     def get_subclasses(cls) -> List[Type["ComplexCommand"]]:

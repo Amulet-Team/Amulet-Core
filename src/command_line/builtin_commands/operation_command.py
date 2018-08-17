@@ -8,7 +8,7 @@ class OperationCommand(SimpleCommand):
 
     def run(self, args: List[str]):
         if len(args) == 1:
-            print("Usage: operation \"<operation name>\" <operation options> ....")
+            print('Usage: operation "<operation name>" <operation options> ....')
             return
 
         world_mode: WorldMode = self.handler.get_mode(WorldMode)
@@ -26,17 +26,16 @@ class OperationCommand(SimpleCommand):
                 if arg.startswith("<") and arg.endswith(">"):
                     options.append(parse_coordinates(arg))
                 elif arg.startswith("$"):
-                    depth = arg[1:].split(":")
-                    current_dict = self.handler.shared_data
-                    for key in depth[:-1]:
-                        if key not in current_dict:
-                            print(f"Couldn't find shared data object \"{arg}\"")
-                            return
-                        current_dict = current_dict[key]
-                    options.append(current_dict[depth[-1]])
+                    entry = self.get_shared_data(arg)
 
+                    if entry:
+                        options.append(entry)
+                    else:
+                        print(f'Couldn\'t find shared data object "{arg}"')
+                        return
+
+            print(options)
             world.run_operation(op_name, *options)
-
 
     def help(self):
         pass

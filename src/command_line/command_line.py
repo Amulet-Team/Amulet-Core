@@ -310,11 +310,10 @@ class VariableCommand(SimpleCommand):
         if len(args) == 1 and args[0] == "$":
             pprint(self.handler.shared_data)
         elif len(args) == 1:
-            depth = args[0][1:].split(":")
-            current_dict = self.traverse_dict(depth[:-1])
+            entry = self.get_shared_data(args[0])
 
-            if depth[-1] in current_dict:
-                print(f"{args[0][1:]}: {str(current_dict[depth[-1]])}")
+            if entry:
+                print(f"{args[0][1:]}: {str(entry)}")
             else:
                 print(f'Couldn\'t find shared data object "{args[0][1:]}"')
         elif len(args) == 2:
