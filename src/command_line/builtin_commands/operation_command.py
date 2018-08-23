@@ -11,7 +11,7 @@ class OperationCommand(SimpleCommand):
             print('Usage: operation "<operation name>" <operation options> ....')
             return
 
-        world_mode: WorldMode = self.handler.get_mode(WorldMode)
+        world_mode: WorldMode = self.get_mode(WorldMode)
         if not world_mode:
             self.error("You must be in a world mode to use this command")
             return

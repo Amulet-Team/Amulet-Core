@@ -21,4 +21,10 @@ Shortcut: `pip -r requirements.txt`
 
 Shortcut: `pip -r requirements-dev.txt` (This also installs the requirements required for running from source)
 
+## Running
+
+### Command-line
+To run the program in command line mode, run the following command in your operating system's console:
+`Unified_Map_Editor --command-line`
+
 

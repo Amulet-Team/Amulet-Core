@@ -50,21 +50,9 @@ class CommandLineHandler:
     _command_regex = re.compile(r"^[a-zA-Z_]+\d*$")
 
     def in_mode(self, mode_class: Type[Mode]) -> bool:
-        """
-        Stub method for checking whether the program is in the specified Mode
-
-        :param mode_class: The class of the Mode to check for
-        :return: True if the program is in the specified Mode, False otherwise
-        """
         pass
 
     def get_mode(self, mode_class: Type[Mode]) -> Mode:
-        """
-        Stub method for getting a Mode that the program is in
-
-        :param mode_class: The class of the Mode instance to get
-        :return: The instance of the specified Mode, None if the mode hasn't been entered
-        """
         pass
 
     def __init__(self):
@@ -77,6 +65,7 @@ class CommandLineHandler:
 
         self._retry_modules = []
         self._modules = []
+        self._load_external = None
         self._load_commands_and_modes()
 
         self.in_mode = self._modes.has_mode
@@ -231,10 +220,16 @@ class CommandLineHandler:
 
         cmds = glob.glob(os.path.join(search_path, "*.py"))
         if cmds:
-            print("Detected loadable 3rd party command-line modules. These modules")
-            print("cannot be verified to be stable and/or contain malicious code. If")
-            print("you enable these modules, you use them at your own risk")
-            answer = input("Would you like to enable them anyway? (y/n)> ")
+            if self._load_external is None:
+                print("Detected loadable 3rd party command-line modules. These modules")
+                print("cannot be verified to be stable and/or contain malicious code. If")
+                print("you enable these modules, you use them at your own risk")
+                answer = input("Would you like to enable them anyway? (y/n)> ")
+                self._load_external = answer == "y"
+            elif self._load_external:
+                answer = "y"
+            else:
+                answer = "n"
 
             if answer.lower() == "y":
                 for cmd in cmds:

@@ -36,7 +36,7 @@ class GetBlockCommand(SimpleCommand):
 
         block = blocks[true_x, y, true_z]
         """
-        world_mode = self.handler.get_mode(WorldMode)
+        world_mode = self.get_mode(WorldMode)
         world = world_mode.world
 
         # if id_format == "internal":

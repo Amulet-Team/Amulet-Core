@@ -42,8 +42,29 @@ def command(command_name: str) -> Type[Union["SimpleCommand", "ComplexCommand"]]
 
 class _CommandBase:
 
+    def get_mode(self, mode_class: Type["Mode"]) -> "Mode":
+        """
+        Method for getting a Mode that the program is in
+
+        :param mode_class: The class of the Mode instance to get
+        :return: The instance of the specified Mode, None if the mode hasn't been entered
+        """
+        pass
+
+    def in_mode(self, mode_class: Type["Mode"]) -> bool:
+        """
+        Method for checking whether the program is in the specified Mode
+
+        :param mode_class: The class of the Mode to check for
+        :return: True if the program is in the specified Mode, False otherwise
+        """
+        pass
+
     def __init__(self, cmd_handler):
         self.handler = cmd_handler
+
+        self.in_mode = self.handler.in_mode
+        self.get_mode = self.handler.get_mode
 
     def error(self, message: Any):
         print(f"=== Error: {message}")

@@ -38,7 +38,7 @@ class WorldCommand(ComplexCommand):
         elif len(args) == 2:
             identified_format = loader.identify_world_format_str(args[1])
         else:
-            world_mode = self.handler.get_mode(WorldMode)
+            world_mode = self.get_mode(WorldMode)
             identified_format = loader.identify_world_format_str(world_mode.world_path)
 
         print(f"Format: {identified_format}")
