@@ -226,10 +226,8 @@ class CommandLineHandler:
                 print("you enable these modules, you use them at your own risk")
                 answer = input("Would you like to enable them anyway? (y/n)> ")
                 self._load_external = answer == "y"
-            elif self._load_external:
-                answer = "y"
             else:
-                answer = "n"
+                answer = "y" if self._load_external else "n"
 
             if answer.lower() == "y":
                 for cmd in cmds:

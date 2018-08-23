@@ -41,6 +41,12 @@ def command(command_name: str) -> Type[Union["SimpleCommand", "ComplexCommand"]]
 
 
 class _CommandBase:
+    """
+    Abstract class that both :class:`SimpleCommand` and :class:`ComplexCommand` inherit from
+
+    Note: Any class that inherits this class won't be registered as a command, you must
+    inherit from :class:`SimpleCommand` or :class:`ComplexCommand`
+    """
 
     def get_mode(self, mode_class: Type["Mode"]) -> "Mode":
         """
@@ -67,12 +73,28 @@ class _CommandBase:
         self.get_mode = self.handler.get_mode
 
     def error(self, message: Any):
+        """
+        Utility method for printing an error message
+
+        :param message: The error message
+        """
         print(f"=== Error: {message}")
 
     def warning(self, message: Any):
+        """
+        Utility method for printing a warning message
+
+        :param message: The warning message
+        """
         print(f"== Warning: {message}")
 
     def get_shared_data(self, entry_path: str) -> Optional[object]:
+        """
+        Allows parsing and access to the shared data pool from a data accessor entry marked by a ``$``
+
+        :param entry_path: The path to search for an entry, can start with a "$" but isn't required to
+        :return: The value stored at the entry path, or None if the entry path couldn't be found
+        """
         if entry_path.startswith("$"):
             entry_path = entry_path[1:]
 
