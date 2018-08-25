@@ -24,6 +24,17 @@ def block_coords_to_chunk_coords(x: int, z: int) -> Coordinates:
     return x >> 4, z >> 4
 
 
+def chunk_coords_to_block_coords(x: int, z: int) -> Coordinates:
+    """
+    Converts the supplied chunk coordinates into block coordinates
+
+    :param x: The x coordinate of the chunk
+    :param z: The z coordinate of the chunk
+    :return: The resulting block coordinates in (x, z) order
+    """
+    return x << 4, z << 4
+
+
 def chunk_coords_to_region_coords(cx: int, cz: int) -> Coordinates:
     """
     Converts the supplied chunk coordinates into region coordinates
