@@ -10,6 +10,7 @@ from nbt import nbt
 from os import path
 
 from api.world import World
+from utils.world_utils import get_smallest_dtype
 from version_definitions.definition_manager import DefinitionManager
 
 from utils import world_utils
@@ -215,6 +216,7 @@ class Anvil2World(WorldFormat):
 
             blocks[mask] = internal_id
 
+        blocks = blocks.astype(f"uint{get_smallest_dtype(blocks)}")
         return blocks, {}, {}
 
     @classmethod

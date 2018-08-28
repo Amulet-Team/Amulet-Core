@@ -1,3 +1,4 @@
+from math import log
 import sys
 import gzip
 from io import StringIO
@@ -112,3 +113,17 @@ def get_size(obj, seen=None):
     elif hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes, bytearray)):
         size += sum([get_size(i, seen) for i in obj])
     return size
+
+
+def get_smallest_dtype(arr: ndarray, uint: bool=True) -> int:
+    """
+    Returns the smallest dtype (number) that the array can afford
+    :param arr: The array to check on
+    :param uint: Should the array fit in uint or not (default: True)
+    :return: The number of bits all the elements can be represented with
+    """
+    possible_dtypes = (2 ** x for x in range(3, 8))
+    max_number = arr.max()
+    if not uint:
+        max_number = max_number * 2
+    return next(dtype for dtype in possible_dtypes if dtype > log(max_number, 2))

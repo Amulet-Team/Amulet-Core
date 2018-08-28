@@ -1,12 +1,11 @@
 import itertools
-from typing import Tuple, Union, Sequence, Generator
+from typing import Tuple, Union, Sequence, Generator, Dict
 from importlib import import_module
 
 import numpy
 
-from api.cached_chunks import ListCachedChunks
 from api.selection import Selection
-from utils.world_utils import block_coords_to_chunk_coords, blocks_slice_to_chunk_slice
+from utils.world_utils import block_coords_to_chunk_coords, blocks_slice_to_chunk_slice, Coordinates
 
 
 class WorldFormat:
@@ -53,7 +52,7 @@ class World:
         self._directory = directory
         self._root_tag = root_tag
         self._wrapper = wrapper
-        self.blocks_cache = ListCachedChunks()
+        self.blocks_cache: Dict[Coordinates, numpy.ndarray] = {}
 
     def get_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
         """
@@ -64,9 +63,9 @@ class World:
         :return: The blocks, entities, and tile entities in the chunk
         """
         if (cx, cz) in self.blocks_cache:
-            return self.blocks_cache[cx, cz], {}, {}
+            return self.blocks_cache[(cx, cz)], {}, {}
         chunk = self._wrapper.get_chunk(cx, cz)
-        self.blocks_cache.add_cached_chunks(chunk[0], (cx, cz))
+        self.blocks_cache[(cx, cz)] = chunk[0]
         return chunk
 
     def get_block(self, x: int, y: int, z: int) -> str:
