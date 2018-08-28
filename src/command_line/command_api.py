@@ -55,7 +55,7 @@ class _CommandBase:
         :param mode_class: The class of the Mode instance to get
         :return: The instance of the specified Mode, None if the mode hasn't been entered
         """
-        pass
+        return self.handler.get_mode(mode_class)
 
     def in_mode(self, mode_class: Type["Mode"]) -> bool:
         """
@@ -64,13 +64,13 @@ class _CommandBase:
         :param mode_class: The class of the Mode to check for
         :return: True if the program is in the specified Mode, False otherwise
         """
-        pass
+        return self.handler.in_mode(mode_class)
 
     def __init__(self, cmd_handler):
         self.handler = cmd_handler
 
-        self.in_mode = self.handler.in_mode
-        self.get_mode = self.handler.get_mode
+    # self.in_mode = self.handler.in_mode
+    # self.get_mode = self.handler.get_mode
 
     def error(self, message: Any):
         """

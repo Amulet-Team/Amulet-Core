@@ -1,11 +1,9 @@
 import sys
-from command_line import command_line, curses_line
+from command_line import command_line
 
-if "--command-line" in sys.argv:
-    if '--curses' in sys.argv:
-        cmd = curses_line.init()
-    else:
+if __name__ == "__main__":
+    if "--command-line" in sys.argv:
         cmd = command_line.init()
-    sys.exit(cmd.run())
-else:
-    raise NotImplementedError()
+        sys.exit(cmd.run())
+    else:
+        raise NotImplementedError()

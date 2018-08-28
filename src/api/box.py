@@ -161,6 +161,9 @@ class SelectionBox:
         """
         return len(self._boxes) == 1
 
+    def subboxes(self):
+        return iter(self._boxes)
+
 
 if __name__ == "__main__":
     b1 = SubBox((0, 0, 0), (4, 4, 4))
