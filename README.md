@@ -28,3 +28,9 @@ To run the program in command line mode, run the following command in your opera
 `Unified_Map_Editor --command-line`
 
 
+## Documentation
+
+### Building the Documentation
+To build the documentation locally, run the following command: `make html`
+
+

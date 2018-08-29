@@ -8,6 +8,9 @@ from api.paths import DEFINITIONS_DIR
 
 
 class DefinitionManager:
+    """
+    Handles loading block definitions and mapping them to our internal definitions
+    """
 
     @staticmethod
     def properties_to_string(props: dict) -> str:
@@ -219,4 +222,4 @@ if __name__ == "__main__":
                 "reverse <versioned name>: Looks up a block from it's internal mapping value (version -> internal)"
             )
             print("list: Lists all blocks in the current mapping")
-            print("load <version>: Loads the specified version of block definitions")
+            print("load <version>: Loads the specified version of block definitions.rst")
