@@ -237,11 +237,11 @@ def identify(directory: str) -> bool:
     ):
         return False
 
-    if not (
-        path.exists(path.join(directory, "DIM1"))
-        or path.exists(path.join(directory, "DIM-1"))
-    ):
-        return False
+    #    if not (
+    #        path.exists(path.join(directory, "DIM1"))
+    #        or path.exists(path.join(directory, "DIM-1"))
+    #    ):
+    #        return False
 
     if not (
         path.exists(path.join(directory, "data"))

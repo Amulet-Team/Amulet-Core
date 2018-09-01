@@ -204,7 +204,9 @@ class AnvilWorld(WorldFormat):
 
         block_test = numpy.zeros_like(blocks, dtype=int)
         for block in unique_blocks:
-            internal = self._materials.get_block_from_definition(block, default="minecraft:unknown_{}")
+            internal = self._materials.get_block_from_definition(
+                block, default="minecraft:unknown_{}"
+            )
             if internal == "minecraft:unknown_{}":
                 try:
                     internal_id = list(self.unknown_blocks.values()).index(block)
@@ -249,11 +251,11 @@ def identify(directory: str) -> bool:
     ):
         return False
 
-    if not (
-        path.exists(path.join(directory, "DIM1"))
-        or path.exists(path.join(directory, "DIM-1"))
-    ):
-        return False
+    #    if not (
+    #        path.exists(path.join(directory, "DIM1"))
+    #        or path.exists(path.join(directory, "DIM-1"))
+    #    ):
+    #        return False
 
     if (
         not path.exists(path.join(directory, "players"))
