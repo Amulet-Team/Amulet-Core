@@ -1,5 +1,5 @@
 import itertools
-from typing import Tuple, Union, Sequence, Generator, Dict
+from typing import Tuple, Union, Generator, Dict
 from importlib import import_module
 
 import numpy
@@ -12,6 +12,7 @@ class WorldFormat:
     """
     Base class for World objects
     """
+    mapping_handler: numpy.ndarray = None
 
     @classmethod
     def load(cls, directory: str) -> "World":
@@ -52,9 +53,9 @@ class World:
         self._directory = directory
         self._root_tag = root_tag
         self._wrapper = wrapper
-        self.blocks_cache: Dict[Coordinates, numpy.ndarray] = {}
+        self.blocks_cache: Dict[Coordinates, Selection] = {}
 
-    def get_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
+    def get_chunk(self, cx: int, cz: int) -> Tuple[Selection, dict, dict]:
         """
         Gets the chunk data of the specified chunk coordinates
 
@@ -65,8 +66,8 @@ class World:
         if (cx, cz) in self.blocks_cache:
             return self.blocks_cache[(cx, cz)], {}, {}
         chunk = self._wrapper.get_chunk(cx, cz)
-        self.blocks_cache[(cx, cz)] = chunk[0]
-        return chunk
+        self.blocks_cache[(cx, cz)] = Selection(chunk[0])
+        return self.blocks_cache[(cx, cz)], chunk[1], chunk[2]
 
     def get_block(self, x: int, y: int, z: int) -> str:
         """
@@ -119,12 +120,12 @@ class World:
             x_slice_for_chunk = blocks_slice_to_chunk_slice(x_slice) if chunk == first_chunk else slice(None)
             z_slice_for_chunk = blocks_slice_to_chunk_slice(z_slice) if chunk == last_chunk else slice(None)
             blocks = self.get_chunk(*chunk)[0]
-            yield Selection(blocks[x_slice_for_chunk, y_slice, z_slice_for_chunk])
+            yield blocks[x_slice_for_chunk, y_slice, z_slice_for_chunk]
 
-    def get_blocks_bounded(self, *args: Sequence[int]) -> Generator[Selection, None, None]:
+    def get_blocks_bounded(self, *args: int) -> Generator[Selection, None, None]:
         return self.get_blocks_slice(slice(args[0], args[1]), slice(args[2], args[3]), slice(args[4], args[5]))
 
-    def get_blocks_stepped(self, *args: Sequence[int]) -> Generator[Selection, None, None]:
+    def get_blocks_stepped(self, *args: int) -> Generator[Selection, None, None]:
         return self.get_blocks_slice(
             slice(args[0], args[1], args[6]), slice(args[2], args[3], args[7]), slice(args[4], args[5], args[8])
         )
