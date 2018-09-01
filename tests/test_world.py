@@ -1,6 +1,6 @@
 import unittest
 
-from api.selection import Selection
+from api.selection import AbstractSelection
 from test_utils import get_world_path
 
 from formats import format_loader
@@ -23,11 +23,11 @@ class AnvilWorldTestCase(unittest.TestCase):
     def test_get_blocks(self):
         self.assertIsInstance(
             next(self.world.get_blocks(slice(0, 10), slice(0, 10), slice(0, 10))),
-            Selection
+            AbstractSelection
         )
-        self.assertIsInstance(next(self.world.get_blocks(0, 0, 0, 10, 10, 10)), Selection)
+        self.assertIsInstance(next(self.world.get_blocks(0, 0, 0, 10, 10, 10)), AbstractSelection)
         self.assertIsInstance(
-            next(self.world.get_blocks(0, 0, 0, 10, 10, 10, 2, 2, 2)), Selection
+            next(self.world.get_blocks(0, 0, 0, 10, 10, 10, 2, 2, 2)), AbstractSelection
         )
 
         with self.assertRaises(IndexError):
@@ -58,11 +58,11 @@ class Anvil2WorldTestCase(unittest.TestCase):
     def test_get_blocks(self):
         self.assertIsInstance(
             next(self.world.get_blocks(slice(0, 10), slice(0, 10), slice(0, 10))),
-            Selection,
+            AbstractSelection
         )
-        self.assertIsInstance(next(self.world.get_blocks(0, 0, 0, 10, 10, 10)), Selection)
+        self.assertIsInstance(next(self.world.get_blocks(0, 0, 0, 10, 10, 10)), AbstractSelection)
         self.assertIsInstance(
-            next(self.world.get_blocks(0, 0, 0, 10, 10, 10, 2, 2, 2)), Selection
+            next(self.world.get_blocks(0, 0, 0, 10, 10, 10, 2, 2, 2)), AbstractSelection
         )
 
         with self.assertRaises(IndexError):

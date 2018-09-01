@@ -6,7 +6,11 @@ PointCoordinates = Tuple[int, int, int]
 SliceCoordinates = Tuple[slice, slice, slice]
 
 
-class Selection:
+class AbstractSelection:
+    blocks: numpy.ndarray = None
+
+
+class Selection(AbstractSelection):
     def __init__(self, blocks: numpy.ndarray):
         self._blocks = blocks
         self._blocks.setflags(write=False)
@@ -26,18 +30,18 @@ class Selection:
         return SubSelection(item, self)
 
 
-class SubSelection:
+class SubSelection(AbstractSelection):
     def __init__(self, sub_selection_slice: Union[PointCoordinates, SliceCoordinates],
                  parent: Union[Selection, "SubSelection"]):
-        self.sub_selection_slice = sub_selection_slice
-        self.parent = parent
+        self._sub_selection_slice = sub_selection_slice
+        self._parent = parent
 
     @property
     def blocks(self):
-        return self.parent.blocks[self.sub_selection_slice]
+        return self._parent.blocks[self._sub_selection_slice]
 
     @blocks.setter
     def blocks(self, value):
-        temp_blocks = self.parent.blocks.copy()
-        temp_blocks[self.sub_selection_slice] = value
-        self.parent.blocks = temp_blocks
+        temp_blocks = self._parent.blocks.copy()
+        temp_blocks[self._sub_selection_slice] = value
+        self._parent.blocks = temp_blocks
