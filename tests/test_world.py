@@ -1,7 +1,7 @@
 import unittest
-from tests.test_utils import get_world_path
 
-import numpy
+from api.selection import Selection
+from test_utils import get_world_path
 
 from formats import format_loader
 
@@ -20,15 +20,14 @@ class AnvilWorldTestCase(unittest.TestCase):
         with self.assertRaises(IndexError):
             self.world.get_block(300, 300, 300)
 
-    @unittest.skip("Not fully implemented")
     def test_get_blocks(self):
         self.assertIsInstance(
-            self.world.get_blocks(slice(0, 10), slice(0, 10), slice(0, 10)),
-            numpy.ndarray,
+            next(self.world.get_blocks(slice(0, 10), slice(0, 10), slice(0, 10))),
+            Selection
         )
-        self.assertIsInstance(self.world.get_blocks(0, 0, 0, 10, 10, 10), numpy.ndarray)
+        self.assertIsInstance(next(self.world.get_blocks(0, 0, 0, 10, 10, 10)), Selection)
         self.assertIsInstance(
-            self.world.get_blocks(0, 0, 0, 10, 10, 10, 2, 2, 2), numpy.ndarray
+            next(self.world.get_blocks(0, 0, 0, 10, 10, 10, 2, 2, 2)), Selection
         )
 
         with self.assertRaises(IndexError):
@@ -40,6 +39,7 @@ class AnvilWorldTestCase(unittest.TestCase):
             self.world.get_blocks(0)
             self.world.get_blocks(0, 0)
             self.world.get_blocks(0, 0, 0)
+
 
 class Anvil2WorldTestCase(unittest.TestCase):
 
@@ -55,15 +55,14 @@ class Anvil2WorldTestCase(unittest.TestCase):
         with self.assertRaises(IndexError):
             self.world.get_block(300, 300, 300)
 
-    @unittest.skip("Not fully implemented")
     def test_get_blocks(self):
         self.assertIsInstance(
-            self.world.get_blocks(slice(0, 10), slice(0, 10), slice(0, 10)),
-            numpy.ndarray,
+            next(self.world.get_blocks(slice(0, 10), slice(0, 10), slice(0, 10))),
+            Selection,
         )
-        self.assertIsInstance(self.world.get_blocks(0, 0, 0, 10, 10, 10), numpy.ndarray)
+        self.assertIsInstance(next(self.world.get_blocks(0, 0, 0, 10, 10, 10)), Selection)
         self.assertIsInstance(
-            self.world.get_blocks(0, 0, 0, 10, 10, 10, 2, 2, 2), numpy.ndarray
+            next(self.world.get_blocks(0, 0, 0, 10, 10, 10, 2, 2, 2)), Selection
         )
 
         with self.assertRaises(IndexError):
@@ -75,6 +74,7 @@ class Anvil2WorldTestCase(unittest.TestCase):
             self.world.get_blocks(0)
             self.world.get_blocks(0, 0)
             self.world.get_blocks(0, 0, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

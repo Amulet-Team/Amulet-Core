@@ -1,5 +1,5 @@
 import unittest
-from tests.test_utils import get_world_path
+from test_utils import get_world_path
 from types import ModuleType
 
 from formats import format_loader

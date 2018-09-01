@@ -86,43 +86,48 @@ class World:
 
         return self._wrapper.mapping_handler[blocks[offset_x, y, offset_z]]
 
-    def get_blocks(self, *args: Union[Sequence[slice], Sequence[int]]) -> numpy.ndarray:
+    def get_blocks(self, *args: Union[slice, int]) -> Generator[Selection, None, None]:
         length = len(args)
-        if 3 <= length < 6:
-            s_x, s_y, s_z = args[0:3]
-            if not (
-                isinstance(s_x, slice)
-                and isinstance(s_y, slice)
-                and isinstance(s_z, slice)
-            ):
-                raise IndexError()
+        if length == 3:
+            s_x, s_y, s_z = args
+        elif length == 6:
+            s_x, s_y, s_z = slice(args[0], args[3]), slice(args[1], args[4]), slice(args[2], args[5])
+        elif length == 9:
+            s_x, s_y, s_z = slice(args[0], args[3], args[6]), slice(args[1], args[4], args[7]),\
+                            slice(args[2], args[5], args[8])
+        else:
+            raise IndexError("Length of parameters to 'get_blocks' should be 3, 6 or 9")
 
-            return self.get_blocks_slice(s_x, s_y, s_z)
+        if not (
+            isinstance(s_x, slice)
+            and isinstance(s_y, slice)
+            and isinstance(s_z, slice)
+        ):
+            raise IndexError()
 
-    def get_selections_from_slices(self, x_slice: slice, y_slice: slice, z_slice: slice) -> Generator[Selection, None, None]:
+        return self.get_blocks_slice(s_x, s_y, s_z)
+
+    def get_blocks_slice(
+        self, x_slice: slice, y_slice: slice, z_slice: slice
+    ) -> Generator[Selection, None, None]:
         first_chunk = block_coords_to_chunk_coords(x_slice.start, z_slice.start)
         last_chunk = block_coords_to_chunk_coords(x_slice.stop, x_slice.stop)
         for chunk in itertools.product(
-            range(first_chunk[0], last_chunk[0]+1),
-            range(first_chunk[1], last_chunk[1]+1)
+                range(first_chunk[0], last_chunk[0] + 1),
+                range(first_chunk[1], last_chunk[1] + 1)
         ):
             x_slice_for_chunk = blocks_slice_to_chunk_slice(x_slice) if chunk == first_chunk else slice(None)
             z_slice_for_chunk = blocks_slice_to_chunk_slice(z_slice) if chunk == last_chunk else slice(None)
             blocks = self.get_chunk(*chunk)[0]
             yield Selection(blocks[x_slice_for_chunk, y_slice, z_slice_for_chunk])
 
-    def get_blocks_slice(
-        self, x_slice: slice, y_slice: slice, z_slice: slice
-    ) -> numpy.ndarray:
-        return self._blocks[x_slice, y_slice, z_slice]
+    def get_blocks_bounded(self, *args: Sequence[int]) -> Generator[Selection, None, None]:
+        return self.get_blocks_slice(slice(args[0], args[1]), slice(args[2], args[3]), slice(args[4], args[5]))
 
-    def get_blocks_bounded(self, *args: Sequence[int]) -> numpy.ndarray:
-        return self._blocks[args[0]:args[1], args[2]:args[3], args[4]:args[5]]
-
-    def get_blocks_stepped(self, *args: Sequence[int]) -> numpy.ndarray:
-        return self._blocks[
-            args[0]:args[1]:args[6], args[2]:args[3]:args[7], args[4]:args[5]:args[8]
-        ]
+    def get_blocks_stepped(self, *args: Sequence[int]) -> Generator[Selection, None, None]:
+        return self.get_blocks_slice(
+            slice(args[0], args[1], args[6]), slice(args[2], args[3], args[7]), slice(args[4], args[5], args[8])
+        )
 
     def run_operation(self, operation_name: str, *args) -> None:
         operation_module = import_module(f"operations.{operation_name}")
