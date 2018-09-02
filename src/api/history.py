@@ -2,7 +2,6 @@ from typing import List
 
 from api.data_structures import SimpleStack
 from api.operation import Operation
-from api.types import Point
 
 
 class HistoryManager:
@@ -26,8 +25,3 @@ class HistoryManager:
     def __contains__(self, item):
         if isinstance(item, Operation):
             return item in self.undo_stack
-        elif isinstance(item, (Point, tuple)):
-            for op in self.undo_stack:
-                if item in op:
-                    return True
-            return False

@@ -4,6 +4,7 @@ from typing import Sequence, List, Iterator
 
 from api.types import Point
 
+
 class SubBox:
     """
     A SubBox is a box that can represent the entirety of a SelectionBox or just a subsection
@@ -17,20 +18,22 @@ class SubBox:
         self.max = max_point
 
     def __iter__(self):
+        # Note: If a SubBox only contains 1 block, you can't iter over the one coordinate unless 1 is added
         return itertools.product(
-            range(self.min[0], self.max[0]),
-            range(self.min[1], self.max[1]),
-            range(self.min[2], self.max[2]),
+            range(self.min[0], self.max[0] + 1),
+            range(self.min[1], self.max[1] + 1),
+            range(self.min[2], self.max[2] + 1),
         )
 
     def __str__(self):
         return f"({self.min}, {self.max})"
 
     def to_slice(self) -> List[slice]:
+        # Note: The added 1 is needed to get slices to work one boxes that are only 1 block big
         return [
-            slice(self.min[0], self.max[0]),
-            slice(self.min[1], self.max[1]),
-            slice(self.min[2], self.max[2]),
+            slice(self.min[0], self.max[0] + 1),
+            slice(self.min[1], self.max[1] + 1),
+            slice(self.min[2], self.max[2] + 1),
         ]
 
     @property

@@ -24,9 +24,11 @@ class AnvilWorldTestCase(unittest.TestCase):
     def test_get_blocks(self):
         self.assertIsInstance(
             next(self.world.get_blocks(slice(0, 10), slice(0, 10), slice(0, 10))),
-            AbstractSelection
+            AbstractSelection,
         )
-        self.assertIsInstance(next(self.world.get_blocks(0, 0, 0, 10, 10, 10)), AbstractSelection)
+        self.assertIsInstance(
+            next(self.world.get_blocks(0, 0, 0, 10, 10, 10)), AbstractSelection
+        )
         self.assertIsInstance(
             next(self.world.get_blocks(0, 0, 0, 10, 10, 10, 2, 2, 2)), AbstractSelection
         )
@@ -59,9 +61,11 @@ class Anvil2WorldTestCase(unittest.TestCase):
     def test_get_blocks(self):
         self.assertIsInstance(
             next(self.world.get_blocks(slice(0, 10), slice(0, 10), slice(0, 10))),
-            AbstractSelection
+            AbstractSelection,
         )
-        self.assertIsInstance(next(self.world.get_blocks(0, 0, 0, 10, 10, 10)), AbstractSelection)
+        self.assertIsInstance(
+            next(self.world.get_blocks(0, 0, 0, 10, 10, 10)), AbstractSelection
+        )
         self.assertIsInstance(
             next(self.world.get_blocks(0, 0, 0, 10, 10, 10, 2, 2, 2)), AbstractSelection
         )
@@ -84,7 +88,9 @@ class Anvil2WorldTestCase(unittest.TestCase):
         subbx2 = SubBox((1, 70, 5), (1, 70, 6))
         target_box = SelectionBox((subbx2,))
 
-        self.assertEqual(self.world.get_block(1, 70, 3), "minecraft:stone") # Sanity check
+        self.assertEqual(
+            self.world.get_block(1, 70, 3), "minecraft:stone"
+        )  # Sanity check
         self.assertEqual(self.world.get_block(1, 70, 5), "minecraft:granite")
 
         self.world.run_operation("clone", src_box, target_box)
