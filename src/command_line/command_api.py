@@ -267,7 +267,7 @@ class WorldMode(Mode):
         self._world_path = kwargs.get("world")
         self._world_name = os.path.basename(self._world_path)
         self._unsaved_changes = SimpleStack()
-        self._world = loader.load_world(self._world_path)
+        self._world: World = loader.load_world(self._world_path)
 
     @property
     def world_path(self) -> str:

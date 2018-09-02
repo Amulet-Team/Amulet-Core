@@ -1,5 +1,7 @@
 from typing import List
 
+from numpy import unique
+
 from api.box import SubBox, SelectionBox
 
 from command_line import (
@@ -91,14 +93,15 @@ class BoxCommand(ComplexCommand):
 
         box: SelectionBox = self.handler.shared_data.get("boxes", {}).get(box_name)
         blocks = {}
-        for (
-            x, y, z
-        ) in box:  # TODO: Slow since accessing by slices isn't fully implemented
-            block = world.get_block(x, y, z)
-            if block in blocks:
-                blocks[block] += 1
-            else:
-                blocks[block] = 1
+        for subbox in box.subboxes():
+            selection_generator = world.get_blocks(*subbox.to_slice())
+            for selection in selection_generator:
+                uniques = unique(world.block_definitions[selection.blocks])
+                for u in uniques:
+                    if u in blocks:
+                        blocks[u] +=1
+                    else:
+                        blocks[u] = 1
 
         if blocks:
             print("=== Analysis Results ===")

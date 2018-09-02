@@ -4,6 +4,7 @@ from importlib import import_module
 
 import numpy
 
+from api.history import HistoryManager
 from api.selection import Selection
 from utils.world_utils import block_coords_to_chunk_coords, blocks_slice_to_chunk_slice, Coordinates
 
@@ -54,6 +55,11 @@ class World:
         self._root_tag = root_tag
         self._wrapper = wrapper
         self.blocks_cache: Dict[Coordinates, Selection] = {}
+        self.history_manager = HistoryManager()
+
+    @property
+    def block_definitions(self):
+        return self._wrapper.mapping_handler
 
     def get_chunk(self, cx: int, cz: int) -> Tuple[Selection, dict, dict]:
         """
@@ -136,3 +142,5 @@ class World:
         operation_class = getattr(operation_module, operation_class_name)
         operation_instance = operation_class(*args)
         operation_instance.run_operation(self)
+
+        self.history_manager.add_operation(operation_class)

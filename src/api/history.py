@@ -10,7 +10,7 @@ class HistoryManager:
         self.undo_stack: List[Operation] = []
         self.redo_stack: SimpleStack[Operation] = SimpleStack()
 
-    def run_operation(self, operation_instance: Operation):
+    def add_operation(self, operation_instance: Operation):
         self.undo_stack.append(operation_instance)
 
     def undo(self):
@@ -18,3 +18,6 @@ class HistoryManager:
 
     def redo(self):
         self.undo_stack.append(self.redo_stack.pop())
+
+    def __iter__(self):
+        return iter(self.undo_stack)

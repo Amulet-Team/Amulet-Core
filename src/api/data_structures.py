@@ -89,7 +89,48 @@ class LinkedStack(Generic[T]):
         return self._length
 
 
+class Delegate:
+
+    def __init__(self, initial_func: Callable = None):
+        self._funcs = []
+        self._arg_count = -1
+        if initial_func:
+            self._funcs.append(initial_func)
+            self._arg_count = initial_func.__code__.co_argcount
+
+    def __call__(self, *args, **kwargs):
+        if len(self._funcs) == 0:
+            return None
+
+        result = self._funcs[0](*args, **kwargs)
+        for func in self._funcs[1:]:
+            func(*args, **kwargs)
+        return result
+
+    def __iadd__(self, other: Callable):
+        if 0 <= self._arg_count != other.__code__.co_argcount:
+            raise TypeError("Delegated functions must have the same amount of arguments as original function")
+        elif self._arg_count == -1 and len(self._funcs) == 0:
+            self._arg_count = other.__code__.co_argcount
+        self._funcs.append(other)
+        return self
+
+    def __isub__(self, other: Callable):
+        if other in self._funcs:
+            self._funcs.remove(other)
+        return self
+
+@Delegate
+def test_func(x, y, z, offset = None):
+    print("Test")
+    print(x,y,z)
+
+def other_func(x,y,z, offset=None):
+    print("other")
+    print(z,y,x)
+
 if __name__ == "__main__":
+    """
     ls: LinkedStack[str] = LinkedStack()
     ls.append("test1")
     ls.append("test2")
@@ -98,3 +139,12 @@ if __name__ == "__main__":
     print(f"[{', '.join(ls.iter_backward())}]")
     print(ls.pop())
     print(ls, len(ls))
+    """
+
+    test_func(0,1,2)
+    print("===")
+    test_func += other_func
+    test_func(0,1,2)
+    print("===")
+    test_func -= other_func
+    test_func(0,1,2)

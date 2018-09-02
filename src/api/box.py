@@ -1,7 +1,7 @@
 from collections import namedtuple
 import itertools
 
-from typing import Sequence, List
+from typing import Sequence, List, Iterator
 
 Point = namedtuple("Point", ("x", "y", "z"))
 
@@ -30,9 +30,9 @@ class SubBox:
 
     def to_slice(self) -> List[slice]:
         return [
-            slice(self.min.x, self.max.x),
-            slice(self.min.y, self.max.y),
-            slice(self.min.z, self.max.z),
+            slice(self.min[0], self.max[0]),
+            slice(self.min[1], self.max[1]),
+            slice(self.min[2], self.max[2]),
         ]
 
     @property
@@ -161,7 +161,7 @@ class SelectionBox:
         """
         return len(self._boxes) == 1
 
-    def subboxes(self):
+    def subboxes(self) -> Iterator[SubBox]:
         return iter(self._boxes)
 
 
