@@ -1,5 +1,7 @@
 from api.box import SubBox, SelectionBox
-from api.operation import Operation
+from api.operation import Operation, BlockChange
+
+from typing import List
 
 
 class Clone2(Operation):
@@ -21,6 +23,13 @@ class Clone(Operation):
     def __init__(self, source_box: SelectionBox, target_box: SelectionBox):
         self.source_box = source_box
         self.target_box = target_box
+        self.changes: List[BlockChange] = []
+
+    def __contains__(self, item):
+        for block_change in self.changes:
+            if item in block_change:
+                return True
+        return False
 
     def run_operation(self, world):
         if len(self.source_box) != len(self.target_box):
@@ -34,3 +43,6 @@ class Clone(Operation):
             for target_selection in target_generator:
                 source_selection = next(source_generator)
                 target_selection.blocks = source_selection.blocks
+
+                self.changes.append(BlockChange(target.min, target_selection.blocks))
+

@@ -91,6 +91,9 @@ class World:
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
         blocks, entities, tile_entities = self.get_chunk(cx, cz)
 
+        if (x,y,z) in self.history_manager:
+            print(f"Block at {(x,y,z)} has been changed")
+
         return self._wrapper.mapping_handler[blocks[offset_x, y, offset_z].blocks]
 
     def get_blocks(self, *args: Union[slice, int]) -> Generator[Selection, None, None]:
@@ -143,4 +146,4 @@ class World:
         operation_instance = operation_class(*args)
         operation_instance.run_operation(self)
 
-        self.history_manager.add_operation(operation_class)
+        self.history_manager.add_operation(operation_instance)

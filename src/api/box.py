@@ -1,10 +1,8 @@
-from collections import namedtuple
 import itertools
 
 from typing import Sequence, List, Iterator
 
-Point = namedtuple("Point", ("x", "y", "z"))
-
+from api.types import Point
 
 class SubBox:
     """
