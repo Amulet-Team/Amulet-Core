@@ -19,7 +19,9 @@ class SubBox:
 
     def __iter__(self):
         return itertools.product(
-            range(self.min[0], self.max[0] + 1), range(self.min[1], self.max[1] + 1), range(self.min[2], self.max[2] + 1)
+            range(self.min[0], self.max[0] + 1),
+            range(self.min[1], self.max[1] + 1),
+            range(self.min[2], self.max[2] + 1),
         )
 
     def __str__(self):
@@ -38,7 +40,9 @@ class SubBox:
         :return: The SubBoxes coordinates as slices in (x,y,z) order
         """
         return [
-            slice(self.min[0], self.max[0] + 1), slice(self.min[1], self.max[1] + 1), slice(self.min[2], self.max[2] + 1)
+            slice(self.min[0], self.max[0] + 1),
+            slice(self.min[1], self.max[1] + 1),
+            slice(self.min[2], self.max[2] + 1),
         ]
 
     @property
@@ -110,9 +114,10 @@ class SelectionBox:
         for subbox in self._boxes:
             if item in subbox:
                 return True
+
         return False
 
-    def add_box(self, other: SubBox, do_merge_check: bool =True):
+    def add_box(self, other: SubBox, do_merge_check: bool = True):
         """
         Adds a SubBox to the selection box. If `other` is next to another SubBox in the selection, matches in any 2 dimensions, and
         `do_merge_check` is True, then the 2 boxes will be combined into 1 box.

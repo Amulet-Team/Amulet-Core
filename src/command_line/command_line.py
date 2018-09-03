@@ -357,7 +357,7 @@ class VariableCommand(SimpleCommand):
         print("Usage: $test_key -")
 
     def short_help(self):
-        return "Allows access to shared variables in the command-line"
+        return "Allows access to shared variables"
 
     command = (run, "$")
 
