@@ -5,7 +5,7 @@ from importlib import import_module
 import numpy
 
 from api.history import HistoryManager
-from api.chunk import Chunk
+from api.chunk import Chunk, SubChunk
 from utils.world_utils import block_coords_to_chunk_coords, blocks_slice_to_chunk_slice, Coordinates
 
 
@@ -93,7 +93,7 @@ class World:
         block = chunk[offset_x, y, offset_z].blocks
         return self._wrapper.mapping_handler[block]
 
-    def get_blocks(self, *args: Union[slice, int]) -> Generator[Chunk, None, None]:
+    def get_sub_chunks(self, *args: Union[slice, int]) -> Generator[SubChunk, None, None]:
         length = len(args)
         if length == 3:
             s_x, s_y, s_z = args
@@ -103,38 +103,25 @@ class World:
             s_x, s_y, s_z = slice(args[0], args[3], args[6]), slice(args[1], args[4], args[7]),\
                             slice(args[2], args[5], args[8])
         else:
-            raise IndexError("Length of parameters to 'get_blocks' should be 3, 6 or 9")
+            raise IndexError("Length of parameters to 'get_sub_chunks' should be 3, 6 or 9")
 
         if not (
             isinstance(s_x, slice)
             and isinstance(s_y, slice)
             and isinstance(s_z, slice)
         ):
-            raise IndexError()
+            raise IndexError("The function 'get_sub_chunks' gets only slices")
 
-        return self.get_blocks_slice(s_x, s_y, s_z)
-
-    def get_blocks_slice(
-        self, x_slice: slice, y_slice: slice, z_slice: slice
-    ) -> Generator[Chunk, None, None]:
-        first_chunk = block_coords_to_chunk_coords(x_slice.start, z_slice.start)
-        last_chunk = block_coords_to_chunk_coords(x_slice.stop, x_slice.stop)
+        first_chunk = block_coords_to_chunk_coords(s_x.start, s_z.start)
+        last_chunk = block_coords_to_chunk_coords(s_x.stop, s_z.stop)
         for chunk_pos in itertools.product(
                 range(first_chunk[0], last_chunk[0] + 1),
                 range(first_chunk[1], last_chunk[1] + 1)
         ):
-            x_slice_for_chunk = blocks_slice_to_chunk_slice(x_slice) if chunk_pos == first_chunk else slice(None)
-            z_slice_for_chunk = blocks_slice_to_chunk_slice(z_slice) if chunk_pos == last_chunk else slice(None)
+            x_slice_for_chunk = blocks_slice_to_chunk_slice(s_x) if chunk_pos == first_chunk else slice(None)
+            z_slice_for_chunk = blocks_slice_to_chunk_slice(s_z) if chunk_pos == last_chunk else slice(None)
             chunk = self.get_chunk(*chunk_pos)
-            yield chunk[x_slice_for_chunk, y_slice, z_slice_for_chunk]
-
-    def get_blocks_bounded(self, *args: int) -> Generator[Chunk, None, None]:
-        return self.get_blocks_slice(slice(args[0], args[1]), slice(args[2], args[3]), slice(args[4], args[5]))
-
-    def get_blocks_stepped(self, *args: int) -> Generator[Chunk, None, None]:
-        return self.get_blocks_slice(
-            slice(args[0], args[1], args[6]), slice(args[2], args[3], args[7]), slice(args[4], args[5], args[8])
-        )
+            yield chunk[x_slice_for_chunk, s_y, z_slice_for_chunk]
 
     def run_operation(self, operation_name: str, *args) -> None:
         operation_module = import_module(f"operations.{operation_name}")

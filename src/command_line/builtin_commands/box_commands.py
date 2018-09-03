@@ -94,7 +94,7 @@ class BoxCommand(ComplexCommand):
         box: SelectionBox = self.handler.shared_data.get("boxes", {}).get(box_name)
         blocks = {}
         for subbox in box.subboxes():
-            selection_generator = world.get_blocks(*subbox.to_slice())
+            selection_generator = world.get_sub_chunks(*subbox.to_slice())
             for selection in selection_generator:
                 uniques = unique(world.block_definitions[selection.blocks])
                 for u in uniques:

@@ -23,25 +23,25 @@ class AnvilWorldTestCase(unittest.TestCase):
 
     def test_get_blocks(self):
         self.assertIsInstance(
-            next(self.world.get_blocks(slice(0, 10), slice(0, 10), slice(0, 10))),
+            next(self.world.get_sub_chunks(slice(0, 10), slice(0, 10), slice(0, 10))),
             SubChunk,
         )
         self.assertIsInstance(
-            next(self.world.get_blocks(0, 0, 0, 10, 10, 10)), SubChunk
+            next(self.world.get_sub_chunks(0, 0, 0, 10, 10, 10)), SubChunk
         )
         self.assertIsInstance(
-            next(self.world.get_blocks(0, 0, 0, 10, 10, 10, 2, 2, 2)), SubChunk
+            next(self.world.get_sub_chunks(0, 0, 0, 10, 10, 10, 2, 2, 2)), SubChunk
         )
 
         with self.assertRaises(IndexError):
-            self.world.get_blocks()
+            next(self.world.get_sub_chunks())
 
-            self.world.get_blocks(slice(0, 10, 2))
-            self.world.get_blocks(slice(0, 10, 2), slice(0, 10, 2))
+            next(self.world.get_sub_chunks(slice(0, 10, 2)))
+            next(self.world.get_sub_chunks(slice(0, 10, 2), slice(0, 10, 2)))
 
-            self.world.get_blocks(0)
-            self.world.get_blocks(0, 0)
-            self.world.get_blocks(0, 0, 0)
+            next(self.world.get_sub_chunks(0))
+            next(self.world.get_sub_chunks(0, 0))
+            next(self.world.get_sub_chunks(0, 0, 0))
 
 
 class Anvil2WorldTestCase(unittest.TestCase):
@@ -60,25 +60,25 @@ class Anvil2WorldTestCase(unittest.TestCase):
 
     def test_get_blocks(self):
         self.assertIsInstance(
-            next(self.world.get_blocks(slice(0, 10), slice(0, 10), slice(0, 10))),
+            next(self.world.get_sub_chunks(slice(0, 10), slice(0, 10), slice(0, 10))),
             SubChunk,
         )
         self.assertIsInstance(
-            next(self.world.get_blocks(0, 0, 0, 10, 10, 10)), SubChunk
+            next(self.world.get_sub_chunks(0, 0, 0, 10, 10, 10)), SubChunk
         )
         self.assertIsInstance(
-            next(self.world.get_blocks(0, 0, 0, 10, 10, 10, 2, 2, 2)), SubChunk
+            next(self.world.get_sub_chunks(0, 0, 0, 10, 10, 10, 2, 2, 2)), SubChunk
         )
 
         with self.assertRaises(IndexError):
-            self.world.get_blocks()
+            next(self.world.get_sub_chunks())
 
-            self.world.get_blocks(slice(0, 10, 2))
-            self.world.get_blocks(slice(0, 10, 2), slice(0, 10, 2))
+            next(self.world.get_sub_chunks(slice(0, 10, 2)))
+            next(self.world.get_sub_chunks(slice(0, 10, 2), slice(0, 10, 2)))
 
-            self.world.get_blocks(0)
-            self.world.get_blocks(0, 0)
-            self.world.get_blocks(0, 0, 0)
+            next(self.world.get_sub_chunks(0))
+            next(self.world.get_sub_chunks(0, 0))
+            next(self.world.get_sub_chunks(0, 0, 0))
 
     def test_clone_operation(self):
 

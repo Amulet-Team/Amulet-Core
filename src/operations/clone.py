@@ -10,8 +10,8 @@ class Clone2(Operation):
     def run_operation(self, world):
         if self.source_box.shape != self.target_box.shape:
             raise Exception("The shape of the selections needs to be the same")
-        source_generator = world.get_blocks(*self.source_box.to_slice())
-        target_generator = world.get_blocks(*self.target_box.to_slice())
+        source_generator = world.get_sub_chunks(*self.source_box.to_slice())
+        target_generator = world.get_sub_chunks(*self.target_box.to_slice())
         for target_selection in target_generator:
             source_selection = next(source_generator)
             target_selection.blocks = source_selection.blocks
@@ -30,8 +30,8 @@ class Clone(Operation):
         for source, target in zip(self.source_box.subboxes(), self.target_box.subboxes()):
             if source.shape != target.shape:
                 raise Exception("The shape of the selections needs to be the same")
-            source_generator = world.get_blocks(*source.to_slice())
-            target_generator = world.get_blocks(*target.to_slice())
+            source_generator = world.get_sub_chunks(*source.to_slice())
+            target_generator = world.get_sub_chunks(*target.to_slice())
             for target_selection in target_generator:
                 source_selection = next(source_generator)
                 target_selection.blocks = source_selection.blocks

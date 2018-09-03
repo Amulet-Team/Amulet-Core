@@ -11,6 +11,7 @@ class Chunk:
         self.cx = cx
         self.cz = cz
         self.get_chunk_func = get_chunk_func
+        self.changed = False
         self._blocks: Optional[numpy.ndarray] = None
 
     @property
@@ -22,7 +23,9 @@ class Chunk:
         return self._blocks
 
     @blocks.setter
-    def blocks(self, value):
+    def blocks(self, value: numpy.ndarray):
+        if not (self._blocks == value).all():
+            self.changed = True
         self._blocks = value
 
     def __getitem__(self, item: Union[PointCoordinates, SliceCoordinates]):
