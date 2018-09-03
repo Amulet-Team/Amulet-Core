@@ -1,5 +1,5 @@
 import os
-from typing import List, Type, Sequence, Union, Callable, Any, Optional
+from typing import List, Type, Tuple, Union, Callable, Any, Optional
 import re
 
 from api.data_structures import SimpleStack
@@ -9,7 +9,13 @@ from formats.format_loader import loader
 _coordinate_regex = re.compile(r"<(?P<x>\d+),(?P<y>\d+),(?P<z>\d+)>")
 
 
-def parse_coordinates(coord: str) -> Union[Sequence[int], None]:
+def parse_coordinates(coord: str) -> Union[Tuple[int, int, int], None]:
+    """
+    Utility function for parsing X,Y,Z coordinates from a string
+
+    :param coord: The coordinate string to parse
+    :return: A tuple of the coordinates as ints in X,Y,Z order
+    """
     match = _coordinate_regex.match(coord)
     if match:
         return int(match.group("x")), int(match.group("y")), int(match.group("z"))

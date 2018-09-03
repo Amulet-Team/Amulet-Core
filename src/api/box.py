@@ -1,6 +1,6 @@
 import itertools
 
-from typing import Sequence, List, Iterator
+from typing import Sequence, List, Iterator, Tuple, Union
 
 from api.types import Point
 
@@ -19,21 +19,44 @@ class SubBox:
 
     def __iter__(self):
         # Note: If a SubBox only contains 1 block, you can't iter over the one coordinate unless 1 is added
+        maxx, maxy, maxz = self.max
+        if self.shape[0] == 0:
+            maxx += 1
+        if self.shape[1] == 0:
+            maxy += 1
+        if self.shape[2] == 0:
+            maxz += 1
+
         return itertools.product(
-            range(self.min[0], self.max[0] + 1),
-            range(self.min[1], self.max[1] + 1),
-            range(self.min[2], self.max[2] + 1),
+            range(self.min[0], maxx), range(self.min[1], maxy), range(self.min[2], maxz)
         )
 
     def __str__(self):
         return f"({self.min}, {self.max})"
 
+    def __contains__(self, item: Union[Point, Tuple[int, int, int]]):
+        return \
+            self.min[0] <= item[0] < self.max[0], \
+            self.min[1] <= item[1] < self.max[1], \
+            self.min[2] <= item[2] <= self.max[2]
+
     def to_slice(self) -> List[slice]:
-        # Note: The added 1 is needed to get slices to work one boxes that are only 1 block big
+        """
+        Converts the SubBoxes minimum/maximum coordinates into slice arguments
+
+        :return: The SubBoxes coordinates as slices in (x,y,z) order
+        """
+        # Note: The added 1 is needed to get slices to work with boxes that are only 1 block big
+        maxx, maxy, maxz = self.max
+        if self.shape[0] == 0:
+            maxx += 1
+        if self.shape[1] == 0:
+            maxy += 1
+        if self.shape[2] == 0:
+            maxz += 1
+
         return [
-            slice(self.min[0], self.max[0] + 1),
-            slice(self.min[1], self.max[1] + 1),
-            slice(self.min[2], self.max[2] + 1),
+            slice(self.min[0], maxx), slice(self.min[1], maxy), slice(self.min[2], maxz)
         ]
 
     @property
@@ -101,7 +124,13 @@ class SelectionBox:
     def __len__(self):
         return len(self._boxes)
 
-    def add_box(self, other: SubBox, do_merge_check=True):
+    def __contains__(self, item: Union[Point, Tuple[int, int, int]]):
+        for subbox in self._boxes:
+            if item in subbox:
+                return True
+        return False
+
+    def add_box(self, other: SubBox, do_merge_check: bool =True):
         """
         Adds a SubBox to the selection box. If `other` is next to another SubBox in the selection, matches in any 2 dimensions, and
         `do_merge_check` is True, then the 2 boxes will be combined into 1 box.
@@ -163,6 +192,11 @@ class SelectionBox:
         return len(self._boxes) == 1
 
     def subboxes(self) -> Iterator[SubBox]:
+        """
+        Returns an iterator of the SubBoxes in the SelectionBoxes
+
+        :return: An iterator of the SubBoxes
+        """
         return iter(self._boxes)
 
 
