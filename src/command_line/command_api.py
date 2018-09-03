@@ -9,7 +9,7 @@ from formats.format_loader import loader
 _coordinate_regex = re.compile(r"<(?P<x>\d+),(?P<y>\d+),(?P<z>\d+)>")
 
 
-def parse_coordinates(coord: str) -> Union[Tuple[int, int, int], None]:
+def parse_coordinates(coord: str) -> Optional[Tuple[int, int, int]]:
     """
     Utility function for parsing X,Y,Z coordinates from a string
 

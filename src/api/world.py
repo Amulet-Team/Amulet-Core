@@ -5,7 +5,7 @@ from importlib import import_module
 import numpy
 
 from api.history import HistoryManager
-from api.selection import Selection
+from api.chunk import Chunk
 from utils.world_utils import block_coords_to_chunk_coords, blocks_slice_to_chunk_slice, Coordinates
 
 
@@ -54,14 +54,14 @@ class World:
         self._directory = directory
         self._root_tag = root_tag
         self._wrapper = wrapper
-        self.blocks_cache: Dict[Coordinates, Selection] = {}
+        self.blocks_cache: Dict[Coordinates, Chunk] = {}
         self.history_manager = HistoryManager()
 
     @property
     def block_definitions(self):
         return self._wrapper.mapping_handler
 
-    def get_chunk(self, cx: int, cz: int) -> Tuple[Selection, dict, dict]:
+    def get_chunk(self, cx: int, cz: int) -> Chunk:
         """
         Gets the chunk data of the specified chunk coordinates
 
@@ -70,10 +70,10 @@ class World:
         :return: The blocks, entities, and tile entities in the chunk
         """
         if (cx, cz) in self.blocks_cache:
-            return self.blocks_cache[(cx, cz)], {}, {}
-        chunk = self._wrapper.get_chunk(cx, cz)
-        self.blocks_cache[(cx, cz)] = Selection(chunk[0])
-        return self.blocks_cache[(cx, cz)], chunk[1], chunk[2]
+            return self.blocks_cache[(cx, cz)]
+        chunk = Chunk(cx, cz, self._wrapper.get_chunk)
+        self.blocks_cache[(cx, cz)] = chunk
+        return self.blocks_cache[(cx, cz)]
 
     def get_block(self, x: int, y: int, z: int) -> str:
         """
@@ -89,11 +89,11 @@ class World:
 
         cx, cz = block_coords_to_chunk_coords(x, z)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
-        blocks, entities, tile_entities = self.get_chunk(cx, cz)
+        chunk = self.get_chunk(cx, cz)
+        block = chunk[offset_x, y, offset_z].blocks
+        return self._wrapper.mapping_handler[block]
 
-        return self._wrapper.mapping_handler[blocks[offset_x, y, offset_z].blocks]
-
-    def get_blocks(self, *args: Union[slice, int]) -> Generator[Selection, None, None]:
+    def get_blocks(self, *args: Union[slice, int]) -> Generator[Chunk, None, None]:
         length = len(args)
         if length == 3:
             s_x, s_y, s_z = args
@@ -116,22 +116,22 @@ class World:
 
     def get_blocks_slice(
         self, x_slice: slice, y_slice: slice, z_slice: slice
-    ) -> Generator[Selection, None, None]:
+    ) -> Generator[Chunk, None, None]:
         first_chunk = block_coords_to_chunk_coords(x_slice.start, z_slice.start)
         last_chunk = block_coords_to_chunk_coords(x_slice.stop, x_slice.stop)
-        for chunk in itertools.product(
+        for chunk_pos in itertools.product(
                 range(first_chunk[0], last_chunk[0] + 1),
                 range(first_chunk[1], last_chunk[1] + 1)
         ):
-            x_slice_for_chunk = blocks_slice_to_chunk_slice(x_slice) if chunk == first_chunk else slice(None)
-            z_slice_for_chunk = blocks_slice_to_chunk_slice(z_slice) if chunk == last_chunk else slice(None)
-            blocks = self.get_chunk(*chunk)[0]
-            yield blocks[x_slice_for_chunk, y_slice, z_slice_for_chunk]
+            x_slice_for_chunk = blocks_slice_to_chunk_slice(x_slice) if chunk_pos == first_chunk else slice(None)
+            z_slice_for_chunk = blocks_slice_to_chunk_slice(z_slice) if chunk_pos == last_chunk else slice(None)
+            chunk = self.get_chunk(*chunk_pos)
+            yield chunk[x_slice_for_chunk, y_slice, z_slice_for_chunk]
 
-    def get_blocks_bounded(self, *args: int) -> Generator[Selection, None, None]:
+    def get_blocks_bounded(self, *args: int) -> Generator[Chunk, None, None]:
         return self.get_blocks_slice(slice(args[0], args[1]), slice(args[2], args[3]), slice(args[4], args[5]))
 
-    def get_blocks_stepped(self, *args: int) -> Generator[Selection, None, None]:
+    def get_blocks_stepped(self, *args: int) -> Generator[Chunk, None, None]:
         return self.get_blocks_slice(
             slice(args[0], args[1], args[6]), slice(args[2], args[3], args[7]), slice(args[4], args[5], args[8])
         )

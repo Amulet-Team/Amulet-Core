@@ -1,7 +1,7 @@
 import unittest
 
-from api.selection import AbstractSelection
 from api.box import SubBox, SelectionBox
+from api.chunk import SubChunk
 from test_utils import get_world_path
 
 from formats import format_loader
@@ -24,13 +24,13 @@ class AnvilWorldTestCase(unittest.TestCase):
     def test_get_blocks(self):
         self.assertIsInstance(
             next(self.world.get_blocks(slice(0, 10), slice(0, 10), slice(0, 10))),
-            AbstractSelection,
+            SubChunk,
         )
         self.assertIsInstance(
-            next(self.world.get_blocks(0, 0, 0, 10, 10, 10)), AbstractSelection
+            next(self.world.get_blocks(0, 0, 0, 10, 10, 10)), SubChunk
         )
         self.assertIsInstance(
-            next(self.world.get_blocks(0, 0, 0, 10, 10, 10, 2, 2, 2)), AbstractSelection
+            next(self.world.get_blocks(0, 0, 0, 10, 10, 10, 2, 2, 2)), SubChunk
         )
 
         with self.assertRaises(IndexError):
@@ -61,13 +61,13 @@ class Anvil2WorldTestCase(unittest.TestCase):
     def test_get_blocks(self):
         self.assertIsInstance(
             next(self.world.get_blocks(slice(0, 10), slice(0, 10), slice(0, 10))),
-            AbstractSelection,
+            SubChunk,
         )
         self.assertIsInstance(
-            next(self.world.get_blocks(0, 0, 0, 10, 10, 10)), AbstractSelection
+            next(self.world.get_blocks(0, 0, 0, 10, 10, 10)), SubChunk
         )
         self.assertIsInstance(
-            next(self.world.get_blocks(0, 0, 0, 10, 10, 10, 2, 2, 2)), AbstractSelection
+            next(self.world.get_blocks(0, 0, 0, 10, 10, 10, 2, 2, 2)), SubChunk
         )
 
         with self.assertRaises(IndexError):

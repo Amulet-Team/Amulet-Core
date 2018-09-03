@@ -1,8 +1,6 @@
 from api.box import SubBox, SelectionBox
 from api.operation import Operation
 
-from typing import List
-
 
 class Clone2(Operation):
     def __init__(self, source_box: SubBox, target_box: SubBox):
@@ -17,6 +15,7 @@ class Clone2(Operation):
         for target_selection in target_generator:
             source_selection = next(source_generator)
             target_selection.blocks = source_selection.blocks
+
 
 class Clone(Operation):
 
