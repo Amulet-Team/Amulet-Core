@@ -65,5 +65,17 @@ class BoxTestCase(unittest.TestCase):
         box_3.add_box(box.SubBox((0, 5, 0), (5, 10, 5)))
         self.assertEqual(len(box_3), 1)
 
+    def test_single_block_box(self):
+        sub_box_1 = box.SubBox((0,0,0),(0,0,1))
+        box_1 = box.SelectionBox((sub_box_1,))
+
+        self.assertEqual((0,0,1), sub_box_1.shape)
+        self.assertEqual(2, len([x for x in sub_box_1]))
+
+        self.assertTrue((0,0,0) in sub_box_1)
+        self.assertTrue((0,0,1) in sub_box_1)
+
+        self.assertFalse((0,0,2) in sub_box_1)
+
 if __name__ == '__main__':
     unittest.main()

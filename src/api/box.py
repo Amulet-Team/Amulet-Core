@@ -10,7 +10,7 @@ class SubBox:
     A SubBox is a box that can represent the entirety of a SelectionBox or just a subsection
     of one. This allows for non-rectangular and non-contiguous selections.
 
-    The minimum coordinate point is inclusive while the maximum coordinate point is exclusive.
+    The both the minimum and  maximum coordinate points are inclusive.
     """
 
     def __init__(self, min_point: Point, max_point: Point):
@@ -18,17 +18,8 @@ class SubBox:
         self.max = max_point
 
     def __iter__(self):
-        # Note: If a SubBox only contains 1 block, you can't iter over the one coordinate unless 1 is added
-        maxx, maxy, maxz = self.max
-        if self.shape[0] == 0:
-            maxx += 1
-        if self.shape[1] == 0:
-            maxy += 1
-        if self.shape[2] == 0:
-            maxz += 1
-
         return itertools.product(
-            range(self.min[0], maxx), range(self.min[1], maxy), range(self.min[2], maxz)
+            range(self.min[0], self.max[0] + 1), range(self.min[1], self.max[1] + 1), range(self.min[2], self.max[2] + 1)
         )
 
     def __str__(self):
@@ -36,8 +27,8 @@ class SubBox:
 
     def __contains__(self, item: Union[Point, Tuple[int, int, int]]):
         return \
-            self.min[0] <= item[0] < self.max[0], \
-            self.min[1] <= item[1] < self.max[1], \
+            self.min[0] <= item[0] <= self.max[0] and \
+            self.min[1] <= item[1] <= self.max[1] and \
             self.min[2] <= item[2] <= self.max[2]
 
     def to_slice(self) -> List[slice]:
@@ -46,17 +37,8 @@ class SubBox:
 
         :return: The SubBoxes coordinates as slices in (x,y,z) order
         """
-        # Note: The added 1 is needed to get slices to work with boxes that are only 1 block big
-        maxx, maxy, maxz = self.max
-        if self.shape[0] == 0:
-            maxx += 1
-        if self.shape[1] == 0:
-            maxy += 1
-        if self.shape[2] == 0:
-            maxz += 1
-
         return [
-            slice(self.min[0], maxx), slice(self.min[1], maxy), slice(self.min[2], maxz)
+            slice(self.min[0], self.max[0] + 1), slice(self.min[1], self.max[1] + 1), slice(self.min[2], self.max[2] + 1)
         ]
 
     @property
@@ -92,7 +74,7 @@ class SubBox:
         Method to check whether this instance of SubBox intersects another SubBox
 
         :param other: The other SubBox to check for intersection
-        :return: True is the two SubBoxes intersect, False otherwise
+        :return: True if the two SubBoxes intersect, False otherwise
         """
         return not (
             self.min_x > other.max_x
