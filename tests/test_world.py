@@ -43,6 +43,27 @@ class AnvilWorldTestCase(unittest.TestCase):
             next(self.world.get_sub_chunks(0, 0))
             next(self.world.get_sub_chunks(0, 0, 0))
 
+    def test_clone_operation(self):
+
+        subbx1 = SubBox((1, 70, 3), (1, 70, 4))
+        src_box = SelectionBox((subbx1,))
+
+        subbx2 = SubBox((1, 70, 5), (1, 70, 6))
+        target_box = SelectionBox((subbx2,))
+
+        self.assertEqual(
+            self.world.get_block(1, 70, 3), "minecraft:stone"
+        )  # Sanity check
+        self.assertEqual(self.world.get_block(1, 70, 5), "minecraft:granite")
+
+        self.world.run_operation("clone", src_box, target_box)
+
+        self.assertEqual("minecraft:stone", self.world.get_block(1, 70, 5))
+
+        self.world.undo()
+
+        self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
+
 
 class Anvil2WorldTestCase(unittest.TestCase):
 
@@ -96,6 +117,10 @@ class Anvil2WorldTestCase(unittest.TestCase):
         self.world.run_operation("clone", src_box, target_box)
 
         self.assertEqual("minecraft:stone", self.world.get_block(1, 70, 5))
+
+        self.world.undo()
+
+        self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
 
 
 if __name__ == "__main__":

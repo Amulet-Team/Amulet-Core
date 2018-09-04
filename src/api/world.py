@@ -131,3 +131,9 @@ class World:
         operation_instance.run_operation(self)
 
         self.history_manager.add_operation(operation_instance)
+
+    def undo(self):
+        self.history_manager.undo()
+
+    def redo(self):
+        self.history_manager.redo()
