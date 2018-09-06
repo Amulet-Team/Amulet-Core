@@ -187,6 +187,12 @@ class CommandLineHandler:
                     self._complex_commands[command_parts[0]].help()
                 else:
                     if "." not in command_parts[0]:
+                        if command_parts[0] in self._complex_commands:
+                            print(
+                                f'"{command_parts[0]}" is not a valid command, try "{command_parts[0]} -h"'
+                            )
+                            continue
+
                         print(f'Command "{command_parts[0]}" is not recognized')
                         continue
 
@@ -205,9 +211,12 @@ class CommandLineHandler:
                         result = self._modes.peek().before_execution(command_parts)
                         if result is None or result:
                             self._execute_command(command_parts)
+            else:
+                print(f'Command "{command_parts[0]}" is not recognized')
+
         return 0
 
-    def _load_commands_and_modes(self, reload = False):
+    def _load_commands_and_modes(self, reload=False):
 
         if reload:
             self._commands = {}
@@ -222,7 +231,9 @@ class CommandLineHandler:
         if cmds:
             if self._load_external is None:
                 print("Detected loadable 3rd party command-line modules. These modules")
-                print("cannot be verified to be stable and/or contain malicious code. If")
+                print(
+                    "cannot be verified to be stable and/or contain malicious code. If"
+                )
                 print("you enable these modules, you use them at your own risk")
                 answer = input("Would you like to enable them anyway? (y/n)> ")
                 self._load_external = answer == "y"
@@ -378,7 +389,7 @@ class ReloadCommand(SimpleCommand):
             importlib.reload(mod)
         func = getattr(self.handler, "_load_commands_and_modes")
         if func:
-            func(reload = True)
+            func(reload=True)
         print("Successfully reloaded commands and modes")
 
 
