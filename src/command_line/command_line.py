@@ -185,6 +185,7 @@ class CommandLineHandler:
                 if "-h" in command_parts:
                     print(f"==== {command_parts[0].capitalize()} Command Help ====")
                     self._complex_commands[command_parts[0]].help()
+                    continue
                 else:
                     if "." not in command_parts[0]:
                         if command_parts[0] in self._complex_commands:
