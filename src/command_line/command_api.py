@@ -1,3 +1,8 @@
+"""
+Contains the required classes and various utility methods to allow the addition of 3rd
+party commands into the command-line portion of the editor.
+"""
+
 import os
 from typing import List, Type, Tuple, Union, Callable, Any, Optional
 import re
@@ -267,6 +272,7 @@ class Mode:
 
 
 class WorldMode(Mode):
+
     def __init__(self, cmd_line_handler, **kwargs):
         super(WorldMode, self).__init__(cmd_line_handler)
         self._world_path = kwargs.get("world")

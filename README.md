@@ -14,12 +14,14 @@ Shortcut: `pip -r requirements.txt`
 
 ### For Development
 - [Black](https://github.com/ambv/black) (Required for formatting)
-  - Must be ran and have changes committed before pushing a commit\Pull Request
+  - Must be ran before pushing a Pull Request
 - Sphinx
 - [sphinx-autodoc-typehints](https://github.com/agronholm/sphinx-autodoc-typehints)
 - [sphinx_rtd_theme](https://github.com/rtfd/sphinx_rtd_theme)
 
 Shortcut: `pip -r requirements-dev.txt` (This also installs the requirements required for running from source)
+
+For more information about contributing to this project, please see the contribution section [below](#contributing)
 
 ## Running
 
@@ -31,6 +33,35 @@ To run the program in command line mode, run the following command in your opera
 ## Documentation
 
 ### Building the Documentation
-To build the documentation locally, run the following command: `make html`
+To build the documentation locally, run the following command: `make html` and then navigate to the
+generated directory `docs_build/html` in your favorite web browser
 
 
+## Contributing
+
+### Branch Naming
+Branches should be created when a certain bug or feature may take multiple attempts to fix. Naming
+them should follow the following convention (even for forked repositories when a pull request is being made):
+
+* For features, use: `impl-<feature name>`
+* For bug fixes, use: `bug-<bug tracker ID>`
+* For improvements/rewrites occur, use: `improv-<feature name>`
+
+### Code Formatting
+For code formatting, we use the formatting utility [black](https://github.com/ambv/black). To run
+it on a file, run the following command from your favorite terminal after installing: `black <path to file>`
+
+While formatting is not strictly required for each commit, we ask that after you've finished your
+code changes for your Pull Request to run it on every changed file.
+
+### Pull Requests
+We ask that submitted Pull Requests give moderately detailed notes about the changes and explain 
+any changes that were made to the program outside of those directly related to the feature/bug-fix.
+Please make sure to run all tests and include a written verification that all tests have passed.
+
+_Note: We will also re-run all tests before reviewing, this is to mitigate additional changes/commits
+needed to pass all tests._
+
+Once a Pull Request is submitted, we will mark the request for review, once that is done, we will
+review the changes and provide any notes/things to change. Once all additional changes have been made,
+we will merge the request.
