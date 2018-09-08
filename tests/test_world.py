@@ -8,7 +8,6 @@ from formats import format_loader
 
 
 class AnvilWorldTestCase(unittest.TestCase):
-
     def setUp(self):
         self.world = format_loader.loader.load_world(get_world_path("1.12.2 World"))
 
@@ -66,7 +65,6 @@ class AnvilWorldTestCase(unittest.TestCase):
 
 
 class Anvil2WorldTestCase(unittest.TestCase):
-
     def setUp(self):
         self.world = format_loader.loader.load_world(get_world_path("1.13 World"))
 

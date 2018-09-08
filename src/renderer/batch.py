@@ -5,7 +5,9 @@ from pyglet.graphics import TextureGroup, Batch
 from pyglet.gl import GL_QUADS
 
 
-def add_texture_to_batch(texture_group: TextureGroup, vertices: Union[Sequence, ndarray], batch: Batch=None):
+def add_texture_to_batch(
+    texture_group: TextureGroup, vertices: Union[Sequence, ndarray], batch: Batch = None
+):
     """
     Adding a 2d texture for future draw in the vertices specified
     :param texture_group: Object you can get using `get_texture_group` to specify a 2d texture to draw
@@ -26,5 +28,11 @@ def add_texture_to_batch(texture_group: TextureGroup, vertices: Union[Sequence, 
         batch = Batch()
 
     count = len(vertices) // 2
-    batch.add(count, GL_QUADS, texture_group, ("v2f", vertices), ("t3f", texture_group.texture.tex_coords))
+    batch.add(
+        count,
+        GL_QUADS,
+        texture_group,
+        ("v2f", vertices),
+        ("t3f", texture_group.texture.tex_coords),
+    )
     return batch

@@ -45,9 +45,7 @@ class SimpleStack(Generic[T]):
 
 
 class LinkedStack(Generic[T]):
-
     class LinkedStackNode:
-
         def __init__(
             self,
             data: T,
@@ -146,7 +144,9 @@ class Delegate:
 
     def __iadd__(self, other: Callable):
         if 0 <= self._arg_count != other.__code__.co_argcount:
-            raise TypeError("Delegated functions must have the same amount of arguments as original function")
+            raise TypeError(
+                "Delegated functions must have the same amount of arguments as original function"
+            )
         elif self._arg_count == -1 and len(self._funcs) == 0:
             self._arg_count = other.__code__.co_argcount
         self._funcs.append(other)
@@ -157,14 +157,17 @@ class Delegate:
             self._funcs.remove(other)
         return self
 
-@Delegate
-def test_func(x, y, z, offset = None):
-    print("Test")
-    print(x,y,z)
 
-def other_func(x,y,z, offset=None):
+@Delegate
+def test_func(x, y, z, offset=None):
+    print("Test")
+    print(x, y, z)
+
+
+def other_func(x, y, z, offset=None):
     print("other")
-    print(z,y,x)
+    print(z, y, x)
+
 
 if __name__ == "__main__":
     """
@@ -178,10 +181,10 @@ if __name__ == "__main__":
     print(ls, len(ls))
     """
 
-    test_func(0,1,2)
+    test_func(0, 1, 2)
     print("===")
     test_func += other_func
-    test_func(0,1,2)
+    test_func(0, 1, 2)
     print("===")
     test_func -= other_func
-    test_func(0,1,2)
+    test_func(0, 1, 2)

@@ -28,10 +28,11 @@ class SubBox:
         return f"({self.min}, {self.max})"
 
     def __contains__(self, item: Union[Point, Tuple[int, int, int]]):
-        return \
-            self.min[0] <= item[0] <= self.max[0] and \
-            self.min[1] <= item[1] <= self.max[1] and \
-            self.min[2] <= item[2] <= self.max[2]
+        return (
+            self.min[0] <= item[0] <= self.max[0]
+            and self.min[1] <= item[1] <= self.max[1]
+            and self.min[2] <= item[2] <= self.max[2]
+        )
 
     def to_slice(self) -> List[slice]:
         """

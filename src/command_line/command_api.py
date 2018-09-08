@@ -267,7 +267,6 @@ class Mode:
 
 
 class WorldMode(Mode):
-
     def __init__(self, cmd_line_handler, **kwargs):
         super(WorldMode, self).__init__(cmd_line_handler)
         self._world_path = kwargs.get("world")

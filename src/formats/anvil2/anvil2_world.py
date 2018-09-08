@@ -17,7 +17,6 @@ from utils import world_utils
 
 
 class _Anvil2RegionManager:
-
     def __init__(self, directory: str):
         self._directory = directory
         self._loaded_regions = {}
@@ -47,9 +46,8 @@ class _Anvil2RegionManager:
         if number_of_sectors == 0:
             raise Exception()
 
-        if (
-            sector_start + number_of_sectors
-            > len(self._loaded_regions[key]["free_sectors"])
+        if sector_start + number_of_sectors > len(
+            self._loaded_regions[key]["free_sectors"]
         ):
             raise Exception()
 
@@ -65,7 +63,7 @@ class _Anvil2RegionManager:
 
         length = struct.unpack_from(">I", data)[0]
         _format = struct.unpack_from("B", data, 4)[0]
-        data = data[5:length + 5]
+        data = data[5 : length + 5]
 
         if _format == world_utils.VERSION_GZIP:
             data = world_utils.gunzip(data)
@@ -74,13 +72,11 @@ class _Anvil2RegionManager:
 
         nbt_data = nbt.NBTFile(buffer=BytesIO(data))
 
-        return nbt_data["Level"]["Sections"], nbt_data["Level"][
-            "TileEntities"
-        ], nbt_data[
-            "Level"
-        ][
-            "Entities"
-        ]
+        return (
+            nbt_data["Level"]["Sections"],
+            nbt_data["Level"]["TileEntities"],
+            nbt_data["Level"]["Entities"],
+        )
 
     def load_region(self, rx: int, rz: int) -> bool:
         key = (rx, rz)
@@ -138,7 +134,6 @@ class _Anvil2RegionManager:
 
 
 class Anvil2World(WorldFormat):
-
     def __init__(self, directory: str):
         self._directory = directory
         self._materials = DefinitionManager("1.13")
@@ -186,14 +181,10 @@ class Anvil2World(WorldFormat):
             bits_per_block = len(blockstate_array) // 64
             binary_blocks = numpy.unpackbits(
                 blockstate_array[::-1].astype(">i8").view("uint8")
-            ).reshape(
-                -1, bits_per_block
-            )
+            ).reshape(-1, bits_per_block)
             before_palette = binary_blocks.dot(
                 2 ** numpy.arange(binary_blocks.shape[1] - 1, -1, -1)
-            )[
-                ::-1
-            ]
+            )[::-1]
 
             _blocks = numpy.asarray(palette, dtype="object")[before_palette]
 
@@ -257,9 +248,10 @@ def identify(directory: str) -> bool:
         return False
 
     if (
-        root_tag.get("Data", nbt.TAG_Compound()).get("Version", nbt.TAG_Compound()).get(
-            "Id", nbt.TAG_Int(-1)
-        ).value
+        root_tag.get("Data", nbt.TAG_Compound())
+        .get("Version", nbt.TAG_Compound())
+        .get("Id", nbt.TAG_Int(-1))
+        .value
         < 1451
     ):
         return False

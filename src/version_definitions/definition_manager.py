@@ -85,7 +85,7 @@ class DefinitionManager:
                 ):
                     map_to = defs[resource_location][base_block]["map_to"]
                     block_idenifier = defs[resource_location][base_block]["id"]
-                    self.blocks[map_to[map_to.index(":") + 1:]] = block_idenifier
+                    self.blocks[map_to[map_to.index(":") + 1 :]] = block_idenifier
                 else:
                     for blockstate in defs[resource_location][base_block]:
                         block_id = defs[resource_location][base_block][blockstate].get(
@@ -94,7 +94,7 @@ class DefinitionManager:
                         map_to = defs[resource_location][base_block][blockstate].get(
                             "map_to", "internal:minecraft:unknown"
                         )
-                        self.blocks[map_to[map_to.index(":") + 1:]] = block_id
+                        self.blocks[map_to[map_to.index(":") + 1 :]] = block_id
 
     def get_internal_block(
         self, resource_location="minecraft", basename="air", properties=None
@@ -115,9 +115,8 @@ class DefinitionManager:
             if basename in self._definitions["internal"][resource_location]:
                 if (
                     properties
-                    and properties in self._definitions["internal"][resource_location][
-                        basename
-                    ]
+                    and properties
+                    in self._definitions["internal"][resource_location][basename]
                 ):
                     return self._definitions["internal"][resource_location][basename][
                         properties
@@ -222,4 +221,6 @@ if __name__ == "__main__":
                 "reverse <versioned name>: Looks up a block from it's internal mapping value (version -> internal)"
             )
             print("list: Lists all blocks in the current mapping")
-            print("load <version>: Loads the specified version of block definitions.rst")
+            print(
+                "load <version>: Loads the specified version of block definitions.rst"
+            )

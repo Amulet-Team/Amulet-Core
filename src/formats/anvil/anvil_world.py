@@ -17,7 +17,6 @@ from utils import world_utils
 
 
 class _AnvilRegionManager:
-
     def __init__(self, directory: str):
         self._directory = directory
         self._loaded_regions = {}
@@ -47,9 +46,8 @@ class _AnvilRegionManager:
         if number_of_sectors == 0:
             raise Exception()
 
-        if (
-            sector_start + number_of_sectors
-            > len(self._loaded_regions[key]["free_sectors"])
+        if sector_start + number_of_sectors > len(
+            self._loaded_regions[key]["free_sectors"]
         ):
             raise Exception()
 
@@ -65,7 +63,7 @@ class _AnvilRegionManager:
 
         length = struct.unpack_from(">I", data)[0]
         _format = struct.unpack_from("B", data, 4)[0]
-        data = data[5:length + 5]
+        data = data[5 : length + 5]
 
         if _format == world_utils.VERSION_GZIP:
             data = world_utils.gunzip(data)
@@ -74,13 +72,11 @@ class _AnvilRegionManager:
 
         nbt_data = nbt.NBTFile(buffer=BytesIO(data))
 
-        return nbt_data["Level"]["Sections"], nbt_data["Level"][
-            "TileEntities"
-        ], nbt_data[
-            "Level"
-        ][
-            "Entities"
-        ]
+        return (
+            nbt_data["Level"]["Sections"],
+            nbt_data["Level"]["TileEntities"],
+            nbt_data["Level"]["Entities"],
+        )
 
     def load_region(self, rx: int, rz: int) -> bool:
         key = (rx, rz)
@@ -138,7 +134,6 @@ class _AnvilRegionManager:
 
 
 class AnvilWorld(WorldFormat):
-
     def __init__(self, directory: str):
         self._directory = directory
         self._materials = DefinitionManager("1.12")
@@ -184,7 +179,7 @@ class AnvilWorld(WorldFormat):
                 add_blocks = add_blocks.reshape((16, 16, 8))
                 add_blocks = world_utils.from_nibble_array(add_blocks)
 
-                section_blocks |= (add_blocks.astype(numpy.uint16) << 8)
+                section_blocks |= add_blocks.astype(numpy.uint16) << 8
 
             blocks[lower:upper, :, :] = section_blocks
             block_data[lower:upper, :, :] = section_data
@@ -257,9 +252,8 @@ def identify(directory: str) -> bool:
     #    ):
     #        return False
 
-    if (
-        not path.exists(path.join(directory, "players"))
-        and not path.exists(path.join(directory, "playerdata"))
+    if not path.exists(path.join(directory, "players")) and not path.exists(
+        path.join(directory, "playerdata")
     ):
         return False
 
@@ -267,9 +261,10 @@ def identify(directory: str) -> bool:
     root_tag = nbt.NBTFile(fileobj=fp)
     fp.close()
     if (
-        root_tag.get("Data", nbt.TAG_Compound()).get("Version", nbt.TAG_Compound()).get(
-            "Id", nbt.TAG_Int(-1)
-        ).value
+        root_tag.get("Data", nbt.TAG_Compound())
+        .get("Version", nbt.TAG_Compound())
+        .get("Id", nbt.TAG_Int(-1))
+        .value
         > 1451
     ):
         return False

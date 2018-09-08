@@ -22,7 +22,6 @@ Command_Entry = namedtuple("Command", ("run", "short_help", "help"))
 
 
 class ModeStack(SimpleStack):
-
     def __init__(self, *args, **kwargs):
         super(ModeStack, self).__init__(*args, **kwargs)
 
@@ -207,7 +206,7 @@ class CommandLineHandler:
                             self._execute_command(command_parts)
         return 0
 
-    def _load_commands_and_modes(self, reload = False):
+    def _load_commands_and_modes(self, reload=False):
 
         if reload:
             self._commands = {}
@@ -222,7 +221,9 @@ class CommandLineHandler:
         if cmds:
             if self._load_external is None:
                 print("Detected loadable 3rd party command-line modules. These modules")
-                print("cannot be verified to be stable and/or contain malicious code. If")
+                print(
+                    "cannot be verified to be stable and/or contain malicious code. If"
+                )
                 print("you enable these modules, you use them at your own risk")
                 answer = input("Would you like to enable them anyway? (y/n)> ")
                 self._load_external = answer == "y"
@@ -364,7 +365,6 @@ class VariableCommand(SimpleCommand):
 
 @command("reload")
 class ReloadCommand(SimpleCommand):
-
     def help(self):
         print("Running this command reloads all registered commands and modes")
         print("Usage: reload")
@@ -378,13 +378,12 @@ class ReloadCommand(SimpleCommand):
             importlib.reload(mod)
         func = getattr(self.handler, "_load_commands_and_modes")
         if func:
-            func(reload = True)
+            func(reload=True)
         print("Successfully reloaded commands and modes")
 
 
 @command("pop_mode")
 class PopModeCommand(SimpleCommand):
-
     def run(self, args: List[str]):
         self.handler.exit_mode("-f" in args)
 

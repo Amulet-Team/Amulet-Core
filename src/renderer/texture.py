@@ -1,7 +1,12 @@
 from pyglet import resource
 from pyglet.graphics import TextureGroup
 from pyglet.image import Texture
-from pyglet.gl import glTexParameteri, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_NEAREST
+from pyglet.gl import (
+    glTexParameteri,
+    GL_TEXTURE_MAG_FILTER,
+    GL_TEXTURE_MIN_FILTER,
+    GL_NEAREST,
+)
 
 
 def add_textures_folder(folder: str) -> None:
@@ -25,7 +30,9 @@ def get_texture_group(texture_file_name: str) -> TextureGroup:
     return _get_texture_group_from_texture(texture)
 
 
-def get_partial_texture_group(texture_file_name: str, x: int, y: int, z: int, width: int, height: int) -> TextureGroup:
+def get_partial_texture_group(
+    texture_file_name: str, x: int, y: int, z: int, width: int, height: int
+) -> TextureGroup:
     """
     Gets a texture group object of a partial texture needed.
     Partial texture is where you want to take a small part of a texture image file.

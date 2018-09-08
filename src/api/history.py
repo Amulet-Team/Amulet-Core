@@ -5,7 +5,6 @@ from api.operation import Operation
 
 
 class HistoryManager:
-
     def __init__(self):
         self.undo_stack: List[Operation] = []
         self.redo_stack: SimpleStack[Operation] = SimpleStack()

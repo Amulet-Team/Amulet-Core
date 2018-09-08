@@ -115,7 +115,7 @@ def get_size(obj, seen=None):
     return size
 
 
-def get_smallest_dtype(arr: ndarray, uint: bool=True) -> int:
+def get_smallest_dtype(arr: ndarray, uint: bool = True) -> int:
     """
     Returns the smallest dtype (number) that the array can afford
     :param arr: The array to check on

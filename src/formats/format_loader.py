@@ -15,7 +15,11 @@ from api.world import World
 class _FormatLoader:
 
     REQUIRED_ATTRIBUTES = [
-        "LEVEL_CLASS", "REGION_CLASS", "CHUNK_CLASS", "MATERIALS_CLASS", "identify"
+        "LEVEL_CLASS",
+        "REGION_CLASS",
+        "CHUNK_CLASS",
+        "MATERIALS_CLASS",
+        "identify",
     ]
 
     _loaded_formats = {}
@@ -37,7 +41,9 @@ class _FormatLoader:
             if success:
                 self._loaded_formats[format_name] = module
                 if __debug__:
-                    print(f"[Debug] Enabled \"{format_name}\" format, version {getattr(module, '__version__', -1)}")
+                    print(
+                        f"[Debug] Enabled \"{format_name}\" format, version {getattr(module, '__version__', -1)}"
+                    )
 
     @staticmethod
     def load_format(directory: str) -> Tuple[bool, object]:

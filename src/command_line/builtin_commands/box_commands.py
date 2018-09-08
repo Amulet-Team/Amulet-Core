@@ -5,13 +5,16 @@ from numpy import unique
 from api.box import SubBox, SelectionBox
 
 from command_line import (
-    command, subcommand, ComplexCommand, parse_coordinates, WorldMode
+    command,
+    subcommand,
+    ComplexCommand,
+    parse_coordinates,
+    WorldMode,
 )
 
 
 @command("box")
 class BoxCommand(ComplexCommand):
-
     def __init__(self, *args, **kwargs):
         super(BoxCommand, self).__init__(*args, **kwargs)
 
@@ -99,7 +102,7 @@ class BoxCommand(ComplexCommand):
                 uniques = unique(world.block_definitions[selection.blocks])
                 for u in uniques:
                     if u in blocks:
-                        blocks[u] +=1
+                        blocks[u] += 1
                     else:
                         blocks[u] = 1
 
