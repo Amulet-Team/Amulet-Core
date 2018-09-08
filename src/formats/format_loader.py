@@ -13,6 +13,7 @@ from api.world import World
 
 SUPPORTED_FORMAT = 0
 
+
 class _FormatLoader:
 
     REQUIRED_ATTRIBUTES = [
@@ -71,7 +72,9 @@ class _FormatLoader:
             return False, None
 
         if getattr(format_module, "__format__", -1) != SUPPORTED_FORMAT:
-            raise ImportError(f"\"{format_module.__name__}\" world loader format mismatches the supported format")
+            raise ImportError(
+                f'"{format_module.__name__}" world loader format mismatches the supported format'
+            )
 
         return True, format_module
 

@@ -62,7 +62,9 @@ class DefinitionManager:
         fp.close()
 
         if self.defs_internal.get("__format__", -1) != self.SUPPORTED_FORMAT:
-            raise AssertionError("Internal block definitions format mismatches the supported format version")
+            raise AssertionError(
+                "Internal block definitions format mismatches the supported format version"
+            )
 
         del self.defs_internal["__format__"]
 
@@ -85,7 +87,9 @@ class DefinitionManager:
         fp.close()
 
         if defs.get("__format__", -1) != self.SUPPORTED_FORMAT:
-            raise AssertionError(f"{definitions_to_build} block definitions format mismatches the supported format version")
+            raise AssertionError(
+                f"{definitions_to_build} block definitions format mismatches the supported format version"
+            )
 
         del defs["__format__"]
 
