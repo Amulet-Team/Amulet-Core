@@ -184,8 +184,15 @@ class CommandLineHandler:
                 if "-h" in command_parts:
                     print(f"==== {command_parts[0].capitalize()} Command Help ====")
                     self._complex_commands[command_parts[0]].help()
+                    continue
                 else:
                     if "." not in command_parts[0]:
+                        if command_parts[0] in self._complex_commands:
+                            print(
+                                f'"{command_parts[0]}" is not a valid command, try "{command_parts[0]} -h"'
+                            )
+                            continue
+
                         print(f'Command "{command_parts[0]}" is not recognized')
                         continue
 
@@ -204,6 +211,9 @@ class CommandLineHandler:
                         result = self._modes.peek().before_execution(command_parts)
                         if result is None or result:
                             self._execute_command(command_parts)
+            else:
+                print(f'Command "{command_parts[0]}" is not recognized')
+
         return 0
 
     def _load_commands_and_modes(self, reload=False):

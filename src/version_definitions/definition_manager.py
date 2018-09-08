@@ -12,6 +12,8 @@ class DefinitionManager:
     Handles loading block definitions and mapping them to our internal definitions
     """
 
+    SUPPORTED_FORMAT = 0
+
     @staticmethod
     def properties_to_string(props: dict) -> str:
         """
@@ -44,15 +46,25 @@ class DefinitionManager:
             result[key] = value
         return result
 
+    @property
+    def special_blocks(self):
+        return self._special_blocks
+
     def __init__(self, definitions_to_build: str):
         self.blocks = {}
         self._definitions = {}
+        self._special_blocks = set()
 
         self.matcher = re.compile(r"^(.)+:(.)+$")
 
         fp = open(os.path.join(DEFINITIONS_DIR, "internal", "blocks.json"))
         self.defs_internal = json.load(fp)
         fp.close()
+
+        if self.defs_internal.get("__format__", -1) != self.SUPPORTED_FORMAT:
+            raise AssertionError("Internal block definitions format mismatches the supported format version")
+
+        del self.defs_internal["__format__"]
 
         self._definitions["internal"] = {"minecraft": self.defs_internal["minecraft"]}
 
@@ -71,6 +83,12 @@ class DefinitionManager:
         )
         defs = json.load(fp)
         fp.close()
+
+        if defs.get("__format__", -1) != self.SUPPORTED_FORMAT:
+            raise AssertionError(f"{definitions_to_build} block definitions format mismatches the supported format version")
+
+        del defs["__format__"]
+
         self._definitions[definitions_to_build] = {"minecraft": {}}
         for resource_location in defs:
             for base_block in defs[resource_location]:

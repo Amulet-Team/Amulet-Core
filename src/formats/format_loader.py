@@ -11,6 +11,7 @@ from typing import Tuple, Optional
 from api.paths import FORMATS_DIR
 from api.world import World
 
+SUPPORTED_FORMAT = 0
 
 class _FormatLoader:
 
@@ -68,6 +69,9 @@ class _FormatLoader:
                 )
             )
             return False, None
+
+        if getattr(format_module, "__format__", -1) != SUPPORTED_FORMAT:
+            raise ImportError(f"\"{format_module.__name__}\" world loader format mismatches the supported format")
 
         return True, format_module
 
