@@ -1,4 +1,6 @@
 import itertools
+import os
+import shutil
 from typing import Tuple, Union, Generator, Dict
 from importlib import import_module
 
@@ -6,6 +8,7 @@ import numpy
 
 from api.history import HistoryManager
 from api.chunk import Chunk, SubChunk
+from api.paths import get_temp_dir
 from utils.world_utils import (
     block_coords_to_chunk_coords,
     blocks_slice_to_chunk_slice,
@@ -57,10 +60,15 @@ class World:
 
     def __init__(self, directory: str, root_tag, wrapper: WorldFormat):
         self._directory = directory
+        shutil.rmtree(get_temp_dir(self._directory), ignore_errors=True)
         self._root_tag = root_tag
         self._wrapper = wrapper
         self.blocks_cache: Dict[Coordinates, Chunk] = {}
         self.history_manager = HistoryManager()
+
+    def exit(self):
+        # TODO: add "unsaved changes" check before exit
+        shutil.rmtree(get_temp_dir(self._directory), ignore_errors=True)
 
     @property
     def block_definitions(self):
@@ -153,9 +161,36 @@ class World:
         operation_instance.run_operation(self)
 
         self.history_manager.add_operation(operation_instance)
+        self._save_to_undo()
+
+    def _save_to_undo(self):
+        for chunk in self.blocks_cache.values():
+            if chunk.previous_unsaved_state is None:
+                continue
+            chunk.previous_unsaved_state.save_to_file(
+                os.path.join(
+                    get_temp_dir(self._directory),
+                    f"Operation_{len(self.history_manager.undo_stack)}",
+                )
+            )
+            chunk.previous_unsaved_state = None
 
     def undo(self):
+        path = os.path.join(
+            get_temp_dir(self._directory),
+            f"Operation_{len(self.history_manager.undo_stack)}",
+        )
+        for chunk_name in os.listdir(path):
+            if not chunk_name.startswith("chunk"):
+                continue
+            cx, cz = chunk_name.split("_")[1:]
+            cx, cz = int(cx), int(cz)
+            if (cx, cz) in self.blocks_cache:
+                self.blocks_cache[(cx, cz)].load_from_file(path)
+
         self.history_manager.undo()
 
     def redo(self):
-        self.history_manager.redo()
+        operation_to_redo = self.history_manager.redo()
+        operation_to_redo.run_operation(self)
+        self._save_to_undo()

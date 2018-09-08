@@ -51,3 +51,7 @@ COMMANDS_DIR = _application_directory("commands", ("command_line", "commands"))
 DEFINITIONS_DIR = _application_directory("definitions", "version_definitions")
 
 # WORK_DIR = _application_directory("work")
+
+
+def get_temp_dir(world_dir):
+    return os.path.join(world_dir, "TEMP")
