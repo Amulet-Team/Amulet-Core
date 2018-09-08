@@ -66,6 +66,14 @@ class AnvilWorldTestCase(unittest.TestCase):
 
         self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
 
+        self.world.redo()
+
+        self.assertEqual("minecraft:stone", self.world.get_block(1, 70, 5))
+
+        self.world.undo()
+
+        self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
+
 
 class Anvil2WorldTestCase(unittest.TestCase):
     def setUp(self):
@@ -123,6 +131,13 @@ class Anvil2WorldTestCase(unittest.TestCase):
 
         self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
 
+        self.world.redo()
+
+        self.assertEqual("minecraft:stone", self.world.get_block(1, 70, 5))
+
+        self.world.undo()
+
+        self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
 
 if __name__ == "__main__":
     unittest.main()
