@@ -7,4 +7,4 @@ from command_line.command_api import (
     WorldMode,
     parse_coordinates,
 )
-from command_line.command_line import init
+from command_line.command_line import CommandLineHandler

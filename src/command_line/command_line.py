@@ -3,7 +3,6 @@ import glob
 import importlib
 import os
 import shlex
-import sys
 import re
 import traceback
 import time
@@ -12,7 +11,6 @@ from pprint import pprint
 from typing import List, Type, Dict, Any
 
 from command_line import SimpleCommand, ComplexCommand, Mode, command
-from command_line import builtin_commands
 
 from api.data_structures import SimpleStack
 from api.paths import COMMANDS_DIR
@@ -224,11 +222,26 @@ class CommandLineHandler:
             self._retry_modules = []
             self._modules = []
 
+        builtin_search_path = os.path.join(
+            os.path.dirname(COMMANDS_DIR), "builtin_commands"
+        )
         search_path = os.path.join(os.path.dirname(COMMANDS_DIR), "commands")
-        sys.path.insert(0, os.path.join(search_path))
 
-        cmds = glob.glob(os.path.join(search_path, "*.py"))
-        if cmds:
+        cmds = [
+            cmd
+            for cmd in glob.iglob(
+                os.path.join(builtin_search_path, "**", "*.py"), recursive=True
+            )
+            if not cmd.endswith("__init__.py")
+        ]
+        other_cmds = [
+            cmd
+            for cmd in glob.iglob(
+                os.path.join(search_path, "**", "*.py"), recursive=True
+            )
+            if not cmd.endswith("__init__.py")
+        ]
+        if other_cmds:
             if self._load_external is None:
                 print("Detected loadable 3rd party command-line modules. These modules")
                 print(
@@ -241,19 +254,23 @@ class CommandLineHandler:
                 answer = "y" if self._load_external else "n"
 
             if answer.lower() == "y":
-                for cmd in cmds:
-                    try:
-                        module = importlib.import_module(os.path.basename(cmd)[:-3])
-                        self._modules.append(module)
-                    except ImportError:
-                        self._retry_modules.append(os.path.basename(cmd)[:-3])
+                cmds.extend(other_cmds)
 
-                for mod in self._retry_modules:
-                    try:
-                        module = importlib.import_module(mod)
-                        self._modules.append(module)
-                    except ImportError as e:
-                        print(f"Couldn't import {mod} due to error: {e}")
+        for cmd in cmds:
+            try:
+                module = importlib.import_module(
+                    cmd[cmd.find("command_line") :].replace(os.path.sep, ".")[:-3]
+                )
+                self._modules.append(module)
+            except ImportError:
+                self._retry_modules.append(os.path.basename(cmd)[:-3])
+
+        for mod in self._retry_modules:
+            try:
+                module = importlib.import_module(mod)
+                self._modules.append(module)
+            except ImportError as e:
+                print(f"Couldn't import {mod} due to error: {e}")
 
         del self._retry_modules
 
@@ -405,7 +422,3 @@ class PopModeCommand(SimpleCommand):
 
     def short_help(self) -> str:
         return "Exits the most current mode"
-
-
-def init():
-    return CommandLineHandler()

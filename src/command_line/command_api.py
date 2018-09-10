@@ -7,7 +7,6 @@ import os
 from typing import List, Type, Tuple, Union, Callable, Any, Optional
 import re
 
-from api.data_structures import SimpleStack
 from api.world import World
 from formats.format_loader import loader
 
@@ -272,7 +271,6 @@ class Mode:
 
 
 class WorldMode(Mode):
-
     def __init__(self, cmd_line_handler, **kwargs):
         super(WorldMode, self).__init__(cmd_line_handler)
         self._world_path = kwargs.get("world")
