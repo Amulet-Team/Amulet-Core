@@ -42,7 +42,7 @@ class WorldFormat:
 
     def to_unified_format(self) -> "World":
         """
-        Converts the current object to the Unified format
+        Converts the current object to the Amulet format
         """
         raise NotImplementedError()
 

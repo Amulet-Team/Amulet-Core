@@ -21,9 +21,9 @@ sys.path.insert(0, os.path.abspath(os.path.join("..", "src")))
 
 # -- Project information -----------------------------------------------------
 
-project = "Unified Map Editor"
-copyright = "2018, The Unified Map Editor Team"
-author = "The Unified Map Editor Team"
+project = "Amulet Map Editor"
+copyright = "2018, The Amulet Map Editor Team"
+author = "The Amulet Map Editor Team"
 
 # The short X.Y version
 version = ""
@@ -110,7 +110,7 @@ html_static_path = [".static"]
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "UnifiedMapEditordoc"
+htmlhelp_basename = "AmuletMapEditordoc"
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -136,9 +136,9 @@ latex_elements = {
 latex_documents = [
     (
         master_doc,
-        "UnifiedMapEditor.tex",
-        "Unified Map Editor Documentation",
-        "The Unified Map Editor Team",
+        "AmuletMapEditor.tex",
+        "Amulet Map Editor Documentation",
+        "The Amulet Map Editor Team",
         "manual",
     )
 ]
@@ -149,7 +149,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (docs_source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, "unifiedmapeditor", "Unified Map Editor Documentation", [author], 1)
+    (master_doc, "amuletmapeditor", "Amulet Map Editor Documentation", [author], 1)
 ]
 
 
@@ -161,10 +161,10 @@ man_pages = [
 texinfo_documents = [
     (
         master_doc,
-        "UnifiedMapEditor",
-        "Unified Map Editor Documentation",
+        "AmuletMapEditor",
+        "Amulet Map Editor Documentation",
         author,
-        "UnifiedMapEditor",
+        "AmuletMapEditor",
         "One line description of project.",
         "Miscellaneous",
     )

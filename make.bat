@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=docs_source
 set BUILDDIR=docs_build
-set SPHINXPROJ=UnifiedMapEditor
+set SPHINXPROJ=AmuletMapEditor
 
 if "%1" == "" goto help
 

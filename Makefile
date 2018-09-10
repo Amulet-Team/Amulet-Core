@@ -4,7 +4,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-SPHINXPROJ    = UnifiedMapEditor
+SPHINXPROJ    = AmuletMapEditor
 SOURCEDIR     = docs_source
 BUILDDIR      = docs_build
 

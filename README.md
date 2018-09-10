@@ -1,4 +1,4 @@
-# Unified Minecraft Editor
+# Amulet Map Editor
 
 A new Minecraft world editor that aims to be flexible, extendable, and support most editions
 of Minecraft.
@@ -6,6 +6,7 @@ of Minecraft.
 ## Requirements
 
 ### For Running From Source
+- Python 3.6+
 - Numpy
 - pyglet
 - NBT
@@ -27,7 +28,7 @@ For more information about contributing to this project, please see the contribu
 
 ### Command-line
 To run the program in command line mode, run the following command in your operating system's console:
-`Unified_Map_Editor --command-line`
+`Amulet_Map_Editor --command-line`
 
 
 ## Documentation

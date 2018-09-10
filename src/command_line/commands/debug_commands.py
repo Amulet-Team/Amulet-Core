@@ -23,7 +23,6 @@ class GetBlockCommand(SimpleCommand):
             if args[4].lower() == "internal":
                 id_format = "internal"
 
-        # Do this the long way since the UnifiedFormat class isn't complete
         """
         cx, cz = world_utils.block_coords_to_chunk_coords(x, z)
 
