@@ -11,6 +11,9 @@ class AnvilWorldTestCase(unittest.TestCase):
     def setUp(self):
         self.world = format_loader.loader.load_world(get_world_path("1.12.2 World"))
 
+    def tearDown(self):
+        self.world.exit()
+
     def test_get_block(self):
         self.assertEqual(self.world.get_block(0, 0, 0), "minecraft:air")
         self.assertEqual(self.world.get_block(1, 70, 3), "minecraft:stone")
@@ -56,6 +59,14 @@ class AnvilWorldTestCase(unittest.TestCase):
         self.assertEqual(self.world.get_block(1, 70, 5), "minecraft:granite")
 
         self.world.run_operation("clone", src_box, target_box)
+
+        self.assertEqual("minecraft:stone", self.world.get_block(1, 70, 5))
+
+        self.world.undo()
+
+        self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
+
+        self.world.redo()
 
         self.assertEqual("minecraft:stone", self.world.get_block(1, 70, 5))
 
@@ -120,6 +131,13 @@ class Anvil2WorldTestCase(unittest.TestCase):
 
         self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
 
+        self.world.redo()
+
+        self.assertEqual("minecraft:stone", self.world.get_block(1, 70, 5))
+
+        self.world.undo()
+
+        self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
 
 if __name__ == "__main__":
     unittest.main()

@@ -277,7 +277,6 @@ class WorldMode(Mode):
         super(WorldMode, self).__init__(cmd_line_handler)
         self._world_path = kwargs.get("world")
         self._world_name = os.path.basename(self._world_path)
-        self._unsaved_changes = SimpleStack()
         self._world: World = loader.load_world(self._world_path)
 
     @property
@@ -292,10 +291,6 @@ class WorldMode(Mode):
         return self._world_name
 
     def before_execution(self, cmd) -> bool:
-        if cmd[0] == "load" and not self._unsaved_changes.is_empty():
-            print("You can't load a new world if you currently have unsaved changes")
-            return False
-
         return True
 
     def enter(self) -> bool:
@@ -310,12 +305,6 @@ class WorldMode(Mode):
     def exit(self) -> bool:
         if __debug__:
             print("Exiting world mode")
-        if not self._unsaved_changes.is_empty():
-            print("You have unsaved changes, do you really want to quit?")
-            ans = input("(y/n)> ")
-            if ans == "y":
-                return True
 
-            return False
-
+        self._world.exit()
         return True

@@ -1,3 +1,6 @@
+import os
+from gzip import GzipFile
+from copy import deepcopy
 from typing import Tuple, Union, Optional, Callable
 
 import numpy
@@ -16,20 +19,22 @@ class Chunk:
         self.cx = cx
         self.cz = cz
         self.get_chunk_func = get_chunk_func
-        self.changed = False
+        self.previous_unsaved_state: Optional[Chunk] = None
+        self.changed: bool = False
         self._blocks: Optional[numpy.ndarray] = None
 
     @property
     def blocks(self):
-        if self._blocks is not None:
-            return self._blocks
-        self._blocks = self.get_chunk_func(self.cx, self.cz)[0]
+        if self._blocks is None:
+            self._blocks = self.get_chunk_func(self.cx, self.cz)[0]
         self._blocks.setflags(write=False)
         return self._blocks
 
     @blocks.setter
     def blocks(self, value: numpy.ndarray):
         if not (self._blocks == value).all():
+            if self.previous_unsaved_state is None:
+                self.previous_unsaved_state = deepcopy(self)
             self.changed = True
         self._blocks = value
 
@@ -50,6 +55,28 @@ class Chunk:
         ):
             raise Exception(f"The item {item} for Selection object does not make sense")
         return SubChunk(item, self)
+
+    def __deepcopy__(self, memo):
+        chunk = Chunk(self.cx, self.cz, self.get_chunk_func)
+        chunk._blocks = self._blocks.copy()
+        return chunk
+
+    def save_to_file(self, path: str, compressed=False):
+        path = os.path.join(path, f"chunk_{self.cx}_{self.cz}")
+        os.makedirs(path, exist_ok=True)
+        blocks_file = os.path.join(path, "blocks.npy")
+        if compressed:
+            blocks_file = GzipFile(f"{blocks_file}.gz", "w")
+        numpy.save(blocks_file, self._blocks, allow_pickle=False, fix_imports=False)
+
+    def load_from_file(self, path: str):
+        path = os.path.join(path, f"chunk_{self.cx}_{self.cz}")
+        blocks_file = os.path.join(path, "blocks.npy")
+        if not os.path.exists(blocks_file):
+            if not os.path.exists(f"{blocks_file}.gz"):
+                raise Exception(f"The needed blocks file in path {path} does not exist")
+            blocks_file = GzipFile(f"{blocks_file}.gz", "r")
+        self._blocks = numpy.load(blocks_file, allow_pickle=False, fix_imports=False)
 
 
 class SubChunk:
