@@ -58,7 +58,7 @@ class AnvilWorldTestCase(unittest.TestCase):
         )  # Sanity check
         self.assertEqual(self.world.get_block(1, 70, 5), "minecraft:granite")
 
-        self.world.run_operation("clone", src_box, target_box)
+        self.world.run_operation_from_operation_name("clone", src_box, target_box)
 
         self.assertEqual("minecraft:stone", self.world.get_block(1, 70, 5))
 
@@ -123,7 +123,7 @@ class Anvil2WorldTestCase(unittest.TestCase):
         )  # Sanity check
         self.assertEqual(self.world.get_block(1, 70, 5), "minecraft:granite")
 
-        self.world.run_operation("clone", src_box, target_box)
+        self.world.run_operation_from_operation_name("clone", src_box, target_box)
 
         self.assertEqual("minecraft:stone", self.world.get_block(1, 70, 5))
 

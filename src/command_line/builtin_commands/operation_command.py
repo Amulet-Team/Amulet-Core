@@ -34,7 +34,7 @@ class OperationCommand(SimpleCommand):
                         return
 
             print(options)
-            world.run_operation(op_name, *options)
+            world.run_operation_from_operation_name(op_name, *options)
 
     def help(self):
         pass
