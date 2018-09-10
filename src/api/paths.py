@@ -15,7 +15,7 @@ def _application_directory(
     Returns a path to a directory that is adjusted depending on whether the program is running in a compiled or as source.
     The necessary directories will be created if they aren't already present.
 
-    If the ```sys``` module has a "testing" attribute and it's True, then the path won't be created.
+    If in test mode, then the path won't be created.
 
     :param directory: The directory or directories to get the full path of and/or create
     :param src_path: Fallback option if the directory location of a compiled build vs. running from source differ
@@ -36,7 +36,7 @@ def _application_directory(
         else:
             directory = src_path
 
-    if getattr(sys, "testing", False):
+    if "unittest" in sys.modules:
         return os.path.join(_package_base, *directory)
 
     else:

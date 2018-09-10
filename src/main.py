@@ -13,5 +13,7 @@ if __name__ == "__main__":
 
         sys.exit(CommandLineHandler().run())
     else:
-        raise NotImplementedError("There is only a command line version for now. "
-                                  "To start it, you should use the argument '--command-line'")
+        raise NotImplementedError(
+            "There is only a command line version for now. "
+            "To start it, you should use the argument '--command-line'"
+        )

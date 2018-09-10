@@ -11,38 +11,16 @@ class GetBlockCommand(SimpleCommand):
             print("Error: A world must be loaded before this command can be used")
             return
 
-        try:
-            #            x, y, z = map(int, args[1:4])
-            x, y, z = parse_coordinates("".join(args[1:4]))
-        except IndexError:
+        result = parse_coordinates(f'<{",".join(args[1:4])}>')
+        if result is None:
             print("Error: You must supply X, Y, and Z coordinates")
             return
 
-        id_format = "normal"
-        if len(args) == 5:
-            if args[4].lower() == "internal":
-                id_format = "internal"
+        x, y, z = result
 
-        """
-        cx, cz = world_utils.block_coords_to_chunk_coords(x, z)
+        world = self.get_mode(WorldMode).world
 
-        world_mode = self.handler.get_mode(WorldMode)
-        world = world_mode.world
-        blocks, d1, d2 = world.get_chunk(cx, cz)
-
-        true_x, true_z = x - cx * 16, z - cz * 16
-
-        block = blocks[true_x, y, true_z]
-        """
-        world_mode = self.get_mode(WorldMode)
-        world = world_mode.world
-
-        # if id_format == "internal":
         print(f"Block at ({x}, {y}, {z}): {world.get_block(x,y,z)}")
-
-    # else:
-    #    name = world.mapping_handler.get_entry(world.get_block(x, y, z))
-    #    print(f"Block at ({x}, {y}, {z}): {name}")
 
     def help(self):
         pass
