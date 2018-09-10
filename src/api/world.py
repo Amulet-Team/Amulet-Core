@@ -183,7 +183,7 @@ class World:
             chunk.previous_unsaved_state.save_to_file(
                 os.path.join(
                     get_temp_dir(self._directory),
-                    f"Operation_{len(self.history_manager.undo_stack)}",
+                    f"Operation_{self.history_manager.undo_stack.size()}",
                 )
             )
             chunk.previous_unsaved_state = None
@@ -191,7 +191,7 @@ class World:
     def undo(self):
         path = os.path.join(
             get_temp_dir(self._directory),
-            f"Operation_{len(self.history_manager.undo_stack)}",
+            f"Operation_{self.history_manager.undo_stack.size()}",
         )
         for chunk_name in os.listdir(path):
             if not chunk_name.startswith("chunk"):

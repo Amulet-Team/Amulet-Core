@@ -14,6 +14,7 @@ class Stack(Generic[T]):
         self.__len__ = self._data.__len__
         self.pop: Callable[[], T] = self._data.pop
         self.append: Callable[[T], None] = self._data.append
+        self.size: Callable[[], int] = self.__len__
 
     def peek(self) -> Optional[T]:
         """
