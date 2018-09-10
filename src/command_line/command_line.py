@@ -12,14 +12,14 @@ from typing import List, Type, Dict, Any
 
 from command_line import SimpleCommand, ComplexCommand, Mode, command
 
-from api.data_structures import SimpleStack
+from api.data_structures import Stack
 from api.paths import COMMANDS_DIR
 
 
 Command_Entry = namedtuple("Command", ("run", "short_help", "help"))
 
 
-class ModeStack(SimpleStack):
+class ModeStack(Stack):
     def __init__(self, *args, **kwargs):
         super(ModeStack, self).__init__(*args, **kwargs)
 

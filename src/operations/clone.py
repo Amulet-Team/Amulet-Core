@@ -1,4 +1,4 @@
-from api.box import SelectionBox
+from api.selection import SelectionBox
 from api.operation import Operation
 
 

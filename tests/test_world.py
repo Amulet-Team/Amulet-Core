@@ -1,6 +1,6 @@
 import unittest
 
-from api.box import SubBox, SelectionBox
+from api.selection import SubBox, SelectionBox
 from api.chunk import SubChunk
 from test_utils import get_world_path
 

@@ -2,7 +2,7 @@ from typing import List
 
 from numpy import unique
 
-from api.box import SubBox, SelectionBox
+from api.selection import SubBox, SelectionBox
 
 from command_line import (
     command,
