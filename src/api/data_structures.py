@@ -11,10 +11,9 @@ class Stack(Generic[T]):
     def __init__(self, initial_data: Sequence[T] = None):
         self._data = initial_data or []
         self.__contains__ = self._data.__contains__
-        self.__len__ = self._data.__len__
         self.pop: Callable[[], T] = self._data.pop
         self.append: Callable[[T], None] = self._data.append
-        self.size: Callable[[], int] = self.__len__
+        self.size: Callable[[], int] = self._data.__len__
 
     def peek(self) -> Optional[T]:
         """
