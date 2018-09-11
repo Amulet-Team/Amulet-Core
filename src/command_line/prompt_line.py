@@ -8,7 +8,7 @@ import traceback
 import time
 from collections import namedtuple
 import glob
-from typing import Type, Dict, Callable, List
+from typing import Type, Dict, Union, Callable, Generator, List
 
 from prompt_toolkit import PromptSession, HTML, print_formatted_text
 from prompt_toolkit.completion import Completer, Completion
@@ -65,14 +65,15 @@ class _CommandCompleter(Completer):
 
     def __init__(self, *args, **kwargs):
         super(_CommandCompleter, self).__init__(*args, **kwargs)
-        self._completion_map: Dict[str, Callable] = {
+        self._completion_map: Dict[str, Union[Callable, Generator]] = {
             "exit": exit_completer, "help": None
         }
 
     def add_command(
         self, command_name: str, completion_callable: Callable[[List[str]], Completion]
     ):
-        self._completion_map[command_name] = completion_callable
+        if command_name not in self._completion_map:
+            self._completion_map[command_name] = completion_callable
 
     def get_completions(self, document, complete_event):
         for cmd in self._completion_map.keys():
@@ -93,7 +94,7 @@ class _CommandCompleter(Completer):
                     yield Completion(cmd, start_position=-len(text))
 
                 elif callable(self._completion_map[cmd]):
-                    yield self._completion_map[cmd](parts)
+                    yield from self._completion_map[cmd](parts)
 
 
 def _print(message: str, html=False):
