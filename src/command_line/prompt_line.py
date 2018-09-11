@@ -8,7 +8,7 @@ import traceback
 import time
 from collections import namedtuple
 import glob
-from typing import Type
+from typing import Type, Dict, Callable, List
 
 from prompt_toolkit import PromptSession, HTML, print_formatted_text
 from prompt_toolkit.completion import Completer, Completion
@@ -47,19 +47,42 @@ class ModeStack(SimpleStack):
         return None
 
 
+def exit_completer(parts: List[str]) -> Completion:
+    if len(parts) == 1:
+        return Completion("-f", start_position=0)
+
+    elif len(parts) == 2:
+        if parts[1] == "-f":
+            return Completion("", start_position=0)
+
+        else:
+            return Completion("-f", start_position=-len(parts[1]) + 1)
+
+    return Completion("")
+
+
 class _CommandCompleter(Completer):
 
     def __init__(self, *args, **kwargs):
         super(_CommandCompleter, self).__init__(*args, **kwargs)
-        self._completion_map = {"exit": None}
+        self._completion_map: Dict[str, Callable] = {
+            "exit": exit_completer, "help": None
+        }
 
-    def add_command(self, command_name, completion_callable):
+    def add_command(
+        self, command_name: str, completion_callable: Callable[[List[str]], Completion]
+    ):
         self._completion_map[command_name] = completion_callable
 
     def get_completions(self, document, complete_event):
         for cmd in self._completion_map.keys():
             text = document.text
-            parts = shlex.split(text)
+
+            try:
+                parts = shlex.split(text)
+            except ValueError:
+                return Completion('"', start_position=0)
+
             if text.endswith(" "):
                 parts.append(" ")
             if not parts:
@@ -70,7 +93,7 @@ class _CommandCompleter(Completer):
                     yield Completion(cmd, start_position=-len(text))
 
                 elif callable(self._completion_map[cmd]):
-                    yield self._completion_map[cmd](parts[1:])
+                    yield self._completion_map[cmd](parts)
 
 
 def _print(message: str, html=False):
@@ -113,16 +136,24 @@ class PromptLineHandler:
         commands = glob.glob(os.path.join(search_path, "*.py"))
         if commands:
             if self._load_external is None:
+                comp = self._session.completer
+                self._session.completer = None
                 _print(
-                    "Detected loadable 3rd party command-line modules. These modules"
+                    "<yellow>Detected loadable 3rd party command-line modules. These modules</yellow>",
+                    html=True,
                 )
                 _print(
-                    "cannot be verified to be stable and/or contain malicious code. If"
+                    "<yellow>cannot be verified to be stable and/or contain malicious code. If</yellow>",
+                    html=True,
                 )
-                _print("you enable these modules, you use them at your own risk")
+                _print(
+                    "<yellow>you enable these modules, you use them at your own risk</yellow>",
+                    html=True,
+                )
                 answer = self._session.prompt(
                     "Would you like to enable them anyway? (y/n)> "
                 )
+                self._session.completer = comp
                 self._load_external = answer == "y"
             else:
                 answer = "y" if self._load_external else "n"
@@ -189,6 +220,11 @@ class PromptLineHandler:
                     functools.partial(func, command_instance),
                     command_instance.short_help,
                     functools.partial(command_instance.help, command_name),
+                )
+
+                self._completer.add_command(
+                    f"{base_command}.{command_name}",
+                    getattr(command_instance, "completer", None),
                 )
 
     def enter_mode(self, mode: Mode):
@@ -283,6 +319,90 @@ class PromptLineHandler:
             if command_parts[0].startswith("$"):
                 self._commands["$"].run(command_parts)
                 continue
+
+            if command_parts[0] == "help":
+                if len(command_parts) > 1:
+                    if command_parts[1] in self._commands:
+                        _print(
+                            f"<green>==== {command_parts[1].capitalize()} Command Help ====</green>",
+                            html=True,
+                        )
+                        self._commands[command_parts[1]].help()
+                    elif command_parts[1] in self._complex_commands:
+                        _print(
+                            f"<green>==== {command_parts[1].capitalize()} Command Help ====</green>",
+                            html=True,
+                        )
+                        self._complex_commands[command_parts[1]].help()
+                    else:
+                        _print(
+                            f'<red>htlp: Command "{command_parts[1]}" not recognized</red>',
+                            html=True,
+                        )
+                        continue
+
+                else:
+                    _print(
+                        "<green>============= Registered Commands =============</green>",
+                        html=True,
+                    )
+                    print("help - Displays all registered commands and their summaries")
+                    print("exit - Exits the command line interface")
+                    for cmd, inst in self._commands.items():
+                        if "." in cmd:
+                            continue
+
+                        print(f"{cmd} - {inst.short_help():.51}")
+
+                    for ccmd, inst in self._complex_commands.items():
+                        print(f"{ccmd} - {inst.short_help():.51}")
+
+            if command_parts[0] in self._complex_commands:
+                if "-h" in command_parts:
+                    _print(
+                        f"<green>==== {command_parts[0].capitalize()} Command Help ====</green>",
+                        html=True,
+                    )
+                    self._complex_commands[command_parts[0]].help()
+                    continue
+
+                else:
+                    if "." not in command_parts[0]:
+                        if command_parts[0] in self._complex_commands:
+                            _print(
+                                f'<red>"{command_parts[0]}" is not a valid command, try "{command_parts[0]} -h"</red>',
+                                html=True,
+                            )
+                            continue
+
+                        _print(
+                            f'<red>Command "{command_parts[0]}" is not recognized</red>',
+                            html=True,
+                        )
+                        continue
+
+                    new_command_parts = [f"{command_parts[0]}.{command_parts[1]}"]
+                    new_command_parts.extend(command_parts[2:])
+                    command_parts = new_command_parts
+
+            if command_parts[0] in self._commands:
+                if "-h" in command_parts:
+                    _print(
+                        f"<green>==== {command_parts[0].capitalize()} Command Help ====</green>",
+                        html=True,
+                    )
+                    self._commands[command_parts[0]].help()
+                else:
+                    if self._modes.is_empty():
+                        self._execute_command(command_parts)
+                    else:
+                        result = self._modes.peek().before_execution(command_parts)
+                        if result is None or result:
+                            self._execute_command(command_parts)
+            else:
+                _print(f'<red>Command "{command_parts[0]}" is not recognized</red>')
+
+        return 0
 
 
 def init():
