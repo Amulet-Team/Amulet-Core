@@ -28,7 +28,7 @@ class WorldFormat:
     def load(cls, directory: str) -> "World":
         raise NotImplementedError()
 
-    def get_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
+    def get_blocks(self, cx: int, cz: int) -> numpy.ndarray:
         raise NotImplementedError()
 
     @classmethod
@@ -38,12 +38,6 @@ class WorldFormat:
 
         :param unified: The object to convert
         :return object: The result of the conversion, None if not successful
-        """
-        raise NotImplementedError()
-
-    def to_unified_format(self) -> "World":
-        """
-        Converts the current object to the Amulet format
         """
         raise NotImplementedError()
 
@@ -85,7 +79,7 @@ class World:
         """
         if (cx, cz) in self.blocks_cache:
             return self.blocks_cache[(cx, cz)]
-        chunk = Chunk(cx, cz, self._wrapper.get_chunk)
+        chunk = Chunk(cx, cz, self._wrapper.get_blocks)
         self.blocks_cache[(cx, cz)] = chunk
         return self.blocks_cache[(cx, cz)]
 
