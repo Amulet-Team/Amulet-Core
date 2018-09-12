@@ -2,24 +2,36 @@ from typing import List
 
 from numpy import unique
 
+from prompt_toolkit.completion import Completion
+
 from api.selection import SubBox, SelectionBox
 
 from command_line import (
-    command,
-    subcommand,
-    ComplexCommand,
-    parse_coordinates,
-    WorldMode,
+    command, subcommand, ComplexCommand, parse_coordinates, WorldMode
 )
 
 
 @command("box")
 class BoxCommand(ComplexCommand):
+
     def __init__(self, *args, **kwargs):
         super(BoxCommand, self).__init__(*args, **kwargs)
 
         if "boxes" not in self.handler.shared_data:
-            self.handler.shared_data["boxes"] = {}
+            self.handler.shared_data["boxes"] = {"debug1": None, "debug2": None}
+
+    def completer(self, parts):
+        if parts[0] == "box.info":
+            for box_name in self.handler.shared_data["boxes"].keys():
+                yield Completion(box_name)
+
+        elif parts[0] == "box.delete":
+            for box_name in self.handler.shared_data["boxes"].keys():
+                yield Completion(box_name)
+
+        elif parts[0] == "box.analyze":
+            for box_name in self.handler.shared_data["boxes"].keys():
+                yield Completion(box_name)
 
     @subcommand("create")
     def create(self, args: List[str]):

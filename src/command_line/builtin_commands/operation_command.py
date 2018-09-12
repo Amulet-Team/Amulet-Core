@@ -5,6 +5,7 @@ from command_line import command, SimpleCommand, parse_coordinates, WorldMode
 
 @command("operation")
 class OperationCommand(SimpleCommand):
+
     def run(self, args: List[str]):
         if len(args) == 1:
             print('Usage: operation "<operation name>" <operation options> ....')

@@ -3,6 +3,7 @@ from api import selection
 
 
 class BoxTestCase(unittest.TestCase):
+
     def test_intersects(self):
         box_1 = selection.SubBox((0, 0, 0), (5, 5, 5))
         box_2 = selection.SubBox((5, 5, 5), (10, 10, 10))
