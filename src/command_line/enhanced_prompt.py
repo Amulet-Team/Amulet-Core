@@ -1,24 +1,21 @@
 import shlex
 from typing import List, Dict, Union, Callable, Generator
-from types import GeneratorType
 
 from prompt_toolkit import PromptSession, HTML, print_formatted_text
-from prompt_toolkit.completion import Completion, Completer
+from prompt_toolkit.completion import Completion, Completer, ThreadedCompleter
 from prompt_toolkit.shortcuts import ProgressBar
 
 
 def exit_completer(parts: List[str]) -> Completion:
     if len(parts) == 1:
-        return Completion("-f", start_position=0)
+        yield Completion("-f", start_position=0)
 
     elif len(parts) == 2:
         if parts[1] == "-f":
-            return Completion("", start_position=0)
+            yield Completion("", start_position=0)
 
         else:
-            return Completion("-f", start_position=-len(parts[1]) + 1)
-
-    return Completion("")
+            yield Completion("-f", start_position=-len(parts[1]) + 1)
 
 
 class _CommandCompleter(Completer):
@@ -54,18 +51,15 @@ class _CommandCompleter(Completer):
                     yield Completion(cmd, start_position=-len(text))
 
                 elif callable(self._completion_map[cmd]):
-                    if isinstance(self._completion_map[cmd], GeneratorType):
-                        yield from self._completion_map[cmd](parts)
-
-                    else:
-                        yield self._completion_map[cmd](parts)
+                    yield from self._completion_map[cmd](parts)
 
 
 class EnhancedPromptIO:
 
     def __init__(self):
         self._completer = _CommandCompleter()
-        self._session = PromptSession(completer=self._completer)
+
+        self._session = PromptSession(completer=ThreadedCompleter(self._completer))
 
     def print(self, *args, **kwargs):
         if len(args) >= 1:
@@ -89,4 +83,8 @@ class EnhancedPromptIO:
         self._completer = obj
 
     def get_input(self, prompt_message: str) -> str:
-        return self._session.prompt(prompt_message)
+        try:
+            return self._session.prompt(prompt_message)
+
+        except KeyboardInterrupt:
+            return "exit -f"

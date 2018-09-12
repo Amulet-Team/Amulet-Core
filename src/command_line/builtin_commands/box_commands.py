@@ -1,4 +1,5 @@
 from typing import List
+import re
 
 from numpy import unique
 
@@ -13,6 +14,8 @@ from command_line import (
 
 @command("box")
 class BoxCommand(ComplexCommand):
+
+    _partial_coordinates = re.compile(r"<\d+,\d+,\d+")
 
     def __init__(self, *args, **kwargs):
         super(BoxCommand, self).__init__(*args, **kwargs)
@@ -32,6 +35,14 @@ class BoxCommand(ComplexCommand):
         elif parts[0] == "box.analyze":
             for box_name in self.handler.shared_data["boxes"].keys():
                 yield Completion(box_name)
+
+        elif parts[0] == "box.create":
+            if len(parts) >= 3:
+                if parts[-1] == " ":
+                    yield Completion("<", start_position=0)
+
+                elif self._partial_coordinates.match(parts[-1]):
+                    yield Completion(">", start_position=0)
 
     @subcommand("create")
     def create(self, args: List[str]):
