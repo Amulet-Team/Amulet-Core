@@ -2,6 +2,8 @@ import importlib
 from typing import List, Dict, Any
 from pprint import pprint
 
+from prompt_toolkit.completion import Completion
+
 from command_line import SimpleCommand, command
 
 

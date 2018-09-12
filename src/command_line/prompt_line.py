@@ -205,6 +205,12 @@ class PromptLineHandler:
                 command_name, getattr(command_instance, "completer", None)
             )
 
+            print(
+                f"{command_instance}: {getattr(command_instance, 'completer', None)}, {hasattr(command_instance, 'completer')}"
+            )
+            if hasattr(command_instance, "completer"):
+                print(self._completer._completion_map)
+
         complex_commands = ComplexCommand.get_subclasses()
         for cmd in complex_commands:
 
@@ -227,6 +233,11 @@ class PromptLineHandler:
                     f"{base_command}.{command_name}",
                     getattr(command_instance, "completer", None),
                 )
+                print(
+                    f"{command_instance}: {getattr(command_instance, 'completer', None)}"
+                )
+
+        print(self._completer._completion_map)
 
     def enter_mode(self, mode: Mode):
         """
