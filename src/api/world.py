@@ -1,13 +1,14 @@
 import itertools
 import os
 import shutil
-from typing import Tuple, Union, Generator, Dict
+from typing import Tuple, Union, Generator, Dict, Optional
 from importlib import import_module
 
 import numpy
 
 from api.history import HistoryManager
 from api.chunk import Chunk, SubChunk
+from api.operation import Operation
 from api.paths import get_temp_dir
 from utils.world_utils import (
     block_coords_to_chunk_coords,
@@ -27,7 +28,7 @@ class WorldFormat:
     def load(cls, directory: str) -> "World":
         raise NotImplementedError()
 
-    def get_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
+    def get_blocks(self, cx: int, cz: int) -> numpy.ndarray:
         raise NotImplementedError()
 
     @classmethod
@@ -37,12 +38,6 @@ class WorldFormat:
 
         :param unified: The object to convert
         :return object: The result of the conversion, None if not successful
-        """
-        raise NotImplementedError()
-
-    def to_unified_format(self) -> "World":
-        """
-        Converts the current object to the Amulet format
         """
         raise NotImplementedError()
 
@@ -84,7 +79,7 @@ class World:
         """
         if (cx, cz) in self.blocks_cache:
             return self.blocks_cache[(cx, cz)]
-        chunk = Chunk(cx, cz, self._wrapper.get_chunk)
+        chunk = Chunk(cx, cz, self._wrapper.get_blocks)
         self.blocks_cache[(cx, cz)] = chunk
         return self.blocks_cache[(cx, cz)]
 
@@ -153,15 +148,27 @@ class World:
             chunk = self.get_chunk(*chunk_pos)
             yield chunk[x_slice_for_chunk, s_y, z_slice_for_chunk]
 
-    def run_operation(self, operation_name: str, *args) -> None:
+    def run_operation_from_operation_name(
+        self, operation_name: str, *args
+    ) -> Optional[Exception]:
         operation_module = import_module(f"operations.{operation_name}")
         operation_class_name = "".join(x.title() for x in operation_name.split("_"))
         operation_class = getattr(operation_module, operation_class_name)
         operation_instance = operation_class(*args)
-        operation_instance.run_operation(self)
+        try:
+            self.run_operation(operation_instance)
+        except Exception as e:
+            self._revert_all_chunks()
+            return e
 
         self.history_manager.add_operation(operation_instance)
         self._save_to_undo()
+
+    def _revert_all_chunks(self):
+        for chunk_pos, chunk in self.blocks_cache.items():
+            if chunk.previous_unsaved_state is None:
+                continue
+            self.blocks_cache[chunk_pos] = chunk.previous_unsaved_state
 
     def _save_to_undo(self):
         for chunk in self.blocks_cache.values():
@@ -170,7 +177,7 @@ class World:
             chunk.previous_unsaved_state.save_to_file(
                 os.path.join(
                     get_temp_dir(self._directory),
-                    f"Operation_{len(self.history_manager.undo_stack)}",
+                    f"Operation_{self.history_manager.undo_stack.size()}",
                 )
             )
             chunk.previous_unsaved_state = None
@@ -178,7 +185,7 @@ class World:
     def undo(self):
         path = os.path.join(
             get_temp_dir(self._directory),
-            f"Operation_{len(self.history_manager.undo_stack)}",
+            f"Operation_{self.history_manager.undo_stack.size()}",
         )
         for chunk_name in os.listdir(path):
             if not chunk_name.startswith("chunk"):
@@ -192,5 +199,8 @@ class World:
 
     def redo(self):
         operation_to_redo = self.history_manager.redo()
-        operation_to_redo.run_operation(self)
+        self.run_operation(operation_to_redo)
         self._save_to_undo()
+
+    def run_operation(self, operation_instance: Operation) -> None:
+        operation_instance.run_operation(self)

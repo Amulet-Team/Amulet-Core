@@ -9,16 +9,16 @@ from prompt_toolkit.shortcuts import ProgressBar
 
 def exit_completer(parts: List[str]) -> Completion:
     if len(parts) == 1:
-        yield Completion("-f", start_position=0)
+        return Completion("-f", start_position=0)
 
     elif len(parts) == 2:
         if parts[1] == "-f":
-            yield Completion("", start_position=0)
+            return Completion("", start_position=0)
 
         else:
-            yield Completion("-f", start_position=-len(parts[1]) + 1)
+            return Completion("-f", start_position=-len(parts[1]) + 1)
 
-    yield Completion("")
+    return Completion("")
 
 
 class _CommandCompleter(Completer):

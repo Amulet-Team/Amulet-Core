@@ -1,16 +1,11 @@
-import sys
 import os
 import time
 from contextlib import contextmanager
 
-if not hasattr(sys, "testing"):
-    setattr(sys, "testing", True)
-
-_tests_dir = os.path.dirname(os.path.abspath(__file__))
-
 
 def get_world_path(name: str) -> str:
-    return os.path.join(_tests_dir, "worlds", name)
+    tests_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(tests_dir, "worlds", name)
 
 
 @contextmanager

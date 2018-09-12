@@ -150,10 +150,8 @@ class AnvilWorld(WorldFormat):
 
         return World(directory, root_tag, wrapper)
 
-    def get_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
-        chunk_sections, tile_entities, entities = self._region_manager.load_chunk(
-            cx, cz
-        )
+    def get_blocks(self, cx: int, cz: int) -> numpy.ndarray:
+        chunk_sections, _, _ = self._region_manager.load_chunk(cx, cz)
 
         blocks = numpy.zeros((256, 16, 16), dtype=int)
         block_data = numpy.zeros((256, 16, 16), dtype=numpy.uint8)
@@ -226,16 +224,13 @@ class AnvilWorld(WorldFormat):
             block_test[mask] = internal_id
 
         block_test = block_test.astype(f"uint{get_smallest_dtype(block_test)}")
-        return block_test, {}, {}
+        return block_test
 
-    def to_unified_format(self) -> object:
+    @classmethod
+    def from_unified_format(cls, unified: World) -> WorldFormat:
         pass
 
     def save(self) -> None:
-        pass
-
-    @classmethod
-    def from_unified_format(cls, unified: object) -> object:
         pass
 
 

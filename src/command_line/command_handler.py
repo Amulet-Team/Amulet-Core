@@ -13,15 +13,14 @@ from pprint import pprint
 
 from prompt_toolkit.completion import Completion
 
-from api.data_structures import SimpleStack
+from api.data_structures import Stack
 from api.paths import COMMANDS_DIR
 from command_line import Mode, SimpleCommand, ComplexCommand, command
-from command_line import builtin_commands
 
 Command_Entry = namedtuple("Command", ("run", "short_help", "help"))
 
 
-class ModeStack(SimpleStack):
+class ModeStack(Stack):
 
     def __init__(self, *args, **kwargs):
         super(ModeStack, self).__init__(*args, **kwargs)
@@ -61,6 +60,7 @@ class CommandHandler:
         self.shared_data = {}
 
         self._modules = []
+        self._retry_modules = []
 
         self._commands = {}
         self._complex_commands = {}
@@ -79,37 +79,65 @@ class CommandHandler:
         if reload:
             self._commands = {}
             self._complex_commands = {}
+            self._retry_modules = []
+            self._modules = []
 
+        builtin_search_path = os.path.join(
+            os.path.dirname(COMMANDS_DIR), "builtin_commands"
+        )
         search_path = os.path.join(os.path.dirname(COMMANDS_DIR), "commands")
-        sys.path.insert(0, os.path.join(search_path))
 
-        commands = glob.glob(os.path.join(search_path, "*.py"))
-        if commands:
+        cmds = [
+            cmd
+            for cmd in glob.iglob(
+                os.path.join(builtin_search_path, "**", "*.py"), recursive=True
+            )
+            if not cmd.endswith("__init__.py")
+        ]
+        other_cmds = [
+            cmd
+            for cmd in glob.iglob(
+                os.path.join(search_path, "**", "*.py"), recursive=True
+            )
+            if not cmd.endswith("__init__.py")
+        ]
+        if other_cmds:
             if self._load_external is None:
-                comp = _io.completer
-                _io.completer = None
-
-                _io.print()
-
-                answer = _io.get_input("Would you like to enable them anyway? (y/n)> ")
-                _io.completer = comp
+                print("Detected loadable 3rd party command-line modules. These modules")
+                print(
+                    "cannot be verified to be stable and/or contain malicious code. If"
+                )
+                print("you enable these modules, you use them at your own risk")
+                answer = input("Would you like to enable them anyway? (y/n)> ")
                 self._load_external = answer == "y"
             else:
                 answer = "y" if self._load_external else "n"
 
             if answer.lower() == "y":
-                failed_modules = []
-                with _io.progress_bar(title="Loading 3rd-party_modules") as pb:
-                    for cmd in pb(commands):
-                        time.sleep(0.25)
-                        try:
-                            module = importlib.import_module(os.path.basename(cmd)[:-3])
-                            self._modules.append(module)
-                        except Exception as e:
-                            failed_modules.append(os.path.basename(cmd))
+                cmds.extend(other_cmds)
 
-                for fail in failed_modules:
-                    _io.print()
+        for cmd in cmds:
+            try:
+                module = importlib.import_module(
+                    cmd[cmd.find("command_line"):].replace(os.path.sep, ".")[:-3]
+                )
+                self._modules.append(module)
+            except ImportError:
+                self._retry_modules.append(os.path.basename(cmd)[:-3])
+            except Exception as e:
+                _io.print(
+                    f"Couldn't import {os.path.basename(cmd)[:-3]} due to error: {e}",
+                    color="red",
+                )
+
+        for mod in self._retry_modules:
+            try:
+                module = importlib.import_module(mod)
+                self._modules.append(module)
+            except ImportError as e:
+                _io.print(f"Couldn't import {mod} due to error: {e}", color="red")
+
+        del self._retry_modules
 
         simple_commands = SimpleCommand.get_subclasses()
         for cmd in simple_commands:

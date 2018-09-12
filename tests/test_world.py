@@ -1,6 +1,6 @@
 import unittest
 
-from api.box import SubBox, SelectionBox
+from api.selection import SubBox, SelectionBox
 from api.chunk import SubChunk
 from test_utils import get_world_path
 
@@ -8,6 +8,7 @@ from formats import format_loader
 
 
 class AnvilWorldTestCase(unittest.TestCase):
+
     def setUp(self):
         self.world = format_loader.loader.load_world(get_world_path("1.12.2 World"))
 
@@ -58,7 +59,7 @@ class AnvilWorldTestCase(unittest.TestCase):
         )  # Sanity check
         self.assertEqual(self.world.get_block(1, 70, 5), "minecraft:granite")
 
-        self.world.run_operation("clone", src_box, target_box)
+        self.world.run_operation_from_operation_name("clone", src_box, target_box)
 
         self.assertEqual("minecraft:stone", self.world.get_block(1, 70, 5))
 
@@ -76,6 +77,7 @@ class AnvilWorldTestCase(unittest.TestCase):
 
 
 class Anvil2WorldTestCase(unittest.TestCase):
+
     def setUp(self):
         self.world = format_loader.loader.load_world(get_world_path("1.13 World"))
 
@@ -123,7 +125,7 @@ class Anvil2WorldTestCase(unittest.TestCase):
         )  # Sanity check
         self.assertEqual(self.world.get_block(1, 70, 5), "minecraft:granite")
 
-        self.world.run_operation("clone", src_box, target_box)
+        self.world.run_operation_from_operation_name("clone", src_box, target_box)
 
         self.assertEqual("minecraft:stone", self.world.get_block(1, 70, 5))
 
@@ -138,6 +140,7 @@ class Anvil2WorldTestCase(unittest.TestCase):
         self.world.undo()
 
         self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
+
 
 if __name__ == "__main__":
     unittest.main()

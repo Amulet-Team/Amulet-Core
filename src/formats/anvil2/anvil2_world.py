@@ -27,9 +27,8 @@ class _Anvil2RegionManager:
         rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)
         key = (rx, rz)
 
-        if key not in self._loaded_regions:
-            if not self.load_region(rx, rz):
-                raise Exception()
+        if not self.load_region(rx, rz):
+            raise Exception()
 
         cx &= 0x1f
         cz &= 0x1f
@@ -106,8 +105,8 @@ class _Anvil2RegionManager:
         offsets = fp.read(world_utils.SECTOR_BYTES)
         mod_times = fp.read(world_utils.SECTOR_BYTES)
 
-        self._loaded_regions[key]["free_sectors"] = free_sectors = [True] * (
-            file_size // world_utils.SECTOR_BYTES
+        self._loaded_regions[key]["free_sectors"] = free_sectors = numpy.full(
+            file_size // world_utils.SECTOR_BYTES, True, bool
         )
         self._loaded_regions[key]["free_sectors"][0:2] = False, False
 
@@ -162,10 +161,8 @@ class Anvil2World(WorldFormat):
                 blockstates.append(name)
         return blockstates
 
-    def get_chunk(self, cx: int, cz: int) -> Tuple[numpy.ndarray, dict, dict]:
-        chunk_sections, tile_entities, entities = self._region_manager.load_chunk(
-            cx, cz
-        )
+    def get_blocks(self, cx: int, cz: int) -> numpy.ndarray:
+        chunk_sections, _, _ = self._region_manager.load_chunk(cx, cz)
 
         blocks = numpy.zeros((16, 256, 16), dtype=int)
         temp_blocks = numpy.full((256, 16, 16), "minecraft:air", dtype="object")
@@ -208,13 +205,10 @@ class Anvil2World(WorldFormat):
             blocks[mask] = internal_id
 
         blocks = blocks.astype(f"uint{get_smallest_dtype(blocks)}")
-        return blocks, {}, {}
+        return blocks
 
     @classmethod
-    def from_unified_format(cls, unified: object) -> object:
-        pass
-
-    def to_unified_format(self) -> object:
+    def from_unified_format(cls, unified: World) -> WorldFormat:
         pass
 
     def save(self) -> None:

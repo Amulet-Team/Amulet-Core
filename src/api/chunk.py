@@ -11,14 +11,11 @@ SliceCoordinates = Tuple[slice, slice, slice]
 
 class Chunk:
     def __init__(
-        self,
-        cx: int,
-        cz: int,
-        get_chunk_func: Callable[[int, int], Tuple[numpy.ndarray, dict, dict]],
+        self, cx: int, cz: int, get_blocks_func: Callable[[int, int], numpy.ndarray]
     ):
         self.cx = cx
         self.cz = cz
-        self.get_chunk_func = get_chunk_func
+        self.get_blocks_func = get_blocks_func
         self.previous_unsaved_state: Optional[Chunk] = None
         self.changed: bool = False
         self._blocks: Optional[numpy.ndarray] = None
@@ -26,7 +23,7 @@ class Chunk:
     @property
     def blocks(self):
         if self._blocks is None:
-            self._blocks = self.get_chunk_func(self.cx, self.cz)[0]
+            self._blocks = self.get_blocks_func(self.cx, self.cz)
         self._blocks.setflags(write=False)
         return self._blocks
 
@@ -57,7 +54,7 @@ class Chunk:
         return SubChunk(item, self)
 
     def __deepcopy__(self, memo):
-        chunk = Chunk(self.cx, self.cz, self.get_chunk_func)
+        chunk = Chunk(self.cx, self.cz, self.get_blocks_func)
         chunk._blocks = self._blocks.copy()
         return chunk
 

@@ -66,3 +66,7 @@ needed to pass all tests._
 Once a Pull Request is submitted, we will mark the request for review, once that is done, we will
 review the changes and provide any notes/things to change. Once all additional changes have been made,
 we will merge the request.
+
+
+## License
+This software is available under the MIT license.

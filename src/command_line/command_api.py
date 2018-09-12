@@ -7,7 +7,6 @@ import os
 from typing import List, Type, Tuple, Union, Callable, Any, Optional
 import re
 
-from api.data_structures import SimpleStack
 from api.world import World
 from formats.format_loader import loader
 

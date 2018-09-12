@@ -4,7 +4,7 @@ from numpy import unique
 
 from prompt_toolkit.completion import Completion
 
-from api.box import SubBox, SelectionBox
+from api.selection import SubBox, SelectionBox
 
 from command_line import (
     command, subcommand, ComplexCommand, parse_coordinates, WorldMode
