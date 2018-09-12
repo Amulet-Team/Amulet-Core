@@ -7,7 +7,6 @@ from command_line.command_api import (
     WorldMode,
     parse_coordinates,
 )
-from command_line.command_line import init
 from command_line.reduced_prompt import ReducedPromptIO
 from command_line.enhanced_prompt import EnhancedPromptIO
 from command_line.command_handler import CommandHandler

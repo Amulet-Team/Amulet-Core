@@ -1,5 +1,6 @@
 import shlex
 from typing import List, Dict, Union, Callable, Generator
+from types import GeneratorType
 
 from prompt_toolkit import PromptSession, HTML, print_formatted_text
 from prompt_toolkit.completion import Completion, Completer
@@ -18,6 +19,7 @@ def exit_completer(parts: List[str]) -> Completion:
             yield Completion("-f", start_position=-len(parts[1]) + 1)
 
     yield Completion("")
+
 
 class _CommandCompleter(Completer):
 
@@ -52,7 +54,12 @@ class _CommandCompleter(Completer):
                     yield Completion(cmd, start_position=-len(text))
 
                 elif callable(self._completion_map[cmd]):
-                    yield from self._completion_map[cmd](parts)
+                    if isinstance(self._completion_map[cmd], GeneratorType):
+                        yield from self._completion_map[cmd](parts)
+
+                    else:
+                        yield self._completion_map[cmd](parts)
+
 
 class EnhancedPromptIO:
 

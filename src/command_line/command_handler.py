@@ -8,12 +8,15 @@ import sys
 import time
 import traceback
 from collections import namedtuple
-from typing import Type
+from typing import List, Dict, Any, Type, Union, Generator
+from pprint import pprint
+
+from prompt_toolkit.completion import Completion
 
 from api.data_structures import SimpleStack
 from api.paths import COMMANDS_DIR
-from command_line import Mode, SimpleCommand, ComplexCommand
-from command_line.builtin_commands import PopModeCommand
+from command_line import Mode, SimpleCommand, ComplexCommand, command
+from command_line import builtin_commands
 
 Command_Entry = namedtuple("Command", ("run", "short_help", "help"))
 
@@ -118,13 +121,15 @@ class CommandHandler:
 
             if not self._command_regex.match(command_name) and command_name != "$":
                 _io.print(
-                    f"Could not enable command {command_name} since it doesn't have a valid command name/prefix", color="red"
+                    f"Could not enable command {command_name} since it doesn't have a valid command name/prefix",
+                    color="red",
                 )
                 continue
 
             if command_name in self._reserved_commands:
                 _io.print(
-                    f"Could not enable command {command_name} since another command uses the same prefix!", color="red"
+                    f"Could not enable command {command_name} since another command uses the same prefix!",
+                    color="red",
                 )
 
             command_instance = cmd(self)
@@ -171,7 +176,8 @@ class CommandHandler:
 
             if user_input.count('"') % 2 != 0 or user_input.count("'") % 2 != 0:
                 _io.print(
-                    "=== Error: You do not have an even amount of quotations in your entered command, please re-enter your command", color="red"
+                    "=== Error: You do not have an even amount of quotations in your entered command, please re-enter your command",
+                    color="red",
                 )
                 continue
 
@@ -194,19 +200,22 @@ class CommandHandler:
                 if len(command_parts) > 1:
                     if command_parts[1] in self._commands:
                         _io.print(
-                            f"==== {command_parts[1].capitalize()} Command Help ====", color="green"
+                            f"==== {command_parts[1].capitalize()} Command Help ====",
+                            color="green",
                         )
                         self._commands[command_parts[1]].help()
                     elif command_parts[1] in self._complex_commands:
                         _io.print(
-                            f"==== {command_parts[1].capitalize()} Command Help ====", color="green"
+                            f"==== {command_parts[1].capitalize()} Command Help ====",
+                            color="green",
                         )
                         self._complex_commands[command_parts[1]].help()
                     else:
                         _io.print(
-                            f'help: Command "{command_parts[1]}" not recognized', color="red"
+                            f'help: Command "{command_parts[1]}" not recognized',
+                            color="red",
                         )
-                        continue
+                    continue
 
                 else:
                     _io.print(
@@ -228,7 +237,8 @@ class CommandHandler:
             if command_parts[0] in self._complex_commands:
                 if "-h" in command_parts:
                     _io.print(
-                        f"==== {command_parts[0].capitalize()} Command Help ====", color="green"
+                        f"==== {command_parts[0].capitalize()} Command Help ====",
+                        color="green",
                     )
                     self._complex_commands[command_parts[0]].help()
                     continue
@@ -237,12 +247,14 @@ class CommandHandler:
                     if "." not in command_parts[0]:
                         if command_parts[0] in self._complex_commands:
                             _io.print(
-                                f'"{command_parts[0]}" is not a valid command, try "{command_parts[0]} -h"', color="red"
+                                f'"{command_parts[0]}" is not a valid command, try "{command_parts[0]} -h"',
+                                color="red",
                             )
                             continue
 
                         _io.print(
-                            f'Command "{command_parts[0]}" is not recognized', color="red"
+                            f'Command "{command_parts[0]}" is not recognized',
+                            color="red",
                         )
                         continue
 
@@ -253,7 +265,8 @@ class CommandHandler:
             if command_parts[0] in self._commands:
                 if "-h" in command_parts:
                     _io.print(
-                        f"==== {command_parts[0].capitalize()} Command Help ====", color="green"
+                        f"==== {command_parts[0].capitalize()} Command Help ====",
+                        color="green",
                     )
                     self._commands[command_parts[0]].help()
                 else:
@@ -264,7 +277,9 @@ class CommandHandler:
                         if result is None or result:
                             self._execute_command(command_parts)
             else:
-                _io.print(f'Command "{command_parts[0]}" is not recognized', color="red")
+                _io.print(
+                    f'Command "{command_parts[0]}" is not recognized', color="red"
+                )
 
         return 0
 
@@ -278,7 +293,8 @@ class CommandHandler:
             self._modes.append(mode)
         else:
             self._io.print(
-                f"=== Error: Could not enter mode: {mode.__class__.__name__}", color="yellow"
+                f"=== Error: Could not enter mode: {mode.__class__.__name__}",
+                color="yellow",
             )
 
     def exit_mode(self, force: bool = False) -> bool:
@@ -311,7 +327,8 @@ class CommandHandler:
             result = self.exit_mode(force)
             if not result:
                 self._io.print(
-                    f"======= Could not exit {mode.display()} ======", color="red"
+                    f"======= Could not exit {self._modes.peek().display()} ======",
+                    color="red",
                 )
                 return False
 
@@ -330,5 +347,127 @@ class CommandHandler:
             _io.print("==== End Exception Stacktrace ====", color="red")
             _io.print(
                 f"=== Error: An Exception has occurred while running command: '{cmd}'",
-                color="red"
+                color="red",
             )
+
+
+class VariableCommand(SimpleCommand):
+    registered = True
+
+    def traverse_dict(self, keys: List[str], create=False) -> Dict[str, Any]:
+        current_dict = self.handler.shared_data
+        for key in keys:
+            if not create and key not in current_dict:
+                print(f"Couldn't find shared data object \"{':'.join(keys)}\"")
+                return {}
+
+            elif create:
+                current_dict[key] = {}
+            current_dict = current_dict[key]
+        return current_dict
+
+    def run(self, args: List[str]):
+        if len(args) == 1 and args[0] == "$":
+            pprint(self.handler.shared_data)
+        elif len(args) == 1:
+            entry = self.get_shared_data(args[0])
+
+            if entry:
+                print(f"{args[0][1:]}: {str(entry)}")
+            else:
+                print(f'Couldn\'t find shared data object "{args[0][1:]}"')
+        elif len(args) == 2:
+            depth = args[0][1:].split(":")
+            current_dict = self.traverse_dict(depth[:-1])
+
+            if args[1] == "-" and depth[-1] in current_dict:
+                del current_dict[depth[-1]]
+            elif depth[-1] not in current_dict:
+                print(f'Key "{args[0][1:]}" doesn\'t exist')
+
+        elif len(args) == 3:
+            depth = args[0][1:].split(":")
+            current_dict = self.traverse_dict(depth[:-1], create=True)
+
+            if args[1] == "=":
+                current_dict[depth[-1]] = args[2]
+
+    def help(self):
+        print(
+            "Allows viewing and basic manipulation of shared data between commands and the command-line\n"
+        )
+        print("=== Viewing Data ===")
+        print("Shows all saved data:")
+        print("Usage: $\n")
+        print(
+            "Shows a subset of data, with each key of a dictionary being seperated by a ':'"
+        )
+        print("Usage: $base_key:another_key...\n\n")
+        print("=== Manipulating Data ===")
+        print(
+            "Creating an entry is pretty straight forward, values are only stored as strings"
+        )
+        print(
+            "Creating a nested key will automatically create the parent dictionaries if they don't exist\n"
+        )
+        print("To create a new entry:")
+        print("Usage: $test_key = value")
+        print("Usage: $base_key:test_key = value\n")
+        print("To delete an entry:")
+        print("Usage: $test_key -")
+
+    def short_help(self):
+        return "Allows access to shared variables"
+
+    command = (run, "$")
+
+
+@command("reload")
+class ReloadCommand(SimpleCommand):
+
+    def help(self):
+        print("Running this command reloads all registered commands and modes")
+        print("Usage: reload")
+
+    def short_help(self) -> str:
+        return "Reloads all registered commands and modes"
+
+    def run(self, args: List[str]):
+        modules = getattr(self.handler, "_modules", ())
+        for mod in modules:
+            importlib.reload(mod)
+        func = getattr(self.handler, "_load_commands_and_modes")
+        if func:
+            func(reload=True)
+        print("Successfully reloaded commands and modes")
+
+
+@command("pop_mode")
+class PopModeCommand(SimpleCommand):
+
+    def run(self, args: List[str]):
+        self.handler.exit_mode("-f" in args)
+
+    def completer(
+        self, parts: List[str]
+    ) -> Union[Completion, Generator[Completion, None, None]]:
+        if len(parts) == 1:
+            return Completion("-f", start_position=0)
+
+        elif len(parts) == 2:
+            if parts[1] == "-f":
+                return Completion("", start_position=0)
+
+            else:
+                return Completion("-f", start_position=-len(parts[1]) + 1)
+
+        return Completion("")
+
+    def help(self):
+        print("Exits the most current mode and returns execution")
+        print("to the previous mode. If a mode is unable to be exited")
+        print("the '-f' argument forcefully exits the mode\n")
+        print("Usage: pop_mode <-f>")
+
+    def short_help(self) -> str:
+        return "Exits the most current mode"
