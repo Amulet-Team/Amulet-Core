@@ -15,7 +15,7 @@ from prompt_toolkit.completion import Completion
 
 from api.data_structures import Stack
 from api.paths import COMMANDS_DIR
-from command_line import Mode, SimpleCommand, ComplexCommand, command
+from command_line import Mode, SimpleCommand, ComplexCommand, command, builtin_commands
 
 Command_Entry = namedtuple("Command", ("run", "short_help", "help"))
 
@@ -82,44 +82,29 @@ class CommandHandler:
             self._retry_modules = []
             self._modules = []
 
-        builtin_search_path = os.path.join(
-            os.path.dirname(COMMANDS_DIR), "builtin_commands"
-        )
         search_path = os.path.join(os.path.dirname(COMMANDS_DIR), "commands")
+        sys.path.insert(0, os.path.join(search_path))
 
-        cmds = [
-            cmd
-            for cmd in glob.iglob(
-                os.path.join(builtin_search_path, "**", "*.py"), recursive=True
-            )
-            if not cmd.endswith("__init__.py")
-        ]
-        other_cmds = [
-            cmd
-            for cmd in glob.iglob(
-                os.path.join(search_path, "**", "*.py"), recursive=True
-            )
-            if not cmd.endswith("__init__.py")
-        ]
-        if other_cmds:
+        cmds = glob.glob(os.path.join(search_path, "*.py"))
+        if cmds:
             if self._load_external is None:
-                print("Detected loadable 3rd party command-line modules. These modules")
-                print(
-                    "cannot be verified to be stable and/or contain malicious code. If"
+                _io.print("Detected loadable 3rd party command-line modules. These modules", color="yellow")
+                _io.print(
+                    "cannot be verified to be stable and/or contain malicious code. If", color="yellow"
                 )
-                print("you enable these modules, you use them at your own risk")
+                _io.print("you enable these modules, you use them at your own risk", color="yellow")
                 answer = input("Would you like to enable them anyway? (y/n)> ")
                 self._load_external = answer == "y"
             else:
                 answer = "y" if self._load_external else "n"
 
-            if answer.lower() == "y":
-                cmds.extend(other_cmds)
+            if answer.lower() == "n":
+                cmds = []
 
         for cmd in cmds:
             try:
                 module = importlib.import_module(
-                    cmd[cmd.find("command_line"):].replace(os.path.sep, ".")[:-3]
+                    os.path.basename(cmd)[:-3]
                 )
                 self._modules.append(module)
             except ImportError:
