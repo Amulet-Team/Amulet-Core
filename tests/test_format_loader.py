@@ -5,7 +5,9 @@ from types import ModuleType
 from formats import format_loader
 
 
+@unittest.skip("Deprecated")
 class FormatLoaderTestCase(unittest.TestCase):
+
     def setUp(self):
         self.formats = format_loader.loader.get_loaded_formats()
 

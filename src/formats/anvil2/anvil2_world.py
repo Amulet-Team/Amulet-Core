@@ -17,6 +17,7 @@ from utils import world_utils
 
 
 class _Anvil2RegionManager:
+
     def __init__(self, directory: str):
         self._directory = directory
         self._loaded_regions = {}
@@ -45,8 +46,9 @@ class _Anvil2RegionManager:
         if number_of_sectors == 0:
             raise Exception()
 
-        if sector_start + number_of_sectors > len(
-            self._loaded_regions[key]["free_sectors"]
+        if (
+            sector_start + number_of_sectors
+            > len(self._loaded_regions[key]["free_sectors"])
         ):
             raise Exception()
 
@@ -62,7 +64,7 @@ class _Anvil2RegionManager:
 
         length = struct.unpack_from(">I", data)[0]
         _format = struct.unpack_from("B", data, 4)[0]
-        data = data[5 : length + 5]
+        data = data[5:length + 5]
 
         if _format == world_utils.VERSION_GZIP:
             data = world_utils.gunzip(data)
@@ -133,15 +135,16 @@ class _Anvil2RegionManager:
 
 
 class Anvil2World(WorldFormat):
-    def __init__(self, directory: str):
+
+    def __init__(self, directory: str, definitions: str):
         self._directory = directory
-        self._materials = DefinitionManager("1.13")
+        self._materials = DefinitionManager(definitions)
         self._region_manager = _Anvil2RegionManager(directory)
         self.mapping_handler = numpy.array(["minecraft:air"], dtype="object")
 
     @classmethod
-    def load(cls, directory: str) -> World:
-        wrapper = cls(directory)
+    def load(cls, directory: str, definitions: str) -> World:
+        wrapper = cls(directory, definitions)
         fp = open(path.join(directory, "level.dat"), "rb")
         root_tag = nbt.NBTFile(fileobj=fp)
         fp.close()
@@ -178,10 +181,14 @@ class Anvil2World(WorldFormat):
             bits_per_block = len(blockstate_array) // 64
             binary_blocks = numpy.unpackbits(
                 blockstate_array[::-1].astype(">i8").view("uint8")
-            ).reshape(-1, bits_per_block)
+            ).reshape(
+                -1, bits_per_block
+            )
             before_palette = binary_blocks.dot(
                 2 ** numpy.arange(binary_blocks.shape[1] - 1, -1, -1)
-            )[::-1]
+            )[
+                ::-1
+            ]
 
             _blocks = numpy.asarray(palette, dtype="object")[before_palette]
 
@@ -242,10 +249,9 @@ def identify(directory: str) -> bool:
         return False
 
     if (
-        root_tag.get("Data", nbt.TAG_Compound())
-        .get("Version", nbt.TAG_Compound())
-        .get("Id", nbt.TAG_Int(-1))
-        .value
+        root_tag.get("Data", nbt.TAG_Compound()).get("Version", nbt.TAG_Compound()).get(
+            "Id", nbt.TAG_Int(-1)
+        ).value
         < 1451
     ):
         return False

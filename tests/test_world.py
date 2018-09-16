@@ -2,15 +2,14 @@ import unittest
 
 from api.selection import SubBox, SelectionBox
 from api.chunk import SubChunk
+from api import world_loader
 from test_utils import get_world_path
-
-from formats import format_loader
 
 
 class AnvilWorldTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.world = format_loader.loader.load_world(get_world_path("1.12.2 World"))
+        self.world = world_loader.loader.load_world(get_world_path("1.12.2 World"))
 
     def tearDown(self):
         self.world.exit()
@@ -79,7 +78,7 @@ class AnvilWorldTestCase(unittest.TestCase):
 class Anvil2WorldTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.world = format_loader.loader.load_world(get_world_path("1.13 World"))
+        self.world = world_loader.loader.load_world(get_world_path("1.13 World"))
 
     def test_get_block(self):
         self.assertEqual(self.world.get_block(0, 0, 0), "minecraft:air")

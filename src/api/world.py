@@ -1,7 +1,7 @@
 import itertools
 import os
 import shutil
-from typing import Tuple, Union, Generator, Dict, Optional
+from typing import Union, Generator, Dict, Optional
 from importlib import import_module
 
 import numpy
@@ -11,9 +11,7 @@ from api.chunk import Chunk, SubChunk
 from api.operation import Operation
 from api.paths import get_temp_dir
 from utils.world_utils import (
-    block_coords_to_chunk_coords,
-    blocks_slice_to_chunk_slice,
-    Coordinates,
+    block_coords_to_chunk_coords, blocks_slice_to_chunk_slice, Coordinates
 )
 
 
@@ -25,7 +23,7 @@ class WorldFormat:
     mapping_handler: numpy.ndarray = None
 
     @classmethod
-    def load(cls, directory: str) -> "World":
+    def load(cls, directory: str, definitions) -> "World":
         raise NotImplementedError()
 
     def get_blocks(self, cx: int, cz: int) -> numpy.ndarray:
@@ -79,6 +77,7 @@ class World:
         """
         if (cx, cz) in self.blocks_cache:
             return self.blocks_cache[(cx, cz)]
+
         chunk = Chunk(cx, cz, self._wrapper.get_blocks)
         self.blocks_cache[(cx, cz)] = chunk
         return self.blocks_cache[(cx, cz)]
@@ -136,14 +135,12 @@ class World:
             range(first_chunk[1], last_chunk[1] + 1),
         ):
             x_slice_for_chunk = (
-                blocks_slice_to_chunk_slice(s_x)
-                if chunk_pos == first_chunk
-                else slice(None)
+                blocks_slice_to_chunk_slice(s_x) if chunk_pos
+                == first_chunk else slice(None)
             )
             z_slice_for_chunk = (
-                blocks_slice_to_chunk_slice(s_z)
-                if chunk_pos == last_chunk
-                else slice(None)
+                blocks_slice_to_chunk_slice(s_z) if chunk_pos
+                == last_chunk else slice(None)
             )
             chunk = self.get_chunk(*chunk_pos)
             yield chunk[x_slice_for_chunk, s_y, z_slice_for_chunk]
@@ -168,12 +165,14 @@ class World:
         for chunk_pos, chunk in self.blocks_cache.items():
             if chunk.previous_unsaved_state is None:
                 continue
+
             self.blocks_cache[chunk_pos] = chunk.previous_unsaved_state
 
     def _save_to_undo(self):
         for chunk in self.blocks_cache.values():
             if chunk.previous_unsaved_state is None:
                 continue
+
             chunk.previous_unsaved_state.save_to_file(
                 os.path.join(
                     get_temp_dir(self._directory),
@@ -190,6 +189,7 @@ class World:
         for chunk_name in os.listdir(path):
             if not chunk_name.startswith("chunk"):
                 continue
+
             cx, cz = chunk_name.split("_")[1:]
             cx, cz = int(cx), int(cz)
             if (cx, cz) in self.blocks_cache:
