@@ -45,6 +45,7 @@ class _FormatLoader:
                     print(
                         f"[Debug] Enabled \"{format_name}\" format, version {getattr(module, '__version__', -1)}"
                     )
+        sys.path.remove(os.path.join(self.search_directory))
 
     @staticmethod
     def load_format(directory: str) -> Tuple[bool, object]:

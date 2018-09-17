@@ -24,6 +24,13 @@ class WorldFormat:
 
     @classmethod
     def load(cls, directory: str, definitions) -> "World":
+        """
+        Loads the Minecraft world contained in the given directory with the supplied definitions
+
+        :param directory: The directory of the world to load
+        :param definitions: The definitions to load the world with
+        :return: The loaded world in a `World` object
+        """
         raise NotImplementedError()
 
     def get_blocks(self, cx: int, cz: int) -> numpy.ndarray:

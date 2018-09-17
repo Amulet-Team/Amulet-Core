@@ -4,7 +4,6 @@ import sys
 import traceback
 from importlib import import_module
 from typing import Tuple
-import time
 
 from api.paths import DEFINITIONS_DIR
 from api.world import World
@@ -21,9 +20,7 @@ class _WorldLoader:
                 continue
 
             sys.path.insert(0, os.path.dirname(definition))
-            # print(definition)
             definition_name = os.path.basename(os.path.dirname(definition))
-            # print(definition_name)
             try:
                 module = import_module(os.path.basename(definition)[:-3])
                 if not (
@@ -33,19 +30,12 @@ class _WorldLoader:
                 ):
                     raise ValueError()
 
-                # print(f"b: {definition_name}: {module}")
                 self._identifiers[definition_name] = module
             except:
-                print("!!!")
                 if __debug__:
                     traceback.print_exc()
                 pass
-            # time.sleep(0.25)
-            # print(sys.path)
             sys.path.remove(os.path.dirname(definition))
-
-    # print(sys.path)
-    # print("====")
 
     def identify(self, directory: str) -> Tuple[str, str]:
         for name, module in self._identifiers.items():
@@ -59,7 +49,7 @@ class _WorldLoader:
             if module.identify(directory):
                 return module.load(directory)
 
-        return ModuleNotFoundError()
+        raise ModuleNotFoundError()
 
 
 loader = _WorldLoader()
