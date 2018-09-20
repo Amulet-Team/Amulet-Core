@@ -1,3 +1,11 @@
+import sys
+import os
+
+try:
+    import api
+except ModuleNotFoundError:
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "src"))
+
 import unittest
 from test_utils import get_world_path
 from types import ModuleType
@@ -6,6 +14,7 @@ from formats import format_loader
 
 
 class FormatLoaderTestCase(unittest.TestCase):
+
     def setUp(self):
         self.formats = format_loader.loader.get_loaded_formats()
 

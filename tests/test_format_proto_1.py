@@ -1,9 +1,18 @@
+import sys
+import os
+
+try:
+    import api
+except ModuleNotFoundError:
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "src"))
+
 import unittest
 
 from version_definitions import definition_manager
 
 
 class TestPrototype112(unittest.TestCase):
+
     def setUp(self):
         self.proto = definition_manager.DefinitionManager("1.12")
 
@@ -40,6 +49,7 @@ class TestPrototype112(unittest.TestCase):
 
 
 class TestPrototype113(unittest.TestCase):
+
     def setUp(self):
         self.proto = definition_manager.DefinitionManager("1.13")
 
