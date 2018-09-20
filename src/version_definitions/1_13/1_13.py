@@ -2,7 +2,7 @@ from os.path import exists, join
 
 from nbt import nbt
 
-from api.world import WorldFormat
+from api.world import World
 
 from formats.format_loader import loader
 
@@ -34,5 +34,5 @@ def identify(directory: str) -> bool:
     return True
 
 
-def load(directory: str) -> WorldFormat:
+def load(directory: str) -> World:
     return loader["anvil2"].LEVEL_CLASS.load(directory, "1_13")

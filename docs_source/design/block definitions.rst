@@ -26,3 +26,20 @@ Each supported Minecraft version must define all blocks and provide the followin
 * The ``map_to`` key that links the version defined block to a block that we have internally defined
 * `Optional`: The ``nbt`` key if the block originally stored it's data as NBT before 1.13 and
   switched to blockstates in 1.13+ (IE: Noteblocks) **!!Incomplete!!**
+
+Identifying and Loading Worlds
+------------------------------
+Each version definition is required to have a ``identify()`` and ``load()`` function in a python file with the same name as
+the directory containing it and the version definitions, but with underscores instead of dots (IE: ``1.12`` definitions
+would have ``1_12.py``). The identify function doesn't do any loading but is given the directory path to the world and using
+the directory structure and NBT structure in the `level.dat`. This function returns ``True`` if it matches criteria to be
+loaded by that format loader, if not, ``False`` is to be returned.
+
+``load()``'s function is to load a world with the
+appropriate format loader for the version definitions (IE: ``1.12`` loads via ``anvil`` and ``1.13`` loads via ``anvil2``).
+When calling ``load()``, the path to the world directory is given (it can be assumed that the accompanying ``identify()``
+function has been called and has returned ``True``) and the method is to return the resulting :class:`api.world.World` object created from
+the world format loader.
+
+This python file is also expected to have a global variable named ``FORMAT``, which allows Amulet to output what format
+loader will be used when loading the world to the user.

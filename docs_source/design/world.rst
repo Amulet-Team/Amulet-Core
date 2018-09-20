@@ -32,11 +32,6 @@ their own. Each format loader handles reading the world data then converting the
 tile entities into a format that the Amulet Format expects. Each format loader must inherit from
 :class:`api.world.WorldFormat`
 
-Each format loader is required to have a ``identify()`` function. This function doesn't do any
-loading but is given the directory path to the world and using the directory structure and NBT
-structure in the `level.dat`. This function returns ``True`` if it matches criteria to be loaded
-by that format loader, if not, ``False`` is to be returned.
-
 When loading, format loaders are first called via a class method ``load()`` which is expected to
 return a :class:`api.world.World` instance. The method receives the path to directory of the world.
 Once the world is loaded, the format loader is only used to load and translate new data from the disc.
@@ -44,3 +39,4 @@ Once the world is loaded, the format loader is only used to load and translate n
 When saving, format loaders shouldn't make any assumptions about the previous format of the world
 since the Amulet Format doesn't keep track of that data. Due to this, while saving various attributes
 should be check and either saved or ignored depending on what data is present.
+
