@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import List
 
 from command_line import command, SimpleCommand, parse_coordinates, WorldMode

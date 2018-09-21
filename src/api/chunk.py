@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from gzip import GzipFile
 from copy import deepcopy
@@ -10,6 +12,7 @@ SliceCoordinates = Tuple[slice, slice, slice]
 
 
 class Chunk:
+
     def __init__(
         self, cx: int, cz: int, get_blocks_func: Callable[[int, int], numpy.ndarray]
     ):
@@ -51,6 +54,7 @@ class Chunk:
             )
         ):
             raise Exception(f"The item {item} for Selection object does not make sense")
+
         return SubChunk(item, self)
 
     def __deepcopy__(self, memo):
@@ -72,11 +76,13 @@ class Chunk:
         if not os.path.exists(blocks_file):
             if not os.path.exists(f"{blocks_file}.gz"):
                 raise Exception(f"The needed blocks file in path {path} does not exist")
+
             blocks_file = GzipFile(f"{blocks_file}.gz", "r")
         self._blocks = numpy.load(blocks_file, allow_pickle=False, fix_imports=False)
 
 
 class SubChunk:
+
     def __init__(
         self,
         sub_selection_slice: Union[PointCoordinates, SliceCoordinates],

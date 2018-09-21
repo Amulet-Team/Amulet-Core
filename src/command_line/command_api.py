@@ -2,6 +2,7 @@
 Contains the required classes and various utility methods to allow the addition of 3rd
 party commands into the command-line portion of the editor.
 """
+from __future__ import annotations
 
 import os
 from typing import List, Type, Tuple, Union, Callable, Any, Optional

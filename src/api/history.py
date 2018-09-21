@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 from api.data_structures import Stack
 from api.operation import Operation
 
 
 class HistoryManager:
+
     def __init__(self):
         self.undo_stack: Stack[Operation] = Stack()
         self.redo_stack: Stack[Operation] = Stack()

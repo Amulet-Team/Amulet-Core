@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import glob
 import importlib
@@ -88,11 +90,18 @@ class CommandHandler:
         cmds = glob.glob(os.path.join(search_path, "*.py"))
         if cmds:
             if self._load_external is None:
-                _io.print("Detected loadable 3rd party command-line modules. These modules", color="yellow")
                 _io.print(
-                    "cannot be verified to be stable and/or contain malicious code. If", color="yellow"
+                    "Detected loadable 3rd party command-line modules. These modules",
+                    color="yellow",
                 )
-                _io.print("you enable these modules, you use them at your own risk", color="yellow")
+                _io.print(
+                    "cannot be verified to be stable and/or contain malicious code. If",
+                    color="yellow",
+                )
+                _io.print(
+                    "you enable these modules, you use them at your own risk",
+                    color="yellow",
+                )
                 answer = input("Would you like to enable them anyway? (y/n)> ")
                 self._load_external = answer == "y"
             else:
@@ -103,9 +112,7 @@ class CommandHandler:
 
         for cmd in cmds:
             try:
-                module = importlib.import_module(
-                    os.path.basename(cmd)[:-3]
-                )
+                module = importlib.import_module(os.path.basename(cmd)[:-3])
                 self._modules.append(module)
             except ImportError:
                 self._retry_modules.append(os.path.basename(cmd)[:-3])

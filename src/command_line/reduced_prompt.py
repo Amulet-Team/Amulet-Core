@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 from contextlib import ContextDecorator
+
 
 class FakeCompleter:
 
     def add_command(self, *args, **kwargs):
         pass
+
 
 class FakeProgressBar(ContextDecorator):
 
@@ -27,7 +31,7 @@ class ReducedPromptIO:
 
     def print(self, *args, **kwargs):
         if "color" in kwargs:
-            del  kwargs["color"]
+            del kwargs["color"]
 
         print(*args, **kwargs)
 

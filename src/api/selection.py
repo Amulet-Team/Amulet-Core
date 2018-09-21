@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import itertools
 
-from typing import Sequence, List, Iterator, Tuple, Union
+from typing import Sequence, List, Iterator, Tuple, Union, cast
 
 from api.types import Point
 
@@ -106,7 +108,7 @@ class SelectionBox:
         self._boxes = boxes
 
     def __iter__(self):
-        return itertools.chain.from_iterable(self._boxes)
+        return itertools.chain.from_iterable(sorted(self._boxes, key=hash))
 
     def __len__(self):
         return len(self._boxes)
@@ -185,7 +187,7 @@ class SelectionBox:
 
         :return: An iterator of the SubBoxes
         """
-        return iter(self._boxes)
+        return cast(Iterator[SubBox], iter(sorted(self._boxes, key=hash)))
 
 
 if __name__ == "__main__":

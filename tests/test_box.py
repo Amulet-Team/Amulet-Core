@@ -84,6 +84,23 @@ class BoxTestCase(unittest.TestCase):
 
         self.assertFalse((0, 0, 2) in sub_box_1)
 
+    def test_sorted_iterator(self):
+        sub_box_1 = selection.SubBox((0, 0, 0), (4, 4, 4))
+        box_1 = selection.SelectionBox((sub_box_1,))
+        box_2 = selection.SelectionBox((sub_box_1,))
+
+        sub_box_2 = selection.SubBox((7, 7, 7), (10, 10, 10))
+        box_1.add_box(sub_box_2)
+
+        sub_box_3 = selection.SubBox((15, 15, 15), (20, 20, 20))
+        box_2.add_box(sub_box_3)
+
+        box_1.add_box(sub_box_3)
+        box_2.add_box(sub_box_2)
+
+        for sb1, sb2 in zip(box_1.subboxes(), box_2.subboxes()):
+            self.assertEqual(sb1.shape, sb2.shape)
+
 
 if __name__ == "__main__":
     unittest.main()
