@@ -2,11 +2,12 @@ from typing import List
 
 from command_line import ComplexCommand, command, subcommand, WorldMode
 
-from formats.format_loader import loader
+from api.world_loader import loader
 
 
 @command("world")
 class WorldCommand(ComplexCommand):
+
     @subcommand("load")
     def load(self, args: List[str]):
         if len(args) == 1:
@@ -33,13 +34,14 @@ class WorldCommand(ComplexCommand):
                 print('Usage: world.identify "<world filepath>"')
                 return
 
-            identified_format = loader.identify_world_format_str(args[1])
+            version, identified_format = loader.identify(args[1])
         elif len(args) == 2:
-            identified_format = loader.identify_world_format_str(args[1])
+            version, identified_format = loader.identify(args[1])
         else:
             world_mode = self.get_mode(WorldMode)
-            identified_format = loader.identify_world_format_str(world_mode.world_path)
+            version, identified_format = loader.identify(world_mode.world_path)
 
+        print(f"Version: {version.replace('_', '.')}")
         print(f"Format: {identified_format}")
 
     @classmethod

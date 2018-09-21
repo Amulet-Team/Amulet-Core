@@ -1,1 +1,1 @@
-from formats.format_loader import loader, load_world
+from formats.format_loader import loader

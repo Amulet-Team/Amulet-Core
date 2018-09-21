@@ -17,11 +17,7 @@ SUPPORTED_FORMAT = 0
 class _FormatLoader:
 
     REQUIRED_ATTRIBUTES = [
-        "LEVEL_CLASS",
-        "REGION_CLASS",
-        "CHUNK_CLASS",
-        "MATERIALS_CLASS",
-        "identify",
+        "LEVEL_CLASS", "REGION_CLASS", "CHUNK_CLASS", "MATERIALS_CLASS", "identify"
     ]
 
     _loaded_formats = {}
@@ -30,6 +26,9 @@ class _FormatLoader:
         self.search_directory = search_directory
 
         self._find_formats()
+
+    def __getitem__(self, item):
+        return self._loaded_formats.get(item, None)
 
     def _find_formats(self):
         directories = glob.glob(os.path.join(self.search_directory, "*", ""))
@@ -46,6 +45,7 @@ class _FormatLoader:
                     print(
                         f"[Debug] Enabled \"{format_name}\" format, version {getattr(module, '__version__', -1)}"
                     )
+        sys.path.remove(os.path.join(self.search_directory))
 
     @staticmethod
     def load_format(directory: str) -> Tuple[bool, object]:
@@ -101,26 +101,5 @@ class _FormatLoader:
                 "To add an external format you must supply a name and a module object!"
             )
 
-    def identify_world_format_str(self, directory: str) -> str:
-        for name, module in self._loaded_formats.items():
-            if module.identify(directory):
-                return name
-
-        raise ModuleNotFoundError("Could not find a valid format loader")
-
-    def load_world(self, directory: str) -> World:
-        for name, module in self._loaded_formats.items():
-            if module.identify(directory):
-                return module.LEVEL_CLASS.load(directory)
-
-        raise ModuleNotFoundError("Could not find a valid format loader")
-
 
 loader = _FormatLoader()
-
-
-def load_world(world_directory: str) -> Optional[World]:
-    try:
-        return loader.load_world(world_directory)
-    except ModuleNotFoundError:
-        return None

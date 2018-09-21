@@ -17,6 +17,7 @@ from utils import world_utils
 
 
 class _AnvilRegionManager:
+
     def __init__(self, directory: str):
         self._directory = directory
         self._loaded_regions = {}
@@ -46,8 +47,9 @@ class _AnvilRegionManager:
         if number_of_sectors == 0:
             raise Exception()
 
-        if sector_start + number_of_sectors > len(
-            self._loaded_regions[key]["free_sectors"]
+        if (
+            sector_start + number_of_sectors
+            > len(self._loaded_regions[key]["free_sectors"])
         ):
             raise Exception()
 
@@ -63,7 +65,7 @@ class _AnvilRegionManager:
 
         length = struct.unpack_from(">I", data)[0]
         _format = struct.unpack_from("B", data, 4)[0]
-        data = data[5 : length + 5]
+        data = data[5:length + 5]
 
         if _format == world_utils.VERSION_GZIP:
             data = world_utils.gunzip(data)
@@ -134,16 +136,17 @@ class _AnvilRegionManager:
 
 
 class AnvilWorld(WorldFormat):
-    def __init__(self, directory: str):
+
+    def __init__(self, directory: str, definitions: str):
         self._directory = directory
-        self._materials = DefinitionManager("1.12")
+        self._materials = DefinitionManager(definitions)
         self._region_manager = _AnvilRegionManager(directory)
         self.mapping_handler = numpy.array(["minecraft:air"], dtype="object")
         self.unknown_blocks = {}
 
     @classmethod
-    def load(cls, directory: str) -> World:
-        wrapper = cls(directory)
+    def load(cls, directory: str, definitions: str) -> World:
+        wrapper = cls(directory, definitions)
         fp = open(path.join(directory, "level.dat"), "rb")
         root_tag = nbt.NBTFile(fileobj=fp)
         fp.close()
@@ -247,8 +250,9 @@ def identify(directory: str) -> bool:
     #    ):
     #        return False
 
-    if not path.exists(path.join(directory, "players")) and not path.exists(
-        path.join(directory, "playerdata")
+    if (
+        not path.exists(path.join(directory, "players"))
+        and not path.exists(path.join(directory, "playerdata"))
     ):
         return False
 
@@ -256,10 +260,9 @@ def identify(directory: str) -> bool:
     root_tag = nbt.NBTFile(fileobj=fp)
     fp.close()
     if (
-        root_tag.get("Data", nbt.TAG_Compound())
-        .get("Version", nbt.TAG_Compound())
-        .get("Id", nbt.TAG_Int(-1))
-        .value
+        root_tag.get("Data", nbt.TAG_Compound()).get("Version", nbt.TAG_Compound()).get(
+            "Id", nbt.TAG_Int(-1)
+        ).value
         > 1451
     ):
         return False

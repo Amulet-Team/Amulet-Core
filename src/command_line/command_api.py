@@ -8,7 +8,7 @@ from typing import List, Type, Tuple, Union, Callable, Any, Optional
 import re
 
 from api.world import World
-from formats.format_loader import loader
+from api.world_loader import loader
 
 _coordinate_regex = re.compile(r"<(?P<x>\d+),(?P<y>\d+),(?P<z>\d+)>")
 
