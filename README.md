@@ -1,5 +1,7 @@
 # Amulet Map Editor
 
+[![CircleCI](https://circleci.com/gh/Podshot/Amulet-Map-Editor.svg?style=svg)](https://circleci.com/gh/Podshot/Amulet-Map-Editor)
+
 A new Minecraft world editor that aims to be flexible, extendable, and support most editions
 of Minecraft.
 
@@ -46,7 +48,7 @@ them should follow the following convention (even for forked repositories when a
 
 * For features, use: `impl-<feature name>`
 * For bug fixes, use: `bug-<bug tracker ID>`
-* For improvements/rewrites occur, use: `improv-<feature name>`
+* For improvements/rewrites, use: `improv-<feature name>`
 
 ### Code Formatting
 For code formatting, we use the formatting utility [black](https://github.com/ambv/black). To run

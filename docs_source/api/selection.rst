@@ -1,6 +1,6 @@
 box module
 ==========
 
-.. automodule:: api.box
+.. automodule:: api.selection
     :members:
     :show-inheritance:
