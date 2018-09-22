@@ -73,7 +73,7 @@ class World:
         shutil.rmtree(get_temp_dir(self._directory), ignore_errors=True)
 
     @property
-    def block_definitions(self):
+    def block_definitions(self) -> numpy.ndarray:
         return self._wrapper.mapping_handler
 
     def get_chunk(self, cx: int, cz: int) -> Chunk:

@@ -35,8 +35,9 @@ class OperationCommand(SimpleCommand):
                     else:
                         print(f'Couldn\'t find shared data object "{arg}"')
                         return
+                else:
+                    options.append(arg)
 
-            print(options)
             world.run_operation_from_operation_name(op_name, *options)
 
     def help(self):
