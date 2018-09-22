@@ -25,7 +25,7 @@ class WorldFormat:
     mapping_handler: numpy.ndarray = None
 
     @classmethod
-    def load(cls, directory: str, definitions) -> "World":
+    def load(cls, directory: str, definitions) -> World:
         """
         Loads the Minecraft world contained in the given directory with the supplied definitions
 
@@ -39,7 +39,7 @@ class WorldFormat:
         raise NotImplementedError()
 
     @classmethod
-    def from_unified_format(cls, unified: "World") -> "WorldFormat":
+    def from_unified_format(cls, unified: World) -> WorldFormat:
         """
         Converts the passed object to the specific implementation
 

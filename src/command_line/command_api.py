@@ -28,7 +28,7 @@ def parse_coordinates(coord: str) -> Optional[Tuple[int, int, int]]:
     return None
 
 
-def command(command_name: str) -> Type[Union["SimpleCommand", "ComplexCommand"]]:
+def command(command_name: str) -> Type[Union[SimpleCommand, ComplexCommand]]:
     """
     Registers a class as a command. If the class' parent is SimpleCommand, then it will use the abstracted methods.
     If the class' parent is ComplexCommand, then any method decorated with the `subcommand` decorator is registered as
@@ -59,7 +59,7 @@ class _CommandBase:
     inherit from :class:`SimpleCommand` or :class:`ComplexCommand`
     """
 
-    def get_mode(self, mode_class: Type["Mode"]) -> "Mode":
+    def get_mode(self, mode_class: Type[Mode]) -> Mode:
         """
         Method for getting a Mode that the program is in
 
@@ -68,7 +68,7 @@ class _CommandBase:
         """
         return self.handler.get_mode(mode_class)
 
-    def in_mode(self, mode_class: Type["Mode"]) -> bool:
+    def in_mode(self, mode_class: Type[Mode]) -> bool:
         """
         Method for checking whether the program is in the specified Mode
 
@@ -130,7 +130,7 @@ class SimpleCommand(_CommandBase):
     """
 
     @classmethod
-    def get_subclasses(cls) -> List[Type["SimpleCommand"]]:
+    def get_subclasses(cls) -> List[Type[SimpleCommand]]:
         """
         Utility function to get all classes that extend this one
 
@@ -196,7 +196,7 @@ class ComplexCommand(_CommandBase):
                 cls.sub_commands[sub_cmd[1]] = sub_cmd[0]
 
     @classmethod
-    def get_subclasses(cls) -> List[Type["ComplexCommand"]]:
+    def get_subclasses(cls) -> List[Type[ComplexCommand]]:
         """
         Utility function to get all classes that extend this one
 
