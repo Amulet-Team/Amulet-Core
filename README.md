@@ -42,6 +42,11 @@ generated directory `docs_build/html` in your favorite web browser
 
 ## Contributing
 
+### Running from Source
+1. Clone the project using `git clone https://github.com/Podshot/Amulet-Map-Editor`
+2. When inside the folder you cloned, install the requirements using `pip -r requirements.txt`
+3. To format your files automatically before committing changes, use `pre-commit install`
+
 ### Branch Naming
 Branches should be created when a certain bug or feature may take multiple attempts to fix. Naming
 them should follow the following convention (even for forked repositories when a pull request is being made):
