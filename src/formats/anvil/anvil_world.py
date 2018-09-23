@@ -89,48 +89,46 @@ class _AnvilRegionManager:
         if not path.exists(filename):
             raise FileNotFoundError()
 
-        fp = open(filename, "rb")
-        self._loaded_regions[key] = {}
+        with open(filename, "rb") as fp:
+            self._loaded_regions[key] = {}
 
-        file_size = path.getsize(filename)
-        if file_size & 0xfff:
-            file_size = (file_size | 0xfff) + 1
-            fp.truncate(file_size)
+            file_size = path.getsize(filename)
+            if file_size & 0xfff:
+                file_size = (file_size | 0xfff) + 1
+                fp.truncate(file_size)
 
-        if not file_size:
-            file_size = world_utils.SECTOR_BYTES * 2
-            fp.truncate(file_size)
+            if not file_size:
+                file_size = world_utils.SECTOR_BYTES * 2
+                fp.truncate(file_size)
 
-        self._loaded_regions[key]["file_size"] = file_size
+            self._loaded_regions[key]["file_size"] = file_size
 
-        fp.seek(0)
+            fp.seek(0)
 
-        offsets = fp.read(world_utils.SECTOR_BYTES)
-        mod_times = fp.read(world_utils.SECTOR_BYTES)
+            offsets = fp.read(world_utils.SECTOR_BYTES)
+            mod_times = fp.read(world_utils.SECTOR_BYTES)
 
-        self._loaded_regions[key]["free_sectors"] = free_sectors = [True] * (
-            file_size // world_utils.SECTOR_BYTES
-        )
-        self._loaded_regions[key]["free_sectors"][0:2] = False, False
+            self._loaded_regions[key]["free_sectors"] = free_sectors = [True] * (
+                file_size // world_utils.SECTOR_BYTES
+            )
+            self._loaded_regions[key]["free_sectors"][0:2] = False, False
 
-        self._loaded_regions[key]["offsets"] = offsets = numpy.frombuffer(
-            offsets, dtype=">u4"
-        )
-        self._loaded_regions[key]["mod_times"] = numpy.frombuffer(
-            mod_times, dtype=">u4"
-        )
+            self._loaded_regions[key]["offsets"] = offsets = numpy.frombuffer(
+                offsets, dtype=">u4"
+            )
+            self._loaded_regions[key]["mod_times"] = numpy.frombuffer(
+                mod_times, dtype=">u4"
+            )
 
-        for offset in offsets:
-            sector = offset >> 8
-            count = offset & 0xff
+            for offset in offsets:
+                sector = offset >> 8
+                count = offset & 0xff
 
-            for i in range(sector, sector + count):
-                if i >= len(free_sectors):
-                    return False
+                for i in range(sector, sector + count):
+                    if i >= len(free_sectors):
+                        return False
 
-                free_sectors[i] = False
-
-        fp.close()
+                    free_sectors[i] = False
 
         return True
 
@@ -154,6 +152,10 @@ class AnvilWorld(WorldFormat):
 
     def get_blocks(self, cx: int, cz: int) -> numpy.ndarray:
         chunk_sections, _, _ = self._region_manager.load_chunk(cx, cz)
+        if len(chunk_sections) == 0:
+            return NotImplementedError(
+                "We don't support reading chunks that never been edited in Minecraft before"
+            )
 
         blocks = numpy.zeros((256, 16, 16), dtype=int)
         block_data = numpy.zeros((256, 16, 16), dtype=numpy.uint8)

@@ -37,7 +37,9 @@ class OperationCommand(SimpleCommand):
                 else:
                     options.append(arg)
 
-            world.run_operation_from_operation_name(op_name, *options)
+            error = world.run_operation_from_operation_name(op_name, *options)
+            if error is not None:
+                print(error)
 
     def help(self):
         pass

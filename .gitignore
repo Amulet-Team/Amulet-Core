@@ -110,3 +110,4 @@ venv.bak/
 
 # Amulet-Map-Editor
 prototyping/
+*.npy

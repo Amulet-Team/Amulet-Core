@@ -128,4 +128,6 @@ def get_smallest_dtype(arr: ndarray, uint: bool = True) -> int:
     max_number = arr.max()
     if not uint:
         max_number = max_number * 2
+    if max_number == 0:
+        max_number = 1
     return next(dtype for dtype in possible_dtypes if dtype > log(max_number, 2))

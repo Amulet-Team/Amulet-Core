@@ -52,12 +52,11 @@ class _Anvil2RegionManager:
         ):
             raise Exception()
 
-        fp = open(
+        with open(
             path.join(self._directory, "region", "r.{}.{}.mca".format(rx, rz)), "rb"
-        )
-        fp.seek(sector_start * world_utils.SECTOR_BYTES)
-        data = fp.read(number_of_sectors * world_utils.SECTOR_BYTES)
-        fp.close()
+        ) as fp:
+            fp.seek(sector_start * world_utils.SECTOR_BYTES)
+            data = fp.read(number_of_sectors * world_utils.SECTOR_BYTES)
 
         if len(data) < 5:
             raise Exception("Malformed sector/chunk")
@@ -165,9 +164,14 @@ class Anvil2World(WorldFormat):
 
     def get_blocks(self, cx: int, cz: int) -> numpy.ndarray:
         chunk_sections, _, _ = self._region_manager.load_chunk(cx, cz)
+        if len(chunk_sections) == 0:
+            return NotImplementedError(
+                "We don't support reading chunks that never been edited in Minecraft before"
+            )
 
         blocks = numpy.zeros((16, 256, 16), dtype=int)
         temp_blocks = numpy.full((256, 16, 16), "minecraft:air", dtype="object")
+        uniques = numpy.array([])
 
         for section in chunk_sections:
             lower = section["Y"].value << 4
@@ -187,11 +191,12 @@ class Anvil2World(WorldFormat):
 
             _blocks = numpy.asarray(palette, dtype="object")[before_palette]
 
+            uniques = numpy.append(uniques, numpy.unique(_blocks))
             temp_blocks[lower:upper, :, :] = _blocks.reshape((16, 16, 16))
 
         temp_blocks = numpy.swapaxes(temp_blocks.swapaxes(0, 1), 0, 2)
 
-        uniques = numpy.unique(temp_blocks)
+        uniques = numpy.unique(uniques)
         uniques = uniques[uniques != "minecraft:air"]
         for unique in uniques:
             internal = self._materials.get_block_from_definition(unique, default=unique)

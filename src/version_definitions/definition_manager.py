@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import numpy
 import os
 
 import re
@@ -56,8 +57,6 @@ class DefinitionManager:
         self.blocks = {}
         self._definitions = {}
         self._special_blocks = set()
-
-        self.matcher = re.compile(r"^(.)+:(.)+$")
 
         fp = open(os.path.join(DEFINITIONS_DIR, "internal", "blocks.json"))
         self.defs_internal = json.load(fp)
@@ -172,20 +171,13 @@ class DefinitionManager:
         :param default: The default value to return if missing
         :return: The internal name that is mapped to the versioned block
         """
-        if isinstance(block, str) and self.matcher.match(block):
-            for key, value in self.blocks.items():
-                if block == value:
-                    return key
-
-            return default
-
-        elif isinstance(block, (list, tuple)):
-            for key, value in self.blocks.items():
-                if value[0] == block[0] and value[1] == block[1]:
-                    return key
-
-            return default
-
+        if isinstance(block, tuple):
+            block = list(block)
+        if (isinstance(block, str) and ":" in block) or isinstance(block, list):
+            try:
+                return list(self.blocks.keys())[list(self.blocks.values()).index(block)]
+            except ValueError:
+                return default
         else:
             raise KeyError()
 
