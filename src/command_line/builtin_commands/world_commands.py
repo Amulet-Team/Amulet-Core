@@ -9,7 +9,6 @@ from api.world_loader import loader
 
 @command("world")
 class WorldCommand(ComplexCommand):
-
     @subcommand("load")
     def load(self, args: List[str]):
         if len(args) == 1:

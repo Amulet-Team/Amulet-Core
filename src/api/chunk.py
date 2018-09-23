@@ -12,7 +12,6 @@ SliceCoordinates = Tuple[slice, slice, slice]
 
 
 class Chunk:
-
     def __init__(
         self, cx: int, cz: int, get_blocks_func: Callable[[int, int], numpy.ndarray]
     ):
@@ -82,7 +81,6 @@ class Chunk:
 
 
 class SubChunk:
-
     def __init__(
         self,
         sub_selection_slice: Union[PointCoordinates, SliceCoordinates],

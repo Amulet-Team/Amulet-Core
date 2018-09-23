@@ -12,7 +12,6 @@ from version_definitions import definition_manager
 
 
 class TestPrototype112(unittest.TestCase):
-
     def setUp(self):
         self.proto = definition_manager.DefinitionManager("1_12")
 
@@ -49,7 +48,6 @@ class TestPrototype112(unittest.TestCase):
 
 
 class TestPrototype113(unittest.TestCase):
-
     def setUp(self):
         self.proto = definition_manager.DefinitionManager("1_13")
 

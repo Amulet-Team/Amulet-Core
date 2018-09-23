@@ -21,11 +21,11 @@ def exit_completer(parts: List[str]) -> Completion:
 
 
 class _CommandCompleter(Completer):
-
     def __init__(self, *args, **kwargs):
         super(_CommandCompleter, self).__init__(*args, **kwargs)
         self._completion_map: Dict[str, Union[Callable, Generator]] = {
-            "exit": exit_completer, "help": None
+            "exit": exit_completer,
+            "help": None,
         }
 
     def add_command(
@@ -57,7 +57,6 @@ class _CommandCompleter(Completer):
 
 
 class EnhancedPromptIO:
-
     def __init__(self):
         self._completer = _CommandCompleter()
 

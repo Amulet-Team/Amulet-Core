@@ -6,7 +6,6 @@ from command_line.command_api import command, parse_coordinates
 
 @command("get_block")
 class GetBlockCommand(SimpleCommand):
-
     def run(self, args: List[str]):
         if not self.handler.in_mode(WorldMode):
             print("Error: A world must be loaded before this command can be used")

@@ -7,7 +7,6 @@ raise NotImplementedError()
 
 @command("test")
 class TestCommand(SimpleCommand):
-
     def short_help(self) -> str:
         return "Test Command"
 
@@ -20,7 +19,6 @@ class TestCommand(SimpleCommand):
 
 @command("echo")
 class EchoCommand(SimpleCommand):
-
     def short_help(self) -> str:
         return "Echoes the entire command and arguments"
 
@@ -38,7 +36,6 @@ class EchoCommand(SimpleCommand):
 
 @command("entertestmode")
 class EnterTestModeCommand(SimpleCommand):
-
     def run(self, args: List[str]):
         mode = TestMode(self.handler, "-b" in args)
         self.handler.enter_mode(mode)
@@ -51,7 +48,6 @@ class EnterTestModeCommand(SimpleCommand):
 
 
 class TestMode(Mode):
-
     def __init__(self, handler, should_halt_exit=False):
         super(TestMode, self).__init__(handler)
         self._block_exit = not should_halt_exit

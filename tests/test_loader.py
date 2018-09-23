@@ -7,7 +7,6 @@ from api import world
 
 
 class DefinitionBasedLoaderTestCase(unittest.TestCase):
-
     def setUp(self):
         self.loader = api.world_loader.loader
 

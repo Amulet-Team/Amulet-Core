@@ -13,7 +13,9 @@ from api.chunk import Chunk, SubChunk
 from api.operation import Operation
 from api.paths import get_temp_dir
 from utils.world_utils import (
-    block_coords_to_chunk_coords, blocks_slice_to_chunk_slice, Coordinates
+    block_coords_to_chunk_coords,
+    blocks_slice_to_chunk_slice,
+    Coordinates,
 )
 
 
@@ -144,12 +146,14 @@ class World:
             range(first_chunk[1], last_chunk[1] + 1),
         ):
             x_slice_for_chunk = (
-                blocks_slice_to_chunk_slice(s_x) if chunk_pos
-                == first_chunk else slice(None)
+                blocks_slice_to_chunk_slice(s_x)
+                if chunk_pos == first_chunk
+                else slice(None)
             )
             z_slice_for_chunk = (
-                blocks_slice_to_chunk_slice(s_z) if chunk_pos
-                == last_chunk else slice(None)
+                blocks_slice_to_chunk_slice(s_z)
+                if chunk_pos == last_chunk
+                else slice(None)
             )
             chunk = self.get_chunk(*chunk_pos)
             yield chunk[x_slice_for_chunk, s_y, z_slice_for_chunk]

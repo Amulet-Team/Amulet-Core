@@ -8,10 +8,9 @@ import importlib.util
 import glob
 import time
 from types import ModuleType
-from typing import Tuple, Optional
+from typing import Tuple
 
 from api.paths import FORMATS_DIR
-from api.world import World
 
 SUPPORTED_FORMAT = 0
 
@@ -19,7 +18,11 @@ SUPPORTED_FORMAT = 0
 class _FormatLoader:
 
     REQUIRED_ATTRIBUTES = [
-        "LEVEL_CLASS", "REGION_CLASS", "CHUNK_CLASS", "MATERIALS_CLASS", "identify"
+        "LEVEL_CLASS",
+        "REGION_CLASS",
+        "CHUNK_CLASS",
+        "MATERIALS_CLASS",
+        "identify",
     ]
 
     _loaded_formats = {}

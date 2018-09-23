@@ -23,7 +23,6 @@ Command_Entry = namedtuple("Command", ("run", "short_help", "help"))
 
 
 class ModeStack(Stack):
-
     def __init__(self, *args, **kwargs):
         super(ModeStack, self).__init__(*args, **kwargs)
 
@@ -444,7 +443,6 @@ class VariableCommand(SimpleCommand):
 
 @command("reload")
 class ReloadCommand(SimpleCommand):
-
     def help(self):
         print("Running this command reloads all registered commands and modes")
         print("Usage: reload")
@@ -464,7 +462,6 @@ class ReloadCommand(SimpleCommand):
 
 @command("pop_mode")
 class PopModeCommand(SimpleCommand):
-
     def run(self, args: List[str]):
         self.handler.exit_mode("-f" in args)
 

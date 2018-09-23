@@ -4,13 +4,11 @@ from contextlib import ContextDecorator
 
 
 class FakeCompleter:
-
     def add_command(self, *args, **kwargs):
         pass
 
 
 class FakeProgressBar(ContextDecorator):
-
     def __init__(self, *args, **kwargs):
         pass
 
@@ -25,7 +23,6 @@ class FakeProgressBar(ContextDecorator):
 
 
 class ReducedPromptIO:
-
     def __init__(self):
         self._completer = FakeCompleter()
 

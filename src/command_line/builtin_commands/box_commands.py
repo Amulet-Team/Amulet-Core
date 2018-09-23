@@ -10,7 +10,11 @@ from prompt_toolkit.completion import Completion
 from api.selection import SubBox, SelectionBox
 
 from command_line import (
-    command, subcommand, ComplexCommand, parse_coordinates, WorldMode
+    command,
+    subcommand,
+    ComplexCommand,
+    parse_coordinates,
+    WorldMode,
 )
 
 

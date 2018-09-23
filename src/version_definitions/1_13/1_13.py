@@ -26,9 +26,10 @@ def identify(directory: str) -> bool:
         return False
 
     if (
-        root_tag.get("Data", nbt.TAG_Compound()).get("Version", nbt.TAG_Compound()).get(
-            "Id", nbt.TAG_Int(-1)
-        ).value
+        root_tag.get("Data", nbt.TAG_Compound())
+        .get("Version", nbt.TAG_Compound())
+        .get("Id", nbt.TAG_Int(-1))
+        .value
         < 1451
     ):
         return False

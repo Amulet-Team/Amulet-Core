@@ -15,9 +15,8 @@ def identify(directory: str) -> bool:
     if not (exists(join(directory, "region")) or exists(join(directory, "level.dat"))):
         return False
 
-    if (
-        not exists(join(directory, "players"))
-        and not exists(join(directory, "playerdata"))
+    if not exists(join(directory, "players")) and not exists(
+        join(directory, "playerdata")
     ):
         return False
 
@@ -25,9 +24,10 @@ def identify(directory: str) -> bool:
     root_tag = nbt.NBTFile(fileobj=fp)
     fp.close()
     if (
-        root_tag.get("Data", nbt.TAG_Compound()).get("Version", nbt.TAG_Compound()).get(
-            "Id", nbt.TAG_Int(-1)
-        ).value
+        root_tag.get("Data", nbt.TAG_Compound())
+        .get("Version", nbt.TAG_Compound())
+        .get("Id", nbt.TAG_Int(-1))
+        .value
         > 1451
     ):
         return False
