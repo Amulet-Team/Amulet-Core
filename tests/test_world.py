@@ -166,6 +166,8 @@ class Anvil2WorldTestCase(unittest.TestCase):
         subbox_1 = SubBox((1, 70, 3), (5, 71, 5))
         box = SelectionBox((subbox_1,))
 
+        self.world.run_operation_from_operation_name("fill", box, "minecraft:stone")
+
         for x, y, z in box:
             self.assertEqual(
                 "minecraft:stone",
