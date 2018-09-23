@@ -140,6 +140,8 @@ class Anvil2World(WorldFormat):
         self._region_manager = _Anvil2RegionManager(directory)
         self.mapping_handler = numpy.array(["minecraft:air"], dtype="object")
 
+        self._populate_mapping()
+
     @classmethod
     def load(cls, directory: str, definitions: str) -> World:
         wrapper = cls(directory, definitions)

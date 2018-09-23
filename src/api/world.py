@@ -25,6 +25,7 @@ class WorldFormat:
     """
 
     mapping_handler: numpy.ndarray = None
+    _materials = None
 
     @classmethod
     def load(cls, directory: str, definitions) -> World:
@@ -36,6 +37,13 @@ class WorldFormat:
         :return: The loaded world in a `World` object
         """
         raise NotImplementedError()
+
+    def _populate_mapping(self):
+        self.mapping_handler = numpy.unique(
+            numpy.concatenate(
+                (self.mapping_handler, list(self._materials.blocks.keys()))
+            )
+        )
 
     def get_blocks(self, cx: int, cz: int) -> numpy.ndarray:
         raise NotImplementedError()

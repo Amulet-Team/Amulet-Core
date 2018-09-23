@@ -81,6 +81,21 @@ class AnvilWorldTestCase(unittest.TestCase):
 
         self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
 
+    def test_fill_operation(self):
+
+        subbox_1 = SubBox((1, 70, 3), (5, 71, 5))
+        box = SelectionBox((subbox_1,))
+
+        self.world.run_operation_from_operation_name("fill", box, "minecraft:stone")
+
+        for x, y, z in box:
+            self.assertEqual(self.world.get_block(x, y, z), "minecraft:stone")
+
+        self.world.undo()
+
+        self.assertEqual(self.world.get_block(1, 70, 3), "minecraft:stone")
+        self.assertEqual(self.world.get_block(1, 70, 5), "minecraft:granite")
+
 
 class Anvil2WorldTestCase(unittest.TestCase):
     def setUp(self):
@@ -144,6 +159,23 @@ class Anvil2WorldTestCase(unittest.TestCase):
 
         self.world.undo()
 
+        self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
+
+    def test_fill_operation(self):
+
+        subbox_1 = SubBox((1, 70, 3), (5, 71, 5))
+        box = SelectionBox((subbox_1,))
+
+        for x, y, z in box:
+            self.assertEqual(
+                "minecraft:stone",
+                self.world.get_block(x, y, z),
+                f"Failed at coordinate ({x},{y},{z})",
+            )
+
+        self.world.undo()
+
+        self.assertEqual("minecraft:stone", self.world.get_block(1, 70, 3))
         self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
 
 

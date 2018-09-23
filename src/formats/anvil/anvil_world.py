@@ -141,6 +141,8 @@ class AnvilWorld(WorldFormat):
         self.mapping_handler = numpy.array(["minecraft:air"], dtype="object")
         self.unknown_blocks = {}
 
+        self._populate_mapping()
+
     @classmethod
     def load(cls, directory: str, definitions: str) -> World:
         wrapper = cls(directory, definitions)
