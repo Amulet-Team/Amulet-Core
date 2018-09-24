@@ -66,9 +66,7 @@ class _FormatLoader:
             )
             return False, None
 
-        if not (
-            hasattr(format_module, "LEVEL_CLASS") and hasattr(format_module, "identify")
-        ):
+        if not hasattr(format_module, "LEVEL_CLASS"):
             print(
                 'Disabled the "{}" format due to missing required attributes'.format(
                     directory

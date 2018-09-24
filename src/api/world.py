@@ -38,13 +38,6 @@ class WorldFormat:
         """
         raise NotImplementedError()
 
-    def _populate_mapping(self):
-        self.mapping_handler = numpy.unique(
-            numpy.concatenate(
-                (self.mapping_handler, list(self._materials.blocks.keys()))
-            )
-        )
-
     def get_blocks(self, cx: int, cz: int) -> numpy.ndarray:
         raise NotImplementedError()
 

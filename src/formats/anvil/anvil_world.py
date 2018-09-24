@@ -3,7 +3,7 @@ from __future__ import annotations
 import struct
 import zlib
 from io import BytesIO
-from typing import Tuple
+from typing import Tuple, Union
 
 import numpy
 
@@ -138,10 +138,13 @@ class AnvilWorld(WorldFormat):
         self._directory = directory
         self._materials = DefinitionManager(definitions)
         self._region_manager = _AnvilRegionManager(directory)
-        self.mapping_handler = numpy.array(["minecraft:air"], dtype="object")
+        self.mapping_handler = numpy.unique(
+            numpy.array(
+                ["minecraft:air"] + [k for k in self._materials.blocks.keys()],
+                dtype="object",
+            )
+        )
         self.unknown_blocks = {}
-
-        self._populate_mapping()
 
     @classmethod
     def load(cls, directory: str, definitions: str) -> World:
@@ -152,7 +155,7 @@ class AnvilWorld(WorldFormat):
 
         return World(directory, root_tag, wrapper)
 
-    def get_blocks(self, cx: int, cz: int) -> numpy.ndarray:
+    def get_blocks(self, cx: int, cz: int) -> Union[numpy.ndarray, NotImplementedError]:
         chunk_sections, _, _ = self._region_manager.load_chunk(cx, cz)
         if len(chunk_sections) == 0:
             return NotImplementedError(
@@ -238,36 +241,3 @@ class AnvilWorld(WorldFormat):
 
     def save(self) -> None:
         pass
-
-
-def identify(directory: str) -> bool:
-    if not (
-        path.exists(path.join(directory, "region"))
-        or path.exists(path.join(directory, "level.dat"))
-    ):
-        return False
-
-    #    if not (
-    #        path.exists(path.join(directory, "DIM1"))
-    #        or path.exists(path.join(directory, "DIM-1"))
-    #    ):
-    #        return False
-
-    if not path.exists(path.join(directory, "players")) and not path.exists(
-        path.join(directory, "playerdata")
-    ):
-        return False
-
-    fp = open(path.join(directory, "level.dat"), "rb")
-    root_tag = nbt.NBTFile(fileobj=fp)
-    fp.close()
-    if (
-        root_tag.get("Data", nbt.TAG_Compound())
-        .get("Version", nbt.TAG_Compound())
-        .get("Id", nbt.TAG_Int(-1))
-        .value
-        > 1451
-    ):
-        return False
-
-    return True
