@@ -192,17 +192,25 @@ class Anvil2World(WorldFormat):
             ).reshape(-1, bits_per_block)
             before_palette = binary_blocks.dot(
                 2 ** numpy.arange(binary_blocks.shape[1] - 1, -1, -1)
-            )[::-1]
+            )[
+                ::-1
+            ]  # Undo the bit-shifting that Minecraft does with the palette indices
 
-            _blocks = numpy.asarray(palette, dtype="object")[before_palette]
+            _blocks = numpy.asarray(palette, dtype="object")[
+                before_palette
+            ]  # Mask the decoded long array with the entries from the palette
 
-            uniques = numpy.append(uniques, numpy.unique(_blocks))
+            uniques = numpy.append(
+                uniques, numpy.unique(_blocks)
+            )  # Remove all duplicate occurrences
             temp_blocks[lower:upper, :, :] = _blocks.reshape((16, 16, 16))
 
         temp_blocks = numpy.swapaxes(temp_blocks.swapaxes(0, 1), 0, 2)
 
         uniques = numpy.unique(uniques)
-        uniques = uniques[uniques != "minecraft:air"]
+        uniques = uniques[
+            uniques != "minecraft:air"
+        ]  # Get all unique blocks for all the sections and remove air
         for unique in uniques:
             internal = self._materials.get_block_from_definition(unique, default=unique)
             internal_in_mapping = numpy.where(self.mapping_handler == internal)[0]
@@ -214,7 +222,9 @@ class Anvil2World(WorldFormat):
 
             mask = temp_blocks == unique
 
-            blocks[mask] = internal_id
+            blocks[
+                mask
+            ] = internal_id  # Mask all indices of the blockstate with the internal ID
 
         blocks = blocks.astype(f"uint{get_smallest_dtype(blocks)}")
         return blocks

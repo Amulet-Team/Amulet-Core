@@ -194,11 +194,19 @@ class AnvilWorld(WorldFormat):
         blocks = numpy.swapaxes(blocks.swapaxes(0, 1), 0, 2)
         block_data_array = numpy.swapaxes(block_data.swapaxes(0, 1), 0, 2)
 
-        unique_block_ids = numpy.unique(blocks)
-        unique_block_ids = unique_block_ids[unique_block_ids != 0]
+        unique_block_ids = numpy.unique(
+            blocks
+        )  # Flatten the 3D array into 1D and remove all duplicate entries
+        unique_block_ids = unique_block_ids[
+            unique_block_ids != 0
+        ]  # Remove all air entries
 
         unique_blocks = set()
-        for block_id in unique_block_ids:
+        for (
+            block_id
+        ) in (
+            unique_block_ids
+        ):  # Find all instances of the base ID and find any occurrences of data values
             indices = numpy.where(blocks == block_id)
 
             for block_data in numpy.unique(block_data_array[indices]):
@@ -209,7 +217,9 @@ class AnvilWorld(WorldFormat):
             internal = self._materials.get_block_from_definition(
                 block, default="minecraft:unknown_{}"
             )
-            if internal == "minecraft:unknown_{}":
+            if (
+                internal == "minecraft:unknown_{}"
+            ):  # If we don't have the block in our definitions, call it an unknown block
                 try:
                     internal_id = list(self.unknown_blocks.values()).index(block)
                 except ValueError:
@@ -218,21 +228,29 @@ class AnvilWorld(WorldFormat):
                     self.unknown_blocks[internal_id] = block
                     self.mapping_handler = numpy.append(self.mapping_handler, internal)
             else:
-                internal_in_mapping = numpy.where(self.mapping_handler == internal)[0]
+                internal_in_mapping = numpy.where(self.mapping_handler == internal)[
+                    0
+                ]  # Find the index of the block in mapping_handler
                 if len(internal_in_mapping) > 0:
                     internal_id = internal_in_mapping[0]
-                else:
+                else:  # The block isn't in mapping_handler yet, so add it
                     internal_id = len(self.mapping_handler)
                     self.mapping_handler = numpy.append(self.mapping_handler, internal)
 
             block_mask = blocks == block[0]
             data_mask = block_data_array == block[1]
 
-            mask = block_mask & data_mask
+            mask = (
+                block_mask & data_mask
+            )  # Combine the mask from the base ID array and the data value array
 
-            block_test[mask] = internal_id
+            block_test[
+                mask
+            ] = internal_id  # Mask all occurrences and set them to the internal ID
 
-        block_test = block_test.astype(f"uint{get_smallest_dtype(block_test)}")
+        block_test = block_test.astype(
+            f"uint{get_smallest_dtype(block_test)}"
+        )  # Shrink the array's dtype as needed
         return block_test
 
     @classmethod
