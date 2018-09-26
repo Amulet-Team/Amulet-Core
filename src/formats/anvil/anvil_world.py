@@ -138,11 +138,8 @@ class AnvilWorld(WorldFormat):
         self._directory = directory
         self._materials = DefinitionManager(definitions)
         self._region_manager = _AnvilRegionManager(directory)
-        self.mapping_handler = numpy.unique(
-            numpy.array(
-                ["minecraft:air"] + [k for k in self._materials.blocks.keys()],
-                dtype="object",
-            )
+        self.mapping_handler = numpy.array(
+            list(self._materials.blocks.keys()), dtype="object"
         )
         self.unknown_blocks = {}
 
@@ -197,9 +194,9 @@ class AnvilWorld(WorldFormat):
         unique_block_ids = numpy.unique(
             blocks
         )  # Flatten the 3D array into 1D and remove all duplicate entries
-        unique_block_ids = unique_block_ids[
-            unique_block_ids != 0
-        ]  # Remove all air entries
+        # unique_block_ids = unique_block_ids[
+        #    unique_block_ids != 0
+        # ]  # Remove all air entries
 
         unique_blocks = set()
         for (

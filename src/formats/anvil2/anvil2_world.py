@@ -138,11 +138,8 @@ class Anvil2World(WorldFormat):
         self._directory = directory
         self._materials = DefinitionManager(definitions)
         self._region_manager = _Anvil2RegionManager(directory)
-        self.mapping_handler = numpy.unique(
-            numpy.array(
-                ["minecraft:air"] + [k for k in self._materials.blocks.keys()],
-                dtype="object",
-            )
+        self.mapping_handler = numpy.array(
+            list(self._materials.blocks.keys()), dtype="object"
         )
 
     @classmethod
@@ -208,9 +205,9 @@ class Anvil2World(WorldFormat):
         temp_blocks = numpy.swapaxes(temp_blocks.swapaxes(0, 1), 0, 2)
 
         uniques = numpy.unique(uniques)
-        uniques = uniques[
-            uniques != "minecraft:air"
-        ]  # Get all unique blocks for all the sections and remove air
+        # uniques = uniques[
+        #    uniques != "minecraft:air"
+        # ]  # Get all unique blocks for all the sections and remove air
         for unique in uniques:
             internal = self._materials.get_block_from_definition(unique, default=unique)
             internal_in_mapping = numpy.where(self.mapping_handler == internal)[0]
