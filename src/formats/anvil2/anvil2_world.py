@@ -3,7 +3,7 @@ from __future__ import annotations
 import struct
 import zlib
 from io import BytesIO
-from typing import Tuple
+from typing import Tuple, Union
 
 import numpy
 
@@ -138,7 +138,9 @@ class Anvil2World(WorldFormat):
         self._directory = directory
         self._materials = DefinitionManager(definitions)
         self._region_manager = _Anvil2RegionManager(directory)
-        self.mapping_handler = numpy.array(["minecraft:air"], dtype="object")
+        self.mapping_handler = numpy.array(
+            list(self._materials.blocks.keys()), dtype="object"
+        )
 
     @classmethod
     def load(cls, directory: str, definitions: str) -> World:
@@ -162,7 +164,7 @@ class Anvil2World(WorldFormat):
                 blockstates.append(name)
         return blockstates
 
-    def get_blocks(self, cx: int, cz: int) -> numpy.ndarray:
+    def get_blocks(self, cx: int, cz: int) -> Union[numpy.ndarray, NotImplementedError]:
         chunk_sections, _, _ = self._region_manager.load_chunk(cx, cz)
         if len(chunk_sections) == 0:
             return NotImplementedError(
@@ -187,17 +189,25 @@ class Anvil2World(WorldFormat):
             ).reshape(-1, bits_per_block)
             before_palette = binary_blocks.dot(
                 2 ** numpy.arange(binary_blocks.shape[1] - 1, -1, -1)
-            )[::-1]
+            )[
+                ::-1
+            ]  # Undo the bit-shifting that Minecraft does with the palette indices
 
-            _blocks = numpy.asarray(palette, dtype="object")[before_palette]
+            _blocks = numpy.asarray(palette, dtype="object")[
+                before_palette
+            ]  # Mask the decoded long array with the entries from the palette
 
-            uniques = numpy.append(uniques, numpy.unique(_blocks))
+            uniques = numpy.append(
+                uniques, numpy.unique(_blocks)
+            )  # Remove all duplicate occurrences
             temp_blocks[lower:upper, :, :] = _blocks.reshape((16, 16, 16))
 
         temp_blocks = numpy.swapaxes(temp_blocks.swapaxes(0, 1), 0, 2)
 
         uniques = numpy.unique(uniques)
-        uniques = uniques[uniques != "minecraft:air"]
+        # uniques = uniques[
+        #    uniques != "minecraft:air"
+        # ]  # Get all unique blocks for all the sections and remove air
         for unique in uniques:
             internal = self._materials.get_block_from_definition(unique, default=unique)
             internal_in_mapping = numpy.where(self.mapping_handler == internal)[0]
@@ -209,7 +219,9 @@ class Anvil2World(WorldFormat):
 
             mask = temp_blocks == unique
 
-            blocks[mask] = internal_id
+            blocks[
+                mask
+            ] = internal_id  # Mask all indices of the blockstate with the internal ID
 
         blocks = blocks.astype(f"uint{get_smallest_dtype(blocks)}")
         return blocks
@@ -220,41 +232,3 @@ class Anvil2World(WorldFormat):
 
     def save(self) -> None:
         pass
-
-
-def identify(directory: str) -> bool:
-    if not (
-        path.exists(path.join(directory, "region"))
-        or path.exists(path.join(directory, "playerdata"))
-    ):
-        return False
-
-    #    if not (
-    #        path.exists(path.join(directory, "DIM1"))
-    #        or path.exists(path.join(directory, "DIM-1"))
-    #    ):
-    #        return False
-
-    if not (
-        path.exists(path.join(directory, "data"))
-        or path.exists(path.join(directory, "level.dat"))
-    ):
-        return False
-
-    fp = open(path.join(directory, "level.dat"), "rb")
-    root_tag = nbt.NBTFile(fileobj=fp)
-    fp.close()
-
-    if "FML" in root_tag:
-        return False
-
-    if (
-        root_tag.get("Data", nbt.TAG_Compound())
-        .get("Version", nbt.TAG_Compound())
-        .get("Id", nbt.TAG_Int(-1))
-        .value
-        < 1451
-    ):
-        return False
-
-    return True

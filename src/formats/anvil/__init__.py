@@ -1,4 +1,4 @@
-from .anvil_world import AnvilWorld, identify
+from .anvil_world import AnvilWorld
 
 LEVEL_CLASS = AnvilWorld
 

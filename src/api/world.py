@@ -25,6 +25,7 @@ class WorldFormat:
     """
 
     mapping_handler: numpy.ndarray = None
+    _materials = None
 
     @classmethod
     def load(cls, directory: str, definitions) -> World:
