@@ -8,6 +8,11 @@ def get_world_path(name: str) -> str:
     return os.path.join(tests_dir, "worlds", name)
 
 
+def get_data_path(name: str) -> str:
+    tests_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(tests_dir, "data", name)
+
+
 @contextmanager
 def timeout(test_instance, time_constraint: float):
     start = time.time()

@@ -12,7 +12,7 @@ from nbt import nbt
 from os import path
 
 from api.world import World
-from utils.world_utils import get_smallest_dtype
+from utils.world_utils import get_smallest_dtype, decode_long_array, encode_long_array
 from version_definitions.definition_manager import DefinitionManager
 
 from utils import world_utils
@@ -181,20 +181,8 @@ class Anvil2World(WorldFormat):
 
             palette = self.__read_palette(section["Palette"])
 
-            blockstate_array = section["BlockStates"].value
-            blockstate_array = numpy.array(blockstate_array, dtype=">q")
-            bits_per_block = len(blockstate_array) // 64
-            binary_blocks = numpy.unpackbits(
-                blockstate_array[::-1].astype(">i8").view("uint8")
-            ).reshape(-1, bits_per_block)
-            before_palette = binary_blocks.dot(
-                2 ** numpy.arange(binary_blocks.shape[1] - 1, -1, -1)
-            )[
-                ::-1
-            ]  # Undo the bit-shifting that Minecraft does with the palette indices
-
             _blocks = numpy.asarray(palette, dtype="object")[
-                before_palette
+                decode_long_array(section["BlockStates"].value, 4096)
             ]  # Mask the decoded long array with the entries from the palette
 
             uniques = numpy.append(
