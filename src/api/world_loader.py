@@ -54,8 +54,10 @@ class _WorldLoader:
         for name, module in self._identifiers.items():
             if module.identify(directory):
                 return name, module.FORMAT
+            elif __debug__:
+                print(f"{module.FORMAT} rejected the world")
 
-        raise ModuleNotFoundError("Could not find a valid format loader")
+        raise ModuleNotFoundError("Could not find a matching format loader")
 
     def load_world(self, directory: str) -> World:
         """
@@ -67,8 +69,10 @@ class _WorldLoader:
         for module in self._identifiers.values():
             if module.identify(directory):
                 return module.load(directory)
+            elif __debug__:
+                print(f"{module.FORMAT} rejected the world")
 
-        raise ModuleNotFoundError()
+        raise ModuleNotFoundError("Could not find a matching format loader")
 
 
 loader = _WorldLoader()
