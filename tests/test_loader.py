@@ -12,11 +12,11 @@ class DefinitionBasedLoaderTestCase(unittest.TestCase):
 
     def test_identifing(self):
         name, _format = self.loader.identify(get_world_path("1.12.2 World"))
-        self.assertEqual("1_12", name)
+        self.assertEqual("java_1_12", name)
         self.assertEqual("anvil", _format)
 
         name, _format = self.loader.identify(get_world_path("1.13 World"))
-        self.assertEqual("1_13", name)
+        self.assertEqual("java_1_13", name)
         self.assertEqual("anvil2", _format)
 
     def test_loading(self):

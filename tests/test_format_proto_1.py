@@ -13,7 +13,7 @@ from version_definitions import definition_manager
 
 class TestPrototype112(unittest.TestCase):
     def setUp(self):
-        self.proto = definition_manager.DefinitionManager("1_12")
+        self.proto = definition_manager.DefinitionManager("java_1_12")
 
     def test_direct_access(self):
         self.assertEqual([1, 0], self.proto.blocks["minecraft:stone"])
@@ -49,7 +49,7 @@ class TestPrototype112(unittest.TestCase):
 
 class TestPrototype113(unittest.TestCase):
     def setUp(self):
-        self.proto = definition_manager.DefinitionManager("1_13")
+        self.proto = definition_manager.DefinitionManager("java_1_13")
 
     def test_direct_access(self):
         self.assertEqual("minecraft:stone", self.proto.blocks["minecraft:stone"])
