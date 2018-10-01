@@ -8,10 +8,14 @@ except ModuleNotFoundError:
 
 import unittest
 
+import json
+import numpy
+
 from api.selection import SubBox, SelectionBox
 from api.chunk import SubChunk
 from api import world_loader
-from test_utils import get_world_path
+from formats.anvil2.anvil2_world import _decode_long_array, _encode_long_array
+from test_utils import get_world_path, get_data_path
 
 
 class WorldTestBaseCases:
@@ -114,6 +118,33 @@ class AnvilWorldTestCase(WorldTestBaseCases.WorldTestCase):
 class Anvil2WorldTestCase(WorldTestBaseCases.WorldTestCase):
     def setUp(self):
         self._setUp("1.13 World")
+
+    def test_longarray(self):
+
+        with open(get_data_path("longarraytest.json")) as json_data:
+            test_data = json.load(json_data)
+
+        test_ran = False
+        for test_entry in test_data["tests"]:
+            test_ran = True
+            block_array = test_entry["block_array"]
+            long_array = test_entry["long_array"]
+            palette_size = test_entry["palette_size"]
+
+            self.assertTrue(
+                numpy.array_equal(
+                    block_array, _decode_long_array(long_array, len(block_array))
+                )
+            )
+
+            self.assertTrue(
+                numpy.array_equal(
+                    long_array, _encode_long_array(block_array, palette_size)
+                )
+            )
+
+        #Make sure some test are ran in case the data file failed to load or has a wrong format.
+        self.assertTrue(test_ran)
 
 
 if __name__ == "__main__":
