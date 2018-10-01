@@ -5,10 +5,22 @@ from command_line import enhanced_prompt, reduced_prompt, CommandHandler
 from version import VERSION_STRING
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description="A new Minecraft world editor that aims to be flexible, extendable and "
-                                        "support most editions of Minecraft")
-    parser.add_argument("--command-line", action='store_true', help="use the commandline interface")
-    parser.add_argument("--reduced", action='store_true', help="use a reduced prompt (commandline mode only)")
+    parser = ArgumentParser(
+        description="A new Minecraft world editor that aims to be flexible, "
+        "extendable and support most editions of Minecraft"
+    )
+    parser.add_argument(
+        "-c",
+        "--command-line",
+        action="store_true",
+        help="use the commandline interface",
+    )
+    parser.add_argument(
+        "-r",
+        "--reduced",
+        action="store_true",
+        help="use a reduced prompt (commandline mode only)",
+    )
     args = parser.parse_args()
     if args.command_line:
         print("=" * 54)
