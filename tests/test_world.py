@@ -61,9 +61,9 @@ class AnvilWorldTestCase(unittest.TestCase):
         target_box = SelectionBox((subbx2,))
 
         self.assertEqual(
-            self.world.get_block(1, 70, 3), "minecraft:stone"
+            "minecraft:stone", self.world.get_block(1, 70, 3)
         )  # Sanity check
-        self.assertEqual(self.world.get_block(1, 70, 5), "minecraft:granite")
+        self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
 
         self.world.run_operation_from_operation_name("clone", src_box, target_box)
 

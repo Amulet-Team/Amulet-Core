@@ -53,23 +53,23 @@ class BoxTestCase(unittest.TestCase):
         sub_box_1 = selection.SubBox((0, 0, 0), (5, 5, 5))
         box_1 = selection.SelectionBox((sub_box_1,))
 
-        self.assertEqual(len(box_1), 1)
+        self.assertEqual(1, len(box_1))
         box_1.add_box(selection.SubBox((0, 5, 0), (5, 10, 5)))
-        self.assertEqual(len(box_1), 1)
+        self.assertEqual(1, len(box_1))
         box_1.add_box(selection.SubBox((0, 10, 0), (5, 15, 5)))
-        self.assertEqual(len(box_1), 1)
+        self.assertEqual(1, len(box_1))
 
         box_2 = selection.SelectionBox((sub_box_1,))
-        self.assertEqual(len(box_2), 1)
+        self.assertEqual(1, len(box_2))
         box_2.add_box(selection.SubBox((0, 6, 0), (5, 10, 5)))
-        self.assertEqual(len(box_2), 2)
+        self.assertEqual(2, len(box_2))
 
         box_3 = selection.SelectionBox((sub_box_1,))
-        self.assertEqual(len(box_3), 1)
+        self.assertEqual(1, len(box_3))
         box_3.add_box(selection.SubBox((0, 10, 0), (5, 15, 5)))
-        self.assertEqual(len(box_3), 2)
+        self.assertEqual(2, len(box_3))
         box_3.add_box(selection.SubBox((0, 5, 0), (5, 10, 5)))
-        self.assertEqual(len(box_3), 1)
+        self.assertEqual(1, len(box_3))
 
     def test_single_block_box(self):
         sub_box_1 = selection.SubBox((0, 0, 0), (0, 0, 1))
@@ -78,10 +78,10 @@ class BoxTestCase(unittest.TestCase):
         self.assertEqual((0, 0, 1), sub_box_1.shape)
         self.assertEqual(2, len([x for x in sub_box_1]))
 
-        self.assertTrue((0, 0, 0) in sub_box_1)
-        self.assertTrue((0, 0, 1) in sub_box_1)
+        self.assertIn((0, 0, 0), sub_box_1)
+        self.assertIn((0, 0, 1), sub_box_1)
 
-        self.assertFalse((0, 0, 2) in sub_box_1)
+        self.assertNotIn((0, 0, 2), sub_box_1)
 
     def test_sorted_iterator(self):
         sub_box_1 = selection.SubBox((0, 0, 0), (4, 4, 4))
