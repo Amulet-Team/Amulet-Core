@@ -18,7 +18,6 @@ class WorldTestBaseCases:
     # Wrapped in another class, so it isn't executed on it's own.
 
     class WorldTestCase(unittest.TestCase):
-
         def _setUp(self, world_name):
             self.world = world_loader.loader.load_world(get_world_path(world_name))
 
@@ -108,13 +107,11 @@ class WorldTestBaseCases:
 
 
 class AnvilWorldTestCase(WorldTestBaseCases.WorldTestCase):
-
     def setUp(self):
         self._setUp("1.12.2 World")
 
 
 class Anvil2WorldTestCase(WorldTestBaseCases.WorldTestCase):
-
     def setUp(self):
         self._setUp("1.13 World")
 

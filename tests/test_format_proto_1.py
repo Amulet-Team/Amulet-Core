@@ -15,7 +15,6 @@ class TestPrototypeBaseCases:
     # Wrapped in another class, so it isn't executed on it's own.
 
     class TestPrototype(unittest.TestCase):
-
         def _setUp(self, version):
             self.proto = definition_manager.DefinitionManager(version)
 
@@ -28,7 +27,6 @@ class TestPrototypeBaseCases:
 
             self.assertIsInstance(stone_def, dict)
             self.assertEqual("Stone", stone_def["name"])
-
 
             self.assertIsInstance(granite_def, dict)
             self.assertEqual("Granite", granite_def["name"])
@@ -54,7 +52,6 @@ class TestPrototypeBaseCases:
 
 
 class TestPrototype112(TestPrototypeBaseCases.TestPrototype):
-
     def setUp(self):
         self._setUp("java_1_12")
 
@@ -63,7 +60,6 @@ class TestPrototype112(TestPrototypeBaseCases.TestPrototype):
 
 
 class TestPrototype113(TestPrototypeBaseCases.TestPrototype):
-
     def setUp(self):
         self._setUp("java_1_13")
 
