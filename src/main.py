@@ -1,21 +1,36 @@
 import sys
+from argparse import ArgumentParser
 
 from command_line import enhanced_prompt, reduced_prompt, CommandHandler
 from version import VERSION_STRING
 
-
-COMMAND_MODE = "--command-line" in sys.argv or "-c" in sys.argv
-REDUCED_MODE = "--reduced" in sys.argv or "-r" in sys.argv
-
-
 if __name__ == "__main__":
-    if COMMAND_MODE:
+    parser = ArgumentParser(
+        description="A new Minecraft world editor that aims to be flexible, "
+        "extendable and support most editions of Minecraft"
+    )
+    parser.add_argument(
+        "-c",
+        "--command-line",
+        action="store_true",
+        help="use the commandline interface",
+    )
+    parser.add_argument(
+        "-r",
+        "--reduced",
+        action="store_true",
+        help="use a reduced prompt (commandline mode only)",
+    )
+    args = parser.parse_args()
+    if args.reduced and not args.command_line:
+        parser.error("Reduced mode requires commandline mode to be active")
+    if args.command_line:
         print("=" * 54)
         print(f"| Amulet-Map-Editor version: {VERSION_STRING:<23} |")
         print("=" * 54)
 
         io_wrapper = None
-        if REDUCED_MODE:
+        if args.reduced:
             io_wrapper = reduced_prompt.ReducedPromptIO()
         else:
             io_wrapper = enhanced_prompt.EnhancedPromptIO()
