@@ -8,29 +8,27 @@ from api.world import World
 
 from formats.format_loader import loader
 
-FORMAT = "anvil2"
+FORMAT = "anvil"
 
 
 def identify(directory: str) -> bool:
-    if not (exists(join(directory, "region")) or exists(join(directory, "playerdata"))):
+    if not (exists(join(directory, "region")) or exists(join(directory, "level.dat"))):
         return False
 
-    if not (exists(join(directory, "data")) or exists(join(directory, "level.dat"))):
+    if not exists(join(directory, "players")) and not exists(
+        join(directory, "playerdata")
+    ):
         return False
 
     fp = open(join(directory, "level.dat"), "rb")
     root_tag = nbt.NBTFile(fileobj=fp)
     fp.close()
-
-    if "FML" in root_tag:
-        return False
-
     if (
         root_tag.get("Data", nbt.TAG_Compound())
         .get("Version", nbt.TAG_Compound())
         .get("Id", nbt.TAG_Int(-1))
         .value
-        < 1451
+        > 1451
     ):
         return False
 
@@ -38,4 +36,4 @@ def identify(directory: str) -> bool:
 
 
 def load(directory: str) -> World:
-    return loader["anvil2"].LEVEL_CLASS.load(directory, "1_13")
+    return loader["anvil"].LEVEL_CLASS.load(directory, "java_1_12")

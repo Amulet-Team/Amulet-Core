@@ -13,10 +13,10 @@ from version_definitions import definition_manager
 
 class TestPrototype112(unittest.TestCase):
     def setUp(self):
-        self.proto = definition_manager.DefinitionManager("1_12")
+        self.proto = definition_manager.DefinitionManager("java_1_12")
 
     def test_direct_access(self):
-        self.assertEqual(self.proto.blocks["minecraft:stone"], [1, 0])
+        self.assertEqual([1, 0], self.proto.blocks["minecraft:stone"])
 
     def test_get_internal_block(self):
         stone_def = self.proto.get_internal_block(basename="stone")
@@ -26,14 +26,14 @@ class TestPrototype112(unittest.TestCase):
         )
 
         self.assertIsInstance(stone_def, dict)
-        self.assertEqual(stone_def["name"], "Stone")
+        self.assertEqual("Stone", stone_def["name"])
 
         self.assertIsInstance(granite_def, dict)
-        self.assertEqual(granite_def["name"], "Granite")
+        self.assertEqual("Granite", granite_def["name"])
         self.assertNotEqual(granite_def, stone_def)
 
         self.assertIsInstance(oak_log_axis_x, dict)
-        self.assertEqual(oak_log_axis_x["name"], "Oak Log (East/West)")
+        self.assertEqual("Oak Log (East/West)", oak_log_axis_x["name"])
         self.assertNotEqual(
             oak_log_axis_x,
             self.proto.get_internal_block(basename="oak_log", properties={"axis": "y"}),
@@ -49,10 +49,10 @@ class TestPrototype112(unittest.TestCase):
 
 class TestPrototype113(unittest.TestCase):
     def setUp(self):
-        self.proto = definition_manager.DefinitionManager("1_13")
+        self.proto = definition_manager.DefinitionManager("java_1_13")
 
     def test_direct_access(self):
-        self.assertEqual(self.proto.blocks["minecraft:stone"], "minecraft:stone")
+        self.assertEqual("minecraft:stone", self.proto.blocks["minecraft:stone"])
 
     def test_get_internal_block(self):
         stone_def = self.proto.get_internal_block(basename="stone")
@@ -62,14 +62,14 @@ class TestPrototype113(unittest.TestCase):
         )
 
         self.assertIsInstance(stone_def, dict)
-        self.assertEqual(stone_def["name"], "Stone")
+        self.assertEqual("Stone", stone_def["name"])
 
         self.assertIsInstance(granite_def, dict)
-        self.assertEqual(granite_def["name"], "Granite")
-        self.assertNotEqual(granite_def, stone_def)
+        self.assertEqual("Granite", granite_def["name"])
+        self.assertNotEqual(stone_def, granite_def)
 
         self.assertIsInstance(oak_log_axis_x, dict)
-        self.assertEqual(oak_log_axis_x["name"], "Oak Log (East/West)")
+        self.assertEqual("Oak Log (East/West)", oak_log_axis_x["name"])
         self.assertNotEqual(
             oak_log_axis_x,
             self.proto.get_internal_block(basename="oak_log", properties={"axis": "y"}),
