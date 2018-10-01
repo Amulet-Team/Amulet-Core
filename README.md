@@ -43,7 +43,7 @@ generated directory `docs_build/html` in your favorite web browser
 ## Contributing
 
 ### Running from Source
-1. Clone the project using `git clone https://github.com/Podshot/Amulet-Map-Editor`
+1. Clone the project using `git clone https://github.com/Amulet-Team/Amulet-Map-Editor`
 2. When inside the folder you cloned, install the requirements using `pip -r requirements.txt`
 3. To format your files automatically before committing changes, use `pre-commit install`
 
