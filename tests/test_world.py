@@ -14,6 +14,7 @@ import numpy
 from api.selection import SubBox, SelectionBox
 from api.chunk import SubChunk
 from api import world_loader
+from formats.anvil2.anvil2_world import _decode_long_array, _encode_long_array
 from test_utils import get_world_path, get_data_path
 
 
@@ -135,13 +136,13 @@ class Anvil2WorldTestCase(WorldTestBaseCases.WorldTestCase):
 
             self.assertTrue(
                 numpy.array_equal(
-                    block_array, self.world._wrapper._Anvil2World__decode_long_array(long_array, len(block_array))
+                    block_array, _decode_long_array(long_array, len(block_array))
                 )
             )
 
             self.assertTrue(
                 numpy.array_equal(
-                    long_array, self.world._wrapper._Anvil2World__encode_long_array(block_array, palette_size)
+                    long_array, _encode_long_array(block_array, palette_size)
                 )
             )
 
