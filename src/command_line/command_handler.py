@@ -115,6 +115,11 @@ class CommandHandler:
                 self._modules.append(module)
             except ImportError:
                 self._retry_modules.append(os.path.basename(cmd)[:-3])
+            except NotImplementedError:
+                _io.print(
+                    f"Couldn't import {os.path.basename(cmd)[:-3]} since it's unimplemented",
+                    color="red",
+                )
             except Exception as e:
                 _io.print(
                     f"Couldn't import {os.path.basename(cmd)[:-3]} due to error: {e}",
