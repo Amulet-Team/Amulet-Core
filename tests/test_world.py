@@ -127,9 +127,9 @@ class Anvil2WorldTestCase(WorldTestBaseCases.WorldTestCase):
         with open(get_data_path("longarraytest.json")) as json_data:
             test_data = json.load(json_data)
 
-        test_ran = 0
+        test_ran = False
         for test_entry in test_data["tests"]:
-            test_ran += 1
+            test_ran = True
             block_array = test_entry["block_array"]
             long_array = test_entry["long_array"]
             palette_size = test_entry["palette_size"]
@@ -147,7 +147,7 @@ class Anvil2WorldTestCase(WorldTestBaseCases.WorldTestCase):
             )
 
         #Make sure some test are ran in case the data file failed to load or has a wrong format.
-        self.assertTrue(test_ran > 0)
+        self.assertTrue(test_ran)
 
 
 if __name__ == "__main__":
