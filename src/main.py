@@ -22,6 +22,8 @@ if __name__ == "__main__":
         help="use a reduced prompt (commandline mode only)",
     )
     args = parser.parse_args()
+    if args.reduced and not args.command_line:
+        parser.error("Reduced mode requires commandline mode to be active")
     if args.command_line:
         print("=" * 54)
         print(f"| Amulet-Map-Editor version: {VERSION_STRING:<23} |")
