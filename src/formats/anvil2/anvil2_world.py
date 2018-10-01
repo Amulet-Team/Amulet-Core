@@ -8,11 +8,12 @@ from typing import Tuple, Union
 import numpy
 
 from api import WorldFormat
+from math import log, ceil
 from nbt import nbt
 from os import path
 
 from api.world import World
-from utils.world_utils import get_smallest_dtype, decode_long_array, encode_long_array
+from utils.world_utils import get_smallest_dtype
 from version_definitions.definition_manager import DefinitionManager
 
 from utils import world_utils
@@ -151,6 +152,43 @@ class Anvil2World(WorldFormat):
 
         return World(directory, root_tag, wrapper)
 
+    def __decode_long_array(self, long_array: array_like, size: int) -> ndarray:
+        """
+        Decode an long array (from BlockStates or Heightmaps)
+        :param long_array: Encoded long array
+        :size uint: The expected size of the returned array
+        :return: Decoded array as numpy array
+        """
+        long_array = numpy.array(long_array, dtype=">q")
+        bits_per_block = (len(long_array) * 64) // size
+        binary_blocks = numpy.unpackbits(
+            long_array[::-1].astype(">i8").view("uint8")
+        ).reshape(-1, bits_per_block)
+        return binary_blocks.dot(2 ** numpy.arange(binary_blocks.shape[1] - 1, -1, -1))[
+            ::-1  # Undo the bit-shifting that Minecraft does with the palette indices
+        ][:size]
+
+    def __encode_long_array(self, data_array: array_like, palette_size: int) -> ndarray:
+        """
+        Encode an array of data to a long array (from BlockStates or Heightmaps).
+        :param long_array: Data to encode
+        :palette_size uint: Must be at least 4
+        :return: Encoded array as numpy array
+        """
+        data_array = numpy.array(data_array, dtype=">i2")
+        bits_per_block = max(4, int(ceil(log(palette_size, 2))))
+        binary_blocks = (
+            numpy.unpackbits(data_array.astype(">i2").view("uint8"))
+            .reshape(-1, 16)[:, (16 - bits_per_block) :][::-1]
+            .reshape(-1)
+        )
+        binary_blocks = numpy.pad(
+            binary_blocks, ((64 - (len(data_array) * bits_per_block)) % 64, 0), "constant"
+        ).reshape(-1, 64)
+        return binary_blocks.dot(
+            2 ** numpy.arange(binary_blocks.shape[1] - 1, -1, -1, dtype=">q")
+        )[::-1]
+
     def __read_palette(self, palette: nbt.TAG_List) -> list:
         blockstates = []
         for entry in palette:
@@ -182,7 +220,7 @@ class Anvil2World(WorldFormat):
             palette = self.__read_palette(section["Palette"])
 
             _blocks = numpy.asarray(palette, dtype="object")[
-                decode_long_array(section["BlockStates"].value, 4096)
+                self.__decode_long_array(section["BlockStates"].value, 4096)
             ]  # Mask the decoded long array with the entries from the palette
 
             uniques = numpy.append(
