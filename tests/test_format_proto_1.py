@@ -16,7 +16,7 @@ class TestPrototype112(unittest.TestCase):
         self.proto = definition_manager.DefinitionManager("1_12")
 
     def test_direct_access(self):
-        self.assertEqual( [1, 0], self.proto.blocks["minecraft:stone"])
+        self.assertEqual([1, 0], self.proto.blocks["minecraft:stone"])
 
     def test_get_internal_block(self):
         stone_def = self.proto.get_internal_block(basename="stone")
