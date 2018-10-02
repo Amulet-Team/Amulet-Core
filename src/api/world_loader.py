@@ -61,10 +61,10 @@ class _WorldLoader:
 
     def load_world(self, directory: str, format: str = None) -> World:
         """
-        Loads the world located at the given directory with the specified version/format loader
+        Loads the world located at the given directory with the appropriate version/format loader.
 
         :param directory: The directory of the world
-        :param format: The loader name to use
+        :param format: The loader name to force
         :return: The loaded world
         """
 
