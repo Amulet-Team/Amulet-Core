@@ -35,6 +35,8 @@ To run the program in command line mode, run the following command in your opera
 
 ## Documentation
 
+Our online documentation can be found here: https://amulet-team.github.io/Amulet-Map-Editor/docs/
+
 ### Building the Documentation
 To build the documentation locally, run the following command: `make html` and then navigate to the
 generated directory `docs_build/html` in your favorite web browser
@@ -54,6 +56,7 @@ them should follow the following convention (even for forked repositories when a
 * For features, use: `impl-<feature name>`
 * For bug fixes, use: `bug-<bug tracker ID>`
 * For improvements/rewrites, use: `improv-<feature name>`
+* For prototyping, use: `proto-<feature name>`
 
 ### Code Formatting
 For code formatting, we use the formatting utility [black](https://github.com/ambv/black). To run
