@@ -77,13 +77,15 @@ class _WorldLoader:
         :return: The loaded world
         """
 
-        format = format or loader.identify(directory)[0]
-
-        if not format in self._identifiers:
-            raise FormatLoaderInvalidFormat(f"Could not find format loader {format}")
-
-        if not forced and not self.identify(directory)[0] == format:
-            raise FormatLoaderMismatched(f"{format} is incompatible")
+        if format is not None:
+            if not format in self._identifiers:
+                raise FormatLoaderInvalidFormat(
+                    f"Could not find format loader {format}"
+                )
+            if not forced and not self.identify(directory)[0] == format:
+                raise FormatLoaderMismatched(f"{format} is incompatible")
+        else:
+            format = loader.identify(directory)[0]
 
         module = self._identifiers[format]
         return module.load(directory)
