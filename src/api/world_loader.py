@@ -72,7 +72,8 @@ class _WorldLoader:
         Loads the world located at the given directory with the appropriate version/format loader.
 
         :param directory: The directory of the world
-        :param format: The loader name to force
+        :param format: The loader name to use
+        :param forced: Whether to force load the world even if incompatible
         :return: The loaded world
         """
 
