@@ -24,14 +24,16 @@ class WorldCommand(ComplexCommand):
             print('Usage: world.load "<world_path>"')
             return
 
-        if intent_format is None:
-            intent_format = loader.identify(world_path)[0]
+        try:
+            world_mode = WorldMode(
+                self.handler, world=world_path, world_format=intent_format
+            )
 
-        world_mode = WorldMode(
-            self.handler, world=world_path, world_format=intent_format
-        )
-
-        self.handler.enter_mode(world_mode)
+            self.handler.enter_mode(world_mode)
+        except ModuleNotFoundError as e:
+            print(f"==== Error: {e}")
+            print(f"Available formats: {loader.get_loaded_identifiers()}")
+            print("Use --format=<world format> to specify a specific format")
 
     @subcommand("unload")
     def unload(self, args: List[str]):

@@ -5,7 +5,7 @@ import glob
 import sys
 import traceback
 from importlib import import_module
-from typing import Tuple
+from typing import Tuple, List
 
 from api.paths import DEFINITIONS_DIR
 from api.world import World
@@ -59,7 +59,7 @@ class _WorldLoader:
 
         raise ModuleNotFoundError("Could not find a matching format loader")
 
-    def load_world(self, directory: str, format: str) -> World:
+    def load_world(self, directory: str, format: str = None) -> World:
         """
         Loads the world located at the given directory with the specified version/format loader
 
@@ -68,11 +68,22 @@ class _WorldLoader:
         :return: The loaded world
         """
 
+        format = format or loader.identify(directory)[0]
+
         if not format in self._identifiers:
             raise ModuleNotFoundError(f"Could not find format loader {format}")
 
         module = self._identifiers[format]
         return module.load(directory)
+
+    def get_loaded_identifiers(self) -> List[str]:
+        """
+        List all format loader identifiers
+
+        :return: List of all format identifiers
+        """
+
+        return list(self._identifiers.keys())
 
 
 loader = _WorldLoader()
