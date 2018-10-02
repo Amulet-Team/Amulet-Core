@@ -82,11 +82,8 @@ class _WorldLoader:
         if not format in self._identifiers:
             raise FormatLoaderInvalidFormat(f"Could not find format loader {format}")
 
-        if not self.identify(directory)[0] == format:
-            if forced:
-                print("Proceeding with world load despite incompatibility")
-            else:
-                raise FormatLoaderMismatched(f"{format} is incompatible")
+        if not forced and not self.identify(directory)[0] == format:
+            raise FormatLoaderMismatched(f"{format} is incompatible")
 
         module = self._identifiers[format]
         return module.load(directory)
