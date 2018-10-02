@@ -30,20 +30,23 @@ class WorldCommand(ComplexCommand):
 
     @subcommand("identify")
     def identify(self, args: List[str]):
-        if not self.handler.in_mode(WorldMode):
-            if len(args) == 1:
-                print('Usage: world.identify "<world filepath>"')
-                return
+        try:
+            if not self.handler.in_mode(WorldMode):
+                if len(args) == 1:
+                    print('Usage: world.identify "<world filepath>"')
+                    return
 
-            version, identified_format = loader.identify(args[1])
-        elif len(args) == 2:
-            version, identified_format = loader.identify(args[1])
-        else:
-            world_mode = self.get_mode(WorldMode)
-            version, identified_format = loader.identify(world_mode.world_path)
+                version, identified_format = loader.identify(args[1])
+            elif len(args) == 2:
+                version, identified_format = loader.identify(args[1])
+            else:
+                world_mode = self.get_mode(WorldMode)
+                version, identified_format = loader.identify(world_mode.world_path)
 
-        print(f"Version: {version.replace('_', '.')}")
-        print(f"Format: {identified_format}")
+            print(f"Version: {version.replace('_', '.')}")
+            print(f"Format: {identified_format}")
+        except ModuleNotFoundError as e:
+            print(f"==== Error: {e}")
 
     @classmethod
     def help(cls, command_name: str = None):
