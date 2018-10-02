@@ -33,17 +33,17 @@ class _AnvilRegionManager:
             if not self.load_region(rx, rz):
                 raise Exception()
 
-        cx &= 0x1f
-        cz &= 0x1f
+        cx &= 0x1F
+        cz &= 0x1F
 
         chunk_offset = self._loaded_regions[key]["offsets"][
-            (cx & 0x1f) + (cz & 0x1f) * 32
+            (cx & 0x1F) + (cz & 0x1F) * 32
         ]
         if chunk_offset == 0:
             raise Exception()
 
         sector_start = chunk_offset >> 8
-        number_of_sectors = chunk_offset & 0xff
+        number_of_sectors = chunk_offset & 0xFF
 
         if number_of_sectors == 0:
             raise Exception()
@@ -93,8 +93,8 @@ class _AnvilRegionManager:
             self._loaded_regions[key] = {}
 
             file_size = path.getsize(filename)
-            if file_size & 0xfff:
-                file_size = (file_size | 0xfff) + 1
+            if file_size & 0xFFF:
+                file_size = (file_size | 0xFFF) + 1
                 fp.truncate(file_size)
 
             if not file_size:
@@ -122,7 +122,7 @@ class _AnvilRegionManager:
 
             for offset in offsets:
                 sector = offset >> 8
-                count = offset & 0xff
+                count = offset & 0xFF
 
                 for i in range(sector, sector + count):
                     if i >= len(free_sectors):

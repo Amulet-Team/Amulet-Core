@@ -8,6 +8,7 @@ from typing import Tuple, Union
 import numpy
 
 from api import WorldFormat
+from math import log, ceil
 from nbt import nbt
 from os import path
 
@@ -32,17 +33,17 @@ class _Anvil2RegionManager:
         if not self.load_region(rx, rz):
             raise Exception()
 
-        cx &= 0x1f
-        cz &= 0x1f
+        cx &= 0x1F
+        cz &= 0x1F
 
         chunk_offset = self._loaded_regions[key]["offsets"][
-            (cx & 0x1f) + (cz & 0x1f) * 32
+            (cx & 0x1F) + (cz & 0x1F) * 32
         ]
         if chunk_offset == 0:
             raise Exception()
 
         sector_start = chunk_offset >> 8
-        number_of_sectors = chunk_offset & 0xff
+        number_of_sectors = chunk_offset & 0xFF
 
         if number_of_sectors == 0:
             raise Exception()
@@ -91,8 +92,8 @@ class _Anvil2RegionManager:
         self._loaded_regions[key] = {}
 
         file_size = path.getsize(filename)
-        if file_size & 0xfff:
-            file_size = (file_size | 0xfff) + 1
+        if file_size & 0xFFF:
+            file_size = (file_size | 0xFFF) + 1
             fp.truncate(file_size)
 
         if not file_size:
@@ -120,7 +121,7 @@ class _Anvil2RegionManager:
 
         for offset in offsets:
             sector = offset >> 8
-            count = offset & 0xff
+            count = offset & 0xFF
 
             for i in range(sector, sector + count):
                 if i >= len(free_sectors):
@@ -131,6 +132,44 @@ class _Anvil2RegionManager:
         fp.close()
 
         return True
+
+
+def _decode_long_array(long_array: array_like, size: int) -> ndarray:
+    """
+    Decode an long array (from BlockStates or Heightmaps)
+    :param long_array: Encoded long array
+    :size uint: The expected size of the returned array
+    :return: Decoded array as numpy array
+    """
+    long_array = numpy.array(long_array, dtype=">q")
+    bits_per_block = (len(long_array) * 64) // size
+    binary_blocks = numpy.unpackbits(
+        long_array[::-1].astype(">i8").view("uint8")
+    ).reshape(-1, bits_per_block)
+    return binary_blocks.dot(2 ** numpy.arange(binary_blocks.shape[1] - 1, -1, -1))[
+        ::-1  # Undo the bit-shifting that Minecraft does with the palette indices
+    ][:size]
+
+def _encode_long_array(data_array: array_like, palette_size: int) -> ndarray:
+    """
+    Encode an array of data to a long array (from BlockStates or Heightmaps).
+    :param long_array: Data to encode
+    :palette_size uint: Must be at least 4
+    :return: Encoded array as numpy array
+    """
+    data_array = numpy.array(data_array, dtype=">i2")
+    bits_per_block = max(4, int(ceil(log(palette_size, 2))))
+    binary_blocks = (
+        numpy.unpackbits(data_array.astype(">i2").view("uint8"))
+        .reshape(-1, 16)[:, (16 - bits_per_block) :][::-1]
+        .reshape(-1)
+    )
+    binary_blocks = numpy.pad(
+        binary_blocks, ((64 - (len(data_array) * bits_per_block)) % 64, 0), "constant"
+    ).reshape(-1, 64)
+    return binary_blocks.dot(
+        2 ** numpy.arange(binary_blocks.shape[1] - 1, -1, -1, dtype=">q")
+    )[::-1]
 
 
 class Anvil2World(WorldFormat):
@@ -151,7 +190,7 @@ class Anvil2World(WorldFormat):
 
         return World(directory, root_tag, wrapper)
 
-    def __read_palette(self, palette: nbt.TAG_List) -> list:
+    def _read_palette(self, palette: nbt.TAG_List) -> list:
         blockstates = []
         for entry in palette:
             name = entry["Name"].value
@@ -179,22 +218,10 @@ class Anvil2World(WorldFormat):
             lower = section["Y"].value << 4
             upper = (section["Y"].value + 1) << 4
 
-            palette = self.__read_palette(section["Palette"])
-
-            blockstate_array = section["BlockStates"].value
-            blockstate_array = numpy.array(blockstate_array, dtype=">q")
-            bits_per_block = len(blockstate_array) // 64
-            binary_blocks = numpy.unpackbits(
-                blockstate_array[::-1].astype(">i8").view("uint8")
-            ).reshape(-1, bits_per_block)
-            before_palette = binary_blocks.dot(
-                2 ** numpy.arange(binary_blocks.shape[1] - 1, -1, -1)
-            )[
-                ::-1
-            ]  # Undo the bit-shifting that Minecraft does with the palette indices
+            palette = self._read_palette(section["Palette"])
 
             _blocks = numpy.asarray(palette, dtype="object")[
-                before_palette
+                _decode_long_array(section["BlockStates"].value, 4096)
             ]  # Mask the decoded long array with the entries from the palette
 
             uniques = numpy.append(

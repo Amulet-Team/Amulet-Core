@@ -1,37 +1,26 @@
 from __future__ import annotations
 
-from os.path import exists, join
-
 from nbt import nbt
 
 from api.world import World
 
 from formats.format_loader import loader
 
+from utils.format_utils import check_all_exist, load_leveldat, check_version_leveldat
+
 FORMAT = "anvil2"
 
 
 def identify(directory: str) -> bool:
-    if not (exists(join(directory, "region")) or exists(join(directory, "playerdata"))):
+    if not check_all_exist(directory, "region", "playerdata", "data", "level.dat"):
         return False
 
-    if not (exists(join(directory, "data")) or exists(join(directory, "level.dat"))):
+    leveldat_root = load_leveldat(directory)
+
+    if "FML" in leveldat_root:
         return False
 
-    fp = open(join(directory, "level.dat"), "rb")
-    root_tag = nbt.NBTFile(fileobj=fp)
-    fp.close()
-
-    if "FML" in root_tag:
-        return False
-
-    if (
-        root_tag.get("Data", nbt.TAG_Compound())
-        .get("Version", nbt.TAG_Compound())
-        .get("Id", nbt.TAG_Int(-1))
-        .value
-        < 1451
-    ):
+    if not check_version_leveldat(leveldat_root, min=1451):
         return False
 
     return True

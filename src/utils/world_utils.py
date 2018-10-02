@@ -88,7 +88,7 @@ def from_nibble_array(arr: ndarray) -> ndarray:
     new_arr = zeros((shape[0], shape[1], shape[2] * 2), dtype=uint8)
 
     new_arr[:, :, ::2] = arr
-    new_arr[:, :, ::2] &= 0xf
+    new_arr[:, :, ::2] &= 0xF
     new_arr[:, :, 1::2] = arr
     new_arr[:, :, 1::2] >>= 4
 
