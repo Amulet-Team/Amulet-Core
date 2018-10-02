@@ -150,6 +150,7 @@ def _decode_long_array(long_array: array_like, size: int) -> ndarray:
         ::-1  # Undo the bit-shifting that Minecraft does with the palette indices
     ][:size]
 
+
 def _encode_long_array(data_array: array_like, palette_size: int) -> ndarray:
     """
     Encode an array of data to a long array (from BlockStates or Heightmaps).

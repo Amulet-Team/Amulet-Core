@@ -143,7 +143,7 @@ class Anvil2WorldTestCase(WorldTestBaseCases.WorldTestCase):
                 )
             )
 
-        #Make sure some test are ran in case the data file failed to load or has a wrong format.
+        # Make sure some test are ran in case the data file failed to load or has a wrong format.
         self.assertTrue(test_ran)
 
 

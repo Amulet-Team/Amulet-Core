@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from nbt import nbt
-
 from api.world import World
 
 from formats.format_loader import loader

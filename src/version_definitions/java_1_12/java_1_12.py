@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from nbt import nbt
-
 from utils.format_utils import (
     check_all_exist,
     check_one_exists,
