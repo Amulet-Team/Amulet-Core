@@ -11,12 +11,26 @@ from api.world_loader import loader
 class WorldCommand(ComplexCommand):
     @subcommand("load")
     def load(self, args: List[str]):
-        if len(args) == 1:
-            print('Usage: world.load "<world filepath>"')
+        world_path: str = None
+        intent_format: str = None
+
+        for arg in args[1:]:
+            if arg.startswith("--format="):
+                intent_format = arg[9:]
+            else:
+                world_path = arg
+
+        if world_path is None:
+            print('Usage: world.load "<world_path>"')
             return
 
-        world_path = args[1]
-        world_mode = WorldMode(self.handler, world=world_path)
+        if intent_format is None:
+            intent_format = loader.identify(world_path)[0]
+
+        world_mode = WorldMode(
+            self.handler, world=world_path, world_format=intent_format
+        )
+
         self.handler.enter_mode(world_mode)
 
     @subcommand("unload")

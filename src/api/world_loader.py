@@ -59,20 +59,20 @@ class _WorldLoader:
 
         raise ModuleNotFoundError("Could not find a matching format loader")
 
-    def load_world(self, directory: str) -> World:
+    def load_world(self, directory: str, format: str) -> World:
         """
-        Loads the world located at the given directory with the appropriate version/format loader
+        Loads the world located at the given directory with the specified version/format loader
 
         :param directory: The directory of the world
+        :param format: The loader name to use
         :return: The loaded world
         """
-        for name, module in self._identifiers.items():
-            if module.identify(directory):
-                return module.load(directory)
-            elif __debug__:
-                print(f"{name} rejected the world")
 
-        raise ModuleNotFoundError("Could not find a matching format loader")
+        if not format in self._identifiers:
+            raise ModuleNotFoundError(f"Could not find format loader {format}")
+
+        module = self._identifiers[format]
+        return module.load(directory)
 
 
 loader = _WorldLoader()

@@ -275,8 +275,12 @@ class WorldMode(Mode):
     def __init__(self, cmd_line_handler, **kwargs):
         super(WorldMode, self).__init__(cmd_line_handler)
         self._world_path = kwargs.get("world")
+        self._load_format = (
+            kwargs.get("world_format") or loader.identify(self._world_path)[0]
+        )
+
         self._world_name = os.path.basename(self._world_path)
-        self._world: World = loader.load_world(self._world_path)
+        self._world: World = loader.load_world(self._world_path, self._load_format)
 
     @property
     def world_path(self) -> str:
@@ -298,7 +302,7 @@ class WorldMode(Mode):
             return False
 
         if __debug__:
-            print("Entered world mode")
+            print(f"Entered world mode using {self._load_format}")
         return True
 
     def exit(self) -> bool:
