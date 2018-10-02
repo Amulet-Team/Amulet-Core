@@ -18,7 +18,7 @@ def identify(directory: str) -> bool:
     if "FML" in leveldat_root:
         return False
 
-    if not check_version_leveldat(leveldat_root, min=1451):
+    if not check_version_leveldat(leveldat_root, min=1519, max=1628):
         return False
 
     return True
