@@ -276,9 +276,12 @@ class WorldMode(Mode):
         super(WorldMode, self).__init__(cmd_line_handler)
         self._world_path = kwargs.get("world")
         self._load_format = kwargs.get("world_format")
+        self._load_forced = kwargs.get("forced")
 
         self._world_name = os.path.basename(self._world_path)
-        self._world: World = loader.load_world(self._world_path, self._load_format)
+        self._world: World = loader.load_world(
+            self._world_path, format=self._load_format, forced=self._load_forced
+        )
 
     @property
     def world_path(self) -> str:

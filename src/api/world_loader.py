@@ -10,6 +10,12 @@ from typing import Tuple, List
 from api.paths import DEFINITIONS_DIR
 from api.world import World
 
+from api.errors import (
+    FormatLoaderInvalidFormat,
+    FormatLoaderMismatched,
+    FormatLoaderNoneMatched,
+)
+
 
 class _WorldLoader:
     """
@@ -57,9 +63,11 @@ class _WorldLoader:
             elif __debug__:
                 print(f"{name} rejected the world")
 
-        raise ModuleNotFoundError("Could not find a matching format loader")
+        raise FormatLoaderNoneMatched("Could not find a matching format loader")
 
-    def load_world(self, directory: str, format: str = None) -> World:
+    def load_world(
+        self, directory: str, format: str = None, forced: bool = False
+    ) -> World:
         """
         Loads the world located at the given directory with the appropriate version/format loader.
 
@@ -71,7 +79,13 @@ class _WorldLoader:
         format = format or loader.identify(directory)[0]
 
         if not format in self._identifiers:
-            raise ModuleNotFoundError(f"Could not find format loader {format}")
+            raise FormatLoaderInvalidFormat(f"Could not find format loader {format}")
+
+        if not self.identify(directory)[0] == format:
+            if forced:
+                print("Proceeding with world load despite incompatibility")
+            else:
+                raise FormatLoaderMismatched(f"{format} is incompatible")
 
         module = self._identifiers[format]
         return module.load(directory)

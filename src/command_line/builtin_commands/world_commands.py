@@ -6,6 +6,13 @@ from command_line import ComplexCommand, command, subcommand, WorldMode
 
 from api.world_loader import loader
 
+from api.errors import (
+    FormatError,
+    FormatLoaderInvalidFormat,
+    FormatLoaderMismatched,
+    FormatLoaderNoneMatched,
+)
+
 
 @command("world")
 class WorldCommand(ComplexCommand):
@@ -13,10 +20,13 @@ class WorldCommand(ComplexCommand):
     def load(self, args: List[str]):
         world_path: str = None
         intent_format: str = None
+        intent_forced: str = False
 
         for arg in args[1:]:
             if arg.startswith("--format="):
                 intent_format = arg[9:]
+            elif arg == "--force":
+                intent_forced = True
             else:
                 world_path = arg
 
@@ -26,14 +36,20 @@ class WorldCommand(ComplexCommand):
 
         try:
             world_mode = WorldMode(
-                self.handler, world=world_path, world_format=intent_format
+                self.handler,
+                world=world_path,
+                world_format=intent_format,
+                forced=intent_forced,
             )
 
             self.handler.enter_mode(world_mode)
-        except ModuleNotFoundError as e:
+        except (FormatLoaderInvalidFormat, FormatLoaderNoneMatched) as e:
             print(f"==== Error: {e}")
             print(f"Available formats: {loader.get_loaded_identifiers()}")
             print("Use --format=<world format> to specify a specific format")
+        except FormatLoaderMismatched as e:
+            print(f"==== Error: {e}")
+            print("Use --force to override")
 
     @subcommand("unload")
     def unload(self, args: List[str]):
@@ -61,7 +77,7 @@ class WorldCommand(ComplexCommand):
 
             print(f"Version: {version.replace('_', '.')}")
             print(f"Format: {identified_format}")
-        except ModuleNotFoundError as e:
+        except FormatError as e:
             print(f"==== Error: {e}")
 
     @classmethod
