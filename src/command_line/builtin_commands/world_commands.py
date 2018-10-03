@@ -6,18 +6,50 @@ from command_line import ComplexCommand, command, subcommand, WorldMode
 
 from api.world_loader import loader
 
+from api.errors import (
+    FormatError,
+    FormatLoaderInvalidFormat,
+    FormatLoaderMismatched,
+    FormatLoaderNoneMatched,
+)
+
 
 @command("world")
 class WorldCommand(ComplexCommand):
     @subcommand("load")
     def load(self, args: List[str]):
-        if len(args) == 1:
-            print('Usage: world.load "<world filepath>"')
+        world_path: str = None
+        intent_format: str = None
+        intent_forced: str = False
+
+        for arg in args[1:]:
+            if arg.startswith("--format="):
+                intent_format = arg[9:]
+            elif arg == "--force":
+                intent_forced = True
+            else:
+                world_path = arg
+
+        if world_path is None:
+            print('Usage: world.load "<world_path>"')
             return
 
-        world_path = args[1]
-        world_mode = WorldMode(self.handler, world=world_path)
-        self.handler.enter_mode(world_mode)
+        try:
+            world_mode = WorldMode(
+                self.handler,
+                world=world_path,
+                world_format=intent_format,
+                forced=intent_forced,
+            )
+
+            self.handler.enter_mode(world_mode)
+        except (FormatLoaderInvalidFormat, FormatLoaderNoneMatched) as e:
+            print(f"==== Error: {e}")
+            print(f"Available formats: {loader.get_loaded_identifiers()}")
+            print("Use --format=<world format> to specify a specific format")
+        except FormatLoaderMismatched as e:
+            print(f"==== Error: {e}")
+            print("Use --force to override")
 
     @subcommand("unload")
     def unload(self, args: List[str]):
@@ -30,20 +62,23 @@ class WorldCommand(ComplexCommand):
 
     @subcommand("identify")
     def identify(self, args: List[str]):
-        if not self.handler.in_mode(WorldMode):
-            if len(args) == 1:
-                print('Usage: world.identify "<world filepath>"')
-                return
+        try:
+            if not self.handler.in_mode(WorldMode):
+                if len(args) == 1:
+                    print('Usage: world.identify "<world filepath>"')
+                    return
 
-            version, identified_format = loader.identify(args[1])
-        elif len(args) == 2:
-            version, identified_format = loader.identify(args[1])
-        else:
-            world_mode = self.get_mode(WorldMode)
-            version, identified_format = loader.identify(world_mode.world_path)
+                version, identified_format = loader.identify(args[1])
+            elif len(args) == 2:
+                version, identified_format = loader.identify(args[1])
+            else:
+                world_mode = self.get_mode(WorldMode)
+                version, identified_format = loader.identify(world_mode.world_path)
 
-        print(f"Version: {version.replace('_', '.')}")
-        print(f"Format: {identified_format}")
+            print(f"Version: {version.replace('_', '.')}")
+            print(f"Format: {identified_format}")
+        except FormatError as e:
+            print(f"==== Error: {e}")
 
     @classmethod
     def help(cls, command_name: str = None):

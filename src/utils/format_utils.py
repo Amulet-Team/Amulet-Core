@@ -80,7 +80,7 @@ def check_version_leveldat(root_tag, min: int = None, max: int = None) -> bool:
 
     if __debug__:
         min_text: str = f"{min} <= " if min is not None else ""
-        max_text: str = f" >= {max}" if max is not None else ""
+        max_text: str = f" <= {max}" if max is not None else ""
         print(f"Checking {min_text}{version_found}{max_text}")
 
     return min_qualifies and max_qualifies

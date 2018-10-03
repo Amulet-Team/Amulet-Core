@@ -18,7 +18,10 @@ def identify(directory: str) -> bool:
     if "FML" in leveldat_root:
         return False
 
-    if not check_version_leveldat(leveldat_root, min=1451):
+    # 1444 is the version for 17w43a snapshot (first 1.13 snapshot)
+    # 1519 is the version for the 1.13 release version
+    # 1628 is the version for the 1.13.1 release version
+    if not check_version_leveldat(leveldat_root, min=1444, max=1628):
         return False
 
     return True

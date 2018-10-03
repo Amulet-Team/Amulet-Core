@@ -5,10 +5,16 @@ import glob
 import sys
 import traceback
 from importlib import import_module
-from typing import Tuple
+from typing import Tuple, List
 
 from api.paths import DEFINITIONS_DIR
 from api.world import World
+
+from api.errors import (
+    FormatLoaderInvalidFormat,
+    FormatLoaderMismatched,
+    FormatLoaderNoneMatched,
+)
 
 
 class _WorldLoader:
@@ -57,22 +63,41 @@ class _WorldLoader:
             elif __debug__:
                 print(f"{name} rejected the world")
 
-        raise ModuleNotFoundError("Could not find a matching format loader")
+        raise FormatLoaderNoneMatched("Could not find a matching format loader")
 
-    def load_world(self, directory: str) -> World:
+    def load_world(
+        self, directory: str, format: str = None, forced: bool = False
+    ) -> World:
         """
-        Loads the world located at the given directory with the appropriate version/format loader
+        Loads the world located at the given directory with the appropriate version/format loader.
 
         :param directory: The directory of the world
+        :param format: The loader name to use
+        :param forced: Whether to force load the world even if incompatible
         :return: The loaded world
         """
-        for name, module in self._identifiers.items():
-            if module.identify(directory):
-                return module.load(directory)
-            elif __debug__:
-                print(f"{name} rejected the world")
 
-        raise ModuleNotFoundError("Could not find a matching format loader")
+        if format is not None:
+            if not format in self._identifiers:
+                raise FormatLoaderInvalidFormat(
+                    f"Could not find format loader {format}"
+                )
+            if not forced and not self.identify(directory)[0] == format:
+                raise FormatLoaderMismatched(f"{format} is incompatible")
+        else:
+            format = loader.identify(directory)[0]
+
+        module = self._identifiers[format]
+        return module.load(directory)
+
+    def get_loaded_identifiers(self) -> List[str]:
+        """
+        List all format loader identifiers
+
+        :return: List of all format identifiers
+        """
+
+        return list(self._identifiers.keys())
 
 
 loader = _WorldLoader()
