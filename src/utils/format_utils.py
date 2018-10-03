@@ -41,7 +41,7 @@ def check_one_exists(in_dir: str, *args: str) -> bool:
     return False
 
 
-def load_leveldat(in_dir: str):
+def load_leveldat(in_dir: str) -> nbt.TAG_Compound:
     """
     Load the root tag of the level.dat file in the directory
 
@@ -56,13 +56,15 @@ def load_leveldat(in_dir: str):
     return root_tag
 
 
-def check_version_leveldat(root_tag, min: int = None, max: int = None) -> bool:
+def check_version_leveldat(
+    root_tag: nbt.TAG_Compound, _min: int = None, _max: int = None
+) -> bool:
     """
     Check the Version tag from the provided level.dat NBT structure
 
     :param root_tag: the root level.dat tag
-    :param min: The lowest acceptable value (optional)
-    :param max: The highest acceptable value (optional)
+    :param _min: The lowest acceptable value (optional)
+    :param _max: The highest acceptable value (optional)
     :return: Whether the version tag falls in the correct range
     """
 
@@ -71,16 +73,16 @@ def check_version_leveldat(root_tag, min: int = None, max: int = None) -> bool:
     ).get("Id", nbt.TAG_Int(-1)).value
 
     min_qualifies: bool = True
-    if min is not None:
-        min_qualifies = version_found >= min
+    if _min is not None:
+        min_qualifies = version_found >= _min
 
     max_qualifies: bool = True
-    if max is not None:
-        max_qualifies = version_found <= max
+    if _max is not None:
+        max_qualifies = version_found <= _max
 
     if __debug__:
-        min_text: str = f"{min} <= " if min is not None else ""
-        max_text: str = f" <= {max}" if max is not None else ""
+        min_text: str = f"{min} <= " if _min is not None else ""
+        max_text: str = f" <= {max}" if _max is not None else ""
         print(f"Checking {min_text}{version_found}{max_text}")
 
     return min_qualifies and max_qualifies
