@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import regex as re
+import re
 from typing import Any, Dict, Union
 
 
@@ -10,9 +10,11 @@ class MalformedBlockstateException(Exception):
 
 class Block:
     blockstate_regex = re.compile(
-        r"(?:(?P<namespace>[a-z0-9_.-]+):)?(?P<base_name>[a-z0-9/._-]+)"
-        r"(?:\[(?P<property_name>[a-z0-9/._-]+)=(?P<property_value>[a-z0-9/._-]+)"
-        r"(?:,(?P<property_name>[a-z0-9/._-]+)=(?P<property_value>[a-z0-9/._-]+))*\])?"
+        r"(?:(?P<namespace>[a-z0-9_.-]+):)?(?P<base_name>[a-z0-9/._-]+)(?:\[(?P<property_name>[a-z0-9/._-]+)=(?P<property_value>[a-z0-9/._-]+)(?P<properties>.*)\])?"
+    )
+
+    parameters_regex = re.compile(
+        r"(?:,(?P<name>[a-z0-9/._-]+)=(?P<value>[a-z0-9/._-]+))"
     )
 
     def __init__(
@@ -54,11 +56,13 @@ class Block:
         match = Block.blockstate_regex.match(blockstate)
         namespace = match.group("namespace") or "minecraft"
         base_name = match.group("base_name")
-        property_names = match.captures("property_name")
-        property_values = match.captures("property_value")
-        properties = {}
-        for i, name in enumerate(property_names):
-            properties[name] = property_values[i]
+        if match.group("property_name") is not None:
+            properties = {match.group("property_name"): match.group("property_value")}
+        properties_string = match.group("properties")
+        if properties_string is not None:
+            properties_match = Block.parameters_regex.finditer(properties_string)
+            for match in properties_match:
+                properties[match.group("name")] = match.group("value")
 
         return cls(namespace, base_name, properties)
 
