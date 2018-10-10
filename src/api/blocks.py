@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import regex as re
 from typing import Any, Dict, Union
 
 
@@ -8,6 +9,12 @@ class MalformedBlockstateException(Exception):
 
 
 class Block:
+    blockstate_regex = re.compile(
+        r"(?:(?P<namespace>\w+):)?(?P<base_name>\w+)"
+        r"(?:\[(?P<property_name>\w+)=(?P<property_value>\w+)(?:,(?P<property_name>\w+)=(?P<property_value>\w+))*\])?",
+        flags=re.ASCII,
+    )
+
     def __init__(
         self,
         resource_location: str,
@@ -44,37 +51,16 @@ class Block:
 
     @classmethod
     def get_from_blockstate(cls, blockstate: str) -> Block:
-        if ":" in blockstate:
-            resource_location = blockstate[: blockstate.index(":")]
-        else:
-            resource_location = "unknown"
+        match = Block.blockstate_regex.match(blockstate)
+        namespace = match.group("namespace")
+        base_name = match.group("base_name")
+        property_names = match.captures("property_name")
+        property_values = match.captures("property_value")
+        properties = {}
+        for i, name in enumerate(property_names):
+            properties[name] = property_values[i]
 
-        if "[" not in blockstate:
-            base_name = blockstate[blockstate.index(":") + 1 :]
-            properties = {}
-        else:
-            if "]" not in blockstate:
-                raise MalformedBlockstateException(
-                    f"Blockstate has missing end bracket: {blockstate}"
-                )
-
-            base_name = blockstate[blockstate.index(":") + 1 : blockstate.index("[")]
-            props = blockstate[blockstate.index("[") + 1 : blockstate.index("]")].split(
-                ","
-            )
-            properties = {}
-            for prop in props:
-                key, value = prop.split("=")
-                value = value.lower()
-
-                if value in ("true", "false"):
-                    properties[key] = bool(value)
-                elif value.isdigit():
-                    properties[key] = int(value)
-                else:
-                    properties[key] = value
-
-        return cls(resource_location, base_name, properties)
+        return cls(namespace, base_name, properties)
 
     def __str__(self) -> str:
         return self._blockstate
