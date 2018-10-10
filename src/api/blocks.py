@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, Union
 
 
@@ -8,6 +9,14 @@ class MalformedBlockstateException(Exception):
 
 
 class Block:
+    blockstate_regex = re.compile(
+        r"(?:(?P<namespace>[a-z0-9_.-]+):)?(?P<base_name>[a-z0-9/._-]+)(?:\[(?P<property_name>[a-z0-9/._-]+)=(?P<property_value>[a-z0-9/._-]+)(?P<properties>.*)\])?"
+    )
+
+    parameters_regex = re.compile(
+        r"(?:,(?P<name>[a-z0-9/._-]+)=(?P<value>[a-z0-9/._-]+))"
+    )
+
     def __init__(
         self,
         resource_location: str,
@@ -44,37 +53,18 @@ class Block:
 
     @classmethod
     def get_from_blockstate(cls, blockstate: str) -> Block:
-        if ":" in blockstate:
-            resource_location = blockstate[: blockstate.index(":")]
-        else:
-            resource_location = "unknown"
+        match = Block.blockstate_regex.match(blockstate)
+        namespace = match.group("namespace") or "minecraft"
+        base_name = match.group("base_name")
+        if match.group("property_name") is not None:
+            properties = {match.group("property_name"): match.group("property_value")}
+        properties_string = match.group("properties")
+        if properties_string is not None:
+            properties_match = Block.parameters_regex.finditer(properties_string)
+            for match in properties_match:
+                properties[match.group("name")] = match.group("value")
 
-        if "[" not in blockstate:
-            base_name = blockstate[blockstate.index(":") + 1 :]
-            properties = {}
-        else:
-            if "]" not in blockstate:
-                raise MalformedBlockstateException(
-                    f"Blockstate has missing end bracket: {blockstate}"
-                )
-
-            base_name = blockstate[blockstate.index(":") + 1 : blockstate.index("[")]
-            props = blockstate[blockstate.index("[") + 1 : blockstate.index("]")].split(
-                ","
-            )
-            properties = {}
-            for prop in props:
-                key, value = prop.split("=")
-                value = value.lower()
-
-                if value in ("true", "false"):
-                    properties[key] = bool(value)
-                elif value.isdigit():
-                    properties[key] = int(value)
-                else:
-                    properties[key] = value
-
-        return cls(resource_location, base_name, properties)
+        return cls(namespace, base_name, properties)
 
     def __str__(self) -> str:
         return self._blockstate
