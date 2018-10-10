@@ -52,7 +52,7 @@ class Block:
     @classmethod
     def get_from_blockstate(cls, blockstate: str) -> Block:
         match = Block.blockstate_regex.match(blockstate)
-        namespace = match.group("namespace")
+        namespace = match.group("namespace") or "minecraft"
         base_name = match.group("base_name")
         property_names = match.captures("property_name")
         property_values = match.captures("property_value")
