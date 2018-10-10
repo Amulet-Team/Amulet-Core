@@ -10,9 +10,9 @@ class MalformedBlockstateException(Exception):
 
 class Block:
     blockstate_regex = re.compile(
-        r"(?:(?P<namespace>\w+):)?(?P<base_name>\w+)"
-        r"(?:\[(?P<property_name>\w+)=(?P<property_value>\w+)(?:,(?P<property_name>\w+)=(?P<property_value>\w+))*\])?",
-        flags=re.ASCII,
+        r"(?:(?P<namespace>[a-z0-9_.-]+):)?(?P<base_name>[a-z0-9/._-]+)"
+        r"(?:\[(?P<property_name>[a-z0-9/._-]+)=(?P<property_value>[a-z0-9/._-]+)"
+        r"(?:,(?P<property_name>[a-z0-9/._-]+)=(?P<property_value>[a-z0-9/._-]+))*\])?"
     )
 
     def __init__(
