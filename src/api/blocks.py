@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Union
+from typing import Dict, Union
 
-import numpy
 import time
 
 
@@ -74,13 +73,18 @@ class Block:
     def __str__(self) -> str:
         return self._blockstate
 
-    def __eq__(self, other: Union[Block, str]) -> bool:
-        if isinstance(other, Block):
-            other = other._blockstate
-        return self._blockstate == other
+    def __repr__(self):
+        return f"Block({self._namespace}, {self._base_name}, {self._properties})"
 
-    def __ne__(self, other: Any) -> bool:
-        return not self == other
+    def __eq__(self, other: Block) -> bool:
+        if not isinstance(other, Block):
+            return False
+
+        return (
+            self._namespace == other._namespace
+            and self._base_name == other._base_name
+            and self._properties == other._properties
+        )
 
     def __hash__(self):
         return hash(self._blockstate)
@@ -88,10 +92,17 @@ class Block:
 
 class BlockManager:
     def __init__(self):
-        self._index_to_block = numpy.array([], dtype=Block)
+        self._index_to_block = []
         self._block_to_index_map: Dict[Block, int] = {}
 
-    def __getitem__(self, item: Union[Block, str, int]) -> int:
+    def __getitem__(self, item: Union[Block, str, int]) -> Union[Block, int]:
+        """
+        If a Block object or string is passed to this function, it'll return the internal ID/index of the
+        blockstate. If an int is given, this method will return the Block object at that specified index.
+
+        :param item:
+        :return:
+        """
         if isinstance(item, str):
             item = self.get_block(item)
 
@@ -101,12 +112,15 @@ class BlockManager:
         return self._block_to_index_map[item]
 
     def get_block(self, block: str) -> Block:
-        if block in self._block_to_index_map:
-            return self._index_to_block[self._block_to_index_map[block]]
-
         b = Block.get_from_blockstate(block)
+
+        if b in self._block_to_index_map:
+            i = self._block_to_index_map[b]
+            del b
+            return self._index_to_block[i]
+
         self._block_to_index_map[b] = len(self._block_to_index_map)
-        self._index_to_block = numpy.append(self._index_to_block, [b])
+        self._index_to_block.append(b)
 
         return b
 
@@ -124,8 +138,12 @@ if __name__ == "__main__":
     i3 = manager["minecraft:air"]
     end2 = time.time()
     print(i1, i2, i3)
+    print(b == "minecraft:unknown")
     print(f"Creation: {end1 - start1}")
     print(f"__getitem__: {end2 - start2}")
+    print(manager._block_to_index_map, "|", manager._index_to_block)
+
+    time.sleep(0.5)
 
     block = manager[4]
     i4 = manager[b]
