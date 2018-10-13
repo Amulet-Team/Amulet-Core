@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Dict, Union
+from typing import Dict, Iterable, Tuple, Union
 
 import time
 
@@ -22,10 +22,16 @@ class Block:
         namespace: str,
         base_name: str,
         properties: Dict[str, Union[str, bool, int]],
+        extra_blocks: Union[Block, Iterable[Block]] = None,
     ):
         self._namespace = namespace
         self._base_name = base_name
         self._properties = properties
+        self._extra_blocks = ()
+        if extra_blocks:
+            if isinstance(extra_blocks, Block):
+                extra_blocks = [extra_blocks]
+            self._extra_blocks = tuple(extra_blocks)
         self._blockstate = self._gen_blockstate()
 
     @property
@@ -43,6 +49,10 @@ class Block:
     @property
     def blockstate(self) -> str:
         return self._blockstate
+
+    @property
+    def extra_blocks(self) -> Union[Tuple, Tuple[Block]]:
+        return self._extra_blocks
 
     def _gen_blockstate(self) -> str:
         blockstate = f"{self._namespace}:{self._base_name}"
@@ -73,21 +83,77 @@ class Block:
     def __str__(self) -> str:
         return self._blockstate
 
-    def __repr__(self):
-        return f"Block({self._namespace}, {self._base_name}, {self._properties})"
+    def __repr__(self) -> str:
+        return f"Block({', '.join([str(b) for b in (self, *self._extra_blocks)])})"
+
+    def _compare_extra_blocks(self, other: Block) -> bool:
+        if len(self._extra_blocks) != len(other._extra_blocks):
+            return False
+
+        for seb, oeb in zip(self._extra_blocks, other._extra_blocks):
+            if not (
+                seb._namespace == oeb._namespace
+                or seb._base_name == oeb._base_name
+                or seb._properties == oeb._properties
+            ):
+                return False
+
+        return True
 
     def __eq__(self, other: Block) -> bool:
-        if not isinstance(other, Block):
+        if self.__class__ != other.__class__:
             return False
 
         return (
             self._namespace == other._namespace
             and self._base_name == other._base_name
             and self._properties == other._properties
+            and self._compare_extra_blocks(other)
         )
 
     def __hash__(self):
-        return hash(self._blockstate)
+        current_hash = hash(self._blockstate)
+
+        for eb in self._extra_blocks:
+            current_hash ^= hash(eb)
+
+        return current_hash
+
+    def __add__(self, other: Block) -> Block:
+        other_cpy = Block(other._namespace, other._base_name, other._properties)
+
+        other_extras = []
+        for eb in other._extra_blocks:
+            other_extras.append(Block(eb._namespace, eb._base_name, eb._properties))
+
+        return Block(
+            self._namespace,
+            self._base_name,
+            self._properties,
+            [*self._extra_blocks, other_cpy, *other_extras],
+        )
+
+    def __sub__(self, other: Block) -> Block:
+        other_cpy = Block(other._namespace, other._base_name, other._properties)
+
+        other_extras = []
+        for eb in other._extra_blocks:
+            other_extras.append(Block(eb._namespace, eb._base_name, eb._properties))
+
+        return Block(
+            self._namespace,
+            self._base_name,
+            self._properties,
+            list(set(self.extra_blocks) - {other_cpy, *other_extras}),
+        )
+
+    def __iadd__(self, other: Block) -> TypeError:
+        raise TypeError("You cannot add an extra block to an already existing block")
+
+    def __isub__(self, other: Block) -> TypeError:
+        raise TypeError(
+            "You cannot subtract an extra block to an already existing block"
+        )
 
 
 class BlockManager:
@@ -109,7 +175,16 @@ class BlockManager:
         if isinstance(item, int):
             return self._index_to_block[item]
 
+        if isinstance(item, Block) and item not in self._block_to_index_map:
+            self._add_block(item)
+
         return self._block_to_index_map[item]
+
+    def _add_block(self, block: Block) -> int:
+        self._block_to_index_map[block] = i = len(self._block_to_index_map)
+        self._index_to_block.append(block)
+
+        return i
 
     def get_block(self, block: str) -> Block:
         b = Block.get_from_blockstate(block)
@@ -128,20 +203,27 @@ class BlockManager:
 if __name__ == "__main__":
     b = Block.get_from_blockstate("minecraft:unknown")
 
+    eb = Block.get_from_blockstate("minecraft:stone")
+
+    water = Block.get_from_blockstate("minecraft:water")
+    eb2 = Block.get_from_blockstate("minecraft:dirt") + water
+
     manager = BlockManager()
     start1 = time.time()
     i1 = manager["minecraft:air"]
     end1 = time.time()
     i2 = manager["minecraft:stone"]
 
+    i4 = manager[eb2]
+
     start2 = time.time()
     i3 = manager["minecraft:air"]
     end2 = time.time()
-    print(i1, i2, i3)
+    print(i1, i2, i3, i4)
     print(b == "minecraft:unknown")
     print(f"Creation: {end1 - start1}")
     print(f"__getitem__: {end2 - start2}")
-    print(manager._block_to_index_map, "|", manager._index_to_block)
+    print(manager._block_to_index_map, "\n", manager._index_to_block)
 
     time.sleep(0.5)
 
