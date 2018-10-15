@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Dict, Iterable, Tuple, Union
+from typing import Dict, Iterable, List, Tuple, Union
 
 import time
 
@@ -90,12 +90,13 @@ class Block:
         if len(self._extra_blocks) != len(other._extra_blocks):
             return False
 
-        for seb, oeb in zip(self._extra_blocks, other._extra_blocks):
-            if not (
-                seb._namespace == oeb._namespace
-                or seb._base_name == oeb._base_name
-                or seb._properties == oeb._properties
-            ):
+        if len(self._extra_blocks) == 0:
+            return True
+
+        for our_extra_block, their_extra_block in zip(
+            self._extra_blocks, other._extra_blocks
+        ):
+            if our_extra_block != their_extra_block:
                 return False
 
         return True
@@ -114,17 +115,27 @@ class Block:
     def __hash__(self):
         current_hash = hash(self._blockstate)
 
-        for eb in self._extra_blocks:
-            current_hash ^= hash(eb)
+        if self._extra_blocks:
+            current_hash = current_hash + hash(self._extra_blocks)
 
         return current_hash
 
     def __add__(self, other: Block) -> Block:
-        other_cpy = Block(other._namespace, other._base_name, other._properties)
+        if (
+            len(other._extra_blocks) == 0
+        ):  # Reduces the amount of extra objects/references created
+            other_cpy = other
+        else:
+            other_cpy = Block(other._namespace, other._base_name, other._properties)
 
         other_extras = []
         for eb in other._extra_blocks:
-            other_extras.append(Block(eb._namespace, eb._base_name, eb._properties))
+            if (
+                len(eb.extra_blocks) == 0
+            ):  # Reduces the amount of extra objects/references created
+                other_extras.append(eb)
+            else:
+                other_extras.append(Block(eb._namespace, eb._base_name, eb._properties))
 
         return Block(
             self._namespace,
@@ -134,18 +145,30 @@ class Block:
         )
 
     def __sub__(self, other: Block) -> Block:
-        other_cpy = Block(other._namespace, other._base_name, other._properties)
+        if (
+            len(other._extra_blocks) == 0
+        ):  # Reduces the amount of extra objects/references created
+            other_cpy = other
+        else:
+            other_cpy = Block(other._namespace, other._base_name, other._properties)
 
         other_extras = []
         for eb in other._extra_blocks:
-            other_extras.append(Block(eb._namespace, eb._base_name, eb._properties))
+            if len(eb.extra_blocks) == 0:
+                other_extras.append(eb)
+            else:
+                other_extras.append(Block(eb._namespace, eb._base_name, eb._properties))
 
-        return Block(
-            self._namespace,
-            self._base_name,
-            self._properties,
-            list(set(self.extra_blocks) - {other_cpy, *other_extras}),
-        )
+        # Sets are unordered, so a regular set subtraction doesn't always return the order we want (it sometimes will!)
+        # So we loop through all of our extra blocks and only append those to the new_extras list if they aren't in
+        # extra_blocks_to_remove
+        new_extras = []
+        extra_blocks_to_remove = (other_cpy, *other_extras)
+        for eb in self._extra_blocks:
+            if eb not in extra_blocks_to_remove:
+                new_extras.append(eb)
+
+        return Block(self._namespace, self._base_name, self._properties, new_extras)
 
     def __iadd__(self, other: Block) -> TypeError:
         raise TypeError("You cannot add an extra block to an already existing block")
@@ -158,7 +181,7 @@ class Block:
 
 class BlockManager:
     def __init__(self):
-        self._index_to_block = []
+        self._index_to_block: List[Block] = []
         self._block_to_index_map: Dict[Block, int] = {}
 
     def __getitem__(self, item: Union[Block, str, int]) -> Union[Block, int]:
@@ -207,6 +230,10 @@ if __name__ == "__main__":
 
     water = Block.get_from_blockstate("minecraft:water")
     eb2 = Block.get_from_blockstate("minecraft:dirt") + water
+
+    eb3 = water + Block.get_from_blockstate("minecraft:dirt")
+    print(f"eb2 == eb3: {eb2 == eb3}")
+    print(f"hash(eb2) == hash(eb3): {hash(eb2) == hash(eb3)}")
 
     manager = BlockManager()
     start1 = time.time()
