@@ -12,7 +12,46 @@ class MalformedBlockstateException(Exception):
 
 class Block:
     """
-    Class to handle data about various blockstates and allow for extra blocks to be created and interacted with
+    Class to handle data about various blockstates and allow for extra blocks to be created and interacted with. Here's
+    an example on how create a Block object with extra blocks:
+
+
+    Creating a new Block object with the base of ``stone`` and has an extra block of ``water[level=1]``:
+
+    >>> stone = Block.get_from_blockstate("minecraft:stone")
+    >>> water_level_1 = Block.get_from_blockstate("minecraft:water[level=1]")
+    >>> stone_with_extra_block = stone + water_level_1
+    >>> repr(stone_with_extra_block)
+    'Block(minecraft:stone, minecraft:water[level=1])'
+
+
+    Creating a new Block object with another layer of extra blocks:
+
+    >>> granite = Block.get_from_blockstate("minecraft:granite")
+    >>> stone_water_granite = stone_with_extra_block + granite # Doesn't modify any of the other objects
+    >>> repr(stone_water_granite)
+    'Block(minecraft:stone, minecraft:water[level=1], minecraft:granite)'
+
+
+    Creating a new Block object by removing an extra block from all layers:
+    *Note: This removes all instances of the Block object from extra blocks*
+
+    >>> stone_granite = stone_water_granite - water_level_1 # Doesn't modify any of the other objects either
+    >>> repr(stone_granite)
+    'Block(minecraft:stone, minecraft:granite)'
+
+
+    Creating a new Block object by removing a specific layer:
+
+    >>> oak_log_axis_x = Block.get_from_blockstate("minecraft:oak_log[axis=x]")
+    >>> stone_water_granite_water_oak_log = stone_water_granite + water_level_1 + oak_log_axis_x
+    >>> repr(stone_water_granite_water_oak_log)
+    'Block(minecraft:stone, minecraft:water[level=1], minecraft:granite, minecraft:water[level=1], minecraft:oak_log[axis=x])'
+
+    >>> stone_granite_water_oak_log = stone_water_granite_water_oak_log.remove_layer(0)
+    >>> repr(stone_granite_water_oak_log)
+    'Block(minecraft:stone, minecraft:granite, minecraft:water[level=1], minecraft:oak_log[axis=x])'
+
     """
 
     blockstate_regex = re.compile(
