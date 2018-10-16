@@ -11,6 +11,10 @@ class MalformedBlockstateException(Exception):
 
 
 class Block:
+    """
+    Class to handle data about various blockstates and allow for extra blocks to be created and interacted with
+    """
+
     blockstate_regex = re.compile(
         r"(?:(?P<namespace>[a-z0-9_.-]+):)?(?P<base_name>[a-z0-9/._-]+)(?:\[(?P<property_name>[a-z0-9_]+)=(?P<property_value>[a-z0-9_]+)(?P<properties>.*)\])?"
     )
@@ -36,22 +40,47 @@ class Block:
 
     @property
     def namespace(self) -> str:
+        """
+        The namespace of the blockstate represented by the Block object (IE: `minecraft`)
+
+        :return: The namespace of the blockstate
+        """
         return self._namespace
 
     @property
     def base_name(self) -> str:
+        """
+        The base name of the blockstate represented by the Block object (IE: `stone`, `dirt`)
+
+        :return: The base name of the blockstate
+        """
         return self._base_name
 
     @property
     def properties(self) -> Dict[str, Union[str, bool, int]]:
+        """
+        The mapping of properties of the blockstate represented by the Block object (IE: `{"level": "1"}`)
+
+        :return: A dictionary of the properties of the blockstate
+        """
         return self._properties
 
     @property
     def blockstate(self) -> str:
+        """
+        The full blockstate string of the blockstate represented by the Block object (IE: `minecraft:stone`, `minecraft:oak_log[axis=x]`)
+
+        :return: The blockstate string
+        """
         return self._blockstate
 
     @property
     def extra_blocks(self) -> Union[Tuple, Tuple[Block]]:
+        """
+        Returns a tuple of the extra blocks contained in the Block instance
+
+        :return: A tuple of Block objects
+        """
         return self._extra_blocks
 
     def _gen_blockstate(self) -> str:
@@ -61,8 +90,28 @@ class Block:
             blockstate += f"[{','.join(props)}]"
         return blockstate
 
+    def remove_layer(self, layer: int) -> Block:
+        """
+        Removes the Block object from the specified layer and returns the resulting new Block object
+
+        :param layer: The layer of extra block to remove
+        :return: A new instance of Block with the same data but with the extra block at specified layer removed
+        """
+        return Block(
+            self._namespace,
+            self._base_name,
+            self._properties,
+            [*self._extra_blocks[:layer], *self._extra_blocks[layer + 1 :]],
+        )
+
     @classmethod
     def get_from_blockstate(cls, blockstate: str) -> Block:
+        """
+        Parses a blockstate string and returns a Block object that contains the data for that blockstate
+
+        :param blockstate: The blockstate string
+        :return: A Block object containing the data supplied in the blockstate
+        """
         match = Block.blockstate_regex.match(blockstate)
         namespace = match.group("namespace") or "minecraft"
         base_name = match.group("base_name")

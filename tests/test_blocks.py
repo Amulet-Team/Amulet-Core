@@ -81,8 +81,53 @@ class BlockTestCase(unittest.TestCase):
         self.assertEqual("stone", conglomerate_3.base_name)
         self.assertEqual({}, conglomerate_3.properties)
         self.assertEqual(2, len(conglomerate_3.extra_blocks))
-        print(repr(conglomerate_3))
         for block_1, block_2 in zip(conglomerate_3.extra_blocks, (water, granite)):
+            self.assertEqual(block_1, block_2)
+            self.assertEqual(0, len(block_1.extra_blocks))
+
+    def test_remove_layer(self):
+        stone = blocks.Block.get_from_blockstate("minecraft:stone")
+        water = blocks.Block.get_from_blockstate("minecraft:water[level=1]")
+        granite = blocks.Block.get_from_blockstate("minecraft:granite")
+        dirt = blocks.Block.get_from_blockstate("minecraft:dirt")
+        oak_log_axis_x = blocks.Block.get_from_blockstate("minecraft:oak_log[axis=x]")
+
+        conglomerate_1 = stone + water + dirt + dirt + granite
+        self.assertIsInstance(conglomerate_1, blocks.Block)
+        self.assertEqual("minecraft", conglomerate_1.namespace)
+        self.assertEqual("stone", conglomerate_1.base_name)
+        self.assertEqual({}, conglomerate_1.properties)
+        self.assertEqual(4, len(conglomerate_1.extra_blocks))
+        for block_1, block_2 in zip(
+            conglomerate_1.extra_blocks, (water, dirt, dirt, granite)
+        ):
+            self.assertEqual(block_1, block_2)
+            self.assertEqual(0, len(block_1.extra_blocks))
+
+        new_conglomerate = conglomerate_1.remove_layer(1)
+        for block_1, block_2 in zip(
+            new_conglomerate.extra_blocks, (water, dirt, granite)
+        ):
+            self.assertEqual(block_1, block_2)
+            self.assertEqual(0, len(block_1.extra_blocks))
+
+        conglomerate_2 = granite + water + stone + dirt + oak_log_axis_x
+        self.assertIsInstance(conglomerate_2, blocks.Block)
+        self.assertEqual("minecraft", conglomerate_2.namespace)
+        self.assertEqual("granite", conglomerate_2.base_name)
+        self.assertEqual({}, conglomerate_2.properties)
+        self.assertEqual(4, len(conglomerate_2.extra_blocks))
+        for block_1, block_2 in zip(
+            conglomerate_2.extra_blocks, (water, stone, dirt, oak_log_axis_x)
+        ):
+            self.assertEqual(block_1, block_2)
+            self.assertEqual(0, len(block_1.extra_blocks))
+
+        new_conglomerate = conglomerate_2.remove_layer(2)
+        self.assertEqual(3, len(new_conglomerate.extra_blocks))
+        for block_1, block_2 in zip(
+            new_conglomerate.extra_blocks, (water, stone, oak_log_axis_x)
+        ):
             self.assertEqual(block_1, block_2)
             self.assertEqual(0, len(block_1.extra_blocks))
 
