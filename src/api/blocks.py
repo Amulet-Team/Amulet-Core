@@ -34,6 +34,7 @@ class Block:
 
 
     Creating a new Block object by removing an extra block from all layers:
+
     *Note: This removes all instances of the Block object from extra blocks*
 
     >>> stone_granite = stone_water_granite - water_level_1 # Doesn't modify any of the other objects either
