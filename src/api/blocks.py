@@ -170,9 +170,15 @@ class Block:
         return cls(namespace, base_name, properties)
 
     def __str__(self) -> str:
+        """
+        :return: The base blockstate string of the Block object
+        """
         return self._blockstate
 
     def __repr__(self) -> str:
+        """
+        :return: The base blockstate string of the Block object along with the blockstate strings of included extra blocks
+        """
         return f"Block({', '.join([str(b) for b in (self, *self._extra_blocks)])})"
 
     def _compare_extra_blocks(self, other: Block) -> bool:
@@ -191,6 +197,12 @@ class Block:
         return True
 
     def __eq__(self, other: Block) -> bool:
+        """
+        Checks the equality of this Block object to another Block object
+
+        :param other: The Block object to check against
+        :return: True if the Blocks objects are equal, False otherwise
+        """
         if self.__class__ != other.__class__:
             return False
 
@@ -201,7 +213,12 @@ class Block:
             and self._compare_extra_blocks(other)
         )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
+        """
+        Hashes the Block object
+
+        :return: A hash of the Block object
+        """
         current_hash = hash(self._blockstate)
 
         if self._extra_blocks:
@@ -210,6 +227,12 @@ class Block:
         return current_hash
 
     def __add__(self, other: Block) -> Block:
+        """
+        Allows for other Block objects to be added to this Block object's ``extra_blocks``
+
+        :param other: The Block object to add to the end of this Block object's `extra_blocks`
+        :return: A new Block object with the same data but with an additional Block at the end of ``extra_blocks``
+        """
         if (
             len(other._extra_blocks) == 0
         ):  # Reduces the amount of extra objects/references created
@@ -234,6 +257,12 @@ class Block:
         )
 
     def __sub__(self, other: Block) -> Block:
+        """
+        Allows for other Block objects to be subtracted from this Block object's ``extra_blocks``
+
+        :param other: The Block object to subtract from this Block objects' ``extra_blocks``
+        :return: A new Block object without any instances of the subtracted block in ``extra_blocks``
+        """
         if (
             len(other._extra_blocks) == 0
         ):  # Reduces the amount of extra objects/references created
@@ -269,7 +298,14 @@ class Block:
 
 
 class BlockManager:
+    """
+    Class to handle the mappings between Block objects and their index-based internal IDs
+    """
+
     def __init__(self):
+        """
+        Creates a new BlockManager object
+        """
         self._index_to_block: List[Block] = []
         self._block_to_index_map: Dict[Block, int] = {}
 
@@ -278,8 +314,8 @@ class BlockManager:
         If a Block object or string is passed to this function, it'll return the internal ID/index of the
         blockstate. If an int is given, this method will return the Block object at that specified index.
 
-        :param item:
-        :return:
+        :param item: The Block object, blockstate string, or int to get the mapping data of
+        :return: An int if a Block object or blockstate string was supplied, a Block object if an int was supplied
         """
         if isinstance(item, str):
             item = self.get_block(item)
@@ -298,8 +334,15 @@ class BlockManager:
 
         return i
 
-    def get_block(self, block: str) -> Block:
-        b = Block.get_from_blockstate(block)
+    def get_block(self, blockstate: str) -> Block:
+        """
+        Creates a Block object from the supplied blockstate string, adds the object to the internal mappings, and then
+        returns the object.
+
+        :param blockstate: The blockstate string to add
+        :return: The Block object created with the supplied blockstate string
+        """
+        b = Block.get_from_blockstate(blockstate)
 
         if b in self._block_to_index_map:
             i = self._block_to_index_map[b]
