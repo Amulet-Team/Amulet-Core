@@ -233,6 +233,9 @@ class Block:
         :param other: The Block object to add to the end of this Block object's `extra_blocks`
         :return: A new Block object with the same data but with an additional Block at the end of ``extra_blocks``
         """
+        if not isinstance(other, Block):
+            return NotImplemented
+
         if (
             len(other._extra_blocks) == 0
         ):  # Reduces the amount of extra objects/references created
@@ -263,6 +266,9 @@ class Block:
         :param other: The Block object to subtract from this Block objects' ``extra_blocks``
         :return: A new Block object without any instances of the subtracted block in ``extra_blocks``
         """
+        if not isinstance(other, Block):
+            return NotImplemented
+
         if (
             len(other._extra_blocks) == 0
         ):  # Reduces the amount of extra objects/references created
@@ -287,14 +293,6 @@ class Block:
                 new_extras.append(eb)
 
         return Block(self._namespace, self._base_name, self._properties, new_extras)
-
-    def __iadd__(self, other: Block) -> TypeError:
-        raise TypeError("You cannot add an extra block to an already existing block")
-
-    def __isub__(self, other: Block) -> TypeError:
-        raise TypeError(
-            "You cannot subtract an extra block to an already existing block"
-        )
 
 
 class BlockManager:
