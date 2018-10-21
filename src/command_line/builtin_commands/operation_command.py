@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from importlib import import_module
 from typing import List
 
 from command_line import command, SimpleCommand, parse_coordinates, WorldMode
@@ -37,12 +38,23 @@ class OperationCommand(SimpleCommand):
                 else:
                     options.append(arg)
 
-            error = world.run_operation_from_operation_name(op_name, *options)
-            if error is not None:
-                print(error)
+            operation = self._get_operation(op_name, *options)
+            try:
+                world.run_operation(operation)
+            except Exception as e:
+                print(e)
 
     def help(self):
         pass
 
     def short_help(self) -> str:
         return ""
+
+    @staticmethod
+    def _get_operation(operation_name, *args):
+        operation_module = import_module(f"operations.{operation_name}")
+        operation_class_name = "".join(x.title() for x in operation_name.split("_"))
+        operation_class = getattr(operation_module, operation_class_name)
+        operation_instance = operation_class(*args)
+
+        return operation_instance

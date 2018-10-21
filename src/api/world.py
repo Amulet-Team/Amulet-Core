@@ -3,8 +3,7 @@ from __future__ import annotations
 import itertools
 import os
 import shutil
-from typing import Union, Generator, Dict, Optional
-from importlib import import_module
+from typing import Union, Generator, Dict
 
 import numpy
 
@@ -159,22 +158,6 @@ class World:
             chunk = self.get_chunk(*chunk_pos)
             yield chunk[x_slice_for_chunk, s_y, z_slice_for_chunk]
 
-    def run_operation_from_operation_name(
-        self, operation_name: str, *args
-    ) -> Optional[Exception]:
-        operation_module = import_module(f"operations.{operation_name}")
-        operation_class_name = "".join(x.title() for x in operation_name.split("_"))
-        operation_class = getattr(operation_module, operation_class_name)
-        operation_instance = operation_class(*args)
-        try:
-            self.run_operation(operation_instance)
-        except Exception as e:
-            self._revert_all_chunks()
-            return e
-
-        self.history_manager.add_operation(operation_instance)
-        self._save_to_undo()
-
     def _revert_all_chunks(self):
         for chunk_pos, chunk in self.blocks_cache.items():
             if chunk.previous_unsaved_state is None:
@@ -213,8 +196,14 @@ class World:
 
     def redo(self):
         operation_to_redo = self.history_manager.redo()
-        self.run_operation(operation_to_redo)
+        operation_to_redo.run_operation(self)
         self._save_to_undo()
 
     def run_operation(self, operation_instance: Operation) -> None:
-        operation_instance.run_operation(self)
+        try:
+            operation_instance.run_operation(self)
+        except Exception as e:
+            self._revert_all_chunks()
+            raise e
+        self.history_manager.add_operation(operation_instance)
+        self._save_to_undo()

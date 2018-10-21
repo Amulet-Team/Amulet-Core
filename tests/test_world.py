@@ -1,6 +1,9 @@
 import sys
 import os
 
+from operations.clone import Clone
+from operations.fill import Fill
+
 try:
     import api
 except ModuleNotFoundError:
@@ -75,7 +78,8 @@ class WorldTestBaseCases:
             )  # Sanity check
             self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
 
-            self.world.run_operation_from_operation_name("clone", src_box, target_box)
+            operation = Clone(src_box, target_box)
+            self.world.run_operation(operation)
 
             self.assertEqual("minecraft:stone", self.world.get_block(1, 70, 5))
 
@@ -95,7 +99,8 @@ class WorldTestBaseCases:
             subbox_1 = SubBox((1, 70, 3), (5, 71, 5))
             box = SelectionBox((subbox_1,))
 
-            self.world.run_operation_from_operation_name("fill", box, "minecraft:stone")
+            operation = Fill(box, "minecraft:stone")
+            self.world.run_operation(operation)
 
             for x, y, z in box:
                 self.assertEqual(
