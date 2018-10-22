@@ -85,6 +85,23 @@ class BlockTestCase(unittest.TestCase):
             self.assertEqual(block_1, block_2)
             self.assertEqual(0, len(block_1.extra_blocks))
 
+        self.assertRaises(TypeError, lambda: stone + 1)
+        self.assertRaises(TypeError, lambda: stone - 1)
+
+    def test_extra_blocks_immutable(self):
+        stone = blocks.Block.get_from_blockstate("minecraft:stone")
+        dirt = blocks.Block.get_from_blockstate("minecraft:dirt")
+
+        stone2 = stone
+        self.assertIs(stone, stone2)
+        stone2 += dirt
+        self.assertIsNot(stone, stone2)
+
+        stone3 = stone2
+        self.assertIs(stone2, stone3)
+        stone3 -= dirt
+        self.assertIsNot(stone, stone3)
+
     def test_remove_layer(self):
         stone = blocks.Block.get_from_blockstate("minecraft:stone")
         water = blocks.Block.get_from_blockstate("minecraft:water[level=1]")
