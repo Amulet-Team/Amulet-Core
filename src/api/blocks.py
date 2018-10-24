@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Dict, Iterable, List, Tuple, Union
+from typing import Dict, Iterable, List, Tuple, Union, overload
 
 
 class MalformedBlockstateException(Exception):
@@ -175,14 +175,6 @@ class Block:
             for match in properties_match:
                 properties[match.group("name")] = match.group("value")
 
-        if "waterlogged" in properties:
-            waterlogged = True if properties["waterlogged"].lower() == "true" else False
-            del properties["waterlogged"]
-            if waterlogged:
-                return cls(
-                    namespace, base_name, properties, cls("minecraft", "water", {})
-                )
-
         return cls(namespace, base_name, properties)
 
     def __str__(self) -> str:
@@ -323,7 +315,15 @@ class BlockManager:
         self._index_to_block: List[Block] = []
         self._block_to_index_map: Dict[Block, int] = {}
 
-    def __getitem__(self, item: Union[Block, int]) -> Union[Block, int]:
+    @overload
+    def __getitem__(self, item: Block) -> int:
+        ...
+
+    @overload
+    def __getitem__(self, item: int) -> Block:
+        ...
+
+    def __getitem__(self, item):
         """
         If a Block object is passed to this function, it'll return the internal ID/index of the
         blockstate. If an int is given, this method will return the Block object at that specified index.
@@ -355,12 +355,8 @@ class BlockManager:
         """
         b = Block.get_from_blockstate(blockstate)
 
-        if b in self._block_to_index_map:
-            i = self._block_to_index_map[b]
-            del b
-            return self._index_to_block[i]
-
-        self._block_to_index_map[b] = len(self._block_to_index_map)
-        self._index_to_block.append(b)
+        if b not in self._block_to_index_map:
+            self._block_to_index_map[b] = len(self._block_to_index_map)
+            self._index_to_block.append(b)
 
         return b

@@ -174,33 +174,6 @@ class BlockTestCase(unittest.TestCase):
         self.assertNotEqual(conglomerate_5, conglomerate_6)
         self.assertNotEqual(hash(conglomerate_5), hash(conglomerate_6))
 
-    def test_auto_waterlog(self):
-        brain_coral = blocks.Block.get_from_blockstate(
-            "minecraft:brain_coral[waterlogged=false]"
-        )
-        brain_coral_waterlogged = blocks.Block.get_from_blockstate(
-            "minecraft:brain_coral[waterlogged=true]"
-        )
-        water = blocks.Block.get_from_blockstate("minecraft:water")
-
-        self.assertNotEqual(brain_coral, brain_coral_waterlogged)
-        self.assertIsNot(brain_coral, brain_coral_waterlogged)
-
-        self.assertEqual("minecraft", brain_coral.namespace)
-        self.assertEqual("brain_coral", brain_coral.base_name)
-        self.assertEqual({}, brain_coral.properties)
-        self.assertEqual((), brain_coral.extra_blocks)
-
-        self.assertEqual("minecraft", brain_coral_waterlogged.namespace)
-        self.assertEqual("brain_coral", brain_coral_waterlogged.base_name)
-        self.assertEqual({}, brain_coral_waterlogged.properties)
-        self.assertEqual((water,), brain_coral_waterlogged.extra_blocks)
-
-        new_coral = brain_coral + water
-
-        self.assertEqual(brain_coral_waterlogged, new_coral)
-        self.assertIsNot(brain_coral_waterlogged, new_coral)
-
 
 class BlockManaerTestCase(unittest.TestCase):
     def setUp(self):
