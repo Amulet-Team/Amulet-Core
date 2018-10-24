@@ -3,8 +3,6 @@ from __future__ import annotations
 import re
 from typing import Dict, Iterable, List, Tuple, Union
 
-import time
-
 
 class MalformedBlockstateException(Exception):
     pass
@@ -12,9 +10,13 @@ class MalformedBlockstateException(Exception):
 
 class Block:
     """
-    Class to handle data about various blockstates and allow for extra blocks to be created and interacted with. Here's
-    an example on how create a Block object with extra blocks:
+    Class to handle data about various blockstates and allow for extra blocks to be created and interacted with.
 
+    .. note::
+        For creating blocks with the ``waterlogged`` property from ``Minecraft: Java Edition`` refer to the note in
+        :func:`~Block.get_from_blockstate()`
+
+    Here's a few examples on how create a Block object with extra blocks:
 
     Creating a new Block object with the base of ``stone`` and has an extra block of ``water[level=1]``:
 
@@ -147,7 +149,13 @@ class Block:
     @classmethod
     def get_from_blockstate(cls, blockstate: str) -> Block:
         """
-        Parses a blockstate string and returns a Block object that contains the data for that blockstate
+        Parses a blockstate string and returns a Block object that contains the data for that blockstate.
+
+        .. attention::
+
+            If a blockstate has the ``waterlogged`` property, the property will be removed and if the property was
+            ``true``, a water extra block will automatically be added. If the property was ``false``, it'll still be
+            removed but no extra block will be added
 
         :param blockstate: The blockstate string
         :return: A Block object containing the data supplied in the blockstate
@@ -166,6 +174,14 @@ class Block:
             properties_match = Block.parameters_regex.finditer(properties_string)
             for match in properties_match:
                 properties[match.group("name")] = match.group("value")
+
+        if "waterlogged" in properties:
+            waterlogged = True if properties["waterlogged"].lower() == "true" else False
+            del properties["waterlogged"]
+            if waterlogged:
+                return cls(
+                    namespace, base_name, properties, cls("minecraft", "water", {})
+                )
 
         return cls(namespace, base_name, properties)
 
@@ -307,17 +323,14 @@ class BlockManager:
         self._index_to_block: List[Block] = []
         self._block_to_index_map: Dict[Block, int] = {}
 
-    def __getitem__(self, item: Union[Block, str, int]) -> Union[Block, int]:
+    def __getitem__(self, item: Union[Block, int]) -> Union[Block, int]:
         """
-        If a Block object or string is passed to this function, it'll return the internal ID/index of the
+        If a Block object is passed to this function, it'll return the internal ID/index of the
         blockstate. If an int is given, this method will return the Block object at that specified index.
 
-        :param item: The Block object, blockstate string, or int to get the mapping data of
-        :return: An int if a Block object or blockstate string was supplied, a Block object if an int was supplied
+        :param item: The Block object or int to get the mapping data of
+        :return: An int if a Block object was supplied, a Block object if an int was supplied
         """
-        if isinstance(item, str):
-            item = self.get_block(item)
-
         if isinstance(item, int):
             return self._index_to_block[item]
 
@@ -351,38 +364,3 @@ class BlockManager:
         self._index_to_block.append(b)
 
         return b
-
-
-if __name__ == "__main__":
-    b = Block.get_from_blockstate("minecraft:unknown")
-
-    eb = Block.get_from_blockstate("minecraft:stone")
-
-    water = Block.get_from_blockstate("minecraft:water")
-    eb2 = Block.get_from_blockstate("minecraft:dirt") + water
-
-    eb3 = water + Block.get_from_blockstate("minecraft:dirt")
-    print(f"eb2 == eb3: {eb2 == eb3}")
-    print(f"hash(eb2) == hash(eb3): {hash(eb2) == hash(eb3)}")
-
-    manager = BlockManager()
-    start1 = time.time()
-    i1 = manager["minecraft:air"]
-    end1 = time.time()
-    i2 = manager["minecraft:stone"]
-
-    i4 = manager[eb2]
-
-    start2 = time.time()
-    i3 = manager["minecraft:air"]
-    end2 = time.time()
-    print(i1, i2, i3, i4)
-    print(b == "minecraft:unknown")
-    print(f"Creation: {end1 - start1}")
-    print(f"__getitem__: {end2 - start2}")
-    print(manager._block_to_index_map, "\n", manager._index_to_block)
-
-    time.sleep(0.5)
-
-    block = manager[4]
-    i4 = manager[b]
