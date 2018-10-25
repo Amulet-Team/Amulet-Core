@@ -175,7 +175,7 @@ class BlockTestCase(unittest.TestCase):
         self.assertNotEqual(hash(conglomerate_5), hash(conglomerate_6))
 
 
-class BlockManaerTestCase(unittest.TestCase):
+class BlockManagerTestCase(unittest.TestCase):
     def setUp(self):
         self.manager = blocks.BlockManager()
 

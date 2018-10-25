@@ -57,6 +57,14 @@ class Block:
 
     """
 
+    __slots__ = (
+        "_namespace",
+        "_base_name",
+        "_properties",
+        "_extra_blocks",
+        "_blockstate",
+    )  # Reduces memory footprint
+
     blockstate_regex = re.compile(
         r"(?:(?P<namespace>[a-z0-9_.-]+):)?(?P<base_name>[a-z0-9/._-]+)(?:\[(?P<property_name>[a-z0-9_]+)=(?P<property_value>[a-z0-9_]+)(?P<properties>.*)\])?"
     )
