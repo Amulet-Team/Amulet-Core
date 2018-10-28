@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from sys import getsizeof
 import re
 from typing import Dict, Iterable, List, Tuple, Union, overload
 
@@ -70,6 +71,27 @@ class Block:
     )
 
     parameters_regex = re.compile(r"(?:,(?P<name>[a-z0-9_]+)=(?P<value>[a-z0-9_]+))")
+
+    water = None
+
+    @staticmethod
+    def parse_blockstate_string(blockstate: str) -> Tuple[str, str, Dict[str, str]]:
+        match = Block.blockstate_regex.match(blockstate)
+        namespace = match.group("namespace") or "minecraft"
+        base_name = match.group("base_name")
+
+        if match.group("property_name") is not None:
+            properties = {match.group("property_name"): match.group("property_value")}
+        else:
+            properties = {}
+
+        properties_string = match.group("properties")
+        if properties_string is not None:
+            properties_match = Block.parameters_regex.finditer(properties_string)
+            for match in properties_match:
+                properties[match.group("name")] = match.group("value")
+
+        return namespace, base_name, properties
 
     def __init__(
         self,
@@ -168,20 +190,7 @@ class Block:
         :param blockstate: The blockstate string
         :return: A Block object containing the data supplied in the blockstate
         """
-        match = Block.blockstate_regex.match(blockstate)
-        namespace = match.group("namespace") or "minecraft"
-        base_name = match.group("base_name")
-
-        if match.group("property_name") is not None:
-            properties = {match.group("property_name"): match.group("property_value")}
-        else:
-            properties = {}
-
-        properties_string = match.group("properties")
-        if properties_string is not None:
-            properties_match = Block.parameters_regex.finditer(properties_string)
-            for match in properties_match:
-                properties[match.group("name")] = match.group("value")
+        namespace, base_name, properties = cls.parse_blockstate_string(blockstate)
 
         return cls(namespace, base_name, properties)
 
@@ -310,6 +319,17 @@ class Block:
 
         return Block(self._namespace, self._base_name, self._properties, new_extras)
 
+    def __sizeof__(self):
+        size = (
+            getsizeof(self._namespace)
+            + getsizeof(self._base_name)
+            + getsizeof(self._properties)
+            + getsizeof(self._blockstate)
+        )
+        for eb in self._extra_blocks:
+            size += getsizeof(eb)
+        return size
+
 
 class BlockManager:
     """
@@ -368,3 +388,6 @@ class BlockManager:
             self._index_to_block.append(b)
 
         return b
+
+
+Block.water = Block("minecraft", "water", {})
