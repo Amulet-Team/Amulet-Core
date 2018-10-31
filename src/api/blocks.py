@@ -76,6 +76,14 @@ class Block:
 
     @staticmethod
     def parse_blockstate_string(blockstate: str) -> Tuple[str, str, Dict[str, str]]:
+        """
+        Parses the supplied blockstate string and returns a tuple containing the namespace, base_name, and property
+        dictionary of the blockstate
+
+        :param blockstate: The blockstate string to parse
+        :return: The namespace, base_name, and property dictionary of the blockstate
+        """
+
         match = Block.blockstate_regex.match(blockstate)
         namespace = match.group("namespace") or "minecraft"
         base_name = match.group("base_name")
