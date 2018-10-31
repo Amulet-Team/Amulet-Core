@@ -7,23 +7,23 @@ except ModuleNotFoundError:
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "src"))
 
 import unittest
-from api import blocks
+from api.blocks import Block, BlockManager
 
 
 class BlockTestCase(unittest.TestCase):
     def test_get_from_blockstate(self):  # This is mostly just sanity checks
-        air = blocks.Block.get_from_blockstate("minecraft:air")
+        air = Block(blockstate="minecraft:air")
 
-        self.assertIsInstance(air, blocks.Block)
+        self.assertIsInstance(air, Block)
         self.assertEqual("minecraft", air.namespace)
         self.assertEqual("air", air.base_name)
         self.assertEqual({}, air.properties)
         self.assertEqual((), air.extra_blocks)
         self.assertEqual("minecraft:air", air.blockstate)
 
-        stone = blocks.Block.get_from_blockstate("minecraft:stone")
+        stone = Block(blockstate="minecraft:stone")
 
-        self.assertIsInstance(stone, blocks.Block)
+        self.assertIsInstance(stone, Block)
         self.assertEqual("minecraft", stone.namespace)
         self.assertEqual("stone", stone.base_name)
         self.assertEqual({}, stone.properties)
@@ -32,11 +32,11 @@ class BlockTestCase(unittest.TestCase):
 
         self.assertNotEqual(air, stone)
 
-        oak_leaves = blocks.Block.get_from_blockstate(
-            "minecraft:oak_leaves[distance=1,persistent=true]"
+        oak_leaves = Block(
+            blockstate="minecraft:oak_leaves[distance=1,persistent=true]"
         )
 
-        self.assertIsInstance(oak_leaves, blocks.Block)
+        self.assertIsInstance(oak_leaves, Block)
         self.assertEqual("minecraft", oak_leaves.namespace)
         self.assertEqual("oak_leaves", oak_leaves.base_name)
         self.assertEqual({"distance": "1", "persistent": "true"}, oak_leaves.properties)
@@ -46,13 +46,13 @@ class BlockTestCase(unittest.TestCase):
         )
 
     def test_extra_blocks(self):
-        stone = blocks.Block.get_from_blockstate("minecraft:stone")
-        water = blocks.Block.get_from_blockstate("minecraft:water[level=1]")
-        granite = blocks.Block.get_from_blockstate("minecraft:granite")
-        dirt = blocks.Block.get_from_blockstate("minecraft:dirt")
+        stone = Block(blockstate="minecraft:stone")
+        water = Block(blockstate="minecraft:water[level=1]")
+        granite = Block(blockstate="minecraft:granite")
+        dirt = Block(blockstate="minecraft:dirt")
 
         conglomerate_1 = stone + water + dirt
-        self.assertIsInstance(conglomerate_1, blocks.Block)
+        self.assertIsInstance(conglomerate_1, Block)
         self.assertEqual("minecraft", conglomerate_1.namespace)
         self.assertEqual("stone", conglomerate_1.base_name)
         self.assertEqual({}, conglomerate_1.properties)
@@ -62,7 +62,7 @@ class BlockTestCase(unittest.TestCase):
             self.assertEqual(0, len(block_1.extra_blocks))
 
         conglomerate_2 = conglomerate_1 + granite
-        self.assertIsInstance(conglomerate_2, blocks.Block)
+        self.assertIsInstance(conglomerate_2, Block)
         self.assertEqual("minecraft", conglomerate_2.namespace)
         self.assertEqual("stone", conglomerate_2.base_name)
         self.assertEqual({}, conglomerate_2.properties)
@@ -76,7 +76,7 @@ class BlockTestCase(unittest.TestCase):
         self.assertNotEqual(conglomerate_1, conglomerate_2)
 
         conglomerate_3 = conglomerate_2 - dirt
-        self.assertIsInstance(conglomerate_3, blocks.Block)
+        self.assertIsInstance(conglomerate_3, Block)
         self.assertEqual("minecraft", conglomerate_3.namespace)
         self.assertEqual("stone", conglomerate_3.base_name)
         self.assertEqual({}, conglomerate_3.properties)
@@ -89,8 +89,8 @@ class BlockTestCase(unittest.TestCase):
         self.assertRaises(TypeError, lambda: stone - 1)
 
     def test_extra_blocks_immutable(self):
-        stone = blocks.Block.get_from_blockstate("minecraft:stone")
-        dirt = blocks.Block.get_from_blockstate("minecraft:dirt")
+        stone = Block(blockstate="minecraft:stone")
+        dirt = Block(blockstate="minecraft:dirt")
 
         stone2 = stone
         self.assertIs(stone, stone2)
@@ -103,14 +103,14 @@ class BlockTestCase(unittest.TestCase):
         self.assertIsNot(stone, stone3)
 
     def test_remove_layer(self):
-        stone = blocks.Block.get_from_blockstate("minecraft:stone")
-        water = blocks.Block.get_from_blockstate("minecraft:water[level=1]")
-        granite = blocks.Block.get_from_blockstate("minecraft:granite")
-        dirt = blocks.Block.get_from_blockstate("minecraft:dirt")
-        oak_log_axis_x = blocks.Block.get_from_blockstate("minecraft:oak_log[axis=x]")
+        stone = Block(blockstate="minecraft:stone")
+        water = Block(blockstate="minecraft:water[level=1]")
+        granite = Block(blockstate="minecraft:granite")
+        dirt = Block(blockstate="minecraft:dirt")
+        oak_log_axis_x = Block(blockstate="minecraft:oak_log[axis=x]")
 
         conglomerate_1 = stone + water + dirt + dirt + granite
-        self.assertIsInstance(conglomerate_1, blocks.Block)
+        self.assertIsInstance(conglomerate_1, Block)
         self.assertEqual("minecraft", conglomerate_1.namespace)
         self.assertEqual("stone", conglomerate_1.base_name)
         self.assertEqual({}, conglomerate_1.properties)
@@ -129,7 +129,7 @@ class BlockTestCase(unittest.TestCase):
             self.assertEqual(0, len(block_1.extra_blocks))
 
         conglomerate_2 = granite + water + stone + dirt + oak_log_axis_x
-        self.assertIsInstance(conglomerate_2, blocks.Block)
+        self.assertIsInstance(conglomerate_2, Block)
         self.assertEqual("minecraft", conglomerate_2.namespace)
         self.assertEqual("granite", conglomerate_2.base_name)
         self.assertEqual({}, conglomerate_2.properties)
@@ -149,10 +149,10 @@ class BlockTestCase(unittest.TestCase):
             self.assertEqual(0, len(block_1.extra_blocks))
 
     def test_hash(self):
-        stone = blocks.Block.get_from_blockstate("minecraft:stone")
-        water = blocks.Block.get_from_blockstate("minecraft:water[level=1]")
-        granite = blocks.Block.get_from_blockstate("minecraft:granite")
-        dirt = blocks.Block.get_from_blockstate("minecraft:dirt")
+        stone = Block(blockstate="minecraft:stone")
+        water = Block(blockstate="minecraft:water[level=1]")
+        granite = Block(blockstate="minecraft:granite")
+        dirt = Block(blockstate="minecraft:dirt")
 
         conglomerate_1 = stone + water + dirt
         conglomerate_2 = stone + dirt + water
@@ -177,15 +177,13 @@ class BlockTestCase(unittest.TestCase):
 
 class BlockManagerTestCase(unittest.TestCase):
     def setUp(self):
-        self.manager = blocks.BlockManager()
+        self.manager = BlockManager()
 
-        initial_dirt = blocks.Block.get_from_blockstate("minecraft:dirt")
-        initial_stone = blocks.Block.get_from_blockstate("minecraft:stone")
-        initial_granite = blocks.Block.get_from_blockstate("minecraft:granite")
+        initial_dirt = Block(blockstate="minecraft:dirt")
+        initial_stone = Block(blockstate="minecraft:stone")
+        initial_granite = Block(blockstate="minecraft:granite")
 
-        initial_dirt_water = initial_dirt + blocks.Block.get_from_blockstate(
-            "minecraft:water"
-        )
+        initial_dirt_water = initial_dirt + Block(blockstate="minecraft:water")
 
         # Partially populate the manager
         self.manager[initial_dirt]
@@ -194,15 +192,15 @@ class BlockManagerTestCase(unittest.TestCase):
         self.manager[initial_dirt_water]
 
     def test_get_index_from_manager(self):
-        dirt = blocks.Block.get_from_blockstate("minecraft:dirt")
-        stone = blocks.Block.get_from_blockstate("minecraft:stone")
-        granite = blocks.Block.get_from_blockstate("minecraft:granite")
+        dirt = Block(blockstate="minecraft:dirt")
+        stone = Block(blockstate="minecraft:stone")
+        granite = Block(blockstate="minecraft:granite")
 
         self.assertEqual(0, self.manager[dirt])
         self.assertEqual(1, self.manager[stone])
         self.assertEqual(2, self.manager[granite])
 
-        water = blocks.Block.get_from_blockstate("minecraft:water")
+        water = Block(blockstate="minecraft:water")
 
         dirt_water = dirt + water
 
@@ -211,10 +209,10 @@ class BlockManagerTestCase(unittest.TestCase):
         self.assertEqual(3, self.manager[dirt_water])
 
     def test_get_block_from_manager(self):
-        dirt = blocks.Block.get_from_blockstate("minecraft:dirt")
-        stone = blocks.Block.get_from_blockstate("minecraft:stone")
-        granite = blocks.Block.get_from_blockstate("minecraft:granite")
-        water = blocks.Block.get_from_blockstate("minecraft:water")
+        dirt = Block(blockstate="minecraft:dirt")
+        stone = Block(blockstate="minecraft:stone")
+        granite = Block(blockstate="minecraft:granite")
+        water = Block(blockstate="minecraft:water")
         dirt_water = dirt + water
 
         self.assertEqual(dirt, self.manager[0])

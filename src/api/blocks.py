@@ -13,24 +13,23 @@ class Block:
     """
     Class to handle data about various blockstates and allow for extra blocks to be created and interacted with.
 
-    .. note::
-        For creating blocks with the ``waterlogged`` property from ``Minecraft: Java Edition`` refer to the note in
-        :func:`~Block.get_from_blockstate()`
-
     Here's a few examples on how create a Block object with extra blocks:
 
     Creating a new Block object with the base of ``stone`` and has an extra block of ``water[level=1]``:
 
-    >>> stone = Block.get_from_blockstate("minecraft:stone")
-    >>> water_level_1 = Block.get_from_blockstate("minecraft:water[level=1]")
+    >>> stone = Block(blockstate="minecraft:stone")
+    >>> water_level_1 = Block(blockstate="minecraft:water[level=1]")
     >>> stone_with_extra_block = stone + water_level_1
     >>> repr(stone_with_extra_block)
     'Block(minecraft:stone, minecraft:water[level=1])'
 
+    Creating a new Block object using the namespace and base_name:
+
+    >>> granite = Block(namespace="minecraft", base_name="granite")
+
 
     Creating a new Block object with another layer of extra blocks:
 
-    >>> granite = Block.get_from_blockstate("minecraft:granite")
     >>> stone_water_granite = stone_with_extra_block + granite # Doesn't modify any of the other objects
     >>> repr(stone_water_granite)
     'Block(minecraft:stone, minecraft:water[level=1], minecraft:granite)'
@@ -47,7 +46,7 @@ class Block:
 
     Creating a new Block object by removing a specific layer:
 
-    >>> oak_log_axis_x = Block.get_from_blockstate("minecraft:oak_log[axis=x]")
+    >>> oak_log_axis_x = Block(blockstate="minecraft:oak_log[axis=x]")
     >>> stone_water_granite_water_oak_log = stone_water_granite + water_level_1 + oak_log_axis_x
     >>> repr(stone_water_granite_water_oak_log)
     'Block(minecraft:stone, minecraft:water[level=1], minecraft:granite, minecraft:water[level=1], minecraft:oak_log[axis=x])'
@@ -72,51 +71,27 @@ class Block:
 
     parameters_regex = re.compile(r"(?:,(?P<name>[a-z0-9_]+)=(?P<value>[a-z0-9_]+))")
 
-    water = None
-
-    @staticmethod
-    def parse_blockstate_string(blockstate: str) -> Tuple[str, str, Dict[str, str]]:
-        """
-        Parses the supplied blockstate string and returns a tuple containing the namespace, base_name, and property
-        dictionary of the blockstate
-
-        :param blockstate: The blockstate string to parse
-        :return: The namespace, base_name, and property dictionary of the blockstate
-        """
-
-        match = Block.blockstate_regex.match(blockstate)
-        namespace = match.group("namespace") or "minecraft"
-        base_name = match.group("base_name")
-
-        if match.group("property_name") is not None:
-            properties = {match.group("property_name"): match.group("property_value")}
-        else:
-            properties = {}
-
-        properties_string = match.group("properties")
-        if properties_string is not None:
-            properties_match = Block.parameters_regex.finditer(properties_string)
-            for match in properties_match:
-                properties[match.group("name")] = match.group("value")
-
-        return namespace, base_name, properties
-
     def __init__(
         self,
-        namespace: str,
-        base_name: str,
-        properties: Dict[str, Union[str, bool, int]],
+        blockstate: str = None,
+        namespace: str = None,
+        base_name: str = None,
+        properties: Dict[str, Union[str, bool, int]] = None,
         extra_blocks: Union[Block, Iterable[Block]] = None,
     ):
+        self._blockstate = blockstate
         self._namespace = namespace
         self._base_name = base_name
+
+        if namespace is not None and base_name is not None and properties is None:
+            properties = {}
+
         self._properties = properties
         self._extra_blocks = ()
         if extra_blocks:
             if isinstance(extra_blocks, Block):
                 extra_blocks = [extra_blocks]
             self._extra_blocks = tuple(extra_blocks)
-        self._blockstate = self._gen_blockstate()
 
     @property
     def namespace(self) -> str:
@@ -125,6 +100,8 @@ class Block:
 
         :return: The namespace of the blockstate
         """
+        if self._namespace is None:
+            self._parse_blockstate_string()
         return self._namespace
 
     @property
@@ -134,6 +111,8 @@ class Block:
 
         :return: The base name of the blockstate
         """
+        if self._base_name is None:
+            self._parse_blockstate_string()
         return self._base_name
 
     @property
@@ -143,6 +122,8 @@ class Block:
 
         :return: A dictionary of the properties of the blockstate
         """
+        if self._properties is None:
+            self._parse_blockstate_string()
         return self._properties
 
     @property
@@ -152,6 +133,8 @@ class Block:
 
         :return: The blockstate string
         """
+        if self._blockstate is None:
+            self._gen_blockstate()
         return self._blockstate
 
     @property
@@ -163,66 +146,51 @@ class Block:
         """
         return self._extra_blocks
 
-    def _gen_blockstate(self) -> str:
-        blockstate = f"{self._namespace}:{self._base_name}"
-        if self._properties:
-            props = [f"{key}={value}" for key, value in self._properties.items()]
-            blockstate += f"[{','.join(props)}]"
-        return blockstate
+    def _gen_blockstate(self):
+        self._blockstate = f"{self.namespace}:{self.base_name}"
+        if self.properties:
+            props = [f"{key}={value}" for key, value in self.properties.items()]
+            self._blockstate = f"{self._blockstate}[{','.join(props)}]"
 
-    def remove_layer(self, layer: int) -> Block:
-        """
-        Removes the Block object from the specified layer and returns the resulting new Block object
+    def _parse_blockstate_string(self):
+        match = Block.blockstate_regex.match(self._blockstate)
+        self._namespace = match.group("namespace") or "minecraft"
+        self._base_name = match.group("base_name")
 
-        :param layer: The layer of extra block to remove
-        :return: A new instance of Block with the same data but with the extra block at specified layer removed
-        """
-        return Block(
-            self._namespace,
-            self._base_name,
-            self._properties,
-            [*self._extra_blocks[:layer], *self._extra_blocks[layer + 1 :]],
-        )
+        if match.group("property_name") is not None:
+            self._properties = {
+                match.group("property_name"): match.group("property_value")
+            }
+        else:
+            self._properties = {}
 
-    @classmethod
-    def get_from_blockstate(cls, blockstate: str) -> Block:
-        """
-        Parses a blockstate string and returns a Block object that contains the data for that blockstate.
-
-        .. attention::
-
-            If a blockstate has the ``waterlogged`` property, the property will be removed and if the property was
-            ``true``, a water extra block will automatically be added. If the property was ``false``, it'll still be
-            removed but no extra block will be added
-
-        :param blockstate: The blockstate string
-        :return: A Block object containing the data supplied in the blockstate
-        """
-        namespace, base_name, properties = cls.parse_blockstate_string(blockstate)
-
-        return cls(namespace, base_name, properties)
+        properties_string = match.group("properties")
+        if properties_string is not None:
+            properties_match = Block.parameters_regex.finditer(properties_string)
+            for match in properties_match:
+                self._properties[match.group("name")] = match.group("value")
 
     def __str__(self) -> str:
         """
         :return: The base blockstate string of the Block object
         """
-        return self._blockstate
+        return self.blockstate
 
     def __repr__(self) -> str:
         """
         :return: The base blockstate string of the Block object along with the blockstate strings of included extra blocks
         """
-        return f"Block({', '.join([str(b) for b in (self, *self._extra_blocks)])})"
+        return f"Block({', '.join([str(b) for b in (self, *self.extra_blocks)])})"
 
     def _compare_extra_blocks(self, other: Block) -> bool:
-        if len(self._extra_blocks) != len(other._extra_blocks):
+        if len(self.extra_blocks) != len(other.extra_blocks):
             return False
 
-        if len(self._extra_blocks) == 0:
+        if len(self.extra_blocks) == 0:
             return True
 
         for our_extra_block, their_extra_block in zip(
-            self._extra_blocks, other._extra_blocks
+            self.extra_blocks, other.extra_blocks
         ):
             if our_extra_block != their_extra_block:
                 return False
@@ -239,12 +207,7 @@ class Block:
         if self.__class__ != other.__class__:
             return False
 
-        return (
-            self._namespace == other._namespace
-            and self._base_name == other._base_name
-            and self._properties == other._properties
-            and self._compare_extra_blocks(other)
-        )
+        return self.blockstate == other.blockstate and self._compare_extra_blocks(other)
 
     def __hash__(self) -> int:
         """
@@ -252,10 +215,10 @@ class Block:
 
         :return: A hash of the Block object
         """
-        current_hash = hash(self._blockstate)
+        current_hash = hash(self.blockstate)
 
-        if self._extra_blocks:
-            current_hash = current_hash + hash(self._extra_blocks)
+        if self.extra_blocks:
+            current_hash = current_hash + hash(self.extra_blocks)
 
         return current_hash
 
@@ -270,26 +233,36 @@ class Block:
             return NotImplemented
 
         if (
-            len(other._extra_blocks) == 0
+            len(other.extra_blocks) == 0
         ):  # Reduces the amount of extra objects/references created
             other_cpy = other
         else:
-            other_cpy = Block(other._namespace, other._base_name, other._properties)
+            other_cpy = Block(
+                namespace=other.namespace,
+                base_name=other.base_name,
+                properties=other.properties,
+            )
 
         other_extras = []
-        for eb in other._extra_blocks:
+        for eb in other.extra_blocks:
             if (
                 len(eb.extra_blocks) == 0
             ):  # Reduces the amount of extra objects/references created
                 other_extras.append(eb)
             else:
-                other_extras.append(Block(eb._namespace, eb._base_name, eb._properties))
+                other_extras.append(
+                    Block(
+                        namespace=eb.namespace,
+                        base_name=eb.base_name,
+                        properties=eb.properties,
+                    )
+                )
 
         return Block(
-            self._namespace,
-            self._base_name,
-            self._properties,
-            [*self._extra_blocks, other_cpy, *other_extras],
+            namespace=self.namespace,
+            base_name=self.base_name,
+            properties=self.properties,
+            extra_blocks=[*self.extra_blocks, other_cpy, *other_extras],
         )
 
     def __sub__(self, other: Block) -> Block:
@@ -303,38 +276,67 @@ class Block:
             return NotImplemented
 
         if (
-            len(other._extra_blocks) == 0
+            len(other.extra_blocks) == 0
         ):  # Reduces the amount of extra objects/references created
             other_cpy = other
         else:
-            other_cpy = Block(other._namespace, other._base_name, other._properties)
+            other_cpy = Block(
+                namespace=other.namespace,
+                base_name=other.base_name,
+                properties=other.properties,
+            )
 
         other_extras = []
-        for eb in other._extra_blocks:
+        for eb in other.extra_blocks:
             if len(eb.extra_blocks) == 0:
                 other_extras.append(eb)
             else:
-                other_extras.append(Block(eb._namespace, eb._base_name, eb._properties))
+                other_extras.append(
+                    Block(
+                        namespace=eb.namespace,
+                        base_name=eb.base_name,
+                        properties=eb.properties,
+                    )
+                )
 
         # Sets are unordered, so a regular set subtraction doesn't always return the order we want (it sometimes will!)
         # So we loop through all of our extra blocks and only append those to the new_extras list if they aren't in
         # extra_blocks_to_remove
         new_extras = []
         extra_blocks_to_remove = (other_cpy, *other_extras)
-        for eb in self._extra_blocks:
+        for eb in self.extra_blocks:
             if eb not in extra_blocks_to_remove:
                 new_extras.append(eb)
 
-        return Block(self._namespace, self._base_name, self._properties, new_extras)
+        return Block(
+            namespace=self.namespace,
+            base_name=self.base_name,
+            properties=self.properties,
+            extra_blocks=new_extras,
+        )
+
+    def remove_layer(self, layer: int) -> Block:
+        """
+        Removes the Block object from the specified layer and returns the resulting new Block object
+
+        :param layer: The layer of extra block to remove
+        :return: A new instance of Block with the same data but with the extra block at specified layer removed
+        """
+        return Block(
+            namespace=self.namespace,
+            base_name=self.base_name,
+            properties=self.properties,
+            extra_blocks=[*self.extra_blocks[:layer], *self.extra_blocks[layer + 1 :]],
+        )
 
     def __sizeof__(self):
         size = (
-            getsizeof(self._namespace)
-            + getsizeof(self._base_name)
-            + getsizeof(self._properties)
-            + getsizeof(self._blockstate)
+            getsizeof(self.namespace)
+            + getsizeof(self.base_name)
+            + getsizeof(self.properties)
+            + getsizeof(self.blockstate)
         )
-        for eb in self._extra_blocks:
+        for eb in self.extra_blocks:
             size += getsizeof(eb)
         return size
 
@@ -396,6 +398,3 @@ class BlockManager:
             self._index_to_block.append(b)
 
         return b
-
-
-Block.water = Block("minecraft", "water", {})
