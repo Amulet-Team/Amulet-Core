@@ -152,23 +152,29 @@ class Block:
             props = [f"{key}={value}" for key, value in self.properties.items()]
             self._blockstate = f"{self._blockstate}[{','.join(props)}]"
 
-    def _parse_blockstate_string(self):
-        match = Block.blockstate_regex.match(self._blockstate)
-        self._namespace = match.group("namespace") or "minecraft"
-        self._base_name = match.group("base_name")
+    @staticmethod
+    def parse_blockstate_string(blockstate: str) -> Tuple[str, str, Dict[str, str]]:
+        match = Block.blockstate_regex.match(blockstate)
+        namespace = match.group("namespace") or "minecraft"
+        base_name = match.group("base_name")
 
         if match.group("property_name") is not None:
-            self._properties = {
-                match.group("property_name"): match.group("property_value")
-            }
+            properties = {match.group("property_name"): match.group("property_value")}
         else:
-            self._properties = {}
+            properties = {}
 
         properties_string = match.group("properties")
         if properties_string is not None:
             properties_match = Block.parameters_regex.finditer(properties_string)
             for match in properties_match:
-                self._properties[match.group("name")] = match.group("value")
+                properties[match.group("name")] = match.group("value")
+
+        return namespace, base_name, properties
+
+    def _parse_blockstate_string(self):
+        self._namespace, self._base_name, self._properties = self.parse_blockstate_string(
+            self._blockstate
+        )
 
     def __str__(self) -> str:
         """
