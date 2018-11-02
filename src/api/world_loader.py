@@ -36,8 +36,8 @@ class _WorldLoader:
                 module = import_module(os.path.basename(definition)[:-3])
                 if not (
                     hasattr(module, "load")
-                    or hasattr(module, "identify")
-                    or hasattr(module, "FORMAT")
+                    and hasattr(module, "identify")
+                    and hasattr(module, "FORMAT")
                 ):
                     raise ValueError()
 

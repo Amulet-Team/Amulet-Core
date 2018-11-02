@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from api.world import World
+from api.blocks import Block
 
 from formats.format_loader import loader
 
@@ -27,5 +28,23 @@ def identify(directory: str) -> bool:
     return True
 
 
+def parse_blockstate(blockstate: str) -> Block:
+    namespace, base_name, properties = Block.parse_blockstate_string(blockstate)
+
+    if properties.pop("waterlogged", "false").lower() == "true":
+        block = Block(
+            namespace=namespace,
+            base_name=base_name,
+            properties=properties,
+            extra_blocks=(Block.water,),
+        )
+    else:
+        block = Block(namespace=namespace, base_name=base_name, properties=properties)
+
+    return block
+
+
 def load(directory: str) -> World:
-    return loader["anvil2"].LEVEL_CLASS.load(directory, "java_1_13")
+    return loader["anvil2"].LEVEL_CLASS.load(
+        directory, "java_1_13", {"blockstates": parse_blockstate}
+    )

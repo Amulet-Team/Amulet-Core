@@ -3,11 +3,12 @@ from __future__ import annotations
 import itertools
 import os
 import shutil
-from typing import Union, Generator, Dict, Optional
+from typing import Any, Union, Generator, Dict, Optional, Callable
 from importlib import import_module
 
 import numpy
 
+from api.blocks import Block, BlockManager
 from api.history import HistoryManager
 from api.chunk import Chunk, SubChunk
 from api.operation import Operation
@@ -24,16 +25,24 @@ class WorldFormat:
     Base class for World objects
     """
 
-    mapping_handler: numpy.ndarray = None
+    mapping_handler: BlockManager = None
     _materials = None
 
+    def __init__(self, adapters: Dict[str, Callable[[Any], Any]]):
+        self.get_blockstate: Callable[[str], Block] = adapters.get(
+            "blockstates", self.get_blockstate
+        )
+
     @classmethod
-    def load(cls, directory: str, definitions) -> World:
+    def load(
+        cls, directory: str, definitions, adapters: Dict[str, Callable[[Any], Any]]
+    ) -> World:
         """
         Loads the Minecraft world contained in the given directory with the supplied definitions
 
         :param directory: The directory of the world to load
         :param definitions: The definitions to load the world with
+        :param adapters: Adapter function used to convert version specific data
         :return: The loaded world in a `World` object
         """
         raise NotImplementedError()
@@ -57,6 +66,19 @@ class WorldFormat:
         """
         raise NotImplementedError()
 
+    def get_blockstate(self, blockstate: str) -> Block:
+        """
+        Converts a version-specific blockstate string into a :class:`api.blocks.Block` object by parsing the blockstate
+        and handling any addition logic that needs to be done (IE: Adding an extra block when `waterlogged=true` for
+        Java edition). This method is replaced at runtime with the version specific handler.
+
+        :param blockstate: The blockstate string to parse/convert
+        :return: The resulting Block object
+        """
+
+        namespace, base_name, properties = Block.parse_blockstate_string(blockstate)
+        return Block(namespace=namespace, base_name=base_name, properties=properties)
+
 
 class World:
     """
@@ -76,8 +98,21 @@ class World:
         shutil.rmtree(get_temp_dir(self._directory), ignore_errors=True)
 
     @property
-    def block_definitions(self) -> numpy.ndarray:
+    def block_definitions(self) -> BlockManager:
+        """
+        Allows access to the :class:`api.blocks.BlockManager` instance for this World
+        :return: The instance of the :class:`api.blocks.BlockManager`
+        """
         return self._wrapper.mapping_handler
+
+    def get_block_instance(self, blockstate: str) -> Block:
+        """
+        Converts the (possibly) version specific blockstate string into a :class:`api.blocks.Block`
+
+        :param blockstate: The blockstate string to convert
+        :return: The resulting :class:`api.blocks.Block` object
+        """
+        return self._wrapper.get_blockstate(blockstate)
 
     def get_chunk(self, cx: int, cz: int) -> Chunk:
         """
@@ -94,7 +129,7 @@ class World:
         self.blocks_cache[(cx, cz)] = chunk
         return self.blocks_cache[(cx, cz)]
 
-    def get_block(self, x: int, y: int, z: int) -> str:
+    def get_block(self, x: int, y: int, z: int) -> Block:
         """
         Gets the blockstate at the specified coordinates
 
@@ -110,7 +145,7 @@ class World:
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
         chunk = self.get_chunk(cx, cz)
         block = chunk[offset_x, y, offset_z].blocks
-        return self._wrapper.mapping_handler[block]
+        return self._wrapper.mapping_handler[block.item()]
 
     def get_sub_chunks(
         self, *args: Union[slice, int]

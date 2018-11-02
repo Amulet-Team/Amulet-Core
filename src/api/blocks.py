@@ -5,13 +5,15 @@ import re
 from typing import Dict, Iterable, List, Tuple, Union, overload
 
 
-class MalformedBlockstateException(Exception):
-    pass
-
-
 class Block:
     """
     Class to handle data about various blockstates and allow for extra blocks to be created and interacted with.
+
+    .. important::
+       Creating version specific block objects via the `Block()` constructor instead of using
+       :meth:`World.get_block_instance` is supported but not encouraged. To avoid possible caveats of doing this,
+       make sure to either only instantiate blocks with Amulet blockstate data or use
+       :meth:`World.get_block_instance` instead
 
     Here's a few examples on how create a Block object with extra blocks:
 
@@ -70,6 +72,8 @@ class Block:
     )
 
     parameters_regex = re.compile(r"(?:,(?P<name>[a-z0-9_]+)=(?P<value>[a-z0-9_]+))")
+
+    water = None
 
     def __init__(
         self,
@@ -347,6 +351,9 @@ class Block:
         return size
 
 
+Block.water = Block("minecraft:water")
+
+
 class BlockManager:
     """
     Class to handle the mappings between Block objects and their index-based internal IDs
@@ -358,6 +365,9 @@ class BlockManager:
         """
         self._index_to_block: List[Block] = []
         self._block_to_index_map: Dict[Block, int] = {}
+
+    def __len__(self):
+        return len(self._index_to_block)
 
     @overload
     def __getitem__(self, item: Block) -> int:
@@ -388,19 +398,3 @@ class BlockManager:
         self._index_to_block.append(block)
 
         return i
-
-    def get_block(self, blockstate: str) -> Block:
-        """
-        Creates a Block object from the supplied blockstate string, adds the object to the internal mappings, and then
-        returns the object.
-
-        :param blockstate: The blockstate string to add
-        :return: The Block object created with the supplied blockstate string
-        """
-        b = Block.get_from_blockstate(blockstate)
-
-        if b not in self._block_to_index_map:
-            self._block_to_index_map[b] = len(self._block_to_index_map)
-            self._index_to_block.append(b)
-
-        return b
