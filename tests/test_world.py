@@ -125,6 +125,7 @@ class Anvil2WorldTestCase(WorldTestBaseCases.WorldTestCase):
             test_data = json.load(json_data)
 
         test_ran = False
+        count = 1
         for test_entry in test_data["tests"]:
             test_ran = True
             block_array = test_entry["block_array"]
@@ -140,8 +141,11 @@ class Anvil2WorldTestCase(WorldTestBaseCases.WorldTestCase):
             self.assertTrue(
                 numpy.array_equal(
                     long_array, _encode_long_array(block_array, palette_size)
-                )
+                ),
+                msg=f"Testcase #{count} in the longarray json is wrong",
             )
+
+            count += 1
 
         # Make sure some test are ran in case the data file failed to load or has a wrong format.
         self.assertTrue(test_ran)
