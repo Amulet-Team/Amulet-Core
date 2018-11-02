@@ -28,6 +28,9 @@ def identify(directory: str) -> bool:
     return True
 
 
+_WATER_CONSTANT = Block(blockstate="minecraft:water")
+
+
 def parse_blockstate(blockstate: str) -> Block:
     namespace, base_name, properties = Block.parse_blockstate_string(blockstate)
 
@@ -36,7 +39,7 @@ def parse_blockstate(blockstate: str) -> Block:
             namespace=namespace,
             base_name=base_name,
             properties=properties,
-            extra_blocks=(Block.water,),
+            extra_blocks=(_WATER_CONSTANT,),
         )
     else:
         block = Block(namespace=namespace, base_name=base_name, properties=properties)
