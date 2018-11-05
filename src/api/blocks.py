@@ -366,6 +366,9 @@ class BlockManager:
     def __len__(self):
         return len(self._index_to_block)
 
+    def __contains__(self, item: Block) -> bool:
+        return item in self._block_to_index_map
+
     @overload
     def __getitem__(self, item: Block) -> int:
         ...
@@ -385,12 +388,19 @@ class BlockManager:
         if isinstance(item, (int, numpy.unsignedinteger)):
             return self._index_to_block[item]
 
-        if isinstance(item, Block) and item not in self._block_to_index_map:
-            self._add_block(item)
-
         return self._block_to_index_map[item]
 
-    def _add_block(self, block: Block) -> int:
+    def add_block(self, block: Block) -> int:
+        """
+        Adds a Block object to the internal Block object/ID mappings. If the Block already exists in the mappings,
+        then the existing ID is returned
+
+        :param block: The Block to add to the manager
+        :return: The internal ID of the Block
+        """
+        if block in self._block_to_index_map:
+            return self._block_to_index_map[block]
+
         self._block_to_index_map[block] = i = len(self._block_to_index_map)
         self._index_to_block.append(block)
 

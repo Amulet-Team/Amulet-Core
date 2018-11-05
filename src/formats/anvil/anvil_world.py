@@ -227,12 +227,12 @@ class AnvilWorld(WorldFormat):
                     block_object: Block = Block(
                         blockstate=f"minecraft:unknown_{len(self.unknown_blocks)}"
                     )
-                    internal_id = self.block_manager[block_object]
+                    internal_id = self.block_manager.add_block(block_object)
                     self.unknown_blocks[internal_id] = block
             else:
-                internal_id = self.block_manager[
+                internal_id = self.block_manager.add_block(
                     block_object
-                ]  # Find the index of the block in mapping_handler
+                )  # Find the index of the block in mapping_handler
 
             block_mask = blocks == block[0]
             data_mask = block_data_array == block[1]
