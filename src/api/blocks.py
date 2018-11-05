@@ -4,6 +4,8 @@ from sys import getsizeof
 import re
 from typing import Dict, Iterable, List, Tuple, Union, overload
 
+import numpy
+
 
 class Block:
     """
@@ -11,9 +13,9 @@ class Block:
 
     .. important::
        Creating version specific block objects via the `Block()` constructor instead of using
-       :meth:`World.get_block_instance` is supported but not encouraged. To avoid possible caveats of doing this,
+       :meth:`api.world.World.get_block_instance` is supported but not encouraged. To avoid possible caveats of doing this,
        make sure to either only instantiate blocks with Amulet blockstate data or use
-       :meth:`World.get_block_instance` instead
+       :meth:`api.world.World.get_block_instance` instead
 
     Here's a few examples on how create a Block object with extra blocks:
 
@@ -369,7 +371,7 @@ class BlockManager:
         ...
 
     @overload
-    def __getitem__(self, item: int) -> Block:
+    def __getitem__(self, item: Union[int, numpy.unsignedinteger]) -> Block:
         ...
 
     def __getitem__(self, item):
@@ -380,7 +382,7 @@ class BlockManager:
         :param item: The Block object or int to get the mapping data of
         :return: An int if a Block object was supplied, a Block object if an int was supplied
         """
-        if isinstance(item, int):
+        if isinstance(item, (int, numpy.unsignedinteger)):
             return self._index_to_block[item]
 
         if isinstance(item, Block) and item not in self._block_to_index_map:

@@ -14,7 +14,7 @@ class Fill(Operation):
         self.fill_block = fill_block
 
     def run_operation(self, world):
-        internal_id = world.block_definitions[self.fill_block]
+        internal_id = world.block_manager[self.fill_block]
 
         for target in self.target_box.subboxes():
             block_generator = world.get_sub_chunks(*target.to_slice())

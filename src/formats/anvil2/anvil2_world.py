@@ -175,16 +175,19 @@ def _encode_long_array(data_array: array_like, palette_size: int) -> ndarray:
 
 
 class Anvil2World(WorldFormat):
-    def __init__(self, directory: str, definitions: str, adapters):
-        super(Anvil2World, self).__init__(adapters)
-        self._directory = directory
-        self._materials = DefinitionManager(definitions)
+    def __init__(self, directory: str, definitions: str, get_blockstate_adapter=None):
+        super(Anvil2World, self).__init__(
+            directory, definitions, get_blockstate_adapter=get_blockstate_adapter
+        )
         self._region_manager = _Anvil2RegionManager(directory)
-        self.mapping_handler = BlockManager()
 
     @classmethod
-    def load(cls, directory: str, definitions: str, adapters) -> World:
-        wrapper = cls(directory, definitions, adapters)
+    def load(
+        cls, directory: str, definitions: str, get_blockstate_adapter=None
+    ) -> World:
+        wrapper = cls(
+            directory, definitions, get_blockstate_adapter=get_blockstate_adapter
+        )
         fp = open(path.join(directory, "level.dat"), "rb")
         root_tag = nbt.NBTFile(fileobj=fp)
         fp.close()
@@ -239,7 +242,7 @@ class Anvil2World(WorldFormat):
         for unique in uniques:
             internal = self._materials.get_block_from_definition(unique, default=unique)
             block: Block = self.get_blockstate(internal)
-            internal_id = self.mapping_handler[block]
+            internal_id = self.block_manager[block]
 
             mask = temp_blocks == unique
 

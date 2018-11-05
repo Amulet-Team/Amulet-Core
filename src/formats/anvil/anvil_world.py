@@ -135,17 +135,20 @@ class _AnvilRegionManager:
 
 
 class AnvilWorld(WorldFormat):
-    def __init__(self, directory: str, definitions: str, adapters):
-        super(AnvilWorld, self).__init__(adapters)
-        self._directory = directory
-        self._materials = DefinitionManager(definitions)
+    def __init__(self, directory: str, definitions: str, get_blockstate_adapter=None):
+        super(AnvilWorld, self).__init__(
+            directory, definitions, get_blockstate_adapter=get_blockstate_adapter
+        )
         self._region_manager = _AnvilRegionManager(directory)
-        self.mapping_handler = BlockManager()
         self.unknown_blocks = {}
 
     @classmethod
-    def load(cls, directory: str, definitions: str, adapters) -> World:
-        wrapper = cls(directory, definitions, adapters)
+    def load(
+        cls, directory: str, definitions: str, get_blockstate_adapter=None
+    ) -> World:
+        wrapper = cls(
+            directory, definitions, get_blockstate_adapter=get_blockstate_adapter
+        )
         fp = open(path.join(directory, "level.dat"), "rb")
         root_tag = nbt.NBTFile(fileobj=fp)
         fp.close()
@@ -224,10 +227,10 @@ class AnvilWorld(WorldFormat):
                     block_object: Block = Block(
                         blockstate=f"minecraft:unknown_{len(self.unknown_blocks)}"
                     )
-                    internal_id = self.mapping_handler[block_object]
+                    internal_id = self.block_manager[block_object]
                     self.unknown_blocks[internal_id] = block
             else:
-                internal_id = self.mapping_handler[
+                internal_id = self.block_manager[
                     block_object
                 ]  # Find the index of the block in mapping_handler
 

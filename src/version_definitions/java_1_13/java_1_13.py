@@ -49,5 +49,5 @@ def parse_blockstate(blockstate: str) -> Block:
 
 def load(directory: str) -> World:
     return loader["anvil2"].LEVEL_CLASS.load(
-        directory, "java_1_13", {"blockstates": parse_blockstate}
+        directory, "java_1_13", get_blockstate_adapter=parse_blockstate
     )

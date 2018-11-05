@@ -18,6 +18,7 @@ from utils.world_utils import (
     blocks_slice_to_chunk_slice,
     Coordinates,
 )
+from version_definitions import DefinitionManager
 
 
 class WorldFormat:
@@ -25,13 +26,21 @@ class WorldFormat:
     Base class for World objects
     """
 
-    mapping_handler: BlockManager = None
+    block_manager: BlockManager = None
     _materials = None
 
-    def __init__(self, adapters: Dict[str, Callable[[Any], Any]]):
-        self.get_blockstate: Callable[[str], Block] = adapters.get(
-            "blockstates", self.get_blockstate
-        )
+    def __init__(
+        self,
+        directory: str,
+        definitions: str,
+        get_blockstate_adapter: Optional[Dict[str, Callable[[Any], Any]]] = None,
+    ):
+        self._directory = directory
+        self._materials = DefinitionManager(definitions)
+        self.block_manager = BlockManager()
+
+        if get_blockstate_adapter:
+            self.get_blockstate: Callable[[str], Block] = get_blockstate_adapter
 
     @classmethod
     def load(
@@ -98,12 +107,12 @@ class World:
         shutil.rmtree(get_temp_dir(self._directory), ignore_errors=True)
 
     @property
-    def block_definitions(self) -> BlockManager:
+    def block_manager(self) -> BlockManager:
         """
         Allows access to the :class:`api.blocks.BlockManager` instance for this World
         :return: The instance of the :class:`api.blocks.BlockManager`
         """
-        return self._wrapper.mapping_handler
+        return self._wrapper.block_manager
 
     def get_block_instance(self, blockstate: str) -> Block:
         """
@@ -145,7 +154,7 @@ class World:
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
         chunk = self.get_chunk(cx, cz)
         block = chunk[offset_x, y, offset_z].blocks
-        return self._wrapper.mapping_handler[block.item()]
+        return self._wrapper.block_manager[block]
 
     def get_sub_chunks(
         self, *args: Union[slice, int]
