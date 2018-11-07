@@ -4,7 +4,7 @@ from sys import getsizeof
 import re
 from typing import Dict, Iterable, List, Tuple, Union, overload
 
-import numpy
+from utils import Int
 
 
 class Block:
@@ -374,7 +374,7 @@ class BlockManager:
         ...
 
     @overload
-    def __getitem__(self, item: Union[int, numpy.unsignedinteger]) -> Block:
+    def __getitem__(self, item: Int) -> Block:
         ...
 
     def __getitem__(self, item):
@@ -385,10 +385,16 @@ class BlockManager:
         :param item: The Block object or int to get the mapping data of
         :return: An int if a Block object was supplied, a Block object if an int was supplied
         """
-        if isinstance(item, (int, numpy.unsignedinteger)):
-            return self._index_to_block[item]
+        try:
+            if isinstance(item, Block):
+                return self._block_to_index_map[item]
 
-        return self._block_to_index_map[item]
+            return self._index_to_block[item]
+        except (KeyError, IndexError):
+            raise KeyError(
+                f"There is no {item} in the BlockManager. "
+                f"You might want to use the `add_block` function for your blocks before accessing them."
+            )
 
     def add_block(self, block: Block) -> int:
         """

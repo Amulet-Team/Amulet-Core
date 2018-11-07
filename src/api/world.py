@@ -33,7 +33,7 @@ class WorldFormat:
         self,
         directory: str,
         definitions: str,
-        get_blockstate_adapter: Optional[Dict[str, Callable[[Any], Any]]] = None,
+        get_blockstate_adapter: Optional[Callable[[str], Block]] = None,
     ):
         self._directory = directory
         self._materials = DefinitionManager(definitions)
@@ -44,14 +44,17 @@ class WorldFormat:
 
     @classmethod
     def load(
-        cls, directory: str, definitions, adapters: Dict[str, Callable[[Any], Any]]
+        cls,
+        directory: str,
+        definitions,
+        get_blockstate_adapter: Optional[Callable[[str], Block]] = None,
     ) -> World:
         """
         Loads the Minecraft world contained in the given directory with the supplied definitions
 
         :param directory: The directory of the world to load
         :param definitions: The definitions to load the world with
-        :param adapters: Adapter function used to convert version specific data
+        :param get_blockstate_adapter: Adapter function used to convert version specific blockstate data
         :return: The loaded world in a `World` object
         """
         raise NotImplementedError()
