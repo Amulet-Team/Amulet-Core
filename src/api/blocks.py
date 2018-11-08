@@ -332,11 +332,19 @@ class Block:
         :param layer: The layer of extra block to remove
         :return: A new instance of Block with the same data but with the extra block at specified layer removed
         """
+        if layer == 0 and len(self._extra_blocks) > 0:
+            new_base = self._extra_blocks[0]
+            return Block(
+                namespace=new_base.namespace,
+                base_name=new_base.base_name,
+                properties=new_base.properties,
+                extra_blocks=[*self._extra_blocks[1:]],
+            )
         return Block(
             namespace=self.namespace,
             base_name=self.base_name,
             properties=self.properties,
-            extra_blocks=[*self.extra_blocks[:layer], *self.extra_blocks[layer + 1 :]],
+            extra_blocks=[*self.extra_blocks[: layer - 1], *self.extra_blocks[layer:]],
         )
 
     def __sizeof__(self):

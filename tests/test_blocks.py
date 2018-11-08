@@ -121,7 +121,7 @@ class BlockTestCase(unittest.TestCase):
             self.assertEqual(block_1, block_2)
             self.assertEqual(0, len(block_1.extra_blocks))
 
-        new_conglomerate = conglomerate_1.remove_layer(1)
+        new_conglomerate = conglomerate_1.remove_layer(2)
         for block_1, block_2 in zip(
             new_conglomerate.extra_blocks, (water, dirt, granite)
         ):
@@ -140,13 +140,26 @@ class BlockTestCase(unittest.TestCase):
             self.assertEqual(block_1, block_2)
             self.assertEqual(0, len(block_1.extra_blocks))
 
-        new_conglomerate = conglomerate_2.remove_layer(2)
+        new_conglomerate = conglomerate_2.remove_layer(3)
         self.assertEqual(3, len(new_conglomerate.extra_blocks))
         for block_1, block_2 in zip(
             new_conglomerate.extra_blocks, (water, stone, oak_log_axis_x)
         ):
             self.assertEqual(block_1, block_2)
             self.assertEqual(0, len(block_1.extra_blocks))
+
+        new_base = conglomerate_2.remove_layer(0)
+        self.assertEqual(3, len(new_base.extra_blocks))
+        self.assertEqual("minecraft", new_base.namespace)
+        self.assertEqual("water", new_base.base_name)
+        self.assertEqual({"level": "1"}, new_base.properties)
+        for block_1, block_2 in zip(
+            new_base.extra_blocks, (stone, dirt, oak_log_axis_x)
+        ):
+            self.assertEqual(block_1, block_2)
+            self.assertEqual(0, len(block_1.extra_blocks))
+
+        self.assertNotEqual(new_base, new_base.remove_layer(1))
 
     def test_hash(self):
         stone = Block(blockstate="minecraft:stone")
@@ -208,6 +221,9 @@ class BlockManagerTestCase(unittest.TestCase):
         self.assertIsNot(dirt, dirt_water)
         self.assertEqual(3, self.manager[dirt_water])
 
+        with self.assertRaises(KeyError):
+            random_block = self.manager[10000]
+
     def test_get_block_from_manager(self):
         dirt = Block(blockstate="minecraft:dirt")
         stone = Block(blockstate="minecraft:stone")
@@ -219,6 +235,10 @@ class BlockManagerTestCase(unittest.TestCase):
         self.assertEqual(stone, self.manager[1])
         self.assertEqual(granite, self.manager[2])
         self.assertEqual(dirt_water, self.manager[3])
+
+        with self.assertRaises(KeyError):
+            brain_coral = Block(blockstate="minecraft:brain_coral")
+            internal_id = self.manager[brain_coral]
 
 
 if __name__ == "__main__":
