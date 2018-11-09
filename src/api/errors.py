@@ -16,3 +16,7 @@ class FormatLoaderMismatched(FormatError):
 class FormatLoaderNoneMatched(FormatError):
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
+
+
+class InvalidBlockException(Exception):
+    pass

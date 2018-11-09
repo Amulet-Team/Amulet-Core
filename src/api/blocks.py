@@ -4,6 +4,7 @@ from sys import getsizeof
 import re
 from typing import Dict, Iterable, List, Tuple, Union, overload
 
+from api.errors import InvalidBlockException
 from utils import Int
 
 
@@ -192,6 +193,9 @@ class Block:
         """
         return f"Block({', '.join([str(b) for b in (self, *self.extra_blocks)])})"
 
+    def __len__(self):
+        return len(self._extra_blocks) + 1
+
     def _compare_extra_blocks(self, other: Block) -> bool:
         if len(self.extra_blocks) != len(other.extra_blocks):
             return False
@@ -331,6 +335,7 @@ class Block:
 
         :param layer: The layer of extra block to remove
         :return: A new instance of Block with the same data but with the extra block at specified layer removed
+        :raises `InvalidBlockException`: Raised when you remove the base block from a Block with no other extra blocks
         """
         if layer == 0 and len(self._extra_blocks) > 0:
             new_base = self._extra_blocks[0]
@@ -340,6 +345,11 @@ class Block:
                 properties=new_base.properties,
                 extra_blocks=[*self._extra_blocks[1:]],
             )
+        elif layer == 0:
+            raise InvalidBlockException(
+                "Removing the base block with no extra blocks is not supported"
+            )
+
         return Block(
             namespace=self.namespace,
             base_name=self.base_name,

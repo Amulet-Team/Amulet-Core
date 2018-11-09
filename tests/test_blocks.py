@@ -8,6 +8,7 @@ except ModuleNotFoundError:
 
 import unittest
 from api.blocks import Block, BlockManager
+from api.errors import InvalidBlockException
 
 
 class BlockTestCase(unittest.TestCase):
@@ -160,6 +161,9 @@ class BlockTestCase(unittest.TestCase):
             self.assertEqual(0, len(block_1.extra_blocks))
 
         self.assertNotEqual(new_base, new_base.remove_layer(1))
+
+        with self.assertRaises(InvalidBlockException):
+            no_block = granite.remove_layer(0)
 
     def test_hash(self):
         stone = Block(blockstate="minecraft:stone")
