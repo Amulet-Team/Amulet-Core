@@ -337,7 +337,11 @@ class Block:
         :return: A new instance of Block with the same data but with the extra block at specified layer removed
         :raises `InvalidBlockException`: Raised when you remove the base block from a Block with no other extra blocks
         """
-        if layer == 0 and len(self._extra_blocks) > 0:
+        if (
+            layer == 0
+            and len(self.extra_blocks) > 0
+            and layer <= len(self.extra_blocks)
+        ):
             new_base = self._extra_blocks[0]
             return Block(
                 namespace=new_base.namespace,
@@ -345,6 +349,8 @@ class Block:
                 properties=new_base.properties,
                 extra_blocks=[*self._extra_blocks[1:]],
             )
+        elif layer > len(self.extra_blocks):
+            raise InvalidBlockException("You cannot remove a non-existant layer")
         elif layer == 0:
             raise InvalidBlockException(
                 "Removing the base block with no extra blocks is not supported"

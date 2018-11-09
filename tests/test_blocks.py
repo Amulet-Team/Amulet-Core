@@ -165,6 +165,12 @@ class BlockTestCase(unittest.TestCase):
         with self.assertRaises(InvalidBlockException):
             no_block = granite.remove_layer(0)
 
+        with self.assertRaises(InvalidBlockException):
+            non_present_layer = granite.remove_layer(7)
+            non_present_layer = conglomerate_2.remove_layer(5)
+
+        conglomerate_2.remove_layer(4)  # Check if last layer can still be removed
+
     def test_hash(self):
         stone = Block(blockstate="minecraft:stone")
         water = Block(blockstate="minecraft:water[level=1]")
