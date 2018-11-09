@@ -33,4 +33,4 @@ def identify(directory: str) -> bool:
 
 
 def load(directory: str) -> World:
-    return loader["anvil"].LEVEL_CLASS.load(directory, "java_1_12")
+    return loader["anvil"].LEVEL_CLASS.load(directory, "java_1_12", {})

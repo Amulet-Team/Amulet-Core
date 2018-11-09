@@ -12,6 +12,7 @@ from nbt import nbt
 from os import path
 
 from api.world import World
+from api.blocks import Block, BlockManager
 from utils.world_utils import get_smallest_dtype
 from version_definitions.definition_manager import DefinitionManager
 
@@ -134,18 +135,20 @@ class _AnvilRegionManager:
 
 
 class AnvilWorld(WorldFormat):
-    def __init__(self, directory: str, definitions: str):
-        self._directory = directory
-        self._materials = DefinitionManager(definitions)
-        self._region_manager = _AnvilRegionManager(directory)
-        self.mapping_handler = numpy.array(
-            list(self._materials.blocks.keys()), dtype="object"
+    def __init__(self, directory: str, definitions: str, get_blockstate_adapter=None):
+        super(AnvilWorld, self).__init__(
+            directory, definitions, get_blockstate_adapter=get_blockstate_adapter
         )
+        self._region_manager = _AnvilRegionManager(directory)
         self.unknown_blocks = {}
 
     @classmethod
-    def load(cls, directory: str, definitions: str) -> World:
-        wrapper = cls(directory, definitions)
+    def load(
+        cls, directory: str, definitions: str, get_blockstate_adapter=None
+    ) -> World:
+        wrapper = cls(
+            directory, definitions, get_blockstate_adapter=get_blockstate_adapter
+        )
         fp = open(path.join(directory, "level.dat"), "rb")
         root_tag = nbt.NBTFile(fileobj=fp)
         fp.close()
@@ -214,25 +217,22 @@ class AnvilWorld(WorldFormat):
             internal = self._materials.get_block_from_definition(
                 block, default="minecraft:unknown_{}"
             )
+            block_object: Block = self.get_blockstate(internal)
             if (
                 internal == "minecraft:unknown_{}"
             ):  # If we don't have the block in our definitions, call it an unknown block
                 try:
                     internal_id = list(self.unknown_blocks.values()).index(block)
                 except ValueError:
-                    internal_id = len(self.mapping_handler)
-                    internal = internal.format(len(self.unknown_blocks))
+                    block_object: Block = Block(
+                        blockstate=f"minecraft:unknown_{len(self.unknown_blocks)}"
+                    )
+                    internal_id = self.block_manager.add_block(block_object)
                     self.unknown_blocks[internal_id] = block
-                    self.mapping_handler = numpy.append(self.mapping_handler, internal)
             else:
-                internal_in_mapping = numpy.where(self.mapping_handler == internal)[
-                    0
-                ]  # Find the index of the block in mapping_handler
-                if len(internal_in_mapping) > 0:
-                    internal_id = internal_in_mapping[0]
-                else:  # The block isn't in mapping_handler yet, so add it
-                    internal_id = len(self.mapping_handler)
-                    self.mapping_handler = numpy.append(self.mapping_handler, internal)
+                internal_id = self.block_manager.add_block(
+                    block_object
+                )  # Find the index of the block in mapping_handler
 
             block_mask = blocks == block[0]
             data_mask = block_data_array == block[1]

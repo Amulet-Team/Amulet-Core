@@ -11,6 +11,7 @@ import unittest
 import json
 import numpy
 
+from api.blocks import Block
 from api.selection import SubBox, SelectionBox
 from api.chunk import SubChunk
 from api import world_loader
@@ -29,11 +30,15 @@ class WorldTestBaseCases:
             self.world.exit()
 
         def test_get_block(self):
-            self.assertEqual("minecraft:air", self.world.get_block(0, 0, 0))
-            self.assertEqual("minecraft:stone", self.world.get_block(1, 70, 3))
-            self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
+            self.assertEqual("minecraft:air", self.world.get_block(0, 0, 0).blockstate)
             self.assertEqual(
-                "minecraft:polished_granite", self.world.get_block(1, 70, 7)
+                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+            )
+            self.assertEqual(
+                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+            )
+            self.assertEqual(
+                "minecraft:polished_granite", self.world.get_block(1, 70, 7).blockstate
             )
 
             with self.assertRaises(IndexError):
@@ -71,43 +76,59 @@ class WorldTestBaseCases:
             target_box = SelectionBox((subbx2,))
 
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3)
+                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )  # Sanity check
-            self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
+            self.assertEqual(
+                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+            )
 
             self.world.run_operation_from_operation_name("clone", src_box, target_box)
 
-            self.assertEqual("minecraft:stone", self.world.get_block(1, 70, 5))
+            self.assertEqual(
+                "minecraft:stone", self.world.get_block(1, 70, 5).blockstate
+            )
 
             self.world.undo()
 
-            self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
+            self.assertEqual(
+                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+            )
 
             self.world.redo()
 
-            self.assertEqual("minecraft:stone", self.world.get_block(1, 70, 5))
+            self.assertEqual(
+                "minecraft:stone", self.world.get_block(1, 70, 5).blockstate
+            )
 
             self.world.undo()
 
-            self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
+            self.assertEqual(
+                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+            )
 
         def test_fill_operation(self):
             subbox_1 = SubBox((1, 70, 3), (5, 71, 5))
             box = SelectionBox((subbox_1,))
 
-            self.world.run_operation_from_operation_name("fill", box, "minecraft:stone")
+            self.world.run_operation_from_operation_name(
+                "fill", box, Block("minecraft:stone")
+            )
 
             for x, y, z in box:
                 self.assertEqual(
                     "minecraft:stone",
-                    self.world.get_block(x, y, z),
+                    self.world.get_block(x, y, z).blockstate,
                     f"Failed at coordinate ({x},{y},{z})",
                 )
 
             self.world.undo()
 
-            self.assertEqual("minecraft:stone", self.world.get_block(1, 70, 3))
-            self.assertEqual("minecraft:granite", self.world.get_block(1, 70, 5))
+            self.assertEqual(
+                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+            )
+            self.assertEqual(
+                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+            )
 
 
 class AnvilWorldTestCase(WorldTestBaseCases.WorldTestCase):
