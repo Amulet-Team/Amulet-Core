@@ -128,7 +128,7 @@ class BoxCommand(ComplexCommand):
         for subbox in box.subboxes():
             selection_generator = world.get_sub_chunks(*subbox.to_slice())
             for selection in selection_generator:
-                uniques = unique(world.block_definitions[selection.blocks])
+                uniques = unique(selection.blocks)
                 for u in uniques:
                     if u in blocks:
                         blocks[u] += 1
@@ -138,7 +138,7 @@ class BoxCommand(ComplexCommand):
         if blocks:
             print("=== Analysis Results ===")
             for key, value in blocks.items():
-                print(f"{key}: {value}")
+                print(f"{world.block_manager[key]}: {value}")
 
     @classmethod
     def help(cls, command_name: str = None):
