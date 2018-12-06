@@ -11,7 +11,7 @@ import unittest
 import json
 import numpy
 
-from api.blocks import Block
+from api.block import Block
 from api.selection import SubBox, SelectionBox
 from api.chunk import SubChunk
 from api import world_loader

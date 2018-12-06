@@ -4,7 +4,7 @@ import itertools
 
 from typing import Sequence, List, Iterator, Tuple, Union, cast
 
-from api.types import Point
+from api.minecraft_types import Point
 
 
 class SubBox:

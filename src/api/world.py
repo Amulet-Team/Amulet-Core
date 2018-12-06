@@ -8,7 +8,7 @@ from importlib import import_module
 
 import numpy
 
-from api.blocks import Block, BlockManager
+from api.block import Block, BlockManager
 from api.history import HistoryManager
 from api.chunk import Chunk, SubChunk
 from api.operation import Operation

@@ -4,7 +4,7 @@ import numpy
 
 from api.selection import SelectionBox
 from api.operation import Operation
-from api.blocks import Block
+from api.block import Block
 
 
 class Fill(Operation):

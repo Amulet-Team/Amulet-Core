@@ -7,7 +7,7 @@ except ModuleNotFoundError:
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "src"))
 
 import unittest
-from api.blocks import Block, BlockManager
+from api.block import Block, BlockManager
 from api.errors import InvalidBlockException
 
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from api.world import World
-from api.blocks import Block
+from api.block import Block
 
 from formats.format_loader import loader
 

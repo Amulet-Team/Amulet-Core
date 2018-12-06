@@ -12,7 +12,7 @@ from nbt import nbt
 from os import path
 
 from api.world import World
-from api.blocks import Block, BlockManager
+from api.block import Block, BlockManager
 from utils.world_utils import get_smallest_dtype
 from version_definitions.definition_manager import DefinitionManager
 
