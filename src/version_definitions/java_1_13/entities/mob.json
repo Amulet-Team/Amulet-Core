@@ -1,0 +1,140 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "Health": {
+    "tag_type": "float"
+  },
+  "AbsorptionAmount": {
+    "tag_type": "float"
+  },
+  "HurtTime": {
+    "tag_type": "short"
+  },
+  "HurtByTimestamp": {
+    "tag_type": "int"
+  },
+  "DeathTime": {
+    "tag_type": "short"
+  },
+  "FallFlying": {
+    "tag_type": "byte"
+  },
+  "Attributes": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "compound",
+      "structure": {
+        "Name": {
+          "tag_type": "string"
+        },
+        "Amount": {
+          "tag_type": "double"
+        },
+        "Operation": {
+          "tag_type": "int"
+        },
+        "UUIDMost": {
+          "tag_type": "long"
+        },
+        "UUIDLeast": {
+          "tag_type": "long"
+        }
+      }
+    }
+  },
+  "ActiveEffects": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "compound",
+      "structure": {
+        "Id": {
+          "tag_type": "byte"
+        },
+        "Amplifier": {
+          "tag_type": "byte"
+        },
+        "Duration": {
+          "tag_type": "int",
+          "default": 1
+        },
+        "Ambient": {
+          "tag_type": "byte",
+          "default": 0
+        },
+        "ShowParticles": {
+          "tag_type": "byte",
+          "default": 1
+        },
+        "ShowIcon": {
+          "tag_type": "byte"
+        }
+      }
+    }
+  },
+  "HandItems": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "<item>"
+    }
+  },
+  "ArmorItems": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "<item>"
+    }
+  },
+  "HandDropChances": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "float"
+    }
+  },
+  "ArmorDropChances": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "float"
+    }
+  },
+  "DeathLootTable": {
+    "tag_type": "string"
+  },
+  "DeathLootTableSeed": {
+    "tag_type": "long"
+  },
+  "CanPickUpLoot": {
+    "tag_type": "byte"
+  },
+  "NoAI": {
+    "tag_type": "byte"
+  },
+  "PersistenceRequired": {
+    "tag_type": "byte"
+  },
+  "LeftHanded": {
+    "tag_type": "byte"
+  },
+  "Leashed": {
+    "tag_type": "byte"
+  },
+  "Leash": {
+    "tag_type": "compound",
+    "structure": {
+      "UUIDMost": {
+        "tag_type": "long"
+      },
+      "UUIDLeast": {
+        "tag_type": "long"
+      },
+      "X": {
+        "tag_type": "int"
+      },
+      "Y": {
+        "tag_type": "int"
+      },
+      "Z": {
+        "tag_type": "int"
+      }
+    }
+  }
+}
