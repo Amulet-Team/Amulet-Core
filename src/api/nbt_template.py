@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import json
+from collections import UserDict
 from glob import iglob
 from itertools import chain
 from os.path import join, basename, dirname
@@ -13,7 +14,7 @@ from pprint import pprint
 class NBTStructure:
     __slots__ = ["_tag_type", "_value"]
 
-    def __init__(self, tag_type, value):
+    def __init__(self, tag_type, value=None):
         self._tag_type = tag_type
         self._value = value
 
@@ -45,9 +46,9 @@ class NBTStructure:
         if self.same_tag_type(template) or template._tag_type == "any":
             return self
         elif self._tag_type != template._tag_type:
-            return NBTStructure(template._tag_type, self._value)
+            return NBTStructure(template._tag_type, self.value)
         elif template._value:
-            return NBTStructure(template._tag_type, template._value)
+            return NBTStructure(template._tag_type, template.value)
         return None
 
 
@@ -55,7 +56,7 @@ class NBTRangeStructure(NBTStructure):
     __slots__ = ["_tag_type", "_value", "_range"]
 
     def __init__(self, tag_type, value, _range):
-        super(NBTRangeStructure, self).__init__(tag_type, value)
+        super().__init__(tag_type, value)
         self._range = _range
         if self._value:
             self._value = self.apply_range(self._value)
@@ -64,9 +65,7 @@ class NBTRangeStructure(NBTStructure):
         return f'NBTRangeStructure("{self._tag_type}", {self._value}, {self._range})'
 
     def __eq__(self, other: NBTRangeStructure):
-        return (
-            super(NBTRangeStructure, self).__eq__(other) and self._range == other._range
-        )
+        return super().__eq__(other) and self._range == other._range
 
     @property
     def value(self):
@@ -92,9 +91,9 @@ class NBTRangeStructure(NBTStructure):
         ):
             return self
         elif self._tag_type != template._tag_type:
-            return NBTRangeStructure(template._tag_type, self._value, template._range)
+            return NBTRangeStructure(template._tag_type, self.value, template._range)
         elif template._value:
-            return NBTRangeStructure(template._tag_type, self._value, template._range)
+            return NBTRangeStructure(template._tag_type, self.value, template._range)
         return None
 
 
@@ -102,7 +101,7 @@ class NBTListStructure(NBTStructure):
     __slots__ = ["_tag_type", "_items", "_schema"]
 
     def __init__(self, schema, initial_value=None):
-        super(NBTListStructure, self).__init__("list", [])
+        super().__init__("list", [])
         if initial_value:
             if isinstance(initial_value, (list, tuple)):
                 self._value = initial_value
@@ -126,10 +125,7 @@ class NBTListStructure(NBTStructure):
         self._value[index] = value
 
     def __eq__(self, other: NBTListStructure):
-        return (
-            super(NBTListStructure, self).__eq__(other)
-            and self._schema == other._schema
-        )
+        return super().__eq__(other) and self._schema == other._schema
 
     def append(self, value):
         self._value.append(value)
@@ -142,37 +138,23 @@ class NBTListStructure(NBTStructure):
             for i in range(len(self)):
                 self[i] = self[i].apply_template(self._schema)
             return self
-        elif self._value:
-            return NBTListStructure(template._schema, self._value).apply_template(
+        elif self.value:
+            return NBTListStructure(template._schema, self.value).apply_template(
                 template
             )
         return None
 
 
-class NBTCompoundStructure(NBTStructure):
-    def __init__(self, value: dict):
-        super(NBTCompoundStructure, self).__init__("compound", value)
+class NBTCompoundStructure(UserDict, NBTStructure):
+    def __init__(self, structure: dict, value: dict = None):
+        super().__init__()
+        self._tag_type = "compound"
+        self._structure = structure
+        self.data = value if value else {}
 
-    def __repr__(self):
-        return f'NBTCompoundStructure("{self._value}")'
-
-    def __getitem__(self, item):
-        return self._value[item]
-
-    def __setitem__(self, key, value):
-        self._value[key] = value
-
-    def __delitem__(self, key):
-        del self._value[key]
-
-    def __len__(self):
-        return len(self._value)
-
-    def keys(self):
-        return self._value.keys()
-
-    def get(self, key, default=None):
-        return self._value.get(key, default)
+    @property
+    def value(self):
+        return self.data
 
     def non_default(self):
         return self.any_non_default_tags()
@@ -186,16 +168,19 @@ class NBTCompoundStructure(NBTStructure):
     def apply_template(
         self, template: NBTCompoundStructure
     ) -> Optional[NBTCompoundStructure]:
+        if self.value is None:
+            return None
+
         for tag_name in template.keys():
             template_tag: NBTStructure = template[tag_name]
-            nbt_tag: NBTStructure = self._value.get(tag_name)
+            nbt_tag: NBTStructure = self.value.get(tag_name)
 
             if nbt_tag:
                 self[tag_name] = nbt_tag.apply_template(template_tag)
-            elif template.value:
+            elif template_tag.value:
                 self[tag_name] = copy.deepcopy(template_tag)
 
-            if self[tag_name] is None:
+            if tag_name in self and self[tag_name] is None:
                 del self[tag_name]
 
         if len(self):
