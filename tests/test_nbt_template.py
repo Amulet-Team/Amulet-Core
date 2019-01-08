@@ -74,8 +74,6 @@ class NBTTemplateTestBaseCases:
             mock_3.apply_template(template)
             mock_4.apply_template(template)
 
-            print(mock_4)
-
             self.assertEqual(mock_1["any_tag"], NBTStructure("string", "string_test"))
             self.assertEqual(mock_2["any_tag"], NBTStructure("int", "int_test"))
             self.assertEqual(
