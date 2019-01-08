@@ -14,12 +14,22 @@ from api.nbt_template import (
     NBTListStructure,
     NBTCompoundStructure,
 )
+from test_utils import TESTS_DIR
 
 
 class NBTTemplateTestBaseCases:
     class NBTTemplateTestCase(unittest.TestCase):
         def _setUp(self, template_dir):
             self.template_engine = TemplateLoader(template_dir)
+
+        def test_equality(self):
+
+            self.assertNotEqual(
+                NBTStructure("string", "test"), NBTStructure("int", "test")
+            )
+            self.assertNotEqual(
+                NBTStructure("string", "test"), NBTStructure("string", "test1")
+            )
 
         def test_load_template(self):
             item_template = self.template_engine.load_template("item")
@@ -29,7 +39,62 @@ class NBTTemplateTestBaseCases:
             self.assertIsInstance(bat_template, NBTCompoundStructure)
 
         def test_any_tag(self):  # Reminder test since any tags aren't supported yet!
-            self.assertFalse(True)
+            template = NBTCompoundStructure(None, {"any_tag": NBTStructure("any")})
+
+            mock_1 = NBTCompoundStructure(
+                None, {"any_tag": NBTStructure("string", "string_test")}
+            )
+            mock_2 = NBTCompoundStructure(
+                None, {"any_tag": NBTStructure("int", "int_test")}
+            )
+            mock_3 = NBTCompoundStructure(
+                None,
+                {
+                    "any_tag": NBTListStructure(
+                        NBTStructure("float"),
+                        [NBTStructure("float", 1.0), NBTStructure("double", 2.0)],
+                    )
+                },
+            )
+            mock_4 = NBTCompoundStructure(
+                None,
+                {
+                    "any_tag": NBTCompoundStructure(
+                        None,
+                        {
+                            "id": NBTStructure("string", "minecraft:cow"),
+                            "CustomName": NBTStructure("string", "Kev"),
+                        },
+                    )
+                },
+            )
+
+            mock_1.apply_template(template)
+            mock_2.apply_template(template)
+            mock_3.apply_template(template)
+            mock_4.apply_template(template)
+
+            print(mock_4)
+
+            self.assertEqual(mock_1["any_tag"], NBTStructure("string", "string_test"))
+            self.assertEqual(mock_2["any_tag"], NBTStructure("int", "int_test"))
+            self.assertEqual(
+                mock_3["any_tag"],
+                NBTListStructure(
+                    NBTStructure("float"),
+                    [NBTStructure("float", 1.0), NBTStructure("double", 2.0)],
+                ),
+            )
+            self.assertEqual(
+                mock_4["any_tag"],
+                NBTCompoundStructure(
+                    None,
+                    {
+                        "id": NBTStructure("string", "minecraft:cow"),
+                        "CustomName": NBTStructure("string", "Kev"),
+                    },
+                ),
+            )
 
         def test_item_apply_template(self):
             item_template = self.template_engine.load_template("item")
@@ -201,7 +266,11 @@ class NBTTemplateTestBaseCases:
 
 class Java113NBTTemplateTestCase(NBTTemplateTestBaseCases.NBTTemplateTestCase):
     def setUp(self):
-        self._setUp(os.path.join("..", "src", "version_definitions", "java_1_13"))
+        self._setUp(
+            os.path.join(
+                os.path.dirname(TESTS_DIR), "src", "version_definitions", "java_1_13"
+            )
+        )
 
 
 if __name__ == "__main__":

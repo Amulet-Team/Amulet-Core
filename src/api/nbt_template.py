@@ -22,7 +22,10 @@ class NBTStructure:
         return f"NBTStructure({self._tag_type}, {self._value})"
 
     def __eq__(self, other: NBTStructure):
-        return self._tag_type == other._tag_type and self._value == other._value
+        return self._tag_type == other.tag_type and self._value == other.value
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     @property
     def tag_type(self):
@@ -43,7 +46,10 @@ class NBTStructure:
         return self._tag_type == other._tag_type
 
     def apply_template(self, template: NBTStructure) -> Optional[NBTStructure]:
-        if self.same_tag_type(template) or template._tag_type == "any":
+        if template._tag_type == "any":
+            return self
+
+        if self.same_tag_type(template):
             return self
         elif self._tag_type != template._tag_type:
             return NBTStructure(template._tag_type, self.value)
@@ -65,7 +71,7 @@ class NBTRangeStructure(NBTStructure):
         return f'NBTRangeStructure("{self._tag_type}", {self._value}, {self._range})'
 
     def __eq__(self, other: NBTRangeStructure):
-        return super().__eq__(other) and self._range == other._range
+        return super().__eq__(other) and self.tag_range == other.tag_range
 
     @property
     def value(self):
@@ -85,6 +91,9 @@ class NBTRangeStructure(NBTStructure):
     def apply_template(
         self, template: NBTRangeStructure
     ) -> Optional[NBTRangeStructure]:
+        if template._tag_type == "any":
+            return self
+
         if (
             self.same_tag_type(template)
             and self._range[0] <= self._value <= self._range[1]
@@ -134,6 +143,9 @@ class NBTListStructure(NBTStructure):
         return len(self._value) > 0
 
     def apply_template(self, template: NBTListStructure) -> Optional[NBTListStructure]:
+        if template._tag_type == "any":
+            return self
+
         if self.same_tag_type(template) and self._schema == template._schema:
             for i in range(len(self)):
                 self[i] = self[i].apply_template(self._schema)
@@ -146,7 +158,7 @@ class NBTListStructure(NBTStructure):
 
 
 class NBTCompoundStructure(UserDict, NBTStructure):
-    def __init__(self, structure: dict, value: dict = None):
+    def __init__(self, structure: dict = None, value: dict = None):
         super().__init__()
         self._tag_type = "compound"
         self._structure = structure
@@ -170,6 +182,9 @@ class NBTCompoundStructure(UserDict, NBTStructure):
     ) -> Optional[NBTCompoundStructure]:
         if self.value is None:
             return None
+
+        if template._tag_type == "any":
+            return self
 
         for tag_name in template.keys():
             template_tag: NBTStructure = template[tag_name]

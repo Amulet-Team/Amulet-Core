@@ -2,15 +2,15 @@ import os
 import time
 from contextlib import contextmanager
 
+TESTS_DIR = os.path.dirname(__file__)
+
 
 def get_world_path(name: str) -> str:
-    tests_dir = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(tests_dir, "worlds", name)
+    return os.path.join(TESTS_DIR, "worlds", name)
 
 
 def get_data_path(name: str) -> str:
-    tests_dir = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(tests_dir, "data", name)
+    return os.path.join(TESTS_DIR, "data", name)
 
 
 @contextmanager
