@@ -2,21 +2,23 @@ from __future__ import annotations
 
 import copy
 import json
-from collections import UserDict
+from collections import UserDict, UserList
 from glob import iglob
 from itertools import chain
 from os.path import join, basename, dirname
-from typing import Dict, Union, Optional
-
-from pprint import pprint
+from typing import Any, Dict, Tuple, Union, Optional
 
 
 class NBTStructure:
+    """
+    Generic container for NBT tags
+    """
+
     __slots__ = ["_tag_type", "_value"]
 
-    def __init__(self, tag_type, value=None):
-        self._tag_type = tag_type
-        self._value = value
+    def __init__(self, tag_type: str, value: Any = None):
+        self._tag_type: str = tag_type
+        self._value: Any = value
 
     def __repr__(self):
         return f"NBTStructure({self._tag_type}, {self._value})"
@@ -28,24 +30,44 @@ class NBTStructure:
         return not self.__eq__(other)
 
     @property
-    def tag_type(self):
+    def tag_type(self) -> str:
+        """
+        Returns the represented tag_type of the specified NBTStructure object
+
+        :return: The tag type of specified NBTStructure
+        """
         return self._tag_type
 
     @property
-    def value(self):
+    def value(self) -> Any:
+        """
+        Returns the value stored in the specified NBTStructure object
+
+        :return: The value of the specified NBTStructure object
+        """
         return self._value
 
     @value.setter
-    def value(self, val):
+    def value(self, val: Any):
         self._value = val
 
-    def non_default(self):
-        return self._value is not None
-
     def same_tag_type(self, other: NBTStructure) -> bool:
+        """
+        Function to determine whether tag types match between to NBTStructures
+
+        :param other: The other NBTStructure
+        :return: True if the types match, False otherwise
+        """
         return self._tag_type == other._tag_type
 
     def apply_template(self, template: NBTStructure) -> Optional[NBTStructure]:
+        """
+        Applies the specified template to the existing NBTStructure object
+
+        :param template: The template tag to apply to the existing NBTStructure object
+        :return: Either the object itself if nothing was modified, or a new NBTStructure if the object needed to be
+            modified to conform to the template
+        """
         if template._tag_type == "any":
             return self
 
@@ -59,9 +81,18 @@ class NBTStructure:
 
 
 class NBTRangeStructure(NBTStructure):
+    """
+    NBT container that applies a specified range to it's value upon modification and instantiation
+    """
+
     __slots__ = ["_tag_type", "_value", "_range"]
 
-    def __init__(self, tag_type, value, _range):
+    def __init__(
+        self,
+        tag_type: str,
+        value: Union[int, float],
+        _range: Tuple[Union[int, float], Union[int, float]],
+    ):
         super().__init__(tag_type, value)
         self._range = _range
         if self._value:
@@ -74,23 +105,36 @@ class NBTRangeStructure(NBTStructure):
         return super().__eq__(other) and self.tag_range == other.tag_range
 
     @property
-    def value(self):
+    def value(self) -> Union[int, float]:
         return self._value
 
     @value.setter
-    def value(self, val):
+    def value(self, val: Union[int, float]):
         self._value = self.apply_range(val)
 
     @property
-    def tag_range(self):
+    def tag_range(self) -> Tuple[Union[int, float], Union[int, float]]:
         return self._range
 
-    def apply_range(self, value):
+    def apply_range(self, value: Union[int, float]) -> Union[int, float]:
+        """
+        Clamps the value to the range specified by the NBTRangeStructure
+
+        :param value: The value to clamp
+        :return: The clamped value
+        """
         return max(self._range[0], min(value, self._range[1]))
 
     def apply_template(
         self, template: NBTRangeStructure
     ) -> Optional[NBTRangeStructure]:
+        """
+        Applies the specified template to the existing NBTRangeStructure object
+
+        :param template: The template tag to apply to the existing NBTStructure object
+        :return: Either the object itself if nothing was modified, or a new NBTRangeStructure if the object needed to be
+            modified to conform to the template
+        """
         if template._tag_type == "any":
             return self
 
@@ -106,43 +150,40 @@ class NBTRangeStructure(NBTStructure):
         return None
 
 
-class NBTListStructure(NBTStructure):
-    __slots__ = ["_tag_type", "_items", "_schema"]
+class NBTListStructure(UserList, NBTStructure):
+    """
+    NBT container for lists that can apply a template "schema" to each value
+    """
 
     def __init__(self, schema, initial_value=None):
-        super().__init__("list", [])
+        super().__init__()
+        self._tag_type = "list"
         if initial_value:
             if isinstance(initial_value, (list, tuple)):
-                self._value = initial_value
+                self.data = initial_value
             else:
-                self._value.append(initial_value)
+                self.data.append(initial_value)
         self._schema = schema
 
     def __repr__(self):
         return f"NBTListStructure({self._schema}, {self._value})"
 
-    def __iter__(self):
-        return iter(self._value)
-
-    def __len__(self):
-        return len(self._value)
-
-    def __getitem__(self, item):
-        return self._value[item]
-
-    def __setitem__(self, index, value):
-        self._value[index] = value
-
     def __eq__(self, other: NBTListStructure):
         return super().__eq__(other) and self._schema == other._schema
 
-    def append(self, value):
-        self._value.append(value)
-
-    def non_default(self):
-        return len(self._value) > 0
-
     def apply_template(self, template: NBTListStructure) -> Optional[NBTListStructure]:
+        """
+        Applies the specified template to the existing NBTListStructure object
+
+        .. warning::
+            When calling this method, the existing objects value will be modified so each member of the internal list
+            conforms to the list "schema" and this considered a irreversible mutation
+
+        :param template: The template tag to apply to the existing NBTStructure object
+        :return: Either the object itself if nothing was modified, or a new NBTListStructure if the template "schema"
+            didn't match the current NBTListStructures "schema" in which the templates schema will be used
+        """
+
         if template._tag_type == "any":
             return self
 
@@ -158,6 +199,10 @@ class NBTListStructure(NBTStructure):
 
 
 class NBTCompoundStructure(UserDict, NBTStructure):
+    """
+    NBT container for dictionary objects
+    """
+
     def __init__(self, structure: dict = None, value: dict = None):
         super().__init__()
         self._tag_type = "compound"
@@ -168,18 +213,19 @@ class NBTCompoundStructure(UserDict, NBTStructure):
     def value(self):
         return self.data
 
-    def non_default(self):
-        return self.any_non_default_tags()
-
-    def any_non_default_tags(self):
-        for key in self.keys():
-            if self[key].non_default():
-                return True
-        return False
-
     def apply_template(
         self, template: NBTCompoundStructure
     ) -> Optional[NBTCompoundStructure]:
+        """
+        Applies the specified template to the existing NBTCompoundStructure object
+
+        .. warning::
+            When calling this method, the internal dictionary keys and values might be modified to conform to the
+            specified template and is considered a irreversible mutation
+
+        :param template: The template tag to apply to the existing NBTCompoundStructure object
+        :return: The NBTCompoundStructure object
+        """
         if self.value is None:
             return None
 
@@ -204,9 +250,12 @@ class NBTCompoundStructure(UserDict, NBTStructure):
 
 
 class TemplateLoader:
-    def __init__(self, template_dir: str, tag_handlers=None):
+    """
+    Handles the loading of NBT template json files
+    """
+
+    def __init__(self, template_dir: str):
         self._template_dir = template_dir
-        self._tag_handlers = tag_handlers if tag_handlers else {}
 
         iter_chain = chain(
             iglob(join(self._template_dir, "entities", "*.json")),
@@ -252,6 +301,13 @@ class TemplateLoader:
             return NBTStructure(tag_type, json_object.get("default"))
 
     def load_template(self, template_name: str) -> NBTCompoundStructure:
+        """
+        Loads the specified named NBT template file
+
+        :param template_name: The (normalized) name of the template file (IE: "creeper" for "creeper.json")
+        :return: The NBT template structure from the specified template file
+        """
+
         if template_name not in self._templates:
             raise FileNotFoundError()
 
