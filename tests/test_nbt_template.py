@@ -31,6 +31,18 @@ class NBTTemplateTestBaseCases:
                 NBTStructure("string", "test"), NBTStructure("string", "test1")
             )
 
+        def test_compound_update(self):
+            original = NBTCompoundStructure(
+                value={"id": NBTStructure("string", "minecraft:cow")}
+            )
+            new = NBTCompoundStructure(
+                value={"CustomName": NBTStructure("string", "Test")}
+            )
+
+            self.assertNotIn("CustomName", original)
+            original.update(new)
+            self.assertIn("CustomName", original)
+
         def test_load_template(self):
             item_template = self.template_engine.load_template("item")
             self.assertIsInstance(item_template, NBTCompoundStructure)

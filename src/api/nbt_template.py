@@ -6,7 +6,7 @@ from collections import UserDict, UserList
 from glob import iglob
 from itertools import chain
 from os.path import join, basename, dirname
-from typing import Any, Dict, Tuple, Union, Optional
+from typing import Any, Dict, Tuple, List, Union, Optional
 
 
 class NBTStructure:
@@ -24,7 +24,7 @@ class NBTStructure:
         return f"NBTStructure({self._tag_type}, {self._value})"
 
     def __eq__(self, other: NBTStructure):
-        return self._tag_type == other.tag_type and self._value == other.value
+        return self.tag_type == other.tag_type and self.value == other.value
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -155,7 +155,9 @@ class NBTListStructure(UserList, NBTStructure):
     NBT container for lists that can apply a template "schema" to each value
     """
 
-    def __init__(self, schema, initial_value=None):
+    def __init__(
+        self, initial_value=None, schema: List[NBTStructure] = NBTStructure("any")
+    ):
         super().__init__()
         self._tag_type = "list"
         if initial_value:
@@ -166,10 +168,18 @@ class NBTListStructure(UserList, NBTStructure):
         self._schema = schema
 
     def __repr__(self):
-        return f"NBTListStructure({self._schema}, {self._value})"
+        return f"NBTListStructure({repr(self.value)}, {repr(self._schema)})"
 
     def __eq__(self, other: NBTListStructure):
         return super().__eq__(other) and self._schema == other._schema
+
+    @property
+    def value(self):
+        return self.data
+
+    @property
+    def schema(self):
+        return self._schema
 
     def apply_template(self, template: NBTListStructure) -> Optional[NBTListStructure]:
         """
@@ -209,9 +219,16 @@ class NBTCompoundStructure(UserDict, NBTStructure):
         self._structure = structure
         self.data = value if value else {}
 
+    def __repr__(self):
+        return f"NBTCompoundStructure({repr(self._structure)}, {repr(self.value)})"
+
     @property
     def value(self):
         return self.data
+
+    @property
+    def structure(self):
+        return self._structure
 
     def apply_template(
         self, template: NBTCompoundStructure
@@ -287,10 +304,12 @@ class TemplateLoader:
             structure = json_object["structure"]
             if isinstance(structure, dict):
                 return NBTCompoundStructure(structure)
-            return NBTStructure("any", None)
+            return NBTStructure("any")
 
         if tag_type == "list":
-            return NBTListStructure(json_object["schema"], json_object.get("default"))
+            return NBTListStructure(
+                schema=json_object["schema"], initial_value=json_object.get("default")
+            )
 
         if "range" in json_object:
             return NBTRangeStructure(
@@ -325,7 +344,7 @@ class TemplateLoader:
         fp.close()
 
         if "extends" in result.get("<metadata>", {}):
-            result.update(self.load_template(result["<metadata>"]["extends"]))
+            result.update(self.load_template(result["<metadata>"]["extends"]).structure)
             del result["<metadata>"]
 
         return NBTCompoundStructure(result)
