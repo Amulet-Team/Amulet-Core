@@ -18,8 +18,7 @@
         "tag_type": "int"
       },
       "Unbreakable": {
-        "tag_type": "byte",
-        "range": [0, 1]
+        "tag_type": "byte"
       },
       "CanDestroy": {
         "tag_type": "list",
@@ -225,8 +224,7 @@
               "tag_type": "double"
             },
             "rot": {
-              "tag_type": "double",
-              "range": [0.0, 360.0]
+              "tag_type": "double"
             }
           }
         }

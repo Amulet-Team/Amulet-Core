@@ -1,269 +1,223 @@
 from __future__ import annotations
 
-import copy
+from typing import Union
+from typing import Any, Dict
 import json
 from collections import UserDict, UserList
 from glob import iglob
 from itertools import chain
-from os.path import join, basename, dirname
-from typing import Any, Dict, Tuple, List, Union, Optional
+from os.path import join, basename
+import copy
 
 
-class NBTStructure:
+class NBTStruct:
     """
-    Generic container for NBT tags
+    Base class implemented by all NBT structure classes
     """
 
-    __slots__ = ["_tag_type", "_value"]
+    def apply_to(self, other_tag: Union[NBTEntry, NBTListEntry, NBTCompoundEntry]):
+        """
+        Applies the current NBT structure to the the supplied NBT entry
 
-    def __init__(self, tag_type: str, value: Any = None):
-        self._tag_type: str = tag_type
-        self._value: Any = value
+        :param other_tag: The NBT entry to apply the template to
+        :return: A NBT entry object with the template applied to it
+        """
+        raise NotImplementedError()
 
-    def __repr__(self):
-        return f"NBTStructure({self._tag_type}, {self._value})"
+    def create_entry_from_template(
+        self, initial_value: Any = None
+    ) -> Union[NBTEntry, NBTListEntry, NBTCompoundEntry]:
+        """
+        Creates a NBT entry from the NBT structure data
 
-    def __eq__(self, other: NBTStructure):
-        return self.tag_type == other.tag_type and self.value == other.value
+        :param initial_value: The value to populate the entry with
+        :return: The corresponding NBT entry for the specified NBT structure object
+        """
+        raise NotImplementedError()
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
+
+class NBTStructure(NBTStruct):
+    """
+    Generic structure for NBT templates
+    """
+
+    __slots__ = ("_tag_type", "_default_value")
+
+    def __init__(self, tag_type: str, default_value: Any = None):
+        self._tag_type = tag_type
+        self._default_value = default_value
 
     @property
     def tag_type(self) -> str:
         """
-        Returns the represented tag_type of the specified NBTStructure object
+        The tag type of the NBT structure
 
-        :return: The tag type of specified NBTStructure
+        :return: The tag type
         """
         return self._tag_type
 
     @property
-    def value(self) -> Any:
+    def default_value(self) -> Any:
         """
-        Returns the value stored in the specified NBTStructure object
+        The default value for the NBT structure
 
-        :return: The value of the specified NBTStructure object
+        :return: The value that will be inserted if the given NBT structure is required, ``None`` if not required
         """
-        return self._value
+        return self._default_value
 
-    @value.setter
-    def value(self, val: Any):
-        self._value = val
-
-    def same_tag_type(self, other: NBTStructure) -> bool:
+    def apply_to(self, other_tag: NBTEntry) -> NBTEntry:
         """
-        Function to determine whether tag types match between to NBTStructures
-
-        :param other: The other NBTStructure
-        :return: True if the types match, False otherwise
+        See :meth:`api.nbt_template.NBTStruct.apply_to`
         """
-        return self._tag_type == other._tag_type
+        if other_tag.tag_type == "any":
+            return other_tag
 
-    def apply_template(self, template: NBTStructure) -> Optional[NBTStructure]:
+        if self.tag_type == other_tag.tag_type:
+            return other_tag
+        else:
+            return self.create_entry_from_template(other_tag.value)
+
+    def create_entry_from_template(self, initial_value=None) -> NBTEntry:
         """
-        Applies the specified template to the existing NBTStructure object
-
-        :param template: The template tag to apply to the existing NBTStructure object
-        :return: Either the object itself if nothing was modified, or a new NBTStructure if the object needed to be
-            modified to conform to the template
+        See :meth:`api.nbt_template.NBTStruct.create_entry_from_template`
         """
-        if template._tag_type == "any":
-            return self
-
-        if self.same_tag_type(template):
-            return self
-        elif self._tag_type != template._tag_type:
-            return NBTStructure(template._tag_type, self.value)
-        elif template._value:
-            return NBTStructure(template._tag_type, template.value)
-        return None
+        if initial_value is None:
+            return NBTEntry(self.tag_type, self.default_value)
+        return NBTEntry(self.tag_type, initial_value)
 
 
-class NBTRangeStructure(NBTStructure):
+class NBTListStructure(NBTStruct):
     """
-    NBT container that applies a specified range to it's value upon modification and instantiation
+    NBT structure for List tags
     """
 
-    __slots__ = ["_tag_type", "_value", "_range"]
+    __slots__ = ("_schema", "_default_value")
+
+    def __init__(self, schema: NBTStructure = None, default_value: Any = None):
+        self._schema = schema
+        self._default_value = default_value
+
+    @property
+    def tag_type(self):
+        return "list"
+
+    @property
+    def schema(self) -> NBTStructure:
+        return self._schema
+
+    @property
+    def default_value(self) -> Any:
+        return self._default_value
+
+    def apply_to(self, other_tag: NBTListEntry) -> NBTListEntry:
+        if self.schema.tag_type == "any":
+            return other_tag
+
+        for i in range(len(other_tag)):
+            other_tag[i] = self.schema.apply_to(other_tag[i])
+
+        return other_tag
+
+    def create_entry_from_template(self, initial_value=None) -> NBTListEntry:
+        if initial_value is None:
+            return NBTListEntry(self.default_value)
+        return NBTListEntry(initial_value)
+
+
+class NBTCompoundStructure(NBTStruct):
+    """
+    NBT structure for Compound tags
+    """
+
+    __slots__ = ("_structure", "_default_value")
 
     def __init__(
         self,
-        tag_type: str,
-        value: Union[int, float],
-        _range: Tuple[Union[int, float], Union[int, float]],
+        structure: Union[NBTStructure, Dict[str, NBTStructure]] = None,
+        default_value: Any = None,
     ):
-        super().__init__(tag_type, value)
-        self._range = _range
-        if self._value:
-            self._value = self.apply_range(self._value)
-
-    def __repr__(self):
-        return f'NBTRangeStructure("{self._tag_type}", {self._value}, {self._range})'
-
-    def __eq__(self, other: NBTRangeStructure):
-        return super().__eq__(other) and self.tag_range == other.tag_range
-
-    @property
-    def value(self) -> Union[int, float]:
-        return self._value
-
-    @value.setter
-    def value(self, val: Union[int, float]):
-        self._value = self.apply_range(val)
-
-    @property
-    def tag_range(self) -> Tuple[Union[int, float], Union[int, float]]:
-        return self._range
-
-    def apply_range(self, value: Union[int, float]) -> Union[int, float]:
-        """
-        Clamps the value to the range specified by the NBTRangeStructure
-
-        :param value: The value to clamp
-        :return: The clamped value
-        """
-        return max(self._range[0], min(value, self._range[1]))
-
-    def apply_template(
-        self, template: NBTRangeStructure
-    ) -> Optional[NBTRangeStructure]:
-        """
-        Applies the specified template to the existing NBTRangeStructure object
-
-        :param template: The template tag to apply to the existing NBTStructure object
-        :return: Either the object itself if nothing was modified, or a new NBTRangeStructure if the object needed to be
-            modified to conform to the template
-        """
-        if template._tag_type == "any":
-            return self
-
-        if (
-            self.same_tag_type(template)
-            and self._range[0] <= self._value <= self._range[1]
-        ):
-            return self
-        elif self._tag_type != template._tag_type:
-            return NBTRangeStructure(template._tag_type, self.value, template._range)
-        elif template._value:
-            return NBTRangeStructure(template._tag_type, self.value, template._range)
-        return None
-
-
-class NBTListStructure(UserList, NBTStructure):
-    """
-    NBT container for lists that can apply a template "schema" to each value
-    """
-
-    def __init__(
-        self, initial_value=None, schema: List[NBTStructure] = NBTStructure("any")
-    ):
-        super().__init__()
-        self._tag_type = "list"
-        if initial_value:
-            if isinstance(initial_value, (list, tuple)):
-                self.data = initial_value
-            else:
-                self.data.append(initial_value)
-        self._schema = schema
-
-    def __repr__(self):
-        return f"NBTListStructure({repr(self.value)}, {repr(self._schema)})"
-
-    def __eq__(self, other: NBTListStructure):
-        return super().__eq__(other) and self._schema == other._schema
-
-    @property
-    def value(self):
-        return self.data
-
-    @property
-    def schema(self):
-        return self._schema
-
-    def apply_template(self, template: NBTListStructure) -> Optional[NBTListStructure]:
-        """
-        Applies the specified template to the existing NBTListStructure object
-
-        .. warning::
-            When calling this method, the existing objects value will be modified so each member of the internal list
-            conforms to the list "schema" and this considered a irreversible mutation
-
-        :param template: The template tag to apply to the existing NBTStructure object
-        :return: Either the object itself if nothing was modified, or a new NBTListStructure if the template "schema"
-            didn't match the current NBTListStructures "schema" in which the templates schema will be used
-        """
-
-        if template._tag_type == "any":
-            return self
-
-        if self.same_tag_type(template) and self._schema == template._schema:
-            for i in range(len(self)):
-                self[i] = self[i].apply_template(self._schema)
-            return self
-        elif self.value:
-            return NBTListStructure(template._schema, self.value).apply_template(
-                template
-            )
-        return None
-
-
-class NBTCompoundStructure(UserDict, NBTStructure):
-    """
-    NBT container for dictionary objects
-    """
-
-    def __init__(self, structure: dict = None, value: dict = None):
-        super().__init__()
-        self._tag_type = "compound"
         self._structure = structure
-        self.data = value if value else {}
-
-    def __repr__(self):
-        return f"NBTCompoundStructure({repr(self._structure)}, {repr(self.value)})"
+        self._default_value = default_value
 
     @property
-    def value(self):
-        return self.data
+    def tag_type(self):
+        return "compound"
 
     @property
-    def structure(self):
+    def structure(self) -> Union[NBTStructure, Dict[str, NBTStructure]]:
         return self._structure
 
-    def apply_template(
-        self, template: NBTCompoundStructure
-    ) -> Optional[NBTCompoundStructure]:
-        """
-        Applies the specified template to the existing NBTCompoundStructure object
+    @property
+    def default_value(self) -> Any:
+        return self._default_value
 
-        .. warning::
-            When calling this method, the internal dictionary keys and values might be modified to conform to the
-            specified template and is considered a irreversible mutation
+    def apply_to(self, other_tag: NBTCompoundEntry) -> NBTCompoundEntry:
+        if (
+            isinstance(self.structure, NBTStructure)
+            and self.structure.tag_type == "any"
+        ):
+            return other_tag
 
-        :param template: The template tag to apply to the existing NBTCompoundStructure object
-        :return: The NBTCompoundStructure object
-        """
-        if self.value is None:
-            return None
-
-        if template._tag_type == "any":
-            return self
-
-        for tag_name in template.keys():
-            template_tag: NBTStructure = template[tag_name]
-            nbt_tag: NBTStructure = self.value.get(tag_name)
+        for tag_name in self.structure.keys():
+            template_tag = self.structure[tag_name]
+            nbt_tag = other_tag.get(tag_name)
 
             if nbt_tag:
-                self[tag_name] = nbt_tag.apply_template(template_tag)
-            elif template_tag.value:
-                self[tag_name] = copy.deepcopy(template_tag)
+                if template_tag.tag_type == "any":
+                    continue
 
-            if tag_name in self and self[tag_name] is None:
-                del self[tag_name]
+                other_tag[tag_name] = template_tag.apply_to(nbt_tag)
+            elif template_tag.default_value is not None:
+                other_tag[tag_name] = template_tag.create_entry_from_template()
 
-        if len(self):
-            return self
-        return None
+        return other_tag
+
+    def create_entry_from_template(self, initial_value=None) -> NBTCompoundEntry:
+        if initial_value is None:
+            return NBTCompoundEntry(self.default_value)
+        return NBTCompoundEntry(initial_value)
+
+
+class NBTEntry:
+    """
+    Generic container used to represent a NBT entry that can have a template applied to it
+    """
+
+    __slots__ = ("tag_type", "value")
+
+    def __init__(self, tag_type: str, value: Any):
+        self.tag_type = tag_type
+        self.value = value
+
+    def __eq__(self, other: NBTEntry) -> bool:
+        return self.tag_type == other.tag_type and self.value == other.value
+
+    def __ne__(self, other: NBTEntry) -> bool:
+        return not self == other
+
+
+class NBTListEntry(UserList):
+    """
+    Container to represent a NBT List entry
+    """
+
+    tag_type = "list"
+
+    @property
+    def value(self):
+        return self.data
+
+
+class NBTCompoundEntry(UserDict):
+    """
+    Container to represent a NBT Compound entry
+    """
+
+    tag_type = "compound"
+
+    @property
+    def value(self):
+        return self.data
 
 
 class TemplateLoader:
@@ -291,7 +245,7 @@ class TemplateLoader:
     def templates(self) -> Dict[str, str]:
         return self._templates
 
-    def _tag_hook(self, json_object: dict) -> Union[dict, NBTStructure]:
+    def _tag_hook(self, json_object: dict) -> Union[dict, NBTStruct]:
         if "tag_type" not in json_object:
             return json_object
 
@@ -303,21 +257,17 @@ class TemplateLoader:
         if tag_type == "compound":
             structure = json_object["structure"]
             if isinstance(structure, dict):
-                return NBTCompoundStructure(structure)
-            return NBTStructure("any")
+                return NBTCompoundStructure(
+                    structure, default_value=json_object.get("default")
+                )
+            return NBTCompoundStructure(NBTStructure("any"))
 
         if tag_type == "list":
             return NBTListStructure(
-                schema=json_object["schema"], initial_value=json_object.get("default")
+                json_object["schema"], default_value=json_object.get("default")
             )
 
-        if "range" in json_object:
-            return NBTRangeStructure(
-                tag_type, json_object.get("default"), tuple(json_object["range"])
-            )
-
-        else:
-            return NBTStructure(tag_type, json_object.get("default"))
+        return NBTStructure(tag_type, default_value=json_object.get("default"))
 
     def load_template(self, template_name: str) -> NBTCompoundStructure:
         """
@@ -326,14 +276,11 @@ class TemplateLoader:
         :param template_name: The (normalized) name of the template file (IE: "creeper" for "creeper.json")
         :return: The NBT template structure from the specified template file
         """
-
         if template_name not in self._templates:
             raise FileNotFoundError()
 
-        # Use deepcopy() since we don't want any modification to the original dicts
         if template_name == "entity" and hasattr(self, "_entity_template"):
             return copy.deepcopy(self._entity_template)
-
         elif template_name == "item" and hasattr(self, "_item_template"):
             return copy.deepcopy(self._item_template)
 
@@ -343,83 +290,44 @@ class TemplateLoader:
         result = json.load(fp, object_hook=self._tag_hook)
         fp.close()
 
-        if "extends" in result.get("<metadata>", {}):
-            result.update(self.load_template(result["<metadata>"]["extends"]).structure)
+        get_func = result.get if isinstance(result, dict) else result.structure.get
+        update_func = (
+            result.update if isinstance(result, dict) else result.structure.update
+        )
+
+        if "extends" in get_func("<metadata>", {}):
+            update_func(self.load_template(result["<metadata>"]["extends"]).structure)
             del result["<metadata>"]
 
         return NBTCompoundStructure(result)
 
 
 if __name__ == "__main__":
-    ls1 = NBTListStructure(
-        NBTStructure("string", None),
-        [NBTStructure("string", "test1"), NBTStructure("int", 1)],
-    )
-    print(ls1.value)
-    ls1.apply_template(NBTListStructure(NBTStructure("string", None), None))
-    print(ls1.value)
+    struct1 = NBTStructure("string")
+    entry1 = NBTEntry("int", "test")
 
-    print("\n=====\n")
+    print(struct1.apply_to(entry1))
 
-    comp1 = NBTCompoundStructure(
+    struct2 = NBTCompoundStructure(
         {
-            "id": NBTStructure("string", "minecraft:shovel"),
-            "Count": NBTStructure("int", 4),
+            "id": NBTStructure(
+                "string", default_value=NBTEntry("string", "minecraft:unknown_item")
+            ),
+            "Count": NBTStructure("byte", default_value=NBTEntry("byte", 1)),
+            "Slot": NBTStructure("byte", default_value=NBTEntry("byte", 0)),
             "tag": NBTCompoundStructure(
-                {
-                    "Unbreakable": NBTStructure("byte", 1),
-                    "Damage": NBTStructure("float", 10),
-                    "CanDestroy": NBTListStructure(
-                        NBTStructure("string", None),
-                        [
-                            NBTStructure("string", "minecraft:dirt"),
-                            NBTStructure("int", 10),
-                        ],
-                    ),
-                }
+                {"Damage": NBTStructure("int"), "Unbreakable": NBTStructure("byte")}
             ),
         }
     )
-    template1 = NBTCompoundStructure(
-        {
-            "id": NBTStructure("string", "minecraft:unknown_item"),
-            "Count": NBTStructure("byte", 4),
-            "tag": NBTCompoundStructure(
-                {
-                    "Unbreakable": NBTStructure("byte", 1),
-                    "Damage": NBTStructure("int", 10),
-                    "CanDestroy": NBTListStructure(NBTStructure("string", None), []),
-                }
-            ),
-        }
-    )
-    print(comp1.value)
-    print(comp1.value)
+    entry2 = NBTCompoundEntry()
+    print(struct2.apply_to(entry2))
 
-    print("\n=====\n")
-    tl = TemplateLoader(dirname(__file__))
+    print("=" * 16)
+
+    tl = TemplateLoader(
+        "C:\\Users\\gotharbg\\Documents\\Python Projects\\Amulet-Map-Editor\\src\\version_definitions\\java_1_13"
+    )
     item_template = tl.load_template("item")
-    print("Template:", item_template)
-
-    item1 = NBTCompoundStructure({"Count": NBTStructure("int", 1000)})
-    print("Item #1 (Original):  ", item1)
-    item1.apply_template(item_template)
-    print(f"Item #1 (Save-able): {item1}")
-
-    # item2 = NBTCompoundStructure({"Count": NBTRangeStructure("byte", 1, (-128, 127)), "Slot": NBTStructure("byte", 2),
-    #          "id": NBTStructure("string", "minecraft:dirt"), "custom_tag": NBTStructure("long", 100)})
-    # print("Item #2 (Original):  ", item2)
-    # item2.apply_template(item_template)
-    # print("Item #2 (Save-able): ", item2)
-    #
-    # item3 = NBTCompoundStructure({
-    #     "tag": NBTCompoundStructure({
-    #         "Enchantments": NBTListStructure(NBTStructure("string", None), [
-    #             NBTStructure("string", "minecraft:dirt"),
-    #             NBTStructure("int", "minecraft:stone")
-    #         ]
-    #                                          )}
-    #     )})
-    # print("Item #3 (Original):  ", item3)
-    # item3.apply_template(item_template)
-    # print("Item #3 (Save-able): ", item3)
+    print(item_template)
+    print(item_template.apply_to(entry2))
