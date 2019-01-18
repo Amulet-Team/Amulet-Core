@@ -62,7 +62,7 @@
     "tag_type": "byte"
   },
   "Passengers": {
-    "_tag_type": "list",
+    "tag_type": "list",
     "schema": {
       "tag_type": "compound",
       "structure": "any"

@@ -225,17 +225,16 @@ class TemplateLoader:
     Handles the loading of NBT template json files
     """
 
+    suffix = "_nbt.json"
+
     def __init__(self, template_dir: str):
         self._template_dir = template_dir
 
-        iter_chain = chain(
-            iglob(join(self._template_dir, "entities", "*.json")),
-            iglob(join(self._template_dir, "blockentities", "*.json")),
-            iglob(join(self._template_dir, "misc", "*.json")),
+        template_iter = iglob(
+            join(self._template_dir, "**", f"*{self.suffix}"), recursive=True
         )
-        self._templates = {basename(p)[:-5]: p for p in iter_chain}
-        self._entity_template = self.load_template("entity")
-        self._item_template = self.load_template("item")
+
+        self._templates = {basename(p)[: -len(self.suffix)]: p for p in template_iter}
 
     @property
     def template_dir(self) -> str:
@@ -278,11 +277,6 @@ class TemplateLoader:
         """
         if template_name not in self._templates:
             raise FileNotFoundError()
-
-        if template_name == "entity" and hasattr(self, "_entity_template"):
-            return copy.deepcopy(self._entity_template)
-        elif template_name == "item" and hasattr(self, "_item_template"):
-            return copy.deepcopy(self._item_template)
 
         template_path = self._templates[template_name]
 
