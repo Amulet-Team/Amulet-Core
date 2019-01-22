@@ -1,0 +1,8 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "Invul": {
+    "tag_type": "int"
+  }
+}
