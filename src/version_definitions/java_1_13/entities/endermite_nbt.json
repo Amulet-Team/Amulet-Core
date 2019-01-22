@@ -1,0 +1,13 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "Lifetime": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "PlayerSpawned": {
+    "tag_type": "byte",
+    "default": 0
+  }
+}
