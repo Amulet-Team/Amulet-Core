@@ -1,0 +1,9 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "PlayerCreated": {
+    "tag_type": "byte",
+    "default": 0
+  }
+}
