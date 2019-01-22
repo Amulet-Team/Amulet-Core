@@ -1,0 +1,9 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "DragonPhase": {
+    "tag_type": "int",
+    "default": 10
+  }
+}
