@@ -1,6 +1,6 @@
 {
   "<metadata>": {
-    "extends": "entity"
+    "extends": "mob"
   },
   "InLove": {
     "tag_type": "int",
