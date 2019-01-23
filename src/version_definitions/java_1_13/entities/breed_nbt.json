@@ -1,0 +1,23 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "InLove": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "Age": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "ForcedAge": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "LoveCauseLeast": {
+    "tag_type": "long"
+  },
+  "LoveCauseMost": {
+    "tag_type": "long"
+  }
+}
