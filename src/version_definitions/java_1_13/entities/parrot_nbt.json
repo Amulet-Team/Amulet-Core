@@ -1,0 +1,9 @@
+{
+  "<metadata>": {
+    "extends": "tame"
+  },
+  "Variant": {
+    "tag_type": "int",
+    "default": 0
+  }
+}
