@@ -1,0 +1,13 @@
+{
+  "<metadata>": {
+    "extends": "breed"
+  },
+  "RabbitType": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "MoreCarrotTicks": {
+    "tag_type": "int",
+    "default": 0
+  }
+}
