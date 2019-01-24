@@ -1,0 +1,13 @@
+{
+  "<metadata>": {
+    "extends": ["breed", "tame"]
+  },
+  "CatType": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "CollarColor": {
+    "tag_type": "int",
+    "default": 14
+  }
+}
