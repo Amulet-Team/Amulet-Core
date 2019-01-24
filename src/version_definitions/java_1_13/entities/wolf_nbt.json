@@ -1,0 +1,13 @@
+{
+  "<metadata>": {
+    "extends": ["breed", "tame"]
+  },
+  "Angry": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "CollarColor": {
+    "tag_type": "byte",
+    "default": 14
+  }
+}
