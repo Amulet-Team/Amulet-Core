@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Union
+from typing import Union, List
 from typing import Any, Dict
 import json
 from collections import UserDict, UserList
@@ -290,7 +290,12 @@ class TemplateLoader:
         )
 
         if "extends" in get_func("<metadata>", {}):
-            update_func(self.load_template(result["<metadata>"]["extends"]).structure)
+            parents: List[str] = result["<metadata>"]["extends"]
+            if isinstance(parents, str):
+                parents = [parents]
+
+            for parent in parents:
+                update_func(self.load_template(parent).structure)
             del result["<metadata>"]
 
         return NBTCompoundStructure(result)
