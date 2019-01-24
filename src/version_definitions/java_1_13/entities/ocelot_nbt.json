@@ -1,6 +1,6 @@
 {
   "<metadata>": {
-    "extends": ["breed", "tame"]
+    "extends": "breed"
   },
   "OwnerUUID": {
     "tag_type": "string"
