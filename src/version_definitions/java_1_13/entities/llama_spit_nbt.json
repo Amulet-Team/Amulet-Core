@@ -1,0 +1,16 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "Owner": {
+    "tag_type": "compound",
+    "structure": {
+      "OwnerUUIDMost": {
+        "type": "long"
+      },
+      "OwnerUUIDLeast": {
+        "type": "long"
+      }
+    }
+  }
+}
