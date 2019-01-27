@@ -1,0 +1,32 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "CustomDisplayTile": {
+    "type": "byte",
+    "default": 0
+  },
+  "DisplayState": {
+    "tag_type": "compound",
+    "structure": {
+      "Name": {
+        "type": "string"
+      },
+      "Properties": {
+        "tag_type": "compound",
+        "structure": {
+          "Name": {
+            "type": "string"
+          },
+          "Value": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "DisplayOffset": {
+    "type": "int",
+    "default": 0
+  }
+}
