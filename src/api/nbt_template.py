@@ -195,6 +195,18 @@ class NBTEntry:
     def __ne__(self, other: NBTEntry) -> bool:
         return not self == other
 
+    def __repr__(self):
+        return f'NBTEntry("{self.tag_type}", {self.value})'
+
+    def apply_template(self, template_tag: NBTStructure) -> NBTEntry:
+        if template_tag.tag_type == "any":
+            return NBTEntry(self.tag_type, self.value)
+
+        if self.tag_type == template_tag.tag_type:
+            return NBTEntry(self.tag_type, self.value)
+
+        return template_tag.create_entry_from_template(self.value)
+
 
 class NBTListEntry(UserList):
     """
@@ -207,6 +219,16 @@ class NBTListEntry(UserList):
     def value(self):
         return self.data
 
+    def apply_template(self, template_tag: NBTListStructure) -> NBTListEntry:
+        if template_tag.schema.tag_type == "any":
+            return NBTListEntry(self.data)
+
+        new_tag = NBTListEntry([None for i in range(len(self))])
+        for i in range(len(self)):
+            new_tag[i] = self[i].apply_template(template_tag.schema)
+
+        return new_tag
+
 
 class NBTCompoundEntry(UserDict):
     """
@@ -218,6 +240,28 @@ class NBTCompoundEntry(UserDict):
     @property
     def value(self):
         return self.data
+
+    def apply_template(self, template_tag: NBTCompoundStructure) -> NBTCompoundEntry:
+        if (
+            isinstance(template_tag.structure, NBTStructure)
+            and template_tag.structure.tag_type == "any"
+        ):
+            return NBTCompoundEntry(self.data)
+
+        new_tag = NBTCompoundEntry(self.data)
+        for tag_name in template_tag.structure.keys():
+            child_template_tag = template_tag.structure[tag_name]
+            nbt_tag = self.get(tag_name)
+
+            if nbt_tag:
+                if child_template_tag.tag_type == "any":
+                    continue
+
+                new_tag[tag_name] = nbt_tag.apply_template(child_template_tag)
+            elif child_template_tag.default_value is not None:
+                new_tag[tag_name] = child_template_tag.create_entry_from_template()
+
+        return new_tag
 
 
 class TemplateLoader:
