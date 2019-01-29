@@ -1,0 +1,13 @@
+{
+  "<metadata>": {
+    "extends": "breed"
+  },
+  "IsChickenJockey": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "EggLayTime": {
+    "tag_type": "int",
+    "default": 9000
+  }
+}

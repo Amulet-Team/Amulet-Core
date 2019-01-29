@@ -1,0 +1,27 @@
+{
+  "<metadata>": {
+    "extends": "breed"
+  },
+  "HasEgg": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "HomePosX": {
+    "tag_type": "int"
+  },
+  "HomePosY": {
+    "tag_type": "int"
+  },
+  "HomePosZ": {
+    "tag_type": "int"
+  },
+  "TravelPosX": {
+    "tag_type": "int"
+  },
+  "TravelPosY": {
+    "tag_type": "int"
+  },
+  "TravelPosZ": {
+    "tag_type": "int"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "<metadata>": {
+    "extends": "breed"
+  },
+  "Sheared": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "Color": {
+    "tag_type": "byte",
+    "default": 0
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "<metadata>": {
+    "extends": "projectile"
+  },
+  "shake": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "owner": {
+    "tag_type": "compound",
+    "structure": {
+      "L": {
+        "type": "long"
+      },
+      "M": {
+        "type": "long"
+      }
+    }
+  }
+}

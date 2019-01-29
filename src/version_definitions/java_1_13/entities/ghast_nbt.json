@@ -1,0 +1,9 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "ExplosionPower": {
+    "tag_type": "int",
+    "default": 1
+  }
+}

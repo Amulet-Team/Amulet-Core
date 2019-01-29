@@ -1,0 +1,9 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "Johnny": {
+    "tag_type": "byte",
+    "default": 0
+  }
+}

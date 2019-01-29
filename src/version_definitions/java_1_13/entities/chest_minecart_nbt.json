@@ -1,0 +1,17 @@
+{
+  "<metadata>": {
+    "extends": "minecart"
+  },
+  "Items": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "<item>"
+    }
+  },
+  "LootTable": {
+    "tag_type": "string"
+  },
+  "LootTableSeed": {
+    "tag_type": "long"
+  }
+}

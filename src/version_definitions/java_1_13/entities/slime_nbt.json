@@ -1,0 +1,13 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "wasOnGround": {
+    "tag_type": "byte",
+    "default": 1
+  },
+  "Size": {
+    "tag_type": "int",
+    "default": 1
+  }
+}
