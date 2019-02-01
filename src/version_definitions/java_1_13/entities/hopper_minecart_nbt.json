@@ -1,0 +1,13 @@
+{
+  "<metadata>": {
+    "extends": ["chest_minecart"]
+  },
+  "TransferCooldown": {
+    "tag_type": "int",
+    "default": 1
+  },
+  "Enabled": {
+    "tag_type": "byte",
+    "default": 1
+  }
+}
