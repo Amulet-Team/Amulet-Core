@@ -1,6 +1,6 @@
 {
   "<metadata>": {
-    "extends": "entity"
+    "extends": "mob"
   },
   "DragonPhase": {
     "tag_type": "int",
