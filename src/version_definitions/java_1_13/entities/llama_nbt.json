@@ -1,0 +1,49 @@
+{
+  "<metadata>": {
+    "extends": "breed"
+  },
+  "Bred": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "ChestedHorse": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "EatingHaystack": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "Tame": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "Variant": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "Strength": {
+    "tag_type": "int",
+    "default": 3
+  },
+  "Temper": {
+    "tag_type": "int",
+    "default": 50
+  },
+  "DecorItem": {
+    "tag_type": "compound",
+    "schema": {
+      "tag_type": "<item>"
+    }
+  },
+  "OwnerUUID": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "Items": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "<item>"
+    }
+  }
+}
