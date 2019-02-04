@@ -43,7 +43,7 @@ class NBTTemplateTestBase:
         self.assertIn("CustomName", original)
 
     def test_load_template(self):
-        item_template = self.template_engine.load_template("item")
+        item_template = self.template_engine.load_template("item_entry")
         self.assertIsInstance(item_template, NBTCompoundStructure)
 
         bat_template = self.template_engine.load_template("bat")
@@ -90,7 +90,7 @@ class NBTTemplateTestBase:
         )
 
     def test_item_apply_template(self):
-        item_template = self.template_engine.load_template("item")
+        item_template = self.template_engine.load_template("item_entry")
 
         mock_item_1 = NBTCompoundEntry(
             {"id": NBTEntry("string", "minecraft:stone_shovel")}
