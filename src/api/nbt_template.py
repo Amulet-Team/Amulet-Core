@@ -302,7 +302,19 @@ class TemplateLoader:
 
         self._templates = {basename(p)[: -len(self.suffix)]: p for p in template_iter}
 
+    @staticmethod
+    def _remove_comments(json_object: dict) -> dict:
+        comments = []
+        for key in json_object.keys():
+            if key.startswith("__comment"):
+                comments.append(key)
+        for comment in comments:
+            del json_object[comment]
+
+        return json_object
+
     def _tag_hook(self, json_object: dict) -> Union[dict, NBTStruct]:
+        json_object = self._remove_comments(json_object)
         if "tag_type" not in json_object:
             return json_object
 
