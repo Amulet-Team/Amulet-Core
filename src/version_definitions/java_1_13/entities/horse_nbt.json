@@ -25,13 +25,13 @@
   "ArmorItem": {
     "tag_type": "compound",
     "schema": {
-      "tag_type": "<item>"
+      "tag_type": "<item_entry>"
     }
   },
   "SaddleItem": {
     "tag_type": "compound",
     "schema": {
-      "tag_type": "<item>"
+      "tag_type": "<item_entry>"
     }
   },
   "Variant": {
