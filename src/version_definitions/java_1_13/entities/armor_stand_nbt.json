@@ -35,5 +35,82 @@
   "DisabledSlots": {
     "tag_type": "int",
     "default": 0
+  },
+  "HandItems": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "<item_entry>"
+    }
+  },
+  "ArmorItems": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "<item_entry>"
+    }
+  },
+  "Marker:": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "Invisible:": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "NoBasePlate:": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "FallFlying:": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "Pose": {
+    "tag_type": "compound",
+    "structure": {
+      "Body": {
+        "tag_type": "list",
+        "schema": {
+          "tag_type": "double"
+        }
+      },
+      "LeftArm": {
+        "tag_type": "list",
+        "schema": {
+          "tag_type": "double"
+        }
+      },
+      "RightArm": {
+        "tag_type": "list",
+        "schema": {
+          "tag_type": "double"
+        }
+      },
+      "LeftLeg": {
+        "tag_type": "list",
+        "schema": {
+          "tag_type": "double"
+        }
+      },
+      "RightLeg": {
+        "tag_type": "list",
+        "schema": {
+          "tag_type": "double"
+        }
+      },
+      "Head": {
+        "tag_type": "list",
+        "schema": {
+          "tag_type": "double"
+        }
+      }
+    }
+  },
+  "ShowArms:": {
+    "tag_type": "byte",
+    "default": 1
+  },
+  "Small:": {
+    "tag_type": "byte",
+    "default": 0
   }
 }
