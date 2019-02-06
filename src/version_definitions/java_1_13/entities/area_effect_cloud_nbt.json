@@ -1,0 +1,85 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "Age": {
+    "tag_type": "int",
+    "default": 1
+  },
+  "Color": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "Duration": {
+    "tag_type": "int",
+    "default": 600
+  },
+  "ReapplicationDelay": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "WaitTime": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "DurationOnUse": {
+    "tag_type": "int",
+    "default": 100
+  },
+  "OwnerUUIDLeast": {
+    "tag_type": "long"
+  },
+  "OwnerUUIDMost": {
+    "tag_type": "long"
+  },
+  "Radius": {
+    "tag_type": "Float",
+    "default": 1
+  },
+  "RadiusOnUse": {
+    "tag_type": "Float",
+    "default": -0.1
+  },
+  "RadiusPerTick": {
+    "tag_type": "Float",
+    "default": -0.1
+  },
+  "Particle": {
+    "tag_type": "string",
+    "default": "effect"
+  },
+  "Potion": {
+    "tag_type": "string",
+    "default": "water"
+  },
+  "Effects": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "compound",
+      "structure": {
+        "Id": {
+          "tag_type": "byte"
+        },
+        "Amplifier": {
+          "tag_type": "byte"
+        },
+        "Duration": {
+          "tag_type": "int",
+          "default": 1
+        },
+        "Ambient": {
+          "tag_type": "byte",
+          "default": 0
+        },
+        "ShowParticles": {
+          "tag_type": "byte",
+          "default": 1
+        },
+        "ShowIcon": {
+          "tag_type": "byte",
+          "default": 1
+        }
+      }
+    }
+  }
+}
