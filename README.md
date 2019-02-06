@@ -1,6 +1,7 @@
 # Amulet Map Editor
 
 <a href="https://circleci.com/gh/Amulet-Team/Amulet-Map-Editor"><img alt="CircleCI" src="https://circleci.com/gh/Amulet-Team/Amulet-Map-Editor.svg"></a>
+[![Documentation Status](https://readthedocs.org/projects/amulet-map-editor/badge/?version=latest)](https://amulet-map-editor.readthedocs.io/en/latest/?badge=latest)
 
 A new Minecraft world editor that aims to be flexible, extendable, and support most editions
 of Minecraft.
@@ -35,7 +36,7 @@ To run the program in command line mode, run the following command in your opera
 
 ## Documentation
 
-Our online documentation can be found here: https://amulet-team.github.io/Amulet-Map-Editor/docs/
+Our online documentation can be found here: https://amulet-map-editor.readthedocs.io/en/latest/
 
 ### Building the Documentation
 To build the documentation locally, run the following command: `make html` and then navigate to the
