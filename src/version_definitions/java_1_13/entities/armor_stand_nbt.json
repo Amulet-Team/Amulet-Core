@@ -1,0 +1,39 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "ActiveEffects": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "compound",
+      "structure": {
+        "Id": {
+          "tag_type": "byte"
+        },
+        "Amplifier": {
+          "tag_type": "byte"
+        },
+        "Duration": {
+          "tag_type": "int",
+          "default": 1
+        },
+        "Ambient": {
+          "tag_type": "byte",
+          "default": 0
+        },
+        "ShowParticles": {
+          "tag_type": "byte",
+          "default": 1
+        },
+        "ShowIcon": {
+          "tag_type": "byte",
+          "default": 1
+        }
+      }
+    }
+  },
+  "DisabledSlots": {
+    "tag_type": "int",
+    "default": 0
+  }
+}
