@@ -5,7 +5,7 @@
   "Items": {
     "tag_type": "list",
     "schema": {
-      "tag_type": "<item>"
+      "tag_type": "<item_entry>"
     }
   },
   "LootTable": {
