@@ -1,0 +1,9 @@
+{
+  "<metadata>": {
+    "extends": "chest"
+  },
+  "TransferCooldown": {
+    "tag_type": "int",
+    "default": 4
+  }
+}
