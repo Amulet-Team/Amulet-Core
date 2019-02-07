@@ -39,13 +39,13 @@
   "HandItems": {
     "tag_type": "list",
     "schema": {
-      "tag_type": "<item_entry>"
+      "tag_type": "<item_base>"
     }
   },
   "ArmorItems": {
     "tag_type": "list",
     "schema": {
-      "tag_type": "<item_entry>"
+      "tag_type": "<item_base>"
     }
   },
   "Marker:": {
