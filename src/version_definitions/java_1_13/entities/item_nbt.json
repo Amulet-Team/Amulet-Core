@@ -39,7 +39,7 @@
   "Item": {
     "tag_type": "compound",
     "structure": {
-      "tag_type": "<item_no_slot>"
+      "tag_type": "<item_entry>"
     }
   }
 }
