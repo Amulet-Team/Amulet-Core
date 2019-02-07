@@ -33,7 +33,7 @@
   "DecorItem": {
     "tag_type": "compound",
     "schema": {
-      "tag_type": "<item_entry>"
+      "tag_type": "<item_base>"
     }
   },
   "OwnerUUID": {
