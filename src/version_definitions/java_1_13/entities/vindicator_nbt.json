@@ -1,6 +1,6 @@
 {
   "<metadata>": {
-    "extends": "entity"
+    "extends": "mob"
   },
   "Johnny": {
     "tag_type": "byte",

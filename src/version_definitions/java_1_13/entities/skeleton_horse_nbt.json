@@ -1,0 +1,13 @@
+{
+  "<metadata>": {
+    "extends": "horse"
+  },
+  "SkeletonTrap": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "SkeletonTrapTime": {
+    "tag_type": "int",
+    "default": 0
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "Age": {
+    "tag_type": "short",
+    "default": 0
+  },
+  "Health": {
+    "tag_type": "short",
+    "default": 5
+  },
+  "PickupDelay": {
+    "tag_type": "short",
+    "default": 0
+  },
+  "owner": {
+    "tag_type": "compound",
+    "structure": {
+      "L": {
+        "type": "long"
+      },
+      "M": {
+        "type": "long"
+      }
+    }
+  },
+  "Thrower": {
+    "tag_type": "compound",
+    "structure": {
+      "L": {
+        "type": "long"
+      },
+      "M": {
+        "type": "long"
+      }
+    }
+  },
+  "Item": {
+    "tag_type": "compound",
+    "structure": {
+      "tag_type": "<item_base>"
+    }
+  }
+}

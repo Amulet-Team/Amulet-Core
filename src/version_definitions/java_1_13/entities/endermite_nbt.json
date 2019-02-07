@@ -1,6 +1,6 @@
 {
   "<metadata>": {
-    "extends": "entity"
+    "extends": "mob"
   },
   "Lifetime": {
     "tag_type": "int",

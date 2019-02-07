@@ -1,0 +1,251 @@
+{
+  "Count": {
+    "tag_type": "byte",
+    "default": 1
+  },
+  "id": {
+    "tag_type": "string",
+    "default": "minecraft:unknown_item"
+  },
+  "tag": {
+    "tag_type": "compound",
+    "structure": {
+      "Damage": {
+        "tag_type": "int"
+      },
+      "Unbreakable": {
+        "tag_type": "byte"
+      },
+      "CanDestroy": {
+        "tag_type": "list",
+        "schema": {
+          "tag_type": "string"
+        }
+      },
+      "CanPlaceOn": {
+        "tag_type": "list",
+        "schema": {
+          "tag_type": "string"
+        }
+      },
+      "Enchantments": {
+        "tag_type": "list",
+        "schema": {
+          "tag_type": "compound",
+          "structure": {
+            "id": {
+              "tag_type": "string"
+            },
+            "lvl": {
+              "tag_type": "short",
+              "default": 1
+            }
+          }
+        }
+      },
+      "StoredEnchantments": {
+        "tag_type": "list",
+        "schema": {
+          "tag_type": "compound",
+          "structure": {
+            "id": {
+              "tag_type": "string"
+            },
+            "lvl": {
+              "tag_type": "short",
+              "default": 1
+            }
+          }
+        }
+      },
+      "RepairCost": {
+        "tag_type": "int"
+      },
+      "AttributeModifiers": {
+        "tag_type": "list",
+        "schema": {
+          "tag_type": "compound",
+          "structure": {
+            "AttributeName": {
+              "tag_type": "string"
+            },
+            "Name": {
+              "tag_type": "string"
+            },
+            "Slot": {
+              "tag_type": "string"
+            },
+            "Operation": {
+              "tag_type": "int"
+            },
+            "Amount": {
+              "tag_type": "double"
+            },
+            "UUIDMost": {
+              "tag_type": "long"
+            },
+            "UUIDLeast": {
+              "tag_type": "long"
+            }
+          }
+        }
+      },
+      "CustomPotionEffects": {
+        "tag_type": "list",
+        "schema": {
+          "tag_type": "compound",
+          "structure": {
+            "Id": {
+              "tag_type": "byte"
+            },
+            "Amplifier": {
+              "tag_type": "byte",
+              "default": 1
+            },
+            "Duration": {
+              "tag_type": "int",
+              "default": 1
+            },
+            "Ambient": {
+              "tag_type": "byte",
+              "default": 0
+            },
+            "ShowParticles": {
+              "tag_type": "byte",
+              "default": 1
+            },
+            "ShowIcon": {
+              "tag_type": "byte"
+            }
+          }
+        }
+      },
+      "Potion": {
+        "tag_type": "string"
+      },
+      "CustomPotionColor": {
+        "tag_type": "int"
+      },
+      "display": {
+        "tag_type": "compound",
+        "structure": {
+          "color": {
+            "tag_type": "int"
+          },
+          "Name": {
+            "tag_type": "string"
+          },
+          "Lore": {
+            "tag_type": "list",
+            "schema": {
+              "tag_type": "string"
+            }
+          },
+          "MapColor": {
+            "tag_type": "int"
+          }
+        }
+      },
+      "HideFlags": {
+        "tag_type": "int"
+      },
+      "resolved": {
+        "tag_type": "byte"
+      },
+      "generation": {
+        "tag_type": "int"
+      },
+      "author": {
+        "tag_type": "string"
+      },
+      "title": {
+        "tag_type": "string"
+      },
+      "pages": {
+        "tag_type": "list",
+        "schema": {
+          "tag_type": "string"
+        }
+      },
+      "SkullOwner": {
+        "tag_type": "<player_head>"
+      },
+      "Explosion": {
+        "tag_type": "<explosion>"
+      },
+      "Fireworks": {
+        "tag_type": "compound",
+        "structure": {
+          "Flight": {
+            "tag_type": "byte"
+          },
+          "Explosions": {
+            "tag_type": "list",
+            "schema": {
+              "tag_type": "<explosion>"
+            }
+          }
+        }
+      },
+      "BucketVariantTag": {
+        "tag_type": "int"
+      },
+      "EntityTag": {
+        "tag_type": "<entity>"
+      },
+      "map": {
+        "tag_type": "int"
+      },
+      "map_scale_direction": {
+        "tag_type": "int"
+      },
+      "Decorations": {
+        "tag_type": "list",
+        "schema": {
+          "tag_type": "compound",
+          "structure": {
+            "id": {
+              "tag_type": "string"
+            },
+            "type": {
+              "tag_type": "byte"
+            },
+            "x": {
+              "tag_type": "double"
+            },
+            "y": {
+              "tag_type": "double"
+            },
+            "z": {
+              "tag_type": "double"
+            },
+            "rot": {
+              "tag_type": "double"
+            }
+          }
+        }
+      },
+      "Effects": {
+        "tag_type": "list",
+        "schema": {
+          "tag_type": "compound",
+          "structure": {
+            "EffectId": {
+              "tag_type": "byte"
+            },
+            "EffectDuration": {
+              "tag_type": "int",
+              "default": 160
+            }
+          }
+        }
+      },
+      "DebugProperty": {
+        "tag_type": "list",
+        "schema": {
+          "tag_type": "string"
+        }
+      }
+    }
+  }
+}
