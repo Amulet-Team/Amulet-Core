@@ -1,6 +1,6 @@
 {
   "<metadata>": {
-    "extends": "item_base"
+    "extends": "<item_base>"
   },
   "Slot": {
     "tag_type": "byte",
