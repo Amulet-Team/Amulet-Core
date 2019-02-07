@@ -346,7 +346,9 @@ class TemplateLoader:
         :return: The NBT template structure from the specified template file
         """
         if template_name not in self._templates:
-            raise FileNotFoundError()
+            raise FileNotFoundError(
+                join(self.template_dir, "*", f"{template_name}_nbt.json")
+            )
 
         template_path = self._templates[template_name]
 
