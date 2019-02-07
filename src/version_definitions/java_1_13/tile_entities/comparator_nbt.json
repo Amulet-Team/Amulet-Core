@@ -1,0 +1,8 @@
+{
+  "<metadata>": {
+    "extends": "tile_entity"
+  },
+  "OutputSignal": {
+    "tag_type": "int"
+  }
+}
