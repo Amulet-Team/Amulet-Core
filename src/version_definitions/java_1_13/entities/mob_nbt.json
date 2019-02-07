@@ -75,13 +75,13 @@
   "HandItems": {
     "tag_type": "list",
     "schema": {
-      "tag_type": "<item>"
+      "tag_type": "<item_base>"
     }
   },
   "ArmorItems": {
     "tag_type": "list",
     "schema": {
-      "tag_type": "<item>"
+      "tag_type": "<item_base>"
     }
   },
   "HandDropChances": {
