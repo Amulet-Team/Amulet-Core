@@ -15,7 +15,7 @@
     "tag_type": "byte"
   },
   "Item": {
-    "tag_type": "<item_entry>"
+    "tag_type": "<item_base>"
   },
   "ItemDropChance": {
     "tag_type": "float"
