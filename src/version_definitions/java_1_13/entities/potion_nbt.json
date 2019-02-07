@@ -3,6 +3,6 @@
     "extends": "egg"
   },
   "Potion": {
-    "tag_type": "<item_entry>"
+    "tag_type": "<item_base>"
   }
 }
