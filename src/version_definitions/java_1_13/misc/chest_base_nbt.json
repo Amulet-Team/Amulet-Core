@@ -1,0 +1,16 @@
+{
+  "Items": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "<item_entry>"
+    }
+  },
+  "LootTable": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "LootTableSeed": {
+    "tag_type": "long",
+    "default": 0
+  }
+}
