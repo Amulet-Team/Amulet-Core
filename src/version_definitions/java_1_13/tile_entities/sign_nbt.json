@@ -1,0 +1,21 @@
+{
+  "<metadata>": {
+    "extends": "tile_entity"
+  },
+  "Text1": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "Text2": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "Text3": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "Text4": {
+    "tag_type": "string",
+    "default": ""
+  }
+}
