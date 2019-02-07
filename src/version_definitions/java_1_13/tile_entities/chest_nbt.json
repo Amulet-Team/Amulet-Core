@@ -1,0 +1,11 @@
+{
+  "<metadata>": {
+    "extends": ["tile_entity", "chest_base"]
+  },
+  "CustomName": {
+    "tag_type": "string"
+  },
+  "Lock": {
+    "tag_type": "string"
+  }
+}
