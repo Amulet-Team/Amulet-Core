@@ -1,0 +1,21 @@
+{
+  "<metadata>": {
+    "extends": "tile_entity"
+  },
+  "Lock": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "Levels": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "Primary": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "Secondary": {
+    "tag_type": "int",
+    "default": 0
+  }
+}
