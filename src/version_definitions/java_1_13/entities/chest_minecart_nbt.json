@@ -1,17 +1,5 @@
 {
   "<metadata>": {
-    "extends": "minecart"
-  },
-  "Items": {
-    "tag_type": "list",
-    "schema": {
-      "tag_type": "<item_entry>"
-    }
-  },
-  "LootTable": {
-    "tag_type": "string"
-  },
-  "LootTableSeed": {
-    "tag_type": "long"
+    "extends": ["minecart", "chest_base"]
   }
 }
