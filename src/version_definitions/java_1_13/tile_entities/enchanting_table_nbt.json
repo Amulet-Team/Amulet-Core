@@ -1,0 +1,8 @@
+{
+  "<metadata>": {
+    "extends": "tile_entity"
+  },
+  "CustomName": {
+    "tag_type": "string"
+  }
+}
