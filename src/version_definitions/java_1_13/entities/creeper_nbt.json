@@ -1,0 +1,19 @@
+{
+  "<metadata>": {
+    "extends": "mob"
+  },
+  "powered": {
+    "type": "byte"
+  },
+  "ExplosionRadius": {
+    "type": "byte",
+    "default": 3
+  },
+  "Fuse": {
+    "type": "short",
+    "default": 30
+  },
+  "ignited": {
+    "type": "byte"
+  }
+}

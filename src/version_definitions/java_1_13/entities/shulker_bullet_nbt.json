@@ -1,0 +1,57 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "Owner": {
+    "tag_type": "compound",
+    "structure": {
+      "L": {
+        "type": "long"
+      },
+      "M": {
+        "type": "long"
+      },
+      "X": {
+        "type": "int"
+      },
+      "Y": {
+        "type": "int"
+      },
+      "Z": {
+        "type": "int"
+      }
+    }
+  },
+  "Steps": {
+    "tag_type": "int"
+  },
+  "Target": {
+    "tag_type": "compound",
+    "structure": {
+      "L": {
+        "type": "long"
+      },
+      "M": {
+        "type": "long"
+      },
+      "X": {
+        "type": "int"
+      },
+      "Y": {
+        "type": "int"
+      },
+      "Z": {
+        "type": "int"
+      }
+    }
+  },
+  "TXD": {
+    "tag_type": "double"
+  },
+  "TYD": {
+    "tag_type": "double"
+  },
+  "TZD": {
+    "tag_type": "double"
+  }
+}

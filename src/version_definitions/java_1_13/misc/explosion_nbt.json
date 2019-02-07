@@ -1,0 +1,20 @@
+{
+  "tag_type": "compound",
+  "structure": {
+    "Flicker": {
+      "tag_type": "byte"
+    },
+    "Trail": {
+      "tag_type": "byte"
+    },
+    "Type": {
+      "tag_type": "byte"
+    },
+    "Colors": {
+      "tag_type": "int_array"
+    },
+    "FadeColors": {
+      "tag_type": "int_array"
+    }
+  }
+}

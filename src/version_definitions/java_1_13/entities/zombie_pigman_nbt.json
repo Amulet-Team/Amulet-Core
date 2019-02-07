@@ -1,0 +1,13 @@
+{
+  "<metadata>": {
+    "extends": "zombie"
+  },
+  "Anger": {
+    "tag_type": "short",
+    "default": 0
+  },
+  "HurtBy": {
+    "tag_type": "string",
+    "default": ""
+  }
+}

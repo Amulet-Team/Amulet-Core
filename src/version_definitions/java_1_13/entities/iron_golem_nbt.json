@@ -1,0 +1,9 @@
+{
+  "<metadata>": {
+    "extends": "mob"
+  },
+  "PlayerCreated": {
+    "tag_type": "byte",
+    "default": 0
+  }
+}

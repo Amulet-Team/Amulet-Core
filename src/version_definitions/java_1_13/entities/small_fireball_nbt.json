@@ -1,0 +1,21 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "direction": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "double"
+    }
+  },
+  "life": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "power": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "double"
+    }
+  }
+}

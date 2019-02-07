@@ -1,0 +1,27 @@
+{
+  "tag_type": "compound",
+  "structure": {
+    "Id": {
+      "tag_type": "string"
+    },
+    "Name": {
+      "tag_type": "string"
+    },
+    "Properties": {
+      "tag_type": "compound",
+      "structure": {
+        "textures": {
+          "tag_type": "list",
+          "schema": {
+            "Signature": {
+              "type": "string"
+            },
+            "Value": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

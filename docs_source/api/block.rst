@@ -1,7 +1,7 @@
 blocks module
 =============
 
-.. automodule:: api.blocks
+.. automodule:: api.block
     :members:
     :special-members:
     :show-inheritance:
