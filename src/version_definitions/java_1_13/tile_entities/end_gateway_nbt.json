@@ -1,0 +1,24 @@
+{
+  "Age": {
+    "tag_type": "long",
+    "default": 0
+  },
+  "ExactTeleport": {
+    "tag_type": "byte",
+    "default": 1
+  },
+  "ExitPortal": {
+    "tag_type": "compound",
+    "structure": {
+      "X": {
+        "tag_type": "int"
+      },
+      "Y": {
+        "tag_type": "int"
+      },
+      "Z": {
+        "tag_type": "int"
+      }
+    }
+  }
+}
