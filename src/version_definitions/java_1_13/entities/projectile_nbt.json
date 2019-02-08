@@ -22,9 +22,6 @@
         "structure": {
           "Name": {
             "type": "string"
-          },
-          "Value": {
-            "type": "string"
           }
         }
       }
