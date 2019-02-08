@@ -6,6 +6,9 @@ import json
 from collections import UserDict, UserList
 from glob import iglob
 from os.path import join, basename
+from functools import partial
+
+from nbt import nbt
 
 
 class NBTStruct:
@@ -170,7 +173,7 @@ class NBTEntry:
         return not self == other
 
     def __repr__(self):
-        return f'NBTEntry("{self.tag_type}", {self.value})'
+        return f'NBTEntry("{self.tag_type}", {repr(self.value)})'
 
     def apply_template(self, template_tag: NBTStructure) -> NBTEntry:
         """
@@ -371,3 +374,99 @@ class TemplateLoader:
             del result["<metadata>"]
 
         return NBTCompoundStructure(result)
+
+
+_tag_to_entry_map = {
+    nbt.TAG_BYTE: partial(NBTEntry, "byte"),
+    nbt.TAG_SHORT: partial(NBTEntry, "short"),
+    nbt.TAG_INT: partial(NBTEntry, "int"),
+    nbt.TAG_LONG: partial(NBTEntry, "long"),
+    nbt.TAG_FLOAT: partial(NBTEntry, "float"),
+    nbt.TAG_DOUBLE: partial(NBTEntry, "double"),
+    nbt.TAG_BYTE_ARRAY: partial(NBTEntry, "byte_array"),
+    nbt.TAG_STRING: partial(NBTEntry, "string"),
+    nbt.TAG_INT_ARRAY: partial(NBTEntry, "int_array"),
+    nbt.TAG_LONG_ARRAY: partial(NBTEntry, "long_array"),
+}
+
+_entry_to_tag_map = {
+    "byte": nbt.TAG_Byte,
+    "short": nbt.TAG_Short,
+    "int": nbt.TAG_Int,
+    "long": nbt.TAG_Long,
+    "float": nbt.TAG_Float,
+    "double": nbt.TAG_Double,
+    "byte_array": nbt.TAG_Byte_Array,
+    "string": nbt.TAG_String,
+    "int_array": nbt.TAG_Int_Array,
+    "long_array": nbt.TAG_Long_Array,
+}
+
+
+def create_entry_from_nbt(tag_root: nbt.TAG) -> NBTCompoundEntry:
+    entry = None
+    tag_id = tag_root.id
+    if tag_id in _tag_to_entry_map:
+        entry = _tag_to_entry_map[tag_id](tag_root.value)
+    elif tag_id == nbt.TAG_COMPOUND:
+        tag_root: nbt.TAG_Compound
+        entry = NBTCompoundEntry()
+        for name, tag in tag_root.iteritems():
+            entry[name] = create_entry_from_nbt(tag)
+    elif tag_id == nbt.TAG_LIST:
+        tag_root: nbt.TAG_List
+        entry = NBTListEntry()
+        for tag in tag_root:
+            entry.append(tag.value)
+
+        # Not sure if needed, but our current NBT library doesn't properly
+        # populate it's internal list used by it's __iter__ if you construct
+        # the object with the 'value' keyword argument, this is a workaround
+        # - Podshot 2019.2.8
+        if len(entry) == 0:
+            for tag in tag_root.value:
+                entry.append(create_entry_from_nbt(tag))
+    return entry
+
+
+def create_nbt_from_entry(
+    entry: Union[NBTEntry, NBTListEntry, NBTCompoundEntry]
+) -> nbt.TAG:
+    tag = None
+    entry_type = entry.tag_type
+    if entry_type in _entry_to_tag_map:
+        tag = _entry_to_tag_map[entry_type](value=entry.value)
+    elif isinstance(entry, NBTCompoundEntry):
+        tag = nbt.TAG_Compound()
+        for name, child_entry in entry.items():
+            tag[name] = create_nbt_from_entry(child_entry)
+    elif isinstance(entry, NBTListEntry):
+        tag = nbt.TAG_List()
+        for child_entry in entry:
+            tag.append(create_nbt_from_entry(child_entry))
+    return tag
+
+
+if __name__ == "__main__":
+    print(create_entry_from_nbt(nbt.TAG_Byte(value=4)))
+
+    compound = nbt.TAG_Compound()
+    compound["test1"] = nbt.TAG_Int(value=-100)
+    compound["test2"] = nbt.TAG_String(value="hello!")
+
+    test1 = create_entry_from_nbt(compound)
+    print(test1)
+    print(create_nbt_from_entry(test1))
+    print("=" * 16)
+
+    test2 = create_entry_from_nbt(
+        nbt.TAG_List(
+            value=[
+                nbt.TAG_String(value="test1"),
+                nbt.TAG_String(value="test2"),
+                nbt.TAG_String(value="test3"),
+            ]
+        )
+    )
+    print(test2)
+    print(create_nbt_from_entry(test2))
