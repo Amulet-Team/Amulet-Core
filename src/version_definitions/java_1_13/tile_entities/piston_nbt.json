@@ -1,0 +1,37 @@
+{
+  "<metadata>": {
+    "extends": "tile_entity"
+  },
+  "blockState": {
+    "tag_type": "compound",
+    "structure": {
+      "Name": {
+        "type": "string"
+      },
+      "Properties": {
+        "tag_type": "compound",
+        "structure": {
+          "Name": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "facing": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "progress": {
+    "tag_type": "float",
+    "default": 1
+  },
+  "extending": {
+    "tag_type": "byte",
+    "default": 1
+  },
+  "source": {
+    "tag_type": "byte",
+    "default": 1
+  }
+}
