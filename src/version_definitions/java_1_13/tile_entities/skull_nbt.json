@@ -1,0 +1,8 @@
+{
+  "<metadata>": {
+    "extends": "tile_entity"
+  },
+  "Owner": {
+    "tag_type": "<player_head>"
+  }
+}
