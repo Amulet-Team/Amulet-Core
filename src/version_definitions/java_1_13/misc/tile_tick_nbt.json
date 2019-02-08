@@ -1,0 +1,22 @@
+
+{
+  "i": {
+    "tag_type": "string",
+    "default": "minecraft:unknown_item"
+  },
+  "t": {
+    "tag_type": "int"
+  },
+  "p": {
+    "tag_type": "int"
+  },
+  "x": {
+    "tag_type": "int"
+  },
+  "y": {
+    "tag_type": "int"
+  },
+  "z": {
+    "tag_type": "int"
+  }
+}
