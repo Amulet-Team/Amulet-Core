@@ -1,0 +1,42 @@
+{
+  "<metadata>": {
+    "extends": "tile_entity"
+  },
+  "CustomName": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "Lock": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "Items": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "<item_entry>"
+    }
+  },
+  "BurnTime": {
+    "tag_type": "short",
+    "default": 0
+  },
+  "CookTime": {
+    "tag_type": "short",
+    "default": 0
+  },
+  "CookTimeTotal": {
+    "tag_type": "short",
+    "default": 0
+  },
+  "RecipeLocation0": {
+    "tag_type": "string"
+  },
+  "RecipeAmount0": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "RecipeUsedSize": {
+    "tag_type": "short",
+    "default": 0
+  }
+}
