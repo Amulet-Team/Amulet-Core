@@ -1,0 +1,27 @@
+{
+  "<metadata>": {
+    "extends": "tile_entity"
+  },
+  "CustomName": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "Lock": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "Items": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "<item_entry>"
+    }
+  },
+  "BrewTime": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "Fuel": {
+    "tag_type": "byte",
+    "default": 0
+  }
+}
