@@ -1,0 +1,24 @@
+{
+  "<metadata>": {
+    "extends": "tile_entity"
+  },
+  "CustomName": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "Patterns": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "compound",
+      "structure": {
+        "Color": {
+          "tag_type": "int",
+          "default": "0"
+        },
+        "Pattern": {
+          "tag_type": "string"
+        }
+      }
+    }
+  }
+}
