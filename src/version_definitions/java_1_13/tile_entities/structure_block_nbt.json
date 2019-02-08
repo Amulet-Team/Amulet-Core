@@ -1,0 +1,51 @@
+{
+  "<metadata>": {
+    "extends": "tile_entity"
+  },
+  "name": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "author": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "metadata": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "posX": {
+    "tag_type": "int"
+  },
+  "posY": {
+    "tag_type": "int"
+  },
+  "posZ": {
+    "tag_type": "int"
+  },
+  "sizeX": {
+    "tag_type": "int"
+  },
+  "sizeY": {
+    "tag_type": "int"
+  },
+  "sizeZ": {
+    "tag_type": "int"
+  },
+  "rotation": {
+    "tag_type": "string",
+    "default": "NONE"
+  },
+  "mirror": {
+    "tag_type": "string",
+    "default": "NONE"
+  },
+  "mode": {
+    "tag_type": "string",
+    "default": "SAVE"
+  },
+  "ignoreEntities": {
+    "tag_type": "byte",
+    "default": 0
+  }
+}
