@@ -2,7 +2,7 @@
 {
   "i": {
     "tag_type": "string",
-    "default": "minecraft:unknown_item"
+    "default": "minecraft:unknown_block"
   },
   "t": {
     "tag_type": "int"
