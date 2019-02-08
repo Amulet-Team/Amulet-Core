@@ -1,0 +1,44 @@
+{
+  "<metadata>": {
+    "extends": "tile_entity"
+  },
+  "CustomName": {
+    "tag_type": "string",
+    "default": "@"
+  },
+  "Command": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "SuccessCount": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "LastOutput": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "TrackOutput": {
+    "tag_type": "byte",
+    "default": 1
+  },
+  "powered": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "auto": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "conditionMet": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "UpdateLastExecution": {
+    "tag_type": "byte",
+    "default": 1
+  },
+  "LastExecution": {
+    "tag_type": "long"
+  }
+}
