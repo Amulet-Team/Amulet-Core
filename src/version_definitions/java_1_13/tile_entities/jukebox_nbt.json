@@ -1,0 +1,8 @@
+{
+  "<metadata>": {
+    "extends": "tile_entity"
+  },
+  "RecordItem": {
+    "tag_type": "<item_base>"
+  }
+}
