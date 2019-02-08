@@ -1,0 +1,26 @@
+{
+  "<metadata>": {
+    "extends": "tile_entity"
+  },
+  "CustomColor": {
+    "tag_type": "int"
+  },
+  "Items": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "<item_entry>"
+    }
+  },
+  "PotionId": {
+    "tag_type": "short",
+    "default": -1
+  },
+  "SplashPotion": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "isMovable": {
+    "tag_type": "byte",
+    "default": 1
+  }
+}
