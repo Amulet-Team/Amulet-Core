@@ -59,6 +59,9 @@ class WorldFormat:
         """
         raise NotImplementedError()
 
+    def get_entities(self, cx: int, cz: int) -> dict:
+        raise NotImplementedError()
+
     def get_blocks(self, cx: int, cz: int) -> numpy.ndarray:
         raise NotImplementedError()
 
@@ -140,6 +143,9 @@ class World:
         chunk = Chunk(cx, cz, self._wrapper.get_blocks)
         self.blocks_cache[(cx, cz)] = chunk
         return self.blocks_cache[(cx, cz)]
+
+    def get_entities(self, cx: int, cz: int):
+        return self._wrapper.get_entities(cx, cz)
 
     def get_block(self, x: int, y: int, z: int) -> Block:
         """

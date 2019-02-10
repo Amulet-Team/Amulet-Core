@@ -376,6 +376,16 @@ class TemplateLoader:
         return NBTCompoundStructure(result)
 
 
+class EntityHandler:
+    @classmethod
+    def load_entity(cls, entity: NBTCompoundEntry) -> NBTCompoundEntry:
+        return entity
+
+    @classmethod
+    def save_entity(cls, entity: NBTCompoundEntry) -> NBTCompoundEntry:
+        return entity
+
+
 _tag_to_entry_map = {
     nbt.TAG_BYTE: partial(NBTEntry, "byte"),
     nbt.TAG_SHORT: partial(NBTEntry, "short"),
@@ -423,7 +433,7 @@ def create_entry_from_nbt(tag_root: nbt.TAG) -> NBTCompoundEntry:
         # populate it's internal list used by it's __iter__ if you construct
         # the object with the 'value' keyword argument, this is a workaround
         # - Podshot 2019.2.8
-        if len(entry) == 0:
+        if len(entry) == 0 and tag_root.value:
             for tag in tag_root.value:
                 entry.append(create_entry_from_nbt(tag))
     return entry

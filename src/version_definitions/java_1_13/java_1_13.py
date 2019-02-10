@@ -22,7 +22,8 @@ def identify(directory: str) -> bool:
     # 1444 is the version for 17w43a snapshot (first 1.13 snapshot)
     # 1519 is the version for the 1.13 release version
     # 1628 is the version for the 1.13.1 release version
-    if not check_version_leveldat(leveldat_root, _min=1444, _max=1628):
+    # if not check_version_leveldat(leveldat_root, _min=1444, _max=1628):
+    if not check_version_leveldat(leveldat_root, _min=1444):
         return False
 
     return True

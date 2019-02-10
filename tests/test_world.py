@@ -130,6 +130,11 @@ class WorldTestBaseCases:
                 "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
             )
 
+        def test_get_entities(
+            self
+        ):  # TODO: Make a more complete test once we figure out what get_entities() returns
+            entities = self.world.get_entities(0, 0)
+
 
 class AnvilWorldTestCase(WorldTestBaseCases.WorldTestCase):
     def setUp(self):
