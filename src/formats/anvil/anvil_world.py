@@ -168,20 +168,16 @@ class AnvilWorld(WorldFormat):
 
         return World(directory, root_tag, wrapper)
 
-    def get_entities(
-        self, cx: int, cz: int
-    ) -> Dict[str, List[nbt_template.NBTCompoundEntry]]:
+    def get_entities(self, cx: int, cz: int) -> List[nbt_template.NBTCompoundEntry]:
         _, _, entities = self._region_manager.load_chunk(cx, cz)
 
-        entity_map = defaultdict(list)
+        entity_list = []
         for entity in entities:
             entity = nbt_template.create_entry_from_nbt(entity)
             entity = self._entity_handlers[entity["id"].value].load_entity(entity)
-            entity_map[entity["id"].value].append(
-                entity
-            )  # TODO: Change this if we want to return a list
+            entity_list.append(entity)
 
-        return entity_map
+        return entity_list
 
     def get_blocks(self, cx: int, cz: int) -> Union[numpy.ndarray, NotImplementedError]:
         chunk_sections, _, _ = self._region_manager.load_chunk(cx, cz)
