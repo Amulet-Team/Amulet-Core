@@ -1,0 +1,9 @@
+{
+  "<metadata>": {
+    "extends": "mob"
+  },
+  "Variant": {
+    "tag_type": "int",
+    "default": 0
+  }
+}
