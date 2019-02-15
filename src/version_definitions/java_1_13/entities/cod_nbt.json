@@ -1,0 +1,9 @@
+{
+  "<metadata>": {
+    "extends": "mob"
+  },
+  "FromBucket": {
+    "tag_type": "byte",
+    "default": 0
+  }
+}
