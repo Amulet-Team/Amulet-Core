@@ -1,0 +1,9 @@
+{
+  "<metadata>": {
+    "extends": "cod"
+  },
+  "PuffState": {
+    "tag_type": "int",
+    "default": 0
+  }
+}
