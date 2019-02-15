@@ -13,7 +13,7 @@
       "structure": {
         "Color": {
           "tag_type": "int",
-          "default": "0"
+          "default": 0
         },
         "Pattern": {
           "tag_type": "string"
