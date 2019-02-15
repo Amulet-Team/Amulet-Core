@@ -4,6 +4,6 @@
   },
   "TransferCooldown": {
     "tag_type": "int",
-    "default": 4
+    "default": 0
   }
 }
