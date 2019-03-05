@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 from collections import UserDict
 from contextlib import AbstractContextManager
-from typing import Sequence, Callable, TypeVar, Generic, Optional
+from typing import Sequence, Callable, TypeVar, Generic, Optional, Dict, List, Tuple
 
 T = TypeVar("T")
 
@@ -48,24 +48,37 @@ class Stack(Generic[T]):
 
 class EntityContext(AbstractContextManager):
     def __init__(self, entities):
-        self._entities = entities
-        self._old_entities = copy.deepcopy(entities)
+        self._entities: EntityContainer = entities
+        self._old_entities: EntityContainer = copy.deepcopy(entities)
 
     def __enter__(self):
         return self._entities
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if self._entities != self._old_entities:
+        if self._entities.data != self._old_entities.data:
             print("Entities changed!")
         else:
             print("Nothing changed!")
         return False
 
 
-class EntityDict(UserDict):
+class EntityContainer(UserDict):
+    data: Dict[Tuple[int, int], List]
+
     def dict_iter(self):
-        return super(EntityDict, self).__iter__()
+        return super(EntityContainer, self).__iter__()
 
     def __iter__(self):
         for coords, entities in self.data.items():
             yield from iter(entities)
+
+    def add_entity(self, ent):
+        x, y, z = ent["Pos"]
+        chunk_coords = (x >> 4, z >> 4)
+        self.data.setdefault(chunk_coords, []).append(ent)
+
+    def remove_entity(self, ent):
+        x, y, z = ent["Pos"]
+        chunk_coords = (x >> 4, z >> 4)
+        if chunk_coords in self.data:
+            self[chunk_coords].remove(ent)

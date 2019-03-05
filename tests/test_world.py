@@ -137,10 +137,18 @@ class WorldTestBaseCases:
 
             print("--" * 16)
             result = self.world.get_entities_in_box(box1)
-            print(result)
-            self.assertEqual(
-                result, {}
-            )  # TODO: Change this when we use a better test world
+            with result as entities:
+                self.assertEqual(
+                    entities, {}
+                )  # TODO: Change this when we use a better test world
+
+                ent = {"Pos": [16, 3, 16], "id": "test"}
+                entities.add_entity(ent)
+                print(entities)
+                ent["test"] = False
+                print(entities)
+                entities.remove_entity(ent)
+                print(entities)
 
 
 class AnvilWorldTestCase(WorldTestBaseCases.WorldTestCase):

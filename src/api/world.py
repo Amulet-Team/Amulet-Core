@@ -9,7 +9,7 @@ from importlib import import_module
 import numpy
 
 from api.block import Block, BlockManager
-from api.data_structures import EntityDict
+from api.data_structures import EntityContainer, EntityContext
 from api.history import HistoryManager
 from api.chunk import Chunk, SubChunk
 from api.operation import Operation
@@ -231,7 +231,7 @@ class World:
                 ]
                 if len(ent_list) == 0:
                     del chunk_entities_map[chunk_coords]
-        return EntityDict(chunk_entities_map)
+        return EntityContext(EntityContainer(chunk_entities_map))
 
     def run_operation_from_operation_name(
         self, operation_name: str, *args
