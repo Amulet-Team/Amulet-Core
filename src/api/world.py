@@ -9,6 +9,7 @@ from importlib import import_module
 import numpy
 
 from api.block import Block, BlockManager
+from api.data_structures import EntityDict
 from api.history import HistoryManager
 from api.chunk import Chunk, SubChunk
 from api.operation import Operation
@@ -211,6 +212,26 @@ class World:
             )
             chunk = self.get_chunk(*chunk_pos)
             yield chunk[x_slice_for_chunk, s_y, z_slice_for_chunk]
+
+    def get_entities_in_box(
+        self, box: "SelectionBox"
+    ):  # Currently O(n^3), maybe get down to O(n)?
+        def get_coords(ent):
+            return tuple(ent["Pos"])
+
+        chunk_entities_map = {}
+        for subbox in box.subboxes():
+            slice = subbox.to_slice()
+            for subchunk in self.get_sub_chunks(*slice):
+                chunk_coords = (subchunk._parent.cx, subchunk._parent.cz)
+                cx, cz = chunk_coords
+                entities = self.get_entities(cx, cz)
+                chunk_entities_map[chunk_coords] = ent_list = [
+                    ent for ent in entities if get_coords(ent) in subbox
+                ]
+                if len(ent_list) == 0:
+                    del chunk_entities_map[chunk_coords]
+        return EntityDict(chunk_entities_map)
 
     def run_operation_from_operation_name(
         self, operation_name: str, *args

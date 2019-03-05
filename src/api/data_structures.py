@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import copy
+from collections import UserDict
+from contextlib import AbstractContextManager
 from typing import Sequence, Callable, TypeVar, Generic, Optional
 
 T = TypeVar("T")
@@ -41,3 +44,28 @@ class Stack(Generic[T]):
         Clears all stored elements in the Stack
         """
         self._data.clear()
+
+
+class EntityContext(AbstractContextManager):
+    def __init__(self, entities):
+        self._entities = entities
+        self._old_entities = copy.deepcopy(entities)
+
+    def __enter__(self):
+        return self._entities
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self._entities != self._old_entities:
+            print("Entities changed!")
+        else:
+            print("Nothing changed!")
+        return False
+
+
+class EntityDict(UserDict):
+    def dict_iter(self):
+        return super(EntityDict, self).__iter__()
+
+    def __iter__(self):
+        for coords, entities in self.data.items():
+            yield from iter(entities)

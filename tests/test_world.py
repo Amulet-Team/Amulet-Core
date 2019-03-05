@@ -133,7 +133,14 @@ class WorldTestBaseCases:
         def test_get_entities(
             self
         ):  # TODO: Make a more complete test once we figure out what get_entities() returns
-            entities = self.world.get_entities(0, 0)
+            box1 = SelectionBox((SubBox((0, 0, 0), (16, 16, 16)),))
+
+            print("--" * 16)
+            result = self.world.get_entities_in_box(box1)
+            print(result)
+            self.assertEqual(
+                result, {}
+            )  # TODO: Change this when we use a better test world
 
 
 class AnvilWorldTestCase(WorldTestBaseCases.WorldTestCase):
