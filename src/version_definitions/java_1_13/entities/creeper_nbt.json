@@ -2,18 +2,22 @@
   "<metadata>": {
     "extends": "mob"
   },
+  "id": {
+    "tag_type": "string",
+    "default": "minecraft:creeper"
+  },
   "powered": {
-    "type": "byte"
+    "tag_type": "byte"
   },
   "ExplosionRadius": {
-    "type": "byte",
+    "tag_type": "byte",
     "default": 3
   },
   "Fuse": {
-    "type": "short",
+    "tag_type": "short",
     "default": 30
   },
   "ignited": {
-    "type": "byte"
+    "tag_type": "byte"
   }
 }

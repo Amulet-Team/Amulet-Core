@@ -6,16 +6,16 @@
     "tag_type": "compound",
     "structure": {
       "Name": {
-        "type": "string"
+        "tag_type": "string"
       },
       "Properties": {
         "tag_type": "compound",
         "structure": {
           "Name": {
-            "type": "string"
+            "tag_type": "string"
           },
           "Value": {
-            "type": "string"
+            "tag_type": "string"
           }
         }
       }

@@ -3,13 +3,13 @@
     "extends": "minecart"
   },
   "PushX": {
-    "type": "double"
+    "tag_type": "double"
   },
   "PushZ": {
-    "type": "double"
+    "tag_type": "double"
   },
   "Fuel": {
-    "type": "short",
+    "tag_type": "short",
     "default": 0
   }
 }

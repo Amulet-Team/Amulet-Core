@@ -3,30 +3,30 @@
     "extends": "entity"
   },
   "CustomDisplayTile": {
-    "type": "byte",
+    "tag_type": "byte",
     "default": 0
   },
   "DisplayState": {
     "tag_type": "compound",
     "structure": {
       "Name": {
-        "type": "string"
+        "tag_type": "string"
       },
       "Properties": {
         "tag_type": "compound",
         "structure": {
           "Name": {
-            "type": "string"
+            "tag_type": "string"
           },
           "Value": {
-            "type": "string"
+            "tag_type": "string"
           }
         }
       }
     }
   },
   "DisplayOffset": {
-    "type": "int",
+    "tag_type": "int",
     "default": 0
   }
 }

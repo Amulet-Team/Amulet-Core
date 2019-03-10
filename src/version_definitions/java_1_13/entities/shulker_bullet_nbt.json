@@ -6,19 +6,19 @@
     "tag_type": "compound",
     "structure": {
       "L": {
-        "type": "long"
+        "tag_type": "long"
       },
       "M": {
-        "type": "long"
+        "tag_type": "long"
       },
       "X": {
-        "type": "int"
+        "tag_type": "int"
       },
       "Y": {
-        "type": "int"
+        "tag_type": "int"
       },
       "Z": {
-        "type": "int"
+        "tag_type": "int"
       }
     }
   },
@@ -29,19 +29,19 @@
     "tag_type": "compound",
     "structure": {
       "L": {
-        "type": "long"
+        "tag_type": "long"
       },
       "M": {
-        "type": "long"
+        "tag_type": "long"
       },
       "X": {
-        "type": "int"
+        "tag_type": "int"
       },
       "Y": {
-        "type": "int"
+        "tag_type": "int"
       },
       "Z": {
-        "type": "int"
+        "tag_type": "int"
       }
     }
   },

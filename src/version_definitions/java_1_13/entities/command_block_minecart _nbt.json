@@ -3,19 +3,19 @@
     "extends": "minecart"
   },
   "Command": {
-    "type": "string",
+    "tag_type": "string",
     "default": ""
   },
   "SuccessCount": {
-    "type": "int",
+    "tag_type": "int",
     "default": 0
   },
   "LastOutput": {
-    "type": "string",
+    "tag_type": "string",
     "default": ""
   },
   "TrackOutput": {
-    "type": "byte",
+    "tag_type": "byte",
     "default": 1
   }
 }

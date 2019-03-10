@@ -15,6 +15,7 @@ from api.nbt_template import (
     NBTEntry,
     NBTListEntry,
     NBTCompoundEntry,
+    nbt_template_to_entry,
 )
 from test_utils import TESTS_DIR
 
@@ -243,6 +244,10 @@ class NBTTemplateTestBase:
         self.assertNotEqual(mock_item_5_expected, mock_item_5)
         self.assertNotEqual(mock_item_5, result_item_5)
         self.assertEqual(mock_item_5_expected, result_item_5)
+
+    def test_nbt_template_to_entry(self):
+        entry_1 = nbt_template_to_entry("creeper", self.template_engine)
+        self.assertEqual("minecraft:creeper", entry_1["id"].value)
 
 
 class Java113NBTTemplateTestCase(NBTTemplateTestBase, unittest.TestCase):

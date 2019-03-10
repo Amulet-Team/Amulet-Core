@@ -341,13 +341,7 @@ class TemplateLoader:
 
         return NBTStructure(tag_type, default_value=json_object.get("default"))
 
-    def load_template(self, template_name: str) -> NBTCompoundStructure:
-        """
-        Loads the specified named NBT template file
-
-        :param template_name: The (normalized) name of the template file (IE: "creeper" for "creeper.json")
-        :return: The NBT template structure from the specified template file
-        """
+    def _load_template(self, template_name: str) -> dict:
         if template_name not in self._templates:
             raise FileNotFoundError(
                 join(self.template_dir, "*", f"{template_name}_nbt.json")
@@ -360,20 +354,31 @@ class TemplateLoader:
         fp.close()
 
         get_func = result.get if isinstance(result, dict) else result.structure.get
-        update_func = (
-            result.update if isinstance(result, dict) else result.structure.update
-        )
 
         if "extends" in get_func("<metadata>", {}):
             parents: List[str] = result["<metadata>"]["extends"]
             if isinstance(parents, str):
                 parents = [parents]
 
+            all_parent_data = {}
             for parent in parents:
-                update_func(self.load_template(parent).structure)
-            del result["<metadata>"]
+                parent_data = self._load_template(parent)
+                all_parent_data.update(parent_data)
 
-        return NBTCompoundStructure(result)
+            del result["<metadata>"]
+            all_parent_data.update(result)
+            result = all_parent_data
+
+        return result
+
+    def load_template(self, template_name: str) -> NBTCompoundStructure:
+        """
+        Loads the specified named NBT template file
+
+        :param template_name: The (normalized) name of the template file (IE: "creeper" for "creeper.json")
+        :return: The NBT template structure from the specified template file
+        """
+        return NBTCompoundStructure(self._load_template(template_name))
 
 
 class EntityHandler:
@@ -455,6 +460,32 @@ def create_nbt_from_entry(
         for child_entry in entry:
             tag.append(create_nbt_from_entry(child_entry))
     return tag
+
+
+def nbt_template_to_entry(entity_id: str, loader: TemplateLoader) -> NBTCompoundEntry:
+    def convert_template(template):
+        if isinstance(template, NBTCompoundStructure):
+            output = NBTCompoundEntry()
+            for key, value in template.structure.items():
+                tag_entry = convert_template(value)
+                if tag_entry.value:
+                    output[key] = tag_entry
+            return output
+        elif isinstance(template, dict):
+            output = NBTCompoundEntry()
+            for key, value in template.items():
+                output[key] = convert_template(value)
+            return output
+        elif isinstance(template, NBTListStructure):
+            if template.default_value:
+                return template.default_value
+            return NBTListEntry()
+        else:
+            return template.create_entry_from_template()
+
+    template = loader.load_template(entity_id)
+    entry = NBTCompoundEntry(convert_template(template))
+    return entry
 
 
 if __name__ == "__main__":

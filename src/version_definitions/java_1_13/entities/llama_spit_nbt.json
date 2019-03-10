@@ -6,10 +6,10 @@
     "tag_type": "compound",
     "structure": {
       "OwnerUUIDMost": {
-        "type": "long"
+        "tag_type": "long"
       },
       "OwnerUUIDLeast": {
-        "type": "long"
+        "tag_type": "long"
       }
     }
   }

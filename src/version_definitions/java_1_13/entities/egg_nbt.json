@@ -10,10 +10,10 @@
     "tag_type": "compound",
     "structure": {
       "L": {
-        "type": "long"
+        "tag_type": "long"
       },
       "M": {
-        "type": "long"
+        "tag_type": "long"
       }
     }
   }
