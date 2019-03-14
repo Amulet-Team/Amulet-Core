@@ -142,13 +142,25 @@ class WorldTestBaseCases:
                     entities, {}
                 )  # TODO: Change this when we use a better test world
 
-                ent = {"Pos": [16, 3, 16], "id": "test"}
+                ent = {"Pos": [10.0, 3.0, 10.0], "id": "test"}
                 entities.add_entity(ent)
+                self.assertEqual(1, len(entities[(0, 0)]))
+                self.assertNotIn((1, 1), entities)
+                ent["Pos"] = [20.42, 5.79, 20.5]
+                self.assertEqual(
+                    1, len(entities[(0, 0)])
+                )  # Hasn't been re-organized yet
+                self.assertNotIn((1, 1), entities)
                 print(entities)
                 ent["test"] = False
                 print(entities)
-                entities.remove_entity(ent)
+                # entities.remove_entity(ent)
                 print(entities)
+            print(result._entities)
+
+            # All entities have now been re-organized into their proper chunks
+            self.assertEqual(0, len(entities[(0, 0)]))
+            self.assertEqual(1, len(entities[(1, 1)]))
 
 
 class AnvilWorldTestCase(WorldTestBaseCases.WorldTestCase):
