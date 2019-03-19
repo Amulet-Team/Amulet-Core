@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from sys import getsizeof
 import re
 from typing import Dict, Iterable, List, Tuple, Union, overload
@@ -129,7 +130,7 @@ class Block:
         """
         if self._properties is None:
             self._parse_blockstate_string()
-        return self._properties
+        return copy.deepcopy(self._properties)
 
     @property
     def blockstate(self) -> str:
