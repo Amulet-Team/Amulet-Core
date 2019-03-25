@@ -47,9 +47,11 @@ class Stack(Generic[T]):
 
 
 class EntityContext(AbstractContextManager):
-    def __init__(self, entities):
-        self._entities: EntityContainer = entities
-        self._old_entities: EntityContainer = copy.deepcopy(entities)
+    def __init__(self, mutable_entities, immutable_entities, chunks):
+        self._entities: EntityContainer = mutable_entities
+        self._old_entities: EntityContainer = copy.deepcopy(mutable_entities)
+        self._immutable_entities = immutable_entities
+        self._chunks = chunks
         self._changed = False
 
     @property
@@ -92,6 +94,11 @@ class EntityContext(AbstractContextManager):
                 self._entities.setdefault(chunk_coords, []).append(ent)
 
             print("Entities changed!")
+
+            for coords, chunk in self._chunks.items():
+                chunk.entities = (
+                    tuple(self._entities[coords]) + self._immutable_entities[coords]
+                )
         else:
             print("Nothing changed!")
         return False

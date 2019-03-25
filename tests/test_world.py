@@ -145,12 +145,12 @@ class WorldTestBaseCases:
                 ent = {"Pos": [10.0, 3.0, 10.0], "id": "test"}
                 entities.add_entity(ent)
                 self.assertEqual(1, len(entities[(0, 0)]))
-                self.assertNotIn((1, 1), entities)
+                # self.assertNotIn((1, 1), entities)
                 ent["Pos"] = [20.42, 5.79, 20.5]
                 self.assertEqual(
                     1, len(entities[(0, 0)])
                 )  # Hasn't been re-organized yet
-                self.assertNotIn((1, 1), entities)
+                # self.assertNotIn((1, 1), entities)
                 print(entities)
                 ent["test"] = False
                 print(entities)

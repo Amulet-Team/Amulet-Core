@@ -21,6 +21,7 @@ class Chunk:
         self.previous_unsaved_state: Optional[Chunk] = None
         self.changed: bool = False
         self._blocks: Optional[numpy.ndarray] = None
+        self._entities = []
 
     @property
     def blocks(self):
@@ -36,6 +37,18 @@ class Chunk:
                 self.previous_unsaved_state = deepcopy(self)
             self.changed = True
         self._blocks = value
+
+    @property
+    def entities(self):
+        return deepcopy(self._entities)
+
+    @entities.setter
+    def entities(self, value):
+        if not self._entities and value:
+            if self.previous_unsaved_state is None:
+                self.previous_unsaved_state = deepcopy(self)
+            self.changed = True
+        self._entities = value
 
     def __getitem__(self, item: Union[PointCoordinates, SliceCoordinates]):
         if (
@@ -58,7 +71,10 @@ class Chunk:
 
     def __deepcopy__(self, memo):
         chunk = Chunk(self.cx, self.cz, self.get_blocks_func)
-        chunk._blocks = self._blocks.copy()
+        if self._blocks:
+            chunk._blocks = self._blocks.copy()
+        if self._entities:
+            chunk._entities = deepcopy(self._entities)
         return chunk
 
     def save_to_file(self, path: str, compressed=False):

@@ -219,19 +219,41 @@ class World:
         def get_coords(ent):
             return tuple(ent["Pos"])
 
+        chunk_map = {}
         chunk_entities_map = {}
+        immutable_entities_map = {}
         for subbox in box.subboxes():
             slice = subbox.to_slice()
             for subchunk in self.get_sub_chunks(*slice):
                 chunk_coords = (subchunk._parent.cx, subchunk._parent.cz)
                 cx, cz = chunk_coords
                 entities = self.get_entities(cx, cz)
+
+                entities_in_box = list(
+                    filter(lambda e: get_coords(e) in subbox, entities)
+                )
+                entities_not_in_box = tuple(
+                    filter(lambda e: get_coords(e) not in subbox, entities)
+                )
+
+                chunk_entities_map[chunk_coords] = entities_in_box
+                immutable_entities_map[chunk_coords] = entities_not_in_box
+
+                """
                 chunk_entities_map[chunk_coords] = ent_list = [
                     ent for ent in entities if get_coords(ent) in subbox
                 ]
                 if len(ent_list) == 0:
                     del chunk_entities_map[chunk_coords]
-        return EntityContext(EntityContainer(chunk_entities_map))
+                """
+
+                if chunk_coords not in chunk_map:
+                    chunk_map[chunk_coords] = subchunk._parent
+
+        #        print(chunk_map)
+        return EntityContext(
+            EntityContainer(chunk_entities_map), immutable_entities_map, chunk_map
+        )
 
     def run_operation_from_operation_name(
         self, operation_name: str, *args
