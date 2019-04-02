@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import itertools
 import os
 import shutil
@@ -10,7 +11,7 @@ import numpy
 
 from api.block import Block, BlockManager
 from api.data_structures import EntityContainer, EntityContext
-from api.history import HistoryManager
+from api.history_manager import ChunkHistoryManager, Chunk2
 from api.chunk import Chunk, SubChunk
 from api.operation import Operation
 from api.paths import get_temp_dir
@@ -106,8 +107,9 @@ class World:
         shutil.rmtree(get_temp_dir(self._directory), ignore_errors=True)
         self._root_tag = root_tag
         self._wrapper = wrapper
-        self.blocks_cache: Dict[Coordinates, Chunk] = {}
-        self.history_manager = HistoryManager()
+        self.blocks_cache: Dict[Coordinates, Chunk2] = {}
+        # self.history_manager = HistoryManager()
+        self.history_manager = ChunkHistoryManager(get_temp_dir(self._directory))
 
     def exit(self):
         # TODO: add "unsaved changes" check before exit
@@ -141,7 +143,12 @@ class World:
         if (cx, cz) in self.blocks_cache:
             return self.blocks_cache[(cx, cz)]
 
-        chunk = Chunk(cx, cz, self._wrapper.get_blocks)
+        chunk = Chunk2(
+            cx,
+            cz,
+            get_blocks_func=self._wrapper.get_blocks,
+            get_entities_func=self.get_entities,
+        )
         self.blocks_cache[(cx, cz)] = chunk
         return self.blocks_cache[(cx, cz)]
 
@@ -262,14 +269,25 @@ class World:
         operation_class_name = "".join(x.title() for x in operation_name.split("_"))
         operation_class = getattr(operation_module, operation_class_name)
         operation_instance = operation_class(*args)
+
+        chunks_copy = copy.deepcopy(self.blocks_cache)
+
         try:
             self.run_operation(operation_instance)
         except Exception as e:
             self._revert_all_chunks()
             return e
 
-        self.history_manager.add_operation(operation_instance)
-        self._save_to_undo()
+        changed_chunks = []
+        for chunk_coords, chunk_obj in self.blocks_cache.items():
+            if chunk_obj.changed:
+                changed_chunks.append(chunks_copy[chunk_coords])
+
+        del chunks_copy
+        self.history_manager.add_changed_chunks(changed_chunks)
+
+        # self.history_manager.add_operation(operation_instance)
+        # self._save_to_undo()
 
     def _revert_all_chunks(self):
         for chunk_pos, chunk in self.blocks_cache.items():
@@ -292,6 +310,18 @@ class World:
             chunk.previous_unsaved_state = None
 
     def undo(self):
+        previous_chunks = self.history_manager.undo()
+
+        for chunk_obj in previous_chunks:
+            chunk_coords = (chunk_obj.cx, chunk_obj.cz)
+            print("blockstate:", self.blocks_cache[chunk_coords].blocks[1, 70, 5])
+            self.blocks_cache[chunk_coords] = chunk_obj
+            print("blockstate:", self.blocks_cache[chunk_coords].blocks[1, 70, 5])
+
+    def redo(self):
+        raise NotImplementedError()
+
+    def old_undo(self):
         path = os.path.join(
             get_temp_dir(self._directory),
             f"Operation_{self.history_manager.undo_stack.size()}",
@@ -307,7 +337,7 @@ class World:
 
         self.history_manager.undo()
 
-    def redo(self):
+    def old_redo(self):
         operation_to_redo = self.history_manager.redo()
         self.run_operation(operation_to_redo)
         self._save_to_undo()
