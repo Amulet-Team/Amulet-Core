@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import itertools
 import os
 import shutil
@@ -132,7 +131,7 @@ class World:
         """
         return self._wrapper.get_blockstate(blockstate)
 
-    def get_chunk(self, cx: int, cz: int) -> Chunk:
+    def get_chunk(self, cx: int, cz: int) -> Chunk2:
         """
         Gets the chunk data of the specified chunk coordinates
 
@@ -146,10 +145,11 @@ class World:
         chunk = Chunk2(
             cx,
             cz,
-            get_blocks_func=self._wrapper.get_blocks,
-            get_entities_func=self.get_entities,
+            blocks=self._wrapper.get_blocks(cx, cz),
+            entities=self._wrapper.get_entities(cx, cz),
         )
         self.blocks_cache[(cx, cz)] = chunk
+        self.history_manager.add_original_chunk(chunk)
         return self.blocks_cache[(cx, cz)]
 
     def get_entities(self, cx: int, cz: int):
@@ -270,20 +270,16 @@ class World:
         operation_class = getattr(operation_module, operation_class_name)
         operation_instance = operation_class(*args)
 
-        chunks_copy = copy.deepcopy(self.blocks_cache)
-
         try:
             self.run_operation(operation_instance)
         except Exception as e:
             self._revert_all_chunks()
             return e
 
-        changed_chunks = []
-        for chunk_coords, chunk_obj in self.blocks_cache.items():
-            if chunk_obj.changed:
-                changed_chunks.append(chunks_copy[chunk_coords])
+        changed_chunks = [
+            chunk for chunk in self.blocks_cache.values() if chunk.changed
+        ]
 
-        del chunks_copy
         self.history_manager.add_changed_chunks(changed_chunks)
 
         # self.history_manager.add_operation(operation_instance)
@@ -314,12 +310,14 @@ class World:
 
         for chunk_obj in previous_chunks:
             chunk_coords = (chunk_obj.cx, chunk_obj.cz)
-            print("blockstate:", self.blocks_cache[chunk_coords].blocks[1, 70, 5])
             self.blocks_cache[chunk_coords] = chunk_obj
-            print("blockstate:", self.blocks_cache[chunk_coords].blocks[1, 70, 5])
 
     def redo(self):
-        raise NotImplementedError()
+        next_chunks = self.history_manager.redo()
+
+        for chunk_obj in next_chunks:
+            chunk_coords = (chunk_obj.cx, chunk_obj.cz)
+            self.blocks_cache[chunk_coords] = chunk_obj
 
     def old_undo(self):
         path = os.path.join(

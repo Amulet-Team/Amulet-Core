@@ -98,7 +98,6 @@ class WorldTestBaseCases:
                 "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
             )
 
-            """
             self.world.redo()
 
             self.assertEqual(
@@ -110,7 +109,6 @@ class WorldTestBaseCases:
             self.assertEqual(
                 "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
             )
-            """
 
         def test_fill_operation(self):
             subbox_1 = SubBox((1, 70, 3), (5, 71, 5))
@@ -141,7 +139,7 @@ class WorldTestBaseCases:
             self.assertEqual(
                 "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
-            print(self.world.get_block(1, 70, 5).blockstate)
+
             self.assertEqual(
                 "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
             )

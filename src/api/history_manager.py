@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import List
+from typing import Dict, List, Tuple
 
 import os
 
@@ -27,23 +27,12 @@ class SubChunk2:
 
 
 class Chunk2:
-    def __init__(
-        self,
-        cx: int,
-        cz: int,
-        blocks=None,
-        entities=None,
-        tileentities=None,
-        get_blocks_func=None,
-        get_entities_func=None,
-    ):
+    def __init__(self, cx: int, cz: int, blocks=None, entities=None, tileentities=None):
         self.cx, self.cz = cx, cz
         self._blocks: numpy.ndarray = blocks
         self._entities = entities
         self._tileentities = tileentities
 
-        self.get_blocks_func = get_blocks_func
-        self.get_entities_func = get_blocks_func
         self._changed = False
 
     def __repr__(self):
@@ -69,13 +58,11 @@ class Chunk2:
         return SubChunk2(item, self)
 
     @property
-    def changed(self):
+    def changed(self) -> bool:
         return self._changed
 
     @property
     def blocks(self) -> numpy.ndarray:
-        if self._blocks is None:
-            self._blocks = self.get_blocks_func(self.cx, self.cz)
         self._blocks.setflags(write=False)
         return self._blocks
 
@@ -87,9 +74,6 @@ class Chunk2:
 
     @property
     def entities(self):
-        if self._entities is None:
-            self._entities = self.get_entities_func(self.cx, self.cz)
-
         return copy.deepcopy(self._entities)
 
     @entities.setter
@@ -147,39 +131,53 @@ class Chunk2:
 
 
 class ChunkHistoryManager:
-    def __init__(self, work_dir="."):
-        self._history = []
-        self._change_index = 0
-        self.work_dir = work_dir
+    def __init__(self, work_dir: str = "."):
+        self._history: List[Dict[Tuple[int, int], Dict[str, str]]] = [{}]
+        self._change_index: int = 0
+        self.work_dir: str = work_dir
+
+    @property
+    def change_index(self) -> int:
+        return self._change_index
+
+    def add_original_chunk(self, chunk: Chunk2):
+
+        self._history[0][(chunk.cx, chunk.cz)] = self.serialize_chunk(chunk, 0)
 
     def add_changed_chunks(self, chunks: List[Chunk2]):
+        self._change_index += 1
         change_no = self._change_index
         change_manifest = {}
 
         if change_no < len(self._history):
             raise NotImplementedError()
 
+        if change_no == 0:
+            raise NotImplementedError()
+
         for chunk in chunks:
-            change_manifest[f"{chunk.cx},{chunk.cz}"] = {
-                "blocks": chunk.save_blocks_to_file(change_no, base_path=self.work_dir),
-                "entities": chunk.save_entities_to_file(
-                    change_no, base_path=self.work_dir
-                ),
-                "tileentities": chunk.save_tileentities_to_file(
-                    change_no, base_path=self.work_dir
-                ),
-                "action": "EDIT",
-            }
-            chunk._changed = False
+            change_manifest[(chunk.cx, chunk.cz)] = self.serialize_chunk(
+                chunk, change_no
+            )
 
         self._history.append(change_manifest)
-        self._change_index += 1
 
-    def unserialize_chunks(self) -> List[Chunk2]:
+    def serialize_chunk(self, chunk: Chunk2, change_no: int) -> Dict[str, str]:
+        serialized_chunk = {
+            "blocks": chunk.save_blocks_to_file(change_no, base_path=self.work_dir),
+            "entities": chunk.save_entities_to_file(change_no, base_path=self.work_dir),
+            "tileentities": chunk.save_tileentities_to_file(
+                change_no, base_path=self.work_dir
+            ),
+            "action": "EDIT",
+        }
+        chunk._changed = False
+        return serialized_chunk
+
+    def _unserialize_chunks(self) -> List[Chunk2]:
         chunks = []
 
         for chunk_coords, chunk_manifest in self._history[self._change_index].items():
-            # print(chunk_coords, chunk_manifest)
             blocks = numpy.load(
                 chunk_manifest["blocks"], allow_pickle=False, fix_imports=False
             )
@@ -192,9 +190,7 @@ class ChunkHistoryManager:
             tileentities = pickle.load(fp)
             fp.close()
 
-            cx, cz = map(int, chunk_coords.split(","))
-
-            chunks.append(Chunk2(cx, cz, blocks, entities, tileentities))
+            chunks.append(Chunk2(*chunk_coords, blocks, entities, tileentities))
 
         return chunks
 
@@ -203,7 +199,14 @@ class ChunkHistoryManager:
             raise Exception("No more changes to undo")
         else:
             self._change_index -= 1
-        return self.unserialize_chunks()
+        return self._unserialize_chunks()
+
+    def redo(self) -> List[Chunk2]:
+        if self._change_index == (len(self._history) - 1):
+            raise Exception("No more changes to redo")
+        else:
+            self._change_index += 1
+        return self._unserialize_chunks()
 
 
 """
