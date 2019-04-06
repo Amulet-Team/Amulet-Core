@@ -13,12 +13,12 @@ import numpy
 
 from api.block import Block
 from api.selection import SubBox, SelectionBox
-from api.chunk import SubChunk
+from api.chunk import SubChunk, Chunk
 from api import world_loader
 from api.history_manager import Chunk2, SubChunk2
 from api.nbt_template import NBTEntry, NBTCompoundEntry, NBTListEntry
 from formats.anvil2.anvil2_world import _decode_long_array, _encode_long_array
-from test_utils import get_world_path, get_data_path
+from test_utils import get_world_path, get_data_path, timeout
 
 
 class WorldTestBaseCases:
@@ -51,15 +51,13 @@ class WorldTestBaseCases:
                 next(
                     self.world.get_sub_chunks(slice(0, 10), slice(0, 10), slice(0, 10))
                 ),
-                (SubChunk, SubChunk2),
+                SubChunk,
             )
             self.assertIsInstance(
-                next(self.world.get_sub_chunks(0, 0, 0, 10, 10, 10)),
-                (SubChunk, SubChunk2),
+                next(self.world.get_sub_chunks(0, 0, 0, 10, 10, 10)), SubChunk
             )
             self.assertIsInstance(
-                next(self.world.get_sub_chunks(0, 0, 0, 10, 10, 10, 2, 2, 2)),
-                (SubChunk, SubChunk2),
+                next(self.world.get_sub_chunks(0, 0, 0, 10, 10, 10, 2, 2, 2)), SubChunk
             )
 
             with self.assertRaises(IndexError):
@@ -73,76 +71,80 @@ class WorldTestBaseCases:
                 next(self.world.get_sub_chunks(0, 0, 0))
 
         def test_clone_operation(self):
-            subbx1 = SubBox((1, 70, 3), (1, 70, 4))
-            src_box = SelectionBox((subbx1,))
+            with timeout(self, 0.25, show_completion_time=True):
+                subbx1 = SubBox((1, 70, 3), (1, 70, 4))
+                src_box = SelectionBox((subbx1,))
 
-            subbx2 = SubBox((1, 70, 5), (1, 70, 6))
-            target_box = SelectionBox((subbx2,))
+                subbx2 = SubBox((1, 70, 5), (1, 70, 6))
+                target_box = SelectionBox((subbx2,))
 
-            self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
-            )  # Sanity check
-            self.assertEqual(
-                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
-            )
-
-            self.world.run_operation_from_operation_name("clone", src_box, target_box)
-
-            self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 5).blockstate
-            )
-
-            self.world.undo()
-
-            self.assertEqual(
-                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
-            )
-
-            self.world.redo()
-
-            self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 5).blockstate
-            )
-
-            self.world.undo()
-
-            self.assertEqual(
-                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
-            )
-
-        def test_fill_operation(self):
-            subbox_1 = SubBox((1, 70, 3), (5, 71, 5))
-            box = SelectionBox((subbox_1,))
-
-            # Start sanity check
-            self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
-            )
-            self.assertEqual(
-                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
-            )
-            # End sanity check
-
-            self.world.run_operation_from_operation_name(
-                "fill", box, Block("minecraft:stone")
-            )
-
-            for x, y, z in box:
                 self.assertEqual(
-                    "minecraft:stone",
-                    self.world.get_block(x, y, z).blockstate,
-                    f"Failed at coordinate ({x},{y},{z})",
+                    "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                )  # Sanity check
+                self.assertEqual(
+                    "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
                 )
 
-            self.world.undo()
+                self.world.run_operation_from_operation_name(
+                    "clone", src_box, target_box
+                )
 
-            self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
-            )
+                self.assertEqual(
+                    "minecraft:stone", self.world.get_block(1, 70, 5).blockstate
+                )
 
-            self.assertEqual(
-                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
-            )
+                self.world.undo()
+
+                self.assertEqual(
+                    "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+                )
+
+                self.world.redo()
+
+                self.assertEqual(
+                    "minecraft:stone", self.world.get_block(1, 70, 5).blockstate
+                )
+
+                self.world.undo()
+
+                self.assertEqual(
+                    "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+                )
+
+        def test_fill_operation(self):
+            with timeout(self, 0.25):
+                subbox_1 = SubBox((1, 70, 3), (5, 71, 5))
+                box = SelectionBox((subbox_1,))
+
+                # Start sanity check
+                self.assertEqual(
+                    "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                )
+                self.assertEqual(
+                    "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+                )
+                # End sanity check
+
+                self.world.run_operation_from_operation_name(
+                    "fill", box, Block("minecraft:stone")
+                )
+
+                for x, y, z in box:
+                    self.assertEqual(
+                        "minecraft:stone",
+                        self.world.get_block(x, y, z).blockstate,
+                        f"Failed at coordinate ({x},{y},{z})",
+                    )
+
+                self.world.undo()
+
+                self.assertEqual(
+                    "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                )
+
+                self.assertEqual(
+                    "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+                )
 
         def test_get_entities(
             self

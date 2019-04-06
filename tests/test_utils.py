@@ -1,3 +1,4 @@
+import sys
 import os
 import time
 from contextlib import contextmanager
@@ -14,7 +15,7 @@ def get_data_path(name: str) -> str:
 
 
 @contextmanager
-def timeout(test_instance, time_constraint: float):
+def timeout(test_instance, time_constraint: float, show_completion_time=False):
     start = time.time()
     yield
 
@@ -23,4 +24,9 @@ def timeout(test_instance, time_constraint: float):
     if delta > time_constraint:
         test_instance.fail(
             f"Test execution didn't meet desired run time of {time_constraint}, ran in {delta} instead"
+        )
+    elif show_completion_time:
+        print(
+            f"Test ran in {delta} seconds, was required to run in {time_constraint} seconds",
+            file=sys.stderr,
         )
