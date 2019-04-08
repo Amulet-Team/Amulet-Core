@@ -38,12 +38,18 @@ class ChunkHistoryManager:
         if change_no == 0:
             raise NotImplementedError()
 
+        deleted_chunks = map(
+            lambda c: (c.cx, c.cz), filter(lambda c: c.marked_for_deletion, chunks)
+        )
+
         for chunk in chunks:
             change_manifest[(chunk.cx, chunk.cz)] = self.serialize_chunk(
                 chunk, change_no
             )
 
         self._history.append(change_manifest)
+
+        return deleted_chunks
 
     def serialize_chunk(self, chunk: Chunk, change_no: int) -> _ChunkRecord:
         change_path = join(self.work_dir, str(change_no), f"{chunk.cx},{chunk.cz}")

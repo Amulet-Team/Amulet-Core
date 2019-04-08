@@ -84,6 +84,7 @@ class Chunk:
 
     def delete(self):
         self._marked_for_deletion = True
+        self._changed = True
 
     def save_blocks_to_file(self, change_path) -> str:
         save_path = join(change_path, "blocks.npy")

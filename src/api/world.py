@@ -10,6 +10,7 @@ import numpy
 
 from api.block import Block, BlockManager
 from api.data_structures import EntityContainer, EntityContext
+from api.errors import ChunkDoesntExistException
 from api.history_manager import ChunkHistoryManager
 from api.chunk import Chunk, SubChunk
 from api.operation import Operation
@@ -109,6 +110,7 @@ class World:
         self.chunk_cache: Dict[Coordinates, Chunk] = {}
         # self.history_manager = HistoryManager()
         self.history_manager = ChunkHistoryManager(get_temp_dir(self._directory))
+        self._deleted_chunks = set()
 
     def exit(self):
         # TODO: add "unsaved changes" check before exit
@@ -169,6 +171,10 @@ class World:
 
         cx, cz = block_coords_to_chunk_coords(x, z)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
+
+        if (cx, cz) in self._deleted_chunks:
+            raise ChunkDoesntExistException(f"Chunk ({cx},{cz}) has been deleted")
+
         chunk = self.get_chunk(cx, cz)
         block = chunk[offset_x, y, offset_z].blocks
         return self._wrapper.block_manager[block]
@@ -218,7 +224,9 @@ class World:
                 else slice(None)
             )
             chunk = self.get_chunk(*chunk_pos)
-            if not include_deleted_chunks and chunk.marked_for_deletion:
+            if not include_deleted_chunks and (
+                chunk.marked_for_deletion or chunk_pos in self._deleted_chunks
+            ):
                 continue
             yield chunk[x_slice_for_chunk, s_y, z_slice_for_chunk]
 
@@ -280,7 +288,9 @@ class World:
 
         changed_chunks = [chunk for chunk in self.chunk_cache.values() if chunk.changed]
 
-        self.history_manager.add_changed_chunks(changed_chunks)
+        deleted_chunks = self.history_manager.add_changed_chunks(changed_chunks)
+        for ch in deleted_chunks:
+            self._deleted_chunks.add(ch)
 
         # self.history_manager.add_operation(operation_instance)
         # self._save_to_undo()
@@ -310,10 +320,13 @@ class World:
 
         for chunk_obj in previous_edited_chunks:
             chunk_coords = (chunk_obj.cx, chunk_obj.cz)
+            if chunk_coords in self._deleted_chunks:
+                self._deleted_chunks.remove(chunk_coords)
             self.chunk_cache[chunk_coords] = chunk_obj
 
         for deleted_chunk in deleted_chunks:
             chunk_coords = (deleted_chunk.cx, deleted_chunk.cz)
+            self._deleted_chunks.add(chunk_coords)
             del self.chunk_cache[chunk_coords]
 
     def redo(self):
@@ -321,10 +334,13 @@ class World:
 
         for chunk_obj in next_edited_chunks:
             chunk_coords = (chunk_obj.cx, chunk_obj.cz)
+            if chunk_coords in self._deleted_chunks:
+                self._deleted_chunks.remove(chunk_coords)
             self.chunk_cache[chunk_coords] = chunk_obj
 
         for deleted_chunk in deleted_chunks:
             chunk_coords = (deleted_chunk.cx, deleted_chunk.cz)
+            self._deleted_chunks.add(chunk_coords)
             del self.chunk_cache[chunk_coords]
 
     def old_undo(self):
