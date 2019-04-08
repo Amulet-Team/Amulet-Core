@@ -82,31 +82,26 @@ class Chunk:
             self._changed = True
             self._tileentities = value
 
+    def serialize_chunk(self, change_path) -> str:
+        save_path = join(change_path, f"{self.cx}.{self.cz}.chunk")
+
+        fp = open(save_path, "wb")
+        pickle.dump(self, fp)
+        fp.close()
+
+        return save_path
+
+    @classmethod
+    def unserialize_chunk(cls, change_path) -> Chunk:
+        fp = open(change_path, "rb")
+        chunk = pickle.load(fp)
+        fp.close()
+
+        return chunk
+
     def delete(self):
         self._marked_for_deletion = True
         self._changed = True
-
-    def save_blocks_to_file(self, change_path) -> str:
-        save_path = join(change_path, "blocks.npy")
-        numpy.save(save_path, self._blocks, allow_pickle=False, fix_imports=False)
-
-        return save_path
-
-    def save_entities_to_file(self, change_path) -> str:
-        save_path = join(change_path, "entities.pickle")
-        fp = open(save_path, "wb")
-        pickle.dump(self._entities, fp)
-        fp.close()
-
-        return save_path
-
-    def save_tileentities_to_file(self, change_path) -> str:
-        save_path = join(change_path, "tileentities.pickle")
-        fp = open(save_path, "wb")
-        pickle.dump(self._tileentities, fp)
-        fp.close()
-
-        return save_path
 
 
 class SubChunk:

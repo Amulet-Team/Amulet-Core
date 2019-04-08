@@ -1,8 +1,8 @@
 from api.selection import SelectionBox
 from api.operation import Operation
 
-class DeleteChunk(Operation):
 
+class DeleteChunk(Operation):
     def __init__(self, source_box: SelectionBox):
         self.source_box = source_box
 

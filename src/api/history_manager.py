@@ -2,15 +2,12 @@ from __future__ import annotations
 
 from typing import Dict, List, Tuple
 
-import pickle
 from os import makedirs
 from os.path import exists, join
 
-import numpy
-
 from api.chunk import Chunk
 
-_ChunkRecord = Tuple[str, str, str, str]
+_ChunkRecord = Tuple[str, str]
 
 
 class ChunkHistoryManager:
@@ -52,17 +49,16 @@ class ChunkHistoryManager:
         return deleted_chunks
 
     def serialize_chunk(self, chunk: Chunk, change_no: int) -> _ChunkRecord:
-        change_path = join(self.work_dir, str(change_no), f"{chunk.cx},{chunk.cz}")
+        change_path = join(self.work_dir, str(change_no))
 
         if not exists(change_path):
             makedirs(change_path, exist_ok=True)
 
         serialized_chunk = (
-            chunk.save_blocks_to_file(change_path),
-            chunk.save_entities_to_file(change_path),
-            chunk.save_tileentities_to_file(change_path),
+            chunk.serialize_chunk(change_path),
             "DELETE" if chunk.marked_for_deletion else "EDIT",
         )
+
         chunk._changed = False
 
         return serialized_chunk
@@ -72,26 +68,12 @@ class ChunkHistoryManager:
         deleted_chunks = []
 
         for chunk_coords, chunk_manifest in self._history[self._change_index].items():
-            blocks = numpy.load(
-                chunk_manifest[0], allow_pickle=False, fix_imports=False
-            )
+            chunk = Chunk.unserialize_chunk(chunk_manifest[0])
 
-            fp = open(chunk_manifest[1], "rb")
-            entities = pickle.load(fp)
-            fp.close()
-
-            fp = open(chunk_manifest[2], "rb")
-            tileentities = pickle.load(fp)
-            fp.close()
-
-            if chunk_manifest[3] == "DELETE":
-                deleted_chunks.append(
-                    Chunk(*chunk_coords, blocks, entities, tileentities)
-                )
+            if chunk_manifest[1] == "DELETE":
+                deleted_chunks.append(chunk)
             else:
-                edited_chunks.append(
-                    Chunk(*chunk_coords, blocks, entities, tileentities)
-                )
+                edited_chunks.append(chunk)
 
         return edited_chunks, deleted_chunks
 

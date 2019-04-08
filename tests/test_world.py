@@ -71,7 +71,7 @@ class WorldTestBaseCases:
                 next(self.world.get_sub_chunks(0, 0, 0))
 
         def test_clone_operation(self):
-            with timeout(self, 0.5, show_completion_time=True):
+            with timeout(self, 0.25, show_completion_time=True):
                 subbx1 = SubBox((1, 70, 3), (1, 70, 4))
                 src_box = SelectionBox((subbx1,))
 
@@ -112,7 +112,7 @@ class WorldTestBaseCases:
                 )
 
         def test_fill_operation(self):
-            with timeout(self, 0.5, show_completion_time=True):
+            with timeout(self, 0.25, show_completion_time=True):
                 subbox_1 = SubBox((1, 70, 3), (5, 71, 5))
                 box = SelectionBox((subbox_1,))
 
