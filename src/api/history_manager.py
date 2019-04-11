@@ -33,7 +33,7 @@ class ChunkHistoryManager:
         :param chunk: The chunk in it's original state
         """
 
-        self._history[0][(chunk.cx, chunk.cz)] = self.serialize_chunk(chunk, 0)
+        self._history[0][(chunk.cx, chunk.cz)] = self._serialize_chunk(chunk, 0)
 
     def add_changed_chunks(self, chunks: List[Chunk]):
         """
@@ -56,7 +56,7 @@ class ChunkHistoryManager:
         )
 
         for chunk in chunks:
-            change_manifest[(chunk.cx, chunk.cz)] = self.serialize_chunk(
+            change_manifest[(chunk.cx, chunk.cz)] = self._serialize_chunk(
                 chunk, change_no
             )
 
@@ -64,7 +64,7 @@ class ChunkHistoryManager:
 
         return deleted_chunks
 
-    def serialize_chunk(self, chunk: Chunk, change_no: int) -> _ChunkRecord:
+    def _serialize_chunk(self, chunk: Chunk, change_no: int) -> _ChunkRecord:
         """
         Serializes the given ``api.chunk.Chunk`` to disk and returns a tuple containing the path to the chunk file and the type of action performed
 
@@ -87,6 +87,11 @@ class ChunkHistoryManager:
         return serialized_chunk
 
     def _unserialize_chunks(self) -> Tuple[List[Chunk], List[Chunk]]:
+        """
+        Unserializes all of chunks at the given chunk record at :attr:`api.history_manager.ChunkHistoryManager.change_index`
+
+        :return: A tuple of a list of the changed chunks. The first index being edited chunks, the second one being chunks that were deleted
+        """
         edited_chunks = []
         deleted_chunks = []
 
