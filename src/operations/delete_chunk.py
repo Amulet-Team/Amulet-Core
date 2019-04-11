@@ -11,7 +11,7 @@ class DeleteChunk(Operation):
         for subbox in self.source_box.subboxes():
             sub_chunks = world.get_sub_chunks(*subbox.to_slice())
             for sub_chunk in sub_chunks:
-                chunk_coords = (sub_chunk._parent.cx, sub_chunk._parent.cz)
+                chunk_coords = sub_chunk.parent_coordinates
                 if chunk_coords in already_deleted_chunks:
                     continue
                 sub_chunk._parent.delete()

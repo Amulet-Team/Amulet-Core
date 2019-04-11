@@ -108,7 +108,6 @@ class World:
         self._root_tag = root_tag
         self._wrapper = wrapper
         self.chunk_cache: Dict[Coordinates, Chunk] = {}
-        # self.history_manager = HistoryManager()
         self.history_manager = ChunkHistoryManager(get_temp_dir(self._directory))
         self._deleted_chunks = set()
 
@@ -292,9 +291,6 @@ class World:
         for ch in deleted_chunks:
             self._deleted_chunks.add(ch)
 
-        # self.history_manager.add_operation(operation_instance)
-        # self._save_to_undo()
-
     def _revert_all_chunks(self):
         for chunk_pos, chunk in self.chunk_cache.items():
             if chunk.previous_unsaved_state is None:
@@ -316,6 +312,9 @@ class World:
             chunk.previous_unsaved_state = None
 
     def undo(self):
+        """
+        Undoes the last set of changes to the world
+        """
         previous_edited_chunks, deleted_chunks = self.history_manager.undo()
 
         for chunk_obj in previous_edited_chunks:
@@ -330,6 +329,9 @@ class World:
             del self.chunk_cache[chunk_coords]
 
     def redo(self):
+        """
+        Redoes the last set of changes to the world
+        """
         next_edited_chunks, deleted_chunks = self.history_manager.redo()
 
         for chunk_obj in next_edited_chunks:
@@ -342,27 +344,6 @@ class World:
             chunk_coords = (deleted_chunk.cx, deleted_chunk.cz)
             self._deleted_chunks.add(chunk_coords)
             del self.chunk_cache[chunk_coords]
-
-    def old_undo(self):
-        path = os.path.join(
-            get_temp_dir(self._directory),
-            f"Operation_{self.history_manager.undo_stack.size()}",
-        )
-        for chunk_name in os.listdir(path):
-            if not chunk_name.startswith("chunk"):
-                continue
-
-            cx, cz = chunk_name.split("_")[1:]
-            cx, cz = int(cx), int(cz)
-            if (cx, cz) in self.chunk_cache:
-                self.chunk_cache[(cx, cz)].load_from_file(path)
-
-        self.history_manager.undo()
-
-    def old_redo(self):
-        operation_to_redo = self.history_manager.redo()
-        self.run_operation(operation_to_redo)
-        self._save_to_undo()
 
     def run_operation(self, operation_instance: Operation) -> None:
         operation_instance.run_operation(self)

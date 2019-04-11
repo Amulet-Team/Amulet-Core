@@ -12,6 +12,10 @@ SliceCoordinates = Tuple[slice, slice, slice]
 
 
 class Chunk:
+    """
+    Class to represent a chunk that exists in an Minecraft world
+    """
+
     def __init__(self, cx: int, cz: int, blocks=None, entities=None, tileentities=None):
         self.cx, self.cz = cx, cz
         self._blocks: numpy.ndarray = blocks
@@ -45,14 +49,27 @@ class Chunk:
 
     @property
     def changed(self) -> bool:
+        """
+        :return: ``True`` if the chunk has been changed, ``False`` otherwise
+        """
         return self._changed
 
     @property
     def marked_for_deletion(self) -> bool:
+        """
+        :return: ``True`` if the chunk has been marked for deletion, ``False`` otherwise
+        """
         return self._marked_for_deletion
 
     @property
     def blocks(self) -> numpy.ndarray:
+        """
+        Property that returns a read-only copy of the chunk's block array. Setting this property replaces the entire chunk's block array
+
+        :param value: The new block array
+        :type value: numpy.ndarray
+        :return: A 3d numpy array of the internal Block IDs for the chunk
+        """
         self._blocks.setflags(write=False)
         return self._blocks
 
@@ -63,7 +80,14 @@ class Chunk:
         self._blocks = value
 
     @property
-    def entities(self):
+    def entities(self) -> list:
+        """
+        Property that returns a copy of the chunk's entity list. Setting this property replaces the chunk's entity list
+
+        :param value: The new entity list
+        :type value: list
+        :return: A list of all the entities contained in the chunk
+        """
         return copy.deepcopy(self._entities)
 
     @entities.setter
@@ -73,7 +97,14 @@ class Chunk:
             self._entities = value
 
     @property
-    def tileentities(self):
+    def tileentities(self) -> list:
+        """
+        Property that returns a copy of the chunk's tile entity list. Setting this property replaces the chunk's tile entity list
+
+        :param value: The new tile entity list
+        :type value: list
+        :return: A list of all the tile entities contained in the chunk
+        """
         return copy.deepcopy(self._tileentities)
 
     @tileentities.setter
@@ -83,6 +114,12 @@ class Chunk:
             self._tileentities = value
 
     def serialize_chunk(self, change_path) -> str:
+        """
+        Serialized the chunk to a file on the disk in the supplied directory path. The filename follows the convention: ``<cx>.<cz>.chunk``
+
+        :param change_path: The directory path to save the chunk at
+        :return: The full path to the serialized chunk file
+        """
         save_path = join(change_path, f"{self.cx}.{self.cz}.chunk")
 
         fp = open(save_path, "wb")
@@ -93,6 +130,12 @@ class Chunk:
 
     @classmethod
     def unserialize_chunk(cls, change_path) -> Chunk:
+        """
+        Unserializes chunk from the given file path.
+
+        :param change_path: The file to unserialize
+        :return: The recreated :class:`api.chunk.Chunk` object
+        """
         fp = open(change_path, "rb")
         chunk = pickle.load(fp)
         fp.close()
@@ -100,11 +143,18 @@ class Chunk:
         return chunk
 
     def delete(self):
+        """
+        Marks the given chunk for deletion
+        """
         self._marked_for_deletion = True
         self._changed = True
 
 
 class SubChunk:
+    """
+    Class to represent a sub-selection of a chunk
+    """
+
     def __init__(
         self,
         sub_selection_slice: Union[PointCoordinates, SliceCoordinates],
@@ -114,7 +164,19 @@ class SubChunk:
         self._parent = parent
 
     @property
-    def blocks(self):
+    def parent_coordinates(self) -> Tuple[int, int]:
+        """
+        :return: The chunk x and z coordinates for the parent chunk
+        """
+        return self._parent.cx, self._parent.cz
+
+    @property
+    def blocks(self) -> numpy.ndarray:
+        """
+        :param value: A new numpy array of blocks for the sub-selection
+        :type value: numpy.ndarray
+        :return: A 3d array of blocks in the sub-selection
+        """
         return self._parent.blocks[self._sub_selection_slice]
 
     @blocks.setter
