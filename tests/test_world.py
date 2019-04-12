@@ -193,38 +193,31 @@ class WorldTestBaseCases:
                 0, len([x for x in self.world.get_sub_chunks(*subbox1.to_slice())])
             )
 
-        @unittest.skip
         def test_get_entities(
             self
         ):  # TODO: Make a more complete test once we figure out what get_entities() returns
             box1 = SelectionBox((SubBox((0, 0, 0), (16, 16, 16)),))
 
-            print("--" * 16)
-            result = self.world.get_entities_in_box(box1)
-            with result as entities:
-                self.assertEqual(
-                    entities, {}
-                )  # TODO: Change this when we use a better test world
+            entity_iter = self.world.get_entities_in_box(box1)
+            for chunk_coords, entities in entity_iter:
+                self.assertEqual(0, len(entities))
 
-                ent = {"Pos": [10.0, 3.0, 10.0], "id": "test"}
-                entities.add_entity(ent)
-                self.assertEqual(1, len(entities[(0, 0)]))
-                # self.assertNotIn((1, 1), entities)
-                ent["Pos"] = [20.42, 5.79, 20.5]
-                self.assertEqual(
-                    1, len(entities[(0, 0)])
-                )  # Hasn't been re-organized yet
-                # self.assertNotIn((1, 1), entities)
-                print(entities)
-                ent["test"] = False
-                print(entities)
-                # entities.remove_entity(ent)
-                print(entities)
-            print(result._entities)
+            self.world.add_entities(
+                [
+                    {
+                        "id": "minecraft:cow",
+                        "CustomName": "TesName",
+                        "Pos": [1.0, 4.0, 1.0],
+                    }
+                ]
+            )
 
-            # All entities have now been re-organized into their proper chunks
-            self.assertEqual(0, len(entities[(0, 0)]))
-            self.assertEqual(1, len(entities[(1, 1)]))
+            entity_iter = self.world.get_entities_in_box(box1)
+            for chunk_coords, entities in entity_iter:
+                if chunk_coords == (0, 0):
+                    self.assertEqual(1, len(entities))
+                else:
+                    self.assertEqual(0, len(entities))
 
 
 class AnvilWorldTestCase(WorldTestBaseCases.WorldTestCase):
