@@ -20,3 +20,7 @@ class FormatLoaderNoneMatched(FormatError):
 
 class InvalidBlockException(Exception):
     pass
+
+
+class ChunkDoesntExistException(Exception):  # Possibly change the name in the future
+    pass

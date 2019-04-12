@@ -3,14 +3,15 @@ from __future__ import annotations
 import itertools
 import os
 import shutil
-from typing import Any, Union, Generator, Dict, Optional, Callable
+from typing import Union, Generator, Dict, Optional, Callable
 from importlib import import_module
 
 import numpy
 
 from api.block import Block, BlockManager
 from api.data_structures import EntityContainer, EntityContext
-from api.history import HistoryManager
+from api.errors import ChunkDoesntExistException
+from api.history_manager import ChunkHistoryManager
 from api.chunk import Chunk, SubChunk
 from api.operation import Operation
 from api.paths import get_temp_dir
@@ -106,8 +107,9 @@ class World:
         shutil.rmtree(get_temp_dir(self._directory), ignore_errors=True)
         self._root_tag = root_tag
         self._wrapper = wrapper
-        self.blocks_cache: Dict[Coordinates, Chunk] = {}
-        self.history_manager = HistoryManager()
+        self.chunk_cache: Dict[Coordinates, Chunk] = {}
+        self.history_manager = ChunkHistoryManager(get_temp_dir(self._directory))
+        self._deleted_chunks = set()
 
     def exit(self):
         # TODO: add "unsaved changes" check before exit
@@ -138,12 +140,18 @@ class World:
         :param cz: The Z coordinate of the desired chunk
         :return: The blocks, entities, and tile entities in the chunk
         """
-        if (cx, cz) in self.blocks_cache:
-            return self.blocks_cache[(cx, cz)]
+        if (cx, cz) in self.chunk_cache:
+            return self.chunk_cache[(cx, cz)]
 
-        chunk = Chunk(cx, cz, self._wrapper.get_blocks)
-        self.blocks_cache[(cx, cz)] = chunk
-        return self.blocks_cache[(cx, cz)]
+        chunk = Chunk(
+            cx,
+            cz,
+            blocks=self._wrapper.get_blocks(cx, cz),
+            entities=self._wrapper.get_entities(cx, cz),
+        )
+        self.chunk_cache[(cx, cz)] = chunk
+        self.history_manager.add_original_chunk(chunk)
+        return self.chunk_cache[(cx, cz)]
 
     def get_entities(self, cx: int, cz: int):
         return self._wrapper.get_entities(cx, cz)
@@ -162,12 +170,16 @@ class World:
 
         cx, cz = block_coords_to_chunk_coords(x, z)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
+
+        if (cx, cz) in self._deleted_chunks:
+            raise ChunkDoesntExistException(f"Chunk ({cx},{cz}) has been deleted")
+
         chunk = self.get_chunk(cx, cz)
         block = chunk[offset_x, y, offset_z].blocks
         return self._wrapper.block_manager[block]
 
     def get_sub_chunks(
-        self, *args: Union[slice, int]
+        self, *args: Union[slice, int], include_deleted_chunks=False
     ) -> Generator[SubChunk, None, None]:
         length = len(args)
         if length == 3:
@@ -211,6 +223,10 @@ class World:
                 else slice(None)
             )
             chunk = self.get_chunk(*chunk_pos)
+            if not include_deleted_chunks and (
+                chunk.marked_for_deletion or chunk_pos in self._deleted_chunks
+            ):
+                continue
             yield chunk[x_slice_for_chunk, s_y, z_slice_for_chunk]
 
     def get_entities_in_box(
@@ -262,24 +278,28 @@ class World:
         operation_class_name = "".join(x.title() for x in operation_name.split("_"))
         operation_class = getattr(operation_module, operation_class_name)
         operation_instance = operation_class(*args)
+
         try:
             self.run_operation(operation_instance)
         except Exception as e:
             self._revert_all_chunks()
             return e
 
-        self.history_manager.add_operation(operation_instance)
-        self._save_to_undo()
+        changed_chunks = [chunk for chunk in self.chunk_cache.values() if chunk.changed]
+
+        deleted_chunks = self.history_manager.add_changed_chunks(changed_chunks)
+        for ch in deleted_chunks:
+            self._deleted_chunks.add(ch)
 
     def _revert_all_chunks(self):
-        for chunk_pos, chunk in self.blocks_cache.items():
+        for chunk_pos, chunk in self.chunk_cache.items():
             if chunk.previous_unsaved_state is None:
                 continue
 
-            self.blocks_cache[chunk_pos] = chunk.previous_unsaved_state
+            self.chunk_cache[chunk_pos] = chunk.previous_unsaved_state
 
     def _save_to_undo(self):
-        for chunk in self.blocks_cache.values():
+        for chunk in self.chunk_cache.values():
             if chunk.previous_unsaved_state is None:
                 continue
 
@@ -292,25 +312,38 @@ class World:
             chunk.previous_unsaved_state = None
 
     def undo(self):
-        path = os.path.join(
-            get_temp_dir(self._directory),
-            f"Operation_{self.history_manager.undo_stack.size()}",
-        )
-        for chunk_name in os.listdir(path):
-            if not chunk_name.startswith("chunk"):
-                continue
+        """
+        Undoes the last set of changes to the world
+        """
+        previous_edited_chunks, deleted_chunks = self.history_manager.undo()
 
-            cx, cz = chunk_name.split("_")[1:]
-            cx, cz = int(cx), int(cz)
-            if (cx, cz) in self.blocks_cache:
-                self.blocks_cache[(cx, cz)].load_from_file(path)
+        for chunk_obj in previous_edited_chunks:
+            chunk_coords = (chunk_obj.cx, chunk_obj.cz)
+            if chunk_coords in self._deleted_chunks:
+                self._deleted_chunks.remove(chunk_coords)
+            self.chunk_cache[chunk_coords] = chunk_obj
 
-        self.history_manager.undo()
+        for deleted_chunk in deleted_chunks:
+            chunk_coords = (deleted_chunk.cx, deleted_chunk.cz)
+            self._deleted_chunks.add(chunk_coords)
+            del self.chunk_cache[chunk_coords]
 
     def redo(self):
-        operation_to_redo = self.history_manager.redo()
-        self.run_operation(operation_to_redo)
-        self._save_to_undo()
+        """
+        Redoes the last set of changes to the world
+        """
+        next_edited_chunks, deleted_chunks = self.history_manager.redo()
+
+        for chunk_obj in next_edited_chunks:
+            chunk_coords = (chunk_obj.cx, chunk_obj.cz)
+            if chunk_coords in self._deleted_chunks:
+                self._deleted_chunks.remove(chunk_coords)
+            self.chunk_cache[chunk_coords] = chunk_obj
+
+        for deleted_chunk in deleted_chunks:
+            chunk_coords = (deleted_chunk.cx, deleted_chunk.cz)
+            self._deleted_chunks.add(chunk_coords)
+            del self.chunk_cache[chunk_coords]
 
     def run_operation(self, operation_instance: Operation) -> None:
         operation_instance.run_operation(self)
