@@ -155,9 +155,6 @@ class World:
         self.history_manager.add_original_chunk(chunk)
         return self.chunk_cache[(cx, cz)]
 
-    def get_entities(self, cx: int, cz: int):
-        return self._wrapper.get_entities(cx, cz)
-
     def get_block(self, x: int, y: int, z: int) -> Block:
         """
         Gets the blockstate at the specified coordinates
@@ -271,7 +268,7 @@ class World:
             in_place_entities = list(
                 filter(
                     lambda e: chunk_coords
-                    == entity_position_to_chunk_coordinates(*get_entity_coordinates(e)),
+                    == entity_position_to_chunk_coordinates(get_entity_coordinates(e)),
                     entity_list_list[1],
                 )
             )
