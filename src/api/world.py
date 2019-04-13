@@ -42,6 +42,7 @@ class WorldFormat:
         self._directory = directory
         self._materials = DefinitionManager(definitions)
         self.block_manager = BlockManager()
+        self._region_manager = None
 
         if get_blockstate_adapter:
             self.get_blockstate: Callable[[str], Block] = get_blockstate_adapter
@@ -63,10 +64,25 @@ class WorldFormat:
         """
         raise NotImplementedError()
 
-    def get_entities(self, cx: int, cz: int) -> dict:
+    def get_chunk_data(
+        self, cx: int, cz: int
+    ) -> Tuple[
+        Union[numpy.ndarray, NotImplementedError],
+        List["nbt_template.NBTCompoundEntry"],
+        "Any",
+    ]:
+        chunk_sections, _, entities = self._region_manager.load_chunk(cx, cz)
+
+        return (
+            self.translate_blocks(chunk_sections),
+            self.translate_entities(entities),
+            None,
+        )
+
+    def translate_entities(self, entities: list) -> List["NBTCompoundEntry"]:
         raise NotImplementedError()
 
-    def get_blocks(self, cx: int, cz: int) -> numpy.ndarray:
+    def translate_blocks(self, chunk_sections) -> numpy.ndarray:
         raise NotImplementedError()
 
     @classmethod
@@ -145,12 +161,7 @@ class World:
         if (cx, cz) in self.chunk_cache:
             return self.chunk_cache[(cx, cz)]
 
-        chunk = Chunk(
-            cx,
-            cz,
-            blocks=self._wrapper.get_blocks(cx, cz),
-            entities=self._wrapper.get_entities(cx, cz),
-        )
+        chunk = Chunk(cx, cz, *self._wrapper.get_chunk_data(cx, cz))
         self.chunk_cache[(cx, cz)] = chunk
         self.history_manager.add_original_chunk(chunk)
         return chunk
