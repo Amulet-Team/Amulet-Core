@@ -196,7 +196,7 @@ class WorldTestBaseCases:
         def test_get_entities(
             self
         ):  # TODO: Make a more complete test once we figure out what get_entities() returns
-            box1 = SelectionBox((SubBox((0, 0, 0), (32, 32, 32)),))
+            box1 = SelectionBox((SubBox((0, 0, 0), (17, 20, 17)),))
 
             entity_iter = self.world.get_entities_in_box(box1)
             for chunk_coords, entities in entity_iter:
@@ -216,7 +216,7 @@ class WorldTestBaseCases:
             for chunk_coords, entities in entity_iter:
                 if chunk_coords == (0, 0):
                     self.assertEqual(1, len(entities))
-                    entities[0]["Pos"] = [17.0, 20.0, 21.0]
+                    entities[0]["Pos"] = [17.0, 20.0, 17.0]
                 else:
                     self.assertEqual(0, len(entities))
 

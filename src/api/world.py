@@ -153,7 +153,7 @@ class World:
         )
         self.chunk_cache[(cx, cz)] = chunk
         self.history_manager.add_original_chunk(chunk)
-        return self.chunk_cache[(cx, cz)]
+        return chunk
 
     def get_block(self, x: int, y: int, z: int) -> Block:
         """
