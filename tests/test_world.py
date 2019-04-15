@@ -198,25 +198,23 @@ class WorldTestBaseCases:
         ):  # TODO: Make a more complete test once we figure out what get_entities() returns
             box1 = SelectionBox((SubBox((0, 0, 0), (17, 20, 17)),))
 
+            test_entity = {
+                "id": "minecraft:cow",
+                "CustomName": "TestName",
+                "Pos": [1.0, 4.0, 1.0],
+            }
+
             entity_iter = self.world.get_entities_in_box(box1)
             for chunk_coords, entities in entity_iter:
                 self.assertEqual(0, len(entities))
 
-            self.world.add_entities(
-                [
-                    {
-                        "id": "minecraft:cow",
-                        "CustomName": "TestName",
-                        "Pos": [1.0, 4.0, 1.0],
-                    }
-                ]
-            )
+            self.world.add_entities([test_entity])
 
             entity_iter = self.world.get_entities_in_box(box1)
             for chunk_coords, entities in entity_iter:
                 if chunk_coords == (0, 0):
                     self.assertEqual(1, len(entities))
-                    entities[0]["Pos"] = [17.0, 20.0, 17.0]
+                    test_entity["Pos"] = entities[0]["Pos"] = [17.0, 20.0, 17.0]
                 else:
                     self.assertEqual(0, len(entities))
 
@@ -226,6 +224,12 @@ class WorldTestBaseCases:
                     self.assertEqual(1, len(entities))
                 else:
                     self.assertEqual(0, len(entities))
+
+            self.world.delete_entities([test_entity])
+
+            entity_iter = self.world.get_entities_in_box(box1)
+            for chunk_coords, entities in entity_iter:
+                self.assertEqual(0, len(entities))
 
 
 class AnvilWorldTestCase(WorldTestBaseCases.WorldTestCase):

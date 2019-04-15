@@ -318,6 +318,21 @@ class World:
 
             chunk.entities += ents
 
+    def delete_entities(self, entities):
+        chunk_entity_pairs = map(
+            lambda e: (
+                entity_position_to_chunk_coordinates(get_entity_coordinates(e)),
+                e,
+            ),
+            entities,
+        )
+
+        for chunk_coord, ent in chunk_entity_pairs:
+            chunk = self.chunk_cache[chunk_coord]
+            entities = chunk.entities
+            entities.remove(ent)
+            chunk.entities = entities
+
     def run_operation_from_operation_name(
         self, operation_name: str, *args
     ) -> Optional[Exception]:
