@@ -16,7 +16,6 @@ from api.errors import ChunkDoesntExistException
 from api.selection import SubBox, SelectionBox
 from api.chunk import SubChunk
 from api import world_loader
-from api.nbt_template import NBTEntry, NBTCompoundEntry, NBTListEntry
 from formats.anvil2.anvil2_world import _decode_long_array, _encode_long_array
 from test_utils import get_world_path, get_data_path, timeout
 

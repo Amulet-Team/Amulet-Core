@@ -216,8 +216,8 @@ class NBTListEntry(UserList):
             return NBTListEntry(self.data)
 
         new_tag = NBTListEntry([None for i in range(len(self))])
-        for i in range(len(self)):
-            new_tag[i] = self[i].apply_template(template_tag.schema)
+        for i, value in enumerate(self):
+            new_tag[i] = value.apply_template(template_tag.schema)
 
         return new_tag
 

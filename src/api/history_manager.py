@@ -95,7 +95,7 @@ class ChunkHistoryManager:
         edited_chunks = []
         deleted_chunks = []
 
-        for chunk_coords, chunk_manifest in self._history[self._change_index].items():
+        for chunk_manifest in self._history[self._change_index].values():
             chunk = Chunk.unserialize_chunk(chunk_manifest[0])
 
             if chunk_manifest[1] == "DELETE":
