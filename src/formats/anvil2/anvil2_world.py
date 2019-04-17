@@ -3,7 +3,7 @@ from __future__ import annotations
 import struct
 import zlib
 from io import BytesIO
-from typing import Dict, List, Tuple, Union
+from typing import List, Tuple, Union
 from collections import defaultdict
 
 import numpy
@@ -14,10 +14,9 @@ from nbt import nbt
 from os import path
 
 from api.world import World
-from api.block import Block, BlockManager
+from api.block import Block
 from api import nbt_template
 from utils.world_utils import get_smallest_dtype
-from version_definitions.definition_manager import DefinitionManager
 
 from utils import world_utils
 
