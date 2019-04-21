@@ -1,0 +1,9 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "Fuse": {
+    "tag_type": "short",
+    "default": 0
+  }
+}

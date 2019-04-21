@@ -1,0 +1,9 @@
+{
+  "<metadata>": {
+    "extends": "mob"
+  },
+  "ExplosionPower": {
+    "tag_type": "int",
+    "default": 1
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "<metadata>": {
+    "extends": "mob"
+  },
+  "carriedBlockState": {
+    "tag_type": "compound",
+    "structure": {
+      "Name": {
+        "tag_type": "string"
+      },
+      "Properties": {
+        "tag_type": "compound",
+        "structure": {
+          "Name": {
+            "tag_type": "string"
+          },
+          "Value": {
+            "tag_type": "string"
+          }
+        }
+      }
+    }
+  }
+}

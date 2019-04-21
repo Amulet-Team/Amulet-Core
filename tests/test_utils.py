@@ -1,20 +1,21 @@
+import sys
 import os
 import time
 from contextlib import contextmanager
 
+TESTS_DIR = os.path.dirname(__file__)
+
 
 def get_world_path(name: str) -> str:
-    tests_dir = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(tests_dir, "worlds", name)
+    return os.path.join(TESTS_DIR, "worlds", name)
 
 
 def get_data_path(name: str) -> str:
-    tests_dir = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(tests_dir, "data", name)
+    return os.path.join(TESTS_DIR, "data", name)
 
 
 @contextmanager
-def timeout(test_instance, time_constraint: float):
+def timeout(test_instance, time_constraint: float, show_completion_time=False):
     start = time.time()
     yield
 
@@ -23,4 +24,9 @@ def timeout(test_instance, time_constraint: float):
     if delta > time_constraint:
         test_instance.fail(
             f"Test execution didn't meet desired run time of {time_constraint}, ran in {delta} instead"
+        )
+    elif show_completion_time:
+        print(
+            f"Test ran in {delta} seconds, was required to run in {time_constraint} seconds",
+            file=sys.stderr,
         )

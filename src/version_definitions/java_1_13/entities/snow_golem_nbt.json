@@ -1,0 +1,9 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "Pumpkin": {
+    "tag_type": "byte",
+    "default": 1
+  }
+}

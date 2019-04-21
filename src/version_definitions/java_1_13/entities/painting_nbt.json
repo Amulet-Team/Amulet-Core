@@ -1,0 +1,21 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "TileX": {
+    "tag_type": "int"
+  },
+  "TileY": {
+    "tag_type": "int"
+  },
+  "TileZ": {
+    "tag_type": "int"
+  },
+  "Facing": {
+    "tag_type": "byte"
+  },
+  "Motive": {
+    "tag_type": "string",
+    "default": ""
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "<metadata>": {
+    "extends": "mob"
+  },
+  "BatFlags": {
+    "tag_type": "byte"
+  }
+}

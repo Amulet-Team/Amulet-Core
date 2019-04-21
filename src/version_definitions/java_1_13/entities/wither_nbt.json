@@ -1,0 +1,8 @@
+{
+  "<metadata>": {
+    "extends": "mob"
+  },
+  "Invul": {
+    "tag_type": "int"
+  }
+}

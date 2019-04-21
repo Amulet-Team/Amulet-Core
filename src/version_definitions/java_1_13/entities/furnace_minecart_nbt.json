@@ -1,0 +1,15 @@
+{
+  "<metadata>": {
+    "extends": "minecart"
+  },
+  "PushX": {
+    "tag_type": "double"
+  },
+  "PushZ": {
+    "tag_type": "double"
+  },
+  "Fuel": {
+    "tag_type": "short",
+    "default": 0
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "xTile": {
+    "tag_type": "int"
+  },
+  "yTile": {
+    "tag_type": "int"
+  },
+  "zTile": {
+    "tag_type": "int"
+  },
+  "inBlockState": {
+    "tag_type": "compound",
+    "structure": {
+      "Name": {
+        "tag_type": "string"
+      },
+      "Properties": {
+        "tag_type": "compound",
+        "structure": {
+          "Name": {
+            "tag_type": "string"
+          },
+          "Value": {
+            "tag_type": "string"
+          }
+        }
+      }
+    }
+  }
+}

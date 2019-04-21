@@ -1,0 +1,21 @@
+{
+  "<metadata>": {
+    "extends": "minecart"
+  },
+  "Command": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "SuccessCount": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "LastOutput": {
+    "tag_type": "string",
+    "default": ""
+  },
+  "TrackOutput": {
+    "tag_type": "byte",
+    "default": 1
+  }
+}

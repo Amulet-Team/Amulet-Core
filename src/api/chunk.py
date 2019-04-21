@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import os
-from gzip import GzipFile
-from copy import deepcopy
-from typing import Tuple, Union, Optional, Callable
+import copy
+from os.path import join
+import pickle
+from typing import Tuple, Union
 
 import numpy
 
@@ -12,32 +12,23 @@ SliceCoordinates = Tuple[slice, slice, slice]
 
 
 class Chunk:
-    def __init__(
-        self, cx: int, cz: int, get_blocks_func: Callable[[int, int], numpy.ndarray]
-    ):
-        self.cx = cx
-        self.cz = cz
-        self.get_blocks_func = get_blocks_func
-        self.previous_unsaved_state: Optional[Chunk] = None
-        self.changed: bool = False
-        self._blocks: Optional[numpy.ndarray] = None
+    """
+    Class to represent a chunk that exists in an Minecraft world
+    """
 
-    @property
-    def blocks(self):
-        if self._blocks is None:
-            self._blocks = self.get_blocks_func(self.cx, self.cz)
-        self._blocks.setflags(write=False)
-        return self._blocks
+    def __init__(self, cx: int, cz: int, blocks=None, entities=None, tileentities=None):
+        self.cx, self.cz = cx, cz
+        self._blocks: numpy.ndarray = blocks
+        self._entities = entities
+        self._tileentities = tileentities
 
-    @blocks.setter
-    def blocks(self, value: numpy.ndarray):
-        if not (self._blocks == value).all():
-            if self.previous_unsaved_state is None:
-                self.previous_unsaved_state = deepcopy(self)
-            self.changed = True
-        self._blocks = value
+        self._changed = False
+        self._marked_for_deletion = False
 
-    def __getitem__(self, item: Union[PointCoordinates, SliceCoordinates]):
+    def __repr__(self):
+        return f"Chunk({self.cx}, {self.cx}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._tileentities)})"
+
+    def __getitem__(self, item):
         if (
             not isinstance(item, tuple)
             or len(item) != 3
@@ -56,31 +47,114 @@ class Chunk:
 
         return SubChunk(item, self)
 
-    def __deepcopy__(self, memo):
-        chunk = Chunk(self.cx, self.cz, self.get_blocks_func)
-        chunk._blocks = self._blocks.copy()
+    @property
+    def changed(self) -> bool:
+        """
+        :return: ``True`` if the chunk has been changed, ``False`` otherwise
+        """
+        return self._changed
+
+    @property
+    def marked_for_deletion(self) -> bool:
+        """
+        :return: ``True`` if the chunk has been marked for deletion, ``False`` otherwise
+        """
+        return self._marked_for_deletion
+
+    @property
+    def blocks(self) -> numpy.ndarray:
+        """
+        Property that returns a read-only copy of the chunk's block array. Setting this property replaces the entire chunk's block array
+
+        :param value: The new block array
+        :type value: numpy.ndarray
+        :return: A 3d numpy array of the internal Block IDs for the chunk
+        """
+        self._blocks.setflags(write=False)
+        return self._blocks
+
+    @blocks.setter
+    def blocks(self, value: numpy.ndarray):
+        if not (self._blocks == value).all():
+            self._changed = True
+        self._blocks = value
+
+    @property
+    def entities(self) -> list:
+        """
+        Property that returns a copy of the chunk's entity list. Setting this property replaces the chunk's entity list
+
+        :param value: The new entity list
+        :type value: list
+        :return: A list of all the entities contained in the chunk
+        """
+        return copy.deepcopy(self._entities)
+
+    @entities.setter
+    def entities(self, value):
+        if self._entities != value:
+            self._changed = True
+            self._entities = value
+
+    @property
+    def tileentities(self) -> list:
+        """
+        Property that returns a copy of the chunk's tile entity list. Setting this property replaces the chunk's tile entity list
+
+        :param value: The new tile entity list
+        :type value: list
+        :return: A list of all the tile entities contained in the chunk
+        """
+        return copy.deepcopy(self._tileentities)
+
+    @tileentities.setter
+    def tileentities(self, value):
+        if self._tileentities != value:
+            self._changed = True
+            self._tileentities = value
+
+    def serialize_chunk(self, change_path) -> str:
+        """
+        Serialized the chunk to a file on the disk in the supplied directory path. The filename follows the convention: ``<cx>.<cz>.chunk``
+
+        :param change_path: The directory path to save the chunk at
+        :return: The full path to the serialized chunk file
+        """
+        save_path = join(change_path, f"{self.cx}.{self.cz}.chunk")
+
+        fp = open(save_path, "wb")
+        pickle.dump(self, fp)
+        fp.close()
+
+        return save_path
+
+    @classmethod
+    def unserialize_chunk(cls, change_path) -> Chunk:
+        """
+        Unserializes chunk from the given file path.
+
+        :param change_path: The file to unserialize
+        :return: The recreated :class:`api.chunk.Chunk` object
+        """
+        fp = open(change_path, "rb")
+        chunk = pickle.load(fp)
+        fp.close()
+
         return chunk
 
-    def save_to_file(self, path: str, compressed=False):
-        path = os.path.join(path, f"chunk_{self.cx}_{self.cz}")
-        os.makedirs(path, exist_ok=True)
-        blocks_file = os.path.join(path, "blocks.npy")
-        if compressed:
-            blocks_file = GzipFile(f"{blocks_file}.gz", "w")
-        numpy.save(blocks_file, self._blocks, allow_pickle=False, fix_imports=False)
-
-    def load_from_file(self, path: str):
-        path = os.path.join(path, f"chunk_{self.cx}_{self.cz}")
-        blocks_file = os.path.join(path, "blocks.npy")
-        if not os.path.exists(blocks_file):
-            if not os.path.exists(f"{blocks_file}.gz"):
-                raise Exception(f"The needed blocks file in path {path} does not exist")
-
-            blocks_file = GzipFile(f"{blocks_file}.gz", "r")
-        self._blocks = numpy.load(blocks_file, allow_pickle=False, fix_imports=False)
+    def delete(self):
+        """
+        Marks the given chunk for deletion
+        """
+        self._marked_for_deletion = True
+        self._changed = True
 
 
 class SubChunk:
+    """
+    Class to represent a sub-selection of a chunk
+    """
+
     def __init__(
         self,
         sub_selection_slice: Union[PointCoordinates, SliceCoordinates],
@@ -90,7 +164,19 @@ class SubChunk:
         self._parent = parent
 
     @property
-    def blocks(self):
+    def parent_coordinates(self) -> Tuple[int, int]:
+        """
+        :return: The chunk x and z coordinates for the parent chunk
+        """
+        return self._parent.cx, self._parent.cz
+
+    @property
+    def blocks(self) -> numpy.ndarray:
+        """
+        :param value: A new numpy array of blocks for the sub-selection
+        :type value: numpy.ndarray
+        :return: A 3d array of blocks in the sub-selection
+        """
         return self._parent.blocks[self._sub_selection_slice]
 
     @blocks.setter

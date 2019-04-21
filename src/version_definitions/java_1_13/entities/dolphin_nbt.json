@@ -1,0 +1,20 @@
+{
+  "<metadata>": {
+    "extends": "mob"
+  },
+  "TreasurePosX": {
+    "tag_type": "int"
+  },
+  "TreasurePosY": {
+    "tag_type": "int"
+  },
+  "TreasurePosZ": {
+    "tag_type": "int"
+  },
+  "CanFindTreasure": {
+    "tag_type": "byte"
+  },
+  "GotFish": {
+    "tag_type": "byte"
+  }
+}

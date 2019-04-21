@@ -1,0 +1,16 @@
+{
+  "<metadata>": {
+    "extends": "breed"
+  },
+  "OwnerUUID": {
+    "tag_type": "string"
+  },
+  "Sitting": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "CatType": {
+    "tag_type": "int",
+    "default": 0
+  }
+}

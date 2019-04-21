@@ -1,0 +1,37 @@
+{
+  "<metadata>": {
+    "extends": "projectile"
+  },
+  "shake": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "pickup": {
+    "tag_type": "byte",
+    "default": 1
+  },
+  "player": {
+    "tag_type": "byte",
+    "default": 1
+  },
+  "life": {
+    "tag_type": "short",
+    "default": 0
+  },
+  "damage": {
+    "tag_type": "double",
+    "default": 2
+  },
+  "inGround": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "crit": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "Duration": {
+    "tag_type": "int",
+    "default": 0
+  }
+}

@@ -3,7 +3,8 @@ from __future__ import annotations
 import struct
 import zlib
 from io import BytesIO
-from typing import Tuple, Union
+from typing import List, Tuple, Union
+from collections import defaultdict
 
 import numpy
 
@@ -12,9 +13,9 @@ from nbt import nbt
 from os import path
 
 from api.world import World
-from api.block import Block, BlockManager
+from api.block import Block
+from api import nbt_template
 from utils.world_utils import get_smallest_dtype
-from version_definitions.definition_manager import DefinitionManager
 
 from utils import world_utils
 
@@ -135,11 +136,22 @@ class _AnvilRegionManager:
 
 
 class AnvilWorld(WorldFormat):
-    def __init__(self, directory: str, definitions: str, get_blockstate_adapter=None):
+    def __init__(
+        self,
+        directory: str,
+        definitions: str,
+        get_blockstate_adapter=None,
+        entity_handlers=None,
+    ):
         super(AnvilWorld, self).__init__(
             directory, definitions, get_blockstate_adapter=get_blockstate_adapter
         )
         self._region_manager = _AnvilRegionManager(directory)
+        self._entity_handlers = (
+            entity_handlers
+            if entity_handlers
+            else defaultdict(nbt_template.EntityHandler)
+        )
         self.unknown_blocks = {}
 
     @classmethod
@@ -155,8 +167,18 @@ class AnvilWorld(WorldFormat):
 
         return World(directory, root_tag, wrapper)
 
-    def get_blocks(self, cx: int, cz: int) -> Union[numpy.ndarray, NotImplementedError]:
-        chunk_sections, _, _ = self._region_manager.load_chunk(cx, cz)
+    def translate_entities(self, entities) -> List[nbt_template.NBTCompoundEntry]:
+        entity_list = []
+        for entity in entities:
+            entity = nbt_template.create_entry_from_nbt(entity)
+            entity = self._entity_handlers[entity["id"].value].load_entity(entity)
+            entity_list.append(entity)
+
+        return entity_list
+
+    def translate_blocks(
+        self, chunk_sections
+    ) -> Union[numpy.ndarray, NotImplementedError]:
         if len(chunk_sections) == 0:
             return NotImplementedError(
                 "We don't support reading chunks that never been edited in Minecraft before"

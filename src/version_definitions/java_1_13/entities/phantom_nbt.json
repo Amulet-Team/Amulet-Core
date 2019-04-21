@@ -1,0 +1,18 @@
+{
+  "<metadata>": {
+    "extends": "mob"
+  },
+  "AX": {
+    "tag_type": "int"
+  },
+  "AY": {
+    "tag_type": "int"
+  },
+  "AZ": {
+    "tag_type": "int"
+  },
+  "Size": {
+    "tag_type": "int",
+    "default": 0
+  }
+}

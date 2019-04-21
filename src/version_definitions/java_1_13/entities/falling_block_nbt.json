@@ -1,0 +1,48 @@
+{
+  "<metadata>": {
+    "extends": "entity"
+  },
+  "TileEntityData": {
+    "tag_type": "compound",
+    "structure": "any"
+  },
+  "BlockState": {
+    "tag_type": "compound",
+    "structure": {
+      "Name": {
+        "tag_type": "string"
+      },
+      "Properties": {
+        "tag_type": "compound",
+        "structure": {
+          "Name": {
+            "tag_type": "string"
+          },
+          "Value": {
+            "tag_type": "string"
+          }
+        }
+      }
+    }
+  },
+  "Time": {
+    "tag_type": "int",
+    "default": 0
+  },
+  "DropItem": {
+    "tag_type": "byte",
+    "default": 1
+  },
+  "HurtEntities": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "FallHurtMax": {
+    "tag_type": "int",
+    "default": 40
+  },
+  "FallHurtAmount": {
+    "tag_type": "float",
+    "default": 2
+  }
+}

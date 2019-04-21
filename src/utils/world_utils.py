@@ -131,3 +131,13 @@ def get_smallest_dtype(arr: ndarray, uint: bool = True) -> int:
     if max_number == 0:
         max_number = 1
     return next(dtype for dtype in possible_dtypes if dtype > log(max_number, 2))
+
+
+def entity_position_to_chunk_coordinates(
+    entity_coordinates: Tuple[float, float, float]
+):
+    return int(entity_coordinates[0]) >> 4, int(entity_coordinates[2]) >> 4
+
+
+def get_entity_coordinates(ent) -> Tuple[float, float, float]:
+    return tuple(ent["Pos"])

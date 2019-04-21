@@ -1,0 +1,15 @@
+{
+  "<metadata>": {
+    "extends": "horse"
+  },
+  "ChestedHorse": {
+    "tag_type": "byte",
+    "default": 0
+  },
+  "Items": {
+    "tag_type": "list",
+    "schema": {
+      "tag_type": "<item_entry>"
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "<metadata>": {
+    "extends": "mob"
+  },
+  "DragonPhase": {
+    "tag_type": "int",
+    "default": 10
+  }
+}
