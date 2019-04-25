@@ -99,6 +99,9 @@ class Block:
                 extra_blocks = [extra_blocks]
             self._extra_blocks = tuple(extra_blocks)
 
+        if blockstate:
+            self._gen_blockstate()
+
     @property
     def namespace(self) -> str:
         """
@@ -155,7 +158,7 @@ class Block:
     def _gen_blockstate(self):
         self._blockstate = f"{self.namespace}:{self.base_name}"
         if self.properties:
-            props = [f"{key}={value}" for key, value in self.properties.items()]
+            props = [f"{key}={value}" for key, value in sorted(self.properties.items())]
             self._blockstate = f"{self._blockstate}[{','.join(props)}]"
 
     @staticmethod
@@ -175,7 +178,7 @@ class Block:
             for match in properties_match:
                 properties[match.group("name")] = match.group("value")
 
-        return namespace, base_name, properties
+        return namespace, base_name, {k: v for k, v in sorted(properties.items())}
 
     def _parse_blockstate_string(self):
         self._namespace, self._base_name, self._properties = self.parse_blockstate_string(
@@ -421,7 +424,7 @@ class BlockManager:
                 f"You might want to use the `add_block` function for your blocks before accessing them."
             )
 
-    def add_block(self, block: Block) -> int:
+    def get_add_block(self, block: Block) -> int:
         """
         Adds a Block object to the internal Block object/ID mappings. If the Block already exists in the mappings,
         then the existing ID is returned

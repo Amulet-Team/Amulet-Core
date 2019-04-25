@@ -46,6 +46,36 @@ class BlockTestCase(unittest.TestCase):
             "minecraft:oak_leaves[distance=1,persistent=true]", oak_leaves.blockstate
         )
 
+        oak_leaves_2 = Block(
+            namespace="minecraft",
+            base_name="oak_leaves",
+            properties={"persistent": "true", "distance": "1"},
+        )
+        self.assertEqual("minecraft", oak_leaves_2.namespace)
+        self.assertEqual("oak_leaves", oak_leaves_2.base_name)
+        self.assertEqual(
+            {"distance": "1", "persistent": "true"}, oak_leaves_2.properties
+        )
+        self.assertEqual((), oak_leaves_2.extra_blocks)
+        self.assertEqual(
+            "minecraft:oak_leaves[distance=1,persistent=true]", oak_leaves_2.blockstate
+        )
+        self.assertEqual(oak_leaves, oak_leaves_2)
+
+        oak_leaves_3 = Block(
+            blockstate="minecraft:oak_leaves[persistent=true,distance=1]"
+        )
+        self.assertEqual("minecraft", oak_leaves_3.namespace)
+        self.assertEqual("oak_leaves", oak_leaves_3.base_name)
+        self.assertEqual(
+            {"distance": "1", "persistent": "true"}, oak_leaves_3.properties
+        )
+        self.assertEqual((), oak_leaves_3.extra_blocks)
+        self.assertEqual(
+            "minecraft:oak_leaves[distance=1,persistent=true]", oak_leaves_3.blockstate
+        )
+        self.assertEqual(oak_leaves, oak_leaves_3)
+
     def test_extra_blocks(self):
         stone = Block(blockstate="minecraft:stone")
         water = Block(blockstate="minecraft:water[level=1]")
@@ -209,10 +239,10 @@ class BlockManagerTestCase(unittest.TestCase):
         initial_dirt_water = initial_dirt + Block(blockstate="minecraft:water")
 
         # Partially populate the manager
-        self.manager.add_block(initial_dirt)
-        self.manager.add_block(initial_stone)
-        self.manager.add_block(initial_granite)
-        self.manager.add_block(initial_dirt_water)
+        self.manager.get_add_block(initial_dirt)
+        self.manager.get_add_block(initial_stone)
+        self.manager.get_add_block(initial_granite)
+        self.manager.get_add_block(initial_dirt_water)
 
     def test_get_index_from_manager(self):
         dirt = Block(blockstate="minecraft:dirt")

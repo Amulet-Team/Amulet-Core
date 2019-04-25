@@ -264,7 +264,7 @@ class Anvil2World(WorldFormat):
         for unique in uniques:
             internal = self._materials.get_block_from_definition(unique, default=unique)
             block: Block = self.get_blockstate(internal)
-            internal_id = self.block_manager.add_block(block)
+            internal_id = self.block_manager.get_add_block(block)
 
             mask = temp_blocks == unique
 
