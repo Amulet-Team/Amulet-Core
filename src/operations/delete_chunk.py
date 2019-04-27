@@ -1,7 +1,8 @@
 from api.selection import SelectionBox
-from api.operation import Operation
+from api.operation import Operation, register
 
 
+@register("delete_chunk")
 class DeleteChunk(Operation):
     def __init__(self, source_box: SelectionBox):
         self.source_box = source_box

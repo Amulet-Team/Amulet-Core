@@ -3,10 +3,11 @@ from __future__ import annotations
 import numpy
 
 from api.selection import SelectionBox
-from api.operation import Operation
+from api.operation import Operation, register
 from api.block import Block
 
 
+@register("fill")
 class Fill(Operation):
     def __init__(self, target_box: SelectionBox, fill_block: Block):
         self.target_box = target_box

@@ -5,7 +5,6 @@ import itertools
 import os
 import shutil
 from typing import Union, Generator, Dict, Optional, Callable, Tuple, List
-from importlib import import_module
 
 import numpy
 
@@ -23,6 +22,8 @@ from utils.world_utils import (
     get_entity_coordinates,
 )
 from version_definitions import DefinitionManager
+
+from api import operation
 
 
 class WorldFormat:
@@ -336,10 +337,7 @@ class World:
     def run_operation_from_operation_name(
         self, operation_name: str, *args
     ) -> Optional[Exception]:
-        operation_module = import_module(f"operations.{operation_name}")
-        operation_class_name = "".join(x.title() for x in operation_name.split("_"))
-        operation_class = getattr(operation_module, operation_class_name)
-        operation_instance = operation_class(*args)
+        operation_instance = operation.OPERATIONS[operation_name](*args)
 
         try:
             self.run_operation(operation_instance)

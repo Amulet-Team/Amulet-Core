@@ -15,3 +15,7 @@ paths module
 .. py:data:: DEFINITIONS_DIR
 
     Points to the directory where block/entity/tile entity definitions are loaded from
+
+.. py:data:: OPERATIONS_DIR
+
+    Points to the directory where Operation classes/files are loaded from
