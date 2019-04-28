@@ -45,7 +45,7 @@ class _WorldLoader:
             except:
                 if __debug__:
                     traceback.print_exc()
-                pass
+
             sys.path.remove(os.path.dirname(definition))
 
     def identify(self, directory: str) -> Tuple[str, str]:
@@ -66,28 +66,28 @@ class _WorldLoader:
         raise FormatLoaderNoneMatched("Could not find a matching format loader")
 
     def load_world(
-        self, directory: str, format: str = None, forced: bool = False
+        self, directory: str, _format: str = None, forced: bool = False
     ) -> World:
         """
         Loads the world located at the given directory with the appropriate version/format loader.
 
         :param directory: The directory of the world
-        :param format: The loader name to use
+        :param _format: The loader name to use
         :param forced: Whether to force load the world even if incompatible
         :return: The loaded world
         """
 
-        if format is not None:
-            if not format in self._identifiers:
+        if _format is not None:
+            if _format not in self._identifiers:
                 raise FormatLoaderInvalidFormat(
-                    f"Could not find format loader {format}"
+                    f"Could not find _format loader {_format}"
                 )
-            if not forced and not self.identify(directory)[0] == format:
-                raise FormatLoaderMismatched(f"{format} is incompatible")
+            if not forced and not self.identify(directory)[0] == _format:
+                raise FormatLoaderMismatched(f"{_format} is incompatible")
         else:
-            format = loader.identify(directory)[0]
+            _format = loader.identify(directory)[0]
 
-        module = self._identifiers[format]
+        module = self._identifiers[_format]
         return module.load(directory)
 
     def get_loaded_identifiers(self) -> List[str]:

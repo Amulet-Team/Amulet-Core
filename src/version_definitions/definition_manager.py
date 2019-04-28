@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import numpy
 import os
 
 import re

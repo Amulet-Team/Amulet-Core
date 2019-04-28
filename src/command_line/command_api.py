@@ -280,7 +280,7 @@ class WorldMode(Mode):
 
         self._world_name = os.path.basename(self._world_path)
         self._world: World = loader.load_world(
-            self._world_path, format=self._load_format, forced=self._load_forced
+            self._world_path, _format=self._load_format, forced=self._load_forced
         )
 
     @property
