@@ -1,10 +1,6 @@
-import sys
-import os
+from test_utils import modify_py_path
 
-try:
-    import api
-except ModuleNotFoundError:
-    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "src"))
+modify_py_path()
 
 import unittest
 from api.block import Block, BlockManager

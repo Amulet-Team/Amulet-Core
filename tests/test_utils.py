@@ -5,6 +5,16 @@ from contextlib import contextmanager
 
 TESTS_DIR = os.path.dirname(__file__)
 
+def modify_py_path():
+    path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "src")
+    if path not in sys.path:
+        sys.path.insert(0, path)
+
+try:
+    import api
+except ModuleNotFoundError:
+    modify_py_path()
+
 
 def get_world_path(name: str) -> str:
     return os.path.join(TESTS_DIR, "worlds", name)
