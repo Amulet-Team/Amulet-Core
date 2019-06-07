@@ -15,9 +15,11 @@ SUPPORTED_FORMAT_VERSION = 0
 SUPPORTED_META_VERSION = 0
 
 _loaded_formats: Dict[str, ModuleType] = {}
-
+_has_loaded_formats = false
 
 def _find_formats(search_directory=paths.FORMATS_DIR):
+    global _has_loaded_formats
+    
     directories = glob.iglob(os.path.join(search_directory, "*", ""))
     py_path = os.path.join(search_directory)
     sys.path.insert(0, py_path)
@@ -56,6 +58,8 @@ def _find_formats(search_directory=paths.FORMATS_DIR):
 
     if py_path in sys.path:  # Sanity check and then remove the added path
         sys.path.remove(py_path)
+        
+    _has_loaded_formats = true
 
 
 def reload():
@@ -65,10 +69,14 @@ def reload():
 
 
 def get_all_formats() -> KeysView:
+    if not _has_loaded_formats:
+        _find_formats()
     return _loaded_formats.keys()
 
 
 def get_format(format_id: str) -> ModuleType:
+    if not _has_loaded_formats:
+        _find_formats()
     return _loaded_formats[format_id]
 
 
