@@ -6,14 +6,19 @@ import json
 import os
 import sys
 
-from api.paths import FORMATS_DIR
+from types import ModuleType
+from typing import Dict, KeysView
 
-SUPPORTED_FORMAT = 0
+from api import paths
 
-_loaded_formats = {}
+SUPPORTED_FORMAT_VERSION = 0
+SUPPORTED_META_VERSION = 0
 
-def _find_formats(search_directory=FORMATS_DIR):
-    directories = glob.iglob(os.path.join(search_directory, '*', ""))
+_loaded_formats: Dict[str, ModuleType] = {}
+
+
+def _find_formats(search_directory=paths.FORMATS_DIR):
+    directories = glob.iglob(os.path.join(search_directory, "*", ""))
     py_path = os.path.join(search_directory)
     sys.path.insert(0, py_path)
     for d in directories:
@@ -25,24 +30,51 @@ def _find_formats(search_directory=FORMATS_DIR):
         format_info = json.load(fp)
         fp.close()
 
-        if __debug__:
-            print(f"[Debug] Enabled \"{format_info['format']['id']}\", version {format_info['format']['wrapper_version']}")
+        if format_info["meta_version"] != SUPPORTED_META_VERSION:
+            print(
+                f'[Error] Couldn\'t enable format located in "{d}" due to unsupported meta version'
+            )
+            continue
 
-        modu = importlib.import_module(format_info["format"]["entry_point"], package=f"formats.{format_info['format']['id']}")
-        
+        if format_info["format"]["format_version"] != SUPPORTED_FORMAT_VERSION:
+            print(
+                f"[Error] Couldn't enable format \"{format_info['format']['id']}\" due to unsupported format version"
+            )
+            continue
+
+        modu = importlib.import_module(
+            format_info["format"]["entry_point"],
+            package=f"formats.{format_info['format']['id']}",
+        )
+
         _loaded_formats[format_info["format"]["id"]] = modu
 
-    if py_path in sys.path: # Sanity check and then remove the added path
+        if __debug__:
+            print(
+                f"[Debug] Enabled format \"{format_info['format']['id']}\", version {format_info['format']['wrapper_version']}"
+            )
+
+    if py_path in sys.path:  # Sanity check and then remove the added path
         sys.path.remove(py_path)
 
+
 def reload():
-    global  _loaded_formats
+    global _loaded_formats
     _loaded_formats = {}
     _find_formats()
 
 
+def get_all_formats() -> KeysView:
+    return _loaded_formats.keys()
+
+
+def get_format(format_id: str) -> ModuleType:
+    return _loaded_formats[format_id]
+
+
 if __name__ == "__main__":
     import time
+
     _find_formats()
     time.sleep(5)
     reload()
