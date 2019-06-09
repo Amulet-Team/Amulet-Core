@@ -3,7 +3,11 @@ from __future__ import annotations
 from typing import Tuple
 
 from api import version_loader
-from api.errors import FormatLoaderNoneMatched, FormatLoaderInvalidFormat, FormatLoaderMismatched
+from api.errors import (
+    FormatLoaderNoneMatched,
+    FormatLoaderInvalidFormat,
+    FormatLoaderMismatched,
+)
 
 
 def identify(directory: str) -> Tuple[str, str]:
@@ -22,6 +26,7 @@ def identify(directory: str) -> Tuple[str, str]:
             return version_name, version_format
 
     raise FormatLoaderNoneMatched("Could not find a matching format loader")
+
 
 def load_world(directory: str, _format: str = None, forced: bool = False) -> "World":
     """
@@ -44,7 +49,8 @@ def load_world(directory: str, _format: str = None, forced: bool = False) -> "Wo
     return loader_module.load(directory)
 
 
-
 if __name__ == "__main__":
-    wrld = load_world(r"C:\Users\Ben\PycharmProjects\Unified-Minecraft-Editor\tests\worlds\1.13 World")
+    wrld = load_world(
+        r"C:\Users\Ben\PycharmProjects\Unified-Minecraft-Editor\tests\worlds\1.13 World"
+    )
     print(wrld.get_block(1, 70, 7))

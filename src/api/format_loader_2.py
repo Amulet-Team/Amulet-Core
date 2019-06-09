@@ -17,9 +17,10 @@ SUPPORTED_META_VERSION = 0
 _loaded_formats: Dict[str, ModuleType] = {}
 _has_loaded_formats = False
 
+
 def _find_formats(search_directory=paths.FORMATS_DIR):
     global _has_loaded_formats
-    
+
     directories = glob.iglob(os.path.join(search_directory, "*", ""))
     py_path = os.path.join(search_directory)
     sys.path.insert(0, py_path)
@@ -58,7 +59,7 @@ def _find_formats(search_directory=paths.FORMATS_DIR):
 
     if py_path in sys.path:  # Sanity check and then remove the added path
         sys.path.remove(py_path)
-        
+
     _has_loaded_formats = True
 
 
