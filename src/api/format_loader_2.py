@@ -59,8 +59,7 @@ def _find_formats(search_directory=paths.FORMATS_DIR):
 
 
 def reload():
-    global _loaded_formats
-    _loaded_formats = {}
+    _loaded_formats.clear()
     _find_formats()
 
 
@@ -76,5 +75,7 @@ if __name__ == "__main__":
     import time
 
     _find_formats()
+    print(_loaded_formats)
     time.sleep(5)
     reload()
+    print(_loaded_formats)

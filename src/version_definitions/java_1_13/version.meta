@@ -1,0 +1,10 @@
+{
+"meta_version": 0,
+"version": {
+    "id": "java_1_13",
+    "name": "Java 1.13",
+    "version": 0,
+    "format": "anvil2",
+    "entry_point": ".java_1_13"
+    }
+}

@@ -15,7 +15,7 @@ from api.block import Block
 from api.errors import ChunkDoesntExistException
 from api.selection import SubBox, SelectionBox
 from api.chunk import SubChunk
-from api import world_loader
+from api import world_loader_2 as world_loader
 from formats.anvil2.anvil2_world import _decode_long_array, _encode_long_array
 from test_utils import get_world_path, get_data_path, timeout
 
@@ -25,7 +25,7 @@ class WorldTestBaseCases:
 
     class WorldTestCase(unittest.TestCase):
         def _setUp(self, world_name):
-            self.world = world_loader.loader.load_world(get_world_path(world_name))
+            self.world = world_loader.load_world(get_world_path(world_name))
 
         def tearDown(self):
             self.world.exit()
