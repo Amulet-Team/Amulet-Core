@@ -21,7 +21,7 @@ _loaded_versions: Dict[str, VersionEntry] = {}
 _has_loaded_versions = False
 
 
-def _find_versions(search_directory:str=None):
+def _find_versions(search_directory: str = None):
     global _has_loaded_versions
 
     if not search_directory:
@@ -71,7 +71,7 @@ def _find_versions(search_directory:str=None):
     _has_loaded_versions = True
 
 
-def reload(search_directory:str =None):
+def reload(search_directory: str = None):
     """
     Reloads all versions in the given directory
 

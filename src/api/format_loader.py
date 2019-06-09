@@ -18,7 +18,7 @@ _loaded_formats: Dict[str, ModuleType] = {}
 _has_loaded_formats = False
 
 
-def _find_formats(search_directory:str = None):
+def _find_formats(search_directory: str = None):
     global _has_loaded_formats
 
     if not search_directory:
@@ -66,7 +66,7 @@ def _find_formats(search_directory:str = None):
     _has_loaded_formats = True
 
 
-def reload(search_directory:str = None):
+def reload(search_directory: str = None):
     """
     Reloads all formats in the given directory
 
