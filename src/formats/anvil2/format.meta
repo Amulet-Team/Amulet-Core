@@ -3,7 +3,7 @@
 "format": {
     "id": "anvil2",
     "name": "Anvil2 Format",
-    "entry_point": ".anvil2_world",
+    "entry_point": ".__init__",
     "format_version": 0,
     "wrapper_version": -1
    }

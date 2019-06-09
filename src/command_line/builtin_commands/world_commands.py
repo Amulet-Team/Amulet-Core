@@ -4,7 +4,7 @@ from typing import List
 
 from command_line import ComplexCommand, command, subcommand, WorldMode
 
-from api.world_loader import loader
+from api import world_loader as loader
 
 from api.errors import (
     FormatError,

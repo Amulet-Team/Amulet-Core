@@ -7,7 +7,7 @@ import os
 import sys
 
 from types import ModuleType
-from typing import Dict, KeysView
+from typing import Dict, AbstractSet
 
 from api import paths
 
@@ -18,8 +18,11 @@ _loaded_formats: Dict[str, ModuleType] = {}
 _has_loaded_formats = False
 
 
-def _find_formats(search_directory=paths.FORMATS_DIR):
+def _find_formats(search_directory:str = None):
     global _has_loaded_formats
+
+    if not search_directory:
+        search_directory = paths.FORMATS_DIR
 
     directories = glob.iglob(os.path.join(search_directory, "*", ""))
     py_path = os.path.join(search_directory)
@@ -63,18 +66,32 @@ def _find_formats(search_directory=paths.FORMATS_DIR):
     _has_loaded_formats = True
 
 
-def reload():
+def reload(search_directory:str = None):
+    """
+    Reloads all formats in the given directory
+
+    :param search_directory: The directory to search for, defaults to :py:data:`api.paths.FORMATS_DIR`
+    """
     _loaded_formats.clear()
-    _find_formats()
+    _find_formats(search_directory)
 
 
-def get_all_formats() -> KeysView:
+def get_all_formats() -> AbstractSet[str]:
+    """
+    :return: The names of all loaded formats
+    """
     if not _has_loaded_formats:
         _find_formats()
     return _loaded_formats.keys()
 
 
 def get_format(format_id: str) -> ModuleType:
+    """
+    Gets the module for the format with the given ``format_id``
+
+    :param format_id: The id for the desired loaded format
+    :return: The module object for the format
+    """
     if not _has_loaded_formats:
         _find_formats()
     return _loaded_formats[format_id]

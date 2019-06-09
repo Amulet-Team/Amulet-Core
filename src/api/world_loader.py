@@ -1,105 +1,59 @@
 from __future__ import annotations
 
-import os
-import glob
-import sys
-import traceback
-from importlib import import_module
-from typing import Tuple, List
+from typing import Tuple
 
-from api.paths import DEFINITIONS_DIR
+from api import version_loader
 from api.world import World
-
 from api.errors import (
+    FormatLoaderNoneMatched,
     FormatLoaderInvalidFormat,
     FormatLoaderMismatched,
-    FormatLoaderNoneMatched,
 )
 
 
-class _WorldLoader:
+def identify(directory: str) -> Tuple[str, str]:
     """
-    Class responsible for loading worlds
+    Identifies the level format the world is in and the versions definitions that match
+    the world.
+
+    Note: Since Minecraft Java versions below 1.12 lack version identifiers, they
+    will always be loaded with 1.12 definitions and always be identified as "java_1_12"
+
+    :param directory: The directory of the world
+    :return: The version definitions name for the world and the format loader that would be used
     """
+    for version_name in version_loader.get_all_versions():
+        version_module, version_format = version_loader.get_version(version_name)
 
-    def __init__(self):
-        self._identifiers = {}
-        for definition in glob.iglob(os.path.join(DEFINITIONS_DIR, "**", "*.py")):
+        if version_module.identify(directory):
+            return version_name, version_format
 
-            module_name = os.path.basename(os.path.dirname(definition))
-            if not definition.endswith(f"{module_name}.py"):
-                continue
-
-            sys.path.insert(0, os.path.dirname(definition))
-            definition_name = os.path.basename(os.path.dirname(definition))
-            try:
-                module = import_module(os.path.basename(definition)[:-3])
-                if not (
-                    hasattr(module, "load")
-                    and hasattr(module, "identify")
-                    and hasattr(module, "FORMAT")
-                ):
-                    raise ValueError()
-
-                self._identifiers[definition_name] = module
-            except:
-                if __debug__:
-                    traceback.print_exc()
-
-            sys.path.remove(os.path.dirname(definition))
-
-    def identify(self, directory: str) -> Tuple[str, str]:
-        """
-        Identifies the level format the world is in and the versions definitions that match
-        the world. Note: Since Minecraft Java versions below 1.12 lack version identifiers, they
-        will always be loaded with 1.12 definitions.
-
-        :param directory: The directory of the world
-        :return: The version definitions name for the world and the format loader that would be used
-        """
-        for name, module in self._identifiers.items():
-            if module.identify(directory):
-                return name, module.FORMAT
-            elif __debug__:
-                print(f"{name} rejected the world")
-
-        raise FormatLoaderNoneMatched("Could not find a matching format loader")
-
-    def load_world(
-        self, directory: str, _format: str = None, forced: bool = False
-    ) -> World:
-        """
-        Loads the world located at the given directory with the appropriate version/format loader.
-
-        :param directory: The directory of the world
-        :param _format: The loader name to use
-        :param forced: Whether to force load the world even if incompatible
-        :return: The loaded world
-        """
-
-        if _format is not None:
-            if _format not in self._identifiers:
-                raise FormatLoaderInvalidFormat(
-                    f"Could not find _format loader {_format}"
-                )
-            if not forced and not self.identify(directory)[0] == _format:
-                raise FormatLoaderMismatched(f"{_format} is incompatible")
-        else:
-            _format = loader.identify(directory)[0]
-
-        module = self._identifiers[_format]
-        return module.load(directory)
-
-    def get_loaded_identifiers(self) -> List[str]:
-        """
-        List all format loader identifiers
-
-        :return: List of all format identifiers
-        """
-
-        return list(self._identifiers.keys())
+    raise FormatLoaderNoneMatched("Could not find a matching format loader")
 
 
-loader = _WorldLoader()
-load_world = loader.load_world
-identify = loader.identify
+def load_world(directory: str, _format: str = None, forced: bool = False) -> World:
+    """
+    Loads the world located at the given directory with the appropriate version/format loader.
+
+    :param directory: The directory of the world
+    :param _format: The loader name to use
+    :param forced: Whether to force load the world even if incompatible
+    :return: The loaded world
+    """
+    if _format is not None:
+        if _format not in version_loader.get_all_versions():
+            raise FormatLoaderInvalidFormat(f"Could not find _format loader {_format}")
+        if not forced and not identify(directory)[0] == _format:
+            raise FormatLoaderMismatched(f"{_format} is incompatible")
+    else:
+        _format = identify(directory)[0]
+
+    loader_module = version_loader.get_version(_format).module
+    return loader_module.load(directory)
+
+
+if __name__ == "__main__":
+    wrld = load_world(
+        r"C:\Users\Ben\PycharmProjects\Unified-Minecraft-Editor\tests\worlds\1.13 World"
+    )
+    print(wrld.get_block(1, 70, 7))

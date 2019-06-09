@@ -8,21 +8,24 @@ import importlib
 
 from collections import namedtuple
 
-from typing import Dict, KeysView
+from typing import Dict, AbstractSet
 
 from api import paths
 
 SUPPORTED_VERSION_VERSION = 0
 SUPPORTED_META_VERSION = 0
 
-_VersionEntry = namedtuple("_VersionEntry", ("module", "format"))
+VersionEntry = namedtuple("VersionEntry", ("module", "format"))
 
-_loaded_versions: Dict[str, _VersionEntry] = {}
+_loaded_versions: Dict[str, VersionEntry] = {}
 _has_loaded_versions = False
 
 
-def _find_versions(search_directory=paths.DEFINITIONS_DIR):
+def _find_versions(search_directory:str=None):
     global _has_loaded_versions
+
+    if not search_directory:
+        search_directory = paths.DEFINITIONS_DIR
 
     directories = glob.iglob(os.path.join(search_directory, "*", ""))
     py_path = os.path.join(search_directory)
@@ -53,7 +56,7 @@ def _find_versions(search_directory=paths.DEFINITIONS_DIR):
             package=f"version_definitions.{version_info['version']['id']}",
         )
 
-        _loaded_versions[version_info["version"]["id"]] = _VersionEntry(
+        _loaded_versions[version_info["version"]["id"]] = VersionEntry(
             modu, version_info["version"]["format"]
         )
 
@@ -68,21 +71,35 @@ def _find_versions(search_directory=paths.DEFINITIONS_DIR):
     _has_loaded_versions = True
 
 
-def reload():
+def reload(search_directory:str =None):
+    """
+    Reloads all versions in the given directory
+
+    :param search_directory: The directory to search for, defaults to :py:data:`api.paths.DEFINITIONS_DIR`
+    """
     global _has_loaded_versions
     _has_loaded_versions = False
 
     _loaded_versions.clear()
-    _find_versions()
+    _find_versions(search_directory)
 
 
-def get_all_versions() -> KeysView:
+def get_all_versions() -> AbstractSet[str]:
+    """
+    :return: The names of all loaded versions
+    """
     if not _has_loaded_versions:
         _find_versions()
     return _loaded_versions.keys()
 
 
-def get_version(version_id: str) -> _VersionEntry:
+def get_version(version_id: str) -> VersionEntry:
+    """
+    Gets the module for the version with the given ``version_id``
+
+    :param version_id: The id for the desired loaded version
+    :return: The ``VersionEntry`` for the specified ``version_id``
+    """
     if not _has_loaded_versions:
         _find_versions()
     return _loaded_versions[version_id]

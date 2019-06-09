@@ -9,7 +9,7 @@ from utils.format_utils import (
 
 from api.world import World
 
-from formats.format_loader import loader
+from api.format_loader import get_format
 
 FORMAT = "anvil"
 
@@ -33,4 +33,4 @@ def identify(directory: str) -> bool:
 
 
 def load(directory: str) -> World:
-    return loader["anvil"].LEVEL_CLASS.load(directory, "java_1_12", {})
+    return get_format("anvil").LEVEL_CLASS.load(directory, "java_1_12", {})

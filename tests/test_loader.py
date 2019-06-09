@@ -2,7 +2,7 @@ import unittest
 
 from test_utils import get_world_path
 
-import api.world_loader_2 as world_loader
+from api import world_loader
 from api import world
 
 
