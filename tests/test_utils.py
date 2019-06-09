@@ -5,10 +5,12 @@ from contextlib import contextmanager
 
 TESTS_DIR = os.path.dirname(__file__)
 
+
 def modify_py_path():
     path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "src")
     if path not in sys.path:
         sys.path.insert(0, path)
+
 
 try:
     import api
