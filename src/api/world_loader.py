@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Tuple
 
 from api import version_loader
+from api import format_loader
 from api.world import World
 from api.errors import (
     FormatLoaderNoneMatched,
@@ -31,12 +32,15 @@ def identify(directory: str) -> Tuple[str, str]:
     raise FormatLoaderNoneMatched("Could not find a matching format loader")
 
 
-def load_world(directory: str, _format: str = None, forced: bool = False) -> World:
+def load_world(
+    directory: str, _format: str = None, _version: str = None, forced: bool = False
+) -> World:
     """
     Loads the world located at the given directory with the appropriate version/format loader.
 
     :param directory: The directory of the world
     :param _format: The loader name to use
+    :param _version: The version name to use
     :param forced: Whether to force load the world even if incompatible
     :return: The loaded world
     """
@@ -46,10 +50,15 @@ def load_world(directory: str, _format: str = None, forced: bool = False) -> Wor
         if not forced and not identify(directory)[0] == _format:
             raise FormatLoaderMismatched(f"{_format} is incompatible")
     else:
-        _format = identify(directory)[0]
+        _version, _format = identify(directory)
 
-    loader_module = version_loader.get_version(_format).module
-    return loader_module.load(directory)
+    format_module = format_loader.get_format(_format)
+    version_module = version_loader.get_version(_version).module
+    blockstate_adapter = getattr(version_module, "parse_blockstate", None)
+
+    return format_module.LEVEL_CLASS.load(
+        directory, _version, get_blockstate_adapter=blockstate_adapter
+    )
 
 
 if __name__ == "__main__":

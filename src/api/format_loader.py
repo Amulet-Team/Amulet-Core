@@ -53,6 +53,12 @@ def _find_formats(search_directory: str = None):
             package=f"formats.{format_info['format']['id']}",
         )
 
+        if not hasattr(modu, "LEVEL_CLASS"):
+            print(
+                f"[Error] Format \"{format_info['format']['id']}\" is missing the LEVEL_CLASS attribute"
+            )
+            continue
+
         _loaded_formats[format_info["format"]["id"]] = modu
 
         if __debug__:
