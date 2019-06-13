@@ -9,6 +9,8 @@ from api.errors import (
     FormatLoaderNoneMatched,
     FormatLoaderInvalidFormat,
     FormatLoaderMismatched,
+    VersionLoaderInvalidFormat,
+    VersionLoaderMismatched,
 )
 
 
@@ -45,10 +47,14 @@ def load_world(
     :return: The loaded world
     """
     if _format is not None:
-        if _format not in version_loader.get_all_versions():
+        if _format not in format_loader.get_all_formats():
             raise FormatLoaderInvalidFormat(f"Could not find _format loader {_format}")
-        if not forced and not identify(directory)[0] == _format:
+        if _version not in version_loader.get_all_versions():
+            raise VersionLoaderInvalidFormat(f"Could not find _version {_version}")
+        if not forced and not identify(directory)[1] == _format:
             raise FormatLoaderMismatched(f"{_format} is incompatible")
+        if not forced and not identify(directory) == _version:
+            raise VersionLoaderMismatched(f"{_version} is incompatible")
     else:
         _version, _format = identify(directory)
 
@@ -59,10 +65,3 @@ def load_world(
     return format_module.LEVEL_CLASS.load(
         directory, _version, get_blockstate_adapter=blockstate_adapter
     )
-
-
-if __name__ == "__main__":
-    wrld = load_world(
-        r"C:\Users\Ben\PycharmProjects\Unified-Minecraft-Editor\tests\worlds\1.13 World"
-    )
-    print(wrld.get_block(1, 70, 7))

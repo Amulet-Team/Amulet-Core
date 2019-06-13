@@ -9,7 +9,7 @@ from typing import List, Type, Tuple, Union, Callable, Any, Optional
 import re
 
 from api.world import World
-from api.world_loader import loader
+from api.world_loader import load_world
 
 _coordinate_regex = re.compile(r"<(?P<x>-?\d+),(?P<y>\d+),(?P<z>-?\d+)>")
 
@@ -276,11 +276,15 @@ class WorldMode(Mode):
         super(WorldMode, self).__init__(cmd_line_handler)
         self._world_path = kwargs.get("world")
         self._load_format = kwargs.get("world_format")
+        self._load_version = kwargs.get("world_version")
         self._load_forced = kwargs.get("forced")
 
         self._world_name = os.path.basename(self._world_path)
-        self._world: World = loader.load_world(
-            self._world_path, _format=self._load_format, forced=self._load_forced
+        self._world: World = load_world(
+            self._world_path,
+            _format=self._load_format,
+            _version=self._load_version,
+            forced=self._load_forced,
         )
 
     @property
