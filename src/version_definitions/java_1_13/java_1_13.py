@@ -1,13 +1,8 @@
 from __future__ import annotations
 
-from api.world import World
 from api.block import Block
 
-from api.format_loader import get_format
-
 from utils.format_utils import check_all_exist, load_leveldat, check_version_leveldat
-
-FORMAT = "anvil2"
 
 
 def identify(directory: str) -> bool:
@@ -46,9 +41,3 @@ def parse_blockstate(blockstate: str) -> Block:
         block = Block(namespace=namespace, base_name=base_name, properties=properties)
 
     return block
-
-
-def load(directory: str) -> World:
-    return get_format("anvil2").LEVEL_CLASS.load(
-        directory, "java_1_13", get_blockstate_adapter=parse_blockstate
-    )

@@ -278,3 +278,6 @@ class AnvilWorld(WorldFormat):
 
     def save(self) -> None:
         pass
+
+
+LEVEL_CLASS = AnvilWorld
