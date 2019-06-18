@@ -2,7 +2,7 @@ api module
 ==========
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
     :caption: API Documentation
     :glob:
 

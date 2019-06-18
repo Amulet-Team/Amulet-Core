@@ -1,16 +1,19 @@
 from __future__ import annotations
 
-from typing import List
+from typing import List, Optional
 
 from command_line import ComplexCommand, command, subcommand, WorldMode
 
-from api.world_loader import loader
+from api import world_loader
+from api import version_loader, format_loader
 
 from api.errors import (
     FormatError,
     FormatLoaderInvalidFormat,
     FormatLoaderMismatched,
     FormatLoaderNoneMatched,
+    VersionLoaderInvalidFormat,
+    VersionLoaderMismatched,
 )
 
 
@@ -18,13 +21,16 @@ from api.errors import (
 class WorldCommand(ComplexCommand):
     @subcommand("load")
     def load(self, args: List[str]):
-        world_path: str = None
-        intent_format: str = None
-        intent_forced: str = False
+        world_path: Optional[str] = None
+        intent_format: Optional[str] = None
+        intent_version: Optional[str] = None
+        intent_forced: bool = False
 
         for arg in args[1:]:
-            if arg.startswith("--format="):
-                intent_format = arg[9:]
+            if arg.startswith("--override="):
+                arg = arg.split(",")
+                intent_format = arg[0][9:]
+                intent_version = arg[1]
             elif arg == "--force":
                 intent_forced = True
             else:
@@ -39,15 +45,23 @@ class WorldCommand(ComplexCommand):
                 self.handler,
                 world=world_path,
                 world_format=intent_format,
+                world_version=intent_version,
                 forced=intent_forced,
             )
 
             self.handler.enter_mode(world_mode)
-        except (FormatLoaderInvalidFormat, FormatLoaderNoneMatched) as e:
+        except (
+            FormatLoaderInvalidFormat,
+            VersionLoaderInvalidFormat,
+            FormatLoaderNoneMatched,
+        ) as e:
             print(f"==== Error: {e}")
-            print(f"Available formats: {loader.get_loaded_identifiers()}")
-            print("Use --format=<world format> to specify a specific format")
-        except FormatLoaderMismatched as e:
+            print(f"Available formats: {format_loader.get_all_formats()}")
+            print(f"Acailable versions: {version_loader.get_all_versions()}")
+            print(
+                "Use --override=<world format>,<version> to specify a specific format and version"
+            )
+        except (FormatLoaderMismatched, VersionLoaderMismatched) as e:
             print(f"==== Error: {e}")
             print("Use --force to override")
 
@@ -68,12 +82,14 @@ class WorldCommand(ComplexCommand):
                     print('Usage: world.identify "<world filepath>"')
                     return
 
-                version, identified_format = loader.identify(args[1])
+                version, identified_format = world_loader.identify(args[1])
             elif len(args) == 2:
-                version, identified_format = loader.identify(args[1])
+                version, identified_format = world_loader.identify(args[1])
             else:
                 world_mode = self.get_mode(WorldMode)
-                version, identified_format = loader.identify(world_mode.world_path)
+                version, identified_format = world_loader.identify(
+                    world_mode.world_path
+                )
 
             print(f"Version: {version.replace('_', '.')}")
             print(f"Format: {identified_format}")

@@ -21,7 +21,7 @@ class WorldTestBaseCases:
 
     class WorldTestCase(unittest.TestCase):
         def _setUp(self, world_name):
-            self.world = world_loader.loader.load_world(get_world_path(world_name))
+            self.world = world_loader.load_world(get_world_path(world_name))
 
         def tearDown(self):
             self.world.exit()

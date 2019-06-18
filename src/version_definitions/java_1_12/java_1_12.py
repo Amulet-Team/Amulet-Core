@@ -7,12 +7,6 @@ from utils.format_utils import (
     check_version_leveldat,
 )
 
-from api.world import World
-
-from formats.format_loader import loader
-
-FORMAT = "anvil"
-
 
 def identify(directory: str) -> bool:
     if not check_all_exist(directory, "region", "level.dat"):
@@ -30,7 +24,3 @@ def identify(directory: str) -> bool:
         return False
 
     return True
-
-
-def load(directory: str) -> World:
-    return loader["anvil"].LEVEL_CLASS.load(directory, "java_1_12", {})

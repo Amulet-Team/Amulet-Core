@@ -20,3 +20,11 @@ class InvalidBlockException(Exception):
 
 class ChunkDoesntExistException(Exception):  # Possibly change the name in the future
     pass
+
+
+class VersionLoaderInvalidFormat(Exception):
+    pass
+
+
+class VersionLoaderMismatched(Exception):
+    pass

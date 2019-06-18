@@ -1,0 +1,15 @@
+{
+"meta_version": 0,
+"format": {
+    "id": "anvil",
+    "__id": "the directory name and unique id for the format wrapper",
+    "name": "Anvil Format",
+    "__name": "The formal name for the format",
+    "entry_point": ".anvil_world",
+    "__entry_point": "The python file that the wrapper is located in",
+    "format_version": 0,
+    "__format_version": "The format version that this wrapper is meant for and/or supports",
+    "wrapper_version": -1,
+    "__wrapper_version": "The wrapper version to track and download updates/bugfixes"
+    }
+}

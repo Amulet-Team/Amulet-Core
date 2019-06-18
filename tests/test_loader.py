@@ -6,13 +6,13 @@ import unittest
 
 from test_utils import get_world_path
 
-import api.world_loader
+from api import world_loader
 from api import world
 
 
 class DefinitionBasedLoaderTestCase(unittest.TestCase):
     def setUp(self):
-        self.loader = api.world_loader.loader
+        self.loader = world_loader
 
     def test_identifing(self):
         name, _format = self.loader.identify(get_world_path("1.12.2 World"))
