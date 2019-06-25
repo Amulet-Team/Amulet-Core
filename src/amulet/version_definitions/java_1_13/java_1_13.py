@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from amulet.api.block import Block
 
-from amulet.utils.format_utils import check_all_exist, load_leveldat, check_version_leveldat
+from amulet.utils.format_utils import (
+    check_all_exist,
+    load_leveldat,
+    check_version_leveldat,
+)
 
 
 def identify(directory: str) -> bool:

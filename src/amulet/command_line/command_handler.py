@@ -17,7 +17,13 @@ from prompt_toolkit.completion import Completion
 
 from amulet.api.data_structures import Stack
 from amulet.api.paths import COMMANDS_DIR
-from amulet.command_line import Mode, SimpleCommand, ComplexCommand, command, builtin_commands
+from amulet.command_line import (
+    Mode,
+    SimpleCommand,
+    ComplexCommand,
+    command,
+    builtin_commands,
+)
 
 Command_Entry = namedtuple("Command", ("run", "short_help", "help"))
 

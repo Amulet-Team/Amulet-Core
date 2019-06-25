@@ -48,10 +48,14 @@ def _find_formats(search_directory: str = None):
             )
             continue
 
-        spec = importlib.util.spec_from_file_location(format_info["format"]["entry_point"],
-                                                      os.path.join(search_directory,
-                                                                   os.path.basename(os.path.dirname(d)),
-                                                                   format_info["format"]["entry_point"] + ".py"))
+        spec = importlib.util.spec_from_file_location(
+            format_info["format"]["entry_point"],
+            os.path.join(
+                search_directory,
+                os.path.basename(os.path.dirname(d)),
+                format_info["format"]["entry_point"] + ".py",
+            ),
+        )
 
         modu = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(modu)
@@ -61,7 +65,6 @@ def _find_formats(search_directory: str = None):
                 f"[Error] Format \"{format_info['format']['id']}\" is missing the LEVEL_CLASS attribute"
             )
             continue
-
 
         _loaded_formats[format_info["format"]["id"]] = modu
 

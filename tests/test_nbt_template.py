@@ -252,7 +252,11 @@ class Java113NBTTemplateTestCase(NBTTemplateTestBase, unittest.TestCase):
     def setUp(self):
         self._setUp(
             os.path.join(
-                os.path.dirname(TESTS_DIR), "src", "amulet", "version_definitions", "java_1_13"
+                os.path.dirname(TESTS_DIR),
+                "src",
+                "amulet",
+                "version_definitions",
+                "java_1_13",
             )
         )
 

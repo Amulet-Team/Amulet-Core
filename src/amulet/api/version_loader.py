@@ -54,8 +54,15 @@ def _find_versions(search_directory: str = None):
             )
             continue
 
-        #spec = importlib.util.find_spec(version_info["version"]["entry_point"])
-        spec = importlib.util.spec_from_file_location(version_info["version"]["entry_point"], os.path.join(search_directory, version_info["version"]["entry_point"], version_info["version"]["entry_point"] + ".py"))
+        # spec = importlib.util.find_spec(version_info["version"]["entry_point"])
+        spec = importlib.util.spec_from_file_location(
+            version_info["version"]["entry_point"],
+            os.path.join(
+                search_directory,
+                version_info["version"]["entry_point"],
+                version_info["version"]["entry_point"] + ".py",
+            ),
+        )
 
         modu = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(modu)

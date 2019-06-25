@@ -9,13 +9,7 @@ from prompt_toolkit.completion import Completion
 
 from amulet.api.selection import SubBox, SelectionBox
 
-from .. import (
-    command,
-    subcommand,
-    ComplexCommand,
-    parse_coordinates,
-    WorldMode,
-)
+from .. import command, subcommand, ComplexCommand, parse_coordinates, WorldMode
 
 
 @command("box")
