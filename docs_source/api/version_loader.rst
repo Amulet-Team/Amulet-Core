@@ -1,5 +1,5 @@
 version_loader module
 =====================
 
-.. automodule:: api.version_loader
+.. automodule:: amulet.api.version_loader
     :members:

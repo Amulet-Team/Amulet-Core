@@ -3,7 +3,7 @@ from test_utils import modify_py_path
 modify_py_path()
 
 import unittest
-from api import selection
+from amulet.api import selection
 
 
 class BoxTestCase(unittest.TestCase):

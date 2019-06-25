@@ -1,7 +1,7 @@
 paths module
 ============
 
-.. automodule:: api.paths
+.. automodule:: amulet.api.paths
     :show-inheritance:
 
 .. py:data:: COMMANDS_DIR

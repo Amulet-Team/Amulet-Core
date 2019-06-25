@@ -7,12 +7,12 @@ import unittest
 import json
 import numpy
 
-from api.block import Block
-from api.errors import ChunkDoesntExistException
-from api.selection import SubBox, SelectionBox
-from api.chunk import SubChunk
-from api import world_loader
-from formats.anvil2.anvil2_world import _decode_long_array, _encode_long_array
+from amulet.api.block import Block
+from amulet.api.errors import ChunkDoesntExistException
+from amulet.api.selection import SubBox, SelectionBox
+from amulet.api.chunk import SubChunk
+from amulet.api import world_loader
+from amulet.formats.anvil2.anvil2_world import _decode_long_array, _encode_long_array
 from test_utils import get_world_path, get_data_path, timeout
 
 

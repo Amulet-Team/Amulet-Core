@@ -6,8 +6,8 @@ import unittest
 
 from test_utils import get_world_path
 
-from api import world_loader
-from api import world
+from amulet.api import world_loader
+from amulet.api import world
 
 
 class DefinitionBasedLoaderTestCase(unittest.TestCase):

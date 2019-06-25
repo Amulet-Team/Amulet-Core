@@ -5,7 +5,7 @@ modify_py_path()
 import os
 
 import unittest
-from api.nbt_template import (
+from amulet.api.nbt_template import (
     TemplateLoader,
     NBTStructure,
     NBTListStructure,
@@ -252,7 +252,7 @@ class Java113NBTTemplateTestCase(NBTTemplateTestBase, unittest.TestCase):
     def setUp(self):
         self._setUp(
             os.path.join(
-                os.path.dirname(TESTS_DIR), "src", "version_definitions", "java_1_13"
+                os.path.dirname(TESTS_DIR), "src", "amulet", "version_definitions", "java_1_13"
             )
         )
 

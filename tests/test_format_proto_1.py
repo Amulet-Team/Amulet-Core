@@ -4,7 +4,7 @@ modify_py_path()
 
 import unittest
 
-from version_definitions import definition_manager
+from amulet.version_definitions import definition_manager
 
 
 class TestPrototypeBaseCases:
