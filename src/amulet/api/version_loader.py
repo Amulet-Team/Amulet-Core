@@ -59,20 +59,13 @@ def _find_versions(search_directory: str = None):
             version_info["version"]["entry_point"],
             os.path.join(
                 search_directory,
-                version_info["version"]["entry_point"],
+                os.path.basename(os.path.dirname(d)),
                 version_info["version"]["entry_point"] + ".py",
             ),
         )
 
         modu = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(modu)
-
-        # print(version_info["version"]["id"] + " => " + str(hasattr(modu, "identify")))
-        # print(spec)
-        # print(getattr(modu, "identify", None))
-        # print(dir(modu))
-        # print(modu.__name__, modu.__file__)
-        # print("=" * 16)
 
         _loaded_versions[version_info["version"]["id"]] = VersionEntry(
             modu, version_info["version"]["format"]
