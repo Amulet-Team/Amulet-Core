@@ -6,7 +6,7 @@ import os
 import re
 from typing import Union
 
-from amulet.api.paths import DEFINITIONS_DIR
+from amulet.api import paths
 
 
 class DefinitionManager:
@@ -57,7 +57,7 @@ class DefinitionManager:
         self._definitions = {}
         self._special_blocks = set()
 
-        fp = open(os.path.join(DEFINITIONS_DIR, "internal", "blocks.json"))
+        fp = open(os.path.join(paths.DEFINITIONS_DIR, "internal", "blocks.json"))
         self.defs_internal = json.load(fp)
         fp.close()
 
@@ -72,14 +72,14 @@ class DefinitionManager:
 
         if not os.path.exists(
             "{}.json".format(
-                os.path.join(DEFINITIONS_DIR, definitions_to_build, "blocks")
+                os.path.join(paths.DEFINITIONS_DIR, definitions_to_build, "blocks")
             )
         ):
             raise FileNotFoundError()
 
         fp = open(
             "{}.json".format(
-                os.path.join(DEFINITIONS_DIR, definitions_to_build, "blocks")
+                os.path.join(paths.DEFINITIONS_DIR, definitions_to_build, "blocks")
             ),
             "r",
         )
