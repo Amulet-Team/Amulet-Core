@@ -12,8 +12,6 @@ from typing import Dict, AbstractSet
 
 from . import paths
 
-import pkgutil
-
 SUPPORTED_VERSION_VERSION = 0
 SUPPORTED_META_VERSION = 0
 
