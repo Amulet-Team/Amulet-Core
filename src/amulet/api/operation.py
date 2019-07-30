@@ -6,7 +6,7 @@ from importlib import import_module
 from os.path import basename, join
 import sys
 
-from .paths import OPERATIONS_DIR
+from . import paths
 
 _imported_operations = False
 OPERATIONS = {}
@@ -45,10 +45,10 @@ def reload_operations():
 
 def _import_operations():
     global _imported_operations
-    sys.path.insert(0, OPERATIONS_DIR)
+    sys.path.insert(0, paths.OPERATIONS_DIR)
     _verify_path_len = len(sys.path)
 
-    for f in glob.glob(join(OPERATIONS_DIR, "*.py")):
+    for f in glob.glob(join(paths.OPERATIONS_DIR, "*.py")):
         import_module(basename(f)[:-3])
 
     if len(sys.path) == _verify_path_len:
