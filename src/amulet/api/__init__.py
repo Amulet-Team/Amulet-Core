@@ -1,2 +1,2 @@
 from .world import WorldFormat
-from . import world_loader
+from ..world_loading import world_loader

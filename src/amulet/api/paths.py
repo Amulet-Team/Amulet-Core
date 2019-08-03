@@ -48,9 +48,10 @@ def _application_directory(
         return path
 
 
-FORMATS_DIR = _application_directory("formats")
+FORMATS_DIR = _application_directory(("world_loading", "formats"))
+DECODERS_DIR = _application_directory(("world_loading", "decoders"))
+TRANSLATORS_DIR = _application_directory(("world_loading", "translators"))
 COMMANDS_DIR = _application_directory("commands", ("command_line", "commands"))
-DEFINITIONS_DIR = _application_directory("definitions", "version_definitions")
 OPERATIONS_DIR = _application_directory("operations")
 
 # WORK_DIR = _application_directory("work")

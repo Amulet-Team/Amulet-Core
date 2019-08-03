@@ -13,18 +13,13 @@ class FormatLoaderMismatched(FormatError):
 class FormatLoaderNoneMatched(FormatError):
     pass
 
+class DecoderLoaderNoneMatched(FormatError):
+    pass
+
 
 class InvalidBlockException(Exception):
     pass
 
 
 class ChunkDoesntExistException(Exception):  # Possibly change the name in the future
-    pass
-
-
-class VersionLoaderInvalidFormat(Exception):
-    pass
-
-
-class VersionLoaderMismatched(Exception):
     pass

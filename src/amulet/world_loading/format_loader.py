@@ -4,17 +4,17 @@ import glob
 import importlib
 import json
 import os
-import sys
 
-from types import ModuleType
 from typing import Dict, AbstractSet
 
-from . import paths
+from ..api import paths
+from ..api.errors import FormatLoaderNoneMatched
+from .formats.format import Format
 
 SUPPORTED_FORMAT_VERSION = 0
 SUPPORTED_META_VERSION = 0
 
-_loaded_formats: Dict[str, ModuleType] = {}
+_loaded_formats: Dict[str, Format] = {}
 _has_loaded_formats = False
 
 
@@ -25,16 +25,13 @@ def _find_formats(search_directory: str = None):
         search_directory = paths.FORMATS_DIR
 
     directories = glob.iglob(os.path.join(search_directory, "*", ""))
-    py_path = os.path.join(search_directory)
-    sys.path.insert(0, py_path)
     for d in directories:
         meta_path = os.path.join(d, "format.meta")
         if not os.path.exists(meta_path):
             continue
 
-        fp = open(meta_path)
-        format_info = json.load(fp)
-        fp.close()
+        with open(meta_path) as fp:
+            format_info = json.load(fp)
 
         if format_info["meta_version"] != SUPPORTED_META_VERSION:
             print(
@@ -50,31 +47,23 @@ def _find_formats(search_directory: str = None):
 
         spec = importlib.util.spec_from_file_location(
             format_info["format"]["entry_point"],
-            os.path.join(
-                search_directory,
-                os.path.basename(os.path.dirname(d)),
-                format_info["format"]["entry_point"] + ".py",
-            ),
+            os.path.join(d, format_info["format"]["entry_point"] + ".py"),
         )
-
         modu = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(modu)
 
-        if not hasattr(modu, "LEVEL_CLASS"):
+        if not hasattr(modu, "FORMAT_CLASS"):
             print(
-                f"[Error] Format \"{format_info['format']['id']}\" is missing the LEVEL_CLASS attribute"
+                f"[Error] Format \"{format_info['format']['id']}\" is missing the FORMAT_CLASS attribute"
             )
             continue
 
-        _loaded_formats[format_info["format"]["id"]] = modu
+        _loaded_formats[format_info["format"]["id"]] = modu.FORMAT_CLASS
 
         if __debug__:
             print(
                 f"[Debug] Enabled format \"{format_info['format']['id']}\", version {format_info['format']['wrapper_version']}"
             )
-
-    if py_path in sys.path:  # Sanity check and then remove the added path
-        sys.path.remove(py_path)
 
     _has_loaded_formats = True
 
@@ -98,7 +87,7 @@ def get_all_formats() -> AbstractSet[str]:
     return _loaded_formats.keys()
 
 
-def get_format(format_id: str) -> ModuleType:
+def get_format(format_id: str) -> Format:
     """
     Gets the module for the format with the given ``format_id``
 
@@ -110,11 +99,32 @@ def get_format(format_id: str) -> ModuleType:
     return _loaded_formats[format_id]
 
 
+def identify(directory: str) -> str:
+
+    """
+    Identifies the format the world is in.
+
+    Note: Since Minecraft Java versions below 1.12 lack version identifiers, they
+    will always be loaded with 1.12 definitions and always be identified as "java_1_12"
+
+    :param directory: The directory of the world
+    :return: The version definitions name for the world and the format loader that would be used
+    """
+    if not _has_loaded_formats:
+        _find_formats()
+
+    for format_name, format_class in _loaded_formats.items():
+        if format_class.identify(directory):
+            return format_name
+
+    raise FormatLoaderNoneMatched("Could not find a matching format loader")
+
+
 if __name__ == "__main__":
     import time
 
     _find_formats()
     print(_loaded_formats)
-    time.sleep(5)
+    time.sleep(1)
     reload()
     print(_loaded_formats)
