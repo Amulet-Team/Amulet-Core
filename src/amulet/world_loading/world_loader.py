@@ -2,10 +2,8 @@ from __future__ import annotations
 
 from . import format_loader
 from ..api.world import World
-from ..api.errors import (
-    FormatLoaderInvalidFormat,
-    FormatLoaderMismatched,
-)
+from ..api.errors import FormatLoaderInvalidFormat, FormatLoaderMismatched
+
 
 def load_world(directory: str, _format: str = None, forced: bool = False) -> World:
     """
@@ -28,8 +26,10 @@ def load_world(directory: str, _format: str = None, forced: bool = False) -> Wor
 
     return format_class(directory)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import sys
+
     w = load_world(sys.argv[1])
     c = w.get_chunk(0, 0)
-    print(c.blocks[0,60,0])
+    print(c.blocks[0, 4, 0])

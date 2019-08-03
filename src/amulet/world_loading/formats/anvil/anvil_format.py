@@ -19,6 +19,7 @@ from amulet.utils.format_utils import (
     check_version_leveldat,
 )
 
+
 class AnvilRegionManager:
     def __init__(self, directory: str):
         self._directory = directory
@@ -129,6 +130,7 @@ class AnvilRegionManager:
 
         return True
 
+
 class AnvilFormat(Format):
     def __init__(self, *args):
         super().__init__(*args)
@@ -146,11 +148,9 @@ class AnvilFormat(Format):
     def identify(directory):
         print(directory)
         if not check_all_exist(directory, "region", "level.dat"):
-            print("a")
             return False
 
         if not check_one_exists(directory, "playerdata", "players"):
-            print("b")
             return False
 
         leveldat_root = load_leveldat(directory)
@@ -159,5 +159,6 @@ class AnvilFormat(Format):
             return False
 
         return True
+
 
 FORMAT_CLASS = AnvilFormat

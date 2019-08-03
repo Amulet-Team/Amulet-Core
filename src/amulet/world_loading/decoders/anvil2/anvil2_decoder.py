@@ -10,6 +10,7 @@ from amulet.api import nbt_template
 from amulet.api.chunk import Chunk
 from amulet.world_loading.decoders.decoder import Decoder
 
+
 def properties_to_string(props: dict) -> str:
     """
     Converts a dictionary of blockstate properties to a string
@@ -21,6 +22,7 @@ def properties_to_string(props: dict) -> str:
     for key, value in props.items():
         result.append("{}={}".format(key, value))
     return ",".join(result)
+
 
 def _decode_long_array(long_array: array_like, size: int) -> numpy.ndarray:
     """
@@ -37,6 +39,7 @@ def _decode_long_array(long_array: array_like, size: int) -> numpy.ndarray:
     return binary_blocks.dot(2 ** numpy.arange(binary_blocks.shape[1] - 1, -1, -1))[
         ::-1  # Undo the bit-shifting that Minecraft does with the palette indices
     ][:size]
+
 
 class Anvil2Decoder(Decoder):
     def __init__(self):
@@ -69,7 +72,9 @@ class Anvil2Decoder(Decoder):
                 blockstates.append(name)
         return blockstates
 
-    def _translate_entities(self, entities: list) -> List[nbt_template.NBTCompoundEntry]:
+    def _translate_entities(
+        self, entities: list
+    ) -> List[nbt_template.NBTCompoundEntry]:
         entity_list = []
         for entity in entities:
             entity = nbt_template.create_entry_from_nbt(entity)
@@ -92,6 +97,9 @@ class Anvil2Decoder(Decoder):
             lower = section["Y"].value << 4
             upper = (section["Y"].value + 1) << 4
 
+            if "Palette" not in section:  # 1.14 makes palette/blocks optional.
+                continue
+
             palette = self._read_palette(section["Palette"])
 
             _blocks = numpy.asarray(palette, dtype="object")[
@@ -103,5 +111,6 @@ class Anvil2Decoder(Decoder):
         blocks = numpy.swapaxes(blocks.swapaxes(0, 1), 0, 2)
 
         return blocks
+
 
 DECODER_CLASS = Anvil2Decoder

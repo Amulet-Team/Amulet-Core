@@ -17,6 +17,7 @@ _has_loaded_decoders = False
 SUPPORTED_DECODER_VERSION = 0
 SUPPORTED_META_VERSION = 0
 
+
 def _find_loaded_decoders(search_directory: str = None):
     global _has_loaded_decoders
 
@@ -57,7 +58,7 @@ def _find_loaded_decoders(search_directory: str = None):
             )
             continue
 
-        _loaded_decoders[decoder_info['decoder']['id']] = modu.DECODER_CLASS()
+        _loaded_decoders[decoder_info["decoder"]["id"]] = modu.DECODER_CLASS()
 
         if __debug__:
             print(
@@ -65,6 +66,7 @@ def _find_loaded_decoders(search_directory: str = None):
             )
 
     _has_loaded_decoders = True
+
 
 def reload(search_directory: str = None):
     """
@@ -100,12 +102,13 @@ def get_decoder(decoder_id: str) -> Type:
 def identify(identifier: Tuple) -> str:
     if not _has_loaded_decoders:
         _find_loaded_decoders()
-        
+
     for decoder_name, decoder_instance in _loaded_decoders.items():
         if decoder_instance.identify(identifier):
             return decoder_name
 
     raise DecoderLoaderNoneMatched("Could not find a matching decoder loader")
+
 
 if __name__ == "__main__":
     import time

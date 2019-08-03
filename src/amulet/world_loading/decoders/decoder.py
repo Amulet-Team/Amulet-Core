@@ -4,6 +4,7 @@ from typing import Tuple
 
 from ...api.chunk import Chunk
 
+
 class Decoder:
     def decode(self, data) -> Chunk:
         raise NotImplementedError()

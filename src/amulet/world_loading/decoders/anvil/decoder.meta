@@ -1,0 +1,10 @@
+{
+"meta_version": 0,
+"decoder": {
+    "id": "anvil",
+    "name": "Anvil Decoder",
+    "entry_point": "anvil_decoder",
+    "decoder_version": 0,
+    "wrapper_version": -1
+   }
+}
