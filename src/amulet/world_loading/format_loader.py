@@ -100,7 +100,6 @@ def get_format(format_id: str) -> Format:
 
 
 def identify(directory: str) -> str:
-
     """
     Identifies the format the world is in.
 

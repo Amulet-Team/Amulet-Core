@@ -18,7 +18,7 @@ SUPPORTED_DECODER_VERSION = 0
 SUPPORTED_META_VERSION = 0
 
 
-def _find_loaded_decoders(search_directory: str = None):
+def _find_decoders(search_directory: str = None):
     global _has_loaded_decoders
 
     if not search_directory:
@@ -75,7 +75,7 @@ def reload(search_directory: str = None):
     :param search_directory: The directory to search for, defaults to :py:data:`api.paths.FORMATS_DIR`
     """
     _loaded_decoders.clear()
-    _find_loaded_decoders(search_directory)
+    _find_decoders(search_directory)
 
 
 def get_all_loaded_decoders() -> AbstractSet[str]:
@@ -83,7 +83,7 @@ def get_all_loaded_decoders() -> AbstractSet[str]:
     :return: The identifiers of all loaded decoders
     """
     if not _has_loaded_decoders:
-        _find_loaded_decoders()
+        _find_decoders()
     return _loaded_decoders.keys()
 
 
@@ -95,13 +95,13 @@ def get_decoder(decoder_id: str) -> Type:
     :return: The class for the decoder
     """
     if not _has_loaded_decoders:
-        _find_loaded_decoders()
+        _find_decoders()
     return _loaded_decoders[decoder_id]
 
 
 def identify(identifier: Tuple) -> str:
     if not _has_loaded_decoders:
-        _find_loaded_decoders()
+        _find_decoders()
 
     for decoder_name, decoder_instance in _loaded_decoders.items():
         if decoder_instance.identify(identifier):
@@ -113,7 +113,7 @@ def identify(identifier: Tuple) -> str:
 if __name__ == "__main__":
     import time
 
-    _find_loaded_decoders()
+    _find_decoders()
     print(_loaded_decoders)
     time.sleep(1)
     reload()

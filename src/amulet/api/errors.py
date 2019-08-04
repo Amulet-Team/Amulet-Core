@@ -13,6 +13,7 @@ class FormatLoaderMismatched(FormatError):
 class FormatLoaderNoneMatched(FormatError):
     pass
 
+
 class DecoderLoaderNoneMatched(FormatError):
     pass
 
