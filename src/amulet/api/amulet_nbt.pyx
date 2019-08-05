@@ -40,10 +40,10 @@ USE_BIG_ENDIAN = 1
 
 # Utility Methods
 
-cdef struct buffer_context:
-    size_t offset
-    char * buffer
-    size_t size
+cdef class buffer_context:
+    cdef size_t offset
+    cdef char * buffer
+    cdef size_t size
 
 cdef char * read_data(buffer_context context, size_t tag_size) except NULL:
     if tag_size > context.size - context.offset:
@@ -292,6 +292,40 @@ cdef class _TAG_List(_TAG_Value):
     def to_snbt(self):
         return f"[{','.join(map(lambda elem: elem.to_snbt(), self.value))}]"
 
+    def check_tag(self, value):
+        if value.tagID != self.list_data_type:
+            #raise TypeError("Invalid type %s for TAG_List(%s)" % (value.__class__, tag_classes[self.list_type]))
+            raise TypeError()
+
+    def __getitem__(self, index):
+        return self.value[index]
+
+    def __setitem__(self, index, value):
+        if isinstance(index, slice):
+            for tag in value:
+                self.check_tag(tag)
+        else:
+            self.check_tag(value)
+        self.value[index] = value
+
+    def __iter__(self):
+        return iter(self.value)
+
+    def __len__(self):
+        return len(self.value)
+
+    def insert(self, index, tag):
+        if len(self.value) == 0:
+            self.list_data_type = tag.tagID
+        else:
+            self.check_tag(tag)
+
+        self.value.insert(index, tag)
+
+    def __delitem__(self, key):
+        del self.value[key]
+
+
 class TAG_List(_TAG_List, MutableSequence):
     pass
 
@@ -302,27 +336,30 @@ cdef class _TAG_Compound(_TAG_Value):
         self.tag_id = _ID_COMPOUND
 
     def __init__(self, dict value = None):
-        self.value = value or []
+        self.value = value or {}
 
     def to_snbt(self):
-        tags = []
+        return ""
+        #tags = []
         #for k, v in self.value.items():
         #    tags.append(f"{k}={v.to_snbt()}")
-        return f"{{{','.join(tags)}}}"
+        #return f"{{{','.join(tags)}}}"
         #return f"{{{k: v.to_snbt() for k, v in self.value.items()}}}"
 
     def __getitem__(self, key):
-        cdef _TAG_Value tag
-        for tag in self.value:
-            if tag.name == key:
-                return tag
-        raise KeyError()
+        return self.value[key]
+        #cdef _TAG_Value tag
+        #for tag in self.value:
+        #    if tag.name == key:
+        #        return tag
+        #raise KeyError()
 
     def __setitem__(self, key, tag):
-        tag._name = key
-        cdef _TAG_Value val
-        self.value = [val for val in self.value if val.name != key]
-        self.value.append(tag)
+        self.value[key] = tag
+        #tag._name = key
+        #cdef _TAG_Value val
+        #self.value = [val for val in self.value if val.name != key]
+        #self.value.append(tag)
 
     def __delitem__(self, key):
         del self.value[key]
@@ -355,7 +392,7 @@ def load(filename="", buffer=None):
 
     data_in = safe_gunzip(data_in)
 
-    cdef buffer_context context
+    cdef buffer_context context = buffer_context()
     context.offset = 1
     context.buffer = data_in
     context.size = len(data_in)
@@ -428,7 +465,8 @@ cdef load_compound_tag(buffer_context context):
             print("Breaking")
             break
         else:
-            root_tag.value.append(load_named(context, tagID))
+            name, tag = load_named(context, tagID)
+            root_tag[name] = tag
     return root_tag
 
 cdef str load_string(buffer_context context):
