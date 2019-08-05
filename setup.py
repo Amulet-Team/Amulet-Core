@@ -3,6 +3,8 @@ import os
 
 from setuptools import setup, find_packages
 
+from Cython.Build import cythonize
+
 import numpy
 
 include_dirs = [numpy.get_include()]
@@ -29,4 +31,5 @@ setup(
     include_dirs=include_dirs,
     include_package_data=True,
     install_requires=required_packages,
+    ext_modules=cythonize("src/amulet/api/*.pyx", annotate=True, language_level=3),
 )
