@@ -1,6 +1,6 @@
 import gzip
 import zlib
-from collections import MutableMapping, MutableSequence
+from collections.abc import MutableMapping, MutableSequence
 from io import BytesIO
 
 import numpy
