@@ -1,7 +1,7 @@
 import gzip
 import zlib
 from collections import MutableMapping, MutableSequence
-from io import StringIO, BytesIO
+from io import BytesIO
 
 import numpy
 from cpython cimport PyUnicode_DecodeUTF8, PyList_Append
@@ -36,9 +36,27 @@ ID_INT_ARRAY = _ID_INT_ARRAY
 ID_LONG_ARRAY = _ID_LONG_ARRAY
 ID_MAX = _ID_MAX
 
+cpdef dict TAG_CLASSES = {
+    ID_BYTE: TAG_Byte,
+    ID_SHORT: TAG_Short,
+    ID_INT: TAG_Int,
+    ID_LONG: TAG_Long,
+    ID_FLOAT: TAG_Float,
+    ID_DOUBLE: TAG_Double,
+    ID_BYTE_ARRAY: TAG_Byte_Array,
+    ID_STRING: TAG_String,
+    ID_LIST: _TAG_List,
+    ID_COMPOUND: _TAG_Compound,
+    ID_INT_ARRAY: TAG_Int_Array,
+    ID_LONG_ARRAY: TAG_Long_Array
+}
+
 USE_BIG_ENDIAN = 1
 
 # Utility Methods
+class NBTFormatError(ValueError):
+    """Indicates the NBT format is invalid."""
+    pass
 
 cdef class buffer_context:
     cdef size_t offset
@@ -47,7 +65,8 @@ cdef class buffer_context:
 
 cdef char * read_data(buffer_context context, size_t tag_size) except NULL:
     if tag_size > context.size - context.offset:
-        raise SyntaxError() # Raise an error
+        raise NBTFormatError(
+            f"NBT Stream too short. Asked for {tag_size:d}, only had {(context.size - context.offset):d}")
 
     cdef char* value = context.buffer + context.offset
     context.offset += tag_size
@@ -72,10 +91,9 @@ cdef str load_name(buffer_context context):
 
     return PyUnicode_DecodeUTF8(b, length, "strict")
 
-cdef load_named(buffer_context context, char tagID):
+cdef tuple load_named(buffer_context context, char tagID):
     cdef str name = load_name(context)
     cdef _TAG_Value tag = load_tag(tagID, context)
-    tag.name = name
     return name, tag
 
 cdef _TAG_Value load_tag(char tagID, buffer_context context):
@@ -115,25 +133,21 @@ cdef _TAG_Value load_tag(char tagID, buffer_context context):
     if tagID == _ID_LONG_ARRAY:
         return load_long_array(context)
 
-def safe_gunzip(data):
-    _data = BytesIO(data)
-    print(f"\"{_data.read()}\"")
+cpdef bytes safe_gunzip(bytes data):
     try:
         data = gzip.GzipFile(fileobj=BytesIO(data)).read()
-        print(data)
     except (IOError, zlib.error) as e:
         pass
     return data
 
 
 cdef class _TAG_Value:
-    cdef public char tag_id
-    cdef str name
+    cdef char tag_id
 
     def copy(self):
         return self.__class__(self.value)
 
-    def to_snbt(self):
+    cpdef str to_snbt(self):
         raise NotImplementedError()
 
 cdef class TAG_Byte(_TAG_Value):
@@ -148,7 +162,7 @@ cdef class TAG_Byte(_TAG_Value):
     def __init__(self, char value = 0):
         self.value = value
 
-    def to_snbt(self):
+    cpdef str to_snbt(self):
         return f"{self.value}b"
 
 
@@ -161,7 +175,7 @@ cdef class TAG_Short(_TAG_Value):
     def __init__(self, short value = 0):
         self.value = value
 
-    def to_snbt(self):
+    cpdef str to_snbt(self):
         return f"{self.value}s"
 
 cdef class TAG_Int(_TAG_Value):
@@ -173,7 +187,7 @@ cdef class TAG_Int(_TAG_Value):
     def __init__(self, int value = 0):
         self.value = value
 
-    def to_snbt(self):
+    cpdef str to_snbt(self):
         return f"{self.value}"
 
 cdef class TAG_Long(_TAG_Value):
@@ -185,7 +199,7 @@ cdef class TAG_Long(_TAG_Value):
     def __init__(self, long long value = 0):
         self.value = value
 
-    def to_snbt(self):
+    cpdef str to_snbt(self):
         return f"{self.value}l"
 
 cdef class TAG_Float(_TAG_Value):
@@ -197,7 +211,7 @@ cdef class TAG_Float(_TAG_Value):
     def __init__(self, float value = 0):
         self.value = value
 
-    def to_snbt(self):
+    cpdef str to_snbt(self):
         return f"{self.value}f"
 
 cdef class TAG_Double(_TAG_Value):
@@ -209,7 +223,7 @@ cdef class TAG_Double(_TAG_Value):
     def __init__(self, double value = 0):
         self.value = value
 
-    def to_snbt(self):
+    cpdef str to_snbt(self):
         return f"{self.value}d"
 
 cdef class TAG_String(_TAG_Value):
@@ -221,7 +235,7 @@ cdef class TAG_String(_TAG_Value):
     def __init__(self, unicode value = ""):
         self.value = value
 
-    def to_snbt(self):
+    cpdef str to_snbt(self):
         return f"\"{self.value}\"" # TODO: Needs more work to account for double quotes in the actual value
 
 cdef class TAG_Byte_Array(_TAG_Value):
@@ -237,7 +251,7 @@ cdef class TAG_Byte_Array(_TAG_Value):
 
         self.value = value
 
-    def to_snbt(self):
+    cpdef str to_snbt(self):
         return f"[B;{','.join(self.value)}]"
 
 cdef class TAG_Int_Array(_TAG_Value):
@@ -253,7 +267,7 @@ cdef class TAG_Int_Array(_TAG_Value):
 
         self.value = value
 
-    def to_snbt(self):
+    cpdef str to_snbt(self):
         return f"[I;{','.join(self.value)}]"
 
 cdef class TAG_Long_Array(_TAG_Value):
@@ -269,33 +283,35 @@ cdef class TAG_Long_Array(_TAG_Value):
 
         self.value = value
 
-    def to_snbt(self):
+    cpdef str to_snbt(self):
         return f"[L;{','.join(self.value)}]"
 
 cdef class _TAG_List(_TAG_Value):
     cdef public list value
-    cdef public char list_data_type
+    cdef char list_data_type
 
     def __cinit__(self):
         self.tag_id = _ID_LIST
 
-    def __init__(self, list value = None, list_data_type = 1):
+    def __init__(self, list value = None, char list_data_type = 1):
         self.value = []
         self.list_data_type = list_data_type
 
         if value:
             self.list_data_type = value[0].tag_id
-            if not all(map(lambda elem: elem.tag_id == self.list_data_type, value)):
-                raise TypeError("Mismatched list type and element type")
+            map(self.check_tag, value)
             self.value = list(value)
 
-    def to_snbt(self):
-        return f"[{','.join(map(lambda elem: elem.to_snbt(), self.value))}]"
+    cpdef str to_snbt(self):
+        cdef _TAG_Value elem
+        cdef list tags = []
+        for elem in self.value:
+            tags.append(elem.to_snbt())
+        return f"[{','.join(tags)}]"
 
     def check_tag(self, value):
         if value.tagID != self.list_data_type:
-            #raise TypeError("Invalid type %s for TAG_List(%s)" % (value.__class__, tag_classes[self.list_type]))
-            raise TypeError()
+            raise TypeError("Invalid type %s for TAG_List(%s)" % (value.__class__, TAG_CLASSES[self.list_data_type]))
 
     def __getitem__(self, index):
         return self.value[index]
@@ -330,7 +346,7 @@ class TAG_List(_TAG_List, MutableSequence):
     pass
 
 cdef class _TAG_Compound(_TAG_Value):
-    cdef public object value
+    cdef public dict value
 
     def __cinit__(self):
         self.tag_id = _ID_COMPOUND
@@ -338,28 +354,19 @@ cdef class _TAG_Compound(_TAG_Value):
     def __init__(self, dict value = None):
         self.value = value or {}
 
-    def to_snbt(self):
-        return ""
-        #tags = []
-        #for k, v in self.value.items():
-        #    tags.append(f"{k}={v.to_snbt()}")
-        #return f"{{{','.join(tags)}}}"
-        #return f"{{{k: v.to_snbt() for k, v in self.value.items()}}}"
+    cpdef str to_snbt(self):
+        cdef str k
+        cdef _TAG_Value v
+        cdef list tags = []
+        for k, v in self.value.items():
+            tags.append(f"{k}={v.to_snbt()}")
+        return f"{{{','.join(tags)}}}"
 
     def __getitem__(self, key):
         return self.value[key]
-        #cdef _TAG_Value tag
-        #for tag in self.value:
-        #    if tag.name == key:
-        #        return tag
-        #raise KeyError()
 
     def __setitem__(self, key, tag):
         self.value[key] = tag
-        #tag._name = key
-        #cdef _TAG_Value val
-        #self.value = [val for val in self.value if val.name != key]
-        #self.value.append(tag)
 
     def __delitem__(self, key):
         del self.value[key]
@@ -417,56 +424,53 @@ cdef TAG_Byte load_byte(buffer_context context):
 
 cdef TAG_Short load_short(buffer_context context):
     cdef short* pointer = <short*> read_data(context, 2)
-    cdef TAG_Short tag = TAG_Short()
+    cdef TAG_Short tag = TAG_Short.__new__(TAG_Short)
     tag.value = pointer[0]
     to_little_endian(&tag.value, 2)
     return tag
 
 cdef TAG_Int load_int(buffer_context context):
     cdef int* pointer = <int*> read_data(context, 4)
-    cdef TAG_Int tag = TAG_Int()
+    cdef TAG_Int tag = TAG_Int.__new__(TAG_Int)
     tag.value = pointer[0]
     to_little_endian(&tag.value, 4)
     return tag
 
 cdef TAG_Long load_long(buffer_context context):
     cdef long long * pointer = <long long *> read_data(context, 8)
-    cdef TAG_Long tag = TAG_Long()
+    cdef TAG_Long tag = TAG_Long.__new__(TAG_Long)
     tag.value = pointer[0]
     to_little_endian(&tag.value, 8)
     return tag
 
 cdef TAG_Float load_float(buffer_context context):
     cdef float* pointer = <float*> read_data(context, 4)
-    cdef TAG_Float tag = TAG_Float()
+    cdef TAG_Float tag = TAG_Float.__new__(TAG_Float)
     tag.value = pointer[0]
     to_little_endian(&tag.value, 4)
     return tag
 
 cdef TAG_Double load_double(buffer_context context):
     cdef double * pointer = <double *> read_data(context, 8)
-    cdef TAG_Double tag = TAG_Double()
+    cdef TAG_Double tag = TAG_Double.__new__(TAG_Double)
     tag.value = pointer[0]
     to_little_endian(&tag.value, 8)
     return tag
 
-cdef load_compound_tag(buffer_context context):
+cdef _TAG_Compound load_compound_tag(buffer_context context):
     cdef char tagID
-    cdef str name
+    #cdef str name
     cdef _TAG_Compound root_tag = TAG_Compound()
-    cdef _TAG_Value tag
+    #cdef _TAG_Value tag
+    cdef tuple tup
 
-    print("test1")
     while True:
-        print("Iteration")
         tagID = read_data(context, 1)[0]
-        print(tagID)
         if tagID == _ID_END:
-            print("Breaking")
             break
         else:
-            name, tag = load_named(context, tagID)
-            root_tag[name] = tag
+            tup = load_named(context, tagID)
+            root_tag[tup[0]] = tup[1]
     return root_tag
 
 cdef str load_string(buffer_context context):
