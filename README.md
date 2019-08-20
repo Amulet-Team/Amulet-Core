@@ -8,15 +8,48 @@ of Minecraft.
 
 ## Requirements
 
-### For Running From Source
+### Running from Source
+In order to run the Amulet Editor from source, you will need to install the following packages and follow the steps to install below:
 - Python 3.7.0+
 - Numpy
 - pyglet
-- NBT
+- [Amulet_NBT](https://github.com/Amulet-Team/Amulet-NBT)
 
-Shortcut: `pip install -r requirements.txt`
+The steps below will install everything needed for Amulet (Instructions for installing Python 3.7 provided when available)
+
+#### Windows
+1. Clone the project using `git clone https://github.com/Amulet-Team/Amulet-Map-Editor`
+2. Change the working directory to be the directory created when cloning (Ex: `cd Amulet-Map-Editor`)
+3. Set up a python virtual environment (run the following commands in the command line prompt)
+   1. To create the virtual environment: `python -m venv ENV`
+   2. To activate the environment: `.\ENV\scripts\activate.bat`
+4. Install the requirements using `pip install -r requirements.txt`
+5. To format your files automatically before committing changes, use `pre-commit install`
+
+#### OS X - In Progress
+1. Clone the project using `git clone https://github.com/Amulet-Team/Amulet-Map-Editor`
+2. Change the working directory to be the directory created when cloning (Ex: `cd Amulet-Map-Editor`)
+3. Set up a python virtual environment (run the following commands in the Terminal app)
+   1. To create the virtual environment: `python3 -m venv ENV`
+   2. To activate the environment: `source /ENV/bin/activate`
+4. Install the requirements using `pip install -r requirements.txt`
+5. To format your files automatically before committing changes, use `pre-commit install`
+
+#### Linux - In Progress
+1. Clone the project using `git clone https://github.com/Amulet-Team/Amulet-Map-Editor`
+2. Change the working directory to be the directory created when cloning (Ex: `cd Amulet-Map-Editor`)
+3. Install python 3.7 if it's not already installed (run the following commands in your terminal of choice; these mary vary depending on your linux distribution)
+   1. `sudo apt-get update`
+   2. `sudo apt-get install python-3.7`
+   3. Verify that python 3.7 was successfully installed: `dpkg -l python3.7`
+4. Set up a python virtual environment (also run the following commands in the terminal)
+   1. To create the virtual environment: `python3 -m venv ENV`
+   2. To activate the environment: `source /ENV/bin/activate`
+5. Install the requirements using `pip install -r requirements.txt`
+6. To format your files automatically before committing changes, use `pre-commit install`
 
 ### For Development
+Follow all of the step above for running from source, then install the following packages:
 - [Black](https://github.com/ambv/black) (Required for formatting)
   - Must be ran before pushing a Pull Request
 - Sphinx
@@ -25,14 +58,13 @@ Shortcut: `pip install -r requirements.txt`
 
 Shortcut: `pip install -r requirements-dev.txt` (This also installs the requirements required for running from source)
 
-For more information about contributing to this project, please see the contribution section [below](#contributing)
+For information about contributing to this project, please see the contribution section [below](#contributing)
 
-## Running
+## Running the program
 
 ### Command-line
 To run the program in command line mode, run the following command in your operating system's console:
 `Amulet_Map_Editor --command-line`
-
 
 ## Documentation
 
@@ -44,11 +76,6 @@ generated directory `docs_build/html` in your favorite web browser
 
 
 ## Contributing
-
-### Running from Source
-1. Clone the project using `git clone https://github.com/Amulet-Team/Amulet-Map-Editor`
-2. When inside the folder you cloned, install the requirements using `pip install -r requirements.txt`
-3. To format your files automatically before committing changes, use `pre-commit install`
 
 ### Branch Naming
 Branches should be created when a certain bug or feature may take multiple attempts to fix. Naming
