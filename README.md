@@ -17,6 +17,8 @@ In order to run the Amulet Editor from source, you will need to install the foll
 
 The steps below will install everything needed for Amulet (Instructions for installing Python 3.7 provided when available)
 
+__Note: Make sure to install the `venv` module if it does not come pre-installed with python__
+
 #### Windows
 1. Clone the project using `git clone https://github.com/Amulet-Team/Amulet-Map-Editor`
 2. Change the working directory to be the directory created when cloning (Ex: `cd Amulet-Map-Editor`)
@@ -30,7 +32,8 @@ The steps below will install everything needed for Amulet (Instructions for inst
 1. Clone the project using `git clone https://github.com/Amulet-Team/Amulet-Map-Editor`
 2. Change the working directory to be the directory created when cloning (Ex: `cd Amulet-Map-Editor`)
 3. Set up a python virtual environment (run the following commands in the Terminal app)
-   1. To create the virtual environment: `python3 -m venv ENV`
+   1. To create the virtual environment: `python3.7 -m venv ENV`
+      - Depending on how you installed python 3.7, this might instead be: `py -3.7 -m venv ENV`
    2. To activate the environment: `source /ENV/bin/activate`
 4. Install the requirements using `pip install -r requirements.txt`
 5. To format your files automatically before committing changes, use `pre-commit install`
@@ -43,7 +46,7 @@ The steps below will install everything needed for Amulet (Instructions for inst
    2. `sudo apt-get install python-3.7`
    3. Verify that python 3.7 was successfully installed: `dpkg -l python3.7`
 4. Set up a python virtual environment (also run the following commands in the terminal)
-   1. To create the virtual environment: `python3 -m venv ENV`
+   1. To create the virtual environment: `python3.7 -m venv ENV`
    2. To activate the environment: `source /ENV/bin/activate`
 5. Install the requirements using `pip install -r requirements.txt`
 6. To format your files automatically before committing changes, use `pre-commit install`
