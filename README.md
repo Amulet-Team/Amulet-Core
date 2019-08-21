@@ -41,10 +41,10 @@ __Note: Make sure to install the `venv` module if it does not come pre-installed
 #### Linux - In Progress
 1. Clone the project using `git clone https://github.com/Amulet-Team/Amulet-Map-Editor`
 2. Change the working directory to be the directory created when cloning (Ex: `cd Amulet-Map-Editor`)
-3. Install python 3.7 if it's not already installed (run the following commands in your terminal of choice; these mary vary depending on your linux distribution)
-   1. `sudo apt-get update`
+3. Install python 3.7 if it's not already installed (run the following commands in your terminal of choice. These are for Debain based distros, use your distros package manager or refer to [#54 (comment)](https://github.com/Amulet-Team/Amulet-Map-Editor/issues/54#issuecomment-523046836) if you need to build Python 3.7 from source)
+   1. `sudo apt-get update` (Optional)
    2. `sudo apt-get install python-3.7`
-   3. Verify that python 3.7 was successfully installed: `dpkg -l python3.7`
+   3. Verify that python 3.7 was successfully installed: `python3.7 --version`
 4. Set up a python virtual environment (also run the following commands in the terminal)
    1. To create the virtual environment: `python3.7 -m venv ENV`
    2. To activate the environment: `source /ENV/bin/activate`
