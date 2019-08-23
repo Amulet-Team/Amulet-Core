@@ -66,4 +66,4 @@ if __name__ == '__main__':
 Technically, the path variables can be set anytime/anywhere before importing a module that uses the variables to dynamically load modules, but it is safest to assign them as early as possible in your code. Failure to reassign these variables will result in Amulet searching empty or missing directories and could cause unexpected behaviour.
 
 ## Changelog
-  - 7.23.2019: Initial Revision
+- 7.23.2019: Initial Revision
