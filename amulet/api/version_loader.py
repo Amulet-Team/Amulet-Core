@@ -4,7 +4,7 @@ import sys
 import os
 import glob
 import json
-import importlib
+from importlib.util import spec_from_file_location, module_from_spec
 
 from collections import namedtuple
 
@@ -53,7 +53,7 @@ def _find_versions(search_directory: str = None):
             continue
 
         # spec = importlib.util.find_spec(version_info["version"]["entry_point"])
-        spec = importlib.util.spec_from_file_location(
+        spec = spec_from_file_location(
             version_info["version"]["entry_point"],
             os.path.join(
                 search_directory,
@@ -62,7 +62,7 @@ def _find_versions(search_directory: str = None):
             ),
         )
 
-        modu = importlib.util.module_from_spec(spec)
+        modu = module_from_spec(spec)
         spec.loader.exec_module(modu)
 
         _loaded_versions[version_info["version"]["id"]] = VersionEntry(
