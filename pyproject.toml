@@ -2,4 +2,5 @@
 requires = [
     "setuptools >= 41.2.0",
     "cython >= 0.29.13",
+    "numpy == 1.15.2",
 ]
