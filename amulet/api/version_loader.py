@@ -52,7 +52,6 @@ def _find_versions(search_directory: str = None):
             )
             continue
 
-        # spec = importlib.util.find_spec(version_info["version"]["entry_point"])
         spec = spec_from_file_location(
             version_info["version"]["entry_point"],
             os.path.join(

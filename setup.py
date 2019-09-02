@@ -2,10 +2,14 @@ from setuptools import setup, find_packages
 
 from amulet import version
 
-packs = find_packages(include=["amulet*"], exclude=["*.command_line", "*.command_line.*"])
+packs = find_packages(
+    include=["amulet*"], exclude=["*.command_line", "*.command_line.*"]
+)
 
 with open("./requirements.txt") as requirements_fp:
-    required_packages = [line for line in requirements_fp.readlines() if not line.startswith("git+")]
+    required_packages = [
+        line for line in requirements_fp.readlines() if not line.startswith("git+")
+    ]
 
 setup(
     name="amulet",
