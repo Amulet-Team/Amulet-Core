@@ -138,11 +138,11 @@ class AnvilFormat(Format):
             self.root_tag = nbt.NBTFile(fileobj=fp)
         self._region_manager = AnvilRegionManager(self._directory)
 
-    def get_chunk(self, cx, cz):
+    def get_chunk(self, cx, cz, palette):
         nbt_data = self._region_manager.load_chunk_data(cx, cz)
         decoder_id = decoder_loader.identify(("anvil", nbt_data["DataVersion"].value))
-        decoder = decoder_loader.get_decoder(decoder_id)
-        return decoder.decode(nbt_data)
+        chunk = decoder_loader.get_decoder(decoder_id).decode(nbt_data, palette)
+        return chunk
 
     @staticmethod
     def identify(directory):

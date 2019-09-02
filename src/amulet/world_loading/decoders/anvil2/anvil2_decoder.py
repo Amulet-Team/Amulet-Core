@@ -53,7 +53,7 @@ class Anvil2Decoder(Decoder):
             return False
         return True
 
-    def decode(self, data: nbt.TAG_Compound) -> Chunk:
+    def decode(self, data: nbt.TAG_Compound, palette) -> Chunk:
         cx = data["Level"]["xPos"]
         cz = data["Level"]["zPos"]
         blocks = self._translate_blocks(data["Level"]["Sections"])

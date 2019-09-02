@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from typing import Tuple
 
+from ...api.block import BlockManager
 from ...api.chunk import Chunk
 
 
 class Decoder:
-    def decode(self, data) -> Chunk:
+    def decode(self, data, palette: BlockManager) -> Chunk:
         """
         Create an amulet.api.chunk.Chunk object from raw data given by the format.
 

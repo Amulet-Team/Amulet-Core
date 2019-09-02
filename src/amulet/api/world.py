@@ -22,98 +22,9 @@ from ..utils.world_utils import (
     get_entity_coordinates,
 )
 from ..version_definitions import DefinitionManager
+from ..world_loading.formats.format import Format
 
 from . import operation
-
-
-class WorldFormat:
-    """
-    Base class for World objects
-    """
-
-    block_manager: BlockManager = None
-    _materials = None
-
-    def __init__(
-        self,
-        directory: str,
-        definitions: str,
-        get_blockstate_adapter: Optional[Callable[[str], Block]] = None,
-    ):
-        self._directory = directory
-        self._materials = DefinitionManager(definitions)
-        self.block_manager = BlockManager()
-        self._region_manager = None
-
-        if get_blockstate_adapter:
-            self.get_blockstate: Callable[[str], Block] = get_blockstate_adapter
-
-    @classmethod
-    def load(
-        cls,
-        directory: str,
-        definitions,
-        get_blockstate_adapter: Optional[Callable[[str], Block]] = None,
-    ) -> World:
-        """
-        Loads the Minecraft world contained in the given directory with the supplied definitions
-
-        :param directory: The directory of the world to load
-        :param definitions: The definitions to load the world with
-        :param get_blockstate_adapter: Adapter function used to convert version specific blockstate data
-        :return: The loaded world in a `World` object
-        """
-        raise NotImplementedError()
-
-    def get_chunk_data(
-        self, cx: int, cz: int
-    ) -> Tuple[
-        Union[numpy.ndarray, NotImplementedError],
-        List["nbt_template.NBTCompoundEntry"],
-        "Any",
-    ]:
-        chunk_sections, _, entities = self._region_manager.load_chunk(cx, cz)
-
-        return (
-            self.translate_blocks(chunk_sections),
-            self.translate_entities(entities),
-            None,
-        )
-
-    def translate_entities(self, entities: list) -> List["NBTCompoundEntry"]:
-        raise NotImplementedError()
-
-    def translate_blocks(self, chunk_sections) -> numpy.ndarray:
-        raise NotImplementedError()
-
-    @classmethod
-    def from_unified_format(cls, unified: World) -> WorldFormat:
-        """
-        Converts the passed object to the specific implementation
-
-        :param unified: The object to convert
-        :return object: The result of the conversion, None if not successful
-        """
-        raise NotImplementedError()
-
-    def save(self) -> None:
-        """
-        Saves the current WorldFormat to disk
-        """
-        raise NotImplementedError()
-
-    def get_blockstate(self, blockstate: str) -> Block:
-        """
-        Converts a version-specific blockstate string into a :class:`api.blocks.Block` object by parsing the blockstate
-        and handling any addition logic that needs to be done (IE: Adding an extra block when `waterlogged=true` for
-        Java edition). This method is replaced at runtime with the version specific handler.
-
-        :param blockstate: The blockstate string to parse/convert
-        :return: The resulting Block object
-        """
-
-        namespace, base_name, properties = Block.parse_blockstate_string(blockstate)
-        return Block(namespace=namespace, base_name=base_name, properties=properties)
 
 
 class World:
@@ -121,35 +32,18 @@ class World:
     Class that handles world editing of any world format via an separate and flexible data format
     """
 
-    def __init__(self, directory: str, root_tag, wrapper: WorldFormat):
+    def __init__(self, directory: str, wrapper: Format):
         self._directory = directory
-        shutil.rmtree(get_temp_dir(self._directory), ignore_errors=True)
-        self._root_tag = root_tag
         self._wrapper = wrapper
+        self.palette = BlockManager()
         self.chunk_cache: Dict[Coordinates, Chunk] = {}
+        shutil.rmtree(get_temp_dir(self._directory), ignore_errors=True)
         self.history_manager = ChunkHistoryManager(get_temp_dir(self._directory))
         self._deleted_chunks = set()
 
     def exit(self):
         # TODO: add "unsaved changes" check before exit
         shutil.rmtree(get_temp_dir(self._directory), ignore_errors=True)
-
-    @property
-    def block_manager(self) -> BlockManager:
-        """
-        Allows access to the :class:`api.blocks.BlockManager` instance for this World
-        :return: The instance of the :class:`api.blocks.BlockManager`
-        """
-        return self._wrapper.block_manager
-
-    def get_block_instance(self, blockstate: str) -> Block:
-        """
-        Converts the (possibly) version specific blockstate string into a :class:`api.blocks.Block`
-
-        :param blockstate: The blockstate string to convert
-        :return: The resulting :class:`api.blocks.Block` object
-        """
-        return self._wrapper.get_blockstate(blockstate)
 
     def get_chunk(self, cx: int, cz: int) -> Chunk:
         """
