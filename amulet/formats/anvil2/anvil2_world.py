@@ -237,24 +237,32 @@ class Anvil2World(WorldFormat):
             )
 
         blocks = numpy.zeros((256, 16, 16), dtype=int)
-        palette = ['minecraft:air']
+        palette = ["minecraft:air"]
 
         for section in chunk_sections:
             height = section["Y"].value << 4
 
-            blocks[height:height+16, :, :] = _decode_long_array(section["BlockStates"].value, 4096).reshape((16, 16, 16)) + len(palette)
+            blocks[height : height + 16, :, :] = _decode_long_array(
+                section["BlockStates"].value, 4096
+            ).reshape((16, 16, 16)) + len(palette)
 
             palette += self._read_palette(section["Palette"])
 
         blocks = numpy.swapaxes(blocks.swapaxes(0, 1), 0, 2)
         palette, inverse = numpy.unique(palette, return_inverse=True)
-        palette_internal_ids = numpy.array([
-            self.block_manager.get_add_block(
-                self.get_blockstate(
-                    self._materials.get_block_from_definition(unique, default=unique)
+        palette_internal_ids = numpy.array(
+            [
+                self.block_manager.get_add_block(
+                    self.get_blockstate(
+                        self._materials.get_block_from_definition(
+                            unique, default=unique
+                        )
+                    )
                 )
-            ) for unique in palette
-        ], dtype=int)
+                for unique in palette
+            ],
+            dtype=int,
+        )
 
         blocks = palette_internal_ids[inverse[blocks]]
 
