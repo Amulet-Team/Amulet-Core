@@ -21,7 +21,7 @@ from ..utils.world_utils import (
     entity_position_to_chunk_coordinates,
     get_entity_coordinates,
 )
-from ..version_definitions import DefinitionManager
+from .definition_manager import DefinitionManager
 
 from . import operation
 

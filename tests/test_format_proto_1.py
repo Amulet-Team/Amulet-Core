@@ -1,6 +1,6 @@
 import unittest
 
-from amulet.version_definitions import definition_manager
+from amulet.api import definition_manager
 
 
 class TestPrototypeBaseCases:
