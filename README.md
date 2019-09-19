@@ -25,11 +25,11 @@ __Note: Make sure to install the `venv` module if it does not come pre-installed
    1. __Windows__
       1. Create the virtual environment: `python -m venv ENV`
       2. Activate the environment: `.\ENV\scripts\activate.bat`
-   2. __OS X__ - _In Progress_
+   2. __OS X__
       1. Create the virtual environment: `python3.7 -m venv ENV`
          - Depending on how you installed python 3.7, this might instead be: `py -3.7 -m venv ENV`
       2. Activate the environment: `source /ENV/bin/activate`
-   3. __Linux__ - _In Progress_
+   3. __Linux__
       1. Install python 3.7 if it's not already installed (run the following commands in your terminal of choice. These are for Debain based distros, use your distros package manager or refer to [#54 (comment)](https://github.com/Amulet-Team/Amulet-Map-Editor/issues/54#issuecomment-523046836) if you need to build Python 3.7 from source)
          1. `sudo apt-get update` (Optional)
          2. `sudo apt-get install python-3.7`
