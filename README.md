@@ -1,7 +1,7 @@
 # Amulet Map Editor
 
 <a href="https://circleci.com/gh/Amulet-Team/Amulet-Map-Editor"><img alt="CircleCI" src="https://circleci.com/gh/Amulet-Team/Amulet-Map-Editor.svg"></a>
-[![Documentation Status](https://readthedocs.org/projects/amulet-map-editor/badge/?version=latest)](https://amulet-map-editor.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/amulet-map-editor/badge/?version=develop)](https://amulet-map-editor.readthedocs.io/en/develop/?badge=develop)
 
 A new Minecraft world editor that aims to be flexible, extendable, and support most editions
 of Minecraft.
