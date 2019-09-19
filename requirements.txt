@@ -1,5 +1,5 @@
-pip==18.0.0
 pyglet==1.3.2
 numpy==1.15.2
 NBT==1.5.0
+git+git://github.com/Amulet-Team/Amulet-NBT.git
 prompt_toolkit==2.0.4

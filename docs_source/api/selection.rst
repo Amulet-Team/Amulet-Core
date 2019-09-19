@@ -1,6 +1,6 @@
 box module
 ==========
 
-.. automodule:: api.selection
+.. automodule:: amulet.api.selection
     :members:
     :show-inheritance:

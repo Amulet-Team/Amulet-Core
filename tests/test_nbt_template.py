@@ -1,14 +1,9 @@
-from test_utils import modify_py_path
-
-modify_py_path()
-
 import os
 
 import unittest
-from api.nbt_template import (
+from amulet.api.nbt_template import (
     TemplateLoader,
     NBTStructure,
-    NBTListStructure,
     NBTCompoundStructure,
     NBTEntry,
     NBTListEntry,
@@ -16,6 +11,7 @@ from api.nbt_template import (
     nbt_template_to_entry,
 )
 from test_utils import TESTS_DIR
+
 
 # noinspection PyUnresolvedReferences
 class NBTTemplateTestBase:
@@ -252,7 +248,7 @@ class Java113NBTTemplateTestCase(NBTTemplateTestBase, unittest.TestCase):
     def setUp(self):
         self._setUp(
             os.path.join(
-                os.path.dirname(TESTS_DIR), "src", "version_definitions", "java_1_13"
+                os.path.dirname(TESTS_DIR), "amulet", "version_definitions", "java_1_13"
             )
         )
 

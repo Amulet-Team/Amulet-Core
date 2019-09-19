@@ -1,5 +1,5 @@
 errors module
 =============
 
-.. automodule:: api.errors
+.. automodule:: amulet.api.errors
     :members:

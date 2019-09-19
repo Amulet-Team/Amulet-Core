@@ -1,10 +1,6 @@
-from test_utils import modify_py_path
-
-modify_py_path()
-
 import unittest
-from api.block import Block, BlockManager
-from api.errors import InvalidBlockException
+from amulet.api.block import Block, BlockManager
+from amulet.api.errors import InvalidBlockException
 
 
 class BlockTestCase(unittest.TestCase):

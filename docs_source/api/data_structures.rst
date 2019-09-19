@@ -1,6 +1,6 @@
 data_structures module
 ======================
 
-.. automodule:: api.data_structures
+.. automodule:: amulet.api.data_structures
     :members:
     :show-inheritance:

@@ -1,10 +1,6 @@
-from test_utils import modify_py_path
-
-modify_py_path()
-
 import unittest
 
-from version_definitions import definition_manager
+from amulet.api import definition_manager
 
 
 class TestPrototypeBaseCases:

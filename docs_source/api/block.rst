@@ -1,7 +1,7 @@
 blocks module
 =============
 
-.. automodule:: api.block
+.. automodule:: amulet.api.block
     :members:
     :special-members:
     :show-inheritance:

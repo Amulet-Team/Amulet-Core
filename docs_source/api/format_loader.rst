@@ -1,5 +1,5 @@
 format_loader module
 ====================
 
-.. automodule:: api.format_loader
+.. automodule:: amulet.api.format_loader
     :members:
