@@ -113,3 +113,7 @@ venv*
 # Amulet-Map-Editor
 prototyping/
 *.npy
+
+# Cython Files
+*.c
+*.html

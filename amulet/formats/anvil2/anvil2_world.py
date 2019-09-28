@@ -236,44 +236,37 @@ class Anvil2World(WorldFormat):
                 "We don't support reading chunks that never been edited in Minecraft before"
             )
 
-        blocks = numpy.zeros((16, 256, 16), dtype=int)
-        temp_blocks = numpy.full((256, 16, 16), "minecraft:air", dtype="object")
-        uniques = numpy.array([])
+        blocks = numpy.zeros((256, 16, 16), dtype=int)
+        palette = ["minecraft:air"]
 
         for section in chunk_sections:
-            lower = section["Y"].value << 4
-            upper = (section["Y"].value + 1) << 4
+            height = section["Y"].value << 4
 
-            palette = self._read_palette(section["Palette"])
+            blocks[height : height + 16, :, :] = _decode_long_array(
+                section["BlockStates"].value, 4096
+            ).reshape((16, 16, 16)) + len(palette)
 
-            _blocks = numpy.asarray(palette, dtype="object")[
-                _decode_long_array(section["BlockStates"].value, 4096)
-            ]  # Mask the decoded long array with the entries from the palette
+            palette += self._read_palette(section["Palette"])
 
-            uniques = numpy.append(
-                uniques, numpy.unique(_blocks)
-            )  # Remove all duplicate occurrences
-            temp_blocks[lower:upper, :, :] = _blocks.reshape((16, 16, 16))
+        blocks = numpy.swapaxes(blocks.swapaxes(0, 1), 0, 2)
+        palette, inverse = numpy.unique(palette, return_inverse=True)
+        palette_internal_ids = numpy.array(
+            [
+                self.block_manager.get_add_block(
+                    self.get_blockstate(
+                        self._materials.get_block_from_definition(
+                            unique, default=unique
+                        )
+                    )
+                )
+                for unique in palette
+            ],
+            dtype=int,
+        )
 
-        temp_blocks = numpy.swapaxes(temp_blocks.swapaxes(0, 1), 0, 2)
+        blocks = palette_internal_ids[inverse[blocks]]
 
-        uniques = numpy.unique(uniques)
-        # uniques = uniques[
-        #    uniques != "minecraft:air"
-        # ]  # Get all unique blocks for all the sections and remove air
-        for unique in uniques:
-            internal = self._materials.get_block_from_definition(unique, default=unique)
-            block: Block = self.get_blockstate(internal)
-            internal_id = self.block_manager.get_add_block(block)
-
-            mask = temp_blocks == unique
-
-            blocks[
-                mask
-            ] = internal_id  # Mask all indices of the blockstate with the internal ID
-
-        blocks = blocks.astype(f"uint{get_smallest_dtype(blocks)}")
-        return blocks
+        return blocks.astype(f"uint{get_smallest_dtype(blocks)}")
 
     @classmethod
     def from_unified_format(cls, unified: World) -> WorldFormat:

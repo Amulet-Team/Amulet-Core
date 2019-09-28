@@ -16,13 +16,13 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath("."))
-sys.path.insert(0, os.path.abspath(os.path.join("..", "src")))
+sys.path.insert(0, os.path.abspath(".."))
 
 
 # -- Project information -----------------------------------------------------
 
 project = "Amulet Map Editor"
-copyright = "2018, The Amulet Map Editor Team"
+copyright = "2018-2019, The Amulet Map Editor Team"
 author = "The Amulet Map Editor Team"
 
 # The short X.Y version

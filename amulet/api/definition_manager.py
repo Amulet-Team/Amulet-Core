@@ -6,7 +6,7 @@ import os
 import re
 from typing import Union
 
-from amulet.api import paths
+from . import paths
 
 
 class DefinitionManager:
@@ -57,6 +57,7 @@ class DefinitionManager:
         self._definitions = {}
         self._special_blocks = set()
 
+        print(paths.DEFINITIONS_DIR)
         fp = open(os.path.join(paths.DEFINITIONS_DIR, "internal", "blocks.json"))
         self.defs_internal = json.load(fp)
         fp.close()

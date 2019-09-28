@@ -1,8 +1,8 @@
 import sys
 from argparse import ArgumentParser
 
-from command_line import enhanced_prompt, reduced_prompt, CommandHandler
-from version import VERSION_STRING
+from amulet.command_line import enhanced_prompt, reduced_prompt, CommandHandler
+from amulet.version import VERSION_STRING
 
 if __name__ == "__main__":
     parser = ArgumentParser(

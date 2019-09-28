@@ -42,7 +42,7 @@ jobs:
           name: run stylecheck
           command: |
             . venv/bin/activate
-            python -m black --check src
+            python -m black --check amulet
             python -m black --check tests
 
       - store_artifacts:

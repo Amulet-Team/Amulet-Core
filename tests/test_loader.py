@@ -1,7 +1,3 @@
-from test_utils import modify_py_path
-
-modify_py_path()
-
 import unittest
 
 from test_utils import get_world_path

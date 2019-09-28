@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import glob
-import importlib
 import json
 import os
 
 from typing import Dict, AbstractSet
+from importlib.util import spec_from_file_location, module_from_spec
 
 from ..api import paths
 from ..api.errors import FormatLoaderNoneMatched
@@ -45,11 +45,12 @@ def _find_formats(search_directory: str = None):
             )
             continue
 
-        spec = importlib.util.spec_from_file_location(
+        spec = spec_from_file_location(
             format_info["format"]["entry_point"],
             os.path.join(d, format_info["format"]["entry_point"] + ".py"),
         )
-        modu = importlib.util.module_from_spec(spec)
+
+        modu = module_from_spec(spec)
         spec.loader.exec_module(modu)
 
         if not hasattr(modu, "FORMAT_CLASS"):

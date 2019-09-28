@@ -13,7 +13,6 @@ Welcome to Amulet Map Editor's documentation!
    api
    design
    command_line
-   version_definitions
    utils
 
 
