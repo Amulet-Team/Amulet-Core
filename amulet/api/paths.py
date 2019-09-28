@@ -42,7 +42,7 @@ def _application_directory(
         return os.path.join(_package_base, *directory)
 
     else:
-        path = os.path.join(_script_base, *directory)
+        path = os.path.join(_package_base, *directory)
         if not os.path.exists(path):
             os.makedirs(path)
         return path
