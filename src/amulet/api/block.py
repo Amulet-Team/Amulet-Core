@@ -227,6 +227,14 @@ class Block:
 
         return self.blockstate == other.blockstate and self._compare_extra_blocks(other)
 
+    def __gt__(self, other: Block) -> bool:
+        """
+        Allows blocks to be sorted so numpy.unique can be used on them
+        """
+        if self.__class__ != other.__class__:
+            return False
+        return self.blockstate > other.blockstate
+
     def __hash__(self) -> int:
         """
         Hashes the Block object
