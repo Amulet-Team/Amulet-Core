@@ -9,8 +9,8 @@ import zlib
 from nbt import nbt
 import numpy
 
+from amulet.api.block import BlockManager
 from amulet.world_loading.formats.format import Format
-from amulet.world_loading import decoder_loader
 from amulet.utils import world_utils
 from amulet.utils.format_utils import (
     check_all_exist,
@@ -138,11 +138,15 @@ class AnvilFormat(Format):
             self.root_tag = nbt.NBTFile(fileobj=fp)
         self._region_manager = AnvilRegionManager(self._directory)
 
-    def get_chunk(self, cx, cz, palette):
+    def _get_decoder(self, cx, cz):
         nbt_data = self._region_manager.load_chunk_data(cx, cz)
-        decoder_id = decoder_loader.identify(("anvil", nbt_data["DataVersion"].value))
-        chunk = decoder_loader.get_decoder(decoder_id).decode(nbt_data, palette)
-        return chunk
+        decoder_key = ("anvil", nbt_data["DataVersion"].value)
+        return decoder_key, nbt_data
+
+    def _get_translator(self, cx, cz):
+        nbt_data = self._region_manager.load_chunk_data(cx, cz)
+        translator_key = ("anvil", nbt_data["DataVersion"].value)
+        return translator_key
 
     @staticmethod
     def identify(directory):

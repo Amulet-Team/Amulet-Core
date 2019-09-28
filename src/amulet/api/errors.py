@@ -18,6 +18,10 @@ class DecoderLoaderNoneMatched(FormatError):
     pass
 
 
+class TranslatorLoaderNoneMatched(FormatError):
+    pass
+
+
 class InvalidBlockException(Exception):
     pass
 
