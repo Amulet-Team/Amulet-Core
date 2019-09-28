@@ -2,17 +2,18 @@ from __future__ import annotations
 
 from typing import Tuple
 
-from ...api.block import BlockManager
+import numpy
+
 from ...api.chunk import Chunk
 
 
 class Decoder:
-    def decode(self, data, palette: BlockManager) -> Chunk:
+    def decode(self, data) -> Tuple[Chunk, numpy.ndarray]:
         """
         Create an amulet.api.chunk.Chunk object from raw data given by the format.
 
         :param data: Raw chunk data provided by the format.
-        :return: Chunk object that matches the data.
+        :return: Chunk object that matches the data, along with the palette for that chunk.
         """
         raise NotImplementedError()
 

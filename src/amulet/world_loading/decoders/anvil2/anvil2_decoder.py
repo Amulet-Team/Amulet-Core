@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import List, Union
+from typing import List, Union, Tuple
 
 import numpy
 from nbt import nbt
 
 from amulet.api import nbt_template
+from amulet.api.block import Block
 from amulet.api.chunk import Chunk
 from amulet.world_loading.decoders.decoder import Decoder
+from amulet.utils.world_utils import get_smallest_dtype
 
 
 def properties_to_string(props: dict) -> str:
@@ -53,28 +55,43 @@ class Anvil2Decoder(Decoder):
             return False
         return True
 
-    def decode(self, data: nbt.TAG_Compound, palette) -> Chunk:
+    def decode(self, data: nbt.TAG_Compound) -> Tuple[Chunk, numpy.ndarray]:
         cx = data["Level"]["xPos"]
         cz = data["Level"]["zPos"]
-        blocks = self._translate_blocks(data["Level"]["Sections"])
-        entities = self._translate_entities(data["Level"]["Entities"])
+        blocks, palette = self._decode_blocks(data["Level"]["Sections"])
+        entities = self._decode_entities(data["Level"]["Entities"])
         tile_entities = None
-        return Chunk(cx, cz, blocks, entities, tile_entities)
+        return Chunk(cx, cz, blocks, entities, tile_entities), palette
 
-    def _read_palette(self, palette: nbt.TAG_List) -> list:
-        blockstates = []
-        for entry in palette:
-            name = entry["Name"].value
-            properties = properties_to_string(entry.get("Properties", {}))
-            if properties:
-                blockstates.append(f"{name}[{properties}]")
-            else:
-                blockstates.append(name)
-        return blockstates
+    def _decode_blocks(
+        self, chunk_sections
+    ) -> Union[numpy.ndarray, NotImplementedError]:
+        if not chunk_sections:
+            return NotImplementedError(
+                "We don't support reading chunks that never been edited in Minecraft before"
+            )
 
-    def _translate_entities(
-        self, entities: list
-    ) -> List[nbt_template.NBTCompoundEntry]:
+        blocks = numpy.zeros((256, 16, 16), dtype=int)
+        palette = [Block(namespace="minecraft", base_name="air")]
+
+        for section in chunk_sections:
+            if "Palette" not in section:  # 1.14 makes palette/blocks optional.
+                continue
+            height = section["Y"].value << 4
+
+            blocks[height : height + 16, :, :] = _decode_long_array(
+                section["BlockStates"].value, 4096
+            ).reshape((16, 16, 16)) + len(palette)
+
+            palette += self._read_palette(section["Palette"])
+
+        blocks = numpy.swapaxes(blocks.swapaxes(0, 1), 0, 2)
+        palette, inverse = numpy.unique(palette, return_inverse=True)
+        blocks = inverse[blocks]
+
+        return blocks.astype(f"uint{get_smallest_dtype(blocks)}"), palette
+
+    def _decode_entities(self, entities: list) -> List[nbt_template.NBTCompoundEntry]:
         entity_list = []
         for entity in entities:
             entity = nbt_template.create_entry_from_nbt(entity)
@@ -83,34 +100,16 @@ class Anvil2Decoder(Decoder):
 
         return entity_list
 
-    def _translate_blocks(
-        self, chunk_sections
-    ) -> Union[numpy.ndarray, NotImplementedError]:
-        if not chunk_sections:
-            return NotImplementedError(
-                "We don't support reading chunks that never been edited in Minecraft before"
+    def _read_palette(self, palette: nbt.TAG_List) -> list:
+        blockstates = []
+        for entry in palette:
+            namespace, base_name = entry["Name"].value.split(":", 1)
+            properties = entry.get("Properties", {})
+            block = Block(
+                namespace=namespace, base_name=base_name, properties=properties
             )
-
-        blocks = numpy.full((256, 16, 16), "minecraft:air", dtype="object")
-
-        for section in chunk_sections:
-            lower = section["Y"].value << 4
-            upper = (section["Y"].value + 1) << 4
-
-            if "Palette" not in section:  # 1.14 makes palette/blocks optional.
-                continue
-
-            palette = self._read_palette(section["Palette"])
-
-            _blocks = numpy.asarray(palette, dtype="object")[
-                _decode_long_array(section["BlockStates"].value, 4096)
-            ]  # Mask the decoded long array with the entries from the palette
-
-            blocks[lower:upper, :, :] = _blocks.reshape((16, 16, 16))
-
-        blocks = numpy.swapaxes(blocks.swapaxes(0, 1), 0, 2)
-
-        return blocks
+            blockstates.append(block)
+        return blockstates
 
 
 DECODER_CLASS = Anvil2Decoder

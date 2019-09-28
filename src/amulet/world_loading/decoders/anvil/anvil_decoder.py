@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import List, Union
+from typing import List, Union, Tuple
 
 import numpy
 from nbt import nbt
@@ -24,17 +24,15 @@ class AnvilDecoder(Decoder):
             return False
         return True
 
-    def decode(self, data: nbt.TAG_Compound) -> Chunk:
+    def decode(self, data: nbt.TAG_Compound) -> Tuple[Chunk, numpy.ndarray]:
         cx = data["Level"]["xPos"]
         cz = data["Level"]["zPos"]
-        blocks = self._translate_blocks(data["Level"]["Sections"])
-        entities = self._translate_entities(data["Level"]["Entities"])
+        blocks, palette = self._decode_blocks(data["Level"]["Sections"])
+        entities = self._decode_entities(data["Level"]["Entities"])
         tile_entities = None
-        return Chunk(cx, cz, blocks, entities, tile_entities)
+        return Chunk(cx, cz, blocks, entities, tile_entities), palette
 
-    def _translate_entities(
-        self, entities: list
-    ) -> List[nbt_template.NBTCompoundEntry]:
+    def _decode_entities(self, entities: list) -> List[nbt_template.NBTCompoundEntry]:
         entity_list = []
         for entity in entities:
             entity = nbt_template.create_entry_from_nbt(entity)
@@ -43,7 +41,7 @@ class AnvilDecoder(Decoder):
 
         return entity_list
 
-    def _translate_blocks(
+    def _decode_blocks(
         self, chunk_sections
     ) -> Union[numpy.ndarray, NotImplementedError]:
         if not chunk_sections:
@@ -83,7 +81,12 @@ class AnvilDecoder(Decoder):
         blocks = numpy.swapaxes(blocks.swapaxes(0, 1), 0, 2)
         block_data = numpy.swapaxes(block_data.swapaxes(0, 1), 0, 2)
 
-        return numpy.array((blocks, block_data)).T
+        blocks = numpy.array((blocks, block_data)).T
+        palette, blocks = numpy.unique(
+            blocks.reshape(16 * 256 * 16, 2), return_inverse=True, axis=0
+        )
+        blocks = blocks.reshape(16, 256, 16, order="F")
+        return blocks, palette
 
 
 DECODER_CLASS = AnvilDecoder
