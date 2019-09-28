@@ -28,7 +28,7 @@ class Translator:
         paletteMappings = {}
 
         for i, block in enumerate(palette):
-            universal, entity, extra = translator.to_universal(None, block)
+            universal, entity, extra = translator.to_universal(block)
             if entity:
                 print(f"Warning: not sure what to do with entity for {block} yet.")
             if extra and callback:
@@ -40,22 +40,23 @@ class Translator:
         for index in todo:
             for x, y, z in zip(*numpy.where(chunk._blocks == index)):
 
-                def get_block_at(dx, dy, dz):
+                def get_block_at(pos):
                     nonlocal x, y, z, palette, chunk
+                    dx, dy, dz = pos
                     dx += x
                     dy += y
                     dz += z
                     cx = dx // 16
                     cz = dz // 16
                     if cx == 0 and cz == 0:
-                        return palette[chunk._blocks[dx % 16, dy, dz % 16]]
+                        return palette[chunk._blocks[dx % 16, dy, dz % 16]], None
                     chunk, palette = callback(cx, cz)
                     block = palette[chunk._blocks[dx % 16, dy, dz % 16]]
-                    return translator.from_universal(None, block)[0]
+                    return translator.from_universal(block)[0], None
 
                 block = palette[chunk._blocks[x, y, z]]
                 universal, entity, extra = translator.to_universal(
-                    get_block_at, block, (0, 0, 0)
+                    block, get_block_at
                 )
                 if entity:
                     print(f"Warning: not sure what to do with entity for {block} yet.")
