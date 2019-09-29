@@ -55,9 +55,7 @@ class Translator:
                     return translator.from_universal(block)[0], None
 
                 block = palette[chunk._blocks[x, y, z]]
-                universal, entity, extra = translator.to_universal(
-                    block, get_block_at
-                )
+                universal, entity, extra = translator.to_universal(block, get_block_at)
                 if entity:
                     print(f"Warning: not sure what to do with entity for {block} yet.")
                 blockMappings[(x, y, z)] = finished.get_add_block(universal)

@@ -23,13 +23,13 @@ class Format:
         :return: The chunk at the given coordinates.
         """
         decoder_key, decoder_data = self._get_decoder(cx, cz)
-        translator_key = self._get_translator(cx, cz)
         decoder_id = decoder_loader.identify(decoder_key)
+        decoder = decoder_loader.get_decoder(decoder_id)
+
+        chunk, chunk_palette = decoder.decode(decoder_data)
+        translator_key = decoder.get_translator(decoder_data)
         translator_id = translator_loader.identify(translator_key)
 
-        chunk, chunk_palette = decoder_loader.get_decoder(decoder_id).decode(
-            decoder_data
-        )
         if recurse:
 
             def callback(x, z):
@@ -54,16 +54,6 @@ class Format:
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
         :return: The decoder key for the identify method and the data to decode.
-        """
-        raise NotImplementedError()
-
-    def _get_translator(self, cx: int, cz: int) -> Tuple:
-        """
-        Return the translator key given chunk coordinates.
-
-        :param cx: The x coordinate of the chunk.
-        :param cz: The z coordinate of the chunk.
-        :return: The translator key for the identify method.
         """
         raise NotImplementedError()
 

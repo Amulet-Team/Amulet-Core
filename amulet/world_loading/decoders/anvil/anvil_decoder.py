@@ -88,5 +88,8 @@ class AnvilDecoder(Decoder):
         blocks = blocks.reshape(16, 256, 16, order="F")
         return blocks, palette
 
+    def get_translator(self, data: nbt.TAG_Compound) -> Tuple:
+        return ("anvil", data["DataVersion"].value)
+
 
 DECODER_CLASS = AnvilDecoder

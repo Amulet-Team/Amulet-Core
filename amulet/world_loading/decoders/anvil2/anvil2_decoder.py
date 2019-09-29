@@ -111,5 +111,8 @@ class Anvil2Decoder(Decoder):
             blockstates.append(block)
         return blockstates
 
+    def get_translator(self, data: nbt.TAG_Compound) -> Tuple:
+        return ("anvil", data["DataVersion"].value)
+
 
 DECODER_CLASS = Anvil2Decoder

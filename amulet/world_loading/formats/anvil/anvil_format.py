@@ -143,11 +143,6 @@ class AnvilFormat(Format):
         decoder_key = ("anvil", nbt_data["DataVersion"].value)
         return decoder_key, nbt_data
 
-    def _get_translator(self, cx, cz):
-        nbt_data = self._region_manager.load_chunk_data(cx, cz)
-        translator_key = ("anvil", nbt_data["DataVersion"].value)
-        return translator_key
-
     @staticmethod
     def identify(directory):
         print(directory)

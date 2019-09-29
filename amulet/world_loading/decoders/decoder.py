@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple
+from typing import Tuple, Any
 
 import numpy
 
@@ -8,12 +8,21 @@ from ...api.chunk import Chunk
 
 
 class Decoder:
-    def decode(self, data) -> Tuple[Chunk, numpy.ndarray]:
+    def decode(self, data: Any) -> Tuple[Chunk, numpy.ndarray]:
         """
         Create an amulet.api.chunk.Chunk object from raw data given by the format.
 
         :param data: Raw chunk data provided by the format.
         :return: Chunk object that matches the data, along with the palette for that chunk.
+        """
+        raise NotImplementedError()
+
+    def get_translator(self, data: Any) -> Tuple:
+        """
+        Return the translator key given chunk coordinates.
+
+        :param data: The data passed in to decode.
+        :return: The translator key for the identify method.
         """
         raise NotImplementedError()
 
