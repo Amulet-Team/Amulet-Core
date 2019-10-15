@@ -82,14 +82,22 @@ class Translator:
         """
         return palette
 
-    def from_universal(self, chunk: Chunk) -> Tuple[Chunk, numpy.ndarray]:
+    def from_universal(self, chunk: Chunk, palette: BlockManager) -> Tuple[Chunk, numpy.ndarray]:
         """
         Translate a universal chunk into the decoder-specific format.
 
         :param chunk: The chunk to translate.
+        :param palette: The palette that the chunk's indicies correspond to.
         :return: Chunk object in the decoder-specific format and palette.
         """
         raise NotImplementedError()
+
+    def _translate_palette_from_universal(self, palette: BlockManager):
+        """
+        Translate the list of block objects into a version-specific palette.
+
+        :return: The palette converted into version-specific blocks (ie id, data tuples for 1.12)
+        """
 
     @staticmethod
     def identify(key: Tuple) -> bool:

@@ -7,9 +7,6 @@ class Java_1_13_2_Translator(Translator):
     def _translator_key(self):
         return ("java", (1, 13, 2))
 
-    def from_universal(self, chunk):
-        raise NotImplementedError()
-
     @staticmethod
     def identify(key):
         if key[0] != "anvil":

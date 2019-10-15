@@ -4,6 +4,7 @@ from typing import Tuple, Any
 
 import numpy
 
+from ...api.block import BlockManager
 from ...api.chunk import Chunk
 
 
@@ -14,6 +15,16 @@ class Decoder:
 
         :param data: Raw chunk data provided by the format.
         :return: Chunk object that matches the data, along with the palette for that chunk.
+        """
+        raise NotImplementedError()
+
+    def encode(self, chunk: Chunk, palette: BlockManager):
+        """
+        Create raw data for the format to store given a translated chunk.
+
+        :param chunk: The version-specific chunk to encode.
+        :param palette: The palette the ids in the chunk correspond to.
+        :return: Raw data to be stored by the format.
         """
         raise NotImplementedError()
 

@@ -47,6 +47,21 @@ class Format:
             chunk._blocks[chunk._blocks == index] = palette.get_add_block(block)
         return chunk
 
+    def save_chunk(self, chunk: Chunk, palette: BlockManager, decoder_id: str, translator_id: str):
+        """
+        Saves a universal amulet.api.chunk.Chunk object using the given decoder and translator.
+
+        TODO: This changes the chunk and palette to only include blocks used in the chunk, translates them with the translator,
+        and then calls the decoder passing in the translator. It then calls _put_encoded to store the data returned by the decoder
+
+        The passed ids will be send to decoder_loader.get_decoder, *not* .identify.
+        """
+
+    def _put_decoder(self, cx: int, cz: int, data: Any):
+        """
+        Actually stores the data from the decoder to disk.
+        """
+
     def _get_decoder(self, cx: int, cz: int) -> Tuple[Tuple, Any]:
         """
         Return the decoder key and data to decode given chunk coordinates.
