@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 from io import BytesIO
-from os import path
+import os
 import struct
 from typing import Tuple
 import zlib
 
-from nbt import nbt
+import amulet_nbt as nbt
 import numpy
 
-from amulet.api.block import BlockManager
 from amulet.world_interface.formats.format import Format
 from amulet.utils import world_utils
 from amulet.utils.format_utils import (
@@ -55,7 +54,7 @@ class AnvilRegionManager:
             raise Exception()
 
         with open(
-            path.join(self._directory, "region", "r.{}.{}.mca".format(rx, rz)), "rb"
+            os.path.join(self._directory, "region", "r.{}.{}.mca".format(rx, rz)), "rb"
         ) as fp:
             fp.seek(sector_start * world_utils.SECTOR_BYTES)
             data = fp.read(number_of_sectors * world_utils.SECTOR_BYTES)
@@ -72,7 +71,7 @@ class AnvilRegionManager:
         elif _format == world_utils.VERSION_DEFLATE:
             data = zlib.decompress(data)
 
-        nbt_data = nbt.NBTFile(buffer=BytesIO(data))
+        nbt_data = nbt.load(buffer=data)
 
         return nbt_data
 
@@ -81,14 +80,14 @@ class AnvilRegionManager:
         if key in self._loaded_regions:
             return True
 
-        filename = path.join(self._directory, "region", "r.{}.{}.mca".format(rx, rz))
-        if not path.exists(filename):
+        filename = os.path.join(self._directory, "region", "r.{}.{}.mca".format(rx, rz))
+        if not os.path.exists(filename):
             raise FileNotFoundError()
 
         fp = open(filename, "rb")
         self._loaded_regions[key] = {}
 
-        file_size = path.getsize(filename)
+        file_size = os.path.getsize(filename)
         if file_size & 0xFFF:
             file_size = (file_size | 0xFFF) + 1
             fp.truncate(file_size)
@@ -134,8 +133,7 @@ class AnvilRegionManager:
 class AnvilFormat(Format):
     def __init__(self, *args):
         super().__init__(*args)
-        with open(path.join(self._directory, "level.dat"), "rb") as fp:
-            self.root_tag = nbt.NBTFile(fileobj=fp)
+        self.root_tag = nbt.load(filename=os.path.join(self._directory, "level.dat"))
         self._region_manager = AnvilRegionManager(self._directory)
 
     def _get_interface(self, cx, cz):
