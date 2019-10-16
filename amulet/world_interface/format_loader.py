@@ -97,6 +97,8 @@ def get_format(format_id: str) -> Format:
     """
     if not _has_loaded_formats:
         _find_formats()
+    if format_id not in _loaded_formats:
+        raise FormatLoaderNoneMatched("Could not find a matching format loader")
     return _loaded_formats[format_id]
 
 
