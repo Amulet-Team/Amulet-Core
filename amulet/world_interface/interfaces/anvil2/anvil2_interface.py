@@ -65,7 +65,7 @@ class Anvil2Interface(Interface):
 
     def _decode_blocks(
         self, chunk_sections
-    ) -> Union[numpy.ndarray, NotImplementedError]:
+    ) -> Tuple[numpy.ndarray, numpy.ndarray]:
         if not chunk_sections:
             return NotImplementedError(
                 "We don't support reading chunks that never been edited in Minecraft before"
