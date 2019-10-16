@@ -56,8 +56,8 @@ class Anvil2Interface(Interface):
         return True
 
     def decode(self, data: nbt.TAG_Compound) -> Tuple[Chunk, numpy.ndarray]:
-        cx = data["Level"]["xPos"]
-        cz = data["Level"]["zPos"]
+        cx = data["Level"]["xPos"].value
+        cz = data["Level"]["zPos"].value
         blocks, palette = self._decode_blocks(data["Level"]["Sections"])
         entities = self._decode_entities(data["Level"]["Entities"])
         tile_entities = None
@@ -104,7 +104,7 @@ class Anvil2Interface(Interface):
         blockstates = []
         for entry in palette:
             namespace, base_name = entry["Name"].value.split(":", 1)
-            properties = entry.get("Properties", {})
+            properties = {prop: str(val.value) for prop, val in entry.get("Properties", nbt.TAG_Compound({})).items()}
             block = Block(
                 namespace=namespace, base_name=base_name, properties=properties
             )

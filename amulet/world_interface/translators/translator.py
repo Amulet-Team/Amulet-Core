@@ -13,7 +13,7 @@ class Translator:
     def __init__(self):
         self.translation_manager = PyMCTranslate.new_translation_manager()
 
-    def to_universal(self, chunk: Chunk, palette: numpy.ndarray, callback) -> Chunk:
+    def to_universal(self, chunk: Chunk, palette: numpy.ndarray, callback) -> Tuple[Chunk, BlockManager]:
         """
         Translate an interface-specific chunk into the universal format.
 
