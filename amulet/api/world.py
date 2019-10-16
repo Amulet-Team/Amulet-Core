@@ -22,7 +22,7 @@ from ..utils.world_utils import (
     get_entity_coordinates,
 )
 from .definition_manager import DefinitionManager
-from ..world_loading.formats.format import Format
+from ..world_interface.formats.format import Format
 
 from . import operation
 

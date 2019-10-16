@@ -1,1 +1,1 @@
-from ..world_loading import world_loader
+from ..world_interface import world_loader

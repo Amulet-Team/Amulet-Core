@@ -9,7 +9,7 @@ from nbt import nbt
 from amulet.api import nbt_template
 from amulet.api.block import Block
 from amulet.api.chunk import Chunk
-from amulet.world_loading.decoders.decoder import Decoder
+from amulet.world_interface.decoders.decoder import Decoder
 from amulet.utils.world_utils import get_smallest_dtype
 
 

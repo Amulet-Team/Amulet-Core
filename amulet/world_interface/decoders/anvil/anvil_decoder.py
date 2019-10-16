@@ -9,7 +9,7 @@ from nbt import nbt
 from amulet.api import nbt_template
 from amulet.api.chunk import Chunk
 from amulet.utils import world_utils
-from amulet.world_loading.decoders.decoder import Decoder
+from amulet.world_interface.decoders.decoder import Decoder
 
 
 class AnvilDecoder(Decoder):

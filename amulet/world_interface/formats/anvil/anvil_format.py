@@ -10,7 +10,7 @@ from nbt import nbt
 import numpy
 
 from amulet.api.block import BlockManager
-from amulet.world_loading.formats.format import Format
+from amulet.world_interface.formats.format import Format
 from amulet.utils import world_utils
 from amulet.utils.format_utils import (
     check_all_exist,
