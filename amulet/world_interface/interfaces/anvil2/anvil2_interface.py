@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from collections import defaultdict
 from typing import List, Tuple
 
 import numpy
 import amulet_nbt as nbt
 
-from amulet.api import nbt_template
-from amulet.api.block import Block
+from amulet.api.block import Block, BlockManager
 from amulet.api.chunk import Chunk
 from amulet.world_interface.interfaces.interface import Interface
 from amulet.utils.world_utils import get_smallest_dtype
@@ -44,9 +42,6 @@ def _decode_long_array(long_array: numpy.ndarray, size: int) -> numpy.ndarray:
 
 
 class Anvil2Interface(Interface):
-    def __init__(self):
-        self._entity_handlers = defaultdict(nbt_template.EntityHandler)
-
     @staticmethod
     def identify(key):
         if key[0] != "anvil":
@@ -91,14 +86,18 @@ class Anvil2Interface(Interface):
 
         return blocks.astype(f"uint{get_smallest_dtype(blocks)}"), palette
 
-    def _decode_entities(self, entities: list) -> List[nbt_template.NBTCompoundEntry]:
-        entity_list = []
-        for entity in entities:
-            entity = nbt_template.create_entry_from_nbt(entity)
-            entity = self._entity_handlers[entity["id"].value].load_entity(entity)
-            entity_list.append(entity)
+    def _decode_entities(self, entities: list) -> List[nbt.TAG_Compound]:
+        return []
+        # entity_list = []
+        # for entity in entities:
+        #     entity = nbt_template.create_entry_from_nbt(entity)
+        #     entity = self._entity_handlers[entity["id"].value].load_entity(entity)
+        #     entity_list.append(entity)
+        #
+        # return entity_list
 
-        return entity_list
+    def encode(self, chunk: Chunk, palette: BlockManager):
+        raise NotImplementedError()
 
     @staticmethod
     def _read_palette(palette: nbt.TAG_List) -> list:

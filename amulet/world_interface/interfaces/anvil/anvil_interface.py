@@ -6,16 +6,13 @@ from typing import List, Tuple
 import numpy
 import amulet_nbt as nbt
 
-from amulet.api import nbt_template
+from amulet.api.block import BlockManager
 from amulet.api.chunk import Chunk
 from amulet.utils import world_utils
 from amulet.world_interface.interfaces.interface import Interface
 
 
 class AnvilInterface(Interface):
-    def __init__(self):
-        self._entity_handlers = defaultdict(nbt_template.EntityHandler)
-
     @staticmethod
     def identify(key):
         if key[0] != "anvil":
@@ -32,14 +29,15 @@ class AnvilInterface(Interface):
         tile_entities = None
         return Chunk(cx, cz, blocks, entities, tile_entities), palette
 
-    def _decode_entities(self, entities: list) -> List[nbt_template.NBTCompoundEntry]:
-        entity_list = []
-        for entity in entities:
-            entity = nbt_template.create_entry_from_nbt(entity)
-            entity = self._entity_handlers[entity["id"].value].load_entity(entity)
-            entity_list.append(entity)
-
-        return entity_list
+    def _decode_entities(self, entities: list) -> List[nbt.TAG_Compound]:
+        return []
+        # entity_list = []
+        # for entity in entities:
+        #     entity = nbt_template.create_entry_from_nbt(entity)
+        #     entity = self._entity_handlers[entity["id"].value].load_entity(entity)
+        #     entity_list.append(entity)
+        #
+        # return entity_list
 
     def _decode_blocks(
         self, chunk_sections
@@ -87,6 +85,9 @@ class AnvilInterface(Interface):
         )
         blocks = blocks.reshape(16, 256, 16, order="F")
         return blocks, palette
+
+    def encode(self, chunk: Chunk, palette: BlockManager):
+        raise NotImplementedError()
 
     def get_translator(self, data: nbt.TAG_Compound) -> Tuple:
         return "anvil", data["DataVersion"].value
