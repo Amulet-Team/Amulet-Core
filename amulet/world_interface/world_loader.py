@@ -32,4 +32,5 @@ if __name__ == "__main__":
 
     w = load_world(sys.argv[1])
     c = w.get_chunk(0, 0)
-    print(c.blocks)
+    for block in c.blocks.ravel()[:4096:16]:    # the blockstates of one vertical column
+        print(w.palette[block])
