@@ -10,6 +10,8 @@ from functools import partial
 
 from nbt import nbt
 
+# TODO: when safe delete this as it is obsolete. Replace it with amulet-nbt
+
 
 class NBTStruct:
     """

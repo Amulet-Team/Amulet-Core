@@ -8,6 +8,8 @@ from typing import Union
 
 from . import paths
 
+# TODO: when safe delete this as it is obsolete
+
 
 class DefinitionManager:
     """
