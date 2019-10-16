@@ -14,7 +14,7 @@ class FormatLoaderNoneMatched(FormatError):
     pass
 
 
-class DecoderLoaderNoneMatched(FormatError):
+class InterfaceLoaderNoneMatched(FormatError):
     pass
 
 

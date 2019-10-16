@@ -49,7 +49,7 @@ def _application_directory(
 
 
 FORMATS_DIR = _application_directory(("world_interface", "formats"))
-DECODERS_DIR = _application_directory(("world_interface", "decoders"))
+INTERFACES_DIR = _application_directory(("world_interface", "interfaces"))
 TRANSLATORS_DIR = _application_directory(("world_interface", "translators"))
 COMMANDS_DIR = _application_directory("commands", ("command_line", "commands"))
 OPERATIONS_DIR = _application_directory("operations")

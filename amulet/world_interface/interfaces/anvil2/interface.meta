@@ -1,0 +1,10 @@
+{
+"meta_version": 0,
+"interface": {
+    "id": "anvil2",
+    "name": "Anvil2 Interface",
+    "entry_point": "anvil2_interface",
+    "interface_version": 0,
+    "wrapper_version": -1
+   }
+}

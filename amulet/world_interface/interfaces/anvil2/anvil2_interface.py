@@ -9,7 +9,7 @@ from nbt import nbt
 from amulet.api import nbt_template
 from amulet.api.block import Block
 from amulet.api.chunk import Chunk
-from amulet.world_interface.decoders.decoder import Decoder
+from amulet.world_interface.interfaces.interface import Interface
 from amulet.utils.world_utils import get_smallest_dtype
 
 
@@ -43,7 +43,7 @@ def _decode_long_array(long_array: array_like, size: int) -> numpy.ndarray:
     ][:size]
 
 
-class Anvil2Decoder(Decoder):
+class Anvil2Interface(Interface):
     def __init__(self):
         self._entity_handlers = defaultdict(nbt_template.EntityHandler)
 
@@ -115,4 +115,4 @@ class Anvil2Decoder(Decoder):
         return ("anvil", data["DataVersion"].value)
 
 
-DECODER_CLASS = Anvil2Decoder
+INTERFACE_CLASS = Anvil2Interface

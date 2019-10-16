@@ -9,10 +9,10 @@ from nbt import nbt
 from amulet.api import nbt_template
 from amulet.api.chunk import Chunk
 from amulet.utils import world_utils
-from amulet.world_interface.decoders.decoder import Decoder
+from amulet.world_interface.interfaces.interface import Interface
 
 
-class AnvilDecoder(Decoder):
+class AnvilInterface(Interface):
     def __init__(self):
         self._entity_handlers = defaultdict(nbt_template.EntityHandler)
 
@@ -92,4 +92,4 @@ class AnvilDecoder(Decoder):
         return ("anvil", data["DataVersion"].value)
 
 
-DECODER_CLASS = AnvilDecoder
+INTERFACE_CLASS = AnvilInterface

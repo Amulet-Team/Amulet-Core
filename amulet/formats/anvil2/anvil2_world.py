@@ -136,7 +136,7 @@ class _Anvil2RegionManager:
         return True
 
 
-def _decode_long_array(long_array: array_like, size: int) -> ndarray:
+def _decode_long_array(long_array: array_like, size: int) -> numpy.ndarray:
     """
     Decode an long array (from BlockStates or Heightmaps)
     :param long_array: Encoded long array
@@ -153,10 +153,10 @@ def _decode_long_array(long_array: array_like, size: int) -> ndarray:
     ][:size]
 
 
-def _encode_long_array(data_array: array_like, palette_size: int) -> ndarray:
+def _encode_long_array(data_array: array_like, palette_size: int) -> numpy.ndarray:
     """
     Encode an array of data to a long array (from BlockStates or Heightmaps).
-    :param long_array: Data to encode
+    :param data_array: Data to encode
     :palette_size uint: Must be at least 4
     :return: Encoded array as numpy array
     """

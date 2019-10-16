@@ -4,7 +4,7 @@ from typing import Tuple, Any
 
 from ...api.block import BlockManager
 from ...api.chunk import Chunk
-from .. import decoder_loader
+from .. import interface_loader
 from .. import translator_loader
 
 
@@ -22,16 +22,17 @@ class Format:
         :param cz: The z coordinate of the chunk.
         :return: The chunk at the given coordinates.
         """
-        decoder_key, decoder_data = self._get_decoder(cx, cz)
-        decoder_id = decoder_loader.identify(decoder_key)
-        decoder = decoder_loader.get_decoder(decoder_id)
 
-        chunk, chunk_palette = decoder.decode(decoder_data)
-        translator_key = decoder.get_translator(decoder_data)
+        # TODO: comment what is going on here. It is a bit abstract
+        interface_key, interface_data = self._get_interface(cx, cz)
+        interface_id = interface_loader.identify(interface_key)
+        interface = interface_loader.get_interface(interface_id)
+
+        chunk, chunk_palette = interface.decode(interface_data)
+        translator_key = interface.get_translator(interface_data)
         translator_id = translator_loader.identify(translator_key)
 
         if recurse:
-
             def callback(x, z):
                 palette = BlockManager()
                 chunk = self.load_chunk(cx + x, cz + z, palette, False)
@@ -47,28 +48,30 @@ class Format:
             chunk._blocks[chunk._blocks == index] = palette.get_add_block(block)
         return chunk
 
-    def save_chunk(self, chunk: Chunk, palette: BlockManager, decoder_id: str, translator_id: str):
+    def save_chunk(self, chunk: Chunk, palette: BlockManager, interface_id: str, translator_id: str):
         """
-        Saves a universal amulet.api.chunk.Chunk object using the given decoder and translator.
+        Saves a universal amulet.api.chunk.Chunk object using the given interface and translator.
 
         TODO: This changes the chunk and palette to only include blocks used in the chunk, translates them with the translator,
-        and then calls the decoder passing in the translator. It then calls _put_encoded to store the data returned by the decoder
+        and then calls the interface passing in the translator. It then calls _put_encoded to store the data returned by the interface
 
-        The passed ids will be send to decoder_loader.get_decoder, *not* .identify.
+        The passed ids will be send to interface_loader.get_interface, *not* .identify.
         """
+        raise NotImplementedError()
 
-    def _put_decoder(self, cx: int, cz: int, data: Any):
+    def _put_interface(self, cx: int, cz: int, data: Any):
         """
-        Actually stores the data from the decoder to disk.
+        Actually stores the data from the interface to disk.
         """
+        raise NotImplementedError()
 
-    def _get_decoder(self, cx: int, cz: int) -> Tuple[Tuple, Any]:
+    def _get_interface(self, cx: int, cz: int) -> Tuple[Tuple, Any]:
         """
-        Return the decoder key and data to decode given chunk coordinates.
+        Return the interface key and data to interface with given chunk coordinates.
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
-        :return: The decoder key for the identify method and the data to decode.
+        :return: The interface key for the identify method and the data to interface with.
         """
         raise NotImplementedError()
 
