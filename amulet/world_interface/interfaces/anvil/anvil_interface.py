@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import List, Union, Tuple
+from typing import List, Tuple
 
 import numpy
-from nbt import nbt
+import amulet_nbt as nbt
 
 from amulet.api import nbt_template
 from amulet.api.chunk import Chunk
@@ -43,9 +43,9 @@ class AnvilInterface(Interface):
 
     def _decode_blocks(
         self, chunk_sections
-    ) -> Union[numpy.ndarray, NotImplementedError]:
+    ) -> Tuple[numpy.ndarray, numpy.ndarray]:
         if not chunk_sections:
-            return NotImplementedError(
+            raise NotImplementedError(
                 "We don't support reading chunks that never been edited in Minecraft before"
             )
 
@@ -89,7 +89,7 @@ class AnvilInterface(Interface):
         return blocks, palette
 
     def get_translator(self, data: nbt.TAG_Compound) -> Tuple:
-        return ("anvil", data["DataVersion"].value)
+        return "anvil", data["DataVersion"].value
 
 
 INTERFACE_CLASS = AnvilInterface

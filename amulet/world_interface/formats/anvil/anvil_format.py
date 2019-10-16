@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from io import BytesIO
 import os
 import struct
-from typing import Tuple
 import zlib
 
 import amulet_nbt as nbt
@@ -11,12 +9,7 @@ import numpy
 
 from amulet.world_interface.formats.format import Format
 from amulet.utils import world_utils
-from amulet.utils.format_utils import (
-    check_all_exist,
-    check_one_exists,
-    load_leveldat,
-    check_version_leveldat,
-)
+from amulet.utils.format_utils import check_all_exist, check_one_exists, load_leveldat
 
 
 class AnvilRegionManager:
@@ -26,7 +19,7 @@ class AnvilRegionManager:
 
     def load_chunk_data(
         self, cx: int, cz: int
-    ) -> Tuple[nbt.TAG_List, nbt.TAG_List, nbt.TAG_List]:
+    ) -> nbt.NBTFile:
         rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)
         key = (rx, rz)
 
@@ -64,7 +57,7 @@ class AnvilRegionManager:
 
         length = struct.unpack_from(">I", data)[0]
         _format = struct.unpack_from("B", data, 4)[0]
-        data = data[5 : length + 5]
+        data = data[5: length + 5]
 
         if _format == world_utils.VERSION_GZIP:
             data = world_utils.gunzip(data)
@@ -150,9 +143,9 @@ class AnvilFormat(Format):
         if not check_one_exists(directory, "playerdata", "players"):
             return False
 
-        leveldat_root = load_leveldat(directory)
+        level_dat_root = load_leveldat(directory)
 
-        if "FML" in leveldat_root:
+        if "FML" in level_dat_root:
             return False
 
         return True

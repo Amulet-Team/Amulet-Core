@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import List, Union, Tuple
+from typing import List, Tuple
 
 import numpy
-from nbt import nbt
+import amulet_nbt as nbt
 
 from amulet.api import nbt_template
 from amulet.api.block import Block
@@ -26,7 +26,7 @@ def properties_to_string(props: dict) -> str:
     return ",".join(result)
 
 
-def _decode_long_array(long_array: array_like, size: int) -> numpy.ndarray:
+def _decode_long_array(long_array: numpy.ndarray, size: int) -> numpy.ndarray:
     """
     Decode an long array (from BlockStates or Heightmaps)
     :param long_array: Encoded long array
@@ -67,7 +67,7 @@ class Anvil2Interface(Interface):
         self, chunk_sections
     ) -> Tuple[numpy.ndarray, numpy.ndarray]:
         if not chunk_sections:
-            return NotImplementedError(
+            raise NotImplementedError(
                 "We don't support reading chunks that never been edited in Minecraft before"
             )
 
@@ -79,7 +79,7 @@ class Anvil2Interface(Interface):
                 continue
             height = section["Y"].value << 4
 
-            blocks[height : height + 16, :, :] = _decode_long_array(
+            blocks[height: height + 16, :, :] = _decode_long_array(
                 section["BlockStates"].value, 4096
             ).reshape((16, 16, 16)) + len(palette)
 
@@ -100,7 +100,8 @@ class Anvil2Interface(Interface):
 
         return entity_list
 
-    def _read_palette(self, palette: nbt.TAG_List) -> list:
+    @staticmethod
+    def _read_palette(palette: nbt.TAG_List) -> list:
         blockstates = []
         for entry in palette:
             namespace, base_name = entry["Name"].value.split(":", 1)
@@ -112,7 +113,7 @@ class Anvil2Interface(Interface):
         return blockstates
 
     def get_translator(self, data: nbt.TAG_Compound) -> Tuple:
-        return ("anvil", data["DataVersion"].value)
+        return "anvil", data["DataVersion"].value
 
 
 INTERFACE_CLASS = Anvil2Interface
