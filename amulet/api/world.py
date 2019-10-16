@@ -21,7 +21,6 @@ from ..utils.world_utils import (
     entity_position_to_chunk_coordinates,
     get_entity_coordinates,
 )
-from .definition_manager import DefinitionManager
 from ..world_interface.formats.format import Format
 
 from . import operation
@@ -56,7 +55,7 @@ class World:
         if (cx, cz) in self.chunk_cache:
             return self.chunk_cache[(cx, cz)]
 
-        chunk = Chunk(cx, cz, *self._wrapper.get_chunk_data(cx, cz))
+        chunk = self._wrapper.load_chunk(cx, cz, self.palette)
         self.chunk_cache[(cx, cz)] = chunk
         self.history_manager.add_original_chunk(chunk)
         return chunk
@@ -81,7 +80,7 @@ class World:
 
         chunk = self.get_chunk(cx, cz)
         block = chunk[offset_x, y, offset_z].blocks
-        return self._wrapper.block_manager[block]
+        return self.palette[block]
 
     def get_sub_chunks(
         self, *args: Union[slice, int], include_deleted_chunks=False
