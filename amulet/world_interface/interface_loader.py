@@ -5,7 +5,7 @@ import importlib
 import json
 import os
 
-from typing import Tuple, Type, AbstractSet, Dict
+from typing import Tuple, AbstractSet, Dict
 
 from .interfaces.interface import Interface
 from ..api import paths
@@ -87,7 +87,7 @@ def get_all_loaded_interfaces() -> AbstractSet[str]:
     return _loaded_interfaces.keys()
 
 
-def get_interface(interface_id: str) -> Type:
+def get_interface(interface_id: str) -> Interface:
     """
     Gets the class for the interface with the given ``interface_id``
 

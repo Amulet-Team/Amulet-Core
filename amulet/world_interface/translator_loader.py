@@ -5,7 +5,7 @@ import importlib
 import json
 import os
 
-from typing import Tuple, Type, AbstractSet, Dict
+from typing import Tuple, AbstractSet, Dict
 
 from .translators.translator import Translator
 from ..api import paths
@@ -92,7 +92,7 @@ def get_all_loaded_translators() -> AbstractSet[str]:
     return _loaded_translators.keys()
 
 
-def get_translator(translator_id: str) -> Type:
+def get_translator(translator_id: str) -> Translator:
     """
     Gets the class for the translator with the given ``translator_id``
 
