@@ -1,8 +1,15 @@
 ### This implements classes and methods to interface with the world data on disk 
 
+###Summary
+Formats sit between the universal world class and the world on disk.
+The World class requests chunks from the Format class.
+The Format class loads the chunks from disk and uses an Interface class to unpack that data.
+It then uses a Translator to translate that data to the universal format
+
+
 ###world_loader
-amulet.world_interface.world_loader.load_world(directory: str, _format: str = None, forced: bool = False) -> Format
-- finds the correct format loader and initiates it with the directory path
+amulet.world_interface.world_loader.load_world(directory: str, _format: str = None, forced: bool = False) -> World
+- finds the correct format loader and initiates a World class using it
     
 ###format_loader and formats
 amulet.world_interface.format_loader.get_format(format_id: str) -> Format
