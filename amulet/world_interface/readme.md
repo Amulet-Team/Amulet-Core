@@ -7,23 +7,24 @@ The Format class loads the chunks from disk and uses an Interface class to unpac
 It then uses a Translator to translate that data to the universal format
 
 
-###world_loader
-amulet.world_interface.world_loader.load_world(directory: str, _format: str = None, forced: bool = False) -> World
-- finds the correct format loader and initiates a World class using it
+###world_interface
+amulet.world_interface.load_world(directory: str, _format: str = None, forced: bool = False) -> World
+- finds the correct format and initiates a World class using it
     
 ###formats
 amulet.world_interface.formats.get_format(format_id: str) -> Format
 - called by the above to get the Format class for the given format_id
-
-amulet.world_interface.formats
-- a store for the different formats
+- deals with the whole world and processes requests to load and save chunks
+- gets chunks from disk before passing them through an interface and translator to get a universal Chunk
+- the reverse of this to go the other direction
 
 ###interfaces
-Interfaces are the classes that actually interface with the world data
-amulet.world_interface.interfaces.get_interface(interface_id: str) -> Interface
+Interfaces are the classes that actually interface with the chunk data.
+They take the raw data in whatever form the Format class loads it in and organises it into a Chunk class
+amulet.world_interface.interfaces.get_interface(identifier: Tuple) -> Interface:
 - get the interface for the given version
-amulet.world_interface.interfaces
-- a store for the different interfaces
 
 ###translators
-Translators convert the data from one format into another format
+Translators convert a Chunk class in version format to a Chunk class in Universal format (or back)
+amulet.world_interface.translators.get_translator(identifier: Tuple) -> Translator:
+- get the interface for the given version
