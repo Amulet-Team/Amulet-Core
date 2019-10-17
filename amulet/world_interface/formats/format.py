@@ -23,12 +23,15 @@ class Format:
         :return: The chunk at the given coordinates.
         """
 
-        # TODO: comment what is going on here. It is a bit abstract
+        # Gets an interface (the code that actually reads the chunk data)
         interface_key, interface_data = self._get_interface(cx, cz)
         interface_id = interface_loader.identify(interface_key)
         interface = interface_loader.get_interface(interface_id)
 
+        # decode the raw chunk data
         chunk, chunk_palette = interface.decode(interface_data)
+
+        # get the translator for the given version and translate the data to universal format
         translator_key = interface.get_translator(interface_data)
         translator_id = translator_loader.identify(translator_key)
 

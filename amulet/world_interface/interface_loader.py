@@ -19,6 +19,7 @@ SUPPORTED_META_VERSION = 0
 
 
 def _find_interfaces(search_directory: str = None):
+    """Load all interfaces from the interfaces directory"""
     global _has_loaded_interfaces
 
     if not search_directory:
@@ -100,6 +101,7 @@ def get_interface(interface_id: str) -> Interface:
 
 
 def identify(identifier: Tuple) -> str:
+    """Given an identifier will find a valid interface and return it"""
     if not _has_loaded_interfaces:
         _find_interfaces()
 
