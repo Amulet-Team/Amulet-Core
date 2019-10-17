@@ -21,7 +21,7 @@ from ..utils.world_utils import (
     entity_position_to_chunk_coordinates,
     get_entity_coordinates,
 )
-from ..world_interface.formats.format import Format
+from ..world_interface.formats import Format
 
 from . import operation
 
