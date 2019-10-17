@@ -40,6 +40,23 @@ class World:
         self.history_manager = ChunkHistoryManager(get_temp_dir(self._directory))
         self._deleted_chunks = set()
 
+    def save(self, wrapper: Format = None):
+        """Save the world using the given wrapper.
+        Leave as None to save back to the input wrapper"""
+        if wrapper is None:
+            wrapper = self._wrapper
+
+        # perhaps make this check if the directory is the same rather than if the class is the same
+        export_all = wrapper is not self._wrapper
+        if export_all:
+            # The input wrapper is not the same as the loading wrapper (save-as)
+            # iterate through every chunk in the input world and the unsaved modified chunks (taking preference for the latter)
+            # and save them to the wrapper
+            pass
+        else:
+            # The input wrapper is the normal wrapper so just save the modified chunks back
+            pass
+
     def exit(self):
         # TODO: add "unsaved changes" check before exit
         shutil.rmtree(get_temp_dir(self._directory), ignore_errors=True)
