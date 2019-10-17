@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from os.path import exists, join
+import os
 
 import amulet_nbt as nbt
 
@@ -15,7 +15,7 @@ def check_all_exist(in_dir: str, *args: str) -> bool:
     """
 
     for child in args:
-        if not exists(join(in_dir, child)):
+        if not os.path.exists(os.path.join(in_dir, child)):
             print(f"Didn't find {child}")
             return False
         else:
@@ -34,7 +34,7 @@ def check_one_exists(in_dir: str, *args: str) -> bool:
     """
 
     for child in args:
-        if exists(join(in_dir, child)):
+        if os.path.exists(os.path.join(in_dir, child)):
             print(f"Found {child}")
             return True
 
@@ -49,7 +49,7 @@ def load_leveldat(in_dir: str) -> nbt.TAG_Compound:
     :return: The NBT root tag
     """
 
-    root_tag = nbt.load(filename=join(in_dir, "level.dat"))
+    root_tag = nbt.load(filename=os.path.join(in_dir, "level.dat"))
     return root_tag
 
 
