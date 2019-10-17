@@ -7,7 +7,6 @@ import os
 from typing import Dict, AbstractSet
 from importlib.util import spec_from_file_location, module_from_spec
 
-from ..api import paths
 from ..api.errors import FormatLoaderNoneMatched
 from .formats.format import Format
 
@@ -17,14 +16,13 @@ SUPPORTED_META_VERSION = 0
 _loaded_formats: Dict[str, Format] = {}
 _has_loaded_formats = False
 
+FORMATS_DIRECTORY = os.path.join(os.path.dirname(__file__), 'formats')
 
-def _find_formats(search_directory: str = None):
+
+def _find_formats():
     global _has_loaded_formats
 
-    if not search_directory:
-        search_directory = paths.FORMATS_DIR
-
-    directories = glob.iglob(os.path.join(search_directory, "*", ""))
+    directories = glob.iglob(os.path.join(FORMATS_DIRECTORY, "*", ""))
     for d in directories:
         meta_path = os.path.join(d, "format.meta")
         if not os.path.exists(meta_path):
@@ -69,14 +67,10 @@ def _find_formats(search_directory: str = None):
     _has_loaded_formats = True
 
 
-def reload(search_directory: str = None):
-    """
-    Reloads all formats in the given directory
-
-    :param search_directory: The directory to search for, defaults to :py:data:`api.paths.FORMATS_DIR`
-    """
+def reload():
+    """Reloads all formats"""
     _loaded_formats.clear()
-    _find_formats(search_directory)
+    _find_formats()
 
 
 def get_all_formats() -> AbstractSet[str]:

@@ -17,15 +17,14 @@ _has_loaded_interfaces = False
 SUPPORTED_INTERFACE_VERSION = 0
 SUPPORTED_META_VERSION = 0
 
+INTERFACES_DIRECTORY = os.path.join(os.path.dirname(__file__), 'interfaces')
 
-def _find_interfaces(search_directory: str = None):
+
+def _find_interfaces():
     """Load all interfaces from the interfaces directory"""
     global _has_loaded_interfaces
 
-    if not search_directory:
-        search_directory = paths.INTERFACES_DIR
-
-    directories = glob.iglob(os.path.join(search_directory, "*", ""))
+    directories = glob.iglob(os.path.join(INTERFACES_DIRECTORY, "*", ""))
     for d in directories:
         meta_path = os.path.join(d, "interface.meta")
         if not os.path.exists(meta_path):
@@ -69,14 +68,10 @@ def _find_interfaces(search_directory: str = None):
     _has_loaded_interfaces = True
 
 
-def reload(search_directory: str = None):
-    """
-    Reloads all interfaces in the given directory
-
-    :param search_directory: The directory to search for, defaults to :py:data:`api.paths.FORMATS_DIR`
-    """
+def reload():
+    """Reloads all interfaces"""
     _loaded_interfaces.clear()
-    _find_interfaces(search_directory)
+    _find_interfaces()
 
 
 def get_all_loaded_interfaces() -> AbstractSet[str]:

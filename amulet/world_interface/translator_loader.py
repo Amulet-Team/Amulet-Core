@@ -8,7 +8,6 @@ import os
 from typing import Tuple, AbstractSet, Dict
 
 from .translators.translator import Translator
-from ..api import paths
 from ..api.errors import TranslatorLoaderNoneMatched
 
 _loaded_translators: Dict[str, Translator] = {}
@@ -17,14 +16,13 @@ _has_loaded_translators = False
 SUPPORTED_TRANSLATOR_VERSION = 0
 SUPPORTED_META_VERSION = 0
 
+TRANSLATORS_DIRECTORY = os.path.join(os.path.dirname(__file__), 'translators')
 
-def _find_translators(search_directory: str = None):
+
+def _find_translators():
     global _has_loaded_translators
 
-    if not search_directory:
-        search_directory = paths.TRANSLATORS_DIR
-
-    directories = glob.iglob(os.path.join(search_directory, "*", ""))
+    directories = glob.iglob(os.path.join(TRANSLATORS_DIRECTORY, "*", ""))
     for d in directories:
         meta_path = os.path.join(d, "translator.meta")
         if not os.path.exists(meta_path):
@@ -73,14 +71,10 @@ def _find_translators(search_directory: str = None):
     _has_loaded_translators = True
 
 
-def reload(search_directory: str = None):
-    """
-    Reloads all translators in the given directory
-
-    :param search_directory: The directory to search for, defaults to :py:data:`api.paths.FORMATS_DIR`
-    """
+def reload():
+    """Reloads all translators"""
     _loaded_translators.clear()
-    _find_translators(search_directory)
+    _find_translators()
 
 
 def get_all_loaded_translators() -> AbstractSet[str]:
