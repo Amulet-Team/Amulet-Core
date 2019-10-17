@@ -5,10 +5,9 @@ from typing import List, Tuple
 import numpy
 import amulet_nbt as nbt
 
-from amulet.api.block import BlockManager
 from amulet.api.chunk import Chunk
 from amulet.utils import world_utils
-from amulet.world_interface.interfaces.interface import Interface
+from amulet.world_interface.interfaces import Interface
 
 
 class AnvilInterface(Interface):

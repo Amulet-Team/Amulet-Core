@@ -8,7 +8,7 @@ from typing import Tuple, Any
 import amulet_nbt as nbt
 import numpy
 
-from amulet.world_interface.formats.format import Format
+from amulet.world_interface.formats import Format
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, check_one_exists, load_leveldat
 

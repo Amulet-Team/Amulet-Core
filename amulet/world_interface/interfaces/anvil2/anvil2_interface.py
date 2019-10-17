@@ -5,9 +5,9 @@ from typing import List, Tuple
 import numpy
 import amulet_nbt as nbt
 
-from amulet.api.block import Block, BlockManager
+from amulet.api.block import Block
 from amulet.api.chunk import Chunk
-from amulet.world_interface.interfaces.interface import Interface
+from amulet.world_interface.interfaces import Interface
 from amulet.utils.world_utils import get_smallest_dtype
 
 

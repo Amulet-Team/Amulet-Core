@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from amulet.world_interface.translators.translator import Translator
+from amulet.world_interface.translators import Translator
 
 
 class Java_1_12_2_Translator(Translator):
