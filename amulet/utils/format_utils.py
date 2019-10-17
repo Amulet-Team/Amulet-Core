@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from os.path import exists, join
 
-from nbt import nbt
+import amulet_nbt as nbt
 
 
 def check_all_exist(in_dir: str, *args: str) -> bool:
@@ -49,10 +49,7 @@ def load_leveldat(in_dir: str) -> nbt.TAG_Compound:
     :return: The NBT root tag
     """
 
-    fp = open(join(in_dir, "level.dat"), "rb")
-    root_tag = nbt.NBTFile(fileobj=fp)
-    fp.close()
-
+    root_tag = nbt.load(filename=join(in_dir, "level.dat"))
     return root_tag
 
 
