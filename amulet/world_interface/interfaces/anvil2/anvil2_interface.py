@@ -43,7 +43,7 @@ def _decode_long_array(long_array: numpy.ndarray, size: int) -> numpy.ndarray:
 
 class Anvil2Interface(Interface):
     @staticmethod
-    def identify(key):
+    def is_valid(key):
         if key[0] != "anvil":
             return False
         if key[1] < 1444:

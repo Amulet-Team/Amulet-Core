@@ -116,7 +116,7 @@ def identify(directory: str) -> str:
         _find_formats()
 
     for format_name, format_class in _loaded_formats.items():
-        if format_class.identify(directory):
+        if format_class.is_valid(directory):
             return format_name
 
     raise FormatLoaderNoneMatched("Could not find a matching format loader")

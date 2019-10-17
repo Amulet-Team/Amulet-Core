@@ -8,7 +8,7 @@ class Java_1_13_2_Translator(Translator):
         return ("java", (1, 13, 2))
 
     @staticmethod
-    def identify(key):
+    def is_valid(key):
         if key[0] != "anvil":
             return False
         if key[1] < 1444:

@@ -136,14 +136,14 @@ class AnvilFormat(Format):
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
-        :return: The interface key for the _identify method and the data to interface with.
+        :return: The interface key for the get_interface method and the data to interface with.
         """
         nbt_data = self._region_manager.load_chunk_data(cx, cz)
         interface_key = ("anvil", nbt_data["DataVersion"].value)
         return interface_key, nbt_data
 
     @staticmethod
-    def identify(directory) -> bool:
+    def is_valid(directory) -> bool:
         print(directory)
         if not check_all_exist(directory, "region", "level.dat"):
             return False

@@ -78,7 +78,7 @@ class Format:
         raise NotImplementedError()
 
     @staticmethod
-    def identify(directory: str) -> bool:
+    def is_valid(directory: str) -> bool:
         """
         Returns whether this format is able to load a given world.
 

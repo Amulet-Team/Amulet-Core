@@ -16,7 +16,7 @@ class Java_1_12_2_Translator(Translator):
         raise NotImplementedError()
 
     @staticmethod
-    def identify(key):
+    def is_valid(key):
         if key[0] != "anvil":
             return False
         if key[1] > 1343:

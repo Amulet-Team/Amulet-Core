@@ -108,7 +108,7 @@ def _identify(identifier: Tuple) -> str:
         _find_translators()
 
     for translator_name, translator_instance in _loaded_translators.items():
-        if translator_instance.identify(identifier):
+        if translator_instance.is_valid(identifier):
             return translator_name
 
     raise TranslatorLoaderNoneMatched("Could not find a matching translator loader")

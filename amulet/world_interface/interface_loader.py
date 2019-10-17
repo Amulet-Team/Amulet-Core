@@ -106,7 +106,7 @@ def _identify(identifier: Tuple) -> str:
         _find_interfaces()
 
     for interface_name, interface_instance in _loaded_interfaces.items():
-        if interface_instance.identify(identifier):
+        if interface_instance.is_valid(identifier):
             return interface_name
 
     raise InterfaceLoaderNoneMatched("Could not find a matching interface")

@@ -13,7 +13,7 @@ from amulet.world_interface.interfaces.interface import Interface
 
 class AnvilInterface(Interface):
     @staticmethod
-    def identify(key):
+    def is_valid(key):
         if key[0] != "anvil":
             return False
         if key[1] > 1343:
