@@ -10,17 +10,22 @@ from ...api.chunk import Chunk
 
 
 class Translator:
-    def __init__(self, translation_manager: PyMCTranslate.TranslationManager):
-        self.translation_manager = translation_manager
     # TODO: full_translate
-    def to_universal(self, chunk: Chunk, palette: numpy.ndarray, callback: Callable, full_translate: bool) -> Tuple[Chunk, BlockManager]:
+    def to_universal(
+            self,
+            translation_manager: PyMCTranslate.TranslationManager,
+            chunk: Chunk,
+            palette: numpy.ndarray,
+            callback: Callable,
+            full_translate: bool
+    ) -> Tuple[Chunk, BlockManager]:
         """
         Translate an interface-specific chunk into the universal format.
 
         :param chunk: The chunk to translate.
         :return: Chunk object in the universal format.
         """
-        translator = self.translation_manager.get_sub_version(*self._translator_key())
+        translator = translation_manager.get_sub_version(*self._translator_key())
         palette = self._translate_palette(palette)
 
         todo = []
@@ -82,7 +87,14 @@ class Translator:
         """
         return palette
 
-    def from_universal(self, chunk: Chunk, palette: BlockManager) -> Tuple[Chunk, numpy.ndarray]:
+    def from_universal(
+            self,
+            translation_manager: PyMCTranslate.TranslationManager,
+            chunk: Chunk,
+            palette: BlockManager,
+            callback: Callable,
+            full_translate: bool
+    ) -> Tuple[Chunk, numpy.ndarray]:
         """
         Translate a universal chunk into the interface-specific format.
 

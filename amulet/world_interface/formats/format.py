@@ -6,11 +6,13 @@ from ...api.block import BlockManager
 from ...api.chunk import Chunk
 from .. import interface_loader
 from .. import translator_loader
+import PyMCTranslate
 
 
 class Format:
     def __init__(self, directory: str):
         self._directory = directory
+        self.translation_manager = PyMCTranslate.new_translation_manager()
 
     def load_chunk(
         self, cx: int, cz: int, palette: BlockManager
@@ -49,7 +51,7 @@ class Format:
         # get the translator for the given version and translate the data to universal format
         translator_key = interface.get_translator(interface_data)
         translator = translator_loader.get_translator(translator_key)
-        chunk, chunk_palette = translator.to_universal(chunk, chunk_palette, callback, recurse)
+        chunk, chunk_palette = translator.to_universal(self.translation_manager, chunk, chunk_palette, callback, recurse)
 
         for block, index in chunk_palette._block_to_index_map.items():
             chunk._blocks[chunk._blocks == index] = palette.get_add_block(block)
