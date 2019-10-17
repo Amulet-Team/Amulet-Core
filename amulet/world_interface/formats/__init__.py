@@ -7,8 +7,8 @@ import os
 from typing import Dict, AbstractSet
 from importlib.util import spec_from_file_location, module_from_spec
 
-from ..api.errors import FormatLoaderNoneMatched
-from .formats.format import Format
+from ...api.errors import FormatLoaderNoneMatched
+from ..formats.format import Format
 
 SUPPORTED_FORMAT_VERSION = 0
 SUPPORTED_META_VERSION = 0
@@ -16,7 +16,7 @@ SUPPORTED_META_VERSION = 0
 _loaded_formats: Dict[str, Format] = {}
 _has_loaded_formats = False
 
-FORMATS_DIRECTORY = os.path.join(os.path.dirname(__file__), 'formats')
+FORMATS_DIRECTORY = os.path.dirname(__file__)
 
 
 def _find_formats():

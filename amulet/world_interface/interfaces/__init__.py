@@ -7,9 +7,9 @@ import os
 
 from typing import Tuple, AbstractSet, Dict
 
-from .interfaces.interface import Interface
-from ..api import paths
-from ..api.errors import InterfaceLoaderNoneMatched
+from amulet.world_interface.interfaces.interface import Interface
+from amulet.api import paths
+from amulet.api.errors import InterfaceLoaderNoneMatched
 
 _loaded_interfaces: Dict[str, Interface] = {}
 _has_loaded_interfaces = False
@@ -17,7 +17,7 @@ _has_loaded_interfaces = False
 SUPPORTED_INTERFACE_VERSION = 0
 SUPPORTED_META_VERSION = 0
 
-INTERFACES_DIRECTORY = os.path.join(os.path.dirname(__file__), 'interfaces')
+INTERFACES_DIRECTORY = os.path.dirname(__file__)
 
 
 def _find_interfaces():

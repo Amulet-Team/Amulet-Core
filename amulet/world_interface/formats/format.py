@@ -4,8 +4,7 @@ from typing import Tuple, Any
 
 from ...api.block import BlockManager
 from ...api.chunk import Chunk
-from .. import interface_loader
-from .. import translator_loader
+from .. import interfaces, translators
 import PyMCTranslate
 
 
@@ -32,7 +31,7 @@ class Format:
 
         # Gets an interface (the code that actually reads the chunk data)
         interface_key, interface_data = self._load_chunk_data(cx, cz)
-        interface = interface_loader.get_interface(interface_key)
+        interface = interfaces.get_interface(interface_key)
 
         # decode the raw chunk data into the universal format
         chunk, chunk_palette = interface.decode(interface_data)
@@ -50,7 +49,7 @@ class Format:
 
         # get the translator for the given version and translate the data to universal format
         translator_key = interface.get_translator(interface_data)
-        translator = translator_loader.get_translator(translator_key)
+        translator = translators.get_translator(translator_key)
         chunk, chunk_palette = translator.to_universal(self.translation_manager, chunk, chunk_palette, callback, recurse)
 
         for block, index in chunk_palette._block_to_index_map.items():
@@ -64,7 +63,7 @@ class Format:
         TODO: This changes the chunk and palette to only include blocks used in the chunk, translates them with the translator,
         and then calls the interface passing in the translator. It then calls _put_encoded to store the data returned by the interface
 
-        The passed ids will be send to interface_loader.get_interface, *not* .identify.
+        The passed ids will be send to interfaces.get_interface, *not* .identify.
         """
         raise NotImplementedError()
 

@@ -7,8 +7,8 @@ import os
 
 from typing import Tuple, AbstractSet, Dict
 
-from .translators.translator import Translator
-from ..api.errors import TranslatorLoaderNoneMatched
+from amulet.world_interface.translators.translator import Translator
+from amulet.api.errors import TranslatorLoaderNoneMatched
 
 _loaded_translators: Dict[str, Translator] = {}
 _has_loaded_translators = False
@@ -16,7 +16,7 @@ _has_loaded_translators = False
 SUPPORTED_TRANSLATOR_VERSION = 0
 SUPPORTED_META_VERSION = 0
 
-TRANSLATORS_DIRECTORY = os.path.join(os.path.dirname(__file__), 'translators')
+TRANSLATORS_DIRECTORY = os.path.dirname(__file__)
 
 
 def _find_translators():

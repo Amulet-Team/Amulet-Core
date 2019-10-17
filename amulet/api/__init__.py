@@ -1,1 +1,1 @@
-from ..world_interface import world_loader
+import amulet.world_interface as world_interface

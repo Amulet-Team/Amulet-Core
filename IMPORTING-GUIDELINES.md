@@ -14,8 +14,6 @@ from __future__ import annotations
 
 from typing import Tuple
 
-from . import version_loader
-from . import format_loader
 from .world import World
 from .errors import (
     FormatLoaderNoneMatched,
@@ -51,11 +49,10 @@ Example Usage:
 ```python
 from amulet.api import paths
 
-paths.FORMATS_DIR = r"./path/to/formats"
 paths.DEFINITIONS_DIR = r"./path/to/version_definitions"
 
 from amulet.api.block import Block
-from amulet import world_loader
+from amulet import world_interface
 
 ...
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from amulet.world_interface import format_loader
+from amulet.world_interface import formats
 from amulet.api.world import World
 from amulet.api.errors import FormatLoaderInvalidFormat, FormatLoaderMismatched
 
@@ -15,14 +15,14 @@ def load_world(directory: str, _format: str = None, forced: bool = False) -> Wor
     :return: The loaded world
     """
     if _format is not None:
-        if _format not in format_loader.get_all_formats():
+        if _format not in formats.get_all_formats():
             raise FormatLoaderInvalidFormat(f"Could not find _format loader {_format}")
-        if not forced and not format_loader.identify(directory) == _format:
+        if not forced and not formats.identify(directory) == _format:
             raise FormatLoaderMismatched(f"{_format} is incompatible")
     else:
-        _format = format_loader.identify(directory)
+        _format = formats.identify(directory)
 
-    format_class = format_loader.get_format(_format)
+    format_class = formats.get_format(_format)
 
     return World(directory, format_class(directory))
 
