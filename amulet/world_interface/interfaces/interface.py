@@ -4,7 +4,7 @@ from typing import Tuple, Any
 
 import numpy
 
-from ...api.block import BlockManager
+import amulet_nbt as nbt
 from ...api.chunk import Chunk
 
 
@@ -18,7 +18,7 @@ class Interface:
         """
         raise NotImplementedError()
 
-    def encode(self, chunk: Chunk, palette: BlockManager):
+    def encode(self, chunk: Chunk, palette: numpy.ndarray) -> nbt.NBTFile:
         """
         Create raw data for the format to store given a translated chunk.
 

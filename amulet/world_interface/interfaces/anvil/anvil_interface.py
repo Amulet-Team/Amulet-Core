@@ -85,7 +85,7 @@ class AnvilInterface(Interface):
         blocks = blocks.reshape(16, 256, 16, order="F")
         return blocks, palette
 
-    def encode(self, chunk: Chunk, palette: BlockManager):
+    def encode(self, chunk: Chunk, palette: numpy.ndarray) -> nbt.NBTFile:
         raise NotImplementedError()
 
     def get_translator(self, data: nbt.NBTFile) -> Tuple:

@@ -96,7 +96,7 @@ class Anvil2Interface(Interface):
         #
         # return entity_list
 
-    def encode(self, chunk: Chunk, palette: BlockManager):
+    def encode(self, chunk: Chunk, palette: numpy.ndarray) -> nbt.NBTFile:
         raise NotImplementedError()
 
     @staticmethod
