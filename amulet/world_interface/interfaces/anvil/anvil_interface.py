@@ -27,7 +27,7 @@ class AnvilInterface(Interface):
         blocks, palette = self._decode_blocks(data["Level"]["Sections"])
         entities = self._decode_entities(data["Level"]["Entities"])
         tile_entities = None
-        return Chunk(cx, cz, blocks, entities, tile_entities), palette
+        return Chunk(cx, cz, blocks, entities, tile_entities, extra=data), palette
 
     def _decode_entities(self, entities: list) -> List[nbt.NBTFile]:
         return []

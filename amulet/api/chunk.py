@@ -3,9 +3,11 @@ from __future__ import annotations
 import copy
 from os.path import join
 import pickle
-from typing import Tuple, Union
+from typing import Tuple, Union, Dict, Any
 
 import numpy
+
+import amulet_nbt as nbt
 
 PointCoordinates = Tuple[int, int, int]
 SliceCoordinates = Tuple[slice, slice, slice]
@@ -16,11 +18,12 @@ class Chunk:
     Class to represent a chunk that exists in an Minecraft world
     """
 
-    def __init__(self, cx: int, cz: int, blocks=None, entities=None, tileentities=None):
+    def __init__(self, cx: int, cz: int, blocks=None, entities=None, tileentities=None, extra: nbt.NBTFile = None):
         self.cx, self.cz = cx, cz
         self._blocks: numpy.ndarray = blocks
         self._entities = entities
         self._tileentities = tileentities
+        self._extra = extra if extra is not None else {}
 
         self._changed = False
         self._marked_for_deletion = False
