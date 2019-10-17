@@ -50,7 +50,7 @@ class Anvil2Interface(Interface):
             return False
         return True
 
-    def decode(self, data: nbt.TAG_Compound) -> Tuple[Chunk, numpy.ndarray]:
+    def decode(self, data: nbt.NBTFile) -> Tuple[Chunk, numpy.ndarray]:
         cx = data["Level"]["xPos"].value
         cz = data["Level"]["zPos"].value
         blocks, palette = self._decode_blocks(data["Level"]["Sections"])
@@ -86,7 +86,7 @@ class Anvil2Interface(Interface):
 
         return blocks.astype(f"uint{get_smallest_dtype(blocks)}"), palette
 
-    def _decode_entities(self, entities: list) -> List[nbt.TAG_Compound]:
+    def _decode_entities(self, entities: list) -> List[nbt.NBTFile]:
         return []
         # entity_list = []
         # for entity in entities:
@@ -111,7 +111,7 @@ class Anvil2Interface(Interface):
             blockstates.append(block)
         return blockstates
 
-    def get_translator(self, data: nbt.TAG_Compound) -> Tuple:
+    def get_translator(self, data: nbt.NBTFile) -> Tuple:
         return "anvil", data["DataVersion"].value
 
 

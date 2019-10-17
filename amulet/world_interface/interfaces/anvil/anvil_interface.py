@@ -21,15 +21,15 @@ class AnvilInterface(Interface):
             return False
         return True
 
-    def decode(self, data: nbt.TAG_Compound) -> Tuple[Chunk, numpy.ndarray]:
-        cx = data["Level"]["xPos"]
-        cz = data["Level"]["zPos"]
+    def decode(self, data: nbt.NBTFile) -> Tuple[Chunk, numpy.ndarray]:
+        cx = data["Level"]["xPos"].value
+        cz = data["Level"]["zPos"].value
         blocks, palette = self._decode_blocks(data["Level"]["Sections"])
         entities = self._decode_entities(data["Level"]["Entities"])
         tile_entities = None
         return Chunk(cx, cz, blocks, entities, tile_entities), palette
 
-    def _decode_entities(self, entities: list) -> List[nbt.TAG_Compound]:
+    def _decode_entities(self, entities: list) -> List[nbt.NBTFile]:
         return []
         # entity_list = []
         # for entity in entities:
@@ -89,7 +89,7 @@ class AnvilInterface(Interface):
     def encode(self, chunk: Chunk, palette: BlockManager):
         raise NotImplementedError()
 
-    def get_translator(self, data: nbt.TAG_Compound) -> Tuple:
+    def get_translator(self, data: nbt.NBTFile) -> Tuple:
         return "anvil", data["DataVersion"].value
 
 

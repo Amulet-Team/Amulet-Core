@@ -41,7 +41,7 @@ def check_one_exists(in_dir: str, *args: str) -> bool:
     return False
 
 
-def load_leveldat(in_dir: str) -> nbt.TAG_Compound:
+def load_leveldat(in_dir: str) -> nbt.NBTFile:
     """
     Load the root tag of the level.dat file in the directory
 
@@ -54,7 +54,7 @@ def load_leveldat(in_dir: str) -> nbt.TAG_Compound:
 
 
 def check_version_leveldat(
-    root_tag: nbt.TAG_Compound, _min: int = None, _max: int = None
+    root_tag: nbt.NBTFile, _min: int = None, _max: int = None
 ) -> bool:
     """
     Check the Version tag from the provided level.dat NBT structure
