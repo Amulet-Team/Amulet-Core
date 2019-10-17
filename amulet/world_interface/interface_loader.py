@@ -88,20 +88,20 @@ def get_all_loaded_interfaces() -> AbstractSet[str]:
     return _loaded_interfaces.keys()
 
 
-def get_interface(interface_id: str) -> Interface:
+def get_interface(identifier: Tuple) -> Interface:
     """
-    Gets the class for the interface with the given ``interface_id``
+    Given an ``identifier`` will find a valid interface class and return it
+    ("anvil", 1519)
 
-    :param interface_id: The interface id for the desired loaded interface
+    :param identifier: The identifier for the desired loaded interface
     :return: The class for the interface
     """
-    if not _has_loaded_interfaces:
-        _find_interfaces()
+    interface_id = _identify(identifier)
     return _loaded_interfaces[interface_id]
 
 
-def identify(identifier: Tuple) -> str:
-    """Given an identifier will find a valid interface and return it"""
+def _identify(identifier: Tuple) -> str:
+
     if not _has_loaded_interfaces:
         _find_interfaces()
 

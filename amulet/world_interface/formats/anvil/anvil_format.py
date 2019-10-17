@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import struct
 import zlib
+from typing import Tuple, Any
 
 import amulet_nbt as nbt
 import numpy
@@ -129,13 +130,20 @@ class AnvilFormat(Format):
         self.root_tag = nbt.load(filename=os.path.join(self._directory, "level.dat"))
         self._region_manager = AnvilRegionManager(self._directory)
 
-    def _get_interface(self, cx, cz):
+    def _load_chunk_data(self, cx, cz) -> Tuple[Tuple, Any]:
+        """
+        Return the interface key and data to interface with given chunk coordinates.
+
+        :param cx: The x coordinate of the chunk.
+        :param cz: The z coordinate of the chunk.
+        :return: The interface key for the _identify method and the data to interface with.
+        """
         nbt_data = self._region_manager.load_chunk_data(cx, cz)
         interface_key = ("anvil", nbt_data["DataVersion"].value)
         return interface_key, nbt_data
 
     @staticmethod
-    def identify(directory):
+    def identify(directory) -> bool:
         print(directory)
         if not check_all_exist(directory, "region", "level.dat"):
             return False

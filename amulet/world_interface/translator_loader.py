@@ -92,19 +92,18 @@ def get_all_loaded_translators() -> AbstractSet[str]:
     return _loaded_translators.keys()
 
 
-def get_translator(translator_id: str) -> Translator:
+def get_translator(identifier: Tuple) -> Translator:
     """
     Gets the class for the translator with the given ``translator_id``
 
-    :param translator_id: The translator qid for the desired loaded translator
+    :param identifier: The translator identifier for the desired loaded translator
     :return: The class for the translator
     """
-    if not _has_loaded_translators:
-        _find_translators()
+    translator_id = _identify(identifier)
     return _loaded_translators[translator_id]
 
 
-def identify(identifier: Tuple) -> str:
+def _identify(identifier: Tuple) -> str:
     if not _has_loaded_translators:
         _find_translators()
 
