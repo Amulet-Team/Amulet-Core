@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple
+from typing import Tuple, Callable
 
 import numpy
 import PyMCTranslate
@@ -10,10 +10,10 @@ from ...api.chunk import Chunk
 
 
 class Translator:
-    def __init__(self):
-        self.translation_manager = PyMCTranslate.new_translation_manager()
-
-    def to_universal(self, chunk: Chunk, palette: numpy.ndarray, callback) -> Tuple[Chunk, BlockManager]:
+    def __init__(self, translation_manager: PyMCTranslate.TranslationManager):
+        self.translation_manager = translation_manager
+    # TODO: full_translate
+    def to_universal(self, chunk: Chunk, palette: numpy.ndarray, callback: Callable, full_translate: bool) -> Tuple[Chunk, BlockManager]:
         """
         Translate an interface-specific chunk into the universal format.
 

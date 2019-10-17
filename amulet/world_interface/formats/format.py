@@ -13,6 +13,11 @@ class Format:
         self._directory = directory
 
     def load_chunk(
+        self, cx: int, cz: int, palette: BlockManager
+    ) -> Chunk:
+        return self._load_chunk(cx, cz, palette)
+
+    def _load_chunk(
         self, cx: int, cz: int, palette: BlockManager, recurse: bool = True
     ) -> Chunk:
         """
@@ -31,11 +36,11 @@ class Format:
         chunk, chunk_palette = interface.decode(interface_data)
 
         # set up a callback that translator can use to get chunk data
-        # TODO: perhaps find a way so that this does not need to load teh whole chunk
+        # TODO: perhaps find a way so that this does not need to load the whole chunk
         if recurse:
             def callback(x, z):
                 palette = BlockManager()
-                chunk = self.load_chunk(cx + x, cz + z, palette, False)  # TODO: this will also translate the chunk
+                chunk = self._load_chunk(cx + x, cz + z, palette, False)  # TODO: this will also translate the chunk
                 return chunk, palette
 
         else:
@@ -44,7 +49,7 @@ class Format:
         # get the translator for the given version and translate the data to universal format
         translator_key = interface.get_translator(interface_data)
         translator = translator_loader.get_translator(translator_key)
-        chunk, chunk_palette = translator.to_universal(chunk, chunk_palette, callback)
+        chunk, chunk_palette = translator.to_universal(chunk, chunk_palette, callback, recurse)
 
         for block, index in chunk_palette._block_to_index_map.items():
             chunk._blocks[chunk._blocks == index] = palette.get_add_block(block)
