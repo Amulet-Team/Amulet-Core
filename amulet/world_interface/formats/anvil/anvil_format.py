@@ -11,6 +11,7 @@ import numpy
 from amulet.world_interface.formats import Format
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, check_one_exists, load_leveldat
+from .. import interfaces
 
 
 class AnvilRegionManager:
@@ -130,7 +131,10 @@ class AnvilFormat(Format):
         self.root_tag = nbt.load(filename=os.path.join(self._directory, "level.dat"))
         self._region_manager = AnvilRegionManager(self._directory)
 
-    def _load_chunk_data(self, cx, cz) -> Tuple[Tuple, Any]:
+    def max_world_version(self) -> Tuple:
+        return 'anvil', self.root_tag['Data']['DataVersion']
+
+    def _get_raw_chunk_data(self, cx, cz) -> Any:
         """
         Return the interface key and data to interface with given chunk coordinates.
 
@@ -138,9 +142,14 @@ class AnvilFormat(Format):
         :param cz: The z coordinate of the chunk.
         :return: The interface key for the get_interface method and the data to interface with.
         """
-        nbt_data = self._region_manager.load_chunk_data(cx, cz)
-        interface_key = ("anvil", nbt_data["DataVersion"].value)
-        return interface_key, nbt_data
+        return self._region_manager.load_chunk_data(cx, cz)
+
+    def _get_interface(self, raw_chunk_data=None) -> interfaces.Interface:
+        if raw_chunk_data is not None:
+            key = "anvil", raw_chunk_data["DataVersion"].value
+        else:
+            key = self.max_world_version()
+        return interfaces.get_interface(key)
 
     @staticmethod
     def is_valid(directory) -> bool:

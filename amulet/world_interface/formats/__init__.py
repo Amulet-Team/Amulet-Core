@@ -125,13 +125,16 @@ class Format:
         self._directory = directory
         self.translation_manager = PyMCTranslate.new_translation_manager()
 
+    def max_world_version(self) -> Tuple:
+        raise NotImplemented
+
     def load_chunk(
-        self, cx: int, cz: int, palette: BlockManager
+        self, cx: int, cz: int, global_palette: BlockManager
     ) -> Chunk:
-        return self._load_chunk(cx, cz, palette)
+        return self._load_chunk(cx, cz, global_palette)
 
     def _load_chunk(
-        self, cx: int, cz: int, palette: BlockManager, recurse: bool = True
+        self, cx: int, cz: int, global_palette: BlockManager, recurse: bool = True
     ) -> Chunk:
         """
         Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
@@ -142,11 +145,11 @@ class Format:
         """
 
         # Gets an interface (the code that actually reads the chunk data)
-        interface_key, interface_data = self._load_chunk_data(cx, cz)
-        interface = interfaces.get_interface(interface_key)
+        raw_chunk_data = self._get_raw_chunk_data(cx, cz)
+        interface = self._get_interface(raw_chunk_data)
 
         # decode the raw chunk data into the universal format
-        chunk, chunk_palette = interface.decode(interface_data)
+        chunk, chunk_palette = interface.decode(raw_chunk_data)
 
         # set up a callback that translator can use to get chunk data
         # TODO: perhaps find a way so that this does not need to load the whole chunk
@@ -160,12 +163,13 @@ class Format:
             callback = None
 
         # get the translator for the given version and translate the data to universal format
-        translator_key = interface.get_translator(interface_data)
+        translator_key = interface.get_translator(raw_chunk_data)
         translator = translators.get_translator(translator_key)
         chunk, chunk_palette = translator.to_universal(self.translation_manager, chunk, chunk_palette, callback, recurse)
 
-        chunk_to_global = numpy.array([palette.get_add_block(block) for _, block in chunk_palette.items()])
-        chunk._blocks = chunk_to_global[chunk._blocks]
+        # convert the block numerical ids from local chunk palette to global palette
+        chunk_to_global = numpy.array([global_palette.get_add_block(block) for _, block in chunk_palette.items()])
+        chunk._blocks = chunk_to_global[chunk.blocks]
         return chunk
 
     def save_chunk(self, chunk: Chunk, palette: BlockManager, interface_id: str, translator_id: str):
@@ -185,7 +189,7 @@ class Format:
         """
         raise NotImplementedError()
 
-    def _load_chunk_data(self, cx: int, cz: int) -> Tuple[Tuple, Any]:
+    def _get_raw_chunk_data(self, cx: int, cz: int) -> Any:
         """
         Return the interface key and data to interface with given chunk coordinates.
 
@@ -194,6 +198,9 @@ class Format:
         :return: The interface key for the get_interface method and the data to interface with.
         """
         raise NotImplementedError()
+
+    def _get_interface(self, raw_chunk_data=None) -> interfaces.Interface:
+        raise NotImplementedError
 
     @staticmethod
     def is_valid(directory: str) -> bool:
