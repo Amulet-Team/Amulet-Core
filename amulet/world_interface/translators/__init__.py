@@ -129,7 +129,7 @@ class Translator:
         :return: Chunk object in the universal format.
         """
         translator = translation_manager.get_sub_version(*self._translator_key())
-        palette = self._translate_palette(palette)
+        palette = self._translate_palette(translation_manager, palette)
 
         todo = []
         finished = BlockManager()
@@ -182,7 +182,7 @@ class Translator:
         """
         raise NotImplementedError()
 
-    def _translate_palette(self, palette: numpy.ndarray) -> numpy.ndarray:
+    def _translate_palette(self, translation_manager: PyMCTranslate.TranslationManager, palette: numpy.ndarray) -> numpy.ndarray:
         """
         Translate the palette into a list of block objects.
 
@@ -194,7 +194,7 @@ class Translator:
             self,
             translation_manager: PyMCTranslate.TranslationManager,
             chunk: Chunk,
-            palette: BlockManager,
+            palette: numpy.ndarray,
             callback: Callable,
             full_translate: bool
     ) -> Tuple[Chunk, numpy.ndarray]:
@@ -207,7 +207,7 @@ class Translator:
         """
         raise NotImplementedError()
 
-    def _translate_palette_from_universal(self, palette: BlockManager):
+    def _translate_palette_from_universal(self, translation_manager: PyMCTranslate.TranslationManager, palette: BlockManager):
         """
         Translate the list of block objects into a version-specific palette.
 
