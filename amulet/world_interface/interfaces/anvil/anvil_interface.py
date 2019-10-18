@@ -88,7 +88,7 @@ class AnvilInterface(Interface):
     def encode(self, chunk: Chunk, palette: numpy.ndarray) -> nbt.NBTFile:
         raise NotImplementedError()
 
-    def get_translator(self, data: nbt.NBTFile) -> translators.Translator:
+    def get_translator(self, max_world_version, data: nbt.NBTFile = None) -> translators.Translator:
         return translators.get_translator(("anvil", data["DataVersion"].value))
 
 

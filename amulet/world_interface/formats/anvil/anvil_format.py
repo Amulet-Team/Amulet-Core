@@ -126,12 +126,12 @@ class AnvilRegionManager:
 
 
 class AnvilFormat(Format):
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, directory: str):
+        super().__init__(directory)
         self.root_tag = nbt.load(filename=os.path.join(self._directory, "level.dat"))
         self._region_manager = AnvilRegionManager(self._directory)
 
-    def max_world_version(self) -> Tuple:
+    def _max_world_version(self) -> Tuple:
         return 'anvil', self.root_tag['Data']['DataVersion']
 
     def _get_raw_chunk_data(self, cx, cz) -> Any:
@@ -144,11 +144,11 @@ class AnvilFormat(Format):
         """
         return self._region_manager.load_chunk_data(cx, cz)
 
-    def _get_interface(self, raw_chunk_data=None) -> interfaces.Interface:
+    def _get_interface(self, max_world_version, raw_chunk_data=None) -> interfaces.Interface:
         if raw_chunk_data is not None:
             key = "anvil", raw_chunk_data["DataVersion"].value
         else:
-            key = self.max_world_version()
+            key = max_world_version
         return interfaces.get_interface(key)
 
     @staticmethod

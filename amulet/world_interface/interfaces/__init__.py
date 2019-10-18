@@ -128,9 +128,9 @@ class Interface:
         """
         raise NotImplementedError()
 
-    def get_translator(self, data: Any) -> translators.Translator:
+    def get_translator(self, max_world_version, data: Any = None) -> translators.Translator:
         """
-        Return the translator key given chunk coordinates.
+        Return the translator given chunk coordinates.
 
         :param data: The data passed in to translate.
         :return: The translator key for the identify method.

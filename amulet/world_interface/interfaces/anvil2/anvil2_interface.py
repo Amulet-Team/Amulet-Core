@@ -112,7 +112,7 @@ class Anvil2Interface(Interface):
             blockstates.append(block)
         return blockstates
 
-    def get_translator(self, data: nbt.NBTFile) -> translators.Translator:
+    def get_translator(self, max_world_version, data: nbt.NBTFile = None) -> translators.Translator:
         return translators.get_translator(("anvil", data["DataVersion"].value))
 
 

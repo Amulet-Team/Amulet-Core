@@ -124,9 +124,15 @@ class Format:
     def __init__(self, directory: str):
         self._directory = directory
         self.translation_manager = PyMCTranslate.new_translation_manager()
+        self._max_world_version_ = None
 
     def max_world_version(self) -> Tuple:
-        raise NotImplemented
+        if self._max_world_version_ is None:
+            self._max_world_version_ = self._max_world_version()
+        return self._max_world_version()
+
+    def _max_world_version(self) -> Tuple:
+        raise NotImplementedError
 
     def load_chunk(
         self, cx: int, cz: int, global_palette: BlockManager
@@ -146,9 +152,9 @@ class Format:
 
         # Gets an interface (the code that actually reads the chunk data)
         raw_chunk_data = self._get_raw_chunk_data(cx, cz)
-        interface = self._get_interface(raw_chunk_data)
+        interface = self._get_interface(self.max_world_version(), raw_chunk_data)
         # get the translator for the given version
-        translator = interface.get_translator(raw_chunk_data)
+        translator = interface.get_translator(self.max_world_version(), raw_chunk_data)
 
         # decode the raw chunk data into the universal format
         chunk, chunk_palette = interface.decode(raw_chunk_data)
@@ -199,7 +205,7 @@ class Format:
         """
         raise NotImplementedError()
 
-    def _get_interface(self, raw_chunk_data=None) -> interfaces.Interface:
+    def _get_interface(self, max_world_version, raw_chunk_data=None) -> interfaces.Interface:
         raise NotImplementedError
 
     @staticmethod
