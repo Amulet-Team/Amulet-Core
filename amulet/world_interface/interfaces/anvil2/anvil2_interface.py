@@ -9,7 +9,7 @@ from amulet.api.block import Block
 from amulet.api.chunk import Chunk
 from amulet.world_interface.interfaces import Interface
 from amulet.utils.world_utils import get_smallest_dtype
-from .. import translators
+from amulet.world_interface import translators
 
 
 def properties_to_string(props: dict) -> str:
