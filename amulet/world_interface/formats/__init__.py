@@ -3,6 +3,7 @@ from __future__ import annotations
 import glob
 import json
 import os
+import numpy
 
 from typing import Dict, AbstractSet, Tuple, Any
 from importlib.util import spec_from_file_location, module_from_spec
@@ -163,8 +164,8 @@ class Format:
         translator = translators.get_translator(translator_key)
         chunk, chunk_palette = translator.to_universal(self.translation_manager, chunk, chunk_palette, callback, recurse)
 
-        for block, index in chunk_palette._block_to_index_map.items():
-            chunk._blocks[chunk._blocks == index] = palette.get_add_block(block)
+        chunk_to_global = numpy.array([palette.get_add_block(block) for _, block in chunk_palette.items()])
+        chunk._blocks = chunk_to_global[chunk._blocks]
         return chunk
 
     def save_chunk(self, chunk: Chunk, palette: BlockManager, interface_id: str, translator_id: str):
