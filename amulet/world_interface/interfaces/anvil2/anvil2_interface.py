@@ -9,6 +9,7 @@ from amulet.api.block import Block
 from amulet.api.chunk import Chunk
 from amulet.world_interface.interfaces import Interface
 from amulet.utils.world_utils import get_smallest_dtype
+from .. import translators
 
 
 def properties_to_string(props: dict) -> str:
@@ -111,8 +112,8 @@ class Anvil2Interface(Interface):
             blockstates.append(block)
         return blockstates
 
-    def get_translator(self, data: nbt.NBTFile) -> Tuple:
-        return "anvil", data["DataVersion"].value
+    def get_translator(self, data: nbt.NBTFile) -> translators.Translator:
+        return translators.get_translator(("anvil", data["DataVersion"].value))
 
 
 INTERFACE_CLASS = Anvil2Interface

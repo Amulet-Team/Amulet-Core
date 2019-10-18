@@ -8,6 +8,7 @@ import amulet_nbt as nbt
 from amulet.api.chunk import Chunk
 from amulet.utils import world_utils
 from amulet.world_interface.interfaces import Interface
+from .. import translators
 
 
 class AnvilInterface(Interface):
@@ -87,8 +88,8 @@ class AnvilInterface(Interface):
     def encode(self, chunk: Chunk, palette: numpy.ndarray) -> nbt.NBTFile:
         raise NotImplementedError()
 
-    def get_translator(self, data: nbt.NBTFile) -> Tuple:
-        return "anvil", data["DataVersion"].value
+    def get_translator(self, data: nbt.NBTFile) -> translators.Translator:
+        return translators.get_translator(("anvil", data["DataVersion"].value))
 
 
 INTERFACE_CLASS = AnvilInterface

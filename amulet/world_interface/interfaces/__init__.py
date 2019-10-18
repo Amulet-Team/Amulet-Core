@@ -9,6 +9,7 @@ from typing import Tuple, AbstractSet, Dict, Any, Union
 
 from amulet.api.errors import InterfaceLoaderNoneMatched
 from ...api.chunk import Chunk
+from .. import translators
 import amulet_nbt as nbt
 
 _loaded_interfaces: Dict[str, Interface] = {}
@@ -127,7 +128,7 @@ class Interface:
         """
         raise NotImplementedError()
 
-    def get_translator(self, data: Any) -> Tuple:
+    def get_translator(self, data: Any) -> translators.Translator:
         """
         Return the translator key given chunk coordinates.
 

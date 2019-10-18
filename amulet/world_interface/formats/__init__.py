@@ -147,6 +147,8 @@ class Format:
         # Gets an interface (the code that actually reads the chunk data)
         raw_chunk_data = self._get_raw_chunk_data(cx, cz)
         interface = self._get_interface(raw_chunk_data)
+        # get the translator for the given version
+        translator = interface.get_translator(raw_chunk_data)
 
         # decode the raw chunk data into the universal format
         chunk, chunk_palette = interface.decode(raw_chunk_data)
@@ -162,9 +164,7 @@ class Format:
         else:
             callback = None
 
-        # get the translator for the given version and translate the data to universal format
-        translator_key = interface.get_translator(raw_chunk_data)
-        translator = translators.get_translator(translator_key)
+        # translate the data to universal format
         chunk, chunk_palette = translator.to_universal(self.translation_manager, chunk, chunk_palette, callback, recurse)
 
         # convert the block numerical ids from local chunk palette to global palette
