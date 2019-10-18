@@ -178,18 +178,34 @@ class Format:
         chunk._blocks = chunk_to_global[chunk.blocks]
         return chunk
 
-    def save_chunk(self, chunk: Chunk, palette: BlockManager, interface_id: str, translator_id: str):
+    def save_chunk(self, chunk: Chunk, global_palette: BlockManager, recurse: bool = True):
         """
-        Saves a universal amulet.api.chunk.Chunk object using the given interface and translator.
-
-        TODO: This changes the chunk and palette to only include blocks used in the chunk, translates them with the translator,
-        and then calls the interface passing in the translator. It then calls _put_encoded to store the data returned by the interface
-
-        The passed ids will be send to interfaces.get_interface, *not* .identify.
+        Saves a universal amulet.api.chunk.Chunk object
+        Calls the interface then the translator.
+        It then calls _put_chunk_data to store the data returned by the interface
         """
-        raise NotImplementedError()
+        # get the coordinates for later
+        cx, cz = chunk.cx, chunk.cz
 
-    def _save_chunk_data(self, cx: int, cz: int, data: Any):
+        # Gets an interface (the code that actually reads the chunk data)
+        interface = self._get_interface(self.max_world_version())
+        # get the translator for the given version
+        translator = interface.get_translator(self.max_world_version())
+
+        # convert the global indexes into local indexes and a local palette
+        chunk_palette, chunk._blocks = numpy.unique(chunk.blocks, return_inverse=True)
+        chunk_palette = numpy.array([global_palette[int_id] for int_id in chunk_palette])
+
+        callback = None  # TODO
+
+        # translate from universal format to version format
+        chunk, chunk_palette = translator.from_universal(self.translation_manager, chunk, chunk_palette, callback, recurse)
+
+        raw_chunk_data = interface.encode(chunk, chunk_palette)
+
+        self._put_raw_chunk_data(cx, cz, raw_chunk_data)
+
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any):
         """
         Actually stores the data from the interface to disk.
         """

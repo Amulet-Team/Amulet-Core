@@ -6,7 +6,7 @@ import json
 import os
 import numpy
 
-from typing import Tuple, AbstractSet, Dict, Callable
+from typing import Tuple, AbstractSet, Dict, Callable, Union
 
 from amulet.api.errors import TranslatorLoaderNoneMatched
 from ...api.block import BlockManager
@@ -195,7 +195,7 @@ class Translator:
             translation_manager: PyMCTranslate.TranslationManager,
             chunk: Chunk,
             palette: numpy.ndarray,
-            callback: Callable,
+            callback: Union[Callable, None],
             full_translate: bool
     ) -> Tuple[Chunk, numpy.ndarray]:
         """
