@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 from sys import getsizeof
 import re
-from typing import Dict, Iterable, List, Tuple, Union, overload
+from typing import Dict, Iterable, List, Tuple, Union, overload, Generator
 
 from .errors import InvalidBlockException
 from ..utils import Int
@@ -404,6 +404,10 @@ class BlockManager:
 
     def __contains__(self, item: Block) -> bool:
         return item in self._block_to_index_map
+
+    def items(self) -> Generator[Tuple[int, Block]]:
+        for index, block in enumerate(self._index_to_block):
+            yield index, block
 
     @overload
     def __getitem__(self, item: Block) -> int:

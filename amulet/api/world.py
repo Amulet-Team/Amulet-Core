@@ -4,9 +4,7 @@ from copy import deepcopy
 import itertools
 import os
 import shutil
-from typing import Union, Generator, Dict, Optional, Callable, Tuple, List
-
-import numpy
+from typing import Union, Generator, Dict, Optional, Tuple, List
 
 from .block import Block, BlockManager
 from .errors import ChunkDoesntExistException
