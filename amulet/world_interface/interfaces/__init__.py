@@ -5,7 +5,7 @@ import importlib
 import json
 import os
 import numpy
-from typing import Tuple, AbstractSet, Dict, Any
+from typing import Tuple, AbstractSet, Dict, Any, Union
 
 from amulet.api.errors import InterfaceLoaderNoneMatched
 from ...api.chunk import Chunk
@@ -108,7 +108,7 @@ def _identify(identifier: Tuple) -> str:
 
 
 class Interface:
-    def decode(self, data: Any) -> Tuple[Chunk, numpy.ndarray]:
+    def decode(self, data: Union[nbt.NBTFile, Any]) -> Tuple[Chunk, numpy.ndarray]:
         """
         Create an amulet.api.chunk.Chunk object from raw data given by the format.
 
@@ -117,7 +117,7 @@ class Interface:
         """
         raise NotImplementedError()
 
-    def encode(self, chunk: Chunk, palette: numpy.ndarray) -> nbt.NBTFile:
+    def encode(self, chunk: Chunk, palette: numpy.ndarray) -> Union[nbt.NBTFile, Any]:
         """
         Create raw data for the format to store given a translated chunk.
 
