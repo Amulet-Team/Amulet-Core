@@ -18,7 +18,7 @@ from amulet.world_interface import interfaces
 
 class AnvilRegion:
     def __init__(self, file_path: str):
-        self.file_path = file_path
+        self._file_path = file_path
 
         # [dirty, mod_time, data_length, data]  feel free to extend if you want to implement modifying in place and defragging
         self._chunks: Dict[Tuple[int, int], Tuple[bool, int, int, bytes]] = {}
@@ -26,15 +26,15 @@ class AnvilRegion:
         # self._free_sectors = None     # implement these for modifying in place
         # self._offsets = None
         # self._mod_times = None
-        self.dirty = False  # is a chunk in region dirty
+        self._dirty = False  # is a chunk in region dirty
 
         self._load()
 
     def _load(self):
-        with open(self.file_path, "rb") as fp:
+        with open(self._file_path, "rb") as fp:
             # check that the file is a multiple of 4096 bytes and extend if not
             # TODO: perhaps rewrite this in a way that is more readable
-            file_size = os.path.getsize(self.file_path)
+            file_size = os.path.getsize(self._file_path)
             if file_size & 0xFFF:
                 file_size = (file_size | 0xFFF) + 1
                 fp.truncate(file_size)
@@ -83,11 +83,26 @@ class AnvilRegion:
                     # count = offset & 0xFF   # the number of sectors used
                     fp.seek(world_utils.SECTOR_BYTES * sector)
                     # read int value and then read that amount of data
-                    buffer_size = struct.unpack(">I", fp.read(4))[0]
+                    buffer_size = struct.unpack('>I', fp.read(4))[0]
                     self._chunks[(x, z)] = (False, mod_times[x + 32 * z], buffer_size, fp.read(buffer_size))
 
     def save(self):
-        raise NotImplementedError
+        if self._dirty:
+            offsets = numpy.zeros(1024, dtype=">u4")
+            mod_times = numpy.zeros(1024, dtype=">u4")
+            offset = 2
+            data = []
+            for (cx, cz), (dirty, mod_time, buffer_size, buffer) in self._chunks.items():
+                index = cx + cz << 5
+                sector_count = ((buffer_size + 4 | 0xFFF) + 1) >> 12
+                offsets[index] = offset << 8 + sector_count
+                mod_times[index] = mod_time
+                data.append(struct.pack('>I', buffer_size) + buffer + b'\x00' * (sector_count << 12 - buffer_size - 4))
+                offset += sector_count
+            with open(self._file_path, 'wb') as fp:
+                fp.write(struct.pack('>1024I', *offsets))    # there is probably a prettier way of doing this
+                fp.write(struct.pack('>1024I', *mod_times))  # but I could not work it out with Numpy
+                fp.write(b''.join(data))
 
     def get_chunk_data(self, cx: int, cz: int) -> Union[nbt.NBTFile, None]:
         if (cx, cz) in self._chunks:
@@ -95,6 +110,7 @@ class AnvilRegion:
 
     def put_chunk_data(self, cx: int, cz: int, data: nbt.NBTFile):
         """compress the data and put it in the class database"""
+        self._dirty = True
         buffer_size, bytes_data = self._compress(data)
         self._chunks[(cx, cz)] = (True, int(time.time()), buffer_size, bytes_data)
 
