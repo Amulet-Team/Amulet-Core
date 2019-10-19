@@ -126,6 +126,12 @@ class Format:
         self.translation_manager = PyMCTranslate.new_translation_manager()
         self._max_world_version_ = None
 
+    def save(self):
+        raise NotImplementedError
+
+    def close(self):
+        raise NotImplementedError
+
     def max_world_version(self) -> Tuple:
         if self._max_world_version_ is None:
             self._max_world_version_ = self._max_world_version()
@@ -204,6 +210,9 @@ class Format:
         raw_chunk_data = interface.encode(chunk, chunk_palette)
 
         self._put_raw_chunk_data(cx, cz, raw_chunk_data)
+
+    def delete_chunk(self, cx: int, cz: int):
+        raise NotImplementedError
 
     def _put_raw_chunk_data(self, cx: int, cz: int, data: Any):
         """

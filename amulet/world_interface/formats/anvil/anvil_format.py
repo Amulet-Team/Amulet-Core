@@ -223,8 +223,18 @@ class AnvilFormat(Format):
         self.root_tag = nbt.load(filename=os.path.join(self._directory, "level.dat"))
         self._region_manager = AnvilRegionManager(self._directory)
 
+    def save(self):
+        self._region_manager.save()
+        # TODO: save other world data
+
+    def close(self):
+        pass    # TODO: release lock file
+
     def _max_world_version(self) -> Tuple:
         return 'anvil', self.root_tag['Data']['DataVersion']
+
+    def delete_chunk(self, cx: int, cz: int):
+        self._region_manager.delete_chunk(cx, cz)
 
     def _put_raw_chunk_data(self, cx: int, cz: int, data: Any):
         """
