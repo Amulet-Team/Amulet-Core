@@ -89,7 +89,10 @@ class AnvilInterface(Interface):
         raise NotImplementedError()
 
     def get_translator(self, max_world_version, data: nbt.NBTFile = None) -> translators.Translator:
-        return translators.get_translator(("anvil", data["DataVersion"].value))
+        if data is None:
+            return translators.get_translator(max_world_version)
+        else:
+            return translators.get_translator(("anvil", data["DataVersion"].value))
 
 
 INTERFACE_CLASS = AnvilInterface

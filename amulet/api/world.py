@@ -64,6 +64,7 @@ class World:
     def exit(self):
         # TODO: add "unsaved changes" check before exit
         shutil.rmtree(get_temp_dir(self._directory), ignore_errors=True)
+        self._wrapper.close()
 
     def get_chunk(self, cx: int, cz: int) -> Chunk:
         """
