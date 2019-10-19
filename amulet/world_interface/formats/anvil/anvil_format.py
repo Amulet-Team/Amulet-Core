@@ -14,10 +14,11 @@ from amulet.world_interface.formats import Format
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, check_one_exists, load_leveldat
 from amulet.world_interface import interfaces
+from amulet.api.errors import ChunkDoesntExistException
 
 
 class AnvilRegion:
-    def __init__(self, file_path: str):
+    def __init__(self, file_path: str, create=False):
         self._file_path = file_path
 
         # [dirty, mod_time, data_length, data]  feel free to extend if you want to implement modifying in place and defragging
@@ -28,7 +29,8 @@ class AnvilRegion:
         # self._mod_times = None
         self._dirty = False  # is a chunk in region dirty
 
-        self._load()
+        if not create:
+            self._load()
 
     def _load(self):
         with open(self._file_path, "rb") as fp:
@@ -104,9 +106,11 @@ class AnvilRegion:
                 fp.write(struct.pack('>1024I', *mod_times))  # but I could not work it out with Numpy
                 fp.write(b''.join(data))
 
-    def get_chunk_data(self, cx: int, cz: int) -> Union[nbt.NBTFile, None]:
+    def get_chunk_data(self, cx: int, cz: int) -> nbt.NBTFile:
         if (cx, cz) in self._chunks:
             return self._decompress(self._chunks[(cx, cz)][3])
+        else:
+            raise ChunkDoesntExistException
 
     def put_chunk_data(self, cx: int, cz: int, data: nbt.NBTFile):
         """compress the data and put it in the class database"""
@@ -140,15 +144,6 @@ class AnvilRegionManager:
         self._loaded_regions: Dict[Tuple[int, int], AnvilRegion] = {}
 
     # TODO: allow loading and saving to different dimensions
-    # get_chunk_data
-        # load_region
-
-    # put_chunk_data
-
-    # delete_chunk
-
-    # save
-        # _save_region
 
     def save(self):
         # use put_chunk_data to actually upload modified chunks
@@ -163,58 +158,39 @@ class AnvilRegionManager:
         # any final closing requirements (I don't think there are any for anvil)
 
     def get_chunk_data(self, cx: int, cz: int) -> nbt.NBTFile:
-        """Get an NBTFile of a chunk from the database"""
+        """Get an NBTFile of a chunk from the database.
+        Will raise ChunkDoesntExistException if the region or chunk does not exist
+        """
         # get the region key
-        rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)
-        key = (rx, rz)
+        return self._get_region(cx, cz).get_chunk_data(cx & 0x1F, cz & 0x1F)
 
-        if not self._load_region(rx, rz):
-            raise Exception()   # TODO: handle regions and chunks not existing in the database
-
-        cx &= 0x1F
-        cz &= 0x1F
-
-        return self._loaded_regions[key].get_chunk_data(cx, cz)
-
-    def _load_region(self, rx: int, rz: int) -> bool:
-        key = (rx, rz)
+    def _get_region(self, cx: int, cz: int, create=False) -> AnvilRegion:
+        key = rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)
         if key in self._loaded_regions:
-            return True
+            return self._loaded_regions[key]
 
         # check the file exists and then open it
         file_path = os.path.join(self._directory, "region", f'r.{rx}.{rz}.mca')
-        if not os.path.exists(file_path):
-            raise FileNotFoundError()
+        if os.path.exists(file_path):
+            self._loaded_regions[key] = AnvilRegion(file_path)
+        else:
+            if create:
+                self._loaded_regions[key] = AnvilRegion(file_path, True)
+            else:
+                raise ChunkDoesntExistException
 
-        self._loaded_regions[key] = AnvilRegion(file_path)
-
-        return True
+        return self._loaded_regions[key]
 
     def put_chunk_data(self, cx: int, cz: int, data: nbt.NBTFile):
         """pass data to the region file class"""
         # get the region key
-        rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)
-        key = (rx, rz)
-
-        if not self._load_region(rx, rz):
-            raise Exception()  # TODO: handle regions and chunks not existing in the database
-
-        cx &= 0x1F
-        cz &= 0x1F
-
-        self._loaded_regions[key].put_chunk_data(cx, cz, data)
+        self._get_region(cx, cz, create=True).put_chunk_data(cx & 0x1F, cz & 0x1F, data)
 
     def delete_chunk(self, cx: int, cz: int):
-        rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)
-        key = (rx, rz)
-
-        if not self._load_region(rx, rz):
-            raise Exception()  # TODO: handle regions and chunks not existing in the database
-
-        cx &= 0x1F
-        cz &= 0x1F
-
-        self._loaded_regions[key].delete_chunk_data(cx, cz)
+        try:
+            self._get_region(cx, cz).delete_chunk_data(cx & 0x1F, cz & 0x1F)
+        except ChunkDoesntExistException:
+            pass
 
 
 class AnvilFormat(Format):
