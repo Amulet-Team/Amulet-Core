@@ -53,7 +53,13 @@ class World:
             pass
         else:
             # The input wrapper is the normal wrapper so just save the modified chunks back
-            pass
+            for (cx, cz) in self._deleted_chunks:
+                self._wrapper.delete_chunk(cx, cz)
+            self._deleted_chunks.clear()
+            for chunk in self.chunk_cache.values():
+                if chunk.changed:
+                    self._wrapper.save_chunk(chunk, self.palette)
+            # TODO check and flesh this out a bit
 
     def exit(self):
         # TODO: add "unsaved changes" check before exit
