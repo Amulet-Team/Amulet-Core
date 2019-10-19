@@ -3,10 +3,12 @@ from __future__ import annotations
 import os
 import struct
 import zlib
-from typing import Tuple, Any
+import gzip
+from typing import Tuple, Any, Dict, Union
+import numpy
+import time
 
 import amulet_nbt as nbt
-import numpy
 
 from amulet.world_interface.formats import Format
 from amulet.utils import world_utils
@@ -14,115 +16,189 @@ from amulet.utils.format_utils import check_all_exist, check_one_exists, load_le
 from amulet.world_interface import interfaces
 
 
+class AnvilRegion:
+    def __init__(self, file_path: str):
+        self.file_path = file_path
+
+        # [dirty, mod_time, data_length, data]  feel free to extend if you want to implement modifying in place and defragging
+        self._chunks: Dict[Tuple[int, int], Tuple[bool, int, int, bytes]] = {}
+        # self._file_size = 0
+        # self._free_sectors = None     # implement these for modifying in place
+        # self._offsets = None
+        # self._mod_times = None
+        self.dirty = False  # is a chunk in region dirty
+
+        self._load()
+
+    def _load(self):
+        with open(self.file_path, "rb") as fp:
+            # check that the file is a multiple of 4096 bytes and extend if not
+            # TODO: perhaps rewrite this in a way that is more readable
+            file_size = os.path.getsize(self.file_path)
+            if file_size & 0xFFF:
+                file_size = (file_size | 0xFFF) + 1
+                fp.truncate(file_size)
+
+            # if the length of the region file is 0 extend it to 8KiB TODO (perhaps have some error)
+            if not file_size:
+                file_size = world_utils.SECTOR_BYTES * 2
+                fp.truncate(file_size)
+
+            # read the file and populate the internal database
+            # self._file_size = file_size
+
+            fp.seek(0)
+
+            # offsets = fp.read(world_utils.SECTOR_BYTES)
+            # mod_times = fp.read(world_utils.SECTOR_BYTES)
+
+            # self._free_sectors = free_sectors = numpy.full(
+            #     file_size // world_utils.SECTOR_BYTES, True, bool
+            # )
+            # self._free_sectors[0:2] = False, False
+
+            offsets = numpy.fromfile(
+                fp, dtype=">u4", count=1024
+            )
+            mod_times = numpy.fromfile(
+                fp, dtype=">u4", count=1024
+            )
+
+            # for offset in offsets:
+            #     sector = offset >> 8
+            #     count = offset & 0xFF
+            #
+            #     for i in range(sector, sector + count):
+            #         if i >= len(free_sectors):
+            #             return False
+            #
+            #         free_sectors[i] = False
+
+            for x in range(32):
+                for z in range(32):
+                    offset = offsets[x + 32 * z]
+                    if offset == 0:
+                        continue
+                    sector = offset >> 8
+                    # count = offset & 0xFF   # the number of sectors used
+                    fp.seek(world_utils.SECTOR_BYTES * sector)
+                    # read int value and then read that amount of data
+                    buffer_size = struct.unpack(">I", fp.read(4))[0]
+                    self._chunks[(x, z)] = (False, mod_times[x + 32 * z], buffer_size, fp.read(buffer_size))
+
+    def save(self):
+        raise NotImplementedError
+
+    def get_chunk_data(self, cx: int, cz: int) -> Union[nbt.NBTFile, None]:
+        if (cx, cz) in self._chunks:
+            return self._decompress(self._chunks[(cx, cz)][3])
+
+    def put_chunk_data(self, cx: int, cz: int, data: nbt.NBTFile):
+        """compress the data and put it in the class database"""
+        buffer_size, bytes_data = self._compress(data)
+        self._chunks[(cx, cz)] = (True, int(time.time()), buffer_size, bytes_data)
+
+    def delete_chunk_data(self, cx: int, cz: int):
+        if (cx, cz) in self._chunks:
+            del self._chunks[(cx, cz)]
+
+    @staticmethod
+    def _compress(data: nbt.NBTFile) -> Tuple[int, bytes]:
+        """Convert an NBTFile into a compressed bytes object"""
+        data = data.save_to(compressed=False)
+        return len(data)+1, b'\x02' + zlib.compress(data)
+
+    @staticmethod
+    def _decompress(data: bytes) -> nbt.NBTFile:
+        """Convert a bytes object into an NBTFile"""
+        if data[0] == world_utils.VERSION_GZIP:
+            return nbt.load(buffer=gzip.decompress(data[1:]), compressed=False)
+        elif data[0] == world_utils.VERSION_DEFLATE:
+            return nbt.load(buffer=zlib.decompress(data[1:]), compressed=False)
+        raise Exception(f'Invalid compression type {data[0]}')
+
+
 class AnvilRegionManager:
     def __init__(self, directory: str):
         self._directory = directory
-        self._loaded_regions = {}
+        self._loaded_regions: Dict[Tuple[int, int], AnvilRegion] = {}
 
-    def load_chunk_data(
-        self, cx: int, cz: int
-    ) -> nbt.NBTFile:
+    # TODO: allow loading and saving to different dimensions
+    # get_chunk_data
+        # load_region
+
+    # put_chunk_data
+
+    # delete_chunk
+
+    # save
+        # _save_region
+
+    def save(self):
+        # use put_chunk_data to actually upload modified chunks
+        # run this to push those changes to disk
+
+        for region in self._loaded_regions.values():
+            region.save()
+            # TODO: perhaps delete the region from loaded regions so that memory usage doesn't explode
+
+    def close(self):
+        raise NotImplementedError
+        # any final closing requirements (I don't think there are any for anvil)
+
+    def get_chunk_data(self, cx: int, cz: int) -> nbt.NBTFile:
+        """Get an NBTFile of a chunk from the database"""
+        # get the region key
         rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)
         key = (rx, rz)
 
-        if not self.load_region(rx, rz):
-            raise Exception()
+        if not self._load_region(rx, rz):
+            raise Exception()   # TODO: handle regions and chunks not existing in the database
 
         cx &= 0x1F
         cz &= 0x1F
 
-        chunk_offset = self._loaded_regions[key]["offsets"][
-            (cx & 0x1F) + (cz & 0x1F) << 5
-        ]
-        if chunk_offset == 0:
-            raise Exception()
+        return self._loaded_regions[key].get_chunk_data(cx, cz)
 
-        sector_start = chunk_offset >> 8
-        number_of_sectors = chunk_offset & 0xFF
-
-        if number_of_sectors == 0:
-            raise Exception()
-
-        if sector_start + number_of_sectors > len(
-            self._loaded_regions[key]["free_sectors"]
-        ):
-            raise Exception()
-
-        with open(
-            os.path.join(self._directory, "region", "r.{}.{}.mca".format(rx, rz)), "rb"
-        ) as fp:
-            fp.seek(sector_start * world_utils.SECTOR_BYTES)
-            data = fp.read(number_of_sectors * world_utils.SECTOR_BYTES)
-
-        if len(data) < 5:
-            raise Exception("Malformed sector/chunk")
-
-        length = struct.unpack_from(">I", data)[0]
-        _format = struct.unpack_from("B", data, 4)[0]
-        data = data[5: length + 5]
-
-        if _format == world_utils.VERSION_GZIP:
-            data = world_utils.gunzip(data)
-        elif _format == world_utils.VERSION_DEFLATE:
-            data = zlib.decompress(data)
-
-        nbt_data = nbt.load(buffer=data)
-
-        return nbt_data
-
-    def load_region(self, rx: int, rz: int) -> bool:
+    def _load_region(self, rx: int, rz: int) -> bool:
         key = (rx, rz)
         if key in self._loaded_regions:
             return True
 
-        filename = os.path.join(self._directory, "region", "r.{}.{}.mca".format(rx, rz))
-        if not os.path.exists(filename):
+        # check the file exists and then open it
+        file_path = os.path.join(self._directory, "region", f'r.{rx}.{rz}.mca')
+        if not os.path.exists(file_path):
             raise FileNotFoundError()
 
-        fp = open(filename, "rb")
-        self._loaded_regions[key] = {}
-
-        file_size = os.path.getsize(filename)
-        if file_size & 0xFFF:
-            file_size = (file_size | 0xFFF) + 1
-            fp.truncate(file_size)
-
-        if not file_size:
-            file_size = world_utils.SECTOR_BYTES * 2
-            fp.truncate(file_size)
-
-        self._loaded_regions[key]["file_size"] = file_size
-
-        fp.seek(0)
-
-        offsets = fp.read(world_utils.SECTOR_BYTES)
-        mod_times = fp.read(world_utils.SECTOR_BYTES)
-
-        self._loaded_regions[key]["free_sectors"] = free_sectors = numpy.full(
-            file_size // world_utils.SECTOR_BYTES, True, bool
-        )
-        self._loaded_regions[key]["free_sectors"][0:2] = False, False
-
-        self._loaded_regions[key]["offsets"] = offsets = numpy.frombuffer(
-            offsets, dtype=">u4"
-        )
-        self._loaded_regions[key]["mod_times"] = numpy.frombuffer(
-            mod_times, dtype=">u4"
-        )
-
-        for offset in offsets:
-            sector = offset >> 8
-            count = offset & 0xFF
-
-            for i in range(sector, sector + count):
-                if i >= len(free_sectors):
-                    return False
-
-                free_sectors[i] = False
-
-        fp.close()
+        self._loaded_regions[key] = AnvilRegion(file_path)
 
         return True
+
+    def put_chunk_data(self, cx: int, cz: int, data: nbt.NBTFile):
+        """pass data to the region file class"""
+        # get the region key
+        rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)
+        key = (rx, rz)
+
+        if not self._load_region(rx, rz):
+            raise Exception()  # TODO: handle regions and chunks not existing in the database
+
+        cx &= 0x1F
+        cz &= 0x1F
+
+        self._loaded_regions[key].put_chunk_data(cx, cz, data)
+
+    def delete_chunk(self, cx: int, cz: int):
+        rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)
+        key = (rx, rz)
+
+        if not self._load_region(rx, rz):
+            raise Exception()  # TODO: handle regions and chunks not existing in the database
+
+        cx &= 0x1F
+        cz &= 0x1F
+
+        self._loaded_regions[key].delete_chunk_data(cx, cz)
 
 
 class AnvilFormat(Format):
@@ -134,6 +210,12 @@ class AnvilFormat(Format):
     def _max_world_version(self) -> Tuple:
         return 'anvil', self.root_tag['Data']['DataVersion']
 
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any):
+        """
+        Actually stores the data from the interface to disk.
+        """
+        self._region_manager.get_chunk_data(cx, cz)
+
     def _get_raw_chunk_data(self, cx, cz) -> Any:
         """
         Return the interface key and data to interface with given chunk coordinates.
@@ -142,7 +224,7 @@ class AnvilFormat(Format):
         :param cz: The z coordinate of the chunk.
         :return: The interface key for the get_interface method and the data to interface with.
         """
-        return self._region_manager.load_chunk_data(cx, cz)
+        return self._region_manager.get_chunk_data(cx, cz)
 
     def _get_interface(self, max_world_version, raw_chunk_data=None) -> interfaces.Interface:
         if raw_chunk_data is not None:
