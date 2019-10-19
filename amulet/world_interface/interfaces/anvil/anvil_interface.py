@@ -28,6 +28,13 @@ class AnvilInterface(Interface):
         tile_entities = None
         return Chunk(cx, cz, blocks, entities, tile_entities, extra=data), palette
 
+    def encode(self, chunk: Chunk, palette: numpy.ndarray) -> nbt.NBTFile:
+        # TODO: sort out a proper location for this data and create from scratch each time
+        data = chunk._extra
+        data["Level"]["Sections"] = self._encode_blocks(chunk.blocks, palette, data["Level"]["Sections"])
+        # data["Level"]["Entities"] = self._encode_entities(chunk.entities)
+        return data
+
     def _decode_entities(self, entities: list) -> List[nbt.NBTFile]:
         return []
         # entity_list = []
@@ -38,9 +45,10 @@ class AnvilInterface(Interface):
         #
         # return entity_list
 
-    def _decode_blocks(
-        self, chunk_sections
-    ) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    def _encode_entities(self, entities: list) -> List[nbt.NBTFile]:
+        raise NotImplementedError
+
+    def _decode_blocks(self, chunk_sections: nbt.TAG_List) -> Tuple[numpy.ndarray, numpy.ndarray]:
         if not chunk_sections:
             raise NotImplementedError(
                 "We don't support reading chunks that never been edited in Minecraft before"
@@ -55,7 +63,9 @@ class AnvilInterface(Interface):
             section_blocks = numpy.frombuffer(
                 section["Blocks"].value, dtype=numpy.uint8
             )
+            del section['Blocks']
             section_data = numpy.frombuffer(section["Data"].value, dtype=numpy.uint8)
+            del section['Data']
             section_blocks = section_blocks.reshape((16, 16, 16))
             section_blocks.astype(numpy.uint16, copy=False)
 
@@ -67,6 +77,7 @@ class AnvilInterface(Interface):
 
             if "Add" in section:
                 add_blocks = numpy.frombuffer(section["Add"].value, dtype=numpy.uint8)
+                del section['Add']
                 add_blocks = add_blocks.reshape((16, 16, 8))
                 add_blocks = world_utils.from_nibble_array(add_blocks)
 
@@ -85,8 +96,9 @@ class AnvilInterface(Interface):
         blocks = blocks.reshape(16, 256, 16, order="F")
         return blocks, palette
 
-    def encode(self, chunk: Chunk, palette: numpy.ndarray) -> nbt.NBTFile:
-        raise NotImplementedError()
+    def _encode_blocks(self, blocks: numpy.ndarray, palette: numpy.ndarray, sections: nbt.TAG_List) -> nbt.TAG_List:
+        pass
+
 
     def get_translator(self, max_world_version, data: nbt.NBTFile = None) -> translators.Translator:
         if data is None:

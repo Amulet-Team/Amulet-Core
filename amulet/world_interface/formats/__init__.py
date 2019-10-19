@@ -140,6 +140,9 @@ class Format:
     def _max_world_version(self) -> Tuple:
         raise NotImplementedError
 
+    def all_chunk_keys(self):
+        raise NotImplementedError
+
     def load_chunk(
         self, cx: int, cz: int, global_palette: BlockManager
     ) -> Chunk:
