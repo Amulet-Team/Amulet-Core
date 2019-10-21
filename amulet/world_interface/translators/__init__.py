@@ -121,7 +121,7 @@ class Translator:
             palette: numpy.ndarray,
             callback: Callable,
             full_translate: bool
-    ) -> Tuple[Chunk, BlockManager]:
+    ) -> Tuple[Chunk, numpy.ndarray]:
         """
         Translate an interface-specific chunk into the universal format.
 
@@ -133,7 +133,7 @@ class Translator:
 
         todo = []
         finished = BlockManager()
-        paletteMappings = {}
+        palette_mappings = {}
 
         for i, block in enumerate(palette):
             universal, entity, extra = translator.to_universal(block)
@@ -142,11 +142,11 @@ class Translator:
             if extra and callback:
                 todo.append(i)
                 continue
-            paletteMappings[i] = finished.get_add_block(universal)
+            palette_mappings[i] = finished.get_add_block(universal)
 
-        blockMappings = {}
+        block_mappings = {}
         for index in todo:
-            for x, y, z in zip(*numpy.where(chunk._blocks == index)):
+            for x, y, z in zip(*numpy.where(chunk.blocks == index)):
 
                 def get_block_at(pos):
                     nonlocal x, y, z, palette, chunk
@@ -157,22 +157,22 @@ class Translator:
                     cx = dx // 16
                     cz = dz // 16
                     if cx == 0 and cz == 0:
-                        return palette[chunk._blocks[dx % 16, dy, dz % 16]], None
+                        return palette[chunk.blocks[dx % 16, dy, dz % 16]], None
                     chunk, palette = callback(cx, cz)
-                    block = palette[chunk._blocks[dx % 16, dy, dz % 16]]
+                    block = palette[chunk.blocks[dx % 16, dy, dz % 16]]
                     return translator.from_universal(block)[0], None
 
-                block = palette[chunk._blocks[x, y, z]]
+                block = palette[chunk.blocks[x, y, z]]
                 universal, entity, extra = translator.to_universal(block, get_block_at)
                 if entity:
                     print(f"Warning: not sure what to do with entity for {block} yet.")
-                blockMappings[(x, y, z)] = finished.get_add_block(universal)
+                block_mappings[(x, y, z)] = finished.get_add_block(universal)
 
-        for old, new in paletteMappings.items():
-            chunk._blocks[chunk._blocks == old] = new
-        for (x, y, z), new in blockMappings.items():
+        for old, new in palette_mappings.items():
+            chunk._blocks[chunk.blocks == old] = new
+        for (x, y, z), new in block_mappings.items():
             chunk._blocks[x, y, z] = new
-        return chunk, finished
+        return chunk, numpy.array(finished.blocks())
 
     def _translator_key(self) -> Tuple[str, Tuple[int, int, int]]:
         """
