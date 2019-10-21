@@ -126,16 +126,29 @@ class Format:
         self.translation_manager = PyMCTranslate.new_translation_manager()
         self._max_world_version_ = None
 
+    def max_world_version(self) -> Tuple:
+        if self._max_world_version_ is None:
+            self._max_world_version_ = self._max_world_version()
+        return self._max_world_version()
+
+    def _get_interface(self, max_world_version, raw_chunk_data=None) -> interfaces.Interface:
+        raise NotImplementedError
+
+    @staticmethod
+    def is_valid(directory: str) -> bool:
+        """
+        Returns whether this format is able to load a given world.
+
+        :param directory: The path to the root of the world to load.
+        :return: True if the world can be loaded by this format, False otherwise.
+        """
+        raise NotImplementedError()
+
     def save(self):
         raise NotImplementedError
 
     def close(self):
         raise NotImplementedError
-
-    def max_world_version(self) -> Tuple:
-        if self._max_world_version_ is None:
-            self._max_world_version_ = self._max_world_version()
-        return self._max_world_version()
 
     def _max_world_version(self) -> Tuple:
         raise NotImplementedError
@@ -169,11 +182,10 @@ class Format:
         chunk, chunk_palette = interface.decode(raw_chunk_data)
 
         # set up a callback that translator can use to get chunk data
-        # TODO: perhaps find a way so that this does not need to load the whole chunk
         if recurse:
             def callback(x, z):
                 palette = BlockManager()
-                chunk = self._load_chunk(cx + x, cz + z, palette, False)  # TODO: this will also translate the chunk
+                chunk = self._load_chunk(cx + x, cz + z, palette, False)
                 return chunk, palette
 
         else:
@@ -205,7 +217,7 @@ class Format:
         chunk_palette, chunk._blocks = numpy.unique(chunk.blocks, return_inverse=True)
         chunk_palette = numpy.array([global_palette[int_id] for int_id in chunk_palette])
 
-        callback = None  # TODO
+        callback = None  # TODO will need access to the world class
 
         # translate from universal format to version format
         chunk, chunk_palette = translator.from_universal(self.translation_manager, chunk, chunk_palette, callback, recurse)
@@ -230,19 +242,6 @@ class Format:
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
         :return: The interface key for the get_interface method and the data to interface with.
-        """
-        raise NotImplementedError()
-
-    def _get_interface(self, max_world_version, raw_chunk_data=None) -> interfaces.Interface:
-        raise NotImplementedError
-
-    @staticmethod
-    def is_valid(directory: str) -> bool:
-        """
-        Returns whether this format is able to load a given world.
-
-        :param directory: The path to the root of the world to load.
-        :return: True if the world can be loaded by this format, False otherwise.
         """
         raise NotImplementedError()
 
