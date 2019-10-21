@@ -21,6 +21,11 @@ class AnvilInterface(Interface):
         return True
 
     def decode(self, data: nbt.NBTFile) -> Tuple[Chunk, numpy.ndarray]:
+        """
+
+        :param data: nbt.NBTFile
+        :return: Tuple[ Chunk in version format, an N*2 numpy int array of block ids and data values
+        """
         cx = data["Level"]["xPos"].value
         cz = data["Level"]["zPos"].value
         blocks, palette = self._decode_blocks(data["Level"]["Sections"])
@@ -29,9 +34,16 @@ class AnvilInterface(Interface):
         return Chunk(cx, cz, blocks, entities, tile_entities, extra=data), palette
 
     def encode(self, chunk: Chunk, palette: numpy.ndarray) -> nbt.NBTFile:
+        """
+
+        :param chunk: Chunk in version format
+        :param palette: an N*2 numpy int array of block ids and data values
+        :return: nbt.NBTFile
+        """
         # TODO: sort out a proper location for this data and create from scratch each time
         data = chunk._extra
-        data["Level"]["Sections"] = self._encode_blocks(chunk.blocks, palette, data["Level"]["Sections"])
+        data["Level"]["Sections"] = self._encode_blocks(chunk.blocks, palette)
+        # TODO: sort out the other data in sections
         # data["Level"]["Entities"] = self._encode_entities(chunk.entities)
         return data
 
@@ -96,9 +108,20 @@ class AnvilInterface(Interface):
         blocks = blocks.reshape(16, 256, 16, order="F")
         return blocks, palette
 
-    def _encode_blocks(self, blocks: numpy.ndarray, palette: numpy.ndarray, sections: nbt.TAG_List) -> nbt.TAG_List:
-        pass
+    def _encode_blocks(self, blocks: numpy.ndarray, palette: numpy.ndarray) -> nbt.TAG_List:
+        blocks = palette[blocks]
+        sections = nbt.TAG_List()
+        block_array, data_array = blocks[:, :, :, 0], blocks[:, :, :, 1]
+        for y in range(16): # perhaps find a way to do this dynamically
+            block_sub_array = block_array[:, y * 16: y * 16 + 16, :].ravel()
+            data_sub_array = data_array[:, y * 16: y * 16 + 16, :].ravel()
+            # TODO: check if the sub-chunk is empty and skip
+            section = nbt.TAG_Compound()
+            section['Y'] = nbt.TAG_Byte(y)
+            section['Blocks'] = nbt.TAG_Byte_Array(block_sub_array)
+            section['Data'] = nbt.TAG_Byte_Array((data_sub_array[::2] << 4) + data_sub_array[1::2])
 
+        return sections
 
     def get_translator(self, max_world_version, data: nbt.NBTFile = None) -> translators.Translator:
         if data is None:
