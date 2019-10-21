@@ -59,6 +59,14 @@ class Anvil2Interface(Interface):
         tile_entities = None
         return Chunk(cx, cz, blocks, entities, tile_entities, extra=data), palette
 
+    def encode(self, chunk: Chunk, palette: numpy.ndarray) -> nbt.NBTFile:
+        # TODO: sort out a proper location for this data and create from scratch each time
+        data = chunk._extra
+        data["Level"]["Sections"] = self._encode_blocks(chunk.blocks, palette)
+        # TODO: sort out the other data in sections
+        # data["Level"]["Entities"] = self._encode_entities(chunk.entities)
+        return data
+
     def _decode_blocks(
         self, chunk_sections
     ) -> Tuple[numpy.ndarray, numpy.ndarray]:
@@ -79,13 +87,57 @@ class Anvil2Interface(Interface):
                 section["BlockStates"].value, 4096
             ).reshape((16, 16, 16)) + len(palette)
 
-            palette += self._read_palette(section["Palette"])
+            palette += self._decode_palette(section["Palette"])
 
         blocks = numpy.swapaxes(blocks.swapaxes(0, 1), 0, 2)
         palette, inverse = numpy.unique(palette, return_inverse=True)
         blocks = inverse[blocks]
 
         return blocks.astype(f"uint{get_smallest_dtype(blocks)}"), palette
+
+    def _encode_blocks(self, blocks: numpy.ndarray, palette: numpy.ndarray) -> nbt.TAG_List:
+        sections = nbt.TAG_List()
+        for y in range(16):  # perhaps find a way to do this dynamically
+            block_sub_array = blocks[:, y * 16: y * 16 + 16, :].ravel()
+
+            sub_palette_, block_sub_array = numpy.unique(block_sub_array, return_inverse=True)
+            sub_palette = self._encode_palette(palette[sub_palette_])
+            if len(sub_palette) == 1 and sub_palette[0]['Name'].value == 'minecraft:air':
+                continue
+
+            section = nbt.TAG_Compound()
+            section['Y'] = nbt.TAG_Byte(y)
+            section['BlockStates'] = nbt.TAG_Byte_Array(block_sub_array)
+            section['Palette'] = sub_palette
+
+        return sections
+
+    @staticmethod
+    def _decode_palette(palette: nbt.TAG_List) -> list:
+        blockstates = []
+        for entry in palette:
+            namespace, base_name = entry["Name"].value.split(":", 1)
+            # TODO: handle waterlogged property
+            properties = {prop: str(val.value) for prop, val in entry.get("Properties", nbt.TAG_Compound({})).items()}
+            block = Block(
+                namespace=namespace, base_name=base_name, properties=properties
+            )
+            blockstates.append(block)
+        return blockstates
+
+    @staticmethod
+    def _encode_palette(blockstates: list) -> nbt.TAG_List:
+        palette = nbt.TAG_List()
+        for block in blockstates:
+            entry = nbt.TAG_Compound()
+            entry['Name'] = f'{block.namespace}:{block.base_name}'
+            properties = entry['Properties'] = nbt.TAG_Compound()
+            # TODO: handle waterlogged property
+            for prop, val in block.properties.items():
+                if isinstance(val, str):
+                    properties[prop] = nbt.TAG_String(val)
+            palette.append(entry)
+        return palette
 
     def _decode_entities(self, entities: list) -> List[nbt.NBTFile]:
         return []
@@ -96,21 +148,6 @@ class Anvil2Interface(Interface):
         #     entity_list.append(entity)
         #
         # return entity_list
-
-    def encode(self, chunk: Chunk, palette: numpy.ndarray) -> nbt.NBTFile:
-        raise NotImplementedError()
-
-    @staticmethod
-    def _read_palette(palette: nbt.TAG_List) -> list:
-        blockstates = []
-        for entry in palette:
-            namespace, base_name = entry["Name"].value.split(":", 1)
-            properties = {prop: str(val.value) for prop, val in entry.get("Properties", nbt.TAG_Compound({})).items()}
-            block = Block(
-                namespace=namespace, base_name=base_name, properties=properties
-            )
-            blockstates.append(block)
-        return blockstates
 
     def get_translator(self, max_world_version, data: nbt.NBTFile = None) -> translators.Translator:
         if data is None:
