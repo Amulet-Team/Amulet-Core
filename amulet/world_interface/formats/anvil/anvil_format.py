@@ -95,11 +95,11 @@ class AnvilRegion:
             offset = 2
             data = []
             for (cx, cz), (dirty, mod_time, buffer_size, buffer) in self._chunks.items():
-                index = cx + cz << 5
+                index = cx + (cz << 5)
                 sector_count = ((buffer_size + 4 | 0xFFF) + 1) >> 12
-                offsets[index] = offset << 8 + sector_count
+                offsets[index] = (offset << 8) + sector_count
                 mod_times[index] = mod_time
-                data.append(struct.pack('>I', buffer_size) + buffer + b'\x00' * (sector_count << 12 - buffer_size - 4))
+                data.append(struct.pack('>I', buffer_size) + buffer + b'\x00' * ((sector_count << 12) - buffer_size - 4))
                 offset += sector_count
             with open(self._file_path, 'wb') as fp:
                 fp.write(struct.pack('>1024I', *offsets))    # there is probably a prettier way of doing this
@@ -126,7 +126,8 @@ class AnvilRegion:
     def _compress(data: nbt.NBTFile) -> Tuple[int, bytes]:
         """Convert an NBTFile into a compressed bytes object"""
         data = data.save_to(compressed=False)
-        return len(data)+1, b'\x02' + zlib.compress(data)
+        data = b'\x02' + zlib.compress(data)
+        return len(data), data
 
     @staticmethod
     def _decompress(data: bytes) -> nbt.NBTFile:
@@ -253,3 +254,13 @@ class AnvilFormat(Format):
 
 
 FORMAT_CLASS = AnvilFormat
+
+if __name__ == '__main__':
+    import sys
+
+    world_path = sys.argv[1]
+    world = AnvilRegionManager(world_path)
+    chunk = world.get_chunk_data(0, 0)
+    print(chunk)
+    world.put_chunk_data(0, 0, chunk)
+    world.save()
