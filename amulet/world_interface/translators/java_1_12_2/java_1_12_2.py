@@ -9,7 +9,7 @@ class Java_1_12_2_Translator(Translator):
     def _translator_key(self):
         return ("java", (1, 12, 2))
 
-    def _translate_palette(self, translation_manager: PyMCTranslate.TranslationManager, palette):
+    def _translate_palette_to_universal(self, translation_manager: PyMCTranslate.TranslationManager, palette):
         version = translation_manager.get_version(*self._translator_key())
         palette = [version.ints_to_block(*entry) for entry in palette]
         return palette
