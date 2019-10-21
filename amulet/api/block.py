@@ -405,6 +405,9 @@ class BlockManager:
     def __contains__(self, item: Block) -> bool:
         return item in self._block_to_index_map
 
+    def blocks(self) -> Tuple[Block]:
+        return tuple(self._index_to_block)
+
     def items(self) -> Generator[Tuple[int, Block]]:
         for index, block in enumerate(self._index_to_block):
             yield index, block
