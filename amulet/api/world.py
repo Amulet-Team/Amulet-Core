@@ -58,7 +58,8 @@ class World:
             self._deleted_chunks.clear()
             for chunk in self.chunk_cache.values():
                 if chunk.changed:
-                    self._wrapper.save_chunk(chunk, self.palette)
+                    self._wrapper.save_chunk(deepcopy(chunk), self.palette)
+            self._wrapper.save()
             # TODO check and flesh this out a bit
 
     def exit(self):
