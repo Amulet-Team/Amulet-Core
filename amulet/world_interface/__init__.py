@@ -29,8 +29,20 @@ def load_world(directory: str, _format: str = None, forced: bool = False) -> Wor
 
 if __name__ == "__main__":
     import sys
+    from amulet.api.block import Block
+    import numpy
 
     w = load_world(sys.argv[1])
     c = w.get_chunk(0, 0)
     for block in c.blocks.ravel()[:4096:16]:    # the blockstates of one vertical column
+        print(w.palette[block])
+    stone = w.palette.get_add_block(Block(namespace='universal_minecraft', base_name='stone'))
+    # blocks[0, 30, 0] = stone
+    c.blocks = numpy.full((16, 256, 16), stone)
+    w.save()
+    w.exit()
+
+    w = load_world(sys.argv[1])
+    c = w.get_chunk(0, 0)
+    for block in c.blocks.ravel()[:4096:16]:  # the blockstates of one vertical column
         print(w.palette[block])
