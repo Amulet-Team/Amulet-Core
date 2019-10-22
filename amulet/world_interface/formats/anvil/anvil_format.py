@@ -208,7 +208,7 @@ class AnvilFormat(Format):
         pass    # TODO: release lock file
 
     def _max_world_version(self) -> Tuple:
-        return 'anvil', self.root_tag['Data']['DataVersion']
+        return 'anvil', self.root_tag['Data']['DataVersion'].value
 
     def delete_chunk(self, cx: int, cz: int):
         self._region_manager.delete_chunk(cx, cz)
@@ -217,7 +217,7 @@ class AnvilFormat(Format):
         """
         Actually stores the data from the interface to disk.
         """
-        self._region_manager.get_chunk_data(cx, cz)
+        self._region_manager.put_chunk_data(cx, cz, data)
 
     def _get_raw_chunk_data(self, cx, cz) -> Any:
         """

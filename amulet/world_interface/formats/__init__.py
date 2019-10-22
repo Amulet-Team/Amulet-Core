@@ -214,7 +214,9 @@ class Format:
         translator = interface.get_translator(self.max_world_version())
 
         # convert the global indexes into local indexes and a local palette
-        chunk_palette, chunk._blocks = numpy.unique(chunk.blocks, return_inverse=True)
+        blocks_shape = chunk.blocks.shape
+        chunk_palette, blocks_ = numpy.unique(chunk.blocks, return_inverse=True)
+        chunk._blocks = blocks_.reshape(blocks_shape)
         chunk_palette = numpy.array([global_palette[int_id] for int_id in chunk_palette])
 
         callback = None  # TODO will need access to the world class
