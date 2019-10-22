@@ -42,7 +42,7 @@ class AnvilInterface(Interface):
         """
         # TODO: sort out a proper location for this data and create from scratch each time
         data = chunk._extra
-        data["Level"]["Sections"] = self._encode_blocks(chunk.blocks, palette)
+        data["Level"]["Sections"] = self._encode_blocks(chunk._blocks, palette)
         # TODO: sort out the other data in sections
         # data["Level"]["Entities"] = self._encode_entities(chunk.entities)
         return data

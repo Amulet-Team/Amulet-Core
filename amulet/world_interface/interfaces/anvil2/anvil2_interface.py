@@ -42,6 +42,20 @@ def _decode_long_array(long_array: numpy.ndarray, size: int) -> numpy.ndarray:
     ][:size]
 
 
+def _encode_long_array(array: numpy.ndarray) -> numpy.ndarray:
+    """
+    Encode an long array (from BlockStates or Heightmaps)
+    :param array: A numpy array of the data to be encoded.
+    :return: Encoded array as numpy array
+    """
+    bits_per_block = max(int(array.max()).bit_length(), 2)
+    binary_blocks = numpy.unpackbits(
+        array.view("uint8")
+    ).reshape(-1, bits_per_block)[:, -bits_per_block:]
+
+    return numpy.packbits(binary_blocks).view(dtype=numpy.uint64)
+
+
 class Anvil2Interface(Interface):
     @staticmethod
     def is_valid(key):
@@ -62,7 +76,7 @@ class Anvil2Interface(Interface):
     def encode(self, chunk: Chunk, palette: numpy.ndarray) -> nbt.NBTFile:
         # TODO: sort out a proper location for this data and create from scratch each time
         data = chunk._extra
-        data["Level"]["Sections"] = self._encode_blocks(chunk.blocks, palette)
+        data["Level"]["Sections"] = self._encode_blocks(chunk._blocks, palette)
         # TODO: sort out the other data in sections
         # data["Level"]["Entities"] = self._encode_entities(chunk.entities)
         return data
@@ -107,8 +121,11 @@ class Anvil2Interface(Interface):
 
             section = nbt.TAG_Compound()
             section['Y'] = nbt.TAG_Byte(y)
-            section['BlockStates'] = nbt.TAG_Byte_Array(block_sub_array)
+            section['BlockStates'] = nbt.TAG_Long_Array(_encode_long_array(block_sub_array))
             section['Palette'] = sub_palette
+            section['BlockLight'] = nbt.TAG_Byte_Array(numpy.zeros(2048, dtype=numpy.uint8))
+            section['SkyLight'] = nbt.TAG_Byte_Array(numpy.zeros(2048, dtype=numpy.uint8))
+            sections.append(section)
 
         return sections
 
@@ -130,7 +147,7 @@ class Anvil2Interface(Interface):
         palette = nbt.TAG_List()
         for block in blockstates:
             entry = nbt.TAG_Compound()
-            entry['Name'] = f'{block.namespace}:{block.base_name}'
+            entry['Name'] = nbt.TAG_String(f'{block.namespace}:{block.base_name}')
             properties = entry['Properties'] = nbt.TAG_Compound()
             # TODO: handle waterlogged property
             for prop, val in block.properties.items():
