@@ -38,7 +38,8 @@ if __name__ == "__main__":
         print(w.palette[block])
     stone = w.palette.get_add_block(Block(namespace='universal_minecraft', base_name='stone'))
     # blocks[0, 30, 0] = stone
-    c.blocks = numpy.full((16, 256, 16), stone)
+    # c.blocks = numpy.full((16, 256, 16), stone)
+    c.blocks = numpy.random.randint(0, len(w.palette.blocks()), size=(16, 256, 16))
     w.save()
     w.exit()
 

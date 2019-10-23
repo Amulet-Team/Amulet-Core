@@ -32,14 +32,17 @@ def _decode_long_array(long_array: numpy.ndarray, size: int) -> numpy.ndarray:
     :size uint: The expected size of the returned array
     :return: Decoded array as numpy array
     """
-    long_array = numpy.array(long_array, dtype=">q")
-    bits_per_block = (len(long_array) * 64) // size
-    binary_blocks = numpy.unpackbits(
-        long_array[::-1].astype(">i8").view("uint8")
-    ).reshape(-1, bits_per_block)
-    return binary_blocks.dot(2 ** numpy.arange(binary_blocks.shape[1] - 1, -1, -1))[
-        ::-1  # Undo the bit-shifting that Minecraft does with the palette indices
-    ][:size]
+    long_array = long_array.astype('>q')
+    bits_per_entry = (len(long_array) * 64) // size
+
+    return numpy.packbits(
+        numpy.pad(
+            numpy.unpackbits(
+                long_array[::-1].astype(">i8").view("uint8")
+            ).reshape(-1, bits_per_entry),
+            [(0, 0), (64-bits_per_entry, 0)]
+        )
+    ).view(dtype='>q')
 
 
 def _encode_long_array(array: numpy.ndarray) -> numpy.ndarray:
@@ -48,12 +51,13 @@ def _encode_long_array(array: numpy.ndarray) -> numpy.ndarray:
     :param array: A numpy array of the data to be encoded.
     :return: Encoded array as numpy array
     """
-    bits_per_block = max(int(array.max()).bit_length(), 2)
-    binary_blocks = numpy.unpackbits(
-        array.view("uint8")
-    ).reshape(-1, bits_per_block)[:, -bits_per_block:]
-
-    return numpy.packbits(binary_blocks).view(dtype=numpy.uint64)
+    array = array.astype('>q')
+    bits_per_entry = max(int(array.max()).bit_length(), 2)
+    return numpy.packbits(
+        numpy.unpackbits(
+            array.view('uint8')
+        ).reshape(-1, 64)[:, -bits_per_entry:]
+    ).view(dtype='>q')[::-1]
 
 
 class Anvil2Interface(Interface):
