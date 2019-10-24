@@ -15,15 +15,13 @@ def load_world(directory: str, _format: str = None, forced: bool = False) -> Wor
     :return: The loaded world
     """
     if _format is not None:
-        if _format not in formats.get_all_formats():
+        if _format not in formats.loader.get_all():
             raise FormatLoaderInvalidFormat(f"Could not find _format loader {_format}")
-        if not forced and not formats.identify(directory) == _format:
+        if not forced and not formats.loader.identify(directory) == _format:
             raise FormatLoaderMismatched(f"{_format} is incompatible")
+        format_class: formats.Format = formats.loader.get_by_id(_format)
     else:
-        _format = formats.identify(directory)
-
-    format_class = formats.get_format(_format)
-
+        format_class: formats.Format = formats.loader.get(directory)
     return World(directory, format_class(directory))
 
 
