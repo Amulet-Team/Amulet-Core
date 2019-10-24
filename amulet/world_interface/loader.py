@@ -4,19 +4,20 @@ import glob
 import importlib.util
 import json
 import os
-from typing import Tuple, AbstractSet, Any, Dict
+from typing import AbstractSet, Any, Dict
 
 from amulet.api.errors import LoaderNoneMatched
 
 
 class Loader:
-	def __init__(self, object_type: str, directory: str, supported_meta_version, supported_version):
+	def __init__(self, object_type: str, directory: str, supported_meta_version, supported_version, create_instance=True):
 		self._object_type = object_type
 		self._directory = directory
 		self._supported_meta_version = supported_meta_version
 		self._supported_version = supported_version
 		self._loaded: Dict[str, Any] = {}
 		self._is_loaded = False
+		self._create_instance = create_instance
 
 	def _find(self):
 		"""Load all objects from the object directory"""
@@ -55,7 +56,11 @@ class Loader:
 				)
 				continue
 
-			self._loaded[meta[f"{self._object_type}"]["id"]] = modu.getattr(f"{self._object_type.upper()}_CLASS")()
+			c = getattr(modu, f"{self._object_type.upper()}_CLASS")
+			if self._create_instance:
+				self._loaded[meta[f"{self._object_type}"]["id"]] = c()
+			else:
+				self._loaded[meta[f"{self._object_type}"]["id"]] = c
 
 			if __debug__:
 				print(
@@ -69,7 +74,7 @@ class Loader:
 		self._loaded.clear()
 		self._find()
 
-	def get_all_loaded(self) -> AbstractSet[str]:
+	def get_all(self) -> AbstractSet[str]:
 		"""
 		:return: The identifiers of all loaded objects
 		"""
@@ -77,7 +82,7 @@ class Loader:
 			self._find()
 		return self._loaded.keys()
 
-	def get(self, identifier: Tuple) -> Any:
+	def get(self, identifier: Any) -> Any:
 		"""
 		Given an ``identifier`` will find a valid class and return it
 
@@ -87,7 +92,7 @@ class Loader:
 		object_id = self.identify(identifier)
 		return self._loaded[object_id]
 
-	def identify(self, identifier: Tuple) -> str:
+	def identify(self, identifier: Any) -> str:
 
 		if not self._is_loaded:
 			self._find()
