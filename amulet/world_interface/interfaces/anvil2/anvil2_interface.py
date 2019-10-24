@@ -8,7 +8,7 @@ import amulet_nbt as nbt
 from amulet.api.block import Block
 from amulet.api.chunk import Chunk
 from amulet.world_interface.interfaces import Interface
-from amulet.utils.world_utils import get_smallest_dtype
+from amulet.utils.world_utils import get_smallest_dtype, decode_long_array, encode_long_array
 from amulet.world_interface import translators
 
 
@@ -23,41 +23,6 @@ def properties_to_string(props: dict) -> str:
     for key, value in props.items():
         result.append("{}={}".format(key, value))
     return ",".join(result)
-
-
-def _decode_long_array(long_array: numpy.ndarray, size: int) -> numpy.ndarray:
-    """
-    Decode an long array (from BlockStates or Heightmaps)
-    :param long_array: Encoded long array
-    :size uint: The expected size of the returned array
-    :return: Decoded array as numpy array
-    """
-    long_array = long_array.astype('>q')
-    bits_per_entry = (len(long_array) * 64) // size
-
-    return numpy.packbits(
-        numpy.pad(
-            numpy.unpackbits(
-                long_array[::-1].astype(">i8").view("uint8")
-            ).reshape(-1, bits_per_entry),
-            [(0, 0), (64-bits_per_entry, 0)]
-        )
-    ).view(dtype='>q')
-
-
-def _encode_long_array(array: numpy.ndarray) -> numpy.ndarray:
-    """
-    Encode an long array (from BlockStates or Heightmaps)
-    :param array: A numpy array of the data to be encoded.
-    :return: Encoded array as numpy array
-    """
-    array = array.astype('>q')
-    bits_per_entry = max(int(array.max()).bit_length(), 2)
-    return numpy.packbits(
-        numpy.unpackbits(
-            array.view('uint8')
-        ).reshape(-1, 64)[:, -bits_per_entry:]
-    ).view(dtype='>q')[::-1]
 
 
 class Anvil2Interface(Interface):
@@ -101,7 +66,7 @@ class Anvil2Interface(Interface):
                 continue
             height = section["Y"].value << 4
 
-            blocks[height: height + 16, :, :] = _decode_long_array(
+            blocks[height: height + 16, :, :] = decode_long_array(
                 section["BlockStates"].value, 4096
             ).reshape((16, 16, 16)) + len(palette)
 
@@ -125,7 +90,7 @@ class Anvil2Interface(Interface):
 
             section = nbt.TAG_Compound()
             section['Y'] = nbt.TAG_Byte(y)
-            section['BlockStates'] = nbt.TAG_Long_Array(_encode_long_array(block_sub_array))
+            section['BlockStates'] = nbt.TAG_Long_Array(encode_long_array(block_sub_array))
             section['Palette'] = sub_palette
             section['BlockLight'] = nbt.TAG_Byte_Array(numpy.zeros(2048, dtype=numpy.uint8))
             section['SkyLight'] = nbt.TAG_Byte_Array(numpy.zeros(2048, dtype=numpy.uint8))
