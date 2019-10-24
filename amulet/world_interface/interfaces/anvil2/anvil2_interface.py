@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy
 import amulet_nbt as nbt
@@ -170,7 +170,7 @@ class Anvil2Interface(Interface):
         #
         # return entity_list
 
-    def get_translator(self, max_world_version, data: nbt.NBTFile = None) -> translators.Translator:
+    def get_translator(self, max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]], data: nbt.NBTFile = None) -> translators.Translator:
         if data is None:
             return translators.get_translator(max_world_version)
         else:

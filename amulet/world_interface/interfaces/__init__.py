@@ -128,11 +128,12 @@ class Interface:
         """
         raise NotImplementedError()
 
-    def get_translator(self, max_world_version, data: Any = None) -> translators.Translator:
+    def get_translator(self, max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]], data: Any = None) -> translators.Translator:
         """
         Return the translator given chunk coordinates.
 
-        :param data: The data passed in to translate.
+        :param max_world_version: The version identifier.
+        :param data: The data passed in to translate. (optional)
         :return: The translator key for the identify method.
         """
         raise NotImplementedError()
