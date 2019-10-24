@@ -26,5 +26,5 @@ amulet.world_interface.interfaces.loader.get(identifier: Tuple) -> Interface:
 
 ###translators
 Translators convert a Chunk class in version format to a Chunk class in Universal format (or back)
-amulet.world_interface.translators.get_translator(identifier: Tuple) -> Translator:
+amulet.world_interface.translators.loader.get(identifier: Tuple) -> Translator:
 - get the interface for the given version

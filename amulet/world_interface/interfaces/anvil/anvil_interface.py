@@ -170,9 +170,9 @@ class AnvilInterface(Interface):
 
     def _get_translator(self, max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]], data: int = None) -> translators.Translator:
         if data is None:
-            return translators.get_translator(max_world_version)
+            return translators.loader.get(max_world_version)
         else:
-            return translators.get_translator(("anvil", data))
+            return translators.loader.get(("anvil", data))
 
 
 INTERFACE_CLASS = AnvilInterface

@@ -1,116 +1,22 @@
 from __future__ import annotations
 
-import glob
-import importlib
-import json
 import os
 import numpy
 
-from typing import Tuple, AbstractSet, Dict, Callable, Union
+from typing import Tuple, Callable, Union
 
-from amulet.api.errors import TranslatorLoaderNoneMatched
 from ...api.block import BlockManager
 from ...api.chunk import Chunk
+from ..loader import Loader
 import PyMCTranslate
 from PyMCTranslate.py3.translation_manager import Version
-
-
-_loaded_translators: Dict[str, Translator] = {}
-_has_loaded_translators = False
 
 SUPPORTED_TRANSLATOR_VERSION = 0
 SUPPORTED_META_VERSION = 0
 
 TRANSLATORS_DIRECTORY = os.path.dirname(__file__)
 
-
-def _find_translators():
-    global _has_loaded_translators
-
-    directories = glob.iglob(os.path.join(TRANSLATORS_DIRECTORY, "*", ""))
-    for d in directories:
-        meta_path = os.path.join(d, "translator.meta")
-        if not os.path.exists(meta_path):
-            continue
-
-        with open(meta_path) as fp:
-            translator_info = json.load(fp)
-
-        if translator_info["meta_version"] != SUPPORTED_META_VERSION:
-            print(
-                f'[Error] Couldn\'t enable translator located in "{d}" due to unsupported meta version'
-            )
-            continue
-
-        if (
-            translator_info["translator"]["translator_version"]
-            != SUPPORTED_TRANSLATOR_VERSION
-        ):
-            print(
-                f"[Error] Couldn't enable translator \"{translator_info['translator']['id']}\" due to unsupported translator version"
-            )
-            continue
-
-        spec = importlib.util.spec_from_file_location(
-            translator_info["translator"]["entry_point"],
-            os.path.join(d, translator_info["translator"]["entry_point"] + ".py"),
-        )
-        modu = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(modu)
-
-        if not hasattr(modu, "TRANSLATOR_CLASS"):
-            print(
-                f"[Error] Translator \"{translator_info['translator']['id']}\" is missing the TRANSLATOR_CLASS attribute"
-            )
-            continue
-
-        _loaded_translators[
-            translator_info["translator"]["id"]
-        ] = modu.TRANSLATOR_CLASS()
-
-        if __debug__:
-            print(
-                f"[Debug] Enabled translator \"{translator_info['translator']['id']}\", version {translator_info['translator']['wrapper_version']}"
-            )
-
-    _has_loaded_translators = True
-
-
-def reload():
-    """Reloads all translators"""
-    _loaded_translators.clear()
-    _find_translators()
-
-
-def get_all_loaded_translators() -> AbstractSet[str]:
-    """
-    :return: The identifiers of all loaded translators
-    """
-    if not _has_loaded_translators:
-        _find_translators()
-    return _loaded_translators.keys()
-
-
-def get_translator(identifier: Tuple) -> Translator:
-    """
-    Gets the class for the translator with the given ``translator_id``
-
-    :param identifier: The translator identifier for the desired loaded translator
-    :return: The class for the translator
-    """
-    translator_id = _identify(identifier)
-    return _loaded_translators[translator_id]
-
-
-def _identify(identifier: Tuple) -> str:
-    if not _has_loaded_translators:
-        _find_translators()
-
-    for translator_name, translator_instance in _loaded_translators.items():
-        if translator_instance.is_valid(identifier):
-            return translator_name
-
-    raise TranslatorLoaderNoneMatched("Could not find a matching translator loader")
+loader = Loader('translator', TRANSLATORS_DIRECTORY, SUPPORTED_META_VERSION, SUPPORTED_TRANSLATOR_VERSION)
 
 
 class Translator:
@@ -264,8 +170,7 @@ class Translator:
 if __name__ == "__main__":
     import time
 
-    _find_translators()
-    print(_loaded_translators)
+    print(loader.get_all())
     time.sleep(1)
-    reload()
-    print(_loaded_translators)
+    loader.reload()
+    print(loader.get_all())

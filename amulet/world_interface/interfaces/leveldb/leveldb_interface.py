@@ -113,12 +113,12 @@ class LevelDBInterface(Interface):
 
     def _get_translator(self, max_world_version, data: Tuple[int, int, LevelDB] = None) -> translators.Translator:
         if data is None:
-            return translators.get_translator(max_world_version)
+            return translators.loader.get(max_world_version)
         else:
             cx, cz, db = data
             chunk_key_base = struct.pack("<ii", cx, cz)
             chunk_version = db.get(chunk_key_base + b"v")[0]
-            return translators.get_translator(("leveldb", chunk_version))
+            return translators.loader.get(("leveldb", chunk_version))
 
 
 INTERFACE_CLASS = LevelDBInterface
