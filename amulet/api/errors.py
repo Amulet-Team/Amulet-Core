@@ -18,5 +18,5 @@ class InvalidBlockException(Exception):
     pass
 
 
-class ChunkDoesntExistException(Exception):  # Possibly change the name in the future
+class ChunkDoesNotExist(Exception):
     pass

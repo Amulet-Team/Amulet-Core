@@ -14,7 +14,7 @@ from amulet.world_interface.formats import Format
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, check_one_exists, load_leveldat
 from amulet.world_interface.chunk import interfaces
-from amulet.api.errors import ChunkDoesntExistException
+from amulet.api.errors import ChunkDoesNotExist
 
 
 class AnvilRegion:
@@ -110,7 +110,7 @@ class AnvilRegion:
         if (cx, cz) in self._chunks:
             return self._decompress(self._chunks[(cx, cz)][3])
         else:
-            raise ChunkDoesntExistException
+            raise ChunkDoesNotExist
 
     def put_chunk_data(self, cx: int, cz: int, data: nbt.NBTFile):
         """compress the data and put it in the class database"""
@@ -160,7 +160,7 @@ class AnvilRegionManager:
 
     def get_chunk_data(self, cx: int, cz: int) -> nbt.NBTFile:
         """Get an NBTFile of a chunk from the database.
-        Will raise ChunkDoesntExistException if the region or chunk does not exist
+        Will raise ChunkDoesNotExist if the region or chunk does not exist
         """
         # get the region key
         return self._get_region(cx, cz).get_chunk_data(cx & 0x1F, cz & 0x1F)
@@ -178,7 +178,7 @@ class AnvilRegionManager:
             if create:
                 self._loaded_regions[key] = AnvilRegion(file_path, True)
             else:
-                raise ChunkDoesntExistException
+                raise ChunkDoesNotExist
 
         return self._loaded_regions[key]
 
@@ -190,7 +190,7 @@ class AnvilRegionManager:
     def delete_chunk(self, cx: int, cz: int):
         try:
             self._get_region(cx, cz).delete_chunk_data(cx & 0x1F, cz & 0x1F)
-        except ChunkDoesntExistException:
+        except ChunkDoesNotExist:
             pass
 
 

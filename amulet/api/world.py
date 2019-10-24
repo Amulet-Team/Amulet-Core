@@ -7,7 +7,7 @@ import shutil
 from typing import Union, Generator, Dict, Optional, Tuple, List
 
 from .block import Block, BlockManager
-from .errors import ChunkDoesntExistException
+from .errors import ChunkDoesNotExist
 from .history_manager import ChunkHistoryManager
 from .chunk import Chunk, SubChunk
 from .operation import Operation
@@ -99,7 +99,7 @@ class World:
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
 
         if (cx, cz) in self._deleted_chunks:
-            raise ChunkDoesntExistException(f"Chunk ({cx},{cz}) has been deleted")
+            raise ChunkDoesNotExist(f"Chunk ({cx},{cz}) has been deleted")
 
         chunk = self.get_chunk(cx, cz)
         block = chunk[offset_x, y, offset_z].blocks

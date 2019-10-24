@@ -4,7 +4,7 @@ import json
 import numpy
 
 from amulet.api.block import Block
-from amulet.api.errors import ChunkDoesntExistException
+from amulet.api.errors import ChunkDoesNotExist
 from amulet.api.selection import SubBox, SelectionBox
 from amulet.api.chunk import SubChunk
 from amulet.api import world_loader
@@ -159,7 +159,7 @@ class WorldTestBaseCases:
 
             self.world.run_operation_from_operation_name("delete_chunk", box1)
 
-            with self.assertRaises(ChunkDoesntExistException):
+            with self.assertRaises(ChunkDoesNotExist):
                 _ = self.world.get_block(1, 70, 3).blockstate
 
             self.assertEqual(
@@ -177,7 +177,7 @@ class WorldTestBaseCases:
 
             self.world.redo()
 
-            with self.assertRaises(ChunkDoesntExistException):
+            with self.assertRaises(ChunkDoesNotExist):
                 _ = self.world.get_block(1, 70, 3).blockstate
 
             self.assertEqual(
