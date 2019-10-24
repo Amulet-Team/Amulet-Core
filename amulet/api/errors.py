@@ -2,6 +2,10 @@ class FormatError(Exception):
     pass
 
 
+class LoaderNoneMatched(FormatError):
+    pass
+
+
 class FormatLoaderInvalidFormat(FormatError):
     pass
 
