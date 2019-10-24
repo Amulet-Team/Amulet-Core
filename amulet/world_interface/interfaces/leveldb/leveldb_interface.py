@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Union, Tuple, Callable
+from typing import Tuple, Callable
 
 import struct
 import numpy
@@ -9,7 +9,7 @@ import amulet_nbt
 from amulet.api.block import Block
 from amulet.api.chunk import Chunk
 from amulet.world_interface.interfaces import Interface
-from amulet.world_interface.leveldb import LevelDB
+from amulet.libs.leveldb import LevelDB
 from amulet.world_interface import translators
 from amulet.utils.world_utils import get_smallest_dtype
 import PyMCTranslate
