@@ -175,11 +175,6 @@ class Format:
         # Gets an interface (the code that actually reads the chunk data)
         raw_chunk_data = self._get_raw_chunk_data(cx, cz)
         interface = self._get_interface(self.max_world_version(), raw_chunk_data)
-        # get the translator for the given version
-        translator = interface.get_translator(self.max_world_version(), raw_chunk_data)
-
-        # decode the raw chunk data into the universal format
-        chunk, chunk_palette = interface.decode(raw_chunk_data)
 
         # set up a callback that translator can use to get chunk data
         if recurse:
@@ -191,8 +186,8 @@ class Format:
         else:
             callback = None
 
-        # translate the data to universal format
-        chunk, chunk_palette = translator.to_universal(self.translation_manager, chunk, chunk_palette, callback, recurse)
+        # decode the raw chunk data into the universal format
+        chunk, chunk_palette = interface.decode_and_translate(self.max_world_version(), raw_chunk_data, self.translation_manager, callback, recurse)
 
         # convert the block numerical ids from local chunk palette to global palette
         chunk_to_global = numpy.array([global_palette.get_add_block(block) for block in chunk_palette])
@@ -210,8 +205,6 @@ class Format:
 
         # Gets an interface (the code that actually reads the chunk data)
         interface = self._get_interface(self.max_world_version())
-        # get the translator for the given version
-        translator = interface.get_translator(self.max_world_version())
 
         # convert the global indexes into local indexes and a local palette
         blocks_shape = chunk.blocks.shape
@@ -221,10 +214,7 @@ class Format:
 
         callback = None  # TODO will need access to the world class
 
-        # translate from universal format to version format
-        chunk, chunk_palette = translator.from_universal(self.translation_manager, chunk, chunk_palette, callback, recurse)
-
-        raw_chunk_data = interface.encode(chunk, chunk_palette)
+        raw_chunk_data = interface.translate_and_encode(self.max_world_version(), chunk, chunk_palette, self.translation_manager, callback, recurse)
 
         self._put_raw_chunk_data(cx, cz, raw_chunk_data)
 

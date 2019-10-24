@@ -12,7 +12,7 @@ from amulet.api.errors import TranslatorLoaderNoneMatched
 from ...api.block import BlockManager
 from ...api.chunk import Chunk
 import PyMCTranslate
-from PyMCTranslate.py3.translation_manager import SubVersion
+from PyMCTranslate.py3.translation_manager import SubVersion, Version
 
 
 _loaded_translators: Dict[str, Translator] = {}
@@ -114,7 +114,7 @@ def _identify(identifier: Tuple) -> str:
 
 
 class Translator:
-    def _translator_key(self) -> Tuple[str, Tuple[int, int, int]]:
+    def _translator_key(self, version_number: Union[int, Tuple[int, int, int]]) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
         """
         Return the version key for PyMCTranslate
 
@@ -189,6 +189,7 @@ class Translator:
 
     def to_universal(
             self,
+            chunk_version: Union[int, Tuple[int, int, int]],
             translation_manager: PyMCTranslate.TranslationManager,
             chunk: Chunk,
             palette: numpy.ndarray,
@@ -205,12 +206,14 @@ class Translator:
         :param full_translate: if true do a full translate. If false just unpack the palette (used in callback)
         :return: Chunk object in the universal format.
         """
-        translator = translation_manager.get_sub_version(*self._translator_key())
-        palette = self._unpack_palette(translation_manager, palette)
+        version = translation_manager.get_version(*self._translator_key(chunk_version))
+        translator = version.get()
+        palette = self._unpack_palette(version, palette)
         return self._translate(chunk, palette, callback, translator.to_universal, full_translate)
 
     def from_universal(
             self,
+            max_world_version_number: Union[int, Tuple[int, int, int]],
             translation_manager: PyMCTranslate.TranslationManager,
             chunk: Chunk,
             palette: numpy.ndarray,
@@ -227,13 +230,14 @@ class Translator:
         :param full_translate: if true do a full translate. If false just pack the palette (used in callback)
         :return: Chunk object in the interface-specific format and palette.
         """
-        translator = translation_manager.get_sub_version(*self._translator_key())
-        palette = self._unpack_palette(translation_manager, palette)
+        version = translation_manager.get_version(*self._translator_key(max_world_version_number))
+        translator = version.get()
+        palette = self._unpack_palette(version, palette)
         return self._translate(chunk, palette, callback, translator.from_universal, full_translate)
 
     def _unpack_palette(
             self,
-            translation_manager: PyMCTranslate.TranslationManager,
+            version: Version,
             palette: numpy.ndarray
     ) -> numpy.ndarray:
         """
@@ -245,7 +249,7 @@ class Translator:
 
     def _pack_palette(
             self,
-            translation_manager: PyMCTranslate.TranslationManager,
+            version: Version,
             palette: numpy.ndarray
     ) -> numpy.ndarray:
         """

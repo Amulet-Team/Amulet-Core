@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, Callable
 
 import struct
 import numpy
@@ -12,6 +12,7 @@ from amulet.world_interface.interfaces import Interface
 from amulet.world_interface.leveldb import LevelDB
 from amulet.world_interface import translators
 from amulet.utils.world_utils import get_smallest_dtype
+import PyMCTranslate
 
 
 class LevelDBInterface(Interface):
@@ -23,7 +24,13 @@ class LevelDBInterface(Interface):
             return False
         return True
 
-    def decode(self, data: Tuple[int, int, LevelDB]) -> Tuple[Chunk, numpy.ndarray]:
+    def decode_and_translate(
+        self,
+        data: Tuple[int, int, LevelDB],
+        translation_manager: PyMCTranslate.TranslationManager,
+        callback: Callable,
+        full_translate: bool
+    ) -> Tuple[Chunk, numpy.ndarray]:
         cx, cz, db = data
         # chunk_key_base = struct.pack("<ii", cx, cz)
 
@@ -94,10 +101,17 @@ class LevelDBInterface(Interface):
         palette, offset = amulet_nbt.load(buffer=data, compressed=False, count=palette_len, offset=True)
         return palette
 
-    def encode(self, chunk: Chunk, palette: numpy.ndarray) -> Tuple[int, int, LevelDB]:
-        raise NotImplementedError
+    def translate_and_encode(
+        self,
+        chunk: Chunk,
+        palette: numpy.ndarray,
+        translation_manager: PyMCTranslate.TranslationManager,
+        callback: Callable,
+        full_translate: bool
+    ) -> Tuple[int, int, LevelDB]:
+        raise NotImplementedError  # I would suggest return a dictionary of bytes that format just writes to the database
 
-    def get_translator(self, max_world_version, data: Tuple[int, int, LevelDB] = None) -> translators.Translator:
+    def _get_translator(self, max_world_version, data: Tuple[int, int, LevelDB] = None) -> translators.Translator:
         if data is None:
             return translators.get_translator(max_world_version)
         else:

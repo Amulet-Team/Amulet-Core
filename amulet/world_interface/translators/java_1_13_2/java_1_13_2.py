@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from typing import Tuple, Union
+
 from amulet.world_interface.translators import Translator
 
 
 class Java_1_13_2_Translator(Translator):
-    def _translator_key(self):
-        return ("java", (1, 13, 2))
+    def _translator_key(self, version_number: int) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
+        return "java", version_number
 
     @staticmethod
     def is_valid(key):

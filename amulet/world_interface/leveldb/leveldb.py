@@ -216,7 +216,7 @@ class LevelDB:
         ldb.leveldb_options_set_block_size(options, 163840)
 
         error = ctypes.POINTER(ctypes.c_char)()
-        db = ldb.leveldb_open(options, path.encode("utf-8"), ctypes.byref(error))
+        db = ldb.leveldb_open(options, path.translate_and_encode("utf-8"), ctypes.byref(error))
         ldb.leveldb_options_destroy(options)
         _checkError(error)
 

@@ -5,12 +5,13 @@ import importlib
 import json
 import os
 import numpy
-from typing import Tuple, AbstractSet, Dict, Any, Union
+from typing import Tuple, AbstractSet, Dict, Any, Union, Callable
 
 from amulet.api.errors import InterfaceLoaderNoneMatched
 from ...api.chunk import Chunk
 from .. import translators
 import amulet_nbt as nbt
+import PyMCTranslate
 
 _loaded_interfaces: Dict[str, Interface] = {}
 _has_loaded_interfaces = False
@@ -109,7 +110,14 @@ def _identify(identifier: Tuple) -> str:
 
 
 class Interface:
-    def decode(self, data: Union[nbt.NBTFile, Any]) -> Tuple[Chunk, numpy.ndarray]:
+    def decode_and_translate(
+        self,
+        max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
+        data: Union[nbt.NBTFile, Any],
+        translation_manager: PyMCTranslate.TranslationManager,
+        callback: Callable,
+        full_translate: bool
+    ) -> Tuple[Chunk, numpy.ndarray]:
         """
         Create an amulet.api.chunk.Chunk object from raw data given by the format.
 
@@ -118,7 +126,15 @@ class Interface:
         """
         raise NotImplementedError()
 
-    def encode(self, chunk: Chunk, palette: numpy.ndarray) -> Union[nbt.NBTFile, Any]:
+    def translate_and_encode(
+        self,
+        max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
+        chunk: Chunk,
+        palette: numpy.ndarray,
+        translation_manager: PyMCTranslate.TranslationManager,
+        callback: Callable,
+        full_translate: bool
+    ) -> Union[nbt.NBTFile, Any]:
         """
         Create raw data for the format to store given a translated chunk.
 
@@ -128,7 +144,7 @@ class Interface:
         """
         raise NotImplementedError()
 
-    def get_translator(self, max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]], data: Any = None) -> translators.Translator:
+    def _get_translator(self, max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]], data: Any = None) -> translators.Translator:
         """
         Return the translator given chunk coordinates.
 

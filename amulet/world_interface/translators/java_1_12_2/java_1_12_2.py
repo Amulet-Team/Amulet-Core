@@ -1,30 +1,31 @@
 from __future__ import annotations
 
+from typing import Tuple, Union
 import numpy
 
 from amulet.world_interface.translators import Translator
 
 import PyMCTranslate
+from PyMCTranslate.py3.translation_manager import Version
 
 
 class Java_1_12_2_Translator(Translator):
-    def _translator_key(self):
-        return ("java", (1, 12, 2))
+    def _translator_key(self, version_number: int) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
+        return "java", version_number
 
-    def _unpack_palette(self, translation_manager: PyMCTranslate.TranslationManager, palette: numpy.ndarray):
+    def _unpack_palette(self, version: Version, palette: numpy.ndarray):
         """
         Unpacks an int array of block ids and block data values [[1, 0], [2, 0]] into a numpy array of Block objects.
         :param translation_manager:
         :param palette:
         :return:
         """
-        version = translation_manager.get_version(*self._translator_key())
         palette = numpy.array([version.ints_to_block(*entry) for entry in palette])
         return palette
 
     def _pack_palette(
             self,
-            translation_manager: PyMCTranslate.TranslationManager,
+            version: Version,
             palette: numpy.ndarray
     ) -> numpy.ndarray:
         """
@@ -33,7 +34,6 @@ class Java_1_12_2_Translator(Translator):
         :param palette:
         :return:
         """
-        version = translation_manager.get_version(*self._translator_key())
         palette = numpy.array([version.block_to_ints(entry) for entry in palette])
         return palette
 
