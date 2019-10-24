@@ -43,6 +43,15 @@ class Anvil2Interface(Interface):
         callback: Callable,
         full_translate: bool
     ) -> Tuple[Chunk, numpy.ndarray]:
+        """
+        Create an amulet.api.chunk.Chunk object from raw data given by the format and translate into the universal format.
+        :param max_world_version:
+        :param data: nbt.NBTFile
+        :param translation_manager:
+        :param callback:
+        :param full_translate:
+        :return: Chunk object in universal format, along with the palette for that chunk.
+        """
         cx = data["Level"]["xPos"].value
         cz = data["Level"]["zPos"].value
         data_version = data['DataVersion'].value
@@ -70,6 +79,16 @@ class Anvil2Interface(Interface):
         callback: Callable,
         full_translate: bool
     ) -> nbt.NBTFile:
+        """
+        Translate a universal chunk and encode it to raw data for the format to store.
+        :param max_world_version:
+        :param chunk: The universal chunk to translate and encode.
+        :param palette: The palette the ids in the chunk correspond to.
+        :param translation_manager:
+        :param callback:
+        :param full_translate:
+        :return: nbt.NBTFile
+        """
         chunk, palette = self._get_translator(
             max_world_version
         ).from_universal(

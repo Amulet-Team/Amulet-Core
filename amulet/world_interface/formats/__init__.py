@@ -11,7 +11,7 @@ from importlib.util import spec_from_file_location, module_from_spec
 from ...api.block import BlockManager
 from ...api.chunk import Chunk
 from ...api.errors import FormatLoaderNoneMatched
-from .. import interfaces, translators
+from .. import interfaces
 import PyMCTranslate
 
 SUPPORTED_FORMAT_VERSION = 0
@@ -180,14 +180,20 @@ class Format:
         if recurse:
             def callback(x, z):
                 palette = BlockManager()
-                chunk = self._load_chunk(cx + x, cz + z, palette, False)
-                return chunk, palette
+                chunk_ = self._load_chunk(cx + x, cz + z, palette, False)
+                return chunk_, palette
 
         else:
             callback = None
 
         # decode the raw chunk data into the universal format
-        chunk, chunk_palette = interface.decode_and_translate(self.max_world_version(), raw_chunk_data, self.translation_manager, callback, recurse)
+        chunk, chunk_palette = interface.decode_and_translate(
+            self.max_world_version(),
+            raw_chunk_data,
+            self.translation_manager,
+            callback,
+            recurse
+        )
 
         # convert the block numerical ids from local chunk palette to global palette
         chunk_to_global = numpy.array([global_palette.get_add_block(block) for block in chunk_palette])
@@ -214,7 +220,14 @@ class Format:
 
         callback = None  # TODO will need access to the world class
 
-        raw_chunk_data = interface.translate_and_encode(self.max_world_version(), chunk, chunk_palette, self.translation_manager, callback, recurse)
+        raw_chunk_data = interface.translate_and_encode(
+            self.max_world_version(),
+            chunk,
+            chunk_palette,
+            self.translation_manager,
+            callback,
+            recurse
+        )
 
         self._put_raw_chunk_data(cx, cz, raw_chunk_data)
 

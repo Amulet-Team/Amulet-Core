@@ -12,7 +12,7 @@ from amulet.api.errors import TranslatorLoaderNoneMatched
 from ...api.block import BlockManager
 from ...api.chunk import Chunk
 import PyMCTranslate
-from PyMCTranslate.py3.translation_manager import SubVersion, Version
+from PyMCTranslate.py3.translation_manager import Version
 
 
 _loaded_translators: Dict[str, Translator] = {}
@@ -172,8 +172,8 @@ class Translator:
                     if cx == 0 and cz == 0:
                         return palette[chunk.blocks[dx % 16, dy, dz % 16]], None
                     chunk, palette = callback(cx, cz)
-                    block = palette[chunk.blocks[dx % 16, dy, dz % 16]]
-                    return translate(block)[0], None
+                    block_ = palette[chunk.blocks[dx % 16, dy, dz % 16]]
+                    return translate(block_)[0], None
 
                 block = palette[chunk.blocks[x, y, z]]
                 universal, entity, extra = translate(block, get_block_at)
@@ -199,6 +199,7 @@ class Translator:
         """
         Translate an interface-specific chunk into the universal format.
 
+        :param chunk_version: The version number (int or tuple) of the input chunk
         :param translation_manager: PyMCTranslate.TranslationManager used for the translation
         :param chunk: The chunk to translate.
         :param palette: The palette that the chunk's indices correspond to.
@@ -223,6 +224,7 @@ class Translator:
         """
         Translate a universal chunk into the interface-specific format.
 
+        :param max_world_version_number: The version number (int or tuple) of the max world version
         :param translation_manager: PyMCTranslate.TranslationManager used for the translation
         :param chunk: The chunk to translate.
         :param palette: The palette that the chunk's indices correspond to.

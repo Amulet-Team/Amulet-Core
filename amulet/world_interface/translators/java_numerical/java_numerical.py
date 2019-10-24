@@ -15,7 +15,7 @@ class JavaNumericalTranslator(Translator):
     def _unpack_palette(self, version: Version, palette: numpy.ndarray):
         """
         Unpacks an int array of block ids and block data values [[1, 0], [2, 0]] into a numpy array of Block objects.
-        :param translation_manager:
+        :param version:
         :param palette:
         :return:
         """
@@ -29,7 +29,7 @@ class JavaNumericalTranslator(Translator):
     ) -> numpy.ndarray:
         """
         Packs a numpy array of Block objects into an int array of block ids and block data values [[1, 0], [2, 0]].
-        :param translation_manager:
+        :param version:
         :param palette:
         :return:
         """
