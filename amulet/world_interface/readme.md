@@ -21,7 +21,7 @@ amulet.world_interface.formats.get_format(format_id: str) -> Format
 ###interfaces
 Interfaces are the classes that actually interface with the chunk data.
 They take the raw data in whatever form the Format class loads it in and organises it into a Chunk class
-amulet.world_interface.interfaces.get_interface(identifier: Tuple) -> Interface:
+amulet.world_interface.interfaces.loader.get(identifier: Tuple) -> Interface:
 - get the interface for the given version
 
 ###translators

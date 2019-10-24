@@ -234,7 +234,7 @@ class AnvilFormat(Format):
             key = "anvil", raw_chunk_data["DataVersion"].value
         else:
             key = max_world_version
-        return interfaces.get_interface(key)
+        return interfaces.loader.get(key)
 
     @staticmethod
     def is_valid(directory) -> bool:

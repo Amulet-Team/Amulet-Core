@@ -46,7 +46,7 @@ class LevelDBFormat(Format):
             key = ("leveldb", chunk_version)
         else:
             key = max_world_version
-        return interfaces.get_interface(key)
+        return interfaces.loader.get(key)
 
     @staticmethod
     def is_valid(directory):

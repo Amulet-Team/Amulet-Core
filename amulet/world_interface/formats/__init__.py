@@ -153,8 +153,7 @@ class Format:
 if __name__ == "__main__":
     import time
 
-    _find_formats()
-    print(_loaded_formats)
+    print(loader.get_all())
     time.sleep(1)
-    reload()
-    print(_loaded_formats)
+    loader.reload()
+    print(loader.get_all())
