@@ -14,18 +14,6 @@ class FormatLoaderMismatched(FormatError):
     pass
 
 
-class FormatLoaderNoneMatched(FormatError):
-    pass
-
-
-class InterfaceLoaderNoneMatched(FormatError):
-    pass
-
-
-class TranslatorLoaderNoneMatched(FormatError):
-    pass
-
-
 class InvalidBlockException(Exception):
     pass
 
