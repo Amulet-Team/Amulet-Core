@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Tuple, Union
 import numpy
 
-from amulet.world_interface.translators import Translator
+from amulet.world_interface.chunk.translators import Translator
 
 from PyMCTranslate.py3.translation_manager import Version
 

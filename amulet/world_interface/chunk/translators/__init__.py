@@ -5,9 +5,9 @@ import numpy
 
 from typing import Tuple, Callable, Union
 
-from ...api.block import BlockManager
-from ...api.chunk import Chunk
-from ..loader import Loader
+from amulet.api.block import BlockManager
+from amulet.api.chunk import Chunk
+from amulet.world_interface.loader import Loader
 import PyMCTranslate
 from PyMCTranslate.py3.translation_manager import Version
 

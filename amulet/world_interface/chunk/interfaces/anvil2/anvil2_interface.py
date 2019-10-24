@@ -7,9 +7,9 @@ import amulet_nbt as nbt
 
 from amulet.api.block import Block
 from amulet.api.chunk import Chunk
-from amulet.world_interface.interfaces import Interface
+from amulet.world_interface.chunk.interfaces import Interface
 from amulet.utils.world_utils import get_smallest_dtype, decode_long_array, encode_long_array
-from amulet.world_interface import translators
+from amulet.world_interface.chunk import translators
 import PyMCTranslate
 
 

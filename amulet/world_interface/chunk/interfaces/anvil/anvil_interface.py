@@ -7,8 +7,8 @@ import amulet_nbt as nbt
 
 from amulet.api.chunk import Chunk
 from amulet.utils import world_utils
-from amulet.world_interface.interfaces import Interface
-from amulet.world_interface import translators
+from amulet.world_interface.chunk.interfaces import Interface
+from amulet.world_interface.chunk import translators
 import PyMCTranslate
 
 

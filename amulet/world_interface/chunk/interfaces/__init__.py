@@ -4,9 +4,9 @@ import os
 import numpy
 from typing import Tuple, Any, Union, Callable
 
-from ...api.chunk import Chunk
-from .. import translators
-from ..loader import Loader
+from amulet.api.chunk import Chunk
+from amulet.world_interface.chunk import translators
+from amulet.world_interface.loader import Loader
 import amulet_nbt as nbt
 import PyMCTranslate
 

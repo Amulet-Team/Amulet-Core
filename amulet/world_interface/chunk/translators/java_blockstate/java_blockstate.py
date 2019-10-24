@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Tuple, Union
 
-from amulet.world_interface.translators import Translator
+from amulet.world_interface.chunk.translators import Translator
 
 
 class JavaBlockstateTranslator(Translator):

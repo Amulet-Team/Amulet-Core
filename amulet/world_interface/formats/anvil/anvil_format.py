@@ -4,7 +4,7 @@ import os
 import struct
 import zlib
 import gzip
-from typing import Tuple, Any, Dict, Union
+from typing import Tuple, Any, Dict
 import numpy
 import time
 
@@ -13,7 +13,7 @@ import amulet_nbt as nbt
 from amulet.world_interface.formats import Format
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, check_one_exists, load_leveldat
-from amulet.world_interface import interfaces
+from amulet.world_interface.chunk import interfaces
 from amulet.api.errors import ChunkDoesntExistException
 
 

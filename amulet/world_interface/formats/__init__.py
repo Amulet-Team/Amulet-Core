@@ -7,7 +7,7 @@ from typing import Tuple, Any
 
 from ...api.block import BlockManager
 from ...api.chunk import Chunk
-from .. import interfaces
+from amulet.world_interface.chunk import interfaces
 from ..loader import Loader
 import PyMCTranslate
 

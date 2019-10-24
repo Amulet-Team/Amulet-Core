@@ -8,7 +8,7 @@ import amulet_nbt as nbt
 
 from amulet.utils.format_utils import check_all_exist
 from amulet.world_interface.formats import Format
-from amulet.world_interface import interfaces
+from amulet.world_interface.chunk import interfaces
 from amulet.libs.leveldb import LevelDB
 
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from amulet.world_interface.translators import Translator
+from amulet.world_interface.chunk.translators import Translator
 
 
 class Bedrock_1_11_4_Translator(Translator):

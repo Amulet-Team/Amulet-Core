@@ -8,9 +8,9 @@ import amulet_nbt
 
 from amulet.api.block import Block
 from amulet.api.chunk import Chunk
-from amulet.world_interface.interfaces import Interface
+from amulet.world_interface.chunk.interfaces import Interface
 from amulet.libs.leveldb import LevelDB
-from amulet.world_interface import translators
+from amulet.world_interface.chunk import translators
 from amulet.utils.world_utils import get_smallest_dtype
 import PyMCTranslate
 
