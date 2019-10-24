@@ -44,6 +44,7 @@ class AnvilInterface(Interface):
             max_world_version,
             data_version
         ).to_universal(
+            data_version,
             translation_manager,
             Chunk(cx, cz, blocks, entities, tile_entities, extra=data),
             palette,
@@ -69,6 +70,7 @@ class AnvilInterface(Interface):
         chunk, palette = self._get_translator(
             max_world_version
         ).from_universal(
+            max_world_version[1],
             translation_manager,
             chunk,
             palette,
