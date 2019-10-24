@@ -5,11 +5,10 @@ import numpy
 
 from amulet.world_interface.translators import Translator
 
-import PyMCTranslate
 from PyMCTranslate.py3.translation_manager import Version
 
 
-class Java_1_12_2_Translator(Translator):
+class JavaNumericalTranslator(Translator):
     def _translator_key(self, version_number: int) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
         return "java", version_number
 
@@ -46,4 +45,4 @@ class Java_1_12_2_Translator(Translator):
         return True
 
 
-TRANSLATOR_CLASS = Java_1_12_2_Translator
+TRANSLATOR_CLASS = JavaNumericalTranslator
