@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Tuple, Union, Callable
+from typing import List, Tuple
 
 import numpy
 import amulet_nbt as nbt
@@ -8,8 +8,6 @@ import amulet_nbt as nbt
 from amulet.api.chunk import Chunk
 from amulet.utils import world_utils
 from amulet.world_interface.chunk.interfaces import Interface
-from amulet.world_interface.chunk import translators
-import PyMCTranslate
 
 
 class AnvilInterface(Interface):
@@ -21,74 +19,30 @@ class AnvilInterface(Interface):
             return False
         return True
 
-    def decode_and_translate(
-        self,
-        max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
-        data: nbt.NBTFile,
-        translation_manager: PyMCTranslate.TranslationManager,
-        callback: Callable,
-        full_translate: bool
-    ) -> Tuple[Chunk, numpy.ndarray]:
+    def decode(self, data: nbt.NBTFile) -> Tuple[Chunk, numpy.ndarray]:
         """
-        Create an amulet.api.chunk.Chunk object from raw data given by the format and translate into the universal format.
-        :param max_world_version:
+        Create an amulet.api.chunk.Chunk object from raw data given by the format.
         :param data: nbt.NBTFile
-        :param translation_manager:
-        :param callback:
-        :param full_translate:
-        :return: Chunk object in universal format, along with the palette for that chunk.
+        :return: Chunk object in version-specific format, along with the palette for that chunk.
         """
         misc = {}
         cx = data["Level"]["xPos"].value
         cz = data["Level"]["zPos"].value
-        data_version = data['DataVersion'].value
         blocks, palette = self._decode_blocks(data["Level"]["Sections"])
         misc['BlockLight2048'] = {section['Y'].value: section['BlockLight'] for section in data["Level"]["Sections"]}
         misc['SkyLight2048'] = {section['Y'].value: section['SkyLight'] for section in data["Level"]["Sections"]}
 
         entities = self._decode_entities(data["Level"]["Entities"])
         tile_entities = None
-        return self._get_translator(
-            max_world_version,
-            data_version
-        ).to_universal(
-            data_version,
-            translation_manager,
-            Chunk(cx, cz, blocks, entities, tile_entities, misc=misc, extra=data),
-            palette,
-            callback,
-            full_translate
-        )
+        return Chunk(cx, cz, blocks, entities, tile_entities, misc=misc, extra=data), palette
 
-    def translate_and_encode(
-        self,
-        max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
-        chunk: Chunk,
-        palette: numpy.ndarray,
-        translation_manager: PyMCTranslate.TranslationManager,
-        callback: Callable,
-        full_translate: bool
-    ) -> nbt.NBTFile:
+    def encode(self, chunk: Chunk, palette: numpy.ndarray) -> nbt.NBTFile:
         """
-        Translate a universal chunk and encode it to raw data for the format to store.
-        :param max_world_version:
-        :param chunk: The universal chunk to translate and encode.
+        Encode a version-specific chunk to raw data for the format to store.
+        :param chunk: The version-specific chunk to translate and encode.
         :param palette: The palette the ids in the chunk correspond to.
-        :param translation_manager:
-        :param callback:
-        :param full_translate:
         :return: nbt.NBTFile
         """
-        chunk, palette = self._get_translator(
-            max_world_version
-        ).from_universal(
-            max_world_version[1],
-            translation_manager,
-            chunk,
-            palette,
-            callback,
-            full_translate
-        )
         # TODO: sort out a proper location for this data and create from scratch each time
         data = chunk._extra
         data["Level"]["Sections"] = self._encode_blocks(chunk._blocks, palette)
@@ -184,11 +138,8 @@ class AnvilInterface(Interface):
 
         return sections
 
-    def _get_translator(self, max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]], data: int = None) -> translators.Translator:
-        if data is None:
-            return translators.loader.get(max_world_version)
-        else:
-            return translators.loader.get(("anvil", data))
+    def _get_translator_info(self, data: nbt.NBTFile) -> Tuple[Tuple[str, int], int]:
+        return ("anvil", data["DataVersion"].value), data["DataVersion"].value
 
 
 INTERFACE_CLASS = AnvilInterface

@@ -25,6 +25,16 @@ class Format:
         self.translation_manager = PyMCTranslate.new_translation_manager()
         self._max_world_version_ = None
 
+    @staticmethod
+    def is_valid(directory: str) -> bool:
+        """
+        Returns whether this format is able to load a given world.
+
+        :param directory: The path to the root of the world to load.
+        :return: True if the world can be loaded by this format, False otherwise.
+        """
+        raise NotImplementedError()
+
     def max_world_version(self) -> Tuple:
         if self._max_world_version_ is None:
             self._max_world_version_ = self._max_world_version()
@@ -42,16 +52,6 @@ class Format:
 
     def _get_interface_key(self, raw_chunk_data) -> Any:
         raise NotImplementedError
-
-    @staticmethod
-    def is_valid(directory: str) -> bool:
-        """
-        Returns whether this format is able to load a given world.
-
-        :param directory: The path to the root of the world to load.
-        :return: True if the world can be loaded by this format, False otherwise.
-        """
-        raise NotImplementedError()
 
     def save(self):
         raise NotImplementedError
@@ -81,6 +81,11 @@ class Format:
         # Gets an interface (the code that actually reads the chunk data)
         raw_chunk_data = self._get_raw_chunk_data(cx, cz)
         interface = self._get_interface(self.max_world_version(), raw_chunk_data)
+        # get the translator for the given version
+        translator, chunk_version = interface.get_translator(self.max_world_version(), raw_chunk_data)
+
+        # decode the raw chunk data into the universal format
+        chunk, chunk_palette = interface.decode(raw_chunk_data)
 
         # set up a callback that translator can use to get chunk data
         if recurse:
@@ -92,14 +97,8 @@ class Format:
         else:
             callback = None
 
-        # decode the raw chunk data into the universal format
-        chunk, chunk_palette = interface.decode_and_translate(
-            self.max_world_version(),
-            raw_chunk_data,
-            self.translation_manager,
-            callback,
-            recurse
-        )
+        # translate the data to universal format
+        chunk, chunk_palette = translator.to_universal(chunk_version, self.translation_manager, chunk, chunk_palette, callback, recurse)
 
         # convert the block numerical ids from local chunk palette to global palette
         chunk_to_global = numpy.array([global_palette.get_add_block(block) for block in chunk_palette])
@@ -117,6 +116,8 @@ class Format:
 
         # Gets an interface (the code that actually reads the chunk data)
         interface = self._get_interface(self.max_world_version())
+        # get the translator for the given version
+        translator, chunk_version = interface.get_translator(self.max_world_version())
 
         # convert the global indexes into local indexes and a local palette
         blocks_shape = chunk.blocks.shape
@@ -126,14 +127,10 @@ class Format:
 
         callback = None  # TODO will need access to the world class
 
-        raw_chunk_data = interface.translate_and_encode(
-            self.max_world_version(),
-            chunk,
-            chunk_palette,
-            self.translation_manager,
-            callback,
-            recurse
-        )
+        # translate from universal format to version format
+        chunk, chunk_palette = translator.from_universal(chunk_version, self.translation_manager, chunk, chunk_palette, callback, recurse)
+
+        raw_chunk_data = interface.encode(chunk, chunk_palette)
 
         self._put_raw_chunk_data(cx, cz, raw_chunk_data)
 

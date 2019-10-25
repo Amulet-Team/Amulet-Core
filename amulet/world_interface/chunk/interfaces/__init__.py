@@ -19,54 +19,32 @@ loader = Loader('interface', INTERFACES_DIRECTORY, SUPPORTED_META_VERSION, SUPPO
 
 
 class Interface:
-    def decode_and_translate(
-        self,
-        max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
-        data: Union[nbt.NBTFile, Any],
-        translation_manager: PyMCTranslate.TranslationManager,
-        callback: Callable,
-        full_translate: bool
-    ) -> Tuple[Chunk, numpy.ndarray]:
+    def decode(self, data: Any) -> Tuple[Chunk, numpy.ndarray]:
         """
-        Create an amulet.api.chunk.Chunk object from raw data given by the format and translate into the universal format.
-        :param max_world_version:
+        Create an amulet.api.chunk.Chunk object from raw data given by the format
         :param data: Raw chunk data provided by the format.
-        :param translation_manager:
-        :param callback:
-        :param full_translate:
-        :return: Chunk object in universal format, along with the palette for that chunk.
+        :return: Chunk object in version-specific format, along with the palette for that chunk.
         """
         raise NotImplementedError()
 
-    def translate_and_encode(
-        self,
-        max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
-        chunk: Chunk,
-        palette: numpy.ndarray,
-        translation_manager: PyMCTranslate.TranslationManager,
-        callback: Callable,
-        full_translate: bool
-    ) -> Union[nbt.NBTFile, Any]:
+    def encode(self, chunk: Chunk, palette: numpy.ndarray) -> Any:
         """
-        Translate a universal chunk and encode it to raw data for the format to store.
-        :param max_world_version:
-        :param chunk: The universal chunk to translate and encode.
+        Take a version-specific chunk and encode it to raw data for the format to store.
+        :param chunk: The version-specfic chunk to translate and encode.
         :param palette: The palette the ids in the chunk correspond to.
-        :param translation_manager:
-        :param callback:
-        :param full_translate:
         :return: Raw data to be stored by the format.
         """
         raise NotImplementedError()
 
-    def _get_translator(self, max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]], data: Any = None) -> translators.Translator:
-        """
-        Return the translator given chunk coordinates.
+    def get_translator(self, max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]], data: Any = None) -> translators.Translator:
+        if data:
+            key, version = self._get_translator_info(data)
+        else:
+            key = max_world_version
+            version = max_world_version
+        return translators.loader.get(key), version
 
-        :param max_world_version: The version identifier.
-        :param data: The data passed in to translate. (optional)
-        :return: The translator key for the identify method.
-        """
+    def _get_translator_info(self, data: Any) -> Tuple[Any, Union[int, Tuple[int, int, int]]]:
         raise NotImplementedError()
 
     @staticmethod

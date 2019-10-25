@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Callable
+from typing import Tuple
 
 import struct
 import numpy
@@ -10,9 +10,7 @@ from amulet.api.block import Block
 from amulet.api.chunk import Chunk
 from amulet.world_interface.chunk.interfaces import Interface
 from amulet.libs.leveldb import LevelDB
-from amulet.world_interface.chunk import translators
 from amulet.utils.world_utils import get_smallest_dtype
-import PyMCTranslate
 
 
 class LevelDBInterface(Interface):
@@ -24,13 +22,7 @@ class LevelDBInterface(Interface):
             return False
         return True
 
-    def decode_and_translate(
-        self,
-        data: Tuple[int, int, LevelDB],
-        translation_manager: PyMCTranslate.TranslationManager,
-        callback: Callable,
-        full_translate: bool
-    ) -> Tuple[Chunk, numpy.ndarray]:
+    def decode(self, data: Tuple[int, int, LevelDB]) -> Tuple[Chunk, numpy.ndarray]:
         cx, cz, db = data
         # chunk_key_base = struct.pack("<ii", cx, cz)
 
@@ -101,24 +93,14 @@ class LevelDBInterface(Interface):
         palette, offset = amulet_nbt.load(buffer=data, compressed=False, count=palette_len, offset=True)
         return palette
 
-    def translate_and_encode(
-        self,
-        chunk: Chunk,
-        palette: numpy.ndarray,
-        translation_manager: PyMCTranslate.TranslationManager,
-        callback: Callable,
-        full_translate: bool
-    ) -> Tuple[int, int, LevelDB]:
-        raise NotImplementedError  # I would suggest return a dictionary of bytes that format just writes to the database
+    def encode(self, chunk: Chunk, palette: numpy.ndarray) -> Tuple[int, int, LevelDB]:
+        raise NotImplementedError
 
-    def _get_translator(self, max_world_version, data: Tuple[int, int, LevelDB] = None) -> translators.Translator:
-        if data is None:
-            return translators.loader.get(max_world_version)
-        else:
-            cx, cz, db = data
-            chunk_key_base = struct.pack("<ii", cx, cz)
-            chunk_version = db.get(chunk_key_base + b"v")[0]
-            return translators.loader.get(("leveldb", chunk_version))
+    def _get_translator_info(self, data: Tuple[int, int, LevelDB]) -> Tuple[Tuple[str, int], int]:
+        cx, cz, db = data
+        chunk_key_base = struct.pack("<ii", cx, cz)
+        chunk_version = db.get(chunk_key_base + b"v")[0]
+        return ("leveldb", chunk_version), chunk_version
 
 
 INTERFACE_CLASS = LevelDBInterface
