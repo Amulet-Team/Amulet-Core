@@ -52,10 +52,14 @@ class Anvil2Interface(Interface):
         :param full_translate:
         :return: Chunk object in universal format, along with the palette for that chunk.
         """
+        misc = {}
         cx = data["Level"]["xPos"].value
         cz = data["Level"]["zPos"].value
         data_version = data['DataVersion'].value
         blocks, palette = self._decode_blocks(data["Level"]["Sections"])
+        misc['BlockLight'] = {section['Y']: section['BlockLight'] for section in data["Level"]["Sections"]}
+        misc['SkyLight'] = {section['Y']: section['SkyLight'] for section in data["Level"]["Sections"]}
+
         entities = self._decode_entities(data["Level"]["Entities"])
         tile_entities = None
         return self._get_translator(
@@ -64,7 +68,7 @@ class Anvil2Interface(Interface):
         ).to_universal(
             data_version,
             translation_manager,
-            Chunk(cx, cz, blocks, entities, tile_entities, extra=data),
+            Chunk(cx, cz, blocks, entities, tile_entities, misc=misc, extra=data),
             palette,
             callback,
             full_translate
@@ -102,6 +106,18 @@ class Anvil2Interface(Interface):
         # TODO: sort out a proper location for this data and create from scratch each time
         data = chunk._extra
         data["Level"]["Sections"] = self._encode_blocks(chunk._blocks, palette)
+        for section in data["Level"]["Sections"]:
+            y = section['Y']
+            block_light = chunk.misc.get('BlockLight2048', {})
+            sky_light = chunk.misc.get('SkyLight2048', {})
+            if y in block_light:
+                section['BlockLight'] = block_light[y]
+            else:
+                section['BlockLight'] = nbt.TAG_Byte_Array(numpy.zeros(2048, dtype=numpy.uint8))
+            if y in sky_light:
+                section['SkyLight'] = sky_light[y]
+            else:
+                section['SkyLight'] = nbt.TAG_Byte_Array(numpy.zeros(2048, dtype=numpy.uint8))
         # TODO: sort out the other data in sections
         # data["Level"]["Entities"] = self._encode_entities(chunk.entities)
         return data
@@ -148,9 +164,6 @@ class Anvil2Interface(Interface):
             section['Y'] = nbt.TAG_Byte(y)
             section['BlockStates'] = nbt.TAG_Long_Array(encode_long_array(block_sub_array))
             section['Palette'] = sub_palette
-            # TODO
-            section['BlockLight'] = nbt.TAG_Byte_Array(numpy.zeros(2048, dtype=numpy.uint8))
-            section['SkyLight'] = nbt.TAG_Byte_Array(numpy.zeros(2048, dtype=numpy.uint8))
             sections.append(section)
 
         return sections
