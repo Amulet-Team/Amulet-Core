@@ -140,8 +140,9 @@ class Translator:
         """
         version = translation_manager.get_version(*self._translator_key(max_world_version_number))
         translator = version.get()
-        palette = self._unpack_palette(version, palette)
-        return self._translate(chunk, palette, callback, translator.from_universal, full_translate)
+        chunk, palette = self._translate(chunk, palette, callback, translator.from_universal, full_translate)
+        palette = self._pack_palette(version, palette)
+        return chunk, palette
 
     def _unpack_palette(
             self,

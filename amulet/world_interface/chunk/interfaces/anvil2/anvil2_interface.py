@@ -148,6 +148,7 @@ class Anvil2Interface(Interface):
             section['Y'] = nbt.TAG_Byte(y)
             section['BlockStates'] = nbt.TAG_Long_Array(encode_long_array(block_sub_array))
             section['Palette'] = sub_palette
+            # TODO
             section['BlockLight'] = nbt.TAG_Byte_Array(numpy.zeros(2048, dtype=numpy.uint8))
             section['SkyLight'] = nbt.TAG_Byte_Array(numpy.zeros(2048, dtype=numpy.uint8))
             sections.append(section)

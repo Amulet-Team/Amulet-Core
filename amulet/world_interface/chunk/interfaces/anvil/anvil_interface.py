@@ -106,7 +106,7 @@ class AnvilInterface(Interface):
         raise NotImplementedError
 
     def _decode_blocks(self, chunk_sections: nbt.TAG_List) -> Tuple[numpy.ndarray, numpy.ndarray]:
-        if not chunk_sections:
+        if chunk_sections is None:
             raise NotImplementedError(
                 "We don't support reading chunks that never been edited in Minecraft before"
             )
@@ -163,8 +163,11 @@ class AnvilInterface(Interface):
             # TODO: check if the sub-chunk is empty and skip
             section = nbt.TAG_Compound()
             section['Y'] = nbt.TAG_Byte(y)
-            section['Blocks'] = nbt.TAG_Byte_Array(block_sub_array)
-            section['Data'] = nbt.TAG_Byte_Array((data_sub_array[::2] << 4) + data_sub_array[1::2])
+            section['Blocks'] = nbt.TAG_Byte_Array(block_sub_array.astype('uint8'))
+            section['Data'] = nbt.TAG_Byte_Array(((data_sub_array[::2] << 4) + data_sub_array[1::2]).astype('uint8'))
+            section['BlockLight'] = nbt.TAG_Byte_Array(numpy.zeros(2048, dtype=numpy.uint8))
+            section['SkyLight'] = nbt.TAG_Byte_Array(numpy.zeros(2048, dtype=numpy.uint8))
+            sections.append(section)
 
         return sections
 
