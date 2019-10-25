@@ -18,12 +18,13 @@ class Chunk:
     Class to represent a chunk that exists in an Minecraft world
     """
 
-    def __init__(self, cx: int, cz: int, blocks=None, entities=None, tileentities=None, extra: nbt.NBTFile = None):
+    def __init__(self, cx: int, cz: int, blocks=None, entities=None, tileentities=None, misc: dict = None, extra: nbt.NBTFile = None):
         self.cx, self.cz = cx, cz
         self._blocks: numpy.ndarray = blocks
         self._entities = entities
         self._tileentities = tileentities
-        self._extra = extra if extra is not None else {}
+        self._misc = {} if misc is None else misc   # all entries that are not important enough to get an attribute
+        self._extra = {} if extra is None else extra    # temp store for Java NBTFile. Remove this when unpacked to misc
 
         self._changed = False
         self._marked_for_deletion = False
