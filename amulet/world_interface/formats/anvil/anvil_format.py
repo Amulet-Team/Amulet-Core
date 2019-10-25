@@ -229,12 +229,8 @@ class AnvilFormat(Format):
         """
         return self._region_manager.get_chunk_data(cx, cz)
 
-    def _get_interface(self, max_world_version, raw_chunk_data=None) -> interfaces.Interface:
-        if raw_chunk_data is not None:
-            key = "anvil", raw_chunk_data["DataVersion"].value
-        else:
-            key = max_world_version
-        return interfaces.loader.get(key)
+    def _get_interface_key(self, raw_chunk_data) -> Tuple[str, int]:
+        return "anvil", raw_chunk_data["DataVersion"].value
 
     @staticmethod
     def is_valid(directory) -> bool:

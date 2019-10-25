@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import os
-import numpy
-
 from typing import Tuple, Any
 
+import numpy
+import PyMCTranslate
+
+from amulet.world_interface.chunk import interfaces
 from ...api.block import BlockManager
 from ...api.chunk import Chunk
-from amulet.world_interface.chunk import interfaces
 from ..loader import Loader
-import PyMCTranslate
 
 SUPPORTED_FORMAT_VERSION = 0
 SUPPORTED_META_VERSION = 0
@@ -30,7 +30,17 @@ class Format:
             self._max_world_version_ = self._max_world_version()
         return self._max_world_version()
 
+    def _max_world_version(self) -> Tuple:
+        raise NotImplementedError
+
     def _get_interface(self, max_world_version, raw_chunk_data=None) -> interfaces.Interface:
+        if raw_chunk_data:
+            key = self._get_interface_key(raw_chunk_data)
+        else:
+            key = max_world_version
+        return interfaces.loader.get(key)
+
+    def _get_interface_key(self, raw_chunk_data) -> Any:
         raise NotImplementedError
 
     @staticmethod
@@ -47,9 +57,6 @@ class Format:
         raise NotImplementedError
 
     def close(self):
-        raise NotImplementedError
-
-    def _max_world_version(self) -> Tuple:
         raise NotImplementedError
 
     def all_chunk_keys(self):

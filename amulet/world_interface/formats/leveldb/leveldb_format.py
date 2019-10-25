@@ -38,15 +38,11 @@ class LevelDBFormat(Format):
         """
         return (cx, cz, self._db)
 
-    def _get_interface(self, max_world_version, raw_chunk_data=None) -> interfaces.Interface:
-        if raw_chunk_data is not None:
-            cx, cz = raw_chunk_data[:2]
-            chunk_key_base = struct.pack("<ii", cx, cz)
-            chunk_version = self._db.get(chunk_key_base + b"v")[0]
-            key = ("leveldb", chunk_version)
-        else:
-            key = max_world_version
-        return interfaces.loader.get(key)
+    def _get_interface_key(self, raw_chunk_data) -> Tuple[str, int]:
+        cx, cz = raw_chunk_data[:2]
+        chunk_key_base = struct.pack("<ii", cx, cz)
+        chunk_version = self._db.get(chunk_key_base + b"v")[0]
+        return "leveldb", chunk_version
 
     @staticmethod
     def is_valid(directory):
