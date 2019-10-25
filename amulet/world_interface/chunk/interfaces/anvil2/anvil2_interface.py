@@ -37,7 +37,7 @@ class Anvil2Interface(Interface):
 
     def decode_and_translate(
         self,
-        max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
+        max_world_version: Tuple[str, int],
         data: nbt.NBTFile,
         translation_manager: PyMCTranslate.TranslationManager,
         callback: Callable,
@@ -57,8 +57,21 @@ class Anvil2Interface(Interface):
         cz = data["Level"]["zPos"].value
         data_version = data['DataVersion'].value
         blocks, palette = self._decode_blocks(data["Level"]["Sections"])
-        misc['BlockLight'] = {section['Y'].value: section['BlockLight'] for section in data["Level"]["Sections"]}
-        misc['SkyLight'] = {section['Y'].value: section['SkyLight'] for section in data["Level"]["Sections"]}
+        misc['BlockLight2048BA'] = {section['Y'].value: section['BlockLight'] for section in data["Level"]["Sections"]}
+        misc['SkyLight2048BA'] = {section['Y'].value: section['SkyLight'] for section in data["Level"]["Sections"]}
+
+        misc['TileTicksA'] = data['Level']['TileTicks']
+        misc['LastUpdateL'] = data['Level']['LastUpdate']
+        # misc['Biomes256'] = data['Level']['Biomes']
+        misc['InhabitedTimeL'] = data['Level']['InhabitedTime']
+
+        misc['StatusSt'] = data['Level']['Status']
+        misc['HeightmapsC'] = data['Level']['Heightmaps']
+        misc['ToBeTickedA'] = data['Level']['ToBeTicked']
+        misc['PostProcessingA'] = data['Level']['PostProcessing']
+        misc['StructuresC'] = data['Level']['Structures']
+        misc['LiquidTicksA'] = data['Level']['LiquidTicks']
+        misc['LiquidsToBeTicked'] = data['Level']['LiquidsToBeTicked']
 
         entities = self._decode_entities(data["Level"]["Entities"])
         tile_entities = None
@@ -76,7 +89,7 @@ class Anvil2Interface(Interface):
 
     def translate_and_encode(
         self,
-        max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
+        max_world_version: Tuple[str, int],
         chunk: Chunk,
         palette: numpy.ndarray,
         translation_manager: PyMCTranslate.TranslationManager,
@@ -103,8 +116,12 @@ class Anvil2Interface(Interface):
             callback,
             full_translate
         )
-        # TODO: sort out a proper location for this data and create from scratch each time
-        data = chunk._extra
+        misc = chunk.misc
+        data = nbt.NBTFile(nbt.TAG_Compound(), '')
+        data['Level'] = nbt.TAG_Compound()
+        data['Level']['xPos'] = nbt.TAG_Int(chunk.cx)
+        data['Level']['zPos'] = nbt.TAG_Int(chunk.cz)
+        data['DataVersion'] = nbt.TAG_Int(max_world_version[1])
         data["Level"]["Sections"] = self._encode_blocks(chunk._blocks, palette)
         for section in data["Level"]["Sections"]:
             y = section['Y'].value
@@ -118,8 +135,34 @@ class Anvil2Interface(Interface):
                 section['SkyLight'] = sky_light[y]
             else:
                 section['SkyLight'] = nbt.TAG_Byte_Array(numpy.zeros(2048, dtype=numpy.uint8))
-        # TODO: sort out the other data in sections
-        # data["Level"]["Entities"] = self._encode_entities(chunk.entities)
+
+        data['Level']['TileTicks'] = misc.get('TileTicksA', nbt.TAG_List())
+        data['Level']['LastUpdate'] = misc.get('LastUpdateL', nbt.TAG_Long(0))
+        # data['Level']['Biomes'] = misc.get('Biomes256', nbt.TAG_Byte_Array(numpy.zeros(256, dtype='uint8')))
+        data['Level']['Biomes'] = chunk.extra['Level']['Biomes']
+        data['Level']['InhabitedTime'] = misc.get('InhabitedTimeL', nbt.TAG_Long(0))
+
+        data['Level']['Status'] = misc.get('StatusSt', nbt.TAG_String('postprocessed'))
+        data['Level']['Heightmaps'] = nbt.TAG_Compound()
+        heightmaps = misc.get('HeightmapsC', nbt.TAG_Compound())
+        for heightmap in (
+                'MOTION_BLOCKING',
+                'MOTION_BLOCKING_NO_LEAVES',
+                'OCEAN_FLOOR',
+                'OCEAN_FLOOR_WG',
+                'WORLD_SURFACE',
+                'WORLD_SURFACE_WG'
+        ):
+            data['Level']['Heightmaps'][heightmap] = heightmaps.get(
+                heightmap, nbt.TAG_Long_Array(numpy.zeros(36, dtype='>i8'))
+            )
+        data['Level']['ToBeTicked'] = misc.get('ToBeTickedA', nbt.TAG_List([nbt.TAG_List() for _ in range(16)]))
+        data['Level']['PostProcessing'] = misc.get('PostProcessingA', nbt.TAG_List([nbt.TAG_List() for _ in range(16)]))
+        data['Level']['Structures'] = misc.get('StructuresC', nbt.TAG_Compound())
+        data['Level']['LiquidTicks'] = misc.get('LiquidTicksA', nbt.TAG_List())
+        data['Level']['LiquidsToBeTicked'] = misc.get('LiquidsToBeTicked', nbt.TAG_List([nbt.TAG_List() for _ in range(16)]))
+
+        data["Level"]["Entities"] = self._encode_entities(chunk.entities)
         return data
 
     def _decode_blocks(
@@ -204,6 +247,9 @@ class Anvil2Interface(Interface):
         #     entity_list.append(entity)
         #
         # return entity_list
+
+    def _encode_entities(self, entities: list) -> nbt.TAG_List:
+        return nbt.TAG_List([])
 
     def _get_translator(self, max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]], data: int = None) -> translators.Translator:
         if data is None:

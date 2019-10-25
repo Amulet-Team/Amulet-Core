@@ -29,9 +29,10 @@ if __name__ == "__main__":
     import sys
     from amulet.api.block import Block
     import numpy
+    cx, cz = 0, 0
 
     w = load_world(sys.argv[1])
-    c = w.get_chunk(0, 0)
+    c = w.get_chunk(cx, cz)
     for block in c.blocks.ravel()[:4096:16]:    # the blockstates of one vertical column
         print(w.palette[block])
     air = w.palette.get_add_block(Block(namespace='universal_minecraft', base_name='air'))
@@ -46,6 +47,6 @@ if __name__ == "__main__":
     w.exit()
 
     w = load_world(sys.argv[1])
-    c = w.get_chunk(0, 0)
+    c = w.get_chunk(cx, cz)
     for block in c.blocks.ravel()[:4096:16]:  # the blockstates of one vertical column
         print(w.palette[block])
