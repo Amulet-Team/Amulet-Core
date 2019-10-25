@@ -29,8 +29,15 @@ class AnvilInterface(Interface):
         cx = data["Level"]["xPos"].value
         cz = data["Level"]["zPos"].value
         blocks, palette = self._decode_blocks(data["Level"]["Sections"])
-        misc['BlockLight2048'] = {section['Y'].value: section['BlockLight'] for section in data["Level"]["Sections"]}
-        misc['SkyLight2048'] = {section['Y'].value: section['SkyLight'] for section in data["Level"]["Sections"]}
+        misc['BlockLight2048BA'] = {section['Y'].value: section['BlockLight'] for section in data["Level"]["Sections"]}
+        misc['SkyLight2048BA'] = {section['Y'].value: section['SkyLight'] for section in data["Level"]["Sections"]}
+        misc['LightPopulatedB'] = data['Level']['LightPopulated']
+        misc['HeightMap256IA'] = data['Level']['HeightMap']
+        misc['TileTicksA'] = data['Level'].get('TileTicks', nbt.TAG_List())
+        misc['LastUpdateL'] = data['Level']['LastUpdate']
+        # misc['Biomes256'] = data['Level']['Biomes']
+        misc['InhabitedTimeL'] = data['Level']['InhabitedTime']
+        misc['TerrainPopulatedB'] = data['Level']['TerrainPopulated']
 
         entities = self._decode_entities(data["Level"]["Entities"])
         tile_entities = None
@@ -43,13 +50,18 @@ class AnvilInterface(Interface):
         :param palette: The palette the ids in the chunk correspond to.
         :return: nbt.NBTFile
         """
-        # TODO: sort out a proper location for this data and create from scratch each time
-        data = chunk._extra
+
+        misc = chunk.misc
+        data = nbt.NBTFile(nbt.TAG_Compound(), '')
+        data['Level'] = nbt.TAG_Compound()
+        data['Level']['xPos'] = nbt.TAG_Int(chunk.cx)
+        data['Level']['zPos'] = nbt.TAG_Int(chunk.cz)
+        data['DataVersion'] = nbt.TAG_Int(max_world_version[1])
         data["Level"]["Sections"] = self._encode_blocks(chunk._blocks, palette)
         for section in data["Level"]["Sections"]:
             y = section['Y'].value
-            block_light = chunk.misc.get('BlockLight2048', {})
-            sky_light = chunk.misc.get('SkyLight2048', {})
+            block_light = misc.get('BlockLight2048BA', {})
+            sky_light = misc.get('SkyLight2048BA', {})
             if y in block_light:
                 section['BlockLight'] = block_light[y]
             else:
@@ -58,7 +70,17 @@ class AnvilInterface(Interface):
                 section['SkyLight'] = sky_light[y]
             else:
                 section['SkyLight'] = nbt.TAG_Byte_Array(numpy.zeros(2048, dtype=numpy.uint8))
-        # data["Level"]["Entities"] = self._encode_entities(chunk.entities)
+        data['Level']['LightPopulated'] = misc.get('LightPopulatedB', nbt.TAG_Byte(0))
+        data['Level']['HeightMap'] = misc.get('HeightMap256IA', nbt.TAG_Int_Array(numpy.zeros(256, dtype='>u4')))
+        ticks = misc.get('TileTicksA', nbt.TAG_List())
+        if len(ticks) > 0:
+            data['Level']['TileTicks'] = ticks
+        data['Level']['LastUpdate'] = misc.get('LastUpdateL', nbt.TAG_Long(0))
+        # data['Level']['Biomes'] = misc.get('Biomes256', nbt.TAG_Byte_Array(numpy.zeros(256, dtype='uint8')))
+        data['Level']['Biomes'] = chunk.extra['Level']['Biomes']
+        data['Level']['InhabitedTime'] = misc.get('InhabitedTimeL', nbt.TAG_Long(0))
+        data['Level']['TerrainPopulated'] = misc.get('TerrainPopulatedB', nbt.TAG_Byte(0))
+        data["Level"]["Entities"] = self._encode_entities(chunk.entities)
         return data
 
     def _decode_entities(self, entities: list) -> List[nbt.NBTFile]:
@@ -71,8 +93,8 @@ class AnvilInterface(Interface):
         #
         # return entity_list
 
-    def _encode_entities(self, entities: list) -> List[nbt.NBTFile]:
-        raise NotImplementedError
+    def _encode_entities(self, entities: list) -> nbt.TAG_List:
+        return nbt.TAG_List([])
 
     def _decode_blocks(self, chunk_sections: nbt.TAG_List) -> Tuple[numpy.ndarray, numpy.ndarray]:
         if chunk_sections is None:
