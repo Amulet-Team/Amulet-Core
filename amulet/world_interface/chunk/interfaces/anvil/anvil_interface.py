@@ -43,8 +43,8 @@ class AnvilInterface(Interface):
         cz = data["Level"]["zPos"].value
         data_version = data['DataVersion'].value
         blocks, palette = self._decode_blocks(data["Level"]["Sections"])
-        misc['BlockLight2048'] = {section['Y']: section['BlockLight'] for section in data["Level"]["Sections"]}
-        misc['SkyLight2048'] = {section['Y']: section['SkyLight'] for section in data["Level"]["Sections"]}
+        misc['BlockLight2048'] = {section['Y'].value: section['BlockLight'] for section in data["Level"]["Sections"]}
+        misc['SkyLight2048'] = {section['Y'].value: section['SkyLight'] for section in data["Level"]["Sections"]}
 
         entities = self._decode_entities(data["Level"]["Entities"])
         tile_entities = None
@@ -93,7 +93,7 @@ class AnvilInterface(Interface):
         data = chunk._extra
         data["Level"]["Sections"] = self._encode_blocks(chunk._blocks, palette)
         for section in data["Level"]["Sections"]:
-            y = section['Y']
+            y = section['Y'].value
             block_light = chunk.misc.get('BlockLight2048', {})
             sky_light = chunk.misc.get('SkyLight2048', {})
             if y in block_light:
