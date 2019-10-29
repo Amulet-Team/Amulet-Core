@@ -36,12 +36,12 @@ class Interface:
         """
         raise NotImplementedError()
 
-    def get_translator(self, max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]], data: Any = None) -> translators.Translator:
+    def get_translator(self, max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]], data: Any = None) -> Tuple[translators.Translator, Union[int, Tuple[int, int, int]]]:
         if data:
             key, version = self._get_translator_info(data)
         else:
             key = max_world_version
-            version = max_world_version
+            version = max_world_version[1]
         return translators.loader.get(key), version
 
     def _get_translator_info(self, data: Any) -> Tuple[Any, Union[int, Tuple[int, int, int]]]:
