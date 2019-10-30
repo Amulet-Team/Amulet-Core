@@ -321,7 +321,7 @@ class ChunkArray(numpy.ndarray):
 class Blocks(ChunkArray):
     def _verify_format(self):
         assert self.shape == (16, 256, 16), 'Shape of the Block array must be (16, 256, 16)'
-        assert isinstance(self.dtype, numpy.unsignedinteger), 'dtype must be an unsigned integer'
+        assert numpy.issubdtype(self.dtype, numpy.unsignedinteger), 'dtype must be an unsigned integer'
 
 
 class Biomes(ChunkArray):
@@ -336,7 +336,7 @@ class Biomes(ChunkArray):
 
     def _verify_format(self):
         assert self.size in [256, 1024], 'Size of the Biome array must be 256 or 1024'
-        assert isinstance(self.dtype, numpy.unsignedinteger), 'dtype must be an unsigned integer'
+        numpy.issubdtype(self.dtype, numpy.unsignedinteger), 'dtype must be an unsigned integer'
 
     def convert_to_format(self, length):
         if length in [256, 1024]:

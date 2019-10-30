@@ -111,7 +111,8 @@ def decode_long_array(long_array: numpy.ndarray, size: int) -> numpy.ndarray:
             numpy.unpackbits(
                 long_array[::-1].astype(">i8").view("uint8")
             ).reshape(-1, bits_per_entry),
-            [(0, 0), (64-bits_per_entry, 0)]
+            [(0, 0), (64-bits_per_entry, 0)],
+            'constant'
         )
     ).view(dtype='>q')
 
