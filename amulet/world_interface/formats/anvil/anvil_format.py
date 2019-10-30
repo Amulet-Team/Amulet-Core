@@ -207,7 +207,7 @@ class AnvilFormat(Format):
     def close(self):
         pass    # TODO: release lock file
 
-    def _max_world_version(self) -> Tuple:
+    def _max_world_version(self) -> Tuple[str, int]:
         return 'anvil', self.root_tag['Data']['DataVersion'].value
 
     def delete_chunk(self, cx: int, cz: int):

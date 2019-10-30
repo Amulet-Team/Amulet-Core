@@ -25,8 +25,8 @@ class LevelDBFormat(Format):
     def close(self):
         self._db.close()
 
-    def _max_world_version(self) -> Tuple:
-        return 'leveldb', [t.value for t in self.root_tag.value["MinimumCompatibleClientVersion"]]
+    def _max_world_version(self) -> Tuple[str, Tuple[int, int, int]]:
+        return 'leveldb', tuple([t.value for t in self.root_tag["MinimumCompatibleClientVersion"]])
 
     def _get_raw_chunk_data(self, cx, cz) -> Tuple[int, int, LevelDB]:
         """

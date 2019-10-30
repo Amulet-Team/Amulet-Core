@@ -27,7 +27,7 @@ class Interface:
         """
         raise NotImplementedError()
 
-    def encode(self, chunk: Chunk, palette: numpy.ndarray) -> Any:
+    def encode(self, chunk: Chunk, palette: numpy.ndarray, max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]]) -> Any:
         """
         Take a version-specific chunk and encode it to raw data for the format to store.
         :param chunk: The version-specfic chunk to translate and encode.

@@ -63,7 +63,7 @@ class Anvil2Interface(Interface):
         tile_entities = None
         return Chunk(cx, cz, blocks, entities, tile_entities, misc=misc, extra=data), palette
 
-    def encode(self, chunk: Chunk, palette: numpy.ndarray) -> nbt.NBTFile:
+    def encode(self, chunk: Chunk, palette: numpy.ndarray, max_world_version: Tuple[str, int]) -> nbt.NBTFile:
         """
         Encode a version-specific chunk to raw data for the format to store.
         :param chunk: The version-specific chunk to translate and encode.
