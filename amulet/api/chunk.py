@@ -18,9 +18,20 @@ class Chunk:
     Class to represent a chunk that exists in an Minecraft world
     """
 
-    def __init__(self, cx: int, cz: int, blocks=None, entities=None, tileentities=None, misc: dict = None, extra: nbt.NBTFile = None):
+    def __init__(
+            self,
+            cx: int,
+            cz: int,
+            blocks=None,
+            entities=None,
+            tileentities=None,
+            biomes=None,
+            misc: dict = None,
+            extra: nbt.NBTFile = None
+    ):
         self.cx, self.cz = cx, cz
-        self._blocks: numpy.ndarray = blocks
+        self._blocks = Blocks(self, blocks)
+        self._biomes = Biomes(self, biomes)
         self._entities = entities
         self._tileentities = tileentities
         self.misc = {} if misc is None else misc   # all entries that are not important enough to get an attribute
@@ -58,6 +69,13 @@ class Chunk:
         """
         return self._changed
 
+    @changed.setter
+    def changed(self, value: bool):
+        """
+        :return: ``True`` if the chunk has been changed, ``False`` otherwise
+        """
+        self._changed = value
+
     @property
     def marked_for_deletion(self) -> bool:
         """
@@ -67,21 +85,23 @@ class Chunk:
 
     @property
     def blocks(self) -> numpy.ndarray:
-        """
-        Property that returns a read-only copy of the chunk's block array. Setting this property replaces the entire chunk's block array
-
-        :param value: The new block array
-        :type value: numpy.ndarray
-        :return: A 3d numpy array of the internal Block IDs for the chunk
-        """
-        self._blocks.setflags(write=False)
         return self._blocks
 
     @blocks.setter
     def blocks(self, value: numpy.ndarray):
         if not (self._blocks == value).all():
             self._changed = True
-        self._blocks = value
+        self._blocks = Blocks(self, value)
+
+    @property
+    def biomes(self) -> numpy.ndarray:
+        return self._biomes
+
+    @biomes.setter
+    def biomes(self, value: numpy.ndarray):
+        if not (self._biomes == value).all():
+            self._changed = True
+        self._biomes = Biomes(self, value)
 
     @property
     def entities(self) -> list:
@@ -188,3 +208,142 @@ class SubChunk:
         temp_blocks = self._parent.blocks.copy()
         temp_blocks[self._sub_selection_slice] = value
         self._parent.blocks = temp_blocks
+
+
+class ChunkArray(numpy.ndarray):
+    def __new__(cls, parent_chunk: Chunk, input_array):
+        obj = numpy.asarray(input_array).view(cls)
+        obj._parent_chunk = parent_chunk
+        return obj
+
+    def __array_finalize__(self, obj):
+        if obj is None:
+            return
+        self._parent_chunk = getattr(obj, '_parent_chunk', None)
+        self._verify_format()
+
+    def _dirty(self):
+        self._parent_chunk.changed = True
+
+    def _verify_format(self):
+        raise NotImplementedError
+
+    def byteswap(self, inplace=False):
+        if inplace:
+            self._dirty()
+        numpy.ndarray.byteswap(self, inplace)
+
+    def fill(self, value):
+        self._dirty()
+        numpy.ndarray.fill(self, value)
+
+    def itemset(self, *args):
+        self._dirty()
+        numpy.ndarray.itemset(*args)
+
+    def partition(self, kth, axis=-1, kind='introselect', order=None):
+        self._dirty()
+        numpy.ndarray.partition(self, kth, axis, kind, order)
+
+    def put(self, indices, values, mode='raise'):
+        self._dirty()
+        numpy.ndarray.put(self, indices, values, mode)
+
+    def resize(self, *new_shape, refcheck=True):
+        self._dirty()
+        numpy.ndarray.resize(self, *new_shape, refcheck=refcheck)
+
+    def sort(self, axis=-1, kind='quicksort', order=None):
+        self._dirty()
+        numpy.ndarray.sort(self, axis, kind, order)
+
+    def squeeze(self, axis=None):
+        self._dirty()
+        numpy.ndarray.squeeze(self, axis)
+
+    def __iadd__(self, *args, **kwargs):
+        self._dirty()
+        numpy.ndarray.__iadd__(self, *args, **kwargs)
+
+    def __iand__(self, *args, **kwargs):
+        self._dirty()
+        numpy.ndarray.__iand__(self, *args, **kwargs)
+
+    def __ifloordiv__(self, *args, **kwargs):
+        self._dirty()
+        numpy.ndarray.__ifloordiv__(self, *args, **kwargs)
+
+    def __ilshift__(self, *args, **kwargs):
+        self._dirty()
+        numpy.ndarray.__ilshift__(self, *args, **kwargs)
+
+    def __imatmul__(self, *args, **kwargs):
+        self._dirty()
+        numpy.ndarray.__imatmul__(self, *args, **kwargs)
+
+    def __imod__(self, *args, **kwargs):
+        self._dirty()
+        numpy.ndarray.__imod__(self, *args, **kwargs)
+
+    def __imul__(self, *args, **kwargs):
+        self._dirty()
+        numpy.ndarray.__imul__(self, *args, **kwargs)
+
+    def __ior__(self, *args, **kwargs):
+        self._dirty()
+        numpy.ndarray.__ior__(self, *args, **kwargs)
+
+    def __ipow__(self, *args, **kwargs):
+        self._dirty()
+        numpy.ndarray.__ipow__(self, *args, **kwargs)
+
+    def __irshift__(self, *args, **kwargs):
+        self._dirty()
+        numpy.ndarray.__irshift__(self, *args, **kwargs)
+
+    def __isub__(self, *args, **kwargs):
+        self._dirty()
+        numpy.ndarray.__isub__(self, *args, **kwargs)
+
+    def __itruediv__(self, *args, **kwargs):
+        self._dirty()
+        numpy.ndarray.__itruediv__(self, *args, **kwargs)
+
+    def __ixor__(self, *args, **kwargs):
+        self._dirty()
+        numpy.ndarray.__ixor__(self, *args, **kwargs)
+
+    def __setitem__(self, *args, **kwargs):
+        self._dirty()
+        numpy.ndarray.__setitem__(self, *args, **kwargs)
+
+
+class Blocks(ChunkArray):
+    def _verify_format(self):
+        assert self.shape == (16, 256, 16), 'Shape of the Block array must be (16, 256, 16)'
+        assert isinstance(self.dtype, numpy.unsignedinteger), 'dtype must be an unsigned integer'
+
+
+class Biomes(ChunkArray):
+    def __new__(cls, parent_chunk: Chunk, input_array):
+        obj = numpy.asarray(input_array, dtype=numpy.uint32).view(cls)
+        if obj.size == 256:
+            obj.resize(16, 16)
+        elif obj.size == 1024:
+            obj.resize(8, 8, 16)  # TODO: honestly don't know what the format of this is
+        obj._parent_chunk = parent_chunk
+        return obj
+
+    def _verify_format(self):
+        assert self.size in [256, 1024], 'Size of the Biome array must be 256 or 1024'
+        assert isinstance(self.dtype, numpy.unsignedinteger), 'dtype must be an unsigned integer'
+
+    def convert_to_format(self, length):
+        if length in [256, 1024]:
+            # TODO: proper conversion
+            if length > self.size:
+                self._parent_chunk.biomes = numpy.concatenate((self.ravel(), numpy.zeros(length-self.size, dtype=self.dtype)))
+            elif length < self.size:
+                self._parent_chunk.biomes = self.ravel()[:length]
+        else:
+            raise Exception(f'Format length {length} is invalid')
