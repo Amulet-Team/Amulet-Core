@@ -76,7 +76,7 @@ class Anvil2Interface(Interface):
         data['Level']['xPos'] = nbt.TAG_Int(chunk.cx)
         data['Level']['zPos'] = nbt.TAG_Int(chunk.cz)
         data['DataVersion'] = nbt.TAG_Int(max_world_version[1])
-        data["Level"]["Sections"] = self._encode_blocks(chunk._blocks, palette)
+        data["Level"]["Sections"] = self._encode_blocks(chunk.blocks, palette)
         for section in data["Level"]["Sections"]:
             y = section['Y'].value
             block_light = chunk.misc.get('BlockLight2048', {})

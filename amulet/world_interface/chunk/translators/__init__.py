@@ -88,9 +88,10 @@ class Translator:
                 block_mappings[(x, y, z)] = finished.get_add_block(universal)
 
         for old, new in palette_mappings.items():
-            chunk._blocks[chunk._blocks == old] = new
+            chunk.blocks[chunk.blocks == old] = new
         for (x, y, z), new in block_mappings.items():
-            chunk._blocks[x, y, z] = new
+            chunk.blocks[x, y, z] = new
+        chunk.changed = False
         return chunk, numpy.array(finished.blocks())
 
     def to_universal(

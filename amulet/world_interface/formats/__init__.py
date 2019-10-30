@@ -102,7 +102,8 @@ class Format:
 
         # convert the block numerical ids from local chunk palette to global palette
         chunk_to_global = numpy.array([global_palette.get_add_block(block) for block in chunk_palette])
-        chunk._blocks = chunk_to_global[chunk.blocks]
+        chunk.blocks = chunk_to_global[chunk.blocks]
+        chunk.changed = False
         return chunk
 
     def save_chunk(self, chunk: Chunk, global_palette: BlockManager, recurse: bool = True):
@@ -122,7 +123,7 @@ class Format:
         # convert the global indexes into local indexes and a local palette
         blocks_shape = chunk.blocks.shape
         chunk_palette, blocks_ = numpy.unique(chunk.blocks, return_inverse=True)
-        chunk._blocks = blocks_.reshape(blocks_shape)
+        chunk.blocks = blocks_.reshape(blocks_shape)
         chunk_palette = numpy.array([global_palette[int_id] for int_id in chunk_palette])
 
         callback = None  # TODO will need access to the world class
