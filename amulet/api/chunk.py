@@ -28,7 +28,7 @@ class Chunk:
         self._marked_for_deletion = False
 
         self._blocks = None
-        self._biomes = None
+        self._biomes = Biomes(self, numpy.zeros(16, 16))
         self._entities = None
         self._tileentities = None
         self.misc = {}  # all entries that are not important enough to get an attribute
