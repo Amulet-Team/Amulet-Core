@@ -48,7 +48,7 @@ class Anvil2Interface(Interface):
 
         misc['TileTicksA'] = data['Level']['TileTicks']
         misc['LastUpdateL'] = data['Level']['LastUpdate']
-        # misc['Biomes256'] = data['Level']['Biomes']
+        biomes = data['Level']['Biomes'].value
         misc['InhabitedTimeL'] = data['Level']['InhabitedTime']
 
         misc['StatusSt'] = data['Level']['Status']
@@ -61,7 +61,7 @@ class Anvil2Interface(Interface):
 
         entities = self._decode_entities(data["Level"]["Entities"])
         tile_entities = None
-        return Chunk(cx, cz, blocks, entities, tile_entities, misc=misc, extra=data), palette
+        return Chunk(cx, cz, blocks=blocks, entities=entities, tileentities=tile_entities, biomes=biomes, misc=misc, extra=data), palette
 
     def encode(self, chunk: Chunk, palette: numpy.ndarray, max_world_version: Tuple[str, int]) -> nbt.NBTFile:
         """
@@ -92,8 +92,7 @@ class Anvil2Interface(Interface):
 
         data['Level']['TileTicks'] = misc.get('TileTicksA', nbt.TAG_List())
         data['Level']['LastUpdate'] = misc.get('LastUpdateL', nbt.TAG_Long(0))
-        # data['Level']['Biomes'] = misc.get('Biomes256', nbt.TAG_Byte_Array(numpy.zeros(256, dtype='uint8')))
-        data['Level']['Biomes'] = chunk.extra['Level']['Biomes']
+        data['Level']['Biomes'] = nbt.TAG_Int_Array(chunk.biomes.convert_to_format(256).astype(dtype=numpy.uint32))
         data['Level']['InhabitedTime'] = misc.get('InhabitedTimeL', nbt.TAG_Long(0))
 
         data['Level']['Status'] = misc.get('StatusSt', nbt.TAG_String('postprocessed'))

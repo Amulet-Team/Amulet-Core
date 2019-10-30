@@ -30,15 +30,15 @@ class Chunk:
             extra: nbt.NBTFile = None
     ):
         self.cx, self.cz = cx, cz
+        self._changed = False
+        self._marked_for_deletion = False
+
         self._blocks = Blocks(self, blocks)
         self._biomes = Biomes(self, biomes)
         self._entities = entities
         self._tileentities = tileentities
         self.misc = {} if misc is None else misc   # all entries that are not important enough to get an attribute
         self.extra = {} if extra is None else extra    # temp store for Java NBTFile. Remove this when unpacked to misc
-
-        self._changed = False
-        self._marked_for_deletion = False
 
     def __repr__(self):
         return f"Chunk({self.cx}, {self.cx}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._tileentities)})"
@@ -84,7 +84,7 @@ class Chunk:
         return self._marked_for_deletion
 
     @property
-    def blocks(self) -> numpy.ndarray:
+    def blocks(self) -> Blocks:
         return self._blocks
 
     @blocks.setter
@@ -94,7 +94,7 @@ class Chunk:
         self._blocks = Blocks(self, value)
 
     @property
-    def biomes(self) -> numpy.ndarray:
+    def biomes(self) -> Biomes:
         return self._biomes
 
     @biomes.setter
@@ -327,11 +327,11 @@ class Blocks(ChunkArray):
 class Biomes(ChunkArray):
     def __new__(cls, parent_chunk: Chunk, input_array):
         obj = numpy.asarray(input_array, dtype=numpy.uint32).view(cls)
+        obj._parent_chunk = parent_chunk
         if obj.size == 256:
             obj.resize(16, 16)
         elif obj.size == 1024:
             obj.resize(8, 8, 16)  # TODO: honestly don't know what the format of this is
-        obj._parent_chunk = parent_chunk
         return obj
 
     def _verify_format(self):
@@ -345,5 +345,6 @@ class Biomes(ChunkArray):
                 self._parent_chunk.biomes = numpy.concatenate((self.ravel(), numpy.zeros(length-self.size, dtype=self.dtype)))
             elif length < self.size:
                 self._parent_chunk.biomes = self.ravel()[:length]
+            return self._parent_chunk.biomes
         else:
             raise Exception(f'Format length {length} is invalid')

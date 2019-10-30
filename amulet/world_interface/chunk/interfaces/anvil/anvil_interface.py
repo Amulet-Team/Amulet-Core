@@ -35,13 +35,13 @@ class AnvilInterface(Interface):
         misc['HeightMap256IA'] = data['Level']['HeightMap']
         misc['TileTicksA'] = data['Level'].get('TileTicks', nbt.TAG_List())
         misc['LastUpdateL'] = data['Level']['LastUpdate']
-        # misc['Biomes256'] = data['Level']['Biomes']
+        biomes = data['Level']['Biomes'].value
         misc['InhabitedTimeL'] = data['Level']['InhabitedTime']
         misc['TerrainPopulatedB'] = data['Level']['TerrainPopulated']
 
         entities = self._decode_entities(data["Level"]["Entities"])
         tile_entities = None
-        return Chunk(cx, cz, blocks, entities, tile_entities, misc=misc, extra=data), palette
+        return Chunk(cx, cz, blocks=blocks, entities=entities, tileentities=tile_entities, biomes=biomes, misc=misc, extra=data), palette
 
     def encode(self, chunk: Chunk, palette: numpy.ndarray, max_world_version: Tuple[str, int]) -> nbt.NBTFile:
         """
@@ -76,8 +76,7 @@ class AnvilInterface(Interface):
         if len(ticks) > 0:
             data['Level']['TileTicks'] = ticks
         data['Level']['LastUpdate'] = misc.get('LastUpdateL', nbt.TAG_Long(0))
-        # data['Level']['Biomes'] = misc.get('Biomes256', nbt.TAG_Byte_Array(numpy.zeros(256, dtype='uint8')))
-        data['Level']['Biomes'] = chunk.extra['Level']['Biomes']
+        data['Level']['Biomes'] = nbt.TAG_Byte_Array(chunk.biomes.convert_to_format(256).astype(dtype=numpy.uint8))
         data['Level']['InhabitedTime'] = misc.get('InhabitedTimeL', nbt.TAG_Long(0))
         data['Level']['TerrainPopulated'] = misc.get('TerrainPopulatedB', nbt.TAG_Byte(0))
         data["Level"]["Entities"] = self._encode_entities(chunk.entities)
