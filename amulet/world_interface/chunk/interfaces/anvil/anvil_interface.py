@@ -28,20 +28,24 @@ class AnvilInterface(Interface):
         misc = {}
         cx = data["Level"]["xPos"].value
         cz = data["Level"]["zPos"].value
-        blocks, palette = self._decode_blocks(data["Level"]["Sections"])
+        chunk = Chunk(cx, cz)
+
+        chunk.blocks, palette = self._decode_blocks(data["Level"]["Sections"])
         misc['BlockLight2048BA'] = {section['Y'].value: section['BlockLight'] for section in data["Level"]["Sections"]}
         misc['SkyLight2048BA'] = {section['Y'].value: section['SkyLight'] for section in data["Level"]["Sections"]}
         misc['LightPopulatedB'] = data['Level']['LightPopulated']
         misc['HeightMap256IA'] = data['Level']['HeightMap']
         misc['TileTicksA'] = data['Level'].get('TileTicks', nbt.TAG_List())
         misc['LastUpdateL'] = data['Level']['LastUpdate']
-        biomes = data['Level']['Biomes'].value
+        chunk.biomes = data['Level']['Biomes'].value
         misc['InhabitedTimeL'] = data['Level']['InhabitedTime']
         misc['TerrainPopulatedB'] = data['Level']['TerrainPopulated']
 
-        entities = self._decode_entities(data["Level"]["Entities"])
-        tile_entities = None
-        return Chunk(cx, cz, blocks=blocks, entities=entities, tileentities=tile_entities, biomes=biomes, misc=misc, extra=data), palette
+        chunk.entities = self._decode_entities(data["Level"]["Entities"])
+        chunk.tile_entities = None
+        chunk.misc = misc
+        chunk.extra = data
+        return chunk, palette
 
     def encode(self, chunk: Chunk, palette: numpy.ndarray, max_world_version: Tuple[str, int]) -> nbt.NBTFile:
         """

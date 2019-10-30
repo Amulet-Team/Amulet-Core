@@ -21,24 +21,18 @@ class Chunk:
     def __init__(
             self,
             cx: int,
-            cz: int,
-            blocks=None,
-            entities=None,
-            tileentities=None,
-            biomes=None,
-            misc: dict = None,
-            extra: nbt.NBTFile = None
+            cz: int
     ):
         self.cx, self.cz = cx, cz
         self._changed = False
         self._marked_for_deletion = False
 
-        self._blocks = Blocks(self, blocks)
-        self._biomes = Biomes(self, biomes)
-        self._entities = entities
-        self._tileentities = tileentities
-        self.misc = {} if misc is None else misc   # all entries that are not important enough to get an attribute
-        self.extra = {} if extra is None else extra    # temp store for Java NBTFile. Remove this when unpacked to misc
+        self._blocks = None
+        self._biomes = None
+        self._entities = None
+        self._tileentities = None
+        self.misc = {}  # all entries that are not important enough to get an attribute
+        self.extra = {}  # temp store for Java NBTFile. Remove this when unpacked to misc
 
     def __repr__(self):
         return f"Chunk({self.cx}, {self.cx}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._tileentities)})"
@@ -89,9 +83,11 @@ class Chunk:
 
     @blocks.setter
     def blocks(self, value: numpy.ndarray):
-        if not (self._blocks == value).all():
+        if not numpy.array_equal(self._blocks, value):
+            assert value.shape == (16, 256, 16), 'Shape of the Block array must be (16, 256, 16)'
+            assert numpy.issubdtype(value.dtype, numpy.integer), 'dtype must be an unsigned integer'
             self._changed = True
-        self._blocks = Blocks(self, value)
+            self._blocks = Blocks(self, value)
 
     @property
     def biomes(self) -> Biomes:
@@ -100,8 +96,10 @@ class Chunk:
     @biomes.setter
     def biomes(self, value: numpy.ndarray):
         if not (self._biomes == value).all():
+            assert value.size in [256, 1024], 'Size of the Biome array must be 256 or 1024'
+            numpy.issubdtype(value.dtype, numpy.integer), 'dtype must be an unsigned integer'
             self._changed = True
-        self._biomes = Biomes(self, value)
+            self._biomes = Biomes(self, value)
 
     @property
     def entities(self) -> list:
@@ -220,13 +218,9 @@ class ChunkArray(numpy.ndarray):
         if obj is None:
             return
         self._parent_chunk = getattr(obj, '_parent_chunk', None)
-        self._verify_format()
 
     def _dirty(self):
         self._parent_chunk.changed = True
-
-    def _verify_format(self):
-        raise NotImplementedError
 
     def byteswap(self, inplace=False):
         if inplace:
@@ -319,9 +313,7 @@ class ChunkArray(numpy.ndarray):
 
 
 class Blocks(ChunkArray):
-    def _verify_format(self):
-        assert self.shape == (16, 256, 16), 'Shape of the Block array must be (16, 256, 16)'
-        assert numpy.issubdtype(self.dtype, numpy.unsignedinteger), 'dtype must be an unsigned integer'
+    pass
 
 
 class Biomes(ChunkArray):
@@ -333,10 +325,6 @@ class Biomes(ChunkArray):
         elif obj.size == 1024:
             obj.resize(8, 8, 16)  # TODO: honestly don't know what the format of this is
         return obj
-
-    def _verify_format(self):
-        assert self.size in [256, 1024], 'Size of the Biome array must be 256 or 1024'
-        numpy.issubdtype(self.dtype, numpy.unsignedinteger), 'dtype must be an unsigned integer'
 
     def convert_to_format(self, length):
         if length in [256, 1024]:

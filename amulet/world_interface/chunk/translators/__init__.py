@@ -91,7 +91,6 @@ class Translator:
             chunk.blocks[chunk.blocks == old] = new
         for (x, y, z), new in block_mappings.items():
             chunk.blocks[x, y, z] = new
-        chunk.changed = False
         return chunk, numpy.array(finished.blocks())
 
     def to_universal(

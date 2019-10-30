@@ -101,8 +101,8 @@ class Format:
         chunk, chunk_palette = translator.to_universal(chunk_version_number, self.translation_manager, chunk, chunk_palette, callback, recurse)
 
         # convert the block numerical ids from local chunk palette to global palette
-        chunk_to_global = numpy.array([global_palette.get_add_block(block) for block in chunk_palette])
-        chunk.blocks = chunk_to_global[chunk.blocks]
+        chunk_to_global = numpy.array([global_palette.get_add_block(block) for block in chunk_palette], dtype=numpy.uint)
+        chunk.blocks = chunk_to_global[chunk.blocks].reshape(16, 256, 16)
         chunk.changed = False
         return chunk
 
