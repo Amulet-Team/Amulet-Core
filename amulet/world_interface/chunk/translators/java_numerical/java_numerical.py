@@ -31,8 +31,11 @@ class JavaNumericalTranslator(Translator):
         :param palette:
         :return:
         """
-        palette = numpy.array([version.block_to_ints(entry) for entry in palette])
-        return palette
+        palette = [version.block_to_ints(entry) for entry in palette]
+        for index, value in enumerate(palette):
+            if value is None:
+                palette[index] = (0, 0)  # TODO: find some way for the user to specify this
+        return numpy.array(palette)
 
     @staticmethod
     def is_valid(key):
