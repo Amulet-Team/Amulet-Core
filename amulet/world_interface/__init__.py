@@ -7,6 +7,20 @@ from amulet.api.errors import FormatLoaderInvalidFormat, FormatLoaderMismatched
 
 def load_world(directory: str, _format: str = None, forced: bool = False) -> World:
     """
+    Creates a Format loader from the given inputs and wraps it in a World class
+    :param directory:
+    :param _format:
+    :param forced:
+    :return:
+    """
+    return World(
+        directory,
+        load_format(directory, _format, forced)
+    )
+
+
+def load_format(directory: str, _format: str = None, forced: bool = False) -> formats.Format:
+    """
     Loads the world located at the given directory with the appropriate format loader.
 
     :param directory: The directory of the world
@@ -22,7 +36,7 @@ def load_world(directory: str, _format: str = None, forced: bool = False) -> Wor
         format_class: formats.Format = formats.loader.get_by_id(_format)
     else:
         format_class: formats.Format = formats.loader.get(directory)
-    return World(directory, format_class(directory))
+    return format_class(directory)
 
 
 if __name__ == "__main__":
