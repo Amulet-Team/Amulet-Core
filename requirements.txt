@@ -1,5 +1,5 @@
 pyglet==1.3.2
 numpy==1.15.2
 git+git://github.com/Amulet-Team/Amulet-NBT.git
-git+git@github.com:gentlegiantJGC/PyMCTranslate.git@nbt-restructure
+https://github.com/gentlegiantJGC/PyMCTranslate/archive/nbt-restructure.zip
 prompt_toolkit==2.0.4
