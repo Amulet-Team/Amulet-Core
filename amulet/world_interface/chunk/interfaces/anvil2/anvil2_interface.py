@@ -6,8 +6,7 @@ import numpy
 import amulet_nbt as nbt
 
 from amulet.api.block import Block
-from amulet.api.chunk import Chunk
-from amulet.world_interface.chunk.interfaces import Interface
+from amulet.world_interface.chunk.interfaces.base_anvil_interface import BaseAnvilInterface
 from amulet.utils.world_utils import get_smallest_dtype, decode_long_array, encode_long_array
 
 
@@ -24,7 +23,32 @@ def properties_to_string(props: dict) -> str:
     return ",".join(result)
 
 
-class Anvil2Interface(Interface):
+class Anvil2Interface(BaseAnvilInterface):
+    def __init__(self):
+        BaseAnvilInterface.__init__(self)
+        self.args['data_version'] = 'int'
+        self.args['last_update'] = 'long'
+
+        self.args['status'] = 'string10'
+        self.args['inhabited_time'] = 'long'
+        self.args['biomes'] = '256IA'
+        self.args['height_map'] = 'C5|36LA'
+
+        self.args['blocks'] = 'Sections|(BlockStates,Palette)'
+        self.args['block_light'] = 'Sections|2048BA'
+        self.args['sky_light'] = 'Sections|2048BA'
+
+        self.args['entities'] = 'list'
+        self.args['tile_entities'] = 'list'
+        self.args['tile_ticks'] = 'list'
+
+        self.args['liquid_ticks'] = 'list'
+        self.args['liquids_to_be_ticked'] = '16list|list'
+        self.args['to_be_ticked'] = '16list|list'
+        self.args['post_processing'] = '16list|list'
+        self.args['structures'] = 'compound'
+
+
     @staticmethod
     def is_valid(key):
         if key[0] != "anvil":
@@ -33,94 +57,8 @@ class Anvil2Interface(Interface):
             return False
         return True
 
-    def decode(self, data: nbt.NBTFile) -> Tuple[Chunk, numpy.ndarray]:
-        """
-        Create an amulet.api.chunk.Chunk object from raw data given by the format.
-        :param data: nbt.NBTFile
-        :return: Chunk object in version-specific format, along with the palette for that chunk.
-        """
-        misc = {}
-        cx = data["Level"]["xPos"].value
-        cz = data["Level"]["zPos"].value
-        chunk = Chunk(cx, cz)
-
-        chunk.blocks, palette = self._decode_blocks(data["Level"]["Sections"])
-        misc['BlockLight2048BA'] = {section['Y'].value: section['BlockLight'] for section in data["Level"]["Sections"]}
-        misc['SkyLight2048BA'] = {section['Y'].value: section['SkyLight'] for section in data["Level"]["Sections"]}
-
-        misc['TileTicksA'] = data['Level']['TileTicks']
-        misc['LastUpdateL'] = data['Level']['LastUpdate']
-        chunk.biomes = data['Level']['Biomes'].value
-        misc['InhabitedTimeL'] = data['Level']['InhabitedTime']
-
-        misc['StatusSt'] = data['Level']['Status']
-        misc['HeightmapsC'] = data['Level']['Heightmaps']
-        misc['ToBeTickedA'] = data['Level']['ToBeTicked']
-        misc['PostProcessingA'] = data['Level']['PostProcessing']
-        misc['StructuresC'] = data['Level']['Structures']
-        misc['LiquidTicksA'] = data['Level']['LiquidTicks']
-        misc['LiquidsToBeTicked'] = data['Level']['LiquidsToBeTicked']
-
-        chunk.entities = self._decode_entities(data["Level"]["Entities"])
-        chunk.tileentities = None
-        chunk.misc = misc
-        chunk.extra = data
-        return chunk, palette
-
-    def encode(self, chunk: Chunk, palette: numpy.ndarray, max_world_version: Tuple[str, int]) -> nbt.NBTFile:
-        """
-        Encode a version-specific chunk to raw data for the format to store.
-        :param chunk: The version-specific chunk to translate and encode.
-        :param palette: The palette the ids in the chunk correspond to.
-        :return: nbt.NBTFile
-        """
-        misc = chunk.misc
-        data = nbt.NBTFile(nbt.TAG_Compound(), '')
-        data['Level'] = nbt.TAG_Compound()
-        data['Level']['xPos'] = nbt.TAG_Int(chunk.cx)
-        data['Level']['zPos'] = nbt.TAG_Int(chunk.cz)
-        data['DataVersion'] = nbt.TAG_Int(max_world_version[1])
-        data["Level"]["Sections"] = self._encode_blocks(chunk.blocks, palette)
-        for section in data["Level"]["Sections"]:
-            y = section['Y'].value
-            block_light = chunk.misc.get('BlockLight2048', {})
-            sky_light = chunk.misc.get('SkyLight2048', {})
-            if y in block_light:
-                section['BlockLight'] = block_light[y]
-            else:
-                section['BlockLight'] = nbt.TAG_Byte_Array(numpy.zeros(2048, dtype=numpy.uint8))
-            if y in sky_light:
-                section['SkyLight'] = sky_light[y]
-            else:
-                section['SkyLight'] = nbt.TAG_Byte_Array(numpy.zeros(2048, dtype=numpy.uint8))
-
-        data['Level']['TileTicks'] = misc.get('TileTicksA', nbt.TAG_List())
-        data['Level']['LastUpdate'] = misc.get('LastUpdateL', nbt.TAG_Long(0))
-        data['Level']['Biomes'] = nbt.TAG_Int_Array(chunk.biomes.convert_to_format(256).astype(dtype=numpy.uint32))
-        data['Level']['InhabitedTime'] = misc.get('InhabitedTimeL', nbt.TAG_Long(0))
-
-        data['Level']['Status'] = misc.get('StatusSt', nbt.TAG_String('postprocessed'))
-        data['Level']['Heightmaps'] = nbt.TAG_Compound()
-        heightmaps = misc.get('HeightmapsC', nbt.TAG_Compound())
-        for heightmap in (
-                'MOTION_BLOCKING',
-                'MOTION_BLOCKING_NO_LEAVES',
-                'OCEAN_FLOOR',
-                'OCEAN_FLOOR_WG',
-                'WORLD_SURFACE',
-                'WORLD_SURFACE_WG'
-        ):
-            data['Level']['Heightmaps'][heightmap] = heightmaps.get(
-                heightmap, nbt.TAG_Long_Array(numpy.zeros(36, dtype='>i8'))
-            )
-        data['Level']['ToBeTicked'] = misc.get('ToBeTickedA', nbt.TAG_List([nbt.TAG_List() for _ in range(16)]))
-        data['Level']['PostProcessing'] = misc.get('PostProcessingA', nbt.TAG_List([nbt.TAG_List() for _ in range(16)]))
-        data['Level']['Structures'] = misc.get('StructuresC', nbt.TAG_Compound())
-        data['Level']['LiquidTicks'] = misc.get('LiquidTicksA', nbt.TAG_List())
-        data['Level']['LiquidsToBeTicked'] = misc.get('LiquidsToBeTicked', nbt.TAG_List([nbt.TAG_List() for _ in range(16)]))
-
-        data["Level"]["Entities"] = self._encode_entities(chunk.entities)
-        return data
+    def _get_translator_info(self, data: nbt.NBTFile) -> Tuple[Tuple[str, int], int]:
+        return ("anvil", data["DataVersion"].value), data["DataVersion"].value
 
     def _decode_blocks(
         self, chunk_sections
@@ -207,9 +145,6 @@ class Anvil2Interface(Interface):
 
     def _encode_entities(self, entities: list) -> nbt.TAG_List:
         return nbt.TAG_List([])
-
-    def _get_translator_info(self, data: nbt.NBTFile) -> Tuple[Tuple[str, int], int]:
-        return ("anvil", data["DataVersion"].value), data["DataVersion"].value
 
 
 INTERFACE_CLASS = Anvil2Interface

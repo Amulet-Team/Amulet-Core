@@ -14,13 +14,16 @@ class BaseAnvilInterface(Interface):
         arg_options = {
             'data_version': ['int'],        # int
             'last_update': ['long'],        # int
+
+            'status': ['string10'],
             'light_populated': ['byte'],    # int
             'terrain_populated': ['byte'],  # int
+
             'V': ['byte'],                  # int
             'inhabited_time': ['long'],     # int
             'biomes': ['256BA', '256IA', '1024IA'],  # Biomes
-            'height_map': ['256IA', 'C6|36LA'],
-            'carving_masks': ['C|?BA'],
+            'height_map': ['256IA', 'C5|36LA', 'C6|36LA'],
+            # 'carving_masks': ['C|?BA'],
             'blocks': ['Sections|(Blocks,Data,Add)', 'Sections|(BlockStates,Palette)'],
             'block_light': ['Sections|2048BA'],
             'sky_light': ['Sections|2048BA'],
@@ -29,9 +32,12 @@ class BaseAnvilInterface(Interface):
             'tile_entities': ['list'],
             'tile_ticks': ['list', 'list(optional)'],
 
-
-
-
+            'liquid_ticks': ['list'],
+            # 'lights': [],
+            'liquids_to_be_ticked': ['16list|list'],
+            'to_be_ticked': ['16list|list'],
+            'post_processing': ['16list|list'],
+            'structures': ['compound']
         }
         self.args = {
             key: None for key in arg_options.keys()
@@ -51,11 +57,16 @@ class BaseAnvilInterface(Interface):
         if self.args['last_update'] == 'long':
             misc['last_update'] = data['Level']['LastUpdate'].value
 
-        if self.args['light_populated'] == 'byte':
-            misc['light_populated'] = data['Level']['LightPopulated'].value
+        if self.args['status'] == 'string10':
+            misc['status'] = data['Level']['Status'].value
+        else:
+            status = 'empty'
+            if self.args['terrain_populated'] == 'byte' and data['Level']['TerrainPopulated'].value:
+                status = 'decorated'
+            if self.args['light_populated'] == 'byte' and data['Level']['LightPopulated'].value:
+                status = 'postprocessed'
 
-        if self.args['terrain_populated'] == 'byte':
-            misc['terrain_populated'] = data['Level']['TerrainPopulated'].value
+            misc['status'] = nbt.TAG_String(status)
 
         if self.args['V'] == 'byte':
             misc['V'] = data['Level']['V'].value
@@ -67,9 +78,9 @@ class BaseAnvilInterface(Interface):
             chunk.biomes = data['Level']['Biomes'].value
 
         if self.args['height_map'] == '256IA':
-            misc['height_map256IA'] = data['Level']['HeightMap']
-        elif self.args['height_map'] == 'C6|36LA':
-            misc['height_mapC6|36LA'] = data['Level']['Heightmaps']
+            misc['height_map256IA'] = data['Level']['HeightMap'].value
+        elif self.args['height_map'] in ['C5|36LA', 'C6|36LA']:
+            misc['height_mapC|36LA'] = data['Level']['Heightmaps']
 
         if self.args['blocks'] in ['Sections|(Blocks,Data,Add)', 'Sections|(BlockStates,Palette)']:
             chunk.blocks, palette = self._decode_blocks(data["Level"]["Sections"])
@@ -90,6 +101,21 @@ class BaseAnvilInterface(Interface):
 
         if self.args['tile_ticks'] == 'list':
             misc['tile_ticks'] = data['Level'].get('TileTicks', nbt.TAG_List())
+
+        if self.args['liquid_ticks'] == 'list':
+            misc['liquid_ticks'] = data['Level']['LiquidsToBeTicked']
+
+        if self.args['liquids_to_be_ticked'] == '16list|list':
+            misc['liquids_to_be_ticked'] = data['Level']['LiquidsToBeTicked']
+
+        if self.args['to_be_ticked'] == '16list|list':
+            misc['to_be_ticked'] = data['Level']['ToBeTicked']
+
+        if self.args['post_processing'] == '16list|list':
+            misc['post_processing'] = data['Level']['PostProcessing']
+
+        if self.args['structures'] == 'compound':
+            misc['structures'] = data['Level']['Structures']
 
         chunk.misc = misc
         chunk.extra = data
@@ -115,11 +141,23 @@ class BaseAnvilInterface(Interface):
         if self.args['last_update'] == 'long':
             data['Level']['LastUpdate'] = nbt.TAG_Long(misc.get('last_update', 0))
 
-        if self.args['light_populated'] == 'byte':
-            data['Level']['LightPopulated'] = nbt.TAG_Byte(misc.get('light_populated', 0))
+        if self.args['status'] == 'string10':
+            status = misc.get('status', 'postprocessed')
+            if status in ('empty', 'base', 'carved', 'liquid_carved', 'decorated', 'lighted', 'mobs_spawned', 'finalized', 'full', 'postprocessed'):
+                data['Level']['Status'] = nbt.TAG_String(status)
+        else:
+            status = misc.get('status', 'postprocessed')
+            if self.args['terrain_populated'] == 'byte':
+                if status in ('empty', 'base', 'carved', 'liquid_carved'):
+                    data['Level']['TerrainPopulated'] = nbt.TAG_Byte(0)
+                else:
+                    data['Level']['TerrainPopulated'] = nbt.TAG_Byte(1)
 
-        if self.args['terrain_populated'] == 'byte':
-            data['Level']['TerrainPopulated'] = nbt.TAG_Byte(misc.get('terrain_populated', 0))
+            if self.args['light_populated'] == 'byte':
+                if status in ('empty', 'base', 'carved', 'liquid_carved', 'decorated'):
+                    data['Level']['LightPopulated'] = nbt.TAG_Byte(0)
+                else:
+                    data['Level']['LightPopulated'] = nbt.TAG_Byte(1)
 
         if self.args['V'] == 'byte':
             data['Level']['V'] = nbt.TAG_Byte(misc.get('V', 1))
@@ -136,16 +174,28 @@ class BaseAnvilInterface(Interface):
 
         if self.args['height_map'] == '256IA':
             data['Level']['HeightMap'] = nbt.TAG_Int_Array(misc.get('height_map256IA', numpy.zeros(256, dtype=numpy.uint32)))
-        elif self.args['height_map'] == 'C6|36LA':
-            heightmaps = misc.get('height_mapC6|36LA', nbt.TAG_Compound())
-            for heightmap in (
-                'MOTION_BLOCKING',
-                'MOTION_BLOCKING_NO_LEAVES',
-                'OCEAN_FLOOR',
-                'OCEAN_FLOOR_WG',
-                'WORLD_SURFACE',
-                'WORLD_SURFACE_WG'
-            ):
+        elif self.args['height_map'] in ['C6|36LA', 'C5|36LA']:
+            if self.args['height_map'] == 'C5|36LA':
+                maps = (
+                    'LIGHT_BLOCKING',
+                    'MOTION_BLOCKING',
+                    'MOTION_BLOCKING_NO_LEAVES',
+                    'OCEAN_FLOOR',
+                    'WORLD_SURFACE'
+                )
+            elif self.args['height_map'] == 'C6|36LA':
+                maps = (
+                    'MOTION_BLOCKING',
+                    'MOTION_BLOCKING_NO_LEAVES',
+                    'OCEAN_FLOOR',
+                    'OCEAN_FLOOR_WG',
+                    'WORLD_SURFACE',
+                    'WORLD_SURFACE_WG'
+                )
+            else:
+                raise Exception
+            heightmaps = misc.get('height_mapC|36LA', nbt.TAG_Compound())
+            for heightmap in maps:
                 if heightmap not in heightmaps:
                     heightmaps[heightmap] = nbt.TAG_Long_Array(numpy.zeros(36, dtype='>i8'))
             data['Level']['Heightmaps'] = heightmaps
@@ -181,6 +231,24 @@ class BaseAnvilInterface(Interface):
                     data['Level']['TileTicks'] = ticks
             elif self.args['tile_ticks'] == 'list':
                 data['Level']['TileTicks'] = ticks
+
+        if self.args['liquid_ticks'] == 'list':
+            data['Level']['LiquidsToBeTicked'] = misc.get('liquid_ticks', nbt.TAG_List())
+
+        if self.args['liquids_to_be_ticked'] == '16list|list':
+            data['Level']['LiquidsToBeTicked'] = misc.get('liquids_to_be_ticked', nbt.TAG_List([nbt.TAG_List() for _ in range(16)]))
+
+        if self.args['to_be_ticked'] == '16list|list':
+            data['Level']['ToBeTicked'] = misc.get('to_be_ticked', nbt.TAG_List([nbt.TAG_List() for _ in range(16)]))
+
+        if self.args['post_processing'] == '16list|list':
+            data['Level']['PostProcessing'] = misc.get('post_processing', nbt.TAG_List([nbt.TAG_List() for _ in range(16)]))
+
+        if self.args['structures'] == 'compound':
+            data['Level']['Structures'] = misc.get(
+                'structures',
+                nbt.TAG_Compound({'References': nbt.TAG_Compound(), 'Starts': nbt.TAG_Compound()})
+            )
 
         return data
 

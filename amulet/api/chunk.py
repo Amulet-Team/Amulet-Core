@@ -28,7 +28,7 @@ class Chunk:
         self._marked_for_deletion = False
 
         self._blocks = None
-        self._biomes = Biomes(self, numpy.zeros(16, 16))
+        self._biomes = Biomes(self, numpy.zeros((16, 16), dtype=numpy.uint32))
         self._entities = None
         self._tileentities = None
         self.misc = {}  # all entries that are not important enough to get an attribute
@@ -65,9 +65,6 @@ class Chunk:
 
     @changed.setter
     def changed(self, value: bool):
-        """
-        :return: ``True`` if the chunk has been changed, ``False`` otherwise
-        """
         self._changed = value
 
     @property
@@ -86,7 +83,7 @@ class Chunk:
         if not numpy.array_equal(self._blocks, value):
             assert value.shape == (16, 256, 16), 'Shape of the Block array must be (16, 256, 16)'
             assert numpy.issubdtype(value.dtype, numpy.integer), 'dtype must be an unsigned integer'
-            self._changed = True
+            self.changed = True
             self._blocks = Blocks(self, value)
 
     @property
@@ -95,10 +92,10 @@ class Chunk:
 
     @biomes.setter
     def biomes(self, value: numpy.ndarray):
-        if not (self._biomes == value).all():
+        if not numpy.array_equal(self._biomes, value):
             assert value.size in [256, 1024], 'Size of the Biome array must be 256 or 1024'
             numpy.issubdtype(value.dtype, numpy.integer), 'dtype must be an unsigned integer'
-            self._changed = True
+            self.changed = True
             self._biomes = Biomes(self, value)
 
     @property
@@ -115,7 +112,7 @@ class Chunk:
     @entities.setter
     def entities(self, value):
         if self._entities != value:
-            self._changed = True
+            self.changed = True
             self._entities = value
 
     @property
@@ -132,7 +129,7 @@ class Chunk:
     @tileentities.setter
     def tileentities(self, value):
         if self._tileentities != value:
-            self._changed = True
+            self.changed = True
             self._tileentities = value
 
     def serialize_chunk(self, change_path) -> str:
@@ -169,7 +166,7 @@ class Chunk:
         Marks the given chunk for deletion
         """
         self._marked_for_deletion = True
-        self._changed = True
+        self.changed = True
 
 
 class SubChunk:
