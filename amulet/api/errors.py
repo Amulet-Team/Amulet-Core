@@ -18,5 +18,9 @@ class InvalidBlockException(Exception):
     pass
 
 
+class LevelDoesNotExist(Exception):
+    pass
+
+
 class ChunkDoesNotExist(Exception):
     pass

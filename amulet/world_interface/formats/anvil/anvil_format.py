@@ -4,33 +4,61 @@ import os
 import struct
 import zlib
 import gzip
-from typing import Tuple, Any, Dict
+from typing import Tuple, Any, Dict, Union, Generator
 import numpy
 import time
+import re
 
 import amulet_nbt as nbt
 
 from amulet.world_interface.formats import Format
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, check_one_exists, load_leveldat
-from amulet.world_interface.chunk import interfaces
-from amulet.api.errors import ChunkDoesNotExist
+from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist
 
 
 class AnvilRegion:
+    region_regex = re.compile(r'r\.(?P<rx>-?\d+)\.(?P<rz>-?\d+)\.mca')
+
+    @staticmethod
+    def get_coords(file_path: str) -> Tuple[Union[int, None], Union[int, None]]:
+        file_path = os.path.basename(file_path)
+        match = AnvilRegion.region_regex.fullmatch(file_path)
+        if match is None:
+            return None, None
+        return int(match.group('rx')), int(match.group('rz'))
+
     def __init__(self, file_path: str, create=False):
+        """
+        A class wrapper for a region file
+        :param file_path: The file path of the region file
+        :param create: bool - if true will create the region from scratch. If false will try loading from disk
+        """
         self._file_path = file_path
+        self.rx, self.rz = self.get_coords(file_path)
 
         # [dirty, mod_time, data_length, data]  feel free to extend if you want to implement modifying in place and defragging
         self._chunks: Dict[Tuple[int, int], Tuple[bool, int, int, bytes]] = {}
-        # self._file_size = 0
-        # self._free_sectors = None     # implement these for modifying in place
-        # self._offsets = None
-        # self._mod_times = None
         self._dirty = False  # is a chunk in region dirty
 
-        if not create:
-            self._load()
+        if create:
+            # create the region from scratch.
+            self._loaded = True
+        else:
+            # mark the region to be loaded when needed
+            self._loaded = False
+            # shallow load the data
+            with open(self._file_path, "rb") as fp:
+                offsets = numpy.fromfile(fp, dtype=">u4", count=1024)
+                for x in range(32):
+                    for z in range(32):
+                        offset = offsets[x + 32 * z]
+                        if offset != 0:
+                            self._chunks[(x, z)] = None
+
+    def all_chunk_coords(self) -> Generator[Tuple[int, int]]:
+        for cx, cz in self._chunks.keys():
+            yield cx + self.rx, cz + self.rz
 
     def _load(self):
         with open(self._file_path, "rb") as fp:
@@ -89,8 +117,12 @@ class AnvilRegion:
                         fp.read(buffer_size),
                     )
 
+        self._loaded = True
+
     def save(self):
         if self._dirty:
+            if not self._loaded:
+                self._load()
             offsets = numpy.zeros(1024, dtype=">u4")
             mod_times = numpy.zeros(1024, dtype=">u4")
             offset = 2
@@ -119,6 +151,8 @@ class AnvilRegion:
                 fp.write(b"".join(data))
 
     def get_chunk_data(self, cx: int, cz: int) -> nbt.NBTFile:
+        if not self._loaded:
+            self._load()
         if (cx, cz) in self._chunks:
             return self._decompress(self._chunks[(cx, cz)][3])
         else:
@@ -126,13 +160,18 @@ class AnvilRegion:
 
     def put_chunk_data(self, cx: int, cz: int, data: nbt.NBTFile):
         """compress the data and put it in the class database"""
+        if not self._loaded:
+            self._load()
         self._dirty = True
         buffer_size, bytes_data = self._compress(data)
         self._chunks[(cx, cz)] = (True, int(time.time()), buffer_size, bytes_data)
 
     def delete_chunk_data(self, cx: int, cz: int):
+        if not self._loaded:
+            self._load()
         if (cx, cz) in self._chunks:
             del self._chunks[(cx, cz)]
+            self._dirty = True
 
     @staticmethod
     def _compress(data: nbt.NBTFile) -> Tuple[int, bytes]:
@@ -151,18 +190,34 @@ class AnvilRegion:
         raise Exception(f"Invalid compression type {data[0]}")
 
 
-class AnvilRegionManager:
+class AnvilLevelManager:
+    level_regex = re.compile(r'DIM(?P<level>-?\d+)')
+
     def __init__(self, directory: str):
         self._directory = directory
-        self._loaded_regions: Dict[Tuple[int, int], AnvilRegion] = {}
+        self._regions: Dict[Tuple[int, int], AnvilRegion] = {}
 
-    # TODO: allow loading and saving to different dimensions
+        # shallow load all of the existing region classes
+        region_dir = os.path.join(self._directory, 'region')
+        if os.path.isdir(region_dir):
+            for region_file_name in os.listdir(region_dir):
+                rx, rz = AnvilRegion.get_coords(region_file_name)
+                if rx is None:
+                    continue
+                self._regions[(rx, rz)] = AnvilRegion(
+                    os.path.join(self._directory, "region", region_file_name)
+                )
+
+    def all_chunk_coords(self) -> Generator[Tuple[int, int]]:
+        for region in self._regions.values():
+            for chunk in region.all_chunk_coords():
+                yield chunk
 
     def save(self):
         # use put_chunk_data to actually upload modified chunks
         # run this to push those changes to disk
 
-        for region in self._loaded_regions.values():
+        for region in self._regions.values():
             region.save()
             # TODO: perhaps delete the region from loaded regions so that memory usage doesn't explode
 
@@ -179,20 +234,16 @@ class AnvilRegionManager:
 
     def _get_region(self, cx: int, cz: int, create=False) -> AnvilRegion:
         key = rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)
-        if key in self._loaded_regions:
-            return self._loaded_regions[key]
+        if key in self._regions:
+            return self._regions[key]
 
-        # check the file exists and then open it
-        file_path = os.path.join(self._directory, "region", f"r.{rx}.{rz}.mca")
-        if os.path.exists(file_path):
-            self._loaded_regions[key] = AnvilRegion(file_path)
+        if create:
+            file_path = os.path.join(self._directory, "region", f"r.{rx}.{rz}.mca")
+            self._regions[key] = AnvilRegion(file_path, True)
         else:
-            if create:
-                self._loaded_regions[key] = AnvilRegion(file_path, True)
-            else:
-                raise ChunkDoesNotExist
+            raise ChunkDoesNotExist
 
-        return self._loaded_regions[key]
+        return self._regions[key]
 
     def put_chunk_data(self, cx: int, cz: int, data: nbt.NBTFile):
         """pass data to the region file class"""
@@ -210,10 +261,31 @@ class AnvilFormat(Format):
     def __init__(self, directory: str):
         super().__init__(directory)
         self.root_tag = nbt.load(filename=os.path.join(self._directory, "level.dat"))
-        self._region_manager = AnvilRegionManager(self._directory)
+        self._levels: Dict[int, AnvilLevelManager] = {
+            0: AnvilLevelManager(self._directory)
+        }
+        for dir_name in os.listdir(self._directory):
+            level_path = os.path.join(self._directory, dir_name)
+            if os.path.isdir(level_path) and dir_name.startswith('DIM'):
+                match = AnvilLevelManager.level_regex.fullmatch(dir_name)
+                if match is None:
+                    continue
+                level = match.group('level')
+                self._levels[level] = AnvilLevelManager(level_path)
+
+    def _get_level(self, level: int):
+        if level in self._levels:
+            return self._levels[level]
+        else:
+            raise LevelDoesNotExist
+
+    def all_chunk_coords(self, level: int = 0) -> Generator[Tuple[int, int]]:
+        for chunk in self._get_level(level).all_chunk_coords():
+            yield chunk
 
     def save(self):
-        self._region_manager.save()
+        for level in self._levels.values():
+            level.save()
         # TODO: save other world data
 
     def close(self):
@@ -222,16 +294,16 @@ class AnvilFormat(Format):
     def _max_world_version(self) -> Tuple[str, int]:
         return "anvil", self.root_tag["Data"]["DataVersion"].value
 
-    def delete_chunk(self, cx: int, cz: int):
-        self._region_manager.delete_chunk(cx, cz)
+    def delete_chunk(self, cx: int, cz: int, level: int = 0):
+        self._get_level(level).delete_chunk(cx, cz)
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any):
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, level: int = 0):
         """
         Actually stores the data from the interface to disk.
         """
-        self._region_manager.put_chunk_data(cx, cz, data)
+        self._get_level(level).put_chunk_data(cx, cz, data)
 
-    def _get_raw_chunk_data(self, cx, cz) -> Any:
+    def _get_raw_chunk_data(self, cx, cz, level: int = 0) -> Any:
         """
         Return the interface key and data to interface with given chunk coordinates.
 
@@ -239,7 +311,7 @@ class AnvilFormat(Format):
         :param cz: The z coordinate of the chunk.
         :return: The interface key for the get_interface method and the data to interface with.
         """
-        return self._region_manager.get_chunk_data(cx, cz)
+        return self._get_level(level).get_chunk_data(cx, cz)
 
     def _get_interface_key(self, raw_chunk_data) -> Tuple[str, int]:
         return "anvil", raw_chunk_data["DataVersion"].value
@@ -267,7 +339,7 @@ if __name__ == "__main__":
     import sys
 
     world_path = sys.argv[1]
-    world = AnvilRegionManager(world_path)
+    world = AnvilLevelManager(world_path)
     chunk = world.get_chunk_data(0, 0)
     print(chunk)
     world.put_chunk_data(0, 0, chunk)
