@@ -56,6 +56,18 @@ if __name__ == "__main__":
                 print("random_chunk <origin_world_path> <cx> <cz>")
 
         elif mode == "convert":
-            pass
+            if len(args) >= 3:
+                world_path = args[1]
+                destination_path = args[2]
+
+                print(f"Loading world at {world_path}")
+                world = load_world(world_path)
+                output_wrapper = load_format(destination_path)
+                world.save(output_wrapper)
+                world.close()
+                output_wrapper.close()
+            else:
+                print("Not enough arguments given. Format must be:")
+                print("convert <origin_world_path> <destination_world_path>")
         else:
             print(f'Unknown mode "{mode}"')
