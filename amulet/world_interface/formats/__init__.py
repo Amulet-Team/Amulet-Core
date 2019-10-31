@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Tuple, Any, Union
+from typing import Tuple, Any, Union, Generator
 
 import numpy
 import PyMCTranslate
@@ -67,7 +67,7 @@ class Format:
     def close(self):
         raise NotImplementedError
 
-    def all_chunk_keys(self):
+    def all_chunk_coords(self, level: int = 0) -> Generator[Tuple[int, int]]:
         raise NotImplementedError
 
     def load_chunk(self, cx: int, cz: int, global_palette: BlockManager) -> Chunk:

@@ -48,12 +48,22 @@ class World:
             wrapper = self._wrapper
 
         # perhaps make this check if the directory is the same rather than if the class is the same
-        export_all = wrapper is not self._wrapper
-        if export_all:
+        save_as = wrapper is not self._wrapper
+        if save_as:
             # The input wrapper is not the same as the loading wrapper (save-as)
             # iterate through every chunk in the input world and the unsaved modified chunks (taking preference for the latter)
             # and save them to the wrapper
-            pass
+            for cx, cz in self._wrapper.all_chunk_coords():
+                print(cx, cz)
+                chunk = self._wrapper.load_chunk(cx, cz, self.palette)
+                wrapper.save_chunk(chunk, self.palette)
+
+            for chunk in self.chunk_cache.values():
+                if chunk.changed:
+                    wrapper.save_chunk(deepcopy(chunk), self.palette)
+            for (cx, cz) in self._deleted_chunks:
+                wrapper.delete_chunk(cx, cz)
+            wrapper.save()
         else:
             # The input wrapper is the normal wrapper so just save the modified chunks back
             for (cx, cz) in self._deleted_chunks:

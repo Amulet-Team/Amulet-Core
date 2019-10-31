@@ -96,6 +96,7 @@ class Chunk:
     def biomes(self, value: numpy.ndarray):
         if not numpy.array_equal(self._biomes, value):
             assert value.size in [
+                0,
                 256,
                 1024,
             ], "Size of the Biome array must be 256 or 1024"

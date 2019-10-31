@@ -58,7 +58,7 @@ class AnvilRegion:
 
     def all_chunk_coords(self) -> Generator[Tuple[int, int]]:
         for cx, cz in self._chunks.keys():
-            yield cx + self.rx, cz + self.rz
+            yield cx + self.rx * 32, cz + self.rz * 32
 
     def _load(self):
         with open(self._file_path, "rb") as fp:
