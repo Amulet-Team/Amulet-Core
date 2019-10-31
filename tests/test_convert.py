@@ -19,7 +19,7 @@ if __name__ == "__main__":
                 cx, cz = int(args[2]), int(args[3])
 
                 print(f"Loading world at {world_path}")
-                world = load_world(sys.argv[1])
+                world = load_world(world_path)
                 print(f"Loading chunk at {cx}, {cz}")
                 chunk = world.get_chunk(cx, cz)
                 print("A vertical column of blocks in the chunk:")
@@ -45,7 +45,7 @@ if __name__ == "__main__":
                 world.exit()
 
                 print("Reloading world and printing new blocks")
-                world = load_world(sys.argv[1])
+                world = load_world(world_path)
                 chunk = world.get_chunk(cx, cz)
                 for block in chunk.blocks.ravel()[
                     :4096:16
