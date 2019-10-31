@@ -65,7 +65,7 @@ class World:
             self._wrapper.save()
             # TODO check and flesh this out a bit
 
-    def exit(self):
+    def close(self):
         # TODO: add "unsaved changes" check before exit
         shutil.rmtree(get_temp_dir(self._directory), ignore_errors=True)
         self._wrapper.close()

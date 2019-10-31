@@ -42,7 +42,7 @@ if __name__ == "__main__":
                 chunk.blocks = blocks
                 print("Saving world")
                 world.save()
-                world.exit()
+                world.close()
 
                 print("Reloading world and printing new blocks")
                 world = load_world(world_path)

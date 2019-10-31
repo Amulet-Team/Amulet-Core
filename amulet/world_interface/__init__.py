@@ -60,7 +60,7 @@ if __name__ == "__main__":
             blocks[blocks == index] = air
     c.blocks = blocks
     w.save()
-    w.exit()
+    w.close()
 
     w = load_world(sys.argv[1])
     c = w.get_chunk(cx, cz)

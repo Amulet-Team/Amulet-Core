@@ -19,7 +19,7 @@ class WorldTestBaseCases:
             self.world = load_world(get_world_path(world_name))
 
         def tearDown(self):
-            self.world.exit()
+            self.world.close()
 
         def test_get_block(self):
             self.assertEqual(
