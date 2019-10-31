@@ -9,7 +9,9 @@ from PyMCTranslate.py3.translation_manager import Version
 
 
 class JavaNumericalTranslator(Translator):
-    def _translator_key(self, version_number: int) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
+    def _translator_key(
+        self, version_number: int
+    ) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
         return "java", version_number
 
     def _unpack_palette(self, version: Version, palette: numpy.ndarray):
@@ -22,11 +24,7 @@ class JavaNumericalTranslator(Translator):
         palette = numpy.array([version.ints_to_block(*entry) for entry in palette])
         return palette
 
-    def _pack_palette(
-            self,
-            version: Version,
-            palette: numpy.ndarray
-    ) -> numpy.ndarray:
+    def _pack_palette(self, version: Version, palette: numpy.ndarray) -> numpy.ndarray:
         """
         Packs a numpy array of Block objects into an int array of block ids and block data values [[1, 0], [2, 0]].
         :param version:

@@ -15,7 +15,12 @@ SUPPORTED_META_VERSION = 0
 
 INTERFACES_DIRECTORY = os.path.dirname(__file__)
 
-loader = Loader('interface', INTERFACES_DIRECTORY, SUPPORTED_META_VERSION, SUPPORTED_INTERFACE_VERSION)
+loader = Loader(
+    "interface",
+    INTERFACES_DIRECTORY,
+    SUPPORTED_META_VERSION,
+    SUPPORTED_INTERFACE_VERSION,
+)
 
 
 class Interface:
@@ -27,7 +32,12 @@ class Interface:
         """
         raise NotImplementedError()
 
-    def encode(self, chunk: Chunk, palette: numpy.ndarray, max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]]) -> Any:
+    def encode(
+        self,
+        chunk: Chunk,
+        palette: numpy.ndarray,
+        max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
+    ) -> Any:
         """
         Take a version-specific chunk and encode it to raw data for the format to store.
         :param chunk: The version-specfic chunk to translate and encode.
@@ -36,7 +46,11 @@ class Interface:
         """
         raise NotImplementedError()
 
-    def get_translator(self, max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]], data: Any = None) -> Tuple[translators.Translator, Union[int, Tuple[int, int, int]]]:
+    def get_translator(
+        self,
+        max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
+        data: Any = None,
+    ) -> Tuple[translators.Translator, Union[int, Tuple[int, int, int]]]:
         if data:
             key, version = self._get_translator_info(data)
         else:
@@ -44,7 +58,9 @@ class Interface:
             version = max_world_version[1]
         return translators.loader.get(key), version
 
-    def _get_translator_info(self, data: Any) -> Tuple[Any, Union[int, Tuple[int, int, int]]]:
+    def _get_translator_info(
+        self, data: Any
+    ) -> Tuple[Any, Union[int, Tuple[int, int, int]]]:
         raise NotImplementedError()
 
     @staticmethod

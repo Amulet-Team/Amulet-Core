@@ -16,7 +16,13 @@ SUPPORTED_META_VERSION = 0
 
 FORMATS_DIRECTORY = os.path.dirname(__file__)
 
-loader = Loader('format', FORMATS_DIRECTORY, SUPPORTED_META_VERSION, SUPPORTED_FORMAT_VERSION, create_instance=False)
+loader = Loader(
+    "format",
+    FORMATS_DIRECTORY,
+    SUPPORTED_META_VERSION,
+    SUPPORTED_FORMAT_VERSION,
+    create_instance=False,
+)
 
 
 class Format:
@@ -43,7 +49,9 @@ class Format:
     def _max_world_version(self) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
         raise NotImplementedError
 
-    def _get_interface(self, max_world_version, raw_chunk_data=None) -> interfaces.Interface:
+    def _get_interface(
+        self, max_world_version, raw_chunk_data=None
+    ) -> interfaces.Interface:
         if raw_chunk_data:
             key = self._get_interface_key(raw_chunk_data)
         else:
@@ -62,9 +70,7 @@ class Format:
     def all_chunk_keys(self):
         raise NotImplementedError
 
-    def load_chunk(
-        self, cx: int, cz: int, global_palette: BlockManager
-    ) -> Chunk:
+    def load_chunk(self, cx: int, cz: int, global_palette: BlockManager) -> Chunk:
         return self._load_chunk(cx, cz, global_palette)
 
     def _load_chunk(
@@ -82,13 +88,16 @@ class Format:
         raw_chunk_data = self._get_raw_chunk_data(cx, cz)
         interface = self._get_interface(self.max_world_version(), raw_chunk_data)
         # get the translator for the given version
-        translator, chunk_version_number = interface.get_translator(self.max_world_version(), raw_chunk_data)
+        translator, chunk_version_number = interface.get_translator(
+            self.max_world_version(), raw_chunk_data
+        )
 
         # decode the raw chunk data into the universal format
         chunk, chunk_palette = interface.decode(raw_chunk_data)
 
         # set up a callback that translator can use to get chunk data
         if recurse:
+
             def callback(x, z):
                 palette = BlockManager()
                 chunk_ = self._load_chunk(cx + x, cz + z, palette, False)
@@ -98,15 +107,27 @@ class Format:
             callback = None
 
         # translate the data to universal format
-        chunk, chunk_palette = translator.to_universal(chunk_version_number, self.translation_manager, chunk, chunk_palette, callback, recurse)
+        chunk, chunk_palette = translator.to_universal(
+            chunk_version_number,
+            self.translation_manager,
+            chunk,
+            chunk_palette,
+            callback,
+            recurse,
+        )
 
         # convert the block numerical ids from local chunk palette to global palette
-        chunk_to_global = numpy.array([global_palette.get_add_block(block) for block in chunk_palette], dtype=numpy.uint)
+        chunk_to_global = numpy.array(
+            [global_palette.get_add_block(block) for block in chunk_palette],
+            dtype=numpy.uint,
+        )
         chunk.blocks = chunk_to_global[chunk.blocks].reshape(16, 256, 16)
         chunk.changed = False
         return chunk
 
-    def save_chunk(self, chunk: Chunk, global_palette: BlockManager, recurse: bool = True):
+    def save_chunk(
+        self, chunk: Chunk, global_palette: BlockManager, recurse: bool = True
+    ):
         """
         Saves a universal amulet.api.chunk.Chunk object
         Calls the interface then the translator.
@@ -124,14 +145,25 @@ class Format:
         blocks_shape = chunk.blocks.shape
         chunk_palette, blocks_ = numpy.unique(chunk.blocks, return_inverse=True)
         chunk.blocks = blocks_.reshape(blocks_shape)
-        chunk_palette = numpy.array([global_palette[int_id] for int_id in chunk_palette])
+        chunk_palette = numpy.array(
+            [global_palette[int_id] for int_id in chunk_palette]
+        )
 
         callback = None  # TODO will need access to the world class
 
         # translate from universal format to version format
-        chunk, chunk_palette = translator.from_universal(chunk_version, self.translation_manager, chunk, chunk_palette, callback, recurse)
+        chunk, chunk_palette = translator.from_universal(
+            chunk_version,
+            self.translation_manager,
+            chunk,
+            chunk_palette,
+            callback,
+            recurse,
+        )
 
-        raw_chunk_data = interface.encode(chunk, chunk_palette, self.max_world_version())
+        raw_chunk_data = interface.encode(
+            chunk, chunk_palette, self.max_world_version()
+        )
 
         self._put_raw_chunk_data(cx, cz, raw_chunk_data)
 

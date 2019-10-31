@@ -6,7 +6,9 @@ from amulet.world_interface.chunk.translators import Translator
 
 
 class JavaBlockstateTranslator(Translator):
-    def _translator_key(self, version_number: int) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
+    def _translator_key(
+        self, version_number: int
+    ) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
         return "java", version_number
 
     @staticmethod

@@ -10,7 +10,14 @@ from amulet.api.errors import LoaderNoneMatched
 
 
 class Loader:
-    def __init__(self, object_type: str, directory: str, supported_meta_version, supported_version, create_instance=True):
+    def __init__(
+        self,
+        object_type: str,
+        directory: str,
+        supported_meta_version,
+        supported_version,
+        create_instance=True,
+    ):
         self._object_type = object_type
         self._directory = directory
         self._supported_meta_version = supported_meta_version
@@ -37,7 +44,10 @@ class Loader:
                 )
                 continue
 
-            if meta[self._object_type][f"{self._object_type}_version"] != self._supported_version:
+            if (
+                meta[self._object_type][f"{self._object_type}_version"]
+                != self._supported_version
+            ):
                 print(
                     f"[Error] Couldn't enable {self._object_type} \"{meta[self._object_type]['id']}\" due to unsupported {self._object_type} version"
                 )

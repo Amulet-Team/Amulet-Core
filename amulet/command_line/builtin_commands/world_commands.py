@@ -10,7 +10,7 @@ from amulet.api import version_loader, format_loader
 from amulet.api.errors import (
     FormatError,
     FormatLoaderInvalidFormat,
-    FormatLoaderMismatched
+    FormatLoaderMismatched,
 )
 
 

@@ -33,7 +33,9 @@ class World:
         self._directory = directory
         self._wrapper = wrapper
         self.palette = BlockManager()
-        self.palette.get_add_block(Block(namespace='universal_minecraft', base_name='air'))  # ensure that index 0 is always air
+        self.palette.get_add_block(
+            Block(namespace="universal_minecraft", base_name="air")
+        )  # ensure that index 0 is always air
         self.chunk_cache: Dict[Coordinates, Chunk] = {}
         shutil.rmtree(get_temp_dir(self._directory), ignore_errors=True)
         self.history_manager = ChunkHistoryManager(get_temp_dir(self._directory))

@@ -103,18 +103,18 @@ def decode_long_array(long_array: numpy.ndarray, size: int) -> numpy.ndarray:
     :size uint: The expected size of the returned array
     :return: Decoded array as numpy array
     """
-    long_array = long_array.astype('>q')
+    long_array = long_array.astype(">q")
     bits_per_entry = (len(long_array) * 64) // size
 
     return numpy.packbits(
         numpy.pad(
-            numpy.unpackbits(
-                long_array[::-1].astype(">i8").view("uint8")
-            ).reshape(-1, bits_per_entry),
-            [(0, 0), (64-bits_per_entry, 0)],
-            'constant'
+            numpy.unpackbits(long_array[::-1].astype(">i8").view("uint8")).reshape(
+                -1, bits_per_entry
+            ),
+            [(0, 0), (64 - bits_per_entry, 0)],
+            "constant",
         )
-    ).view(dtype='>q')
+    ).view(dtype=">q")
 
 
 def encode_long_array(array: numpy.ndarray) -> numpy.ndarray:
@@ -123,13 +123,11 @@ def encode_long_array(array: numpy.ndarray) -> numpy.ndarray:
     :param array: A numpy array of the data to be encoded.
     :return: Encoded array as numpy array
     """
-    array = array.astype('>q')
+    array = array.astype(">q")
     bits_per_entry = max(int(array.max()).bit_length(), 2)
     return numpy.packbits(
-        numpy.unpackbits(
-            array.view('uint8')
-        ).reshape(-1, 64)[:, -bits_per_entry:]
-    ).view(dtype='>q')[::-1]
+        numpy.unpackbits(array.view("uint8")).reshape(-1, 64)[:, -bits_per_entry:]
+    ).view(dtype=">q")[::-1]
 
 
 def get_size(obj, seen=None):

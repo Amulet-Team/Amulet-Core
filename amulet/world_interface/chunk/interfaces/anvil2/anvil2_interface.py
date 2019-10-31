@@ -6,8 +6,14 @@ import numpy
 import amulet_nbt as nbt
 
 from amulet.api.block import Block
-from amulet.world_interface.chunk.interfaces.base_anvil_interface import BaseAnvilInterface
-from amulet.utils.world_utils import get_smallest_dtype, decode_long_array, encode_long_array
+from amulet.world_interface.chunk.interfaces.base_anvil_interface import (
+    BaseAnvilInterface
+)
+from amulet.utils.world_utils import (
+    get_smallest_dtype,
+    decode_long_array,
+    encode_long_array,
+)
 
 
 def properties_to_string(props: dict) -> str:
@@ -26,28 +32,27 @@ def properties_to_string(props: dict) -> str:
 class Anvil2Interface(BaseAnvilInterface):
     def __init__(self):
         BaseAnvilInterface.__init__(self)
-        self.args['data_version'] = 'int'
-        self.args['last_update'] = 'long'
+        self.args["data_version"] = "int"
+        self.args["last_update"] = "long"
 
-        self.args['status'] = 'string10'
-        self.args['inhabited_time'] = 'long'
-        self.args['biomes'] = '256IA'
-        self.args['height_map'] = 'C5|36LA'
+        self.args["status"] = "string10"
+        self.args["inhabited_time"] = "long"
+        self.args["biomes"] = "256IA"
+        self.args["height_map"] = "C5|36LA"
 
-        self.args['blocks'] = 'Sections|(BlockStates,Palette)'
-        self.args['block_light'] = 'Sections|2048BA'
-        self.args['sky_light'] = 'Sections|2048BA'
+        self.args["blocks"] = "Sections|(BlockStates,Palette)"
+        self.args["block_light"] = "Sections|2048BA"
+        self.args["sky_light"] = "Sections|2048BA"
 
-        self.args['entities'] = 'list'
-        self.args['tile_entities'] = 'list'
-        self.args['tile_ticks'] = 'list'
+        self.args["entities"] = "list"
+        self.args["tile_entities"] = "list"
+        self.args["tile_ticks"] = "list"
 
-        self.args['liquid_ticks'] = 'list'
-        self.args['liquids_to_be_ticked'] = '16list|list'
-        self.args['to_be_ticked'] = '16list|list'
-        self.args['post_processing'] = '16list|list'
-        self.args['structures'] = 'compound'
-
+        self.args["liquid_ticks"] = "list"
+        self.args["liquids_to_be_ticked"] = "16list|list"
+        self.args["to_be_ticked"] = "16list|list"
+        self.args["post_processing"] = "16list|list"
+        self.args["structures"] = "compound"
 
     @staticmethod
     def is_valid(key):
@@ -60,9 +65,7 @@ class Anvil2Interface(BaseAnvilInterface):
     def _get_translator_info(self, data: nbt.NBTFile) -> Tuple[Tuple[str, int], int]:
         return ("anvil", data["DataVersion"].value), data["DataVersion"].value
 
-    def _decode_blocks(
-        self, chunk_sections
-    ) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    def _decode_blocks(self, chunk_sections) -> Tuple[numpy.ndarray, numpy.ndarray]:
         if not chunk_sections:
             raise NotImplementedError(
                 "We don't support reading chunks that never been edited in Minecraft before"
@@ -76,7 +79,7 @@ class Anvil2Interface(BaseAnvilInterface):
                 continue
             height = section["Y"].value << 4
 
-            blocks[height: height + 16, :, :] = decode_long_array(
+            blocks[height : height + 16, :, :] = decode_long_array(
                 section["BlockStates"].value, 4096
             ).reshape((16, 16, 16)) + len(palette)
 
@@ -88,20 +91,29 @@ class Anvil2Interface(BaseAnvilInterface):
 
         return blocks.astype(f"uint{get_smallest_dtype(blocks)}"), palette
 
-    def _encode_blocks(self, blocks: numpy.ndarray, palette: numpy.ndarray) -> nbt.TAG_List:
+    def _encode_blocks(
+        self, blocks: numpy.ndarray, palette: numpy.ndarray
+    ) -> nbt.TAG_List:
         sections = nbt.TAG_List()
         for y in range(16):  # perhaps find a way to do this dynamically
-            block_sub_array = blocks[:, y * 16: y * 16 + 16, :].ravel()
+            block_sub_array = blocks[:, y * 16 : y * 16 + 16, :].ravel()
 
-            sub_palette_, block_sub_array = numpy.unique(block_sub_array, return_inverse=True)
+            sub_palette_, block_sub_array = numpy.unique(
+                block_sub_array, return_inverse=True
+            )
             sub_palette = self._encode_palette(palette[sub_palette_])
-            if len(sub_palette) == 1 and sub_palette[0]['Name'].value == 'minecraft:air':
+            if (
+                len(sub_palette) == 1
+                and sub_palette[0]["Name"].value == "minecraft:air"
+            ):
                 continue
 
             section = nbt.TAG_Compound()
-            section['Y'] = nbt.TAG_Byte(y)
-            section['BlockStates'] = nbt.TAG_Long_Array(encode_long_array(block_sub_array))
-            section['Palette'] = sub_palette
+            section["Y"] = nbt.TAG_Byte(y)
+            section["BlockStates"] = nbt.TAG_Long_Array(
+                encode_long_array(block_sub_array)
+            )
+            section["Palette"] = sub_palette
             sections.append(section)
 
         return sections
@@ -112,7 +124,10 @@ class Anvil2Interface(BaseAnvilInterface):
         for entry in palette:
             namespace, base_name = entry["Name"].value.split(":", 1)
             # TODO: handle waterlogged property
-            properties = {prop: str(val.value) for prop, val in entry.get("Properties", nbt.TAG_Compound({})).items()}
+            properties = {
+                prop: str(val.value)
+                for prop, val in entry.get("Properties", nbt.TAG_Compound({})).items()
+            }
             block = Block(
                 namespace=namespace, base_name=base_name, properties=properties
             )
@@ -124,8 +139,8 @@ class Anvil2Interface(BaseAnvilInterface):
         palette = nbt.TAG_List()
         for block in blockstates:
             entry = nbt.TAG_Compound()
-            entry['Name'] = nbt.TAG_String(f'{block.namespace}:{block.base_name}')
-            properties = entry['Properties'] = nbt.TAG_Compound()
+            entry["Name"] = nbt.TAG_String(f"{block.namespace}:{block.base_name}")
+            properties = entry["Properties"] = nbt.TAG_Compound()
             # TODO: handle waterlogged property
             for prop, val in block.properties.items():
                 if isinstance(val, str):

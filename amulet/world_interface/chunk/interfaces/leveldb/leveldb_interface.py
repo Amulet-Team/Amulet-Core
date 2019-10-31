@@ -41,7 +41,9 @@ class LevelDBInterface(Interface):
 
     def _load_subchunks(self, subchunks):
         blocks = numpy.zeros((16, 256, 16), dtype=numpy.uint32)
-        palette = [Block(namespace="minecraft", base_name="air", properties={"block_data": 0})]
+        palette = [
+            Block(namespace="minecraft", base_name="air", properties={"block_data": 0})
+        ]
         for y, data in enumerate(subchunks):
             if data is None:
                 continue
@@ -50,13 +52,15 @@ class LevelDBInterface(Interface):
             palette_data = self._load_palette(data)
             for i, block in enumerate(palette_data):
                 namespace, base_name = block["name"].value.split(":", 1)
-                if "states" in block: #1.13 format
+                if "states" in block:  # 1.13 format
                     properties = block["properties"].value
                 else:
                     properties = {"block_data": str(block["val"].value)}
-                palette_data[i] = Block(namespace=namespace, base_name=base_name, properties=properties)
+                palette_data[i] = Block(
+                    namespace=namespace, base_name=base_name, properties=properties
+                )
             y *= 16
-            blocks[:, y:y+16, :] = block_data + len(palette)
+            blocks[:, y : y + 16, :] = block_data + len(palette)
             palette += palette_data
 
         palette, inverse = numpy.unique(palette, return_inverse=True)
@@ -90,13 +94,17 @@ class LevelDBInterface(Interface):
     # NBT encoded block names (with minecraft:) and data values.
     def _load_palette(self, data):
         palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
-        palette, offset = amulet_nbt.load(buffer=data, compressed=False, count=palette_len, offset=True)
+        palette, offset = amulet_nbt.load(
+            buffer=data, compressed=False, count=palette_len, offset=True
+        )
         return palette
 
     def encode(self, chunk: Chunk, palette: numpy.ndarray) -> Tuple[int, int, LevelDB]:
         raise NotImplementedError
 
-    def _get_translator_info(self, data: Tuple[int, int, LevelDB]) -> Tuple[Tuple[str, int], int]:
+    def _get_translator_info(
+        self, data: Tuple[int, int, LevelDB]
+    ) -> Tuple[Tuple[str, int], int]:
         cx, cz, db = data
         chunk_key_base = struct.pack("<ii", cx, cz)
         chunk_version = db.get(chunk_key_base + b"v")[0]

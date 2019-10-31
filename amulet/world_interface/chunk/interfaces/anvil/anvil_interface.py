@@ -6,28 +6,30 @@ import numpy
 import amulet_nbt as nbt
 
 from amulet.utils import world_utils
-from amulet.world_interface.chunk.interfaces.base_anvil_interface import BaseAnvilInterface
+from amulet.world_interface.chunk.interfaces.base_anvil_interface import (
+    BaseAnvilInterface
+)
 
 
 class AnvilInterface(BaseAnvilInterface):
     def __init__(self):
         BaseAnvilInterface.__init__(self)
-        self.args['data_version'] = 'int'
-        self.args['last_update'] = 'long'
+        self.args["data_version"] = "int"
+        self.args["last_update"] = "long"
 
-        self.args['light_populated'] = 'byte'
-        self.args['terrain_populated'] = 'byte'
-        self.args['inhabited_time'] = 'long'
-        self.args['biomes'] = '256BA'
-        self.args['height_map'] = '256IA'
+        self.args["light_populated"] = "byte"
+        self.args["terrain_populated"] = "byte"
+        self.args["inhabited_time"] = "long"
+        self.args["biomes"] = "256BA"
+        self.args["height_map"] = "256IA"
 
-        self.args['blocks'] = 'Sections|(Blocks,Data,Add)'
-        self.args['block_light'] = 'Sections|2048BA'
-        self.args['sky_light'] = 'Sections|2048BA'
+        self.args["blocks"] = "Sections|(Blocks,Data,Add)"
+        self.args["block_light"] = "Sections|2048BA"
+        self.args["sky_light"] = "Sections|2048BA"
 
-        self.args['entities'] = 'list'
-        self.args['tile_entities'] = 'list'
-        self.args['tile_ticks'] = 'list'
+        self.args["entities"] = "list"
+        self.args["tile_entities"] = "list"
+        self.args["tile_ticks"] = "list"
 
     @staticmethod
     def is_valid(key):
@@ -50,7 +52,9 @@ class AnvilInterface(BaseAnvilInterface):
     def _encode_entities(self, entities: list) -> nbt.TAG_List:
         return nbt.TAG_List([])
 
-    def _decode_blocks(self, chunk_sections: nbt.TAG_List) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    def _decode_blocks(
+        self, chunk_sections: nbt.TAG_List
+    ) -> Tuple[numpy.ndarray, numpy.ndarray]:
         if chunk_sections is None:
             raise NotImplementedError(
                 "We don't support reading chunks that never been edited in Minecraft before"
@@ -65,9 +69,9 @@ class AnvilInterface(BaseAnvilInterface):
             section_blocks = numpy.frombuffer(
                 section["Blocks"].value, dtype=numpy.uint8
             )
-            del section['Blocks']
+            del section["Blocks"]
             section_data = numpy.frombuffer(section["Data"].value, dtype=numpy.uint8)
-            del section['Data']
+            del section["Data"]
             section_blocks = section_blocks.reshape((16, 16, 16))
             section_blocks.astype(numpy.uint16, copy=False)
 
@@ -79,7 +83,7 @@ class AnvilInterface(BaseAnvilInterface):
 
             if "Add" in section:
                 add_blocks = numpy.frombuffer(section["Add"].value, dtype=numpy.uint8)
-                del section['Add']
+                del section["Add"]
                 add_blocks = add_blocks.reshape((16, 16, 8))
                 add_blocks = world_utils.from_nibble_array(add_blocks)
 
@@ -98,18 +102,22 @@ class AnvilInterface(BaseAnvilInterface):
         blocks = blocks.reshape(16, 256, 16, order="F")
         return blocks, palette
 
-    def _encode_blocks(self, blocks: numpy.ndarray, palette: numpy.ndarray) -> nbt.TAG_List:
+    def _encode_blocks(
+        self, blocks: numpy.ndarray, palette: numpy.ndarray
+    ) -> nbt.TAG_List:
         blocks = palette[blocks]
         sections = nbt.TAG_List()
         block_array, data_array = blocks[:, :, :, 0], blocks[:, :, :, 1]
-        for y in range(16): # perhaps find a way to do this dynamically
-            block_sub_array = block_array[:, y * 16: y * 16 + 16, :].ravel()
-            data_sub_array = data_array[:, y * 16: y * 16 + 16, :].ravel()
+        for y in range(16):  # perhaps find a way to do this dynamically
+            block_sub_array = block_array[:, y * 16 : y * 16 + 16, :].ravel()
+            data_sub_array = data_array[:, y * 16 : y * 16 + 16, :].ravel()
             # TODO: check if the sub-chunk is empty and skip
             section = nbt.TAG_Compound()
-            section['Y'] = nbt.TAG_Byte(y)
-            section['Blocks'] = nbt.TAG_Byte_Array(block_sub_array.astype('uint8'))
-            section['Data'] = nbt.TAG_Byte_Array(((data_sub_array[::2] << 4) + data_sub_array[1::2]).astype('uint8'))
+            section["Y"] = nbt.TAG_Byte(y)
+            section["Blocks"] = nbt.TAG_Byte_Array(block_sub_array.astype("uint8"))
+            section["Data"] = nbt.TAG_Byte_Array(
+                ((data_sub_array[::2] << 4) + data_sub_array[1::2]).astype("uint8")
+            )
             sections.append(section)
 
         return sections

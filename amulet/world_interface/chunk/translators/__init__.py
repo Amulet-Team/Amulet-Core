@@ -16,11 +16,18 @@ SUPPORTED_META_VERSION = 0
 
 TRANSLATORS_DIRECTORY = os.path.dirname(__file__)
 
-loader = Loader('translator', TRANSLATORS_DIRECTORY, SUPPORTED_META_VERSION, SUPPORTED_TRANSLATOR_VERSION)
+loader = Loader(
+    "translator",
+    TRANSLATORS_DIRECTORY,
+    SUPPORTED_META_VERSION,
+    SUPPORTED_TRANSLATOR_VERSION,
+)
 
 
 class Translator:
-    def _translator_key(self, version_number: Union[int, Tuple[int, int, int]]) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
+    def _translator_key(
+        self, version_number: Union[int, Tuple[int, int, int]]
+    ) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
         """
         Return the version key for PyMCTranslate
 
@@ -40,12 +47,12 @@ class Translator:
         raise NotImplementedError()
 
     def _translate(
-            self,
-            chunk: Chunk,
-            palette: numpy.ndarray,
-            callback: Callable,
-            translate: Callable,
-            full_translate: bool
+        self,
+        chunk: Chunk,
+        palette: numpy.ndarray,
+        callback: Callable,
+        translate: Callable,
+        full_translate: bool,
     ):
         if not full_translate:
             return chunk, palette
@@ -94,13 +101,13 @@ class Translator:
         return chunk, numpy.array(finished.blocks())
 
     def to_universal(
-            self,
-            chunk_version: Union[int, Tuple[int, int, int]],
-            translation_manager: PyMCTranslate.TranslationManager,
-            chunk: Chunk,
-            palette: numpy.ndarray,
-            callback: Callable,
-            full_translate: bool
+        self,
+        chunk_version: Union[int, Tuple[int, int, int]],
+        translation_manager: PyMCTranslate.TranslationManager,
+        chunk: Chunk,
+        palette: numpy.ndarray,
+        callback: Callable,
+        full_translate: bool,
     ) -> Tuple[Chunk, numpy.ndarray]:
         """
         Translate an interface-specific chunk into the universal format.
@@ -116,16 +123,18 @@ class Translator:
         version = translation_manager.get_version(*self._translator_key(chunk_version))
         translator = version.get()
         palette = self._unpack_palette(version, palette)
-        return self._translate(chunk, palette, callback, translator.to_universal, full_translate)
+        return self._translate(
+            chunk, palette, callback, translator.to_universal, full_translate
+        )
 
     def from_universal(
-            self,
-            max_world_version_number: Union[int, Tuple[int, int, int]],
-            translation_manager: PyMCTranslate.TranslationManager,
-            chunk: Chunk,
-            palette: numpy.ndarray,
-            callback: Union[Callable, None],
-            full_translate: bool
+        self,
+        max_world_version_number: Union[int, Tuple[int, int, int]],
+        translation_manager: PyMCTranslate.TranslationManager,
+        chunk: Chunk,
+        palette: numpy.ndarray,
+        callback: Union[Callable, None],
+        full_translate: bool,
     ) -> Tuple[Chunk, numpy.ndarray]:
         """
         Translate a universal chunk into the interface-specific format.
@@ -138,16 +147,18 @@ class Translator:
         :param full_translate: if true do a full translate. If false just pack the palette (used in callback)
         :return: Chunk object in the interface-specific format and palette.
         """
-        version = translation_manager.get_version(*self._translator_key(max_world_version_number))
+        version = translation_manager.get_version(
+            *self._translator_key(max_world_version_number)
+        )
         translator = version.get()
-        chunk, palette = self._translate(chunk, palette, callback, translator.from_universal, full_translate)
+        chunk, palette = self._translate(
+            chunk, palette, callback, translator.from_universal, full_translate
+        )
         palette = self._pack_palette(version, palette)
         return chunk, palette
 
     def _unpack_palette(
-            self,
-            version: Version,
-            palette: numpy.ndarray
+        self, version: Version, palette: numpy.ndarray
     ) -> numpy.ndarray:
         """
         Unpack the version-specific palette into the stringified version where needed.
@@ -156,11 +167,7 @@ class Translator:
         """
         return palette
 
-    def _pack_palette(
-            self,
-            version: Version,
-            palette: numpy.ndarray
-    ) -> numpy.ndarray:
+    def _pack_palette(self, version: Version, palette: numpy.ndarray) -> numpy.ndarray:
         """
         Translate the list of block objects into a version-specific palette.
         :return: The palette converted into version-specific blocks (ie id, data tuples for 1.12)

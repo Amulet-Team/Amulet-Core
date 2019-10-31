@@ -59,12 +59,8 @@ class AnvilRegion:
             # )
             # self._free_sectors[0:2] = False, False
 
-            offsets = numpy.fromfile(
-                fp, dtype=">u4", count=1024
-            )
-            mod_times = numpy.fromfile(
-                fp, dtype=">u4", count=1024
-            )
+            offsets = numpy.fromfile(fp, dtype=">u4", count=1024)
+            mod_times = numpy.fromfile(fp, dtype=">u4", count=1024)
 
             # for offset in offsets:
             #     sector = offset >> 8
@@ -85,8 +81,13 @@ class AnvilRegion:
                     # count = offset & 0xFF   # the number of sectors used
                     fp.seek(world_utils.SECTOR_BYTES * sector)
                     # read int value and then read that amount of data
-                    buffer_size = struct.unpack('>I', fp.read(4))[0]
-                    self._chunks[(x, z)] = (False, mod_times[x + 32 * z], buffer_size, fp.read(buffer_size))
+                    buffer_size = struct.unpack(">I", fp.read(4))[0]
+                    self._chunks[(x, z)] = (
+                        False,
+                        mod_times[x + 32 * z],
+                        buffer_size,
+                        fp.read(buffer_size),
+                    )
 
     def save(self):
         if self._dirty:
@@ -94,17 +95,28 @@ class AnvilRegion:
             mod_times = numpy.zeros(1024, dtype=">u4")
             offset = 2
             data = []
-            for (cx, cz), (dirty, mod_time, buffer_size, buffer) in self._chunks.items():
+            for (
+                (cx, cz),
+                (dirty, mod_time, buffer_size, buffer),
+            ) in self._chunks.items():
                 index = cx + (cz << 5)
                 sector_count = ((buffer_size + 4 | 0xFFF) + 1) >> 12
                 offsets[index] = (offset << 8) + sector_count
                 mod_times[index] = mod_time
-                data.append(struct.pack('>I', buffer_size) + buffer + b'\x00' * ((sector_count << 12) - buffer_size - 4))
+                data.append(
+                    struct.pack(">I", buffer_size)
+                    + buffer
+                    + b"\x00" * ((sector_count << 12) - buffer_size - 4)
+                )
                 offset += sector_count
-            with open(self._file_path, 'wb') as fp:
-                fp.write(struct.pack('>1024I', *offsets))    # there is probably a prettier way of doing this
-                fp.write(struct.pack('>1024I', *mod_times))  # but I could not work it out with Numpy
-                fp.write(b''.join(data))
+            with open(self._file_path, "wb") as fp:
+                fp.write(
+                    struct.pack(">1024I", *offsets)
+                )  # there is probably a prettier way of doing this
+                fp.write(
+                    struct.pack(">1024I", *mod_times)
+                )  # but I could not work it out with Numpy
+                fp.write(b"".join(data))
 
     def get_chunk_data(self, cx: int, cz: int) -> nbt.NBTFile:
         if (cx, cz) in self._chunks:
@@ -126,7 +138,7 @@ class AnvilRegion:
     def _compress(data: nbt.NBTFile) -> Tuple[int, bytes]:
         """Convert an NBTFile into a compressed bytes object"""
         data = data.save_to(compressed=False)
-        data = b'\x02' + zlib.compress(data)
+        data = b"\x02" + zlib.compress(data)
         return len(data), data
 
     @staticmethod
@@ -136,7 +148,7 @@ class AnvilRegion:
             return nbt.load(buffer=gzip.decompress(data[1:]), compressed=False)
         elif data[0] == world_utils.VERSION_DEFLATE:
             return nbt.load(buffer=zlib.decompress(data[1:]), compressed=False)
-        raise Exception(f'Invalid compression type {data[0]}')
+        raise Exception(f"Invalid compression type {data[0]}")
 
 
 class AnvilRegionManager:
@@ -171,7 +183,7 @@ class AnvilRegionManager:
             return self._loaded_regions[key]
 
         # check the file exists and then open it
-        file_path = os.path.join(self._directory, "region", f'r.{rx}.{rz}.mca')
+        file_path = os.path.join(self._directory, "region", f"r.{rx}.{rz}.mca")
         if os.path.exists(file_path):
             self._loaded_regions[key] = AnvilRegion(file_path)
         else:
@@ -205,10 +217,10 @@ class AnvilFormat(Format):
         # TODO: save other world data
 
     def close(self):
-        pass    # TODO: release lock file
+        pass  # TODO: release lock file
 
     def _max_world_version(self) -> Tuple[str, int]:
-        return 'anvil', self.root_tag['Data']['DataVersion'].value
+        return "anvil", self.root_tag["Data"]["DataVersion"].value
 
     def delete_chunk(self, cx: int, cz: int):
         self._region_manager.delete_chunk(cx, cz)
@@ -251,7 +263,7 @@ class AnvilFormat(Format):
 
 FORMAT_CLASS = AnvilFormat
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
 
     world_path = sys.argv[1]

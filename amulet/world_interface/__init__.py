@@ -13,13 +13,12 @@ def load_world(directory: str, _format: str = None, forced: bool = False) -> Wor
     :param forced:
     :return:
     """
-    return World(
-        directory,
-        load_format(directory, _format, forced)
-    )
+    return World(directory, load_format(directory, _format, forced))
 
 
-def load_format(directory: str, _format: str = None, forced: bool = False) -> formats.Format:
+def load_format(
+    directory: str, _format: str = None, forced: bool = False
+) -> formats.Format:
     """
     Loads the world located at the given directory with the appropriate format loader.
 
@@ -43,18 +42,21 @@ if __name__ == "__main__":
     import sys
     from amulet.api.block import Block
     import numpy
+
     cx, cz = 0, 0
 
     w = load_world(sys.argv[1])
     c = w.get_chunk(cx, cz)
-    for block in c.blocks.ravel()[:4096:16]:    # the blockstates of one vertical column
+    for block in c.blocks.ravel()[:4096:16]:  # the blockstates of one vertical column
         print(w.palette[block])
-    air = w.palette.get_add_block(Block(namespace='universal_minecraft', base_name='air'))
+    air = w.palette.get_add_block(
+        Block(namespace="universal_minecraft", base_name="air")
+    )
     # blocks[0, 30, 0] = stone
     # c.blocks = numpy.full((16, 256, 16), stone)
     blocks = numpy.random.randint(0, len(w.palette.blocks()), size=(16, 256, 16))
     for index, block in enumerate(w.palette.blocks()):
-        if block.base_name in ['lava', 'water']:
+        if block.base_name in ["lava", "water"]:
             blocks[blocks == index] = air
     c.blocks = blocks
     w.save()

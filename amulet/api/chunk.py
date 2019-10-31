@@ -18,11 +18,7 @@ class Chunk:
     Class to represent a chunk that exists in an Minecraft world
     """
 
-    def __init__(
-            self,
-            cx: int,
-            cz: int
-    ):
+    def __init__(self, cx: int, cz: int):
         self.cx, self.cz = cx, cz
         self._changed = False
         self._marked_for_deletion = False
@@ -81,8 +77,14 @@ class Chunk:
     @blocks.setter
     def blocks(self, value: numpy.ndarray):
         if not numpy.array_equal(self._blocks, value):
-            assert value.shape == (16, 256, 16), 'Shape of the Block array must be (16, 256, 16)'
-            assert numpy.issubdtype(value.dtype, numpy.integer), 'dtype must be an unsigned integer'
+            assert value.shape == (
+                16,
+                256,
+                16,
+            ), "Shape of the Block array must be (16, 256, 16)"
+            assert numpy.issubdtype(
+                value.dtype, numpy.integer
+            ), "dtype must be an unsigned integer"
             self.changed = True
             self._blocks = Blocks(self, value)
 
@@ -93,8 +95,13 @@ class Chunk:
     @biomes.setter
     def biomes(self, value: numpy.ndarray):
         if not numpy.array_equal(self._biomes, value):
-            assert value.size in [256, 1024], 'Size of the Biome array must be 256 or 1024'
-            numpy.issubdtype(value.dtype, numpy.integer), 'dtype must be an unsigned integer'
+            assert value.size in [
+                256,
+                1024,
+            ], "Size of the Biome array must be 256 or 1024"
+            numpy.issubdtype(
+                value.dtype, numpy.integer
+            ), "dtype must be an unsigned integer"
             self.changed = True
             self._biomes = Biomes(self, value)
 
@@ -214,7 +221,7 @@ class ChunkArray(numpy.ndarray):
     def __array_finalize__(self, obj):
         if obj is None:
             return
-        self._parent_chunk = getattr(obj, '_parent_chunk', None)
+        self._parent_chunk = getattr(obj, "_parent_chunk", None)
 
     def _dirty(self):
         self._parent_chunk.changed = True
@@ -232,11 +239,11 @@ class ChunkArray(numpy.ndarray):
         self._dirty()
         numpy.ndarray.itemset(*args)
 
-    def partition(self, kth, axis=-1, kind='introselect', order=None):
+    def partition(self, kth, axis=-1, kind="introselect", order=None):
         self._dirty()
         numpy.ndarray.partition(self, kth, axis, kind, order)
 
-    def put(self, indices, values, mode='raise'):
+    def put(self, indices, values, mode="raise"):
         self._dirty()
         numpy.ndarray.put(self, indices, values, mode)
 
@@ -244,7 +251,7 @@ class ChunkArray(numpy.ndarray):
         self._dirty()
         numpy.ndarray.resize(self, *new_shape, refcheck=refcheck)
 
-    def sort(self, axis=-1, kind='quicksort', order=None):
+    def sort(self, axis=-1, kind="quicksort", order=None):
         self._dirty()
         numpy.ndarray.sort(self, axis, kind, order)
 
@@ -327,9 +334,11 @@ class Biomes(ChunkArray):
         if length in [256, 1024]:
             # TODO: proper conversion
             if length > self.size:
-                self._parent_chunk.biomes = numpy.concatenate((self.ravel(), numpy.zeros(length-self.size, dtype=self.dtype)))
+                self._parent_chunk.biomes = numpy.concatenate(
+                    (self.ravel(), numpy.zeros(length - self.size, dtype=self.dtype))
+                )
             elif length < self.size:
                 self._parent_chunk.biomes = self.ravel()[:length]
             return self._parent_chunk.biomes
         else:
-            raise Exception(f'Format length {length} is invalid')
+            raise Exception(f"Format length {length} is invalid")
