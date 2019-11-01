@@ -18,7 +18,7 @@ from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist
 
 
 class AnvilRegion:
-    region_regex = re.compile(r'r\.(?P<rx>-?\d+)\.(?P<rz>-?\d+)\.mca')
+    region_regex = re.compile(r"r\.(?P<rx>-?\d+)\.(?P<rz>-?\d+)\.mca")
 
     @staticmethod
     def get_coords(file_path: str) -> Tuple[Union[int, None], Union[int, None]]:
@@ -26,7 +26,7 @@ class AnvilRegion:
         match = AnvilRegion.region_regex.fullmatch(file_path)
         if match is None:
             return None, None
-        return int(match.group('rx')), int(match.group('rz'))
+        return int(match.group("rx")), int(match.group("rz"))
 
     def __init__(self, file_path: str, create=False):
         """
@@ -191,14 +191,14 @@ class AnvilRegion:
 
 
 class AnvilLevelManager:
-    level_regex = re.compile(r'DIM(?P<level>-?\d+)')
+    level_regex = re.compile(r"DIM(?P<level>-?\d+)")
 
     def __init__(self, directory: str):
         self._directory = directory
         self._regions: Dict[Tuple[int, int], AnvilRegion] = {}
 
         # shallow load all of the existing region classes
-        region_dir = os.path.join(self._directory, 'region')
+        region_dir = os.path.join(self._directory, "region")
         if os.path.isdir(region_dir):
             for region_file_name in os.listdir(region_dir):
                 rx, rz = AnvilRegion.get_coords(region_file_name)
@@ -266,11 +266,11 @@ class AnvilFormat(Format):
         }
         for dir_name in os.listdir(self._directory):
             level_path = os.path.join(self._directory, dir_name)
-            if os.path.isdir(level_path) and dir_name.startswith('DIM'):
+            if os.path.isdir(level_path) and dir_name.startswith("DIM"):
                 match = AnvilLevelManager.level_regex.fullmatch(dir_name)
                 if match is None:
                     continue
-                level = match.group('level')
+                level = match.group("level")
                 self._levels[level] = AnvilLevelManager(level_path)
 
     def _get_level(self, level: int):

@@ -34,7 +34,10 @@ class JavaNumericalTranslator(Translator):
         palette = [version.block_to_ints(entry) for entry in palette]
         for index, value in enumerate(palette):
             if value is None:
-                palette[index] = (0, 0)  # TODO: find some way for the user to specify this
+                palette[index] = (
+                    0,
+                    0,
+                )  # TODO: find some way for the user to specify this
         return numpy.array(palette)
 
     @staticmethod
