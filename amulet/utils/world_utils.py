@@ -114,7 +114,7 @@ def decode_long_array(long_array: numpy.ndarray, size: int) -> numpy.ndarray:
             [(0, 0), (64 - bits_per_entry, 0)],
             "constant",
         )
-    ).view(dtype=">q")
+    ).view(dtype=">q")[::-1]
 
 
 def encode_long_array(array: numpy.ndarray) -> numpy.ndarray:
@@ -126,7 +126,7 @@ def encode_long_array(array: numpy.ndarray) -> numpy.ndarray:
     array = array.astype(">q")
     bits_per_entry = max(int(array.max()).bit_length(), 2)
     return numpy.packbits(
-        numpy.unpackbits(array.view("uint8")).reshape(-1, 64)[:, -bits_per_entry:]
+        numpy.unpackbits(array[::-1].view("uint8")).reshape(-1, 64)[:, -bits_per_entry:]
     ).view(dtype=">q")[::-1]
 
 
