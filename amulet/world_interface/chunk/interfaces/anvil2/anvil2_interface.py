@@ -95,8 +95,9 @@ class Anvil2Interface(BaseAnvilInterface):
         self, blocks: numpy.ndarray, palette: numpy.ndarray
     ) -> nbt.TAG_List:
         sections = nbt.TAG_List()
+        blocks = numpy.swapaxes(blocks.swapaxes(0, 2), 0, 1)
         for y in range(16):  # perhaps find a way to do this dynamically
-            block_sub_array = blocks[:, y * 16 : y * 16 + 16, :].ravel()
+            block_sub_array = blocks[y * 16 : y * 16 + 16, :, :].ravel()
 
             sub_palette_, block_sub_array = numpy.unique(
                 block_sub_array, return_inverse=True
