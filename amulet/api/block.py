@@ -64,6 +64,7 @@ class Block:
     """
 
     __slots__ = (
+        "_namespaced_name",
         "_namespace",
         "_base_name",
         "_properties",
@@ -88,6 +89,10 @@ class Block:
         self._blockstate = blockstate
         self._namespace = namespace
         self._base_name = base_name
+        if namespace is None or base_name is None:
+            self._namespaced_name = None
+        else:
+            self._namespaced_name = f'{namespace}:{base_name}'
 
         if namespace is not None and base_name is not None and properties is None:
             properties = {}
@@ -101,6 +106,17 @@ class Block:
 
         if blockstate:
             self._gen_blockstate()
+
+    @property
+    def namespaced_name(self) -> str:
+        """
+        The namespace:base_name of the blockstate represented by the Block object (IE: `minecraft:stone`)
+
+        :return: The namespace:base_name of the blockstate
+        """
+        if self._namespaced_name is None:
+            self._parse_blockstate_string()
+        return self._namespaced_name
 
     @property
     def namespace(self) -> str:
@@ -156,7 +172,7 @@ class Block:
         return self._extra_blocks
 
     def _gen_blockstate(self):
-        self._blockstate = f"{self.namespace}:{self.base_name}"
+        self._namespaced_name = self._blockstate = f"{self.namespace}:{self.base_name}"
         if self.properties:
             props = [f"{key}={value}" for key, value in sorted(self.properties.items())]
             self._blockstate = f"{self._blockstate}[{','.join(props)}]"
