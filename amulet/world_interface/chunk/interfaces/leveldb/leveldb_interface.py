@@ -8,12 +8,12 @@ import amulet_nbt
 
 from amulet.api.block import Block
 from amulet.api.chunk import Chunk
-from amulet.world_interface.chunk.interfaces import Interface
+from amulet.world_interface.chunk.interfaces.base_leveldb_interface import BaseLevelDBInterface
 from amulet.libs.leveldb import LevelDB
 from amulet.utils.world_utils import get_smallest_dtype
 
 
-class LevelDBInterface(Interface):
+class LevelDBInterface(BaseLevelDBInterface):
     @staticmethod
     def is_valid(key):
         if key[0] != "leveldb":
@@ -29,15 +29,24 @@ class LevelDBInterface(Interface):
         subchunks = []
         for i in range(16):
             try:
-                key = struct.pack("<iicB", cx, cz, b"/", i)
+                key = struct.pack("<iicB", cx, cz, b"\x2F", i)
                 subchunks.append(db.get(key))
             except KeyError:
                 subchunks.append(None)
 
-        blocks, palette = self._load_subchunks(subchunks)
-        entities = None
-        tile_entities = None
-        return Chunk(cx, cz, blocks, entities, tile_entities), palette
+        chunk = Chunk(cx, cz)
+        chunk.blocks, palette = self._load_subchunks(subchunks)
+        chunk.entities = None
+        chunk.block_entities = None
+        return chunk, palette
+
+    def encode(
+        self,
+        chunk: Chunk,
+        palette: numpy.ndarray,
+        max_world_version: Tuple[str, Tuple[int, int, int]],
+    ) -> Tuple[int, int, LevelDB]:
+        raise NotImplementedError
 
     def _load_subchunks(self, subchunks):
         blocks = numpy.zeros((16, 256, 16), dtype=numpy.uint32)
@@ -98,17 +107,6 @@ class LevelDBInterface(Interface):
             buffer=data, compressed=False, count=palette_len, offset=True
         )
         return palette
-
-    def encode(self, chunk: Chunk, palette: numpy.ndarray) -> Tuple[int, int, LevelDB]:
-        raise NotImplementedError
-
-    def _get_translator_info(
-        self, data: Tuple[int, int, LevelDB]
-    ) -> Tuple[Tuple[str, int], int]:
-        cx, cz, db = data
-        chunk_key_base = struct.pack("<ii", cx, cz)
-        chunk_version = db.get(chunk_key_base + b"v")[0]
-        return ("leveldb", chunk_version), chunk_version
 
 
 INTERFACE_CLASS = LevelDBInterface
