@@ -63,12 +63,7 @@ class Interface:
         :return: Tuple[Translator, version number for PyMCTranslate to use]
         :rtype: Tuple[translators.Translator, Union[int, Tuple[int, int, int]]]
         """
-        if data:
-            key, version = self._get_translator_info(data)
-        else:
-            key = max_world_version
-            version = max_world_version[1]
-        return translators.loader.get(key), version
+        raise NotImplementedError
 
     def _get_translator_info(
         self, data: Any

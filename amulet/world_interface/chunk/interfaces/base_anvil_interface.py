@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import List, Tuple
+from typing import List, Tuple, Union, Any
 
 import numpy
 import amulet_nbt as nbt
 
 from amulet.api.chunk import Chunk
 from amulet.world_interface.chunk.interfaces import Interface
+from amulet.world_interface.chunk import translators
 
 
 class BaseAnvilInterface(Interface):
@@ -36,6 +37,21 @@ class BaseAnvilInterface(Interface):
             "structures": ["compound"],
         }
         self.args = {key: None for key in arg_options.keys()}
+
+    def get_translator(
+        self,
+        max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
+        data: nbt.NBTFile = None,
+    ) -> Tuple[translators.Translator, int]:
+        if data:
+            key, version = self._get_translator_info(data)
+        else:
+            key = max_world_version
+            version = max_world_version[1]
+        return translators.loader.get(key), version
+
+    def _get_translator_info(self, data: nbt.NBTFile) -> Tuple[Tuple[str, int], int]:
+        return ("anvil", data["DataVersion"].value), data["DataVersion"].value
 
     def decode(self, data: nbt.NBTFile) -> Tuple[Chunk, numpy.ndarray]:
         """

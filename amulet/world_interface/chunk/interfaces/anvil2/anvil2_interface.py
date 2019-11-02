@@ -62,9 +62,6 @@ class Anvil2Interface(BaseAnvilInterface):
             return False
         return True
 
-    def _get_translator_info(self, data: nbt.NBTFile) -> Tuple[Tuple[str, int], int]:
-        return ("anvil", data["DataVersion"].value), data["DataVersion"].value
-
     def _decode_blocks(self, chunk_sections) -> Tuple[numpy.ndarray, numpy.ndarray]:
         if chunk_sections is None:
             raise NotImplementedError(

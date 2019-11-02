@@ -124,8 +124,5 @@ class AnvilInterface(BaseAnvilInterface):
 
         return sections
 
-    def _get_translator_info(self, data: nbt.NBTFile) -> Tuple[Tuple[str, int], int]:
-        return ("anvil", data["DataVersion"].value), data["DataVersion"].value
-
 
 INTERFACE_CLASS = AnvilInterface
