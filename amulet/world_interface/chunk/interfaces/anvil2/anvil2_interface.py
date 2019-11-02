@@ -79,7 +79,7 @@ class Anvil2Interface(BaseAnvilInterface):
                 continue
             height = section["Y"].value << 4
 
-            blocks[height : height + 16, :, :] = decode_long_array(
+            blocks[height: height + 16, :, :] = decode_long_array(
                 section["BlockStates"].value, 4096
             ).reshape((16, 16, 16)) + len(palette)
 
