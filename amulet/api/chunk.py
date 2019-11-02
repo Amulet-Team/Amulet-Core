@@ -26,12 +26,12 @@ class Chunk:
         self._blocks = None
         self._biomes = Biomes(self, numpy.zeros((16, 16), dtype=numpy.uint32))
         self._entities = None
-        self._tileentities = None
+        self._block_entities = None
         self.misc = {}  # all entries that are not important enough to get an attribute
         self.extra = {}  # temp store for Java NBTFile. Remove this when unpacked to misc
 
     def __repr__(self):
-        return f"Chunk({self.cx}, {self.cx}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._tileentities)})"
+        return f"Chunk({self.cx}, {self.cx}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._block_entities)})"
 
     def __getitem__(self, item):
         if (
@@ -124,21 +124,21 @@ class Chunk:
             self._entities = value
 
     @property
-    def tileentities(self) -> list:
+    def block_entities(self) -> list:
         """
-        Property that returns a copy of the chunk's tile entity list. Setting this property replaces the chunk's tile entity list
+        Property that returns a copy of the chunk's block entity list. Setting this property replaces the chunk's block entity list
 
-        :param value: The new tile entity list
+        :param value: The new block entity list
         :type value: list
-        :return: A list of all the tile entities contained in the chunk
+        :return: A list of all the block entities contained in the chunk
         """
-        return copy.deepcopy(self._tileentities)
+        return copy.deepcopy(self._block_entities)
 
-    @tileentities.setter
-    def tileentities(self, value):
-        if self._tileentities != value:
+    @block_entities.setter
+    def block_entities(self, value):
+        if self._block_entities != value:
             self.changed = True
-            self._tileentities = value
+            self._block_entities = value
 
     def serialize_chunk(self, change_path) -> str:
         """

@@ -106,7 +106,7 @@ class BaseAnvilInterface(Interface):
             chunk.entities = self._decode_entities(data["Level"]["Entities"])
 
         if self.args["tile_entities"] == "list":
-            chunk.tile_entities = None
+            chunk.block_entities = None
 
         if self.args["tile_ticks"] == "list":
             misc["tile_ticks"] = data["Level"].get("TileTicks", nbt.TAG_List())
