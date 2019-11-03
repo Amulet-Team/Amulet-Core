@@ -44,14 +44,11 @@ class BaseAnvilInterface(Interface):
         data: nbt.NBTFile = None,
     ) -> Tuple[translators.Translator, int]:
         if data:
-            key, version = self._get_translator_info(data)
+            key, version = ("anvil", data["DataVersion"].value), data["DataVersion"].value
         else:
             key = max_world_version
             version = max_world_version[1]
         return translators.loader.get(key), version
-
-    def _get_translator_info(self, data: nbt.NBTFile) -> Tuple[Tuple[str, int], int]:
-        return ("anvil", data["DataVersion"].value), data["DataVersion"].value
 
     def decode(self, data: nbt.NBTFile) -> Tuple[Chunk, numpy.ndarray]:
         """

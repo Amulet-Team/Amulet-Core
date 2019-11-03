@@ -65,18 +65,6 @@ class Interface:
         """
         raise NotImplementedError
 
-    def _get_translator_info(
-        self, data: Any
-    ) -> Tuple[Any, Union[int, Tuple[int, int, int]]]:
-        """
-        Returns a key to use to get a Translator class and the version number for use with PyMCTranslate
-        :param data: Data to get translator
-        :param data: Any
-        :return: Tuple[key for translators.loader.get, version number for PyMCTranslate to use]
-        :rtype: Tuple[Any, Union[int, Tuple[int, int, int]]]
-        """
-        raise NotImplementedError()
-
     @staticmethod
     def is_valid(key: Tuple) -> bool:
         """
