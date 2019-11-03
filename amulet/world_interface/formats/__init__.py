@@ -167,16 +167,16 @@ class Format:
 
         self._put_raw_chunk_data(cx, cz, raw_chunk_data)
 
-    def delete_chunk(self, cx: int, cz: int):
+    def delete_chunk(self, cx: int, cz: int, level: int = 0):
         raise NotImplementedError
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any):
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, level: int = 0):
         """
         Actually stores the data from the interface to disk.
         """
         raise NotImplementedError()
 
-    def _get_raw_chunk_data(self, cx: int, cz: int) -> Any:
+    def _get_raw_chunk_data(self, cx: int, cz: int, level: int = 0) -> Any:
         """
         Return the interface key and data to interface with given chunk coordinates.
 

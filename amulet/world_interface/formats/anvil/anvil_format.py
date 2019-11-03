@@ -303,7 +303,7 @@ class AnvilFormat(Format):
         """
         self._get_level(level).put_chunk_data(cx, cz, data)
 
-    def _get_raw_chunk_data(self, cx, cz, level: int = 0) -> Any:
+    def _get_raw_chunk_data(self, cx: int, cz: int, level: int = 0) -> Any:
         """
         Return the interface key and data to interface with given chunk coordinates.
 
