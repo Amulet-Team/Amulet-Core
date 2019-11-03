@@ -288,3 +288,18 @@ class LevelDB:
                 ldb.leveldb_iter_next(it)
         finally:
             ldb.leveldb_iter_destroy(it)
+
+    def keys(self):
+        ro = ldb.leveldb_readoptions_create()
+        it = ldb.leveldb_create_iterator(self.db, ro)
+        ldb.leveldb_readoptions_destroy(ro)
+        ldb.leveldb_iter_seek_to_first(it)
+        try:
+            while ldb.leveldb_iter_valid(it):
+                size = ctypes.c_size_t(0)
+                keyPtr = ldb.leveldb_iter_key(it, ctypes.byref(size))
+                key = ctypes.string_at(keyPtr, size.value)
+                yield key
+                ldb.leveldb_iter_next(it)
+        finally:
+            ldb.leveldb_iter_destroy(it)
