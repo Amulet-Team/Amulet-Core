@@ -279,8 +279,8 @@ class AnvilFormat(Format):
         else:
             raise LevelDoesNotExist
 
-    def all_chunk_coords(self, level: int = 0) -> Generator[Tuple[int, int]]:
-        for chunk in self._get_level(level).all_chunk_coords():
+    def all_chunk_coords(self, dimension: int = 0) -> Generator[Tuple[int, int]]:
+        for chunk in self._get_level(dimension).all_chunk_coords():
             yield chunk
 
     def save(self):
@@ -294,16 +294,16 @@ class AnvilFormat(Format):
     def _max_world_version(self) -> Tuple[str, int]:
         return "anvil", self.root_tag["Data"]["DataVersion"].value
 
-    def delete_chunk(self, cx: int, cz: int, level: int = 0):
-        self._get_level(level).delete_chunk(cx, cz)
+    def delete_chunk(self, cx: int, cz: int, dimension: int = 0):
+        self._get_level(dimension).delete_chunk(cx, cz)
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, level: int = 0):
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: int = 0):
         """
         Actually stores the data from the interface to disk.
         """
-        self._get_level(level).put_chunk_data(cx, cz, data)
+        self._get_level(dimension).put_chunk_data(cx, cz, data)
 
-    def _get_raw_chunk_data(self, cx: int, cz: int, level: int = 0) -> Any:
+    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: int = 0) -> Any:
         """
         Return the interface key and data to interface with given chunk coordinates.
 
@@ -311,7 +311,7 @@ class AnvilFormat(Format):
         :param cz: The z coordinate of the chunk.
         :return: The interface key for the get_interface method and the data to interface with.
         """
-        return self._get_level(level).get_chunk_data(cx, cz)
+        return self._get_level(dimension).get_chunk_data(cx, cz)
 
     def _get_interface_key(self, raw_chunk_data) -> Tuple[str, int]:
         return "anvil", raw_chunk_data["DataVersion"].value

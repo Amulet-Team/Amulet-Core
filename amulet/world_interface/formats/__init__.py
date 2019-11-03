@@ -67,14 +67,14 @@ class Format:
     def close(self):
         raise NotImplementedError
 
-    def all_chunk_coords(self, level: int = 0) -> Generator[Tuple[int, int]]:
+    def all_chunk_coords(self, dimension: int = 0) -> Generator[Tuple[int, int]]:
         raise NotImplementedError
 
-    def load_chunk(self, cx: int, cz: int, global_palette: BlockManager) -> Chunk:
-        return self._load_chunk(cx, cz, global_palette)
+    def load_chunk(self, cx: int, cz: int, global_palette: BlockManager, dimension: int = 0) -> Chunk:
+        return self._load_chunk(cx, cz, dimension, global_palette)
 
     def _load_chunk(
-        self, cx: int, cz: int, global_palette: BlockManager, recurse: bool = True
+        self, cx: int, cz: int, dimension: int, global_palette: BlockManager, recurse: bool = True
     ) -> Chunk:
         """
         Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
@@ -100,7 +100,7 @@ class Format:
 
             def callback(x, z):
                 palette = BlockManager()
-                chunk_ = self._load_chunk(cx + x, cz + z, palette, False)
+                chunk_ = self._load_chunk(cx + x, cz + z, dimension, palette, False)
                 return chunk_, palette
 
         else:
@@ -126,7 +126,12 @@ class Format:
         return chunk
 
     def save_chunk(
-        self, chunk: Chunk, global_palette: BlockManager, recurse: bool = True
+        self, chunk: Chunk, global_palette: BlockManager, dimension: int = 0
+    ):
+        self._save_chunk(chunk, dimension, global_palette)
+
+    def _save_chunk(
+        self, chunk: Chunk, dimension: int, global_palette: BlockManager, recurse: bool = True
     ):
         """
         Saves a universal amulet.api.chunk.Chunk object
@@ -165,18 +170,18 @@ class Format:
             chunk, chunk_palette, self.max_world_version()
         )
 
-        self._put_raw_chunk_data(cx, cz, raw_chunk_data)
+        self._put_raw_chunk_data(cx, cz, raw_chunk_data, dimension)
 
-    def delete_chunk(self, cx: int, cz: int, level: int = 0):
+    def delete_chunk(self, cx: int, cz: int, dimension: int = 0):
         raise NotImplementedError
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, level: int = 0):
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: int = 0):
         """
         Actually stores the data from the interface to disk.
         """
         raise NotImplementedError()
 
-    def _get_raw_chunk_data(self, cx: int, cz: int, level: int = 0) -> Any:
+    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: int = 0) -> Any:
         """
         Return the interface key and data to interface with given chunk coordinates.
 

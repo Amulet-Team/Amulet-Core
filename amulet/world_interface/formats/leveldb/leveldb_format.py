@@ -140,20 +140,20 @@ class LevelDBFormat(Format):
     def close(self):
         self._level_manager.close()
 
-    def all_chunk_coords(self, level: int = 0) -> Generator[Tuple[int, int]]:
-        for coords in self._level_manager.all_chunk_coords(level):
+    def all_chunk_coords(self, dimension: int = 0) -> Generator[Tuple[int, int]]:
+        for coords in self._level_manager.all_chunk_coords(dimension):
             yield coords
 
-    def delete_chunk(self, cx: int, cz: int, level: int = 0):
-        self._level_manager.delete_chunk(cx, cz, level)
+    def delete_chunk(self, cx: int, cz: int, dimension: int = 0):
+        self._level_manager.delete_chunk(cx, cz, dimension)
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: Dict[bytes, bytes], level: int = 0):
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: int = 0):
         """
         Actually stores the data from the interface to disk.
         """
-        return self._level_manager.put_chunk_data(cx, cz, data, level)
+        return self._level_manager.put_chunk_data(cx, cz, data, dimension)
 
-    def _get_raw_chunk_data(self, cx: int, cz: int, level: int = 0) -> Dict[bytes, bytes]:
+    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: int = 0) -> Dict[bytes, bytes]:
         """
         Return the interface key and data to interface with given chunk coordinates.
 
@@ -161,7 +161,7 @@ class LevelDBFormat(Format):
         :param cz: The z coordinate of the chunk.
         :return: The interface key for the get_interface method and the data to interface with.
         """
-        return self._level_manager.get_chunk_data(cx, cz, level)
+        return self._level_manager.get_chunk_data(cx, cz, dimension)
 
 
 FORMAT_CLASS = LevelDBFormat
