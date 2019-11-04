@@ -27,5 +27,4 @@ class BaseLevelDBInterface(Interface):
             game_version = chunk_to_game_version(max_world_version[1], chunk_version)
         else:
             game_version = max_world_version[1]
-            chunk_version = game_to_chunk_version(game_version)
-        return translators.loader.get(("leveldb", chunk_version)), game_version
+        return translators.loader.get(("leveldb", game_version)), game_version
