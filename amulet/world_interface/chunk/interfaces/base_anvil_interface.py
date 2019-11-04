@@ -50,15 +50,15 @@ class BaseAnvilInterface(Interface):
             version = max_world_version[1]
         return translators.loader.get(key), version
 
-    def decode(self, data: nbt.NBTFile) -> Tuple[Chunk, numpy.ndarray]:
+    def decode(self, cx: int, cz: int, data: nbt.NBTFile) -> Tuple[Chunk, numpy.ndarray]:
         """
         Create an amulet.api.chunk.Chunk object from raw data given by the format.
+        :param cx: chunk x coordinate
+        :param cz: chunk z coordinate
         :param data: nbt.NBTFile
         :return: Chunk object in version-specific format, along with the palette for that chunk.
         """
         misc = {}
-        cx = data["Level"]["xPos"].value
-        cz = data["Level"]["zPos"].value
         chunk = Chunk(cx, cz)
 
         if self.args["last_update"] == "long":

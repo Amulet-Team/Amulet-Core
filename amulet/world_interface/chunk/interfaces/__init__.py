@@ -22,9 +22,13 @@ loader = Loader(
 
 
 class Interface:
-    def decode(self, data: Any) -> Tuple[Chunk, numpy.ndarray]:
+    def decode(self, cx: int, cz: int, data: Any) -> Tuple[Chunk, numpy.ndarray]:
         """
         Create an amulet.api.chunk.Chunk object from raw data given by the format
+        :param cx: chunk x coordinate
+        :type cx: int
+        :param cz: chunk z coordinate
+        :type cz: int
         :param data: Raw chunk data provided by the format.
         :type data: Any
         :return: Chunk object in version-specific format, along with the palette for that chunk.

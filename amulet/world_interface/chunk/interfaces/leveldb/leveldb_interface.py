@@ -22,8 +22,7 @@ class LevelDBInterface(BaseLevelDBInterface):
             return False
         return True
 
-    def decode(self, data: Tuple[int, int, LevelDB]) -> Tuple[Chunk, numpy.ndarray]:
-        cx, cz, db = data
+    def decode(self, cx: int, cz: int, data: Dict[bytes, bytes]) -> Tuple[Chunk, numpy.ndarray]:
         # chunk_key_base = struct.pack("<ii", cx, cz)
 
         subchunks = []

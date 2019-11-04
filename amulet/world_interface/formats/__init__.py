@@ -93,7 +93,7 @@ class Format:
         )
 
         # decode the raw chunk data into the universal format
-        chunk, chunk_palette = interface.decode(raw_chunk_data)
+        chunk, chunk_palette = interface.decode(cx, cz, raw_chunk_data)
 
         # set up a callback that translator can use to get chunk data
         if recurse:
