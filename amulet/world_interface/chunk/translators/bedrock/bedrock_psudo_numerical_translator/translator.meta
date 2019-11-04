@@ -1,8 +1,8 @@
 {
 "meta_version": 0,
 "translator": {
-    "id": "bedrock_palette",
-    "name": "Bedrock Palette Translator",
+    "id": "bedrock_psudo_numerical",
+    "name": "Bedrock Psudo-numerical Translator",
     "entry_point": "bedrock_palette_translator",
     "translator_version": 0,
     "wrapper_version": -1

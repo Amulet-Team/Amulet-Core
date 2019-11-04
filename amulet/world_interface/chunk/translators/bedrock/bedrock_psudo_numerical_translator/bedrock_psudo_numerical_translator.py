@@ -15,7 +15,7 @@ class BedrockPaletteTranslator(Translator):
     def is_valid(key):
         if key[0] != "leveldb":
             return False
-        if key[1] != 15:
+        if not (1, 2, 13) <= key[1] <= (1, 13, 0):
             return False
         return True
 
