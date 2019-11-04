@@ -1,9 +1,9 @@
 {
 "meta_version": 0,
 "translator": {
-    "id": "bedrock_15",
-    "name": "Bedrock Chunk Version 15 Translator",
-    "entry_point": "bedrock_15",
+    "id": "bedrock_palette",
+    "name": "Bedrock Palette Translator",
+    "entry_point": "bedrock_palette",
     "translator_version": 0,
     "wrapper_version": -1
    }

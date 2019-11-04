@@ -88,7 +88,7 @@ class Format:
         raw_chunk_data = self._get_raw_chunk_data(cx, cz)
         interface = self._get_interface(self.max_world_version(), raw_chunk_data)
         # get the translator for the given version
-        translator, chunk_version_number = interface.get_translator(
+        translator, game_version = interface.get_translator(
             self.max_world_version(), raw_chunk_data
         )
 
@@ -108,7 +108,7 @@ class Format:
 
         # translate the data to universal format
         chunk, chunk_palette = translator.to_universal(
-            chunk_version_number,
+            game_version,
             self.translation_manager,
             chunk,
             chunk_palette,
