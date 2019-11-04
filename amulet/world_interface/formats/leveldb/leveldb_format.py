@@ -11,6 +11,7 @@ from amulet.world_interface.formats import Format
 from amulet.world_interface.chunk import interfaces
 from amulet.libs.leveldb import LevelDB
 from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist
+from amulet.world_interface.chunk.interfaces.leveldb_chunk_versions import game_to_chunk_version
 
 
 class LevelDBLevelManager:
@@ -128,7 +129,7 @@ class LevelDBFormat(Format):
         if raw_chunk_data:
             key = self._get_interface_key(raw_chunk_data)
         else:
-            key = max_world_version  # TODO: bedrock does Interface versioning based on chunk version rather than game version
+            key = "leveldb", game_to_chunk_version(max_world_version)
         return interfaces.loader.get(key)
 
     def _get_interface_key(self, raw_chunk_data: Dict[bytes, bytes]) -> Tuple[str, int]:
