@@ -7,10 +7,8 @@ from amulet.world_interface.chunk.translators import Translator
 
 class Bedrock_15_Translator(Translator):
     def _translator_key(
-        self, version_number: Union[int, Tuple[int, int, int]]
-    ) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
-        if isinstance(version_number, int):  # must be 15
-            return "bedrock", (1, 11, 4)
+        self, version_number: Tuple[int, int, int]
+    ) -> Tuple[str, Tuple[int, int, int]]:
         return "bedrock", version_number
 
     @staticmethod
