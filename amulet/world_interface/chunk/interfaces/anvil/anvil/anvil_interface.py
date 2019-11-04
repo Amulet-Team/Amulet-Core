@@ -6,7 +6,7 @@ import numpy
 import amulet_nbt as nbt
 
 from amulet.utils import world_utils
-from amulet.world_interface.chunk.interfaces.base_anvil_interface import (
+from amulet.world_interface.chunk.interfaces.anvil.base_anvil_interface import (
     BaseAnvilInterface
 )
 

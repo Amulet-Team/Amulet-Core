@@ -8,7 +8,7 @@ import amulet_nbt
 
 from amulet.api.block import Block
 from amulet.api.chunk import Chunk
-from amulet.world_interface.chunk.interfaces.base_leveldb_interface import BaseLevelDBInterface
+from amulet.world_interface.chunk.interfaces.leveldb.base_leveldb_interface import BaseLevelDBInterface
 from amulet.utils.world_utils import get_smallest_dtype
 
 

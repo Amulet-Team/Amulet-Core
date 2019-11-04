@@ -11,7 +11,7 @@ from amulet.world_interface.formats import Format
 from amulet.world_interface.chunk import interfaces
 from amulet.libs.leveldb import LevelDB
 from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist
-from amulet.world_interface.chunk.interfaces.leveldb_chunk_versions import game_to_chunk_version
+from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import game_to_chunk_version
 
 
 class LevelDBLevelManager:

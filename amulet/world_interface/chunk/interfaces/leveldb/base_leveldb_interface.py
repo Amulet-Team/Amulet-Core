@@ -4,7 +4,7 @@ from typing import Tuple, Dict
 
 from amulet.world_interface.chunk.interfaces import Interface
 from amulet.world_interface.chunk import translators
-from amulet.world_interface.chunk.interfaces.leveldb_chunk_versions import chunk_to_game_version, game_to_chunk_version
+from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import chunk_to_game_version, game_to_chunk_version
 
 
 class BaseLevelDBInterface(Interface):
