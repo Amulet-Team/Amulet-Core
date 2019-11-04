@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple
+from typing import Tuple, Dict
 
 import struct
 import numpy
@@ -9,7 +9,6 @@ import amulet_nbt
 from amulet.api.block import Block
 from amulet.api.chunk import Chunk
 from amulet.world_interface.chunk.interfaces.base_leveldb_interface import BaseLevelDBInterface
-from amulet.libs.leveldb import LevelDB
 from amulet.utils.world_utils import get_smallest_dtype
 
 
@@ -27,11 +26,7 @@ class LevelDBInterface(BaseLevelDBInterface):
 
         subchunks = []
         for i in range(16):
-            try:
-                key = struct.pack("<iicB", cx, cz, b"\x2F", i)
-                subchunks.append(db.get(key))
-            except KeyError:
-                subchunks.append(None)
+            subchunks.append(data.get(b"\x2F" + bytes([i]), None))
 
         chunk = Chunk(cx, cz)
         chunk.blocks, palette = self._load_subchunks(subchunks)
@@ -43,8 +38,8 @@ class LevelDBInterface(BaseLevelDBInterface):
         self,
         chunk: Chunk,
         palette: numpy.ndarray,
-        max_world_version: Tuple[str, Tuple[int, int, int]],
-    ) -> Tuple[int, int, LevelDB]:
+        max_world_version: Tuple[int, int, int],
+    ) -> Dict[bytes, bytes]:
         raise NotImplementedError
 
     def _load_subchunks(self, subchunks):
