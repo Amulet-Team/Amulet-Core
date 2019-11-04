@@ -3,7 +3,7 @@
 "translator": {
     "id": "bedrock_palette",
     "name": "Bedrock Palette Translator",
-    "entry_point": "bedrock_palette",
+    "entry_point": "bedrock_palette_translator",
     "translator_version": 0,
     "wrapper_version": -1
    }
