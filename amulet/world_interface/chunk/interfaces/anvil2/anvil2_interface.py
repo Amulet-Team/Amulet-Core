@@ -121,7 +121,6 @@ class Anvil2Interface(BaseAnvilInterface):
         blockstates = []
         for entry in palette:
             namespace, base_name = entry["Name"].value.split(":", 1)
-            # TODO: handle waterlogged property
             properties = {
                 prop: str(val.value)
                 for prop, val in entry.get("Properties", nbt.TAG_Compound({})).items()
@@ -139,7 +138,6 @@ class Anvil2Interface(BaseAnvilInterface):
             entry = nbt.TAG_Compound()
             entry["Name"] = nbt.TAG_String(f"{block.namespace}:{block.base_name}")
             properties = entry["Properties"] = nbt.TAG_Compound()
-            # TODO: handle waterlogged property
             for prop, val in block.properties.items():
                 if isinstance(val, str):
                     properties[prop] = nbt.TAG_String(val)
