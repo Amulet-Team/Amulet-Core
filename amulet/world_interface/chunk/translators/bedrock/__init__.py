@@ -36,7 +36,11 @@ class BaseBedrockTranslator(Translator):
         ):
             game_version_, block = block
             if game_version_ is None:
-                game_version_ = game_version
+                if "block_data" in block.properties:
+                    # if block_data is in properties cap out at 1.12.x
+                    game_version_ = min(game_version, (1, 12, 999))
+                else:
+                    game_version_ = game_version
             version_key = self._translator_key(game_version_)
             translator = versions.setdefault(version_key, translation_manager.get_version(*version_key).get().to_universal)
             return translator(block, get_block_callback)
