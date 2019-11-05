@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List
 
 import struct
 import numpy
@@ -42,7 +42,7 @@ class LevelDBInterface(BaseLevelDBInterface):
     ) -> Dict[bytes, bytes]:
         raise NotImplementedError
 
-    def _load_subchunks(self, subchunks):
+    def _load_subchunks(self, subchunks: List[None, bytes]):
         blocks = numpy.zeros((16, 256, 16), dtype=numpy.uint32)
         palette = [
             Block(namespace="minecraft", base_name="air", properties={"block_data": 0})
@@ -55,15 +55,20 @@ class LevelDBInterface(BaseLevelDBInterface):
             palette_data = self._load_palette(data)
             for i, block in enumerate(palette_data):
                 namespace, base_name = block["name"].value.split(":", 1)
+                if 'version' in block:
+                    version = tuple(numpy.array([block['version'].value], dtype='>u4').view(numpy.uint8))
+                else:
+                    version = None
+
                 if "states" in block:  # 1.13 format
-                    properties = block["properties"].value
+                    properties = block["states"].value
                 else:
                     properties = {"block_data": str(block["val"].value)}
-                palette_data[i] = Block(
+                palette_data[i] = version, Block(
                     namespace=namespace, base_name=base_name, properties=properties
                 )
             y *= 16
-            blocks[:, y : y + 16, :] = block_data + len(palette)
+            blocks[:, y: y + 16, :] = block_data + len(palette)
             palette += palette_data
 
         palette, inverse = numpy.unique(palette, return_inverse=True)
