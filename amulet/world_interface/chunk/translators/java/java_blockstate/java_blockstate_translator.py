@@ -4,13 +4,13 @@ from typing import Tuple, Union
 import numpy
 
 from PyMCTranslate.py3.translation_manager import Version
-from amulet.world_interface.chunk.translators.java import BaseJavaTranslator
+from amulet.world_interface.chunk.translators import Translator
 from amulet.api.block import Block
 
 water = Block(blockstate='minecraft:water[level=0]')
 
 
-class JavaBlockstateTranslator(BaseJavaTranslator):
+class JavaBlockstateTranslator(Translator):
     def _translator_key(
         self, version_number: int
     ) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
