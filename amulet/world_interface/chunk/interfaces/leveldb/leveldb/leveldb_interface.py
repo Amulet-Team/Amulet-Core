@@ -45,7 +45,10 @@ class LevelDBInterface(BaseLevelDBInterface):
     def _load_subchunks(self, subchunks: List[None, bytes]):
         blocks = numpy.zeros((16, 256, 16), dtype=numpy.uint32)
         palette = [
-            Block(namespace="minecraft", base_name="air", properties={"block_data": 0})
+            (
+                (1, 7, 0, 0),
+                Block(namespace="minecraft", base_name="air", properties={"block_data": 0})
+            )
         ]
         for y, data in enumerate(subchunks):
             if data is None:
@@ -70,8 +73,10 @@ class LevelDBInterface(BaseLevelDBInterface):
             y *= 16
             blocks[:, y: y + 16, :] = block_data + len(palette)
             palette += palette_data
-
-        palette, inverse = numpy.unique(palette, return_inverse=True)
+        p = numpy.empty(len(palette), dtype=object)
+        for i, val in enumerate(palette):
+            p[i] = val
+        palette, inverse = numpy.unique(p, return_inverse=True)
         blocks = inverse[blocks]
 
         return blocks.astype(f"uint{get_smallest_dtype(blocks)}"), palette

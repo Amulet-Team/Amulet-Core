@@ -129,7 +129,7 @@ class LevelDBFormat(Format):
         if raw_chunk_data:
             key = self._get_interface_key(raw_chunk_data)
         else:
-            key = "leveldb", game_to_chunk_version(max_world_version)
+            key = "leveldb", game_to_chunk_version(max_world_version[1])
         return interfaces.loader.get(key)
 
     def _get_interface_key(self, raw_chunk_data: Dict[bytes, bytes]) -> Tuple[str, int]:
