@@ -133,7 +133,7 @@ class LevelDBFormat(Format):
         return interfaces.loader.get(key)
 
     def _get_interface_key(self, raw_chunk_data: Dict[bytes, bytes]) -> Tuple[str, int]:
-        return "leveldb", raw_chunk_data.get(b'v', 0)  # TODO: work out a valid default
+        return "leveldb", raw_chunk_data.get(b'v', '\x00')[0]  # TODO: work out a valid default
 
     def save(self):
         self._level_manager.save()

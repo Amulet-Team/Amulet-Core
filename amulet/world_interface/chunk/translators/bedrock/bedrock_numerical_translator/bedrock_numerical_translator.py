@@ -3,14 +3,15 @@ from __future__ import annotations
 from amulet.world_interface.chunk.translators.bedrock import BaseBedrockTranslator
 
 
-class BedrockNBTBlockstateTranslator(BaseBedrockTranslator):
+class BedrockNumericalTranslator(BaseBedrockTranslator):
     @staticmethod
     def is_valid(key):
         if key[0] != "leveldb":
             return False
-        if not (1, 13, 0) <= key[1]:
+        if not key[1] < (1, 2, 13):
             return False
         return True
 
 
-TRANSLATOR_CLASS = BedrockNBTBlockstateTranslator
+
+TRANSLATOR_CLASS = BedrockNumericalTranslator

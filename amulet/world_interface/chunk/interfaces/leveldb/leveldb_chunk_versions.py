@@ -19,7 +19,7 @@ chunk_version_to_max_version = {
     14: ((1, 11, 2, 0), (1, 11, 999, 999)),
     15: ((1, 12, 0, 0), (1, 13, 999, 999)),
     16: ((1, 14, 0, 0), (999, 999, 999, 9999))
-}  # TODO: fill this list with the actual last game version number each chunk verison was last used in
+}  # TODO: fill this list with the actual last game version number each chunk version was last used in
 
 
 def chunk_to_game_version(max_game_version: Tuple[int, int, int], chunk_version: int) -> Tuple[int, int, int]:
