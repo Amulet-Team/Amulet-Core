@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Dict, List
+from typing import Tuple, Dict, List, Union
 
 import struct
 import numpy
@@ -44,42 +44,70 @@ class LevelDBInterface(BaseLevelDBInterface):
 
     def _load_subchunks(self, subchunks: List[None, bytes]):
         blocks = numpy.zeros((16, 256, 16), dtype=numpy.uint32)
-        palette = [
+        palette: List[Tuple[Tuple[Union[None, Tuple[int, int, int, int]], Block]]] = [
             (
-                (1, 7, 0, 0),
-                Block(namespace="minecraft", base_name="air", properties={"block_data": 0})
+                (
+                    (1, 7, 0, 0),
+                    Block(namespace="minecraft", base_name="air", properties={"block_data": 0})
+                ),
             )
         ]
         for y, data in enumerate(subchunks):
             if data is None:
                 continue
             version, numStorages, data = data[0], data[1], data[2:]
-            block_data, data = self._load_blocks(data)
-            palette_data = self._load_palette(data)
-            for i, block in enumerate(palette_data):
-                namespace, base_name = block["name"].value.split(":", 1)
-                if 'version' in block:
-                    version = tuple(numpy.array([block['version'].value], dtype='>u4').view(numpy.uint8))
-                else:
-                    version = None
+            sub_chunk_blocks = numpy.zeros((16, 16, 16, numStorages), dtype=numpy.int)
+            sub_chunk_palette: List[List[Tuple[Union[None, Tuple[int, int, int, int]], Block]]] = []
+            for storage_index in range(numStorages):
+                sub_chunk_blocks[:, :, :, storage_index], data = self._load_blocks(data)
+                palette_data, data = self._load_palette(data)
+                for i, block in enumerate(palette_data):
+                    namespace, base_name = block["name"].value.split(":", 1)
+                    if 'version' in block:
+                        version = tuple(numpy.array([block['version'].value], dtype='>u4').view(numpy.uint8))
+                    else:
+                        version = None
 
-                if "states" in block:  # 1.13 format
-                    properties = block["states"].value
-                else:
-                    properties = {"block_data": str(block["val"].value)}
-                palette_data[i] = version, Block(
-                    namespace=namespace, base_name=base_name, properties=properties
-                )
+                    if "states" in block:  # 1.13 format
+                        properties = block["states"].value
+                    else:
+                        properties = {"block_data": str(block["val"].value)}
+                    palette_data[i] = version, Block(
+                        namespace=namespace, base_name=base_name, properties=properties
+                    )
+                sub_chunk_palette.append(palette_data)
+
             y *= 16
-            blocks[:, y: y + 16, :] = block_data + len(palette)
-            palette += palette_data
+            if numStorages == 1:
+                blocks[:, y: y + 16, :] = sub_chunk_blocks[:, :, :, 0] + len(palette)
+                palette += [(val,) for val in sub_chunk_palette[0]]
+            elif numStorages > 1:
+                # we have two or more storages so need to find the unique block combinations and merge them together
+                sub_chunk_palette_, sub_chunk_blocks = numpy.unique(sub_chunk_blocks.reshape(-1, numStorages), return_inverse=True, axis=0)
+                blocks[:, y: y + 16, :] = sub_chunk_blocks.reshape(16, 16, 16) + len(palette)
+                palette += [
+                    tuple(
+                        sub_chunk_palette[storage_index][index]
+                        for storage_index, index in enumerate(palette_indexes)
+                        if not (storage_index > 0 and sub_chunk_palette[storage_index][index][1].namespaced_name == 'minecraft:air')
+                    )
+                    for palette_indexes in sub_chunk_palette_
+                ]
+            else:
+                raise Exception('Is a chunk with no storages allowed?')
+            # palette should now look like this
+            # List[
+            #   Tuple[
+            #       Tuple[version, Block]
+            #   ]
+            # ]
         p = numpy.empty(len(palette), dtype=object)
         for i, val in enumerate(palette):
             p[i] = val
-        palette, inverse = numpy.unique(p, return_inverse=True)
+        numpy_palette, inverse = numpy.unique(p, return_inverse=True)
         blocks = inverse[blocks]
 
-        return blocks.astype(f"uint{get_smallest_dtype(blocks)}"), palette
+        return blocks.astype(f"uint{get_smallest_dtype(blocks)}"), numpy_palette
 
     # These arent actual blocks, just ids pointing to the palette.
     def _load_blocks(self, data):
@@ -101,7 +129,7 @@ class LevelDBInterface(BaseLevelDBInterface):
                 word >>= bitsPerBlock  # For next iteration
                 if i * blocksPerWord + j < 4096:  # Safety net for padding at end.
                     blocks[i * blocksPerWord + j] = block
-        blocks = blocks.reshape(16, 16, 16).swapaxes(1, 2)
+        blocks = blocks.reshape((16, 16, 16)).swapaxes(1, 2)
         return blocks, data
 
     # NBT encoded block names (with minecraft:) and data values.
@@ -110,7 +138,7 @@ class LevelDBInterface(BaseLevelDBInterface):
         palette, offset = amulet_nbt.load(
             buffer=data, compressed=False, count=palette_len, offset=True
         )
-        return palette
+        return palette, data[offset:]
 
 
 INTERFACE_CLASS = LevelDBInterface

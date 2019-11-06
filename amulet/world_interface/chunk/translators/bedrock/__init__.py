@@ -31,19 +31,25 @@ class BaseBedrockTranslator(Translator):
         versions = {}
 
         def translate(
-            block: Tuple[Union[Tuple[int, int, int], None], Block],
+            blocks: Tuple[Tuple[Union[Tuple[int, int, int], None], Block], ...],
             get_block_callback: Callable = None
         ):
-            game_version_, block = block
-            if game_version_ is None:
-                if "block_data" in block.properties:
-                    # if block_data is in properties cap out at 1.12.x
-                    game_version_ = min(game_version, (1, 12, 999))
-                else:
-                    game_version_ = game_version
-            version_key = self._translator_key(game_version_)
-            translator = versions.setdefault(version_key, translation_manager.get_version(*version_key).get().to_universal)
-            return translator(block, get_block_callback)
+            final_data = []
+            for block in blocks:
+                game_version_, block = block
+                if game_version_ is None:
+                    if "block_data" in block.properties:
+                        # if block_data is in properties cap out at 1.12.x
+                        game_version_ = min(game_version, (1, 12, 999))
+                    else:
+                        game_version_ = game_version
+                version_key = self._translator_key(game_version_)
+                translator = versions.setdefault(version_key, translation_manager.get_version(*version_key).get().to_universal)
+                final_data.append(translator(block, get_block_callback))
+            final_block = final_data[0][0]
+            for block in final_data[1:]:
+                final_block = final_block + block[0]
+            return final_block, final_data[0][1], any(data[2] for data in final_data)
 
         version = translation_manager.get_version(*self._translator_key(game_version))
         palette = self._unpack_palette(version, palette)
