@@ -32,27 +32,27 @@ def properties_to_string(props: dict) -> str:
 class Anvil2Interface(BaseAnvilInterface):
     def __init__(self):
         BaseAnvilInterface.__init__(self)
-        self.args["data_version"] = "int"
-        self.args["last_update"] = "long"
+        self.features["data_version"] = "int"
+        self.features["last_update"] = "long"
 
-        self.args["status"] = "string10"
-        self.args["inhabited_time"] = "long"
-        self.args["biomes"] = "256IA"
-        self.args["height_map"] = "C5|36LA"
+        self.features["status"] = "string10"
+        self.features["inhabited_time"] = "long"
+        self.features["biomes"] = "256IA"
+        self.features["height_map"] = "C5|36LA"
 
-        self.args["blocks"] = "Sections|(BlockStates,Palette)"
-        self.args["block_light"] = "Sections|2048BA"
-        self.args["sky_light"] = "Sections|2048BA"
+        self.features["blocks"] = "Sections|(BlockStates,Palette)"
+        self.features["block_light"] = "Sections|2048BA"
+        self.features["sky_light"] = "Sections|2048BA"
 
-        self.args["entities"] = "list"
-        self.args["tile_entities"] = "list"
-        self.args["tile_ticks"] = "list"
+        self.features["entities"] = "list"
+        self.features["tile_entities"] = "list"
+        self.features["tile_ticks"] = "list"
 
-        self.args["liquid_ticks"] = "list"
-        self.args["liquids_to_be_ticked"] = "16list|list"
-        self.args["to_be_ticked"] = "16list|list"
-        self.args["post_processing"] = "16list|list"
-        self.args["structures"] = "compound"
+        self.features["liquid_ticks"] = "list"
+        self.features["liquids_to_be_ticked"] = "16list|list"
+        self.features["to_be_ticked"] = "16list|list"
+        self.features["post_processing"] = "16list|list"
+        self.features["structures"] = "compound"
 
     @staticmethod
     def is_valid(key):

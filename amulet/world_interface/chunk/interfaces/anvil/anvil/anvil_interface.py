@@ -14,22 +14,22 @@ from amulet.world_interface.chunk.interfaces.anvil.base_anvil_interface import (
 class AnvilInterface(BaseAnvilInterface):
     def __init__(self):
         BaseAnvilInterface.__init__(self)
-        self.args["data_version"] = "int"
-        self.args["last_update"] = "long"
+        self.features["data_version"] = "int"
+        self.features["last_update"] = "long"
 
-        self.args["light_populated"] = "byte"
-        self.args["terrain_populated"] = "byte"
-        self.args["inhabited_time"] = "long"
-        self.args["biomes"] = "256BA"
-        self.args["height_map"] = "256IA"
+        self.features["light_populated"] = "byte"
+        self.features["terrain_populated"] = "byte"
+        self.features["inhabited_time"] = "long"
+        self.features["biomes"] = "256BA"
+        self.features["height_map"] = "256IA"
 
-        self.args["blocks"] = "Sections|(Blocks,Data,Add)"
-        self.args["block_light"] = "Sections|2048BA"
-        self.args["sky_light"] = "Sections|2048BA"
+        self.features["blocks"] = "Sections|(Blocks,Data,Add)"
+        self.features["block_light"] = "Sections|2048BA"
+        self.features["sky_light"] = "Sections|2048BA"
 
-        self.args["entities"] = "list"
-        self.args["tile_entities"] = "list"
-        self.args["tile_ticks"] = "list"
+        self.features["entities"] = "list"
+        self.features["tile_entities"] = "list"
+        self.features["tile_ticks"] = "list"
 
     @staticmethod
     def is_valid(key):

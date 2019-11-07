@@ -12,7 +12,7 @@ from amulet.world_interface.chunk import translators
 
 class BaseAnvilInterface(Interface):
     def __init__(self):
-        arg_options = {
+        feature_options = {
             "data_version": ["int"],  # int
             "last_update": ["long"],  # int
             "status": ["string10"],
@@ -36,7 +36,7 @@ class BaseAnvilInterface(Interface):
             "post_processing": ["16list|list"],
             "structures": ["compound"],
         }
-        self.args = {key: None for key in arg_options.keys()}
+        self.features = {key: None for key in feature_options.keys()}
 
     def get_translator(
         self,
@@ -61,82 +61,82 @@ class BaseAnvilInterface(Interface):
         misc = {}
         chunk = Chunk(cx, cz)
 
-        if self.args["last_update"] == "long":
+        if self.features["last_update"] == "long":
             misc["last_update"] = data["Level"]["LastUpdate"].value
 
-        if self.args["status"] == "string10":
+        if self.features["status"] == "string10":
             misc["status"] = data["Level"]["Status"].value
         else:
             status = "empty"
             if (
-                self.args["terrain_populated"] == "byte"
+                self.features["terrain_populated"] == "byte"
                 and data["Level"]["TerrainPopulated"].value
             ):
                 status = "decorated"
             if (
-                self.args["light_populated"] == "byte"
+                self.features["light_populated"] == "byte"
                 and data["Level"]["LightPopulated"].value
             ):
                 status = "postprocessed"
 
             misc["status"] = nbt.TAG_String(status)
 
-        if self.args["V"] == "byte":
+        if self.features["V"] == "byte":
             misc["V"] = data["Level"]["V"].value
 
-        if self.args["inhabited_time"] == "long":
+        if self.features["inhabited_time"] == "long":
             misc["inhabited_time"] = data["Level"]["InhabitedTime"].value
 
-        if self.args["biomes"] is not None:
+        if self.features["biomes"] is not None:
             chunk.biomes = data["Level"]["Biomes"].value
 
-        if self.args["height_map"] == "256IA":
+        if self.features["height_map"] == "256IA":
             misc["height_map256IA"] = data["Level"]["HeightMap"].value
-        elif self.args["height_map"] in ["C5|36LA", "C6|36LA"]:
+        elif self.features["height_map"] in ["C5|36LA", "C6|36LA"]:
             misc["height_mapC|36LA"] = data["Level"]["Heightmaps"]
 
-        if self.args["blocks"] in [
+        if self.features["blocks"] in [
             "Sections|(Blocks,Data,Add)",
             "Sections|(BlockStates,Palette)",
         ]:
             chunk.blocks, palette = self._decode_blocks(data["Level"]["Sections"])
         else:
-            raise Exception(f'Unsupported block format {self.args["blocks"]}')
+            raise Exception(f'Unsupported block format {self.features["blocks"]}')
 
-        if self.args["block_light"] == "Sections|2048BA":
+        if self.features["block_light"] == "Sections|2048BA":
             misc["block_light"] = {
                 section["Y"].value: section["BlockLight"]
                 for section in data["Level"]["Sections"]
             }
 
-        if self.args["sky_light"] == "Sections|2048BA":
+        if self.features["sky_light"] == "Sections|2048BA":
             misc["sky_light"] = {
                 section["Y"].value: section["SkyLight"]
                 for section in data["Level"]["Sections"]
             }
 
-        if self.args["entities"] == "list":
+        if self.features["entities"] == "list":
             chunk.entities = self._decode_entities(data["Level"]["Entities"])
 
-        if self.args["tile_entities"] == "list":
+        if self.features["tile_entities"] == "list":
             chunk.block_entities = None
 
-        if self.args["tile_ticks"] == "list":
+        if self.features["tile_ticks"] == "list":
             misc["tile_ticks"] = data["Level"].get("TileTicks", nbt.TAG_List())
 
-        if self.args["liquid_ticks"] == "list":
+        if self.features["liquid_ticks"] == "list":
             misc["liquid_ticks"] = data["Level"]["LiquidsToBeTicked"]
 
-        if self.args["liquids_to_be_ticked"] == "16list|list":
+        if self.features["liquids_to_be_ticked"] == "16list|list":
             misc["liquids_to_be_ticked"] = data["Level"]["LiquidsToBeTicked"]
 
-        if self.args["to_be_ticked"] == "16list|list":
+        if self.features["to_be_ticked"] == "16list|list":
             misc["to_be_ticked"] = data["Level"]["ToBeTicked"]
 
-        if self.args["post_processing"] == "16list|list":
+        if self.features["post_processing"] == "16list|list":
             misc["post_processing"] = data["Level"]["PostProcessing"]
 
-        if self.args["structures"] == "compound":
+        if self.features["structures"] == "compound":
             misc["structures"] = data["Level"]["Structures"]
 
         chunk.misc = misc
@@ -159,13 +159,13 @@ class BaseAnvilInterface(Interface):
         data["Level"] = nbt.TAG_Compound()
         data["Level"]["xPos"] = nbt.TAG_Int(chunk.cx)
         data["Level"]["zPos"] = nbt.TAG_Int(chunk.cz)
-        if self.args["data_version"] == "int":
+        if self.features["data_version"] == "int":
             data["DataVersion"] = nbt.TAG_Int(max_world_version[1])
 
-        if self.args["last_update"] == "long":
+        if self.features["last_update"] == "long":
             data["Level"]["LastUpdate"] = nbt.TAG_Long(misc.get("last_update", 0))
 
-        if self.args["status"] == "string10":
+        if self.features["status"] == "string10":
             status = misc.get("status", "postprocessed")
             if status in (
                 "empty",
@@ -182,43 +182,43 @@ class BaseAnvilInterface(Interface):
                 data["Level"]["Status"] = nbt.TAG_String(status)
         else:
             status = misc.get("status", "postprocessed")
-            if self.args["terrain_populated"] == "byte":
+            if self.features["terrain_populated"] == "byte":
                 if status in ("empty", "base", "carved", "liquid_carved"):
                     data["Level"]["TerrainPopulated"] = nbt.TAG_Byte(0)
                 else:
                     data["Level"]["TerrainPopulated"] = nbt.TAG_Byte(1)
 
-            if self.args["light_populated"] == "byte":
+            if self.features["light_populated"] == "byte":
                 if status in ("empty", "base", "carved", "liquid_carved", "decorated"):
                     data["Level"]["LightPopulated"] = nbt.TAG_Byte(0)
                 else:
                     data["Level"]["LightPopulated"] = nbt.TAG_Byte(1)
 
-        if self.args["V"] == "byte":
+        if self.features["V"] == "byte":
             data["Level"]["V"] = nbt.TAG_Byte(misc.get("V", 1))
 
-        if self.args["inhabited_time"] == "long":
+        if self.features["inhabited_time"] == "long":
             data["Level"]["InhabitedTime"] = nbt.TAG_Long(misc.get("inhabited_time", 0))
 
-        if self.args["biomes"] == "256BA":
+        if self.features["biomes"] == "256BA":
             data["Level"]["Biomes"] = nbt.TAG_Byte_Array(
                 chunk.biomes.convert_to_format(256).astype(dtype=numpy.uint8)
             )
-        elif self.args["biomes"] == "256IA":
+        elif self.features["biomes"] == "256IA":
             data["Level"]["Biomes"] = nbt.TAG_Int_Array(
                 chunk.biomes.convert_to_format(256).astype(dtype=numpy.uint32)
             )
-        elif self.args["biomes"] == "1024IA":
+        elif self.features["biomes"] == "1024IA":
             data["Level"]["Biomes"] = nbt.TAG_Int_Array(
                 chunk.biomes.convert_to_format(1024).astype(dtype=numpy.uint32)
             )
 
-        if self.args["height_map"] == "256IA":
+        if self.features["height_map"] == "256IA":
             data["Level"]["HeightMap"] = nbt.TAG_Int_Array(
                 misc.get("height_map256IA", numpy.zeros(256, dtype=numpy.uint32))
             )
-        elif self.args["height_map"] in ["C6|36LA", "C5|36LA"]:
-            if self.args["height_map"] == "C5|36LA":
+        elif self.features["height_map"] in ["C6|36LA", "C5|36LA"]:
+            if self.features["height_map"] == "C5|36LA":
                 maps = (
                     "LIGHT_BLOCKING",
                     "MOTION_BLOCKING",
@@ -226,7 +226,7 @@ class BaseAnvilInterface(Interface):
                     "OCEAN_FLOOR",
                     "WORLD_SURFACE",
                 )
-            elif self.args["height_map"] == "C6|36LA":
+            elif self.features["height_map"] == "C6|36LA":
                 maps = (
                     "MOTION_BLOCKING",
                     "MOTION_BLOCKING_NO_LEAVES",
@@ -245,20 +245,20 @@ class BaseAnvilInterface(Interface):
                     )
             data["Level"]["Heightmaps"] = heightmaps
 
-        if self.args["blocks"] in [
+        if self.features["blocks"] in [
             "Sections|(Blocks,Data,Add)",
             "Sections|(BlockStates,Palette)",
         ]:
             data["Level"]["Sections"] = self._encode_blocks(chunk.blocks, palette)
         else:
-            raise Exception(f'Unsupported block format {self.args["blocks"]}')
+            raise Exception(f'Unsupported block format {self.features["blocks"]}')
 
-        if self.args["block_light"] in ["Sections|2048BA"] or self.args[
+        if self.features["block_light"] in ["Sections|2048BA"] or self.features[
             "sky_light"
         ] in ["Sections|2048BA"]:
             for section in data["Level"]["Sections"]:
                 y = section["Y"].value
-                if self.args["block_light"] == "Sections|2048BA":
+                if self.features["block_light"] == "Sections|2048BA":
                     block_light = misc.get("block_light", {})
                     if y in block_light:
                         section["BlockLight"] = block_light[y]
@@ -266,7 +266,7 @@ class BaseAnvilInterface(Interface):
                         section["BlockLight"] = nbt.TAG_Byte_Array(
                             numpy.full(2048, 255, dtype=numpy.uint8)
                         )
-                if self.args["sky_light"] == "Sections|2048BA":
+                if self.features["sky_light"] == "Sections|2048BA":
                     sky_light = misc.get("sky_light", {})
                     if y in sky_light:
                         section["SkyLight"] = sky_light[y]
@@ -275,39 +275,39 @@ class BaseAnvilInterface(Interface):
                             numpy.full(2048, 255, dtype=numpy.uint8)
                         )
 
-        if self.args["entities"] == "list":
+        if self.features["entities"] == "list":
             data["Level"]["Entities"] = self._encode_entities(chunk.entities)
 
-        if self.args["tile_ticks"] in ["list", "list(optional)"]:
+        if self.features["tile_ticks"] in ["list", "list(optional)"]:
             ticks = misc.get("tile_ticks", nbt.TAG_List())
-            if self.args["tile_ticks"] == "list(optional)":
+            if self.features["tile_ticks"] == "list(optional)":
                 if len(ticks) > 0:
                     data["Level"]["TileTicks"] = ticks
-            elif self.args["tile_ticks"] == "list":
+            elif self.features["tile_ticks"] == "list":
                 data["Level"]["TileTicks"] = ticks
 
-        if self.args["liquid_ticks"] == "list":
+        if self.features["liquid_ticks"] == "list":
             data["Level"]["LiquidsToBeTicked"] = misc.get(
                 "liquid_ticks", nbt.TAG_List()
             )
 
-        if self.args["liquids_to_be_ticked"] == "16list|list":
+        if self.features["liquids_to_be_ticked"] == "16list|list":
             data["Level"]["LiquidsToBeTicked"] = misc.get(
                 "liquids_to_be_ticked",
                 nbt.TAG_List([nbt.TAG_List() for _ in range(16)]),
             )
 
-        if self.args["to_be_ticked"] == "16list|list":
+        if self.features["to_be_ticked"] == "16list|list":
             data["Level"]["ToBeTicked"] = misc.get(
                 "to_be_ticked", nbt.TAG_List([nbt.TAG_List() for _ in range(16)])
             )
 
-        if self.args["post_processing"] == "16list|list":
+        if self.features["post_processing"] == "16list|list":
             data["Level"]["PostProcessing"] = misc.get(
                 "post_processing", nbt.TAG_List([nbt.TAG_List() for _ in range(16)])
             )
 
-        if self.args["structures"] == "compound":
+        if self.features["structures"] == "compound":
             data["Level"]["Structures"] = misc.get(
                 "structures",
                 nbt.TAG_Compound(
