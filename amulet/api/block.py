@@ -368,7 +368,6 @@ class Block:
         if (
             layer == 0
             and len(self.extra_blocks) > 0
-            and layer <= len(self.extra_blocks)
         ):
             new_base = self._extra_blocks[0]
             return Block(
