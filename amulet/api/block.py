@@ -163,6 +163,22 @@ class Block:
         return self._blockstate
 
     @property
+    def base_block(self) -> Block:
+        """
+        Returns the block without any extra blocks
+
+        :return: A Block object
+        """
+        if len(self.extra_blocks) == 0:
+            return self
+        else:
+            return Block(
+                namespace=self.namespace,
+                base_name=self.base_name,
+                properties=self.properties
+            )
+
+    @property
     def extra_blocks(self) -> Union[Tuple, Tuple[Block]]:
         """
         Returns a tuple of the extra blocks contained in the Block instance
