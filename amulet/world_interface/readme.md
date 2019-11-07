@@ -34,6 +34,7 @@ amulet.world_interface.translators.loader.get(identifier: Tuple) -> Translator:
 load raw_data
 interface.decode(raw_data) -> Chunk, palette (version)
     palette
+    
         Java numerical: numpy.ndarray[n*2 int]
         Java blockstate: numpy.ndarray[Block]
         
@@ -68,6 +69,7 @@ translator.to_universal(Chunk, palette) -> Chunk, palette (universal)
 ### save:
 translator.from_universal(Chunk, palette) -> Chunk, palette (version)
     palette
+    
         Java numerical: numpy.ndarray[n*2 int]
         Java blockstate: numpy.ndarray[Block]
         
