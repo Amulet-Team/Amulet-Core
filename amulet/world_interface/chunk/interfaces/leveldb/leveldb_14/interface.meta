@@ -1,0 +1,10 @@
+{
+"meta_version": 0,
+"interface": {
+    "id": "leveldb_14",
+    "name": "leveldb (Chunk format 14) Interface",
+    "entry_point": "leveldb_14_interface",
+    "interface_version": 0,
+    "wrapper_version": -1
+   }
+}
