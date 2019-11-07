@@ -68,9 +68,22 @@ class BaseLevelDBInterface(Interface):
         palette: numpy.ndarray,
         max_world_version: Tuple[int, int, int],
     ) -> Dict[bytes, bytes]:
-        raise NotImplementedError
+        chunk_data = {}
+        if self.features['terrain'] == '2farray':
+            terrain = self._save_subchunks_0(chunk.blocks, palette)
+        elif self.features['terrain'] == '2f1palette':
+            terrain = self._save_subchunks_1(chunk.blocks, palette)
+        elif self.features['terrain'] == '2fnpalette':
+            terrain = self._save_subchunks_8(chunk.blocks, palette)
+        else:
+            raise Exception
+        for y, sub_chunk in enumerate(terrain):
+            if sub_chunk is not None:
+                chunk_data[b"\x2F" + bytes([y])] = sub_chunk
 
-    def _load_subchunks(self, subchunks: List[None, bytes]) -> Tuple[Chunk, numpy.ndarray]:
+        return chunk_data
+
+    def _load_subchunks(self, subchunks: List[None, bytes]) -> Tuple[numpy.ndarray, numpy.ndarray]:
         """
         Load a list of bytes objects which contain chunk data
         This function should be able to load all sub-chunk formats (technically before it)
@@ -172,6 +185,15 @@ class BaseLevelDBInterface(Interface):
         blocks = inverse[blocks]
 
         return blocks.astype(f"uint{get_smallest_dtype(blocks)}"), numpy_palette
+
+    def _save_subchunks_0(self, blocks: numpy.ndarray, palette: numpy.ndarray) -> List[Union[None, bytes]]:
+        raise NotImplementedError
+
+    def _save_subchunks_1(self, blocks: numpy.ndarray, palette: numpy.ndarray) -> List[Union[None, bytes]]:
+        raise NotImplementedError
+
+    def _save_subchunks_8(self, blocks: numpy.ndarray, palette: numpy.ndarray) -> List[Union[None, bytes]]:
+        raise NotImplementedError
 
     # These arent actual blocks, just ids pointing to the palette.
     def _load_palette_block_array(self, data):
