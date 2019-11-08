@@ -201,21 +201,22 @@ class BaseLevelDBInterface(Interface):
     # These arent actual blocks, just ids pointing to the palette.
     def _load_palette_blocks(self, data) -> Tuple[numpy.ndarray, List[amulet_nbt.NBTFile], bytes]:
         # Ignore LSB of data (its a flag) and get compacting level
-        bitsPerBlock, data = data[0] >> 1, data[1:]
-        blocksPerWord = 32 // bitsPerBlock  # Word = 4 bytes, basis of compacting.
-        numWords = -(-4096 // blocksPerWord)  # Ceiling divide is inverted floor divide
+        bits_per_block, data = data[0] >> 1, data[1:]
+        blocks_per_word = 32 // bits_per_block  # Word = 4 bytes, basis of compacting.
+        word_count = -(-4096 // blocks_per_word)  # Ceiling divide is inverted floor divide
 
         blocks = numpy.packbits(
             numpy.pad(
                 numpy.unpackbits(
-                    numpy.frombuffer(bytes(reversed(data[: 4 * numWords])), dtype='uint8')
-                ).reshape(-1, 32)[:, -blocksPerWord*bitsPerBlock:].reshape(-1, bitsPerBlock)[-4096:, :],
-                [(0, 0), (16 - bitsPerBlock, 0)],
+                    numpy.frombuffer(bytes(reversed(data[: 4 * word_count])), dtype='uint8')
+                ).reshape(-1, 32)[:, -blocks_per_word*bits_per_block:].reshape(-1, bits_per_block)[-4096:, :],
+                [(0, 0), (16 - bits_per_block, 0)],
                 "constant"
             )
         ).view(dtype=">i2")[::-1]
         blocks = blocks.reshape((16, 16, 16)).swapaxes(1, 2)
-        data = data[4 * numWords:]
+
+        data = data[4 * word_count:]
 
         palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
         palette, offset = amulet_nbt.load(
@@ -224,7 +225,37 @@ class BaseLevelDBInterface(Interface):
 
         return blocks, palette, data[offset:]
 
-    def _save_palette_subchunk(self, blocks: numpy.ndarray, palette: numpy.ndarray) -> bytes:
+    def _save_palette_subchunk(self, blocks: numpy.ndarray, palette: List[amulet_nbt.NBTFile]) -> bytes:
         """Save a single layer of blocks in the palette format"""
-        raise NotImplementedError
+        chunk: List[bytes] = []
+
+        bits_per_block = int(blocks.max()).bit_length()
+        if bits_per_block == 7:
+            bits_per_block = 8
+        elif 9 <= bits_per_block <= 15:
+            bits_per_block = 16
+        chunk.append(bytes([bits_per_block]))
+
+        blocks_per_word = 32 // bits_per_block  # Word = 4 bytes, basis of compacting.
+        word_count = -(-4096 // blocks_per_word)  # Ceiling divide is inverted floor divide
+
+        blocks = blocks.swapaxes(1, 2).ravel()
+        blocks = bytes(reversed(numpy.packbits(
+            numpy.pad(
+                numpy.pad(
+                    numpy.unpackbits(
+                        blocks[::-1].view(dtype='uint8')
+                    ).reshape(4096, -1)[:, -bits_per_block:],
+                    [(word_count*blocks_per_word-4096, 0), (0, 0)],
+                    "constant"
+                ).reshape(-1, blocks_per_word*bits_per_block),
+                [(0, 0), (32-blocks_per_word*bits_per_block, 0)],
+                "constant"
+            )
+        ).view(dtype=">i4").tobytes()))
+        chunk.append(blocks)
+
+        chunk.append(struct.pack("<I", len(palette)))
+        chunk += [block.save_to() for block in palette]
+        return b''.join(chunk)
 
