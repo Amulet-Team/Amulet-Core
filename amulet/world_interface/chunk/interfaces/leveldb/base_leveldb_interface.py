@@ -193,7 +193,17 @@ class BaseLevelDBInterface(Interface):
         raise NotImplementedError
 
     def _save_subchunks_1(self, blocks: numpy.ndarray, palette: numpy.ndarray) -> List[Union[None, bytes]]:
-        raise NotImplementedError
+        for index, block in enumerate(palette):
+            block: Tuple[
+                Tuple[None, Block], ...
+            ]
+            palette[index] = (block[0],)
+        chunk = []
+        for y in range(0, 256, 16):
+            palette_index, sub_chunk = numpy.unique(blocks[:, y:y+16, :], return_inverse=True)
+            sub_chunk_palette = palette[palette_index]
+            chunk.append(self._save_palette_subchunk(sub_chunk, sub_chunk_palette))
+        return chunk
 
     def _save_subchunks_8(self, blocks: numpy.ndarray, palette: numpy.ndarray) -> List[Union[None, bytes]]:
         raise NotImplementedError
