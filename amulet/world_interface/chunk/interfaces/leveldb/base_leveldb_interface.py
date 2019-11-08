@@ -136,9 +136,9 @@ class BaseLevelDBInterface(Interface):
                 sub_chunk_blocks = numpy.zeros((16, 16, 16, numStorages), dtype=numpy.int)
                 sub_chunk_palette: List[List[Tuple[Union[None, Tuple[int, int, int, int]], Block]]] = []
                 for storage_index in range(numStorages):
-                    sub_chunk_blocks[:, :, :, storage_index], data = self._load_palette_block_array(data)
-                    palette_data, data = self._load_palette(data)
-                    for i, block in enumerate(palette_data):
+                    sub_chunk_blocks[:, :, :, storage_index], palette_data, data = self._load_palette_blocks(data)
+                    palette_data_out: List[Tuple[Union[None, Tuple[int, int, int, int]], Block]] = []
+                    for block in palette_data:
                         namespace, base_name = block["name"].value.split(":", 1)
                         if 'version' in block:
                             version = tuple(numpy.array([block['version'].value], dtype='>u4').view(numpy.uint8))
@@ -149,10 +149,13 @@ class BaseLevelDBInterface(Interface):
                             properties = block["states"].value
                         else:
                             properties = {"block_data": str(block["val"].value)}
-                        palette_data[i] = version, Block(
-                            namespace=namespace, base_name=base_name, properties=properties
+                        palette_data_out.append(
+                            (
+                                version,
+                                Block(namespace=namespace, base_name=base_name, properties=properties)
+                            )
                         )
-                    sub_chunk_palette.append(palette_data)
+                    sub_chunk_palette.append(palette_data_out)
 
                 y *= 16
                 if numStorages == 1:
@@ -196,32 +199,32 @@ class BaseLevelDBInterface(Interface):
         raise NotImplementedError
 
     # These arent actual blocks, just ids pointing to the palette.
-    def _load_palette_block_array(self, data):
+    def _load_palette_blocks(self, data) -> Tuple[numpy.ndarray, List[amulet_nbt.NBTFile], bytes]:
         # Ignore LSB of data (its a flag) and get compacting level
         bitsPerBlock, data = data[0] >> 1, data[1:]
         blocksPerWord = 32 // bitsPerBlock  # Word = 4 bytes, basis of compacting.
         numWords = -(-4096 // blocksPerWord)  # Ceiling divide is inverted floor divide
 
-        blockWords, data = (
-            struct.unpack("<" + "I" * numWords, data[: 4 * numWords]),
-            data[4 * numWords :],
-        )
-        blocks = numpy.empty(4096, dtype=numpy.uint32)
-        for i, word in enumerate(blockWords):
-            for j in range(blocksPerWord):
-                block = word & (
-                    (1 << bitsPerBlock) - 1
-                )  # Mask out number of bits for one block
-                word >>= bitsPerBlock  # For next iteration
-                if i * blocksPerWord + j < 4096:  # Safety net for padding at end.
-                    blocks[i * blocksPerWord + j] = block
+        blocks = numpy.packbits(
+            numpy.pad(
+                numpy.unpackbits(
+                    numpy.frombuffer(bytes(reversed(data[: 4 * numWords])), dtype='uint8')
+                ).reshape(-1, 32)[:, -blocksPerWord*bitsPerBlock:].reshape(-1, bitsPerBlock)[-4096:, :],
+                [(0, 0), (16 - bitsPerBlock, 0)],
+                "constant"
+            )
+        ).view(dtype=">i2")[::-1]
         blocks = blocks.reshape((16, 16, 16)).swapaxes(1, 2)
-        return blocks, data
+        data = data[4 * numWords:]
 
-    # NBT encoded block names (with minecraft:) and more data.
-    def _load_palette(self, data):
         palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
         palette, offset = amulet_nbt.load(
-            buffer=data, compressed=False, count=palette_len, offset=True
+            buffer=data, compressed=False, count=palette_len, offset=True  # , little_endian=True
         )
-        return palette, data[offset:]
+
+        return blocks, palette, data[offset:]
+
+    def _save_palette_subchunk(self, blocks: numpy.ndarray, palette: numpy.ndarray) -> bytes:
+        """Save a single layer of blocks in the palette format"""
+        raise NotImplementedError
+

@@ -106,7 +106,7 @@ class LevelDBFormat(Format):
     def __init__(self, directory: str):
         super().__init__(directory)
         with open(os.path.join(self._directory, "level.dat"), "rb") as f:
-            self.root_tag = nbt.load(buffer=f.read()[8:])
+            self.root_tag = nbt.load(buffer=f.read()[8:], compressed=False)#, little_endian=True)
         self._level_manager = LevelDBLevelManager(self._directory)
 
     @staticmethod
