@@ -197,11 +197,24 @@ class BaseLevelDBInterface(Interface):
             block: Tuple[
                 Tuple[None, Block], ...
             ]
-            palette[index] = (block[0],)
+            block_data = block[0][1].properties.get('block_data', '0')
+            if isinstance(block_data, str) and block_data.isnumeric():
+                block_data = int(block_data)
+                if block_data >= 16:
+                    block_data = 0
+            else:
+                block_data = 0
+
+            palette[index] = amulet_nbt.NBTFile(
+                amulet_nbt.TAG_Compound({
+                    'name': amulet_nbt.TAG_String(block[0][1].namespaced_name),
+                    'val': amulet_nbt.TAG_Short(block_data)
+                })
+            )
         chunk = []
         for y in range(0, 256, 16):
             palette_index, sub_chunk = numpy.unique(blocks[:, y:y+16, :], return_inverse=True)
-            sub_chunk_palette = palette[palette_index]
+            sub_chunk_palette = list(palette[palette_index])
             chunk.append(self._save_palette_subchunk(sub_chunk, sub_chunk_palette))
         return chunk
 
