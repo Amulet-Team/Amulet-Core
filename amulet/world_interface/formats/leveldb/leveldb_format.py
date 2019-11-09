@@ -96,8 +96,8 @@ class LevelDBLevelManager:
 
     def delete_chunk(self, cx: int, cz: int, level: int = 0):
         if level in self._levels and (cx, cz) in self._levels[level]:
-            self._levels[level].remove((cx, cz))
             chunk_data = self.get_chunk_data(cx, cz, level)
+            self._levels[level].remove((cx, cz))
             for key in chunk_data.keys():
                 self._batch_temp[key] = None
 
