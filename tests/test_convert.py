@@ -13,7 +13,7 @@ if __name__ == "__main__":
         print("convert <origin_world_path> <destination_world_path>")
     elif len(args) >= 1:
         mode = args[0]
-        if mode == "random_chunk":
+        if mode in ["random_chunk", "air", "stone"]:
             if len(args) >= 4:
                 world_path = args[1]
                 cx, cz = int(args[2]), int(args[3])
@@ -30,16 +30,33 @@ if __name__ == "__main__":
                 air = world.palette.get_add_block(
                     Block(namespace="universal_minecraft", base_name="air")
                 )
-                # blocks[0, 30, 0] = stone
-                # c.blocks = numpy.full((16, 256, 16), stone)
                 print("Filling chunk with blocks")
-                blocks = numpy.random.randint(
-                    0, len(world.palette.blocks()), size=(16, 256, 16)
-                )
-                for index, block in enumerate(world.palette.blocks()):
-                    if block.base_name in ["lava", "water"]:
-                        blocks[blocks == index] = air
-                chunk.blocks = blocks
+                if mode == "air":
+                    chunk.blocks[0, 0, 0] = air
+                    chunk.blocks[0, :, 0] = world.palette.get_add_block(
+                        Block(namespace="universal_minecraft", base_name="stone")
+                    )
+                    chunk.blocks[0, :, 15] = world.palette.get_add_block(
+                        Block(namespace="universal_minecraft", base_name="stone")
+                    )
+                    chunk.blocks[15, :, 0] = world.palette.get_add_block(
+                        Block(namespace="universal_minecraft", base_name="stone")
+                    )
+                    chunk.blocks[15, :, 15] = world.palette.get_add_block(
+                        Block(namespace="universal_minecraft", base_name="stone")
+                    )
+                elif mode == "random_chunk":
+                    blocks = numpy.random.randint(
+                        0, len(world.palette.blocks()), size=(16, 256, 16)
+                    )
+                    for index, block in enumerate(world.palette.blocks()):
+                        if block.base_name in ["lava", "water"]:
+                            blocks[blocks == index] = air
+                    chunk.blocks = blocks
+                elif mode == 'stone':
+                    chunk.blocks = numpy.full((16, 256, 16), world.palette.get_add_block(
+                        Block(namespace="universal_minecraft", base_name="stone")
+                    ))
                 print("Saving world")
                 world.save()
                 world.close()
@@ -53,7 +70,7 @@ if __name__ == "__main__":
                     print(world.palette[block])
             else:
                 print("Not enough arguments given. Format must be:")
-                print("random_chunk <origin_world_path> <cx> <cz>")
+                print("random_chunk/air <origin_world_path> <cx> <cz>")
 
         elif mode == "convert":
             if len(args) >= 3:
@@ -69,5 +86,20 @@ if __name__ == "__main__":
             else:
                 print("Not enough arguments given. Format must be:")
                 print("convert <origin_world_path> <destination_world_path>")
+
+        elif mode == "delete_chunk":
+            if len(args) >= 4:
+                world_path = args[1]
+                cx, cz = int(args[2]), int(args[3])
+
+                print(f"Loading world at {world_path}")
+                world = load_world(world_path)
+                world._wrapper.delete_chunk(cx, cz)  # There will be a proper method to delete chunks but using this for now.
+                print("Saving world")
+                world.save()
+                world.close()
+            else:
+                print("Not enough arguments given. Format must be:")
+                print("delete_chunk <origin_world_path> <cx> <cz>")
         else:
             print(f'Unknown mode "{mode}"')
