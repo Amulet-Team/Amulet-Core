@@ -99,7 +99,11 @@ class LevelDBLevelManager:
             chunk_data = self.get_chunk_data(cx, cz, level)
             self._levels[level].remove((cx, cz))
             for key in chunk_data.keys():
-                self._batch_temp[key] = None
+                if level:
+                    key_prefix = struct.pack('<iii', cx, cz, level)
+                else:
+                    key_prefix = struct.pack('<ii', cx, cz)
+                self._batch_temp[key_prefix + key] = None
 
 
 class LevelDBFormat(Format):
