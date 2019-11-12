@@ -41,7 +41,11 @@ class BaseBedrockTranslator(Translator):
             final_entities = []
             final_extra = False
 
-            if isinstance(input_object, Block):
+            if isinstance(input_object, Entity):
+                # TODO: entity support
+                pass
+
+            elif isinstance(input_object, tuple):
                 for depth, block in enumerate(input_object):
                     game_version_, block = block
                     if game_version_ is None:
@@ -68,10 +72,6 @@ class BaseBedrockTranslator(Translator):
                         # TODO: offset entity coords
 
                     final_extra |= extra
-
-            elif isinstance(input_object, Entity):
-                # TODO: entity support
-                pass
 
             return final_block, final_block_entity, final_entities, final_extra
 
