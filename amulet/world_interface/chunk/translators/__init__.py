@@ -3,9 +3,11 @@ from __future__ import annotations
 import os
 import numpy
 
-from typing import Tuple, Callable, Union
+from typing import Tuple, Callable, Union, List
 
-from amulet.api.block import BlockManager
+from amulet.api.block import BlockManager, Block
+from amulet.api.block_entity import BlockEntity
+from amulet.api.entity import Entity
 from amulet.api.chunk import Chunk
 from amulet.world_interface.loader import Loader
 import PyMCTranslate
@@ -51,7 +53,10 @@ class Translator:
         chunk: Chunk,
         palette: numpy.ndarray,
         callback: Callable,
-        translate: Callable,
+        translate: Callable[
+            [Union[Block, Entity], Callable],
+            Tuple[Block, BlockEntity, List[Entity], bool]
+        ],
         full_translate: bool,
     ):
         if not full_translate:
@@ -61,20 +66,22 @@ class Translator:
         finished = BlockManager()
         palette_mappings = {}
 
-        for i, block in enumerate(palette):
-            universal, entity, extra = translate(block)
-            if entity:
-                print(f"Warning: not sure what to do with entity for {block} yet.")
+        for i, input_block in enumerate(palette):
+            input_block: Block
+            output_block, output_block_entity, output_entities, extra = translate(input_block)
+            if output_block_entity:
+                print(f"Warning: not sure what to do with entity for {input_block} yet.")
+            # TODO: sort out entities
             if extra and callback:
                 todo.append(i)
                 continue
-            palette_mappings[i] = finished.get_add_block(universal)
+            palette_mappings[i] = finished.get_add_block(output_block)
 
         block_mappings = {}
         for index in todo:
             for x, y, z in zip(*numpy.where(chunk.blocks == index)):
 
-                def get_block_at(pos):
+                def get_block_at(pos) -> Tuple[Block, Union[None, Callable]]:
                     nonlocal x, y, z, palette, chunk
                     dx, dy, dz = pos
                     dx += x
@@ -84,15 +91,15 @@ class Translator:
                     cz = dz // 16
                     if cx == 0 and cz == 0:
                         return palette[chunk.blocks[dx % 16, dy, dz % 16]], None
-                    chunk, palette = callback(cx, cz)
-                    block_ = palette[chunk.blocks[dx % 16, dy, dz % 16]]
-                    return translate(block_)[0], None
+                    local_chunk, local_palette = callback(cx, cz)
+                    return local_palette[local_chunk.blocks[dx % 16, dy, dz % 16]], None
 
-                block = palette[chunk.blocks[x, y, z]]
-                universal, entity, extra = translate(block, get_block_at)
-                if entity:
-                    print(f"Warning: not sure what to do with entity for {block} yet.")
-                block_mappings[(x, y, z)] = finished.get_add_block(universal)
+                input_block = palette[chunk.blocks[x, y, z]]
+                output_block, output_block_entity, output_entities, extra = translate(input_block, get_block_at)
+                if output_block_entity:
+                    print(f"Warning: not sure what to do with entity for {input_block} yet.")
+                # TODO: sort out entities
+                block_mappings[(x, y, z)] = finished.get_add_block(output_block)
 
         for old, new in palette_mappings.items():
             chunk.blocks[chunk.blocks == old] = new
