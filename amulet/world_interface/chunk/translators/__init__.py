@@ -134,10 +134,44 @@ class Translator:
         :return: Chunk object in the universal format.
         """
         version = translation_manager.get_version(*self._translator_key(chunk_version))
-        translator = version.get()
+        translator = version.get().to_universal
+
+        def translate(
+                input_object: Union[Block, Entity],
+                get_block_callback: Callable[[Tuple[int, int, int]], Tuple[Block, Union[None, BlockEntity]]] = None
+        ) -> Tuple[Block, BlockEntity, List[Entity], bool]:
+            final_block = None
+            final_block_entity = None
+            final_entities = []
+            final_extra = False
+
+            if isinstance(input_object, Block):
+                for depth, block in enumerate((input_object.base_block, ) + input_object.extra_blocks):
+                    output_object, output_block_entity, extra = translator(block, get_block_callback)
+
+                    if isinstance(output_object, Block):
+                        if final_block is None:
+                            final_block = output_object
+                        else:
+                            final_block += output_object
+                        if depth == 0:
+                            final_block_entity = output_block_entity
+
+                    elif isinstance(output_object, Entity):
+                        final_entities.append(output_object)
+                        # TODO: offset entity coords
+
+                    final_extra |= extra
+
+            elif isinstance(input_object, Entity):
+                # TODO: entity support
+                pass
+
+            return final_block, final_block_entity, final_entities, final_extra
+
         palette = self._unpack_palette(version, palette)
         return self._translate(
-            chunk, palette, callback, translator.to_universal, full_translate
+            chunk, palette, callback, translate, full_translate
         )
 
     def from_universal(
@@ -163,9 +197,44 @@ class Translator:
         version = translation_manager.get_version(
             *self._translator_key(max_world_version_number)
         )
-        translator = version.get()
+        translator = version.get().from_universal
+
+        # TODO: perhaps find a way so this code isn't duplicated in three places
+        def translate(
+                input_object: Union[Block, Entity],
+                get_block_callback: Callable[[Tuple[int, int, int]], Tuple[Block, Union[None, BlockEntity]]] = None
+        ) -> Tuple[Block, BlockEntity, List[Entity], bool]:
+            final_block = None
+            final_block_entity = None
+            final_entities = []
+            final_extra = False
+
+            if isinstance(input_object, Block):
+                for depth, block in enumerate((input_object.base_block, ) + input_object.extra_blocks):
+                    output_object, output_block_entity, extra = translator(block, get_block_callback)
+
+                    if isinstance(output_object, Block):
+                        if final_block is None:
+                            final_block = output_object
+                        else:
+                            final_block += output_object
+                        if depth == 0:
+                            final_block_entity = output_block_entity
+
+                    elif isinstance(output_object, Entity):
+                        final_entities.append(output_object)
+                        # TODO: offset entity coords
+
+                    final_extra |= extra
+
+            elif isinstance(input_object, Entity):
+                # TODO: entity support
+                pass
+
+            return final_block, final_block_entity, final_entities, final_extra
+
         chunk, palette = self._translate(
-            chunk, palette, callback, translator.from_universal, full_translate
+            chunk, palette, callback, translate, full_translate
         )
         palette = self._pack_palette(version, palette)
         return chunk, palette
