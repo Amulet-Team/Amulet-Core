@@ -32,9 +32,9 @@ def load_format(
             raise FormatLoaderInvalidFormat(f"Could not find _format loader {_format}")
         if not forced and not formats.loader.identify(directory) == _format:
             raise FormatLoaderMismatched(f"{_format} is incompatible")
-        format_class: formats.Format = formats.loader.get_by_id(_format)
+        format_class = formats.loader.get_by_id(_format)
     else:
-        format_class: formats.Format = formats.loader.get(directory)
+        format_class = formats.loader.get(directory)
     return format_class(directory)
 
 
