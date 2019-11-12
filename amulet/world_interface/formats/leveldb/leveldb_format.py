@@ -111,7 +111,9 @@ class LevelDBFormat(Format):
         super().__init__(directory)
         with open(os.path.join(self._directory, "level.dat"), "rb") as f:
             self.root_tag = nbt.load(buffer=f.read()[8:], compressed=False)#, little_endian=True)
-        self._level_manager = LevelDBLevelManager(self._directory)
+        if os.path.isfile(os.path.join(self._directory, 'world_icon.jpeg')):
+            self._world_image_path = os.path.join(self._directory, 'world_icon.jpeg')
+        self._level_manager = None
 
     @staticmethod
     def is_valid(directory):
@@ -120,6 +122,18 @@ class LevelDBFormat(Format):
             return False
 
         return True
+
+    @property
+    def world_name(self):
+        return self.root_tag['LevelName'].value
+
+    @world_name.setter
+    def world_name(self, value: str):
+        self.root_tag['LevelName'] = nbt.TAG_String(value)
+
+    def _load_world(self):
+        if self._level_manager is None:
+            self._level_manager = LevelDBLevelManager(self._directory)
 
     def _max_world_version(self) -> Tuple[str, Tuple[int, int, int]]:
         return (
@@ -140,22 +154,27 @@ class LevelDBFormat(Format):
         return "leveldb", raw_chunk_data.get(b'v', '\x00')[0]  # TODO: work out a valid default
 
     def save(self):
+        self._load_world()
         self._level_manager.save()
 
     def close(self):
+        self._load_world()
         self._level_manager.close()
 
     def all_chunk_coords(self, dimension: int = 0) -> Generator[Tuple[int, int]]:
+        self._load_world()
         for coords in self._level_manager.all_chunk_coords(dimension):
             yield coords
 
     def delete_chunk(self, cx: int, cz: int, dimension: int = 0):
+        self._load_world()
         self._level_manager.delete_chunk(cx, cz, dimension)
 
     def _put_raw_chunk_data(self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: int = 0):
         """
         Actually stores the data from the interface to disk.
         """
+        self._load_world()
         return self._level_manager.put_chunk_data(cx, cz, data, dimension)
 
     def _get_raw_chunk_data(self, cx: int, cz: int, dimension: int = 0) -> Dict[bytes, bytes]:
@@ -166,6 +185,7 @@ class LevelDBFormat(Format):
         :param cz: The z coordinate of the chunk.
         :return: The interface key for the get_interface method and the data to interface with.
         """
+        self._load_world()
         return self._level_manager.get_chunk_data(cx, cz, dimension)
 
 

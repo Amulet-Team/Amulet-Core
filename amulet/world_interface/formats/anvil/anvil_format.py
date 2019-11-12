@@ -261,19 +261,34 @@ class AnvilFormat(Format):
     def __init__(self, directory: str):
         super().__init__(directory)
         self.root_tag = nbt.load(filename=os.path.join(self._directory, "level.dat"))
-        self._levels: Dict[int, AnvilLevelManager] = {
-            0: AnvilLevelManager(self._directory)
-        }
-        for dir_name in os.listdir(self._directory):
-            level_path = os.path.join(self._directory, dir_name)
-            if os.path.isdir(level_path) and dir_name.startswith("DIM"):
-                match = AnvilLevelManager.level_regex.fullmatch(dir_name)
-                if match is None:
-                    continue
-                level = match.group("level")
-                self._levels[level] = AnvilLevelManager(level_path)
+        if os.path.isfile(os.path.join(self._directory, 'icon.png')):
+            self._world_image_path = os.path.join(self._directory, 'icon.png')
+        self._levels = None
+
+    @property
+    def world_name(self):
+        return self.root_tag['Data']['LevelName'].value
+
+    @world_name.setter
+    def world_name(self, value: str):
+        self.root_tag['Data']['LevelName'] = nbt.TAG_String(value)
+
+    def _load_world(self):
+        if self._levels is None:
+            self._levels: Dict[int, AnvilLevelManager] = {
+                0: AnvilLevelManager(self._directory)
+            }
+            for dir_name in os.listdir(self._directory):
+                level_path = os.path.join(self._directory, dir_name)
+                if os.path.isdir(level_path) and dir_name.startswith("DIM"):
+                    match = AnvilLevelManager.level_regex.fullmatch(dir_name)
+                    if match is None:
+                        continue
+                    level = int(match.group("level"))
+                    self._levels[level] = AnvilLevelManager(level_path)
 
     def _get_level(self, level: int):
+        self._load_world()
         if level in self._levels:
             return self._levels[level]
         else:
@@ -284,6 +299,7 @@ class AnvilFormat(Format):
             yield chunk
 
     def save(self):
+        self._load_world()
         for level in self._levels.values():
             level.save()
         # TODO: save other world data

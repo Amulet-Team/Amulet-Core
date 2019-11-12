@@ -15,6 +15,7 @@ SUPPORTED_FORMAT_VERSION = 0
 SUPPORTED_META_VERSION = 0
 
 FORMATS_DIRECTORY = os.path.dirname(__file__)
+missing_world_icon = os.path.abspath(os.path.join(FORMATS_DIRECTORY, '..', '..', 'img', 'missing_world_icon.png'))
 
 loader = Loader(
     "format",
@@ -30,6 +31,7 @@ class Format:
         self._directory = directory
         self.translation_manager = PyMCTranslate.new_translation_manager()
         self._max_world_version_ = None
+        self._world_image_path = missing_world_icon
 
     @staticmethod
     def is_valid(directory: str) -> bool:
@@ -48,6 +50,18 @@ class Format:
 
     def _max_world_version(self) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
         raise NotImplementedError
+
+    @property
+    def world_name(self):
+        return 'Unknown World'
+
+    @world_name.setter
+    def world_name(self, value: str):
+        raise NotImplementedError
+
+    @property
+    def world_image_path(self):
+        return self._world_image_path
 
     def _get_interface(
         self, max_world_version, raw_chunk_data=None
