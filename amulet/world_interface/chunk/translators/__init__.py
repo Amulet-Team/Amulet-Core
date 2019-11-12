@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import numpy
 
-from typing import Tuple, Callable, Union, List
+from typing import Tuple, Callable, Union, List, Any
 
 from amulet.api.block import BlockManager, Block
 from amulet.api.block_entity import BlockEntity
@@ -52,9 +52,15 @@ class Translator:
         self,
         chunk: Chunk,
         palette: numpy.ndarray,
-        callback: Callable,
+        get_chunk_callback: Callable[[int, int], Tuple[Chunk, numpy.ndarray]],
         translate: Callable[
-            [Union[Block, Entity], Callable],
+            [
+                Union[Block, Entity, Any],
+                Callable[
+                    [Tuple[int, int, int]],
+                    Tuple[Block, Union[None, BlockEntity]]
+                ]
+            ],
             Tuple[Block, BlockEntity, List[Entity], bool]
         ],
         full_translate: bool,
@@ -72,7 +78,7 @@ class Translator:
             if output_block_entity:
                 print(f"Warning: not sure what to do with entity for {input_block} yet.")
             # TODO: sort out entities
-            if extra and callback:
+            if extra and get_chunk_callback:
                 todo.append(i)
                 continue
             palette_mappings[i] = finished.get_add_block(output_block)
@@ -81,7 +87,7 @@ class Translator:
         for index in todo:
             for x, y, z in zip(*numpy.where(chunk.blocks == index)):
 
-                def get_block_at(pos) -> Tuple[Block, Union[None, Callable]]:
+                def get_block_at(pos: Tuple[int, int, int]) -> Tuple[Block, Union[None, BlockEntity]]:
                     nonlocal x, y, z, palette, chunk
                     dx, dy, dz = pos
                     dx += x
@@ -91,7 +97,7 @@ class Translator:
                     cz = dz // 16
                     if cx == 0 and cz == 0:
                         return palette[chunk.blocks[dx % 16, dy, dz % 16]], None
-                    local_chunk, local_palette = callback(cx, cz)
+                    local_chunk, local_palette = get_chunk_callback(cx, cz)
                     return local_palette[local_chunk.blocks[dx % 16, dy, dz % 16]], None
 
                 input_block = palette[chunk.blocks[x, y, z]]
