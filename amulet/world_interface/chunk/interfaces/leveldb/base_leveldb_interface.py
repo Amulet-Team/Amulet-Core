@@ -340,7 +340,7 @@ class BaseLevelDBInterface(Interface):
 
         palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
         palette, offset = amulet_nbt.load(
-            buffer=data, compressed=False, count=palette_len, offset=True  # , little_endian=True
+            buffer=data, compressed=False, count=palette_len, offset=True, little_endian=True
         )
 
         return blocks, palette, data[offset:]

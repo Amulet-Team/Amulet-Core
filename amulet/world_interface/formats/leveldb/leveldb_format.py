@@ -110,7 +110,7 @@ class LevelDBFormat(Format):
     def __init__(self, directory: str):
         super().__init__(directory)
         with open(os.path.join(self._directory, "level.dat"), "rb") as f:
-            self.root_tag = nbt.load(buffer=f.read()[8:], compressed=False)#, little_endian=True)
+            self.root_tag = nbt.load(buffer=f.read()[8:], compressed=False, little_endian=True)
         if os.path.isfile(os.path.join(self._directory, 'world_icon.jpeg')):
             self._world_image_path = os.path.join(self._directory, 'world_icon.jpeg')
         self._level_manager = None
