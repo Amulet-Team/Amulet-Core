@@ -279,7 +279,7 @@ class BaseLevelDBInterface(Interface):
                     sub_block_ = amulet_nbt.NBTFile(
                         amulet_nbt.TAG_Compound({
                             'name': amulet_nbt.TAG_String(sub_block.namespaced_name),
-                            'states': amulet_nbt.TAG_Compound({key: val for key, val in properties.values() if isinstance(val, amulet_nbt._TAG_Value)}),
+                            'states': amulet_nbt.TAG_Compound({key: val for key, val in properties.items() if isinstance(val, amulet_nbt._TAG_Value)}),
                             'version': amulet_nbt.TAG_Int(sum(sub_block_version[i] << (24-i*8) for i in range(4)))
                         })
                     )

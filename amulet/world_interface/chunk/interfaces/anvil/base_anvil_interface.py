@@ -125,7 +125,7 @@ class BaseAnvilInterface(Interface):
             misc["tile_ticks"] = data["Level"].get("TileTicks", nbt.TAG_List())
 
         if self.features["liquid_ticks"] == "list":
-            misc["liquid_ticks"] = data["Level"]["LiquidsToBeTicked"]
+            misc["liquid_ticks"] = data["Level"]["LiquidTicks"]
 
         if self.features["liquids_to_be_ticked"] == "16list|list":
             misc["liquids_to_be_ticked"] = data["Level"]["LiquidsToBeTicked"]
@@ -287,7 +287,7 @@ class BaseAnvilInterface(Interface):
                 data["Level"]["TileTicks"] = ticks
 
         if self.features["liquid_ticks"] == "list":
-            data["Level"]["LiquidsToBeTicked"] = misc.get(
+            data["Level"]["LiquidTicks"] = misc.get(
                 "liquid_ticks", nbt.TAG_List()
             )
 
