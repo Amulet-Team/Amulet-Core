@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import numpy
 
-from typing import Tuple, Callable, Union
+from typing import Tuple, Callable, Union, List
 
 from amulet.api.chunk import Chunk
 from amulet.api.block import Block
+from amulet.api.block_entity import BlockEntity
+from amulet.api.entity import Entity
 from amulet.world_interface.chunk.translators import Translator
 import PyMCTranslate
 
@@ -32,10 +34,15 @@ class BaseBedrockTranslator(Translator):
 
         def translate(
             blocks: Tuple[Tuple[Union[Tuple[int, int, int], None], Block], ...],
-            get_block_callback: Callable = None
-        ):
-            final_data = []
-            for block in blocks:
+            get_block_callback: Callable[[Tuple[int, int, int]], Tuple[Block, Union[None, BlockEntity]]] = None
+        ) -> Tuple[Block, BlockEntity, List[Entity], bool]:
+            # TODO: entity support
+            final_block = None
+            final_block_entity = None
+            final_entities = []
+            final_extra = False
+
+            for depth, block in enumerate(blocks):
                 game_version_, block = block
                 if game_version_ is None:
                     if "block_data" in block.properties:
@@ -45,11 +52,24 @@ class BaseBedrockTranslator(Translator):
                         game_version_ = game_version
                 version_key = self._translator_key(game_version_)
                 translator = versions.setdefault(version_key, translation_manager.get_version(*version_key).get().to_universal)
-                final_data.append(translator(block, get_block_callback))
-            final_block = final_data[0][0]
-            for block in final_data[1:]:
-                final_block = final_block + block[0]
-            return final_block, final_data[0][1], any(data[2] for data in final_data)
+                output_object, output_block_entity, extra = translator(block, get_block_callback)
+
+                if isinstance(output_object, Block):
+                    if final_block is None:
+                        final_block = output_object
+                    else:
+                        final_block += output_object
+                    if depth == 0:
+                        final_block_entity = output_block_entity
+
+
+                elif isinstance(output_object, Entity):
+                    final_entities.append(output_object)
+                    # TODO: offset entity coords
+
+                final_extra |= extra
+
+            return final_block, final_block_entity, final_entities, final_extra
 
         version = translation_manager.get_version(*self._translator_key(game_version))
         palette = self._unpack_palette(version, palette)
