@@ -305,9 +305,8 @@ class BaseLevelDBInterface(Interface):
                         sub_chunk_palette_full[index, sub_index] = block
                 # should now be a 2D array with an amulet_nbt.NBTFile in each element
 
-                # sub_chunk_bytes = [b'\x08', bytes([sub_chunk_depth])]
-                sub_chunk_bytes = [b'\x08', bytes([1])]
-                for sub_chunk_layer_index in range(1):      # range(sub_chunk_depth):  # TODO: fix the second layer not being translated
+                sub_chunk_bytes = [b'\x08', bytes([sub_chunk_depth])]
+                for sub_chunk_layer_index in range(sub_chunk_depth):
                     # TODO: sort out a way to remove duplicate NBTFile objects. Currently the features to sort or check for duplicates do not exist
                     # sub_chunk_layer_palette, sub_chunk_remap = numpy.unique(sub_chunk_palette_full[:, sub_chunk_layer], return_inverse=True)
                     # sub_chunk_layer = sub_chunk_remap[sub_chunk]
