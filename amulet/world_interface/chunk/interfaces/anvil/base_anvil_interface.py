@@ -79,7 +79,7 @@ class BaseAnvilInterface(Interface):
             ):
                 status = "postprocessed"
 
-            misc["status"] = nbt.TAG_String(status)
+            misc["status"] = status
 
         if self.features["V"] == "byte":
             misc["V"] = data["Level"]["V"].value
@@ -125,7 +125,8 @@ class BaseAnvilInterface(Interface):
             misc["tile_ticks"] = data["Level"].get("TileTicks", nbt.TAG_List())
 
         if self.features["liquid_ticks"] == "list":
-            misc["liquid_ticks"] = data["Level"]["LiquidTicks"]
+            if "LiquidTicks" in data["Level"]:
+                misc["liquid_ticks"] = data["Level"]["LiquidTicks"]
 
         if self.features["liquids_to_be_ticked"] == "16list|list":
             misc["liquids_to_be_ticked"] = data["Level"]["LiquidsToBeTicked"]
@@ -180,6 +181,8 @@ class BaseAnvilInterface(Interface):
                 "postprocessed",
             ):
                 data["Level"]["Status"] = nbt.TAG_String(status)
+            else:
+                data["Level"]["Status"] = nbt.TAG_String("postprocessed")
         else:
             status = misc.get("status", "postprocessed")
             if self.features["terrain_populated"] == "byte":
