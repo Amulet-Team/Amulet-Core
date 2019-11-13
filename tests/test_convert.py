@@ -1,5 +1,7 @@
 import sys
 import numpy
+import os
+import shutil
 
 from amulet.world_interface import load_world, load_format
 from amulet.api.block import Block
@@ -33,18 +35,6 @@ if __name__ == "__main__":
                 print("Filling chunk with blocks")
                 if mode == "air":
                     chunk.blocks[0, 0, 0] = air
-                    chunk.blocks[0, :, 0] = world.palette.get_add_block(
-                        Block(namespace="universal_minecraft", base_name="stone")
-                    )
-                    chunk.blocks[0, :, 15] = world.palette.get_add_block(
-                        Block(namespace="universal_minecraft", base_name="stone")
-                    )
-                    chunk.blocks[15, :, 0] = world.palette.get_add_block(
-                        Block(namespace="universal_minecraft", base_name="stone")
-                    )
-                    chunk.blocks[15, :, 15] = world.palette.get_add_block(
-                        Block(namespace="universal_minecraft", base_name="stone")
-                    )
                 elif mode == "random_chunk":
                     blocks = numpy.random.randint(
                         0, len(world.palette.blocks()), size=(16, 256, 16)
@@ -101,5 +91,53 @@ if __name__ == "__main__":
             else:
                 print("Not enough arguments given. Format must be:")
                 print("delete_chunk <origin_world_path> <cx> <cz>")
+        elif mode == "self_convert":
+            if len(args) >= 2:
+                world_path = args[1]
+                ext = 0
+                while os.path.exists(f'{world_path}_{ext}'):
+                    ext += 1
+                source_path = f'{world_path}_{ext}'
+                shutil.copytree(world_path, source_path)
+
+                while os.path.exists(f'{world_path}_{ext}'):
+                    ext += 1
+                destination_path = f'{world_path}_{ext}'
+                shutil.copytree(world_path, destination_path)
+
+                print(f"Loading world at {source_path}")
+                world = load_world(source_path)
+                for chunk in list(world._wrapper.all_chunk_coords()):
+                    if max(abs(chunk[0]), abs(chunk[1])) > 5:
+                        world._wrapper.delete_chunk(*chunk)
+                world.save()
+                for cx, cz in world._wrapper.all_chunk_coords():
+                    chunk = world.get_chunk(cx, cz)
+                    chunk.blocks[0, :, 0] = world.palette.get_add_block(
+                        Block(namespace="universal_minecraft", base_name="stone")
+                    )
+                    chunk.blocks[0, :, 15] = world.palette.get_add_block(
+                        Block(namespace="universal_minecraft", base_name="stone")
+                    )
+                    chunk.blocks[15, :, 0] = world.palette.get_add_block(
+                        Block(namespace="universal_minecraft", base_name="stone")
+                    )
+                    chunk.blocks[15, :, 15] = world.palette.get_add_block(
+                        Block(namespace="universal_minecraft", base_name="stone")
+                    )
+                world.save()
+
+                output_wrapper = load_format(destination_path)
+                for chunk in list(output_wrapper.all_chunk_coords()):
+                    output_wrapper.delete_chunk(*chunk)
+                output_wrapper.save()
+
+                world.save(output_wrapper)
+                world.close()
+                output_wrapper.close()
+            else:
+                print("Not enough arguments given. Format must be:")
+                print("convert <origin_world_path> <destination_world_path>")
+
         else:
             print(f'Unknown mode "{mode}"')
