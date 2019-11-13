@@ -150,6 +150,8 @@ class Translator:
                     output_object, output_block_entity, extra = translator(block, get_block_callback)
 
                     if isinstance(output_object, Block):
+                        if __debug__ and not output_object.namespace.startswith('universal'):
+                            print(f'Error translating {input_object.blockstate} to universal. Got {output_object.blockstate}')
                         if final_block is None:
                             final_block = output_object
                         else:
@@ -214,6 +216,8 @@ class Translator:
                     output_object, output_block_entity, extra = translator(block, get_block_callback)
 
                     if isinstance(output_object, Block):
+                        if __debug__ and output_object.namespace.startswith('universal'):
+                            print(f'Error translating {input_object.blockstate} from universal. Got {output_object.blockstate}')
                         if final_block is None:
                             final_block = output_object
                         else:

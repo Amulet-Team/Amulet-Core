@@ -59,6 +59,8 @@ class BaseBedrockTranslator(Translator):
                     output_object, output_block_entity, extra = translator(block, get_block_callback)
 
                     if isinstance(output_object, Block):
+                        if __debug__ and not output_object.namespace.startswith('universal'):
+                            print(f'Error translating {block.blockstate} to universal. Got {output_object.blockstate}')
                         if final_block is None:
                             final_block = output_object
                         else:
