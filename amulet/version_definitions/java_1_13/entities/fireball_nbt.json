@@ -1,9 +1,0 @@
-{
-  "<metadata>": {
-    "extends": "small_fireball"
-  },
-  "ExplosionPower": {
-    "tag_type": "int",
-    "default": 0
-  }
-}

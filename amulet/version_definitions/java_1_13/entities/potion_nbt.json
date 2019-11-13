@@ -1,8 +1,0 @@
-{
-  "<metadata>": {
-    "extends": "egg"
-  },
-  "Potion": {
-    "tag_type": "<item_base>"
-  }
-}

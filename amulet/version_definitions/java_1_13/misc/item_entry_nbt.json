@@ -1,9 +1,0 @@
-{
-  "<metadata>": {
-    "extends": "item_base"
-  },
-  "Slot": {
-    "tag_type": "byte",
-    "default": 0
-  }
-}

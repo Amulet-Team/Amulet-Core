@@ -1,9 +1,0 @@
-{
-  "<metadata>": {
-    "extends": "mob"
-  },
-  "Johnny": {
-    "tag_type": "byte",
-    "default": 0
-  }
-}
