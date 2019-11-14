@@ -73,6 +73,8 @@ class Chunk:
 
     @property
     def blocks(self) -> Blocks:
+        if self._blocks is None:
+            self._blocks = Blocks(self)
         return self._blocks
 
     @blocks.setter
