@@ -27,6 +27,7 @@ class Chunk:
         self._biomes = Biomes(self, numpy.zeros((16, 16), dtype=numpy.uint32))
         self._entities = None
         self._block_entities = None
+        self._status = Status()
         self.misc = {}  # all entries that are not important enough to get an attribute
         self.extra = {}  # temp store for Java NBTFile. Remove this when unpacked to misc
 
@@ -139,6 +140,14 @@ class Chunk:
         if self._block_entities != value:
             self.changed = True
             self._block_entities = value
+
+    @property
+    def status(self) -> Status:
+        return self._status
+
+    @status.setter
+    def status(self, value: Union[float, int, str]):
+        self._status.set_value(value)
 
     def serialize_chunk(self, change_path) -> str:
         """
