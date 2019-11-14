@@ -27,7 +27,7 @@ class Chunk:
         self._biomes = Biomes(self, numpy.zeros((16, 16), dtype=numpy.uint32))
         self._entities = None
         self._block_entities = None
-        self._status = Status()
+        self._status = Status(self)
         self.misc = {}  # all entries that are not important enough to get an attribute
         self.extra = {}  # temp store for Java NBTFile. Remove this when unpacked to misc
 
