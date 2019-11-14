@@ -38,7 +38,7 @@ class BaseLevelDBInterface(Interface):
         feature_options = {
             "chunk_version": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
             "finalised_state": ['int0-2'],
-            "data_2d": [],
+            "data_2d": ['height512|biome256', 'unused_height512|biome256'],
             "entities": ["32list"],
             "block_entities": ["31list"],
             "terrain": ["2farray", "2f1palette", "2fnpalette"]
@@ -84,6 +84,26 @@ class BaseLevelDBInterface(Interface):
                 val = 2
             chunk.status = val
 
+        if self.features["data_2d"] in ['height512|biome256', 'unused_height512|biome256']:
+            d2d = data.get(b'\x2D', b'\x00'*768)
+            height, biome = d2d[:512], d2d[512:]
+            if self.features["data_2d"] == 'height512|biome256':
+                pass  # TODO: put this data somewhere
+            chunk.biomes = numpy.frombuffer(biome, dtype='uint8')
+
+        # TODO: impliment key support
+        # \x2D  heightmap and biomes
+        # \x31  block entity
+        # \x32  entity
+        # \x33  ticks
+        # \x34  block extra data
+        # \x35  biome state
+        # \x39  7 ints and an end (03)? Honestly don't know what this is
+        # \x3A  fire tick?
+
+        # \x2E  2d legacy
+        # \x30  legacy terrain
+
         chunk.entities = None
         chunk.block_entities = None
         return chunk, palette
@@ -95,6 +115,12 @@ class BaseLevelDBInterface(Interface):
         max_world_version: Tuple[int, int, int],
     ) -> Dict[bytes, bytes]:
         chunk_data = {}
+
+        # chunk version
+        if self.features["chunk_version"] is not None:
+            chunk_data[b'v'] = bytes([self.features["chunk_version"]])
+
+        # terrain data
         if self.features['terrain'] == '2farray':
             terrain = self._save_subchunks_0(chunk.blocks, palette)
         elif self.features['terrain'] == '2f1palette':
@@ -106,10 +132,18 @@ class BaseLevelDBInterface(Interface):
         for y, sub_chunk in enumerate(terrain):
             chunk_data[b"\x2F" + bytes([y])] = sub_chunk
 
+        # chunk status
         if self.features["finalised_state"] == 'int0-2':
             chunk_data[b'\x36'] = struct.pack('<i', chunk.status.as_type('b'))
 
-        chunk_data[b'v'] = bytes([self.features["chunk_version"]])
+        # biome and height data
+        if self.features["data_2d"] in ['height512|biome256', 'unused_height512|biome256']:
+            if self.features["data_2d"] == 'height512|biome256':
+                d2d = b'\x00'*512  # TODO: get this data from somewhere
+            else:
+                d2d = b'\x00' * 512
+            d2d += chunk.biomes.convert_to_format(256).astype('uint8').tobytes()
+            chunk_data[b'\x2D'] = d2d
 
         return chunk_data
 
