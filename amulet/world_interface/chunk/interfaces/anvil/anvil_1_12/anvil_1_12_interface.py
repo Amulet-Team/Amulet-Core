@@ -11,7 +11,7 @@ from amulet.world_interface.chunk.interfaces.anvil.base_anvil_interface import (
 )
 
 
-class AnvilInterface(BaseAnvilInterface):
+class Anvil112Interface(BaseAnvilInterface):
     def __init__(self):
         BaseAnvilInterface.__init__(self)
         self.features["data_version"] = "int"
@@ -125,4 +125,4 @@ class AnvilInterface(BaseAnvilInterface):
         return sections
 
 
-INTERFACE_CLASS = AnvilInterface
+INTERFACE_CLASS = Anvil112Interface

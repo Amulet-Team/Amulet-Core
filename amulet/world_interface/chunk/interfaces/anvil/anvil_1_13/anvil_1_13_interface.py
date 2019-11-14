@@ -29,7 +29,7 @@ def properties_to_string(props: dict) -> str:
     return ",".join(result)
 
 
-class Anvil2Interface(BaseAnvilInterface):
+class Anvil113Interface(BaseAnvilInterface):
     def __init__(self):
         BaseAnvilInterface.__init__(self)
         self.features["data_version"] = "int"
@@ -158,4 +158,4 @@ class Anvil2Interface(BaseAnvilInterface):
         return nbt.TAG_List([])
 
 
-INTERFACE_CLASS = Anvil2Interface
+INTERFACE_CLASS = Anvil113Interface
