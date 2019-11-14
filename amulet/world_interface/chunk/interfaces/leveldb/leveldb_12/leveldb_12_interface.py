@@ -8,7 +8,7 @@ class LevelDB12Interface(BaseLevelDBInterface):
         BaseLevelDBInterface.__init__(self)
 
         self.features["chunk_version"] = 12
-        # self.features["finalised_state"] =
+        self.features["finalised_state"] = "int0-2"
         # self.features["data_2d"] =
         self.features["entities"] = "32list"
         self.features["block_entities"] = "31list"

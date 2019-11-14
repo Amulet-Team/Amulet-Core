@@ -35,7 +35,7 @@ class Anvil2Interface(BaseAnvilInterface):
         self.features["data_version"] = "int"
         self.features["last_update"] = "long"
 
-        self.features["status"] = "string_j13"
+        self.features["status"] = "j13"
         self.features["inhabited_time"] = "long"
         self.features["biomes"] = "256IA"
         self.features["height_map"] = "C5|36LA"
