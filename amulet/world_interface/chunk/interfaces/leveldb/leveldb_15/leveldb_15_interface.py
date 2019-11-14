@@ -1,18 +1,13 @@
 from __future__ import annotations
 
-from amulet.world_interface.chunk.interfaces.leveldb.base_leveldb_interface import BaseLevelDBInterface
+from amulet.world_interface.chunk.interfaces.leveldb.leveldb_14.leveldb_14_interface import LevelDB14Interface
 
 
-class LevelDB15Interface(BaseLevelDBInterface):
+class LevelDB15Interface(LevelDB14Interface):
     def __init__(self):
-        BaseLevelDBInterface.__init__(self)
+        LevelDB14Interface.__init__(self)
 
         self.features["chunk_version"] = 15
-        self.features["finalised_state"] = "int0-2"
-        # self.features["data_2d"] =
-        self.features["entities"] = "32list"
-        self.features["block_entities"] = "31list"
-        self.features["terrain"] = "2fnpalette"
 
     @staticmethod
     def is_valid(key):
