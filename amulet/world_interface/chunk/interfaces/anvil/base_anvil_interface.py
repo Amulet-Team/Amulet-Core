@@ -15,7 +15,7 @@ class BaseAnvilInterface(Interface):
         feature_options = {
             "data_version": ["int"],  # int
             "last_update": ["long"],  # int
-            "status": ["string_j13", "string_j14"],
+            "status": ["j13", "j14"],
             "light_populated": ["byte"],  # int
             "terrain_populated": ["byte"],  # int
             "V": ["byte"],  # int
@@ -64,8 +64,8 @@ class BaseAnvilInterface(Interface):
         if self.features["last_update"] == "long":
             misc["last_update"] = data["Level"]["LastUpdate"].value
 
-        if self.features["status"] == "string_j13":
-            misc["status"] = data["Level"]["Status"].value
+        if self.features["status"] in ["j13", "j14"]:
+            chunk.status = data["Level"]["Status"].value
         else:
             status = "empty"
             if (
@@ -79,7 +79,7 @@ class BaseAnvilInterface(Interface):
             ):
                 status = "postprocessed"
 
-            misc["status"] = status
+            chunk.status = status
 
         if self.features["V"] == "byte":
             misc["V"] = data["Level"]["V"].value
@@ -169,58 +169,17 @@ class BaseAnvilInterface(Interface):
         # TODO: improve this functionality. Perhaps map each one to a float value which is the universal format.
         # Order the float value based on the order they would be run. Newer replacements for the same come just after
         # to save back find the next lowest valid value.
-        if self.features["status"] == "string_j13":
-            status = misc.get("status", "postprocessed")
-            if status in (
-                "empty",
-                "base",
-                "carved",
-                "liquid_carved",
-                "decorated",
-                "lighted",
-                "mobs_spawned",
-                "finalized",
-                "fullchunk",
-                "postprocessed",
-            ):
-                data["Level"]["Status"] = nbt.TAG_String(status)
-            else:
-                data["Level"]["Status"] = nbt.TAG_String("postprocessed")
-
-        elif self.features["status"] == "string_j14":
-            status = misc.get("status", "postprocessed")
-            if status in (
-                "empty",
-                "structure_starts",
-                "structure_references",
-                "biomes",
-                "noise",
-                "surface",
-                "carvers",
-                "liquid_carvers",
-                "features",
-                "light",
-                "spawn",
-                "heightmaps",
-                "full"
-            ):
-                data["Level"]["Status"] = nbt.TAG_String(status)
-            else:
-                data["Level"]["Status"] = nbt.TAG_String("postprocessed")
+        if self.features["status"] in ["j13", "j14"]:
+            status = chunk.status.as_type(self.features["status"])
+            data["Level"]["Status"] = nbt.TAG_String(status)
 
         else:
-            status = misc.get("status", "postprocessed")
+            status = chunk.status.as_type('float')
             if self.features["terrain_populated"] == "byte":
-                if status in ("empty", "base", "carved", "liquid_carved"):
-                    data["Level"]["TerrainPopulated"] = nbt.TAG_Byte(0)
-                else:
-                    data["Level"]["TerrainPopulated"] = nbt.TAG_Byte(1)
+                data["Level"]["TerrainPopulated"] = nbt.TAG_Byte(int(status > -0.3))
 
             if self.features["light_populated"] == "byte":
-                if status in ("empty", "base", "carved", "liquid_carved", "decorated"):
-                    data["Level"]["LightPopulated"] = nbt.TAG_Byte(0)
-                else:
-                    data["Level"]["LightPopulated"] = nbt.TAG_Byte(1)
+                data["Level"]["LightPopulated"] = nbt.TAG_Byte(int(status > -0.2))
 
         if self.features["V"] == "byte":
             data["Level"]["V"] = nbt.TAG_Byte(misc.get("V", 1))

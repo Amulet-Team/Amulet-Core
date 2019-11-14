@@ -37,7 +37,7 @@ class BaseLevelDBInterface(Interface):
     def __init__(self):
         feature_options = {
             "chunk_version": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-            "finalised_state": [],
+            "finalised_state": ['int0-2'],
             "data_2d": [],
             "entities": ["32list"],
             "block_entities": ["31list"],
@@ -77,6 +77,13 @@ class BaseLevelDBInterface(Interface):
         else:
             raise Exception
 
+        if self.features["finalised_state"] == 'int0-2':
+            if b'\x36' in data:
+                val = struct.unpack('<i', data[b'\x36'])[0]
+            else:
+                val = 2
+            chunk.status = val
+
         chunk.entities = None
         chunk.block_entities = None
         return chunk, palette
@@ -98,6 +105,9 @@ class BaseLevelDBInterface(Interface):
             raise Exception
         for y, sub_chunk in enumerate(terrain):
             chunk_data[b"\x2F" + bytes([y])] = sub_chunk
+
+        if self.features["finalised_state"] == 'int0-2':
+            chunk_data[b'\x36'] = struct.pack('<i', chunk.status.as_type('b'))
 
         chunk_data[b'v'] = bytes([self.features["chunk_version"]])
 
