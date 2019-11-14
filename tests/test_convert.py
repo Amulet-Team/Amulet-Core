@@ -5,6 +5,7 @@ import shutil
 
 from amulet.world_interface import load_world, load_format
 from amulet.api.block import Block
+from amulet.api.chunk import Chunk
 
 
 if __name__ == "__main__":
@@ -135,6 +136,36 @@ if __name__ == "__main__":
                 world.save(output_wrapper)
                 world.close()
                 output_wrapper.close()
+            else:
+                print("Not enough arguments given. Format must be:")
+                print("convert <origin_world_path> <destination_world_path>")
+
+        elif mode == "create":
+            if len(args) >= 4:
+                world_path = args[1]
+                cx, cz = int(args[2]), int(args[3])
+
+                print(f"Loading world at {world_path}")
+                world = load_world(world_path)
+                if (cx, cz) in world._wrapper.all_chunk_coords():
+                    world._wrapper.delete_chunk(*(cx, cz))
+                world.save()
+
+                chunk = Chunk(cx, cz)
+                bedrock = world.palette.get_add_block(Block(namespace='universal_minecraft', base_name='bedrock'))
+                stone = world.palette.get_add_block(Block(namespace='universal_minecraft', base_name='stone'))
+                dirt = world.palette.get_add_block(Block(namespace='universal_minecraft', base_name='dirt'))
+                grass = world.palette.get_add_block(Block(namespace='universal_minecraft', base_name='grass_block'))
+
+                chunk.blocks[:, 0, :] = bedrock
+                chunk.blocks[:, 1:3, :] = stone
+                chunk.blocks[:, 3:6, :] = dirt
+                chunk.blocks[:, 6, :] = grass
+
+                world.chunk_cache[(cx, cz)] = chunk
+
+                world.save()
+                world.close()
             else:
                 print("Not enough arguments given. Format must be:")
                 print("convert <origin_world_path> <destination_world_path>")
