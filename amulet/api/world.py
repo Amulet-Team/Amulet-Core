@@ -53,6 +53,7 @@ class World:
             # The input wrapper is not the same as the loading wrapper (save-as)
             # iterate through every chunk in the input world and the unsaved modified chunks (taking preference for the latter)
             # and save them to the wrapper
+            wrapper.translation_manager = self._wrapper.translation_manager  # TODO: this might cause issues in the future
             for cx, cz in self._wrapper.all_chunk_coords():
                 print(cx, cz)
                 chunk = self._wrapper.load_chunk(cx, cz, self.palette)
