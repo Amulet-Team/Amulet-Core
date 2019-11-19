@@ -32,6 +32,23 @@ def brute_sort_objects(data) -> Tuple[numpy.ndarray, numpy.ndarray]:
 
     return unique_, numpy.array(inverse)
 
+def brute_sort_objects_no_hash(data) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    unique = []
+    inverse = numpy.zeros(dtype=numpy.uint, shape=len(data))
+    for i, d in enumerate(data):
+        try:
+            index = unique.index(d)
+        except ValueError:
+            index = len(unique)
+            unique.append(d)
+        inverse[i] = index
+
+    unique_ = numpy.empty(len(unique), dtype=object)
+    for index, obj in enumerate(unique):
+        unique_[index] = obj
+
+    return unique_, numpy.array(inverse)
+
 
 class BaseLevelDBInterface(Interface):
     def __init__(self):
@@ -351,11 +368,11 @@ class BaseLevelDBInterface(Interface):
 
                 sub_chunk_bytes = [b'\x08', bytes([sub_chunk_depth])]
                 for sub_chunk_layer_index in range(sub_chunk_depth):
-                    # TODO: sort out a way to remove duplicate NBTFile objects. Currently the features to sort or check for duplicates do not exist
-                    # sub_chunk_layer_palette, sub_chunk_remap = numpy.unique(sub_chunk_palette_full[:, sub_chunk_layer], return_inverse=True)
-                    # sub_chunk_layer = sub_chunk_remap[sub_chunk]
+                    # TODO: sort out a way to do this quicker without brute forcing it.
+                    sub_chunk_layer_palette, sub_chunk_remap = brute_sort_objects_no_hash(sub_chunk_palette_full[:, sub_chunk_layer_index])
+                    sub_chunk_layer = sub_chunk_remap[sub_chunk]
 
-                    sub_chunk_layer, sub_chunk_layer_palette = sub_chunk, sub_chunk_palette_full[:, sub_chunk_layer_index]
+                    # sub_chunk_layer, sub_chunk_layer_palette = sub_chunk, sub_chunk_palette_full[:, sub_chunk_layer_index]
                     sub_chunk_bytes.append(self._save_palette_subchunk(sub_chunk_layer.reshape(16, 16, 16), list(sub_chunk_layer_palette.ravel())))
 
                 chunk.append(b''.join(sub_chunk_bytes))
