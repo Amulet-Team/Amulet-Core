@@ -35,7 +35,7 @@ class Anvil112Interface(BaseAnvilInterface):
     def is_valid(key):
         if key[0] != "anvil":
             return False
-        if key[1] > 1343:
+        if not 922 < key[1] <= 1343:
             return False
         return True
 
