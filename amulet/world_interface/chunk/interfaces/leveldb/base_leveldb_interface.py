@@ -341,8 +341,8 @@ class BaseLevelDBInterface(Interface):
                 chunk.append(None)
             else:
                 # pad palette with air in the extra layers
-                sub_chunk_palette_full = numpy.full((sub_chunk_palette.size, sub_chunk_depth), air, dtype=object)
-                # sub_chunk_palette_full[:, :] = air
+                sub_chunk_palette_full = numpy.empty((sub_chunk_palette.size, sub_chunk_depth), dtype=object)
+                sub_chunk_palette_full.fill(air)
 
                 for index, block_tuple in enumerate(sub_chunk_palette):
                     for sub_index, block in enumerate(block_tuple):
