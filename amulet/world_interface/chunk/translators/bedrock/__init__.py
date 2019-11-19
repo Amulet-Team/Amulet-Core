@@ -79,6 +79,7 @@ class BaseBedrockTranslator(Translator):
 
         version = translation_manager.get_version(*self._translator_key(game_version))
         palette = self._unpack_palette(version, palette)
+        chunk.biomes = self._biomes_to_universal(version, chunk.biomes)
         return self._translate(
             chunk, palette, callback, translate, full_translate
         )

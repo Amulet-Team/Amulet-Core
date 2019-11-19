@@ -172,6 +172,7 @@ class Translator:
             return final_block, final_block_entity, final_entities, final_extra
 
         palette = self._unpack_palette(version, palette)
+        chunk.biomes = self._biomes_to_universal(version, chunk.biomes)
         return self._translate(
             chunk, palette, callback, translate, full_translate
         )
@@ -241,7 +242,18 @@ class Translator:
             chunk, palette, callback, translate, full_translate
         )
         palette = self._pack_palette(version, palette)
+        chunk.biomes = self._biomes_from_universal(version, chunk.biomes)
         return chunk, palette
+
+    def _biomes_to_universal(self, translator_version: Version, biome_array):
+        biome_palette, biome_compact_array = numpy.unique(biome_array, return_inverse=True)
+        universal_biome_palette = numpy.array([translator_version.biomes.to_universal(biome) for biome in biome_palette])
+        return universal_biome_palette[biome_compact_array]
+
+    def _biomes_from_universal(self, translator_version: Version, biome_array):
+        biome_palette, biome_compact_array = numpy.unique(biome_array, return_inverse=True)
+        universal_biome_palette = numpy.array([translator_version.biomes.from_universal(biome) for biome in biome_palette])
+        return universal_biome_palette[biome_compact_array]
 
     def _unpack_palette(
         self, version: Version, palette: numpy.ndarray
