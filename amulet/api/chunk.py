@@ -33,7 +33,7 @@ class Chunk:
         self.misc = {}  # all entries that are not important enough to get an attribute
 
     def __repr__(self):
-        return f"Chunk({self.cx}, {self.cx}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._block_entities)})"
+        return f"Chunk({self.cx}, {self.cz}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._block_entities)})"
 
     def __getitem__(self, item):
         if (
