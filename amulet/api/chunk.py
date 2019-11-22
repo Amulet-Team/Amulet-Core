@@ -3,11 +3,13 @@ from __future__ import annotations
 import copy
 from os.path import join
 import pickle
-from typing import Tuple, Union, Dict, Any
+from typing import Tuple, Union, Iterable
 
 import numpy
 
-from .chunk_data import Biomes, Blocks, Status
+from .chunk_data import Biomes, Blocks, Status, BlockEntityList, EntityList
+from amulet.api.entity import Entity
+from amulet.api.block_entity import BlockEntity
 
 PointCoordinates = Tuple[int, int, int]
 SliceCoordinates = Tuple[slice, slice, slice]
@@ -25,11 +27,10 @@ class Chunk:
 
         self._blocks = None
         self._biomes = Biomes(self, numpy.zeros((16, 16), dtype=numpy.uint32))
-        self._entities = None
-        self._block_entities = None
+        self._entities = EntityList(self)
+        self._block_entities = BlockEntityList(self)
         self._status = Status(self)
         self.misc = {}  # all entries that are not important enough to get an attribute
-        self.extra = {}  # temp store for Java NBTFile. Remove this when unpacked to misc
 
     def __repr__(self):
         return f"Chunk({self.cx}, {self.cx}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._block_entities)})"
@@ -110,7 +111,7 @@ class Chunk:
             self._biomes = Biomes(self, value)
 
     @property
-    def entities(self) -> list:
+    def entities(self) -> EntityList:
         """
         Property that returns a copy of the chunk's entity list. Setting this property replaces the chunk's entity list
 
@@ -118,16 +119,16 @@ class Chunk:
         :type value: list
         :return: A list of all the entities contained in the chunk
         """
-        return copy.deepcopy(self._entities)
+        return self._entities
 
     @entities.setter
-    def entities(self, value):
+    def entities(self, value: Iterable[Entity]):
         if self._entities != value:
             self.changed = True
-            self._entities = value
+            self._entities = EntityList(self, value)
 
     @property
-    def block_entities(self) -> list:
+    def block_entities(self) -> BlockEntityList:
         """
         Property that returns a copy of the chunk's block entity list. Setting this property replaces the chunk's block entity list
 
@@ -135,13 +136,13 @@ class Chunk:
         :type value: list
         :return: A list of all the block entities contained in the chunk
         """
-        return copy.deepcopy(self._block_entities)
+        return self._block_entities
 
     @block_entities.setter
-    def block_entities(self, value):
+    def block_entities(self, value: Iterable[BlockEntity]):
         if self._block_entities != value:
             self.changed = True
-            self._block_entities = value
+            self._block_entities = BlockEntityList(self, value)
 
     @property
     def status(self) -> Status:
