@@ -150,6 +150,106 @@ class WorldTestBaseCases:
                     f"Failed at coordinate ({x},{y},{z})",
                 )
 
+        def test_replace_single_block(self):
+            subbox1 = SubBox((1, 70, 3), (5, 71, 5))
+            box1 = SelectionBox((subbox1,))
+
+            self.assertEqual(
+                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+            )
+            self.assertEqual(
+                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+            )
+
+            self.world.run_operation_from_operation_name(
+                "replace",
+                box1,
+                [Block("minecraft:granite")],
+                [Block("minecraft:stone")],
+            )
+
+            self.assertEqual(
+                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+            )
+            self.assertEqual(
+                "minecraft:stone", self.world.get_block(1, 70, 5).blockstate
+            )
+
+            self.world.undo()
+
+            self.assertEqual(
+                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+            )
+            self.assertEqual(
+                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+            )
+
+            self.world.redo()
+
+            self.assertEqual(
+                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+            )
+            self.assertEqual(
+                "minecraft:stone", self.world.get_block(1, 70, 5).blockstate
+            )
+
+        def test_replace_multiblock(self):
+            subbox1 = SubBox((1, 70, 3), (1, 75, 3))
+            box1 = SelectionBox((subbox1,))
+
+            self.assertEqual(
+                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+            )
+            for i in range(1, 5):
+                self.assertEqual(
+                    "minecraft:air",
+                    self.world.get_block(1, 70 + i, 3).blockstate,
+                    f"Failed at coordinate (1,i,3)",
+                )
+
+            self.world.run_operation_from_operation_name(
+                "replace",
+                box1,
+                [Block("minecraft:stone"), Block("minecraft:air")],
+                [Block("minecraft:granite"), Block("minecraft:stone")],
+            )
+
+            self.assertEqual(
+                "minecraft:granite", self.world.get_block(1, 70, 3).blockstate
+            )
+
+            for i in range(1, 5):
+                self.assertEqual(
+                    "minecraft:stone",
+                    self.world.get_block(1, 70 + i, 3).blockstate,
+                    f"Failed at coordinate (1,i,3)",
+                )
+
+            self.world.undo()
+
+            self.assertEqual(
+                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+            )
+            for i in range(1, 5):
+                self.assertEqual(
+                    "minecraft:air",
+                    self.world.get_block(1, 70 + i, 3).blockstate,
+                    f"Failed at coordinate (1,i,3)",
+                )
+
+            self.world.redo()
+
+            self.assertEqual(
+                "minecraft:granite", self.world.get_block(1, 70, 3).blockstate
+            )
+
+            for i in range(1, 5):
+                self.assertEqual(
+                    "minecraft:stone",
+                    self.world.get_block(1, 70 + i, 3).blockstate,
+                    f"Failed at coordinate (1,i,3)",
+                )
+
         def test_delete_chunk(self):
             subbox1 = SubBox((1, 1, 1), (5, 5, 5))
             box1 = SelectionBox((subbox1,))

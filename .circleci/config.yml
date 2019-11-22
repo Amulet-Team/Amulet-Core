@@ -3,8 +3,15 @@
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 #
 version: 2
-jobs:
+workflows:
+  version: 2
   build:
+    jobs:
+      - unittests
+      - stylecheck
+
+jobs:
+  unittests:
     docker:
       - image: circleci/python:3.7.0
 
@@ -37,6 +44,38 @@ jobs:
           command: |
             . venv/bin/activate
             python -m unittest discover -v -s tests
+
+      - store_artifacts:
+          path: test-reports
+          destination: test-reports
+
+  stylecheck:
+    docker:
+      - image: circleci/python:3.7.0
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "requirements-dev.txt" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+
+      - run:
+          name: install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements-dev.txt
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements-dev.txt" }}
 
       - run:
           name: run stylecheck
