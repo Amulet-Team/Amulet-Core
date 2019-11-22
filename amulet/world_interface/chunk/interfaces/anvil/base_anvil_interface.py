@@ -141,7 +141,6 @@ class BaseAnvilInterface(Interface):
             misc["structures"] = data["Level"]["Structures"]
 
         chunk.misc = misc
-        chunk.extra = data
 
         return chunk, palette
 
