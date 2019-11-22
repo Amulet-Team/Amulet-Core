@@ -155,30 +155,30 @@ class WorldTestBaseCases:
             box1 = SelectionBox((subbox1,))
 
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+                "universal_minecraft:granite", self.world.get_block(1, 70, 5).blockstate
             )
 
             self.world.run_operation_from_operation_name(
                 "replace",
                 box1,
-                [Block("minecraft:granite")],
-                [Block("minecraft:stone")],
+                [Block("universal_minecraft:granite")],
+                [Block("universal_minecraft:stone")],
             )
 
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 5).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 5).blockstate
             )
 
             self.world.undo()
 
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
                 "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
@@ -187,10 +187,10 @@ class WorldTestBaseCases:
             self.world.redo()
 
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 5).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 5).blockstate
             )
 
         def test_replace_multiblock(self):
@@ -198,7 +198,7 @@ class WorldTestBaseCases:
             box1 = SelectionBox((subbox1,))
 
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             for i in range(1, 5):
                 self.assertEqual(
@@ -210,17 +210,20 @@ class WorldTestBaseCases:
             self.world.run_operation_from_operation_name(
                 "replace",
                 box1,
-                [Block("minecraft:stone"), Block("minecraft:air")],
-                [Block("minecraft:granite"), Block("minecraft:stone")],
+                [Block("universal_minecraft:stone"), Block("universal_minecraft:air")],
+                [
+                    Block("universal_minecraft:granite"),
+                    Block("universal_minecraft:stone"),
+                ],
             )
 
             self.assertEqual(
-                "minecraft:granite", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:granite", self.world.get_block(1, 70, 3).blockstate
             )
 
             for i in range(1, 5):
                 self.assertEqual(
-                    "minecraft:stone",
+                    "universal_minecraft:stone",
                     self.world.get_block(1, 70 + i, 3).blockstate,
                     f"Failed at coordinate (1,i,3)",
                 )
@@ -228,11 +231,11 @@ class WorldTestBaseCases:
             self.world.undo()
 
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             for i in range(1, 5):
                 self.assertEqual(
-                    "minecraft:air",
+                    "universal_minecraft:air",
                     self.world.get_block(1, 70 + i, 3).blockstate,
                     f"Failed at coordinate (1,i,3)",
                 )
@@ -240,12 +243,12 @@ class WorldTestBaseCases:
             self.world.redo()
 
             self.assertEqual(
-                "minecraft:granite", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:granite", self.world.get_block(1, 70, 3).blockstate
             )
 
             for i in range(1, 5):
                 self.assertEqual(
-                    "minecraft:stone",
+                    "universal_minecraft:stone",
                     self.world.get_block(1, 70 + i, 3).blockstate,
                     f"Failed at coordinate (1,i,3)",
                 )

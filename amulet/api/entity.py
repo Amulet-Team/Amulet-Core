@@ -2,10 +2,18 @@ import amulet_nbt
 
 
 class Entity:
-    def __init__(self, namespace: str, base_name: str, x: float, y: float, z: float, nbt: amulet_nbt.NBTFile):
+    def __init__(
+        self,
+        namespace: str,
+        base_name: str,
+        x: float,
+        y: float,
+        z: float,
+        nbt: amulet_nbt.NBTFile,
+    ):
         self._namespace = namespace
         self._base_name = base_name
-        self._namespaced_name = ('' if namespace == '' else f'{namespace}:') + base_name
+        self._namespaced_name = ("" if namespace == "" else f"{namespace}:") + base_name
         self._x = x
         self._y = y
         self._z = z

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from amulet.world_interface.chunk.interfaces.leveldb.base_leveldb_interface import BaseLevelDBInterface
+from amulet.world_interface.chunk.interfaces.leveldb.base_leveldb_interface import (
+    BaseLevelDBInterface
+)
 
 
 class LevelDB10Interface(BaseLevelDBInterface):

@@ -1,6 +1,7 @@
 from .chunk_array import ChunkArray
 import numpy
 
+
 class Biomes(ChunkArray):
     def __new__(cls, parent_chunk, input_array):
         obj = numpy.asarray(input_array, dtype=numpy.uint32).view(cls)

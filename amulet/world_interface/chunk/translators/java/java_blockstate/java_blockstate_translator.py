@@ -7,7 +7,7 @@ from PyMCTranslate.py3.translation_manager import Version
 from amulet.world_interface.chunk.translators import Translator
 from amulet.api.block import Block
 
-water = Block(blockstate='minecraft:water[level=0]')
+water = Block(blockstate="minecraft:water[level=0]")
 
 
 class JavaBlockstateTranslator(Translator):
@@ -36,18 +36,18 @@ class JavaBlockstateTranslator(Translator):
             block: Block
             if version.is_waterloggable(block.namespaced_name):
                 properties = block.properties
-                if 'waterlogged' in properties:
-                    waterlogged = properties['waterlogged']
-                    del properties['waterlogged']
+                if "waterlogged" in properties:
+                    waterlogged = properties["waterlogged"]
+                    del properties["waterlogged"]
                     block = Block(
                         namespace=block.namespace,
                         base_name=block.base_name,
-                        properties=properties
+                        properties=properties,
                     )
                 else:
-                    waterlogged = 'false'
+                    waterlogged = "false"
 
-                if waterlogged == 'true':
+                if waterlogged == "true":
                     palette[index] = block + water
                 else:
                     palette[index] = block
@@ -63,14 +63,17 @@ class JavaBlockstateTranslator(Translator):
             if version.is_waterloggable(block.namespaced_name):
                 properties = block.properties
                 extra_blocks = block.extra_blocks
-                if extra_blocks and extra_blocks[0].namespaced_name == water.namespaced_name:
-                    properties['waterlogged'] = 'true'
+                if (
+                    extra_blocks
+                    and extra_blocks[0].namespaced_name == water.namespaced_name
+                ):
+                    properties["waterlogged"] = "true"
                 else:
-                    properties['waterlogged'] = 'false'
+                    properties["waterlogged"] = "false"
                 palette[index] = Block(
                     namespace=block.namespace,
                     base_name=block.base_name,
-                    properties=properties
+                    properties=properties,
                 )
         return palette
 

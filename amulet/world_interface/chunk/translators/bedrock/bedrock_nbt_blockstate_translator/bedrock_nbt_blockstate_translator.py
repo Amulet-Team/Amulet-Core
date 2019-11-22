@@ -40,11 +40,15 @@ class BedrockNBTBlockstateTranslator(BaseBedrockTranslator):
                 Union[
                     Tuple[None, Tuple[int, int]],
                     Tuple[None, Block],
-                    Tuple[Tuple[int, int, int, int], Block]
-                ], ...
+                    Tuple[Tuple[int, int, int, int], Block],
+                ],
+                ...,
             ]
             palette_[palette_index] = tuple(
-                (block[0], version.ints_to_block(*block[1])) if isinstance(block[1], tuple) else block for block in entry
+                (block[0], version.ints_to_block(*block[1]))
+                if isinstance(block[1], tuple)
+                else block
+                for block in entry
             )
         return palette_
 
@@ -65,7 +69,9 @@ class BedrockNBTBlockstateTranslator(BaseBedrockTranslator):
         for palette_index, block in enumerate(palette):
             block: Block
             # TODO: perhaps check that all properties are NBT objects user interaction if not
-            palette_[palette_index] = ((version_number, block.base_block),) + tuple((version_number, extra_block) for extra_block in block.extra_blocks)
+            palette_[palette_index] = ((version_number, block.base_block),) + tuple(
+                (version_number, extra_block) for extra_block in block.extra_blocks
+            )
 
         return palette_
 

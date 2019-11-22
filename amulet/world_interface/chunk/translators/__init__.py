@@ -57,11 +57,10 @@ class Translator:
             [
                 Union[Block, Entity, Any],
                 Callable[
-                    [Tuple[int, int, int]],
-                    Tuple[Block, Union[None, BlockEntity]]
-                ]
+                    [Tuple[int, int, int]], Tuple[Block, Union[None, BlockEntity]]
+                ],
             ],
-            Tuple[Block, BlockEntity, List[Entity], bool]
+            Tuple[Block, BlockEntity, List[Entity], bool],
         ],
         full_translate: bool,
     ):
@@ -74,9 +73,13 @@ class Translator:
 
         for i, input_block in enumerate(palette):
             input_block: Block
-            output_block, output_block_entity, output_entities, extra = translate(input_block)
+            output_block, output_block_entity, output_entities, extra = translate(
+                input_block
+            )
             if output_block_entity:
-                print(f"Warning: not sure what to do with entity for {input_block} yet.")
+                print(
+                    f"Warning: not sure what to do with entity for {input_block} yet."
+                )
             # TODO: sort out entities
             if extra and get_chunk_callback:
                 todo.append(i)
@@ -87,7 +90,9 @@ class Translator:
         for index in todo:
             for x, y, z in zip(*numpy.where(chunk.blocks == index)):
 
-                def get_block_at(pos: Tuple[int, int, int]) -> Tuple[Block, Union[None, BlockEntity]]:
+                def get_block_at(
+                    pos: Tuple[int, int, int]
+                ) -> Tuple[Block, Union[None, BlockEntity]]:
                     nonlocal x, y, z, palette, chunk
                     dx, dy, dz = pos
                     dx += x
@@ -101,9 +106,13 @@ class Translator:
                     return local_palette[local_chunk.blocks[dx % 16, dy, dz % 16]], None
 
                 input_block = palette[chunk.blocks[x, y, z]]
-                output_block, output_block_entity, output_entities, extra = translate(input_block, get_block_at)
+                output_block, output_block_entity, output_entities, extra = translate(
+                    input_block, get_block_at
+                )
                 if output_block_entity:
-                    print(f"Warning: not sure what to do with entity for {input_block} yet.")
+                    print(
+                        f"Warning: not sure what to do with entity for {input_block} yet."
+                    )
                 # TODO: sort out entities
                 block_mappings[(x, y, z)] = finished.get_add_block(output_block)
 
@@ -137,8 +146,10 @@ class Translator:
         translator = version.get().to_universal
 
         def translate(
-                input_object: Union[Block, Entity],
-                get_block_callback: Callable[[Tuple[int, int, int]], Tuple[Block, Union[None, BlockEntity]]] = None
+            input_object: Union[Block, Entity],
+            get_block_callback: Callable[
+                [Tuple[int, int, int]], Tuple[Block, Union[None, BlockEntity]]
+            ] = None,
         ) -> Tuple[Block, BlockEntity, List[Entity], bool]:
             final_block = None
             final_block_entity = None
@@ -146,12 +157,20 @@ class Translator:
             final_extra = False
 
             if isinstance(input_object, Block):
-                for depth, block in enumerate((input_object.base_block, ) + input_object.extra_blocks):
-                    output_object, output_block_entity, extra = translator(block, get_block_callback)
+                for depth, block in enumerate(
+                    (input_object.base_block,) + input_object.extra_blocks
+                ):
+                    output_object, output_block_entity, extra = translator(
+                        block, get_block_callback
+                    )
 
                     if isinstance(output_object, Block):
-                        if __debug__ and not output_object.namespace.startswith('universal'):
-                            print(f'Error translating {input_object.blockstate} to universal. Got {output_object.blockstate}')
+                        if __debug__ and not output_object.namespace.startswith(
+                            "universal"
+                        ):
+                            print(
+                                f"Error translating {input_object.blockstate} to universal. Got {output_object.blockstate}"
+                            )
                         if final_block is None:
                             final_block = output_object
                         else:
@@ -173,9 +192,7 @@ class Translator:
 
         palette = self._unpack_palette(version, palette)
         chunk.biomes = self._biomes_to_universal(version, chunk.biomes)
-        return self._translate(
-            chunk, palette, callback, translate, full_translate
-        )
+        return self._translate(chunk, palette, callback, translate, full_translate)
 
     def from_universal(
         self,
@@ -204,8 +221,10 @@ class Translator:
 
         # TODO: perhaps find a way so this code isn't duplicated in three places
         def translate(
-                input_object: Union[Block, Entity],
-                get_block_callback: Callable[[Tuple[int, int, int]], Tuple[Block, Union[None, BlockEntity]]] = None
+            input_object: Union[Block, Entity],
+            get_block_callback: Callable[
+                [Tuple[int, int, int]], Tuple[Block, Union[None, BlockEntity]]
+            ] = None,
         ) -> Tuple[Block, BlockEntity, List[Entity], bool]:
             final_block = None
             final_block_entity = None
@@ -213,12 +232,20 @@ class Translator:
             final_extra = False
 
             if isinstance(input_object, Block):
-                for depth, block in enumerate((input_object.base_block, ) + input_object.extra_blocks):
-                    output_object, output_block_entity, extra = translator(block, get_block_callback)
+                for depth, block in enumerate(
+                    (input_object.base_block,) + input_object.extra_blocks
+                ):
+                    output_object, output_block_entity, extra = translator(
+                        block, get_block_callback
+                    )
 
                     if isinstance(output_object, Block):
-                        if __debug__ and output_object.namespace.startswith('universal'):
-                            print(f'Error translating {input_object.blockstate} from universal. Got {output_object.blockstate}')
+                        if __debug__ and output_object.namespace.startswith(
+                            "universal"
+                        ):
+                            print(
+                                f"Error translating {input_object.blockstate} from universal. Got {output_object.blockstate}"
+                            )
                         if final_block is None:
                             final_block = output_object
                         else:
@@ -246,13 +273,21 @@ class Translator:
         return chunk, palette
 
     def _biomes_to_universal(self, translator_version: Version, biome_array):
-        biome_palette, biome_compact_array = numpy.unique(biome_array, return_inverse=True)
-        universal_biome_palette = numpy.array([translator_version.biomes.to_universal(biome) for biome in biome_palette])
+        biome_palette, biome_compact_array = numpy.unique(
+            biome_array, return_inverse=True
+        )
+        universal_biome_palette = numpy.array(
+            [translator_version.biomes.to_universal(biome) for biome in biome_palette]
+        )
         return universal_biome_palette[biome_compact_array]
 
     def _biomes_from_universal(self, translator_version: Version, biome_array):
-        biome_palette, biome_compact_array = numpy.unique(biome_array, return_inverse=True)
-        universal_biome_palette = numpy.array([translator_version.biomes.from_universal(biome) for biome in biome_palette])
+        biome_palette, biome_compact_array = numpy.unique(
+            biome_array, return_inverse=True
+        )
+        universal_biome_palette = numpy.array(
+            [translator_version.biomes.from_universal(biome) for biome in biome_palette]
+        )
         return universal_biome_palette[biome_compact_array]
 
     def _unpack_palette(

@@ -15,7 +15,9 @@ SUPPORTED_FORMAT_VERSION = 0
 SUPPORTED_META_VERSION = 0
 
 FORMATS_DIRECTORY = os.path.dirname(__file__)
-missing_world_icon = os.path.abspath(os.path.join(FORMATS_DIRECTORY, '..', '..', 'img', 'missing_world_icon.png'))
+missing_world_icon = os.path.abspath(
+    os.path.join(FORMATS_DIRECTORY, "..", "..", "img", "missing_world_icon.png")
+)
 
 loader = Loader(
     "format",
@@ -53,7 +55,7 @@ class Format:
 
     @property
     def world_name(self):
-        return 'Unknown World'
+        return "Unknown World"
 
     @world_name.setter
     def world_name(self, value: str):
@@ -84,11 +86,18 @@ class Format:
     def all_chunk_coords(self, dimension: int = 0) -> Generator[Tuple[int, int]]:
         raise NotImplementedError
 
-    def load_chunk(self, cx: int, cz: int, global_palette: BlockManager, dimension: int = 0) -> Chunk:
+    def load_chunk(
+        self, cx: int, cz: int, global_palette: BlockManager, dimension: int = 0
+    ) -> Chunk:
         return self._load_chunk(cx, cz, dimension, global_palette)
 
     def _load_chunk(
-        self, cx: int, cz: int, dimension: int, global_palette: BlockManager, recurse: bool = True
+        self,
+        cx: int,
+        cz: int,
+        dimension: int,
+        global_palette: BlockManager,
+        recurse: bool = True,
     ) -> Chunk:
         """
         Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
@@ -145,7 +154,11 @@ class Format:
         self._save_chunk(chunk, dimension, global_palette)
 
     def _save_chunk(
-        self, chunk: Chunk, dimension: int, global_palette: BlockManager, recurse: bool = True
+        self,
+        chunk: Chunk,
+        dimension: int,
+        global_palette: BlockManager,
+        recurse: bool = True,
     ):
         """
         Saves a universal amulet.api.chunk.Chunk object

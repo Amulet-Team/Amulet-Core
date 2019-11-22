@@ -126,7 +126,9 @@ def encode_long_array(array: numpy.ndarray) -> numpy.ndarray:
     array = array.astype(">q")
     bits_per_entry = max(int(array.max()).bit_length(), 2)
     return numpy.packbits(
-        numpy.unpackbits(numpy.ascontiguousarray(array[::-1]).view("uint8")).reshape(-1, 64)[:, -bits_per_entry:]
+        numpy.unpackbits(numpy.ascontiguousarray(array[::-1]).view("uint8")).reshape(
+            -1, 64
+        )[:, -bits_per_entry:]
     ).view(dtype=">q")[::-1]
 
 

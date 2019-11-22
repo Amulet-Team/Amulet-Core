@@ -33,10 +33,7 @@ class BedrockNumericalTranslator(BaseBedrockTranslator):
         """
         palette_ = numpy.empty(len(palette), dtype=object)
         for palette_index, entry in enumerate(palette):
-            entry: Tuple[
-                Tuple[None, Tuple[int, int]],
-                ...
-            ]
+            entry: Tuple[Tuple[None, Tuple[int, int]], ...]
             palette_[palette_index] = tuple(
                 (block[0], version.ints_to_block(*block[1])) for block in entry
             )
@@ -54,10 +51,7 @@ class BedrockNumericalTranslator(BaseBedrockTranslator):
             entry: Block
             block_tuple = version.block_to_ints(entry)
             if block_tuple is None:
-                block_tuple = (
-                    0,
-                    0,
-                )  # TODO: find some way for the user to specify this
+                block_tuple = (0, 0)  # TODO: find some way for the user to specify this
             palette_[palette_index] = ((None, block_tuple),)
 
         return palette_

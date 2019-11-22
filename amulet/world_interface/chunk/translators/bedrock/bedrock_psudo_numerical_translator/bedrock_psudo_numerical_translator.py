@@ -35,14 +35,12 @@ class BedrockPsudoNumericalTranslator(BaseBedrockTranslator):
         """
         palette_ = numpy.empty(len(palette), dtype=object)
         for palette_index, entry in enumerate(palette):
-            entry: Tuple[
-                Union[
-                    Tuple[None, Tuple[int, int]],
-                    Tuple[None, Block]
-                ], ...
-            ]
+            entry: Tuple[Union[Tuple[None, Tuple[int, int]], Tuple[None, Block]], ...]
             palette_[palette_index] = tuple(
-                (block[0], version.ints_to_block(*block[1])) if isinstance(block[1], tuple) else block for block in entry
+                (block[0], version.ints_to_block(*block[1]))
+                if isinstance(block[1], tuple)
+                else block
+                for block in entry
             )
         return palette_
 
@@ -57,7 +55,9 @@ class BedrockPsudoNumericalTranslator(BaseBedrockTranslator):
         for palette_index, block in enumerate(palette):
             block: Block
             # TODO: perhaps check that property 'block_data' exists and str.isnumeric user interaction if not
-            palette_[palette_index] = ((None, block.base_block),) + tuple((None, extra_block) for extra_block in block.extra_blocks)
+            palette_[palette_index] = ((None, block.base_block),) + tuple(
+                (None, extra_block) for extra_block in block.extra_blocks
+            )
 
         return palette_
 

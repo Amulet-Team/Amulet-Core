@@ -261,17 +261,17 @@ class AnvilFormat(Format):
     def __init__(self, directory: str):
         super().__init__(directory)
         self.root_tag = nbt.load(filename=os.path.join(self._directory, "level.dat"))
-        if os.path.isfile(os.path.join(self._directory, 'icon.png')):
-            self._world_image_path = os.path.join(self._directory, 'icon.png')
+        if os.path.isfile(os.path.join(self._directory, "icon.png")):
+            self._world_image_path = os.path.join(self._directory, "icon.png")
         self._levels = None
 
     @property
     def world_name(self):
-        return self.root_tag['Data']['LevelName'].value
+        return self.root_tag["Data"]["LevelName"].value
 
     @world_name.setter
     def world_name(self, value: str):
-        self.root_tag['Data']['LevelName'] = nbt.TAG_String(value)
+        self.root_tag["Data"]["LevelName"] = nbt.TAG_String(value)
 
     def _load_world(self):
         if self._levels is None:

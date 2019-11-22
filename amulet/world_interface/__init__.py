@@ -31,9 +31,13 @@ def load_format(
     """
     if not os.path.isdir(directory):
         if os.path.exists(directory):
-            raise Exception(f'The path "{directory}" does exist but it is not a directory')
+            raise Exception(
+                f'The path "{directory}" does exist but it is not a directory'
+            )
         else:
-            raise Exception(f'The path "{directory}" is not a valid path on this file system.')
+            raise Exception(
+                f'The path "{directory}" is not a valid path on this file system.'
+            )
     if _format is not None:
         if _format not in formats.loader.get_all():
             raise FormatLoaderInvalidFormat(f"Could not find _format loader {_format}")

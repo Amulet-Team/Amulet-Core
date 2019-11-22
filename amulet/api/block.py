@@ -92,7 +92,7 @@ class Block:
         if namespace is None or base_name is None:
             self._namespaced_name = None
         else:
-            self._namespaced_name = f'{namespace}:{base_name}'
+            self._namespaced_name = f"{namespace}:{base_name}"
 
         if namespace is not None and base_name is not None and properties is None:
             properties = {}
@@ -175,7 +175,7 @@ class Block:
             return Block(
                 namespace=self.namespace,
                 base_name=self.base_name,
-                properties=self.properties
+                properties=self.properties,
             )
 
     @property
@@ -381,10 +381,7 @@ class Block:
         :return: A new instance of Block with the same data but with the extra block at specified layer removed
         :raises `InvalidBlockException`: Raised when you remove the base block from a Block with no other extra blocks
         """
-        if (
-            layer == 0
-            and len(self.extra_blocks) > 0
-        ):
+        if layer == 0 and len(self.extra_blocks) > 0:
             new_base = self._extra_blocks[0]
             return Block(
                 namespace=new_base.namespace,

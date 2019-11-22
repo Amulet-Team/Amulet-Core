@@ -11,7 +11,9 @@ from amulet.world_interface.formats import Format
 from amulet.world_interface.chunk import interfaces
 from amulet.libs.leveldb import LevelDB
 from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist
-from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import game_to_chunk_version
+from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
+    game_to_chunk_version
+)
 
 
 class LevelDBLevelManager:
@@ -52,9 +54,9 @@ class LevelDBLevelManager:
 
     def _add_chunk(self, key_: bytes, has_level: bool = False):
         if has_level:
-            cx_, cz_, level_ = struct.unpack('<iii', key_[:12])
+            cx_, cz_, level_ = struct.unpack("<iii", key_[:12])
         else:
-            cx_, cz_ = struct.unpack('<ii', key_[:8])
+            cx_, cz_ = struct.unpack("<ii", key_[:8])
             level_ = 0
         self._levels.setdefault(level_, set()).add((cx_, cz_))
 
@@ -63,8 +65,8 @@ class LevelDBLevelManager:
         chunk key extension are the character(s) after <cx><cz>[level] in the key
         Will raise ChunkDoesNotExist if the chunk does not exist
         """
-        iter_start = struct.pack('<ii', cx, cz)
-        iter_end = struct.pack('<ii', cx, cz+1)
+        iter_start = struct.pack("<ii", cx, cz)
+        iter_end = struct.pack("<ii", cx, cz + 1)
         if level in self._levels and (cx, cz) in self._levels[level]:
             chunk_data = {}
             for key, val in self._db.iterate(iter_start, iter_end):
@@ -74,7 +76,10 @@ class LevelDBLevelManager:
                     else:
                         continue
                 else:
-                    if 13 <= len(key) <= 14 and struct.unpack('<i', key[8:12])[0] == level:
+                    if (
+                        13 <= len(key) <= 14
+                        and struct.unpack("<i", key[8:12])[0] == level
+                    ):
                         key_extension = key[12:]
                     else:
                         continue
@@ -83,16 +88,18 @@ class LevelDBLevelManager:
         else:
             raise ChunkDoesNotExist
 
-    def put_chunk_data(self, cx: int, cz: int, data: Dict[bytes, bytes], level: int = 0):
+    def put_chunk_data(
+        self, cx: int, cz: int, data: Dict[bytes, bytes], level: int = 0
+    ):
         """pass data to the region file class"""
         # get the region key
         self._levels.setdefault(level, set()).add((cx, cz))
         if level == 0:
-            key_prefix = struct.pack('<ii', cx, cz)
+            key_prefix = struct.pack("<ii", cx, cz)
         else:
-            key_prefix = struct.pack('<iii', cx, cz, level)
+            key_prefix = struct.pack("<iii", cx, cz, level)
         for key, val in data.items():
-            self._batch_temp[key_prefix+key] = val
+            self._batch_temp[key_prefix + key] = val
 
     def delete_chunk(self, cx: int, cz: int, level: int = 0):
         if level in self._levels and (cx, cz) in self._levels[level]:
@@ -100,9 +107,9 @@ class LevelDBLevelManager:
             self._levels[level].remove((cx, cz))
             for key in chunk_data.keys():
                 if level:
-                    key_prefix = struct.pack('<iii', cx, cz, level)
+                    key_prefix = struct.pack("<iii", cx, cz, level)
                 else:
-                    key_prefix = struct.pack('<ii', cx, cz)
+                    key_prefix = struct.pack("<ii", cx, cz)
                 self._batch_temp[key_prefix + key] = None
 
 
@@ -110,9 +117,11 @@ class LevelDBFormat(Format):
     def __init__(self, directory: str):
         super().__init__(directory)
         with open(os.path.join(self._directory, "level.dat"), "rb") as f:
-            self.root_tag = nbt.load(buffer=f.read()[8:], compressed=False, little_endian=True)
-        if os.path.isfile(os.path.join(self._directory, 'world_icon.jpeg')):
-            self._world_image_path = os.path.join(self._directory, 'world_icon.jpeg')
+            self.root_tag = nbt.load(
+                buffer=f.read()[8:], compressed=False, little_endian=True
+            )
+        if os.path.isfile(os.path.join(self._directory, "world_icon.jpeg")):
+            self._world_image_path = os.path.join(self._directory, "world_icon.jpeg")
         self._level_manager = None
 
     @staticmethod
@@ -125,11 +134,11 @@ class LevelDBFormat(Format):
 
     @property
     def world_name(self):
-        return self.root_tag['LevelName'].value
+        return self.root_tag["LevelName"].value
 
     @world_name.setter
     def world_name(self, value: str):
-        self.root_tag['LevelName'] = nbt.TAG_String(value)
+        self.root_tag["LevelName"] = nbt.TAG_String(value)
 
     def _load_world(self):
         if self._level_manager is None:
@@ -151,7 +160,10 @@ class LevelDBFormat(Format):
         return interfaces.loader.get(key)
 
     def _get_interface_key(self, raw_chunk_data: Dict[bytes, bytes]) -> Tuple[str, int]:
-        return "leveldb", raw_chunk_data.get(b'v', '\x00')[0]  # TODO: work out a valid default
+        return (
+            "leveldb",
+            raw_chunk_data.get(b"v", "\x00")[0],
+        )  # TODO: work out a valid default
 
     def save(self):
         self._load_world()
@@ -170,14 +182,18 @@ class LevelDBFormat(Format):
         self._load_world()
         self._level_manager.delete_chunk(cx, cz, dimension)
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: int = 0):
+    def _put_raw_chunk_data(
+        self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: int = 0
+    ):
         """
         Actually stores the data from the interface to disk.
         """
         self._load_world()
         return self._level_manager.put_chunk_data(cx, cz, data, dimension)
 
-    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: int = 0) -> Dict[bytes, bytes]:
+    def _get_raw_chunk_data(
+        self, cx: int, cz: int, dimension: int = 0
+    ) -> Dict[bytes, bytes]:
         """
         Return the interface key and data to interface with given chunk coordinates.
 

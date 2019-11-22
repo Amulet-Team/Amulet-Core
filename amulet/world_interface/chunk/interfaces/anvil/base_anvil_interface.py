@@ -44,13 +44,18 @@ class BaseAnvilInterface(Interface):
         data: nbt.NBTFile = None,
     ) -> Tuple[translators.Translator, int]:
         if data:
-            key, version = ("anvil", data["DataVersion"].value), data["DataVersion"].value
+            key, version = (
+                ("anvil", data["DataVersion"].value),
+                data["DataVersion"].value,
+            )
         else:
             key = max_world_version
             version = max_world_version[1]
         return translators.loader.get(key), version
 
-    def decode(self, cx: int, cz: int, data: nbt.NBTFile) -> Tuple[Chunk, numpy.ndarray]:
+    def decode(
+        self, cx: int, cz: int, data: nbt.NBTFile
+    ) -> Tuple[Chunk, numpy.ndarray]:
         """
         Create an amulet.api.chunk.Chunk object from raw data given by the format.
         :param cx: chunk x coordinate
@@ -174,7 +179,7 @@ class BaseAnvilInterface(Interface):
             data["Level"]["Status"] = nbt.TAG_String(status)
 
         else:
-            status = chunk.status.as_type('float')
+            status = chunk.status.as_type("float")
             if self.features["terrain_populated"] == "byte":
                 data["Level"]["TerrainPopulated"] = nbt.TAG_Byte(int(status > -0.3))
 
@@ -274,9 +279,7 @@ class BaseAnvilInterface(Interface):
                 data["Level"]["TileTicks"] = ticks
 
         if self.features["liquid_ticks"] == "list":
-            data["Level"]["LiquidTicks"] = misc.get(
-                "liquid_ticks", nbt.TAG_List()
-            )
+            data["Level"]["LiquidTicks"] = misc.get("liquid_ticks", nbt.TAG_List())
 
         if self.features["liquids_to_be_ticked"] == "16list|list":
             data["Level"]["LiquidsToBeTicked"] = misc.get(

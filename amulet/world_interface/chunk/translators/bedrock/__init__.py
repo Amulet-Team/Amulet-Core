@@ -33,8 +33,12 @@ class BaseBedrockTranslator(Translator):
         versions = {}
 
         def translate(
-            input_object: Union[Tuple[Tuple[Union[Tuple[int, int, int], None], Block], ...], Entity],
-            get_block_callback: Callable[[Tuple[int, int, int]], Tuple[Block, Union[None, BlockEntity]]] = None
+            input_object: Union[
+                Tuple[Tuple[Union[Tuple[int, int, int], None], Block], ...], Entity
+            ],
+            get_block_callback: Callable[
+                [Tuple[int, int, int]], Tuple[Block, Union[None, BlockEntity]]
+            ] = None,
         ) -> Tuple[Block, BlockEntity, List[Entity], bool]:
             final_block = None
             final_block_entity = None
@@ -55,19 +59,29 @@ class BaseBedrockTranslator(Translator):
                         else:
                             game_version_ = game_version
                     version_key = self._translator_key(game_version_)
-                    translator = versions.setdefault(version_key, translation_manager.get_version(*version_key).get().to_universal)
-                    output_object, output_block_entity, extra = translator(block, get_block_callback)
+                    translator = versions.setdefault(
+                        version_key,
+                        translation_manager.get_version(*version_key)
+                        .get()
+                        .to_universal,
+                    )
+                    output_object, output_block_entity, extra = translator(
+                        block, get_block_callback
+                    )
 
                     if isinstance(output_object, Block):
-                        if __debug__ and not output_object.namespace.startswith('universal'):
-                            print(f'Error translating {block.blockstate} to universal. Got {output_object.blockstate}')
+                        if __debug__ and not output_object.namespace.startswith(
+                            "universal"
+                        ):
+                            print(
+                                f"Error translating {block.blockstate} to universal. Got {output_object.blockstate}"
+                            )
                         if final_block is None:
                             final_block = output_object
                         else:
                             final_block += output_object
                         if depth == 0:
                             final_block_entity = output_block_entity
-
 
                     elif isinstance(output_object, Entity):
                         final_entities.append(output_object)
@@ -80,6 +94,4 @@ class BaseBedrockTranslator(Translator):
         version = translation_manager.get_version(*self._translator_key(game_version))
         palette = self._unpack_palette(version, palette)
         chunk.biomes = self._biomes_to_universal(version, chunk.biomes)
-        return self._translate(
-            chunk, palette, callback, translate, full_translate
-        )
+        return self._translate(chunk, palette, callback, translate, full_translate)
