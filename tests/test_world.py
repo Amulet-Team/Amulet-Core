@@ -4,11 +4,10 @@ import json
 import numpy
 
 from amulet.api.block import Block
-from amulet.api.errors import ChunkDoesntExistException
+from amulet.api.errors import ChunkDoesNotExist
 from amulet.api.selection import SubBox, SelectionBox
 from amulet.api.chunk import SubChunk
-from amulet.api import world_loader
-from amulet.formats.anvil2.anvil2_world import _decode_long_array, _encode_long_array
+from amulet.world_interface import load_world
 from test_utils import get_world_path, get_data_path, timeout
 
 
@@ -17,21 +16,25 @@ class WorldTestBaseCases:
 
     class WorldTestCase(unittest.TestCase):
         def _setUp(self, world_name):
-            self.world = world_loader.load_world(get_world_path(world_name))
+            self.world = load_world(get_world_path(world_name))
 
         def tearDown(self):
-            self.world.exit()
+            self.world.close()
 
         def test_get_block(self):
-            self.assertEqual("minecraft:air", self.world.get_block(0, 0, 0).blockstate)
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:air", self.world.get_block(0, 0, 0).blockstate
             )
             self.assertEqual(
-                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "minecraft:polished_granite", self.world.get_block(1, 70, 7).blockstate
+                "universal_minecraft:granite[polished=false]",
+                self.world.get_block(1, 70, 5).blockstate,
+            )
+            self.assertEqual(
+                "universal_minecraft:granite[polished=true]",
+                self.world.get_block(1, 70, 7).blockstate,
             )
 
             with self.assertRaises(IndexError):
@@ -62,131 +65,134 @@ class WorldTestBaseCases:
                 next(self.world.get_sub_chunks(0, 0, 0))
 
         def test_clone_operation(self):
-            with timeout(self, 0.25, show_completion_time=True):
-                subbx1 = SubBox((1, 70, 3), (1, 70, 4))
-                src_box = SelectionBox((subbx1,))
+            subbx1 = SubBox((1, 70, 3), (1, 70, 4))
+            src_box = SelectionBox((subbx1,))
 
-                subbx2 = SubBox((1, 70, 5), (1, 70, 6))
-                target_box = SelectionBox((subbx2,))
+            subbx2 = SubBox((1, 70, 5), (1, 70, 6))
+            target_box = SelectionBox((subbx2,))
 
-                self.assertEqual(
-                    "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
-                )  # Sanity check
-                self.assertEqual(
-                    "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
-                )
+            self.assertEqual(
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+            )  # Sanity check
+            self.assertEqual(
+                "universal_minecraft:granite[polished=false]",
+                self.world.get_block(1, 70, 5).blockstate,
+            )
 
-                self.world.run_operation_from_operation_name(
-                    "clone", src_box, target_box
-                )
+            self.world.run_operation_from_operation_name("clone", src_box, target_box)
 
-                self.assertEqual(
-                    "minecraft:stone", self.world.get_block(1, 70, 5).blockstate
-                )
+            self.assertEqual(
+                "universal_minecraft:stone", self.world.get_block(1, 70, 5).blockstate
+            )
 
-                self.world.undo()
+            self.world.undo()
 
-                self.assertEqual(
-                    "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
-                )
+            self.assertEqual(
+                "universal_minecraft:granite[polished=false]",
+                self.world.get_block(1, 70, 5).blockstate,
+            )
 
-                self.world.redo()
+            self.world.redo()
 
-                self.assertEqual(
-                    "minecraft:stone", self.world.get_block(1, 70, 5).blockstate
-                )
+            self.assertEqual(
+                "universal_minecraft:stone", self.world.get_block(1, 70, 5).blockstate
+            )
 
-                self.world.undo()
+            self.world.undo()
 
-                self.assertEqual(
-                    "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
-                )
+            self.assertEqual(
+                "universal_minecraft:granite[polished=false]",
+                self.world.get_block(1, 70, 5).blockstate,
+            )
 
         def test_fill_operation(self):
-            with timeout(self, 0.25, show_completion_time=True):
-                subbox_1 = SubBox((1, 70, 3), (5, 71, 5))
-                box = SelectionBox((subbox_1,))
+            subbox_1 = SubBox((1, 70, 3), (5, 71, 5))
+            box = SelectionBox((subbox_1,))
 
-                # Start sanity check
+            # Start sanity check
+            self.assertEqual(
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+            )
+            self.assertEqual(
+                "universal_minecraft:granite[polished=false]",
+                self.world.get_block(1, 70, 5).blockstate,
+            )
+            # End sanity check
+
+            self.world.run_operation_from_operation_name(
+                "fill", box, Block("universal_minecraft:stone")
+            )
+
+            for x, y, z in box:
                 self.assertEqual(
-                    "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                    "universal_minecraft:stone",
+                    self.world.get_block(x, y, z).blockstate,
+                    f"Failed at coordinate ({x},{y},{z})",
                 )
+
+            self.world.undo()
+
+            self.assertEqual(
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+            )
+
+            self.assertEqual(
+                "universal_minecraft:granite[polished=false]",
+                self.world.get_block(1, 70, 5).blockstate,
+            )
+
+            self.world.redo()
+
+            for x, y, z in box:
                 self.assertEqual(
-                    "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+                    "universal_minecraft:stone",
+                    self.world.get_block(x, y, z).blockstate,
+                    f"Failed at coordinate ({x},{y},{z})",
                 )
-                # End sanity check
-
-                self.world.run_operation_from_operation_name(
-                    "fill", box, Block("minecraft:stone")
-                )
-
-                for x, y, z in box:
-                    self.assertEqual(
-                        "minecraft:stone",
-                        self.world.get_block(x, y, z).blockstate,
-                        f"Failed at coordinate ({x},{y},{z})",
-                    )
-
-                self.world.undo()
-
-                self.assertEqual(
-                    "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
-                )
-
-                self.assertEqual(
-                    "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
-                )
-
-                self.world.redo()
-
-                for x, y, z in box:
-                    self.assertEqual(
-                        "minecraft:stone",
-                        self.world.get_block(x, y, z).blockstate,
-                        f"Failed at coordinate ({x},{y},{z})",
-                    )
 
         def test_replace_single_block(self):
             subbox1 = SubBox((1, 70, 3), (5, 71, 5))
             box1 = SelectionBox((subbox1,))
 
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+                "universal_minecraft:granite[polished=false]",
+                self.world.get_block(1, 70, 5).blockstate,
             )
 
             self.world.run_operation_from_operation_name(
                 "replace",
                 box1,
-                [Block("minecraft:granite")],
-                [Block("minecraft:stone")],
+                [Block("universal_minecraft:granite[polished=false]")],
+                [Block("universal_minecraft:stone")],
             )
 
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 5).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 5).blockstate
             )
 
             self.world.undo()
 
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+                "universal_minecraft:granite[polished=false]",
+                self.world.get_block(1, 70, 5).blockstate,
             )
 
             self.world.redo()
 
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 5).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 5).blockstate
             )
 
         def test_replace_multiblock(self):
@@ -194,11 +200,11 @@ class WorldTestBaseCases:
             box1 = SelectionBox((subbox1,))
 
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             for i in range(1, 5):
                 self.assertEqual(
-                    "minecraft:air",
+                    "universal_minecraft:air",
                     self.world.get_block(1, 70 + i, 3).blockstate,
                     f"Failed at coordinate (1,i,3)",
                 )
@@ -206,17 +212,21 @@ class WorldTestBaseCases:
             self.world.run_operation_from_operation_name(
                 "replace",
                 box1,
-                [Block("minecraft:stone"), Block("minecraft:air")],
-                [Block("minecraft:granite"), Block("minecraft:stone")],
+                [Block("universal_minecraft:stone"), Block("universal_minecraft:air")],
+                [
+                    Block("universal_minecraft:granite[polished=false]"),
+                    Block("universal_minecraft:stone"),
+                ],
             )
 
             self.assertEqual(
-                "minecraft:granite", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:granite[polished=false]",
+                self.world.get_block(1, 70, 3).blockstate,
             )
 
             for i in range(1, 5):
                 self.assertEqual(
-                    "minecraft:stone",
+                    "universal_minecraft:stone",
                     self.world.get_block(1, 70 + i, 3).blockstate,
                     f"Failed at coordinate (1,i,3)",
                 )
@@ -224,11 +234,11 @@ class WorldTestBaseCases:
             self.world.undo()
 
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             for i in range(1, 5):
                 self.assertEqual(
-                    "minecraft:air",
+                    "universal_minecraft:air",
                     self.world.get_block(1, 70 + i, 3).blockstate,
                     f"Failed at coordinate (1,i,3)",
                 )
@@ -236,12 +246,13 @@ class WorldTestBaseCases:
             self.world.redo()
 
             self.assertEqual(
-                "minecraft:granite", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:granite[polished=false]",
+                self.world.get_block(1, 70, 3).blockstate,
             )
 
             for i in range(1, 5):
                 self.assertEqual(
-                    "minecraft:stone",
+                    "universal_minecraft:stone",
                     self.world.get_block(1, 70 + i, 3).blockstate,
                     f"Failed at coordinate (1,i,3)",
                 )
@@ -251,15 +262,16 @@ class WorldTestBaseCases:
             box1 = SelectionBox((subbox1,))
 
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+                "universal_minecraft:granite[polished=false]",
+                self.world.get_block(1, 70, 5).blockstate,
             )
 
             self.world.run_operation_from_operation_name("delete_chunk", box1)
 
-            with self.assertRaises(ChunkDoesntExistException):
+            with self.assertRaises(ChunkDoesNotExist):
                 _ = self.world.get_block(1, 70, 3).blockstate
 
             self.assertEqual(
@@ -269,15 +281,16 @@ class WorldTestBaseCases:
             self.world.undo()
 
             self.assertEqual(
-                "minecraft:stone", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+                "universal_minecraft:granite[polished=false]",
+                self.world.get_block(1, 70, 5).blockstate,
             )
 
             self.world.redo()
 
-            with self.assertRaises(ChunkDoesntExistException):
+            with self.assertRaises(ChunkDoesNotExist):
                 _ = self.world.get_block(1, 70, 3).blockstate
 
             self.assertEqual(
@@ -290,7 +303,7 @@ class WorldTestBaseCases:
             box1 = SelectionBox((SubBox((0, 0, 0), (17, 20, 17)),))
 
             test_entity = {
-                "id": "minecraft:cow",
+                "id": "universal_minecraft:cow",
                 "CustomName": "TestName",
                 "Pos": [1.0, 4.0, 1.0],
             }
@@ -332,8 +345,8 @@ class Anvil2WorldTestCase(WorldTestBaseCases.WorldTestCase):
     def setUp(self):
         self._setUp("1.13 World")
 
+    @unittest.skip
     def test_longarray(self):
-
         with open(get_data_path("longarraytest.json")) as json_data:
             test_data = json.load(json_data)
 

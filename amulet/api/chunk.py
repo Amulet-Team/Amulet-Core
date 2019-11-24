@@ -3,9 +3,11 @@ from __future__ import annotations
 import copy
 from os.path import join
 import pickle
-from typing import Tuple, Union
+from typing import Tuple, Union, Dict, Any
 
 import numpy
+
+from .chunk_data import Biomes, Blocks, Status
 
 PointCoordinates = Tuple[int, int, int]
 SliceCoordinates = Tuple[slice, slice, slice]
@@ -16,17 +18,23 @@ class Chunk:
     Class to represent a chunk that exists in an Minecraft world
     """
 
-    def __init__(self, cx: int, cz: int, blocks=None, entities=None, tileentities=None):
+    def __init__(self, cx: int, cz: int):
         self.cx, self.cz = cx, cz
-        self._blocks: numpy.ndarray = blocks
-        self._entities = entities
-        self._tileentities = tileentities
-
         self._changed = False
         self._marked_for_deletion = False
 
+        self._blocks = None
+        self._biomes = Biomes(self, numpy.zeros((16, 16), dtype=numpy.uint32))
+        self._entities = None
+        self._block_entities = None
+        self._status = Status(self)
+        self.misc = {}  # all entries that are not important enough to get an attribute
+        self.extra = (
+            {}
+        )  # temp store for Java NBTFile. Remove this when unpacked to misc
+
     def __repr__(self):
-        return f"Chunk({self.cx}, {self.cx}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._tileentities)})"
+        return f"Chunk({self.cx}, {self.cx}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._block_entities)})"
 
     def __getitem__(self, item):
         if (
@@ -54,6 +62,10 @@ class Chunk:
         """
         return self._changed
 
+    @changed.setter
+    def changed(self, value: bool):
+        self._changed = value
+
     @property
     def marked_for_deletion(self) -> bool:
         """
@@ -62,22 +74,42 @@ class Chunk:
         return self._marked_for_deletion
 
     @property
-    def blocks(self) -> numpy.ndarray:
-        """
-        Property that returns a read-only copy of the chunk's block array. Setting this property replaces the entire chunk's block array
-
-        :param value: The new block array
-        :type value: numpy.ndarray
-        :return: A 3d numpy array of the internal Block IDs for the chunk
-        """
-        self._blocks.setflags(write=False)
+    def blocks(self) -> Blocks:
+        if self._blocks is None:
+            self._blocks = Blocks(self)
         return self._blocks
 
     @blocks.setter
     def blocks(self, value: numpy.ndarray):
-        if not (self._blocks == value).all():
-            self._changed = True
-        self._blocks = value
+        if not numpy.array_equal(self._blocks, value):
+            assert value.shape == (
+                16,
+                256,
+                16,
+            ), "Shape of the Block array must be (16, 256, 16)"
+            assert numpy.issubdtype(
+                value.dtype, numpy.integer
+            ), "dtype must be an unsigned integer"
+            self.changed = True
+            self._blocks = Blocks(self, value)
+
+    @property
+    def biomes(self) -> Biomes:
+        return self._biomes
+
+    @biomes.setter
+    def biomes(self, value: numpy.ndarray):
+        if not numpy.array_equal(self._biomes, value):
+            assert value.size in [
+                0,
+                256,
+                1024,
+            ], "Size of the Biome array must be 256 or 1024"
+            numpy.issubdtype(
+                value.dtype, numpy.integer
+            ), "dtype must be an unsigned integer"
+            self.changed = True
+            self._biomes = Biomes(self, value)
 
     @property
     def entities(self) -> list:
@@ -93,25 +125,33 @@ class Chunk:
     @entities.setter
     def entities(self, value):
         if self._entities != value:
-            self._changed = True
+            self.changed = True
             self._entities = value
 
     @property
-    def tileentities(self) -> list:
+    def block_entities(self) -> list:
         """
-        Property that returns a copy of the chunk's tile entity list. Setting this property replaces the chunk's tile entity list
+        Property that returns a copy of the chunk's block entity list. Setting this property replaces the chunk's block entity list
 
-        :param value: The new tile entity list
+        :param value: The new block entity list
         :type value: list
-        :return: A list of all the tile entities contained in the chunk
+        :return: A list of all the block entities contained in the chunk
         """
-        return copy.deepcopy(self._tileentities)
+        return copy.deepcopy(self._block_entities)
 
-    @tileentities.setter
-    def tileentities(self, value):
-        if self._tileentities != value:
-            self._changed = True
-            self._tileentities = value
+    @block_entities.setter
+    def block_entities(self, value):
+        if self._block_entities != value:
+            self.changed = True
+            self._block_entities = value
+
+    @property
+    def status(self) -> Status:
+        return self._status
+
+    @status.setter
+    def status(self, value: Union[float, int, str]):
+        self._status.set_value(value)
 
     def serialize_chunk(self, change_path) -> str:
         """
@@ -147,7 +187,7 @@ class Chunk:
         Marks the given chunk for deletion
         """
         self._marked_for_deletion = True
-        self._changed = True
+        self.changed = True
 
 
 class SubChunk:

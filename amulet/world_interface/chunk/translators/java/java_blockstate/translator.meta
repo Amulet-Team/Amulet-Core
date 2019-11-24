@@ -1,0 +1,10 @@
+{
+"meta_version": 0,
+"translator": {
+    "id": "java_blockstate",
+    "name": "Java Blockstate Translator",
+    "entry_point": "java_blockstate_translator",
+    "translator_version": 0,
+    "wrapper_version": -1
+   }
+}

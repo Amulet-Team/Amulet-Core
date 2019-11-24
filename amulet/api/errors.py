@@ -2,6 +2,10 @@ class FormatError(Exception):
     pass
 
 
+class LoaderNoneMatched(FormatError):
+    pass
+
+
 class FormatLoaderInvalidFormat(FormatError):
     pass
 
@@ -10,21 +14,13 @@ class FormatLoaderMismatched(FormatError):
     pass
 
 
-class FormatLoaderNoneMatched(FormatError):
-    pass
-
-
 class InvalidBlockException(Exception):
     pass
 
 
-class ChunkDoesntExistException(Exception):  # Possibly change the name in the future
+class LevelDoesNotExist(Exception):
     pass
 
 
-class VersionLoaderInvalidFormat(Exception):
-    pass
-
-
-class VersionLoaderMismatched(Exception):
+class ChunkDoesNotExist(Exception):
     pass

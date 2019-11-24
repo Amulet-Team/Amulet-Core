@@ -8,7 +8,9 @@ packs = find_packages(
 
 with open("./requirements.txt") as requirements_fp:
     required_packages = [
-        line for line in requirements_fp.readlines() if not line.startswith("git+")
+        line
+        for line in requirements_fp.readlines()
+        if not line.startswith("git+") and not line.startswith("https:")
     ]
 
 setup(

@@ -1,9 +1,0 @@
-{
-  "<metadata>": {
-    "extends": "entity"
-  },
-  "Type": {
-    "tag_type": "string",
-    "default": "oak"
-  }
-}

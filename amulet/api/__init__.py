@@ -1,2 +1,1 @@
-from .world import WorldFormat
-from . import world_loader
+import amulet.world_interface as world_interface

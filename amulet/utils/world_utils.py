@@ -5,6 +5,7 @@ import sys
 import gzip
 from io import StringIO
 from typing import Tuple
+import numpy
 from numpy import ndarray, zeros, uint8
 
 Coordinates = Tuple[int, int]
@@ -93,6 +94,42 @@ def from_nibble_array(arr: ndarray) -> ndarray:
     new_arr[:, :, 1::2] >>= 4
 
     return new_arr
+
+
+def decode_long_array(long_array: numpy.ndarray, size: int) -> numpy.ndarray:
+    """
+    Decode an long array (from BlockStates or Heightmaps)
+    :param long_array: Encoded long array
+    :size uint: The expected size of the returned array
+    :return: Decoded array as numpy array
+    """
+    long_array = long_array.astype(">q")
+    bits_per_entry = (len(long_array) * 64) // size
+
+    return numpy.packbits(
+        numpy.pad(
+            numpy.unpackbits(long_array[::-1].astype(">i8").view("uint8")).reshape(
+                -1, bits_per_entry
+            ),
+            [(0, 0), (64 - bits_per_entry, 0)],
+            "constant",
+        )
+    ).view(dtype=">q")[::-1]
+
+
+def encode_long_array(array: numpy.ndarray) -> numpy.ndarray:
+    """
+    Encode an long array (from BlockStates or Heightmaps)
+    :param array: A numpy array of the data to be encoded.
+    :return: Encoded array as numpy array
+    """
+    array = array.astype(">q")
+    bits_per_entry = max(int(array.max()).bit_length(), 2)
+    return numpy.packbits(
+        numpy.unpackbits(numpy.ascontiguousarray(array[::-1]).view("uint8")).reshape(
+            -1, 64
+        )[:, -bits_per_entry:]
+    ).view(dtype=">q")[::-1]
 
 
 def get_size(obj, seen=None):

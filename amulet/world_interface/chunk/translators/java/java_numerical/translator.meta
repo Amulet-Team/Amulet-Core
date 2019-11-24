@@ -1,0 +1,10 @@
+{
+"meta_version": 0,
+"translator": {
+    "id": "java_numerical",
+    "name": "Java Numerical Translator",
+    "entry_point": "java_numerical_translator",
+    "translator_version": 0,
+    "wrapper_version": -1
+   }
+}

@@ -23,11 +23,9 @@ class Replace(Operation):
             raise Exception
 
     def run_operation(self, world):
-        original_internal_ids = map(
-            world.block_manager.get_add_block, self.original_blocks
-        )
+        original_internal_ids = map(world.palette.get_add_block, self.original_blocks)
         replacement_internal_ids = map(
-            world.block_manager.get_add_block, self.replacement_blocks
+            world.palette.get_add_block, self.replacement_blocks
         )
 
         for subbox in self.selection_box.subboxes():

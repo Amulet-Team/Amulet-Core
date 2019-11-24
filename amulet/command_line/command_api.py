@@ -317,5 +317,5 @@ class WorldMode(Mode):
         if __debug__:
             print("Exiting world mode")
 
-        self._world.exit()
+        self._world.close()
         return True

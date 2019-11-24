@@ -1,0 +1,10 @@
+{
+"meta_version": 0,
+"translator": {
+    "id": "bedrock_numerical",
+    "name": "Bedrock Numerical Translator",
+    "entry_point": "bedrock_numerical_translator",
+    "translator_version": 0,
+    "wrapper_version": -1
+   }
+}

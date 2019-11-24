@@ -1,9 +1,0 @@
-{
-  "<metadata>": {
-    "extends": "mob"
-  },
-  "SpellTicks": {
-    "tag_type": "int",
-    "default": 0
-  }
-}

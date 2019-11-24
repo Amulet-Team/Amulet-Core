@@ -1,0 +1,10 @@
+{
+"meta_version": 0,
+"format": {
+    "id": "leveldb",
+    "name": "Leveldb Format",
+    "entry_point": "leveldb_format",
+    "format_version": 0,
+    "wrapper_version": -1
+   }
+}

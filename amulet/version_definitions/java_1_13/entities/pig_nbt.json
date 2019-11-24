@@ -1,9 +1,0 @@
-{
-  "<metadata>": {
-    "extends": "breed"
-  },
-  "Saddle": {
-    "tag_type": "byte",
-    "default": 0
-  }
-}

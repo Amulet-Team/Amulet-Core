@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from os.path import exists, join
+import os
 
-from nbt import nbt
+import amulet_nbt as nbt
 
 
 def check_all_exist(in_dir: str, *args: str) -> bool:
@@ -15,7 +15,7 @@ def check_all_exist(in_dir: str, *args: str) -> bool:
     """
 
     for child in args:
-        if not exists(join(in_dir, child)):
+        if not os.path.exists(os.path.join(in_dir, child)):
             print(f"Didn't find {child}")
             return False
         else:
@@ -34,14 +34,14 @@ def check_one_exists(in_dir: str, *args: str) -> bool:
     """
 
     for child in args:
-        if exists(join(in_dir, child)):
+        if os.path.exists(os.path.join(in_dir, child)):
             print(f"Found {child}")
             return True
 
     return False
 
 
-def load_leveldat(in_dir: str) -> nbt.TAG_Compound:
+def load_leveldat(in_dir: str) -> nbt.NBTFile:
     """
     Load the root tag of the level.dat file in the directory
 
@@ -49,15 +49,12 @@ def load_leveldat(in_dir: str) -> nbt.TAG_Compound:
     :return: The NBT root tag
     """
 
-    fp = open(join(in_dir, "level.dat"), "rb")
-    root_tag = nbt.NBTFile(fileobj=fp)
-    fp.close()
-
+    root_tag = nbt.load(filename=os.path.join(in_dir, "level.dat"))
     return root_tag
 
 
 def check_version_leveldat(
-    root_tag: nbt.TAG_Compound, _min: int = None, _max: int = None
+    root_tag: nbt.NBTFile, _min: int = None, _max: int = None
 ) -> bool:
     """
     Check the Version tag from the provided level.dat NBT structure

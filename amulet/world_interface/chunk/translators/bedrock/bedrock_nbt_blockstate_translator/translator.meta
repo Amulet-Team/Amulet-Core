@@ -1,0 +1,10 @@
+{
+"meta_version": 0,
+"translator": {
+    "id": "bedrock_nbt_blockstate",
+    "name": "Bedrock NBT Blockstate Translator",
+    "entry_point": "bedrock_nbt_blockstate_translator",
+    "translator_version": 0,
+    "wrapper_version": -1
+   }
+}

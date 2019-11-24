@@ -1,9 +1,0 @@
-{
-  "<metadata>": {
-    "extends": "minecart"
-  },
-  "TNTFuse": {
-    "tag_type": "int",
-    "default": -1
-  }
-}
