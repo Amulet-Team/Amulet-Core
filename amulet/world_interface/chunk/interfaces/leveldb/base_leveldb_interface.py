@@ -12,8 +12,7 @@ from amulet.utils.world_utils import get_smallest_dtype
 from amulet.world_interface.chunk.interfaces import Interface
 from amulet.world_interface.chunk import translators
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
-    chunk_to_game_version,
-    game_to_chunk_version,
+    chunk_to_game_version, game_to_chunk_version
 )
 
 
@@ -55,6 +54,7 @@ def brute_sort_objects_no_hash(data) -> Tuple[numpy.ndarray, numpy.ndarray]:
 
 
 class BaseLevelDBInterface(Interface):
+
     def __init__(self):
         feature_options = {
             "chunk_version": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
@@ -108,8 +108,7 @@ class BaseLevelDBInterface(Interface):
             chunk.status = val
 
         if self.features["data_2d"] in [
-            "height512|biome256",
-            "unused_height512|biome256",
+            "height512|biome256", "unused_height512|biome256"
         ]:
             d2d = data.get(b"\x2D", b"\x00" * 768)
             height, biome = d2d[:512], d2d[512:]
@@ -155,6 +154,7 @@ class BaseLevelDBInterface(Interface):
             terrain = self._save_subchunks_8(chunk.blocks, palette)
         else:
             raise Exception
+
         for y, sub_chunk in enumerate(terrain):
             chunk_data[b"\x2F" + bytes([y])] = sub_chunk
 
@@ -164,8 +164,7 @@ class BaseLevelDBInterface(Interface):
 
         # biome and height data
         if self.features["data_2d"] in [
-            "height512|biome256",
-            "unused_height512|biome256",
+            "height512|biome256", "unused_height512|biome256"
         ]:
             if self.features["data_2d"] == "height512|biome256":
                 d2d = b"\x00" * 512  # TODO: get this data from somewhere
@@ -223,8 +222,10 @@ class BaseLevelDBInterface(Interface):
         for y, data in enumerate(subchunks):
             if data is None:
                 continue
+
             if data[0] in [0, 2, 3, 4, 5, 6, 7]:
                 raise NotImplementedError
+
             elif data[0] in [1, 8]:
                 if data[0] == 1:
                     storage_count = 1
@@ -241,7 +242,9 @@ class BaseLevelDBInterface(Interface):
                 for storage_index in range(storage_count):
                     sub_chunk_blocks[
                         :, :, :, storage_index
-                    ], palette_data, data = self._load_palette_blocks(data)
+                    ], palette_data, data = self._load_palette_blocks(
+                        data
+                    )
                     palette_data_out: List[
                         Tuple[Union[None, Tuple[int, int, int, int]], Block]
                     ] = []
@@ -274,9 +277,7 @@ class BaseLevelDBInterface(Interface):
 
                 y *= 16
                 if storage_count == 1:
-                    blocks[:, y : y + 16, :] = sub_chunk_blocks[:, :, :, 0] + len(
-                        palette
-                    )
+                    blocks[:, y:y + 16, :] = sub_chunk_blocks[:, :, :, 0] + len(palette)
                     palette += [(val,) for val in sub_chunk_palette[0]]
                 elif storage_count > 1:
                     # we have two or more storages so need to find the unique block combinations and merge them together
@@ -285,9 +286,9 @@ class BaseLevelDBInterface(Interface):
                         return_inverse=True,
                         axis=0,
                     )
-                    blocks[:, y : y + 16, :] = sub_chunk_blocks.reshape(
-                        16, 16, 16
-                    ) + len(palette)
+                    blocks[:, y:y + 16, :] = sub_chunk_blocks.reshape(16, 16, 16) + len(
+                        palette
+                    )
                     palette += [
                         tuple(
                             sub_chunk_palette[storage_index][index]
@@ -304,12 +305,13 @@ class BaseLevelDBInterface(Interface):
                     ]
                 else:
                     raise Exception("Is a chunk with no storages allowed?")
-                # palette should now look like this
-                # List[
-                #   Tuple[
-                #       Tuple[version, Block]
-                #   ]
-                # ]
+
+        # palette should now look like this
+        # List[
+        #   Tuple[
+        #       Tuple[version, Block]
+        #   ]
+        # ]
 
         numpy_palette, inverse = brute_sort_objects(palette)
         blocks = inverse[blocks]
@@ -345,7 +347,7 @@ class BaseLevelDBInterface(Interface):
         chunk = []
         for y in range(0, 256, 16):
             palette_index, sub_chunk = numpy.unique(
-                blocks[:, y : y + 16, :], return_inverse=True
+                blocks[:, y:y + 16, :], return_inverse=True
             )
             sub_chunk_palette = list(palette[palette_index])
             chunk.append(
@@ -430,7 +432,7 @@ class BaseLevelDBInterface(Interface):
         chunk = []
         for y in range(0, 256, 16):
             palette_index, sub_chunk = numpy.unique(
-                blocks[:, y : y + 16, :], return_inverse=True
+                blocks[:, y:y + 16, :], return_inverse=True
             )
             sub_chunk_palette = palette[palette_index]
             sub_chunk_depth = palette_depth[palette_index].max()
@@ -474,6 +476,7 @@ class BaseLevelDBInterface(Interface):
         return chunk
 
     # These arent actual blocks, just ids pointing to the palette.
+
     def _load_palette_blocks(
         self, data
     ) -> Tuple[numpy.ndarray, List[amulet_nbt.NBTFile], bytes]:
@@ -488,18 +491,28 @@ class BaseLevelDBInterface(Interface):
             numpy.pad(
                 numpy.unpackbits(
                     numpy.frombuffer(
-                        bytes(reversed(data[: 4 * word_count])), dtype="uint8"
+                        bytes(reversed(data[:4 * word_count])), dtype="uint8"
                     )
-                )
-                .reshape(-1, 32)[:, -blocks_per_word * bits_per_block :]
-                .reshape(-1, bits_per_block)[-4096:, :],
+                ).reshape(
+                    -1, 32
+                )[
+                    :, -blocks_per_word * bits_per_block:
+                ].reshape(
+                    -1, bits_per_block
+                )[
+                    -4096:, :
+                ],
                 [(0, 0), (16 - bits_per_block, 0)],
                 "constant",
             )
-        ).view(dtype=">i2")[::-1]
+        ).view(
+            dtype=">i2"
+        )[
+            ::-1
+        ]
         blocks = blocks.reshape((16, 16, 16)).swapaxes(1, 2)
 
-        data = data[4 * word_count :]
+        data = data[4 * word_count:]
 
         palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
         palette, offset = amulet_nbt.load(
@@ -540,16 +553,22 @@ class BaseLevelDBInterface(Interface):
                                 numpy.ascontiguousarray(blocks[::-1], dtype=">i").view(
                                     dtype="uint8"
                                 )
-                            ).reshape(4096, -1)[:, -bits_per_block:],
+                            ).reshape(
+                                4096, -1
+                            )[
+                                :, -bits_per_block:
+                            ],
                             [(word_count * blocks_per_word - 4096, 0), (0, 0)],
                             "constant",
-                        ).reshape(-1, blocks_per_word * bits_per_block),
+                        ).reshape(
+                            -1, blocks_per_word * bits_per_block
+                        ),
                         [(0, 0), (32 - blocks_per_word * bits_per_block, 0)],
                         "constant",
                     )
-                )
-                .view(dtype=">i4")
-                .tobytes()
+                ).view(
+                    dtype=">i4"
+                ).tobytes()
             )
         )
         chunk.append(blocks)

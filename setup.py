@@ -14,7 +14,7 @@ with open("./requirements.txt") as requirements_fp:
     ]
 
 setup(
-    name="amulet",
+    name="amulet-core",
     version=".".join(map(str, version.VERSION_NUMBER)),
     packages=packs,
     include_package_data=True,
