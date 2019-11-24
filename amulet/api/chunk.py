@@ -29,7 +29,9 @@ class Chunk:
         self._block_entities = None
         self._status = Status(self)
         self.misc = {}  # all entries that are not important enough to get an attribute
-        self.extra = {}  # temp store for Java NBTFile. Remove this when unpacked to misc
+        self.extra = (
+            {}
+        )  # temp store for Java NBTFile. Remove this when unpacked to misc
 
     def __repr__(self):
         return f"Chunk({self.cx}, {self.cx}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._block_entities)})"

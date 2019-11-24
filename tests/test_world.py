@@ -158,13 +158,14 @@ class WorldTestBaseCases:
                 "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "universal_minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+                "universal_minecraft:granite[polished=false]",
+                self.world.get_block(1, 70, 5).blockstate,
             )
 
             self.world.run_operation_from_operation_name(
                 "replace",
                 box1,
-                [Block("universal_minecraft:granite")],
+                [Block("universal_minecraft:granite[polished=false]")],
                 [Block("universal_minecraft:stone")],
             )
 
@@ -181,7 +182,8 @@ class WorldTestBaseCases:
                 "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "minecraft:granite", self.world.get_block(1, 70, 5).blockstate
+                "universal_minecraft:granite[polished=false]",
+                self.world.get_block(1, 70, 5).blockstate,
             )
 
             self.world.redo()
@@ -202,7 +204,7 @@ class WorldTestBaseCases:
             )
             for i in range(1, 5):
                 self.assertEqual(
-                    "minecraft:air",
+                    "universal_minecraft:air",
                     self.world.get_block(1, 70 + i, 3).blockstate,
                     f"Failed at coordinate (1,i,3)",
                 )
@@ -212,13 +214,14 @@ class WorldTestBaseCases:
                 box1,
                 [Block("universal_minecraft:stone"), Block("universal_minecraft:air")],
                 [
-                    Block("universal_minecraft:granite"),
+                    Block("universal_minecraft:granite[polished=false]"),
                     Block("universal_minecraft:stone"),
                 ],
             )
 
             self.assertEqual(
-                "universal_minecraft:granite", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:granite[polished=false]",
+                self.world.get_block(1, 70, 3).blockstate,
             )
 
             for i in range(1, 5):
@@ -243,7 +246,8 @@ class WorldTestBaseCases:
             self.world.redo()
 
             self.assertEqual(
-                "universal_minecraft:granite", self.world.get_block(1, 70, 3).blockstate
+                "universal_minecraft:granite[polished=false]",
+                self.world.get_block(1, 70, 3).blockstate,
             )
 
             for i in range(1, 5):
