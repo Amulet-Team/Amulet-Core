@@ -1,26 +1,27 @@
-# Amulet Map Editor
+# Amulet Core
 
-<a href="https://circleci.com/gh/Amulet-Team/Amulet-Map-Editor"><img alt="CircleCI" src="https://circleci.com/gh/Amulet-Team/Amulet-Map-Editor.svg"></a>
-[![Documentation Status](https://readthedocs.org/projects/amulet-map-editor/badge/?version=develop)](https://amulet-map-editor.readthedocs.io/en/develop/?badge=develop)
+<a href="https://circleci.com/gh/Amulet-Team/Amulet-Ccore"><img alt="CircleCI" src="https://circleci.com/gh/Amulet-Team/Amulet-Core.svg"></a>
+[![Documentation Status](https://readthedocs.org/projects/amulet-core/badge/?version=develop)](https://amulet-core.readthedocs.io/en/develop/?badge=develop)
 
-A new Minecraft world editor that aims to be flexible, extendable, and support most editions
-of Minecraft.
+The core library that provides functionality for the Amulet Map Editor
+
+#### Looking for the actual editor? That code has moved and is located at [here](https://github.com/Amulet-Team/Amulet-Map-Editor)
 
 ## Requirements
 
 ### Running from Source
-In order to run the Amulet Editor from source, you will need to install the following packages and follow the steps to install below:
+In order to develop with and run Amulet Core unittests from source, you will need to install the following packages and follow the steps to install below:
 - Python 3.7.0+
 - Numpy
-- pyglet
 - [Amulet_NBT](https://github.com/Amulet-Team/Amulet-NBT)
+- [PyMCTranslate](https://github.com/gentlegiantJGC/PyMCTranslate)
 
 The steps below will install everything needed for Amulet (Instructions for installing Python 3.7 provided when available)
 
 __Note: Make sure to install the `venv` module if it does not come pre-installed with python__
 
-1. Clone the project using `git clone https://github.com/Amulet-Team/Amulet-Map-Editor`
-2. Change the working directory to be the directory created when cloning (Ex: `cd Amulet-Map-Editor`)
+1. Clone the project using `git clone https://github.com/Amulet-Team/Amulet-Core`
+2. Change the working directory to be the directory created when cloning (Ex: `cd Amulet-Core`)
 3. Set up a python virtual environment (run the following commands for your OS in your terminal/command prompt)
    1. __Windows__
       1. Create the virtual environment: `python -m venv ENV`
@@ -30,7 +31,7 @@ __Note: Make sure to install the `venv` module if it does not come pre-installed
          - Depending on how you installed python 3.7, this might instead be: `py -3.7 -m venv ENV`
       2. Activate the environment: `source /ENV/bin/activate`
    3. __Linux__
-      1. Install python 3.7 if it's not already installed (run the following commands in your terminal of choice. These are for Debain based distros, use your distros package manager or refer to [#54 (comment)](https://github.com/Amulet-Team/Amulet-Map-Editor/issues/54#issuecomment-523046836) if you need to build Python 3.7 from source)
+      1. Install python 3.7 if it's not already installed (run the following commands in your terminal of choice. These are for Debain based distros, use your distros package manager or refer to [#54 (comment)](https://github.com/Amulet-Team/Amulet-Core/issues/54#issuecomment-523046836) if you need to build Python 3.7 from source)
          1. `sudo apt-get update` (Optional)
          2. `sudo apt-get install python-3.7`
          3. Verify that python 3.7 was successfully installed: `python3.7 --version`
@@ -52,15 +53,9 @@ Shortcut: `pip install -r requirements-dev.txt` (This also installs the requirem
 
 For information about contributing to this project, please see the contribution section [below](#contributing)
 
-## Running the program
-
-### Command-line
-To run the program in command line mode, run the following command in your operating system's console:
-`Amulet_Map_Editor --command-line`
-
 ## Documentation
 
-Our online documentation can be found here: https://amulet-map-editor.readthedocs.io/en/latest/
+Our online documentation can be found here: https://amulet-core.readthedocs.io/en/latest/
 
 ### Building the Documentation
 To build the documentation locally, run the following command: `make html` and then navigate to the
