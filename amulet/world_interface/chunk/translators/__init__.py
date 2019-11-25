@@ -173,6 +173,11 @@ class Translator:
 
         palette = self._unpack_palette(version, palette)
         chunk.biomes = self._biomes_to_universal(version, chunk.biomes)
+        if version.block_entity_map is not None:
+            for block_entity in chunk.block_entities:
+                block_entity: BlockEntity
+                if block_entity.namespace is None and block_entity.base_name in version.block_entity_map:
+                    block_entity.namespaced_name = version.block_entity_map[block_entity.base_name]
         return self._translate(
             chunk, palette, callback, translate, full_translate
         )
@@ -243,6 +248,11 @@ class Translator:
         )
         palette = self._pack_palette(version, palette)
         chunk.biomes = self._biomes_from_universal(version, chunk.biomes)
+        if version.block_entity_map is not None:
+            for block_entity in chunk.block_entities:
+                block_entity: BlockEntity
+                if block_entity.namespaced_name in version.block_entity_map_inverse:
+                    block_entity.namespaced_name = version.block_entity_map_inverse[block_entity.namespaced_name]
         return chunk, palette
 
     def _biomes_to_universal(self, translator_version: Version, biome_array):
