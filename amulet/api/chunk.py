@@ -111,9 +111,9 @@ class Chunk:
             self._biomes = Biomes(self, value)
 
     @property
-    def entities(self) -> EntityList:
+    def entities(self) -> EntityList[Entity]:
         """
-        Property that returns a copy of the chunk's entity list. Setting this property replaces the chunk's entity list
+        Property that returns the chunk's entity list. Setting this property replaces the chunk's entity list
 
         :param value: The new entity list
         :type value: list
@@ -128,9 +128,9 @@ class Chunk:
             self._entities = EntityList(self, value)
 
     @property
-    def block_entities(self) -> BlockEntityList:
+    def block_entities(self) -> BlockEntityList[BlockEntity]:
         """
-        Property that returns a copy of the chunk's block entity list. Setting this property replaces the chunk's block entity list
+        Property that returns the chunk's block entity list. Setting this property replaces the chunk's block entity list
 
         :param value: The new block entity list
         :type value: list
