@@ -15,6 +15,9 @@ class Entity:
     def _gen_namespaced_name(self):
         self._namespaced_name = ('' if self.namespace in ['', None] else f'{self.namespace}:') + self.base_name
 
+    def __repr__(self):
+        return f'Entity[{self.namespaced_name}, {self.x}, {self.y}, {self.z}]'
+
     @property
     def namespaced_name(self) -> str:
         """
