@@ -12,8 +12,8 @@ of Minecraft.
 In order to run the Amulet Editor from source, you will need to install the following packages and follow the steps to install below:
 - Python 3.7.0+
 - Numpy
-- pyglet
 - [Amulet_NBT](https://github.com/Amulet-Team/Amulet-NBT)
+- [PyMCTranslate](https://github.com/gentlegiantJGC/PyMCTranslate)
 
 The steps below will install everything needed for Amulet (Instructions for installing Python 3.7 provided when available)
 
