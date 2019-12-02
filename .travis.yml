@@ -1,4 +1,4 @@
-lanuage: python
+language: python
 matrix:
   include:
     - name: "Python 3.7.1 on Linux"
@@ -27,3 +27,6 @@ install:
 
 script:
   - python3 -m unittest discover -v -s tests || python -m unittest discover -v -s tests
+
+notifications:
+  email: false
