@@ -29,7 +29,7 @@ __Note: Make sure to install the `venv` module if it does not come pre-installed
    2. __OS X__
       1. Create the virtual environment: `python3.7 -m venv ENV`
          - Depending on how you installed python 3.7, this might instead be: `py -3.7 -m venv ENV`
-      2. Activate the environment: `source /ENV/bin/activate`
+      2. Activate the environment: `source ./ENV/bin/activate`
    3. __Linux__
       1. Install python 3.7 if it's not already installed (run the following commands in your terminal of choice. These are for Debain based distros, use your distros package manager or refer to [#54 (comment)](https://github.com/Amulet-Team/Amulet-Core/issues/54#issuecomment-523046836) if you need to build Python 3.7 from source)
          1. `sudo apt-get update` (Optional)
@@ -37,9 +37,11 @@ __Note: Make sure to install the `venv` module if it does not come pre-installed
          3. Verify that python 3.7 was successfully installed: `python3.7 --version`
       2. Set up a python virtual environment (also run the following commands in the terminal)
          1. Create the virtual environment: `python3.7 -m venv ENV`
-         2. Activate the environment: `source /ENV/bin/activate`
-4. Install the requirements using `pip install -r requirements.txt`
-5. To format your files automatically before committing changes, use `pre-commit install`
+         2. Activate the environment: `source ./ENV/bin/activate`
+4. Ensure that the virtual environment activated correctly by using the command `python -V` (Output should be `Python 3.7.0` or any version number above)
+5. Ensure pip is up-to-date by running the following command: `python -m pip install --upgrade pip` 
+6. Install the requirements using `pip install -r requirements.txt`
+7. To format your files automatically before committing changes, use `pre-commit install`
 
 ### For Development
 Follow all of the step above for running from source, then install the following packages:
