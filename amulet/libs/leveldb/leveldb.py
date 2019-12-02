@@ -13,6 +13,10 @@ if sys.platform == "win32":
         ldb = ctypes.cdll.LoadLibrary(
             op.join(op.dirname(op.realpath(__file__)), "LevelDB-MCPE-32.dll")
         )
+elif sys.platform == "darwin":
+    ldb = ctypes.cdll.LoadLibrary(
+        op.join(op.dirname(op.realpath(__file__)), "libleveldb.dylib")
+    )
 else:  # linux, compile your own .so if this errors!
     ldb = ctypes.cdll.LoadLibrary(
         op.join(op.dirname(op.realpath(__file__)), "libleveldb.so")
