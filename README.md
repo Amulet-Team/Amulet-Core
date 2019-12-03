@@ -20,6 +20,8 @@ The steps below will install everything needed for Amulet (Instructions for inst
 
 __Note: Make sure to install the `venv` module if it does not come pre-installed with python__
 
+__Note: These instructions are for those who are wishing to develop Amulet-Core, not for those who just want to run Amulet Editor__
+
 1. Clone the project using `git clone https://github.com/Amulet-Team/Amulet-Core`
 2. Change the working directory to be the directory created when cloning (Ex: `cd Amulet-Core`)
 3. Set up a python virtual environment (run the following commands for your OS in your terminal/command prompt)
