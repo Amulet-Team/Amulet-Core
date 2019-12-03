@@ -21,7 +21,7 @@ before_install:
 install:
   - pip3 install --upgrade pip
   - if [ "$TRAVIS_OS_NAME" = "osx" ] || [ "$TRAVIS_OS_NAME" = "windows" ] ; then pip3 install --user --upgrade setuptools wheel ; else pip3 install --upgrade setuptools wheel ; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ] || [ "$TRAVIS_OS_NAME" = "windows" ] ; then pip3 install --user -r requirements-dev.txt ; else pip3 install -r requirements-dev.txt ; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ] || [ "$TRAVIS_OS_NAME" = "windows" ] ; then pip3 install --user -r requirements.txt ; else pip3 install -r requirements.txt ; fi
   - python3 setup.py bdist_wheel || python setup.py bdist_wheel
   - python3 setup.py install || python setup.py install
 
