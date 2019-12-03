@@ -64,53 +64,63 @@ class Translator:
             Tuple[Block, BlockEntity, List[Entity], bool]
         ],
         full_translate: bool,
-    ):
+    ) -> Tuple[Chunk, numpy.ndarray]:
         if not full_translate:
             return chunk, palette
 
         todo = []
+        output_block_entities = []
         finished = BlockManager()
         palette_mappings = {}
 
         for i, input_block in enumerate(palette):
             input_block: Block
             output_block, output_block_entity, output_entities, extra = translate(input_block)
-            if output_block_entity:
-                print(f"Warning: not sure what to do with entity for {input_block} yet.")
-            # TODO: sort out entities
             if extra and get_chunk_callback:
                 todo.append(i)
-                continue
-            palette_mappings[i] = finished.get_add_block(output_block)
+            else:
+                palette_mappings[i] = finished.get_add_block(output_block)
+                if output_block_entity:
+                    output_block_entities.append(output_block_entity)
 
         block_mappings = {}
         for index in todo:
             for x, y, z in zip(*numpy.where(chunk.blocks == index)):
 
                 def get_block_at(pos: Tuple[int, int, int]) -> Tuple[Block, Union[None, BlockEntity]]:
+                    """Get a block at a location relative to the current block"""
                     nonlocal x, y, z, palette, chunk
+
+                    # calculate absolute position
                     dx, dy, dz = pos
                     dx += x
                     dy += y
                     dz += z
+
+                    # calculate relative chunk position
                     cx = dx // 16
                     cz = dz // 16
                     if cx == 0 and cz == 0:
-                        return palette[chunk.blocks[dx % 16, dy, dz % 16]], None
+                        # if it is the current chunk
+                        return palette[chunk.blocks[dx % 16, dy, dz % 16]], \
+                            next((be for be in chunk.block_entities if (be.x, be.y, be.z) == (dx, dy, dz)), None)
+
+                    # if it is in a different chunk
                     local_chunk, local_palette = get_chunk_callback(cx, cz)
-                    return local_palette[local_chunk.blocks[dx % 16, dy, dz % 16]], None
+                    return local_palette[local_chunk.blocks[dx % 16, dy, dz % 16]], \
+                        next((be for be in local_chunk.block_entities if (be.x, be.y, be.z) == (dx, dy, dz)), None)
 
                 input_block = palette[chunk.blocks[x, y, z]]
                 output_block, output_block_entity, output_entities, extra = translate(input_block, get_block_at)
                 if output_block_entity:
-                    print(f"Warning: not sure what to do with entity for {input_block} yet.")
-                # TODO: sort out entities
+                    output_block_entities.append(output_block_entity)
                 block_mappings[(x, y, z)] = finished.get_add_block(output_block)
 
         for old, new in palette_mappings.items():
             chunk.blocks[chunk.blocks == old] = new
         for (x, y, z), new in block_mappings.items():
             chunk.blocks[x, y, z] = new
+        chunk.block_entities = output_block_entities
         return chunk, numpy.array(finished.blocks())
 
     def to_universal(

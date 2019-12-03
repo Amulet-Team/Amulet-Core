@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 from os.path import join
 import pickle
-from typing import Tuple, Union, Iterable
+from typing import Tuple, Union, Iterable, List
 
 import numpy
 
@@ -128,7 +128,7 @@ class Chunk:
             self._entities = EntityList(self, value)
 
     @property
-    def block_entities(self) -> BlockEntityList[BlockEntity]:
+    def block_entities(self) -> List[BlockEntity]:
         """
         Property that returns the chunk's block entity list. Setting this property replaces the chunk's block entity list
 
