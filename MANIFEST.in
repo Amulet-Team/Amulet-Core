@@ -1,0 +1,6 @@
+include amulet/operations/*.py
+include amulet/libs/leveldb/LevelDB-MCPE-32.dll
+include amulet/libs/leveldb/LevelDB-MCPE-64.dll
+include amulet/libs/leveldb/libleveldb.dylib
+include amulet/libs/leveldb/libleveldb.so
+recursive-include amulet/world_interface/ *
