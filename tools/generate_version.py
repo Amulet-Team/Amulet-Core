@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 from typing import Tuple
+import os
 
 VERSION_PY_CONTENT = """
 VERSION_NUMBER = ({ver_major}, {ver_minor}, {ver_patch})
@@ -37,6 +39,16 @@ def generate_version_py(
     fp.close()
 
 
+def generate_version_from_dict(
+    dict_data: dict
+) -> Tuple[Tuple[int, int, int], int, str]:
+    return (
+        dict_data["version_number"],
+        dict_data["version_int"],
+        dict_data["version_stage"],
+    )
+
+
 if __name__ == "__main__":
     from argparse import ArgumentParser
 
@@ -65,7 +77,6 @@ if __name__ == "__main__":
         type=int,
         nargs=3,
         metavar=("MAJOR", "MINOR", "PATCH"),
-        required=True,
     )
     parser.add_argument(
         "-o",
@@ -74,7 +85,21 @@ if __name__ == "__main__":
         default="version_test.py",
         help="The file to write version information to",
     )
+    parser.add_argument(
+        "-f",
+        "--input",
+        default="version.json",
+        action="store",
+        help="The JSON to load version information from",
+    )
 
     args = parser.parse_args()
+
+    if os.path.exists(args.input):
+        with open(args.input) as fp:
+            version_data = json.load(fp)
+            args.version, args.int, args.stage = generate_version_from_dict(
+                version_data
+            )
 
     generate_version_py(args.version, args.int, args.stage, args.output)
