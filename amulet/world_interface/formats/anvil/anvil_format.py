@@ -307,6 +307,10 @@ class AnvilFormat(Format):
     def close(self):
         pass  # TODO: release lock file
 
+    @property
+    def platform(self) -> str:
+        return 'java'
+
     def _max_world_version(self) -> Tuple[str, int]:
         return "anvil", self.root_tag["Data"]["DataVersion"].value
 

@@ -144,6 +144,10 @@ class LevelDBFormat(Format):
         if self._level_manager is None:
             self._level_manager = LevelDBLevelManager(self._directory)
 
+    @property
+    def platform(self) -> str:
+        return 'bedrock'
+
     def _max_world_version(self) -> Tuple[str, Tuple[int, int, int]]:
         return (
             "leveldb",

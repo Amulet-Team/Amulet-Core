@@ -45,6 +45,10 @@ class Format:
         """
         raise NotImplementedError()
 
+    @property
+    def platform(self) -> str:
+        raise NotImplementedError
+
     def max_world_version(self) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
         if self._max_world_version_ is None:
             self._max_world_version_ = self._max_world_version()
