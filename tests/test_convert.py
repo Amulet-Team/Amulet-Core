@@ -44,13 +44,10 @@ if __name__ == "__main__":
                         if block.base_name in ["lava", "water"]:
                             blocks[blocks == index] = air
                     chunk.blocks = blocks
-                elif mode == "stone":
-                    chunk.blocks = numpy.full(
-                        (16, 256, 16),
-                        world.palette.get_add_block(
-                            Block(namespace="universal_minecraft", base_name="stone")
-                        ),
-                    )
+                elif mode == 'stone':
+                    chunk.blocks = numpy.full((16, 256, 16), world.palette.get_add_block(
+                        Block(namespace="universal_minecraft", base_name="stone")
+                    ))
                 print("Saving world")
                 world.save()
                 world.close()
@@ -88,9 +85,7 @@ if __name__ == "__main__":
 
                 print(f"Loading world at {world_path}")
                 world = load_world(world_path)
-                world._wrapper.delete_chunk(
-                    cx, cz
-                )  # There will be a proper method to delete chunks but using this for now.
+                world.world_wrapper.delete_chunk(cx, cz)  # There will be a proper method to delete chunks but using this for now.
                 print("Saving world")
                 world.save()
                 world.close()
@@ -101,23 +96,23 @@ if __name__ == "__main__":
             if len(args) >= 2:
                 world_path = args[1]
                 ext = 0
-                while os.path.exists(f"{world_path}_{ext}"):
+                while os.path.exists(f'{world_path}_{ext}'):
                     ext += 1
-                source_path = f"{world_path}_{ext}"
+                source_path = f'{world_path}_{ext}'
                 shutil.copytree(world_path, source_path)
 
-                while os.path.exists(f"{world_path}_{ext}"):
+                while os.path.exists(f'{world_path}_{ext}'):
                     ext += 1
-                destination_path = f"{world_path}_{ext}"
+                destination_path = f'{world_path}_{ext}'
                 shutil.copytree(world_path, destination_path)
 
                 print(f"Loading world at {source_path}")
                 world = load_world(source_path)
-                for chunk in list(world._wrapper.all_chunk_coords()):
+                for chunk in list(world.world_wrapper.all_chunk_coords()):
                     if max(abs(chunk[0]), abs(chunk[1])) > 5:
-                        world._wrapper.delete_chunk(*chunk)
+                        world.world_wrapper.delete_chunk(*chunk)
                 world.save()
-                for cx, cz in world._wrapper.all_chunk_coords():
+                for cx, cz in world.world_wrapper.all_chunk_coords():
                     chunk = world.get_chunk(cx, cz)
                     chunk.blocks[0, :, 0] = world.palette.get_add_block(
                         Block(namespace="universal_minecraft", base_name="stone")
@@ -152,23 +147,15 @@ if __name__ == "__main__":
 
                 print(f"Loading world at {world_path}")
                 world = load_world(world_path)
-                if (cx, cz) in world._wrapper.all_chunk_coords():
-                    world._wrapper.delete_chunk(*(cx, cz))
+                if (cx, cz) in world.world_wrapper.all_chunk_coords():
+                    world.world_wrapper.delete_chunk(*(cx, cz))
                 world.save()
 
                 chunk = Chunk(cx, cz)
-                bedrock = world.palette.get_add_block(
-                    Block(namespace="universal_minecraft", base_name="bedrock")
-                )
-                stone = world.palette.get_add_block(
-                    Block(namespace="universal_minecraft", base_name="stone")
-                )
-                dirt = world.palette.get_add_block(
-                    Block(namespace="universal_minecraft", base_name="dirt")
-                )
-                grass = world.palette.get_add_block(
-                    Block(namespace="universal_minecraft", base_name="grass_block")
-                )
+                bedrock = world.palette.get_add_block(Block(namespace='universal_minecraft', base_name='bedrock'))
+                stone = world.palette.get_add_block(Block(namespace='universal_minecraft', base_name='stone'))
+                dirt = world.palette.get_add_block(Block(namespace='universal_minecraft', base_name='dirt'))
+                grass = world.palette.get_add_block(Block(namespace='universal_minecraft', base_name='grass_block'))
 
                 chunk.blocks[:, 0, :] = bedrock
                 chunk.blocks[:, 1:3, :] = stone

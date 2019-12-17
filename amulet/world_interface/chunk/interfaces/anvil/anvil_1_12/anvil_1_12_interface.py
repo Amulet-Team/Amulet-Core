@@ -27,8 +27,14 @@ class Anvil112Interface(BaseAnvilInterface):
         self.features["block_light"] = "Sections|2048BA"
         self.features["sky_light"] = "Sections|2048BA"
 
+        self.features["block_entities"] = "list"
+        self.features["block_entity_format"] = "namespace-str-id"
+        self.features["block_entity_coord_format"] = "xyz-int"
+
         self.features["entities"] = "list"
-        self.features["tile_entities"] = "list"
+        self.features["entity_format"] = "namespace-str-id"
+        self.features["entity_coord_format"] = "Pos-list-float"
+
         self.features["tile_ticks"] = "list"
 
     @staticmethod
@@ -38,19 +44,6 @@ class Anvil112Interface(BaseAnvilInterface):
         if not 922 < key[1] <= 1343:
             return False
         return True
-
-    def _decode_entities(self, entities: list) -> List[nbt.NBTFile]:
-        return []
-        # entity_list = []
-        # for entity in entities:
-        #     entity = nbt_template.create_entry_from_nbt(entity)
-        #     entity = self._entity_handlers[entity["id"].value].load_entity(entity)
-        #     entity_list.append(entity)
-        #
-        # return entity_list
-
-    def _encode_entities(self, entities: list) -> nbt.TAG_List:
-        return nbt.TAG_List([])
 
     def _decode_blocks(
         self, chunk_sections: nbt.TAG_List

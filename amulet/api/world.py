@@ -29,9 +29,9 @@ class World:
     Class that handles world editing of any world format via an separate and flexible data format
     """
 
-    def __init__(self, directory: str, wrapper: Format):
+    def __init__(self, directory: str, world_wrapper: Format):
         self._directory = directory
-        self._wrapper = wrapper
+        self.world_wrapper = world_wrapper
         self.palette = BlockManager()
         self.palette.get_add_block(
             Block(namespace="universal_minecraft", base_name="air")
@@ -45,20 +45,18 @@ class World:
         """Save the world using the given wrapper.
         Leave as None to save back to the input wrapper"""
         if wrapper is None:
-            wrapper = self._wrapper
+            wrapper = self.world_wrapper
 
         # perhaps make this check if the directory is the same rather than if the class is the same
-        save_as = wrapper is not self._wrapper
+        save_as = wrapper is not self.world_wrapper
         if save_as:
             # The input wrapper is not the same as the loading wrapper (save-as)
             # iterate through every chunk in the input world and the unsaved modified chunks (taking preference for the latter)
             # and save them to the wrapper
-            wrapper.translation_manager = (
-                self._wrapper.translation_manager
-            )  # TODO: this might cause issues in the future
-            for cx, cz in self._wrapper.all_chunk_coords():
+            wrapper.translation_manager = self.world_wrapper.translation_manager  # TODO: this might cause issues in the future
+            for cx, cz in self.world_wrapper.all_chunk_coords():
                 print(cx, cz)
-                chunk = self._wrapper.load_chunk(cx, cz, self.palette)
+                chunk = self.world_wrapper.load_chunk(cx, cz, self.palette)
                 wrapper.save_chunk(chunk, self.palette)
 
             for chunk in self.chunk_cache.values():
@@ -70,18 +68,18 @@ class World:
         else:
             # The input wrapper is the normal wrapper so just save the modified chunks back
             for (cx, cz) in self._deleted_chunks:
-                self._wrapper.delete_chunk(cx, cz)
+                self.world_wrapper.delete_chunk(cx, cz)
             self._deleted_chunks.clear()
             for chunk in self.chunk_cache.values():
                 if chunk.changed:
-                    self._wrapper.save_chunk(deepcopy(chunk), self.palette)
-            self._wrapper.save()
+                    self.world_wrapper.save_chunk(deepcopy(chunk), self.palette)
+            self.world_wrapper.save()
             # TODO check and flesh this out a bit
 
     def close(self):
         # TODO: add "unsaved changes" check before exit
         shutil.rmtree(get_temp_dir(self._directory), ignore_errors=True)
-        self._wrapper.close()
+        self.world_wrapper.close()
 
     def get_chunk(self, cx: int, cz: int) -> Chunk:
         """
@@ -94,7 +92,7 @@ class World:
         if (cx, cz) in self.chunk_cache:
             return self.chunk_cache[(cx, cz)]
 
-        chunk = self._wrapper.load_chunk(cx, cz, self.palette)
+        chunk = self.world_wrapper.load_chunk(cx, cz, self.palette)
         self.chunk_cache[(cx, cz)] = chunk
         self.history_manager.add_original_chunk(chunk)
         return chunk

@@ -13,11 +13,18 @@ class Entity:
     ):
         self._namespace = namespace
         self._base_name = base_name
-        self._namespaced_name = ("" if namespace == "" else f"{namespace}:") + base_name
+        self._namespaced_name = None
+        self._gen_namespaced_name()
         self._x = x
         self._y = y
         self._z = z
         self._nbt = nbt
+
+    def _gen_namespaced_name(self):
+        self._namespaced_name = ('' if self.namespace in ['', None] else f'{self.namespace}:') + self.base_name
+
+    def __repr__(self):
+        return f'Entity[{self.namespaced_name}, {self.x}, {self.y}, {self.z}]'
 
     @property
     def namespaced_name(self) -> str:
@@ -28,6 +35,14 @@ class Entity:
         :return: The namespace:base_name of the block entity or just base_name if no namespace
         """
         return self._namespaced_name
+
+    @namespaced_name.setter
+    def namespaced_name(self, value: str):
+        self._namespaced_name = value
+        if ':' in value:
+            self._namespace, self._base_name = value.split(':', 1)
+        else:
+            self._namespace, self._base_name = None, value
 
     @property
     def namespace(self) -> str:
@@ -41,6 +56,7 @@ class Entity:
     @namespace.setter
     def namespace(self, value: str):
         self._namespace = value
+        self._gen_namespaced_name()
 
     @property
     def base_name(self) -> str:
@@ -54,6 +70,7 @@ class Entity:
     @base_name.setter
     def base_name(self, value: str):
         self._base_name = value
+        self._gen_namespaced_name()
 
     @property
     def x(self) -> float:

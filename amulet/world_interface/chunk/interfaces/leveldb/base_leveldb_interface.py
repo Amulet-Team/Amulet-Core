@@ -7,6 +7,8 @@ import numpy
 import amulet_nbt
 
 from amulet.api.block import Block
+from amulet.api.block_entity import BlockEntity
+from amulet.api.entity import Entity
 from amulet.api.chunk import Chunk
 from amulet.utils.world_utils import get_smallest_dtype
 from amulet.world_interface.chunk.interfaces import Interface
@@ -58,11 +60,18 @@ class BaseLevelDBInterface(Interface):
     def __init__(self):
         feature_options = {
             "chunk_version": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-            "finalised_state": ["int0-2"],
-            "data_2d": ["height512|biome256", "unused_height512|biome256"],
-            "entities": ["32list"],
+            "finalised_state": ['int0-2'],
+            "data_2d": ['height512|biome256', 'unused_height512|biome256'],
+
             "block_entities": ["31list"],
-            "terrain": ["2farray", "2f1palette", "2fnpalette"],
+            "block_entity_format": ["namespace-str-id", "str-id"],
+            "block_entity_coord_format": ["xyz-int"],
+
+            "entities": ["32list"],
+            "entity_format": ["namespace-str-identifier", "str-id"],
+            "entity_coord_format": ["Pos-list-float"],
+
+            "terrain": ["2farray", "2f1palette", "2fnpalette"]
         }
         self.features = {key: None for key in feature_options.keys()}
 
@@ -129,8 +138,34 @@ class BaseLevelDBInterface(Interface):
         # \x2E  2d legacy
         # \x30  legacy terrain
 
-        chunk.entities = None
-        chunk.block_entities = None
+        # unpack block entities and entities
+        if self.features['block_entities'] == "31list":
+            chunk.block_entities = []
+            block_entity = self._unpack_nbt_list(data.get(b'\x31', b''))
+            if self.features['block_entity_format'] == 'namespace-str-id':
+                raise NotImplementedError  # Bedrock currently still uses non-namespaced block entities
+            elif self.features['block_entity_format'] == 'str-id':
+                if self.features['block_entity_coord_format'] == 'xyz-int':
+                    for nbt in block_entity:
+                        base_name, x, y, z = [nbt.pop(key).value for key in ['id', 'x', 'y', 'z']]
+                        chunk.block_entities.append(BlockEntity(namespace=None, base_name=base_name, x=x, y=y, z=z, nbt=nbt))
+
+        if self.features['entities'] == "32list":
+            chunk.entities = []
+            entity = self._unpack_nbt_list(data.get(b'\x32', b''))
+            if self.features['entity_format'] == 'namespace-str-identifier':
+                if self.features['entity_coord_format'] == "Pos-list-float":
+                    for nbt in entity:
+                        entity_name, (x, y, z) = [nbt.pop(key).value for key in ['identifier', 'Pos']]
+                        namespace, base_name = entity_name.split(':', 1)
+                        chunk.entities.append(Entity(namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=nbt))
+
+            elif self.features['entity_format'] == 'str-id':
+                if self.features['entity_coord_format'] == "Pos-list-float":
+                    for nbt in entity:
+                        base_name, (x, y, z) = [nbt.pop(key).value for key in ['id', 'Pos']]
+                        chunk.entities.append(Entity(namespace=None, base_name=base_name, x=x, y=y, z=z, nbt=nbt))
+
         return chunk, palette
 
     def encode(
@@ -574,7 +609,16 @@ class BaseLevelDBInterface(Interface):
         chunk.append(blocks)
 
         chunk.append(struct.pack("<I", len(palette)))
-        chunk += [
-            block.save_to(compressed=False, little_endian=True) for block in palette
-        ]
-        return b"".join(chunk)
+        chunk += [block.save_to(compressed=False, little_endian=True) for block in palette]
+        return b''.join(chunk)
+
+    def _unpack_nbt_list(self, raw_nbt: bytes) -> List[amulet_nbt.NBTFile]:
+        nbt_list = []
+        while raw_nbt:
+            nbt, index = amulet_nbt.load(buffer=raw_nbt, little_endian=True, offset=True)
+            raw_nbt = raw_nbt[index:]
+            nbt_list.append(nbt)
+        return nbt_list
+
+    def _pack_nbt_list(self, nbt_list: List[amulet_nbt.NBTFile]):
+        return b''.join([nbt.save_to(compressed=False, little_endian=True) for nbt in nbt_list if isinstance(nbt, amulet_nbt.NBTFile)])
