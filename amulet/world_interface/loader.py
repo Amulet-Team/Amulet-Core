@@ -113,7 +113,7 @@ class Loader:
             if object_instance.is_valid(identifier):
                 return object_name
 
-        raise LoaderNoneMatched(f"Could not find a matching {self._object_type}")
+        raise LoaderNoneMatched(f"Could not find a matching {self._object_type} for {identifier}")
 
     def get_by_id(self, object_id: str):
         return self._loaded[object_id]
