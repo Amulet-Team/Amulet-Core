@@ -150,7 +150,7 @@ class LevelDBFormat(Format):
 
     def _max_world_version(self) -> Tuple[str, Tuple[int, int, int]]:
         return (
-            "leveldb",
+            "bedrock",
             tuple([t.value for t in self.root_tag["lastOpenedWithVersion"]]),
         )
 
@@ -160,12 +160,12 @@ class LevelDBFormat(Format):
         if raw_chunk_data:
             key = self._get_interface_key(raw_chunk_data)
         else:
-            key = "leveldb", game_to_chunk_version(max_world_version[1])
+            key = "bedrock", game_to_chunk_version(max_world_version[1])
         return interfaces.loader.get(key)
 
     def _get_interface_key(self, raw_chunk_data: Dict[bytes, bytes]) -> Tuple[str, int]:
         return (
-            "leveldb",
+            "bedrock",
             raw_chunk_data.get(b"v", "\x00")[0],
         )  # TODO: work out a valid default
 

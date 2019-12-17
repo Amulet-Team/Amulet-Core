@@ -42,7 +42,7 @@ class JavaNumericalTranslator(Translator):
 
     @staticmethod
     def is_valid(key):
-        if key[0] != "anvil":
+        if key[0] != "java":
             return False
         if key[1] > 1343:
             return False

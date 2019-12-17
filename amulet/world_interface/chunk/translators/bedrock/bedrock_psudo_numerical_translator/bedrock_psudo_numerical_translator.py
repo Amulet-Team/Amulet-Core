@@ -12,7 +12,7 @@ from PyMCTranslate.py3.translation_manager import Version
 class BedrockPsudoNumericalTranslator(BaseBedrockTranslator):
     @staticmethod
     def is_valid(key):
-        if key[0] != "leveldb":
+        if key[0] != "bedrock":
             return False
         if not (1, 2, 13) <= key[1] < (1, 13, 0):
             return False

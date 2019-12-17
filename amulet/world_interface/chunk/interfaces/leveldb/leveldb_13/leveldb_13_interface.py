@@ -13,7 +13,7 @@ class LevelDB13Interface(LevelDB12Interface):
 
     @staticmethod
     def is_valid(key):
-        if key[0] != "leveldb":
+        if key[0] != "bedrock":
             return False
         if key[1] != 13:
             return False

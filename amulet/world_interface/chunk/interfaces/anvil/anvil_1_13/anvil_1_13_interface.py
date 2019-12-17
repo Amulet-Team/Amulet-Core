@@ -62,7 +62,7 @@ class Anvil113Interface(BaseAnvilInterface):
 
     @staticmethod
     def is_valid(key):
-        if key[0] != "anvil":
+        if key[0] != "java":
             return False
         if not 1343 < key[1] <= 1631:
             return False

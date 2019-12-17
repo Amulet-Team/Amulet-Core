@@ -26,7 +26,7 @@ class LevelDB10Interface(BaseLevelDBInterface):
 
     @staticmethod
     def is_valid(key):
-        if key[0] != "leveldb":
+        if key[0] != "bedrock":
             return False
         if key[1] != 10:
             return False

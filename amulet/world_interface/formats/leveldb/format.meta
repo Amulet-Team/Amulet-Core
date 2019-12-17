@@ -1,7 +1,7 @@
 {
 "meta_version": 0,
 "format": {
-    "id": "leveldb",
+    "id": "bedrock",
     "name": "Leveldb Format",
     "entry_point": "leveldb_format",
     "format_version": 0,

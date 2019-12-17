@@ -312,7 +312,7 @@ class AnvilFormat(Format):
         return 'java'
 
     def _max_world_version(self) -> Tuple[str, int]:
-        return "anvil", self.root_tag["Data"]["DataVersion"].value
+        return "java", self.root_tag["Data"]["DataVersion"].value
 
     def delete_chunk(self, cx: int, cz: int, dimension: int = 0):
         self._get_level(dimension).delete_chunk(cx, cz)
@@ -334,7 +334,7 @@ class AnvilFormat(Format):
         return self._get_level(dimension).get_chunk_data(cx, cz)
 
     def _get_interface_key(self, raw_chunk_data) -> Tuple[str, int]:
-        return "anvil", raw_chunk_data["DataVersion"].value
+        return "java", raw_chunk_data["DataVersion"].value
 
     @staticmethod
     def is_valid(directory) -> bool:

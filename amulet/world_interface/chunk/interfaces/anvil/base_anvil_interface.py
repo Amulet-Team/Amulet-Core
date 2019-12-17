@@ -56,7 +56,7 @@ class BaseAnvilInterface(Interface):
     ) -> Tuple[translators.Translator, int]:
         if data:
             key, version = (
-                ("anvil", data["DataVersion"].value),
+                ("java", data["DataVersion"].value),
                 data["DataVersion"].value,
             )
         else:
