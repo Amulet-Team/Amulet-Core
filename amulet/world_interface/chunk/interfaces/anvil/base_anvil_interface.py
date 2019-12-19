@@ -368,13 +368,13 @@ class BaseAnvilInterface(Interface):
                 for nbt in block_entities:
                     block_entity_name, x, y, z = [nbt.pop(key).value for key in ['id', 'x', 'y', 'z']]
                     namespace, base_name = block_entity_name.split(':', 1)
-                    block_entities_out.append(BlockEntity(namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=nbt))
+                    block_entities_out.append(BlockEntity(namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=amulet_nbt.NBTFile(nbt)))
 
         elif self.features['block_entity_format'] == 'str-id':
             if self.features['block_entity_coord_format'] == 'xyz-int':
                 for nbt in block_entities:
                     base_name, x, y, z = [nbt.pop(key).value for key in ['id', 'x', 'y', 'z']]
-                    block_entities_out.append(BlockEntity(namespace=None, base_name=base_name, x=x, y=y, z=z, nbt=nbt))
+                    block_entities_out.append(BlockEntity(namespace=None, base_name=base_name, x=x, y=y, z=z, nbt=amulet_nbt.NBTFile(nbt)))
         return block_entities_out
 
     def _encode_block_entities(self, block_entities: List[BlockEntity]) -> amulet_nbt.TAG_List:
