@@ -24,7 +24,7 @@ class BaseBedrockTranslator(Translator):
         translation_manager: PyMCTranslate.TranslationManager,
         chunk: Chunk,
         palette: numpy.ndarray,
-        callback: Callable,
+        get_chunk_callback: Union[Callable[[int, int], Tuple[Chunk, numpy.ndarray]], None],
         full_translate: bool,
     ) -> Tuple[Chunk, numpy.ndarray]:
         # Bedrock does versioning by block rather than by chunk.
@@ -87,5 +87,5 @@ class BaseBedrockTranslator(Translator):
                     block_entity.namespaced_name = version.block_entity_map[block_entity.base_name]
 
         return self._translate(
-            chunk, palette, callback, translate, full_translate
+            chunk, palette, get_chunk_callback, translate, full_translate
         )

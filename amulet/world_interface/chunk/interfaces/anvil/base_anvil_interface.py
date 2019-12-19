@@ -180,7 +180,6 @@ class BaseAnvilInterface(Interface):
         if self.features["last_update"] == "long":
             data["Level"]["LastUpdate"] = amulet_nbt.TAG_Long(misc.get("last_update", 0))
 
-        # TODO: improve this functionality. Perhaps map each one to a float value which is the universal format.
         # Order the float value based on the order they would be run. Newer replacements for the same come just after
         # to save back find the next lowest valid value.
         if self.features["status"] in ["j13", "j14"]:
@@ -379,8 +378,8 @@ class BaseAnvilInterface(Interface):
 
     def _encode_block_entities(self, block_entities: List[BlockEntity]) -> amulet_nbt.TAG_List:
         block_entities_out = []
-        if self.features['entity_format'] == 'namespace-str-id':
-            if self.features['entity_coord_format'] == "xyz-int":
+        if self.features['block_entity_format'] == 'namespace-str-id':
+            if self.features['block_entity_coord_format'] == "xyz-int":
                 for blockentity in block_entities:
                     if not isinstance(blockentity.nbt, amulet_nbt.NBTFile) and isinstance(blockentity.nbt.value, amulet_nbt.TAG_Compound):
                         continue

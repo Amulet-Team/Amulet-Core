@@ -124,14 +124,14 @@ class Format:
 
         # set up a callback that translator can use to get chunk data
         if recurse:
-
-            def callback(x, z):
+            # TODO: this could do with a way to chache translated chunks so that they are not translated multiple times
+            def get_chunk_callback(x, z):
                 palette = BlockManager()
                 chunk_ = self._load_chunk(cx + x, cz + z, dimension, palette, False)
                 return chunk_, palette
 
         else:
-            callback = None
+            get_chunk_callback = None
 
         # translate the data to universal format
         chunk, chunk_palette = translator.to_universal(
@@ -139,7 +139,7 @@ class Format:
             self.translation_manager,
             chunk,
             chunk_palette,
-            callback,
+            get_chunk_callback,
             recurse,
         )
 
@@ -185,7 +185,9 @@ class Format:
             [global_palette[int_id] for int_id in chunk_palette]
         )
 
-        callback = None  # TODO will need access to the world class
+        def get_chunk_callback(x, z):
+            # conversion from universal should not require any data outside the block
+            return chunk, global_palette
 
         # translate from universal format to version format
         chunk, chunk_palette = translator.from_universal(
@@ -193,7 +195,7 @@ class Format:
             self.translation_manager,
             chunk,
             chunk_palette,
-            callback,
+            get_chunk_callback,
             recurse,
         )
 

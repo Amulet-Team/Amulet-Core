@@ -52,7 +52,7 @@ class Translator:
         self,
         chunk: Chunk,
         palette: numpy.ndarray,
-        get_chunk_callback: Callable[[int, int], Tuple[Chunk, numpy.ndarray]],
+        get_chunk_callback: Union[Callable[[int, int], Tuple[Chunk, numpy.ndarray]], None],
         translate: Callable[
             [
                 Union[Block, Entity, Any],
@@ -81,7 +81,11 @@ class Translator:
             else:
                 palette_mappings[i] = finished.get_add_block(output_block)
                 if output_block_entity:
-                    output_block_entities.append(output_block_entity)
+                    for x, y, z in zip(*numpy.where(chunk.blocks == i)):
+                        output_block_entity.x += x + chunk.cx * 16
+                        output_block_entity.y += y
+                        output_block_entity.z += z + chunk.cz * 16
+                        output_block_entities.append(output_block_entity)
 
         block_mappings = {}
         for index in todo:
@@ -113,6 +117,9 @@ class Translator:
                 input_block = palette[chunk.blocks[x, y, z]]
                 output_block, output_block_entity, output_entities, extra = translate(input_block, get_block_at)
                 if output_block_entity:
+                    output_block_entity.x += x + chunk.cx * 16
+                    output_block_entity.y += y
+                    output_block_entity.z += z + chunk.cz * 16
                     output_block_entities.append(output_block_entity)
                 block_mappings[(x, y, z)] = finished.get_add_block(output_block)
 
@@ -129,7 +136,7 @@ class Translator:
         translation_manager: PyMCTranslate.TranslationManager,
         chunk: Chunk,
         palette: numpy.ndarray,
-        callback: Callable,
+        get_chunk_callback: Union[Callable[[int, int], Tuple[Chunk, numpy.ndarray]], None],
         full_translate: bool,
     ) -> Tuple[Chunk, numpy.ndarray]:
         """
@@ -139,7 +146,7 @@ class Translator:
         :param translation_manager: PyMCTranslate.TranslationManager used for the translation
         :param chunk: The chunk to translate.
         :param palette: The palette that the chunk's indices correspond to.
-        :param callback: function callback to get a chunk's data
+        :param get_chunk_callback: function callback to get a chunk's data
         :param full_translate: if true do a full translate. If false just unpack the palette (used in callback)
         :return: Chunk object in the universal format.
         """
@@ -189,7 +196,7 @@ class Translator:
                 if block_entity.namespace is None and block_entity.base_name in version.block_entity_map:
                     block_entity.namespaced_name = version.block_entity_map[block_entity.base_name]
         return self._translate(
-            chunk, palette, callback, translate, full_translate
+            chunk, palette, get_chunk_callback, translate, full_translate
         )
 
     def from_universal(
@@ -198,7 +205,7 @@ class Translator:
         translation_manager: PyMCTranslate.TranslationManager,
         chunk: Chunk,
         palette: numpy.ndarray,
-        callback: Union[Callable, None],
+        get_chunk_callback: Union[Callable[[int, int], Tuple[Chunk, numpy.ndarray]], None],
         full_translate: bool,
     ) -> Tuple[Chunk, numpy.ndarray]:
         """
@@ -208,7 +215,7 @@ class Translator:
         :param translation_manager: PyMCTranslate.TranslationManager used for the translation
         :param chunk: The chunk to translate.
         :param palette: The palette that the chunk's indices correspond to.
-        :param callback: function callback to get a chunk's data
+        :param get_chunk_callback: function callback to get a chunk's data
         :param full_translate: if true do a full translate. If false just pack the palette (used in callback)
         :return: Chunk object in the interface-specific format and palette.
         """
@@ -254,7 +261,7 @@ class Translator:
             return final_block, final_block_entity, final_entities, final_extra
 
         chunk, palette = self._translate(
-            chunk, palette, callback, translate, full_translate
+            chunk, palette, get_chunk_callback, translate, full_translate
         )
         palette = self._pack_palette(version, palette)
         chunk.biomes = self._biomes_from_universal(version, chunk.biomes)
