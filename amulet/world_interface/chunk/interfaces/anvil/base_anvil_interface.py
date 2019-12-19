@@ -37,7 +37,7 @@ class BaseAnvilInterface(Interface):
 
             "entities": ["list"],
             "entity_format": ["namespace-str-identifier"],
-            "entity_coord_format": ["Pos-list-float"],
+            "entity_coord_format": ["Pos-list-double"],
             
             
             "tile_ticks": ["list", "list(optional)"],
@@ -324,36 +324,38 @@ class BaseAnvilInterface(Interface):
     def _decode_entities(self, entities: amulet_nbt.TAG_List) -> List[Entity]:
         entities_out = []
         if self.features['entity_format'] == 'namespace-str-id':
-            if self.features['entity_coord_format'] == "Pos-list-float":
+            if self.features['entity_coord_format'] == "Pos-list-double":
                 for nbt in entities:
                     if not isinstance(nbt, amulet_nbt.TAG_Compound):
                         continue
                     entity_name, (x, y, z) = [nbt.pop(key).value for key in ['id', 'Pos']]
+                    (x, y, z) = [c.value for c in (x, y, z)]
                     namespace, base_name = entity_name.split(':', 1)
                     entities_out.append(Entity(namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=amulet_nbt.NBTFile(nbt)))
 
         elif self.features['entity_format'] == 'str-id':  # I don't think this was ever a thing on Java
-            if self.features['entity_coord_format'] == "Pos-list-float":
+            if self.features['entity_coord_format'] == "Pos-list-double":
                 for nbt in entities:
                     if not isinstance(nbt, amulet_nbt.TAG_Compound):
                         continue
                     base_name, (x, y, z) = [nbt.pop(key).value for key in ['id', 'Pos']]
+                    (x, y, z) = [c.value for c in (x, y, z)]
                     entities_out.append(Entity(namespace=None, base_name=base_name, x=x, y=y, z=z, nbt=amulet_nbt.NBTFile(nbt)))
         return entities_out
 
     def _encode_entities(self, entities: List[Entity]) -> amulet_nbt.TAG_List:
         entities_out = []
         if self.features['entity_format'] == 'namespace-str-id':
-            if self.features['entity_coord_format'] == "Pos-list-float":
+            if self.features['entity_coord_format'] == "Pos-list-double":
                 for entity in entities:
                     if not isinstance(entity.nbt, amulet_nbt.NBTFile) and isinstance(entity.nbt.value, amulet_nbt.TAG_Compound):
                         continue
                     nbt = copy.deepcopy(entity.nbt.value)
                     nbt['id'] = amulet_nbt.TAG_String(entity.namespaced_name)
                     nbt['Pos'] = amulet_nbt.TAG_List([
-                        amulet_nbt.TAG_Float(entity.x),
-                        amulet_nbt.TAG_Float(entity.y),
-                        amulet_nbt.TAG_Float(entity.z)
+                        amulet_nbt.TAG_Double(entity.x),
+                        amulet_nbt.TAG_Double(entity.y),
+                        amulet_nbt.TAG_Double(entity.z)
                     ])
                     entities_out.append(nbt)
 

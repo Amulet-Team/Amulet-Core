@@ -50,7 +50,7 @@ class Anvil113Interface(BaseAnvilInterface):
 
         self.features["entities"] = "list"
         self.features["entity_format"] = "namespace-str-id"
-        self.features["entity_coord_format"] = "Pos-list-float"
+        self.features["entity_coord_format"] = "Pos-list-double"
 
         self.features["tile_ticks"] = "list"
 
