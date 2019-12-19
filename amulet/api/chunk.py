@@ -111,7 +111,7 @@ class Chunk:
             self._biomes = Biomes(self, value)
 
     @property
-    def entities(self) -> EntityList[Entity]:
+    def entities(self) -> List[Entity]:
         """
         Property that returns the chunk's entity list. Setting this property replaces the chunk's entity list
 

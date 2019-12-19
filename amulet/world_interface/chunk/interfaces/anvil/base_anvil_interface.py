@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from typing import List, Tuple, Union, Any
-
+import copy
 import numpy
+
 import amulet_nbt as amulet_nbt
 
 from amulet.api.chunk import Chunk
@@ -278,6 +279,9 @@ class BaseAnvilInterface(Interface):
         if self.features["entities"] == "list":
             data["Level"]["Entities"] = self._encode_entities(chunk.entities)
 
+        if self.features["block_entities"] == "list":
+            data["Level"]["TileEntities"] = self._encode_block_entities(chunk.block_entities)
+
         if self.features["tile_ticks"] in ["list", "list(optional)"]:
             ticks = misc.get("tile_ticks", amulet_nbt.TAG_List())
             if self.features["tile_ticks"] == "list(optional)":
@@ -322,19 +326,38 @@ class BaseAnvilInterface(Interface):
         if self.features['entity_format'] == 'namespace-str-id':
             if self.features['entity_coord_format'] == "Pos-list-float":
                 for nbt in entities:
+                    if not isinstance(nbt, amulet_nbt.TAG_Compound):
+                        continue
                     entity_name, (x, y, z) = [nbt.pop(key).value for key in ['id', 'Pos']]
                     namespace, base_name = entity_name.split(':', 1)
-                    entities_out.append(Entity(namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=nbt))
+                    entities_out.append(Entity(namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=amulet_nbt.NBTFile(nbt)))
 
         elif self.features['entity_format'] == 'str-id':  # I don't think this was ever a thing on Java
             if self.features['entity_coord_format'] == "Pos-list-float":
                 for nbt in entities:
+                    if not isinstance(nbt, amulet_nbt.TAG_Compound):
+                        continue
                     base_name, (x, y, z) = [nbt.pop(key).value for key in ['id', 'Pos']]
-                    entities_out.append(Entity(namespace=None, base_name=base_name, x=x, y=y, z=z, nbt=nbt))
+                    entities_out.append(Entity(namespace=None, base_name=base_name, x=x, y=y, z=z, nbt=amulet_nbt.NBTFile(nbt)))
         return entities_out
 
-    def _encode_entities(self, entities: List[BlockEntity]) -> amulet_nbt.TAG_List:
-        return amulet_nbt.TAG_List([])
+    def _encode_entities(self, entities: List[Entity]) -> amulet_nbt.TAG_List:
+        entities_out = []
+        if self.features['entity_format'] == 'namespace-str-id':
+            if self.features['entity_coord_format'] == "Pos-list-float":
+                for entity in entities:
+                    if not isinstance(entity.nbt, amulet_nbt.NBTFile) and isinstance(entity.nbt.value, amulet_nbt.TAG_Compound):
+                        continue
+                    nbt = copy.deepcopy(entity.nbt.value)
+                    nbt['id'] = amulet_nbt.TAG_String(entity.namespaced_name)
+                    nbt['Pos'] = amulet_nbt.TAG_List([
+                        amulet_nbt.TAG_Float(entity.x),
+                        amulet_nbt.TAG_Float(entity.y),
+                        amulet_nbt.TAG_Float(entity.z)
+                    ])
+                    entities_out.append(nbt)
+
+        return amulet_nbt.TAG_List(entities_out)
 
     def _decode_block_entities(self, block_entities: amulet_nbt.TAG_List) -> List[BlockEntity]:
         block_entities_out = []
@@ -353,7 +376,20 @@ class BaseAnvilInterface(Interface):
         return block_entities_out
 
     def _encode_block_entities(self, block_entities: List[BlockEntity]) -> amulet_nbt.TAG_List:
-        return amulet_nbt.TAG_List([])
+        block_entities_out = []
+        if self.features['entity_format'] == 'namespace-str-id':
+            if self.features['entity_coord_format'] == "xyz-int":
+                for blockentity in block_entities:
+                    if not isinstance(blockentity.nbt, amulet_nbt.NBTFile) and isinstance(blockentity.nbt.value, amulet_nbt.TAG_Compound):
+                        continue
+                    nbt = copy.deepcopy(blockentity.nbt.value)
+                    nbt['id'] = amulet_nbt.TAG_String(blockentity.namespaced_name)
+                    nbt['x'] = amulet_nbt.TAG_Int(blockentity.x)
+                    nbt['y'] = amulet_nbt.TAG_Int(blockentity.y)
+                    nbt['z'] = amulet_nbt.TAG_Int(blockentity.z)
+                    block_entities_out.append(nbt)
+
+        return amulet_nbt.TAG_List(block_entities_out)
 
     def _decode_blocks(
         self, chunk_sections: amulet_nbt.TAG_List
