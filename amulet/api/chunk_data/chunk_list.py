@@ -1,3 +1,4 @@
+from collections import UserList
 from typing import TYPE_CHECKING, Iterable, Union, overload, Any
 import copy
 from amulet.api.entity import Entity
@@ -7,9 +8,9 @@ if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
 
 
-class ChunkList(list):
-    def __init__(self, parent_chunk: 'Chunk', iterable: Iterable = ()):
-        super().__init__(iterable)
+class ChunkList(UserList):
+    def __init__(self, parent_chunk: "Chunk", iterable: Iterable = ()):
+        self.data = list(iterable)
         self._parent_chunk = parent_chunk
 
     def _check_all_types(self, value):
@@ -32,7 +33,7 @@ class ChunkList(list):
         self._dirty()
         super().clear()
 
-    def copy(self) -> 'ChunkList':
+    def copy(self) -> "ChunkList":
         return copy.deepcopy(self)
 
     def extend(self, iterable: Iterable) -> None:
@@ -47,7 +48,7 @@ class ChunkList(list):
         self._dirty()
         super().insert(index, value)
 
-    def pop(self, index: int=-1) -> Any:
+    def pop(self, index: int = -1) -> Any:
         """
         Remove and return item at index (default last).
 
@@ -80,12 +81,12 @@ class ChunkList(list):
         self._dirty()
         super().__delitem__(i)
 
-    def __iadd__(self, x: 'ChunkList') -> 'ChunkList':
+    def __iadd__(self, x: "ChunkList") -> "ChunkList":
         """ Implement self+=value. """
         self._dirty()
         return super().__iadd__(x)
 
-    def __imul__(self, n: int) -> 'ChunkList':
+    def __imul__(self, n: int) -> "ChunkList":
         """ Implement self*=value. """
         self._dirty()
         return super().__imul__(n)
@@ -106,7 +107,7 @@ class BlockEntityList(ChunkList):
 
     def __repr__(self) -> str:
         """ Return repr(self). """
-        return f'BlockEntityList({self._parent_chunk.cx},{self._parent_chunk.cz},{super().__repr__()})'
+        return f"BlockEntityList({self._parent_chunk.cx},{self._parent_chunk.cz},{super().__repr__()})"
 
 
 class EntityList(ChunkList):
@@ -115,7 +116,7 @@ class EntityList(ChunkList):
 
     def __repr__(self) -> str:
         """ Return repr(self). """
-        return f'EntityList({self._parent_chunk.cx},{self._parent_chunk.cz},{super().__repr__()})'
+        return f"EntityList({self._parent_chunk.cx},{self._parent_chunk.cz},{super().__repr__()})"
 
 
 if __name__ == "__main__":
@@ -125,12 +126,11 @@ if __name__ == "__main__":
 
     c = Chunk(0, 0)
     block_ents = [
-        Entity('minecraft', 'creeper', 0, 0, 0, amulet_nbt.NBTFile()),
-        Entity('minecraft', 'cow', 0, 0, 0, amulet_nbt.NBTFile()),
-        Entity('minecraft', 'pig', 0, 0, 0, amulet_nbt.NBTFile()),
-        Entity('minecraft', 'sheep', 0, 0, 0, amulet_nbt.NBTFile())
+        Entity("minecraft", "creeper", 0, 0, 0, amulet_nbt.NBTFile()),
+        Entity("minecraft", "cow", 0, 0, 0, amulet_nbt.NBTFile()),
+        Entity("minecraft", "pig", 0, 0, 0, amulet_nbt.NBTFile()),
+        Entity("minecraft", "sheep", 0, 0, 0, amulet_nbt.NBTFile()),
     ]
-    c.entities.append(Entity('minecraft', 'cow', 0, 0, 0, amulet_nbt.NBTFile()))
+    c.entities.append(Entity("minecraft", "cow", 0, 0, 0, amulet_nbt.NBTFile()))
     c.entities += block_ents
     print(c.entities)
-

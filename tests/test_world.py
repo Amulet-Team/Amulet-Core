@@ -297,6 +297,7 @@ class WorldTestBaseCases:
                 0, len([x for x in self.world.get_sub_chunks(*subbox1.to_slice())])
             )
 
+        @unittest.skip("Entity API currently being rewritten")
         def test_get_entities(
             self
         ):  # TODO: Make a more complete test once we figure out what get_entities() returns
