@@ -4,6 +4,7 @@ import copy
 from sys import getsizeof
 import re
 from typing import Dict, Iterable, List, Tuple, Union, overload, Generator
+import amulet_nbt
 
 from .errors import InvalidBlockException
 from ..utils import Int
@@ -141,7 +142,7 @@ class Block:
         return self._base_name
 
     @property
-    def properties(self) -> Dict[str, Union[str, bool, int]]:
+    def properties(self) -> Dict[str, Union[str, amulet_nbt._TAG_Value]]:
         """
         The mapping of properties of the blockstate represented by the Block object (IE: `{"level": "1"}`)
 
