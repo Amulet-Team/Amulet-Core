@@ -40,13 +40,13 @@ class Interface:
         raise NotImplementedError()
 
     def _decode_entity(self, nbt: amulet_nbt.NBTFile, id_type: str, coord_type: str) -> Union[Entity, None]:
-        entity = self._decode_entity(nbt, id_type, coord_type)
+        entity = self._decode_base_entity(nbt, id_type, coord_type)
         if entity is not None:
             namespace, base_name, x, y, z, nbt = entity
             return Entity(namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=nbt)
 
     def _decode_block_entity(self, nbt: amulet_nbt.NBTFile, id_type: str, coord_type: str) -> Union[BlockEntity, None]:
-        entity = self._decode_entity(nbt, id_type, coord_type)
+        entity = self._decode_base_entity(nbt, id_type, coord_type)
         if entity is not None:
             namespace, base_name, x, y, z, nbt = entity
             return BlockEntity(namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=nbt)
