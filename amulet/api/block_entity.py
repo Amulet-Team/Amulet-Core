@@ -16,7 +16,7 @@ class BlockEntity:
         self._namespaced_name = ('' if self.namespace in ['', None] else f'{self.namespace}:') + self.base_name
 
     def __repr__(self):
-        return f'BlockEntity[{self.namespaced_name}, {self.x}, {self.y}, {self.z}]'
+        return f'BlockEntity[{self.namespaced_name}, {self.x}, {self.y}, {self.z}]{{{self.nbt}}}'
 
     @property
     def namespaced_name(self) -> str:
