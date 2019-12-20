@@ -140,31 +140,12 @@ class BaseLevelDBInterface(Interface):
 
         # unpack block entities and entities
         if self.features['block_entities'] == "31list":
-            chunk.block_entities = []
-            block_entity = self._unpack_nbt_list(data.get(b'\x31', b''))
-            if self.features['block_entity_format'] == 'namespace-str-id':
-                raise NotImplementedError  # Bedrock currently still uses non-namespaced block entities
-            elif self.features['block_entity_format'] == 'str-id':
-                if self.features['block_entity_coord_format'] == 'xyz-int':
-                    for nbt in block_entity:
-                        base_name, x, y, z = [nbt.pop(key).value for key in ['id', 'x', 'y', 'z']]
-                        chunk.block_entities.append(BlockEntity(namespace=None, base_name=base_name, x=x, y=y, z=z, nbt=nbt))
+            block_entities = self._unpack_nbt_list(data.get(b'\x31', b''))
+            chunk.block_entities = self._decode_block_entities(block_entities)
 
         if self.features['entities'] == "32list":
-            chunk.entities = []
-            entity = self._unpack_nbt_list(data.get(b'\x32', b''))
-            if self.features['entity_format'] == 'namespace-str-identifier':
-                if self.features['entity_coord_format'] == "Pos-list-float":
-                    for nbt in entity:
-                        entity_name, (x, y, z) = [nbt.pop(key).value for key in ['identifier', 'Pos']]
-                        namespace, base_name = entity_name.split(':', 1)
-                        chunk.entities.append(Entity(namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=nbt))
-
-            elif self.features['entity_format'] == 'str-id':
-                if self.features['entity_coord_format'] == "Pos-list-float":
-                    for nbt in entity:
-                        base_name, (x, y, z) = [nbt.pop(key).value for key in ['id', 'Pos']]
-                        chunk.entities.append(Entity(namespace=None, base_name=base_name, x=x, y=y, z=z, nbt=nbt))
+            entities = self._unpack_nbt_list(data.get(b'\x32', b''))
+            chunk.entities = self._decode_entities(entities)
 
         return chunk, palette
 
@@ -207,6 +188,23 @@ class BaseLevelDBInterface(Interface):
                 d2d = b"\x00" * 512
             d2d += chunk.biomes.convert_to_format(256).astype("uint8").tobytes()
             chunk_data[b"\x2D"] = d2d
+
+        # pack block entities and entities
+        if self.features['block_entities'] == "31list":
+            block_entities_out = self._encode_block_entities(chunk.block_entities)
+
+            if block_entities_out:
+                chunk_data[b'\x31'] = self._pack_nbt_list(block_entities_out)
+            else:
+                chunk_data[b'\x31'] = None
+
+        if self.features['entities'] == "32list":
+            entities_out = self._encode_entities(chunk.entities)
+
+            if entities_out:
+                chunk_data[b'\x32'] = self._pack_nbt_list(entities_out)
+            else:
+                chunk_data[b'\x32'] = None
 
         return chunk_data
 
@@ -622,3 +620,39 @@ class BaseLevelDBInterface(Interface):
 
     def _pack_nbt_list(self, nbt_list: List[amulet_nbt.NBTFile]):
         return b''.join([nbt.save_to(compressed=False, little_endian=True) for nbt in nbt_list if isinstance(nbt, amulet_nbt.NBTFile)])
+
+    def _decode_entities(self, entities: List[amulet_nbt.NBTFile]) -> List[Entity]:
+        entities_out = []
+        for nbt in entities:
+            entity = self._decode_entity(nbt, self.features['entity_format'], self.features['entity_coord_format'])
+            if entity is not None:
+                entities_out.append(entity)
+
+        return entities_out
+
+    def _encode_entities(self, entities: List[Entity]) -> List[amulet_nbt.NBTFile]:
+        entities_out = []
+        for entity in entities:
+            nbt = self._encode_entity(entity, self.features['entity_format'], self.features['entity_coord_format'])
+            if nbt is not None:
+                entities_out.append(nbt.value)
+
+        return entities_out
+
+    def _decode_block_entities(self, block_entities: List[amulet_nbt.NBTFile]) -> List[BlockEntity]:
+        entities_out = []
+        for nbt in block_entities:
+            entity = self._decode_block_entity(nbt, self.features['block_entity_format'], self.features['block_entity_coord_format'])
+            if entity is not None:
+                entities_out.append(entity)
+
+        return entities_out
+
+    def _encode_block_entities(self, block_entities: List[BlockEntity]) -> List[amulet_nbt.NBTFile]:
+        entities_out = []
+        for entity in block_entities:
+            nbt = self._encode_block_entity(entity, self.features['block_entity_format'], self.features['block_entity_coord_format'])
+            if nbt is not None:
+                entities_out.append(nbt.value)
+
+        return entities_out

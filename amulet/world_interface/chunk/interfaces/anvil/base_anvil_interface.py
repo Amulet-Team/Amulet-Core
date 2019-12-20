@@ -321,75 +321,39 @@ class BaseAnvilInterface(Interface):
 
     def _decode_entities(self, entities: amulet_nbt.TAG_List) -> List[Entity]:
         entities_out = []
-        if self.features['entity_format'] == 'namespace-str-id':
-            if self.features['entity_coord_format'] == "Pos-list-double":
-                for nbt in entities:
-                    if not isinstance(nbt, amulet_nbt.TAG_Compound):
-                        continue
-                    entity_name, (x, y, z) = [nbt.pop(key).value for key in ['id', 'Pos']]
-                    (x, y, z) = [c.value for c in (x, y, z)]
-                    namespace, base_name = entity_name.split(':', 1)
-                    entities_out.append(Entity(namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=amulet_nbt.NBTFile(nbt)))
+        for nbt in entities:
+            entity = self._decode_entity(amulet_nbt.NBTFile(nbt), self.features['entity_format'], self.features['entity_coord_format'])
+            if entity is not None:
+                entities_out.append(entity)
 
-        elif self.features['entity_format'] == 'str-id':  # I don't think this was ever a thing on Java
-            if self.features['entity_coord_format'] == "Pos-list-double":
-                for nbt in entities:
-                    if not isinstance(nbt, amulet_nbt.TAG_Compound):
-                        continue
-                    base_name, (x, y, z) = [nbt.pop(key).value for key in ['id', 'Pos']]
-                    (x, y, z) = [c.value for c in (x, y, z)]
-                    entities_out.append(Entity(namespace=None, base_name=base_name, x=x, y=y, z=z, nbt=amulet_nbt.NBTFile(nbt)))
         return entities_out
 
     def _encode_entities(self, entities: List[Entity]) -> amulet_nbt.TAG_List:
         entities_out = []
-        if self.features['entity_format'] == 'namespace-str-id':
-            if self.features['entity_coord_format'] == "Pos-list-double":
-                for entity in entities:
-                    if not isinstance(entity.nbt, amulet_nbt.NBTFile) and isinstance(entity.nbt.value, amulet_nbt.TAG_Compound):
-                        continue
-                    nbt = entity.nbt.value
-                    nbt['id'] = amulet_nbt.TAG_String(entity.namespaced_name)
-                    nbt['Pos'] = amulet_nbt.TAG_List([
-                        amulet_nbt.TAG_Double(entity.x),
-                        amulet_nbt.TAG_Double(entity.y),
-                        amulet_nbt.TAG_Double(entity.z)
-                    ])
-                    entities_out.append(nbt)
+        for entity in entities:
+            nbt = self._encode_entity(entity, self.features['entity_format'], self.features['entity_coord_format'])
+            if nbt is not None:
+                entities_out.append(nbt.value)
 
         return amulet_nbt.TAG_List(entities_out)
 
     def _decode_block_entities(self, block_entities: amulet_nbt.TAG_List) -> List[BlockEntity]:
-        block_entities_out = []
-        if self.features['block_entity_format'] == 'namespace-str-id':
-            if self.features['block_entity_coord_format'] == "xyz-int":
-                for nbt in block_entities:
-                    block_entity_name, x, y, z = [nbt.pop(key).value for key in ['id', 'x', 'y', 'z']]
-                    namespace, base_name = block_entity_name.split(':', 1)
-                    block_entities_out.append(BlockEntity(namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=amulet_nbt.NBTFile(nbt)))
+        entities_out = []
+        for nbt in block_entities:
+            entity = self._decode_block_entity(amulet_nbt.NBTFile(nbt), self.features['block_entity_format'], self.features['block_entity_coord_format'])
+            if entity is not None:
+                entities_out.append(entity)
 
-        elif self.features['block_entity_format'] == 'str-id':
-            if self.features['block_entity_coord_format'] == 'xyz-int':
-                for nbt in block_entities:
-                    base_name, x, y, z = [nbt.pop(key).value for key in ['id', 'x', 'y', 'z']]
-                    block_entities_out.append(BlockEntity(namespace=None, base_name=base_name, x=x, y=y, z=z, nbt=amulet_nbt.NBTFile(nbt)))
-        return block_entities_out
+        return entities_out
 
     def _encode_block_entities(self, block_entities: List[BlockEntity]) -> amulet_nbt.TAG_List:
-        block_entities_out = []
-        if self.features['block_entity_format'] == 'namespace-str-id':
-            if self.features['block_entity_coord_format'] == "xyz-int":
-                for blockentity in block_entities:
-                    if not isinstance(blockentity.nbt, amulet_nbt.NBTFile) and isinstance(blockentity.nbt.value, amulet_nbt.TAG_Compound):
-                        continue
-                    nbt = blockentity.nbt.value
-                    nbt['id'] = amulet_nbt.TAG_String(blockentity.namespaced_name)
-                    nbt['x'] = amulet_nbt.TAG_Int(blockentity.x)
-                    nbt['y'] = amulet_nbt.TAG_Int(blockentity.y)
-                    nbt['z'] = amulet_nbt.TAG_Int(blockentity.z)
-                    block_entities_out.append(nbt)
+        entities_out = []
+        for entity in block_entities:
+            nbt = self._encode_block_entity(entity, self.features['block_entity_format'], self.features['block_entity_coord_format'])
+            if nbt is not None:
+                entities_out.append(nbt.value)
 
-        return amulet_nbt.TAG_List(block_entities_out)
+        return amulet_nbt.TAG_List(entities_out)
 
     def _decode_blocks(
         self, chunk_sections: amulet_nbt.TAG_List
