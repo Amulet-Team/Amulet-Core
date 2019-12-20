@@ -635,7 +635,7 @@ class BaseLevelDBInterface(Interface):
         for entity in entities:
             nbt = self._encode_entity(entity, self.features['entity_format'], self.features['entity_coord_format'])
             if nbt is not None:
-                entities_out.append(nbt.value)
+                entities_out.append(nbt)
 
         return entities_out
 
@@ -653,6 +653,6 @@ class BaseLevelDBInterface(Interface):
         for entity in block_entities:
             nbt = self._encode_block_entity(entity, self.features['block_entity_format'], self.features['block_entity_coord_format'])
             if nbt is not None:
-                entities_out.append(nbt.value)
+                entities_out.append(nbt)
 
         return entities_out
