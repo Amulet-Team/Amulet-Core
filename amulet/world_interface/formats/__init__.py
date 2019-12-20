@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Tuple, Any, Union, Generator
+from typing import Tuple, Any, Union, Generator, Dict
 
 import numpy
 import PyMCTranslate
@@ -124,12 +124,15 @@ class Format:
 
         # set up a callback that translator can use to get chunk data
         if recurse:
-            # TODO: this could do with a way to chache translated chunks so that they are not translated multiple times
+            chunk_cache: Dict[Tuple[int, int], Tuple[Chunk, BlockManager]] = {}
+
             def get_chunk_callback(x, z):
                 palette = BlockManager()
-                chunk_ = self._load_chunk(cx + x, cz + z, dimension, palette, False)
-                return chunk_, palette
-
+                cx_, cz_ = cx + x, cz + z
+                if (cx_, cz_) not in chunk_cache:
+                    chunk_ = self._load_chunk(cx_, cz_, dimension, palette, False)
+                    chunk_cache[(cx_, cz_)] = chunk_, palette
+                return chunk_cache[(cx_, cz_)]
         else:
             get_chunk_callback = None
 
