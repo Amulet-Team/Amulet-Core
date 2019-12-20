@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import List, Tuple, Union, Any
-import copy
 import numpy
 
 import amulet_nbt as amulet_nbt
@@ -349,7 +348,7 @@ class BaseAnvilInterface(Interface):
                 for entity in entities:
                     if not isinstance(entity.nbt, amulet_nbt.NBTFile) and isinstance(entity.nbt.value, amulet_nbt.TAG_Compound):
                         continue
-                    nbt = copy.deepcopy(entity.nbt.value)
+                    nbt = entity.nbt.value
                     nbt['id'] = amulet_nbt.TAG_String(entity.namespaced_name)
                     nbt['Pos'] = amulet_nbt.TAG_List([
                         amulet_nbt.TAG_Double(entity.x),
@@ -383,7 +382,7 @@ class BaseAnvilInterface(Interface):
                 for blockentity in block_entities:
                     if not isinstance(blockentity.nbt, amulet_nbt.NBTFile) and isinstance(blockentity.nbt.value, amulet_nbt.TAG_Compound):
                         continue
-                    nbt = copy.deepcopy(blockentity.nbt.value)
+                    nbt = blockentity.nbt.value
                     nbt['id'] = amulet_nbt.TAG_String(blockentity.namespaced_name)
                     nbt['x'] = amulet_nbt.TAG_Int(blockentity.x)
                     nbt['y'] = amulet_nbt.TAG_Int(blockentity.y)
