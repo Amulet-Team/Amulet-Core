@@ -39,8 +39,20 @@ class Interface:
         """
         raise NotImplementedError()
 
+    def _decode_entity(self, nbt: amulet_nbt.NBTFile, id_type: str, coord_type: str) -> Union[Entity, None]:
+        entity = self._decode_entity(nbt, id_type, coord_type)
+        if entity is not None:
+            namespace, base_name, x, y, z, nbt = entity
+            return Entity(namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=nbt)
+
+    def _decode_block_entity(self, nbt: amulet_nbt.NBTFile, id_type: str, coord_type: str) -> Union[BlockEntity, None]:
+        entity = self._decode_entity(nbt, id_type, coord_type)
+        if entity is not None:
+            namespace, base_name, x, y, z, nbt = entity
+            return BlockEntity(namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=nbt)
+
     @staticmethod
-    def _decode_entity(nbt: amulet_nbt.NBTFile, id_type: str, coord_type: str) -> Union[Tuple[str, str, Union[int, float], Union[int, float], Union[int, float], amulet_nbt.NBTFile], None]:
+    def _decode_base_entity(nbt: amulet_nbt.NBTFile, id_type: str, coord_type: str) -> Union[Tuple[str, str, Union[int, float], Union[int, float], Union[int, float], amulet_nbt.NBTFile], None]:
         if not isinstance(nbt, amulet_nbt.NBTFile) and isinstance(nbt.value, amulet_nbt.TAG_Compound):
             return
 
@@ -96,8 +108,14 @@ class Interface:
         """
         raise NotImplementedError()
 
+    def _encode_entity(self, entity: Entity, id_type: str, coord_type: str) -> Union[amulet_nbt.NBTFile, None]:
+        return self._encode_base_entity(entity, id_type, coord_type)
+
+    def _encode_block_entity(self, entity: BlockEntity, id_type: str, coord_type: str) -> Union[amulet_nbt.NBTFile, None]:
+        return self._encode_base_entity(entity, id_type, coord_type)
+
     @staticmethod
-    def _encode_entity(entity: Union[Entity, BlockEntity], id_type: str, coord_type: str) -> Union[amulet_nbt.NBTFile, None]:
+    def _encode_base_entity(entity: Union[Entity, BlockEntity], id_type: str, coord_type: str) -> Union[amulet_nbt.NBTFile, None]:
         if not isinstance(entity.nbt, amulet_nbt.NBTFile) and isinstance(entity.nbt.value, amulet_nbt.TAG_Compound):
             return
         nbt = entity.nbt
