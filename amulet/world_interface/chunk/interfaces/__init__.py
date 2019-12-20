@@ -5,8 +5,11 @@ import numpy
 from typing import Tuple, Any, Union
 
 from amulet.api.chunk import Chunk
+from amulet.api.block_entity import BlockEntity
+from amulet.api.entity import Entity
 from amulet.world_interface.chunk import translators
 from amulet.world_interface.loader import Loader
+import amulet_nbt
 
 SUPPORTED_INTERFACE_VERSION = 0
 SUPPORTED_META_VERSION = 0
@@ -36,6 +39,46 @@ class Interface:
         """
         raise NotImplementedError()
 
+    @staticmethod
+    def _decode_entity(nbt: amulet_nbt.NBTFile, id_type: str, coord_type: str) -> Union[Tuple[str, str, Union[int, float], Union[int, float], Union[int, float], amulet_nbt.NBTFile], None]:
+        if not isinstance(nbt, amulet_nbt.NBTFile) and isinstance(nbt.value, amulet_nbt.TAG_Compound):
+            return
+
+        if id_type in ['namespace-str-id', 'namespace-str-identifier', 'str-id']:
+            id_key = 'identifier' if id_type == 'namespace-str-identifier' else 'id'
+
+            entity_id = nbt.pop(id_key, amulet_nbt.TAG_String(''))
+
+            if not isinstance(entity_id, amulet_nbt.TAG_String) or entity_id.value == '':
+                return
+
+            if id_type == 'str-id':
+                namespace = None
+                base_name = entity_id.value
+            else:
+                if ':' not in entity_id.value:
+                    return
+                namespace, base_name = entity_id.value.split(':', 1)
+        else:
+            return
+
+        if coord_type in ['Pos-list-double', 'Pos-list-float']:
+            if 'Pos' not in nbt:
+                return
+            pos = nbt.pop('Pos')
+            pos: amulet_nbt.TAG_List
+            if not (5 <= pos.list_data_type <= 6 and len(pos) == 3):
+                return
+            x, y, z = [c.value for c in pos]
+        elif coord_type == 'xyz-int':
+            if not all(c in nbt and isinstance(nbt[c], amulet_nbt.TAG_Int) for c in ('x', 'y', 'z')):
+                return
+            x, y, z = [nbt[c].value for c in ('x', 'y', 'z')]
+        else:
+            return
+
+        return namespace, base_name, x, y, z, nbt
+
     def encode(
         self,
         chunk: Chunk,
@@ -52,6 +95,42 @@ class Interface:
         :rtype: Any
         """
         raise NotImplementedError()
+
+    @staticmethod
+    def _encode_entity(entity: Union[Entity, BlockEntity], id_type: str, coord_type: str) -> Union[amulet_nbt.NBTFile, None]:
+        if not isinstance(entity.nbt, amulet_nbt.NBTFile) and isinstance(entity.nbt.value, amulet_nbt.TAG_Compound):
+            return
+        nbt = entity.nbt
+
+        if id_type == 'namespace-str-id':
+            nbt['id'] = amulet_nbt.TAG_String(entity.namespaced_name)
+        elif id_type == 'namespace-str-identifier':
+            nbt['identifier'] = amulet_nbt.TAG_String(entity.namespaced_name)
+        elif id_type == 'str-id':
+            nbt['id'] = amulet_nbt.TAG_String(entity.base_name)
+        else:
+            return
+
+        if coord_type == 'Pos-list-double':
+            nbt['Pos'] = amulet_nbt.TAG_List([
+                amulet_nbt.TAG_Double(float(entity.x)),
+                amulet_nbt.TAG_Double(float(entity.y)),
+                amulet_nbt.TAG_Double(float(entity.z))
+            ])
+        elif coord_type == 'Pos-list-float':
+            nbt['Pos'] = amulet_nbt.TAG_List([
+                amulet_nbt.TAG_Float(float(entity.x)),
+                amulet_nbt.TAG_Float(float(entity.y)),
+                amulet_nbt.TAG_Float(float(entity.z))
+            ])
+        elif coord_type == 'xyz-int':
+            nbt['x'] = amulet_nbt.TAG_Int(int(entity.x))
+            nbt['y'] = amulet_nbt.TAG_Int(int(entity.y))
+            nbt['z'] = amulet_nbt.TAG_Int(int(entity.z))
+        else:
+            return
+
+        return nbt
 
     def get_translator(
         self,
