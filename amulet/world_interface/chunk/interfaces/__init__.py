@@ -85,7 +85,7 @@ class Interface:
         elif coord_type == 'xyz-int':
             if not all(c in nbt and isinstance(nbt[c], amulet_nbt.TAG_Int) for c in ('x', 'y', 'z')):
                 return
-            x, y, z = [nbt[c].value for c in ('x', 'y', 'z')]
+            x, y, z = [nbt.pop(c).value for c in ('x', 'y', 'z')]
         else:
             return
 
