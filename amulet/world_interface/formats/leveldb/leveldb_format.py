@@ -66,7 +66,7 @@ class LevelDBLevelManager:
         Will raise ChunkDoesNotExist if the chunk does not exist
         """
         iter_start = struct.pack("<ii", cx, cz)
-        iter_end = struct.pack("<ii", cx, cz + 1)
+        iter_end = iter_start + b'\xff'
         if level in self._levels and (cx, cz) in self._levels[level]:
             chunk_data = {}
             for key, val in self._db.iterate(iter_start, iter_end):
