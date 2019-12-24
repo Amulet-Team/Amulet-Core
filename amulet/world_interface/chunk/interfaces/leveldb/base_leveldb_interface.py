@@ -10,7 +10,7 @@ from amulet.api.block import Block
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
 from amulet.api.chunk import Chunk
-from amulet.utils.world_utils import get_smallest_dtype
+from amulet.utils.world_utils import get_smallest_dtype, fast_unique
 from amulet.world_interface.chunk.interfaces import Interface
 from amulet.world_interface.chunk import translators
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
@@ -379,12 +379,10 @@ class BaseLevelDBInterface(Interface):
             )
         chunk = []
         for y in range(0, 256, 16):
-            palette_index, sub_chunk = numpy.unique(
-                blocks[:, y:y + 16, :], return_inverse=True
-            )
+            palette_index, sub_chunk = fast_unique(blocks[:, y:y + 16, :])
             sub_chunk_palette = list(palette[palette_index])
             chunk.append(
-                b"\x01" + self._save_palette_subchunk(sub_chunk, sub_chunk_palette)
+                b"\x01" + self._save_palette_subchunk(sub_chunk.ravel(), sub_chunk_palette)
             )
         return chunk
 
@@ -464,9 +462,7 @@ class BaseLevelDBInterface(Interface):
 
         chunk = []
         for y in range(0, 256, 16):
-            palette_index, sub_chunk = numpy.unique(
-                blocks[:, y:y + 16, :], return_inverse=True
-            )
+            palette_index, sub_chunk = fast_unique(blocks[:, y:y + 16, :])
             sub_chunk_palette = palette[palette_index]
             sub_chunk_depth = palette_depth[palette_index].max()
 
@@ -494,7 +490,7 @@ class BaseLevelDBInterface(Interface):
                     sub_chunk_layer_palette, sub_chunk_remap = brute_sort_objects_no_hash(
                         sub_chunk_palette_full[:, sub_chunk_layer_index]
                     )
-                    sub_chunk_layer = sub_chunk_remap[sub_chunk]
+                    sub_chunk_layer = sub_chunk_remap[sub_chunk.ravel()]
 
                     # sub_chunk_layer, sub_chunk_layer_palette = sub_chunk, sub_chunk_palette_full[:, sub_chunk_layer_index]
                     sub_chunk_bytes.append(
