@@ -88,11 +88,9 @@ class Anvil112Interface(BaseAnvilInterface):
         blocks = numpy.swapaxes(blocks.swapaxes(0, 1), 0, 2)
         block_data = numpy.swapaxes(block_data.swapaxes(0, 1), 0, 2)
 
-        blocks = numpy.array((blocks, block_data)).T
-        palette, blocks = numpy.unique(
-            blocks.reshape(16 * 256 * 16, 2), return_inverse=True, axis=0
-        )
-        blocks = blocks.reshape(16, 256, 16, order="F")
+        blocks = (blocks << 4) + block_data
+        palette, blocks = world_utils.fast_unique(blocks)
+        palette = numpy.array([[elm >> 4, elm & 15] for elm in palette])
         return blocks, palette
 
     def _encode_blocks(
