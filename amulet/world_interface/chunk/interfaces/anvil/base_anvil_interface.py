@@ -76,7 +76,7 @@ class BaseAnvilInterface(Interface):
         chunk = Chunk(cx, cz)
 
         if self.features["last_update"] == "long":
-            misc["last_update"] = data["Level"]["LastUpdate"].value
+            misc["last_update"] = data["Level"].get("LastUpdate", amulet_nbt.TAG_Long(0)).value
 
         if self.features["status"] in ["j13", "j14"]:
             chunk.status = data["Level"]["Status"].value
@@ -99,7 +99,7 @@ class BaseAnvilInterface(Interface):
             misc["V"] = data["Level"]["V"].value
 
         if self.features["inhabited_time"] == "long":
-            misc["inhabited_time"] = data["Level"]["InhabitedTime"].value
+            misc["inhabited_time"] = data["Level"].get("InhabitedTime", amulet_nbt.TAG_Long(0)).value
 
         if self.features["biomes"] is not None:
             chunk.biomes = data["Level"]["Biomes"].value
