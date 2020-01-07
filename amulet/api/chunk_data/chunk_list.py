@@ -100,6 +100,11 @@ class ChunkList(UserList):
         self._dirty()
         super().__setitem__(i, o)
 
+    def __repr__(self):
+        if not self:
+            return '[]'
+        return ''.join(f'\n\t{str(obj)}' for obj in self) + '\n'
+
 
 class BlockEntityList(ChunkList):
     def _check_type(self, value):
