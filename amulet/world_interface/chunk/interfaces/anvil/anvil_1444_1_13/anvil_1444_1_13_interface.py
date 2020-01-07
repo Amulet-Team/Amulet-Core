@@ -29,7 +29,7 @@ def properties_to_string(props: dict) -> str:
     return ",".join(result)
 
 
-class Anvil113Interface(BaseAnvilInterface):
+class Anvil1444Interface(BaseAnvilInterface):
     def __init__(self):
         BaseAnvilInterface.__init__(self)
         self.features["data_version"] = "int"
@@ -37,7 +37,7 @@ class Anvil113Interface(BaseAnvilInterface):
 
         self.features["status"] = "j13"
         self.features["inhabited_time"] = "long"
-        self.features["biomes"] = "256IA"
+        self.features["biomes"] = "256BA"
         self.features["height_map"] = "C5|36LA"
 
         self.features["blocks"] = "Sections|(BlockStates,Palette)"
@@ -61,12 +61,8 @@ class Anvil113Interface(BaseAnvilInterface):
         self.features["structures"] = "compound"
 
     @staticmethod
-    def is_valid(key):
-        if key[0] != "java":
-            return False
-        if not 1343 < key[1] <= 1631:
-            return False
-        return True
+    def minor_is_valid(key: int):
+        return 1444 <= key < 1467
 
     def _decode_blocks(self, chunk_sections) -> Tuple[numpy.ndarray, numpy.ndarray]:
         if chunk_sections is None:
@@ -151,4 +147,4 @@ class Anvil113Interface(BaseAnvilInterface):
         return palette
 
 
-INTERFACE_CLASS = Anvil113Interface
+INTERFACE_CLASS = Anvil1444Interface

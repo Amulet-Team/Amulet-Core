@@ -49,6 +49,13 @@ class BaseAnvilInterface(Interface):
         }
         self.features = {key: None for key in feature_options.keys()}
 
+    def is_valid(self, key: Tuple) -> bool:
+        return key[0] == "java" and self.minor_is_valid(key[1])
+
+    @staticmethod
+    def minor_is_valid(key: int):
+        raise NotImplementedError
+
     def get_translator(
         self,
         max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],

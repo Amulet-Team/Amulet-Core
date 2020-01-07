@@ -38,12 +38,8 @@ class Anvil112Interface(BaseAnvilInterface):
         self.features["tile_ticks"] = "list"
 
     @staticmethod
-    def is_valid(key):
-        if key[0] != "java":
-            return False
-        if not 922 < key[1] <= 1343:
-            return False
-        return True
+    def minor_is_valid(key: int):
+        return 1022 <= key < 1444
 
     def _decode_blocks(
         self, chunk_sections: nbt.TAG_List
