@@ -1,0 +1,6 @@
+1466 - Heightmaps v1		switch from single height map to compound tag of height maps
+1467 - Biome Int Array
+1484 - Heightmaps v2		switch to a different naming system
+1503 - Heightmaps v3		WORLD_SURFACE height map added
+1908 - Heightmaps v4		LIGHT_BLOCKING height map removed
+2203 - Biome length 4096
