@@ -3,7 +3,7 @@
 "interface": {
     "id": "anvil_1_13",
     "name": "Anvil 1.13 Interface",
-    "entry_point": "anvil_1_13_interface",
+    "entry_point": "anvil_1901_interface",
     "interface_version": 0,
     "wrapper_version": -1
    }
