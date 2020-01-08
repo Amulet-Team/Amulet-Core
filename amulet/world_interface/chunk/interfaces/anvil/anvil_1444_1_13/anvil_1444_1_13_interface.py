@@ -6,9 +6,7 @@ import numpy
 import amulet_nbt as nbt
 
 from amulet.api.block import Block
-from amulet.world_interface.chunk.interfaces.anvil.base_anvil_interface import (
-    BaseAnvilInterface,
-)
+from ..base_anvil_interface import BaseAnvilInterface
 from amulet.utils.world_utils import (
     get_smallest_dtype,
     decode_long_array,
@@ -62,7 +60,7 @@ class Anvil1444Interface(BaseAnvilInterface):
 
     @staticmethod
     def minor_is_valid(key: int):
-        return 1444 <= key < 1467
+        return 1444 <= key < 1466
 
     def _decode_blocks(self, chunk_sections) -> Tuple[numpy.ndarray, numpy.ndarray]:
         if chunk_sections is None:

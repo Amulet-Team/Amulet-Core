@@ -1,9 +1,9 @@
 {
 "meta_version": 0,
 "interface": {
-    "id": "anvil_1_13",
+    "id": "anvil_1908_1_13",
     "name": "Anvil 1.13 Interface",
-    "entry_point": "anvil_1901_interface",
+    "entry_point": "anvil_1908_interface",
     "interface_version": 0,
     "wrapper_version": -1
    }

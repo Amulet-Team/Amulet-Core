@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from amulet.world_interface.chunk.interfaces.anvil.anvil_1901_1_14.anvil_1901_interface import (
-    Anvil1901Interface
-)
+from ..anvil_1908_1_14.anvil_1908_interface import Anvil1908Interface
 
 
-class Anvil2203Interface(Anvil1901Interface):
+class Anvil2203Interface(Anvil1908Interface):
     def __init__(self):
-        Anvil1901Interface.__init__(self)
+        Anvil1908Interface.__init__(self)
 
         # self.features["status"] = "j13"  # TODO check this
 

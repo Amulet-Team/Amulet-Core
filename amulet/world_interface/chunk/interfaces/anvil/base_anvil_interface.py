@@ -23,7 +23,7 @@ class BaseAnvilInterface(Interface):
             "V": ["byte"],  # int
             "inhabited_time": ["long"],  # int
             "biomes": ["256BA", "256IA", "1024IA"],  # Biomes
-            "height_map": ["256IA", "C5|36LA", "C6|36LA"],
+            "height_map": ["256IA", "C|36LA|V1", "C|36LA|V2", "C|36LA|V3", "C|36LA|V4"],
             # 'carving_masks': ['C|?BA'],
             "blocks": ["Sections|(Blocks,Data,Add)", "Sections|(BlockStates,Palette)"],
             "block_light": ["Sections|2048BA"],
@@ -113,8 +113,9 @@ class BaseAnvilInterface(Interface):
 
         if self.features["height_map"] == "256IA":
             misc["height_map256IA"] = data["Level"]["HeightMap"].value
-        elif self.features["height_map"] in ["C5|36LA", "C6|36LA"]:
-            misc["height_mapC|36LA"] = data["Level"]["Heightmaps"]
+        elif self.features["height_map"] in ["C|36LA|V1", "C|36LA|V2", "C|36LA|V3", "C|36LA|V4"]:
+            if "Heightmaps" in data["Level"]:
+                misc["height_mapC|36LA"] = data["Level"]["Heightmaps"]
 
         if self.features["blocks"] in [
             "Sections|(Blocks,Data,Add)",
@@ -223,24 +224,28 @@ class BaseAnvilInterface(Interface):
             data["Level"]["HeightMap"] = amulet_nbt.TAG_Int_Array(
                 misc.get("height_map256IA", numpy.zeros(256, dtype=numpy.uint32))
             )
-        elif self.features["height_map"] in ["C6|36LA", "C5|36LA"]:
-            if self.features["height_map"] == "C5|36LA":
+        elif self.features["height_map"] in ["C|36LA|V1", "C|36LA|V2", "C|36LA|V3", "C|36LA|V4"]:
+            maps = [
+                "WORLD_SURFACE_WG",
+                "OCEAN_FLOOR_WG",
+                "MOTION_BLOCKING",
+                "MOTION_BLOCKING_NO_LEAVES",
+                "OCEAN_FLOOR"
+            ]
+            if self.features["height_map"] == "C|36LA|V1":  # 1466
                 maps = (
-                    "LIGHT_BLOCKING",
-                    "MOTION_BLOCKING",
-                    "MOTION_BLOCKING_NO_LEAVES",
-                    "OCEAN_FLOOR",
-                    "WORLD_SURFACE",
+                    "LIQUID",
+                    "SOILD",
+                    "LIGHT",
+                    "RAIN"
                 )
-            elif self.features["height_map"] == "C6|36LA":
-                maps = (
-                    "MOTION_BLOCKING",
-                    "MOTION_BLOCKING_NO_LEAVES",
-                    "OCEAN_FLOOR",
-                    "OCEAN_FLOOR_WG",
-                    "WORLD_SURFACE",
-                    "WORLD_SURFACE_WG",
-                )
+            elif self.features["height_map"] == "C|36LA|V2":  # 1484
+                maps.append("LIGHT_BLOCKING")
+            elif self.features["height_map"] == "C|36LA|V3":  # 1503
+                maps.append("LIGHT_BLOCKING")
+                maps.append("WORLD_SURFACE")
+            elif self.features["height_map"] == "C|36LA|V4":  # 1908
+                maps.append("WORLD_SURFACE")
             else:
                 raise Exception
             heightmaps = misc.get("height_mapC|36LA", amulet_nbt.TAG_Compound())
