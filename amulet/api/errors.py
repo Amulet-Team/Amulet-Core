@@ -22,9 +22,9 @@ class LevelDoesNotExist(Exception):
     pass
 
 
-class ChunkDoesNotExist(Exception):
+class ChunkLoadError(Exception):
     pass
 
 
-class ChunkLoadError(Exception):
+class ChunkDoesNotExist(ChunkLoadError):
     pass
