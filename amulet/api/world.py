@@ -7,7 +7,7 @@ import shutil
 from typing import Union, Generator, Dict, Optional, Tuple, List
 
 from .block import Block, BlockManager
-from .errors import ChunkDoesNotExist
+from .errors import ChunkDoesNotExist, ChunkLoadError
 from .history_manager import ChunkHistoryManager
 from .chunk import Chunk, SubChunk
 from .operation import Operation
@@ -56,8 +56,11 @@ class World:
             wrapper.translation_manager = self.world_wrapper.translation_manager  # TODO: this might cause issues in the future
             for cx, cz in self.world_wrapper.all_chunk_coords():
                 print(cx, cz)
-                chunk = self.world_wrapper.load_chunk(cx, cz, self.palette)
-                wrapper.save_chunk(chunk, self.palette)
+                try:
+                    chunk = self.world_wrapper.load_chunk(cx, cz, self.palette)
+                    wrapper.save_chunk(chunk, self.palette)
+                except ChunkLoadError:
+                    pass
 
             for chunk in self.chunk_cache.values():
                 if chunk.changed:
@@ -83,7 +86,9 @@ class World:
 
     def get_chunk(self, cx: int, cz: int) -> Chunk:
         """
-        Gets the chunk data of the specified chunk coordinates
+        Gets the chunk data of the specified chunk coordinates.
+        If the chunk does not exist ChunkDoesNotExist is raised.
+        If some other error occurs then ChunkLoadError is raised (this error will also catch ChunkDoesNotExist)
 
         :param cx: The X coordinate of the desired chunk
         :param cz: The Z coordinate of the desired chunk
