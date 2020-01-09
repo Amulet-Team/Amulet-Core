@@ -98,7 +98,8 @@ class Format:
             return self._load_chunk(cx, cz, dimension, global_palette)
         except ChunkDoesNotExist as e:
             raise e
-        except:
+        except Exception as e:
+            print(f'Error loading chunk {cx} {cz}\n{e}')
             raise ChunkLoadError
 
     def _load_chunk(
@@ -166,8 +167,9 @@ class Format:
     ):
         try:
             self._save_chunk(chunk, dimension, global_palette)
-        except:
+        except Exception as e:
             # TODO: add a log entry here
+            print(f'Error saving chunk {chunk}\n{e}')
             pass
 
     def _save_chunk(
