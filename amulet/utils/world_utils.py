@@ -79,21 +79,30 @@ def gunzip(data):
 
 def from_nibble_array(arr: ndarray) -> ndarray:
     """
-    Unpacks a nibble array into a full size numpy array
+    Unpacks a flat nibble array into a full size numpy array
 
     :param arr: The nibble array
     :return: The resulting array
     """
-    shape = arr.shape
+    shape = arr.size
 
-    new_arr = zeros((shape[0], shape[1], shape[2] * 2), dtype=uint8)
+    new_arr = zeros((shape * 2), dtype=uint8)
 
-    new_arr[:, :, ::2] = arr
-    new_arr[:, :, ::2] &= 0xF
-    new_arr[:, :, 1::2] = arr
-    new_arr[:, :, 1::2] >>= 4
+    new_arr[::2] = arr & 0xF
+    new_arr[1::2] = arr >> 4
 
     return new_arr
+
+
+def to_nibble_array(arr: ndarray) -> ndarray:
+    """
+    packs a full size numpy array into a nibble array.
+
+    :param arr: Full numpy array
+    :return: The nibble array
+    """
+    arr = arr.ravel()
+    return (arr[::2] + (arr[1::2] << 4)).astype("uint8")
 
 
 def decode_long_array(long_array: numpy.ndarray, size: int) -> numpy.ndarray:
