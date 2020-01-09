@@ -24,3 +24,7 @@ class LevelDoesNotExist(Exception):
 
 class ChunkDoesNotExist(Exception):
     pass
+
+
+class ChunkLoadError(Exception):
+    pass

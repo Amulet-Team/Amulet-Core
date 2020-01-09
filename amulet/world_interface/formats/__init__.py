@@ -7,6 +7,7 @@ import numpy
 import PyMCTranslate
 
 from amulet.world_interface.chunk import interfaces
+from amulet.api.errors import ChunkLoadError
 from ...api.block import BlockManager
 from ...api.chunk import Chunk
 from ..loader import Loader
@@ -93,7 +94,10 @@ class Format:
     def load_chunk(
         self, cx: int, cz: int, global_palette: BlockManager, dimension: int = 0
     ) -> Chunk:
-        return self._load_chunk(cx, cz, dimension, global_palette)
+        try:
+            return self._load_chunk(cx, cz, dimension, global_palette)
+        except:
+            raise ChunkLoadError
 
     def _load_chunk(
         self,
@@ -158,7 +162,11 @@ class Format:
     def save_chunk(
         self, chunk: Chunk, global_palette: BlockManager, dimension: int = 0
     ):
-        self._save_chunk(chunk, dimension, global_palette)
+        try:
+            self._save_chunk(chunk, dimension, global_palette)
+        except:
+            # TODO: add a log entry here
+            pass
 
     def _save_chunk(
         self,
