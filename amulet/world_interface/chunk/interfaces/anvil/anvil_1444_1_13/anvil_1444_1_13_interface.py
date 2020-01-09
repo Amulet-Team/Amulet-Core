@@ -6,7 +6,7 @@ import numpy
 import amulet_nbt as nbt
 
 from amulet.api.block import Block
-from ..base_anvil_interface import BaseAnvilInterface
+from amulet.world_interface.chunk.interfaces.anvil.base_anvil_interface import BaseAnvilInterface
 from amulet.utils.world_utils import (
     get_smallest_dtype,
     decode_long_array,
