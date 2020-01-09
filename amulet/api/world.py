@@ -4,7 +4,7 @@ from copy import deepcopy
 import itertools
 import os
 import shutil
-from typing import Union, Generator, Dict, Optional, Tuple, List
+from typing import Union, Generator, Dict, Optional, Tuple, List, Callable
 
 from .block import Block, BlockManager
 from .errors import ChunkDoesNotExist, ChunkLoadError
@@ -41,9 +41,19 @@ class World:
         self.history_manager = ChunkHistoryManager(get_temp_dir(self._directory))
         self._deleted_chunks = set()
 
-    def save(self, wrapper: Format = None):
+    def save(self, wrapper: Format = None, progress_callback: Callable[[int, int], None] = None):
         """Save the world using the given wrapper.
-        Leave as None to save back to the input wrapper"""
+        Leave as None to save back to the input wrapper.
+        Optional progress callback to let the calling program know the progress. Input format chunk_index, chunk_count"""
+        chunk_index = 0
+        chunk_count = len(self.chunk_cache.values()) + len(self._deleted_chunks)
+
+        def update_progress():
+            nonlocal chunk_index
+            chunk_index += 1
+            if progress_callback is not None:
+                progress_callback(chunk_index, chunk_count)
+
         if wrapper is None:
             wrapper = self.world_wrapper
 
@@ -54,6 +64,8 @@ class World:
             # iterate through every chunk in the input world and the unsaved modified chunks (taking preference for the latter)
             # and save them to the wrapper
             wrapper.translation_manager = self.world_wrapper.translation_manager  # TODO: this might cause issues in the future
+            chunk_count += len(list(self.world_wrapper.all_chunk_coords()))
+
             for cx, cz in self.world_wrapper.all_chunk_coords():
                 print(cx, cz)
                 try:
@@ -61,21 +73,26 @@ class World:
                     wrapper.save_chunk(chunk, self.palette)
                 except ChunkLoadError:
                     pass
+                update_progress()
 
             for chunk in self.chunk_cache.values():
                 if chunk.changed:
                     wrapper.save_chunk(deepcopy(chunk), self.palette)
+                update_progress()
             for (cx, cz) in self._deleted_chunks:
                 wrapper.delete_chunk(cx, cz)
+                update_progress()
             wrapper.save()
         else:
             # The input wrapper is the normal wrapper so just save the modified chunks back
             for (cx, cz) in self._deleted_chunks:
                 self.world_wrapper.delete_chunk(cx, cz)
+                update_progress()
             self._deleted_chunks.clear()
             for chunk in self.chunk_cache.values():
                 if chunk.changed:
                     self.world_wrapper.save_chunk(deepcopy(chunk), self.palette)
+                update_progress()
             self.world_wrapper.save()
             # TODO check and flesh this out a bit
 
