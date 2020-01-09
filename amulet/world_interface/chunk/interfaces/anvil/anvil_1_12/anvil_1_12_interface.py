@@ -62,17 +62,16 @@ class Anvil112Interface(BaseAnvilInterface):
             section_blocks = section_blocks.reshape((16, 16, 16))
             section_blocks.astype(numpy.uint16, copy=False)
 
-            section_data = section_data.reshape(
-                (16, 16, 8)
-            )  # The Byte array is actually just Nibbles, so the size is off
-
             section_data = world_utils.from_nibble_array(section_data)
+            section_data = section_data.reshape(
+                (16, 16, 16)
+            )
 
             if "Add" in section:
                 add_blocks = numpy.frombuffer(section["Add"].value, dtype=numpy.uint8)
                 del section["Add"]
-                add_blocks = add_blocks.reshape((16, 16, 8))
                 add_blocks = world_utils.from_nibble_array(add_blocks)
+                add_blocks = add_blocks.reshape((16, 16, 16))
 
                 section_blocks |= add_blocks.astype(numpy.uint16) << 8
 
@@ -95,15 +94,15 @@ class Anvil112Interface(BaseAnvilInterface):
         blocks = numpy.swapaxes(blocks.swapaxes(0, 2), 0, 1)
         block_array, data_array = blocks[:, :, :, 0], blocks[:, :, :, 1]
         for y in range(16):  # perhaps find a way to do this dynamically
-            block_sub_array = block_array[y * 16 : y * 16 + 16, :, :].ravel()
-            data_sub_array = data_array[y * 16 : y * 16 + 16, :, :].ravel()
+            block_sub_array = block_array[y * 16: y * 16 + 16, :, :].ravel()
+            data_sub_array = data_array[y * 16: y * 16 + 16, :, :].ravel()
             if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
                 continue
             section = nbt.TAG_Compound()
             section["Y"] = nbt.TAG_Byte(y)
             section["Blocks"] = nbt.TAG_Byte_Array(block_sub_array.astype("uint8"))
             section["Data"] = nbt.TAG_Byte_Array(
-                ((data_sub_array[::2] << 4) + data_sub_array[1::2]).astype("uint8")
+                world_utils.to_nibble_array(data_sub_array)
             )
             sections.append(section)
 
