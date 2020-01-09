@@ -7,7 +7,7 @@ import numpy
 import PyMCTranslate
 
 from amulet.world_interface.chunk import interfaces
-from amulet.api.errors import ChunkLoadError
+from amulet.api.errors import ChunkLoadError, ChunkDoesNotExist
 from ...api.block import BlockManager
 from ...api.chunk import Chunk
 from ..loader import Loader
@@ -96,6 +96,8 @@ class Format:
     ) -> Chunk:
         try:
             return self._load_chunk(cx, cz, dimension, global_palette)
+        except ChunkDoesNotExist as e:
+            raise e
         except:
             raise ChunkLoadError
 
