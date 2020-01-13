@@ -106,13 +106,23 @@ class Translator:
                     cz = dz // 16
                     if cx == 0 and cz == 0:
                         # if it is the current chunk
-                        return palette[chunk.blocks[dx % 16, dy, dz % 16]], \
+                        block = palette[chunk.blocks[dx % 16, dy, dz % 16]]
+                        if isinstance(block, tuple):  # bedrock palette is made of (version, Block). TODO: Perhaps find a better way to do this
+                            block = block[0][1]
+                        return (
+                            block,
                             next((be for be in chunk.block_entities if (be.x, be.y, be.z) == (dx, dy, dz)), None)
+                        )
 
                     # if it is in a different chunk
                     local_chunk, local_palette = get_chunk_callback(cx, cz)
-                    return local_palette[local_chunk.blocks[dx % 16, dy, dz % 16]], \
+                    block = local_palette[local_chunk.blocks[dx % 16, dy, dz % 16]]
+                    if isinstance(block, tuple): # bedrock palette is made of (version, Block). TODO: Perhaps find a better way to do this
+                        block = block[0][1]
+                    return (
+                        block,
                         next((be for be in local_chunk.block_entities if (be.x, be.y, be.z) == (dx, dy, dz)), None)
+                    )
 
                 input_block = palette[chunk.blocks[x, y, z]]
                 output_block, output_block_entity, output_entities, extra = translate(input_block, get_block_at)
