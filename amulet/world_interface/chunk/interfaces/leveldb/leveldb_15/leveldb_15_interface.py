@@ -11,13 +11,5 @@ class LevelDB15Interface(LevelDB14Interface):
 
         self.features["chunk_version"] = 15
 
-    @staticmethod
-    def is_valid(key):
-        if key[0] != "bedrock":
-            return False
-        if key[1] != 15:
-            return False
-        return True
-
 
 INTERFACE_CLASS = LevelDB15Interface

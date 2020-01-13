@@ -24,13 +24,5 @@ class LevelDB10Interface(BaseLevelDBInterface):
 
         self.features["terrain"] = "2fnpalette"
 
-    @staticmethod
-    def is_valid(key):
-        if key[0] != "bedrock":
-            return False
-        if key[1] != 10:
-            return False
-        return True
-
 
 INTERFACE_CLASS = LevelDB10Interface

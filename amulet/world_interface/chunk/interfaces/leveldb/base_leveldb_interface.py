@@ -75,6 +75,9 @@ class BaseLevelDBInterface(Interface):
         }
         self.features = {key: None for key in feature_options.keys()}
 
+    def is_valid(self, key: Tuple) -> bool:
+        return key[0] == "bedrock" and self.features["chunk_version"] == key[1]
+
     def get_translator(
         self,
         max_world_version: Tuple[str, Tuple[int, int, int]],
