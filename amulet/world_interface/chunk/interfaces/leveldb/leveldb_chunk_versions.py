@@ -17,8 +17,9 @@ chunk_version_to_max_version = {
     12: ((1, 11, 0, 0), (1, 11, 0, 9999)),
     13: ((1, 11, 1, 0), (1, 11, 1, 9999)),
     14: ((1, 11, 2, 0), (1, 11, 999, 999)),
-    15: ((1, 12, 0, 0), (1, 13, 999, 999)),
-    16: ((1, 14, 0, 0), (999, 999, 999, 9999)),
+    15: ((1, 12, 0, 0), (999, 999, 999, 9999)),
+    # 15: ((1, 12, 0, 0), (1, 13, 999, 999)),
+    # 16: ((1, 14, 0, 0), (999, 999, 999, 9999)),  # this was apparently going to be added in 1.14 but I can't find it
 }  # TODO: fill this list with the actual last game version number each chunk version was last used in
 
 
