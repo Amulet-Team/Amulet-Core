@@ -7,6 +7,7 @@ import amulet_nbt as amulet_nbt
 
 import amulet
 from amulet.api.chunk import Chunk
+from amulet.api.block import Block
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
 from amulet.world_interface.chunk.interfaces import Interface
@@ -140,6 +141,9 @@ class BaseAnvilInterface(Interface):
                     for section in data["Level"]["Sections"]
                     if "SkyLight" in section
                 }
+        else:
+            palette = numpy.array([Block(namespace="minecraft", base_name="air")])
+            # This will cause an air chunk to be written back TODO: sort saving based on chunk status
 
         if self.features["entities"] == "list" and amulet.entity_support:
             chunk.entities = self._decode_entities(data["Level"].get("Entities", amulet_nbt.TAG_List()))
