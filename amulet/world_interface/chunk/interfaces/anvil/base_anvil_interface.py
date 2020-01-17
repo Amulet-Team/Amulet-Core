@@ -117,27 +117,30 @@ class BaseAnvilInterface(Interface):
             if "Heightmaps" in data["Level"]:
                 misc["height_mapC|36LA"] = data["Level"]["Heightmaps"]
 
-        if self.features["blocks"] in [
-            "Sections|(Blocks,Data,Add)",
-            "Sections|(BlockStates,Palette)",
-        ]:
-            chunk.blocks, palette = self._decode_blocks(data["Level"]["Sections"])
-        else:
-            raise Exception(f'Unsupported block format {self.features["blocks"]}')
-
-        if self.features["block_light"] == "Sections|2048BA":
-            misc["block_light"] = {
-                section["Y"].value: section["BlockLight"]
-                for section in data["Level"]["Sections"]
-            }
-
-        if self.features["sky_light"] == "Sections|2048BA":
-            misc["sky_light"] = {
-                section["Y"].value: section["SkyLight"]
-                for section in data["Level"]["Sections"]
-            }
 
         if self.features["entities"] == "list":
+        if "Sections" in data["Level"]:
+            if self.features["blocks"] in [
+                "Sections|(Blocks,Data,Add)",
+                "Sections|(BlockStates,Palette)",
+            ]:
+                chunk.blocks, palette = self._decode_blocks(data["Level"]["Sections"])
+            else:
+                raise Exception(f'Unsupported block format {self.features["blocks"]}')
+
+            if self.features["block_light"] == "Sections|2048BA":
+                misc["block_light"] = {
+                    section["Y"].value: section["BlockLight"]
+                    for section in data["Level"]["Sections"]
+                    if "BlockLight" in section
+                }
+
+            if self.features["sky_light"] == "Sections|2048BA":
+                misc["sky_light"] = {
+                    section["Y"].value: section["SkyLight"]
+                    for section in data["Level"]["Sections"]
+                    if "SkyLight" in section
+                }
             chunk.entities = self._decode_entities(data["Level"].get("Entities", amulet_nbt.TAG_List()))
 
         if self.features["block_entities"] == "list":
@@ -151,16 +154,20 @@ class BaseAnvilInterface(Interface):
                 misc["liquid_ticks"] = data["Level"]["LiquidTicks"]
 
         if self.features["liquids_to_be_ticked"] == "16list|list":
-            misc["liquids_to_be_ticked"] = data["Level"]["LiquidsToBeTicked"]
+            if "LiquidsToBeTicked" in data["Level"]:
+                misc["liquids_to_be_ticked"] = data["Level"]["LiquidsToBeTicked"]
 
         if self.features["to_be_ticked"] == "16list|list":
-            misc["to_be_ticked"] = data["Level"]["ToBeTicked"]
+            if "ToBeTicked" in data["Level"]:
+                misc["to_be_ticked"] = data["Level"]["ToBeTicked"]
 
         if self.features["post_processing"] == "16list|list":
-            misc["post_processing"] = data["Level"]["PostProcessing"]
+            if "PostProcessing" in data["Level"]:
+                misc["post_processing"] = data["Level"]["PostProcessing"]
 
         if self.features["structures"] == "compound":
-            misc["structures"] = data["Level"]["Structures"]
+            if "Structures" in data["Level"]:
+                misc["structures"] = data["Level"]["Structures"]
 
         chunk.misc = misc
 
@@ -273,18 +280,18 @@ class BaseAnvilInterface(Interface):
                     block_light = misc.get("block_light", {})
                     if y in block_light:
                         section["BlockLight"] = block_light[y]
-                    else:
-                        section["BlockLight"] = amulet_nbt.TAG_Byte_Array(
-                            numpy.full(2048, 255, dtype=numpy.uint8)
-                        )
+                    # else:
+                    #     section["BlockLight"] = amulet_nbt.TAG_Byte_Array(
+                    #         numpy.full(2048, 255, dtype=numpy.uint8)
+                    #     )
                 if self.features["sky_light"] == "Sections|2048BA":
                     sky_light = misc.get("sky_light", {})
                     if y in sky_light:
                         section["SkyLight"] = sky_light[y]
-                    else:
-                        section["SkyLight"] = amulet_nbt.TAG_Byte_Array(
-                            numpy.full(2048, 255, dtype=numpy.uint8)
-                        )
+                    # else:
+                    #     section["SkyLight"] = amulet_nbt.TAG_Byte_Array(
+                    #         numpy.full(2048, 255, dtype=numpy.uint8)
+                    #     )
 
         if self.features["entities"] == "list":
             data["Level"]["Entities"] = self._encode_entities(chunk.entities)
