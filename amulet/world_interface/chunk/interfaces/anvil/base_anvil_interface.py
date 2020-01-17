@@ -5,6 +5,7 @@ import numpy
 
 import amulet_nbt as amulet_nbt
 
+import amulet
 from amulet.api.chunk import Chunk
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
@@ -117,8 +118,6 @@ class BaseAnvilInterface(Interface):
             if "Heightmaps" in data["Level"]:
                 misc["height_mapC|36LA"] = data["Level"]["Heightmaps"]
 
-
-        if self.features["entities"] == "list":
         if "Sections" in data["Level"]:
             if self.features["blocks"] in [
                 "Sections|(Blocks,Data,Add)",
@@ -141,6 +140,8 @@ class BaseAnvilInterface(Interface):
                     for section in data["Level"]["Sections"]
                     if "SkyLight" in section
                 }
+
+        if self.features["entities"] == "list" and amulet.entity_support:
             chunk.entities = self._decode_entities(data["Level"].get("Entities", amulet_nbt.TAG_List()))
 
         if self.features["block_entities"] == "list":
@@ -294,7 +295,10 @@ class BaseAnvilInterface(Interface):
                     #     )
 
         if self.features["entities"] == "list":
-            data["Level"]["Entities"] = self._encode_entities(chunk.entities)
+            if amulet.entity_support:
+                data["Level"]["Entities"] = self._encode_entities(chunk.entities)
+            else:
+                data["Level"]["Entities"] = amulet_nbt.TAG_List()
 
         if self.features["block_entities"] == "list":
             data["Level"]["TileEntities"] = self._encode_block_entities(chunk.block_entities)

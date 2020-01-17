@@ -6,6 +6,7 @@ import struct
 import numpy
 import amulet_nbt
 
+import amulet
 from amulet.api.block import Block
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
@@ -146,7 +147,7 @@ class BaseLevelDBInterface(Interface):
             block_entities = self._unpack_nbt_list(data.get(b'\x31', b''))
             chunk.block_entities = self._decode_block_entities(block_entities)
 
-        if self.features['entities'] == "32list":
+        if self.features['entities'] == "32list" and amulet.entity_support:
             entities = self._unpack_nbt_list(data.get(b'\x32', b''))
             chunk.entities = self._decode_entities(entities)
 
@@ -202,7 +203,10 @@ class BaseLevelDBInterface(Interface):
                 chunk_data[b'\x31'] = None
 
         if self.features['entities'] == "32list":
-            entities_out = self._encode_entities(chunk.entities)
+            if amulet.entity_support:
+                entities_out = self._encode_entities(chunk.entities)
+            else:
+                entities_out = ''
 
             if entities_out:
                 chunk_data[b'\x32'] = self._pack_nbt_list(entities_out)
