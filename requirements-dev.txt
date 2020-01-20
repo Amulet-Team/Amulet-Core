@@ -1,5 +1,5 @@
 -r requirements.txt
 -r requirements-docs.txt
 black==18.9b0
-PyInstaller==3.4
+PyInstaller>=3.6
 pre_commit==1.11.1
