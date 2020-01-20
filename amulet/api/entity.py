@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import amulet_nbt
+from .world_object import WorldObject
 
 
-class Entity:
+class Entity(WorldObject):
     def __init__(
         self,
         namespace: str,
@@ -21,10 +24,12 @@ class Entity:
         self._nbt = nbt
 
     def _gen_namespaced_name(self):
-        self._namespaced_name = ('' if self.namespace in ['', None] else f'{self.namespace}:') + self.base_name
+        self._namespaced_name = (
+            "" if self.namespace in ["", None] else f"{self.namespace}:"
+        ) + self.base_name
 
     def __repr__(self):
-        return f'Entity[{self.namespaced_name}, {self.x}, {self.y}, {self.z}]{{{self.nbt}}}'
+        return f"Entity[{self.namespaced_name}, {self.x}, {self.y}, {self.z}]{{{self.nbt}}}"
 
     @property
     def namespaced_name(self) -> str:
@@ -39,8 +44,8 @@ class Entity:
     @namespaced_name.setter
     def namespaced_name(self, value: str):
         self._namespaced_name = value
-        if ':' in value:
-            self._namespace, self._base_name = value.split(':', 1)
+        if ":" in value:
+            self._namespace, self._base_name = value.split(":", 1)
         else:
             self._namespace, self._base_name = None, value
 

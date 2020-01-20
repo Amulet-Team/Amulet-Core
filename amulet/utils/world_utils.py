@@ -191,7 +191,7 @@ def get_entity_coordinates(ent) -> Tuple[float, float, float]:
 
 def fast_unique(array: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]:
     uni = numpy.unique(array)
-    map = numpy.zeros(uni.max()+1, dtype=numpy.uint)
+    map = numpy.zeros(uni.max() + 1, dtype=numpy.uint)
     map[uni] = numpy.arange(uni.size)
     inv = map[array]
     return uni, inv

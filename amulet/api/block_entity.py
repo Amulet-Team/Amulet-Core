@@ -1,8 +1,19 @@
+from __future__ import annotations
+
 import amulet_nbt
+from .world_object import WorldObject
 
 
-class BlockEntity:
-    def __init__(self, namespace: str, base_name: str, x: int, y: int, z: int, nbt: amulet_nbt.NBTFile):
+class BlockEntity(WorldObject):
+    def __init__(
+        self,
+        namespace: str,
+        base_name: str,
+        x: int,
+        y: int,
+        z: int,
+        nbt: amulet_nbt.NBTFile,
+    ):
         self._namespace = namespace
         self._base_name = base_name
         self._namespaced_name = None
@@ -13,10 +24,12 @@ class BlockEntity:
         self._nbt = nbt
 
     def _gen_namespaced_name(self):
-        self._namespaced_name = ('' if self.namespace in ['', None] else f'{self.namespace}:') + self.base_name
+        self._namespaced_name = (
+            "" if self.namespace in ["", None] else f"{self.namespace}:"
+        ) + self.base_name
 
     def __repr__(self):
-        return f'BlockEntity[{self.namespaced_name}, {self.x}, {self.y}, {self.z}]{{{self.nbt}}}'
+        return f"BlockEntity[{self.namespaced_name}, {self.x}, {self.y}, {self.z}]{{{self.nbt}}}"
 
     @property
     def namespaced_name(self) -> str:
@@ -30,8 +43,8 @@ class BlockEntity:
     @namespaced_name.setter
     def namespaced_name(self, value: str):
         self._namespaced_name = value
-        if ':' in value:
-            self._namespace, self._base_name = value.split(':', 1)
+        if ":" in value:
+            self._namespace, self._base_name = value.split(":", 1)
         else:
             self._namespace, self._base_name = None, value
 
