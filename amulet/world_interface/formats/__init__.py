@@ -43,6 +43,10 @@ class Format:
             self._translation_manager = PyMCTranslate.new_translation_manager()
         return self._translation_manager
 
+    @translation_manager.setter
+    def translation_manager(self, value):
+        self._translation_manager = value
+
     @staticmethod
     def is_valid(directory: str) -> bool:
         """
