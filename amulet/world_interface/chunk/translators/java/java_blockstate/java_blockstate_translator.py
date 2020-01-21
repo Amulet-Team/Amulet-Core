@@ -51,6 +51,9 @@ class JavaBlockstateTranslator(Translator):
                     palette[index] = block + water
                 else:
                     palette[index] = block
+            elif version.is_waterloggable(block.namespaced_name, True):
+                palette[index] = block + water
+
         return palette
 
     def _pack_palette(self, version: Version, palette: numpy.ndarray) -> numpy.ndarray:
