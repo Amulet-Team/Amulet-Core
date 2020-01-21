@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import traceback
 from typing import Tuple, Any, Union, Generator, Dict
 
 import numpy
@@ -32,9 +33,15 @@ loader = Loader(
 class Format:
     def __init__(self, directory: str):
         self._directory = directory
-        self.translation_manager = PyMCTranslate.new_translation_manager()
+        self._translation_manager = None
         self._max_world_version_ = None
         self._world_image_path = missing_world_icon
+
+    @property
+    def translation_manager(self):
+        if self._translation_manager is None:
+            self._translation_manager = PyMCTranslate.new_translation_manager()
+        return self._translation_manager
 
     @staticmethod
     def is_valid(directory: str) -> bool:
@@ -100,6 +107,7 @@ class Format:
             raise e
         except Exception as e:
             print(f'Error loading chunk {cx} {cz}\n{e}')
+            traceback.print_exc()
             raise ChunkLoadError
 
     def _load_chunk(
