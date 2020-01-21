@@ -95,11 +95,15 @@ class Translator:
                     """Get a block at a location relative to the current block"""
                     nonlocal x, y, z, palette, chunk
 
-                    # calculate absolute position
+                    # calculate position relative to chunk base
                     dx, dy, dz = pos
                     dx += x
                     dy += y
                     dz += z
+
+                    abs_x = dx + chunk.cx * 16
+                    abs_y = dy
+                    abs_z = dz + chunk.cz * 16
 
                     # calculate relative chunk position
                     cx = dx // 16
@@ -111,7 +115,7 @@ class Translator:
                             block = block[0][1]
                         return (
                             block,
-                            next((be for be in chunk.block_entities if (be.x, be.y, be.z) == (dx, dy, dz)), None)
+                            next((be for be in chunk.block_entities if (be.x, be.y, be.z) == (abs_x, abs_y, abs_z)), None)
                         )
 
                     # if it is in a different chunk
@@ -121,7 +125,7 @@ class Translator:
                         block = block[0][1]
                     return (
                         block,
-                        next((be for be in local_chunk.block_entities if (be.x, be.y, be.z) == (dx, dy, dz)), None)
+                        next((be for be in local_chunk.block_entities if (be.x, be.y, be.z) == (abs_x, abs_y, abs_z)), None)
                     )
 
                 input_block = palette[chunk.blocks[x, y, z]]
