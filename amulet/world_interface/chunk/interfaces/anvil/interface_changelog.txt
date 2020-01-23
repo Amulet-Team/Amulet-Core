@@ -3,4 +3,5 @@
 1484 - Heightmaps v2		switch to a different naming system
 1503 - Heightmaps v3		WORLD_SURFACE height map added
 1908 - Heightmaps v4		LIGHT_BLOCKING height map removed
+1912 - Status j14			chunk status format changed
 2203 - Biome length 4096
