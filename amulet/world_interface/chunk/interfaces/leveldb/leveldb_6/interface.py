@@ -5,11 +5,11 @@ from amulet.world_interface.chunk.interfaces.leveldb.base_leveldb_interface impo
 )
 
 
-class LevelDB10Interface(BaseLevelDBInterface):
+class LevelDB6Interface(BaseLevelDBInterface):
     def __init__(self):
         BaseLevelDBInterface.__init__(self)
 
-        self.features["chunk_version"] = 10
+        self.features["chunk_version"] = 6
         self.features["finalised_state"] = "int0-2"
 
         self.features["data_2d"] = 'unused_height512|biome256'
@@ -19,10 +19,10 @@ class LevelDB10Interface(BaseLevelDBInterface):
         self.features["block_entity_coord_format"] = "xyz-int"
 
         self.features["entities"] = "32list"
-        self.features["entity_format"] = "namespace-str-identifier"
+        self.features["entity_format"] = "int-id"
         self.features["entity_coord_format"] = "Pos-list-float"
 
-        self.features["terrain"] = "2fnpalette"
+        self.features["terrain"] = "2farray"
 
 
-INTERFACE_CLASS = LevelDB10Interface
+INTERFACE_CLASS = LevelDB6Interface

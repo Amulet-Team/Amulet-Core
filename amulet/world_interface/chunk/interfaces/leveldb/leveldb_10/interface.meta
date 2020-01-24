@@ -3,7 +3,7 @@
 "interface": {
     "id": "leveldb_10",
     "name": "leveldb (Chunk format 10) Interface",
-    "entry_point": "leveldb_10_interface",
+    "entry_point": "interface",
     "interface_version": 0,
     "wrapper_version": -1
    }

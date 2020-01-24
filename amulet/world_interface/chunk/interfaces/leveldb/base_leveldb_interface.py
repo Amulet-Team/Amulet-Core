@@ -69,7 +69,7 @@ class BaseLevelDBInterface(Interface):
             "block_entity_coord_format": ["xyz-int"],
 
             "entities": ["32list"],
-            "entity_format": ["namespace-str-identifier", "str-id"],
+            "entity_format": ["namespace-str-identifier", "int-id"],
             "entity_coord_format": ["Pos-list-float"],
 
             "terrain": ["2farray", "2f1palette", "2fnpalette"]
