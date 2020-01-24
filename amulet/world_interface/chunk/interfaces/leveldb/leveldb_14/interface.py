@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from amulet.world_interface.chunk.interfaces.leveldb.leveldb_13.leveldb_13_interface import (
+from amulet.world_interface.chunk.interfaces.leveldb.leveldb_13.interface import (
     LevelDB13Interface,
 )
 
