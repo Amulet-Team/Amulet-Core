@@ -56,23 +56,35 @@ class Interface:
         if not isinstance(nbt, amulet_nbt.NBTFile) and isinstance(nbt.value, amulet_nbt.TAG_Compound):
             return
 
-        if id_type in ['namespace-str-id', 'namespace-str-identifier', 'str-id']:
-            id_key = 'identifier' if id_type == 'namespace-str-identifier' else 'id'
+        if id_type == 'namespace-str-id':
+            entity_id = nbt.pop('id', amulet_nbt.TAG_String(''))
+            if not isinstance(entity_id, amulet_nbt.TAG_String) or entity_id.value == '' or ':' not in entity_id.value:
+                return
+            namespace, base_name = entity_id.value.split(':', 1)
 
-            entity_id = nbt.pop(id_key, amulet_nbt.TAG_String(''))
-
+        elif id_type == 'str-id':
+            entity_id = nbt.pop('id', amulet_nbt.TAG_String(''))
             if not isinstance(entity_id, amulet_nbt.TAG_String) or entity_id.value == '':
                 return
+            namespace = None
+            base_name = entity_id.value
 
-            if id_type == 'str-id':
-                namespace = None
-                base_name = entity_id.value
-            else:
-                if ':' not in entity_id.value:
+        elif id_type in ['namespace-str-identifier', 'int-id']:
+            if 'identifier' in nbt:
+                entity_id = nbt.pop('identifier')
+                if not isinstance(entity_id, amulet_nbt.TAG_String) or entity_id.value == '' or ':' not in entity_id.value:
                     return
                 namespace, base_name = entity_id.value.split(':', 1)
+            elif 'id' in nbt:
+                entity_id = nbt.pop('id')
+                if not isinstance(entity_id, amulet_nbt.TAG_Int):
+                    return
+                namespace = None
+                base_name = str(entity_id.value)
+            else:
+                return
         else:
-            return
+            raise NotImplementedError(f'Entity id type {id_type}')
 
         if coord_type in ['Pos-list-double', 'Pos-list-float']:
             if 'Pos' not in nbt:
@@ -87,7 +99,7 @@ class Interface:
                 return
             x, y, z = [nbt.pop(c).value for c in ('x', 'y', 'z')]
         else:
-            return
+            raise NotImplementedError(f'Entity coord type {coord_type}')
 
         return namespace, base_name, x, y, z, nbt
 
@@ -126,8 +138,12 @@ class Interface:
             nbt['identifier'] = amulet_nbt.TAG_String(entity.namespaced_name)
         elif id_type == 'str-id':
             nbt['id'] = amulet_nbt.TAG_String(entity.base_name)
+        elif id_type == 'int-id':
+            if not entity.base_name.isnumeric():
+                return
+            nbt['id'] = amulet_nbt.TAG_Int(int(entity.base_name))
         else:
-            return
+            raise NotImplementedError(f'Entity id type {id_type}')
 
         if coord_type == 'Pos-list-double':
             nbt['Pos'] = amulet_nbt.TAG_List([
@@ -146,7 +162,7 @@ class Interface:
             nbt['y'] = amulet_nbt.TAG_Int(int(entity.y))
             nbt['z'] = amulet_nbt.TAG_Int(int(entity.z))
         else:
-            return
+            raise NotImplementedError(f'Entity coord type {coord_type}')
 
         return nbt
 
