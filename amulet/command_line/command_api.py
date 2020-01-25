@@ -9,7 +9,7 @@ from typing import List, Type, Tuple, Union, Callable, Any, Optional
 import re
 
 from amulet.api.world import World
-from amulet.api.world_loader import load_world
+from amulet.world_interface import load_world
 
 _coordinate_regex = re.compile(r"<(?P<x>-?\d+),(?P<y>\d+),(?P<z>-?\d+)>")
 
