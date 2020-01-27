@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 from os.path import join
 import pickle
 from typing import Tuple, Union, Iterable, List
@@ -114,15 +113,17 @@ class Chunk:
     def entities(self) -> List[Entity]:
         """
         Property that returns the chunk's entity list. Setting this property replaces the chunk's entity list
-
-        :param value: The new entity list
-        :type value: list
         :return: A list of all the entities contained in the chunk
         """
         return self._entities
 
     @entities.setter
     def entities(self, value: Iterable[Entity]):
+        """
+        :param value: The new entity list
+        :type value: list
+        :return:
+        """
         if self._entities != value:
             self.changed = True
             self._entities = EntityList(self, value)
@@ -131,15 +132,17 @@ class Chunk:
     def block_entities(self) -> List[BlockEntity]:
         """
         Property that returns the chunk's block entity list. Setting this property replaces the chunk's block entity list
-
-        :param value: The new block entity list
-        :type value: list
         :return: A list of all the block entities contained in the chunk
         """
         return self._block_entities
 
     @block_entities.setter
     def block_entities(self, value: Iterable[BlockEntity]):
+        """
+        :param value: The new block entity list
+        :type value: list
+        :return:
+        """
         if self._block_entities != value:
             self.changed = True
             self._block_entities = BlockEntityList(self, value)
@@ -212,14 +215,17 @@ class SubChunk:
     @property
     def blocks(self) -> numpy.ndarray:
         """
-        :param value: A new numpy array of blocks for the sub-selection
-        :type value: numpy.ndarray
         :return: A 3d array of blocks in the sub-selection
         """
         return self._parent.blocks[self._sub_selection_slice]
 
     @blocks.setter
     def blocks(self, value):
+        """
+        :param value: A new numpy array of blocks for the sub-selection
+        :type value: numpy.ndarray
+        :return:
+        """
         temp_blocks = self._parent.blocks.copy()
         temp_blocks[self._sub_selection_slice] = value
         self._parent.blocks = temp_blocks

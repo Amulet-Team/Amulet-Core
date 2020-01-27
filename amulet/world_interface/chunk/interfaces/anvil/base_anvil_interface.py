@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Tuple, Union, Any
+from typing import List, Tuple, Union
 import numpy
 
 import amulet_nbt as amulet_nbt

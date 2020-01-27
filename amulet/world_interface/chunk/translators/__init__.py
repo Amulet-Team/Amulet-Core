@@ -165,7 +165,6 @@ class Translator:
         :return: Chunk object in the universal format.
         """
         version = translation_manager.get_version(*self._translator_key(chunk_version))
-        translator = version.get().to_universal
 
         def translate(
                 input_object: Union[Block, Entity],
@@ -178,7 +177,7 @@ class Translator:
 
             if isinstance(input_object, Block):
                 for depth, block in enumerate((input_object.base_block, ) + input_object.extra_blocks):
-                    output_object, output_block_entity, extra = translator(block, get_block_callback)
+                    output_object, output_block_entity, extra = version.block.from_universal(block, get_block_callback)
 
                     if isinstance(output_object, Block):
                         if __debug__ and not output_object.namespace.startswith('universal'):
@@ -236,7 +235,6 @@ class Translator:
         version = translation_manager.get_version(
             *self._translator_key(max_world_version_number)
         )
-        translator = version.get().from_universal
 
         # TODO: perhaps find a way so this code isn't duplicated in three places
         def translate(
@@ -250,7 +248,7 @@ class Translator:
 
             if isinstance(input_object, Block):
                 for depth, block in enumerate((input_object.base_block, ) + input_object.extra_blocks):
-                    output_object, output_block_entity, extra = translator(block, get_block_callback)
+                    output_object, output_block_entity, extra = version.block.from_universal(block, get_block_callback)
 
                     if isinstance(output_object, Block):
                         if __debug__ and output_object.namespace.startswith('universal'):
@@ -288,12 +286,12 @@ class Translator:
 
     def _biomes_to_universal(self, translator_version: Version, biome_array):
         biome_palette, biome_compact_array = numpy.unique(biome_array, return_inverse=True)
-        universal_biome_palette = numpy.array([translator_version.biomes.to_universal(biome) for biome in biome_palette])
+        universal_biome_palette = numpy.array([translator_version.biome.to_universal(biome) for biome in biome_palette])
         return universal_biome_palette[biome_compact_array]
 
     def _biomes_from_universal(self, translator_version: Version, biome_array):
         biome_palette, biome_compact_array = numpy.unique(biome_array, return_inverse=True)
-        universal_biome_palette = numpy.array([translator_version.biomes.from_universal(biome) for biome in biome_palette])
+        universal_biome_palette = numpy.array([translator_version.biome.from_universal(biome) for biome in biome_palette])
         return universal_biome_palette[biome_compact_array]
 
     def _unpack_palette(
