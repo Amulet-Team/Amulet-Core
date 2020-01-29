@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Dict, Generator, Set, Union
+from typing import Tuple, Dict, Generator, Set, Union, List
 
 import amulet_nbt as nbt
 
@@ -46,9 +46,19 @@ class LevelDBLevelManager:
     def close(self):
         self._db.close()
 
-    def all_chunk_coords(self, level: int = 0) -> Set[Tuple[int, int]]:
-        if level in self._levels:
-            return self._levels[level]
+    @property
+    def dimensions(self) -> List[Tuple[str, int]]:
+        """A list of all the levels contained in the world"""
+        level_names = {
+            0: "Overworld",
+            1: "The Nether",
+            2: "The End"
+        }
+        return [(level_names[level], level) if level in level_names else (f'DIM{level}', level) for level in self._levels.keys()]
+
+    def all_chunk_coords(self, dimension: int = 0) -> Set[Tuple[int, int]]:
+        if dimension in self._levels:
+            return self._levels[dimension]
         else:
             raise LevelDoesNotExist
 
@@ -60,17 +70,17 @@ class LevelDBLevelManager:
             level_ = 0
         self._levels.setdefault(level_, set()).add((cx_, cz_))
 
-    def get_chunk_data(self, cx: int, cz: int, level: int = 0) -> Dict[bytes, bytes]:
+    def get_chunk_data(self, cx: int, cz: int, dimension: int = 0) -> Dict[bytes, bytes]:
         """Get a dictionary of chunk key extension in bytes to the raw data in the key.
         chunk key extension are the character(s) after <cx><cz>[level] in the key
         Will raise ChunkDoesNotExist if the chunk does not exist
         """
         iter_start = struct.pack("<ii", cx, cz)
         iter_end = iter_start + b'\xff'
-        if level in self._levels and (cx, cz) in self._levels[level]:
+        if dimension in self._levels and (cx, cz) in self._levels[dimension]:
             chunk_data = {}
             for key, val in self._db.iterate(iter_start, iter_end):
-                if level == 0:
+                if dimension == 0:
                     if 9 <= len(key) <= 10:
                         key_extension = key[8:]
                     else:
@@ -78,7 +88,7 @@ class LevelDBLevelManager:
                 else:
                     if (
                         13 <= len(key) <= 14
-                        and struct.unpack("<i", key[8:12])[0] == level
+                        and struct.unpack("<i", key[8:12])[0] == dimension
                     ):
                         key_extension = key[12:]
                     else:
@@ -89,25 +99,25 @@ class LevelDBLevelManager:
             raise ChunkDoesNotExist
 
     def put_chunk_data(
-        self, cx: int, cz: int, data: Dict[bytes, bytes], level: int = 0
+        self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: int = 0
     ):
         """pass data to the region file class"""
         # get the region key
-        self._levels.setdefault(level, set()).add((cx, cz))
-        if level == 0:
+        self._levels.setdefault(dimension, set()).add((cx, cz))
+        if dimension == 0:
             key_prefix = struct.pack("<ii", cx, cz)
         else:
-            key_prefix = struct.pack("<iii", cx, cz, level)
+            key_prefix = struct.pack("<iii", cx, cz, dimension)
         for key, val in data.items():
             self._batch_temp[key_prefix + key] = val
 
-    def delete_chunk(self, cx: int, cz: int, level: int = 0):
-        if level in self._levels and (cx, cz) in self._levels[level]:
-            chunk_data = self.get_chunk_data(cx, cz, level)
-            self._levels[level].remove((cx, cz))
+    def delete_chunk(self, cx: int, cz: int, dimension: int = 0):
+        if dimension in self._levels and (cx, cz) in self._levels[dimension]:
+            chunk_data = self.get_chunk_data(cx, cz, dimension)
+            self._levels[dimension].remove((cx, cz))
             for key in chunk_data.keys():
-                if level:
-                    key_prefix = struct.pack("<iii", cx, cz, level)
+                if dimension:
+                    key_prefix = struct.pack("<iii", cx, cz, dimension)
                 else:
                     key_prefix = struct.pack("<ii", cx, cz)
                 self._batch_temp[key_prefix + key] = None
@@ -116,19 +126,31 @@ class LevelDBLevelManager:
 class LevelDBFormat(Format):
     def __init__(self, directory: str):
         super().__init__(directory)
-        with open(os.path.join(self._directory, "level.dat"), "rb") as f:
+        self._lock = False
+        self.root_tag: nbt.NBTFile = None
+        self._load_level_dat()
+        self._level_manager: LevelDBLevelManager = None
+
+    def _load_level_dat(self):
+        """Load the level.dat file and check the image file"""
+        with open(os.path.join(self._world_path, "level.dat"), "rb") as f:
             level_dat_version = struct.unpack('<i', f.read(4))[0]  # TODO: handle other versions
             assert level_dat_version == 8, f'Unknown level.dat version {level_dat_version}'
             data_length = struct.unpack('<i', f.read(4))[0]
             self.root_tag = nbt.load(
                 buffer=f.read(data_length), compressed=False, little_endian=True
             )
-        if os.path.isfile(os.path.join(self._directory, "world_icon.jpeg")):
-            self._world_image_path = os.path.join(self._directory, "world_icon.jpeg")
-        self._level_manager = None
+        if os.path.isfile(os.path.join(self._world_path, "world_icon.jpeg")):
+            self._world_image_path = os.path.join(self._world_path, "world_icon.jpeg")
 
     @staticmethod
     def is_valid(directory):
+        """
+        Returns whether this format is able to load a given world.
+
+        :param directory: The path to the root of the world to load.
+        :return: True if the world can be loaded by this format, False otherwise.
+        """
         print(directory)
         if not check_all_exist(directory, "db", "level.dat", "levelname.txt"):
             return False
@@ -136,29 +158,35 @@ class LevelDBFormat(Format):
         return True
 
     @property
+    def platform(self) -> str:
+        """Platform string"""
+        return 'bedrock'
+
+    def _max_world_version(self) -> Tuple[str, Tuple[int, int, int]]:
+        """The version the world was last opened in
+        This should be greater than or equal to the chunk versions found within"""
+        return (
+            self.platform,
+            tuple([t.value for t in self.root_tag["lastOpenedWithVersion"]]),
+        )
+
+    @property
     def world_name(self):
+        """The name of the world"""
         return self.root_tag["LevelName"].value
 
     @world_name.setter
     def world_name(self, value: str):
         self.root_tag["LevelName"] = nbt.TAG_String(value)
 
-    def _load_world(self):
-        if self._level_manager is None:
-            self._level_manager = LevelDBLevelManager(self._directory)
-
     @property
-    def platform(self) -> str:
-        return 'bedrock'
-
-    def _max_world_version(self) -> Tuple[str, Tuple[int, int, int]]:
-        return (
-            "bedrock",
-            tuple([t.value for t in self.root_tag["lastOpenedWithVersion"]]),
-        )
+    def levels(self) -> List[Tuple[str, int]]:
+        """A list of all the levels contained in the world"""
+        self._verify_has_lock()
+        return self._level_manager.dimensions
 
     def _get_interface(
-        self, max_world_version, raw_chunk_data=None
+            self, max_world_version, raw_chunk_data=None
     ) -> interfaces.Interface:
         if raw_chunk_data:
             key = self._get_interface_key(raw_chunk_data)
@@ -168,25 +196,39 @@ class LevelDBFormat(Format):
 
     def _get_interface_key(self, raw_chunk_data: Dict[bytes, bytes]) -> Tuple[str, int]:
         return (
-            "bedrock",
+            self.platform,
             raw_chunk_data.get(b"v", "\x00")[0],
         )  # TODO: work out a valid default
 
+    def _reload_world(self):
+        # TODO: handle closing the level if it was already open before opening again
+        self._level_manager = LevelDBLevelManager(self._world_path)
+        self._lock = True
+
+    def open(self):
+        """Open the database for reading and writing"""
+        self._reload_world()
+
+    def has_lock(self) -> bool:
+        """Verify that the world database can be read and written"""
+        # TODO: work out how to do this properly
+        return self._lock
+
     def save(self):
-        self._load_world()
+        self._verify_has_lock()
         self._level_manager.save()
 
     def close(self):
-        self._load_world()
+        self._verify_has_lock()
         self._level_manager.close()
 
     def all_chunk_coords(self, dimension: int = 0) -> Generator[Tuple[int, int]]:
-        self._load_world()
+        self._verify_has_lock()
         for coords in self._level_manager.all_chunk_coords(dimension):
             yield coords
 
     def delete_chunk(self, cx: int, cz: int, dimension: int = 0):
-        self._load_world()
+        self._verify_has_lock()
         self._level_manager.delete_chunk(cx, cz, dimension)
 
     def _put_raw_chunk_data(
@@ -195,7 +237,7 @@ class LevelDBFormat(Format):
         """
         Actually stores the data from the interface to disk.
         """
-        self._load_world()
+        self._verify_has_lock()
         return self._level_manager.put_chunk_data(cx, cz, data, dimension)
 
     def _get_raw_chunk_data(
@@ -208,7 +250,7 @@ class LevelDBFormat(Format):
         :param cz: The z coordinate of the chunk.
         :return: The interface key for the get_interface method and the data to interface with.
         """
-        self._load_world()
+        self._verify_has_lock()
         return self._level_manager.get_chunk_data(cx, cz, dimension)
 
 

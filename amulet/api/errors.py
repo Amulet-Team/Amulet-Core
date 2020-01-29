@@ -28,3 +28,7 @@ class ChunkLoadError(Exception):
 
 class ChunkDoesNotExist(ChunkLoadError):
     pass
+
+
+class WorldDatabaseAccessException(Exception):
+    pass

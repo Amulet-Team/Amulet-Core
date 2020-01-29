@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import os
 import traceback
-from typing import Tuple, Any, Union, Generator, Dict
+from typing import Tuple, Any, Union, Generator, Dict, List
 
 import numpy
 import PyMCTranslate
 
 from amulet.world_interface.chunk import interfaces
-from amulet.api.errors import ChunkLoadError, ChunkDoesNotExist
+from amulet.api.errors import ChunkLoadError, ChunkDoesNotExist, WorldDatabaseAccessException
 from ...api.block import BlockManager
 from ...api.chunk import Chunk
 from ..loader import Loader
@@ -31,20 +31,23 @@ loader = Loader(
 
 
 class Format:
-    def __init__(self, directory: str):
-        self._directory = directory
+    _missing_world_icon = missing_world_icon
+
+    def __init__(self, world_path: str):
+        self._world_path = world_path
         self._translation_manager = None
         self._max_world_version_ = None
         self._world_image_path = missing_world_icon
 
     @property
-    def translation_manager(self):
+    def translation_manager(self) -> PyMCTranslate.TranslationManager:
+        """The translation manager attached to the world"""
         if self._translation_manager is None:
             self._translation_manager = PyMCTranslate.new_translation_manager()
         return self._translation_manager
 
     @translation_manager.setter
-    def translation_manager(self, value):
+    def translation_manager(self, value: PyMCTranslate.TranslationManager):
         self._translation_manager = value
 
     @staticmethod
@@ -59,9 +62,12 @@ class Format:
 
     @property
     def platform(self) -> str:
+        """Platform string ("bedrock" / "java" / ...)"""
         raise NotImplementedError
 
     def max_world_version(self) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
+        """The version the world was last opened in
+        This should be greater than or equal to the chunk versions found within"""
         if self._max_world_version_ is None:
             self._max_world_version_ = self._max_world_version()
         return self._max_world_version()
@@ -70,7 +76,8 @@ class Format:
         raise NotImplementedError
 
     @property
-    def world_name(self):
+    def world_name(self) -> str:
+        """The name of the world"""
         return "Unknown World"
 
     @world_name.setter
@@ -78,8 +85,19 @@ class Format:
         raise NotImplementedError
 
     @property
-    def world_image_path(self):
+    def world_path(self) -> str:
+        """The path to the world directory"""
+        return self._world_path
+
+    @property
+    def world_image_path(self) -> str:
+        """The path to the world icon"""
         return self._world_image_path
+
+    @property
+    def dimensions(self) -> List[Tuple[str, int]]:
+        """A list of all the dimensions contained in the world"""
+        raise NotImplementedError
 
     def _get_interface(
         self, max_world_version, raw_chunk_data=None
@@ -93,13 +111,29 @@ class Format:
     def _get_interface_key(self, raw_chunk_data) -> Any:
         raise NotImplementedError
 
+    def open(self):
+        """Open the database for reading and writing"""
+        raise NotImplementedError
+
+    def has_lock(self) -> bool:
+        """Verify that the world database can be read and written"""
+        raise NotImplementedError
+
+    def _verify_has_lock(self):
+        """Ensure that the Format has a lock on the world. Throw WorldAccessException if not"""
+        if not self.has_lock():
+            raise WorldDatabaseAccessException('World was either never opened or has since been opened in Minecraft')
+
     def save(self):
+        """Save the data back to the disk database"""
         raise NotImplementedError
 
     def close(self):
+        """Close the disk database"""
         raise NotImplementedError
 
     def all_chunk_coords(self, dimension: int = 0) -> Generator[Tuple[int, int]]:
+        """A generator of all chunk coords in the given dimension"""
         raise NotImplementedError
 
     def load_chunk(

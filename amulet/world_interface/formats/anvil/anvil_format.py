@@ -4,7 +4,7 @@ import os
 import struct
 import zlib
 import gzip
-from typing import Tuple, Any, Dict, Union, Generator
+from typing import Tuple, Any, Dict, Union, Generator, List
 import numpy
 import time
 import re
@@ -128,8 +128,8 @@ class AnvilRegion:
             offset = 2
             data = []
             for (
-                (cx, cz),
-                (dirty, mod_time, buffer_size, buffer),
+                    (cx, cz),
+                    (dirty, mod_time, buffer_size, buffer),
             ) in self._chunks.items():
                 index = cx + (cz << 5)
                 sector_count = ((buffer_size + 4 | 0xFFF) + 1) >> 12
@@ -260,61 +260,135 @@ class AnvilLevelManager:
 class AnvilFormat(Format):
     def __init__(self, directory: str):
         super().__init__(directory)
-        self.root_tag = nbt.load(filename=os.path.join(self._directory, "level.dat"))
-        if os.path.isfile(os.path.join(self._directory, "icon.png")):
-            self._world_image_path = os.path.join(self._directory, "icon.png")
-        self._levels = None
+        self.root_tag: nbt.NBTFile = None
+        self._load_level_dat()
+        self._levels: Dict[int, AnvilLevelManager] = {}
+        self._lock = None
+
+    def _load_level_dat(self):
+        """Load the level.dat file and check the image file"""
+        self.root_tag = nbt.load(filename=os.path.join(self._world_path, "level.dat"))
+        if os.path.isfile(os.path.join(self._world_path, "icon.png")):
+            self._world_image_path = os.path.join(self._world_path, "icon.png")
+        else:
+            self._world_image_path = self._missing_world_icon
+
+    @staticmethod
+    def is_valid(directory) -> bool:
+        """
+        Returns whether this format is able to load a given world.
+
+        :param directory: The path to the root of the world to load.
+        :return: True if the world can be loaded by this format, False otherwise.
+        """
+        print(directory)
+        if not check_all_exist(directory, "region", "level.dat"):
+            return False
+
+        if not check_one_exists(directory, "playerdata", "players"):
+            return False
+
+        level_dat_root = load_leveldat(directory)
+
+        if "FML" in level_dat_root:
+            return False
+
+        return True
 
     @property
-    def world_name(self):
+    def platform(self) -> str:
+        """Platform string"""
+        return 'java'
+
+    def _max_world_version(self) -> Tuple[str, int]:
+        """The version the world was last opened in
+        This should be greater than or equal to the chunk versions found within"""
+        return self.platform, self.root_tag["Data"]["DataVersion"].value
+
+    @property
+    def world_name(self) -> str:
+        """The name of the world"""
         return self.root_tag["Data"]["LevelName"].value
 
     @world_name.setter
     def world_name(self, value: str):
         self.root_tag["Data"]["LevelName"] = nbt.TAG_String(value)
 
-    def _load_world(self):
-        if self._levels is None:
-            self._levels: Dict[int, AnvilLevelManager] = {
-                0: AnvilLevelManager(self._directory)
-            }
-            for dir_name in os.listdir(self._directory):
-                level_path = os.path.join(self._directory, dir_name)
-                if os.path.isdir(level_path) and dir_name.startswith("DIM"):
-                    match = AnvilLevelManager.level_regex.fullmatch(dir_name)
-                    if match is None:
-                        continue
-                    level = int(match.group("level"))
-                    self._levels[level] = AnvilLevelManager(level_path)
+    @property
+    def dimensions(self) -> List[Tuple[str, int]]:
+        """A list of all the levels contained in the world"""
+        level_names = {
+            -1: "The Nether",
+            0: "Overworld",
+            1: "The End"
+        }
+        return [(level_names[level], level) if level in level_names else (f'DIM{level}', level) for level in self._levels.keys()]
+
+    def _get_interface_key(self, raw_chunk_data) -> Tuple[str, int]:
+        return self.platform, raw_chunk_data["DataVersion"].value
+
+    def _reload_world(self):
+        # reload the level.dat in case it has changed
+        self._load_level_dat()
+
+        # create the session.lock file (this has mostly been lifted from MCEdit)
+        self._lock = int(time.time() * 1000)
+        with open(os.path.join(self._world_path, 'session.lock'), "wb") as f:
+            f.write(struct.pack(">Q", self._lock))
+            f.flush()
+            os.fsync(f.fileno())
+
+        # load all the levels
+        self._levels: Dict[int, AnvilLevelManager] = {
+            0: AnvilLevelManager(self._world_path)
+        }
+        for dir_name in os.listdir(self._world_path):
+            level_path = os.path.join(self._world_path, dir_name)
+            if os.path.isdir(level_path) and dir_name.startswith("DIM"):
+                match = AnvilLevelManager.level_regex.fullmatch(dir_name)
+                if match is None:
+                    continue
+                level = int(match.group("level"))
+                self._levels[level] = AnvilLevelManager(level_path)
+
+    def open(self):
+        """Open the database for reading and writing"""
+        self._reload_world()
+
+    def has_lock(self) -> bool:
+        """Verify that the world database can be read and written"""
+        try:
+            with open(os.path.join(self._world_path, 'session.lock'), 'rb') as f:
+                return struct.unpack('>Q', f.read(8))[0] == self._lock
+        except:
+            return False
+
+    def save(self):
+        """Save the data back to the disk database"""
+        self._verify_has_lock()
+        for level in self._levels.values():
+            level.save()
+        # TODO: save other world data
+
+    def close(self):
+        """Close the disk database"""
+        # TODO: should we delete self._levels?
+        pass
 
     def _get_level(self, level: int):
-        self._load_world()
+        self._verify_has_lock()
         if level in self._levels:
             return self._levels[level]
         else:
             raise LevelDoesNotExist
 
     def all_chunk_coords(self, dimension: int = 0) -> Generator[Tuple[int, int]]:
+        """A generator of all chunk coords in the given dimension"""
         for chunk in self._get_level(dimension).all_chunk_coords():
             yield chunk
 
-    def save(self):
-        self._load_world()
-        for level in self._levels.values():
-            level.save()
-        # TODO: save other world data
-
-    def close(self):
-        pass  # TODO: release lock file
-
-    @property
-    def platform(self) -> str:
-        return 'java'
-
-    def _max_world_version(self) -> Tuple[str, int]:
-        return "java", self.root_tag["Data"]["DataVersion"].value
-
     def delete_chunk(self, cx: int, cz: int, dimension: int = 0):
+        """Delete a chunk from a given dimension"""
         self._get_level(dimension).delete_chunk(cx, cz)
 
     def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: int = 0):
@@ -332,25 +406,6 @@ class AnvilFormat(Format):
         :return: The interface key for the get_interface method and the data to interface with.
         """
         return self._get_level(dimension).get_chunk_data(cx, cz)
-
-    def _get_interface_key(self, raw_chunk_data) -> Tuple[str, int]:
-        return "java", raw_chunk_data["DataVersion"].value
-
-    @staticmethod
-    def is_valid(directory) -> bool:
-        print(directory)
-        if not check_all_exist(directory, "region", "level.dat"):
-            return False
-
-        if not check_one_exists(directory, "playerdata", "players"):
-            return False
-
-        level_dat_root = load_leveldat(directory)
-
-        if "FML" in level_dat_root:
-            return False
-
-        return True
 
 
 FORMAT_CLASS = AnvilFormat
