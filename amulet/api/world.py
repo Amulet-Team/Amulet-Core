@@ -32,6 +32,7 @@ class World:
     def __init__(self, directory: str, world_wrapper: Format):
         self._directory = directory
         self.world_wrapper = world_wrapper
+        self.world_wrapper.open()
         self.palette = BlockManager()
         self.palette.get_add_block(
             Block(namespace="universal_minecraft", base_name="air")
