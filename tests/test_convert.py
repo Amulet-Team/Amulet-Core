@@ -162,7 +162,7 @@ if __name__ == "__main__":
                 chunk.blocks[:, 3:6, :] = dirt
                 chunk.blocks[:, 6, :] = grass
 
-                world.chunk_cache[(cx, cz)] = chunk
+                world.put_chunk(chunk)
 
                 world.save()
                 world.close()

@@ -186,6 +186,7 @@ def entity_position_to_chunk_coordinates(
 
 
 def get_entity_coordinates(ent) -> Tuple[float, float, float]:
+    # TODO: with the entity class this is obsolete
     return tuple(ent["Pos"])
 
 
