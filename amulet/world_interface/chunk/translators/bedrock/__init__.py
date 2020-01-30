@@ -85,6 +85,8 @@ class BaseBedrockTranslator(Translator):
                 block_entity: BlockEntity
                 if block_entity.namespace is None and block_entity.base_name in version.block_entity_map:
                     block_entity.namespaced_name = version.block_entity_map[block_entity.base_name]
+                else:
+                    print(f'Could not find pretty name for {block_entity.namespaced_name}')
 
         return self._translate(
             chunk, palette, get_chunk_callback, translate, full_translate
