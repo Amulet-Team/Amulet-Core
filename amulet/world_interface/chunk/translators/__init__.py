@@ -177,7 +177,7 @@ class Translator:
 
             if isinstance(input_object, Block):
                 for depth, block in enumerate((input_object.base_block, ) + input_object.extra_blocks):
-                    output_object, output_block_entity, extra = version.block.from_universal(block, get_block_callback)
+                    output_object, output_block_entity, extra = version.block.to_universal(block, get_block_callback)
 
                     if isinstance(output_object, Block):
                         if __debug__ and not output_object.namespace.startswith('universal'):
