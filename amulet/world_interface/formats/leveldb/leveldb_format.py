@@ -164,7 +164,8 @@ class LevelDBFormat(Format):
 
     def _max_world_version(self) -> Tuple[str, Tuple[int, int, int]]:
         """The version the world was last opened in
-        This should be greater than or equal to the chunk versions found within"""
+        This should be greater than or equal to the chunk versions found within
+        For this format wrapper it returns a tuple of 3/4 ints (the game version number)"""
         return (
             self.platform,
             tuple([t.value for t in self.root_tag["lastOpenedWithVersion"]]),
@@ -178,6 +179,13 @@ class LevelDBFormat(Format):
     @world_name.setter
     def world_name(self, value: str):
         self.root_tag["LevelName"] = nbt.TAG_String(value)
+
+    @property
+    def game_version_string(self) -> str:
+        try:
+            return f'Bedrock {".".join(self.root_tag["lastOpenedWithVersion"].value)}'
+        except:
+            return f'Bedrock Unknown Version'
 
     @property
     def levels(self) -> List[Tuple[str, int]]:

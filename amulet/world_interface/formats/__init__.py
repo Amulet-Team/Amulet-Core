@@ -85,6 +85,10 @@ class Format:
         raise NotImplementedError
 
     @property
+    def game_version_string(self) -> str:
+        raise NotImplementedError
+
+    @property
     def world_path(self) -> str:
         """The path to the world directory"""
         return self._world_path

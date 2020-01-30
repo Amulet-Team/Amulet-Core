@@ -302,7 +302,8 @@ class AnvilFormat(Format):
 
     def _max_world_version(self) -> Tuple[str, int]:
         """The version the world was last opened in
-        This should be greater than or equal to the chunk versions found within"""
+        This should be greater than or equal to the chunk versions found within
+        For this format wrapper it returns a single int DataVersion"""
         return self.platform, self.root_tag["Data"]["DataVersion"].value
 
     @property
@@ -313,6 +314,13 @@ class AnvilFormat(Format):
     @world_name.setter
     def world_name(self, value: str):
         self.root_tag["Data"]["LevelName"] = nbt.TAG_String(value)
+
+    @property
+    def game_version_string(self) -> str:
+        try:
+            return f'Java {".".join(self.root_tag["Version"]["Name"].value)}'
+        except:
+            return f'Java Unknown Version'
 
     @property
     def dimensions(self) -> List[Tuple[str, int]]:
