@@ -225,6 +225,7 @@ class LevelDBFormat(Format):
     def save(self):
         self._verify_has_lock()
         self._level_manager.save()
+        self._changed = False
 
     def close(self):
         self._verify_has_lock()

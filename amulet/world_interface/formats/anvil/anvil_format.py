@@ -377,6 +377,7 @@ class AnvilFormat(Format):
         for level in self._levels.values():
             level.save()
         # TODO: save other world data
+        self._changed = False
 
     def close(self):
         """Close the disk database"""

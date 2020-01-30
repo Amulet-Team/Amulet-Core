@@ -38,6 +38,7 @@ class Format:
         self._translation_manager = None
         self._max_world_version_ = None
         self._world_image_path = missing_world_icon
+        self._changed: bool = False
 
     @property
     def translation_manager(self) -> PyMCTranslate.TranslationManager:
@@ -74,6 +75,10 @@ class Format:
 
     def _max_world_version(self) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
         raise NotImplementedError
+
+    @property
+    def changed(self) -> bool:
+        return self._changed
 
     @property
     def world_name(self) -> str:
@@ -143,6 +148,15 @@ class Format:
     def load_chunk(
         self, cx: int, cz: int, global_palette: BlockManager, dimension: int = 0
     ) -> Chunk:
+        """
+        Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
+
+        :param cx: The x coordinate of the chunk.
+        :param cz: The z coordinate of the chunk.
+        :param global_palette: The universal block manager
+        :param dimension: optional dimension
+        :return: The chunk at the given coordinates.
+        """
         try:
             return self._load_chunk(cx, cz, dimension, global_palette)
         except ChunkDoesNotExist as e:
@@ -165,6 +179,9 @@ class Format:
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
+        :param global_palette: The universal block manager
+        :param dimension: optional dimension
+        :param recurse: bool: look in boundary chunks if required to fully define data
         :return: The chunk at the given coordinates.
         """
 
@@ -215,12 +232,19 @@ class Format:
     def save_chunk(
         self, chunk: Chunk, global_palette: BlockManager, dimension: int = 0
     ):
+        """
+        Save a universal format chunk to the Format database (not the disk database)
+        call save method to write changed chunks back to the disk database
+        :param global_palette: The universal block manager
+        :param dimension: optional dimension
+        :return:
+        """
         try:
             self._save_chunk(chunk, dimension, global_palette)
         except Exception as e:
             # TODO: add a log entry here
             print(f'Error saving chunk {chunk}\n{e}')
-            pass
+        self._changed = True
 
     def _save_chunk(
         self,
