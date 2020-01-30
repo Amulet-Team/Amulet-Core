@@ -318,7 +318,7 @@ class AnvilFormat(Format):
     @property
     def game_version_string(self) -> str:
         try:
-            return f'Java {".".join(self.root_tag["Version"]["Name"].value)}'
+            return f'Java {self.root_tag["Data"]["Version"]["Name"].value}'
         except:
             return f'Java Unknown Version'
 

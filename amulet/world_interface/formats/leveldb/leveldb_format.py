@@ -183,7 +183,7 @@ class LevelDBFormat(Format):
     @property
     def game_version_string(self) -> str:
         try:
-            return f'Bedrock {".".join(self.root_tag["lastOpenedWithVersion"].value)}'
+            return f'Bedrock {".".join(str(v) for v in self.root_tag["lastOpenedWithVersion"].value)}'
         except:
             return f'Bedrock Unknown Version'
 
