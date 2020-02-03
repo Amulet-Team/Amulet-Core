@@ -104,7 +104,7 @@ class Format:
         return self._world_image_path
 
     @property
-    def dimensions(self) -> List[Tuple[str, int]]:
+    def dimensions(self) -> Dict[str, int]:
         """A list of all the dimensions contained in the world"""
         raise NotImplementedError
 

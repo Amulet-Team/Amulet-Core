@@ -18,6 +18,11 @@ from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions impo
 
 class LevelDBLevelManager:
     # tag_ids = {45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 118}
+    _level_names = {
+        0: "overworld",
+        1: "nether",
+        2: "end"
+    }
 
     def __init__(self, directory: str):
         self._directory = directory
@@ -49,12 +54,14 @@ class LevelDBLevelManager:
     @property
     def dimensions(self) -> List[Tuple[str, int]]:
         """A list of all the levels contained in the world"""
-        level_names = {
-            0: "Overworld",
-            1: "The Nether",
-            2: "The End"
-        }
-        return [(level_names[level], level) if level in level_names else (f'DIM{level}', level) for level in self._levels.keys()]
+        dimensions = {}
+        for level in self._levels.keys():
+            if level in self._level_names:
+                dimensions[self._level_names[level]] = level
+            else:
+                dimensions[f'DIM{level}'] = level
+
+        return dimensions
 
     def all_chunk_coords(self, dimension: int = 0) -> Set[Tuple[int, int]]:
         if dimension in self._levels:
@@ -188,7 +195,7 @@ class LevelDBFormat(Format):
             return f'Bedrock Unknown Version'
 
     @property
-    def levels(self) -> List[Tuple[str, int]]:
+    def dimensions(self) -> Dict[str, int]:
         """A list of all the levels contained in the world"""
         self._verify_has_lock()
         return self._level_manager.dimensions

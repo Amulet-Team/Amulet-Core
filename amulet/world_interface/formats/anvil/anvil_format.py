@@ -258,6 +258,12 @@ class AnvilLevelManager:
 
 
 class AnvilFormat(Format):
+    _level_names = {
+        -1: "nether",
+        0: "overworld",
+        1: "end"
+    }
+
     def __init__(self, directory: str):
         super().__init__(directory)
         self.root_tag: nbt.NBTFile = None
@@ -325,12 +331,14 @@ class AnvilFormat(Format):
     @property
     def dimensions(self) -> List[Tuple[str, int]]:
         """A list of all the levels contained in the world"""
-        level_names = {
-            -1: "The Nether",
-            0: "Overworld",
-            1: "The End"
-        }
-        return [(level_names[level], level) if level in level_names else (f'DIM{level}', level) for level in self._levels.keys()]
+        dimensions = {}
+        for level in self._levels.keys():
+            if level in self._level_names:
+                dimensions[self._level_names[level]] = level
+            else:
+                dimensions[f'DIM{level}'] = level
+
+        return dimensions
 
     def _get_interface_key(self, raw_chunk_data) -> Tuple[str, int]:
         return self.platform, raw_chunk_data["DataVersion"].value
