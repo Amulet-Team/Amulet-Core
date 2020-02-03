@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union, TYPE_CHECKING
+if TYPE_CHECKING:
+    from .world import ChunkCache
+import time
 
 from os import makedirs
 from os.path import exists, join
@@ -8,6 +11,105 @@ from os.path import exists, join
 from .chunk import Chunk
 
 _ChunkRecord = Tuple[str, str]
+
+_ChunkLocation = Tuple[int, int, int]  # dimension, cx, cz
+
+_ChunkRecord2 = Union[
+    str,  # path to serialised file
+    None  # chunk has been deleted
+]
+
+_ChunkStorage = List[  # change history of the chunk
+    _ChunkRecord2
+]
+
+
+class ChunkHistoryManager2:
+    """
+    Class to manage changes and deletions of chunks
+    """
+    def __init__(self, temp_dir):
+        self.temp_dir: str = temp_dir
+
+        self._chunk_index = Dict[_ChunkLocation, int]  # the index of the current chunk in self._chunk_history
+        self._chunk_history: Dict[
+            _ChunkLocation,
+            _ChunkStorage
+        ] = {}
+
+        self._snapshots = List[List[_ChunkLocation]]
+        self._last_snapshot_time = 0.0
+
+        self._snapshot_index = 0
+        self._last_save_snapshot = 0
+
+    @property
+    def unsaved_changes(self) -> int:
+        """The number of changes that have been made since the last save"""
+        return abs(self._snapshot_index - self._last_save_snapshot)
+
+    def mark_saved(self):
+        """Let the history manager know that the world has been saved"""
+        self._last_save_snapshot = self._snapshot_index
+
+    def add_original_chunk(self, chunk: Chunk, dimension: int):
+        """Adds the given chunk to the chunk history"""
+        # If the chunk does not exist in the chunk history then add it
+
+        # This code is only called when loading a chunk from the database.
+        # If this code is called and the chunk history already exists then the
+        # chunk must have been unloaded from the World class and reloaded
+        # only chunks that are unchanged or have been saved can be unloaded so
+        # the latest chunk here should be the same as the one on disk
+        if (dimension, chunk.cx, chunk.cz) not in self._chunk_history:
+            self._chunk_history[(dimension, chunk.cx, chunk.cz)] = [0, [self._serialize_chunk(chunk)]]
+
+    def create_snapshot(self, chunk_cache: 'ChunkCache'):
+        snapshot = []
+        for chunk_location, chunk in chunk_cache.items():
+            assert chunk is None or isinstance(chunk, Chunk), 'Chunk must be None or a Chunk instance'
+            if chunk is None or (chunk.changed and chunk.changed_time > self._last_snapshot_time):
+                # if the chunk has been changed since the last shapshot add it to the new snapshot
+                if chunk_location not in self._chunk_history:
+                    # the chunk was added manually so the previous state was the chunk not existing
+                    self._chunk_index[chunk_location] = 0
+                    self._chunk_history[chunk_location] = [None]
+
+                chunk_index = self._chunk_index[chunk_location]
+                chunk_storage = self._chunk_history[chunk_location]
+                if chunk is None:
+                    # if the chunk has been deleted and the last save state was not also deleted update
+                    if chunk_storage[chunk_index] is not None:
+                        self._chunk_index[chunk_location] =+ 1
+                        del chunk_storage[chunk_index+1:]
+                        chunk_storage.append(None)
+                        snapshot.append(chunk_location)
+                else:
+                    # updated the changed chunk
+                    self._chunk_index[chunk_location] = + 1
+                    del chunk_storage[chunk_index + 1:]
+                    chunk_storage[1].append(self._serialize_chunk(chunk))
+                    snapshot.append(chunk_location)
+
+        if snapshot:
+            # if there is data in the snapshot invalidate all newer snapshots and add to the database
+            self._snapshot_index += 1
+            del self._snapshots[self._snapshot_index]
+            self._snapshots[self._snapshot_index] = snapshot
+            self._last_snapshot_time = time.time()
+
+    def _serialize_chunk(self, chunk: Chunk) -> _ChunkRecord2:
+        raise NotImplementedError
+
+    def _unserialize_chunks(self) -> Tuple[List[Chunk], List[Chunk]]:
+        raise NotImplementedError
+
+    def undo(self):
+        raise NotImplementedError
+
+    def redo(self):
+        raise NotImplementedError
+
 
 
 class ChunkHistoryManager:
