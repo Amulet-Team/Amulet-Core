@@ -16,12 +16,18 @@ from ..utils.world_utils import (
     block_coords_to_chunk_coords,
     blocks_slice_to_chunk_slice,
     Coordinates,
+    DimensionCoordinates,
     entity_position_to_chunk_coordinates,
     get_entity_coordinates,
 )
 from ..world_interface.formats import Format
 
 from . import operation
+
+ChunkCache = Dict[
+    DimensionCoordinates,
+    Union[Chunk, None]
+]
 
 
 class World:
@@ -41,7 +47,7 @@ class World:
             Block(namespace="universal_minecraft", base_name="air")
         )  # ensure that index 0 is always air
 
-        self._chunk_cache: Dict[Coordinates, Chunk] = {}
+        self._chunk_cache: ChunkCache = {}
         shutil.rmtree(self._temp_directory, ignore_errors=True)
         self.history_manager = ChunkHistoryManager(self._temp_directory)
         self._deleted_chunks = set()
@@ -113,7 +119,7 @@ class World:
         shutil.rmtree(self._temp_directory, ignore_errors=True)
         self.world_wrapper.close()
 
-    def get_chunk(self, cx: int, cz: int) -> Chunk:
+    def get_chunk(self, cx: int, cz: int, dimension: int = 0) -> Chunk:
         """
         Gets the chunk data of the specified chunk coordinates.
         If the chunk does not exist ChunkDoesNotExist is raised.
@@ -123,21 +129,22 @@ class World:
         :param cz: The Z coordinate of the desired chunk
         :return: The blocks, entities, and tile entities in the chunk
         """
-        if (cx, cz) in self._deleted_chunks:
-            raise ChunkDoesNotExist(f"Chunk ({cx},{cz}) has been deleted")
+        if (dimension, cx, cz) in self._chunk_cache:
+            chunk = self._chunk_cache[(dimension, cx, cz)]
+            if chunk is None:
+                raise ChunkDoesNotExist(f"Chunk ({cx},{cz}) has been deleted")
+            else:
+                return chunk
 
-        if (cx, cz) in self._chunk_cache:
-            return self._chunk_cache[(cx, cz)]
-
-        chunk = self.world_wrapper.load_chunk(cx, cz, self.palette)
-        self._chunk_cache[(cx, cz)] = chunk
+        chunk = self.world_wrapper.load_chunk(cx, cz, self.palette, dimension)
+        self._chunk_cache[(dimension, cx, cz)] = chunk
         self.history_manager.add_original_chunk(chunk)
         return chunk
 
-    def put_chunk(self, chunk: Chunk):
+    def put_chunk(self, chunk: Chunk, dimension: int = 0):
         """Add a chunk to the universal world database"""
         chunk.changed = True
-        self._chunk_cache[(chunk.cx, chunk.cz)] = chunk
+        self._chunk_cache[(dimension, chunk.cx, chunk.cz)] = chunk
 
     def get_block(self, x: int, y: int, z: int) -> Block:
         """
