@@ -20,7 +20,7 @@ class Chunk:
     """
 
     def __init__(self, cx: int, cz: int):
-        self.cx, self.cz = cx, cz
+        self._cx, self._cz = cx, cz
         self._changed = False
         self._marked_for_deletion = False
 
@@ -52,6 +52,16 @@ class Chunk:
             raise Exception(f"The item {item} for Selection object does not make sense")
 
         return SubChunk(item, self)
+
+    @property
+    def cx(self):
+        """The chunk's x coordinate"""
+        return self._cx
+
+    @property
+    def cz(self):
+        """The chunk's z coordinate"""
+        return self._cz
 
     @property
     def changed(self) -> bool:
