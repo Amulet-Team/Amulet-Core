@@ -3,6 +3,7 @@ from __future__ import annotations
 from os.path import join
 import pickle
 from typing import Tuple, Union, Iterable, List
+import time
 
 import numpy
 
@@ -22,6 +23,7 @@ class Chunk:
     def __init__(self, cx: int, cz: int):
         self._cx, self._cz = cx, cz
         self._changed = False
+        self._changed_time = 0.0
         self._marked_for_deletion = False
 
         self._blocks = None
@@ -72,7 +74,16 @@ class Chunk:
 
     @changed.setter
     def changed(self, value: bool):
+        assert isinstance(value, bool), 'Changed value must be a bool'
         self._changed = value
+        if value:
+            self._changed_time = time.time()
+
+    @property
+    def changed_time(self) -> float:
+        """The last time the chunk was changed
+        Used to track if the chunk was changed since the last save snapshot and if the chunk model needs rebuilding"""
+        return self._changed_time
 
     @property
     def marked_for_deletion(self) -> bool:
