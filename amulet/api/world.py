@@ -35,9 +35,12 @@ class World:
     Class that handles world editing of any world format via an separate and flexible data format
     """
 
-    def __init__(self, directory: str, world_wrapper: Format):
+    def __init__(self, directory: str, world_wrapper: Format, temp_dir: str = None):
         self._directory = directory
-        self._temp_directory = get_temp_dir(self._directory)
+        if temp_dir is None:
+            self._temp_directory = get_temp_dir(self._directory)
+        else:
+            self._temp_directory = temp_dir
 
         self.world_wrapper = world_wrapper
         self.world_wrapper.open()
@@ -49,8 +52,8 @@ class World:
 
         self._chunk_cache: ChunkCache = {}
         shutil.rmtree(self._temp_directory, ignore_errors=True)
-        self.history_manager = ChunkHistoryManager(self._temp_directory)
         self._deleted_chunks = set()
+        self.history_manager = ChunkHistoryManager(os.path.join(self._temp_directory, 'chunks'))
 
     @property
     def changed(self) -> bool:
