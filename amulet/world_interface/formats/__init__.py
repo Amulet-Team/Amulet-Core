@@ -229,24 +229,25 @@ class Format:
         chunk.changed = False
         return chunk
 
-    def save_chunk(
+    def commit_chunk(
         self, chunk: Chunk, global_palette: BlockManager, dimension: int = 0
     ):
         """
         Save a universal format chunk to the Format database (not the disk database)
         call save method to write changed chunks back to the disk database
+        :param chunk: The chunk object to translate and save
         :param global_palette: The universal block manager
         :param dimension: optional dimension
         :return:
         """
         try:
-            self._save_chunk(chunk, dimension, global_palette)
+            self._commit_chunk(chunk, dimension, global_palette)
         except Exception as e:
             # TODO: add a log entry here
             print(f'Error saving chunk {chunk}\n{e}')
         self._changed = True
 
-    def _save_chunk(
+    def _commit_chunk(
         self,
         chunk: Chunk,
         dimension: int,

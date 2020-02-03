@@ -80,14 +80,14 @@ class World:
                 print(cx, cz)
                 try:
                     chunk = self.world_wrapper.load_chunk(cx, cz, self.palette)
-                    wrapper.save_chunk(chunk, self.palette)
+                    wrapper.commit_chunk(chunk, self.palette)
                 except ChunkLoadError:
                     pass
                 update_progress()
 
             for chunk in self._chunk_cache.values():
                 if chunk.changed:
-                    wrapper.save_chunk(deepcopy(chunk), self.palette)
+                    wrapper.commit_chunk(deepcopy(chunk), self.palette)
                 update_progress()
             for (cx, cz) in self._deleted_chunks:
                 wrapper.delete_chunk(cx, cz)
@@ -101,7 +101,7 @@ class World:
             self._deleted_chunks.clear()
             for chunk in self._chunk_cache.values():
                 if chunk.changed:
-                    self.world_wrapper.save_chunk(deepcopy(chunk), self.palette)
+                    self.world_wrapper.commit_chunk(deepcopy(chunk), self.palette)
                 update_progress()
             self.world_wrapper.save()
             # TODO check and flesh this out a bit
