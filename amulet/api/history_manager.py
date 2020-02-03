@@ -4,6 +4,8 @@ from typing import Dict, List, Tuple, Union, TYPE_CHECKING
 if TYPE_CHECKING:
     from .world import ChunkCache
 import time
+import os
+import pickle
 
 from os import makedirs
 from os.path import exists, join
@@ -37,11 +39,19 @@ class ChunkHistoryManager2:
             _ChunkStorage
         ] = {}
 
-        self._snapshots = List[List[_ChunkLocation]]
+        self._snapshots: List[List[_ChunkLocation]] = []
         self._last_snapshot_time = 0.0
 
-        self._snapshot_index = 0
+        self._snapshot_index = 0  # this is actually 1 more than the snapshot index
         self._last_save_snapshot = 0
+
+    @property
+    def undo_count(self) -> int:
+        return self._snapshot_index
+
+    @property
+    def redo_count(self) -> int:
+        return len(self._snapshots) - self._snapshot_index
 
     @property
     def unsaved_changes(self) -> int:
@@ -62,9 +72,11 @@ class ChunkHistoryManager2:
         # only chunks that are unchanged or have been saved can be unloaded so
         # the latest chunk here should be the same as the one on disk
         if (dimension, chunk.cx, chunk.cz) not in self._chunk_history:
-            self._chunk_history[(dimension, chunk.cx, chunk.cz)] = [0, [self._serialize_chunk(chunk)]]
+            self._chunk_index[(dimension, chunk.cx, chunk.cz)] = 0
+            self._chunk_history[(dimension, chunk.cx, chunk.cz)] = [self._serialise_chunk(chunk, dimension, 0)]
 
     def create_snapshot(self, chunk_cache: 'ChunkCache'):
+        """Find all the chunks which have changed since the last snapshot, serialise them and store the path to the file (or None if it has been deleted)"""
         snapshot = []
         for chunk_location, chunk in chunk_cache.items():
             assert chunk is None or isinstance(chunk, Chunk), 'Chunk must be None or a Chunk instance'
@@ -88,28 +100,60 @@ class ChunkHistoryManager2:
                     # updated the changed chunk
                     self._chunk_index[chunk_location] = + 1
                     del chunk_storage[chunk_index + 1:]
-                    chunk_storage[1].append(self._serialize_chunk(chunk))
+                    chunk_storage[1].append(self._serialise_chunk(chunk, chunk_location[0], self._chunk_index[chunk_location]))
                     snapshot.append(chunk_location)
 
         if snapshot:
             # if there is data in the snapshot invalidate all newer snapshots and add to the database
             self._snapshot_index += 1
-            del self._snapshots[self._snapshot_index]
-            self._snapshots[self._snapshot_index] = snapshot
+            del self._snapshots[self._snapshot_index:]
+            self._snapshots.append(snapshot)
             self._last_snapshot_time = time.time()
 
-    def _serialize_chunk(self, chunk: Chunk) -> _ChunkRecord2:
-        raise NotImplementedError
+    def _serialise_chunk(self, chunk: Union[Chunk, None], dimension: int, change_no: int) -> _ChunkRecord2:
+        """Serialise the chunk and write it to a file"""
+        if chunk is None:
+            return None
 
-    def _unserialize_chunks(self) -> Tuple[List[Chunk], List[Chunk]]:
-        raise NotImplementedError
+        os.makedirs(self.temp_dir, exist_ok=True)
+        path = os.path.join(self.temp_dir, f'chunk.{dimension}.{chunk.cx}.{chunk.cz}.{change_no}.pickle')
 
-    def undo(self):
-        raise NotImplementedError
+        with open(path, "wb") as fp:
+            pickle.dump(chunk, fp)
 
-    def redo(self):
-        raise NotImplementedError
+        return path
 
+    def _unsearlise_chunk(self, dimension: int, cx: int, cz: int, change_offset: int) -> Union[Chunk, None]:
+        """Load the next save state for a given chunk in a given direction"""
+        chunk_location = (dimension, cx, cz)
+        chunk_index = self._chunk_index[chunk_location] = self._chunk_index[chunk_location] + change_offset
+        chunk_storage = self._chunk_history[chunk_location]
+        assert 0 <= chunk_index < len(chunk_storage), 'Chunk index out of bounds'
+
+        chunk = chunk_storage[chunk_index]
+        if chunk is not None:
+            with open(chunk, "rb") as fp:
+                chunk = pickle.load(fp)
+        return chunk
+
+    def undo(self, chunk_cache: 'ChunkCache'):
+        """Decrements the internal change index and un-serialises the last save state for each chunk changed"""
+        if self._snapshot_index:
+            # _snapshot_index == 1 is the first snapshot which is index 0 in self._snapshots
+            self._snapshot_index -= 1
+            snapshot = self._snapshots[self._snapshot_index]
+            for chunk_location in snapshot:
+                chunk = self._unsearlise_chunk(*chunk_location, -1)
+                chunk_cache[chunk_location] = chunk
+
+    def redo(self, chunk_cache: 'ChunkCache'):
+        """Re-increments the internal change index and un-serialises the chunks from the next newest change"""
+        if self._snapshot_index < len(self._snapshots):
+            snapshot = self._snapshots[self._snapshot_index]
+            self._snapshot_index += 1
+            for chunk_location in snapshot:
+                chunk = self._unsearlise_chunk(*chunk_location, 1)
+                chunk_cache[chunk_location] = chunk
 
 
 class ChunkHistoryManager:
