@@ -37,16 +37,16 @@ class ChunkHistoryManager:
         self._snapshots: List[List[_ChunkLocation]] = []
         self._last_snapshot_time = 0.0
 
-        self._snapshot_index = 0  # this is actually 1 more than the snapshot index
-        self._last_save_snapshot = 0
+        self._snapshot_index = -1
+        self._last_save_snapshot = -1
 
     @property
     def undo_count(self) -> int:
-        return self._snapshot_index
+        return self._snapshot_index + 1
 
     @property
     def redo_count(self) -> int:
-        return len(self._snapshots) - self._snapshot_index
+        return len(self._snapshots) - (self._snapshot_index + 1)
 
     @property
     def unsaved_changes(self) -> int:
@@ -118,7 +118,7 @@ class ChunkHistoryManager:
 
         return path
 
-    def _unsearlise_chunk(self, dimension: int, cx: int, cz: int, change_offset: int) -> Union[Chunk, None]:
+    def _unserialise_chunk(self, dimension: int, cx: int, cz: int, change_offset: int) -> Union[Chunk, None]:
         """Load the next save state for a given chunk in a given direction"""
         chunk_location = (dimension, cx, cz)
         chunk_index = self._chunk_index[chunk_location] = self._chunk_index[chunk_location] + change_offset
@@ -133,19 +133,18 @@ class ChunkHistoryManager:
 
     def undo(self, chunk_cache: 'ChunkCache'):
         """Decrements the internal change index and un-serialises the last save state for each chunk changed"""
-        if self._snapshot_index:
-            # _snapshot_index == 1 is the first snapshot which is index 0 in self._snapshots
-            self._snapshot_index -= 1
+        if self._snapshot_index >= 0:
             snapshot = self._snapshots[self._snapshot_index]
             for chunk_location in snapshot:
-                chunk = self._unsearlise_chunk(*chunk_location, -1)
+                chunk = self._unserialise_chunk(*chunk_location, -1)
                 chunk_cache[chunk_location] = chunk
+            self._snapshot_index -= 1
 
     def redo(self, chunk_cache: 'ChunkCache'):
         """Re-increments the internal change index and un-serialises the chunks from the next newest change"""
-        if self._snapshot_index < len(self._snapshots):
-            snapshot = self._snapshots[self._snapshot_index]
-            self._snapshot_index += 1
+        if self._snapshot_index <= len(self._snapshots) - 2:
+            snapshot = self._snapshots[self._snapshot_index+1]
             for chunk_location in snapshot:
-                chunk = self._unsearlise_chunk(*chunk_location, 1)
+                chunk = self._unserialise_chunk(*chunk_location, 1)
                 chunk_cache[chunk_location] = chunk
+            self._snapshot_index += 1
