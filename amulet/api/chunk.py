@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from os.path import join
-import pickle
 from typing import Tuple, Union, Iterable, List
 import time
 
@@ -24,7 +22,6 @@ class Chunk:
         self._cx, self._cz = cx, cz
         self._changed = False
         self._changed_time = 0.0
-        self._marked_for_deletion = False
 
         self._blocks = None
         self._biomes = Biomes(self, numpy.zeros((16, 16), dtype=numpy.uint32))
@@ -84,13 +81,6 @@ class Chunk:
         """The last time the chunk was changed
         Used to track if the chunk was changed since the last save snapshot and if the chunk model needs rebuilding"""
         return self._changed_time
-
-    @property
-    def marked_for_deletion(self) -> bool:
-        """
-        :return: ``True`` if the chunk has been marked for deletion, ``False`` otherwise
-        """
-        return self._marked_for_deletion
 
     @property
     def blocks(self) -> Blocks:
@@ -175,42 +165,6 @@ class Chunk:
     @status.setter
     def status(self, value: Union[float, int, str]):
         self._status.set_value(value)
-
-    def serialize_chunk(self, change_path) -> str:
-        """
-        Serialized the chunk to a file on the disk in the supplied directory path. The filename follows the convention: ``<cx>.<cz>.chunk``
-
-        :param change_path: The directory path to save the chunk at
-        :return: The full path to the serialized chunk file
-        """
-        save_path = join(change_path, f"{self.cx}.{self.cz}.chunk")
-
-        fp = open(save_path, "wb")
-        pickle.dump(self, fp)
-        fp.close()
-
-        return save_path
-
-    @classmethod
-    def unserialize_chunk(cls, change_path) -> Chunk:
-        """
-        Unserializes chunk from the given file path.
-
-        :param change_path: The file to unserialize
-        :return: The recreated :class:`api.chunk.Chunk` object
-        """
-        fp = open(change_path, "rb")
-        chunk = pickle.load(fp)
-        fp.close()
-
-        return chunk
-
-    def delete(self):
-        """
-        Marks the given chunk for deletion
-        """
-        self._marked_for_deletion = True
-        self.changed = True
 
 
 class SubChunk:
