@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Dict, Generator, Set, Union, List
+from typing import Tuple, Dict, Generator, Set, Union
 
 import amulet_nbt as nbt
 

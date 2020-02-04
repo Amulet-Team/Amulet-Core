@@ -4,7 +4,7 @@ import os
 import struct
 import zlib
 import gzip
-from typing import Tuple, Any, Dict, Union, Generator, List
+from typing import Tuple, Any, Dict, Union, Generator
 import numpy
 import time
 import re

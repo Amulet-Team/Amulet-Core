@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import numpy
 
-from typing import Tuple, Callable, Union, List, Any
+from typing import Tuple, Callable, Union, List, Any, Optional
 
 from amulet import log
 from amulet.api.block import BlockManager, Block
@@ -25,6 +25,20 @@ loader = Loader(
     SUPPORTED_META_VERSION,
     SUPPORTED_TRANSLATOR_VERSION,
 )
+
+
+GetBlockCallback = Callable[     # get a block at a different location
+    [Tuple[int, int, int]],  # this takes the coordinates relative to the block in question
+    Tuple[Block, Union[None, BlockEntity]]  # and returns a new block and optionally a block entity
+]
+
+TranslateCallback = Callable[
+    [  # a callable
+        Union[Block, Entity],  # that takes either a Block or Entity object
+        Optional[GetBlockCallback]  # this is used in cases where the block needs data beyond itself to fully define itself (eg doors)
+    ],
+    Tuple[Block, BlockEntity, List[Entity], bool]  # ultimately return the converted objects(s)
+]
 
 
 class Translator:
@@ -54,16 +68,7 @@ class Translator:
         chunk: Chunk,
         palette: numpy.ndarray,
         get_chunk_callback: Union[Callable[[int, int], Tuple[Chunk, numpy.ndarray]], None],
-        translate: Callable[
-            [
-                Union[Block, Entity, Any],
-                Callable[
-                    [Tuple[int, int, int]],
-                    Tuple[Block, Union[None, BlockEntity]]
-                ]
-            ],
-            Tuple[Block, BlockEntity, List[Entity], bool]
-        ],
+        translate: TranslateCallback,
         full_translate: bool,
     ) -> Tuple[Chunk, numpy.ndarray]:
         if not full_translate:
@@ -76,7 +81,7 @@ class Translator:
 
         for i, input_block in enumerate(palette):
             input_block: Block
-            output_block, output_block_entity, output_entities, extra = translate(input_block)
+            output_block, output_block_entity, output_entities, extra = translate(input_block, None)
             if extra and get_chunk_callback:
                 todo.append(i)
             else:
@@ -169,7 +174,7 @@ class Translator:
 
         def translate(
                 input_object: Union[Block, Entity],
-                get_block_callback: Callable[[Tuple[int, int, int]], Tuple[Block, Union[None, BlockEntity]]] = None
+                get_block_callback: Optional[GetBlockCallback]
         ) -> Tuple[Block, BlockEntity, List[Entity], bool]:
             final_block = None
             final_block_entity = None
@@ -198,7 +203,7 @@ class Translator:
 
             elif isinstance(input_object, Entity):
                 # TODO: entity support
-                pass
+                raise NotImplementedError
 
             return final_block, final_block_entity, final_entities, final_extra
 
@@ -242,7 +247,7 @@ class Translator:
         # TODO: perhaps find a way so this code isn't duplicated in three places
         def translate(
                 input_object: Union[Block, Entity],
-                get_block_callback: Callable[[Tuple[int, int, int]], Tuple[Block, Union[None, BlockEntity]]] = None
+                get_block_callback: Optional[GetBlockCallback]
         ) -> Tuple[Block, BlockEntity, List[Entity], bool]:
             final_block = None
             final_block_entity = None

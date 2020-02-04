@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import os
-import traceback
-from typing import Tuple, Any, Union, Generator, Dict, List
+from typing import Tuple, Any, Union, Generator, Dict
 
 import numpy
 import PyMCTranslate

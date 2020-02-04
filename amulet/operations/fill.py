@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import numpy
+from typing import  TYPE_CHECKING
 
 from amulet.api.selection import SelectionBox
 from amulet.api.operation import Operation, register
 from amulet.api.block import Block
+if TYPE_CHECKING:
+    from amulet.api.world import World
 
 
 @register("fill")

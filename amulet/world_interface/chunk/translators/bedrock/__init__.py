@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy
 
-from typing import Tuple, Callable, Union, List
+from typing import Tuple, Callable, Union, List, Optional, TYPE_CHECKING
 
 from amulet import log
 from amulet.api.chunk import Chunk
@@ -11,6 +11,8 @@ from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
 from amulet.world_interface.chunk.translators import Translator
 import PyMCTranslate
+
+from .. import GetBlockCallback
 
 
 class BaseBedrockTranslator(Translator):
@@ -35,7 +37,7 @@ class BaseBedrockTranslator(Translator):
 
         def translate(
             input_object: Union[Tuple[Tuple[Union[Tuple[int, int, int], None], Block], ...], Entity],
-            get_block_callback: Callable[[Tuple[int, int, int]], Tuple[Block, Union[None, BlockEntity]]] = None
+            get_block_callback: Optional[GetBlockCallback]
         ) -> Tuple[Block, BlockEntity, List[Entity], bool]:
             final_block = None
             final_block_entity = None

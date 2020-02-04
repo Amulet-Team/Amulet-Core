@@ -127,7 +127,6 @@ class EntityList(ChunkList):
 if __name__ == "__main__":
     import amulet_nbt
     from amulet.api.chunk import Chunk
-    from amulet.api.entity import Entity
 
     c = Chunk(0, 0)
     block_ents = [

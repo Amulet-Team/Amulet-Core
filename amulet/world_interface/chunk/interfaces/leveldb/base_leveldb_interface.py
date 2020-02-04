@@ -15,7 +15,7 @@ from amulet.utils.world_utils import get_smallest_dtype, fast_unique
 from amulet.world_interface.chunk.interfaces import Interface
 from amulet.world_interface.chunk import translators
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
-    chunk_to_game_version, game_to_chunk_version
+    chunk_to_game_version
 )
 
 
