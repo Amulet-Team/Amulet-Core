@@ -4,6 +4,7 @@ import numpy
 
 from typing import Tuple, Callable, Union, List
 
+from amulet import log
 from amulet.api.chunk import Chunk
 from amulet.api.block import Block
 from amulet.api.block_entity import BlockEntity
@@ -59,8 +60,8 @@ class BaseBedrockTranslator(Translator):
                     output_object, output_block_entity, extra = translator(block, get_block_callback)
 
                     if isinstance(output_object, Block):
-                        if __debug__ and not output_object.namespace.startswith('universal'):
-                            print(f'Error translating {block.blockstate} to universal. Got {output_object.blockstate}')
+                        if not output_object.namespace.startswith('universal'):
+                            log.debug(f'Error translating {block.blockstate} to universal. Got {output_object.blockstate}')
                         if final_block is None:
                             final_block = output_object
                         else:
@@ -86,7 +87,7 @@ class BaseBedrockTranslator(Translator):
                 if block_entity.namespace is None and block_entity.base_name in version.block_entity_map:
                     block_entity.namespaced_name = version.block_entity_map[block_entity.base_name]
                 else:
-                    print(f'Could not find pretty name for {block_entity.namespaced_name}')
+                    log.debug(f'Could not find pretty name for block entity {block_entity.namespaced_name}')
 
         return self._translate(
             chunk, palette, get_chunk_callback, translate, full_translate

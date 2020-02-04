@@ -11,6 +11,7 @@ import re
 
 import amulet_nbt as nbt
 
+from amulet import log
 from amulet.world_interface.formats import Format
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, check_one_exists, load_leveldat
@@ -287,7 +288,7 @@ class AnvilFormat(Format):
         :param directory: The path to the root of the world to load.
         :return: True if the world can be loaded by this format, False otherwise.
         """
-        print(directory)
+        log.info(directory)
         if not check_all_exist(directory, "region", "level.dat"):
             return False
 
@@ -329,7 +330,7 @@ class AnvilFormat(Format):
             return f'Java Unknown Version'
 
     @property
-    def dimensions(self) -> List[Tuple[str, int]]:
+    def dimensions(self) -> Dict[str, int]:
         """A list of all the levels contained in the world"""
         dimensions = {}
         for level in self._levels.keys():

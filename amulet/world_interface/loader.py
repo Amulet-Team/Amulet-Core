@@ -6,6 +6,7 @@ import json
 import os
 from typing import AbstractSet, Any, Dict
 
+from amulet import log
 from amulet.api.errors import LoaderNoneMatched
 
 
@@ -41,8 +42,8 @@ class Loader:
                 meta = json.load(fp)
 
             if meta["meta_version"] != self._supported_meta_version:
-                print(
-                    f'[Error] Couldn\'t enable {self._object_type} located in "{d}" due to unsupported meta version'
+                log.error(
+                    f'Could not enable {self._object_type} located in "{d}" due to unsupported meta version'
                 )
                 continue
 
@@ -50,8 +51,8 @@ class Loader:
                 meta[self._object_type][f"{self._object_type}_version"]
                 != self._supported_version
             ):
-                print(
-                    f"[Error] Couldn't enable {self._object_type} \"{meta[self._object_type]['id']}\" due to unsupported {self._object_type} version"
+                log.error(
+                    f'Could not enable {self._object_type} "{meta[self._object_type]["id"]}" due to unsupported {self._object_type} version'
                 )
                 continue
 
@@ -63,8 +64,8 @@ class Loader:
             spec.loader.exec_module(modu)
 
             if not hasattr(modu, f"{self._object_type.upper()}_CLASS"):
-                print(
-                    f"[Error] {self._object_type} \"{meta[self._object_type]['id']}\" is missing the {self._object_type.upper()}_CLASS attribute"
+                log.error(
+                    f'{self._object_type} "{meta[self._object_type]["id"]}" is missing the {self._object_type.upper()}_CLASS attribute'
                 )
                 continue
 
@@ -74,10 +75,9 @@ class Loader:
             else:
                 self._loaded[meta[f"{self._object_type}"]["id"]] = c
 
-            if __debug__:
-                print(
-                    f"[Debug] Enabled {self._object_type} \"{meta[self._object_type]['id']}\", version {meta[self._object_type]['wrapper_version']}"
-                )
+            log.debug(
+                f'Enabled {self._object_type} "{meta[self._object_type]["id"]}", version {meta[self._object_type]["wrapper_version"]}'
+            )
 
         self._is_loaded = True
 

@@ -6,6 +6,7 @@ from typing import Tuple, Dict, Generator, Set, Union, List
 
 import amulet_nbt as nbt
 
+from amulet import log
 from amulet.utils.format_utils import check_all_exist
 from amulet.world_interface.formats import Format
 from amulet.world_interface.chunk import interfaces
@@ -52,7 +53,7 @@ class LevelDBLevelManager:
         self._db.close()
 
     @property
-    def dimensions(self) -> List[Tuple[str, int]]:
+    def dimensions(self) -> Dict[str, int]:
         """A list of all the levels contained in the world"""
         dimensions = {}
         for level in self._levels.keys():
@@ -158,7 +159,7 @@ class LevelDBFormat(Format):
         :param directory: The path to the root of the world to load.
         :return: True if the world can be loaded by this format, False otherwise.
         """
-        print(directory)
+        log.info(directory)
         if not check_all_exist(directory, "db", "level.dat", "levelname.txt"):
             return False
 

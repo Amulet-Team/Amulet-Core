@@ -5,6 +5,7 @@ import numpy
 
 from typing import Tuple, Callable, Union, List, Any
 
+from amulet import log
 from amulet.api.block import BlockManager, Block
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
@@ -180,8 +181,8 @@ class Translator:
                     output_object, output_block_entity, extra = version.block.to_universal(block, get_block_callback)
 
                     if isinstance(output_object, Block):
-                        if __debug__ and not output_object.namespace.startswith('universal'):
-                            print(f'Error translating {input_object.blockstate} to universal. Got {output_object.blockstate}')
+                        if not output_object.namespace.startswith('universal'):
+                            log.debug(f'Error translating {input_object.blockstate} to universal. Got {output_object.blockstate}')
                         if final_block is None:
                             final_block = output_object
                         else:
@@ -209,7 +210,7 @@ class Translator:
                 if block_entity.namespace is None and block_entity.base_name in version.block_entity_map:
                     block_entity.namespaced_name = version.block_entity_map[block_entity.base_name]
                 else:
-                    print(f'Could not find pretty name for {block_entity.namespaced_name}')
+                    log.debug(f'Could not find pretty name for block entity {block_entity.namespaced_name}')
         return self._translate(
             chunk, palette, get_chunk_callback, translate, full_translate
         )
@@ -254,7 +255,7 @@ class Translator:
 
                     if isinstance(output_object, Block):
                         if __debug__ and output_object.namespace.startswith('universal'):
-                            print(f'Error translating {input_object.blockstate} from universal. Got {output_object.blockstate}')
+                            log.debug(f'Error translating {input_object.blockstate} from universal. Got {output_object.blockstate}')
                         if final_block is None:
                             final_block = output_object
                         else:
@@ -285,7 +286,7 @@ class Translator:
                 if block_entity.namespaced_name in version.block_entity_map_inverse:
                     block_entity.namespaced_name = version.block_entity_map_inverse[block_entity.namespaced_name]
                 else:
-                    print(f'Could not find pretty name for {block_entity.namespaced_name}')
+                    log.debug(f'Could not find pretty name for block entity {block_entity.namespaced_name}')
         return chunk, palette
 
     def _biomes_to_universal(self, translator_version: Version, biome_array):

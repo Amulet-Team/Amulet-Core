@@ -7,6 +7,7 @@ from typing import Tuple, Any, Union, Generator, Dict, List
 import numpy
 import PyMCTranslate
 
+from amulet import log
 from amulet.world_interface.chunk import interfaces
 from amulet.api.errors import ChunkLoadError, ChunkDoesNotExist, WorldDatabaseAccessException
 from ...api.block import BlockManager
@@ -162,8 +163,7 @@ class Format:
         except ChunkDoesNotExist as e:
             raise e
         except Exception as e:
-            print(f'Error loading chunk {cx} {cz}\n{e}')
-            traceback.print_exc()
+            log.error(f'Error loading chunk {cx} {cz}', exc_info=True)
             raise ChunkLoadError
 
     def _load_chunk(
@@ -243,8 +243,7 @@ class Format:
         try:
             self._commit_chunk(chunk, dimension, global_palette)
         except Exception as e:
-            # TODO: add a log entry here
-            print(f'Error saving chunk {chunk}\n{e}')
+            log.error(f'Error saving chunk {chunk}', exc_info=True)
         self._changed = True
 
     def _commit_chunk(

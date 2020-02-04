@@ -1,4 +1,5 @@
 from typing import Union, Dict, List, Tuple
+from amulet import log
 
 states = {
     "empty": [["j13", "j14"], -1],
@@ -50,8 +51,8 @@ class Status:
         elif isinstance(value, str) and value in states:
             self._value = states[value][1]
         else:
-            print(
-                f"Unrecognised chunk state {value}. Defaulting to fully generated.\nIf this is a new version report it to the developers. "
+            log.error(
+                f"Unrecognised chunk state {value}. Defaulting to fully generated.\nIf this is a new version report it to the developers."
             )
             self._value = 2.0
 
