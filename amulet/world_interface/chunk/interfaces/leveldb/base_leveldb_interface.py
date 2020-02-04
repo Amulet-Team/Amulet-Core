@@ -567,7 +567,7 @@ class BaseLevelDBInterface(Interface):
         """Save a single layer of blocks in the palette format"""
         chunk: List[bytes] = []
 
-        bits_per_block = max(int(blocks.max()).bit_length(), 1)
+        bits_per_block = max(int(numpy.amax(blocks)).bit_length(), 1)
         if bits_per_block == 7:
             bits_per_block = 8
         elif 9 <= bits_per_block <= 15:

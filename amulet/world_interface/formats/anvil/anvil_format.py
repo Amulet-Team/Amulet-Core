@@ -327,7 +327,7 @@ class AnvilFormat(Format):
     def game_version_string(self) -> str:
         try:
             return f'Java {self.root_tag["Data"]["Version"]["Name"].value}'
-        except:
+        except Exception:
             return f'Java Unknown Version'
 
     @property
@@ -378,7 +378,7 @@ class AnvilFormat(Format):
         try:
             with open(os.path.join(self._world_path, 'session.lock'), 'rb') as f:
                 return struct.unpack('>Q', f.read(8))[0] == self._lock
-        except:
+        except Exception:
             return False
 
     def save(self):

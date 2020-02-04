@@ -161,7 +161,7 @@ class Format:
             return self._load_chunk(cx, cz, dimension, global_palette)
         except ChunkDoesNotExist as e:
             raise e
-        except Exception as e:
+        except Exception:
             log.error(f'Error loading chunk {cx} {cz}', exc_info=True)
             raise ChunkLoadError
 
@@ -241,7 +241,7 @@ class Format:
         """
         try:
             self._commit_chunk(chunk, dimension, global_palette)
-        except Exception as e:
+        except Exception:
             log.error(f'Error saving chunk {chunk}', exc_info=True)
         self._changed = True
 

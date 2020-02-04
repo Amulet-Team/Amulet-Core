@@ -179,7 +179,7 @@ class LevelDBFormat(Format):
                 self.platform,
                 tuple([t.value for t in self.root_tag["lastOpenedWithVersion"]]),
             )
-        except:
+        except Exception:
             return self.platform, (1, 2, 0)
 
     @property
@@ -195,7 +195,7 @@ class LevelDBFormat(Format):
     def game_version_string(self) -> str:
         try:
             return f'Bedrock {".".join(str(v) for v in self.root_tag["lastOpenedWithVersion"].value)}'
-        except:
+        except Exception:
             return f'Bedrock Unknown Version'
 
     @property

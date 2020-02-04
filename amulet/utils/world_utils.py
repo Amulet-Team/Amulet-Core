@@ -134,7 +134,7 @@ def encode_long_array(array: numpy.ndarray) -> numpy.ndarray:
     :return: Encoded array as numpy array
     """
     array = array.astype(">q")
-    bits_per_entry = max(int(array.max()).bit_length(), 2)
+    bits_per_entry = max(int(numpy.amax(array)).bit_length(), 2)
     return numpy.packbits(
         numpy.unpackbits(numpy.ascontiguousarray(array[::-1]).view("uint8")).reshape(
             -1, 64
@@ -172,7 +172,7 @@ def get_smallest_dtype(arr: ndarray, uint: bool = True) -> int:
     :return: The number of bits all the elements can be represented with
     """
     possible_dtypes = (2 ** x for x in range(3, 8))
-    max_number = arr.max()
+    max_number = numpy.amax(arr)
     if not uint:
         max_number = max_number * 2
     if max_number == 0:
@@ -193,7 +193,7 @@ def get_entity_coordinates(ent) -> Tuple[float, float, float]:
 
 def fast_unique(array: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]:
     uni = numpy.unique(array)
-    map = numpy.zeros(uni.max() + 1, dtype=numpy.uint)
+    map = numpy.zeros(numpy.amax(uni) + 1, dtype=numpy.uint)
     map[uni] = numpy.arange(uni.size)
     inv = map[array]
     return uni, inv
