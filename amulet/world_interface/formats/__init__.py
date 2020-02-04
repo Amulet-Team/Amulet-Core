@@ -197,14 +197,14 @@ class Format:
 
         # set up a callback that translator can use to get chunk data
         if recurse:
-            chunk_cache: Dict[Tuple[int, int], Tuple[Chunk, BlockManager]] = {}
+            chunk_cache: Dict[Tuple[int, int], Tuple[Chunk, numpy.ndarray]] = {}
 
-            def get_chunk_callback(x, z):
+            def get_chunk_callback(x: int, z: int) -> Tuple[Chunk, numpy.ndarray]:
                 palette = BlockManager()
                 cx_, cz_ = cx + x, cz + z
                 if (cx_, cz_) not in chunk_cache:
                     chunk_ = self._load_chunk(cx_, cz_, dimension, palette, False)
-                    chunk_cache[(cx_, cz_)] = chunk_, palette
+                    chunk_cache[(cx_, cz_)] = chunk_, numpy.array(palette.blocks())
                 return chunk_cache[(cx_, cz_)]
         else:
             get_chunk_callback = None
@@ -273,9 +273,9 @@ class Format:
             [global_palette[int_id] for int_id in chunk_palette]
         )
 
-        def get_chunk_callback(x, z):
+        def get_chunk_callback(x: int, z: int) -> Tuple[Chunk, numpy.ndarray]:
             # conversion from universal should not require any data outside the block
-            return chunk, global_palette
+            return chunk, numpy.ndarray(global_palette.blocks())
 
         # translate from universal format to version format
         chunk, chunk_palette = translator.from_universal(
