@@ -55,7 +55,7 @@ class AnvilRegion:
                     for z in range(32):
                         offset = offsets[x + 32 * z]
                         if offset != 0:
-                            self._chunks[(x, z)] = None
+                            self._chunks[(x, z)] = (False, 0, 0, b'')
 
     def all_chunk_coords(self) -> Generator[Tuple[int, int]]:
         for cx, cz in self._chunks.keys():
@@ -101,6 +101,7 @@ class AnvilRegion:
             #
             #         free_sectors[i] = False
 
+            self._chunks = {}
             for x in range(32):
                 for z in range(32):
                     offset = offsets[x + 32 * z]
@@ -211,8 +212,8 @@ class AnvilLevelManager:
 
     def all_chunk_coords(self) -> Generator[Tuple[int, int]]:
         for region in self._regions.values():
-            for chunk in region.all_chunk_coords():
-                yield chunk
+            for chunk_ in region.all_chunk_coords():
+                yield chunk_
 
     def save(self):
         # use put_chunk_data to actually upload modified chunks
@@ -267,7 +268,7 @@ class AnvilFormat(Format):
 
     def __init__(self, directory: str):
         super().__init__(directory)
-        self.root_tag: nbt.NBTFile = None
+        self.root_tag: nbt.NBTFile = nbt.NBTFile()
         self._load_level_dat()
         self._levels: Dict[int, AnvilLevelManager] = {}
         self._lock = None
@@ -402,8 +403,8 @@ class AnvilFormat(Format):
 
     def all_chunk_coords(self, dimension: int = 0) -> Generator[Tuple[int, int]]:
         """A generator of all chunk coords in the given dimension"""
-        for chunk in self._get_level(dimension).all_chunk_coords():
-            yield chunk
+        for chunk_ in self._get_level(dimension).all_chunk_coords():
+            yield chunk_
 
     def delete_chunk(self, cx: int, cz: int, dimension: int = 0):
         """Delete a chunk from a given dimension"""
