@@ -135,7 +135,7 @@ class LevelDBFormat(Format):
     def __init__(self, directory: str):
         super().__init__(directory)
         self._lock = False
-        self.root_tag: nbt.NBTFile = None
+        self.root_tag: nbt.NBTFile = nbt.NBTFile()
         self._load_level_dat()
         self._level_manager: LevelDBLevelManager = None
 
@@ -174,10 +174,13 @@ class LevelDBFormat(Format):
         """The version the world was last opened in
         This should be greater than or equal to the chunk versions found within
         For this format wrapper it returns a tuple of 3/4 ints (the game version number)"""
-        return (
-            self.platform,
-            tuple([t.value for t in self.root_tag["lastOpenedWithVersion"]]),
-        )
+        try:
+            return (
+                self.platform,
+                tuple([t.value for t in self.root_tag["lastOpenedWithVersion"]]),
+            )
+        except:
+            return self.platform, (1, 2, 0)
 
     @property
     def world_name(self):

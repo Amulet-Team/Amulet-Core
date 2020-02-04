@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy
 
-from typing import Tuple, Callable, Union, List, Optional, TYPE_CHECKING
+from typing import Tuple, Callable, Union, List, Optional
 
 from amulet import log
 from amulet.api.chunk import Chunk

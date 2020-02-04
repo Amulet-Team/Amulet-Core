@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import numpy
 
-from typing import Tuple, Callable, Union, List, Any, Optional
+from typing import Tuple, Callable, Union, List, Optional
 
 from amulet import log
 from amulet.api.block import BlockManager, Block
