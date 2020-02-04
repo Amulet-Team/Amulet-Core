@@ -57,6 +57,11 @@ class World:
         self.history_manager = ChunkHistoryManager(os.path.join(self._temp_directory, 'chunks'))
 
     @property
+    def world_path(self) -> str:
+        """The directory where the world is located"""
+        return self._directory
+
+    @property
     def changed(self) -> bool:
         """Has any data been modified but not saved to disk"""
         return self.world_wrapper.changed or any(chunk is None or chunk.changed for chunk in self._chunk_cache.values())
