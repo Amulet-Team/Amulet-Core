@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 class ChunkList(UserList):
     def __init__(self, parent_chunk: "Chunk", iterable: Iterable = ()):
-        self.data = list(iterable)
+        super(ChunkList, self).__init__(list(iterable))
         self._parent_chunk = parent_chunk
 
     def _check_all_types(self, value):
@@ -55,7 +55,7 @@ class ChunkList(UserList):
         Raises IndexError if list is empty or index is out of range.
         """
         self._dirty()
-        return super().pop(index=-1)
+        return super().pop(index)
 
     def remove(self, value) -> None:
         """
@@ -129,6 +129,8 @@ if __name__ == "__main__":
     from amulet.api.chunk import Chunk
 
     c = Chunk(0, 0)
+    print(c.entities.__class__)  # this is <class 'amulet.api.chunk_data.chunk_list.EntityList'>
+    print(isinstance(c.entities, EntityList))  # but this is false. WHY???????
     block_ents = [
         Entity("minecraft", "creeper", 0, 0, 0, amulet_nbt.NBTFile()),
         Entity("minecraft", "cow", 0, 0, 0, amulet_nbt.NBTFile()),
