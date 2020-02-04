@@ -100,7 +100,7 @@ class World:
                     continue
                 output_dimension = output_dimension_map[dimension_name]
                 for cx, cz in self.world_wrapper.all_chunk_coords(dimension):
-                    log.info(cx, cz)
+                    log.info(f'Converting chunk {cx}, {cz}')
                     try:
                         chunk = self.world_wrapper.load_chunk(cx, cz, self.palette, dimension)
                         wrapper.commit_chunk(chunk, self.palette, output_dimension)
