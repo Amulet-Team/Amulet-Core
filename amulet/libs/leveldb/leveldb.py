@@ -228,6 +228,7 @@ class LevelDB:
 
     def close(self):
         if self.db:
+            ldb.leveldb_compact_range(self.db, None, 0, None, 0)
             ldb.leveldb_close(self.db)
             self.db = None
 
