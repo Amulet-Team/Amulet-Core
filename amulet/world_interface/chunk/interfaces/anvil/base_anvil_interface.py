@@ -285,18 +285,18 @@ class BaseAnvilInterface(Interface):
                     block_light = misc.get("block_light", {})
                     if y in block_light:
                         section["BlockLight"] = block_light[y]
-                    # else:
-                    #     section["BlockLight"] = amulet_nbt.TAG_Byte_Array(
-                    #         numpy.full(2048, 255, dtype=numpy.uint8)
-                    #     )
+                    else:
+                        section["BlockLight"] = amulet_nbt.TAG_Byte_Array(
+                            numpy.full(2048, 255, dtype=numpy.uint8)
+                        )
                 if self.features["sky_light"] == "Sections|2048BA":
                     sky_light = misc.get("sky_light", {})
                     if y in sky_light:
                         section["SkyLight"] = sky_light[y]
-                    # else:
-                    #     section["SkyLight"] = amulet_nbt.TAG_Byte_Array(
-                    #         numpy.full(2048, 255, dtype=numpy.uint8)
-                    #     )
+                    else:
+                        section["SkyLight"] = amulet_nbt.TAG_Byte_Array(
+                            numpy.full(2048, 255, dtype=numpy.uint8)
+                        )
 
         if self.features["entities"] == "list":
             if amulet.entity_support:
