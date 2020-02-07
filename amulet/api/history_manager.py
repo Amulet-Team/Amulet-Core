@@ -28,7 +28,7 @@ class ChunkHistoryManager:
     def __init__(self, temp_dir):
         self.temp_dir: str = temp_dir
 
-        self._chunk_index = Dict[_ChunkLocation, int]  # the index of the current chunk in self._chunk_history
+        self._chunk_index: Dict[_ChunkLocation, int] = {} # the index of the current chunk in self._chunk_history
         self._chunk_history: Dict[
             _ChunkLocation,
             _ChunkStorage
