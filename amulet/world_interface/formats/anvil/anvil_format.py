@@ -333,11 +333,9 @@ class AnvilFormat(Format):
     @property
     def dimensions(self) -> Dict[str, int]:
         """A list of all the levels contained in the world"""
-        dimensions = {}
+        dimensions = {val: key for key, val in self._level_names.items()}
         for level in self._levels.keys():
-            if level in self._level_names:
-                dimensions[self._level_names[level]] = level
-            else:
+            if level not in self._level_names:
                 dimensions[f'DIM{level}'] = level
 
         return dimensions
