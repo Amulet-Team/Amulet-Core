@@ -8,7 +8,7 @@ from typing import Union, Generator, Dict, Optional, Tuple, List, Callable
 
 from amulet import log
 from .block import Block, BlockManager
-from .errors import ChunkDoesNotExist, ChunkLoadError
+from .errors import ChunkDoesNotExist, ChunkLoadError, LevelDoesNotExist
 from .history_manager import ChunkHistoryManager
 from .chunk import Chunk, SubChunk
 from .operation import Operation
@@ -92,21 +92,25 @@ class World:
         if save_as:
             # The input wrapper is not the same as the loading wrapper (save-as)
             # iterate through every chunk in the input world and save them to the wrapper
+            log.info(f'Converting world {self.world_wrapper.world_path} to world {wrapper.world_path}')
             wrapper.translation_manager = self.world_wrapper.translation_manager  # TODO: this might cause issues in the future
             chunk_count += len(list(self.world_wrapper.all_chunk_coords()))
 
             for dimension_name, dimension in self.world_wrapper.dimensions.items():
-                if dimension_name not in output_dimension_map:
+                try:
+                    if dimension_name not in output_dimension_map:
+                        continue
+                    output_dimension = output_dimension_map[dimension_name]
+                    for cx, cz in self.world_wrapper.all_chunk_coords(dimension):
+                        log.info(f'Converting chunk {dimension_name} {cx}, {cz}')
+                        try:
+                            chunk = self.world_wrapper.load_chunk(cx, cz, self.palette, dimension)
+                            wrapper.commit_chunk(chunk, self.palette, output_dimension)
+                        except ChunkLoadError:
+                            pass
+                        update_progress()
+                except LevelDoesNotExist:
                     continue
-                output_dimension = output_dimension_map[dimension_name]
-                for cx, cz in self.world_wrapper.all_chunk_coords(dimension):
-                    log.info(f'Converting chunk {cx}, {cz}')
-                    try:
-                        chunk = self.world_wrapper.load_chunk(cx, cz, self.palette, dimension)
-                        wrapper.commit_chunk(chunk, self.palette, output_dimension)
-                    except ChunkLoadError:
-                        pass
-                    update_progress()
 
         for (dimension, cx, cz), chunk in self._chunk_cache.values():
             dimension_out = output_dimension_map.get(
@@ -120,7 +124,9 @@ class World:
             elif chunk.changed:
                 wrapper.commit_chunk(deepcopy(chunk), self.palette, dimension_out)
             update_progress()
+        log.info(f'Saving changes to world {wrapper.world_path}')
         wrapper.save()
+        log.info(f'Finished saving changes to world {wrapper.world_path}')
 
         for deleted_chunk in deleted_chunks:
             del self._chunk_cache[deleted_chunk]
