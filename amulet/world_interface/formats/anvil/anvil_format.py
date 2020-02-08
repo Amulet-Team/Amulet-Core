@@ -312,7 +312,7 @@ class AnvilFormat(Format):
         """The version the world was last opened in
         This should be greater than or equal to the chunk versions found within
         For this format wrapper it returns a single int DataVersion"""
-        return self.platform, self.root_tag["Data"]["DataVersion"].value
+        return self.platform, self.root_tag.get("Data", nbt.TAG_Compound()).get("DataVersion", nbt.TAG_Int(-1)).value
 
     @property
     def world_name(self) -> str:
@@ -341,7 +341,7 @@ class AnvilFormat(Format):
         return dimensions
 
     def _get_interface_key(self, raw_chunk_data) -> Tuple[str, int]:
-        return self.platform, raw_chunk_data["DataVersion"].value
+        return self.platform, raw_chunk_data.get("DataVersion", nbt.TAG_Int(-1)).value
 
     def _reload_world(self):
         # reload the level.dat in case it has changed

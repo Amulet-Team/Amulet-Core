@@ -64,9 +64,10 @@ class BaseAnvilInterface(Interface):
         data: amulet_nbt.NBTFile = None,
     ) -> Tuple[translators.Translator, int]:
         if data:
+            data_version = data.get("DataVersion", amulet_nbt.TAG_Int(-1)).value
             key, version = (
-                ("java", data["DataVersion"].value),
-                data["DataVersion"].value,
+                ("java", data_version),
+                data_version,
             )
         else:
             key = max_world_version
