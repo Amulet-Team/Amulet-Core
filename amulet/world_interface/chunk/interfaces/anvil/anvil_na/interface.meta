@@ -1,0 +1,10 @@
+{
+"meta_version": 0,
+"interface": {
+    "id": "anvil_na",
+    "name": "Anvil NA Interface",
+    "entry_point": "interface",
+    "interface_version": 0,
+    "wrapper_version": -1
+   }
+}
