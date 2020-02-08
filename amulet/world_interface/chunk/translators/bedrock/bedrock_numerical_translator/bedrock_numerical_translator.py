@@ -18,27 +18,6 @@ class BedrockNumericalTranslator(BaseBedrockTranslator):
             return False
         return True
 
-    def _unpack_palette(self, version: Version, palette: numpy.ndarray):
-        """
-        Unpacks an object array of block data into a numpy object array containing Block objects.
-        :param version:
-        :param palette:
-        :type palette: numpy.ndarray[
-            Tuple[
-                Tuple[None, Tuple[int, int]],
-                ...
-            ]
-        ]
-        :return:
-        """
-        palette_ = numpy.empty(len(palette), dtype=object)
-        for palette_index, entry in enumerate(palette):
-            entry: Tuple[Tuple[None, Tuple[int, int]], ...]
-            palette_[palette_index] = tuple(
-                (block[0], version.ints_to_block(*block[1])) for block in entry
-            )
-        return palette_
-
     def _pack_palette(self, version: Version, palette: numpy.ndarray) -> numpy.ndarray:
         """
         Packs a numpy array of Block objects into an object array of containing block ids and block data values.

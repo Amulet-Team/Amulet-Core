@@ -11,6 +11,7 @@ from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
 from amulet.world_interface.chunk.translators import Translator
 import PyMCTranslate
+from PyMCTranslate.py3.translation_manager import Version
 
 from .. import GetBlockCallback
 
@@ -20,6 +21,40 @@ class BaseBedrockTranslator(Translator):
         self, version_number: Tuple[int, int, int]
     ) -> Tuple[str, Tuple[int, int, int]]:
         return "bedrock", version_number
+
+    def _unpack_palette(self, version: Version, palette: numpy.ndarray):
+        """
+        Unpacks an object array of block data into a numpy object array containing Block objects.
+        :param version:
+        :param palette:
+        :type palette: numpy.ndarray[
+            Tuple[
+                Union[
+                    Tuple[None, Tuple[int, int]],
+                    Tuple[None, Block],
+                    Tuple[Tuple[int, int, int, int], Block]
+                ], ...
+            ]
+        ]
+        :return:
+        """
+        palette_ = numpy.empty(len(palette), dtype=object)
+        for palette_index, entry in enumerate(palette):
+            entry: Tuple[
+                Union[
+                    Tuple[None, Tuple[int, int]],
+                    Tuple[None, Block],
+                    Tuple[Tuple[int, int, int, int], Block],
+                ],
+                ...,
+            ]
+            palette_[palette_index] = tuple(
+                (block[0], version.ints_to_block(*block[1]))
+                if isinstance(block[1], tuple)
+                else block
+                for block in entry
+            )
+        return palette_
 
     def to_universal(
         self,
