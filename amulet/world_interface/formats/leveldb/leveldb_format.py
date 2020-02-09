@@ -157,7 +157,6 @@ class LevelDBFormat(Format):
         :param directory: The path to the root of the world to load.
         :return: True if the world can be loaded by this format, False otherwise.
         """
-        log.info(directory)
         if not check_all_exist(directory, "db", "level.dat", "levelname.txt"):
             return False
 
