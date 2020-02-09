@@ -39,7 +39,7 @@ def load_format(
                 f'The path "{directory}" is not a valid path on this file system.'
             )
     if _format is not None:
-        if _format not in formats.loader.get_all():
+        if _format not in formats.loader:
             raise FormatLoaderInvalidFormat(f"Could not find _format loader {_format}")
         if not forced and not formats.loader.identify(directory) == _format:
             raise FormatLoaderMismatched(f"{_format} is incompatible")

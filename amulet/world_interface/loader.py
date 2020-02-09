@@ -90,8 +90,7 @@ class Loader:
         """
         :return: The identifiers of all loaded objects
         """
-        if not self._is_loaded:
-            self._find()
+        self._load()
         return self._loaded.keys()
 
     def get(self, identifier: Any) -> Any:
@@ -106,8 +105,7 @@ class Loader:
 
     def identify(self, identifier: Any) -> str:
 
-        if not self._is_loaded:
-            self._find()
+        self._load()
 
         for object_name, object_instance in self._loaded.items():
             if object_instance.is_valid(identifier):
@@ -117,3 +115,11 @@ class Loader:
 
     def get_by_id(self, object_id: str):
         return self._loaded[object_id]
+
+    def _load(self):
+        if not self._is_loaded:
+            self._find()
+
+    def __contains__(self, item: str):
+        self._load()
+        return item in self._loaded
