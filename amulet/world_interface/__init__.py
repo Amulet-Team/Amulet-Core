@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+from amulet import log
 from amulet.world_interface import formats
 from amulet.api.world import World
 from amulet.api.errors import FormatLoaderInvalidFormat, FormatLoaderMismatched
@@ -15,6 +16,7 @@ def load_world(directory: str, _format: str = None, forced: bool = False) -> Wor
     :param forced:
     :return:
     """
+    log.info(f'Loading world {directory}')
     return World(directory, load_format(directory, _format, forced))
 
 
@@ -31,17 +33,21 @@ def load_format(
     """
     if not os.path.isdir(directory):
         if os.path.exists(directory):
+            log.error(f'The path "{directory}" does exist but it is not a directory')
             raise Exception(
                 f'The path "{directory}" does exist but it is not a directory'
             )
         else:
+            log.error(f'The path "{directory}" is not a valid path on this file system.')
             raise Exception(
                 f'The path "{directory}" is not a valid path on this file system.'
             )
     if _format is not None:
         if _format not in formats.loader:
+            log.error(f"Could not find _format loader {_format}")
             raise FormatLoaderInvalidFormat(f"Could not find _format loader {_format}")
         if not forced and not formats.loader.identify(directory) == _format:
+            log.error(f"{_format} is incompatible")
             raise FormatLoaderMismatched(f"{_format} is incompatible")
         format_class = formats.loader.get_by_id(_format)
     else:
