@@ -93,8 +93,9 @@ class BaseBedrockTranslator(Translator):
                         else:
                             game_version_ = game_version
                     version_key = self._translator_key(game_version_)
-                    translator = versions.setdefault(version_key, translation_manager.get_version(*version_key).block.to_universal)
-                    output_object, output_block_entity, extra = translator(block, get_block_callback)
+                    if version_key not in versions:
+                        versions[version_key] = translation_manager.get_version(*version_key).block.to_universal
+                    output_object, output_block_entity, extra = versions[version_key](block, get_block_callback)
 
                     if isinstance(output_object, Block):
                         if not output_object.namespace.startswith('universal'):
