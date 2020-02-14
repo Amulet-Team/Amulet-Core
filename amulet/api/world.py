@@ -100,7 +100,7 @@ class World:
             wrapper.translation_manager = self.world_wrapper.translation_manager  # TODO: this might cause issues in the future
             for dimension in self.world_wrapper.dimensions.values():
                 try:
-                    chunk_count += len(list(self.world_wrapper.all_chunk_coords(dimension))
+                    chunk_count += len(list(self.world_wrapper.all_chunk_coords(dimension)))
                 except LevelDoesNotExist:
                     continue
 
