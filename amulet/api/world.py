@@ -98,7 +98,11 @@ class World:
             # iterate through every chunk in the input world and save them to the wrapper
             log.info(f'Converting world {self.world_wrapper.world_path} to world {wrapper.world_path}')
             wrapper.translation_manager = self.world_wrapper.translation_manager  # TODO: this might cause issues in the future
-            chunk_count += sum(len(list(self.world_wrapper.all_chunk_coords(dimension))) for dimension in self.world_wrapper.dimensions.values())
+            for dimension in self.world_wrapper.dimensions.values():
+                try:
+                    chunk_count += len(list(self.world_wrapper.all_chunk_coords(dimension))
+                except LevelDoesNotExist:
+                    continue
 
             for dimension_name, dimension in self.world_wrapper.dimensions.items():
                 try:
