@@ -66,6 +66,10 @@ class World:
         """Has any data been modified but not saved to disk"""
         return self.world_wrapper.changed or any(chunk is None or chunk.changed for chunk in self._chunk_cache.values())
 
+    @property
+    def chunk_size(self) -> Tuple[int, int, int]:
+        return self.world_wrapper.chunk_size
+
     def save(self, wrapper: Format = None, progress_callback: Callable[[int, int], None] = None):
         """Save the world using the given wrapper.
         Leave as None to save back to the input wrapper.

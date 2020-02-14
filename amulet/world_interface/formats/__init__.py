@@ -77,6 +77,10 @@ class Format:
         raise NotImplementedError
 
     @property
+    def chunk_size(self) -> Tuple[int, int, int]:
+        return (16, 256, 16)
+
+    @property
     def changed(self) -> bool:
         return self._changed
 
