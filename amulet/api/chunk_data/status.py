@@ -43,7 +43,12 @@ class Status:
         self._parent_chunk = parent_chunk
         self._value = 2.0
 
-    def set_value(self, value: Union[float, int, str]):
+    @property
+    def value(self) -> float:
+        return self._value
+
+    @value.setter
+    def value(self, value: Union[float, int, str]):
         if isinstance(value, float):
             self._value = value
         elif isinstance(value, int):

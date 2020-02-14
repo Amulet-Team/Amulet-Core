@@ -164,7 +164,7 @@ class Chunk:
 
     @status.setter
     def status(self, value: Union[float, int, str]):
-        self._status.set_value(value)
+        self._status.value = value
 
 
 class SubChunk:
