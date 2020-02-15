@@ -128,7 +128,7 @@ class World:
                             )
                             wrapper.commit_chunk(chunk, self.palette, output_dimension)
                         except ChunkLoadError:
-                            pass
+                            log.info(f'Error loading chunk {cx} {cz}', exc_info=True)
                         update_progress()
                 except LevelDoesNotExist:
                     continue
