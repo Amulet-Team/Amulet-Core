@@ -413,7 +413,7 @@ class BaseLevelDBInterface(Interface):
                     {
                         "name": amulet_nbt.TAG_String("minecraft:air"),
                         "states": amulet_nbt.TAG_Compound({}),
-                        "version": amulet_nbt.TAG_Int(17629184),
+                        "version": amulet_nbt.TAG_Int(17_629_184),
                     }
                 )
             )
