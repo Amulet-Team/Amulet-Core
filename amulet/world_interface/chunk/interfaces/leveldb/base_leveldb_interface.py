@@ -15,7 +15,7 @@ from amulet.utils.world_utils import get_smallest_dtype, fast_unique
 from amulet.world_interface.chunk.interfaces import Interface
 from amulet.world_interface.chunk import translators
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
-    chunk_to_game_version
+    chunk_to_game_version,
 )
 
 
@@ -278,9 +278,11 @@ class BaseLevelDBInterface(Interface):
                     List[Tuple[Union[None, Tuple[int, int, int, int]], Block]]
                 ] = []
                 for storage_index in range(storage_count):
-                    sub_chunk_blocks[
-                        :, :, :, storage_index
-                    ], palette_data, data = self._load_palette_blocks(data)
+                    (
+                        sub_chunk_blocks[:, :, :, storage_index],
+                        palette_data,
+                        data,
+                    ) = self._load_palette_blocks(data)
                     palette_data_out: List[
                         Tuple[Union[None, Tuple[int, int, int, int]], Block]
                     ] = []
@@ -493,7 +495,10 @@ class BaseLevelDBInterface(Interface):
                 sub_chunk_bytes = [b"\x08", bytes([sub_chunk_depth])]
                 for sub_chunk_layer_index in range(sub_chunk_depth):
                     # TODO: sort out a way to do this quicker without brute forcing it.
-                    sub_chunk_layer_palette, sub_chunk_remap = brute_sort_objects_no_hash(
+                    (
+                        sub_chunk_layer_palette,
+                        sub_chunk_remap,
+                    ) = brute_sort_objects_no_hash(
                         sub_chunk_palette_full[:, sub_chunk_layer_index]
                     )
                     sub_chunk_layer = sub_chunk_remap[sub_chunk.ravel()]

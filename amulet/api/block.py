@@ -215,9 +215,11 @@ class Block(WorldObject):
         return namespace, base_name, {k: v for k, v in sorted(properties.items())}
 
     def _parse_blockstate_string(self):
-        self._namespace, self._base_name, self._properties = self.parse_blockstate_string(
-            self._blockstate
-        )
+        (
+            self._namespace,
+            self._base_name,
+            self._properties,
+        ) = self.parse_blockstate_string(self._blockstate)
 
     def __str__(self) -> str:
         """
