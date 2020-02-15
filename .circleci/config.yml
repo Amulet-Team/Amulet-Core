@@ -81,8 +81,8 @@ jobs:
           name: run stylecheck
           command: |
             . venv/bin/activate
-            python -m black --check amulet
-            python -m black --check tests
+            python -m black --check --diff amulet
+            python -m black --check --diff tests
 
       - store_artifacts:
           path: test-reports
