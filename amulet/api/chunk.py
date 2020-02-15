@@ -71,7 +71,7 @@ class Chunk:
 
     @changed.setter
     def changed(self, value: bool):
-        assert isinstance(value, bool), 'Changed value must be a bool'
+        assert isinstance(value, bool), "Changed value must be a bool"
         self._changed = value
         if value:
             self._changed_time = time.time()

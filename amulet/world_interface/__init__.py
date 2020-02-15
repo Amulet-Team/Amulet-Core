@@ -16,7 +16,7 @@ def load_world(directory: str, _format: str = None, forced: bool = False) -> Wor
     :param forced:
     :return:
     """
-    log.info(f'Loading world {directory}')
+    log.info(f"Loading world {directory}")
     return World(directory, load_format(directory, _format, forced))
 
 
@@ -38,7 +38,9 @@ def load_format(
                 f'The path "{directory}" does exist but it is not a directory'
             )
         else:
-            log.error(f'The path "{directory}" is not a valid path on this file system.')
+            log.error(
+                f'The path "{directory}" is not a valid path on this file system.'
+            )
             raise Exception(
                 f'The path "{directory}" is not a valid path on this file system.'
             )

@@ -1,11 +1,12 @@
 import numpy
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
 
 
 class ChunkArray(numpy.ndarray):
-    def __new__(cls, parent_chunk: 'Chunk', input_array):
+    def __new__(cls, parent_chunk: "Chunk", input_array):
         obj = numpy.asarray(input_array).view(cls)
         obj._parent_chunk = parent_chunk
         return obj

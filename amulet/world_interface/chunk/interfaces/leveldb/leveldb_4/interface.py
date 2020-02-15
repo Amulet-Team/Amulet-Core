@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from amulet.world_interface.chunk.interfaces.leveldb.base_leveldb_interface import (
-    BaseLevelDBInterface,
+    BaseLevelDBInterface
 )
 
 
@@ -12,7 +12,7 @@ class LevelDB4Interface(BaseLevelDBInterface):
         self.features["chunk_version"] = 4
         self.features["finalised_state"] = "int0-2"
 
-        self.features["data_2d"] = 'unused_height512|biome256'
+        self.features["data_2d"] = "unused_height512|biome256"
 
         self.features["block_entities"] = "31list"
         self.features["block_entity_format"] = "str-id"

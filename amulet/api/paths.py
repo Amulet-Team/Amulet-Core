@@ -55,4 +55,4 @@ OPERATIONS_DIR = _application_directory("operations")
 
 
 def get_temp_dir(world_dir):
-    return os.path.join('.', 'world_temp', str(hash(world_dir)))
+    return os.path.join(".", "world_temp", str(hash(world_dir)))

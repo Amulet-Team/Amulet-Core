@@ -7,8 +7,10 @@ from amulet.api.block import Block
 from amulet.api.errors import ChunkDoesNotExist
 from amulet.api.selection import SubBox, SelectionBox
 from amulet.api.chunk import SubChunk
-from amulet.world_interface import load_world
+from amulet.world_interface import load_world, load_format
 from test_utils import get_world_path, get_data_path, timeout
+
+import os.path as op
 
 
 class WorldTestBaseCases:
@@ -296,6 +298,28 @@ class WorldTestBaseCases:
             self.assertEqual(
                 0, len([x for x in self.world.get_sub_chunks(*subbox1.to_slice())])
             )
+
+        @unittest.skipUnless(
+            op.exists(get_world_path("1.12.2 World to 1.13 World"))
+            and op.exists(get_world_path("1.13 World to 1.12.2 World")),
+            reason="Output worlds do not exist",
+        )
+        def test_save(self):
+            output_wrapper = None
+            version_string = self.world.world_wrapper.game_version_string
+
+            if "1.12.2" in version_string:
+                output_wrapper = load_format(
+                    get_world_path("1.12.2 World to 1.13 World")
+                )
+            else:
+                output_wrapper = load_format(
+                    get_world_path("1.13 World to 1.12.2 World")
+                )
+
+            self.world.save(output_wrapper)
+            self.world.close()
+            output_wrapper.close()
 
         @unittest.skip("Entity API currently being rewritten")
         def test_get_entities(

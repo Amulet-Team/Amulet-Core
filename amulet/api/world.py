@@ -26,10 +26,7 @@ from ..world_interface.formats import Format
 
 from . import operation
 
-ChunkCache = Dict[
-    DimensionCoordinates,
-    Union[Chunk, None]
-]
+ChunkCache = Dict[DimensionCoordinates, Union[Chunk, None]]
 
 
 class World:
@@ -54,7 +51,9 @@ class World:
 
         self._chunk_cache: ChunkCache = {}
         shutil.rmtree(self._temp_directory, ignore_errors=True)
-        self.history_manager = ChunkHistoryManager(os.path.join(self._temp_directory, 'chunks'))
+        self.history_manager = ChunkHistoryManager(
+            os.path.join(self._temp_directory, "chunks")
+        )
 
     @property
     def world_path(self) -> str:
@@ -64,13 +63,19 @@ class World:
     @property
     def changed(self) -> bool:
         """Has any data been modified but not saved to disk"""
-        return self.world_wrapper.changed or any(chunk is None or chunk.changed for chunk in self._chunk_cache.values())
+        return self.world_wrapper.changed or any(
+            chunk is None or chunk.changed for chunk in self._chunk_cache.values()
+        )
 
     @property
     def chunk_size(self) -> Tuple[int, int, int]:
         return self.world_wrapper.chunk_size
 
-    def save(self, wrapper: Format = None, progress_callback: Callable[[int, int], None] = None):
+    def save(
+        self,
+        wrapper: Format = None,
+        progress_callback: Callable[[int, int], None] = None,
+    ):
         """Save the world using the given wrapper.
         Leave as None to save back to the input wrapper.
         Optional progress callback to let the calling program know the progress. Input format chunk_index, chunk_count"""
@@ -96,11 +101,17 @@ class World:
         if save_as:
             # The input wrapper is not the same as the loading wrapper (save-as)
             # iterate through every chunk in the input world and save them to the wrapper
-            log.info(f'Converting world {self.world_wrapper.world_path} to world {wrapper.world_path}')
-            wrapper.translation_manager = self.world_wrapper.translation_manager  # TODO: this might cause issues in the future
+            log.info(
+                f"Converting world {self.world_wrapper.world_path} to world {wrapper.world_path}"
+            )
+            wrapper.translation_manager = (
+                self.world_wrapper.translation_manager
+            )  # TODO: this might cause issues in the future
             for dimension in self.world_wrapper.dimensions.values():
                 try:
-                    chunk_count += len(list(self.world_wrapper.all_chunk_coords(dimension)))
+                    chunk_count += len(
+                        list(self.world_wrapper.all_chunk_coords(dimension))
+                    )
                 except LevelDoesNotExist:
                     continue
 
@@ -110,9 +121,11 @@ class World:
                         continue
                     output_dimension = output_dimension_map[dimension_name]
                     for cx, cz in self.world_wrapper.all_chunk_coords(dimension):
-                        log.info(f'Converting chunk {dimension_name} {cx}, {cz}')
+                        log.info(f"Converting chunk {dimension_name} {cx}, {cz}")
                         try:
-                            chunk = self.world_wrapper.load_chunk(cx, cz, self.palette, dimension)
+                            chunk = self.world_wrapper.load_chunk(
+                                cx, cz, self.palette, dimension
+                            )
                             wrapper.commit_chunk(chunk, self.palette, output_dimension)
                         except ChunkLoadError:
                             pass
@@ -121,9 +134,7 @@ class World:
                     continue
 
         for (dimension, cx, cz), chunk in self._chunk_cache.values():
-            dimension_out = output_dimension_map.get(
-                dim2dimstr.get(dimension)
-            )
+            dimension_out = output_dimension_map.get(dim2dimstr.get(dimension))
             if dimension_out is None:
                 continue
             if chunk is None:
@@ -132,9 +143,9 @@ class World:
             elif chunk.changed:
                 wrapper.commit_chunk(deepcopy(chunk), self.palette, dimension_out)
             update_progress()
-        log.info(f'Saving changes to world {wrapper.world_path}')
+        log.info(f"Saving changes to world {wrapper.world_path}")
         wrapper.save()
-        log.info(f'Finished saving changes to world {wrapper.world_path}')
+        log.info(f"Finished saving changes to world {wrapper.world_path}")
 
         for deleted_chunk in deleted_chunks:
             del self._chunk_cache[deleted_chunk]
@@ -243,7 +254,10 @@ class World:
                 if chunk_pos == last_chunk
                 else slice(None)
             )
-            chunk = self.get_chunk(*chunk_pos)
+            try:
+                chunk = self.get_chunk(*chunk_pos)
+            except ChunkDoesNotExist:
+                continue
             if chunk is None:
                 continue
             yield chunk[x_slice_for_chunk, s_y, z_slice_for_chunk]
@@ -355,8 +369,8 @@ class World:
         e = None
         try:
             self.run_operation(operation_instance)
-        except Exception as e:
-            pass
+        except Exception as ex:
+            raise ex
 
         self.history_manager.create_snapshot(self._chunk_cache)
         return e

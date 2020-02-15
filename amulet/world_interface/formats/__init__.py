@@ -8,7 +8,11 @@ import PyMCTranslate
 
 from amulet import log
 from amulet.world_interface.chunk import interfaces
-from amulet.api.errors import ChunkLoadError, ChunkDoesNotExist, WorldDatabaseAccessException
+from amulet.api.errors import (
+    ChunkLoadError,
+    ChunkDoesNotExist,
+    WorldDatabaseAccessException,
+)
 from ...api.block import BlockManager
 from ...api.chunk import Chunk
 from ..loader import Loader
@@ -135,7 +139,9 @@ class Format:
     def _verify_has_lock(self):
         """Ensure that the Format has a lock on the world. Throw WorldAccessException if not"""
         if not self.has_lock():
-            raise WorldDatabaseAccessException('World was either never opened or has since been opened in Minecraft')
+            raise WorldDatabaseAccessException(
+                "World was either never opened or has since been opened in Minecraft"
+            )
 
     def save(self):
         """Save the data back to the disk database"""
@@ -166,7 +172,7 @@ class Format:
         except ChunkDoesNotExist as e:
             raise e
         except Exception:
-            log.error(f'Error loading chunk {cx} {cz}', exc_info=True)
+            log.error(f"Error loading chunk {cx} {cz}", exc_info=True)
             raise ChunkLoadError
 
     def _load_chunk(
@@ -210,6 +216,7 @@ class Format:
                     chunk_ = self._load_chunk(cx_, cz_, dimension, palette, False)
                     chunk_cache[(cx_, cz_)] = chunk_, palette
                 return chunk_cache[(cx_, cz_)]
+
         else:
             get_chunk_callback = None
 
@@ -246,7 +253,7 @@ class Format:
         try:
             self._commit_chunk(chunk, dimension, global_palette)
         except Exception:
-            log.error(f'Error saving chunk {chunk}', exc_info=True)
+            log.error(f"Error saving chunk {chunk}", exc_info=True)
         self._changed = True
 
     def _commit_chunk(

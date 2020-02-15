@@ -39,6 +39,3 @@ def load_leveldat(in_dir: str) -> nbt.NBTFile:
 
     root_tag = nbt.load(filename=os.path.join(in_dir, "level.dat"))
     return root_tag
-
-
-

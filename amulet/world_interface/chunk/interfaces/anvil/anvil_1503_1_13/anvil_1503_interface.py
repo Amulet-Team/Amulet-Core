@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from amulet.world_interface.chunk.interfaces.anvil.anvil_1484_1_13.anvil_1484_interface import Anvil1484Interface
+from amulet.world_interface.chunk.interfaces.anvil.anvil_1484_1_13.anvil_1484_interface import (
+    Anvil1484Interface
+)
 
 
 class Anvil1503Interface(Anvil1484Interface):

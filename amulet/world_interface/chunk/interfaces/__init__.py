@@ -39,44 +39,77 @@ class Interface:
         """
         raise NotImplementedError()
 
-    def _decode_entity(self, nbt: amulet_nbt.NBTFile, id_type: str, coord_type: str) -> Union[Entity, None]:
+    def _decode_entity(
+        self, nbt: amulet_nbt.NBTFile, id_type: str, coord_type: str
+    ) -> Union[Entity, None]:
         entity = self._decode_base_entity(nbt, id_type, coord_type)
         if entity is not None:
             namespace, base_name, x, y, z, nbt = entity
-            return Entity(namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=nbt)
+            return Entity(
+                namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=nbt
+            )
 
-    def _decode_block_entity(self, nbt: amulet_nbt.NBTFile, id_type: str, coord_type: str) -> Union[BlockEntity, None]:
+    def _decode_block_entity(
+        self, nbt: amulet_nbt.NBTFile, id_type: str, coord_type: str
+    ) -> Union[BlockEntity, None]:
         entity = self._decode_base_entity(nbt, id_type, coord_type)
         if entity is not None:
             namespace, base_name, x, y, z, nbt = entity
-            return BlockEntity(namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=nbt)
+            return BlockEntity(
+                namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=nbt
+            )
 
     @staticmethod
-    def _decode_base_entity(nbt: amulet_nbt.NBTFile, id_type: str, coord_type: str) -> Union[Tuple[str, str, Union[int, float], Union[int, float], Union[int, float], amulet_nbt.NBTFile], None]:
-        if not isinstance(nbt, amulet_nbt.NBTFile) and isinstance(nbt.value, amulet_nbt.TAG_Compound):
+    def _decode_base_entity(
+        nbt: amulet_nbt.NBTFile, id_type: str, coord_type: str
+    ) -> Union[
+        Tuple[
+            str,
+            str,
+            Union[int, float],
+            Union[int, float],
+            Union[int, float],
+            amulet_nbt.NBTFile,
+        ],
+        None,
+    ]:
+        if not isinstance(nbt, amulet_nbt.NBTFile) and isinstance(
+            nbt.value, amulet_nbt.TAG_Compound
+        ):
             return
 
-        if id_type == 'namespace-str-id':
-            entity_id = nbt.pop('id', amulet_nbt.TAG_String(''))
-            if not isinstance(entity_id, amulet_nbt.TAG_String) or entity_id.value == '' or ':' not in entity_id.value:
+        if id_type == "namespace-str-id":
+            entity_id = nbt.pop("id", amulet_nbt.TAG_String(""))
+            if (
+                not isinstance(entity_id, amulet_nbt.TAG_String)
+                or entity_id.value == ""
+                or ":" not in entity_id.value
+            ):
                 return
-            namespace, base_name = entity_id.value.split(':', 1)
+            namespace, base_name = entity_id.value.split(":", 1)
 
-        elif id_type == 'str-id':
-            entity_id = nbt.pop('id', amulet_nbt.TAG_String(''))
-            if not isinstance(entity_id, amulet_nbt.TAG_String) or entity_id.value == '':
+        elif id_type == "str-id":
+            entity_id = nbt.pop("id", amulet_nbt.TAG_String(""))
+            if (
+                not isinstance(entity_id, amulet_nbt.TAG_String)
+                or entity_id.value == ""
+            ):
                 return
             namespace = None
             base_name = entity_id.value
 
-        elif id_type in ['namespace-str-identifier', 'int-id']:
-            if 'identifier' in nbt:
-                entity_id = nbt.pop('identifier')
-                if not isinstance(entity_id, amulet_nbt.TAG_String) or entity_id.value == '' or ':' not in entity_id.value:
+        elif id_type in ["namespace-str-identifier", "int-id"]:
+            if "identifier" in nbt:
+                entity_id = nbt.pop("identifier")
+                if (
+                    not isinstance(entity_id, amulet_nbt.TAG_String)
+                    or entity_id.value == ""
+                    or ":" not in entity_id.value
+                ):
                     return
-                namespace, base_name = entity_id.value.split(':', 1)
-            elif 'id' in nbt:
-                entity_id = nbt.pop('id')
+                namespace, base_name = entity_id.value.split(":", 1)
+            elif "id" in nbt:
+                entity_id = nbt.pop("id")
                 if not isinstance(entity_id, amulet_nbt.TAG_Int):
                     return
                 namespace = None
@@ -84,22 +117,25 @@ class Interface:
             else:
                 return
         else:
-            raise NotImplementedError(f'Entity id type {id_type}')
+            raise NotImplementedError(f"Entity id type {id_type}")
 
-        if coord_type in ['Pos-list-double', 'Pos-list-float']:
-            if 'Pos' not in nbt:
+        if coord_type in ["Pos-list-double", "Pos-list-float"]:
+            if "Pos" not in nbt:
                 return
-            pos = nbt.pop('Pos')
+            pos = nbt.pop("Pos")
             pos: amulet_nbt.TAG_List
             if not (5 <= pos.list_data_type <= 6 and len(pos) == 3):
                 return
             x, y, z = [c.value for c in pos]
-        elif coord_type == 'xyz-int':
-            if not all(c in nbt and isinstance(nbt[c], amulet_nbt.TAG_Int) for c in ('x', 'y', 'z')):
+        elif coord_type == "xyz-int":
+            if not all(
+                c in nbt and isinstance(nbt[c], amulet_nbt.TAG_Int)
+                for c in ("x", "y", "z")
+            ):
                 return
-            x, y, z = [nbt.pop(c).value for c in ('x', 'y', 'z')]
+            x, y, z = [nbt.pop(c).value for c in ("x", "y", "z")]
         else:
-            raise NotImplementedError(f'Entity coord type {coord_type}')
+            raise NotImplementedError(f"Entity coord type {coord_type}")
 
         return namespace, base_name, x, y, z, nbt
 
@@ -120,49 +156,61 @@ class Interface:
         """
         raise NotImplementedError()
 
-    def _encode_entity(self, entity: Entity, id_type: str, coord_type: str) -> Union[amulet_nbt.NBTFile, None]:
+    def _encode_entity(
+        self, entity: Entity, id_type: str, coord_type: str
+    ) -> Union[amulet_nbt.NBTFile, None]:
         return self._encode_base_entity(entity, id_type, coord_type)
 
-    def _encode_block_entity(self, entity: BlockEntity, id_type: str, coord_type: str) -> Union[amulet_nbt.NBTFile, None]:
+    def _encode_block_entity(
+        self, entity: BlockEntity, id_type: str, coord_type: str
+    ) -> Union[amulet_nbt.NBTFile, None]:
         return self._encode_base_entity(entity, id_type, coord_type)
 
     @staticmethod
-    def _encode_base_entity(entity: Union[Entity, BlockEntity], id_type: str, coord_type: str) -> Union[amulet_nbt.NBTFile, None]:
-        if not isinstance(entity.nbt, amulet_nbt.NBTFile) and isinstance(entity.nbt.value, amulet_nbt.TAG_Compound):
+    def _encode_base_entity(
+        entity: Union[Entity, BlockEntity], id_type: str, coord_type: str
+    ) -> Union[amulet_nbt.NBTFile, None]:
+        if not isinstance(entity.nbt, amulet_nbt.NBTFile) and isinstance(
+            entity.nbt.value, amulet_nbt.TAG_Compound
+        ):
             return
         nbt = entity.nbt
 
-        if id_type == 'namespace-str-id':
-            nbt['id'] = amulet_nbt.TAG_String(entity.namespaced_name)
-        elif id_type == 'namespace-str-identifier':
-            nbt['identifier'] = amulet_nbt.TAG_String(entity.namespaced_name)
-        elif id_type == 'str-id':
-            nbt['id'] = amulet_nbt.TAG_String(entity.base_name)
-        elif id_type == 'int-id':
+        if id_type == "namespace-str-id":
+            nbt["id"] = amulet_nbt.TAG_String(entity.namespaced_name)
+        elif id_type == "namespace-str-identifier":
+            nbt["identifier"] = amulet_nbt.TAG_String(entity.namespaced_name)
+        elif id_type == "str-id":
+            nbt["id"] = amulet_nbt.TAG_String(entity.base_name)
+        elif id_type == "int-id":
             if not entity.base_name.isnumeric():
                 return
-            nbt['id'] = amulet_nbt.TAG_Int(int(entity.base_name))
+            nbt["id"] = amulet_nbt.TAG_Int(int(entity.base_name))
         else:
-            raise NotImplementedError(f'Entity id type {id_type}')
+            raise NotImplementedError(f"Entity id type {id_type}")
 
-        if coord_type == 'Pos-list-double':
-            nbt['Pos'] = amulet_nbt.TAG_List([
-                amulet_nbt.TAG_Double(float(entity.x)),
-                amulet_nbt.TAG_Double(float(entity.y)),
-                amulet_nbt.TAG_Double(float(entity.z))
-            ])
-        elif coord_type == 'Pos-list-float':
-            nbt['Pos'] = amulet_nbt.TAG_List([
-                amulet_nbt.TAG_Float(float(entity.x)),
-                amulet_nbt.TAG_Float(float(entity.y)),
-                amulet_nbt.TAG_Float(float(entity.z))
-            ])
-        elif coord_type == 'xyz-int':
-            nbt['x'] = amulet_nbt.TAG_Int(int(entity.x))
-            nbt['y'] = amulet_nbt.TAG_Int(int(entity.y))
-            nbt['z'] = amulet_nbt.TAG_Int(int(entity.z))
+        if coord_type == "Pos-list-double":
+            nbt["Pos"] = amulet_nbt.TAG_List(
+                [
+                    amulet_nbt.TAG_Double(float(entity.x)),
+                    amulet_nbt.TAG_Double(float(entity.y)),
+                    amulet_nbt.TAG_Double(float(entity.z)),
+                ]
+            )
+        elif coord_type == "Pos-list-float":
+            nbt["Pos"] = amulet_nbt.TAG_List(
+                [
+                    amulet_nbt.TAG_Float(float(entity.x)),
+                    amulet_nbt.TAG_Float(float(entity.y)),
+                    amulet_nbt.TAG_Float(float(entity.z)),
+                ]
+            )
+        elif coord_type == "xyz-int":
+            nbt["x"] = amulet_nbt.TAG_Int(int(entity.x))
+            nbt["y"] = amulet_nbt.TAG_Int(int(entity.y))
+            nbt["z"] = amulet_nbt.TAG_Int(int(entity.z))
         else:
-            raise NotImplementedError(f'Entity coord type {coord_type}')
+            raise NotImplementedError(f"Entity coord type {coord_type}")
 
         return nbt
 

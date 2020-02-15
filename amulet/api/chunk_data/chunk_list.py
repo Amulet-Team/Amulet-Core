@@ -102,8 +102,8 @@ class ChunkList(UserList):
 
     def __repr__(self):
         if not self:
-            return '[]'
-        return ''.join(f'\n\t{str(obj)}' for obj in self) + '\n'
+            return "[]"
+        return "".join(f"\n\t{str(obj)}" for obj in self) + "\n"
 
 
 class BlockEntityList(ChunkList):
@@ -129,7 +129,9 @@ if __name__ == "__main__":
     from amulet.api.chunk import Chunk
 
     c = Chunk(0, 0)
-    print(c.entities.__class__)  # this is <class 'amulet.api.chunk_data.chunk_list.EntityList'>
+    print(
+        c.entities.__class__
+    )  # this is <class 'amulet.api.chunk_data.chunk_list.EntityList'>
     print(isinstance(c.entities, EntityList))  # but this is false. WHY???????
     block_ents = [
         Entity("minecraft", "creeper", 0, 0, 0, amulet_nbt.NBTFile()),

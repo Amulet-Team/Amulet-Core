@@ -57,22 +57,18 @@ def brute_sort_objects_no_hash(data) -> Tuple[numpy.ndarray, numpy.ndarray]:
 
 
 class BaseLevelDBInterface(Interface):
-
     def __init__(self):
         feature_options = {
             "chunk_version": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-            "finalised_state": ['int0-2'],
-            "data_2d": ['height512|biome256', 'unused_height512|biome256'],
-
+            "finalised_state": ["int0-2"],
+            "data_2d": ["height512|biome256", "unused_height512|biome256"],
             "block_entities": ["31list"],
             "block_entity_format": ["namespace-str-id", "str-id"],
             "block_entity_coord_format": ["xyz-int"],
-
             "entities": ["32list"],
             "entity_format": ["namespace-str-identifier", "int-id"],
             "entity_coord_format": ["Pos-list-float"],
-
-            "terrain": ["2farray", "2f1palette", "2fnpalette"]
+            "terrain": ["2farray", "2f1palette", "2fnpalette"],
         }
         self.features = {key: None for key in feature_options.keys()}
 
@@ -121,7 +117,8 @@ class BaseLevelDBInterface(Interface):
             chunk.status = val
 
         if self.features["data_2d"] in [
-            "height512|biome256", "unused_height512|biome256"
+            "height512|biome256",
+            "unused_height512|biome256",
         ]:
             d2d = data.get(b"\x2D", b"\x00" * 768)
             height, biome = d2d[:512], d2d[512:]
@@ -143,12 +140,12 @@ class BaseLevelDBInterface(Interface):
         # \x30  legacy terrain
 
         # unpack block entities and entities
-        if self.features['block_entities'] == "31list":
-            block_entities = self._unpack_nbt_list(data.get(b'\x31', b''))
+        if self.features["block_entities"] == "31list":
+            block_entities = self._unpack_nbt_list(data.get(b"\x31", b""))
             chunk.block_entities = self._decode_block_entities(block_entities)
 
-        if self.features['entities'] == "32list" and amulet.entity_support:
-            entities = self._unpack_nbt_list(data.get(b'\x32', b''))
+        if self.features["entities"] == "32list" and amulet.entity_support:
+            entities = self._unpack_nbt_list(data.get(b"\x32", b""))
             chunk.entities = self._decode_entities(entities)
 
         return chunk, palette
@@ -184,7 +181,8 @@ class BaseLevelDBInterface(Interface):
 
         # biome and height data
         if self.features["data_2d"] in [
-            "height512|biome256", "unused_height512|biome256"
+            "height512|biome256",
+            "unused_height512|biome256",
         ]:
             if self.features["data_2d"] == "height512|biome256":
                 d2d = b"\x00" * 512  # TODO: get this data from somewhere
@@ -194,24 +192,24 @@ class BaseLevelDBInterface(Interface):
             chunk_data[b"\x2D"] = d2d
 
         # pack block entities and entities
-        if self.features['block_entities'] == "31list":
+        if self.features["block_entities"] == "31list":
             block_entities_out = self._encode_block_entities(chunk.block_entities)
 
             if block_entities_out:
-                chunk_data[b'\x31'] = self._pack_nbt_list(block_entities_out)
+                chunk_data[b"\x31"] = self._pack_nbt_list(block_entities_out)
             else:
-                chunk_data[b'\x31'] = None
+                chunk_data[b"\x31"] = None
 
-        if self.features['entities'] == "32list":
+        if self.features["entities"] == "32list":
             if amulet.entity_support:
                 entities_out = self._encode_entities(chunk.entities)
             else:
-                entities_out = ''
+                entities_out = ""
 
             if entities_out:
-                chunk_data[b'\x32'] = self._pack_nbt_list(entities_out)
+                chunk_data[b"\x32"] = self._pack_nbt_list(entities_out)
             else:
-                chunk_data[b'\x32'] = None
+                chunk_data[b"\x32"] = None
 
         return chunk_data
 
@@ -282,9 +280,7 @@ class BaseLevelDBInterface(Interface):
                 for storage_index in range(storage_count):
                     sub_chunk_blocks[
                         :, :, :, storage_index
-                    ], palette_data, data = self._load_palette_blocks(
-                        data
-                    )
+                    ], palette_data, data = self._load_palette_blocks(data)
                     palette_data_out: List[
                         Tuple[Union[None, Tuple[int, int, int, int]], Block]
                     ] = []
@@ -317,7 +313,9 @@ class BaseLevelDBInterface(Interface):
 
                 y *= 16
                 if storage_count == 1:
-                    blocks[:, y:y + 16, :] = sub_chunk_blocks[:, :, :, 0] + len(palette)
+                    blocks[:, y : y + 16, :] = sub_chunk_blocks[:, :, :, 0] + len(
+                        palette
+                    )
                     palette += [(val,) for val in sub_chunk_palette[0]]
                 elif storage_count > 1:
                     # we have two or more storages so need to find the unique block combinations and merge them together
@@ -326,9 +324,9 @@ class BaseLevelDBInterface(Interface):
                         return_inverse=True,
                         axis=0,
                     )
-                    blocks[:, y:y + 16, :] = sub_chunk_blocks.reshape(16, 16, 16) + len(
-                        palette
-                    )
+                    blocks[:, y : y + 16, :] = sub_chunk_blocks.reshape(
+                        16, 16, 16
+                    ) + len(palette)
                     palette += [
                         tuple(
                             sub_chunk_palette[storage_index][index]
@@ -386,10 +384,11 @@ class BaseLevelDBInterface(Interface):
             )
         chunk = []
         for y in range(0, 256, 16):
-            palette_index, sub_chunk = fast_unique(blocks[:, y:y + 16, :])
+            palette_index, sub_chunk = fast_unique(blocks[:, y : y + 16, :])
             sub_chunk_palette = list(palette[palette_index])
             chunk.append(
-                b"\x01" + self._save_palette_subchunk(sub_chunk.ravel(), sub_chunk_palette)
+                b"\x01"
+                + self._save_palette_subchunk(sub_chunk.ravel(), sub_chunk_palette)
             )
         return chunk
 
@@ -469,7 +468,7 @@ class BaseLevelDBInterface(Interface):
 
         chunk = []
         for y in range(0, 256, 16):
-            palette_index, sub_chunk = fast_unique(blocks[:, y:y + 16, :])
+            palette_index, sub_chunk = fast_unique(blocks[:, y : y + 16, :])
             sub_chunk_palette = palette[palette_index]
             sub_chunk_depth = palette_depth[palette_index].max()
 
@@ -527,28 +526,18 @@ class BaseLevelDBInterface(Interface):
             numpy.pad(
                 numpy.unpackbits(
                     numpy.frombuffer(
-                        bytes(reversed(data[:4 * word_count])), dtype="uint8"
+                        bytes(reversed(data[: 4 * word_count])), dtype="uint8"
                     )
-                ).reshape(
-                    -1, 32
-                )[
-                    :, -blocks_per_word * bits_per_block:
-                ].reshape(
-                    -1, bits_per_block
-                )[
-                    -4096:, :
-                ],
+                )
+                .reshape(-1, 32)[:, -blocks_per_word * bits_per_block :]
+                .reshape(-1, bits_per_block)[-4096:, :],
                 [(0, 0), (16 - bits_per_block, 0)],
                 "constant",
             )
-        ).view(
-            dtype=">i2"
-        )[
-            ::-1
-        ]
+        ).view(dtype=">i2")[::-1]
         blocks = blocks.reshape((16, 16, 16)).swapaxes(1, 2)
 
-        data = data[4 * word_count:]
+        data = data[4 * word_count :]
 
         palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
         palette, offset = amulet_nbt.load(
@@ -589,45 +578,53 @@ class BaseLevelDBInterface(Interface):
                                 numpy.ascontiguousarray(blocks[::-1], dtype=">i").view(
                                     dtype="uint8"
                                 )
-                            ).reshape(
-                                4096, -1
-                            )[
-                                :, -bits_per_block:
-                            ],
+                            ).reshape(4096, -1)[:, -bits_per_block:],
                             [(word_count * blocks_per_word - 4096, 0), (0, 0)],
                             "constant",
-                        ).reshape(
-                            -1, blocks_per_word * bits_per_block
-                        ),
+                        ).reshape(-1, blocks_per_word * bits_per_block),
                         [(0, 0), (32 - blocks_per_word * bits_per_block, 0)],
                         "constant",
                     )
-                ).view(
-                    dtype=">i4"
-                ).tobytes()
+                )
+                .view(dtype=">i4")
+                .tobytes()
             )
         )
         chunk.append(blocks)
 
         chunk.append(struct.pack("<I", len(palette)))
-        chunk += [block.save_to(compressed=False, little_endian=True) for block in palette]
-        return b''.join(chunk)
+        chunk += [
+            block.save_to(compressed=False, little_endian=True) for block in palette
+        ]
+        return b"".join(chunk)
 
     def _unpack_nbt_list(self, raw_nbt: bytes) -> List[amulet_nbt.NBTFile]:
         nbt_list = []
         while raw_nbt:
-            nbt, index = amulet_nbt.load(buffer=raw_nbt, little_endian=True, offset=True)
+            nbt, index = amulet_nbt.load(
+                buffer=raw_nbt, little_endian=True, offset=True
+            )
             raw_nbt = raw_nbt[index:]
             nbt_list.append(nbt)
         return nbt_list
 
     def _pack_nbt_list(self, nbt_list: List[amulet_nbt.NBTFile]):
-        return b''.join([nbt.save_to(compressed=False, little_endian=True) for nbt in nbt_list if isinstance(nbt, amulet_nbt.NBTFile)])
+        return b"".join(
+            [
+                nbt.save_to(compressed=False, little_endian=True)
+                for nbt in nbt_list
+                if isinstance(nbt, amulet_nbt.NBTFile)
+            ]
+        )
 
     def _decode_entities(self, entities: List[amulet_nbt.NBTFile]) -> List[Entity]:
         entities_out = []
         for nbt in entities:
-            entity = self._decode_entity(nbt, self.features['entity_format'], self.features['entity_coord_format'])
+            entity = self._decode_entity(
+                nbt,
+                self.features["entity_format"],
+                self.features["entity_coord_format"],
+            )
             if entity is not None:
                 entities_out.append(entity)
 
@@ -636,25 +633,41 @@ class BaseLevelDBInterface(Interface):
     def _encode_entities(self, entities: List[Entity]) -> List[amulet_nbt.NBTFile]:
         entities_out = []
         for entity in entities:
-            nbt = self._encode_entity(entity, self.features['entity_format'], self.features['entity_coord_format'])
+            nbt = self._encode_entity(
+                entity,
+                self.features["entity_format"],
+                self.features["entity_coord_format"],
+            )
             if nbt is not None:
                 entities_out.append(nbt)
 
         return entities_out
 
-    def _decode_block_entities(self, block_entities: List[amulet_nbt.NBTFile]) -> List[BlockEntity]:
+    def _decode_block_entities(
+        self, block_entities: List[amulet_nbt.NBTFile]
+    ) -> List[BlockEntity]:
         entities_out = []
         for nbt in block_entities:
-            entity = self._decode_block_entity(nbt, self.features['block_entity_format'], self.features['block_entity_coord_format'])
+            entity = self._decode_block_entity(
+                nbt,
+                self.features["block_entity_format"],
+                self.features["block_entity_coord_format"],
+            )
             if entity is not None:
                 entities_out.append(entity)
 
         return entities_out
 
-    def _encode_block_entities(self, block_entities: List[BlockEntity]) -> List[amulet_nbt.NBTFile]:
+    def _encode_block_entities(
+        self, block_entities: List[BlockEntity]
+    ) -> List[amulet_nbt.NBTFile]:
         entities_out = []
         for entity in block_entities:
-            nbt = self._encode_block_entity(entity, self.features['block_entity_format'], self.features['block_entity_coord_format'])
+            nbt = self._encode_block_entity(
+                entity,
+                self.features["block_entity_format"],
+                self.features["block_entity_coord_format"],
+            )
             if nbt is not None:
                 entities_out.append(nbt)
 

@@ -6,7 +6,9 @@ import numpy
 import amulet_nbt as nbt
 
 from amulet.utils import world_utils
-from amulet.world_interface.chunk.interfaces.anvil.base_anvil_interface import BaseAnvilInterface
+from amulet.world_interface.chunk.interfaces.anvil.base_anvil_interface import (
+    BaseAnvilInterface
+)
 
 
 class AnvilNAInterface(BaseAnvilInterface):
@@ -63,9 +65,7 @@ class AnvilNAInterface(BaseAnvilInterface):
             section_blocks.astype(numpy.uint16, copy=False)
 
             section_data = world_utils.from_nibble_array(section_data)
-            section_data = section_data.reshape(
-                (16, 16, 16)
-            )
+            section_data = section_data.reshape((16, 16, 16))
 
             if "Add" in section:
                 add_blocks = numpy.frombuffer(section["Add"].value, dtype=numpy.uint8)
@@ -94,8 +94,8 @@ class AnvilNAInterface(BaseAnvilInterface):
         blocks = numpy.swapaxes(blocks.swapaxes(0, 2), 0, 1)
         block_array, data_array = blocks[:, :, :, 0], blocks[:, :, :, 1]
         for y in range(16):  # perhaps find a way to do this dynamically
-            block_sub_array = block_array[y * 16: y * 16 + 16, :, :].ravel()
-            data_sub_array = data_array[y * 16: y * 16 + 16, :, :].ravel()
+            block_sub_array = block_array[y * 16 : y * 16 + 16, :, :].ravel()
+            data_sub_array = data_array[y * 16 : y * 16 + 16, :, :].ravel()
             if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
                 continue
             section = nbt.TAG_Compound()

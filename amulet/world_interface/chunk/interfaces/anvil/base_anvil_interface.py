@@ -30,17 +30,12 @@ class BaseAnvilInterface(Interface):
             "blocks": ["Sections|(Blocks,Data,Add)", "Sections|(BlockStates,Palette)"],
             "block_light": ["Sections|2048BA"],
             "sky_light": ["Sections|2048BA"],
-
-
             "block_entities": ["list"],
             "block_entity_format": ["namespace-str-identifier"],
             "block_entity_coord_format": ["xyz-int"],
-
             "entities": ["list"],
             "entity_format": ["namespace-str-identifier"],
             "entity_coord_format": ["Pos-list-double"],
-            
-            
             "tile_ticks": ["list", "list(optional)"],
             "liquid_ticks": ["list"],
             # 'lights': [],
@@ -65,16 +60,15 @@ class BaseAnvilInterface(Interface):
     ) -> Tuple[translators.Translator, int]:
         if data:
             data_version = data.get("DataVersion", amulet_nbt.TAG_Int(-1)).value
-            key, version = (
-                ("java", data_version),
-                data_version,
-            )
+            key, version = (("java", data_version), data_version)
         else:
             key = max_world_version
             version = max_world_version[1]
         return translators.loader.get(key), version
 
-    def decode(self, cx: int, cz: int, data: amulet_nbt.NBTFile) -> Tuple[Chunk, numpy.ndarray]:
+    def decode(
+        self, cx: int, cz: int, data: amulet_nbt.NBTFile
+    ) -> Tuple[Chunk, numpy.ndarray]:
         """
         Create an amulet.api.chunk.Chunk object from raw data given by the format.
         :param cx: chunk x coordinate
@@ -86,7 +80,9 @@ class BaseAnvilInterface(Interface):
         chunk = Chunk(cx, cz)
 
         if self.features["last_update"] == "long":
-            misc["last_update"] = data["Level"].get("LastUpdate", amulet_nbt.TAG_Long(0)).value
+            misc["last_update"] = (
+                data["Level"].get("LastUpdate", amulet_nbt.TAG_Long(0)).value
+            )
 
         if self.features["status"] in ["j13", "j14"]:
             chunk.status = data["Level"]["Status"].value
@@ -109,14 +105,21 @@ class BaseAnvilInterface(Interface):
             misc["V"] = data["Level"]["V"].value
 
         if self.features["inhabited_time"] == "long":
-            misc["inhabited_time"] = data["Level"].get("InhabitedTime", amulet_nbt.TAG_Long(0)).value
+            misc["inhabited_time"] = (
+                data["Level"].get("InhabitedTime", amulet_nbt.TAG_Long(0)).value
+            )
 
         if self.features["biomes"] is not None:
             chunk.biomes = data["Level"].get("Biomes", amulet_nbt.TAG_Int_Array()).value
 
         if self.features["height_map"] == "256IA":
             misc["height_map256IA"] = data["Level"]["HeightMap"].value
-        elif self.features["height_map"] in ["C|36LA|V1", "C|36LA|V2", "C|36LA|V3", "C|36LA|V4"]:
+        elif self.features["height_map"] in [
+            "C|36LA|V1",
+            "C|36LA|V2",
+            "C|36LA|V3",
+            "C|36LA|V4",
+        ]:
             if "Heightmaps" in data["Level"]:
                 misc["height_mapC|36LA"] = data["Level"]["Heightmaps"]
 
@@ -147,10 +150,14 @@ class BaseAnvilInterface(Interface):
             # This will cause an air chunk to be written back TODO: sort saving based on chunk status
 
         if self.features["entities"] == "list" and amulet.entity_support:
-            chunk.entities = self._decode_entities(data["Level"].get("Entities", amulet_nbt.TAG_List()))
+            chunk.entities = self._decode_entities(
+                data["Level"].get("Entities", amulet_nbt.TAG_List())
+            )
 
         if self.features["block_entities"] == "list":
-            chunk.block_entities = self._decode_block_entities(data["Level"].get("TileEntities", amulet_nbt.TAG_List()))
+            chunk.block_entities = self._decode_block_entities(
+                data["Level"].get("TileEntities", amulet_nbt.TAG_List())
+            )
 
         if self.features["tile_ticks"] == "list":
             misc["tile_ticks"] = data["Level"].get("TileTicks", amulet_nbt.TAG_List())
@@ -198,7 +205,9 @@ class BaseAnvilInterface(Interface):
             data["DataVersion"] = amulet_nbt.TAG_Int(max_world_version[1])
 
         if self.features["last_update"] == "long":
-            data["Level"]["LastUpdate"] = amulet_nbt.TAG_Long(misc.get("last_update", 0))
+            data["Level"]["LastUpdate"] = amulet_nbt.TAG_Long(
+                misc.get("last_update", 0)
+            )
 
         # Order the float value based on the order they would be run. Newer replacements for the same come just after
         # to save back find the next lowest valid value.
@@ -209,16 +218,22 @@ class BaseAnvilInterface(Interface):
         else:
             status = chunk.status.as_type("float")
             if self.features["terrain_populated"] == "byte":
-                data["Level"]["TerrainPopulated"] = amulet_nbt.TAG_Byte(int(status > -0.3))
+                data["Level"]["TerrainPopulated"] = amulet_nbt.TAG_Byte(
+                    int(status > -0.3)
+                )
 
             if self.features["light_populated"] == "byte":
-                data["Level"]["LightPopulated"] = amulet_nbt.TAG_Byte(int(status > -0.2))
+                data["Level"]["LightPopulated"] = amulet_nbt.TAG_Byte(
+                    int(status > -0.2)
+                )
 
         if self.features["V"] == "byte":
             data["Level"]["V"] = amulet_nbt.TAG_Byte(misc.get("V", 1))
 
         if self.features["inhabited_time"] == "long":
-            data["Level"]["InhabitedTime"] = amulet_nbt.TAG_Long(misc.get("inhabited_time", 0))
+            data["Level"]["InhabitedTime"] = amulet_nbt.TAG_Long(
+                misc.get("inhabited_time", 0)
+            )
 
         if self.features["biomes"] == "256BA":
             if chunk.status.value > -0.7:
@@ -240,21 +255,21 @@ class BaseAnvilInterface(Interface):
             data["Level"]["HeightMap"] = amulet_nbt.TAG_Int_Array(
                 misc.get("height_map256IA", numpy.zeros(256, dtype=numpy.uint32))
             )
-        elif self.features["height_map"] in ["C|36LA|V1", "C|36LA|V2", "C|36LA|V3", "C|36LA|V4"]:
+        elif self.features["height_map"] in [
+            "C|36LA|V1",
+            "C|36LA|V2",
+            "C|36LA|V3",
+            "C|36LA|V4",
+        ]:
             maps = [
                 "WORLD_SURFACE_WG",
                 "OCEAN_FLOOR_WG",
                 "MOTION_BLOCKING",
                 "MOTION_BLOCKING_NO_LEAVES",
-                "OCEAN_FLOOR"
+                "OCEAN_FLOOR",
             ]
             if self.features["height_map"] == "C|36LA|V1":  # 1466
-                maps = (
-                    "LIQUID",
-                    "SOILD",
-                    "LIGHT",
-                    "RAIN"
-                )
+                maps = ("LIQUID", "SOILD", "LIGHT", "RAIN")
             elif self.features["height_map"] == "C|36LA|V2":  # 1484
                 maps.append("LIGHT_BLOCKING")
             elif self.features["height_map"] == "C|36LA|V3":  # 1503
@@ -309,7 +324,9 @@ class BaseAnvilInterface(Interface):
                 data["Level"]["Entities"] = amulet_nbt.TAG_List()
 
         if self.features["block_entities"] == "list":
-            data["Level"]["TileEntities"] = self._encode_block_entities(chunk.block_entities)
+            data["Level"]["TileEntities"] = self._encode_block_entities(
+                chunk.block_entities
+            )
 
         if self.features["tile_ticks"] in ["list", "list(optional)"]:
             ticks = misc.get("tile_ticks", amulet_nbt.TAG_List())
@@ -332,19 +349,24 @@ class BaseAnvilInterface(Interface):
 
         if self.features["to_be_ticked"] == "16list|list":
             data["Level"]["ToBeTicked"] = misc.get(
-                "to_be_ticked", amulet_nbt.TAG_List([amulet_nbt.TAG_List() for _ in range(16)])
+                "to_be_ticked",
+                amulet_nbt.TAG_List([amulet_nbt.TAG_List() for _ in range(16)]),
             )
 
         if self.features["post_processing"] == "16list|list":
             data["Level"]["PostProcessing"] = misc.get(
-                "post_processing", amulet_nbt.TAG_List([amulet_nbt.TAG_List() for _ in range(16)])
+                "post_processing",
+                amulet_nbt.TAG_List([amulet_nbt.TAG_List() for _ in range(16)]),
             )
 
         if self.features["structures"] == "compound":
             data["Level"]["Structures"] = misc.get(
                 "structures",
                 amulet_nbt.TAG_Compound(
-                    {"References": amulet_nbt.TAG_Compound(), "Starts": amulet_nbt.TAG_Compound()}
+                    {
+                        "References": amulet_nbt.TAG_Compound(),
+                        "Starts": amulet_nbt.TAG_Compound(),
+                    }
                 ),
             )
 
@@ -353,7 +375,11 @@ class BaseAnvilInterface(Interface):
     def _decode_entities(self, entities: amulet_nbt.TAG_List) -> List[Entity]:
         entities_out = []
         for nbt in entities:
-            entity = self._decode_entity(amulet_nbt.NBTFile(nbt), self.features['entity_format'], self.features['entity_coord_format'])
+            entity = self._decode_entity(
+                amulet_nbt.NBTFile(nbt),
+                self.features["entity_format"],
+                self.features["entity_coord_format"],
+            )
             if entity is not None:
                 entities_out.append(entity)
 
@@ -362,25 +388,41 @@ class BaseAnvilInterface(Interface):
     def _encode_entities(self, entities: List[Entity]) -> amulet_nbt.TAG_List:
         entities_out = []
         for entity in entities:
-            nbt = self._encode_entity(entity, self.features['entity_format'], self.features['entity_coord_format'])
+            nbt = self._encode_entity(
+                entity,
+                self.features["entity_format"],
+                self.features["entity_coord_format"],
+            )
             if nbt is not None:
                 entities_out.append(nbt.value)
 
         return amulet_nbt.TAG_List(entities_out)
 
-    def _decode_block_entities(self, block_entities: amulet_nbt.TAG_List) -> List[BlockEntity]:
+    def _decode_block_entities(
+        self, block_entities: amulet_nbt.TAG_List
+    ) -> List[BlockEntity]:
         entities_out = []
         for nbt in block_entities:
-            entity = self._decode_block_entity(amulet_nbt.NBTFile(nbt), self.features['block_entity_format'], self.features['block_entity_coord_format'])
+            entity = self._decode_block_entity(
+                amulet_nbt.NBTFile(nbt),
+                self.features["block_entity_format"],
+                self.features["block_entity_coord_format"],
+            )
             if entity is not None:
                 entities_out.append(entity)
 
         return entities_out
 
-    def _encode_block_entities(self, block_entities: List[BlockEntity]) -> amulet_nbt.TAG_List:
+    def _encode_block_entities(
+        self, block_entities: List[BlockEntity]
+    ) -> amulet_nbt.TAG_List:
         entities_out = []
         for entity in block_entities:
-            nbt = self._encode_block_entity(entity, self.features['block_entity_format'], self.features['block_entity_coord_format'])
+            nbt = self._encode_block_entity(
+                entity,
+                self.features["block_entity_format"],
+                self.features["block_entity_coord_format"],
+            )
             if nbt is not None:
                 entities_out.append(nbt.value)
 

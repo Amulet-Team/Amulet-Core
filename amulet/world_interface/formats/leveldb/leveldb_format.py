@@ -13,17 +13,13 @@ from amulet.world_interface.chunk import interfaces
 from amulet.libs.leveldb import LevelDB
 from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
-    game_to_chunk_version,
+    game_to_chunk_version
 )
 
 
 class LevelDBLevelManager:
     # tag_ids = {45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 118}
-    _level_names = {
-        0: "overworld",
-        1: "nether",
-        2: "end"
-    }
+    _level_names = {0: "overworld", 1: "nether", 2: "end"}
 
     def __init__(self, directory: str):
         self._directory = directory
@@ -58,7 +54,7 @@ class LevelDBLevelManager:
         dimensions = {val: key for key, val in self._level_names.items()}
         for level in self._levels.keys():
             if level not in self._level_names:
-                dimensions[f'DIM{level}'] = level
+                dimensions[f"DIM{level}"] = level
 
         return dimensions
 
@@ -76,13 +72,15 @@ class LevelDBLevelManager:
             level_ = 0
         self._levels.setdefault(level_, set()).add((cx_, cz_))
 
-    def get_chunk_data(self, cx: int, cz: int, dimension: int = 0) -> Dict[bytes, bytes]:
+    def get_chunk_data(
+        self, cx: int, cz: int, dimension: int = 0
+    ) -> Dict[bytes, bytes]:
         """Get a dictionary of chunk key extension in bytes to the raw data in the key.
         chunk key extension are the character(s) after <cx><cz>[level] in the key
         Will raise ChunkDoesNotExist if the chunk does not exist
         """
         iter_start = struct.pack("<ii", cx, cz)
-        iter_end = iter_start + b'\xff'
+        iter_end = iter_start + b"\xff"
         if dimension in self._levels and (cx, cz) in self._levels[dimension]:
             chunk_data = {}
             for key, val in self._db.iterate(iter_start, iter_end):
@@ -140,9 +138,13 @@ class LevelDBFormat(Format):
     def _load_level_dat(self):
         """Load the level.dat file and check the image file"""
         with open(os.path.join(self._world_path, "level.dat"), "rb") as f:
-            level_dat_version = struct.unpack('<i', f.read(4))[0]  # TODO: handle other versions
-            assert level_dat_version == 8, f'Unknown level.dat version {level_dat_version}'
-            data_length = struct.unpack('<i', f.read(4))[0]
+            level_dat_version = struct.unpack("<i", f.read(4))[
+                0
+            ]  # TODO: handle other versions
+            assert (
+                level_dat_version == 8
+            ), f"Unknown level.dat version {level_dat_version}"
+            data_length = struct.unpack("<i", f.read(4))[0]
             self.root_tag = nbt.load(
                 buffer=f.read(data_length), compressed=False, little_endian=True
             )
@@ -165,7 +167,7 @@ class LevelDBFormat(Format):
     @property
     def platform(self) -> str:
         """Platform string"""
-        return 'bedrock'
+        return "bedrock"
 
     def _max_world_version(self) -> Tuple[str, Tuple[int, int, int]]:
         """The version the world was last opened in
@@ -193,7 +195,7 @@ class LevelDBFormat(Format):
         try:
             return f'Bedrock {".".join(str(v.value) for v in self.root_tag["lastOpenedWithVersion"].value)}'
         except Exception:
-            return f'Bedrock Unknown Version'
+            return f"Bedrock Unknown Version"
 
     @property
     def dimensions(self) -> Dict[str, int]:
@@ -202,7 +204,7 @@ class LevelDBFormat(Format):
         return self._level_manager.dimensions
 
     def _get_interface(
-            self, max_world_version, raw_chunk_data=None
+        self, max_world_version, raw_chunk_data=None
     ) -> interfaces.Interface:
         if raw_chunk_data:
             key = self._get_interface_key(raw_chunk_data)

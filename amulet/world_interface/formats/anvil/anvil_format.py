@@ -55,7 +55,7 @@ class AnvilRegion:
                     for z in range(32):
                         offset = offsets[x + 32 * z]
                         if offset != 0:
-                            self._chunks[(x, z)] = (False, 0, 0, b'')
+                            self._chunks[(x, z)] = (False, 0, 0, b"")
 
     def all_chunk_coords(self) -> Generator[Tuple[int, int]]:
         for cx, cz in self._chunks.keys():
@@ -130,8 +130,8 @@ class AnvilRegion:
             offset = 2
             data = []
             for (
-                    (cx, cz),
-                    (dirty, mod_time, buffer_size, buffer),
+                (cx, cz),
+                (dirty, mod_time, buffer_size, buffer),
             ) in self._chunks.items():
                 index = cx + (cz << 5)
                 sector_count = ((buffer_size + 4 | 0xFFF) + 1) >> 12
@@ -260,11 +260,7 @@ class AnvilLevelManager:
 
 
 class AnvilFormat(Format):
-    _level_names = {
-        -1: "nether",
-        0: "overworld",
-        1: "end"
-    }
+    _level_names = {-1: "nether", 0: "overworld", 1: "end"}
 
     def __init__(self, directory: str):
         super().__init__(directory)
@@ -305,13 +301,18 @@ class AnvilFormat(Format):
     @property
     def platform(self) -> str:
         """Platform string"""
-        return 'java'
+        return "java"
 
     def _max_world_version(self) -> Tuple[str, int]:
         """The version the world was last opened in
         This should be greater than or equal to the chunk versions found within
         For this format wrapper it returns a single int DataVersion"""
-        return self.platform, self.root_tag.get("Data", nbt.TAG_Compound()).get("DataVersion", nbt.TAG_Int(-1)).value
+        return (
+            self.platform,
+            self.root_tag.get("Data", nbt.TAG_Compound())
+            .get("DataVersion", nbt.TAG_Int(-1))
+            .value,
+        )
 
     @property
     def world_name(self) -> str:
@@ -327,7 +328,7 @@ class AnvilFormat(Format):
         try:
             return f'Java {self.root_tag["Data"]["Version"]["Name"].value}'
         except Exception:
-            return f'Java Unknown Version'
+            return f"Java Unknown Version"
 
     @property
     def dimensions(self) -> Dict[str, int]:
@@ -335,7 +336,7 @@ class AnvilFormat(Format):
         dimensions = {val: key for key, val in self._level_names.items()}
         for level in self._levels.keys():
             if level not in self._level_names:
-                dimensions[f'DIM{level}'] = level
+                dimensions[f"DIM{level}"] = level
 
         return dimensions
 
@@ -348,7 +349,7 @@ class AnvilFormat(Format):
 
         # create the session.lock file (this has mostly been lifted from MCEdit)
         self._lock = int(time.time() * 1000)
-        with open(os.path.join(self._world_path, 'session.lock'), "wb") as f:
+        with open(os.path.join(self._world_path, "session.lock"), "wb") as f:
             f.write(struct.pack(">Q", self._lock))
             f.flush()
             os.fsync(f.fileno())
@@ -373,8 +374,8 @@ class AnvilFormat(Format):
     def has_lock(self) -> bool:
         """Verify that the world database can be read and written"""
         try:
-            with open(os.path.join(self._world_path, 'session.lock'), 'rb') as f:
-                return struct.unpack('>Q', f.read(8))[0] == self._lock
+            with open(os.path.join(self._world_path, "session.lock"), "rb") as f:
+                return struct.unpack(">Q", f.read(8))[0] == self._lock
         except Exception:
             return False
 
