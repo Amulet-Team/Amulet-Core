@@ -316,6 +316,7 @@ class WorldTestBaseCases:
                 output_wrapper = load_format(
                     get_world_path("1.13 World to 1.12.2 World")
                 )
+            output_wrapper.open()
 
             self.world.save(output_wrapper)
             self.world.close()

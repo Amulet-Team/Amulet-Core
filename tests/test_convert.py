@@ -74,6 +74,7 @@ if __name__ == "__main__":
                 print(f"Loading world at {world_path}")
                 world = load_world(world_path)
                 output_wrapper = load_format(destination_path)
+                output_wrapper.open()
                 world.save(output_wrapper)
                 world.close()
                 output_wrapper.close()
@@ -134,6 +135,7 @@ if __name__ == "__main__":
                 world.save()
 
                 output_wrapper = load_format(destination_path)
+                output_wrapper.open()
                 for chunk in list(output_wrapper.all_chunk_coords()):
                     output_wrapper.delete_chunk(*chunk)
                 output_wrapper.save()
