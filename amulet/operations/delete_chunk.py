@@ -7,7 +7,7 @@ class DeleteChunk(Operation):
     def __init__(self, source_box: SelectionBox):
         self.source_box = source_box
 
-    def run_operation(self, world):
+    def run_operation(self, world: "World"):
         already_deleted_chunks = set()
         for subbox in self.source_box.subboxes():
             sub_chunks = world.get_sub_chunks(*subbox.to_slice())
@@ -15,5 +15,6 @@ class DeleteChunk(Operation):
                 chunk_coords = sub_chunk.parent_coordinates
                 if chunk_coords in already_deleted_chunks:
                     continue
-                sub_chunk._parent.delete()
+                world.get_chunk(*chunk_coords)
+                world.delete_chunk(*chunk_coords)
                 already_deleted_chunks.add(chunk_coords)
