@@ -324,7 +324,7 @@ class WorldTestBaseCases:
 
         @unittest.skip("Entity API currently being rewritten")
         def test_get_entities(
-            self
+            self,
         ):  # TODO: Make a more complete test once we figure out what get_entities() returns
             box1 = SelectionBox((SubBox((0, 0, 0), (17, 20, 17)),))
 
