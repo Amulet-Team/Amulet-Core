@@ -220,20 +220,23 @@ class AnvilLevelManager:
 
     def all_chunk_coords(self) -> Generator[Tuple[int, int]]:
         for region in self._regions.values():
-            for chunk_ in region.all_chunk_coords():
-                yield chunk_
+            yield from region.all_chunk_coords()
 
-    def save(self):
+    def save(self, unload=True):
         # use put_chunk_data to actually upload modified chunks
         # run this to push those changes to disk
 
         for region in self._regions.values():
             region.save()
-            # TODO: perhaps delete the region from loaded regions so that memory usage doesn't explode
+            if unload:
+                region.unload()
 
     def close(self):
-        raise NotImplementedError
-        # any final closing requirements (I don't think there are any for anvil)
+        pass
+
+    def unload(self):
+        for region in self._regions.values():
+            region.unload()
 
     def get_chunk_data(self, cx: int, cz: int) -> nbt.NBTFile:
         """Get an NBTFile of a chunk from the database.
