@@ -1,6 +1,10 @@
 from typing import Union, Dict, List, Tuple
 from amulet import log
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from amulet.api.chunk import Chunk
+
 states = {
     "empty": [["j13", "j14"], -1],
     "structure_starts": [["j14"], -0.9],
@@ -39,7 +43,7 @@ for data in versions.values():
 
 
 class Status:
-    def __init__(self, parent_chunk):
+    def __init__(self, parent_chunk: "Chunk"):
         self._parent_chunk = parent_chunk
         self._value = 2.0
 

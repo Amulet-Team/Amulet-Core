@@ -1,9 +1,13 @@
 from .chunk_array import ChunkArray
 import numpy
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from amulet.api.chunk import Chunk
+
 
 class Biomes(ChunkArray):
-    def __new__(cls, parent_chunk, input_array):
+    def __new__(cls, parent_chunk: "Chunk", input_array):
         obj = numpy.asarray(input_array, dtype=numpy.uint32).view(cls)
         obj._parent_chunk = parent_chunk
         if obj.size == 256:
