@@ -58,11 +58,12 @@ class AnvilRegion:
                             self._chunks[(x, z)] = (0, b"")
 
     def all_chunk_coords(self) -> Generator[Tuple[int, int]]:
-        for cx, cz in self._chunks.keys():
-            yield cx + self.rx * 32, cz + self.rz * 32
-        for cx, cz in self._committed_chunks.keys():
-            if (cx, cz) not in self._chunks:
-                yield self._committed_chunks[cx, cz]
+        for (cx, cz), (_, chunk_) in self._committed_chunks.items():
+            if chunk_:
+                yield cx + self.rx * 32, cz + self.rz * 32
+        for (cx, cz), (_, chunk_) in self._chunks.keys():
+            if chunk_ and (cx, cz) not in self._committed_chunks:
+                yield cx + self.rx * 32, cz + self.rz * 32
 
     def _load(self):
         if not self._loaded:
