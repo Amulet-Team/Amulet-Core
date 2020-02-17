@@ -14,7 +14,7 @@ import amulet_nbt as nbt
 from amulet.world_interface.formats import Format
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, check_one_exists, load_leveldat
-from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist
+from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist, ChunkLoadError
 
 
 class AnvilRegion:
@@ -38,8 +38,9 @@ class AnvilRegion:
         self.rx, self.rz = self.get_coords(file_path)
 
         # [dirty, mod_time, data_length, data]  feel free to extend if you want to implement modifying in place and defragging
-        self._chunks: Dict[Tuple[int, int], Tuple[bool, int, int, bytes]] = {}
-        self._dirty = False  # is a chunk in region dirty
+        self._chunks: Dict[Tuple[int, int], Tuple[int, bytes]] = {}
+
+        self._committed_chunks: Dict[Tuple[int, int], Tuple[int, bytes]] = {}
 
         if create:
             # create the region from scratch.
@@ -49,99 +50,108 @@ class AnvilRegion:
             self._loaded = False
             # shallow load the data
             with open(self._file_path, "rb") as fp:
-                offsets = numpy.fromfile(fp, dtype=">u4", count=1024)
+                offsets = numpy.fromfile(fp, dtype=">u4", count=1024).reshape(32, 32)
                 for x in range(32):
                     for z in range(32):
-                        offset = offsets[x + 32 * z]
+                        offset = offsets[x, z]
                         if offset != 0:
-                            self._chunks[(x, z)] = (False, 0, 0, b"")
+                            self._chunks[(x, z)] = (0, b"")
 
     def all_chunk_coords(self) -> Generator[Tuple[int, int]]:
         for cx, cz in self._chunks.keys():
             yield cx + self.rx * 32, cz + self.rz * 32
+        for cx, cz in self._committed_chunks.keys():
+            if (cx, cz) not in self._chunks:
+                yield self._committed_chunks[cx, cz]
 
     def _load(self):
-        with open(self._file_path, "rb") as fp:
-            # check that the file is a multiple of 4096 bytes and extend if not
-            # TODO: perhaps rewrite this in a way that is more readable
-            file_size = os.path.getsize(self._file_path)
-            if file_size & 0xFFF:
-                file_size = (file_size | 0xFFF) + 1
-                fp.truncate(file_size)
+        if not self._loaded:
+            with open(self._file_path, "rb") as fp:
+                # check that the file is a multiple of 4096 bytes and extend if not
+                # TODO: perhaps rewrite this in a way that is more readable
+                file_size = os.path.getsize(self._file_path)
+                if file_size & 0xFFF:
+                    file_size = (file_size | 0xFFF) + 1
+                    fp.truncate(file_size)
 
-            # if the length of the region file is 0 extend it to 8KiB TODO (perhaps have some error)
-            if not file_size:
-                file_size = world_utils.SECTOR_BYTES * 2
-                fp.truncate(file_size)
+                # if the length of the region file is 0 extend it to 8KiB TODO (perhaps have some error)
+                if file_size < world_utils.SECTOR_BYTES * 2:
+                    file_size = world_utils.SECTOR_BYTES * 2
+                    fp.truncate(file_size)
 
-            # read the file and populate the internal database
-            # self._file_size = file_size
+                # read the file and populate the internal database
+                # self._file_size = file_size
 
-            fp.seek(0)
+                fp.seek(0)
 
-            # offsets = fp.read(world_utils.SECTOR_BYTES)
-            # mod_times = fp.read(world_utils.SECTOR_BYTES)
+                # offsets = fp.read(world_utils.SECTOR_BYTES)
+                # mod_times = fp.read(world_utils.SECTOR_BYTES)
 
-            # self._free_sectors = free_sectors = numpy.full(
-            #     file_size // world_utils.SECTOR_BYTES, True, bool
-            # )
-            # self._free_sectors[0:2] = False, False
+                # self._free_sectors = free_sectors = numpy.full(
+                #     file_size // world_utils.SECTOR_BYTES, True, bool
+                # )
+                # self._free_sectors[0:2] = False, False
 
-            offsets = numpy.fromfile(fp, dtype=">u4", count=1024)
-            mod_times = numpy.fromfile(fp, dtype=">u4", count=1024)
+                # the first array is made of 3 byte sector offset and 1 byte sector count
+                sectors = numpy.fromfile(fp, dtype=">u4", count=1024).reshape(32, 32) >> 8
+                mod_times = numpy.fromfile(fp, dtype=">u4", count=1024).reshape(32, 32)
 
-            # for offset in offsets:
-            #     sector = offset >> 8
-            #     count = offset & 0xFF
-            #
-            #     for i in range(sector, sector + count):
-            #         if i >= len(free_sectors):
-            #             return False
-            #
-            #         free_sectors[i] = False
+                # for offset in offsets:
+                #     sector = offset >> 8
+                #     count = offset & 0xFF
+                #
+                #     for i in range(sector, sector + count):
+                #         if i >= len(free_sectors):
+                #             return False
+                #
+                #         free_sectors[i] = False
 
-            self._chunks = {}
-            for x in range(32):
-                for z in range(32):
-                    offset = offsets[x + 32 * z]
-                    if offset == 0:
-                        continue
-                    sector = offset >> 8
-                    # count = offset & 0xFF   # the number of sectors used
-                    fp.seek(world_utils.SECTOR_BYTES * sector)
-                    # read int value and then read that amount of data
-                    buffer_size = struct.unpack(">I", fp.read(4))[0]
-                    self._chunks[(x, z)] = (
-                        False,
-                        mod_times[x + 32 * z],
-                        buffer_size,
-                        fp.read(buffer_size),
-                    )
+                self._chunks = {}
+                for x in range(32):
+                    for z in range(32):
+                        sector = sectors[x, z]
+                        if sector:
+                            fp.seek(world_utils.SECTOR_BYTES * sector)
+                            # read int value and then read that amount of data
+                            buffer_size = struct.unpack(">I", fp.read(4))[0]
+                            self._chunks[(x, z)] = (
+                                mod_times[x, z],
+                                fp.read(buffer_size),
+                            )
 
-        self._loaded = True
+            self._loaded = True
+
+    def unload(self):
+        for key in self._chunks.keys():
+            self._chunks[key] = (0, b"")
+        self._loaded = False
 
     def save(self):
-        if self._dirty:
-            if not self._loaded:
-                self._load()
+        if self._committed_chunks:
+            self._load()
+            for key, val in self._committed_chunks.items():
+                self._chunks[key] = val
+            self._committed_chunks.clear()
             offsets = numpy.zeros(1024, dtype=">u4")
             mod_times = numpy.zeros(1024, dtype=">u4")
             offset = 2
             data = []
             for (
                 (cx, cz),
-                (dirty, mod_time, buffer_size, buffer),
+                (mod_time, buffer),
             ) in self._chunks.items():
-                index = cx + (cz << 5)
-                sector_count = ((buffer_size + 4 | 0xFFF) + 1) >> 12
-                offsets[index] = (offset << 8) + sector_count
-                mod_times[index] = mod_time
-                data.append(
-                    struct.pack(">I", buffer_size)
-                    + buffer
-                    + b"\x00" * ((sector_count << 12) - buffer_size - 4)
-                )
-                offset += sector_count
+                if buffer:
+                    index = cx + (cz << 5)
+                    buffer_size = len(buffer)
+                    sector_count = ((buffer_size + 4 | 0xFFF) + 1) >> 12
+                    offsets[index] = (offset << 8) + sector_count
+                    mod_times[index] = mod_time
+                    data.append(
+                        struct.pack(">I", buffer_size)
+                        + buffer
+                        + b"\x00" * ((sector_count << 12) - buffer_size - 4)
+                    )
+                    offset += sector_count
             with open(self._file_path, "wb") as fp:
                 fp.write(
                     struct.pack(">1024I", *offsets)
@@ -152,34 +162,33 @@ class AnvilRegion:
                 fp.write(b"".join(data))
 
     def get_chunk_data(self, cx: int, cz: int) -> nbt.NBTFile:
-        if not self._loaded:
+        if (cx, cz) in self._committed_chunks:
+            # if the chunk exists in the committed but unsaved chunks return that
+            data = self._committed_chunks[(cx, cz)][1]
+            if data:
+                return self._decompress(data)
+        elif (cx, cz) in self._chunks:
+            # otherwise if the chunk exists in the main database return that
             self._load()
-        if (cx, cz) in self._chunks:
-            return self._decompress(self._chunks[(cx, cz)][3])
-        else:
-            raise ChunkDoesNotExist
+            data = self._chunks[(cx, cz)][1]
+            if data:
+                return self._decompress(self._chunks[(cx, cz)][3])
+
+        raise ChunkDoesNotExist
 
     def put_chunk_data(self, cx: int, cz: int, data: nbt.NBTFile):
         """compress the data and put it in the class database"""
-        if not self._loaded:
-            self._load()
-        self._dirty = True
-        buffer_size, bytes_data = self._compress(data)
-        self._chunks[(cx, cz)] = (True, int(time.time()), buffer_size, bytes_data)
+        bytes_data = self._compress(data)
+        self._committed_chunks[(cx, cz)] = (int(time.time()), bytes_data)
 
     def delete_chunk_data(self, cx: int, cz: int):
-        if not self._loaded:
-            self._load()
-        if (cx, cz) in self._chunks:
-            del self._chunks[(cx, cz)]
-            self._dirty = True
+        self._committed_chunks[(cx, cz)] = (0, b'')
 
     @staticmethod
-    def _compress(data: nbt.NBTFile) -> Tuple[int, bytes]:
+    def _compress(data: nbt.NBTFile) -> bytes:
         """Convert an NBTFile into a compressed bytes object"""
         data = data.save_to(compressed=False)
-        data = b"\x02" + zlib.compress(data)
-        return len(data), data
+        return b"\x02" + zlib.compress(data)
 
     @staticmethod
     def _decompress(data: bytes) -> nbt.NBTFile:
@@ -188,7 +197,7 @@ class AnvilRegion:
             return nbt.load(buffer=gzip.decompress(data[1:]), compressed=False)
         elif data[0] == world_utils.VERSION_DEFLATE:
             return nbt.load(buffer=zlib.decompress(data[1:]), compressed=False)
-        raise Exception(f"Invalid compression type {data[0]}")
+        raise ChunkLoadError(f"Invalid compression type {data[0]}")
 
 
 class AnvilLevelManager:
