@@ -140,7 +140,7 @@ class Format:
         """Ensure that the Format has a lock on the world. Throw WorldAccessException if not"""
         if not self.has_lock():
             raise WorldDatabaseAccessException(
-                "World was either never opened or has since been opened in Minecraft"
+                "The world has been opened somewhere else or the .open() method was not called"
             )
 
     def save(self):
