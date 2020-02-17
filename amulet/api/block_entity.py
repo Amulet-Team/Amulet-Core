@@ -78,25 +78,25 @@ class BlockEntity(WorldObject):
     def x(self) -> int:
         return self._x
 
-    @x.setter
-    def x(self, value: int):
-        self._x = value
-
     @property
     def y(self) -> int:
         return self._y
-
-    @y.setter
-    def y(self, value: int):
-        self._y = value
 
     @property
     def z(self) -> int:
         return self._z
 
-    @z.setter
-    def z(self, value: int):
-        self._z = value
+    def new_at_location(self, x: int, y: int, z: int) -> BlockEntity:
+        """Creates a copy of this BlockEntity at a new location
+        BlockEntities are stored in the chunk based on their location so location cannot be mutable"""
+        return BlockEntity(
+            self._namespace,
+            self._base_name,
+            x,
+            y,
+            z,
+            self._nbt  # TODO: should this be deepcopied?
+        )
 
     @property
     def nbt(self) -> amulet_nbt.NBTFile:

@@ -100,10 +100,13 @@ class Translator:
                 palette_mappings[i] = finished.get_add_block(output_block)
                 if output_block_entity:
                     for x, y, z in zip(*numpy.where(chunk.blocks == i)):
-                        output_block_entity.x += x + chunk.cx * 16
-                        output_block_entity.y += y
-                        output_block_entity.z += z + chunk.cz * 16
-                        output_block_entities.append(output_block_entity)
+                        output_block_entities.append(
+                            output_block_entity.new_at_location(
+                                x + chunk.cx * 16,
+                                y,
+                                z + chunk.cz * 16
+                            )
+                        )
 
         block_mappings = {}
         for index in todo:
@@ -171,10 +174,13 @@ class Translator:
                     input_block, get_block_at
                 )
                 if output_block_entity:
-                    output_block_entity.x += x + chunk.cx * 16
-                    output_block_entity.y += y
-                    output_block_entity.z += z + chunk.cz * 16
-                    output_block_entities.append(output_block_entity)
+                    output_block_entities.append(
+                        output_block_entity.new_at_location(
+                            x + chunk.cx * 16,
+                            y,
+                            z + chunk.cz * 16
+                        )
+                    )
                 block_mappings[(x, y, z)] = finished.get_add_block(output_block)
 
         for old, new in palette_mappings.items():
