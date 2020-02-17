@@ -156,6 +156,7 @@ class AnvilRegion:
                         + b"\x00" * ((sector_count << 12) - buffer_size - 4)
                     )
                     offset += sector_count
+            os.makedirs(os.path.dirname(self._file_path), exist_ok=True)
             with open(self._file_path, "wb") as fp:
                 fp.write(
                     struct.pack(">1024I", *offsets)
