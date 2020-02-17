@@ -400,8 +400,12 @@ class AnvilFormat(Format):
 
     def close(self):
         """Close the disk database"""
-        # TODO: should we delete self._levels?
         pass
+
+    def unload(self):
+        """Unload data stored in the Format class"""
+        for level in self._levels.values():
+            level.unload()
 
     def _get_level(self, level: int):
         self._verify_has_lock()

@@ -151,6 +151,10 @@ class Format:
         """Close the disk database"""
         raise NotImplementedError
 
+    def unload(self):
+        """Unload data stored in the Format class"""
+        raise NotImplementedError
+
     def all_chunk_coords(self, dimension: int = 0) -> Generator[Tuple[int, int]]:
         """A generator of all chunk coords in the given dimension"""
         raise NotImplementedError
