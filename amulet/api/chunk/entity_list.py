@@ -2,7 +2,6 @@ from collections import UserList
 from typing import TYPE_CHECKING, Iterable, Union, overload, Any
 import copy
 from amulet.api.entity import Entity
-from amulet.api.block_entity import BlockEntity
 
 if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
@@ -104,15 +103,6 @@ class ChunkList(UserList):
         if not self:
             return "[]"
         return "".join(f"\n\t{str(obj)}" for obj in self) + "\n"
-
-
-class BlockEntityList(ChunkList):
-    def _check_type(self, value):
-        assert isinstance(value, BlockEntity)
-
-    def __repr__(self) -> str:
-        """ Return repr(self). """
-        return f"BlockEntityList({self._parent_chunk.cx},{self._parent_chunk.cz},{super().__repr__()})"
 
 
 class EntityList(ChunkList):
