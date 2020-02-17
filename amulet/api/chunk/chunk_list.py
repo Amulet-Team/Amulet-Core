@@ -131,7 +131,7 @@ if __name__ == "__main__":
     c = Chunk(0, 0)
     print(
         c.entities.__class__
-    )  # this is <class 'amulet.api.chunk_data.chunk_list.EntityList'>
+    )  # this is <class 'amulet.api.chunk.chunk_list.EntityList'>
     print(isinstance(c.entities, EntityList))  # but this is false. WHY???????
     block_ents = [
         Entity("minecraft", "creeper", 0, 0, 0, amulet_nbt.NBTFile()),

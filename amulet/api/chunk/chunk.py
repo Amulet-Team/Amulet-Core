@@ -5,7 +5,7 @@ import time
 
 import numpy
 
-from .chunk_data import Biomes, Blocks, Status, BlockEntityList, EntityList
+from amulet.api.chunk import Biomes, Blocks, Status, BlockEntityList, EntityList
 from amulet.api.entity import Entity
 from amulet.api.block_entity import BlockEntity
 
