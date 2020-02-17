@@ -108,12 +108,9 @@ class World:
                 self.world_wrapper.translation_manager
             )  # TODO: this might cause issues in the future
             for dimension in self.world_wrapper.dimensions.values():
-                try:
-                    chunk_count += len(
-                        list(self.world_wrapper.all_chunk_coords(dimension))
-                    )
-                except LevelDoesNotExist:
-                    continue
+                chunk_count += len(
+                    list(self.world_wrapper.all_chunk_coords(dimension))
+                )
 
             for dimension_name, dimension in self.world_wrapper.dimensions.items():
                 try:
