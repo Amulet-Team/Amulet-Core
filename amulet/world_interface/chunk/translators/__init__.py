@@ -140,14 +140,7 @@ class Translator:
                             block = block[0][1]
                         return (
                             block,
-                            next(
-                                (
-                                    be
-                                    for be in chunk.block_entities
-                                    if (be.x, be.y, be.z) == (abs_x, abs_y, abs_z)
-                                ),
-                                None,
-                            ),
+                            chunk.block_entities.get((abs_x, abs_y, abs_z))
                         )
 
                     # if it is in a different chunk
@@ -159,14 +152,7 @@ class Translator:
                         block = block[0][1]
                     return (
                         block,
-                        next(
-                            (
-                                be
-                                for be in local_chunk.block_entities
-                                if (be.x, be.y, be.z) == (abs_x, abs_y, abs_z)
-                            ),
-                            None,
-                        ),
+                        local_chunk.block_entities.get((abs_x, abs_y, abs_z))
                     )
 
                 input_block = palette[chunk.blocks[x, y, z]]

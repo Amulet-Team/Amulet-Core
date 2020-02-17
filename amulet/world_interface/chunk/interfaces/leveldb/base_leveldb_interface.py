@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Dict, List, Union
+from typing import Tuple, Dict, List, Union, Iterable
 
 import struct
 import numpy
@@ -664,7 +664,7 @@ class BaseLevelDBInterface(Interface):
         return entities_out
 
     def _encode_block_entities(
-        self, block_entities: List[BlockEntity]
+        self, block_entities: Iterable[BlockEntity]
     ) -> List[amulet_nbt.NBTFile]:
         entities_out = []
         for entity in block_entities:

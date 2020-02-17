@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Iterable
 import numpy
 
 import amulet_nbt as amulet_nbt
@@ -414,7 +414,7 @@ class BaseAnvilInterface(Interface):
         return entities_out
 
     def _encode_block_entities(
-        self, block_entities: List[BlockEntity]
+        self, block_entities: Iterable[BlockEntity]
     ) -> amulet_nbt.TAG_List:
         entities_out = []
         for entity in block_entities:

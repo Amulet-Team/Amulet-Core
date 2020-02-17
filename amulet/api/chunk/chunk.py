@@ -5,9 +5,8 @@ import time
 
 import numpy
 
-from amulet.api.chunk import Biomes, Blocks, Status, BlockEntityList, EntityList
+from amulet.api.chunk import Biomes, Blocks, Status, BlockEntityDict, EntityList
 from amulet.api.entity import Entity
-from amulet.api.block_entity import BlockEntity
 
 PointCoordinates = Tuple[int, int, int]
 SliceCoordinates = Tuple[slice, slice, slice]
@@ -26,7 +25,7 @@ class Chunk:
         self._blocks = None
         self._biomes = Biomes(self, numpy.zeros((16, 16), dtype=numpy.uint32))
         self._entities = EntityList(self)
-        self._block_entities = BlockEntityList(self)
+        self._block_entities = BlockEntityDict(self)
         self._status = Status(self)
         self.misc = {}  # all entries that are not important enough to get an attribute
 
@@ -140,7 +139,7 @@ class Chunk:
             self._entities = EntityList(self, value)
 
     @property
-    def block_entities(self) -> List[BlockEntity]:
+    def block_entities(self) -> BlockEntityDict:
         """
         Property that returns the chunk's block entity list. Setting this property replaces the chunk's block entity list
         :return: A list of all the block entities contained in the chunk
@@ -148,7 +147,7 @@ class Chunk:
         return self._block_entities
 
     @block_entities.setter
-    def block_entities(self, value: Iterable[BlockEntity]):
+    def block_entities(self, value: BlockEntityDict.InputType):
         """
         :param value: The new block entity list
         :type value: list
@@ -156,7 +155,7 @@ class Chunk:
         """
         if self._block_entities != value:
             self.changed = True
-            self._block_entities = BlockEntityList(self, value)
+            self._block_entities = BlockEntityDict(self, value)
 
     @property
     def status(self) -> Status:
