@@ -407,6 +407,9 @@ class AnvilFormat(Format):
         for level in self._levels.values():
             level.unload()
 
+    def _has_level(self, dimension: int):
+        return dimension in self._levels
+
     def _get_level(self, level: int):
         self._verify_has_lock()
         if level in self._levels:
@@ -416,12 +419,13 @@ class AnvilFormat(Format):
 
     def all_chunk_coords(self, dimension: int = 0) -> Generator[Tuple[int, int]]:
         """A generator of all chunk coords in the given dimension"""
-        for chunk_ in self._get_level(dimension).all_chunk_coords():
-            yield chunk_
+        if self._has_level(dimension):
+            yield from self._get_level(dimension).all_chunk_coords()
 
     def delete_chunk(self, cx: int, cz: int, dimension: int = 0):
         """Delete a chunk from a given dimension"""
-        self._get_level(dimension).delete_chunk(cx, cz)
+        if self._has_level(dimension):
+            self._get_level(dimension).delete_chunk(cx, cz)
 
     def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: int = 0):
         """

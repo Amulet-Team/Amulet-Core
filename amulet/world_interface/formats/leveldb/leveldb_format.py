@@ -61,7 +61,7 @@ class LevelDBLevelManager:
         if dimension in self._levels:
             return self._levels[dimension]
         else:
-            raise LevelDoesNotExist
+            return set()
 
     def _add_chunk(self, key_: bytes, has_level: bool = False):
         if has_level:
@@ -242,8 +242,7 @@ class LevelDBFormat(Format):
 
     def all_chunk_coords(self, dimension: int = 0) -> Generator[Tuple[int, int]]:
         self._verify_has_lock()
-        for coords in self._level_manager.all_chunk_coords(dimension):
-            yield coords
+        yield from self._level_manager.all_chunk_coords(dimension)
 
     def delete_chunk(self, cx: int, cz: int, dimension: int = 0):
         self._verify_has_lock()
