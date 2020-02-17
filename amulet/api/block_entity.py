@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Tuple
 
 import amulet_nbt
 from .world_object import WorldObject
@@ -85,6 +86,10 @@ class BlockEntity(WorldObject):
     @property
     def z(self) -> int:
         return self._z
+
+    @property
+    def location(self) -> Tuple[int, int, int]:
+        return self._x, self._y, self._z
 
     def new_at_location(self, x: int, y: int, z: int) -> BlockEntity:
         """Creates a copy of this BlockEntity at a new location
