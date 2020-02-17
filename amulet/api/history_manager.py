@@ -4,6 +4,7 @@ from typing import Dict, List, Tuple, Union, TYPE_CHECKING
 import time
 import os
 import pickle
+import gzip
 from .chunk import Chunk
 
 if TYPE_CHECKING:
@@ -120,28 +121,28 @@ class ChunkHistoryManager:
 
         os.makedirs(self.temp_dir, exist_ok=True)
         path = os.path.join(
-            self.temp_dir, f"chunk.{dimension}.{chunk.cx}.{chunk.cz}.{change_no}.pickle"
+            self.temp_dir, f"chunk.{dimension}.{chunk.cx}.{chunk.cz}.{change_no}.pickle.gz"
         )
 
-        with open(path, "wb") as fp:
+        with gzip.open(path, "wb") as fp:
             pickle.dump(chunk, fp)
 
         return path
 
     def _unserialise_chunk(
-        self, dimension: int, cx: int, cz: int, change_offset: int
+        self, dimension: int, cx: int, cz: int, change_no: int
     ) -> Union[Chunk, None]:
         """Load the next save state for a given chunk in a given direction"""
         chunk_location = (dimension, cx, cz)
         chunk_index = self._chunk_index[chunk_location] = (
-            self._chunk_index[chunk_location] + change_offset
+            self._chunk_index[chunk_location] + change_no
         )
         chunk_storage = self._chunk_history[chunk_location]
         assert 0 <= chunk_index < len(chunk_storage), "Chunk index out of bounds"
 
         chunk = chunk_storage[chunk_index]
         if chunk is not None:
-            with open(chunk, "rb") as fp:
+            with gzip.open(chunk, "rb") as fp:
                 chunk = pickle.load(fp)
         return chunk
 
