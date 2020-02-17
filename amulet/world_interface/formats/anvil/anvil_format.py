@@ -61,8 +61,8 @@ class AnvilRegion:
         for (cx, cz), (_, chunk_) in self._committed_chunks.items():
             if chunk_:
                 yield cx + self.rx * 32, cz + self.rz * 32
-        for (cx, cz), (_, chunk_) in self._chunks.keys():
-            if chunk_ and (cx, cz) not in self._committed_chunks:
+        for (cx, cz), (_, chunk_) in self._chunks.items():
+            if (cx, cz) not in self._committed_chunks:
                 yield cx + self.rx * 32, cz + self.rz * 32
 
     def _load(self):
@@ -107,7 +107,7 @@ class AnvilRegion:
                 #
                 #         free_sectors[i] = False
 
-                self._chunks = {}
+                self._chunks.clear()
                 for x in range(32):
                     for z in range(32):
                         sector = sectors[z, x]
@@ -131,7 +131,10 @@ class AnvilRegion:
         if self._committed_chunks:
             self._load()
             for key, val in self._committed_chunks.items():
-                self._chunks[key] = val
+                if val[1]:
+                    self._chunks[key] = val
+                elif key in self._chunks:
+                    del self._chunks[key]
             self._committed_chunks.clear()
             offsets = numpy.zeros(1024, dtype=">u4")
             mod_times = numpy.zeros(1024, dtype=">u4")
