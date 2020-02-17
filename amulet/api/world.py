@@ -130,6 +130,10 @@ class World:
                         except ChunkLoadError:
                             log.info(f'Error loading chunk {cx} {cz}', exc_info=True)
                         update_progress()
+                        if chunk_index % 500:
+                            wrapper.save()
+                            self.world_wrapper.unload()
+                            wrapper.unload()
                 except LevelDoesNotExist:
                     continue
 
@@ -143,6 +147,9 @@ class World:
             elif chunk.changed:
                 wrapper.commit_chunk(deepcopy(chunk), self.palette, dimension_out)
             update_progress()
+            if chunk_index % 500:
+                wrapper.save()
+                wrapper.unload()
         log.info(f"Saving changes to world {wrapper.world_path}")
         wrapper.save()
         log.info(f"Finished saving changes to world {wrapper.world_path}")
