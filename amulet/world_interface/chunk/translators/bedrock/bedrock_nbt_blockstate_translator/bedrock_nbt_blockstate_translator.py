@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import numpy
-from typing import Tuple, Union
 
 from amulet.world_interface.chunk.translators.bedrock import BaseBedrockTranslator
 from amulet.api.block import Block

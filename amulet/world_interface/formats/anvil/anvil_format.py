@@ -11,7 +11,6 @@ import re
 
 import amulet_nbt as nbt
 
-from amulet import log
 from amulet.world_interface.formats import Format
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, check_one_exists, load_leveldat
