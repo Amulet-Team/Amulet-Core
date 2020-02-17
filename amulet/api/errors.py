@@ -18,11 +18,15 @@ class InvalidBlockException(Exception):
     pass
 
 
-class LevelDoesNotExist(Exception):
+class ChunkLoadError(Exception):
     pass
 
 
-class ChunkLoadError(Exception):
+class ChunkSaveError(Exception):
+    pass
+
+
+class LevelDoesNotExist(Exception):
     pass
 
 
