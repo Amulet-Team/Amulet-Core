@@ -53,7 +53,7 @@ class AnvilRegion:
                 offsets = numpy.fromfile(fp, dtype=">u4", count=1024).reshape(32, 32)
                 for x in range(32):
                     for z in range(32):
-                        offset = offsets[x, z]
+                        offset = offsets[z, x]
                         if offset != 0:
                             self._chunks[(x, z)] = (0, b"")
 
@@ -110,13 +110,13 @@ class AnvilRegion:
                 self._chunks = {}
                 for x in range(32):
                     for z in range(32):
-                        sector = sectors[x, z]
+                        sector = sectors[z, x]
                         if sector:
                             fp.seek(world_utils.SECTOR_BYTES * sector)
                             # read int value and then read that amount of data
                             buffer_size = struct.unpack(">I", fp.read(4))[0]
                             self._chunks[(x, z)] = (
-                                mod_times[x, z],
+                                mod_times[z, x],
                                 fp.read(buffer_size),
                             )
 
