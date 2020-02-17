@@ -173,7 +173,7 @@ class AnvilRegion:
             self._load()
             data = self._chunks[(cx, cz)][1]
             if data:
-                return self._decompress(self._chunks[(cx, cz)][3])
+                return self._decompress(self._chunks[(cx, cz)][1])
 
         raise ChunkDoesNotExist
 
