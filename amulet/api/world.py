@@ -51,7 +51,7 @@ class World:
 
         self._chunk_cache: ChunkCache = {}
         shutil.rmtree(self._temp_directory, ignore_errors=True)
-        self.history_manager = ChunkHistoryManager(
+        self._chunk_history_manager = ChunkHistoryManager(
             os.path.join(self._temp_directory, "chunks")
         )
 
@@ -175,12 +175,12 @@ class World:
         chunk_key = (dimension, cx, cz)
         if chunk_key in self._chunk_cache:
             chunk = self._chunk_cache[(dimension, cx, cz)]
-        elif chunk_key in self.history_manager:
-            chunk = self._chunk_cache[(dimension, cx, cz)] = self.history_manager.get_current(*chunk_key)
+        elif chunk_key in self._chunk_history_manager:
+            chunk = self._chunk_cache[(dimension, cx, cz)] = self._chunk_history_manager.get_current(*chunk_key)
         else:
             chunk = self.world_wrapper.load_chunk(cx, cz, self.palette, dimension)
             self._chunk_cache[(dimension, cx, cz)] = chunk
-            self.history_manager.add_original_chunk(chunk, dimension)
+            self._chunk_history_manager.add_original_chunk(chunk, dimension)
 
         if chunk is None:
             raise ChunkDoesNotExist(f"Chunk ({cx},{cz}) has been deleted")
@@ -366,7 +366,7 @@ class World:
 
     def run_operation(self, operation_instance: Operation) -> None:
         operation_instance.run_operation(self)
-        self.history_manager.create_snapshot(self._chunk_cache)
+        self._chunk_history_manager.create_snapshot(self._chunk_cache)
 
     def run_operation_from_operation_name(
         self, operation_name: str, *args
@@ -379,17 +379,17 @@ class World:
         except Exception as ex:
             raise ex
 
-        self.history_manager.create_snapshot(self._chunk_cache)
+        self._chunk_history_manager.create_snapshot(self._chunk_cache)
         return e
 
     def undo(self):
         """
         Undoes the last set of changes to the world
         """
-        self.history_manager.undo(self._chunk_cache)
+        self._chunk_history_manager.undo(self._chunk_cache)
 
     def redo(self):
         """
         Redoes the last set of changes to the world
         """
-        self.history_manager.redo(self._chunk_cache)
+        self._chunk_history_manager.redo(self._chunk_cache)
