@@ -47,6 +47,10 @@ class LevelDBLevelManager:
     def close(self):
         self._db.close()
 
+    def unload(self):
+        """Unload data stored in the Format class"""
+        pass
+
     @property
     def dimensions(self) -> Dict[str, int]:
         """A list of all the levels contained in the world"""
