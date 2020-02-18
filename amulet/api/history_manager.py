@@ -167,5 +167,5 @@ class ChunkHistoryManager:
                 chunk_cache[chunk_location] = chunk
             self._snapshot_index += 1
 
-    def restore_current(self, chunk_cache: "ChunkCache", dimension: int, cx: int, cz: int):
-        chunk_cache[(dimension, cx, cz)] = self._unserialise_chunk(dimension, cx, cz, 0)
+    def get_current(self, dimension: int, cx: int, cz: int):
+        return self._unserialise_chunk(dimension, cx, cz, 0)
