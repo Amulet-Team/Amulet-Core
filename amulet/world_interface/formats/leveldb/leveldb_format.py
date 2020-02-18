@@ -47,10 +47,6 @@ class LevelDBLevelManager:
     def close(self):
         self._db.close()
 
-    def unload(self):
-        """Unload data stored in the Format class"""
-        pass
-
     @property
     def dimensions(self) -> Dict[str, int]:
         """A list of all the levels contained in the world"""
@@ -243,6 +239,10 @@ class LevelDBFormat(Format):
     def close(self):
         self._verify_has_lock()
         self._level_manager.close()
+
+    def unload(self):
+        """Unload data stored in the Format class"""
+        pass
 
     def all_chunk_coords(self, dimension: int = 0) -> Generator[Tuple[int, int]]:
         self._verify_has_lock()
