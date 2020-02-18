@@ -172,16 +172,19 @@ class World:
         :param dimension: The dimension to get the chunk from
         :return: The blocks, entities, and tile entities in the chunk
         """
-        if (dimension, cx, cz) in self._chunk_cache:
+        chunk_key = (dimension, cx, cz)
+        if chunk_key in self._chunk_cache:
             chunk = self._chunk_cache[(dimension, cx, cz)]
-            if chunk is None:
-                raise ChunkDoesNotExist(f"Chunk ({cx},{cz}) has been deleted")
-            else:
-                return chunk
+        elif chunk_key in self.history_manager:
+            chunk = self._chunk_cache[(dimension, cx, cz)] = self.history_manager.get_current(*chunk_key)
+        else:
+            chunk = self.world_wrapper.load_chunk(cx, cz, self.palette, dimension)
+            self._chunk_cache[(dimension, cx, cz)] = chunk
+            self.history_manager.add_original_chunk(chunk, dimension)
 
-        chunk = self.world_wrapper.load_chunk(cx, cz, self.palette, dimension)
-        self._chunk_cache[(dimension, cx, cz)] = chunk
-        self.history_manager.add_original_chunk(chunk, dimension)
+        if chunk is None:
+            raise ChunkDoesNotExist(f"Chunk ({cx},{cz}) has been deleted")
+
         return chunk
 
     def put_chunk(self, chunk: Chunk, dimension: int = 0):
