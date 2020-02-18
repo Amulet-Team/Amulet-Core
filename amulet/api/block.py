@@ -7,11 +7,10 @@ from typing import Dict, Iterable, List, Tuple, Union, overload, Generator
 import amulet_nbt
 
 from .errors import InvalidBlockException
-from .world_object import WorldObject
 from ..utils import Int
 
 
-class Block(WorldObject):
+class Block:
     """
     Class to handle data about various blockstates and allow for extra blocks to be created and interacted with.
 
