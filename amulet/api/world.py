@@ -159,14 +159,18 @@ class World:
         shutil.rmtree(self._temp_directory, ignore_errors=True)
         self.world_wrapper.close()
 
-    def unload(self, safe_area: Tuple[int, int, int, int, int] = None):
+    def unload(self, safe_area: Optional[Tuple[int, int, int, int, int]] = None):
         """Unload all chunks not in the safe area
         Safe area format: dimension, min chunk X|Z, max chunk X|Z"""
-        dimension, minx, minz, maxx, maxz = safe_area
         unload_chunks = []
-        for (cd, cx, cz), chunk in self._chunk_cache.items():
-            if not (cd == dimension and minx <= cx <= maxx and minz <= cz <= maxz):
-                unload_chunks.append((cd, cx, cz))
+        if safe_area is None:
+            for key in self._chunk_cache.keys():
+                unload_chunks.append(key)
+        else:
+            dimension, minx, minz, maxx, maxz = safe_area
+            for (cd, cx, cz), chunk in self._chunk_cache.items():
+                if not (cd == dimension and minx <= cx <= maxx and minz <= cz <= maxz):
+                    unload_chunks.append((cd, cx, cz))
         for chunk_key in unload_chunks:
             del self._chunk_cache[chunk_key]
         self.world_wrapper.unload()
