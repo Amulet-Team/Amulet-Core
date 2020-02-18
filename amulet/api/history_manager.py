@@ -124,7 +124,8 @@ class ChunkHistoryManager:
 
         os.makedirs(self.temp_dir, exist_ok=True)
         path = os.path.join(
-            self.temp_dir, f"chunk.{dimension}.{chunk.cx}.{chunk.cz}.{change_no}.pickle.gz"
+            self.temp_dir,
+            f"chunk.{dimension}.{chunk.cx}.{chunk.cz}.{change_no}.pickle.gz",
         )
 
         with gzip.open(path, "wb") as fp:

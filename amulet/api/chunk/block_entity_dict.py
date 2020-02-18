@@ -12,11 +12,7 @@ Coordinate = Tuple[int, int, int]
 class BlockEntityDict(UserDict):
     InputType = Iterable[BlockEntity]
 
-    def __init__(
-        self,
-        parent_chunk: "Chunk",
-        block_entities: InputType = ()
-    ):
+    def __init__(self, parent_chunk: "Chunk", block_entities: InputType = ()):
         super(BlockEntityDict, self).__init__()
         for block_entity in block_entities:
             self._assert_val(block_entity)
@@ -41,7 +37,9 @@ class BlockEntityDict(UserDict):
 
     def __repr__(self) -> str:
         """ Return repr(self). """
-        super_repr = "".join(f"\n\t{key}:{val}" for key, val in self.data.items()) + "\n"
+        super_repr = (
+            "".join(f"\n\t{key}:{val}" for key, val in self.data.items()) + "\n"
+        )
         return f"BlockEntityDict({self._parent_chunk.cx},{self._parent_chunk.cz},{super_repr})"
 
     def clear(self) -> None:
@@ -86,7 +84,9 @@ class BlockEntityDict(UserDict):
         self._dirty()
         self.data[coordinate] = block_entity
 
-    def setdefault(self, coordinate: Coordinate, block_entity: BlockEntity) -> BlockEntity:
+    def setdefault(
+        self, coordinate: Coordinate, block_entity: BlockEntity
+    ) -> BlockEntity:
         self._assert_key(coordinate)
         self._assert_val(block_entity)
         self._dirty()
@@ -100,5 +100,3 @@ class BlockEntityDict(UserDict):
         for block_entity in block_entities:
             self._assert_val(block_entity)
             self.data[block_entity.location] = block_entity
-
-

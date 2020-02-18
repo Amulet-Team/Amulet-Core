@@ -102,9 +102,7 @@ class Translator:
                     for x, y, z in zip(*numpy.where(chunk.blocks == i)):
                         output_block_entities.append(
                             output_block_entity.new_at_location(
-                                x + chunk.cx * 16,
-                                y,
-                                z + chunk.cz * 16
+                                x + chunk.cx * 16, y, z + chunk.cz * 16
                             )
                         )
 
@@ -138,10 +136,7 @@ class Translator:
                             block, tuple
                         ):  # bedrock palette is made of (version, Block). TODO: Perhaps find a better way to do this
                             block = block[0][1]
-                        return (
-                            block,
-                            chunk.block_entities.get((abs_x, abs_y, abs_z))
-                        )
+                        return (block, chunk.block_entities.get((abs_x, abs_y, abs_z)))
 
                     # if it is in a different chunk
                     local_chunk, local_palette = get_chunk_callback(cx, cz)
@@ -152,7 +147,7 @@ class Translator:
                         block = block[0][1]
                     return (
                         block,
-                        local_chunk.block_entities.get((abs_x, abs_y, abs_z))
+                        local_chunk.block_entities.get((abs_x, abs_y, abs_z)),
                     )
 
                 input_block = palette[chunk.blocks[x, y, z]]
@@ -162,9 +157,7 @@ class Translator:
                 if output_block_entity:
                     output_block_entities.append(
                         output_block_entity.new_at_location(
-                            x + chunk.cx * 16,
-                            y,
-                            z + chunk.cz * 16
+                            x + chunk.cx * 16, y, z + chunk.cz * 16
                         )
                     )
                 block_mappings[(x, y, z)] = finished.get_add_block(output_block)

@@ -7,7 +7,7 @@ _Coord = Union[float, int]
 
 
 class EntityObject:
-    obj_name = 'Unknown'
+    obj_name = "Unknown"
 
     def __init__(
         self,

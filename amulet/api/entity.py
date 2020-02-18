@@ -6,7 +6,7 @@ from .entity_base_object import EntityObject
 
 
 class Entity(EntityObject):
-    obj_name = 'Entity'
+    obj_name = "Entity"
 
     def __init__(
         self,
@@ -17,14 +17,7 @@ class Entity(EntityObject):
         z: float,
         nbt: amulet_nbt.NBTFile,
     ):
-        super().__init__(
-            namespace,
-            base_name,
-            x,
-            y,
-            z,
-            nbt
-        )
+        super().__init__(namespace, base_name, x, y, z, nbt)
 
     @property
     def x(self) -> float:

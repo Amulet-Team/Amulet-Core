@@ -108,9 +108,7 @@ class World:
                 self.world_wrapper.translation_manager
             )  # TODO: this might cause issues in the future
             for dimension in self.world_wrapper.dimensions.values():
-                chunk_count += len(
-                    list(self.world_wrapper.all_chunk_coords(dimension))
-                )
+                chunk_count += len(list(self.world_wrapper.all_chunk_coords(dimension)))
 
             for dimension_name, dimension in self.world_wrapper.dimensions.items():
                 try:
@@ -125,7 +123,7 @@ class World:
                             )
                             wrapper.commit_chunk(chunk, self.palette, output_dimension)
                         except ChunkLoadError:
-                            log.info(f'Error loading chunk {cx} {cz}', exc_info=True)
+                            log.info(f"Error loading chunk {cx} {cz}", exc_info=True)
                         update_progress()
                         if not chunk_index % 10000:
                             wrapper.save()
@@ -188,7 +186,9 @@ class World:
         if chunk_key in self._chunk_cache:
             chunk = self._chunk_cache[(dimension, cx, cz)]
         elif chunk_key in self._chunk_history_manager:
-            chunk = self._chunk_cache[(dimension, cx, cz)] = self._chunk_history_manager.get_current(*chunk_key)
+            chunk = self._chunk_cache[
+                (dimension, cx, cz)
+            ] = self._chunk_history_manager.get_current(*chunk_key)
         else:
             chunk = self.world_wrapper.load_chunk(cx, cz, self.palette, dimension)
             self._chunk_cache[(dimension, cx, cz)] = chunk

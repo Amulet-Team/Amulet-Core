@@ -6,7 +6,7 @@ from .entity_base_object import EntityObject
 
 
 class BlockEntity(EntityObject):
-    obj_name = 'BlockEntity'
+    obj_name = "BlockEntity"
 
     def __init__(
         self,
@@ -17,14 +17,7 @@ class BlockEntity(EntityObject):
         z: int,
         nbt: amulet_nbt.NBTFile,
     ):
-        super().__init__(
-            namespace,
-            base_name,
-            x,
-            y,
-            z,
-            nbt
-        )
+        super().__init__(namespace, base_name, x, y, z, nbt)
 
     @property
     def x(self) -> int:
@@ -51,5 +44,5 @@ class BlockEntity(EntityObject):
             x,
             y,
             z,
-            self._nbt  # TODO: should this be deepcopied?
+            self._nbt,  # TODO: should this be deepcopied?
         )

@@ -94,7 +94,9 @@ class AnvilRegion:
                 # self._free_sectors[0:2] = False, False
 
                 # the first array is made of 3 byte sector offset and 1 byte sector count
-                sectors = numpy.fromfile(fp, dtype=">u4", count=1024).reshape(32, 32) >> 8
+                sectors = (
+                    numpy.fromfile(fp, dtype=">u4", count=1024).reshape(32, 32) >> 8
+                )
                 mod_times = numpy.fromfile(fp, dtype=">u4", count=1024).reshape(32, 32)
 
                 # for offset in offsets:
@@ -140,10 +142,7 @@ class AnvilRegion:
             mod_times = numpy.zeros(1024, dtype=">u4")
             offset = 2
             data = []
-            for (
-                (cx, cz),
-                (mod_time, buffer),
-            ) in self._chunks.items():
+            for ((cx, cz), (mod_time, buffer),) in self._chunks.items():
                 if buffer:
                     index = cx + (cz << 5)
                     buffer_size = len(buffer)
@@ -187,7 +186,7 @@ class AnvilRegion:
         self._committed_chunks[(cx, cz)] = (int(time.time()), bytes_data)
 
     def delete_chunk_data(self, cx: int, cz: int):
-        self._committed_chunks[(cx, cz)] = (0, b'')
+        self._committed_chunks[(cx, cz)] = (0, b"")
 
     @staticmethod
     def _compress(data: nbt.NBTFile) -> bytes:

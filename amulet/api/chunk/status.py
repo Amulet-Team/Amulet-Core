@@ -2,6 +2,7 @@ from typing import Union, Dict, List, Tuple
 from amulet import log
 
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
 
