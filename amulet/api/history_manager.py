@@ -37,6 +37,9 @@ class ChunkHistoryManager:
         self._snapshot_index = -1
         self._last_save_snapshot = -1
 
+    def __contains__(self, item: _ChunkLocation):
+        return item in self._chunk_history
+
     @property
     def undo_count(self) -> int:
         return self._snapshot_index + 1
@@ -163,3 +166,6 @@ class ChunkHistoryManager:
                 chunk = self._unserialise_chunk(*chunk_location, 1)
                 chunk_cache[chunk_location] = chunk
             self._snapshot_index += 1
+
+    def restore_current(self, chunk_cache: "ChunkCache", dimension: int, cx: int, cz: int):
+        chunk_cache[(dimension, cx, cz)] = self._unserialise_chunk(dimension, cx, cz, 0)
