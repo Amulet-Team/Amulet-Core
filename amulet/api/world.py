@@ -161,6 +161,18 @@ class World:
         shutil.rmtree(self._temp_directory, ignore_errors=True)
         self.world_wrapper.close()
 
+    def unload(self, safe_area: Tuple[int, int, int, int, int] = None):
+        """Unload all chunks not in the safe area
+        Safe area format: dimension, min chunk X|Z, max chunk X|Z"""
+        dimension, minx, minz, maxx, maxz = safe_area
+        unload_chunks = []
+        for (cd, cx, cz), chunk in self._chunk_cache.items():
+            if not (cd == dimension and minx <= cx <= maxx and minz <= cz <= maxz):
+                unload_chunks.append((cd, cx, cz))
+        for chunk_key in unload_chunks:
+            del self._chunk_cache[chunk_key]
+        self.world_wrapper.unload()
+
     def get_chunk(self, cx: int, cz: int, dimension: int = 0) -> Chunk:
         """
         Gets the chunk data of the specified chunk coordinates.
