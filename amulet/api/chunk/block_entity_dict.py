@@ -1,6 +1,8 @@
 from collections import UserDict
 from typing import TYPE_CHECKING, Tuple, Iterable
 import copy
+import weakref
+
 from amulet.api.block_entity import BlockEntity
 
 if TYPE_CHECKING:
@@ -18,7 +20,7 @@ class BlockEntityDict(UserDict):
             self._assert_val(block_entity)
             self.data[block_entity.location] = block_entity
 
-        self._parent_chunk = parent_chunk
+        self._parent_chunk = weakref.ref(parent_chunk)
 
     def _assert_key(self, key):
         assert self._check_key(key)
@@ -33,14 +35,14 @@ class BlockEntityDict(UserDict):
         return isinstance(value, BlockEntity)
 
     def _dirty(self):
-        self._parent_chunk.changed = True
+        self._parent_chunk().changed = True
 
     def __repr__(self) -> str:
         """ Return repr(self). """
         super_repr = (
             "".join(f"\n\t{key}:{val}" for key, val in self.data.items()) + "\n"
         )
-        return f"BlockEntityDict({self._parent_chunk.cx},{self._parent_chunk.cz},{super_repr})"
+        return f"BlockEntityDict({self._parent_chunk().cx},{self._parent_chunk().cz},{super_repr})"
 
     def clear(self) -> None:
         """ Remove all items from list. """

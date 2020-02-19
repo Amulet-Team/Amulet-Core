@@ -1,5 +1,6 @@
 from .chunk_array import ChunkArray
 import numpy
+import weakref
 
 from typing import TYPE_CHECKING
 
@@ -12,5 +13,5 @@ class Blocks(ChunkArray):
         if input_array is None:
             input_array = numpy.zeros((16, 256, 16), dtype=numpy.int)
         obj = numpy.asarray(input_array).view(cls)
-        obj._parent_chunk = parent_chunk
+        obj._parent_chunk = weakref.ref(parent_chunk)
         return obj

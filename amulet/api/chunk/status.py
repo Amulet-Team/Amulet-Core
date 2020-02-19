@@ -1,5 +1,6 @@
 from typing import Union, Dict, List, Tuple
 from amulet import log
+import weakref
 
 from typing import TYPE_CHECKING
 
@@ -45,7 +46,7 @@ for data in versions.values():
 
 class Status:
     def __init__(self, parent_chunk: "Chunk"):
-        self._parent_chunk = parent_chunk
+        self._parent_chunk = weakref.ref(parent_chunk)
         self._value = 2.0
 
     @property

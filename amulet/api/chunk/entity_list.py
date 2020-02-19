@@ -2,6 +2,7 @@ from collections import UserList
 from typing import TYPE_CHECKING, Iterable, Union, overload, Any
 import copy
 from amulet.api.entity import Entity
+import weakref
 
 if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
@@ -10,7 +11,7 @@ if TYPE_CHECKING:
 class ChunkList(UserList):
     def __init__(self, parent_chunk: "Chunk", iterable: Iterable = ()):
         super(ChunkList, self).__init__(list(iterable))
-        self._parent_chunk = parent_chunk
+        self._parent_chunk = weakref.ref(parent_chunk)
 
     def _check_all_types(self, value):
         [self._check_type(val) for val in value]
@@ -19,7 +20,7 @@ class ChunkList(UserList):
         raise NotImplementedError
 
     def _dirty(self):
-        self._parent_chunk.changed = True
+        self._parent_chunk().changed = True
 
     def append(self, value) -> None:
         """ Append value to the end of the list. """
@@ -111,7 +112,7 @@ class EntityList(ChunkList):
 
     def __repr__(self) -> str:
         """ Return repr(self). """
-        return f"EntityList({self._parent_chunk.cx},{self._parent_chunk.cz},{super().__repr__()})"
+        return f"EntityList({self._parent_chunk().cx},{self._parent_chunk().cz},{super().__repr__()})"
 
 
 if __name__ == "__main__":
