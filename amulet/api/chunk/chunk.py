@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import Tuple, Union, Iterable, List
 import time
-
 import numpy
+import pickle
+import gzip
 
 from amulet.api.chunk import Biomes, Blocks, Status, BlockEntityDict, EntityList
 from amulet.api.entity import Entity
@@ -31,6 +32,31 @@ class Chunk:
 
     def __repr__(self):
         return f"Chunk({self.cx}, {self.cz}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._block_entities)})"
+
+    def pickle(self, file_path: str):
+        chunk_data = (
+            self._cx,
+            self._cz,
+            self._changed_time,
+            self._changed,
+            numpy.array(self.blocks),
+            numpy.array(self.biomes),
+            self._entities.data,
+            tuple(self._block_entities.data.values()),
+            self._status.value,
+            self.misc
+        )
+        with gzip.open(file_path, "wb") as fp:
+            pickle.dump(chunk_data, fp)
+
+    @classmethod
+    def unpickle(cls, file_path: str) -> Chunk:
+        with gzip.open(file_path, "rb") as fp:
+            chunk_data = pickle.load(fp)
+        self = cls(*chunk_data[:2])
+        self.changed, self.blocks, self.biomes, self.entities, self.block_entities, self.status, self.misc = chunk_data[3:]
+        self._changed_time = chunk_data[2]
+        return self
 
     def __getitem__(self, item):
         if (

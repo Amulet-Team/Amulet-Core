@@ -3,8 +3,6 @@ from __future__ import annotations
 from typing import Dict, List, Tuple, Union, TYPE_CHECKING
 import time
 import os
-import pickle
-import gzip
 from .chunk import Chunk
 
 if TYPE_CHECKING:
@@ -128,8 +126,7 @@ class ChunkHistoryManager:
             f"chunk.{dimension}.{chunk.cx}.{chunk.cz}.{change_no}.pickle.gz",
         )
 
-        with gzip.open(path, "wb") as fp:
-            pickle.dump(chunk, fp)
+        chunk.pickle(path)
 
         return path
 
@@ -146,8 +143,7 @@ class ChunkHistoryManager:
 
         chunk = chunk_storage[chunk_index]
         if chunk is not None:
-            with gzip.open(chunk, "rb") as fp:
-                chunk = pickle.load(fp)
+            chunk = Chunk.unpickle(chunk)
         return chunk
 
     def undo(self, chunk_cache: "ChunkCache"):
