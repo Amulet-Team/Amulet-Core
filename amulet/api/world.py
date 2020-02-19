@@ -91,7 +91,6 @@ class World:
         if wrapper is None:
             wrapper = self.world_wrapper
 
-        deleted_chunks = []
         dimstr2dim = self.world_wrapper.dimensions
         dim2dimstr = {val: key for key, val in dimstr2dim.items()}
         output_dimension_map = wrapper.dimensions
@@ -138,7 +137,6 @@ class World:
                 continue
             if chunk is None:
                 wrapper.delete_chunk(cx, cz, dimension_out)
-                deleted_chunks.append((dimension, cx, cz))
             elif chunk.changed:
                 wrapper.commit_chunk(deepcopy(chunk), self.palette, dimension_out)
             update_progress()
@@ -148,9 +146,6 @@ class World:
         log.info(f"Saving changes to world {wrapper.world_path}")
         wrapper.save()
         log.info(f"Finished saving changes to world {wrapper.world_path}")
-
-        for deleted_chunk in deleted_chunks:
-            del self._chunk_cache[deleted_chunk]
 
     def close(self):
         """Close the attached world and remove temporary files
