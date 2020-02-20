@@ -131,7 +131,7 @@ class World:
                 except LevelDoesNotExist:
                     continue
 
-        for (dimension, cx, cz), chunk in self._chunk_cache.values():
+        for (dimension, cx, cz), chunk in self._chunk_cache.items():
             dimension_out = output_dimension_map.get(dim2dimstr.get(dimension))
             if dimension_out is None:
                 continue
