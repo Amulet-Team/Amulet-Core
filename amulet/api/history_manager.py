@@ -73,7 +73,7 @@ class ChunkHistoryManager:
     def create_snapshot(self, chunk_cache: "ChunkCache"):
         """Find all the chunks which have changed since the last snapshot, serialise them and store the path to the file (or None if it has been deleted)"""
         snapshot = []
-        for chunk_location, chunk in chunk_cache.items():
+        for chunk_location, chunk in list(chunk_cache.items()):
             assert chunk is None or isinstance(
                 chunk, Chunk
             ), "Chunk must be None or a Chunk instance"
