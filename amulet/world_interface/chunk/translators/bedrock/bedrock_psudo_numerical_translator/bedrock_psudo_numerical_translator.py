@@ -27,7 +27,7 @@ class BedrockPsudoNumericalTranslator(BaseBedrockTranslator):
         palette_ = numpy.empty(len(palette), dtype=object)
         for palette_index, block in enumerate(palette):
             block: Block
-            # TODO: perhaps check that property 'block_data' exists and str.isnumeric user interaction if not
+            # TODO: perhaps check that property 'block_data' exists and is TAG_Int user interaction if not
             palette_[palette_index] = ((None, block.base_block),) + tuple(
                 (None, extra_block) for extra_block in block.extra_blocks
             )

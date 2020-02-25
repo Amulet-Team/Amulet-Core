@@ -252,7 +252,7 @@ class BaseLevelDBInterface(Interface):
                     Block(
                         namespace="minecraft",
                         base_name="air",
-                        properties={"block_data": 0},
+                        properties={"block_data": amulet_nbt.TAG_Int(0)},
                     ),
                 ),
             )
@@ -300,7 +300,7 @@ class BaseLevelDBInterface(Interface):
                         if "states" in block:  # 1.13 format
                             properties = block["states"].value
                         else:
-                            properties = {"block_data": str(block["val"].value)}
+                            properties = {"block_data": amulet_nbt.TAG_Int(block["val"].value)}
                         palette_data_out.append(
                             (
                                 version,
@@ -368,9 +368,9 @@ class BaseLevelDBInterface(Interface):
     ) -> List[Union[None, bytes]]:
         for index, block in enumerate(palette):
             block: Tuple[Tuple[None, Block], ...]
-            block_data = block[0][1].properties.get("block_data", "0")
-            if isinstance(block_data, str) and block_data.isnumeric():
-                block_data = int(block_data)
+            block_data = block[0][1].properties.get("block_data", amulet_nbt.TAG_Int(0))
+            if isinstance(block_data, amulet_nbt.TAG_Int):
+                block_data = block_data.value
                 if block_data >= 16:
                     block_data = 0
             else:
@@ -424,9 +424,9 @@ class BaseLevelDBInterface(Interface):
             for sub_block_version, sub_block in block:
                 properties = sub_block.properties
                 if sub_block_version is None:
-                    block_data = properties.get("block_data", "0")
-                    if isinstance(block_data, str) and block_data.isnumeric():
-                        block_data = int(block_data)
+                    block_data = properties.get("block_data", amulet_nbt.TAG_Int(0))
+                    if isinstance(block_data, amulet_nbt.TAG_Int):
+                        block_data = block_data.value
                         if block_data >= 16:
                             block_data = 0
                     else:
