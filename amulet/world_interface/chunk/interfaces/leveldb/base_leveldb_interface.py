@@ -262,7 +262,7 @@ class BaseLevelDBInterface(Interface):
                 continue
 
             if data[0] in [0, 2, 3, 4, 5, 6, 7]:
-                raise NotImplementedError
+                raise NotImplementedError('The old Bedrock numerical chunk format is not currently implemented')
 
             elif data[0] in [1, 8]:
                 if data[0] == 1:
