@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Tuple
 
 import numpy
-import amulet_nbt as nbt
+import amulet_nbt
 
 from amulet.api.block import Block
 from amulet.world_interface.chunk.interfaces.anvil.base_anvil_interface import (
@@ -92,8 +92,8 @@ class Anvil1444Interface(BaseAnvilInterface):
 
     def _encode_blocks(
         self, blocks: numpy.ndarray, palette: numpy.ndarray
-    ) -> nbt.TAG_List:
-        sections = nbt.TAG_List()
+    ) -> amulet_nbt.TAG_List:
+        sections = amulet_nbt.TAG_List()
         blocks = numpy.swapaxes(blocks.swapaxes(0, 2), 0, 1)
         for y in range(16):  # perhaps find a way to do this dynamically
             block_sub_array = blocks[y * 16 : y * 16 + 16, :, :].ravel()
@@ -108,9 +108,9 @@ class Anvil1444Interface(BaseAnvilInterface):
             ):
                 continue
 
-            section = nbt.TAG_Compound()
-            section["Y"] = nbt.TAG_Byte(y)
-            section["BlockStates"] = nbt.TAG_Long_Array(
+            section = amulet_nbt.TAG_Compound()
+            section["Y"] = amulet_nbt.TAG_Byte(y)
+            section["BlockStates"] = amulet_nbt.TAG_Long_Array(
                 encode_long_array(block_sub_array)
             )
             section["Palette"] = sub_palette
@@ -119,14 +119,11 @@ class Anvil1444Interface(BaseAnvilInterface):
         return sections
 
     @staticmethod
-    def _decode_palette(palette: nbt.TAG_List) -> list:
+    def _decode_palette(palette: amulet_nbt.TAG_List) -> list:
         blockstates = []
         for entry in palette:
             namespace, base_name = entry["Name"].value.split(":", 1)
-            properties = {
-                prop: str(val.value)
-                for prop, val in entry.get("Properties", nbt.TAG_Compound({})).items()
-            }
+            properties = entry.get("Properties", amulet_nbt.TAG_Compound({})).value
             block = Block(
                 namespace=namespace, base_name=base_name, properties=properties
             )
@@ -134,15 +131,12 @@ class Anvil1444Interface(BaseAnvilInterface):
         return blockstates
 
     @staticmethod
-    def _encode_palette(blockstates: list) -> nbt.TAG_List:
-        palette = nbt.TAG_List()
+    def _encode_palette(blockstates: list) -> amulet_nbt.TAG_List:
+        palette = amulet_nbt.TAG_List()
         for block in blockstates:
-            entry = nbt.TAG_Compound()
-            entry["Name"] = nbt.TAG_String(f"{block.namespace}:{block.base_name}")
-            properties = entry["Properties"] = nbt.TAG_Compound()
-            for prop, val in block.properties.items():
-                if isinstance(val, str):
-                    properties[prop] = nbt.TAG_String(val)
+            entry = amulet_nbt.TAG_Compound()
+            entry["Name"] = amulet_nbt.TAG_String(f"{block.namespace}:{block.base_name}")
+            properties = entry["Properties"] = amulet_nbt.TAG_Compound(block.properties)
             palette.append(entry)
         return palette
 
