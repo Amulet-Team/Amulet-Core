@@ -15,7 +15,7 @@ from amulet.utils.world_utils import get_smallest_dtype, fast_unique
 from amulet.world_interface.chunk.interfaces import Interface
 from amulet.world_interface.chunk import translators
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
-    chunk_to_game_version,
+    chunk_to_game_version
 )
 
 
@@ -262,7 +262,9 @@ class BaseLevelDBInterface(Interface):
                 continue
 
             if data[0] in [0, 2, 3, 4, 5, 6, 7]:
-                raise NotImplementedError('The old Bedrock numerical chunk format is not currently implemented')
+                raise NotImplementedError(
+                    "The old Bedrock numerical chunk format is not currently implemented"
+                )
 
             elif data[0] in [1, 8]:
                 if data[0] == 1:
@@ -300,7 +302,9 @@ class BaseLevelDBInterface(Interface):
                         if "states" in block:  # 1.13 format
                             properties = block["states"].value
                         else:
-                            properties = {"block_data": amulet_nbt.TAG_Int(block["val"].value)}
+                            properties = {
+                                "block_data": amulet_nbt.TAG_Int(block["val"].value)
+                            }
                         palette_data_out.append(
                             (
                                 version,

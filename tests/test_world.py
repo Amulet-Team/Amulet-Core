@@ -31,11 +31,11 @@ class WorldTestBaseCases:
                 "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "universal_minecraft:granite[polished=false]",
+                'universal_minecraft:granite[polished="false"]',
                 self.world.get_block(1, 70, 5).blockstate,
             )
             self.assertEqual(
-                "universal_minecraft:granite[polished=true]",
+                'universal_minecraft:granite[polished="true"]',
                 self.world.get_block(1, 70, 7).blockstate,
             )
 
@@ -77,7 +77,7 @@ class WorldTestBaseCases:
                 "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )  # Sanity check
             self.assertEqual(
-                "universal_minecraft:granite[polished=false]",
+                'universal_minecraft:granite[polished="false"]',
                 self.world.get_block(1, 70, 5).blockstate,
             )
 
@@ -90,7 +90,7 @@ class WorldTestBaseCases:
             self.world.undo()
 
             self.assertEqual(
-                "universal_minecraft:granite[polished=false]",
+                'universal_minecraft:granite[polished="false"]',
                 self.world.get_block(1, 70, 5).blockstate,
             )
 
@@ -103,7 +103,7 @@ class WorldTestBaseCases:
             self.world.undo()
 
             self.assertEqual(
-                "universal_minecraft:granite[polished=false]",
+                'universal_minecraft:granite[polished="false"]',
                 self.world.get_block(1, 70, 5).blockstate,
             )
 
@@ -116,7 +116,7 @@ class WorldTestBaseCases:
                 "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "universal_minecraft:granite[polished=false]",
+                'universal_minecraft:granite[polished="false"]',
                 self.world.get_block(1, 70, 5).blockstate,
             )
             # End sanity check
@@ -139,7 +139,7 @@ class WorldTestBaseCases:
             )
 
             self.assertEqual(
-                "universal_minecraft:granite[polished=false]",
+                'universal_minecraft:granite[polished="false"]',
                 self.world.get_block(1, 70, 5).blockstate,
             )
 
@@ -160,7 +160,7 @@ class WorldTestBaseCases:
                 "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "universal_minecraft:granite[polished=false]",
+                'universal_minecraft:granite[polished="false"]',
                 self.world.get_block(1, 70, 5).blockstate,
             )
 
@@ -184,7 +184,7 @@ class WorldTestBaseCases:
                 "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "universal_minecraft:granite[polished=false]",
+                'universal_minecraft:granite[polished="false"]',
                 self.world.get_block(1, 70, 5).blockstate,
             )
 
@@ -214,7 +214,10 @@ class WorldTestBaseCases:
             self.world.run_operation_from_operation_name(
                 "replace",
                 box1,
-                [blockstate_to_block("universal_minecraft:stone"), blockstate_to_block("universal_minecraft:air")],
+                [
+                    blockstate_to_block("universal_minecraft:stone"),
+                    blockstate_to_block("universal_minecraft:air"),
+                ],
                 [
                     blockstate_to_block("universal_minecraft:granite[polished=false]"),
                     blockstate_to_block("universal_minecraft:stone"),
@@ -222,7 +225,7 @@ class WorldTestBaseCases:
             )
 
             self.assertEqual(
-                "universal_minecraft:granite[polished=false]",
+                'universal_minecraft:granite[polished="false"]',
                 self.world.get_block(1, 70, 3).blockstate,
             )
 
@@ -248,7 +251,7 @@ class WorldTestBaseCases:
             self.world.redo()
 
             self.assertEqual(
-                "universal_minecraft:granite[polished=false]",
+                'universal_minecraft:granite[polished="false"]',
                 self.world.get_block(1, 70, 3).blockstate,
             )
 
@@ -267,7 +270,7 @@ class WorldTestBaseCases:
                 "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "universal_minecraft:granite[polished=false]",
+                'universal_minecraft:granite[polished="false"]',
                 self.world.get_block(1, 70, 5).blockstate,
             )
 
@@ -286,7 +289,7 @@ class WorldTestBaseCases:
                 "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
             self.assertEqual(
-                "universal_minecraft:granite[polished=false]",
+                'universal_minecraft:granite[polished="false"]',
                 self.world.get_block(1, 70, 5).blockstate,
             )
 

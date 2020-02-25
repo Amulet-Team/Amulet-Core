@@ -12,7 +12,7 @@ from amulet.world_interface.chunk import interfaces
 from amulet.libs.leveldb import LevelDB
 from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
-    game_to_chunk_version,
+    game_to_chunk_version
 )
 
 

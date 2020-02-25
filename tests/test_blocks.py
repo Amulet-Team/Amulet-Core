@@ -2,6 +2,8 @@ import unittest
 from amulet.api.block import Block, BlockManager, blockstate_to_block
 from amulet.api.errors import InvalidBlockException
 
+import amulet_nbt as nbt
+
 
 class BlockTestCase(unittest.TestCase):
     def test_get_from_blockstate(self):  # This is mostly just sanity checks
@@ -32,25 +34,34 @@ class BlockTestCase(unittest.TestCase):
         self.assertIsInstance(oak_leaves, Block)
         self.assertEqual("minecraft", oak_leaves.namespace)
         self.assertEqual("oak_leaves", oak_leaves.base_name)
-        self.assertEqual({"distance": "1", "persistent": "true"}, oak_leaves.properties)
+        self.assertEqual(
+            {"distance": nbt.TAG_String("1"), "persistent": nbt.TAG_String("true")},
+            oak_leaves.properties,
+        )
         self.assertEqual((), oak_leaves.extra_blocks)
         self.assertEqual(
-            "minecraft:oak_leaves[distance=1,persistent=true]", oak_leaves.blockstate
+            'minecraft:oak_leaves[distance="1",persistent="true"]',
+            oak_leaves.blockstate,
         )
 
         oak_leaves_2 = Block(
             namespace="minecraft",
             base_name="oak_leaves",
-            properties={"persistent": "true", "distance": "1"},
+            properties={
+                "persistent": nbt.TAG_String("true"),
+                "distance": nbt.TAG_String("1"),
+            },
         )
         self.assertEqual("minecraft", oak_leaves_2.namespace)
         self.assertEqual("oak_leaves", oak_leaves_2.base_name)
         self.assertEqual(
-            {"distance": "1", "persistent": "true"}, oak_leaves_2.properties
+            {"distance": nbt.TAG_String("1"), "persistent": nbt.TAG_String("true")},
+            oak_leaves_2.properties,
         )
         self.assertEqual((), oak_leaves_2.extra_blocks)
         self.assertEqual(
-            "minecraft:oak_leaves[distance=1,persistent=true]", oak_leaves_2.blockstate
+            'minecraft:oak_leaves[distance="1",persistent="true"]',
+            oak_leaves_2.blockstate,
         )
         self.assertEqual(oak_leaves, oak_leaves_2)
 
@@ -60,11 +71,13 @@ class BlockTestCase(unittest.TestCase):
         self.assertEqual("minecraft", oak_leaves_3.namespace)
         self.assertEqual("oak_leaves", oak_leaves_3.base_name)
         self.assertEqual(
-            {"distance": "1", "persistent": "true"}, oak_leaves_3.properties
+            {"distance": nbt.TAG_String("1"), "persistent": nbt.TAG_String("true")},
+            oak_leaves_3.properties,
         )
         self.assertEqual((), oak_leaves_3.extra_blocks)
         self.assertEqual(
-            "minecraft:oak_leaves[distance=1,persistent=true]", oak_leaves_3.blockstate
+            'minecraft:oak_leaves[distance="1",persistent="true"]',
+            oak_leaves_3.blockstate,
         )
         self.assertEqual(oak_leaves, oak_leaves_3)
 
@@ -175,7 +188,7 @@ class BlockTestCase(unittest.TestCase):
         self.assertEqual(3, len(new_base.extra_blocks))
         self.assertEqual("minecraft", new_base.namespace)
         self.assertEqual("water", new_base.base_name)
-        self.assertEqual({"level": "1"}, new_base.properties)
+        self.assertEqual({"level": nbt.TAG_String("1")}, new_base.properties)
         for block_1, block_2 in zip(
             new_base.extra_blocks, (stone, dirt, oak_log_axis_x)
         ):

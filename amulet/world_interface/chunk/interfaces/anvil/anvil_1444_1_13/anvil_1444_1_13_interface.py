@@ -7,7 +7,7 @@ import amulet_nbt
 
 from amulet.api.block import Block
 from amulet.world_interface.chunk.interfaces.anvil.base_anvil_interface import (
-    BaseAnvilInterface,
+    BaseAnvilInterface
 )
 from amulet.utils.world_utils import (
     get_smallest_dtype,
@@ -135,7 +135,9 @@ class Anvil1444Interface(BaseAnvilInterface):
         palette = amulet_nbt.TAG_List()
         for block in blockstates:
             entry = amulet_nbt.TAG_Compound()
-            entry["Name"] = amulet_nbt.TAG_String(f"{block.namespace}:{block.base_name}")
+            entry["Name"] = amulet_nbt.TAG_String(
+                f"{block.namespace}:{block.base_name}"
+            )
             properties = entry["Properties"] = amulet_nbt.TAG_Compound(block.properties)
             palette.append(entry)
         return palette

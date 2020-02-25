@@ -142,7 +142,7 @@ class AnvilRegion:
             mod_times = numpy.zeros(1024, dtype=">u4")
             offset = 2
             data = []
-            for ((cx, cz), (mod_time, buffer),) in self._chunks.items():
+            for ((cx, cz), (mod_time, buffer)) in self._chunks.items():
                 if buffer:
                     index = cx + (cz << 5)
                     buffer_size = len(buffer)

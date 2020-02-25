@@ -10,7 +10,7 @@ from .errors import InvalidBlockException
 from ..utils import Int
 
 
-def blockstate_to_block(blockstate: str) -> 'Block':
+def blockstate_to_block(blockstate: str) -> "Block":
     namespace, base_name, properties = Block.parse_blockstate_string(blockstate)
     return Block(namespace=namespace, base_name=base_name, properties=properties)
 
@@ -93,13 +93,17 @@ class Block:
     ):
         self._blockstate = None
         self._namespaced_name = None
-        assert (isinstance(namespace, str) or namespace is None) and isinstance(base_name, str), f'namespace and base_name must be strings {namespace} {base_name}'
+        assert (isinstance(namespace, str) or namespace is None) and isinstance(
+            base_name, str
+        ), f"namespace and base_name must be strings {namespace} {base_name}"
         self._namespace = namespace
         self._base_name = base_name
 
         if properties is None:
             properties = {}
-        assert isinstance(properties, dict) and all(isinstance(val, amulet_nbt.BaseValueType) for val in properties.values()), properties
+        assert isinstance(properties, dict) and all(
+            isinstance(val, amulet_nbt.BaseValueType) for val in properties.values()
+        ), properties
 
         self._properties = properties
         self._extra_blocks = ()
@@ -183,11 +187,16 @@ class Block:
     def _gen_blockstate(self):
         self._namespaced_name = self._blockstate = f"{self.namespace}:{self.base_name}"
         if self.properties:
-            props = [f"{key}={value}" for key, value in sorted(self.properties.items())]
+            props = [
+                f"{key}={value.to_snbt()}"
+                for key, value in sorted(self.properties.items())
+            ]
             self._blockstate = f"{self._blockstate}[{','.join(props)}]"
 
     @staticmethod
-    def parse_blockstate_string(blockstate: str) -> Tuple[str, str, Dict[str, amulet_nbt.BaseValueType]]:
+    def parse_blockstate_string(
+        blockstate: str
+    ) -> Tuple[str, str, Dict[str, amulet_nbt.BaseValueType]]:
         match = Block.blockstate_regex.match(blockstate)
         namespace = match.group("namespace") or "minecraft"
         base_name = match.group("base_name")
@@ -203,7 +212,11 @@ class Block:
             for match in properties_match:
                 properties[match.group("name")] = match.group("value")
 
-        return namespace, base_name, {k: amulet_nbt.TAG_String(v) for k, v in sorted(properties.items())}
+        return (
+            namespace,
+            base_name,
+            {k: amulet_nbt.TAG_String(v) for k, v in sorted(properties.items())},
+        )
 
     def __str__(self) -> str:
         """

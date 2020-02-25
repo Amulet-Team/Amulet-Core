@@ -44,7 +44,7 @@ class Chunk:
             self._entities.data,
             tuple(self._block_entities.data.values()),
             self._status.value,
-            self.misc
+            self.misc,
         )
         with gzip.open(file_path, "wb") as fp:
             pickle.dump(chunk_data, fp)
@@ -54,7 +54,9 @@ class Chunk:
         with gzip.open(file_path, "rb") as fp:
             chunk_data = pickle.load(fp)
         self = cls(*chunk_data[:2])
-        self.changed, self.blocks, self.biomes, self.entities, self.block_entities, self.status, self.misc = chunk_data[3:]
+        self.changed, self.blocks, self.biomes, self.entities, self.block_entities, self.status, self.misc = chunk_data[
+            3:
+        ]
         self._changed_time = chunk_data[2]
         return self
 
