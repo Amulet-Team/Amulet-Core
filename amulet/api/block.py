@@ -93,11 +93,13 @@ class Block:
     ):
         self._blockstate = None
         self._namespaced_name = None
+        assert (isinstance(namespace, str) or namespace is None) and isinstance(base_name, str), f'namespace and base_name must be strings {namespace} {base_name}'
         self._namespace = namespace
         self._base_name = base_name
 
         if properties is None:
             properties = {}
+        assert isinstance(properties, dict) and all(isinstance(val, amulet_nbt.BaseValueType) for val in properties.values()), properties
 
         self._properties = properties
         self._extra_blocks = ()
