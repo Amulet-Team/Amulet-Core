@@ -6,7 +6,7 @@ import re
 from typing import Dict, Iterable, List, Tuple, Union, overload, Generator
 import amulet_nbt
 
-from amulet import log
+from amulet.utils.log import log
 from .errors import InvalidBlockException
 from ..utils import Int
 
