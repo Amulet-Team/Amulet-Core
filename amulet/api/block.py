@@ -30,8 +30,8 @@ class Block:
 
     Creating a new Block object with the base of ``stone`` and has an extra block of ``water[level=1]``:
 
-    >>> stone = Block(blockstate="minecraft:stone")
-    >>> water_level_1 = Block(blockstate="minecraft:water[level=1]")
+    >>> stone = blockstate_to_block("minecraft:stone")
+    >>> water_level_1 = blockstate_to_block("minecraft:water[level=1]")
     >>> stone_with_extra_block = stone + water_level_1
     >>> repr(stone_with_extra_block)
     'Block(minecraft:stone, minecraft:water[level=1])'
@@ -59,7 +59,7 @@ class Block:
 
     Creating a new Block object by removing a specific layer:
 
-    >>> oak_log_axis_x = Block(blockstate="minecraft:oak_log[axis=x]")
+    >>> oak_log_axis_x = blockstate_to_block("minecraft:oak_log[axis=x]")
     >>> stone_water_granite_water_oak_log = stone_water_granite + water_level_1 + oak_log_axis_x
     >>> repr(stone_water_granite_water_oak_log)
     'Block(minecraft:stone, minecraft:water[level=1], minecraft:granite, minecraft:water[level=1], minecraft:oak_log[axis=x])'

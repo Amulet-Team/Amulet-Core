@@ -3,7 +3,7 @@ import unittest
 import json
 import numpy
 
-from amulet.api.block import Block
+from amulet.api.block import blockstate_to_block
 from amulet.api.errors import ChunkDoesNotExist
 from amulet.api.selection import SubBox, SelectionBox
 from amulet.api.chunk import SubChunk
@@ -122,7 +122,7 @@ class WorldTestBaseCases:
             # End sanity check
 
             self.world.run_operation_from_operation_name(
-                "fill", box, Block("universal_minecraft:stone")
+                "fill", box, blockstate_to_block("universal_minecraft:stone")
             )
 
             for x, y, z in box:
@@ -167,8 +167,8 @@ class WorldTestBaseCases:
             self.world.run_operation_from_operation_name(
                 "replace",
                 box1,
-                [Block("universal_minecraft:granite[polished=false]")],
-                [Block("universal_minecraft:stone")],
+                [blockstate_to_block("universal_minecraft:granite[polished=false]")],
+                [blockstate_to_block("universal_minecraft:stone")],
             )
 
             self.assertEqual(
@@ -214,10 +214,10 @@ class WorldTestBaseCases:
             self.world.run_operation_from_operation_name(
                 "replace",
                 box1,
-                [Block("universal_minecraft:stone"), Block("universal_minecraft:air")],
+                [blockstate_to_block("universal_minecraft:stone"), blockstate_to_block("universal_minecraft:air")],
                 [
-                    Block("universal_minecraft:granite[polished=false]"),
-                    Block("universal_minecraft:stone"),
+                    blockstate_to_block("universal_minecraft:granite[polished=false]"),
+                    blockstate_to_block("universal_minecraft:stone"),
                 ],
             )
 
