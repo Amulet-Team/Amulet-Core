@@ -6,8 +6,14 @@ import re
 from typing import Dict, Iterable, List, Tuple, Union, overload, Generator
 import amulet_nbt
 
+from amulet import log
 from .errors import InvalidBlockException
 from ..utils import Int
+
+
+def blockstate_to_block(blockstate: str) -> 'Block':
+    namespace, base_name, properties = Block.parse_blockstate_string(blockstate)
+    return Block(namespace=namespace, base_name=base_name, properties=properties)
 
 
 class Block:
@@ -87,6 +93,8 @@ class Block:
         properties: Dict[str, amulet_nbt.BaseValueType] = None,
         extra_blocks: Union[Block, Iterable[Block]] = None,
     ):
+        if blockstate:
+            log.info('The blockstate input of the Block class is going to be removed. Please modify this code to use ')
         self._blockstate = blockstate
         self._namespace = namespace
         self._base_name = base_name
@@ -195,7 +203,7 @@ class Block:
             self._blockstate = f"{self._blockstate}[{','.join(props)}]"
 
     @staticmethod
-    def parse_blockstate_string(blockstate: str) -> Tuple[str, str, Dict[str, str]]:
+    def parse_blockstate_string(blockstate: str) -> Tuple[str, str, Dict[str, amulet_nbt.BaseValueType]]:
         match = Block.blockstate_regex.match(blockstate)
         namespace = match.group("namespace") or "minecraft"
         base_name = match.group("base_name")
@@ -211,7 +219,7 @@ class Block:
             for match in properties_match:
                 properties[match.group("name")] = match.group("value")
 
-        return namespace, base_name, {k: v for k, v in sorted(properties.items())}
+        return namespace, base_name, {k: amulet_nbt.TAG_String(v) for k, v in sorted(properties.items())}
 
     def _parse_blockstate_string(self):
         (
