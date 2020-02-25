@@ -452,7 +452,7 @@ class BaseLevelDBInterface(Interface):
                                     {
                                         key: val
                                         for key, val in properties.items()
-                                        if isinstance(val, amulet_nbt._TAG_Value)
+                                        if isinstance(val, amulet_nbt.BaseValueType)
                                     }
                                 ),
                                 "version": amulet_nbt.TAG_Int(
