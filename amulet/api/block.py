@@ -84,7 +84,7 @@ class Block:
         blockstate: str = None,
         namespace: str = None,
         base_name: str = None,
-        properties: Dict[str, Union[str, bool, int]] = None,
+        properties: Dict[str, amulet_nbt.BaseValueType] = None,
         extra_blocks: Union[Block, Iterable[Block]] = None,
     ):
         self._blockstate = blockstate
