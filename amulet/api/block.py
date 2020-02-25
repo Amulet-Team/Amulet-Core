@@ -6,7 +6,6 @@ import re
 from typing import Dict, Iterable, List, Tuple, Union, overload, Generator
 import amulet_nbt
 
-from amulet.utils.log import log
 from .errors import InvalidBlockException
 from ..utils import Int
 
@@ -87,23 +86,17 @@ class Block:
 
     def __init__(
         self,
-        blockstate: str = None,
-        namespace: str = None,
-        base_name: str = None,
+        namespace: str,
+        base_name: str,
         properties: Dict[str, amulet_nbt.BaseValueType] = None,
         extra_blocks: Union[Block, Iterable[Block]] = None,
     ):
-        if blockstate:
-            log.info('The blockstate input of the Block class is going to be removed. Please modify this code to use ')
-        self._blockstate = blockstate
+        self._blockstate = None
+        self._namespaced_name = None
         self._namespace = namespace
         self._base_name = base_name
-        if namespace is None or base_name is None:
-            self._namespaced_name = None
-        else:
-            self._namespaced_name = f"{namespace}:{base_name}"
 
-        if namespace is not None and base_name is not None and properties is None:
+        if properties is None:
             properties = {}
 
         self._properties = properties
@@ -113,8 +106,7 @@ class Block:
                 extra_blocks = [extra_blocks]
             self._extra_blocks = tuple(extra_blocks)
 
-        if blockstate:
-            self._gen_blockstate()
+        self._gen_blockstate()
 
     @property
     def namespaced_name(self) -> str:
@@ -123,8 +115,6 @@ class Block:
 
         :return: The namespace:base_name of the blockstate
         """
-        if self._namespaced_name is None:
-            self._parse_blockstate_string()
         return self._namespaced_name
 
     @property
@@ -134,8 +124,6 @@ class Block:
 
         :return: The namespace of the blockstate
         """
-        if self._namespace is None:
-            self._parse_blockstate_string()
         return self._namespace
 
     @property
@@ -145,8 +133,6 @@ class Block:
 
         :return: The base name of the blockstate
         """
-        if self._base_name is None:
-            self._parse_blockstate_string()
         return self._base_name
 
     @property
@@ -156,8 +142,6 @@ class Block:
 
         :return: A dictionary of the properties of the blockstate
         """
-        if self._properties is None:
-            self._parse_blockstate_string()
         return copy.deepcopy(self._properties)
 
     @property
@@ -167,8 +151,6 @@ class Block:
 
         :return: The blockstate string
         """
-        if self._blockstate is None:
-            self._gen_blockstate()
         return self._blockstate
 
     @property
@@ -220,13 +202,6 @@ class Block:
                 properties[match.group("name")] = match.group("value")
 
         return namespace, base_name, {k: amulet_nbt.TAG_String(v) for k, v in sorted(properties.items())}
-
-    def _parse_blockstate_string(self):
-        (
-            self._namespace,
-            self._base_name,
-            self._properties,
-        ) = self.parse_blockstate_string(self._blockstate)
 
     def __str__(self) -> str:
         """
