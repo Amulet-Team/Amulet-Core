@@ -11,7 +11,6 @@ from .block import Block, BlockManager
 from .errors import ChunkDoesNotExist, ChunkLoadError, LevelDoesNotExist
 from .history_manager import ChunkHistoryManager
 from .chunk import Chunk, SubChunk
-from .operation import Operation
 from .selection import SelectionBox
 from .paths import get_temp_dir
 from ..utils.world_utils import (
@@ -23,8 +22,6 @@ from ..utils.world_utils import (
     get_entity_coordinates,
 )
 from ..world_interface.formats import Format
-
-from . import operation
 
 ChunkCache = Dict[DimensionCoordinates, Union[Chunk, None]]
 
@@ -378,23 +375,9 @@ class World:
             entities.remove(ent)
             chunk.entities = entities
 
-    def run_operation(self, operation_instance: Operation) -> None:
-        operation_instance.run_operation(self)
+    def run_operation(self, operation: Callable, *args) -> None:
+        operation(self, *args)
         self.create_undo_point()
-
-    def run_operation_from_operation_name(
-        self, operation_name: str, *args
-    ) -> Optional[Exception]:
-        operation_instance = operation.OPERATIONS[operation_name](*args)
-
-        e = None
-        try:
-            self.run_operation(operation_instance)
-        except Exception as ex:
-            raise ex
-
-        self.create_undo_point()
-        return e
 
     def undo(self):
         """
