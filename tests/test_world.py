@@ -9,7 +9,7 @@ from amulet.api.selection import SubBox, SelectionBox
 from amulet.api.chunk import SubChunk
 from amulet.world_interface import load_world, load_format
 from amulet.utils.world_utils import decode_long_array, encode_long_array
-from .test_utils import get_world_path, get_data_path
+from tests.test_utils import get_world_path, get_data_path
 from amulet.operations.clone import clone
 from amulet.operations.delete_chunk import delete_chunk
 from amulet.operations.fill import fill
