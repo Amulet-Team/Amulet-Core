@@ -191,7 +191,10 @@ class Block:
                 f"{key}={value.to_snbt()}"
                 for key, value in sorted(self.properties.items())
             ]
-            self._blockstate = f"{self._blockstate}[{','.join(props)}]"
+            self._blockstate += f"[{','.join(props)}]"
+        if self.extra_blocks:
+            self._blockstate += f"{{{' , '.join(block.blockstate for block in self.extra_blocks)}}}"
+
 
     @staticmethod
     def parse_blockstate_string(
