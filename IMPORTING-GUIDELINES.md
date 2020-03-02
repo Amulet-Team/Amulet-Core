@@ -40,16 +40,11 @@ from amulet.utils.format_utils import (
 )
 ```
 
-Absolute import statements can also be used internally within the Amulet API even when not located in a dynamically imported module, but this is highly discouraged unless an exception occurs otherwise.
-
-## Using the `api.paths` module
-Due to the Amulet API not having a single/central entry point or instance, a few variables need to be assigned before the rest of the API is imported in order for the API to work as desired. Majority of these variables are located in the `api/paths.py` file and can be changed during runtime. 
+Absolute import statements can also be used internally within the Amulet API even when not located in a dynamically imported module, but this is highly discouraged unless an exception occurs otherwise. 
 
 Example Usage:
 ```python
 from amulet.api import paths
-
-paths.DEFINITIONS_DIR = r"./path/to/version_definitions"
 
 from amulet.api.block import Block
 from amulet import world_interface
@@ -60,7 +55,6 @@ if __name__ == '__main__':
     ...
 ```
 
-Technically, the path variables can be set anytime/anywhere before importing a module that uses the variables to dynamically load modules, but it is safest to assign them as early as possible in your code. Failure to reassign these variables will result in Amulet searching empty or missing directories and could cause unexpected behaviour.
-
 ## Changelog
 - 7.23.2019: Initial Revision
+- 3.2.2020: Removed out of date paths information

@@ -49,9 +49,6 @@ def _application_directory(
 
 
 COMMANDS_DIR = _application_directory("commands", ("command_line", "commands"))
-OPERATIONS_DIR = _application_directory("operations")
-
-# WORK_DIR = _application_directory("work")
 
 
 def get_temp_dir(world_dir):
