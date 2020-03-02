@@ -70,7 +70,7 @@ class ChunkHistoryManager:
                 self._serialise_chunk(chunk, dimension, 0)
             ]
 
-    def create_snapshot(self, chunk_cache: "ChunkCache"):
+    def create_undo_point(self, chunk_cache: "ChunkCache"):
         """Find all the chunks which have changed since the last snapshot, serialise them and store the path to the file (or None if it has been deleted)"""
         snapshot = []
         for chunk_location, chunk in list(chunk_cache.items()):
@@ -92,7 +92,7 @@ class ChunkHistoryManager:
                     # if the chunk has been deleted and the last save state was not also deleted update
                     if chunk_storage[chunk_index] is not None:
                         self._chunk_index[chunk_location] += 1
-                        del chunk_storage[chunk_index + 1 :]
+                        del chunk_storage[chunk_index + 1:]
                         chunk_storage.append(None)
                         snapshot.append(chunk_location)
                 else:

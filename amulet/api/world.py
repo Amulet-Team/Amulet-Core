@@ -377,7 +377,7 @@ class World:
 
     def run_operation(self, operation_instance: Operation) -> None:
         operation_instance.run_operation(self)
-        self._chunk_history_manager.create_snapshot(self._chunk_cache)
+        self._chunk_history_manager.create_undo_point(self._chunk_cache)
 
     def run_operation_from_operation_name(
         self, operation_name: str, *args
@@ -390,7 +390,7 @@ class World:
         except Exception as ex:
             raise ex
 
-        self._chunk_history_manager.create_snapshot(self._chunk_cache)
+        self._chunk_history_manager.create_undo_point(self._chunk_cache)
         return e
 
     def undo(self):
