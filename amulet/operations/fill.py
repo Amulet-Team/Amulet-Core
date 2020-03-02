@@ -10,11 +10,7 @@ if TYPE_CHECKING:
     from amulet.api.world import World
 
 
-def fill(
-        world: "World",
-        target_box: SelectionBox,
-        fill_block: Block
-):
+def fill(world: "World", target_box: SelectionBox, fill_block: Block):
     internal_id = world.palette.get_add_block(fill_block)
 
     for target in target_box.subboxes():

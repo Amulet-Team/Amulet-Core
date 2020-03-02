@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_7.interface import (
-    LevelDB7Interface
+    LevelDB7Interface,
 )
 
 

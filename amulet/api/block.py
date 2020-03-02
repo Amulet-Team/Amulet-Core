@@ -193,12 +193,13 @@ class Block:
             ]
             self._blockstate += f"[{','.join(props)}]"
         if self.extra_blocks:
-            self._blockstate += f"{{{' , '.join(block.blockstate for block in self.extra_blocks)}}}"
-
+            self._blockstate += (
+                f"{{{' , '.join(block.blockstate for block in self.extra_blocks)}}}"
+            )
 
     @staticmethod
     def parse_blockstate_string(
-        blockstate: str
+        blockstate: str,
     ) -> Tuple[str, str, Dict[str, amulet_nbt.BaseValueType]]:
         match = Block.blockstate_regex.match(blockstate)
         namespace = match.group("namespace") or "minecraft"
