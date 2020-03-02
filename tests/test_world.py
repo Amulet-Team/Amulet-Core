@@ -8,7 +8,13 @@ from amulet.api.errors import ChunkDoesNotExist
 from amulet.api.selection import SubBox, SelectionBox
 from amulet.api.chunk import SubChunk
 from amulet.world_interface import load_world, load_format
-from test_utils import get_world_path, get_data_path, timeout
+from amulet.utils.world_utils import decode_long_array, encode_long_array
+from .test_utils import get_world_path, get_data_path
+from amulet.operations.clone import clone
+from amulet.operations.delete_chunk import delete_chunk
+from amulet.operations.fill import fill
+from amulet.operations.replace import replace
+
 
 import os.path as op
 
@@ -81,7 +87,7 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 5).blockstate,
             )
 
-            self.world.run_operation_from_operation_name("clone", src_box, target_box)
+            self.world.run_operation(clone, src_box, target_box)
 
             self.assertEqual(
                 "universal_minecraft:stone", self.world.get_block(1, 70, 5).blockstate
@@ -121,8 +127,8 @@ class WorldTestBaseCases:
             )
             # End sanity check
 
-            self.world.run_operation_from_operation_name(
-                "fill", box, blockstate_to_block("universal_minecraft:stone")
+            self.world.run_operation(
+                fill, box, blockstate_to_block("universal_minecraft:stone")
             )
 
             for x, y, z in box:
@@ -164,8 +170,8 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 5).blockstate,
             )
 
-            self.world.run_operation_from_operation_name(
-                "replace",
+            self.world.run_operation(
+                replace,
                 box1,
                 [blockstate_to_block("universal_minecraft:granite[polished=false]")],
                 [blockstate_to_block("universal_minecraft:stone")],
@@ -211,8 +217,8 @@ class WorldTestBaseCases:
                     f"Failed at coordinate (1,i,3)",
                 )
 
-            self.world.run_operation_from_operation_name(
-                "replace",
+            self.world.run_operation(
+                replace,
                 box1,
                 [
                     blockstate_to_block("universal_minecraft:stone"),
@@ -274,7 +280,7 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 5).blockstate,
             )
 
-            self.world.run_operation_from_operation_name("delete_chunk", box1)
+            self.world.run_operation(delete_chunk, box1)
 
             with self.assertRaises(ChunkDoesNotExist):
                 _ = self.world.get_block(1, 70, 3).blockstate
@@ -388,13 +394,13 @@ class Anvil2WorldTestCase(WorldTestBaseCases.WorldTestCase):
 
             self.assertTrue(
                 numpy.array_equal(
-                    block_array, _decode_long_array(long_array, len(block_array))
+                    block_array, decode_long_array(long_array, len(block_array))
                 )
             )
 
             self.assertTrue(
                 numpy.array_equal(
-                    long_array, _encode_long_array(block_array, palette_size)
+                    long_array, encode_long_array(block_array)
                 )
             )
 
