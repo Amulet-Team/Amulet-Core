@@ -11,7 +11,7 @@ from .block import Block, BlockManager
 from .errors import ChunkDoesNotExist, ChunkLoadError, LevelDoesNotExist
 from .history_manager import ChunkHistoryManager
 from .chunk import Chunk, SubChunk
-from .selection import SelectionBox
+from .selection import Selection
 from .paths import get_temp_dir
 from ..utils.world_utils import (
     block_coords_to_chunk_coords,
@@ -274,7 +274,7 @@ class World:
             yield chunk[x_slice_for_chunk, y_slice_for_chunk, z_slice_for_chunk]
 
     def get_entities_in_box(
-        self, box: "SelectionBox"
+        self, box: "Selection"
     ) -> Generator[Tuple[Coordinates, List[object]], None, None]:
         # TODO: some of this logic can probably be moved the chunk class and have this method call that
         # TODO: update this to use the newer entity API

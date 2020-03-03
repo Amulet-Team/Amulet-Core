@@ -9,7 +9,7 @@ from .minecraft_types import Point
 
 class SubBox:
     """
-    A SubBox is a box that can represent the entirety of a SelectionBox or just a subsection
+    A SubBox is a box that can represent the entirety of a Selection or just a subsection
     of one. This allows for non-rectangular and non-contiguous selections.
 
     The both the minimum and  maximum coordinate points are inclusive.
@@ -93,7 +93,7 @@ class SubBox:
         )
 
 
-class SelectionBox:
+class Selection:
     """
     Holding class for multiple SubBoxes which allows for non-rectangular and non-contiguous selections
     """
@@ -175,7 +175,7 @@ class SelectionBox:
 
     def is_rectangular(self) -> bool:
         """
-        Checks if the SelectionBox is a rectangle
+        Checks if the Selection is a rectangle
 
         :return: True is the selection is a rectangle, False otherwise
         """
@@ -183,7 +183,7 @@ class SelectionBox:
 
     def subboxes(self) -> Iterator[SubBox]:
         """
-        Returns an iterator of the SubBoxes in the SelectionBoxes
+        Returns an iterator of the SubBoxes in the Selection
 
         :return: An iterator of the SubBoxes
         """
@@ -193,7 +193,7 @@ class SelectionBox:
 if __name__ == "__main__":
     b1 = SubBox((0, 0, 0), (4, 4, 4))
     b2 = SubBox((7, 7, 7), (10, 10, 10))
-    sel_box = SelectionBox((b1, b2))
+    sel_box = Selection((b1, b2))
 
     # for obj in sel_box:
     #    for x, y, z in obj:

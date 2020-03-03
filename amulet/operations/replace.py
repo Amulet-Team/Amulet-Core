@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List, TYPE_CHECKING
 
-from amulet.api.selection import SelectionBox
+from amulet.api.selection import Selection
 from amulet.api.block import Block
 from amulet import log
 
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 def replace(
     world: "World",
-    selection_box: SelectionBox,
+    selection_box: Selection,
     options: dict
 ):
     original_blocks = options.get('original_blocks', None)

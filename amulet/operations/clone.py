@@ -1,11 +1,11 @@
-from amulet.api.selection import SelectionBox
+from amulet.api.selection import Selection
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from amulet.api.world import World
 
 
-def clone(world: "World", source_box: SelectionBox, target_box: SelectionBox):
+def clone(world: "World", source_box: Selection, target_box: Selection):
     if len(source_box) != len(target_box):
         raise Exception(
             "Source Box and Target Box must have the same amount of subboxes"

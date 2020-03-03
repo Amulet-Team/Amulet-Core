@@ -1,11 +1,11 @@
-from amulet.api.selection import SelectionBox
+from amulet.api.selection import Selection
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from amulet.api.world import World
 
 
-def delete_chunk(world: "World", source_box: SelectionBox):
+def delete_chunk(world: "World", source_box: Selection):
     already_deleted_chunks = set()
     for subbox in source_box.subboxes():
         sub_chunks = world.get_sub_chunks(*subbox.to_slice())
