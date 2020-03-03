@@ -262,23 +262,16 @@ class World:
             range(first_chunk[0], last_chunk[0] + 1),
             range(first_chunk[1], last_chunk[1] + 1),
         ):
-            x_slice_for_chunk = (
-                blocks_slice_to_chunk_slice(s_x)
-                if chunk_pos == first_chunk
-                else slice(None)
-            )
-            z_slice_for_chunk = (
-                blocks_slice_to_chunk_slice(s_z)
-                if chunk_pos == last_chunk
-                else slice(None)
-            )
             try:
                 chunk = self.get_chunk(*chunk_pos)
-            except ChunkDoesNotExist:
+            except ChunkLoadError:
                 continue
-            if chunk is None:
-                continue
-            yield chunk[x_slice_for_chunk, s_y, z_slice_for_chunk]
+
+            x_slice_for_chunk = blocks_slice_to_chunk_slice(s_x, self.chunk_size[0], chunk_pos[0])
+            y_slice_for_chunk = blocks_slice_to_chunk_slice(s_y, self.chunk_size[1], 0)
+            z_slice_for_chunk = blocks_slice_to_chunk_slice(s_z, self.chunk_size[2], chunk_pos[1])
+
+            yield chunk[x_slice_for_chunk, y_slice_for_chunk, z_slice_for_chunk]
 
     def get_entities_in_box(
         self, box: "SelectionBox"
