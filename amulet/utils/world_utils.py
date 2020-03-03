@@ -62,13 +62,16 @@ def region_coords_to_chunk_coords(rx: int, rz: int) -> Coordinates:
     return rx << 5, rz << 5
 
 
-def blocks_slice_to_chunk_slice(blocks_slice: slice) -> slice:
+def blocks_slice_to_chunk_slice(blocks_slice: slice, chunk_shape: int, chunk_coord: int) -> slice:
     """
     Converts the supplied blocks slice into chunk slice
     :param blocks_slice: The slice of the blocks
     :return: The resulting chunk slice
     """
-    return slice(blocks_slice.start % 16, blocks_slice.stop % 16)
+    return slice(
+        min(max(0, blocks_slice.start - chunk_coord * chunk_shape), chunk_shape),
+        min(max(0, blocks_slice.stop - chunk_coord * chunk_shape), chunk_shape)
+    )
 
 
 def gunzip(data):
