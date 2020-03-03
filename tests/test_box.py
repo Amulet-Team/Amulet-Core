@@ -5,15 +5,19 @@ from amulet.api import selection
 class BoxTestCase(unittest.TestCase):
     def test_intersects(self):
         box_1 = selection.SubBox((0, 0, 0), (5, 5, 5))
-        box_2 = selection.SubBox((5, 5, 5), (10, 10, 10))
+        box_2 = selection.SubBox((4, 4, 4), (10, 10, 10))
 
         self.assertTrue(box_1.intersects(box_2))
         self.assertTrue(box_2.intersects(box_1))
 
-        box_3 = selection.SubBox((6, 6, 6), (10, 10, 10))
+        box_3 = selection.SubBox((5, 5, 5), (10, 10, 10))
 
         self.assertFalse(box_1.intersects(box_3))
         self.assertFalse(box_3.intersects(box_1))
+
+        box_4 = selection.SubBox((1, 20, 1), (4, 25, 4))
+        self.assertFalse(box_1.intersects(box_4))
+        self.assertFalse(box_4.intersects(box_1))
 
     def test_is_contiguous(self):
         sub_box_1 = selection.SubBox((0, 0, 0), (5, 5, 5))
@@ -21,12 +25,12 @@ class BoxTestCase(unittest.TestCase):
 
         self.assertTrue(box_1.is_contiguous())
 
-        sub_box_2 = selection.SubBox((6, 6, 6), (10, 10, 10))
+        sub_box_2 = selection.SubBox((5, 5, 5), (10, 10, 10))
         box_1.add_box(sub_box_2)
 
         self.assertTrue(box_1.is_contiguous())
 
-        sub_box_3 = selection.SubBox((7, 7, 7), (10, 10, 10))
+        sub_box_3 = selection.SubBox((6, 6, 6), (10, 10, 10))
         box_2 = selection.SelectionBox((sub_box_1, sub_box_3))
         self.assertFalse(box_2.is_contiguous())
 
