@@ -16,20 +16,20 @@ class SubBox:
     """
 
     def __init__(self, min_point: Point, max_point: Point):
-        self.min = min_point
-        self.max = max_point
+        self.min = tuple(int(p) for p in min_point)
+        self.max = tuple(int(p) for p in max_point)
 
     def __iter__(self):
         return itertools.product(
-            range(self.min[0], self.max[0] + 1),
-            range(self.min[1], self.max[1] + 1),
-            range(self.min[2], self.max[2] + 1),
+            range(self.min[0], self.max[0]),
+            range(self.min[1], self.max[1]),
+            range(self.min[2], self.max[2]),
         )
 
     def __str__(self):
         return f"({self.min}, {self.max})"
 
-    def __contains__(self, item: Union[Point, Tuple[int, int, int]]):
+    def __contains__(self, item: Union[Point, Tuple[int, int, int], Tuple[float, float, float]]):
         return (
             self.min[0] <= item[0] <= self.max[0]
             and self.min[1] <= item[1] <= self.max[1]
@@ -43,9 +43,9 @@ class SubBox:
         :return: The SubBoxes coordinates as slices in (x,y,z) order
         """
         return [
-            slice(self.min[0], self.max[0] + 1),
-            slice(self.min[1], self.max[1] + 1),
-            slice(self.min[2], self.max[2] + 1),
+            slice(self.min[0], self.max[0]),
+            slice(self.min[1], self.max[1]),
+            slice(self.min[2], self.max[2]),
         ]
 
     @property
