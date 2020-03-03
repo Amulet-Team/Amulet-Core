@@ -33,8 +33,8 @@ def replace(
         else:
             log.error('Replace operation must be given the same number of destination blocks as source blocks')
 
-    original_internal_ids = map(world.palette.get_add_block, original_blocks)
-    replacement_internal_ids = map(world.palette.get_add_block, replacement_blocks)
+    original_internal_ids = list(map(world.palette.get_add_block, original_blocks))
+    replacement_internal_ids = list(map(world.palette.get_add_block, replacement_blocks))
 
     for subbox in selection_box.subboxes():
         block_generator = world.get_sub_chunks(*subbox.to_slice())
