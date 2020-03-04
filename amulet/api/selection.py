@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 
-from typing import Sequence, List, Iterator, Tuple, Union, cast
+from typing import Sequence, List, Iterator, Tuple, Union, cast, Iterable
 
 from .minecraft_types import Point
 
@@ -106,7 +106,7 @@ class Selection:
         for box in boxes:
             self.add_box(box)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable[SubSelectionBox]:
         return itertools.chain.from_iterable(sorted(self._boxes, key=hash))
 
     def __len__(self):

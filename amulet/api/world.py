@@ -11,7 +11,7 @@ from .block import Block, BlockManager
 from .errors import ChunkDoesNotExist, ChunkLoadError, LevelDoesNotExist
 from .history_manager import ChunkHistoryManager
 from .chunk import Chunk, SubChunk
-from .selection import Selection
+from .selection import Selection, SubSelectionBox
 from .paths import get_temp_dir
 from ..utils.world_utils import (
     block_coords_to_chunk_coords,
@@ -207,7 +207,7 @@ class World:
         """Delete a chunk from the universal world database"""
         self._chunk_cache[(dimension, cx, cz)] = None
 
-    def get_block(self, x: int, y: int, z: int) -> Block:
+    def get_block(self, x: int, y: int, z: int, dimension: int = 0) -> Block:
         """
         Gets the blockstate at the specified coordinates
 
@@ -227,9 +227,54 @@ class World:
         block = chunk[offset_x, y, offset_z].blocks
         return self.palette[block]
 
+    def get_chunk_slices(
+            self,
+            selection: Union[Selection, SubSelectionBox],
+            dimension: int = 0,
+            create_missing_chunks=False
+    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice]], None, None]:
+        """Given a selection will yield chunks and slices into that chunk
+
+        :param selection: Selection or SubSelectionBox into the world
+        :param dimension: The dimension to take effect in (defaults to overworld)
+        :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false)
+        Usage:
+        for chunk, slice in world.get_chunk_slices(selection):
+            chunk.blocks[slice] = ...
+        """
+
+        if isinstance(selection, SubSelectionBox):
+            selection = Selection([selection])
+        selection: Selection
+        for box in selection:
+            s_x, s_y, s_z = box.to_slice()
+            first_chunk = block_coords_to_chunk_coords(s_x.start, s_z.start)
+            last_chunk = block_coords_to_chunk_coords(s_x.stop, s_z.stop)
+            for chunk_pos in itertools.product(
+                range(first_chunk[0], last_chunk[0] + 1),
+                range(first_chunk[1], last_chunk[1] + 1),
+            ):
+                try:
+                    chunk = self.get_chunk(*chunk_pos, dimension)
+                except ChunkDoesNotExist:
+                    if create_missing_chunks:
+                        chunk = Chunk(*chunk_pos)
+                        self.put_chunk(chunk, dimension)
+                    else:
+                        continue
+                except ChunkLoadError:
+                    continue
+
+                x_slice_for_chunk = blocks_slice_to_chunk_slice(s_x, self.chunk_size[0], chunk_pos[0])
+                y_slice_for_chunk = blocks_slice_to_chunk_slice(s_y, self.chunk_size[1], 0)
+                z_slice_for_chunk = blocks_slice_to_chunk_slice(s_z, self.chunk_size[2], chunk_pos[1])
+
+                yield chunk, (x_slice_for_chunk, y_slice_for_chunk, z_slice_for_chunk)
+
     def get_sub_chunks(
         self, *args: Union[slice, int]
     ) -> Generator[SubChunk, None, None]:
+        log.info("get_sub_chunks has been depreciated. Please switch to get_chunk_slices.")
         # TODO: move this logic into the chunk class and have this method call that
         length = len(args)
         if length == 3:
