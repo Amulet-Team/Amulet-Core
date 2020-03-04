@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 def replace(
     world: "World",
-    selection_box: Selection,
+    selection: Selection,
     options: dict
 ):
     original_blocks = options.get('original_blocks', None)
@@ -36,10 +36,9 @@ def replace(
     original_internal_ids = list(map(world.palette.get_add_block, original_blocks))
     replacement_internal_ids = list(map(world.palette.get_add_block, replacement_blocks))
 
-    for subbox in selection_box.subboxes():
-        block_generator = world.get_sub_chunks(*subbox.to_slice())
-        for selection in block_generator:
-            for original_id, replacement_id in zip(
-                original_internal_ids, replacement_internal_ids
-            ):
-                selection.blocks[selection.blocks == original_id] = replacement_id
+    for chunk, slice in world.get_chunk_slices(selection):
+        blocks = chunk.blocks[slice].copy()
+        for original_id, replacement_id in zip(
+            original_internal_ids, replacement_internal_ids
+        ):
+            chunk.blocks[slice][blocks == original_id] = replacement_id
