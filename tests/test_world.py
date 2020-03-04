@@ -128,7 +128,9 @@ class WorldTestBaseCases:
             # End sanity check
 
             self.world.run_operation(
-                fill, box, blockstate_to_block("universal_minecraft:stone")
+                fill, box, {
+                    "fill_block": blockstate_to_block("universal_minecraft:stone")
+                }
             )
 
             for x, y, z in box:
@@ -173,8 +175,10 @@ class WorldTestBaseCases:
             self.world.run_operation(
                 replace,
                 box1,
-                [blockstate_to_block("universal_minecraft:granite[polished=false]")],
-                [blockstate_to_block("universal_minecraft:stone")],
+                {
+                    "original_blocks": [blockstate_to_block("universal_minecraft:granite[polished=false]")],
+                    "replacement_blocks": [blockstate_to_block("universal_minecraft:stone")]
+                }
             )
 
             self.assertEqual(
@@ -220,14 +224,16 @@ class WorldTestBaseCases:
             self.world.run_operation(
                 replace,
                 box1,
-                [
-                    blockstate_to_block("universal_minecraft:stone"),
-                    blockstate_to_block("universal_minecraft:air"),
-                ],
-                [
-                    blockstate_to_block("universal_minecraft:granite[polished=false]"),
-                    blockstate_to_block("universal_minecraft:stone"),
-                ],
+                {
+                    "original_blocks": [
+                        blockstate_to_block("universal_minecraft:stone"),
+                        blockstate_to_block("universal_minecraft:air"),
+                    ],
+                    "replacement_blocks": [
+                        blockstate_to_block("universal_minecraft:granite[polished=false]"),
+                        blockstate_to_block("universal_minecraft:stone"),
+                    ]
+                }
             )
 
             self.assertEqual(
