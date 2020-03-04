@@ -171,7 +171,7 @@ class WorldTestBaseCases:
                 )
 
         def test_replace_single_block(self):
-            subbox1 = SubSelectionBox((1, 70, 3), (5, 71, 5))
+            subbox1 = SubSelectionBox((1, 70, 3), (5, 71, 6))
             box1 = Selection((subbox1,))
 
             self.assertEqual(
