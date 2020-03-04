@@ -5,7 +5,7 @@ import numpy
 
 from amulet.api.block import blockstate_to_block
 from amulet.api.errors import ChunkDoesNotExist
-from amulet.api.selection import SubBox, Selection
+from amulet.api.selection import SubSelectionBox, Selection
 from amulet.api.chunk import SubChunk
 from amulet.world_interface import load_world, load_format
 from amulet.utils.world_utils import decode_long_array, encode_long_array
@@ -73,10 +73,10 @@ class WorldTestBaseCases:
                 next(self.world.get_sub_chunks(0, 0, 0))
 
         def test_clone_operation(self):
-            subbx1 = SubBox((1, 70, 3), (1, 70, 4))
+            subbx1 = SubSelectionBox((1, 70, 3), (1, 70, 4))
             src_box = Selection((subbx1,))
 
-            subbx2 = SubBox((1, 70, 5), (1, 70, 6))
+            subbx2 = SubSelectionBox((1, 70, 5), (1, 70, 6))
             target_box = Selection((subbx2,))
 
             self.assertEqual(
@@ -114,7 +114,7 @@ class WorldTestBaseCases:
             )
 
         def test_fill_operation(self):
-            subbox_1 = SubBox((1, 70, 3), (5, 71, 5))
+            subbox_1 = SubSelectionBox((1, 70, 3), (5, 71, 5))
             box = Selection((subbox_1,))
 
             # Start sanity check
@@ -161,7 +161,7 @@ class WorldTestBaseCases:
                 )
 
         def test_replace_single_block(self):
-            subbox1 = SubBox((1, 70, 3), (5, 71, 5))
+            subbox1 = SubSelectionBox((1, 70, 3), (5, 71, 5))
             box1 = Selection((subbox1,))
 
             self.assertEqual(
@@ -208,7 +208,7 @@ class WorldTestBaseCases:
             )
 
         def test_replace_multiblock(self):
-            subbox1 = SubBox((1, 70, 3), (1, 75, 3))
+            subbox1 = SubSelectionBox((1, 70, 3), (1, 75, 3))
             box1 = Selection((subbox1,))
 
             self.assertEqual(
@@ -275,7 +275,7 @@ class WorldTestBaseCases:
                 )
 
         def test_delete_chunk(self):
-            subbox1 = SubBox((1, 1, 1), (5, 5, 5))
+            subbox1 = SubSelectionBox((1, 1, 1), (5, 5, 5))
             box1 = Selection((subbox1,))
 
             self.assertEqual(
@@ -341,7 +341,7 @@ class WorldTestBaseCases:
         def test_get_entities(
             self,
         ):  # TODO: Make a more complete test once we figure out what get_entities() returns
-            box1 = Selection((SubBox((0, 0, 0), (17, 20, 17)),))
+            box1 = Selection((SubSelectionBox((0, 0, 0), (17, 20, 17)),))
 
             test_entity = {
                 "id": "universal_minecraft:cow",

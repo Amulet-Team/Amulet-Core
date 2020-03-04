@@ -7,9 +7,9 @@ from typing import Sequence, List, Iterator, Tuple, Union, cast
 from .minecraft_types import Point
 
 
-class SubBox:
+class SubSelectionBox:
     """
-    A SubBox is a box that can represent the entirety of a Selection or just a subsection
+    A SubSelectionBox is a box that can represent the entirety of a Selection or just a subsection
     of one. This allows for non-rectangular and non-contiguous selections.
 
     The both the minimum and  maximum coordinate points are inclusive.
@@ -38,9 +38,9 @@ class SubBox:
 
     def to_slice(self) -> List[slice]:
         """
-        Converts the SubBoxes minimum/maximum coordinates into slice arguments
+        Converts the SubSelectionBoxes minimum/maximum coordinates into slice arguments
 
-        :return: The SubBoxes coordinates as slices in (x,y,z) order
+        :return: The SubSelectionBoxes coordinates as slices in (x,y,z) order
         """
         return [
             slice(self.min[0], self.max[0]),
@@ -76,12 +76,12 @@ class SubBox:
     def shape(self):
         return self.max_x - self.min_x, self.max_y - self.min_y, self.max_z - self.min_z
 
-    def intersects(self, other: SubBox) -> bool:
+    def intersects(self, other: SubSelectionBox) -> bool:
         """
-        Method to check whether this instance of SubBox intersects another SubBox
+        Method to check whether this instance of SubSelectionBox intersects another SubSelectionBox
 
-        :param other: The other SubBox to check for intersection
-        :return: True if the two SubBoxes intersect, False otherwise
+        :param other: The other SubSelectionBox to check for intersection
+        :return: True if the two SubSelectionBoxes intersect, False otherwise
         """
         return not (
             self.min_x > other.max_x
@@ -95,10 +95,10 @@ class SubBox:
 
 class Selection:
     """
-    Holding class for multiple SubBoxes which allows for non-rectangular and non-contiguous selections
+    Holding class for multiple SubSelectionBoxes which allows for non-rectangular and non-contiguous selections
     """
 
-    def __init__(self, boxes: Sequence[SubBox] = None):
+    def __init__(self, boxes: Sequence[SubSelectionBox] = None):
         if not boxes:
             boxes = []
 
@@ -120,9 +120,9 @@ class Selection:
 
         return False
 
-    def add_box(self, other: SubBox, do_merge_check: bool = True):
+    def add_box(self, other: SubSelectionBox, do_merge_check: bool = True):
         """
-        Adds a SubBox to the selection box. If `other` is next to another SubBox in the selection, matches in any 2 dimensions, and
+        Adds a SubSelectionBox to the selection box. If `other` is next to another SubSelectionBox in the selection, matches in any 2 dimensions, and
         `do_merge_check` is True, then the 2 boxes will be combined into 1 box.
 
         :param other: The box to add
@@ -146,7 +146,7 @@ class Selection:
                     or (y_dim and z_dim and x_border)
                 ):
                     boxes_to_remove = box
-                    new_box = SubBox(box.min, other.max)
+                    new_box = SubSelectionBox(box.min, other.max)
                     break
 
             if new_box:
@@ -181,18 +181,18 @@ class Selection:
         """
         return len(self._boxes) == 1
 
-    def subboxes(self) -> Iterator[SubBox]:
+    def subboxes(self) -> Iterator[SubSelectionBox]:
         """
-        Returns an iterator of the SubBoxes in the Selection
+        Returns an iterator of the SubSelectionBoxes in the Selection
 
-        :return: An iterator of the SubBoxes
+        :return: An iterator of the SubSelectionBoxes
         """
-        return cast(Iterator[SubBox], iter(sorted(self._boxes, key=hash)))
+        return cast(Iterator[SubSelectionBox], iter(sorted(self._boxes, key=hash)))
 
 
 if __name__ == "__main__":
-    b1 = SubBox((0, 0, 0), (4, 4, 4))
-    b2 = SubBox((7, 7, 7), (10, 10, 10))
+    b1 = SubSelectionBox((0, 0, 0), (4, 4, 4))
+    b2 = SubSelectionBox((7, 7, 7), (10, 10, 10))
     sel_box = Selection((b1, b2))
 
     # for obj in sel_box:
