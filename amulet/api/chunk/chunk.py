@@ -66,25 +66,6 @@ class Chunk:
         self._changed_time = chunk_data[2]
         return self
 
-    def __getitem__(self, item):
-        if (
-            not isinstance(item, tuple)
-            or len(item) != 3
-            or not (
-                isinstance(item[0], int)
-                and isinstance(item[1], int)
-                and isinstance(item[2], int)
-                or (
-                    isinstance(item[0], slice)
-                    and isinstance(item[1], slice)
-                    and isinstance(item[2], slice)
-                )
-            )
-        ):
-            raise Exception(f"The item {item} for Selection object does not make sense")
-
-        return SubChunk(item, self)
-
     @property
     def cx(self) -> int:
         """The chunk's x coordinate"""
@@ -203,42 +184,3 @@ class Chunk:
     @status.setter
     def status(self, value: Union[float, int, str]):
         self._status.value = value
-
-
-class SubChunk:
-    """
-    Class to represent a sub-selection of a chunk
-    """
-
-    def __init__(
-        self,
-        sub_selection_slice: Union[PointCoordinates, SliceCoordinates],
-        parent: Chunk,
-    ):
-        self._sub_selection_slice = sub_selection_slice
-        self._parent = parent
-
-    @property
-    def parent_coordinates(self) -> Tuple[int, int]:
-        """
-        :return: The chunk x and z coordinates for the parent chunk
-        """
-        return self._parent.cx, self._parent.cz
-
-    @property
-    def blocks(self) -> numpy.ndarray:
-        """
-        :return: A 3d array of blocks in the sub-selection
-        """
-        return self._parent.blocks[self._sub_selection_slice]
-
-    @blocks.setter
-    def blocks(self, value):
-        """
-        :param value: A new numpy array of blocks for the sub-selection
-        :type value: numpy.ndarray
-        :return:
-        """
-        temp_blocks = self._parent.blocks.copy()
-        temp_blocks[self._sub_selection_slice] = value
-        self._parent.blocks = temp_blocks

@@ -5,20 +5,18 @@ if TYPE_CHECKING:
     from amulet.api.world import World
 
 
-def clone(world: "World", source_box: Selection, target_box: Selection):
-    if len(source_box) != len(target_box):
+def clone(world: "World", source: Selection, target: Selection):
+    if len(source) != len(target):
         raise Exception(
             "Source Box and Target Box must have the same amount of subboxes"
         )
 
-    for source, target in zip(source_box.subboxes(), target_box.subboxes()):
-        if source.shape != target.shape:
+    for source_box, target_box in zip(source.subboxes(), target.subboxes()):
+        if source_box.shape != target_box.shape:
             raise Exception("The shape of the selections needs to be the same")
 
-    for source, target in zip(source_box.subboxes(), target_box.subboxes()):
-        source_generator = world.get_sub_chunks(*source.to_slice())
-        target_generator = world.get_sub_chunks(*target.to_slice())
-        for source_selection, target_selection in zip(
-            source_generator, target_generator
-        ):
-            target_selection.blocks = source_selection.blocks
+    # TODO: fix this. This logic only works if the boxes overlap chunks in the same way.
+    for (source_chunk, source_slice), (target_chunk, target_slice) in zip(
+        world.get_chunk_slices(source), world.get_chunk_slices(target)
+    ):
+        target_chunk.blocks[target_slice] = source_chunk.blocks[source_slice]

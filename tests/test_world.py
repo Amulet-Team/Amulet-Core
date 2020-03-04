@@ -6,7 +6,6 @@ import numpy
 from amulet.api.block import blockstate_to_block
 from amulet.api.errors import ChunkDoesNotExist
 from amulet.api.selection import SubSelectionBox, Selection
-from amulet.api.chunk import SubChunk
 from amulet.world_interface import load_world, load_format
 from amulet.utils.world_utils import decode_long_array, encode_long_array
 from tests.test_utils import get_world_path, get_data_path
@@ -48,29 +47,29 @@ class WorldTestBaseCases:
             with self.assertRaises(IndexError):
                 self.world.get_block(300, 300, 300)
 
-        def test_get_blocks(self):
-            self.assertIsInstance(
-                next(
-                    self.world.get_sub_chunks(slice(0, 10), slice(0, 10), slice(0, 10))
-                ),
-                SubChunk,
-            )
-            self.assertIsInstance(
-                next(self.world.get_sub_chunks(0, 0, 0, 10, 10, 10)), SubChunk
-            )
-            self.assertIsInstance(
-                next(self.world.get_sub_chunks(0, 0, 0, 10, 10, 10, 2, 2, 2)), SubChunk
-            )
-
-            with self.assertRaises(IndexError):
-                next(self.world.get_sub_chunks())
-
-                next(self.world.get_sub_chunks(slice(0, 10, 2)))
-                next(self.world.get_sub_chunks(slice(0, 10, 2), slice(0, 10, 2)))
-
-                next(self.world.get_sub_chunks(0))
-                next(self.world.get_sub_chunks(0, 0))
-                next(self.world.get_sub_chunks(0, 0, 0))
+        # def test_get_blocks(self):
+        #     self.assertIsInstance(
+        #         next(
+        #             self.world.get_sub_chunks(slice(0, 10), slice(0, 10), slice(0, 10))
+        #         ),
+        #         SubChunk,
+        #     )
+        #     self.assertIsInstance(
+        #         next(self.world.get_sub_chunks(0, 0, 0, 10, 10, 10)), SubChunk
+        #     )
+        #     self.assertIsInstance(
+        #         next(self.world.get_sub_chunks(0, 0, 0, 10, 10, 10, 2, 2, 2)), SubChunk
+        #     )
+        #
+        #     with self.assertRaises(IndexError):
+        #         next(self.world.get_sub_chunks())
+        #
+        #         next(self.world.get_sub_chunks(slice(0, 10, 2)))
+        #         next(self.world.get_sub_chunks(slice(0, 10, 2), slice(0, 10, 2)))
+        #
+        #         next(self.world.get_sub_chunks(0))
+        #         next(self.world.get_sub_chunks(0, 0))
+        #         next(self.world.get_sub_chunks(0, 0, 0))
 
         def test_clone_operation(self):
             subbx1 = SubSelectionBox((1, 70, 3), (2, 71, 4))
@@ -292,7 +291,7 @@ class WorldTestBaseCases:
                 _ = self.world.get_block(1, 70, 3).blockstate
 
             self.assertEqual(
-                0, len([x for x in self.world.get_sub_chunks(*subbox1.to_slice())])
+                0, len([x for x in self.world.get_chunk_slices(subbox1)])
             )
 
             self.world.undo()
@@ -311,7 +310,7 @@ class WorldTestBaseCases:
                 _ = self.world.get_block(1, 70, 3).blockstate
 
             self.assertEqual(
-                0, len([x for x in self.world.get_sub_chunks(*subbox1.to_slice())])
+                0, len([x for x in self.world.get_chunk_slices(subbox1)])
             )
 
         @unittest.skipUnless(

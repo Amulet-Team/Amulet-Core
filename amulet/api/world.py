@@ -10,7 +10,7 @@ from amulet import log
 from .block import Block, BlockManager
 from .errors import ChunkDoesNotExist, ChunkLoadError, LevelDoesNotExist
 from .history_manager import ChunkHistoryManager
-from .chunk import Chunk, SubChunk
+from .chunk import Chunk
 from .selection import Selection, SubSelectionBox
 from .paths import get_temp_dir
 from ..utils.world_utils import (
@@ -19,7 +19,6 @@ from ..utils.world_utils import (
     Coordinates,
     DimensionCoordinates,
     entity_position_to_chunk_coordinates,
-    get_entity_coordinates,
 )
 from ..world_interface.formats import Format
 
@@ -217,14 +216,14 @@ class World:
         :return: The blockstate name as a string
         """
         # TODO: move this logic into the chunk class and have this method call that
-        if not (0 <= y <= 255):
-            raise IndexError("The supplied Y coordinate must be between 0 and 255")
+        if not (0 <= y <= self.chunk_size[1]):
+            raise IndexError(f"The supplied Y coordinate must be between 0 and {self.chunk_size[1]}")
 
         cx, cz = block_coords_to_chunk_coords(x, z)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
 
-        chunk = self.get_chunk(cx, cz)
-        block = chunk[offset_x, y, offset_z].blocks
+        chunk = self.get_chunk(cx, cz, dimension)
+        block = chunk.blocks[offset_x, y, offset_z].blocks
         return self.palette[block]
 
     def get_chunk_boxes(
@@ -286,53 +285,6 @@ class World:
 
             yield chunk, (x_slice_for_chunk, y_slice_for_chunk, z_slice_for_chunk)
 
-    def get_sub_chunks(
-        self, *args: Union[slice, int]
-    ) -> Generator[SubChunk, None, None]:
-        log.info("get_sub_chunks has been depreciated. Please switch to get_chunk_slices.")
-        # TODO: move this logic into the chunk class and have this method call that
-        length = len(args)
-        if length == 3:
-            s_x, s_y, s_z = args
-        elif length == 6:
-            s_x, s_y, s_z = (
-                slice(args[0], args[3]),
-                slice(args[1], args[4]),
-                slice(args[2], args[5]),
-            )
-        elif length == 9:
-            s_x, s_y, s_z = (
-                slice(args[0], args[3], args[6]),
-                slice(args[1], args[4], args[7]),
-                slice(args[2], args[5], args[8]),
-            )
-        else:
-            raise IndexError(
-                "Length of parameters to 'get_sub_chunks' should be 3, 6 or 9"
-            )
-
-        if not (
-            isinstance(s_x, slice) and isinstance(s_y, slice) and isinstance(s_z, slice)
-        ):
-            raise IndexError("The function 'get_sub_chunks' gets only slices")
-
-        first_chunk = block_coords_to_chunk_coords(s_x.start, s_z.start)
-        last_chunk = block_coords_to_chunk_coords(s_x.stop, s_z.stop)
-        for chunk_pos in itertools.product(
-            range(first_chunk[0], last_chunk[0] + 1),
-            range(first_chunk[1], last_chunk[1] + 1),
-        ):
-            try:
-                chunk = self.get_chunk(*chunk_pos)
-            except ChunkLoadError:
-                continue
-
-            x_slice_for_chunk = blocks_slice_to_chunk_slice(s_x, self.chunk_size[0], chunk_pos[0])
-            y_slice_for_chunk = blocks_slice_to_chunk_slice(s_y, self.chunk_size[1], 0)
-            z_slice_for_chunk = blocks_slice_to_chunk_slice(s_z, self.chunk_size[2], chunk_pos[1])
-
-            yield chunk[x_slice_for_chunk, y_slice_for_chunk, z_slice_for_chunk]
-
     def get_entities_in_box(
         self, box: "Selection"
     ) -> Generator[Tuple[Coordinates, List[object]], None, None]:
@@ -340,47 +292,43 @@ class World:
         # TODO: update this to use the newer entity API
         out_of_place_entities = []
         entity_map: Dict[Tuple[int, int], List[List[object]]] = {}
-        for subbox in box.subboxes():
-            for subchunk in self.get_sub_chunks(*subbox.to_slice()):
-                chunk_coords = subchunk.parent_coordinates
-                chunk = self.get_chunk(*chunk_coords)
-                entities = chunk.entities
+        for chunk, subbox in self.get_chunk_boxes(box):
+            entities = chunk.entities
+            in_box = list(
+                filter(lambda e: e.location in subbox, entities)
+            )
+            not_in_box = filter(
+                lambda e: e.location not in subbox, entities
+            )
 
-                in_box = list(
-                    filter(lambda e: get_entity_coordinates(e) in subbox, entities)
-                )
-                not_in_box = filter(
-                    lambda e: get_entity_coordinates(e) not in subbox, entities
-                )
+            in_box_copy = deepcopy(in_box)
 
-                in_box_copy = deepcopy(in_box)
+            entity_map[chunk.coordinates] = [
+                not_in_box,
+                in_box,
+            ]  # First index is the list of entities not in the box, the second is for ones that are
 
-                entity_map[chunk_coords] = [
-                    not_in_box,
-                    in_box,
-                ]  # First index is the list of entities not in the box, the second is for ones that are
+            yield chunk.coordinates, in_box_copy
 
-                yield chunk_coords, in_box_copy
-
-                if (
-                    in_box != in_box_copy
-                ):  # If an entity has been changed, update the dictionary entry
-                    entity_map[chunk_coords][1] = in_box_copy
-                else:  # Delete the entry otherwise
-                    del entity_map[chunk_coords]
+            if (
+                in_box != in_box_copy
+            ):  # If an entity has been changed, update the dictionary entry
+                entity_map[chunk.coordinates][1] = in_box_copy
+            else:  # Delete the entry otherwise
+                del entity_map[chunk.coordinates]
 
         for chunk_coords, entity_list_list in entity_map.items():
             chunk = self.get_chunk(*chunk_coords)
             in_place_entities = list(
                 filter(
                     lambda e: chunk_coords
-                    == entity_position_to_chunk_coordinates(get_entity_coordinates(e)),
+                    == entity_position_to_chunk_coordinates(e.location),
                     entity_list_list[1],
                 )
             )
             out_of_place = filter(
                 lambda e: chunk_coords
-                != entity_position_to_chunk_coordinates(get_entity_coordinates(e)),
+                != entity_position_to_chunk_coordinates(e.location),
                 entity_list_list[1],
             )
 
@@ -395,7 +343,7 @@ class World:
     def add_entities(self, entities):
         proper_entity_chunks = map(
             lambda e: (
-                entity_position_to_chunk_coordinates(get_entity_coordinates(e)),
+                entity_position_to_chunk_coordinates(e.location),
                 e,
             ),
             entities,
@@ -416,7 +364,7 @@ class World:
     def delete_entities(self, entities):
         chunk_entity_pairs = map(
             lambda e: (
-                entity_position_to_chunk_coordinates(get_entity_coordinates(e)),
+                entity_position_to_chunk_coordinates(e.location),
                 e,
             ),
             entities,
