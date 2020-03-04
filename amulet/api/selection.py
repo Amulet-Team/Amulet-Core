@@ -99,13 +99,12 @@ class Selection:
     """
 
     def __init__(self, boxes: Sequence[SubSelectionBox] = None):
+        self._boxes = []
         if not boxes:
             boxes = []
 
-        if isinstance(boxes, tuple):
-            boxes = list(boxes)
-
-        self._boxes = boxes
+        for box in boxes:
+            self.add_box(box)
 
     def __iter__(self):
         return itertools.chain.from_iterable(sorted(self._boxes, key=hash))
