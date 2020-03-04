@@ -279,7 +279,7 @@ class World:
             chunk.blocks[slice] = ...
         """
         for chunk, box in self.get_chunk_boxes(selection, dimension, create_missing_chunks):
-            s_x, s_y, s_z = box.slice()
+            s_x, s_y, s_z = box.slice
             x_slice_for_chunk = blocks_slice_to_chunk_slice(s_x, self.chunk_size[0], chunk.cx)
             y_slice_for_chunk = blocks_slice_to_chunk_slice(s_y, self.chunk_size[1], 0)
             z_slice_for_chunk = blocks_slice_to_chunk_slice(s_z, self.chunk_size[2], chunk.cz)
