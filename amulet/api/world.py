@@ -227,29 +227,25 @@ class World:
         block = chunk[offset_x, y, offset_z].blocks
         return self.palette[block]
 
-    def get_chunk_slices(
+    def get_chunk_boxes(
             self,
             selection: Union[Selection, SubSelectionBox],
             dimension: int = 0,
             create_missing_chunks=False
-    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice]], None, None]:
-        """Given a selection will yield chunks and slices into that chunk
+    ) -> Generator[Tuple[Chunk, SubSelectionBox], None, None]:
+        """Given a selection will yield chunks and SubSelectionBoxes into that chunk
 
         :param selection: Selection or SubSelectionBox into the world
         :param dimension: The dimension to take effect in (defaults to overworld)
         :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false)
-        Usage:
-        for chunk, slice in world.get_chunk_slices(selection):
-            chunk.blocks[slice] = ...
         """
 
         if isinstance(selection, SubSelectionBox):
             selection = Selection([selection])
         selection: Selection
         for box in selection:
-            s_x, s_y, s_z = box.to_slice()
-            first_chunk = block_coords_to_chunk_coords(s_x.start, s_z.start)
-            last_chunk = block_coords_to_chunk_coords(s_x.stop, s_z.stop)
+            first_chunk = block_coords_to_chunk_coords(box.min_x, box.min_z)
+            last_chunk = block_coords_to_chunk_coords(box.max_x, box.max_z)
             for chunk_pos in itertools.product(
                 range(first_chunk[0], last_chunk[0] + 1),
                 range(first_chunk[1], last_chunk[1] + 1),
@@ -265,11 +261,30 @@ class World:
                 except ChunkLoadError:
                     continue
 
-                x_slice_for_chunk = blocks_slice_to_chunk_slice(s_x, self.chunk_size[0], chunk_pos[0])
-                y_slice_for_chunk = blocks_slice_to_chunk_slice(s_y, self.chunk_size[1], 0)
-                z_slice_for_chunk = blocks_slice_to_chunk_slice(s_z, self.chunk_size[2], chunk_pos[1])
+                yield chunk, box
 
-                yield chunk, (x_slice_for_chunk, y_slice_for_chunk, z_slice_for_chunk)
+    def get_chunk_slices(
+        self,
+        selection: Union[Selection, SubSelectionBox],
+        dimension: int = 0,
+        create_missing_chunks=False
+    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice]], None, None]:
+        """Given a selection will yield chunks and slices into that chunk
+
+        :param selection: Selection or SubSelectionBox into the world
+        :param dimension: The dimension to take effect in (defaults to overworld)
+        :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false)
+        Usage:
+        for chunk, slice in world.get_chunk_slices(selection):
+            chunk.blocks[slice] = ...
+        """
+        for chunk, box in self.get_chunk_boxes(selection, dimension, create_missing_chunks):
+            s_x, s_y, s_z = box.to_slice()
+            x_slice_for_chunk = blocks_slice_to_chunk_slice(s_x, self.chunk_size[0], chunk.cx)
+            y_slice_for_chunk = blocks_slice_to_chunk_slice(s_y, self.chunk_size[1], 0)
+            z_slice_for_chunk = blocks_slice_to_chunk_slice(s_z, self.chunk_size[2], chunk.cz)
+
+            yield chunk, (x_slice_for_chunk, y_slice_for_chunk, z_slice_for_chunk)
 
     def get_sub_chunks(
         self, *args: Union[slice, int]
