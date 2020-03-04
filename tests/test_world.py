@@ -73,10 +73,10 @@ class WorldTestBaseCases:
                 next(self.world.get_sub_chunks(0, 0, 0))
 
         def test_clone_operation(self):
-            subbx1 = SubSelectionBox((1, 70, 3), (1, 70, 4))
+            subbx1 = SubSelectionBox((1, 70, 3), (2, 71, 4))
             src_box = Selection((subbx1,))
 
-            subbx2 = SubSelectionBox((1, 70, 5), (1, 70, 6))
+            subbx2 = SubSelectionBox((1, 70, 5), (2, 71, 6))
             target_box = Selection((subbx2,))
 
             self.assertEqual(
@@ -208,17 +208,17 @@ class WorldTestBaseCases:
             )
 
         def test_replace_multiblock(self):
-            subbox1 = SubSelectionBox((1, 70, 3), (1, 75, 3))
+            subbox1 = SubSelectionBox((1, 70, 3), (2, 75, 4))
             box1 = Selection((subbox1,))
 
             self.assertEqual(
                 "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
-            for i in range(1, 5):
+            for y in range(71, 75):
                 self.assertEqual(
                     "universal_minecraft:air",
-                    self.world.get_block(1, 70 + i, 3).blockstate,
-                    f"Failed at coordinate (1,i,3)",
+                    self.world.get_block(1, y, 3).blockstate,
+                    f"Failed at coordinate (1,{y},3)",
                 )
 
             self.world.run_operation(
@@ -241,11 +241,11 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 3).blockstate,
             )
 
-            for i in range(1, 5):
+            for y in range(71, 75):
                 self.assertEqual(
                     "universal_minecraft:stone",
-                    self.world.get_block(1, 70 + i, 3).blockstate,
-                    f"Failed at coordinate (1,i,3)",
+                    self.world.get_block(1, y, 3).blockstate,
+                    f"Failed at coordinate (1,{y},3)",
                 )
 
             self.world.undo()
@@ -253,11 +253,11 @@ class WorldTestBaseCases:
             self.assertEqual(
                 "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
             )
-            for i in range(1, 5):
+            for y in range(71, 75):
                 self.assertEqual(
                     "universal_minecraft:air",
-                    self.world.get_block(1, 70 + i, 3).blockstate,
-                    f"Failed at coordinate (1,i,3)",
+                    self.world.get_block(1, y, 3).blockstate,
+                    f"Failed at coordinate (1,{y},3)",
                 )
 
             self.world.redo()
@@ -267,11 +267,11 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 3).blockstate,
             )
 
-            for i in range(1, 5):
+            for y in range(71, 75):
                 self.assertEqual(
                     "universal_minecraft:stone",
-                    self.world.get_block(1, 70 + i, 3).blockstate,
-                    f"Failed at coordinate (1,i,3)",
+                    self.world.get_block(1, y, 3).blockstate,
+                    f"Failed at coordinate (1,{y},3)",
                 )
 
         def test_delete_chunk(self):
