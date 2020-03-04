@@ -86,14 +86,19 @@ class Chunk:
         return SubChunk(item, self)
 
     @property
-    def cx(self):
+    def cx(self) -> int:
         """The chunk's x coordinate"""
         return self._cx
 
     @property
-    def cz(self):
+    def cz(self) -> int:
         """The chunk's z coordinate"""
         return self._cz
+
+    @property
+    def coordinates(self) -> Tuple[int, int]:
+        """The chunk's coordinates"""
+        return self._cx, self._cz
 
     @property
     def changed(self) -> bool:
