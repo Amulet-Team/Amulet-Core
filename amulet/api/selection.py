@@ -158,6 +158,7 @@ class Selection:
             self._boxes.append(other)
 
     def is_contiguous(self) -> bool:
+        """Does the Selection represent one connected region (True) or multiple separated regions (False)"""
         if len(self._boxes) == 1:
             return True
 
@@ -165,9 +166,9 @@ class Selection:
             sub_box = self._boxes[i]
             next_box = self._boxes[i + 1]
             if (
-                abs(sub_box.max[0] - next_box.min[0]) > 1
-                and abs(sub_box.max[1] - next_box.min[1]) > 1
-                and abs(sub_box.max[2] - next_box.min[2]) > 1
+                abs(sub_box.max[0] - next_box.min[0])
+                and abs(sub_box.max[1] - next_box.min[1])
+                and abs(sub_box.max[2] - next_box.min[2])
             ):
                 return False
 
