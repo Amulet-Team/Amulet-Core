@@ -218,7 +218,9 @@ class World:
         """
         # TODO: move this logic into the chunk class and have this method call that
         if not (0 <= y <= self.chunk_size[1]):
-            raise IndexError(f"The supplied Y coordinate must be between 0 and {self.chunk_size[1]}")
+            raise IndexError(
+                f"The supplied Y coordinate must be between 0 and {self.chunk_size[1]}"
+            )
 
         cx, cz = block_coords_to_chunk_coords(x, z)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
@@ -228,10 +230,10 @@ class World:
         return self.palette[block]
 
     def get_chunk_boxes(
-            self,
-            selection: Union[Selection, SubSelectionBox],
-            dimension: int = 0,
-            create_missing_chunks=False
+        self,
+        selection: Union[Selection, SubSelectionBox],
+        dimension: int = 0,
+        create_missing_chunks=False,
     ) -> Generator[Tuple[Chunk, SubSelectionBox], None, None]:
         """Given a selection will yield chunks and SubSelectionBoxes into that chunk
 
@@ -267,7 +269,7 @@ class World:
         self,
         selection: Union[Selection, SubSelectionBox],
         dimension: int = 0,
-        create_missing_chunks=False
+        create_missing_chunks=False,
     ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice]], None, None]:
         """Given a selection will yield chunks and slices into that chunk
 
@@ -278,11 +280,17 @@ class World:
         for chunk, slice in world.get_chunk_slices(selection):
             chunk.blocks[slice] = ...
         """
-        for chunk, box in self.get_chunk_boxes(selection, dimension, create_missing_chunks):
+        for chunk, box in self.get_chunk_boxes(
+            selection, dimension, create_missing_chunks
+        ):
             s_x, s_y, s_z = box.slice
-            x_slice_for_chunk = blocks_slice_to_chunk_slice(s_x, self.chunk_size[0], chunk.cx)
+            x_slice_for_chunk = blocks_slice_to_chunk_slice(
+                s_x, self.chunk_size[0], chunk.cx
+            )
             y_slice_for_chunk = blocks_slice_to_chunk_slice(s_y, self.chunk_size[1], 0)
-            z_slice_for_chunk = blocks_slice_to_chunk_slice(s_z, self.chunk_size[2], chunk.cz)
+            z_slice_for_chunk = blocks_slice_to_chunk_slice(
+                s_z, self.chunk_size[2], chunk.cz
+            )
 
             yield chunk, (x_slice_for_chunk, y_slice_for_chunk, z_slice_for_chunk)
 
@@ -295,12 +303,8 @@ class World:
         entity_map: Dict[Tuple[int, int], List[List[object]]] = {}
         for chunk, subbox in self.get_chunk_boxes(box):
             entities = chunk.entities
-            in_box = list(
-                filter(lambda e: e.location in subbox, entities)
-            )
-            not_in_box = filter(
-                lambda e: e.location not in subbox, entities
-            )
+            in_box = list(filter(lambda e: e.location in subbox, entities))
+            not_in_box = filter(lambda e: e.location not in subbox, entities)
 
             in_box_copy = deepcopy(in_box)
 
@@ -343,11 +347,7 @@ class World:
 
     def add_entities(self, entities):
         proper_entity_chunks = map(
-            lambda e: (
-                entity_position_to_chunk_coordinates(e.location),
-                e,
-            ),
-            entities,
+            lambda e: (entity_position_to_chunk_coordinates(e.location), e,), entities,
         )
         accumulated_entities: Dict[Tuple[int, int], List[object]] = {}
 
@@ -364,11 +364,7 @@ class World:
 
     def delete_entities(self, entities):
         chunk_entity_pairs = map(
-            lambda e: (
-                entity_position_to_chunk_coordinates(e.location),
-                e,
-            ),
-            entities,
+            lambda e: (entity_position_to_chunk_coordinates(e.location), e,), entities,
         )
 
         for chunk_coord, ent in chunk_entity_pairs:

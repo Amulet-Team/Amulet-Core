@@ -29,7 +29,9 @@ class SubSelectionBox:
     def __str__(self):
         return f"({self.min}, {self.max})"
 
-    def __contains__(self, item: Union[Point, Tuple[int, int, int], Tuple[float, float, float]]):
+    def __contains__(
+        self, item: Union[Point, Tuple[int, int, int], Tuple[float, float, float]]
+    ):
         return (
             self.min[0] <= item[0] <= self.max[0]
             and self.min[1] <= item[1] <= self.max[1]
@@ -156,7 +158,6 @@ class Selection:
                 self._boxes.append(other)
         else:
             self._boxes.append(other)
-
 
     @property
     def is_contiguous(self) -> bool:

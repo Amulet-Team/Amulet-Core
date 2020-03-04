@@ -62,7 +62,9 @@ def region_coords_to_chunk_coords(rx: int, rz: int) -> Coordinates:
     return rx << 5, rz << 5
 
 
-def blocks_slice_to_chunk_slice(blocks_slice: slice, chunk_shape: int, chunk_coord: int) -> slice:
+def blocks_slice_to_chunk_slice(
+    blocks_slice: slice, chunk_shape: int, chunk_coord: int
+) -> slice:
     """
     Converts the supplied blocks slice into chunk slice
     :param blocks_slice: The slice of the blocks
@@ -72,7 +74,7 @@ def blocks_slice_to_chunk_slice(blocks_slice: slice, chunk_shape: int, chunk_coo
     """
     return slice(
         min(max(0, blocks_slice.start - chunk_coord * chunk_shape), chunk_shape),
-        min(max(0, blocks_slice.stop - chunk_coord * chunk_shape), chunk_shape)
+        min(max(0, blocks_slice.stop - chunk_coord * chunk_shape), chunk_shape),
     )
 
 
@@ -188,7 +190,10 @@ def get_smallest_dtype(arr: ndarray, uint: bool = True) -> int:
 def entity_position_to_chunk_coordinates(
     entity_coordinates: Tuple[float, float, float]
 ):
-    return int(math.floor(entity_coordinates[0])) >> 4, int(math.floor(entity_coordinates[2])) >> 4
+    return (
+        int(math.floor(entity_coordinates[0])) >> 4,
+        int(math.floor(entity_coordinates[2])) >> 4,
+    )
 
 
 def fast_unique(array: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]:

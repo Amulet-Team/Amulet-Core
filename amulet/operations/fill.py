@@ -11,9 +11,9 @@ if TYPE_CHECKING:
 
 
 def fill(world: "World", target_box: Selection, options: dict):
-    fill_block = options.get('fill_block', None)
+    fill_block = options.get("fill_block", None)
     if not isinstance(fill_block, Block):
-        log.error('Fill operation was not given a Block object')
+        log.error("Fill operation was not given a Block object")
         return
     fill_block: Block
     internal_id = world.palette.get_add_block(fill_block)
