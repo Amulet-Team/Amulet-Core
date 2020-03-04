@@ -84,12 +84,12 @@ class SubSelectionBox:
         :return: True if the two SubSelectionBoxes intersect, False otherwise
         """
         return not (
-            self.min_x > other.max_x
-            or self.min_y > other.max_y
-            or self.min_z > other.max_z
-            or self.max_x < other.min_x
-            or self.max_y < other.min_y
-            or self.max_z < other.min_z
+            self.min_x >= other.max_x
+            or self.min_y >= other.max_y
+            or self.min_z >= other.max_z
+            or self.max_x <= other.min_x
+            or self.max_y <= other.min_y
+            or self.max_z <= other.min_z
         )
 
 
