@@ -11,7 +11,7 @@ def clone(world: "World", source: Selection, target: Selection):
             "Source Box and Target Box must have the same amount of subboxes"
         )
 
-    for source_box, target_box in zip(source.subboxes(), target.subboxes()):
+    for source_box, target_box in zip(source.subboxes, target.subboxes):
         if source_box.shape != target_box.shape:
             raise Exception("The shape of the selections needs to be the same")
 

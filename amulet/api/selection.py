@@ -36,17 +36,18 @@ class SubSelectionBox:
             and self.min[2] <= item[2] <= self.max[2]
         )
 
-    def to_slice(self) -> List[slice]:
+    @property
+    def slice(self) -> Tuple[slice, slice, slice]:
         """
         Converts the SubSelectionBoxes minimum/maximum coordinates into slice arguments
 
         :return: The SubSelectionBoxes coordinates as slices in (x,y,z) order
         """
-        return [
+        return (
             slice(self.min[0], self.max[0]),
             slice(self.min[1], self.max[1]),
             slice(self.min[2], self.max[2]),
-        ]
+        )
 
     @property
     def min_x(self):
@@ -156,6 +157,8 @@ class Selection:
         else:
             self._boxes.append(other)
 
+
+    @property
     def is_contiguous(self) -> bool:
         """Does the Selection represent one connected region (True) or multiple separated regions (False)"""
         if len(self._boxes) == 1:
@@ -173,6 +176,7 @@ class Selection:
 
         return True
 
+    @property
     def is_rectangular(self) -> bool:
         """
         Checks if the Selection is a rectangle
@@ -181,6 +185,7 @@ class Selection:
         """
         return len(self._boxes) == 1
 
+    @property
     def subboxes(self) -> Iterator[SubSelectionBox]:
         """
         Returns an iterator of the SubSelectionBoxes in the Selection

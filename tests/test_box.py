@@ -23,27 +23,27 @@ class BoxTestCase(unittest.TestCase):
         sub_box_1 = selection.SubSelectionBox((0, 0, 0), (5, 5, 5))
         box_1 = selection.Selection((sub_box_1,))
 
-        self.assertTrue(box_1.is_contiguous())
+        self.assertTrue(box_1.is_contiguous)
 
         sub_box_2 = selection.SubSelectionBox((5, 5, 5), (10, 10, 10))
         box_1.add_box(sub_box_2)
 
-        self.assertTrue(box_1.is_contiguous())
+        self.assertTrue(box_1.is_contiguous)
 
         sub_box_3 = selection.SubSelectionBox((6, 6, 6), (10, 10, 10))
         box_2 = selection.Selection((sub_box_1, sub_box_3))
-        self.assertFalse(box_2.is_contiguous())
+        self.assertFalse(box_2.is_contiguous)
 
     def test_is_rectangular(self):
         sub_box_1 = selection.SubSelectionBox((0, 0, 0), (5, 5, 5))
         box_1 = selection.Selection((sub_box_1,))
 
-        self.assertTrue(box_1.is_rectangular())
+        self.assertTrue(box_1.is_rectangular)
 
         sub_box_2 = selection.SubSelectionBox((0, 5, 0), (5, 10, 5))
         box_1.add_box(sub_box_2)
 
-        self.assertTrue(box_1.is_rectangular())
+        self.assertTrue(box_1.is_rectangular)
 
     def test_add_box(self):  # Quick crude test, needs more cases
         sub_box_1 = selection.SubSelectionBox((0, 0, 0), (5, 5, 5))
@@ -93,7 +93,7 @@ class BoxTestCase(unittest.TestCase):
         box_1.add_box(sub_box_3)
         box_2.add_box(sub_box_2)
 
-        for sb1, sb2 in zip(box_1.subboxes(), box_2.subboxes()):
+        for sb1, sb2 in zip(box_1.subboxes, box_2.subboxes):
             self.assertEqual(sb1.shape, sb2.shape)
 
 
