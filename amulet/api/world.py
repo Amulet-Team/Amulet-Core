@@ -213,6 +213,7 @@ class World:
         :param x: The X coordinate of the desired block
         :param y: The Y coordinate of the desired block
         :param z: The Z coordinate of the desired block
+        :param dimension: The dimension of the desired block
         :return: The blockstate name as a string
         """
         # TODO: move this logic into the chunk class and have this method call that

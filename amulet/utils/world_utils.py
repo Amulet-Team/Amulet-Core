@@ -66,6 +66,8 @@ def blocks_slice_to_chunk_slice(blocks_slice: slice, chunk_shape: int, chunk_coo
     """
     Converts the supplied blocks slice into chunk slice
     :param blocks_slice: The slice of the blocks
+    :param chunk_shape: The shape of the chunk in this direction
+    :param chunk_coord: The coordinate of the chunk in this direction
     :return: The resulting chunk slice
     """
     return slice(
@@ -113,7 +115,7 @@ def decode_long_array(long_array: numpy.ndarray, size: int) -> numpy.ndarray:
     """
     Decode an long array (from BlockStates or Heightmaps)
     :param long_array: Encoded long array
-    :size uint: The expected size of the returned array
+    :param size: int: The expected size of the returned array
     :return: Decoded array as numpy array
     """
     long_array = long_array.astype(">q")
@@ -191,7 +193,7 @@ def entity_position_to_chunk_coordinates(
 
 def fast_unique(array: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]:
     uni = numpy.unique(array)
-    map = numpy.zeros(numpy.amax(uni) + 1, dtype=numpy.uint)
-    map[uni] = numpy.arange(uni.size)
-    inv = map[array]
+    lut = numpy.zeros(numpy.amax(uni) + 1, dtype=numpy.uint)
+    lut[uni] = numpy.arange(uni.size)
+    inv = lut[array]
     return uni, inv

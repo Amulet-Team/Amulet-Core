@@ -319,7 +319,7 @@ class BaseLevelDBInterface(Interface):
 
                 y *= 16
                 if storage_count == 1:
-                    blocks[:, y : y + 16, :] = sub_chunk_blocks[:, :, :, 0] + len(
+                    blocks[:, y: y + 16, :] = sub_chunk_blocks[:, :, :, 0] + len(
                         palette
                     )
                     palette += [(val,) for val in sub_chunk_palette[0]]
@@ -330,7 +330,7 @@ class BaseLevelDBInterface(Interface):
                         return_inverse=True,
                         axis=0,
                     )
-                    blocks[:, y : y + 16, :] = sub_chunk_blocks.reshape(
+                    blocks[:, y: y + 16, :] = sub_chunk_blocks.reshape(
                         16, 16, 16
                     ) + len(palette)
                     palette += [
@@ -390,7 +390,7 @@ class BaseLevelDBInterface(Interface):
             )
         chunk = []
         for y in range(0, 256, 16):
-            palette_index, sub_chunk = fast_unique(blocks[:, y : y + 16, :])
+            palette_index, sub_chunk = fast_unique(blocks[:, y: y + 16, :])
             sub_chunk_palette = list(palette[palette_index])
             chunk.append(
                 b"\x01"
@@ -474,7 +474,7 @@ class BaseLevelDBInterface(Interface):
 
         chunk = []
         for y in range(0, 256, 16):
-            palette_index, sub_chunk = fast_unique(blocks[:, y : y + 16, :])
+            palette_index, sub_chunk = fast_unique(blocks[:, y: y + 16, :])
             sub_chunk_palette = palette[palette_index]
             sub_chunk_depth = palette_depth[palette_index].max()
 
@@ -521,8 +521,9 @@ class BaseLevelDBInterface(Interface):
 
     # These arent actual blocks, just ids pointing to the palette.
 
+    @staticmethod
     def _load_palette_blocks(
-        self, data
+        data
     ) -> Tuple[numpy.ndarray, List[amulet_nbt.NBTFile], bytes]:
         # Ignore LSB of data (its a flag) and get compacting level
         bits_per_block, data = data[0] >> 1, data[1:]
@@ -538,7 +539,7 @@ class BaseLevelDBInterface(Interface):
                         bytes(reversed(data[: 4 * word_count])), dtype="uint8"
                     )
                 )
-                .reshape(-1, 32)[:, -blocks_per_word * bits_per_block :]
+                .reshape(-1, 32)[:, -blocks_per_word * bits_per_block:]
                 .reshape(-1, bits_per_block)[-4096:, :],
                 [(0, 0), (16 - bits_per_block, 0)],
                 "constant",
@@ -546,7 +547,7 @@ class BaseLevelDBInterface(Interface):
         ).view(dtype=">i2")[::-1]
         blocks = blocks.reshape((16, 16, 16)).swapaxes(1, 2)
 
-        data = data[4 * word_count :]
+        data = data[4 * word_count:]
 
         palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
         palette, offset = amulet_nbt.load(
@@ -559,8 +560,9 @@ class BaseLevelDBInterface(Interface):
 
         return blocks, palette, data[offset:]
 
+    @staticmethod
     def _save_palette_subchunk(
-        self, blocks: numpy.ndarray, palette: List[amulet_nbt.NBTFile]
+        blocks: numpy.ndarray, palette: List[amulet_nbt.NBTFile]
     ) -> bytes:
         """Save a single layer of blocks in the palette format"""
         chunk: List[bytes] = []
@@ -607,7 +609,8 @@ class BaseLevelDBInterface(Interface):
         ]
         return b"".join(chunk)
 
-    def _unpack_nbt_list(self, raw_nbt: bytes) -> List[amulet_nbt.NBTFile]:
+    @staticmethod
+    def _unpack_nbt_list(raw_nbt: bytes) -> List[amulet_nbt.NBTFile]:
         nbt_list = []
         while raw_nbt:
             nbt, index = amulet_nbt.load(
@@ -617,7 +620,8 @@ class BaseLevelDBInterface(Interface):
             nbt_list.append(nbt)
         return nbt_list
 
-    def _pack_nbt_list(self, nbt_list: List[amulet_nbt.NBTFile]):
+    @staticmethod
+    def _pack_nbt_list(nbt_list: List[amulet_nbt.NBTFile]):
         return b"".join(
             [
                 nbt.save_to(compressed=False, little_endian=True)

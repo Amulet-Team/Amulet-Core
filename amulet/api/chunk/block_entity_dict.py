@@ -25,13 +25,15 @@ class BlockEntityDict(UserDict):
     def _assert_key(self, key):
         assert self._check_key(key)
 
-    def _check_key(self, key):
+    @staticmethod
+    def _check_key(key):
         return isinstance(key, tuple) and all(isinstance(a, int) for a in key)
 
     def _assert_val(self, value):
         assert self._check_val(value)
 
-    def _check_val(self, value):
+    @staticmethod
+    def _check_val(value):
         return isinstance(value, BlockEntity)
 
     def _dirty(self):
@@ -92,7 +94,7 @@ class BlockEntityDict(UserDict):
         self._assert_key(coordinate)
         self._assert_val(block_entity)
         self._dirty()
-        self.data.setdefault(coordinate, block_entity)
+        return self.data.setdefault(coordinate, block_entity)
 
     def popitem(self):
         raise NotImplementedError

@@ -82,7 +82,7 @@ class Format:
 
     @property
     def chunk_size(self) -> Tuple[int, int, int]:
-        return (16, 256, 16)
+        return 16, 256, 16
 
     @property
     def changed(self) -> bool:

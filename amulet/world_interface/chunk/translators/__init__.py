@@ -71,8 +71,8 @@ class Translator:
         """
         raise NotImplementedError()
 
+    @staticmethod
     def _translate(
-        self,
         chunk: Chunk,
         palette: numpy.ndarray,
         get_chunk_callback: Union[
@@ -136,7 +136,7 @@ class Translator:
                             block, tuple
                         ):  # bedrock palette is made of (version, Block). TODO: Perhaps find a better way to do this
                             block = block[0][1]
-                        return (block, chunk.block_entities.get((abs_x, abs_y, abs_z)))
+                        return block, chunk.block_entities.get((abs_x, abs_y, abs_z))
 
                     # if it is in a different chunk
                     local_chunk, local_palette = get_chunk_callback(cx, cz)
@@ -346,7 +346,8 @@ class Translator:
                     )
         return chunk, palette
 
-    def _biomes_to_universal(self, translator_version: Version, biome_array):
+    @staticmethod
+    def _biomes_to_universal(translator_version: Version, biome_array):
         biome_palette, biome_compact_array = numpy.unique(
             biome_array, return_inverse=True
         )
@@ -355,7 +356,8 @@ class Translator:
         )
         return universal_biome_palette[biome_compact_array]
 
-    def _biomes_from_universal(self, translator_version: Version, biome_array):
+    @staticmethod
+    def _biomes_from_universal(translator_version: Version, biome_array):
         biome_palette, biome_compact_array = numpy.unique(
             biome_array, return_inverse=True
         )

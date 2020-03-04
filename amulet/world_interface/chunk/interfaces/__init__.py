@@ -151,6 +151,8 @@ class Interface:
         :type chunk: Chunk
         :param palette: The palette the ids in the chunk correspond to.
         :type palette: numpy.ndarray[Block]
+        :param max_world_version: The key to use to find the encoder.
+        :type max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]]
         :return: Raw data to be stored by the Format.
         :rtype: Any
         """

@@ -92,7 +92,7 @@ class ChunkHistoryManager:
                     # if the chunk has been deleted and the last save state was not also deleted update
                     if chunk_storage[chunk_index] is not None:
                         self._chunk_index[chunk_location] += 1
-                        del chunk_storage[chunk_index + 1 :]
+                        del chunk_storage[chunk_index + 1:]
                         chunk_storage.append(None)
                         snapshot.append(chunk_location)
                 else:
@@ -109,7 +109,7 @@ class ChunkHistoryManager:
         if snapshot:
             # if there is data in the snapshot invalidate all newer snapshots and add to the database
             self._snapshot_index += 1
-            del self._snapshots[self._snapshot_index :]
+            del self._snapshots[self._snapshot_index:]
             self._snapshots.append(snapshot)
             self._last_snapshot_time = time.time()
 

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import numpy
 from typing import TYPE_CHECKING
 
 from amulet.api.selection import Selection
@@ -19,5 +18,5 @@ def fill(world: "World", target_box: Selection, options: dict):
     fill_block: Block
     internal_id = world.palette.get_add_block(fill_block)
 
-    for chunk, slice in world.get_chunk_slices(target_box):
-        chunk.blocks[slice] = internal_id
+    for chunk, slices in world.get_chunk_slices(target_box):
+        chunk.blocks[slices] = internal_id

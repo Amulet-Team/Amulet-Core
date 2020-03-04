@@ -36,9 +36,9 @@ def replace(
     original_internal_ids = list(map(world.palette.get_add_block, original_blocks))
     replacement_internal_ids = list(map(world.palette.get_add_block, replacement_blocks))
 
-    for chunk, slice in world.get_chunk_slices(selection):
-        blocks = chunk.blocks[slice].copy()
+    for chunk, slices in world.get_chunk_slices(selection):
+        blocks = chunk.blocks[slices].copy()
         for original_id, replacement_id in zip(
             original_internal_ids, replacement_internal_ids
         ):
-            chunk.blocks[slice][blocks == original_id] = replacement_id
+            chunk.blocks[slices][blocks == original_id] = replacement_id

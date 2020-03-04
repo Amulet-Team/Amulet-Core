@@ -78,7 +78,7 @@ class Anvil1444Interface(BaseAnvilInterface):
                 continue
             height = section["Y"].value << 4
 
-            blocks[height : height + 16, :, :] = decode_long_array(
+            blocks[height: height + 16, :, :] = decode_long_array(
                 section["BlockStates"].value, 4096
             ).reshape((16, 16, 16)) + len(palette)
 
@@ -96,7 +96,7 @@ class Anvil1444Interface(BaseAnvilInterface):
         sections = amulet_nbt.TAG_List()
         blocks = numpy.swapaxes(blocks.swapaxes(0, 2), 0, 1)
         for y in range(16):  # perhaps find a way to do this dynamically
-            block_sub_array = blocks[y * 16 : y * 16 + 16, :, :].ravel()
+            block_sub_array = blocks[y * 16: y * 16 + 16, :, :].ravel()
 
             sub_palette_, block_sub_array = numpy.unique(
                 block_sub_array, return_inverse=True
@@ -138,7 +138,7 @@ class Anvil1444Interface(BaseAnvilInterface):
             entry["Name"] = amulet_nbt.TAG_String(
                 f"{block.namespace}:{block.base_name}"
             )
-            properties = entry["Properties"] = amulet_nbt.TAG_Compound(block.properties)
+            entry["Properties"] = amulet_nbt.TAG_Compound(block.properties)
             palette.append(entry)
         return palette
 

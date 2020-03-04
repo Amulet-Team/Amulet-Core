@@ -193,6 +193,7 @@ class BaseAnvilInterface(Interface):
         Encode a version-specific chunk to raw data for the format to store.
         :param chunk: The version-specific chunk to translate and encode.
         :param palette: The palette the ids in the chunk correspond to.
+        :param max_world_version: The key to use to find the encoder.
         :return: amulet_nbt.NBTFile
         """
 
