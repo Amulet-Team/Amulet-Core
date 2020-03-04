@@ -4,6 +4,7 @@ import json
 import numpy
 
 from amulet.api.block import blockstate_to_block
+from amulet.api.chunk import Chunk
 from amulet.api.errors import ChunkDoesNotExist
 from amulet.api.selection import SubSelectionBox, Selection
 from amulet.world_interface import load_world, load_format
@@ -47,29 +48,39 @@ class WorldTestBaseCases:
             with self.assertRaises(IndexError):
                 self.world.get_block(300, 300, 300)
 
-        # def test_get_blocks(self):
-        #     self.assertIsInstance(
-        #         next(
-        #             self.world.get_sub_chunks(slice(0, 10), slice(0, 10), slice(0, 10))
-        #         ),
-        #         SubChunk,
-        #     )
-        #     self.assertIsInstance(
-        #         next(self.world.get_sub_chunks(0, 0, 0, 10, 10, 10)), SubChunk
-        #     )
-        #     self.assertIsInstance(
-        #         next(self.world.get_sub_chunks(0, 0, 0, 10, 10, 10, 2, 2, 2)), SubChunk
-        #     )
-        #
-        #     with self.assertRaises(IndexError):
-        #         next(self.world.get_sub_chunks())
-        #
-        #         next(self.world.get_sub_chunks(slice(0, 10, 2)))
-        #         next(self.world.get_sub_chunks(slice(0, 10, 2), slice(0, 10, 2)))
-        #
-        #         next(self.world.get_sub_chunks(0))
-        #         next(self.world.get_sub_chunks(0, 0))
-        #         next(self.world.get_sub_chunks(0, 0, 0))
+        def test_get_blocks(self):
+            selection_box = SubSelectionBox((0, 0, 0), (10, 10, 10))
+            for selection in [Selection([selection_box]), selection_box]:
+                chunk, box = next(
+                    self.world.get_chunk_boxes(selection)
+                )
+                self.assertIsInstance(
+                    chunk,
+                    Chunk
+                )
+                self.assertIsInstance(
+                    box,
+                    SubSelectionBox
+                )
+
+                chunk, slices = next(
+                    self.world.get_chunk_slices(
+                        selection
+                    )
+                )
+                self.assertIsInstance(
+                    chunk,
+                    Chunk
+                )
+                self.assertIsInstance(
+                    slices,
+                    tuple
+                )
+                for s in slices:
+                    self.assertIsInstance(
+                        s,
+                        slice
+                    )
 
         def test_clone_operation(self):
             subbx1 = SubSelectionBox((1, 70, 3), (2, 71, 4))
