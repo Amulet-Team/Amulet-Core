@@ -28,7 +28,7 @@ class BlockTestCase(unittest.TestCase):
         self.assertNotEqual(air, stone)
 
         oak_leaves = blockstate_to_block(
-            "minecraft:oak_leaves[distance=1,persistent=true]"
+            'minecraft:oak_leaves[distance="1",persistent="true"]'
         )
 
         self.assertIsInstance(oak_leaves, Block)
@@ -66,7 +66,7 @@ class BlockTestCase(unittest.TestCase):
         self.assertEqual(oak_leaves, oak_leaves_2)
 
         oak_leaves_3 = blockstate_to_block(
-            "minecraft:oak_leaves[persistent=true,distance=1]"
+            'minecraft:oak_leaves[persistent="true",distance="1"]'
         )
         self.assertEqual("minecraft", oak_leaves_3.namespace)
         self.assertEqual("oak_leaves", oak_leaves_3.base_name)
@@ -83,7 +83,7 @@ class BlockTestCase(unittest.TestCase):
 
     def test_extra_blocks(self):
         stone = blockstate_to_block("minecraft:stone")
-        water = blockstate_to_block("minecraft:water[level=1]")
+        water = blockstate_to_block('minecraft:water[level="1"]')
         granite = blockstate_to_block("minecraft:granite")
         dirt = blockstate_to_block("minecraft:dirt")
 
@@ -140,7 +140,7 @@ class BlockTestCase(unittest.TestCase):
 
     def test_remove_layer(self):
         stone = blockstate_to_block("minecraft:stone")
-        water = blockstate_to_block("minecraft:water[level=1]")
+        water = blockstate_to_block('minecraft:water[level="1"]')
         granite = blockstate_to_block("minecraft:granite")
         dirt = blockstate_to_block("minecraft:dirt")
         oak_log_axis_x = blockstate_to_block("minecraft:oak_log[axis=x]")
@@ -208,7 +208,7 @@ class BlockTestCase(unittest.TestCase):
 
     def test_hash(self):
         stone = blockstate_to_block("minecraft:stone")
-        water = blockstate_to_block("minecraft:water[level=1]")
+        water = blockstate_to_block('minecraft:water[level="1"]')
         granite = blockstate_to_block("minecraft:granite")
         dirt = blockstate_to_block("minecraft:dirt")
 
