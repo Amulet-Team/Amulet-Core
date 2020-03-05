@@ -261,7 +261,7 @@ class World:
         selection: Selection
         for box in selection.subboxes:
             first_chunk = block_coords_to_chunk_coords(box.min_x, box.min_z)
-            last_chunk = block_coords_to_chunk_coords(box.max_x, box.max_z)
+            last_chunk = block_coords_to_chunk_coords(box.max_x-1, box.max_z-1)
             for chunk_pos in itertools.product(
                 range(first_chunk[0], last_chunk[0] + 1),
                 range(first_chunk[1], last_chunk[1] + 1),
