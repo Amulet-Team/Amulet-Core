@@ -146,7 +146,7 @@ class Block:
         return self._base_name
 
     @property
-    def properties(self) -> Dict[str, Union[amulet_nbt.BaseValueType]]:
+    def properties(self) -> Dict[str, amulet_nbt.BaseValueType]:
         """
         The mapping of properties of the blockstate represented by the Block object (IE: `{"level": "1"}`)
 
