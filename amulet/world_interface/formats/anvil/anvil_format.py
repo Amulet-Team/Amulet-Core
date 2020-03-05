@@ -14,7 +14,7 @@ import amulet_nbt as nbt
 from amulet.world_interface.formats import Format
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, check_one_exists, load_leveldat
-from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist, ChunkLoadError
+from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist, ChunkLoadError, ChunkSaveError
 
 
 class AnvilRegion:
@@ -28,7 +28,7 @@ class AnvilRegion:
             return None, None
         return int(match.group("rx")), int(match.group("rz"))
 
-    def __init__(self, file_path: str, create=False):
+    def __init__(self, file_path: str, create=False, mcc=False):
         """
         A class wrapper for a region file
         :param file_path: The file path of the region file
@@ -36,6 +36,7 @@ class AnvilRegion:
         """
         self._file_path = file_path
         self.rx, self.rz = self.get_coords(file_path)
+        self._mcc = mcc  # create mcc file if the chunk is greater than 1MiB
 
         # [dirty, mod_time, data_length, data]  feel free to extend if you want to implement modifying in place and defragging
         self._chunks: Dict[Tuple[int, int], Tuple[int, bytes]] = {}
@@ -132,9 +133,14 @@ class AnvilRegion:
     def save(self):
         if self._committed_chunks:
             self._load()
+            if self._mcc:
+                mcc_chunks = {(cx, cz) for cx in range(32) for cz in range(32)}
+            else:
+                mcc_chunks = set()
             for key, val in self._committed_chunks.items():
                 if val[1]:
-                    self._chunks[key] = val
+                    if self._mcc or len(val[1]) <= 2**20 - 4:
+                        self._chunks[key] = val
                 elif key in self._chunks:
                     del self._chunks[key]
             self._committed_chunks.clear()
@@ -146,6 +152,13 @@ class AnvilRegion:
                 if buffer:
                     index = cx + (cz << 5)
                     buffer_size = len(buffer)
+                    if buffer_size > 2**20 - 4:  # if mcc is false the chunks that are too large should have already been removed.
+                        mcc_chunks.remove((cx, cz))
+                        with open(os.path.join(os.path.dirname(self._file_path), f'c.{cx+self.rx*32}.{cz+self.rz*32}.mcc'), 'wb') as f:
+                            f.write(buffer[1:])
+                        buffer = bytes([buffer[0] | 128])  # set the external flag
+                        buffer_size = 1
+
                     sector_count = ((buffer_size + 4 | 0xFFF) + 1) >> 12
                     offsets[index] = (offset << 8) + sector_count
                     mod_times[index] = mod_time
@@ -165,18 +178,33 @@ class AnvilRegion:
                 )  # but I could not work it out with Numpy
                 fp.write(b"".join(data))
 
+            # remove orphaned mcc files
+            for cx, cz in mcc_chunks:
+                mcc_path = os.path.join(os.path.dirname(self._file_path), f'c.{cx + self.rx * 32}.{cz + self.rz * 32}.mcc')
+                if os.path.isfile(mcc_path):
+                    os.remove(mcc_path)
+
     def get_chunk_data(self, cx: int, cz: int) -> nbt.NBTFile:
+        """Get chunk data. Coords are in region space."""
         if (cx, cz) in self._committed_chunks:
             # if the chunk exists in the committed but unsaved chunks return that
             data = self._committed_chunks[(cx, cz)][1]
+            compress_type, data = data[0], data[1:]
             if data:
-                return self._decompress(data)
+                return self._decompress(compress_type, data)
         elif (cx, cz) in self._chunks:
             # otherwise if the chunk exists in the main database return that
             self._load()
             data = self._chunks[(cx, cz)][1]
+            compress_type, data = data[0], data[1:]
+            if self._mcc and compress_type & 128:  # if the mcc file is supported and the mcc bit is set
+                mcc_path = os.path.join(os.path.dirname(self._file_path), f'c.{cx+self.rx*32}.{cz+self.rz*32}.mcc')
+                if os.path.isfile(mcc_path):
+                    with open(mcc_path, 'rb') as f:
+                        data = f.read()
+                    compress_type = compress_type & 127
             if data:
-                return self._decompress(self._chunks[(cx, cz)][1])
+                return self._decompress(compress_type, data)
 
         raise ChunkDoesNotExist
 
@@ -195,21 +223,22 @@ class AnvilRegion:
         return b"\x02" + zlib.compress(data)
 
     @staticmethod
-    def _decompress(data: bytes) -> nbt.NBTFile:
+    def _decompress(compress_type: int, data: bytes) -> nbt.NBTFile:
         """Convert a bytes object into an NBTFile"""
-        if data[0] == world_utils.VERSION_GZIP:
-            return nbt.load(buffer=gzip.decompress(data[1:]), compressed=False)
-        elif data[0] == world_utils.VERSION_DEFLATE:
-            return nbt.load(buffer=zlib.decompress(data[1:]), compressed=False)
-        raise ChunkLoadError(f"Invalid compression type {data[0]}")
+        if compress_type == world_utils.VERSION_GZIP:
+            return nbt.load(buffer=gzip.decompress(data), compressed=False)
+        elif compress_type == world_utils.VERSION_DEFLATE:
+            return nbt.load(buffer=zlib.decompress(data), compressed=False)
+        raise ChunkLoadError(f"Invalid compression type {compress_type}")
 
 
 class AnvilLevelManager:
     level_regex = re.compile(r"DIM(?P<level>-?\d+)")
 
-    def __init__(self, directory: str):
+    def __init__(self, directory: str, mcc=False):
         self._directory = directory
         self._regions: Dict[Tuple[int, int], AnvilRegion] = {}
+        self._mcc = mcc
 
         # shallow load all of the existing region classes
         region_dir = os.path.join(self._directory, "region")
@@ -219,7 +248,8 @@ class AnvilLevelManager:
                 if rx is None:
                     continue
                 self._regions[(rx, rz)] = AnvilRegion(
-                    os.path.join(self._directory, "region", region_file_name)
+                    os.path.join(self._directory, "region", region_file_name),
+                    mcc=self._mcc
                 )
 
     def all_chunk_coords(self) -> Generator[Tuple[int, int]]:
@@ -256,7 +286,7 @@ class AnvilLevelManager:
 
         if create:
             file_path = os.path.join(self._directory, "region", f"r.{rx}.{rz}.mca")
-            self._regions[key] = AnvilRegion(file_path, True)
+            self._regions[key] = AnvilRegion(file_path, True, mcc=self._mcc)
         else:
             raise ChunkDoesNotExist
 
@@ -369,9 +399,11 @@ class AnvilFormat(Format):
             f.flush()
             os.fsync(f.fileno())
 
+        mcc = self._max_world_version()[1] > 2203  # the real number might actually be lower
+
         # load all the levels
         self._levels: Dict[int, AnvilLevelManager] = {
-            0: AnvilLevelManager(self._world_path)
+            0: AnvilLevelManager(self._world_path, mcc=mcc)
         }
         for dir_name in os.listdir(self._world_path):
             level_path = os.path.join(self._world_path, dir_name)
@@ -380,7 +412,7 @@ class AnvilFormat(Format):
                 if match is None:
                     continue
                 level = int(match.group("level"))
-                self._levels[level] = AnvilLevelManager(level_path)
+                self._levels[level] = AnvilLevelManager(level_path, mcc=mcc)
 
     def open(self):
         """Open the database for reading and writing"""
