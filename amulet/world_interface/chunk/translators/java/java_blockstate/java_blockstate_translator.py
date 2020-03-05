@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from typing import Tuple, Union
 import numpy
+import amulet_nbt
 
 from PyMCTranslate.py3.translation_manager import Version
 from amulet.world_interface.chunk.translators import Translator
 from amulet.api.block import Block, blockstate_to_block
 
-water = blockstate_to_block("minecraft:water[level=0]")
+water = blockstate_to_block("minecraft:water[level=\"0\"]")
 
 
 class JavaBlockstateTranslator(Translator):
@@ -45,9 +46,9 @@ class JavaBlockstateTranslator(Translator):
                         properties=properties,
                     )
                 else:
-                    waterlogged = "false"
+                    waterlogged = amulet_nbt.TAG_String("false")
 
-                if waterlogged == "true":
+                if waterlogged == amulet_nbt.TAG_String("true"):
                     palette[index] = block + water
                 else:
                     palette[index] = block
@@ -70,9 +71,9 @@ class JavaBlockstateTranslator(Translator):
                     extra_blocks
                     and extra_blocks[0].namespaced_name == water.namespaced_name
                 ):
-                    properties["waterlogged"] = "true"
+                    properties["waterlogged"] = amulet_nbt.TAG_String("true")
                 else:
-                    properties["waterlogged"] = "false"
+                    properties["waterlogged"] = amulet_nbt.TAG_String("false")
                 palette[index] = Block(
                     namespace=block.namespace,
                     base_name=block.base_name,
