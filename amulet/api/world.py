@@ -22,6 +22,8 @@ from ..utils.world_utils import (
 )
 from ..world_interface.formats import Format
 
+from PyMCTranslate import TranslationManager
+
 ChunkCache = Dict[DimensionCoordinates, Union[Chunk, None]]
 
 
@@ -69,6 +71,10 @@ class World:
     @property
     def chunk_size(self) -> Tuple[int, int, int]:
         return self.world_wrapper.chunk_size
+
+    @property
+    def translation_manager(self) -> TranslationManager:
+        return self.world_wrapper.translation_manager
 
     def save(
         self,
