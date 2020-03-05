@@ -89,9 +89,9 @@ if __name__ == "__main__":
 
                 print(f"Loading world at {world_path}")
                 world = load_world(world_path)
-                world.world_wrapper.delete_chunk(
+                world.delete_chunk(
                     cx, cz
-                )  # There will be a proper method to delete chunks but using this for now.
+                )
                 print("Saving world")
                 world.save()
                 world.close()
@@ -116,7 +116,7 @@ if __name__ == "__main__":
                 world = load_world(source_path)
                 for chunk in list(world.world_wrapper.all_chunk_coords()):
                     if max(abs(chunk[0]), abs(chunk[1])) > 5:
-                        world.world_wrapper.delete_chunk(*chunk)
+                        world.delete_chunk(*chunk)
                 world.save()
                 for cx, cz in world.world_wrapper.all_chunk_coords():
                     chunk = world.get_chunk(cx, cz)
@@ -155,7 +155,7 @@ if __name__ == "__main__":
                 print(f"Loading world at {world_path}")
                 world = load_world(world_path)
                 if (cx, cz) in world.world_wrapper.all_chunk_coords():
-                    world.world_wrapper.delete_chunk(*(cx, cz))
+                    world.delete_chunk(*(cx, cz))
                 world.save()
 
                 chunk = Chunk(cx, cz)

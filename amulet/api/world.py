@@ -39,8 +39,8 @@ class World:
         else:
             self._temp_directory = temp_dir
 
-        self.world_wrapper = world_wrapper
-        self.world_wrapper.open()
+        self._world_wrapper = world_wrapper
+        self._world_wrapper.open()
 
         self.palette = BlockManager()
         self.palette.get_add_block(
@@ -61,7 +61,7 @@ class World:
     @property
     def changed(self) -> bool:
         """Has any data been modified but not saved to disk"""
-        return self.world_wrapper.changed or any(
+        return self._world_wrapper.changed or any(
             chunk is None or chunk.changed for chunk in self._chunk_cache.values()
         )
 
@@ -70,11 +70,15 @@ class World:
 
     @property
     def chunk_size(self) -> Tuple[int, int, int]:
-        return self.world_wrapper.chunk_size
+        return self._world_wrapper.chunk_size
 
     @property
     def translation_manager(self) -> TranslationManager:
-        return self.world_wrapper.translation_manager
+        return self._world_wrapper.translation_manager
+
+    @property
+    def world_wrapper(self) -> Format:
+        return self._world_wrapper
 
     def save(
         self,
@@ -94,35 +98,35 @@ class World:
                 progress_callback(chunk_index, chunk_count)
 
         if wrapper is None:
-            wrapper = self.world_wrapper
+            wrapper = self._world_wrapper
 
-        dimstr2dim = self.world_wrapper.dimensions
+        dimstr2dim = self._world_wrapper.dimensions
         dim2dimstr = {val: key for key, val in dimstr2dim.items()}
         output_dimension_map = wrapper.dimensions
 
         # perhaps make this check if the directory is the same rather than if the class is the same
-        save_as = wrapper is not self.world_wrapper
+        save_as = wrapper is not self._world_wrapper
         if save_as:
             # The input wrapper is not the same as the loading wrapper (save-as)
             # iterate through every chunk in the input world and save them to the wrapper
             log.info(
-                f"Converting world {self.world_wrapper.world_path} to world {wrapper.world_path}"
+                f"Converting world {self._world_wrapper.world_path} to world {wrapper.world_path}"
             )
             wrapper.translation_manager = (
-                self.world_wrapper.translation_manager
+                self._world_wrapper.translation_manager
             )  # TODO: this might cause issues in the future
-            for dimension in self.world_wrapper.dimensions.values():
-                chunk_count += len(list(self.world_wrapper.all_chunk_coords(dimension)))
+            for dimension in self._world_wrapper.dimensions.values():
+                chunk_count += len(list(self._world_wrapper.all_chunk_coords(dimension)))
 
-            for dimension_name, dimension in self.world_wrapper.dimensions.items():
+            for dimension_name, dimension in self._world_wrapper.dimensions.items():
                 try:
                     if dimension_name not in output_dimension_map:
                         continue
                     output_dimension = output_dimension_map[dimension_name]
-                    for cx, cz in self.world_wrapper.all_chunk_coords(dimension):
+                    for cx, cz in self._world_wrapper.all_chunk_coords(dimension):
                         log.info(f"Converting chunk {dimension_name} {cx}, {cz}")
                         try:
-                            chunk = self.world_wrapper.load_chunk(
+                            chunk = self._world_wrapper.load_chunk(
                                 cx, cz, self.palette, dimension
                             )
                             wrapper.commit_chunk(chunk, self.palette, output_dimension)
@@ -131,7 +135,7 @@ class World:
                         update_progress()
                         if not chunk_index % 10000:
                             wrapper.save()
-                            self.world_wrapper.unload()
+                            self._world_wrapper.unload()
                             wrapper.unload()
                 except LevelDoesNotExist:
                     continue
@@ -157,7 +161,7 @@ class World:
         Use changed method to check if there are any changes that should be saved before closing."""
         # TODO: add "unsaved changes" check before exit
         shutil.rmtree(self._temp_directory, ignore_errors=True)
-        self.world_wrapper.close()
+        self._world_wrapper.close()
 
     def unload(self, safe_area: Optional[Tuple[int, int, int, int, int]] = None):
         """Unload all chunks not in the safe area
@@ -173,7 +177,7 @@ class World:
                     unload_chunks.append((cd, cx, cz))
         for chunk_key in unload_chunks:
             del self._chunk_cache[chunk_key]
-        self.world_wrapper.unload()
+        self._world_wrapper.unload()
 
     def get_chunk(self, cx: int, cz: int, dimension: int = 0) -> Chunk:
         """
@@ -194,7 +198,7 @@ class World:
                 (dimension, cx, cz)
             ] = self._chunk_history_manager.get_current(*chunk_key)
         else:
-            chunk = self.world_wrapper.load_chunk(cx, cz, self.palette, dimension)
+            chunk = self._world_wrapper.load_chunk(cx, cz, self.palette, dimension)
             self._chunk_cache[(dimension, cx, cz)] = chunk
             self._chunk_history_manager.add_original_chunk(chunk, dimension)
 
