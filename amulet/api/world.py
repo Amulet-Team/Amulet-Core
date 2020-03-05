@@ -42,8 +42,8 @@ class World:
         self._world_wrapper = world_wrapper
         self._world_wrapper.open()
 
-        self.palette = BlockManager()
-        self.palette.get_add_block(
+        self._palette = BlockManager()
+        self._palette.get_add_block(
             Block(namespace="universal_minecraft", base_name="air")
         )  # ensure that index 0 is always air
 
@@ -79,6 +79,10 @@ class World:
     @property
     def world_wrapper(self) -> Format:
         return self._world_wrapper
+
+    @property
+    def palette(self) -> BlockManager:
+        return self._palette
 
     def save(
         self,
@@ -127,9 +131,9 @@ class World:
                         log.info(f"Converting chunk {dimension_name} {cx}, {cz}")
                         try:
                             chunk = self._world_wrapper.load_chunk(
-                                cx, cz, self.palette, dimension
+                                cx, cz, self._palette, dimension
                             )
-                            wrapper.commit_chunk(chunk, self.palette, output_dimension)
+                            wrapper.commit_chunk(chunk, self._palette, output_dimension)
                         except ChunkLoadError:
                             log.info(f"Error loading chunk {cx} {cz}", exc_info=True)
                         update_progress()
@@ -147,7 +151,7 @@ class World:
             if chunk is None:
                 wrapper.delete_chunk(cx, cz, dimension_out)
             elif chunk.changed:
-                wrapper.commit_chunk(deepcopy(chunk), self.palette, dimension_out)
+                wrapper.commit_chunk(deepcopy(chunk), self._palette, dimension_out)
             update_progress()
             if not chunk_index % 10000:
                 wrapper.save()
@@ -198,7 +202,7 @@ class World:
                 (dimension, cx, cz)
             ] = self._chunk_history_manager.get_current(*chunk_key)
         else:
-            chunk = self._world_wrapper.load_chunk(cx, cz, self.palette, dimension)
+            chunk = self._world_wrapper.load_chunk(cx, cz, self._palette, dimension)
             self._chunk_cache[(dimension, cx, cz)] = chunk
             self._chunk_history_manager.add_original_chunk(chunk, dimension)
 
@@ -237,7 +241,7 @@ class World:
 
         chunk = self.get_chunk(cx, cz, dimension)
         block = chunk.blocks[offset_x, y, offset_z]
-        return self.palette[block]
+        return self._palette[block]
 
     def get_chunk_boxes(
         self,
