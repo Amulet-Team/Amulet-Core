@@ -68,7 +68,7 @@ class AnvilRegion:
 
     def _load(self):
         if not self._loaded:
-            with open(self._file_path, "rb") as fp:
+            with open(self._file_path, "rb+") as fp:
                 # check that the file is a multiple of 4096 bytes and extend if not
                 # TODO: perhaps rewrite this in a way that is more readable
                 file_size = os.path.getsize(self._file_path)
