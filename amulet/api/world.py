@@ -28,6 +28,10 @@ ChunkCache = Dict[DimensionCoordinates, Optional[Chunk]]
 
 
 class BaseStructure:
+    @property
+    def chunk_size(self) -> Tuple[int, int, int]:
+        return 16, 256, 16
+
     def get_chunk(self, cx: int, cz: int) -> Chunk:
         raise NotImplementedError
 
