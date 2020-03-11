@@ -24,10 +24,30 @@ from ..world_interface.formats import Format
 
 from PyMCTranslate import TranslationManager
 
-ChunkCache = Dict[DimensionCoordinates, Union[Chunk, None]]
+ChunkCache = Dict[DimensionCoordinates, Optional[Chunk]]
 
 
-class World:
+class BaseStructure:
+    def get_chunk(self, cx: int, cz: int) -> Chunk:
+        raise NotImplementedError
+
+    def get_block(self, x: int, y: int, z: int) -> Block:
+        raise NotImplementedError
+
+    def get_chunk_boxes(
+        self,
+        selection: Union[Selection, SubSelectionBox]
+    ) -> Generator[Tuple[Chunk, SubSelectionBox], None, None]:
+        raise NotImplementedError
+
+    def get_chunk_slices(
+        self,
+        selection: Union[Selection, SubSelectionBox]
+    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice]], None, None]:
+        raise NotImplementedError
+
+
+class World(BaseStructure):
     """
     Class that handles world editing of any world format via an separate and flexible data format
     """
