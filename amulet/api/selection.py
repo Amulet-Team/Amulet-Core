@@ -124,16 +124,16 @@ class Selection:
         return False
 
     @property
-    def min(self):
+    def min(self) -> numpy.ndarray:
         if self._boxes:
-            min = numpy.min(numpy.array([box.min for box in self._boxes]), 0)
+            return numpy.min(numpy.array([box.min for box in self._boxes]), 0)
         else:
             raise ValueError('Selection does not contain any SubSelectionBoxes')
 
     @property
-    def max(self):
+    def max(self) -> numpy.ndarray:
         if self._boxes:
-            min = numpy.max(numpy.array([box.max for box in self._boxes]), 0)
+            return numpy.max(numpy.array([box.max for box in self._boxes]), 0)
         else:
             raise ValueError('Selection does not contain any SubSelectionBoxes')
 
