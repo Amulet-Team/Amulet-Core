@@ -1,5 +1,5 @@
 import copy
-from typing import Dict, Union, Generator, Tuple
+from typing import Dict, Union, Generator, Tuple, Optional
 import itertools
 
 from .selection import Selection, SubSelectionBox
@@ -40,13 +40,14 @@ class Structure(BaseStructure):
 
     def get_chunk_boxes(
         self,
-        selection: Union[Selection, SubSelectionBox]
+        selection: Optional[Union[Selection, SubSelectionBox]] = None
     ) -> Generator[Tuple[Chunk, SubSelectionBox], None, None]:
         """Given a selection will yield chunks and SubSelectionBoxes into that chunk
 
         :param selection: Selection or SubSelectionBox into the world
         """
-
+        if selection is None:
+            selection = self._selection
         if isinstance(selection, SubSelectionBox):
             selection = Selection([selection])
         selection: Selection
@@ -66,7 +67,7 @@ class Structure(BaseStructure):
 
     def get_chunk_slices(
         self,
-        selection: Union[Selection, SubSelectionBox]
+        selection: Optional[Union[Selection, SubSelectionBox]] = None
     ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice]], None, None]:
         """Given a selection will yield chunks and slices into that chunk
 
