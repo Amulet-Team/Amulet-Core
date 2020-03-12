@@ -16,6 +16,14 @@ class Structure(BaseStructure):
         self._palette = palette
         self._selection = selection
 
+    @property
+    def palette(self) -> BlockManager:
+        return self._palette
+
+    @property
+    def selection(self) -> Selection:
+        return self._selection
+
     @classmethod
     def from_world(cls, world: World, selection: Selection, dimension: int):
         data = {}
@@ -51,7 +59,7 @@ class Structure(BaseStructure):
         if isinstance(selection, SubSelectionBox):
             selection = Selection([selection])
         selection: Selection
-        for box in selection.subboxes:
+        for box in selection.subboxes:  # TODO: use the union of the given selection and the internal selection
             first_chunk = block_coords_to_chunk_coords(box.min_x, box.min_z)
             last_chunk = block_coords_to_chunk_coords(box.max_x - 1, box.max_z - 1)
             for chunk_pos in itertools.product(
