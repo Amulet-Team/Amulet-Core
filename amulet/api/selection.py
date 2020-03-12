@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import itertools
+import numpy
 
 from typing import Sequence, List, Iterator, Tuple, Union, cast, Iterable
 
@@ -121,6 +122,20 @@ class Selection:
                 return True
 
         return False
+
+    @property
+    def min(self):
+        if self._boxes:
+            min = numpy.min(numpy.array([box.min for box in self._boxes]), 0)
+        else:
+            raise ValueError('Selection does not contain any SubSelectionBoxes')
+
+    @property
+    def max(self):
+        if self._boxes:
+            min = numpy.max(numpy.array([box.max for box in self._boxes]), 0)
+        else:
+            raise ValueError('Selection does not contain any SubSelectionBoxes')
 
     def add_box(self, other: SubSelectionBox, do_merge_check: bool = True):
         """
