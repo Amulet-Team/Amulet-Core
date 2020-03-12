@@ -411,9 +411,11 @@ class World(BaseStructure):
             entities.remove(ent)
             chunk.entities = entities
 
-    def run_operation(self, operation: Callable, *args) -> None:
-        operation(self, *args)
-        self.create_undo_point()
+    def run_operation(self, operation: Callable, *args, create_undo=True) -> Optional[Any]:
+        out = operation(self, *args)
+        if create_undo:
+            self.create_undo_point()
+        return out
 
     def undo(self):
         """
