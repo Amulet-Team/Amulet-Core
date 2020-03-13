@@ -47,7 +47,7 @@ class BaseStructure:
     def get_chunk_slices(
         self,
         selection: Union[Selection, SubSelectionBox]
-    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice]], None, None]:
+    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SubSelectionBox], None, None]:
         raise NotImplementedError
 
 
@@ -301,15 +301,15 @@ class World(BaseStructure):
                 except ChunkLoadError:
                     continue
 
-                yield chunk, box
+                yield chunk, box  # TODO: modify this so that the box returned is only the section in the chunk
 
     def get_chunk_slices(
         self,
         selection: Union[Selection, SubSelectionBox],
         dimension: int = 0,
         create_missing_chunks=False,
-    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice]], None, None]:
-        """Given a selection will yield chunks and slices into that chunk
+    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SubSelectionBox], None, None]:
+        """Given a selection will yield chunks, slices into that chunk and the corresponding box
 
         :param selection: Selection or SubSelectionBox into the world
         :param dimension: The dimension to take effect in (defaults to overworld)
@@ -330,7 +330,7 @@ class World(BaseStructure):
                 s_z, self.chunk_size[2], chunk.cz
             )
 
-            yield chunk, (x_slice_for_chunk, y_slice_for_chunk, z_slice_for_chunk)
+            yield chunk, (x_slice_for_chunk, y_slice_for_chunk, z_slice_for_chunk), box
 
     def get_entities_in_box(
         self, box: "Selection"

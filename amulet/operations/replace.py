@@ -40,7 +40,7 @@ def replace(world: "World", selection: Selection, options: dict):
         map(world.palette.get_add_block, replacement_blocks)
     )
 
-    for chunk, slices in world.get_chunk_slices(selection):
+    for chunk, slices, _ in world.get_chunk_slices(selection):
         blocks = chunk.blocks[slices].copy()
         for original_id, replacement_id in zip(
             original_internal_ids, replacement_internal_ids

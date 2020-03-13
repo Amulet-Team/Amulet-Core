@@ -63,7 +63,7 @@ class WorldTestBaseCases:
                     SubSelectionBox
                 )
 
-                chunk, slices = next(
+                chunk, slices, _ = next(
                     self.world.get_chunk_slices(
                         selection
                     )

@@ -76,7 +76,7 @@ class Structure(BaseStructure):
     def get_chunk_slices(
         self,
         selection: Optional[Union[Selection, SubSelectionBox]] = None
-    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice]], None, None]:
+    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SubSelectionBox], None, None]:
         """Given a selection will yield chunks and slices into that chunk
 
         :param selection: Selection or SubSelectionBox into the world
@@ -94,4 +94,4 @@ class Structure(BaseStructure):
                 s_z, self.chunk_size[2], chunk.cz
             )
 
-            yield chunk, (x_slice_for_chunk, y_slice_for_chunk, z_slice_for_chunk)
+            yield chunk, (x_slice_for_chunk, y_slice_for_chunk, z_slice_for_chunk), box

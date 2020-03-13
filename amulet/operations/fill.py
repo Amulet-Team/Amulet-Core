@@ -18,5 +18,5 @@ def fill(world: "World", target_box: Selection, options: dict):
     fill_block: Block
     internal_id = world.palette.get_add_block(fill_block)
 
-    for chunk, slices in world.get_chunk_slices(target_box):
+    for chunk, slices, _ in world.get_chunk_slices(target_box):
         chunk.blocks[slices] = internal_id

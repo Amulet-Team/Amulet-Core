@@ -16,7 +16,7 @@ def clone(world: "World", source: Selection, target: Selection):
             raise Exception("The shape of the selections needs to be the same")
 
     # TODO: fix this. This logic only works if the boxes overlap chunks in the same way.
-    for (source_chunk, source_slice), (target_chunk, target_slice) in zip(
+    for (source_chunk, source_slice, _), (target_chunk, target_slice, _) in zip(
         world.get_chunk_slices(source), world.get_chunk_slices(target)
     ):
         target_chunk.blocks[target_slice] = source_chunk.blocks[source_slice]
