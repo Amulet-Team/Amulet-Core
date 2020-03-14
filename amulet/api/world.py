@@ -38,6 +38,29 @@ class BaseStructure:
     def get_block(self, x: int, y: int, z: int) -> Block:
         raise NotImplementedError
 
+    def _absolute_to_chunk_slice(self, slices: Tuple[slice, slice, slice], cx, cz) -> Tuple[slice, slice, slice]:
+        """Convert a slice in absolute coordinates to chunk coordinates"""
+        s_x, s_y, s_z = slices
+        x_chunk_slice = blocks_slice_to_chunk_slice(s_x, self.chunk_size[0], cx)
+        y_chunk_slice = blocks_slice_to_chunk_slice(s_y, self.chunk_size[1], 0)
+        z_chunk_slice = blocks_slice_to_chunk_slice(s_z, self.chunk_size[2], cz)
+        return x_chunk_slice, y_chunk_slice, z_chunk_slice
+
+    def _chunk_box(self, cx: int, cz: int):
+        """Get a SubSelectionBox containing the whole of a given chunk"""
+        return SubSelectionBox(
+            (
+                cx*self.chunk_size[0],
+                0,
+                cz*self.chunk_size[0]
+            ),
+            (
+                (cx+1)*self.chunk_size[0],
+                self.chunk_size[1],
+                (cz+1)*self.chunk_size[2]
+            )
+        )
+
     def get_chunk_boxes(
         self,
         selection: Union[Selection, SubSelectionBox]
@@ -286,22 +309,22 @@ class World(BaseStructure):
         for box in selection.subboxes:
             first_chunk = block_coords_to_chunk_coords(box.min_x, box.min_z)
             last_chunk = block_coords_to_chunk_coords(box.max_x-1, box.max_z-1)
-            for chunk_pos in itertools.product(
+            for cx, cz in itertools.product(
                 range(first_chunk[0], last_chunk[0] + 1),
                 range(first_chunk[1], last_chunk[1] + 1),
             ):
                 try:
-                    chunk = self.get_chunk(*chunk_pos, dimension)
+                    chunk = self.get_chunk(cx, cz, dimension)
                 except ChunkDoesNotExist:
                     if create_missing_chunks:
-                        chunk = Chunk(*chunk_pos)
+                        chunk = Chunk(cx, cz)
                         self.put_chunk(chunk, dimension)
                     else:
                         continue
                 except ChunkLoadError:
                     continue
 
-                yield chunk, box  # TODO: modify this so that the box returned is only the section in the chunk
+                yield chunk, box.intersection(self._chunk_box(cx, cz))
 
     def get_chunk_slices(
         self,
@@ -318,19 +341,9 @@ class World(BaseStructure):
         for chunk, slice in world.get_chunk_slices(selection):
             chunk.blocks[slice] = ...
         """
-        for chunk, box in self.get_chunk_boxes(
-            selection, dimension, create_missing_chunks
-        ):
-            s_x, s_y, s_z = box.slice
-            x_slice_for_chunk = blocks_slice_to_chunk_slice(
-                s_x, self.chunk_size[0], chunk.cx
-            )
-            y_slice_for_chunk = blocks_slice_to_chunk_slice(s_y, self.chunk_size[1], 0)
-            z_slice_for_chunk = blocks_slice_to_chunk_slice(
-                s_z, self.chunk_size[2], chunk.cz
-            )
-
-            yield chunk, (x_slice_for_chunk, y_slice_for_chunk, z_slice_for_chunk), box
+        for chunk, box in self.get_chunk_boxes(selection, dimension, create_missing_chunks):
+            slices = self._absolute_to_chunk_slice(box.slice, chunk.cx, chunk.cz)
+            yield chunk, slices, box
 
     def get_entities_in_box(
         self, box: "Selection"
