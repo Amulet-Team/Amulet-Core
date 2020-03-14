@@ -133,7 +133,7 @@ class Structure(BaseStructure):
             selection = self.selection.intersection(selection)
         # the offset from self.selection to the destination location
         offset = numpy.subtract(destination_origin, self.selection.min, dtype=numpy.int)
-        for chunk, box in self.get_chunk_slices(selection):
+        for chunk, box in self.get_chunk_boxes(selection):
             dst_full_box = SubSelectionBox(
                 offset + box.min,
                 offset + box.max,
