@@ -38,26 +38,41 @@ class BaseStructure:
     def get_block(self, x: int, y: int, z: int) -> Block:
         raise NotImplementedError
 
-    def _absolute_to_chunk_slice(self, slices: Tuple[slice, slice, slice], cx, cz) -> Tuple[slice, slice, slice]:
+    def _absolute_to_chunk_slice(
+        self,
+        slices: Tuple[slice, slice, slice],
+        cx: int,
+        cz: int,
+        chunk_size: Optional[Tuple[int, int, int]] = None
+    ) -> Tuple[slice, slice, slice]:
         """Convert a slice in absolute coordinates to chunk coordinates"""
+        if chunk_size is None:
+            chunk_size = self.chunk_size
         s_x, s_y, s_z = slices
-        x_chunk_slice = blocks_slice_to_chunk_slice(s_x, self.chunk_size[0], cx)
-        y_chunk_slice = blocks_slice_to_chunk_slice(s_y, self.chunk_size[1], 0)
-        z_chunk_slice = blocks_slice_to_chunk_slice(s_z, self.chunk_size[2], cz)
+        x_chunk_slice = blocks_slice_to_chunk_slice(s_x, chunk_size[0], cx)
+        y_chunk_slice = blocks_slice_to_chunk_slice(s_y, chunk_size[1], 0)
+        z_chunk_slice = blocks_slice_to_chunk_slice(s_z, chunk_size[2], cz)
         return x_chunk_slice, y_chunk_slice, z_chunk_slice
 
-    def _chunk_box(self, cx: int, cz: int):
+    def _chunk_box(
+        self,
+        cx: int,
+        cz: int,
+        chunk_size: Optional[Tuple[int, int, int]] = None
+    ):
         """Get a SubSelectionBox containing the whole of a given chunk"""
+        if chunk_size is None:
+            chunk_size = self.chunk_size
         return SubSelectionBox(
             (
-                cx*self.chunk_size[0],
+                cx*chunk_size[0],
                 0,
-                cz*self.chunk_size[0]
+                cz*chunk_size[0]
             ),
             (
-                (cx+1)*self.chunk_size[0],
-                self.chunk_size[1],
-                (cz+1)*self.chunk_size[2]
+                (cx+1)*chunk_size[0],
+                chunk_size[1],
+                (cz+1)*chunk_size[2]
             )
         )
 
