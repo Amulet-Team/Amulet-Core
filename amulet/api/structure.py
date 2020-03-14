@@ -11,10 +11,21 @@ from ..utils.world_utils import Coordinates, block_coords_to_chunk_coords, block
 
 
 class Structure(BaseStructure):
-    def __init__(self, chunks: Dict[Coordinates, Chunk], palette: BlockManager, selection: Selection):
+    def __init__(
+            self,
+            chunks: Dict[Coordinates, Chunk],
+            palette: BlockManager,
+            selection: Selection,
+            chunk_size: Tuple[int, int, int] = (16, 256, 16)
+    ):
         self._chunk_cache = chunks
         self._palette = palette
         self._selection = selection
+        self._chunk_size = chunk_size
+
+    @property
+    def chunk_size(self) -> Tuple[int, int, int]:
+        return self._chunk_size
 
     @property
     def palette(self) -> BlockManager:
@@ -30,7 +41,7 @@ class Structure(BaseStructure):
         for chunk, _ in world.get_chunk_boxes(selection, dimension):
             if chunk.coordinates not in data:
                 data[chunk.coordinates] = copy.deepcopy(chunk)
-        return cls(data, world.palette, copy.deepcopy(selection))
+        return cls(data, world.palette, copy.deepcopy(selection), world.chunk_size)
 
     def get_chunk(self, cx: int, cz: int) -> Chunk:
         if (cx, cz) in self._chunk_cache:
