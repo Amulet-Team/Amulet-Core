@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 import numpy
 
-from typing import Sequence, List, Iterator, Tuple, Union, cast, Iterable
+from typing import Sequence, Iterator, Tuple, Union, cast, Iterable, Optional
 
 from .minecraft_types import Point
 
@@ -17,14 +17,15 @@ class SubSelectionBox:
     """
 
     def __init__(self, min_point: Point, max_point: Point):
-        self.min = tuple(int(p) for p in min_point)
-        self.max = tuple(int(p) for p in max_point)
+        box = numpy.array([min_point, max_point], dtype=numpy.int)
+        self._min_x, self._min_y, self._min_z = numpy.min(box, 0).tolist()
+        self._max_x, self._max_y, self._max_z = numpy.max(box, 0).tolist()
 
     def __iter__(self):
         return itertools.product(
-            range(self.min[0], self.max[0]),
-            range(self.min[1], self.max[1]),
-            range(self.min[2], self.max[2]),
+            range(self._min_x, self._max_x),
+            range(self._min_y, self._max_y),
+            range(self._min_z, self._max_z),
         )
 
     def __str__(self):
@@ -34,9 +35,9 @@ class SubSelectionBox:
         self, item: Union[Point, Tuple[int, int, int], Tuple[float, float, float]]
     ):
         return (
-            self.min[0] <= item[0] <= self.max[0]
-            and self.min[1] <= item[1] <= self.max[1]
-            and self.min[2] <= item[2] <= self.max[2]
+            self._min_x <= item[0] <= self._max_x
+            and self._min_y <= item[1] <= self._max_y
+            and self._min_z <= item[2] <= self._max_z
         )
 
     @property
@@ -47,38 +48,70 @@ class SubSelectionBox:
         :return: The SubSelectionBoxes coordinates as slices in (x,y,z) order
         """
         return (
-            slice(self.min[0], self.max[0]),
-            slice(self.min[1], self.max[1]),
-            slice(self.min[2], self.max[2]),
+            slice(self._min_x, self._max_x),
+            slice(self._min_y, self._max_y),
+            slice(self._min_z, self._max_z),
         )
 
     @property
-    def min_x(self):
-        return self.min[0]
+    def min_x(self) -> int:
+        """The minimum x coordinate"""
+        return self._min_x
 
     @property
-    def min_y(self):
-        return self.min[1]
+    def min_y(self) -> int:
+        """The minimum y coordinate"""
+        return self._min_y
 
     @property
-    def min_z(self):
-        return self.min[2]
+    def min_z(self) -> int:
+        """The minimum z coordinate"""
+        return self._min_z
 
     @property
-    def max_x(self):
-        return self.max[0]
+    def max_x(self) -> int:
+        """The maximum x coordinate"""
+        return self._max_x
 
     @property
-    def max_y(self):
-        return self.max[1]
+    def max_y(self) -> int:
+        """The maximum y coordinate"""
+        return self._max_y
 
     @property
-    def max_z(self):
-        return self.max[2]
+    def max_z(self) -> int:
+        """The maximum z coordinate"""
+        return self._max_z
 
     @property
-    def shape(self):
-        return self.max_x - self.min_x, self.max_y - self.min_y, self.max_z - self.min_z
+    def min(self) -> Tuple[int, int, int]:
+        """The minimum point of the box"""
+        return self._min_x, self._min_y, self._min_z
+
+    @property
+    def max(self) -> Tuple[int, int, int]:
+        """The maximum point of the box"""
+        return self._max_x, self._max_y, self._max_z
+
+    @property
+    def size_x(self) -> int:
+        """The length of the box in the x axis"""
+        return self._max_x - self._min_x
+
+    @property
+    def size_y(self) -> int:
+        """The length of the box in the y axis"""
+        return self._max_y - self._min_z
+
+    @property
+    def size_z(self) -> int:
+        """The length of the box in the z axis"""
+        return self._max_z - self._min_z
+
+    @property
+    def shape(self) -> Tuple[int, int, int]:
+        """The shape of the box"""
+        return self.size_x, self.size_y, self.size_z
 
     def intersects(self, other: SubSelectionBox) -> bool:
         """
@@ -96,6 +129,20 @@ class SubSelectionBox:
             or self.max_z <= other.min_z
         )
 
+    def intersection(self, other: SubSelectionBox) -> SubSelectionBox:
+        """Get a SubSelectionBox that represents the region contained within self and other.
+        Box may be a zero width box. Use self.intersects to check that it actually intersects."""
+        return SubSelectionBox(
+            numpy.min([
+                numpy.max([self.min, other.max], 0),
+                self.max
+            ], 0),
+            numpy.max([
+                numpy.min([self.max, other.min], 0),
+                self.min
+            ], 0)
+        )
+
 
 class Selection:
     """
@@ -104,11 +151,10 @@ class Selection:
 
     def __init__(self, boxes: Sequence[SubSelectionBox] = None):
         self._boxes = []
-        if not boxes:
-            boxes = []
 
-        for box in boxes:
-            self.add_box(box)
+        if boxes:
+            for box in boxes:
+                self.add_box(box)
 
     def __iter__(self) -> Iterable[SubSelectionBox]:
         return itertools.chain.from_iterable(sorted(self._boxes, key=hash))
@@ -145,6 +191,7 @@ class Selection:
         :param other: The box to add
         :param do_merge_check: Boolean flag to merge boxes if able
         """
+        # TODO: verify that this logic actually works on more complex cases
         if do_merge_check:
             boxes_to_remove = None
             new_box = None
@@ -184,9 +231,9 @@ class Selection:
             sub_box = self._boxes[i]
             next_box = self._boxes[i + 1]
             if (
-                abs(sub_box.max[0] - next_box.min[0])
-                and abs(sub_box.max[1] - next_box.min[1])
-                and abs(sub_box.max[2] - next_box.min[2])
+                abs(sub_box.max_x - next_box.min_x)
+                and abs(sub_box.max_y - next_box.min_y)
+                and abs(sub_box.max_z - next_box.min_z)
             ):
                 return False
 
@@ -210,15 +257,24 @@ class Selection:
         """
         return cast(Iterator[SubSelectionBox], iter(sorted(self._boxes, key=hash)))
 
+    def intersects(self, other: Selection) -> bool:
+        """Check if self and other intersect"""
+        return any(self_box.intersects(other_box) for self_box in self.subboxes for other_box in other.subboxes)
+
+    def intersection(self, other: Selection) -> Selection:
+        """Get a new Selection that represents the area contained within self and other"""
+        intersection = Selection()
+        for self_box in self.subboxes:
+            for other_box in other.subboxes:
+                if self_box.intersects(other_box):
+                    intersection.add_box(self_box.intersection(other_box))
+        return intersection
+
 
 if __name__ == "__main__":
     b1 = SubSelectionBox((0, 0, 0), (4, 4, 4))
     b2 = SubSelectionBox((7, 7, 7), (10, 10, 10))
     sel_box = Selection((b1, b2))
-
-    # for obj in sel_box:
-    #    for x, y, z in obj:
-    #        print(x,y,z)
 
     for x, y, z in sel_box:
         print(x, y, z)
