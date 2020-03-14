@@ -1,13 +1,14 @@
 import copy
 from typing import Dict, Union, Generator, Tuple, Optional
 import itertools
+import numpy
 
 from .selection import Selection, SubSelectionBox
 from .world import World, BaseStructure
 from .chunk import Chunk
 from .block import Block, BlockManager
 from .errors import ChunkDoesNotExist
-from ..utils.world_utils import Coordinates, block_coords_to_chunk_coords, blocks_slice_to_chunk_slice
+from ..utils.world_utils import Coordinates, block_coords_to_chunk_coords
 
 
 class Structure(BaseStructure):
@@ -70,7 +71,8 @@ class Structure(BaseStructure):
         else:
             if isinstance(selection, SubSelectionBox):
                 selection = Selection([selection])
-            selection = self.selection.intersection(selection)  # TODO: handle the fact the the selection is not at the origin
+            # TODO: handle the fact the the selection is not at the origin
+            selection = self.selection.intersection(selection)
         selection: Selection
         for box in selection.subboxes:
             first_chunk = block_coords_to_chunk_coords(box.min_x, box.min_z)
@@ -100,3 +102,65 @@ class Structure(BaseStructure):
         for chunk, box in self.get_chunk_boxes(selection):
             slices = self._absolute_to_chunk_slice(box.slice, chunk.cx, chunk.cz)
             yield chunk, slices, box
+
+    def get_moved_chunk_slices(
+        self,
+        destination_origin: Tuple[int, int, int],
+        selection: Optional[Union[Selection, SubSelectionBox]] = None,
+        destination_chunk_shape: Optional[Tuple[int, int, int]] = None
+    ) -> Generator[
+        Tuple[
+            Chunk, Tuple[slice, slice, slice], SubSelectionBox,
+            Tuple[int, int], Tuple[slice, slice, slice], SubSelectionBox
+        ], None, None
+    ]:
+        """Iterate over a selection and return slices into the source object and destination object
+        given the origin of the destination. When copying a selection to a new area the slices will
+        only be equal if the offset is a multiple of the chunk size. This will rarely be the case
+        so the slices need to be split up into parts that intersect a chunk in the source and destination.
+        :param destination_origin: The location where the minimum point of self.selection will end up
+        :param selection: An optional selection. The overlap of this and self.selection will be used
+        :param destination_chunk_shape: the chunk shape of the destination object (defaults to self.chunk_size)
+        :return:
+        """
+        if destination_chunk_shape is None:
+            destination_chunk_shape = self.chunk_size
+
+        if selection is None:
+            selection = self.selection
+        else:
+            # TODO: handle the fact the the selection is not at the origin
+            selection = self.selection.intersection(selection)
+        # the offset from self.selection to the destination location
+        offset = numpy.subtract(destination_origin, self.selection.min, dtype=numpy.int)
+        for chunk, box in self.get_chunk_slices(selection):
+            dst_full_box = SubSelectionBox(
+                offset + box.min,
+                offset + box.max,
+            )
+
+            first_chunk = block_coords_to_chunk_coords(
+                dst_full_box.min_x,
+                dst_full_box.min_z,
+                destination_chunk_shape[0],
+                destination_chunk_shape[2]
+            )
+            last_chunk = block_coords_to_chunk_coords(
+                dst_full_box.max_x - 1,
+                dst_full_box.max_z - 1,
+                destination_chunk_shape[0],
+                destination_chunk_shape[2]
+            )
+            for cx, cz in itertools.product(
+                range(first_chunk[0], last_chunk[0] + 1),
+                range(first_chunk[1], last_chunk[1] + 1),
+            ):
+                chunk_box = self._chunk_box(cx, cz, destination_chunk_shape)
+                dst_box = chunk_box.intersection(dst_full_box)
+                src_box = SubSelectionBox(
+                    -offset + dst_box.min,
+                    -offset + dst_box.max
+                )
+                src_slices = self._absolute_to_chunk_slice(src_box.slice, chunk.cx, chunk.cz)
+                dst_slices = self._absolute_to_chunk_slice(dst_box.slice, cx, cz)
+                yield chunk, src_slices, src_box, (cx, cz), dst_slices, dst_box
