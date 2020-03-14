@@ -18,26 +18,30 @@ VERSION_GZIP = 1
 VERSION_DEFLATE = 2
 
 
-def block_coords_to_chunk_coords(x: int, z: int) -> Coordinates:
+def block_coords_to_chunk_coords(x: int, z: int, chunk_x_size: int = 16, chunk_z_size: int = 16) -> Coordinates:
     """
     Converts the supplied block coordinates into chunk coordinates
 
     :param x: The x coordinate of the block
     :param z: The z coordinate of the block
+    :param chunk_x_size: The dimension of the chunk in the x direction (Optional. Default 16)
+    :param chunk_z_size: The dimension of the chunk in the z direction (Optional. Default 16)
     :return: The resulting chunk coordinates in (x, z) order
     """
-    return x >> 4, z >> 4
+    return int(math.floor(x / chunk_x_size)), int(math.floor(z / chunk_z_size))
 
 
-def chunk_coords_to_block_coords(x: int, z: int) -> Coordinates:
+def chunk_coords_to_block_coords(x: int, z: int, chunk_x_size: int = 16, chunk_z_size: int = 16) -> Coordinates:
     """
     Converts the supplied chunk coordinates into block coordinates
 
     :param x: The x coordinate of the chunk
     :param z: The z coordinate of the chunk
+    :param chunk_x_size: The dimension of the chunk in the x direction (Optional. Default 16)
+    :param chunk_z_size: The dimension of the chunk in the z direction (Optional. Default 16)
     :return: The resulting block coordinates in (x, z) order
     """
-    return x << 4, z << 4
+    return x * chunk_x_size, z * chunk_z_size
 
 
 def chunk_coords_to_region_coords(cx: int, cz: int) -> Coordinates:
