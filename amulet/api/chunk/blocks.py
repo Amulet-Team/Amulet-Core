@@ -1,6 +1,8 @@
-from .chunk_array import ChunkArray
 import numpy
 import weakref
+
+from amulet.api.chunk.chunk_array import ChunkArray
+from amulet.api.chunk.partial_array import PartialNDArray
 
 from typing import TYPE_CHECKING
 
@@ -15,3 +17,8 @@ class Blocks(ChunkArray):
         obj = numpy.asarray(input_array).view(cls)
         obj._parent_chunk = weakref.ref(parent_chunk)
         return obj
+
+
+class Blocks2(PartialNDArray):
+    pass
+
