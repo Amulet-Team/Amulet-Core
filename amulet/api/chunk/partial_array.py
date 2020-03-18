@@ -2,6 +2,8 @@ from typing import Optional, Dict, Union, Tuple, Generator, overload, Iterable
 import numpy
 import math
 
+flat_16 = numpy.zeros((16, 16), dtype=bool)
+
 
 class PartialNDArray:
     """This is designed to be similar to a numpy.ndarray but work in a very different way.
@@ -162,7 +164,7 @@ class PartialNDArray:
             return self.get_sub_chunk(cy)[block]
         else:
             x, y, z = slices
-            x_dim, z_dim = numpy.zeros((16, 16), dtype=bool)[x, z].shape
+            x_dim, z_dim = flat_16[x, z].shape
             if isinstance(y, slice):
                 y_min = y.start or 0
                 y_dim = (y.stop or 256) - y_min
