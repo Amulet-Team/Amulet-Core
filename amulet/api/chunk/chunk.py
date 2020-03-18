@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Union, Iterable, List
+from typing import Tuple, Union, Iterable
 import time
 import numpy
 import pickle
@@ -140,7 +140,7 @@ class Chunk:
             self._biomes = Biomes(self, value)
 
     @property
-    def entities(self) -> List[Entity]:
+    def entities(self) -> Iterable[Entity]:
         """
         Property that returns the chunk's entity list. Setting this property replaces the chunk's entity list
         :return: A list of all the entities contained in the chunk
