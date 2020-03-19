@@ -17,6 +17,6 @@ def clone(world: "World", source: Selection, target: dict):
         dst_slices,
         _,
     ) in structure.get_moved_chunk_slices(dst_location):
-        world.get_chunk(dst_cx, dst_cz).blocks[dst_slices] = src_chunk.blocks[
+        world.get_chunk(dst_cx, dst_cz).blocks2[dst_slices] = src_chunk.blocks[
             src_slices
         ]
