@@ -99,73 +99,81 @@ class Translator:
             else:
                 palette_mappings[i] = finished.get_add_block(output_block)
                 if output_block_entity:
-                    for x, y, z in zip(*numpy.where(chunk.blocks == i)):
+                    for cy in chunk.blocks2.sub_chunks:
+                        for x, y, z in zip(*numpy.where(chunk.blocks2.get_sub_chunk(cy) == i)):
+                            output_block_entities.append(
+                                output_block_entity.new_at_location(
+                                    x + chunk.cx * 16, y + cy * 16, z + chunk.cz * 16
+                                )
+                            )
+
+        block_mappings = {}
+        for index in todo:
+            for cy in chunk.blocks2.sub_chunks:
+                for x, y, z in zip(*numpy.where(chunk.blocks2.get_sub_chunk(cy) == index)):
+                    y += cy * 16
+
+                    def get_block_at(
+                        pos: Tuple[int, int, int]
+                    ) -> Tuple[Block, Union[None, BlockEntity]]:
+                        """Get a block at a location relative to the current block"""
+                        nonlocal x, y, z, palette, chunk, cy
+                        chunk: Chunk
+
+                        # calculate position relative to chunk base
+                        dx, dy, dz = pos
+                        dx += x
+                        dy += y
+                        dz += z
+
+                        abs_x = dx + chunk.cx * 16
+                        abs_y = dy
+                        abs_z = dz + chunk.cz * 16
+
+                        # calculate relative chunk position
+                        cx = dx // 16
+                        cz = dz // 16
+                        if cx == 0 and cz == 0:
+                            # if it is the current chunk
+                            block = palette[chunk.blocks2[dx, dy, dz]]
+                            if isinstance(
+                                block, tuple
+                            ):  # bedrock palette is made of (version, Block). TODO: Perhaps find a better way to do this
+                                block = block[0][1]
+                            return block, chunk.block_entities.get((abs_x, abs_y, abs_z))
+
+                        # if it is in a different chunk
+                        local_chunk, local_palette = get_chunk_callback(cx, cz)
+                        block = local_palette[local_chunk.blocks2[dx % 16, dy, dz % 16]]
+                        if isinstance(
+                            block, tuple
+                        ):  # bedrock palette is made of (version, Block). TODO: Perhaps find a better way to do this
+                            block = block[0][1]
+                        return (
+                            block,
+                            local_chunk.block_entities.get((abs_x, abs_y, abs_z)),
+                        )
+
+                    input_block = palette[chunk.blocks2[x, y, z]]
+                    output_block, output_block_entity, output_entities, extra = translate(
+                        input_block, get_block_at
+                    )
+                    if output_block_entity:
                         output_block_entities.append(
                             output_block_entity.new_at_location(
                                 x + chunk.cx * 16, y, z + chunk.cz * 16
                             )
                         )
+                    block_mappings[(x, y, z)] = finished.get_add_block(output_block)
 
-        block_mappings = {}
-        for index in todo:
-            for x, y, z in zip(*numpy.where(chunk.blocks == index)):
-
-                def get_block_at(
-                    pos: Tuple[int, int, int]
-                ) -> Tuple[Block, Union[None, BlockEntity]]:
-                    """Get a block at a location relative to the current block"""
-                    nonlocal x, y, z, palette, chunk
-
-                    # calculate position relative to chunk base
-                    dx, dy, dz = pos
-                    dx += x
-                    dy += y
-                    dz += z
-
-                    abs_x = dx + chunk.cx * 16
-                    abs_y = dy
-                    abs_z = dz + chunk.cz * 16
-
-                    # calculate relative chunk position
-                    cx = dx // 16
-                    cz = dz // 16
-                    if cx == 0 and cz == 0:
-                        # if it is the current chunk
-                        block = palette[chunk.blocks[dx % 16, dy, dz % 16]]
-                        if isinstance(
-                            block, tuple
-                        ):  # bedrock palette is made of (version, Block). TODO: Perhaps find a better way to do this
-                            block = block[0][1]
-                        return block, chunk.block_entities.get((abs_x, abs_y, abs_z))
-
-                    # if it is in a different chunk
-                    local_chunk, local_palette = get_chunk_callback(cx, cz)
-                    block = local_palette[local_chunk.blocks[dx % 16, dy, dz % 16]]
-                    if isinstance(
-                        block, tuple
-                    ):  # bedrock palette is made of (version, Block). TODO: Perhaps find a better way to do this
-                        block = block[0][1]
-                    return (
-                        block,
-                        local_chunk.block_entities.get((abs_x, abs_y, abs_z)),
-                    )
-
-                input_block = palette[chunk.blocks[x, y, z]]
-                output_block, output_block_entity, output_entities, extra = translate(
-                    input_block, get_block_at
-                )
-                if output_block_entity:
-                    output_block_entities.append(
-                        output_block_entity.new_at_location(
-                            x + chunk.cx * 16, y, z + chunk.cz * 16
-                        )
-                    )
-                block_mappings[(x, y, z)] = finished.get_add_block(output_block)
-
-        for old, new in palette_mappings.items():
-            chunk.blocks[chunk.blocks == old] = new
+        for cy in chunk.blocks2.sub_chunks:
+            old_blocks = chunk.blocks2.get_sub_chunk(cy)
+            new_blocks = numpy.zeros(old_blocks.shape)
+            for old, new in palette_mappings.items():
+                new_blocks[old_blocks == old] = new
+            chunk.blocks2.add_sub_chunk(cy, new_blocks)
         for (x, y, z), new in block_mappings.items():
-            chunk.blocks[x, y, z] = new
+            chunk.blocks2[x, y, z] = new
         chunk.block_entities = output_block_entities
         return chunk, numpy.array(finished.blocks())
 
