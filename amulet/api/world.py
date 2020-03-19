@@ -204,7 +204,7 @@ class World(BaseStructure):
             if chunk is None:
                 wrapper.delete_chunk(cx, cz, dimension_out)
             elif chunk.changed:
-                wrapper.commit_chunk(deepcopy(chunk), self._palette, dimension_out)
+                wrapper.commit_chunk(chunk, self._palette, dimension_out)
             update_progress()
             if not chunk_index % 10000:
                 wrapper.save()

@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import os
 from typing import Tuple, Any, Union, Generator, Dict
-
+import copy
 import numpy
+
 import PyMCTranslate
 
 from amulet import log
@@ -239,7 +240,8 @@ class Format:
             [global_palette.get_add_block(block) for block in chunk_palette],
             dtype=numpy.uint,
         )
-        chunk.blocks = chunk_to_global[chunk.blocks].reshape(16, 256, 16)
+        for cy in chunk.blocks2:
+            chunk.blocks2.add_sub_chunk(cy, chunk_to_global[chunk.blocks2.get_sub_chunk(cy)])
         chunk.changed = False
         return chunk
 
@@ -255,7 +257,7 @@ class Format:
         :return:
         """
         try:
-            self._commit_chunk(chunk, dimension, global_palette)
+            self._commit_chunk(copy.deepcopy(chunk), dimension, global_palette)
         except Exception:
             log.error(f"Error saving chunk {chunk}", exc_info=True)
         self._changed = True
@@ -281,12 +283,18 @@ class Format:
         translator, chunk_version = interface.get_translator(self.max_world_version())
 
         # convert the global indexes into local indexes and a local palette
-        blocks_shape = chunk.blocks.shape
-        chunk_palette, blocks_ = numpy.unique(chunk.blocks, return_inverse=True)
-        chunk.blocks = blocks_.reshape(blocks_shape)
-        chunk_palette = numpy.array(
-            [global_palette[int_id] for int_id in chunk_palette]
-        )
+        palette = []
+        palette_len = 0
+        for cy in chunk.blocks2:
+            sub_chunk_palette, sub_chunk = numpy.unique(chunk.blocks2.get_sub_chunk(cy), return_inverse=True)
+            chunk.blocks2.add_sub_chunk(cy, sub_chunk + palette_len)
+            palette_len += len(sub_chunk_palette)
+            palette.append(sub_chunk_palette)
+
+        chunk_palette, lut = numpy.unique(numpy.concatenate(palette), return_inverse=True)
+        for cy in chunk.blocks2:
+            chunk.blocks2.add_sub_chunk(cy, lut[chunk.blocks2.get_sub_chunk(cy)])
+        chunk_palette = numpy.vectorize(global_palette.__getitem__)(chunk_palette)
 
         def get_chunk_callback(x: int, z: int) -> Tuple[Chunk, BlockManager]:
             # conversion from universal should not require any data outside the block
