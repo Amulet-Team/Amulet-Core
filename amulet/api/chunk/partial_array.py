@@ -33,6 +33,9 @@ class PartialNDArray:
     def __contains__(self, item: int):
         return item in self._sub_chunks
 
+    def __iter__(self):
+        raise NotImplementedError('Please use sub_chunks method if this is what you are trying to achieve')
+
     @property
     def sub_chunks(self) -> Iterable[int]:
         return self._sub_chunks.keys()
@@ -90,8 +93,8 @@ class PartialNDArray:
         None, None
     ]:
         slices = self._fix_slices(slices)
-        if isinstance(slices[1], int):
-            yield slices[1] >> 4, (slices[0], slice(slices[1] % 16, 1 + slices[1] % 16), slices[2])
+        if isinstance(slices[1], (int, numpy.integer)):
+            yield slices[1] >> 4, (slices[0], slices[1] % 16, slices[2])
         elif isinstance(slices[1], slice):
             y_slice: slice = slices[1]
             start = y_slice.start
@@ -125,21 +128,22 @@ class PartialNDArray:
         ],
         value: Union[int, numpy.integer, numpy.ndarray]
     ):
-        if isinstance(value, int) or isinstance(value, numpy.integer):
+        if isinstance(value, (int, numpy.integer)):
             for cy, slices in self._get_slices(slices):
                 self.get_create_sub_chunk(cy)[slices] = value
         elif isinstance(value, numpy.ndarray):
             x, y, z = slices
-            if isinstance(y, slice):
+            if isinstance(y, int):
+                for cy, chunk_slices in self._get_slices(slices):
+                    self.get_create_sub_chunk(cy)[chunk_slices] = value
+            elif isinstance(y, slice):
                 y_min = y.start or 0
-            else:
-                y_min = y
-            for cy, chunk_slices in self._get_slices(slices):
-                chunk_y_start = cy * 16 + chunk_slices[1].start - y_min
-                chunk_y_stop = cy * 16 + chunk_slices[1].stop - y_min
-                if chunk_slices[1].step:
-                    chunk_y_stop //= abs(chunk_slices[1].step)
-                self.get_create_sub_chunk(cy)[chunk_slices] = value[:, chunk_y_start:chunk_y_stop, :]
+                for cy, chunk_slices in self._get_slices(slices):
+                    chunk_y_start = cy * 16 + chunk_slices[1].start - y_min
+                    chunk_y_stop = cy * 16 + chunk_slices[1].stop - y_min
+                    if chunk_slices[1].step:
+                        chunk_y_stop //= abs(chunk_slices[1].step)
+                    self.get_create_sub_chunk(cy)[chunk_slices] = value[:, chunk_y_start:chunk_y_stop, :]
         else:
             raise ValueError(f'expected int or numpy.ndarray but got {value.__class__.__name__}')
 
@@ -165,7 +169,7 @@ class PartialNDArray:
         self,
         slices
     ):
-        if all(isinstance(i, int) for i in slices):
+        if all(isinstance(i, (int, numpy.integer)) for i in slices):
             cy, block = next(self._get_slices(slices))
             if cy in self:
                 return self._sub_chunks[cy][block]
