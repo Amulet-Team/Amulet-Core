@@ -39,7 +39,7 @@ class Chunk:
             self._cz,
             self._changed_time,
             self._changed,
-            {cy: self.blocks.get_sub_chunk(cy) for cy in self.blocks.sub_chunks},
+            {cy: self.blocks2.get_sub_chunk(cy) for cy in self.blocks2.sub_chunks},
             numpy.array(self.biomes),
             self._entities.data,
             tuple(self._block_entities.data.values()),
@@ -136,7 +136,7 @@ class Chunk:
             self._biomes = Biomes(self, value)
 
     @property
-    def entities(self) -> Iterable[Entity]:
+    def entities(self) -> EntityList:
         """
         Property that returns the chunk's entity list. Setting this property replaces the chunk's entity list
         :return: A list of all the entities contained in the chunk
