@@ -167,7 +167,7 @@ class Translator:
 
         for cy in chunk.blocks2.sub_chunks:
             old_blocks = chunk.blocks2.get_sub_chunk(cy)
-            new_blocks = numpy.zeros(old_blocks.shape)
+            new_blocks = numpy.zeros(old_blocks.shape, dtype=old_blocks.dtype)
             for old, new in palette_mappings.items():
                 new_blocks[old_blocks == old] = new
             chunk.blocks2.add_sub_chunk(cy, new_blocks)
