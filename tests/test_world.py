@@ -86,8 +86,7 @@ class WorldTestBaseCases:
             subbx1 = SubSelectionBox((1, 70, 3), (2, 71, 4))
             src_box = Selection((subbx1,))
 
-            subbx2 = SubSelectionBox((1, 70, 5), (2, 71, 6))
-            target_box = Selection((subbx2,))
+            target = {"x": 1, "y": 70, "z": 5}
 
             self.assertEqual(
                 "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
@@ -97,7 +96,7 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 5).blockstate,
             )
 
-            self.world.run_operation(clone, src_box, target_box)
+            self.world.run_operation(clone, src_box, target)
 
             self.assertEqual(
                 "universal_minecraft:stone", self.world.get_block(1, 70, 5).blockstate

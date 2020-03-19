@@ -8,7 +8,7 @@ from PyMCTranslate.py3.translation_manager import Version
 from amulet.world_interface.chunk.translators import Translator
 from amulet.api.block import Block, blockstate_to_block
 
-water = blockstate_to_block("minecraft:water[level=\"0\"]")
+water = blockstate_to_block('minecraft:water[level="0"]')
 
 
 class JavaBlockstateTranslator(Translator):

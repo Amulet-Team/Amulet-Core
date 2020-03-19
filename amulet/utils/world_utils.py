@@ -18,7 +18,9 @@ VERSION_GZIP = 1
 VERSION_DEFLATE = 2
 
 
-def block_coords_to_chunk_coords(x: int, z: int, chunk_x_size: int = 16, chunk_z_size: int = 16) -> Coordinates:
+def block_coords_to_chunk_coords(
+    x: int, z: int, chunk_x_size: int = 16, chunk_z_size: int = 16
+) -> Coordinates:
     """
     Converts the supplied block coordinates into chunk coordinates
 
@@ -31,7 +33,9 @@ def block_coords_to_chunk_coords(x: int, z: int, chunk_x_size: int = 16, chunk_z
     return int(math.floor(x / chunk_x_size)), int(math.floor(z / chunk_z_size))
 
 
-def chunk_coords_to_block_coords(x: int, z: int, chunk_x_size: int = 16, chunk_z_size: int = 16) -> Coordinates:
+def chunk_coords_to_block_coords(
+    x: int, z: int, chunk_x_size: int = 16, chunk_z_size: int = 16
+) -> Coordinates:
     """
     Converts the supplied chunk coordinates into block coordinates
 
