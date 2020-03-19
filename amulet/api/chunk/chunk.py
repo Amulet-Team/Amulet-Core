@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Union, Iterable
+from typing import Tuple, Union, Iterable, Optional, Dict
 import time
 import numpy
 import pickle
@@ -39,7 +39,7 @@ class Chunk:
             self._cz,
             self._changed_time,
             self._changed,
-            numpy.array(self.blocks),
+            {cy: self.blocks.get_sub_chunk(cy) for cy in self.blocks.sub_chunks},
             numpy.array(self.biomes),
             self._entities.data,
             tuple(self._block_entities.data.values()),
@@ -102,24 +102,20 @@ class Chunk:
         return self._changed_time
 
     @property
-    def blocks(self) -> Blocks:
+    def blocks2(self) -> Blocks:
         if self._blocks is None:
-            self._blocks = Blocks(self)
+            self._blocks = Blocks()
         return self._blocks
 
-    @blocks.setter
-    def blocks(self, value: numpy.ndarray):
-        if not numpy.array_equal(self._blocks, value):
-            assert value.shape == (
-                16,
-                256,
-                16,
-            ), "Shape of the Block array must be (16, 256, 16)"
-            assert numpy.issubdtype(
-                value.dtype, numpy.integer
-            ), "dtype must be an unsigned integer"
-            self.changed = True
-            self._blocks = Blocks(self, value)
+    @blocks2.setter
+    def blocks2(
+        self,
+        value: Optional[Union[
+            Dict[int, numpy.ndarray],
+            Blocks
+        ]]
+    ):
+        self._blocks = Blocks(value)
 
     @property
     def biomes(self) -> Biomes:
