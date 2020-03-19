@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple
+from typing import Tuple, Dict
 
 import numpy
 import amulet_nbt as nbt
@@ -43,17 +43,17 @@ class AnvilNAInterface(BaseAnvilInterface):
 
     def _decode_blocks(
         self, chunk_sections: nbt.TAG_List
-    ) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    ) -> Tuple[Dict[int, numpy.ndarray], numpy.ndarray]:
         if chunk_sections is None:
             raise NotImplementedError(
                 "We don't support reading chunks that never been edited in Minecraft before"
             )
 
-        blocks = numpy.zeros((256, 16, 16), dtype=int)
-        block_data = numpy.zeros((256, 16, 16), dtype=numpy.uint8)
+        blocks: Dict[int, numpy.ndarray] = {}
+        palette = []
+        palette_len = 0
         for section in chunk_sections:
-            lower = section["Y"].value << 4
-            upper = (section["Y"].value + 1) << 4
+            cy: int = section["Y"].value
 
             section_blocks = numpy.frombuffer(
                 section["Blocks"].value, dtype=numpy.uint8
@@ -75,16 +75,18 @@ class AnvilNAInterface(BaseAnvilInterface):
 
                 section_blocks |= add_blocks.astype(numpy.uint16) << 8
 
-            blocks[lower:upper, :, :] = section_blocks
-            block_data[lower:upper, :, :] = section_data
+            (section_palette, blocks[cy]) = world_utils.fast_unique(
+                numpy.transpose((section_blocks << 4) + section_data, (2, 0, 1))
+            )
+            blocks[cy] += palette_len
+            palette_len += len(section_palette)
+            palette.append(section_palette)
 
-        blocks = numpy.swapaxes(blocks.swapaxes(0, 1), 0, 2)
-        block_data = numpy.swapaxes(block_data.swapaxes(0, 1), 0, 2)
-
-        blocks = (blocks << 4) + block_data
-        palette, blocks = world_utils.fast_unique(blocks)
-        palette = numpy.array([[elm >> 4, elm & 15] for elm in palette])
-        return blocks, palette
+        final_palette, lut = numpy.unique(numpy.concatenate(palette), return_inverse=True)
+        final_palette: numpy.ndarray = numpy.array([final_palette >> 4, final_palette & 15]).T
+        for cy in blocks:
+            blocks[cy] = lut[blocks[cy]]
+        return blocks, final_palette
 
     def _encode_blocks(
         self, blocks: numpy.ndarray, palette: numpy.ndarray

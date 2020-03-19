@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import List, Tuple, Union, Iterable
+from typing import List, Tuple, Union, Iterable, Dict
 import numpy
 
 import amulet_nbt as amulet_nbt
 
 import amulet
 from amulet.api.chunk import Chunk
+from amulet.api.chunk.blocks import Blocks
 from amulet.api.block import Block
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
@@ -128,7 +129,7 @@ class BaseAnvilInterface(Interface):
                 "Sections|(Blocks,Data,Add)",
                 "Sections|(BlockStates,Palette)",
             ]:
-                chunk.blocks, palette = self._decode_blocks(data["Level"]["Sections"])
+                chunk.blocks2, palette = self._decode_blocks(data["Level"]["Sections"])
             else:
                 raise Exception(f'Unsupported block format {self.features["blocks"]}')
 
@@ -292,7 +293,7 @@ class BaseAnvilInterface(Interface):
             "Sections|(Blocks,Data,Add)",
             "Sections|(BlockStates,Palette)",
         ]:
-            data["Level"]["Sections"] = self._encode_blocks(chunk.blocks, palette)
+            data["Level"]["Sections"] = self._encode_blocks(chunk.blocks2, palette)
         else:
             raise Exception(f'Unsupported block format {self.features["blocks"]}')
 
@@ -431,7 +432,7 @@ class BaseAnvilInterface(Interface):
 
     def _decode_blocks(
         self, chunk_sections: amulet_nbt.TAG_List
-    ) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    ) -> Tuple[Dict[int, numpy.ndarray], numpy.ndarray]:
         raise NotImplementedError
 
     def _encode_blocks(
