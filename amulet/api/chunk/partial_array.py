@@ -30,13 +30,19 @@ class PartialNDArray:
     def _chunk_y(self, block_y: int) -> int:
         return block_y >> 4
 
+    def __contains__(self, item: int):
+        return item in self._sub_chunks
+
     @property
     def sub_chunks(self) -> Iterable[int]:
         return self._sub_chunks.keys()
 
-    def get_sub_chunk(self, cy: int) -> numpy.ndarray:
+    def get_create_sub_chunk(self, cy: int) -> numpy.ndarray:
         if cy not in self._sub_chunks:
             self._sub_chunks[cy] = numpy.zeros((16, 16, 16), dtype=numpy.uint64)
+        return self._sub_chunks[cy]
+
+    def get_sub_chunk(self, cy: int) -> numpy.ndarray:
         return self._sub_chunks[cy]
 
     def add_sub_chunk(self, cy: int, sub_chunk: numpy.ndarray):
@@ -121,7 +127,7 @@ class PartialNDArray:
     ):
         if isinstance(value, int) or isinstance(value, numpy.integer):
             for cy, slices in self._get_slices(slices):
-                self.get_sub_chunk(cy)[slices] = value
+                self.get_create_sub_chunk(cy)[slices] = value
         elif isinstance(value, numpy.ndarray):
             x, y, z = slices
             if isinstance(y, slice):
@@ -133,7 +139,7 @@ class PartialNDArray:
                 chunk_y_stop = cy * 16 + chunk_slices[1].stop - y_min
                 if chunk_slices[1].step:
                     chunk_y_stop //= abs(chunk_slices[1].step)
-                self.get_sub_chunk(cy)[chunk_slices] = value[:, chunk_y_start:chunk_y_stop, :]
+                self.get_create_sub_chunk(cy)[chunk_slices] = value[:, chunk_y_start:chunk_y_stop, :]
         else:
             raise ValueError(f'expected int or numpy.ndarray but got {value.__class__.__name__}')
 
@@ -161,7 +167,10 @@ class PartialNDArray:
     ):
         if all(isinstance(i, int) for i in slices):
             cy, block = next(self._get_slices(slices))
-            return self.get_sub_chunk(cy)[block]
+            if cy in self:
+                return self._sub_chunks[cy][block]
+            else:
+                return 0
         else:
             x, y, z = slices
             x_dim, z_dim = flat_16[x, z].shape
@@ -179,9 +188,10 @@ class PartialNDArray:
                 z_dim
             ), dtype=numpy.uint64)
             for cy, chunk_slices in self._get_slices(slices):
-                chunk_y = cy * 16 + chunk_slices[1].start - y_min
-                chunk_array: numpy.ndarray = self.get_sub_chunk(cy)[chunk_slices]
-                array[:, chunk_y:chunk_y + chunk_array.shape[1], :] = chunk_array
+                if cy in self:
+                    chunk_y = cy * 16 + chunk_slices[1].start - y_min
+                    chunk_array: numpy.ndarray = self.get_sub_chunk(cy)[chunk_slices]
+                    array[:, chunk_y:chunk_y + chunk_array.shape[1], :] = chunk_array
             return array
 
 
