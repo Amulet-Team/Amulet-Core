@@ -9,6 +9,7 @@ from amulet.utils import world_utils
 from amulet.world_interface.chunk.interfaces.anvil.base_anvil_interface import (
     BaseAnvilInterface,
 )
+from amulet.api.chunk.blocks import Blocks
 
 
 class AnvilNAInterface(BaseAnvilInterface):
@@ -89,24 +90,24 @@ class AnvilNAInterface(BaseAnvilInterface):
         return blocks, final_palette
 
     def _encode_blocks(
-        self, blocks: numpy.ndarray, palette: numpy.ndarray
+        self, blocks: Blocks, palette: numpy.ndarray
     ) -> nbt.TAG_List:
-        blocks = palette[blocks]
         sections = nbt.TAG_List()
-        blocks = numpy.swapaxes(blocks.swapaxes(0, 2), 0, 1)
-        block_array, data_array = blocks[:, :, :, 0], blocks[:, :, :, 1]
-        for y in range(16):  # perhaps find a way to do this dynamically
-            block_sub_array = block_array[y * 16: y * 16 + 16, :, :].ravel()
-            data_sub_array = data_array[y * 16: y * 16 + 16, :, :].ravel()
-            if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
-                continue
-            section = nbt.TAG_Compound()
-            section["Y"] = nbt.TAG_Byte(y)
-            section["Blocks"] = nbt.TAG_Byte_Array(block_sub_array.astype("uint8"))
-            section["Data"] = nbt.TAG_Byte_Array(
-                world_utils.to_nibble_array(data_sub_array)
-            )
-            sections.append(section)
+        for cy in range(16):  # perhaps find a way to do this dynamically
+            if cy in blocks:
+                block_sub_array = palette[numpy.transpose(blocks.get_sub_chunk(cy), (1, 2, 0)).ravel()]
+
+                block_sub_array = block_sub_array[:, 0]
+                data_sub_array = block_sub_array[:, 1]
+                if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
+                    continue
+                section = nbt.TAG_Compound()
+                section["Y"] = nbt.TAG_Byte(cy)
+                section["Blocks"] = nbt.TAG_Byte_Array(block_sub_array.astype("uint8"))
+                section["Data"] = nbt.TAG_Byte_Array(
+                    world_utils.to_nibble_array(data_sub_array)
+                )
+                sections.append(section)
 
         return sections
 

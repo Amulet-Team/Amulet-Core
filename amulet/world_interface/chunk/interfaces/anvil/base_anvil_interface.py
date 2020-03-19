@@ -436,6 +436,6 @@ class BaseAnvilInterface(Interface):
         raise NotImplementedError
 
     def _encode_blocks(
-        self, blocks: numpy.ndarray, palette: numpy.ndarray
+        self, blocks: Blocks, palette: numpy.ndarray
     ) -> amulet_nbt.TAG_List:
         raise NotImplementedError
