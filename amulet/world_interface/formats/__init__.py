@@ -240,7 +240,7 @@ class Format:
             [global_palette.get_add_block(block) for block in chunk_palette],
             dtype=numpy.uint,
         )
-        for cy in chunk.blocks2:
+        for cy in chunk.blocks2.sub_chunks:
             chunk.blocks2.add_sub_chunk(cy, chunk_to_global[chunk.blocks2.get_sub_chunk(cy)])
         chunk.changed = False
         return chunk
@@ -285,14 +285,14 @@ class Format:
         # convert the global indexes into local indexes and a local palette
         palette = []
         palette_len = 0
-        for cy in chunk.blocks2:
+        for cy in chunk.blocks2.sub_chunks:
             sub_chunk_palette, sub_chunk = numpy.unique(chunk.blocks2.get_sub_chunk(cy), return_inverse=True)
             chunk.blocks2.add_sub_chunk(cy, sub_chunk + palette_len)
             palette_len += len(sub_chunk_palette)
             palette.append(sub_chunk_palette)
 
         chunk_palette, lut = numpy.unique(numpy.concatenate(palette), return_inverse=True)
-        for cy in chunk.blocks2:
+        for cy in chunk.blocks2.sub_chunks:
             chunk.blocks2.add_sub_chunk(cy, lut[chunk.blocks2.get_sub_chunk(cy)])
         chunk_palette = numpy.vectorize(global_palette.__getitem__)(chunk_palette)
 
