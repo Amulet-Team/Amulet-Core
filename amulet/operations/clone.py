@@ -1,22 +1,13 @@
 from amulet.api.selection import Selection
+from amulet.api.structure import Structure
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from amulet.api.world import World
 
 
-def clone(world: "World", source: Selection, target: Selection):
-    if len(source) != len(target):
-        raise Exception(
-            "Source Box and Target Box must have the same amount of subboxes"
-        )
-
-    for source_box, target_box in zip(source.subboxes, target.subboxes):
-        if source_box.shape != target_box.shape:
-            raise Exception("The shape of the selections needs to be the same")
-
-    # TODO: fix this. This logic only works if the boxes overlap chunks in the same way.
-    for (source_chunk, source_slice, _), (target_chunk, target_slice, _) in zip(
-        world.get_chunk_slices(source), world.get_chunk_slices(target)
-    ):
-        target_chunk.blocks[target_slice] = source_chunk.blocks[source_slice]
+def clone(world: "World", source: Selection, target: dict):
+    dst_location = (target.get('x', 0), target.get('y', 0), target.get('z', 0))
+    structure = Structure.from_world(world, source, 0)
+    for src_chunk, src_slices, _, (dst_cx, dst_cz), dst_slices, _ in structure.get_moved_chunk_slices(dst_location):
+        world.get_chunk(dst_cx, dst_cz).blocks[dst_slices] = src_chunk.blocks[src_slices]
