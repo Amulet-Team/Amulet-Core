@@ -20,3 +20,4 @@ def fill(world: "World", target_box: Selection, options: dict):
 
     for chunk, slices, _ in world.get_chunk_slices(target_box):
         chunk.blocks2[slices] = internal_id
+        chunk.changed = True

@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
     w = load_world(sys.argv[1])
     c = w.get_chunk(cx, cz)
-    for block in c.blocks2[:4096:16].ravel():  # the blockstates of one vertical column
+    for block in c.blocks2[0, :, 0].ravel():  # the blockstates of one vertical column
         print(w.palette[block])
     air = w.palette.get_add_block(
         Block(namespace="universal_minecraft", base_name="air")
@@ -82,5 +82,5 @@ if __name__ == "__main__":
 
     w = load_world(sys.argv[1])
     c = w.get_chunk(cx, cz)
-    for block in c.blocks2[:4096:16].ravel():  # the blockstates of one vertical column
+    for block in c.blocks2[0, :, 0].ravel():  # the blockstates of one vertical column
         print(w.palette[block])
