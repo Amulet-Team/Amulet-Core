@@ -14,7 +14,12 @@ import amulet_nbt as nbt
 from amulet.world_interface.formats import Format
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, check_one_exists, load_leveldat
-from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist, ChunkLoadError, ChunkSaveError
+from amulet.api.errors import (
+    ChunkDoesNotExist,
+    LevelDoesNotExist,
+    ChunkLoadError,
+    ChunkSaveError,
+)
 
 
 class AnvilRegion:
@@ -139,7 +144,7 @@ class AnvilRegion:
                 mcc_chunks = set()
             for key, val in self._committed_chunks.items():
                 if val[1]:
-                    if self._mcc or len(val[1]) <= 2**20 - 4:
+                    if self._mcc or len(val[1]) <= 2 ** 20 - 4:
                         self._chunks[key] = val
                 elif key in self._chunks:
                     del self._chunks[key]
@@ -152,9 +157,17 @@ class AnvilRegion:
                 if buffer:
                     index = cx + (cz << 5)
                     buffer_size = len(buffer)
-                    if buffer_size > 2**20 - 4:  # if mcc is false the chunks that are too large should have already been removed.
+                    if (
+                        buffer_size > 2 ** 20 - 4
+                    ):  # if mcc is false the chunks that are too large should have already been removed.
                         mcc_chunks.remove((cx, cz))
-                        with open(os.path.join(os.path.dirname(self._file_path), f'c.{cx+self.rx*32}.{cz+self.rz*32}.mcc'), 'wb') as f:
+                        with open(
+                            os.path.join(
+                                os.path.dirname(self._file_path),
+                                f"c.{cx+self.rx*32}.{cz+self.rz*32}.mcc",
+                            ),
+                            "wb",
+                        ) as f:
                             f.write(buffer[1:])
                         buffer = bytes([buffer[0] | 128])  # set the external flag
                         buffer_size = 1
@@ -180,7 +193,10 @@ class AnvilRegion:
 
             # remove orphaned mcc files
             for cx, cz in mcc_chunks:
-                mcc_path = os.path.join(os.path.dirname(self._file_path), f'c.{cx + self.rx * 32}.{cz + self.rz * 32}.mcc')
+                mcc_path = os.path.join(
+                    os.path.dirname(self._file_path),
+                    f"c.{cx + self.rx * 32}.{cz + self.rz * 32}.mcc",
+                )
                 if os.path.isfile(mcc_path):
                     os.remove(mcc_path)
 
@@ -197,10 +213,15 @@ class AnvilRegion:
             self._load()
             data = self._chunks[(cx, cz)][1]
             compress_type, data = data[0], data[1:]
-            if self._mcc and compress_type & 128:  # if the mcc file is supported and the mcc bit is set
-                mcc_path = os.path.join(os.path.dirname(self._file_path), f'c.{cx+self.rx*32}.{cz+self.rz*32}.mcc')
+            if (
+                self._mcc and compress_type & 128
+            ):  # if the mcc file is supported and the mcc bit is set
+                mcc_path = os.path.join(
+                    os.path.dirname(self._file_path),
+                    f"c.{cx+self.rx*32}.{cz+self.rz*32}.mcc",
+                )
                 if os.path.isfile(mcc_path):
-                    with open(mcc_path, 'rb') as f:
+                    with open(mcc_path, "rb") as f:
                         data = f.read()
                     compress_type = compress_type & 127
             if data:
@@ -249,7 +270,7 @@ class AnvilLevelManager:
                     continue
                 self._regions[(rx, rz)] = AnvilRegion(
                     os.path.join(self._directory, "region", region_file_name),
-                    mcc=self._mcc
+                    mcc=self._mcc,
                 )
 
     def all_chunk_coords(self) -> Generator[Tuple[int, int]]:
@@ -399,7 +420,9 @@ class AnvilFormat(Format):
             f.flush()
             os.fsync(f.fileno())
 
-        mcc = self._max_world_version()[1] > 2203  # the real number might actually be lower
+        mcc = (
+            self._max_world_version()[1] > 2203
+        )  # the real number might actually be lower
 
         # load all the levels
         self._levels: Dict[int, AnvilLevelManager] = {

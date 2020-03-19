@@ -7,7 +7,16 @@ if TYPE_CHECKING:
 
 
 def clone(world: "World", source: Selection, target: dict):
-    dst_location = (target.get('x', 0), target.get('y', 0), target.get('z', 0))
+    dst_location = (target.get("x", 0), target.get("y", 0), target.get("z", 0))
     structure = Structure.from_world(world, source, 0)
-    for src_chunk, src_slices, _, (dst_cx, dst_cz), dst_slices, _ in structure.get_moved_chunk_slices(dst_location):
-        world.get_chunk(dst_cx, dst_cz).blocks[dst_slices] = src_chunk.blocks[src_slices]
+    for (
+        src_chunk,
+        src_slices,
+        _,
+        (dst_cx, dst_cz),
+        dst_slices,
+        _,
+    ) in structure.get_moved_chunk_slices(dst_location):
+        world.get_chunk(dst_cx, dst_cz).blocks[dst_slices] = src_chunk.blocks[
+            src_slices
+        ]

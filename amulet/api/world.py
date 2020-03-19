@@ -43,7 +43,7 @@ class BaseStructure:
         slices: Tuple[slice, slice, slice],
         cx: int,
         cz: int,
-        chunk_size: Optional[Tuple[int, int, int]] = None
+        chunk_size: Optional[Tuple[int, int, int]] = None,
     ) -> Tuple[slice, slice, slice]:
         """Convert a slice in absolute coordinates to chunk coordinates"""
         if chunk_size is None:
@@ -55,37 +55,26 @@ class BaseStructure:
         return x_chunk_slice, y_chunk_slice, z_chunk_slice
 
     def _chunk_box(
-        self,
-        cx: int,
-        cz: int,
-        chunk_size: Optional[Tuple[int, int, int]] = None
+        self, cx: int, cz: int, chunk_size: Optional[Tuple[int, int, int]] = None
     ):
         """Get a SubSelectionBox containing the whole of a given chunk"""
         if chunk_size is None:
             chunk_size = self.chunk_size
         return SubSelectionBox(
-            (
-                cx*chunk_size[0],
-                0,
-                cz*chunk_size[0]
-            ),
-            (
-                (cx+1)*chunk_size[0],
-                chunk_size[1],
-                (cz+1)*chunk_size[2]
-            )
+            (cx * chunk_size[0], 0, cz * chunk_size[0]),
+            ((cx + 1) * chunk_size[0], chunk_size[1], (cz + 1) * chunk_size[2]),
         )
 
     def get_chunk_boxes(
-        self,
-        selection: Union[Selection, SubSelectionBox]
+        self, selection: Union[Selection, SubSelectionBox]
     ) -> Generator[Tuple[Chunk, SubSelectionBox], None, None]:
         raise NotImplementedError
 
     def get_chunk_slices(
-        self,
-        selection: Union[Selection, SubSelectionBox]
-    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SubSelectionBox], None, None]:
+        self, selection: Union[Selection, SubSelectionBox]
+    ) -> Generator[
+        Tuple[Chunk, Tuple[slice, slice, slice], SubSelectionBox], None, None
+    ]:
         raise NotImplementedError
 
 
@@ -182,7 +171,9 @@ class World(BaseStructure):
                 self._world_wrapper.translation_manager
             )  # TODO: this might cause issues in the future
             for dimension in self._world_wrapper.dimensions.values():
-                chunk_count += len(list(self._world_wrapper.all_chunk_coords(dimension)))
+                chunk_count += len(
+                    list(self._world_wrapper.all_chunk_coords(dimension))
+                )
 
             for dimension_name, dimension in self._world_wrapper.dimensions.items():
                 try:
@@ -323,7 +314,7 @@ class World(BaseStructure):
         selection: Selection
         for box in selection.subboxes:
             first_chunk = block_coords_to_chunk_coords(box.min_x, box.min_z)
-            last_chunk = block_coords_to_chunk_coords(box.max_x-1, box.max_z-1)
+            last_chunk = block_coords_to_chunk_coords(box.max_x - 1, box.max_z - 1)
             for cx, cz in itertools.product(
                 range(first_chunk[0], last_chunk[0] + 1),
                 range(first_chunk[1], last_chunk[1] + 1),
@@ -346,7 +337,9 @@ class World(BaseStructure):
         selection: Union[Selection, SubSelectionBox],
         dimension: int = 0,
         create_missing_chunks=False,
-    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SubSelectionBox], None, None]:
+    ) -> Generator[
+        Tuple[Chunk, Tuple[slice, slice, slice], SubSelectionBox], None, None
+    ]:
         """Given a selection will yield chunks, slices into that chunk and the corresponding box
 
         :param selection: Selection or SubSelectionBox into the world
@@ -356,7 +349,9 @@ class World(BaseStructure):
         for chunk, slice in world.get_chunk_slices(selection):
             chunk.blocks[slice] = ...
         """
-        for chunk, box in self.get_chunk_boxes(selection, dimension, create_missing_chunks):
+        for chunk, box in self.get_chunk_boxes(
+            selection, dimension, create_missing_chunks
+        ):
             slices = self._absolute_to_chunk_slice(box.slice, chunk.cx, chunk.cz)
             yield chunk, slices, box
 
@@ -439,7 +434,9 @@ class World(BaseStructure):
             entities.remove(ent)
             chunk.entities = entities
 
-    def run_operation(self, operation: Callable, *args, create_undo=True) -> Optional[Any]:
+    def run_operation(
+        self, operation: Callable, *args, create_undo=True
+    ) -> Optional[Any]:
         out = operation(self, *args)
         if create_undo:
             self.create_undo_point()

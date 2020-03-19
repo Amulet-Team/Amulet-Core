@@ -13,11 +13,11 @@ from ..utils.world_utils import Coordinates, block_coords_to_chunk_coords
 
 class Structure(BaseStructure):
     def __init__(
-            self,
-            chunks: Dict[Coordinates, Chunk],
-            palette: BlockManager,
-            selection: Selection,
-            chunk_size: Tuple[int, int, int] = (16, 256, 16)
+        self,
+        chunks: Dict[Coordinates, Chunk],
+        palette: BlockManager,
+        selection: Selection,
+        chunk_size: Tuple[int, int, int] = (16, 256, 16),
     ):
         self._chunk_cache = chunks
         self._palette = palette
@@ -59,8 +59,7 @@ class Structure(BaseStructure):
         return self._palette[block]
 
     def get_chunk_boxes(
-        self,
-        selection: Optional[Union[Selection, SubSelectionBox]] = None
+        self, selection: Optional[Union[Selection, SubSelectionBox]] = None
     ) -> Generator[Tuple[Chunk, SubSelectionBox], None, None]:
         """Given a selection will yield chunks and SubSelectionBoxes into that chunk
 
@@ -89,9 +88,10 @@ class Structure(BaseStructure):
                 yield chunk, box.intersection(self._chunk_box(cx, cz))
 
     def get_chunk_slices(
-        self,
-        selection: Optional[Union[Selection, SubSelectionBox]] = None
-    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SubSelectionBox], None, None]:
+        self, selection: Optional[Union[Selection, SubSelectionBox]] = None
+    ) -> Generator[
+        Tuple[Chunk, Tuple[slice, slice, slice], SubSelectionBox], None, None
+    ]:
         """Given a selection will yield chunks and slices into that chunk
 
         :param selection: Selection or SubSelectionBox into the world
@@ -107,12 +107,18 @@ class Structure(BaseStructure):
         self,
         destination_origin: Tuple[int, int, int],
         selection: Optional[Union[Selection, SubSelectionBox]] = None,
-        destination_chunk_shape: Optional[Tuple[int, int, int]] = None
+        destination_chunk_shape: Optional[Tuple[int, int, int]] = None,
     ) -> Generator[
         Tuple[
-            Chunk, Tuple[slice, slice, slice], SubSelectionBox,
-            Tuple[int, int], Tuple[slice, slice, slice], SubSelectionBox
-        ], None, None
+            Chunk,
+            Tuple[slice, slice, slice],
+            SubSelectionBox,
+            Tuple[int, int],
+            Tuple[slice, slice, slice],
+            SubSelectionBox,
+        ],
+        None,
+        None,
     ]:
         """Iterate over a selection and return slices into the source object and destination object
         given the origin of the destination. When copying a selection to a new area the slices will
@@ -134,22 +140,19 @@ class Structure(BaseStructure):
         # the offset from self.selection to the destination location
         offset = numpy.subtract(destination_origin, self.selection.min, dtype=numpy.int)
         for chunk, box in self.get_chunk_boxes(selection):
-            dst_full_box = SubSelectionBox(
-                offset + box.min,
-                offset + box.max,
-            )
+            dst_full_box = SubSelectionBox(offset + box.min, offset + box.max,)
 
             first_chunk = block_coords_to_chunk_coords(
                 dst_full_box.min_x,
                 dst_full_box.min_z,
                 destination_chunk_shape[0],
-                destination_chunk_shape[2]
+                destination_chunk_shape[2],
             )
             last_chunk = block_coords_to_chunk_coords(
                 dst_full_box.max_x - 1,
                 dst_full_box.max_z - 1,
                 destination_chunk_shape[0],
-                destination_chunk_shape[2]
+                destination_chunk_shape[2],
             )
             for cx, cz in itertools.product(
                 range(first_chunk[0], last_chunk[0] + 1),
@@ -157,10 +160,9 @@ class Structure(BaseStructure):
             ):
                 chunk_box = self._chunk_box(cx, cz, destination_chunk_shape)
                 dst_box = chunk_box.intersection(dst_full_box)
-                src_box = SubSelectionBox(
-                    -offset + dst_box.min,
-                    -offset + dst_box.max
+                src_box = SubSelectionBox(-offset + dst_box.min, -offset + dst_box.max)
+                src_slices = self._absolute_to_chunk_slice(
+                    src_box.slice, chunk.cx, chunk.cz
                 )
-                src_slices = self._absolute_to_chunk_slice(src_box.slice, chunk.cx, chunk.cz)
                 dst_slices = self._absolute_to_chunk_slice(dst_box.slice, cx, cz)
                 yield chunk, src_slices, src_box, (cx, cz), dst_slices, dst_box

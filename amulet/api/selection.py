@@ -133,14 +133,8 @@ class SubSelectionBox:
         """Get a SubSelectionBox that represents the region contained within self and other.
         Box may be a zero width box. Use self.intersects to check that it actually intersects."""
         return SubSelectionBox(
-            numpy.min([
-                numpy.max([self.min, other.max], 0),
-                self.max
-            ], 0),
-            numpy.max([
-                numpy.min([self.max, other.min], 0),
-                self.min
-            ], 0)
+            numpy.min([numpy.max([self.min, other.max], 0), self.max], 0),
+            numpy.max([numpy.min([self.max, other.min], 0), self.min], 0),
         )
 
 
@@ -174,14 +168,14 @@ class Selection:
         if self._boxes:
             return numpy.min(numpy.array([box.min for box in self._boxes]), 0)
         else:
-            raise ValueError('Selection does not contain any SubSelectionBoxes')
+            raise ValueError("Selection does not contain any SubSelectionBoxes")
 
     @property
     def max(self) -> numpy.ndarray:
         if self._boxes:
             return numpy.max(numpy.array([box.max for box in self._boxes]), 0)
         else:
-            raise ValueError('Selection does not contain any SubSelectionBoxes')
+            raise ValueError("Selection does not contain any SubSelectionBoxes")
 
     def add_box(self, other: SubSelectionBox, do_merge_check: bool = True):
         """
@@ -259,7 +253,11 @@ class Selection:
 
     def intersects(self, other: Selection) -> bool:
         """Check if self and other intersect"""
-        return any(self_box.intersects(other_box) for self_box in self.subboxes for other_box in other.subboxes)
+        return any(
+            self_box.intersects(other_box)
+            for self_box in self.subboxes
+            for other_box in other.subboxes
+        )
 
     def intersection(self, other: Selection) -> Selection:
         """Get a new Selection that represents the area contained within self and other"""
