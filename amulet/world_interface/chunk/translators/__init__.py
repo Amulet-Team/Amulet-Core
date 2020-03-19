@@ -118,7 +118,6 @@ class Translator:
                     ) -> Tuple[Block, Union[None, BlockEntity]]:
                         """Get a block at a location relative to the current block"""
                         nonlocal x, y, z, palette, chunk, cy
-                        chunk: Chunk
 
                         # calculate position relative to chunk base
                         dx, dy, dz = pos
