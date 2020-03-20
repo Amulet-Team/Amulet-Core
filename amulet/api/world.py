@@ -30,7 +30,6 @@ ChunkCache = Dict[DimensionCoordinates, Optional[Chunk]]
 class BaseStructure:
     @property
     def chunk_size(self) -> Tuple[int, int, int]:
-        # TODO: remove the assumption that the chunk starts at 0, 0, 0
         return 16, 256, 16
 
     def get_chunk(self, cx: int, cz: int) -> Chunk:
@@ -51,12 +50,8 @@ class BaseStructure:
             chunk_size = self.chunk_size
         s_x, s_y, s_z = slices
         x_chunk_slice = blocks_slice_to_chunk_slice(s_x, chunk_size[0], cx)
-        if chunk_size[1] is None:
-            y_chunk_slice = s_y
-        else:
-            y_chunk_slice = blocks_slice_to_chunk_slice(s_y, chunk_size[1], 0)
         z_chunk_slice = blocks_slice_to_chunk_slice(s_z, chunk_size[2], cz)
-        return x_chunk_slice, y_chunk_slice, z_chunk_slice
+        return x_chunk_slice, s_y, z_chunk_slice
 
     def _chunk_box(
         self, cx: int, cz: int, chunk_size: Optional[Tuple[int, Union[int, None], int]] = None
@@ -64,15 +59,9 @@ class BaseStructure:
         """Get a SubSelectionBox containing the whole of a given chunk"""
         if chunk_size is None:
             chunk_size = self.chunk_size
-        if chunk_size[1] is None:
-            y_min = -(2**30)
-            y_max = 2**30
-        else:
-            y_min = 0
-            y_max = chunk_size[1]
         return SubSelectionBox(
-            (cx * chunk_size[0], y_min, cz * chunk_size[0]),
-            ((cx + 1) * chunk_size[0], y_max, (cz + 1) * chunk_size[2]),
+            (cx * chunk_size[0], -(2**30), cz * chunk_size[0]),
+            ((cx + 1) * chunk_size[0], 2**30, (cz + 1) * chunk_size[2]),
         )
 
     def get_chunk_boxes(
