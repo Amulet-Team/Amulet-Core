@@ -11,7 +11,7 @@ def clone(world: "World", source: Selection, target: dict):
     structure = Structure.from_world(world, source, 0)
     for src_chunk, src_slices, _, (dst_cx, dst_cz), dst_slices, _ in structure.get_moved_chunk_slices(dst_location):
         dst_chunk = world.get_chunk(dst_cx, dst_cz)
-        dst_chunk.blocks2[dst_slices] = src_chunk.blocks2[
+        dst_chunk.blocks[dst_slices] = src_chunk.blocks[
             src_slices
         ]
         dst_chunk.changed = True

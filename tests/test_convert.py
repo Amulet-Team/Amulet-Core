@@ -26,14 +26,14 @@ if __name__ == "__main__":
                 print(f"Loading chunk at {cx}, {cz}")
                 chunk = world.get_chunk(cx, cz)
                 print("A vertical column of blocks in the chunk:")
-                for block in chunk.blocks2[0, :, 0].ravel():  # the blockstates of one vertical column
+                for block in chunk.blocks[0, :, 0].ravel():  # the blockstates of one vertical column
                     print(world.palette[block])
                 air = world.palette.get_add_block(
                     Block(namespace="universal_minecraft", base_name="air")
                 )
                 print("Filling chunk with blocks")
                 if mode == "air":
-                    chunk.blocks2[0, 0, 0] = air
+                    chunk.blocks[0, 0, 0] = air
                 elif mode == "random_chunk":
                     blocks = numpy.random.randint(
                         0, len(world.palette.blocks()), size=(16, 256, 16)
@@ -41,9 +41,9 @@ if __name__ == "__main__":
                     for index, block in enumerate(world.palette.blocks()):
                         if block.base_name in ["lava", "water"]:
                             blocks[blocks == index] = air
-                    chunk.blocks2[:, :, :] = blocks
+                    chunk.blocks[:, :, :] = blocks
                 elif mode == "stone":
-                    chunk.blocks2[:, :, :] = world.palette.get_add_block(
+                    chunk.blocks[:, :, :] = world.palette.get_add_block(
                         Block(namespace="universal_minecraft", base_name="stone")
                     )
                 chunk.changed = True
@@ -54,7 +54,7 @@ if __name__ == "__main__":
                 print("Reloading world and printing new blocks")
                 world = load_world(world_path)
                 chunk = world.get_chunk(cx, cz)
-                for block in chunk.blocks2[0, :, 0].ravel():  # the blockstates of one vertical column
+                for block in chunk.blocks[0, :, 0].ravel():  # the blockstates of one vertical column
                     print(world.palette[block])
             else:
                 print("Not enough arguments given. Format must be:")
@@ -114,16 +114,16 @@ if __name__ == "__main__":
                 world.save()
                 for cx, cz in world.world_wrapper.all_chunk_coords():
                     chunk = world.get_chunk(cx, cz)
-                    chunk.blocks2[0, :, 0] = world.palette.get_add_block(
+                    chunk.blocks[0, :, 0] = world.palette.get_add_block(
                         Block(namespace="universal_minecraft", base_name="stone")
                     )
-                    chunk.blocks2[0, :, 15] = world.palette.get_add_block(
+                    chunk.blocks[0, :, 15] = world.palette.get_add_block(
                         Block(namespace="universal_minecraft", base_name="stone")
                     )
-                    chunk.blocks2[15, :, 0] = world.palette.get_add_block(
+                    chunk.blocks[15, :, 0] = world.palette.get_add_block(
                         Block(namespace="universal_minecraft", base_name="stone")
                     )
-                    chunk.blocks2[15, :, 15] = world.palette.get_add_block(
+                    chunk.blocks[15, :, 15] = world.palette.get_add_block(
                         Block(namespace="universal_minecraft", base_name="stone")
                     )
                 world.save()
@@ -166,10 +166,10 @@ if __name__ == "__main__":
                     Block(namespace="universal_minecraft", base_name="grass_block")
                 )
 
-                chunk.blocks2[:, 0, :] = bedrock
-                chunk.blocks2[:, 1:3, :] = stone
-                chunk.blocks2[:, 3:6, :] = dirt
-                chunk.blocks2[:, 6, :] = grass
+                chunk.blocks[:, 0, :] = bedrock
+                chunk.blocks[:, 1:3, :] = stone
+                chunk.blocks[:, 3:6, :] = dirt
+                chunk.blocks[:, 6, :] = grass
 
                 world.put_chunk(chunk)
 

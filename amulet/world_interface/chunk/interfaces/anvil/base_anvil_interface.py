@@ -129,7 +129,7 @@ class BaseAnvilInterface(Interface):
                 "Sections|(Blocks,Data,Add)",
                 "Sections|(BlockStates,Palette)",
             ]:
-                chunk.blocks2, palette = self._decode_blocks(data["Level"]["Sections"])
+                chunk.blocks, palette = self._decode_blocks(data["Level"]["Sections"])
             else:
                 raise Exception(f'Unsupported block format {self.features["blocks"]}')
 
@@ -293,7 +293,7 @@ class BaseAnvilInterface(Interface):
             "Sections|(Blocks,Data,Add)",
             "Sections|(BlockStates,Palette)",
         ]:
-            data["Level"]["Sections"] = self._encode_blocks(chunk.blocks2, palette)
+            data["Level"]["Sections"] = self._encode_blocks(chunk.blocks, palette)
         else:
             raise Exception(f'Unsupported block format {self.features["blocks"]}')
 

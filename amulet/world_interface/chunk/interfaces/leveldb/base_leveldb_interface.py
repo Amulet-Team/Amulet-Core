@@ -107,7 +107,7 @@ class BaseLevelDBInterface(Interface):
 
         if self.features["terrain"] in ["2farray", "2f1palette", "2fnpalette"]:
             subchunks = [data.get(b"\x2F" + bytes([i]), None) for i in range(16)]
-            chunk.blocks2, palette = self._load_subchunks(subchunks)
+            chunk.blocks, palette = self._load_subchunks(subchunks)
         else:
             raise Exception
 
@@ -166,11 +166,11 @@ class BaseLevelDBInterface(Interface):
 
         # terrain data
         if self.features["terrain"] == "2farray":
-            terrain = self._save_subchunks_0(chunk.blocks2, palette)
+            terrain = self._save_subchunks_0(chunk.blocks, palette)
         elif self.features["terrain"] == "2f1palette":
-            terrain = self._save_subchunks_1(chunk.blocks2, palette)
+            terrain = self._save_subchunks_1(chunk.blocks, palette)
         elif self.features["terrain"] == "2fnpalette":
-            terrain = self._save_subchunks_8(chunk.blocks2, palette)
+            terrain = self._save_subchunks_8(chunk.blocks, palette)
         else:
             raise Exception
 

@@ -293,7 +293,7 @@ class World(BaseStructure):
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
 
         chunk = self.get_chunk(cx, cz, dimension)
-        block = chunk.blocks2[offset_x, y, offset_z]
+        block = chunk.blocks[offset_x, y, offset_z]
         return self._palette[block]
 
     def get_chunk_boxes(

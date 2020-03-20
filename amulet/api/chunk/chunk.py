@@ -39,7 +39,7 @@ class Chunk:
             self._cz,
             self._changed_time,
             self._changed,
-            {cy: self.blocks2.get_sub_chunk(cy) for cy in self.blocks2.sub_chunks},
+            {cy: self.blocks.get_sub_chunk(cy) for cy in self.blocks.sub_chunks},
             numpy.array(self.biomes),
             self._entities.data,
             tuple(self._block_entities.data.values()),
@@ -56,7 +56,7 @@ class Chunk:
         self = cls(*chunk_data[:2])
         (
             self.changed,
-            self.blocks2,
+            self.blocks,
             self.biomes,
             self.entities,
             self.block_entities,
@@ -102,13 +102,13 @@ class Chunk:
         return self._changed_time
 
     @property
-    def blocks2(self) -> Blocks:
+    def blocks(self) -> Blocks:
         if self._blocks is None:
             self._blocks = Blocks()
         return self._blocks
 
-    @blocks2.setter
-    def blocks2(
+    @blocks.setter
+    def blocks(
         self,
         value: Optional[Union[
             Dict[int, numpy.ndarray],
