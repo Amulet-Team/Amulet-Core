@@ -56,7 +56,7 @@ class Chunk:
         self = cls(*chunk_data[:2])
         (
             self.changed,
-            self.blocks,
+            self.blocks2,
             self.biomes,
             self.entities,
             self.block_entities,
