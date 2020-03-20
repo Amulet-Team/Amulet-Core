@@ -318,7 +318,6 @@ class BaseLevelDBInterface(Interface):
                         )
                     sub_chunk_palette.append(palette_data_out)
 
-                cy *= 16
                 if storage_count == 1:
                     blocks[cy] = sub_chunk_blocks[:, :, :, 0] + len(
                         palette
