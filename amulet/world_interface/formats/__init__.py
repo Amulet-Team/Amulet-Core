@@ -82,7 +82,7 @@ class Format:
         raise NotImplementedError
 
     @property
-    def chunk_size(self) -> Tuple[int, int, int]:
+    def chunk_size(self) -> Tuple[int, Union[int, None], int]:
         return 16, 256, 16
 
     @property
