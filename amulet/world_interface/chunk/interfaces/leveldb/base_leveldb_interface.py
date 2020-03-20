@@ -238,8 +238,7 @@ class BaseLevelDBInterface(Interface):
 
                     The block will be either a Block class for the newer formats or a tuple of two ints for the older formats
         """
-
-        blocks = numpy.zeros((16, 256, 16), dtype=numpy.uint32)
+        blocks: Dict[int, numpy.ndarray] = {}
         palette: List[
             Tuple[
                 Tuple[
@@ -259,7 +258,7 @@ class BaseLevelDBInterface(Interface):
                 ),
             )
         ]
-        for y, data in enumerate(subchunks):
+        for cy, data in enumerate(subchunks):
             if data is None:
                 continue
 
@@ -276,7 +275,7 @@ class BaseLevelDBInterface(Interface):
                     storage_count, data = data[1], data[2:]
 
                 sub_chunk_blocks = numpy.zeros(
-                    (16, 16, 16, storage_count), dtype=numpy.int
+                    (16, 16, 16, storage_count), dtype=numpy.uint32
                 )
                 sub_chunk_palette: List[
                     List[Tuple[Union[None, Tuple[int, int, int, int]], Block]]
@@ -319,9 +318,9 @@ class BaseLevelDBInterface(Interface):
                         )
                     sub_chunk_palette.append(palette_data_out)
 
-                y *= 16
+                cy *= 16
                 if storage_count == 1:
-                    blocks[:, y: y + 16, :] = sub_chunk_blocks[:, :, :, 0] + len(
+                    blocks[cy] = sub_chunk_blocks[:, :, :, 0] + len(
                         palette
                     )
                     palette += [(val,) for val in sub_chunk_palette[0]]
@@ -332,7 +331,7 @@ class BaseLevelDBInterface(Interface):
                         return_inverse=True,
                         axis=0,
                     )
-                    blocks[:, y: y + 16, :] = sub_chunk_blocks.reshape(
+                    blocks[cy] = sub_chunk_blocks.reshape(
                         16, 16, 16
                     ) + len(palette)
                     palette += [
@@ -355,14 +354,15 @@ class BaseLevelDBInterface(Interface):
         # palette should now look like this
         # List[
         #   Tuple[
-        #       Tuple[version, Block]
+        #       Tuple[version, Block], ...
         #   ]
         # ]
 
-        numpy_palette, inverse = brute_sort_objects(palette)
-        blocks = inverse[blocks]
+        numpy_palette, lut = brute_sort_objects(palette)
+        for cy in blocks.keys():
+            blocks[cy] = lut[blocks[cy]]
 
-        return blocks.astype(f"uint{get_smallest_dtype(blocks)}"), numpy_palette
+        return blocks, numpy_palette
 
     def _save_subchunks_0(
         self, blocks: Blocks, palette: numpy.ndarray
