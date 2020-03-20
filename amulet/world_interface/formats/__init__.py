@@ -71,14 +71,14 @@ class Format:
         """Platform string ("bedrock" / "java" / ...)"""
         raise NotImplementedError
 
-    def max_world_version(self) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
+    def max_world_version(self) -> Tuple[str, Union[int, Tuple[int, ...]]]:
         """The version the world was last opened in
         This should be greater than or equal to the chunk versions found within"""
         if self._max_world_version_ is None:
             self._max_world_version_ = self._max_world_version()
         return self._max_world_version()
 
-    def _max_world_version(self) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
+    def _max_world_version(self) -> Tuple[str, Union[int, Tuple[int, ...]]]:
         raise NotImplementedError
 
     @property

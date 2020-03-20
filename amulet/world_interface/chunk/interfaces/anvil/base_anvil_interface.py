@@ -387,7 +387,7 @@ class BaseAnvilInterface(Interface):
 
         return entities_out
 
-    def _encode_entities(self, entities: List[Entity]) -> amulet_nbt.TAG_List:
+    def _encode_entities(self, entities: Iterable[Entity]) -> amulet_nbt.TAG_List:
         entities_out = []
         for entity in entities:
             nbt = self._encode_entity(
