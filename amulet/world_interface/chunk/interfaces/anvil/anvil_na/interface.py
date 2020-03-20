@@ -63,7 +63,7 @@ class AnvilNAInterface(BaseAnvilInterface):
             section_data = numpy.frombuffer(section["Data"].value, dtype=numpy.uint8)
             del section["Data"]
             section_blocks = section_blocks.reshape((16, 16, 16))
-            section_blocks.astype(numpy.uint16, copy=False)
+            section_blocks = section_blocks.astype(numpy.uint16)
 
             section_data = world_utils.from_nibble_array(section_data)
             section_data = section_data.reshape((16, 16, 16))
@@ -97,8 +97,8 @@ class AnvilNAInterface(BaseAnvilInterface):
             if cy in blocks:
                 block_sub_array = palette[numpy.transpose(blocks.get_sub_chunk(cy), (1, 2, 0)).ravel()]
 
-                block_sub_array = block_sub_array[:, 0]
                 data_sub_array = block_sub_array[:, 1]
+                block_sub_array = block_sub_array[:, 0]
                 if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
                     continue
                 section = nbt.TAG_Compound()
