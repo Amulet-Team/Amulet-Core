@@ -296,9 +296,9 @@ class Format:
             chunk.blocks2.add_sub_chunk(cy, lut[chunk.blocks2.get_sub_chunk(cy)])
         chunk_palette = numpy.vectorize(global_palette.__getitem__)(chunk_palette)
 
-        def get_chunk_callback(x: int, z: int) -> Tuple[Chunk, BlockManager]:
+        def get_chunk_callback(_: int, __: int) -> Tuple[Chunk, numpy.ndarray]:
             # conversion from universal should not require any data outside the block
-            return chunk, global_palette
+            return chunk, numpy.array(global_palette.blocks())
 
         # translate from universal format to version format
         chunk, chunk_palette = translator.from_universal(
