@@ -41,8 +41,11 @@ def replace(world: "World", selection: Selection, options: dict):
     )
 
     for chunk, slices, _ in world.get_chunk_slices(selection):
-        blocks = chunk.blocks[slices].copy()
+        old_blocks = chunk.blocks[slices]
+        new_blocks = old_blocks.copy()
         for original_id, replacement_id in zip(
             original_internal_ids, replacement_internal_ids
         ):
-            chunk.blocks[slices][blocks == original_id] = replacement_id
+            new_blocks[old_blocks == original_id] = replacement_id
+        chunk.blocks[slices] = new_blocks
+        chunk.changed = True

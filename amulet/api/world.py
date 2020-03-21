@@ -43,26 +43,25 @@ class BaseStructure:
         slices: Tuple[slice, slice, slice],
         cx: int,
         cz: int,
-        chunk_size: Optional[Tuple[int, int, int]] = None,
+        chunk_size: Optional[Tuple[int, Union[int, None], int]] = None,
     ) -> Tuple[slice, slice, slice]:
         """Convert a slice in absolute coordinates to chunk coordinates"""
         if chunk_size is None:
             chunk_size = self.chunk_size
         s_x, s_y, s_z = slices
         x_chunk_slice = blocks_slice_to_chunk_slice(s_x, chunk_size[0], cx)
-        y_chunk_slice = blocks_slice_to_chunk_slice(s_y, chunk_size[1], 0)
         z_chunk_slice = blocks_slice_to_chunk_slice(s_z, chunk_size[2], cz)
-        return x_chunk_slice, y_chunk_slice, z_chunk_slice
+        return x_chunk_slice, s_y, z_chunk_slice
 
     def _chunk_box(
-        self, cx: int, cz: int, chunk_size: Optional[Tuple[int, int, int]] = None
+        self, cx: int, cz: int, chunk_size: Optional[Tuple[int, Union[int, None], int]] = None
     ):
         """Get a SubSelectionBox containing the whole of a given chunk"""
         if chunk_size is None:
             chunk_size = self.chunk_size
         return SubSelectionBox(
-            (cx * chunk_size[0], 0, cz * chunk_size[0]),
-            ((cx + 1) * chunk_size[0], chunk_size[1], (cz + 1) * chunk_size[2]),
+            (cx * chunk_size[0], -(2**30), cz * chunk_size[0]),
+            ((cx + 1) * chunk_size[0], 2**30, (cz + 1) * chunk_size[2]),
         )
 
     def get_chunk_boxes(
@@ -204,7 +203,7 @@ class World(BaseStructure):
             if chunk is None:
                 wrapper.delete_chunk(cx, cz, dimension_out)
             elif chunk.changed:
-                wrapper.commit_chunk(deepcopy(chunk), self._palette, dimension_out)
+                wrapper.commit_chunk(chunk, self._palette, dimension_out)
             update_progress()
             if not chunk_index % 10000:
                 wrapper.save()
@@ -284,11 +283,6 @@ class World(BaseStructure):
         :return: The blockstate name as a string
         """
         # TODO: move this logic into the chunk class and have this method call that
-        if not (0 <= y <= self.chunk_size[1]):
-            raise IndexError(
-                f"The supplied Y coordinate must be between 0 and {self.chunk_size[1]}"
-            )
-
         cx, cz = block_coords_to_chunk_coords(x, z)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
 

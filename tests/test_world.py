@@ -45,9 +45,6 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 7).blockstate,
             )
 
-            with self.assertRaises(IndexError):
-                self.world.get_block(300, 300, 300)
-
         def test_get_blocks(self):
             selection_box = SubSelectionBox((0, 0, 0), (10, 10, 10))
             for selection in [Selection([selection_box]), selection_box]:

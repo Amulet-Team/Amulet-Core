@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import List, Tuple, Union, Iterable
+from typing import List, Tuple, Union, Iterable, Dict
 import numpy
 
 import amulet_nbt as amulet_nbt
 
 import amulet
 from amulet.api.chunk import Chunk
+from amulet.api.chunk.blocks import Blocks
 from amulet.api.block import Block
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
@@ -386,7 +387,7 @@ class BaseAnvilInterface(Interface):
 
         return entities_out
 
-    def _encode_entities(self, entities: List[Entity]) -> amulet_nbt.TAG_List:
+    def _encode_entities(self, entities: Iterable[Entity]) -> amulet_nbt.TAG_List:
         entities_out = []
         for entity in entities:
             nbt = self._encode_entity(
@@ -431,10 +432,10 @@ class BaseAnvilInterface(Interface):
 
     def _decode_blocks(
         self, chunk_sections: amulet_nbt.TAG_List
-    ) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    ) -> Tuple[Dict[int, numpy.ndarray], numpy.ndarray]:
         raise NotImplementedError
 
     def _encode_blocks(
-        self, blocks: numpy.ndarray, palette: numpy.ndarray
+        self, blocks: Blocks, palette: numpy.ndarray
     ) -> amulet_nbt.TAG_List:
         raise NotImplementedError
