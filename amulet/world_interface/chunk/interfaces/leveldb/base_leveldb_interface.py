@@ -406,121 +406,126 @@ class BaseLevelDBInterface(Interface):
         self, blocks: Blocks, palette: numpy.ndarray
     ) -> List[Union[None, bytes]]:
         palette_depth = numpy.array([len(block) for block in palette])
-        if palette[0][0][0] is None:
-            air = amulet_nbt.NBTFile(
-                amulet_nbt.TAG_Compound(
-                    {
-                        "name": amulet_nbt.TAG_String("minecraft:air"),
-                        "val": amulet_nbt.TAG_Short(0),
-                    }
+        if palette.size:
+            if palette[0][0][0] is None:
+                air = amulet_nbt.NBTFile(
+                    amulet_nbt.TAG_Compound(
+                        {
+                            "name": amulet_nbt.TAG_String("minecraft:air"),
+                            "val": amulet_nbt.TAG_Short(0),
+                        }
+                    )
                 )
-            )
-        else:
-            air = amulet_nbt.NBTFile(
-                amulet_nbt.TAG_Compound(
-                    {
-                        "name": amulet_nbt.TAG_String("minecraft:air"),
-                        "states": amulet_nbt.TAG_Compound({}),
-                        "version": amulet_nbt.TAG_Int(17_629_184),
-                    }
+            else:
+                air = amulet_nbt.NBTFile(
+                    amulet_nbt.TAG_Compound(
+                        {
+                            "name": amulet_nbt.TAG_String("minecraft:air"),
+                            "states": amulet_nbt.TAG_Compound({}),
+                            "version": amulet_nbt.TAG_Int(17_629_184),
+                        }
+                    )
                 )
-            )
 
-        for index, block in enumerate(palette):
-            block: Tuple[Tuple[Union[Tuple[int, int, int, int], None], Block], ...]
-            full_block = []
-            for sub_block_version, sub_block in block:
-                properties = sub_block.properties
-                if sub_block_version is None:
-                    block_data = properties.get("block_data", amulet_nbt.TAG_Int(0))
-                    if isinstance(block_data, amulet_nbt.TAG_Int):
-                        block_data = block_data.value
-                        if block_data >= 16:
+            for index, block in enumerate(palette):
+                block: Tuple[Tuple[Union[Tuple[int, int, int, int], None], Block], ...]
+                full_block = []
+                for sub_block_version, sub_block in block:
+                    properties = sub_block.properties
+                    if sub_block_version is None:
+                        block_data = properties.get("block_data", amulet_nbt.TAG_Int(0))
+                        if isinstance(block_data, amulet_nbt.TAG_Int):
+                            block_data = block_data.value
+                            if block_data >= 16:
+                                block_data = 0
+                        else:
                             block_data = 0
+                        sub_block_ = amulet_nbt.NBTFile(
+                            amulet_nbt.TAG_Compound(
+                                {
+                                    "name": amulet_nbt.TAG_String(
+                                        sub_block.namespaced_name
+                                    ),
+                                    "val": amulet_nbt.TAG_Short(block_data),
+                                }
+                            )
+                        )
                     else:
-                        block_data = 0
-                    sub_block_ = amulet_nbt.NBTFile(
-                        amulet_nbt.TAG_Compound(
-                            {
-                                "name": amulet_nbt.TAG_String(
-                                    sub_block.namespaced_name
-                                ),
-                                "val": amulet_nbt.TAG_Short(block_data),
-                            }
-                        )
-                    )
-                else:
-                    sub_block_ = amulet_nbt.NBTFile(
-                        amulet_nbt.TAG_Compound(
-                            {
-                                "name": amulet_nbt.TAG_String(
-                                    sub_block.namespaced_name
-                                ),
-                                "states": amulet_nbt.TAG_Compound(
-                                    {
-                                        key: val
-                                        for key, val in properties.items()
-                                        if isinstance(val, amulet_nbt.BaseValueType)
-                                    }
-                                ),
-                                "version": amulet_nbt.TAG_Int(
-                                    sum(
-                                        sub_block_version[i] << (24 - i * 8)
-                                        for i in range(4)
-                                    )
-                                ),
-                            }
-                        )
-                    )
-
-                full_block.append(sub_block_)
-            palette[index] = tuple(full_block)
-
-        chunk = []
-        for cy in range(16):
-            if cy in blocks:
-                palette_index, sub_chunk = fast_unique(blocks.get_sub_chunk(cy))
-                sub_chunk_palette = palette[palette_index]
-                sub_chunk_depth = palette_depth[palette_index].max()
-
-                if (
-                    sub_chunk_depth == 1
-                    and len(sub_chunk_palette) == 1
-                    and sub_chunk_palette[0][0]["name"].value == "minecraft:air"
-                ):
-                    chunk.append(None)
-                else:
-                    # pad palette with air in the extra layers
-                    sub_chunk_palette_full = numpy.empty(
-                        (sub_chunk_palette.size, sub_chunk_depth), dtype=object
-                    )
-                    sub_chunk_palette_full.fill(air)
-
-                    for index, block_tuple in enumerate(sub_chunk_palette):
-                        for sub_index, block in enumerate(block_tuple):
-                            sub_chunk_palette_full[index, sub_index] = block
-                    # should now be a 2D array with an amulet_nbt.NBTFile in each element
-
-                    sub_chunk_bytes = [b"\x08", bytes([sub_chunk_depth])]
-                    for sub_chunk_layer_index in range(sub_chunk_depth):
-                        # TODO: sort out a way to do this quicker without brute forcing it.
-                        (
-                            sub_chunk_layer_palette,
-                            sub_chunk_remap,
-                        ) = brute_sort_objects_no_hash(
-                            sub_chunk_palette_full[:, sub_chunk_layer_index]
-                        )
-                        sub_chunk_layer = sub_chunk_remap[sub_chunk.ravel()]
-
-                        # sub_chunk_layer, sub_chunk_layer_palette = sub_chunk, sub_chunk_palette_full[:, sub_chunk_layer_index]
-                        sub_chunk_bytes.append(
-                            self._save_palette_subchunk(
-                                sub_chunk_layer.reshape(16, 16, 16),
-                                list(sub_chunk_layer_palette.ravel()),
+                        sub_block_ = amulet_nbt.NBTFile(
+                            amulet_nbt.TAG_Compound(
+                                {
+                                    "name": amulet_nbt.TAG_String(
+                                        sub_block.namespaced_name
+                                    ),
+                                    "states": amulet_nbt.TAG_Compound(
+                                        {
+                                            key: val
+                                            for key, val in properties.items()
+                                            if isinstance(val, amulet_nbt.BaseValueType)
+                                        }
+                                    ),
+                                    "version": amulet_nbt.TAG_Int(
+                                        sum(
+                                            sub_block_version[i] << (24 - i * 8)
+                                            for i in range(4)
+                                        )
+                                    ),
+                                }
                             )
                         )
 
-                    chunk.append(b"".join(sub_chunk_bytes))
+                    full_block.append(sub_block_)
+                palette[index] = tuple(full_block)
+
+            chunk = []
+            for cy in range(16):
+                if cy in blocks:
+                    palette_index, sub_chunk = fast_unique(blocks.get_sub_chunk(cy))
+                    sub_chunk_palette = palette[palette_index]
+                    sub_chunk_depth = palette_depth[palette_index].max()
+
+                    if (
+                        sub_chunk_depth == 1
+                        and len(sub_chunk_palette) == 1
+                        and sub_chunk_palette[0][0]["name"].value == "minecraft:air"
+                    ):
+                        chunk.append(None)
+                    else:
+                        # pad palette with air in the extra layers
+                        sub_chunk_palette_full = numpy.empty(
+                            (sub_chunk_palette.size, sub_chunk_depth), dtype=object
+                        )
+                        sub_chunk_palette_full.fill(air)
+
+                        for index, block_tuple in enumerate(sub_chunk_palette):
+                            for sub_index, block in enumerate(block_tuple):
+                                sub_chunk_palette_full[index, sub_index] = block
+                        # should now be a 2D array with an amulet_nbt.NBTFile in each element
+
+                        sub_chunk_bytes = [b"\x08", bytes([sub_chunk_depth])]
+                        for sub_chunk_layer_index in range(sub_chunk_depth):
+                            # TODO: sort out a way to do this quicker without brute forcing it.
+                            (
+                                sub_chunk_layer_palette,
+                                sub_chunk_remap,
+                            ) = brute_sort_objects_no_hash(
+                                sub_chunk_palette_full[:, sub_chunk_layer_index]
+                            )
+                            sub_chunk_layer = sub_chunk_remap[sub_chunk.ravel()]
+
+                            # sub_chunk_layer, sub_chunk_layer_palette = sub_chunk, sub_chunk_palette_full[:, sub_chunk_layer_index]
+                            sub_chunk_bytes.append(
+                                self._save_palette_subchunk(
+                                    sub_chunk_layer.reshape(16, 16, 16),
+                                    list(sub_chunk_layer_palette.ravel()),
+                                )
+                            )
+
+                        chunk.append(b"".join(sub_chunk_bytes))
+                else:
+                    chunk.append(None)
+        else:
+            chunk = [None] * 16
 
         return chunk
 
