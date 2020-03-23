@@ -4,7 +4,7 @@ from copy import deepcopy
 import itertools
 import os
 import shutil
-from typing import Union, Generator, Dict, Optional, Tuple, List, Callable
+from typing import Union, Generator, Dict, Optional, Tuple, List, Callable, Any
 
 from amulet import log
 from .block import Block, BlockManager
@@ -429,9 +429,13 @@ class World(BaseStructure):
             chunk.entities = entities
 
     def run_operation(
-        self, operation: Callable, *args, create_undo=True
+        self,
+        operation: Callable,
+        dimension: int,
+        *args,
+        create_undo=True
     ) -> Optional[Any]:
-        out = operation(self, *args)
+        out = operation(self, dimension, *args)
         if create_undo:
             self.create_undo_point()
         return out
