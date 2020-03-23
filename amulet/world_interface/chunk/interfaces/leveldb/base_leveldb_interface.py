@@ -302,6 +302,8 @@ class BaseLevelDBInterface(Interface):
 
                         if "states" in block:  # 1.13 format
                             properties = block["states"].value
+                            if version is None:
+                                version = (1, 14, 0, 0)
                         else:
                             properties = {
                                 "block_data": amulet_nbt.TAG_Int(block["val"].value)
