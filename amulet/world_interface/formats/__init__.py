@@ -200,7 +200,7 @@ class Format:
         """
 
         # Gets an interface (the code that actually reads the chunk data)
-        raw_chunk_data = self._get_raw_chunk_data(cx, cz)
+        raw_chunk_data = self._get_raw_chunk_data(cx, cz, dimension)
         interface = self._get_interface(self.max_world_version(), raw_chunk_data)
         # get the translator for the given version
         translator, game_version = interface.get_translator(
