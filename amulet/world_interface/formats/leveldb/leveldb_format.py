@@ -50,11 +50,10 @@ class LevelDBLevelManager:
     @property
     def dimensions(self) -> Dict[str, int]:
         """A list of all the levels contained in the world"""
-        dimensions = {val: key for key, val in self._level_names.items()}
+        dimensions = dict(zip(self._level_names.values(), self._level_names.keys()))
         for level in self._levels.keys():
             if level not in self._level_names:
                 dimensions[f"DIM{level}"] = level
-
         return dimensions
 
     def all_chunk_coords(self, dimension: int = 0) -> Set[Tuple[int, int]]:
