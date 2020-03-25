@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Tuple, Union, TYPE_CHECKING
+from typing import Dict, List, Tuple, Union, TYPE_CHECKING, Generator, Optional
 import time
 import os
 from .chunk import Chunk
@@ -54,6 +54,11 @@ class ChunkHistoryManager:
     def mark_saved(self):
         """Let the history manager know that the world has been saved"""
         self._last_save_snapshot = self._snapshot_index
+
+    def items(self, get_all=False) -> Generator[Tuple[_ChunkLocation, Optional[Chunk]], None, None]:
+        for chunk_location, index in self._chunk_index.items():
+            if index or get_all:
+                yield chunk_location, self.get_current(*chunk_location)
 
     def add_original_chunk(self, chunk: Chunk, dimension: int):
         """Adds the given chunk to the chunk history"""

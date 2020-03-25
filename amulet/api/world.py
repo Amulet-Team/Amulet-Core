@@ -196,18 +196,20 @@ class World(BaseStructure):
                 except LevelDoesNotExist:
                     continue
 
-        for (dimension, cx, cz), chunk in self._chunk_cache.items():
-            dimension_out = output_dimension_map.get(dim2dimstr.get(dimension))
-            if dimension_out is None:
-                continue
-            if chunk is None:
-                wrapper.delete_chunk(cx, cz, dimension_out)
-            elif chunk.changed:
-                wrapper.commit_chunk(chunk, self._palette, dimension_out)
-            update_progress()
-            if not chunk_index % 10000:
-                wrapper.save()
-                wrapper.unload()
+        for storage in (self._chunk_history_manager, self._chunk_cache):
+            for (dimension, cx, cz), chunk in storage.items():
+                dimension_out = output_dimension_map.get(dim2dimstr.get(dimension))
+                if dimension_out is None:
+                    continue
+                if chunk is None:
+                    wrapper.delete_chunk(cx, cz, dimension_out)
+                elif chunk.changed:
+                    wrapper.commit_chunk(chunk, self._palette, dimension_out)
+                    # TODO: mark the chunk as not changed
+                update_progress()
+                if not chunk_index % 10000:
+                    wrapper.save()
+                    wrapper.unload()
         log.info(f"Saving changes to world {wrapper.world_path}")
         wrapper.save()
         log.info(f"Finished saving changes to world {wrapper.world_path}")
