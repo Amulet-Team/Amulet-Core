@@ -27,7 +27,6 @@ chunk_version_to_max_version = {
 def chunk_to_game_version(
     max_game_version: Tuple[int, int, int], chunk_version: int
 ) -> Tuple[int, int, int]:
-    print(chunk_version)
     return min(chunk_version_to_max_version[chunk_version][1], max_game_version)
 
 
