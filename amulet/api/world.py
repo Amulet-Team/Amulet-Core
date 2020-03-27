@@ -269,6 +269,8 @@ class World(BaseStructure):
         """Add a chunk to the universal world database"""
         chunk.changed = True
         self._chunk_cache[(dimension, chunk.cx, chunk.cz)] = chunk
+        if chunk.coordinates not in self._chunk_history_manager:
+            self._chunk_history_manager.add_original_chunk(chunk, dimension)
 
     def delete_chunk(self, cx: int, cz: int, dimension: int = 0):
         """Delete a chunk from the universal world database"""
