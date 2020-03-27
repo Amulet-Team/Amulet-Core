@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from amulet.api.world import World
 
 
-def replace(world: "World", selection: Selection, options: dict):
+def replace(world: "World", dimension: int, selection: Selection, options: dict):
     original_blocks = options.get("original_blocks", None)
     if not isinstance(original_blocks, list) and all(
         isinstance(block, Block) for block in original_blocks
@@ -40,9 +40,12 @@ def replace(world: "World", selection: Selection, options: dict):
         map(world.palette.get_add_block, replacement_blocks)
     )
 
-    for chunk, slices, _ in world.get_chunk_slices(selection):
-        blocks = chunk.blocks[slices].copy()
+    for chunk, slices, _ in world.get_chunk_slices(selection, dimension):
+        old_blocks = chunk.blocks[slices]
+        new_blocks = old_blocks.copy()
         for original_id, replacement_id in zip(
             original_internal_ids, replacement_internal_ids
         ):
-            chunk.blocks[slices][blocks == original_id] = replacement_id
+            new_blocks[old_blocks == original_id] = replacement_id
+        chunk.blocks[slices] = new_blocks
+        chunk.changed = True

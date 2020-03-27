@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from amulet.api.world import World
 
 
-def fill(world: "World", target_box: Selection, options: dict):
+def fill(world: "World", dimension: int, target_box: Selection, options: dict):
     fill_block = options.get("fill_block", None)
     if not isinstance(fill_block, Block):
         log.error("Fill operation was not given a Block object")
@@ -18,5 +18,6 @@ def fill(world: "World", target_box: Selection, options: dict):
     fill_block: Block
     internal_id = world.palette.get_add_block(fill_block)
 
-    for chunk, slices, _ in world.get_chunk_slices(target_box):
+    for chunk, slices, _ in world.get_chunk_slices(target_box, dimension, True):
         chunk.blocks[slices] = internal_id
+        chunk.changed = True

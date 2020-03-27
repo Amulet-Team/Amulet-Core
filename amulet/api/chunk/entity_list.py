@@ -1,5 +1,5 @@
 from collections import UserList
-from typing import TYPE_CHECKING, Iterable, Union, overload, Any
+from typing import TYPE_CHECKING, Iterable, Union, overload, Any, Generator
 import copy
 from amulet.api.entity import Entity
 import weakref
@@ -109,6 +109,9 @@ class ChunkList(UserList):
 class EntityList(ChunkList):
     def _check_type(self, value):
         assert isinstance(value, Entity)
+
+    def __iter__(self) -> Generator[Entity, None, None]:
+        yield from super().__iter__()
 
     def __repr__(self) -> str:
         """ Return repr(self). """

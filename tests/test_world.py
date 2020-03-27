@@ -45,9 +45,6 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 7).blockstate,
             )
 
-            with self.assertRaises(IndexError):
-                self.world.get_block(300, 300, 300)
-
         def test_get_blocks(self):
             selection_box = SubSelectionBox((0, 0, 0), (10, 10, 10))
             for selection in [Selection([selection_box]), selection_box]:
@@ -96,7 +93,7 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 5).blockstate,
             )
 
-            self.world.run_operation(clone, src_box, target)
+            self.world.run_operation(clone, 0, src_box, target)
 
             self.assertEqual(
                 "universal_minecraft:stone", self.world.get_block(1, 70, 5).blockstate
@@ -137,7 +134,7 @@ class WorldTestBaseCases:
             # End sanity check
 
             self.world.run_operation(
-                fill, box, {
+                fill, 0, box, {
                     "fill_block": blockstate_to_block("universal_minecraft:stone")
                 }
             )
@@ -183,6 +180,7 @@ class WorldTestBaseCases:
 
             self.world.run_operation(
                 replace,
+                0,
                 box1,
                 {
                     "original_blocks": [blockstate_to_block("universal_minecraft:granite[polished=false]")],
@@ -232,6 +230,7 @@ class WorldTestBaseCases:
 
             self.world.run_operation(
                 replace,
+                0,
                 box1,
                 {
                     "original_blocks": [
@@ -295,7 +294,7 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 5).blockstate,
             )
 
-            self.world.run_operation(delete_chunk, box1)
+            self.world.run_operation(delete_chunk, 0, box1)
 
             with self.assertRaises(ChunkDoesNotExist):
                 _ = self.world.get_block(1, 70, 3).blockstate

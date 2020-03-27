@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Dict, Generator, Set, Union
+from typing import Tuple, Dict, Generator, Set, Union, Optional
 
 import amulet_nbt as nbt
 
@@ -50,11 +50,10 @@ class LevelDBLevelManager:
     @property
     def dimensions(self) -> Dict[str, int]:
         """A list of all the levels contained in the world"""
-        dimensions = {val: key for key, val in self._level_names.items()}
+        dimensions = dict(zip(self._level_names.values(), self._level_names.keys()))
         for level in self._levels.keys():
             if level not in self._level_names:
                 dimensions[f"DIM{level}"] = level
-
         return dimensions
 
     def all_chunk_coords(self, dimension: int = 0) -> Set[Tuple[int, int]]:
@@ -132,7 +131,7 @@ class LevelDBFormat(Format):
         self._lock = False
         self.root_tag: nbt.NBTFile = nbt.NBTFile()
         self._load_level_dat()
-        self._level_manager: LevelDBLevelManager = None
+        self._level_manager: Optional[LevelDBLevelManager] = None
 
     def _load_level_dat(self):
         """Load the level.dat file and check the image file"""
@@ -168,7 +167,7 @@ class LevelDBFormat(Format):
         """Platform string"""
         return "bedrock"
 
-    def _max_world_version(self) -> Tuple[str, Tuple[int, int, int]]:
+    def _max_world_version(self) -> Tuple[str, Tuple[int, ...]]:
         """The version the world was last opened in
         This should be greater than or equal to the chunk versions found within
         For this format wrapper it returns a tuple of 3/4 ints (the game version number)"""

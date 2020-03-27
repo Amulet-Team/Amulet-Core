@@ -11,6 +11,9 @@ from .errors import ChunkDoesNotExist
 from ..utils.world_utils import Coordinates, block_coords_to_chunk_coords
 
 
+structure_buffer = []
+
+
 class Structure(BaseStructure):
     def __init__(
         self,

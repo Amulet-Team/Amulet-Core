@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from typing import Tuple
+from typing import Tuple, Dict
 
 import numpy
 import amulet_nbt
 
 from amulet.api.block import Block
+from amulet.api.chunk.blocks import Blocks
 from amulet.world_interface.chunk.interfaces.anvil.base_anvil_interface import (
     BaseAnvilInterface,
 )
 from amulet.utils.world_utils import (
-    get_smallest_dtype,
     decode_long_array,
     encode_long_array,
 )
@@ -64,57 +64,60 @@ class Anvil1444Interface(BaseAnvilInterface):
     def minor_is_valid(key: int):
         return 1444 <= key < 1466
 
-    def _decode_blocks(self, chunk_sections) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    def _decode_blocks(self, chunk_sections: amulet_nbt.TAG_List) -> Tuple[Dict[int, numpy.ndarray], numpy.ndarray]:
         if chunk_sections is None:
             raise NotImplementedError(
                 "We don't support reading chunks that never been edited in Minecraft before"
             )
 
-        blocks = numpy.zeros((256, 16, 16), dtype=int)
+        blocks: Dict[int, numpy.ndarray] = {}
         palette = [Block(namespace="minecraft", base_name="air")]
 
         for section in chunk_sections:
             if "Palette" not in section:  # 1.14 makes palette/blocks optional.
                 continue
-            height = section["Y"].value << 4
-
-            blocks[height: height + 16, :, :] = decode_long_array(
-                section["BlockStates"].value, 4096
-            ).reshape((16, 16, 16)) + len(palette)
+            cy = section["Y"].value
+            blocks[cy] = numpy.transpose(
+                decode_long_array(
+                    section["BlockStates"].value, 4096
+                ).reshape((16, 16, 16)) + len(palette),
+                (2, 0, 1)
+            )
 
             palette += self._decode_palette(section["Palette"])
 
-        blocks = numpy.swapaxes(blocks.swapaxes(0, 1), 0, 2)
-        palette, inverse = numpy.unique(palette, return_inverse=True)
-        blocks = inverse[blocks]
-
-        return blocks.astype(f"uint{get_smallest_dtype(blocks)}"), palette
+        np_palette, inverse = numpy.unique(palette, return_inverse=True)
+        np_palette: numpy.ndarray
+        inverse: numpy.ndarray
+        for cy in blocks:
+            blocks[cy] = inverse[blocks[cy]].astype(numpy.uint32)  # TODO: find a way to make the new blocks format change dtype
+        return blocks, np_palette
 
     def _encode_blocks(
-        self, blocks: numpy.ndarray, palette: numpy.ndarray
+        self, blocks: Blocks, palette: numpy.ndarray
     ) -> amulet_nbt.TAG_List:
         sections = amulet_nbt.TAG_List()
-        blocks = numpy.swapaxes(blocks.swapaxes(0, 2), 0, 1)
-        for y in range(16):  # perhaps find a way to do this dynamically
-            block_sub_array = blocks[y * 16: y * 16 + 16, :, :].ravel()
+        for cy in range(16):
+            if cy in blocks:
+                block_sub_array = numpy.transpose(blocks.get_sub_chunk(cy), (1, 2, 0)).ravel()
 
-            sub_palette_, block_sub_array = numpy.unique(
-                block_sub_array, return_inverse=True
-            )
-            sub_palette = self._encode_palette(palette[sub_palette_])
-            if (
-                len(sub_palette) == 1
-                and sub_palette[0]["Name"].value == "minecraft:air"
-            ):
-                continue
+                sub_palette_, block_sub_array = numpy.unique(
+                    block_sub_array, return_inverse=True
+                )
+                sub_palette = self._encode_palette(palette[sub_palette_])
+                if (
+                    len(sub_palette) == 1
+                    and sub_palette[0]["Name"].value == "minecraft:air"
+                ):
+                    continue
 
-            section = amulet_nbt.TAG_Compound()
-            section["Y"] = amulet_nbt.TAG_Byte(y)
-            section["BlockStates"] = amulet_nbt.TAG_Long_Array(
-                encode_long_array(block_sub_array)
-            )
-            section["Palette"] = sub_palette
-            sections.append(section)
+                section = amulet_nbt.TAG_Compound()
+                section["Y"] = amulet_nbt.TAG_Byte(cy)
+                section["BlockStates"] = amulet_nbt.TAG_Long_Array(
+                    encode_long_array(block_sub_array)
+                )
+                section["Palette"] = sub_palette
+                sections.append(section)
 
         return sections
 

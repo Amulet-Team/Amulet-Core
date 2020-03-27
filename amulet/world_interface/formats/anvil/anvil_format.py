@@ -399,11 +399,10 @@ class AnvilFormat(Format):
     @property
     def dimensions(self) -> Dict[str, int]:
         """A list of all the levels contained in the world"""
-        dimensions = {val: key for key, val in self._level_names.items()}
+        dimensions = dict(zip(self._level_names.values(), self._level_names.keys()))
         for level in self._levels.keys():
             if level not in self._level_names:
                 dimensions[f"DIM{level}"] = level
-
         return dimensions
 
     def _get_interface_key(self, raw_chunk_data) -> Tuple[str, int]:

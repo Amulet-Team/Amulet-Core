@@ -4,7 +4,7 @@ from copy import deepcopy
 import itertools
 import os
 import shutil
-from typing import Union, Generator, Dict, Optional, Tuple, List, Callable
+from typing import Union, Generator, Dict, Optional, Tuple, List, Callable, Any
 
 from amulet import log
 from .block import Block, BlockManager
@@ -43,26 +43,25 @@ class BaseStructure:
         slices: Tuple[slice, slice, slice],
         cx: int,
         cz: int,
-        chunk_size: Optional[Tuple[int, int, int]] = None,
+        chunk_size: Optional[Tuple[int, Union[int, None], int]] = None,
     ) -> Tuple[slice, slice, slice]:
         """Convert a slice in absolute coordinates to chunk coordinates"""
         if chunk_size is None:
             chunk_size = self.chunk_size
         s_x, s_y, s_z = slices
         x_chunk_slice = blocks_slice_to_chunk_slice(s_x, chunk_size[0], cx)
-        y_chunk_slice = blocks_slice_to_chunk_slice(s_y, chunk_size[1], 0)
         z_chunk_slice = blocks_slice_to_chunk_slice(s_z, chunk_size[2], cz)
-        return x_chunk_slice, y_chunk_slice, z_chunk_slice
+        return x_chunk_slice, s_y, z_chunk_slice
 
     def _chunk_box(
-        self, cx: int, cz: int, chunk_size: Optional[Tuple[int, int, int]] = None
+        self, cx: int, cz: int, chunk_size: Optional[Tuple[int, Union[int, None], int]] = None
     ):
         """Get a SubSelectionBox containing the whole of a given chunk"""
         if chunk_size is None:
             chunk_size = self.chunk_size
         return SubSelectionBox(
-            (cx * chunk_size[0], 0, cz * chunk_size[0]),
-            ((cx + 1) * chunk_size[0], chunk_size[1], (cz + 1) * chunk_size[2]),
+            (cx * chunk_size[0], -(2**30), cz * chunk_size[0]),
+            ((cx + 1) * chunk_size[0], 2**30, (cz + 1) * chunk_size[2]),
         )
 
     def get_chunk_boxes(
@@ -197,18 +196,20 @@ class World(BaseStructure):
                 except LevelDoesNotExist:
                     continue
 
-        for (dimension, cx, cz), chunk in self._chunk_cache.items():
-            dimension_out = output_dimension_map.get(dim2dimstr.get(dimension))
-            if dimension_out is None:
-                continue
-            if chunk is None:
-                wrapper.delete_chunk(cx, cz, dimension_out)
-            elif chunk.changed:
-                wrapper.commit_chunk(deepcopy(chunk), self._palette, dimension_out)
-            update_progress()
-            if not chunk_index % 10000:
-                wrapper.save()
-                wrapper.unload()
+        for storage in (self._chunk_history_manager, self._chunk_cache):
+            for (dimension, cx, cz), chunk in storage.items():
+                dimension_out = output_dimension_map.get(dim2dimstr.get(dimension))
+                if dimension_out is None:
+                    continue
+                if chunk is None:
+                    wrapper.delete_chunk(cx, cz, dimension_out)
+                elif chunk.changed:
+                    wrapper.commit_chunk(chunk, self._palette, dimension_out)
+                    # TODO: mark the chunk as not changed
+                update_progress()
+                if not chunk_index % 10000:
+                    wrapper.save()
+                    wrapper.unload()
         log.info(f"Saving changes to world {wrapper.world_path}")
         wrapper.save()
         log.info(f"Finished saving changes to world {wrapper.world_path}")
@@ -268,6 +269,8 @@ class World(BaseStructure):
         """Add a chunk to the universal world database"""
         chunk.changed = True
         self._chunk_cache[(dimension, chunk.cx, chunk.cz)] = chunk
+        if chunk.coordinates not in self._chunk_history_manager:
+            self._chunk_history_manager.add_original_chunk(chunk, dimension)
 
     def delete_chunk(self, cx: int, cz: int, dimension: int = 0):
         """Delete a chunk from the universal world database"""
@@ -284,11 +287,6 @@ class World(BaseStructure):
         :return: The blockstate name as a string
         """
         # TODO: move this logic into the chunk class and have this method call that
-        if not (0 <= y <= self.chunk_size[1]):
-            raise IndexError(
-                f"The supplied Y coordinate must be between 0 and {self.chunk_size[1]}"
-            )
-
         cx, cz = block_coords_to_chunk_coords(x, z)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
 
@@ -435,9 +433,13 @@ class World(BaseStructure):
             chunk.entities = entities
 
     def run_operation(
-        self, operation: Callable, *args, create_undo=True
+        self,
+        operation: Callable,
+        dimension: int,
+        *args,
+        create_undo=True
     ) -> Optional[Any]:
-        out = operation(self, *args)
+        out = operation(self, dimension, *args)
         if create_undo:
             self.create_undo_point()
         return out
