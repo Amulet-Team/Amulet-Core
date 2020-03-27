@@ -7,4 +7,4 @@ if TYPE_CHECKING:
 
 def delete_chunk(world: "World", dimension: int, source_box: Selection):
     for chunk, _ in world.get_chunk_boxes(source_box, dimension):
-        world.delete_chunk(*chunk.coordinates)
+        world.delete_chunk(*chunk.coordinates, dimension)
