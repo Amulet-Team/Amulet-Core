@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Tuple
+import copy
 
 import amulet_nbt
 from .entity_base_object import EntityObject
@@ -44,5 +45,5 @@ class BlockEntity(EntityObject):
             x,
             y,
             z,
-            self._nbt,  # TODO: should this be deepcopied?
+            copy.deepcopy(self._nbt),
         )
