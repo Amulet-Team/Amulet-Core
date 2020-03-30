@@ -1,5 +1,5 @@
 from collections import UserDict
-from typing import TYPE_CHECKING, Tuple, Iterable
+from typing import TYPE_CHECKING, Tuple, Iterable, Generator
 import copy
 import weakref
 
@@ -51,8 +51,17 @@ class BlockEntityDict(UserDict):
         self._dirty()
         self.data.clear()
 
-    def __iter__(self):
+    def keys(self) -> Generator[Coordinate, None, None]:
+        yield from self.data.keys()
+
+    def __iter__(self) -> Generator[BlockEntity, None, None]:
         yield from self.data.values()
+
+    def values(self) -> Generator[BlockEntity, None, None]:
+        yield from self.data.values()
+
+    def items(self) -> Generator[Tuple[Coordinate, BlockEntity], None, None]:
+        yield from self.data.items()
 
     def copy(self) -> "BlockEntityDict":
         return copy.deepcopy(self)
