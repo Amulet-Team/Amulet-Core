@@ -17,6 +17,8 @@ def paste(world: "World", dimension: int, structure: Structure, options: dict):
     gab = numpy.vectorize(world.palette.get_add_block)
     lut = gab(structure.palette.blocks())
     offset = - structure.selection.min + dst_location
+    if not copy_air:
+        non_air = numpy.array([block.namespaced_name != 'universal_minecraft:air' for block in structure.palette.blocks()])
 
     for src_chunk, src_slices, src_box, (dst_cx, dst_cz), dst_slices, dst_box in structure.get_moved_chunk_slices(dst_location):
         try:
@@ -29,12 +31,25 @@ def paste(world: "World", dimension: int, structure: Structure, options: dict):
         remove_block_entities = []
         for block_entity_location in dst_chunk.block_entities.keys():
             if block_entity_location in dst_box:
-                remove_block_entities.append(block_entity_location)
+                if copy_air:
+                    remove_block_entities.append(block_entity_location)
+                else:
+                    chunk_block_entity_location = numpy.array(block_entity_location) - offset
+                    chunk_block_entity_location[[0, 2]] %= 16
+                    if non_air[src_chunk.blocks[tuple(chunk_block_entity_location)]]:
+                        print(block_entity_location)
+                        remove_block_entities.append(block_entity_location)
         for block_entity_location in remove_block_entities:
             del dst_chunk.block_entities[block_entity_location]
         for block_entity_location, block_entity in src_chunk.block_entities.items():
             if block_entity_location in src_box:
                 dst_chunk.block_entities.insert(block_entity.new_at_location(*offset + block_entity_location))
 
-        dst_chunk.blocks[dst_slices] = lut[src_chunk.blocks[src_slices]]
+        if not copy_air:
+            dst_blocks_copy = dst_chunk.blocks[dst_slices]
+            mask = non_air[src_chunk.blocks[src_slices]]
+            dst_blocks_copy[mask] = lut[src_chunk.blocks[src_slices]][mask]
+            dst_chunk.blocks[dst_slices] = dst_blocks_copy
+        else:
+            dst_chunk.blocks[dst_slices] = lut[src_chunk.blocks[src_slices]]
         dst_chunk.changed = True
