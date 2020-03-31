@@ -226,8 +226,7 @@ class World(BaseStructure):
         Safe area format: dimension, min chunk X|Z, max chunk X|Z"""
         unload_chunks = []
         if safe_area is None:
-            for key in self._chunk_cache.keys():
-                unload_chunks.append(key)
+            unload_chunks = list(self._chunk_cache.keys())
         else:
             dimension, minx, minz, maxx, maxz = safe_area
             for (cd, cx, cz), chunk in self._chunk_cache.items():
@@ -453,3 +452,9 @@ class World(BaseStructure):
         Redoes the last set of changes to the world
         """
         self._chunk_history_manager.redo(self._chunk_cache)
+
+    def restore_last_undo_point(self):
+        """Restore the world to the state it was when self.create_undo_point was called.
+        If an operation errors there may be modifications made that did not get tracked.
+        This will revert those changes."""
+        self.unload()  # clear the loaded chunks and they will get populated by the last version in the history manager
