@@ -2,6 +2,7 @@ from collections import UserDict
 from typing import TYPE_CHECKING, Tuple, Iterable, Generator
 import copy
 import weakref
+import numpy
 
 from amulet.api.block_entity import BlockEntity
 
@@ -23,14 +24,14 @@ class BlockEntityDict(UserDict):
         self._parent_chunk = weakref.ref(parent_chunk)
 
     def _assert_key(self, key):
-        assert self._check_key(key)
+        assert self._check_key(key), f'Key must be in the format Tuple[int, int, int]. Got: {key}'
 
     @staticmethod
     def _check_key(key):
-        return isinstance(key, tuple) and all(isinstance(a, int) for a in key)
+        return isinstance(key, tuple) and all(isinstance(a, (int, numpy.integer)) for a in key)
 
     def _assert_val(self, value):
-        assert self._check_val(value)
+        assert self._check_val(value), f'Val must be a BlockEntity. Got: {value}'
 
     @staticmethod
     def _check_val(value):
