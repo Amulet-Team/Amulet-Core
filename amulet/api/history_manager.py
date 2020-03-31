@@ -33,7 +33,9 @@ class ChunkHistoryManager:
         self._last_snapshot_time = 0.0
 
         self._snapshot_index = -1
-        self._last_save_snapshot = -1
+        self._last_save_snapshot = -1  # the snapshot that was saved or the save branches off from
+        self._branch_save_count = 0  # if the user saves, undoes and does a new operation a save branch will be lost
+        # This is the number of changes on that branch
 
     def __contains__(self, item: _ChunkLocation):
         return item in self._chunk_history
@@ -49,11 +51,12 @@ class ChunkHistoryManager:
     @property
     def unsaved_changes(self) -> int:
         """The number of changes that have been made since the last save"""
-        return abs(self._snapshot_index - self._last_save_snapshot)
+        return abs(self._snapshot_index - self._last_save_snapshot) + self._branch_save_count
 
     def mark_saved(self):
         """Let the history manager know that the world has been saved"""
         self._last_save_snapshot = self._snapshot_index
+        self._branch_save_count = 0
 
     def items(self, get_all=False) -> Generator[Tuple[_ChunkLocation, Optional[Chunk]], None, None]:
         for chunk_location, index in self._chunk_index.items():
@@ -113,6 +116,9 @@ class ChunkHistoryManager:
 
         if snapshot:
             # if there is data in the snapshot invalidate all newer snapshots and add to the database
+            if self._last_save_snapshot > self._snapshot_index:
+                self._branch_save_count += self._last_save_snapshot - self._snapshot_index
+                self._last_save_snapshot = self._snapshot_index
             self._snapshot_index += 1
             del self._snapshots[self._snapshot_index:]
             self._snapshots.append(snapshot)
