@@ -115,6 +115,10 @@ class World(BaseStructure):
             chunk is None or chunk.changed for chunk in self._chunk_cache.values()
         )
 
+    @property
+    def chunk_history_manager(self) -> ChunkHistoryManager:
+        return self._chunk_history_manager
+
     def create_undo_point(self):
         self._chunk_history_manager.create_undo_point(self._chunk_cache)
 
@@ -210,6 +214,7 @@ class World(BaseStructure):
                 if not chunk_index % 10000:
                     wrapper.save()
                     wrapper.unload()
+        self._chunk_history_manager.mark_saved()
         log.info(f"Saving changes to world {wrapper.world_path}")
         wrapper.save()
         log.info(f"Finished saving changes to world {wrapper.world_path}")
