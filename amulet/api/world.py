@@ -117,25 +117,31 @@ class World(BaseStructure):
 
     @property
     def chunk_history_manager(self) -> ChunkHistoryManager:
+        """A class storing previous versions of chunks to roll back to as required."""
         return self._chunk_history_manager
 
     def create_undo_point(self):
+        """Create a restore point for all chunks that have changed."""
         self._chunk_history_manager.create_undo_point(self._chunk_cache)
 
     @property
     def chunk_size(self) -> Tuple[int, int, int]:
+        """The normal dimensions of the chunk"""
         return self._world_wrapper.chunk_size
 
     @property
     def translation_manager(self) -> TranslationManager:
+        """An instance of the translation class for use with this world."""
         return self._world_wrapper.translation_manager
 
     @property
     def world_wrapper(self) -> Format:
+        """A class to access data directly from the world."""
         return self._world_wrapper
 
     @property
     def palette(self) -> BlockManager:
+        """The manager for the universal blocks in this world. New blocks must be registered here before adding to the world."""
         return self._palette
 
     def save(
@@ -355,84 +361,84 @@ class World(BaseStructure):
             slices = self._absolute_to_chunk_slice(box.slice, chunk.cx, chunk.cz)
             yield chunk, slices, box
 
-    def get_entities_in_box(
-        self, box: "Selection"
-    ) -> Generator[Tuple[Coordinates, List[object]], None, None]:
-        # TODO: some of this logic can probably be moved the chunk class and have this method call that
-        # TODO: update this to use the newer entity API
-        out_of_place_entities = []
-        entity_map: Dict[Tuple[int, int], List[List[object]]] = {}
-        for chunk, subbox in self.get_chunk_boxes(box):
-            entities = chunk.entities
-            in_box = list(filter(lambda e: e.location in subbox, entities))
-            not_in_box = filter(lambda e: e.location not in subbox, entities)
-
-            in_box_copy = deepcopy(in_box)
-
-            entity_map[chunk.coordinates] = [
-                not_in_box,
-                in_box,
-            ]  # First index is the list of entities not in the box, the second is for ones that are
-
-            yield chunk.coordinates, in_box_copy
-
-            if (
-                in_box != in_box_copy
-            ):  # If an entity has been changed, update the dictionary entry
-                entity_map[chunk.coordinates][1] = in_box_copy
-            else:  # Delete the entry otherwise
-                del entity_map[chunk.coordinates]
-
-        for chunk_coords, entity_list_list in entity_map.items():
-            chunk = self.get_chunk(*chunk_coords)
-            in_place_entities = list(
-                filter(
-                    lambda e: chunk_coords
-                    == entity_position_to_chunk_coordinates(e.location),
-                    entity_list_list[1],
-                )
-            )
-            out_of_place = filter(
-                lambda e: chunk_coords
-                != entity_position_to_chunk_coordinates(e.location),
-                entity_list_list[1],
-            )
-
-            chunk.entities = in_place_entities + list(entity_list_list[0])
-
-            if out_of_place:
-                out_of_place_entities.extend(out_of_place)
-
-        if out_of_place_entities:
-            self.add_entities(out_of_place_entities)
-
-    def add_entities(self, entities):
-        proper_entity_chunks = map(
-            lambda e: (entity_position_to_chunk_coordinates(e.location), e,), entities,
-        )
-        accumulated_entities: Dict[Tuple[int, int], List[object]] = {}
-
-        for chunk_coord, ent in proper_entity_chunks:
-            if chunk_coord in accumulated_entities:
-                accumulated_entities[chunk_coord].append(ent)
-            else:
-                accumulated_entities[chunk_coord] = [ent]
-
-        for chunk_coord, ents in accumulated_entities.items():
-            chunk = self.get_chunk(*chunk_coord)
-
-            chunk.entities += ents
-
-    def delete_entities(self, entities):
-        chunk_entity_pairs = map(
-            lambda e: (entity_position_to_chunk_coordinates(e.location), e,), entities,
-        )
-
-        for chunk_coord, ent in chunk_entity_pairs:
-            chunk = self.get_chunk(*chunk_coord)
-            entities = chunk.entities
-            entities.remove(ent)
-            chunk.entities = entities
+    # def get_entities_in_box(
+    #     self, box: "Selection"
+    # ) -> Generator[Tuple[Coordinates, List[object]], None, None]:
+    #     # TODO: some of this logic can probably be moved the chunk class and have this method call that
+    #     # TODO: update this to use the newer entity API
+    #     out_of_place_entities = []
+    #     entity_map: Dict[Tuple[int, int], List[List[object]]] = {}
+    #     for chunk, subbox in self.get_chunk_boxes(box):
+    #         entities = chunk.entities
+    #         in_box = list(filter(lambda e: e.location in subbox, entities))
+    #         not_in_box = filter(lambda e: e.location not in subbox, entities)
+    #
+    #         in_box_copy = deepcopy(in_box)
+    #
+    #         entity_map[chunk.coordinates] = [
+    #             not_in_box,
+    #             in_box,
+    #         ]  # First index is the list of entities not in the box, the second is for ones that are
+    #
+    #         yield chunk.coordinates, in_box_copy
+    #
+    #         if (
+    #             in_box != in_box_copy
+    #         ):  # If an entity has been changed, update the dictionary entry
+    #             entity_map[chunk.coordinates][1] = in_box_copy
+    #         else:  # Delete the entry otherwise
+    #             del entity_map[chunk.coordinates]
+    #
+    #     for chunk_coords, entity_list_list in entity_map.items():
+    #         chunk = self.get_chunk(*chunk_coords)
+    #         in_place_entities = list(
+    #             filter(
+    #                 lambda e: chunk_coords
+    #                 == entity_position_to_chunk_coordinates(e.location),
+    #                 entity_list_list[1],
+    #             )
+    #         )
+    #         out_of_place = filter(
+    #             lambda e: chunk_coords
+    #             != entity_position_to_chunk_coordinates(e.location),
+    #             entity_list_list[1],
+    #         )
+    #
+    #         chunk.entities = in_place_entities + list(entity_list_list[0])
+    #
+    #         if out_of_place:
+    #             out_of_place_entities.extend(out_of_place)
+    #
+    #     if out_of_place_entities:
+    #         self.add_entities(out_of_place_entities)
+    #
+    # def add_entities(self, entities):
+    #     proper_entity_chunks = map(
+    #         lambda e: (entity_position_to_chunk_coordinates(e.location), e,), entities,
+    #     )
+    #     accumulated_entities: Dict[Tuple[int, int], List[object]] = {}
+    #
+    #     for chunk_coord, ent in proper_entity_chunks:
+    #         if chunk_coord in accumulated_entities:
+    #             accumulated_entities[chunk_coord].append(ent)
+    #         else:
+    #             accumulated_entities[chunk_coord] = [ent]
+    #
+    #     for chunk_coord, ents in accumulated_entities.items():
+    #         chunk = self.get_chunk(*chunk_coord)
+    #
+    #         chunk.entities += ents
+    #
+    # def delete_entities(self, entities):
+    #     chunk_entity_pairs = map(
+    #         lambda e: (entity_position_to_chunk_coordinates(e.location), e,), entities,
+    #     )
+    #
+    #     for chunk_coord, ent in chunk_entity_pairs:
+    #         chunk = self.get_chunk(*chunk_coord)
+    #         entities = chunk.entities
+    #         entities.remove(ent)
+    #         chunk.entities = entities
 
     def run_operation(
         self,
