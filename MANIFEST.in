@@ -3,6 +3,7 @@ include amulet/libs/leveldb/LevelDB-MCPE-32.dll
 include amulet/libs/leveldb/LevelDB-MCPE-64.dll
 include amulet/libs/leveldb/libleveldb.dylib
 include amulet/libs/leveldb/libleveldb.so
+include amulet/img/*.*
 recursive-include amulet/world_interface/* *.*
 prune */__pycache__/*
 global-exclude *.py[cod]
