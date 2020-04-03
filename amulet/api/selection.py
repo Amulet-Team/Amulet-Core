@@ -35,9 +35,9 @@ class SubSelectionBox:
         self, item: Union[Point, Tuple[int, int, int], Tuple[float, float, float]]
     ):
         return (
-            self._min_x <= item[0] <= self._max_x
-            and self._min_y <= item[1] <= self._max_y
-            and self._min_z <= item[2] <= self._max_z
+            self._min_x <= item[0] < self._max_x
+            and self._min_y <= item[1] < self._max_y
+            and self._min_z <= item[2] < self._max_z
         )
 
     @property
