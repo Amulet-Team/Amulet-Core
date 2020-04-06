@@ -153,7 +153,7 @@ class Selection:
             for box in boxes:
                 self.add_box(box)
 
-    def __iter__(self) -> Iterable[SubSelectionBox]:
+    def __iter__(self) -> Iterable[Tuple[int, int, int]]:
         return itertools.chain.from_iterable(sorted(self._boxes, key=hash))
 
     def __len__(self):
