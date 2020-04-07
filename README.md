@@ -60,7 +60,7 @@ For information about contributing to this project, please see the contribution 
 
 ## Documentation
 
-Our online documentation can be found here: https://amulet-core.readthedocs.io/en/latest/
+Our online documentation can be found here: https://amulet-map-editor.readthedocs.io/en/develop/
 
 ### Building the Documentation
 To build the documentation locally, run the following command: `make html` and then navigate to the
