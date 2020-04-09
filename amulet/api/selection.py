@@ -21,7 +21,10 @@ class SubSelectionBox:
         self._min_x, self._min_y, self._min_z = numpy.min(box, 0).tolist()
         self._max_x, self._max_y, self._max_z = numpy.max(box, 0).tolist()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable[Tuple[int, int, int]]:
+        return self.blocks()
+
+    def blocks(self) -> Iterable[Tuple[int, int, int]]:
         return itertools.product(
             range(self._min_x, self._max_x),
             range(self._min_y, self._max_y),
@@ -35,9 +38,9 @@ class SubSelectionBox:
         self, item: Union[Point, Tuple[int, int, int], Tuple[float, float, float]]
     ):
         return (
-            self._min_x <= item[0] <= self._max_x
-            and self._min_y <= item[1] <= self._max_y
-            and self._min_z <= item[2] <= self._max_z
+            self._min_x <= item[0] < self._max_x
+            and self._min_y <= item[1] < self._max_y
+            and self._min_z <= item[2] < self._max_z
         )
 
     @property
@@ -150,7 +153,7 @@ class Selection:
             for box in boxes:
                 self.add_box(box)
 
-    def __iter__(self) -> Iterable[SubSelectionBox]:
+    def __iter__(self) -> Iterable[Tuple[int, int, int]]:
         return itertools.chain.from_iterable(sorted(self._boxes, key=hash))
 
     def __len__(self):
