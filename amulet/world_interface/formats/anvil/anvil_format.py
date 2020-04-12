@@ -55,13 +55,15 @@ class AnvilRegion:
             # mark the region to be loaded when needed
             self._loaded = False
             # shallow load the data
-            with open(self._file_path, "rb") as fp:
-                offsets = numpy.fromfile(fp, dtype=">u4", count=1024).reshape(32, 32)
-                for x in range(32):
-                    for z in range(32):
-                        offset = offsets[z, x]
-                        if offset != 0:
-                            self._chunks[(x, z)] = (0, b"")
+            file_size = os.path.getsize(self._file_path)
+            if file_size > 4096 * 2:
+                with open(self._file_path, "rb") as fp:
+                    offsets = numpy.fromfile(fp, dtype=">u4", count=1024).reshape(32, 32)
+                    for x in range(32):
+                        for z in range(32):
+                            offset = offsets[z, x]
+                            if offset != 0:
+                                self._chunks[(x, z)] = (0, b"")
 
     def all_chunk_coords(self) -> Generator[Tuple[int, int]]:
         for (cx, cz), (_, chunk_) in self._committed_chunks.items():
