@@ -150,10 +150,15 @@ class BaseAnvilInterface(Interface):
             palette = numpy.array([Block(namespace="minecraft", base_name="air")])
             # This will cause an air chunk to be written back TODO: sort saving based on chunk status
 
-        if self.features["entities"] == "list" and amulet.entity_support:
-            chunk.entities = self._decode_entities(
-                data["Level"].get("Entities", amulet_nbt.TAG_List())
-            )
+        if self.features["entities"] == "list":
+            if amulet.entity_support:
+                chunk.entities = self._decode_entities(
+                    data["Level"].get("Entities", amulet_nbt.TAG_List())
+                )
+            else:
+                chunk.misc['java_entities_temp'] = self._decode_entities(
+                    data["Level"].get("Entities", amulet_nbt.TAG_List())
+                )
 
         if self.features["block_entities"] == "list":
             chunk.block_entities = self._decode_block_entities(
@@ -323,7 +328,7 @@ class BaseAnvilInterface(Interface):
             if amulet.entity_support:
                 data["Level"]["Entities"] = self._encode_entities(chunk.entities)
             else:
-                data["Level"]["Entities"] = amulet_nbt.TAG_List()
+                data["Level"]["Entities"] = self._encode_entities(chunk.misc.get('java_entities_temp', amulet_nbt.TAG_List()))
 
         if self.features["block_entities"] == "list":
             data["Level"]["TileEntities"] = self._encode_block_entities(
