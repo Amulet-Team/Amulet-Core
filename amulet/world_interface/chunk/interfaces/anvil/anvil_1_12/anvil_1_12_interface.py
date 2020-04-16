@@ -11,7 +11,7 @@ class Anvil112Interface(AnvilNAInterface):
 
     @staticmethod
     def minor_is_valid(key: int):
-        return 1022 <= key < 1444
+        return 0 <= key < 1444
 
 
 INTERFACE_CLASS = Anvil112Interface
