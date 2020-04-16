@@ -5,6 +5,7 @@ import itertools
 import os
 import shutil
 from typing import Union, Generator, Dict, Optional, Tuple, List, Callable, Any
+from types import GeneratorType
 
 from amulet import log
 from .block import Block, BlockManager
@@ -13,6 +14,7 @@ from .history_manager import ChunkHistoryManager
 from .chunk import Chunk
 from .selection import Selection, SubSelectionBox
 from .paths import get_temp_dir
+from .data_types import OperationType, Dimension
 from ..utils.world_utils import (
     block_coords_to_chunk_coords,
     blocks_slice_to_chunk_slice,
@@ -247,7 +249,7 @@ class World(BaseStructure):
             del self._chunk_cache[chunk_key]
         self._world_wrapper.unload()
 
-    def get_chunk(self, cx: int, cz: int, dimension: int = 0) -> Chunk:
+    def get_chunk(self, cx: int, cz: int, dimension: Dimension = 0) -> Chunk:
         """
         Gets the chunk data of the specified chunk coordinates.
         If the chunk does not exist ChunkDoesNotExist is raised.
@@ -275,16 +277,16 @@ class World(BaseStructure):
 
         return chunk
 
-    def put_chunk(self, chunk: Chunk, dimension: int = 0):
+    def put_chunk(self, chunk: Chunk, dimension: Dimension = 0):
         """Add a chunk to the universal world database"""
         chunk.changed = True
         self._chunk_cache[(dimension, chunk.cx, chunk.cz)] = chunk
 
-    def delete_chunk(self, cx: int, cz: int, dimension: int = 0):
+    def delete_chunk(self, cx: int, cz: int, dimension: Dimension = 0):
         """Delete a chunk from the universal world database"""
         self._chunk_cache[(dimension, cx, cz)] = None
 
-    def get_block(self, x: int, y: int, z: int, dimension: int = 0) -> Block:
+    def get_block(self, x: int, y: int, z: int, dimension: Dimension = 0) -> Block:
         """
         Gets the blockstate at the specified coordinates
 
@@ -305,7 +307,7 @@ class World(BaseStructure):
     def get_chunk_boxes(
         self,
         selection: Union[Selection, SubSelectionBox],
-        dimension: int = 0,
+        dimension: Dimension = 0,
         create_missing_chunks=False,
     ) -> Generator[Tuple[Chunk, SubSelectionBox], None, None]:
         """Given a selection will yield chunks and SubSelectionBoxes into that chunk
@@ -341,7 +343,7 @@ class World(BaseStructure):
     def get_chunk_slices(
         self,
         selection: Union[Selection, SubSelectionBox],
-        dimension: int = 0,
+        dimension: Dimension = 0,
         create_missing_chunks=False,
     ) -> Generator[
         Tuple[Chunk, Tuple[slice, slice, slice], SubSelectionBox], None, None
