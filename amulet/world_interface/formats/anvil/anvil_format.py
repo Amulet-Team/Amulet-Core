@@ -353,13 +353,16 @@ class AnvilFormat(Format):
         :param directory: The path to the root of the world to load.
         :return: True if the world can be loaded by this format, False otherwise.
         """
-        if not check_all_exist(directory, "region", "level.dat"):
+        if not check_all_exist(directory, "level.dat"):
             return False
 
-        if not check_one_exists(directory, "playerdata", "players"):
+        try:
+            level_dat_root = load_leveldat(directory)
+        except:
             return False
 
-        level_dat_root = load_leveldat(directory)
+        if "Data" not in level_dat_root:
+            return False
 
         if "FML" in level_dat_root:
             return False
