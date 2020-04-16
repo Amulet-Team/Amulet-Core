@@ -444,12 +444,22 @@ class World(BaseStructure):
 
     def run_operation(
         self,
-        operation: Callable,
-        dimension: int,
+        operation: OperationType,
+        dimension: Dimension,
         *args,
         create_undo=True
-    ) -> Optional[Any]:
-        out = operation(self, dimension, *args)
+    ) -> Any:
+        try:
+            out = operation(self, dimension, *args)
+            if isinstance(out, GeneratorType):
+                try:
+                    while True:
+                        next(out)
+                except StopIteration as e:
+                    obj = e.value
+        except Exception as e:
+            self.restore_last_undo_point()
+            raise e
         if create_undo:
             self.create_undo_point()
         return out
