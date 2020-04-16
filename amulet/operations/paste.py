@@ -6,12 +6,13 @@ import numpy
 from amulet.api.structure import Structure
 from amulet.api.errors import ChunkLoadError, ChunkDoesNotExist
 from amulet.api.chunk import Chunk
+from amulet.api.data_types import Dimension
 
 if TYPE_CHECKING:
     from amulet.api.world import World
 
 
-def paste(world: "World", dimension: int, structure: Structure, options: dict):
+def paste(world: "World", dimension: Dimension, structure: Structure, options: dict):
     dst_location = options.get("location", (0, 0, 0))
     copy_air = options.get("copy_air", True)
     gab = numpy.vectorize(world.palette.get_add_block)
@@ -19,6 +20,9 @@ def paste(world: "World", dimension: int, structure: Structure, options: dict):
     offset = - structure.selection.min + dst_location
     if not copy_air:
         non_air = numpy.array([block.namespaced_name != 'universal_minecraft:air' for block in structure.palette.blocks()])
+
+    iter_count = len(list(structure.get_moved_chunk_slices(dst_location)))
+    count = 0
 
     for src_chunk, src_slices, src_box, (dst_cx, dst_cz), dst_slices, dst_box in structure.get_moved_chunk_slices(dst_location):
         try:
@@ -37,7 +41,6 @@ def paste(world: "World", dimension: int, structure: Structure, options: dict):
                     chunk_block_entity_location = numpy.array(block_entity_location) - offset
                     chunk_block_entity_location[[0, 2]] %= 16
                     if non_air[src_chunk.blocks[tuple(chunk_block_entity_location)]]:
-                        print(block_entity_location)
                         remove_block_entities.append(block_entity_location)
         for block_entity_location in remove_block_entities:
             del dst_chunk.block_entities[block_entity_location]
@@ -53,3 +56,6 @@ def paste(world: "World", dimension: int, structure: Structure, options: dict):
         else:
             dst_chunk.blocks[dst_slices] = lut[src_chunk.blocks[src_slices]]
         dst_chunk.changed = True
+
+        count += 1
+        yield 100 * count / iter_count
