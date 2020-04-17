@@ -154,14 +154,18 @@ class World(BaseStructure):
         """Save the world using the given wrapper.
         Leave as None to save back to the input wrapper.
         Optional progress callback to let the calling program know the progress. Input format chunk_index, chunk_count"""
-        chunk_index = 0
-        chunk_count = len(self._chunk_cache)
-
-        def update_progress():
-            nonlocal chunk_index
-            chunk_index += 1
+        for chunk_index, chunk_count in self.save_iter(wrapper):
             if progress_callback is not None:
                 progress_callback(chunk_index, chunk_count)
+
+    def save_iter(
+        self,
+        wrapper: Format = None
+    ) -> Generator[Tuple[int, int], None, None]:
+        """Save the world using the given wrapper.
+        Leave as None to save back to the input wrapper."""
+        chunk_index = 0
+        chunk_count = len(self._chunk_cache)
 
         if wrapper is None:
             wrapper = self._world_wrapper
@@ -200,7 +204,8 @@ class World(BaseStructure):
                             wrapper.commit_chunk(chunk, self._palette, output_dimension)
                         except ChunkLoadError:
                             log.info(f"Error loading chunk {cx} {cz}", exc_info=True)
-                        update_progress()
+                        chunk_index += 1
+                        yield chunk_index, chunk_count
                         if not chunk_index % 10000:
                             wrapper.save()
                             self._world_wrapper.unload()
@@ -218,7 +223,8 @@ class World(BaseStructure):
                 elif chunk.changed:
                     wrapper.commit_chunk(chunk, self._palette, dimension_out)
                     # TODO: mark the chunk as not changed
-                update_progress()
+                chunk_index += 1
+                yield chunk_index, chunk_count
                 if not chunk_index % 10000:
                     wrapper.save()
                     wrapper.unload()
