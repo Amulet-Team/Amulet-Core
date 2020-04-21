@@ -99,7 +99,7 @@ class Format:
         raise NotImplementedError
 
     @property
-    def last_played(self):
+    def last_played(self) -> int:
         raise NotImplementedError
 
     @property
