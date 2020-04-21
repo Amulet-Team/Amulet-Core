@@ -189,6 +189,10 @@ class LevelDBFormat(Format):
         self.root_tag["LevelName"] = nbt.TAG_String(value)
 
     @property
+    def last_played(self) -> int:
+        return self.root_tag["LastPlayed"].value
+
+    @property
     def game_version_string(self) -> str:
         try:
             return f'Bedrock {".".join(str(v.value) for v in self.root_tag["lastOpenedWithVersion"].value)}'

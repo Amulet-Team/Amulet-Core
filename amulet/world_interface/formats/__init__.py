@@ -99,6 +99,10 @@ class Format:
         raise NotImplementedError
 
     @property
+    def last_played(self):
+        raise NotImplementedError
+
+    @property
     def game_version_string(self) -> str:
         raise NotImplementedError
 
