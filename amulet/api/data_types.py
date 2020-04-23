@@ -1,9 +1,8 @@
-from typing import Dict, Any, Union, Generator, Callable, TYPE_CHECKING, Tuple
+from typing import Any, Union, Generator, Callable, Tuple
 
-if TYPE_CHECKING:
-    from amulet.api.world import World
-
-Dimension = int
+Dimension = str
+Coordinates = Tuple[int, int]
+DimensionCoordinates = Tuple[Dimension, int, int]
 
 OperationYieldType = Union[int, float, Tuple[Union[int, float], str]]
 OperationReturnType = Union[

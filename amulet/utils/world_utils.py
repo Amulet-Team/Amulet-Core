@@ -7,9 +7,7 @@ from io import StringIO
 from typing import Tuple
 import numpy
 from numpy import ndarray, zeros, uint8
-
-Coordinates = Tuple[int, int]
-DimensionCoordinates = Tuple[int, int, int]
+from amulet.api.data_types import Coordinates
 
 SECTOR_BYTES = 4096
 SECTOR_INTS = SECTOR_BYTES / 4

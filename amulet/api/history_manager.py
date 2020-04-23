@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from .world import ChunkCache
 
 
-_ChunkLocation = Tuple[int, int, int]  # dimension, cx, cz
+_ChunkLocation = Tuple[Dimension, int, int]  # dimension, cx, cz
 
 _ChunkRecord = Union[str, None]  # path to serialised file  # chunk has been deleted
 
@@ -107,7 +107,7 @@ class ChunkHistoryManager:
                 else:
                     # updated the changed chunk
                     self._chunk_index[chunk_location] += 1
-                    del chunk_storage[chunk_index + 1 :]
+                    del chunk_storage[chunk_index + 1:]
                     chunk_storage.append(
                         self._serialise_chunk(
                             chunk, chunk_location[0], self._chunk_index[chunk_location]
@@ -163,7 +163,8 @@ class ChunkHistoryManager:
         if self._snapshot_index >= 0:
             snapshot = self._snapshots[self._snapshot_index]
             for chunk_location in snapshot:
-                chunk = self._unserialise_chunk(*chunk_location, -1)
+                dimension, cx, cz = chunk_location
+                chunk = self._unserialise_chunk(dimension, cx, cz, -1)
                 chunk_cache[chunk_location] = chunk
             self._snapshot_index -= 1
 
@@ -172,7 +173,8 @@ class ChunkHistoryManager:
         if self._snapshot_index <= len(self._snapshots) - 2:
             snapshot = self._snapshots[self._snapshot_index + 1]
             for chunk_location in snapshot:
-                chunk = self._unserialise_chunk(*chunk_location, 1)
+                dimension, cx, cz = chunk_location
+                chunk = self._unserialise_chunk(dimension, cx, cz, 1)
                 chunk_cache[chunk_location] = chunk
             self._snapshot_index += 1
 

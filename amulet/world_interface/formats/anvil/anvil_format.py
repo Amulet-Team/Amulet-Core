@@ -4,7 +4,7 @@ import os
 import struct
 import zlib
 import gzip
-from typing import Tuple, Any, Dict, Union, Generator
+from typing import Tuple, Any, Dict, Union, Generator, Optional, List
 import numpy
 import time
 import re
@@ -14,13 +14,14 @@ import amulet_nbt as nbt
 from amulet.api.data_types import Dimension
 from amulet.world_interface.formats import Format
 from amulet.utils import world_utils
-from amulet.utils.format_utils import check_all_exist, check_one_exists, load_leveldat
+from amulet.utils.format_utils import check_all_exist, load_leveldat
 from amulet.api.errors import (
     ChunkDoesNotExist,
     LevelDoesNotExist,
-    ChunkLoadError,
-    ChunkSaveError,
+    ChunkLoadError
 )
+
+InternalDimension = str
 
 
 class AnvilRegion:
@@ -329,13 +330,13 @@ class AnvilLevelManager:
 
 
 class AnvilFormat(Format):
-    _level_names = {-1: "nether", 0: "overworld", 1: "end"}
-
     def __init__(self, directory: str):
         super().__init__(directory)
         self.root_tag: nbt.NBTFile = nbt.NBTFile()
         self._load_level_dat()
-        self._levels: Dict[int, AnvilLevelManager] = {}
+        self._levels: Dict[InternalDimension, AnvilLevelManager] = {}
+        self._dimension_name_map: Dict[Dimension, InternalDimension] = {}
+        self._mcc_support: Optional[bool] = None
         self._lock = None
 
     def _load_level_dat(self):
@@ -407,13 +408,28 @@ class AnvilFormat(Format):
             return f"Java Unknown Version"
 
     @property
-    def dimensions(self) -> Dict[str, int]:
+    def dimensions(self) -> List[Dimension]:
         """A list of all the levels contained in the world"""
-        dimensions = dict(zip(self._level_names.values(), self._level_names.keys()))
-        for level in self._levels.keys():
-            if level not in self._level_names:
-                dimensions[f"DIM{level}"] = level
-        return dimensions
+        return list(self._dimension_name_map.keys())
+
+    def register_dimension(self, dimension_internal: InternalDimension, dimension_name: Optional[Dimension] = None):
+        """
+        Register a new dimension.
+        :param dimension_internal: The internal representation of the dimension
+        :param dimension_name: The name of the dimension shown to the user
+        :return:
+        """
+        if dimension_name is None:
+            dimension_name: Dimension = dimension_internal
+
+        if dimension_internal:
+            path = os.path.join(self.world_path, dimension_internal)
+        else:
+            path = self.world_path
+
+        if dimension_internal not in self._levels and dimension_name not in self._dimension_name_map:
+            self._levels[dimension_internal] = AnvilLevelManager(path, mcc=self._mcc_support)
+            self._dimension_name_map[dimension_name] = dimension_internal
 
     def _get_interface_key(self, raw_chunk_data) -> Tuple[str, int]:
         return self.platform, raw_chunk_data.get("DataVersion", nbt.TAG_Int(-1)).value
@@ -429,22 +445,21 @@ class AnvilFormat(Format):
             f.flush()
             os.fsync(f.fileno())
 
-        mcc = (
+        self._mcc_support = (
             self._max_world_version()[1] > 2203
         )  # the real number might actually be lower
 
         # load all the levels
-        self._levels: Dict[Dimension, AnvilLevelManager] = {
-            0: AnvilLevelManager(self._world_path, mcc=mcc)
-        }
+        self.register_dimension("", "overworld")
+        self.register_dimension("DIM-1", "nether")
+        self.register_dimension("DIM1", "end")
+
         for dir_name in os.listdir(self._world_path):
             level_path = os.path.join(self._world_path, dir_name)
             if os.path.isdir(level_path) and dir_name.startswith("DIM"):
-                match = AnvilLevelManager.level_regex.fullmatch(dir_name)
-                if match is None:
+                if AnvilLevelManager.level_regex.fullmatch(dir_name) is None:
                     continue
-                level = int(match.group("level"))
-                self._levels[level] = AnvilLevelManager(level_path, mcc=mcc)
+                self.register_dimension(dir_name)
 
     def open(self):
         """Open the database for reading and writing"""
@@ -475,31 +490,31 @@ class AnvilFormat(Format):
         for level in self._levels.values():
             level.unload()
 
-    def _has_level(self, dimension: Dimension):
-        return dimension in self._levels
+    def _has_dimension(self, dimension: Dimension):
+        return dimension in self._dimension_name_map and self._dimension_name_map[dimension] in self._levels
 
-    def _get_level(self, level: int):
+    def _get_dimension(self, dimension: Dimension):
         self._verify_has_lock()
-        if level in self._levels:
-            return self._levels[level]
+        if self._has_dimension(dimension):
+            return self._levels[self._dimension_name_map[dimension]]
         else:
             raise LevelDoesNotExist
 
     def all_chunk_coords(self, dimension: Dimension) -> Generator[Tuple[int, int]]:
         """A generator of all chunk coords in the given dimension"""
-        if self._has_level(dimension):
-            yield from self._get_level(dimension).all_chunk_coords()
+        if self._has_dimension(dimension):
+            yield from self._get_dimension(dimension).all_chunk_coords()
 
     def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         """Delete a chunk from a given dimension"""
-        if self._has_level(dimension):
-            self._get_level(dimension).delete_chunk(cx, cz)
+        if self._has_dimension(dimension):
+            self._get_dimension(dimension).delete_chunk(cx, cz)
 
     def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
         """
         Actually stores the data from the interface to disk.
         """
-        self._get_level(dimension).put_chunk_data(cx, cz, data)
+        self._get_dimension(dimension).put_chunk_data(cx, cz, data)
 
     def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> Any:
         """
@@ -509,7 +524,7 @@ class AnvilFormat(Format):
         :param cz: The z coordinate of the chunk.
         :return: The interface key for the get_interface method and the data to interface with.
         """
-        return self._get_level(dimension).get_chunk_data(cx, cz)
+        return self._get_dimension(dimension).get_chunk_data(cx, cz)
 
 
 FORMAT_CLASS = AnvilFormat

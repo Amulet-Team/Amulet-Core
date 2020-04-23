@@ -11,6 +11,7 @@ def delete_chunk(world: "World", dimension: Dimension, source_box: Selection):
     count = 0
 
     for chunk, _ in world.get_chunk_boxes(source_box, dimension):
-        world.delete_chunk(*chunk.coordinates, dimension)
+        cx, cz = chunk.coordinates
+        world.delete_chunk(cx, cz, dimension)
         count += 1
         yield 100 * count / iter_count

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Tuple, Any, Union, Generator, Dict
+from typing import Tuple, Any, Union, Generator, Dict, List, Optional
 import copy
 import numpy
 
@@ -118,8 +118,17 @@ class Format:
         return self._world_image_path
 
     @property
-    def dimensions(self) -> Dict[str, int]:
+    def dimensions(self) -> List[Dimension]:
         """A list of all the dimensions contained in the world"""
+        raise NotImplementedError
+
+    def register_dimension(self, dimension_internal: Any, dimension_name: Optional[Dimension] = None):
+        """
+        Register a new dimension.
+        :param dimension_internal: The internal representation of the dimension
+        :param dimension_name: The name of the dimension shown to the user
+        :return:
+        """
         raise NotImplementedError
 
     def _get_interface(

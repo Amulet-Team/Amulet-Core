@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from copy import deepcopy
+# from copy import deepcopy
 import itertools
 import os
 import shutil
-from typing import Union, Generator, Dict, Optional, Tuple, List, Callable, Any
+from typing import Union, Generator, Dict, Optional, Tuple, Callable, Any
 from types import GeneratorType
 
 from amulet import log
@@ -14,13 +14,10 @@ from .history_manager import ChunkHistoryManager
 from .chunk import Chunk
 from .selection import Selection, SubSelectionBox
 from .paths import get_temp_dir
-from .data_types import OperationType, Dimension
+from .data_types import OperationType, Dimension, DimensionCoordinates
 from ..utils.world_utils import (
     block_coords_to_chunk_coords,
     blocks_slice_to_chunk_slice,
-    Coordinates,
-    DimensionCoordinates,
-    entity_position_to_chunk_coordinates,
 )
 from ..world_interface.formats import Format
 
@@ -170,8 +167,6 @@ class World(BaseStructure):
         if wrapper is None:
             wrapper = self._world_wrapper
 
-        dimstr2dim = self._world_wrapper.dimensions
-        dim2dimstr = {val: key for key, val in dimstr2dim.items()}
         output_dimension_map = wrapper.dimensions
 
         # perhaps make this check if the directory is the same rather than if the class is the same
@@ -185,23 +180,22 @@ class World(BaseStructure):
             wrapper.translation_manager = (
                 self._world_wrapper.translation_manager
             )  # TODO: this might cause issues in the future
-            for dimension in self._world_wrapper.dimensions.values():
+            for dimension in self._world_wrapper.dimensions:
                 chunk_count += len(
                     list(self._world_wrapper.all_chunk_coords(dimension))
                 )
 
-            for dimension_name, dimension in self._world_wrapper.dimensions.items():
+            for dimension in self._world_wrapper.dimensions:
                 try:
-                    if dimension_name not in output_dimension_map:
+                    if dimension not in output_dimension_map:
                         continue
-                    output_dimension = output_dimension_map[dimension_name]
                     for cx, cz in self._world_wrapper.all_chunk_coords(dimension):
-                        log.info(f"Converting chunk {dimension_name} {cx}, {cz}")
+                        log.info(f"Converting chunk {dimension} {cx}, {cz}")
                         try:
                             chunk = self._world_wrapper.load_chunk(
                                 cx, cz, self._palette, dimension
                             )
-                            wrapper.commit_chunk(chunk, self._palette, output_dimension)
+                            wrapper.commit_chunk(chunk, self._palette, dimension)
                         except ChunkLoadError:
                             log.info(f"Error loading chunk {cx} {cz}", exc_info=True)
                         chunk_index += 1
@@ -215,13 +209,12 @@ class World(BaseStructure):
 
         for storage in (self._chunk_history_manager, self._chunk_cache):
             for (dimension, cx, cz), chunk in storage.items():
-                dimension_out = output_dimension_map.get(dim2dimstr.get(dimension))
-                if dimension_out is None:
+                if dimension not in output_dimension_map:
                     continue
                 if chunk is None:
-                    wrapper.delete_chunk(cx, cz, dimension_out)
+                    wrapper.delete_chunk(cx, cz, dimension)
                 elif chunk.changed:
-                    wrapper.commit_chunk(chunk, self._palette, dimension_out)
+                    wrapper.commit_chunk(chunk, self._palette, dimension)
                     # TODO: mark the chunk as not changed
                 chunk_index += 1
                 yield chunk_index, chunk_count

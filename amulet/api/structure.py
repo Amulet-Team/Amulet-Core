@@ -8,7 +8,8 @@ from .world import World, BaseStructure
 from .chunk import Chunk
 from .block import Block, BlockManager
 from .errors import ChunkDoesNotExist
-from ..utils.world_utils import Coordinates, block_coords_to_chunk_coords
+from amulet.api.data_types import Coordinates
+from ..utils.world_utils import block_coords_to_chunk_coords
 from amulet.api.data_types import Dimension
 
 

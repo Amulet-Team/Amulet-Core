@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Dict, Generator, Set, Union, Optional
+from typing import Tuple, Dict, Generator, Set, Union, Optional, List
 
 import amulet_nbt as nbt
 
@@ -10,23 +10,32 @@ from amulet.utils.format_utils import check_all_exist
 from amulet.world_interface.formats import Format
 from amulet.world_interface.chunk import interfaces
 from amulet.libs.leveldb import LevelDB
-from amulet.api.errors import ChunkDoesNotExist
+from amulet.api.errors import (
+    ChunkDoesNotExist,
+    LevelDoesNotExist
+)
 from amulet.api.data_types import Dimension
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
     game_to_chunk_version,
 )
 
+InternalDimension = Optional[int]
+
 
 class LevelDBLevelManager:
     # tag_ids = {45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 118}
-    _level_names = {0: "overworld", 1: "nether", 2: "end"}
 
     def __init__(self, directory: str):
         self._directory = directory
         self._db = LevelDB(os.path.join(self._directory, "db"))
         # self._levels format Dict[level, Dict[Tuple[cx, cz], List[Tuple[full_key, key_extension]]]]
-        self._levels: Dict[int, Set[Tuple[int, int]]] = {}
+        self._levels: Dict[InternalDimension, Set[Tuple[int, int]]] = {}
+        self._dimension_name_map: Dict[Dimension, InternalDimension] = {}
         self._batch_temp: Dict[bytes, Union[bytes, None]] = {}
+
+        self.register_dimension(None, "overworld")
+        self.register_dimension(1, "nether")
+        self.register_dimension(2, "end")
 
         for key in self._db.keys():
             if 9 <= len(key) <= 10 and key[8] == 118:
@@ -49,27 +58,46 @@ class LevelDBLevelManager:
         self._db.close()
 
     @property
-    def dimensions(self) -> Dict[str, int]:
+    def dimensions(self) -> List[Dimension]:
         """A list of all the levels contained in the world"""
-        dimensions = dict(zip(self._level_names.values(), self._level_names.keys()))
-        for level in self._levels.keys():
-            if level not in self._level_names:
-                dimensions[f"DIM{level}"] = level
-        return dimensions
+        return list(self._dimension_name_map.keys())
+
+    def register_dimension(self, dimension_internal: InternalDimension, dimension_name: Optional[Dimension] = None):
+        """
+        Register a new dimension.
+        :param dimension_internal: The internal representation of the dimension
+        :param dimension_name: The name of the dimension shown to the user
+        :return:
+        """
+        if dimension_name is None:
+            dimension_name: Dimension = f"DIM{dimension_internal}"
+
+        if dimension_internal not in self._levels and dimension_name not in self._dimension_name_map:
+            self._levels[dimension_internal] = set()
+            self._dimension_name_map[dimension_name] = dimension_internal
+
+    def _get_internal_dimension(self, dimension: Dimension) -> InternalDimension:
+        if dimension in self._dimension_name_map:
+            return self._dimension_name_map[dimension]
+        else:
+            raise LevelDoesNotExist
 
     def all_chunk_coords(self, dimension: Dimension) -> Set[Tuple[int, int]]:
-        if dimension in self._levels:
-            return self._levels[dimension]
+        internal_dimension = self._get_internal_dimension(dimension)
+        if internal_dimension in self._levels:
+            return self._levels[internal_dimension]
         else:
             return set()
 
     def _add_chunk(self, key_: bytes, has_level: bool = False):
         if has_level:
-            cx_, cz_, level_ = struct.unpack("<iii", key_[:12])
+            cx, cz, level = struct.unpack("<iii", key_[:12])
         else:
-            cx_, cz_ = struct.unpack("<ii", key_[:8])
-            level_ = 0
-        self._levels.setdefault(level_, set()).add((cx_, cz_))
+            cx, cz = struct.unpack("<ii", key_[:8])
+            level = None
+        if level not in self._levels:
+            self.register_dimension(level)
+        self._levels[level].add((cx, cz))
 
     def get_chunk_data(
         self, cx: int, cz: int, dimension: Dimension
@@ -80,10 +108,11 @@ class LevelDBLevelManager:
         """
         iter_start = struct.pack("<ii", cx, cz)
         iter_end = iter_start + b"\xff"
-        if dimension in self._levels and (cx, cz) in self._levels[dimension]:
+        internal_dimension = self._get_internal_dimension(dimension)
+        if internal_dimension in self._levels and (cx, cz) in self._levels[internal_dimension]:
             chunk_data = {}
             for key, val in self._db.iterate(iter_start, iter_end):
-                if dimension == 0:
+                if internal_dimension is None:
                     if 9 <= len(key) <= 10:
                         key_extension = key[8:]
                     else:
@@ -91,7 +120,7 @@ class LevelDBLevelManager:
                 else:
                     if (
                         13 <= len(key) <= 14
-                        and struct.unpack("<i", key[8:12])[0] == dimension
+                        and struct.unpack("<i", key[8:12])[0] == internal_dimension
                     ):
                         key_extension = key[12:]
                     else:
@@ -106,24 +135,28 @@ class LevelDBLevelManager:
     ):
         """pass data to the region file class"""
         # get the region key
-        self._levels.setdefault(dimension, set()).add((cx, cz))
-        if dimension == 0:
+        internal_dimension = self._get_internal_dimension(dimension)
+        self._levels[internal_dimension].add((cx, cz))
+        if internal_dimension is None:
             key_prefix = struct.pack("<ii", cx, cz)
         else:
-            key_prefix = struct.pack("<iii", cx, cz, dimension)
+            key_prefix = struct.pack("<iii", cx, cz, internal_dimension)
         for key, val in data.items():
             self._batch_temp[key_prefix + key] = val
 
     def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
-        if dimension in self._levels and (cx, cz) in self._levels[dimension]:
-            chunk_data = self.get_chunk_data(cx, cz, dimension)
-            self._levels[dimension].remove((cx, cz))
-            for key in chunk_data.keys():
-                if dimension:
-                    key_prefix = struct.pack("<iii", cx, cz, dimension)
-                else:
-                    key_prefix = struct.pack("<ii", cx, cz)
-                self._batch_temp[key_prefix + key] = None
+        if dimension in self._dimension_name_map:
+            internal_dimension = self._dimension_name_map[dimension]
+            if internal_dimension in self._levels and (cx, cz) in self._levels[internal_dimension]:
+                chunk_data = self.get_chunk_data(cx, cz, dimension)
+                self._levels[internal_dimension].remove((cx, cz))
+                for key in chunk_data.keys():
+                    if internal_dimension is None:
+                        key_prefix = struct.pack("<ii", cx, cz)
+                    else:
+                        key_prefix = struct.pack("<iii", cx, cz, internal_dimension)
+
+                    self._batch_temp[key_prefix + key] = None
 
 
 class LevelDBFormat(Format):
@@ -201,10 +234,19 @@ class LevelDBFormat(Format):
             return f"Bedrock Unknown Version"
 
     @property
-    def dimensions(self) -> Dict[str, int]:
+    def dimensions(self) -> List[Dimension]:
         """A list of all the levels contained in the world"""
         self._verify_has_lock()
         return self._level_manager.dimensions
+
+    def register_dimension(self, dimension_internal: int, dimension_name: Optional[Dimension] = None):
+        """
+        Register a new dimension.
+        :param dimension_internal: The internal representation of the dimension
+        :param dimension_name: The name of the dimension shown to the user
+        :return:
+        """
+        self._level_manager.register_dimension(dimension_internal, dimension_name)
 
     def _get_interface(
         self, max_world_version, raw_chunk_data=None
@@ -222,7 +264,10 @@ class LevelDBFormat(Format):
         )  # TODO: work out a valid default
 
     def _reload_world(self):
-        # TODO: handle closing the level if it was already open before opening again
+        try:
+            self.close()
+        except:
+            pass
         self._level_manager = LevelDBLevelManager(self._world_path)
         self._lock = True
 

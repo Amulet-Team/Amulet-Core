@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 import numpy
 
-from typing import Sequence, Iterator, Tuple, Union, cast, Iterable, Optional
+from typing import Sequence, Iterator, Tuple, Union, cast, Iterable
 
 from .minecraft_types import Point
 

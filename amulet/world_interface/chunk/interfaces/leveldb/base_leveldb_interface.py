@@ -13,7 +13,7 @@ from amulet.api.entity import Entity
 from amulet.api.chunk import Chunk
 from amulet.api.chunk.blocks import Blocks
 from amulet.api.chunk.entity_list import EntityList
-from amulet.utils.world_utils import get_smallest_dtype, fast_unique
+from amulet.utils.world_utils import fast_unique
 from amulet.world_interface.chunk.interfaces import Interface
 from amulet.world_interface.chunk import translators
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
