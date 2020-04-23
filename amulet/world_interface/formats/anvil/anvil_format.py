@@ -498,7 +498,7 @@ class AnvilFormat(Format):
         if self._has_dimension(dimension):
             return self._levels[self._dimension_name_map[dimension]]
         else:
-            raise LevelDoesNotExist
+            raise LevelDoesNotExist(dimension)
 
     def all_chunk_coords(self, dimension: Dimension) -> Generator[Tuple[int, int]]:
         """A generator of all chunk coords in the given dimension"""

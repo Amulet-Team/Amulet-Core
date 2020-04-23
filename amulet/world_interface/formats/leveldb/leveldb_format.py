@@ -80,7 +80,7 @@ class LevelDBLevelManager:
         if dimension in self._dimension_name_map:
             return self._dimension_name_map[dimension]
         else:
-            raise LevelDoesNotExist
+            raise LevelDoesNotExist(dimension)
 
     def all_chunk_coords(self, dimension: Dimension) -> Set[Tuple[int, int]]:
         internal_dimension = self._get_internal_dimension(dimension)
