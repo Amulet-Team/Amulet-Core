@@ -4,6 +4,7 @@ from typing import Dict, List, Tuple, Union, TYPE_CHECKING, Generator, Optional
 import time
 import os
 from .chunk import Chunk
+from amulet.api.data_types import Dimension
 
 if TYPE_CHECKING:
     from .world import ChunkCache
@@ -63,7 +64,7 @@ class ChunkHistoryManager:
             if index or get_all:
                 yield chunk_location, self.get_current(*chunk_location)
 
-    def add_original_chunk(self, chunk: Chunk, dimension: int):
+    def add_original_chunk(self, chunk: Chunk, dimension: Dimension):
         """Adds the given chunk to the chunk history"""
         # If the chunk does not exist in the chunk history then add it
 
@@ -125,7 +126,7 @@ class ChunkHistoryManager:
             self._last_snapshot_time = time.time()
 
     def _serialise_chunk(
-        self, chunk: Union[Chunk, None], dimension: int, change_no: int
+        self, chunk: Union[Chunk, None], dimension: Dimension, change_no: int
     ) -> _ChunkRecord:
         """Serialise the chunk and write it to a file"""
         if chunk is None:
@@ -142,7 +143,7 @@ class ChunkHistoryManager:
         return path
 
     def _unserialise_chunk(
-        self, dimension: int, cx: int, cz: int, change_no: int
+        self, dimension: Dimension, cx: int, cz: int, change_no: int
     ) -> Union[Chunk, None]:
         """Load the next save state for a given chunk in a given direction"""
         chunk_location = (dimension, cx, cz)
@@ -175,5 +176,5 @@ class ChunkHistoryManager:
                 chunk_cache[chunk_location] = chunk
             self._snapshot_index += 1
 
-    def get_current(self, dimension: int, cx: int, cz: int):
+    def get_current(self, dimension: Dimension, cx: int, cz: int):
         return self._unserialise_chunk(dimension, cx, cz, 0)

@@ -9,6 +9,7 @@ from .chunk import Chunk
 from .block import Block, BlockManager
 from .errors import ChunkDoesNotExist
 from ..utils.world_utils import Coordinates, block_coords_to_chunk_coords
+from amulet.api.data_types import Dimension
 
 
 structure_buffer = []
@@ -40,7 +41,7 @@ class Structure(BaseStructure):
         return self._selection
 
     @classmethod
-    def from_world(cls, world: World, selection: Selection, dimension: int):
+    def from_world(cls, world: World, selection: Selection, dimension: Dimension):
         data = {}
         for chunk, _ in world.get_chunk_boxes(selection, dimension):
             if chunk.coordinates not in data:

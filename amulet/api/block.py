@@ -180,7 +180,7 @@ class Block:
             )
 
     @property
-    def extra_blocks(self) -> Union[Tuple, Tuple[Block]]:
+    def extra_blocks(self) -> Tuple[Block]:
         """
         Returns a tuple of the extra blocks contained in the Block instance
 

@@ -11,6 +11,7 @@ import re
 
 import amulet_nbt as nbt
 
+from amulet.api.data_types import Dimension
 from amulet.world_interface.formats import Format
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, check_one_exists, load_leveldat
@@ -433,7 +434,7 @@ class AnvilFormat(Format):
         )  # the real number might actually be lower
 
         # load all the levels
-        self._levels: Dict[int, AnvilLevelManager] = {
+        self._levels: Dict[Dimension, AnvilLevelManager] = {
             0: AnvilLevelManager(self._world_path, mcc=mcc)
         }
         for dir_name in os.listdir(self._world_path):
@@ -474,7 +475,7 @@ class AnvilFormat(Format):
         for level in self._levels.values():
             level.unload()
 
-    def _has_level(self, dimension: int):
+    def _has_level(self, dimension: Dimension):
         return dimension in self._levels
 
     def _get_level(self, level: int):
@@ -484,23 +485,23 @@ class AnvilFormat(Format):
         else:
             raise LevelDoesNotExist
 
-    def all_chunk_coords(self, dimension: int = 0) -> Generator[Tuple[int, int]]:
+    def all_chunk_coords(self, dimension: Dimension) -> Generator[Tuple[int, int]]:
         """A generator of all chunk coords in the given dimension"""
         if self._has_level(dimension):
             yield from self._get_level(dimension).all_chunk_coords()
 
-    def delete_chunk(self, cx: int, cz: int, dimension: int = 0):
+    def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         """Delete a chunk from a given dimension"""
         if self._has_level(dimension):
             self._get_level(dimension).delete_chunk(cx, cz)
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: int = 0):
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
         """
         Actually stores the data from the interface to disk.
         """
         self._get_level(dimension).put_chunk_data(cx, cz, data)
 
-    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: int = 0) -> Any:
+    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> Any:
         """
         Return the interface key and data to interface with given chunk coordinates.
 

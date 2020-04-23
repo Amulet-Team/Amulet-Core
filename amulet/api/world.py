@@ -34,10 +34,10 @@ class BaseStructure:
     def chunk_size(self) -> Tuple[int, int, int]:
         return 16, 256, 16
 
-    def get_chunk(self, cx: int, cz: int) -> Chunk:
+    def get_chunk(self, *args, **kwargs) -> Chunk:
         raise NotImplementedError
 
-    def get_block(self, x: int, y: int, z: int) -> Block:
+    def get_block(self, *args, **kwargs) -> Block:
         raise NotImplementedError
 
     def _absolute_to_chunk_slice(
@@ -67,12 +67,12 @@ class BaseStructure:
         )
 
     def get_chunk_boxes(
-        self, selection: Union[Selection, SubSelectionBox]
+        self, *args, **kwargs
     ) -> Generator[Tuple[Chunk, SubSelectionBox], None, None]:
         raise NotImplementedError
 
     def get_chunk_slices(
-        self, selection: Union[Selection, SubSelectionBox]
+        self, *args, **kwargs
     ) -> Generator[
         Tuple[Chunk, Tuple[slice, slice, slice], SubSelectionBox], None, None
     ]:
@@ -255,7 +255,7 @@ class World(BaseStructure):
             del self._chunk_cache[chunk_key]
         self._world_wrapper.unload()
 
-    def get_chunk(self, cx: int, cz: int, dimension: Dimension = 0) -> Chunk:
+    def get_chunk(self, cx: int, cz: int, dimension: Dimension) -> Chunk:
         """
         Gets the chunk data of the specified chunk coordinates.
         If the chunk does not exist ChunkDoesNotExist is raised.
@@ -283,16 +283,16 @@ class World(BaseStructure):
 
         return chunk
 
-    def put_chunk(self, chunk: Chunk, dimension: Dimension = 0):
+    def put_chunk(self, chunk: Chunk, dimension: Dimension):
         """Add a chunk to the universal world database"""
         chunk.changed = True
         self._chunk_cache[(dimension, chunk.cx, chunk.cz)] = chunk
 
-    def delete_chunk(self, cx: int, cz: int, dimension: Dimension = 0):
+    def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         """Delete a chunk from the universal world database"""
         self._chunk_cache[(dimension, cx, cz)] = None
 
-    def get_block(self, x: int, y: int, z: int, dimension: Dimension = 0) -> Block:
+    def get_block(self, x: int, y: int, z: int, dimension: Dimension) -> Block:
         """
         Gets the blockstate at the specified coordinates
 
@@ -313,7 +313,7 @@ class World(BaseStructure):
     def get_chunk_boxes(
         self,
         selection: Union[Selection, SubSelectionBox],
-        dimension: Dimension = 0,
+        dimension: Dimension,
         create_missing_chunks=False,
     ) -> Generator[Tuple[Chunk, SubSelectionBox], None, None]:
         """Given a selection will yield chunks and SubSelectionBoxes into that chunk
@@ -349,7 +349,7 @@ class World(BaseStructure):
     def get_chunk_slices(
         self,
         selection: Union[Selection, SubSelectionBox],
-        dimension: Dimension = 0,
+        dimension: Dimension,
         create_missing_chunks=False,
     ) -> Generator[
         Tuple[Chunk, Tuple[slice, slice, slice], SubSelectionBox], None, None
@@ -462,7 +462,7 @@ class World(BaseStructure):
                     while True:
                         next(out)
                 except StopIteration as e:
-                    obj = e.value
+                    out = e.value
         except Exception as e:
             self.restore_last_undo_point()
             raise e

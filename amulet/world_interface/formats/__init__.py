@@ -16,6 +16,7 @@ from amulet.api.errors import (
 )
 from ...api.block import BlockManager
 from ...api.chunk import Chunk
+from amulet.api.data_types import Dimension
 from ..loader import Loader
 
 SUPPORTED_FORMAT_VERSION = 0
@@ -160,12 +161,12 @@ class Format:
         """Unload data stored in the Format class"""
         raise NotImplementedError
 
-    def all_chunk_coords(self, dimension: int = 0) -> Generator[Tuple[int, int]]:
+    def all_chunk_coords(self, dimension: Dimension) -> Generator[Tuple[int, int]]:
         """A generator of all chunk coords in the given dimension"""
         raise NotImplementedError
 
     def load_chunk(
-        self, cx: int, cz: int, global_palette: BlockManager, dimension: int = 0
+        self, cx: int, cz: int, global_palette: BlockManager, dimension: Dimension
     ) -> Chunk:
         """
         Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
@@ -188,7 +189,7 @@ class Format:
         self,
         cx: int,
         cz: int,
-        dimension: int,
+        dimension: Dimension,
         global_palette: BlockManager,
         recurse: bool = True,
     ) -> Chunk:
@@ -250,7 +251,7 @@ class Format:
         return chunk
 
     def commit_chunk(
-        self, chunk: Chunk, global_palette: BlockManager, dimension: int = 0
+        self, chunk: Chunk, global_palette: BlockManager, dimension: Dimension
     ):
         """
         Save a universal format chunk to the Format database (not the disk database)
@@ -269,7 +270,7 @@ class Format:
     def _commit_chunk(
         self,
         chunk: Chunk,
-        dimension: int,
+        dimension: Dimension,
         global_palette: BlockManager,
         recurse: bool = True,
     ):
@@ -323,16 +324,16 @@ class Format:
 
         self._put_raw_chunk_data(cx, cz, raw_chunk_data, dimension)
 
-    def delete_chunk(self, cx: int, cz: int, dimension: int = 0):
+    def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         raise NotImplementedError
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: int = 0):
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
         """
         Actually stores the data from the interface to disk.
         """
         raise NotImplementedError()
 
-    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: int = 0) -> Any:
+    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> Any:
         """
         Return the interface key and data to interface with given chunk coordinates.
 
