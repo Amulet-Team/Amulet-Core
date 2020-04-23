@@ -36,6 +36,4 @@ def load_leveldat(in_dir: str) -> nbt.NBTFile:
     :param in_dir: The world directory containing the level.dat file
     :return: The NBT root tag
     """
-
-    root_tag = nbt.load(filename=os.path.join(in_dir, "level.dat"))
-    return root_tag
+    return nbt.load(filename=os.path.join(in_dir, "level.dat"))

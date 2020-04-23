@@ -1,0 +1,10 @@
+{
+"meta_version": 0,
+"format": {
+    "id": "java_forge",
+    "name": "Anvil Forge Format",
+    "entry_point": "anvil_forge_format",
+    "format_version": 0,
+    "wrapper_version": -1
+   }
+}
