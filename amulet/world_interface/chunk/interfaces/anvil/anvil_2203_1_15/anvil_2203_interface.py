@@ -12,7 +12,7 @@ class Anvil2203Interface(Anvil1912Interface):
 
     @staticmethod
     def minor_is_valid(key: int):
-        return 2203 <= key < 2500
+        return 2203 <= key < 2529
 
 
 INTERFACE_CLASS = Anvil2203Interface
