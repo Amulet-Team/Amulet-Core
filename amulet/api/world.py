@@ -267,9 +267,14 @@ class World(BaseStructure):
                 (dimension, cx, cz)
             ] = self._chunk_history_manager.get_current(*chunk_key)
         else:
-            chunk = self._world_wrapper.load_chunk(cx, cz, self._palette, dimension)
-            self._chunk_cache[(dimension, cx, cz)] = chunk
-            self._chunk_history_manager.add_original_chunk(chunk, dimension)
+            try:
+                chunk = self._world_wrapper.load_chunk(cx, cz, self._palette, dimension)
+                self._chunk_cache[(dimension, cx, cz)] = chunk
+            except ChunkDoesNotExist:
+                chunk = self._chunk_cache[(dimension, cx, cz)] = None
+            except ChunkLoadError as e:
+                raise e
+            self._chunk_history_manager.add_original_chunk(dimension, cx, cz, chunk)
 
         if chunk is None:
             raise ChunkDoesNotExist(f"Chunk ({cx},{cz}) has been deleted")

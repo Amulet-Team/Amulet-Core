@@ -64,7 +64,7 @@ class ChunkHistoryManager:
             if index or get_all:
                 yield chunk_location, self.get_current(*chunk_location)
 
-    def add_original_chunk(self, chunk: Chunk, dimension: Dimension):
+    def add_original_chunk(self, dimension: Dimension, cx: int, cz: int, chunk: Optiona[Chunk]):
         """Adds the given chunk to the chunk history"""
         # If the chunk does not exist in the chunk history then add it
 
@@ -73,9 +73,12 @@ class ChunkHistoryManager:
         # chunk must have been unloaded from the World class and reloaded
         # only chunks that are unchanged or have been saved can be unloaded so
         # the latest chunk here should be the same as the one on disk
-        if (dimension, chunk.cx, chunk.cz) not in self._chunk_history:
-            self._chunk_index[(dimension, chunk.cx, chunk.cz)] = 0
-            self._chunk_history[(dimension, chunk.cx, chunk.cz)] = [
+
+        if (dimension, cx, cz) not in self._chunk_history:
+            if chunk is not None:
+                assert cx == chunk.cx and cz == chunk.cz
+            self._chunk_index[(dimension, cx, cz)] = 0
+            self._chunk_history[(dimension, cx, cz)] = [
                 self._serialise_chunk(chunk, dimension, 0)
             ]
 
