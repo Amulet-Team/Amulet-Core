@@ -516,7 +516,7 @@ class AnvilFormat(Format):
         """
         self._get_dimension(dimension).put_chunk_data(cx, cz, data)
 
-    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> Any:
+    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> nbt.NBTFile:
         """
         Return the interface key and data to interface with given chunk coordinates.
 

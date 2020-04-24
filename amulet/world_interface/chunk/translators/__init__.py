@@ -34,9 +34,13 @@ GetBlockCallback = Callable[  # get a block at a different location
         Tuple[int, int, int]
     ],  # this takes the coordinates relative to the block in question
     Tuple[
-        Block, Union[None, BlockEntity]
+        Block, Optional[BlockEntity]
     ],  # and returns a new block and optionally a block entity
 ]
+
+VersionNumberType = Tuple[int, int, int]
+BedrockBlockType = Tuple[Tuple[Optional[VersionNumberType], Block], ...]
+BlockType = Union[Block, BedrockBlockType]
 
 TranslateBlockCallbackReturn = Tuple[
     Optional[Block], Optional[BlockEntity], List[Entity], bool
@@ -48,7 +52,7 @@ TranslateEntityCallbackReturn = Tuple[
 
 TranslateBlockCallback = Callable[
     [  # a callable
-        Block,  # that takes either a Block
+        BlockType,  # that takes either a Block
         Optional[
             GetBlockCallback
         ],  # this is used in cases where the block needs data beyond itself to fully define itself (eg doors)
@@ -61,18 +65,6 @@ TranslateEntityCallback = Callable[
         Entity  # that takes either an Entity
     ],
     TranslateEntityCallbackReturn,  # ultimately return the converted objects(s)
-]
-
-TranslateCallback = Callable[
-    [  # a callable
-        Union[Block, Entity],  # that takes either a Block or Entity object
-        Optional[
-            GetBlockCallback
-        ],  # this is used in cases where the block needs data beyond itself to fully define itself (eg doors)
-    ],
-    Tuple[
-        Block, BlockEntity, List[Entity], bool
-    ],  # ultimately return the converted objects(s)
 ]
 
 
@@ -120,7 +112,7 @@ class Translator:
 
         # translate each block without using the callback
         for i, input_block in enumerate(palette):
-            input_block: Block
+            input_block: BlockType
             output_block, output_block_entity, output_entity, extra = translate_block(
                 input_block, None
             )
@@ -158,7 +150,7 @@ class Translator:
 
                     def get_block_at(
                         pos: Tuple[int, int, int]
-                    ) -> Tuple[Block, Union[None, BlockEntity]]:
+                    ) -> Tuple[Block, Optional[BlockEntity]]:
                         """Get a block at a location relative to the current block"""
                         nonlocal x, y, z, palette, chunk, cy
 

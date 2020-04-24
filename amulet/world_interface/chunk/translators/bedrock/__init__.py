@@ -9,7 +9,7 @@ from amulet.api.chunk import Chunk
 from amulet.api.block import Block
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
-from amulet.world_interface.chunk.translators import Translator, TranslateBlockCallbackReturn, TranslateEntityCallbackReturn
+from amulet.world_interface.chunk.translators import Translator, TranslateBlockCallbackReturn, TranslateEntityCallbackReturn, VersionNumberType, BedrockBlockType
 import PyMCTranslate
 from PyMCTranslate.py3.translation_manager import Version
 
@@ -18,8 +18,8 @@ from .. import GetBlockCallback
 
 class BaseBedrockTranslator(Translator):
     def _translator_key(
-        self, version_number: Tuple[int, int, int]
-    ) -> Tuple[str, Tuple[int, int, int]]:
+        self, version_number: VersionNumberType
+    ) -> Tuple[str, VersionNumberType]:
         return "bedrock", version_number
 
     def _unpack_palette(self, version: Version, palette: numpy.ndarray):
@@ -58,7 +58,7 @@ class BaseBedrockTranslator(Translator):
 
     def to_universal(
         self,
-        game_version: Tuple[int, int, int],
+        game_version: VersionNumberType,
         translation_manager: PyMCTranslate.TranslationManager,
         chunk: Chunk,
         palette: numpy.ndarray,
@@ -73,7 +73,7 @@ class BaseBedrockTranslator(Translator):
         versions = {}
 
         def translate_block(
-            input_object: Tuple[Tuple[Optional[Tuple[int, int, int]], Block], ...],
+            input_object: BedrockBlockType,
             get_block_callback: Optional[GetBlockCallback],
         ) -> TranslateBlockCallbackReturn:
             final_block = None

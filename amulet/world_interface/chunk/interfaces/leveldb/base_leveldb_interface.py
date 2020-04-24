@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Dict, List, Union, Iterable
+from typing import Tuple, Dict, List, Union, Iterable, Optional
 
 import struct
 import numpy
@@ -242,7 +242,7 @@ class BaseLevelDBInterface(Interface):
         palette: List[
             Tuple[
                 Tuple[
-                    Union[None, Tuple[int, int, int, int]],
+                    Optional[Tuple[int, int, int, int]],
                     Union[Tuple[int, int], Block],
                 ]
             ]
@@ -278,7 +278,7 @@ class BaseLevelDBInterface(Interface):
                     (16, 16, 16, storage_count), dtype=numpy.uint32
                 )
                 sub_chunk_palette: List[
-                    List[Tuple[Union[None, Tuple[int, int, int, int]], Block]]
+                    List[Tuple[Optional[Tuple[int, int, int, int]], Block]]
                 ] = []
                 for storage_index in range(storage_count):
                     (
@@ -287,7 +287,7 @@ class BaseLevelDBInterface(Interface):
                         data,
                     ) = self._load_palette_blocks(data)
                     palette_data_out: List[
-                        Tuple[Union[None, Tuple[int, int, int, int]], Block]
+                        Tuple[Optional[Tuple[int, int, int, int]], Block]
                     ] = []
                     for block in palette_data:
                         namespace, base_name = block["name"].value.split(":", 1)
@@ -367,12 +367,12 @@ class BaseLevelDBInterface(Interface):
 
     def _save_subchunks_0(
         self, blocks: Blocks, palette: numpy.ndarray
-    ) -> List[Union[None, bytes]]:
+    ) -> List[Optional[bytes]]:
         raise NotImplementedError
 
     def _save_subchunks_1(
         self, blocks: Blocks, palette: numpy.ndarray
-    ) -> List[Union[None, bytes]]:
+    ) -> List[Optional[bytes]]:
         for index, block in enumerate(palette):
             block: Tuple[Tuple[None, Block], ...]
             block_data = block[0][1].properties.get("block_data", amulet_nbt.TAG_Int(0))
@@ -404,7 +404,7 @@ class BaseLevelDBInterface(Interface):
 
     def _save_subchunks_8(
         self, blocks: Blocks, palette: numpy.ndarray
-    ) -> List[Union[None, bytes]]:
+    ) -> List[Optional[bytes]]:
         palette_depth = numpy.array([len(block) for block in palette])
         if palette.size:
             if palette[0][0][0] is None:
