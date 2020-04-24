@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple
+from typing import Tuple, Union
 import amulet_nbt
 from .entity_base_object import EntityObject
 
@@ -46,3 +46,7 @@ class Entity(EntityObject):
     @property
     def location(self) -> Tuple[float, float, float]:
         return self._x, self._y, self._z
+
+    @location.setter
+    def location(self, location: Tuple[Union[int, float], Union[int, float], Union[int, float]]):
+        self._x, self._y, self._z = location

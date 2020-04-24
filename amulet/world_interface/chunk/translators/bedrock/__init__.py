@@ -9,7 +9,7 @@ from amulet.api.chunk import Chunk
 from amulet.api.block import Block
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
-from amulet.world_interface.chunk.translators import Translator
+from amulet.world_interface.chunk.translators import Translator, TranslateBlockCallbackReturn, TranslateEntityCallbackReturn
 import PyMCTranslate
 from PyMCTranslate.py3.translation_manager import Version
 
@@ -72,58 +72,60 @@ class BaseBedrockTranslator(Translator):
         # It needs to be done dynamically.
         versions = {}
 
-        def translate(
-            input_object: Union[
-                Tuple[Tuple[Union[Tuple[int, int, int], None], Block], ...], Entity
-            ],
+        def translate_block(
+            input_object: Tuple[Tuple[Optional[Tuple[int, int, int]], Block], ...],
             get_block_callback: Optional[GetBlockCallback],
-        ) -> Tuple[Block, BlockEntity, List[Entity], bool]:
+        ) -> TranslateBlockCallbackReturn:
             final_block = None
             final_block_entity = None
             final_entities = []
             final_extra = False
 
-            if isinstance(input_object, Entity):
-                # TODO: entity support
-                pass
+            for depth, block in enumerate(input_object):
+                game_version_, block = block
+                if game_version_ is None:
+                    if "block_data" in block.properties:
+                        # if block_data is in properties cap out at 1.12.x
+                        game_version_ = min(game_version, (1, 12, 999))
+                    else:
+                        game_version_ = game_version
+                version_key = self._translator_key(game_version_)
+                if version_key not in versions:
+                    versions[version_key] = translation_manager.get_version(
+                        *version_key
+                    ).block.to_universal
+                output_object, output_block_entity, extra = versions[version_key](
+                    block, get_block_callback
+                )
 
-            elif isinstance(input_object, tuple):
-                for depth, block in enumerate(input_object):
-                    game_version_, block = block
-                    if game_version_ is None:
-                        if "block_data" in block.properties:
-                            # if block_data is in properties cap out at 1.12.x
-                            game_version_ = min(game_version, (1, 12, 999))
-                        else:
-                            game_version_ = game_version
-                    version_key = self._translator_key(game_version_)
-                    if version_key not in versions:
-                        versions[version_key] = translation_manager.get_version(
-                            *version_key
-                        ).block.to_universal
-                    output_object, output_block_entity, extra = versions[version_key](
-                        block, get_block_callback
-                    )
+                if isinstance(output_object, Block):
+                    if not output_object.namespace.startswith("universal"):
+                        log.debug(
+                            f"Error translating {block.blockstate} to universal. Got {output_object.blockstate}"
+                        )
+                    if final_block is None:
+                        final_block = output_object
+                    else:
+                        final_block += output_object
+                    if depth == 0:
+                        final_block_entity = output_block_entity
 
-                    if isinstance(output_object, Block):
-                        if not output_object.namespace.startswith("universal"):
-                            log.debug(
-                                f"Error translating {block.blockstate} to universal. Got {output_object.blockstate}"
-                            )
-                        if final_block is None:
-                            final_block = output_object
-                        else:
-                            final_block += output_object
-                        if depth == 0:
-                            final_block_entity = output_block_entity
+                elif isinstance(output_object, Entity):
+                    final_entities.append(output_object)
+                    # TODO: offset entity coords
 
-                    elif isinstance(output_object, Entity):
-                        final_entities.append(output_object)
-                        # TODO: offset entity coords
-
-                    final_extra |= extra
+                final_extra |= extra
 
             return final_block, final_block_entity, final_entities, final_extra
+
+        def translate_entity(
+            input_object: Entity
+        ) -> TranslateEntityCallbackReturn:
+            final_block = None
+            final_block_entity = None
+            final_entities = []
+            # TODO
+            return final_block, final_block_entity, final_entities
 
         version = translation_manager.get_version(*self._translator_key(game_version))
         palette = self._unpack_palette(version, palette)
@@ -144,5 +146,5 @@ class BaseBedrockTranslator(Translator):
                     )
 
         return self._translate(
-            chunk, palette, get_chunk_callback, translate, full_translate
+            chunk, palette, get_chunk_callback, translate_block, translate_entity, full_translate
         )
