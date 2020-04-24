@@ -83,10 +83,13 @@ class AnvilNAInterface(BaseAnvilInterface):
             palette_len += len(section_palette)
             palette.append(section_palette)
 
-        final_palette, lut = numpy.unique(numpy.concatenate(palette), return_inverse=True)
-        final_palette: numpy.ndarray = numpy.array([final_palette >> 4, final_palette & 15]).T
-        for cy in blocks:
-            blocks[cy] = lut[blocks[cy]]
+        if palette:
+            final_palette, lut = numpy.unique(numpy.concatenate(palette), return_inverse=True)
+            final_palette: numpy.ndarray = numpy.array([final_palette >> 4, final_palette & 15]).T
+            for cy in blocks:
+                blocks[cy] = lut[blocks[cy]]
+        else:
+            final_palette = numpy.array([], dtype=numpy.object)
         return blocks, final_palette
 
     def _encode_blocks(
