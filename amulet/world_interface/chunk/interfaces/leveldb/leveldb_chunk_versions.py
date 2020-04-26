@@ -20,7 +20,8 @@ chunk_version_to_max_version = {
     15: ((1, 12, 0, 0), (1, 15, 999, 9999)),
     16: ((1, 15, 999, 9999), (1, 15, 999, 9999)),
     17: ((1, 15, 999, 9999), (1, 15, 999, 9999)),
-    18: ((1, 16, 0, 0), (999, 999, 999, 9999)),
+    18: ((1, 16, 0, 0), (1, 16, 0, 0)),
+    19: ((1, 16, 0, 0), (999, 999, 999, 9999)),
 }  # TODO: fill this list with the actual last game version number each chunk version was last used in
 
 
