@@ -2,7 +2,7 @@
 
 |Stylechecking|Documentation|Builds|
 |:-----------:|:-----------:|:----:|
-|[![CircleCI](https://circleci.com/gh/Amulet-Team/Amulet-Core/tree/develop.svg?style=svg)](https://circleci.com/gh/Amulet-Team/Amulet-Core/tree/develop)|[![Documentation Status](https://readthedocs.org/projects/amulet-core/badge/?version=develop)](https://amulet-core.readthedocs.io/en/develop/?badge=develop)|[![Build Status](https://travis-ci.org/Amulet-Team/Amulet-Core.svg?branch=develop)](https://travis-ci.org/Amulet-Team/Amulet-Core)|
+|[![CircleCI](https://circleci.com/gh/Amulet-Team/Amulet-Core/tree/develop.svg?style=svg)](https://circleci.com/gh/Amulet-Team/Amulet-Core/tree/develop)|[![Documentation Status](https://readthedocs.org/projects/amulet-core/badge/?version=develop)](https://amulet-core.readthedocs.io/en/develop/?badge=develop)|[![Build Status](https://travis-ci.org/Amulet-Team/Amulet-Map-Editor.svg)](https://github.com/Amulet-Team/Amulet-Map-Editor/releases)|
 
 The core library that provides functionality for the Amulet Map Editor
 
