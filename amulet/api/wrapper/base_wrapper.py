@@ -15,7 +15,6 @@ from amulet.api.errors import (
 )
 from amulet.api.block import BlockManager
 from amulet.api.chunk import Chunk
-from amulet.api.data_types import Dimension
 from amulet.api.wrapper.chunk.translator import Translator, VersionIdentifierType
 
 
@@ -126,7 +125,7 @@ class FormatWraper:
         raise NotImplementedError
 
     def all_chunk_coords(self, *args) -> Generator[Tuple[int, int]]:
-        """A generator of all chunk coords in the given dimension"""
+        """A generator of all chunk coords"""
         raise NotImplementedError
 
     def load_chunk(
@@ -209,18 +208,17 @@ class FormatWraper:
         return chunk
 
     def commit_chunk(
-        self, chunk: Chunk, global_palette: BlockManager, dimension: Dimension
+        self, chunk: Chunk, global_palette: BlockManager, *args
     ):
         """
         Save a universal format chunk to the Format database (not the disk database)
         call save method to write changed chunks back to the disk database
         :param chunk: The chunk object to translate and save
         :param global_palette: The universal block manager
-        :param dimension: optional dimension
         :return:
         """
         try:
-            self._commit_chunk(copy.deepcopy(chunk), global_palette, dimension)
+            self._commit_chunk(copy.deepcopy(chunk), global_palette, *args)
         except Exception:
             log.error(f"Error saving chunk {chunk}", exc_info=True)
         self._changed = True
@@ -280,7 +278,7 @@ class FormatWraper:
 
         self._put_raw_chunk_data(cx, cz, raw_chunk_data, *args)
 
-    def delete_chunk(self, cx: int, cz: int):
+    def delete_chunk(self, cx: int, cz: int, *args):
         raise NotImplementedError
 
     def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, *args):

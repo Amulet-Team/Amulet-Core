@@ -94,7 +94,20 @@ class WorldFormatWrapper(FormatWraper):
         :param dimension: dimension
         :return: The chunk at the given coordinates.
         """
-        super().load_chunk(cx, cz, global_palette, dimension)
+        return super().load_chunk(cx, cz, global_palette, dimension)
+
+    def commit_chunk(
+        self, chunk: Chunk, global_palette: BlockManager, dimension: Dimension
+    ):
+        """
+        Save a universal format chunk to the Format database (not the disk database)
+        call save method to write changed chunks back to the disk database
+        :param chunk: The chunk object to translate and save
+        :param global_palette: The universal block manager
+        :param dimension: optional dimension
+        :return:
+        """
+        super().commit_chunk(chunk, global_palette, dimension)
 
     def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         raise NotImplementedError

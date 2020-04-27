@@ -169,7 +169,7 @@ class LevelDBFormat(WorldFormatWrapper):
 
     def _load_level_dat(self):
         """Load the level.dat file and check the image file"""
-        with open(os.path.join(self._world_path, "level.dat"), "rb") as f:
+        with open(os.path.join(self.path, "level.dat"), "rb") as f:
             level_dat_version = struct.unpack("<i", f.read(4))[
                 0
             ]  # TODO: handle other versions
@@ -180,8 +180,8 @@ class LevelDBFormat(WorldFormatWrapper):
             self.root_tag = nbt.load(
                 buffer=f.read(data_length), compressed=False, little_endian=True
             )
-        if os.path.isfile(os.path.join(self._world_path, "world_icon.jpeg")):
-            self._world_image_path = os.path.join(self._world_path, "world_icon.jpeg")
+        if os.path.isfile(os.path.join(self.path, "world_icon.jpeg")):
+            self._world_image_path = os.path.join(self.path, "world_icon.jpeg")
 
     @staticmethod
     def is_valid(directory):
@@ -268,7 +268,7 @@ class LevelDBFormat(WorldFormatWrapper):
             self.close()
         except:
             pass
-        self._level_manager = LevelDBLevelManager(self._world_path)
+        self._level_manager = LevelDBLevelManager(self.path)
         self._lock = True
 
     def open(self):

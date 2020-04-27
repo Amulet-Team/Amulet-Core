@@ -341,9 +341,9 @@ class AnvilFormat(WorldFormatWrapper):
 
     def _load_level_dat(self):
         """Load the level.dat file and check the image file"""
-        self.root_tag = nbt.load(filename=os.path.join(self._world_path, "level.dat"))
-        if os.path.isfile(os.path.join(self._world_path, "icon.png")):
-            self._world_image_path = os.path.join(self._world_path, "icon.png")
+        self.root_tag = nbt.load(filename=os.path.join(self.path, "level.dat"))
+        if os.path.isfile(os.path.join(self.path, "icon.png")):
+            self._world_image_path = os.path.join(self.path, "icon.png")
         else:
             self._world_image_path = self._missing_world_icon
 
@@ -440,7 +440,7 @@ class AnvilFormat(WorldFormatWrapper):
 
         # create the session.lock file (this has mostly been lifted from MCEdit)
         self._lock = int(time.time() * 1000)
-        with open(os.path.join(self._world_path, "session.lock"), "wb") as f:
+        with open(os.path.join(self.path, "session.lock"), "wb") as f:
             f.write(struct.pack(">Q", self._lock))
             f.flush()
             os.fsync(f.fileno())
@@ -454,8 +454,8 @@ class AnvilFormat(WorldFormatWrapper):
         self.register_dimension("DIM-1", "nether")
         self.register_dimension("DIM1", "end")
 
-        for dir_name in os.listdir(self._world_path):
-            level_path = os.path.join(self._world_path, dir_name)
+        for dir_name in os.listdir(self.path):
+            level_path = os.path.join(self.path, dir_name)
             if os.path.isdir(level_path) and dir_name.startswith("DIM"):
                 if AnvilLevelManager.level_regex.fullmatch(dir_name) is None:
                     continue
@@ -468,7 +468,7 @@ class AnvilFormat(WorldFormatWrapper):
     def has_lock(self) -> bool:
         """Verify that the world database can be read and written"""
         try:
-            with open(os.path.join(self._world_path, "session.lock"), "rb") as f:
+            with open(os.path.join(self.path, "session.lock"), "rb") as f:
                 return struct.unpack(">Q", f.read(8))[0] == self._lock
         except Exception:
             return False
