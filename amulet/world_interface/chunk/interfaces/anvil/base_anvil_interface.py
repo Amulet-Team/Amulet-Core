@@ -11,6 +11,7 @@ from amulet.api.chunk.blocks import Blocks
 from amulet.api.block import Block
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
+from amulet.api.wrapper import Interface, Translator
 from amulet.world_interface.chunk.interfaces import Interface
 from amulet.world_interface.chunk import translators
 

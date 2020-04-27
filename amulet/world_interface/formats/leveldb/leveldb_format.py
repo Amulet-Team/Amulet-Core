@@ -7,7 +7,7 @@ from typing import Tuple, Dict, Generator, Set, Union, Optional, List
 import amulet_nbt as nbt
 
 from amulet.utils.format_utils import check_all_exist
-from amulet.world_interface.formats import Format
+from amulet.world_interface.formats import WorldFormatWrapper
 from amulet.world_interface.chunk import interfaces
 from amulet.libs.leveldb import LevelDB
 from amulet.api.errors import (
@@ -159,7 +159,7 @@ class LevelDBLevelManager:
                     self._batch_temp[key_prefix + key] = None
 
 
-class LevelDBFormat(Format):
+class LevelDBFormat(WorldFormatWrapper):
     def __init__(self, directory: str):
         super().__init__(directory)
         self._lock = False

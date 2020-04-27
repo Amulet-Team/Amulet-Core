@@ -22,7 +22,7 @@ def load_world(directory: str, _format: str = None, forced: bool = False) -> Wor
 
 def load_format(
     directory: str, _format: str = None, forced: bool = False
-) -> formats.Format:
+) -> formats.WorldFormatWrapper:
     """
     Loads the world located at the given directory with the appropriate format loader.
 

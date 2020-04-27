@@ -12,7 +12,7 @@ import re
 import amulet_nbt as nbt
 
 from amulet.api.data_types import Dimension
-from amulet.world_interface.formats import Format
+from amulet.world_interface.formats import WorldFormatWrapper
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, load_leveldat
 from amulet.api.errors import (
@@ -329,7 +329,7 @@ class AnvilLevelManager:
             pass
 
 
-class AnvilFormat(Format):
+class AnvilFormat(WorldFormatWrapper):
     def __init__(self, directory: str):
         super().__init__(directory)
         self.root_tag: nbt.NBTFile = nbt.NBTFile()
@@ -423,9 +423,9 @@ class AnvilFormat(Format):
             dimension_name: Dimension = dimension_internal
 
         if dimension_internal:
-            path = os.path.join(self.world_path, dimension_internal)
+            path = os.path.join(self.path, dimension_internal)
         else:
-            path = self.world_path
+            path = self.path
 
         if dimension_internal not in self._levels and dimension_name not in self._dimension_name_map:
             self._levels[dimension_internal] = AnvilLevelManager(path, mcc=self._mcc_support)

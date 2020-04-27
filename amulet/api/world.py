@@ -19,7 +19,7 @@ from ..utils.world_utils import (
     block_coords_to_chunk_coords,
     blocks_slice_to_chunk_slice,
 )
-from ..world_interface.formats import Format
+from ..world_interface.formats import WorldFormatWrapper
 
 from PyMCTranslate import TranslationManager
 
@@ -81,7 +81,7 @@ class World(BaseStructure):
     Class that handles world editing of any world format via an separate and flexible data format
     """
 
-    def __init__(self, directory: str, world_wrapper: Format, temp_dir: str = None):
+    def __init__(self, directory: str, world_wrapper: WorldFormatWrapper, temp_dir: str = None):
         self._directory = directory
         if temp_dir is None:
             self._temp_directory = get_temp_dir(self._directory)
@@ -134,7 +134,7 @@ class World(BaseStructure):
         return self._world_wrapper.translation_manager
 
     @property
-    def world_wrapper(self) -> Format:
+    def world_wrapper(self) -> WorldFormatWrapper:
         """A class to access data directly from the world."""
         return self._world_wrapper
 
@@ -145,7 +145,7 @@ class World(BaseStructure):
 
     def save(
         self,
-        wrapper: Format = None,
+        wrapper: WorldFormatWrapper = None,
         progress_callback: Callable[[int, int], None] = None,
     ):
         """Save the world using the given wrapper.
@@ -157,7 +157,7 @@ class World(BaseStructure):
 
     def save_iter(
         self,
-        wrapper: Format = None
+        wrapper: WorldFormatWrapper = None
     ) -> Generator[Tuple[int, int], None, None]:
         """Save the world using the given wrapper.
         Leave as None to save back to the input wrapper."""
@@ -175,7 +175,7 @@ class World(BaseStructure):
             # The input wrapper is not the same as the loading wrapper (save-as)
             # iterate through every chunk in the input world and save them to the wrapper
             log.info(
-                f"Converting world {self._world_wrapper.world_path} to world {wrapper.world_path}"
+                f"Converting world {self._world_wrapper.path} to world {wrapper.path}"
             )
             wrapper.translation_manager = (
                 self._world_wrapper.translation_manager
@@ -222,9 +222,9 @@ class World(BaseStructure):
                     wrapper.save()
                     wrapper.unload()
         self._chunk_history_manager.mark_saved()
-        log.info(f"Saving changes to world {wrapper.world_path}")
+        log.info(f"Saving changes to world {wrapper.path}")
         wrapper.save()
-        log.info(f"Finished saving changes to world {wrapper.world_path}")
+        log.info(f"Finished saving changes to world {wrapper.path}")
 
     def close(self):
         """Close the attached world and remove temporary files
