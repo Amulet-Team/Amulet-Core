@@ -85,10 +85,6 @@ class FormatWraper:
         return self._changed
 
     @property
-    def game_version_string(self) -> str:
-        raise NotImplementedError
-
-    @property
     def path(self) -> str:
         """The path to the world directory"""
         return self._path

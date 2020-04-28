@@ -57,6 +57,10 @@ class WorldFormatWrapper(FormatWraper):
         raise NotImplementedError
 
     @property
+    def game_version_string(self) -> str:
+        raise NotImplementedError
+
+    @property
     def world_path(self) -> str:
         """The path to the world directory"""
         log.info(f'Format.world_path is depreciated. Please used Format.path{traceback.format_exc()}')
