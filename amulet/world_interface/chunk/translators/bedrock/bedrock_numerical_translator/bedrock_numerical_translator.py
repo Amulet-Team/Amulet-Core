@@ -7,7 +7,7 @@ from amulet.world_interface.chunk.translators.bedrock import BaseBedrockTranslat
 
 if TYPE_CHECKING:
     from amulet.api.block import Block
-    from PyMCTranslate.py3.translation_manager import Version
+    from PyMCTranslate import Version
 
 
 class BedrockNumericalTranslator(BaseBedrockTranslator):

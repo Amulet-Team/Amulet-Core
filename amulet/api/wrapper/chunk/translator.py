@@ -4,15 +4,16 @@ import numpy
 import copy
 import math
 
-from typing import Tuple, Callable, Union, List, Optional
+from typing import Tuple, Callable, Union, List, Optional, TYPE_CHECKING
 
 from amulet import log, entity_support
 from amulet.api.block import BlockManager, Block
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
 from amulet.api.chunk import Chunk
-import PyMCTranslate
-from PyMCTranslate.py3.translation_manager import Version
+
+if TYPE_CHECKING:
+    from PyMCTranslate import Version, TranslationManager
 
 
 VersionIdentifierType = Union[int, Tuple[int, int, int]]
@@ -224,7 +225,7 @@ class Translator:
     def to_universal(
         self,
         chunk_version: Union[int, Tuple[int, int, int]],
-        translation_manager: PyMCTranslate.TranslationManager,
+        translation_manager: 'TranslationManager',
         chunk: Chunk,
         palette: numpy.ndarray,
         get_chunk_callback: Union[
@@ -236,7 +237,7 @@ class Translator:
         Translate an interface-specific chunk into the universal format.
 
         :param chunk_version: The version number (int or tuple) of the input chunk
-        :param translation_manager: PyMCTranslate.TranslationManager used for the translation
+        :param translation_manager: TranslationManager used for the translation
         :param chunk: The chunk to translate.
         :param palette: The palette that the chunk's indices correspond to.
         :param get_chunk_callback: function callback to get a chunk's data
@@ -315,7 +316,7 @@ class Translator:
     def from_universal(
         self,
         max_world_version_number: Union[int, Tuple[int, int, int]],
-        translation_manager: PyMCTranslate.TranslationManager,
+        translation_manager: 'TranslationManager',
         chunk: Chunk,
         palette: numpy.ndarray,
         get_chunk_callback: Union[
@@ -327,7 +328,7 @@ class Translator:
         Translate a universal chunk into the interface-specific format.
 
         :param max_world_version_number: The version number (int or tuple) of the max world version
-        :param translation_manager: PyMCTranslate.TranslationManager used for the translation
+        :param translation_manager: TranslationManager used for the translation
         :param chunk: The chunk to translate.
         :param palette: The palette that the chunk's indices correspond to.
         :param get_chunk_callback: function callback to get a chunk's data
@@ -407,7 +408,7 @@ class Translator:
         return chunk, palette
 
     @staticmethod
-    def _biomes_to_universal(translator_version: Version, biome_array):
+    def _biomes_to_universal(translator_version: 'Version', biome_array):
         biome_palette, biome_compact_array = numpy.unique(
             biome_array, return_inverse=True
         )
@@ -417,7 +418,7 @@ class Translator:
         return universal_biome_palette[biome_compact_array]
 
     @staticmethod
-    def _biomes_from_universal(translator_version: Version, biome_array):
+    def _biomes_from_universal(translator_version: 'Version', biome_array):
         biome_palette, biome_compact_array = numpy.unique(
             biome_array, return_inverse=True
         )
@@ -427,7 +428,7 @@ class Translator:
         return universal_biome_palette[biome_compact_array]
 
     def _unpack_palette(
-        self, version: Version, palette: numpy.ndarray
+        self, version: 'Version', palette: numpy.ndarray
     ) -> numpy.ndarray:
         """
         Unpack the version-specific palette into the stringified version where needed.
@@ -436,7 +437,7 @@ class Translator:
         """
         return palette
 
-    def _pack_palette(self, version: Version, palette: numpy.ndarray) -> numpy.ndarray:
+    def _pack_palette(self, version: 'Version', palette: numpy.ndarray) -> numpy.ndarray:
         """
         Translate the list of block objects into a version-specific palette.
         :return: The palette converted into version-specific blocks (ie id, data tuples for 1.12)

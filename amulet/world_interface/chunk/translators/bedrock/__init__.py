@@ -12,7 +12,7 @@ from amulet.api.wrapper.chunk.translator import Translator, GetBlockCallback, Tr
 
 
 if TYPE_CHECKING:
-    from PyMCTranslate.py3.translation_manager import Version, TranslationManager
+    from PyMCTranslate import Version, TranslationManager
     from amulet.api.block_entity import BlockEntity
     from amulet.api.chunk import Chunk
 
