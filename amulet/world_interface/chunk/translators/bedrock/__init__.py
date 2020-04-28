@@ -2,16 +2,19 @@ from __future__ import annotations
 
 import numpy
 
-from typing import Tuple, Callable, Union, Optional
+from typing import Tuple, Callable, Union, Optional, TYPE_CHECKING
 
 from amulet import log
-from amulet.api.chunk import Chunk
 from amulet.api.block import Block
-from amulet.api.block_entity import BlockEntity
+
 from amulet.api.entity import Entity
 from amulet.api.wrapper.chunk.translator import Translator, GetBlockCallback, TranslateBlockCallbackReturn, TranslateEntityCallbackReturn, VersionNumberType, BedrockBlockType
-import PyMCTranslate
-from PyMCTranslate.py3.translation_manager import Version
+
+
+if TYPE_CHECKING:
+    from PyMCTranslate.py3.translation_manager import Version, TranslationManager
+    from amulet.api.block_entity import BlockEntity
+    from amulet.api.chunk import Chunk
 
 
 class BaseBedrockTranslator(Translator):
@@ -57,14 +60,14 @@ class BaseBedrockTranslator(Translator):
     def to_universal(
         self,
         game_version: VersionNumberType,
-        translation_manager: PyMCTranslate.TranslationManager,
-        chunk: Chunk,
+        translation_manager: 'TranslationManager',
+        chunk: 'Chunk',
         palette: numpy.ndarray,
         get_chunk_callback: Union[
-            Callable[[int, int], Tuple[Chunk, numpy.ndarray]], None
+            Callable[[int, int], Tuple['Chunk', numpy.ndarray]], None
         ],
         full_translate: bool,
-    ) -> Tuple[Chunk, numpy.ndarray]:
+    ) -> Tuple['Chunk', numpy.ndarray]:
         # Bedrock does versioning by block rather than by chunk.
         # As such we can't just pass in a single translator.
         # It needs to be done dynamically.
@@ -130,7 +133,7 @@ class BaseBedrockTranslator(Translator):
         chunk.biomes = self._biomes_to_universal(version, chunk.biomes)
         if version.block_entity_map is not None:
             for block_entity in chunk.block_entities:
-                block_entity: BlockEntity
+                block_entity: 'BlockEntity'
                 if (
                     block_entity.namespace is None
                     and block_entity.base_name in version.block_entity_map

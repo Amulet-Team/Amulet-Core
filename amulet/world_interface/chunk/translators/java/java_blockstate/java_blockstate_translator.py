@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from typing import Tuple, Union
+from typing import Tuple, Union, TYPE_CHECKING
 import numpy
 import amulet_nbt
 
-from PyMCTranslate.py3.translation_manager import Version
 from amulet.api.wrapper import Translator
 from amulet.api.block import Block, blockstate_to_block
+
+if TYPE_CHECKING:
+    from PyMCTranslate import Version
 
 water = blockstate_to_block('minecraft:water[level="0"]')
 
@@ -26,7 +28,7 @@ class JavaBlockstateTranslator(Translator):
         return True
 
     def _unpack_palette(
-        self, version: Version, palette: numpy.ndarray
+        self, version: 'Version', palette: numpy.ndarray
     ) -> numpy.ndarray:
         """
         Unpack the version-specific palette into the stringified version where needed.
@@ -57,7 +59,7 @@ class JavaBlockstateTranslator(Translator):
 
         return palette
 
-    def _pack_palette(self, version: Version, palette: numpy.ndarray) -> numpy.ndarray:
+    def _pack_palette(self, version: 'Version', palette: numpy.ndarray) -> numpy.ndarray:
         """
         Translate the list of block objects into a version-specific palette.
         :return: The palette converted into version-specific blocks (ie id, data tuples for 1.12)

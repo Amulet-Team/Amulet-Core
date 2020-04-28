@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import numpy
+from typing import TYPE_CHECKING
 
 from amulet.world_interface.chunk.translators.bedrock import BaseBedrockTranslator
-from amulet.api.block import Block
 
-from PyMCTranslate.py3.translation_manager import Version
+if TYPE_CHECKING:
+    from amulet.api.block import Block
+    from PyMCTranslate.py3.translation_manager import Version
 
 
 class BedrockNumericalTranslator(BaseBedrockTranslator):
@@ -17,7 +19,7 @@ class BedrockNumericalTranslator(BaseBedrockTranslator):
             return False
         return True
 
-    def _pack_palette(self, version: Version, palette: numpy.ndarray) -> numpy.ndarray:
+    def _pack_palette(self, version: 'Version', palette: numpy.ndarray) -> numpy.ndarray:
         """
         Packs a numpy array of Block objects into an object array of containing block ids and block data values.
         :param version:
@@ -26,7 +28,7 @@ class BedrockNumericalTranslator(BaseBedrockTranslator):
         """
         palette_ = numpy.empty(len(palette), dtype=object)
         for palette_index, entry in enumerate(palette):
-            entry: Block
+            entry: 'Block'
             block_tuple = version.block_to_ints(entry)
             if block_tuple is None:
                 block_tuple = (0, 0)  # TODO: find some way for the user to specify this

@@ -4,14 +4,13 @@ import os
 import struct
 import zlib
 import gzip
-from typing import Tuple, Any, Dict, Union, Generator, Optional, List
+from typing import Tuple, Any, Dict, Union, Generator, Optional, List, TYPE_CHECKING
 import numpy
 import time
 import re
 
 import amulet_nbt as nbt
 
-from amulet.api.data_types import Dimension
 from amulet.world_interface.formats import WorldFormatWrapper
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, load_leveldat
@@ -20,6 +19,9 @@ from amulet.api.errors import (
     LevelDoesNotExist,
     ChunkLoadError
 )
+
+if TYPE_CHECKING:
+    from amulet.api.data_types import Dimension
 
 InternalDimension = str
 
@@ -335,7 +337,7 @@ class AnvilFormat(WorldFormatWrapper):
         self.root_tag: nbt.NBTFile = nbt.NBTFile()
         self._load_level_dat()
         self._levels: Dict[InternalDimension, AnvilLevelManager] = {}
-        self._dimension_name_map: Dict[Dimension, InternalDimension] = {}
+        self._dimension_name_map: Dict['Dimension', InternalDimension] = {}
         self._mcc_support: Optional[bool] = None
         self._lock = None
 
@@ -408,11 +410,11 @@ class AnvilFormat(WorldFormatWrapper):
             return f"Java Unknown Version"
 
     @property
-    def dimensions(self) -> List[Dimension]:
+    def dimensions(self) -> List['Dimension']:
         """A list of all the levels contained in the world"""
         return list(self._dimension_name_map.keys())
 
-    def register_dimension(self, dimension_internal: InternalDimension, dimension_name: Optional[Dimension] = None):
+    def register_dimension(self, dimension_internal: InternalDimension, dimension_name: Optional['Dimension'] = None):
         """
         Register a new dimension.
         :param dimension_internal: The internal representation of the dimension
@@ -420,7 +422,7 @@ class AnvilFormat(WorldFormatWrapper):
         :return:
         """
         if dimension_name is None:
-            dimension_name: Dimension = dimension_internal
+            dimension_name: 'Dimension' = dimension_internal
 
         if dimension_internal:
             path = os.path.join(self.path, dimension_internal)
@@ -490,33 +492,33 @@ class AnvilFormat(WorldFormatWrapper):
         for level in self._levels.values():
             level.unload()
 
-    def _has_dimension(self, dimension: Dimension):
+    def _has_dimension(self, dimension: 'Dimension'):
         return dimension in self._dimension_name_map and self._dimension_name_map[dimension] in self._levels
 
-    def _get_dimension(self, dimension: Dimension):
+    def _get_dimension(self, dimension: 'Dimension'):
         self._verify_has_lock()
         if self._has_dimension(dimension):
             return self._levels[self._dimension_name_map[dimension]]
         else:
             raise LevelDoesNotExist(dimension)
 
-    def all_chunk_coords(self, dimension: Dimension) -> Generator[Tuple[int, int]]:
+    def all_chunk_coords(self, dimension: 'Dimension') -> Generator[Tuple[int, int]]:
         """A generator of all chunk coords in the given dimension"""
         if self._has_dimension(dimension):
             yield from self._get_dimension(dimension).all_chunk_coords()
 
-    def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
+    def delete_chunk(self, cx: int, cz: int, dimension: 'Dimension'):
         """Delete a chunk from a given dimension"""
         if self._has_dimension(dimension):
             self._get_dimension(dimension).delete_chunk(cx, cz)
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: 'Dimension'):
         """
         Actually stores the data from the interface to disk.
         """
         self._get_dimension(dimension).put_chunk_data(cx, cz, data)
 
-    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> nbt.NBTFile:
+    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: 'Dimension') -> nbt.NBTFile:
         """
         Return the interface key and data to interface with given chunk coordinates.
 

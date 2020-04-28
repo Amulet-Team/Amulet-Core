@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Dict
+from typing import Tuple, Dict, TYPE_CHECKING
 
 import numpy
 import amulet_nbt as nbt
@@ -9,7 +9,9 @@ from amulet.utils import world_utils
 from amulet.world_interface.chunk.interfaces.anvil.base_anvil_interface import (
     BaseAnvilInterface,
 )
-from amulet.api.chunk.blocks import Blocks
+
+if TYPE_CHECKING:
+    from amulet.api.chunk.blocks import Blocks
 
 
 class AnvilNAInterface(BaseAnvilInterface):
@@ -93,7 +95,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         return blocks, final_palette
 
     def _encode_blocks(
-        self, blocks: Blocks, palette: numpy.ndarray
+        self, blocks: 'Blocks', palette: numpy.ndarray
     ) -> nbt.TAG_List:
         sections = nbt.TAG_List()
         for cy in range(16):  # perhaps find a way to do this dynamically

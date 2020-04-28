@@ -14,13 +14,13 @@ from amulet.api.errors import (
     ChunkDoesNotExist,
     LevelDoesNotExist
 )
-from amulet.api.data_types import Dimension
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
     game_to_chunk_version,
 )
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
+    from amulet.api.data_types import Dimension
 
 
 InternalDimension = Optional[int]
@@ -34,7 +34,7 @@ class LevelDBLevelManager:
         self._db = LevelDB(os.path.join(self._directory, "db"))
         # self._levels format Dict[level, Dict[Tuple[cx, cz], List[Tuple[full_key, key_extension]]]]
         self._levels: Dict[InternalDimension, Set[Tuple[int, int]]] = {}
-        self._dimension_name_map: Dict[Dimension, InternalDimension] = {}
+        self._dimension_name_map: Dict['Dimension', InternalDimension] = {}
         self._batch_temp: Dict[bytes, Union[bytes, None]] = {}
 
         self.register_dimension(None, "overworld")
@@ -62,11 +62,11 @@ class LevelDBLevelManager:
         self._db.close()
 
     @property
-    def dimensions(self) -> List[Dimension]:
+    def dimensions(self) -> List['Dimension']:
         """A list of all the levels contained in the world"""
         return list(self._dimension_name_map.keys())
 
-    def register_dimension(self, dimension_internal: InternalDimension, dimension_name: Optional[Dimension] = None):
+    def register_dimension(self, dimension_internal: InternalDimension, dimension_name: Optional['Dimension'] = None):
         """
         Register a new dimension.
         :param dimension_internal: The internal representation of the dimension
@@ -74,19 +74,19 @@ class LevelDBLevelManager:
         :return:
         """
         if dimension_name is None:
-            dimension_name: Dimension = f"DIM{dimension_internal}"
+            dimension_name: 'Dimension' = f"DIM{dimension_internal}"
 
         if dimension_internal not in self._levels and dimension_name not in self._dimension_name_map:
             self._levels[dimension_internal] = set()
             self._dimension_name_map[dimension_name] = dimension_internal
 
-    def _get_internal_dimension(self, dimension: Dimension) -> InternalDimension:
+    def _get_internal_dimension(self, dimension: 'Dimension') -> InternalDimension:
         if dimension in self._dimension_name_map:
             return self._dimension_name_map[dimension]
         else:
             raise LevelDoesNotExist(dimension)
 
-    def all_chunk_coords(self, dimension: Dimension) -> Set[Tuple[int, int]]:
+    def all_chunk_coords(self, dimension: 'Dimension') -> Set[Tuple[int, int]]:
         internal_dimension = self._get_internal_dimension(dimension)
         if internal_dimension in self._levels:
             return self._levels[internal_dimension]
@@ -104,7 +104,7 @@ class LevelDBLevelManager:
         self._levels[level].add((cx, cz))
 
     def get_chunk_data(
-        self, cx: int, cz: int, dimension: Dimension
+        self, cx: int, cz: int, dimension: 'Dimension'
     ) -> Dict[bytes, bytes]:
         """Get a dictionary of chunk key extension in bytes to the raw data in the key.
         chunk key extension are the character(s) after <cx><cz>[level] in the key
@@ -135,7 +135,7 @@ class LevelDBLevelManager:
             raise ChunkDoesNotExist
 
     def put_chunk_data(
-        self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: Dimension
+        self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: 'Dimension'
     ):
         """pass data to the region file class"""
         # get the region key
@@ -148,7 +148,7 @@ class LevelDBLevelManager:
         for key, val in data.items():
             self._batch_temp[key_prefix + key] = val
 
-    def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
+    def delete_chunk(self, cx: int, cz: int, dimension: 'Dimension'):
         if dimension in self._dimension_name_map:
             internal_dimension = self._dimension_name_map[dimension]
             if internal_dimension in self._levels and (cx, cz) in self._levels[internal_dimension]:
@@ -238,12 +238,12 @@ class LevelDBFormat(WorldFormatWrapper):
             return f"Bedrock Unknown Version"
 
     @property
-    def dimensions(self) -> List[Dimension]:
+    def dimensions(self) -> List['Dimension']:
         """A list of all the levels contained in the world"""
         self._verify_has_lock()
         return self._level_manager.dimensions
 
-    def register_dimension(self, dimension_internal: int, dimension_name: Optional[Dimension] = None):
+    def register_dimension(self, dimension_internal: int, dimension_name: Optional['Dimension'] = None):
         """
         Register a new dimension.
         :param dimension_internal: The internal representation of the dimension
@@ -297,16 +297,16 @@ class LevelDBFormat(WorldFormatWrapper):
         """Unload data stored in the Format class"""
         pass
 
-    def all_chunk_coords(self, dimension: Dimension) -> Generator[Tuple[int, int]]:
+    def all_chunk_coords(self, dimension: 'Dimension') -> Generator[Tuple[int, int]]:
         self._verify_has_lock()
         yield from self._level_manager.all_chunk_coords(dimension)
 
-    def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
+    def delete_chunk(self, cx: int, cz: int, dimension: 'Dimension'):
         self._verify_has_lock()
         self._level_manager.delete_chunk(cx, cz, dimension)
 
     def _put_raw_chunk_data(
-        self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: Dimension
+        self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: 'Dimension'
     ):
         """
         Actually stores the data from the interface to disk.
@@ -315,7 +315,7 @@ class LevelDBFormat(WorldFormatWrapper):
         return self._level_manager.put_chunk_data(cx, cz, data, dimension)
 
     def _get_raw_chunk_data(
-        self, cx: int, cz: int, dimension: Dimension
+        self, cx: int, cz: int, dimension: 'Dimension'
     ) -> Dict[bytes, bytes]:
         """
         Return the interface key and data to interface with given chunk coordinates.
