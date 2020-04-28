@@ -105,7 +105,7 @@ class Structure(BaseStructure):
             chunk.blocks[slice] = ...
         """
         for chunk, box in self.get_chunk_boxes(selection):
-            slices = self._absolute_to_chunk_slice(box.slice, chunk.cx, chunk.cz)
+            slices = box.chunk_slice(chunk.cx, chunk.cz, self.chunk_size[0])
             yield chunk, slices, box
 
     def get_moved_chunk_slices(
@@ -166,8 +166,6 @@ class Structure(BaseStructure):
                 chunk_box = self._chunk_box(cx, cz, destination_chunk_shape)
                 dst_box = chunk_box.intersection(dst_full_box)
                 src_box = SubSelectionBox(-offset + dst_box.min, -offset + dst_box.max)
-                src_slices = self._absolute_to_chunk_slice(
-                    src_box.slice, chunk.cx, chunk.cz
-                )
-                dst_slices = self._absolute_to_chunk_slice(dst_box.slice, cx, cz)
+                src_slices = src_box.chunk_slice(chunk.cx, chunk.cz, self.chunk_size[0])
+                dst_slices = dst_box.chunk_slice(cx, cz, self.chunk_size[0])
                 yield chunk, src_slices, src_box, (cx, cz), dst_slices, dst_box

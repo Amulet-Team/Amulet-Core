@@ -39,31 +39,13 @@ class BaseStructure:
     def get_block(self, *args, **kwargs) -> Block:
         raise NotImplementedError
 
-    def _absolute_to_chunk_slice(
-        self,
-        slices: Tuple[slice, slice, slice],
-        cx: int,
-        cz: int,
-        chunk_size: Optional[Tuple[int, Union[int, None], int]] = None,
-    ) -> Tuple[slice, slice, slice]:
-        """Convert a slice in absolute coordinates to chunk coordinates"""
-        if chunk_size is None:
-            chunk_size = self.chunk_size
-        s_x, s_y, s_z = slices
-        x_chunk_slice = blocks_slice_to_chunk_slice(s_x, chunk_size[0], cx)
-        z_chunk_slice = blocks_slice_to_chunk_slice(s_z, chunk_size[2], cz)
-        return x_chunk_slice, s_y, z_chunk_slice
-
     def _chunk_box(
         self, cx: int, cz: int, chunk_size: Optional[Tuple[int, Union[int, None], int]] = None
     ):
         """Get a SubSelectionBox containing the whole of a given chunk"""
         if chunk_size is None:
             chunk_size = self.chunk_size
-        return SubSelectionBox(
-            (cx * chunk_size[0], -(2**30), cz * chunk_size[0]),
-            ((cx + 1) * chunk_size[0], 2**30, (cz + 1) * chunk_size[2]),
-        )
+        return SubSelectionBox.chunk_box(cx, cz, chunk_size[0])
 
     def get_chunk_boxes(
         self, *args, **kwargs
@@ -326,25 +308,19 @@ class World(BaseStructure):
         if isinstance(selection, SubSelectionBox):
             selection = Selection([selection])
         selection: Selection
-        for box in selection.subboxes:
-            first_chunk = block_coords_to_chunk_coords(box.min_x, box.min_z)
-            last_chunk = block_coords_to_chunk_coords(box.max_x - 1, box.max_z - 1)
-            for cx, cz in itertools.product(
-                range(first_chunk[0], last_chunk[0] + 1),
-                range(first_chunk[1], last_chunk[1] + 1),
-            ):
-                try:
-                    chunk = self.get_chunk(cx, cz, dimension)
-                except ChunkDoesNotExist:
-                    if create_missing_chunks:
-                        chunk = Chunk(cx, cz)
-                        self.put_chunk(chunk, dimension)
-                    else:
-                        continue
-                except ChunkLoadError:
+        for (cx, cz), box in selection.sub_sections(self.chunk_size[0]):
+            try:
+                chunk = self.get_chunk(cx, cz, dimension)
+            except ChunkDoesNotExist:
+                if create_missing_chunks:
+                    chunk = Chunk(cx, cz)
+                    self.put_chunk(chunk, dimension)
+                else:
                     continue
+            except ChunkLoadError:
+                continue
 
-                yield chunk, box.intersection(self._chunk_box(cx, cz))
+            yield chunk, box
 
     def get_chunk_slices(
         self,
@@ -360,13 +336,13 @@ class World(BaseStructure):
         :param dimension: The dimension to take effect in (defaults to overworld)
         :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false)
         Usage:
-        for chunk, slice in world.get_chunk_slices(selection):
+        for chunk, slice, box in world.get_chunk_slices(selection):
             chunk.blocks[slice] = ...
         """
         for chunk, box in self.get_chunk_boxes(
             selection, dimension, create_missing_chunks
         ):
-            slices = self._absolute_to_chunk_slice(box.slice, chunk.cx, chunk.cz)
+            slices = box.chunk_slice(chunk.cx, chunk.cz, self.chunk_size[0])
             yield chunk, slices, box
 
     # def get_entities_in_box(

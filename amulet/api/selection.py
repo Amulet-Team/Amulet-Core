@@ -3,9 +3,13 @@ from __future__ import annotations
 import itertools
 import numpy
 
-from typing import Sequence, Iterator, Tuple, Union, cast, Iterable
+from typing import Sequence, Tuple, Union, Iterable, List, Generator
 
 from .minecraft_types import Point
+from ..utils.world_utils import (
+    block_coords_to_chunk_coords,
+    blocks_slice_to_chunk_slice,
+)
 
 
 class SubSelectionBox:
@@ -20,6 +24,16 @@ class SubSelectionBox:
         box = numpy.array([min_point, max_point], dtype=numpy.int)
         self._min_x, self._min_y, self._min_z = numpy.min(box, 0).tolist()
         self._max_x, self._max_y, self._max_z = numpy.max(box, 0).tolist()
+
+    @classmethod
+    def chunk_box(
+        cls, cx: int, cz: int, chunk_size: int
+    ):
+        """Get a SubSelectionBox containing the whole of a given chunk"""
+        return cls(
+            (cx * chunk_size, -(2**30), cz * chunk_size),
+            ((cx + 1) * chunk_size, 2**30, (cz + 1) * chunk_size),
+        )
 
     def __iter__(self) -> Iterable[Tuple[int, int, int]]:
         return self.blocks()
@@ -55,6 +69,18 @@ class SubSelectionBox:
             slice(self._min_y, self._max_y),
             slice(self._min_z, self._max_z),
         )
+
+    def chunk_slice(
+            self,
+            cx: int,
+            cz: int,
+            chunk_size: int = 16
+    ) -> Tuple[slice, slice, slice]:
+        """Get the Convert a slice in absolute coordinates to chunk coordinates"""
+        s_x, s_y, s_z = self.slice
+        x_chunk_slice = blocks_slice_to_chunk_slice(s_x, chunk_size, cx)
+        z_chunk_slice = blocks_slice_to_chunk_slice(s_z, chunk_size, cz)
+        return x_chunk_slice, s_y, z_chunk_slice
 
     @property
     def min_x(self) -> int:
@@ -246,13 +272,30 @@ class Selection:
         return len(self._boxes) == 1
 
     @property
-    def subboxes(self) -> Iterator[SubSelectionBox]:
+    def subboxes(self) -> List[SubSelectionBox]:
         """
-        Returns an iterator of the SubSelectionBoxes in the Selection
+        Returns a list of unmodified SubSelectionBoxes in the Selection.
+        :return: A list of the SubSelectionBoxes
+        """
+        return sorted(self._boxes, key=hash)
 
-        :return: An iterator of the SubSelectionBoxes
+    def sub_sections(self, chunk_size=16) -> Generator[Tuple[Tuple[int, int], SubSelectionBox], None, None]:
+        """A generator of modified `SubSelectionBox`es to fit within each sub-chunk.
+        :param chunk_size: The dimension of the chunk (normally 16)
         """
-        return cast(Iterator[SubSelectionBox], iter(sorted(self._boxes, key=hash)))
+        for box in self.subboxes:  # TODO: optimise this so that it yields all boxes for a chunk in one go
+            first_chunk = block_coords_to_chunk_coords(box.min_x, box.min_z)
+            last_chunk = block_coords_to_chunk_coords(box.max_x - 1, box.max_z - 1)
+            for cx, cz in itertools.product(
+                range(first_chunk[0], last_chunk[0] + 1),
+                range(first_chunk[1], last_chunk[1] + 1),
+            ):
+                yield (cx, cz), box.intersection(SubSelectionBox.chunk_box(cx, cz, chunk_size))  # TODO: modify this so that it yields one box per sub-chunk
+
+    def sub_slices(self, chunk_size=16) -> Generator[Tuple[Tuple[int, int], Tuple[slice, slice, slice], SubSelectionBox], None, None]:
+        for (cx, cz), box in self.sub_sections(chunk_size):
+            slices = box.chunk_slice(cx, cz, chunk_size)
+            yield (cx, cz), slices, box
 
     def intersects(self, other: Selection) -> bool:
         """Check if self and other intersect"""
