@@ -157,7 +157,6 @@ class BaseAnvilInterface(Interface):
                 }
         else:
             palette = numpy.array([Block(namespace="minecraft", base_name="air")])
-            # This will cause an air chunk to be written back TODO: sort saving based on chunk status
 
         if self.features["entities"] == "list":
             if amulet.entity_support:

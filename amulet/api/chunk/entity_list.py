@@ -36,7 +36,7 @@ class ChunkList(UserList):
     def copy(self) -> "ChunkList":
         return copy.deepcopy(self)
 
-    def extend(self, iterable: Iterable) -> None:
+    def extend(self, iterable: Iterable[Entity]) -> None:
         """ Extend list by appending elements from the iterable. """
         self._check_all_types(iterable)
         self._dirty()

@@ -273,7 +273,7 @@ class FormatWraper:
             chunk_version,
             translator,
             recurse: bool = True
-    ):
+    ) -> Tuple[Chunk, numpy.ndarray]:
         # convert the global indexes into local indexes and a local palette
         palette = []
         palette_len = 0
@@ -305,7 +305,7 @@ class FormatWraper:
             recurse,
         )
 
-    def _encode(self, chunk, chunk_palette, interface):
+    def _encode(self, chunk: Chunk, chunk_palette: numpy.ndarray, interface: Interface):
         return interface.encode(
             chunk, chunk_palette, self.max_world_version
         )
