@@ -261,6 +261,19 @@ class FormatWraper:
         # Gets an interface, translator and most recent chunk version for the game version.
         interface, translator, chunk_version = self._get_interface_and_translator(self.max_world_version)
 
+        chunk, chunk_palette = self._convert_to_save(chunk, global_palette, chunk_version, translator, recurse)
+        raw_chunk_data = self._encode(chunk, chunk_palette, interface)
+
+        self._put_raw_chunk_data(cx, cz, raw_chunk_data, *args)
+
+    def _convert_to_save(
+            self,
+            chunk: Chunk,
+            global_palette: BlockManager,
+            chunk_version,
+            translator,
+            recurse: bool = True
+    ):
         # convert the global indexes into local indexes and a local palette
         palette = []
         palette_len = 0
@@ -283,7 +296,7 @@ class FormatWraper:
             return chunk, numpy.array(global_palette.blocks())
 
         # translate from universal format to version format
-        chunk, chunk_palette = translator.from_universal(
+        return translator.from_universal(
             chunk_version,
             self.translation_manager,
             chunk,
@@ -292,11 +305,10 @@ class FormatWraper:
             recurse,
         )
 
-        raw_chunk_data = interface.encode(
+    def _encode(self, chunk, chunk_palette, interface):
+        return interface.encode(
             chunk, chunk_palette, self.max_world_version
         )
-
-        self._put_raw_chunk_data(cx, cz, raw_chunk_data, *args)
 
     def delete_chunk(self, cx: int, cz: int, *args):
         raise NotImplementedError
@@ -313,6 +325,6 @@ class FormatWraper:
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
-        :return: The interface key for the get_interface method and the data to interface with.
+        :return: The raw chunk data.
         """
         raise NotImplementedError()
