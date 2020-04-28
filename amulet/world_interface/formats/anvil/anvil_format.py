@@ -378,16 +378,8 @@ class AnvilFormat(WorldFormatWrapper):
         """Platform string"""
         return "java"
 
-    def _max_world_version(self) -> Tuple[str, int]:
-        """The version the world was last opened in
-        This should be greater than or equal to the chunk versions found within
-        For this format wrapper it returns a single int DataVersion"""
-        return (
-            self.platform,
-            self.root_tag.get("Data", nbt.TAG_Compound())
-            .get("DataVersion", nbt.TAG_Int(-1))
-            .value,
-        )
+    def _get_version(self) -> int:
+        return self.root_tag.get("Data", nbt.TAG_Compound()).get("DataVersion", nbt.TAG_Int(-1)).value
 
     @property
     def world_name(self) -> str:
@@ -448,7 +440,7 @@ class AnvilFormat(WorldFormatWrapper):
             os.fsync(f.fileno())
 
         self._mcc_support = (
-            self._max_world_version()[1] > 2203
+            self.version > 2203
         )  # the real number might actually be lower
 
         # load all the levels

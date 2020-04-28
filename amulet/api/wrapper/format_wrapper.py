@@ -30,7 +30,7 @@ class FormatWraper:
     def __init__(self, path: str):
         self._path = path
         self._translation_manager = None
-        self._max_world_version_ = None
+        self._version = None
         self._changed: bool = False
 
     @property
@@ -70,15 +70,20 @@ class FormatWraper:
         raise NotImplementedError
 
     @property
+    def version(self) -> Union[int, Tuple[int, ...]]:
+        """Platform string ("bedrock" / "java" / ...)"""
+        if self._version is None:
+            self._version = self._get_version()
+        return self._version
+
+    def _get_version(self) -> Union[int, Tuple[int, ...]]:
+        raise NotImplementedError
+
+    @property
     def max_world_version(self) -> Tuple[str, Union[int, Tuple[int, ...]]]:
         """The version the world was last opened in
         This should be greater than or equal to the chunk versions found within"""
-        if self._max_world_version_ is None:
-            self._max_world_version_ = self._max_world_version()
-        return self._max_world_version()
-
-    def _max_world_version(self) -> Tuple[str, Union[int, Tuple[int, ...]]]:
-        raise NotImplementedError
+        return self.platform, self.version
 
     @property
     def changed(self) -> bool:

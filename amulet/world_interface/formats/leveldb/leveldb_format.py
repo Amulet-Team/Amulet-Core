@@ -205,17 +205,14 @@ class LevelDBFormat(WorldFormatWrapper):
         """Platform string"""
         return "bedrock"
 
-    def _max_world_version(self) -> Tuple[str, Tuple[int, ...]]:
+    def _get_version(self) -> Tuple[int, ...]:
         """The version the world was last opened in
         This should be greater than or equal to the chunk versions found within
         For this format wrapper it returns a tuple of 3/4 ints (the game version number)"""
         try:
-            return (
-                self.platform,
-                tuple([t.value for t in self.root_tag["lastOpenedWithVersion"]]),
-            )
+            return tuple([t.value for t in self.root_tag["lastOpenedWithVersion"]])
         except Exception:
-            return self.platform, (1, 2, 0)
+            return (1, 2, 0)
 
     @property
     def world_name(self):
