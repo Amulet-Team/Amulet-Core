@@ -34,6 +34,16 @@ class FormatWraper:
         self._changed: bool = False
 
     @property
+    def readable(self) -> bool:
+        """Can this object have data read from it."""
+        return True
+
+    @property
+    def writeable(self) -> bool:
+        """Can this object have data written to it."""
+        return True
+
+    @property
     def translation_manager(self) -> PyMCTranslate.TranslationManager:
         """The translation manager attached to the world"""
         if self._translation_manager is None:
@@ -142,6 +152,8 @@ class FormatWraper:
         :param global_palette: The universal block manager
         :return: The chunk at the given coordinates.
         """
+        if not self.readable:
+            raise ChunkLoadError('This object is not readable')
         try:
             return self._load_chunk(cx, cz, global_palette, *args)
         except ChunkDoesNotExist as e:
@@ -220,6 +232,9 @@ class FormatWraper:
         :param global_palette: The universal block manager
         :return:
         """
+        if not self.writeable:
+            log.error('This object is not writeable')
+            return
         try:
             self._commit_chunk(copy.deepcopy(chunk), global_palette, *args)
         except Exception:
