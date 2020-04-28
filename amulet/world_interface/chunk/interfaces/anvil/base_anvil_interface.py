@@ -165,7 +165,7 @@ class BaseAnvilInterface(Interface):
                     data["Level"].get("Entities", amulet_nbt.TAG_List())
                 )
             else:
-                chunk.misc['java_entities_temp'] = self._decode_entities(
+                misc['java_entities_temp'] = self._decode_entities(
                     data["Level"].get("Entities", amulet_nbt.TAG_List())
                 )
 
@@ -337,7 +337,7 @@ class BaseAnvilInterface(Interface):
             if amulet.entity_support:
                 data["Level"]["Entities"] = self._encode_entities(chunk.entities)
             else:
-                data["Level"]["Entities"] = self._encode_entities(chunk.misc.get('java_entities_temp', amulet_nbt.TAG_List()))
+                data["Level"]["Entities"] = self._encode_entities(misc.get('java_entities_temp', amulet_nbt.TAG_List()))
 
         if self.features["block_entities"] == "list":
             data["Level"]["TileEntities"] = self._encode_block_entities(
