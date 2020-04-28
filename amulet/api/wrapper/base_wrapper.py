@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Any, Union, Generator, Dict
+from typing import Tuple, Any, Union, Generator, Dict, TYPE_CHECKING
 import copy
 import numpy
 
@@ -14,8 +14,11 @@ from amulet.api.errors import (
     WorldDatabaseAccessException,
 )
 from amulet.api.block import BlockManager
-from amulet.api.chunk import Chunk
-from amulet.api.wrapper.chunk.translator import Translator, VersionIdentifierType
+
+if TYPE_CHECKING:
+    from amulet.api.wrapper import Interface
+    from amulet.api.chunk import Chunk
+    from amulet.api.wrapper.chunk.translator import Translator, VersionIdentifierType
 
 
 class FormatWraper:
@@ -82,14 +85,14 @@ class FormatWraper:
 
     def _get_interface(
         self, max_world_version, raw_chunk_data=None
-    ) -> interfaces.Interface:
+    ) -> 'Interface':
         if raw_chunk_data:
             key = self._get_interface_key(raw_chunk_data)
         else:
             key = max_world_version
         return interfaces.loader.get(key)
 
-    def _get_interface_and_translator(self, max_world_version, raw_chunk_data=None) -> Tuple[interfaces.Interface, Translator, VersionIdentifierType]:
+    def _get_interface_and_translator(self, max_world_version, raw_chunk_data=None) -> Tuple['Interface', 'Translator', 'VersionIdentifierType']:
         interface = self._get_interface(max_world_version, raw_chunk_data)
         translator, version_identifier = interface.get_translator(self.max_world_version(), raw_chunk_data)
         return interface, translator, version_identifier
@@ -130,7 +133,7 @@ class FormatWraper:
 
     def load_chunk(
         self, cx: int, cz: int, global_palette: BlockManager, *args
-    ) -> Chunk:
+    ) -> 'Chunk':
         """
         Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
 
@@ -154,7 +157,7 @@ class FormatWraper:
         global_palette: BlockManager,
         *args,
         recurse: bool = True
-    ) -> Chunk:
+    ) -> 'Chunk':
         """
         Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
 
@@ -174,9 +177,9 @@ class FormatWraper:
 
         # set up a callback that translator can use to get chunk data
         if recurse:
-            chunk_cache: Dict[Tuple[int, int], Tuple[Chunk, BlockManager]] = {}
+            chunk_cache: Dict[Tuple[int, int], Tuple['Chunk', BlockManager]] = {}
 
-            def get_chunk_callback(x: int, z: int) -> Tuple[Chunk, BlockManager]:
+            def get_chunk_callback(x: int, z: int) -> Tuple['Chunk', BlockManager]:
                 palette = BlockManager()
                 cx_, cz_ = cx + x, cz + z
                 if (cx_, cz_) not in chunk_cache:
@@ -208,7 +211,7 @@ class FormatWraper:
         return chunk
 
     def commit_chunk(
-        self, chunk: Chunk, global_palette: BlockManager, *args
+        self, chunk: 'Chunk', global_palette: BlockManager, *args
     ):
         """
         Save a universal format chunk to the Format database (not the disk database)
@@ -225,7 +228,7 @@ class FormatWraper:
 
     def _commit_chunk(
         self,
-        chunk: Chunk,
+        chunk: 'Chunk',
         global_palette: BlockManager,
         *args,
         recurse: bool = True,
@@ -258,7 +261,7 @@ class FormatWraper:
         else:
             chunk_palette = numpy.array([], dtype=numpy.object)
 
-        def get_chunk_callback(_: int, __: int) -> Tuple[Chunk, numpy.ndarray]:
+        def get_chunk_callback(_: int, __: int) -> Tuple['Chunk', numpy.ndarray]:
             # conversion from universal should not require any data outside the block
             return chunk, numpy.array(global_palette.blocks())
 

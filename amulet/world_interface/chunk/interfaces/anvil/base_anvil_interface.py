@@ -1,19 +1,21 @@
 from __future__ import annotations
 
-from typing import List, Tuple, Union, Iterable, Dict
+from typing import List, Tuple, Union, Iterable, Dict, TYPE_CHECKING
 import numpy
 
 import amulet_nbt as amulet_nbt
 
 import amulet
 from amulet.api.chunk import Chunk
-from amulet.api.chunk.blocks import Blocks
 from amulet.api.block import Block
-from amulet.api.block_entity import BlockEntity
-from amulet.api.entity import Entity
-from amulet.api.wrapper import Interface, Translator
-from amulet.world_interface.chunk.interfaces import Interface
+from amulet.api.wrapper import Interface
 from amulet.world_interface.chunk import translators
+
+if TYPE_CHECKING:
+    from amulet.api.wrapper import Translator
+    from amulet.api.block_entity import BlockEntity
+    from amulet.api.entity import Entity
+    from amulet.api.chunk.blocks import Blocks
 
 
 class BaseAnvilInterface(Interface):
@@ -59,7 +61,7 @@ class BaseAnvilInterface(Interface):
         self,
         max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
         data: amulet_nbt.NBTFile = None,
-    ) -> Tuple[translators.Translator, int]:
+    ) -> Tuple['Translator', int]:
         if data:
             data_version = data.get("DataVersion", amulet_nbt.TAG_Int(-1)).value
             key, version = (("java", data_version), data_version)
@@ -70,7 +72,7 @@ class BaseAnvilInterface(Interface):
 
     def decode(
         self, cx: int, cz: int, data: amulet_nbt.NBTFile
-    ) -> Tuple[Chunk, numpy.ndarray]:
+    ) -> Tuple['Chunk', numpy.ndarray]:
         """
         Create an amulet.api.chunk.Chunk object from raw data given by the format.
         :param cx: chunk x coordinate
@@ -200,7 +202,7 @@ class BaseAnvilInterface(Interface):
         return chunk, palette
 
     def encode(
-        self, chunk: Chunk, palette: numpy.ndarray, max_world_version: Tuple[str, int]
+        self, chunk: 'Chunk', palette: numpy.ndarray, max_world_version: Tuple[str, int]
     ) -> amulet_nbt.NBTFile:
         """
         Encode a version-specific chunk to raw data for the format to store.
@@ -386,7 +388,7 @@ class BaseAnvilInterface(Interface):
 
         return data
 
-    def _decode_entities(self, entities: amulet_nbt.TAG_List) -> List[Entity]:
+    def _decode_entities(self, entities: amulet_nbt.TAG_List) -> List['Entity']:
         entities_out = []
         for nbt in entities:
             entity = self._decode_entity(
@@ -399,7 +401,7 @@ class BaseAnvilInterface(Interface):
 
         return entities_out
 
-    def _encode_entities(self, entities: Iterable[Entity]) -> amulet_nbt.TAG_List:
+    def _encode_entities(self, entities: Iterable['Entity']) -> amulet_nbt.TAG_List:
         entities_out = []
         for entity in entities:
             nbt = self._encode_entity(
@@ -414,7 +416,7 @@ class BaseAnvilInterface(Interface):
 
     def _decode_block_entities(
         self, block_entities: amulet_nbt.TAG_List
-    ) -> List[BlockEntity]:
+    ) -> List['BlockEntity']:
         entities_out = []
         for nbt in block_entities:
             entity = self._decode_block_entity(
@@ -428,7 +430,7 @@ class BaseAnvilInterface(Interface):
         return entities_out
 
     def _encode_block_entities(
-        self, block_entities: Iterable[BlockEntity]
+        self, block_entities: Iterable['BlockEntity']
     ) -> amulet_nbt.TAG_List:
         entities_out = []
         for entity in block_entities:
@@ -448,6 +450,6 @@ class BaseAnvilInterface(Interface):
         raise NotImplementedError
 
     def _encode_blocks(
-        self, blocks: Blocks, palette: numpy.ndarray
+        self, blocks: 'Blocks', palette: numpy.ndarray
     ) -> amulet_nbt.TAG_List:
         raise NotImplementedError

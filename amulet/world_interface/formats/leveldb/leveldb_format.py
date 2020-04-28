@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Dict, Generator, Set, Union, Optional, List
+from typing import Tuple, Dict, Generator, Set, Union, Optional, List, TYPE_CHECKING
 
 import amulet_nbt as nbt
 
@@ -18,6 +18,10 @@ from amulet.api.data_types import Dimension
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
     game_to_chunk_version,
 )
+
+if TYPE_CHECKING:
+    from amulet.api.wrapper import Interface
+
 
 InternalDimension = Optional[int]
 
@@ -250,7 +254,7 @@ class LevelDBFormat(WorldFormatWrapper):
 
     def _get_interface(
         self, max_world_version, raw_chunk_data=None
-    ) -> interfaces.Interface:
+    ) -> 'Interface':
         if raw_chunk_data:
             key = self._get_interface_key(raw_chunk_data)
         else:

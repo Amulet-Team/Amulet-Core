@@ -64,7 +64,7 @@ class ChunkHistoryManager:
             if index or get_all:
                 yield chunk_location, self.get_current(*chunk_location)
 
-    def add_original_chunk(self, dimension: Dimension, cx: int, cz: int, chunk: Optiona[Chunk]):
+    def add_original_chunk(self, dimension: Dimension, cx: int, cz: int, chunk: Optional[Chunk]):
         """Adds the given chunk to the chunk history"""
         # If the chunk does not exist in the chunk history then add it
 

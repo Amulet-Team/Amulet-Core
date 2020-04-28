@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Dict, List, Union, Iterable, Optional
+from typing import Tuple, Dict, List, Union, Iterable, Optional, TYPE_CHECKING
 
 import struct
 import numpy
@@ -8,17 +8,23 @@ import amulet_nbt
 
 import amulet
 from amulet.api.block import Block
-from amulet.api.block_entity import BlockEntity
-from amulet.api.entity import Entity
+
 from amulet.api.chunk import Chunk
-from amulet.api.chunk.blocks import Blocks
-from amulet.api.chunk.entity_list import EntityList
+
 from amulet.utils.world_utils import fast_unique
-from amulet.world_interface.chunk.interfaces import Interface
+from amulet.api.wrapper import Interface
 from amulet.world_interface.chunk import translators
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
     chunk_to_game_version,
 )
+
+if TYPE_CHECKING:
+    from amulet.api.block_entity import BlockEntity
+    from amulet.api.entity import Entity
+    from amulet.api.chunk.blocks import Blocks
+    from amulet.api.chunk.entity_list import EntityList
+    from amulet.api.wrapper import Translator
+
 
 
 def brute_sort_objects(data) -> Tuple[numpy.ndarray, numpy.ndarray]:
@@ -81,7 +87,7 @@ class BaseLevelDBInterface(Interface):
         self,
         max_world_version: Tuple[str, Tuple[int, int, int]],
         data: Dict[bytes, bytes] = None,
-    ) -> Tuple[translators.Translator, Tuple[int, int, int]]:
+    ) -> Tuple['Translator', Tuple[int, int, int]]:
         """
         Get the Translator class for the requested version.
         :param max_world_version: The game version the world was last opened in.
@@ -366,12 +372,12 @@ class BaseLevelDBInterface(Interface):
         return blocks, numpy_palette
 
     def _save_subchunks_0(
-        self, blocks: Blocks, palette: numpy.ndarray
+        self, blocks: 'Blocks', palette: numpy.ndarray
     ) -> List[Optional[bytes]]:
         raise NotImplementedError
 
     def _save_subchunks_1(
-        self, blocks: Blocks, palette: numpy.ndarray
+        self, blocks: 'Blocks', palette: numpy.ndarray
     ) -> List[Optional[bytes]]:
         for index, block in enumerate(palette):
             block: Tuple[Tuple[None, Block], ...]
@@ -403,7 +409,7 @@ class BaseLevelDBInterface(Interface):
         return chunk
 
     def _save_subchunks_8(
-        self, blocks: Blocks, palette: numpy.ndarray
+        self, blocks: 'Blocks', palette: numpy.ndarray
     ) -> List[Optional[bytes]]:
         palette_depth = numpy.array([len(block) for block in palette])
         if palette.size:
@@ -640,7 +646,7 @@ class BaseLevelDBInterface(Interface):
             ]
         )
 
-    def _decode_entities(self, entities: List[amulet_nbt.NBTFile]) -> List[Entity]:
+    def _decode_entities(self, entities: List[amulet_nbt.NBTFile]) -> List['Entity']:
         entities_out = []
         for nbt in entities:
             entity = self._decode_entity(
@@ -653,7 +659,7 @@ class BaseLevelDBInterface(Interface):
 
         return entities_out
 
-    def _encode_entities(self, entities: EntityList) -> List[amulet_nbt.NBTFile]:
+    def _encode_entities(self, entities: 'EntityList') -> List[amulet_nbt.NBTFile]:
         entities_out = []
         for entity in entities:
             nbt = self._encode_entity(
@@ -668,7 +674,7 @@ class BaseLevelDBInterface(Interface):
 
     def _decode_block_entities(
         self, block_entities: List[amulet_nbt.NBTFile]
-    ) -> List[BlockEntity]:
+    ) -> List['BlockEntity']:
         entities_out = []
         for nbt in block_entities:
             entity = self._decode_block_entity(
@@ -682,7 +688,7 @@ class BaseLevelDBInterface(Interface):
         return entities_out
 
     def _encode_block_entities(
-        self, block_entities: Iterable[BlockEntity]
+        self, block_entities: Iterable['BlockEntity']
     ) -> List[amulet_nbt.NBTFile]:
         entities_out = []
         for entity in block_entities:

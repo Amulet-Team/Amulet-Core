@@ -2,18 +2,16 @@ from __future__ import annotations
 
 import numpy
 
-from typing import Tuple, Callable, Union, List, Optional
+from typing import Tuple, Callable, Union, Optional
 
 from amulet import log
 from amulet.api.chunk import Chunk
 from amulet.api.block import Block
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
-from amulet.world_interface.chunk.translators import Translator, TranslateBlockCallbackReturn, TranslateEntityCallbackReturn, VersionNumberType, BedrockBlockType
+from amulet.api.wrapper.chunk.translator import Translator, GetBlockCallback, TranslateBlockCallbackReturn, TranslateEntityCallbackReturn, VersionNumberType, BedrockBlockType
 import PyMCTranslate
 from PyMCTranslate.py3.translation_manager import Version
-
-from .. import GetBlockCallback
 
 
 class BaseBedrockTranslator(Translator):
