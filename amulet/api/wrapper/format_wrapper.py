@@ -57,7 +57,7 @@ class FormatWraper:
     @staticmethod
     def is_valid(path: str) -> bool:
         """
-        Returns whether this format is able to load the givne object.
+        Returns whether this format is able to load the given object.
 
         :param path: The path of the object to load.
         :return: True if the world can be loaded by this format, False otherwise.
@@ -69,7 +69,7 @@ class FormatWraper:
         """Platform string ("bedrock" / "java" / ...)"""
         raise NotImplementedError
 
-    # TODO: make this a property
+    @property
     def max_world_version(self) -> Tuple[str, Union[int, Tuple[int, ...]]]:
         """The version the world was last opened in
         This should be greater than or equal to the chunk versions found within"""
@@ -104,7 +104,7 @@ class FormatWraper:
 
     def _get_interface_and_translator(self, max_world_version, raw_chunk_data=None) -> Tuple['Interface', 'Translator', 'VersionIdentifierType']:
         interface = self._get_interface(max_world_version, raw_chunk_data)
-        translator, version_identifier = interface.get_translator(self.max_world_version(), raw_chunk_data)
+        translator, version_identifier = interface.get_translator(self.max_world_version, raw_chunk_data)
         return interface, translator, version_identifier
 
     def _get_interface_key(self, raw_chunk_data) -> Any:
@@ -114,13 +114,14 @@ class FormatWraper:
         """Open the database for reading and writing"""
         raise NotImplementedError
 
+    @property
     def has_lock(self) -> bool:
         """Verify that the world database can be read and written"""
         raise NotImplementedError
 
     def _verify_has_lock(self):
         """Ensure that the Format has a lock on the world. Throw WorldAccessException if not"""
-        if not self.has_lock():
+        if not self.has_lock:
             raise WorldDatabaseAccessException(
                 "The world has been opened somewhere else or the .open() method was not called"
             )
@@ -182,7 +183,7 @@ class FormatWraper:
 
         # Gets an interface (the code that actually reads the chunk data)
         raw_chunk_data = self._get_raw_chunk_data(cx, cz, *args)
-        interface, translator, game_version = self._get_interface_and_translator(self.max_world_version(), raw_chunk_data)
+        interface, translator, game_version = self._get_interface_and_translator(self.max_world_version, raw_chunk_data)
 
         # decode the raw chunk data into the universal format
         chunk, chunk_palette = interface.decode(cx, cz, raw_chunk_data)
@@ -257,7 +258,7 @@ class FormatWraper:
         cx, cz = chunk.cx, chunk.cz
 
         # Gets an interface, translator and most recent chunk version for the game version.
-        interface, translator, chunk_version = self._get_interface_and_translator(self.max_world_version())
+        interface, translator, chunk_version = self._get_interface_and_translator(self.max_world_version)
 
         # convert the global indexes into local indexes and a local palette
         palette = []
@@ -291,7 +292,7 @@ class FormatWraper:
         )
 
         raw_chunk_data = interface.encode(
-            chunk, chunk_palette, self.max_world_version()
+            chunk, chunk_palette, self.max_world_version
         )
 
         self._put_raw_chunk_data(cx, cz, raw_chunk_data, *args)

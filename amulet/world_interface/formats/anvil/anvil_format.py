@@ -467,6 +467,7 @@ class AnvilFormat(WorldFormatWrapper):
         """Open the database for reading and writing"""
         self._reload_world()
 
+    @property
     def has_lock(self) -> bool:
         """Verify that the world database can be read and written"""
         try:
