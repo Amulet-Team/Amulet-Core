@@ -34,5 +34,13 @@ class ChunkDoesNotExist(ChunkLoadError):
     pass
 
 
-class WorldDatabaseAccessException(Exception):
+class ObjectReadError(Exception):
+    pass
+
+
+class ObjectWriteError(Exception):
+    pass
+
+
+class ObjectReadWriteError(ObjectReadError, ObjectWriteError):
     pass

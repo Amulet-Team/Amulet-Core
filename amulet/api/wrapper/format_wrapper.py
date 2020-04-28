@@ -11,7 +11,7 @@ from amulet.world_interface.chunk import interfaces
 from amulet.api.errors import (
     ChunkLoadError,
     ChunkDoesNotExist,
-    WorldDatabaseAccessException,
+    ObjectReadWriteError,
 )
 from amulet.api.block import BlockManager
 
@@ -123,7 +123,7 @@ class FormatWraper:
     def _verify_has_lock(self):
         """Ensure that the Format has a lock on the world. Throw WorldAccessException if not"""
         if not self.has_lock:
-            raise WorldDatabaseAccessException(
+            raise ObjectReadWriteError(
                 "The world has been opened somewhere else or the .open() method was not called"
             )
 
