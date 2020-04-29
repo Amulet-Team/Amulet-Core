@@ -5,6 +5,7 @@ from amulet.api.wrapper import Interface
 from .construction import ConstructionSection
 from amulet.api.chunk import Chunk
 from amulet.api.block import Block
+from amulet.api.selection import SelectionBox
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
@@ -42,9 +43,34 @@ class ConstructionInterface(Interface):
         chunk: 'Chunk',
         palette: numpy.ndarray,
         max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
-        boxes: List[Tuple[int, int, int, int, int, int]]
+        boxes: List[SelectionBox]
     ) -> List[ConstructionSection]:
-        pass
+        sections = []
+        for box in boxes:
+            cx, cz = box.min_x >> 4, box.min_z >> 4
+            for cy in box.chunk_y_locations():
+                sub_box = box.intersection(SelectionBox.create_sub_chunk_box(cx, cy, cz))
+                entities = [e for e in chunk.entities if e.location in sub_box]
+                if cy in chunk.blocks:
+                    sections.append(ConstructionSection(
+                        box.min,
+                        box.shape,
+                        chunk.blocks[sub_box.chunk_slice(cx, cz)],
+                        list(palette),
+                        entities,
+                        list(chunk.block_entities),
+                    ))
+                elif entities:
+                    sections.append(ConstructionSection(
+                        box.min,
+                        box.shape,
+                        None,
+                        [],
+                        entities,
+                        []
+                    ))
+
+        return sections
 
     def get_translator(
         self,
