@@ -26,8 +26,13 @@ class ConstructionFormatWrapper(FormatWraper):
         self._open = False
         self._platform = 'java'
         self._version = (1, 15, 2)
-        self._selection: List[Tuple[int, int, int, int, int, int]] = []
+        self._selection: SelectionGroup = SelectionGroup()
+
+        # used to look up which sections are in a given chunk when loading
         self._chunk_to_section: Optional[Dict[Tuple[int, int], List[int]]] = None
+
+        # used to look up which selection boxes intersect a given chunk (boxes are clipped to the size of the chunk)
+        self._chunk_to_box: Optional[Dict[Tuple[int, int], List[SelectionBox]]] = None
 
     @property
     def readable(self) -> bool:
@@ -73,7 +78,7 @@ class ConstructionFormatWrapper(FormatWraper):
         self._version = version
 
     @property
-    def selection(self) -> List[Tuple[int, int, int, int, int, int]]:
+    def selection(self) -> SelectionGroup:
         """Platform string ("bedrock" / "java" / ...)"""
         return self._selection
 
@@ -82,7 +87,6 @@ class ConstructionFormatWrapper(FormatWraper):
         if self._open:
             log.error('Construction selection cannot be changed after the object has been opened.')
             return
-        selection.subboxes  # TODO
         self._selection = selection
 
     def _get_interface(
@@ -105,8 +109,12 @@ class ConstructionFormatWrapper(FormatWraper):
                 self.path,
                 self.platform,
                 self.version,
-                self.selection
+                [box.bounds for box in self.selection.subboxes]
             )
+            self._chunk_to_box = {}
+            for box in self.selection.subboxes:
+                for cx, cz in box.chunk_locations():
+                    self._chunk_to_box.setdefault((cx, cz), []).append(box.intersection(SelectionBox.create_chunk_box(cx, cz)))
         self._open = True
 
     @property
@@ -135,7 +143,7 @@ class ConstructionFormatWrapper(FormatWraper):
 
     def _encode(self, chunk: Chunk, chunk_palette: numpy.ndarray, interface: ConstructionInterface):
         return interface.encode(
-            chunk, chunk_palette, self.max_world_version, self._chunk_to_section.get((chunk.cx, chunk.cz))
+            chunk, chunk_palette, self.max_world_version, self._chunk_to_box.get((chunk.cx, chunk.cz))
         )
 
     def delete_chunk(self, cx: int, cz: int, *args):
