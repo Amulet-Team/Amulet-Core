@@ -134,7 +134,7 @@ class ConstructionFormatWrapper(FormatWraper):
         """Unload data stored in the Format class"""
         pass
 
-    def all_chunk_coords(self, *args) -> Generator[Tuple[int, int]]:
+    def all_chunk_coords(self, *args) -> Generator[Tuple[int, int], None, None]:
         """A generator of all chunk coords"""
         if self._mode == 'r':
             yield from self._chunk_to_section.keys()

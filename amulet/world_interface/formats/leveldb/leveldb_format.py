@@ -295,7 +295,7 @@ class LevelDBFormat(WorldFormatWrapper):
         """Unload data stored in the Format class"""
         pass
 
-    def all_chunk_coords(self, dimension: 'Dimension') -> Generator[Tuple[int, int]]:
+    def all_chunk_coords(self, dimension: 'Dimension') -> Generator[Tuple[int, int], None, None]:
         self._verify_has_lock()
         yield from self._level_manager.all_chunk_coords(dimension)
 

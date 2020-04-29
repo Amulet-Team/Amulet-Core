@@ -69,7 +69,7 @@ class AnvilRegion:
                             if offset != 0:
                                 self._chunks[(x, z)] = (0, b"")
 
-    def all_chunk_coords(self) -> Generator[Tuple[int, int]]:
+    def all_chunk_coords(self) -> Generator[Tuple[int, int], None, None]:
         for (cx, cz), (_, chunk_) in self._committed_chunks.items():
             if chunk_:
                 yield cx + self.rx * 32, cz + self.rz * 32
@@ -279,7 +279,7 @@ class AnvilLevelManager:
                     mcc=self._mcc,
                 )
 
-    def all_chunk_coords(self) -> Generator[Tuple[int, int]]:
+    def all_chunk_coords(self) -> Generator[Tuple[int, int], None, None]:
         for region in self._regions.values():
             yield from region.all_chunk_coords()
 
@@ -495,7 +495,7 @@ class AnvilFormat(WorldFormatWrapper):
         else:
             raise LevelDoesNotExist(dimension)
 
-    def all_chunk_coords(self, dimension: 'Dimension') -> Generator[Tuple[int, int]]:
+    def all_chunk_coords(self, dimension: 'Dimension') -> Generator[Tuple[int, int], None, None]:
         """A generator of all chunk coords in the given dimension"""
         if self._has_dimension(dimension):
             yield from self._get_dimension(dimension).all_chunk_coords()

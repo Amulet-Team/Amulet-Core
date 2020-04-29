@@ -85,7 +85,7 @@ class WorldFormatWrapper(FormatWraper):
         """
         raise NotImplementedError
 
-    def all_chunk_coords(self, dimension: 'Dimension') -> Generator[Tuple[int, int]]:
+    def all_chunk_coords(self, dimension: 'Dimension') -> Generator[Tuple[int, int], None, None]:
         """A generator of all chunk coords in the given dimension"""
         raise NotImplementedError
 

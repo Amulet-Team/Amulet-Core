@@ -139,7 +139,7 @@ class FormatWraper:
         """Unload data stored in the Format class"""
         raise NotImplementedError
 
-    def all_chunk_coords(self, *args) -> Generator[Tuple[int, int]]:
+    def all_chunk_coords(self, *args) -> Generator[Tuple[int, int], None, None]:
         """A generator of all chunk coords"""
         raise NotImplementedError
 
