@@ -5,7 +5,7 @@ import numpy
 from amulet import log
 from amulet.api.wrapper import FormatWraper
 from amulet.api.chunk import Chunk
-from amulet.api.selection import Selection, SubSelectionBox
+from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet.api.errors import ObjectReadError, ObjectWriteError, ChunkDoesNotExist
 
 from .construction import ConstructionWriter, ConstructionReader, ConstructionSection
@@ -78,7 +78,7 @@ class ConstructionFormatWrapper(FormatWraper):
         return self._selection
 
     @selection.setter
-    def selection(self, selection: Selection):
+    def selection(self, selection: SelectionGroup):
         if self._open:
             log.error('Construction selection cannot be changed after the object has been opened.')
             return

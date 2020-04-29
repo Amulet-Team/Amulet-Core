@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List, TYPE_CHECKING
 
-from amulet.api.selection import Selection
+from amulet.api.selection import SelectionGroup
 from amulet.api.block import Block
 from amulet.api.data_types import Dimension
 from amulet import log
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from amulet.api.world import World
 
 
-def replace(world: "World", dimension: Dimension, selection: Selection, options: dict):
+def replace(world: "World", dimension: Dimension, selection: SelectionGroup, options: dict):
     original_blocks = options.get("original_blocks", None)
     if not isinstance(original_blocks, list) and all(
         isinstance(block, Block) for block in original_blocks

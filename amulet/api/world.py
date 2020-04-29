@@ -11,7 +11,7 @@ from .block import Block, BlockManager
 from .errors import ChunkDoesNotExist, ChunkLoadError, LevelDoesNotExist
 from .history_manager import ChunkHistoryManager
 from .chunk import Chunk
-from .selection import Selection, SubSelectionBox
+from .selection import SelectionGroup, SelectionBox
 from .paths import get_temp_dir
 from .data_types import OperationType, Dimension, DimensionCoordinates
 from ..utils.world_utils import block_coords_to_chunk_coords
@@ -38,20 +38,20 @@ class BaseStructure:
     def _chunk_box(
         self, cx: int, cz: int, chunk_size: Optional[Tuple[int, Union[int, None], int]] = None
     ):
-        """Get a SubSelectionBox containing the whole of a given chunk"""
+        """Get a SelectionBox containing the whole of a given chunk"""
         if chunk_size is None:
             chunk_size = self.chunk_size
-        return SubSelectionBox.create_chunk_box(cx, cz, chunk_size[0])
+        return SelectionBox.create_chunk_box(cx, cz, chunk_size[0])
 
     def get_chunk_boxes(
         self, *args, **kwargs
-    ) -> Generator[Tuple[Chunk, SubSelectionBox], None, None]:
+    ) -> Generator[Tuple[Chunk, SelectionBox], None, None]:
         raise NotImplementedError
 
     def get_chunk_slices(
         self, *args, **kwargs
     ) -> Generator[
-        Tuple[Chunk, Tuple[slice, slice, slice], SubSelectionBox], None, None
+        Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None
     ]:
         raise NotImplementedError
 
@@ -290,20 +290,20 @@ class World(BaseStructure):
 
     def get_chunk_boxes(
         self,
-        selection: Union[Selection, SubSelectionBox],
+        selection: Union[SelectionGroup, SelectionBox],
         dimension: Dimension,
         create_missing_chunks=False,
-    ) -> Generator[Tuple[Chunk, SubSelectionBox], None, None]:
+    ) -> Generator[Tuple[Chunk, SelectionBox], None, None]:
         """Given a selection will yield chunks and SubSelectionBoxes into that chunk
 
-        :param selection: Selection or SubSelectionBox into the world
+        :param selection: SelectionGroup or SelectionBox into the world
         :param dimension: The dimension to take effect in (defaults to overworld)
         :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false)
         """
 
-        if isinstance(selection, SubSelectionBox):
-            selection = Selection([selection])
-        selection: Selection
+        if isinstance(selection, SelectionBox):
+            selection = SelectionGroup([selection])
+        selection: SelectionGroup
         for (cx, cz), box in selection.sub_sections(self.chunk_size[0]):
             try:
                 chunk = self.get_chunk(cx, cz, dimension)
@@ -320,15 +320,15 @@ class World(BaseStructure):
 
     def get_chunk_slices(
         self,
-        selection: Union[Selection, SubSelectionBox],
+        selection: Union[SelectionGroup, SelectionBox],
         dimension: Dimension,
         create_missing_chunks=False,
     ) -> Generator[
-        Tuple[Chunk, Tuple[slice, slice, slice], SubSelectionBox], None, None
+        Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None
     ]:
         """Given a selection will yield chunks, slices into that chunk and the corresponding box
 
-        :param selection: Selection or SubSelectionBox into the world
+        :param selection: SelectionGroup or SelectionBox into the world
         :param dimension: The dimension to take effect in (defaults to overworld)
         :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false)
         Usage:
@@ -342,7 +342,7 @@ class World(BaseStructure):
             yield chunk, slices, box
 
     # def get_entities_in_box(
-    #     self, box: "Selection"
+    #     self, box: "SelectionGroup"
     # ) -> Generator[Tuple[Coordinates, List[object]], None, None]:
     #     # TODO: some of this logic can probably be moved the chunk class and have this method call that
     #     # TODO: update this to use the newer entity API

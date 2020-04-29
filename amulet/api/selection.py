@@ -12,9 +12,9 @@ from ..utils.world_utils import (
 )
 
 
-class SubSelectionBox:
+class SelectionBox:
     """
-    A SubSelectionBox is a box that can represent the entirety of a Selection or just a subsection
+    A SelectionBox is a box that can represent the entirety of a selection or just a subsection
     of one. This allows for non-rectangular and non-contiguous selections.
 
     The both the minimum and  maximum coordinate points are inclusive.
@@ -29,7 +29,7 @@ class SubSelectionBox:
     def create_chunk_box(
         cls, cx: int, cz: int, chunk_size: int = 16
     ):
-        """Get a SubSelectionBox containing the whole of a given chunk"""
+        """Get a SelectionBox containing the whole of a given chunk"""
         return cls(
             (cx * chunk_size, -(2**30), cz * chunk_size),
             ((cx + 1) * chunk_size, 2**30, (cz + 1) * chunk_size),
@@ -39,7 +39,7 @@ class SubSelectionBox:
     def create_sub_chunk_box(
             cls, cx: int, cy: int, cz: int, chunk_size: int = 16
     ):
-        """Get a SubSelectionBox containing the whole of a given chunk"""
+        """Get a SelectionBox containing the whole of a given sub-chunk"""
         return cls(
             (cx * chunk_size, cy * chunk_size, cz * chunk_size),
             ((cx + 1) * chunk_size, (cy + 1) * chunk_size, (cz + 1) * chunk_size),
@@ -63,12 +63,12 @@ class SubSelectionBox:
             for cy in self.chunk_y_locations(chunk_size):
                 yield cx, cy, cz
 
-    def sub_sections(self, chunk_size: int = 16) -> Generator[Tuple[Tuple[int, int], SubSelectionBox], None, None]:
-        """A generator of modified `SubSelectionBox`es to fit within each sub-chunk.
+    def sub_sections(self, chunk_size: int = 16) -> Generator[Tuple[Tuple[int, int], SelectionBox], None, None]:
+        """A generator of modified `SelectionBox`es to fit within each sub-chunk.
         :param chunk_size: The dimension of the chunk (normally 16)
         """
         for cx, cy, cz in self.sub_chunk_locations(chunk_size):
-            yield (cx, cz), self.intersection(SubSelectionBox.create_sub_chunk_box(cx, cy, cz, chunk_size))
+            yield (cx, cz), self.intersection(SelectionBox.create_sub_chunk_box(cx, cy, cz, chunk_size))
 
     def __iter__(self) -> Iterable[Tuple[int, int, int]]:
         return self.blocks()
@@ -181,11 +181,11 @@ class SubSelectionBox:
         """The shape of the box"""
         return self.size_x, self.size_y, self.size_z
 
-    def intersects(self, other: SubSelectionBox) -> bool:
+    def intersects(self, other: SelectionBox) -> bool:
         """
-        Method to check whether this instance of SubSelectionBox intersects another SubSelectionBox
+        Method to check whether this instance of SelectionBox intersects another SelectionBox
 
-        :param other: The other SubSelectionBox to check for intersection
+        :param other: The other SelectionBox to check for intersection
         :return: True if the two SubSelectionBoxes intersect, False otherwise
         """
         return not (
@@ -197,21 +197,21 @@ class SubSelectionBox:
             or self.max_z <= other.min_z
         )
 
-    def intersection(self, other: SubSelectionBox) -> SubSelectionBox:
-        """Get a SubSelectionBox that represents the region contained within self and other.
+    def intersection(self, other: SelectionBox) -> SelectionBox:
+        """Get a SelectionBox that represents the region contained within self and other.
         Box may be a zero width box. Use self.intersects to check that it actually intersects."""
-        return SubSelectionBox(
+        return SelectionBox(
             numpy.clip(other.min, self.min, self.max),
             numpy.clip(other.max, self.min, self.max)
         )
 
 
-class Selection:
+class SelectionGroup:
     """
     Holding class for multiple SubSelectionBoxes which allows for non-rectangular and non-contiguous selections
     """
 
-    def __init__(self, boxes: Sequence[SubSelectionBox] = None):
+    def __init__(self, boxes: Sequence[SelectionBox] = None):
         self._boxes = []
 
         if boxes:
@@ -236,18 +236,18 @@ class Selection:
         if self._boxes:
             return numpy.min(numpy.array([box.min for box in self._boxes]), 0)
         else:
-            raise ValueError("Selection does not contain any SubSelectionBoxes")
+            raise ValueError("SelectionGroup does not contain any SubSelectionBoxes")
 
     @property
     def max(self) -> numpy.ndarray:
         if self._boxes:
             return numpy.max(numpy.array([box.max for box in self._boxes]), 0)
         else:
-            raise ValueError("Selection does not contain any SubSelectionBoxes")
+            raise ValueError("SelectionGroup does not contain any SubSelectionBoxes")
 
-    def add_box(self, other: SubSelectionBox, do_merge_check: bool = True):
+    def add_box(self, other: SelectionBox, do_merge_check: bool = True):
         """
-        Adds a SubSelectionBox to the selection box. If `other` is next to another SubSelectionBox in the selection, matches in any 2 dimensions, and
+        Adds a SelectionBox to the selection box. If `other` is next to another SelectionBox in the selection, matches in any 2 dimensions, and
         `do_merge_check` is True, then the 2 boxes will be combined into 1 box.
 
         :param other: The box to add
@@ -272,7 +272,7 @@ class Selection:
                     or (y_dim and z_dim and x_border)
                 ):
                     boxes_to_remove = box
-                    new_box = SubSelectionBox(box.min, other.max)
+                    new_box = SelectionBox(box.min, other.max)
                     break
 
             if new_box:
@@ -285,7 +285,7 @@ class Selection:
 
     @property
     def is_contiguous(self) -> bool:
-        """Does the Selection represent one connected region (True) or multiple separated regions (False)"""
+        """Does the SelectionGroup represent one connected region (True) or multiple separated regions (False)"""
         if len(self._boxes) == 1:
             return True
 
@@ -304,33 +304,33 @@ class Selection:
     @property
     def is_rectangular(self) -> bool:
         """
-        Checks if the Selection is a rectangle
+        Checks if the SelectionGroup is a rectangle
 
         :return: True is the selection is a rectangle, False otherwise
         """
         return len(self._boxes) == 1
 
     @property
-    def subboxes(self) -> List[SubSelectionBox]:
+    def subboxes(self) -> List[SelectionBox]:
         """
-        Returns a list of unmodified SubSelectionBoxes in the Selection.
+        Returns a list of unmodified SubSelectionBoxes in the SelectionGroup.
         :return: A list of the SubSelectionBoxes
         """
         return sorted(self._boxes, key=hash)
 
-    def sub_sections(self, chunk_size: int = 16) -> Generator[Tuple[Tuple[int, int], SubSelectionBox], None, None]:
-        """A generator of modified `SubSelectionBox`es to fit within each sub-chunk.
+    def sub_sections(self, chunk_size: int = 16) -> Generator[Tuple[Tuple[int, int], SelectionBox], None, None]:
+        """A generator of modified `SelectionBox`es to fit within each sub-chunk.
         :param chunk_size: The dimension of the chunk (normally 16)
         """
         for box in self.subboxes:  # TODO: optimise this so that it yields all boxes for a chunk in one go
             yield from box.sub_sections
 
-    def sub_slices(self, chunk_size: int = 16) -> Generator[Tuple[Tuple[int, int], Tuple[slice, slice, slice], SubSelectionBox], None, None]:
+    def sub_slices(self, chunk_size: int = 16) -> Generator[Tuple[Tuple[int, int], Tuple[slice, slice, slice], SelectionBox], None, None]:
         for (cx, cz), box in self.sub_sections(chunk_size):
             slices = box.chunk_slice(cx, cz, chunk_size)
             yield (cx, cz), slices, box
 
-    def intersects(self, other: Selection) -> bool:
+    def intersects(self, other: SelectionGroup) -> bool:
         """Check if self and other intersect"""
         return any(
             self_box.intersects(other_box)
@@ -338,9 +338,9 @@ class Selection:
             for other_box in other.subboxes
         )
 
-    def intersection(self, other: Selection) -> Selection:
-        """Get a new Selection that represents the area contained within self and other"""
-        intersection = Selection()
+    def intersection(self, other: SelectionGroup) -> SelectionGroup:
+        """Get a new SelectionGroup that represents the area contained within self and other"""
+        intersection = SelectionGroup()
         for self_box in self.subboxes:
             for other_box in other.subboxes:
                 if self_box.intersects(other_box):
@@ -349,9 +349,9 @@ class Selection:
 
 
 if __name__ == "__main__":
-    b1 = SubSelectionBox((0, 0, 0), (4, 4, 4))
-    b2 = SubSelectionBox((7, 7, 7), (10, 10, 10))
-    sel_box = Selection((b1, b2))
+    b1 = SelectionBox((0, 0, 0), (4, 4, 4))
+    b2 = SelectionBox((7, 7, 7), (10, 10, 10))
+    sel_box = SelectionGroup((b1, b2))
 
     for x, y, z in sel_box:
         print(x, y, z)

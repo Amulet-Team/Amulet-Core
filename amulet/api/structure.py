@@ -3,7 +3,7 @@ from typing import Dict, Union, Generator, Tuple, Optional
 import itertools
 import numpy
 
-from .selection import Selection, SubSelectionBox
+from .selection import SelectionGroup, SelectionBox
 from .world import World, BaseStructure
 from .chunk import Chunk
 from .block import Block, BlockManager
@@ -21,7 +21,7 @@ class Structure(BaseStructure):
         self,
         chunks: Dict[Coordinates, Chunk],
         palette: BlockManager,
-        selection: Selection,
+        selection: SelectionGroup,
         chunk_size: Tuple[int, int, int] = (16, 256, 16),
     ):
         self._chunk_cache = chunks
@@ -38,11 +38,11 @@ class Structure(BaseStructure):
         return self._palette
 
     @property
-    def selection(self) -> Selection:
+    def selection(self) -> SelectionGroup:
         return self._selection
 
     @classmethod
-    def from_world(cls, world: World, selection: Selection, dimension: Dimension):
+    def from_world(cls, world: World, selection: SelectionGroup, dimension: Dimension):
         data = {}
         for chunk, _ in world.get_chunk_boxes(selection, dimension):
             if chunk.coordinates not in data:
@@ -64,20 +64,20 @@ class Structure(BaseStructure):
         return self._palette[block]
 
     def get_chunk_boxes(
-        self, selection: Optional[Union[Selection, SubSelectionBox]] = None
-    ) -> Generator[Tuple[Chunk, SubSelectionBox], None, None]:
+        self, selection: Optional[Union[SelectionGroup, SelectionBox]] = None
+    ) -> Generator[Tuple[Chunk, SelectionBox], None, None]:
         """Given a selection will yield chunks and SubSelectionBoxes into that chunk
 
-        :param selection: Selection or SubSelectionBox into the world
+        :param selection: SelectionGroup or SelectionBox into the world
         """
         if selection is None:
             selection = self._selection
         else:
-            if isinstance(selection, SubSelectionBox):
-                selection = Selection([selection])
+            if isinstance(selection, SelectionBox):
+                selection = SelectionGroup([selection])
             # TODO: handle the fact the the selection is not at the origin
             selection = self.selection.intersection(selection)
-        selection: Selection
+        selection: SelectionGroup
         for box in selection.subboxes:
             first_chunk = block_coords_to_chunk_coords(box.min_x, box.min_z, chunk_size=self.chunk_size[0])
             last_chunk = block_coords_to_chunk_coords(box.max_x - 1, box.max_z - 1, chunk_size=self.chunk_size[0])
@@ -93,13 +93,13 @@ class Structure(BaseStructure):
                 yield chunk, box.intersection(self._chunk_box(cx, cz))
 
     def get_chunk_slices(
-        self, selection: Optional[Union[Selection, SubSelectionBox]] = None
+        self, selection: Optional[Union[SelectionGroup, SelectionBox]] = None
     ) -> Generator[
-        Tuple[Chunk, Tuple[slice, slice, slice], SubSelectionBox], None, None
+        Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None
     ]:
         """Given a selection will yield chunks and slices into that chunk
 
-        :param selection: Selection or SubSelectionBox into the world
+        :param selection: SelectionGroup or SelectionBox into the world
         Usage:
         for chunk, slice in world.get_chunk_slices(selection):
             chunk.blocks[slice] = ...
@@ -111,16 +111,16 @@ class Structure(BaseStructure):
     def get_moved_chunk_slices(
         self,
         destination_origin: Tuple[int, int, int],
-        selection: Optional[Union[Selection, SubSelectionBox]] = None,
+        selection: Optional[Union[SelectionGroup, SelectionBox]] = None,
         destination_chunk_shape: Optional[Tuple[int, int, int]] = None,
     ) -> Generator[
         Tuple[
             Chunk,
             Tuple[slice, slice, slice],
-            SubSelectionBox,
+            SelectionBox,
             Tuple[int, int],
             Tuple[slice, slice, slice],
-            SubSelectionBox,
+            SelectionBox,
         ],
         None,
         None,
@@ -145,7 +145,7 @@ class Structure(BaseStructure):
         # the offset from self.selection to the destination location
         offset = numpy.subtract(destination_origin, self.selection.min, dtype=numpy.int)
         for chunk, box in self.get_chunk_boxes(selection):
-            dst_full_box = SubSelectionBox(offset + box.min, offset + box.max,)
+            dst_full_box = SelectionBox(offset + box.min, offset + box.max, )
 
             first_chunk = block_coords_to_chunk_coords(
                 dst_full_box.min_x,
@@ -163,7 +163,7 @@ class Structure(BaseStructure):
             ):
                 chunk_box = self._chunk_box(cx, cz, destination_chunk_shape)
                 dst_box = chunk_box.intersection(dst_full_box)
-                src_box = SubSelectionBox(-offset + dst_box.min, -offset + dst_box.max)
+                src_box = SelectionBox(-offset + dst_box.min, -offset + dst_box.max)
                 src_slices = src_box.chunk_slice(chunk.cx, chunk.cz, self.chunk_size[0])
                 dst_slices = dst_box.chunk_slice(cx, cz, self.chunk_size[0])
                 yield chunk, src_slices, src_box, (cx, cz), dst_slices, dst_box

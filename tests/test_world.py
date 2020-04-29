@@ -6,7 +6,7 @@ import numpy
 from amulet.api.block import blockstate_to_block
 from amulet.api.chunk import Chunk
 from amulet.api.errors import ChunkDoesNotExist
-from amulet.api.selection import SubSelectionBox, Selection
+from amulet.api.selection import SelectionBox, SelectionGroup
 from amulet.world_interface import load_world, load_format
 from amulet.utils.world_utils import decode_long_array, encode_long_array
 from tests.test_utils import get_world_path, get_data_path
@@ -46,8 +46,8 @@ class WorldTestBaseCases:
             )
 
         def test_get_blocks(self):
-            selection_box = SubSelectionBox((0, 0, 0), (10, 10, 10))
-            for selection in [Selection([selection_box]), selection_box]:
+            selection_box = SelectionBox((0, 0, 0), (10, 10, 10))
+            for selection in [SelectionGroup([selection_box]), selection_box]:
                 chunk, box = next(
                     self.world.get_chunk_boxes(selection)
                 )
@@ -57,7 +57,7 @@ class WorldTestBaseCases:
                 )
                 self.assertIsInstance(
                     box,
-                    SubSelectionBox
+                    SelectionBox
                 )
 
                 chunk, slices, _ = next(
@@ -80,8 +80,8 @@ class WorldTestBaseCases:
                     )
 
         def test_clone_operation(self):
-            subbx1 = SubSelectionBox((1, 70, 3), (2, 71, 4))
-            src_box = Selection((subbx1,))
+            subbx1 = SelectionBox((1, 70, 3), (2, 71, 4))
+            src_box = SelectionGroup((subbx1,))
 
             target = {"x": 1, "y": 70, "z": 5}
 
@@ -120,8 +120,8 @@ class WorldTestBaseCases:
             )
 
         def test_fill_operation(self):
-            subbox_1 = SubSelectionBox((1, 70, 3), (5, 71, 5))
-            box = Selection((subbox_1,))
+            subbox_1 = SelectionBox((1, 70, 3), (5, 71, 5))
+            box = SelectionGroup((subbox_1,))
 
             # Start sanity check
             self.assertEqual(
@@ -167,8 +167,8 @@ class WorldTestBaseCases:
                 )
 
         def test_replace_single_block(self):
-            subbox1 = SubSelectionBox((1, 70, 3), (5, 71, 6))
-            box1 = Selection((subbox1,))
+            subbox1 = SelectionBox((1, 70, 3), (5, 71, 6))
+            box1 = SelectionGroup((subbox1,))
 
             self.assertEqual(
                 "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
@@ -215,8 +215,8 @@ class WorldTestBaseCases:
             )
 
         def test_replace_multiblock(self):
-            subbox1 = SubSelectionBox((1, 70, 3), (2, 75, 4))
-            box1 = Selection((subbox1,))
+            subbox1 = SelectionBox((1, 70, 3), (2, 75, 4))
+            box1 = SelectionGroup((subbox1,))
 
             self.assertEqual(
                 "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
@@ -283,8 +283,8 @@ class WorldTestBaseCases:
                 )
 
         def test_delete_chunk(self):
-            subbox1 = SubSelectionBox((1, 1, 1), (5, 5, 5))
-            box1 = Selection((subbox1,))
+            subbox1 = SelectionBox((1, 1, 1), (5, 5, 5))
+            box1 = SelectionGroup((subbox1,))
 
             self.assertEqual(
                 "universal_minecraft:stone", self.world.get_block(1, 70, 3).blockstate
@@ -349,7 +349,7 @@ class WorldTestBaseCases:
         def test_get_entities(
             self,
         ):  # TODO: Make a more complete test once we figure out what get_entities() returns
-            box1 = Selection((SubSelectionBox((0, 0, 0), (17, 20, 17)),))
+            box1 = SelectionGroup((SelectionBox((0, 0, 0), (17, 20, 17)),))
 
             test_entity = {
                 "id": "universal_minecraft:cow",
