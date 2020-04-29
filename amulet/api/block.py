@@ -152,7 +152,7 @@ class Block:
 
         :return: A dictionary of the properties of the blockstate
         """
-        return copy.deepcopy(self._properties)
+        return self._properties.copy()
 
     @property
     def blockstate(self) -> str:
