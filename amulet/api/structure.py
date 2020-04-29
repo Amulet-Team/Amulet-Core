@@ -78,7 +78,7 @@ class Structure(BaseStructure):
             # TODO: handle the fact the the selection is not at the origin
             selection = self.selection.intersection(selection)
         selection: SelectionGroup
-        for box in selection.subboxes:
+        for box in selection.selection_boxes:
             first_chunk = block_coords_to_chunk_coords(box.min_x, box.min_z, chunk_size=self.chunk_size[0])
             last_chunk = block_coords_to_chunk_coords(box.max_x - 1, box.max_z - 1, chunk_size=self.chunk_size[0])
             for cx, cz in itertools.product(

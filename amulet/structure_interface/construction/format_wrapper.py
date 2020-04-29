@@ -109,10 +109,10 @@ class ConstructionFormatWrapper(FormatWraper):
                 self.path,
                 self.platform,
                 self.version,
-                [box.bounds for box in self.selection.subboxes]
+                [box.bounds for box in self.selection.selection_boxes]
             )
             self._chunk_to_box = {}
-            for box in self.selection.subboxes:
+            for box in self.selection.selection_boxes:
                 for cx, cz in box.chunk_locations():
                     self._chunk_to_box.setdefault((cx, cz), []).append(box.intersection(SelectionBox.create_chunk_box(cx, cz)))
         self._open = True

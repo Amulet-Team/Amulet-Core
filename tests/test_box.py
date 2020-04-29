@@ -93,7 +93,7 @@ class BoxTestCase(unittest.TestCase):
         box_1.add_box(sub_box_3)
         box_2.add_box(sub_box_2)
 
-        for sb1, sb2 in zip(box_1.subboxes, box_2.subboxes):
+        for sb1, sb2 in zip(box_1.selection_boxes, box_2.selection_boxes):
             self.assertEqual(sb1.shape, sb2.shape)
 
 

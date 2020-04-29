@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 import numpy
 
-from typing import Sequence, Tuple, Union, Iterable, List, Generator
+from typing import Tuple, Union, Iterable, List, Generator, Dict
 
 from .minecraft_types import Point
 from ..utils.world_utils import (
@@ -211,21 +211,21 @@ class SelectionGroup:
     Holding class for multiple SubSelectionBoxes which allows for non-rectangular and non-contiguous selections
     """
 
-    def __init__(self, boxes: Sequence[SelectionBox] = None):
-        self._boxes = []
+    def __init__(self, selection_boxes: Iterable[SelectionBox] = None):
+        self._selection_boxes = []
 
-        if boxes:
-            for box in boxes:
+        if selection_boxes:
+            for box in selection_boxes:
                 self.add_box(box)
 
     def __iter__(self) -> Iterable[Tuple[int, int, int]]:
-        return itertools.chain.from_iterable(sorted(self._boxes, key=hash))
+        return itertools.chain.from_iterable(sorted(self._selection_boxes, key=hash))
 
     def __len__(self):
-        return len(self._boxes)
+        return len(self._selection_boxes)
 
     def __contains__(self, item: Union[Point, Tuple[int, int, int]]):
-        for subbox in self._boxes:
+        for subbox in self._selection_boxes:
             if item in subbox:
                 return True
 
@@ -233,15 +233,15 @@ class SelectionGroup:
 
     @property
     def min(self) -> numpy.ndarray:
-        if self._boxes:
-            return numpy.min(numpy.array([box.min for box in self._boxes]), 0)
+        if self._selection_boxes:
+            return numpy.min(numpy.array([box.min for box in self._selection_boxes]), 0)
         else:
             raise ValueError("SelectionGroup does not contain any SubSelectionBoxes")
 
     @property
     def max(self) -> numpy.ndarray:
-        if self._boxes:
-            return numpy.max(numpy.array([box.max for box in self._boxes]), 0)
+        if self._selection_boxes:
+            return numpy.max(numpy.array([box.max for box in self._selection_boxes]), 0)
         else:
             raise ValueError("SelectionGroup does not contain any SubSelectionBoxes")
 
@@ -257,7 +257,7 @@ class SelectionGroup:
         if do_merge_check:
             boxes_to_remove = None
             new_box = None
-            for box in self._boxes:
+            for box in self._selection_boxes:
                 x_dim = box.min_x == other.min_x and box.max_x == other.max_x
                 y_dim = box.min_y == other.min_y and box.max_y == other.max_y
                 z_dim = box.min_z == other.min_z and box.max_z == other.max_z
@@ -276,22 +276,22 @@ class SelectionGroup:
                     break
 
             if new_box:
-                self._boxes.remove(boxes_to_remove)
+                self._selection_boxes.remove(boxes_to_remove)
                 self.add_box(new_box)
             else:
-                self._boxes.append(other)
+                self._selection_boxes.append(other)
         else:
-            self._boxes.append(other)
+            self._selection_boxes.append(other)
 
     @property
     def is_contiguous(self) -> bool:
         """Does the SelectionGroup represent one connected region (True) or multiple separated regions (False)"""
-        if len(self._boxes) == 1:
+        if len(self._selection_boxes) == 1:
             return True
 
-        for i in range(len(self._boxes) - 1):
-            sub_box = self._boxes[i]
-            next_box = self._boxes[i + 1]
+        for i in range(len(self._selection_boxes) - 1):
+            sub_box = self._selection_boxes[i]
+            next_box = self._selection_boxes[i + 1]
             if (
                 abs(sub_box.max_x - next_box.min_x)
                 and abs(sub_box.max_y - next_box.min_y)
@@ -308,22 +308,35 @@ class SelectionGroup:
 
         :return: True is the selection is a rectangle, False otherwise
         """
-        return len(self._boxes) == 1
+        return len(self._selection_boxes) == 1
 
     @property
-    def subboxes(self) -> List[SelectionBox]:
+    def selection_boxes(self) -> List[SelectionBox]:
         """
         Returns a list of unmodified SubSelectionBoxes in the SelectionGroup.
         :return: A list of the SubSelectionBoxes
         """
-        return sorted(self._boxes, key=hash)
+        return self._selection_boxes.copy()
+
+    def chunk_locations(self, chunk_size: int = 16) -> Generator[Tuple[int, int], None, None]:
+        """The chunk locations that the SelectionGroup is in.
+        Each location is only given once even if there are multiple boxes in the chunk."""
+        yield from set(location for box in self.selection_boxes for location in box.chunk_locations(chunk_size))
+
+    def _chunk_boxes(self, chunk_size: int = 16) -> Dict[Tuple[int, int], List[SelectionBox]]:
+        boxes = {}
+        for box in self.selection_boxes:
+            for (cx, cz), sub_box in box.sub_sections(chunk_size):
+                boxes.setdefault((cx, cz), []).append(sub_box)
+        return boxes
 
     def sub_sections(self, chunk_size: int = 16) -> Generator[Tuple[Tuple[int, int], SelectionBox], None, None]:
         """A generator of modified `SelectionBox`es to fit within each sub-chunk.
         :param chunk_size: The dimension of the chunk (normally 16)
         """
-        for box in self.subboxes:  # TODO: optimise this so that it yields all boxes for a chunk in one go
-            yield from box.sub_sections(chunk_size)
+        for (cx, cz), boxes in self._chunk_boxes(chunk_size).items():
+            for box in boxes:
+                yield (cx, cz), box
 
     def sub_slices(self, chunk_size: int = 16) -> Generator[Tuple[Tuple[int, int], Tuple[slice, slice, slice], SelectionBox], None, None]:
         for (cx, cz), box in self.sub_sections(chunk_size):
@@ -334,15 +347,15 @@ class SelectionGroup:
         """Check if self and other intersect"""
         return any(
             self_box.intersects(other_box)
-            for self_box in self.subboxes
-            for other_box in other.subboxes
+            for self_box in self.selection_boxes
+            for other_box in other.selection_boxes
         )
 
     def intersection(self, other: SelectionGroup) -> SelectionGroup:
         """Get a new SelectionGroup that represents the area contained within self and other"""
         intersection = SelectionGroup()
-        for self_box in self.subboxes:
-            for other_box in other.subboxes:
+        for self_box in self.selection_boxes:
+            for other_box in other.selection_boxes:
                 if self_box.intersects(other_box):
                     intersection.add_box(self_box.intersection(other_box))
         return intersection
