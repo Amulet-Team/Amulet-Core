@@ -5,6 +5,8 @@ import struct
 from typing import Type, Union, Tuple, IO, List, Optional
 
 from amulet import Block, BlockManager
+from amulet.api.entity import Entity
+from amulet.api.block_entity import BlockEntity
 
 import amulet_nbt
 
@@ -40,8 +42,8 @@ class ConstructionSection:
         shape: INT_TRIPLET,
         blocks: Optional[numpy.ndarray],
         palette: List[Block],
-        entities: List[amulet_nbt.TAG_Compound],  # TODO: modify these to be Entity and BlockEntity classes
-        block_entities: Optional[List[amulet_nbt.TAG_Compound]],
+        entities: List[Entity],
+        block_entities: List[BlockEntity],
     ):
         self.sx, self.sy, self.sz = min_position
         self.shape = shape
@@ -174,6 +176,32 @@ class ConstructionReader:
         else:
             raise Exception(f"This wrapper doesn\'t support any construction version higher than {max_format_version}")
 
+    @staticmethod
+    def _parse_entities(entities: amulet_nbt.TAG_List) -> List[Entity]:
+        return [
+            Entity(
+                entity["namespace"],
+                entity["base_name"],
+                entity["x"],
+                entity["y"],
+                entity["z"],
+                entity["nbt"],
+            ) for entity in entities
+        ]
+
+    @staticmethod
+    def _parse_block_entities(block_entities: amulet_nbt.TAG_List) -> List[BlockEntity]:
+        return [
+            BlockEntity(
+                block_entity["namespace"],
+                block_entity["base_name"],
+                block_entity["x"],
+                block_entity["y"],
+                block_entity["z"],
+                block_entity["nbt"],
+            ) for block_entity in block_entities
+        ]
+
     def read(self, section_index: int):
         if self._format_version == 0:
             sx, sy, sz, shapex, shapey, shapez, position, length = self._section_index_table[section_index]
@@ -184,14 +212,14 @@ class ConstructionReader:
                 block_entities = None
             else:
                 blocks = numpy.reshape(nbt_obj["blocks"].value, (shapex, shapey, shapez))
-                block_entities = nbt_obj["block_entities"].value
+                block_entities = self._parse_block_entities(nbt_obj["block_entities"])
 
             return ConstructionSection(
                 (sx, sy, sz),
                 (shapex, shapey, shapez),
                 blocks,
                 self._palette,
-                nbt_obj["entities"].value,
+                self._parse_entities(nbt_obj["entities"]),
                 block_entities,
             )
         else:
@@ -288,6 +316,32 @@ class ConstructionWriter:
             }
         )
 
+    @staticmethod
+    def _serialise_entities(entities: List[Entity]) -> amulet_nbt.TAG_List:
+        return amulet_nbt.TAG_List([
+            amulet_nbt.TAG_Compound({
+                "namespace": amulet_nbt.TAG_String(entity.namespace),
+                "base_name": amulet_nbt.TAG_String(entity.base_name),
+                "x": amulet_nbt.TAG_Double(entity.x),
+                "y": amulet_nbt.TAG_Double(entity.y),
+                "z": amulet_nbt.TAG_Double(entity.z),
+                "nbt": amulet_nbt.TAG_Compound(entity.nbt.value)
+            }) for entity in entities
+        ])
+
+    @staticmethod
+    def _serialise_block_entities(block_entities: List[BlockEntity]) -> amulet_nbt.TAG_List:
+        return amulet_nbt.TAG_List([
+            amulet_nbt.TAG_Compound({
+                "namespace": amulet_nbt.TAG_String(block_entity.namespace),
+                "base_name": amulet_nbt.TAG_String(block_entity.base_name),
+                "x": amulet_nbt.TAG_Int(block_entity.x),
+                "y": amulet_nbt.TAG_Int(block_entity.y),
+                "z": amulet_nbt.TAG_Int(block_entity.z),
+                "nbt": amulet_nbt.TAG_Compound(block_entity.nbt.value)
+            }) for block_entity in block_entities
+        ])
+
     def _pack_palette(self) -> amulet_nbt.TAG_List:
         block_palette_nbt = amulet_nbt.TAG_List()
         extra_blocks = set()
@@ -356,7 +410,7 @@ class ConstructionWriter:
 
             _tag = amulet_nbt.TAG_Compound(
                 {
-                    "entities": amulet_nbt.TAG_List(entities)
+                    "entities": self._serialise_entities(entities)
                 }
             )
 
@@ -369,7 +423,7 @@ class ConstructionWriter:
                 array_type = self._find_fitting_array_type(flattened_array)
                 _tag["blocks_array_type"] = amulet_nbt.TAG_Byte(array_type().tag_id)
                 _tag["blocks"] = array_type(flattened_array)
-                _tag["block_entities"] = amulet_nbt.TAG_List(block_entities or [])
+                _tag["block_entities"] = self._serialise_block_entities(block_entities or [])
 
             amulet_nbt.NBTFile(_tag).save_to(self._buffer)
 
