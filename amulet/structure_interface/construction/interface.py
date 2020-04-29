@@ -6,12 +6,17 @@ from .construction import ConstructionSection
 from amulet.api.chunk import Chunk
 from amulet.api.block import Block
 from amulet.api.selection import SelectionBox
+from amulet.world_interface.chunk import translators
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
+    from PyMCTranslate import TranslationManager
 
 
 class ConstructionInterface(Interface):
+    def is_valid(self, key: Tuple) -> bool:
+        return True
+
     def decode(self, cx: int, cz: int, data: List[ConstructionSection]) -> Tuple['Chunk', numpy.ndarray]:
         chunk = Chunk(cx, cz)
         palette = [Block(namespace="minecraft", base_name="air")]
@@ -43,7 +48,7 @@ class ConstructionInterface(Interface):
         chunk: 'Chunk',
         palette: numpy.ndarray,
         max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
-        boxes: List[SelectionBox]
+        boxes: List[SelectionBox] = None
     ) -> List[ConstructionSection]:
         sections = []
         for box in boxes:
@@ -76,9 +81,13 @@ class ConstructionInterface(Interface):
         self,
         max_world_version: Tuple[str, Tuple[int, int, int]],
         data: Any = None,
+        translation_manager: 'TranslationManager' = None
     ) -> Tuple['Translator', Union[int, Tuple[int, int, int]]]:
-        # TODO: handle converting to dataversion for Java
-        pass
+        platform, version_number = max_world_version
+        version = translation_manager.get_version(platform, version_number)
+        if platform == 'java':
+            version_number = version.data_version
+        return translators.loader.get((version, version_number)), 0
 
 
 class Construction0Interface(ConstructionInterface):
