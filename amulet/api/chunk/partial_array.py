@@ -27,7 +27,8 @@ class PartialNDArray:
             input_array = {}
         self._sub_chunks: Dict[int, numpy.ndarray] = input_array
 
-    def _chunk_y(self, block_y: int) -> int:
+    @staticmethod
+    def _chunk_y(block_y: int) -> int:
         return block_y >> 4
 
     def __contains__(self, item: int):

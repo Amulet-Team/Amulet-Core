@@ -323,7 +323,7 @@ class SelectionGroup:
         :param chunk_size: The dimension of the chunk (normally 16)
         """
         for box in self.subboxes:  # TODO: optimise this so that it yields all boxes for a chunk in one go
-            yield from box.sub_sections
+            yield from box.sub_sections(chunk_size)
 
     def sub_slices(self, chunk_size: int = 16) -> Generator[Tuple[Tuple[int, int], Tuple[slice, slice, slice], SelectionBox], None, None]:
         for (cx, cz), box in self.sub_sections(chunk_size):

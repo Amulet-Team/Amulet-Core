@@ -26,7 +26,6 @@ if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
 
 
-
 def brute_sort_objects(data) -> Tuple[numpy.ndarray, numpy.ndarray]:
     indexes = {}
     unique = []

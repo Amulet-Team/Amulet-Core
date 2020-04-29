@@ -212,7 +212,7 @@ class LevelDBFormat(WorldFormatWrapper):
         try:
             return tuple([t.value for t in self.root_tag["lastOpenedWithVersion"]])
         except Exception:
-            return (1, 2, 0)
+            return 1, 2, 0
 
     @property
     def world_name(self):

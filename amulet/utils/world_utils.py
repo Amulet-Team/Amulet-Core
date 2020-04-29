@@ -22,8 +22,7 @@ def block_coords_to_chunk_coords(
     """
     Converts the supplied block coordinates into chunk coordinates
 
-    :param x: The x coordinate of the block
-    :param z: The z coordinate of the block
+    :param args: The coordinate of the block(s)
     :param chunk_size: The dimension of the chunk (Optional. Default 16)
     :return: The resulting chunk coordinates in (x, z) order
     """

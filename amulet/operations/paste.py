@@ -18,6 +18,7 @@ def paste(world: "World", dimension: Dimension, structure: Structure, options: d
     gab = numpy.vectorize(world.palette.get_add_block)
     lut = gab(structure.palette.blocks())
     offset = - structure.selection.min + dst_location
+    non_air = None
     if not copy_air:
         non_air = numpy.array([block.namespaced_name != 'universal_minecraft:air' for block in structure.palette.blocks()])
 
