@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 # from copy import deepcopy
-import itertools
 import os
 import shutil
 from typing import Union, Generator, Dict, Optional, Tuple, Callable, Any, TYPE_CHECKING
@@ -15,10 +14,7 @@ from .chunk import Chunk
 from .selection import Selection, SubSelectionBox
 from .paths import get_temp_dir
 from .data_types import OperationType, Dimension, DimensionCoordinates
-from ..utils.world_utils import (
-    block_coords_to_chunk_coords,
-    blocks_slice_to_chunk_slice,
-)
+from ..utils.world_utils import block_coords_to_chunk_coords
 
 
 if TYPE_CHECKING:
@@ -45,7 +41,7 @@ class BaseStructure:
         """Get a SubSelectionBox containing the whole of a given chunk"""
         if chunk_size is None:
             chunk_size = self.chunk_size
-        return SubSelectionBox.chunk_box(cx, cz, chunk_size[0])
+        return SubSelectionBox.create_chunk_box(cx, cz, chunk_size[0])
 
     def get_chunk_boxes(
         self, *args, **kwargs
@@ -285,7 +281,7 @@ class World(BaseStructure):
         :return: The blockstate name as a string
         """
         # TODO: move this logic into the chunk class and have this method call that
-        cx, cz = block_coords_to_chunk_coords(x, z)
+        cx, cz = block_coords_to_chunk_coords(x, z, chunk_size=self.chunk_size[0])
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
 
         chunk = self.get_chunk(cx, cz, dimension)

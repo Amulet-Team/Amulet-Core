@@ -26,14 +26,49 @@ class SubSelectionBox:
         self._max_x, self._max_y, self._max_z = numpy.max(box, 0).tolist()
 
     @classmethod
-    def chunk_box(
-        cls, cx: int, cz: int, chunk_size: int
+    def create_chunk_box(
+        cls, cx: int, cz: int, chunk_size: int = 16
     ):
         """Get a SubSelectionBox containing the whole of a given chunk"""
         return cls(
             (cx * chunk_size, -(2**30), cz * chunk_size),
             ((cx + 1) * chunk_size, 2**30, (cz + 1) * chunk_size),
         )
+
+    @classmethod
+    def create_sub_chunk_box(
+            cls, cx: int, cy: int, cz: int, chunk_size: int = 16
+    ):
+        """Get a SubSelectionBox containing the whole of a given chunk"""
+        return cls(
+            (cx * chunk_size, cy * chunk_size, cz * chunk_size),
+            ((cx + 1) * chunk_size, (cy + 1) * chunk_size, (cz + 1) * chunk_size),
+        )
+
+    def chunk_locations(self, chunk_size: int = 16) -> Generator[Tuple[int, int], None, None]:
+        """A generator of chunk locations that this box intersects."""
+        cx_min, cz_min, cx_max, cz_max = block_coords_to_chunk_coords(self.min_x, self.min_z, self.max_x - 1, self.max_z - 1, chunk_size=chunk_size)
+        yield from itertools.product(
+            range(cx_min, cz_min + 1),
+            range(cx_max, cz_max + 1),
+        )
+
+    def chunk_y_locations(self, chunk_size: int = 16):
+        cy_min, cy_max = block_coords_to_chunk_coords(self.min_y, self._min_z, chunk_size=chunk_size)
+        for cy in range(cy_min, cy_max + 1):
+            yield cy
+
+    def sub_chunk_locations(self, chunk_size: int = 16) -> Generator[Tuple[int, int], None, None]:
+        for cx, cz in self.chunk_locations(chunk_size):
+            for cy in self.chunk_y_locations(chunk_size):
+                yield cx, cy, cz
+
+    def sub_sections(self, chunk_size: int = 16) -> Generator[Tuple[Tuple[int, int], SubSelectionBox], None, None]:
+        """A generator of modified `SubSelectionBox`es to fit within each sub-chunk.
+        :param chunk_size: The dimension of the chunk (normally 16)
+        """
+        for cx, cy, cz in self.sub_chunk_locations(chunk_size):
+            yield (cx, cz), self.intersection(SubSelectionBox.create_sub_chunk_box(cx, cy, cz, chunk_size))
 
     def __iter__(self) -> Iterable[Tuple[int, int, int]]:
         return self.blocks()
@@ -123,6 +158,10 @@ class SubSelectionBox:
         return self._max_x, self._max_y, self._max_z
 
     @property
+    def bounds(self) -> Tuple[int, int, int, int, int, int]:
+        return self._min_x, self._min_y, self._min_z, self._max_x, self._max_y, self._max_z
+
+    @property
     def size_x(self) -> int:
         """The length of the box in the x axis"""
         return self._max_x - self._min_x
@@ -162,8 +201,8 @@ class SubSelectionBox:
         """Get a SubSelectionBox that represents the region contained within self and other.
         Box may be a zero width box. Use self.intersects to check that it actually intersects."""
         return SubSelectionBox(
-            numpy.min([numpy.max([self.min, other.max], 0), self.max], 0),
-            numpy.max([numpy.min([self.max, other.min], 0), self.min], 0),
+            numpy.clip(other.min, self.min, self.max),
+            numpy.clip(other.max, self.min, self.max)
         )
 
 
@@ -279,20 +318,14 @@ class Selection:
         """
         return sorted(self._boxes, key=hash)
 
-    def sub_sections(self, chunk_size=16) -> Generator[Tuple[Tuple[int, int], SubSelectionBox], None, None]:
+    def sub_sections(self, chunk_size: int = 16) -> Generator[Tuple[Tuple[int, int], SubSelectionBox], None, None]:
         """A generator of modified `SubSelectionBox`es to fit within each sub-chunk.
         :param chunk_size: The dimension of the chunk (normally 16)
         """
         for box in self.subboxes:  # TODO: optimise this so that it yields all boxes for a chunk in one go
-            first_chunk = block_coords_to_chunk_coords(box.min_x, box.min_z)
-            last_chunk = block_coords_to_chunk_coords(box.max_x - 1, box.max_z - 1)
-            for cx, cz in itertools.product(
-                range(first_chunk[0], last_chunk[0] + 1),
-                range(first_chunk[1], last_chunk[1] + 1),
-            ):
-                yield (cx, cz), box.intersection(SubSelectionBox.chunk_box(cx, cz, chunk_size))  # TODO: modify this so that it yields one box per sub-chunk
+            yield from box.sub_sections
 
-    def sub_slices(self, chunk_size=16) -> Generator[Tuple[Tuple[int, int], Tuple[slice, slice, slice], SubSelectionBox], None, None]:
+    def sub_slices(self, chunk_size: int = 16) -> Generator[Tuple[Tuple[int, int], Tuple[slice, slice, slice], SubSelectionBox], None, None]:
         for (cx, cz), box in self.sub_sections(chunk_size):
             slices = box.chunk_slice(cx, cz, chunk_size)
             yield (cx, cz), slices, box

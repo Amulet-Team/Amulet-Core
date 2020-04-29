@@ -17,18 +17,17 @@ VERSION_DEFLATE = 2
 
 
 def block_coords_to_chunk_coords(
-    x: int, z: int, chunk_x_size: int = 16, chunk_z_size: int = 16
-) -> Coordinates:
+    *args: int, chunk_size: int = 16
+) -> Tuple[int, ...]:
     """
     Converts the supplied block coordinates into chunk coordinates
 
     :param x: The x coordinate of the block
     :param z: The z coordinate of the block
-    :param chunk_x_size: The dimension of the chunk in the x direction (Optional. Default 16)
-    :param chunk_z_size: The dimension of the chunk in the z direction (Optional. Default 16)
+    :param chunk_size: The dimension of the chunk (Optional. Default 16)
     :return: The resulting chunk coordinates in (x, z) order
     """
-    return int(math.floor(x / chunk_x_size)), int(math.floor(z / chunk_z_size))
+    return tuple(int(math.floor(coord / chunk_size)) for coord in args)
 
 
 def chunk_coords_to_block_coords(

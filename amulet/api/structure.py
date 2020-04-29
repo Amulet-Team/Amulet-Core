@@ -56,7 +56,7 @@ class Structure(BaseStructure):
             raise ChunkDoesNotExist
 
     def get_block(self, x: int, y: int, z: int) -> Block:
-        cx, cz = block_coords_to_chunk_coords(x, z)
+        cx, cz = block_coords_to_chunk_coords(x, z, chunk_size=self.chunk_size[0])
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
 
         chunk = self.get_chunk(cx, cz)
@@ -79,8 +79,8 @@ class Structure(BaseStructure):
             selection = self.selection.intersection(selection)
         selection: Selection
         for box in selection.subboxes:
-            first_chunk = block_coords_to_chunk_coords(box.min_x, box.min_z)
-            last_chunk = block_coords_to_chunk_coords(box.max_x - 1, box.max_z - 1)
+            first_chunk = block_coords_to_chunk_coords(box.min_x, box.min_z, chunk_size=self.chunk_size[0])
+            last_chunk = block_coords_to_chunk_coords(box.max_x - 1, box.max_z - 1, chunk_size=self.chunk_size[0])
             for cx, cz in itertools.product(
                 range(first_chunk[0], last_chunk[0] + 1),
                 range(first_chunk[1], last_chunk[1] + 1),
@@ -150,14 +150,12 @@ class Structure(BaseStructure):
             first_chunk = block_coords_to_chunk_coords(
                 dst_full_box.min_x,
                 dst_full_box.min_z,
-                destination_chunk_shape[0],
-                destination_chunk_shape[2],
+                chunk_size=destination_chunk_shape[0]
             )
             last_chunk = block_coords_to_chunk_coords(
                 dst_full_box.max_x - 1,
                 dst_full_box.max_z - 1,
-                destination_chunk_shape[0],
-                destination_chunk_shape[2],
+                chunk_size=destination_chunk_shape[0]
             )
             for cx, cz in itertools.product(
                 range(first_chunk[0], last_chunk[0] + 1),
