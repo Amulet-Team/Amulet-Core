@@ -96,6 +96,8 @@ class ConstructionFormatWrapper(FormatWraper):
 
     def open(self):
         """Open the database for reading and writing"""
+        if self._open:
+            return 
         if self._mode == 'r':
             assert os.path.isfile(self.path), 'File specified does not exist.'
             self._data = ConstructionReader(self.path)
