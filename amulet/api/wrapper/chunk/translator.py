@@ -392,6 +392,22 @@ class Translator:
         )
         return universal_biome_palette[biome_compact_array]
 
+    def unpack(
+            self,
+            chunk_version: Union[int, Tuple[int, int, int]],
+            translation_manager: 'TranslationManager',
+            chunk: Chunk,
+            palette: AnyNDArray
+    ) -> Tuple[Chunk, AnyNDArray]:
+        """
+        Unpack the version-specific palette into the stringified version where needed.
+
+        :return: The palette converted to block objects.
+        """
+        version = translation_manager.get_version(*self._translator_key(chunk_version))
+        palette = self._unpack_palette(version, palette)
+        return chunk, palette
+
     def _unpack_palette(
         self, version: 'Version', palette: AnyNDArray
     ) -> BlockNDArray:
@@ -401,6 +417,23 @@ class Translator:
         :return: The palette converted to block objects.
         """
         return palette
+
+    def pack(
+            self,
+            max_world_version_number: Union[int, Tuple[int, int, int]],
+            translation_manager: 'TranslationManager',
+            chunk: Chunk,
+            palette: BlockNDArray
+    ) -> Tuple[Chunk, AnyNDArray]:
+        """
+        Translate the list of block objects into a version-specific palette.
+        :return: The palette converted into version-specific blocks (ie id, data tuples for 1.12)
+        """
+        version = translation_manager.get_version(
+            *self._translator_key(max_world_version_number)
+        )
+        palette = self._pack_palette(version, palette)
+        return chunk, palette
 
     def _pack_palette(self, version: 'Version', palette: BlockNDArray) -> AnyNDArray:
         """
