@@ -94,6 +94,11 @@ class ConstructionFormatWrapper(FormatWraper):
     ) -> 'ConstructionInterface':
         return construction_0_interface
 
+    def _get_interface_and_translator(self, max_world_version, raw_chunk_data=None) -> Tuple['Interface', 'Translator', 'VersionIdentifierType']:
+        interface = self._get_interface(max_world_version, raw_chunk_data)
+        translator, version_identifier = interface.get_translator(self.max_world_version, raw_chunk_data, self.translation_manager)
+        return interface, translator, version_identifier
+
     def open(self):
         """Open the database for reading and writing"""
         if self._open:
