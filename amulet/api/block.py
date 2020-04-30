@@ -484,6 +484,7 @@ class BlockManager:
         :param block: The Block to add to the manager
         :return: The internal ID of the Block
         """
+        assert isinstance(block, Block), 'BlockManager only takes Block objects.'
         if block in self._block_to_index_map:
             return self._block_to_index_map[block]
 
