@@ -357,7 +357,6 @@ class Translator:
         chunk, palette = self._translate(
             chunk, palette, get_chunk_callback, translate_block, translate_entity, full_translate
         )
-        palette = self._pack_palette(version, palette)
         chunk.biomes = self._biomes_from_universal(version, chunk.biomes)
         if version.block_entity_map is not None:
             for block_entity in chunk.block_entities:
