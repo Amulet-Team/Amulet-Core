@@ -54,7 +54,7 @@ class SelectionBox:
         )
 
     def chunk_y_locations(self, chunk_size: int = 16):
-        cy_min, cy_max = block_coords_to_chunk_coords(self.min_y, self._min_z, chunk_size=chunk_size)
+        cy_min, cy_max = block_coords_to_chunk_coords(self.min_y, self._max_y, chunk_size=chunk_size)
         for cy in range(cy_min, cy_max + 1):
             yield cy
 
@@ -169,7 +169,7 @@ class SelectionBox:
     @property
     def size_y(self) -> int:
         """The length of the box in the y axis"""
-        return self._max_y - self._min_z
+        return self._max_y - self._min_y
 
     @property
     def size_z(self) -> int:
