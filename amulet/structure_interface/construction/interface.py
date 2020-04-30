@@ -33,6 +33,7 @@ class ConstructionInterface(Interface):
             ] = section.blocks + len(palette)
             chunk.entities.extend(section.entities)
             chunk.block_entities.update(section.block_entities)
+            palette += section.palette
 
         np_palette, inverse = numpy.unique(palette, return_inverse=True)
         np_palette: numpy.ndarray
@@ -53,14 +54,14 @@ class ConstructionInterface(Interface):
     ) -> List[ConstructionSection]:
         sections = []
         for box in boxes:
-            cx, cz = box.min_x >> 4, box.min_z >> 4
+            cx, cz = chunk.cx, chunk.cz
             for cy in box.chunk_y_locations():
                 sub_box = box.intersection(SelectionBox.create_sub_chunk_box(cx, cy, cz))
                 entities = [e for e in chunk.entities if e.location in sub_box]
                 if cy in chunk.blocks:
                     sections.append(ConstructionSection(
-                        box.min,
-                        box.shape,
+                        sub_box.min,
+                        sub_box.shape,
                         chunk.blocks[sub_box.chunk_slice(cx, cz)],
                         list(palette),
                         entities,
@@ -68,8 +69,8 @@ class ConstructionInterface(Interface):
                     ))
                 elif entities:
                     sections.append(ConstructionSection(
-                        box.min,
-                        box.shape,
+                        sub_box.min,
+                        sub_box.shape,
                         None,
                         [],
                         entities,
@@ -88,7 +89,7 @@ class ConstructionInterface(Interface):
         version = translation_manager.get_version(platform, version_number)
         if platform == 'java':
             version_number = version.data_version
-        return translators.loader.get((version, version_number)), 0
+        return translators.loader.get((platform, version_number)), 0
 
 
 class Construction0Interface(ConstructionInterface):
