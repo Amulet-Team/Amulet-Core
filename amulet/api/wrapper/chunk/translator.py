@@ -4,57 +4,27 @@ import numpy
 import copy
 import math
 
-from typing import Tuple, Callable, Union, List, Optional, TYPE_CHECKING
+from typing import Tuple, Callable, Union, List, Optional, TYPE_CHECKING, Any
 
 from amulet import log, entity_support
 from amulet.api.block import BlockManager, Block
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
 from amulet.api.chunk import Chunk
+from amulet.api.data_types import (
+    AnyNDArray,
+    BlockNDArray,
+    GetChunkCallback,
+    TranslateBlockCallback,
+    TranslateEntityCallback,
+    BlockType,
+    GetBlockCallback,
+    TranslateBlockCallbackReturn,
+    TranslateEntityCallbackReturn,
+)
 
 if TYPE_CHECKING:
     from PyMCTranslate import Version, TranslationManager
-
-
-VersionIdentifierType = Union[int, Tuple[int, int, int]]
-
-GetBlockCallback = Callable[  # get a block at a different location
-    [
-        Tuple[int, int, int]
-    ],  # this takes the coordinates relative to the block in question
-    Tuple[
-        Block, Optional[BlockEntity]
-    ],  # and returns a new block and optionally a block entity
-]
-
-VersionNumberType = Tuple[int, int, int]
-BedrockBlockType = Tuple[Tuple[Optional[VersionNumberType], Block], ...]
-BlockType = Union[Block, BedrockBlockType]
-
-TranslateBlockCallbackReturn = Tuple[
-    Optional[Block], Optional[BlockEntity], List[Entity], bool
-]
-
-TranslateEntityCallbackReturn = Tuple[
-    Optional[Block], Optional[BlockEntity], List[Entity]
-]
-
-TranslateBlockCallback = Callable[
-    [  # a callable
-        BlockType,  # that takes either a Block
-        Optional[
-            GetBlockCallback
-        ],  # this is used in cases where the block needs data beyond itself to fully define itself (eg doors)
-    ],
-    TranslateBlockCallbackReturn,  # ultimately return the converted objects(s)
-]
-
-TranslateEntityCallback = Callable[
-    [  # a callable
-        Entity  # that takes either an Entity
-    ],
-    TranslateEntityCallbackReturn,  # ultimately return the converted objects(s)
-]
 
 
 class Translator:
@@ -82,14 +52,14 @@ class Translator:
     @staticmethod
     def _translate(
         chunk: Chunk,
-        palette: numpy.ndarray,
-        get_chunk_callback: Union[
-            Callable[[int, int], Tuple[Chunk, numpy.ndarray]], None
+        palette: BlockNDArray,
+        get_chunk_callback: Optional[
+            GetChunkCallback
         ],
         translate_block: TranslateBlockCallback,
         translate_entity: TranslateEntityCallback,
         full_translate: bool,
-    ) -> Tuple[Chunk, numpy.ndarray]:
+    ) -> Tuple[Chunk, BlockNDArray]:
         if not full_translate:
             return chunk, palette
 
@@ -227,12 +197,10 @@ class Translator:
         chunk_version: Union[int, Tuple[int, int, int]],
         translation_manager: 'TranslationManager',
         chunk: Chunk,
-        palette: numpy.ndarray,
-        get_chunk_callback: Union[
-            Callable[[int, int], Tuple[Chunk, numpy.ndarray]], None
-        ],
+        palette: BlockNDArray,
+        get_chunk_callback: Optional[GetChunkCallback],
         full_translate: bool,
-    ) -> Tuple[Chunk, numpy.ndarray]:
+    ) -> Tuple[Chunk, BlockNDArray]:
         """
         Translate an interface-specific chunk into the universal format.
 
@@ -293,7 +261,6 @@ class Translator:
             # TODO
             return final_block, final_block_entity, final_entities
 
-        palette = self._unpack_palette(version, palette)
         chunk.biomes = self._biomes_to_universal(version, chunk.biomes)
         if version.block_entity_map is not None:
             for block_entity in chunk.block_entities:
@@ -318,12 +285,10 @@ class Translator:
         max_world_version_number: Union[int, Tuple[int, int, int]],
         translation_manager: 'TranslationManager',
         chunk: Chunk,
-        palette: numpy.ndarray,
-        get_chunk_callback: Union[
-            Callable[[int, int], Tuple[Chunk, numpy.ndarray]], None
-        ],
+        palette: BlockNDArray,
+        get_chunk_callback: Optional[GetChunkCallback],
         full_translate: bool,
-    ) -> Tuple[Chunk, numpy.ndarray]:
+    ) -> Tuple[Chunk, BlockNDArray]:
         """
         Translate a universal chunk into the interface-specific format.
 
@@ -428,8 +393,8 @@ class Translator:
         return universal_biome_palette[biome_compact_array]
 
     def _unpack_palette(
-        self, version: 'Version', palette: numpy.ndarray
-    ) -> numpy.ndarray:
+        self, version: 'Version', palette: AnyNDArray
+    ) -> BlockNDArray:
         """
         Unpack the version-specific palette into the stringified version where needed.
 
@@ -437,7 +402,7 @@ class Translator:
         """
         return palette
 
-    def _pack_palette(self, version: 'Version', palette: numpy.ndarray) -> numpy.ndarray:
+    def _pack_palette(self, version: 'Version', palette: BlockNDArray) -> AnyNDArray:
         """
         Translate the list of block objects into a version-specific palette.
         :return: The palette converted into version-specific blocks (ie id, data tuples for 1.12)

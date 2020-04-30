@@ -13,12 +13,14 @@ from amulet.api.errors import (
     ChunkDoesNotExist,
     ObjectReadWriteError,
 )
-from amulet.api.block import BlockManager
+from amulet.api.block import BlockManager, Block
+from amulet.api.data_types import BlockNDArray, AnyNDArray
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
     from amulet.api.chunk import Chunk
-    from amulet.api.wrapper.chunk.translator import Translator, VersionIdentifierType
+    from amulet.api.wrapper.chunk.translator import Translator
+    from amulet.api.data_types import VersionIdentifierType
 
 
 class FormatWraper:
@@ -268,12 +270,12 @@ class FormatWraper:
 
     def _convert_to_save(
             self,
-            chunk: Chunk,
+            chunk: 'Chunk',
             global_palette: BlockManager,
             chunk_version,
-            translator,
+            translator: 'Translator',
             recurse: bool = True
-    ) -> Tuple[Chunk, numpy.ndarray]:
+    ) -> Tuple['Chunk', BlockNDArray]:
         # convert the global indexes into local indexes and a local palette
         palette = []
         palette_len = 0
@@ -291,7 +293,7 @@ class FormatWraper:
         else:
             chunk_palette = numpy.array([], dtype=numpy.object)
 
-        def get_chunk_callback(_: int, __: int) -> Tuple['Chunk', numpy.ndarray]:
+        def get_chunk_callback(_: int, __: int) -> Tuple['Chunk', BlockNDArray]:
             # conversion from universal should not require any data outside the block
             return chunk, numpy.array(global_palette.blocks())
 
@@ -305,7 +307,7 @@ class FormatWraper:
             recurse,
         )
 
-    def _encode(self, chunk: Chunk, chunk_palette: numpy.ndarray, interface: Interface):
+    def _encode(self, chunk: 'Chunk', chunk_palette: AnyNDArray, interface: 'Interface') -> Any:
         return interface.encode(
             chunk, chunk_palette, self.max_world_version
         )

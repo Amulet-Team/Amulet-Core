@@ -5,6 +5,7 @@ from typing import Tuple, Dict, TYPE_CHECKING
 import numpy
 import amulet_nbt as nbt
 
+from amulet.api.data_types import SubChunkNDArray, AnyNDArray
 from amulet.utils import world_utils
 from amulet.world_interface.chunk.interfaces.anvil.base_anvil_interface import (
     BaseAnvilInterface,
@@ -46,13 +47,13 @@ class AnvilNAInterface(BaseAnvilInterface):
 
     def _decode_blocks(
         self, chunk_sections: nbt.TAG_List
-    ) -> Tuple[Dict[int, numpy.ndarray], numpy.ndarray]:
+    ) -> Tuple[Dict[int, SubChunkNDArray], AnyNDArray]:
         if chunk_sections is None:
             raise NotImplementedError(
                 "We don't support reading chunks that never been edited in Minecraft before"
             )
 
-        blocks: Dict[int, numpy.ndarray] = {}
+        blocks: Dict[int, SubChunkNDArray] = {}
         palette = []
         palette_len = 0
         for section in chunk_sections:
@@ -95,7 +96,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         return blocks, final_palette
 
     def _encode_blocks(
-        self, blocks: 'Blocks', palette: numpy.ndarray
+        self, blocks: 'Blocks', palette: AnyNDArray
     ) -> nbt.TAG_List:
         sections = nbt.TAG_List()
         for cy in range(16):  # perhaps find a way to do this dynamically

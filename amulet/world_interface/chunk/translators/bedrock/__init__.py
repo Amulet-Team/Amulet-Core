@@ -8,7 +8,8 @@ from amulet import log
 from amulet.api.block import Block
 
 from amulet.api.entity import Entity
-from amulet.api.wrapper.chunk.translator import Translator, GetBlockCallback, TranslateBlockCallbackReturn, TranslateEntityCallbackReturn, VersionNumberType, BedrockBlockType
+from amulet.api.wrapper.chunk.translator import Translator
+from amulet.api.data_types import GetBlockCallback, TranslateBlockCallbackReturn, TranslateEntityCallbackReturn, VersionNumberType
 
 
 if TYPE_CHECKING:

@@ -5,6 +5,7 @@ from typing import Tuple, Any, Union, TYPE_CHECKING
 
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
+from amulet.api.data_types import AnyNDArray
 import amulet_nbt
 
 if TYPE_CHECKING:
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
 
 
 class Interface:
-    def decode(self, cx: int, cz: int, data: Any) -> Tuple['Chunk', numpy.ndarray]:
+    def decode(self, cx: int, cz: int, data: Any) -> Tuple['Chunk', AnyNDArray]:
         """
         Create an amulet.api.chunk.Chunk object from raw data given by the format
         :param cx: chunk x coordinate
@@ -130,7 +131,7 @@ class Interface:
     def encode(
         self,
         chunk: 'Chunk',
-        palette: numpy.ndarray,
+        palette: AnyNDArray,
         max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
     ) -> Any:
         """

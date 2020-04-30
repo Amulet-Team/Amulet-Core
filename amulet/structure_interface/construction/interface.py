@@ -7,6 +7,7 @@ from amulet.api.chunk import Chunk
 from amulet.api.block import Block
 from amulet.api.selection import SelectionBox
 from amulet.world_interface.chunk import translators
+from amulet.api.data_types import BlockNDArray
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
@@ -17,7 +18,7 @@ class ConstructionInterface(Interface):
     def is_valid(self, key: Tuple) -> bool:
         return True
 
-    def decode(self, cx: int, cz: int, data: List[ConstructionSection]) -> Tuple['Chunk', numpy.ndarray]:
+    def decode(self, cx: int, cz: int, data: List[ConstructionSection]) -> Tuple['Chunk', BlockNDArray]:
         chunk = Chunk(cx, cz)
         palette = [Block(namespace="minecraft", base_name="air")]
         for section in data:
@@ -46,7 +47,7 @@ class ConstructionInterface(Interface):
     def encode(
         self,
         chunk: 'Chunk',
-        palette: numpy.ndarray,
+        palette: BlockNDArray,
         max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
         boxes: List[SelectionBox] = None
     ) -> List[ConstructionSection]:

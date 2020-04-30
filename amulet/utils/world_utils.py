@@ -7,7 +7,7 @@ from io import StringIO
 from typing import Tuple
 import numpy
 from numpy import ndarray, zeros, uint8
-from amulet.api.data_types import Coordinates
+from amulet.api.data_types import ChunkCoordinates
 
 SECTOR_BYTES = 4096
 SECTOR_INTS = SECTOR_BYTES / 4
@@ -31,7 +31,7 @@ def block_coords_to_chunk_coords(
 
 def chunk_coords_to_block_coords(
     x: int, z: int, chunk_x_size: int = 16, chunk_z_size: int = 16
-) -> Coordinates:
+) -> ChunkCoordinates:
     """
     Converts the supplied chunk coordinates into block coordinates
 
@@ -44,7 +44,7 @@ def chunk_coords_to_block_coords(
     return x * chunk_x_size, z * chunk_z_size
 
 
-def chunk_coords_to_region_coords(cx: int, cz: int) -> Coordinates:
+def chunk_coords_to_region_coords(cx: int, cz: int) -> ChunkCoordinates:
     """
     Converts the supplied chunk coordinates into region coordinates
 
@@ -55,7 +55,7 @@ def chunk_coords_to_region_coords(cx: int, cz: int) -> Coordinates:
     return cx >> 5, cz >> 5
 
 
-def region_coords_to_chunk_coords(rx: int, rz: int) -> Coordinates:
+def region_coords_to_chunk_coords(rx: int, rz: int) -> ChunkCoordinates:
     """
     Converts the supplied region coordinates into the minimum chunk coordinates of that region
 

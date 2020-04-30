@@ -10,6 +10,7 @@ from amulet.api.chunk import Chunk
 from amulet.api.block import Block
 from amulet.api.wrapper import Interface
 from amulet.world_interface.chunk import translators
+from amulet.api.data_types import AnyNDArray, SubChunkNDArray
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
@@ -72,7 +73,7 @@ class BaseAnvilInterface(Interface):
 
     def decode(
         self, cx: int, cz: int, data: amulet_nbt.NBTFile
-    ) -> Tuple['Chunk', numpy.ndarray]:
+    ) -> Tuple['Chunk', AnyNDArray]:
         """
         Create an amulet.api.chunk.Chunk object from raw data given by the format.
         :param cx: chunk x coordinate
@@ -201,7 +202,7 @@ class BaseAnvilInterface(Interface):
         return chunk, palette
 
     def encode(
-        self, chunk: 'Chunk', palette: numpy.ndarray, max_world_version: Tuple[str, int]
+        self, chunk: 'Chunk', palette: AnyNDArray, max_world_version: Tuple[str, int]
     ) -> amulet_nbt.NBTFile:
         """
         Encode a version-specific chunk to raw data for the format to store.
@@ -445,10 +446,10 @@ class BaseAnvilInterface(Interface):
 
     def _decode_blocks(
         self, chunk_sections: amulet_nbt.TAG_List
-    ) -> Tuple[Dict[int, numpy.ndarray], numpy.ndarray]:
+    ) -> Tuple[Dict[int, SubChunkNDArray], AnyNDArray]:
         raise NotImplementedError
 
     def _encode_blocks(
-        self, blocks: 'Blocks', palette: numpy.ndarray
+        self, blocks: 'Blocks', palette: AnyNDArray
     ) -> amulet_nbt.TAG_List:
         raise NotImplementedError

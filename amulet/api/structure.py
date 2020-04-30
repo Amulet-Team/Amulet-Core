@@ -8,7 +8,7 @@ from .world import World, BaseStructure
 from .chunk import Chunk
 from .block import Block, BlockManager
 from .errors import ChunkDoesNotExist
-from amulet.api.data_types import Coordinates
+from amulet.api.data_types import ChunkCoordinates
 from ..utils.world_utils import block_coords_to_chunk_coords
 from amulet.api.data_types import Dimension
 
@@ -19,7 +19,7 @@ structure_buffer = []
 class Structure(BaseStructure):
     def __init__(
         self,
-        chunks: Dict[Coordinates, Chunk],
+        chunks: Dict[ChunkCoordinates, Chunk],
         palette: BlockManager,
         selection: SelectionGroup,
         chunk_size: Tuple[int, int, int] = (16, 256, 16),

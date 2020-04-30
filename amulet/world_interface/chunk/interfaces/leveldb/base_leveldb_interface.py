@@ -13,6 +13,7 @@ from amulet.api.chunk import Chunk
 
 from amulet.utils.world_utils import fast_unique
 from amulet.api.wrapper import Interface
+from amulet.api.data_types import AnyNDArray, SubChunkNDArray
 from amulet.world_interface.chunk import translators
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
     chunk_to_game_version,
@@ -105,7 +106,7 @@ class BaseLevelDBInterface(Interface):
 
     def decode(
         self, cx: int, cz: int, data: Dict[bytes, bytes]
-    ) -> Tuple[Chunk, numpy.ndarray]:
+    ) -> Tuple[Chunk, AnyNDArray]:
         # chunk_key_base = struct.pack("<ii", cx, cz)
 
         chunk = Chunk(cx, cz)
@@ -222,7 +223,7 @@ class BaseLevelDBInterface(Interface):
 
     def _load_subchunks(
         self, subchunks: List[None, bytes]
-    ) -> Tuple[Dict[int, numpy.ndarray], numpy.ndarray]:
+    ) -> Tuple[Dict[int, SubChunkNDArray], AnyNDArray]:
         """
         Load a list of bytes objects which contain chunk data
         This function should be able to load all sub-chunk formats (technically before it)
@@ -243,13 +244,14 @@ class BaseLevelDBInterface(Interface):
 
                     The block will be either a Block class for the newer formats or a tuple of two ints for the older formats
         """
-        blocks: Dict[int, numpy.ndarray] = {}
+        blocks: Dict[int, SubChunkNDArray] = {}
         palette: List[
             Tuple[
                 Tuple[
                     Optional[Tuple[int, int, int, int]],
                     Union[Tuple[int, int], Block],
-                ]
+                ],
+                ...
             ]
         ] = [
             (
@@ -355,7 +357,7 @@ class BaseLevelDBInterface(Interface):
                         for palette_indexes in sub_chunk_palette_
                     ]
                 else:
-                    raise Exception("Is a chunk with no storages allowed?")
+                    continue
 
         # palette should now look like this
         # List[
@@ -371,12 +373,12 @@ class BaseLevelDBInterface(Interface):
         return blocks, numpy_palette
 
     def _save_subchunks_0(
-        self, blocks: 'Blocks', palette: numpy.ndarray
+        self, blocks: 'Blocks', palette: AnyNDArray
     ) -> List[Optional[bytes]]:
         raise NotImplementedError
 
     def _save_subchunks_1(
-        self, blocks: 'Blocks', palette: numpy.ndarray
+        self, blocks: 'Blocks', palette: AnyNDArray
     ) -> List[Optional[bytes]]:
         for index, block in enumerate(palette):
             block: Tuple[Tuple[None, Block], ...]
@@ -408,7 +410,7 @@ class BaseLevelDBInterface(Interface):
         return chunk
 
     def _save_subchunks_8(
-        self, blocks: 'Blocks', palette: numpy.ndarray
+        self, blocks: 'Blocks', palette: AnyNDArray
     ) -> List[Optional[bytes]]:
         palette_depth = numpy.array([len(block) for block in palette])
         if palette.size:

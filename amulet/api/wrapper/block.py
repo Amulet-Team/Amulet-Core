@@ -1,6 +1,6 @@
 from typing import Dict, Union, Iterable
 from amulet.api.block import Block
-from amulet.api.wrapper.chunk.translator import VersionIdentifierType
+from amulet.api.data_types import VersionIdentifierType
 import amulet_nbt
 
 
