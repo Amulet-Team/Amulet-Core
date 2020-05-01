@@ -117,7 +117,7 @@ class ConstructionFormatWrapper(FormatWraper):
                 for minx, miny, minz, maxx, maxy, maxz in self._data.selection
             ])
 
-            self._chunk_to_section.clear()
+            self._chunk_to_section = {}
             for index, (x, _, z, _, _, _, _, _) in enumerate(self._data.sections):
                 cx = x >> 4
                 cz = z >> 4

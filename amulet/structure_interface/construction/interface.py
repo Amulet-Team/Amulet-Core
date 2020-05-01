@@ -22,23 +22,26 @@ class ConstructionInterface(Interface):
         chunk = Chunk(cx, cz)
         palette = [Block(namespace="minecraft", base_name="air")]
         for section in data:
-            shapex, shapey, shapez = section.shape
-            sx = section.sx % 16
-            sy = section.sy % 16
-            sz = section.sz % 16
-            chunk.blocks[
-                sx: sx + shapex,
-                sy: sy + shapey,
-                sz: sz + shapez,
-            ] = section.blocks + len(palette)
+            if any(s==0 for s in section.shape):
+                continue
+            if section.blocks is not None:
+                shapex, shapey, shapez = section.shape
+                sx = section.sx - ((section.sx >> 4) << 4)
+                sy = section.sy - ((section.sy >> 4) << 4)
+                sz = section.sz - ((section.sz >> 4) << 4)
+                chunk.blocks[
+                    sx: sx + shapex,
+                    sy: sy + shapey,
+                    sz: sz + shapez,
+                ] = section.blocks + len(palette)
+                chunk.block_entities.update(section.block_entities)
             chunk.entities.extend(section.entities)
-            chunk.block_entities.update(section.block_entities)
             palette += section.palette
 
         np_palette, inverse = numpy.unique(palette, return_inverse=True)
         np_palette: numpy.ndarray
         inverse: numpy.ndarray
-        for cy in chunk.blocks:
+        for cy in chunk.blocks.sub_chunks:
             chunk.blocks.add_sub_chunk(
                 cy,
                 inverse[chunk.blocks.get_sub_chunk(cy)].astype(numpy.uint32)
