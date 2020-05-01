@@ -111,13 +111,13 @@ class ConstructionReader:
         block_palette = []
         extra_block_map = {}
         for block_index, block_nbt in enumerate(raw_palette):
+            block_nbt: amulet_nbt.TAG_Compound
             block_namespace = block_nbt["namespace"].value
             block_basename = block_nbt["blockname"].value
-            properties = {key: v for key, v in block_nbt["properties"].items()}
             block = Block(
                 namespace=block_namespace,
                 base_name=block_basename,
-                properties=properties,
+                properties=block_nbt["properties"].value,
             )
 
             if block_nbt["extra_blocks"].value:
@@ -299,12 +299,7 @@ class ConstructionWriter:
             {
                 "namespace": amulet_nbt.TAG_String(_block.namespace),
                 "blockname": amulet_nbt.TAG_String(_block.base_name),
-                "properties": amulet_nbt.TAG_Compound(
-                    {
-                        prop: amulet_nbt.TAG_String(value.value)
-                        for prop, value in _block.properties.items()
-                    }
-                ),
+                "properties": amulet_nbt.TAG_Compound(_block.properties),
                 "extra_blocks": amulet_nbt.TAG_List(
                     [
                         amulet_nbt.TAG_Int(
