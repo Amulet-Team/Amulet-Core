@@ -7,7 +7,7 @@ import numpy
 import amulet_nbt
 
 import amulet
-from amulet.api.block import Block
+from amulet.api.block import Block, PropertyDataTypes
 
 from amulet.api.chunk import Chunk
 
@@ -464,7 +464,7 @@ class BaseLevelDBInterface(Interface):
                                         {
                                             key: val
                                             for key, val in properties.items()
-                                            if isinstance(val, amulet_nbt.BaseValueType)
+                                            if isinstance(val, PropertyDataTypes)
                                         }
                                     ),
                                     "version": amulet_nbt.TAG_Int(sub_block_version),
