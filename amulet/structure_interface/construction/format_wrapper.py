@@ -13,7 +13,7 @@ from .construction import ConstructionWriter, ConstructionReader, ConstructionSe
 from .interface import Construction0Interface, ConstructionInterface
 
 if TYPE_CHECKING:
-    from amulet.api.wrapper import Translator
+    from amulet.api.wrapper import Translator, Interface
 
 construction_0_interface = Construction0Interface()
 
@@ -98,7 +98,7 @@ class ConstructionFormatWrapper(FormatWraper):
     ) -> 'ConstructionInterface':
         return construction_0_interface
 
-    def _get_interface_and_translator(self, max_world_version, raw_chunk_data=None) -> Tuple['Interface', 'Translator', 'VersionIdentifierType']:
+    def _get_interface_and_translator(self, max_world_version, raw_chunk_data=None) -> Tuple['Interface', 'Translator', VersionNumberAny]:
         interface = self._get_interface(max_world_version, raw_chunk_data)
         translator, version_identifier = interface.get_translator(self.max_world_version, raw_chunk_data, self.translation_manager)
         return interface, translator, version_identifier
@@ -112,6 +112,11 @@ class ConstructionFormatWrapper(FormatWraper):
             self._data = ConstructionReader(self.path)
             self._platform = self._data.source_edition
             self._version = self._data.source_version
+            self._selection = SelectionGroup([
+                SelectionBox((minx, miny, minz), (maxx, maxy, maxz))
+                for minx, miny, minz, maxx, maxy, maxz in self._data.selection
+            ])
+
             self._chunk_to_section.clear()
             for index, (x, _, z, _, _, _, _, _) in enumerate(self._data.sections):
                 cx = x >> 4

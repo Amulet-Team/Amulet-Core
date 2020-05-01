@@ -108,6 +108,10 @@ class ConstructionReader:
     def source_version(self) -> INT_TRIPLET:
         return self._source_version
 
+    @property
+    def selection(self) -> List[Tuple[int, int, int, int, int, int]]:
+        return self._selection_boxes
+
     def __enter__(self):
         return self
 
