@@ -6,6 +6,7 @@ import numpy
 from typing import Tuple, Union, Iterable, List, Generator, Dict
 
 from .minecraft_types import Point
+from amulet.api.data_types import BlockCoordinates
 from ..utils.world_utils import (
     block_coords_to_chunk_coords,
     blocks_slice_to_chunk_slice,
@@ -20,7 +21,7 @@ class SelectionBox:
     The both the minimum and  maximum coordinate points are inclusive.
     """
 
-    def __init__(self, min_point: Point, max_point: Point):
+    def __init__(self, min_point: BlockCoordinates, max_point: BlockCoordinates):
         box = numpy.array([min_point, max_point], dtype=numpy.int)
         self._min_x, self._min_y, self._min_z = numpy.min(box, 0).tolist()
         self._max_x, self._max_y, self._max_z = numpy.max(box, 0).tolist()
