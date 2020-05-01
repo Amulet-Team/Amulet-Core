@@ -100,6 +100,14 @@ class ConstructionReader:
     def sections(self) -> List[Tuple[int, int, int, int, int, int, int, int]]:
         return self._section_index_table.copy()
 
+    @property
+    def source_edition(self) -> str:
+        return self._source_edition
+
+    @property
+    def source_version(self) -> INT_TRIPLET:
+        return self._source_version
+
     def __enter__(self):
         return self
 

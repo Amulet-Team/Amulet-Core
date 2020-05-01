@@ -110,6 +110,8 @@ class ConstructionFormatWrapper(FormatWraper):
         if self._mode == 'r':
             assert os.path.isfile(self.path), 'File specified does not exist.'
             self._data = ConstructionReader(self.path)
+            self._platform = self._data.source_edition
+            self._version = self._data.source_version
             self._chunk_to_section.clear()
             for index, (x, _, z, _, _, _, _, _) in enumerate(self._data.sections):
                 cx = x >> 4
