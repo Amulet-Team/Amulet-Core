@@ -180,13 +180,22 @@ class Block:
             )
 
     @property
-    def extra_blocks(self) -> Tuple[Block]:
+    def extra_blocks(self) -> Tuple[Block, ...]:
         """
         Returns a tuple of the extra blocks contained in the Block instance
 
         :return: A tuple of Block objects
         """
         return self._extra_blocks
+
+    @property
+    def block_tuple(self) -> Tuple[Block, ...]:
+        """
+        Returns the stack of blocks represented by this object as a tuple.
+        This is a tuple of base_block and extra_blocks
+        :return: A tuple of Block objects
+        """
+        return (self.base_block,) + self.extra_blocks
 
     def _gen_blockstate(self):
         self._namespaced_name = self._blockstate = f"{self.namespace}:{self.base_name}"
