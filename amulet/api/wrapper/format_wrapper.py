@@ -14,13 +14,12 @@ from amulet.api.errors import (
     ObjectReadWriteError,
 )
 from amulet.api.block import BlockManager, Block
-from amulet.api.data_types import BlockNDArray, AnyNDArray
+from amulet.api.data_types import BlockNDArray, AnyNDArray, VersionNumberAny
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
     from amulet.api.chunk import Chunk
     from amulet.api.wrapper.chunk.translator import Translator
-    from amulet.api.data_types import VersionNumberAny
 
 
 class FormatWraper:
@@ -189,11 +188,29 @@ class FormatWraper:
         interface, translator, game_version = self._get_interface_and_translator(self.max_world_version, raw_chunk_data)
 
         # decode the raw chunk data into the universal format
-        chunk, chunk_palette = interface.decode(cx, cz, raw_chunk_data)
-        chunk, chunk_palette = translator.unpack(game_version, self.translation_manager, chunk, chunk_palette)
+        chunk, chunk_palette = self._decode(interface, cx, cz, raw_chunk_data)
+        chunk, chunk_palette = self._unpack(translator, game_version, chunk, chunk_palette)
         assert all(isinstance(b, Block) for b in chunk_palette), f'Error parsing chunk data. All blocks in the palette must be Block objects. Report this to a developer. {chunk_palette}'
+        return self._convert_to_load(chunk, chunk_palette, global_palette, translator, game_version, *args, recurse)
 
+    def _decode(self, interface: 'Interface', cx: int, cz: int, raw_chunk_data: Any) -> Tuple['Chunk', AnyNDArray]:
+        return interface.decode(cx, cz, raw_chunk_data)
+
+    def _unpack(self, translator: 'Translator', game_version: VersionNumberAny, chunk: 'Chunk', chunk_palette: AnyNDArray) -> Tuple['Chunk', BlockNDArray]:
+        return translator.unpack(game_version, self.translation_manager, chunk, chunk_palette)
+
+    def _convert_to_load(
+            self,
+            chunk: 'Chunk',
+            chunk_palette: BlockNDArray,
+            global_palette: BlockManager,
+            translator: 'Translator',
+            game_version: VersionNumberAny,
+            *args,
+            recurse: bool = True
+    ) -> 'Chunk':
         # set up a callback that translator can use to get chunk data
+        cx, cz = chunk.cx, chunk.cz
         if recurse:
             chunk_cache: Dict[Tuple[int, int], Tuple['Chunk', BlockManager]] = {}
 
@@ -217,7 +234,6 @@ class FormatWraper:
             get_chunk_callback,
             recurse,
         )
-        assert all(isinstance(b, Block) for b in chunk_palette), f'Error during translation. All blocks in the palette must be Block objects. Report this to a developer. {chunk_palette}'
 
         # convert the block numerical ids from local chunk palette to global palette
         chunk_to_global = numpy.array(
@@ -268,7 +284,7 @@ class FormatWraper:
 
         chunk, chunk_palette = self._convert_to_save(chunk, global_palette, chunk_version, translator, recurse)
         assert all(isinstance(b, Block) for b in chunk_palette), f'Error during translation. All blocks in the palette must be Block objects. Report this to a developer. {chunk_palette}'
-        chunk, chunk_palette = translator.pack(chunk_version, self.translation_manager, chunk, chunk_palette)
+        chunk, chunk_palette = self._pack(chunk, chunk_palette, translator, chunk_version)
         raw_chunk_data = self._encode(chunk, chunk_palette, interface)
 
         self._put_raw_chunk_data(cx, cz, raw_chunk_data, *args)
@@ -277,10 +293,11 @@ class FormatWraper:
             self,
             chunk: 'Chunk',
             global_palette: BlockManager,
-            chunk_version,
+            chunk_version: VersionNumberAny,
             translator: 'Translator',
             recurse: bool = True
     ) -> Tuple['Chunk', BlockNDArray]:
+        """Convert the Chunk in Universal format to a Chunk in the version specific format."""
         # convert the global indexes into local indexes and a local palette
         palette = []
         palette_len = 0
@@ -312,7 +329,13 @@ class FormatWraper:
             recurse,
         )
 
+    def _pack(self, chunk: 'Chunk', chunk_palette: BlockNDArray, translator: 'Translator', chunk_version: VersionNumberAny) -> Tuple['Chunk', AnyNDArray]:
+        """Pack the chunk data into the format required by the encoder.
+        This includes converting the string names to numerical formats for the versions that require it."""
+        return translator.pack(chunk_version, self.translation_manager, chunk, chunk_palette)
+
     def _encode(self, chunk: 'Chunk', chunk_palette: AnyNDArray, interface: 'Interface') -> Any:
+        """Encode the data to the raw format as saved on disk."""
         return interface.encode(
             chunk, chunk_palette, self.max_world_version
         )
