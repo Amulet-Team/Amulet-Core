@@ -1,8 +1,9 @@
 import os
-from typing import Optional, Union, List, Tuple, Dict, Generator
+from typing import Optional, Union, List, Tuple, Dict, Generator, TYPE_CHECKING
 import numpy
 
 from amulet import log
+from amulet.api.data_types import BlockNDArray, AnyNDArray, VersionNumberAny
 from amulet.api.wrapper import FormatWraper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
@@ -10,6 +11,9 @@ from amulet.api.errors import ObjectReadError, ObjectWriteError, ChunkDoesNotExi
 
 from .construction import ConstructionWriter, ConstructionReader, ConstructionSection
 from .interface import Construction0Interface, ConstructionInterface
+
+if TYPE_CHECKING:
+    from amulet.api.wrapper import Translator
 
 construction_0_interface = Construction0Interface()
 
@@ -148,10 +152,16 @@ class ConstructionFormatWrapper(FormatWraper):
         else:
             raise ObjectReadError('all_chunk_coords is only valid in read mode')
 
+    def _pack(self, chunk: 'Chunk', chunk_palette: BlockNDArray, translator: 'Translator', chunk_version: VersionNumberAny) -> Tuple['Chunk', AnyNDArray]:
+        return chunk, chunk_palette
+
     def _encode(self, chunk: Chunk, chunk_palette: numpy.ndarray, interface: ConstructionInterface):
         return interface.encode(
             chunk, chunk_palette, self.max_world_version, self._chunk_to_box.get((chunk.cx, chunk.cz))
         )
+
+    def _unpack(self, translator: 'Translator', game_version: VersionNumberAny, chunk: 'Chunk', chunk_palette: AnyNDArray) -> Tuple['Chunk', BlockNDArray]:
+        return chunk, chunk_palette
 
     def delete_chunk(self, cx: int, cz: int, *args):
         raise ObjectWriteError('delete_chunk is not a valid method for a construction file')
