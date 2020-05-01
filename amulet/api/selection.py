@@ -49,8 +49,8 @@ class SelectionBox:
         """A generator of chunk locations that this box intersects."""
         cx_min, cz_min, cx_max, cz_max = block_coords_to_chunk_coords(self.min_x, self.min_z, self.max_x - 1, self.max_z - 1, chunk_size=chunk_size)
         yield from itertools.product(
-            range(cx_min, cz_min + 1),
-            range(cx_max, cz_max + 1),
+            range(cx_min, cx_max + 1),
+            range(cz_min, cz_max + 1),
         )
 
     def chunk_y_locations(self, chunk_size: int = 16):
