@@ -31,5 +31,12 @@ class AnvilForgeFormat(AnvilFormat):
         log.info("Forge support is experimental. Use at your own risk.")
         return True
 
+    @property
+    def game_version_string(self) -> str:
+        try:
+            return f'Java Forge {self.root_tag["Data"]["Version"]["Name"].value}'
+        except Exception:
+            return f"Java Forge Unknown Version"
+
 
 FORMAT_CLASS = AnvilForgeFormat
