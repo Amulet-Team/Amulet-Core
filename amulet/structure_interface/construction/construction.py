@@ -97,6 +97,14 @@ class ConstructionReader:
         self._init_read()
 
     @property
+    def metadata(self) -> amulet_nbt.NBTFile:
+        return self._metadata
+
+    @property
+    def palette(self) -> List[Block]:
+        return self._palette.copy()
+
+    @property
     def sections(self) -> List[Tuple[int, int, int, int, int, int, int, int]]:
         return self._section_index_table.copy()
 
@@ -110,7 +118,7 @@ class ConstructionReader:
 
     @property
     def selection(self) -> List[Tuple[int, int, int, int, int, int]]:
-        return self._selection_boxes
+        return self._selection_boxes.copy()
 
     def __enter__(self):
         return self
