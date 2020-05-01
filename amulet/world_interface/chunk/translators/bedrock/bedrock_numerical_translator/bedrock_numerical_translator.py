@@ -4,6 +4,7 @@ import numpy
 from typing import TYPE_CHECKING
 
 from amulet.world_interface.chunk.translators.bedrock import BaseBedrockTranslator
+from amulet.api.data_types import BlockNDArray, AnyNDArray
 
 if TYPE_CHECKING:
     from amulet.api.block import Block
@@ -19,7 +20,7 @@ class BedrockNumericalTranslator(BaseBedrockTranslator):
             return False
         return True
 
-    def _pack_palette(self, version: 'Version', palette: numpy.ndarray) -> numpy.ndarray:
+    def _pack_palette(self, version: 'Version', palette: BlockNDArray) -> AnyNDArray:
         """
         Packs a numpy array of Block objects into an object array of containing block ids and block data values.
         :param version:

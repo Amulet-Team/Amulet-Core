@@ -248,7 +248,7 @@ class BaseLevelDBInterface(Interface):
         palette: List[
             Tuple[
                 Tuple[
-                    Optional[Tuple[int, int, int, int]],
+                    Optional[int],
                     Union[Tuple[int, int], Block],
                 ],
                 ...
@@ -256,7 +256,7 @@ class BaseLevelDBInterface(Interface):
         ] = [
             (
                 (
-                    (1, 7, 0, 0),
+                    17563649,
                     Block(
                         namespace="minecraft",
                         base_name="air",
@@ -285,7 +285,7 @@ class BaseLevelDBInterface(Interface):
                     (16, 16, 16, storage_count), dtype=numpy.uint32
                 )
                 sub_chunk_palette: List[
-                    List[Tuple[Optional[Tuple[int, int, int, int]], Block]]
+                    List[Tuple[Optional[int], Block]]
                 ] = []
                 for storage_index in range(storage_count):
                     (
@@ -294,23 +294,19 @@ class BaseLevelDBInterface(Interface):
                         data,
                     ) = self._load_palette_blocks(data)
                     palette_data_out: List[
-                        Tuple[Optional[Tuple[int, int, int, int]], Block]
+                        Tuple[Optional[int], Block]
                     ] = []
                     for block in palette_data:
                         namespace, base_name = block["name"].value.split(":", 1)
                         if "version" in block:
-                            version = tuple(
-                                numpy.array([block["version"].value], dtype=">u4").view(
-                                    numpy.uint8
-                                )
-                            )
+                            version: Optional[int] = block["version"].value
                         else:
                             version = None
 
                         if "states" in block:  # 1.13 format
                             properties = block["states"].value
                             if version is None:
-                                version = (1, 14, 0, 0)
+                                version = 17694720  # 1, 14, 0, 0
                         else:
                             properties = {
                                 "block_data": amulet_nbt.TAG_Int(block["val"].value)
@@ -385,8 +381,8 @@ class BaseLevelDBInterface(Interface):
             block_data = block[0][1].properties.get("block_data", amulet_nbt.TAG_Int(0))
             if isinstance(block_data, amulet_nbt.TAG_Int):
                 block_data = block_data.value
-                if block_data >= 16:
-                    block_data = 0
+                # if block_data >= 16:
+                #     block_data = 0
             else:
                 block_data = 0
 
@@ -429,13 +425,13 @@ class BaseLevelDBInterface(Interface):
                         {
                             "name": amulet_nbt.TAG_String("minecraft:air"),
                             "states": amulet_nbt.TAG_Compound({}),
-                            "version": amulet_nbt.TAG_Int(17_629_184),
+                            "version": amulet_nbt.TAG_Int(17_629_184),  # 1, 13, 0, 0
                         }
                     )
                 )
 
             for index, block in enumerate(palette):
-                block: Tuple[Tuple[Union[Tuple[int, int, int, int], None], Block], ...]
+                block: Tuple[Tuple[Optional[int], Block], ...]
                 full_block = []
                 for sub_block_version, sub_block in block:
                     properties = sub_block.properties
@@ -443,8 +439,8 @@ class BaseLevelDBInterface(Interface):
                         block_data = properties.get("block_data", amulet_nbt.TAG_Int(0))
                         if isinstance(block_data, amulet_nbt.TAG_Int):
                             block_data = block_data.value
-                            if block_data >= 16:
-                                block_data = 0
+                            # if block_data >= 16:
+                            #     block_data = 0
                         else:
                             block_data = 0
                         sub_block_ = amulet_nbt.NBTFile(
@@ -471,12 +467,7 @@ class BaseLevelDBInterface(Interface):
                                             if isinstance(val, amulet_nbt.BaseValueType)
                                         }
                                     ),
-                                    "version": amulet_nbt.TAG_Int(
-                                        sum(
-                                            sub_block_version[i] << (24 - i * 8)
-                                            for i in range(4)
-                                        )
-                                    ),
+                                    "version": amulet_nbt.TAG_Int(sub_block_version),
                                 }
                             )
                         )

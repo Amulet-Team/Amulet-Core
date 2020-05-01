@@ -4,12 +4,14 @@ import numpy
 
 from typing import Tuple, Callable, Union, Optional, TYPE_CHECKING
 
+import amulet_nbt
+
 from amulet import log
 from amulet.api.block import Block
-
+from amulet.api.data_types import BlockNDArray, AnyNDArray
 from amulet.api.entity import Entity
 from amulet.api.wrapper.chunk.translator import Translator
-from amulet.api.data_types import GetBlockCallback, TranslateBlockCallbackReturn, TranslateEntityCallbackReturn, VersionNumberType
+from amulet.api.data_types import GetBlockCallback, TranslateBlockCallbackReturn, TranslateEntityCallbackReturn, VersionNumberType, GetChunkCallback
 
 
 if TYPE_CHECKING:
@@ -20,11 +22,11 @@ if TYPE_CHECKING:
 
 class BaseBedrockTranslator(Translator):
     def _translator_key(
-        self, version_number: VersionNumberType
-    ) -> Tuple[str, VersionNumberType]:
+        self, version_number: Union[int, VersionNumberType]
+    ) -> Tuple[str, Union[int, VersionNumberType]]:
         return "bedrock", version_number
 
-    def _unpack_palette(self, version: Version, palette: numpy.ndarray):
+    def _unpack_palette(self, version: Version, palette: AnyNDArray) -> BlockNDArray:
         """
         Unpacks an object array of block data into a numpy object array containing Block objects.
         :param version:
@@ -34,7 +36,7 @@ class BaseBedrockTranslator(Translator):
                 Union[
                     Tuple[None, Tuple[int, int]],
                     Tuple[None, Block],
-                    Tuple[Tuple[int, int, int, int], Block]
+                    Tuple[int, Block]
                 ], ...
             ]
         ]
@@ -46,16 +48,30 @@ class BaseBedrockTranslator(Translator):
                 Union[
                     Tuple[None, Tuple[int, int]],
                     Tuple[None, Block],
-                    Tuple[Tuple[int, int, int, int], Block],
+                    Tuple[int, Block],
                 ],
                 ...,
             ]
-            palette_[palette_index] = tuple(
-                (block[0], version.ints_to_block(*block[1]))
-                if isinstance(block[1], tuple)
-                else block
-                for block in entry
-            )
+            block = None
+            for version_number, b in entry:
+                version_number: Optional[int]
+                if isinstance(b, tuple):
+                    b = version.ints_to_block(*b)
+                elif isinstance(b, Block):
+                    if version_number is not None:
+                        properties = b.properties
+                        properties["__version__"] = amulet_nbt.TAG_Int(version_number)
+                        b = Block(b.namespace, b.base_name, properties, b.extra_blocks)
+                else:
+                    raise Exception(f'Unsupported type {b}')
+                if block is None:
+                    block = b
+                else:
+                    block += b
+            if block is None:
+                raise Exception(f'Empty tuple')
+
+            palette_[palette_index] = block
         return palette_
 
     def to_universal(
@@ -75,7 +91,7 @@ class BaseBedrockTranslator(Translator):
         versions = {}
 
         def translate_block(
-            input_object: BedrockBlockType,
+            input_object: Block,
             get_block_callback: Optional[GetBlockCallback],
         ) -> TranslateBlockCallbackReturn:
             final_block = None
@@ -83,14 +99,15 @@ class BaseBedrockTranslator(Translator):
             final_entities = []
             final_extra = False
 
-            for depth, block in enumerate(input_object):
-                game_version_, block = block
-                if game_version_ is None:
+            for depth, block in enumerate(input_object.block_tuple):
+                if "__version__" in block.properties:
+                    game_version_: int = block.properties["__version__"].value
+                else:
                     if "block_data" in block.properties:
                         # if block_data is in properties cap out at 1.12.x
-                        game_version_ = min(game_version, (1, 12, 999))
+                        game_version_: VersionNumberType = min(game_version, (1, 12, 999))
                     else:
-                        game_version_ = game_version
+                        game_version_: VersionNumberType = game_version
                 version_key = self._translator_key(game_version_)
                 if version_key not in versions:
                     versions[version_key] = translation_manager.get_version(
@@ -130,7 +147,6 @@ class BaseBedrockTranslator(Translator):
             return final_block, final_block_entity, final_entities
 
         version = translation_manager.get_version(*self._translator_key(game_version))
-        palette = self._unpack_palette(version, palette)
         chunk.biomes = self._biomes_to_universal(version, chunk.biomes)
         if version.block_entity_map is not None:
             for block_entity in chunk.block_entities:
@@ -150,3 +166,96 @@ class BaseBedrockTranslator(Translator):
         return self._translate(
             chunk, palette, get_chunk_callback, translate_block, translate_entity, full_translate
         )
+
+    def from_universal(
+        self,
+        max_world_version_number: Union[int, Tuple[int, int, int]],
+        translation_manager: 'TranslationManager',
+        chunk: Chunk,
+        palette: BlockNDArray,
+        get_chunk_callback: Optional[GetChunkCallback],
+        full_translate: bool,
+    ) -> Tuple[Chunk, BlockNDArray]:
+        """
+        Translate a universal chunk into the interface-specific format.
+
+        :param max_world_version_number: The version number (int or tuple) of the max world version
+        :param translation_manager: TranslationManager used for the translation
+        :param chunk: The chunk to translate.
+        :param palette: The palette that the chunk's indices correspond to.
+        :param get_chunk_callback: function callback to get a chunk's data
+        :param full_translate: if true do a full translate. If false just pack the palette (used in callback)
+        :return: Chunk object in the interface-specific format and palette.
+        """
+        version = translation_manager.get_version(
+            *self._translator_key(max_world_version_number)
+        )
+
+        # TODO: perhaps find a way so this code isn't duplicated in three places
+        def translate_block(
+            input_object: Block,
+            get_block_callback: Optional[GetBlockCallback],
+        ) -> TranslateBlockCallbackReturn:
+            final_block = None
+            final_block_entity = None
+            final_entities = []
+            final_extra = False
+
+            for depth, block in enumerate(input_object.block_tuple):
+                (
+                    output_object,
+                    output_block_entity,
+                    extra,
+                ) = version.block.from_universal(block, get_block_callback)
+
+                if isinstance(output_object, Block):
+                    if __debug__ and output_object.namespace.startswith(
+                        "universal"
+                    ):
+                        log.debug(
+                            f"Error translating {input_object.blockstate} from universal. Got {output_object.blockstate}"
+                        )
+                    if version.data_version != -1:
+                        properties = output_object.properties
+                        properties["__version__"] = amulet_nbt.TAG_Int(version.data_version)
+                        output_object = Block(output_object.namespace, output_object.base_name, properties, output_object.extra_blocks)
+                    if final_block is None:
+                        final_block = output_object
+                    else:
+                        final_block += output_object
+                    if depth == 0:
+                        final_block_entity = output_block_entity
+
+                elif isinstance(output_object, Entity):
+                    final_entities.append(output_object)
+                    # TODO: offset entity coords
+
+                final_extra |= extra
+
+            return final_block, final_block_entity, final_entities, final_extra
+
+        def translate_entity(
+            input_object: Entity
+        ) -> TranslateEntityCallbackReturn:
+            final_block = None
+            final_block_entity = None
+            final_entities = []
+            # TODO
+            return final_block, final_block_entity, final_entities
+
+        chunk, palette = self._translate(
+            chunk, palette, get_chunk_callback, translate_block, translate_entity, full_translate
+        )
+        chunk.biomes = self._biomes_from_universal(version, chunk.biomes)
+        if version.block_entity_map is not None:
+            for block_entity in chunk.block_entities:
+                block_entity: BlockEntity
+                if block_entity.namespaced_name in version.block_entity_map_inverse:
+                    block_entity.namespaced_name = version.block_entity_map_inverse[
+                        block_entity.namespaced_name
+                    ]
+                else:
+                    log.debug(
+                        f"Could not find pretty name for block entity {block_entity.namespaced_name}"
+                    )
+        return chunk, palette

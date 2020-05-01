@@ -190,7 +190,7 @@ class FormatWraper:
 
         # decode the raw chunk data into the universal format
         chunk, chunk_palette = interface.decode(cx, cz, raw_chunk_data)
-        chunk_palette = translator.unpack(game_version, self.translation_manager, chunk, chunk_palette)
+        chunk, chunk_palette = translator.unpack(game_version, self.translation_manager, chunk, chunk_palette)
         assert all(isinstance(b, Block) for b in chunk_palette), f'Error parsing chunk data. All blocks in the palette must be Block objects. Report this to a developer. {chunk_palette}'
 
         # set up a callback that translator can use to get chunk data
@@ -268,7 +268,7 @@ class FormatWraper:
 
         chunk, chunk_palette = self._convert_to_save(chunk, global_palette, chunk_version, translator, recurse)
         assert all(isinstance(b, Block) for b in chunk_palette), f'Error during translation. All blocks in the palette must be Block objects. Report this to a developer. {chunk_palette}'
-        chunk_palette = translator.pack(chunk_version, self.translation_manager, chunk, chunk_palette)
+        chunk, chunk_palette = translator.pack(chunk_version, self.translation_manager, chunk, chunk_palette)
         raw_chunk_data = self._encode(chunk, chunk_palette, interface)
 
         self._put_raw_chunk_data(cx, cz, raw_chunk_data, *args)

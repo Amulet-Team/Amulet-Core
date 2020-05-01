@@ -1,5 +1,5 @@
 from typing import Any, Union, Generator, Callable, Tuple, Optional, TYPE_CHECKING, List
-from nptyping import NDArray
+# from nptyping import NDArray
 import numpy
 
 if TYPE_CHECKING:
@@ -13,12 +13,12 @@ Dimension = str
 ChunkCoordinates = Tuple[int, int]
 DimensionCoordinates = Tuple[Dimension, int, int]
 BlockCoordinates = Tuple[int, int, int]
-SubChunkNDArray = NDArray[(16, 16, 16), numpy.uint]
+SubChunkNDArray = numpy.ndarray  # NDArray[(16, 16, 16), numpy.uint]
 
 
 # Wrapper types
-BlockNDArray = NDArray[(Any, ), 'Block']
-AnyNDArray = NDArray[(Any, ), Any]
+BlockNDArray = numpy.ndarray  # NDArray[(Any, ), 'Block']
+AnyNDArray = numpy.ndarray  # NDArray[(Any, ), Any]
 VersionIdentifierType = Union[int, Tuple[int, int, int]]
 
 GetChunkCallback = Callable[[int, int], Tuple['Chunk', BlockNDArray]]

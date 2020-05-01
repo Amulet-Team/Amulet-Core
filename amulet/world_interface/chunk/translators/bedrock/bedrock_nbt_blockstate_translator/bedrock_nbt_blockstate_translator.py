@@ -4,6 +4,8 @@ import numpy
 from typing import TYPE_CHECKING
 
 from amulet.world_interface.chunk.translators.bedrock import BaseBedrockTranslator
+from amulet.api.data_types import BlockNDArray, AnyNDArray
+from amulet.api.block import Block
 
 if TYPE_CHECKING:
     from amulet.api.block import Block
@@ -19,26 +21,27 @@ class BedrockNBTBlockstateTranslator(BaseBedrockTranslator):
             return False
         return True
 
-    def _pack_palette(self, version: 'Version', palette: numpy.ndarray) -> numpy.ndarray:
+    def _pack_palette(self, version: 'Version', palette: BlockNDArray) -> AnyNDArray:
         """
         Packs a numpy array of Block objects into an object array of containing block ids and block data values.
         :param version:
         :param palette:
         :return:
         """
-        version_number = version.version_number
-        if len(version_number) > 4:
-            version_number = version_number[:4]
-        elif len(version_number) < 4:
-            version_number = version_number + (0,) * (4 - len(version_number))
-
         palette_ = numpy.empty(len(palette), dtype=object)
         for palette_index, block in enumerate(palette):
             block: 'Block'
             # TODO: perhaps check that all properties are NBT objects user interaction if not
-            palette_[palette_index] = ((version_number, block.base_block),) + tuple(
-                (version_number, extra_block) for extra_block in block.extra_blocks
-            )
+            blocks = []
+            for b in block.block_tuple:
+                if "__version__" in b.properties:
+                    properties = b.properties
+                    version_number = properties.pop("__version__").value
+                    b = Block(b.namespace, b.base_name, properties, b.extra_blocks)
+                else:
+                    version_number = None
+                blocks.append((version_number, b))
+            palette_[palette_index] = tuple(blocks)
 
         return palette_
 

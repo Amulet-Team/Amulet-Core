@@ -129,19 +129,11 @@ class Translator:
                         if cx == 0 and cz == 0:
                             # if it is the current chunk
                             block = palette[chunk.blocks[dx, dy, dz]]
-                            if isinstance(
-                                block, tuple
-                            ):  # bedrock palette is made of (version, Block). TODO: Perhaps find a better way to do this
-                                block = block[0][1]
                             return block, chunk.block_entities.get((abs_x, abs_y, abs_z))
 
                         # if it is in a different chunk
                         local_chunk, local_palette = get_chunk_callback(cx, cz)
                         block = local_palette[local_chunk.blocks[dx % 16, dy, dz % 16]]
-                        if isinstance(
-                            block, tuple
-                        ):  # bedrock palette is made of (version, Block). TODO: Perhaps find a better way to do this
-                            block = block[0][1]
                         return (
                             block,
                             local_chunk.block_entities.get((abs_x, abs_y, abs_z)),
@@ -223,9 +215,7 @@ class Translator:
             final_entities = []
             final_extra = False
 
-            for depth, block in enumerate(
-                (input_object.base_block,) + input_object.extra_blocks
-            ):
+            for depth, block in enumerate(input_object.block_tuple):
                 (
                     output_object,
                     output_block_entity,
@@ -314,9 +304,7 @@ class Translator:
             final_entities = []
             final_extra = False
 
-            for depth, block in enumerate(
-                (input_object.base_block,) + input_object.extra_blocks
-            ):
+            for depth, block in enumerate(input_object.block_tuple):
                 (
                     output_object,
                     output_block_entity,
