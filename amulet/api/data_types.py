@@ -19,7 +19,9 @@ SubChunkNDArray = numpy.ndarray  # NDArray[(16, 16, 16), numpy.uint]
 # Wrapper types
 BlockNDArray = numpy.ndarray  # NDArray[(Any, ), 'Block']
 AnyNDArray = numpy.ndarray  # NDArray[(Any, ), Any]
-VersionIdentifierType = Union[int, Tuple[int, int, int]]
+VersionNumberInt = int
+VersionNumberTuple = Tuple[int, int, int]
+VersionNumberAny = Union[VersionNumberInt, VersionNumberTuple]
 
 GetChunkCallback = Callable[[int, int], Tuple['Chunk', BlockNDArray]]
 
@@ -31,8 +33,6 @@ GetBlockCallback = Callable[  # get a block at a different location
         'Block', Optional['BlockEntity']
     ],  # and returns a new block and optionally a block entity
 ]
-
-VersionNumberType = Tuple[int, int, int]
 BlockType = 'Block'
 
 TranslateBlockCallbackReturn = Tuple[

@@ -11,7 +11,7 @@ from amulet.api.block import Block
 from amulet.api.data_types import BlockNDArray, AnyNDArray
 from amulet.api.entity import Entity
 from amulet.api.wrapper.chunk.translator import Translator
-from amulet.api.data_types import GetBlockCallback, TranslateBlockCallbackReturn, TranslateEntityCallbackReturn, VersionNumberType, GetChunkCallback
+from amulet.api.data_types import GetBlockCallback, TranslateBlockCallbackReturn, TranslateEntityCallbackReturn, VersionNumberTuple, GetChunkCallback
 
 
 if TYPE_CHECKING:
@@ -22,8 +22,8 @@ if TYPE_CHECKING:
 
 class BaseBedrockTranslator(Translator):
     def _translator_key(
-        self, version_number: Union[int, VersionNumberType]
-    ) -> Tuple[str, Union[int, VersionNumberType]]:
+        self, version_number: Union[int, VersionNumberTuple]
+    ) -> Tuple[str, Union[int, VersionNumberTuple]]:
         return "bedrock", version_number
 
     def _unpack_palette(self, version: Version, palette: AnyNDArray) -> BlockNDArray:
@@ -76,7 +76,7 @@ class BaseBedrockTranslator(Translator):
 
     def to_universal(
         self,
-        game_version: VersionNumberType,
+        game_version: VersionNumberTuple,
         translation_manager: 'TranslationManager',
         chunk: 'Chunk',
         palette: numpy.ndarray,
@@ -105,9 +105,9 @@ class BaseBedrockTranslator(Translator):
                 else:
                     if "block_data" in block.properties:
                         # if block_data is in properties cap out at 1.12.x
-                        game_version_: VersionNumberType = min(game_version, (1, 12, 999))
+                        game_version_: VersionNumberTuple = min(game_version, (1, 12, 999))
                     else:
-                        game_version_: VersionNumberType = game_version
+                        game_version_: VersionNumberTuple = game_version
                 version_key = self._translator_key(game_version_)
                 if version_key not in versions:
                     versions[version_key] = translation_manager.get_version(

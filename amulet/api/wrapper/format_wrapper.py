@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
     from amulet.api.chunk import Chunk
     from amulet.api.wrapper.chunk.translator import Translator
-    from amulet.api.data_types import VersionIdentifierType
+    from amulet.api.data_types import VersionNumberAny
 
 
 class FormatWraper:
@@ -105,7 +105,7 @@ class FormatWraper:
             key = max_world_version
         return interfaces.loader.get(key)
 
-    def _get_interface_and_translator(self, max_world_version, raw_chunk_data=None) -> Tuple['Interface', 'Translator', 'VersionIdentifierType']:
+    def _get_interface_and_translator(self, max_world_version, raw_chunk_data=None) -> Tuple['Interface', 'Translator', 'VersionNumberAny']:
         interface = self._get_interface(max_world_version, raw_chunk_data)
         translator, version_identifier = interface.get_translator(self.max_world_version, raw_chunk_data)
         return interface, translator, version_identifier
