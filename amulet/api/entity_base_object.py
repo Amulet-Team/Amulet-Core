@@ -51,7 +51,7 @@ class EntityObject:
         if ":" in value:
             self._namespace, self._base_name = value.split(":", 1)
         else:
-            self._namespace, self._base_name = None, value
+            self._namespace, self._base_name = '', value
 
     @property
     def namespace(self) -> str:

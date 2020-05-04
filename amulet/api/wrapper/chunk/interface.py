@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import numpy
-from typing import Tuple, Any, Union, TYPE_CHECKING
+from typing import Tuple, Any, Union, TYPE_CHECKING, Optional
 
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
@@ -30,7 +30,7 @@ class Interface:
 
     def _decode_entity(
         self, nbt: amulet_nbt.NBTFile, id_type: str, coord_type: str
-    ) -> Union[Entity, None]:
+    ) -> Optional[Entity]:
         entity = self._decode_base_entity(nbt, id_type, coord_type)
         if entity is not None:
             namespace, base_name, x, y, z, nbt = entity
@@ -40,7 +40,7 @@ class Interface:
 
     def _decode_block_entity(
         self, nbt: amulet_nbt.NBTFile, id_type: str, coord_type: str
-    ) -> Union[BlockEntity, None]:
+    ) -> Optional[BlockEntity]:
         entity = self._decode_base_entity(nbt, id_type, coord_type)
         if entity is not None:
             namespace, base_name, x, y, z, nbt = entity
@@ -51,7 +51,7 @@ class Interface:
     @staticmethod
     def _decode_base_entity(
         nbt: amulet_nbt.NBTFile, id_type: str, coord_type: str
-    ) -> Union[
+    ) -> Optional[
         Tuple[
             str,
             str,
@@ -59,8 +59,7 @@ class Interface:
             Union[int, float],
             Union[int, float],
             amulet_nbt.NBTFile,
-        ],
-        None,
+        ]
     ]:
         if not isinstance(nbt, amulet_nbt.NBTFile) and isinstance(
             nbt.value, amulet_nbt.TAG_Compound
@@ -84,7 +83,7 @@ class Interface:
                 or entity_id.value == ""
             ):
                 return
-            namespace = None
+            namespace = ''
             base_name = entity_id.value
 
         elif id_type in ["namespace-str-identifier", "int-id"]:
@@ -101,7 +100,7 @@ class Interface:
                 entity_id = nbt.pop("id")
                 if not isinstance(entity_id, amulet_nbt.TAG_Int):
                     return
-                namespace = None
+                namespace = ''
                 base_name = str(entity_id.value)
             else:
                 return
@@ -149,18 +148,18 @@ class Interface:
 
     def _encode_entity(
         self, entity: Entity, id_type: str, coord_type: str
-    ) -> Union[amulet_nbt.NBTFile, None]:
+    ) -> Optional[amulet_nbt.NBTFile]:
         return self._encode_base_entity(entity, id_type, coord_type)
 
     def _encode_block_entity(
         self, entity: BlockEntity, id_type: str, coord_type: str
-    ) -> Union[amulet_nbt.NBTFile, None]:
+    ) -> Optional[amulet_nbt.NBTFile]:
         return self._encode_base_entity(entity, id_type, coord_type)
 
     @staticmethod
     def _encode_base_entity(
         entity: Union[Entity, BlockEntity], id_type: str, coord_type: str
-    ) -> Union[amulet_nbt.NBTFile, None]:
+    ) -> Optional[amulet_nbt.NBTFile]:
         if not isinstance(entity.nbt, amulet_nbt.NBTFile) and isinstance(
             entity.nbt.value, amulet_nbt.TAG_Compound
         ):

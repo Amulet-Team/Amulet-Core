@@ -156,7 +156,7 @@ class BaseBedrockTranslator(Translator):
             for block_entity in chunk.block_entities:
                 block_entity: 'BlockEntity'
                 if (
-                    block_entity.namespace is None
+                    block_entity.namespace == ''
                     and block_entity.base_name in version.block_entity_map
                 ):
                     block_entity.namespaced_name = version.block_entity_map[
