@@ -200,12 +200,12 @@ class ConstructionReader:
     def _parse_entities(entities: amulet_nbt.TAG_List) -> List[Entity]:
         return [
             Entity(
-                entity["namespace"],
-                entity["base_name"],
-                entity["x"],
-                entity["y"],
-                entity["z"],
-                entity["nbt"],
+                entity["namespace"].value,
+                entity["base_name"].value,
+                entity["x"].value,
+                entity["y"].value,
+                entity["z"].value,
+                amulet_nbt.NBTFile(entity["nbt"]),
             ) for entity in entities
         ]
 
@@ -213,12 +213,12 @@ class ConstructionReader:
     def _parse_block_entities(block_entities: amulet_nbt.TAG_List) -> List[BlockEntity]:
         return [
             BlockEntity(
-                block_entity["namespace"],
-                block_entity["base_name"],
-                block_entity["x"],
-                block_entity["y"],
-                block_entity["z"],
-                block_entity["nbt"],
+                block_entity["namespace"].value,
+                block_entity["base_name"].value,
+                block_entity["x"].value,
+                block_entity["y"].value,
+                block_entity["z"].value,
+                amulet_nbt.NBTFile(block_entity["nbt"]),
             ) for block_entity in block_entities
         ]
 
