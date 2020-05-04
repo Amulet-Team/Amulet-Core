@@ -340,7 +340,7 @@ class ConstructionWriter:
                 "x": amulet_nbt.TAG_Double(entity.x),
                 "y": amulet_nbt.TAG_Double(entity.y),
                 "z": amulet_nbt.TAG_Double(entity.z),
-                "nbt": amulet_nbt.TAG_Compound(entity.nbt.value)
+                "nbt": entity.nbt.value
             }) for entity in entities
         ])
 
@@ -353,7 +353,7 @@ class ConstructionWriter:
                 "x": amulet_nbt.TAG_Int(block_entity.x),
                 "y": amulet_nbt.TAG_Int(block_entity.y),
                 "z": amulet_nbt.TAG_Int(block_entity.z),
-                "nbt": amulet_nbt.TAG_Compound(block_entity.nbt.value)
+                "nbt": block_entity.nbt.value
             }) for block_entity in block_entities
         ])
 

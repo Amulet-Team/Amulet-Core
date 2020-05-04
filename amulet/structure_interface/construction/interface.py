@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Any, Tuple, Union, List
 import numpy
 
+import amulet_nbt
 from amulet.api.wrapper import Interface
 from .construction import ConstructionSection
 from amulet.api.chunk import Chunk
@@ -20,14 +21,14 @@ class ConstructionInterface(Interface):
 
     def decode(self, cx: int, cz: int, data: List[ConstructionSection]) -> Tuple['Chunk', BlockNDArray]:
         chunk = Chunk(cx, cz)
-        palette = [Block(namespace="minecraft", base_name="air")]
+        palette = [Block(namespace="minecraft", base_name="air", properties={"block_data": amulet_nbt.TAG_Int(0)})]
         for section in data:
             if any(s==0 for s in section.shape):
                 continue
             if section.blocks is not None:
                 shapex, shapey, shapez = section.shape
                 sx = section.sx - ((section.sx >> 4) << 4)
-                sy = section.sy - ((section.sy >> 4) << 4)
+                sy = section.sy
                 sz = section.sz - ((section.sz >> 4) << 4)
                 chunk.blocks[
                     sx: sx + shapex,
@@ -92,7 +93,7 @@ class ConstructionInterface(Interface):
         version = translation_manager.get_version(platform, version_number)
         if platform == 'java':
             version_number = version.data_version
-        return translators.loader.get((platform, version_number)), 0
+        return translators.loader.get((platform, version_number)), version_number
 
 
 class Construction0Interface(ConstructionInterface):

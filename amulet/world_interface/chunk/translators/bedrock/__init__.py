@@ -147,7 +147,11 @@ class BaseBedrockTranslator(Translator):
             return final_block, final_block_entity, final_entities
 
         version = translation_manager.get_version(*self._translator_key(game_version))
+
+        # TODO: split this into pack and translate stages
         chunk.biomes = self._biomes_to_universal(version, chunk.biomes)
+
+        # TODO: move this into the packing stage
         if version.block_entity_map is not None:
             for block_entity in chunk.block_entities:
                 block_entity: 'BlockEntity'
@@ -215,7 +219,7 @@ class BaseBedrockTranslator(Translator):
                         log.debug(
                             f"Error translating {input_object.blockstate} from universal. Got {output_object.blockstate}"
                         )
-                    if version.data_version != -1:
+                    if version.data_version > 0:
                         properties = output_object.properties
                         properties["__version__"] = amulet_nbt.TAG_Int(version.data_version)
                         output_object = Block(output_object.namespace, output_object.base_name, properties, output_object.extra_blocks)
@@ -246,7 +250,11 @@ class BaseBedrockTranslator(Translator):
         chunk, palette = self._translate(
             chunk, palette, get_chunk_callback, translate_block, translate_entity, full_translate
         )
+
+        # TODO: split this into pack and translate stages
         chunk.biomes = self._biomes_from_universal(version, chunk.biomes)
+
+        # TODO: move this into the packing stage
         if version.block_entity_map is not None:
             for block_entity in chunk.block_entities:
                 block_entity: BlockEntity

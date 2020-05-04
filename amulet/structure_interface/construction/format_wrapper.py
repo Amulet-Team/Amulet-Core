@@ -100,7 +100,7 @@ class ConstructionFormatWrapper(FormatWraper):
 
     def _get_interface_and_translator(self, max_world_version, raw_chunk_data=None) -> Tuple['Interface', 'Translator', VersionNumberAny]:
         interface = self._get_interface(max_world_version, raw_chunk_data)
-        translator, version_identifier = interface.get_translator(self.max_world_version, raw_chunk_data, self.translation_manager)
+        translator, version_identifier = interface.get_translator(max_world_version, raw_chunk_data, self.translation_manager)
         return interface, translator, version_identifier
 
     def open(self):
