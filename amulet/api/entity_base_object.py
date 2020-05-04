@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Union, Tuple
+from typing import Union, Tuple, Optional
 import amulet_nbt
 
 _Coord = Union[float, int]
@@ -8,6 +8,7 @@ _Coord = Union[float, int]
 
 class EntityObject:
     obj_name = "Unknown"
+    coord_types: Optional[tuple] = None
 
     def __init__(
         self,
@@ -18,19 +19,21 @@ class EntityObject:
         z: _Coord,
         nbt: amulet_nbt.NBTFile,
     ):
+        assert isinstance(namespace, str), 'namespace must be a string'
+        assert isinstance(base_name, str), 'base_name must be a string'
         self._namespace = namespace
         self._base_name = base_name
         self._namespaced_name = None
         self._gen_namespaced_name()
-        self._x = x
-        self._y = y
-        self._z = z
+        assert all(isinstance(c, self.coord_types) for c in (x, y, z)), f'coordinates type must be in {self.coord_types}'
+        self._x = self.coord_types[0](x)
+        self._y = self.coord_types[0](y)
+        self._z = self.coord_types[0](z)
+        assert isinstance(nbt, amulet_nbt.NBTFile), 'nbt must be an NBTFile'
         self._nbt = nbt
 
     def _gen_namespaced_name(self):
-        self._namespaced_name = (
-            "" if self.namespace in ["", None] else f"{self.namespace}:"
-        ) + self.base_name
+        self._namespaced_name = f'{self.namespace or ""}:{self.base_name}' 
 
     def __repr__(self):
         return f"{self.obj_name}[{self.namespaced_name}, {self.x}, {self.y}, {self.z}]{{{self.nbt}}}"

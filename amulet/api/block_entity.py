@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Tuple
 import copy
+import numpy
 
 import amulet_nbt
 from .entity_base_object import EntityObject
@@ -8,6 +9,7 @@ from .entity_base_object import EntityObject
 
 class BlockEntity(EntityObject):
     obj_name = "BlockEntity"
+    coord_types = (int, numpy.integer)
 
     def __init__(
         self,

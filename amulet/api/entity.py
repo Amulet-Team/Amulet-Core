@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy
 from typing import Tuple, Union
 import amulet_nbt
 from .entity_base_object import EntityObject
@@ -7,6 +8,7 @@ from .entity_base_object import EntityObject
 
 class Entity(EntityObject):
     obj_name = "Entity"
+    coord_types = (float, numpy.floating)
 
     def __init__(
         self,
