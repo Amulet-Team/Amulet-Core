@@ -8,6 +8,7 @@ from typing import Sequence, Union
 _executable_dir = os.path.dirname(sys.executable)
 _script_base = os.path.dirname(sys.argv[0])
 _package_base = os.path.dirname(os.path.dirname(__file__))
+_program_base = os.path.abspath('.')
 
 
 def _application_directory(
@@ -52,4 +53,4 @@ COMMANDS_DIR = _application_directory("commands", ("command_line", "commands"))
 
 
 def get_temp_dir(world_dir):
-    return os.path.join(".", "world_temp", str(hash(world_dir)))
+    return os.path.join(_program_base, "world_temp", str(hash(world_dir)))
