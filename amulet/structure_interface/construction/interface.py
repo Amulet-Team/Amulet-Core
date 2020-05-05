@@ -69,7 +69,7 @@ class ConstructionInterface(Interface):
                         chunk.blocks[sub_box.chunk_slice(cx, cz)],
                         list(palette),
                         entities,
-                        list(chunk.block_entities),
+                        [e for e in chunk.block_entities if e.location in sub_box],
                     ))
                 elif entities:
                     sections.append(ConstructionSection(
