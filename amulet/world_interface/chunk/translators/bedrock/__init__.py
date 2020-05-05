@@ -16,7 +16,6 @@ from amulet.api.data_types import GetBlockCallback, TranslateBlockCallbackReturn
 
 if TYPE_CHECKING:
     from PyMCTranslate import Version, TranslationManager
-    from amulet.api.block_entity import BlockEntity
     from amulet.api.chunk import Chunk
 
 
@@ -151,22 +150,6 @@ class BaseBedrockTranslator(Translator):
         # TODO: split this into pack and translate stages
         chunk.biomes = self._biomes_to_universal(version, chunk.biomes)
 
-        # TODO: move this into the packing stage
-        if version.block_entity_map is not None:
-            for block_entity in chunk.block_entities:
-                block_entity: 'BlockEntity'
-                if (
-                    block_entity.namespace == ''
-                    and block_entity.base_name in version.block_entity_map
-                ):
-                    block_entity.namespaced_name = version.block_entity_map[
-                        block_entity.base_name
-                    ]
-                else:
-                    log.debug(
-                        f"Could not find pretty name for block entity {block_entity.namespaced_name}"
-                    )
-
         return self._translate(
             chunk, palette, get_chunk_callback, translate_block, translate_entity, full_translate
         )
@@ -254,16 +237,4 @@ class BaseBedrockTranslator(Translator):
         # TODO: split this into pack and translate stages
         chunk.biomes = self._biomes_from_universal(version, chunk.biomes)
 
-        # TODO: move this into the packing stage
-        if version.block_entity_map is not None:
-            for block_entity in chunk.block_entities:
-                block_entity: BlockEntity
-                if block_entity.namespaced_name in version.block_entity_map_inverse:
-                    block_entity.namespaced_name = version.block_entity_map_inverse[
-                        block_entity.namespaced_name
-                    ]
-                else:
-                    log.debug(
-                        f"Could not find pretty name for block entity {block_entity.namespaced_name}"
-                    )
         return chunk, palette
