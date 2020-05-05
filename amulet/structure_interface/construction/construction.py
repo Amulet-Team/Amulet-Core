@@ -433,6 +433,8 @@ class ConstructionWriter:
                 _tag["blocks_array_type"] = amulet_nbt.TAG_Byte(-1)
             else:
                 flattened_array = blocks.ravel()
+                index, flattened_array = numpy.unique(flattened_array, return_inverse=True)
+                palette = numpy.array(palette, dtype=object)[index]
                 lut = numpy.vectorize(self._palette.get_add_block)(palette)
                 flattened_array = lut[flattened_array]
                 array_type = self._find_fitting_array_type(flattened_array)
