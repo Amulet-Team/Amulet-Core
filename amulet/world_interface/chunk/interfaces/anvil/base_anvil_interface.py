@@ -33,6 +33,7 @@ class BaseAnvilInterface(Interface):
             "height_map": ["256IA", "C|36LA|V1", "C|36LA|V2", "C|36LA|V3", "C|36LA|V4"],
             # 'carving_masks': ['C|?BA'],
             "blocks": ["Sections|(Blocks,Data,Add)", "Sections|(BlockStates,Palette)"],
+            "long_array_format": ["compact", "1.16"],  # before the long array was just a bit stream but it is now separete longs. The upper bits are unused in some cases.
             "block_light": ["Sections|2048BA"],
             "sky_light": ["Sections|2048BA"],
             "block_entities": ["list"],

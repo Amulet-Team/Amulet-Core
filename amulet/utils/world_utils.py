@@ -117,7 +117,7 @@ def to_nibble_array(arr: ndarray) -> ndarray:
     return (arr[::2] + (arr[1::2] << 4)).astype("uint8")
 
 
-def decode_long_array(long_array: numpy.ndarray, size: int) -> numpy.ndarray:
+def decode_long_array(long_array: numpy.ndarray, size: int, dense=True) -> numpy.ndarray:
     """
     Decode an long array (from BlockStates or Heightmaps)
     :param long_array: Encoded long array
@@ -126,30 +126,52 @@ def decode_long_array(long_array: numpy.ndarray, size: int) -> numpy.ndarray:
     """
     long_array = long_array.astype(">q")
     bits_per_entry = (len(long_array) * 64) // size
+    bits = numpy.unpackbits(long_array[::-1].astype(">i8").view("uint8"))
+    if not dense:
+        entry_per_long = 64 // bits_per_entry
+        bits = bits.reshape(-1, 64)[:, -entry_per_long*bits_per_entry:]
 
     return numpy.packbits(
         numpy.pad(
-            numpy.unpackbits(long_array[::-1].astype(">i8").view("uint8")).reshape(
+            bits.reshape(
                 -1, bits_per_entry
-            ),
-            [(0, 0), (64 - bits_per_entry, 0)],
+            )[-size:, :],
+            [(0, 0), (16 - bits_per_entry, 0)],
             "constant",
         )
-    ).view(dtype=">q")[::-1]
+    ).view(dtype=">h")[::-1]
 
 
-def encode_long_array(array: numpy.ndarray) -> numpy.ndarray:
+def encode_long_array(array: numpy.ndarray, dense=True) -> numpy.ndarray:
     """
     Encode an long array (from BlockStates or Heightmaps)
     :param array: A numpy array of the data to be encoded.
     :return: Encoded array as numpy array
     """
-    array = array.astype(">q")
+    array = array.astype(">h")
     bits_per_entry = max(int(numpy.amax(array)).bit_length(), 2)
+    if not dense:
+        if bits_per_entry == 11:
+            bits_per_entry = 12  # 11 and 12 take up the same amount of space. I don't know if 11 exists any more.
+    bits = numpy.unpackbits(numpy.ascontiguousarray(array[::-1]).view("uint8")).reshape(
+        -1, 16
+    )[:, -bits_per_entry:]
+    if not dense:
+        entry_per_long = 64 // bits_per_entry
+        if bits.shape[0] % entry_per_long:
+            bits = numpy.pad(
+                bits,
+                [(entry_per_long - (bits.shape[0] % entry_per_long), 0), (0, 0)],
+                "constant",
+            )
+        bits = numpy.pad(
+            bits.reshape(-1, bits_per_entry*entry_per_long),
+            [(0, 0), (64 - bits_per_entry*entry_per_long, 0)],
+            "constant",
+        )
+
     return numpy.packbits(
-        numpy.unpackbits(numpy.ascontiguousarray(array[::-1]).view("uint8")).reshape(
-            -1, 64
-        )[:, -bits_per_entry:]
+        bits
     ).view(dtype=">q")[::-1]
 
 

@@ -1,8 +1,8 @@
 {
 "meta_version": 0,
 "interface": {
-    "id": "anvil_2203_1_13",
-    "name": "Anvil 1.13 Interface",
+    "id": "anvil_2203_1_15",
+    "name": "Anvil 1.15 Interface",
     "entry_point": "anvil_2203_interface",
     "interface_version": 0,
     "wrapper_version": -1

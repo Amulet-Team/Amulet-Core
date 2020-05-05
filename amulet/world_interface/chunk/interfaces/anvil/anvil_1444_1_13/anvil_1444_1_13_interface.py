@@ -42,6 +42,7 @@ class Anvil1444Interface(BaseAnvilInterface):
         self.features["height_map"] = "C5|36LA"
 
         self.features["blocks"] = "Sections|(BlockStates,Palette)"
+        self.features["long_array_format"] = "compact"
         self.features["block_light"] = "Sections|2048BA"
         self.features["sky_light"] = "Sections|2048BA"
 
@@ -78,10 +79,18 @@ class Anvil1444Interface(BaseAnvilInterface):
             if "Palette" not in section:  # 1.14 makes palette/blocks optional.
                 continue
             cy = section["Y"].value
-            blocks[cy] = numpy.transpose(
-                decode_long_array(
+            if self.features["long_array_format"] == "compact":
+                decoded = decode_long_array(
                     section["BlockStates"].value, 4096
-                ).reshape((16, 16, 16)) + len(palette),
+                )
+            elif self.features["long_array_format"] == "1.16":
+                decoded = decode_long_array(
+                    section["BlockStates"].value, 4096, dense=False
+                )
+            else:
+                raise Exception("long_array_format", self.features["long_array_format"])
+            blocks[cy] = numpy.transpose(
+                decoded.reshape((16, 16, 16)) + len(palette),
                 (2, 0, 1)
             )
 
@@ -114,9 +123,14 @@ class Anvil1444Interface(BaseAnvilInterface):
 
                 section = amulet_nbt.TAG_Compound()
                 section["Y"] = amulet_nbt.TAG_Byte(cy)
-                section["BlockStates"] = amulet_nbt.TAG_Long_Array(
-                    encode_long_array(block_sub_array)
-                )
+                if self.features["long_array_format"] == "compact":
+                    section["BlockStates"] = amulet_nbt.TAG_Long_Array(
+                        encode_long_array(block_sub_array)
+                    )
+                elif self.features["long_array_format"] == "1.16":
+                    section["BlockStates"] = amulet_nbt.TAG_Long_Array(
+                        encode_long_array(block_sub_array, dense=False)
+                    )
                 section["Palette"] = sub_palette
                 sections.append(section)
 
