@@ -368,7 +368,6 @@ class Translator:
         """
         version = translation_manager.get_version(*self._translator_key(chunk_version))
         palette = self._unpack_palette(version, palette)
-        chunk = self._unpack_entities(version, chunk)
         return chunk, palette
 
     def _unpack_palette(
@@ -379,31 +378,6 @@ class Translator:
         :return: The palette converted to block objects.
         """
         return palette
-
-    @staticmethod
-    def _unpack_entities(
-        version: 'Version', chunk: Chunk
-    ) -> Chunk:
-        """
-        Unpack the version-specific entities and block entities.
-        This includes where required converting the arbitrary entity id to a namespaced id.
-        :return: The updated chunk.
-        """
-        if version.block_entity_map is not None:
-            for block_entity in chunk.block_entities:
-                block_entity: BlockEntity
-                if (
-                    block_entity.namespace is None
-                    and block_entity.base_name in version.block_entity_map
-                ):
-                    block_entity.namespaced_name = version.block_entity_map[
-                        block_entity.base_name
-                    ]
-                else:
-                    log.debug(
-                        f"Could not find pretty name for block entity {block_entity.namespaced_name}"
-                    )
-        return chunk
 
     def pack(
             self,
@@ -420,7 +394,6 @@ class Translator:
             *self._translator_key(max_world_version_number)
         )
         palette = self._pack_palette(version, palette)
-        chunk = self._pack_entities(version, chunk)
         return chunk, palette
 
     def _pack_palette(self, version: 'Version', palette: BlockNDArray) -> AnyNDArray:
@@ -429,25 +402,3 @@ class Translator:
         :return: The palette converted into version-specific blocks (ie id, data tuples for 1.12)
         """
         return palette
-
-    @staticmethod
-    def _pack_entities(
-        version: 'Version', chunk: Chunk
-    ) -> Chunk:
-        """
-        Pack the namespaced entities and block entities.
-        This includes where required converting the namespaced id to the arbitrary entity id.
-        :return: The updated chunk.
-        """
-        if version.block_entity_map is not None:
-            for block_entity in chunk.block_entities:
-                block_entity: BlockEntity
-                if block_entity.namespaced_name in version.block_entity_map_inverse:
-                    block_entity.namespaced_name = version.block_entity_map_inverse[
-                        block_entity.namespaced_name
-                    ]
-                else:
-                    log.debug(
-                        f"Could not find pretty name for block entity {block_entity.namespaced_name}"
-                    )
-        return chunk
