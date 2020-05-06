@@ -20,7 +20,7 @@ class BedrockPsudoNumericalTranslator(BaseBedrockTranslator):
             return False
         return True
 
-    def _pack_palette(self, version: 'Version', palette: BlockNDArray) -> AnyNDArray:
+    def _pack_palette(self, version: "Version", palette: BlockNDArray) -> AnyNDArray:
         """
         Packs a numpy array of Block objects into an object array of containing block ids and block data values.
         :param version:
@@ -29,7 +29,7 @@ class BedrockPsudoNumericalTranslator(BaseBedrockTranslator):
         """
         palette_ = numpy.empty(len(palette), dtype=object)
         for palette_index, block in enumerate(palette):
-            block: 'Block'
+            block: "Block"
             # TODO: perhaps check that property 'block_data' exists and is TAG_Int user interaction if not
             palette_[palette_index] = tuple((None, b) for b in block.block_tuple)
 

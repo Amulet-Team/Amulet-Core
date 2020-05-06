@@ -9,12 +9,13 @@ class Item(amulet_nbt.TAG_Compound):
         "metadata": TAG_Compound
     }
     """
+
     def __init__(self, namespace: str, base_name: str, metadata: dict = None):
         super().__init__(
             {
                 "namespace": amulet_nbt.TAG_String(namespace),
                 "base_name": amulet_nbt.TAG_String(base_name),
-                "metadata": amulet_nbt.TAG_Compound(metadata or {})
+                "metadata": amulet_nbt.TAG_Compound(metadata or {}),
             }
         )
 
@@ -40,13 +41,20 @@ class BlockItem(amulet_nbt.TAG_Compound):
         "metadata": TAG_Compound
     }
     """
-    def __init__(self, namespace: str, base_name: str, properties: dict = None, metadata: dict = None):
+
+    def __init__(
+        self,
+        namespace: str,
+        base_name: str,
+        properties: dict = None,
+        metadata: dict = None,
+    ):
         super().__init__(
             {
                 "namespace": amulet_nbt.TAG_String(namespace),
                 "base_name": amulet_nbt.TAG_String(base_name),
                 "properties": amulet_nbt.TAG_Compound(properties or {}),
-                "metadata": amulet_nbt.TAG_Compound(metadata or {})
+                "metadata": amulet_nbt.TAG_Compound(metadata or {}),
             }
         )
 

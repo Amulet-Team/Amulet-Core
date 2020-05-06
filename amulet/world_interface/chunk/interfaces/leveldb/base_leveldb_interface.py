@@ -87,7 +87,7 @@ class BaseLevelDBInterface(Interface):
         self,
         max_world_version: Tuple[str, Tuple[int, int, int]],
         data: Dict[bytes, bytes] = None,
-    ) -> Tuple['Translator', Tuple[int, int, int]]:
+    ) -> Tuple["Translator", Tuple[int, int, int]]:
         """
         Get the Translator class for the requested version.
         :param max_world_version: The game version the world was last opened in.
@@ -246,13 +246,7 @@ class BaseLevelDBInterface(Interface):
         """
         blocks: Dict[int, SubChunkNDArray] = {}
         palette: List[
-            Tuple[
-                Tuple[
-                    Optional[int],
-                    Union[Tuple[int, int], Block],
-                ],
-                ...
-            ]
+            Tuple[Tuple[Optional[int], Union[Tuple[int, int], Block],], ...]
         ] = [
             (
                 (
@@ -284,18 +278,14 @@ class BaseLevelDBInterface(Interface):
                 sub_chunk_blocks = numpy.zeros(
                     (16, 16, 16, storage_count), dtype=numpy.uint32
                 )
-                sub_chunk_palette: List[
-                    List[Tuple[Optional[int], Block]]
-                ] = []
+                sub_chunk_palette: List[List[Tuple[Optional[int], Block]]] = []
                 for storage_index in range(storage_count):
                     (
                         sub_chunk_blocks[:, :, :, storage_index],
                         palette_data,
                         data,
                     ) = self._load_palette_blocks(data)
-                    palette_data_out: List[
-                        Tuple[Optional[int], Block]
-                    ] = []
+                    palette_data_out: List[Tuple[Optional[int], Block]] = []
                     for block in palette_data:
                         namespace, base_name = block["name"].value.split(":", 1)
                         if "version" in block:
@@ -324,9 +314,7 @@ class BaseLevelDBInterface(Interface):
                     sub_chunk_palette.append(palette_data_out)
 
                 if storage_count == 1:
-                    blocks[cy] = sub_chunk_blocks[:, :, :, 0] + len(
-                        palette
-                    )
+                    blocks[cy] = sub_chunk_blocks[:, :, :, 0] + len(palette)
                     palette += [(val,) for val in sub_chunk_palette[0]]
                 elif storage_count > 1:
                     # we have two or more storages so need to find the unique block combinations and merge them together
@@ -335,9 +323,7 @@ class BaseLevelDBInterface(Interface):
                         return_inverse=True,
                         axis=0,
                     )
-                    blocks[cy] = sub_chunk_blocks.reshape(
-                        16, 16, 16
-                    ) + len(palette)
+                    blocks[cy] = sub_chunk_blocks.reshape(16, 16, 16) + len(palette)
                     palette += [
                         tuple(
                             sub_chunk_palette[storage_index][index]
@@ -369,12 +355,12 @@ class BaseLevelDBInterface(Interface):
         return blocks, numpy_palette
 
     def _save_subchunks_0(
-        self, blocks: 'Blocks', palette: AnyNDArray
+        self, blocks: "Blocks", palette: AnyNDArray
     ) -> List[Optional[bytes]]:
         raise NotImplementedError
 
     def _save_subchunks_1(
-        self, blocks: 'Blocks', palette: AnyNDArray
+        self, blocks: "Blocks", palette: AnyNDArray
     ) -> List[Optional[bytes]]:
         for index, block in enumerate(palette):
             block: Tuple[Tuple[None, Block], ...]
@@ -406,7 +392,7 @@ class BaseLevelDBInterface(Interface):
         return chunk
 
     def _save_subchunks_8(
-        self, blocks: 'Blocks', palette: AnyNDArray
+        self, blocks: "Blocks", palette: AnyNDArray
     ) -> List[Optional[bytes]]:
         palette_depth = numpy.array([len(block) for block in palette])
         if palette.size:
@@ -531,7 +517,7 @@ class BaseLevelDBInterface(Interface):
 
     @staticmethod
     def _load_palette_blocks(
-        data
+        data,
     ) -> Tuple[numpy.ndarray, List[amulet_nbt.NBTFile], bytes]:
         # Ignore LSB of data (its a flag) and get compacting level
         bits_per_block, data = data[0] >> 1, data[1:]
@@ -547,7 +533,7 @@ class BaseLevelDBInterface(Interface):
                         bytes(reversed(data[: 4 * word_count])), dtype="uint8"
                     )
                 )
-                .reshape(-1, 32)[:, -blocks_per_word * bits_per_block:]
+                .reshape(-1, 32)[:, -blocks_per_word * bits_per_block :]
                 .reshape(-1, bits_per_block)[-4096:, :],
                 [(0, 0), (16 - bits_per_block, 0)],
                 "constant",
@@ -555,7 +541,7 @@ class BaseLevelDBInterface(Interface):
         ).view(dtype=">i2")[::-1]
         blocks = blocks.reshape((16, 16, 16)).swapaxes(1, 2)
 
-        data = data[4 * word_count:]
+        data = data[4 * word_count :]
 
         palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
         palette, offset = amulet_nbt.load(
@@ -638,7 +624,7 @@ class BaseLevelDBInterface(Interface):
             ]
         )
 
-    def _decode_entities(self, entities: List[amulet_nbt.NBTFile]) -> List['Entity']:
+    def _decode_entities(self, entities: List[amulet_nbt.NBTFile]) -> List["Entity"]:
         entities_out = []
         for nbt in entities:
             entity = self._decode_entity(
@@ -651,7 +637,7 @@ class BaseLevelDBInterface(Interface):
 
         return entities_out
 
-    def _encode_entities(self, entities: 'EntityList') -> List[amulet_nbt.NBTFile]:
+    def _encode_entities(self, entities: "EntityList") -> List[amulet_nbt.NBTFile]:
         entities_out = []
         for entity in entities:
             nbt = self._encode_entity(
@@ -666,7 +652,7 @@ class BaseLevelDBInterface(Interface):
 
     def _decode_block_entities(
         self, block_entities: List[amulet_nbt.NBTFile]
-    ) -> List['BlockEntity']:
+    ) -> List["BlockEntity"]:
         entities_out = []
         for nbt in block_entities:
             entity = self._decode_block_entity(
@@ -680,7 +666,7 @@ class BaseLevelDBInterface(Interface):
         return entities_out
 
     def _encode_block_entities(
-        self, block_entities: Iterable['BlockEntity']
+        self, block_entities: Iterable["BlockEntity"]
     ) -> List[amulet_nbt.NBTFile]:
         entities_out = []
         for entity in block_entities:

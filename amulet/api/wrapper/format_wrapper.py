@@ -28,6 +28,7 @@ class FormatWraper:
     The Format class is used to access chunks from the serialised source in the universal format and write them back again.
     The BaseFormat class holds the common methods shared by the sub-classes.
     """
+
     def __init__(self, path: str):
         self._path = path
         self._translation_manager = None
@@ -95,18 +96,20 @@ class FormatWraper:
         """The path to the world directory"""
         return self._path
 
-    def _get_interface(
-        self, max_world_version, raw_chunk_data=None
-    ) -> 'Interface':
+    def _get_interface(self, max_world_version, raw_chunk_data=None) -> "Interface":
         if raw_chunk_data:
             key = self._get_interface_key(raw_chunk_data)
         else:
             key = max_world_version
         return interfaces.loader.get(key)
 
-    def _get_interface_and_translator(self, max_world_version, raw_chunk_data=None) -> Tuple['Interface', 'Translator', 'VersionNumberAny']:
+    def _get_interface_and_translator(
+        self, max_world_version, raw_chunk_data=None
+    ) -> Tuple["Interface", "Translator", "VersionNumberAny"]:
         interface = self._get_interface(max_world_version, raw_chunk_data)
-        translator, version_identifier = interface.get_translator(self.max_world_version, raw_chunk_data)
+        translator, version_identifier = interface.get_translator(
+            self.max_world_version, raw_chunk_data
+        )
         return interface, translator, version_identifier
 
     def _get_interface_key(self, raw_chunk_data) -> Any:
@@ -146,7 +149,7 @@ class FormatWraper:
 
     def load_chunk(
         self, cx: int, cz: int, global_palette: BlockManager, *args
-    ) -> 'Chunk':
+    ) -> "Chunk":
         """
         Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
 
@@ -156,7 +159,7 @@ class FormatWraper:
         :return: The chunk at the given coordinates.
         """
         if not self.readable:
-            raise ChunkLoadError('This object is not readable')
+            raise ChunkLoadError("This object is not readable")
         try:
             return self._load_chunk(cx, cz, global_palette, *args)
         except ChunkDoesNotExist as e:
@@ -171,8 +174,8 @@ class FormatWraper:
         cz: int,
         global_palette: BlockManager,
         *args,
-        recurse: bool = True
-    ) -> 'Chunk':
+        recurse: bool = True,
+    ) -> "Chunk":
         """
         Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
 
@@ -185,36 +188,60 @@ class FormatWraper:
 
         # Gets an interface (the code that actually reads the chunk data)
         raw_chunk_data = self._get_raw_chunk_data(cx, cz, *args)
-        interface, translator, game_version = self._get_interface_and_translator(self.max_world_version, raw_chunk_data)
+        interface, translator, game_version = self._get_interface_and_translator(
+            self.max_world_version, raw_chunk_data
+        )
 
         # decode the raw chunk data into the universal format
         chunk, chunk_palette = self._decode(interface, cx, cz, raw_chunk_data)
-        chunk, chunk_palette = self._unpack(translator, game_version, chunk, chunk_palette)
-        assert all(isinstance(b, Block) for b in chunk_palette), f'Error parsing chunk data. All blocks in the palette must be Block objects. Report this to a developer. {chunk_palette}'
-        return self._convert_to_load(chunk, chunk_palette, global_palette, translator, game_version, *args, recurse)
+        chunk, chunk_palette = self._unpack(
+            translator, game_version, chunk, chunk_palette
+        )
+        assert all(
+            isinstance(b, Block) for b in chunk_palette
+        ), f"Error parsing chunk data. All blocks in the palette must be Block objects. Report this to a developer. {chunk_palette}"
+        return self._convert_to_load(
+            chunk,
+            chunk_palette,
+            global_palette,
+            translator,
+            game_version,
+            *args,
+            recurse,
+        )
 
-    def _decode(self, interface: 'Interface', cx: int, cz: int, raw_chunk_data: Any) -> Tuple['Chunk', AnyNDArray]:
+    def _decode(
+        self, interface: "Interface", cx: int, cz: int, raw_chunk_data: Any
+    ) -> Tuple["Chunk", AnyNDArray]:
         return interface.decode(cx, cz, raw_chunk_data)
 
-    def _unpack(self, translator: 'Translator', game_version: VersionNumberAny, chunk: 'Chunk', chunk_palette: AnyNDArray) -> Tuple['Chunk', BlockNDArray]:
-        return translator.unpack(game_version, self.translation_manager, chunk, chunk_palette)
+    def _unpack(
+        self,
+        translator: "Translator",
+        game_version: VersionNumberAny,
+        chunk: "Chunk",
+        chunk_palette: AnyNDArray,
+    ) -> Tuple["Chunk", BlockNDArray]:
+        return translator.unpack(
+            game_version, self.translation_manager, chunk, chunk_palette
+        )
 
     def _convert_to_load(
-            self,
-            chunk: 'Chunk',
-            chunk_palette: BlockNDArray,
-            global_palette: BlockManager,
-            translator: 'Translator',
-            game_version: VersionNumberAny,
-            *args,
-            recurse: bool = True
-    ) -> 'Chunk':
+        self,
+        chunk: "Chunk",
+        chunk_palette: BlockNDArray,
+        global_palette: BlockManager,
+        translator: "Translator",
+        game_version: VersionNumberAny,
+        *args,
+        recurse: bool = True,
+    ) -> "Chunk":
         # set up a callback that translator can use to get chunk data
         cx, cz = chunk.cx, chunk.cz
         if recurse:
-            chunk_cache: Dict[Tuple[int, int], Tuple['Chunk', BlockManager]] = {}
+            chunk_cache: Dict[Tuple[int, int], Tuple["Chunk", BlockManager]] = {}
 
-            def get_chunk_callback(x: int, z: int) -> Tuple['Chunk', BlockManager]:
+            def get_chunk_callback(x: int, z: int) -> Tuple["Chunk", BlockManager]:
                 palette = BlockManager()
                 cx_, cz_ = cx + x, cz + z
                 if (cx_, cz_) not in chunk_cache:
@@ -241,13 +268,13 @@ class FormatWraper:
             dtype=numpy.uint,
         )
         for cy in chunk.blocks.sub_chunks:
-            chunk.blocks.add_sub_chunk(cy, chunk_to_global[chunk.blocks.get_sub_chunk(cy)])
+            chunk.blocks.add_sub_chunk(
+                cy, chunk_to_global[chunk.blocks.get_sub_chunk(cy)]
+            )
         chunk.changed = False
         return chunk
 
-    def commit_chunk(
-        self, chunk: 'Chunk', global_palette: BlockManager, *args
-    ):
+    def commit_chunk(self, chunk: "Chunk", global_palette: BlockManager, *args):
         """
         Save a universal format chunk to the Format database (not the disk database)
         call save method to write changed chunks back to the disk database
@@ -256,7 +283,7 @@ class FormatWraper:
         :return:
         """
         if not self.writeable:
-            log.error('This object is not writeable')
+            log.error("This object is not writeable")
             return
         try:
             self._commit_chunk(copy.deepcopy(chunk), global_palette, *args)
@@ -265,11 +292,7 @@ class FormatWraper:
         self._changed = True
 
     def _commit_chunk(
-        self,
-        chunk: 'Chunk',
-        global_palette: BlockManager,
-        *args,
-        recurse: bool = True,
+        self, chunk: "Chunk", global_palette: BlockManager, *args, recurse: bool = True,
     ):
         """
         Saves a universal amulet.api.chunk.Chunk object
@@ -280,42 +303,56 @@ class FormatWraper:
         cx, cz = chunk.cx, chunk.cz
 
         # Gets an interface, translator and most recent chunk version for the game version.
-        interface, translator, chunk_version = self._get_interface_and_translator(self.max_world_version)
+        interface, translator, chunk_version = self._get_interface_and_translator(
+            self.max_world_version
+        )
 
-        chunk, chunk_palette = self._convert_to_save(chunk, global_palette, chunk_version, translator, recurse)
-        assert all(isinstance(b, Block) for b in chunk_palette), f'Error during translation. All blocks in the palette must be Block objects. Report this to a developer. {chunk_palette}'
-        chunk, chunk_palette = self._pack(chunk, chunk_palette, translator, chunk_version)
+        chunk, chunk_palette = self._convert_to_save(
+            chunk, global_palette, chunk_version, translator, recurse
+        )
+        assert all(
+            isinstance(b, Block) for b in chunk_palette
+        ), f"Error during translation. All blocks in the palette must be Block objects. Report this to a developer. {chunk_palette}"
+        chunk, chunk_palette = self._pack(
+            chunk, chunk_palette, translator, chunk_version
+        )
         raw_chunk_data = self._encode(chunk, chunk_palette, interface)
 
         self._put_raw_chunk_data(cx, cz, raw_chunk_data, *args)
 
     def _convert_to_save(
-            self,
-            chunk: 'Chunk',
-            global_palette: BlockManager,
-            chunk_version: VersionNumberAny,
-            translator: 'Translator',
-            recurse: bool = True
-    ) -> Tuple['Chunk', BlockNDArray]:
+        self,
+        chunk: "Chunk",
+        global_palette: BlockManager,
+        chunk_version: VersionNumberAny,
+        translator: "Translator",
+        recurse: bool = True,
+    ) -> Tuple["Chunk", BlockNDArray]:
         """Convert the Chunk in Universal format to a Chunk in the version specific format."""
         # convert the global indexes into local indexes and a local palette
         palette = []
         palette_len = 0
         for cy in chunk.blocks.sub_chunks:
-            sub_chunk_palette, sub_chunk = numpy.unique(chunk.blocks.get_sub_chunk(cy), return_inverse=True)
-            chunk.blocks.add_sub_chunk(cy, sub_chunk.reshape((16, 16, 16)) + palette_len)
+            sub_chunk_palette, sub_chunk = numpy.unique(
+                chunk.blocks.get_sub_chunk(cy), return_inverse=True
+            )
+            chunk.blocks.add_sub_chunk(
+                cy, sub_chunk.reshape((16, 16, 16)) + palette_len
+            )
             palette_len += len(sub_chunk_palette)
             palette.append(sub_chunk_palette)
 
         if palette:
-            chunk_palette, lut = numpy.unique(numpy.concatenate(palette), return_inverse=True)
+            chunk_palette, lut = numpy.unique(
+                numpy.concatenate(palette), return_inverse=True
+            )
             for cy in chunk.blocks.sub_chunks:
                 chunk.blocks.add_sub_chunk(cy, lut[chunk.blocks.get_sub_chunk(cy)])
             chunk_palette = numpy.vectorize(global_palette.__getitem__)(chunk_palette)
         else:
             chunk_palette = numpy.array([], dtype=numpy.object)
 
-        def get_chunk_callback(_: int, __: int) -> Tuple['Chunk', BlockNDArray]:
+        def get_chunk_callback(_: int, __: int) -> Tuple["Chunk", BlockNDArray]:
             # conversion from universal should not require any data outside the block
             return chunk, numpy.array(global_palette.blocks())
 
@@ -329,16 +366,24 @@ class FormatWraper:
             recurse,
         )
 
-    def _pack(self, chunk: 'Chunk', chunk_palette: BlockNDArray, translator: 'Translator', chunk_version: VersionNumberAny) -> Tuple['Chunk', AnyNDArray]:
+    def _pack(
+        self,
+        chunk: "Chunk",
+        chunk_palette: BlockNDArray,
+        translator: "Translator",
+        chunk_version: VersionNumberAny,
+    ) -> Tuple["Chunk", AnyNDArray]:
         """Pack the chunk data into the format required by the encoder.
         This includes converting the string names to numerical formats for the versions that require it."""
-        return translator.pack(chunk_version, self.translation_manager, chunk, chunk_palette)
-
-    def _encode(self, chunk: 'Chunk', chunk_palette: AnyNDArray, interface: 'Interface') -> Any:
-        """Encode the data to the raw format as saved on disk."""
-        return interface.encode(
-            chunk, chunk_palette, self.max_world_version
+        return translator.pack(
+            chunk_version, self.translation_manager, chunk, chunk_palette
         )
+
+    def _encode(
+        self, chunk: "Chunk", chunk_palette: AnyNDArray, interface: "Interface"
+    ) -> Any:
+        """Encode the data to the raw format as saved on disk."""
+        return interface.encode(chunk, chunk_palette, self.max_world_version)
 
     def delete_chunk(self, cx: int, cz: int, *args):
         raise NotImplementedError

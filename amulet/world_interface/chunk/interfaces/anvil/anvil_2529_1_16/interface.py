@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from amulet.world_interface.chunk.interfaces.anvil.anvil_2203_1_15.anvil_2203_interface import (
-    Anvil2203Interface
+    Anvil2203Interface,
 )
 
 

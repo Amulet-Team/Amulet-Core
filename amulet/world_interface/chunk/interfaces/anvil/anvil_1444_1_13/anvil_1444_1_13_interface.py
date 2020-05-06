@@ -66,7 +66,9 @@ class Anvil1444Interface(BaseAnvilInterface):
     def minor_is_valid(key: int):
         return 1444 <= key < 1466
 
-    def _decode_blocks(self, chunk_sections: amulet_nbt.TAG_List) -> Tuple[Dict[int, SubChunkNDArray], AnyNDArray]:
+    def _decode_blocks(
+        self, chunk_sections: amulet_nbt.TAG_List
+    ) -> Tuple[Dict[int, SubChunkNDArray], AnyNDArray]:
         if chunk_sections is None:
             raise NotImplementedError(
                 "We don't support reading chunks that never been edited in Minecraft before"
@@ -80,9 +82,7 @@ class Anvil1444Interface(BaseAnvilInterface):
                 continue
             cy = section["Y"].value
             if self.features["long_array_format"] == "compact":
-                decoded = decode_long_array(
-                    section["BlockStates"].value, 4096
-                )
+                decoded = decode_long_array(section["BlockStates"].value, 4096)
             elif self.features["long_array_format"] == "1.16":
                 decoded = decode_long_array(
                     section["BlockStates"].value, 4096, dense=False
@@ -90,8 +90,7 @@ class Anvil1444Interface(BaseAnvilInterface):
             else:
                 raise Exception("long_array_format", self.features["long_array_format"])
             blocks[cy] = numpy.transpose(
-                decoded.reshape((16, 16, 16)) + len(palette),
-                (2, 0, 1)
+                decoded.reshape((16, 16, 16)) + len(palette), (2, 0, 1)
             )
 
             palette += self._decode_palette(section["Palette"])
@@ -100,7 +99,9 @@ class Anvil1444Interface(BaseAnvilInterface):
         np_palette: numpy.ndarray
         inverse: numpy.ndarray
         for cy in blocks:
-            blocks[cy] = inverse[blocks[cy]].astype(numpy.uint32)  # TODO: find a way to make the new blocks format change dtype
+            blocks[cy] = inverse[blocks[cy]].astype(
+                numpy.uint32
+            )  # TODO: find a way to make the new blocks format change dtype
         return blocks, np_palette
 
     def _encode_blocks(
@@ -109,7 +110,9 @@ class Anvil1444Interface(BaseAnvilInterface):
         sections = amulet_nbt.TAG_List()
         for cy in range(16):
             if cy in blocks:
-                block_sub_array = numpy.transpose(blocks.get_sub_chunk(cy), (1, 2, 0)).ravel()
+                block_sub_array = numpy.transpose(
+                    blocks.get_sub_chunk(cy), (1, 2, 0)
+                ).ravel()
 
                 sub_palette_, block_sub_array = numpy.unique(
                     block_sub_array, return_inverse=True

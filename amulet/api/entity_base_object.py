@@ -19,21 +19,23 @@ class EntityObject:
         z: _Coord,
         nbt: amulet_nbt.NBTFile,
     ):
-        assert isinstance(namespace, str), 'namespace must be a string'
-        assert isinstance(base_name, str), 'base_name must be a string'
+        assert isinstance(namespace, str), "namespace must be a string"
+        assert isinstance(base_name, str), "base_name must be a string"
         self._namespace = namespace
         self._base_name = base_name
         self._namespaced_name = None
         self._gen_namespaced_name()
-        assert all(isinstance(c, self.coord_types) for c in (x, y, z)), f'coordinates type must be in {self.coord_types}'
+        assert all(
+            isinstance(c, self.coord_types) for c in (x, y, z)
+        ), f"coordinates type must be in {self.coord_types}"
         self._x = self.coord_types[0](x)
         self._y = self.coord_types[0](y)
         self._z = self.coord_types[0](z)
-        assert isinstance(nbt, amulet_nbt.NBTFile), 'nbt must be an NBTFile'
+        assert isinstance(nbt, amulet_nbt.NBTFile), "nbt must be an NBTFile"
         self._nbt = nbt
 
     def _gen_namespaced_name(self):
-        self._namespaced_name = f'{self.namespace or ""}:{self.base_name}' 
+        self._namespaced_name = f'{self.namespace or ""}:{self.base_name}'
 
     def __repr__(self):
         return f"{self.obj_name}[{self.namespaced_name}, {self.x}, {self.y}, {self.z}]{{{self.nbt}}}"
@@ -54,7 +56,7 @@ class EntityObject:
         if ":" in value:
             self._namespace, self._base_name = value.split(":", 1)
         else:
-            self._namespace, self._base_name = '', value
+            self._namespace, self._base_name = "", value
 
     @property
     def namespace(self) -> str:

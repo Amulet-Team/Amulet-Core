@@ -11,7 +11,9 @@ if TYPE_CHECKING:
     from amulet.api.world import World
 
 
-def fill(world: "World", dimension: Dimension, target_box: SelectionGroup, options: dict):
+def fill(
+    world: "World", dimension: Dimension, target_box: SelectionGroup, options: dict
+):
     fill_block = options.get("fill_block", None)
     if not isinstance(fill_block, Block):
         log.error("Fill operation was not given a Block object")

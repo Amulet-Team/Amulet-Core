@@ -34,7 +34,9 @@ class ChunkHistoryManager:
         self._last_snapshot_time = 0.0
 
         self._snapshot_index = -1
-        self._last_save_snapshot = -1  # the snapshot that was saved or the save branches off from
+        self._last_save_snapshot = (
+            -1
+        )  # the snapshot that was saved or the save branches off from
         self._branch_save_count = 0  # if the user saves, undoes and does a new operation a save branch will be lost
         # This is the number of changes on that branch
 
@@ -52,19 +54,26 @@ class ChunkHistoryManager:
     @property
     def unsaved_changes(self) -> int:
         """The number of changes that have been made since the last save"""
-        return abs(self._snapshot_index - self._last_save_snapshot) + self._branch_save_count
+        return (
+            abs(self._snapshot_index - self._last_save_snapshot)
+            + self._branch_save_count
+        )
 
     def mark_saved(self):
         """Let the history manager know that the world has been saved"""
         self._last_save_snapshot = self._snapshot_index
         self._branch_save_count = 0
 
-    def items(self, get_all=False) -> Generator[Tuple[_ChunkLocation, Optional[Chunk]], None, None]:
+    def items(
+        self, get_all=False
+    ) -> Generator[Tuple[_ChunkLocation, Optional[Chunk]], None, None]:
         for chunk_location, index in self._chunk_index.items():
             if index or get_all:
                 yield chunk_location, self.get_current(*chunk_location)
 
-    def add_original_chunk(self, dimension: Dimension, cx: int, cz: int, chunk: Optional[Chunk]):
+    def add_original_chunk(
+        self, dimension: Dimension, cx: int, cz: int, chunk: Optional[Chunk]
+    ):
         """Adds the given chunk to the chunk history"""
         # If the chunk does not exist in the chunk history then add it
 
@@ -104,13 +113,13 @@ class ChunkHistoryManager:
                     # if the chunk has been deleted and the last save state was not also deleted update
                     if chunk_storage[chunk_index] is not None:
                         self._chunk_index[chunk_location] += 1
-                        del chunk_storage[chunk_index + 1:]
+                        del chunk_storage[chunk_index + 1 :]
                         chunk_storage.append(None)
                         snapshot.append(chunk_location)
                 else:
                     # updated the changed chunk
                     self._chunk_index[chunk_location] += 1
-                    del chunk_storage[chunk_index + 1:]
+                    del chunk_storage[chunk_index + 1 :]
                     chunk_storage.append(
                         self._serialise_chunk(
                             chunk, chunk_location[0], self._chunk_index[chunk_location]
@@ -121,10 +130,12 @@ class ChunkHistoryManager:
         if snapshot:
             # if there is data in the snapshot invalidate all newer snapshots and add to the database
             if self._last_save_snapshot > self._snapshot_index:
-                self._branch_save_count += self._last_save_snapshot - self._snapshot_index
+                self._branch_save_count += (
+                    self._last_save_snapshot - self._snapshot_index
+                )
                 self._last_save_snapshot = self._snapshot_index
             self._snapshot_index += 1
-            del self._snapshots[self._snapshot_index:]
+            del self._snapshots[self._snapshot_index :]
             self._snapshots.append(snapshot)
             self._last_snapshot_time = time.time()
 

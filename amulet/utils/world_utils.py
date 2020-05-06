@@ -16,9 +16,7 @@ VERSION_GZIP = 1
 VERSION_DEFLATE = 2
 
 
-def block_coords_to_chunk_coords(
-    *args: int, chunk_size: int = 16
-) -> Tuple[int, ...]:
+def block_coords_to_chunk_coords(*args: int, chunk_size: int = 16) -> Tuple[int, ...]:
     """
     Converts the supplied block coordinates into chunk coordinates
 
@@ -117,7 +115,9 @@ def to_nibble_array(arr: ndarray) -> ndarray:
     return (arr[::2] + (arr[1::2] << 4)).astype("uint8")
 
 
-def decode_long_array(long_array: numpy.ndarray, size: int, dense=True) -> numpy.ndarray:
+def decode_long_array(
+    long_array: numpy.ndarray, size: int, dense=True
+) -> numpy.ndarray:
     """
     Decode an long array (from BlockStates or Heightmaps)
     :param long_array: Encoded long array
@@ -129,13 +129,11 @@ def decode_long_array(long_array: numpy.ndarray, size: int, dense=True) -> numpy
     bits = numpy.unpackbits(long_array[::-1].astype(">i8").view("uint8"))
     if not dense:
         entry_per_long = 64 // bits_per_entry
-        bits = bits.reshape(-1, 64)[:, -entry_per_long*bits_per_entry:]
+        bits = bits.reshape(-1, 64)[:, -entry_per_long * bits_per_entry :]
 
     return numpy.packbits(
         numpy.pad(
-            bits.reshape(
-                -1, bits_per_entry
-            )[-size:, :],
+            bits.reshape(-1, bits_per_entry)[-size:, :],
             [(0, 0), (16 - bits_per_entry, 0)],
             "constant",
         )
@@ -165,14 +163,12 @@ def encode_long_array(array: numpy.ndarray, dense=True) -> numpy.ndarray:
                 "constant",
             )
         bits = numpy.pad(
-            bits.reshape(-1, bits_per_entry*entry_per_long),
-            [(0, 0), (64 - bits_per_entry*entry_per_long, 0)],
+            bits.reshape(-1, bits_per_entry * entry_per_long),
+            [(0, 0), (64 - bits_per_entry * entry_per_long, 0)],
             "constant",
         )
 
-    return numpy.packbits(
-        bits
-    ).view(dtype=">q")[::-1]
+    return numpy.packbits(bits).view(dtype=">q")[::-1]
 
 
 def get_size(obj, seen=None):

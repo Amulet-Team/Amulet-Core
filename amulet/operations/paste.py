@@ -17,15 +17,27 @@ def paste(world: "World", dimension: Dimension, structure: Structure, options: d
     copy_air = options.get("copy_air", True)
     gab = numpy.vectorize(world.palette.get_add_block)
     lut = gab(structure.palette.blocks())
-    offset = - structure.selection.min + dst_location
+    offset = -structure.selection.min + dst_location
     non_air = None
     if not copy_air:
-        non_air = numpy.array([block.namespaced_name != 'universal_minecraft:air' for block in structure.palette.blocks()])
+        non_air = numpy.array(
+            [
+                block.namespaced_name != "universal_minecraft:air"
+                for block in structure.palette.blocks()
+            ]
+        )
 
     iter_count = len(list(structure.get_moved_chunk_slices(dst_location)))
     count = 0
 
-    for src_chunk, src_slices, src_box, (dst_cx, dst_cz), dst_slices, dst_box in structure.get_moved_chunk_slices(dst_location):
+    for (
+        src_chunk,
+        src_slices,
+        src_box,
+        (dst_cx, dst_cz),
+        dst_slices,
+        dst_box,
+    ) in structure.get_moved_chunk_slices(dst_location):
         try:
             dst_chunk = world.get_chunk(dst_cx, dst_cz, dimension)
         except ChunkDoesNotExist:
@@ -39,7 +51,9 @@ def paste(world: "World", dimension: Dimension, structure: Structure, options: d
                 if copy_air:
                     remove_block_entities.append(block_entity_location)
                 else:
-                    chunk_block_entity_location = numpy.array(block_entity_location) - offset
+                    chunk_block_entity_location = (
+                        numpy.array(block_entity_location) - offset
+                    )
                     chunk_block_entity_location[[0, 2]] %= 16
                     if non_air[src_chunk.blocks[tuple(chunk_block_entity_location)]]:
                         remove_block_entities.append(block_entity_location)
@@ -47,7 +61,9 @@ def paste(world: "World", dimension: Dimension, structure: Structure, options: d
             del dst_chunk.block_entities[block_entity_location]
         for block_entity_location, block_entity in src_chunk.block_entities.items():
             if block_entity_location in src_box:
-                dst_chunk.block_entities.insert(block_entity.new_at_location(*offset + block_entity_location))
+                dst_chunk.block_entities.insert(
+                    block_entity.new_at_location(*offset + block_entity_location)
+                )
 
         if not copy_air:
             dst_blocks_copy = dst_chunk.blocks[dst_slices]

@@ -8,7 +8,7 @@ from typing import Sequence, Union
 _executable_dir = os.path.dirname(sys.executable)
 _script_base = os.path.dirname(sys.argv[0])
 _package_base = os.path.dirname(os.path.dirname(__file__))
-_program_base = os.path.abspath('.')
+_program_base = os.path.abspath(".")
 
 
 def _application_directory(

@@ -50,5 +50,7 @@ class Entity(EntityObject):
         return self._x, self._y, self._z
 
     @location.setter
-    def location(self, location: Tuple[Union[int, float], Union[int, float], Union[int, float]]):
+    def location(
+        self, location: Tuple[Union[int, float], Union[int, float], Union[int, float]]
+    ):
         self._x, self._y, self._z = location

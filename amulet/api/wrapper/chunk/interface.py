@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 class Interface:
-    def decode(self, cx: int, cz: int, data: Any) -> Tuple['Chunk', AnyNDArray]:
+    def decode(self, cx: int, cz: int, data: Any) -> Tuple["Chunk", AnyNDArray]:
         """
         Create an amulet.api.chunk.Chunk object from raw data given by the format
         :param cx: chunk x coordinate
@@ -83,7 +83,7 @@ class Interface:
                 or entity_id.value == ""
             ):
                 return
-            namespace = ''
+            namespace = ""
             base_name = entity_id.value
 
         elif id_type in ["namespace-str-identifier", "int-id"]:
@@ -100,7 +100,7 @@ class Interface:
                 entity_id = nbt.pop("id")
                 if not isinstance(entity_id, amulet_nbt.TAG_Int):
                     return
-                namespace = ''
+                namespace = ""
                 base_name = str(entity_id.value)
             else:
                 return
@@ -129,7 +129,7 @@ class Interface:
 
     def encode(
         self,
-        chunk: 'Chunk',
+        chunk: "Chunk",
         palette: AnyNDArray,
         max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
     ) -> Any:
@@ -208,7 +208,7 @@ class Interface:
         self,
         max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
         data: Any = None,
-    ) -> Tuple['Translator', Union[int, Tuple[int, int, int]]]:
+    ) -> Tuple["Translator", Union[int, Tuple[int, int, int]]]:
         """
         Get the Translator class for the requested version.
         :param max_world_version: The game version the world was last opened in.

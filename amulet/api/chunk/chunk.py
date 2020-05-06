@@ -108,13 +108,7 @@ class Chunk:
         return self._blocks
 
     @blocks.setter
-    def blocks(
-        self,
-        value: Optional[Union[
-            Dict[int, numpy.ndarray],
-            Blocks
-        ]]
-    ):
+    def blocks(self, value: Optional[Union[Dict[int, numpy.ndarray], Blocks]]):
         self._blocks = Blocks(value)
 
     @property

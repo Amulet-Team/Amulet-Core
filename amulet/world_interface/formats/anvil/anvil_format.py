@@ -14,11 +14,7 @@ import amulet_nbt as nbt
 from amulet.world_interface.formats import WorldFormatWrapper
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, load_leveldat
-from amulet.api.errors import (
-    ChunkDoesNotExist,
-    LevelDoesNotExist,
-    ChunkLoadError
-)
+from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist, ChunkLoadError
 
 if TYPE_CHECKING:
     from amulet.api.data_types import Dimension
@@ -62,7 +58,9 @@ class AnvilRegion:
             file_size = os.path.getsize(self._file_path)
             if file_size > 4096 * 2:
                 with open(self._file_path, "rb") as fp:
-                    offsets = numpy.fromfile(fp, dtype=">u4", count=1024).reshape(32, 32)
+                    offsets = numpy.fromfile(fp, dtype=">u4", count=1024).reshape(
+                        32, 32
+                    )
                     for x in range(32):
                         for z in range(32):
                             offset = offsets[z, x]
@@ -337,7 +335,7 @@ class AnvilFormat(WorldFormatWrapper):
         self.root_tag: nbt.NBTFile = nbt.NBTFile()
         self._load_level_dat()
         self._levels: Dict[InternalDimension, AnvilLevelManager] = {}
-        self._dimension_name_map: Dict['Dimension', InternalDimension] = {}
+        self._dimension_name_map: Dict["Dimension", InternalDimension] = {}
         self._mcc_support: Optional[bool] = None
         self._lock = None
 
@@ -379,7 +377,11 @@ class AnvilFormat(WorldFormatWrapper):
         return "java"
 
     def _get_version(self) -> int:
-        return self.root_tag.get("Data", nbt.TAG_Compound()).get("DataVersion", nbt.TAG_Int(-1)).value
+        return (
+            self.root_tag.get("Data", nbt.TAG_Compound())
+            .get("DataVersion", nbt.TAG_Int(-1))
+            .value
+        )
 
     @property
     def world_name(self) -> str:
@@ -402,11 +404,15 @@ class AnvilFormat(WorldFormatWrapper):
             return f"Java Unknown Version"
 
     @property
-    def dimensions(self) -> List['Dimension']:
+    def dimensions(self) -> List["Dimension"]:
         """A list of all the levels contained in the world"""
         return list(self._dimension_name_map.keys())
 
-    def register_dimension(self, dimension_internal: InternalDimension, dimension_name: Optional['Dimension'] = None):
+    def register_dimension(
+        self,
+        dimension_internal: InternalDimension,
+        dimension_name: Optional["Dimension"] = None,
+    ):
         """
         Register a new dimension.
         :param dimension_internal: The internal representation of the dimension
@@ -414,15 +420,20 @@ class AnvilFormat(WorldFormatWrapper):
         :return:
         """
         if dimension_name is None:
-            dimension_name: 'Dimension' = dimension_internal
+            dimension_name: "Dimension" = dimension_internal
 
         if dimension_internal:
             path = os.path.join(self.path, dimension_internal)
         else:
             path = self.path
 
-        if dimension_internal not in self._levels and dimension_name not in self._dimension_name_map:
-            self._levels[dimension_internal] = AnvilLevelManager(path, mcc=self._mcc_support)
+        if (
+            dimension_internal not in self._levels
+            and dimension_name not in self._dimension_name_map
+        ):
+            self._levels[dimension_internal] = AnvilLevelManager(
+                path, mcc=self._mcc_support
+            )
             self._dimension_name_map[dimension_name] = dimension_internal
 
     def _get_interface_key(self, raw_chunk_data) -> Tuple[str, int]:
@@ -485,33 +496,40 @@ class AnvilFormat(WorldFormatWrapper):
         for level in self._levels.values():
             level.unload()
 
-    def _has_dimension(self, dimension: 'Dimension'):
-        return dimension in self._dimension_name_map and self._dimension_name_map[dimension] in self._levels
+    def _has_dimension(self, dimension: "Dimension"):
+        return (
+            dimension in self._dimension_name_map
+            and self._dimension_name_map[dimension] in self._levels
+        )
 
-    def _get_dimension(self, dimension: 'Dimension'):
+    def _get_dimension(self, dimension: "Dimension"):
         self._verify_has_lock()
         if self._has_dimension(dimension):
             return self._levels[self._dimension_name_map[dimension]]
         else:
             raise LevelDoesNotExist(dimension)
 
-    def all_chunk_coords(self, dimension: 'Dimension') -> Generator[Tuple[int, int], None, None]:
+    def all_chunk_coords(
+        self, dimension: "Dimension"
+    ) -> Generator[Tuple[int, int], None, None]:
         """A generator of all chunk coords in the given dimension"""
         if self._has_dimension(dimension):
             yield from self._get_dimension(dimension).all_chunk_coords()
 
-    def delete_chunk(self, cx: int, cz: int, dimension: 'Dimension'):
+    def delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
         """Delete a chunk from a given dimension"""
         if self._has_dimension(dimension):
             self._get_dimension(dimension).delete_chunk(cx, cz)
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: 'Dimension'):
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: "Dimension"):
         """
         Actually stores the data from the interface to disk.
         """
         self._get_dimension(dimension).put_chunk_data(cx, cz, data)
 
-    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: 'Dimension') -> nbt.NBTFile:
+    def _get_raw_chunk_data(
+        self, cx: int, cz: int, dimension: "Dimension"
+    ) -> nbt.NBTFile:
         """
         Return the interface key and data to interface with given chunk coordinates.
 

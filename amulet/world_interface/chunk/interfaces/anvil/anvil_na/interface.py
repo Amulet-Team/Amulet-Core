@@ -87,21 +87,25 @@ class AnvilNAInterface(BaseAnvilInterface):
             palette.append(section_palette)
 
         if palette:
-            final_palette, lut = numpy.unique(numpy.concatenate(palette), return_inverse=True)
-            final_palette: numpy.ndarray = numpy.array([final_palette >> 4, final_palette & 15]).T
+            final_palette, lut = numpy.unique(
+                numpy.concatenate(palette), return_inverse=True
+            )
+            final_palette: numpy.ndarray = numpy.array(
+                [final_palette >> 4, final_palette & 15]
+            ).T
             for cy in blocks:
                 blocks[cy] = lut[blocks[cy]]
         else:
             final_palette = numpy.array([], dtype=numpy.object)
         return blocks, final_palette
 
-    def _encode_blocks(
-        self, blocks: 'Blocks', palette: AnyNDArray
-    ) -> nbt.TAG_List:
+    def _encode_blocks(self, blocks: "Blocks", palette: AnyNDArray) -> nbt.TAG_List:
         sections = nbt.TAG_List()
         for cy in range(16):  # perhaps find a way to do this dynamically
             if cy in blocks:
-                block_sub_array = palette[numpy.transpose(blocks.get_sub_chunk(cy), (1, 2, 0)).ravel()]
+                block_sub_array = palette[
+                    numpy.transpose(blocks.get_sub_chunk(cy), (1, 2, 0)).ravel()
+                ]
 
                 data_sub_array = block_sub_array[:, 1]
                 block_sub_array = block_sub_array[:, 0]

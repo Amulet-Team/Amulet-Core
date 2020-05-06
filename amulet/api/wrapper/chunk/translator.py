@@ -53,9 +53,7 @@ class Translator:
     def _translate(
         chunk: Chunk,
         palette: BlockNDArray,
-        get_chunk_callback: Optional[
-            GetChunkCallback
-        ],
+        get_chunk_callback: Optional[GetChunkCallback],
         translate_block: TranslateBlockCallback,
         translate_entity: TranslateEntityCallback,
         full_translate: bool,
@@ -81,17 +79,23 @@ class Translator:
                 palette_mappings[i] = finished.get_add_block(output_block)
                 if output_block_entity is not None:
                     for cy in chunk.blocks.sub_chunks:
-                        for x, y, z in zip(*numpy.where(chunk.blocks.get_sub_chunk(cy) == i)):
-                            output_block_entities.append(output_block_entity.new_at_location(
-                                x + chunk.cx * 16, y + cy * 16, z + chunk.cz * 16
-                            ))
+                        for x, y, z in zip(
+                            *numpy.where(chunk.blocks.get_sub_chunk(cy) == i)
+                        ):
+                            output_block_entities.append(
+                                output_block_entity.new_at_location(
+                                    x + chunk.cx * 16, y + cy * 16, z + chunk.cz * 16
+                                )
+                            )
             else:
                 # TODO: set the block to air
                 pass
 
             if output_entity and entity_support:
                 for cy in chunk.blocks.sub_chunks:
-                    for x, y, z in zip(*numpy.where(chunk.blocks.get_sub_chunk(cy) == i)):
+                    for x, y, z in zip(
+                        *numpy.where(chunk.blocks.get_sub_chunk(cy) == i)
+                    ):
                         x += chunk.cx * 16
                         y += cy * 16
                         z += chunk.cz * 16
@@ -104,7 +108,9 @@ class Translator:
         block_mappings = {}
         for index in todo:
             for cy in chunk.blocks.sub_chunks:
-                for x, y, z in zip(*numpy.where(chunk.blocks.get_sub_chunk(cy) == index)):
+                for x, y, z in zip(
+                    *numpy.where(chunk.blocks.get_sub_chunk(cy) == index)
+                ):
                     y += cy * 16
 
                     def get_block_at(
@@ -129,7 +135,10 @@ class Translator:
                         if cx == 0 and cz == 0:
                             # if it is the current chunk
                             block = palette[chunk.blocks[dx, dy, dz]]
-                            return block, chunk.block_entities.get((abs_x, abs_y, abs_z))
+                            return (
+                                block,
+                                chunk.block_entities.get((abs_x, abs_y, abs_z)),
+                            )
 
                         # if it is in a different chunk
                         local_chunk, local_palette = get_chunk_callback(cx, cz)
@@ -140,15 +149,20 @@ class Translator:
                         )
 
                     input_block = palette[chunk.blocks[x, y, z]]
-                    output_block, output_block_entity, output_entity, _ = translate_block(
-                        input_block, get_block_at
-                    )
+                    (
+                        output_block,
+                        output_block_entity,
+                        output_entity,
+                        _,
+                    ) = translate_block(input_block, get_block_at)
                     if output_block is not None:
                         block_mappings[(x, y, z)] = finished.get_add_block(output_block)
                         if output_block_entity is not None:
-                            output_block_entities.append(output_block_entity.new_at_location(
-                                x + chunk.cx * 16, y, z + chunk.cz * 16
-                            ))
+                            output_block_entities.append(
+                                output_block_entity.new_at_location(
+                                    x + chunk.cx * 16, y, z + chunk.cz * 16
+                                )
+                            )
                     else:
                         # TODO: set the block to air
                         pass
@@ -161,12 +175,20 @@ class Translator:
 
         if entity_support:
             for entity in chunk.entities:
-                output_block, output_block_entity, output_entity = translate_entity(entity)
+                output_block, output_block_entity, output_entity = translate_entity(
+                    entity
+                )
                 if output_block is not None:
-                    block_location = (int(math.floor(entity.x)), int(math.floor(entity.y)), int(math.floor(entity.z)))
+                    block_location = (
+                        int(math.floor(entity.x)),
+                        int(math.floor(entity.y)),
+                        int(math.floor(entity.z)),
+                    )
                     block_mappings[block_location] = output_block
                     if output_block_entity:
-                        output_block_entities.append(output_block_entity.new_at_location(*block_location))
+                        output_block_entities.append(
+                            output_block_entity.new_at_location(*block_location)
+                        )
                 if output_entity:
                     for e in output_entity:
                         e.location = entity.location
@@ -187,7 +209,7 @@ class Translator:
     def to_universal(
         self,
         chunk_version: Union[int, Tuple[int, int, int]],
-        translation_manager: 'TranslationManager',
+        translation_manager: "TranslationManager",
         chunk: Chunk,
         palette: BlockNDArray,
         get_chunk_callback: Optional[GetChunkCallback],
@@ -207,8 +229,7 @@ class Translator:
         version = translation_manager.get_version(*self._translator_key(chunk_version))
 
         def translate_block(
-            input_object: Block,
-            get_block_callback: Optional[GetBlockCallback],
+            input_object: Block, get_block_callback: Optional[GetBlockCallback],
         ) -> TranslateBlockCallbackReturn:
             final_block = None
             final_block_entity = None
@@ -242,9 +263,7 @@ class Translator:
 
             return final_block, final_block_entity, final_entities, final_extra
 
-        def translate_entity(
-            input_object: Entity
-        ) -> TranslateEntityCallbackReturn:
+        def translate_entity(input_object: Entity) -> TranslateEntityCallbackReturn:
             final_block = None
             final_block_entity = None
             final_entities = []
@@ -253,13 +272,18 @@ class Translator:
 
         chunk.biomes = self._biomes_to_universal(version, chunk.biomes)
         return self._translate(
-            chunk, palette, get_chunk_callback, translate_block, translate_entity, full_translate
+            chunk,
+            palette,
+            get_chunk_callback,
+            translate_block,
+            translate_entity,
+            full_translate,
         )
 
     def from_universal(
         self,
         max_world_version_number: Union[int, Tuple[int, int, int]],
-        translation_manager: 'TranslationManager',
+        translation_manager: "TranslationManager",
         chunk: Chunk,
         palette: BlockNDArray,
         get_chunk_callback: Optional[GetChunkCallback],
@@ -282,8 +306,7 @@ class Translator:
 
         # TODO: perhaps find a way so this code isn't duplicated in three places
         def translate_block(
-            input_object: Block,
-            get_block_callback: Optional[GetBlockCallback],
+            input_object: Block, get_block_callback: Optional[GetBlockCallback],
         ) -> TranslateBlockCallbackReturn:
             final_block = None
             final_block_entity = None
@@ -298,9 +321,7 @@ class Translator:
                 ) = version.block.from_universal(block, get_block_callback)
 
                 if isinstance(output_object, Block):
-                    if __debug__ and output_object.namespace.startswith(
-                        "universal"
-                    ):
+                    if __debug__ and output_object.namespace.startswith("universal"):
                         log.debug(
                             f"Error translating {input_object.blockstate} from universal. Got {output_object.blockstate}"
                         )
@@ -319,9 +340,7 @@ class Translator:
 
             return final_block, final_block_entity, final_entities, final_extra
 
-        def translate_entity(
-            input_object: Entity
-        ) -> TranslateEntityCallbackReturn:
+        def translate_entity(input_object: Entity) -> TranslateEntityCallbackReturn:
             final_block = None
             final_block_entity = None
             final_entities = []
@@ -329,13 +348,18 @@ class Translator:
             return final_block, final_block_entity, final_entities
 
         chunk, palette = self._translate(
-            chunk, palette, get_chunk_callback, translate_block, translate_entity, full_translate
+            chunk,
+            palette,
+            get_chunk_callback,
+            translate_block,
+            translate_entity,
+            full_translate,
         )
         chunk.biomes = self._biomes_from_universal(version, chunk.biomes)
         return chunk, palette
 
     @staticmethod
-    def _biomes_to_universal(translator_version: 'Version', biome_array):
+    def _biomes_to_universal(translator_version: "Version", biome_array):
         biome_palette, biome_compact_array = numpy.unique(
             biome_array, return_inverse=True
         )
@@ -345,7 +369,7 @@ class Translator:
         return universal_biome_palette[biome_compact_array]
 
     @staticmethod
-    def _biomes_from_universal(translator_version: 'Version', biome_array):
+    def _biomes_from_universal(translator_version: "Version", biome_array):
         biome_palette, biome_compact_array = numpy.unique(
             biome_array, return_inverse=True
         )
@@ -355,11 +379,11 @@ class Translator:
         return universal_biome_palette[biome_compact_array]
 
     def unpack(
-            self,
-            chunk_version: Union[int, Tuple[int, int, int]],
-            translation_manager: 'TranslationManager',
-            chunk: Chunk,
-            palette: AnyNDArray
+        self,
+        chunk_version: Union[int, Tuple[int, int, int]],
+        translation_manager: "TranslationManager",
+        chunk: Chunk,
+        palette: AnyNDArray,
     ) -> Tuple[Chunk, AnyNDArray]:
         """
         Unpack the version-specific palette into the stringified version where needed.
@@ -370,9 +394,7 @@ class Translator:
         palette = self._unpack_palette(version, palette)
         return chunk, palette
 
-    def _unpack_palette(
-        self, version: 'Version', palette: AnyNDArray
-    ) -> BlockNDArray:
+    def _unpack_palette(self, version: "Version", palette: AnyNDArray) -> BlockNDArray:
         """
         Unpack the version-specific palette into the stringified version where needed.
         :return: The palette converted to block objects.
@@ -380,11 +402,11 @@ class Translator:
         return palette
 
     def pack(
-            self,
-            max_world_version_number: Union[int, Tuple[int, int, int]],
-            translation_manager: 'TranslationManager',
-            chunk: Chunk,
-            palette: BlockNDArray
+        self,
+        max_world_version_number: Union[int, Tuple[int, int, int]],
+        translation_manager: "TranslationManager",
+        chunk: Chunk,
+        palette: BlockNDArray,
     ) -> Tuple[Chunk, AnyNDArray]:
         """
         Translate the list of block objects into a version-specific palette.
@@ -396,7 +418,7 @@ class Translator:
         palette = self._pack_palette(version, palette)
         return chunk, palette
 
-    def _pack_palette(self, version: 'Version', palette: BlockNDArray) -> AnyNDArray:
+    def _pack_palette(self, version: "Version", palette: BlockNDArray) -> AnyNDArray:
         """
         Translate the list of block objects into a version-specific palette.
         :return: The palette converted into version-specific blocks (ie id, data tuples for 1.12)

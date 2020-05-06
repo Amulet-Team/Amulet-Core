@@ -36,7 +36,10 @@ class BaseStructure:
         raise NotImplementedError
 
     def _chunk_box(
-        self, cx: int, cz: int, chunk_size: Optional[Tuple[int, Union[int, None], int]] = None
+        self,
+        cx: int,
+        cz: int,
+        chunk_size: Optional[Tuple[int, Union[int, None], int]] = None,
     ):
         """Get a SelectionBox containing the whole of a given chunk"""
         if chunk_size is None:
@@ -50,9 +53,7 @@ class BaseStructure:
 
     def get_chunk_slices(
         self, *args, **kwargs
-    ) -> Generator[
-        Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None
-    ]:
+    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None]:
         raise NotImplementedError
 
 
@@ -61,7 +62,9 @@ class World(BaseStructure):
     Class that handles world editing of any world format via an separate and flexible data format
     """
 
-    def __init__(self, directory: str, world_wrapper: 'WorldFormatWrapper', temp_dir: str = None):
+    def __init__(
+        self, directory: str, world_wrapper: "WorldFormatWrapper", temp_dir: str = None
+    ):
         self._directory = directory
         if temp_dir is None:
             self._temp_directory = get_temp_dir(self._directory)
@@ -109,12 +112,12 @@ class World(BaseStructure):
         return self._world_wrapper.chunk_size
 
     @property
-    def translation_manager(self) -> 'TranslationManager':
+    def translation_manager(self) -> "TranslationManager":
         """An instance of the translation class for use with this world."""
         return self._world_wrapper.translation_manager
 
     @property
-    def world_wrapper(self) -> 'WorldFormatWrapper':
+    def world_wrapper(self) -> "WorldFormatWrapper":
         """A class to access data directly from the world."""
         return self._world_wrapper
 
@@ -125,7 +128,7 @@ class World(BaseStructure):
 
     def save(
         self,
-        wrapper: 'WorldFormatWrapper' = None,
+        wrapper: "WorldFormatWrapper" = None,
         progress_callback: Callable[[int, int], None] = None,
     ):
         """Save the world using the given wrapper.
@@ -136,8 +139,7 @@ class World(BaseStructure):
                 progress_callback(chunk_index, chunk_count)
 
     def save_iter(
-        self,
-        wrapper: 'WorldFormatWrapper' = None
+        self, wrapper: "WorldFormatWrapper" = None
     ) -> Generator[Tuple[int, int], None, None]:
         """Save the world using the given wrapper.
         Leave as None to save back to the input wrapper."""
@@ -323,9 +325,7 @@ class World(BaseStructure):
         selection: Union[SelectionGroup, SelectionBox],
         dimension: Dimension,
         create_missing_chunks=False,
-    ) -> Generator[
-        Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None
-    ]:
+    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None]:
         """Given a selection will yield chunks, slices into that chunk and the corresponding box
 
         :param selection: SelectionGroup or SelectionBox into the world
@@ -421,11 +421,7 @@ class World(BaseStructure):
     #         chunk.entities = entities
 
     def run_operation(
-        self,
-        operation: OperationType,
-        dimension: Dimension,
-        *args,
-        create_undo=True
+        self, operation: OperationType, dimension: Dimension, *args, create_undo=True
     ) -> Any:
         try:
             out = operation(self, dimension, *args)

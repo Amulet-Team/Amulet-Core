@@ -79,8 +79,12 @@ class Structure(BaseStructure):
             selection = self.selection.intersection(selection)
         selection: SelectionGroup
         for box in selection.selection_boxes:
-            first_chunk = block_coords_to_chunk_coords(box.min_x, box.min_z, chunk_size=self.chunk_size[0])
-            last_chunk = block_coords_to_chunk_coords(box.max_x - 1, box.max_z - 1, chunk_size=self.chunk_size[0])
+            first_chunk = block_coords_to_chunk_coords(
+                box.min_x, box.min_z, chunk_size=self.chunk_size[0]
+            )
+            last_chunk = block_coords_to_chunk_coords(
+                box.max_x - 1, box.max_z - 1, chunk_size=self.chunk_size[0]
+            )
             for cx, cz in itertools.product(
                 range(first_chunk[0], last_chunk[0] + 1),
                 range(first_chunk[1], last_chunk[1] + 1),
@@ -94,9 +98,7 @@ class Structure(BaseStructure):
 
     def get_chunk_slices(
         self, selection: Optional[Union[SelectionGroup, SelectionBox]] = None
-    ) -> Generator[
-        Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None
-    ]:
+    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None]:
         """Given a selection will yield chunks and slices into that chunk
 
         :param selection: SelectionGroup or SelectionBox into the world
@@ -145,17 +147,17 @@ class Structure(BaseStructure):
         # the offset from self.selection to the destination location
         offset = numpy.subtract(destination_origin, self.selection.min, dtype=numpy.int)
         for chunk, box in self.get_chunk_boxes(selection):
-            dst_full_box = SelectionBox(offset + box.min, offset + box.max, )
+            dst_full_box = SelectionBox(offset + box.min, offset + box.max,)
 
             first_chunk = block_coords_to_chunk_coords(
                 dst_full_box.min_x,
                 dst_full_box.min_z,
-                chunk_size=destination_chunk_shape[0]
+                chunk_size=destination_chunk_shape[0],
             )
             last_chunk = block_coords_to_chunk_coords(
                 dst_full_box.max_x - 1,
                 dst_full_box.max_z - 1,
-                chunk_size=destination_chunk_shape[0]
+                chunk_size=destination_chunk_shape[0],
             )
             for cx, cz in itertools.product(
                 range(first_chunk[0], last_chunk[0] + 1),

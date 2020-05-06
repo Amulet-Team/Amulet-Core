@@ -11,7 +11,9 @@ if TYPE_CHECKING:
     from amulet.api.world import World
 
 
-def replace(world: "World", dimension: Dimension, selection: SelectionGroup, options: dict):
+def replace(
+    world: "World", dimension: Dimension, selection: SelectionGroup, options: dict
+):
     original_blocks = options.get("original_blocks", None)
     if not isinstance(original_blocks, list) and all(
         isinstance(block, Block) for block in original_blocks

@@ -28,7 +28,7 @@ class JavaBlockstateTranslator(Translator):
         return True
 
     def _unpack_palette(
-        self, version: 'Version', palette: numpy.ndarray
+        self, version: "Version", palette: numpy.ndarray
     ) -> numpy.ndarray:
         """
         Unpack the version-specific palette into the stringified version where needed.
@@ -59,7 +59,9 @@ class JavaBlockstateTranslator(Translator):
 
         return palette
 
-    def _pack_palette(self, version: 'Version', palette: numpy.ndarray) -> numpy.ndarray:
+    def _pack_palette(
+        self, version: "Version", palette: numpy.ndarray
+    ) -> numpy.ndarray:
         """
         Translate the list of block objects into a version-specific palette.
         :return: The palette converted into version-specific blocks (ie id, data tuples for 1.12)

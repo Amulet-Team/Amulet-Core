@@ -1,4 +1,5 @@
 from typing import Any, Union, Generator, Callable, Tuple, Optional, TYPE_CHECKING, List
+
 # from nptyping import NDArray
 import numpy
 
@@ -23,24 +24,22 @@ VersionNumberInt = int
 VersionNumberTuple = Tuple[int, int, int]
 VersionNumberAny = Union[VersionNumberInt, VersionNumberTuple]
 
-GetChunkCallback = Callable[[int, int], Tuple['Chunk', BlockNDArray]]
+GetChunkCallback = Callable[[int, int], Tuple["Chunk", BlockNDArray]]
 
 GetBlockCallback = Callable[  # get a block at a different location
-    [
-        BlockCoordinates
-    ],  # this takes the coordinates relative to the block in question
+    [BlockCoordinates],  # this takes the coordinates relative to the block in question
     Tuple[
-        'Block', Optional['BlockEntity']
+        "Block", Optional["BlockEntity"]
     ],  # and returns a new block and optionally a block entity
 ]
-BlockType = 'Block'
+BlockType = "Block"
 
 TranslateBlockCallbackReturn = Tuple[
-    Optional['Block'], Optional['BlockEntity'], List['Entity'], bool
+    Optional["Block"], Optional["BlockEntity"], List["Entity"], bool
 ]
 
 TranslateEntityCallbackReturn = Tuple[
-    Optional['Block'], Optional['BlockEntity'], List['Entity']
+    Optional["Block"], Optional["BlockEntity"], List["Entity"]
 ]
 
 TranslateBlockCallback = Callable[
@@ -54,24 +53,12 @@ TranslateBlockCallback = Callable[
 ]
 
 TranslateEntityCallback = Callable[
-    [  # a callable
-        'Entity'  # that takes either an Entity
-    ],
+    ["Entity"],  # a callable  # that takes either an Entity
     TranslateEntityCallbackReturn,  # ultimately return the converted objects(s)
 ]
 
 
 # Operation types
 OperationYieldType = Union[int, float, Tuple[Union[int, float], str]]
-OperationReturnType = Union[
-    Generator[
-        OperationYieldType,
-        None,
-        Any
-    ],
-    Any
-]
-OperationType = Callable[
-    ["World", Dimension, Any],
-    OperationReturnType
-]
+OperationReturnType = Union[Generator[OperationYieldType, None, Any], Any]
+OperationType = Callable[["World", Dimension, Any], OperationReturnType]

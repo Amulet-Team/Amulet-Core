@@ -15,16 +15,18 @@ import numpy
 INT_TRIPLET = Tuple[int, int, int]
 
 INT_STRUCT = struct.Struct(">I")
-SECTION_ENTRY_TYPE = numpy.dtype([
-    ('sx', 'i4'),
-    ('sy', 'i4'),
-    ('sz', 'i4'),
-    ('shapex', 'i1'),
-    ('shapey', 'i1'),
-    ('shapez', 'i1'),
-    ('position', 'i4'),
-    ('length', 'i4')
-])
+SECTION_ENTRY_TYPE = numpy.dtype(
+    [
+        ("sx", "i4"),
+        ("sy", "i4"),
+        ("sz", "i4"),
+        ("shapex", "i1"),
+        ("shapey", "i1"),
+        ("shapez", "i1"),
+        ("position", "i4"),
+        ("length", "i4"),
+    ]
+)
 
 magic_num = b"constrct"
 magic_num_len = len(magic_num)
@@ -34,7 +36,16 @@ max_section_version = 0
 
 
 class ConstructionSection:
-    __slots__ = ("sx", "sy", "sz", "blocks", "palette", "shape", "entities", "block_entities")
+    __slots__ = (
+        "sx",
+        "sy",
+        "sz",
+        "blocks",
+        "palette",
+        "shape",
+        "entities",
+        "block_entities",
+    )
 
     def __init__(
         self,
@@ -49,7 +60,9 @@ class ConstructionSection:
         self.shape = shape
         self.blocks = blocks
         if blocks is not None:
-            assert self.shape == self.blocks.shape, 'blocks shape does not match the specified section shape'
+            assert (
+                self.shape == self.blocks.shape
+            ), "blocks shape does not match the specified section shape"
         self.palette = palette
         self.entities = entities
         self.block_entities = block_entities
@@ -72,27 +85,32 @@ class ConstructionSection:
 
 
 class ConstructionReader:
-    def __init__(
-        self,
-        file_or_buffer: Union[str, IO]
-    ):
+    def __init__(self, file_or_buffer: Union[str, IO]):
         self._format_version: Optional[int] = None
         self._section_version: Optional[int] = None
 
         if isinstance(file_or_buffer, str):
-            assert os.path.isfile(file_or_buffer), f'There is no file located at {file_or_buffer}'
+            assert os.path.isfile(
+                file_or_buffer
+            ), f"There is no file located at {file_or_buffer}"
             self._buffer = open(file_or_buffer, "rb")
         else:
-            assert hasattr(file_or_buffer, "read"), "Construction file buffer does not have a read mode"
+            assert hasattr(
+                file_or_buffer, "read"
+            ), "Construction file buffer does not have a read mode"
             self._buffer = file_or_buffer
 
         self._source_edition: Optional[str] = None
         self._source_version: Optional[INT_TRIPLET] = None
 
-        self._selection_boxes: Optional[List[Tuple[int, int, int, int, int, int]]] = None
+        self._selection_boxes: Optional[
+            List[Tuple[int, int, int, int, int, int]]
+        ] = None
 
         self._metadata: Optional[amulet_nbt.NBTFile] = None
-        self._section_index_table: Optional[List[Tuple[int, int, int, int, int, int, int, int]]] = None
+        self._section_index_table: Optional[
+            List[Tuple[int, int, int, int, int, int, int, int]]
+        ] = None
         self._palette: Optional[List[Block]] = None
         self._init_read()
 
@@ -158,12 +176,14 @@ class ConstructionReader:
     def _init_read(self):
         """data to be read at init in read mode"""
         magic_num_1 = self._buffer.read(8)
-        assert magic_num_1 == magic_num, f'This file is not a construction file.'
+        assert magic_num_1 == magic_num, f"This file is not a construction file."
         self._format_version = struct.unpack(">B", self._buffer.read(1))[0]
         if self._format_version == 0:
             self._buffer.seek(-magic_num_len, os.SEEK_END)
             magic_num_2 = self._buffer.read(8)
-            assert magic_num_2 == magic_num, 'It looks like this file is corrupt. It probably wasn\'t saved properly'
+            assert (
+                magic_num_2 == magic_num
+            ), "It looks like this file is corrupt. It probably wasn't saved properly"
 
             self._buffer.seek(-magic_num_len - INT_STRUCT.size, os.SEEK_END)
             metadata_end = self._buffer.tell()
@@ -189,12 +209,18 @@ class ConstructionReader:
 
             self._palette = self._unpack_palette(metadata["block_palette"])
 
-            self._selection_boxes = metadata["selection_boxes"].value.reshape(-1, 6).tolist()
+            self._selection_boxes = (
+                metadata["selection_boxes"].value.reshape(-1, 6).tolist()
+            )
 
-            self._section_index_table = metadata["section_index_table"].value.view(SECTION_ENTRY_TYPE).tolist()
+            self._section_index_table = (
+                metadata["section_index_table"].value.view(SECTION_ENTRY_TYPE).tolist()
+            )
 
         else:
-            raise Exception(f"This wrapper doesn\'t support any construction version higher than {max_format_version}")
+            raise Exception(
+                f"This wrapper doesn't support any construction version higher than {max_format_version}"
+            )
 
     @staticmethod
     def _parse_entities(entities: amulet_nbt.TAG_List) -> List[Entity]:
@@ -206,7 +232,8 @@ class ConstructionReader:
                 entity["y"].value,
                 entity["z"].value,
                 amulet_nbt.NBTFile(entity["nbt"]),
-            ) for entity in entities
+            )
+            for entity in entities
         ]
 
     @staticmethod
@@ -219,19 +246,31 @@ class ConstructionReader:
                 block_entity["y"].value,
                 block_entity["z"].value,
                 amulet_nbt.NBTFile(block_entity["nbt"]),
-            ) for block_entity in block_entities
+            )
+            for block_entity in block_entities
         ]
 
     def read(self, section_index: int):
         if self._format_version == 0:
-            sx, sy, sz, shapex, shapey, shapez, position, length = self._section_index_table[section_index]
+            (
+                sx,
+                sy,
+                sz,
+                shapex,
+                shapey,
+                shapez,
+                position,
+                length,
+            ) = self._section_index_table[section_index]
             self._buffer.seek(position)
             nbt_obj = amulet_nbt.load(buffer=self._buffer.read(length))
             if nbt_obj["blocks_array_type"].value == -1:
                 blocks = None
                 block_entities = None
             else:
-                blocks = numpy.reshape(nbt_obj["blocks"].value, (shapex, shapey, shapez))
+                blocks = numpy.reshape(
+                    nbt_obj["blocks"].value, (shapex, shapey, shapez)
+                )
                 block_entities = self._parse_block_entities(nbt_obj["block_entities"])
 
             return ConstructionSection(
@@ -243,7 +282,9 @@ class ConstructionReader:
                 block_entities,
             )
         else:
-            raise Exception(f"This wrapper doesn\'t support any construction version higher than {max_format_version}")
+            raise Exception(
+                f"This wrapper doesn't support any construction version higher than {max_format_version}"
+            )
 
     def close(self):
         self._buffer.close()
@@ -257,17 +298,23 @@ class ConstructionWriter:
         source_version: INT_TRIPLET,
         selection_boxes: Optional[List[Tuple[int, int, int, int, int, int]]] = None,
         format_version: int = max_format_version,
-        section_version: int = max_section_version
+        section_version: int = max_section_version,
     ):
-        assert format_version <= max_format_version, f'This construction writer does not support format versions above {max_format_version}'
-        assert section_version <= max_section_version, f'This construction writer does not support section versions above {max_section_version}'
+        assert (
+            format_version <= max_format_version
+        ), f"This construction writer does not support format versions above {max_format_version}"
+        assert (
+            section_version <= max_section_version
+        ), f"This construction writer does not support section versions above {max_section_version}"
         self._format_version = format_version
         self._section_version = section_version
 
         if isinstance(file_or_buffer, str):
             self._buffer = open(file_or_buffer, "wb")
         else:
-            assert hasattr(file_or_buffer, "write"), "Construction file buffer does not have a write mode"
+            assert hasattr(
+                file_or_buffer, "write"
+            ), "Construction file buffer does not have a write mode"
             self._buffer = file_or_buffer
 
         self._source_edition = source_edition
@@ -276,7 +323,9 @@ class ConstructionWriter:
         self._selection_boxes = selection_boxes or []
 
         self._metadata: Optional[amulet_nbt.NBTFile] = None
-        self._section_index_table: List[Tuple[int, int, int, int, int, int, int, int]] = []
+        self._section_index_table: List[
+            Tuple[int, int, int, int, int, int, int, int]
+        ] = []
         self._palette: BlockManager = BlockManager()
         self._init_write()
 
@@ -295,13 +344,24 @@ class ConstructionWriter:
                 amulet_nbt.TAG_Compound(
                     {
                         "created_with": amulet_nbt.TAG_String("amulet_python_wrapper"),
-                        "selection_boxes": amulet_nbt.TAG_Int_Array([c for box in self._selection_boxes if len(box) == 6 and all(isinstance(c, int) for c in box) for c in box]),
+                        "selection_boxes": amulet_nbt.TAG_Int_Array(
+                            [
+                                c
+                                for box in self._selection_boxes
+                                if len(box) == 6
+                                and all(isinstance(c, int) for c in box)
+                                for c in box
+                            ]
+                        ),
                         "section_version": amulet_nbt.TAG_Byte(self._section_version),
                         "export_version": amulet_nbt.TAG_Compound(
                             {
                                 "edition": amulet_nbt.TAG_String(self._source_edition),
                                 "version": amulet_nbt.TAG_List(
-                                    [amulet_nbt.TAG_Int(v) for v in self._source_version]
+                                    [
+                                        amulet_nbt.TAG_Int(v)
+                                        for v in self._source_version
+                                    ]
                                 ),
                             }
                         ),
@@ -309,11 +369,13 @@ class ConstructionWriter:
                 )
             )
         else:
-            raise Exception(f"This wrapper doesn\'t support any construction version higher than {max_format_version}")
+            raise Exception(
+                f"This wrapper doesn't support any construction version higher than {max_format_version}"
+            )
 
     @staticmethod
     def _generate_block_entry(
-            _block: Block, _palette_len, _extra_blocks
+        _block: Block, _palette_len, _extra_blocks
     ) -> amulet_nbt.TAG_Compound:
         return amulet_nbt.TAG_Compound(
             {
@@ -333,29 +395,41 @@ class ConstructionWriter:
 
     @staticmethod
     def _serialise_entities(entities: List[Entity]) -> amulet_nbt.TAG_List:
-        return amulet_nbt.TAG_List([
-            amulet_nbt.TAG_Compound({
-                "namespace": amulet_nbt.TAG_String(entity.namespace),
-                "base_name": amulet_nbt.TAG_String(entity.base_name),
-                "x": amulet_nbt.TAG_Double(entity.x),
-                "y": amulet_nbt.TAG_Double(entity.y),
-                "z": amulet_nbt.TAG_Double(entity.z),
-                "nbt": entity.nbt.value
-            }) for entity in entities
-        ])
+        return amulet_nbt.TAG_List(
+            [
+                amulet_nbt.TAG_Compound(
+                    {
+                        "namespace": amulet_nbt.TAG_String(entity.namespace),
+                        "base_name": amulet_nbt.TAG_String(entity.base_name),
+                        "x": amulet_nbt.TAG_Double(entity.x),
+                        "y": amulet_nbt.TAG_Double(entity.y),
+                        "z": amulet_nbt.TAG_Double(entity.z),
+                        "nbt": entity.nbt.value,
+                    }
+                )
+                for entity in entities
+            ]
+        )
 
     @staticmethod
-    def _serialise_block_entities(block_entities: List[BlockEntity]) -> amulet_nbt.TAG_List:
-        return amulet_nbt.TAG_List([
-            amulet_nbt.TAG_Compound({
-                "namespace": amulet_nbt.TAG_String(block_entity.namespace),
-                "base_name": amulet_nbt.TAG_String(block_entity.base_name),
-                "x": amulet_nbt.TAG_Int(block_entity.x),
-                "y": amulet_nbt.TAG_Int(block_entity.y),
-                "z": amulet_nbt.TAG_Int(block_entity.z),
-                "nbt": block_entity.nbt.value
-            }) for block_entity in block_entities
-        ])
+    def _serialise_block_entities(
+        block_entities: List[BlockEntity],
+    ) -> amulet_nbt.TAG_List:
+        return amulet_nbt.TAG_List(
+            [
+                amulet_nbt.TAG_Compound(
+                    {
+                        "namespace": amulet_nbt.TAG_String(block_entity.namespace),
+                        "base_name": amulet_nbt.TAG_String(block_entity.base_name),
+                        "x": amulet_nbt.TAG_Int(block_entity.x),
+                        "y": amulet_nbt.TAG_Int(block_entity.y),
+                        "z": amulet_nbt.TAG_Int(block_entity.z),
+                        "nbt": block_entity.nbt.value,
+                    }
+                )
+                for block_entity in block_entities
+            ]
+        )
 
     def _pack_palette(self) -> amulet_nbt.TAG_List:
         block_palette_nbt = amulet_nbt.TAG_List()
@@ -384,20 +458,30 @@ class ConstructionWriter:
         if self._format_version == 0:
             metadata_start = self._buffer.tell()
             self._metadata["section_index_table"] = amulet_nbt.TAG_Byte_Array(
-                numpy.array(self._section_index_table, dtype=SECTION_ENTRY_TYPE).view(numpy.int8)
+                numpy.array(self._section_index_table, dtype=SECTION_ENTRY_TYPE).view(
+                    numpy.int8
+                )
             )
             self._metadata["block_palette"] = self._pack_palette()
             self._metadata.save_to(self._buffer)
             self._buffer.write(INT_STRUCT.pack(metadata_start))
             self._buffer.write(magic_num)
         else:
-            raise Exception(f"This wrapper doesn\'t support any construction version higher than {max_format_version}")
+            raise Exception(
+                f"This wrapper doesn't support any construction version higher than {max_format_version}"
+            )
         self._buffer.close()
 
     @staticmethod
     def _find_fitting_array_type(
-        array: numpy.ndarray
-    ) -> Type[Union[amulet_nbt.TAG_Int_Array, amulet_nbt.TAG_Byte_Array, amulet_nbt.TAG_Long_Array]]:
+        array: numpy.ndarray,
+    ) -> Type[
+        Union[
+            amulet_nbt.TAG_Int_Array,
+            amulet_nbt.TAG_Byte_Array,
+            amulet_nbt.TAG_Long_Array,
+        ]
+    ]:
         max_element = array.max(initial=0)
 
         if max_element <= 127:
@@ -407,10 +491,7 @@ class ConstructionWriter:
         else:
             return amulet_nbt.TAG_Long_Array
 
-    def write(
-        self,
-        section: ConstructionSection
-    ):
+    def write(self, section: ConstructionSection):
         if self._section_version == 0:
             sx, sy, sz = section.location
             shapex, shapey, shapez = section.shape
@@ -419,35 +500,43 @@ class ConstructionWriter:
             block_entities = section.block_entities
             palette = section.palette
             for point, shape in zip((sx, sy, sz), (shapex, shapey, shapez)):
-                assert shape >= 0, 'Shape must be positive'
-                assert point + shape <= (((point >> 4)+1) << 4), 'Section does not fit in a sub-chunk'
+                assert shape >= 0, "Shape must be positive"
+                assert point + shape <= (
+                    ((point >> 4) + 1) << 4
+                ), "Section does not fit in a sub-chunk"
             position = self._buffer.tell()
 
             _tag = amulet_nbt.TAG_Compound(
-                {
-                    "entities": self._serialise_entities(entities)
-                }
+                {"entities": self._serialise_entities(entities)}
             )
 
             if blocks is None:
                 _tag["blocks_array_type"] = amulet_nbt.TAG_Byte(-1)
             else:
                 flattened_array = blocks.ravel()
-                index, flattened_array = numpy.unique(flattened_array, return_inverse=True)
+                index, flattened_array = numpy.unique(
+                    flattened_array, return_inverse=True
+                )
                 palette = numpy.array(palette, dtype=object)[index]
                 lut = numpy.vectorize(self._palette.get_add_block)(palette)
                 flattened_array = lut[flattened_array]
                 array_type = self._find_fitting_array_type(flattened_array)
                 _tag["blocks_array_type"] = amulet_nbt.TAG_Byte(array_type().tag_id)
                 _tag["blocks"] = array_type(flattened_array)
-                _tag["block_entities"] = self._serialise_block_entities(block_entities or [])
+                _tag["block_entities"] = self._serialise_block_entities(
+                    block_entities or []
+                )
 
             amulet_nbt.NBTFile(_tag).save_to(self._buffer)
 
             length = self._buffer.tell() - position
-            self._section_index_table.append((sx, sy, sz, shapex, shapey, shapez, position, length))
+            self._section_index_table.append(
+                (sx, sy, sz, shapex, shapey, shapez, position, length)
+            )
         else:
-            raise Exception(f"This wrapper doesn\'t support any section version higher than {max_section_version}")
+            raise Exception(
+                f"This wrapper doesn't support any section version higher than {max_section_version}"
+            )
 
     def close(self):
         self._exit_write()

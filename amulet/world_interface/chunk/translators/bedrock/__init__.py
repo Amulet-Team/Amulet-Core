@@ -11,7 +11,13 @@ from amulet.api.block import Block
 from amulet.api.data_types import BlockNDArray, AnyNDArray
 from amulet.api.entity import Entity
 from amulet.api.wrapper.chunk.translator import Translator
-from amulet.api.data_types import GetBlockCallback, TranslateBlockCallbackReturn, TranslateEntityCallbackReturn, VersionNumberTuple, GetChunkCallback
+from amulet.api.data_types import (
+    GetBlockCallback,
+    TranslateBlockCallbackReturn,
+    TranslateEntityCallbackReturn,
+    VersionNumberTuple,
+    GetChunkCallback,
+)
 
 
 if TYPE_CHECKING:
@@ -45,9 +51,7 @@ class BaseBedrockTranslator(Translator):
         for palette_index, entry in enumerate(palette):
             entry: Tuple[
                 Union[
-                    Tuple[None, Tuple[int, int]],
-                    Tuple[None, Block],
-                    Tuple[int, Block],
+                    Tuple[None, Tuple[int, int]], Tuple[None, Block], Tuple[int, Block],
                 ],
                 ...,
             ]
@@ -62,13 +66,13 @@ class BaseBedrockTranslator(Translator):
                         properties["__version__"] = amulet_nbt.TAG_Int(version_number)
                         b = Block(b.namespace, b.base_name, properties, b.extra_blocks)
                 else:
-                    raise Exception(f'Unsupported type {b}')
+                    raise Exception(f"Unsupported type {b}")
                 if block is None:
                     block = b
                 else:
                     block += b
             if block is None:
-                raise Exception(f'Empty tuple')
+                raise Exception(f"Empty tuple")
 
             palette_[palette_index] = block
         return palette_
@@ -76,22 +80,21 @@ class BaseBedrockTranslator(Translator):
     def to_universal(
         self,
         game_version: VersionNumberTuple,
-        translation_manager: 'TranslationManager',
-        chunk: 'Chunk',
+        translation_manager: "TranslationManager",
+        chunk: "Chunk",
         palette: numpy.ndarray,
         get_chunk_callback: Union[
-            Callable[[int, int], Tuple['Chunk', numpy.ndarray]], None
+            Callable[[int, int], Tuple["Chunk", numpy.ndarray]], None
         ],
         full_translate: bool,
-    ) -> Tuple['Chunk', numpy.ndarray]:
+    ) -> Tuple["Chunk", numpy.ndarray]:
         # Bedrock does versioning by block rather than by chunk.
         # As such we can't just pass in a single translator.
         # It needs to be done dynamically.
         versions = {}
 
         def translate_block(
-            input_object: Block,
-            get_block_callback: Optional[GetBlockCallback],
+            input_object: Block, get_block_callback: Optional[GetBlockCallback],
         ) -> TranslateBlockCallbackReturn:
             final_block = None
             final_block_entity = None
@@ -104,7 +107,9 @@ class BaseBedrockTranslator(Translator):
                 else:
                     if "block_data" in block.properties:
                         # if block_data is in properties cap out at 1.12.x
-                        game_version_: VersionNumberTuple = min(game_version, (1, 12, 999))
+                        game_version_: VersionNumberTuple = min(
+                            game_version, (1, 12, 999)
+                        )
                     else:
                         game_version_: VersionNumberTuple = game_version
                 version_key = self._translator_key(game_version_)
@@ -136,9 +141,7 @@ class BaseBedrockTranslator(Translator):
 
             return final_block, final_block_entity, final_entities, final_extra
 
-        def translate_entity(
-            input_object: Entity
-        ) -> TranslateEntityCallbackReturn:
+        def translate_entity(input_object: Entity) -> TranslateEntityCallbackReturn:
             final_block = None
             final_block_entity = None
             final_entities = []
@@ -151,13 +154,18 @@ class BaseBedrockTranslator(Translator):
         chunk.biomes = self._biomes_to_universal(version, chunk.biomes)
 
         return self._translate(
-            chunk, palette, get_chunk_callback, translate_block, translate_entity, full_translate
+            chunk,
+            palette,
+            get_chunk_callback,
+            translate_block,
+            translate_entity,
+            full_translate,
         )
 
     def from_universal(
         self,
         max_world_version_number: Union[int, Tuple[int, int, int]],
-        translation_manager: 'TranslationManager',
+        translation_manager: "TranslationManager",
         chunk: Chunk,
         palette: BlockNDArray,
         get_chunk_callback: Optional[GetChunkCallback],
@@ -180,8 +188,7 @@ class BaseBedrockTranslator(Translator):
 
         # TODO: perhaps find a way so this code isn't duplicated in three places
         def translate_block(
-            input_object: Block,
-            get_block_callback: Optional[GetBlockCallback],
+            input_object: Block, get_block_callback: Optional[GetBlockCallback],
         ) -> TranslateBlockCallbackReturn:
             final_block = None
             final_block_entity = None
@@ -196,16 +203,21 @@ class BaseBedrockTranslator(Translator):
                 ) = version.block.from_universal(block, get_block_callback)
 
                 if isinstance(output_object, Block):
-                    if __debug__ and output_object.namespace.startswith(
-                        "universal"
-                    ):
+                    if __debug__ and output_object.namespace.startswith("universal"):
                         log.debug(
                             f"Error translating {input_object.blockstate} from universal. Got {output_object.blockstate}"
                         )
                     if version.data_version > 0:
                         properties = output_object.properties
-                        properties["__version__"] = amulet_nbt.TAG_Int(version.data_version)
-                        output_object = Block(output_object.namespace, output_object.base_name, properties, output_object.extra_blocks)
+                        properties["__version__"] = amulet_nbt.TAG_Int(
+                            version.data_version
+                        )
+                        output_object = Block(
+                            output_object.namespace,
+                            output_object.base_name,
+                            properties,
+                            output_object.extra_blocks,
+                        )
                     if final_block is None:
                         final_block = output_object
                     else:
@@ -221,9 +233,7 @@ class BaseBedrockTranslator(Translator):
 
             return final_block, final_block_entity, final_entities, final_extra
 
-        def translate_entity(
-            input_object: Entity
-        ) -> TranslateEntityCallbackReturn:
+        def translate_entity(input_object: Entity) -> TranslateEntityCallbackReturn:
             final_block = None
             final_block_entity = None
             final_entities = []
@@ -231,7 +241,12 @@ class BaseBedrockTranslator(Translator):
             return final_block, final_block_entity, final_entities
 
         chunk, palette = self._translate(
-            chunk, palette, get_chunk_callback, translate_block, translate_entity, full_translate
+            chunk,
+            palette,
+            get_chunk_callback,
+            translate_block,
+            translate_entity,
+            full_translate,
         )
 
         # TODO: split this into pack and translate stages
