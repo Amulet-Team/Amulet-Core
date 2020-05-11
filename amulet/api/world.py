@@ -215,7 +215,7 @@ class World(BaseStructure):
         shutil.rmtree(self._temp_directory, ignore_errors=True)
         self._world_wrapper.close()
 
-    def unload(self, safe_area: Optional[Tuple[int, int, int, int, int]] = None):
+    def unload(self, safe_area: Optional[Tuple[Dimension, int, int, int, int]] = None):
         """Unload all chunks not in the safe area
         Safe area format: dimension, min chunk X|Z, max chunk X|Z"""
         unload_chunks = []
