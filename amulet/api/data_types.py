@@ -14,6 +14,8 @@ Dimension = str
 ChunkCoordinates = Tuple[int, int]
 DimensionCoordinates = Tuple[Dimension, int, int]
 BlockCoordinates = Tuple[int, int, int]
+BlockCoordinatesNDArray = numpy.ndarray  # NDArray[(3, ), numpy.int]
+BlockCoordinatesAny = Union[BlockCoordinates, BlockCoordinatesNDArray]
 SubChunkNDArray = numpy.ndarray  # NDArray[(16, 16, 16), numpy.uint]
 
 
