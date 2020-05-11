@@ -13,9 +13,14 @@ if TYPE_CHECKING:
 Dimension = str
 ChunkCoordinates = Tuple[int, int]
 DimensionCoordinates = Tuple[Dimension, int, int]
+
 BlockCoordinates = Tuple[int, int, int]
 BlockCoordinatesNDArray = numpy.ndarray  # NDArray[(3, ), numpy.int]
 BlockCoordinatesAny = Union[BlockCoordinates, BlockCoordinatesNDArray]
+PointCoordinates = Union[Tuple[float, float, float], BlockCoordinates]
+PointCoordinatesNDArray = numpy.ndarray  # NDArray[(3, ), numpy.float]
+PointCoordinatesAny = Union[PointCoordinates, PointCoordinatesNDArray]
+
 SubChunkNDArray = numpy.ndarray  # NDArray[(16, 16, 16), numpy.uint]
 
 
