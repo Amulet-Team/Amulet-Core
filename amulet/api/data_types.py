@@ -17,7 +17,7 @@ DimensionCoordinates = Tuple[Dimension, int, int]
 BlockCoordinates = Tuple[int, int, int]
 BlockCoordinatesNDArray = numpy.ndarray  # NDArray[(3, ), numpy.int]
 BlockCoordinatesAny = Union[BlockCoordinates, BlockCoordinatesNDArray]
-PointCoordinates = Union[Tuple[float, float, float], BlockCoordinates]
+PointCoordinates = Tuple[float, float, float]
 PointCoordinatesNDArray = numpy.ndarray  # NDArray[(3, ), numpy.float]
 PointCoordinatesAny = Union[PointCoordinates, PointCoordinatesNDArray]
 
