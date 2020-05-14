@@ -69,11 +69,6 @@ class Anvil1444Interface(BaseAnvilInterface):
     def _decode_blocks(
         self, chunk_sections: amulet_nbt.TAG_List
     ) -> Tuple[Dict[int, SubChunkNDArray], AnyNDArray]:
-        if chunk_sections is None:
-            raise NotImplementedError(
-                "We don't support reading chunks that never been edited in Minecraft before"
-            )
-
         blocks: Dict[int, numpy.ndarray] = {}
         palette = [Block(namespace="minecraft", base_name="air")]
 

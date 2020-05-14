@@ -48,11 +48,6 @@ class AnvilNAInterface(BaseAnvilInterface):
     def _decode_blocks(
         self, chunk_sections: nbt.TAG_List
     ) -> Tuple[Dict[int, SubChunkNDArray], AnyNDArray]:
-        if chunk_sections is None:
-            raise NotImplementedError(
-                "We don't support reading chunks that never been edited in Minecraft before"
-            )
-
         blocks: Dict[int, SubChunkNDArray] = {}
         palette = []
         palette_len = 0
@@ -78,6 +73,7 @@ class AnvilNAInterface(BaseAnvilInterface):
                 add_blocks = add_blocks.reshape((16, 16, 16))
 
                 section_blocks |= add_blocks.astype(numpy.uint16) << 8
+                # TODO: fix this
 
             (section_palette, blocks[cy]) = world_utils.fast_unique(
                 numpy.transpose((section_blocks << 4) + section_data, (2, 0, 1))
