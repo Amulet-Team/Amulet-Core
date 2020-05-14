@@ -11,7 +11,7 @@ from amulet.api.block import Block, PropertyDataTypes
 
 from amulet.api.chunk import Chunk
 
-from amulet.utils.world_utils import fast_unique
+from amulet.utils.world_utils import fast_unique, from_nibble_array
 from amulet.api.wrapper import Interface
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray
 from amulet.world_interface.chunk import translators
@@ -76,7 +76,7 @@ class BaseLevelDBInterface(Interface):
             "entities": ["32list"],
             "entity_format": ["namespace-str-identifier", "int-id"],
             "entity_coord_format": ["Pos-list-float"],
-            "terrain": ["2farray", "2f1palette", "2fnpalette"],
+            "terrain": ["30array", "2farray", "2f1palette", "2fnpalette"],
         }
         self.features = {key: None for key in feature_options.keys()}
 
@@ -110,10 +110,29 @@ class BaseLevelDBInterface(Interface):
         # chunk_key_base = struct.pack("<ii", cx, cz)
 
         chunk = Chunk(cx, cz)
+        chunk_palette = numpy.empty(0, dtype=object)
 
-        if self.features["terrain"] in ["2farray", "2f1palette", "2fnpalette"]:
+        if self.features["terrain"].startswith("2f"):  # ["2farray", "2f1palette", "2fnpalette"]
             subchunks = [data.get(b"\x2F" + bytes([i]), None) for i in range(16)]
-            chunk.blocks, palette = self._load_subchunks(subchunks)
+            chunk.blocks, chunk_palette = self._load_subchunks(subchunks)
+        elif self.features["terrain"] == "30array":
+            chunk_data = data.get(b"\x30", None)
+            if chunk_data is not None:
+                block_ids = numpy.frombuffer(chunk_data[:2**15], dtype=numpy.uint8).astype(numpy.uint16)
+                block_data = from_nibble_array(numpy.frombuffer(chunk_data[2**15:2**15 + 2**14], dtype=numpy.uint8))
+
+                # there is other data here but we are going to skip over it
+                combined_palette, block_array = fast_unique(
+                    numpy.transpose(((block_ids << 4) + block_data).reshape(16, 16, 128), (0, 2, 1))
+                )
+                chunk.blocks = {i: block_array[:, i*16:(i+1)*16, :] for i in range(8)}
+                palette: numpy.ndarray = numpy.array(
+                    [combined_palette >> 4, combined_palette & 15]
+                ).T
+                chunk_palette = numpy.empty(len(palette), dtype=object)
+                for i, b in enumerate(palette):
+                    chunk_palette[i] = ((None, tuple(b)), )
+
         else:
             raise Exception
 
@@ -156,7 +175,7 @@ class BaseLevelDBInterface(Interface):
             entities = self._unpack_nbt_list(data.get(b"\x32", b""))
             chunk.entities = self._decode_entities(entities)
 
-        return chunk, palette
+        return chunk, chunk_palette
 
     def encode(
         self,
@@ -178,7 +197,7 @@ class BaseLevelDBInterface(Interface):
         elif self.features["terrain"] == "2fnpalette":
             terrain = self._save_subchunks_8(chunk.blocks, palette)
         else:
-            raise Exception
+            raise Exception(f"Unsupported terrain type {self.features['terrain']}")
 
         for y, sub_chunk in enumerate(terrain):
             chunk_data[b"\x2F" + bytes([y])] = sub_chunk
@@ -264,9 +283,18 @@ class BaseLevelDBInterface(Interface):
                 continue
 
             if data[0] in [0, 2, 3, 4, 5, 6, 7]:
-                raise NotImplementedError(
-                    "The old Bedrock numerical chunk format is not currently implemented"
+                block_ids = numpy.frombuffer(data[1:1+2 ** 12], dtype=numpy.uint8).astype(numpy.uint16)
+                block_data = from_nibble_array(numpy.frombuffer(data[1+2 ** 12:1+2 ** 12 + 2 ** 11], dtype=numpy.uint8))
+                combined_palette, block_array = fast_unique(
+                    numpy.transpose(((block_ids << 4) + block_data).reshape(16, 16, 16), (0, 2, 1))
                 )
+                blocks[cy] = block_array + len(palette)
+                for b in numpy.array(
+                    [combined_palette >> 4, combined_palette & 15]
+                ).T:
+                    palette.append(
+                        ((None, tuple(b)),)
+                    )
 
             elif data[0] in [1, 8]:
                 if data[0] == 1:
