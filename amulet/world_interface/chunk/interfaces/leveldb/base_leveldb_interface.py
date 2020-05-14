@@ -11,7 +11,7 @@ from amulet.api.block import Block, PropertyDataTypes
 
 from amulet.api.chunk import Chunk
 
-from amulet.utils.world_utils import fast_unique, from_nibble_array
+from amulet.utils.world_utils import fast_unique, from_nibble_array, to_nibble_array
 from amulet.api.wrapper import Interface
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray
 from amulet.world_interface.chunk import translators
@@ -385,7 +385,26 @@ class BaseLevelDBInterface(Interface):
     def _save_subchunks_0(
         self, blocks: "Blocks", palette: AnyNDArray
     ) -> List[Optional[bytes]]:
-        raise NotImplementedError
+        sections = []
+        palette = numpy.array([b[0][1] for b in palette])
+        for cy in range(16):
+            if cy in blocks:
+                block_sub_array = palette[
+                    numpy.transpose(blocks.get_sub_chunk(cy), (0, 2, 1)).ravel()
+                ]
+                if not numpy.any(block_sub_array):
+                    chunk.append(None)
+                    continue
+
+                data_sub_array = block_sub_array[:, 1]
+                block_sub_array = block_sub_array[:, 0]
+                sections.append(
+                    b"\00" +
+                    block_sub_array.astype("uint8").tobytes() +
+                    to_nibble_array(data_sub_array).tobytes()
+                )
+
+        return sections
 
     def _save_subchunks_1(
         self, blocks: "Blocks", palette: AnyNDArray
@@ -417,6 +436,8 @@ class BaseLevelDBInterface(Interface):
                     b"\x01"
                     + self._save_palette_subchunk(sub_chunk.ravel(), sub_chunk_palette)
                 )
+            else:
+                chunk.append(None)
         return chunk
 
     def _save_subchunks_8(
