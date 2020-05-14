@@ -7,7 +7,7 @@ from amulet.world_interface.chunk.interfaces.leveldb.leveldb_4.interface import 
 
 class LevelDB5Interface(LevelDB4Interface):
     def __init__(self):
-        LevelDB4Interface.__init__(self)
+        super().__init__()
 
         self.features["chunk_version"] = 5
 

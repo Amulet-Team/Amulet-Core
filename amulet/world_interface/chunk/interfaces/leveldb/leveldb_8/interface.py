@@ -7,7 +7,7 @@ from amulet.world_interface.chunk.interfaces.leveldb.leveldb_7.interface import 
 
 class LevelDB8Interface(LevelDB7Interface):
     def __init__(self):
-        LevelDB7Interface.__init__(self)
+        super().__init__()
 
         self.features["chunk_version"] = 8
         self.features["terrain"] = "2fnpalette"
