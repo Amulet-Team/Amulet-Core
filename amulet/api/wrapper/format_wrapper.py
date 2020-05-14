@@ -207,7 +207,7 @@ class FormatWraper:
             translator,
             game_version,
             *args,
-            recurse,
+            recurse=recurse,
         )
 
     def _decode(
@@ -245,7 +245,7 @@ class FormatWraper:
                 palette = BlockManager()
                 cx_, cz_ = cx + x, cz + z
                 if (cx_, cz_) not in chunk_cache:
-                    chunk_ = self._load_chunk(cx_, cz_, palette, *args, False)
+                    chunk_ = self._load_chunk(cx_, cz_, palette, *args, recurse=False)
                     chunk_cache[(cx_, cz_)] = chunk_, palette
                 return chunk_cache[(cx_, cz_)]
 
