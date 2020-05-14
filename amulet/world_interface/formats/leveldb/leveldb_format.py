@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Dict, Generator, Set, Union, Optional, List, TYPE_CHECKING
+from typing import Tuple, Dict, Generator, Set, Union, Optional, List, TYPE_CHECKING, BinaryIO
+from io import BytesIO
 
 import amulet_nbt as nbt
 
@@ -173,6 +174,37 @@ class LevelDBLevelManager:
                     self._batch_temp[key_prefix + key] = None
 
 
+class LevelDAT(nbt.NBTFile):
+    def __init__(self, path: str):
+        with open(path, "rb") as f:
+            self._level_dat_version = struct.unpack("<i", f.read(4))[
+                0
+            ]  # TODO: handle other versions
+            assert (
+                4 <= self._level_dat_version <= 8
+            ), f"Unknown level.dat version {self._level_dat_version}"
+            data_length = struct.unpack("<i", f.read(4))[0]
+            root_tag = nbt.load(
+                buffer=f.read(data_length), compressed=False, little_endian=True
+            )
+        super().__init__(root_tag.value, root_tag.name)
+
+    def save_to(
+            self, filename_or_buffer: Union[str, BinaryIO] = None
+    ) -> Optional[bytes]:
+        buffer = BytesIO()
+        buffer.write(struct.pack("<i", self._level_dat_version))
+        buffer.write(super().save_to(compressed=False, little_endian=True))
+        if filename_or_buffer is None:
+            return buffer.getvalue()
+        elif isinstance(filename_or_buffer, str):
+            with open(filename_or_buffer, 'wb') as f:
+                f.write(buffer.getvalue())
+        else:
+            filename_or_buffer.write()
+
+
+
 class LevelDBFormat(WorldFormatWrapper):
     def __init__(self, directory: str):
         super().__init__(directory)
@@ -183,17 +215,7 @@ class LevelDBFormat(WorldFormatWrapper):
 
     def _load_level_dat(self):
         """Load the level.dat file and check the image file"""
-        with open(os.path.join(self.path, "level.dat"), "rb") as f:
-            level_dat_version = struct.unpack("<i", f.read(4))[
-                0
-            ]  # TODO: handle other versions
-            assert (
-                level_dat_version == 8
-            ), f"Unknown level.dat version {level_dat_version}"
-            data_length = struct.unpack("<i", f.read(4))[0]
-            self.root_tag = nbt.load(
-                buffer=f.read(data_length), compressed=False, little_endian=True
-            )
+        self.root_tag = LevelDAT(os.path.join(self.path, "level.dat"))
         if os.path.isfile(os.path.join(self.path, "world_icon.jpeg")):
             self._world_image_path = os.path.join(self.path, "world_icon.jpeg")
 
