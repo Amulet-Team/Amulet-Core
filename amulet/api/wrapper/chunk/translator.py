@@ -28,8 +28,13 @@ if TYPE_CHECKING:
 
 
 class Translator:
+    def translator_key(
+            self, version_number: Union[int, Tuple[int, int, int]]
+    ) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
+        return self._translator_key(version_number)
+
     def _translator_key(
-        self, version_number: Union[int, Tuple[int, int, int]]
+            self, version_number: Union[int, Tuple[int, int, int]]
     ) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
         """
         Return the version key for PyMCTranslate
