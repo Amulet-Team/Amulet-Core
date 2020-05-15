@@ -23,10 +23,10 @@ class BedrockNBTBlockstateTranslator(BaseBedrockTranslator):
 
     def _pack_palette(self, version: "Version", palette: BlockNDArray) -> AnyNDArray:
         """
-        Packs a numpy array of Block objects into an object array of containing block ids and block data values.
+        Packs a numpy array of Block objects into an object array containing one more more pairs of version number and Block objects.
         :param version:
         :param palette:
-        :return:
+        :return: numpy.ndarray[Tuple[Tuple[Optional[VersionNumber], Block], ...]]
         """
         palette_ = numpy.empty(len(palette), dtype=object)
         for palette_index, block in enumerate(palette):

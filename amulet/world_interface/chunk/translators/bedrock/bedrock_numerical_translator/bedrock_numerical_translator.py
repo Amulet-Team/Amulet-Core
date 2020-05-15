@@ -22,10 +22,10 @@ class BedrockNumericalTranslator(BaseBedrockTranslator):
 
     def _pack_palette(self, version: "Version", palette: BlockNDArray) -> AnyNDArray:
         """
-        Packs a numpy array of Block objects into an object array of containing block ids and block data values.
+        Packs a numpy array of Block objects into an object array containing version number, block ids and block data values.
         :param version:
         :param palette:
-        :return:
+        :return: numpy.ndarray[Tuple[Tuple[Optional[VersionNumber], Tuple[int, int]]]]
         """
         palette_ = numpy.empty(len(palette), dtype=object)
         for palette_index, entry in enumerate(palette):
