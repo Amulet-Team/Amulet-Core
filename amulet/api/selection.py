@@ -41,6 +41,10 @@ class SelectionBox:
             ((cx + 1) * chunk_size, (cy + 1) * chunk_size, (cz + 1) * chunk_size),
         )
 
+    def create_moved_box(self, offset: BlockCoordinatesAny) -> SelectionBox:
+        """Create a new SelectionBox by offsetting the bounds of this box."""
+        return SelectionBox(numpy.array(offset) + self.min, numpy.array(offset) + self.max)
+
     def chunk_locations(
         self, chunk_size: int = 16
     ) -> Generator[Tuple[int, int], None, None]:
