@@ -20,6 +20,7 @@ BlockCoordinatesAny = Union[BlockCoordinates, BlockCoordinatesNDArray]
 PointCoordinates = Tuple[float, float, float]
 PointCoordinatesNDArray = numpy.ndarray  # NDArray[(3, ), numpy.float]
 PointCoordinatesAny = Union[PointCoordinates, PointCoordinatesNDArray]
+CoordinatesAny = Union[BlockCoordinatesAny, PointCoordinatesAny]
 
 SubChunkNDArray = numpy.ndarray  # NDArray[(16, 16, 16), numpy.uint]
 

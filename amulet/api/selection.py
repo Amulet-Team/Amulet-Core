@@ -5,8 +5,7 @@ import numpy
 
 from typing import Tuple, Union, Iterable, List, Generator, Dict
 
-from .minecraft_types import Point
-from amulet.api.data_types import BlockCoordinatesAny
+from amulet.api.data_types import BlockCoordinatesAny, CoordinatesAny
 from ..utils.world_utils import (
     block_coords_to_chunk_coords,
     blocks_slice_to_chunk_slice,
@@ -96,7 +95,7 @@ class SelectionBox:
         return f"({self.min}, {self.max})"
 
     def __contains__(
-        self, item: Union[Point, Tuple[int, int, int], Tuple[float, float, float]]
+        self, item: CoordinatesAny
     ):
         return (
             self._min_x <= item[0] < self._max_x
@@ -240,7 +239,7 @@ class SelectionGroup:
     def __len__(self):
         return len(self._selection_boxes)
 
-    def __contains__(self, item: Union[Point, Tuple[int, int, int]]):
+    def __contains__(self, item: CoordinatesAny):
         for subbox in self._selection_boxes:
             if item in subbox:
                 return True
