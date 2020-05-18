@@ -6,7 +6,7 @@ from typing import List, Dict, Tuple, Generator
 
 import amulet_nbt
 from amulet.api.selection import SelectionBox
-from amulet.api.data_types import PointCoordinates, ChunkCoordinates
+from amulet.api.data_types import PointCoordinates, ChunkCoordinates, PathOrBuffer
 from amulet.api.errors import ChunkDoesNotExist
 
 BlockArrayType = numpy.ndarray  # uint16 array
@@ -30,10 +30,15 @@ class SchematicChunk:
 
 
 class SchematicReader:
-    def __init__(self, path: str):
-        assert path.endswith(".schematic"), "File selected is not a .schematic file"
-        assert os.path.isfile(path), f"There is no schematic file at path {path}"
-        schematic = amulet_nbt.load(path)
+    def __init__(self, path_or_buffer: PathOrBuffer):
+        if isinstance(path_or_buffer, str):
+            assert path_or_buffer.endswith(".schematic"), "File selected is not a .schematic file"
+            assert os.path.isfile(path_or_buffer), f"There is no schematic file at path {path_or_buffer}"
+            schematic = amulet_nbt.load(path_or_buffer)
+        else:
+            assert hasattr(path_or_buffer, "read"), "Object does not have a read method"
+            schematic = amulet_nbt.load(buffer=path_or_buffer)
+
         materials = schematic.get("Materials", amulet_nbt.TAG_String()).value
         if materials == "Alpha":
             self._platform = "java"
@@ -114,11 +119,11 @@ class SchematicReader:
 class SchematicWriter:
     def __init__(
             self,
-            path: str,
+            path_or_buffer: str,
             platform: str,
             selection: SelectionBox
     ):
-        self._path = path
+        self._path_or_buffer = path_or_buffer
         if platform == "java":
             self._materials = "Alpha"
         elif platform == "bedrock":
@@ -165,4 +170,4 @@ class SchematicWriter:
             self._data["AddBlocks"] = amulet_nbt.TAG_Byte_Array(
                 add_blocks[::2] + (add_blocks[1::2] << 4)
             )
-        self._data.save_to(self._path)
+        self._data.save_to(self._path_or_buffer)

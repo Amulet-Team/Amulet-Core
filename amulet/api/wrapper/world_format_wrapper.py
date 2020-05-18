@@ -3,7 +3,7 @@ import traceback
 import os
 
 from amulet import log, IMG_DIRECTORY
-from .format_wrapper import FormatWraper
+from .format_wrapper import BaseFormatWraper
 
 if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
@@ -15,17 +15,23 @@ missing_world_icon = os.path.abspath(
 )
 
 
-class WorldFormatWrapper(FormatWraper):
+class WorldFormatWrapper(BaseFormatWraper):
     _missing_world_icon = missing_world_icon
 
     def __init__(self, world_path: str):
-        super().__init__(world_path)
+        super().__init__()
+        self._path = world_path
         self._world_image_path = missing_world_icon
         self._changed: bool = False
 
     @property
     def chunk_size(self) -> Tuple[int, Union[int, None], int]:
         return 16, 256, 16
+
+    @property
+    def path(self) -> str:
+        """The path to the world directory"""
+        return self._path
 
     @property
     def world_name(self) -> str:

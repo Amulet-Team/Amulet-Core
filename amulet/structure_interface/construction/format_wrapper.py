@@ -3,8 +3,8 @@ from typing import Optional, Union, List, Tuple, Dict, Generator, TYPE_CHECKING
 import numpy
 
 from amulet import log
-from amulet.api.data_types import BlockNDArray, AnyNDArray, VersionNumberAny
-from amulet.api.wrapper import FormatWraper
+from amulet.api.data_types import BlockNDArray, AnyNDArray, VersionNumberAny, PathOrBuffer
+from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet.api.errors import ObjectReadError, ObjectWriteError, ChunkDoesNotExist
@@ -18,14 +18,15 @@ if TYPE_CHECKING:
 construction_0_interface = Construction0Interface()
 
 
-class ConstructionFormatWrapper(FormatWraper):
-    def __init__(self, path, mode="r"):
+class ConstructionFormatWrapper(StructureFormatWrapper):
+    def __init__(self, path: PathOrBuffer, mode: str = "r"):
         super().__init__(path)
         assert mode in ("r", "w"), 'Mode must be either "r" or "w".'
         self._mode = mode
-        assert path.endswith(".construction"), 'Path must end with ".construction"'
-        if mode == "r":
-            assert os.path.isfile(path), "File specified does not exist."
+        if isinstance(path, str):
+            assert path.endswith(".construction"), 'Path must end with ".construction"'
+            if mode == "r":
+                assert os.path.isfile(path), "File specified does not exist."
         self._data: Optional[Union[ConstructionWriter, ConstructionReader]] = None
         self._open = False
         self._platform = "java"
@@ -49,7 +50,7 @@ class ConstructionFormatWrapper(FormatWraper):
         return self._mode == "w"
 
     @staticmethod
-    def is_valid(path: str) -> bool:
+    def is_valid(path: PathOrBuffer) -> bool:
         """
         Returns whether this format is able to load the given object.
 
@@ -118,8 +119,8 @@ class ConstructionFormatWrapper(FormatWraper):
         if self._open:
             return
         if self._mode == "r":
-            assert os.path.isfile(self.path), "File specified does not exist."
-            self._data = ConstructionReader(self.path)
+            assert (isinstance(self.path_or_buffer, str) and os.path.isfile(self.path_or_buffer)) or hasattr(self.path_or_buffer, "read"), "File specified does not exist."
+            self._data = ConstructionReader(self.path_or_buffer)
             self._platform = self._data.source_edition
             self._version = self._data.source_version
             self._selection = SelectionGroup(
@@ -136,7 +137,7 @@ class ConstructionFormatWrapper(FormatWraper):
                 self._chunk_to_section.setdefault((cx, cz), []).append(index)
         else:
             self._data = ConstructionWriter(
-                self.path,
+                self.path_or_buffer,
                 self.platform,
                 self.version,
                 [box.bounds for box in self.selection.selection_boxes],

@@ -22,15 +22,14 @@ if TYPE_CHECKING:
     from amulet.api.wrapper.chunk.translator import Translator
 
 
-class FormatWraper:
+class BaseFormatWraper:
     """
     The Format class is a class that sits between the serialised world or structure data and the program using amulet-core.
     The Format class is used to access chunks from the serialised source in the universal format and write them back again.
     The BaseFormat class holds the common methods shared by the sub-classes.
     """
 
-    def __init__(self, path: str):
-        self._path = path
+    def __init__(self):
         self._translation_manager = None
         self._version = None
         self._changed: bool = False
@@ -90,11 +89,6 @@ class FormatWraper:
     @property
     def changed(self) -> bool:
         return self._changed
-
-    @property
-    def path(self) -> str:
-        """The path to the world directory"""
-        return self._path
 
     def _get_interface(self, max_world_version, raw_chunk_data=None) -> "Interface":
         if raw_chunk_data:

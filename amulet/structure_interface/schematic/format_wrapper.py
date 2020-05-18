@@ -3,8 +3,8 @@ from typing import Optional, Union, Tuple, Generator, TYPE_CHECKING
 import numpy
 
 from amulet import log
-from amulet.api.data_types import BlockNDArray, AnyNDArray, VersionNumberAny
-from amulet.api.wrapper import FormatWraper
+from amulet.api.data_types import BlockNDArray, AnyNDArray, VersionNumberAny, PathOrBuffer
+from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet.api.errors import ObjectReadError, ObjectWriteError
@@ -20,14 +20,15 @@ java_interface = JavaSchematicInterface()
 bedrock_interface = BedrockSchematicInerface()
 
 
-class SchematicFormatWrapper(FormatWraper):
-    def __init__(self, path, mode="r"):
+class SchematicFormatWrapper(StructureFormatWrapper):
+    def __init__(self, path: PathOrBuffer, mode: str = "r"):
         super().__init__(path)
         assert mode in ("r", "w"), 'Mode must be either "r" or "w".'
         self._mode = mode
-        assert path.endswith(".schematic"), 'Path must end with ".schematic"'
-        if mode == "r":
-            assert os.path.isfile(path), "File specified does not exist."
+        if isinstance(path, str):
+            assert path.endswith(".schematic"), 'Path must end with ".schematic"'
+            if mode == "r":
+                assert os.path.isfile(path), "File specified does not exist."
         self._data: Optional[Union[SchematicWriter, SchematicReader]] = None
         self._open = False
         self._platform = "java"
@@ -39,13 +40,13 @@ class SchematicFormatWrapper(FormatWraper):
         if self._open:
             return
         if self._mode == "r":
-            assert os.path.isfile(self.path), "File specified does not exist."
-            self._data = SchematicReader(self.path)
+            assert (isinstance(self.path_or_buffer, str) and os.path.isfile(self.path_or_buffer)) or hasattr(self.path_or_buffer, "read"), "File specified does not exist."
+            self._data = SchematicReader(self.path_or_buffer)
             self._platform = self._data.platform
             self._selection = self._data.selection
         else:
             self._data = SchematicWriter(
-                self.path,
+                self.path_or_buffer,
                 self.platform,
                 self._selection,
             )

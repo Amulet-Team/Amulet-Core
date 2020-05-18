@@ -1,4 +1,4 @@
-from typing import Any, Union, Generator, Callable, Tuple, Optional, TYPE_CHECKING, List
+from typing import Any, Union, Generator, Callable, Tuple, Optional, TYPE_CHECKING, List, BinaryIO
 
 # from nptyping import NDArray
 import numpy
@@ -26,6 +26,7 @@ SubChunkNDArray = numpy.ndarray  # NDArray[(16, 16, 16), numpy.uint]
 
 
 # Wrapper types
+PathOrBuffer = Union[str, BinaryIO]
 BlockNDArray = numpy.ndarray  # NDArray[(Any, ), 'Block']
 AnyNDArray = numpy.ndarray  # NDArray[(Any, ), Any]
 VersionNumberInt = int
