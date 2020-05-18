@@ -27,12 +27,14 @@ class SchematicInterface(Interface):
     ) -> Tuple["Chunk", AnyNDArray]:
         chunk = Chunk(cx, cz)
         block_palette, blocks = numpy.unique((section.blocks << 4) + (section.data & 0xF), return_inverse=True)
+        blocks = blocks.reshape(section.blocks.shape)
         palette = numpy.empty(len(block_palette) + 1, dtype=numpy.object)
+        palette[0] = (0, 0)
         for index, block_num in enumerate(block_palette):
             palette[index+1] = (block_num >> 4, block_num & 0xF)
 
         box = section.selection.create_moved_box(-numpy.array([cx*16, 0, cz*16]))
-        chunk.blocks[box.slice] = section.blocks + 1
+        chunk.blocks[box.slice] = blocks + 1
         for b in section.block_entities:
             b = self._decode_block_entity(b, self._block_entity_id_type, self._block_entity_coord_type)
             if b is not None:

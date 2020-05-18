@@ -45,7 +45,7 @@ class SchematicReader:
         self._selection = SelectionBox((0, 0, 0), (schematic["Width"].value, schematic["Height"].value, schematic["Length"].value))
         entities: amulet_nbt.TAG_List = schematic.get("Entities", amulet_nbt.TAG_List())
         block_entities: amulet_nbt.TAG_List = schematic.get("TileEntities", amulet_nbt.TAG_List())
-        blocks: numpy.ndarray = schematic["Blocks"].value.astype(numpy.uint16)
+        blocks: numpy.ndarray = schematic["Blocks"].value.astype(numpy.uint8).astype(numpy.uint16)
         if "AddBlocks" in schematic:
             add_blocks = schematic["AddBlocks"]
             blocks = blocks + (
@@ -105,6 +105,9 @@ class SchematicReader:
     def chunk_coords(self) -> Generator[ChunkCoordinates, None, None]:
         yield from self._chunks.keys()
 
+    def close(self):
+        pass
+
 
 class SchematicWriter:
     def __init__(
@@ -128,7 +131,7 @@ class SchematicWriter:
                 "Width": amulet_nbt.TAG_Short(selection.size_x),
                 "Height": amulet_nbt.TAG_Short(selection.size_y),
                 "Length": amulet_nbt.TAG_Short(selection.size_z),
-                "Materials": self._materials
+                "Materials": amulet_nbt.TAG_String(self._materials)
             }),
             "Schematic"
         )
