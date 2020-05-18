@@ -31,8 +31,12 @@ class EntityObject:
         self._x = self.coord_types[0](x)
         self._y = self.coord_types[0](y)
         self._z = self.coord_types[0](z)
-        assert isinstance(nbt, amulet_nbt.NBTFile), "nbt must be an NBTFile"
-        self._nbt = nbt
+        if isinstance(nbt, amulet_nbt.TAG_Compound):
+            self._nbt = amulet_nbt.NBTFile(nbt)
+        elif isinstance(nbt, amulet_nbt.NBTFile):
+            self._nbt = nbt
+        else:
+            raise Exception(f"nbt must be an NBTFile. Got {nbt}")
 
     def _gen_namespaced_name(self):
         self._namespaced_name = f'{self.namespace or ""}:{self.base_name}'
