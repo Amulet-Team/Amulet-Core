@@ -42,7 +42,7 @@ class SchematicReader:
         else:
             raise Exception(f"\"{materials}\" is not a supported platform for a schematic file.")
         self._chunks: Dict[ChunkCoordinates, Tuple[SelectionBox, BlockArrayType, BlockDataArrayType, list, list]] = {}
-        self._selection = SelectionBox((0, 0, 0), (schematic["Width"], schematic["Height"], schematic["Length"]))
+        self._selection = SelectionBox((0, 0, 0), (schematic["Width"].value, schematic["Height"].value, schematic["Length"].value))
         entities: amulet_nbt.TAG_List = schematic.get("Entities", amulet_nbt.TAG_List())
         block_entities: amulet_nbt.TAG_List = schematic.get("TileEntities", amulet_nbt.TAG_List())
         blocks: numpy.ndarray = schematic["Blocks"].value.astype(numpy.uint16)
@@ -79,7 +79,7 @@ class SchematicReader:
                     self._chunks[(cx, cz)][3].append(e)
         for e in entities:
             if "Pos" in e:
-                pos: PointCoordinates = e["Pos"].value
+                pos: PointCoordinates = tuple(map(lambda t: t.value, e["Pos"].value))
                 if pos in self._selection:
                     cx = int(pos[0]) >> 4
                     cz = int(pos[2]) >> 4
