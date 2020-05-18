@@ -11,7 +11,7 @@ import re
 
 import amulet_nbt as nbt
 
-from amulet.world_interface.formats import WorldFormatWrapper
+from amulet.api.wrapper.world_format_wrapper import WorldFormatWrapper
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, load_leveldat
 from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist, ChunkLoadError

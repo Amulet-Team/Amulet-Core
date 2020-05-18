@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import os
+from typing import TYPE_CHECKING
 
 from amulet import log
 from amulet.world_interface import formats
 from amulet.api.world import World
 from amulet.api.errors import FormatLoaderInvalidFormat, FormatLoaderMismatched
+
+if TYPE_CHECKING:
+    from amulet.api.wrapper.world_format_wrapper import WorldFormatWrapper
 
 
 def load_world(directory: str, _format: str = None, forced: bool = False) -> World:
@@ -22,7 +26,7 @@ def load_world(directory: str, _format: str = None, forced: bool = False) -> Wor
 
 def load_format(
     directory: str, _format: str = None, forced: bool = False
-) -> formats.WorldFormatWrapper:
+) -> "WorldFormatWrapper":
     """
     Loads the world located at the given directory with the appropriate format loader.
 

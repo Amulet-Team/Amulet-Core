@@ -19,7 +19,7 @@ from ..utils.world_utils import block_coords_to_chunk_coords
 
 if TYPE_CHECKING:
     from PyMCTranslate import TranslationManager
-    from amulet.world_interface.formats import WorldFormatWrapper
+    from amulet.api.wrapper.world_format_wrapper import WorldFormatWrapper
 
 ChunkCache = Dict[DimensionCoordinates, Optional[Chunk]]
 
