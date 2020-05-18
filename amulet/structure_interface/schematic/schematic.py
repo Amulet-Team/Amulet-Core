@@ -54,8 +54,10 @@ class SchematicReader:
                         [(add_blocks & 0xF0) >> 4]
                     ]).T.ravel().astype(numpy.uint16) << 8
             )
-        blocks = blocks.reshape(self._selection.max)
-        data = schematic["Data"].value.reshape(self._selection.max)
+        max_point = self._selection.max
+        temp_shape = (max_point[1], max_point[2], max_point[0])
+        blocks = numpy.transpose(blocks.reshape(temp_shape), (2, 0, 1))  # YZX => XYZ
+        data = numpy.transpose(schematic["Data"].value.reshape(temp_shape), (2, 0, 1))
         for cx, cz in self._selection.chunk_locations():
             box = SelectionBox(
                 (
@@ -152,10 +154,14 @@ class SchematicWriter:
     def close(self):
         self._data["Entities"] = amulet_nbt.TAG_List(self._entities)
         self._data["TileEntities"] = amulet_nbt.TAG_List(self._block_entities)
-        self._data["Data"] = amulet_nbt.TAG_Byte_Array(self._block_data)
-        self._data["Blocks"] = amulet_nbt.TAG_Byte_Array((self._blocks & 0xFF).astype(numpy.uint8))
+        self._data["Data"] = amulet_nbt.TAG_Byte_Array(
+            numpy.transpose(self._block_data, (1, 2, 0))  # XYZ => YZX
+        )
+        self._data["Blocks"] = amulet_nbt.TAG_Byte_Array(
+            numpy.transpose((self._blocks & 0xFF).astype(numpy.uint8), (1, 2, 0))
+        )
         if numpy.max(self._blocks) > 0xFF:
-            add_blocks = (self._blocks & 0xF00) >> 8
+            add_blocks = numpy.transpose(self._blocks & 0xF00, (1, 2, 0)) >> 8
             self._data["AddBlocks"] = amulet_nbt.TAG_Byte_Array(
                 add_blocks[::2] + (add_blocks[1::2] << 4)
             )
