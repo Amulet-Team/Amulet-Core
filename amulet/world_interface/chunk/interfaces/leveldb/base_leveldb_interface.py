@@ -393,7 +393,7 @@ class BaseLevelDBInterface(Interface):
                     numpy.transpose(blocks.get_sub_chunk(cy), (0, 2, 1)).ravel()
                 ]
                 if not numpy.any(block_sub_array):
-                    chunk.append(None)
+                    sections.append(None)
                     continue
 
                 data_sub_array = block_sub_array[:, 1]
