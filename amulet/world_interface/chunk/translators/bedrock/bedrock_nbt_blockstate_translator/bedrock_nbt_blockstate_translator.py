@@ -8,7 +8,6 @@ from amulet.api.data_types import BlockNDArray, AnyNDArray
 from amulet.api.block import Block
 
 if TYPE_CHECKING:
-    from amulet.api.block import Block
     from PyMCTranslate.py3.translation_manager import Version
 
 

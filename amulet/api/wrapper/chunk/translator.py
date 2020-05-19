@@ -4,7 +4,7 @@ import numpy
 import copy
 import math
 
-from typing import Tuple, Callable, Union, List, Optional, TYPE_CHECKING, Any
+from typing import Tuple, Union, Optional, TYPE_CHECKING
 
 from amulet import log, entity_support
 from amulet.api.block import BlockManager, Block

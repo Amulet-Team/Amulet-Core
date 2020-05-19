@@ -1,5 +1,3 @@
-from typing import Union, BinaryIO
-
 from .format_wrapper import BaseFormatWraper
 from amulet.api.data_types import PathOrBuffer
 

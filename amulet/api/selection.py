@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 import numpy
 
-from typing import Tuple, Union, Iterable, List, Generator, Dict
+from typing import Tuple, Iterable, List, Generator, Dict
 
 from amulet.api.data_types import BlockCoordinatesAny, CoordinatesAny
 from ..utils.world_utils import (
