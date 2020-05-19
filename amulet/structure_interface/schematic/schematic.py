@@ -150,7 +150,7 @@ class SchematicWriter:
 
     def write(self, section: SchematicChunk):
         if section.selection.intersects(self._selection):
-            box = section.selection.create_moved_box(-numpy.array(self._selection.min))
+            box = section.selection.create_moved_box(self._selection.min, subtract=True)
             self._blocks[box.slice] = section.blocks
             self._block_data[box.slice] = section.data
             self._block_entities += section.block_entities

@@ -33,7 +33,7 @@ class SchematicInterface(Interface):
         for index, block_num in enumerate(block_palette):
             palette[index+1] = (block_num >> 4, block_num & 0xF)
 
-        box = section.selection.create_moved_box(-numpy.array([cx*16, 0, cz*16]))
+        box = section.selection.create_moved_box((cx*16, 0, cz*16), subtract=True)
         chunk.blocks[box.slice] = blocks + 1
         for b in section.block_entities:
             b = self._decode_block_entity(b, self._block_entity_id_type, self._block_entity_coord_type)
@@ -66,7 +66,7 @@ class SchematicInterface(Interface):
                     self._encode_block_entity(e, self._block_entity_id_type, self._block_entity_coord_type).value
                 )
 
-        slices = box.create_moved_box(-numpy.array([chunk.cx * 16, 0, chunk.cz * 16])).slice
+        slices = box.create_moved_box((chunk.cx * 16, 0, chunk.cz * 16), subtract=True).slice
         blocks_merged = palette[chunk.blocks[slices]]
 
         return SchematicChunk(
