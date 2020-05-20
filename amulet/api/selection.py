@@ -5,7 +5,12 @@ import numpy
 
 from typing import Tuple, Iterable, List, Generator, Dict
 
-from amulet.api.data_types import BlockCoordinatesAny, CoordinatesAny
+from amulet.api.data_types import (
+    BlockCoordinatesAny,
+    CoordinatesAny,
+    ChunkCoordinates,
+    SubChunkCoordinates,
+)
 from ..utils.world_utils import (
     block_coords_to_chunk_coords,
     blocks_slice_to_chunk_slice,
@@ -50,7 +55,7 @@ class SelectionBox:
 
     def chunk_locations(
         self, chunk_size: int = 16
-    ) -> Generator[Tuple[int, int], None, None]:
+    ) -> Generator[ChunkCoordinates, None, None]:
         """A generator of chunk locations that this box intersects."""
         cx_min, cz_min, cx_max, cz_max = block_coords_to_chunk_coords(
             self.min_x,
@@ -72,14 +77,14 @@ class SelectionBox:
 
     def sub_chunk_locations(
         self, chunk_size: int = 16
-    ) -> Generator[Tuple[int, int], None, None]:
+    ) -> Generator[SubChunkCoordinates, None, None]:
         for cx, cz in self.chunk_locations(chunk_size):
             for cy in self.chunk_y_locations(chunk_size):
                 yield cx, cy, cz
 
     def sub_sections(
         self, chunk_size: int = 16
-    ) -> Generator[Tuple[Tuple[int, int], SelectionBox], None, None]:
+    ) -> Generator[Tuple[ChunkCoordinates, SelectionBox], None, None]:
         """A generator of modified `SelectionBox`es to fit within each sub-chunk.
         :param chunk_size: The dimension of the chunk (normally 16)
         """
@@ -342,7 +347,7 @@ class SelectionGroup:
 
     def chunk_locations(
         self, chunk_size: int = 16
-    ) -> Generator[Tuple[int, int], None, None]:
+    ) -> Generator[ChunkCoordinates, None, None]:
         """The chunk locations that the SelectionGroup is in.
         Each location is only given once even if there are multiple boxes in the chunk."""
         yield from set(
@@ -353,7 +358,7 @@ class SelectionGroup:
 
     def _chunk_boxes(
         self, chunk_size: int = 16
-    ) -> Dict[Tuple[int, int], List[SelectionBox]]:
+    ) -> Dict[ChunkCoordinates, List[SelectionBox]]:
         boxes = {}
         for box in self.selection_boxes:
             for (cx, cz), sub_box in box.sub_sections(chunk_size):
@@ -362,7 +367,7 @@ class SelectionGroup:
 
     def sub_sections(
         self, chunk_size: int = 16
-    ) -> Generator[Tuple[Tuple[int, int], SelectionBox], None, None]:
+    ) -> Generator[Tuple[ChunkCoordinates, SelectionBox], None, None]:
         """A generator of modified `SelectionBox`es to fit within each sub-chunk.
         :param chunk_size: The dimension of the chunk (normally 16)
         """
@@ -373,7 +378,7 @@ class SelectionGroup:
     def sub_slices(
         self, chunk_size: int = 16
     ) -> Generator[
-        Tuple[Tuple[int, int], Tuple[slice, slice, slice], SelectionBox], None, None
+        Tuple[ChunkCoordinates, Tuple[slice, slice, slice], SelectionBox], None, None
     ]:
         for (cx, cz), box in self.sub_sections(chunk_size):
             slices = box.chunk_slice(cx, cz, chunk_size)

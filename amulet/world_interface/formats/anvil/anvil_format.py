@@ -15,6 +15,7 @@ from amulet.api.wrapper.world_format_wrapper import WorldFormatWrapper
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, load_leveldat
 from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist, ChunkLoadError
+from amulet.api.data_types import ChunkCoordinates, RegionCoordinates
 
 if TYPE_CHECKING:
     from amulet.api.data_types import Dimension
@@ -44,9 +45,9 @@ class AnvilRegion:
         self._mcc = mcc  # create mcc file if the chunk is greater than 1MiB
 
         # [dirty, mod_time, data_length, data]  feel free to extend if you want to implement modifying in place and defragging
-        self._chunks: Dict[Tuple[int, int], Tuple[int, bytes]] = {}
+        self._chunks: Dict[ChunkCoordinates, Tuple[int, bytes]] = {}
 
-        self._committed_chunks: Dict[Tuple[int, int], Tuple[int, bytes]] = {}
+        self._committed_chunks: Dict[ChunkCoordinates, Tuple[int, bytes]] = {}
 
         if create:
             # create the region from scratch.
@@ -67,7 +68,7 @@ class AnvilRegion:
                             if offset != 0:
                                 self._chunks[(x, z)] = (0, b"")
 
-    def all_chunk_coords(self) -> Generator[Tuple[int, int], None, None]:
+    def all_chunk_coords(self) -> Generator[ChunkCoordinates, None, None]:
         for (cx, cz), (_, chunk_) in self._committed_chunks.items():
             if chunk_:
                 yield cx + self.rx * 32, cz + self.rz * 32
@@ -262,7 +263,7 @@ class AnvilLevelManager:
 
     def __init__(self, directory: str, mcc=False):
         self._directory = directory
-        self._regions: Dict[Tuple[int, int], AnvilRegion] = {}
+        self._regions: Dict[RegionCoordinates, AnvilRegion] = {}
         self._mcc = mcc
 
         # shallow load all of the existing region classes
@@ -277,7 +278,7 @@ class AnvilLevelManager:
                     mcc=self._mcc,
                 )
 
-    def all_chunk_coords(self) -> Generator[Tuple[int, int], None, None]:
+    def all_chunk_coords(self) -> Generator[ChunkCoordinates, None, None]:
         for region in self._regions.values():
             yield from region.all_chunk_coords()
 
@@ -511,7 +512,7 @@ class AnvilFormat(WorldFormatWrapper):
 
     def all_chunk_coords(
         self, dimension: "Dimension"
-    ) -> Generator[Tuple[int, int], None, None]:
+    ) -> Generator[ChunkCoordinates, None, None]:
         """A generator of all chunk coords in the given dimension"""
         if self._has_dimension(dimension):
             yield from self._get_dimension(dimension).all_chunk_coords()

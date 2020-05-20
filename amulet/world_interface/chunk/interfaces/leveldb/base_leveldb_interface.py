@@ -13,7 +13,7 @@ from amulet.api.chunk import Chunk
 
 from amulet.utils.world_utils import fast_unique, from_nibble_array, to_nibble_array
 from amulet.api.wrapper import Interface
-from amulet.api.data_types import AnyNDArray, SubChunkNDArray
+from amulet.api.data_types import AnyNDArray, SubChunkNDArray, BedrockInterfaceBlockType
 from amulet.world_interface.chunk import translators
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
     chunk_to_game_version,

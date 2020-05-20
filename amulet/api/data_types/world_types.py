@@ -3,7 +3,9 @@ import numpy
 # from nptyping import NDArray
 
 Dimension = str
+RegionCoordinates = Tuple[int, int]
 ChunkCoordinates = Tuple[int, int]
+SubChunkCoordinates = Tuple[int, int, int]
 DimensionCoordinates = Tuple[Dimension, int, int]
 
 BlockCoordinates = Tuple[int, int, int]

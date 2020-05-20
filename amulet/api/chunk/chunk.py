@@ -8,6 +8,7 @@ import gzip
 
 from amulet.api.chunk import Biomes, Blocks, Status, BlockEntityDict, EntityList
 from amulet.api.entity import Entity
+from amulet.api.data_types import ChunkCoordinates
 
 PointCoordinates = Tuple[int, int, int]
 SliceCoordinates = Tuple[slice, slice, slice]
@@ -77,7 +78,7 @@ class Chunk:
         return self._cz
 
     @property
-    def coordinates(self) -> Tuple[int, int]:
+    def coordinates(self) -> ChunkCoordinates:
         """The chunk's coordinates"""
         return self._cx, self._cz
 

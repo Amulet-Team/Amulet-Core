@@ -120,7 +120,7 @@ class Structure(BaseStructure):
             Chunk,
             Tuple[slice, slice, slice],
             SelectionBox,
-            Tuple[int, int],
+            ChunkCoordinates,
             Tuple[slice, slice, slice],
             SelectionBox,
         ],

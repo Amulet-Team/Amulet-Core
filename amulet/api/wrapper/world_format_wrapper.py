@@ -3,6 +3,7 @@ import traceback
 import os
 
 from amulet import log, IMG_DIRECTORY
+from amulet.api.data_types import ChunkCoordinates
 from .format_wrapper import BaseFormatWraper
 
 if TYPE_CHECKING:
@@ -81,7 +82,7 @@ class WorldFormatWrapper(BaseFormatWraper):
 
     def all_chunk_coords(
         self, dimension: "Dimension"
-    ) -> Generator[Tuple[int, int], None, None]:
+    ) -> Generator[ChunkCoordinates, None, None]:
         """A generator of all chunk coords in the given dimension"""
         raise NotImplementedError
 

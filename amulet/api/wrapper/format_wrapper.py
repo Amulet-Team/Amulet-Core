@@ -14,7 +14,7 @@ from amulet.api.errors import (
     ObjectReadWriteError,
 )
 from amulet.api.block import BlockManager, Block
-from amulet.api.data_types import BlockNDArray, AnyNDArray, VersionNumberAny
+from amulet.api.data_types import BlockNDArray, AnyNDArray, VersionNumberAny, ChunkCoordinates
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
@@ -137,7 +137,7 @@ class BaseFormatWraper:
         """Unload data stored in the Format class"""
         raise NotImplementedError
 
-    def all_chunk_coords(self, *args) -> Generator[Tuple[int, int], None, None]:
+    def all_chunk_coords(self, *args) -> Generator[ChunkCoordinates, None, None]:
         """A generator of all chunk coords"""
         raise NotImplementedError
 
@@ -233,7 +233,7 @@ class BaseFormatWraper:
         # set up a callback that translator can use to get chunk data
         cx, cz = chunk.cx, chunk.cz
         if recurse:
-            chunk_cache: Dict[Tuple[int, int], Tuple["Chunk", BlockManager]] = {}
+            chunk_cache: Dict[ChunkCoordinates, Tuple["Chunk", BlockManager]] = {}
 
             def get_chunk_callback(x: int, z: int) -> Tuple["Chunk", BlockManager]:
                 palette = BlockManager()

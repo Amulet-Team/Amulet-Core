@@ -8,10 +8,12 @@ from io import BytesIO
 import amulet_nbt as nbt
 
 from amulet.utils.format_utils import check_all_exist
+from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist
+from amulet.api.data_types import ChunkCoordinates
 from amulet.api.wrapper.world_format_wrapper import WorldFormatWrapper
 from amulet.world_interface.chunk import interfaces
 from amulet.libs.leveldb import LevelDB
-from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist
+
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
     game_to_chunk_version,
 )
@@ -31,7 +33,7 @@ class LevelDBLevelManager:
         self._directory = directory
         self._db = LevelDB(os.path.join(self._directory, "db"))
         # self._levels format Dict[level, Dict[Tuple[cx, cz], List[Tuple[full_key, key_extension]]]]
-        self._levels: Dict[InternalDimension, Set[Tuple[int, int]]] = {}
+        self._levels: Dict[InternalDimension, Set[ChunkCoordinates]] = {}
         self._dimension_name_map: Dict["Dimension", InternalDimension] = {}
         self._batch_temp: Dict[bytes, Union[bytes, None]] = {}
 
@@ -91,7 +93,7 @@ class LevelDBLevelManager:
         else:
             raise LevelDoesNotExist(dimension)
 
-    def all_chunk_coords(self, dimension: "Dimension") -> Set[Tuple[int, int]]:
+    def all_chunk_coords(self, dimension: "Dimension") -> Set[ChunkCoordinates]:
         internal_dimension = self._get_internal_dimension(dimension)
         if internal_dimension in self._levels:
             return self._levels[internal_dimension]
@@ -329,7 +331,7 @@ class LevelDBFormat(WorldFormatWrapper):
 
     def all_chunk_coords(
         self, dimension: "Dimension"
-    ) -> Generator[Tuple[int, int], None, None]:
+    ) -> Generator[ChunkCoordinates, None, None]:
         self._verify_has_lock()
         yield from self._level_manager.all_chunk_coords(dimension)
 
