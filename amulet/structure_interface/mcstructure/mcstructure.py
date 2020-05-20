@@ -14,10 +14,12 @@ from amulet.api.selection import SelectionBox
 from amulet.api.data_types import (
     ChunkCoordinates,
     BlockCoordinates,
+    AnyNDArray
 )
+from amulet.api.errors import ChunkDoesNotExist
 
 
-class MCStructureSection:
+class MCStructureChunk:
     __slots__ = (
         "selection",
         "blocks",
@@ -31,7 +33,7 @@ class MCStructureSection:
             self,
             selection: SelectionBox,
             blocks: numpy.ndarray,
-            palette: List[amulet_nbt.TAG_Compound],
+            palette: AnyNDArray,
             block_entities: List[amulet_nbt.TAG_Compound],
             entities: List[amulet_nbt.TAG_Compound]
     ):
@@ -46,7 +48,7 @@ class MCStructureSection:
 
     def __eq__(self, other):
         return (
-            isinstance(other, MCStructureSection)
+            isinstance(other, MCStructureChunk)
             and self.selection == other.selection
             and self.shape == other.shape
             and numpy.array_equal(self.blocks, other.blocks)
@@ -69,7 +71,16 @@ class MCStructureReader:
             assert hasattr(path_or_buffer, "read"), "Object does not have a read method"
             mcstructure = amulet_nbt.load(buffer=path_or_buffer, little_endian=True)
 
-        self._chunks: Dict[ChunkCoordinates, Tuple] = {}
+        self._chunks: Dict[
+            ChunkCoordinates,
+            Tuple[
+                SelectionBox,
+                numpy.ndarray,
+                AnyNDArray,
+                List[amulet_nbt.TAG_Compound],
+                List[amulet_nbt.TAG_Compound]
+            ]
+        ] = {}
         if mcstructure["format_version"].value == 1:
             min_point = numpy.array(tuple(c.value for c in mcstructure["structure_world_origin"]))
             max_point = min_point + tuple(c.value for c in mcstructure["size"])
@@ -123,7 +134,13 @@ class MCStructureReader:
         else:
             raise Exception(f"mcstructure file with format_version=={mcstructure['format_version'].value} cannot be read")
 
-
+    def read(self, cx: int, cz: int):
+        if (cx, cz) in self._chunks:
+            return MCStructureChunk(
+                *self._chunks[(cx, cz)]
+            )
+        else:
+            raise ChunkDoesNotExist
 
     @property
     def selection(self) -> SelectionBox:
