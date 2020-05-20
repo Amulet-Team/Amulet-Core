@@ -1,28 +1,12 @@
-from typing import Any, Union, Generator, Callable, Tuple, Optional, TYPE_CHECKING, List, BinaryIO
-
-# from nptyping import NDArray
+from typing import Union, Callable, Tuple, Optional, TYPE_CHECKING, List, BinaryIO
 import numpy
+from .world_types import BlockCoordinates
 
 if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
     from amulet.api.block import Block
     from amulet.api.block_entity import BlockEntity
     from amulet.api.entity import Entity
-
-# World types
-Dimension = str
-ChunkCoordinates = Tuple[int, int]
-DimensionCoordinates = Tuple[Dimension, int, int]
-
-BlockCoordinates = Tuple[int, int, int]
-BlockCoordinatesNDArray = numpy.ndarray  # NDArray[(3, ), numpy.int]
-BlockCoordinatesAny = Union[BlockCoordinates, BlockCoordinatesNDArray]
-PointCoordinates = Tuple[float, float, float]
-PointCoordinatesNDArray = numpy.ndarray  # NDArray[(3, ), numpy.float]
-PointCoordinatesAny = Union[PointCoordinates, PointCoordinatesNDArray]
-CoordinatesAny = Union[BlockCoordinatesAny, PointCoordinatesAny]
-
-SubChunkNDArray = numpy.ndarray  # NDArray[(16, 16, 16), numpy.uint]
 
 
 # Wrapper types
@@ -65,9 +49,3 @@ TranslateEntityCallback = Callable[
     ["Entity"],  # a callable  # that takes either an Entity
     TranslateEntityCallbackReturn,  # ultimately return the converted objects(s)
 ]
-
-
-# Operation types
-OperationYieldType = Union[int, float, Tuple[Union[int, float], str]]
-OperationReturnType = Union[Generator[OperationYieldType, None, Any], Any]
-OperationType = Callable[["World", Dimension, Any], OperationReturnType]
