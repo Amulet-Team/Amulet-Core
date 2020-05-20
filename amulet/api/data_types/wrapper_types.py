@@ -19,6 +19,14 @@ VersionNumberAny = Union[VersionNumberInt, VersionNumberTuple]
 
 GetChunkCallback = Callable[[int, int], Tuple["Chunk", BlockNDArray]]
 
+BedrockInterfaceBlockType = Tuple[
+    Union[
+        Tuple[None, Tuple[int, int]],
+        Tuple[None, Block],
+        Tuple[int, Block]
+    ], ...
+]
+
 GetBlockCallback = Callable[  # get a block at a different location
     [BlockCoordinates],  # this takes the coordinates relative to the block in question
     Tuple[

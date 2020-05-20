@@ -17,6 +17,7 @@ from amulet.api.data_types import (
     TranslateEntityCallbackReturn,
     VersionNumberTuple,
     GetChunkCallback,
+    BedrockInterfaceBlockType
 )
 
 
@@ -49,12 +50,7 @@ class BaseBedrockTranslator(Translator):
         """
         palette_ = numpy.empty(len(palette), dtype=object)
         for palette_index, entry in enumerate(palette):
-            entry: Tuple[
-                Union[
-                    Tuple[None, Tuple[int, int]], Tuple[None, Block], Tuple[int, Block],
-                ],
-                ...,
-            ]
+            entry: BedrockInterfaceBlockType
             block = None
             for version_number, b in entry:
                 version_number: Optional[int]
