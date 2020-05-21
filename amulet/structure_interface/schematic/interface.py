@@ -84,8 +84,8 @@ class SchematicInterface(Interface):
         translation_manager: "TranslationManager" = None,
     ) -> Tuple["Translator", Union[int, Tuple[int, int, int]]]:
         platform, version_number = max_world_version
-        version = translation_manager.get_version(platform, version_number)
         if platform == "java":
+            version = translation_manager.get_version(platform, version_number)
             version_number = version.data_version
         return translators.loader.get((platform, version_number)), version_number
 

@@ -91,30 +91,41 @@ class MCStructureInterface(Interface):
         max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
         box: SelectionBox = None,
     ) -> MCStructureChunk:
-        raise NotImplementedError
-    #     entities = []
-    #     for e in chunk.entities:
-    #         if e.location in box:
-    #             entities.append(
-    #                 self._encode_entity(e, self._entity_id_type, self._entity_coord_type).value
-    #             )
-    #     block_entities = []
-    #     for e in chunk.block_entities:
-    #         if e.location in box:
-    #             block_entities.append(
-    #                 self._encode_block_entity(e, self._block_entity_id_type, self._block_entity_coord_type).value
-    #             )
-    #
-    #     slices = box.create_moved_box((chunk.cx * 16, 0, chunk.cz * 16), subtract=True).slice
-    #     blocks_merged = palette[chunk.blocks[slices]]
-    #
-    #     return MCStructureChunk(
-    #         box,
-    #         blocks_merged[:, :, :, 0],
-    #         blocks_merged[:, :, :, 1],
-    #         block_entities,
-    #         entities
-    #     )
+        entities = []
+        for e in chunk.entities:
+            if e.location in box:
+                entities.append(
+                    self._encode_entity(e, self._entity_id_type, self._entity_coord_type).value
+                )
+        block_entities = []
+        for e in chunk.block_entities:
+            if e.location in box:
+                block_entities.append(
+                    self._encode_block_entity(e, self._block_entity_id_type, self._block_entity_coord_type).value
+                )
+
+        slices = box.create_moved_box((chunk.cx * 16, 0, chunk.cz * 16), subtract=True).slice
+
+        out_palette = numpy.empty(palette.shape, dtype=object)
+        for index, block_layers in enumerate(palette):
+            blocks_out = []
+            for version, block in block_layers:
+                block = amulet_nbt.TAG_Compound({
+                    "name": amulet_nbt.TAG_String(f"{block.namespace}:{block.base_name}"),
+                    "states": amulet_nbt.TAG_Compound(block.properties)
+                })
+                if version:
+                    block["version"] = amulet_nbt.TAG_Int(version)
+                blocks_out.append(block)
+            out_palette[index] = blocks_out
+
+        return MCStructureChunk(
+            box,
+            chunk.blocks[slices],
+            out_palette,
+            block_entities,
+            entities
+        )
 
     def get_translator(
         self,
@@ -123,7 +134,7 @@ class MCStructureInterface(Interface):
         translation_manager: "TranslationManager" = None,
     ) -> Tuple["Translator", Union[int, Tuple[int, int, int]]]:
         platform, version_number = max_world_version
-        version = translation_manager.get_version(platform, version_number)
         if platform == "java":
+            version = translation_manager.get_version(platform, version_number)
             version_number = version.data_version
         return translators.loader.get((platform, version_number)), version_number
