@@ -1,8 +1,8 @@
 from typing import Union, Callable, Tuple, Optional, TYPE_CHECKING, List, BinaryIO
 import numpy
-from .world_types import BlockCoordinates
 
 if TYPE_CHECKING:
+    from .world_types import BlockCoordinates
     from amulet.api.chunk import Chunk
     from amulet.api.block import Block
     from amulet.api.block_entity import BlockEntity
@@ -22,13 +22,13 @@ GetChunkCallback = Callable[[int, int], Tuple["Chunk", BlockNDArray]]
 BedrockInterfaceBlockType = Tuple[
     Union[
         Tuple[None, Tuple[int, int]],
-        Tuple[None, Block],
-        Tuple[int, Block]
+        Tuple[None, "Block"],
+        Tuple[int, "Block"]
     ], ...
 ]
 
 GetBlockCallback = Callable[  # get a block at a different location
-    [BlockCoordinates],  # this takes the coordinates relative to the block in question
+    ["BlockCoordinates"],  # this takes the coordinates relative to the block in question
     Tuple[
         "Block", Optional["BlockEntity"]
     ],  # and returns a new block and optionally a block entity
