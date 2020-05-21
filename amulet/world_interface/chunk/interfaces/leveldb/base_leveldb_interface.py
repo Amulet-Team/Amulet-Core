@@ -8,9 +8,9 @@ import amulet_nbt
 
 import amulet
 from amulet.api.block import Block, PropertyDataTypes
-
 from amulet.api.chunk import Chunk
 
+from amulet.utils.numpy_helpers import brute_sort_objects, brute_sort_objects_no_hash
 from amulet.utils.world_utils import fast_unique, from_nibble_array, to_nibble_array
 from amulet.api.wrapper import Interface
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray, BedrockInterfaceBlockType
@@ -27,41 +27,7 @@ if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
 
 
-def brute_sort_objects(data) -> Tuple[numpy.ndarray, numpy.ndarray]:
-    indexes = {}
-    unique = []
-    inverse = []
-    index = 0
-    for d in data:
-        if d not in indexes:
-            indexes[d] = index
-            index += 1
-            unique.append(d)
-        inverse.append(indexes[d])
 
-    unique_ = numpy.empty(len(unique), dtype=object)
-    for index, obj in enumerate(unique):
-        unique_[index] = obj
-
-    return unique_, numpy.array(inverse)
-
-
-def brute_sort_objects_no_hash(data) -> Tuple[numpy.ndarray, numpy.ndarray]:
-    unique = []
-    inverse = numpy.zeros(dtype=numpy.uint, shape=len(data))
-    for i, d in enumerate(data):
-        try:
-            index = unique.index(d)
-        except ValueError:
-            index = len(unique)
-            unique.append(d)
-        inverse[i] = index
-
-    unique_ = numpy.empty(len(unique), dtype=object)
-    for index, obj in enumerate(unique):
-        unique_[index] = obj
-
-    return unique_, numpy.array(inverse)
 
 
 class BaseLevelDBInterface(Interface):
