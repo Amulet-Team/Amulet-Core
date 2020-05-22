@@ -153,8 +153,16 @@ class SchematicWriter:
             box = section.selection.create_moved_box(self._selection.min, subtract=True)
             self._blocks[box.slice] = section.blocks
             self._block_data[box.slice] = section.data
-            self._block_entities += section.block_entities
-            self._entities += section.entities
+            for be in section.block_entities:
+                be["x"].value -= self._selection.min_x
+                be["y"].value -= self._selection.min_y
+                be["z"].value -= self._selection.min_z
+                self._block_entities.append(be)
+            for e in section.entities:
+                e["Pos"][0].value -= self._selection.min_x
+                e["Pos"][1].value -= self._selection.min_y
+                e["Pos"][2].value -= self._selection.min_z
+                self._entities.append(e)
 
     def close(self):
         self._data["Entities"] = amulet_nbt.TAG_List(self._entities)
