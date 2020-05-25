@@ -6,9 +6,14 @@ import amulet_nbt
 
 from amulet.api.wrapper import Translator
 from amulet.api.block import Block, blockstate_to_block
+from amulet.api.data_types import (
+    VersionIdentifierType,
+    AnyNDArray,
+    BlockNDArray,
+)
 
 if TYPE_CHECKING:
-    from PyMCTranslate import Version
+    from PyMCTranslate import Version, TranslationManager
 
 water = blockstate_to_block('minecraft:water[level="0"]')
 
@@ -28,13 +33,17 @@ class JavaBlockstateTranslator(Translator):
         return True
 
     def _unpack_palette(
-        self, version: "Version", palette: numpy.ndarray
-    ) -> numpy.ndarray:
+            self,
+            translation_manager: "TranslationManager",
+            version_identifier: VersionIdentifierType,
+            palette: AnyNDArray
+    ) -> BlockNDArray:
         """
         Unpack the version-specific palette into the stringified version where needed.
 
         :return: The palette converted to block objects.
         """
+        version = translation_manager.get_version(*version_identifier)
         for index, block in enumerate(palette):
             block: Block
             if version.is_waterloggable(block.namespaced_name):

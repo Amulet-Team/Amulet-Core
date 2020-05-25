@@ -17,7 +17,9 @@ from amulet.api.data_types import (
     TranslateEntityCallbackReturn,
     VersionNumberTuple,
     GetChunkCallback,
-    BedrockInterfaceBlockType
+    BedrockInterfaceBlockType,
+    VersionIdentifierType,
+    VersionNumberAny,
 )
 
 
@@ -28,11 +30,16 @@ if TYPE_CHECKING:
 
 class BaseBedrockTranslator(Translator):
     def _translator_key(
-        self, version_number: Union[int, VersionNumberTuple]
-    ) -> Tuple[str, Union[int, VersionNumberTuple]]:
+        self, version_number: VersionNumberAny
+    ) -> VersionIdentifierType:
         return "bedrock", version_number
 
-    def _unpack_palette(self, version: Version, palette: AnyNDArray) -> BlockNDArray:
+    def _unpack_palette(
+            self,
+            translation_manager: "TranslationManager",
+            version_identifier: VersionIdentifierType,
+            palette: AnyNDArray
+    ) -> BlockNDArray:
         """
         Unpacks an object array of block data into a numpy object array containing Block objects.
         :param version:
@@ -55,6 +62,7 @@ class BaseBedrockTranslator(Translator):
             for version_number, b in entry:
                 version_number: Optional[int]
                 if isinstance(b, tuple):
+                    version = translation_manager.get_version(version_identifier[0], version_number or 17563649)
                     b = version.ints_to_block(*b)
                 elif isinstance(b, Block):
                     if version_number is not None:

@@ -21,6 +21,8 @@ from amulet.api.data_types import (
     GetBlockCallback,
     TranslateBlockCallbackReturn,
     TranslateEntityCallbackReturn,
+    VersionNumberAny,
+    VersionIdentifierType,
 )
 
 if TYPE_CHECKING:
@@ -385,7 +387,7 @@ class Translator:
 
     def unpack(
         self,
-        chunk_version: Union[int, Tuple[int, int, int]],
+        chunk_version: VersionNumberAny,
         translation_manager: "TranslationManager",
         chunk: Chunk,
         palette: AnyNDArray,
@@ -395,11 +397,15 @@ class Translator:
 
         :return: The palette converted to block objects.
         """
-        version = translation_manager.get_version(*self._translator_key(chunk_version))
-        palette = self._unpack_palette(version, palette)
+        palette = self._unpack_palette(translation_manager, self._translator_key(chunk_version), palette)
         return chunk, palette
 
-    def _unpack_palette(self, version: "Version", palette: AnyNDArray) -> BlockNDArray:
+    def _unpack_palette(
+            self,
+            translation_manager: "TranslationManager",
+            version_identifier: VersionIdentifierType,
+            palette: AnyNDArray
+    ) -> BlockNDArray:
         """
         Unpack the version-specific palette into the stringified version where needed.
         :return: The palette converted to block objects.

@@ -13,9 +13,11 @@ if TYPE_CHECKING:
 PathOrBuffer = Union[str, BinaryIO]
 BlockNDArray = numpy.ndarray  # NDArray[(Any, ), 'Block']
 AnyNDArray = numpy.ndarray  # NDArray[(Any, ), Any]
+PlatformType = str
 VersionNumberInt = int
 VersionNumberTuple = Tuple[int, int, int]
 VersionNumberAny = Union[VersionNumberInt, VersionNumberTuple]
+VersionIdentifierType = Tuple[PlatformType, VersionNumberAny]
 
 GetChunkCallback = Callable[[int, int], Tuple["Chunk", BlockNDArray]]
 
