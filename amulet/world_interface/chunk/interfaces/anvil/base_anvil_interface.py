@@ -99,12 +99,12 @@ class BaseAnvilInterface(Interface):
             status = "empty"
             if (
                 self.features["terrain_populated"] == "byte"
-                and data["Level"]["TerrainPopulated"].value
+                and data["Level"].get("TerrainPopulated", amulet_nbt.TAG_Byte()).value
             ):
                 status = "decorated"
             if (
                 self.features["light_populated"] == "byte"
-                and data["Level"]["LightPopulated"].value
+                and data["Level"].get("LightPopulated", amulet_nbt.TAG_Byte()).value
             ):
                 status = "postprocessed"
 
