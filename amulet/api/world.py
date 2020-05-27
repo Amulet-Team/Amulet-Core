@@ -186,7 +186,7 @@ class World(BaseStructure):
                             wrapper.save()
                             self._world_wrapper.unload()
                             wrapper.unload()
-                except LevelDoesNotExist(dimension):
+                except LevelDoesNotExist:
                     continue
 
         for storage in (self._chunk_history_manager, self._chunk_cache):
