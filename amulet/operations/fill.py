@@ -12,13 +12,10 @@ if TYPE_CHECKING:
 
 
 def fill(
-    world: "World", dimension: Dimension, target_box: SelectionGroup, options: dict
+    world: "World", dimension: Dimension, target_box: SelectionGroup, fill_block: Block
 ):
-    fill_block = options.get("fill_block", None)
     if not isinstance(fill_block, Block):
-        log.error("Fill operation was not given a Block object")
-        return
-    fill_block: Block
+        raise Exception("Fill operation was not given a Block object")
     internal_id = world.palette.get_add_block(fill_block)
 
     iter_count = len(list(world.get_chunk_slices(target_box, dimension, True)))
