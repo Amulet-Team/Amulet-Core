@@ -1,5 +1,5 @@
 import copy
-from typing import Dict, Union, Generator, Tuple, Optional
+from typing import Dict, Union, Generator, Tuple, Optional, List
 import itertools
 import numpy
 
@@ -13,7 +13,34 @@ from ..utils.world_utils import block_coords_to_chunk_coords
 from amulet.api.data_types import Dimension
 
 
-structure_buffer = []
+class StructureCache:
+    """A class for storing and accessing structure objects"""
+    def __init__(self):
+        self._structure_buffer: List[Structure] = []
+
+    def add_structure(self, structure: "Structure"):
+        """Add a structure to the cache"""
+        assert isinstance(structure, Structure), "structure given is not a Structure instance"
+        self._structure_buffer.append(structure)
+
+    def get_structure(self, index=-1) -> "Structure":
+        """Get a structure from the cache. Default last."""
+        return self._structure_buffer[index]
+
+    def pop_structure(self, index=-1) -> "Structure":
+        """Get and remove a structure from the cache. Default last."""
+        return self._structure_buffer.pop(index)
+
+    def __len__(self) -> int:
+        """Get the number of structures in the cache"""
+        return len(self._structure_buffer)
+
+    def clear(self):
+        """Empty the cache."""
+        self._structure_buffer.clear()
+
+
+structure_cache = StructureCache()
 
 
 class Structure(BaseStructure):
