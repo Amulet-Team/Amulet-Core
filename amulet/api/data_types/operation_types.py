@@ -1,4 +1,4 @@
-from typing import Any, Union, Generator, Callable, Tuple, TYPE_CHECKING
+from typing import Any, Union, Generator, Callable, Tuple, TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from amulet.api.world import World
