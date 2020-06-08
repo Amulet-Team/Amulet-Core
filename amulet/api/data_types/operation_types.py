@@ -6,5 +6,5 @@ if TYPE_CHECKING:
 
 # Operation types
 OperationYieldType = Union[int, float, Tuple[Union[int, float], str]]
-OperationReturnType = Union[Generator[OperationYieldType, None, Any], Any]
+OperationReturnType = Optional[Union[Generator[OperationYieldType, None, Any], Any]]
 OperationType = Callable[["World", "Dimension", Any], OperationReturnType]
