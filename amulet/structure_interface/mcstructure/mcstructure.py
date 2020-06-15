@@ -223,9 +223,9 @@ class MCStructureWriter:
                     "block_position_data": amulet_nbt.TAG_Compound({
                         str(
                             (
-                                (block_entity["x"].value - self._selection.min_x) * self._selection.size_x +
+                                (block_entity["x"].value - self._selection.min_x) * self._selection.size_y +
                                 (block_entity["y"].value - self._selection.min_y)
-                            ) * self._selection.size_y +
+                            ) * self._selection.size_z +
                             block_entity["z"].value - self._selection.min_z
                         ): amulet_nbt.TAG_Compound({
                             "block_entity_data": block_entity
@@ -234,4 +234,4 @@ class MCStructureWriter:
                 })
             })
         })
-        self._data.save_to(self._path_or_buffer, little_endian=True)
+        self._data.save_to(self._path_or_buffer, compressed=False, little_endian=True)
