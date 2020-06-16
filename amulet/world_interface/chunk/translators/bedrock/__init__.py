@@ -8,7 +8,6 @@ import amulet_nbt
 
 from amulet import log
 from amulet.api.block import Block
-from amulet.api.data_types import BlockNDArray, AnyNDArray
 from amulet.api.entity import Entity
 from amulet.api.wrapper.chunk.translator import Translator
 from amulet.api.data_types import (
@@ -20,6 +19,9 @@ from amulet.api.data_types import (
     BedrockInterfaceBlockType,
     VersionIdentifierType,
     VersionNumberAny,
+    BlockNDArray,
+    BlockCoordinates,
+    AnyNDArray,
 )
 
 
@@ -98,7 +100,7 @@ class BaseBedrockTranslator(Translator):
         versions = {}
 
         def translate_block(
-            input_object: Block, get_block_callback: Optional[GetBlockCallback],
+            input_object: Block, get_block_callback: Optional[GetBlockCallback], block_location: BlockCoordinates
         ) -> TranslateBlockCallbackReturn:
             final_block = None
             final_block_entity = None
@@ -122,7 +124,7 @@ class BaseBedrockTranslator(Translator):
                         *version_key
                     ).block.to_universal
                 output_object, output_block_entity, extra = versions[version_key](
-                    block, get_block_callback
+                    block, get_block_callback, block_location=block_location
                 )
 
                 if isinstance(output_object, Block):
@@ -192,7 +194,7 @@ class BaseBedrockTranslator(Translator):
 
         # TODO: perhaps find a way so this code isn't duplicated in three places
         def translate_block(
-            input_object: Block, get_block_callback: Optional[GetBlockCallback],
+            input_object: Block, get_block_callback: Optional[GetBlockCallback], block_location: BlockCoordinates
         ) -> TranslateBlockCallbackReturn:
             final_block = None
             final_block_entity = None
@@ -204,7 +206,7 @@ class BaseBedrockTranslator(Translator):
                     output_object,
                     output_block_entity,
                     extra,
-                ) = version.block.from_universal(block, get_block_callback)
+                ) = version.block.from_universal(block, get_block_callback, block_location=block_location)
 
                 if isinstance(output_object, Block):
                     if __debug__ and output_object.namespace.startswith("universal"):

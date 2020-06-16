@@ -14,6 +14,7 @@ from amulet.api.chunk import Chunk
 from amulet.api.data_types import (
     AnyNDArray,
     BlockNDArray,
+    BlockCoordinates,
     GetChunkCallback,
     TranslateBlockCallback,
     TranslateEntityCallback,
@@ -78,7 +79,7 @@ class Translator:
         for i, input_block in enumerate(palette):
             input_block: BlockType
             output_block, output_block_entity, output_entity, extra = translate_block(
-                input_block, None
+                input_block, None, (0, 0, 0)
             )
             if extra and get_chunk_callback:
                 todo.append(i)
@@ -95,7 +96,7 @@ class Translator:
                                 )
                             )
             else:
-                # TODO: set the block to air
+                # TODO: this should only happen if the object is an entity, set the block to air
                 pass
 
             if output_entity and entity_support:
@@ -161,7 +162,7 @@ class Translator:
                         output_block_entity,
                         output_entity,
                         _,
-                    ) = translate_block(input_block, get_block_at)
+                    ) = translate_block(input_block, get_block_at, (x+chunk.cx, y, z+chunk.cz))
                     if output_block is not None:
                         block_mappings[(x, y, z)] = finished.get_add_block(output_block)
                         if output_block_entity is not None:
@@ -236,7 +237,7 @@ class Translator:
         version = translation_manager.get_version(*self._translator_key(chunk_version))
 
         def translate_block(
-            input_object: Block, get_block_callback: Optional[GetBlockCallback],
+            input_object: Block, get_block_callback: Optional[GetBlockCallback], block_location: BlockCoordinates
         ) -> TranslateBlockCallbackReturn:
             final_block = None
             final_block_entity = None
@@ -248,7 +249,7 @@ class Translator:
                     output_object,
                     output_block_entity,
                     extra,
-                ) = version.block.to_universal(block, get_block_callback)
+                ) = version.block.to_universal(block, get_block_callback, block_location=block_location)
 
                 if isinstance(output_object, Block):
                     if not output_object.namespace.startswith("universal"):
@@ -313,7 +314,7 @@ class Translator:
 
         # TODO: perhaps find a way so this code isn't duplicated in three places
         def translate_block(
-            input_object: Block, get_block_callback: Optional[GetBlockCallback],
+            input_object: Block, get_block_callback: Optional[GetBlockCallback], block_location: BlockCoordinates
         ) -> TranslateBlockCallbackReturn:
             final_block = None
             final_block_entity = None
@@ -325,7 +326,7 @@ class Translator:
                     output_object,
                     output_block_entity,
                     extra,
-                ) = version.block.from_universal(block, get_block_callback)
+                ) = version.block.from_universal(block, get_block_callback, block_location=block_location)
 
                 if isinstance(output_object, Block):
                     if __debug__ and output_object.namespace.startswith("universal"):

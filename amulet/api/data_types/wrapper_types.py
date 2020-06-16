@@ -51,6 +51,7 @@ TranslateBlockCallback = Callable[
         Optional[
             GetBlockCallback
         ],  # this is used in cases where the block needs data beyond itself to fully define itself (eg doors)
+        "BlockCoordinates"  # used in a select few cases where the translation needs to know where the block is
     ],
     TranslateBlockCallbackReturn,  # ultimately return the converted objects(s)
 ]
