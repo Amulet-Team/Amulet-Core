@@ -12,7 +12,6 @@ Welcome to Amulet Map Editor's documentation!
 
    api
    design
-   command_line
    utils
 
 
