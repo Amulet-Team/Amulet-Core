@@ -46,7 +46,9 @@ class SelectionBox:
             ((cx + 1) * chunk_size, (cy + 1) * chunk_size, (cz + 1) * chunk_size),
         )
 
-    def create_moved_box(self, offset: BlockCoordinatesAny, subtract=False) -> SelectionBox:
+    def create_moved_box(
+        self, offset: BlockCoordinatesAny, subtract=False
+    ) -> SelectionBox:
         """Create a new SelectionBox by offsetting the bounds of this box."""
         offset = numpy.array(offset)
         if subtract:
@@ -65,7 +67,7 @@ class SelectionBox:
             chunk_size=chunk_size,
         )
         yield from itertools.product(
-            range(cx_min, cx_max + 1), range(cz_min, cz_max + 1),
+            range(cx_min, cx_max + 1), range(cz_min, cz_max + 1)
         )
 
     def chunk_y_locations(self, chunk_size: int = 16):
@@ -106,13 +108,11 @@ class SelectionBox:
     def __str__(self):
         return f"({self.min}, {self.max})"
 
-    def __contains__(
-        self, item: CoordinatesAny
-    ):
+    def __contains__(self, item: CoordinatesAny):
         return (
-            self._min_x <= item[0] < self._max_x
-            and self._min_y <= item[1] < self._max_y
-            and self._min_z <= item[2] < self._max_z
+            self._min_x <= item[0] <= self._max_x
+            and self._min_y <= item[1] <= self._max_y
+            and self._min_z <= item[2] <= self._max_z
         )
 
     @property
