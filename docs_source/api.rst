@@ -1,5 +1,5 @@
-api module
-==========
+api package
+===========
 
 .. toctree::
     :maxdepth: 3

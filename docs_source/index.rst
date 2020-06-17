@@ -7,7 +7,7 @@ Welcome to Amulet Map Editor's documentation!
 ==============================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
    api
