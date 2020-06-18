@@ -162,7 +162,7 @@ class Translator:
                         output_block_entity,
                         output_entity,
                         _,
-                    ) = translate_block(input_block, get_block_at, (x+chunk.cx, y, z+chunk.cz))
+                    ) = translate_block(input_block, get_block_at, (x+chunk.cx*16, y, z+chunk.cz*16))
                     if output_block is not None:
                         block_mappings[(x, y, z)] = finished.get_add_block(output_block)
                         if output_block_entity is not None:
