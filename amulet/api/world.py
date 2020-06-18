@@ -259,7 +259,7 @@ class World(BaseStructure):
             self._chunk_history_manager.add_original_chunk(dimension, cx, cz, chunk)
 
         if chunk is None:
-            raise ChunkDoesNotExist(f"Chunk ({cx},{cz}) has been deleted")
+            raise ChunkDoesNotExist(f"Chunk ({cx},{cz}) does not exist")
 
         return chunk
 
