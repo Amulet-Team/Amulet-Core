@@ -122,7 +122,7 @@ class SelectionBox:
         return not self == other
 
     def __hash__(self):
-        return hash((*self.min, *self.max, *self.shape))
+        return hash((*self.min, *self.max))
 
     @property
     def slice(self) -> Tuple[slice, slice, slice]:
