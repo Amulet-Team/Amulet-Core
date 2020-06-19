@@ -331,7 +331,6 @@ class WorldTestBaseCases:
             and op.exists(get_world_path("1.13 World to 1.12.2 World")),
             reason="Output worlds do not exist",
         )
-        @unittest.skip
         def test_save(self):
             output_wrapper = None
             version_string = self.world.world_wrapper.game_version_string
