@@ -1,6 +1,6 @@
-operation module
+structure module
 ================
 
-.. automodule:: amulet.api.operation
+.. automodule:: amulet.api.structure
     :members:
     :show-inheritance:

@@ -26,7 +26,9 @@ if __name__ == "__main__":
                 print(f"Loading chunk at {cx}, {cz}")
                 chunk = world.get_chunk(cx, cz)
                 print("A vertical column of blocks in the chunk:")
-                for block in chunk.blocks[0, :, 0].ravel():  # the blockstates of one vertical column
+                for block in chunk.blocks[
+                    0, :, 0
+                ].ravel():  # the blockstates of one vertical column
                     print(world.palette[block])
                 air = world.palette.get_add_block(
                     Block(namespace="universal_minecraft", base_name="air")
@@ -54,7 +56,9 @@ if __name__ == "__main__":
                 print("Reloading world and printing new blocks")
                 world = load_world(world_path)
                 chunk = world.get_chunk(cx, cz)
-                for block in chunk.blocks[0, :, 0].ravel():  # the blockstates of one vertical column
+                for block in chunk.blocks[
+                    0, :, 0
+                ].ravel():  # the blockstates of one vertical column
                     print(world.palette[block])
             else:
                 print("Not enough arguments given. Format must be:")
@@ -83,9 +87,7 @@ if __name__ == "__main__":
 
                 print(f"Loading world at {world_path}")
                 world = load_world(world_path)
-                world.delete_chunk(
-                    cx, cz
-                )
+                world.delete_chunk(cx, cz)
                 print("Saving world")
                 world.save()
                 world.close()
