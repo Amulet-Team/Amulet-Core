@@ -115,6 +115,15 @@ class SelectionBox:
             and self._min_z <= item[2] <= self._max_z
         )
 
+    def __eq__(self, other):
+        return self.min == other.min and self.max == other.max
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash((*self.min, *self.max, *self.shape))
+
     @property
     def slice(self) -> Tuple[slice, slice, slice]:
         """
@@ -343,7 +352,7 @@ class SelectionGroup:
         Returns a list of unmodified SubSelectionBoxes in the SelectionGroup.
         :return: A list of the SubSelectionBoxes
         """
-        return self._selection_boxes.copy()
+        return sorted(self._selection_boxes.copy(), key=hash)
 
     def chunk_locations(
         self, chunk_size: int = 16
