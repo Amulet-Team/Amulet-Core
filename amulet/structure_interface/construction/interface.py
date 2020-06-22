@@ -34,7 +34,7 @@ class ConstructionInterface(Interface):
                 sz = section.sz - ((section.sz >> 4) << 4)
                 chunk.blocks[
                     sx : sx + shapex, sy : sy + shapey, sz : sz + shapez,
-                ] = section.blocks + len(palette)
+                ] = section.blocks.astype(numpy.uint32) + len(palette)
                 chunk.block_entities.update(section.block_entities)
             chunk.entities.extend(section.entities)
             palette += section.palette
