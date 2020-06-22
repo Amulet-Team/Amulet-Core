@@ -23,13 +23,7 @@ class ConstructionInterface(Interface):
         self, cx: int, cz: int, data: List[ConstructionSection]
     ) -> Tuple["Chunk", BlockNDArray]:
         chunk = Chunk(cx, cz)
-        palette = [
-            Block(
-                namespace="minecraft",
-                base_name="air",
-                properties={"block_data": amulet_nbt.TAG_Int(0)},
-            )
-        ]
+        palette = []
         for section in data:
             if any(s == 0 for s in section.shape):
                 continue
@@ -46,6 +40,12 @@ class ConstructionInterface(Interface):
             palette += section.palette
 
         np_palette, inverse = numpy.unique(palette, return_inverse=True)
+        np_palette = numpy.insert(np_palette, 0, Block(
+            namespace="minecraft",
+            base_name="air",
+            properties={"block_data": amulet_nbt.TAG_Int(0)},
+        ))
+        inverse += 1
         np_palette: numpy.ndarray
         inverse: numpy.ndarray
         for cy in chunk.blocks.sub_chunks:
