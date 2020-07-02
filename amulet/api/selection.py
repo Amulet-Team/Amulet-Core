@@ -10,11 +10,14 @@ from amulet.api.data_types import (
     CoordinatesAny,
     ChunkCoordinates,
     SubChunkCoordinates,
+    Dimension,
+    FloatTriplet,
 )
 from ..utils.world_utils import (
     block_coords_to_chunk_coords,
     blocks_slice_to_chunk_slice,
 )
+from amulet.utils.matrix import transform_matrix
 
 
 class SelectionBox:
@@ -241,13 +244,25 @@ class SelectionBox:
             numpy.clip(other.max, self.min, self.max),
         )
 
+    def transform(self, scale: FloatTriplet, rotation: FloatTriplet) -> List[SelectionBox]:
+        """creates a list of new transformed SelectionBox(es)."""
+        boxes = []
+        # TODO: allow this to support rotations that are not 90 degrees
+        min_point, max_point = numpy.matmul(
+            transform_matrix((0, 0, 0), scale, rotation),
+            numpy.array([[*self.min, 1], [*self.max, 1]]).T
+        ).T[:, :3]
+        boxes.append(SelectionBox(min_point, max_point))
+
+        return boxes
+
 
 class SelectionGroup:
     """
     Holding class for multiple SubSelectionBoxes which allows for non-rectangular and non-contiguous selections
     """
 
-    def __init__(self, selection_boxes: Iterable[SelectionBox] = None):
+    def __init__(self, selection_boxes: Iterable[SelectionBox] = ()):
         self._selection_boxes = []
 
         if selection_boxes:
@@ -409,6 +424,14 @@ class SelectionGroup:
                 if self_box.intersects(other_box):
                     intersection.add_box(self_box.intersection(other_box))
         return intersection
+
+    def transform(self, scale: FloatTriplet, rotation: FloatTriplet) -> SelectionGroup:
+        """creates a new transformed SelectionGroup."""
+        selection_group = SelectionGroup()
+        for selection in self.selection_boxes:
+            for transformed_selection in selection.transform(scale, rotation):
+                selection_group.add_box(transformed_selection)
+        return selection_group
 
 
 if __name__ == "__main__":
