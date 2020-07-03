@@ -14,4 +14,4 @@ def delete_chunk(world: "World", dimension: Dimension, source_box: SelectionGrou
         cx, cz = chunk.coordinates
         world.delete_chunk(cx, cz, dimension)
         count += 1
-        yield 100 * count / iter_count
+        yield count / iter_count
