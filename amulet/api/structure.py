@@ -2,15 +2,16 @@ import copy
 from typing import Dict, Union, Generator, Tuple, Optional, List
 import itertools
 import numpy
+import math
 
 from .selection import SelectionGroup, SelectionBox
 from .world import World, BaseStructure
 from .chunk import Chunk
 from .block import Block, BlockManager
 from .errors import ChunkDoesNotExist
-from amulet.api.data_types import ChunkCoordinates
+from amulet.api.data_types import ChunkCoordinates, Dimension, FloatTriplet
 from ..utils.world_utils import block_coords_to_chunk_coords
-from amulet.api.data_types import Dimension
+from amulet.utils.matrix import transform_matrix
 
 
 class StructureCache:
@@ -196,3 +197,34 @@ class Structure(BaseStructure):
                 src_slices = src_box.chunk_slice(chunk.cx, chunk.cz, self.chunk_size[0])
                 dst_slices = dst_box.chunk_slice(cx, cz, self.chunk_size[0])
                 yield chunk, src_slices, src_box, (cx, cz), dst_slices, dst_box
+
+    def transform(self, scale: FloatTriplet, rotation: FloatTriplet) -> "Structure":
+        """
+        creates a new transformed Structure class.
+        :param scale: scale factor multiplier in the x, y and z directions
+        :param rotation: rotation in degrees for pitch (y), yaw (z) and roll (x)
+        :return:
+        """
+        """"""
+        rotation_radians = -numpy.radians(rotation)
+        selection = self.selection.transform(scale, rotation_radians)
+        transform = transform_matrix((0, 0, 0), scale, rotation_radians)
+        inverse_transform = numpy.linalg.inv(transform)
+
+        chunks: Dict[ChunkCoordinates, Chunk] = {}
+
+        # TODO: find a way to do this without doing it block by block
+        for box in selection.selection_boxes:
+            for x, y, z in box.blocks():
+                chunk_key = (x >> 4, z >> 4)
+                if chunk_key in chunks:
+                    chunk = chunks[chunk_key]
+                else:
+                    chunk = chunks[chunk_key] = Chunk(*chunk_key)
+                ox, oy, oz, _ = numpy.floor(numpy.matmul(inverse_transform, [x + 0.5, y + 0.5, z + 0.5, 1])).astype(int)
+                try:
+                    chunk.blocks[x % 16, y, z % 16] = self.get_chunk(ox >> 4, oz >> 4).blocks[ox % 16, oy, oz % 16]
+                except ChunkDoesNotExist:
+                    pass
+
+        return Structure(chunks, self.palette, selection, self.chunk_size)
