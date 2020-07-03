@@ -30,8 +30,8 @@ def displacement_matrix(x: float, y: float, z: float) -> numpy.ndarray:
 
 def rotation_matrix(
         pitch: float,  # pitch (y axis) in radians
-        yaw: float,  # pitch (transformed z axis) in radians
-        roll: Optional[float] = None  # pitch (transformed x axis) in radians
+        yaw: float,  # yaw (transformed z axis) in radians
+        roll: Optional[float] = None  # roll (transformed x axis) in radians
 ) -> numpy.ndarray:
     c = math.cos(yaw)
     s = math.sin(yaw)

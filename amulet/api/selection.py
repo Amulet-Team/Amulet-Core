@@ -10,7 +10,6 @@ from amulet.api.data_types import (
     CoordinatesAny,
     ChunkCoordinates,
     SubChunkCoordinates,
-    Dimension,
     FloatTriplet,
 )
 from ..utils.world_utils import (
