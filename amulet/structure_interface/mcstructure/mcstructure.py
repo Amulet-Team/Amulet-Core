@@ -195,12 +195,13 @@ class MCStructureWriter:
     def close(self):
         compact_palette, lut = brute_sort_objects_no_hash(numpy.concatenate(self._palette))
         self._blocks = lut[self._blocks].ravel()
-        block_depth = max(len(block) for block in compact_palette)
         block_palette = []
         block_palette_indices = []
         for block_list in compact_palette:
-            indexed_block = [-1] * block_depth
+            indexed_block = [-1] * 2
             for block_layer, block in enumerate(block_list):
+                if block_layer >= 2:
+                    break
                 if block in block_palette:
                     indexed_block[block_layer] = block_palette.index(block)
                 else:
