@@ -281,6 +281,9 @@ class SelectionGroup:
 
         return False
 
+    def __bool__(self):
+        return bool(self._selection_boxes)
+
     @property
     def min(self) -> numpy.ndarray:
         if self._selection_boxes:
