@@ -28,7 +28,7 @@ class SelectionBox:
     """
 
     def __init__(self, min_point: BlockCoordinatesAny, max_point: BlockCoordinatesAny):
-        box = numpy.array([min_point, max_point], dtype=numpy.int)
+        box = numpy.array([min_point, max_point]).round().astype(numpy.int)
         self._min_x, self._min_y, self._min_z = numpy.min(box, 0).tolist()
         self._max_x, self._max_y, self._max_z = numpy.max(box, 0).tolist()
 
