@@ -64,8 +64,8 @@ def paste_iter(
     else:
         transformed_structure = structure
 
-    offset = -(transformed_structure.selection.min + transformed_structure.selection.max) // 2 + location
-    moved_location = (transformed_structure.selection.min - transformed_structure.selection.max) // 2 + location
+    offset = -((transformed_structure.selection.min + transformed_structure.selection.max) / 2).astype(int) + location
+    moved_location = ((transformed_structure.selection.min - transformed_structure.selection.max) / 2).astype(int) + location
 
     iter_count = len(list(transformed_structure.get_moved_chunk_slices(moved_location)))
     count = 0
