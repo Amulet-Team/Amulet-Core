@@ -2,7 +2,6 @@ import copy
 from typing import Dict, Union, Generator, Tuple, Optional, List
 import itertools
 import numpy
-import math
 
 from .selection import SelectionGroup, SelectionBox
 from .world import World, BaseStructure
@@ -205,26 +204,48 @@ class Structure(BaseStructure):
         :param rotation: rotation in degrees for pitch (y), yaw (z) and roll (x)
         :return:
         """
-        """"""
-        rotation_radians = -numpy.radians(rotation)
+        iter = self.transform_iter(scale, rotation)
+        try:
+            while True:
+                next(iter)
+        except StopIteration as e:
+            return e.value
+
+    def transform_iter(self, scale: FloatTriplet, rotation: FloatTriplet) -> Generator[int, None, "Structure"]:
+        """
+        creates a new transformed Structure class.
+        :param scale: scale factor multiplier in the x, y and z directions
+        :param rotation: rotation in degrees for pitch (y), yaw (z) and roll (x)
+        :return:
+        """
+        rotation_radians = -numpy.flip(numpy.radians(rotation))
         selection = self.selection.transform(scale, rotation_radians)
-        transform = transform_matrix((0, 0, 0), scale, rotation_radians)
+        transform = transform_matrix((0, 0, 0), scale, rotation_radians, "zyx")
         inverse_transform = numpy.linalg.inv(transform)
 
         chunks: Dict[ChunkCoordinates, Chunk] = {}
+        
+        volume = sum([box.volume for box in selection.selection_boxes])
+        index = 0
 
         # TODO: find a way to do this without doing it block by block
         for box in selection.selection_boxes:
-            for x, y, z in box.blocks():
+            coords = list(box.blocks())
+            coords_array = numpy.ones((len(coords), 4), dtype=numpy.float)
+            coords_array[:, :3] = coords
+            coords_array[:, :3] += 0.5
+            original_coords = numpy.floor(numpy.matmul(inverse_transform, coords_array.T)).astype(int).T[:, :3]
+            for (x, y, z), (ox, oy, oz) in zip(coords, original_coords):
                 chunk_key = (x >> 4, z >> 4)
                 if chunk_key in chunks:
                     chunk = chunks[chunk_key]
                 else:
                     chunk = chunks[chunk_key] = Chunk(*chunk_key)
-                ox, oy, oz, _ = numpy.floor(numpy.matmul(inverse_transform, [x + 0.5, y + 0.5, z + 0.5, 1])).astype(int)
                 try:
                     chunk.blocks[x % 16, y, z % 16] = self.get_chunk(ox >> 4, oz >> 4).blocks[ox % 16, oy, oz % 16]
                 except ChunkDoesNotExist:
                     pass
+                yield index / volume
+                index += 1
 
         return Structure(chunks, self.palette, selection, self.chunk_size)

@@ -29,52 +29,53 @@ def displacement_matrix(x: float, y: float, z: float) -> numpy.ndarray:
 
 
 def rotation_matrix(
-        pitch: float,  # pitch (y axis) in radians
-        yaw: float,  # yaw (transformed z axis) in radians
-        roll: Optional[float] = None  # roll (transformed x axis) in radians
+        *angles,
+        order="xy"
 ) -> numpy.ndarray:
-    c = math.cos(yaw)
-    s = math.sin(yaw)
+    mat = numpy.identity(4, dtype=numpy.float64)
 
-    y_rot = numpy.array(
-        [
-            [c, 0, -s, 0],
-            [0, 1, 0, 0],
-            [s, 0, c, 0],
-            [0, 0, 0, 1]
-        ],
-        dtype=numpy.float64
-    )
-
-    c = math.cos(pitch)
-    s = math.sin(pitch)
-
-    x_rot = numpy.array(
-        [
-            [1, 0, 0, 0],
-            [0, c, s, 0],
-            [0, -s, c, 0],
-            [0, 0, 0, 1]
-        ],
-        dtype=numpy.float64
-    )
-
-    mat = numpy.matmul(y_rot, x_rot)
-
-    if roll:
-        c = math.cos(roll)
-        s = math.sin(roll)
-
-        z_rot = numpy.array(
-            [
-                [c, s, 0, 0],
-                [-s, c, 0, 0],
-                [0, 0, 1, 0],
-                [0, 0, 0, 1]
-            ],
-            dtype=numpy.float64
-        )
-        mat = numpy.matmul(mat, z_rot)
+    for angle, axis in zip(angles, order):
+        c = math.cos(angle)
+        s = math.sin(angle)
+        if axis == "x":
+            mat = numpy.matmul(
+                numpy.array(
+                    [
+                        [1, 0, 0, 0],
+                        [0, c, s, 0],
+                        [0, -s, c, 0],
+                        [0, 0, 0, 1]
+                    ],
+                    dtype=numpy.float64
+                ),
+                mat
+            )
+        elif axis == "y":
+            mat = numpy.matmul(
+                numpy.array(
+                    [
+                        [c, 0, -s, 0],
+                        [0, 1, 0, 0],
+                        [s, 0, c, 0],
+                        [0, 0, 0, 1]
+                    ],
+                    dtype=numpy.float64
+                ),
+                mat
+            )
+        elif axis == "z":
+            mat = numpy.matmul(
+                numpy.array(
+                    [
+                        [c, s, 0, 0],
+                        [-s, c, 0, 0],
+                        [0, 0, 1, 0],
+                        [0, 0, 0, 1]
+                    ],
+                    dtype=numpy.float64
+                ),
+                mat
+            )
 
     return mat
 
@@ -82,9 +83,10 @@ def rotation_matrix(
 def transform_matrix(
     location: PointCoordinates,
     scale: FloatTriplet,
-    rotation: FloatTriplet
+    rotation: FloatTriplet,
+    order="xyz"
 ):
     scale_transform = scale_matrix(*scale)
-    rotation_transform = rotation_matrix(*rotation)
+    rotation_transform = rotation_matrix(*rotation, order=order)
     displacement_transform = displacement_matrix(*location)
     return numpy.matmul(numpy.matmul(scale_transform, rotation_transform), displacement_transform)

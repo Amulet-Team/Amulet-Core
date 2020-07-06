@@ -7,6 +7,7 @@ from amulet.api.structure import Structure
 from amulet.api.errors import ChunkLoadError, ChunkDoesNotExist
 from amulet.api.chunk import Chunk
 from amulet.api.data_types import Dimension, BlockCoordinates, FloatTriplet
+from amulet.utils.matrix import transform_matrix
 
 if TYPE_CHECKING:
     from amulet.api.world import World
@@ -58,16 +59,22 @@ def paste_iter(
     else:
         paste_blocks = None
 
-    yield 0, "Rotating!"
+    rotation_point = ((structure.selection.max + structure.selection.min) / 2).astype(int)
+
     if any(rotation) or any(s != 1 for s in scale):
-        transformed_structure = structure.transform(scale, rotation)
+        yield 0, "Rotating!"
+        transformed_structure = yield from structure.transform_iter(scale, rotation)
+        rotation_point = numpy.matmul(
+            transform_matrix((0, 0, 0), scale, -numpy.radians(numpy.flip(rotation)), "zyx"),
+            numpy.array([*rotation_point, 1])
+        ).T[:3].round().astype(int)
     else:
         transformed_structure = structure
 
-    offset = -((transformed_structure.selection.min + transformed_structure.selection.max) / 2).astype(int) + location
-    moved_location = ((transformed_structure.selection.min - transformed_structure.selection.max) / 2).astype(int) + location
+    offset =  location - rotation_point
+    moved_min_location = transformed_structure.selection.min + offset
 
-    iter_count = len(list(transformed_structure.get_moved_chunk_slices(moved_location)))
+    iter_count = len(list(transformed_structure.get_moved_chunk_slices(moved_min_location)))
     count = 0
 
     yield 0, "Pasting!"
@@ -78,7 +85,7 @@ def paste_iter(
         (dst_cx, dst_cz),
         dst_slices,
         dst_box,
-    ) in transformed_structure.get_moved_chunk_slices(moved_location):
+    ) in transformed_structure.get_moved_chunk_slices(moved_min_location):
         try:
             dst_chunk = world.get_chunk(dst_cx, dst_cz, dimension)
         except ChunkDoesNotExist:

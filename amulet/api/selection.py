@@ -219,6 +219,10 @@ class SelectionBox:
         """The shape of the box"""
         return self.size_x, self.size_y, self.size_z
 
+    @property
+    def volume(self) -> int:
+        return self.size_x * self.size_y * self.size_z
+
     def intersects(self, other: SelectionBox) -> bool:
         """
         Method to check whether this instance of SelectionBox intersects another SelectionBox
@@ -248,7 +252,7 @@ class SelectionBox:
         boxes = []
         # TODO: allow this to support rotations that are not 90 degrees
         min_point, max_point = numpy.matmul(
-            transform_matrix((0, 0, 0), scale, rotation),
+            transform_matrix((0, 0, 0), scale, rotation, "zyx"),
             numpy.array([[*self.min, 1], [*self.max, 1]]).T
         ).T[:, :3]
         boxes.append(SelectionBox(min_point, max_point))
