@@ -15,12 +15,15 @@ from amulet.utils.matrix import transform_matrix
 
 class StructureCache:
     """A class for storing and accessing structure objects"""
+
     def __init__(self):
         self._structure_buffer: List[Structure] = []
 
     def add_structure(self, structure: "Structure"):
         """Add a structure to the cache"""
-        assert isinstance(structure, Structure), "structure given is not a Structure instance"
+        assert isinstance(
+            structure, Structure
+        ), "structure given is not a Structure instance"
         self._structure_buffer.append(structure)
 
     def get_structure(self, index=-1) -> "Structure":
@@ -211,7 +214,9 @@ class Structure(BaseStructure):
         except StopIteration as e:
             return e.value
 
-    def transform_iter(self, scale: FloatTriplet, rotation: FloatTriplet) -> Generator[int, None, "Structure"]:
+    def transform_iter(
+        self, scale: FloatTriplet, rotation: FloatTriplet
+    ) -> Generator[int, None, "Structure"]:
         """
         creates a new transformed Structure class.
         :param scale: scale factor multiplier in the x, y and z directions
@@ -224,7 +229,7 @@ class Structure(BaseStructure):
         inverse_transform = numpy.linalg.inv(transform)
 
         chunks: Dict[ChunkCoordinates, Chunk] = {}
-        
+
         volume = sum([box.volume for box in selection.selection_boxes])
         index = 0
 
@@ -234,7 +239,11 @@ class Structure(BaseStructure):
             coords_array = numpy.ones((len(coords), 4), dtype=numpy.float)
             coords_array[:, :3] = coords
             coords_array[:, :3] += 0.5
-            original_coords = numpy.floor(numpy.matmul(inverse_transform, coords_array.T)).astype(int).T[:, :3]
+            original_coords = (
+                numpy.floor(numpy.matmul(inverse_transform, coords_array.T))
+                .astype(int)
+                .T[:, :3]
+            )
             for (x, y, z), (ox, oy, oz) in zip(coords, original_coords):
                 chunk_key = (x >> 4, z >> 4)
                 if chunk_key in chunks:
@@ -242,7 +251,9 @@ class Structure(BaseStructure):
                 else:
                     chunk = chunks[chunk_key] = Chunk(*chunk_key)
                 try:
-                    chunk.blocks[x % 16, y, z % 16] = self.get_chunk(ox >> 4, oz >> 4).blocks[ox % 16, oy, oz % 16]
+                    chunk.blocks[x % 16, y, z % 16] = self.get_chunk(
+                        ox >> 4, oz >> 4
+                    ).blocks[ox % 16, oy, oz % 16]
                 except ChunkDoesNotExist:
                     pass
                 yield index / volume

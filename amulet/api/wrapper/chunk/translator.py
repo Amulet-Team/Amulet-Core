@@ -32,12 +32,12 @@ if TYPE_CHECKING:
 
 class Translator:
     def translator_key(
-            self, version_number: Union[int, Tuple[int, int, int]]
+        self, version_number: Union[int, Tuple[int, int, int]]
     ) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
         return self._translator_key(version_number)
 
     def _translator_key(
-            self, version_number: Union[int, Tuple[int, int, int]]
+        self, version_number: Union[int, Tuple[int, int, int]]
     ) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
         """
         Return the version key for PyMCTranslate
@@ -162,7 +162,11 @@ class Translator:
                         output_block_entity,
                         output_entity,
                         _,
-                    ) = translate_block(input_block, get_block_at, (x+chunk.cx*16, y, z+chunk.cz*16))
+                    ) = translate_block(
+                        input_block,
+                        get_block_at,
+                        (x + chunk.cx * 16, y, z + chunk.cz * 16),
+                    )
                     if output_block is not None:
                         block_mappings[(x, y, z)] = finished.get_add_block(output_block)
                         if output_block_entity is not None:
@@ -237,7 +241,9 @@ class Translator:
         version = translation_manager.get_version(*self._translator_key(chunk_version))
 
         def translate_block(
-            input_object: Block, get_block_callback: Optional[GetBlockCallback], block_location: BlockCoordinates
+            input_object: Block,
+            get_block_callback: Optional[GetBlockCallback],
+            block_location: BlockCoordinates,
         ) -> TranslateBlockCallbackReturn:
             final_block = None
             final_block_entity = None
@@ -249,7 +255,9 @@ class Translator:
                     output_object,
                     output_block_entity,
                     extra,
-                ) = version.block.to_universal(block, get_block_callback, block_location=block_location)
+                ) = version.block.to_universal(
+                    block, get_block_callback, block_location=block_location
+                )
 
                 if isinstance(output_object, Block):
                     if not output_object.namespace.startswith("universal"):
@@ -314,7 +322,9 @@ class Translator:
 
         # TODO: perhaps find a way so this code isn't duplicated in three places
         def translate_block(
-            input_object: Block, get_block_callback: Optional[GetBlockCallback], block_location: BlockCoordinates
+            input_object: Block,
+            get_block_callback: Optional[GetBlockCallback],
+            block_location: BlockCoordinates,
         ) -> TranslateBlockCallbackReturn:
             final_block = None
             final_block_entity = None
@@ -326,7 +336,9 @@ class Translator:
                     output_object,
                     output_block_entity,
                     extra,
-                ) = version.block.from_universal(block, get_block_callback, block_location=block_location)
+                ) = version.block.from_universal(
+                    block, get_block_callback, block_location=block_location
+                )
 
                 if isinstance(output_object, Block):
                     if __debug__ and output_object.namespace.startswith("universal"):
@@ -398,14 +410,16 @@ class Translator:
 
         :return: The palette converted to block objects.
         """
-        palette = self._unpack_palette(translation_manager, self._translator_key(chunk_version), palette)
+        palette = self._unpack_palette(
+            translation_manager, self._translator_key(chunk_version), palette
+        )
         return chunk, palette
 
     def _unpack_palette(
-            self,
-            translation_manager: "TranslationManager",
-            version_identifier: VersionIdentifierType,
-            palette: AnyNDArray
+        self,
+        translation_manager: "TranslationManager",
+        version_identifier: VersionIdentifierType,
+        palette: AnyNDArray,
     ) -> BlockNDArray:
         """
         Unpack the version-specific palette into the stringified version where needed.

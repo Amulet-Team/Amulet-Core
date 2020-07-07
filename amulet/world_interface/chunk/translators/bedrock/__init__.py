@@ -37,10 +37,10 @@ class BaseBedrockTranslator(Translator):
         return "bedrock", version_number
 
     def _unpack_palette(
-            self,
-            translation_manager: "TranslationManager",
-            version_identifier: VersionIdentifierType,
-            palette: AnyNDArray
+        self,
+        translation_manager: "TranslationManager",
+        version_identifier: VersionIdentifierType,
+        palette: AnyNDArray,
     ) -> BlockNDArray:
         """
         Unpacks an object array of block data into a numpy object array containing Block objects.
@@ -64,7 +64,9 @@ class BaseBedrockTranslator(Translator):
             for version_number, b in entry:
                 version_number: Optional[int]
                 if isinstance(b, tuple):
-                    version = translation_manager.get_version(version_identifier[0], version_number or 17563649)
+                    version = translation_manager.get_version(
+                        version_identifier[0], version_number or 17563649
+                    )
                     b = version.ints_to_block(*b)
                 elif isinstance(b, Block):
                     if version_number is not None:
@@ -100,7 +102,9 @@ class BaseBedrockTranslator(Translator):
         versions = {}
 
         def translate_block(
-            input_object: Block, get_block_callback: Optional[GetBlockCallback], block_location: BlockCoordinates
+            input_object: Block,
+            get_block_callback: Optional[GetBlockCallback],
+            block_location: BlockCoordinates,
         ) -> TranslateBlockCallbackReturn:
             final_block = None
             final_block_entity = None
@@ -194,7 +198,9 @@ class BaseBedrockTranslator(Translator):
 
         # TODO: perhaps find a way so this code isn't duplicated in three places
         def translate_block(
-            input_object: Block, get_block_callback: Optional[GetBlockCallback], block_location: BlockCoordinates
+            input_object: Block,
+            get_block_callback: Optional[GetBlockCallback],
+            block_location: BlockCoordinates,
         ) -> TranslateBlockCallbackReturn:
             final_block = None
             final_block_entity = None
@@ -206,7 +212,9 @@ class BaseBedrockTranslator(Translator):
                     output_object,
                     output_block_entity,
                     extra,
-                ) = version.block.from_universal(block, get_block_callback, block_location=block_location)
+                ) = version.block.from_universal(
+                    block, get_block_callback, block_location=block_location
+                )
 
                 if isinstance(output_object, Block):
                     if __debug__ and output_object.namespace.startswith("universal"):

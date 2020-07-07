@@ -2,7 +2,17 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Dict, Generator, Set, Union, Optional, List, TYPE_CHECKING, BinaryIO
+from typing import (
+    Tuple,
+    Dict,
+    Generator,
+    Set,
+    Union,
+    Optional,
+    List,
+    TYPE_CHECKING,
+    BinaryIO,
+)
 from io import BytesIO
 
 import amulet_nbt as nbt
@@ -192,7 +202,7 @@ class LevelDAT(nbt.NBTFile):
         super().__init__(root_tag.value, root_tag.name)
 
     def save_to(
-            self, filename_or_buffer: Union[str, BinaryIO] = None
+        self, filename_or_buffer: Union[str, BinaryIO] = None
     ) -> Optional[bytes]:
         buffer = BytesIO()
         buffer.write(struct.pack("<i", self._level_dat_version))
@@ -200,11 +210,10 @@ class LevelDAT(nbt.NBTFile):
         if filename_or_buffer is None:
             return buffer.getvalue()
         elif isinstance(filename_or_buffer, str):
-            with open(filename_or_buffer, 'wb') as f:
+            with open(filename_or_buffer, "wb") as f:
                 f.write(buffer.getvalue())
         else:
             filename_or_buffer.write()
-
 
 
 class LevelDBFormat(WorldFormatWrapper):

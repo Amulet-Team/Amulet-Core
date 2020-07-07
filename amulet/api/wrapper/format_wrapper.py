@@ -14,7 +14,12 @@ from amulet.api.errors import (
     ObjectReadWriteError,
 )
 from amulet.api.block import BlockManager, Block
-from amulet.api.data_types import BlockNDArray, AnyNDArray, VersionNumberAny, ChunkCoordinates
+from amulet.api.data_types import (
+    BlockNDArray,
+    AnyNDArray,
+    VersionNumberAny,
+    ChunkCoordinates,
+)
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Interface

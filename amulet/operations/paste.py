@@ -14,30 +14,40 @@ if TYPE_CHECKING:
 
 
 def paste(
-        world: "World",
-        dimension: Dimension,
-        structure: Structure,
-        location: BlockCoordinates,
-        scale: FloatTriplet,
-        rotation: FloatTriplet,
-        copy_air=True,
-        copy_water=True,
-        copy_lava=True
+    world: "World",
+    dimension: Dimension,
+    structure: Structure,
+    location: BlockCoordinates,
+    scale: FloatTriplet,
+    rotation: FloatTriplet,
+    copy_air=True,
+    copy_water=True,
+    copy_lava=True,
 ):
-    for _ in paste_iter(world, dimension, structure, location, scale, rotation, copy_air, copy_water, copy_lava):
+    for _ in paste_iter(
+        world,
+        dimension,
+        structure,
+        location,
+        scale,
+        rotation,
+        copy_air,
+        copy_water,
+        copy_lava,
+    ):
         pass
 
 
 def paste_iter(
-        world: "World",
-        dimension: Dimension,
-        structure: Structure,
-        location: BlockCoordinates,
-        scale: FloatTriplet,
-        rotation: FloatTriplet,
-        copy_air=True,
-        copy_water=True,
-        copy_lava=True
+    world: "World",
+    dimension: Dimension,
+    structure: Structure,
+    location: BlockCoordinates,
+    scale: FloatTriplet,
+    rotation: FloatTriplet,
+    copy_air=True,
+    copy_water=True,
+    copy_lava=True,
 ):
     gab = numpy.vectorize(world.palette.get_add_block)
     lut = gab(structure.palette.blocks())
@@ -59,22 +69,33 @@ def paste_iter(
     else:
         paste_blocks = None
 
-    rotation_point = ((structure.selection.max + structure.selection.min) / 2).astype(int)
+    rotation_point = ((structure.selection.max + structure.selection.min) / 2).astype(
+        int
+    )
 
     if any(rotation) or any(s != 1 for s in scale):
         yield 0, "Rotating!"
         transformed_structure = yield from structure.transform_iter(scale, rotation)
-        rotation_point = numpy.matmul(
-            transform_matrix((0, 0, 0), scale, -numpy.radians(numpy.flip(rotation)), "zyx"),
-            numpy.array([*rotation_point, 1])
-        ).T[:3].round().astype(int)
+        rotation_point = (
+            numpy.matmul(
+                transform_matrix(
+                    (0, 0, 0), scale, -numpy.radians(numpy.flip(rotation)), "zyx"
+                ),
+                numpy.array([*rotation_point, 1]),
+            )
+            .T[:3]
+            .round()
+            .astype(int)
+        )
     else:
         transformed_structure = structure
 
-    offset =  location - rotation_point
+    offset = location - rotation_point
     moved_min_location = transformed_structure.selection.min + offset
 
-    iter_count = len(list(transformed_structure.get_moved_chunk_slices(moved_min_location)))
+    iter_count = len(
+        list(transformed_structure.get_moved_chunk_slices(moved_min_location))
+    )
     count = 0
 
     yield 0, "Pasting!"
@@ -103,7 +124,9 @@ def paste_iter(
                         numpy.array(block_entity_location) - offset
                     )
                     chunk_block_entity_location[[0, 2]] %= 16
-                    if paste_blocks[src_chunk.blocks[tuple(chunk_block_entity_location)]]:
+                    if paste_blocks[
+                        src_chunk.blocks[tuple(chunk_block_entity_location)]
+                    ]:
                         remove_block_entities.append(block_entity_location)
         for block_entity_location in remove_block_entities:
             del dst_chunk.block_entities[block_entity_location]

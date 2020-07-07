@@ -22,15 +22,13 @@ VersionIdentifierType = Tuple[PlatformType, VersionNumberAny]
 GetChunkCallback = Callable[[int, int], Tuple["Chunk", BlockNDArray]]
 
 BedrockInterfaceBlockType = Tuple[
-    Union[
-        Tuple[None, Tuple[int, int]],
-        Tuple[None, "Block"],
-        Tuple[int, "Block"]
-    ], ...
+    Union[Tuple[None, Tuple[int, int]], Tuple[None, "Block"], Tuple[int, "Block"]], ...
 ]
 
 GetBlockCallback = Callable[  # get a block at a different location
-    ["BlockCoordinates"],  # this takes the coordinates relative to the block in question
+    [
+        "BlockCoordinates"
+    ],  # this takes the coordinates relative to the block in question
     Tuple[
         "Block", Optional["BlockEntity"]
     ],  # and returns a new block and optionally a block entity
@@ -51,7 +49,7 @@ TranslateBlockCallback = Callable[
         Optional[
             GetBlockCallback
         ],  # this is used in cases where the block needs data beyond itself to fully define itself (eg doors)
-        "BlockCoordinates"  # used in a select few cases where the translation needs to know where the block is
+        "BlockCoordinates",  # used in a select few cases where the translation needs to know where the block is
     ],
     TranslateBlockCallbackReturn,  # ultimately return the converted objects(s)
 ]

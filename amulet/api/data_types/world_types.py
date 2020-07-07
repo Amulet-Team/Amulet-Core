@@ -1,5 +1,6 @@
 from typing import Union, Tuple
 import numpy
+
 # from nptyping import NDArray
 
 FloatTriplet = Tuple[float, float, float]

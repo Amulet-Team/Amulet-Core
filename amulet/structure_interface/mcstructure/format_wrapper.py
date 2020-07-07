@@ -42,14 +42,14 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
         if self._open:
             return
         if self._mode == "r":
-            assert (isinstance(self.path_or_buffer, str) and os.path.isfile(self.path_or_buffer)) or hasattr(self.path_or_buffer, "read"), "File specified does not exist."
+            assert (
+                isinstance(self.path_or_buffer, str)
+                and os.path.isfile(self.path_or_buffer)
+            ) or hasattr(self.path_or_buffer, "read"), "File specified does not exist."
             self._data = MCStructureReader(self.path_or_buffer)
             self._selection = self._data.selection
         else:
-            self._data = MCStructureWriter(
-                self.path_or_buffer,
-                self._selection,
-            )
+            self._data = MCStructureWriter(self.path_or_buffer, self._selection,)
         self._open = True
 
     @property
@@ -155,7 +155,9 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             chunk,
             chunk_palette,
             self.max_world_version,
-            SelectionBox.create_chunk_box(chunk.cx, chunk.cz).intersection(self._selection)
+            SelectionBox.create_chunk_box(chunk.cx, chunk.cz).intersection(
+                self._selection
+            ),
         )
 
     def delete_chunk(self, cx: int, cz: int, *args):
@@ -163,9 +165,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             "delete_chunk is not a valid method for an mcstructure file"
         )
 
-    def _put_raw_chunk_data(
-        self, cx: int, cz: int, section: MCStructureChunk, *args
-    ):
+    def _put_raw_chunk_data(self, cx: int, cz: int, section: MCStructureChunk, *args):
         """
         Actually stores the data from the interface to disk.
         """

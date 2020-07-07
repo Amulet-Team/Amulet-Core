@@ -27,9 +27,6 @@ if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
 
 
-
-
-
 class BaseLevelDBInterface(Interface):
     def __init__(self):
         feature_options = {
@@ -78,26 +75,38 @@ class BaseLevelDBInterface(Interface):
         chunk = Chunk(cx, cz)
         chunk_palette = numpy.empty(0, dtype=object)
 
-        if self.features["terrain"].startswith("2f"):  # ["2farray", "2f1palette", "2fnpalette"]
+        if self.features["terrain"].startswith(
+            "2f"
+        ):  # ["2farray", "2f1palette", "2fnpalette"]
             subchunks = [data.get(b"\x2F" + bytes([i]), None) for i in range(16)]
             chunk.blocks, chunk_palette = self._load_subchunks(subchunks)
         elif self.features["terrain"] == "30array":
             chunk_data = data.get(b"\x30", None)
             if chunk_data is not None:
-                block_ids = numpy.frombuffer(chunk_data[:2**15], dtype=numpy.uint8).astype(numpy.uint16)
-                block_data = from_nibble_array(numpy.frombuffer(chunk_data[2**15:2**15 + 2**14], dtype=numpy.uint8))
+                block_ids = numpy.frombuffer(
+                    chunk_data[: 2 ** 15], dtype=numpy.uint8
+                ).astype(numpy.uint16)
+                block_data = from_nibble_array(
+                    numpy.frombuffer(
+                        chunk_data[2 ** 15 : 2 ** 15 + 2 ** 14], dtype=numpy.uint8
+                    )
+                )
 
                 # there is other data here but we are going to skip over it
                 combined_palette, block_array = fast_unique(
-                    numpy.transpose(((block_ids << 4) + block_data).reshape(16, 16, 128), (0, 2, 1))
+                    numpy.transpose(
+                        ((block_ids << 4) + block_data).reshape(16, 16, 128), (0, 2, 1)
+                    )
                 )
-                chunk.blocks = {i: block_array[:, i*16:(i+1)*16, :] for i in range(8)}
+                chunk.blocks = {
+                    i: block_array[:, i * 16 : (i + 1) * 16, :] for i in range(8)
+                }
                 palette: numpy.ndarray = numpy.array(
                     [combined_palette >> 4, combined_palette & 15]
                 ).T
                 chunk_palette = numpy.empty(len(palette), dtype=object)
                 for i, b in enumerate(palette):
-                    chunk_palette[i] = ((None, tuple(b)), )
+                    chunk_palette[i] = ((None, tuple(b)),)
 
         else:
             raise Exception
@@ -249,18 +258,22 @@ class BaseLevelDBInterface(Interface):
                 continue
 
             if data[0] in [0, 2, 3, 4, 5, 6, 7]:
-                block_ids = numpy.frombuffer(data[1:1+2 ** 12], dtype=numpy.uint8).astype(numpy.uint16)
-                block_data = from_nibble_array(numpy.frombuffer(data[1+2 ** 12:1+2 ** 12 + 2 ** 11], dtype=numpy.uint8))
+                block_ids = numpy.frombuffer(
+                    data[1 : 1 + 2 ** 12], dtype=numpy.uint8
+                ).astype(numpy.uint16)
+                block_data = from_nibble_array(
+                    numpy.frombuffer(
+                        data[1 + 2 ** 12 : 1 + 2 ** 12 + 2 ** 11], dtype=numpy.uint8
+                    )
+                )
                 combined_palette, block_array = fast_unique(
-                    numpy.transpose(((block_ids << 4) + block_data).reshape(16, 16, 16), (0, 2, 1))
+                    numpy.transpose(
+                        ((block_ids << 4) + block_data).reshape(16, 16, 16), (0, 2, 1)
+                    )
                 )
                 blocks[cy] = block_array + len(palette)
-                for b in numpy.array(
-                    [combined_palette >> 4, combined_palette & 15]
-                ).T:
-                    palette.append(
-                        ((None, tuple(b)),)
-                    )
+                for b in numpy.array([combined_palette >> 4, combined_palette & 15]).T:
+                    palette.append(((None, tuple(b)),))
 
             elif data[0] in [1, 8]:
                 if data[0] == 1:
@@ -365,9 +378,9 @@ class BaseLevelDBInterface(Interface):
                 data_sub_array = block_sub_array[:, 1]
                 block_sub_array = block_sub_array[:, 0]
                 sections.append(
-                    b"\00" +
-                    block_sub_array.astype("uint8").tobytes() +
-                    to_nibble_array(data_sub_array).tobytes()
+                    b"\00"
+                    + block_sub_array.astype("uint8").tobytes()
+                    + to_nibble_array(data_sub_array).tobytes()
                 )
 
         return sections

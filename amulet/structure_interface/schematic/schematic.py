@@ -15,12 +15,12 @@ BlockDataArrayType = numpy.ndarray  # uint8 array
 
 class SchematicChunk:
     def __init__(
-            self,
-            selection: SelectionBox,
-            blocks: BlockArrayType,
-            data: BlockDataArrayType,
-            block_entities: List[amulet_nbt.TAG_Compound],
-            entities: List[amulet_nbt.TAG_Compound]
+        self,
+        selection: SelectionBox,
+        blocks: BlockArrayType,
+        data: BlockDataArrayType,
+        block_entities: List[amulet_nbt.TAG_Compound],
+        entities: List[amulet_nbt.TAG_Compound],
     ):
         self.selection = selection
         self.blocks = blocks
@@ -32,8 +32,12 @@ class SchematicChunk:
 class SchematicReader:
     def __init__(self, path_or_buffer: PathOrBuffer):
         if isinstance(path_or_buffer, str):
-            assert path_or_buffer.endswith(".schematic"), "File selected is not a .schematic file"
-            assert os.path.isfile(path_or_buffer), f"There is no schematic file at path {path_or_buffer}"
+            assert path_or_buffer.endswith(
+                ".schematic"
+            ), "File selected is not a .schematic file"
+            assert os.path.isfile(
+                path_or_buffer
+            ), f"There is no schematic file at path {path_or_buffer}"
             schematic = amulet_nbt.load(path_or_buffer)
         else:
             assert hasattr(path_or_buffer, "read"), "Object does not have a read method"
@@ -45,19 +49,35 @@ class SchematicReader:
         elif materials == "Pocket":
             self._platform = "bedrock"
         else:
-            raise Exception(f"\"{materials}\" is not a supported platform for a schematic file.")
-        self._chunks: Dict[ChunkCoordinates, Tuple[SelectionBox, BlockArrayType, BlockDataArrayType, list, list]] = {}
-        self._selection = SelectionBox((0, 0, 0), (schematic["Width"].value, schematic["Height"].value, schematic["Length"].value))
+            raise Exception(
+                f'"{materials}" is not a supported platform for a schematic file.'
+            )
+        self._chunks: Dict[
+            ChunkCoordinates,
+            Tuple[SelectionBox, BlockArrayType, BlockDataArrayType, list, list],
+        ] = {}
+        self._selection = SelectionBox(
+            (0, 0, 0),
+            (
+                schematic["Width"].value,
+                schematic["Height"].value,
+                schematic["Length"].value,
+            ),
+        )
         entities: amulet_nbt.TAG_List = schematic.get("Entities", amulet_nbt.TAG_List())
-        block_entities: amulet_nbt.TAG_List = schematic.get("TileEntities", amulet_nbt.TAG_List())
-        blocks: numpy.ndarray = schematic["Blocks"].value.astype(numpy.uint8).astype(numpy.uint16)
+        block_entities: amulet_nbt.TAG_List = schematic.get(
+            "TileEntities", amulet_nbt.TAG_List()
+        )
+        blocks: numpy.ndarray = schematic["Blocks"].value.astype(numpy.uint8).astype(
+            numpy.uint16
+        )
         if "AddBlocks" in schematic:
             add_blocks = schematic["AddBlocks"]
             blocks = blocks + (
-                    numpy.concatenate([
-                        [add_blocks & 0xF],
-                        [(add_blocks & 0xF0) >> 4]
-                    ]).T.ravel().astype(numpy.uint16) << 8
+                numpy.concatenate([[add_blocks & 0xF], [(add_blocks & 0xF0) >> 4]])
+                .T.ravel()
+                .astype(numpy.uint16)
+                << 8
             )
         max_point = self._selection.max
         temp_shape = (max_point[1], max_point[2], max_point[0])
@@ -65,16 +85,12 @@ class SchematicReader:
         data = numpy.transpose(schematic["Data"].value.reshape(temp_shape), (2, 0, 1))
         for cx, cz in self._selection.chunk_locations():
             box = SelectionBox(
+                (cx * 16, 0, cz * 16),
                 (
-                    cx*16,
-                    0,
-                    cz*16
-                ),
-                (
-                    min((cx+1)*16, self._selection.size_x),
+                    min((cx + 1) * 16, self._selection.size_x),
                     self._selection.size_y,
-                    min((cz+1)*16, self._selection.size_z)
-                )
+                    min((cz + 1) * 16, self._selection.size_z),
+                ),
             )
             self._chunks[(cx, cz)] = (box, blocks[box.slice], data[box.slice], [], [])
         for e in block_entities:
@@ -94,9 +110,7 @@ class SchematicReader:
 
     def read(self, cx: int, cz: int):
         if (cx, cz) in self._chunks:
-            return SchematicChunk(
-                *self._chunks[(cx, cz)]
-            )
+            return SchematicChunk(*self._chunks[(cx, cz)])
         else:
             raise ChunkDoesNotExist
 
@@ -117,36 +131,39 @@ class SchematicReader:
 
 
 class SchematicWriter:
-    def __init__(
-            self,
-            path_or_buffer: str,
-            platform: str,
-            selection: SelectionBox
-    ):
+    def __init__(self, path_or_buffer: str, platform: str, selection: SelectionBox):
         self._path_or_buffer = path_or_buffer
         if platform == "java":
             self._materials = "Alpha"
         elif platform == "bedrock":
             self._materials = "Pocket"
         else:
-            raise Exception(f"\"{platform}\" is not a supported platform for a schematic file.")
+            raise Exception(
+                f'"{platform}" is not a supported platform for a schematic file.'
+            )
         self._selection = selection
 
         self._data = amulet_nbt.NBTFile(
-            amulet_nbt.TAG_Compound({
-                "TileTicks": amulet_nbt.TAG_List(),
-                "Width": amulet_nbt.TAG_Short(selection.size_x),
-                "Height": amulet_nbt.TAG_Short(selection.size_y),
-                "Length": amulet_nbt.TAG_Short(selection.size_z),
-                "Materials": amulet_nbt.TAG_String(self._materials)
-            }),
-            "Schematic"
+            amulet_nbt.TAG_Compound(
+                {
+                    "TileTicks": amulet_nbt.TAG_List(),
+                    "Width": amulet_nbt.TAG_Short(selection.size_x),
+                    "Height": amulet_nbt.TAG_Short(selection.size_y),
+                    "Length": amulet_nbt.TAG_Short(selection.size_z),
+                    "Materials": amulet_nbt.TAG_String(self._materials),
+                }
+            ),
+            "Schematic",
         )
 
         self._entities = []
         self._block_entities = []
-        self._blocks = numpy.zeros(selection.shape, dtype=numpy.uint16)  # only 12 bits are actually used at most
-        self._block_data = numpy.zeros(selection.shape, dtype=numpy.uint8)  # only 4 bits are used
+        self._blocks = numpy.zeros(
+            selection.shape, dtype=numpy.uint16
+        )  # only 12 bits are actually used at most
+        self._block_data = numpy.zeros(
+            selection.shape, dtype=numpy.uint8
+        )  # only 4 bits are used
 
     def write(self, section: SchematicChunk):
         if section.selection.intersects(self._selection):

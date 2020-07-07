@@ -3,13 +3,22 @@ from typing import Optional, Union, Tuple, Generator, TYPE_CHECKING
 import numpy
 
 from amulet import log
-from amulet.api.data_types import BlockNDArray, AnyNDArray, VersionNumberAny, PathOrBuffer
+from amulet.api.data_types import (
+    BlockNDArray,
+    AnyNDArray,
+    VersionNumberAny,
+    PathOrBuffer,
+)
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet.api.errors import ObjectReadError, ObjectWriteError
 from .schematic import SchematicWriter, SchematicReader, SchematicChunk
-from .interface import JavaSchematicInterface, BedrockSchematicInerface, SchematicInterface
+from .interface import (
+    JavaSchematicInterface,
+    BedrockSchematicInerface,
+    SchematicInterface,
+)
 
 
 if TYPE_CHECKING:
@@ -40,15 +49,16 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         if self._open:
             return
         if self._mode == "r":
-            assert (isinstance(self.path_or_buffer, str) and os.path.isfile(self.path_or_buffer)) or hasattr(self.path_or_buffer, "read"), "File specified does not exist."
+            assert (
+                isinstance(self.path_or_buffer, str)
+                and os.path.isfile(self.path_or_buffer)
+            ) or hasattr(self.path_or_buffer, "read"), "File specified does not exist."
             self._data = SchematicReader(self.path_or_buffer)
             self._platform = self._data.platform
             self._selection = self._data.selection
         else:
             self._data = SchematicWriter(
-                self.path_or_buffer,
-                self.platform,
-                self._selection,
+                self.path_or_buffer, self.platform, self._selection,
             )
         self._open = True
 
@@ -166,20 +176,24 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         translator: "Translator",
         chunk_version: VersionNumberAny,
     ) -> Tuple["Chunk", AnyNDArray]:
-        version = self.translation_manager.get_version(*translator.translator_key(chunk_version))
-        return chunk, numpy.array([version.block_to_ints(block) for block in chunk_palette])
+        version = self.translation_manager.get_version(
+            *translator.translator_key(chunk_version)
+        )
+        return (
+            chunk,
+            numpy.array([version.block_to_ints(block) for block in chunk_palette]),
+        )
 
     def _encode(
-        self,
-        chunk: Chunk,
-        chunk_palette: numpy.ndarray,
-        interface: SchematicInterface,
+        self, chunk: Chunk, chunk_palette: numpy.ndarray, interface: SchematicInterface,
     ):
         return interface.encode(
             chunk,
             chunk_palette,
             self.max_world_version,
-            SelectionBox.create_chunk_box(chunk.cx, chunk.cz).intersection(self._selection)
+            SelectionBox.create_chunk_box(chunk.cx, chunk.cz).intersection(
+                self._selection
+            ),
         )
 
     def _unpack(
@@ -189,17 +203,22 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         chunk: "Chunk",
         chunk_palette: AnyNDArray,
     ) -> Tuple["Chunk", BlockNDArray]:
-        version = self.translation_manager.get_version(*translator.translator_key(game_version))
-        return chunk, numpy.array([version.ints_to_block(block, data) for block, data in chunk_palette])
+        version = self.translation_manager.get_version(
+            *translator.translator_key(game_version)
+        )
+        return (
+            chunk,
+            numpy.array(
+                [version.ints_to_block(block, data) for block, data in chunk_palette]
+            ),
+        )
 
     def delete_chunk(self, cx: int, cz: int, *args):
         raise ObjectWriteError(
             "delete_chunk is not a valid method for a schematic file"
         )
 
-    def _put_raw_chunk_data(
-        self, cx: int, cz: int, data: SchematicChunk, *args
-    ):
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: SchematicChunk, *args):
         """
         Actually stores the data from the interface to disk.
         """

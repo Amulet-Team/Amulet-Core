@@ -247,13 +247,15 @@ class SelectionBox:
             numpy.clip(other.max, self.min, self.max),
         )
 
-    def transform(self, scale: FloatTriplet, rotation: FloatTriplet) -> List[SelectionBox]:
+    def transform(
+        self, scale: FloatTriplet, rotation: FloatTriplet
+    ) -> List[SelectionBox]:
         """creates a list of new transformed SelectionBox(es)."""
         boxes = []
         # TODO: allow this to support rotations that are not 90 degrees
         min_point, max_point = numpy.matmul(
             transform_matrix((0, 0, 0), scale, rotation, "zyx"),
-            numpy.array([[*self.min, 1], [*self.max, 1]]).T
+            numpy.array([[*self.min, 1], [*self.max, 1]]).T,
         ).T[:, :3]
         boxes.append(SelectionBox(min_point, max_point))
 

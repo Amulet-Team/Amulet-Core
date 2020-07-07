@@ -33,10 +33,10 @@ class JavaBlockstateTranslator(Translator):
         return True
 
     def _unpack_palette(
-            self,
-            translation_manager: "TranslationManager",
-            version_identifier: VersionIdentifierType,
-            palette: AnyNDArray
+        self,
+        translation_manager: "TranslationManager",
+        version_identifier: VersionIdentifierType,
+        palette: AnyNDArray,
     ) -> BlockNDArray:
         """
         Unpack the version-specific palette into the stringified version where needed.

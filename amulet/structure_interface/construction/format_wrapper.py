@@ -3,7 +3,12 @@ from typing import Optional, Union, List, Tuple, Dict, Generator, TYPE_CHECKING
 import numpy
 
 from amulet import log
-from amulet.api.data_types import BlockNDArray, AnyNDArray, VersionNumberAny, PathOrBuffer
+from amulet.api.data_types import (
+    BlockNDArray,
+    AnyNDArray,
+    VersionNumberAny,
+    PathOrBuffer,
+)
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
@@ -119,7 +124,10 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         if self._open:
             return
         if self._mode == "r":
-            assert (isinstance(self.path_or_buffer, str) and os.path.isfile(self.path_or_buffer)) or hasattr(self.path_or_buffer, "read"), "File specified does not exist."
+            assert (
+                isinstance(self.path_or_buffer, str)
+                and os.path.isfile(self.path_or_buffer)
+            ) or hasattr(self.path_or_buffer, "read"), "File specified does not exist."
             self._data = ConstructionReader(self.path_or_buffer)
             self._platform = self._data.source_edition
             self._version = self._data.source_version
