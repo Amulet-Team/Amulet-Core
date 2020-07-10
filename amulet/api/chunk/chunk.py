@@ -53,7 +53,7 @@ class Chunk:
             pickle.dump(chunk_data, fp)
 
     @classmethod
-    def unpickle(cls, file_path: str) -> Chunk:
+    def unpickle(cls, file_path: str, block_palette: BlockManager) -> Chunk:
         with gzip.open(file_path, "rb") as fp:
             chunk_data = pickle.load(fp)
         self = cls(*chunk_data[:2])
@@ -67,6 +67,7 @@ class Chunk:
             self.misc,
         ) = chunk_data[3:]
         self._changed_time = chunk_data[2]
+        self._block_palette = block_palette
         return self
 
     @property

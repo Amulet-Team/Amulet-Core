@@ -5,6 +5,7 @@ import time
 import os
 from .chunk import Chunk
 from amulet.api.data_types import Dimension
+from amulet.api.block import BlockManager
 
 if TYPE_CHECKING:
     from .world import ChunkCache
@@ -65,11 +66,11 @@ class ChunkHistoryManager:
         self._branch_save_count = 0
 
     def items(
-        self, get_all=False
+        self, block_palette: BlockManager, get_all=False
     ) -> Generator[Tuple[_ChunkLocation, Optional[Chunk]], None, None]:
-        for chunk_location, index in self._chunk_index.items():
+        for (dimension, cx, cz), index in self._chunk_index.items():
             if index or get_all:
-                yield chunk_location, self.get_current(*chunk_location)
+                yield (dimension, cx, cz), self.get_current(dimension, cx, cz, block_palette)
 
     def add_original_chunk(
         self, dimension: Dimension, cx: int, cz: int, chunk: Optional[Chunk]
@@ -157,7 +158,7 @@ class ChunkHistoryManager:
         return path
 
     def _unserialise_chunk(
-        self, dimension: Dimension, cx: int, cz: int, change_no: int
+        self, dimension: Dimension, cx: int, cz: int, block_palette: BlockManager, change_no: int
     ) -> Union[Chunk, None]:
         """Load the next save state for a given chunk in a given direction"""
         chunk_location = (dimension, cx, cz)
@@ -169,28 +170,28 @@ class ChunkHistoryManager:
 
         chunk = chunk_storage[chunk_index]
         if chunk is not None:
-            chunk = Chunk.unpickle(chunk)
+            chunk = Chunk.unpickle(chunk, block_palette)
         return chunk
 
-    def undo(self, chunk_cache: "ChunkCache"):
+    def undo(self, chunk_cache: "ChunkCache", chunk_palette: BlockManager):
         """Decrements the internal change index and un-serialises the last save state for each chunk changed"""
         if self._snapshot_index >= 0:
             snapshot = self._snapshots[self._snapshot_index]
             for chunk_location in snapshot:
                 dimension, cx, cz = chunk_location
-                chunk = self._unserialise_chunk(dimension, cx, cz, -1)
+                chunk = self._unserialise_chunk(dimension, cx, cz, chunk_palette, -1)
                 chunk_cache[chunk_location] = chunk
             self._snapshot_index -= 1
 
-    def redo(self, chunk_cache: "ChunkCache"):
+    def redo(self, chunk_cache: "ChunkCache", chunk_palette: BlockManager):
         """Re-increments the internal change index and un-serialises the chunks from the next newest change"""
         if self._snapshot_index <= len(self._snapshots) - 2:
             snapshot = self._snapshots[self._snapshot_index + 1]
             for chunk_location in snapshot:
                 dimension, cx, cz = chunk_location
-                chunk = self._unserialise_chunk(dimension, cx, cz, 1)
+                chunk = self._unserialise_chunk(dimension, cx, cz, chunk_palette, 1)
                 chunk_cache[chunk_location] = chunk
             self._snapshot_index += 1
 
-    def get_current(self, dimension: Dimension, cx: int, cz: int):
-        return self._unserialise_chunk(dimension, cx, cz, 0)
+    def get_current(self, dimension: Dimension, cx: int, cz: int, chunk_palette: BlockManager):
+        return self._unserialise_chunk(dimension, cx, cz, chunk_palette, 0)

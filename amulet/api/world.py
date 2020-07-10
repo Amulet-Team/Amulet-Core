@@ -187,8 +187,8 @@ class World(BaseStructure):
                 except LevelDoesNotExist:
                     continue
 
-        for storage in (self._chunk_history_manager, self._chunk_cache):
-            for (dimension, cx, cz), chunk in storage.items():
+        for storage in (lambda: self._chunk_history_manager.items(self._palette), self._chunk_cache.items):
+            for (dimension, cx, cz), chunk in storage():
                 if dimension not in output_dimension_map:
                     continue
                 if chunk is None:
@@ -245,7 +245,7 @@ class World(BaseStructure):
         elif chunk_key in self._chunk_history_manager:
             chunk = self._chunk_cache[
                 (dimension, cx, cz)
-            ] = self._chunk_history_manager.get_current(*chunk_key)
+            ] = self._chunk_history_manager.get_current(dimension, cx, cz, self._palette)
         else:
             try:
                 chunk = self._world_wrapper.load_chunk(cx, cz, dimension)
@@ -441,13 +441,13 @@ class World(BaseStructure):
         """
         Undoes the last set of changes to the world
         """
-        self._chunk_history_manager.undo(self._chunk_cache)
+        self._chunk_history_manager.undo(self._chunk_cache, self._palette)
 
     def redo(self):
         """
         Redoes the last set of changes to the world
         """
-        self._chunk_history_manager.redo(self._chunk_cache)
+        self._chunk_history_manager.redo(self._chunk_cache, self._palette)
 
     def restore_last_undo_point(self):
         """Restore the world to the state it was when self.create_undo_point was called.

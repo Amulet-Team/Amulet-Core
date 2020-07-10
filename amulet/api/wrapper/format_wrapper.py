@@ -7,6 +7,7 @@ import numpy
 import PyMCTranslate
 
 from amulet import log
+from amulet.api.block import BlockManager
 from amulet.world_interface.chunk import interfaces
 from amulet.api.errors import (
     ChunkLoadError,
@@ -299,13 +300,11 @@ class BaseFormatWraper:
             )
             for cy in chunk.blocks.sub_chunks:
                 chunk.blocks.add_sub_chunk(cy, lut[chunk.blocks.get_sub_chunk(cy)])
-            chunk_palette = numpy.vectorize(chunk.block_palette.__getitem__)(
+            chunk._block_palette = BlockManager(numpy.vectorize(chunk.block_palette.__getitem__)(
                 chunk_palette
-            )
+            ))
         else:
-            chunk_palette = numpy.array([], dtype=numpy.object)
-
-        chunk._block_palette = chunk_palette
+            chunk._block_palette = BlockManager()
 
         def get_chunk_callback(_: int, __: int) -> "Chunk":
             # conversion from universal should not require any data outside the block
