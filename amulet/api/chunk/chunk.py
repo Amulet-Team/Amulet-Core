@@ -6,6 +6,7 @@ import numpy
 import pickle
 import gzip
 
+from amulet.api.block import BlockManager
 from amulet.api.chunk import Biomes, Blocks, Status, BlockEntityDict, EntityList
 from amulet.api.entity import Entity
 from amulet.api.data_types import ChunkCoordinates
@@ -25,6 +26,7 @@ class Chunk:
         self._changed_time = 0.0
 
         self._blocks = None
+        self._block_palette = BlockManager()
         self._biomes = Biomes(self, numpy.zeros((16, 16), dtype=numpy.uint32))
         self._entities = EntityList(self)
         self._block_entities = BlockEntityDict(self)
@@ -111,6 +113,29 @@ class Chunk:
     @blocks.setter
     def blocks(self, value: Optional[Union[Dict[int, numpy.ndarray], Blocks]]):
         self._blocks = Blocks(value)
+
+    @property
+    def block_palette(self) -> BlockManager:
+        """The block palette for the chunk.
+        Usually will refer to a global block palette."""
+        return self._block_palette
+
+    @block_palette.setter
+    def block_palette(self, new_block_palette: BlockManager):
+        if new_block_palette is not self._block_palette:
+            # if current block palette and the new block palette are not the same object
+            if self._block_palette:
+                # if there are blocks in the current block palette remap the data
+                block_lut = numpy.array(
+                    [new_block_palette.get_add_block(block) for block in self._block_palette.blocks()],
+                    dtype=numpy.uint,
+                )
+                for cy in self.blocks.sub_chunks:
+                    self.blocks.add_sub_chunk(
+                        cy, block_lut[self.blocks.get_sub_chunk(cy)]
+                    )
+
+            self._block_palette = new_block_palette
 
     @property
     def biomes(self) -> Biomes:
