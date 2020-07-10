@@ -101,7 +101,7 @@ class BaseLevelDBInterface(Interface):
                 chunk.blocks = {
                     i: block_array[:, i * 16 : (i + 1) * 16, :] for i in range(8)
                 }
-                palette: numpy.ndarray = numpy.array(
+                palette: AnyNDArray = numpy.array(
                     [combined_palette >> 4, combined_palette & 15]
                 ).T
                 chunk_palette = numpy.empty(len(palette), dtype=object)
@@ -155,7 +155,7 @@ class BaseLevelDBInterface(Interface):
     def encode(
         self,
         chunk: Chunk,
-        palette: numpy.ndarray,
+        palette: AnyNDArray,
         max_world_version: Tuple[int, int, int],
     ) -> Dict[bytes, bytes]:
         chunk_data = {}

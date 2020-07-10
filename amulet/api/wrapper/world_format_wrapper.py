@@ -9,7 +9,6 @@ from .format_wrapper import BaseFormatWraper
 if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
     from amulet.api.data_types import Dimension
-    from amulet.api.block import BlockManager
 
 missing_world_icon = os.path.abspath(
     os.path.join(IMG_DIRECTORY, "missing_world_icon.png")
@@ -86,32 +85,26 @@ class WorldFormatWrapper(BaseFormatWraper):
         """A generator of all chunk coords in the given dimension"""
         raise NotImplementedError
 
-    def load_chunk(
-        self, cx: int, cz: int, global_palette: "BlockManager", dimension: "Dimension"
-    ) -> "Chunk":
+    def load_chunk(self, cx: int, cz: int, dimension: "Dimension") -> "Chunk":
         """
         Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
-        :param global_palette: The universal block manager
         :param dimension: dimension
         :return: The chunk at the given coordinates.
         """
-        return super().load_chunk(cx, cz, global_palette, dimension)
+        return super().load_chunk(cx, cz, dimension)
 
-    def commit_chunk(
-        self, chunk: "Chunk", global_palette: "BlockManager", dimension: "Dimension"
-    ):
+    def commit_chunk(self, chunk: "Chunk", dimension: "Dimension"):
         """
         Save a universal format chunk to the Format database (not the disk database)
         call save method to write changed chunks back to the disk database
         :param chunk: The chunk object to translate and save
-        :param global_palette: The universal block manager
         :param dimension: optional dimension
         :return:
         """
-        super().commit_chunk(chunk, global_palette, dimension)
+        super().commit_chunk(chunk, dimension)
 
     def delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
         raise NotImplementedError

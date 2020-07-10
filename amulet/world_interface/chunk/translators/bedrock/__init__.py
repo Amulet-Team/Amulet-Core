@@ -7,7 +7,7 @@ from typing import Tuple, Callable, Union, Optional, TYPE_CHECKING
 import amulet_nbt
 
 from amulet import log
-from amulet.api.block import Block
+from amulet.api.block import Block, BlockManager
 from amulet.api.entity import Entity
 from amulet.api.wrapper.chunk.translator import Translator
 from amulet.api.data_types import (
@@ -41,7 +41,7 @@ class BaseBedrockTranslator(Translator):
         translation_manager: "TranslationManager",
         version_identifier: VersionIdentifierType,
         palette: AnyNDArray,
-    ) -> BlockNDArray:
+    ) -> BlockManager:
         """
         Unpacks an object array of block data into a numpy object array containing Block objects.
         :param version:
@@ -57,7 +57,7 @@ class BaseBedrockTranslator(Translator):
         ]
         :return:
         """
-        palette_ = numpy.empty(len(palette), dtype=object)
+        palette_ = BlockManager()
         for palette_index, entry in enumerate(palette):
             entry: BedrockInterfaceBlockType
             block = None
@@ -82,7 +82,7 @@ class BaseBedrockTranslator(Translator):
             if block is None:
                 raise Exception(f"Empty tuple")
 
-            palette_[palette_index] = block
+            palette_.get_add_block(block)
         return palette_
 
     def to_universal(
@@ -90,12 +90,9 @@ class BaseBedrockTranslator(Translator):
         game_version: VersionNumberTuple,
         translation_manager: "TranslationManager",
         chunk: "Chunk",
-        palette: numpy.ndarray,
-        get_chunk_callback: Union[
-            Callable[[int, int], Tuple["Chunk", numpy.ndarray]], None
-        ],
+        get_chunk_callback: Optional[GetChunkCallback],
         full_translate: bool,
-    ) -> Tuple["Chunk", numpy.ndarray]:
+    ) -> "Chunk":
         # Bedrock does versioning by block rather than by chunk.
         # As such we can't just pass in a single translator.
         # It needs to be done dynamically.
@@ -165,7 +162,6 @@ class BaseBedrockTranslator(Translator):
 
         return self._translate(
             chunk,
-            palette,
             get_chunk_callback,
             translate_block,
             translate_entity,
@@ -177,17 +173,15 @@ class BaseBedrockTranslator(Translator):
         max_world_version_number: Union[int, Tuple[int, int, int]],
         translation_manager: "TranslationManager",
         chunk: Chunk,
-        palette: BlockNDArray,
         get_chunk_callback: Optional[GetChunkCallback],
         full_translate: bool,
-    ) -> Tuple[Chunk, BlockNDArray]:
+    ) -> Chunk:
         """
         Translate a universal chunk into the interface-specific format.
 
         :param max_world_version_number: The version number (int or tuple) of the max world version
         :param translation_manager: TranslationManager used for the translation
         :param chunk: The chunk to translate.
-        :param palette: The palette that the chunk's indices correspond to.
         :param get_chunk_callback: function callback to get a chunk's data
         :param full_translate: if true do a full translate. If false just pack the palette (used in callback)
         :return: Chunk object in the interface-specific format and palette.
@@ -254,9 +248,8 @@ class BaseBedrockTranslator(Translator):
             # TODO
             return final_block, final_block_entity, final_entities
 
-        chunk, palette = self._translate(
+        chunk = self._translate(
             chunk,
-            palette,
             get_chunk_callback,
             translate_block,
             translate_entity,
@@ -266,4 +259,4 @@ class BaseBedrockTranslator(Translator):
         # TODO: split this into pack and translate stages
         chunk.biomes = self._biomes_from_universal(version, chunk.biomes)
 
-        return chunk, palette
+        return chunk

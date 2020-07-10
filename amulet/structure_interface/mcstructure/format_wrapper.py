@@ -1,12 +1,12 @@
 import os
 from typing import Optional, Union, Tuple, Generator, TYPE_CHECKING
-import numpy
 
 from amulet import log
 from amulet.api.data_types import (
     VersionNumberAny,
     PathOrBuffer,
     ChunkCoordinates,
+    AnyNDArray,
 )
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
@@ -146,10 +146,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             raise ObjectReadError("all_chunk_coords is only valid in read mode")
 
     def _encode(
-        self,
-        chunk: Chunk,
-        chunk_palette: numpy.ndarray,
-        interface: MCStructureInterface,
+        self, chunk: Chunk, chunk_palette: AnyNDArray, interface: MCStructureInterface,
     ):
         return interface.encode(
             chunk,

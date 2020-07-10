@@ -5,7 +5,7 @@ import numpy
 import amulet_nbt
 
 from amulet.api.wrapper import Translator
-from amulet.api.block import Block, blockstate_to_block
+from amulet.api.block import Block, BlockManager, blockstate_to_block
 from amulet.api.data_types import (
     VersionIdentifierType,
     AnyNDArray,
@@ -37,7 +37,7 @@ class JavaBlockstateTranslator(Translator):
         translation_manager: "TranslationManager",
         version_identifier: VersionIdentifierType,
         palette: AnyNDArray,
-    ) -> BlockNDArray:
+    ) -> BlockManager:
         """
         Unpack the version-specific palette into the stringified version where needed.
 
@@ -66,11 +66,9 @@ class JavaBlockstateTranslator(Translator):
             elif version.is_waterloggable(block.namespaced_name, True):
                 palette[index] = block + water
 
-        return palette
+        return BlockManager(palette)
 
-    def _pack_palette(
-        self, version: "Version", palette: numpy.ndarray
-    ) -> numpy.ndarray:
+    def _pack_palette(self, version: "Version", palette: BlockNDArray) -> AnyNDArray:
         """
         Translate the list of block objects into a version-specific palette.
         :return: The palette converted into version-specific blocks (ie id, data tuples for 1.12)

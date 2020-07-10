@@ -26,7 +26,7 @@ class Chunk:
         self._changed_time = 0.0
 
         self._blocks = None
-        self._block_palette = BlockManager()
+        self.__block_palette = BlockManager()
         self._biomes = Biomes(self, numpy.zeros((16, 16), dtype=numpy.uint32))
         self._entities = EntityList(self)
         self._block_entities = BlockEntityDict(self)
@@ -115,6 +115,17 @@ class Chunk:
         self._blocks = Blocks(value)
 
     @property
+    def _block_palette(self) -> BlockManager:
+        """The block palette for the chunk.
+        Usually will refer to a global block palette."""
+        return self.__block_palette
+
+    @_block_palette.setter
+    def _block_palette(self, new_block_palette: BlockManager):
+        assert isinstance(new_block_palette, BlockManager)
+        self.__block_palette = new_block_palette
+
+    @property
     def block_palette(self) -> BlockManager:
         """The block palette for the chunk.
         Usually will refer to a global block palette."""
@@ -122,12 +133,16 @@ class Chunk:
 
     @block_palette.setter
     def block_palette(self, new_block_palette: BlockManager):
+        assert isinstance(new_block_palette, BlockManager)
         if new_block_palette is not self._block_palette:
             # if current block palette and the new block palette are not the same object
             if self._block_palette:
                 # if there are blocks in the current block palette remap the data
                 block_lut = numpy.array(
-                    [new_block_palette.get_add_block(block) for block in self._block_palette.blocks()],
+                    [
+                        new_block_palette.get_add_block(block)
+                        for block in self._block_palette.blocks()
+                    ],
                     dtype=numpy.uint,
                 )
                 for cy in self.blocks.sub_chunks:
@@ -135,7 +150,7 @@ class Chunk:
                         cy, block_lut[self.blocks.get_sub_chunk(cy)]
                     )
 
-            self._block_palette = new_block_palette
+            self.__block_palette = new_block_palette
 
     @property
     def biomes(self) -> Biomes:

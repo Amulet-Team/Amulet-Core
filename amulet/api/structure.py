@@ -207,10 +207,10 @@ class Structure(BaseStructure):
         :param rotation: rotation in degrees for pitch (y), yaw (z) and roll (x)
         :return:
         """
-        iter = self.transform_iter(scale, rotation)
+        iter_ = self.transform_iter(scale, rotation)
         try:
             while True:
-                next(iter)
+                next(iter_)
         except StopIteration as e:
             return e.value
 

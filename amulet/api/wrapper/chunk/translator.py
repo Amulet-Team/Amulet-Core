@@ -60,14 +60,13 @@ class Translator:
     @staticmethod
     def _translate(
         chunk: Chunk,
-        palette: BlockNDArray,
         get_chunk_callback: Optional[GetChunkCallback],
         translate_block: TranslateBlockCallback,
         translate_entity: TranslateEntityCallback,
         full_translate: bool,
-    ) -> Tuple[Chunk, BlockNDArray]:
+    ) -> Chunk:
         if not full_translate:
-            return chunk, palette
+            return chunk
 
         todo = []
         output_block_entities = []
@@ -76,7 +75,7 @@ class Translator:
         palette_mappings = {}
 
         # translate each block without using the callback
-        for i, input_block in enumerate(palette):
+        for i, input_block in enumerate(chunk.block_palette):
             input_block: BlockType
             output_block, output_block_entity, output_entity, extra = translate_block(
                 input_block, None, (0, 0, 0)
@@ -125,7 +124,7 @@ class Translator:
                         pos: Tuple[int, int, int]
                     ) -> Tuple[Block, Optional[BlockEntity]]:
                         """Get a block at a location relative to the current block"""
-                        nonlocal x, y, z, palette, chunk, cy
+                        nonlocal x, y, z, chunk, cy
 
                         # calculate position relative to chunk base
                         dx, dy, dz = pos
@@ -142,21 +141,21 @@ class Translator:
                         cz = dz // 16
                         if cx == 0 and cz == 0:
                             # if it is the current chunk
-                            block = palette[chunk.blocks[dx, dy, dz]]
+                            block = chunk.block_palette[chunk.blocks[dx, dy, dz]]
                             return (
                                 block,
                                 chunk.block_entities.get((abs_x, abs_y, abs_z)),
                             )
 
                         # if it is in a different chunk
-                        local_chunk, local_palette = get_chunk_callback(cx, cz)
-                        block = local_palette[local_chunk.blocks[dx % 16, dy, dz % 16]]
+                        local_chunk = get_chunk_callback(cx, cz)
+                        block = local_chunk.block_palette[local_chunk.blocks[dx % 16, dy, dz % 16]]
                         return (
                             block,
                             local_chunk.block_entities.get((abs_x, abs_y, abs_z)),
                         )
 
-                    input_block = palette[chunk.blocks[x, y, z]]
+                    input_block = chunk.block_palette[chunk.blocks[x, y, z]]
                     (
                         output_block,
                         output_block_entity,
@@ -216,24 +215,23 @@ class Translator:
             chunk.blocks[x, y, z] = new
         chunk.block_entities = output_block_entities
         chunk.entities = output_entities
-        return chunk, numpy.array(finished.blocks())
+        chunk._block_palette = finished
+        return chunk
 
     def to_universal(
         self,
         chunk_version: Union[int, Tuple[int, int, int]],
         translation_manager: "TranslationManager",
         chunk: Chunk,
-        palette: BlockNDArray,
         get_chunk_callback: Optional[GetChunkCallback],
         full_translate: bool,
-    ) -> Tuple[Chunk, BlockNDArray]:
+    ) -> Chunk:
         """
         Translate an interface-specific chunk into the universal format.
 
         :param chunk_version: The version number (int or tuple) of the input chunk
         :param translation_manager: TranslationManager used for the translation
         :param chunk: The chunk to translate.
-        :param palette: The palette that the chunk's indices correspond to.
         :param get_chunk_callback: function callback to get a chunk's data
         :param full_translate: if true do a full translate. If false just unpack the palette (used in callback)
         :return: Chunk object in the universal format.
@@ -289,7 +287,6 @@ class Translator:
         chunk.biomes = self._biomes_to_universal(version, chunk.biomes)
         return self._translate(
             chunk,
-            palette,
             get_chunk_callback,
             translate_block,
             translate_entity,
@@ -301,17 +298,15 @@ class Translator:
         max_world_version_number: Union[int, Tuple[int, int, int]],
         translation_manager: "TranslationManager",
         chunk: Chunk,
-        palette: BlockNDArray,
         get_chunk_callback: Optional[GetChunkCallback],
         full_translate: bool,
-    ) -> Tuple[Chunk, BlockNDArray]:
+    ) -> Chunk:
         """
         Translate a universal chunk into the interface-specific format.
 
         :param max_world_version_number: The version number (int or tuple) of the max world version
         :param translation_manager: TranslationManager used for the translation
         :param chunk: The chunk to translate.
-        :param palette: The palette that the chunk's indices correspond to.
         :param get_chunk_callback: function callback to get a chunk's data
         :param full_translate: if true do a full translate. If false just pack the palette (used in callback)
         :return: Chunk object in the interface-specific format and palette.
@@ -367,16 +362,15 @@ class Translator:
             # TODO
             return final_block, final_block_entity, final_entities
 
-        chunk, palette = self._translate(
+        chunk = self._translate(
             chunk,
-            palette,
             get_chunk_callback,
             translate_block,
             translate_entity,
             full_translate,
         )
         chunk.biomes = self._biomes_from_universal(version, chunk.biomes)
-        return chunk, palette
+        return chunk
 
     @staticmethod
     def _biomes_to_universal(translator_version: "Version", biome_array):
@@ -404,35 +398,34 @@ class Translator:
         translation_manager: "TranslationManager",
         chunk: Chunk,
         palette: AnyNDArray,
-    ) -> Tuple[Chunk, AnyNDArray]:
+    ) -> Chunk:
         """
         Unpack the version-specific palette into the stringified version where needed.
 
         :return: The palette converted to block objects.
         """
-        palette = self._unpack_palette(
+        chunk._block_palette = self._unpack_palette(
             translation_manager, self._translator_key(chunk_version), palette
         )
-        return chunk, palette
+        return chunk
 
     def _unpack_palette(
         self,
         translation_manager: "TranslationManager",
         version_identifier: VersionIdentifierType,
         palette: AnyNDArray,
-    ) -> BlockNDArray:
+    ) -> BlockManager:
         """
         Unpack the version-specific palette into the stringified version where needed.
         :return: The palette converted to block objects.
         """
-        return palette
+        return BlockManager(palette)
 
     def pack(
         self,
         max_world_version_number: Union[int, Tuple[int, int, int]],
         translation_manager: "TranslationManager",
         chunk: Chunk,
-        palette: BlockNDArray,
     ) -> Tuple[Chunk, AnyNDArray]:
         """
         Translate the list of block objects into a version-specific palette.
@@ -441,8 +434,10 @@ class Translator:
         version = translation_manager.get_version(
             *self._translator_key(max_world_version_number)
         )
-        palette = self._pack_palette(version, palette)
-        return chunk, palette
+        return (
+            chunk,
+            self._pack_palette(version, numpy.array(chunk.block_palette.blocks())),
+        )
 
     def _pack_palette(self, version: "Version", palette: BlockNDArray) -> AnyNDArray:
         """

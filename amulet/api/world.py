@@ -174,10 +174,8 @@ class World(BaseStructure):
                     for cx, cz in self._world_wrapper.all_chunk_coords(dimension):
                         log.info(f"Converting chunk {dimension} {cx}, {cz}")
                         try:
-                            chunk = self._world_wrapper.load_chunk(
-                                cx, cz, self._palette, dimension
-                            )
-                            wrapper.commit_chunk(chunk, self._palette, dimension)
+                            chunk = self._world_wrapper.load_chunk(cx, cz, dimension)
+                            wrapper.commit_chunk(chunk, dimension)
                         except ChunkLoadError:
                             log.info(f"Error loading chunk {cx} {cz}", exc_info=True)
                         chunk_index += 1
@@ -196,7 +194,7 @@ class World(BaseStructure):
                 if chunk is None:
                     wrapper.delete_chunk(cx, cz, dimension)
                 elif chunk.changed:
-                    wrapper.commit_chunk(chunk, self._palette, dimension)
+                    wrapper.commit_chunk(chunk, dimension)
                     # TODO: mark the chunk as not changed
                 chunk_index += 1
                 yield chunk_index, chunk_count
@@ -250,7 +248,8 @@ class World(BaseStructure):
             ] = self._chunk_history_manager.get_current(*chunk_key)
         else:
             try:
-                chunk = self._world_wrapper.load_chunk(cx, cz, self._palette, dimension)
+                chunk = self._world_wrapper.load_chunk(cx, cz, dimension)
+                chunk.block_palette = self._palette
                 self._chunk_cache[(dimension, cx, cz)] = chunk
             except ChunkDoesNotExist:
                 chunk = self._chunk_cache[(dimension, cx, cz)] = None

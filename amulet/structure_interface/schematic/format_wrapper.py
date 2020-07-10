@@ -4,11 +4,11 @@ import numpy
 
 from amulet import log
 from amulet.api.data_types import (
-    BlockNDArray,
     AnyNDArray,
     VersionNumberAny,
     PathOrBuffer,
 )
+from amulet.api.block import BlockManager
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
@@ -170,22 +170,20 @@ class SchematicFormatWrapper(StructureFormatWrapper):
             raise ObjectReadError("all_chunk_coords is only valid in read mode")
 
     def _pack(
-        self,
-        chunk: "Chunk",
-        chunk_palette: BlockNDArray,
-        translator: "Translator",
-        chunk_version: VersionNumberAny,
+        self, chunk: "Chunk", translator: "Translator", chunk_version: VersionNumberAny,
     ) -> Tuple["Chunk", AnyNDArray]:
         version = self.translation_manager.get_version(
             *translator.translator_key(chunk_version)
         )
         return (
             chunk,
-            numpy.array([version.block_to_ints(block) for block in chunk_palette]),
+            numpy.array(
+                [version.block_to_ints(block) for block in chunk.block_palette.blocks()]
+            ),
         )
 
     def _encode(
-        self, chunk: Chunk, chunk_palette: numpy.ndarray, interface: SchematicInterface,
+        self, chunk: Chunk, chunk_palette: AnyNDArray, interface: SchematicInterface,
     ):
         return interface.encode(
             chunk,
@@ -202,16 +200,14 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         game_version: VersionNumberAny,
         chunk: "Chunk",
         chunk_palette: AnyNDArray,
-    ) -> Tuple["Chunk", BlockNDArray]:
+    ) -> "Chunk":
         version = self.translation_manager.get_version(
             *translator.translator_key(game_version)
         )
-        return (
-            chunk,
-            numpy.array(
-                [version.ints_to_block(block, data) for block, data in chunk_palette]
-            ),
-        )
+        palette = chunk._block_palette = BlockManager()
+        for block, data in chunk_palette:
+            palette.get_add_block(version.ints_to_block(block, data))
+        return chunk
 
     def delete_chunk(self, cx: int, cz: int, *args):
         raise ObjectWriteError(
