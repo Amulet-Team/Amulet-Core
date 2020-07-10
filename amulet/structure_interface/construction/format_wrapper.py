@@ -8,6 +8,7 @@ from amulet.api.data_types import (
     VersionNumberAny,
     PathOrBuffer,
 )
+from amulet.api.block import BlockManager
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
@@ -203,7 +204,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         chunk: "Chunk",
         chunk_palette: AnyNDArray,
     ) -> "Chunk":
-        chunk._block_palette = chunk_palette
+        chunk._block_palette = BlockManager(chunk_palette)
         return chunk
 
     def delete_chunk(self, cx: int, cz: int, *args):
