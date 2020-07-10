@@ -265,6 +265,7 @@ class World(BaseStructure):
     def put_chunk(self, chunk: Chunk, dimension: Dimension):
         """Add a chunk to the universal world database"""
         chunk.changed = True
+        chunk.block_palette = self._palette
         self._chunk_cache[(dimension, chunk.cx, chunk.cz)] = chunk
 
     def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
