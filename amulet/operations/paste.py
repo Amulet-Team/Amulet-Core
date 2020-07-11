@@ -69,7 +69,7 @@ def paste_iter(
     else:
         paste_blocks = None
 
-    rotation_point = ((structure.selection.max + structure.selection.min) / 2).astype(
+    rotation_point = numpy.floor((structure.selection.max + structure.selection.min) / 2).astype(
         int
     )
 
