@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Type, Union, Tuple, IO, List, Generator, Dict
+from typing import Union, Tuple, IO, List, Generator, Dict
 import numpy
 
 import amulet_nbt

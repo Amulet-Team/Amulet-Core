@@ -70,7 +70,9 @@ class ChunkHistoryManager:
     ) -> Generator[Tuple[_ChunkLocation, Optional[Chunk]], None, None]:
         for (dimension, cx, cz), index in self._chunk_index.items():
             if index or get_all:
-                yield (dimension, cx, cz), self.get_current(dimension, cx, cz, block_palette)
+                yield (dimension, cx, cz), self.get_current(
+                    dimension, cx, cz, block_palette
+                )
 
     def add_original_chunk(
         self, dimension: Dimension, cx: int, cz: int, chunk: Optional[Chunk]
@@ -158,7 +160,12 @@ class ChunkHistoryManager:
         return path
 
     def _unserialise_chunk(
-        self, dimension: Dimension, cx: int, cz: int, block_palette: BlockManager, change_no: int
+        self,
+        dimension: Dimension,
+        cx: int,
+        cz: int,
+        block_palette: BlockManager,
+        change_no: int,
     ) -> Union[Chunk, None]:
         """Load the next save state for a given chunk in a given direction"""
         chunk_location = (dimension, cx, cz)
@@ -193,5 +200,7 @@ class ChunkHistoryManager:
                 chunk_cache[chunk_location] = chunk
             self._snapshot_index += 1
 
-    def get_current(self, dimension: Dimension, cx: int, cz: int, chunk_palette: BlockManager):
+    def get_current(
+        self, dimension: Dimension, cx: int, cz: int, chunk_palette: BlockManager
+    ):
         return self._unserialise_chunk(dimension, cx, cz, chunk_palette, 0)

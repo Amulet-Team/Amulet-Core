@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import numpy
-
-from typing import Tuple, Callable, Union, Optional, TYPE_CHECKING
+from typing import Tuple, Union, Optional, TYPE_CHECKING
 
 import amulet_nbt
 
@@ -19,14 +17,13 @@ from amulet.api.data_types import (
     BedrockInterfaceBlockType,
     VersionIdentifierType,
     VersionNumberAny,
-    BlockNDArray,
     BlockCoordinates,
     AnyNDArray,
 )
 
 
 if TYPE_CHECKING:
-    from PyMCTranslate import Version, TranslationManager
+    from PyMCTranslate import TranslationManager
     from amulet.api.chunk import Chunk
 
 

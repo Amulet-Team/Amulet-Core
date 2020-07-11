@@ -225,7 +225,7 @@ class Structure(BaseStructure):
         :param rotation: rotation in degrees for pitch (y), yaw (z) and roll (x)
         :return:
         """
-        block_palette = BlockManager()
+        block_palette = copy.deepcopy(self.palette)
         rotation_radians = -numpy.flip(numpy.radians(rotation))
         selection = self.selection.transform(scale, rotation_radians)
         transform = transform_matrix((0, 0, 0), scale, rotation_radians, "zyx")
@@ -248,12 +248,12 @@ class Structure(BaseStructure):
                 .T[:, :3]
             )
             for (x, y, z), (ox, oy, oz) in zip(coords, original_coords):
-                chunk_key = (x >> 4, z >> 4)
+                cx, cz = chunk_key = (x >> 4, z >> 4)
                 if chunk_key in chunks:
                     chunk = chunks[chunk_key]
                 else:
-                    chunk = chunks[chunk_key] = Chunk(*chunk_key)
-                    chunk._block_palette = block_palette
+                    chunk = chunks[chunk_key] = Chunk(cx, cz)
+                    chunk.block_palette = block_palette
                 try:
                     chunk.blocks[x % 16, y, z % 16] = self.get_chunk(
                         ox >> 4, oz >> 4

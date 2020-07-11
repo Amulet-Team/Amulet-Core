@@ -187,7 +187,10 @@ class World(BaseStructure):
                 except LevelDoesNotExist:
                     continue
 
-        for storage in (lambda: self._chunk_history_manager.items(self._palette), self._chunk_cache.items):
+        for storage in (
+            lambda: self._chunk_history_manager.items(self._palette),
+            self._chunk_cache.items,
+        ):
             for (dimension, cx, cz), chunk in storage():
                 if dimension not in output_dimension_map:
                     continue
@@ -245,7 +248,9 @@ class World(BaseStructure):
         elif chunk_key in self._chunk_history_manager:
             chunk = self._chunk_cache[
                 (dimension, cx, cz)
-            ] = self._chunk_history_manager.get_current(dimension, cx, cz, self._palette)
+            ] = self._chunk_history_manager.get_current(
+                dimension, cx, cz, self._palette
+            )
         else:
             try:
                 chunk = self._world_wrapper.load_chunk(cx, cz, dimension)

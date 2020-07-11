@@ -149,7 +149,9 @@ class Translator:
 
                         # if it is in a different chunk
                         local_chunk = get_chunk_callback(cx, cz)
-                        block = local_chunk.block_palette[local_chunk.blocks[dx % 16, dy, dz % 16]]
+                        block = local_chunk.block_palette[
+                            local_chunk.blocks[dx % 16, dy, dz % 16]
+                        ]
                         return (
                             block,
                             local_chunk.block_entities.get((abs_x, abs_y, abs_z)),

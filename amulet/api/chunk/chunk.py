@@ -123,6 +123,10 @@ class Chunk:
 
     @_block_palette.setter
     def _block_palette(self, new_block_palette: BlockManager):
+        """Change the block palette for the chunk.
+        This will change the block palette but leave the block array unchanged.
+        Only use this if you know what you are doing.
+        Designed for internal use. You probably want to use Chunk.block_palette"""
         assert isinstance(new_block_palette, BlockManager)
         self.__block_palette = new_block_palette
 
@@ -134,6 +138,8 @@ class Chunk:
 
     @block_palette.setter
     def block_palette(self, new_block_palette: BlockManager):
+        """Change the block palette for the chunk.
+        This will copy over all block states from the old palette and remap the block indexes to use the new palette."""
         assert isinstance(new_block_palette, BlockManager)
         if new_block_palette is not self._block_palette:
             # if current block palette and the new block palette are not the same object

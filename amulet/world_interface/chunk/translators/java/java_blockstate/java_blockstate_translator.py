@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Tuple, Union, TYPE_CHECKING
-import numpy
 import amulet_nbt
 
 from amulet.api.wrapper import Translator

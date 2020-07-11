@@ -300,9 +300,9 @@ class BaseFormatWraper:
             )
             for cy in chunk.blocks.sub_chunks:
                 chunk.blocks.add_sub_chunk(cy, lut[chunk.blocks.get_sub_chunk(cy)])
-            chunk._block_palette = BlockManager(numpy.vectorize(chunk.block_palette.__getitem__)(
-                chunk_palette
-            ))
+            chunk._block_palette = BlockManager(
+                numpy.vectorize(chunk.block_palette.__getitem__)(chunk_palette)
+            )
         else:
             chunk._block_palette = BlockManager()
 
