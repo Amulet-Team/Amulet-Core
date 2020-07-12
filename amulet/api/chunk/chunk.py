@@ -25,7 +25,7 @@ class Chunk:
         self._changed_time = 0.0
 
         self._blocks = None
-        self._biomes = Biomes(self, numpy.zeros((16, 16), dtype=numpy.uint32))
+        self._biomes = None
         self._entities = EntityList(self)
         self._block_entities = BlockEntityDict(self)
         self._status = Status(self)
@@ -114,6 +114,8 @@ class Chunk:
 
     @property
     def biomes(self) -> Biomes:
+        if self._biomes is None:
+            self._biomes = Biomes(self, numpy.zeros((16, 16), dtype=numpy.uint32))
         return self._biomes
 
     @biomes.setter
