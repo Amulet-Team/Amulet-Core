@@ -69,9 +69,9 @@ def paste_iter(
     else:
         paste_blocks = None
 
-    rotation_point = ((structure.selection.max + structure.selection.min) / 2).astype(
-        int
-    )
+    rotation_point = numpy.floor(
+        (structure.selection.max + structure.selection.min) / 2
+    ).astype(int)
 
     if any(rotation) or any(s != 1 for s in scale):
         yield 0, "Rotating!"

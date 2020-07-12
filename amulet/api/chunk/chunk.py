@@ -22,12 +22,11 @@ class Chunk:
 
     def __init__(self, cx: int, cz: int):
         self._cx, self._cz = cx, cz
-        self._changed = False
         self._changed_time = 0.0
 
         self._blocks = None
         self.__block_palette = BlockManager()
-        self._biomes = Biomes(self, numpy.zeros((16, 16), dtype=numpy.uint32))
+        self._biomes = None
         self._entities = EntityList(self)
         self._block_entities = BlockEntityDict(self)
         self._status = Status(self)
@@ -41,7 +40,6 @@ class Chunk:
             self._cx,
             self._cz,
             self._changed_time,
-            self._changed,
             {cy: self.blocks.get_sub_chunk(cy) for cy in self.blocks.sub_chunks},
             numpy.array(self.biomes),
             self._entities.data,
@@ -58,7 +56,6 @@ class Chunk:
             chunk_data = pickle.load(fp)
         self = cls(*chunk_data[:2])
         (
-            self.changed,
             self.blocks,
             self.biomes,
             self.entities,
@@ -90,14 +87,15 @@ class Chunk:
         """
         :return: ``True`` if the chunk has been changed, ``False`` otherwise
         """
-        return self._changed
+        return bool(self._changed_time)
 
     @changed.setter
-    def changed(self, value: bool):
-        assert isinstance(value, bool), "Changed value must be a bool"
-        self._changed = value
-        if value:
+    def changed(self, changed: bool):
+        assert isinstance(changed, bool), "Changed value must be a bool"
+        if changed:
             self._changed_time = time.time()
+        else:
+            self._changed_time = 0.0
 
     @property
     def changed_time(self) -> float:
@@ -161,6 +159,8 @@ class Chunk:
 
     @property
     def biomes(self) -> Biomes:
+        if self._biomes is None:
+            self._biomes = Biomes(self, numpy.zeros((16, 16), dtype=numpy.uint32))
         return self._biomes
 
     @biomes.setter
