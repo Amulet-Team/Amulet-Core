@@ -175,10 +175,8 @@ class World(BaseStructure):
                     for cx, cz in self._world_wrapper.all_chunk_coords(dimension):
                         log.info(f"Converting chunk {dimension} {cx}, {cz}")
                         try:
-                            chunk = self._world_wrapper.load_chunk(
-                                cx, cz, self._palette, dimension
-                            )
-                            wrapper.commit_chunk(chunk, self._palette, dimension)
+                            chunk = self._world_wrapper.load_chunk(cx, cz, dimension)
+                            wrapper.commit_chunk(chunk, dimension)
                         except ChunkLoadError:
                             log.info(f"Error loading chunk {cx} {cz}", exc_info=True)
                         chunk_index += 1
@@ -193,11 +191,11 @@ class World(BaseStructure):
         for dimension, cx, cz in changed_chunks:
             if dimension not in output_dimension_map:
                 continue
-            chunk = self._chunk_history_manager.get_current(dimension, cx, cz)
+            chunk = self._chunk_history_manager.get_current(dimension, cx, cz, self._palette)
             if chunk is None:
                 wrapper.delete_chunk(cx, cz, dimension)
             else:
-                wrapper.commit_chunk(chunk, self._palette, dimension)
+                wrapper.commit_chunk(chunk, dimension)
                 print("save", cx, cz, dimension)
                 # TODO: mark the chunk as not changed
             chunk_index += 1
@@ -250,10 +248,13 @@ class World(BaseStructure):
         elif chunk_key in self._chunk_history_manager:
             chunk = self._chunk_cache[
                 (dimension, cx, cz)
-            ] = self._chunk_history_manager.get_current(*chunk_key)
+            ] = self._chunk_history_manager.get_current(
+                dimension, cx, cz, self._palette
+            )
         else:
             try:
-                chunk = self._world_wrapper.load_chunk(cx, cz, self._palette, dimension)
+                chunk = self._world_wrapper.load_chunk(cx, cz, dimension)
+                chunk.block_palette = self._palette
                 self._chunk_cache[(dimension, cx, cz)] = chunk
             except ChunkDoesNotExist:
                 chunk = self._chunk_cache[(dimension, cx, cz)] = None
@@ -269,6 +270,7 @@ class World(BaseStructure):
     def put_chunk(self, chunk: Chunk, dimension: Dimension):
         """Add a chunk to the universal world database"""
         chunk.changed = True
+        chunk.block_palette = self._palette
         self._chunk_cache[(dimension, chunk.cx, chunk.cz)] = chunk
 
     def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
@@ -445,13 +447,13 @@ class World(BaseStructure):
         """
         Undoes the last set of changes to the world
         """
-        self._chunk_history_manager.undo(self._chunk_cache)
+        self._chunk_history_manager.undo(self._chunk_cache, self._palette)
 
     def redo(self):
         """
         Redoes the last set of changes to the world
         """
-        self._chunk_history_manager.redo(self._chunk_cache)
+        self._chunk_history_manager.redo(self._chunk_cache, self._palette)
 
     def restore_last_undo_point(self):
         """Restore the world to the state it was when self.create_undo_point was called.

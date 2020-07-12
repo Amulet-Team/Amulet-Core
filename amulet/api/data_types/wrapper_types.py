@@ -19,7 +19,7 @@ VersionNumberTuple = Tuple[int, int, int]
 VersionNumberAny = Union[VersionNumberInt, VersionNumberTuple]
 VersionIdentifierType = Tuple[PlatformType, VersionNumberAny]
 
-GetChunkCallback = Callable[[int, int], Tuple["Chunk", BlockNDArray]]
+GetChunkCallback = Callable[[int, int], "Chunk"]
 
 BedrockInterfaceBlockType = Tuple[
     Union[Tuple[None, Tuple[int, int]], Tuple[None, "Block"], Tuple[int, "Block"]], ...

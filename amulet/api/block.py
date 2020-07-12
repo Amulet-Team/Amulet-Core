@@ -453,18 +453,24 @@ class BlockManager:
     Class to handle the mappings between Block objects and their index-based internal IDs
     """
 
-    def __init__(self):
+    def __init__(self, blocks: Iterable[Block] = ()):
         """
         Creates a new BlockManager object
         """
         self._index_to_block: List[Block] = []
         self._block_to_index_map: Dict[Block, int] = {}
 
+        for block in blocks:
+            self.get_add_block(block)
+
     def __len__(self):
         return len(self._index_to_block)
 
     def __contains__(self, item: Block) -> bool:
         return item in self._block_to_index_map
+
+    def __iter__(self):
+        yield from self._index_to_block
 
     def blocks(self) -> Tuple[Block]:
         return tuple(self._index_to_block)

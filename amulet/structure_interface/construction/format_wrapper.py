@@ -4,11 +4,11 @@ import numpy
 
 from amulet import log
 from amulet.api.data_types import (
-    BlockNDArray,
     AnyNDArray,
     VersionNumberAny,
     PathOrBuffer,
 )
+from amulet.api.block import BlockManager
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
@@ -183,19 +183,12 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
             raise ObjectReadError("all_chunk_coords is only valid in read mode")
 
     def _pack(
-        self,
-        chunk: "Chunk",
-        chunk_palette: BlockNDArray,
-        translator: "Translator",
-        chunk_version: VersionNumberAny,
+        self, chunk: "Chunk", translator: "Translator", chunk_version: VersionNumberAny,
     ) -> Tuple["Chunk", AnyNDArray]:
-        return chunk, chunk_palette
+        return chunk, numpy.array(chunk.block_palette.blocks())
 
     def _encode(
-        self,
-        chunk: Chunk,
-        chunk_palette: numpy.ndarray,
-        interface: ConstructionInterface,
+        self, chunk: Chunk, chunk_palette: AnyNDArray, interface: ConstructionInterface,
     ):
         return interface.encode(
             chunk,
@@ -210,8 +203,9 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         game_version: VersionNumberAny,
         chunk: "Chunk",
         chunk_palette: AnyNDArray,
-    ) -> Tuple["Chunk", BlockNDArray]:
-        return chunk, chunk_palette
+    ) -> "Chunk":
+        chunk._block_palette = BlockManager(chunk_palette)
+        return chunk
 
     def delete_chunk(self, cx: int, cz: int, *args):
         raise ObjectWriteError(

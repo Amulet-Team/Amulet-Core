@@ -1,6 +1,5 @@
 import math
 import numpy
-from typing import Optional
 from amulet.api.data_types import FloatTriplet, PointCoordinates
 
 

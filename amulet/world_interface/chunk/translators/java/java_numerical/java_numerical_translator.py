@@ -5,6 +5,7 @@ import numpy
 
 from amulet.api.wrapper import Translator
 from amulet.api.data_types import VersionIdentifierType, AnyNDArray, BlockNDArray
+from amulet.api.block import BlockManager
 
 if TYPE_CHECKING:
     from PyMCTranslate import Version, TranslationManager
@@ -21,7 +22,7 @@ class JavaNumericalTranslator(Translator):
         translation_manager: "TranslationManager",
         version_identifier: VersionIdentifierType,
         palette: AnyNDArray,
-    ) -> BlockNDArray:
+    ) -> BlockManager:
         """
         Unpacks an int array of block ids and block data values [[1, 0], [2, 0]] into a numpy array of Block objects.
         :param version:
@@ -29,12 +30,9 @@ class JavaNumericalTranslator(Translator):
         :return:
         """
         version = translation_manager.get_version(*version_identifier)
-        palette = numpy.array([version.ints_to_block(*entry) for entry in palette])
-        return palette
+        return BlockManager([version.ints_to_block(*entry) for entry in palette])
 
-    def _pack_palette(
-        self, version: "Version", palette: numpy.ndarray
-    ) -> numpy.ndarray:
+    def _pack_palette(self, version: "Version", palette: BlockNDArray) -> AnyNDArray:
         """
         Packs a numpy array of Block objects into an int array of block ids and block data values [[1, 0], [2, 0]].
         :param version:

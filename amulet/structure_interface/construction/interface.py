@@ -8,7 +8,7 @@ from amulet.api.chunk import Chunk
 from amulet.api.block import Block
 from amulet.api.selection import SelectionBox
 from amulet.world_interface.chunk import translators
-from amulet.api.data_types import BlockNDArray
+from amulet.api.data_types import AnyNDArray
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
@@ -21,7 +21,7 @@ class ConstructionInterface(Interface):
 
     def decode(
         self, cx: int, cz: int, data: List[ConstructionSection]
-    ) -> Tuple["Chunk", BlockNDArray]:
+    ) -> Tuple["Chunk", AnyNDArray]:
         chunk = Chunk(cx, cz)
         palette = []
         for section in data:
@@ -50,7 +50,7 @@ class ConstructionInterface(Interface):
             ),
         )
         inverse += 1
-        np_palette: numpy.ndarray
+        np_palette: AnyNDArray
         inverse: numpy.ndarray
         for cy in chunk.blocks.sub_chunks:
             chunk.blocks.add_sub_chunk(
@@ -61,7 +61,7 @@ class ConstructionInterface(Interface):
     def encode(
         self,
         chunk: "Chunk",
-        palette: BlockNDArray,
+        palette: AnyNDArray,
         max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
         boxes: List[SelectionBox] = None,
     ) -> List[ConstructionSection]:

@@ -213,7 +213,7 @@ class LevelDAT(nbt.NBTFile):
             with open(filename_or_buffer, "wb") as f:
                 f.write(buffer.getvalue())
         else:
-            filename_or_buffer.write()
+            filename_or_buffer.write(buffer.getvalue())
 
 
 class LevelDBFormat(WorldFormatWrapper):

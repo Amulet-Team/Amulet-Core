@@ -74,10 +74,12 @@ class Structure(BaseStructure):
     @classmethod
     def from_world(cls, world: World, selection: SelectionGroup, dimension: Dimension):
         data = {}
+        block_palette = BlockManager()
         for chunk, _ in world.get_chunk_boxes(selection, dimension):
             if chunk.coordinates not in data:
-                data[chunk.coordinates] = copy.deepcopy(chunk)
-        return cls(data, world.palette, copy.deepcopy(selection), world.chunk_size)
+                data[chunk.coordinates] = chunk = copy.deepcopy(chunk)
+                chunk.block_palette = block_palette
+        return cls(data, block_palette, copy.deepcopy(selection), world.chunk_size)
 
     def get_chunk(self, cx: int, cz: int) -> Chunk:
         if (cx, cz) in self._chunk_cache:
@@ -207,10 +209,10 @@ class Structure(BaseStructure):
         :param rotation: rotation in degrees for pitch (y), yaw (z) and roll (x)
         :return:
         """
-        iter = self.transform_iter(scale, rotation)
+        iter_ = self.transform_iter(scale, rotation)
         try:
             while True:
-                next(iter)
+                next(iter_)
         except StopIteration as e:
             return e.value
 
@@ -223,6 +225,7 @@ class Structure(BaseStructure):
         :param rotation: rotation in degrees for pitch (y), yaw (z) and roll (x)
         :return:
         """
+        block_palette = copy.deepcopy(self.palette)
         rotation_radians = -numpy.flip(numpy.radians(rotation))
         selection = self.selection.transform(scale, rotation_radians)
         transform = transform_matrix((0, 0, 0), scale, rotation_radians, "zyx")
@@ -245,11 +248,12 @@ class Structure(BaseStructure):
                 .T[:, :3]
             )
             for (x, y, z), (ox, oy, oz) in zip(coords, original_coords):
-                chunk_key = (x >> 4, z >> 4)
+                cx, cz = chunk_key = (x >> 4, z >> 4)
                 if chunk_key in chunks:
                     chunk = chunks[chunk_key]
                 else:
-                    chunk = chunks[chunk_key] = Chunk(*chunk_key)
+                    chunk = chunks[chunk_key] = Chunk(cx, cz)
+                    chunk.block_palette = block_palette
                 try:
                     chunk.blocks[x % 16, y, z % 16] = self.get_chunk(
                         ox >> 4, oz >> 4
@@ -259,4 +263,4 @@ class Structure(BaseStructure):
                 yield index / volume
                 index += 1
 
-        return Structure(chunks, self.palette, selection, self.chunk_size)
+        return Structure(chunks, block_palette, selection, self.chunk_size)

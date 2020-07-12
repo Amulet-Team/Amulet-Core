@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 from amulet.api.selection import SelectionGroup
 from amulet.api.block import Block
 from amulet.api.data_types import Dimension, OperationReturnType
-from amulet import log
 
 if TYPE_CHECKING:
     from amulet.api.world import World

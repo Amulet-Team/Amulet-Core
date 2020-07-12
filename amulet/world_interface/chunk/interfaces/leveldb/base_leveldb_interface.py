@@ -13,7 +13,7 @@ from amulet.api.chunk import Chunk
 from amulet.utils.numpy_helpers import brute_sort_objects, brute_sort_objects_no_hash
 from amulet.utils.world_utils import fast_unique, from_nibble_array, to_nibble_array
 from amulet.api.wrapper import Interface
-from amulet.api.data_types import AnyNDArray, SubChunkNDArray, BedrockInterfaceBlockType
+from amulet.api.data_types import AnyNDArray, SubChunkNDArray
 from amulet.world_interface.chunk import translators
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
     chunk_to_game_version,
@@ -101,7 +101,7 @@ class BaseLevelDBInterface(Interface):
                 chunk.blocks = {
                     i: block_array[:, i * 16 : (i + 1) * 16, :] for i in range(8)
                 }
-                palette: numpy.ndarray = numpy.array(
+                palette: AnyNDArray = numpy.array(
                     [combined_palette >> 4, combined_palette & 15]
                 ).T
                 chunk_palette = numpy.empty(len(palette), dtype=object)
@@ -155,7 +155,7 @@ class BaseLevelDBInterface(Interface):
     def encode(
         self,
         chunk: Chunk,
-        palette: numpy.ndarray,
+        palette: AnyNDArray,
         max_world_version: Tuple[int, int, int],
     ) -> Dict[bytes, bytes]:
         chunk_data = {}
