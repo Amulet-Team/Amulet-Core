@@ -196,7 +196,6 @@ class World(BaseStructure):
                 wrapper.delete_chunk(cx, cz, dimension)
             else:
                 wrapper.commit_chunk(chunk, dimension)
-                print("save", cx, cz, dimension)
                 # TODO: mark the chunk as not changed
             chunk_index += 1
             yield chunk_index, chunk_count
