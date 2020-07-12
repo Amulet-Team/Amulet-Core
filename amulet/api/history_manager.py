@@ -4,17 +4,22 @@ from typing import Dict, List, Tuple, Union, TYPE_CHECKING, Generator, Optional
 import time
 import os
 from .chunk import Chunk
-from amulet.api.data_types import Dimension
+from amulet.api.data_types import (
+    Dimension,
+    DimensionCoordinates,  # dimension, cx, cz
+)
 
 if TYPE_CHECKING:
     from .world import ChunkCache
 
+ChunkRecord = Union[str, None]  # path to serialised file  # chunk has been deleted
 
-_ChunkLocation = Tuple[Dimension, int, int]  # dimension, cx, cz
+ChunkStorage = List[ChunkRecord]  # change history of the chunk
 
-_ChunkRecord = Union[str, None]  # path to serialised file  # chunk has been deleted
-
-_ChunkStorage = List[_ChunkRecord]  # change history of the chunk
+ChunkIndex = Tuple[
+    int,  # the index of the current chunk in ChunkStorage
+    int,  # the index of the saved chunk in ChunkStorage. If these don't match the chunk has changed.
+]
 
 
 class ChunkHistoryManager:
@@ -26,21 +31,21 @@ class ChunkHistoryManager:
         self.temp_dir: str = temp_dir
 
         self._chunk_index: Dict[
-            _ChunkLocation, int
-        ] = {}  # the index of the current chunk in self._chunk_history
-        self._chunk_history: Dict[_ChunkLocation, _ChunkStorage] = {}
+            DimensionCoordinates, ChunkIndex
+        ] = {}  # the indexes into self._chunk_history
+        self._chunk_history: Dict[DimensionCoordinates, ChunkStorage] = {}
 
-        self._snapshots: List[List[_ChunkLocation]] = []
+        self._snapshots: List[List[DimensionCoordinates]] = []
         self._last_snapshot_time = 0.0
 
         self._snapshot_index = -1
-        self._last_save_snapshot = (
-            -1
-        )  # the snapshot that was saved or the save branches off from
+
+        # the snapshot that was saved or the save branches off from
+        self._last_save_snapshot = -1
         self._branch_save_count = 0  # if the user saves, undoes and does a new operation a save branch will be lost
         # This is the number of changes on that branch
 
-    def __contains__(self, item: _ChunkLocation):
+    def __contains__(self, item: DimensionCoordinates):
         return item in self._chunk_history
 
     @property
@@ -63,13 +68,20 @@ class ChunkHistoryManager:
         """Let the history manager know that the world has been saved"""
         self._last_save_snapshot = self._snapshot_index
         self._branch_save_count = 0
+        # the current chunks have been saved to disk so update the saved chunk indexes
+        for chunk_location, (chunk_index, save_chunk_index) in self._chunk_index.items():
+            self._chunk_index[chunk_location] = (chunk_index, chunk_index)
 
     def items(
-        self, get_all=False
-    ) -> Generator[Tuple[_ChunkLocation, Optional[Chunk]], None, None]:
-        for chunk_location, index in self._chunk_index.items():
-            if index or get_all:
-                yield chunk_location, self.get_current(*chunk_location)
+        self
+    ) -> Generator[Tuple[DimensionCoordinates, Optional[Chunk]], None, None]:
+        for chunk_location in self._chunk_index.keys():
+            yield chunk_location, self.get_current(*chunk_location)
+
+    def changed_chunks(self) -> Generator[DimensionCoordinates, None, None]:
+        for chunk_location, (index, save_index) in self._chunk_index.items():
+            if index != save_index:
+                yield chunk_location
 
     def add_original_chunk(
         self, dimension: Dimension, cx: int, cz: int, chunk: Optional[Chunk]
@@ -86,7 +98,7 @@ class ChunkHistoryManager:
         if (dimension, cx, cz) not in self._chunk_history:
             if chunk is not None:
                 assert cx == chunk.cx and cz == chunk.cz
-            self._chunk_index[(dimension, cx, cz)] = 0
+            self._chunk_index[(dimension, cx, cz)] = (0, 0)
             self._chunk_history[(dimension, cx, cz)] = [
                 self._serialise_chunk(chunk, dimension, 0)
             ]
@@ -98,32 +110,36 @@ class ChunkHistoryManager:
             assert chunk is None or isinstance(
                 chunk, Chunk
             ), "Chunk must be None or a Chunk instance"
-            if chunk is None or (
-                chunk.changed and chunk.changed_time > self._last_snapshot_time
-            ):
+            if chunk is None or chunk.changed_time > self._last_snapshot_time:
                 # if the chunk has been changed since the last shapshot add it to the new snapshot
                 if chunk_location not in self._chunk_history:
                     # the chunk was added manually so the previous state was the chunk not existing
-                    self._chunk_index[chunk_location] = 0
+                    self._chunk_index[chunk_location] = (0, 0)
                     self._chunk_history[chunk_location] = [None]
 
-                chunk_index = self._chunk_index[chunk_location]
+                chunk_index, save_chunk_index = self._chunk_index[chunk_location]
                 chunk_storage = self._chunk_history[chunk_location]
                 if chunk is None:
                     # if the chunk has been deleted and the last save state was not also deleted update
                     if chunk_storage[chunk_index] is not None:
-                        self._chunk_index[chunk_location] += 1
-                        del chunk_storage[chunk_index + 1 :]
+                        self._chunk_index[chunk_location] = (
+                            chunk_index + 1,
+                            save_chunk_index,
+                        )
+                        del chunk_storage[
+                            chunk_index + 1 :
+                        ]  # delete any upstream chunks
                         chunk_storage.append(None)
                         snapshot.append(chunk_location)
                 else:
                     # updated the changed chunk
-                    self._chunk_index[chunk_location] += 1
+                    self._chunk_index[chunk_location] = (
+                        chunk_index + 1,
+                        save_chunk_index,
+                    )
                     del chunk_storage[chunk_index + 1 :]
                     chunk_storage.append(
-                        self._serialise_chunk(
-                            chunk, chunk_location[0], self._chunk_index[chunk_location]
-                        )
+                        self._serialise_chunk(chunk, chunk_location[0], chunk_index + 1)
                     )
                     snapshot.append(chunk_location)
 
@@ -141,7 +157,7 @@ class ChunkHistoryManager:
 
     def _serialise_chunk(
         self, chunk: Union[Chunk, None], dimension: Dimension, change_no: int
-    ) -> _ChunkRecord:
+    ) -> ChunkRecord:
         """Serialise the chunk and write it to a file"""
         if chunk is None:
             return None
@@ -157,13 +173,13 @@ class ChunkHistoryManager:
         return path
 
     def _unserialise_chunk(
-        self, dimension: Dimension, cx: int, cz: int, change_no: int
+        self, dimension: Dimension, cx: int, cz: int, change_num_delta: int
     ) -> Union[Chunk, None]:
         """Load the next save state for a given chunk in a given direction"""
         chunk_location = (dimension, cx, cz)
-        chunk_index = self._chunk_index[chunk_location] = (
-            self._chunk_index[chunk_location] + change_no
-        )
+        chunk_index, save_chunk_index = self._chunk_index[chunk_location]
+        chunk_index += change_num_delta
+        self._chunk_index[chunk_location] = (chunk_index, save_chunk_index)
         chunk_storage = self._chunk_history[chunk_location]
         assert 0 <= chunk_index < len(chunk_storage), "Chunk index out of bounds"
 

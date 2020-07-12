@@ -144,7 +144,8 @@ class World(BaseStructure):
         """Save the world using the given wrapper.
         Leave as None to save back to the input wrapper."""
         chunk_index = 0
-        chunk_count = len(self._chunk_cache)
+        changed_chunks = list(self._chunk_history_manager.changed_chunks())
+        chunk_count = len(changed_chunks)
 
         if wrapper is None:
             wrapper = self._world_wrapper
@@ -189,20 +190,22 @@ class World(BaseStructure):
                 except LevelDoesNotExist:
                     continue
 
-        for storage in (self._chunk_history_manager, self._chunk_cache):
-            for (dimension, cx, cz), chunk in storage.items():
-                if dimension not in output_dimension_map:
-                    continue
-                if chunk is None:
-                    wrapper.delete_chunk(cx, cz, dimension)
-                elif chunk.changed:
-                    wrapper.commit_chunk(chunk, self._palette, dimension)
-                    # TODO: mark the chunk as not changed
-                chunk_index += 1
-                yield chunk_index, chunk_count
-                if not chunk_index % 10000:
-                    wrapper.save()
-                    wrapper.unload()
+        for dimension, cx, cz in changed_chunks:
+            if dimension not in output_dimension_map:
+                continue
+            chunk = self._chunk_history_manager.get_current(dimension, cx, cz)
+            if chunk is None:
+                wrapper.delete_chunk(cx, cz, dimension)
+            else:
+                wrapper.commit_chunk(chunk, self._palette, dimension)
+                print("save", cx, cz, dimension)
+                # TODO: mark the chunk as not changed
+            chunk_index += 1
+            yield chunk_index, chunk_count
+            if not chunk_index % 10000:
+                wrapper.save()
+                wrapper.unload()
+
         self._chunk_history_manager.mark_saved()
         log.info(f"Saving changes to world {wrapper.path}")
         wrapper.save()
