@@ -122,7 +122,7 @@ class BaseBedrockTranslator(Translator):
                         *version_key
                     ).block.to_universal
                 output_object, output_block_entity, extra = versions[version_key](
-                    block, get_block_callback, block_location=block_location
+                    block, get_block_callback=get_block_callback, block_location=block_location
                 )
 
                 if isinstance(output_object, Block):
@@ -204,7 +204,7 @@ class BaseBedrockTranslator(Translator):
                     output_block_entity,
                     extra,
                 ) = version.block.from_universal(
-                    block, get_block_callback, block_location=block_location
+                    block, get_block_callback=get_block_callback, block_location=block_location
                 )
 
                 if isinstance(output_object, Block):
