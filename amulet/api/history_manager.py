@@ -114,7 +114,7 @@ class ChunkHistoryManager:
             assert chunk is None or isinstance(
                 chunk, Chunk
             ), "Chunk must be None or a Chunk instance"
-            if chunk is None or chunk.changed_time > self._last_snapshot_time:
+            if chunk is None or chunk.changed:
                 # if the chunk has been changed since the last shapshot add it to the new snapshot
                 if chunk_location not in self._chunk_history:
                     # the chunk was added manually so the previous state was the chunk not existing
@@ -146,6 +146,7 @@ class ChunkHistoryManager:
                         self._serialise_chunk(chunk, chunk_location[0], chunk_index + 1)
                     )
                     snapshot.append(chunk_location)
+                    chunk.changed = False
 
         if snapshot:
             # if there is data in the snapshot invalidate all newer snapshots and add to the database

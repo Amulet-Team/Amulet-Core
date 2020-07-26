@@ -84,6 +84,7 @@ class World(BaseStructure):
         self._chunk_history_manager = ChunkHistoryManager(
             os.path.join(self._temp_directory, "chunks")
         )
+        self._needs_undo_point: bool = False
 
     @property
     def world_path(self) -> str:
@@ -144,6 +145,10 @@ class World(BaseStructure):
         """Save the world using the given wrapper.
         Leave as None to save back to the input wrapper."""
         chunk_index = 0
+        if self._needs_undo_point or any(chunk is not None and chunk.changed for chunk in self._chunk_cache.values()):
+            self.create_undo_point()
+            self._needs_undo_point = False
+
         changed_chunks = list(self._chunk_history_manager.changed_chunks())
         chunk_count = len(changed_chunks)
 
@@ -196,7 +201,6 @@ class World(BaseStructure):
                 wrapper.delete_chunk(cx, cz, dimension)
             else:
                 wrapper.commit_chunk(chunk, dimension)
-                # TODO: mark the chunk as not changed
             chunk_index += 1
             yield chunk_index, chunk_count
             if not chunk_index % 10000:
@@ -274,6 +278,7 @@ class World(BaseStructure):
 
     def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         """Delete a chunk from the universal world database"""
+        self._needs_undo_point = True
         self._chunk_cache[(dimension, cx, cz)] = None
 
     def get_block(self, x: int, y: int, z: int, dimension: Dimension) -> Block:
