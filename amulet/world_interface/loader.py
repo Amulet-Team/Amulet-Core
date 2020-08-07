@@ -31,7 +31,7 @@ class Loader:
         """Load all objects from the object directory"""
 
         directories = glob.iglob(
-            os.path.join(self._directory, "**", ""), recursive=True
+            glob.escape(os.path.join(self._directory, "**", "")), recursive=True
         )
         for d in directories:
             meta_path = os.path.join(d, f"{self._object_type}.meta")
