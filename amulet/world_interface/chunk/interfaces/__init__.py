@@ -15,7 +15,6 @@ loader = Loader(
     SUPPORTED_INTERFACE_VERSION,
 )
 
-
 if __name__ == "__main__":
     import time
 

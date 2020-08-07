@@ -8,7 +8,6 @@ if TYPE_CHECKING:
     from amulet.api.block_entity import BlockEntity
     from amulet.api.entity import Entity
 
-
 # Wrapper types
 PathOrBuffer = Union[str, BinaryIO]
 BlockNDArray = numpy.ndarray  # NDArray[(Any, ), 'Block']

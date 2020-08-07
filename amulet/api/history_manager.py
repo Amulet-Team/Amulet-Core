@@ -70,17 +70,19 @@ class ChunkHistoryManager:
         self._last_save_snapshot = self._snapshot_index
         self._branch_save_count = 0
         # the current chunks have been saved to disk so update the saved chunk indexes
-        for chunk_location, (chunk_index, save_chunk_index) in self._chunk_index.items():
+        for (
+            chunk_location,
+            (chunk_index, save_chunk_index),
+        ) in self._chunk_index.items():
             self._chunk_index[chunk_location] = (chunk_index, chunk_index)
 
     def items(
-        self,
-        block_palette: BlockManager
+        self, block_palette: BlockManager
     ) -> Generator[Tuple[DimensionCoordinates, Optional[Chunk]], None, None]:
         for (dimension, cx, cz) in self._chunk_index.keys():
             yield (dimension, cx, cz), self.get_current(
-                    dimension, cx, cz, block_palette
-                )
+                dimension, cx, cz, block_palette
+            )
 
     def changed_chunks(self) -> Generator[DimensionCoordinates, None, None]:
         for chunk_location, (index, save_index) in self._chunk_index.items():

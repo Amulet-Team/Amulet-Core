@@ -103,6 +103,7 @@ class Block:
     # )
 
     parameters_regex = re.compile(r"(?:,(?P<name>[a-z0-9_]+)=(?P<value>[a-z0-9_\"]+))")
+
     # parameters_regex = re.compile(r"(?:,(?P<name>[a-z0-9_]+)=(?P<value>[a-z0-9_]+))")
 
     def __init__(
@@ -228,9 +229,7 @@ class Block:
             )
 
     @staticmethod
-    def parse_blockstate_string(
-        blockstate: str,
-    ) -> Tuple[str, str, PropertyType]:
+    def parse_blockstate_string(blockstate: str,) -> Tuple[str, str, PropertyType]:
         match = Block.blockstate_regex.match(blockstate)
         namespace = match.group("namespace") or "minecraft"
         base_name = match.group("base_name")

@@ -256,7 +256,9 @@ class Translator:
                     output_block_entity,
                     extra,
                 ) = version.block.to_universal(
-                    block, get_block_callback=get_block_callback, block_location=block_location
+                    block,
+                    get_block_callback=get_block_callback,
+                    block_location=block_location,
                 )
 
                 if isinstance(output_object, Block):
@@ -334,7 +336,9 @@ class Translator:
                     output_block_entity,
                     extra,
                 ) = version.block.from_universal(
-                    block, get_block_callback=get_block_callback, block_location=block_location
+                    block,
+                    get_block_callback=get_block_callback,
+                    block_location=block_location,
                 )
 
                 if isinstance(output_object, Block):
