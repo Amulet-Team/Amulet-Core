@@ -11,7 +11,6 @@ from amulet.world_interface.chunk import translators
 from amulet.api.block import Block
 from .mcstructure import MCStructureChunk
 
-
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
     from PyMCTranslate import TranslationManager

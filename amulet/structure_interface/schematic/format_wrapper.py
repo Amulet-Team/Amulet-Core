@@ -20,10 +20,8 @@ from .interface import (
     SchematicInterface,
 )
 
-
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator, Interface
-
 
 java_interface = JavaSchematicInterface()
 bedrock_interface = BedrockSchematicInerface()
@@ -205,8 +203,17 @@ class SchematicFormatWrapper(StructureFormatWrapper):
             *translator.translator_key(game_version)
         )
         palette = chunk._block_palette = BlockManager()
-        for block, data in chunk_palette:
-            palette.get_add_block(version.ints_to_block(block, data))
+        lut = numpy.array(
+            [
+                palette.get_add_block(version.ints_to_block(block, data))
+                for block, data in chunk_palette
+            ]
+        )
+        if len(palette.blocks()) != len(chunk_palette):
+            # if a blockstate was defined twice
+            for cy in chunk.blocks.sub_chunks:
+                chunk.blocks.add_sub_chunk(cy, lut[chunk.blocks.get_sub_chunk(cy)])
+
         return chunk
 
     def delete_chunk(self, cx: int, cz: int, *args):

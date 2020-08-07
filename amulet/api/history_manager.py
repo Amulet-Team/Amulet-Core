@@ -70,17 +70,19 @@ class ChunkHistoryManager:
         self._last_save_snapshot = self._snapshot_index
         self._branch_save_count = 0
         # the current chunks have been saved to disk so update the saved chunk indexes
-        for chunk_location, (chunk_index, save_chunk_index) in self._chunk_index.items():
+        for (
+            chunk_location,
+            (chunk_index, save_chunk_index),
+        ) in self._chunk_index.items():
             self._chunk_index[chunk_location] = (chunk_index, chunk_index)
 
     def items(
-        self,
-        block_palette: BlockManager
+        self, block_palette: BlockManager
     ) -> Generator[Tuple[DimensionCoordinates, Optional[Chunk]], None, None]:
         for (dimension, cx, cz) in self._chunk_index.keys():
             yield (dimension, cx, cz), self.get_current(
-                    dimension, cx, cz, block_palette
-                )
+                dimension, cx, cz, block_palette
+            )
 
     def changed_chunks(self) -> Generator[DimensionCoordinates, None, None]:
         for chunk_location, (index, save_index) in self._chunk_index.items():
@@ -114,7 +116,7 @@ class ChunkHistoryManager:
             assert chunk is None or isinstance(
                 chunk, Chunk
             ), "Chunk must be None or a Chunk instance"
-            if chunk is None or chunk.changed_time > self._last_snapshot_time:
+            if chunk is None or chunk.changed:
                 # if the chunk has been changed since the last shapshot add it to the new snapshot
                 if chunk_location not in self._chunk_history:
                     # the chunk was added manually so the previous state was the chunk not existing
@@ -146,6 +148,7 @@ class ChunkHistoryManager:
                         self._serialise_chunk(chunk, chunk_location[0], chunk_index + 1)
                     )
                     snapshot.append(chunk_location)
+                    chunk.changed = False
 
         if snapshot:
             # if there is data in the snapshot invalidate all newer snapshots and add to the database

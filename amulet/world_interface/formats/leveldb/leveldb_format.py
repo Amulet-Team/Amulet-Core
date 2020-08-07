@@ -32,7 +32,6 @@ if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
     from amulet.api.data_types import Dimension
 
-
 InternalDimension = Optional[int]
 
 

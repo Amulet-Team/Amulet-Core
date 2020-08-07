@@ -8,7 +8,7 @@ from amulet.api.data_types import BlockNDArray, AnyNDArray
 
 if TYPE_CHECKING:
     from amulet.api.block import Block
-    from PyMCTranslate.py3.translation_manager import Version
+    from PyMCTranslate import Version
 
 
 class BedrockPsudoNumericalTranslator(BaseBedrockTranslator):

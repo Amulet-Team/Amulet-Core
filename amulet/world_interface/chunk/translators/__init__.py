@@ -15,7 +15,6 @@ loader = Loader(
     SUPPORTED_TRANSLATOR_VERSION,
 )
 
-
 if __name__ == "__main__":
     import time
 

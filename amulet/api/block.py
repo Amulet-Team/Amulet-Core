@@ -9,13 +9,15 @@ import amulet_nbt
 from .errors import InvalidBlockException
 from ..utils import Int
 
-PropertyType = Union[
+PropertyValueType = Union[
     amulet_nbt.TAG_Byte,
     amulet_nbt.TAG_Short,
     amulet_nbt.TAG_Int,
     amulet_nbt.TAG_Long,
     amulet_nbt.TAG_String,
 ]
+PropertyType = Dict[str, PropertyValueType]
+
 PropertyDataTypes = (
     amulet_nbt.TAG_Byte,
     amulet_nbt.TAG_Short,
@@ -101,13 +103,14 @@ class Block:
     # )
 
     parameters_regex = re.compile(r"(?:,(?P<name>[a-z0-9_]+)=(?P<value>[a-z0-9_\"]+))")
+
     # parameters_regex = re.compile(r"(?:,(?P<name>[a-z0-9_]+)=(?P<value>[a-z0-9_]+))")
 
     def __init__(
         self,
         namespace: str,
         base_name: str,
-        properties: Dict[str, PropertyType] = None,
+        properties: PropertyType = None,
         extra_blocks: Union[Block, Iterable[Block]] = None,
     ):
         self._blockstate = None
@@ -161,7 +164,7 @@ class Block:
         return self._base_name
 
     @property
-    def properties(self) -> Dict[str, PropertyType]:
+    def properties(self) -> PropertyType:
         """
         The mapping of properties of the blockstate represented by the Block object (IE: `{"level": "1"}`)
 
@@ -226,9 +229,7 @@ class Block:
             )
 
     @staticmethod
-    def parse_blockstate_string(
-        blockstate: str,
-    ) -> Tuple[str, str, Dict[str, PropertyType]]:
+    def parse_blockstate_string(blockstate: str,) -> Tuple[str, str, PropertyType]:
         match = Block.blockstate_regex.match(blockstate)
         namespace = match.group("namespace") or "minecraft"
         base_name = match.group("base_name")

@@ -22,6 +22,7 @@ class Chunk:
 
     def __init__(self, cx: int, cz: int):
         self._cx, self._cz = cx, cz
+        self._changed = False
         self._changed_time = 0.0
 
         self._blocks = None
@@ -65,6 +66,7 @@ class Chunk:
         ) = chunk_data[3:]
         self._changed_time = chunk_data[2]
         self._block_palette = block_palette
+        self.changed = False
         return self
 
     @property
@@ -85,17 +87,16 @@ class Chunk:
     @property
     def changed(self) -> bool:
         """
-        :return: ``True`` if the chunk has been changed, ``False`` otherwise
+        :return: ``True`` if the chunk has been changed since the last undo point, ``False`` otherwise
         """
-        return bool(self._changed_time)
+        return self._changed
 
     @changed.setter
     def changed(self, changed: bool):
         assert isinstance(changed, bool), "Changed value must be a bool"
+        self._changed = changed
         if changed:
             self._changed_time = time.time()
-        else:
-            self._changed_time = 0.0
 
     @property
     def changed_time(self) -> float:
