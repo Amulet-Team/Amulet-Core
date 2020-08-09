@@ -7,7 +7,7 @@ from typing import Dict, Iterable, List, Tuple, Union, overload, Generator
 import amulet_nbt
 
 from .errors import InvalidBlockException
-from ..utils import Int
+from amulet.api.data_types import Int
 
 PropertyValueType = Union[
     amulet_nbt.TAG_Byte,
