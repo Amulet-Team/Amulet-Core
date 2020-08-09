@@ -490,8 +490,8 @@ class BlockManager:
 
     def __getitem__(self, item):
         """
-        If a Block object is passed to this function, it'll return the internal ID/index of the
-        blockstate. If an int is given, this method will return the Block object at that specified index.
+        If a Block object is passed to this function, it will return the internal ID/index of the blockstate.
+        If an int is given, this method will return the Block object at that specified index.
 
         :param item: The Block object or int to get the mapping data of
         :return: An int if a Block object was supplied, a Block object if an int was supplied
@@ -504,7 +504,7 @@ class BlockManager:
         except (KeyError, IndexError):
             raise KeyError(
                 f"There is no {item} in the BlockManager. "
-                f"You might want to use the `add_block` function for your blocks before accessing them."
+                f"You might want to use the `get_add_block` function for your blocks before accessing them."
             )
 
     def get_add_block(self, block: Block) -> int:
