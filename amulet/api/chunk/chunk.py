@@ -6,7 +6,8 @@ import numpy
 import pickle
 import gzip
 
-from amulet.api.block import BlockManager
+from amulet.api.registry import BlockManager
+from amulet.api.registry.biome_manager import BiomeManager
 from amulet.api.chunk import Biomes, Blocks, Status, BlockEntityDict, EntityList
 from amulet.api.entity import Entity
 from amulet.api.data_types import ChunkCoordinates
@@ -27,6 +28,7 @@ class Chunk:
 
         self._blocks = None
         self.__block_palette = BlockManager()
+        self.__biome_palette = BiomeManager()
         self._biomes = None
         self._entities = EntityList(self)
         self._block_entities = BlockEntityDict(self)
@@ -177,6 +179,47 @@ class Chunk:
             ), "dtype must be an unsigned integer"
             self.changed = True
             self._biomes = Biomes(self, value)
+
+    @property
+    def _biome_palette(self) -> BiomeManager:
+        """The biome palette for the chunk.
+        Usually will refer to a global biome palette."""
+        return self.__biome_palette
+
+    @_biome_palette.setter
+    def _biome_palette(self, new_biome_palette: BiomeManager):
+        """Change the biome palette for the chunk.
+        This will change the biome palette but leave the biome array unchanged.
+        Only use this if you know what you are doing.
+        Designed for internal use. You probably want to use Chunk.biome_palette"""
+        assert isinstance(new_biome_palette, BiomeManager)
+        self.__biome_palette = new_biome_palette
+
+    @property
+    def biome_palette(self) -> BiomeManager:
+        """The biome palette for the chunk.
+        Usually will refer to a global biome palette."""
+        return self._biome_palette
+
+    @biome_palette.setter
+    def biome_palette(self, new_biome_palette: BiomeManager):
+        """Change the biome palette for the chunk.
+        This will copy over all biome states from the old palette and remap the biome indexes to use the new palette."""
+        assert isinstance(new_biome_palette, BiomeManager)
+        if new_biome_palette is not self._biome_palette:
+            # if current biome palette and the new biome palette are not the same object
+            if self._biome_palette:
+                # if there are biomes in the current biome palette remap the data
+                biome_lut = numpy.array(
+                    [
+                        new_biome_palette.get_add_biome(biome)
+                        for biome in self._biome_palette.biomes()
+                    ],
+                    dtype=numpy.uint,
+                )
+                self.biomes = biome_lut[self.biomes]
+
+            self.__biome_palette = new_biome_palette
 
     @property
     def entities(self) -> EntityList:
