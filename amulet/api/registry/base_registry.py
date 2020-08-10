@@ -1,4 +1,5 @@
 from typing import Union, Tuple, Generator, Iterable, Any
+
 BaseType = Any
 
 

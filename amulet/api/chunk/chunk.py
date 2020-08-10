@@ -55,10 +55,7 @@ class Chunk:
 
     @classmethod
     def unpickle(
-            cls,
-            file_path: str,
-            block_palette: BlockManager,
-            biome_palette: BiomeManager
+        cls, file_path: str, block_palette: BlockManager, biome_palette: BiomeManager
     ) -> Chunk:
         with gzip.open(file_path, "rb") as fp:
             chunk_data = pickle.load(fp)

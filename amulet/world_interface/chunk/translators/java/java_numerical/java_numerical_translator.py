@@ -32,9 +32,13 @@ class JavaNumericalTranslator(Translator):
         :return:
         """
         version = translation_manager.get_version(*version_identifier)
-        chunk._block_palette = BlockManager([version.block.ints_to_block(*entry) for entry in block_palette])
+        chunk._block_palette = BlockManager(
+            [version.block.ints_to_block(*entry) for entry in block_palette]
+        )
 
-    def _pack_block_palette(self, version: "Version", palette: BlockNDArray) -> AnyNDArray:
+    def _pack_block_palette(
+        self, version: "Version", palette: BlockNDArray
+    ) -> AnyNDArray:
         """
         Packs a numpy array of Block objects into an int array of block ids and block data values [[1, 0], [2, 0]].
         :param version:

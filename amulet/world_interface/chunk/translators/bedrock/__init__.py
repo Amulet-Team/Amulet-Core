@@ -84,12 +84,12 @@ class BaseBedrockTranslator(Translator):
         chunk._block_palette = palette_
 
     def _blocks_entities_to_universal(
-            self,
-            game_version: VersionNumberTuple,
-            translation_manager: "TranslationManager",
-            chunk: Chunk,
-            get_chunk_callback: Optional[GetChunkCallback],
-            full_translate: bool,
+        self,
+        game_version: VersionNumberTuple,
+        translation_manager: "TranslationManager",
+        chunk: Chunk,
+        get_chunk_callback: Optional[GetChunkCallback],
+        full_translate: bool,
     ):
         # Bedrock does versioning by block rather than by chunk.
         # As such we can't just pass in a single translator.
@@ -166,12 +166,12 @@ class BaseBedrockTranslator(Translator):
         )
 
     def _blocks_entities_from_universal(
-            self,
-            max_world_version_number: Union[int, Tuple[int, int, int]],
-            translation_manager: "TranslationManager",
-            chunk: Chunk,
-            get_chunk_callback: Optional[GetChunkCallback],
-            full_translate: bool,
+        self,
+        max_world_version_number: Union[int, Tuple[int, int, int]],
+        translation_manager: "TranslationManager",
+        chunk: Chunk,
+        get_chunk_callback: Optional[GetChunkCallback],
+        full_translate: bool,
     ):
         """
         Translate a universal chunk into the interface-specific format.

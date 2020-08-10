@@ -33,12 +33,12 @@ if TYPE_CHECKING:
 
 class Translator:
     def translator_key(
-            self, version_number: Union[int, Tuple[int, int, int]]
+        self, version_number: Union[int, Tuple[int, int, int]]
     ) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
         return self._translator_key(version_number)
 
     def _translator_key(
-            self, version_number: Union[int, Tuple[int, int, int]]
+        self, version_number: Union[int, Tuple[int, int, int]]
     ) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
         """
         Return the version key for PyMCTranslate
@@ -60,11 +60,11 @@ class Translator:
 
     @staticmethod
     def _translate(
-            chunk: Chunk,
-            get_chunk_callback: Optional[GetChunkCallback],
-            translate_block: TranslateBlockCallback,
-            translate_entity: TranslateEntityCallback,
-            full_translate: bool,
+        chunk: Chunk,
+        get_chunk_callback: Optional[GetChunkCallback],
+        translate_block: TranslateBlockCallback,
+        translate_entity: TranslateEntityCallback,
+        full_translate: bool,
     ):
         if full_translate:
             todo = []
@@ -76,9 +76,12 @@ class Translator:
             # translate each block without using the callback
             for i, input_block in enumerate(chunk.block_palette):
                 input_block: BlockType
-                output_block, output_block_entity, output_entity, extra = translate_block(
-                    input_block, None, (0, 0, 0)
-                )
+                (
+                    output_block,
+                    output_block_entity,
+                    output_entity,
+                    extra,
+                ) = translate_block(input_block, None, (0, 0, 0))
                 if extra and get_chunk_callback:
                     todo.append(i)
                 elif output_block is not None:
@@ -86,11 +89,13 @@ class Translator:
                     if output_block_entity is not None:
                         for cy in chunk.blocks.sub_chunks:
                             for x, y, z in zip(
-                                    *numpy.where(chunk.blocks.get_sub_chunk(cy) == i)
+                                *numpy.where(chunk.blocks.get_sub_chunk(cy) == i)
                             ):
                                 output_block_entities.append(
                                     output_block_entity.new_at_location(
-                                        x + chunk.cx * 16, y + cy * 16, z + chunk.cz * 16
+                                        x + chunk.cx * 16,
+                                        y + cy * 16,
+                                        z + chunk.cz * 16,
                                     )
                                 )
                 else:
@@ -100,7 +105,7 @@ class Translator:
                 if output_entity and entity_support:
                     for cy in chunk.blocks.sub_chunks:
                         for x, y, z in zip(
-                                *numpy.where(chunk.blocks.get_sub_chunk(cy) == i)
+                            *numpy.where(chunk.blocks.get_sub_chunk(cy) == i)
                         ):
                             x += chunk.cx * 16
                             y += cy * 16
@@ -115,12 +120,12 @@ class Translator:
             for index in todo:
                 for cy in chunk.blocks.sub_chunks:
                     for x, y, z in zip(
-                            *numpy.where(chunk.blocks.get_sub_chunk(cy) == index)
+                        *numpy.where(chunk.blocks.get_sub_chunk(cy) == index)
                     ):
                         y += cy * 16
 
                         def get_block_at(
-                                pos: Tuple[int, int, int]
+                            pos: Tuple[int, int, int]
                         ) -> Tuple[Block, Optional[BlockEntity]]:
                             """Get a block at a location relative to the current block"""
                             nonlocal x, y, z, chunk, cy
@@ -168,7 +173,9 @@ class Translator:
                             (x + chunk.cx * 16, y, z + chunk.cz * 16),
                         )
                         if output_block is not None:
-                            block_mappings[(x, y, z)] = finished.get_add_block(output_block)
+                            block_mappings[(x, y, z)] = finished.get_add_block(
+                                output_block
+                            )
                             if output_block_entity is not None:
                                 output_block_entities.append(
                                     output_block_entity.new_at_location(
@@ -219,12 +226,12 @@ class Translator:
             chunk._block_palette = finished
 
     def to_universal(
-            self,
-            chunk_version: Union[int, Tuple[int, int, int]],
-            translation_manager: "TranslationManager",
-            chunk: Chunk,
-            get_chunk_callback: Optional[GetChunkCallback],
-            full_translate: bool,
+        self,
+        chunk_version: Union[int, Tuple[int, int, int]],
+        translation_manager: "TranslationManager",
+        chunk: Chunk,
+        get_chunk_callback: Optional[GetChunkCallback],
+        full_translate: bool,
     ) -> Chunk:
         """
         Translate an interface-specific chunk into the universal format.
@@ -243,24 +250,24 @@ class Translator:
             translation_manager,
             chunk,
             get_chunk_callback,
-            full_translate
+            full_translate,
         )
         return chunk
 
     def _blocks_entities_to_universal(
-            self,
-            chunk_version: Union[int, Tuple[int, int, int]],
-            translation_manager: "TranslationManager",
-            chunk: Chunk,
-            get_chunk_callback: Optional[GetChunkCallback],
-            full_translate: bool,
+        self,
+        chunk_version: Union[int, Tuple[int, int, int]],
+        translation_manager: "TranslationManager",
+        chunk: Chunk,
+        get_chunk_callback: Optional[GetChunkCallback],
+        full_translate: bool,
     ):
         version = translation_manager.get_version(*self._translator_key(chunk_version))
 
         def translate_block(
-                input_object: Block,
-                get_block_callback: Optional[GetBlockCallback],
-                block_location: BlockCoordinates,
+            input_object: Block,
+            get_block_callback: Optional[GetBlockCallback],
+            block_location: BlockCoordinates,
         ) -> TranslateBlockCallbackReturn:
             final_block = None
             final_block_entity = None
@@ -316,16 +323,19 @@ class Translator:
     @staticmethod
     def _biomes_to_universal(translator_version: "Version", chunk: Chunk):
         chunk._biome_palette = BiomeManager(
-            [translator_version.biome.to_universal(biome) for biome in chunk.biome_palette]
+            [
+                translator_version.biome.to_universal(biome)
+                for biome in chunk.biome_palette
+            ]
         )
 
     def from_universal(
-            self,
-            max_world_version_number: Union[int, Tuple[int, int, int]],
-            translation_manager: "TranslationManager",
-            chunk: Chunk,
-            get_chunk_callback: Optional[GetChunkCallback],
-            full_translate: bool,
+        self,
+        max_world_version_number: Union[int, Tuple[int, int, int]],
+        translation_manager: "TranslationManager",
+        chunk: Chunk,
+        get_chunk_callback: Optional[GetChunkCallback],
+        full_translate: bool,
     ) -> Chunk:
         """
         Translate a universal chunk into the interface-specific format.
@@ -345,18 +355,18 @@ class Translator:
             translation_manager,
             chunk,
             get_chunk_callback,
-            full_translate
+            full_translate,
         )
         self._biomes_from_universal(version, chunk)
         return chunk
 
     def _blocks_entities_from_universal(
-            self,
-            max_world_version_number: Union[int, Tuple[int, int, int]],
-            translation_manager: "TranslationManager",
-            chunk: Chunk,
-            get_chunk_callback: Optional[GetChunkCallback],
-            full_translate: bool,
+        self,
+        max_world_version_number: Union[int, Tuple[int, int, int]],
+        translation_manager: "TranslationManager",
+        chunk: Chunk,
+        get_chunk_callback: Optional[GetChunkCallback],
+        full_translate: bool,
     ):
         version = translation_manager.get_version(
             *self._translator_key(max_world_version_number)
@@ -364,9 +374,9 @@ class Translator:
 
         # TODO: perhaps find a way so this code isn't duplicated in three places
         def translate_block(
-                input_object: Block,
-                get_block_callback: Optional[GetBlockCallback],
-                block_location: BlockCoordinates,
+            input_object: Block,
+            get_block_callback: Optional[GetBlockCallback],
+            block_location: BlockCoordinates,
         ) -> TranslateBlockCallbackReturn:
             final_block = None
             final_block_entity = None
@@ -422,15 +432,18 @@ class Translator:
     @staticmethod
     def _biomes_from_universal(translator_version: "Version", chunk: Chunk):
         chunk._biome_palette = BiomeManager(
-            [translator_version.biome.from_universal(biome) for biome in chunk.biome_palette]
+            [
+                translator_version.biome.from_universal(biome)
+                for biome in chunk.biome_palette
+            ]
         )
 
     def unpack(
-            self,
-            chunk_version: VersionNumberAny,
-            translation_manager: "TranslationManager",
-            chunk: Chunk,
-            palette: AnyNDArray,
+        self,
+        chunk_version: VersionNumberAny,
+        translation_manager: "TranslationManager",
+        chunk: Chunk,
+        palette: AnyNDArray,
     ) -> Chunk:
         """
         Unpack the version-specific block_palette into the stringified version where needed.
@@ -438,18 +451,16 @@ class Translator:
         :return: The block_palette converted to block objects.
         """
         version_identifier = self._translator_key(chunk_version)
-        self._unpack_blocks(
-            translation_manager, version_identifier, chunk, palette
-        )
+        self._unpack_blocks(translation_manager, version_identifier, chunk, palette)
         self._unpack_biomes(translation_manager, version_identifier, chunk)
         return chunk
 
     @staticmethod
     def _unpack_blocks(
-            translation_manager: "TranslationManager",
-            version_identifier: VersionIdentifierType,
-            chunk: Chunk,
-            block_palette: AnyNDArray,
+        translation_manager: "TranslationManager",
+        version_identifier: VersionIdentifierType,
+        chunk: Chunk,
+        block_palette: AnyNDArray,
     ):
         """
         Unpack the version-specific block_palette into the stringified version where needed.
@@ -459,9 +470,9 @@ class Translator:
 
     @staticmethod
     def _unpack_biomes(
-            translation_manager: "TranslationManager",
-            version_identifier: VersionIdentifierType,
-            chunk: Chunk
+        translation_manager: "TranslationManager",
+        version_identifier: VersionIdentifierType,
+        chunk: Chunk,
     ):
         """
         Unpack the version-specific biome_palette into the stringified version where needed.
@@ -469,35 +480,35 @@ class Translator:
         """
         version = translation_manager.get_version(*version_identifier)
 
-        biome_int_palette, biome_array = numpy.unique(
-            chunk.biomes, return_inverse=True
-        )
+        biome_int_palette, biome_array = numpy.unique(chunk.biomes, return_inverse=True)
         chunk.biomes = biome_array
         chunk._biome_palette = BiomeManager(
             [version.biome.unpack(biome) for biome in biome_int_palette]
         )
 
     def pack(
-            self,
-            max_world_version_number: Union[int, Tuple[int, int, int]],
-            translation_manager: "TranslationManager",
-            chunk: Chunk,
+        self,
+        max_world_version_number: Union[int, Tuple[int, int, int]],
+        translation_manager: "TranslationManager",
+        chunk: Chunk,
     ) -> Tuple[Chunk, AnyNDArray]:
         """
         Translate the list of block objects into a version-specific block_palette.
         :return: The block_palette converted into version-specific blocks (ie id, data tuples for 1.12)
         """
         version_identifier = self._translator_key(max_world_version_number)
-        version = translation_manager.get_version(
-            *version_identifier
-        )
+        version = translation_manager.get_version(*version_identifier)
         self._pack_biomes(translation_manager, version_identifier, chunk)
         return (
             chunk,
-            self._pack_block_palette(version, numpy.array(chunk.block_palette.blocks())),
+            self._pack_block_palette(
+                version, numpy.array(chunk.block_palette.blocks())
+            ),
         )
 
-    def _pack_block_palette(self, version: "Version", palette: BlockNDArray) -> AnyNDArray:
+    def _pack_block_palette(
+        self, version: "Version", palette: BlockNDArray
+    ) -> AnyNDArray:
         """
         Pack the list of block objects into a version-specific block_palette.
         :return: The block_palette converted into version-specific blocks (ie id, data tuples for 1.12)
@@ -506,9 +517,9 @@ class Translator:
 
     @staticmethod
     def _pack_biomes(
-            translation_manager: "TranslationManager",
-            version_identifier: VersionIdentifierType,
-            chunk: Chunk
+        translation_manager: "TranslationManager",
+        version_identifier: VersionIdentifierType,
+        chunk: Chunk,
     ):
         """
         Unpack the version-specific biome_palette into the stringified version where needed.
@@ -516,6 +527,8 @@ class Translator:
         """
         version = translation_manager.get_version(*version_identifier)
 
-        biome_palette = numpy.array([version.biome.pack(biome) for biome in chunk.biome_palette])
+        biome_palette = numpy.array(
+            [version.biome.pack(biome) for biome in chunk.biome_palette]
+        )
         chunk.biomes = biome_palette[chunk.biomes]
         chunk._biome_palette = BiomeManager()

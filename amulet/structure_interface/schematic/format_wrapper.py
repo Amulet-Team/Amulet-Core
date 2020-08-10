@@ -176,7 +176,10 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         return (
             chunk,
             numpy.array(
-                [version.block.block_to_ints(block) for block in chunk.block_palette.blocks()]
+                [
+                    version.block.block_to_ints(block)
+                    for block in chunk.block_palette.blocks()
+                ]
             ),
         )
 

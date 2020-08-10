@@ -21,7 +21,7 @@ water = blockstate_to_block('minecraft:water[level="0"]')
 
 class JavaBlockstateTranslator(Translator):
     def _translator_key(
-            self, version_number: int
+        self, version_number: int
     ) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
         return "java", version_number
 
@@ -35,10 +35,10 @@ class JavaBlockstateTranslator(Translator):
 
     @staticmethod
     def _unpack_blocks(
-            translation_manager: "TranslationManager",
-            version_identifier: VersionIdentifierType,
-            chunk: Chunk,
-            block_palette: AnyNDArray,
+        translation_manager: "TranslationManager",
+        version_identifier: VersionIdentifierType,
+        chunk: Chunk,
+        block_palette: AnyNDArray,
     ):
         """
         Unpack the version-specific block_palette into the stringified version where needed.
@@ -70,7 +70,9 @@ class JavaBlockstateTranslator(Translator):
 
         chunk._block_palette = BlockManager(block_palette)
 
-    def _pack_block_palette(self, version: "Version", palette: BlockNDArray) -> AnyNDArray:
+    def _pack_block_palette(
+        self, version: "Version", palette: BlockNDArray
+    ) -> AnyNDArray:
         """
         Translate the list of block objects into a version-specific block_palette.
         :return: The block_palette converted into version-specific blocks (ie id, data tuples for 1.12)
@@ -81,8 +83,8 @@ class JavaBlockstateTranslator(Translator):
                 properties = block.properties
                 extra_blocks = block.extra_blocks
                 if (
-                        extra_blocks
-                        and extra_blocks[0].namespaced_name == water.namespaced_name
+                    extra_blocks
+                    and extra_blocks[0].namespaced_name == water.namespaced_name
                 ):
                     properties["waterlogged"] = amulet_nbt.TAG_String("true")
                 else:

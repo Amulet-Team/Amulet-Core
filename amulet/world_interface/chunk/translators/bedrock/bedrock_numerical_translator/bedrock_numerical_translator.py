@@ -20,7 +20,9 @@ class BedrockNumericalTranslator(BaseBedrockTranslator):
             return False
         return True
 
-    def _pack_block_palette(self, version: "Version", palette: BlockNDArray) -> AnyNDArray:
+    def _pack_block_palette(
+        self, version: "Version", palette: BlockNDArray
+    ) -> AnyNDArray:
         """
         Packs a numpy array of Block objects into an object array containing version number, block ids and block data values.
         :param version:

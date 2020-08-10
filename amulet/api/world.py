@@ -470,13 +470,17 @@ class World(BaseStructure):
         """
         Undoes the last set of changes to the world
         """
-        self._chunk_history_manager.undo(self._chunk_cache, self._block_palette, self._biome_palette)
+        self._chunk_history_manager.undo(
+            self._chunk_cache, self._block_palette, self._biome_palette
+        )
 
     def redo(self):
         """
         Redoes the last set of changes to the world
         """
-        self._chunk_history_manager.redo(self._chunk_cache, self._block_palette, self._biome_palette)
+        self._chunk_history_manager.redo(
+            self._chunk_cache, self._block_palette, self._biome_palette
+        )
 
     def restore_last_undo_point(self):
         """Restore the world to the state it was when self.create_undo_point was called.
