@@ -212,7 +212,7 @@ class World(BaseStructure):
             if dimension not in output_dimension_map:
                 continue
             chunk = self._chunk_history_manager.get_current(
-                dimension, cx, cz, self._block_palette
+                dimension, cx, cz, self._block_palette, self._biome_palette
             )
             if chunk is None:
                 wrapper.delete_chunk(cx, cz, dimension)
@@ -269,12 +269,13 @@ class World(BaseStructure):
             chunk = self._chunk_cache[
                 (dimension, cx, cz)
             ] = self._chunk_history_manager.get_current(
-                dimension, cx, cz, self._block_palette
+                dimension, cx, cz, self._block_palette, self._biome_palette
             )
         else:
             try:
                 chunk = self._world_wrapper.load_chunk(cx, cz, dimension)
                 chunk.block_palette = self._block_palette
+                chunk.biome_palette = self._biome_palette
                 self._chunk_cache[(dimension, cx, cz)] = chunk
             except ChunkDoesNotExist:
                 chunk = self._chunk_cache[(dimension, cx, cz)] = None
@@ -291,6 +292,7 @@ class World(BaseStructure):
         """Add a chunk to the universal world database"""
         chunk.changed = True
         chunk.block_palette = self._block_palette
+        chunk.biome_palette = self._biome_palette
         self._chunk_cache[(dimension, chunk.cx, chunk.cz)] = chunk
 
     def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
@@ -468,13 +470,13 @@ class World(BaseStructure):
         """
         Undoes the last set of changes to the world
         """
-        self._chunk_history_manager.undo(self._chunk_cache, self._block_palette)
+        self._chunk_history_manager.undo(self._chunk_cache, self._block_palette, self._biome_palette)
 
     def redo(self):
         """
         Redoes the last set of changes to the world
         """
-        self._chunk_history_manager.redo(self._chunk_cache, self._block_palette)
+        self._chunk_history_manager.redo(self._chunk_cache, self._block_palette, self._biome_palette)
 
     def restore_last_undo_point(self):
         """Restore the world to the state it was when self.create_undo_point was called.

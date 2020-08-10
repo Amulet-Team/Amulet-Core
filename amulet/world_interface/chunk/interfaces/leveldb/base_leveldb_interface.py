@@ -224,12 +224,12 @@ class BaseLevelDBInterface(Interface):
         All sub-chunks will almost certainly all have the same sub-chunk version but
         it should be able to handle a case where that is not true.
 
-        As such this function will return a Chunk and a rather complicated palette
+        As such this function will return a Chunk and a rather complicated block_palette
         The newer formats allow multiple blocks to occupy the same space and the
         newer versions also include a version ber block. So this will also need
         returning for the translator to handle.
 
-        The palette will be a numpy array containing tuple objects
+        The block_palette will be a numpy array containing tuple objects
             The tuple represents the "block" however can contain more than one Block object.
             Inside the tuple are one or more tuples.
                 These include the block version number and the block itself
@@ -348,7 +348,7 @@ class BaseLevelDBInterface(Interface):
                 else:
                     continue
 
-        # palette should now look like this
+        # block_palette should now look like this
         # List[
         #   Tuple[
         #       Tuple[version, Block], ...
@@ -503,7 +503,7 @@ class BaseLevelDBInterface(Interface):
                     ):
                         chunk.append(None)
                     else:
-                        # pad palette with air in the extra layers
+                        # pad block_palette with air in the extra layers
                         sub_chunk_palette_full = numpy.empty(
                             (sub_chunk_palette.size, sub_chunk_depth), dtype=object
                         )
@@ -541,7 +541,7 @@ class BaseLevelDBInterface(Interface):
 
         return chunk
 
-    # These arent actual blocks, just ids pointing to the palette.
+    # These arent actual blocks, just ids pointing to the block_palette.
 
     @staticmethod
     def _load_palette_blocks(
@@ -586,7 +586,7 @@ class BaseLevelDBInterface(Interface):
     def _save_palette_subchunk(
         blocks: numpy.ndarray, palette: List[amulet_nbt.NBTFile]
     ) -> bytes:
-        """Save a single layer of blocks in the palette format"""
+        """Save a single layer of blocks in the block_palette format"""
         chunk: List[bytes] = []
 
         bits_per_block = max(int(numpy.amax(blocks)).bit_length(), 1)

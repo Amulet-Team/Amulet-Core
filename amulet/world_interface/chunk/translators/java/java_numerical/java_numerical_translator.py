@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Tuple, Union, TYPE_CHECKING
 import numpy
 
+from amulet.api.chunk import Chunk
 from amulet.api.wrapper import Translator
 from amulet.api.data_types import VersionIdentifierType, AnyNDArray, BlockNDArray
 from amulet.api.registry import BlockManager
@@ -17,29 +18,30 @@ class JavaNumericalTranslator(Translator):
     ) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
         return "java", version_number
 
-    def _unpack_palette(
-        self,
+    @staticmethod
+    def _unpack_blocks(
         translation_manager: "TranslationManager",
         version_identifier: VersionIdentifierType,
-        palette: AnyNDArray,
-    ) -> BlockManager:
+        chunk: Chunk,
+        block_palette: AnyNDArray,
+    ):
         """
         Unpacks an int array of block ids and block data values [[1, 0], [2, 0]] into a numpy array of Block objects.
         :param version:
-        :param palette:
+        :param block_palette:
         :return:
         """
         version = translation_manager.get_version(*version_identifier)
-        return BlockManager([version.ints_to_block(*entry) for entry in palette])
+        chunk._block_palette = BlockManager([version.block.ints_to_block(*entry) for entry in block_palette])
 
-    def _pack_palette(self, version: "Version", palette: BlockNDArray) -> AnyNDArray:
+    def _pack_block_palette(self, version: "Version", palette: BlockNDArray) -> AnyNDArray:
         """
         Packs a numpy array of Block objects into an int array of block ids and block data values [[1, 0], [2, 0]].
         :param version:
         :param palette:
         :return:
         """
-        palette = [version.block_to_ints(entry) for entry in palette]
+        palette = [version.block.block_to_ints(entry) for entry in palette]
         for index, value in enumerate(palette):
             if value is None:
                 palette[index] = (

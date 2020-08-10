@@ -23,7 +23,7 @@ class Interface:
         :type cz: int
         :param data: Raw chunk data provided by the format.
         :type data: Any
-        :return: Chunk object in version-specific format, along with the palette for that chunk.
+        :return: Chunk object in version-specific format, along with the block_palette for that chunk.
         :rtype: Chunk
         """
         raise NotImplementedError()
@@ -137,7 +137,7 @@ class Interface:
         Take a version-specific chunk and encode it to raw data for the format to store.
         :param chunk: The already translated version-specfic chunk to encode.
         :type chunk: Chunk
-        :param palette: The palette the ids in the chunk correspond to.
+        :param palette: The block_palette the ids in the chunk correspond to.
         :type palette: numpy.ndarray[Block]
         :param max_world_version: The key to use to find the encoder.
         :type max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]]

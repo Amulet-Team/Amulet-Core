@@ -281,7 +281,7 @@ class BaseFormatWraper:
         recurse: bool = True,
     ) -> "Chunk":
         """Convert the Chunk in Universal format to a Chunk in the version specific format."""
-        # create a new streamlined block palette and remap the data
+        # create a new streamlined block block_palette and remap the data
         palette: List[numpy.ndarray] = []
         palette_len = 0
         for cy in chunk.blocks.sub_chunks:

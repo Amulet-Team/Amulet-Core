@@ -176,7 +176,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         return (
             chunk,
             numpy.array(
-                [version.block_to_ints(block) for block in chunk.block_palette.blocks()]
+                [version.block.block_to_ints(block) for block in chunk.block_palette.blocks()]
             ),
         )
 
@@ -205,7 +205,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         palette = chunk._block_palette = BlockManager()
         lut = numpy.array(
             [
-                palette.get_add_block(version.ints_to_block(block, data))
+                palette.get_add_block(version.block.ints_to_block(block, data))
                 for block, data in chunk_palette
             ]
         )

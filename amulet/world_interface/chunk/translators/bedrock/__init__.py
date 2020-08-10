@@ -33,17 +33,18 @@ class BaseBedrockTranslator(Translator):
     ) -> VersionIdentifierType:
         return "bedrock", version_number
 
-    def _unpack_palette(
-        self,
+    @staticmethod
+    def _unpack_blocks(
         translation_manager: "TranslationManager",
         version_identifier: VersionIdentifierType,
-        palette: AnyNDArray,
-    ) -> BlockManager:
+        chunk: Chunk,
+        block_palette: AnyNDArray,
+    ):
         """
         Unpacks an object array of block data into a numpy object array containing Block objects.
         :param version:
-        :param palette:
-        :type palette: numpy.ndarray[
+        :param block_palette:
+        :type block_palette: numpy.ndarray[
             Tuple[
                 Union[
                     Tuple[None, Tuple[int, int]],
@@ -55,7 +56,7 @@ class BaseBedrockTranslator(Translator):
         :return:
         """
         palette_ = BlockManager()
-        for palette_index, entry in enumerate(palette):
+        for palette_index, entry in enumerate(block_palette):
             entry: BedrockInterfaceBlockType
             block = None
             for version_number, b in entry:
@@ -64,7 +65,7 @@ class BaseBedrockTranslator(Translator):
                     version = translation_manager.get_version(
                         version_identifier[0], version_number or 17563649
                     )
-                    b = version.ints_to_block(*b)
+                    b = version.block.ints_to_block(*b)
                 elif isinstance(b, Block):
                     if version_number is not None:
                         properties = b.properties
@@ -80,16 +81,16 @@ class BaseBedrockTranslator(Translator):
                 raise Exception(f"Empty tuple")
 
             palette_.get_add_block(block)
-        return palette_
+        chunk._block_palette = palette_
 
-    def to_universal(
-        self,
-        game_version: VersionNumberTuple,
-        translation_manager: "TranslationManager",
-        chunk: "Chunk",
-        get_chunk_callback: Optional[GetChunkCallback],
-        full_translate: bool,
-    ) -> "Chunk":
+    def _blocks_entities_to_universal(
+            self,
+            game_version: VersionNumberTuple,
+            translation_manager: "TranslationManager",
+            chunk: Chunk,
+            get_chunk_callback: Optional[GetChunkCallback],
+            full_translate: bool,
+    ):
         # Bedrock does versioning by block rather than by chunk.
         # As such we can't just pass in a single translator.
         # It needs to be done dynamically.
@@ -156,10 +157,7 @@ class BaseBedrockTranslator(Translator):
 
         version = translation_manager.get_version(*self._translator_key(game_version))
 
-        # TODO: split this into pack and translate stages
-        chunk.biomes = self._biomes_to_universal(version, chunk.biomes)
-
-        return self._translate(
+        self._translate(
             chunk,
             get_chunk_callback,
             translate_block,
@@ -167,14 +165,14 @@ class BaseBedrockTranslator(Translator):
             full_translate,
         )
 
-    def from_universal(
-        self,
-        max_world_version_number: Union[int, Tuple[int, int, int]],
-        translation_manager: "TranslationManager",
-        chunk: Chunk,
-        get_chunk_callback: Optional[GetChunkCallback],
-        full_translate: bool,
-    ) -> Chunk:
+    def _blocks_entities_from_universal(
+            self,
+            max_world_version_number: Union[int, Tuple[int, int, int]],
+            translation_manager: "TranslationManager",
+            chunk: Chunk,
+            get_chunk_callback: Optional[GetChunkCallback],
+            full_translate: bool,
+    ):
         """
         Translate a universal chunk into the interface-specific format.
 
@@ -182,8 +180,8 @@ class BaseBedrockTranslator(Translator):
         :param translation_manager: TranslationManager used for the translation
         :param chunk: The chunk to translate.
         :param get_chunk_callback: function callback to get a chunk's data
-        :param full_translate: if true do a full translate. If false just pack the palette (used in callback)
-        :return: Chunk object in the interface-specific format and palette.
+        :param full_translate: if true do a full translate. If false just pack the block_palette (used in callback)
+        :return: Chunk object in the interface-specific format and block_palette.
         """
         version = translation_manager.get_version(
             *self._translator_key(max_world_version_number)
@@ -249,15 +247,10 @@ class BaseBedrockTranslator(Translator):
             # TODO
             return final_block, final_block_entity, final_entities
 
-        chunk = self._translate(
+        self._translate(
             chunk,
             get_chunk_callback,
             translate_block,
             translate_entity,
             full_translate,
         )
-
-        # TODO: split this into pack and translate stages
-        chunk.biomes = self._biomes_from_universal(version, chunk.biomes)
-
-        return chunk

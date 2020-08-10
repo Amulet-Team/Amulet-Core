@@ -83,7 +83,7 @@ class BaseAnvilInterface(Interface):
         :param cx: chunk x coordinate
         :param cz: chunk z coordinate
         :param data: amulet_nbt.NBTFile
-        :return: Chunk object in version-specific format, along with the palette for that chunk.
+        :return: Chunk object in version-specific format, along with the block_palette for that chunk.
         """
         misc = {}
         chunk = Chunk(cx, cz)
@@ -211,7 +211,7 @@ class BaseAnvilInterface(Interface):
         """
         Encode a version-specific chunk to raw data for the format to store.
         :param chunk: The version-specific chunk to translate and encode.
-        :param palette: The palette the ids in the chunk correspond to.
+        :param palette: The block_palette the ids in the chunk correspond to.
         :param max_world_version: The key to use to find the encoder.
         :return: amulet_nbt.NBTFile
         """
