@@ -5,7 +5,7 @@ import numpy
 
 from amulet.api.wrapper import Translator
 from amulet.api.data_types import VersionIdentifierType, AnyNDArray, BlockNDArray
-from amulet.api.block import BlockManager
+from amulet.api.registry import BlockManager
 
 if TYPE_CHECKING:
     from PyMCTranslate import Version, TranslationManager

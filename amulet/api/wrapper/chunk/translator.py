@@ -7,7 +7,8 @@ import math
 from typing import Tuple, Union, Optional, TYPE_CHECKING
 
 from amulet import log, entity_support
-from amulet.api.block import BlockManager, Block
+from amulet.api.registry import BlockManager
+from amulet.api.block import Block
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
 from amulet.api.chunk import Chunk

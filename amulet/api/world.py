@@ -7,8 +7,9 @@ from typing import Union, Generator, Dict, Optional, Tuple, Callable, Any, TYPE_
 from types import GeneratorType
 
 from amulet import log
-from .block import Block, BlockManager
-from .biome_manager import BiomeManager
+from .block import Block
+from amulet.api.registry import BlockManager
+from amulet.api.registry.biome_manager import BiomeManager
 from .errors import ChunkDoesNotExist, ChunkLoadError, LevelDoesNotExist
 from .history_manager import ChunkHistoryManager
 from .chunk import Chunk

@@ -7,7 +7,7 @@ import numpy
 import PyMCTranslate
 
 from amulet import log
-from amulet.api.block import BlockManager
+from amulet.api.registry import BlockManager
 from amulet.world_interface.chunk import interfaces
 from amulet.api.errors import (
     ChunkLoadError,

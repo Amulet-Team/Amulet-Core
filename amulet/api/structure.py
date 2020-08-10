@@ -6,7 +6,8 @@ import numpy
 from .selection import SelectionGroup, SelectionBox
 from .world import World, BaseStructure
 from .chunk import Chunk
-from .block import Block, BlockManager
+from .block import Block
+from amulet.api.registry import BlockManager
 from .errors import ChunkDoesNotExist
 from amulet.api.data_types import ChunkCoordinates, Dimension, FloatTriplet
 from ..utils.world_utils import block_coords_to_chunk_coords

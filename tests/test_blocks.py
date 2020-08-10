@@ -1,5 +1,6 @@
 import unittest
-from amulet.api.block import Block, BlockManager, blockstate_to_block
+from amulet.api.block import Block, blockstate_to_block
+from amulet.api.registry import BlockManager
 from amulet.api.errors import InvalidBlockException
 
 import amulet_nbt as nbt

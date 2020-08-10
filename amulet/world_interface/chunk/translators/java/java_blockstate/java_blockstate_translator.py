@@ -4,7 +4,8 @@ from typing import Tuple, Union, TYPE_CHECKING
 import amulet_nbt
 
 from amulet.api.wrapper import Translator
-from amulet.api.block import Block, BlockManager, blockstate_to_block
+from amulet.api.block import Block, blockstate_to_block
+from amulet.api.registry import BlockManager
 from amulet.api.data_types import (
     VersionIdentifierType,
     AnyNDArray,

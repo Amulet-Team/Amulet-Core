@@ -8,7 +8,7 @@ from amulet.api.data_types import (
     Dimension,
     DimensionCoordinates,  # dimension, cx, cz
 )
-from amulet.api.block import BlockManager
+from amulet.api.registry import BlockManager
 
 if TYPE_CHECKING:
     from .world import ChunkCache

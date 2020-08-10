@@ -5,7 +5,8 @@ from typing import Tuple, Union, Optional, TYPE_CHECKING
 import amulet_nbt
 
 from amulet import log
-from amulet.api.block import Block, BlockManager
+from amulet.api.block import Block
+from amulet.api.registry import BlockManager
 from amulet.api.entity import Entity
 from amulet.api.wrapper.chunk.translator import Translator
 from amulet.api.data_types import (

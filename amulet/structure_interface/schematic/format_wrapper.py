@@ -8,7 +8,7 @@ from amulet.api.data_types import (
     VersionNumberAny,
     PathOrBuffer,
 )
-from amulet.api.block import BlockManager
+from amulet.api.registry import BlockManager
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
