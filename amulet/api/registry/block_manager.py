@@ -20,7 +20,10 @@ class BlockManager(BaseRegistry):
         self._block_to_index_map: Dict[Block, int] = {}
 
         for block in blocks:
-            self.get_add_block(block)
+            assert isinstance(block, Block), "BlockManager only takes Block objects."
+            if block not in self._block_to_index_map:
+                self._block_to_index_map[block] = len(self._block_to_index_map)
+            self._index_to_block.append(block)
 
     def __len__(self):
         return len(self._index_to_block)

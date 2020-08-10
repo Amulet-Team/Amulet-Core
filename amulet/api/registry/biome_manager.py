@@ -5,9 +5,16 @@ from amulet.api.registry.base_registry import BaseRegistry
 
 
 class BiomeManager(BaseRegistry):
-    def __init__(self):
+    def __init__(self, biomes: Iterable[BiomeType] = ()):
         self._index_to_biome: List[BiomeType] = []
         self._biome_to_index: Dict[BiomeType, int] = {}
+        for biome in biomes:
+            # if a list is given it is assumed that the block palette will be the same size as the list.
+            # Ensure that if a value is duplicated it will appear twice in the list
+            assert isinstance(biome, str), f"biome must be a string. Got {biome}"
+            if biome not in self._biome_to_index:
+                self._biome_to_index[biome] = len(self._index_to_biome)
+            self._index_to_biome.append(biome)
 
     def __len__(self):
         return len(self._index_to_biome)
