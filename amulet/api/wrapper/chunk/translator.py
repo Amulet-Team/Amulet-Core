@@ -316,7 +316,7 @@ class Translator:
     @staticmethod
     def _biomes_to_universal(translator_version: "Version", chunk: Chunk):
         chunk._biome_palette = BiomeManager(
-            [translator_version.biome.to_universal2(biome) for biome in chunk.biome_palette]
+            [translator_version.biome.to_universal(biome) for biome in chunk.biome_palette]
         )
 
     def from_universal(
@@ -422,7 +422,7 @@ class Translator:
     @staticmethod
     def _biomes_from_universal(translator_version: "Version", chunk: Chunk):
         chunk._biome_palette = BiomeManager(
-            [translator_version.biome.from_universal2(biome) for biome in chunk.biome_palette]
+            [translator_version.biome.from_universal(biome) for biome in chunk.biome_palette]
         )
 
     def unpack(
