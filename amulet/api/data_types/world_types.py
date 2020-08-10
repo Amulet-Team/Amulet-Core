@@ -20,3 +20,5 @@ PointCoordinatesAny = Union[PointCoordinates, PointCoordinatesNDArray]
 CoordinatesAny = Union[BlockCoordinatesAny, PointCoordinatesAny]
 
 SubChunkNDArray = numpy.ndarray  # NDArray[(16, 16, 16), numpy.uint]
+
+BiomeType = str
