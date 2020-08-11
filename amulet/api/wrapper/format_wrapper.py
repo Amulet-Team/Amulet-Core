@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from amulet.api.wrapper.chunk.translator import Translator
 
 
-class BaseFormatWraper:
+class BaseFormatWrapper:
     """
     The Format class is a class that sits between the serialised world or structure data and the program using amulet-core.
     The Format class is used to access chunks from the serialised source in the universal format and write them back again.
