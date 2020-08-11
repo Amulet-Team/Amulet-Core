@@ -199,7 +199,9 @@ class Structure(BaseStructure):
                 chunk_box = self._chunk_box(cx, cz, destination_chunk_shape)
                 dst_box = chunk_box.intersection(dst_full_box)
                 src_box = SelectionBox(-offset + dst_box.min, -offset + dst_box.max)
-                src_slices = src_box.chunk_slice(chunk.cx, chunk.cz, self.sub_chunk_size)
+                src_slices = src_box.chunk_slice(
+                    chunk.cx, chunk.cz, self.sub_chunk_size
+                )
                 dst_slices = dst_box.chunk_slice(cx, cz, self.sub_chunk_size)
                 yield chunk, src_slices, src_box, (cx, cz), dst_slices, dst_box
 

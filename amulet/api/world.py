@@ -17,7 +17,12 @@ from .history_manager import ChunkHistoryManager
 from .chunk import Chunk
 from .selection import SelectionGroup, SelectionBox
 from .paths import get_temp_dir
-from .data_types import OperationType, Dimension, DimensionCoordinates, VersionIdentifierType
+from .data_types import (
+    OperationType,
+    Dimension,
+    DimensionCoordinates,
+    VersionIdentifierType,
+)
 from ..utils.world_utils import block_coords_to_chunk_coords
 
 if TYPE_CHECKING:
@@ -333,12 +338,12 @@ class World(BaseStructure):
         return self.get_chunk(cx, cz, dimension).get_block(offset_x, y, offset_z)
 
     def get_version_block(
-            self,
-            x: int,
-            y: int,
-            z: int,
-            dimension: Dimension,
-            version: VersionIdentifierType,
+        self,
+        x: int,
+        y: int,
+        z: int,
+        dimension: Dimension,
+        version: VersionIdentifierType,
     ) -> Tuple[Union[Block, Entity], Optional[BlockEntity]]:
         """
         Get a block at the specified location and convert it to the format of the version specified
@@ -357,21 +362,22 @@ class World(BaseStructure):
         chunk = self.get_chunk(cx, cz, dimension)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
 
-        output, extra_output, _ = self.translation_manager.get_version(*version).block.from_universal(
-            chunk.get_block(offset_x, y, offset_z),
-            chunk.block_entities.get((x, y, z))
+        output, extra_output, _ = self.translation_manager.get_version(
+            *version
+        ).block.from_universal(
+            chunk.get_block(offset_x, y, offset_z), chunk.block_entities.get((x, y, z))
         )
         return output, extra_output
 
     def set_version_block(
-            self,
-            x: int,
-            y: int,
-            z: int,
-            dimension: Dimension,
-            version: VersionIdentifierType,
-            block: Block,
-            block_entity: BlockEntity
+        self,
+        x: int,
+        y: int,
+        z: int,
+        dimension: Dimension,
+        version: VersionIdentifierType,
+        block: Block,
+        block_entity: BlockEntity,
     ):
         """
         Convert the block and block_entity from the given version format to the universal format and set at the location
@@ -393,9 +399,12 @@ class World(BaseStructure):
             chunk = self.create_chunk(cx, cz, dimension)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
 
-        universal_block, universal_block_entity, _ = self.translation_manager.get_version(*version).block.to_universal(
-            block,
-            block_entity
+        (
+            universal_block,
+            universal_block_entity,
+            _,
+        ) = self.translation_manager.get_version(*version).block.to_universal(
+            block, block_entity
         )
         chunk.set_block(offset_x, y, offset_z, block),
         chunk.block_entities[(x, y, z)] = block_entity

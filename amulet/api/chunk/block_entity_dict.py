@@ -86,7 +86,9 @@ class BlockEntityDict(UserDict):
         self._assert_key(coordinate)
         super().__delitem__(coordinate)
 
-    def _check_block_entity(self, coordinate: Coordinate, block_entity: BlockEntity) -> BlockEntity:
+    def _check_block_entity(
+        self, coordinate: Coordinate, block_entity: BlockEntity
+    ) -> BlockEntity:
         self._assert_key(coordinate)
         self._assert_val(block_entity)
         if coordinate != block_entity.location:
