@@ -49,8 +49,5 @@ def _application_directory(
         return path
 
 
-COMMANDS_DIR = _application_directory("commands", ("command_line", "commands"))
-
-
 def get_temp_dir(world_dir):
     return os.path.join(_program_base, "world_temp", str(hash(world_dir)))

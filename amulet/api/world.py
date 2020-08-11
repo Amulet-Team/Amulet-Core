@@ -7,7 +7,9 @@ from typing import Union, Generator, Dict, Optional, Tuple, Callable, Any, TYPE_
 from types import GeneratorType
 
 from amulet import log
-from .block import Block, BlockManager
+from .block import Block
+from amulet.api.registry import BlockManager
+from amulet.api.registry.biome_manager import BiomeManager
 from .errors import ChunkDoesNotExist, ChunkLoadError, LevelDoesNotExist
 from .history_manager import ChunkHistoryManager
 from .chunk import Chunk
@@ -73,10 +75,12 @@ class World(BaseStructure):
         self._world_wrapper = world_wrapper
         self._world_wrapper.open()
 
-        self._palette = BlockManager()
-        self._palette.get_add_block(
+        self._block_palette = BlockManager()
+        self._block_palette.get_add_block(
             Block(namespace="universal_minecraft", base_name="air")
         )  # ensure that index 0 is always air
+
+        self._biome_palette = BiomeManager()
 
         self._chunk_cache: ChunkCache = {}
         shutil.rmtree(self._temp_directory, ignore_errors=True)
@@ -124,7 +128,17 @@ class World(BaseStructure):
     @property
     def palette(self) -> BlockManager:
         """The manager for the universal blocks in this world. New blocks must be registered here before adding to the world."""
-        return self._palette
+        return self._block_palette
+
+    @property
+    def block_palette(self) -> BlockManager:
+        """The manager for the universal blocks in this world. New blocks must be registered here before adding to the world."""
+        return self._block_palette
+
+    @property
+    def biome_palette(self) -> BiomeManager:
+        """The manager for the universal blocks in this world. New blocks must be registered here before adding to the world."""
+        return self._biome_palette
 
     def save(
         self,
@@ -198,7 +212,7 @@ class World(BaseStructure):
             if dimension not in output_dimension_map:
                 continue
             chunk = self._chunk_history_manager.get_current(
-                dimension, cx, cz, self._palette
+                dimension, cx, cz, self._block_palette, self._biome_palette
             )
             if chunk is None:
                 wrapper.delete_chunk(cx, cz, dimension)
@@ -255,12 +269,13 @@ class World(BaseStructure):
             chunk = self._chunk_cache[
                 (dimension, cx, cz)
             ] = self._chunk_history_manager.get_current(
-                dimension, cx, cz, self._palette
+                dimension, cx, cz, self._block_palette, self._biome_palette
             )
         else:
             try:
                 chunk = self._world_wrapper.load_chunk(cx, cz, dimension)
-                chunk.block_palette = self._palette
+                chunk.block_palette = self._block_palette
+                chunk.biome_palette = self._biome_palette
                 self._chunk_cache[(dimension, cx, cz)] = chunk
             except ChunkDoesNotExist:
                 chunk = self._chunk_cache[(dimension, cx, cz)] = None
@@ -276,7 +291,8 @@ class World(BaseStructure):
     def put_chunk(self, chunk: Chunk, dimension: Dimension):
         """Add a chunk to the universal world database"""
         chunk.changed = True
-        chunk.block_palette = self._palette
+        chunk.block_palette = self._block_palette
+        chunk.biome_palette = self._biome_palette
         self._chunk_cache[(dimension, chunk.cx, chunk.cz)] = chunk
 
     def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
@@ -300,7 +316,7 @@ class World(BaseStructure):
 
         chunk = self.get_chunk(cx, cz, dimension)
         block = chunk.blocks[offset_x, y, offset_z]
-        return self._palette[block]
+        return self._block_palette[block]
 
     def get_chunk_boxes(
         self,
@@ -454,13 +470,17 @@ class World(BaseStructure):
         """
         Undoes the last set of changes to the world
         """
-        self._chunk_history_manager.undo(self._chunk_cache, self._palette)
+        self._chunk_history_manager.undo(
+            self._chunk_cache, self._block_palette, self._biome_palette
+        )
 
     def redo(self):
         """
         Redoes the last set of changes to the world
         """
-        self._chunk_history_manager.redo(self._chunk_cache, self._palette)
+        self._chunk_history_manager.redo(
+            self._chunk_cache, self._block_palette, self._biome_palette
+        )
 
     def restore_last_undo_point(self):
         """Restore the world to the state it was when self.create_undo_point was called.

@@ -11,5 +11,3 @@ from .world_utils import (
     gunzip,
     from_nibble_array,
 )
-
-from .misc_utils import Int

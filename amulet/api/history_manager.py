@@ -8,7 +8,7 @@ from amulet.api.data_types import (
     Dimension,
     DimensionCoordinates,  # dimension, cx, cz
 )
-from amulet.api.block import BlockManager
+from amulet.api.registry import BlockManager, BiomeManager
 
 if TYPE_CHECKING:
     from .world import ChunkCache
@@ -185,6 +185,7 @@ class ChunkHistoryManager:
         cx: int,
         cz: int,
         block_palette: BlockManager,
+        biome_palette: BiomeManager,
         change_num_delta: int,
     ) -> Union[Chunk, None]:
         """Load the next save state for a given chunk in a given direction"""
@@ -197,30 +198,51 @@ class ChunkHistoryManager:
 
         chunk = chunk_storage[chunk_index]
         if chunk is not None:
-            chunk = Chunk.unpickle(chunk, block_palette)
+            chunk = Chunk.unpickle(chunk, block_palette, biome_palette)
         return chunk
 
-    def undo(self, chunk_cache: "ChunkCache", chunk_palette: BlockManager):
+    def undo(
+        self,
+        chunk_cache: "ChunkCache",
+        chunk_palette: BlockManager,
+        biome_palette: BiomeManager,
+    ):
         """Decrements the internal change index and un-serialises the last save state for each chunk changed"""
         if self._snapshot_index >= 0:
             snapshot = self._snapshots[self._snapshot_index]
             for chunk_location in snapshot:
                 dimension, cx, cz = chunk_location
-                chunk = self._unserialise_chunk(dimension, cx, cz, chunk_palette, -1)
+                chunk = self._unserialise_chunk(
+                    dimension, cx, cz, chunk_palette, biome_palette, -1
+                )
                 chunk_cache[chunk_location] = chunk
             self._snapshot_index -= 1
 
-    def redo(self, chunk_cache: "ChunkCache", chunk_palette: BlockManager):
+    def redo(
+        self,
+        chunk_cache: "ChunkCache",
+        chunk_palette: BlockManager,
+        biome_palette: BiomeManager,
+    ):
         """Re-increments the internal change index and un-serialises the chunks from the next newest change"""
         if self._snapshot_index <= len(self._snapshots) - 2:
             snapshot = self._snapshots[self._snapshot_index + 1]
             for chunk_location in snapshot:
                 dimension, cx, cz = chunk_location
-                chunk = self._unserialise_chunk(dimension, cx, cz, chunk_palette, 1)
+                chunk = self._unserialise_chunk(
+                    dimension, cx, cz, chunk_palette, biome_palette, 1
+                )
                 chunk_cache[chunk_location] = chunk
             self._snapshot_index += 1
 
     def get_current(
-        self, dimension: Dimension, cx: int, cz: int, chunk_palette: BlockManager
+        self,
+        dimension: Dimension,
+        cx: int,
+        cz: int,
+        chunk_palette: BlockManager,
+        biome_palette: BiomeManager,
     ):
-        return self._unserialise_chunk(dimension, cx, cz, chunk_palette, 0)
+        return self._unserialise_chunk(
+            dimension, cx, cz, chunk_palette, biome_palette, 0
+        )

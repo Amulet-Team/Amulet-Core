@@ -73,7 +73,7 @@ class Anvil1444Interface(BaseAnvilInterface):
         palette = [Block(namespace="minecraft", base_name="air")]
 
         for section in chunk_sections:
-            if "Palette" not in section:  # 1.14 makes palette/blocks optional.
+            if "Palette" not in section:  # 1.14 makes block_palette/blocks optional.
                 continue
             cy = section["Y"].value
             if self.features["long_array_format"] == "compact":

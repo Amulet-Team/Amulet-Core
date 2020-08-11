@@ -3,8 +3,10 @@ from __future__ import annotations
 from typing import Tuple, Union, TYPE_CHECKING
 import amulet_nbt
 
+from amulet.api.chunk import Chunk
 from amulet.api.wrapper import Translator
-from amulet.api.block import Block, BlockManager, blockstate_to_block
+from amulet.api.block import Block, blockstate_to_block
+from amulet.api.registry import BlockManager
 from amulet.api.data_types import (
     VersionIdentifierType,
     AnyNDArray,
@@ -31,19 +33,20 @@ class JavaBlockstateTranslator(Translator):
             return False
         return True
 
-    def _unpack_palette(
-        self,
+    @staticmethod
+    def _unpack_blocks(
         translation_manager: "TranslationManager",
         version_identifier: VersionIdentifierType,
-        palette: AnyNDArray,
-    ) -> BlockManager:
+        chunk: Chunk,
+        block_palette: AnyNDArray,
+    ):
         """
-        Unpack the version-specific palette into the stringified version where needed.
+        Unpack the version-specific block_palette into the stringified version where needed.
 
-        :return: The palette converted to block objects.
+        :return: The block_palette converted to block objects.
         """
         version = translation_manager.get_version(*version_identifier)
-        for index, block in enumerate(palette):
+        for index, block in enumerate(block_palette):
             block: Block
             if version.is_waterloggable(block.namespaced_name):
                 properties = block.properties
@@ -59,22 +62,24 @@ class JavaBlockstateTranslator(Translator):
                     waterlogged = amulet_nbt.TAG_String("false")
 
                 if waterlogged == amulet_nbt.TAG_String("true"):
-                    palette[index] = block + water
+                    block_palette[index] = block + water
                 else:
-                    palette[index] = block
-            elif version.is_waterloggable(block.namespaced_name, True):
-                palette[index] = block + water
+                    block_palette[index] = block
+            elif version.block.is_waterloggable(block.namespaced_name, True):
+                block_palette[index] = block + water
 
-        return BlockManager(palette)
+        chunk._block_palette = BlockManager(block_palette)
 
-    def _pack_palette(self, version: "Version", palette: BlockNDArray) -> AnyNDArray:
+    def _pack_block_palette(
+        self, version: "Version", palette: BlockNDArray
+    ) -> AnyNDArray:
         """
-        Translate the list of block objects into a version-specific palette.
-        :return: The palette converted into version-specific blocks (ie id, data tuples for 1.12)
+        Translate the list of block objects into a version-specific block_palette.
+        :return: The block_palette converted into version-specific blocks (ie id, data tuples for 1.12)
         """
         for index, block in enumerate(palette):
             block: Block
-            if version.is_waterloggable(block.namespaced_name):
+            if version.block.is_waterloggable(block.namespaced_name):
                 properties = block.properties
                 extra_blocks = block.extra_blocks
                 if (

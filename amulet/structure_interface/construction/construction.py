@@ -4,7 +4,8 @@ import os
 import struct
 from typing import Type, Union, Tuple, IO, List, Optional
 
-from amulet import Block, BlockManager
+from amulet import Block
+from amulet.api.registry import BlockManager
 from amulet.api.entity import Entity
 from amulet.api.block_entity import BlockEntity
 

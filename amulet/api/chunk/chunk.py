@@ -6,7 +6,8 @@ import numpy
 import pickle
 import gzip
 
-from amulet.api.block import BlockManager
+from amulet.api.registry import BlockManager
+from amulet.api.registry.biome_manager import BiomeManager
 from amulet.api.chunk import Biomes, Blocks, Status, BlockEntityDict, EntityList
 from amulet.api.entity import Entity
 from amulet.api.data_types import ChunkCoordinates
@@ -27,6 +28,7 @@ class Chunk:
 
         self._blocks = None
         self.__block_palette = BlockManager()
+        self.__biome_palette = BiomeManager()
         self._biomes = None
         self._entities = EntityList(self)
         self._block_entities = BlockEntityDict(self)
@@ -52,7 +54,9 @@ class Chunk:
             pickle.dump(chunk_data, fp)
 
     @classmethod
-    def unpickle(cls, file_path: str, block_palette: BlockManager) -> Chunk:
+    def unpickle(
+        cls, file_path: str, block_palette: BlockManager, biome_palette: BiomeManager
+    ) -> Chunk:
         with gzip.open(file_path, "rb") as fp:
             chunk_data = pickle.load(fp)
         self = cls(*chunk_data[:2])
@@ -66,6 +70,7 @@ class Chunk:
         ) = chunk_data[3:]
         self._changed_time = chunk_data[2]
         self._block_palette = block_palette
+        self._biome_palette = biome_palette
         self.changed = False
         return self
 
@@ -116,14 +121,14 @@ class Chunk:
 
     @property
     def _block_palette(self) -> BlockManager:
-        """The block palette for the chunk.
-        Usually will refer to a global block palette."""
+        """The block block_palette for the chunk.
+        Usually will refer to a global block block_palette."""
         return self.__block_palette
 
     @_block_palette.setter
     def _block_palette(self, new_block_palette: BlockManager):
-        """Change the block palette for the chunk.
-        This will change the block palette but leave the block array unchanged.
+        """Change the block block_palette for the chunk.
+        This will change the block block_palette but leave the block array unchanged.
         Only use this if you know what you are doing.
         Designed for internal use. You probably want to use Chunk.block_palette"""
         assert isinstance(new_block_palette, BlockManager)
@@ -131,19 +136,19 @@ class Chunk:
 
     @property
     def block_palette(self) -> BlockManager:
-        """The block palette for the chunk.
-        Usually will refer to a global block palette."""
+        """The block block_palette for the chunk.
+        Usually will refer to a global block block_palette."""
         return self._block_palette
 
     @block_palette.setter
     def block_palette(self, new_block_palette: BlockManager):
-        """Change the block palette for the chunk.
-        This will copy over all block states from the old palette and remap the block indexes to use the new palette."""
+        """Change the block block_palette for the chunk.
+        This will copy over all block states from the old block_palette and remap the block indexes to use the new block_palette."""
         assert isinstance(new_block_palette, BlockManager)
         if new_block_palette is not self._block_palette:
-            # if current block palette and the new block palette are not the same object
+            # if current block block_palette and the new block block_palette are not the same object
             if self._block_palette:
-                # if there are blocks in the current block palette remap the data
+                # if there are blocks in the current block block_palette remap the data
                 block_lut = numpy.array(
                     [
                         new_block_palette.get_add_block(block)
@@ -177,6 +182,47 @@ class Chunk:
             ), "dtype must be an unsigned integer"
             self.changed = True
             self._biomes = Biomes(self, value)
+
+    @property
+    def _biome_palette(self) -> BiomeManager:
+        """The biome block_palette for the chunk.
+        Usually will refer to a global biome block_palette."""
+        return self.__biome_palette
+
+    @_biome_palette.setter
+    def _biome_palette(self, new_biome_palette: BiomeManager):
+        """Change the biome block_palette for the chunk.
+        This will change the biome block_palette but leave the biome array unchanged.
+        Only use this if you know what you are doing.
+        Designed for internal use. You probably want to use Chunk.biome_palette"""
+        assert isinstance(new_biome_palette, BiomeManager)
+        self.__biome_palette = new_biome_palette
+
+    @property
+    def biome_palette(self) -> BiomeManager:
+        """The biome block_palette for the chunk.
+        Usually will refer to a global biome block_palette."""
+        return self._biome_palette
+
+    @biome_palette.setter
+    def biome_palette(self, new_biome_palette: BiomeManager):
+        """Change the biome block_palette for the chunk.
+        This will copy over all biome states from the old block_palette and remap the biome indexes to use the new block_palette."""
+        assert isinstance(new_biome_palette, BiomeManager)
+        if new_biome_palette is not self._biome_palette:
+            # if current biome block_palette and the new biome block_palette are not the same object
+            if self._biome_palette:
+                # if there are biomes in the current biome block_palette remap the data
+                biome_lut = numpy.array(
+                    [
+                        new_biome_palette.get_add_biome(biome)
+                        for biome in self._biome_palette.biomes()
+                    ],
+                    dtype=numpy.uint,
+                )
+                self.biomes = biome_lut[self.biomes]
+
+            self.__biome_palette = new_biome_palette
 
     @property
     def entities(self) -> EntityList:

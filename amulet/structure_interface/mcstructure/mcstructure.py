@@ -94,11 +94,11 @@ class MCStructureReader:
                 (len(mcstructure["structure"]["block_indices"]), *self._selection.shape)
             )
 
-            palette_key = list(mcstructure["structure"]["palette"].keys())[
+            palette_key = list(mcstructure["structure"]["block_palette"].keys())[
                 0
             ]  # find a way to do this based on user input
             block_palette = list(
-                mcstructure["structure"]["palette"][palette_key]["block_palette"]
+                mcstructure["structure"]["block_palette"][palette_key]["block_palette"]
             )
 
             for cx, cz in self._selection.chunk_locations():
@@ -132,7 +132,7 @@ class MCStructureReader:
 
             block_entities = {
                 int(key): val["block_entity_data"]
-                for key, val in mcstructure["structure"]["palette"][palette_key][
+                for key, val in mcstructure["structure"]["block_palette"][palette_key][
                     "block_position_data"
                 ].items()
                 if "block_entity_data" in val
@@ -257,7 +257,7 @@ class MCStructureWriter:
         self._data["structure"] = amulet_nbt.TAG_Compound(
             {
                 "block_indices": amulet_nbt.TAG_List(
-                    [  # a list of tag ints that index into the palette. One list per block layer
+                    [  # a list of tag ints that index into the block_palette. One list per block layer
                         amulet_nbt.TAG_List(
                             [amulet_nbt.TAG_Int(block) for block in layer]
                         )
@@ -265,7 +265,7 @@ class MCStructureWriter:
                     ]
                 ),
                 "entities": amulet_nbt.TAG_List(self._entities),
-                "palette": amulet_nbt.TAG_Compound(
+                "block_palette": amulet_nbt.TAG_Compound(
                     {
                         "default": amulet_nbt.TAG_Compound(
                             {

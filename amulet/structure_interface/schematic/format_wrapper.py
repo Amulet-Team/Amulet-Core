@@ -8,7 +8,7 @@ from amulet.api.data_types import (
     VersionNumberAny,
     PathOrBuffer,
 )
-from amulet.api.block import BlockManager
+from amulet.api.registry import BlockManager
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
@@ -176,7 +176,10 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         return (
             chunk,
             numpy.array(
-                [version.block_to_ints(block) for block in chunk.block_palette.blocks()]
+                [
+                    version.block.block_to_ints(block)
+                    for block in chunk.block_palette.blocks()
+                ]
             ),
         )
 
@@ -205,7 +208,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         palette = chunk._block_palette = BlockManager()
         lut = numpy.array(
             [
-                palette.get_add_block(version.ints_to_block(block, data))
+                palette.get_add_block(version.block.ints_to_block(block, data))
                 for block, data in chunk_palette
             ]
         )
