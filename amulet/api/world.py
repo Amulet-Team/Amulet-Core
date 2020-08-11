@@ -8,6 +8,8 @@ from types import GeneratorType
 
 from amulet import log
 from .block import Block
+from .block_entity import BlockEntity
+from .entity import Entity
 from amulet.api.registry import BlockManager
 from amulet.api.registry.biome_manager import BiomeManager
 from .errors import ChunkDoesNotExist, ChunkLoadError, LevelDoesNotExist
@@ -15,7 +17,7 @@ from .history_manager import ChunkHistoryManager
 from .chunk import Chunk
 from .selection import SelectionGroup, SelectionBox
 from .paths import get_temp_dir
-from .data_types import OperationType, Dimension, DimensionCoordinates
+from .data_types import OperationType, Dimension, DimensionCoordinates, VersionIdentifierType
 from ..utils.world_utils import block_coords_to_chunk_coords
 
 if TYPE_CHECKING:
@@ -297,6 +299,11 @@ class World(BaseStructure):
 
         return chunk
 
+    def create_chunk(self, cx: int, cz: int, dimension: Dimension) -> Chunk:
+        chunk = Chunk(cx, cz)
+        self.put_chunk(chunk, dimension)
+        return chunk
+
     def put_chunk(self, chunk: Chunk, dimension: Dimension):
         """Add a chunk to the universal world database"""
         chunk.changed = True
@@ -311,21 +318,87 @@ class World(BaseStructure):
 
     def get_block(self, x: int, y: int, z: int, dimension: Dimension) -> Block:
         """
-        Gets the blockstate at the specified coordinates
+        Gets the universal Block object at the specified coordinates
 
         :param x: The X coordinate of the desired block
         :param y: The Y coordinate of the desired block
         :param z: The Z coordinate of the desired block
         :param dimension: The dimension of the desired block
-        :return: The blockstate name as a string
+        :return: The universal Block object representation of the block at that location
+        :raise: Raises ChunkDoesNotExist or ChunkLoadError if the chunk was not loaded.
         """
-        # TODO: move this logic into the chunk class and have this method call that
         cx, cz = block_coords_to_chunk_coords(x, z, chunk_size=self.chunk_size[0])
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
 
+        return self.get_chunk(cx, cz, dimension).get_block(offset_x, y, offset_z)
+
+    def get_version_block(
+            self,
+            x: int,
+            y: int,
+            z: int,
+            dimension: Dimension,
+            version: VersionIdentifierType,
+    ) -> Tuple[Union[Block, Entity], Optional[BlockEntity]]:
+        """
+        Get a block at the specified location and convert it to the format of the version specified
+        Note the odd return format. In most cases this will return (Block, None) or (Block, BlockEntity)
+        but in select cases like item frames may return (Entity, None)
+
+        :param x: The X coordinate of the desired block
+        :param y: The Y coordinate of the desired block
+        :param z: The Z coordinate of the desired block
+        :param dimension: The dimension of the desired block
+        :param version: The version to get the block converted to.
+        :return: The block at the given location converted to the `version` format. Note the odd return format.
+        :raise: Raises ChunkDoesNotExist or ChunkLoadError if the chunk was not loaded.
+        """
+        cx, cz = block_coords_to_chunk_coords(x, z, chunk_size=self.sub_chunk_size)
         chunk = self.get_chunk(cx, cz, dimension)
-        block = chunk.blocks[offset_x, y, offset_z]
-        return self._block_palette[block]
+        offset_x, offset_z = x - 16 * cx, z - 16 * cz
+
+        output, extra_output, _ = self.translation_manager.get_version(*version).block.from_universal(
+            chunk.get_block(offset_x, y, offset_z),
+            chunk.block_entities.get((x, y, z))
+        )
+        return output, extra_output
+
+    def set_version_block(
+            self,
+            x: int,
+            y: int,
+            z: int,
+            dimension: Dimension,
+            version: VersionIdentifierType,
+            block: Block,
+            block_entity: BlockEntity
+    ):
+        """
+        Convert the block and block_entity from the given version format to the universal format and set at the location
+
+        :param x: The X coordinate of the desired block
+        :param y: The Y coordinate of the desired block
+        :param z: The Z coordinate of the desired block
+        :param dimension: The dimension of the desired block
+        :param version: The version to get the block converted to.
+        :param block:
+        :param block_entity:
+        :return: The block at the given location converted to the `version` format. Note the odd return format.
+        :raise: Raises ChunkLoadError if the chunk was not loaded correctly.
+        """
+        cx, cz = block_coords_to_chunk_coords(x, z, chunk_size=self.sub_chunk_size)
+        try:
+            chunk = self.get_chunk(cx, cz, dimension)
+        except ChunkDoesNotExist:
+            chunk = self.create_chunk(cx, cz, dimension)
+        offset_x, offset_z = x - 16 * cx, z - 16 * cz
+
+        universal_block, universal_block_entity, _ = self.translation_manager.get_version(*version).block.to_universal(
+            block,
+            block_entity
+        )
+        chunk.set_block(offset_x, y, offset_z, block),
+        chunk.block_entities[(x, y, z)] = block_entity
 
     def get_chunk_boxes(
         self,
