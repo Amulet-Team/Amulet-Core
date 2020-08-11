@@ -32,7 +32,7 @@ class Chunk:
         self.__biome_palette = BiomeManager()
         self._biomes = None
         self._entities = EntityList(self)
-        self._block_entities = BlockEntityDict(self)
+        self._block_entities = BlockEntityDict()
         self._status = Status(self)
         self.misc = {}  # all entries that are not important enough to get an attribute
 
@@ -282,7 +282,7 @@ class Chunk:
         """
         if self._block_entities != value:
             self.changed = True
-            self._block_entities = BlockEntityDict(self, value)
+            self._block_entities = BlockEntityDict(value)
 
     @property
     def status(self) -> Status:
