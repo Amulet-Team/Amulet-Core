@@ -95,19 +95,21 @@ class BlockEntityDict(UserDict):
         self._dirty()
         super().__delitem__(coordinate)
 
-    def __setitem__(self, coordinate: Coordinate, block_entity: BlockEntity) -> None:
-        """ Set self[key] to value. """
+    def _check_block_entity(self, coordinate: Coordinate, block_entity: BlockEntity) -> BlockEntity:
         self._assert_key(coordinate)
         self._assert_val(block_entity)
-        self._dirty()
-        self.data[coordinate] = block_entity
+        if coordinate != block_entity.location:
+            block_entity = block_entity.new_at_location(*coordinate)
+        return block_entity
+
+    def __setitem__(self, coordinate: Coordinate, block_entity: BlockEntity) -> None:
+        """ Set self[key] to value. """
+        self.data[coordinate] = self._check_block_entity(coordinate, block_entity)
 
     def setdefault(
         self, coordinate: Coordinate, block_entity: BlockEntity
     ) -> BlockEntity:
-        self._assert_key(coordinate)
-        self._assert_val(block_entity)
-        self._dirty()
+        block_entity = self._check_block_entity(coordinate, block_entity)
         return self.data.setdefault(coordinate, block_entity)
 
     def popitem(self):
