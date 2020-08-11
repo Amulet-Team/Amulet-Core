@@ -6,6 +6,7 @@ import numpy
 import pickle
 import gzip
 
+from amulet.api.block import Block
 from amulet.api.registry import BlockManager
 from amulet.api.registry.biome_manager import BiomeManager
 from amulet.api.chunk import Biomes, Blocks, Status, BlockEntityDict, EntityList
@@ -118,6 +119,27 @@ class Chunk:
     @blocks.setter
     def blocks(self, value: Optional[Union[Dict[int, numpy.ndarray], Blocks]]):
         self._blocks = Blocks(value)
+
+    def get_block(self, dx: int, y: int, dz: int) -> Block:
+        """
+        Get the universal Block object at the given location within the chunk.
+        :param dx: The x coordinate within the chunk. 0 is the bottom edge, 15 is the top edge
+        :param y: The y coordinate within the chunk. This can be any integer.
+        :param dz: The z coordinate within the chunk. 0 is the bottom edge, 15 is the top edge
+        :return: The universal Block object representation of the block at that location
+        """
+        return self.block_palette[self.blocks[dx, y, dz]]
+
+    def set_block(self, dx: int, y: int, dz: int, block: Block):
+        """
+        Get the universal Block object at the given location within the chunk.
+        :param dx: The x coordinate within the chunk. 0 is the bottom edge, 15 is the top edge
+        :param y: The y coordinate within the chunk. This can be any integer.
+        :param dz: The z coordinate within the chunk. 0 is the bottom edge, 15 is the top edge
+        :param block: The universal Block object to set at the given location
+        :return:
+        """
+        self.blocks[dx, y, dz] = self.block_palette.get_add_block(block)
 
     @property
     def _block_palette(self) -> BlockManager:
