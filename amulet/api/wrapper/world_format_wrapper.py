@@ -25,8 +25,12 @@ class WorldFormatWrapper(BaseFormatWraper):
         self._changed: bool = False
 
     @property
+    def sub_chunk_size(self) -> int:
+        return 16
+
+    @property
     def chunk_size(self) -> Tuple[int, Union[int, None], int]:
-        return 16, 256, 16
+        return self.sub_chunk_size, self.sub_chunk_size * 16, self.sub_chunk_size
 
     @property
     def path(self) -> str:

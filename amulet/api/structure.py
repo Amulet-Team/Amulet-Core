@@ -89,7 +89,7 @@ class Structure(BaseStructure):
             raise ChunkDoesNotExist
 
     def get_block(self, x: int, y: int, z: int) -> Block:
-        cx, cz = block_coords_to_chunk_coords(x, z, chunk_size=self.chunk_size[0])
+        cx, cz = block_coords_to_chunk_coords(x, z, chunk_size=self.sub_chunk_size)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
 
         chunk = self.get_chunk(cx, cz)
@@ -113,10 +113,10 @@ class Structure(BaseStructure):
         selection: SelectionGroup
         for box in selection.selection_boxes:
             first_chunk = block_coords_to_chunk_coords(
-                box.min_x, box.min_z, chunk_size=self.chunk_size[0]
+                box.min_x, box.min_z, chunk_size=self.sub_chunk_size
             )
             last_chunk = block_coords_to_chunk_coords(
-                box.max_x - 1, box.max_z - 1, chunk_size=self.chunk_size[0]
+                box.max_x - 1, box.max_z - 1, chunk_size=self.sub_chunk_size
             )
             for cx, cz in itertools.product(
                 range(first_chunk[0], last_chunk[0] + 1),
@@ -140,7 +140,7 @@ class Structure(BaseStructure):
             chunk.blocks[slice] = ...
         """
         for chunk, box in self.get_chunk_boxes(selection):
-            slices = box.chunk_slice(chunk.cx, chunk.cz, self.chunk_size[0])
+            slices = box.chunk_slice(chunk.cx, chunk.cz, self.sub_chunk_size)
             yield chunk, slices, box
 
     def get_moved_chunk_slices(
@@ -199,8 +199,8 @@ class Structure(BaseStructure):
                 chunk_box = self._chunk_box(cx, cz, destination_chunk_shape)
                 dst_box = chunk_box.intersection(dst_full_box)
                 src_box = SelectionBox(-offset + dst_box.min, -offset + dst_box.max)
-                src_slices = src_box.chunk_slice(chunk.cx, chunk.cz, self.chunk_size[0])
-                dst_slices = dst_box.chunk_slice(cx, cz, self.chunk_size[0])
+                src_slices = src_box.chunk_slice(chunk.cx, chunk.cz, self.sub_chunk_size)
+                dst_slices = dst_box.chunk_slice(cx, cz, self.sub_chunk_size)
                 yield chunk, src_slices, src_box, (cx, cz), dst_slices, dst_box
 
     def transform(self, scale: FloatTriplet, rotation: FloatTriplet) -> "Structure":

@@ -27,8 +27,12 @@ ChunkCache = Dict[DimensionCoordinates, Optional[Chunk]]
 
 class BaseStructure:
     @property
+    def sub_chunk_size(self) -> int:
+        return 16
+
+    @property
     def chunk_size(self) -> Tuple[int, int, int]:
-        return 16, 256, 16
+        return self.sub_chunk_size, self.sub_chunk_size * 16, self.sub_chunk_size
 
     def get_chunk(self, *args, **kwargs) -> Chunk:
         raise NotImplementedError
@@ -111,7 +115,12 @@ class World(BaseStructure):
         self._chunk_history_manager.create_undo_point(self._chunk_cache)
 
     @property
-    def chunk_size(self) -> Tuple[int, int, int]:
+    def sub_chunk_size(self) -> int:
+        """The normal dimensions of the chunk"""
+        return self._world_wrapper.sub_chunk_size
+
+    @property
+    def chunk_size(self) -> Tuple[int, Union[int, None], int]:
         """The normal dimensions of the chunk"""
         return self._world_wrapper.chunk_size
 
@@ -334,7 +343,7 @@ class World(BaseStructure):
         if isinstance(selection, SelectionBox):
             selection = SelectionGroup([selection])
         selection: SelectionGroup
-        for (cx, cz), box in selection.sub_sections(self.chunk_size[0]):
+        for (cx, cz), box in selection.sub_sections(self.sub_chunk_size):
             try:
                 chunk = self.get_chunk(cx, cz, dimension)
             except ChunkDoesNotExist:
@@ -366,7 +375,7 @@ class World(BaseStructure):
         for chunk, box in self.get_chunk_boxes(
             selection, dimension, create_missing_chunks
         ):
-            slices = box.chunk_slice(chunk.cx, chunk.cz, self.chunk_size[0])
+            slices = box.chunk_slice(chunk.cx, chunk.cz, self.sub_chunk_size)
             yield chunk, slices, box
 
     # def get_entities_in_box(
