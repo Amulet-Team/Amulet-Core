@@ -4,7 +4,7 @@ import os
 
 from amulet import log, IMG_DIRECTORY
 from amulet.api.data_types import ChunkCoordinates
-from .format_wrapper import BaseFormatWraper
+from .format_wrapper import BaseFormatWrapper
 
 if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
@@ -15,7 +15,7 @@ missing_world_icon = os.path.abspath(
 )
 
 
-class WorldFormatWrapper(BaseFormatWraper):
+class WorldFormatWrapper(BaseFormatWrapper):
     _missing_world_icon = missing_world_icon
 
     def __init__(self, world_path: str):
