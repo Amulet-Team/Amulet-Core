@@ -202,7 +202,6 @@ class Chunk:
             numpy.issubdtype(
                 value.dtype, numpy.integer
             ), "dtype must be an unsigned integer"
-            self.changed = True
             self._biomes = Biomes(self, value)
 
     @property
@@ -262,7 +261,6 @@ class Chunk:
         :return:
         """
         if self._entities != value:
-            self.changed = True
             self._entities = EntityList(value)
 
     @property
@@ -281,7 +279,6 @@ class Chunk:
         :return:
         """
         if self._block_entities != value:
-            self.changed = True
             self._block_entities = BlockEntityDict(value)
 
     @property
