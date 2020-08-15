@@ -81,6 +81,7 @@ class World(BaseStructure):
         )  # ensure that index 0 is always air
 
         self._biome_palette = BiomeManager()
+        self._biome_palette.get_add_biome("universal_minecraft:plains")
 
         self._chunk_cache: ChunkCache = {}
         shutil.rmtree(self._temp_directory, ignore_errors=True)
