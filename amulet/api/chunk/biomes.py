@@ -15,7 +15,7 @@ class Biomes(ChunkArray):
         if obj.size == 256:
             obj.resize(16, 16)
         elif obj.size == 1024:
-            obj.resize(8, 8, 16)  # TODO: honestly don't know what the format of this is
+            obj.resize(4, 4, 64)  # TODO: honestly don't know what the format of this is
         return obj
 
     def convert_to_format(self, length):
