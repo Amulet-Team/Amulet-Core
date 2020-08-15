@@ -1,6 +1,7 @@
 from typing import Dict, Optional, Tuple, Union, List, Generator
 import os
 import time
+import shutil
 
 from amulet.api.data_types import DimensionCoordinates, Dimension
 from amulet.api.chunk import Chunk
@@ -33,7 +34,8 @@ class ChunkManager:
         self._biome_palette: BiomeManager = biome_palette
         self._chunk_cache: ChunkCache = {}  # The storage of Chunks in RAM
 
-        self.temp_dir: str = temp_dir  # the location to serialise Chunks to
+        self._temp_dir: str = temp_dir  # the location to serialise Chunks to
+        shutil.rmtree(self._temp_dir, ignore_errors=True)
         self._chunk_index: Dict[
             DimensionCoordinates, ChunkIndex
         ] = {}  # the indexes into self._chunk_history
@@ -281,9 +283,9 @@ class ChunkManager:
         if chunk is None:
             return None
 
-        os.makedirs(self.temp_dir, exist_ok=True)
+        os.makedirs(self._temp_dir, exist_ok=True)
         path = os.path.join(
-            self.temp_dir,
+            self._temp_dir,
             f"chunk.{dimension}.{chunk.cx}.{chunk.cz}.{change_no}.pickle.gz",
         )
 
