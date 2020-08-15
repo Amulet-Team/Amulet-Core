@@ -7,66 +7,30 @@ from typing import Union, Generator, Dict, Optional, Tuple, Callable, Any, TYPE_
 from types import GeneratorType
 
 from amulet import log
-from .block import Block
-from .block_entity import BlockEntity
-from .entity import Entity
+from amulet.api.base_structure import BaseStructure
+from amulet.api.block import Block
+from amulet.api.block_entity import BlockEntity
+from amulet.api.entity import Entity
 from amulet.api.registry import BlockManager
 from amulet.api.registry.biome_manager import BiomeManager
-from .errors import ChunkDoesNotExist, ChunkLoadError, LevelDoesNotExist
-from .history_manager import ChunkHistoryManager
-from .chunk import Chunk
-from .selection import SelectionGroup, SelectionBox
-from .paths import get_temp_dir
-from .data_types import (
+from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError, LevelDoesNotExist
+from amulet.api.history_manager import ChunkHistoryManager
+from amulet.api.chunk import Chunk
+from amulet.api.selection import SelectionGroup, SelectionBox
+from amulet.api.paths import get_temp_dir
+from amulet.api.data_types import (
     OperationType,
     Dimension,
     DimensionCoordinates,
     VersionIdentifierType,
 )
-from ..utils.world_utils import block_coords_to_chunk_coords
+from amulet.utils.world_utils import block_coords_to_chunk_coords
 
 if TYPE_CHECKING:
     from PyMCTranslate import TranslationManager
     from amulet.api.wrapper.world_format_wrapper import WorldFormatWrapper
 
 ChunkCache = Dict[DimensionCoordinates, Optional[Chunk]]
-
-
-class BaseStructure:
-    @property
-    def sub_chunk_size(self) -> int:
-        return 16
-
-    @property
-    def chunk_size(self) -> Tuple[int, int, int]:
-        return self.sub_chunk_size, self.sub_chunk_size * 16, self.sub_chunk_size
-
-    def get_chunk(self, *args, **kwargs) -> Chunk:
-        raise NotImplementedError
-
-    def get_block(self, *args, **kwargs) -> Block:
-        raise NotImplementedError
-
-    def _chunk_box(
-        self,
-        cx: int,
-        cz: int,
-        chunk_size: Optional[Tuple[int, Union[int, None], int]] = None,
-    ):
-        """Get a SelectionBox containing the whole of a given chunk"""
-        if chunk_size is None:
-            chunk_size = self.chunk_size
-        return SelectionBox.create_chunk_box(cx, cz, chunk_size[0])
-
-    def get_chunk_boxes(
-        self, *args, **kwargs
-    ) -> Generator[Tuple[Chunk, SelectionBox], None, None]:
-        raise NotImplementedError
-
-    def get_chunk_slices(
-        self, *args, **kwargs
-    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None]:
-        raise NotImplementedError
 
 
 class World(BaseStructure):
@@ -559,17 +523,13 @@ class World(BaseStructure):
         return out
 
     def undo(self):
-        """
-        Undoes the last set of changes to the world
-        """
+        """Undoes the last set of changes to the world"""
         self._chunk_history_manager.undo(
             self._chunk_cache, self._block_palette, self._biome_palette
         )
 
     def redo(self):
-        """
-        Redoes the last set of changes to the world
-        """
+        """Redoes the last set of changes to the world"""
         self._chunk_history_manager.redo(
             self._chunk_cache, self._block_palette, self._biome_palette
         )
