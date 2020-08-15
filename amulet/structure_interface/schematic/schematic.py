@@ -39,7 +39,9 @@ class SchematicReader:
                 path_or_buffer
             ), f"There is no schematic file at path {path_or_buffer}"
             schematic = amulet_nbt.load(path_or_buffer)
-            assert not all(key in schematic for key in ("Version", "Data Version", "BlockData")), "This file is not a legacy schematic file."
+            assert not all(
+                key in schematic for key in ("Version", "Data Version", "BlockData")
+            ), "This file is not a legacy schematic file."
         else:
             assert hasattr(path_or_buffer, "read"), "Object does not have a read method"
             schematic = amulet_nbt.load(buffer=path_or_buffer)
@@ -74,12 +76,15 @@ class SchematicReader:
         )
         if "AddBlocks" in schematic:
             add_blocks = schematic["AddBlocks"]
-            blocks = blocks + (
-                numpy.concatenate([[(add_blocks & 0xF0) >> 4], [add_blocks & 0xF]])
-                .T.ravel()
-                .astype(numpy.uint16)
-                << 8
-            )[:blocks.size]
+            blocks = (
+                blocks
+                + (
+                    numpy.concatenate([[(add_blocks & 0xF0) >> 4], [add_blocks & 0xF]])
+                    .T.ravel()
+                    .astype(numpy.uint16)
+                    << 8
+                )[: blocks.size]
+            )
         max_point = self._selection.max
         temp_shape = (max_point[1], max_point[2], max_point[0])
         blocks = numpy.transpose(blocks.reshape(temp_shape), (2, 0, 1))  # YZX => XYZ
