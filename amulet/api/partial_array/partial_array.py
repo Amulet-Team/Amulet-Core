@@ -6,60 +6,101 @@ flat_16 = numpy.zeros((16, 16), dtype=bool)
 
 
 class PartialNDArray:
-    """This is designed to be similar to a numpy.ndarray but work in a very different way.
-    In order to support mods the chunk size cannot be fixed and even in vanilla sub-chunks are allowed to not exist.
-    Mods allow the height of the chunk to be unlimited which is fundamentally impossible to store as a continuous array.
+    """This is designed to work similarly to a numpy.ndarray but stores the data in a very different way.
+    A numpy.ndarray stores a fixed size continuous array which for large arrays can become unmanageable.
+    Sparse arrays allow individual values to exist which can be great where a small set of values are
+    defined in a large area but can be less efficient in some cases than a continuous array.
 
-    This class stores continuous numpy.ndarray objects for those sub-chunks that are defined.
-    It also implements an API that resembles that of the numpy.ndarray but it is not directly compatible with numpy.
-    To use numpy the sub-chunk data will need to be directly used.
+    This class was born out of the need for an array that has a fixed size in the horizontal distances but an
+    unlimited height in the vertical distance (both above and below the origin)
+    This is achieved by splitting the array into sections of fixed height and storing them sparsely so that only
+    the defined sections need to be held in memory.
+
+    This class also implements an API that resembles that of the numpy.ndarray but it is not directly compatible with numpy.
+    Chained indexing does not currently work as __getitem__ returns a copy of the array data rather than a view into it.
+    To use numpy fully the section data will need to be directly used.
     """
+    _size_x = 0
+    _section_size_y = 0
+    _size_z = 0
 
     def __init__(
         self,
         input_array: Optional[Union[Dict[int, numpy.ndarray], "PartialNDArray"]] = None,
     ):
-        if isinstance(input_array, PartialNDArray):
+        if self._check_type(input_array):
             input_array = {
-                cy: input_array.get_sub_chunk(cy).copy()
-                for cy in input_array.sub_chunks
+                cy: input_array.get_section(cy).copy()
+                for cy in input_array.sections
             }
         elif not isinstance(input_array, dict):
             input_array = {}
-        self._sub_chunks: Dict[int, numpy.ndarray] = input_array
+        self._sections: Dict[int, numpy.ndarray] = input_array
 
-    @staticmethod
-    def _chunk_y(block_y: int) -> int:
-        return block_y >> 4
+    def _check_type(self, other) -> bool:
+        return isinstance(other, PartialNDArray)
+
+    @property
+    def size_x(self) -> int:
+        """The size of the array in the first dimension"""
+        return self._size_x
+
+    @property
+    def section_size_y(self) -> int:
+        """The size of a single section in the array in the second dimension"""
+        return self._section_size_y
+
+    @property
+    def size_z(self) -> int:
+        """The size of the array in the third dimension"""
+        return self._size_z
+
+    def _section_y(self, y: int) -> int:
+        """The section index a given y index corresponds to."""
+        return int(y // self.section_size_y)
 
     def __contains__(self, item: int):
-        return item in self._sub_chunks
+        return item in self._sections
 
     def __iter__(self):
         raise NotImplementedError(
-            "Please use sub_chunks method if this is what you are trying to achieve"
+            "Please use sections method if this is what you are trying to achieve"
         )
 
     @property
-    def sub_chunks(self) -> Iterable[int]:
-        return self._sub_chunks.keys()
+    def sections(self) -> Iterable[int]:
+        """An iterable of the section indexes that exist"""
+        return self._sections.keys()
 
-    def get_create_sub_chunk(self, cy: int) -> numpy.ndarray:
-        if cy not in self._sub_chunks:
-            self._sub_chunks[cy] = numpy.zeros((16, 16, 16), dtype=numpy.uint64)
-        return self._sub_chunks[cy]
+    def get_create_section(self, cy: int) -> numpy.ndarray:
+        """Get the section ndarray for a given section index. Create if it does not exist.
+        :param cy: The section y index
+        :return: Numpy array for this section
+        """
+        if cy not in self._sections:
+            self._sections[cy] = numpy.zeros((16, 16, 16), dtype=numpy.uint64)
+        return self._sections[cy]
 
-    def get_sub_chunk(self, cy: int) -> numpy.ndarray:
-        return self._sub_chunks[cy]
+    def get_section(self, cy: int) -> numpy.ndarray:
+        """Get the section ndarray for a given section index.
+        :param cy: The section y index
+        :return: Numpy array for this section
+        :raises: KeyError if no section exists with this index
+        """
+        return self._sections[cy]
 
-    def add_sub_chunk(self, cy: int, sub_chunk: numpy.ndarray):
-        """Add a sub-chunk. Overwrite if already exists"""
-        assert isinstance(sub_chunk, numpy.ndarray) and sub_chunk.shape == (
-            16,
-            16,
-            16,
-        ), "sub_chunk must be a numpy.ndarray of shape (16, 16, 16)"
-        self._sub_chunks[cy] = sub_chunk
+    def add_section(self, cy: int, section: numpy.ndarray):
+        """Add a section. Overwrite if already exists
+        :param cy: The section y index
+        :param section: The Numpy array to add at this location
+        :return:
+        """
+        assert isinstance(section, numpy.ndarray) and section.shape == (
+            self.size_x,
+            self.section_size_y,
+            self.size_z,
+        ), "section must be a numpy.ndarray of shape (16, 16, 16)"
+        self._sections[cy] = section
 
     @staticmethod
     def _fix_slices(
@@ -130,12 +171,12 @@ class PartialNDArray:
     ):
         if isinstance(value, (int, numpy.integer)):
             for cy, slices in self._get_slices(slices):
-                self.get_create_sub_chunk(cy)[slices] = value
+                self.get_create_section(cy)[slices] = value
         elif isinstance(value, numpy.ndarray):
             x, y, z = slices
             if isinstance(y, int):
                 for cy, chunk_slices in self._get_slices(slices):
-                    self.get_create_sub_chunk(cy)[chunk_slices] = value
+                    self.get_create_section(cy)[chunk_slices] = value
             elif isinstance(y, slice):
                 y_min = y.start or 0
                 for cy, chunk_slices in self._get_slices(slices):
@@ -143,7 +184,7 @@ class PartialNDArray:
                     chunk_y_stop = cy * 16 + chunk_slices[1].stop - y_min
                     if chunk_slices[1].step:
                         chunk_y_stop //= abs(chunk_slices[1].step)
-                    self.get_create_sub_chunk(cy)[chunk_slices] = value[
+                    self.get_create_section(cy)[chunk_slices] = value[
                         :, chunk_y_start:chunk_y_stop, :
                     ]
         else:
@@ -165,7 +206,7 @@ class PartialNDArray:
         if all(isinstance(i, (int, numpy.integer)) for i in slices):
             cy, block = next(self._get_slices(slices))
             if cy in self:
-                return self._sub_chunks[cy][block]
+                return self._sections[cy][block]
             else:
                 return 0
         else:
@@ -183,7 +224,7 @@ class PartialNDArray:
             for cy, chunk_slices in self._get_slices(slices):
                 if cy in self:
                     chunk_y = cy * 16 + chunk_slices[1].start - y_min
-                    chunk_array: numpy.ndarray = self.get_sub_chunk(cy)[chunk_slices]
+                    chunk_array: numpy.ndarray = self.get_section(cy)[chunk_slices]
                     array[:, chunk_y : chunk_y + chunk_array.shape[1], :] = chunk_array
             return array
 
@@ -195,5 +236,5 @@ if __name__ == "__main__":
     partial[:, :16, :] = 1
     print(partial[:, 0, :].shape)
     partial[:, 17, :] = partial[:, 0, :]
-    print(partial.get_sub_chunk(0))
-    print(partial.get_sub_chunk(1))
+    print(partial.get_section(0))
+    print(partial.get_section(1))
