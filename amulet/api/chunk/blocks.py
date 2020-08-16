@@ -1,4 +1,4 @@
-from amulet.api.chunk.partial_array import PartialNDArray
+from amulet.api.partial_array.partial_array import PartialNDArray
 
 
 class Blocks(PartialNDArray):
