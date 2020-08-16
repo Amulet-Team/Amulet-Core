@@ -2,8 +2,6 @@ from typing import Optional, Dict, Union, Tuple, Generator, overload, Iterable
 import numpy
 import math
 
-flat_16 = numpy.zeros((16, 16), dtype=bool)
-
 
 class PartialNDArray:
     """This is designed to work similarly to a numpy.ndarray but stores the data in a very different way.
@@ -23,6 +21,9 @@ class PartialNDArray:
     _size_x = 0
     _section_size_y = 0
     _size_z = 0
+    _default_min_section = 0
+    _default_max_section = 0
+    _flat_array = numpy.zeros((_size_x, _size_z), dtype=bool)
 
     def __init__(
         self,
@@ -59,6 +60,18 @@ class PartialNDArray:
         """The section index a given y index corresponds to."""
         return int(y // self.section_size_y)
 
+    @property
+    def default_min(self) -> int:
+        """The minimum index of the normal array.
+        Used to calculate the minimum when using `:` in the vertical distance"""
+        return self._default_min_section * self.section_size_y
+
+    @property
+    def default_max(self) -> int:
+        """The maximum index of the normal array.
+        Used to calculate the maximum when using `:` in the vertical distance"""
+        return self._default_min_section * self.section_size_y
+
     def __contains__(self, item: int):
         return item in self._sections
 
@@ -78,7 +91,11 @@ class PartialNDArray:
         :return: Numpy array for this section
         """
         if cy not in self._sections:
-            self._sections[cy] = numpy.zeros((16, 16, 16), dtype=numpy.uint64)
+            self._sections[cy] = numpy.zeros((
+                self.size_x,
+                self.section_size_y,
+                self.size_z
+            ), dtype=numpy.uint64)
         return self._sections[cy]
 
     def get_section(self, cy: int) -> numpy.ndarray:
@@ -99,12 +116,11 @@ class PartialNDArray:
             self.size_x,
             self.section_size_y,
             self.size_z,
-        ), "section must be a numpy.ndarray of shape (16, 16, 16)"
+        ), f"section must be a numpy.ndarray of shape ({self.size_x}, {self.section_size_y}, {self.size_z},)"
         self._sections[cy] = section
 
-    @staticmethod
     def _fix_slices(
-        slices: Tuple[Union[int, slice], Union[int, slice], Union[int, slice]]
+        self, slices: Tuple[Union[int, slice], Union[int, slice], Union[int, slice]]
     ):
         if not isinstance(slices, tuple):
             raise IndexError(
@@ -116,7 +132,7 @@ class PartialNDArray:
             )
         x, y, z = slices
         if isinstance(y, slice):
-            y = slice(y.start or 0, y.stop or 256, y.step)
+            y = slice(y.start or self.default_min, y.stop or self.default_max, y.step)
         return x, y, z
 
     def _get_slices(
@@ -128,14 +144,14 @@ class PartialNDArray:
     ]:
         slices = self._fix_slices(slices)
         if isinstance(slices[1], (int, numpy.integer)):
-            yield slices[1] >> 4, (slices[0], slices[1] % 16, slices[2])
+            yield self._section_y(slices[1]), (slices[0], slices[1] % self.section_size_y, slices[2])
         elif isinstance(slices[1], slice):
             y_slice: slice = slices[1]
             start = y_slice.start
             stop = y_slice.stop
             step = y_slice.step
-            cy_min = start >> 4
-            cy_max = (stop - 1) >> 4
+            cy_min = self._section_y(start)
+            cy_max = self._section_y((stop - 1))
             ceil, floor = (
                 (math.ceil, math.floor)
                 if step is None or step >= 0
@@ -143,25 +159,28 @@ class PartialNDArray:
             )
             for cy in range(cy_min, cy_max + 1):
                 if step is None:
-                    chunk_start = max(start, cy * 16)
-                    chunk_stop = min(stop, (cy + 1) * 16)
+                    chunk_start = max(start, cy * self.section_size_y)
+                    chunk_stop = min(stop, (cy + 1) * self.section_size_y)
                 else:
                     chunk_start = min(
-                        max(int(ceil((cy * 16 - start) / step)) * step + start, start),
-                        (cy + 1) * 16,
+                        max(
+                            int(ceil((cy * self.section_size_y - start) / step)) * step + start,
+                            start
+                        ),
+                        (cy + 1) * self.section_size_y,
                     )
                     chunk_stop = max(
                         min(
-                            int(floor(((cy + 1) * 16 - 1 - start) / step)) * step
+                            int(floor(((cy + 1) * self.section_size_y - 1 - start) / step)) * step
                             + start
                             + 1,
                             stop,
                         ),
-                        cy * 16,
+                        cy * self.section_size_y,
                     )
                     if chunk_start >= chunk_stop:
                         continue
-                chunk_slice = slice(chunk_start - cy * 16, chunk_stop - cy * 16, step)
+                chunk_slice = slice(chunk_start - cy * self.section_size_y, chunk_stop - cy * self.section_size_y, step)
                 yield cy, (slices[0], chunk_slice, slices[2])
 
     def __setitem__(
@@ -174,14 +193,14 @@ class PartialNDArray:
                 self.get_create_section(cy)[slices] = value
         elif isinstance(value, numpy.ndarray):
             x, y, z = slices
-            if isinstance(y, int):
+            if isinstance(y, (int, numpy.integer)):
                 for cy, chunk_slices in self._get_slices(slices):
                     self.get_create_section(cy)[chunk_slices] = value
             elif isinstance(y, slice):
-                y_min = y.start or 0
+                y_min = y.start or self.default_min
                 for cy, chunk_slices in self._get_slices(slices):
-                    chunk_y_start = cy * 16 + chunk_slices[1].start - y_min
-                    chunk_y_stop = cy * 16 + chunk_slices[1].stop - y_min
+                    chunk_y_start = cy * self.section_size_y + chunk_slices[1].start - y_min
+                    chunk_y_stop = cy * self.section_size_y + chunk_slices[1].stop - y_min
                     if chunk_slices[1].step:
                         chunk_y_stop //= abs(chunk_slices[1].step)
                     self.get_create_section(cy)[chunk_slices] = value[
@@ -204,17 +223,18 @@ class PartialNDArray:
 
     def __getitem__(self, slices):
         if all(isinstance(i, (int, numpy.integer)) for i in slices):
-            cy, block = next(self._get_slices(slices))
+            cy = self._section_y(slices[1])
             if cy in self:
-                return self._sections[cy][block]
+                block = (slices[0], slices[1] % self.section_size_y, slices[2])
+                return int(self._sections[cy][block])
             else:
                 return 0
         else:
             x, y, z = slices
-            x_dim, z_dim = flat_16[x, z].shape
+            x_dim, z_dim = self._flat_array[x, z].shape
             if isinstance(y, slice):
-                y_min = y.start or 0
-                y_dim = (y.stop or 256) - y_min
+                y_min = y.start or self.default_min
+                y_dim = (y.stop or self.default_max) - y_min
                 if y.step:
                     y_dim //= abs(y.step)
             else:
@@ -223,14 +243,24 @@ class PartialNDArray:
             array = numpy.zeros((x_dim, y_dim, z_dim), dtype=numpy.uint64)
             for cy, chunk_slices in self._get_slices(slices):
                 if cy in self:
-                    chunk_y = cy * 16 + chunk_slices[1].start - y_min
+                    if isinstance(chunk_slices[1], slice):
+                        chunk_y = cy * self.section_size_y + chunk_slices[1].start - y_min
+                    else:
+                        chunk_y = chunk_slices[1]
                     chunk_array: numpy.ndarray = self.get_section(cy)[chunk_slices]
-                    array[:, chunk_y : chunk_y + chunk_array.shape[1], :] = chunk_array
+                    chunk_slice: numpy.ndarray = array[:, chunk_y : chunk_y + chunk_array.shape[1], :]
+                    chunk_slice[:, :, :] = chunk_array.reshape(chunk_slice.shape)
             return array
 
 
 if __name__ == "__main__":
-    partial = PartialNDArray()
+    class PartialNDArray16(PartialNDArray):
+        _size_x = 16
+        _section_size_y = 16
+        _size_z = 16
+        _flat_array = numpy.zeros((_size_x, _size_z), dtype=bool)
+
+    partial = PartialNDArray16()
     print(partial[:, :, :].shape)  # (16, 256, 16)
     print(partial[:, -100:500, :].shape)  # (16, 600, 16)
     partial[:, :16, :] = 1

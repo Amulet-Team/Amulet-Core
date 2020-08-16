@@ -8,6 +8,9 @@ class Blocks(PartialNDArray):
     _size_x = 16
     _section_size_y = 16
     _size_z = 16
+    _default_min_section = 0
+    _default_max_section = 16
+    _flat_array = numpy.zeros((_size_x, _size_z), dtype=bool)
 
     def _check_type(self, other) -> bool:
         return isinstance(other, Blocks)
