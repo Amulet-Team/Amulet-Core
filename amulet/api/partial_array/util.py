@@ -1,6 +1,6 @@
 import numpy
 import math
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 from .data_types import FlexibleSlicesType, SliceSlicesType, Integer
 
@@ -65,6 +65,17 @@ def get_sliced_array_size(
         arr_size
 ) -> int:
     """Find the size of the array the slice would produce from an array of size arr_size"""
-    start_, stop_, step_ = sanitise_slice(start, stop, step, arr_size)
-    return (stop_ - start_)//step_
+    start, stop, step = sanitise_slice(start, stop, step, arr_size)
+    return (stop - start)//step
 
+
+def get_unbounded_slice_size(
+        start: Optional[int],
+        stop: Optional[int],
+        step: Optional[int],
+) -> Union[int, float]:
+    if step is None:
+        step = 1
+    if start is None or stop is None:
+        return math.inf
+    return max(math.ceil((stop - start)/step), 0)
