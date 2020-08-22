@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 from .data_types import FlexibleSlicesType, SliceSlicesType, Integer
 
 
-def sanitise_slice(start, stop, step, arr_size) -> Tuple[int, int, int]:
+def sanitise_slice(start: Optional[int], stop: Optional[int], step: Optional[int], arr_size: int) -> Tuple[int, int, int]:
     """Convert slices into a sane format
     0 is always before the first number and arr_size is always after the last number."""
     if step is None:
@@ -41,6 +41,19 @@ def sanitise_slice(start, stop, step, arr_size) -> Tuple[int, int, int]:
         stop = max(stop, 0)
     step_count = max((stop - start) / step, 0)
     stop = start + math.ceil(step_count) * step
+
+    return start, stop, step
+
+
+def unsanitise_slice(start: int, stop: int, step: int, arr_size: int) -> Tuple[int, int, int]:
+    """Convert sanitised slices back to the normal format."""
+    if step < 0:
+        start -= 1
+        stop -= 1
+        if start < 0:
+            start -= arr_size
+        if stop < 0:
+            stop -= arr_size
 
     return start, stop, step
 
