@@ -27,7 +27,6 @@ class UnboundedPartial3DArray(BasePartial3DArray):
             default_value: Union[int, bool],
             section_shape: Tuple[int, int, int],
             default_section_counts: Tuple[int, int],
-            parent_array: Optional[BasePartial3DArray] = None,
             sections: Optional[Dict[int, numpy.ndarray]] = None
     ):
         super().__init__(
@@ -37,8 +36,7 @@ class UnboundedPartial3DArray(BasePartial3DArray):
             (None, None, None),
             (None, None, None),
             (None, None, None),
-            parent_array,
-            sections
+            sections=sections
         )
         self._default_min_y = - default_section_counts[0] * self.section_shape[1]
         self._default_max_y = - default_section_counts[1] * self.section_shape[1]
