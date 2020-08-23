@@ -2,7 +2,6 @@ from typing import Union, Tuple, overload, Iterable, Type, Optional, Dict
 import numpy
 
 from .base_partial_3d_array import BasePartial3DArray
-from .bounded_partial_3d_array import BoundedPartial3DArray
 from .util import sanitise_slice, to_slice, unpack_slice
 
 
@@ -82,7 +81,7 @@ class UnboundedPartial3DArray(BasePartial3DArray):
     @overload
     def __getitem__(
         self, slices: Tuple[Union[int, slice], Union[int, slice], Union[int, slice]]
-    ) -> BoundedPartial3DArray:
+    ) -> "BoundedPartial3DArray":
         ...
 
     def __getitem__(self, item):
@@ -138,3 +137,5 @@ class UnboundedPartial3DArray(BasePartial3DArray):
             raise Exception(
                 f"{item.__class__.__name__}({item}) is not a supported input for __getitem__"
             )
+
+from .bounded_partial_3d_array import BoundedPartial3DArray

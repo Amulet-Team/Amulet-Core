@@ -2,6 +2,7 @@ from typing import overload, Tuple, Union, Optional, Type, Dict
 import numpy
 
 from .base_partial_3d_array import BasePartial3DArray
+from .unbounded_partial_3d_array import UnboundedPartial3DArray
 
 
 class BoundedPartial3DArray(BasePartial3DArray):
@@ -12,7 +13,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
     @classmethod
     def from_partial_array(
         cls,
-        parent_array: "BasePartial3DArray",
+        parent_array: UnboundedPartial3DArray,
         start: Tuple[int, int, int],
         stop: Tuple[int, int, int],
         step: Tuple[int, int, int],
@@ -27,21 +28,6 @@ class BoundedPartial3DArray(BasePartial3DArray):
             parent_array=parent_array,
         )
 
-    @classmethod
-    def from_sections(
-        cls,
-        dtype: Type[numpy.dtype],
-        default_value: Union[int, bool],
-        section_shape: Tuple[int, int, int],
-        sections: Dict[int, numpy.ndarray],
-        start: Tuple[int, int, int],
-        stop: Tuple[int, int, int],
-        step: Tuple[int, int, int],
-    ):
-        return cls(
-            dtype, default_value, section_shape, start, stop, step, sections=sections,
-        )
-
     def __init__(
             self,
             dtype: Type[numpy.dtype],
@@ -50,10 +36,10 @@ class BoundedPartial3DArray(BasePartial3DArray):
             start: Tuple[Optional[int], int, Optional[int]],
             stop: Tuple[Optional[int], int, Optional[int]],
             step: Tuple[Optional[int], Optional[int], Optional[int]],
-            parent_array: Optional["BasePartial3DArray"] = None,
-            sections: Optional[Dict[int, numpy.ndarray]] = None,
+            parent_array: UnboundedPartial3DArray,
     ):
         assert isinstance(start[1], int) and isinstance(stop[1], int), "start[1] and stop[1] must both be ints."
+        assert isinstance(parent_array, UnboundedPartial3DArray)
         super().__init__(
             dtype,
             default_value,
@@ -61,8 +47,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
             start,
             stop,
             step,
-            parent_array,
-            sections
+            parent_array
         )
 
     @overload
