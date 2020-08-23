@@ -11,45 +11,6 @@ from .util import (
 class BasePartial3DArray:
     """Do not use this class directly. Use UnboundedPartial3DArray or BoundedPartial3DArray"""
 
-    @classmethod
-    def from_partial_array(
-            cls,
-            parent_array: "BasePartial3DArray",
-            start: Tuple[int, Optional[int], int],
-            stop: Tuple[int, Optional[int], int],
-            step: Tuple[int, int, int]
-    ):
-        return cls(
-            parent_array.dtype,
-            parent_array.default_value,
-            parent_array.section_shape,
-            start,
-            stop,
-            step,
-            parent_array=parent_array
-        )
-
-    @classmethod
-    def from_sections(
-            cls,
-            dtype: Type[numpy.dtype],
-            default_value: Union[int, bool],
-            section_shape: Tuple[int, int, int],
-            sections: Dict[int, numpy.ndarray],
-            start: Tuple[int, Optional[int], int],
-            stop: Tuple[int, Optional[int], int],
-            step: Tuple[int, int, int],
-    ):
-        return cls(
-            dtype,
-            default_value,
-            section_shape,
-            start,
-            stop,
-            step,
-            sections=sections,
-        )
-
     def __init__(
             self,
             dtype: Type[numpy.dtype],
