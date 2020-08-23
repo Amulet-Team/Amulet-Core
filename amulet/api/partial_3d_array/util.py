@@ -2,7 +2,7 @@ import numpy
 import math
 from typing import Optional, Tuple, Union
 
-from .data_types import FlexibleSlicesType, SliceSlicesType, Integer
+from .data_types import FlexibleSlicesType, SliceSlicesType, Integer, SingleFlexibleSliceType
 
 
 def sanitise_slice(start: Optional[int], stop: Optional[int], step: Optional[int], arr_size: int) -> Tuple[int, int, int]:
@@ -56,6 +56,35 @@ def unsanitise_slice(start: int, stop: int, step: int, arr_size: int) -> Tuple[i
             stop -= arr_size
 
     return start, stop, step
+
+
+def unpack_slice(item: slice):
+    return item.start, item.stop, item.step
+
+
+def to_slice(item: SingleFlexibleSliceType) -> slice:
+    if isinstance(item, Integer):
+        item = int(item)
+        return slice(item, item + 1, 1)
+    elif isinstance(item, slice):
+        step = item.step
+        if step == 0:
+            raise Exception("Step of 0 is invalid")
+        return slice(
+            item.start,
+            item.stop,
+            1 if step is None else step
+        )
+    else:
+        raise Exception(f"Unsupported slice item {item}")
+
+
+def multi_to_slice(slices: FlexibleSlicesType) -> SliceSlicesType:
+    slices_out = []
+    for item in slices:
+        slices_out.append(to_slice(item))
+
+    return tuple(slices_out)
 
 
 def get_sliced_array_size(
