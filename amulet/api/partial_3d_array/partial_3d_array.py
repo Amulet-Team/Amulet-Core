@@ -95,9 +95,10 @@ class Partial3DArray:
         if parent_array is None:
             # populate from sections
             self._sections: Dict[int, numpy.ndarray] = sections or {}
-            for section in self._sections.values():
+            for key, section in self._sections.items():
+                assert isinstance(key, int), "All keys must be ints"
                 assert section.shape == self._section_shape, "The size of all sections must be equal to the section_shape."
-                assert section.dtype == self._dtype, "the given dtype does not match the arrays given."
+                assert section.dtype == self._dtype, "The given dtype does not match the arrays given."
 
         elif isinstance(parent_array, Partial3DArray):
             # populate from the array
