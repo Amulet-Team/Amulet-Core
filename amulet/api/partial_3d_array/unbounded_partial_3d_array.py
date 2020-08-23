@@ -98,7 +98,7 @@ class UnboundedPartial3DArray(BasePartial3DArray):
                         ]
                     )
                 else:
-                    return 0
+                    return self.default_value
 
             elif all(isinstance(i, (int, numpy.integer, slice)) for i in item):
                 start_x, stop_x, step_x = sanitise_slice(
