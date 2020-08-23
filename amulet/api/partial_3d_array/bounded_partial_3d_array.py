@@ -65,8 +65,58 @@ class BoundedPartial3DArray(BasePartial3DArray):
             sections
         )
 
+    @overload
+    def __getitem__(self, slices: Tuple[int, int, int]) -> int:
+        ...
+
+    @overload
+    def __getitem__(
+        self, slices: Tuple[Union[int, slice], Union[int, slice], Union[int, slice]]
+    ) -> "BoundedPartial3DArray":
+        ...
+
     def __getitem__(self, item):
-        raise NotImplementedError
+        if isinstance(item, tuple):
+            if len(item) != 3:
+                raise Exception(f"Tuple item must be of length 3, got {len(item)}")
+            if all(isinstance(i, (int, numpy.integer)) for i in item):
+                y = item[1]
+                if y >= 0:
+                    y = self.start_y + y * self.step_y
+                else:
+                    y = self.stop_y + y * self.step_y
+
+                if self.step_y > 0:
+                    if not self.start_y <= y < self.stop_y:
+                        raise Exception(f"Index {item[1]} is out of bounds for array length {self.size_y}")
+                else:
+                    y -= 1
+                    if not self.start_y >= y > self.stop_y:
+                        raise Exception(f"Index {item[1]} is out of bounds for array length {self.size_y}")
+
+                cy = y // self.section_shape[1]
+                if cy in self:
+                    return int(
+                        self._sections[cy][
+                            (item[0], y % self.section_shape[1], item[2])
+                        ]
+                    )
+                else:
+                    return self.default_value
+
+            elif all(isinstance(i, (int, numpy.integer, slice)) for i in item):
+                raise NotImplementedError
+            else:
+                raise Exception(f"Unsupported tuple {item} for getitem")
+
+        elif isinstance(item, numpy.ndarray):
+            raise NotImplementedError(
+                "numpy.ndarray is not currently supported as a slice input"
+            )
+        else:
+            raise Exception(
+                f"{item.__class__.__name__}({item}) is not a supported input for __getitem__"
+            )
 
     def __setitem__(self, key, value):
         raise NotImplementedError
