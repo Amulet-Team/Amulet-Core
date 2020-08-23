@@ -111,6 +111,10 @@ class BasePartial3DArray:
         return self._size_z
 
     @property
+    def shape(self) -> Tuple[int, Union[int, float], int]:
+        return self.size_x, self.size_y, self.size_z
+
+    @property
     def dtype(self) -> Type[numpy.dtype]:
         return self._dtype
 
