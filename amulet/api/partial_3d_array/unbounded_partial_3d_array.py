@@ -1,4 +1,4 @@
-from typing import Union, Tuple, overload, Iterable
+from typing import Union, Tuple, overload, Iterable, Type, Optional, Dict
 import numpy
 
 from .base_partial_3d_array import BasePartial3DArray
@@ -20,6 +20,28 @@ class UnboundedPartial3DArray(BasePartial3DArray):
     Chained indexing does not currently work as __getitem__ returns a copy of the array data rather than a view into it.
     To use numpy fully the section data will need to be directly used.
     """
+
+    def __init__(
+            self,
+            dtype: Type[numpy.dtype],
+            default_value: Union[int, bool],
+            section_shape: Tuple[int, int, int],
+            default_section_counts: Tuple[int, int],
+            parent_array: Optional[BasePartial3DArray] = None,
+            sections: Optional[Dict[int, numpy.ndarray]] = None
+    ):
+        super().__init__(
+            dtype,
+            default_value,
+            section_shape,
+            (None, None, None),
+            (None, None, None),
+            (None, None, None),
+            parent_array,
+            sections
+        )
+        self._default_min_y = - default_section_counts[0] * self.section_shape[1]
+        self._default_max_y = - default_section_counts[1] * self.section_shape[1]
 
     @property
     def sections(self) -> Iterable[int]:

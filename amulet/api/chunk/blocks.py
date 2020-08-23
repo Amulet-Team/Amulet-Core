@@ -25,9 +25,7 @@ class Blocks(UnboundedPartial3DArray):
             numpy.uint32,
             0,
             (16, 16, 16),
-            (None, None, None),
-            (None, None, None),
-            (None, None, None),
+            (0, 16),
             sections=input_array
         )
 
