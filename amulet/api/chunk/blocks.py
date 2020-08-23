@@ -2,10 +2,10 @@ import numpy
 from typing import Iterable, Optional, Union, Dict
 from copy import deepcopy
 
-from amulet.api.partial_3d_array import Partial3DArray
+from amulet.api.partial_3d_array import UnboundedPartial3DArray
 
 
-class Blocks(Partial3DArray):
+class Blocks(UnboundedPartial3DArray):
     def __init__(
             self,
             input_array: Optional[
