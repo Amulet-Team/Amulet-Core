@@ -3,10 +3,11 @@ import numpy
 
 IntSlicesType = Tuple[int, int, int]
 SliceSlicesType = Tuple[slice, slice, slice]
+SingleFlexibleSliceType = Union[int, numpy.integer, slice]
 FlexibleSlicesType = Tuple[
-    Union[int, numpy.integer, slice],
-    Union[int, numpy.integer, slice],
-    Union[int, numpy.integer, slice],
+    SingleFlexibleSliceType,
+    SingleFlexibleSliceType,
+    SingleFlexibleSliceType
 ]
 
 Integer = (int, numpy.integer)
