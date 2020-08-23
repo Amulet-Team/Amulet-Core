@@ -2,7 +2,7 @@ import unittest
 import numpy
 import random
 
-from amulet.api.partial_array.util import get_sliced_array_size, sanitise_slice, unsanitise_slice
+from amulet.api.partial_3d_array.util import get_sliced_array_size, sanitise_slice, unsanitise_slice
 
 
 class PartialArrayTestCase(unittest.TestCase):
