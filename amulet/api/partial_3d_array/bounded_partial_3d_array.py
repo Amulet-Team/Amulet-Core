@@ -13,8 +13,8 @@ class BoundedPartial3DArray(BasePartial3DArray):
     def from_partial_array(
         cls,
         parent_array: "BasePartial3DArray",
-        start: Tuple[int, Optional[int], int],
-        stop: Tuple[int, Optional[int], int],
+        start: Tuple[int, int, int],
+        stop: Tuple[int, int, int],
         step: Tuple[int, int, int],
     ):
         return cls(
@@ -34,12 +34,35 @@ class BoundedPartial3DArray(BasePartial3DArray):
         default_value: Union[int, bool],
         section_shape: Tuple[int, int, int],
         sections: Dict[int, numpy.ndarray],
-        start: Tuple[int, Optional[int], int],
-        stop: Tuple[int, Optional[int], int],
+        start: Tuple[int, int, int],
+        stop: Tuple[int, int, int],
         step: Tuple[int, int, int],
     ):
         return cls(
             dtype, default_value, section_shape, start, stop, step, sections=sections,
+        )
+
+    def __init__(
+            self,
+            dtype: Type[numpy.dtype],
+            default_value: Union[int, bool],
+            section_shape: Tuple[int, int, int],
+            start: Tuple[Optional[int], int, Optional[int]],
+            stop: Tuple[Optional[int], int, Optional[int]],
+            step: Tuple[Optional[int], Optional[int], Optional[int]],
+            parent_array: Optional["BasePartial3DArray"] = None,
+            sections: Optional[Dict[int, numpy.ndarray]] = None,
+    ):
+        assert isinstance(start[1], int) and isinstance(stop[1], int), "start[1] and stop[1] must both be ints."
+        super().__init__(
+            dtype,
+            default_value,
+            section_shape,
+            start,
+            stop,
+            step,
+            parent_array,
+            sections
         )
 
     def __getitem__(self, item):
