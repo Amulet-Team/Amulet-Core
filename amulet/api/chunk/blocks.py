@@ -1,11 +1,26 @@
 import numpy
-from typing import Iterable
+from typing import Iterable, Optional, Union, Dict
+from copy import deepcopy
 
 from amulet.api.partial_3d_array import Partial3DArray
 
 
 class Blocks(Partial3DArray):
-    def __init__(self):
+    def __init__(
+            self,
+            input_array: Optional[
+                Union[
+                    Dict[int, numpy.ndarray],
+                    "Blocks"
+                ]
+            ] = None,
+    ):
+        if input_array is None:
+            input_array = {}
+        if isinstance(input_array, Blocks):
+            input_array: dict = deepcopy(input_array._sections)
+        if not isinstance(input_array, dict):
+            raise Exception(f"Input array must be Blocks or dict, got {input_array}")
         super().__init__(
             numpy.uint32,
             0,
@@ -13,6 +28,7 @@ class Blocks(Partial3DArray):
             (None, None, None),
             (None, None, None),
             (None, None, None),
+            sections=input_array
         )
 
     @property
