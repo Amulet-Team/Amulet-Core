@@ -7,13 +7,7 @@ from amulet.api.partial_3d_array import UnboundedPartial3DArray
 
 class Blocks(UnboundedPartial3DArray):
     def __init__(
-            self,
-            input_array: Optional[
-                Union[
-                    Dict[int, numpy.ndarray],
-                    "Blocks"
-                ]
-            ] = None,
+        self, input_array: Optional[Union[Dict[int, numpy.ndarray], "Blocks"]] = None,
     ):
         if input_array is None:
             input_array = {}
@@ -21,13 +15,7 @@ class Blocks(UnboundedPartial3DArray):
             input_array: dict = deepcopy(input_array._sections)
         if not isinstance(input_array, dict):
             raise Exception(f"Input array must be Blocks or dict, got {input_array}")
-        super().__init__(
-            numpy.uint32,
-            0,
-            (16, 16, 16),
-            (0, 16),
-            sections=input_array
-        )
+        super().__init__(numpy.uint32, 0, (16, 16, 16), (0, 16), sections=input_array)
 
     @property
     def sub_chunks(self) -> Iterable[int]:

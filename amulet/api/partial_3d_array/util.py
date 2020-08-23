@@ -2,10 +2,17 @@ import numpy
 import math
 from typing import Optional, Tuple, Union
 
-from .data_types import FlexibleSlicesType, SliceSlicesType, Integer, SingleFlexibleSliceType
+from .data_types import (
+    FlexibleSlicesType,
+    SliceSlicesType,
+    Integer,
+    SingleFlexibleSliceType,
+)
 
 
-def sanitise_slice(start: Optional[int], stop: Optional[int], step: Optional[int], arr_size: int) -> Tuple[int, int, int]:
+def sanitise_slice(
+    start: Optional[int], stop: Optional[int], step: Optional[int], arr_size: int
+) -> Tuple[int, int, int]:
     """Convert slices into a sane format
     0 is always before the first number and arr_size is always after the last number."""
     if step is None:
@@ -45,7 +52,9 @@ def sanitise_slice(start: Optional[int], stop: Optional[int], step: Optional[int
     return start, stop, step
 
 
-def unsanitise_slice(start: int, stop: int, step: int, arr_size: int) -> Tuple[int, int, int]:
+def unsanitise_slice(
+    start: int, stop: int, step: int, arr_size: int
+) -> Tuple[int, int, int]:
     """Convert sanitised slices back to the normal format."""
     if step < 0:
         start -= 1
@@ -70,11 +79,7 @@ def to_slice(item: SingleFlexibleSliceType) -> slice:
         step = item.step
         if step == 0:
             raise Exception("Step of 0 is invalid")
-        return slice(
-            item.start,
-            item.stop,
-            1 if step is None else step
-        )
+        return slice(item.start, item.stop, 1 if step is None else step)
     else:
         raise Exception(f"Unsupported slice item {item}")
 
@@ -88,23 +93,18 @@ def multi_to_slice(slices: FlexibleSlicesType) -> SliceSlicesType:
 
 
 def get_sliced_array_size(
-        start: Optional[int],
-        stop: Optional[int],
-        step: Optional[int],
-        arr_size
+    start: Optional[int], stop: Optional[int], step: Optional[int], arr_size
 ) -> int:
     """Find the size of the array the slice would produce from an array of size arr_size"""
     start, stop, step = sanitise_slice(start, stop, step, arr_size)
-    return (stop - start)//step
+    return (stop - start) // step
 
 
 def get_unbounded_slice_size(
-        start: Optional[int],
-        stop: Optional[int],
-        step: Optional[int],
+    start: Optional[int], stop: Optional[int], step: Optional[int],
 ) -> Union[int, float]:
     if step is None:
         step = 1
     if start is None or stop is None:
         return math.inf
-    return max(math.ceil((stop - start)/step), 0)
+    return max(math.ceil((stop - start) / step), 0)

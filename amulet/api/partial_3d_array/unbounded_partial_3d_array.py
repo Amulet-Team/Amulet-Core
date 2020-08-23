@@ -22,12 +22,12 @@ class UnboundedPartial3DArray(BasePartial3DArray):
     """
 
     def __init__(
-            self,
-            dtype: Type[numpy.dtype],
-            default_value: Union[int, bool],
-            section_shape: Tuple[int, int, int],
-            default_section_counts: Tuple[int, int],
-            sections: Optional[Dict[int, numpy.ndarray]] = None
+        self,
+        dtype: Type[numpy.dtype],
+        default_value: Union[int, bool],
+        section_shape: Tuple[int, int, int],
+        default_section_counts: Tuple[int, int],
+        sections: Optional[Dict[int, numpy.ndarray]] = None,
     ):
         super().__init__(
             dtype,
@@ -36,9 +36,9 @@ class UnboundedPartial3DArray(BasePartial3DArray):
             (None, None, None),
             (None, None, None),
             (None, None, None),
-            sections=sections
+            sections=sections,
         )
-        self._default_min_y = - default_section_counts[0] * self.section_shape[1]
+        self._default_min_y = -default_section_counts[0] * self.section_shape[1]
         self._default_max_y = default_section_counts[1] * self.section_shape[1]
 
     @property
@@ -49,17 +49,19 @@ class UnboundedPartial3DArray(BasePartial3DArray):
     def create_section(self, cy: int):
         if self._parent_array is None:
             self._sections[cy] = numpy.full(
-                self.section_shape,
-                self.default_value,
-                dtype=self._dtype
+                self.section_shape, self.default_value, dtype=self._dtype
             )
         else:
             self._parent_array.create_section(cy)
 
     def add_section(self, cy: int, section: numpy.ndarray):
         if self._parent_array is None:
-            assert section.shape == self._section_shape, "The size of all sections must be equal to the section_shape."
-            assert section.dtype == self._dtype, "the given dtype does not match the arrays given."
+            assert (
+                section.shape == self._section_shape
+            ), "The size of all sections must be equal to the section_shape."
+            assert (
+                section.dtype == self._dtype
+            ), "the given dtype does not match the arrays given."
         else:
             self._parent_array.add_section(cy, section)
 
@@ -79,7 +81,7 @@ class UnboundedPartial3DArray(BasePartial3DArray):
 
     @overload
     def __getitem__(
-            self, slices: Tuple[Union[int, slice], Union[int, slice], Union[int, slice]]
+        self, slices: Tuple[Union[int, slice], Union[int, slice], Union[int, slice]]
     ) -> BoundedPartial3DArray:
         ...
 
@@ -98,12 +100,14 @@ class UnboundedPartial3DArray(BasePartial3DArray):
                 else:
                     return 0
 
-            elif all(
-                    isinstance(i, (int, numpy.integer, slice)) for i in item
-            ):
-                start_x, stop_x, step_x = sanitise_slice(*unpack_slice(to_slice(item[0])), self.size_x)
+            elif all(isinstance(i, (int, numpy.integer, slice)) for i in item):
+                start_x, stop_x, step_x = sanitise_slice(
+                    *unpack_slice(to_slice(item[0])), self.size_x
+                )
                 start_y, stop_y, step_y = unpack_slice(to_slice(item[1]))
-                start_z, stop_z, step_z = sanitise_slice(*unpack_slice(to_slice(item[2])), self.size_z)
+                start_z, stop_z, step_z = sanitise_slice(
+                    *unpack_slice(to_slice(item[2])), self.size_z
+                )
 
                 # cap at the normal limits
                 if step_y > 0:
@@ -121,7 +125,7 @@ class UnboundedPartial3DArray(BasePartial3DArray):
                     self,
                     (start_x, start_y, start_z),
                     (stop_x, stop_y, stop_z),
-                    (step_x, step_y, step_z)
+                    (step_x, step_y, step_z),
                 )
             else:
                 raise Exception(f"Unsupported tuple {item} for getitem")
