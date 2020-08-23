@@ -4,7 +4,7 @@ import random
 import math
 
 from amulet.api.partial_3d_array.util import get_sliced_array_size, sanitise_slice, unsanitise_slice
-from amulet.api.partial_3d_array import UnboundedPartial3DArray
+from amulet.api.partial_3d_array import UnboundedPartial3DArray, BoundedPartial3DArray
 
 
 class PartialArrayTestCase(unittest.TestCase):
@@ -45,29 +45,31 @@ class PartialArrayTestCase(unittest.TestCase):
                 )
             )
 
-    def test_array(self):
-        class Partial3DArray16(UnboundedPartial3DArray):
-            def __init__(self):
-                super().__init__(
-                    numpy.uint32,
-                    0,
-                    (16, 16, 16),
-                    (0, 16)
-                )
-
-        partial = Partial3DArray16()
-        self.assertEqual(partial.shape, (16, math.inf, 16))
-        self.assertEqual(partial[:, :, :].shape, (16, 256, 16))
-        self.assertEqual(partial[:, -100:500, :].shape, (16, 600, 16))
+    def test_access_unbounded_array(self):
+        partial = UnboundedPartial3DArray(
+            numpy.uint32,
+            0,
+            (4, 4, 4),
+            (0, 16)
+        )
+        self.assertEqual(partial.shape, (4, math.inf, 4))
+        self.assertIsInstance(partial[:, :, :], BoundedPartial3DArray)
+        self.assertEqual(partial[:, :, :].shape, (4, 64, 4))
+        self.assertEqual(partial[:, -100:500, :].shape, (4, 600, 4))
         self.assertEqual(partial[0, 0, 0], 0)
-        self.assertEqual(partial[:, 0, :].shape, (16, 1, 16))
-        self.assertEqual(partial[0, :, 0].shape, (1, 256, 1))
+        self.assertEqual(partial[:, 0, :].shape, (4, 1, 4))
+        self.assertEqual(partial[0, :, 0].shape, (1, 64, 1))
 
-        # partial[:, :16, :] = 1
-
-        # print(partial[:, 0, :].shape)
+    @unittest.skip
+    def test_set_unbounded_array(self):
+        partial = UnboundedPartial3DArray(
+            numpy.uint32,
+            0,
+            (4, 4, 4),
+            (0, 16)
+        )
+        partial[:, :4, :] = 5
+        self.assertEqual(tuple(partial.sections), (0,))
+        self.assertTrue(numpy.all(partial.get_section(0) == 5))
 
         # partial[:, 17, :] = partial[:, 0, :]
-
-        # print(partial.get_section(0))
-        # print(partial.get_section(1))
