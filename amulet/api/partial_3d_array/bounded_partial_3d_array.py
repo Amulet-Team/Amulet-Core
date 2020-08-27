@@ -3,6 +3,7 @@ import numpy
 
 from .base_partial_3d_array import BasePartial3DArray
 from .unbounded_partial_3d_array import UnboundedPartial3DArray
+from .util import to_slice, sanitise_slice, unpack_slice
 
 
 class BoundedPartial3DArray(BasePartial3DArray):
@@ -25,7 +26,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
             start,
             stop,
             step,
-            parent_array=parent_array,
+            parent_array,
         )
 
     def __init__(
@@ -65,19 +66,31 @@ class BoundedPartial3DArray(BasePartial3DArray):
             if len(item) != 3:
                 raise Exception(f"Tuple item must be of length 3, got {len(item)}")
             if all(isinstance(i, (int, numpy.integer)) for i in item):
-                y = item[1]
-                if y >= 0:
-                    y = self.start_y + y * self.step_y
-                else:
-                    y = self.stop_y + y * self.step_y
+                abs_item = [0, 0, 0]
+                starts = (self.start_x, self.start_y, self.start_z)
+                stops = (self.stop_x, self.stop_y, self.stop_z)
+                steps = (self.step_x, self.step_y, self.step_z)
+                for axis in range(3):
+                    value = item[axis]
+                    start = starts[axis]
+                    stop = stops[axis]
+                    step = steps[axis]
+                    if value >= 0:
+                        value = start + value * step
+                    else:
+                        value = stop + value * step
 
-                if self.step_y > 0:
-                    if not self.start_y <= y < self.stop_y:
-                        raise Exception(f"Index {item[1]} is out of bounds for array length {self.size_y}")
-                else:
-                    y -= 1
-                    if not self.start_y >= y > self.stop_y:
-                        raise Exception(f"Index {item[1]} is out of bounds for array length {self.size_y}")
+                    if step > 0:
+                        if not start <= value < stop:
+                            raise IndexError(f"index {item[1]} is out of bounds for axis {axis} with size {self.size_y}")
+                    else:
+                        if not start >= value > stop:
+                            raise IndexError(f"index {item[1]} is out of bounds for axis {axis} with size {self.size_y}")
+                        value -= 1
+
+                    abs_item[axis] = value
+
+                x, y, z = abs_item
 
                 cy = y // self.section_shape[1]
                 if cy in self:
