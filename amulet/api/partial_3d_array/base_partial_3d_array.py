@@ -1,7 +1,10 @@
-from typing import Optional, Dict, Union, Tuple, Type
+from typing import Optional, Dict, Union, Tuple, Type, TYPE_CHECKING
 import numpy
 
 from .util import get_sliced_array_size, sanitise_slice, get_unbounded_slice_size
+
+if TYPE_CHECKING:
+    from .unbounded_partial_3d_array import UnboundedPartial3DArray
 
 
 class BasePartial3DArray:
@@ -15,7 +18,7 @@ class BasePartial3DArray:
         start: Tuple[Optional[int], Optional[int], Optional[int]],
         stop: Tuple[Optional[int], Optional[int], Optional[int]],
         step: Tuple[Optional[int], Optional[int], Optional[int]],
-        parent_array: Optional["BasePartial3DArray"] = None,
+        parent_array: Optional["UnboundedPartial3DArray"] = None,
         sections: Optional[Dict[int, numpy.ndarray]] = None,
     ):
         self._dtype = dtype
