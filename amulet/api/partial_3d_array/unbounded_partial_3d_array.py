@@ -46,23 +46,18 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         return self._sections.keys()
 
     def create_section(self, cy: int):
-        if self._parent_array is None:
-            self._sections[cy] = numpy.full(
-                self.section_shape, self.default_value, dtype=self._dtype
-            )
-        else:
-            self._parent_array.create_section(cy)
+        self._sections[cy] = numpy.full(
+            self.section_shape, self.default_value, dtype=self._dtype
+        )
 
     def add_section(self, cy: int, section: numpy.ndarray):
-        if self._parent_array is None:
-            assert (
-                section.shape == self._section_shape
-            ), "The size of all sections must be equal to the section_shape."
-            assert (
-                section.dtype == self._dtype
-            ), "the given dtype does not match the arrays given."
-        else:
-            self._parent_array.add_section(cy, section)
+        assert (
+            section.shape == self._section_shape
+        ), "The size of all sections must be equal to the section_shape."
+        assert (
+            section.dtype == self._dtype
+        ), "the given dtype does not match the arrays given."
+        self._sections[cy] = section
 
     def get_section(self, cy: int) -> numpy.ndarray:
         """Get the section ndarray for a given section index.
