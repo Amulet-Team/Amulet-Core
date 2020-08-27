@@ -11,7 +11,7 @@ from .data_types import (
 
 
 def sanitise_slice(
-    start: Optional[int], stop: Optional[int], step: Optional[int], arr_size: int
+        start: Optional[int], stop: Optional[int], step: Optional[int], arr_size: int
 ) -> Tuple[int, int, int]:
     """Convert slices into a sane format
     0 is always before the first number and arr_size is always after the last number."""
@@ -54,8 +54,44 @@ def sanitise_slice(
     return start, stop, step
 
 
+def sanitise_unbounded_slice(
+        start: Optional[int],
+        stop: Optional[int],
+        step: Optional[int],
+        default_min: int,  # the minimum value to default to
+        default_max: int,  # the maximum value to default to
+) -> Tuple[int, int, int]:
+    if step is None:
+        step = 1
+    elif step == 0:
+        raise Exception("step cannot be 0")
+
+    # cap at the normal limits
+    if step > 0:
+        if start is None:
+            start = default_min
+        if stop is None:
+            stop = default_max
+    else:
+        if start is None:
+            start = default_max
+        if stop is None:
+            stop = default_min
+
+    if step < 0:
+        start += 1
+        stop += 1
+
+    step_count = math.ceil(max((stop - start) / step, 0))
+    stop = start + step_count * step
+    if step_count:
+        stop += int(math.copysign(1, step)) - step
+
+    return start, stop, step
+
+
 def unsanitise_slice(
-    start: int, stop: int, step: int, arr_size: int
+        start: int, stop: int, step: int, arr_size: int
 ) -> Tuple[int, int, int]:
     """Convert sanitised slices back to the normal format."""
     if step < 0:
@@ -95,7 +131,7 @@ def multi_to_slice(slices: FlexibleSlicesType) -> SliceSlicesType:
 
 
 def get_sliced_array_size(
-    start: Optional[int], stop: Optional[int], step: Optional[int], arr_size
+        start: Optional[int], stop: Optional[int], step: Optional[int], arr_size
 ) -> int:
     """Find the size of the array the slice would produce from an array of size arr_size"""
     start, stop, step = sanitise_slice(start, stop, step, arr_size)
@@ -103,7 +139,7 @@ def get_sliced_array_size(
 
 
 def get_sanitised_sliced_array_size(
-    start: int, stop: int, step: int
+        start: int, stop: int, step: int
 ):
     """Find the size of a slice that has been pre-sanitised"""
     return math.ceil((stop - start) / step)

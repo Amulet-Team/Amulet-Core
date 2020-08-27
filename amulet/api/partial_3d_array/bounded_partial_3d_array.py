@@ -82,10 +82,10 @@ class BoundedPartial3DArray(BasePartial3DArray):
 
                     if step > 0:
                         if not start <= value < stop:
-                            raise IndexError(f"index {item[1]} is out of bounds for axis {axis} with size {self.size_y}")
+                            raise IndexError(f"index {item[1]} is out of bounds for axis {axis} with size {self.shape[axis]}")
                     else:
                         if not start >= value > stop:
-                            raise IndexError(f"index {item[1]} is out of bounds for axis {axis} with size {self.size_y}")
+                            raise IndexError(f"index {item[1]} is out of bounds for axis {axis} with size {self.shape[axis]}")
                         value -= 1
 
                     abs_item[axis] = value
@@ -96,7 +96,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
                 if cy in self:
                     return int(
                         self._sections[cy][
-                            (item[0], y % self.section_shape[1], item[2])
+                            (x, y % self.section_shape[1], z)
                         ]
                     )
                 else:

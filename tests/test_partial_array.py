@@ -90,7 +90,6 @@ class PartialArrayTestCase(unittest.TestCase):
             self.assertEqual(partial[slices].shape, array[slices].shape)
             for slices2 in (
                     (0, 0, 0),
-                    (1, 1, 1),
                     (-1, -1, -1),
             ):
                 self.assertEqual(partial[slices][slices2], array[slices][slices2], f"[{slices}][{slices2}]")

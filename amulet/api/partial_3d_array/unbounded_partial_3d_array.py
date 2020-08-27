@@ -3,7 +3,7 @@ import numpy
 import math
 
 from .base_partial_3d_array import BasePartial3DArray
-from .util import sanitise_slice, to_slice, unpack_slice
+from .util import sanitise_slice, to_slice, unpack_slice, sanitise_unbounded_slice
 
 
 class UnboundedPartial3DArray(BasePartial3DArray):
@@ -103,22 +103,14 @@ class UnboundedPartial3DArray(BasePartial3DArray):
                 start_x, stop_x, step_x = sanitise_slice(
                     *unpack_slice(to_slice(item[0])), self.size_x
                 )
-                start_y, stop_y, step_y = unpack_slice(to_slice(item[1]))
+                start_y, stop_y, step_y = sanitise_unbounded_slice(
+                    *unpack_slice(to_slice(item[1])),
+                    self._default_min_y,
+                    self._default_max_y
+                )
                 start_z, stop_z, step_z = sanitise_slice(
                     *unpack_slice(to_slice(item[2])), self.size_z
                 )
-
-                # cap at the normal limits
-                if step_y > 0:
-                    if start_y is None:
-                        start_y = self._default_min_y
-                    if stop_y is None:
-                        stop_y = self._default_max_y
-                else:
-                    if start_y is None:
-                        start_y = self._default_max_y
-                    if stop_y is None:
-                        stop_y = self._default_min_y
 
                 return BoundedPartial3DArray.from_partial_array(
                     self,
