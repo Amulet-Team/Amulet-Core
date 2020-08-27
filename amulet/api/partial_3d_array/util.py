@@ -46,8 +46,10 @@ def sanitise_slice(
     elif step < 0:
         start = min(arr_size, start)
         stop = max(stop, 0)
-    step_count = max((stop - start) / step, 0)
-    stop = start + math.ceil(step_count) * step
+    step_count = math.ceil(max((stop - start) / step, 0))
+    stop = start + step_count * step
+    if step_count:
+        stop += int(math.copysign(1, step)) - step
 
     return start, stop, step
 
@@ -97,7 +99,7 @@ def get_sliced_array_size(
 ) -> int:
     """Find the size of the array the slice would produce from an array of size arr_size"""
     start, stop, step = sanitise_slice(start, stop, step, arr_size)
-    return (stop - start) // step
+    return math.ceil((stop - start) / step)
 
 
 def get_unbounded_slice_size(
