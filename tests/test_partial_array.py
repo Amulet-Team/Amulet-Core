@@ -87,6 +87,7 @@ class PartialArrayTestCase(unittest.TestCase):
                 (slice(-1, 1, -1), slice(50, 1, -1), slice(-1, 1, -1)),
                 (slice(-1, 1, -2), slice(50, 1, -2), slice(-1, 1, -2)),
         ):
+            self.assertEqual(partial[slices].shape, array[slices].shape)
             for slices2 in (
                     (0, 0, 0),
                     (1, 1, 1),
