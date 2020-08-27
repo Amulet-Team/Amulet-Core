@@ -1,5 +1,6 @@
 from typing import Union, Tuple, overload, Iterable, Type, Optional, Dict
 import numpy
+import math
 
 from .base_partial_3d_array import BasePartial3DArray
 from .util import sanitise_slice, to_slice, unpack_slice
@@ -32,13 +33,17 @@ class UnboundedPartial3DArray(BasePartial3DArray):
             dtype,
             default_value,
             section_shape,
-            (None, None, None),
-            (None, None, None),
-            (None, None, None),
+            (0, None, 0),
+            (section_shape[0], None, section_shape[0]),
+            (1, 1, 1),
             sections=sections,
         )
         self._default_min_y = -default_section_counts[0] * self.section_shape[1]
         self._default_max_y = default_section_counts[1] * self.section_shape[1]
+
+    @property
+    def size_y(self) -> float:
+        return math.inf
 
     @property
     def sections(self) -> Iterable[int]:

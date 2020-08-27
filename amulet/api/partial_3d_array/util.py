@@ -99,14 +99,11 @@ def get_sliced_array_size(
 ) -> int:
     """Find the size of the array the slice would produce from an array of size arr_size"""
     start, stop, step = sanitise_slice(start, stop, step, arr_size)
+    return get_sanitised_sliced_array_size(start, stop, step)
+
+
+def get_sanitised_sliced_array_size(
+    start: int, stop: int, step: int
+):
+    """Find the size of a slice that has been pre-sanitised"""
     return math.ceil((stop - start) / step)
-
-
-def get_unbounded_slice_size(
-    start: Optional[int], stop: Optional[int], step: Optional[int],
-) -> Union[int, float]:
-    if step is None:
-        step = 1
-    if start is None or stop is None:
-        return math.inf
-    return max(math.ceil((stop - start) / step), 0)

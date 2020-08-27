@@ -1,7 +1,7 @@
 from typing import Optional, Dict, Union, Tuple, Type, TYPE_CHECKING
 import numpy
 
-from .util import get_sliced_array_size, sanitise_slice, get_unbounded_slice_size
+from .util import get_sanitised_sliced_array_size
 
 if TYPE_CHECKING:
     from .unbounded_partial_3d_array import UnboundedPartial3DArray
@@ -30,9 +30,7 @@ class BasePartial3DArray:
         self._size_y = None
         self._size_z = None
 
-        self._start_x, self._stop_x, self._step_x = sanitise_slice(
-            start[0], stop[0], step[0], self._section_shape[0]
-        )
+        self._start_x, self._stop_x, self._step_x = start[0], stop[0], step[0]
         self._start_y, self._stop_y = start[1], stop[1]
         assert (self._start_y is None and self._stop_y is None) or (
             isinstance(self._start_y, int) and isinstance(self._stop_y, int)
@@ -40,9 +38,7 @@ class BasePartial3DArray:
         self._step_y = 1 if step[1] is None else step[1]
         if self.size_y == 0:
             self._stop_y = self._start_y
-        self._start_z, self._stop_z, self._step_z = sanitise_slice(
-            start[2], stop[2], step[2], self._section_shape[2]
-        )
+        self._start_z, self._stop_z, self._step_z = start[2], stop[2], step[2]
 
         if parent_array is None:
             # populate from sections
@@ -110,15 +106,15 @@ class BasePartial3DArray:
     @property
     def size_x(self) -> int:
         if self._size_x is None:
-            self._size_x = get_sliced_array_size(
-                self.start_x, self.stop_x, self.step_x, self._section_shape[0]
+            self._size_x = get_sanitised_sliced_array_size(
+                self.start_x, self.stop_x, self.step_x
             )
         return self._size_x
 
     @property
     def size_y(self) -> Union[int, float]:
         if self._size_y is None:
-            self._size_y = get_unbounded_slice_size(
+            self._size_y = get_sanitised_sliced_array_size(
                 self.start_y, self.stop_y, self.step_y
             )
         return self._size_y
@@ -126,8 +122,8 @@ class BasePartial3DArray:
     @property
     def size_z(self) -> int:
         if self._size_z is None:
-            self._size_z = get_sliced_array_size(
-                self.start_z, self.stop_z, self.step_z, self._section_shape[2]
+            self._size_z = get_sanitised_sliced_array_size(
+                self.start_z, self.stop_z, self.step_z
             )
         return self._size_z
 
