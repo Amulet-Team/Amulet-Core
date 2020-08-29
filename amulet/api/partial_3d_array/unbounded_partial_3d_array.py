@@ -50,29 +50,29 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         """An iterable of the section indexes that exist"""
         return self._sections.keys()
 
-    def create_section(self, cy: int):
-        self._sections[cy] = numpy.full(
+    def create_section(self, sy: int):
+        self._sections[sy] = numpy.full(
             self.section_shape, self.default_value, dtype=self._dtype
         )
 
-    def add_section(self, cy: int, section: numpy.ndarray):
+    def add_section(self, sy: int, section: numpy.ndarray):
         assert (
             section.shape == self._section_shape
         ), "The size of all sections must be equal to the section_shape."
         assert (
             section.dtype == self._dtype
         ), "the given dtype does not match the arrays given."
-        self._sections[cy] = section
+        self._sections[sy] = section
 
-    def get_section(self, cy: int) -> numpy.ndarray:
+    def get_section(self, sy: int) -> numpy.ndarray:
         """Get the section ndarray for a given section index.
-        :param cy: The section y index
+        :param sy: The section y index
         :return: Numpy array for this section
         :raises: KeyError if no section exists with this index
         """
-        if cy not in self._sections:
-            self.create_section(cy)
-        return self._sections[cy]
+        if sy not in self._sections:
+            self.create_section(sy)
+        return self._sections[sy]
 
     def __setitem__(
             self,
@@ -95,10 +95,10 @@ class UnboundedPartial3DArray(BasePartial3DArray):
             if len(item) != 3:
                 raise Exception(f"Tuple item must be of length 3, got {len(item)}")
             if all(isinstance(i, (int, numpy.integer)) for i in item):
-                cy = item[1] // self.section_shape[1]
-                if cy in self:
+                sy = item[1] // self.section_shape[1]
+                if sy in self:
                     return int(
-                        self._sections[cy][
+                        self._sections[sy][
                             (item[0], item[1] % self.section_shape[1], item[2])
                         ]
                     )
