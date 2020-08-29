@@ -78,6 +78,22 @@ class BoundedPartial3DArray(BasePartial3DArray):
         """Get the section index and location within the section of an absolute y coordinate"""
         return y // self.section_shape[1], y % self.section_shape[1]
 
+    def _stack_slices(self, slices: Tuple[slice, slice, slice]) -> Tuple[Tuple[int, int, int], Tuple[int, int, int], Tuple[int, int, int]]:
+        return tuple(
+            stack_sanitised_slices(
+                start,
+                stop,
+                step,
+                *sanitise_slice(
+                    *unpack_slice(
+                        to_slice(i)
+                    ),
+                    shape
+                )
+            )
+            for i, start, stop, step, shape in zip(slices, self.start, self.stop, self.step, self.shape)
+        )
+
     @overload
     def __getitem__(self, slices: Tuple[int, int, int]) -> int:
         ...
@@ -91,7 +107,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
     def __getitem__(self, item):
         if isinstance(item, tuple):
             if len(item) != 3:
-                raise Exception(f"Tuple item must be of length 3, got {len(item)}")
+                raise KeyError(f"Tuple item must be of length 3, got {len(item)}")
             if all(isinstance(i, (int, numpy.integer)) for i in item):
                 x, y, z = tuple(self._relative_to_absolute(axis, item[axis]) for axis in range(3))
 
@@ -111,20 +127,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
                     Tuple[int, int, int],
                     Tuple[int, int, int],
                 ] = zip(
-                    *tuple(
-                        stack_sanitised_slices(
-                            self.start[axis],
-                            self.stop[axis],
-                            self.step[axis],
-                            *sanitise_slice(
-                                *unpack_slice(
-                                    to_slice(i)
-                                ),
-                                self.shape[axis]
-                            )
-                        )
-                        for axis, i in enumerate(item)
-                    )
+                    *self._stack_slices(item)
                 )
 
                 return BoundedPartial3DArray.from_partial_array(
@@ -132,14 +135,14 @@ class BoundedPartial3DArray(BasePartial3DArray):
                     *item
                 )
             else:
-                raise Exception(f"Unsupported tuple {item} for getitem")
+                raise KeyError(f"Unsupported tuple {item} for getitem")
 
-        elif isinstance(item, numpy.ndarray):
+        elif isinstance(item, (numpy.ndarray, BoundedPartial3DArray)):
             raise NotImplementedError(
                 "numpy.ndarray is not currently supported as a slice input"
             )
         else:
-            raise Exception(
+            raise KeyError(
                 f"{item.__class__.__name__}({item}) is not a supported input for __getitem__"
             )
 
