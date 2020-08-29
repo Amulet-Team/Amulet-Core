@@ -10,11 +10,21 @@ from .data_types import (
 )
 
 
+def _sanitise_slice(start: int, stop: int, step: int) -> Tuple[int, int, int]:
+    step_count = math.ceil(max((stop - start) / step, 0))
+    stop = start + step_count * step
+    if step_count:
+        stop += int(math.copysign(1, step)) - step
+
+    return start, stop, step
+
+
 def sanitise_slice(
         start: Optional[int], stop: Optional[int], step: Optional[int], arr_size: int
 ) -> Tuple[int, int, int]:
     """Convert slices into a sane format
     0 is always before the first number and arr_size is always after the last number."""
+    # set default values
     if step is None:
         step = 1
     elif step == 0:
@@ -40,18 +50,15 @@ def sanitise_slice(
         start += 1
         stop += 1
 
+    # cap at the ends
     if step > 0:
         start = max(0, start)
         stop = min(stop, arr_size)
     elif step < 0:
         start = min(arr_size, start)
         stop = max(stop, 0)
-    step_count = math.ceil(max((stop - start) / step, 0))
-    stop = start + step_count * step
-    if step_count:
-        stop += int(math.copysign(1, step)) - step
 
-    return start, stop, step
+    return _sanitise_slice(start, stop, step)
 
 
 def sanitise_unbounded_slice(
@@ -82,12 +89,7 @@ def sanitise_unbounded_slice(
         start += 1
         stop += 1
 
-    step_count = math.ceil(max((stop - start) / step, 0))
-    stop = start + step_count * step
-    if step_count:
-        stop += int(math.copysign(1, step)) - step
-
-    return start, stop, step
+    return _sanitise_slice(start, stop, step)
 
 
 def unsanitise_slice(
