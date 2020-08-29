@@ -74,6 +74,12 @@ class UnboundedPartial3DArray(BasePartial3DArray):
             self.create_section(cy)
         return self._sections[cy]
 
+    def __setitem__(
+            self,
+            slices: Tuple[Union[int, slice], Union[int, slice], Union[int, slice]],
+            value: Union[int, numpy.integer, numpy.ndarray],
+    ):
+        self[slices][:, :, :] = value
     @overload
     def __getitem__(self, slices: Tuple[int, int, int]) -> int:
         ...
@@ -129,5 +135,6 @@ class UnboundedPartial3DArray(BasePartial3DArray):
             raise Exception(
                 f"{item.__class__.__name__}({item}) is not a supported input for __getitem__"
             )
+
 
 from .bounded_partial_3d_array import BoundedPartial3DArray
