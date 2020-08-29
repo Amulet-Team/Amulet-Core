@@ -93,7 +93,7 @@ class UnboundedPartial3DArray(BasePartial3DArray):
     def __getitem__(self, item):
         if isinstance(item, tuple):
             if len(item) != 3:
-                raise Exception(f"Tuple item must be of length 3, got {len(item)}")
+                raise KeyError(f"Tuple item must be of length 3, got {len(item)}")
             if all(isinstance(i, (int, numpy.integer)) for i in item):
                 sy = item[1] // self.section_shape[1]
                 if sy in self:
@@ -125,14 +125,10 @@ class UnboundedPartial3DArray(BasePartial3DArray):
                     (step_x, step_y, step_z),
                 )
             else:
-                raise Exception(f"Unsupported tuple {item} for getitem")
+                raise KeyError(f"Unsupported tuple {item} for getitem")
 
-        elif isinstance(item, numpy.ndarray):
-            raise NotImplementedError(
-                "numpy.ndarray is not currently supported as a slice input"
-            )
         else:
-            raise Exception(
+            raise KeyError(
                 f"{item.__class__.__name__}({item}) is not a supported input for __getitem__"
             )
 
