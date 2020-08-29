@@ -46,7 +46,7 @@ class PartialArrayTestCase(unittest.TestCase):
             )
 
     def test_access(self):
-        section_size = 4
+        section_size = 8
         section_count = 16
         partial = UnboundedPartial3DArray(
             numpy.uint32,
@@ -77,9 +77,6 @@ class PartialArrayTestCase(unittest.TestCase):
         ):
             self.assertEqual(partial[slices], array[slices], str(slices))
 
-        # test nested __getitem__ shape
-        # TODO
-
         # test nested __getitem__ values
         for slices in (
                 (slice(None), slice(None), slice(None)),
@@ -93,6 +90,24 @@ class PartialArrayTestCase(unittest.TestCase):
                     (-1, -1, -1),
             ):
                 self.assertEqual(partial[slices][slices2], array[slices][slices2], f"[{slices}][{slices2}]")
+
+        for slices in (
+                (slice(None), slice(None), slice(None)),
+                (slice(1, -1), slice(1, 50), slice(1, -1)),
+                (slice(-1, 1, -1), slice(50, 1, -1), slice(-1, 1, -1)),
+        ):
+            self.assertEqual(partial[slices].shape, array[slices].shape)
+            for slices2 in (
+                    (slice(None), slice(None), slice(None)),
+                    (slice(1, -1), slice(1, -1), slice(1, -1)),
+                    (slice(-1, 1, -1), slice(-1, 1, -1), slice(-1, 1, -1)),
+            ):
+                self.assertEqual(partial[slices][slices2].shape, array[slices][slices2].shape, f"[{slices}][{slices2}]")
+                for slices3 in (
+                        (0, 0, 0),
+                        (-1, -1, -1),
+                ):
+                    self.assertEqual(partial[slices][slices3], array[slices][slices3], f"[{slices}][{slices2}][{slices3}]")
 
     @unittest.skip
     def test_set(self):
