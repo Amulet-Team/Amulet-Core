@@ -1,5 +1,6 @@
-from typing import overload, Tuple, Union, Optional, Type, Dict
+from typing import overload, Tuple, Union, Optional, Type, Generator
 import numpy
+import math
 
 from .base_partial_3d_array import BasePartial3DArray
 from .unbounded_partial_3d_array import UnboundedPartial3DArray
@@ -51,6 +52,32 @@ class BoundedPartial3DArray(BasePartial3DArray):
             parent_array
         )
 
+    def _relative_to_absolute(self, axis: int, relative_index: int) -> int:
+        """Convert a relative index to the absolute value in the array."""
+        value = relative_index
+        start = self.start[axis]
+        stop = self.stop[axis]
+        step = self.step[axis]
+        if value >= 0:
+            value = start + value * step
+        else:
+            stop_max = start + math.ceil((stop - start) / step) * step
+            value = stop_max + value * step
+
+        if step > 0:
+            if not start <= value < stop:
+                raise IndexError(f"index {relative_index} is out of bounds for axis {axis} with size {self.shape[axis]}")
+        else:
+            if not start >= value > stop:
+                raise IndexError(f"index {relative_index} is out of bounds for axis {axis} with size {self.shape[axis]}")
+            value -= 1
+
+        return value
+
+    def _section_index(self, y: int) -> Tuple[int, int]:
+        """Get the section index and location within the section of an absolute y coordinate"""
+        return y // self.section_shape[1], y % self.section_shape[1]
+
     @overload
     def __getitem__(self, slices: Tuple[int, int, int]) -> int:
         ...
@@ -66,37 +93,13 @@ class BoundedPartial3DArray(BasePartial3DArray):
             if len(item) != 3:
                 raise Exception(f"Tuple item must be of length 3, got {len(item)}")
             if all(isinstance(i, (int, numpy.integer)) for i in item):
-                abs_item = [0, 0, 0]
-                starts = (self.start_x, self.start_y, self.start_z)
-                stops = (self.stop_x, self.stop_y, self.stop_z)
-                steps = (self.step_x, self.step_y, self.step_z)
-                for axis in range(3):
-                    value = item[axis]
-                    start = starts[axis]
-                    stop = stops[axis]
-                    step = steps[axis]
-                    if value >= 0:
-                        value = start + value * step
-                    else:
-                        value = stop + value * step
+                x, y, z = tuple(self._relative_to_absolute(axis, item[axis]) for axis in range(3))
 
-                    if step > 0:
-                        if not start <= value < stop:
-                            raise IndexError(f"index {item[1]} is out of bounds for axis {axis} with size {self.shape[axis]}")
-                    else:
-                        if not start >= value > stop:
-                            raise IndexError(f"index {item[1]} is out of bounds for axis {axis} with size {self.shape[axis]}")
-                        value -= 1
-
-                    abs_item[axis] = value
-
-                x, y, z = abs_item
-
-                cy = y // self.section_shape[1]
-                if cy in self:
+                sy, dy = self._section_index(y)
+                if sy in self:
                     return int(
-                        self._sections[cy][
-                            (x, y % self.section_shape[1], z)
+                        self._sections[sy][
+                            (x, dy, z)
                         ]
                     )
                 else:
