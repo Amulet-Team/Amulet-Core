@@ -4,7 +4,7 @@ import math
 
 from .base_partial_3d_array import BasePartial3DArray
 from .unbounded_partial_3d_array import UnboundedPartial3DArray
-from .util import to_slice, sanitise_slice, unpack_slice
+from .util import to_slice, sanitise_slice, unpack_slice, stack_sanitised_slices
 
 
 class BoundedPartial3DArray(BasePartial3DArray):
@@ -106,7 +106,31 @@ class BoundedPartial3DArray(BasePartial3DArray):
                     return self.default_value
 
             elif all(isinstance(i, (int, numpy.integer, slice)) for i in item):
-                raise NotImplementedError
+                item: Tuple[
+                    Tuple[int, int, int],
+                    Tuple[int, int, int],
+                    Tuple[int, int, int],
+                ] = zip(
+                    *tuple(
+                        stack_sanitised_slices(
+                            self.start[axis],
+                            self.stop[axis],
+                            self.step[axis],
+                            *sanitise_slice(
+                                *unpack_slice(
+                                    to_slice(i)
+                                ),
+                                self.shape[axis]
+                            )
+                        )
+                        for axis, i in enumerate(item)
+                    )
+                )
+
+                return BoundedPartial3DArray.from_partial_array(
+                    self._parent_array,
+                    *item
+                )
             else:
                 raise Exception(f"Unsupported tuple {item} for getitem")
 
