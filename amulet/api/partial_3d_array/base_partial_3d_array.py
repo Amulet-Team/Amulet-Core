@@ -80,6 +80,10 @@ class BasePartial3DArray:
         return self._start_z
 
     @property
+    def start(self) -> Tuple[int, int, int]:
+        return self.start_x, self.start_y, self.start_z
+
+    @property
     def stop_x(self) -> int:
         return self._stop_x
 
@@ -92,6 +96,10 @@ class BasePartial3DArray:
         return self._stop_z
 
     @property
+    def stop(self) -> Tuple[int, int, int]:
+        return self.stop_x, self.stop_y, self.stop_z
+
+    @property
     def step_x(self) -> int:
         return self._step_x
 
@@ -102,6 +110,10 @@ class BasePartial3DArray:
     @property
     def step_z(self) -> int:
         return self._step_z
+
+    @property
+    def step(self) -> Tuple[int, int, int]:
+        return self.step_x, self.step_y, self.step_z
 
     @property
     def size_x(self) -> int:
