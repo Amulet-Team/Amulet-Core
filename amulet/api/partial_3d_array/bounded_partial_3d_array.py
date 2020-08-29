@@ -146,5 +146,30 @@ class BoundedPartial3DArray(BasePartial3DArray):
                 f"{item.__class__.__name__}({item}) is not a supported input for __getitem__"
             )
 
-    def __setitem__(self, key, value):
-        raise NotImplementedError
+    def __setitem__(self, item, value):
+        if isinstance(item, tuple):
+            if len(item) != 3:
+                raise KeyError(f"Tuple item must be of length 3, got {len(item)}")
+            elif all(isinstance(i, (int, numpy.integer, slice)) for i in item):
+                item: Tuple[
+                    Tuple[int, int, int],
+                    Tuple[int, int, int],
+                    Tuple[int, int, int],
+                ] = self._stack_slices(item)
+                if isinstance(value, numpy.ndarray) and (numpy.issubdtype(value.dtype, numpy.integer) and numpy.issubdtype(self.dtype, numpy.integer)) or (numpy.issubdtype(value.dtype, numpy.bool) and numpy.issubdtype(self.dtype, numpy.bool)):
+                    raise NotImplementedError
+                elif (isinstance(value, (int, numpy.integer)) and numpy.issubdtype(self.dtype, numpy.integer)) or (isinstance(value, bool) and numpy.issubdtype(self.dtype, numpy.bool)):
+                    raise NotImplementedError
+                else:
+                    raise ValueError(f"Bad value {value}")
+
+            else:
+                raise KeyError(f"Unsupported tuple {item} for getitem")
+        elif isinstance(item, (numpy.ndarray, BoundedPartial3DArray)):
+            raise NotImplementedError(
+                "numpy.ndarray is not currently supported as a slice input"
+            )
+        else:
+            raise KeyError(
+                f"{item.__class__.__name__}({item}) is not a supported input for __getitem__"
+            )
