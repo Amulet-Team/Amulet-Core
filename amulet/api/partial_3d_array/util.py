@@ -107,6 +107,14 @@ def unsanitise_slice(
     return start, stop, step
 
 
+def stack_sanitised_slices(start1: int, stop1: int, step1: int, start2: int, stop2: int, step2: int) -> Tuple[int, int, int]:
+    step3 = step1 * step2
+    start3 = start1 + start2 * step1
+    stop3 = start1 + stop2 * step1
+
+    return _sanitise_slice(start3, stop3, step3)
+
+
 def unpack_slice(item: slice):
     return item.start, item.stop, item.step
 
