@@ -151,15 +151,27 @@ class BoundedPartial3DArray(BasePartial3DArray):
             if len(item) != 3:
                 raise KeyError(f"Tuple item must be of length 3, got {len(item)}")
             elif all(isinstance(i, (int, numpy.integer, slice)) for i in item):
-                item: Tuple[
+                stacked_slices: Tuple[
                     Tuple[int, int, int],
                     Tuple[int, int, int],
                     Tuple[int, int, int],
                 ] = self._stack_slices(item)
-                if isinstance(value, numpy.ndarray) and (numpy.issubdtype(value.dtype, numpy.integer) and numpy.issubdtype(self.dtype, numpy.integer)) or (numpy.issubdtype(value.dtype, numpy.bool) and numpy.issubdtype(self.dtype, numpy.bool)):
-                    raise NotImplementedError
+                if isinstance(value, (numpy.ndarray, BoundedPartial3DArray)) and (numpy.issubdtype(value.dtype, numpy.integer) and numpy.issubdtype(self.dtype, numpy.integer)) or (numpy.issubdtype(value.dtype, numpy.bool) and numpy.issubdtype(self.dtype, numpy.bool)):
+                    size_array = self[item]
+                    if size_array.shape != value.shape:
+                        raise ValueError(f"The shape of the index ({size_array.shape}) and the shape of the given array ({value.shape}) do not match.")
+                    for sy, slices, relative_slices in size_array._iter_slices():
+                        if sy not in self._sections:
+                            self._parent_array.create_section(sy)
+                            self._sections[sy][slices] = numpy.asarray(value[relative_slices])
+
                 elif (isinstance(value, (int, numpy.integer)) and numpy.issubdtype(self.dtype, numpy.integer)) or (isinstance(value, bool) and numpy.issubdtype(self.dtype, numpy.bool)):
-                    raise NotImplementedError
+                    for sy, slices, _ in self._iter_slices():
+                        if sy in self._sections:
+                            self._sections[sy][slices] = value
+                        elif value != self.default_value:
+                            self._parent_array.create_section(sy)
+                            self._sections[sy][slices] = value
                 else:
                     raise ValueError(f"Bad value {value}")
 
