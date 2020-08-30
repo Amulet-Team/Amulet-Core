@@ -109,16 +109,40 @@ class PartialArrayTestCase(unittest.TestCase):
                 ):
                     self.assertEqual(partial[slices][slices3], array[slices][slices3], f"[{slices}][{slices2}][{slices3}]")
 
-    @unittest.skip
     def test_set(self):
+        section_size = 4
+        section_count = 16
         partial = UnboundedPartial3DArray(
             numpy.uint32,
             0,
-            (4, 4, 4),
-            (0, 16)
+            (section_size, section_size, section_size),
+            (0, section_count)
         )
+
         partial[:, :4, :] = 5
+        self.assertTrue(numpy.all(numpy.asarray(partial[:, :4, :]) == 5))
         self.assertEqual(tuple(partial.sections), (0,))
         self.assertTrue(numpy.all(partial.get_section(0) == 5))
+        partial[:, 2:6, :] = 10
+        self.assertTrue(numpy.all(numpy.asarray(partial[:, :2, :]) == 5))
+        self.assertTrue(numpy.all(numpy.asarray(partial[:, 2:6, :]) == 10))
+        self.assertTrue(numpy.all(numpy.asarray(partial[:, 6:, :]) == 0))
 
-        # partial[:, 17, :] = partial[:, 0, :]
+        self.assertEqual(tuple(partial.sections), (0, 1))
+
+        arange = numpy.arange(section_size ** 3 * 4).reshape((section_size, section_size * 4, section_size))
+        partial[:, int(section_size*4.5):int(section_size*8.5), :] = arange
+        self.assertTrue(numpy.array_equal(
+            partial[:, int(section_size * 4.5):int(section_size * 8.5), :],
+            arange
+        ))
+
+        partial[:, int(section_size * 8.5):int(section_size * 12.5), :] = partial[:, int(section_size * 4.5):int(section_size * 8.5), :]
+        self.assertTrue(numpy.array_equal(
+            partial[:, int(section_size * 8.5):int(section_size * 12.5), :],
+            arange
+        ))
+        self.assertTrue(numpy.array_equal(
+            partial[:, int(section_size * 4.5):int(section_size * 8.5), :],
+            partial[:, int(section_size * 8.5):int(section_size * 12.5), :]
+        ))
