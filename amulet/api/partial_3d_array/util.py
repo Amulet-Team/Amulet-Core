@@ -133,11 +133,7 @@ def to_slice(item: SingleFlexibleSliceType) -> slice:
 
 
 def multi_to_slice(slices: FlexibleSlicesType) -> SliceSlicesType:
-    slices_out = []
-    for item in slices:
-        slices_out.append(to_slice(item))
-
-    return tuple(slices_out)
+    return tuple(to_slice(item) for item in slices)
 
 
 def get_sliced_array_size(
