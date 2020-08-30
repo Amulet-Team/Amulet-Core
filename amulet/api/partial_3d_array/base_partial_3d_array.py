@@ -116,6 +116,18 @@ class BasePartial3DArray:
         return self.step_x, self.step_y, self.step_z
 
     @property
+    def slice_x(self) -> slice:
+        return slice(self.start_x, self.stop_x, self.step_x)
+
+    @property
+    def slice_y(self) -> slice:
+        return slice(self.start_y, self.stop_y, self.step_y)
+
+    @property
+    def slice_z(self) -> slice:
+        return slice(self.start_z, self.stop_z, self.step_z)
+
+    @property
     def size_x(self) -> int:
         if self._size_x is None:
             self._size_x = get_sanitised_sliced_array_size(
