@@ -75,11 +75,12 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         return self._sections[sy]
 
     def __setitem__(
-            self,
-            slices: Tuple[Union[int, slice], Union[int, slice], Union[int, slice]],
-            value: Union[int, numpy.integer, numpy.ndarray],
+        self,
+        slices: Tuple[Union[int, slice], Union[int, slice], Union[int, slice]],
+        value: Union[int, numpy.integer, numpy.ndarray],
     ):
         self[slices][:, :, :] = value
+
     @overload
     def __getitem__(self, slices: Tuple[int, int, int]) -> int:
         ...
@@ -112,7 +113,7 @@ class UnboundedPartial3DArray(BasePartial3DArray):
                 start_y, stop_y, step_y = sanitise_unbounded_slice(
                     *unpack_slice(to_slice(item[1])),
                     self._default_min_y,
-                    self._default_max_y
+                    self._default_max_y,
                 )
                 start_z, stop_z, step_z = sanitise_slice(
                     *unpack_slice(to_slice(item[2])), self.size_z
