@@ -24,40 +24,54 @@ class Biomes:
         self._2d: Optional[numpy.ndarray] = None
         self._3d: Optional[Biomes3D] = None
         if array is None:
-            self._mode = 3
+            self._dimension = 0
         elif isinstance(array, numpy.ndarray):
             assert array.shape == (16, 16), "If Biomes is given an ndarray it must be 16x16"
             self._2d = array.copy()
-            self._mode = 2
+            self._dimension = 2
         elif isinstance(array, (dict, Biomes3D)):
-            self._mode = 3
             self._3d = Biomes3D(array)
+            self._dimension = 3
+
+    @property
+    def dimension(self) -> int:
+        """The number of dimensions the data has
+        0 when there is no data. Will error if you try accessing data from it without converting to one of the other formats.
+        2 when the data is a 2D 16x16 numpy array.
+        3 when the data is a 3D 4xinfx4 Biome3D array made of sections of size 4x4x4."""
+        return self._dimension
 
     def convert_to_2d(self):
+        """Convert the data in whatever format it is in to the 2D 16x16 format."""
         if self._2d is None:
             self._2d = numpy.zeros((16, 16), numpy.uint32)
-        if self._mode == 3:
-            # convert from 3D
-            if self._3d is not None:
+        if self._dimension != 2:
+            if self._dimension == 3 and self._3d is not None:
+                # convert from 3D
                 self._2d[:, :] = numpy.kron(numpy.reshape(self._3d[:, 0, :], (4, 4)), numpy.ones((4, 4)))
-            self._mode = 2
+            self._dimension = 2
 
     def convert_to_3d(self):
+        """Convert the data in whatever format it is in to the 3D 4xinfx4 format."""
         if self._3d is None:
             self._3d = Biomes3D()
-        if self._mode == 2:
-            # convert from 3D
-            if self._2d is not None:
+        if self._dimension != 3:
+            if self._dimension == 2 and self._2d is not None:
+                # convert from 2D
                 self._3d[:, 0, :] = self._2d[::4, ::4]
-            self._mode = 3
+            self._dimension = 3
 
     def _get_active(self) -> Union[numpy.ndarray, Biomes3D]:
-        if self._mode == 2:
+        if self._dimension == 0:
+            raise Exception("You are trying to use Biomes but have not picked a format. Use one of the convert methods to specify the format.")
+        elif self._dimension == 2:
             self.convert_to_2d()
             return self._2d
-        elif self._mode == 3:
+        elif self._dimension == 3:
             self.convert_to_3d()
             return self._3d
+        else:
+            raise Exception("Dimension is invalid. This shouldn't happen")
 
     def __getattr__(self, item):
         return self._get_active().__getattribute__(item)
