@@ -42,6 +42,9 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         self._default_min_y = -default_section_counts[0] * self.section_shape[1]
         self._default_max_y = default_section_counts[1] * self.section_shape[1]
 
+    def __repr__(self):
+        return f"UnboundedPartial3DArray(dtype={self.dtype}, shape={self.shape})"
+
     @property
     def size_y(self) -> float:
         return math.inf

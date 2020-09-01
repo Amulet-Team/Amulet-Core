@@ -49,6 +49,9 @@ class BoundedPartial3DArray(BasePartial3DArray):
             dtype, default_value, section_shape, start, stop, step, parent_array
         )
 
+    def __repr__(self):
+        return f"BoundedPartial3DArray(dtype={self.dtype}, shape={self.shape})"
+
     def __array__(self):
         """Convert the data to a numpy array"""
         array = numpy.full(self.shape, self.default_value, self.dtype)
