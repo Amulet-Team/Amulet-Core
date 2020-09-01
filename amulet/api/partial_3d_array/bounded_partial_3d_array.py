@@ -214,13 +214,19 @@ class BoundedPartial3DArray(BasePartial3DArray):
         )
 
     @overload
-    def __getitem__(self, slices: Tuple[int, int, int]) -> int:
+    def __getitem__(self, slices: Tuple[int, int, int]) -> Union[int, bool]:
         ...
 
     @overload
     def __getitem__(
         self, slices: Tuple[Union[int, slice], Union[int, slice], Union[int, slice]]
     ) -> "BoundedPartial3DArray":
+        ...
+
+    @overload
+    def __getitem__(
+            self, slices: Union[numpy.ndarray, "BoundedPartial3DArray"]
+    ) -> numpy.ndarray:
         ...
 
     def __getitem__(self, item):
@@ -250,13 +256,53 @@ class BoundedPartial3DArray(BasePartial3DArray):
                 raise KeyError(f"Unsupported tuple {item} for getitem")
 
         elif isinstance(item, (numpy.ndarray, BoundedPartial3DArray)):
-            raise NotImplementedError(
-                "numpy.ndarray is not currently supported as a slice input"
-            )
+            if isinstance(item.dtype, bool):
+                if item.shape != self.shape:
+                    raise ValueError(
+                        f"The shape of the index ({self.shape}) and the shape of the given array ({item.shape}) do not match."
+                    )
+                out = []
+                for sy, slices, relative_slices in self._iter_slices(
+                        self.slices_tuple
+                ):
+                    if sy in self._sections:
+                        out.append(self._sections[sy][slices][numpy.asarray(item[relative_slices])])
+                    else:
+                        out.append(numpy.full(
+                            numpy.count_nonzero(numpy.asarray(item[relative_slices])),
+                            self.default_value,
+                            self.dtype
+                        ))
+                if out:
+                    return numpy.concatenate(out)
+                else:
+                    return numpy.full(0, self.default_value, self.dtype)
+            elif isinstance(item.dtype, numpy.integer):
+                if isinstance(item, BoundedPartial3DArray):
+                    raise ValueError("Index array with a BoundedPartial3DArray is not valid")
+                raise NotImplementedError("Index arrays are not currently supported")
+            else:
+                raise ValueError(f"{item.__class__.__name__}({item}) is not a supported input for __getitem__")
         else:
             raise KeyError(
                 f"{item.__class__.__name__}({item}) is not a supported input for __getitem__"
             )
+
+    @overload
+    def __setitem__(
+            self,
+            item: Tuple[Union[int, slice], Union[int, slice], Union[int, slice]],
+            value: Union[int, bool, numpy.ndarray, "BoundedPartial3DArray"]
+    ):
+        ...
+
+    @overload
+    def __setitem__(
+            self,
+            item: Union[numpy.ndarray, "BoundedPartial3DArray"],
+            value: Union[int, bool, numpy.ndarray]
+    ):
+        ...
 
     def __setitem__(self, item, value):
         if isinstance(item, tuple):
@@ -308,9 +354,31 @@ class BoundedPartial3DArray(BasePartial3DArray):
             else:
                 raise KeyError(f"Unsupported tuple {item} for getitem")
         elif isinstance(item, (numpy.ndarray, BoundedPartial3DArray)):
-            raise NotImplementedError(
-                "numpy.ndarray is not currently supported as a slice input"
-            )
+            if numpy.issubdtype(item.dtype, numpy.bool):
+                if item.shape != self.shape:
+                    raise ValueError(
+                        f"The shape of the index ({self.shape}) and the shape of the given array ({item.shape}) do not match."
+                    )
+                if isinstance(value, (int, numpy.integer, bool)):
+                    for sy, slices, relative_slices in self._iter_slices(
+                            self.slices_tuple
+                    ):
+                        bool_array = numpy.asarray(item[relative_slices])
+                        if sy in self._sections:
+                            self._sections[sy][slices][bool_array] = value
+                        elif value != self.default_value and numpy.any(bool_array):
+                            self._parent_array.create_section(sy)
+                            self._sections[sy][slices][bool_array] = value
+                elif isinstance(value, numpy.ndarray):
+                    raise NotImplementedError("cannot currently set using a bool array")
+                else:
+                    raise ValueError(f"When setting using a bool array the value must be an int, bool or numpy.ndarray. Got {item.__class__.__name__}({item})")
+            elif numpy.issubdtype(item.dtype, numpy.integer):
+                if isinstance(item, BoundedPartial3DArray):
+                    raise ValueError("Index array with a BoundedPartial3DArray is not valid")
+                raise NotImplementedError("Index arrays are not currently supported")
+            else:
+                raise ValueError(f"{item.__class__.__name__}({item}) is not a supported input for __getitem__")
         else:
             raise KeyError(
                 f"{item.__class__.__name__}({item}) is not a supported input for __getitem__"

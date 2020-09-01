@@ -173,3 +173,25 @@ class PartialArrayTestCase(unittest.TestCase):
         self.assertFalse(numpy.all(arange == partial[:, int(section_size * 8.5):int(section_size * 12.5), :]))
         self.assertFalse(numpy.all(numpy.zeros((section_size, section_size * 4, section_size)) == partial[:, int(section_size * 4.5):int(section_size * 8.5), :]))
         self.assertTrue(numpy.all(numpy.zeros((section_size, section_size * 4, section_size)) == partial[:, int(section_size * 8.5):int(section_size * 12.5), :]))
+
+    def test_eq_index(self):
+        section_size = 4
+        section_count = 16
+        partial = UnboundedPartial3DArray(
+            numpy.uint32,
+            0,
+            (section_size, section_size, section_size),
+            (0, section_count)
+        )
+        bounded_partial = partial[:, :, :]
+        self.assertTrue(numpy.all(bounded_partial == 0))
+
+        arange = numpy.arange(section_size ** 3 * section_count).reshape((section_size, section_size * section_count, section_size))
+        partial[:, :, :] = arange
+
+        self.assertTrue(numpy.all(bounded_partial == arange))
+
+        bounded_partial[numpy.asarray(bounded_partial) % 2 == 1] = 10
+        arange[arange % 2 == 1] = 10
+
+        self.assertTrue(numpy.all(bounded_partial == arange))
