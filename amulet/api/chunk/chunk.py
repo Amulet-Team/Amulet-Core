@@ -117,7 +117,10 @@ class Chunk:
         return self._blocks
 
     @blocks.setter
-    def blocks(self, value: Optional[Union[Dict[int, numpy.ndarray], Blocks]]):
+    def blocks(self, value: Union[Dict[int, numpy.ndarray], Blocks, None]):
+        if isinstance(value, dict):
+            value: Dict[int, numpy.ndarray]
+            value = {k: v.astype(numpy.uint32) for k, v in value.items()}
         self._blocks = Blocks(value)
 
     def get_block(self, dx: int, y: int, dz: int) -> Block:

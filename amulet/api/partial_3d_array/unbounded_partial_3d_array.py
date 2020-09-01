@@ -3,7 +3,7 @@ import numpy
 import math
 
 from .base_partial_3d_array import BasePartial3DArray
-from .util import sanitise_slice, to_slice, unpack_slice, sanitise_unbounded_slice
+from .util import sanitise_slice, to_slice, unpack_slice, sanitise_unbounded_slice, multi_to_slice
 from .data_types import DtypeType
 
 
@@ -83,7 +83,7 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         slices: Tuple[Union[int, slice], Union[int, slice], Union[int, slice]],
         value: Union[int, numpy.integer, numpy.ndarray],
     ):
-        self[slices][:, :, :] = value
+        self[multi_to_slice(slices)][:, :, :] = value
 
     @overload
     def __getitem__(self, slices: Tuple[int, int, int]) -> int:
