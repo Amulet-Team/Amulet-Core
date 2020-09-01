@@ -190,7 +190,8 @@ class BaseLevelDBInterface(Interface):
                 d2d = b"\x00" * 512  # TODO: get this data from somewhere
             else:
                 d2d = b"\x00" * 512
-            d2d += chunk.biomes.convert_to_format(256).astype("uint8").tobytes()
+            chunk.biomes.convert_to_2d()
+            d2d += chunk.biomes.astype("uint8").tobytes()
             chunk_data[b"\x2D"] = d2d
 
         # pack block entities and entities
