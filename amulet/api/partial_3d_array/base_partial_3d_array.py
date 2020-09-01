@@ -2,6 +2,7 @@ from typing import Optional, Dict, Union, Tuple, Type, TYPE_CHECKING
 import numpy
 
 from .util import get_sanitised_sliced_array_size
+from .data_types import DtypeType, UnpackedSlicesType
 
 if TYPE_CHECKING:
     from .unbounded_partial_3d_array import UnboundedPartial3DArray
@@ -12,7 +13,7 @@ class BasePartial3DArray:
 
     def __init__(
         self,
-        dtype: Type[numpy.dtype],
+        dtype: DtypeType,
         default_value: Union[int, bool],
         section_shape: Tuple[int, int, int],
         start: Tuple[Optional[int], Optional[int], Optional[int]],

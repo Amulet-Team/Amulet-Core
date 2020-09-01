@@ -4,6 +4,7 @@ import math
 
 from .base_partial_3d_array import BasePartial3DArray
 from .util import sanitise_slice, to_slice, unpack_slice, sanitise_unbounded_slice
+from .data_types import DtypeType
 
 
 class UnboundedPartial3DArray(BasePartial3DArray):
@@ -23,7 +24,7 @@ class UnboundedPartial3DArray(BasePartial3DArray):
 
     def __init__(
         self,
-        dtype: Type[numpy.dtype],
+        dtype: DtypeType,
         default_value: Union[int, bool],
         section_shape: Tuple[int, int, int],
         default_section_counts: Tuple[int, int],

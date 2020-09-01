@@ -2,7 +2,7 @@ from typing import overload, Tuple, Union, Optional, Type, Generator
 import numpy
 import math
 
-from .data_types import SliceSlicesType, UnpackedSlicesType
+from .data_types import SliceSlicesType, UnpackedSlicesType, DtypeType
 from .base_partial_3d_array import BasePartial3DArray
 from .unbounded_partial_3d_array import UnboundedPartial3DArray
 from .util import to_slice, sanitise_slice, unpack_slice, stack_sanitised_slices
@@ -33,7 +33,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
 
     def __init__(
         self,
-        dtype: Type[numpy.dtype],
+        dtype: DtypeType,
         default_value: Union[int, bool],
         section_shape: Tuple[int, int, int],
         start: Tuple[Optional[int], int, Optional[int]],
