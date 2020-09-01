@@ -63,6 +63,57 @@ class BoundedPartial3DArray(BasePartial3DArray):
                 array[relative_slices] = self._sections[sy][slices]
         return array
 
+    def __eq__(self, value):
+        def get_array(default: bool):
+            return self.from_partial_array(
+                UnboundedPartial3DArray(
+                    numpy.bool,
+                    default,
+                    self.section_shape,
+                    (0, 0)
+                ),
+                self.start,
+                self.stop,
+                self.step
+            )
+
+        if (
+                isinstance(value, (int, numpy.integer))
+                and numpy.issubdtype(self.dtype, numpy.integer)
+        ) or (
+                isinstance(value, bool) and numpy.issubdtype(self.dtype, numpy.bool)
+        ):
+            out = get_array(value == self.default_value)
+            for sy, slices, relative_slices in self._iter_slices(self.slices_tuple):
+                if sy in self._sections:
+                    out[relative_slices] = self._sections[sy][slices] == value
+        elif (
+                isinstance(value, (numpy.ndarray, BoundedPartial3DArray))
+                and (
+                        numpy.issubdtype(value.dtype, numpy.integer)
+                        and numpy.issubdtype(self.dtype, numpy.integer)
+                )
+                or (
+                        numpy.issubdtype(value.dtype, numpy.bool)
+                        and numpy.issubdtype(self.dtype, numpy.bool)
+                )
+        ):
+            out = get_array(False)
+            if self.shape != value.shape:
+                raise ValueError(
+                    f"The shape of the index ({self.shape}) and the shape of the given array ({value.shape}) do not match."
+                )
+            for sy, slices, relative_slices in self._iter_slices(
+                    self.slices_tuple
+            ):
+                if sy in self._sections:
+                    out[relative_slices] = self._sections[sy][slices] == numpy.asarray(value[relative_slices])
+                else:
+                    out[relative_slices] = self.default_value == numpy.asarray(value[relative_slices])
+        else:
+            raise ValueError(f"Bad value {value}")
+        return out
+
     def _iter_slices(
         self, slices: UnpackedSlicesType
     ) -> Generator[Tuple[int, SliceSlicesType, SliceSlicesType], None, None]:

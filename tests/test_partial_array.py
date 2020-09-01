@@ -146,3 +146,30 @@ class PartialArrayTestCase(unittest.TestCase):
             partial[:, int(section_size * 4.5):int(section_size * 8.5), :],
             partial[:, int(section_size * 8.5):int(section_size * 12.5), :]
         ))
+
+    def test_eq(self):
+        section_size = 4
+        section_count = 16
+        partial = UnboundedPartial3DArray(
+            numpy.uint32,
+            0,
+            (section_size, section_size, section_size),
+            (0, section_count)
+        )
+        bounded_partial = partial[:, :, :]
+        self.assertTrue(numpy.all(bounded_partial == 0))
+        self.assertTrue(numpy.all(0 == bounded_partial))
+        self.assertFalse(numpy.all(bounded_partial == 10))
+        self.assertFalse(numpy.all(10 == bounded_partial))
+        self.assertFalse(numpy.any(bounded_partial == 10))
+        self.assertFalse(numpy.any(10 == bounded_partial))
+
+        arange = numpy.arange(section_size ** 3 * 4).reshape((section_size, section_size * 4, section_size))
+        partial[:, int(section_size * 4.5):int(section_size * 8.5), :] = arange
+
+        self.assertTrue(numpy.all(arange == partial[:, int(section_size * 4.5):int(section_size * 8.5), :]))
+        self.assertTrue(numpy.all(partial[:, int(section_size * 4.5):int(section_size * 8.5), :] == arange))
+
+        self.assertFalse(numpy.all(arange == partial[:, int(section_size * 8.5):int(section_size * 12.5), :]))
+        self.assertFalse(numpy.all(numpy.zeros((section_size, section_size * 4, section_size)) == partial[:, int(section_size * 4.5):int(section_size * 8.5), :]))
+        self.assertTrue(numpy.all(numpy.zeros((section_size, section_size * 4, section_size)) == partial[:, int(section_size * 8.5):int(section_size * 12.5), :]))
