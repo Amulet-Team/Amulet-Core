@@ -197,10 +197,6 @@ class BoundedPartial3DArray(BasePartial3DArray):
 
         return value
 
-    def _section_index(self, y: int) -> Tuple[int, int]:
-        """Get the section index and location within the section of an absolute y coordinate"""
-        return y // self.section_shape[1], y % self.section_shape[1]
-
     def _stack_slices(
         self, slices: Tuple[slice, slice, slice]
     ) -> Tuple[Tuple[int, int, int], Tuple[int, int, int], Tuple[int, int, int]]:

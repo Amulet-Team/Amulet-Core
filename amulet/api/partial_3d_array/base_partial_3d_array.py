@@ -177,6 +177,10 @@ class BasePartial3DArray:
     def section_shape(self) -> Tuple[int, int, int]:
         return self._section_shape
 
+    def _section_index(self, y: int) -> Tuple[int, int]:
+        """Get the section index and location within the section of an absolute y coordinate"""
+        return y // self.section_shape[1], y % self.section_shape[1]
+
     def __array__(self):
         raise NotImplementedError
 
