@@ -191,21 +191,12 @@ class Chunk:
     @property
     def biomes(self) -> Biomes:
         if self._biomes is None:
-            self._biomes = Biomes(self, numpy.zeros((16, 16), dtype=numpy.uint32))
+            self._biomes = Biomes()
         return self._biomes
 
     @biomes.setter
-    def biomes(self, value: numpy.ndarray):
-        if not numpy.array_equal(self._biomes, value):
-            assert value.size in [
-                0,
-                256,
-                1024,
-            ], "Size of the Biome array must be 256 or 1024"
-            numpy.issubdtype(
-                value.dtype, numpy.integer
-            ), "dtype must be an unsigned integer"
-            self._biomes = Biomes(self, value)
+    def biomes(self, value: Union[Biomes, Dict[int, numpy.ndarray]]):
+        self._biomes = Biomes(value)
 
     @property
     def _biome_palette(self) -> BiomeManager:
