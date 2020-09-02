@@ -4,7 +4,8 @@ import itertools
 import numpy
 
 from .selection import SelectionGroup, SelectionBox
-from .world import World, BaseStructure
+from .base_structure import BaseStructure
+from .world import World
 from .chunk import Chunk
 from .block import Block
 from amulet.api.registry import BlockManager

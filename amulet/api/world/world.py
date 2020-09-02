@@ -7,66 +7,30 @@ from typing import Union, Generator, Dict, Optional, Tuple, Callable, Any, TYPE_
 from types import GeneratorType
 
 from amulet import log
-from .block import Block
-from .block_entity import BlockEntity
-from .entity import Entity
+from amulet.api.base_structure import BaseStructure
+from amulet.api.block import Block
+from amulet.api.block_entity import BlockEntity
+from amulet.api.entity import Entity
 from amulet.api.registry import BlockManager
 from amulet.api.registry.biome_manager import BiomeManager
-from .errors import ChunkDoesNotExist, ChunkLoadError, LevelDoesNotExist
-from .history_manager import ChunkHistoryManager
-from .chunk import Chunk
-from .selection import SelectionGroup, SelectionBox
-from .paths import get_temp_dir
-from .data_types import (
+from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError, LevelDoesNotExist
+from amulet.api.chunk import Chunk
+from amulet.api.selection import SelectionGroup, SelectionBox
+from amulet.api.paths import get_temp_dir
+from amulet.api.data_types import (
     OperationType,
     Dimension,
     DimensionCoordinates,
     VersionIdentifierType,
 )
-from ..utils.world_utils import block_coords_to_chunk_coords
+from amulet.utils.world_utils import block_coords_to_chunk_coords
+from .chunk_manager import ChunkManager
 
 if TYPE_CHECKING:
     from PyMCTranslate import TranslationManager
     from amulet.api.wrapper.world_format_wrapper import WorldFormatWrapper
 
 ChunkCache = Dict[DimensionCoordinates, Optional[Chunk]]
-
-
-class BaseStructure:
-    @property
-    def sub_chunk_size(self) -> int:
-        return 16
-
-    @property
-    def chunk_size(self) -> Tuple[int, int, int]:
-        return self.sub_chunk_size, self.sub_chunk_size * 16, self.sub_chunk_size
-
-    def get_chunk(self, *args, **kwargs) -> Chunk:
-        raise NotImplementedError
-
-    def get_block(self, *args, **kwargs) -> Block:
-        raise NotImplementedError
-
-    def _chunk_box(
-        self,
-        cx: int,
-        cz: int,
-        chunk_size: Optional[Tuple[int, Union[int, None], int]] = None,
-    ):
-        """Get a SelectionBox containing the whole of a given chunk"""
-        if chunk_size is None:
-            chunk_size = self.chunk_size
-        return SelectionBox.create_chunk_box(cx, cz, chunk_size[0])
-
-    def get_chunk_boxes(
-        self, *args, **kwargs
-    ) -> Generator[Tuple[Chunk, SelectionBox], None, None]:
-        raise NotImplementedError
-
-    def get_chunk_slices(
-        self, *args, **kwargs
-    ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None]:
-        raise NotImplementedError
 
 
 class World(BaseStructure):
@@ -94,12 +58,11 @@ class World(BaseStructure):
         self._biome_palette = BiomeManager()
         self._biome_palette.get_add_biome("universal_minecraft:plains")
 
-        self._chunk_cache: ChunkCache = {}
-        shutil.rmtree(self._temp_directory, ignore_errors=True)
-        self._chunk_history_manager = ChunkHistoryManager(
-            os.path.join(self._temp_directory, "chunks")
+        self._chunk_cache: ChunkManager = ChunkManager(
+            os.path.join(self._temp_directory, "chunks"),
+            self.block_palette,
+            self.biome_palette,
         )
-        self._needs_undo_point: bool = False
 
     @property
     def world_path(self) -> str:
@@ -109,18 +72,16 @@ class World(BaseStructure):
     @property
     def changed(self) -> bool:
         """Has any data been modified but not saved to disk"""
-        return self._world_wrapper.changed or any(
-            chunk is None or chunk.changed for chunk in self._chunk_cache.values()
-        )
+        return self._world_wrapper.changed or self._chunk_cache.changed
 
     @property
-    def chunk_history_manager(self) -> ChunkHistoryManager:
+    def chunk_history_manager(self) -> ChunkManager:
         """A class storing previous versions of chunks to roll back to as required."""
-        return self._chunk_history_manager
+        return self._chunk_cache
 
     def create_undo_point(self):
         """Create a restore point for all chunks that have changed."""
-        self._chunk_history_manager.create_undo_point(self._chunk_cache)
+        self._chunk_cache.create_undo_point()
 
     @property
     def sub_chunk_size(self) -> int:
@@ -175,13 +136,8 @@ class World(BaseStructure):
         """Save the world using the given wrapper.
         Leave as None to save back to the input wrapper."""
         chunk_index = 0
-        if self._needs_undo_point or any(
-            chunk is not None and chunk.changed for chunk in self._chunk_cache.values()
-        ):
-            self.create_undo_point()
-            self._needs_undo_point = False
 
-        changed_chunks = list(self._chunk_history_manager.changed_chunks())
+        changed_chunks = list(self._chunk_cache.changed_chunks())
         chunk_count = len(changed_chunks)
 
         if wrapper is None:
@@ -228,20 +184,19 @@ class World(BaseStructure):
         for dimension, cx, cz in changed_chunks:
             if dimension not in output_dimension_map:
                 continue
-            chunk = self._chunk_history_manager.get_current(
-                dimension, cx, cz, self._block_palette, self._biome_palette
-            )
+            chunk = self._chunk_cache.get_chunk(dimension, cx, cz)
             if chunk is None:
                 wrapper.delete_chunk(cx, cz, dimension)
             else:
                 wrapper.commit_chunk(chunk, dimension)
+            chunk.changed = False
             chunk_index += 1
             yield chunk_index, chunk_count
             if not chunk_index % 10000:
                 wrapper.save()
                 wrapper.unload()
 
-        self._chunk_history_manager.mark_saved()
+        self._chunk_cache.mark_saved()
         log.info(f"Saving changes to world {wrapper.path}")
         wrapper.save()
         log.info(f"Finished saving changes to world {wrapper.path}")
@@ -256,16 +211,7 @@ class World(BaseStructure):
     def unload(self, safe_area: Optional[Tuple[Dimension, int, int, int, int]] = None):
         """Unload all chunks not in the safe area
         Safe area format: dimension, min chunk X|Z, max chunk X|Z"""
-        unload_chunks = []
-        if safe_area is None:
-            unload_chunks = list(self._chunk_cache.keys())
-        else:
-            dimension, minx, minz, maxx, maxz = safe_area
-            for (cd, cx, cz), chunk in self._chunk_cache.items():
-                if not (cd == dimension and minx <= cx <= maxx and minz <= cz <= maxz):
-                    unload_chunks.append((cd, cx, cz))
-        for chunk_key in unload_chunks:
-            del self._chunk_cache[chunk_key]
+        self._chunk_cache.unload(safe_area)
         self._world_wrapper.unload()
 
     def get_chunk(self, cx: int, cz: int, dimension: Dimension) -> Chunk:
@@ -281,24 +227,17 @@ class World(BaseStructure):
         """
         chunk_key = (dimension, cx, cz)
         if chunk_key in self._chunk_cache:
-            chunk = self._chunk_cache[(dimension, cx, cz)]
-        elif chunk_key in self._chunk_history_manager:
-            chunk = self._chunk_cache[
-                (dimension, cx, cz)
-            ] = self._chunk_history_manager.get_current(
-                dimension, cx, cz, self._block_palette, self._biome_palette
-            )
+            chunk = self._chunk_cache.get_chunk(dimension, cx, cz)
         else:
             try:
                 chunk = self._world_wrapper.load_chunk(cx, cz, dimension)
                 chunk.block_palette = self._block_palette
                 chunk.biome_palette = self._biome_palette
-                self._chunk_cache[(dimension, cx, cz)] = chunk
             except ChunkDoesNotExist:
-                chunk = self._chunk_cache[(dimension, cx, cz)] = None
+                chunk = None
             except ChunkLoadError as e:
                 raise e
-            self._chunk_history_manager.add_original_chunk(dimension, cx, cz, chunk)
+            self._chunk_cache.put_original_chunk(dimension, cx, cz, chunk)
 
         if chunk is None:
             raise ChunkDoesNotExist(f"Chunk ({cx},{cz}) does not exist")
@@ -312,15 +251,11 @@ class World(BaseStructure):
 
     def put_chunk(self, chunk: Chunk, dimension: Dimension):
         """Add a chunk to the universal world database"""
-        chunk.changed = True
-        chunk.block_palette = self._block_palette
-        chunk.biome_palette = self._biome_palette
-        self._chunk_cache[(dimension, chunk.cx, chunk.cz)] = chunk
+        self._chunk_cache.put_chunk(chunk, dimension)
 
     def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         """Delete a chunk from the universal world database"""
-        self._needs_undo_point = True
-        self._chunk_cache[(dimension, cx, cz)] = None
+        self._chunk_cache.delete_chunk(dimension, cx, cz)
 
     def get_block(self, x: int, y: int, z: int, dimension: Dimension) -> Block:
         """
@@ -559,23 +494,15 @@ class World(BaseStructure):
         return out
 
     def undo(self):
-        """
-        Undoes the last set of changes to the world
-        """
-        self._chunk_history_manager.undo(
-            self._chunk_cache, self._block_palette, self._biome_palette
-        )
+        """Undoes the last set of changes to the world"""
+        self._chunk_cache.undo()
 
     def redo(self):
-        """
-        Redoes the last set of changes to the world
-        """
-        self._chunk_history_manager.redo(
-            self._chunk_cache, self._block_palette, self._biome_palette
-        )
+        """Redoes the last set of changes to the world"""
+        self._chunk_cache.redo()
 
     def restore_last_undo_point(self):
         """Restore the world to the state it was when self.create_undo_point was called.
         If an operation errors there may be modifications made that did not get tracked.
         This will revert those changes."""
-        self.unload()  # clear the loaded chunks and they will get populated by the last version in the history manager
+        self._chunk_cache.restore_last_undo_point()
