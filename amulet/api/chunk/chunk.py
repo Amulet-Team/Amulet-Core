@@ -44,8 +44,8 @@ class Chunk:
             self._cx,
             self._cz,
             self._changed_time,
-            {cy: self.blocks.get_sub_chunk(cy) for cy in self.blocks.sub_chunks},
-            numpy.array(self.biomes),
+            {sy: self.blocks.get_sub_chunk(sy) for sy in self.blocks.sub_chunks},
+            self.biomes.to_raw(),
             self._entities.data,
             tuple(self._block_entities.data.values()),
             self._status.value,
@@ -63,12 +63,15 @@ class Chunk:
         self = cls(*chunk_data[:2])
         (
             self.blocks,
-            self.biomes,
+            biomes,
             self.entities,
             self.block_entities,
             self.status,
             self.misc,
         ) = chunk_data[3:]
+
+        self._biomes = Biomes.from_raw(*biomes)
+
         self._changed_time = chunk_data[2]
         self._block_palette = block_palette
         self._biome_palette = biome_palette

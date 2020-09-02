@@ -1,5 +1,5 @@
 import numpy
-from typing import Union, Optional, Dict
+from typing import Union, Optional, Dict, Tuple
 from copy import deepcopy
 
 
@@ -20,6 +20,8 @@ class Biomes3D(UnboundedPartial3DArray):
 
 
 class Biomes:
+    __slots__ = ("_2d", "_3d", "_dimension")
+
     def __init__(self, array: Union[numpy.ndarray, Biomes3D, Dict[int, numpy.ndarray]] = None):
         self._2d: Optional[numpy.ndarray] = None
         self._3d: Optional[Biomes3D] = None
@@ -32,6 +34,23 @@ class Biomes:
         elif isinstance(array, (dict, Biomes3D)):
             self._3d = Biomes3D(array)
             self._dimension = 3
+
+    def to_raw(self) -> Tuple[int, Optional[numpy.ndarray], Optional[Dict[int, numpy.ndarray]]]:
+        """Don't use this method. Use to pickle data."""
+        if self._3d is None:
+            sections = None
+        else:
+            sections = self._3d._sections
+        return self._dimension, self._2d, sections
+
+    @classmethod
+    def from_raw(cls, dimension: int, d2: Optional[numpy.ndarray], d3: Optional[Dict[int, numpy.ndarray]]):
+        """Don't use this method. Use to unpickle data."""
+        biomes = cls()
+        biomes._dimension = dimension
+        biomes._2d = d2
+        if d3 is not None:
+            biomes._3d = Biomes3D(d3)
 
     @property
     def dimension(self) -> int:
