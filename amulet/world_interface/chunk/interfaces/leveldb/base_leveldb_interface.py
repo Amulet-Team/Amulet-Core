@@ -126,7 +126,7 @@ class BaseLevelDBInterface(Interface):
             height, biome = d2d[:512], d2d[512:]
             if self.features["data_2d"] == "height512|biome256":
                 pass  # TODO: put this data somewhere
-            chunk.biomes = numpy.frombuffer(biome, dtype="uint8")
+            chunk.biomes = numpy.frombuffer(biome, dtype="uint8").reshape(16, 16)
 
         # TODO: impliment key support
         # \x2D  heightmap and biomes

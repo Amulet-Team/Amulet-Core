@@ -235,7 +235,10 @@ class Chunk:
                     ],
                     dtype=numpy.uint,
                 )
-                self.biomes = biome_lut[self.biomes]
+                if self.biomes.dimension == 2:
+                    self.biomes = biome_lut[self.biomes]
+                elif self.biomes.dimension == 3:
+                    self.biomes = {sy: biome_lut[self.biomes.get_section(sy)] for sy in self.biomes.sections}
 
             self.__biome_palette = new_biome_palette
 
