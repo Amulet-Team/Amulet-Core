@@ -63,9 +63,8 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         assert (
             section.shape == self._section_shape
         ), "The size of all sections must be equal to the section_shape."
-        assert (
-            section.dtype == self._dtype
-        ), "the given dtype does not match the arrays given."
+        if section.dtype != self._dtype:
+            section = section.astype(self._dtype)
         self._sections[sy] = section
 
     def get_section(self, sy: int) -> numpy.ndarray:
