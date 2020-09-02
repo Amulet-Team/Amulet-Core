@@ -280,7 +280,7 @@ class BaseAnvilInterface(Interface):
                 chunk.biomes.convert_to_3d()
                 data["Level"]["Biomes"] = amulet_nbt.TAG_Int_Array(
                     numpy.transpose(
-                        numpy.asarray(chunk.biomes[:, 0:64, :], numpy.uint32),
+                        numpy.asarray(chunk.biomes[:, 0:64, :]).astype(numpy.uint32),
                         (1, 2, 0)
                     ).ravel(),  # YZX -> XYZ
                 )
