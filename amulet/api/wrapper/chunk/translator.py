@@ -481,7 +481,9 @@ class Translator:
         version = translation_manager.get_version(*version_identifier)
 
         if chunk.biomes.dimension == 2:
-            biome_int_palette, biome_array = numpy.unique(chunk.biomes, return_inverse=True)
+            biome_int_palette, biome_array = numpy.unique(
+                chunk.biomes, return_inverse=True
+            )
             chunk.biomes = biome_array.reshape(chunk.biomes.shape)
             chunk._biome_palette = BiomeManager(
                 [version.biome.unpack(biome) for biome in biome_int_palette]
@@ -491,8 +493,12 @@ class Translator:
             palette = []
             palette_length = 0
             for sy in chunk.biomes.sections:
-                biome_int_palette, biome_array = numpy.unique(chunk.biomes.get_section(sy), return_inverse=True)
-                biomes[sy] = biome_array.reshape(chunk.biomes.section_shape) + palette_length
+                biome_int_palette, biome_array = numpy.unique(
+                    chunk.biomes.get_section(sy), return_inverse=True
+                )
+                biomes[sy] = (
+                    biome_array.reshape(chunk.biomes.section_shape) + palette_length
+                )
                 palette_length += len(biome_int_palette)
                 palette.append(biome_int_palette)
 
@@ -551,11 +557,13 @@ class Translator:
         version = translation_manager.get_version(*version_identifier)
 
         biome_palette = numpy.array(
-            [version.biome.pack(biome) for biome in chunk.biome_palette],
-            numpy.uint32
+            [version.biome.pack(biome) for biome in chunk.biome_palette], numpy.uint32
         )
         if chunk.biomes.dimension == 2:
             chunk.biomes = biome_palette[chunk.biomes]
         elif chunk.biomes.dimension == 3:
-            chunk.biomes = {sy: biome_palette[chunk.biomes.get_section(sy)] for sy in chunk.biomes.sections}
+            chunk.biomes = {
+                sy: biome_palette[chunk.biomes.get_section(sy)]
+                for sy in chunk.biomes.sections
+            }
         chunk._biome_palette = BiomeManager()

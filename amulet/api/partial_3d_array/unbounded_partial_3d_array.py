@@ -82,7 +82,9 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         slices: Tuple[Union[int, slice], Union[int, slice], Union[int, slice]],
         value: Union[int, numpy.integer, numpy.ndarray],
     ):
-        if isinstance(value, (int, numpy.integer)) and all(isinstance(s, (int, numpy.integer)) for s in slices):
+        if isinstance(value, (int, numpy.integer)) and all(
+            isinstance(s, (int, numpy.integer)) for s in slices
+        ):
             sy, dy = self._section_index(slices[1])
             self.get_section(sy)[(slices[0], dy, slices[2])] = value
         else:

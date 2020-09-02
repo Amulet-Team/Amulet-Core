@@ -77,9 +77,7 @@ class ChunkHistoryManager:
             self._chunk_index[chunk_location] = (chunk_index, chunk_index)
 
     def items(
-            self,
-            block_palette: BlockManager,
-            biome_palette: BiomeManager
+        self, block_palette: BlockManager, biome_palette: BiomeManager
     ) -> Generator[Tuple[DimensionCoordinates, Optional[Chunk]], None, None]:
         for (dimension, cx, cz) in self._chunk_index.keys():
             yield (dimension, cx, cz), self.get_current(

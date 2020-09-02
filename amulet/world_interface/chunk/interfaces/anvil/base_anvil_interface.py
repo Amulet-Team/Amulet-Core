@@ -123,14 +123,15 @@ class BaseAnvilInterface(Interface):
             if self.features["biomes"] in ["256BA", "256IA"]:
                 chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
             elif self.features["biomes"] == "1024IA":
-                chunk.biomes = {sy: arr for sy, arr in enumerate(
+                chunk.biomes = {
+                    sy: arr
+                    for sy, arr in enumerate(
                         numpy.split(
                             numpy.transpose(
-                                biomes.astype(numpy.uint32).reshape(64, 4, 4),
-                                (2, 0, 1)
+                                biomes.astype(numpy.uint32).reshape(64, 4, 4), (2, 0, 1)
                             ),  # YZX -> XYZ
                             16,
-                            1
+                            1,
                         )
                     )
                 }
@@ -281,7 +282,7 @@ class BaseAnvilInterface(Interface):
                 data["Level"]["Biomes"] = amulet_nbt.TAG_Int_Array(
                     numpy.transpose(
                         numpy.asarray(chunk.biomes[:, 0:64, :]).astype(numpy.uint32),
-                        (1, 2, 0)
+                        (1, 2, 0),
                     ).ravel(),  # YZX -> XYZ
                 )
 

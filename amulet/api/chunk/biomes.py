@@ -22,20 +22,27 @@ class Biomes3D(UnboundedPartial3DArray):
 class Biomes:
     __slots__ = ("_2d", "_3d", "_dimension")
 
-    def __init__(self, array: Union[numpy.ndarray, Biomes3D, Dict[int, numpy.ndarray]] = None):
+    def __init__(
+        self, array: Union[numpy.ndarray, Biomes3D, Dict[int, numpy.ndarray]] = None
+    ):
         self._2d: Optional[numpy.ndarray] = None
         self._3d: Optional[Biomes3D] = None
         if array is None:
             self._dimension = 0
         elif isinstance(array, numpy.ndarray):
-            assert array.shape == (16, 16), "If Biomes is given an ndarray it must be 16x16"
+            assert array.shape == (
+                16,
+                16,
+            ), "If Biomes is given an ndarray it must be 16x16"
             self._2d = array.copy()
             self._dimension = 2
         elif isinstance(array, (dict, Biomes3D)):
             self._3d = Biomes3D(array)
             self._dimension = 3
 
-    def to_raw(self) -> Tuple[int, Optional[numpy.ndarray], Optional[Dict[int, numpy.ndarray]]]:
+    def to_raw(
+        self,
+    ) -> Tuple[int, Optional[numpy.ndarray], Optional[Dict[int, numpy.ndarray]]]:
         """Don't use this method. Use to pickle data."""
         if self._3d is None:
             sections = None
@@ -44,7 +51,12 @@ class Biomes:
         return self._dimension, self._2d, sections
 
     @classmethod
-    def from_raw(cls, dimension: int, d2: Optional[numpy.ndarray], d3: Optional[Dict[int, numpy.ndarray]]):
+    def from_raw(
+        cls,
+        dimension: int,
+        d2: Optional[numpy.ndarray],
+        d3: Optional[Dict[int, numpy.ndarray]],
+    ):
         """Don't use this method. Use to unpickle data."""
         biomes = cls()
         biomes._dimension = dimension
@@ -67,7 +79,9 @@ class Biomes:
         if self._dimension != 2:
             if self._dimension == 3 and self._3d is not None:
                 # convert from 3D
-                self._2d[:, :] = numpy.kron(numpy.reshape(self._3d[:, 0, :], (4, 4)), numpy.ones((4, 4)))
+                self._2d[:, :] = numpy.kron(
+                    numpy.reshape(self._3d[:, 0, :], (4, 4)), numpy.ones((4, 4))
+                )
             self._dimension = 2
 
     def convert_to_3d(self):
@@ -82,7 +96,9 @@ class Biomes:
 
     def _get_active(self) -> Union[numpy.ndarray, Biomes3D]:
         if self._dimension == 0:
-            raise Exception("You are trying to use Biomes but have not picked a format. Use one of the convert methods to specify the format.")
+            raise Exception(
+                "You are trying to use Biomes but have not picked a format. Use one of the convert methods to specify the format."
+            )
         elif self._dimension == 2:
             self.convert_to_2d()
             return self._2d

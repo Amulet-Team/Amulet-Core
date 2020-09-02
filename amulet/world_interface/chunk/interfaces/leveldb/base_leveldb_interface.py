@@ -331,7 +331,9 @@ class BaseLevelDBInterface(Interface):
                         return_inverse=True,
                         axis=0,
                     )
-                    blocks[cy] = sub_chunk_blocks.reshape(16, 16, 16).astype(numpy.uint32) + len(palette)
+                    blocks[cy] = sub_chunk_blocks.reshape(16, 16, 16).astype(
+                        numpy.uint32
+                    ) + len(palette)
                     palette += [
                         tuple(
                             sub_chunk_palette[storage_index][index]
