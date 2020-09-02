@@ -491,8 +491,8 @@ class Translator:
             palette = []
             palette_length = 0
             for sy in chunk.biomes.sections:
-                biome_int_palette, biome_array = numpy.unique(chunk.biomes, return_inverse=True)
-                biomes[sy] = biome_array + palette_length
+                biome_int_palette, biome_array = numpy.unique(chunk.biomes.get_section(sy), return_inverse=True)
+                biomes[sy] = biome_array.reshape(chunk.biomes.section_shape) + palette_length
                 palette_length += len(biome_int_palette)
                 palette.append(biome_int_palette)
 
@@ -500,6 +500,7 @@ class Translator:
                 chunk_palette, lut = numpy.unique(
                     numpy.concatenate(palette), return_inverse=True
                 )
+                lut = lut.astype(numpy.uint32)
                 for sy in biomes:
                     biomes[sy] = lut[biomes[sy]]
 
