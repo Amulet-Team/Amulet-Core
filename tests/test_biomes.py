@@ -1,5 +1,7 @@
 import unittest
 import numpy
+import copy
+
 from amulet.api.chunk.biomes import Biomes
 
 
@@ -13,3 +15,17 @@ class BlockTestCase(unittest.TestCase):
 
         biomes.convert_to_2d()
         self.assertTrue(numpy.array_equal(biomes[::4, ::4], arange))
+
+    def test_copy(self):
+        biomes = Biomes()
+        self.assertIsInstance(biomes, Biomes)
+
+        self.assertIsInstance(copy.deepcopy(biomes), Biomes)
+
+        biomes.convert_to_2d()
+        self.assertIsInstance(biomes.copy(), Biomes)
+        self.assertIsInstance(copy.deepcopy(biomes), Biomes)
+
+        biomes.convert_to_3d()
+        self.assertIsInstance(biomes.copy(), Biomes)
+        self.assertIsInstance(copy.deepcopy(biomes), Biomes)

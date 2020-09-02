@@ -58,7 +58,7 @@ class Biomes:
         if self._dimension != 3:
             if self._dimension == 2 and self._2d is not None:
                 # convert from 2D
-                self._3d[:, 0, :] = self._2d[::4, ::4]
+                self._3d[:, 0, :] = self._2d[::4, ::4].reshape(4, 1, 4)
             self._dimension = 3
 
     def _get_active(self) -> Union[numpy.ndarray, Biomes3D]:
@@ -72,6 +72,23 @@ class Biomes:
             return self._3d
         else:
             raise Exception("Dimension is invalid. This shouldn't happen")
+
+    def copy(self):
+        return self.__copy__()
+
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        return result
+
+    def __deepcopy__(self, memodict=None):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memodict[id(self)] = result
+        for k, v in self.__dict__.items():
+            setattr(result, k, deepcopy(v, memodict))
+        return result
 
     def __getattr__(self, item):
         return self._get_active().__getattribute__(item)
