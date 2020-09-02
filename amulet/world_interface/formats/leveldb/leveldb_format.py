@@ -25,12 +25,15 @@ from amulet.world_interface.chunk import interfaces
 from amulet.libs.leveldb import LevelDB
 
 from amulet.world_interface.chunk.interfaces.leveldb.leveldb_chunk_versions import (
-    game_to_chunk_version,
+    game_to_chunk_version
 )
+
+from amulet.api.player_data.bedrock import BedrockPlayerManager
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
     from amulet.api.data_types import Dimension
+    from amulet.api.player_data.common import PlayerManager
 
 InternalDimension = Optional[int]
 
@@ -222,6 +225,7 @@ class LevelDBFormat(WorldFormatWrapper):
         self.root_tag: nbt.NBTFile = nbt.NBTFile()
         self._load_level_dat()
         self._level_manager: Optional[LevelDBLevelManager] = None
+        self._player_manager = None
 
     def _load_level_dat(self):
         """Load the level.dat file and check the image file"""
@@ -281,6 +285,12 @@ class LevelDBFormat(WorldFormatWrapper):
         """A list of all the levels contained in the world"""
         self._verify_has_lock()
         return self._level_manager.dimensions
+
+    @property
+    def player_manager(self) -> "PlayerManager":
+        if not self._player_manager:
+            self._player_manager = BedrockPlayerManager(self)
+        return self._player_manager
 
     def register_dimension(
         self, dimension_internal: int, dimension_name: Optional["Dimension"] = None

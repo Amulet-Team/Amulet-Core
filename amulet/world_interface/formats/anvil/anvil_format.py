@@ -17,8 +17,11 @@ from amulet.utils.format_utils import check_all_exist, load_leveldat
 from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist, ChunkLoadError
 from amulet.api.data_types import ChunkCoordinates, RegionCoordinates
 
+from amulet.api.player_data.java import JavaPlayerManager
+
 if TYPE_CHECKING:
     from amulet.api.data_types import Dimension
+    from amulet.api.player_data.common import PlayerManager
 
 InternalDimension = str
 
@@ -155,10 +158,7 @@ class AnvilRegion:
                                         # External bit set but this version cannot handle mcc files. Continue as if the chunk does not exist.
                                         continue
 
-                                self._chunks[(cx, cz)] = (
-                                    mod_times[cz, cx],
-                                    buffer,
-                                )
+                                self._chunks[(cx, cz)] = (mod_times[cz, cx], buffer)
 
             self._loaded = True
 
@@ -355,6 +355,7 @@ class AnvilFormat(WorldFormatWrapper):
         self._dimension_name_map: Dict["Dimension", InternalDimension] = {}
         self._mcc_support: Optional[bool] = None
         self._lock = None
+        self._player_manager = None
 
     def _load_level_dat(self):
         """Load the level.dat file and check the image file"""
@@ -424,6 +425,12 @@ class AnvilFormat(WorldFormatWrapper):
     def dimensions(self) -> List["Dimension"]:
         """A list of all the levels contained in the world"""
         return list(self._dimension_name_map.keys())
+
+    @property
+    def player_manager(self) -> "PlayerManager":
+        if not self._player_manager:
+            self._player_manager = JavaPlayerManager(self)
+        return self._player_manager
 
     def register_dimension(
         self,

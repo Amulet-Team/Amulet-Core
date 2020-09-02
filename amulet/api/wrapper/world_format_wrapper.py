@@ -9,6 +9,7 @@ from .format_wrapper import BaseFormatWrapper
 if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
     from amulet.api.data_types import Dimension
+    from amulet.api.player_data.common import PlayerManager
 
 missing_world_icon = os.path.abspath(
     os.path.join(IMG_DIRECTORY, "missing_world_icon.png")
@@ -70,6 +71,10 @@ class WorldFormatWrapper(BaseFormatWrapper):
     @property
     def dimensions(self) -> List["Dimension"]:
         """A list of all the dimensions contained in the world"""
+        raise NotImplementedError
+
+    @property
+    def player_manager(self) -> "PlayerManager":
         raise NotImplementedError
 
     def register_dimension(

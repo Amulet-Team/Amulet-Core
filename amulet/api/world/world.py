@@ -118,6 +118,10 @@ class World(BaseStructure):
         """The manager for the universal blocks in this world. New blocks must be registered here before adding to the world."""
         return self._biome_palette
 
+    @property
+    def player_manager(self):
+        return self._world_wrapper.player_manager
+
     def save(
         self,
         wrapper: "WorldFormatWrapper" = None,
