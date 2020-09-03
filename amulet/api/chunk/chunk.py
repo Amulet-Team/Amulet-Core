@@ -44,8 +44,8 @@ class Chunk:
             self._cx,
             self._cz,
             self._changed_time,
-            {cy: self.blocks.get_sub_chunk(cy) for cy in self.blocks.sub_chunks},
-            numpy.array(self.biomes),
+            {sy: self.blocks.get_sub_chunk(sy) for sy in self.blocks.sub_chunks},
+            self.biomes.to_raw(),
             self._entities.data,
             tuple(self._block_entities.data.values()),
             self._status.value,
@@ -63,12 +63,15 @@ class Chunk:
         self = cls(*chunk_data[:2])
         (
             self.blocks,
-            self.biomes,
+            biomes,
             self.entities,
             self.block_entities,
             self.status,
             self.misc,
         ) = chunk_data[3:]
+
+        self._biomes = Biomes.from_raw(*biomes)
+
         self._changed_time = chunk_data[2]
         self._block_palette = block_palette
         self._biome_palette = biome_palette
@@ -117,7 +120,10 @@ class Chunk:
         return self._blocks
 
     @blocks.setter
-    def blocks(self, value: Optional[Union[Dict[int, numpy.ndarray], Blocks]]):
+    def blocks(self, value: Union[Dict[int, numpy.ndarray], Blocks, None]):
+        if isinstance(value, dict):
+            value: Dict[int, numpy.ndarray]
+            value = {k: v.astype(numpy.uint32) for k, v in value.items()}
         self._blocks = Blocks(value)
 
     def get_block(self, dx: int, y: int, dz: int) -> Block:
@@ -188,21 +194,12 @@ class Chunk:
     @property
     def biomes(self) -> Biomes:
         if self._biomes is None:
-            self._biomes = Biomes(self, numpy.zeros((16, 16), dtype=numpy.uint32))
+            self._biomes = Biomes()
         return self._biomes
 
     @biomes.setter
-    def biomes(self, value: numpy.ndarray):
-        if not numpy.array_equal(self._biomes, value):
-            assert value.size in [
-                0,
-                256,
-                1024,
-            ], "Size of the Biome array must be 256 or 1024"
-            numpy.issubdtype(
-                value.dtype, numpy.integer
-            ), "dtype must be an unsigned integer"
-            self._biomes = Biomes(self, value)
+    def biomes(self, value: Union[Biomes, Dict[int, numpy.ndarray]]):
+        self._biomes = Biomes(value)
 
     @property
     def _biome_palette(self) -> BiomeManager:
@@ -241,7 +238,13 @@ class Chunk:
                     ],
                     dtype=numpy.uint,
                 )
-                self.biomes = biome_lut[self.biomes]
+                if self.biomes.dimension == 2:
+                    self.biomes = biome_lut[self.biomes]
+                elif self.biomes.dimension == 3:
+                    self.biomes = {
+                        sy: biome_lut[self.biomes.get_section(sy)]
+                        for sy in self.biomes.sections
+                    }
 
             self.__biome_palette = new_biome_palette
 

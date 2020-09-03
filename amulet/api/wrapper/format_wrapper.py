@@ -289,7 +289,7 @@ class BaseFormatWrapper:
                 chunk.blocks.get_sub_chunk(cy), return_inverse=True
             )
             chunk.blocks.add_sub_chunk(
-                cy, sub_chunk.reshape((16, 16, 16)) + palette_len
+                cy, sub_chunk.astype(numpy.uint32).reshape((16, 16, 16)) + palette_len
             )
             palette_len += len(sub_chunk_palette)
             palette.append(sub_chunk_palette)
@@ -299,7 +299,9 @@ class BaseFormatWrapper:
                 numpy.concatenate(palette), return_inverse=True
             )
             for cy in chunk.blocks.sub_chunks:
-                chunk.blocks.add_sub_chunk(cy, lut[chunk.blocks.get_sub_chunk(cy)])
+                chunk.blocks.add_sub_chunk(
+                    cy, lut.astype(numpy.uint32)[chunk.blocks.get_sub_chunk(cy)]
+                )
             chunk._block_palette = BlockManager(
                 numpy.vectorize(chunk.block_palette.__getitem__)(chunk_palette)
             )

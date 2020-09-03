@@ -120,12 +120,21 @@ class BaseAnvilInterface(Interface):
 
         if self.features["biomes"] is not None:
             biomes = data["Level"].get("Biomes", amulet_nbt.TAG_Int_Array()).value
-            if self.features["biomes"] == "256BA":
-                biomes = biomes.astype(numpy.uint8)
-            elif self.features["biomes"] in ["256IA", "1024IA"]:
-                biomes = biomes.astype(numpy.uint32)
-
-            chunk.biomes = biomes
+            if self.features["biomes"] in ["256BA", "256IA"]:
+                chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
+            elif self.features["biomes"] == "1024IA":
+                chunk.biomes = {
+                    sy: arr
+                    for sy, arr in enumerate(
+                        numpy.split(
+                            numpy.transpose(
+                                biomes.astype(numpy.uint32).reshape(64, 4, 4), (2, 0, 1)
+                            ),  # YZX -> XYZ
+                            16,
+                            1,
+                        )
+                    )
+                }
 
         if self.features["height_map"] == "256IA":
             misc["height_map256IA"] = data["Level"]["HeightMap"].value
@@ -255,20 +264,26 @@ class BaseAnvilInterface(Interface):
                 misc.get("inhabited_time", 0)
             )
 
-        if self.features["biomes"] == "256BA":
+        if self.features["biomes"] == "256BA":  # TODO: support the optional variant
             if chunk.status.value > -0.7:
+                chunk.biomes.convert_to_2d()
                 data["Level"]["Biomes"] = amulet_nbt.TAG_Byte_Array(
-                    chunk.biomes.convert_to_format(256).astype(dtype=numpy.uint8)
+                    chunk.biomes.astype(dtype=numpy.uint8)
                 )
         elif self.features["biomes"] == "256IA":
             if chunk.status.value > -0.7:
+                chunk.biomes.convert_to_2d()
                 data["Level"]["Biomes"] = amulet_nbt.TAG_Int_Array(
-                    chunk.biomes.convert_to_format(256).astype(dtype=numpy.uint32)
+                    chunk.biomes.astype(dtype=numpy.uint32)
                 )
         elif self.features["biomes"] == "1024IA":
             if chunk.status.value > -0.7:
+                chunk.biomes.convert_to_3d()
                 data["Level"]["Biomes"] = amulet_nbt.TAG_Int_Array(
-                    chunk.biomes.convert_to_format(1024).astype(dtype=numpy.uint32)
+                    numpy.transpose(
+                        numpy.asarray(chunk.biomes[:, 0:64, :]).astype(numpy.uint32),
+                        (1, 2, 0),
+                    ).ravel(),  # YZX -> XYZ
                 )
 
         if self.features["height_map"] == "256IA":

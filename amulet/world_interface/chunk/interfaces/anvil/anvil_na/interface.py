@@ -76,7 +76,9 @@ class AnvilNAInterface(BaseAnvilInterface):
                 # TODO: fix this
 
             (section_palette, blocks[cy]) = world_utils.fast_unique(
-                numpy.transpose((section_blocks << 4) + section_data, (2, 0, 1))
+                numpy.transpose(
+                    (section_blocks << 4) + section_data, (2, 0, 1)
+                )  # YZX -> XYZ
             )
             blocks[cy] += palette_len
             palette_len += len(section_palette)
@@ -100,7 +102,9 @@ class AnvilNAInterface(BaseAnvilInterface):
         for cy in range(16):  # perhaps find a way to do this dynamically
             if cy in blocks:
                 block_sub_array = palette[
-                    numpy.transpose(blocks.get_sub_chunk(cy), (1, 2, 0)).ravel()
+                    numpy.transpose(
+                        blocks.get_sub_chunk(cy), (1, 2, 0)
+                    ).ravel()  # XYZ -> YZX
                 ]
 
                 data_sub_array = block_sub_array[:, 1]
