@@ -203,11 +203,8 @@ class BaseLevelDBInterface(Interface):
             else:
                 chunk_data[b"\x31"] = None
 
-        if self.features["entities"] == "32list":
-            if amulet.entity_support:
-                entities_out = self._encode_entities(chunk.entities)
-            else:
-                entities_out = ""
+        if amulet.entity_support and self.features["entities"] == "32list":
+            entities_out = self._encode_entities(chunk.entities)
 
             if entities_out:
                 chunk_data[b"\x32"] = self._pack_nbt_list(entities_out)
