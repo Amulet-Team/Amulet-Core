@@ -20,7 +20,7 @@ class Biomes3D(UnboundedPartial3DArray):
 
 
 class Biomes:
-    __slots__ = ("_2d", "_3d", "_dimension")
+    # __slots__ = ("_2d", "_3d", "_dimension")
 
     def __init__(
         self, array: Union[numpy.ndarray, Biomes3D, Dict[int, numpy.ndarray]] = None
