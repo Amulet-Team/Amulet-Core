@@ -14,7 +14,7 @@ from amulet.operations.clone import clone
 from amulet.operations.delete_chunk import delete_chunk
 from amulet.operations.fill import fill
 from amulet.operations.replace import replace
-
+from amulet.api.player_data.common import Player
 
 import os.path as op
 
@@ -348,6 +348,16 @@ class WorldTestBaseCases:
             self.world.save(output_wrapper)
             self.world.close()
             output_wrapper.close()
+
+        def test_player_data(self):
+            player_manager = self.world.player_manager
+            player_list = [p for p in player_manager.list_players()]
+
+            self.assertListEqual(["11d0102c-4178-4953-9175-09bbd7d46264"], player_list)
+
+            player = player_manager.get_player("11d0102c-4178-4953-9175-09bbd7d46264")
+            self.assertIsInstance(player, Player)
+            self.assertEqual("11d0102c-4178-4953-9175-09bbd7d46264", player.uuid)
 
         @unittest.skip("Entity API currently being rewritten")
         def test_get_entities(
