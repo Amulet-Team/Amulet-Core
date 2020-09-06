@@ -181,7 +181,7 @@ class BasePartial3DArray:
         """Get the section index and location within the section of an absolute y coordinate"""
         return y // self.section_shape[1], y % self.section_shape[1]
 
-    def __array__(self):
+    def __array__(self, dtype=None):
         raise NotImplementedError
 
     def __contains__(self, item: int):

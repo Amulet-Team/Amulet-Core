@@ -52,9 +52,9 @@ class BoundedPartial3DArray(BasePartial3DArray):
     def __repr__(self):
         return f"BoundedPartial3DArray(dtype={self.dtype}, shape={self.shape})"
 
-    def __array__(self):
+    def __array__(self, dtype=None):
         """Convert the data to a numpy array"""
-        array = numpy.full(self.shape, self.default_value, self.dtype)
+        array = numpy.full(self.shape, self.default_value, dtype or self.dtype)
         for sy, slices, relative_slices in self._iter_slices(
             (
                 (self.start_x, self.stop_x, self.step_x),
