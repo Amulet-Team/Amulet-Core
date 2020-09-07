@@ -281,7 +281,9 @@ class BoundedPartial3DArray(BasePartial3DArray):
                     raise ValueError(
                         "Index array with a BoundedPartial3DArray is not valid"
                     )
-                raise NotImplementedError("Index arrays are not currently supported")  # TODO
+                raise NotImplementedError(
+                    "Index arrays are not currently supported"
+                )  # TODO
             else:
                 raise ValueError(
                     f"{item.__class__.__name__}({item}) is not a supported input for __getitem__"
@@ -376,15 +378,19 @@ class BoundedPartial3DArray(BasePartial3DArray):
                     start = 0
                     true_count = numpy.count_nonzero(item)
                     if true_count != value.size:
-                        raise ValueError(f"There are more True values ({true_count}) in the item array than there are values in the value array ({value.size}).")
-                    for sy, slices, relative_slices in self._iter_slices(self.slices_tuple):
+                        raise ValueError(
+                            f"There are more True values ({true_count}) in the item array than there are values in the value array ({value.size})."
+                        )
+                    for sy, slices, relative_slices in self._iter_slices(
+                        self.slices_tuple
+                    ):
                         if sy not in self._sections:
                             self._parent_array.create_section(sy)
                         bool_array = numpy.asarray(item[relative_slices])
                         count: int = numpy.count_nonzero(bool_array)
-                        self._sections[sy][slices][
-                            bool_array
-                        ] = value[start: start + count]
+                        self._sections[sy][slices][bool_array] = value[
+                            start : start + count
+                        ]
                         start += count
                 else:
                     raise ValueError(
@@ -395,7 +401,9 @@ class BoundedPartial3DArray(BasePartial3DArray):
                     raise ValueError(
                         "Index array with a BoundedPartial3DArray is not valid"
                     )
-                raise NotImplementedError("Index arrays are not currently supported")  # TODO
+                raise NotImplementedError(
+                    "Index arrays are not currently supported"
+                )  # TODO
             else:
                 raise ValueError(
                     f"{item.__class__.__name__}({item}) is not a supported input for __getitem__"
