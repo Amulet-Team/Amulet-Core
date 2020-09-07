@@ -62,7 +62,7 @@ def paste_iter(
     if filtered_mode:
         paste_blocks = numpy.array(
             [
-                block.namespaced_name not in filtered_blocks
+                any(sub_block.namespaced_name not in filtered_blocks for sub_block in block.block_tuple)
                 for block in structure.palette.blocks()
             ]
         )
