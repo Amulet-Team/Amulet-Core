@@ -1,6 +1,8 @@
 from typing import Optional, Dict, Union, Tuple, Type, TYPE_CHECKING
 import numpy
 
+import copy
+
 from .util import get_sanitised_sliced_array_size
 from .data_types import DtypeType, UnpackedSlicesType
 
@@ -197,3 +199,20 @@ class BasePartial3DArray:
 
     def __setitem__(self, key, value):
         raise NotImplementedError
+
+    def copy(self):
+        return copy.copy(self)
+
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        return result
+
+    def __deepcopy__(self, memodict=None):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memodict[id(self)] = result
+        for k, v in self.__dict__.items():
+            setattr(result, k, copy.deepcopy(v, memodict))
+        return result
