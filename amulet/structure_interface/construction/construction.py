@@ -61,6 +61,7 @@ class ConstructionSection:
         self.shape = shape
         self.blocks = blocks
         if blocks is not None:
+            assert isinstance(self.blocks, numpy.ndarray)
             assert (
                 self.shape == self.blocks.shape
             ), "blocks shape does not match the specified section shape"

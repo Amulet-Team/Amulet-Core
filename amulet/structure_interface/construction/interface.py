@@ -78,7 +78,7 @@ class ConstructionInterface(Interface):
                         ConstructionSection(
                             sub_box.min,
                             sub_box.shape,
-                            chunk.blocks[sub_box.chunk_slice(cx, cz)],
+                            numpy.asarray(chunk.blocks[sub_box.chunk_slice(cx, cz)]),
                             list(palette),
                             entities,
                             [e for e in chunk.block_entities if e.location in sub_box],
