@@ -195,3 +195,40 @@ class PartialArrayTestCase(unittest.TestCase):
         arange[arange % 2 == 1] = 10
 
         self.assertTrue(numpy.all(bounded_partial == arange))
+
+    def test_getitem_bool(self):
+        array = numpy.arange(16**4, dtype=numpy.uint32).reshape((16, 16*16, 16))
+        array[:, 128:, :] = 0
+        partial_array = UnboundedPartial3DArray(
+            numpy.uint32,
+            0,
+            (16, 16, 16),
+            (0, 16),
+            {sy: array[:, sy*16:(sy+1)*16, :].copy() for sy in range(8)}
+        )
+
+        array_slice = array[:, 0:200, :]
+        bounded_partial_array = partial_array[:, 0:200, :]
+
+        self.assertTrue(
+            numpy.array_equal(
+                array_slice,
+                bounded_partial_array
+            )
+        )
+
+        bool_array = numpy.full(bounded_partial_array.shape, True, numpy.bool)
+        self.assertTrue(
+            numpy.array_equal(
+                array_slice[bool_array],
+                bounded_partial_array[bool_array]
+            )
+        )
+
+        bool_array = numpy.random.choice([True, False], bounded_partial_array.shape)
+        self.assertTrue(
+            numpy.array_equal(
+                array_slice[bool_array],
+                bounded_partial_array[bool_array]
+            )
+        )
