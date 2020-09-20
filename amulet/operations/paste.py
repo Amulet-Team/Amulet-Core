@@ -49,7 +49,7 @@ def paste_iter(
     copy_water=True,
     copy_lava=True,
 ):
-    gab = numpy.vectorize(world.palette.get_add_block)
+    gab = numpy.vectorize(world.palette.get_add_block, otypes=[numpy.object])
     lut = gab(structure.palette.blocks())
     filtered_mode = not all([copy_air, copy_lava, copy_water])
     filtered_blocks = []
