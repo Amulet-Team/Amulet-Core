@@ -249,7 +249,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
                 raise KeyError(f"Unsupported tuple {item} for getitem")
 
         elif isinstance(item, (numpy.ndarray, BoundedPartial3DArray)):
-            if isinstance(item.dtype, bool):
+            if item.dtype == bool:
                 if item.shape != self.shape:
                     raise ValueError(
                         f"The shape of the index ({self.shape}) and the shape of the given array ({item.shape}) do not match."
@@ -276,7 +276,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
                     return numpy.concatenate(out)
                 else:
                     return numpy.full(0, self.default_value, self.dtype)
-            elif isinstance(item.dtype, numpy.integer):
+            elif numpy.issubdtype(item.dtype, numpy.integer):
                 if isinstance(item, BoundedPartial3DArray):
                     raise ValueError(
                         "Index array with a BoundedPartial3DArray is not valid"
@@ -321,7 +321,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
                     isinstance(value, (int, numpy.integer))
                     and numpy.issubdtype(self.dtype, numpy.integer)
                 ) or (
-                    isinstance(value, bool) and numpy.issubdtype(self.dtype, numpy.bool)
+                    isinstance(value, bool) and self.dtype == numpy.bool
                 ):
                     for sy, slices, _ in self._iter_slices(stacked_slices):
                         if sy in self._sections:
