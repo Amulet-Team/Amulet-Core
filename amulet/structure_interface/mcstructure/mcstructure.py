@@ -30,6 +30,7 @@ class MCStructureChunk:
         block_entities: List[amulet_nbt.TAG_Compound],
         entities: List[amulet_nbt.TAG_Compound],
     ):
+        assert isinstance(blocks, numpy.ndarray)
         assert (
             selection.shape == blocks.shape
         ), "blocks shape does not match the specified section shape"

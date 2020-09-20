@@ -131,7 +131,7 @@ class MCStructureInterface(Interface):
             out_palette[index] = blocks_out
 
         return MCStructureChunk(
-            box, chunk.blocks[slices], out_palette, block_entities, entities
+            box, numpy.asarray(chunk.blocks[slices]), out_palette, block_entities, entities
         )
 
     def get_translator(

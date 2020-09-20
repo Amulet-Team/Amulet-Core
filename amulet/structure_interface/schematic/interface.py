@@ -83,8 +83,8 @@ class SchematicInterface(Interface):
 
         return SchematicChunk(
             box,
-            blocks_merged[:, :, :, 0],
-            blocks_merged[:, :, :, 1],
+            blocks_merged[:, :, :, 0].astype(numpy.uint16),
+            blocks_merged[:, :, :, 1].astype(numpy.uint8),
             block_entities,
             entities,
         )

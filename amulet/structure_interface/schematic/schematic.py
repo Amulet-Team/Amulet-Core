@@ -23,6 +23,8 @@ class SchematicChunk:
         entities: List[amulet_nbt.TAG_Compound],
     ):
         self.selection = selection
+        assert isinstance(blocks, numpy.ndarray) and blocks.dtype == numpy.uint16
+        assert isinstance(data, numpy.ndarray) and data.dtype == numpy.uint8
         self.blocks = blocks
         self.data = data
         self.block_entities = block_entities
