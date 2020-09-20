@@ -359,7 +359,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
             else:
                 raise KeyError(f"Unsupported tuple {item} for getitem")
         elif isinstance(item, (numpy.ndarray, BoundedPartial3DArray)):
-            if numpy.issubdtype(item.dtype, numpy.bool):
+            if item.dtype == numpy.bool:
                 if item.shape != self.shape:
                     raise ValueError(
                         f"The shape of the index ({self.shape}) and the shape of the given array ({item.shape}) do not match."
