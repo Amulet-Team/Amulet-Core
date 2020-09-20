@@ -90,7 +90,7 @@ class SchematicReader:
         max_point = self._selection.max
         temp_shape = (max_point[1], max_point[2], max_point[0])
         blocks = numpy.transpose(blocks.reshape(temp_shape), (2, 0, 1))  # YZX => XYZ
-        data = numpy.transpose(schematic["Data"].value.reshape(temp_shape), (2, 0, 1))
+        data = numpy.transpose(schematic["Data"].value.reshape(temp_shape), (2, 0, 1)).astype(numpy.uint8)
         for cx, cz in self._selection.chunk_locations():
             box = SelectionBox(
                 (cx * 16, 0, cz * 16),
@@ -179,14 +179,16 @@ class SchematicWriter:
             self._blocks[box.slice] = section.blocks
             self._block_data[box.slice] = section.data
             for be in section.block_entities:
-                be["x"].value -= self._selection.min_x
-                be["y"].value -= self._selection.min_y
-                be["z"].value -= self._selection.min_z
+                coord_type = be["x"].__class__
+                be["x"] = coord_type(be["x"] - self._selection.min_x)
+                be["y"] = coord_type(be["y"] - self._selection.min_y)
+                be["z"] = coord_type(be["z"] - self._selection.min_z)
                 self._block_entities.append(be)
             for e in section.entities:
-                e["Pos"][0].value -= self._selection.min_x
-                e["Pos"][1].value -= self._selection.min_y
-                e["Pos"][2].value -= self._selection.min_z
+                coord_type = e["Pos"][0].__class__
+                e["Pos"][0] = coord_type(e["Pos"][0] - self._selection.min_x)
+                e["Pos"][1] = coord_type(e["Pos"][1] - self._selection.min_y)
+                e["Pos"][2] = coord_type(e["Pos"][2] - self._selection.min_z)
                 self._entities.append(e)
 
     def close(self):
