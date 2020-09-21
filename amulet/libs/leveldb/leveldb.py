@@ -191,12 +191,16 @@ ldb.leveldb_free.argtypes = [ctypes.c_void_p]
 ldb.leveldb_free.restype = None
 
 
+class LevelDBException(Exception):
+    pass
+
+
 def _checkError(err):
     """Utility function for checking the error code returned by some leveldb functions."""
     if bool(err):  # Not an empty null-terminated string
         message = ctypes.string_at(err)
         ldb.leveldb_free(ctypes.cast(err, ctypes.c_void_p))
-        raise Exception(message)
+        raise LevelDBException(message)
 
 
 class LevelDB:
