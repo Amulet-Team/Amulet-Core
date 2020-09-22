@@ -255,23 +255,27 @@ class BoundedPartial3DArray(BasePartial3DArray):
                         f"The shape of the index ({self.shape}) and the shape of the given array ({item.shape}) do not match."
                     )
                 out = []
-                for sy, slices, relative_slices in self._iter_slices(self.slices_tuple):
-                    if sy in self._sections:
-                        out.append(
-                            self._sections[sy][slices][
-                                numpy.asarray(item[relative_slices])
-                            ]
-                        )
-                    else:
-                        out.append(
-                            numpy.full(
-                                numpy.count_nonzero(
-                                    numpy.asarray(item[relative_slices])
-                                ),
-                                self.default_value,
-                                self.dtype,
+                for slices_x, relative_slices_x in zip(
+                        range(self.start_x, self.stop_x, self.step_x),
+                        range(0, self.size_x)
+                ):
+                    for sy, (_, slices_y, slices_z), (_, relative_slices_y, relative_slices_z) in self._iter_slices(self.slices_tuple):
+                        if sy in self._sections:
+                            out.append(
+                                self._sections[sy][slices_x, slices_y, slices_z][
+                                    numpy.asarray(item[relative_slices_x, relative_slices_y, relative_slices_z])
+                                ]
                             )
-                        )
+                        else:
+                            out.append(
+                                numpy.full(
+                                    numpy.count_nonzero(
+                                        numpy.asarray(item[relative_slices_x, relative_slices_y, relative_slices_z])
+                                    ),
+                                    self.default_value,
+                                    self.dtype,
+                                )
+                            )
                 if out:
                     return numpy.concatenate(out)
                 else:
@@ -381,17 +385,20 @@ class BoundedPartial3DArray(BasePartial3DArray):
                         raise ValueError(
                             f"There are more True values ({true_count}) in the item array than there are values in the value array ({value.size})."
                         )
-                    for sy, slices, relative_slices in self._iter_slices(
-                        self.slices_tuple
+
+                    for slices_x, relative_slices_x in zip(
+                            range(self.start_x, self.stop_x, self.step_x),
+                            range(0, self.size_x)
                     ):
-                        if sy not in self._sections:
-                            self._parent_array.create_section(sy)
-                        bool_array = numpy.asarray(item[relative_slices])
-                        count: int = numpy.count_nonzero(bool_array)
-                        self._sections[sy][slices][bool_array] = value[
-                            start : start + count
-                        ]
-                        start += count
+                        for sy, (_, slices_y, slices_z), (_, relative_slices_y, relative_slices_z) in self._iter_slices(self.slices_tuple):
+                            if sy not in self._sections:
+                                self._parent_array.create_section(sy)
+                            bool_array = numpy.asarray(item[relative_slices_x, relative_slices_y, relative_slices_z])
+                            count: int = numpy.count_nonzero(bool_array)
+                            self._sections[sy][slices_x, slices_y, slices_z][bool_array] = value[
+                                start : start + count
+                            ]
+                            start += count
                 else:
                     raise ValueError(
                         f"When setting using a bool array the value must be an int, bool or numpy.ndarray. Got {item.__class__.__name__}({item})"

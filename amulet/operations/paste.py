@@ -137,14 +137,8 @@ def paste_iter(
                 )
 
         if not copy_air:
-            # dst_blocks_copy = dst_chunk.blocks[dst_slices]
-            # mask = paste_blocks[src_chunk.blocks[src_slices]]
-            # dst_blocks_copy[mask] = lut[src_chunk.blocks[src_slices]][mask]
-
-            dst_blocks_copy = numpy.asarray(dst_chunk.blocks[dst_slices])
             mask = paste_blocks[src_chunk.blocks[src_slices]]
-            dst_blocks_copy[mask] = lut[src_chunk.blocks[src_slices]][mask]
-            dst_chunk.blocks[dst_slices] = dst_blocks_copy
+            dst_chunk.blocks[dst_slices][mask] = lut[src_chunk.blocks[src_slices]][mask]
         else:
             dst_chunk.blocks[dst_slices] = lut[src_chunk.blocks[src_slices]]
         dst_chunk.changed = True
