@@ -119,22 +119,24 @@ class BaseAnvilInterface(Interface):
             )
 
         if self.features["biomes"] is not None:
-            biomes = data["Level"].get("Biomes", amulet_nbt.TAG_Int_Array()).value
-            if self.features["biomes"] in ["256BA", "256IA"]:
-                chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
-            elif self.features["biomes"] == "1024IA":
-                chunk.biomes = {
-                    sy: arr
-                    for sy, arr in enumerate(
-                        numpy.split(
-                            numpy.transpose(
-                                biomes.astype(numpy.uint32).reshape(64, 4, 4), (2, 0, 1)
-                            ),  # YZX -> XYZ
-                            16,
-                            1,
+            if "Biomes" in data["Level"]:
+                biomes = data["Level"]["Biomes"].value
+                if self.features["biomes"] in ["256BA", "256IA"]:
+                    chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
+                elif self.features["biomes"] == "1024IA":
+                    chunk.biomes = {
+                        sy: arr
+                        for sy, arr in enumerate(
+                            numpy.split(
+                                numpy.transpose(
+                                    biomes.astype(numpy.uint32).reshape(64, 4, 4),
+                                    (2, 0, 1),
+                                ),  # YZX -> XYZ
+                                16,
+                                1,
+                            )
                         )
-                    )
-                }
+                    }
 
         if self.features["height_map"] == "256IA":
             misc["height_map256IA"] = data["Level"]["HeightMap"].value
