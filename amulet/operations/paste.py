@@ -94,7 +94,7 @@ def paste_iter(
     moved_min_location = transformed_structure.selection.min + offset
 
     iter_count = len(
-        list(transformed_structure.get_moved_chunk_slices(moved_min_location))
+        list(transformed_structure.get_moved_chunk_slices(moved_min_location, generate_non_exists=True))
     )
     count = 0
 
@@ -106,7 +106,8 @@ def paste_iter(
         (dst_cx, dst_cz),
         dst_slices,
         dst_box,
-    ) in transformed_structure.get_moved_chunk_slices(moved_min_location):
+    ) in transformed_structure.get_moved_chunk_slices(moved_min_location, generate_non_exists=True):
+        print(src_chunk)
         try:
             dst_chunk = world.get_chunk(dst_cx, dst_cz, dimension)
         except ChunkDoesNotExist:

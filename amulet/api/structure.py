@@ -98,11 +98,14 @@ class Structure(BaseStructure):
         return self._palette[block]
 
     def get_chunk_boxes(
-        self, selection: Optional[Union[SelectionGroup, SelectionBox]] = None
+        self,
+        selection: Optional[Union[SelectionGroup, SelectionBox]] = None,
+        generate_non_exists: bool = False
     ) -> Generator[Tuple[Chunk, SelectionBox], None, None]:
         """Given a selection will yield chunks and SubSelectionBoxes into that chunk
 
         :param selection: SelectionGroup or SelectionBox into the world
+        :param generate_non_exists: Generate empty read-only chunks if the chunk does not exist.
         """
         if selection is None:
             selection = self._selection
@@ -126,7 +129,11 @@ class Structure(BaseStructure):
                 try:
                     chunk = self.get_chunk(cx, cz)
                 except ChunkDoesNotExist:
-                    continue
+                    if generate_non_exists:
+                        chunk = Chunk(cx, cz)
+                        chunk.block_palette = self.palette
+                    else:
+                        continue
 
                 yield chunk, box.intersection(self._chunk_box(cx, cz))
 
@@ -149,6 +156,7 @@ class Structure(BaseStructure):
         destination_origin: Tuple[int, int, int],
         selection: Optional[Union[SelectionGroup, SelectionBox]] = None,
         destination_chunk_shape: Optional[Tuple[int, int, int]] = None,
+        generate_non_exists: bool = False
     ) -> Generator[
         Tuple[
             Chunk,
@@ -168,6 +176,7 @@ class Structure(BaseStructure):
         :param destination_origin: The location where the minimum point of self.selection will end up
         :param selection: An optional selection. The overlap of this and self.selection will be used
         :param destination_chunk_shape: the chunk shape of the destination object (defaults to self.chunk_size)
+        :param generate_non_exists: Generate empty read-only chunks if the chunk does not exist.
         :return:
         """
         if destination_chunk_shape is None:
@@ -180,7 +189,7 @@ class Structure(BaseStructure):
             selection = self.selection.intersection(selection)
         # the offset from self.selection to the destination location
         offset = numpy.subtract(destination_origin, self.selection.min, dtype=numpy.int)
-        for chunk, box in self.get_chunk_boxes(selection):
+        for chunk, box in self.get_chunk_boxes(selection, generate_non_exists):
             dst_full_box = SelectionBox(offset + box.min, offset + box.max,)
 
             first_chunk = block_coords_to_chunk_coords(
