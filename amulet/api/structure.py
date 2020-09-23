@@ -100,7 +100,7 @@ class Structure(BaseStructure):
     def get_chunk_boxes(
         self,
         selection: Optional[Union[SelectionGroup, SelectionBox]] = None,
-        generate_non_exists: bool = False
+        generate_non_exists: bool = False,
     ) -> Generator[Tuple[Chunk, SelectionBox], None, None]:
         """Given a selection will yield chunks and SubSelectionBoxes into that chunk
 
@@ -156,7 +156,7 @@ class Structure(BaseStructure):
         destination_origin: Tuple[int, int, int],
         selection: Optional[Union[SelectionGroup, SelectionBox]] = None,
         destination_chunk_shape: Optional[Tuple[int, int, int]] = None,
-        generate_non_exists: bool = False
+        generate_non_exists: bool = False,
     ) -> Generator[
         Tuple[
             Chunk,

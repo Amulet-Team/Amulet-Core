@@ -256,21 +256,36 @@ class BoundedPartial3DArray(BasePartial3DArray):
                     )
                 out = []
                 for slices_x, relative_slices_x in zip(
-                        range(self.start_x, self.stop_x, self.step_x),
-                        range(0, self.size_x)
+                    range(self.start_x, self.stop_x, self.step_x), range(0, self.size_x)
                 ):
-                    for sy, (_, slices_y, slices_z), (_, relative_slices_y, relative_slices_z) in self._iter_slices(self.slices_tuple):
+                    for (
+                        sy,
+                        (_, slices_y, slices_z),
+                        (_, relative_slices_y, relative_slices_z),
+                    ) in self._iter_slices(self.slices_tuple):
                         if sy in self._sections:
                             out.append(
                                 self._sections[sy][slices_x, slices_y, slices_z][
-                                    numpy.asarray(item[relative_slices_x, relative_slices_y, relative_slices_z])
+                                    numpy.asarray(
+                                        item[
+                                            relative_slices_x,
+                                            relative_slices_y,
+                                            relative_slices_z,
+                                        ]
+                                    )
                                 ]
                             )
                         else:
                             out.append(
                                 numpy.full(
                                     numpy.count_nonzero(
-                                        numpy.asarray(item[relative_slices_x, relative_slices_y, relative_slices_z])
+                                        numpy.asarray(
+                                            item[
+                                                relative_slices_x,
+                                                relative_slices_y,
+                                                relative_slices_z,
+                                            ]
+                                        )
                                     ),
                                     self.default_value,
                                     self.dtype,
@@ -324,9 +339,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
                 if (
                     isinstance(value, (int, numpy.integer))
                     and numpy.issubdtype(self.dtype, numpy.integer)
-                ) or (
-                    isinstance(value, bool) and self.dtype == numpy.bool
-                ):
+                ) or (isinstance(value, bool) and self.dtype == numpy.bool):
                     for sy, slices, _ in self._iter_slices(stacked_slices):
                         if sy in self._sections:
                             self._sections[sy][slices] = value
@@ -387,17 +400,27 @@ class BoundedPartial3DArray(BasePartial3DArray):
                         )
 
                     for slices_x, relative_slices_x in zip(
-                            range(self.start_x, self.stop_x, self.step_x),
-                            range(0, self.size_x)
+                        range(self.start_x, self.stop_x, self.step_x),
+                        range(0, self.size_x),
                     ):
-                        for sy, (_, slices_y, slices_z), (_, relative_slices_y, relative_slices_z) in self._iter_slices(self.slices_tuple):
+                        for (
+                            sy,
+                            (_, slices_y, slices_z),
+                            (_, relative_slices_y, relative_slices_z),
+                        ) in self._iter_slices(self.slices_tuple):
                             if sy not in self._sections:
                                 self._parent_array.create_section(sy)
-                            bool_array = numpy.asarray(item[relative_slices_x, relative_slices_y, relative_slices_z])
+                            bool_array = numpy.asarray(
+                                item[
+                                    relative_slices_x,
+                                    relative_slices_y,
+                                    relative_slices_z,
+                                ]
+                            )
                             count: int = numpy.count_nonzero(bool_array)
-                            self._sections[sy][slices_x, slices_y, slices_z][bool_array] = value[
-                                start : start + count
-                            ]
+                            self._sections[sy][slices_x, slices_y, slices_z][
+                                bool_array
+                            ] = value[start : start + count]
                             start += count
                 else:
                     raise ValueError(

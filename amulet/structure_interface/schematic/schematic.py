@@ -90,7 +90,9 @@ class SchematicReader:
         max_point = self._selection.max
         temp_shape = (max_point[1], max_point[2], max_point[0])
         blocks = numpy.transpose(blocks.reshape(temp_shape), (2, 0, 1))  # YZX => XYZ
-        data = numpy.transpose(schematic["Data"].value.reshape(temp_shape), (2, 0, 1)).astype(numpy.uint8)
+        data = numpy.transpose(
+            schematic["Data"].value.reshape(temp_shape), (2, 0, 1)
+        ).astype(numpy.uint8)
         for cx, cz in self._selection.chunk_locations():
             box = SelectionBox(
                 (cx * 16, 0, cz * 16),
