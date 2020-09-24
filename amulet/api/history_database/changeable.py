@@ -5,7 +5,7 @@ class Changeable:
 
     @property
     def changed(self) -> bool:
-        """Has the object been modified."""
+        """Has the object been modified since the last revision."""
         return self._changed
 
     @changed.setter
