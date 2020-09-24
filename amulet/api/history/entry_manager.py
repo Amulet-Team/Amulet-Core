@@ -24,6 +24,9 @@ class BaseEntryManager:
         if len(self._revisions) > self._current_revision_index + 1:
             # if there are upstream revisions delete them
             del self._revisions[self._current_revision_index + 1:]
+        if self._saved_revision_index > self._current_revision_index:
+            # we are starting a new branch and the save was on the old branch.
+            self._saved_revision_index = -1
         self._store_entry(entry)
         self._current_revision_index += 1
 

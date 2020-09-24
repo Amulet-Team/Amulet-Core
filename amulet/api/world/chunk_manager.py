@@ -108,6 +108,9 @@ class ChunkManager:
                     self._chunk_history[chunk_location] = [None]
 
                 chunk_index, save_chunk_index = self._chunk_index[chunk_location]
+                if save_chunk_index > chunk_index:
+                    # we are starting a new branch and the save was on the old branch.
+                    save_chunk_index = -1
                 chunk_storage = self._chunk_history[chunk_location]
                 if chunk is None:
                     # if the chunk has been deleted and the last save state was not also deleted update
