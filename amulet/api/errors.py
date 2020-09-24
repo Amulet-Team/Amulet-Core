@@ -18,7 +18,15 @@ class InvalidBlockException(Exception):
     pass
 
 
-class ChunkLoadError(Exception):
+class EntryLoadError(Exception):
+    pass
+
+
+class EntryDoesNotExist(EntryLoadError):
+    pass
+
+
+class ChunkLoadError(EntryLoadError):
     pass
 
 
@@ -30,7 +38,7 @@ class LevelDoesNotExist(Exception):
     pass
 
 
-class ChunkDoesNotExist(ChunkLoadError):
+class ChunkDoesNotExist(EntryDoesNotExist, ChunkLoadError):
     pass
 
 
