@@ -1,10 +1,11 @@
 from typing import List, Tuple, Any, Dict, Generator
 from .data_types import EntryKeyType, EntryType
 from .entry_manager import BaseEntryManager
+from .base_history import BaseHistory
 from amulet.api.errors import EntryDoesNotExist, EntryLoadError
 
 
-class Database:
+class Database(BaseHistory):
     DoesNotExistError = EntryDoesNotExist
     LoadError = EntryLoadError
 
@@ -25,7 +26,7 @@ class Database:
 
     @property
     def changed(self) -> bool:
-        """Has any data been modified since the last save."""
+        """Have there been modifications since the last save."""
         try:
             next(self.changed_entries())
         except StopIteration:
@@ -134,7 +135,7 @@ class Database:
         return False
 
     def mark_saved(self):
-        """Notify the database that the state it is currently in is the same as is saved in the world."""
+        """Let the class know that the current state has been saved."""
         self._last_save_snapshot = self._snapshot_index
         self._branch_save_count = 0
         for entry in self._history_database.values():

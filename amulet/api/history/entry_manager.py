@@ -1,9 +1,10 @@
 from typing import List
 
 from .data_types import EntryType
+from .base_history import BaseHistory
 
 
-class BaseEntryManager:
+class BaseEntryManager(BaseHistory):
     """A class to define the base API for an entry manager.
     An entry in this case is any object that can change and needs its change history tracking."""
     __slots__ = ("_revisions", "_current_revision_index", "_saved_revision_index")
@@ -16,7 +17,7 @@ class BaseEntryManager:
 
     @property
     def changed(self) -> bool:
-        """Has this entry changed since the last save."""
+        """Have there been modifications since the last save."""
         return self._current_revision_index != self._saved_revision_index
 
     def put_new_entry(self, entry: EntryType):
@@ -51,7 +52,7 @@ class BaseEntryManager:
         self._current_revision_index += 1
 
     def mark_saved(self):
-        """Let the class know that the current revision has been saved."""
+        """Let the class know that the current state has been saved."""
         self._saved_revision_index = self._current_revision_index
 
     @property
