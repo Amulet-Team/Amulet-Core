@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Tuple, Union, List, Generator, TYPE_CHECKING
+from typing import Optional, Tuple, Generator, TYPE_CHECKING
 import os
 import shutil
 import weakref
@@ -12,18 +12,6 @@ from amulet.api.history.manager.database import DatabaseHistoryManager
 
 if TYPE_CHECKING:
     from amulet.api.world import World
-
-VoidChunk = None  # The chunk was deleted or it never existed.
-ChunkCache = Dict[DimensionCoordinates, Union[Chunk, VoidChunk]]
-
-ChunkRecord = Union[str, None]  # path to serialised file  # chunk has been deleted
-
-ChunkStorage = List[ChunkRecord]  # change history of the chunk
-
-ChunkIndex = Tuple[
-    int,  # the index of the current chunk in ChunkStorage
-    int,  # the index of the saved chunk in ChunkStorage. If these don't match the chunk has changed.
-]
 
 
 class ChunkDiskEntry(DiskEntry):
