@@ -132,7 +132,7 @@ class ChunkManager(DatabaseHistoryManager):
 
     def _create_new_entry_manager(self, key: EntryKeyType, original_entry: EntryType) -> BaseEntryManager:
         dimension, cx, cz = key
-        directory = os.path.join(self._temp_dir, f"{dimension}.{cx}.{cz}")
+        directory = os.path.join(self._temp_dir, str(dimension), f"{cx}.{cz}")
         return ChunkDiskEntry(
             self.world,
             directory,
