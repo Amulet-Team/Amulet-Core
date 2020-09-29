@@ -1,5 +1,6 @@
 class BaseHistory:
     """The base class for all history related objects"""
+
     def undo(self):
         """Revert to the previous state."""
         raise NotImplementedError

@@ -9,6 +9,7 @@ SnapshotType = Tuple[Any, ...]
 
 class DatabaseHistoryManager(ContainerHistoryManager):
     """Manage the history of a number of items in a database."""
+
     DoesNotExistError = EntryDoesNotExist
     LoadError = EntryLoadError
 
@@ -42,7 +43,10 @@ class DatabaseHistoryManager(ContainerHistoryManager):
             if entry is None:
                 # If the temporary entry is deleted but there was no historical
                 # record or the historical record was not deleted
-                if key not in self._history_database or not self._history_database[key].is_deleted:
+                if (
+                    key not in self._history_database
+                    or not self._history_database[key].is_deleted
+                ):
                     changed.add(key)
                     yield key
 
@@ -64,9 +68,13 @@ class DatabaseHistoryManager(ContainerHistoryManager):
         if key in self._temporary_database:
             entry = self._temporary_database[key]
         elif key in self._history_database:
-            entry = self._temporary_database[key] = self._history_database[key].get_current_entry()
+            entry = self._temporary_database[key] = self._history_database[
+                key
+            ].get_current_entry()
         else:
-            entry = self._temporary_database[key] = self._get_register_original_entry(key)
+            entry = self._temporary_database[key] = self._get_register_original_entry(
+                key
+            )
         if entry is None:
             raise self.DoesNotExistError
         return entry
@@ -86,7 +94,9 @@ class DatabaseHistoryManager(ContainerHistoryManager):
         """If the entry was not found in the database request it from the world."""
         raise NotImplementedError
 
-    def _create_new_entry_manager(self, key: EntryKeyType, original_entry: EntryType) -> BaseEntryManager:
+    def _create_new_entry_manager(
+        self, key: EntryKeyType, original_entry: EntryType
+    ) -> BaseEntryManager:
         """Create an EntryManager as desired and populate it with the original entry."""
         raise NotImplementedError
 
@@ -110,8 +120,9 @@ class DatabaseHistoryManager(ContainerHistoryManager):
                     # populate the history with the original entry
                     self._get_register_original_entry(key)
                 history_entry = self._history_database[key]
-                if (entry is None and not history_entry.is_deleted) or \
-                        (entry is not None and entry.changed):
+                if (entry is None and not history_entry.is_deleted) or (
+                    entry is not None and entry.changed
+                ):
                     # if the entry has been modified since the last history version
                     history_entry.put_new_entry(entry)
                     snapshot.append(key)

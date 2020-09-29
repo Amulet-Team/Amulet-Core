@@ -13,7 +13,9 @@ class MetaHistoryManager(ContainerHistoryManager):
         self._non_world_managers = []
 
     def _check_snapshot(self, snapshot: SnapshotType):
-        assert isinstance(snapshot, tuple) and all(isinstance(item, BaseHistoryManager) for item in snapshot)
+        assert isinstance(snapshot, tuple) and all(
+            isinstance(item, BaseHistoryManager) for item in snapshot
+        )
 
     def register(self, manager: BaseHistoryManager, is_world_manager: bool):
         """
@@ -22,7 +24,9 @@ class MetaHistoryManager(ContainerHistoryManager):
         :param is_world_manager: Is the manager tracking world data
         :return:
         """
-        assert isinstance(manager, BaseHistoryManager), "manager must be an instance of BaseHistoryManager"
+        assert isinstance(
+            manager, BaseHistoryManager
+        ), "manager must be an instance of BaseHistoryManager"
         if is_world_manager:
             self._world_managers.append(manager)
         else:
@@ -41,8 +45,10 @@ class MetaHistoryManager(ContainerHistoryManager):
             manager.mark_saved()
 
     def _managers(self, world: bool, non_world: bool) -> Tuple[BaseHistoryManager, ...]:
-        return tuple(self._world_managers) * world + \
-               tuple(self._non_world_managers) * non_world
+        return (
+            tuple(self._world_managers) * world
+            + tuple(self._non_world_managers) * non_world
+        )
 
     @property
     def changed(self) -> bool:

@@ -25,12 +25,12 @@ class ContainerHistoryManager(BaseHistoryManager):
                 # if the user has undone changes and made more changes things get a bit messy
                 # This fixes the property storing the number of changes since the last save.
                 self._branch_save_count += (
-                        self._last_save_snapshot - self._snapshot_index
+                    self._last_save_snapshot - self._snapshot_index
                 )
                 self._last_save_snapshot = self._snapshot_index
             self._snapshot_index += 1
             # delete all upstream snapshots
-            del self._snapshots[self._snapshot_index:]
+            del self._snapshots[self._snapshot_index :]
             self._snapshots.append(snapshot)
             return True
         return False
@@ -56,8 +56,8 @@ class ContainerHistoryManager(BaseHistoryManager):
     def unsaved_changes(self) -> int:
         """The number of changes that have been made since the last save"""
         return (
-                abs(self._snapshot_index - self._last_save_snapshot)
-                + self._branch_save_count
+            abs(self._snapshot_index - self._last_save_snapshot)
+            + self._branch_save_count
         )
 
     def undo(self):

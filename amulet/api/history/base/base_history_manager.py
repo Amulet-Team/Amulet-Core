@@ -3,6 +3,7 @@ from .base_history import BaseHistory
 
 class BaseHistoryManager(BaseHistory):
     """The base class for all history manager objects"""
+
     def undo(self):
         """Revert to the previous state."""
         raise NotImplementedError

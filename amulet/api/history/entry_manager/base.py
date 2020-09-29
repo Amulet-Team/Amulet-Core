@@ -9,6 +9,7 @@ StoredEntryType = Optional[Any]
 class BaseEntryManager(BaseHistory):
     """A class to define the base API for an entry manager.
     An entry in this case is any object that can change and needs its change history tracking."""
+
     __slots__ = ("_revisions", "_current_revision_index", "_saved_revision_index")
 
     def __init__(self, initial_state: EntryType):
@@ -26,7 +27,7 @@ class BaseEntryManager(BaseHistory):
         """Add a new entry to the database and increment the index."""
         if len(self._revisions) > self._current_revision_index + 1:
             # if there are upstream revisions delete them
-            del self._revisions[self._current_revision_index + 1:]
+            del self._revisions[self._current_revision_index + 1 :]
         if self._saved_revision_index > self._current_revision_index:
             # we are starting a new branch and the save was on the old branch.
             self._saved_revision_index = -1
@@ -44,13 +45,17 @@ class BaseEntryManager(BaseHistory):
     def undo(self):
         """Decrement the state of the entry to the previous revision."""
         if self._current_revision_index <= 0:
-            raise Exception("Cannot undo past revision 0")  # if run there is a bug in the code
+            raise Exception(
+                "Cannot undo past revision 0"
+            )  # if run there is a bug in the code
         self._current_revision_index -= 1
 
     def redo(self):
         """Increment the state of the entry to the next revision."""
         if self._current_revision_index >= len(self._revisions):
-            raise Exception("Cannot redo past the highest revision")  # if run there is a bug in the code
+            raise Exception(
+                "Cannot redo past the highest revision"
+            )  # if run there is a bug in the code
         self._current_revision_index += 1
 
     def mark_saved(self):

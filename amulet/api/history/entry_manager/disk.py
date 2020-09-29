@@ -8,7 +8,8 @@ from ..data_types import EntryType
 class DiskEntry(BaseEntryManager):
     """A class to hold data about an entries history on disk.
     Revision indexes are still stored in RAM."""
-    __slots__ = ("_directory", )
+
+    __slots__ = ("_directory",)
 
     def __init__(self, directory: str, initial_state: EntryType):
         self._directory: str = directory

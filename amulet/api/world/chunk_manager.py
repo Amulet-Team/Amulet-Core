@@ -27,7 +27,7 @@ ChunkIndex = Tuple[
 
 
 class ChunkDiskEntry(DiskEntry):
-    __slots__ = ("_world", )
+    __slots__ = ("_world",)
 
     def __init__(self, world: "World", directory: str, initial_state: EntryType):
         self._world = weakref.ref(world)
@@ -49,7 +49,9 @@ class ChunkDiskEntry(DiskEntry):
         if path is None:
             return None
         else:
-            return Chunk.unpickle(path, self.world.block_palette, self.world.biome_palette)
+            return Chunk.unpickle(
+                path, self.world.block_palette, self.world.biome_palette
+            )
 
 
 class ChunkManager(DatabaseHistoryManager):
@@ -61,9 +63,7 @@ class ChunkManager(DatabaseHistoryManager):
     DoesNotExistError = ChunkDoesNotExist
     LoadError = ChunkLoadError
 
-    def __init__(
-        self, temp_dir: str, world: "World"
-    ):
+    def __init__(self, temp_dir: str, world: "World"):
         super().__init__()
         self._temp_dir: str = temp_dir  # the location to serialise Chunks to
         shutil.rmtree(self._temp_dir, ignore_errors=True)
@@ -130,11 +130,9 @@ class ChunkManager(DatabaseHistoryManager):
         chunk.biome_palette = self.world.biome_palette
         return chunk
 
-    def _create_new_entry_manager(self, key: EntryKeyType, original_entry: EntryType) -> BaseEntryManager:
+    def _create_new_entry_manager(
+        self, key: EntryKeyType, original_entry: EntryType
+    ) -> BaseEntryManager:
         dimension, cx, cz = key
         directory = os.path.join(self._temp_dir, str(dimension), f"{cx}.{cz}")
-        return ChunkDiskEntry(
-            self.world,
-            directory,
-            original_entry
-        )
+        return ChunkDiskEntry(self.world, directory, original_entry)

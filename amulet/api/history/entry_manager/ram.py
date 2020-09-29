@@ -4,6 +4,7 @@ from ..data_types import EntryType
 
 class RAMEntry(BaseEntryManager):
     """A class to hold data about an entries history in RAM."""
+
     def _store_entry(self, entry: EntryType):
         self._revisions.append(entry)
 

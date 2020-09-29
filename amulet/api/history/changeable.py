@@ -1,5 +1,6 @@
 class Changeable:
     """A class to track if an object has been changed."""
+
     def __init__(self):
         self._changed = False
 

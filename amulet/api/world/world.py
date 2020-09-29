@@ -63,8 +63,7 @@ class World(BaseStructure):
         self._history_manager = MetaHistoryManager()
 
         self._chunks: ChunkManager = ChunkManager(
-            os.path.join(self._temp_directory, "chunks"),
-            self
+            os.path.join(self._temp_directory, "chunks"), self
         )
 
         self._history_manager.register(self._chunks, True)
