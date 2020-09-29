@@ -140,3 +140,6 @@ class DatabaseHistoryManager(ContainerHistoryManager):
             self._history_database[key].redo()
             if key in self._temporary_database:
                 del self._temporary_database[key]
+
+    def restore_last_undo_point(self):
+        self._temporary_database.clear()

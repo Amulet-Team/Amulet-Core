@@ -86,3 +86,6 @@ class ContainerHistoryManager(BaseHistoryManager):
 
     def create_undo_point(self) -> bool:
         raise NotImplementedError
+
+    def restore_last_undo_point(self):
+        raise NotImplementedError

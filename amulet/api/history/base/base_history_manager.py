@@ -27,6 +27,12 @@ class BaseHistoryManager(BaseHistory):
         """
         raise NotImplementedError
 
+    def restore_last_undo_point(self):
+        """Restore the world to the state it was when self.create_undo_point was called.
+        If an operation errors there may be modifications made that did not get tracked.
+        This will revert those changes."""
+        raise NotImplementedError
+
     @property
     def undo_count(self) -> int:
         """The number of times the undo method can be run."""

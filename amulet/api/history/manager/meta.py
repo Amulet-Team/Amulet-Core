@@ -1,4 +1,4 @@
-from typing import Tuple, Any
+from typing import Tuple
 
 from amulet.api.history.base.base_history_manager import BaseHistoryManager
 from amulet.api.history.manager.container import ContainerHistoryManager
@@ -62,3 +62,6 @@ class MetaHistoryManager(ContainerHistoryManager):
                 snapshot.append(manager)
         return self._register_snapshot(tuple(snapshot))
 
+    def restore_last_undo_point(self):
+        for manager in self._managers(True, True):
+            manager.restore_last_undo_point()
