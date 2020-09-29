@@ -1,32 +1,33 @@
-from typing import List, Tuple, Any, Dict, Generator
-from .data_types import EntryKeyType, EntryType
-from .entry_manager import BaseEntryManager
-from .base_history import BaseHistory
+from typing import Tuple, Any, Dict, Generator
+from amulet.api.history.data_types import EntryKeyType, EntryType
+from amulet.api.history.entry_manager import BaseEntryManager
+from amulet.api.history.manager.container import ContainerHistoryManager
 from amulet.api.errors import EntryDoesNotExist, EntryLoadError
 
+SnapshotType = Tuple[Any, ...]
 
-class Database(BaseHistory):
+
+class DatabaseHistoryManager(ContainerHistoryManager):
+    """Manage the history of a number of items in a database."""
     DoesNotExistError = EntryDoesNotExist
     LoadError = EntryLoadError
 
     def __init__(self):
+        super().__init__()
         # this is the database that entries will be directly edited in
         self._temporary_database: Dict[EntryKeyType, EntryType] = {}
 
         # this is the database where revisions will be cached
         self._history_database: Dict[EntryKeyType, BaseEntryManager] = {}
 
-        self._snapshots: List[Tuple[Any]] = []
-        self._snapshot_index: int = -1
-
-        # the snapshot that was saved or the save branches off from
-        self._last_save_snapshot = -1
-        self._branch_save_count = 0  # if the user saves, undoes and does a new operation a save branch will be lost
-        # This is the number of changes on that branch
+    def _check_snapshot(self, snapshot: SnapshotType):
+        assert isinstance(snapshot, tuple)
 
     @property
     def changed(self) -> bool:
         """Have there been modifications since the last save."""
+        if super().changed:
+            return True
         try:
             next(self.changed_entries())
         except StopIteration:
@@ -99,7 +100,7 @@ class Database(BaseHistory):
     def create_undo_point(self) -> bool:
         """
         Find all entries in the temporary database that have changed since the last undo point and create a new undo point.
-        :return: Was a snapshot created. If there were no changes no snapshot will be created.
+        :return: Was an undo point created. If there were no changes no snapshot will be created.
         """
         snapshot = []
         for key, entry in tuple(self._temporary_database.items()):
@@ -119,60 +120,23 @@ class Database(BaseHistory):
         # so that it is repopulated from the history database. This fixes the issue of entries
         # being modified without the `changed` flag being set to True.
 
-        if snapshot:
-            if self._last_save_snapshot > self._snapshot_index:
-                # if the user has undone changes and made more changes things get a bit messy
-                # This fixes the property storing the number of changes since the last save.
-                self._branch_save_count += (
-                        self._last_save_snapshot - self._snapshot_index
-                )
-                self._last_save_snapshot = self._snapshot_index
-            self._snapshot_index += 1
-            # delete all upstream snapshots
-            del self._snapshots[self._snapshot_index:]
-            self._snapshots.append(tuple(snapshot))
-            return True
-        return False
+        return self._register_snapshot(tuple(snapshot))
 
-    def mark_saved(self):
+    def _mark_saved(self):
         """Let the class know that the current state has been saved."""
-        self._last_save_snapshot = self._snapshot_index
-        self._branch_save_count = 0
         for entry in self._history_database.values():
             entry.mark_saved()
 
-    @property
-    def undo_count(self) -> int:
-        return self._snapshot_index + 1
-
-    @property
-    def redo_count(self) -> int:
-        return len(self._snapshots) - (self._snapshot_index + 1)
-
-    @property
-    def unsaved_changes(self) -> int:
-        """The number of changes that have been made since the last save"""
-        return (
-                abs(self._snapshot_index - self._last_save_snapshot)
-                + self._branch_save_count
-        )
-
-    def undo(self):
+    def _undo(self, snapshot: SnapshotType):
         """Undoes the last set of changes to the database"""
-        if self._snapshot_index > -1:
-            snapshot = self._snapshots[self._snapshot_index]
-            for key in snapshot:
-                self._history_database[key].undo()
-                if key in self._temporary_database:
-                    del self._temporary_database[key]
-            self._snapshot_index -= 1
+        for key in snapshot:
+            self._history_database[key].undo()
+            if key in self._temporary_database:
+                del self._temporary_database[key]
 
-    def redo(self):
+    def _redo(self, snapshot: SnapshotType):
         """Redoes the last set of changes to the database"""
-        if self._snapshot_index < len(self._snapshots) - 1:
-            snapshot = self._snapshots[self._snapshot_index + 1]
-            for key in snapshot:
-                self._history_database[key].redo()
-                if key in self._temporary_database:
-                    del self._temporary_database[key]
-            self._snapshot_index += 1
+        for key in snapshot:
+            self._history_database[key].redo()
+            if key in self._temporary_database:
+                del self._temporary_database[key]
