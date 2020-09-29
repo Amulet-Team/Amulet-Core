@@ -1,6 +1,5 @@
-import numpy
 import math
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple
 
 from .data_types import (
     FlexibleSlicesType,

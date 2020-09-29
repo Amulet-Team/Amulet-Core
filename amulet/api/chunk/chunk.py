@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Union, Iterable, Optional, Dict
+from typing import Tuple, Union, Iterable, Dict
 import time
 import numpy
 import pickle
