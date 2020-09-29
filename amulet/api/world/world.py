@@ -26,6 +26,7 @@ from amulet.api.data_types import (
 )
 from amulet.utils.world_utils import block_coords_to_chunk_coords
 from .chunk_manager import ChunkManager
+from amulet.api.history.manager import MetaHistoryManager
 
 if TYPE_CHECKING:
     from PyMCTranslate import TranslationManager
@@ -59,10 +60,14 @@ class World(BaseStructure):
         self._biome_palette = BiomeManager()
         self._biome_palette.get_add_biome("universal_minecraft:plains")
 
+        self._history_manager = MetaHistoryManager()
+
         self._chunks: ChunkManager = ChunkManager(
             os.path.join(self._temp_directory, "chunks"),
             self
         )
+
+        self._history_manager.register(self._chunks, True)
 
     @property
     def world_path(self) -> str:
@@ -72,7 +77,11 @@ class World(BaseStructure):
     @property
     def changed(self) -> bool:
         """Has any data been modified but not saved to disk"""
-        return self._world_wrapper.changed or self._chunks.changed
+        return self._history_manager.changed or self._world_wrapper.changed
+
+    @property
+    def history_manager(self) -> MetaHistoryManager:
+        return self._history_manager
 
     @property
     def chunk_history_manager(self) -> ChunkManager:
@@ -90,7 +99,7 @@ class World(BaseStructure):
 
     def create_undo_point(self):
         """Create a restore point for all chunks that have changed."""
-        self._chunks.create_undo_point()
+        self._history_manager.create_undo_point()
 
     @property
     def sub_chunk_size(self) -> int:
@@ -209,7 +218,7 @@ class World(BaseStructure):
                 wrapper.save()
                 wrapper.unload()
 
-        self._chunks.mark_saved()
+        self._history_manager.mark_saved()
         log.info(f"Saving changes to world {wrapper.path}")
         wrapper.save()
         log.info(f"Finished saving changes to world {wrapper.path}")
@@ -492,14 +501,14 @@ class World(BaseStructure):
 
     def undo(self):
         """Undoes the last set of changes to the world"""
-        self._chunks.undo()
+        self._history_manager.undo()
 
     def redo(self):
         """Redoes the last set of changes to the world"""
-        self._chunks.redo()
+        self._history_manager.redo()
 
     def restore_last_undo_point(self):
         """Restore the world to the state it was when self.create_undo_point was called.
         If an operation errors there may be modifications made that did not get tracked.
         This will revert those changes."""
-        self._chunks.restore_last_undo_point()
+        self._history_manager.restore_last_undo_point()

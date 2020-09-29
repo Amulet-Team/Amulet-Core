@@ -45,16 +45,16 @@ class MetaHistoryManager(ContainerHistoryManager):
                tuple(self._non_world_managers) * non_world
 
     @property
-    def changed(self, world_only=True) -> bool:
+    def changed(self) -> bool:
         if super().changed:
             return True
-        managers = self._managers(True, not world_only)
+        managers = self._managers(True, False)
         for manager in managers:
             if manager.changed:
                 return True
         return False
 
-    def create_undo_point(self, non_world_only=True) -> bool:
+    def create_undo_point(self, non_world_only=False) -> bool:
         managers = self._managers(not non_world_only, True)
         snapshot = []
         for manager in managers:
