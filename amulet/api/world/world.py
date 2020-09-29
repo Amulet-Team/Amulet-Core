@@ -5,6 +5,7 @@ import os
 import shutil
 from typing import Union, Generator, Dict, Optional, Tuple, Callable, Any, TYPE_CHECKING
 from types import GeneratorType
+import warnings
 
 from amulet import log
 from amulet.api.base_structure import BaseStructure
@@ -76,6 +77,15 @@ class World(BaseStructure):
     @property
     def chunk_history_manager(self) -> ChunkManager:
         """A class storing previous versions of chunks to roll back to as required."""
+        warnings.warn(
+            "World.chunk_history_manager is depreciated and will be removed in the future. Please use World.chunks instead",
+            DeprecationWarning,
+        )
+        return self.chunks
+
+    @property
+    def chunks(self) -> ChunkManager:
+        """A class storing chunks from the world."""
         return self._chunks
 
     def create_undo_point(self):
@@ -105,7 +115,11 @@ class World(BaseStructure):
     @property
     def palette(self) -> BlockManager:
         """The manager for the universal blocks in this world. New blocks must be registered here before adding to the world."""
-        return self._block_palette
+        warnings.warn(
+            "World.palette is depreciated and will be removed in the future. Please use World.block_palette instead",
+            DeprecationWarning,
+        )
+        return self.block_palette
 
     @property
     def block_palette(self) -> BlockManager:
