@@ -1,7 +1,7 @@
 from typing import List
 
 from .data_types import EntryType
-from .base_history import BaseHistory
+from amulet.api.history.base.base_history import BaseHistory
 
 
 class BaseEntryManager(BaseHistory):
