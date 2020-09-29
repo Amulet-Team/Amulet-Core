@@ -58,10 +58,9 @@ class World(BaseStructure):
         self._biome_palette = BiomeManager()
         self._biome_palette.get_add_biome("universal_minecraft:plains")
 
-        self._chunk_cache: ChunkManager = ChunkManager(
+        self._chunks: ChunkManager = ChunkManager(
             os.path.join(self._temp_directory, "chunks"),
-            self.block_palette,
-            self.biome_palette,
+            self
         )
 
     @property
@@ -72,16 +71,16 @@ class World(BaseStructure):
     @property
     def changed(self) -> bool:
         """Has any data been modified but not saved to disk"""
-        return self._world_wrapper.changed or self._chunk_cache.changed
+        return self._world_wrapper.changed or self._chunks.changed
 
     @property
     def chunk_history_manager(self) -> ChunkManager:
         """A class storing previous versions of chunks to roll back to as required."""
-        return self._chunk_cache
+        return self._chunks
 
     def create_undo_point(self):
         """Create a restore point for all chunks that have changed."""
-        self._chunk_cache.create_undo_point()
+        self._chunks.create_undo_point()
 
     @property
     def sub_chunk_size(self) -> int:
@@ -137,7 +136,7 @@ class World(BaseStructure):
         Leave as None to save back to the input wrapper."""
         chunk_index = 0
 
-        changed_chunks = list(self._chunk_cache.changed_chunks())
+        changed_chunks = list(self._chunks.changed_chunks())
         chunk_count = len(changed_chunks)
 
         if wrapper is None:
@@ -184,7 +183,7 @@ class World(BaseStructure):
         for dimension, cx, cz in changed_chunks:
             if dimension not in output_dimension_map:
                 continue
-            chunk = self._chunk_cache.get_chunk(dimension, cx, cz)
+            chunk = self._chunks.get_chunk(dimension, cx, cz)
             if chunk is None:
                 wrapper.delete_chunk(cx, cz, dimension)
             else:
@@ -196,7 +195,7 @@ class World(BaseStructure):
                 wrapper.save()
                 wrapper.unload()
 
-        self._chunk_cache.mark_saved()
+        self._chunks.mark_saved()
         log.info(f"Saving changes to world {wrapper.path}")
         wrapper.save()
         log.info(f"Finished saving changes to world {wrapper.path}")
@@ -211,7 +210,7 @@ class World(BaseStructure):
     def unload(self, safe_area: Optional[Tuple[Dimension, int, int, int, int]] = None):
         """Unload all chunks not in the safe area
         Safe area format: dimension, min chunk X|Z, max chunk X|Z"""
-        self._chunk_cache.unload(safe_area)
+        self._chunks.unload(safe_area)
         self._world_wrapper.unload()
 
     def get_chunk(self, cx: int, cz: int, dimension: Dimension) -> Chunk:
@@ -223,26 +222,10 @@ class World(BaseStructure):
         :param cx: The X coordinate of the desired chunk
         :param cz: The Z coordinate of the desired chunk
         :param dimension: The dimension to get the chunk from
-        :return: The blocks, entities, and tile entities in the chunk
+        :return: A Chunk object containing the data for the chunk
+        :raises: `amulet.api.errors.ChunkDoesNotExist` if the chunk does not exist or `amulet.api.errors.ChunkLoadError` if the chunk failed to load for some reason. (This also includes it not existing)
         """
-        chunk_key = (dimension, cx, cz)
-        if chunk_key in self._chunk_cache:
-            chunk = self._chunk_cache.get_chunk(dimension, cx, cz)
-        else:
-            try:
-                chunk = self._world_wrapper.load_chunk(cx, cz, dimension)
-                chunk.block_palette = self._block_palette
-                chunk.biome_palette = self._biome_palette
-            except ChunkDoesNotExist:
-                chunk = None
-            except ChunkLoadError as e:
-                raise e
-            self._chunk_cache.put_original_chunk(dimension, cx, cz, chunk)
-
-        if chunk is None:
-            raise ChunkDoesNotExist(f"Chunk ({cx},{cz}) does not exist")
-
-        return chunk
+        return self._chunks.get_chunk(dimension, cx, cz)
 
     def create_chunk(self, cx: int, cz: int, dimension: Dimension) -> Chunk:
         chunk = Chunk(cx, cz)
@@ -251,11 +234,11 @@ class World(BaseStructure):
 
     def put_chunk(self, chunk: Chunk, dimension: Dimension):
         """Add a chunk to the universal world database"""
-        self._chunk_cache.put_chunk(chunk, dimension)
+        self._chunks.put_chunk(chunk, dimension)
 
     def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         """Delete a chunk from the universal world database"""
-        self._chunk_cache.delete_chunk(dimension, cx, cz)
+        self._chunks.delete_chunk(dimension, cx, cz)
 
     def get_block(self, x: int, y: int, z: int, dimension: Dimension) -> Block:
         """
@@ -495,14 +478,14 @@ class World(BaseStructure):
 
     def undo(self):
         """Undoes the last set of changes to the world"""
-        self._chunk_cache.undo()
+        self._chunks.undo()
 
     def redo(self):
         """Redoes the last set of changes to the world"""
-        self._chunk_cache.redo()
+        self._chunks.redo()
 
     def restore_last_undo_point(self):
         """Restore the world to the state it was when self.create_undo_point was called.
         If an operation errors there may be modifications made that did not get tracked.
         This will revert those changes."""
-        self._chunk_cache.restore_last_undo_point()
+        self._chunks.restore_last_undo_point()

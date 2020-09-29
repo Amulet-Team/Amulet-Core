@@ -1,7 +1,9 @@
-from typing import List
+from typing import List, Optional, Any
 
-from .data_types import EntryType
+from amulet.api.history.data_types import EntryType
 from amulet.api.history.base.base_history import BaseHistory
+
+StoredEntryType = Optional[Any]
 
 
 class BaseEntryManager(BaseHistory):
@@ -10,7 +12,7 @@ class BaseEntryManager(BaseHistory):
     __slots__ = ("_revisions", "_current_revision_index", "_saved_revision_index")
 
     def __init__(self, initial_state: EntryType):
-        self._revisions: List[EntryType] = []  # the data for each revision
+        self._revisions: List[StoredEntryType] = []  # the data for each revision
         self._current_revision_index: int = 0  # the index into the above for the current data
         self._saved_revision_index: int = 0  # the index into the above for the saved version
         self._store_entry(initial_state)
@@ -58,22 +60,3 @@ class BaseEntryManager(BaseHistory):
     @property
     def is_deleted(self) -> bool:
         return self._revisions[self._current_revision_index] is None
-
-
-class RAMEntry(BaseEntryManager):
-    """A class to hold data about an entries history in RAM."""
-    def _store_entry(self, entry: EntryType):
-        self._revisions.append(entry)
-
-    def get_current_entry(self):
-        return self._revisions[self._current_revision_index]
-
-
-class DiskEntry(BaseEntryManager):
-    """A class to hold data about an entries history on disk.
-    Revision indexes are still stored in RAM."""
-    def _store_entry(self, entry: EntryType):
-        raise NotImplementedError
-
-    def get_current_entry(self):
-        raise NotImplementedError

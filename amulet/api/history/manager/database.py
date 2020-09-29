@@ -79,14 +79,14 @@ class DatabaseHistoryManager(ContainerHistoryManager):
             entry = self._get_entry_from_world(key)
         except EntryDoesNotExist:
             entry = None
-        self._history_database[key] = self._create_new_entry_manager(entry)
+        self._history_database[key] = self._create_new_entry_manager(key, entry)
         return entry
 
     def _get_entry_from_world(self, key: EntryKeyType) -> EntryType:
         """If the entry was not found in the database request it from the world."""
         raise NotImplementedError
 
-    def _create_new_entry_manager(self, original_entry: EntryType) -> BaseEntryManager:
+    def _create_new_entry_manager(self, key: EntryKeyType, original_entry: EntryType) -> BaseEntryManager:
         """Create an EntryManager as desired and populate it with the original entry."""
         raise NotImplementedError
 
