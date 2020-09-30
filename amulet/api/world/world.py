@@ -89,11 +89,6 @@ class World(BaseStructure):
             "World.chunk_history_manager is depreciated and will be removed in the future. Please use World.chunks instead",
             DeprecationWarning,
         )
-        return self.chunks
-
-    @property
-    def chunks(self) -> ChunkManager:
-        """A class storing chunks from the world."""
         return self._chunks
 
     def create_undo_point(self):
