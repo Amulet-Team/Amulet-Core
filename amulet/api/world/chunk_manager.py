@@ -6,16 +6,16 @@ import weakref
 from amulet.api.data_types import DimensionCoordinates, Dimension
 from amulet.api.chunk import Chunk
 from amulet.api.history.data_types import EntryType, EntryKeyType
-from amulet.api.history.base import PassiveRevisionManager
-from amulet.api.history.entry_manager import DiskEntry
+from amulet.api.history.base import RevisionManager
+from amulet.api.history.revision_manager import DiskRevisionManager
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
-from amulet.api.history.manager.database import DatabaseHistoryManager
+from amulet.api.history.history_manager import DatabaseHistoryManager
 
 if TYPE_CHECKING:
     from amulet.api.world import World
 
 
-class ChunkDiskEntry(DiskEntry):
+class ChunkDiskEntry(DiskRevisionManager):
     __slots__ = ("_world",)
 
     def __init__(self, world: "World", directory: str, initial_state: EntryType):
@@ -121,7 +121,7 @@ class ChunkManager(DatabaseHistoryManager):
 
     def _create_new_entry_manager(
         self, key: EntryKeyType, original_entry: EntryType
-    ) -> PassiveRevisionManager:
+    ) -> RevisionManager:
         dimension, cx, cz = key
         directory = os.path.join(self._temp_dir, str(dimension), f"{cx}.{cz}")
         return ChunkDiskEntry(self.world, directory, original_entry)

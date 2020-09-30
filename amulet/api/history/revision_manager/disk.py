@@ -1,11 +1,11 @@
 import os
 from typing import Optional
 
-from amulet.api.history.base import PassiveRevisionManager
+from amulet.api.history.base import RevisionManager
 from ..data_types import EntryType
 
 
-class DiskEntry(PassiveRevisionManager):
+class DiskRevisionManager(RevisionManager):
     """A class to hold data about an entries history on disk.
     Revision indexes are still stored in RAM."""
 

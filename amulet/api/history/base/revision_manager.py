@@ -6,9 +6,9 @@ from amulet.api.history.data_types import EntryType
 StoredEntryType = Optional[Any]
 
 
-class PassiveRevisionManager(BaseHistory):
+class RevisionManager(BaseHistory):
     """The base API for all passive history manager objects.
-    This class is not aware of the data it is tracking and needs informing of the new state."""
+    The RevisionManager stores the actual versions of the object to revert to."""
 
     __slots__ = ("_revisions", "_current_revision_index", "_saved_revision_index")
 

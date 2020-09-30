@@ -1,10 +1,10 @@
 from amulet.api.history import Changeable
-from ..base import PassiveRevisionManager
-from amulet.api.history.base.active_history_manager import ActiveHistoryManager
-from ..entry_manager import RAMEntry
+from ..base import RevisionManager
+from amulet.api.history.base.history_manager import HistoryManager
+from ..revision_manager import RAMRevisionManager
 
 
-class ObjectHistoryManager(ActiveHistoryManager):
+class ObjectHistoryManager(HistoryManager):
     def __init__(self, original_entry: Changeable):
         super().__init__()
         self._value: Changeable = original_entry
@@ -20,9 +20,9 @@ class ObjectHistoryManager(ActiveHistoryManager):
     @staticmethod
     def _create_new_entry_manager(
         original_entry: Changeable
-    ) -> PassiveRevisionManager:
+    ) -> RevisionManager:
         """Create an EntryManager as desired and populate it with the original entry."""
-        return RAMEntry(original_entry)
+        return RAMRevisionManager(original_entry)
 
     def _register_snapshot(self):
         if self._last_save_snapshot > self._snapshot_index:

@@ -1,9 +1,9 @@
 from .base_history import BaseHistory
 
 
-class ActiveHistoryManager(BaseHistory):
+class HistoryManager(BaseHistory):
     """The base class for all active history manager objects.
-    This class needs to be aware of the data it is tracking."""
+    The HistoryManager tracks which objects have changed but is not aware of how they have changed."""
 
     def undo(self):
         """Revert to the previous state."""

@@ -26,7 +26,7 @@ from amulet.api.data_types import (
 )
 from amulet.utils.world_utils import block_coords_to_chunk_coords
 from .chunk_manager import ChunkManager
-from amulet.api.history.manager import MetaHistoryManager
+from amulet.api.history.history_manager import MetaHistoryManager
 
 if TYPE_CHECKING:
     from PyMCTranslate import TranslationManager

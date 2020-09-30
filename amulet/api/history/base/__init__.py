@@ -1,3 +1,3 @@
 from .base_history import BaseHistory
-from .passive_revision_manager import PassiveRevisionManager
-from .active_history_manager import ActiveHistoryManager
+from .revision_manager import RevisionManager
+from .history_manager import HistoryManager

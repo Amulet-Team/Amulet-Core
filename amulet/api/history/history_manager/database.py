@@ -1,9 +1,9 @@
 from typing import Tuple, Any, Dict, Generator
 from amulet.api.history.data_types import EntryKeyType, EntryType
-from amulet.api.history.base import PassiveRevisionManager
-from amulet.api.history.manager.container import ContainerHistoryManager
+from amulet.api.history.base import RevisionManager
+from .container import ContainerHistoryManager
 from amulet.api.errors import EntryDoesNotExist, EntryLoadError
-from ..entry_manager import RAMEntry
+from ..revision_manager import RAMRevisionManager
 
 SnapshotType = Tuple[Any, ...]
 
@@ -20,7 +20,7 @@ class DatabaseHistoryManager(ContainerHistoryManager):
         self._temporary_database: Dict[EntryKeyType, EntryType] = {}
 
         # this is the database where revisions will be cached
-        self._history_database: Dict[EntryKeyType, PassiveRevisionManager] = {}
+        self._history_database: Dict[EntryKeyType, RevisionManager] = {}
 
     def _check_snapshot(self, snapshot: SnapshotType):
         assert isinstance(snapshot, tuple)
@@ -98,9 +98,9 @@ class DatabaseHistoryManager(ContainerHistoryManager):
     @staticmethod
     def _create_new_entry_manager(
         key: EntryKeyType, original_entry: EntryType
-    ) -> PassiveRevisionManager:
+    ) -> RevisionManager:
         """Create an EntryManager as desired and populate it with the original entry."""
-        return RAMEntry(original_entry)
+        return RAMRevisionManager(original_entry)
 
     def _put_entry(self, key: EntryKeyType, entry: EntryType):
         entry.changed = True
