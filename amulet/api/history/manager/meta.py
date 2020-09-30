@@ -1,9 +1,9 @@
 from typing import Tuple
 
-from amulet.api.history.base.base_history_manager import BaseHistoryManager
+from amulet.api.history.base.active_history_manager import ActiveHistoryManager
 from amulet.api.history.manager.container import ContainerHistoryManager
 
-SnapshotType = Tuple[BaseHistoryManager, ...]
+SnapshotType = Tuple[ActiveHistoryManager, ...]
 
 
 class MetaHistoryManager(ContainerHistoryManager):
@@ -14,10 +14,10 @@ class MetaHistoryManager(ContainerHistoryManager):
 
     def _check_snapshot(self, snapshot: SnapshotType):
         assert isinstance(snapshot, tuple) and all(
-            isinstance(item, BaseHistoryManager) for item in snapshot
+            isinstance(item, ActiveHistoryManager) for item in snapshot
         )
 
-    def register(self, manager: BaseHistoryManager, is_world_manager: bool):
+    def register(self, manager: ActiveHistoryManager, is_world_manager: bool):
         """
         Register a manager to track.
         :param manager: The manager to track
@@ -25,7 +25,7 @@ class MetaHistoryManager(ContainerHistoryManager):
         :return:
         """
         assert isinstance(
-            manager, BaseHistoryManager
+            manager, ActiveHistoryManager
         ), "manager must be an instance of BaseHistoryManager"
         if is_world_manager:
             self._world_managers.append(manager)
@@ -44,7 +44,7 @@ class MetaHistoryManager(ContainerHistoryManager):
         for manager in self._managers(True, True):
             manager.mark_saved()
 
-    def _managers(self, world: bool, non_world: bool) -> Tuple[BaseHistoryManager, ...]:
+    def _managers(self, world: bool, non_world: bool) -> Tuple[ActiveHistoryManager, ...]:
         return (
             tuple(self._world_managers) * world
             + tuple(self._non_world_managers) * non_world

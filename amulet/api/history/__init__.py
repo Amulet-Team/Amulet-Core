@@ -32,3 +32,5 @@ global history manager
     would store each of the local history managers
     would be the entry
 """
+
+from .changeable import Changeable

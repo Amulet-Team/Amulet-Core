@@ -1,14 +1,14 @@
 from typing import List, Optional, Any
 
+from .base_history import BaseHistory
 from amulet.api.history.data_types import EntryType
-from amulet.api.history.base.base_history import BaseHistory
 
 StoredEntryType = Optional[Any]
 
 
-class BaseEntryManager(BaseHistory):
-    """A class to define the base API for an entry manager.
-    An entry in this case is any object that can change and needs its change history tracking."""
+class PassiveRevisionManager(BaseHistory):
+    """The base API for all passive history manager objects.
+    This class is not aware of the data it is tracking and needs informing of the new state."""
 
     __slots__ = ("_revisions", "_current_revision_index", "_saved_revision_index")
 
@@ -27,7 +27,7 @@ class BaseEntryManager(BaseHistory):
         """Add a new entry to the database and increment the index."""
         if len(self._revisions) > self._current_revision_index + 1:
             # if there are upstream revisions delete them
-            del self._revisions[self._current_revision_index + 1 :]
+            del self._revisions[self._current_revision_index + 1:]
         if self._saved_revision_index > self._current_revision_index:
             # we are starting a new branch and the save was on the old branch.
             self._saved_revision_index = -1

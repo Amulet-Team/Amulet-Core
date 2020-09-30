@@ -1,8 +1,8 @@
-from .base import BaseEntryManager
+from amulet.api.history.base import PassiveRevisionManager
 from ..data_types import EntryType
 
 
-class RAMEntry(BaseEntryManager):
+class RAMEntry(PassiveRevisionManager):
     """A class to hold data about an entries history in RAM."""
 
     def _store_entry(self, entry: EntryType):

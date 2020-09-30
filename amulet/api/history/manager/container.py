@@ -1,11 +1,11 @@
 from typing import List, Any
 
-from amulet.api.history.base.base_history_manager import BaseHistoryManager
+from amulet.api.history.base.active_history_manager import ActiveHistoryManager
 
 SnapshotType = Any
 
 
-class ContainerHistoryManager(BaseHistoryManager):
+class ContainerHistoryManager(ActiveHistoryManager):
     def __init__(self):
         self._snapshots: List[SnapshotType] = []
         self._snapshot_index: int = -1
@@ -73,9 +73,9 @@ class ContainerHistoryManager(BaseHistoryManager):
     def redo(self):
         """Redoes the last set of changes to the database"""
         if self.redo_count > 0:
-            snapshot = self._snapshots[self._snapshot_index + 1]
-            self._redo(snapshot)
             self._snapshot_index += 1
+            snapshot = self._snapshots[self._snapshot_index]
+            self._redo(snapshot)
 
     def _redo(self, snapshot: SnapshotType):
         raise NotImplementedError
