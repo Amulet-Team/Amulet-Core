@@ -3,6 +3,7 @@ from amulet.api.history.data_types import EntryKeyType, EntryType
 from amulet.api.history.base import PassiveRevisionManager
 from amulet.api.history.manager.container import ContainerHistoryManager
 from amulet.api.errors import EntryDoesNotExist, EntryLoadError
+from ..entry_manager import RAMEntry
 
 SnapshotType = Tuple[Any, ...]
 
@@ -94,11 +95,12 @@ class DatabaseHistoryManager(ContainerHistoryManager):
         """If the entry was not found in the database request it from the world."""
         raise NotImplementedError
 
+    @staticmethod
     def _create_new_entry_manager(
         key: EntryKeyType, original_entry: EntryType
     ) -> PassiveRevisionManager:
         """Create an EntryManager as desired and populate it with the original entry."""
-        raise NotImplementedError
+        return RAMEntry(original_entry)
 
     def _put_entry(self, key: EntryKeyType, entry: EntryType):
         entry.changed = True
