@@ -1,3 +1,5 @@
+from typing import Optional, Any
+
 from amulet.api.history import Changeable
 from ..base import RevisionManager
 from amulet.api.history.base.history_manager import HistoryManager
@@ -8,7 +10,9 @@ class ObjectHistoryManager(HistoryManager):
     def __init__(self, original_entry: Changeable):
         super().__init__()
         self._value: Changeable = original_entry
-        self._revision_manager = self._create_new_entry_manager(original_entry)
+        self._revision_manager = self._create_new_revision_manager(
+            self._pack_value(self._value)
+        )
         self._snapshots_size: int = 0
         self._snapshot_index: int = -1
 
@@ -16,6 +20,10 @@ class ObjectHistoryManager(HistoryManager):
         self._last_save_snapshot = -1
         self._branch_save_count = 0  # if the user saves, undoes and does a new operation a save branch will be lost
         # This is the number of changes on that branch
+
+    @property
+    def value(self):
+        return self._value
 
     @staticmethod
     def _create_new_revision_manager(
@@ -61,7 +69,7 @@ class ObjectHistoryManager(HistoryManager):
         """Undoes the last set of changes to the object"""
         if self.undo_count > 0:
             self._revision_manager.undo()
-            self._value = self._revision_manager.get_current_entry()
+            self._unpack()
             self._snapshot_index -= 1
 
     def redo(self):
@@ -69,7 +77,7 @@ class ObjectHistoryManager(HistoryManager):
         if self.redo_count > 0:
             self._snapshot_index += 1
             self._revision_manager.redo()
-            self._value = self._revision_manager.get_current_entry()
+            self._unpack()
 
     @property
     def changed(self) -> bool:
@@ -78,12 +86,24 @@ class ObjectHistoryManager(HistoryManager):
     def create_undo_point(self) -> bool:
         if self._value.changed:
             self._value.changed = False
-            self._revision_manager.put_new_entry(self._value)
+            self._pack()
+            self._register_snapshot()
             return True
         else:
-            self.restore_last_undo_point()
+            self._unpack()
             return False
 
     def restore_last_undo_point(self):
+        self._unpack()
+        
+    def _unpack(self):
         self._value = self._revision_manager.get_current_entry()
+
+    def _pack(self):
+        self._revision_manager.put_new_entry(
+            self._pack_value(self._value)
+        )
+
+    def _pack_value(self, value: Optional[Any]) -> Optional[Any]:
+        return value
 
