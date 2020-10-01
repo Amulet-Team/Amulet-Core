@@ -119,7 +119,7 @@ class ChunkManager(DatabaseHistoryManager):
         chunk.biome_palette = self.world.biome_palette
         return chunk
 
-    def _create_new_entry_manager(
+    def _create_new_revision_manager(
         self, key: EntryKeyType, original_entry: EntryType
     ) -> RevisionManager:
         dimension, cx, cz = key

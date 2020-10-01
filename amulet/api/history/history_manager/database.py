@@ -88,7 +88,7 @@ class DatabaseHistoryManager(ContainerHistoryManager):
             entry = self._get_entry_from_world(key)
         except EntryDoesNotExist:
             entry = None
-        self._history_database[key] = self._create_new_entry_manager(key, entry)
+        self._history_database[key] = self._create_new_revision_manager(key, entry)
         return entry
 
     def _get_entry_from_world(self, key: EntryKeyType) -> EntryType:
@@ -96,10 +96,10 @@ class DatabaseHistoryManager(ContainerHistoryManager):
         raise NotImplementedError
 
     @staticmethod
-    def _create_new_entry_manager(
+    def _create_new_revision_manager(
         key: EntryKeyType, original_entry: EntryType
     ) -> RevisionManager:
-        """Create an EntryManager as desired and populate it with the original entry."""
+        """Create an RevisionManager as desired and populate it with the original entry."""
         return RAMRevisionManager(original_entry)
 
     def _put_entry(self, key: EntryKeyType, entry: EntryType):

@@ -18,10 +18,10 @@ class ObjectHistoryManager(HistoryManager):
         # This is the number of changes on that branch
 
     @staticmethod
-    def _create_new_entry_manager(
-        original_entry: Changeable
+    def _create_new_revision_manager(
+        original_entry: Optional[Any]
     ) -> RevisionManager:
-        """Create an EntryManager as desired and populate it with the original entry."""
+        """Create an RevisionManager as desired and populate it with the original entry."""
         return RAMRevisionManager(original_entry)
 
     def _register_snapshot(self):
