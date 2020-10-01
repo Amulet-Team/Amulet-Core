@@ -1,7 +1,6 @@
 from typing import List, Optional, Any
 
 from .base_history import BaseHistory
-from amulet.api.history.data_types import EntryType
 
 StoredEntryType = Optional[Any]
 
@@ -12,7 +11,7 @@ class RevisionManager(BaseHistory):
 
     __slots__ = ("_revisions", "_current_revision_index", "_saved_revision_index")
 
-    def __init__(self, initial_state: EntryType):
+    def __init__(self, initial_state: StoredEntryType):
         self._revisions: List[StoredEntryType] = []  # the data for each revision
         self._current_revision_index: int = 0  # the index into the above for the current data
         self._saved_revision_index: int = 0  # the index into the above for the saved version
@@ -23,7 +22,7 @@ class RevisionManager(BaseHistory):
         """Have there been modifications since the last save."""
         return self._current_revision_index != self._saved_revision_index
 
-    def put_new_entry(self, entry: EntryType):
+    def put_new_entry(self, entry: StoredEntryType):
         """Add a new entry to the database and increment the index."""
         if len(self._revisions) > self._current_revision_index + 1:
             # if there are upstream revisions delete them
@@ -34,7 +33,7 @@ class RevisionManager(BaseHistory):
         self._store_entry(entry)
         self._current_revision_index += 1
 
-    def _store_entry(self, entry: EntryType):
+    def _store_entry(self, entry: StoredEntryType):
         """Store the entry data as required."""
         raise NotImplementedError
 
