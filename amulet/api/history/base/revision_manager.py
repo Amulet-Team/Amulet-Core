@@ -26,7 +26,7 @@ class RevisionManager(BaseHistory):
         """Add a new entry to the database and increment the index."""
         if len(self._revisions) > self._current_revision_index + 1:
             # if there are upstream revisions delete them
-            del self._revisions[self._current_revision_index + 1:]
+            del self._revisions[self._current_revision_index + 1 :]
         if self._saved_revision_index > self._current_revision_index:
             # we are starting a new branch and the save was on the old branch.
             self._saved_revision_index = -1

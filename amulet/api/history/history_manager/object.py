@@ -26,9 +26,7 @@ class ObjectHistoryManager(HistoryManager):
         return self._value
 
     @staticmethod
-    def _create_new_revision_manager(
-        original_entry: Optional[Any]
-    ) -> RevisionManager:
+    def _create_new_revision_manager(original_entry: Optional[Any]) -> RevisionManager:
         """Create an RevisionManager as desired and populate it with the original entry."""
         return RAMRevisionManager(original_entry)
 
@@ -36,9 +34,7 @@ class ObjectHistoryManager(HistoryManager):
         if self._last_save_snapshot > self._snapshot_index:
             # if the user has undone changes and made more changes things get a bit messy
             # This fixes the property storing the number of changes since the last save.
-            self._branch_save_count += (
-                    self._last_save_snapshot - self._snapshot_index
-            )
+            self._branch_save_count += self._last_save_snapshot - self._snapshot_index
             self._last_save_snapshot = self._snapshot_index
         self._snapshot_index += 1
         self._snapshots_size = min(self._snapshots_size, self._snapshot_index) + 1
@@ -95,15 +91,12 @@ class ObjectHistoryManager(HistoryManager):
 
     def restore_last_undo_point(self):
         self._unpack()
-        
+
     def _unpack(self):
         self._value = self._revision_manager.get_current_entry()
 
     def _pack(self):
-        self._revision_manager.put_new_entry(
-            self._pack_value(self._value)
-        )
+        self._revision_manager.put_new_entry(self._pack_value(self._value))
 
     def _pack_value(self, value: Optional[Any]) -> Optional[Any]:
         return value
-
