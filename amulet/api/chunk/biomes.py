@@ -56,13 +56,14 @@ class Biomes:
         dimension: int,
         d2: Optional[numpy.ndarray],
         d3: Optional[Dict[int, numpy.ndarray]],
-    ):
+    ) -> "Biomes":
         """Don't use this method. Use to unpickle data."""
         biomes = cls()
         biomes._dimension = dimension
         biomes._2d = d2
         if d3 is not None:
             biomes._3d = Biomes3D(d3)
+        return biomes
 
     @property
     def dimension(self) -> int:
