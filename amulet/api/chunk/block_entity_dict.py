@@ -1,13 +1,9 @@
 from collections import UserDict
-from typing import TYPE_CHECKING, Tuple, Iterable, Generator
+from typing import Tuple, Iterable, Generator
 import copy
-import weakref
 import numpy
 
 from amulet.api.block_entity import BlockEntity
-
-if TYPE_CHECKING:
-    from amulet.api.chunk import Chunk
 
 Coordinate = Tuple[int, int, int]
 

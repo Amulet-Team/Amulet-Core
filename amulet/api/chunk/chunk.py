@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Union, Iterable, Optional, Dict
+from typing import Tuple, Union, Iterable, Dict
 import time
 import numpy
 import pickle
@@ -12,19 +12,20 @@ from amulet.api.registry.biome_manager import BiomeManager
 from amulet.api.chunk import Biomes, Blocks, Status, BlockEntityDict, EntityList
 from amulet.api.entity import Entity
 from amulet.api.data_types import ChunkCoordinates
+from amulet.api.history.changeable import Changeable
 
 PointCoordinates = Tuple[int, int, int]
 SliceCoordinates = Tuple[slice, slice, slice]
 
 
-class Chunk:
+class Chunk(Changeable):
     """
     Class to represent a chunk that exists in an Minecraft world
     """
 
     def __init__(self, cx: int, cz: int):
+        super().__init__()
         self._cx, self._cz = cx, cz
-        self._changed = False
         self._changed_time = 0.0
 
         self._blocks = None

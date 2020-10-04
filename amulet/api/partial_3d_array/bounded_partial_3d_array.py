@@ -1,4 +1,4 @@
-from typing import overload, Tuple, Union, Optional, Type, Generator
+from typing import overload, Tuple, Union, Optional, Generator
 import numpy
 import math
 
