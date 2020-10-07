@@ -47,3 +47,9 @@ class WorldFormatWrapper(FormatWrapper):
     def world_image_path(self) -> str:
         """The path to the world icon"""
         return self._world_image_path
+
+    @property
+    def can_add_dimension(self) -> bool:
+        """Can external code register a new dimension.
+        If False register_dimension will have no effect."""
+        return True

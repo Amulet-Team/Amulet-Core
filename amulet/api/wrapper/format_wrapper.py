@@ -110,6 +110,12 @@ class FormatWrapper:
         """A list of all the dimensions contained in the world"""
         raise NotImplementedError
 
+    @property
+    def can_add_dimension(self) -> bool:
+        """Can external code register a new dimension.
+        If False register_dimension will have no effect."""
+        raise NotImplementedError
+
     def register_dimension(
             self, dimension_internal: Any, dimension_name: Dimension
     ):
