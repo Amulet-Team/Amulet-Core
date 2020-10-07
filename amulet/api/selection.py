@@ -129,9 +129,9 @@ class SelectionBox:
     @property
     def slice(self) -> Tuple[slice, slice, slice]:
         """
-        Converts the SubSelectionBoxes minimum/maximum coordinates into slice arguments
+        Converts the `SelectionBox`es minimum/maximum coordinates into slice arguments
 
-        :return: The SubSelectionBoxes coordinates as slices in (x,y,z) order
+        :return: The `SelectionBox`es coordinates as slices in (x,y,z) order
         """
         return (
             slice(self._min_x, self._max_x),
@@ -228,7 +228,7 @@ class SelectionBox:
         Method to check whether this instance of SelectionBox intersects another SelectionBox
 
         :param other: The other SelectionBox to check for intersection
-        :return: True if the two SubSelectionBoxes intersect, False otherwise
+        :return: True if the two `SelectionBox`es intersect, False otherwise
         """
         return not (
             self.min_x >= other.max_x
@@ -264,7 +264,7 @@ class SelectionBox:
 
 class SelectionGroup:
     """
-    Holding class for multiple SubSelectionBoxes which allows for non-rectangular and non-contiguous selections
+    Holding class for multiple `SelectionBox`es which allows for non-rectangular and non-contiguous selections
     """
 
     def __init__(self, selection_boxes: Iterable[SelectionBox] = ()):
@@ -295,14 +295,14 @@ class SelectionGroup:
         if self._selection_boxes:
             return numpy.min(numpy.array([box.min for box in self._selection_boxes]), 0)
         else:
-            raise ValueError("SelectionGroup does not contain any SubSelectionBoxes")
+            raise ValueError("SelectionGroup does not contain any SelectionBoxes")
 
     @property
     def max(self) -> numpy.ndarray:
         if self._selection_boxes:
             return numpy.max(numpy.array([box.max for box in self._selection_boxes]), 0)
         else:
-            raise ValueError("SelectionGroup does not contain any SubSelectionBoxes")
+            raise ValueError("SelectionGroup does not contain any SelectionBoxes")
 
     def add_box(self, other: SelectionBox, do_merge_check: bool = True):
         """
@@ -372,8 +372,8 @@ class SelectionGroup:
     @property
     def selection_boxes(self) -> List[SelectionBox]:
         """
-        Returns a list of unmodified SubSelectionBoxes in the SelectionGroup.
-        :return: A list of the SubSelectionBoxes
+        Returns a list of unmodified `SelectionBox`es in the SelectionGroup.
+        :return: A list of the `SelectionBox`es
         """
         return sorted(self._selection_boxes.copy(), key=hash)
 
