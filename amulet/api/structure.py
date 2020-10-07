@@ -99,13 +99,15 @@ class Structure(BaseStructure):
 
     def get_chunk_boxes(
         self,
-        selection: Optional[Union[SelectionGroup, SelectionBox]] = None,
-        generate_non_exists: bool = False,
+        selection: Union[SelectionGroup, SelectionBox, None] = None,
+        dimension: Optional[str] = None,
+        create_missing_chunks: bool = False
     ) -> Generator[Tuple[Chunk, SelectionBox], None, None]:
-        """Given a selection will yield chunks and SubSelectionBoxes into that chunk
+        """Given a selection will yield chunks and `SelectionBox`es into that chunk
 
-        :param selection: SelectionGroup or SelectionBox into the world
-        :param generate_non_exists: Generate empty read-only chunks if the chunk does not exist.
+        :param selection: SelectionGroup or SelectionBox into the world. If None uses the structures full selection.
+        :param dimension: The dimension to take effect in. May have no effect.
+        :param create_missing_chunks: Generate empty read-only chunks if the chunk does not exist.
         """
         if selection is None:
             selection = self._selection
@@ -129,7 +131,7 @@ class Structure(BaseStructure):
                 try:
                     chunk = self.get_chunk(cx, cz)
                 except ChunkDoesNotExist:
-                    if generate_non_exists:
+                    if create_missing_chunks:
                         chunk = Chunk(cx, cz)
                         chunk.block_palette = self.palette
                     else:
@@ -138,11 +140,16 @@ class Structure(BaseStructure):
                 yield chunk, box.intersection(self._chunk_box(cx, cz))
 
     def get_chunk_slices(
-        self, selection: Optional[Union[SelectionGroup, SelectionBox]] = None
+        self,
+        selection: Union[SelectionGroup, SelectionBox, None] = None,
+        dimension: Optional[str] = None,
+        create_missing_chunks: bool = False
     ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None]:
         """Given a selection will yield chunks and slices into that chunk
 
-        :param selection: SelectionGroup or SelectionBox into the world
+        :param selection: SelectionGroup or SelectionBox into the world. If None uses the structures full selection.
+        :param dimension: The dimension to take effect in. May have no effect.
+        :param create_missing_chunks: Generate empty read-only chunks if the chunk does not exist.
         Usage:
         for chunk, slice in world.get_chunk_slices(selection):
             chunk.blocks[slice] = ...
@@ -189,7 +196,7 @@ class Structure(BaseStructure):
             selection = self.selection.intersection(selection)
         # the offset from self.selection to the destination location
         offset = numpy.subtract(destination_origin, self.selection.min, dtype=numpy.int)
-        for chunk, box in self.get_chunk_boxes(selection, generate_non_exists):
+        for chunk, box in self.get_chunk_boxes(selection, create_missing_chunks=generate_non_exists):
             dst_full_box = SelectionBox(offset + box.min, offset + box.max,)
 
             first_chunk = block_coords_to_chunk_coords(

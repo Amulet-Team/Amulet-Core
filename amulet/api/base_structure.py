@@ -4,7 +4,7 @@ from typing import Union, Generator, Dict, Optional, Tuple
 
 from .block import Block
 from .chunk import Chunk
-from .selection import SelectionBox
+from .selection import SelectionBox, SelectionGroup
 from .data_types import DimensionCoordinates
 
 ChunkCache = Dict[DimensionCoordinates, Optional[Chunk]]
@@ -26,10 +26,10 @@ class BaseStructure:
         raise NotImplementedError
 
     def _chunk_box(
-        self,
-        cx: int,
-        cz: int,
-        chunk_size: Optional[Tuple[int, Union[int, None], int]] = None,
+            self,
+            cx: int,
+            cz: int,
+            chunk_size: Optional[Tuple[int, Union[int, None], int]] = None,
     ):
         """Get a SelectionBox containing the whole of a given chunk"""
         if chunk_size is None:
@@ -37,11 +37,32 @@ class BaseStructure:
         return SelectionBox.create_chunk_box(cx, cz, chunk_size[0])
 
     def get_chunk_boxes(
-        self, *args, **kwargs
+            self,
+            selection: Union[SelectionGroup, SelectionBox, None],
+            dimension: Optional[str],
+            create_missing_chunks: bool = False
     ) -> Generator[Tuple[Chunk, SelectionBox], None, None]:
+        """Given a selection will yield chunks and `SelectionBox`es into that chunk
+
+        :param selection: SelectionGroup or SelectionBox into the world
+        :param dimension: The dimension to take effect in
+        :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false)
+        """
         raise NotImplementedError
 
     def get_chunk_slices(
-        self, *args, **kwargs
+            self,
+            selection: Union[SelectionGroup, SelectionBox, None],
+            dimension: Optional[str],
+            create_missing_chunks: bool = False
     ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None]:
+        """Given a selection will yield chunks, slices into that chunk and the corresponding box
+
+        :param selection: SelectionGroup or SelectionBox into the world
+        :param dimension: The dimension to take effect in
+        :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false)
+        Usage:
+        for chunk, slice, box in world.get_chunk_slices(selection):
+            chunk.blocks[slice] = ...
+        """
         raise NotImplementedError

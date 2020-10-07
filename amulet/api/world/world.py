@@ -41,7 +41,7 @@ class World(BaseStructure):
     """
 
     def __init__(
-        self, directory: str, world_wrapper: "WorldFormatWrapper", temp_dir: str = None
+            self, directory: str, world_wrapper: "WorldFormatWrapper", temp_dir: str = None
     ):
         self._directory = directory
         if temp_dir is None:
@@ -135,9 +135,9 @@ class World(BaseStructure):
         return self._biome_palette
 
     def save(
-        self,
-        wrapper: "WorldFormatWrapper" = None,
-        progress_callback: Callable[[int, int], None] = None,
+            self,
+            wrapper: "WorldFormatWrapper" = None,
+            progress_callback: Callable[[int, int], None] = None,
     ):
         """Save the world using the given wrapper.
         Leave as None to save back to the input wrapper.
@@ -147,7 +147,7 @@ class World(BaseStructure):
                 progress_callback(chunk_index, chunk_count)
 
     def save_iter(
-        self, wrapper: "WorldFormatWrapper" = None
+            self, wrapper: "WorldFormatWrapper" = None
     ) -> Generator[Tuple[int, int], None, None]:
         """Save the world using the given wrapper.
         Leave as None to save back to the input wrapper."""
@@ -277,12 +277,12 @@ class World(BaseStructure):
         return self.get_chunk(cx, cz, dimension).get_block(offset_x, y, offset_z)
 
     def get_version_block(
-        self,
-        x: int,
-        y: int,
-        z: int,
-        dimension: Dimension,
-        version: VersionIdentifierType,
+            self,
+            x: int,
+            y: int,
+            z: int,
+            dimension: Dimension,
+            version: VersionIdentifierType,
     ) -> Tuple[Union[Block, Entity], Optional[BlockEntity]]:
         """
         Get a block at the specified location and convert it to the format of the version specified
@@ -309,14 +309,14 @@ class World(BaseStructure):
         return output, extra_output
 
     def set_version_block(
-        self,
-        x: int,
-        y: int,
-        z: int,
-        dimension: Dimension,
-        version: VersionIdentifierType,
-        block: Block,
-        block_entity: BlockEntity,
+            self,
+            x: int,
+            y: int,
+            z: int,
+            dimension: Dimension,
+            version: VersionIdentifierType,
+            block: Block,
+            block_entity: BlockEntity,
     ):
         """
         Convert the block and block_entity from the given version format to the universal format and set at the location
@@ -349,15 +349,15 @@ class World(BaseStructure):
         chunk.block_entities[(x, y, z)] = block_entity
 
     def get_chunk_boxes(
-        self,
-        selection: Union[SelectionGroup, SelectionBox],
-        dimension: Dimension,
-        create_missing_chunks=False,
+            self,
+            selection: Union[SelectionGroup, SelectionBox],
+            dimension: Dimension,
+            create_missing_chunks=False,
     ) -> Generator[Tuple[Chunk, SelectionBox], None, None]:
-        """Given a selection will yield chunks and SubSelectionBoxes into that chunk
+        """Given a selection will yield chunks and `SelectionBox`es into that chunk
 
         :param selection: SelectionGroup or SelectionBox into the world
-        :param dimension: The dimension to take effect in (defaults to overworld)
+        :param dimension: The dimension to take effect in
         :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false)
         """
 
@@ -379,22 +379,22 @@ class World(BaseStructure):
             yield chunk, box
 
     def get_chunk_slices(
-        self,
-        selection: Union[SelectionGroup, SelectionBox],
-        dimension: Dimension,
-        create_missing_chunks=False,
+            self,
+            selection: Union[SelectionGroup, SelectionBox],
+            dimension: Dimension,
+            create_missing_chunks=False,
     ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None]:
         """Given a selection will yield chunks, slices into that chunk and the corresponding box
 
         :param selection: SelectionGroup or SelectionBox into the world
-        :param dimension: The dimension to take effect in (defaults to overworld)
+        :param dimension: The dimension to take effect in
         :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false)
         Usage:
         for chunk, slice, box in world.get_chunk_slices(selection):
             chunk.blocks[slice] = ...
         """
         for chunk, box in self.get_chunk_boxes(
-            selection, dimension, create_missing_chunks
+                selection, dimension, create_missing_chunks
         ):
             slices = box.chunk_slice(chunk.cx, chunk.cz, self.sub_chunk_size)
             yield chunk, slices, box
@@ -479,7 +479,7 @@ class World(BaseStructure):
     #         chunk.entities = entities
 
     def run_operation(
-        self, operation: OperationType, dimension: Dimension, *args, create_undo=True
+            self, operation: OperationType, dimension: Dimension, *args, create_undo=True
     ) -> Any:
         try:
             out = operation(self, dimension, *args)
