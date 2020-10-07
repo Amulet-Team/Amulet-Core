@@ -83,13 +83,34 @@ class Structure(BaseStructure):
                 chunk.block_palette = block_palette
         return cls(data, block_palette, copy.deepcopy(selection), world.chunk_size)
 
-    def get_chunk(self, cx: int, cz: int) -> Chunk:
+    def get_chunk(self, cx: int, cz: int, dimension: Optional[Dimension] = None) -> Chunk:
+        """
+        Gets the chunk data of the specified chunk coordinates.
+        If the chunk does not exist ChunkDoesNotExist is raised.
+        If some other error occurs then ChunkLoadError is raised (this error will also catch ChunkDoesNotExist)
+
+        :param cx: The X coordinate of the desired chunk
+        :param cz: The Z coordinate of the desired chunk
+        :param dimension: The dimension to get the chunk from. May have no effect.
+        :return: A Chunk object containing the data for the chunk
+        :raises: `amulet.api.errors.ChunkDoesNotExist` if the chunk does not exist or `amulet.api.errors.ChunkLoadError` if the chunk failed to load for some reason. (This also includes it not existing)
+        """
         if (cx, cz) in self._chunk_cache:
             return self._chunk_cache[(cx, cz)]
         else:
             raise ChunkDoesNotExist
 
-    def get_block(self, x: int, y: int, z: int) -> Block:
+    def get_block(self, x: int, y: int, z: int, dimension: Optional[Dimension] = None) -> Block:
+        """
+        Gets the universal Block object at the specified coordinates
+
+        :param x: The X coordinate of the desired block
+        :param y: The Y coordinate of the desired block
+        :param z: The Z coordinate of the desired block
+        :param dimension: The dimension of the desired block. May have no effect.
+        :return: The universal Block object representation of the block at that location
+        :raise: Raises ChunkDoesNotExist or ChunkLoadError if the chunk was not loaded.
+        """
         cx, cz = block_coords_to_chunk_coords(x, z, chunk_size=self.sub_chunk_size)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
 

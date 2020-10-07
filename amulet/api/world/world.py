@@ -32,8 +32,6 @@ if TYPE_CHECKING:
     from PyMCTranslate import TranslationManager
     from amulet.api.wrapper.world_format_wrapper import WorldFormatWrapper
 
-ChunkCache = Dict[DimensionCoordinates, Optional[Chunk]]
-
 
 class World(BaseStructure):
     """
