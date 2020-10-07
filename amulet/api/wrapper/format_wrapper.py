@@ -18,6 +18,7 @@ from amulet.api.data_types import (
     AnyNDArray,
     VersionNumberAny,
     ChunkCoordinates,
+    Dimension,
 )
 
 if TYPE_CHECKING:
@@ -26,17 +27,27 @@ if TYPE_CHECKING:
     from amulet.api.wrapper.chunk.translator import Translator
 
 
-class BaseFormatWrapper:
+class FormatWrapper:
     """
     The Format class is a class that sits between the serialised world or structure data and the program using amulet-core.
     The Format class is used to access chunks from the serialised source in the universal format and write them back again.
-    The BaseFormat class holds the common methods shared by the sub-classes.
+    The FormatWrapper class holds the common methods shared by the sub-classes.
     """
 
-    def __init__(self):
+    def __init__(self, path: str):
+        self._path = path
         self._translation_manager = None
         self._version = None
         self._changed: bool = False
+
+    @property
+    def sub_chunk_size(self) -> int:
+        return 16
+
+    @property
+    def path(self) -> str:
+        """The path to the data on disk."""
+        return self._path
 
     @property
     def readable(self) -> bool:
@@ -94,6 +105,22 @@ class BaseFormatWrapper:
     def changed(self) -> bool:
         return self._changed
 
+    @property
+    def dimensions(self) -> List[Dimension]:
+        """A list of all the dimensions contained in the world"""
+        raise NotImplementedError
+
+    def register_dimension(
+            self, dimension_internal: Any, dimension_name: Dimension
+    ):
+        """
+        Register a new dimension.
+        :param dimension_internal: The internal representation of the dimension
+        :param dimension_name: The name of the dimension shown to the user
+        :return:
+        """
+        raise NotImplementedError
+
     def _get_interface(self, max_world_version, raw_chunk_data=None) -> "Interface":
         if raw_chunk_data:
             key = self._get_interface_key(raw_chunk_data)
@@ -141,40 +168,42 @@ class BaseFormatWrapper:
         """Unload data stored in the Format class"""
         raise NotImplementedError
 
-    def all_chunk_coords(self, *args) -> Generator[ChunkCoordinates, None, None]:
-        """A generator of all chunk coords"""
+    def all_chunk_coords(self, dimension: Dimension) -> Generator[ChunkCoordinates, None, None]:
+        """A generator of all chunk coords in the given dimension"""
         raise NotImplementedError
 
-    def load_chunk(self, cx: int, cz: int, *args) -> "Chunk":
+    def load_chunk(self, cx: int, cz: int, dimension: Dimension) -> "Chunk":
         """
         Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
+        :param dimension: The dimension to load the chunk from.
         :return: The chunk at the given coordinates.
         """
         if not self.readable:
             raise ChunkLoadError("This object is not readable")
         try:
-            return self._load_chunk(cx, cz, *args)
+            return self._load_chunk(cx, cz, dimension)
         except ChunkDoesNotExist as e:
             raise e
         except Exception:
             log.error(f"Error loading chunk {cx} {cz}", exc_info=True)
             raise ChunkLoadError
 
-    def _load_chunk(self, cx: int, cz: int, *args, recurse: bool = True,) -> "Chunk":
+    def _load_chunk(self, cx: int, cz: int, dimension: Dimension, recurse: bool = True,) -> "Chunk":
         """
         Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
+        :param dimension: The dimension to load the chunk from.
         :param recurse: bool: look in boundary chunks if required to fully define data
         :return: The chunk at the given coordinates.
         """
 
         # Gets an interface (the code that actually reads the chunk data)
-        raw_chunk_data = self._get_raw_chunk_data(cx, cz, *args)
+        raw_chunk_data = self._get_raw_chunk_data(cx, cz, dimension)
         interface, translator, game_version = self._get_interface_and_translator(
             self.max_world_version, raw_chunk_data
         )
@@ -184,7 +213,7 @@ class BaseFormatWrapper:
         chunk_palette: AnyNDArray
         chunk = self._unpack(translator, game_version, chunk, chunk_palette)
         return self._convert_to_load(
-            chunk, translator, game_version, *args, recurse=recurse,
+            chunk, translator, game_version, dimension, recurse=recurse,
         )
 
     def _decode(
@@ -208,7 +237,7 @@ class BaseFormatWrapper:
         chunk: "Chunk",
         translator: "Translator",
         game_version: VersionNumberAny,
-        *args,
+        dimension: Dimension,
         recurse: bool = True,
     ) -> "Chunk":
         # set up a callback that translator can use to get chunk data
@@ -220,7 +249,7 @@ class BaseFormatWrapper:
                 cx_, cz_ = cx + x, cz + z
                 if (cx_, cz_) not in chunk_cache:
                     chunk_cache[(cx_, cz_)] = self._load_chunk(
-                        cx_, cz_, *args, recurse=False
+                        cx_, cz_, dimension, recurse=False
                     )
                 return chunk_cache[(cx_, cz_)]
 
@@ -235,24 +264,25 @@ class BaseFormatWrapper:
         chunk.changed = False
         return chunk
 
-    def commit_chunk(self, chunk: "Chunk", *args):
+    def commit_chunk(self, chunk: "Chunk", dimension: Dimension):
         """
         Save a universal format chunk to the Format database (not the disk database)
         call save method to write changed chunks back to the disk database
         :param chunk: The chunk object to translate and save
+        :param dimension: The dimension to commit the chunk to.
         :return:
         """
         if not self.writeable:
             log.error("This object is not writeable")
             return
         try:
-            self._commit_chunk(copy.deepcopy(chunk), *args)
+            self._commit_chunk(copy.deepcopy(chunk), dimension)
         except Exception:
             log.error(f"Error saving chunk {chunk}", exc_info=True)
         self._changed = True
 
     def _commit_chunk(
-        self, chunk: "Chunk", *args, recurse: bool = True,
+        self, chunk: "Chunk", dimension: Dimension, recurse: bool = True,
     ):
         """
         Saves a universal amulet.api.chunk.Chunk object
@@ -271,7 +301,7 @@ class BaseFormatWrapper:
         chunk, chunk_palette = self._pack(chunk, translator, chunk_version)
         raw_chunk_data = self._encode(chunk, chunk_palette, interface)
 
-        self._put_raw_chunk_data(cx, cz, raw_chunk_data, *args)
+        self._put_raw_chunk_data(cx, cz, raw_chunk_data, dimension)
 
     def _convert_to_save(
         self,
@@ -330,21 +360,22 @@ class BaseFormatWrapper:
         """Encode the data to the raw format as saved on disk."""
         return interface.encode(chunk, chunk_palette, self.max_world_version)
 
-    def delete_chunk(self, cx: int, cz: int, *args):
+    def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         raise NotImplementedError
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, *args):
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
         """
         Actually stores the data from the interface to disk.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
-    def _get_raw_chunk_data(self, cx: int, cz: int, *args) -> Any:
+    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> Any:
         """
-        Return the interface key and data to interface with given chunk coordinates.
+        Return the raw data as loaded from disk.
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
+        :param dimension: The dimension to load the data from.
         :return: The raw chunk data.
         """
-        raise NotImplementedError()
+        raise NotImplementedError

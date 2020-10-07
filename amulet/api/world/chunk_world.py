@@ -27,7 +27,7 @@ from amulet.api.history.history_manager import MetaHistoryManager
 
 if TYPE_CHECKING:
     from PyMCTranslate import TranslationManager
-    from amulet.api.wrapper.world_format_wrapper import WorldFormatWrapper
+    from amulet.api.wrapper import FormatWrapper
 
 
 class ChunkWorld:
@@ -36,7 +36,7 @@ class ChunkWorld:
     """
 
     def __init__(
-            self, directory: str, world_wrapper: "WorldFormatWrapper", temp_dir: str = None
+            self, directory: str, world_wrapper: "FormatWrapper", temp_dir: str = None
     ):
         self._directory = directory
         if temp_dir is None:
@@ -101,7 +101,7 @@ class ChunkWorld:
         return self._world_wrapper.translation_manager
 
     @property
-    def world_wrapper(self) -> "WorldFormatWrapper":
+    def world_wrapper(self) -> "FormatWrapper":
         """A class to access data directly from the world."""
         return self._world_wrapper
 
@@ -218,7 +218,7 @@ class ChunkWorld:
 
     def save(
             self,
-            wrapper: "WorldFormatWrapper" = None,
+            wrapper: "FormatWrapper" = None,
             progress_callback: Callable[[int, int], None] = None,
     ):
         """Save the world using the given wrapper.
@@ -229,7 +229,7 @@ class ChunkWorld:
                 progress_callback(chunk_index, chunk_count)
 
     def save_iter(
-            self, wrapper: "WorldFormatWrapper" = None
+            self, wrapper: "FormatWrapper" = None
     ) -> Generator[Tuple[int, int], None, None]:
         """Save the world using the given wrapper.
         Leave as None to save back to the input wrapper."""

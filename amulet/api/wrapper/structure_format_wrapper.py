@@ -1,8 +1,8 @@
-from .format_wrapper import BaseFormatWrapper
+from .format_wrapper import FormatWrapper
 from amulet.api.data_types import PathOrBuffer
 
 
-class StructureFormatWrapper(BaseFormatWrapper):
+class StructureFormatWrapper(FormatWrapper):
     def __init__(self, path_or_buffer: PathOrBuffer):
         super().__init__()
         self._path_or_buffer = path_or_buffer

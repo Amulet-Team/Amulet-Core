@@ -539,7 +539,7 @@ class AnvilFormat(WorldFormatWrapper):
             self._get_dimension(dimension).delete_chunk(cx, cz)
 
     def _put_raw_chunk_data(
-        self, cx: int, cz: int, data: Any, dimension: "Dimension", *args
+        self, cx: int, cz: int, data: Any, dimension: "Dimension"
     ):
         """
         Actually stores the data from the interface to disk.
@@ -547,14 +547,15 @@ class AnvilFormat(WorldFormatWrapper):
         self._get_dimension(dimension).put_chunk_data(cx, cz, data)
 
     def _get_raw_chunk_data(
-        self, cx: int, cz: int, dimension: "Dimension", *args
+        self, cx: int, cz: int, dimension: "Dimension"
     ) -> nbt.NBTFile:
         """
-        Return the interface key and data to interface with given chunk coordinates.
+        Return the raw data as loaded from disk.
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
-        :return: The interface key for the get_interface method and the data to interface with.
+        :param dimension: The dimension to load the data from.
+        :return: The raw chunk data.
         """
         return self._get_dimension(dimension).get_chunk_data(cx, cz)
 

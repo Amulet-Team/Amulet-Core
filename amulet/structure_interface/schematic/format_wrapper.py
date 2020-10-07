@@ -7,6 +7,7 @@ from amulet.api.data_types import (
     AnyNDArray,
     VersionNumberAny,
     PathOrBuffer,
+    Dimension
 )
 from amulet.api.registry import BlockManager
 from amulet.api.wrapper import StructureFormatWrapper
@@ -160,7 +161,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         """Unload data stored in the Format class"""
         pass
 
-    def all_chunk_coords(self, *args) -> Generator[Tuple[int, int], None, None]:
+    def all_chunk_coords(self, dimension: Optional[Dimension] = None) -> Generator[Tuple[int, int], None, None]:
         """A generator of all chunk coords"""
         if self._mode == "r":
             yield from self._data.chunk_coords
@@ -219,12 +220,12 @@ class SchematicFormatWrapper(StructureFormatWrapper):
 
         return chunk
 
-    def delete_chunk(self, cx: int, cz: int, *args):
+    def delete_chunk(self, cx: int, cz: int, dimension: Optional[Dimension] = None):
         raise ObjectWriteError(
             "delete_chunk is not a valid method for a schematic file"
         )
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: SchematicChunk, *args):
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: SchematicChunk, dimension: Optional[Dimension] = None):
         """
         Actually stores the data from the interface to disk.
         """
@@ -233,12 +234,13 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         else:
             raise ObjectWriteError("The schematic file is not open for writing.")
 
-    def _get_raw_chunk_data(self, cx: int, cz: int, *args) -> SchematicChunk:
+    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Optional[Dimension] = None) -> SchematicChunk:
         """
-        Return the interface key and data to interface with given chunk coordinates.
+        Return the raw data as loaded from disk.
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
+        :param dimension: The dimension to load the data from.
         :return: The raw chunk data.
         """
         if self._mode == "r":

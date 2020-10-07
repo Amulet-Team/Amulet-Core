@@ -348,7 +348,7 @@ class LevelDBFormat(WorldFormatWrapper):
         self._level_manager.delete_chunk(cx, cz, dimension)
 
     def _put_raw_chunk_data(
-        self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: "Dimension", *args
+        self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: "Dimension"
     ):
         """
         Actually stores the data from the interface to disk.
@@ -357,14 +357,15 @@ class LevelDBFormat(WorldFormatWrapper):
         return self._level_manager.put_chunk_data(cx, cz, data, dimension)
 
     def _get_raw_chunk_data(
-        self, cx: int, cz: int, dimension: "Dimension", *args
+        self, cx: int, cz: int, dimension: "Dimension"
     ) -> Dict[bytes, bytes]:
         """
-        Return the interface key and data to interface with given chunk coordinates.
+        Return the raw data as loaded from disk.
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
-        :return: The interface key for the get_interface method and the data to interface with.
+        :param dimension: The dimension to load the data from.
+        :return: The raw chunk data.
         """
         self._verify_has_lock()
         return self._level_manager.get_chunk_data(cx, cz, dimension)
