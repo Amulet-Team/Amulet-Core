@@ -29,8 +29,8 @@ if __name__ == "__main__":
                 for block in chunk.blocks[
                     0, :, 0
                 ].ravel():  # the blockstates of one vertical column
-                    print(world.palette[block])
-                air = world.palette.get_add_block(
+                    print(world.block_palette[block])
+                air = world.block_palette.get_add_block(
                     Block(namespace="universal_minecraft", base_name="air")
                 )
                 print("Filling chunk with blocks")
@@ -38,14 +38,14 @@ if __name__ == "__main__":
                     chunk.blocks[0, 0, 0] = air
                 elif mode == "random_chunk":
                     blocks = numpy.random.randint(
-                        0, len(world.palette.blocks()), size=(16, 256, 16)
+                        0, len(world.block_palette.blocks()), size=(16, 256, 16)
                     )
-                    for index, block in enumerate(world.palette.blocks()):
+                    for index, block in enumerate(world.block_palette.blocks()):
                         if block.base_name in ["lava", "water"]:
                             blocks[blocks == index] = air
                     chunk.blocks[:, :, :] = blocks
                 elif mode == "stone":
-                    chunk.blocks[:, :, :] = world.palette.get_add_block(
+                    chunk.blocks[:, :, :] = world.block_palette.get_add_block(
                         Block(namespace="universal_minecraft", base_name="stone")
                     )
                 chunk.changed = True
@@ -59,7 +59,7 @@ if __name__ == "__main__":
                 for block in chunk.blocks[
                     0, :, 0
                 ].ravel():  # the blockstates of one vertical column
-                    print(world.palette[block])
+                    print(world.block_palette[block])
             else:
                 print("Not enough arguments given. Format must be:")
                 print("random_chunk/air <origin_world_path> <cx> <cz>")
@@ -116,16 +116,16 @@ if __name__ == "__main__":
                 world.save()
                 for cx, cz in world.world_wrapper.all_chunk_coords():
                     chunk = world.get_chunk(cx, cz)
-                    chunk.blocks[0, :, 0] = world.palette.get_add_block(
+                    chunk.blocks[0, :, 0] = world.block_palette.get_add_block(
                         Block(namespace="universal_minecraft", base_name="stone")
                     )
-                    chunk.blocks[0, :, 15] = world.palette.get_add_block(
+                    chunk.blocks[0, :, 15] = world.block_palette.get_add_block(
                         Block(namespace="universal_minecraft", base_name="stone")
                     )
-                    chunk.blocks[15, :, 0] = world.palette.get_add_block(
+                    chunk.blocks[15, :, 0] = world.block_palette.get_add_block(
                         Block(namespace="universal_minecraft", base_name="stone")
                     )
-                    chunk.blocks[15, :, 15] = world.palette.get_add_block(
+                    chunk.blocks[15, :, 15] = world.block_palette.get_add_block(
                         Block(namespace="universal_minecraft", base_name="stone")
                     )
                 world.save()
@@ -155,16 +155,16 @@ if __name__ == "__main__":
                 world.save()
 
                 chunk = Chunk(cx, cz)
-                bedrock = world.palette.get_add_block(
+                bedrock = world.block_palette.get_add_block(
                     Block(namespace="universal_minecraft", base_name="bedrock")
                 )
-                stone = world.palette.get_add_block(
+                stone = world.block_palette.get_add_block(
                     Block(namespace="universal_minecraft", base_name="stone")
                 )
-                dirt = world.palette.get_add_block(
+                dirt = world.block_palette.get_add_block(
                     Block(namespace="universal_minecraft", base_name="dirt")
                 )
-                grass = world.palette.get_add_block(
+                grass = world.block_palette.get_add_block(
                     Block(namespace="universal_minecraft", base_name="grass_block")
                 )
 

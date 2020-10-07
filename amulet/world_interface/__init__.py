@@ -71,13 +71,13 @@ if __name__ == "__main__":
     w = load_world(sys.argv[1])
     c = w.get_chunk(cx, cz, "overworld")
     for block in c.blocks[0, :, 0].ravel():  # the blockstates of one vertical column
-        print(w.palette[block])
-    air = w.palette.get_add_block(
+        print(w.block_palette[block])
+    air = w.block_palette.get_add_block(
         Block(namespace="universal_minecraft", base_name="air")
     )
     # blocks[0, 30, 0] = stone
-    blocks = numpy.random.randint(0, len(w.palette.blocks()), size=(16, 256, 16))
-    for index, block in enumerate(w.palette.blocks()):
+    blocks = numpy.random.randint(0, len(w.block_palette.blocks()), size=(16, 256, 16))
+    for index, block in enumerate(w.block_palette.blocks()):
         if block.base_name in ["lava", "water"]:
             blocks[blocks == index] = air
     c.blocks[:, :, :] = blocks
@@ -87,4 +87,4 @@ if __name__ == "__main__":
     w = load_world(sys.argv[1])
     c = w.get_chunk(cx, cz, "overworld")
     for block in c.blocks[0, :, 0].ravel():  # the blockstates of one vertical column
-        print(w.palette[block])
+        print(w.block_palette[block])
