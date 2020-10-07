@@ -3,7 +3,7 @@ from __future__ import annotations
 # from copy import deepcopy
 import os
 import shutil
-from typing import Union, Generator, Dict, Optional, Tuple, Callable, Any, TYPE_CHECKING
+from typing import Union, Generator, Optional, Tuple, Callable, Any, TYPE_CHECKING
 from types import GeneratorType
 import warnings
 
@@ -21,7 +21,6 @@ from amulet.api.paths import get_temp_dir
 from amulet.api.data_types import (
     OperationType,
     Dimension,
-    DimensionCoordinates,
     VersionIdentifierType,
 )
 from amulet.utils.world_utils import block_coords_to_chunk_coords
@@ -97,11 +96,6 @@ class World(BaseStructure):
     def sub_chunk_size(self) -> int:
         """The normal dimensions of the chunk"""
         return self._world_wrapper.sub_chunk_size
-
-    @property
-    def chunk_size(self) -> Tuple[int, Union[int, None], int]:
-        """The normal dimensions of the chunk"""
-        return self._world_wrapper.chunk_size
 
     @property
     def translation_manager(self) -> "TranslationManager":
@@ -269,7 +263,7 @@ class World(BaseStructure):
         :return: The universal Block object representation of the block at that location
         :raise: Raises ChunkDoesNotExist or ChunkLoadError if the chunk was not loaded.
         """
-        cx, cz = block_coords_to_chunk_coords(x, z, chunk_size=self.chunk_size[0])
+        cx, cz = block_coords_to_chunk_coords(x, z, sub_chunk_size=self.sub_chunk_size)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
 
         return self.get_chunk(cx, cz, dimension).get_block(offset_x, y, offset_z)
@@ -295,7 +289,7 @@ class World(BaseStructure):
         :return: The block at the given location converted to the `version` format. Note the odd return format.
         :raise: Raises ChunkDoesNotExist or ChunkLoadError if the chunk was not loaded.
         """
-        cx, cz = block_coords_to_chunk_coords(x, z, chunk_size=self.sub_chunk_size)
+        cx, cz = block_coords_to_chunk_coords(x, z, sub_chunk_size=self.sub_chunk_size)
         chunk = self.get_chunk(cx, cz, dimension)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
 
@@ -329,7 +323,7 @@ class World(BaseStructure):
         :return: The block at the given location converted to the `version` format. Note the odd return format.
         :raise: Raises ChunkLoadError if the chunk was not loaded correctly.
         """
-        cx, cz = block_coords_to_chunk_coords(x, z, chunk_size=self.sub_chunk_size)
+        cx, cz = block_coords_to_chunk_coords(x, z, sub_chunk_size=self.sub_chunk_size)
         try:
             chunk = self.get_chunk(cx, cz, dimension)
         except ChunkDoesNotExist:

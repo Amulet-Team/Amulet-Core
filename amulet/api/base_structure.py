@@ -13,10 +13,6 @@ class BaseStructure:
     def sub_chunk_size(self) -> int:
         return 16
 
-    @property
-    def chunk_size(self) -> Tuple[int, int, int]:
-        return self.sub_chunk_size, self.sub_chunk_size * 16, self.sub_chunk_size
-
     def get_chunk(self, cx: int, cz: int, dimension: Optional[Dimension]) -> Chunk:
         """
         Gets the chunk data of the specified chunk coordinates.
@@ -48,12 +44,12 @@ class BaseStructure:
             self,
             cx: int,
             cz: int,
-            chunk_size: Optional[Tuple[int, Union[int, None], int]] = None,
+            sub_chunk_size: Optional[int] = None,
     ):
         """Get a SelectionBox containing the whole of a given chunk"""
-        if chunk_size is None:
-            chunk_size = self.chunk_size
-        return SelectionBox.create_chunk_box(cx, cz, chunk_size[0])
+        if sub_chunk_size is None:
+            sub_chunk_size = self.sub_chunk_size
+        return SelectionBox.create_chunk_box(cx, cz, sub_chunk_size)
 
     def get_chunk_boxes(
             self,

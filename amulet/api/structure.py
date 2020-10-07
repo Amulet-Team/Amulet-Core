@@ -54,16 +54,16 @@ class Structure(BaseStructure):
         chunks: Dict[ChunkCoordinates, Chunk],
         palette: BlockManager,
         selection: SelectionGroup,
-        chunk_size: Tuple[int, int, int] = (16, 256, 16),
+        sub_chunk_size: int = 16,
     ):
         self._chunk_cache = chunks
         self._palette = palette
         self._selection = selection
-        self._chunk_size = chunk_size
+        self._sub_chunk_size = sub_chunk_size
 
     @property
-    def chunk_size(self) -> Tuple[int, int, int]:
-        return self._chunk_size
+    def sub_chunk_size(self) -> int:
+        return self._sub_chunk_size
 
     @property
     def palette(self) -> BlockManager:
@@ -81,7 +81,7 @@ class Structure(BaseStructure):
             if chunk.coordinates not in data:
                 data[chunk.coordinates] = chunk = copy.deepcopy(chunk)
                 chunk.block_palette = block_palette
-        return cls(data, block_palette, copy.deepcopy(selection), world.chunk_size)
+        return cls(data, block_palette, copy.deepcopy(selection), world.sub_chunk_size)
 
     def get_chunk(self, cx: int, cz: int, dimension: Optional[Dimension] = None) -> Chunk:
         """
@@ -111,7 +111,7 @@ class Structure(BaseStructure):
         :return: The universal Block object representation of the block at that location
         :raise: Raises ChunkDoesNotExist or ChunkLoadError if the chunk was not loaded.
         """
-        cx, cz = block_coords_to_chunk_coords(x, z, chunk_size=self.sub_chunk_size)
+        cx, cz = block_coords_to_chunk_coords(x, z, sub_chunk_size=self.sub_chunk_size)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
 
         chunk = self.get_chunk(cx, cz)
@@ -140,10 +140,10 @@ class Structure(BaseStructure):
         selection: SelectionGroup
         for box in selection.selection_boxes:
             first_chunk = block_coords_to_chunk_coords(
-                box.min_x, box.min_z, chunk_size=self.sub_chunk_size
+                box.min_x, box.min_z, sub_chunk_size=self.sub_chunk_size
             )
             last_chunk = block_coords_to_chunk_coords(
-                box.max_x - 1, box.max_z - 1, chunk_size=self.sub_chunk_size
+                box.max_x - 1, box.max_z - 1, sub_chunk_size=self.sub_chunk_size
             )
             for cx, cz in itertools.product(
                 range(first_chunk[0], last_chunk[0] + 1),
@@ -183,7 +183,7 @@ class Structure(BaseStructure):
         self,
         destination_origin: Tuple[int, int, int],
         selection: Optional[Union[SelectionGroup, SelectionBox]] = None,
-        destination_chunk_shape: Optional[Tuple[int, int, int]] = None,
+        destination_sub_chunk_shape: Optional[int] = None,
         generate_non_exists: bool = False,
     ) -> Generator[
         Tuple[
@@ -203,12 +203,12 @@ class Structure(BaseStructure):
         so the slices need to be split up into parts that intersect a chunk in the source and destination.
         :param destination_origin: The location where the minimum point of self.selection will end up
         :param selection: An optional selection. The overlap of this and self.selection will be used
-        :param destination_chunk_shape: the chunk shape of the destination object (defaults to self.chunk_size)
+        :param destination_sub_chunk_shape: the chunk shape of the destination object (defaults to self.sub_chunk_size)
         :param generate_non_exists: Generate empty read-only chunks if the chunk does not exist.
         :return:
         """
-        if destination_chunk_shape is None:
-            destination_chunk_shape = self.chunk_size
+        if destination_sub_chunk_shape is None:
+            destination_sub_chunk_shape = self.sub_chunk_size
 
         if selection is None:
             selection = self.selection
@@ -223,18 +223,18 @@ class Structure(BaseStructure):
             first_chunk = block_coords_to_chunk_coords(
                 dst_full_box.min_x,
                 dst_full_box.min_z,
-                chunk_size=destination_chunk_shape[0],
+                sub_chunk_size=destination_sub_chunk_shape,
             )
             last_chunk = block_coords_to_chunk_coords(
                 dst_full_box.max_x - 1,
                 dst_full_box.max_z - 1,
-                chunk_size=destination_chunk_shape[0],
+                sub_chunk_size=destination_sub_chunk_shape,
             )
             for cx, cz in itertools.product(
                 range(first_chunk[0], last_chunk[0] + 1),
                 range(first_chunk[1], last_chunk[1] + 1),
             ):
-                chunk_box = self._chunk_box(cx, cz, destination_chunk_shape)
+                chunk_box = self._chunk_box(cx, cz, destination_sub_chunk_shape)
                 dst_box = chunk_box.intersection(dst_full_box)
                 src_box = SelectionBox(-offset + dst_box.min, -offset + dst_box.max)
                 src_slices = src_box.chunk_slice(
@@ -304,4 +304,4 @@ class Structure(BaseStructure):
                 yield index / volume
                 index += 1
 
-        return Structure(chunks, block_palette, selection, self.chunk_size)
+        return Structure(chunks, block_palette, selection, self.sub_chunk_size)

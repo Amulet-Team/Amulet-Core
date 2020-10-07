@@ -29,10 +29,6 @@ class WorldFormatWrapper(BaseFormatWrapper):
         return 16
 
     @property
-    def chunk_size(self) -> Tuple[int, Union[int, None], int]:
-        return self.sub_chunk_size, self.sub_chunk_size * 16, self.sub_chunk_size
-
-    @property
     def path(self) -> str:
         """The path to the world directory"""
         return self._path

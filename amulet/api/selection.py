@@ -33,19 +33,19 @@ class SelectionBox:
         self._max_x, self._max_y, self._max_z = numpy.max(box, 0).tolist()
 
     @classmethod
-    def create_chunk_box(cls, cx: int, cz: int, chunk_size: int = 16):
+    def create_chunk_box(cls, cx: int, cz: int, sub_chunk_size: int = 16):
         """Get a SelectionBox containing the whole of a given chunk"""
         return cls(
-            (cx * chunk_size, -(2 ** 30), cz * chunk_size),
-            ((cx + 1) * chunk_size, 2 ** 30, (cz + 1) * chunk_size),
+            (cx * sub_chunk_size, -(2 ** 30), cz * sub_chunk_size),
+            ((cx + 1) * sub_chunk_size, 2 ** 30, (cz + 1) * sub_chunk_size),
         )
 
     @classmethod
-    def create_sub_chunk_box(cls, cx: int, cy: int, cz: int, chunk_size: int = 16):
+    def create_sub_chunk_box(cls, cx: int, cy: int, cz: int, sub_chunk_size: int = 16):
         """Get a SelectionBox containing the whole of a given sub-chunk"""
         return cls(
-            (cx * chunk_size, cy * chunk_size, cz * chunk_size),
-            ((cx + 1) * chunk_size, (cy + 1) * chunk_size, (cz + 1) * chunk_size),
+            (cx * sub_chunk_size, cy * sub_chunk_size, cz * sub_chunk_size),
+            ((cx + 1) * sub_chunk_size, (cy + 1) * sub_chunk_size, (cz + 1) * sub_chunk_size),
         )
 
     def create_moved_box(
@@ -58,7 +58,7 @@ class SelectionBox:
         return SelectionBox(offset + self.min, offset + self.max)
 
     def chunk_locations(
-        self, chunk_size: int = 16
+        self, sub_chunk_size: int = 16
     ) -> Generator[ChunkCoordinates, None, None]:
         """A generator of chunk locations that this box intersects."""
         cx_min, cz_min, cx_max, cz_max = block_coords_to_chunk_coords(
@@ -66,35 +66,35 @@ class SelectionBox:
             self.min_z,
             self.max_x - 1,
             self.max_z - 1,
-            chunk_size=chunk_size,
+            sub_chunk_size=sub_chunk_size,
         )
         yield from itertools.product(
             range(cx_min, cx_max + 1), range(cz_min, cz_max + 1)
         )
 
-    def chunk_y_locations(self, chunk_size: int = 16):
+    def chunk_y_locations(self, sub_chunk_size: int = 16):
         cy_min, cy_max = block_coords_to_chunk_coords(
-            self.min_y, self._max_y, chunk_size=chunk_size
+            self.min_y, self._max_y, sub_chunk_size=sub_chunk_size
         )
         for cy in range(cy_min, cy_max + 1):
             yield cy
 
     def sub_chunk_locations(
-        self, chunk_size: int = 16
+        self, sub_chunk_size: int = 16
     ) -> Generator[SubChunkCoordinates, None, None]:
-        for cx, cz in self.chunk_locations(chunk_size):
-            for cy in self.chunk_y_locations(chunk_size):
+        for cx, cz in self.chunk_locations(sub_chunk_size):
+            for cy in self.chunk_y_locations(sub_chunk_size):
                 yield cx, cy, cz
 
     def sub_sections(
-        self, chunk_size: int = 16
+        self, sub_chunk_size: int = 16
     ) -> Generator[Tuple[ChunkCoordinates, SelectionBox], None, None]:
         """A generator of modified `SelectionBox`es to fit within each sub-chunk.
-        :param chunk_size: The dimension of the chunk (normally 16)
+        :param sub_chunk_size: The dimension of the chunk (normally 16)
         """
-        for cx, cy, cz in self.sub_chunk_locations(chunk_size):
+        for cx, cy, cz in self.sub_chunk_locations(sub_chunk_size):
             yield (cx, cz), self.intersection(
-                SelectionBox.create_sub_chunk_box(cx, cy, cz, chunk_size)
+                SelectionBox.create_sub_chunk_box(cx, cy, cz, sub_chunk_size)
             )
 
     def __iter__(self) -> Iterable[Tuple[int, int, int]]:
@@ -140,12 +140,12 @@ class SelectionBox:
         )
 
     def chunk_slice(
-        self, cx: int, cz: int, chunk_size: int = 16
+        self, cx: int, cz: int, sub_chunk_size: int = 16
     ) -> Tuple[slice, slice, slice]:
         """Get the Convert a slice in absolute coordinates to chunk coordinates"""
         s_x, s_y, s_z = self.slice
-        x_chunk_slice = blocks_slice_to_chunk_slice(s_x, chunk_size, cx)
-        z_chunk_slice = blocks_slice_to_chunk_slice(s_z, chunk_size, cz)
+        x_chunk_slice = blocks_slice_to_chunk_slice(s_x, sub_chunk_size, cx)
+        z_chunk_slice = blocks_slice_to_chunk_slice(s_z, sub_chunk_size, cz)
         return x_chunk_slice, s_y, z_chunk_slice
 
     @property
@@ -378,42 +378,42 @@ class SelectionGroup:
         return sorted(self._selection_boxes.copy(), key=hash)
 
     def chunk_locations(
-        self, chunk_size: int = 16
+        self, sub_chunk_size: int = 16
     ) -> Generator[ChunkCoordinates, None, None]:
         """The chunk locations that the SelectionGroup is in.
         Each location is only given once even if there are multiple boxes in the chunk."""
         yield from set(
             location
             for box in self.selection_boxes
-            for location in box.chunk_locations(chunk_size)
+            for location in box.chunk_locations(sub_chunk_size)
         )
 
     def _chunk_boxes(
-        self, chunk_size: int = 16
+        self, sub_chunk_size: int = 16
     ) -> Dict[ChunkCoordinates, List[SelectionBox]]:
         boxes = {}
         for box in self.selection_boxes:
-            for (cx, cz), sub_box in box.sub_sections(chunk_size):
+            for (cx, cz), sub_box in box.sub_sections(sub_chunk_size):
                 boxes.setdefault((cx, cz), []).append(sub_box)
         return boxes
 
     def sub_sections(
-        self, chunk_size: int = 16
+        self, sub_chunk_size: int = 16
     ) -> Generator[Tuple[ChunkCoordinates, SelectionBox], None, None]:
         """A generator of modified `SelectionBox`es to fit within each sub-chunk.
-        :param chunk_size: The dimension of the chunk (normally 16)
+        :param sub_chunk_size: The dimension of the chunk (normally 16)
         """
-        for (cx, cz), boxes in self._chunk_boxes(chunk_size).items():
+        for (cx, cz), boxes in self._chunk_boxes(sub_chunk_size).items():
             for box in boxes:
                 yield (cx, cz), box
 
     def sub_slices(
-        self, chunk_size: int = 16
+        self, sub_chunk_size: int = 16
     ) -> Generator[
         Tuple[ChunkCoordinates, Tuple[slice, slice, slice], SelectionBox], None, None
     ]:
-        for (cx, cz), box in self.sub_sections(chunk_size):
-            slices = box.chunk_slice(cx, cz, chunk_size)
+        for (cx, cz), box in self.sub_sections(sub_chunk_size):
+            slices = box.chunk_slice(cx, cz, sub_chunk_size)
             yield (cx, cz), slices, box
 
     def intersects(self, other: SelectionGroup) -> bool:
