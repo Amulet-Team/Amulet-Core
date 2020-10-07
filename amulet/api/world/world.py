@@ -200,12 +200,15 @@ class World(BaseStructure):
         for dimension, cx, cz in changed_chunks:
             if dimension not in output_dimension_map:
                 continue
-            chunk = self._chunks.get_chunk(dimension, cx, cz)
-            if chunk is None:
+            try:
+                chunk = self.get_chunk(cx, cz, dimension)
+            except ChunkDoesNotExist:
                 wrapper.delete_chunk(cx, cz, dimension)
+            except ChunkLoadError:
+                pass
             else:
                 wrapper.commit_chunk(chunk, dimension)
-            chunk.changed = False
+                chunk.changed = False
             chunk_index += 1
             yield chunk_index, chunk_count
             if not chunk_index % 10000:
