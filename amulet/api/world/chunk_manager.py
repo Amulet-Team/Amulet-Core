@@ -12,18 +12,18 @@ from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.history.history_manager import DatabaseHistoryManager
 
 if TYPE_CHECKING:
-    from amulet.api.world import World
+    from amulet.api.world import ChunkWorld
 
 
 class ChunkDiskEntry(DiskRevisionManager):
     __slots__ = ("_world",)
 
-    def __init__(self, world: "World", directory: str, initial_state: EntryType):
+    def __init__(self, world: "ChunkWorld", directory: str, initial_state: EntryType):
         self._world = weakref.ref(world)
         super().__init__(directory, initial_state)
 
     @property
-    def world(self) -> "World":
+    def world(self) -> "ChunkWorld":
         return self._world()
 
     def _serialise(self, path: str, entry: Optional[Chunk]) -> Optional[str]:
@@ -52,14 +52,14 @@ class ChunkManager(DatabaseHistoryManager):
     DoesNotExistError = ChunkDoesNotExist
     LoadError = ChunkLoadError
 
-    def __init__(self, temp_dir: str, world: "World"):
+    def __init__(self, temp_dir: str, world: "ChunkWorld"):
         super().__init__()
         self._temp_dir: str = temp_dir  # the location to serialise Chunks to
         shutil.rmtree(self._temp_dir, ignore_errors=True)
         self._world = weakref.ref(world)
 
     @property
-    def world(self) -> "World":
+    def world(self) -> "ChunkWorld":
         return self._world()
 
     def changed_chunks(self) -> Generator[DimensionCoordinates, None, None]:
