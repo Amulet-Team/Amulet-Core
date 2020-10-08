@@ -20,6 +20,7 @@ from amulet.api.data_types import (
     ChunkCoordinates,
     Dimension,
 )
+from amulet.api.selection import SelectionGroup, SelectionBox
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
@@ -126,6 +127,30 @@ class FormatWrapper:
         :return:
         """
         raise NotImplementedError
+
+    @property
+    def multi_selection(self) -> bool:
+        """Does this object support having multiple selection boxes."""
+        return False
+
+    @property
+    def mutable_selection(self) -> bool:
+        """Can the selection be modified."""
+        return False
+
+    @property
+    def selection(self) -> SelectionGroup:
+        """The area that all chunk data must fit within."""
+        return SelectionGroup([
+            SelectionBox(
+                (-30_000_000, 0, -30_000_000),
+                (30_000_000, 256, 30_000_000),
+            )
+        ])
+
+    @selection.setter
+    def selection(self, selection: Union[SelectionGroup, SelectionBox]):
+        pass
 
     def _get_interface(self, max_world_version, raw_chunk_data=None) -> "Interface":
         if raw_chunk_data:
