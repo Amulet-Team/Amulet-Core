@@ -17,7 +17,7 @@ from amulet.api.errors import ObjectReadError, ObjectWriteError
 from .schematic import SchematicWriter, SchematicReader, SchematicChunk
 from .interface import (
     JavaSchematicInterface,
-    BedrockSchematicInerface,
+    BedrockSchematicInterface,
     SchematicInterface,
 )
 
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from amulet.api.wrapper import Translator, Interface
 
 java_interface = JavaSchematicInterface()
-bedrock_interface = BedrockSchematicInerface()
+bedrock_interface = BedrockSchematicInterface()
 
 
 class SchematicFormatWrapper(StructureFormatWrapper):

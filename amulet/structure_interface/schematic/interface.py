@@ -109,7 +109,7 @@ class JavaSchematicInterface(SchematicInterface):
     _block_entity_coord_type = "xyz-int"
 
 
-class BedrockSchematicInerface(SchematicInterface):
+class BedrockSchematicInterface(SchematicInterface):
     _entity_id_type = "namespace-str-identifier"
     _entity_coord_type = "Pos-list-float"
     _block_entity_id_type = "str-id"
