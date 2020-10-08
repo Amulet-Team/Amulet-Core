@@ -441,6 +441,9 @@ class SelectionGroup:
                 selection_group.add_box(transformed_selection)
         return selection_group
 
+    def copy(self):
+        return SelectionGroup([box for box in self.selection_boxes])
+
 
 if __name__ == "__main__":
     b1 = SelectionBox((0, 0, 0), (4, 4, 4))
