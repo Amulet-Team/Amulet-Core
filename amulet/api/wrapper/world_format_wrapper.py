@@ -19,6 +19,10 @@ class WorldFormatWrapper(FormatWrapper):
     _missing_world_icon = missing_world_icon
 
     def __init__(self, world_path: str):
+        if type(self) is WorldFormatWrapper:
+            raise Exception(
+                "WorldFormatWrapper is not directly usable. One of its subclasses must be used."
+            )
         super().__init__(world_path)
         self._world_image_path = missing_world_icon
         self._changed: bool = False
