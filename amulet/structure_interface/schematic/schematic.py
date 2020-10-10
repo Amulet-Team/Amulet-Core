@@ -41,12 +41,12 @@ class SchematicReader:
                 path_or_buffer
             ), f"There is no schematic file at path {path_or_buffer}"
             schematic = amulet_nbt.load(path_or_buffer)
-            assert not all(
-                key in schematic for key in ("Version", "Data Version", "BlockData")
-            ), "This file is not a legacy schematic file."
         else:
             assert hasattr(path_or_buffer, "read"), "Object does not have a read method"
             schematic = amulet_nbt.load(buffer=path_or_buffer)
+        assert not all(
+            key in schematic for key in ("Version", "Data Version", "BlockData")
+        ), "This file is not a legacy schematic file."
 
         materials = schematic.get("Materials", amulet_nbt.TAG_String()).value
         if materials == "Alpha":
