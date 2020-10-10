@@ -1,9 +1,8 @@
-from typing import Optional, BinaryIO, List, Any, Generator, Tuple, Dict, TYPE_CHECKING
+from typing import BinaryIO, List, Any, Generator, Tuple, Dict, TYPE_CHECKING
 import os
 
 from .format_wrapper import FormatWrapper
-from amulet.api.data_types import Dimension, PlatformType, VersionNumberAny
-from amulet.api.selection import SelectionGroup
+from amulet.api.data_types import Dimension, PlatformType
 from amulet.api.errors import ObjectReadError
 from amulet import ChunkCoordinates
 
@@ -51,7 +50,7 @@ class StructureFormatWrapper(FormatWrapper):
     def _get_interface(self, max_world_version, raw_chunk_data=None) -> "Interface":
         raise NotImplementedError
 
-    def _create_and_open(self, platform: PlatformType, version: VersionNumberAny, selection: Optional[SelectionGroup] = None):
+    def _create_and_open(self):
         raise NotImplementedError
 
     def open_from(self, f: BinaryIO):
