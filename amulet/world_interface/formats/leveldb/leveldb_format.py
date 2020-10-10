@@ -329,11 +329,9 @@ class LevelDBFormat(WorldFormatWrapper):
         return False
 
     def _save(self):
-        self._verify_has_lock()
         self._level_manager.save()
 
     def _close(self):
-        self._verify_has_lock()
         self._level_manager.close()
 
     def unload(self):
@@ -355,7 +353,6 @@ class LevelDBFormat(WorldFormatWrapper):
         """
         Actually stores the data from the interface to disk.
         """
-        self._verify_has_lock()
         return self._level_manager.put_chunk_data(cx, cz, data, dimension)
 
     def _get_raw_chunk_data(
@@ -369,7 +366,6 @@ class LevelDBFormat(WorldFormatWrapper):
         :param dimension: The dimension to load the data from.
         :return: The raw chunk data.
         """
-        self._verify_has_lock()
         return self._level_manager.get_chunk_data(cx, cz, dimension)
 
 

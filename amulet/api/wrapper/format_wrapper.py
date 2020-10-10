@@ -320,7 +320,7 @@ class FormatWrapper:
         """
 
         # Gets an interface (the code that actually reads the chunk data)
-        raw_chunk_data = self._get_raw_chunk_data(cx, cz, dimension)
+        raw_chunk_data = self.get_raw_chunk_data(cx, cz, dimension)
         interface, translator, game_version = self._get_interface_and_translator(
             self.max_world_version, raw_chunk_data
         )
@@ -422,7 +422,7 @@ class FormatWrapper:
         chunk, chunk_palette = self._pack(chunk, translator, chunk_version)
         raw_chunk_data = self._encode(chunk, chunk_palette, interface)
 
-        self._put_raw_chunk_data(cx, cz, raw_chunk_data, dimension)
+        self.put_raw_chunk_data(cx, cz, raw_chunk_data, dimension)
 
     def _convert_to_save(
         self,
@@ -488,11 +488,30 @@ class FormatWrapper:
     def _delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         raise NotImplementedError
 
+    def put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
+        """
+        Actually stores the data from the interface to disk.
+        """
+        self._verify_has_lock()
+        self._put_raw_chunk_data(cx, cz, data, dimension)
+
     def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
         """
         Actually stores the data from the interface to disk.
         """
         raise NotImplementedError
+
+    def get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> Any:
+        """
+        Return the raw data as loaded from disk.
+
+        :param cx: The x coordinate of the chunk.
+        :param cz: The z coordinate of the chunk.
+        :param dimension: The dimension to load the data from.
+        :return: The raw chunk data.
+        """
+        self._verify_has_lock()
+        return self._get_raw_chunk_data(cx, cz, dimension)
 
     def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> Any:
         """

@@ -503,7 +503,6 @@ class AnvilFormat(WorldFormatWrapper):
 
     def _save(self):
         """Save the data back to the disk database"""
-        self._verify_has_lock()
         for level in self._levels.values():
             level.save()
         # TODO: save other world data
