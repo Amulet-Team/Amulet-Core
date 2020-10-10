@@ -100,7 +100,9 @@ class WorldFormatWrapper(FormatWrapper):
     def unload(self):
         raise NotImplementedError
 
-    def all_chunk_coords(self, dimension: Dimension) -> Generator[ChunkCoordinates, None, None]:
+    def all_chunk_coords(
+        self, dimension: Dimension
+    ) -> Generator[ChunkCoordinates, None, None]:
         raise NotImplementedError
 
     def _delete_chunk(self, cx: int, cz: int, dimension: Dimension):

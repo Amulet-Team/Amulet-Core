@@ -13,10 +13,7 @@ if TYPE_CHECKING:
 class StructureFormatWrapper(FormatWrapper):
     """A base FormatWrapper for all structures that only have one dimension."""
 
-    def __init__(
-        self,
-        path: str
-    ):
+    def __init__(self, path: str):
         """Set up the StructureFormatWrapper ready for accessing.
 
         :param path: The location of the file to read from and write to.
@@ -79,7 +76,9 @@ class StructureFormatWrapper(FormatWrapper):
     def unload(self):
         raise NotImplementedError
 
-    def all_chunk_coords(self, dimension: Dimension) -> Generator[ChunkCoordinates, None, None]:
+    def all_chunk_coords(
+        self, dimension: Dimension
+    ) -> Generator[ChunkCoordinates, None, None]:
         raise NotImplementedError
 
     def _delete_chunk(self, cx: int, cz: int, dimension: Dimension):

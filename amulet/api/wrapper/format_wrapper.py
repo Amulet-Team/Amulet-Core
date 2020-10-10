@@ -73,12 +73,16 @@ class FormatWrapper:
         return self._path
 
     @property
-    def readable(self) -> bool:  # TODO: remove this. FormatWrappers should be simultaneously readable and writable.
+    def readable(
+        self,
+    ) -> bool:  # TODO: remove this. FormatWrappers should be simultaneously readable and writable.
         """Can this object have data read from it."""
         return True
 
     @property
-    def writeable(self) -> bool:  # TODO: remove this. FormatWrappers should be simultaneously readable and writable.
+    def writeable(
+        self,
+    ) -> bool:  # TODO: remove this. FormatWrappers should be simultaneously readable and writable.
         """Can this object have data written to it."""
         return True
 
@@ -200,22 +204,36 @@ class FormatWrapper:
         if os.path.isdir(self.path):
             shutil.rmtree(self.path, ignore_errors=True)
 
-        if platform not in self.valid_formats or len(self.valid_formats[platform]) < 2:  # check that the platform and version are valid
-            raise ObjectReadError(f"{platform} is not a valid platform for this wrapper.")
+        if (
+            platform not in self.valid_formats or len(self.valid_formats[platform]) < 2
+        ):  # check that the platform and version are valid
+            raise ObjectReadError(
+                f"{platform} is not a valid platform for this wrapper."
+            )
         translator_version = self.translation_manager.get_version(platform, version)
         if translator_version.has_abstract_format:  # numerical
             if not self.valid_formats[platform][0]:
-                raise ObjectReadError(f"The version given ({version}) is from the numerical format but this wrapper does not support the numerical format.")
+                raise ObjectReadError(
+                    f"The version given ({version}) is from the numerical format but this wrapper does not support the numerical format."
+                )
         else:
             if not self.valid_formats[platform][0]:
-                raise ObjectReadError(f"The version given ({version}) is from the blockstate format but this wrapper does not support the blockstate format.")
+                raise ObjectReadError(
+                    f"The version given ({version}) is from the blockstate format but this wrapper does not support the blockstate format."
+                )
 
         if self.requires_selection:
             if not isinstance(selection, SelectionGroup):
                 raise ObjectReadError("A selection was required but one was not given.")
             self._selection = selection
-        elif selection is not None:
-            selection = None
+        else:
+            self._selection = SelectionGroup(
+                [
+                    SelectionBox(
+                        (-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000),
+                    )
+                ]
+            )
 
         self._platform = platform
         self._version = version
@@ -255,7 +273,9 @@ class FormatWrapper:
         :raises: ObjectReadWriteError if the FormatWrapper does not have a lock on the object.
         """
         if not self.is_open:
-            raise ObjectReadWriteError(f"The object {self} was never opened. Call .open or .create_and_open to open it before accessing data.")
+            raise ObjectReadWriteError(
+                f"The object {self} was never opened. Call .open or .create_and_open to open it before accessing data."
+            )
         elif not self.has_lock:
             raise ObjectReadWriteError(
                 f"The lock on the object {self} has been lost. It was probably opened somewhere else."
