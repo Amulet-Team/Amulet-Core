@@ -156,7 +156,9 @@ class FormatWrapper:
 
     @property
     def multi_selection(self) -> bool:
-        """Does this object support having multiple selection boxes."""
+        """Does this object support having multiple selection boxes.
+        If False it will be given exactly 1 selection.
+        If True can be given 0 or more."""
         return False
 
     @property
@@ -211,7 +213,14 @@ class FormatWrapper:
         if self.requires_selection:
             if not isinstance(selection, SelectionGroup):
                 raise ObjectReadError("A selection was required but one was not given.")
-            self._selection = selection
+            if self.multi_selection:
+                self._selection = selection
+            else:
+                if not selection.selection_boxes:
+                    raise ObjectReadError("A single selection was required but none were given.")
+                self._selection = SelectionGroup([
+                    sorted(selection.selection_boxes, reverse=True, key=lambda b: b.volume)[0]
+                ])
         else:
             self._selection = SelectionGroup(
                 [
