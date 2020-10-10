@@ -20,9 +20,7 @@ class StructureFormatWrapper(FormatWrapper):
     def can_add_dimension(self) -> bool:
         return False
 
-    def register_dimension(
-            self, dimension_internal: Any, dimension_name: Dimension
-    ):
+    def register_dimension(self, dimension_internal: Any, dimension_name: Dimension):
         pass
 
     @property
@@ -46,9 +44,10 @@ class StructureFormatWrapper(FormatWrapper):
                 if self.multi_selection:
                     self._selection = SelectionGroup([selection.selection_boxes[0]])
                 else:
-                    log.error(f"{box_count} boxes given but this structure can only accept one.")
+                    log.error(
+                        f"{box_count} boxes given but this structure can only accept one."
+                    )
             else:
                 self._selection = selection
         else:
             raise TypeError(f"selection type {type(selection)} is invalid.")
-

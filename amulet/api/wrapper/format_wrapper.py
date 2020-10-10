@@ -119,9 +119,7 @@ class FormatWrapper:
         If False register_dimension will have no effect."""
         raise NotImplementedError
 
-    def register_dimension(
-            self, dimension_internal: Any, dimension_name: Dimension
-    ):
+    def register_dimension(self, dimension_internal: Any, dimension_name: Dimension):
         """
         Register a new dimension.
         :param dimension_internal: The internal representation of the dimension
@@ -201,7 +199,9 @@ class FormatWrapper:
         """Unload data stored in the Format class"""
         raise NotImplementedError
 
-    def all_chunk_coords(self, dimension: Dimension) -> Generator[ChunkCoordinates, None, None]:
+    def all_chunk_coords(
+        self, dimension: Dimension
+    ) -> Generator[ChunkCoordinates, None, None]:
         """A generator of all chunk coords in the given dimension"""
         raise NotImplementedError
 
@@ -224,7 +224,9 @@ class FormatWrapper:
             log.error(f"Error loading chunk {cx} {cz}", exc_info=True)
             raise ChunkLoadError
 
-    def _load_chunk(self, cx: int, cz: int, dimension: Dimension, recurse: bool = True,) -> "Chunk":
+    def _load_chunk(
+        self, cx: int, cz: int, dimension: Dimension, recurse: bool = True,
+    ) -> "Chunk":
         """
         Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
 
