@@ -73,6 +73,14 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         return os.path.isfile(path) and path.endswith(".schematic")
 
     @property
+    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
+        return {"java": (True, True), "bedrock": (True, True)}
+
+    @property
+    def extensions(self) -> Tuple[str, ...]:
+        return ".schematic",
+
+    @property
     def selection(self) -> SelectionGroup:
         """The box that is selected"""
         return SelectionGroup([self._selection])

@@ -3,7 +3,7 @@ import os
 
 from .format_wrapper import FormatWrapper
 from amulet.api.data_types import Dimension, PlatformType
-from amulet.api.errors import ObjectReadError
+from amulet.api.errors import ObjectReadError, ObjectReadWriteError
 from amulet import ChunkCoordinates
 
 if TYPE_CHECKING:
@@ -22,6 +22,10 @@ class StructureFormatWrapper(FormatWrapper):
             raise Exception(
                 "StructureFormatWrapper is not directly usable. One of its subclasses must be used."
             )
+        if self.extensions:
+            ext = os.path.splitext(self._path)[1]
+            if ext not in self.extensions:
+                raise ObjectReadWriteError(f"The given file does not have a valid file extension. Must be one of {self.extensions}")
         super().__init__(path)
 
     @property
@@ -46,6 +50,12 @@ class StructureFormatWrapper(FormatWrapper):
 
     @property
     def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
+        raise NotImplementedError
+
+    @property
+    def extensions(self) -> Tuple[str, ...]:
+        """The extension the file can have to be valid.
+        eg (".schematic",)"""
         raise NotImplementedError
 
     def _get_interface(self, max_world_version, raw_chunk_data=None) -> "Interface":
