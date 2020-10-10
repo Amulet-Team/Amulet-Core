@@ -74,12 +74,12 @@ class FormatWrapper:
         return self._path
 
     @property
-    def readable(self) -> bool:
+    def readable(self) -> bool:  # TODO: remove this. FormatWrappers should be simultaneously readable and writable.
         """Can this object have data read from it."""
         return True
 
     @property
-    def writeable(self) -> bool:
+    def writeable(self) -> bool:  # TODO: remove this. FormatWrappers should be simultaneously readable and writable.
         """Can this object have data written to it."""
         return True
 
@@ -92,6 +92,7 @@ class FormatWrapper:
 
     @translation_manager.setter
     def translation_manager(self, value: PyMCTranslate.TranslationManager):
+        # TODO: this should not be settable.
         self._translation_manager = value
 
     @property
@@ -333,8 +334,9 @@ class FormatWrapper:
             chunk, translator, game_version, dimension, recurse=recurse,
         )
 
+    @staticmethod
     def _decode(
-        self, interface: "Interface", cx: int, cz: int, raw_chunk_data: Any
+        interface: "Interface", cx: int, cz: int, raw_chunk_data: Any
     ) -> Tuple["Chunk", AnyNDArray]:
         return interface.decode(cx, cz, raw_chunk_data)
 
