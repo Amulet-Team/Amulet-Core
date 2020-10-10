@@ -1,9 +1,9 @@
-from typing import Optional, BinaryIO, List, Any, Union
+from typing import Optional, BinaryIO, List, Any, Generator, Tuple
 
 from .format_wrapper import FormatWrapper
-from amulet.api.data_types import Dimension
-from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet import log
+from amulet.api.data_types import Dimension, PlatformType, VersionNumberAny
+from amulet.api.selection import SelectionGroup
+from amulet import ChunkCoordinates
 
 
 class StructureFormatWrapper(FormatWrapper):
@@ -11,9 +11,12 @@ class StructureFormatWrapper(FormatWrapper):
 
     def __init__(
         self,
-        path: str,
-        buffer: Optional[BinaryIO] = None
+        path: str
     ):
+        """Set up the StructureFormatWrapper ready for accessing.
+
+        :param path: The location of the file to read from and write to.
+        """
         super().__init__(path)
 
     @property
@@ -31,3 +34,52 @@ class StructureFormatWrapper(FormatWrapper):
     def requires_selection(self) -> bool:
         """Does this object require that a selection be defined when creating it from scratch?"""
         return True
+
+    @staticmethod
+    def is_valid(path: str) -> bool:
+        raise NotImplementedError
+
+    @property
+    def valid_formats(self) -> Tuple[Tuple[PlatformType, bool, bool], ...]:
+        raise NotImplementedError
+
+    def _get_interface_key(self, raw_chunk_data) -> Any:
+        raise NotImplementedError
+
+    def _create_and_open(self, platform: PlatformType, version: VersionNumberAny, selection: Optional[SelectionGroup] = None):
+        raise NotImplementedError
+
+    def open_from(self, f: BinaryIO):
+        """Load from a file like object. Useful to load from RAM rather than disk."""
+        raise NotImplementedError
+
+    def _open(self):
+        with open(self._path, "rb") as f:
+            self.open_from(f)
+
+    def save_to(self, f: BinaryIO):
+        """Write to a file like object. Useful to write to RAM rather than disk.
+        _save should open the file on disk and give it to this method."""
+        raise NotImplementedError
+
+    def _save(self):
+        with open(self._path, "wb") as f:
+            self.save_to(f)
+
+    def _close(self):
+        raise NotImplementedError
+
+    def unload(self):
+        raise NotImplementedError
+
+    def all_chunk_coords(self, dimension: Dimension) -> Generator[ChunkCoordinates, None, None]:
+        raise NotImplementedError
+
+    def _delete_chunk(self, cx: int, cz: int, dimension: Dimension):
+        raise NotImplementedError
+
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
+        raise NotImplementedError
+
+    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> Any:
+        raise NotImplementedError
