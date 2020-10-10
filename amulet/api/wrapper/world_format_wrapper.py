@@ -1,6 +1,6 @@
 import os
 import warnings
-from typing import Any, Generator, Optional, List, Tuple
+from typing import Any, Generator, Optional, List, Tuple, Dict
 
 from amulet import IMG_DIRECTORY, ChunkCoordinates, SelectionGroup
 from amulet.api.data_types import Dimension, PlatformType, VersionNumberAny
@@ -56,7 +56,7 @@ class WorldFormatWrapper(FormatWrapper):
         raise NotImplementedError
 
     @property
-    def valid_formats(self) -> Tuple[Tuple[PlatformType, bool, bool], ...]:
+    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
         raise NotImplementedError
 
     @property

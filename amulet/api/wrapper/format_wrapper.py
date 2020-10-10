@@ -110,7 +110,7 @@ class FormatWrapper:
         raise NotImplementedError
 
     @property
-    def valid_formats(self) -> Tuple[Tuple[PlatformType, bool, bool], ...]:
+    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
         """The valid platform and version combinations that this object can accept.
         This is used when setting the platform and version in the create_and_open method
         to verify that the platform and version are valid.
@@ -199,6 +199,26 @@ class FormatWrapper:
             raise ObjectReadError(f"Cannot open {self} because it was already opened.")
         if os.path.isdir(self.path):
             shutil.rmtree(self.path, ignore_errors=True)
+
+        if platform not in self.valid_formats or len(self.valid_formats[platform]) < 2:  # check that the platform and version are valid
+            raise ObjectReadError(f"{platform} is not a valid platform for this wrapper.")
+        translator_version = self.translation_manager.get_version(platform, version)
+        if translator_version.has_abstract_format:  # numerical
+            if not self.valid_formats[platform][0]:
+                raise ObjectReadError(f"The version given ({version}) is from the numerical format but this wrapper does not support the numerical format.")
+        else:
+            if not self.valid_formats[platform][0]:
+                raise ObjectReadError(f"The version given ({version}) is from the blockstate format but this wrapper does not support the blockstate format.")
+
+        if self.requires_selection:
+            if not isinstance(selection, SelectionGroup):
+                raise ObjectReadError("A selection was required but one was not given.")
+            self._selection = selection
+        elif selection is not None:
+            selection = None
+
+        self._platform = platform
+        self._version = version
         self._create_and_open(platform, version, selection)
         self._is_open = True
         self._has_lock = True

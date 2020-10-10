@@ -1,8 +1,10 @@
-from typing import Optional, BinaryIO, List, Any, Generator, Tuple
+from typing import Optional, BinaryIO, List, Any, Generator, Tuple, Dict
+import os
 
 from .format_wrapper import FormatWrapper
 from amulet.api.data_types import Dimension, PlatformType, VersionNumberAny
 from amulet.api.selection import SelectionGroup
+from amulet.api.errors import ObjectReadError
 from amulet import ChunkCoordinates
 
 
@@ -40,7 +42,7 @@ class StructureFormatWrapper(FormatWrapper):
         raise NotImplementedError
 
     @property
-    def valid_formats(self) -> Tuple[Tuple[PlatformType, bool, bool], ...]:
+    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
         raise NotImplementedError
 
     def _create_and_open(self, platform: PlatformType, version: VersionNumberAny, selection: Optional[SelectionGroup] = None):
@@ -51,6 +53,8 @@ class StructureFormatWrapper(FormatWrapper):
         raise NotImplementedError
 
     def _open(self):
+        if not os.path.isfile(self._path):
+            raise ObjectReadError(f"There is no file to read at {self._path}")
         with open(self._path, "rb") as f:
             self.open_from(f)
 
@@ -60,6 +64,7 @@ class StructureFormatWrapper(FormatWrapper):
         raise NotImplementedError
 
     def _save(self):
+        os.makedirs(os.path.dirname(self._path), exist_ok=True)
         with open(self._path, "wb") as f:
             self.save_to(f)
 
