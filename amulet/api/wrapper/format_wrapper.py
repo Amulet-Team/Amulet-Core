@@ -223,11 +223,11 @@ class FormatWrapper:
 
         self._platform = platform
         self._version = version
-        self._create_and_open()
+        self._create()
         self._is_open = True
         self._has_lock = True
 
-    def _create_and_open(self):
+    def _create(self):
         """Set up the database from scratch."""
         raise NotImplementedError
 
