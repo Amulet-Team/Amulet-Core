@@ -355,7 +355,7 @@ class AnvilFormat(WorldFormatWrapper):
         self._levels: Dict[InternalDimension, AnvilLevelManager] = {}
         self._dimension_name_map: Dict["Dimension", InternalDimension] = {}
         self._mcc_support: Optional[bool] = None
-        self._lock = None
+        self._lock_time = None
 
     def _load_level_dat(self):
         """Load the level.dat file and check the image file"""
@@ -464,9 +464,9 @@ class AnvilFormat(WorldFormatWrapper):
         self._load_level_dat()
 
         # create the session.lock file (this has mostly been lifted from MCEdit)
-        self._lock = int(time.time() * 1000)
+        self._lock_time = int(time.time() * 1000)
         with open(os.path.join(self.path, "session.lock"), "wb") as f:
-            f.write(struct.pack(">Q", self._lock))
+            f.write(struct.pack(">Q", self._lock_time))
             f.flush()
             os.fsync(f.fileno())
 
@@ -493,11 +493,13 @@ class AnvilFormat(WorldFormatWrapper):
     @property
     def has_lock(self) -> bool:
         """Verify that the world database can be read and written"""
-        try:
-            with open(os.path.join(self.path, "session.lock"), "rb") as f:
-                return struct.unpack(">Q", f.read(8))[0] == self._lock
-        except Exception:
-            return False
+        if self._has_lock:
+            try:
+                with open(os.path.join(self.path, "session.lock"), "rb") as f:
+                    return struct.unpack(">Q", f.read(8))[0] == self._lock_time
+            except:
+                return False
+        return False
 
     def _save(self):
         """Save the data back to the disk database"""

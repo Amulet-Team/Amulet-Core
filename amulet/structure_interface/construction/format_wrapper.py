@@ -128,11 +128,6 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
                         box.intersection(SelectionBox.create_chunk_box(cx, cz))
                     )
 
-    @property
-    def has_lock(self) -> bool:
-        """Verify that the world database can be read and written"""
-        return True
-
     def _save(self):
         """Save the data back to the disk database"""
         pass

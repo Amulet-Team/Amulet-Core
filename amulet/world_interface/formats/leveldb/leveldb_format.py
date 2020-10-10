@@ -324,8 +324,9 @@ class LevelDBFormat(WorldFormatWrapper):
     @property
     def has_lock(self) -> bool:
         """Verify that the world database can be read and written"""
-        # TODO: work out how to do this properly
-        return self._lock
+        if self._has_lock:
+            return True  # TODO: implement a check to ensure access to the database
+        return False
 
     def _save(self):
         self._verify_has_lock()

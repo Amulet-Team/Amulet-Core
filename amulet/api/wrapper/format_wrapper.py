@@ -15,6 +15,7 @@ from amulet.api.errors import (
     ChunkLoadError,
     ChunkDoesNotExist,
     ObjectReadError,
+    ObjectReadWriteError,
 )
 from amulet.api.data_types import (
     AnyNDArray,
@@ -50,6 +51,7 @@ class FormatWrapper:
             )
         self._path = path
         self._is_open = False
+        self._has_lock = False
         self._translation_manager = None
         self._platform: Optional[PlatformType] = DefaultPlatform
         self._version: Optional[VersionNumberAny] = DefaultVersion
@@ -200,12 +202,13 @@ class FormatWrapper:
         """Remove the data at the path and set up a new database.
         You might want to call FormatWrapper.exists to check if something exists at the path
         and warn the user they are going to overwrite existing data before calling this method."""
-        if self._is_open:
+        if self.is_open:
             raise ObjectReadError(f"Cannot open {self} because it was already opened.")
         if os.path.isdir(self.path):
             shutil.rmtree(self.path, ignore_errors=True)
         self._create_and_open(platform, version, selection)
         self._is_open = True
+        self._has_lock = True
 
     def _create_and_open(
         self,
@@ -218,34 +221,41 @@ class FormatWrapper:
 
     def open(self):
         """Open the database for reading and writing"""
-        if self._is_open:
+        if self.is_open:
             raise ObjectReadError(f"Cannot open {self} because it was already opened.")
         self._open()
         self._is_open = True
+        self._has_lock = True
 
     def _open(self):
         raise NotImplementedError
 
     @property
+    def is_open(self):
+        """Has the object been opened."""
+        return self._is_open
+
+    @property
     def has_lock(self) -> bool:
         """Verify that the world database can be read and written"""
-        raise NotImplementedError
+        return self._has_lock
 
     def _verify_has_lock(self):
         """Ensure that the FormatWrapper is open and has a lock on the object.
 
         :return: None
-        :raises: ObjectReadError if the FormatWrapper does not have a lock on the object.
+        :raises: ObjectReadWriteError if the FormatWrapper does not have a lock on the object.
         """
-        if not self._is_open:
-            raise ObjectReadError(f"The object {self} was never opened. Call .open or .create_and_open to open it before accessing data.")
+        if not self.is_open:
+            raise ObjectReadWriteError(f"The object {self} was never opened. Call .open or .create_and_open to open it before accessing data.")
         elif not self.has_lock:
-            raise ObjectReadError(
+            raise ObjectReadWriteError(
                 f"The lock on the object {self} has been lost. It was probably opened somewhere else."
             )
 
     def save(self):
         """Save the data back to the disk database"""
+        self._verify_has_lock()
         self._save()
         self._changed = False
 
@@ -254,8 +264,9 @@ class FormatWrapper:
 
     def close(self):
         """Close the disk database"""
-        if self._is_open:
+        if self.is_open:
             self._is_open = False
+            self._has_lock = False
             self._close()
 
     def _close(self):
@@ -279,16 +290,21 @@ class FormatWrapper:
         :param cz: The z coordinate of the chunk.
         :param dimension: The dimension to load the chunk from.
         :return: The chunk at the given coordinates.
+        :raises: ChunkLoadError or ChunkDoesNotExist as is relevant.
         """
         if not self.readable:
-            raise ChunkLoadError("This object is not readable")
+            raise ChunkLoadError("This object is not readable.")
+        try:
+            self._verify_has_lock()
+        except ObjectReadWriteError as e:
+            raise ChunkLoadError(e)
         try:
             return self._load_chunk(cx, cz, dimension)
         except ChunkDoesNotExist as e:
             raise e
-        except Exception:
+        except Exception as e:
             log.error(f"Error loading chunk {cx} {cz}", exc_info=True)
-            raise ChunkLoadError
+            raise ChunkLoadError(e)
 
     def _load_chunk(
         self, cx: int, cz: int, dimension: Dimension, recurse: bool = True,
@@ -376,6 +392,10 @@ class FormatWrapper:
         if not self.writeable:
             log.error("This object is not writeable")
             return
+        try:
+            self._verify_has_lock()
+        except ObjectReadWriteError as e:
+            log.error(e)
         try:
             self._commit_chunk(copy.deepcopy(chunk), dimension)
         except Exception:
