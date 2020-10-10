@@ -483,7 +483,7 @@ class AnvilFormat(WorldFormatWrapper):
                     continue
                 self.register_dimension(dir_name)
 
-    def open(self):
+    def _open(self):
         """Open the database for reading and writing"""
         self._reload_world()
 
@@ -504,7 +504,7 @@ class AnvilFormat(WorldFormatWrapper):
         # TODO: save other world data
         self._changed = False
 
-    def close(self):
+    def _close(self):
         """Close the disk database"""
         pass
 

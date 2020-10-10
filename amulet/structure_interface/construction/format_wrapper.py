@@ -34,7 +34,6 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
             if mode == "r":
                 assert os.path.isfile(path), "File specified does not exist."
         self._data: Optional[Union[ConstructionWriter, ConstructionReader]] = None
-        self._open = False
         self._platform = "java"
         self._version = (1, 15, 2)
         self._selection: SelectionGroup = SelectionGroup()
@@ -99,7 +98,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
 
     @selection.setter
     def selection(self, selection: SelectionGroup):
-        if self._open:
+        if self._is_open:
             log.error(
                 "Construction selection cannot be changed after the object has been opened."
             )
@@ -120,10 +119,8 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         )
         return interface, translator, version_identifier
 
-    def open(self):
+    def _open(self):
         """Open the database for reading and writing"""
-        if self._open:
-            return
         if self._mode == "r":
             assert (
                 isinstance(self.path_or_buffer, str)
@@ -157,7 +154,6 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
                     self._chunk_to_box.setdefault((cx, cz), []).append(
                         box.intersection(SelectionBox.create_chunk_box(cx, cz))
                     )
-        self._open = True
 
     @property
     def has_lock(self) -> bool:
@@ -168,7 +164,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         """Save the data back to the disk database"""
         pass
 
-    def close(self):
+    def _close(self):
         """Close the disk database"""
         self._data.close()
 

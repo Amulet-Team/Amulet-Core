@@ -314,7 +314,7 @@ class LevelDBFormat(WorldFormatWrapper):
         self._level_manager = LevelDBLevelManager(self.path)
         self._lock = True
 
-    def open(self):
+    def _open(self):
         """Open the database for reading and writing"""
         self._reload_world()
 
@@ -329,7 +329,7 @@ class LevelDBFormat(WorldFormatWrapper):
         self._level_manager.save()
         self._changed = False
 
-    def close(self):
+    def _close(self):
         self._verify_has_lock()
         self._level_manager.close()
 

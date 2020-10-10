@@ -33,15 +33,12 @@ class SchematicFormatWrapper(StructureFormatWrapper):
             if mode == "r":
                 assert os.path.isfile(path), "File specified does not exist."
         self._data: Optional[Union[SchematicWriter, SchematicReader]] = None
-        self._open = False
         self._platform = "java"
         self._version = (1, 12, 2)
         self._selection: SelectionBox = SelectionBox((0, 0, 0), (0, 0, 0))
 
-    def open(self):
+    def _open(self):
         """Open the database for reading and writing"""
-        if self._open:
-            return
         if self._mode == "r":
             assert (
                 isinstance(self.path_or_buffer, str)
@@ -54,7 +51,6 @@ class SchematicFormatWrapper(StructureFormatWrapper):
             self._data = SchematicWriter(
                 self.path_or_buffer, self.platform, self._selection,
             )
-        self._open = True
 
     @property
     def readable(self) -> bool:
@@ -96,7 +92,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
 
     @version.setter
     def version(self, version: Tuple[int, int, int]):
-        if self._open:
+        if self._is_open:
             log.error(
                 "Construction version cannot be changed after the object has been opened."
             )
@@ -110,7 +106,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
 
     @selection.setter
     def selection(self, selection: SelectionGroup):
-        if self._open:
+        if self._is_open:
             log.error(
                 "Construction selection cannot be changed after the object has been opened."
             )
@@ -148,7 +144,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         """Save the data back to the disk database"""
         pass
 
-    def close(self):
+    def _close(self):
         """Close the disk database"""
         self._data.close()
 

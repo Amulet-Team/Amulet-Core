@@ -39,6 +39,7 @@ class FormatWrapper:
 
     def __init__(self, path: str):
         self._path = path
+        self._is_open = False
         self._translation_manager = None
         self._version = None
         self._changed: bool = False
@@ -173,6 +174,11 @@ class FormatWrapper:
 
     def open(self):
         """Open the database for reading and writing"""
+        if not self._is_open:
+            self._open()
+            self._is_open = True
+
+    def _open(self):
         raise NotImplementedError
 
     @property
@@ -181,10 +187,16 @@ class FormatWrapper:
         raise NotImplementedError
 
     def _verify_has_lock(self):
-        """Ensure that the Format has a lock on the world. Throw WorldAccessException if not"""
-        if not self.has_lock:
-            raise ObjectReadWriteError(
-                "The world has been opened somewhere else or the .open() method was not called"
+        """Ensure that the FormatWrapper is open and has a lock on the object.
+
+        :return: None
+        :raises: ObjectReadError if the FormatWrapper does not have a lock on the object.
+        """
+        if not self._is_open:
+            raise ObjectReadError(f"The object {self} was never opened. Call .open or .create_and_open to open it before accessing data.")
+        elif not self.has_lock:
+            raise ObjectReadError(
+                f"The lock on the object {self} has been lost. It was probably opened somewhere else."
             )
 
     def save(self):
@@ -193,6 +205,11 @@ class FormatWrapper:
 
     def close(self):
         """Close the disk database"""
+        if self._is_open:
+            self._is_open = False
+            self._close()
+
+    def _close(self):
         raise NotImplementedError
 
     def unload(self):

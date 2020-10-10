@@ -33,15 +33,12 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             if mode == "r":
                 assert os.path.isfile(path), "File specified does not exist."
         self._data: Optional[Union[MCStructureWriter, MCStructureReader]] = None
-        self._open = False
         self._platform = "bedrock"
         self._version = (1, 15, 2)
         self._selection: SelectionBox = SelectionBox((0, 0, 0), (0, 0, 0))
 
-    def open(self):
+    def _open(self):
         """Open the database for reading and writing"""
-        if self._open:
-            return
         if self._mode == "r":
             assert (
                 isinstance(self.path_or_buffer, str)
@@ -51,7 +48,6 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             self._selection = self._data.selection
         else:
             self._data = MCStructureWriter(self.path_or_buffer, self._selection,)
-        self._open = True
 
     @property
     def readable(self) -> bool:
@@ -84,7 +80,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
 
     @version.setter
     def version(self, version: Tuple[int, int, int]):
-        if self._open:
+        if self._is_open:
             log.error(
                 "mcstructure version cannot be changed after the object has been opened."
             )
@@ -98,7 +94,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
 
     @selection.setter
     def selection(self, selection: SelectionGroup):
-        if self._open:
+        if self._is_open:
             log.error(
                 "mcstructure selection cannot be changed after the object has been opened."
             )
@@ -131,7 +127,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
         """Save the data back to the disk database"""
         pass
 
-    def close(self):
+    def _close(self):
         """Close the disk database"""
         self._data.close()
 
