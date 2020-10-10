@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 import numpy
 
-from typing import Tuple, Iterable, List, Generator, Dict
+from typing import Tuple, Iterable, List, Generator, Dict, Union
 
 from amulet.api.data_types import (
     BlockCoordinatesAny,
@@ -271,10 +271,12 @@ class SelectionGroup:
     Holding class for multiple `SelectionBox`es which allows for non-rectangular and non-contiguous selections
     """
 
-    def __init__(self, selection_boxes: Iterable[SelectionBox] = ()):
+    def __init__(self, selection_boxes: Union[SelectionBox, Iterable[SelectionBox]] = ()):
         self._selection_boxes = []
 
-        if selection_boxes:
+        if isinstance(selection_boxes, SelectionBox):
+            self.add_box(selection_boxes)
+        elif selection_boxes:
             for box in selection_boxes:
                 self.add_box(box)
 

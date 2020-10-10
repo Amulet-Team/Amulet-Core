@@ -138,7 +138,7 @@ class Structure(BaseStructure):
             selection = self._selection
         else:
             if isinstance(selection, SelectionBox):
-                selection = SelectionGroup([selection])
+                selection = SelectionGroup(selection)
             # TODO: handle the fact the the selection is not at the origin
             selection = self.selection.intersection(selection)
         selection: SelectionGroup

@@ -176,7 +176,7 @@ class ChunkWorld:
         """
 
         if isinstance(selection, SelectionBox):
-            selection = SelectionGroup([selection])
+            selection = SelectionGroup(selection)
         selection: SelectionGroup
         for (cx, cz), box in selection.sub_sections(self.sub_chunk_size):
             try:
