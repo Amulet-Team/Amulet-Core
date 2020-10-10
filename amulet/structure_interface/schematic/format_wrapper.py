@@ -135,23 +135,6 @@ class SchematicFormatWrapper(StructureFormatWrapper):
     def extensions(self) -> Tuple[str, ...]:
         return ".schematic",
 
-    @property
-    def selection(self) -> SelectionGroup:
-        """The box that is selected"""
-        return SelectionGroup([self._selection])
-
-    @selection.setter
-    def selection(self, selection: SelectionGroup):
-        if self._is_open:
-            log.error(
-                "Construction selection cannot be changed after the object has been opened."
-            )
-            return
-        if selection.selection_boxes:
-            self._selection = selection.selection_boxes[0]
-        else:
-            raise Exception("Given selection box is empty")
-
     def _get_interface(
         self, max_world_version, raw_chunk_data=None
     ) -> SchematicInterface:
