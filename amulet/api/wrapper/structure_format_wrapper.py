@@ -1,16 +1,20 @@
 from typing import Optional, BinaryIO, List, Any, Union
 
 from .format_wrapper import FormatWrapper
-from amulet.api.data_types import PathOrBuffer
 from amulet.api.data_types import Dimension
 from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet import log
 
 
 class StructureFormatWrapper(FormatWrapper):
-    def __init__(self, path_or_buffer: PathOrBuffer):
-        super().__init__()
-        self._path_or_buffer = path_or_buffer
+    """A base FormatWrapper for all structures that only have one dimension."""
+
+    def __init__(
+        self,
+        path: str,
+        buffer: Optional[BinaryIO] = None
+    ):
+        super().__init__(path)
 
     @property
     def dimensions(self) -> List[Dimension]:
@@ -24,30 +28,6 @@ class StructureFormatWrapper(FormatWrapper):
         pass
 
     @property
-    def mutable_selection(self) -> bool:
-        """Can the selection be modified."""
+    def requires_selection(self) -> bool:
+        """Does this object require that a selection be defined when creating it from scratch?"""
         return True
-
-    @property
-    def selection(self) -> SelectionGroup:
-        return self._selection.copy()
-
-    @selection.setter
-    def selection(self, selection: Union[SelectionGroup, SelectionBox]):
-        if isinstance(selection, SelectionBox):
-            self._selection = SelectionGroup([selection])
-        elif isinstance(selection, SelectionGroup):
-            box_count = len(selection)
-            if box_count == 0:
-                raise ValueError("no box was given")
-            elif box_count > 1:
-                if self.multi_selection:
-                    self._selection = SelectionGroup([selection.selection_boxes[0]])
-                else:
-                    log.error(
-                        f"{box_count} boxes given but this structure can only accept one."
-                    )
-            else:
-                self._selection = selection
-        else:
-            raise TypeError(f"selection type {type(selection)} is invalid.")

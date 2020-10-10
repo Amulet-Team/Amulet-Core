@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Tuple, Any, Generator, Dict, List, Optional, TYPE_CHECKING
 import copy
 import numpy
+import os
+import shutil
 
 import PyMCTranslate
 
@@ -51,6 +53,13 @@ class FormatWrapper:
         self._translation_manager = None
         self._platform: Optional[PlatformType] = DefaultPlatform
         self._version: Optional[VersionNumberAny] = DefaultVersion
+        self._selection = SelectionGroup(
+            [
+                SelectionBox(
+                    (-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000),
+                )
+            ]
+        )
         self._changed: bool = False
 
     @property
@@ -134,28 +143,19 @@ class FormatWrapper:
         raise NotImplementedError
 
     @property
+    def requires_selection(self) -> bool:
+        """Does this object require that a selection be defined when creating it from scratch?"""
+        return False
+
+    @property
     def multi_selection(self) -> bool:
         """Does this object support having multiple selection boxes."""
         return False
 
     @property
-    def mutable_selection(self) -> bool:
-        """Can the selection be modified."""
-        return False
-
-    @property
     def selection(self) -> SelectionGroup:
         """The area that all chunk data must fit within."""
-        return SelectionGroup([
-            SelectionBox(
-                (-30_000_000, 0, -30_000_000),
-                (30_000_000, 256, 30_000_000),
-            )
-        ])
-
-    @selection.setter
-    def selection(self, selection: Union[SelectionGroup, SelectionBox]):
-        pass
+        return self._selection.copy()
 
     def _get_interface(self, max_world_version, raw_chunk_data=None) -> "Interface":
         if raw_chunk_data:
