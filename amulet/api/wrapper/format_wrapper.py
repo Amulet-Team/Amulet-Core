@@ -10,7 +10,6 @@ import PyMCTranslate
 
 from amulet import log
 from amulet.api.registry import BlockManager
-from amulet.world_interface.chunk import interfaces
 from amulet.api.errors import (
     ChunkLoadError,
     ChunkDoesNotExist,
@@ -176,11 +175,7 @@ class FormatWrapper:
         return self._selection.copy()
 
     def _get_interface(self, max_world_version, raw_chunk_data=None) -> "Interface":
-        if raw_chunk_data:
-            key = self._get_interface_key(raw_chunk_data)
-        else:
-            key = max_world_version
-        return interfaces.loader.get(key)
+        raise NotImplementedError
 
     def _get_interface_and_translator(
         self, max_world_version, raw_chunk_data=None
@@ -190,9 +185,6 @@ class FormatWrapper:
             self.max_world_version, raw_chunk_data
         )
         return interface, translator, version_identifier
-
-    def _get_interface_key(self, raw_chunk_data) -> Any:
-        raise NotImplementedError
 
     def create_and_open(
         self,

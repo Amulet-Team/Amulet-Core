@@ -43,9 +43,6 @@ class StructureFormatWrapper(FormatWrapper):
     def valid_formats(self) -> Tuple[Tuple[PlatformType, bool, bool], ...]:
         raise NotImplementedError
 
-    def _get_interface_key(self, raw_chunk_data) -> Any:
-        raise NotImplementedError
-
     def _create_and_open(self, platform: PlatformType, version: VersionNumberAny, selection: Optional[SelectionGroup] = None):
         raise NotImplementedError
 
