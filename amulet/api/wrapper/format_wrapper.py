@@ -246,6 +246,10 @@ class FormatWrapper:
 
     def save(self):
         """Save the data back to the disk database"""
+        self._save()
+        self._changed = False
+
+    def _save(self):
         raise NotImplementedError
 
     def close(self):
@@ -458,6 +462,10 @@ class FormatWrapper:
         return interface.encode(chunk, chunk_palette, self.max_world_version)
 
     def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
+        self._delete_chunk(cx, cz, dimension)
+        self._changed = True
+
+    def _delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         raise NotImplementedError
 
     def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):

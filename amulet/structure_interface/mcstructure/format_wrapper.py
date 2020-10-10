@@ -105,7 +105,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
         """Verify that the world database can be read and written"""
         return True
 
-    def save(self):
+    def _save(self):
         """Save the data back to the disk database"""
         pass
 
@@ -138,7 +138,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             ),
         )
 
-    def delete_chunk(self, cx: int, cz: int, dimension: Optional[Dimension] = None):
+    def _delete_chunk(self, cx: int, cz: int, dimension: Optional[Dimension] = None):
         raise ObjectWriteError(
             "delete_chunk is not a valid method for an mcstructure file"
         )

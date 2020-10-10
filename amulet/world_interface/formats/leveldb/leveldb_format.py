@@ -327,10 +327,9 @@ class LevelDBFormat(WorldFormatWrapper):
         # TODO: work out how to do this properly
         return self._lock
 
-    def save(self):
+    def _save(self):
         self._verify_has_lock()
         self._level_manager.save()
-        self._changed = False
 
     def _close(self):
         self._verify_has_lock()
@@ -346,8 +345,7 @@ class LevelDBFormat(WorldFormatWrapper):
         self._verify_has_lock()
         yield from self._level_manager.all_chunk_coords(dimension)
 
-    def delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
-        self._verify_has_lock()
+    def _delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
         self._level_manager.delete_chunk(cx, cz, dimension)
 
     def _put_raw_chunk_data(

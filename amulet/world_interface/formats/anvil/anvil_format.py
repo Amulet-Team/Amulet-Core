@@ -499,13 +499,12 @@ class AnvilFormat(WorldFormatWrapper):
         except Exception:
             return False
 
-    def save(self):
+    def _save(self):
         """Save the data back to the disk database"""
         self._verify_has_lock()
         for level in self._levels.values():
             level.save()
         # TODO: save other world data
-        self._changed = False
 
     def _close(self):
         """Close the disk database"""
@@ -536,7 +535,7 @@ class AnvilFormat(WorldFormatWrapper):
         if self._has_dimension(dimension):
             yield from self._get_dimension(dimension).all_chunk_coords()
 
-    def delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
+    def _delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
         """Delete a chunk from a given dimension"""
         if self._has_dimension(dimension):
             self._get_dimension(dimension).delete_chunk(cx, cz)
