@@ -83,7 +83,9 @@ class Structure(BaseStructure):
                 chunk.block_palette = block_palette
         return cls(data, block_palette, copy.deepcopy(selection), world.sub_chunk_size)
 
-    def get_chunk(self, cx: int, cz: int, dimension: Optional[Dimension] = None) -> Chunk:
+    def get_chunk(
+        self, cx: int, cz: int, dimension: Optional[Dimension] = None
+    ) -> Chunk:
         """
         Gets the chunk data of the specified chunk coordinates.
         If the chunk does not exist ChunkDoesNotExist is raised.
@@ -100,7 +102,9 @@ class Structure(BaseStructure):
         else:
             raise ChunkDoesNotExist
 
-    def get_block(self, x: int, y: int, z: int, dimension: Optional[Dimension] = None) -> Block:
+    def get_block(
+        self, x: int, y: int, z: int, dimension: Optional[Dimension] = None
+    ) -> Block:
         """
         Gets the universal Block object at the specified coordinates
 
@@ -122,7 +126,7 @@ class Structure(BaseStructure):
         self,
         selection: Union[SelectionGroup, SelectionBox, None] = None,
         dimension: Optional[str] = None,
-        create_missing_chunks: bool = False
+        create_missing_chunks: bool = False,
     ) -> Generator[Tuple[Chunk, SelectionBox], None, None]:
         """Given a selection will yield chunks and `SelectionBox`es into that chunk
 
@@ -164,7 +168,7 @@ class Structure(BaseStructure):
         self,
         selection: Union[SelectionGroup, SelectionBox, None] = None,
         dimension: Optional[str] = None,
-        create_missing_chunks: bool = False
+        create_missing_chunks: bool = False,
     ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None]:
         """Given a selection will yield chunks and slices into that chunk
 
@@ -217,7 +221,9 @@ class Structure(BaseStructure):
             selection = self.selection.intersection(selection)
         # the offset from self.selection to the destination location
         offset = numpy.subtract(destination_origin, self.selection.min, dtype=numpy.int)
-        for chunk, box in self.get_chunk_boxes(selection, create_missing_chunks=generate_non_exists):
+        for chunk, box in self.get_chunk_boxes(
+            selection, create_missing_chunks=generate_non_exists
+        ):
             dst_full_box = SelectionBox(offset + box.min, offset + box.max,)
 
             first_chunk = block_coords_to_chunk_coords(

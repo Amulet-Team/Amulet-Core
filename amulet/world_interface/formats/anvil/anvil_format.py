@@ -538,9 +538,7 @@ class AnvilFormat(WorldFormatWrapper):
         if self._has_dimension(dimension):
             self._get_dimension(dimension).delete_chunk(cx, cz)
 
-    def _put_raw_chunk_data(
-        self, cx: int, cz: int, data: Any, dimension: "Dimension"
-    ):
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: "Dimension"):
         """
         Actually stores the data from the interface to disk.
         """

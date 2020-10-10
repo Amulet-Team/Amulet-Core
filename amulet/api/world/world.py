@@ -14,6 +14,6 @@ class World(ChunkWorld):
     """
 
     def __init__(
-            self, directory: str, world_wrapper: "WorldFormatWrapper", temp_dir: str = None
+        self, directory: str, world_wrapper: "WorldFormatWrapper", temp_dir: str = None
     ):
         super().__init__(directory, world_wrapper, temp_dir)

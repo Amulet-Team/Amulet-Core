@@ -16,7 +16,9 @@ VERSION_GZIP = 1
 VERSION_DEFLATE = 2
 
 
-def block_coords_to_chunk_coords(*args: int, sub_chunk_size: int = 16) -> Tuple[int, ...]:
+def block_coords_to_chunk_coords(
+    *args: int, sub_chunk_size: int = 16
+) -> Tuple[int, ...]:
     """
     Converts the supplied block coordinates into chunk coordinates
 

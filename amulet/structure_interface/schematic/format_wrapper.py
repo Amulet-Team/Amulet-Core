@@ -3,12 +3,7 @@ from typing import Optional, Union, Tuple, Generator, TYPE_CHECKING
 import numpy
 
 from amulet import log
-from amulet.api.data_types import (
-    AnyNDArray,
-    VersionNumberAny,
-    PathOrBuffer,
-    Dimension
-)
+from amulet.api.data_types import AnyNDArray, VersionNumberAny, PathOrBuffer, Dimension
 from amulet.api.registry import BlockManager
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
@@ -161,7 +156,9 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         """Unload data stored in the Format class"""
         pass
 
-    def all_chunk_coords(self, dimension: Optional[Dimension] = None) -> Generator[Tuple[int, int], None, None]:
+    def all_chunk_coords(
+        self, dimension: Optional[Dimension] = None
+    ) -> Generator[Tuple[int, int], None, None]:
         """A generator of all chunk coords"""
         if self._mode == "r":
             yield from self._data.chunk_coords
@@ -225,7 +222,13 @@ class SchematicFormatWrapper(StructureFormatWrapper):
             "delete_chunk is not a valid method for a schematic file"
         )
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: SchematicChunk, dimension: Optional[Dimension] = None):
+    def _put_raw_chunk_data(
+        self,
+        cx: int,
+        cz: int,
+        data: SchematicChunk,
+        dimension: Optional[Dimension] = None,
+    ):
         """
         Actually stores the data from the interface to disk.
         """
@@ -234,7 +237,9 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         else:
             raise ObjectWriteError("The schematic file is not open for writing.")
 
-    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Optional[Dimension] = None) -> SchematicChunk:
+    def _get_raw_chunk_data(
+        self, cx: int, cz: int, dimension: Optional[Dimension] = None
+    ) -> SchematicChunk:
         """
         Return the raw data as loaded from disk.
 

@@ -27,7 +27,9 @@ class BaseStructure:
         """
         raise NotImplementedError
 
-    def get_block(self, x: int, y: int, z: int, dimension: Optional[Dimension]) -> Block:
+    def get_block(
+        self, x: int, y: int, z: int, dimension: Optional[Dimension]
+    ) -> Block:
         """
         Gets the universal Block object at the specified coordinates
 
@@ -41,10 +43,7 @@ class BaseStructure:
         raise NotImplementedError
 
     def _chunk_box(
-            self,
-            cx: int,
-            cz: int,
-            sub_chunk_size: Optional[int] = None,
+        self, cx: int, cz: int, sub_chunk_size: Optional[int] = None,
     ):
         """Get a SelectionBox containing the whole of a given chunk"""
         if sub_chunk_size is None:
@@ -52,10 +51,10 @@ class BaseStructure:
         return SelectionBox.create_chunk_box(cx, cz, sub_chunk_size)
 
     def get_chunk_boxes(
-            self,
-            selection: Union[SelectionGroup, SelectionBox, None],
-            dimension: Optional[Dimension],
-            create_missing_chunks: bool = False
+        self,
+        selection: Union[SelectionGroup, SelectionBox, None],
+        dimension: Optional[Dimension],
+        create_missing_chunks: bool = False,
     ) -> Generator[Tuple[Chunk, SelectionBox], None, None]:
         """Given a selection will yield chunks and `SelectionBox`es into that chunk
 
@@ -66,10 +65,10 @@ class BaseStructure:
         raise NotImplementedError
 
     def get_chunk_slices(
-            self,
-            selection: Union[SelectionGroup, SelectionBox, None],
-            dimension: Optional[Dimension],
-            create_missing_chunks: bool = False
+        self,
+        selection: Union[SelectionGroup, SelectionBox, None],
+        dimension: Optional[Dimension],
+        create_missing_chunks: bool = False,
     ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None]:
         """Given a selection will yield chunks, slices into that chunk and the corresponding box
 

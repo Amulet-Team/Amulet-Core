@@ -45,7 +45,11 @@ class SelectionBox:
         """Get a SelectionBox containing the whole of a given sub-chunk"""
         return cls(
             (cx * sub_chunk_size, cy * sub_chunk_size, cz * sub_chunk_size),
-            ((cx + 1) * sub_chunk_size, (cy + 1) * sub_chunk_size, (cz + 1) * sub_chunk_size),
+            (
+                (cx + 1) * sub_chunk_size,
+                (cy + 1) * sub_chunk_size,
+                (cz + 1) * sub_chunk_size,
+            ),
         )
 
     def create_moved_box(

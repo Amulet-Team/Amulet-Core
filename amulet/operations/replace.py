@@ -38,7 +38,9 @@ def replace(
                 "Replace operation must be given the same number of destination blocks as source blocks"
             )
 
-    original_internal_ids = list(map(world.block_palette.get_add_block, original_blocks))
+    original_internal_ids = list(
+        map(world.block_palette.get_add_block, original_blocks)
+    )
     replacement_internal_ids = list(
         map(world.block_palette.get_add_block, replacement_blocks)
     )

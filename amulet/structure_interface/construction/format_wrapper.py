@@ -176,7 +176,9 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         """Unload data stored in the Format class"""
         pass
 
-    def all_chunk_coords(self, dimension: Optional[Dimension] = None) -> Generator[Tuple[int, int], None, None]:
+    def all_chunk_coords(
+        self, dimension: Optional[Dimension] = None
+    ) -> Generator[Tuple[int, int], None, None]:
         """A generator of all chunk coords"""
         if self._mode == "r":
             yield from self._chunk_to_section.keys()
@@ -219,7 +221,11 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         )
 
     def _put_raw_chunk_data(
-        self, cx: int, cz: int, data: List[ConstructionSection], dimension: Optional[Dimension] = None
+        self,
+        cx: int,
+        cz: int,
+        data: List[ConstructionSection],
+        dimension: Optional[Dimension] = None,
     ):
         """
         Actually stores the data from the interface to disk.
@@ -230,7 +236,9 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         else:
             raise ObjectWriteError("The construction file is not open for writing.")
 
-    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Optional[Dimension] = None) -> List[ConstructionSection]:
+    def _get_raw_chunk_data(
+        self, cx: int, cz: int, dimension: Optional[Dimension] = None
+    ) -> List[ConstructionSection]:
         """
         Return the raw data as loaded from disk.
 
