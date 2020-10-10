@@ -49,16 +49,6 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
         else:
             self._data = MCStructureWriter(self.path_or_buffer, self._selection,)
 
-    @property
-    def readable(self) -> bool:
-        """Can this object have data read from it."""
-        return self._mode == "r"
-
-    @property
-    def writeable(self) -> bool:
-        """Can this object have data written to it."""
-        return self._mode == "w"
-
     @staticmethod
     def is_valid(path: PathOrBuffer) -> bool:
         """

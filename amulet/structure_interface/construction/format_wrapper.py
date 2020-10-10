@@ -44,16 +44,6 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         # used to look up which selection boxes intersect a given chunk (boxes are clipped to the size of the chunk)
         self._chunk_to_box: Optional[Dict[Tuple[int, int], List[SelectionBox]]] = None
 
-    @property
-    def readable(self) -> bool:
-        """Can this object have data read from it."""
-        return self._mode == "r"
-
-    @property
-    def writeable(self) -> bool:
-        """Can this object have data written to it."""
-        return self._mode == "w"
-
     @staticmethod
     def is_valid(path: PathOrBuffer) -> bool:
         """

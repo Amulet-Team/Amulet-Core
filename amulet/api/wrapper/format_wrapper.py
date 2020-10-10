@@ -73,20 +73,6 @@ class FormatWrapper:
         return self._path
 
     @property
-    def readable(
-        self,
-    ) -> bool:  # TODO: remove this. FormatWrappers should be simultaneously readable and writable.
-        """Can this object have data read from it."""
-        return True
-
-    @property
-    def writeable(
-        self,
-    ) -> bool:  # TODO: remove this. FormatWrappers should be simultaneously readable and writable.
-        """Can this object have data written to it."""
-        return True
-
-    @property
     def translation_manager(self) -> PyMCTranslate.TranslationManager:
         """The translation manager attached to the world"""
         if self._translation_manager is None:
@@ -320,8 +306,6 @@ class FormatWrapper:
         :return: The chunk at the given coordinates.
         :raises: ChunkLoadError or ChunkDoesNotExist as is relevant.
         """
-        if not self.readable:
-            raise ChunkLoadError("This object is not readable.")
         try:
             self._verify_has_lock()
         except ObjectReadWriteError as e:
@@ -418,9 +402,6 @@ class FormatWrapper:
         :param dimension: The dimension to commit the chunk to.
         :return:
         """
-        if not self.writeable:
-            log.error("This object is not writeable")
-            return
         try:
             self._verify_has_lock()
         except ObjectReadWriteError as e:
