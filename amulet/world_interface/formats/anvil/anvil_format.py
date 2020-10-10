@@ -11,11 +11,11 @@ import re
 
 import amulet_nbt as nbt
 
-from amulet.api.wrapper.world_format_wrapper import WorldFormatWrapper
+from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, load_leveldat
 from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist, ChunkLoadError
-from amulet.api.data_types import ChunkCoordinates, RegionCoordinates
+from amulet.api.data_types import ChunkCoordinates, RegionCoordinates, VersionNumberInt
 
 if TYPE_CHECKING:
     from amulet.api.data_types import Dimension
@@ -349,6 +349,7 @@ class AnvilLevelManager:
 class AnvilFormat(WorldFormatWrapper):
     def __init__(self, directory: str):
         super().__init__(directory)
+        self._platform = "java"
         self.root_tag: nbt.NBTFile = nbt.NBTFile()
         self._load_level_dat()
         self._levels: Dict[InternalDimension, AnvilLevelManager] = {}
@@ -389,11 +390,13 @@ class AnvilFormat(WorldFormatWrapper):
         return True
 
     @property
-    def platform(self) -> str:
-        """Platform string"""
-        return "java"
+    def version(self) -> VersionNumberInt:
+        """The version number for the given platform the data is stored in eg (1, 16, 2)"""
+        if self._version == DefaultVersion:
+            self._version = self._get_version()
+        return self._version
 
-    def _get_version(self) -> int:
+    def _get_version(self) -> VersionNumberInt:
         return (
             self.root_tag.get("Data", nbt.TAG_Compound())
             .get("DataVersion", nbt.TAG_Int(-1))

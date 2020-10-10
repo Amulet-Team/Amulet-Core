@@ -70,24 +70,6 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
         return os.path.isfile(path) and path.endswith(".mcstructure")
 
     @property
-    def platform(self) -> str:
-        """Platform string ("bedrock" / "java" / ...)"""
-        return self._platform
-
-    @property
-    def version(self) -> Tuple[int, int, int]:
-        return self._version
-
-    @version.setter
-    def version(self, version: Tuple[int, int, int]):
-        if self._is_open:
-            log.error(
-                "mcstructure version cannot be changed after the object has been opened."
-            )
-            return
-        self._version = version
-
-    @property
     def selection(self) -> SelectionGroup:
         """The box that is selected"""
         return SelectionGroup([self._selection])

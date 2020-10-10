@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Any, Union, Generator, Dict, List, Optional, TYPE_CHECKING
+from typing import Tuple, Any, Generator, Dict, List, Optional, TYPE_CHECKING
 import copy
 import numpy
 
@@ -12,7 +12,7 @@ from amulet.world_interface.chunk import interfaces
 from amulet.api.errors import (
     ChunkLoadError,
     ChunkDoesNotExist,
-    ObjectReadWriteError,
+    ObjectReadError,
 )
 from amulet.api.data_types import (
     AnyNDArray,
@@ -30,6 +30,10 @@ if TYPE_CHECKING:
     from amulet.api.wrapper.chunk.translator import Translator
 
 
+DefaultPlatform = "Unknown Platform"
+DefaultVersion = (0, 0, 0)
+
+
 class FormatWrapper:
     """
     The Format class is a class that sits between the serialised world or structure data and the program using amulet-core.
@@ -38,10 +42,15 @@ class FormatWrapper:
     """
 
     def __init__(self, path: str):
+        if type(self) is FormatWrapper:
+            raise Exception(
+                "FormatWrapper is not directly usable. One of its subclasses must be used."
+            )
         self._path = path
         self._is_open = False
         self._translation_manager = None
-        self._version = None
+        self._platform: Optional[PlatformType] = DefaultPlatform
+        self._version: Optional[VersionNumberAny] = DefaultVersion
         self._changed: bool = False
 
     @property
@@ -86,18 +95,13 @@ class FormatWrapper:
 
     @property
     def platform(self) -> PlatformType:
-        """Platform string ("bedrock" / "java" / ...)"""
-        raise NotImplementedError
+        """Platform string the data is stored in (eg "bedrock" / "java" / ...)"""
+        return self._platform
 
     @property
     def version(self) -> VersionNumberAny:
-        """Platform string ("bedrock" / "java" / ...)"""
-        if self._version is None:
-            self._version = self._get_version()
+        """The version number for the given platform the data is stored in eg (1, 16, 2)"""
         return self._version
-
-    def _get_version(self) -> VersionNumberAny:
-        raise NotImplementedError
 
     @property
     def max_world_version(self) -> VersionIdentifierType:

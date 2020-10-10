@@ -73,33 +73,6 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         return os.path.isfile(path) and path.endswith(".schematic")
 
     @property
-    def platform(self) -> str:
-        """Platform string ("bedrock" / "java" / ...)"""
-        return self._platform
-
-    @platform.setter
-    def platform(self, platform: str):
-        if self._open:
-            log.error(
-                "Construction platform cannot be changed after the object has been opened."
-            )
-            return
-        self._platform = platform
-
-    @property
-    def version(self) -> Tuple[int, int, int]:
-        return self._version
-
-    @version.setter
-    def version(self, version: Tuple[int, int, int]):
-        if self._is_open:
-            log.error(
-                "Construction version cannot be changed after the object has been opened."
-            )
-            return
-        self._version = version
-
-    @property
     def selection(self) -> SelectionGroup:
         """The box that is selected"""
         return SelectionGroup([self._selection])

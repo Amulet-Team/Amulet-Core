@@ -19,8 +19,8 @@ import amulet_nbt as nbt
 
 from amulet.utils.format_utils import check_all_exist
 from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist
-from amulet.api.data_types import ChunkCoordinates
-from amulet.api.wrapper.world_format_wrapper import WorldFormatWrapper
+from amulet.api.data_types import ChunkCoordinates, VersionNumberTuple
+from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.world_interface.chunk import interfaces
 from amulet.libs.leveldb import LevelDB
 
@@ -219,6 +219,7 @@ class LevelDBFormat(WorldFormatWrapper):
     def __init__(self, directory: str):
         super().__init__(directory)
         self._lock = False
+        self._platform = "bedrock"
         self.root_tag: nbt.NBTFile = nbt.NBTFile()
         self._load_level_dat()
         self._level_manager: Optional[LevelDBLevelManager] = None
@@ -243,9 +244,11 @@ class LevelDBFormat(WorldFormatWrapper):
         return True
 
     @property
-    def platform(self) -> str:
-        """Platform string"""
-        return "bedrock"
+    def version(self) -> VersionNumberTuple:
+        """The version number for the given platform the data is stored in eg (1, 16, 2)"""
+        if self._version == DefaultVersion:
+            self._version = self._get_version()
+        return self._version
 
     def _get_version(self) -> Tuple[int, ...]:
         """The version the world was last opened in
