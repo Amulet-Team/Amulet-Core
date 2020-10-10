@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Any, Union, Generator, Dict, List, TYPE_CHECKING
+from typing import Tuple, Any, Union, Generator, Dict, List, Optional, TYPE_CHECKING
 import copy
 import numpy
 
@@ -19,6 +19,8 @@ from amulet.api.data_types import (
     VersionNumberAny,
     ChunkCoordinates,
     Dimension,
+    PlatformType,
+    VersionIdentifierType,
 )
 from amulet.api.selection import SelectionGroup, SelectionBox
 
@@ -79,25 +81,25 @@ class FormatWrapper:
         :param path: The path of the object to load.
         :return: True if the world can be loaded by this format, False otherwise.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
-    def platform(self) -> str:
+    def platform(self) -> PlatformType:
         """Platform string ("bedrock" / "java" / ...)"""
         raise NotImplementedError
 
     @property
-    def version(self) -> Union[int, Tuple[int, ...]]:
+    def version(self) -> VersionNumberAny:
         """Platform string ("bedrock" / "java" / ...)"""
         if self._version is None:
             self._version = self._get_version()
         return self._version
 
-    def _get_version(self) -> Union[int, Tuple[int, ...]]:
+    def _get_version(self) -> VersionNumberAny:
         raise NotImplementedError
 
     @property
-    def max_world_version(self) -> Tuple[str, Union[int, Tuple[int, ...]]]:
+    def max_world_version(self) -> VersionIdentifierType:
         """The version the world was last opened in
         This should be greater than or equal to the chunk versions found within"""
         return self.platform, self.version

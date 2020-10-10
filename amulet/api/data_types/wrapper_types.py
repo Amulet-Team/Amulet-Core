@@ -14,7 +14,7 @@ BlockNDArray = numpy.ndarray  # NDArray[(Any, ), 'Block']
 AnyNDArray = numpy.ndarray  # NDArray[(Any, ), Any]
 PlatformType = str
 VersionNumberInt = int
-VersionNumberTuple = Tuple[int, int, int]
+VersionNumberTuple = Tuple[int, ...]
 VersionNumberAny = Union[VersionNumberInt, VersionNumberTuple]
 VersionIdentifierType = Tuple[PlatformType, VersionNumberAny]
 
