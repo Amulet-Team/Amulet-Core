@@ -92,6 +92,11 @@ class FormatWrapper:
     def translation_manager(self, value: PyMCTranslate.TranslationManager):
         self._translation_manager = value
 
+    @property
+    def exists(self) -> bool:
+        """Does some data exist at the specified path."""
+        return os.path.exists(self.path)
+
     @staticmethod
     def is_valid(path: str) -> bool:
         """
@@ -99,6 +104,16 @@ class FormatWrapper:
 
         :param path: The path of the object to load.
         :return: True if the world can be loaded by this format, False otherwise.
+        """
+        raise NotImplementedError
+
+    @property
+    def valid_formats(self) -> Tuple[Tuple[PlatformType, bool, bool], ...]:
+        """The valid platform and version combinations that this object can accept.
+        This is used when setting the platform and version in the create_and_open method
+        to verify that the platform and version are valid.
+
+        :return: A tuple of tuples containing the platform followed by two booleans to determine if numerical and blockstate are valid respectively
         """
         raise NotImplementedError
 
@@ -176,11 +191,37 @@ class FormatWrapper:
     def _get_interface_key(self, raw_chunk_data) -> Any:
         raise NotImplementedError
 
+    def create_and_open(
+        self,
+        platform: PlatformType,
+        version: VersionNumberAny,
+        selection: Optional[SelectionGroup] = None,
+    ):
+        """Remove the data at the path and set up a new database.
+        You might want to call FormatWrapper.exists to check if something exists at the path
+        and warn the user they are going to overwrite existing data before calling this method."""
+        if self._is_open:
+            raise ObjectReadError(f"Cannot open {self} because it was already opened.")
+        if os.path.isdir(self.path):
+            shutil.rmtree(self.path, ignore_errors=True)
+        self._create_and_open(platform, version, selection)
+        self._is_open = True
+
+    def _create_and_open(
+        self,
+        platform: PlatformType,
+        version: VersionNumberAny,
+        selection: Optional[SelectionGroup] = None,
+    ):
+        """Set up the database from scratch."""
+        raise NotImplementedError
+
     def open(self):
         """Open the database for reading and writing"""
-        if not self._is_open:
-            self._open()
-            self._is_open = True
+        if self._is_open:
+            raise ObjectReadError(f"Cannot open {self} because it was already opened.")
+        self._open()
+        self._is_open = True
 
     def _open(self):
         raise NotImplementedError
