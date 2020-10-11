@@ -6,7 +6,6 @@ import amulet_nbt
 
 from amulet.api.data_types import (
     VersionNumberAny,
-    PathOrBuffer,
     ChunkCoordinates,
     AnyNDArray,
     Dimension,
@@ -144,7 +143,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             )
 
     @staticmethod
-    def is_valid(path: PathOrBuffer) -> bool:
+    def is_valid(path: path) -> bool:
         """
         Returns whether this format is able to load the given object.
 

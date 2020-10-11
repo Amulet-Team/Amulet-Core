@@ -9,7 +9,6 @@ if TYPE_CHECKING:
     from amulet.api.entity import Entity
 
 # Wrapper types
-PathOrBuffer = Union[str, BinaryIO]
 BlockNDArray = numpy.ndarray  # NDArray[(Any, ), 'Block']
 AnyNDArray = numpy.ndarray  # NDArray[(Any, ), Any]
 PlatformType = str
