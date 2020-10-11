@@ -6,7 +6,6 @@ from amulet import log
 from amulet.api.data_types import (
     AnyNDArray,
     VersionNumberAny,
-    PathOrBuffer,
     Dimension,
 )
 from amulet.api.registry import BlockManager
@@ -26,7 +25,7 @@ construction_0_interface = Construction0Interface()
 
 
 class ConstructionFormatWrapper(StructureFormatWrapper):
-    def __init__(self, path: PathOrBuffer, mode: str = "r"):
+    def __init__(self, path: str):
         super().__init__(path)
         assert mode in ("r", "w"), 'Mode must be either "r" or "w".'
         self._mode = mode
@@ -46,7 +45,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         self._chunk_to_box: Optional[Dict[Tuple[int, int], List[SelectionBox]]] = None
 
     @staticmethod
-    def is_valid(path: PathOrBuffer) -> bool:
+    def is_valid(path: str) -> bool:
         """
         Returns whether this format is able to load the given object.
 
