@@ -29,9 +29,9 @@ class ConstructionInterface(Interface):
                 continue
             if section.blocks is not None:
                 shapex, shapey, shapez = section.shape
-                sx = section.sx - ((section.sx >> 4) << 4)
+                sx = section.sx % 16
                 sy = section.sy
-                sz = section.sz - ((section.sz >> 4) << 4)
+                sz = section.sz % 16
                 chunk.blocks[
                     sx : sx + shapex, sy : sy + shapey, sz : sz + shapez,
                 ] = section.blocks.astype(numpy.uint32) + len(palette)
@@ -66,6 +66,7 @@ class ConstructionInterface(Interface):
         boxes: List[SelectionBox] = None,
     ) -> List[ConstructionSection]:
         sections = []
+        boxes = boxes or []
         for box in boxes:
             cx, cz = chunk.cx, chunk.cz
             for cy in box.chunk_y_locations():

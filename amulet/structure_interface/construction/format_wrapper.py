@@ -1,48 +1,189 @@
 import os
-from typing import Optional, Union, List, Tuple, Dict, Generator, TYPE_CHECKING
+from typing import Optional, List, Tuple, Dict, Generator, TYPE_CHECKING, BinaryIO
 import numpy
+from io import BytesIO
+import struct
+
+import amulet_nbt
 
 from amulet import log
 from amulet.api.data_types import (
     AnyNDArray,
     VersionNumberAny,
     Dimension,
-)
+    PlatformType)
 from amulet.api.registry import BlockManager
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.errors import ObjectReadError, ObjectWriteError, ChunkDoesNotExist
+from amulet.api.errors import ChunkDoesNotExist
 
-from .construction import ConstructionWriter, ConstructionReader
 from .section import ConstructionSection
 from .interface import Construction0Interface, ConstructionInterface
+from .util import unpack_palette, parse_entities, parse_block_entities, serialise_entities, serialise_block_entities, find_fitting_array_type, pack_palette
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator, Interface
 
 construction_0_interface = Construction0Interface()
 
+INT_STRUCT = struct.Struct(">I")
+SECTION_ENTRY_TYPE = numpy.dtype(
+    [
+        ("sx", "i4"),
+        ("sy", "i4"),
+        ("sz", "i4"),
+        ("shapex", "i1"),
+        ("shapey", "i1"),
+        ("shapez", "i1"),
+        ("position", "i4"),
+        ("length", "i4"),
+    ]
+)
+
+magic_num = b"constrct"
+magic_num_len = len(magic_num)
+
+max_format_version = 0
+max_section_version = 0
+
 
 class ConstructionFormatWrapper(StructureFormatWrapper):
     def __init__(self, path: str):
         super().__init__(path)
-        assert mode in ("r", "w"), 'Mode must be either "r" or "w".'
-        self._mode = mode
-        if isinstance(path, str):
-            assert path.endswith(".construction"), 'Path must end with ".construction"'
-            if mode == "r":
-                assert os.path.isfile(path), "File specified does not exist."
-        self._data: Optional[Union[ConstructionWriter, ConstructionReader]] = None
-        self._platform = "java"
-        self._version = (1, 15, 2)
-        self._selection: SelectionGroup = SelectionGroup()
 
-        # used to look up which sections are in a given chunk when loading
-        self._chunk_to_section: Optional[Dict[Tuple[int, int], List[int]]] = None
+        self._format_version: int = max_format_version
+        self._section_version: int = max_section_version
 
-        # used to look up which selection boxes intersect a given chunk (boxes are clipped to the size of the chunk)
-        self._chunk_to_box: Optional[Dict[Tuple[int, int], List[SelectionBox]]] = None
+        # which sections are in a given chunk
+        self._chunk_to_section: Dict[Tuple[int, int], List[ConstructionSection]] = {}
+
+        self._selection_boxes: List[SelectionBox] = []
+
+        # which selection boxes intersect a given chunk (boxes are clipped to the size of the chunk)
+        self._chunk_to_box: Dict[Tuple[int, int], List[SelectionBox]] = {}
+
+    def _create(self, format_version=max_format_version, section_version=max_section_version, **kwargs):
+        self._format_version = format_version
+        self._section_version = section_version
+        self._chunk_to_section = {}
+        self._chunk_to_box = {}
+        self._populate_chunk_to_box()
+
+    def _populate_chunk_to_box(self):
+        for box in self._selection.selection_boxes:
+            for cx, cz in box.chunk_locations():
+                self._chunk_to_box.setdefault(
+                    (cx, cz),
+                    []
+                ).append(
+                    SelectionBox.create_chunk_box(cx, cz).intersection(box)
+                )
+
+    def open_from(self, f: BinaryIO):
+        f = BytesIO(f.read())
+        magic_num_1 = f.read(8)
+        assert magic_num_1 == magic_num, f"This file is not a construction file."
+        self._format_version = struct.unpack(">B", f.read(1))[0]
+        if self._format_version == 0:
+            f.seek(-magic_num_len, os.SEEK_END)
+            magic_num_2 = f.read(8)
+            assert (
+                    magic_num_2 == magic_num
+            ), "It looks like this file is corrupt. It probably wasn't saved properly"
+
+            f.seek(-magic_num_len - INT_STRUCT.size, os.SEEK_END)
+            metadata_end = f.tell()
+            metadata_start = INT_STRUCT.unpack(f.read(INT_STRUCT.size))[0]
+            f.seek(metadata_start)
+
+            metadata = amulet_nbt.load(
+                f.read(metadata_end - metadata_start),
+                compressed=True,
+            )
+
+            try:
+                self._platform = metadata["export_version"]["edition"].value
+                self._version = tuple(
+                    map(lambda v: v.value, metadata["export_version"]["version"])
+                )
+            except KeyError as e:
+                raise KeyError(
+                    f'Missing export version identifying key "{e.args[0]}"'
+                )
+
+            self._section_version = metadata["section_version"].value
+
+            palette = unpack_palette(metadata["block_palette"])
+
+            selection_boxes = (
+                metadata["selection_boxes"].value.reshape(-1, 6).tolist()
+            )
+
+            self._selection = SelectionGroup([
+                SelectionBox((minx, miny, minz), (maxx, maxy, maxz))
+                for minx, miny, minz, maxx, maxy, maxz in selection_boxes
+            ])
+
+            self._populate_chunk_to_box()
+
+            section_index_table = (
+                metadata["section_index_table"].value.view(SECTION_ENTRY_TYPE).tolist()
+            )
+
+            if self._section_version == 0:
+                for (
+                    start_x,
+                    start_y,
+                    start_z,
+                    shape_x,
+                    shape_y,
+                    shape_z,
+                    position,
+                    length,
+                ) in section_index_table:
+                    f.seek(position)
+                    nbt_obj = amulet_nbt.load(f.read(length))
+                    if nbt_obj["blocks_array_type"].value == -1:
+                        blocks = None
+                        block_entities = None
+                    else:
+                        blocks = numpy.reshape(
+                            nbt_obj["blocks"].value, (shape_x, shape_y, shape_z)
+                        )
+                        block_entities = parse_block_entities(nbt_obj["block_entities"])
+
+                    start = numpy.array([start_x, start_y, start_z])
+                    chunk_index: numpy.ndarray = start // self.sub_chunk_size
+                    shape = numpy.array([shape_x, shape_y, shape_z])
+                    if numpy.any(shape <= 0):
+                        continue  # skip sections with zero size
+                    if numpy.any(start + shape > (chunk_index + 1) * self.sub_chunk_size):
+                        log.error(f"section in construction file did not fit in one sub-chunk. Start: {start}, Shape: {shape}")
+                    cx, cy, cz = chunk_index.tolist()
+                    self._chunk_to_section.setdefault((cx, cz), []).append(
+                        ConstructionSection(
+                            (start_x, start_y, start_z),
+                            (shape_x, shape_y, shape_z),
+                            blocks,
+                            palette,
+                            parse_entities(nbt_obj["entities"]),
+                            block_entities,
+                        )
+                    )
+            else:
+                raise Exception(
+                    f"This wrapper does not support any construction section version higher than {max_section_version}"
+                )
+
+        else:
+            raise Exception(
+                f"This wrapper does not support any construction format version higher than {max_format_version}"
+            )
+
+    @property
+    def multi_selection(self) -> bool:
+        return True
 
     @staticmethod
     def is_valid(path: str) -> bool:
@@ -55,18 +196,15 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         return os.path.isfile(path) and path.endswith(".construction")
 
     @property
-    def selection(self) -> SelectionGroup:
-        """Platform string ("bedrock" / "java" / ...)"""
-        return self._selection
+    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
+        return {
+            "bedrock": (True, True),
+            "java": (True, True),
+        }
 
-    @selection.setter
-    def selection(self, selection: SelectionGroup):
-        if self._is_open:
-            log.error(
-                "Construction selection cannot be changed after the object has been opened."
-            )
-            return
-        self._selection = selection
+    @property
+    def extensions(self) -> Tuple[str, ...]:
+        return ".construction",
 
     def _get_interface(
         self, max_world_version, raw_chunk_data=None
@@ -82,49 +220,98 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         )
         return interface, translator, version_identifier
 
-    def _open(self):
-        """Open the database for reading and writing"""
-        if self._mode == "r":
-            assert (
-                isinstance(self.path_or_buffer, str)
-                and os.path.isfile(self.path_or_buffer)
-            ) or hasattr(self.path_or_buffer, "read"), "File specified does not exist."
-            self._data = ConstructionReader(self.path_or_buffer)
-            self._platform = self._data.source_edition
-            self._version = self._data.source_version
-            self._selection = SelectionGroup(
-                [
-                    SelectionBox((minx, miny, minz), (maxx, maxy, maxz))
-                    for minx, miny, minz, maxx, maxy, maxz in self._data.selection
-                ]
+    def save_to(self, f: BinaryIO):
+        palette: BlockManager = BlockManager()
+        f.write(magic_num)
+        f.write(struct.pack(">B", self._format_version))
+        if self._format_version == 0:
+            metadata = amulet_nbt.NBTFile(
+                amulet_nbt.TAG_Compound(
+                    {
+                        "created_with": amulet_nbt.TAG_String("amulet_python_wrapper_v2"),
+                        "selection_boxes": amulet_nbt.TAG_Int_Array(
+                            [
+                                c for box in self._selection.selection_boxes for c in (*box.min, *box.max)
+                            ]
+                        ),
+                        "section_version": amulet_nbt.TAG_Byte(self._section_version),
+                        "export_version": amulet_nbt.TAG_Compound(
+                            {
+                                "edition": amulet_nbt.TAG_String(self._platform),
+                                "version": amulet_nbt.TAG_List(
+                                    [
+                                        amulet_nbt.TAG_Int(v)
+                                        for v in self._version
+                                    ]
+                                ),
+                            }
+                        ),
+                    }
+                )
             )
+            section_index_table: List[
+                Tuple[int, int, int, int, int, int, int, int]
+            ] = []
+            if self._section_version == 0:
+                for section_list in self._chunk_to_section.values():
+                    for section in section_list:
+                        sx, sy, sz = section.location
+                        shapex, shapey, shapez = section.shape
+                        blocks = section.blocks
+                        entities = section.entities
+                        block_entities = section.block_entities
+                        palette = section.palette
+                        position = f.tell()
 
-            self._chunk_to_section = {}
-            for index, (x, _, z, _, _, _, _, _) in enumerate(self._data.sections):
-                cx = x >> 4
-                cz = z >> 4
-                self._chunk_to_section.setdefault((cx, cz), []).append(index)
+                        _tag = amulet_nbt.TAG_Compound(
+                            {"entities": serialise_entities(entities)}
+                        )
+
+                        if blocks is None:
+                            _tag["blocks_array_type"] = amulet_nbt.TAG_Byte(-1)
+                        else:
+                            flattened_array = blocks.ravel()
+                            index, flattened_array = numpy.unique(
+                                flattened_array, return_inverse=True
+                            )
+                            palette = numpy.array(palette, dtype=object)[index]
+                            lut = numpy.vectorize(palette.get_add_block)(palette)
+                            flattened_array = lut[flattened_array]
+                            array_type = find_fitting_array_type(flattened_array)
+                            _tag["blocks_array_type"] = amulet_nbt.TAG_Byte(array_type().tag_id)
+                            _tag["blocks"] = array_type(flattened_array)
+                            _tag["block_entities"] = serialise_block_entities(
+                                block_entities or []
+                            )
+
+                        amulet_nbt.NBTFile(_tag).save_to(f)
+
+                        length = f.tell() - position
+                        section_index_table.append(
+                            (sx, sy, sz, shapex, shapey, shapez, position, length)
+                        )
+            else:
+                raise Exception(
+                    f"This wrapper doesn't support any section version higher than {max_section_version}"
+                )
+            metadata_start = f.tell()
+            metadata["section_index_table"] = amulet_nbt.TAG_Byte_Array(
+                numpy.array(section_index_table, dtype=SECTION_ENTRY_TYPE).view(
+                    numpy.int8
+                )
+            )
+            metadata["block_palette"] = pack_palette(palette)
+            metadata.save_to(f)
+            f.write(INT_STRUCT.pack(metadata_start))
+            f.write(magic_num)
         else:
-            self._data = ConstructionWriter(
-                self.path_or_buffer,
-                self.platform,
-                self.version,
-                [box.bounds for box in self.selection.selection_boxes],
+            raise Exception(
+                f"This wrapper doesn't support any construction version higher than {max_format_version}"
             )
-            self._chunk_to_box = {}
-            for box in self.selection.selection_boxes:
-                for cx, cz in box.chunk_locations():
-                    self._chunk_to_box.setdefault((cx, cz), []).append(
-                        box.intersection(SelectionBox.create_chunk_box(cx, cz))
-                    )
-
-    def _save(self):
-        """Save the data back to the disk database"""
-        pass
 
     def _close(self):
         """Close the disk database"""
-        self._data.close()
+        pass
 
     def unload(self):
         """Unload data stored in the Format class"""
@@ -134,10 +321,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         self, dimension: Optional[Dimension] = None
     ) -> Generator[Tuple[int, int], None, None]:
         """A generator of all chunk coords"""
-        if self._mode == "r":
-            yield from self._chunk_to_section.keys()
-        else:
-            raise ObjectReadError("all_chunk_coords is only valid in read mode")
+        yield from self._chunk_to_section.keys()
 
     def _pack(
         self, chunk: "Chunk", translator: "Translator", chunk_version: VersionNumberAny,
@@ -170,9 +354,8 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         return chunk
 
     def _delete_chunk(self, cx: int, cz: int, dimension: Optional[Dimension] = None):
-        raise ObjectWriteError(
-            "delete_chunk is not a valid method for a construction file"
-        )
+        if (cx, cz) in self._chunk_to_section:
+            del self._chunk_to_section[(cx, cz)]
 
     def _put_raw_chunk_data(
         self,
@@ -184,11 +367,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         """
         Actually stores the data from the interface to disk.
         """
-        if self._mode == "w":
-            for section in data:
-                self._data.write(section)
-        else:
-            raise ObjectWriteError("The construction file is not open for writing.")
+        self._chunk_to_section[cx, cz] = data
 
     def _get_raw_chunk_data(
         self, cx: int, cz: int, dimension: Optional[Dimension] = None
@@ -201,12 +380,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         :param dimension: The dimension to load the data from.
         :return: The raw chunk data.
         """
-        if self._mode == "r":
-            if (cx, cz) in self._chunk_to_section:
-                return [
-                    self._data.read(index) for index in self._chunk_to_section[(cx, cz)]
-                ]
-            else:
-                raise ChunkDoesNotExist
+        if (cx, cz) in self._chunk_to_section:
+            return self._chunk_to_section[(cx, cz)].copy()
         else:
-            raise ObjectReadError("The construction file is not open for reading.")
+            raise ChunkDoesNotExist
