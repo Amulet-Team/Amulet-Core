@@ -358,7 +358,7 @@ class AnvilFormat(WorldFormatWrapper):
 
     def _load_level_dat(self):
         """Load the level.dat file and check the image file"""
-        self.root_tag = nbt.load(filename=os.path.join(self.path, "level.dat"))
+        self.root_tag = nbt.load(os.path.join(self.path, "level.dat"))
         if os.path.isfile(os.path.join(self.path, "icon.png")):
             self._world_image_path = os.path.join(self.path, "icon.png")
         else:
