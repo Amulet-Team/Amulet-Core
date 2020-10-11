@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Any, Tuple, Union
 import numpy
 
 from amulet.api.wrapper import Interface
-from .schematic import SchematicChunk
+from .chunk import SchematicChunk
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionBox
 from amulet.world_interface.chunk import translators
