@@ -89,7 +89,7 @@ class WorldFormatWrapper(FormatWrapper):
     def _get_interface_key(self, raw_chunk_data) -> Any:
         raise NotImplementedError
 
-    def _create(self):
+    def _create(self, **kwargs):
         raise NotImplementedError
 
     def _open(self):

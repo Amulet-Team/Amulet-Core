@@ -183,6 +183,7 @@ class FormatWrapper:
         platform: PlatformType,
         version: VersionNumberAny,
         selection: Optional[SelectionGroup] = None,
+        **kwargs
     ):
         """Remove the data at the path and set up a new database.
         You might want to call FormatWrapper.exists to check if something exists at the path
@@ -236,11 +237,11 @@ class FormatWrapper:
 
         self._platform = platform
         self._version = version
-        self._create()
+        self._create(**kwargs)
         self._is_open = True
         self._has_lock = True
 
-    def _create(self):
+    def _create(self, **kwargs):
         """Set up the database from scratch."""
         raise NotImplementedError
 

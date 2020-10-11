@@ -40,7 +40,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
             Tuple[SelectionBox, BlockArrayType, BlockDataArrayType, list, list],
         ] = {}
 
-    def _create(self):
+    def _create(self, **kwargs):
         self._chunks = {}
 
     def open_from(self, f: BinaryIO):

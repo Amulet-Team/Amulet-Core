@@ -63,7 +63,7 @@ class StructureFormatWrapper(FormatWrapper):
     def _get_interface(self, max_world_version, raw_chunk_data=None) -> "Interface":
         raise NotImplementedError
 
-    def _create(self):
+    def _create(self, **kwargs):
         raise NotImplementedError
 
     def open_from(self, f: BinaryIO):
