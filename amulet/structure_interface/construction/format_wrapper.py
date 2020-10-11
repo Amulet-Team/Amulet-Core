@@ -15,7 +15,8 @@ from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet.api.errors import ObjectReadError, ObjectWriteError, ChunkDoesNotExist
 
-from .construction import ConstructionWriter, ConstructionReader, ConstructionSection
+from .construction import ConstructionWriter, ConstructionReader
+from .section import ConstructionSection
 from .interface import Construction0Interface, ConstructionInterface
 
 if TYPE_CHECKING:

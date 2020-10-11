@@ -3,7 +3,7 @@ import numpy
 
 import amulet_nbt
 from amulet.api.wrapper import Interface
-from .construction import ConstructionSection
+from .section import ConstructionSection
 from amulet.api.chunk import Chunk
 from amulet.api.block import Block
 from amulet.api.selection import SelectionBox
