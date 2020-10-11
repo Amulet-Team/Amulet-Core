@@ -32,8 +32,6 @@ java_interface = JavaSchematicInterface()
 bedrock_interface = BedrockSchematicInterface()
 
 
-
-
 class SchematicFormatWrapper(StructureFormatWrapper):
     def __init__(self, path: str):
         super().__init__(path)
@@ -78,13 +76,13 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         if "AddBlocks" in schematic:
             add_blocks = schematic["AddBlocks"]
             blocks = (
-                    blocks
-                    + (
-                              numpy.concatenate([[(add_blocks & 0xF0) >> 4], [add_blocks & 0xF]])
-                              .T.ravel()
-                              .astype(numpy.uint16)
-                              << 8
-                      )[: blocks.size]
+                blocks
+                + (
+                    numpy.concatenate([[(add_blocks & 0xF0) >> 4], [add_blocks & 0xF]])
+                    .T.ravel()
+                    .astype(numpy.uint16)
+                    << 8
+                )[: blocks.size]
             )
         max_point = selection_box.max
         temp_shape = (max_point[1], max_point[2], max_point[0])
@@ -111,7 +109,9 @@ class SchematicFormatWrapper(StructureFormatWrapper):
                     self._chunks[(cx, cz)][3].append(e)
         for e in entities:
             if "Pos" in e:
-                pos: PointCoordinates = tuple(map(lambda t: float(t.value), e["Pos"].value))
+                pos: PointCoordinates = tuple(
+                    map(lambda t: float(t.value), e["Pos"].value)
+                )
                 if pos in selection_box:
                     cx = int(pos[0]) >> 4
                     cz = int(pos[2]) >> 4
@@ -133,7 +133,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
 
     @property
     def extensions(self) -> Tuple[str, ...]:
-        return ".schematic",
+        return (".schematic",)
 
     def _get_interface(
         self, max_world_version, raw_chunk_data=None
@@ -188,7 +188,13 @@ class SchematicFormatWrapper(StructureFormatWrapper):
             selection.shape, dtype=numpy.uint8
         )  # only 4 bits are used
 
-        for selection_, blocks_, data_, block_entities_, entities_ in self._chunks.values():
+        for (
+            selection_,
+            blocks_,
+            data_,
+            block_entities_,
+            entities_,
+        ) in self._chunks.values():
             if selection_.intersects(selection):
                 box = selection_.create_moved_box(selection.min, subtract=True)
                 blocks[box.slice] = blocks_
@@ -301,7 +307,13 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         """
         Actually stores the data from the interface to disk.
         """
-        self._chunks[(cx, cz)] = (section.selection, section.blocks, section.data, section.block_entities, section.entities)
+        self._chunks[(cx, cz)] = (
+            section.selection,
+            section.blocks,
+            section.data,
+            section.block_entities,
+            section.entities,
+        )
 
     def _get_raw_chunk_data(
         self, cx: int, cz: int, dimension: Optional[Dimension] = None

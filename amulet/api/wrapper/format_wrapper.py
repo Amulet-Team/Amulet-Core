@@ -217,9 +217,13 @@ class FormatWrapper:
                 self._selection = selection
             else:
                 if not selection.selection_boxes:
-                    raise ObjectReadError("A single selection was required but none were given.")
+                    raise ObjectReadError(
+                        "A single selection was required but none were given."
+                    )
                 self._selection = SelectionGroup(
-                    sorted(selection.selection_boxes, reverse=True, key=lambda b: b.volume)[0]
+                    sorted(
+                        selection.selection_boxes, reverse=True, key=lambda b: b.volume
+                    )[0]
                 )
         else:
             self._selection = SelectionGroup(

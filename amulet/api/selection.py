@@ -271,7 +271,9 @@ class SelectionGroup:
     Holding class for multiple `SelectionBox`es which allows for non-rectangular and non-contiguous selections
     """
 
-    def __init__(self, selection_boxes: Union[SelectionBox, Iterable[SelectionBox]] = ()):
+    def __init__(
+        self, selection_boxes: Union[SelectionBox, Iterable[SelectionBox]] = ()
+    ):
         self._selection_boxes = []
 
         if isinstance(selection_boxes, SelectionBox):

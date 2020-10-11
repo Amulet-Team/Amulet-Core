@@ -10,7 +10,8 @@ from amulet.api.data_types import (
     ChunkCoordinates,
     AnyNDArray,
     Dimension,
-    PlatformType)
+    PlatformType,
+)
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
@@ -52,7 +53,9 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             max_point = min_point + tuple(c.value for c in mcstructure["size"])
             selection = SelectionBox(min_point, max_point)
             self._selection = SelectionGroup(selection)
-            translator_version = self.translation_manager.get_version("bedrock", (999, 999, 999))
+            translator_version = self.translation_manager.get_version(
+                "bedrock", (999, 999, 999)
+            )
             self._platform = translator_version.platform
             self._version = translator_version.version_number
             blocks_array: numpy.ndarray = numpy.array(
@@ -156,7 +159,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
 
     @property
     def extensions(self) -> Tuple[str, ...]:
-        return ".mcstructure",
+        return (".mcstructure",)
 
     def _get_interface(
         self, max_world_version, raw_chunk_data=None
@@ -204,7 +207,13 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
         palette: List[AnyNDArray] = []
         palette_len = 0
 
-        for selection_, blocks_, palette_, block_entities_, entities_ in self._chunks.values():
+        for (
+            selection_,
+            blocks_,
+            palette_,
+            block_entities_,
+            entities_,
+        ) in self._chunks.values():
             if selection_.intersects(selection):
                 box = selection_.create_moved_box(selection.min, subtract=True)
                 blocks[box.slice] = blocks_ + palette_len
@@ -213,9 +222,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
                 block_entities += block_entities_
                 entities += entities_
 
-        compact_palette, lut = brute_sort_objects_no_hash(
-            numpy.concatenate(palette)
-        )
+        compact_palette, lut = brute_sort_objects_no_hash(numpy.concatenate(palette))
         blocks = lut[blocks].ravel()
         block_palette = []
         block_palette_indices = []
@@ -231,9 +238,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
                     block_palette.append(block)
             block_palette_indices.append(indexed_block)
 
-        block_indices = numpy.array(block_palette_indices, dtype=numpy.int32)[
-            blocks
-        ].T
+        block_indices = numpy.array(block_palette_indices, dtype=numpy.int32)[blocks].T
 
         data["structure"] = amulet_nbt.TAG_Compound(
             {
@@ -255,15 +260,15 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
                                     {
                                         str(
                                             (
-                                                    (
-                                                            block_entity["x"].value
-                                                            - selection.min_x
-                                                    )
-                                                    * selection.size_y
-                                                    + (
-                                                            block_entity["y"].value
-                                                            - selection.min_y
-                                                    )
+                                                (
+                                                    block_entity["x"].value
+                                                    - selection.min_x
+                                                )
+                                                * selection.size_y
+                                                + (
+                                                    block_entity["y"].value
+                                                    - selection.min_y
+                                                )
                                             )
                                             * selection.size_z
                                             + block_entity["z"].value
@@ -322,7 +327,13 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
         """
         Actually stores the data from the interface to disk.
         """
-        self._chunks[(cx, cz)] = (section.selection, section.blocks, section.palette, section.block_entities, section.entities)
+        self._chunks[(cx, cz)] = (
+            section.selection,
+            section.blocks,
+            section.palette,
+            section.block_entities,
+            section.entities,
+        )
 
     def _get_raw_chunk_data(
         self, cx: int, cz: int, dimension: Optional[Dimension] = None

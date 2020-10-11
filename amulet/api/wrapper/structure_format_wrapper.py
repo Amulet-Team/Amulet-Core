@@ -26,7 +26,9 @@ class StructureFormatWrapper(FormatWrapper):
         if self.extensions:
             ext = os.path.splitext(self._path)[1]
             if ext not in self.extensions:
-                raise ObjectReadWriteError(f"The given file does not have a valid file extension. Must be one of {self.extensions}")
+                raise ObjectReadWriteError(
+                    f"The given file does not have a valid file extension. Must be one of {self.extensions}"
+                )
 
     @property
     def dimensions(self) -> List[Dimension]:
