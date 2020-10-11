@@ -205,7 +205,7 @@ class FormatWrapper:
                     f"The version given ({version}) is from the numerical format but this wrapper does not support the numerical format."
                 )
         else:
-            if not self.valid_formats[platform][0]:
+            if not self.valid_formats[platform][1]:
                 raise ObjectReadError(
                     f"The version given ({version}) is from the blockstate format but this wrapper does not support the blockstate format."
                 )
