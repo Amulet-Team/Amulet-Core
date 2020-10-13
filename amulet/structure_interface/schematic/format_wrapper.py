@@ -136,7 +136,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
 
     @property
     def extensions(self) -> Tuple[str, ...]:
-        return ".schematic",
+        return (".schematic",)
 
     def _get_interface(
         self, max_world_version, raw_chunk_data=None

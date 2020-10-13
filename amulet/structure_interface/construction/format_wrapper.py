@@ -7,11 +7,7 @@ import struct
 import amulet_nbt
 
 from amulet import log
-from amulet.api.data_types import (
-    AnyNDArray,
-    VersionNumberAny,
-    Dimension,
-    PlatformType)
+from amulet.api.data_types import AnyNDArray, VersionNumberAny, Dimension, PlatformType
 from amulet.api.registry import BlockManager
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
@@ -20,7 +16,15 @@ from amulet.api.errors import ChunkDoesNotExist
 
 from .section import ConstructionSection
 from .interface import Construction0Interface, ConstructionInterface
-from .util import unpack_palette, parse_entities, parse_block_entities, serialise_entities, serialise_block_entities, find_fitting_array_type, pack_palette
+from .util import (
+    unpack_palette,
+    parse_entities,
+    parse_block_entities,
+    serialise_entities,
+    serialise_block_entities,
+    find_fitting_array_type,
+    pack_palette,
+)
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator, Interface
@@ -63,7 +67,12 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         # which selection boxes intersect a given chunk (boxes are clipped to the size of the chunk)
         self._chunk_to_box: Dict[Tuple[int, int], List[SelectionBox]] = {}
 
-    def _create(self, format_version=max_format_version, section_version=max_section_version, **kwargs):
+    def _create(
+        self,
+        format_version=max_format_version,
+        section_version=max_section_version,
+        **kwargs,
+    ):
         self._format_version = format_version
         self._section_version = section_version
         self._chunk_to_section = {}
@@ -73,10 +82,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
     def _populate_chunk_to_box(self):
         for box in self._selection.selection_boxes:
             for cx, cz in box.chunk_locations():
-                self._chunk_to_box.setdefault(
-                    (cx, cz),
-                    []
-                ).append(
+                self._chunk_to_box.setdefault((cx, cz), []).append(
                     SelectionBox.create_chunk_box(cx, cz).intersection(box)
                 )
 
@@ -89,7 +95,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
             f.seek(-magic_num_len, os.SEEK_END)
             magic_num_2 = f.read(8)
             assert (
-                    magic_num_2 == magic_num
+                magic_num_2 == magic_num
             ), "It looks like this file is corrupt. It probably wasn't saved properly"
 
             f.seek(-magic_num_len - INT_STRUCT.size, os.SEEK_END)
@@ -98,8 +104,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
             f.seek(metadata_start)
 
             metadata = amulet_nbt.load(
-                f.read(metadata_end - metadata_start),
-                compressed=True,
+                f.read(metadata_end - metadata_start), compressed=True,
             )
 
             try:
@@ -108,22 +113,20 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
                     map(lambda v: v.value, metadata["export_version"]["version"])
                 )
             except KeyError as e:
-                raise KeyError(
-                    f'Missing export version identifying key "{e.args[0]}"'
-                )
+                raise KeyError(f'Missing export version identifying key "{e.args[0]}"')
 
             self._section_version = metadata["section_version"].value
 
             palette = unpack_palette(metadata["block_palette"])
 
-            selection_boxes = (
-                metadata["selection_boxes"].value.reshape(-1, 6).tolist()
-            )
+            selection_boxes = metadata["selection_boxes"].value.reshape(-1, 6).tolist()
 
-            self._selection = SelectionGroup([
-                SelectionBox((minx, miny, minz), (maxx, maxy, maxz))
-                for minx, miny, minz, maxx, maxy, maxz in selection_boxes
-            ])
+            self._selection = SelectionGroup(
+                [
+                    SelectionBox((minx, miny, minz), (maxx, maxy, maxz))
+                    for minx, miny, minz, maxx, maxy, maxz in selection_boxes
+                ]
+            )
 
             self._populate_chunk_to_box()
 
@@ -158,8 +161,12 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
                     shape = numpy.array([shape_x, shape_y, shape_z])
                     if numpy.any(shape <= 0):
                         continue  # skip sections with zero size
-                    if numpy.any(start + shape > (chunk_index + 1) * self.sub_chunk_size):
-                        log.error(f"section in construction file did not fit in one sub-chunk. Start: {start}, Shape: {shape}")
+                    if numpy.any(
+                        start + shape > (chunk_index + 1) * self.sub_chunk_size
+                    ):
+                        log.error(
+                            f"section in construction file did not fit in one sub-chunk. Start: {start}, Shape: {shape}"
+                        )
                     cx, cy, cz = chunk_index.tolist()
                     self._chunk_to_section.setdefault((cx, cz), []).append(
                         ConstructionSection(
@@ -204,7 +211,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
 
     @property
     def extensions(self) -> Tuple[str, ...]:
-        return ".construction",
+        return (".construction",)
 
     def _get_interface(
         self, max_world_version, raw_chunk_data=None
@@ -228,10 +235,14 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
             metadata = amulet_nbt.NBTFile(
                 amulet_nbt.TAG_Compound(
                     {
-                        "created_with": amulet_nbt.TAG_String("amulet_python_wrapper_v2"),
+                        "created_with": amulet_nbt.TAG_String(
+                            "amulet_python_wrapper_v2"
+                        ),
                         "selection_boxes": amulet_nbt.TAG_Int_Array(
                             [
-                                c for box in self._selection.selection_boxes for c in (*box.min, *box.max)
+                                c
+                                for box in self._selection.selection_boxes
+                                for c in (*box.min, *box.max)
                             ]
                         ),
                         "section_version": amulet_nbt.TAG_Byte(self._section_version),
@@ -239,10 +250,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
                             {
                                 "edition": amulet_nbt.TAG_String(self._platform),
                                 "version": amulet_nbt.TAG_List(
-                                    [
-                                        amulet_nbt.TAG_Int(v)
-                                        for v in self._version
-                                    ]
+                                    [amulet_nbt.TAG_Int(v) for v in self._version]
                                 ),
                             }
                         ),
@@ -274,11 +282,17 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
                             index, flattened_array = numpy.unique(
                                 flattened_array, return_inverse=True
                             )
-                            section_palette = numpy.array(section_palette, dtype=object)[index]
-                            lut = numpy.vectorize(palette.get_add_block)(section_palette)
+                            section_palette = numpy.array(
+                                section_palette, dtype=object
+                            )[index]
+                            lut = numpy.vectorize(palette.get_add_block)(
+                                section_palette
+                            )
                             flattened_array = lut[flattened_array]
                             array_type = find_fitting_array_type(flattened_array)
-                            _tag["blocks_array_type"] = amulet_nbt.TAG_Byte(array_type().tag_id)
+                            _tag["blocks_array_type"] = amulet_nbt.TAG_Byte(
+                                array_type().tag_id
+                            )
                             _tag["blocks"] = array_type(flattened_array)
                             _tag["block_entities"] = serialise_block_entities(
                                 block_entities or []

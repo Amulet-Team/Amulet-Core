@@ -183,7 +183,7 @@ class FormatWrapper:
         platform: PlatformType,
         version: VersionNumberAny,
         selection: Optional[SelectionGroup] = None,
-        **kwargs
+        **kwargs,
     ):
         """Remove the data at the path and set up a new database.
         You might want to call FormatWrapper.exists to check if something exists at the path

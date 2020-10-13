@@ -76,9 +76,7 @@ def generate_block_entry(
             "properties": amulet_nbt.TAG_Compound(block.properties),
             "extra_blocks": amulet_nbt.TAG_List(
                 [
-                    amulet_nbt.TAG_Int(
-                        palette_len + extra_blocks.index(_extra_block)
-                    )
+                    amulet_nbt.TAG_Int(palette_len + extra_blocks.index(_extra_block))
                     for _extra_block in block.extra_blocks
                 ]
             ),
@@ -104,9 +102,7 @@ def serialise_entities(entities: List[Entity]) -> amulet_nbt.TAG_List:
     )
 
 
-def serialise_block_entities(
-    block_entities: List[BlockEntity],
-) -> amulet_nbt.TAG_List:
+def serialise_block_entities(block_entities: List[BlockEntity],) -> amulet_nbt.TAG_List:
     return amulet_nbt.TAG_List(
         [
             amulet_nbt.TAG_Compound(
