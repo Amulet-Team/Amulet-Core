@@ -260,7 +260,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
                         blocks = section.blocks
                         entities = section.entities
                         block_entities = section.block_entities
-                        palette = section.palette
+                        section_palette = section.palette
                         position = f.tell()
 
                         _tag = amulet_nbt.TAG_Compound(
@@ -274,8 +274,8 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
                             index, flattened_array = numpy.unique(
                                 flattened_array, return_inverse=True
                             )
-                            palette = numpy.array(palette, dtype=object)[index]
-                            lut = numpy.vectorize(palette.get_add_block)(palette)
+                            section_palette = numpy.array(section_palette, dtype=object)[index]
+                            lut = numpy.vectorize(palette.get_add_block)(section_palette)
                             flattened_array = lut[flattened_array]
                             array_type = find_fitting_array_type(flattened_array)
                             _tag["blocks_array_type"] = amulet_nbt.TAG_Byte(array_type().tag_id)

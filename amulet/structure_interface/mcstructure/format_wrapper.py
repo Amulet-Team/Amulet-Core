@@ -143,7 +143,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             )
 
     @staticmethod
-    def is_valid(path: path) -> bool:
+    def is_valid(path: str) -> bool:
         """
         Returns whether this format is able to load the given object.
 
