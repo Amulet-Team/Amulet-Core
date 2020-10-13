@@ -1,6 +1,7 @@
 import os
 from typing import Optional, Tuple, Generator, TYPE_CHECKING, BinaryIO, Dict, List
 import numpy
+import copy
 
 import amulet_nbt
 
@@ -346,6 +347,6 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
         :return: The raw chunk data.
         """
         if (cx, cz) in self._chunks:
-            return MCStructureChunk(*self._chunks[(cx, cz)])
+            return MCStructureChunk(*copy.deepcopy(self._chunks[(cx, cz)]))
         else:
             raise ChunkDoesNotExist

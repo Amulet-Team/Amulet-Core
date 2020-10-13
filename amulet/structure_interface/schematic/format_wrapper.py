@@ -1,6 +1,7 @@
 import os
 from typing import Optional, Tuple, Generator, TYPE_CHECKING, BinaryIO, Dict
 import numpy
+import copy
 
 import amulet_nbt
 
@@ -329,6 +330,6 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         :return: The raw chunk data.
         """
         if (cx, cz) in self._chunks:
-            return SchematicChunk(*self._chunks[(cx, cz)])
+            return SchematicChunk(*copy.deepcopy(self._chunks[(cx, cz)]))
         else:
             raise ChunkDoesNotExist
