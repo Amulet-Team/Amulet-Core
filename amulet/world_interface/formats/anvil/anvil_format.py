@@ -15,7 +15,12 @@ from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, load_leveldat
 from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist, ChunkLoadError
-from amulet.api.data_types import ChunkCoordinates, RegionCoordinates, VersionNumberInt, PlatformType
+from amulet.api.data_types import (
+    ChunkCoordinates,
+    RegionCoordinates,
+    VersionNumberInt,
+    PlatformType,
+)
 
 if TYPE_CHECKING:
     from amulet.api.data_types import Dimension
