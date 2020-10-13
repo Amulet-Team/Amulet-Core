@@ -50,8 +50,10 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         materials = schematic.get("Materials", amulet_nbt.TAG_String()).value
         if materials == "Alpha":
             self._platform = "java"
+            self._version = (1, 12, 2)
         elif materials == "Pocket":
             self._platform = "bedrock"
+            self._version = (1, 12, 0)
         else:
             raise Exception(
                 f'"{materials}" is not a supported platform for a schematic file.'
@@ -133,7 +135,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
 
     @property
     def extensions(self) -> Tuple[str, ...]:
-        return (".schematic",)
+        return ".schematic",
 
     def _get_interface(
         self, max_world_version, raw_chunk_data=None
