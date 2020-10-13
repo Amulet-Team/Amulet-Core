@@ -15,7 +15,7 @@ from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, load_leveldat
 from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist, ChunkLoadError
-from amulet.api.data_types import ChunkCoordinates, RegionCoordinates, VersionNumberInt
+from amulet.api.data_types import ChunkCoordinates, RegionCoordinates, VersionNumberInt, PlatformType
 
 if TYPE_CHECKING:
     from amulet.api.data_types import Dimension
@@ -390,6 +390,10 @@ class AnvilFormat(WorldFormatWrapper):
         return True
 
     @property
+    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
+        return {"java": (True, True)}
+
+    @property
     def version(self) -> VersionNumberInt:
         """The version number for the given platform the data is stored in eg (1, 16, 2)"""
         if self._version == DefaultVersion:
@@ -489,6 +493,10 @@ class AnvilFormat(WorldFormatWrapper):
     def _open(self):
         """Open the database for reading and writing"""
         self._reload_world()
+
+    def _create(self, **kwargs):
+        # TODO: setup the database
+        raise NotImplementedError
 
     @property
     def has_lock(self) -> bool:
