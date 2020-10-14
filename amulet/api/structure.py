@@ -77,7 +77,7 @@ class Structure(BaseStructure):
     def from_world(cls, world: World, selection: SelectionGroup, dimension: Dimension):
         data = {}
         block_palette = BlockManager()
-        for chunk, _ in world.get_chunk_boxes(selection, dimension):
+        for chunk, _ in world.get_chunk_boxes(dimension, selection):
             if chunk.coordinates not in data:
                 data[chunk.coordinates] = chunk = copy.deepcopy(chunk)
                 chunk.block_palette = block_palette

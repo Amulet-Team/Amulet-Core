@@ -7,10 +7,10 @@ if TYPE_CHECKING:
 
 
 def delete_chunk(world: "World", dimension: Dimension, source_box: SelectionGroup):
-    iter_count = len(list(world.get_chunk_boxes(source_box, dimension)))
+    iter_count = len(list(world.get_chunk_boxes(dimension, source_box)))
     count = 0
 
-    for chunk, _ in world.get_chunk_boxes(source_box, dimension):
+    for chunk, _ in world.get_chunk_boxes(dimension, source_box):
         cx, cz = chunk.coordinates
         world.delete_chunk(cx, cz, dimension)
         count += 1

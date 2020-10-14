@@ -50,7 +50,7 @@ class WorldTestBaseCases:
         def test_get_blocks(self):
             selection_box = SelectionBox((0, 0, 0), (10, 10, 10))
             for selection in [SelectionGroup(selection_box), selection_box]:
-                chunk, box = next(self.world.get_chunk_boxes(selection, "overworld"))
+                chunk, box = next(self.world.get_chunk_boxes("overworld", selection))
                 self.assertIsInstance(chunk, Chunk)
                 self.assertIsInstance(box, SelectionBox)
 
