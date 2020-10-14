@@ -8,6 +8,7 @@ from amulet.api.errors import ChunkDoesNotExist
 
 class VoidFormatWrapper(FormatWrapper):
     """There is no actual database here for chunks to be read from or written to. This is just here to make the world happy."""
+
     @staticmethod
     def is_valid(path: str) -> bool:
         return False
@@ -45,7 +46,9 @@ class VoidFormatWrapper(FormatWrapper):
     def unload(self):
         pass
 
-    def all_chunk_coords(self, dimension: Dimension) -> Generator[ChunkCoordinates, None, None]:
+    def all_chunk_coords(
+        self, dimension: Dimension
+    ) -> Generator[ChunkCoordinates, None, None]:
         yield from ()
 
     def _delete_chunk(self, cx: int, cz: int, dimension: Dimension):

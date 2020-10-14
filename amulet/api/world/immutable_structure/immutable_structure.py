@@ -16,8 +16,7 @@ class ImmutableStructure(ChunkWorld):
     """
 
     def __init__(
-        self,
-        temp_dir: str = None,
+        self, temp_dir: str = None,
     ):
 
         super().__init__("", VoidFormatWrapper(""), temp_dir)
