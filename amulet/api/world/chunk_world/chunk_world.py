@@ -5,6 +5,7 @@ import shutil
 from typing import Union, Generator, Optional, Tuple, Callable, Any, Set, TYPE_CHECKING
 from types import GeneratorType
 import warnings
+import traceback
 
 from amulet import log
 from amulet.api.block import Block
@@ -175,20 +176,17 @@ class ChunkWorld:
     def get_chunk_boxes(
         self,
         dimension: Dimension,
-        selection: Union[SelectionGroup, SelectionBox, None] = None,
+        selection: Union[SelectionGroup, SelectionBox],
         create_missing_chunks=False,
     ) -> Generator[Tuple[Chunk, SelectionBox], None, None]:
         """Given a selection will yield chunks and `SelectionBox`es into that chunk
-        If not given a selection will use the bounds of the object.
 
         :param selection: SelectionGroup or SelectionBox into the world
         :param dimension: The dimension to take effect in
-        :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false). Use this with care.
+        :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false).
         """
         if isinstance(selection, SelectionBox):
             selection = SelectionGroup(selection)
-        elif selection is None:
-            selection = self.selection_bounds
         elif not isinstance(selection, SelectionGroup):
             raise TypeError(f"Expected a SelectionGroup but got {type(selection)}")
 
@@ -200,12 +198,10 @@ class ChunkWorld:
                 if create_missing_chunks:
                     chunk = Chunk(cx, cz)
                     self.put_chunk(chunk, dimension)
-                else:
-                    continue
             except ChunkLoadError:
-                continue
-
-            yield chunk, box
+                log.error(f"Error loading chunk\n{traceback.format_exc()}")
+            else:
+                yield chunk, box
 
     def get_chunk_slices(
         self,
