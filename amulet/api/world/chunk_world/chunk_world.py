@@ -124,6 +124,11 @@ class ChunkWorld:
         """The manager for the universal blocks in this world. New blocks must be registered here before adding to the world."""
         return self._biome_palette
 
+    @property
+    def selection_bounds(self) -> SelectionGroup:
+        """The selection(s) that all chunk data must fit within. Usually +/-30M for worlds."""
+        return self._format_wrapper.selection
+
     def get_chunk(self, cx: int, cz: int, dimension: Dimension) -> Chunk:
         """
         Gets the chunk data of the specified chunk coordinates.
