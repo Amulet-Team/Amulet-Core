@@ -14,6 +14,9 @@ class Structure(ChunkWorld):
     """
 
     def __init__(
-        self, directory: str, structure_wrapper: "StructureFormatWrapper", temp_dir: str = None
+        self,
+        directory: str,
+        structure_wrapper: "StructureFormatWrapper",
+        temp_dir: str = None,
     ):
         super().__init__(directory, structure_wrapper, temp_dir)
