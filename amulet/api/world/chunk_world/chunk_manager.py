@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Generator, TYPE_CHECKING
+from typing import Optional, Tuple, Generator, Set, TYPE_CHECKING
 import os
 import shutil
 import weakref
@@ -86,6 +86,31 @@ class ChunkManager(DatabaseHistoryManager):
 
     def __contains__(self, item: DimensionCoordinates):
         return self._has_entry(item)
+
+    def all_chunk_coords(self, dimension: Dimension) -> Set[Tuple[int, int]]:
+        """The coordinates of every chunk in this world.
+        This is the combination of chunks saved to the world and chunks yet to be saved."""
+        coords = set()
+        deleted_chunks = set()
+        for dim, cx, cz in self._temporary_database.keys():
+            if dim == dimension:
+                if self._temporary_database[(dim, cx, cz)] is None:
+                    deleted_chunks.add((cx, cz))
+                else:
+                    coords.add((cx, cz))
+
+        for dim, cx, cz in self._history_database.keys():
+            if dim == dimension and (dim, cx, cz) not in self._temporary_database:
+                if self._history_database[(dim, cx, cz)].is_deleted:
+                    deleted_chunks.add((cx, cz))
+                else:
+                    coords.add((cx, cz))
+
+        for cx, cz in self.world.world_wrapper.all_chunk_coords(dimension):
+            if (cx, cz) not in coords and (cx, cz) not in deleted_chunks:
+                coords.add((cx, cz))
+
+        return coords
 
     def get_chunk(self, dimension: Dimension, cx: int, cz: int) -> Optional[Chunk]:
         """

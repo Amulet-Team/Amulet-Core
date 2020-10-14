@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import shutil
-from typing import Union, Generator, Optional, Tuple, Callable, Any, TYPE_CHECKING
+from typing import Union, Generator, Optional, Tuple, Callable, Any, Set, TYPE_CHECKING
 from types import GeneratorType
 import warnings
 
@@ -129,6 +129,11 @@ class ChunkWorld:
         """The selection(s) that all chunk data must fit within. Usually +/-30M for worlds."""
         return self._format_wrapper.selection
 
+    def all_chunk_coords(self, dimension: Dimension) -> Set[Tuple[int, int]]:
+        """The coordinates of every chunk in this world.
+        This is the combination of chunks saved to the world and chunks yet to be saved."""
+        return self._chunks.all_chunk_coords(dimension)
+
     def get_chunk(self, cx: int, cz: int, dimension: Dimension) -> Chunk:
         """
         Gets the chunk data of the specified chunk coordinates.
@@ -180,7 +185,6 @@ class ChunkWorld:
         :param dimension: The dimension to take effect in
         :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false). Use this with care.
         """
-
         if isinstance(selection, SelectionBox):
             selection = SelectionGroup(selection)
         elif selection is None:
