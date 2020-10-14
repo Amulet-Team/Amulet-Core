@@ -36,7 +36,7 @@ class ChunkWorld:
     """
 
     def __init__(
-        self, directory: str, world_wrapper: "FormatWrapper", temp_dir: str = None
+        self, directory: str, format_wrapper: "FormatWrapper", temp_dir: str = None
     ):
         self._directory = directory
         if temp_dir is None:
@@ -44,8 +44,8 @@ class ChunkWorld:
         else:
             self._temp_directory = temp_dir
 
-        self._world_wrapper = world_wrapper
-        self._world_wrapper.open()
+        self._format_wrapper = format_wrapper
+        self._format_wrapper.open()
 
         self._block_palette = BlockManager()
         self._block_palette.get_add_block(
@@ -66,7 +66,7 @@ class ChunkWorld:
     @property
     def sub_chunk_size(self) -> int:
         """The normal dimensions of the chunk"""
-        return self._world_wrapper.sub_chunk_size
+        return self._format_wrapper.sub_chunk_size
 
     @property
     def world_path(self) -> str:
@@ -76,7 +76,7 @@ class ChunkWorld:
     @property
     def changed(self) -> bool:
         """Has any data been modified but not saved to disk"""
-        return self._history_manager.changed or self._world_wrapper.changed
+        return self._history_manager.changed or self._format_wrapper.changed
 
     @property
     def history_manager(self) -> MetaHistoryManager:
@@ -98,12 +98,12 @@ class ChunkWorld:
     @property
     def translation_manager(self) -> "TranslationManager":
         """An instance of the translation class for use with this world."""
-        return self._world_wrapper.translation_manager
+        return self._format_wrapper.translation_manager
 
     @property
     def world_wrapper(self) -> "FormatWrapper":
         """A class to access data directly from the world."""
-        return self._world_wrapper
+        return self._format_wrapper
 
     @property
     def palette(self) -> BlockManager:
@@ -236,34 +236,34 @@ class ChunkWorld:
         chunk_count = len(changed_chunks)
 
         if wrapper is None:
-            wrapper = self._world_wrapper
+            wrapper = self._format_wrapper
 
         output_dimension_map = wrapper.dimensions
 
         # perhaps make this check if the directory is the same rather than if the class is the same
-        save_as = wrapper is not self._world_wrapper
+        save_as = wrapper is not self._format_wrapper
         if save_as:
             # The input wrapper is not the same as the loading wrapper (save-as)
             # iterate through every chunk in the input world and save them to the wrapper
             log.info(
-                f"Converting world {self._world_wrapper.path} to world {wrapper.path}"
+                f"Converting world {self._format_wrapper.path} to world {wrapper.path}"
             )
             wrapper.translation_manager = (
-                self._world_wrapper.translation_manager
+                self._format_wrapper.translation_manager
             )  # TODO: this might cause issues in the future
-            for dimension in self._world_wrapper.dimensions:
+            for dimension in self._format_wrapper.dimensions:
                 chunk_count += len(
-                    list(self._world_wrapper.all_chunk_coords(dimension))
+                    list(self._format_wrapper.all_chunk_coords(dimension))
                 )
 
-            for dimension in self._world_wrapper.dimensions:
+            for dimension in self._format_wrapper.dimensions:
                 try:
                     if dimension not in output_dimension_map:
                         continue
-                    for cx, cz in self._world_wrapper.all_chunk_coords(dimension):
+                    for cx, cz in self._format_wrapper.all_chunk_coords(dimension):
                         log.info(f"Converting chunk {dimension} {cx}, {cz}")
                         try:
-                            chunk = self._world_wrapper.load_chunk(cx, cz, dimension)
+                            chunk = self._format_wrapper.load_chunk(cx, cz, dimension)
                             wrapper.commit_chunk(chunk, dimension)
                         except ChunkLoadError:
                             log.info(f"Error loading chunk {cx} {cz}", exc_info=True)
@@ -271,7 +271,7 @@ class ChunkWorld:
                         yield chunk_index, chunk_count
                         if not chunk_index % 10000:
                             wrapper.save()
-                            self._world_wrapper.unload()
+                            self._format_wrapper.unload()
                             wrapper.unload()
                 except LevelDoesNotExist:
                     continue
@@ -304,13 +304,13 @@ class ChunkWorld:
         Use changed method to check if there are any changes that should be saved before closing."""
         # TODO: add "unsaved changes" check before exit
         shutil.rmtree(self._temp_directory, ignore_errors=True)
-        self._world_wrapper.close()
+        self._format_wrapper.close()
 
     def unload(self, safe_area: Optional[Tuple[Dimension, int, int, int, int]] = None):
         """Unload all chunks not in the safe area
         Safe area format: dimension, min chunk X|Z, max chunk X|Z"""
         self._chunks.unload(safe_area)
-        self._world_wrapper.unload()
+        self._format_wrapper.unload()
 
     def create_chunk(self, cx: int, cz: int, dimension: Dimension) -> Chunk:
         chunk = Chunk(cx, cz)
