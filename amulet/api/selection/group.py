@@ -1,0 +1,222 @@
+from __future__ import annotations
+
+import itertools
+import numpy
+
+from typing import Tuple, Iterable, List, Generator, Dict, Union
+
+from amulet.api.data_types import (
+    CoordinatesAny,
+    ChunkCoordinates,
+    FloatTriplet,
+)
+from .box import SelectionBox
+
+
+class SelectionGroup:
+    """
+    Holding class for multiple `SelectionBox`es which allows for non-rectangular and non-contiguous selections
+    """
+
+    def __init__(
+        self, selection_boxes: Union[SelectionBox, Iterable[SelectionBox]] = ()
+    ):
+        self._selection_boxes = []
+
+        if isinstance(selection_boxes, SelectionBox):
+            self.add_box(selection_boxes)
+        elif selection_boxes:
+            for box in selection_boxes:
+                self.add_box(box)
+
+    def __iter__(self) -> Iterable[Tuple[int, int, int]]:
+        return itertools.chain.from_iterable(sorted(self._selection_boxes, key=hash))
+
+    def __len__(self):
+        return len(self._selection_boxes)
+
+    def __contains__(self, item: CoordinatesAny):
+        for subbox in self._selection_boxes:
+            if item in subbox:
+                return True
+
+        return False
+
+    def __bool__(self):
+        return bool(self._selection_boxes)
+
+    @property
+    def min(self) -> numpy.ndarray:
+        if self._selection_boxes:
+            return numpy.min(numpy.array([box.min for box in self._selection_boxes]), 0)
+        else:
+            raise ValueError("SelectionGroup does not contain any SelectionBoxes")
+
+    @property
+    def max(self) -> numpy.ndarray:
+        if self._selection_boxes:
+            return numpy.max(numpy.array([box.max for box in self._selection_boxes]), 0)
+        else:
+            raise ValueError("SelectionGroup does not contain any SelectionBoxes")
+
+    def add_box(self, other: SelectionBox, do_merge_check: bool = True):
+        """
+        Adds a SelectionBox to the selection box. If `other` is next to another SelectionBox in the selection, matches in any 2 dimensions, and
+        `do_merge_check` is True, then the 2 boxes will be combined into 1 box.
+
+        :param other: The box to add
+        :param do_merge_check: Boolean flag to merge boxes if able
+        """
+        # TODO: verify that this logic actually works on more complex cases
+        if do_merge_check:
+            boxes_to_remove = None
+            new_box = None
+            for box in self._selection_boxes:
+                x_dim = box.min_x == other.min_x and box.max_x == other.max_x
+                y_dim = box.min_y == other.min_y and box.max_y == other.max_y
+                z_dim = box.min_z == other.min_z and box.max_z == other.max_z
+
+                x_border = box.max_x == other.min_x or other.max_x == box.min_x
+                y_border = box.max_y == other.min_y or other.max_y == box.min_y
+                z_border = box.max_z == other.min_z or other.max_z == box.min_z
+
+                if (
+                    (x_dim and y_dim and z_border)
+                    or (x_dim and z_dim and y_border)
+                    or (y_dim and z_dim and x_border)
+                ):
+                    boxes_to_remove = box
+                    new_box = SelectionBox(box.min, other.max)
+                    break
+
+            if new_box:
+                self._selection_boxes.remove(boxes_to_remove)
+                self.add_box(new_box)
+            else:
+                self._selection_boxes.append(other)
+        else:
+            self._selection_boxes.append(other)
+
+    @property
+    def is_contiguous(self) -> bool:
+        """Does the SelectionGroup represent one connected region (True) or multiple separated regions (False)"""
+        if len(self._selection_boxes) == 1:
+            return True
+
+        for i in range(len(self._selection_boxes) - 1):
+            sub_box = self._selection_boxes[i]
+            next_box = self._selection_boxes[i + 1]
+            if (
+                abs(sub_box.max_x - next_box.min_x)
+                and abs(sub_box.max_y - next_box.min_y)
+                and abs(sub_box.max_z - next_box.min_z)
+            ):
+                return False
+
+        return True
+
+    @property
+    def is_rectangular(self) -> bool:
+        """
+        Checks if the SelectionGroup is a rectangle
+
+        :return: True is the selection is a rectangle, False otherwise
+        """
+        return len(self._selection_boxes) == 1
+
+    @property
+    def selection_boxes(self) -> List[SelectionBox]:
+        """
+        Returns a list of unmodified `SelectionBox`es in the SelectionGroup.
+        :return: A list of the `SelectionBox`es
+        """
+        return sorted(self._selection_boxes.copy(), key=hash)
+
+    def chunk_locations(
+        self, sub_chunk_size: int = 16
+    ) -> Generator[ChunkCoordinates, None, None]:
+        """The chunk locations that the SelectionGroup is in.
+        Each location is only given once even if there are multiple boxes in the chunk."""
+        yield from set(
+            location
+            for box in self.selection_boxes
+            for location in box.chunk_locations(sub_chunk_size)
+        )
+
+    def _chunk_boxes(
+        self, sub_chunk_size: int = 16
+    ) -> Dict[ChunkCoordinates, List[SelectionBox]]:
+        boxes = {}
+        for box in self.selection_boxes:
+            for (cx, cz), sub_box in box.sub_sections(sub_chunk_size):
+                boxes.setdefault((cx, cz), []).append(sub_box)
+        return boxes
+
+    def sub_sections(
+        self, sub_chunk_size: int = 16
+    ) -> Generator[Tuple[ChunkCoordinates, SelectionBox], None, None]:
+        """A generator of modified `SelectionBox`es to fit within each sub-chunk.
+        :param sub_chunk_size: The dimension of the chunk (normally 16)
+        """
+        for (cx, cz), boxes in self._chunk_boxes(sub_chunk_size).items():
+            for box in boxes:
+                yield (cx, cz), box
+
+    def sub_slices(
+        self, sub_chunk_size: int = 16
+    ) -> Generator[
+        Tuple[ChunkCoordinates, Tuple[slice, slice, slice], SelectionBox], None, None
+    ]:
+        for (cx, cz), box in self.sub_sections(sub_chunk_size):
+            slices = box.chunk_slice(cx, cz, sub_chunk_size)
+            yield (cx, cz), slices, box
+
+    def intersects(self, other: SelectionGroup) -> bool:
+        """Check if self and other intersect"""
+        return any(
+            self_box.intersects(other_box)
+            for self_box in self.selection_boxes
+            for other_box in other.selection_boxes
+        )
+
+    def intersection(self, other: SelectionGroup) -> SelectionGroup:
+        """Get a new SelectionGroup that represents the area contained within self and other"""
+        intersection = SelectionGroup()
+        for self_box in self.selection_boxes:
+            for other_box in other.selection_boxes:
+                if self_box.intersects(other_box):
+                    intersection.add_box(self_box.intersection(other_box))
+        return intersection
+
+    def transform(self, scale: FloatTriplet, rotation: FloatTriplet) -> SelectionGroup:
+        """creates a new transformed SelectionGroup."""
+        selection_group = SelectionGroup()
+        for selection in self.selection_boxes:
+            for transformed_selection in selection.transform(scale, rotation):
+                selection_group.add_box(transformed_selection)
+        return selection_group
+
+    def copy(self):
+        return SelectionGroup([box for box in self.selection_boxes])
+
+    def volume(self) -> int:
+        """The volume of all the selection boxes combined"""
+        return sum(box.volume for box in self.selection_boxes)
+
+    def footprint_area(self):
+        """The flat area of the selection."""
+        return SelectionGroup(
+            [
+                SelectionBox((box.min_x, 0, box.min_z), (box.max_x, 1, box.max_z))
+                for box in self.selection_boxes
+            ]
+        ).volume()
+
+
+if __name__ == "__main__":
+    b1 = SelectionBox((0, 0, 0), (4, 4, 4))
+    b2 = SelectionBox((7, 7, 7), (10, 10, 10))
+    sel_box = SelectionGroup((b1, b2))
+
+    for x, y, z in sel_box:
+        print(x, y, z)
