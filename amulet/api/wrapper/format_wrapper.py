@@ -74,6 +74,11 @@ class FormatWrapper:
         return self._path
 
     @property
+    def world_name(self) -> str:
+        """The name of the world"""
+        raise NotImplementedError
+
+    @property
     def translation_manager(self) -> PyMCTranslate.TranslationManager:
         """The translation manager attached to the world"""
         if self._translation_manager is None:
