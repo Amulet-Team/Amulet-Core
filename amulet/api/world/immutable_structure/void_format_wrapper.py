@@ -1,8 +1,11 @@
-from typing import Any, Generator, List, Dict, Tuple
+from typing import Any, Generator, List, Dict, Tuple, TYPE_CHECKING
 
 from amulet.api.data_types import Dimension, PlatformType, ChunkCoordinates
 from amulet.api.wrapper import FormatWrapper
 from amulet.api.errors import ChunkDoesNotExist
+
+if TYPE_CHECKING:
+    from amulet.api.wrapper import Interface
 
 
 class VoidFormatWrapper(FormatWrapper):
