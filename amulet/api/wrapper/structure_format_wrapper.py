@@ -2,9 +2,8 @@ from typing import BinaryIO, List, Any, Generator, Tuple, Dict, TYPE_CHECKING
 import os
 
 from .format_wrapper import FormatWrapper
-from amulet.api.data_types import Dimension, PlatformType
+from amulet.api.data_types import Dimension, PlatformType, ChunkCoordinates
 from amulet.api.errors import ObjectReadError, ObjectReadWriteError
-from amulet import ChunkCoordinates
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Interface

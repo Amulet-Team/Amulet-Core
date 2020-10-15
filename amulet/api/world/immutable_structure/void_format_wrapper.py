@@ -1,7 +1,6 @@
 from typing import Any, Generator, List, Dict, Tuple
 
-from amulet import ChunkCoordinates
-from amulet.api.data_types import Dimension, PlatformType
+from amulet.api.data_types import Dimension, PlatformType, ChunkCoordinates
 from amulet.api.wrapper import FormatWrapper
 from amulet.api.errors import ChunkDoesNotExist
 

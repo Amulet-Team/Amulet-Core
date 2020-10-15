@@ -2,8 +2,8 @@ import os
 import warnings
 from typing import Any, Generator, List, Tuple, Dict, TYPE_CHECKING
 
-from amulet import IMG_DIRECTORY, ChunkCoordinates
-from amulet.api.data_types import Dimension, PlatformType
+from amulet import IMG_DIRECTORY
+from amulet.api.data_types import Dimension, PlatformType, ChunkCoordinates
 from .format_wrapper import FormatWrapper
 from amulet.world_interface.chunk import interfaces
 
