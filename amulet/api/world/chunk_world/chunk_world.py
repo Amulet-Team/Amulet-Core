@@ -176,32 +176,54 @@ class ChunkWorld:
     def get_chunk_boxes(
         self,
         dimension: Dimension,
-        selection: Union[SelectionGroup, SelectionBox],
+        selection: Union[SelectionGroup, SelectionBox, None] = None,
         create_missing_chunks=False,
     ) -> Generator[Tuple[Chunk, SelectionBox], None, None]:
         """Given a selection will yield chunks and `SelectionBox`es into that chunk
+        If not given a selection will use the bounds of the object.
 
         :param selection: SelectionGroup or SelectionBox into the world
         :param dimension: The dimension to take effect in
-        :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false).
+        :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false). Use this with care.
         """
         if isinstance(selection, SelectionBox):
             selection = SelectionGroup(selection)
+        elif selection is None:
+            selection = self.selection_bounds
         elif not isinstance(selection, SelectionGroup):
             raise TypeError(f"Expected a SelectionGroup but got {type(selection)}")
 
         selection: SelectionGroup
-        for (cx, cz), box in selection.sub_sections(self.sub_chunk_size):
-            try:
-                chunk = self.get_chunk(cx, cz, dimension)
-            except ChunkDoesNotExist:
-                if create_missing_chunks:
-                    chunk = Chunk(cx, cz)
-                    self.put_chunk(chunk, dimension)
-            except ChunkLoadError:
-                log.error(f"Error loading chunk\n{traceback.format_exc()}")
-            else:
-                yield chunk, box
+        if create_missing_chunks or selection.footprint_area() < 1_000_000:
+            for (cx, cz), box in selection.chunk_boxes(self.sub_chunk_size):
+                try:
+                    chunk = self.get_chunk(cx, cz, dimension)
+                except ChunkDoesNotExist:
+                    if create_missing_chunks:
+                        chunk = Chunk(cx, cz)
+                        self.put_chunk(chunk, dimension)
+                except ChunkLoadError:
+                    log.error(f"Error loading chunk\n{traceback.format_exc()}")
+                else:
+                    yield chunk, box
+
+        else:
+            # if the selection gets very large iterating over the whole selection and accessing chunks can get slow
+            # instead we are going to iterate over the chunks and get the intersection of the selection
+            for cx, cz in self.all_chunk_coords(dimension):
+                box = SelectionGroup(
+                    SelectionBox.create_chunk_box(cx, cz, self.sub_chunk_size)
+                )
+
+                if selection.intersects(box):
+                    try:
+                        chunk = self.get_chunk(cx, cz, dimension)
+                    except ChunkLoadError:
+                        log.error(f"Error loading chunk\n{traceback.format_exc()}")
+                    else:
+                        chunk_selection = selection.intersection(box)
+                        for sub_box in chunk_selection.selection_boxes:
+                            yield chunk, sub_box
 
     def get_chunk_slices(
         self,
