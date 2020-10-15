@@ -1,11 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from .chunk_world import ChunkWorld
-
-if TYPE_CHECKING:
-    from amulet.api.wrapper import WorldFormatWrapper
+from amulet.api.wrapper import WorldFormatWrapper
 
 
 class World(ChunkWorld):
@@ -14,6 +10,11 @@ class World(ChunkWorld):
     """
 
     def __init__(
-        self, directory: str, world_wrapper: "WorldFormatWrapper", temp_dir: str = None
+        self, directory: str, world_wrapper: WorldFormatWrapper, temp_dir: str = None
     ):
+        assert isinstance(world_wrapper, WorldFormatWrapper)
         super().__init__(directory, world_wrapper, temp_dir)
+
+    @property
+    def world_wrapper(self) -> WorldFormatWrapper:
+        return self._format_wrapper
