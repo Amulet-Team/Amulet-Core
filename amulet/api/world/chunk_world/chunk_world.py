@@ -358,6 +358,10 @@ class ChunkWorld:
         """Delete a chunk from the universal world database"""
         self._chunks.delete_chunk(dimension, cx, cz)
 
+    def extract_structure(self, selection: SelectionGroup, dimension: Dimension) -> ImmutableStructure:
+        """Extract the area in the SelectionGroup from the world as a new structure"""
+        return ImmutableStructure.from_world(self, selection, dimension)
+
     def get_version_block(
         self,
         x: int,
@@ -540,3 +544,7 @@ class ChunkWorld:
         If an operation errors there may be modifications made that did not get tracked.
         This will revert those changes."""
         self._history_manager.restore_last_undo_point()
+
+
+# this needs to be down here to stop a circular import error
+from ..immutable_structure import ImmutableStructure
