@@ -80,6 +80,15 @@ class ChunkManager(DatabaseHistoryManager):
             for chunk_key in unload_chunks:
                 del self._temporary_database[chunk_key]
 
+    def unload_unchanged(self):
+        """Unload all chunks that have not been marked as changed."""
+        unchanged = []
+        for key, chunk in self._temporary_database.items():
+            if not chunk.changed:
+                unchanged.append(key)
+        for key in unchanged:
+            del self._temporary_database[key]
+
     def has_chunk(self, dimension: Dimension, cx: int, cz: int) -> bool:
         """Does the ChunkManager have the chunk specified"""
         return self._has_entry((dimension, cx, cz))

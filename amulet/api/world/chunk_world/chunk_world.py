@@ -345,6 +345,10 @@ class ChunkWorld:
         self._chunks.unload(safe_area)
         self._format_wrapper.unload()
 
+    def unload_unchanged(self):
+        """Unload all data that has not been marked as changed."""
+        self._chunks.unload_unchanged()
+
     def create_chunk(self, cx: int, cz: int, dimension: Dimension) -> Chunk:
         chunk = Chunk(cx, cz)
         self.put_chunk(chunk, dimension)
