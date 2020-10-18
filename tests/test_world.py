@@ -55,7 +55,7 @@ class WorldTestBaseCases:
                 self.assertIsInstance(box, SelectionBox)
 
                 chunk, slices, _ = next(
-                    self.world.get_chunk_slice_box(selection, "overworld")
+                    self.world.get_chunk_slice_box("overworld", selection)
                 )
                 self.assertIsInstance(chunk, Chunk)
                 self.assertIsInstance(slices, tuple)
@@ -303,7 +303,7 @@ class WorldTestBaseCases:
                 _ = self.world.get_block(1, 70, 3, "overworld").blockstate
 
             self.assertEqual(
-                0, len([x for x in self.world.get_chunk_slice_box(subbox1, "overworld")])
+                0, len([x for x in self.world.get_chunk_slice_box("overworld", subbox1)])
             )
 
             self.world.undo()
@@ -323,7 +323,7 @@ class WorldTestBaseCases:
                 _ = self.world.get_block(1, 70, 3, "overworld").blockstate
 
             self.assertEqual(
-                0, len([x for x in self.world.get_chunk_slice_box(subbox1, "overworld")])
+                0, len([x for x in self.world.get_chunk_slice_box("overworld", subbox1)])
             )
 
         @unittest.skipUnless(

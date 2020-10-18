@@ -253,8 +253,8 @@ class ChunkWorld:
 
     def get_chunk_slice_box(
         self,
-        selection: Union[SelectionGroup, SelectionBox],
         dimension: Dimension,
+        selection: Union[SelectionGroup, SelectionBox],
         create_missing_chunks=False,
     ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None]:
         """Given a selection will yield chunks, slices into that chunk and the corresponding box
