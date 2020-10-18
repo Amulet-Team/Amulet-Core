@@ -245,14 +245,11 @@ class ChunkWorld:
                 chunk = self.get_chunk(cx, cz, dimension)
             except ChunkDoesNotExist:
                 if create_missing_chunks:
-                    chunk = Chunk(cx, cz)
-                    self.put_chunk(chunk, dimension)
-                else:
-                    continue
+                    yield self.create_chunk(cx, cz, dimension), box
             except ChunkLoadError:
                 log.error(f"Error loading chunk\n{traceback.format_exc()}")
-                continue
-            yield chunk, box
+            else:
+                yield chunk, box
 
     def get_chunk_slice_box(
         self,
