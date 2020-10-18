@@ -135,6 +135,16 @@ class ChunkWorld:
         This is the combination of chunks saved to the world and chunks yet to be saved."""
         return self._chunks.all_chunk_coords(dimension)
 
+    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
+        """Does the chunk exist. This is a quick way to check if the chunk exists without loading it.
+
+        :param cx: The x coordinate of the chunk.
+        :param cz: The z coordinate of the chunk.
+        :param dimension: The dimension to load the chunk from.
+        :return: True if the chunk exists. Calling get_chunk on this chunk may still throw ChunkLoadError
+        """
+        return self._chunks.has_chunk(dimension, cx, cz)
+
     def get_chunk(self, cx: int, cz: int, dimension: Dimension) -> Chunk:
         """
         Gets the chunk data of the specified chunk coordinates.

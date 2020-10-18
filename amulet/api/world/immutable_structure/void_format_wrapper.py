@@ -53,6 +53,9 @@ class VoidFormatWrapper(FormatWrapper):
     ) -> Generator[ChunkCoordinates, None, None]:
         yield from ()
 
+    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
+        return False
+
     def _delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         pass
 

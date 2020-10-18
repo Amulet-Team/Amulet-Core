@@ -85,6 +85,12 @@ class AnvilRegion:
             if (cx, cz) not in self._committed_chunks:
                 yield cx + self.rx * 32, cz + self.rz * 32
 
+    def has_chunk(self, cx: int, cz: int) -> bool:
+        if (cx, cz) in self._committed_chunks:
+            return self._committed_chunks[(cx, cz)][1] is not None
+        else:
+            return (cx, cz) in self._chunks
+
     def _load(self):
         if not self._loaded:
             mode = "rb+" if os.path.isfile(self._file_path) else "wb"
@@ -302,6 +308,10 @@ class AnvilLevelManager:
     def all_chunk_coords(self) -> Generator[ChunkCoordinates, None, None]:
         for region in self._regions.values():
             yield from region.all_chunk_coords()
+
+    def has_chunk(self, cx: int, cz: int) -> bool:
+        key = world_utils.chunk_coords_to_region_coords(cx, cz)
+        return key in self._regions and self._regions[key].has_chunk(cx & 0x1F, cz & 0x1F)
 
     def save(self, unload=True):
         # use put_chunk_data to actually upload modified chunks
@@ -548,6 +558,9 @@ class AnvilFormat(WorldFormatWrapper):
         """A generator of all chunk coords in the given dimension"""
         if self._has_dimension(dimension):
             yield from self._get_dimension(dimension).all_chunk_coords()
+
+    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
+        return self._has_dimension(dimension) and self._get_dimension(dimension).has_chunk(cx, cz)
 
     def _delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
         """Delete a chunk from a given dimension"""

@@ -301,6 +301,9 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
         """A generator of all chunk coords"""
         yield from self._chunks.keys()
 
+    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
+        return (cx, cz) in self._chunks
+
     def _encode(
         self, chunk: Chunk, chunk_palette: AnyNDArray, interface: MCStructureInterface,
     ):

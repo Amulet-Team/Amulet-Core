@@ -101,6 +101,9 @@ class StructureFormatWrapper(FormatWrapper):
     ) -> Generator[ChunkCoordinates, None, None]:
         raise NotImplementedError
 
+    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
+        raise NotImplementedError
+
     def _delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         raise NotImplementedError
 

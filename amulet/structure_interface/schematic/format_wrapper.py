@@ -244,6 +244,9 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         """A generator of all chunk coords"""
         yield from self._chunks.keys()
 
+    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
+        return (cx, cz) in self._chunks
+
     def _pack(
         self, chunk: "Chunk", translator: "Translator", chunk_version: VersionNumberAny,
     ) -> Tuple["Chunk", AnyNDArray]:

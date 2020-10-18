@@ -109,6 +109,10 @@ class LevelDBLevelManager:
         else:
             return set()
 
+    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
+        internal_dimension = self._get_internal_dimension(dimension)
+        return internal_dimension in self._levels and (cx, cz) in self._levels[internal_dimension]
+
     def _add_chunk(self, key_: bytes, has_level: bool = False):
         if has_level:
             cx, cz, level = struct.unpack("<iii", key_[:12])
@@ -351,6 +355,9 @@ class LevelDBFormat(WorldFormatWrapper):
     ) -> Generator[ChunkCoordinates, None, None]:
         self._verify_has_lock()
         yield from self._level_manager.all_chunk_coords(dimension)
+
+    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
+        return self._level_manager.has_chunk(cx, cz, dimension)
 
     def _delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
         self._level_manager.delete_chunk(cx, cz, dimension)

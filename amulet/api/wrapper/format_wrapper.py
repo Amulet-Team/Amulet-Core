@@ -317,6 +317,16 @@ class FormatWrapper:
         """A generator of all chunk coords in the given dimension"""
         raise NotImplementedError
 
+    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
+        """Does the chunk exist in the world database?
+
+        :param cx: The x coordinate of the chunk.
+        :param cz: The z coordinate of the chunk.
+        :param dimension: The dimension to load the chunk from.
+        :return: True if the chunk exists. Calling load_chunk on this chunk may still throw ChunkLoadError
+        """
+        raise NotImplementedError
+
     def load_chunk(self, cx: int, cz: int, dimension: Dimension) -> "Chunk":
         """
         Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.

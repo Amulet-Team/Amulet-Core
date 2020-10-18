@@ -91,7 +91,7 @@ class ChunkManager(DatabaseHistoryManager):
 
     def has_chunk(self, dimension: Dimension, cx: int, cz: int) -> bool:
         """Does the ChunkManager have the chunk specified"""
-        return self._has_entry((dimension, cx, cz))
+        return self._has_entry((dimension, cx, cz)) or self.world.world_wrapper.has_chunk(cx, cz, dimension)
 
     def __contains__(self, item: DimensionCoordinates):
         return self._has_entry(item)
