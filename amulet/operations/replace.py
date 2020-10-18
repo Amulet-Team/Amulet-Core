@@ -45,7 +45,7 @@ def replace(
         map(world.block_palette.get_add_block, replacement_blocks)
     )
 
-    for chunk, slices, _ in world.get_chunk_slices(selection, dimension):
+    for chunk, slices, _ in world.get_chunk_slice_box(selection, dimension):
         old_blocks = chunk.blocks[slices]
         new_blocks = old_blocks.copy()
         for original_id, replacement_id in zip(

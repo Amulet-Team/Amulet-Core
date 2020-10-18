@@ -254,7 +254,7 @@ class ChunkWorld:
                 continue
             yield chunk, box
 
-    def get_chunk_slices(
+    def get_chunk_slice_box(
         self,
         selection: Union[SelectionGroup, SelectionBox],
         dimension: Dimension,
