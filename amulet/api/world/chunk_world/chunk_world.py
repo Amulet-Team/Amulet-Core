@@ -6,6 +6,7 @@ from typing import Union, Generator, Optional, Tuple, Callable, Any, Set, TYPE_C
 from types import GeneratorType
 import warnings
 import traceback
+import itertools
 
 from amulet import log
 from amulet.api.block import Block
@@ -271,6 +272,117 @@ class ChunkWorld:
         ):
             slices = box.chunk_slice(chunk.cx, chunk.cz, self.sub_chunk_size)
             yield chunk, slices, box
+
+    def get_moved_coord_slice_box(
+        self,
+        dimension: Dimension,
+        destination_origin: Tuple[int, int, int],
+        selection: Optional[Union[SelectionGroup, SelectionBox]] = None,
+        destination_sub_chunk_shape: Optional[int] = None,
+        generate_non_exists: bool = False,
+    ) -> Generator[
+        Tuple[
+            ChunkCoordinates,
+            Tuple[slice, slice, slice],
+            SelectionBox,
+            ChunkCoordinates,
+            Tuple[slice, slice, slice],
+            SelectionBox,
+        ],
+        None,
+        None,
+    ]:
+        """Iterate over a selection and return slices into the source object and destination object
+        given the origin of the destination. When copying a selection to a new area the slices will
+        only be equal if the offset is a multiple of the chunk size. This will rarely be the case
+        so the slices need to be split up into parts that intersect a chunk in the source and destination.
+        :param dimension: The dimension to iterate over.
+        :param destination_origin: The location where the minimum point of self.selection_bounds will end up
+        :param selection: An optional selection. The overlap of this and self.selection_bounds will be used
+        :param destination_sub_chunk_shape: the chunk shape of the destination object (defaults to self.sub_chunk_size)
+        :param generate_non_exists: Generate empty chunks if the chunk does not exist.
+        :return:
+        """
+        if destination_sub_chunk_shape is None:
+            destination_sub_chunk_shape = self.sub_chunk_size
+
+        if selection is None:
+            selection = self.selection_bounds
+        else:
+            selection = self.selection_bounds.intersection(selection)
+        # the offset from self.selection to the destination location
+        offset = numpy.subtract(destination_origin, self.selection_bounds.min, dtype=numpy.int)
+        for (src_cx, src_cz), box in self.get_coord_box(
+            dimension, selection, create_missing_chunks=generate_non_exists
+        ):
+            dst_full_box = SelectionBox(offset + box.min, offset + box.max,)
+
+            first_chunk = block_coords_to_chunk_coords(
+                dst_full_box.min_x,
+                dst_full_box.min_z,
+                sub_chunk_size=destination_sub_chunk_shape,
+            )
+            last_chunk = block_coords_to_chunk_coords(
+                dst_full_box.max_x - 1,
+                dst_full_box.max_z - 1,
+                sub_chunk_size=destination_sub_chunk_shape,
+            )
+            for dst_cx, dst_cz in itertools.product(
+                range(first_chunk[0], last_chunk[0] + 1),
+                range(first_chunk[1], last_chunk[1] + 1),
+            ):
+                chunk_box = self._chunk_box(dst_cx, dst_cz, destination_sub_chunk_shape)
+                dst_box = chunk_box.intersection(dst_full_box)
+                src_box = SelectionBox(-offset + dst_box.min, -offset + dst_box.max)
+                src_slices = src_box.chunk_slice(
+                    src_cx, src_cz, self.sub_chunk_size
+                )
+                dst_slices = dst_box.chunk_slice(dst_cx, dst_cz, self.sub_chunk_size)
+                yield (src_cx, src_cz), src_slices, src_box, (dst_cx, dst_cz), dst_slices, dst_box
+
+    def get_moved_chunk_slice_box(
+        self,
+        dimension: Dimension,
+        destination_origin: Tuple[int, int, int],
+        selection: Optional[Union[SelectionGroup, SelectionBox]] = None,
+        destination_sub_chunk_shape: Optional[int] = None,
+        generate_non_exists: bool = False,
+    ) -> Generator[
+        Tuple[
+            Chunk,
+            Tuple[slice, slice, slice],
+            SelectionBox,
+            ChunkCoordinates,
+            Tuple[slice, slice, slice],
+            SelectionBox,
+        ],
+        None,
+        None,
+    ]:
+        """Iterate over a selection and return slices into the source object and destination object
+        given the origin of the destination. When copying a selection to a new area the slices will
+        only be equal if the offset is a multiple of the chunk size. This will rarely be the case
+        so the slices need to be split up into parts that intersect a chunk in the source and destination.
+        :param dimension: The dimension to iterate over.
+        :param destination_origin: The location where the minimum point of self.selection will end up
+        :param selection: An optional selection. The overlap of this and self.selection will be used
+        :param destination_sub_chunk_shape: the chunk shape of the destination object (defaults to self.sub_chunk_size)
+        :param generate_non_exists: Generate empty chunks if the chunk does not exist.
+        :return:
+        """
+        for (src_cx, src_cz), src_slices, src_box, (dst_cx, dst_cz), dst_slices, dst_box in self.get_moved_coord_slice_box(
+            dimension,
+            destination_origin,
+            selection,
+            destination_sub_chunk_shape,
+            generate_non_exists
+        ):
+            try:
+                chunk = self.get_chunk(src_cx, src_cz, dimension)
+            except ChunkLoadError:
+                log.error(f"Error loading chunk\n{traceback.format_exc()}")
+            else:
+                yield chunk, src_slices, src_box, (dst_cx, dst_cz), dst_slices, dst_box
 
     def save(
         self,
