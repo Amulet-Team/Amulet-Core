@@ -216,10 +216,12 @@ class SelectionGroup:
     def copy(self):
         return SelectionGroup([box for box in self.selection_boxes])
 
+    @property
     def volume(self) -> int:
         """The volume of all the selection boxes combined."""
         return sum(box.volume for box in self.selection_boxes)
 
+    @property
     def footprint_area(self):
         """The flat area of the selection."""
         return SelectionGroup(
@@ -227,7 +229,7 @@ class SelectionGroup:
                 SelectionBox((box.min_x, 0, box.min_z), (box.max_x, 1, box.max_z))
                 for box in self.selection_boxes
             ]
-        ).volume()
+        ).volume
 
 
 if __name__ == "__main__":

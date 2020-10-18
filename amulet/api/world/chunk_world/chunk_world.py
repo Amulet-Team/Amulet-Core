@@ -204,7 +204,7 @@ class ChunkWorld:
             raise TypeError(f"Expected a SelectionGroup but got {type(selection)}")
 
         selection: SelectionGroup
-        if create_missing_chunks or selection.footprint_area() < 1_000_000:
+        if create_missing_chunks or selection.footprint_area < 1_000_000:
             for (cx, cz), box in selection.chunk_boxes(self.sub_chunk_size):
                 try:
                     chunk = self.get_chunk(cx, cz, dimension)
