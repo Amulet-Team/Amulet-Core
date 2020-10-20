@@ -48,7 +48,7 @@ def paste_iter(
     copy_water=True,
     copy_lava=True,
 ):
-    yield from dst.paste(
+    yield from dst.paste_iter(
         src,
         src_dimension,
         src.selection_bounds,
