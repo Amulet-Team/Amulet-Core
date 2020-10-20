@@ -111,7 +111,10 @@ class LevelDBLevelManager:
 
     def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
         internal_dimension = self._get_internal_dimension(dimension)
-        return internal_dimension in self._levels and (cx, cz) in self._levels[internal_dimension]
+        return (
+            internal_dimension in self._levels
+            and (cx, cz) in self._levels[internal_dimension]
+        )
 
     def _add_chunk(self, key_: bytes, has_level: bool = False):
         if has_level:

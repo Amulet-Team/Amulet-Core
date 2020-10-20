@@ -245,7 +245,9 @@ class ChunkWorld:
         :param dimension: The dimension to take effect in
         :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false). Use this with care.
         """
-        for (cx, cz), box in self.get_coord_box(dimension, selection, create_missing_chunks):
+        for (cx, cz), box in self.get_coord_box(
+            dimension, selection, create_missing_chunks
+        ):
             try:
                 chunk = self.get_chunk(cx, cz, dimension)
             except ChunkDoesNotExist:
@@ -315,7 +317,9 @@ class ChunkWorld:
         else:
             selection = self.selection_bounds.intersection(selection)
         # the offset from self.selection to the destination location
-        offset = numpy.subtract(destination_origin, self.selection_bounds.min, dtype=numpy.int)
+        offset = numpy.subtract(
+            destination_origin, self.selection_bounds.min, dtype=numpy.int
+        )
         for (src_cx, src_cz), box in self.get_coord_box(
             dimension, selection, yield_missing_chunks=yield_missing_chunks
         ):
@@ -338,11 +342,12 @@ class ChunkWorld:
                 chunk_box = self._chunk_box(dst_cx, dst_cz, destination_sub_chunk_shape)
                 dst_box = chunk_box.intersection(dst_full_box)
                 src_box = SelectionBox(-offset + dst_box.min, -offset + dst_box.max)
-                src_slices = src_box.chunk_slice(
-                    src_cx, src_cz, self.sub_chunk_size
-                )
+                src_slices = src_box.chunk_slice(src_cx, src_cz, self.sub_chunk_size)
                 dst_slices = dst_box.chunk_slice(dst_cx, dst_cz, self.sub_chunk_size)
-                yield (src_cx, src_cz), src_slices, src_box, (dst_cx, dst_cz), dst_slices, dst_box
+                yield (src_cx, src_cz), src_slices, src_box, (
+                    dst_cx,
+                    dst_cz,
+                ), dst_slices, dst_box
 
     def get_moved_chunk_slice_box(
         self,
@@ -374,12 +379,19 @@ class ChunkWorld:
         :param create_missing_chunks: Generate empty chunks if the chunk does not exist.
         :return:
         """
-        for (src_cx, src_cz), src_slices, src_box, (dst_cx, dst_cz), dst_slices, dst_box in self.get_moved_coord_slice_box(
+        for (
+            (src_cx, src_cz),
+            src_slices,
+            src_box,
+            (dst_cx, dst_cz),
+            dst_slices,
+            dst_box,
+        ) in self.get_moved_coord_slice_box(
             dimension,
             destination_origin,
             selection,
             destination_sub_chunk_shape,
-            create_missing_chunks
+            create_missing_chunks,
         ):
             try:
                 chunk = self.get_chunk(src_cx, src_cz, dimension)
@@ -506,23 +518,25 @@ class ChunkWorld:
         """Delete a chunk from the universal world database"""
         self._chunks.delete_chunk(dimension, cx, cz)
 
-    def extract_structure(self, selection: SelectionGroup, dimension: Dimension) -> ImmutableStructure:
+    def extract_structure(
+        self, selection: SelectionGroup, dimension: Dimension
+    ) -> ImmutableStructure:
         """Extract the area in the SelectionGroup from the world as a new structure"""
         return ImmutableStructure.from_world(self, selection, dimension)
 
     def paste(
-            self,
-            src_structure: "ChunkWorld",
-            src_dimension: Dimension,
-            src_selection: SelectionGroup,
-            dst_dimension: Dimension,
-            location: BlockCoordinates,
-            scale: FloatTriplet = (1.0, 1.0, 1.0),
-            rotation: FloatTriplet = (0.0, 0.0, 0.0),
-            include_blocks: bool = True,
-            include_entities: bool = True,
-            skip_blocks: Tuple[Block, ...] = (),
-            copy_chunk_not_exist: bool = False,
+        self,
+        src_structure: "ChunkWorld",
+        src_dimension: Dimension,
+        src_selection: SelectionGroup,
+        dst_dimension: Dimension,
+        location: BlockCoordinates,
+        scale: FloatTriplet = (1.0, 1.0, 1.0),
+        rotation: FloatTriplet = (0.0, 0.0, 0.0),
+        include_blocks: bool = True,
+        include_entities: bool = True,
+        skip_blocks: Tuple[Block, ...] = (),
+        copy_chunk_not_exist: bool = False,
     ):
         """Paste a structure into this structure at the given location.
         Note this command may change in the future.
@@ -550,7 +564,7 @@ class ChunkWorld:
             include_blocks,
             include_entities,
             skip_blocks,
-            copy_chunk_not_exist
+            copy_chunk_not_exist,
         )
         try:
             while True:
@@ -559,18 +573,18 @@ class ChunkWorld:
             return e.value
 
     def paste_iter(
-            self,
-            src_structure: "ChunkWorld",
-            src_dimension: Dimension,
-            src_selection: SelectionGroup,
-            dst_dimension: Dimension,
-            location: BlockCoordinates,
-            scale: FloatTriplet = (1.0, 1.0, 1.0),
-            rotation: FloatTriplet = (0.0, 0.0, 0.0),
-            include_blocks: bool = True,
-            include_entities: bool = True,
-            skip_blocks: Tuple[Block, ...] = (),
-            copy_chunk_not_exist: bool = False,
+        self,
+        src_structure: "ChunkWorld",
+        src_dimension: Dimension,
+        src_selection: SelectionGroup,
+        dst_dimension: Dimension,
+        location: BlockCoordinates,
+        scale: FloatTriplet = (1.0, 1.0, 1.0),
+        rotation: FloatTriplet = (0.0, 0.0, 0.0),
+        include_blocks: bool = True,
+        include_entities: bool = True,
+        skip_blocks: Tuple[Block, ...] = (),
+        copy_chunk_not_exist: bool = False,
     ) -> Generator[float, None, None]:
         """Paste a structure into this structure at the given location.
         Note this command may change in the future.
@@ -600,7 +614,7 @@ class ChunkWorld:
             include_blocks,
             include_entities,
             skip_blocks,
-            copy_chunk_not_exist
+            copy_chunk_not_exist,
         )
 
     def get_version_block(

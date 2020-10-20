@@ -303,7 +303,8 @@ class WorldTestBaseCases:
                 _ = self.world.get_block(1, 70, 3, "overworld").blockstate
 
             self.assertEqual(
-                0, len([x for x in self.world.get_chunk_slice_box("overworld", subbox1)])
+                0,
+                len([x for x in self.world.get_chunk_slice_box("overworld", subbox1)]),
             )
 
             self.world.undo()
@@ -323,7 +324,8 @@ class WorldTestBaseCases:
                 _ = self.world.get_block(1, 70, 3, "overworld").blockstate
 
             self.assertEqual(
-                0, len([x for x in self.world.get_chunk_slice_box("overworld", subbox1)])
+                0,
+                len([x for x in self.world.get_chunk_slice_box("overworld", subbox1)]),
             )
 
         @unittest.skipUnless(

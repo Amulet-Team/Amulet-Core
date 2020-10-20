@@ -311,7 +311,9 @@ class AnvilLevelManager:
 
     def has_chunk(self, cx: int, cz: int) -> bool:
         key = world_utils.chunk_coords_to_region_coords(cx, cz)
-        return key in self._regions and self._regions[key].has_chunk(cx & 0x1F, cz & 0x1F)
+        return key in self._regions and self._regions[key].has_chunk(
+            cx & 0x1F, cz & 0x1F
+        )
 
     def save(self, unload=True):
         # use put_chunk_data to actually upload modified chunks
@@ -560,7 +562,9 @@ class AnvilFormat(WorldFormatWrapper):
             yield from self._get_dimension(dimension).all_chunk_coords()
 
     def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
-        return self._has_dimension(dimension) and self._get_dimension(dimension).has_chunk(cx, cz)
+        return self._has_dimension(dimension) and self._get_dimension(
+            dimension
+        ).has_chunk(cx, cz)
 
     def _delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
         """Delete a chunk from a given dimension"""
