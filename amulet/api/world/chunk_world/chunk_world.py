@@ -189,14 +189,14 @@ class ChunkWorld:
         self,
         dimension: Dimension,
         selection: Union[SelectionGroup, SelectionBox, None] = None,
-        create_missing_chunks=False,
+        yield_missing_chunks=False,
     ) -> Generator[Tuple[ChunkCoordinates, SelectionBox], None, None]:
         """Given a selection will yield chunk coordinates and `SelectionBox`es into that chunk
         If not given a selection will use the bounds of the object.
 
         :param selection: SelectionGroup or SelectionBox into the world
         :param dimension: The dimension to take effect in
-        :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false). Use this with care.
+        :param yield_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false). Use this with care.
         """
         if isinstance(selection, SelectionBox):
             selection = SelectionGroup(selection)
@@ -206,8 +206,8 @@ class ChunkWorld:
             raise TypeError(f"Expected a SelectionGroup but got {type(selection)}")
 
         selection: SelectionGroup
-        if create_missing_chunks or selection.footprint_area < 1_000_000:
-            if create_missing_chunks:
+        if yield_missing_chunks or selection.footprint_area < 1_000_000:
+            if yield_missing_chunks:
                 for coord, box in selection.chunk_boxes(self.sub_chunk_size):
                     yield coord, box
             else:
@@ -279,7 +279,7 @@ class ChunkWorld:
         destination_origin: Tuple[int, int, int],
         selection: Optional[Union[SelectionGroup, SelectionBox]] = None,
         destination_sub_chunk_shape: Optional[int] = None,
-        generate_non_exists: bool = False,
+        yield_missing_chunks: bool = False,
     ) -> Generator[
         Tuple[
             ChunkCoordinates,
@@ -300,7 +300,7 @@ class ChunkWorld:
         :param destination_origin: The location where the minimum point of self.selection_bounds will end up
         :param selection: An optional selection. The overlap of this and self.selection_bounds will be used
         :param destination_sub_chunk_shape: the chunk shape of the destination object (defaults to self.sub_chunk_size)
-        :param generate_non_exists: Generate empty chunks if the chunk does not exist.
+        :param yield_missing_chunks: Generate empty chunks if the chunk does not exist.
         :return:
         """
         if destination_sub_chunk_shape is None:
@@ -313,7 +313,7 @@ class ChunkWorld:
         # the offset from self.selection to the destination location
         offset = numpy.subtract(destination_origin, self.selection_bounds.min, dtype=numpy.int)
         for (src_cx, src_cz), box in self.get_coord_box(
-            dimension, selection, create_missing_chunks=generate_non_exists
+            dimension, selection, yield_missing_chunks=yield_missing_chunks
         ):
             dst_full_box = SelectionBox(offset + box.min, offset + box.max,)
 
@@ -346,7 +346,7 @@ class ChunkWorld:
         destination_origin: Tuple[int, int, int],
         selection: Optional[Union[SelectionGroup, SelectionBox]] = None,
         destination_sub_chunk_shape: Optional[int] = None,
-        generate_non_exists: bool = False,
+        create_missing_chunks: bool = False,
     ) -> Generator[
         Tuple[
             Chunk,
@@ -367,7 +367,7 @@ class ChunkWorld:
         :param destination_origin: The location where the minimum point of self.selection will end up
         :param selection: An optional selection. The overlap of this and self.selection will be used
         :param destination_sub_chunk_shape: the chunk shape of the destination object (defaults to self.sub_chunk_size)
-        :param generate_non_exists: Generate empty chunks if the chunk does not exist.
+        :param create_missing_chunks: Generate empty chunks if the chunk does not exist.
         :return:
         """
         for (src_cx, src_cz), src_slices, src_box, (dst_cx, dst_cz), dst_slices, dst_box in self.get_moved_coord_slice_box(
@@ -375,7 +375,7 @@ class ChunkWorld:
             destination_origin,
             selection,
             destination_sub_chunk_shape,
-            generate_non_exists
+            create_missing_chunks
         ):
             try:
                 chunk = self.get_chunk(src_cx, src_cz, dimension)
