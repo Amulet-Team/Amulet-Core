@@ -803,5 +803,3 @@ class ChunkWorld:
 
 # this needs to be down here to stop a circular import error
 from ..immutable_structure import ImmutableStructure
-from amulet.api.world.world import World
-from amulet.api.world.structure import Structure
