@@ -136,6 +136,10 @@ class ChunkWorld:
         """The selection(s) that all chunk data must fit within. Usually +/-30M for worlds."""
         return self._format_wrapper.selection
 
+    @property
+    def dimensions(self) -> Tuple[Dimension, ...]:
+        return tuple(self._format_wrapper.dimensions)
+
     def all_chunk_coords(self, dimension: Dimension) -> Set[Tuple[int, int]]:
         """The coordinates of every chunk in this world.
         This is the combination of chunks saved to the world and chunks yet to be saved."""
