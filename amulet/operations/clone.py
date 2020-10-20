@@ -6,6 +6,8 @@ if TYPE_CHECKING:
     from amulet.api.world import World
 
 
-def clone(world: "World", dimension: Dimension, selection: SelectionGroup, target: dict):
+def clone(
+    world: "World", dimension: Dimension, selection: SelectionGroup, target: dict
+):
     dst_location = (target.get("x", 0), target.get("y", 0), target.get("z", 0))
     world.paste(world, dimension, selection, dimension, dst_location)
