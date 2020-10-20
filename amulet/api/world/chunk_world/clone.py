@@ -22,7 +22,7 @@ def gen_paste_blocks(
     :param skip_blocks: Blocks to not copy if they match exactly.
     :return:
     """
-    return numpy.vectorize(skip_blocks.__contains__)(block_palette.blocks())
+    return numpy.vectorize(lambda b:b not in skip_blocks)(block_palette.blocks())
 
 
 def clone(
