@@ -7,6 +7,7 @@ from amulet.api.block import Block
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.chunk import Chunk
 from amulet.api.registry import BlockManager
+import amulet.api.world
 
 if TYPE_CHECKING:
     from .chunk_world import ChunkWorld
@@ -59,7 +60,7 @@ def clone(
     """
     if include_blocks or include_entities:
         # we actually have to do something
-        if isinstance(src_structure, World):
+        if isinstance(src_structure, amulet.api.world.World):
             copy_chunk_not_exist = False
 
         # TODO: look into if this can be a float so it will always be the exact middle
@@ -83,7 +84,7 @@ def clone(
                 src_selection, src_dimension
             )
 
-        src_structure: ChunkWorld
+        src_structure: "ChunkWorld"
 
         # TODO: I don't know if this is feasible for large boxes: get the intersection of the source and destination selections and iterate over that to minimise work
         if any(rotation) or any(s != 1 for s in scale):
@@ -207,4 +208,3 @@ def clone(
         yield 1.0
 
 
-from amulet.api.world import World, ChunkWorld

@@ -31,6 +31,7 @@ from amulet.utils.world_utils import block_coords_to_chunk_coords
 from .chunk_manager import ChunkManager
 from amulet.api.history.history_manager import MetaHistoryManager
 from .clone import clone
+import amulet.api.world
 
 if TYPE_CHECKING:
     from PyMCTranslate import TranslationManager
@@ -524,9 +525,9 @@ class ChunkWorld:
 
     def extract_structure(
         self, selection: SelectionGroup, dimension: Dimension
-    ) -> ImmutableStructure:
+    ) -> amulet.api.world.ImmutableStructure:
         """Extract the area in the SelectionGroup from the world as a new structure"""
-        return ImmutableStructure.from_world(self, selection, dimension)
+        return amulet.api.world.ImmutableStructure.from_world(self, selection, dimension)
 
     def paste(
         self,
@@ -803,7 +804,3 @@ class ChunkWorld:
         If an operation errors there may be modifications made that did not get tracked.
         This will revert those changes."""
         self._history_manager.restore_last_undo_point()
-
-
-# this needs to be down here to stop a circular import error
-from ..immutable_structure import ImmutableStructure
