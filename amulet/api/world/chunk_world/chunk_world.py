@@ -6,6 +6,7 @@ from typing import Union, Generator, Optional, Tuple, Callable, Any, Set, TYPE_C
 from types import GeneratorType
 import warnings
 import traceback
+import numpy
 import itertools
 
 from amulet import log
@@ -22,11 +23,14 @@ from amulet.api.data_types import (
     OperationType,
     Dimension,
     VersionIdentifierType,
+    BlockCoordinates,
+    FloatTriplet,
     ChunkCoordinates,
 )
 from amulet.utils.world_utils import block_coords_to_chunk_coords
 from .chunk_manager import ChunkManager
 from amulet.api.history.history_manager import MetaHistoryManager
+from .clone import clone
 
 if TYPE_CHECKING:
     from PyMCTranslate import TranslationManager
@@ -379,10 +383,12 @@ class ChunkWorld:
         ):
             try:
                 chunk = self.get_chunk(src_cx, src_cz, dimension)
+            except ChunkDoesNotExist:
+                chunk = self.create_chunk(dst_cx, dst_cz, dimension)
             except ChunkLoadError:
                 log.error(f"Error loading chunk\n{traceback.format_exc()}")
-            else:
-                yield chunk, src_slices, src_box, (dst_cx, dst_cz), dst_slices, dst_box
+                continue
+            yield chunk, src_slices, src_box, (dst_cx, dst_cz), dst_slices, dst_box
 
     def save(
         self,
@@ -503,6 +509,99 @@ class ChunkWorld:
     def extract_structure(self, selection: SelectionGroup, dimension: Dimension) -> ImmutableStructure:
         """Extract the area in the SelectionGroup from the world as a new structure"""
         return ImmutableStructure.from_world(self, selection, dimension)
+
+    def paste(
+            self,
+            src_structure: "ChunkWorld",
+            src_dimension: Dimension,
+            src_selection: SelectionGroup,
+            dst_dimension: Dimension,
+            location: BlockCoordinates,
+            scale: FloatTriplet = (1.0, 1.0, 1.0),
+            rotation: FloatTriplet = (0.0, 0.0, 0.0),
+            include_blocks: bool = True,
+            include_entities: bool = True,
+            skip_blocks: Tuple[Block, ...] = (),
+            copy_chunk_not_exist: bool = False,
+    ):
+        """Paste a structure into this structure at the given location.
+        Note this command may change in the future.
+        :param src_structure: The structure to paste into this structure.
+        :param src_dimension: The dimension of the source structure to copy from.
+        :param src_selection: The selection to copy from the source structure.
+        :param dst_dimension: The dimension to paste the structure into.
+        :param location: The location where the centre of the structure will be in the world
+        :param scale: The scale in the x, y and z axis. These can be negative to mirror.
+        :param rotation: The rotation in degrees around each of the axis.
+        :param include_blocks: Include blocks when pasting the structure.
+        :param include_entities: Include entities when pasting the structure.
+        :param skip_blocks: If a block matches a block in this list it will not be copied.
+        :param copy_chunk_not_exist: If a chunk does not exist in the source should it be copied over as air. Always False where structure is a World.
+        :return:
+        """
+        gen = self.paste_iter(
+            src_structure,
+            src_dimension,
+            src_selection,
+            dst_dimension,
+            location,
+            scale,
+            rotation,
+            include_blocks,
+            include_entities,
+            skip_blocks,
+            copy_chunk_not_exist
+        )
+        try:
+            while True:
+                next(gen)
+        except StopIteration as e:
+            return e.value
+
+    def paste_iter(
+            self,
+            src_structure: "ChunkWorld",
+            src_dimension: Dimension,
+            src_selection: SelectionGroup,
+            dst_dimension: Dimension,
+            location: BlockCoordinates,
+            scale: FloatTriplet = (1.0, 1.0, 1.0),
+            rotation: FloatTriplet = (0.0, 0.0, 0.0),
+            include_blocks: bool = True,
+            include_entities: bool = True,
+            skip_blocks: Tuple[Block, ...] = (),
+            copy_chunk_not_exist: bool = False,
+    ) -> Generator[float, None, None]:
+        """Paste a structure into this structure at the given location.
+        Note this command may change in the future.
+        :param src_structure: The structure to paste into this structure.
+        :param src_dimension: The dimension of the source structure to copy from.
+        :param src_selection: The selection to copy from the source structure.
+        :param dst_dimension: The dimension to paste the structure into.
+        :param location: The location where the centre of the structure will be in the world
+        :param scale: The scale in the x, y and z axis. These can be negative to mirror.
+        :param rotation: The rotation in degrees around each of the axis.
+        :param include_blocks: Include blocks when pasting the structure.
+        :param include_entities: Include entities when pasting the structure.
+        :param skip_blocks: If a block matches a block in this list it will not be copied.
+        :param copy_chunk_not_exist: If a chunk does not exist in the source should it be copied over as air. Always False where structure is a World.
+        :return: A generator of floats from 0 to 1 with the progress of the paste operation.
+        """
+        yield from clone(
+            src_structure,
+            src_dimension,
+            src_selection,
+            self,
+            dst_dimension,
+            self.selection_bounds,
+            location,
+            scale,
+            rotation,
+            include_blocks,
+            include_entities,
+            skip_blocks,
+            copy_chunk_not_exist
+        )
 
     def get_version_block(
         self,
@@ -690,3 +789,5 @@ class ChunkWorld:
 
 # this needs to be down here to stop a circular import error
 from ..immutable_structure import ImmutableStructure
+from amulet.api.world.world import World
+from amulet.api.world.structure import Structure
