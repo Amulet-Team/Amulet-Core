@@ -6,13 +6,14 @@ from amulet.api.data_types import Dimension, BlockCoordinates, FloatTriplet
 from amulet.api.block import Block
 
 if TYPE_CHECKING:
-    from amulet.api.world import ChunkWorld, Structure
+    from amulet.api.world import ChunkWorld
 
 
 def paste(
-    world: "ChunkWorld",
-    dimension: Dimension,
-    structure: "Structure",
+    dst: "ChunkWorld",
+    dst_dimension: Dimension,
+    src: "ChunkWorld",
+    src_dimension: Dimension,
     location: BlockCoordinates,
     scale: FloatTriplet,
     rotation: FloatTriplet,
@@ -21,9 +22,10 @@ def paste(
     copy_lava=True,
 ):
     for _ in paste_iter(
-        world,
-        dimension,
-        structure,
+        dst,
+        dst_dimension,
+        src,
+        src_dimension,
         location,
         scale,
         rotation,
@@ -35,9 +37,10 @@ def paste(
 
 
 def paste_iter(
-    world: "ChunkWorld",
-    dimension: Dimension,
-    structure: "Structure",
+    dst: "ChunkWorld",
+    dst_dimension: Dimension,
+    src: "ChunkWorld",
+    src_dimension: Dimension,
     location: BlockCoordinates,
     scale: FloatTriplet,
     rotation: FloatTriplet,
@@ -45,11 +48,11 @@ def paste_iter(
     copy_water=True,
     copy_lava=True,
 ):
-    yield from world.paste(
-        structure,
-        "main",
-        structure.selection_bounds,
-        dimension,
+    yield from dst.paste(
+        src,
+        src_dimension,
+        src.selection_bounds,
+        dst_dimension,
         location,
         scale,
         rotation,
