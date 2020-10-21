@@ -163,7 +163,9 @@ def clone(
                             if src_chunk is None:
                                 dst_chunk.blocks[
                                     dst_x % 16, dst_y, dst_z % 16
-                                ] = dst_chunk.block_palette.get_add_block(UniversalAirBlock)
+                                ] = dst_chunk.block_palette.get_add_block(
+                                    UniversalAirBlock
+                                )
                             else:
                                 # TODO implement support for individual block rotation
                                 dst_chunk.blocks[

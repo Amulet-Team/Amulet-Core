@@ -72,9 +72,7 @@ if __name__ == "__main__":
     c = w.get_chunk(cx, cz, "overworld")
     for block in c.blocks[0, :, 0].ravel():  # the blockstates of one vertical column
         print(w.block_palette[block])
-    air = w.block_palette.get_add_block(
-        UniversalAirBlock
-    )
+    air = w.block_palette.get_add_block(UniversalAirBlock)
     # blocks[0, 30, 0] = stone
     blocks = numpy.random.randint(0, len(w.block_palette.blocks()), size=(16, 256, 16))
     for index, block in enumerate(w.block_palette.blocks()):

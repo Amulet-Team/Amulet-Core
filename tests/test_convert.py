@@ -30,9 +30,7 @@ if __name__ == "__main__":
                     0, :, 0
                 ].ravel():  # the blockstates of one vertical column
                     print(world.block_palette[block])
-                air = world.block_palette.get_add_block(
-                    UniversalAirBlock
-                )
+                air = world.block_palette.get_add_block(UniversalAirBlock)
                 print("Filling chunk with blocks")
                 if mode == "air":
                     chunk.blocks[0, 0, 0] = air
