@@ -527,7 +527,9 @@ class ChunkWorld:
         self, selection: SelectionGroup, dimension: Dimension
     ) -> amulet.api.world.ImmutableStructure:
         """Extract the area in the SelectionGroup from the world as a new structure"""
-        return amulet.api.world.ImmutableStructure.from_world(self, selection, dimension)
+        return amulet.api.world.ImmutableStructure.from_world(
+            self, selection, dimension
+        )
 
     def paste(
         self,
