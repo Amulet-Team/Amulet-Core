@@ -40,7 +40,7 @@ class ImmutableStructure(ChunkWorld):
         pass
 
     def put_chunk(self, chunk: Chunk, dimension: Dimension):
-        super().put_chunk(copy.deepcopy(chunk), dimension)
+        super().put_chunk(chunk, dimension)
         self.history_manager.create_undo_point()
 
     @classmethod
@@ -50,6 +50,7 @@ class ImmutableStructure(ChunkWorld):
         """Populate this class with the chunks that intersect the selection."""
         self = cls()
         self._selection = selection.copy()
+        dst_dimension = self.dimensions[0]
         for chunk, _ in world.get_chunk_boxes(dimension, selection):
-            self.put_chunk(chunk, dimension)
+            self.put_chunk(copy.deepcopy(chunk), dst_dimension)
         return self

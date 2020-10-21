@@ -183,6 +183,7 @@ def clone(
                                     ].new_at_location(
                                         dst_x, dst_y, dst_z
                                     )
+                            dst_chunk.changed = True
 
                         yield index / volume
                         index += 1
