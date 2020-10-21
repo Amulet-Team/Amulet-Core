@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Tuple, Generator
+from typing import TYPE_CHECKING, Tuple, Generator, Optional
 import numpy
 
 from amulet.api.data_types import Dimension, BlockCoordinates, FloatTriplet
@@ -7,10 +7,13 @@ from amulet.api.block import Block
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.chunk import Chunk
 from amulet.api.registry import BlockManager
+from amulet.utils.matrix import transform_matrix, displacement_matrix
 import amulet.api.world
 
 if TYPE_CHECKING:
     from .chunk_world import ChunkWorld
+
+AirBlock = Block("universal_minecraft", "air")
 
 
 def gen_paste_blocks(
@@ -22,7 +25,7 @@ def gen_paste_blocks(
     :param skip_blocks: Blocks to not copy if they match exactly.
     :return:
     """
-    return numpy.vectorize(lambda b:b not in skip_blocks)(block_palette.blocks())
+    return numpy.vectorize(lambda b: b not in skip_blocks)(block_palette.blocks())
 
 
 def clone(
@@ -31,7 +34,7 @@ def clone(
     src_selection: SelectionGroup,
     dst_structure: "ChunkWorld",
     dst_dimension: Dimension,
-    dst_selection: SelectionGroup,
+    dst_selection_bounds: SelectionGroup,
     location: BlockCoordinates,
     scale: FloatTriplet = (1.0, 1.0, 1.0),
     rotation: FloatTriplet = (0.0, 0.0, 0.0),
@@ -48,7 +51,7 @@ def clone(
     :param src_selection: The area of the source structure to copy.
     :param dst_structure: The destination structure to paste into.
     :param dst_dimension: The dimension of the destination structure to use.
-    :param dst_selection: The area of the destination structure that can be modified.
+    :param dst_selection_bounds: The area of the destination structure that can be modified.
     :param location: The location where the centre of the `src_structure` will be in the `dst_structure`
     :param scale: The scale in the x, y and z axis. These can be negative to mirror.
     :param rotation: The rotation in degrees around each of the axis.
@@ -88,11 +91,101 @@ def clone(
 
         # TODO: I don't know if this is feasible for large boxes: get the intersection of the source and destination selections and iterate over that to minimise work
         if any(rotation) or any(s != 1 for s in scale):
-            # TODO implement support for rotation
-            # TODO implement support for individual block rotation
-            raise NotImplementedError(
-                "pasting with a transformed structure is not yet implemented."
+            rotation_radians = -numpy.flip(numpy.radians(rotation))
+            transform = numpy.matmul(
+                displacement_matrix(*-rotation_point),
+                transform_matrix(scale, rotation_radians, location, "zyx"),
             )
+            inverse_transform = numpy.linalg.inv(transform)
+
+            dst_selection = (
+                src_selection.transform((1, 1, 1), (0, 0, 0), tuple(-rotation_point))
+                .transform(scale, rotation_radians, location)
+                .intersection(dst_selection_bounds)
+            )
+
+            volume = dst_selection.volume
+            index = 0
+
+            last_src_cx: Optional[int] = None
+            last_src_cz: Optional[int] = None
+            src_chunk: Optional[
+                Chunk
+            ] = None  # None here means the chunk does not exist or failed to load. Treat it as if it was air.
+            last_dst_cx: Optional[int] = None
+            last_dst_cz: Optional[int] = None
+            dst_chunk: Optional[
+                Chunk
+            ] = None  # None here means the chunk failed to load. Do not modify it.
+
+            # TODO: find a way to do this without doing it block by block
+            if include_blocks:
+                for box in dst_selection.selection_boxes:
+                    dst_coords = list(box.blocks())
+                    coords_array = numpy.ones((len(dst_coords), 4), dtype=numpy.float)
+                    coords_array[:, :3] = dst_coords
+                    coords_array[:, :3] += 0.5
+                    src_coords = (
+                        numpy.floor(numpy.matmul(inverse_transform, coords_array.T))
+                        .astype(int)
+                        .T[:, :3]
+                    )
+                    for (dst_x, dst_y, dst_z), (src_x, src_y, src_z) in zip(
+                        dst_coords, src_coords
+                    ):
+                        src_cx, src_cz = (src_x >> 4, src_z >> 4)
+                        if (src_cx, src_cz) != (last_src_cx, last_src_cz):
+                            last_src_cx = src_cx
+                            last_src_cz = src_cz
+                            try:
+                                src_chunk = src_structure.get_chunk(
+                                    src_cx, src_cz, src_dimension
+                                )
+                            except ChunkLoadError:
+                                src_chunk = None
+
+                        dst_cx, dst_cz = (dst_x >> 4, dst_z >> 4)
+                        if (dst_cx, dst_cz) != (last_dst_cx, last_dst_cz):
+                            last_dst_cx = dst_cx
+                            last_dst_cz = dst_cz
+                            try:
+                                dst_chunk = dst_structure.get_chunk(
+                                    dst_cx, dst_cz, dst_dimension
+                                )
+                            except ChunkDoesNotExist:
+                                dst_chunk = dst_structure.create_chunk(
+                                    dst_cx, dst_cz, dst_dimension
+                                )
+                            except ChunkLoadError:
+                                dst_chunk = None
+
+                        if dst_chunk is not None:
+                            if (dst_x, dst_y, dst_z) in dst_chunk.block_entities:
+                                del dst_chunk.block_entities[(dst_x, dst_y, dst_z)]
+                            if src_chunk is None:
+                                dst_chunk.blocks[
+                                    dst_x % 16, dst_y, dst_z % 16
+                                ] = dst_chunk.block_palette.get_add_block(AirBlock)
+                            else:
+                                # TODO implement support for individual block rotation
+                                dst_chunk.blocks[
+                                    dst_x % 16, dst_y, dst_z % 16
+                                ] = dst_chunk.block_palette.get_add_block(
+                                    src_chunk.block_palette[
+                                        src_chunk.blocks[src_x % 16, src_y, src_z % 16]
+                                    ]
+                                )
+                                if (src_x, src_y, src_z) in src_chunk.block_entities:
+                                    dst_chunk.block_entities[
+                                        (dst_x, dst_y, dst_z)
+                                    ] = src_chunk.block_entities[
+                                        (src_x, src_y, src_z)
+                                    ].new_at_location(
+                                        dst_x, dst_y, dst_z
+                                    )
+
+                        yield index / volume
+                        index += 1
 
         else:
             # the transform from the structure location to the world location
