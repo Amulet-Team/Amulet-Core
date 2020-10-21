@@ -4,7 +4,7 @@ import os
 import shutil
 
 from amulet.world_interface import load_world, load_format
-from amulet.api.block import Block
+from amulet.api.block import Block, UniversalAirBlock
 from amulet.api.chunk import Chunk
 
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
                 ].ravel():  # the blockstates of one vertical column
                     print(world.block_palette[block])
                 air = world.block_palette.get_add_block(
-                    Block(namespace="universal_minecraft", base_name="air")
+                    UniversalAirBlock
                 )
                 print("Filling chunk with blocks")
                 if mode == "air":

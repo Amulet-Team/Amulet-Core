@@ -3,7 +3,7 @@ import numpy
 
 from amulet.api.data_types import Dimension, BlockCoordinates, FloatTriplet
 from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.block import Block
+from amulet.api.block import Block, UniversalAirBlock
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.chunk import Chunk
 from amulet.api.registry import BlockManager
@@ -12,8 +12,6 @@ import amulet.api.world
 
 if TYPE_CHECKING:
     from .chunk_world import ChunkWorld
-
-AirBlock = Block("universal_minecraft", "air")
 
 
 def gen_paste_blocks(
@@ -165,7 +163,7 @@ def clone(
                             if src_chunk is None:
                                 dst_chunk.blocks[
                                     dst_x % 16, dst_y, dst_z % 16
-                                ] = dst_chunk.block_palette.get_add_block(AirBlock)
+                                ] = dst_chunk.block_palette.get_add_block(UniversalAirBlock)
                             else:
                                 # TODO implement support for individual block rotation
                                 dst_chunk.blocks[

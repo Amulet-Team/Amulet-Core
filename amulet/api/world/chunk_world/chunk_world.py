@@ -10,7 +10,7 @@ import numpy
 import itertools
 
 from amulet import log
-from amulet.api.block import Block
+from amulet.api.block import Block, UniversalAirBlock
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
 from amulet.api.registry import BlockManager
@@ -57,7 +57,7 @@ class ChunkWorld:
 
         self._block_palette = BlockManager()
         self._block_palette.get_add_block(
-            Block(namespace="universal_minecraft", base_name="air")
+            UniversalAirBlock
         )  # ensure that index 0 is always air
 
         self._biome_palette = BiomeManager()
