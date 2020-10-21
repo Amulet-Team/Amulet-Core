@@ -50,7 +50,7 @@ def rotation_matrix(*angles, order="xy") -> numpy.ndarray:
 
 
 def transform_matrix(
-    location: PointCoordinates, scale: FloatTriplet, rotation: FloatTriplet, order="xyz"
+    scale: FloatTriplet, rotation: FloatTriplet, location: PointCoordinates, order="xyz"
 ):
     scale_transform = scale_matrix(*scale)
     rotation_transform = rotation_matrix(*rotation, order=order)
