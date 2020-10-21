@@ -11,7 +11,7 @@ def scale_matrix(sx: float, sy: float, sz: float) -> numpy.ndarray:
 
 def displacement_matrix(x: float, y: float, z: float) -> numpy.ndarray:
     return numpy.array(
-        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [x, y, z, 1]], dtype=numpy.float64
+        [[1, 0, 0, x], [0, 1, 0, y], [0, 0, 1, z], [0, 0, 0, 1]], dtype=numpy.float64
     )
 
 
@@ -24,7 +24,7 @@ def rotation_matrix(*angles, order="xy") -> numpy.ndarray:
         if axis == "x":
             mat = numpy.matmul(
                 numpy.array(
-                    [[1, 0, 0, 0], [0, c, s, 0], [0, -s, c, 0], [0, 0, 0, 1]],
+                    [[1, 0, 0, 0], [0, c, -s, 0], [0, s, c, 0], [0, 0, 0, 1]],
                     dtype=numpy.float64,
                 ),
                 mat,
@@ -32,7 +32,7 @@ def rotation_matrix(*angles, order="xy") -> numpy.ndarray:
         elif axis == "y":
             mat = numpy.matmul(
                 numpy.array(
-                    [[c, 0, -s, 0], [0, 1, 0, 0], [s, 0, c, 0], [0, 0, 0, 1]],
+                    [[c, 0, s, 0], [0, 1, 0, 0], [-s, 0, c, 0], [0, 0, 0, 1]],
                     dtype=numpy.float64,
                 ),
                 mat,
@@ -40,7 +40,7 @@ def rotation_matrix(*angles, order="xy") -> numpy.ndarray:
         elif axis == "z":
             mat = numpy.matmul(
                 numpy.array(
-                    [[c, s, 0, 0], [-s, c, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+                    [[c, -s, 0, 0], [s, c, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
                     dtype=numpy.float64,
                 ),
                 mat,
