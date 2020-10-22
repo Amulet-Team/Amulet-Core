@@ -1,7 +1,7 @@
 import unittest
 import numpy
 
-from amulet.utils.matrix import scale_matrix, displacement_matrix, rotation_matrix, transform_matrix
+from amulet.utils.matrix import scale_matrix, displacement_matrix, rotation_matrix_xyz, transform_matrix
 
 
 class MatrixTestCase(unittest.TestCase):
@@ -39,7 +39,7 @@ class MatrixTestCase(unittest.TestCase):
         numpy.testing.assert_array_equal(
             numpy.round(
                 numpy.matmul(
-                    rotation_matrix(*numpy.deg2rad([90, 0, 0]), order="xyz"),
+                    rotation_matrix_xyz(*numpy.deg2rad([90, 0, 0])),
                     (1, 1, 1, 1)
                 )[:3],
                 1
@@ -51,7 +51,7 @@ class MatrixTestCase(unittest.TestCase):
         numpy.testing.assert_array_equal(
             numpy.round(
                 numpy.matmul(
-                    rotation_matrix(*numpy.deg2rad([0, 90, 0]), order="xyz"),
+                    rotation_matrix_xyz(*numpy.deg2rad([0, 90, 0])),
                     (1, 1, 1, 1)
                 )[:3],
                 1
@@ -63,7 +63,7 @@ class MatrixTestCase(unittest.TestCase):
         numpy.testing.assert_array_equal(
             numpy.round(
                 numpy.matmul(
-                    rotation_matrix(*numpy.deg2rad([0, 0, 90]), order="xyz"),
+                    rotation_matrix_xyz(*numpy.deg2rad([0, 0, 90])),
                     (1, 1, 1, 1)
                 )[:3],
                 1
@@ -76,8 +76,8 @@ class MatrixTestCase(unittest.TestCase):
             numpy.round(
                 numpy.matmul(
                     numpy.matmul(
-                        rotation_matrix(*numpy.deg2rad([0, 90, 0]), order="xyz"),
-                        rotation_matrix(*numpy.deg2rad([0, 90, 0]), order="xyz")
+                        rotation_matrix_xyz(*numpy.deg2rad([0, 90, 0])),
+                        rotation_matrix_xyz(*numpy.deg2rad([0, 90, 0]))
                     ),
                     (1, 1, 1, 1)
                 )[:3],
@@ -123,6 +123,29 @@ class MatrixTestCase(unittest.TestCase):
                 1
             ),
             (31, 21, -11)
+        )
+
+    def test_chain_transform2(self):
+        numpy.testing.assert_array_equal(
+            numpy.round(
+                numpy.matmul(
+                    numpy.matmul(
+                        transform_matrix(
+                            (1, 1, 1),
+                            (0, 0, 0),
+                            (10, 20, 30)
+                        ),
+                        transform_matrix(
+                            (1, 1, 1),
+                            (0, numpy.deg2rad(90), 0),
+                            (0, 0, 0)
+                        )
+                    ),
+                    (1, 1, 1, 1)
+                )[:3],
+                1
+            ),
+            (11, 21, 29)
         )
 
 
