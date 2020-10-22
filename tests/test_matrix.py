@@ -86,6 +86,33 @@ class MatrixTestCase(unittest.TestCase):
             (-1, 1, -1)
         )
 
+    def test_chain_rotation_xy(self):
+        numpy.testing.assert_array_equal(
+            numpy.round(
+                numpy.matmul(
+                    numpy.matmul(
+                        rotation_matrix_xyz(*numpy.deg2rad([0, 90, 0])),  # y rotation applied second
+                        rotation_matrix_xyz(*numpy.deg2rad([90, 0, 0])),  # x rotation applied first
+                    ),
+                    (1, 1, 1, 1)
+                )[:3],
+                1
+            ),
+            (1, -1, -1)
+        )
+
+    def test_rotation_xyz(self):
+        numpy.testing.assert_array_equal(
+            numpy.round(
+                numpy.matmul(
+                    rotation_matrix_xyz(*numpy.deg2rad([90, 90, 0])),
+                    (1, 1, 1, 1)
+                )[:3],
+                1
+            ),
+            (1, -1, -1)
+        )
+
     def test_transform(self):
         numpy.testing.assert_array_equal(
             numpy.round(

@@ -29,13 +29,14 @@ def displacement_matrix(x: float, y: float, z: float) -> numpy.ndarray:
     )
 
 
-def _rotation_matrix(*angles: float, order="xy") -> numpy.ndarray:
+def _rotation_matrix(*angles: float, order=None) -> numpy.ndarray:
     """Create a rotation matrix from the inputs specified
 
     :param angles: The angles in radians
     :param order: The order the angles are specified. Transforms will be applied in this order.
     :return: The 4x4 rotation matrix
     """
+    assert isinstance(order, str) and len(order) == len(angles), "Order must be a string of the same length as angles."
     mat = numpy.identity(4, dtype=numpy.float64)
 
     for angle, axis in zip(angles, order):
@@ -70,14 +71,51 @@ def _rotation_matrix(*angles: float, order="xy") -> numpy.ndarray:
     return mat
 
 
-def rotation_matrix_xy(x: float, y: float) -> numpy.ndarray:
-    """Create a rotation matrix from the inputs specified
+def rotation_matrix_x(rx: float) -> numpy.ndarray:
+    """Create a rotation matrix in the x axis
 
-    :param x: The rotation in radians in the x axis
-    :param y: The rotation in radians in the y axis
+    :param rx: The angle in radians
     :return: The 4x4 rotation matrix
     """
-    return _rotation_matrix(x, y)
+    return _rotation_matrix(rx, order="x")
+
+
+def rotation_matrix_y(ry: float) -> numpy.ndarray:
+    """Create a rotation matrix in the x axis
+
+    :param ry: The angle in radians
+    :return: The 4x4 rotation matrix
+    """
+    return _rotation_matrix(ry, order="y")
+
+
+def rotation_matrix_z(rz: float) -> numpy.ndarray:
+    """Create a rotation matrix in the x axis
+
+    :param rz: The angle in radians
+    :return: The 4x4 rotation matrix
+    """
+    return _rotation_matrix(rz, order="z")
+
+
+def rotation_matrix_xy(rx: float, ry: float) -> numpy.ndarray:
+    """Create a rotation matrix from the inputs specified
+
+    :param rx: The rotation in radians in the x axis
+    :param ry: The rotation in radians in the y axis
+    :return: The 4x4 rotation matrix
+    """
+    return _rotation_matrix(rx, ry, order="xy")
+
+
+def rotation_matrix_yx(ry: float, rx: float) -> numpy.ndarray:
+    """Create a rotation matrix from the inputs specified
+
+    :param rx: The rotation in radians in the x axis
+    :param ry: The rotation in radians in the y axis
+    :return: The 4x4 rotation matrix
+    """
+    return _rotation_matrix(ry, rx, order="yx")
 
 
 def rotation_matrix_xyz(x: float, y: float, z: float) -> numpy.ndarray:
