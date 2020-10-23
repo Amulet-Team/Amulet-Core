@@ -51,10 +51,10 @@ class LevelDBLevelManager:
         self.register_dimension(2, "end")
 
         for key in self._db.keys():
-            if 9 <= len(key) <= 10 and key[8] == 118:
+            if 9 <= len(key) <= 10 and key[8] in [44, 118]:  # "," "v"
                 self._add_chunk(key)
 
-            elif 13 <= len(key) <= 14 and key[12] == 118:
+            elif 13 <= len(key) <= 14 and key[12] in [44, 118]:  # "," "v"
                 self._add_chunk(key, has_level=True)
 
     def save(self):
@@ -301,9 +301,13 @@ class LevelDBFormat(WorldFormatWrapper):
         return interfaces.loader.get(key)
 
     def _get_interface_key(self, raw_chunk_data: Dict[bytes, bytes]) -> Tuple[str, int]:
+        if b"," in raw_chunk_data:
+            v = raw_chunk_data[b","][0]
+        else:
+            v = raw_chunk_data.get(b"v", "\x00")[0]
         return (
             self.platform,
-            raw_chunk_data.get(b"v", "\x00")[0],
+            v,
         )  # TODO: work out a valid default
 
     def _reload_world(self):
