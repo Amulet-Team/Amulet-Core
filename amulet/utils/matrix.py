@@ -144,5 +144,5 @@ def transform_matrix(
     rotation_transform = _rotation_matrix(*rotation, order=order)
     displacement_transform = displacement_matrix(*displacement)
     return numpy.matmul(
-        numpy.matmul(scale_transform, rotation_transform), displacement_transform
+        displacement_transform, numpy.matmul(rotation_transform, scale_transform),
     )
