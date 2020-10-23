@@ -36,7 +36,9 @@ def _rotation_matrix(*angles: float, order=None) -> numpy.ndarray:
     :param order: The order the angles are specified. Transforms will be applied in this order.
     :return: The 4x4 rotation matrix
     """
-    assert isinstance(order, str) and len(order) == len(angles), "Order must be a string of the same length as angles."
+    assert isinstance(order, str) and len(order) == len(
+        angles
+    ), "Order must be a string of the same length as angles."
     mat = numpy.identity(4, dtype=numpy.float64)
 
     for angle, axis in zip(angles, order):
@@ -130,7 +132,10 @@ def rotation_matrix_xyz(x: float, y: float, z: float) -> numpy.ndarray:
 
 
 def transform_matrix(
-    scale: FloatTriplet, rotation: FloatTriplet, displacement: PointCoordinates, order="xyz"
+    scale: FloatTriplet,
+    rotation: FloatTriplet,
+    displacement: PointCoordinates,
+    order="xyz",
 ):
     """Create a 4x4 transformation matrix from the scale, rotation and displacement specified.
 
