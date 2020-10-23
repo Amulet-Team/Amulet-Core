@@ -302,7 +302,7 @@ class SelectionBox:
         boxes = []
         # TODO: allow this to support rotations that are not 90 degrees
         min_point, max_point = numpy.matmul(
-            transform_matrix(scale, rotation, translation, "zyx"),
+            transform_matrix(scale, rotation, translation),
             numpy.array([[*self.min, 1], [*self.max, 1]]).T,
         ).T[:, :3]
         boxes.append(SelectionBox(min_point, max_point))

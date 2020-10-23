@@ -91,7 +91,7 @@ def clone(
         if any(rotation) or any(s != 1 for s in scale):
             rotation_radians = tuple(numpy.radians(rotation))
             transform = numpy.matmul(
-                transform_matrix(scale, rotation_radians, location, "xyz"),
+                transform_matrix(scale, rotation_radians, location),
                 displacement_matrix(*-rotation_point),
             )
             inverse_transform = numpy.linalg.inv(transform)
