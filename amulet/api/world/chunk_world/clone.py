@@ -89,10 +89,10 @@ def clone(
 
         # TODO: I don't know if this is feasible for large boxes: get the intersection of the source and destination selections and iterate over that to minimise work
         if any(rotation) or any(s != 1 for s in scale):
-            rotation_radians = -numpy.flip(numpy.radians(rotation))
+            rotation_radians = tuple(numpy.radians(rotation))
             transform = numpy.matmul(
+                transform_matrix(scale, rotation_radians, location, "xyz"),
                 displacement_matrix(*-rotation_point),
-                transform_matrix(scale, rotation_radians, location, "zyx"),
             )
             inverse_transform = numpy.linalg.inv(transform)
 
@@ -300,5 +300,3 @@ def clone(
                 yield count / iter_count
 
         yield 1.0
-
-
