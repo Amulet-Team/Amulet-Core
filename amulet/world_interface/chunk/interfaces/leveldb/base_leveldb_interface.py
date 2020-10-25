@@ -61,7 +61,10 @@ class BaseLevelDBInterface(Interface):
         :rtype: Tuple[translators.Translator, Tuple[int, int, int]]
         """
         if data:
-            chunk_version = data[b"v"][0]
+            if b"," in data:
+                chunk_version = data[b","][0]
+            else:
+                chunk_version = data[b"v"][0]
             game_version = chunk_to_game_version(max_world_version[1], chunk_version)
         else:
             game_version = max_world_version[1]
@@ -162,7 +165,10 @@ class BaseLevelDBInterface(Interface):
 
         # chunk version
         if self.features["chunk_version"] is not None:
-            chunk_data[b"v"] = bytes([self.features["chunk_version"]])
+            if self.features["chunk_version"] <= 20:
+                chunk_data[b"v"] = bytes([self.features["chunk_version"]])
+            else:
+                chunk_data[b","] = bytes([self.features["chunk_version"]])
 
         # terrain data
         if self.features["terrain"] == "2farray":
