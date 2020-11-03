@@ -75,7 +75,7 @@ def clone(
             # if they do overlap the selection will first need extracting
             # TODO: implement the above
             if (
-                rotation_point == location
+                tuple(rotation_point) == location
                 and scale == (1.0, 1.0, 1.0)
                 and rotation == (0.0, 0.0, 0.0)
             ):

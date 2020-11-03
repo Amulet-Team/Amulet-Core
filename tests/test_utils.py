@@ -10,6 +10,10 @@ def get_world_path(name: str) -> str:
     return os.path.join(TESTS_DIR, "worlds", name)
 
 
+def get_temp_world_path(name: str) -> str:
+    return os.path.join(TESTS_DIR, "worlds_temp", name)
+
+
 def get_data_path(name: str) -> str:
     return os.path.join(TESTS_DIR, "data", name)
 
