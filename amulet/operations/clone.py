@@ -3,7 +3,7 @@ from amulet.api.data_types import Dimension
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from amulet.api.world import BaseLevel
+    from amulet.api.level import BaseLevel
 
 
 def clone(

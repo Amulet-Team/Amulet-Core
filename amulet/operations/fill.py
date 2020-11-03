@@ -7,7 +7,7 @@ from amulet.api.block import Block
 from amulet.api.data_types import Dimension, OperationReturnType
 
 if TYPE_CHECKING:
-    from amulet.api.world import BaseLevel
+    from amulet.api.level import BaseLevel
 
 
 def fill(

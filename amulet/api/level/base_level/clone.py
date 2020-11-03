@@ -8,7 +8,7 @@ from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.chunk import Chunk
 from amulet.api.registry import BlockManager
 from amulet.utils.matrix import transform_matrix, displacement_matrix
-import amulet.api.world
+import amulet.api.level
 
 if TYPE_CHECKING:
     from .base_level import BaseLevel
@@ -62,7 +62,7 @@ def clone(
     location = tuple(location)
     if include_blocks or include_entities:
         # we actually have to do something
-        if isinstance(src_structure, amulet.api.world.World):
+        if isinstance(src_structure, amulet.api.level.World):
             copy_chunk_not_exist = False
 
         # TODO: look into if this can be a float so it will always be the exact middle

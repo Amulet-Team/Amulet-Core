@@ -6,7 +6,7 @@ from amulet.api.data_types import Dimension, BlockCoordinates, FloatTriplet
 from amulet.api.block import Block, UniversalAirBlock
 
 if TYPE_CHECKING:
-    from amulet.api.world import BaseLevel
+    from amulet.api.level import BaseLevel
 
 
 def paste(

@@ -8,7 +8,7 @@ from amulet.api.data_types import Dimension
 from amulet import log
 
 if TYPE_CHECKING:
-    from amulet.api.world import BaseLevel
+    from amulet.api.level import BaseLevel
 
 
 def replace(

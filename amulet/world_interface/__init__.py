@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 from amulet import log
 from amulet.world_interface import formats
-from amulet.api.world import World
+from amulet.api.level import World
 from amulet.api.errors import FormatLoaderInvalidFormat, FormatLoaderMismatched
 
 if TYPE_CHECKING:

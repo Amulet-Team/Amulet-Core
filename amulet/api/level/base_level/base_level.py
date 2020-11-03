@@ -31,7 +31,7 @@ from amulet.utils.world_utils import block_coords_to_chunk_coords
 from .chunk_manager import ChunkManager
 from amulet.api.history.history_manager import MetaHistoryManager
 from .clone import clone
-import amulet.api.world
+import amulet.api.level
 
 if TYPE_CHECKING:
     from PyMCTranslate import TranslationManager
@@ -520,9 +520,9 @@ class BaseLevel:
 
     def extract_structure(
         self, selection: SelectionGroup, dimension: Dimension
-    ) -> amulet.api.world.ImmutableStructure:
+    ) -> amulet.api.level.ImmutableStructure:
         """Extract the area in the SelectionGroup from the world as a new structure"""
-        return amulet.api.world.ImmutableStructure.from_world(
+        return amulet.api.level.ImmutableStructure.from_world(
             self, selection, dimension
         )
 

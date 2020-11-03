@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-from amulet.api.world import BaseLevel
+from amulet.api.level import BaseLevel
 from amulet.api.data_types import Dimension
 
 

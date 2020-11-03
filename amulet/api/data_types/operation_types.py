@@ -1,7 +1,7 @@
 from typing import Any, Union, Generator, Callable, Tuple, TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from amulet.api.world import BaseLevel
+    from amulet.api.level import BaseLevel
     from .world_types import Dimension
 
 # Operation types

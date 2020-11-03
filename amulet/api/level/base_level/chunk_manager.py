@@ -12,7 +12,7 @@ from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.history.history_manager import DatabaseHistoryManager
 
 if TYPE_CHECKING:
-    from amulet.api.world import BaseLevel
+    from amulet.api.level import BaseLevel
 
 
 class ChunkDiskEntry(DiskRevisionManager):
