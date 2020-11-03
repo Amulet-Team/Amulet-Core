@@ -11,7 +11,11 @@ from amulet.api.errors import ChunkDoesNotExist
 from amulet.api.selection import SelectionBox, SelectionGroup
 from amulet.world_interface import load_world, load_format
 from amulet.utils.world_utils import decode_long_array, encode_long_array
-from tests.test_utils import get_world_path, get_data_path, get_temp_world_path as get_temp_world_path_
+from tests.test_utils import (
+    get_world_path,
+    get_data_path,
+    get_temp_world_path as get_temp_world_path_,
+)
 from amulet.operations.clone import clone
 from amulet.operations.delete_chunk import delete_chunk
 from amulet.operations.fill import fill
@@ -25,10 +29,7 @@ def get_temp_world_path(world_name: str) -> str:
     if os.path.isdir(dst_path):
         shutil.rmtree(dst_path)
 
-    shutil.copytree(
-        src_path,
-        dst_path
-    )
+    shutil.copytree(src_path, dst_path)
     return dst_path
 
 
