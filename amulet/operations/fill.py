@@ -11,7 +11,10 @@ if TYPE_CHECKING:
 
 
 def fill(
-    world: "BaseLevel", dimension: Dimension, target_box: SelectionGroup, fill_block: Block
+    world: "BaseLevel",
+    dimension: Dimension,
+    target_box: SelectionGroup,
+    fill_block: Block,
 ) -> OperationReturnType:
     if not isinstance(fill_block, Block):
         raise Exception("Fill operation was not given a Block object")

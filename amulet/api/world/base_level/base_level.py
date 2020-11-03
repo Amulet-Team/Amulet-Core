@@ -443,9 +443,7 @@ class BaseLevel:
                 self.level_wrapper.translation_manager
             )  # TODO: this might cause issues in the future
             for dimension in self.level_wrapper.dimensions:
-                chunk_count += len(
-                    list(self.level_wrapper.all_chunk_coords(dimension))
-                )
+                chunk_count += len(list(self.level_wrapper.all_chunk_coords(dimension)))
 
             for dimension in self.level_wrapper.dimensions:
                 try:
