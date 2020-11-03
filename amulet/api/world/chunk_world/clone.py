@@ -59,6 +59,7 @@ def clone(
     :param copy_chunk_not_exist: If a chunk does not exist in the source should it be copied over as air. Always False where `src_structure` is a World.
     :return: A generator of floats from 0 to 1 with the progress of the paste operation.
     """
+    location = tuple(location)
     if include_blocks or include_entities:
         # we actually have to do something
         if isinstance(src_structure, amulet.api.world.World):
@@ -84,6 +85,7 @@ def clone(
             src_structure = src_structure.extract_structure(
                 src_selection, src_dimension
             )
+            src_dimension = src_structure.dimensions[0]
 
         src_structure: "ChunkWorld"
 

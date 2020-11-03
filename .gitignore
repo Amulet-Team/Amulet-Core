@@ -114,5 +114,6 @@ prototyping/
 *.c
 *.html
 
+tests/worlds_temp
 world_temp/
 logs/
