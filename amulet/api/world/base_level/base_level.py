@@ -52,8 +52,8 @@ class BaseLevel:
         else:
             self._temp_directory = temp_dir
 
-        self._format_wrapper = format_wrapper
-        self._format_wrapper.open()
+        self._level_wrapper = format_wrapper
+        self.level_wrapper.open()
 
         self._block_palette = BlockManager()
         self._block_palette.get_add_block(
@@ -69,55 +69,52 @@ class BaseLevel:
             os.path.join(self._temp_directory, "chunks"), self
         )
 
-        self._history_manager.register(self._chunks, True)
+        self.history_manager.register(self._chunks, True)
 
     @property
-    def sub_chunk_size(self) -> int:
-        """The normal dimensions of the chunk"""
-        return self._format_wrapper.sub_chunk_size
-
-    @property
-    def world_path(self) -> str:
-        """The directory where the world is located"""
-        return self._directory
-
-    @property
-    def changed(self) -> bool:
-        """Has any data been modified but not saved to disk"""
-        return self._history_manager.changed or self._format_wrapper.changed
-
-    @property
-    def history_manager(self) -> MetaHistoryManager:
-        return self._history_manager
-
-    @property
-    def chunk_history_manager(self) -> ChunkManager:
-        """A class storing previous versions of chunks to roll back to as required."""
-        warnings.warn(
-            "World.chunk_history_manager is depreciated and will be removed in the future. Please use World.chunks instead",
-            DeprecationWarning,
-        )
-        return self._chunks
-
-    def create_undo_point(self):
-        """Create a restore point for all chunks that have changed."""
-        self._history_manager.create_undo_point()
-
-    @property
-    def translation_manager(self) -> "TranslationManager":
-        """An instance of the translation class for use with this world."""
-        return self._format_wrapper.translation_manager
+    def level_wrapper(self) -> "FormatWrapper":
+        """A class to access data directly from the level."""
+        return self._level_wrapper
 
     @property
     def world_wrapper(self) -> "FormatWrapper":
         """A class to access data directly from the world."""
-        return self._format_wrapper
+        warnings.warn(
+            "BaseLevel.world_wrapper is depreciated and will be removed in the future. Please use BaseLevel.level_wrapper instead.",
+            DeprecationWarning,
+        )
+        return self.level_wrapper
+
+    @property
+    def sub_chunk_size(self) -> int:
+        """The normal dimensions of the chunk"""
+        return self.level_wrapper.sub_chunk_size
+
+    @property
+    def level_path(self) -> str:
+        """The system path where the world is located.
+        This may be a directory or file depending on the level that is loaded."""
+        return self._directory
+
+    @property
+    def world_path(self) -> str:
+        """The directory where the world is located"""
+        warnings.warn(
+            "BaseLevel.world_path is depreciated and will be removed in the future. Please use BaseLevel.level_path instead.",
+            DeprecationWarning,
+        )
+        return self._directory
+
+    @property
+    def translation_manager(self) -> "TranslationManager":
+        """An instance of the translation class for use with this world."""
+        return self.level_wrapper.translation_manager
 
     @property
     def palette(self) -> BlockManager:
         """The manager for the universal blocks in this world. New blocks must be registered here before adding to the world."""
         warnings.warn(
-            "World.palette is depreciated and will be removed in the future. Please use World.block_palette instead",
+            "World.palette is depreciated and will be removed in the future. Please use BaseLevel.block_palette instead",
             DeprecationWarning,
         )
         return self.block_palette
@@ -135,11 +132,11 @@ class BaseLevel:
     @property
     def selection_bounds(self) -> SelectionGroup:
         """The selection(s) that all chunk data must fit within. Usually +/-30M for worlds."""
-        return self._format_wrapper.selection
+        return self.level_wrapper.selection
 
     @property
     def dimensions(self) -> Tuple[Dimension, ...]:
-        return tuple(self._format_wrapper.dimensions)
+        return tuple(self.level_wrapper.dimensions)
 
     def all_chunk_coords(self, dimension: Dimension) -> Set[Tuple[int, int]]:
         """The coordinates of every chunk in this world.
@@ -430,34 +427,34 @@ class BaseLevel:
         chunk_count = len(changed_chunks)
 
         if wrapper is None:
-            wrapper = self._format_wrapper
+            wrapper = self.level_wrapper
 
         output_dimension_map = wrapper.dimensions
 
         # perhaps make this check if the directory is the same rather than if the class is the same
-        save_as = wrapper is not self._format_wrapper
+        save_as = wrapper is not self.level_wrapper
         if save_as:
             # The input wrapper is not the same as the loading wrapper (save-as)
             # iterate through every chunk in the input world and save them to the wrapper
             log.info(
-                f"Converting world {self._format_wrapper.path} to world {wrapper.path}"
+                f"Converting world {self.level_wrapper.path} to world {wrapper.path}"
             )
             wrapper.translation_manager = (
-                self._format_wrapper.translation_manager
+                self.level_wrapper.translation_manager
             )  # TODO: this might cause issues in the future
-            for dimension in self._format_wrapper.dimensions:
+            for dimension in self.level_wrapper.dimensions:
                 chunk_count += len(
-                    list(self._format_wrapper.all_chunk_coords(dimension))
+                    list(self.level_wrapper.all_chunk_coords(dimension))
                 )
 
-            for dimension in self._format_wrapper.dimensions:
+            for dimension in self.level_wrapper.dimensions:
                 try:
                     if dimension not in output_dimension_map:
                         continue
-                    for cx, cz in self._format_wrapper.all_chunk_coords(dimension):
+                    for cx, cz in self.level_wrapper.all_chunk_coords(dimension):
                         log.info(f"Converting chunk {dimension} {cx}, {cz}")
                         try:
-                            chunk = self._format_wrapper.load_chunk(cx, cz, dimension)
+                            chunk = self.level_wrapper.load_chunk(cx, cz, dimension)
                             wrapper.commit_chunk(chunk, dimension)
                         except ChunkLoadError:
                             log.info(f"Error loading chunk {cx} {cz}", exc_info=True)
@@ -465,7 +462,7 @@ class BaseLevel:
                         yield chunk_index, chunk_count
                         if not chunk_index % 10000:
                             wrapper.save()
-                            self._format_wrapper.unload()
+                            self.level_wrapper.unload()
                             wrapper.unload()
                 except LevelDoesNotExist:
                     continue
@@ -488,7 +485,7 @@ class BaseLevel:
                 wrapper.save()
                 wrapper.unload()
 
-        self._history_manager.mark_saved()
+        self.history_manager.mark_saved()
         log.info(f"Saving changes to world {wrapper.path}")
         wrapper.save()
         log.info(f"Finished saving changes to world {wrapper.path}")
@@ -498,13 +495,13 @@ class BaseLevel:
         Use changed method to check if there are any changes that should be saved before closing."""
         # TODO: add "unsaved changes" check before exit
         shutil.rmtree(self._temp_directory, ignore_errors=True)
-        self._format_wrapper.close()
+        self.level_wrapper.close()
 
     def unload(self, safe_area: Optional[Tuple[Dimension, int, int, int, int]] = None):
         """Unload all chunks not in the safe area
         Safe area format: dimension, min chunk X|Z, max chunk X|Z"""
         self._chunks.unload(safe_area)
-        self._format_wrapper.unload()
+        self.level_wrapper.unload()
 
     def unload_unchanged(self):
         """Unload all data that has not been marked as changed."""
@@ -557,7 +554,7 @@ class BaseLevel:
         :param include_blocks: Include blocks when pasting the structure.
         :param include_entities: Include entities when pasting the structure.
         :param skip_blocks: If a block matches a block in this list it will not be copied.
-        :param copy_chunk_not_exist: If a chunk does not exist in the source should it be copied over as air. Always False where structure is a World.
+        :param copy_chunk_not_exist: If a chunk does not exist in the source should it be copied over as air. Always False where level is a World.
         :return:
         """
         gen = self.paste_iter(
@@ -605,7 +602,7 @@ class BaseLevel:
         :param include_blocks: Include blocks when pasting the structure.
         :param include_entities: Include entities when pasting the structure.
         :param skip_blocks: If a block matches a block in this list it will not be copied.
-        :param copy_chunk_not_exist: If a chunk does not exist in the source should it be copied over as air. Always False where structure is a World.
+        :param copy_chunk_not_exist: If a chunk does not exist in the source should it be copied over as air. Always False where level is a World.
         :return: A generator of floats from 0 to 1 with the progress of the paste operation.
         """
         yield from clone(
@@ -793,16 +790,30 @@ class BaseLevel:
             self.create_undo_point()
         return out
 
+    @property
+    def history_manager(self) -> MetaHistoryManager:
+        """The class that manages undoing and redoing changes."""
+        return self._history_manager
+
+    def create_undo_point(self):
+        """Create a restore point for all chunks that have changed."""
+        self.history_manager.create_undo_point()
+
+    @property
+    def changed(self) -> bool:
+        """Has any data been modified but not saved to disk"""
+        return self.history_manager.changed or self.level_wrapper.changed
+
     def undo(self):
         """Undoes the last set of changes to the world"""
-        self._history_manager.undo()
+        self.history_manager.undo()
 
     def redo(self):
         """Redoes the last set of changes to the world"""
-        self._history_manager.redo()
+        self.history_manager.redo()
 
     def restore_last_undo_point(self):
         """Restore the world to the state it was when self.create_undo_point was called.
         If an operation errors there may be modifications made that did not get tracked.
         This will revert those changes."""
-        self._history_manager.restore_last_undo_point()
+        self.history_manager.restore_last_undo_point()

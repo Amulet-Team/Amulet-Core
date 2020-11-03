@@ -1,4 +1,5 @@
 from __future__ import annotations
+import warnings
 
 from .base_level import BaseLevel
 from amulet.api.wrapper import WorldFormatWrapper
@@ -17,4 +18,8 @@ class World(BaseLevel):
 
     @property
     def world_wrapper(self) -> WorldFormatWrapper:
-        return self._format_wrapper
+        warnings.warn(
+            "BaseLevel.world_wrapper is depreciated and will be removed in the future. Please use BaseLevel.level_wrapper instead.",
+            DeprecationWarning,
+        )
+        return self._level_wrapper

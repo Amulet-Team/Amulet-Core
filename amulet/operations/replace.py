@@ -8,11 +8,11 @@ from amulet.api.data_types import Dimension
 from amulet import log
 
 if TYPE_CHECKING:
-    from amulet.api.world import World
+    from amulet.api.world import BaseLevel
 
 
 def replace(
-    world: "World", dimension: Dimension, selection: SelectionGroup, options: dict
+    world: "BaseLevel", dimension: Dimension, selection: SelectionGroup, options: dict
 ):
     original_blocks = options.get("original_blocks", None)
     if not isinstance(original_blocks, list) and all(
