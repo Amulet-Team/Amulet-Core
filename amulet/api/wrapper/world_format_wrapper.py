@@ -5,7 +5,7 @@ from typing import Any, Generator, List, Tuple, Dict, TYPE_CHECKING
 from amulet import IMG_DIRECTORY
 from amulet.api.data_types import Dimension, PlatformType, ChunkCoordinates
 from .format_wrapper import FormatWrapper
-from amulet.world_interface.chunk import interfaces
+import amulet
 
 missing_world_icon = os.path.abspath(
     os.path.join(IMG_DIRECTORY, "missing_world_icon.png")
@@ -84,7 +84,7 @@ class WorldFormatWrapper(FormatWrapper):
             key = self._get_interface_key(raw_chunk_data)
         else:
             key = max_world_version
-        return interfaces.loader.get(key)
+        return amulet.world_interface.chunk.interfaces.loader.get(key)
 
     def _get_interface_key(self, raw_chunk_data) -> Any:
         raise NotImplementedError
