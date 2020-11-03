@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .chunk_world import ChunkWorld
+from .base_level import BaseLevel
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import StructureFormatWrapper
 
 
-class Structure(ChunkWorld):
+class Structure(BaseLevel):
     """
     Class that handles editing of any structure format via an separate and flexible data format
     """

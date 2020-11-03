@@ -38,9 +38,9 @@ if TYPE_CHECKING:
     from amulet.api.wrapper import FormatWrapper
 
 
-class ChunkWorld:
+class BaseLevel:
     """
-    ChunkWorld handles chunk editing of any world format via an separate and flexible data format.
+    BaseLevel handles chunk editing of any world format via an separate and flexible data format.
     """
 
     def __init__(
@@ -533,7 +533,7 @@ class ChunkWorld:
 
     def paste(
         self,
-        src_structure: "ChunkWorld",
+        src_structure: "BaseLevel",
         src_dimension: Dimension,
         src_selection: SelectionGroup,
         dst_dimension: Dimension,
@@ -581,7 +581,7 @@ class ChunkWorld:
 
     def paste_iter(
         self,
-        src_structure: "ChunkWorld",
+        src_structure: "BaseLevel",
         src_dimension: Dimension,
         src_selection: SelectionGroup,
         dst_dimension: Dimension,

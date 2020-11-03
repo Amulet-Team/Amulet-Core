@@ -11,7 +11,7 @@ from amulet.utils.matrix import transform_matrix, displacement_matrix
 import amulet.api.world
 
 if TYPE_CHECKING:
-    from .chunk_world import ChunkWorld
+    from .base_level import BaseLevel
 
 
 def gen_paste_blocks(
@@ -27,10 +27,10 @@ def gen_paste_blocks(
 
 
 def clone(
-    src_structure: "ChunkWorld",
+    src_structure: "BaseLevel",
     src_dimension: Dimension,
     src_selection: SelectionGroup,
-    dst_structure: "ChunkWorld",
+    dst_structure: "BaseLevel",
     dst_dimension: Dimension,
     dst_selection_bounds: SelectionGroup,
     location: BlockCoordinates,
@@ -87,7 +87,7 @@ def clone(
             )
             src_dimension = src_structure.dimensions[0]
 
-        src_structure: "ChunkWorld"
+        src_structure: "BaseLevel"
 
         # TODO: I don't know if this is feasible for large boxes: get the intersection of the source and destination selections and iterate over that to minimise work
         if any(rotation) or any(s != 1 for s in scale):

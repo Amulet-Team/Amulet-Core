@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ..chunk_world import ChunkWorld
+from ..base_level import BaseLevel
 from .void_format_wrapper import VoidFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.data_types import Dimension
@@ -8,7 +8,7 @@ from amulet.api.selection import SelectionGroup, SelectionBox
 import copy
 
 
-class ImmutableStructure(ChunkWorld):
+class ImmutableStructure(BaseLevel):
     """
     This is a special class that exists purely to hold chunk data and serialise it to the disk cache.
     There is no world attached to load or save chunks to.
@@ -45,7 +45,7 @@ class ImmutableStructure(ChunkWorld):
 
     @classmethod
     def from_world(
-        cls, world: ChunkWorld, selection: SelectionGroup, dimension: Dimension
+        cls, world: BaseLevel, selection: SelectionGroup, dimension: Dimension
     ):
         """Populate this class with the chunks that intersect the selection."""
         self = cls()

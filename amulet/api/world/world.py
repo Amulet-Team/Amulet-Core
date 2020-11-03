@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from .chunk_world import ChunkWorld
+from .base_level import BaseLevel
 from amulet.api.wrapper import WorldFormatWrapper
 
 
-class World(ChunkWorld):
+class World(BaseLevel):
     """
     Class that handles world editing of any world format via an separate and flexible data format
     """

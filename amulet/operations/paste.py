@@ -6,13 +6,13 @@ from amulet.api.data_types import Dimension, BlockCoordinates, FloatTriplet
 from amulet.api.block import Block, UniversalAirBlock
 
 if TYPE_CHECKING:
-    from amulet.api.world import ChunkWorld
+    from amulet.api.world import BaseLevel
 
 
 def paste(
-    dst: "ChunkWorld",
+    dst: "BaseLevel",
     dst_dimension: Dimension,
-    src: "ChunkWorld",
+    src: "BaseLevel",
     src_dimension: Dimension,
     location: BlockCoordinates,
     scale: FloatTriplet,
@@ -37,9 +37,9 @@ def paste(
 
 
 def paste_iter(
-    dst: "ChunkWorld",
+    dst: "BaseLevel",
     dst_dimension: Dimension,
-    src: "ChunkWorld",
+    src: "BaseLevel",
     src_dimension: Dimension,
     location: BlockCoordinates,
     scale: FloatTriplet,

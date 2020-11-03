@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-from amulet.api.world import ChunkWorld
+from amulet.api.world import BaseLevel
 from amulet.api.data_types import Dimension
 
 
@@ -8,20 +8,20 @@ class StructureCache:
     """A class for storing and accessing structure objects"""
 
     def __init__(self):
-        self._structure_buffer: List[Tuple[ChunkWorld, Dimension]] = []
+        self._structure_buffer: List[Tuple[BaseLevel, Dimension]] = []
 
-    def add_structure(self, structure: ChunkWorld, dimension: Dimension):
+    def add_structure(self, structure: BaseLevel, dimension: Dimension):
         """Add a structure to the cache"""
         assert isinstance(
-            structure, ChunkWorld
-        ), "structure given is not a ChunkWorld instance"
+            structure, BaseLevel
+        ), "structure given is not a BaseLevel instance"
         self._structure_buffer.append((structure, dimension))
 
-    def get_structure(self, index=-1) -> Tuple[ChunkWorld, Dimension]:
+    def get_structure(self, index=-1) -> Tuple[BaseLevel, Dimension]:
         """Get a structure from the cache. Default last."""
         return self._structure_buffer[index]
 
-    def pop_structure(self, index=-1) -> Tuple[ChunkWorld, Dimension]:
+    def pop_structure(self, index=-1) -> Tuple[BaseLevel, Dimension]:
         """Get and remove a structure from the cache. Default last."""
         return self._structure_buffer.pop(index)
 
