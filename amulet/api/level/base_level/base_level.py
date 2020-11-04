@@ -8,6 +8,7 @@ import warnings
 import traceback
 import numpy
 import itertools
+import inspect
 
 from amulet import log
 from amulet.api.block import Block, UniversalAirBlock
@@ -27,6 +28,7 @@ from amulet.api.data_types import (
     FloatTriplet,
     ChunkCoordinates,
 )
+from amulet.utils.generator import generator_unpacker
 from amulet.utils.world_utils import block_coords_to_chunk_coords
 from .chunk_manager import ChunkManager
 from amulet.api.history.history_manager import MetaHistoryManager
@@ -555,24 +557,21 @@ class BaseLevel:
         :param copy_chunk_not_exist: If a chunk does not exist in the source should it be copied over as air. Always False where level is a World.
         :return:
         """
-        gen = self.paste_iter(
-            src_structure,
-            src_dimension,
-            src_selection,
-            dst_dimension,
-            location,
-            scale,
-            rotation,
-            include_blocks,
-            include_entities,
-            skip_blocks,
-            copy_chunk_not_exist,
+        return generator_unpacker(
+            self.paste_iter(
+                src_structure,
+                src_dimension,
+                src_selection,
+                dst_dimension,
+                location,
+                scale,
+                rotation,
+                include_blocks,
+                include_entities,
+                skip_blocks,
+                copy_chunk_not_exist,
+            )
         )
-        try:
-            while True:
-                next(gen)
-        except StopIteration as e:
-            return e.value
 
     def paste_iter(
         self,
@@ -775,12 +774,9 @@ class BaseLevel:
     ) -> Any:
         try:
             out = operation(self, dimension, *args)
-            if isinstance(out, GeneratorType):
-                try:
-                    while True:
-                        next(out)
-                except StopIteration as e:
-                    out = e.value
+            if inspect.isgenerator(out):
+                out: Generator
+                out = generator_unpacker(out)
         except Exception as e:
             self.restore_last_undo_point()
             raise e
