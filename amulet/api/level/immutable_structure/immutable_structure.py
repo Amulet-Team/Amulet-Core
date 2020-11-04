@@ -1,10 +1,12 @@
 from __future__ import annotations
+from typing import Generator
 
 from ..base_level import BaseLevel
 from .void_format_wrapper import VoidFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.data_types import Dimension
 from amulet.api.selection import SelectionGroup, SelectionBox
+from amulet.utils.generator import generator_unpacker
 import copy
 
 
@@ -44,13 +46,21 @@ class ImmutableStructure(BaseLevel):
         self.history_manager.create_undo_point()
 
     @classmethod
-    def from_world(
+    def from_level(
         cls, world: BaseLevel, selection: SelectionGroup, dimension: Dimension
     ):
+        return generator_unpacker(cls.from_level_iter(world, selection, dimension))
+
+    @classmethod
+    def from_level_iter(
+        cls, world: BaseLevel, selection: SelectionGroup, dimension: Dimension
+    ) -> Generator[float, None, ImmutableStructure]:
         """Populate this class with the chunks that intersect the selection."""
         self = cls()
         self._selection = selection.copy()
         dst_dimension = self.dimensions[0]
-        for chunk, _ in world.get_chunk_boxes(dimension, selection):
+        count = len(list(world.get_coord_box(dimension, selection)))
+        for index, (chunk, _) in enumerate(world.get_chunk_boxes(dimension, selection)):
             self.put_chunk(copy.deepcopy(chunk), dst_dimension)
+            yield (index + 1) / count
         return self

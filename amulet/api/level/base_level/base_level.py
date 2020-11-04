@@ -524,9 +524,18 @@ class BaseLevel:
         self, selection: SelectionGroup, dimension: Dimension
     ) -> amulet.api.level.ImmutableStructure:
         """Extract the area in the SelectionGroup from the world as a new structure"""
-        return amulet.api.level.ImmutableStructure.from_world(
+        return amulet.api.level.ImmutableStructure.from_level(
             self, selection, dimension
         )
+
+    def extract_structure_iter(
+        self, selection: SelectionGroup, dimension: Dimension
+    ) -> Generator[float, None, amulet.api.level.ImmutableStructure]:
+        """Extract the area in the SelectionGroup from the world as a new structure"""
+        level = yield from amulet.api.level.ImmutableStructure.from_level_iter(
+            self, selection, dimension
+        )
+        return level
 
     def paste(
         self,
