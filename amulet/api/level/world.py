@@ -17,6 +17,11 @@ class World(BaseLevel):
         super().__init__(directory, world_wrapper, temp_dir)
 
     @property
+    def level_wrapper(self) -> "WorldFormatWrapper":
+        """A class to access data directly from the level."""
+        return self._level_wrapper
+
+    @property
     def world_wrapper(self) -> WorldFormatWrapper:
         warnings.warn(
             "BaseLevel.world_wrapper is depreciated and will be removed in the future. Please use BaseLevel.level_wrapper instead.",

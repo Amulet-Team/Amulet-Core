@@ -13,8 +13,8 @@ import copy
 class ImmutableStructure(BaseLevel):
     """
     This is a special class that exists purely to hold chunk data and serialise it to the disk cache.
-    There is no world attached to load or save chunks to.
-    This class exists purely to store chunks in when copied from a world.
+    There is no level attached to load or save chunks to.
+    This class exists purely to store chunks in when copied from a level.
     The original wrapper is mutable so the chunks must be deep copied from it and dropped into here.
     """
 
@@ -47,20 +47,20 @@ class ImmutableStructure(BaseLevel):
 
     @classmethod
     def from_level(
-        cls, world: BaseLevel, selection: SelectionGroup, dimension: Dimension
+        cls, level: BaseLevel, selection: SelectionGroup, dimension: Dimension
     ):
-        return generator_unpacker(cls.from_level_iter(world, selection, dimension))
+        return generator_unpacker(cls.from_level_iter(level, selection, dimension))
 
     @classmethod
     def from_level_iter(
-        cls, world: BaseLevel, selection: SelectionGroup, dimension: Dimension
+        cls, level: BaseLevel, selection: SelectionGroup, dimension: Dimension
     ) -> Generator[float, None, ImmutableStructure]:
         """Populate this class with the chunks that intersect the selection."""
         self = cls()
         self._selection = selection.copy()
         dst_dimension = self.dimensions[0]
-        count = len(list(world.get_coord_box(dimension, selection)))
-        for index, (chunk, _) in enumerate(world.get_chunk_boxes(dimension, selection)):
+        count = len(list(level.get_coord_box(dimension, selection)))
+        for index, (chunk, _) in enumerate(level.get_chunk_boxes(dimension, selection)):
             self.put_chunk(copy.deepcopy(chunk), dst_dimension)
             yield (index + 1) / count
         return self

@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 import shutil
 from typing import Union, Generator, Optional, Tuple, Callable, Any, Set, TYPE_CHECKING
-from types import GeneratorType
 import warnings
 import traceback
 import numpy
@@ -42,7 +41,7 @@ if TYPE_CHECKING:
 
 class BaseLevel:
     """
-    BaseLevel handles chunk editing of any world format via an separate and flexible data format.
+    BaseLevel handles chunk editing of any world or structure format via an separate and flexible data format.
     """
 
     def __init__(
@@ -94,7 +93,7 @@ class BaseLevel:
 
     @property
     def level_path(self) -> str:
-        """The system path where the world is located.
+        """The system path where the level is located.
         This may be a directory or file depending on the level that is loaded."""
         return self._directory
 
@@ -109,12 +108,12 @@ class BaseLevel:
 
     @property
     def translation_manager(self) -> "TranslationManager":
-        """An instance of the translation class for use with this world."""
+        """An instance of the translation class for use with this level."""
         return self.level_wrapper.translation_manager
 
     @property
     def palette(self) -> BlockManager:
-        """The manager for the universal blocks in this world. New blocks must be registered here before adding to the world."""
+        """The manager for the universal blocks in this level. New blocks must be registered here before adding to the level."""
         warnings.warn(
             "World.palette is depreciated and will be removed in the future. Please use BaseLevel.block_palette instead",
             DeprecationWarning,
@@ -123,17 +122,17 @@ class BaseLevel:
 
     @property
     def block_palette(self) -> BlockManager:
-        """The manager for the universal blocks in this world. New blocks must be registered here before adding to the world."""
+        """The manager for the universal blocks in this level. New blocks must be registered here before adding to the level."""
         return self._block_palette
 
     @property
     def biome_palette(self) -> BiomeManager:
-        """The manager for the universal blocks in this world. New blocks must be registered here before adding to the world."""
+        """The manager for the universal blocks in this level. New biomes must be registered here before adding to the level."""
         return self._biome_palette
 
     @property
     def selection_bounds(self) -> SelectionGroup:
-        """The selection(s) that all chunk data must fit within. Usually +/-30M for worlds."""
+        """The selection(s) that all chunk data must fit within. Usually +/-30M for worlds. The selection for structures."""
         return self.level_wrapper.selection
 
     @property
@@ -141,8 +140,8 @@ class BaseLevel:
         return tuple(self.level_wrapper.dimensions)
 
     def all_chunk_coords(self, dimension: Dimension) -> Set[Tuple[int, int]]:
-        """The coordinates of every chunk in this world.
-        This is the combination of chunks saved to the world and chunks yet to be saved."""
+        """The coordinates of every chunk in this dimension of the level.
+        This is the combination of chunks saved to the level and chunks yet to be saved."""
         return self._chunks.all_chunk_coords(dimension)
 
     def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
@@ -202,7 +201,7 @@ class BaseLevel:
         """Given a selection will yield chunk coordinates and `SelectionBox`es into that chunk
         If not given a selection will use the bounds of the object.
 
-        :param selection: SelectionGroup or SelectionBox into the world
+        :param selection: SelectionGroup or SelectionBox into the level
         :param dimension: The dimension to take effect in
         :param yield_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false). Use this with care.
         """
@@ -245,7 +244,7 @@ class BaseLevel:
         """Given a selection will yield chunks and `SelectionBox`es into that chunk
         If not given a selection will use the bounds of the object.
 
-        :param selection: SelectionGroup or SelectionBox into the world
+        :param selection: SelectionGroup or SelectionBox into the level
         :param dimension: The dimension to take effect in
         :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false). Use this with care.
         """
@@ -270,11 +269,11 @@ class BaseLevel:
     ) -> Generator[Tuple[Chunk, Tuple[slice, slice, slice], SelectionBox], None, None]:
         """Given a selection will yield chunks, slices into that chunk and the corresponding box
 
-        :param selection: SelectionGroup or SelectionBox into the world
+        :param selection: SelectionGroup or SelectionBox into the level
         :param dimension: The dimension to take effect in
         :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false)
         Usage:
-        for chunk, slice, box in world.get_chunk_slices(selection):
+        for chunk, slice, box in level.get_chunk_slices(selection):
             chunk.blocks[slice] = ...
         """
         for chunk, box in self.get_chunk_boxes(
@@ -411,7 +410,7 @@ class BaseLevel:
         wrapper: "FormatWrapper" = None,
         progress_callback: Callable[[int, int], None] = None,
     ):
-        """Save the world using the given wrapper.
+        """Save the level using the given wrapper.
         Leave as None to save back to the input wrapper.
         Optional progress callback to let the calling program know the progress. Input format chunk_index, chunk_count"""
         for chunk_index, chunk_count in self.save_iter(wrapper):
@@ -421,7 +420,7 @@ class BaseLevel:
     def save_iter(
         self, wrapper: "FormatWrapper" = None
     ) -> Generator[Tuple[int, int], None, None]:
-        """Save the world using the given wrapper.
+        """Save the level using the given wrapper.
         Leave as None to save back to the input wrapper."""
         chunk_index = 0
 
@@ -437,9 +436,9 @@ class BaseLevel:
         save_as = wrapper is not self.level_wrapper
         if save_as:
             # The input wrapper is not the same as the loading wrapper (save-as)
-            # iterate through every chunk in the input world and save them to the wrapper
+            # iterate through every chunk in the input level and save them to the wrapper
             log.info(
-                f"Converting world {self.level_wrapper.path} to world {wrapper.path}"
+                f"Converting level {self.level_wrapper.path} to level {wrapper.path}"
             )
             wrapper.translation_manager = (
                 self.level_wrapper.translation_manager
@@ -486,12 +485,12 @@ class BaseLevel:
                 wrapper.unload()
 
         self.history_manager.mark_saved()
-        log.info(f"Saving changes to world {wrapper.path}")
+        log.info(f"Saving changes to level {wrapper.path}")
         wrapper.save()
-        log.info(f"Finished saving changes to world {wrapper.path}")
+        log.info(f"Finished saving changes to level {wrapper.path}")
 
     def close(self):
-        """Close the attached world and remove temporary files
+        """Close the attached level and remove temporary files
         Use changed method to check if there are any changes that should be saved before closing."""
         # TODO: add "unsaved changes" check before exit
         shutil.rmtree(self._temp_directory, ignore_errors=True)
@@ -513,17 +512,17 @@ class BaseLevel:
         return chunk
 
     def put_chunk(self, chunk: Chunk, dimension: Dimension):
-        """Add a chunk to the universal world database"""
+        """Add a chunk to the universal level database"""
         self._chunks.put_chunk(chunk, dimension)
 
     def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
-        """Delete a chunk from the universal world database"""
+        """Delete a chunk from the universal level database"""
         self._chunks.delete_chunk(dimension, cx, cz)
 
     def extract_structure(
         self, selection: SelectionGroup, dimension: Dimension
     ) -> amulet.api.level.ImmutableStructure:
-        """Extract the area in the SelectionGroup from the world as a new structure"""
+        """Extract the area in the SelectionGroup from the level as a new structure"""
         return amulet.api.level.ImmutableStructure.from_level(
             self, selection, dimension
         )
@@ -531,7 +530,7 @@ class BaseLevel:
     def extract_structure_iter(
         self, selection: SelectionGroup, dimension: Dimension
     ) -> Generator[float, None, amulet.api.level.ImmutableStructure]:
-        """Extract the area in the SelectionGroup from the world as a new structure"""
+        """Extract the area in the SelectionGroup from the level as a new structure"""
         level = yield from amulet.api.level.ImmutableStructure.from_level_iter(
             self, selection, dimension
         )
@@ -557,7 +556,7 @@ class BaseLevel:
         :param src_dimension: The dimension of the source structure to copy from.
         :param src_selection: The selection to copy from the source structure.
         :param dst_dimension: The dimension to paste the structure into.
-        :param location: The location where the centre of the structure will be in the world
+        :param location: The location where the centre of the structure will be in the level
         :param scale: The scale in the x, y and z axis. These can be negative to mirror.
         :param rotation: The rotation in degrees around each of the axis.
         :param include_blocks: Include blocks when pasting the structure.
@@ -602,7 +601,7 @@ class BaseLevel:
         :param src_dimension: The dimension of the source structure to copy from.
         :param src_selection: The selection to copy from the source structure.
         :param dst_dimension: The dimension to paste the structure into.
-        :param location: The location where the centre of the structure will be in the world
+        :param location: The location where the centre of the structure will be in the level
         :param scale: The scale in the x, y and z axis. These can be negative to mirror.
         :param rotation: The rotation in degrees around each of the axis.
         :param include_blocks: Include blocks when pasting the structure.
@@ -808,15 +807,15 @@ class BaseLevel:
         return self.history_manager.changed or self.level_wrapper.changed
 
     def undo(self):
-        """Undoes the last set of changes to the world"""
+        """Undoes the last set of changes to the level"""
         self.history_manager.undo()
 
     def redo(self):
-        """Redoes the last set of changes to the world"""
+        """Redoes the last set of changes to the level"""
         self.history_manager.redo()
 
     def restore_last_undo_point(self):
-        """Restore the world to the state it was when self.create_undo_point was called.
+        """Restore the level to the state it was when self.create_undo_point was called.
         If an operation errors there may be modifications made that did not get tracked.
         This will revert those changes."""
         self.history_manager.restore_last_undo_point()

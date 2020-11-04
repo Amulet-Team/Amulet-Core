@@ -20,3 +20,8 @@ class Structure(BaseLevel):
         temp_dir: str = None,
     ):
         super().__init__(directory, structure_wrapper, temp_dir)
+
+    @property
+    def level_wrapper(self) -> "StructureFormatWrapper":
+        """A class to access data directly from the level."""
+        return self._level_wrapper
