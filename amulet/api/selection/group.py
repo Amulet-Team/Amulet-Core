@@ -188,21 +188,32 @@ class SelectionGroup:
             for (cx, cy, cz), sub_box in box.sub_chunk_boxes(sub_chunk_size):
                 yield (cx, cy, cz), box
 
-    def intersects(self, other: SelectionGroup) -> bool:
+    def intersects(self, other: Union[SelectionGroup, SelectionBox]) -> bool:
         """Check if self and other intersect."""
-        return any(
-            self_box.intersects(other_box)
-            for self_box in self.selection_boxes
-            for other_box in other.selection_boxes
-        )
+        if isinstance(other, SelectionGroup):
+            return any(
+                self_box.intersects(other_box)
+                for self_box in self.selection_boxes
+                for other_box in other.selection_boxes
+            )
+        elif isinstance(other, SelectionBox):
+            return any(
+                self_box.intersects(other)
+                for self_box in self.selection_boxes
+            )
 
-    def intersection(self, other: SelectionGroup) -> SelectionGroup:
+    def intersection(self, other: Union[SelectionGroup, SelectionBox]) -> SelectionGroup:
         """Get a new SelectionGroup that represents the area contained within self and other."""
         intersection = SelectionGroup()
-        for self_box in self.selection_boxes:
-            for other_box in other.selection_boxes:
-                if self_box.intersects(other_box):
-                    intersection.add_box(self_box.intersection(other_box))
+        if isinstance(other, SelectionGroup):
+            for self_box in self.selection_boxes:
+                for other_box in other.selection_boxes:
+                    if self_box.intersects(other_box):
+                        intersection.add_box(self_box.intersection(other_box))
+        elif isinstance(other, SelectionBox):
+            for self_box in self.selection_boxes:
+                if self_box.intersects(other):
+                    intersection.add_box(self_box.intersection(other))
         return intersection
 
     def transform(

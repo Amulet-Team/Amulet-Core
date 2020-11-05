@@ -193,6 +193,21 @@ class SelectionBox:
         z_chunk_slice = blocks_slice_to_chunk_slice(s_z, sub_chunk_size, cz)
         return x_chunk_slice, s_y, z_chunk_slice
 
+    def sub_chunk_slice(
+        self, cx: int, cy: int, cz: int, sub_chunk_size: int = 16
+    ) -> Tuple[slice, slice, slice]:
+        """Get the slice of the box in relative form for a given sub-chunk.
+        eg. SelectionBox((0, 0, 0), (32, 32, 32)).sub_chunk_slice(1, 1, 1) will return
+        (slice(0, 16, None), slice(0, 16, None), slice(0, 16, None))
+        :param cx: The x coordinate of the chunk
+        :param cy: The y coordinate of the chunk
+        :param cz: The z coordinate of the chunk
+        :param sub_chunk_size: The dimension of the chunk (normally 16)
+        """
+        x_chunk_slice, s_y, z_chunk_slice = self.chunk_slice(cx, cz, sub_chunk_size)
+        y_chunk_slice = blocks_slice_to_chunk_slice(s_y, sub_chunk_size, cy)
+        return x_chunk_slice, y_chunk_slice, z_chunk_slice
+
     @property
     def min_x(self) -> int:
         """The minimum x coordinate."""
