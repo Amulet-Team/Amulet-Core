@@ -4,7 +4,6 @@ import glob
 import shutil
 import versioneer
 
-
 # there were issues with other builds carrying over their cache
 for d in glob.glob("*.egg-info"):
     shutil.rmtree(d)
@@ -44,7 +43,6 @@ package_data = [
         )
     )
 ]
-
 
 setup(
     name="amulet-core",
