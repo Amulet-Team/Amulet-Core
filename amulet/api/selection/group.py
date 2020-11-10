@@ -197,12 +197,11 @@ class SelectionGroup:
                 for other_box in other.selection_boxes
             )
         elif isinstance(other, SelectionBox):
-            return any(
-                self_box.intersects(other)
-                for self_box in self.selection_boxes
-            )
+            return any(self_box.intersects(other) for self_box in self.selection_boxes)
 
-    def intersection(self, other: Union[SelectionGroup, SelectionBox]) -> SelectionGroup:
+    def intersection(
+        self, other: Union[SelectionGroup, SelectionBox]
+    ) -> SelectionGroup:
         """Get a new SelectionGroup that represents the area contained within self and other."""
         intersection = SelectionGroup()
         if isinstance(other, SelectionGroup):
