@@ -6,6 +6,7 @@ from amulet.utils.matrix import (
     displacement_matrix,
     rotation_matrix_xyz,
     transform_matrix,
+    inverse_transform_matrix,
 )
 
 
@@ -152,6 +153,14 @@ class MatrixTestCase(unittest.TestCase):
                 1,
             ),
             (11, 21, 29),
+        )
+
+    def test_inverse_transform(self):
+        inputs = numpy.random.random(9).reshape((3, 3)).tolist()
+        transform = transform_matrix(*inputs)
+        inverse_transform = inverse_transform_matrix(*inputs)
+        numpy.testing.assert_array_almost_equal(
+            numpy.matmul(transform, inverse_transform), numpy.eye(4)
         )
 
 

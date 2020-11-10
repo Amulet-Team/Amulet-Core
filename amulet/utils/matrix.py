@@ -151,3 +151,28 @@ def transform_matrix(
     return numpy.matmul(
         displacement_transform, numpy.matmul(rotation_transform, scale_transform),
     )
+
+
+def inverse_transform_matrix(
+    scale: FloatTriplet,
+    rotation: FloatTriplet,
+    displacement: PointCoordinates,
+    order="xyz",
+):
+    """Create the inverse of the 4x4 transformation matrix from the scale, rotation and displacement specified.
+    This should be the inverse of transform_matrix
+    :param scale: The scale in the x, y and z axis
+    :param rotation: The rotation in the x, y and z axis (axis can be changed using `order`)
+    :param displacement: The displacement in the x, y and z axis
+    :param order: The order to apply the rotations in.
+    :return: The 4x4 transformation matrix of combined scale, rotation and displacement
+    """
+    scale_transform = scale_matrix(*1 / numpy.asarray(scale))
+    ra, rb, rc = -numpy.asarray(rotation)
+    rotation_transform = _rotation_matrix(
+        rc, rb, ra, order="".join(list(reversed(order)))
+    )
+    displacement_transform = displacement_matrix(*-numpy.asarray(displacement))
+    return numpy.matmul(
+        scale_transform, numpy.matmul(rotation_transform, displacement_transform),
+    )
