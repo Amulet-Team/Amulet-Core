@@ -190,7 +190,10 @@ class Structure(BaseStructure):
         # the offset from self.selection to the destination location
         offset = numpy.subtract(destination_origin, self.selection.min, dtype=numpy.int)
         for chunk, box in self.get_chunk_boxes(selection, generate_non_exists):
-            dst_full_box = SelectionBox(offset + box.min, offset + box.max,)
+            dst_full_box = SelectionBox(
+                offset + box.min,
+                offset + box.max,
+            )
 
             first_chunk = block_coords_to_chunk_coords(
                 dst_full_box.min_x,

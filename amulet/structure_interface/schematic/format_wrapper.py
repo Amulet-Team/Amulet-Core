@@ -56,7 +56,9 @@ class SchematicFormatWrapper(StructureFormatWrapper):
             self._selection = self._data.selection
         else:
             self._data = SchematicWriter(
-                self.path_or_buffer, self.platform, self._selection,
+                self.path_or_buffer,
+                self.platform,
+                self._selection,
             )
         self._open = True
 
@@ -168,7 +170,10 @@ class SchematicFormatWrapper(StructureFormatWrapper):
             raise ObjectReadError("all_chunk_coords is only valid in read mode")
 
     def _pack(
-        self, chunk: "Chunk", translator: "Translator", chunk_version: VersionNumberAny,
+        self,
+        chunk: "Chunk",
+        translator: "Translator",
+        chunk_version: VersionNumberAny,
     ) -> Tuple["Chunk", AnyNDArray]:
         version = self.translation_manager.get_version(
             *translator.translator_key(chunk_version)
@@ -184,7 +189,10 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         )
 
     def _encode(
-        self, chunk: Chunk, chunk_palette: AnyNDArray, interface: SchematicInterface,
+        self,
+        chunk: Chunk,
+        chunk_palette: AnyNDArray,
+        interface: SchematicInterface,
     ):
         return interface.encode(
             chunk,

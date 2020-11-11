@@ -244,7 +244,13 @@ class BaseLevelDBInterface(Interface):
         """
         blocks: Dict[int, SubChunkNDArray] = {}
         palette: List[
-            Tuple[Tuple[Optional[int], Union[Tuple[int, int], Block],], ...]
+            Tuple[
+                Tuple[
+                    Optional[int],
+                    Union[Tuple[int, int], Block],
+                ],
+                ...,
+            ]
         ] = [
             (
                 (
