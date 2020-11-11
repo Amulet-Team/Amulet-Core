@@ -11,7 +11,7 @@ class BlockTestCase(unittest.TestCase):
         biomes.convert_to_3d()
         self.assertEqual(biomes[:, :, :].shape, (4, 64, 4))
 
-        arange = numpy.arange(16).reshape((4,4))
+        arange = numpy.arange(16).reshape((4, 4))
         biomes[:, 0, :] = arange.reshape((4, 1, 4))
 
         biomes.convert_to_2d()
