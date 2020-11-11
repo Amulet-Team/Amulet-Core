@@ -59,4 +59,9 @@ setup(
         "https://github.com/Amulet-Team/Amulet-NBT",
         "https://github.com/gentlegiantJGC/PyMCTranslate",
     ],
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "Operating System :: OS Independent",
+    ],
+    python_requires='>=3.6',
 )
