@@ -1,8 +1,8 @@
 # Amulet Core
 
-![Build](https://github.com/Amulet-Team/Amulet-Core/workflows/Build/badge.svg)
-![Unittests](https://github.com/Amulet-Team/Amulet-Core/workflows/Unittests/badge.svg?event=push)
-![Stylecheck](https://github.com/Amulet-Team/Amulet-Core/workflows/Stylecheck/badge.svg?event=push)
+![Build](../../workflows/Build/badge.svg)
+![Unittests](../../workflows/Unittests/badge.svg?event=push)
+![Stylecheck](../../workflows/Stylecheck/badge.svg?event=push)
 [![Documentation](https://readthedocs.org/projects/amulet-core/badge)](https://amulet-core.readthedocs.io)
 
 A Python 3 library to read and write data from Minecraft's various save formats.
