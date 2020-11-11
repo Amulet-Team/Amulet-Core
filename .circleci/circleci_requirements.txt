@@ -1,3 +1,0 @@
-numpy>=1.17.4
-git+git://github.com/Amulet-Team/Amulet-NBT.git
-git+https://github.com/gentlegiantJGC/PyMCTranslate.git@dev#egg=PyMCTranslate
