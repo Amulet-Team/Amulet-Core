@@ -7,7 +7,8 @@ from amulet.api.partial_3d_array import UnboundedPartial3DArray
 
 class Blocks(UnboundedPartial3DArray):
     def __init__(
-        self, input_array: Optional[Union[Dict[int, numpy.ndarray], "Blocks"]] = None,
+        self,
+        input_array: Optional[Union[Dict[int, numpy.ndarray], "Blocks"]] = None,
     ):
         if input_array is None:
             input_array = {}
