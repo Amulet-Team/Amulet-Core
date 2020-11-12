@@ -13,8 +13,12 @@ class RevisionManager(BaseHistory):
 
     def __init__(self, initial_state: StoredEntryType):
         self._revisions: List[StoredEntryType] = []  # the data for each revision
-        self._current_revision_index: int = 0  # the index into the above for the current data
-        self._saved_revision_index: int = 0  # the index into the above for the saved version
+        self._current_revision_index: int = (
+            0  # the index into the above for the current data
+        )
+        self._saved_revision_index: int = (
+            0  # the index into the above for the saved version
+        )
         self._store_entry(initial_state)
 
     @property

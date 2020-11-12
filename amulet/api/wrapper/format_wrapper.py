@@ -57,7 +57,8 @@ class FormatWrapper:
         self._selection = SelectionGroup(
             [
                 SelectionBox(
-                    (-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000),
+                    (-30_000_000, 0, -30_000_000),
+                    (30_000_000, 256, 30_000_000),
                 )
             ]
         )
@@ -349,7 +350,11 @@ class FormatWrapper:
             raise ChunkLoadError(e)
 
     def _load_chunk(
-        self, cx: int, cz: int, dimension: Dimension, recurse: bool = True,
+        self,
+        cx: int,
+        cz: int,
+        dimension: Dimension,
+        recurse: bool = True,
     ) -> "Chunk":
         """
         Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
@@ -372,7 +377,11 @@ class FormatWrapper:
         chunk_palette: AnyNDArray
         chunk = self._unpack(translator, game_version, chunk, chunk_palette)
         return self._convert_to_load(
-            chunk, translator, game_version, dimension, recurse=recurse,
+            chunk,
+            translator,
+            game_version,
+            dimension,
+            recurse=recurse,
         )
 
     @staticmethod
@@ -418,7 +427,11 @@ class FormatWrapper:
 
         # translate the data to universal format
         chunk = translator.to_universal(
-            game_version, self.translation_manager, chunk, get_chunk_callback, recurse,
+            game_version,
+            self.translation_manager,
+            chunk,
+            get_chunk_callback,
+            recurse,
         )
 
         chunk.changed = False
@@ -443,7 +456,10 @@ class FormatWrapper:
         self._changed = True
 
     def _commit_chunk(
-        self, chunk: "Chunk", dimension: Dimension, recurse: bool = True,
+        self,
+        chunk: "Chunk",
+        dimension: Dimension,
+        recurse: bool = True,
     ):
         """
         Saves a universal amulet.api.chunk.Chunk object
@@ -505,11 +521,18 @@ class FormatWrapper:
 
         # translate from universal format to version format
         return translator.from_universal(
-            chunk_version, self.translation_manager, chunk, get_chunk_callback, recurse,
+            chunk_version,
+            self.translation_manager,
+            chunk,
+            get_chunk_callback,
+            recurse,
         )
 
     def _pack(
-        self, chunk: "Chunk", translator: "Translator", chunk_version: VersionNumberAny,
+        self,
+        chunk: "Chunk",
+        translator: "Translator",
+        chunk_version: VersionNumberAny,
     ) -> Tuple["Chunk", AnyNDArray]:
         """Pack the chunk data into the format required by the encoder.
         This includes converting the string names to numerical formats for the versions that require it."""

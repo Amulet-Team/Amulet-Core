@@ -305,7 +305,10 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
         return (cx, cz) in self._chunks
 
     def _encode(
-        self, chunk: Chunk, chunk_palette: AnyNDArray, interface: MCStructureInterface,
+        self,
+        chunk: Chunk,
+        chunk_palette: AnyNDArray,
+        interface: MCStructureInterface,
     ):
         return interface.encode(
             chunk,

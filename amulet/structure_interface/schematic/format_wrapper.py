@@ -73,8 +73,8 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         block_entities: amulet_nbt.TAG_List = schematic.get(
             "TileEntities", amulet_nbt.TAG_List()
         )
-        blocks: numpy.ndarray = schematic["Blocks"].value.astype(numpy.uint8).astype(
-            numpy.uint16
+        blocks: numpy.ndarray = (
+            schematic["Blocks"].value.astype(numpy.uint8).astype(numpy.uint16)
         )
         if "AddBlocks" in schematic:
             add_blocks = schematic["AddBlocks"]
@@ -248,7 +248,10 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         return (cx, cz) in self._chunks
 
     def _pack(
-        self, chunk: "Chunk", translator: "Translator", chunk_version: VersionNumberAny,
+        self,
+        chunk: "Chunk",
+        translator: "Translator",
+        chunk_version: VersionNumberAny,
     ) -> Tuple["Chunk", AnyNDArray]:
         version = self.translation_manager.get_version(
             *translator.translator_key(chunk_version)
@@ -264,7 +267,10 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         )
 
     def _encode(
-        self, chunk: Chunk, chunk_palette: AnyNDArray, interface: SchematicInterface,
+        self,
+        chunk: Chunk,
+        chunk_palette: AnyNDArray,
+        interface: SchematicInterface,
     ):
         return interface.encode(
             chunk,

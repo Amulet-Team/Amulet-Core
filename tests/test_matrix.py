@@ -25,7 +25,8 @@ class MatrixTestCase(unittest.TestCase):
         numpy.testing.assert_array_equal(
             numpy.matmul(
                 numpy.matmul(
-                    displacement_matrix(1, 2, 3), displacement_matrix(1, 2, 3),
+                    displacement_matrix(1, 2, 3),
+                    displacement_matrix(1, 2, 3),
                 ),
                 (2, 2, 2, 1),
             )[:3],

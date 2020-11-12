@@ -102,7 +102,9 @@ def serialise_entities(entities: List[Entity]) -> amulet_nbt.TAG_List:
     )
 
 
-def serialise_block_entities(block_entities: List[BlockEntity],) -> amulet_nbt.TAG_List:
+def serialise_block_entities(
+    block_entities: List[BlockEntity],
+) -> amulet_nbt.TAG_List:
     return amulet_nbt.TAG_List(
         [
             amulet_nbt.TAG_Compound(

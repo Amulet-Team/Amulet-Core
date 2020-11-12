@@ -149,7 +149,8 @@ def transform_matrix(
     rotation_transform = _rotation_matrix(*rotation, order=order)
     displacement_transform = displacement_matrix(*displacement)
     return numpy.matmul(
-        displacement_transform, numpy.matmul(rotation_transform, scale_transform),
+        displacement_transform,
+        numpy.matmul(rotation_transform, scale_transform),
     )
 
 
@@ -174,5 +175,6 @@ def inverse_transform_matrix(
     )
     displacement_transform = displacement_matrix(*-numpy.asarray(displacement))
     return numpy.matmul(
-        scale_transform, numpy.matmul(rotation_transform, displacement_transform),
+        scale_transform,
+        numpy.matmul(rotation_transform, displacement_transform),
     )

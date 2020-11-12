@@ -185,7 +185,10 @@ class BaseLevel:
         return self.get_chunk(cx, cz, dimension).get_block(offset_x, y, offset_z)
 
     def _chunk_box(
-        self, cx: int, cz: int, sub_chunk_size: Optional[int] = None,
+        self,
+        cx: int,
+        cz: int,
+        sub_chunk_size: Optional[int] = None,
     ):
         """Get a SelectionBox containing the whole of a given chunk"""
         if sub_chunk_size is None:
@@ -326,7 +329,10 @@ class BaseLevel:
         for (src_cx, src_cz), box in self.get_coord_box(
             dimension, selection, yield_missing_chunks=yield_missing_chunks
         ):
-            dst_full_box = SelectionBox(offset + box.min, offset + box.max,)
+            dst_full_box = SelectionBox(
+                offset + box.min,
+                offset + box.max,
+            )
 
             first_chunk = block_coords_to_chunk_coords(
                 dst_full_box.min_x,
