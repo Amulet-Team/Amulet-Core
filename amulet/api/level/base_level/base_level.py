@@ -633,12 +633,11 @@ class BaseLevel:
         z: int,
         dimension: Dimension,
         version: VersionIdentifierType,
-    ) -> Tuple[Union[Block, Entity], Optional[BlockEntity]]:
+    ) -> Union[Tuple[Block, BlockEntity], Tuple[Entity, None]]:
         """
         Get a block at the specified location and convert it to the format of the version specified
         Note the odd return format. In most cases this will return (Block, None) or (Block, BlockEntity)
         but in select cases like item frames may return (Entity, None)
-
         :param x: The X coordinate of the desired block
         :param y: The Y coordinate of the desired block
         :param z: The Z coordinate of the desired block
@@ -666,16 +665,15 @@ class BaseLevel:
         dimension: Dimension,
         version: VersionIdentifierType,
         block: Block,
-        block_entity: BlockEntity,
+        block_entity: BlockEntity = None,
     ):
         """
         Convert the block and block_entity from the given version format to the universal format and set at the location
-
         :param x: The X coordinate of the desired block
         :param y: The Y coordinate of the desired block
         :param z: The Z coordinate of the desired block
         :param dimension: The dimension of the desired block
-        :param version: The version to get the block converted to.
+        :param version: The version to get the block converted from.
         :param block:
         :param block_entity:
         :return: The block at the given location converted to the `version` format. Note the odd return format.
@@ -695,8 +693,11 @@ class BaseLevel:
         ) = self.translation_manager.get_version(*version).block.to_universal(
             block, block_entity
         )
-        chunk.set_block(offset_x, y, offset_z, block),
-        chunk.block_entities[(x, y, z)] = block_entity
+        chunk.set_block(offset_x, y, offset_z, universal_block),
+        if isinstance(universal_block_entity, BlockEntity):
+            chunk.block_entities[(x, y, z)] = universal_block_entity
+        elif (x, y, z) in chunk.block_entities:
+            del chunk.block_entities[(x, y, z)]
 
     # def get_entities_in_box(
     #     self, box: "SelectionGroup"
