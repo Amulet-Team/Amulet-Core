@@ -93,7 +93,7 @@ class ChunkManager(DatabaseHistoryManager):
         """Does the ChunkManager have the chunk specified"""
         return self._has_entry(
             (dimension, cx, cz)
-        ) or self.world.world_wrapper.has_chunk(cx, cz, dimension)
+        ) or self.world.level_wrapper.has_chunk(cx, cz, dimension)
 
     def __contains__(self, item: DimensionCoordinates):
         return self._has_entry(item)
@@ -117,7 +117,7 @@ class ChunkManager(DatabaseHistoryManager):
                 else:
                     coords.add((cx, cz))
 
-        for cx, cz in self.world.world_wrapper.all_chunk_coords(dimension):
+        for cx, cz in self.world.level_wrapper.all_chunk_coords(dimension):
             if (cx, cz) not in coords and (cx, cz) not in deleted_chunks:
                 coords.add((cx, cz))
 
@@ -150,7 +150,7 @@ class ChunkManager(DatabaseHistoryManager):
 
     def _get_entry_from_world(self, key: EntryKeyType) -> EntryType:
         dimension, cx, cz = key
-        chunk = self.world.world_wrapper.load_chunk(cx, cz, dimension)
+        chunk = self.world.level_wrapper.load_chunk(cx, cz, dimension)
         chunk.block_palette = self.world.block_palette
         chunk.biome_palette = self.world.biome_palette
         return chunk
