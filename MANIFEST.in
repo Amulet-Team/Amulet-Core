@@ -1,7 +1,9 @@
-graft amulet*
-include README.md
-include requirements.txt
-include versioneer.py
-include amulet/_version.py
+include amulet/operations/*.py
+include amulet/libs/leveldb/LevelDB-MCPE-32.dll
+include amulet/libs/leveldb/LevelDB-MCPE-64.dll
+include amulet/libs/leveldb/libleveldb.dylib
+include amulet/libs/leveldb/libleveldb.so
+include amulet/img/*.*
+recursive-include amulet/world_interface/* *.*
 prune */__pycache__/*
 global-exclude *.py[cod]

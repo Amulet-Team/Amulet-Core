@@ -239,9 +239,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
 
             elif all(isinstance(i, (int, numpy.integer, slice)) for i in item):
                 item: Tuple[
-                    Tuple[int, int, int],
-                    Tuple[int, int, int],
-                    Tuple[int, int, int],
+                    Tuple[int, int, int], Tuple[int, int, int], Tuple[int, int, int],
                 ] = zip(*self._stack_slices(item))
 
                 return BoundedPartial3DArray.from_partial_array(
@@ -336,9 +334,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
                 raise KeyError(f"Tuple item must be of length 3, got {len(item)}")
             elif all(isinstance(i, (int, numpy.integer, slice)) for i in item):
                 stacked_slices: Tuple[
-                    Tuple[int, int, int],
-                    Tuple[int, int, int],
-                    Tuple[int, int, int],
+                    Tuple[int, int, int], Tuple[int, int, int], Tuple[int, int, int],
                 ] = self._stack_slices(item)
                 if (
                     isinstance(value, (int, numpy.integer))

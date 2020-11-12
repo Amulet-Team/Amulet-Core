@@ -341,18 +341,12 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         return (cx, cz) in self._chunk_to_section
 
     def _pack(
-        self,
-        chunk: "Chunk",
-        translator: "Translator",
-        chunk_version: VersionNumberAny,
+        self, chunk: "Chunk", translator: "Translator", chunk_version: VersionNumberAny,
     ) -> Tuple["Chunk", AnyNDArray]:
         return chunk, numpy.array(chunk.block_palette.blocks())
 
     def _encode(
-        self,
-        chunk: Chunk,
-        chunk_palette: AnyNDArray,
-        interface: ConstructionInterface,
+        self, chunk: Chunk, chunk_palette: AnyNDArray, interface: ConstructionInterface,
     ):
         return interface.encode(
             chunk,

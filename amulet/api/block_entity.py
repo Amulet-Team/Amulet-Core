@@ -42,10 +42,5 @@ class BlockEntity(EntityObject):
         """Creates a copy of this BlockEntity at a new location
         BlockEntities are stored in the chunk based on their location so location cannot be mutable"""
         return BlockEntity(
-            self._namespace,
-            self._base_name,
-            x,
-            y,
-            z,
-            copy.deepcopy(self._nbt),
+            self._namespace, self._base_name, x, y, z, copy.deepcopy(self._nbt),
         )

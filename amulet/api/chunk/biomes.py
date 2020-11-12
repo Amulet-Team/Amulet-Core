@@ -8,8 +8,7 @@ from amulet.api.partial_3d_array import UnboundedPartial3DArray
 
 class Biomes3D(UnboundedPartial3DArray):
     def __init__(
-        self,
-        input_array: Optional[Union[Dict[int, numpy.ndarray], "Biomes3D"]] = None,
+        self, input_array: Optional[Union[Dict[int, numpy.ndarray], "Biomes3D"]] = None,
     ):
         if input_array is None:
             input_array = {}

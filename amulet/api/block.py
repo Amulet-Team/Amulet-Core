@@ -228,9 +228,7 @@ class Block:
             )
 
     @staticmethod
-    def parse_blockstate_string(
-        blockstate: str,
-    ) -> Tuple[str, str, PropertyType]:
+    def parse_blockstate_string(blockstate: str,) -> Tuple[str, str, PropertyType]:
         match = Block.blockstate_regex.match(blockstate)
         namespace = match.group("namespace") or "minecraft"
         base_name = match.group("base_name")

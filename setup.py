@@ -1,12 +1,26 @@
 from setuptools import setup, find_packages
-import os
-import glob
-import shutil
-import versioneer
 
-# there were issues with other builds carrying over their cache
-for d in glob.glob("*.egg-info"):
-    shutil.rmtree(d)
+from json import load
+import os.path as op
+import os
+
+from tools.generate_version import generate_version_py, generate_version_from_dict
+
+
+version_py_path = op.join(op.dirname(__file__), "amulet", "version.py")
+
+VERSION_NUMBER = (0, 0, 0)
+VERSION_INT = -1
+VERSION_STAGE = "DEV"
+if op.exists(op.join(".", "version.json")):
+    with open(op.join(".", "version.json")) as fp:
+        generate_version_py(
+            save_path=version_py_path, *generate_version_from_dict(load(fp))
+        )
+else:
+    generate_version_py(
+        VERSION_NUMBER, VERSION_INT, VERSION_STAGE, save_path=version_py_path
+    )
 
 
 def remove_git_and_http_package_links(uris):
@@ -16,52 +30,53 @@ def remove_git_and_http_package_links(uris):
         yield uri
 
 
+world_interface_path = op.join(op.dirname(__file__), "amulet", "world_interface")
+operations_path = op.join(op.dirname(__file__), "amulet", "operations")
+libraries_path = op.join(op.dirname(__file__), "amulet", "libs")
+
+packs = find_packages(
+    include=["amulet*"], exclude=["*.command_line", "*.command_line.*"]
+)
+
 with open("./requirements.txt") as requirements_fp:
     required_packages = [
         line for line in remove_git_and_http_package_links(requirements_fp.readlines())
     ]
 
 package_data = [
-    os.path.relpath(path, "amulet") for path in
-    set(
-        glob.glob(
-            os.path.join(
-                "amulet",
-                "**",
-                "*.*"
-            ),
-            recursive=True
-        )
-    ) - set(
-        glob.glob(
-            os.path.join(
-                "amulet",
-                "**",
-                "*.py[cod]"
-            ),
-            recursive=True
-        )
-    )
+    op.join(root, filename)
+    for root, _, filenames in os.walk(world_interface_path)
+    for filename in filenames
+    if "__pycache__" not in root
 ]
+
+package_data.extend(
+    [
+        op.join(root, filename)
+        for root, _, filenames in os.walk(operations_path)
+        for filename in filenames
+        if "__pycache__" not in root
+    ]
+)
+package_data.extend(
+    [
+        op.join(root, filename)
+        for root, _, filenames in os.walk(libraries_path)
+        for filename in filenames
+        if "__pycache__" not in root
+    ]
+)
 
 setup(
     name="amulet-core",
-    version=versioneer.get_version(),
-    description="A Python library for reading/writing Minecraft's various save formats.",
-    author="James Clare, Ben Gothard et al.",
-    author_email="amuleteditor@gmail.com",
-    install_requires=required_packages,
-    packages=find_packages(),
+    version=".".join(map(str, VERSION_NUMBER)),
+    packages=packs,
+    include_package_data=True,
     package_data={"amulet": package_data},
-    cmdclass=versioneer.get_cmdclass(),
+    install_requires=required_packages,
     setup_requires=required_packages,
     dependency_links=[
         "https://github.com/Amulet-Team/Amulet-NBT",
         "https://github.com/gentlegiantJGC/PyMCTranslate",
     ],
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "Operating System :: OS Independent",
-    ],
-    python_requires='>=3.6',
 )
