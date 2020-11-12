@@ -183,7 +183,7 @@ class Chunk(Changeable):
                         new_block_palette.get_add_block(block)
                         for block in self._block_palette.blocks()
                     ],
-                    dtype=numpy.uint,
+                    dtype=numpy.uint32,
                 )
                 for cy in self.blocks.sub_chunks:
                     self.blocks.add_sub_chunk(
@@ -237,7 +237,7 @@ class Chunk(Changeable):
                         new_biome_palette.get_add_biome(biome)
                         for biome in self._biome_palette.biomes()
                     ],
-                    dtype=numpy.uint,
+                    dtype=numpy.uint32,
                 )
                 if self.biomes.dimension == 2:
                     self.biomes = biome_lut[self.biomes]

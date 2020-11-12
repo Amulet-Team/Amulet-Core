@@ -23,7 +23,7 @@ def brute_sort_objects(data) -> Tuple[numpy.ndarray, numpy.ndarray]:
 
 def brute_sort_objects_no_hash(data) -> Tuple[numpy.ndarray, numpy.ndarray]:
     unique = []
-    inverse = numpy.zeros(dtype=numpy.uint, shape=len(data))
+    inverse = numpy.zeros(dtype=numpy.uint32, shape=len(data))
     for i, d in enumerate(data):
         try:
             index = unique.index(d)
