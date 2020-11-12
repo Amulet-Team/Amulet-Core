@@ -73,8 +73,8 @@ class SchematicReader:
         block_entities: amulet_nbt.TAG_List = schematic.get(
             "TileEntities", amulet_nbt.TAG_List()
         )
-        blocks: numpy.ndarray = schematic["Blocks"].value.astype(numpy.uint8).astype(
-            numpy.uint16
+        blocks: numpy.ndarray = (
+            schematic["Blocks"].value.astype(numpy.uint8).astype(numpy.uint16)
         )
         if "AddBlocks" in schematic:
             add_blocks = schematic["AddBlocks"]

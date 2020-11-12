@@ -49,7 +49,10 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             self._data = MCStructureReader(self.path_or_buffer)
             self._selection = self._data.selection
         else:
-            self._data = MCStructureWriter(self.path_or_buffer, self._selection,)
+            self._data = MCStructureWriter(
+                self.path_or_buffer,
+                self._selection,
+            )
         self._open = True
 
     @property
@@ -146,7 +149,10 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             raise ObjectReadError("all_chunk_coords is only valid in read mode")
 
     def _encode(
-        self, chunk: Chunk, chunk_palette: AnyNDArray, interface: MCStructureInterface,
+        self,
+        chunk: Chunk,
+        chunk_palette: AnyNDArray,
+        interface: MCStructureInterface,
     ):
         return interface.encode(
             chunk,
