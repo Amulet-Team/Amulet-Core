@@ -19,6 +19,6 @@ PointCoordinatesNDArray = numpy.ndarray  # NDArray[(3, ), numpy.float]
 PointCoordinatesAny = Union[PointCoordinates, PointCoordinatesNDArray]
 CoordinatesAny = Union[BlockCoordinatesAny, PointCoordinatesAny]
 
-SubChunkNDArray = numpy.ndarray  # NDArray[(16, 16, 16), numpy.uint]
+SubChunkNDArray = numpy.ndarray  # NDArray[(16, 16, 16), numpy.uint32]
 
 BiomeType = str
