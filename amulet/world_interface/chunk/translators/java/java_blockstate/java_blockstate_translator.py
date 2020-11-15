@@ -48,7 +48,7 @@ class JavaBlockstateTranslator(Translator):
         version = translation_manager.get_version(*version_identifier)
         for index, block in enumerate(block_palette):
             block: Block
-            if version.is_waterloggable(block.namespaced_name):
+            if version.block.is_waterloggable(block.namespaced_name):
                 properties = block.properties
                 if "waterlogged" in properties:
                     waterlogged = properties["waterlogged"]

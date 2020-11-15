@@ -9,7 +9,7 @@ from amulet.api.selection import SelectionBox
 from amulet.api.data_types import AnyNDArray
 from amulet.world_interface.chunk import translators
 from amulet.api.block import Block
-from .mcstructure import MCStructureChunk
+from .chunk import MCStructureChunk
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator

@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Generator, TYPE_CHECKING
+from typing import Optional, Tuple, Generator, Set, TYPE_CHECKING
 import os
 import shutil
 import weakref
@@ -12,18 +12,18 @@ from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.history.history_manager import DatabaseHistoryManager
 
 if TYPE_CHECKING:
-    from amulet.api.world import World
+    from amulet.api.level import BaseLevel
 
 
 class ChunkDiskEntry(DiskRevisionManager):
     __slots__ = ("_world",)
 
-    def __init__(self, world: "World", directory: str, initial_state: EntryType):
+    def __init__(self, world: "BaseLevel", directory: str, initial_state: EntryType):
         self._world = weakref.ref(world)
         super().__init__(directory, initial_state)
 
     @property
-    def world(self) -> "World":
+    def world(self) -> "BaseLevel":
         return self._world()
 
     def _serialise(self, path: str, entry: Optional[Chunk]) -> Optional[str]:
@@ -52,14 +52,14 @@ class ChunkManager(DatabaseHistoryManager):
     DoesNotExistError = ChunkDoesNotExist
     LoadError = ChunkLoadError
 
-    def __init__(self, temp_dir: str, world: "World"):
+    def __init__(self, temp_dir: str, world: "BaseLevel"):
         super().__init__()
         self._temp_dir: str = temp_dir  # the location to serialise Chunks to
         shutil.rmtree(self._temp_dir, ignore_errors=True)
         self._world = weakref.ref(world)
 
     @property
-    def world(self) -> "World":
+    def world(self) -> "BaseLevel":
         return self._world()
 
     def changed_chunks(self) -> Generator[DimensionCoordinates, None, None]:
@@ -80,12 +80,48 @@ class ChunkManager(DatabaseHistoryManager):
             for chunk_key in unload_chunks:
                 del self._temporary_database[chunk_key]
 
+    def unload_unchanged(self):
+        """Unload all chunks that have not been marked as changed."""
+        unchanged = []
+        for key, chunk in self._temporary_database.items():
+            if not chunk.changed:
+                unchanged.append(key)
+        for key in unchanged:
+            del self._temporary_database[key]
+
     def has_chunk(self, dimension: Dimension, cx: int, cz: int) -> bool:
         """Does the ChunkManager have the chunk specified"""
-        return self._has_entry((dimension, cx, cz))
+        return self._has_entry(
+            (dimension, cx, cz)
+        ) or self.world.level_wrapper.has_chunk(cx, cz, dimension)
 
     def __contains__(self, item: DimensionCoordinates):
         return self._has_entry(item)
+
+    def all_chunk_coords(self, dimension: Dimension) -> Set[Tuple[int, int]]:
+        """The coordinates of every chunk in this world.
+        This is the combination of chunks saved to the world and chunks yet to be saved."""
+        coords = set()
+        deleted_chunks = set()
+        for dim, cx, cz in self._temporary_database.keys():
+            if dim == dimension:
+                if self._temporary_database[(dim, cx, cz)] is None:
+                    deleted_chunks.add((cx, cz))
+                else:
+                    coords.add((cx, cz))
+
+        for dim, cx, cz in self._history_database.keys():
+            if dim == dimension and (dim, cx, cz) not in self._temporary_database:
+                if self._history_database[(dim, cx, cz)].is_deleted:
+                    deleted_chunks.add((cx, cz))
+                else:
+                    coords.add((cx, cz))
+
+        for cx, cz in self.world.level_wrapper.all_chunk_coords(dimension):
+            if (cx, cz) not in coords and (cx, cz) not in deleted_chunks:
+                coords.add((cx, cz))
+
+        return coords
 
     def get_chunk(self, dimension: Dimension, cx: int, cz: int) -> Optional[Chunk]:
         """
@@ -114,7 +150,7 @@ class ChunkManager(DatabaseHistoryManager):
 
     def _get_entry_from_world(self, key: EntryKeyType) -> EntryType:
         dimension, cx, cz = key
-        chunk = self.world.world_wrapper.load_chunk(cx, cz, dimension)
+        chunk = self.world.level_wrapper.load_chunk(cx, cz, dimension)
         chunk.block_palette = self.world.block_palette
         chunk.biome_palette = self.world.biome_palette
         return chunk

@@ -11,11 +11,16 @@ import re
 
 import amulet_nbt as nbt
 
-from amulet.api.wrapper.world_format_wrapper import WorldFormatWrapper
+from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.utils import world_utils
 from amulet.utils.format_utils import check_all_exist, load_leveldat
 from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist, ChunkLoadError
-from amulet.api.data_types import ChunkCoordinates, RegionCoordinates
+from amulet.api.data_types import (
+    ChunkCoordinates,
+    RegionCoordinates,
+    VersionNumberInt,
+    PlatformType,
+)
 
 if TYPE_CHECKING:
     from amulet.api.data_types import Dimension
@@ -79,6 +84,12 @@ class AnvilRegion:
         for (cx, cz), (_, _) in self._chunks.items():
             if (cx, cz) not in self._committed_chunks:
                 yield cx + self.rx * 32, cz + self.rz * 32
+
+    def has_chunk(self, cx: int, cz: int) -> bool:
+        if (cx, cz) in self._committed_chunks:
+            return self._committed_chunks[(cx, cz)][1] is not None
+        else:
+            return (cx, cz) in self._chunks
 
     def _load(self):
         if not self._loaded:
@@ -298,6 +309,12 @@ class AnvilLevelManager:
         for region in self._regions.values():
             yield from region.all_chunk_coords()
 
+    def has_chunk(self, cx: int, cz: int) -> bool:
+        key = world_utils.chunk_coords_to_region_coords(cx, cz)
+        return key in self._regions and self._regions[key].has_chunk(
+            cx & 0x1F, cz & 0x1F
+        )
+
     def save(self, unload=True):
         # use put_chunk_data to actually upload modified chunks
         # run this to push those changes to disk
@@ -349,12 +366,13 @@ class AnvilLevelManager:
 class AnvilFormat(WorldFormatWrapper):
     def __init__(self, directory: str):
         super().__init__(directory)
+        self._platform = "java"
         self.root_tag: nbt.NBTFile = nbt.NBTFile()
         self._load_level_dat()
         self._levels: Dict[InternalDimension, AnvilLevelManager] = {}
         self._dimension_name_map: Dict["Dimension", InternalDimension] = {}
         self._mcc_support: Optional[bool] = None
-        self._lock = None
+        self._lock_time = None
 
     def _load_level_dat(self):
         """Load the level.dat file and check the image file"""
@@ -389,11 +407,17 @@ class AnvilFormat(WorldFormatWrapper):
         return True
 
     @property
-    def platform(self) -> str:
-        """Platform string"""
-        return "java"
+    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
+        return {"java": (True, True)}
 
-    def _get_version(self) -> int:
+    @property
+    def version(self) -> VersionNumberInt:
+        """The version number for the given platform the data is stored in eg (1, 16, 2)"""
+        if self._version == DefaultVersion:
+            self._version = self._get_version()
+        return self._version
+
+    def _get_version(self) -> VersionNumberInt:
         return (
             self.root_tag.get("Data", nbt.TAG_Compound())
             .get("DataVersion", nbt.TAG_Int(-1))
@@ -461,9 +485,9 @@ class AnvilFormat(WorldFormatWrapper):
         self._load_level_dat()
 
         # create the session.lock file (this has mostly been lifted from MCEdit)
-        self._lock = int(time.time() * 1000)
+        self._lock_time = int(time.time() * 1000)
         with open(os.path.join(self.path, "session.lock"), "wb") as f:
-            f.write(struct.pack(">Q", self._lock))
+            f.write(struct.pack(">Q", self._lock_time))
             f.flush()
             os.fsync(f.fileno())
 
@@ -483,28 +507,32 @@ class AnvilFormat(WorldFormatWrapper):
                     continue
                 self.register_dimension(dir_name)
 
-    def open(self):
+    def _open(self):
         """Open the database for reading and writing"""
         self._reload_world()
+
+    def _create(self, **kwargs):
+        # TODO: setup the database
+        raise NotImplementedError
 
     @property
     def has_lock(self) -> bool:
         """Verify that the world database can be read and written"""
-        try:
-            with open(os.path.join(self.path, "session.lock"), "rb") as f:
-                return struct.unpack(">Q", f.read(8))[0] == self._lock
-        except Exception:
-            return False
+        if self._has_lock:
+            try:
+                with open(os.path.join(self.path, "session.lock"), "rb") as f:
+                    return struct.unpack(">Q", f.read(8))[0] == self._lock_time
+            except:
+                return False
+        return False
 
-    def save(self):
+    def _save(self):
         """Save the data back to the disk database"""
-        self._verify_has_lock()
         for level in self._levels.values():
             level.save()
         # TODO: save other world data
-        self._changed = False
 
-    def close(self):
+    def _close(self):
         """Close the disk database"""
         pass
 
@@ -533,28 +561,32 @@ class AnvilFormat(WorldFormatWrapper):
         if self._has_dimension(dimension):
             yield from self._get_dimension(dimension).all_chunk_coords()
 
-    def delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
+    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
+        return self._has_dimension(dimension) and self._get_dimension(
+            dimension
+        ).has_chunk(cx, cz)
+
+    def _delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
         """Delete a chunk from a given dimension"""
         if self._has_dimension(dimension):
             self._get_dimension(dimension).delete_chunk(cx, cz)
 
-    def _put_raw_chunk_data(
-        self, cx: int, cz: int, data: Any, dimension: "Dimension", *args
-    ):
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: "Dimension"):
         """
         Actually stores the data from the interface to disk.
         """
         self._get_dimension(dimension).put_chunk_data(cx, cz, data)
 
     def _get_raw_chunk_data(
-        self, cx: int, cz: int, dimension: "Dimension", *args
+        self, cx: int, cz: int, dimension: "Dimension"
     ) -> nbt.NBTFile:
         """
-        Return the interface key and data to interface with given chunk coordinates.
+        Return the raw data as loaded from disk.
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
-        :return: The interface key for the get_interface method and the data to interface with.
+        :param dimension: The dimension to load the data from.
+        :return: The raw chunk data.
         """
         return self._get_dimension(dimension).get_chunk_data(cx, cz)
 

@@ -3,7 +3,7 @@ import numpy
 
 import amulet_nbt
 from amulet.api.wrapper import Interface
-from .construction import ConstructionSection
+from .section import ConstructionSection
 from amulet.api.chunk import Chunk
 from amulet.api.block import Block
 from amulet.api.selection import SelectionBox
@@ -29,9 +29,9 @@ class ConstructionInterface(Interface):
                 continue
             if section.blocks is not None:
                 shapex, shapey, shapez = section.shape
-                sx = section.sx - ((section.sx >> 4) << 4)
+                sx = section.sx % 16
                 sy = section.sy
-                sz = section.sz - ((section.sz >> 4) << 4)
+                sz = section.sz % 16
                 chunk.blocks[
                     sx : sx + shapex,
                     sy : sy + shapey,
@@ -68,6 +68,7 @@ class ConstructionInterface(Interface):
         boxes: List[SelectionBox] = None,
     ) -> List[ConstructionSection]:
         sections = []
+        boxes = boxes or []
         for box in boxes:
             cx, cz = chunk.cx, chunk.cz
             for cy in box.chunk_y_locations():

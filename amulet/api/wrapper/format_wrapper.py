@@ -1,24 +1,30 @@
 from __future__ import annotations
 
-from typing import Tuple, Any, Union, Generator, Dict, List, TYPE_CHECKING
+from typing import Tuple, Any, Generator, Dict, List, Optional, TYPE_CHECKING
 import copy
 import numpy
+import os
+import shutil
 
 import PyMCTranslate
 
 from amulet import log
 from amulet.api.registry import BlockManager
-from amulet.world_interface.chunk import interfaces
 from amulet.api.errors import (
     ChunkLoadError,
     ChunkDoesNotExist,
+    ObjectReadError,
     ObjectReadWriteError,
 )
 from amulet.api.data_types import (
     AnyNDArray,
     VersionNumberAny,
     ChunkCoordinates,
+    Dimension,
+    PlatformType,
+    VersionIdentifierType,
 )
+from amulet.api.selection import SelectionGroup, SelectionBox
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
@@ -26,27 +32,51 @@ if TYPE_CHECKING:
     from amulet.api.wrapper.chunk.translator import Translator
 
 
-class BaseFormatWrapper:
+DefaultPlatform = "Unknown Platform"
+DefaultVersion = (0, 0, 0)
+
+
+class FormatWrapper:
     """
     The Format class is a class that sits between the serialised world or structure data and the program using amulet-core.
     The Format class is used to access chunks from the serialised source in the universal format and write them back again.
-    The BaseFormat class holds the common methods shared by the sub-classes.
+    The FormatWrapper class holds the common methods shared by the sub-classes.
     """
 
-    def __init__(self):
+    def __init__(self, path: str):
+        if type(self) is FormatWrapper:
+            raise Exception(
+                "FormatWrapper is not directly usable. One of its subclasses must be used."
+            )
+        self._path = path
+        self._is_open = False
+        self._has_lock = False
         self._translation_manager = None
-        self._version = None
+        self._platform: Optional[PlatformType] = DefaultPlatform
+        self._version: Optional[VersionNumberAny] = DefaultVersion
+        self._selection = SelectionGroup(
+            [
+                SelectionBox(
+                    (-30_000_000, 0, -30_000_000),
+                    (30_000_000, 256, 30_000_000),
+                )
+            ]
+        )
         self._changed: bool = False
 
     @property
-    def readable(self) -> bool:
-        """Can this object have data read from it."""
-        return True
+    def sub_chunk_size(self) -> int:
+        return 16
 
     @property
-    def writeable(self) -> bool:
-        """Can this object have data written to it."""
-        return True
+    def path(self) -> str:
+        """The path to the data on disk."""
+        return self._path
+
+    @property
+    def world_name(self) -> str:
+        """The name of the world"""
+        raise NotImplementedError
 
     @property
     def translation_manager(self) -> PyMCTranslate.TranslationManager:
@@ -57,7 +87,13 @@ class BaseFormatWrapper:
 
     @translation_manager.setter
     def translation_manager(self, value: PyMCTranslate.TranslationManager):
+        # TODO: this should not be settable.
         self._translation_manager = value
+
+    @property
+    def exists(self) -> bool:
+        """Does some data exist at the specified path."""
+        return os.path.exists(self.path)
 
     @staticmethod
     def is_valid(path: str) -> bool:
@@ -67,25 +103,30 @@ class BaseFormatWrapper:
         :param path: The path of the object to load.
         :return: True if the world can be loaded by this format, False otherwise.
         """
-        raise NotImplementedError()
-
-    @property
-    def platform(self) -> str:
-        """Platform string ("bedrock" / "java" / ...)"""
         raise NotImplementedError
 
     @property
-    def version(self) -> Union[int, Tuple[int, ...]]:
-        """Platform string ("bedrock" / "java" / ...)"""
-        if self._version is None:
-            self._version = self._get_version()
+    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
+        """The valid platform and version combinations that this object can accept.
+        This is used when setting the platform and version in the create_and_open method
+        to verify that the platform and version are valid.
+
+        :return: A tuple of tuples containing the platform followed by two booleans to determine if numerical and blockstate are valid respectively
+        """
+        raise NotImplementedError
+
+    @property
+    def platform(self) -> PlatformType:
+        """Platform string the data is stored in (eg "bedrock" / "java" / ...)"""
+        return self._platform
+
+    @property
+    def version(self) -> VersionNumberAny:
+        """The version number for the given platform the data is stored in eg (1, 16, 2)"""
         return self._version
 
-    def _get_version(self) -> Union[int, Tuple[int, ...]]:
-        raise NotImplementedError
-
     @property
-    def max_world_version(self) -> Tuple[str, Union[int, Tuple[int, ...]]]:
+    def max_world_version(self) -> VersionIdentifierType:
         """The version the world was last opened in
         This should be greater than or equal to the chunk versions found within"""
         return self.platform, self.version
@@ -94,12 +135,45 @@ class BaseFormatWrapper:
     def changed(self) -> bool:
         return self._changed
 
+    @property
+    def dimensions(self) -> List[Dimension]:
+        """A list of all the dimensions contained in the world"""
+        raise NotImplementedError
+
+    @property
+    def can_add_dimension(self) -> bool:
+        """Can external code register a new dimension.
+        If False register_dimension will have no effect."""
+        raise NotImplementedError
+
+    def register_dimension(self, dimension_internal: Any, dimension_name: Dimension):
+        """
+        Register a new dimension.
+        :param dimension_internal: The internal representation of the dimension
+        :param dimension_name: The name of the dimension shown to the user
+        :return:
+        """
+        raise NotImplementedError
+
+    @property
+    def requires_selection(self) -> bool:
+        """Does this object require that a selection be defined when creating it from scratch?"""
+        return False
+
+    @property
+    def multi_selection(self) -> bool:
+        """Does this object support having multiple selection boxes.
+        If False it will be given exactly 1 selection.
+        If True can be given 0 or more."""
+        return False
+
+    @property
+    def selection(self) -> SelectionGroup:
+        """The area that all chunk data must fit within."""
+        return self._selection.copy()
+
     def _get_interface(self, max_world_version, raw_chunk_data=None) -> "Interface":
-        if raw_chunk_data:
-            key = self._get_interface_key(raw_chunk_data)
-        else:
-            key = max_world_version
-        return interfaces.loader.get(key)
+        raise NotImplementedError
 
     def _get_interface_and_translator(
         self, max_world_version, raw_chunk_data=None
@@ -110,64 +184,176 @@ class BaseFormatWrapper:
         )
         return interface, translator, version_identifier
 
-    def _get_interface_key(self, raw_chunk_data) -> Any:
+    def create_and_open(
+        self,
+        platform: PlatformType,
+        version: VersionNumberAny,
+        selection: Optional[SelectionGroup] = None,
+        **kwargs,
+    ):
+        """Remove the data at the path and set up a new database.
+        You might want to call FormatWrapper.exists to check if something exists at the path
+        and warn the user they are going to overwrite existing data before calling this method."""
+        if self.is_open:
+            raise ObjectReadError(f"Cannot open {self} because it was already opened.")
+        if os.path.isdir(self.path):
+            shutil.rmtree(self.path, ignore_errors=True)
+
+        if (
+            platform not in self.valid_formats or len(self.valid_formats[platform]) < 2
+        ):  # check that the platform and version are valid
+            raise ObjectReadError(
+                f"{platform} is not a valid platform for this wrapper."
+            )
+        translator_version = self.translation_manager.get_version(platform, version)
+        if translator_version.has_abstract_format:  # numerical
+            if not self.valid_formats[platform][0]:
+                raise ObjectReadError(
+                    f"The version given ({version}) is from the numerical format but this wrapper does not support the numerical format."
+                )
+        else:
+            if not self.valid_formats[platform][1]:
+                raise ObjectReadError(
+                    f"The version given ({version}) is from the blockstate format but this wrapper does not support the blockstate format."
+                )
+
+        if self.requires_selection:
+            if not isinstance(selection, SelectionGroup):
+                raise ObjectReadError("A selection was required but one was not given.")
+            if self.multi_selection:
+                self._selection = selection
+            else:
+                if not selection.selection_boxes:
+                    raise ObjectReadError(
+                        "A single selection was required but none were given."
+                    )
+                self._selection = SelectionGroup(
+                    sorted(
+                        selection.selection_boxes, reverse=True, key=lambda b: b.volume
+                    )[0]
+                )
+        else:
+            self._selection = SelectionGroup(
+                [
+                    SelectionBox(
+                        (-30_000_000, -30_000_000, -30_000_000),
+                        (30_000_000, 30_000_000, 30_000_000),
+                    )
+                ]
+            )
+
+        self._platform = platform
+        self._version = version
+        self._create(**kwargs)
+        self._is_open = True
+        self._has_lock = True
+
+    def _create(self, **kwargs):
+        """Set up the database from scratch."""
         raise NotImplementedError
 
     def open(self):
         """Open the database for reading and writing"""
+        if self.is_open:
+            raise ObjectReadError(f"Cannot open {self} because it was already opened.")
+        self._open()
+        self._is_open = True
+        self._has_lock = True
+
+    def _open(self):
         raise NotImplementedError
+
+    @property
+    def is_open(self):
+        """Has the object been opened."""
+        return self._is_open
 
     @property
     def has_lock(self) -> bool:
         """Verify that the world database can be read and written"""
-        raise NotImplementedError
+        return self._has_lock
 
     def _verify_has_lock(self):
-        """Ensure that the Format has a lock on the world. Throw WorldAccessException if not"""
-        if not self.has_lock:
+        """Ensure that the FormatWrapper is open and has a lock on the object.
+
+        :return: None
+        :raises: ObjectReadWriteError if the FormatWrapper does not have a lock on the object.
+        """
+        if not self.is_open:
             raise ObjectReadWriteError(
-                "The world has been opened somewhere else or the .open() method was not called"
+                f"The object {self} was never opened. Call .open or .create_and_open to open it before accessing data."
+            )
+        elif not self.has_lock:
+            raise ObjectReadWriteError(
+                f"The lock on the object {self} has been lost. It was probably opened somewhere else."
             )
 
     def save(self):
         """Save the data back to the disk database"""
+        self._verify_has_lock()
+        self._save()
+        self._changed = False
+
+    def _save(self):
         raise NotImplementedError
 
     def close(self):
         """Close the disk database"""
+        if self.is_open:
+            self._is_open = False
+            self._has_lock = False
+            self._close()
+
+    def _close(self):
         raise NotImplementedError
 
     def unload(self):
         """Unload data stored in the Format class"""
         raise NotImplementedError
 
-    def all_chunk_coords(self, *args) -> Generator[ChunkCoordinates, None, None]:
-        """A generator of all chunk coords"""
+    def all_chunk_coords(
+        self, dimension: Dimension
+    ) -> Generator[ChunkCoordinates, None, None]:
+        """A generator of all chunk coords in the given dimension"""
         raise NotImplementedError
 
-    def load_chunk(self, cx: int, cz: int, *args) -> "Chunk":
+    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
+        """Does the chunk exist in the world database?
+
+        :param cx: The x coordinate of the chunk.
+        :param cz: The z coordinate of the chunk.
+        :param dimension: The dimension to load the chunk from.
+        :return: True if the chunk exists. Calling load_chunk on this chunk may still throw ChunkLoadError
+        """
+        raise NotImplementedError
+
+    def load_chunk(self, cx: int, cz: int, dimension: Dimension) -> "Chunk":
         """
         Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
+        :param dimension: The dimension to load the chunk from.
         :return: The chunk at the given coordinates.
+        :raises: ChunkLoadError or ChunkDoesNotExist as is relevant.
         """
-        if not self.readable:
-            raise ChunkLoadError("This object is not readable")
         try:
-            return self._load_chunk(cx, cz, *args)
+            self._verify_has_lock()
+        except ObjectReadWriteError as e:
+            raise ChunkLoadError(e)
+        try:
+            return self._load_chunk(cx, cz, dimension)
         except ChunkDoesNotExist as e:
             raise e
-        except Exception:
+        except Exception as e:
             log.error(f"Error loading chunk {cx} {cz}", exc_info=True)
-            raise ChunkLoadError
+            raise ChunkLoadError(e)
 
     def _load_chunk(
         self,
         cx: int,
         cz: int,
-        *args,
+        dimension: Dimension,
         recurse: bool = True,
     ) -> "Chunk":
         """
@@ -175,12 +361,13 @@ class BaseFormatWrapper:
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
+        :param dimension: The dimension to load the chunk from.
         :param recurse: bool: look in boundary chunks if required to fully define data
         :return: The chunk at the given coordinates.
         """
 
         # Gets an interface (the code that actually reads the chunk data)
-        raw_chunk_data = self._get_raw_chunk_data(cx, cz, *args)
+        raw_chunk_data = self.get_raw_chunk_data(cx, cz, dimension)
         interface, translator, game_version = self._get_interface_and_translator(
             self.max_world_version, raw_chunk_data
         )
@@ -193,12 +380,13 @@ class BaseFormatWrapper:
             chunk,
             translator,
             game_version,
-            *args,
+            dimension,
             recurse=recurse,
         )
 
+    @staticmethod
     def _decode(
-        self, interface: "Interface", cx: int, cz: int, raw_chunk_data: Any
+        interface: "Interface", cx: int, cz: int, raw_chunk_data: Any
     ) -> Tuple["Chunk", AnyNDArray]:
         return interface.decode(cx, cz, raw_chunk_data)
 
@@ -218,7 +406,7 @@ class BaseFormatWrapper:
         chunk: "Chunk",
         translator: "Translator",
         game_version: VersionNumberAny,
-        *args,
+        dimension: Dimension,
         recurse: bool = True,
     ) -> "Chunk":
         # set up a callback that translator can use to get chunk data
@@ -230,7 +418,7 @@ class BaseFormatWrapper:
                 cx_, cz_ = cx + x, cz + z
                 if (cx_, cz_) not in chunk_cache:
                     chunk_cache[(cx_, cz_)] = self._load_chunk(
-                        cx_, cz_, *args, recurse=False
+                        cx_, cz_, dimension, recurse=False
                     )
                 return chunk_cache[(cx_, cz_)]
 
@@ -249,18 +437,20 @@ class BaseFormatWrapper:
         chunk.changed = False
         return chunk
 
-    def commit_chunk(self, chunk: "Chunk", *args):
+    def commit_chunk(self, chunk: "Chunk", dimension: Dimension):
         """
         Save a universal format chunk to the Format database (not the disk database)
         call save method to write changed chunks back to the disk database
         :param chunk: The chunk object to translate and save
+        :param dimension: The dimension to commit the chunk to.
         :return:
         """
-        if not self.writeable:
-            log.error("This object is not writeable")
-            return
         try:
-            self._commit_chunk(copy.deepcopy(chunk), *args)
+            self._verify_has_lock()
+        except ObjectReadWriteError as e:
+            log.error(e)
+        try:
+            self._commit_chunk(copy.deepcopy(chunk), dimension)
         except Exception:
             log.error(f"Error saving chunk {chunk}", exc_info=True)
         self._changed = True
@@ -268,7 +458,7 @@ class BaseFormatWrapper:
     def _commit_chunk(
         self,
         chunk: "Chunk",
-        *args,
+        dimension: Dimension,
         recurse: bool = True,
     ):
         """
@@ -288,7 +478,7 @@ class BaseFormatWrapper:
         chunk, chunk_palette = self._pack(chunk, translator, chunk_version)
         raw_chunk_data = self._encode(chunk, chunk_palette, interface)
 
-        self._put_raw_chunk_data(cx, cz, raw_chunk_data, *args)
+        self.put_raw_chunk_data(cx, cz, raw_chunk_data, dimension)
 
     def _convert_to_save(
         self,
@@ -354,21 +544,45 @@ class BaseFormatWrapper:
         """Encode the data to the raw format as saved on disk."""
         return interface.encode(chunk, chunk_palette, self.max_world_version)
 
-    def delete_chunk(self, cx: int, cz: int, *args):
+    def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
+        self._delete_chunk(cx, cz, dimension)
+        self._changed = True
+
+    def _delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         raise NotImplementedError
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, *args):
+    def put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
         """
         Actually stores the data from the interface to disk.
         """
-        raise NotImplementedError()
+        self._verify_has_lock()
+        self._put_raw_chunk_data(cx, cz, data, dimension)
 
-    def _get_raw_chunk_data(self, cx: int, cz: int, *args) -> Any:
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
         """
-        Return the interface key and data to interface with given chunk coordinates.
+        Actually stores the data from the interface to disk.
+        """
+        raise NotImplementedError
+
+    def get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> Any:
+        """
+        Return the raw data as loaded from disk.
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
+        :param dimension: The dimension to load the data from.
         :return: The raw chunk data.
         """
-        raise NotImplementedError()
+        self._verify_has_lock()
+        return self._get_raw_chunk_data(cx, cz, dimension)
+
+    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> Any:
+        """
+        Return the raw data as loaded from disk.
+
+        :param cx: The x coordinate of the chunk.
+        :param cz: The z coordinate of the chunk.
+        :param dimension: The dimension to load the data from.
+        :return: The raw chunk data.
+        """
+        raise NotImplementedError

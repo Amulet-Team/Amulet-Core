@@ -19,8 +19,8 @@ import amulet_nbt as nbt
 
 from amulet.utils.format_utils import check_all_exist
 from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist
-from amulet.api.data_types import ChunkCoordinates
-from amulet.api.wrapper.world_format_wrapper import WorldFormatWrapper
+from amulet.api.data_types import ChunkCoordinates, VersionNumberTuple, PlatformType
+from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.world_interface.chunk import interfaces
 from amulet.libs.leveldb import LevelDB
 
@@ -108,6 +108,13 @@ class LevelDBLevelManager:
             return self._levels[internal_dimension]
         else:
             return set()
+
+    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
+        internal_dimension = self._get_internal_dimension(dimension)
+        return (
+            internal_dimension in self._levels
+            and (cx, cz) in self._levels[internal_dimension]
+        )
 
     def _add_chunk(self, key_: bytes, has_level: bool = False):
         if has_level:
@@ -219,6 +226,7 @@ class LevelDBFormat(WorldFormatWrapper):
     def __init__(self, directory: str):
         super().__init__(directory)
         self._lock = False
+        self._platform = "bedrock"
         self.root_tag: nbt.NBTFile = nbt.NBTFile()
         self._load_level_dat()
         self._level_manager: Optional[LevelDBLevelManager] = None
@@ -243,9 +251,15 @@ class LevelDBFormat(WorldFormatWrapper):
         return True
 
     @property
-    def platform(self) -> str:
-        """Platform string"""
-        return "bedrock"
+    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
+        return {"bedrock": (True, True)}
+
+    @property
+    def version(self) -> VersionNumberTuple:
+        """The version number for the given platform the data is stored in eg (1, 16, 2)"""
+        if self._version == DefaultVersion:
+            self._version = self._get_version()
+        return self._version
 
     def _get_version(self) -> Tuple[int, ...]:
         """The version the world was last opened in
@@ -318,23 +332,25 @@ class LevelDBFormat(WorldFormatWrapper):
         self._level_manager = LevelDBLevelManager(self.path)
         self._lock = True
 
-    def open(self):
+    def _open(self):
         """Open the database for reading and writing"""
         self._reload_world()
+
+    def _create(self, **kwargs):
+        # TODO: setup the database
+        raise NotImplementedError
 
     @property
     def has_lock(self) -> bool:
         """Verify that the world database can be read and written"""
-        # TODO: work out how to do this properly
-        return self._lock
+        if self._has_lock:
+            return True  # TODO: implement a check to ensure access to the database
+        return False
 
-    def save(self):
-        self._verify_has_lock()
+    def _save(self):
         self._level_manager.save()
-        self._changed = False
 
-    def close(self):
-        self._verify_has_lock()
+    def _close(self):
         self._level_manager.close()
 
     def unload(self):
@@ -347,30 +363,31 @@ class LevelDBFormat(WorldFormatWrapper):
         self._verify_has_lock()
         yield from self._level_manager.all_chunk_coords(dimension)
 
-    def delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
-        self._verify_has_lock()
+    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
+        return self._level_manager.has_chunk(cx, cz, dimension)
+
+    def _delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
         self._level_manager.delete_chunk(cx, cz, dimension)
 
     def _put_raw_chunk_data(
-        self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: "Dimension", *args
+        self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: "Dimension"
     ):
         """
         Actually stores the data from the interface to disk.
         """
-        self._verify_has_lock()
         return self._level_manager.put_chunk_data(cx, cz, data, dimension)
 
     def _get_raw_chunk_data(
-        self, cx: int, cz: int, dimension: "Dimension", *args
+        self, cx: int, cz: int, dimension: "Dimension"
     ) -> Dict[bytes, bytes]:
         """
-        Return the interface key and data to interface with given chunk coordinates.
+        Return the raw data as loaded from disk.
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
-        :return: The interface key for the get_interface method and the data to interface with.
+        :param dimension: The dimension to load the data from.
+        :return: The raw chunk data.
         """
-        self._verify_has_lock()
         return self._level_manager.get_chunk_data(cx, cz, dimension)
 
 
