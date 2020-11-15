@@ -14,7 +14,7 @@ This library provides the main world editing functionality for Amulet Map Editor
 
 ## Documentation
 
-Our online documentation can be found here: https://amulet-map-editor.readthedocs.io
+Our online documentation can be found here: https://amulet-core.readthedocs.io
 
 ## Installing
 1) Install Python 3.7
