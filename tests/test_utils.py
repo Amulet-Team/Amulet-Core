@@ -16,7 +16,9 @@ def get_temp_world_path(name: str) -> str:
     return os.path.join(TESTS_DIR, "worlds_temp", name)
 
 
-def create_temp_world(src_world_name: str, temp_world_name: Optional[str] = None) -> str:
+def create_temp_world(
+    src_world_name: str, temp_world_name: Optional[str] = None
+) -> str:
     """Copy the world to a temporary location and return this path.
 
     :param src_world_name: The name of a world in ./worlds_src
