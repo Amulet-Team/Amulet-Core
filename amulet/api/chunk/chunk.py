@@ -52,13 +52,13 @@ class Chunk(Changeable):
             self._status.value,
             self.misc,
         )
-        CacheDB.put(file_path, pickle.dumps(chunk_data))
+        CacheDB.put(file_path.encode("utf-8"), pickle.dumps(chunk_data))
 
     @classmethod
     def unpickle(
         cls, file_path: str, block_palette: BlockManager, biome_palette: BiomeManager
     ) -> Chunk:
-        chunk_data = pickle.loads(CacheDB.get(file_path))
+        chunk_data = pickle.loads(CacheDB.get(file_path.encode("utf-8")))
         self = cls(*chunk_data[:2])
         (
             self.blocks,
