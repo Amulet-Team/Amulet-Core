@@ -334,20 +334,22 @@ class WorldTestBaseCases:
             )
 
         @unittest.skipUnless(
-            os.path.exists(get_world_path("1.12.2 World to 1.13 World"))
-            and os.path.exists(get_world_path("1.13 World to 1.12.2 World")),
+            os.path.exists(get_world_path("Java 1.12.2"))
+            and os.path.exists(get_world_path("Java 1.13")),
             reason="Output worlds do not exist",
         )
         def test_save(self):
             version_string = self.world.level_wrapper.game_version_string
 
             if "1.12.2" in version_string:
-                world_name = "1.12.2 World to 1.13 World"
+                world_name = "Java 1.13"
+                world_name_temp = "Java 1.12.2 to Java 1.13"
             else:
-                world_name = "1.13 World to 1.12.2 World"
+                world_name = "Java 1.12.2"
+                world_name_temp = "Java 1.13 to Java 1.12.2"
 
             output_wrapper = load_format(
-                create_temp_world(world_name)
+                create_temp_world(world_name, world_name_temp)
             )
             output_wrapper.open()
 
@@ -399,12 +401,12 @@ class WorldTestBaseCases:
 
 class AnvilWorldTestCase(WorldTestBaseCases.WorldTestCase):
     def setUp(self):
-        self._setUp("1.12.2 World")
+        self._setUp("Java 1.12.2")
 
 
 class Anvil2WorldTestCase(WorldTestBaseCases.WorldTestCase):
     def setUp(self):
-        self._setUp("1.13 World")
+        self._setUp("Java 1.13")
 
     @unittest.skip
     def test_longarray(self):
