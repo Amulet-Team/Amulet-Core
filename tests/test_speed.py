@@ -43,5 +43,10 @@ class Anvil2WorldTestCase(WorldTestBaseCases.WorldTestCase):
         self._setUp("Java 1.13")
 
 
+class BedrockWorldTestCase(WorldTestBaseCases.WorldTestCase):
+    def setUp(self):
+        self._setUp("Bedrock 1.16")
+
+
 if __name__ == "__main__":
     unittest.main()
