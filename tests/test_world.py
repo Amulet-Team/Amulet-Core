@@ -357,7 +357,7 @@ class WorldTestBaseCases:
             self.world.close()
             output_wrapper.close()
 
-            clean_temp_world(world_name)
+            clean_temp_world(world_name_temp)
 
         @unittest.skip("Entity API currently being rewritten")
         def test_get_entities(
