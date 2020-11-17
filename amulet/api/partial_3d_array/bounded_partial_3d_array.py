@@ -66,6 +66,9 @@ class BoundedPartial3DArray(BasePartial3DArray):
                 array[relative_slices] = self._sections[sy][slices]
         return array
 
+    def __getattr__(self, item):
+        return getattr(self.__array__(), item)
+
     def __eq__(self, value):
         def get_array(default: bool):
             return self.from_partial_array(
