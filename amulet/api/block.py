@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 from sys import getsizeof
 import re
 from typing import Dict, Iterable, Tuple, Union
@@ -169,7 +168,7 @@ class Block:
 
         :return: A dictionary of the properties of the blockstate
         """
-        return copy.deepcopy(self._properties)
+        return dict(self._properties)
 
     @property
     def blockstate(self) -> str:
