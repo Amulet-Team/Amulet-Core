@@ -448,7 +448,3 @@ class Block:
         for eb in self.extra_blocks:
             size += getsizeof(eb)
         return size
-
-
-# some blocks that probably will not change. Keeping these in one place will make them easier to change if they do.
-UniversalAirBlock = Block("universal_minecraft", "air")

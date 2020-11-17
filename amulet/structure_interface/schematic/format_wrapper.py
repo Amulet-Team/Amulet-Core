@@ -1,124 +1,76 @@
 import os
-from typing import Optional, Tuple, Generator, TYPE_CHECKING, BinaryIO, Dict
+from typing import Optional, Union, Tuple, Generator, TYPE_CHECKING
 import numpy
-import copy
 
-import amulet_nbt
-
+from amulet import log
 from amulet.api.data_types import (
     AnyNDArray,
     VersionNumberAny,
-    Dimension,
-    PlatformType,
-    PointCoordinates,
-    ChunkCoordinates,
+    PathOrBuffer,
 )
 from amulet.api.registry import BlockManager
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
-from amulet.api.selection import SelectionBox, SelectionGroup
-from amulet.api.errors import ObjectReadError, ObjectWriteError, ChunkDoesNotExist
+from amulet.api.selection import SelectionGroup, SelectionBox
+from amulet.api.errors import ObjectReadError, ObjectWriteError
+from .schematic import SchematicWriter, SchematicReader, SchematicChunk
 from .interface import (
     JavaSchematicInterface,
-    BedrockSchematicInterface,
+    BedrockSchematicInerface,
     SchematicInterface,
 )
-from .data_types import BlockArrayType, BlockDataArrayType
-from .chunk import SchematicChunk
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator, Interface
 
 java_interface = JavaSchematicInterface()
-bedrock_interface = BedrockSchematicInterface()
+bedrock_interface = BedrockSchematicInerface()
 
 
 class SchematicFormatWrapper(StructureFormatWrapper):
-    def __init__(self, path: str):
+    def __init__(self, path: PathOrBuffer, mode: str = "r"):
         super().__init__(path)
-        self._chunks: Dict[
-            ChunkCoordinates,
-            Tuple[SelectionBox, BlockArrayType, BlockDataArrayType, list, list],
-        ] = {}
+        assert mode in ("r", "w"), 'Mode must be either "r" or "w".'
+        self._mode = mode
+        if isinstance(path, str):
+            assert path.endswith(".schematic"), 'Path must end with ".schematic"'
+            if mode == "r":
+                assert os.path.isfile(path), "File specified does not exist."
+        self._data: Optional[Union[SchematicWriter, SchematicReader]] = None
+        self._open = False
+        self._platform = "java"
+        self._version = (1, 12, 2)
+        self._selection: SelectionBox = SelectionBox((0, 0, 0), (0, 0, 0))
 
-    def _create(self, **kwargs):
-        self._chunks = {}
-
-    def open_from(self, f: BinaryIO):
-        schematic = amulet_nbt.load(f)
-        if any(key in schematic for key in ("Version", "Data Version", "BlockData")):
-            raise ObjectReadError("This file is not a legacy schematic file.")
-        materials = schematic.get("Materials", amulet_nbt.TAG_String()).value
-        if materials == "Alpha":
-            self._platform = "java"
-            self._version = (1, 12, 2)
-        elif materials == "Pocket":
-            self._platform = "bedrock"
-            self._version = (1, 12, 0)
+    def open(self):
+        """Open the database for reading and writing"""
+        if self._open:
+            return
+        if self._mode == "r":
+            assert (
+                isinstance(self.path_or_buffer, str)
+                and os.path.isfile(self.path_or_buffer)
+            ) or hasattr(self.path_or_buffer, "read"), "File specified does not exist."
+            self._data = SchematicReader(self.path_or_buffer)
+            self._platform = self._data.platform
+            self._selection = self._data.selection
         else:
-            raise Exception(
-                f'"{materials}" is not a supported platform for a schematic file.'
+            self._data = SchematicWriter(
+                self.path_or_buffer,
+                self.platform,
+                self._selection,
             )
-        self._chunks = {}
-        selection_box = SelectionBox(
-            (0, 0, 0),
-            (
-                schematic["Width"].value,
-                schematic["Height"].value,
-                schematic["Length"].value,
-            ),
-        )
-        self._selection = SelectionGroup(selection_box)
-        entities: amulet_nbt.TAG_List = schematic.get("Entities", amulet_nbt.TAG_List())
-        block_entities: amulet_nbt.TAG_List = schematic.get(
-            "TileEntities", amulet_nbt.TAG_List()
-        )
-        blocks: numpy.ndarray = (
-            schematic["Blocks"].value.astype(numpy.uint8).astype(numpy.uint16)
-        )
-        if "AddBlocks" in schematic:
-            add_blocks = schematic["AddBlocks"]
-            blocks = (
-                blocks
-                + (
-                    numpy.concatenate([[(add_blocks & 0xF0) >> 4], [add_blocks & 0xF]])
-                    .T.ravel()
-                    .astype(numpy.uint16)
-                    << 8
-                )[: blocks.size]
-            )
-        max_point = selection_box.max
-        temp_shape = (max_point[1], max_point[2], max_point[0])
-        blocks = numpy.transpose(blocks.reshape(temp_shape), (2, 0, 1))  # YZX => XYZ
-        data = numpy.transpose(
-            schematic["Data"].value.reshape(temp_shape), (2, 0, 1)
-        ).astype(numpy.uint8)
-        for cx, cz in selection_box.chunk_locations():
-            box = SelectionBox(
-                (cx * self.sub_chunk_size, 0, cz * self.sub_chunk_size),
-                (
-                    min((cx + 1) * self.sub_chunk_size, selection_box.size_x),
-                    selection_box.size_y,
-                    min((cz + 1) * self.sub_chunk_size, selection_box.size_z),
-                ),
-            )
-            self._chunks[(cx, cz)] = (box, blocks[box.slice], data[box.slice], [], [])
-        for e in block_entities:
-            if all(key in e for key in ("x", "y", "z")):
-                x, y, z = e["x"].value, e["y"].value, e["z"].value
-                if (x, y, z) in selection_box:
-                    cx = x >> 4
-                    cz = z >> 4
-                    self._chunks[(cx, cz)][3].append(e)
-        for e in entities:
-            if "Pos" in e:
-                pos: PointCoordinates = tuple(
-                    map(lambda t: float(t.value), e["Pos"].value)
-                )
-                if pos in selection_box:
-                    cx = int(pos[0]) >> 4
-                    cz = int(pos[2]) >> 4
-                    self._chunks[(cx, cz)][4].append(e)
+        self._open = True
+
+    @property
+    def readable(self) -> bool:
+        """Can this object have data read from it."""
+        return self._mode == "r"
+
+    @property
+    def writeable(self) -> bool:
+        """Can this object have data written to it."""
+        return self._mode == "w"
 
     @staticmethod
     def is_valid(path: str) -> bool:
@@ -131,12 +83,48 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         return os.path.isfile(path) and path.endswith(".schematic")
 
     @property
-    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
-        return {"java": (True, True), "bedrock": (True, True)}
+    def platform(self) -> str:
+        """Platform string ("bedrock" / "java" / ...)"""
+        return self._platform
+
+    @platform.setter
+    def platform(self, platform: str):
+        if self._open:
+            log.error(
+                "Construction platform cannot be changed after the object has been opened."
+            )
+            return
+        self._platform = platform
 
     @property
-    def extensions(self) -> Tuple[str, ...]:
-        return (".schematic",)
+    def version(self) -> Tuple[int, int, int]:
+        return self._version
+
+    @version.setter
+    def version(self, version: Tuple[int, int, int]):
+        if self._open:
+            log.error(
+                "Construction version cannot be changed after the object has been opened."
+            )
+            return
+        self._version = version
+
+    @property
+    def selection(self) -> SelectionGroup:
+        """The box that is selected"""
+        return SelectionGroup([self._selection])
+
+    @selection.setter
+    def selection(self, selection: SelectionGroup):
+        if self._open:
+            log.error(
+                "Construction selection cannot be changed after the object has been opened."
+            )
+            return
+        if selection.selection_boxes:
+            self._selection = selection.selection_boxes[0]
+        else:
+            raise Exception("Given selection box is empty")
 
     def _get_interface(
         self, max_world_version, raw_chunk_data=None
@@ -157,95 +145,29 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         )
         return interface, translator, version_identifier
 
-    def save_to(self, f: BinaryIO):
-        if self._platform == "java":
-            materials = "Alpha"
-        elif self._platform == "bedrock":
-            materials = "Pocket"
-        else:
-            raise ObjectWriteError(
-                f'"{self._platform}" is not a supported platform for a schematic file.'
-            )
+    @property
+    def has_lock(self) -> bool:
+        """Verify that the world database can be read and written"""
+        return True
 
-        selection = self._selection.selection_boxes[0]
+    def save(self):
+        """Save the data back to the disk database"""
+        pass
 
-        data = amulet_nbt.NBTFile(
-            amulet_nbt.TAG_Compound(
-                {
-                    "TileTicks": amulet_nbt.TAG_List(),
-                    "Width": amulet_nbt.TAG_Short(selection.size_x),
-                    "Height": amulet_nbt.TAG_Short(selection.size_y),
-                    "Length": amulet_nbt.TAG_Short(selection.size_z),
-                    "Materials": amulet_nbt.TAG_String(materials),
-                }
-            ),
-            "Schematic",
-        )
-
-        entities = []
-        block_entities = []
-        blocks = numpy.zeros(
-            selection.shape, dtype=numpy.uint16
-        )  # only 12 bits are actually used at most
-        block_data = numpy.zeros(
-            selection.shape, dtype=numpy.uint8
-        )  # only 4 bits are used
-
-        for (
-            selection_,
-            blocks_,
-            data_,
-            block_entities_,
-            entities_,
-        ) in self._chunks.values():
-            if selection_.intersects(selection):
-                box = selection_.create_moved_box(selection.min, subtract=True)
-                blocks[box.slice] = blocks_
-                block_data[box.slice] = data_
-                for be in block_entities_:
-                    coord_type = be["x"].__class__
-                    be["x"] = coord_type(be["x"] - selection.min_x)
-                    be["y"] = coord_type(be["y"] - selection.min_y)
-                    be["z"] = coord_type(be["z"] - selection.min_z)
-                    block_entities.append(be)
-                for e in entities_:
-                    coord_type = e["Pos"][0].__class__
-                    e["Pos"][0] = coord_type(e["Pos"][0] - selection.min_x)
-                    e["Pos"][1] = coord_type(e["Pos"][1] - selection.min_y)
-                    e["Pos"][2] = coord_type(e["Pos"][2] - selection.min_z)
-                    entities.append(e)
-
-        data["Entities"] = amulet_nbt.TAG_List(entities)
-        data["TileEntities"] = amulet_nbt.TAG_List(block_entities)
-        data["Data"] = amulet_nbt.TAG_Byte_Array(
-            numpy.transpose(block_data, (1, 2, 0))  # XYZ => YZX
-        )
-        data["Blocks"] = amulet_nbt.TAG_Byte_Array(
-            numpy.transpose((blocks & 0xFF).astype(numpy.uint8), (1, 2, 0))
-        )
-        if numpy.max(blocks) > 0xFF:
-            add_blocks = numpy.transpose(blocks & 0xF00, (1, 2, 0)) >> 8
-            data["AddBlocks"] = amulet_nbt.TAG_Byte_Array(
-                add_blocks[::2] + (add_blocks[1::2] << 4)
-            )
-        data.save_to(f)
-
-    def _close(self):
+    def close(self):
         """Close the disk database"""
-        self._chunks.clear()
+        self._data.close()
 
     def unload(self):
         """Unload data stored in the Format class"""
         pass
 
-    def all_chunk_coords(
-        self, dimension: Optional[Dimension] = None
-    ) -> Generator[Tuple[int, int], None, None]:
+    def all_chunk_coords(self, *args) -> Generator[Tuple[int, int], None, None]:
         """A generator of all chunk coords"""
-        yield from self._chunks.keys()
-
-    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
-        return (cx, cz) in self._chunks
+        if self._mode == "r":
+            yield from self._data.chunk_coords
+        else:
+            raise ObjectReadError("all_chunk_coords is only valid in read mode")
 
     def _pack(
         self,
@@ -305,40 +227,29 @@ class SchematicFormatWrapper(StructureFormatWrapper):
 
         return chunk
 
-    def _delete_chunk(self, cx: int, cz: int, dimension: Optional[Dimension] = None):
-        if (cx, cz) in self._chunks:
-            del self._chunks[(cx, cz)]
+    def delete_chunk(self, cx: int, cz: int, *args):
+        raise ObjectWriteError(
+            "delete_chunk is not a valid method for a schematic file"
+        )
 
-    def _put_raw_chunk_data(
-        self,
-        cx: int,
-        cz: int,
-        section: SchematicChunk,
-        dimension: Optional[Dimension] = None,
-    ):
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: SchematicChunk, *args):
         """
         Actually stores the data from the interface to disk.
         """
-        self._chunks[(cx, cz)] = (
-            section.selection,
-            section.blocks,
-            section.data,
-            section.block_entities,
-            section.entities,
-        )
+        if self._mode == "w":
+            self._data.write(data)
+        else:
+            raise ObjectWriteError("The schematic file is not open for writing.")
 
-    def _get_raw_chunk_data(
-        self, cx: int, cz: int, dimension: Optional[Dimension] = None
-    ) -> SchematicChunk:
+    def _get_raw_chunk_data(self, cx: int, cz: int, *args) -> SchematicChunk:
         """
-        Return the raw data as loaded from disk.
+        Return the interface key and data to interface with given chunk coordinates.
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
-        :param dimension: The dimension to load the data from.
         :return: The raw chunk data.
         """
-        if (cx, cz) in self._chunks:
-            return SchematicChunk(*copy.deepcopy(self._chunks[(cx, cz)]))
+        if self._mode == "r":
+            return self._data.read(cx, cz)
         else:
-            raise ChunkDoesNotExist
+            raise ObjectReadError("The schematic file is not open for reading.")

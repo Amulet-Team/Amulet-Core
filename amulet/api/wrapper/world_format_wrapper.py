@@ -1,31 +1,41 @@
+from typing import Tuple, Any, Union, Generator, List, Optional, TYPE_CHECKING
+import traceback
 import os
-import warnings
-from typing import Any, Generator, List, Tuple, Dict, TYPE_CHECKING
 
-from amulet import IMG_DIRECTORY
-from amulet.api.data_types import Dimension, PlatformType, ChunkCoordinates
-from .format_wrapper import FormatWrapper
-import amulet
+from amulet import log, IMG_DIRECTORY
+from amulet.api.data_types import ChunkCoordinates
+from .format_wrapper import BaseFormatWrapper
+
+if TYPE_CHECKING:
+    from amulet.api.chunk import Chunk
+    from amulet.api.data_types import Dimension
 
 missing_world_icon = os.path.abspath(
     os.path.join(IMG_DIRECTORY, "missing_world_icon.png")
 )
 
-if TYPE_CHECKING:
-    from amulet.api.wrapper import Interface
 
-
-class WorldFormatWrapper(FormatWrapper):
+class WorldFormatWrapper(BaseFormatWrapper):
     _missing_world_icon = missing_world_icon
 
     def __init__(self, world_path: str):
-        if type(self) is WorldFormatWrapper:
-            raise Exception(
-                "WorldFormatWrapper is not directly usable. One of its subclasses must be used."
-            )
-        super().__init__(world_path)
+        super().__init__()
+        self._path = world_path
         self._world_image_path = missing_world_icon
         self._changed: bool = False
+
+    @property
+    def sub_chunk_size(self) -> int:
+        return 16
+
+    @property
+    def chunk_size(self) -> Tuple[int, Union[int, None], int]:
+        return self.sub_chunk_size, self.sub_chunk_size * 16, self.sub_chunk_size
+
+    @property
+    def path(self) -> str:
+        """The path to the world directory"""
+        return self._path
 
     @property
     def world_name(self) -> str:
@@ -47,9 +57,8 @@ class WorldFormatWrapper(FormatWrapper):
     @property
     def world_path(self) -> str:
         """The path to the world directory"""
-        warnings.warn(
-            "Format.world_path is depreciated and will be removed in the future. Please used WorldFormatWrapper.path instead",
-            DeprecationWarning,
+        log.info(
+            f"Format.world_path is depreciated. Please used Format.path{traceback.format_exc()}"
         )
         return self._path
 
@@ -58,65 +67,68 @@ class WorldFormatWrapper(FormatWrapper):
         """The path to the world icon"""
         return self._world_image_path
 
-    @staticmethod
-    def is_valid(path: str) -> bool:
-        raise NotImplementedError
-
     @property
-    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
+    def dimensions(self) -> List["Dimension"]:
+        """A list of all the dimensions contained in the world"""
         raise NotImplementedError
 
-    @property
-    def can_add_dimension(self) -> bool:
-        """Can external code register a new dimension.
-        If False register_dimension will have no effect."""
-        return True
-
-    @property
-    def dimensions(self) -> List[Dimension]:
-        raise NotImplementedError
-
-    def register_dimension(self, dimension_internal: Any, dimension_name: Dimension):
-        raise NotImplementedError
-
-    def _get_interface(self, max_world_version, raw_chunk_data=None) -> "Interface":
-        if raw_chunk_data:
-            key = self._get_interface_key(raw_chunk_data)
-        else:
-            key = max_world_version
-        return amulet.world_interface.chunk.interfaces.loader.get(key)
-
-    def _get_interface_key(self, raw_chunk_data) -> Any:
-        raise NotImplementedError
-
-    def _create(self, **kwargs):
-        raise NotImplementedError
-
-    def _open(self):
-        raise NotImplementedError
-
-    def _save(self):
-        raise NotImplementedError
-
-    def _close(self):
-        raise NotImplementedError
-
-    def unload(self):
+    def register_dimension(
+        self, dimension_internal: Any, dimension_name: Optional["Dimension"] = None
+    ):
+        """
+        Register a new dimension.
+        :param dimension_internal: The internal representation of the dimension
+        :param dimension_name: The name of the dimension shown to the user
+        :return:
+        """
         raise NotImplementedError
 
     def all_chunk_coords(
-        self, dimension: Dimension
+        self, dimension: "Dimension"
     ) -> Generator[ChunkCoordinates, None, None]:
+        """A generator of all chunk coords in the given dimension"""
         raise NotImplementedError
 
-    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
+    def load_chunk(self, cx: int, cz: int, dimension: "Dimension") -> "Chunk":
+        """
+        Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
+
+        :param cx: The x coordinate of the chunk.
+        :param cz: The z coordinate of the chunk.
+        :param dimension: dimension
+        :return: The chunk at the given coordinates.
+        """
+        return super().load_chunk(cx, cz, dimension)
+
+    def commit_chunk(self, chunk: "Chunk", dimension: "Dimension"):
+        """
+        Save a universal format chunk to the Format database (not the disk database)
+        call save method to write changed chunks back to the disk database
+        :param chunk: The chunk object to translate and save
+        :param dimension: optional dimension
+        :return:
+        """
+        super().commit_chunk(chunk, dimension)
+
+    def delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
         raise NotImplementedError
 
-    def _delete_chunk(self, cx: int, cz: int, dimension: Dimension):
-        raise NotImplementedError
+    def _put_raw_chunk_data(
+        self, cx: int, cz: int, data: Any, dimension: "Dimension", *args
+    ):
+        """
+        Actually stores the data from the interface to disk.
+        """
+        raise NotImplementedError()
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
-        raise NotImplementedError
+    def _get_raw_chunk_data(
+        self, cx: int, cz: int, dimension: "Dimension", *args
+    ) -> Any:
+        """
+        Return the interface key and data to interface with given chunk coordinates.
 
-    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> Any:
-        raise NotImplementedError
+        :param cx: The x coordinate of the chunk.
+        :param cz: The z coordinate of the chunk.
+        :return: The interface key for the get_interface method and the data to interface with.
+        """
+        raise NotImplementedError()

@@ -91,9 +91,6 @@ class BlockEntityDict(UserDict):
             block_entity = block_entity.new_at_location(*coordinate)
         return block_entity
 
-    def __getitem__(self, item: Coordinate) -> BlockEntity:
-        return super().__getitem__(item)
-
     def __setitem__(self, coordinate: Coordinate, block_entity: BlockEntity) -> None:
         """ Set self[key] to value. """
         self.data[coordinate] = self._check_block_entity(coordinate, block_entity)

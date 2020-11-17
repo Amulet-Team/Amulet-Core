@@ -42,13 +42,13 @@ class ChunkDoesNotExist(EntryDoesNotExist, ChunkLoadError):
     pass
 
 
-class ObjectReadWriteError(Exception):
+class ObjectReadError(Exception):
     pass
 
 
-class ObjectReadError(ObjectReadWriteError):
+class ObjectWriteError(Exception):
     pass
 
 
-class ObjectWriteError(ObjectReadError):
+class ObjectReadWriteError(ObjectReadError, ObjectWriteError):
     pass

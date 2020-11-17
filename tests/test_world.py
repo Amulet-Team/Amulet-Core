@@ -2,8 +2,6 @@ import unittest
 
 import json
 import numpy
-import shutil
-import os
 
 from amulet.api.block import blockstate_to_block
 from amulet.api.chunk import Chunk
@@ -11,34 +9,14 @@ from amulet.api.errors import ChunkDoesNotExist
 from amulet.api.selection import SelectionBox, SelectionGroup
 from amulet.world_interface import load_world, load_format
 from amulet.utils.world_utils import decode_long_array, encode_long_array
-from tests.test_utils import (
-    get_world_path,
-    get_data_path,
-    get_temp_world_path as get_temp_world_path_,
-)
+from tests.test_utils import get_world_path, get_data_path
 from amulet.operations.clone import clone
 from amulet.operations.delete_chunk import delete_chunk
 from amulet.operations.fill import fill
 from amulet.operations.replace import replace
 
 
-def get_temp_world_path(world_name: str) -> str:
-    """Copy the world to a temporary location and return this path."""
-    src_path = get_world_path(world_name)
-    dst_path = get_temp_world_path_(world_name)
-    if os.path.isdir(dst_path):
-        shutil.rmtree(dst_path)
-
-    shutil.copytree(src_path, dst_path)
-    return dst_path
-
-
-def clean_temp_world(world_path: str):
-    """Remove the temporary world."""
-    if os.path.isdir(world_path):
-        shutil.rmtree(world_path)
-    elif os.path.isfile(world_path):
-        os.remove(world_path)
+import os.path as op
 
 
 class WorldTestBaseCases:
@@ -46,11 +24,10 @@ class WorldTestBaseCases:
 
     class WorldTestCase(unittest.TestCase):
         def _setUp(self, world_name):
-            self.world = load_world(get_temp_world_path(world_name))
+            self.world = load_world(get_world_path(world_name))
 
         def tearDown(self):
             self.world.close()
-            clean_temp_world(self.world.world_path)
 
         def test_get_block(self):
             self.assertEqual(
@@ -72,13 +49,13 @@ class WorldTestBaseCases:
 
         def test_get_blocks(self):
             selection_box = SelectionBox((0, 0, 0), (10, 10, 10))
-            for selection in [SelectionGroup(selection_box), selection_box]:
-                chunk, box = next(self.world.get_chunk_boxes("overworld", selection))
+            for selection in [SelectionGroup([selection_box]), selection_box]:
+                chunk, box = next(self.world.get_chunk_boxes(selection, "overworld"))
                 self.assertIsInstance(chunk, Chunk)
                 self.assertIsInstance(box, SelectionBox)
 
                 chunk, slices, _ = next(
-                    self.world.get_chunk_slice_box("overworld", selection)
+                    self.world.get_chunk_slices(selection, "overworld")
                 )
                 self.assertIsInstance(chunk, Chunk)
                 self.assertIsInstance(slices, tuple)
@@ -326,8 +303,7 @@ class WorldTestBaseCases:
                 _ = self.world.get_block(1, 70, 3, "overworld").blockstate
 
             self.assertEqual(
-                0,
-                len([x for x in self.world.get_chunk_slice_box("overworld", subbox1)]),
+                0, len([x for x in self.world.get_chunk_slices(subbox1, "overworld")])
             )
 
             self.world.undo()
@@ -347,33 +323,31 @@ class WorldTestBaseCases:
                 _ = self.world.get_block(1, 70, 3, "overworld").blockstate
 
             self.assertEqual(
-                0,
-                len([x for x in self.world.get_chunk_slice_box("overworld", subbox1)]),
+                0, len([x for x in self.world.get_chunk_slices(subbox1, "overworld")])
             )
 
         @unittest.skipUnless(
-            os.path.exists(get_world_path("1.12.2 World to 1.13 World"))
-            and os.path.exists(get_world_path("1.13 World to 1.12.2 World")),
+            op.exists(get_world_path("1.12.2 World to 1.13 World"))
+            and op.exists(get_world_path("1.13 World to 1.12.2 World")),
             reason="Output worlds do not exist",
         )
         def test_save(self):
+            output_wrapper = None
             version_string = self.world.world_wrapper.game_version_string
 
             if "1.12.2" in version_string:
                 output_wrapper = load_format(
-                    get_temp_world_path("1.12.2 World to 1.13 World")
+                    get_world_path("1.12.2 World to 1.13 World")
                 )
             else:
                 output_wrapper = load_format(
-                    get_temp_world_path("1.13 World to 1.12.2 World")
+                    get_world_path("1.13 World to 1.12.2 World")
                 )
             output_wrapper.open()
 
             self.world.save(output_wrapper)
             self.world.close()
             output_wrapper.close()
-
-            clean_temp_world(output_wrapper.path)
 
         @unittest.skip("Entity API currently being rewritten")
         def test_get_entities(

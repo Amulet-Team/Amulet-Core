@@ -142,8 +142,5 @@ class UnboundedPartial3DArray(BasePartial3DArray):
                 f"{item.__class__.__name__}({item}) is not a supported input for __getitem__"
             )
 
-    def __array__(self, dtype=None):
-        return self[:, :, :].__array__(dtype)
-
 
 from .bounded_partial_3d_array import BoundedPartial3DArray
