@@ -14,7 +14,7 @@ from tests.test_utils import (
     get_world_path,
     get_data_path,
     create_temp_world,
-    clean_temp_world
+    clean_temp_world,
 )
 from amulet.operations.clone import clone
 from amulet.operations.delete_chunk import delete_chunk
@@ -348,9 +348,7 @@ class WorldTestBaseCases:
                 world_name = "Java 1.12.2"
                 world_name_temp = "Java 1.13 to Java 1.12.2"
 
-            output_wrapper = load_format(
-                create_temp_world(world_name, world_name_temp)
-            )
+            output_wrapper = load_format(create_temp_world(world_name, world_name_temp))
             output_wrapper.open()
 
             self.world.save(output_wrapper)
@@ -407,31 +405,6 @@ class AnvilWorldTestCase(WorldTestBaseCases.WorldTestCase):
 class Anvil2WorldTestCase(WorldTestBaseCases.WorldTestCase):
     def setUp(self):
         self._setUp("Java 1.13")
-
-    @unittest.skip
-    def test_longarray(self):
-        with open(get_data_path("longarraytest.json")) as json_data:
-            test_data = json.load(json_data)
-
-        test_ran = False
-        for test_entry in test_data["tests"]:
-            test_ran = True
-            block_array = test_entry["block_array"]
-            long_array = test_entry["long_array"]
-            palette_size = test_entry["palette_size"]
-
-            self.assertTrue(
-                numpy.array_equal(
-                    block_array, decode_long_array(long_array, len(block_array))
-                )
-            )
-
-            self.assertTrue(
-                numpy.array_equal(long_array, encode_long_array(block_array))
-            )
-
-        # Make sure some test are ran in case the data file failed to load or has a wrong format.
-        self.assertTrue(test_ran)
 
 
 if __name__ == "__main__":
