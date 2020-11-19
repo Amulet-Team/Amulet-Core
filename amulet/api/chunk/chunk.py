@@ -4,7 +4,6 @@ from typing import Tuple, Union, Iterable, Dict
 import time
 import numpy
 import pickle
-import gzip
 
 from amulet.api.block import Block
 from amulet.api.registry import BlockManager
@@ -13,6 +12,7 @@ from amulet.api.chunk import Biomes, Blocks, Status, BlockEntityDict, EntityList
 from amulet.api.entity import Entity
 from amulet.api.data_types import ChunkCoordinates
 from amulet.api.history.changeable import Changeable
+from amulet.api.cache import CacheDB
 
 PointCoordinates = Tuple[int, int, int]
 SliceCoordinates = Tuple[slice, slice, slice]
@@ -52,15 +52,13 @@ class Chunk(Changeable):
             self._status.value,
             self.misc,
         )
-        with gzip.open(file_path, "wb") as fp:
-            pickle.dump(chunk_data, fp)
+        CacheDB.put(file_path.encode("utf-8"), pickle.dumps(chunk_data))
 
     @classmethod
     def unpickle(
         cls, file_path: str, block_palette: BlockManager, biome_palette: BiomeManager
     ) -> Chunk:
-        with gzip.open(file_path, "rb") as fp:
-            chunk_data = pickle.load(fp)
+        chunk_data = pickle.loads(CacheDB.get(file_path.encode("utf-8")))
         self = cls(*chunk_data[:2])
         (
             self.blocks,

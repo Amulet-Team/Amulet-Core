@@ -204,14 +204,14 @@ def _checkError(err):
 
 
 class LevelDB:
-    def __init__(self, path):
+    def __init__(self, path: str, create_if_missing: bool = False):
         self.db = None
-        self._open(path)
+        self._open(path, create_if_missing)
 
     def __del__(self):
         self.close()
 
-    def _open(self, path):
+    def _open(self, path: str, create_if_missing: bool = False):
         # Bloom filter: an efficient way to tell if something is in a cache.
         filter_policy = ldb.leveldb_filterpolicy_create_bloom(10)
         cache = ldb.leveldb_cache_create_lru(40 * 1024 * 1024)
@@ -219,7 +219,7 @@ class LevelDB:
         # Many of these options were pulled from Podshot/MCEdit-Unified
         ldb.leveldb_options_set_compression(options, 4)
         ldb.leveldb_options_set_filter_policy(options, filter_policy)
-        ldb.leveldb_options_set_create_if_missing(options, False)
+        ldb.leveldb_options_set_create_if_missing(options, create_if_missing)
         ldb.leveldb_options_set_write_buffer_size(options, 4 * 1024 * 1024)
         ldb.leveldb_options_set_cache(options, cache)
         ldb.leveldb_options_set_block_size(options, 163840)
