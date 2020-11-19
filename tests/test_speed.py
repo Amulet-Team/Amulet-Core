@@ -43,6 +43,7 @@ class Anvil2WorldTestCase(WorldTestBaseCases.WorldTestCase):
         self._setUp("Java 1.13")
 
 
+@unittest.skip
 class BedrockWorldTestCase(WorldTestBaseCases.WorldTestCase):
     def setUp(self):
         self._setUp("Bedrock 1.16")
