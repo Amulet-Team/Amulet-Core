@@ -2,7 +2,6 @@ import unittest
 
 import json
 import numpy
-import shutil
 import os
 
 from amulet.api.block import blockstate_to_block
@@ -14,7 +13,8 @@ from amulet.utils.world_utils import decode_long_array, encode_long_array
 from tests.test_utils import (
     get_world_path,
     get_data_path,
-    get_temp_world_path as get_temp_world_path_,
+    create_temp_world,
+    clean_temp_world,
 )
 from amulet.operations.clone import clone
 from amulet.operations.delete_chunk import delete_chunk
@@ -22,35 +22,17 @@ from amulet.operations.fill import fill
 from amulet.operations.replace import replace
 
 
-def get_temp_world_path(world_name: str) -> str:
-    """Copy the world to a temporary location and return this path."""
-    src_path = get_world_path(world_name)
-    dst_path = get_temp_world_path_(world_name)
-    if os.path.isdir(dst_path):
-        shutil.rmtree(dst_path)
-
-    shutil.copytree(src_path, dst_path)
-    return dst_path
-
-
-def clean_temp_world(world_path: str):
-    """Remove the temporary world."""
-    if os.path.isdir(world_path):
-        shutil.rmtree(world_path)
-    elif os.path.isfile(world_path):
-        os.remove(world_path)
-
-
 class WorldTestBaseCases:
     # Wrapped in another class, so it isn't executed on it's own.
 
     class WorldTestCase(unittest.TestCase):
         def _setUp(self, world_name):
-            self.world = load_world(get_temp_world_path(world_name))
+            self._world_name = world_name
+            self.world = load_world(create_temp_world(world_name))
 
         def tearDown(self):
             self.world.close()
-            clean_temp_world(self.world.world_path)
+            clean_temp_world(self._world_name)
 
         def test_get_block(self):
             self.assertEqual(
@@ -352,28 +334,28 @@ class WorldTestBaseCases:
             )
 
         @unittest.skipUnless(
-            os.path.exists(get_world_path("1.12.2 World to 1.13 World"))
-            and os.path.exists(get_world_path("1.13 World to 1.12.2 World")),
+            os.path.exists(get_world_path("Java 1.12.2"))
+            and os.path.exists(get_world_path("Java 1.13")),
             reason="Output worlds do not exist",
         )
         def test_save(self):
-            version_string = self.world.world_wrapper.game_version_string
+            version_string = self.world.level_wrapper.game_version_string
 
             if "1.12.2" in version_string:
-                output_wrapper = load_format(
-                    get_temp_world_path("1.12.2 World to 1.13 World")
-                )
+                world_name = "Java 1.13"
+                world_name_temp = "Java 1.12.2 to Java 1.13"
             else:
-                output_wrapper = load_format(
-                    get_temp_world_path("1.13 World to 1.12.2 World")
-                )
+                world_name = "Java 1.12.2"
+                world_name_temp = "Java 1.13 to Java 1.12.2"
+
+            output_wrapper = load_format(create_temp_world(world_name, world_name_temp))
             output_wrapper.open()
 
             self.world.save(output_wrapper)
             self.world.close()
             output_wrapper.close()
 
-            clean_temp_world(output_wrapper.path)
+            clean_temp_world(world_name_temp)
 
         @unittest.skip("Entity API currently being rewritten")
         def test_get_entities(
@@ -417,37 +399,12 @@ class WorldTestBaseCases:
 
 class AnvilWorldTestCase(WorldTestBaseCases.WorldTestCase):
     def setUp(self):
-        self._setUp("1.12.2 World")
+        self._setUp("Java 1.12.2")
 
 
 class Anvil2WorldTestCase(WorldTestBaseCases.WorldTestCase):
     def setUp(self):
-        self._setUp("1.13 World")
-
-    @unittest.skip
-    def test_longarray(self):
-        with open(get_data_path("longarraytest.json")) as json_data:
-            test_data = json.load(json_data)
-
-        test_ran = False
-        for test_entry in test_data["tests"]:
-            test_ran = True
-            block_array = test_entry["block_array"]
-            long_array = test_entry["long_array"]
-            palette_size = test_entry["palette_size"]
-
-            self.assertTrue(
-                numpy.array_equal(
-                    block_array, decode_long_array(long_array, len(block_array))
-                )
-            )
-
-            self.assertTrue(
-                numpy.array_equal(long_array, encode_long_array(block_array))
-            )
-
-        # Make sure some test are ran in case the data file failed to load or has a wrong format.
-        self.assertTrue(test_ran)
+        self._setUp("Java 1.13")
 
 
 if __name__ == "__main__":
