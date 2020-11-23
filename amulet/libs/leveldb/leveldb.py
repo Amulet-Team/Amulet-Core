@@ -219,7 +219,7 @@ class LevelDB:
         # Many of these options were pulled from Podshot/MCEdit-Unified
         ldb.leveldb_options_set_compression(options, 4)
         ldb.leveldb_options_set_filter_policy(options, filter_policy)
-        ldb.leveldb_options_set_create_if_missing(options, create_if_missing)
+        ldb.leveldb_options_set_create_if_missing(options, int(create_if_missing))
         ldb.leveldb_options_set_write_buffer_size(options, 4 * 1024 * 1024)
         ldb.leveldb_options_set_cache(options, cache)
         ldb.leveldb_options_set_block_size(options, 163840)
