@@ -40,7 +40,7 @@ def clean_temp_world(temp_world_name: str):
     """Remove the temporary world."""
     dst_path = get_temp_world_path(temp_world_name)
     if os.path.isdir(dst_path):
-        shutil.rmtree(dst_path)
+        shutil.rmtree(dst_path, ignore_errors=True)
     elif os.path.isfile(dst_path):
         os.remove(dst_path)
 
