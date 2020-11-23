@@ -2,7 +2,7 @@ import unittest
 from amulet.libs.leveldb import LevelDB
 
 
-class BlockTestCase(unittest.TestCase):
+class LevelDBTestCase(unittest.TestCase):
     def test_create_ldb(self):
         db = LevelDB("./worlds_temp/leveldb", True)
         db.close()
