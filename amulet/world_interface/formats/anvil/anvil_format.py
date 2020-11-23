@@ -8,6 +8,7 @@ from typing import Tuple, Any, Dict, Union, Generator, Optional, List, TYPE_CHEC
 import numpy
 import time
 import re
+import glob
 
 import amulet_nbt as nbt
 
@@ -451,31 +452,31 @@ class AnvilFormat(WorldFormatWrapper):
 
     def register_dimension(
         self,
-        dimension_internal: InternalDimension,
+        relative_dimension_path: InternalDimension,
         dimension_name: Optional["Dimension"] = None,
     ):
         """
         Register a new dimension.
-        :param dimension_internal: The internal representation of the dimension
+        :param relative_dimension_path: The relative path to the dimension directory from the world root. "" for the world root.
         :param dimension_name: The name of the dimension shown to the user
         :return:
         """
         if dimension_name is None:
-            dimension_name: "Dimension" = dimension_internal
+            dimension_name: "Dimension" = relative_dimension_path
 
-        if dimension_internal:
-            path = os.path.join(self.path, dimension_internal)
+        if relative_dimension_path:
+            path = os.path.join(self.path, relative_dimension_path)
         else:
             path = self.path
 
         if (
-            dimension_internal not in self._levels
+            relative_dimension_path not in self._levels
             and dimension_name not in self._dimension_name_map
         ):
-            self._levels[dimension_internal] = AnvilLevelManager(
+            self._levels[relative_dimension_path] = AnvilLevelManager(
                 path, mcc=self._mcc_support
             )
-            self._dimension_name_map[dimension_name] = dimension_internal
+            self._dimension_name_map[dimension_name] = relative_dimension_path
 
     def _get_interface_key(self, raw_chunk_data) -> Tuple[str, int]:
         return self.platform, raw_chunk_data.get("DataVersion", nbt.TAG_Int(-1)).value
@@ -506,6 +507,16 @@ class AnvilFormat(WorldFormatWrapper):
                 if AnvilLevelManager.level_regex.fullmatch(dir_name) is None:
                     continue
                 self.register_dimension(dir_name)
+
+        for dimension_path in glob.glob(
+            os.path.join(self.path, "dimensions", "*", "*", "region")
+        ):
+            dimension_path_split = dimension_path.split(os.sep)
+            dimension_name = f"{dimension_path_split[-3]}/{dimension_path_split[-2]}"
+            self.register_dimension(
+                os.path.dirname(os.path.relpath(dimension_path, self.path)),
+                dimension_name,
+            )
 
     def _open(self):
         """Open the database for reading and writing"""
