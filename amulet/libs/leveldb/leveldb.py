@@ -3,6 +3,7 @@
 import ctypes
 import os.path as op
 import sys
+import os
 
 if sys.platform == "win32":
     if sys.maxsize > 2 ** 32:  # 64 bit python
@@ -213,13 +214,18 @@ class LevelDB:
 
     def _open(self, path: str, create_if_missing: bool = False):
         # Bloom filter: an efficient way to tell if something is in a cache.
+        if not os.path.isdir(path):
+            if create_if_missing:
+                os.makedirs(path)
+            else:
+                raise LevelDBException(f"No database exists to open at {path}")
         filter_policy = ldb.leveldb_filterpolicy_create_bloom(10)
         cache = ldb.leveldb_cache_create_lru(40 * 1024 * 1024)
         options = ldb.leveldb_options_create()
         # Many of these options were pulled from Podshot/MCEdit-Unified
         ldb.leveldb_options_set_compression(options, 4)
         ldb.leveldb_options_set_filter_policy(options, filter_policy)
-        ldb.leveldb_options_set_create_if_missing(options, int(create_if_missing))
+        ldb.leveldb_options_set_create_if_missing(options, create_if_missing)
         ldb.leveldb_options_set_write_buffer_size(options, 4 * 1024 * 1024)
         ldb.leveldb_options_set_cache(options, cache)
         ldb.leveldb_options_set_block_size(options, 163840)
