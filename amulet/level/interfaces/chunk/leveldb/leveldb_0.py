@@ -26,4 +26,4 @@ class LevelDB0Interface(BaseLevelDBInterface):
         self.features["terrain"] = "30array"
 
 
-INTERFACE_CLASS = LevelDB0Interface
+export = LevelDB0Interface

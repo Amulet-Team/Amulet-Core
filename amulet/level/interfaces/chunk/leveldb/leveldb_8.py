@@ -14,4 +14,4 @@ class LevelDB8Interface(LevelDB7Interface):
         self.features["terrain"] = "2fnpalette"
 
 
-INTERFACE_CLASS = LevelDB8Interface
+export = LevelDB8Interface

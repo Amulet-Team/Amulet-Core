@@ -16,4 +16,4 @@ class LevelDB9Interface(LevelDB8Interface):
         ] = "namespace-str-identifier"  # "int-id" is present until at least v7. Not sure which was present for v8
 
 
-INTERFACE_CLASS = LevelDB9Interface
+export = LevelDB9Interface

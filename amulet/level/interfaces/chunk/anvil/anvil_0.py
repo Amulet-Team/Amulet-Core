@@ -15,4 +15,4 @@ class Anvil112Interface(AnvilNAInterface):
         return 0 <= key < 1444
 
 
-INTERFACE_CLASS = Anvil112Interface
+export = Anvil112Interface

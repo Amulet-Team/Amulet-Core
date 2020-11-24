@@ -13,4 +13,4 @@ class LevelDB1Interface(LevelDB0Interface):
         self.features["chunk_version"] = 1
 
 
-INTERFACE_CLASS = LevelDB1Interface
+export = LevelDB1Interface

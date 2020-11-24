@@ -160,4 +160,4 @@ class Anvil1444Interface(BaseAnvilInterface):
         return palette
 
 
-INTERFACE_CLASS = Anvil1444Interface
+export = Anvil1444Interface

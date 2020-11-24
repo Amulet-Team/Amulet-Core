@@ -123,4 +123,4 @@ class AnvilNAInterface(BaseAnvilInterface):
         return sections
 
 
-INTERFACE_CLASS = AnvilNAInterface
+export = AnvilNAInterface

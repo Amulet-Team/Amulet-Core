@@ -16,4 +16,4 @@ class Anvil1908Interface(Anvil1503Interface):
         return 1908 <= key < 1912
 
 
-INTERFACE_CLASS = Anvil1908Interface
+export = Anvil1908Interface

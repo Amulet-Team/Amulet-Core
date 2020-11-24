@@ -15,4 +15,4 @@ class LevelDB3Interface(LevelDB2Interface):
         self.features["terrain"] = "2farray"
 
 
-INTERFACE_CLASS = LevelDB3Interface
+export = LevelDB3Interface
