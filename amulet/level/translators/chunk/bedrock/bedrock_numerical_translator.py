@@ -1,9 +1,10 @@
+# meta translator
 from __future__ import annotations
 
 import numpy
 from typing import TYPE_CHECKING
 
-from amulet.world_interface.chunk.translators.bedrock import BaseBedrockTranslator
+from amulet.level.translators.chunk.bedrock import BaseBedrockTranslator
 from amulet.api.data_types import BlockNDArray, AnyNDArray
 
 if TYPE_CHECKING:
@@ -14,11 +15,9 @@ if TYPE_CHECKING:
 class BedrockNumericalTranslator(BaseBedrockTranslator):
     @staticmethod
     def is_valid(key):
-        if key[0] != "bedrock":
-            return False
-        if not key[1] < (1, 2, 13):
-            return False
-        return True
+        if key[0] == "bedrock" and key[1] < (1, 2, 13):
+            return True
+        return False
 
     def _pack_block_palette(
         self, version: "Version", palette: BlockNDArray
@@ -40,4 +39,4 @@ class BedrockNumericalTranslator(BaseBedrockTranslator):
         return palette_
 
 
-TRANSLATOR_CLASS = BedrockNumericalTranslator
+export = BedrockNumericalTranslator

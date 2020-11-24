@@ -1,3 +1,4 @@
+# meta translator
 from __future__ import annotations
 
 from typing import Tuple, Union, TYPE_CHECKING
@@ -56,11 +57,9 @@ class JavaNumericalTranslator(Translator):
 
     @staticmethod
     def is_valid(key):
-        if key[0] != "java":
-            return False
-        if key[1] > 1343:
-            return False
-        return True
+        if key[0] == "java" and key[1] <= 1343:
+            return True
+        return False
 
 
-TRANSLATOR_CLASS = JavaNumericalTranslator
+export = JavaNumericalTranslator

@@ -1,3 +1,4 @@
+# meta translator
 from __future__ import annotations
 
 from typing import Tuple, Union, TYPE_CHECKING
@@ -27,11 +28,9 @@ class JavaBlockstateTranslator(Translator):
 
     @staticmethod
     def is_valid(key):
-        if key[0] != "java":
-            return False
-        if key[1] < 1444:
-            return False
-        return True
+        if key[0] == "java" and key[1] >= 1444:
+            return True
+        return False
 
     @staticmethod
     def _unpack_blocks(
@@ -97,4 +96,4 @@ class JavaBlockstateTranslator(Translator):
         return palette
 
 
-TRANSLATOR_CLASS = JavaBlockstateTranslator
+export = JavaBlockstateTranslator
