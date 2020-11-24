@@ -28,7 +28,9 @@ class Loader:
                 return False
             import_path = ".".join(
                 os.path.normpath(
-                    os.path.relpath(path, os.path.dirname(os.path.dirname(amulet.__file__)))
+                    os.path.relpath(
+                        path, os.path.dirname(os.path.dirname(amulet.__file__))
+                    )
                 ).split(os.sep)
             )
             obj_name = os.path.basename(path)
@@ -38,7 +40,9 @@ class Loader:
             py_path = path
             import_path = ".".join(
                 os.path.normpath(
-                    os.path.relpath(path[:-3], os.path.dirname(os.path.dirname(amulet.__file__)))
+                    os.path.relpath(
+                        path[:-3], os.path.dirname(os.path.dirname(amulet.__file__))
+                    )
                 ).split(os.sep)
             )
             obj_name = os.path.basename(path[:-3])
@@ -49,7 +53,9 @@ class Loader:
             first_line = f.readline()
         if first_line.strip() == f"# meta {self._object_type}":
             if obj_name in self._objects:
-                log.error(f"Multiple {self._object_type} classes with the name {obj_name}")
+                log.error(
+                    f"Multiple {self._object_type} classes with the name {obj_name}"
+                )
                 return False
             modu = importlib.import_module(import_path)
 
@@ -117,7 +123,7 @@ Interfaces = Loader("interface", "./interfaces")
 Translators = Loader("translator", "./translators")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     Formats.report()
     Interfaces.report()
     Translators.report()

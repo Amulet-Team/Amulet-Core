@@ -25,9 +25,7 @@ def load_level(path: str) -> Union[World, Structure]:
         raise Exception
 
 
-def load_format(
-    path: str
-) -> Union[WorldFormatWrapper, StructureFormatWrapper]:
+def load_format(path: str) -> Union[WorldFormatWrapper, StructureFormatWrapper]:
     """
     Loads the level located at the given path with the appropriate format loader.
 
