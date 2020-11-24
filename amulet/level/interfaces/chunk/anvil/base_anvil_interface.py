@@ -9,7 +9,7 @@ import amulet
 from amulet.api.chunk import Chunk
 from amulet.api.block import Block
 from amulet.api.wrapper import Interface
-from amulet.world_interface.chunk import translators
+from amulet.level import loader
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray
 
 if TYPE_CHECKING:
@@ -73,7 +73,7 @@ class BaseAnvilInterface(Interface):
         else:
             key = max_world_version
             version = max_world_version[1]
-        return translators.loader.get(key), version
+        return loader.Translators.get(key), version
 
     def decode(
         self, cx: int, cz: int, data: amulet_nbt.NBTFile

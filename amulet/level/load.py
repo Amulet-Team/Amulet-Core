@@ -1,47 +1,37 @@
-def load_world(directory: str, _format: str = None, forced: bool = False) -> World:
+from __future__ import annotations
+
+from typing import Union
+
+from amulet import log
+from amulet.api.level import World, Structure
+
+from amulet.api.wrapper import WorldFormatWrapper, StructureFormatWrapper
+from . import loader
+
+
+def load_level(path: str) -> Union[World, Structure]:
     """
     Creates a Format loader from the given inputs and wraps it in a World class
-    :param directory:
-    :param _format:
-    :param forced:
+    :param path:
     :return:
     """
-    log.info(f"Loading world {directory}")
-    return World(directory, load_format(directory, _format, forced))
+    log.info(f"Loading level {path}")
+    format_wrapper = load_format(path)
+    if isinstance(format_wrapper, WorldFormatWrapper):
+        return World(path, format_wrapper)
+    elif isinstance(format_wrapper, StructureFormatWrapper):
+        return Structure(path, format_wrapper)
+    else:
+        raise Exception
 
 
 def load_format(
-    directory: str, _format: str = None, forced: bool = False
-) -> "WorldFormatWrapper":
+    path: str
+) -> Union[WorldFormatWrapper, StructureFormatWrapper]:
     """
-    Loads the world located at the given directory with the appropriate format loader.
+    Loads the level located at the given path with the appropriate format loader.
 
-    :param directory: The directory of the world
-    :param _format: The format name to use
-    :param forced: Whether to force load the world even if incompatible
-    :return: The loaded world
+    :param path: The path of the level
+    :return: The loaded level
     """
-    if not os.path.isdir(directory):
-        if os.path.exists(directory):
-            log.error(f'The path "{directory}" does exist but it is not a directory')
-            raise Exception(
-                f'The path "{directory}" does exist but it is not a directory'
-            )
-        else:
-            log.error(
-                f'The path "{directory}" is not a valid path on this file system.'
-            )
-            raise Exception(
-                f'The path "{directory}" is not a valid path on this file system.'
-            )
-    if _format is not None:
-        if _format not in formats.loader:
-            log.error(f"Could not find _format loader {_format}")
-            raise FormatLoaderInvalidFormat(f"Could not find _format loader {_format}")
-        if not forced and not formats.loader.identify(directory) == _format:
-            log.error(f"{_format} is incompatible")
-            raise FormatLoaderMismatched(f"{_format} is incompatible")
-        format_class = formats.loader.get_by_id(_format)
-    else:
-        format_class = formats.loader.get(directory)
-    return format_class(directory)
+    return loader.Formats.get(path)(path)

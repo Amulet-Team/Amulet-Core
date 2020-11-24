@@ -14,7 +14,7 @@ from amulet.utils.numpy_helpers import brute_sort_objects, brute_sort_objects_no
 from amulet.utils.world_utils import fast_unique, from_nibble_array, to_nibble_array
 from amulet.api.wrapper import Interface
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray
-from amulet.world_interface.chunk import translators
+from amulet.level import loader
 from .leveldb_chunk_versions import (
     chunk_to_game_version,
 )
@@ -68,7 +68,7 @@ class BaseLevelDBInterface(Interface):
             game_version = chunk_to_game_version(max_world_version[1], chunk_version)
         else:
             game_version = max_world_version[1]
-        return translators.loader.get(("bedrock", game_version)), game_version
+        return loader.Translators.get(("bedrock", game_version)), game_version
 
     def decode(
         self, cx: int, cz: int, data: Dict[bytes, bytes]
