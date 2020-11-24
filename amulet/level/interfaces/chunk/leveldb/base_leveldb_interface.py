@@ -15,7 +15,7 @@ from amulet.utils.world_utils import fast_unique, from_nibble_array, to_nibble_a
 from amulet.api.wrapper import Interface
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray
 from amulet.world_interface.chunk import translators
-from amulet.level.interfaces.chunk.leveldb import (
+from .leveldb_chunk_versions import (
     chunk_to_game_version,
 )
 

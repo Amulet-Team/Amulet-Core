@@ -1,6 +1,7 @@
+# meta format
 from __future__ import annotations
 
-from amulet.world_interface.formats.anvil.anvil_format import AnvilFormat
+from .anvil_world import AnvilFormat
 from amulet.utils.format_utils import check_all_exist, load_leveldat
 from amulet import log
 
@@ -39,4 +40,4 @@ class AnvilForgeFormat(AnvilFormat):
             return f"Java Forge Unknown Version"
 
 
-FORMAT_CLASS = AnvilForgeFormat
+export = AnvilForgeFormat
