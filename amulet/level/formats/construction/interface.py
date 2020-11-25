@@ -1,3 +1,4 @@
+# meta interface
 from typing import TYPE_CHECKING, Any, Tuple, Union, List
 import numpy
 
@@ -7,7 +8,7 @@ from .section import ConstructionSection
 from amulet.api.chunk import Chunk
 from amulet.api.block import Block
 from amulet.api.selection import SelectionBox
-from amulet.world_interface.chunk import translators
+from amulet.level.loader import Translators
 from amulet.api.data_types import AnyNDArray
 
 if TYPE_CHECKING:
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
 
 class ConstructionInterface(Interface):
     def is_valid(self, key: Tuple) -> bool:
-        return True
+        return key[0] == "construction" and key[1] == 0
 
     def decode(
         self, cx: int, cz: int, data: List[ConstructionSection]
@@ -106,7 +107,7 @@ class ConstructionInterface(Interface):
         version = translation_manager.get_version(platform, version_number)
         if platform == "java":
             version_number = version.data_version
-        return translators.loader.get((platform, version_number)), version_number
+        return Translators.get((platform, version_number)), version_number
 
 
 class Construction0Interface(ConstructionInterface):

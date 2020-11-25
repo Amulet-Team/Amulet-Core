@@ -57,9 +57,7 @@ class JavaNumericalTranslator(Translator):
 
     @staticmethod
     def is_valid(key):
-        if key[0] == "java" and key[1] <= 1343:
-            return True
-        return False
+        return key[0] == "java" and key[1] <= 1343
 
 
 export = JavaNumericalTranslator

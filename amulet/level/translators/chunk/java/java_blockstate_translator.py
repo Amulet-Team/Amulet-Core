@@ -28,9 +28,7 @@ class JavaBlockstateTranslator(Translator):
 
     @staticmethod
     def is_valid(key):
-        if key[0] == "java" and key[1] >= 1444:
-            return True
-        return False
+        return key[0] == "java" and key[1] >= 1444
 
     @staticmethod
     def _unpack_blocks(

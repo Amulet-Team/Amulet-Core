@@ -138,8 +138,11 @@ class AnvilFormat(WorldFormatWrapper):
             )
             self._dimension_name_map[dimension_name] = relative_dimension_path
 
-    def _get_interface_key(self, raw_chunk_data) -> Tuple[str, int]:
-        return self.platform, raw_chunk_data.get("DataVersion", nbt.TAG_Int(-1)).value
+    def _get_interface_key(self, raw_chunk_data: Optional[Any] = None) -> Tuple[str, int]:
+        if raw_chunk_data:
+            return self.platform, raw_chunk_data.get("DataVersion", nbt.TAG_Int(-1)).value
+        else:
+            return self.max_world_version
 
     def _reload_world(self):
         # reload the level.dat in case it has changed

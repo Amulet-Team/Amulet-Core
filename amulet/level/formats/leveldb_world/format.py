@@ -86,10 +86,7 @@ class LevelDBFormat(WorldFormatWrapper):
         :param directory: The path to the root of the world to load.
         :return: True if the world can be loaded by this format, False otherwise.
         """
-        if not check_all_exist(directory, "db", "level.dat", "levelname.txt"):
-            return False
-
-        return True
+        return check_all_exist(directory, "db", "level.dat", "levelname.txt")
 
     @property
     def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
@@ -148,18 +145,14 @@ class LevelDBFormat(WorldFormatWrapper):
         """
         self._level_manager.register_dimension(dimension_internal, dimension_name)
 
-    def _get_interface(self, max_world_version, raw_chunk_data=None) -> "Interface":
+    def _get_interface_key(self, raw_chunk_data: Optional[Dict[bytes, bytes]] = None) -> Tuple[str, int]:
         if raw_chunk_data:
-            key = self._get_interface_key(raw_chunk_data)
+            if b"," in raw_chunk_data:
+                v = raw_chunk_data[b","][0]
+            else:
+                v = raw_chunk_data.get(b"v", b"\x00")[0]
         else:
-            key = "bedrock", game_to_chunk_version(max_world_version[1])
-        return loader.Interfaces.get(key)
-
-    def _get_interface_key(self, raw_chunk_data: Dict[bytes, bytes]) -> Tuple[str, int]:
-        if b"," in raw_chunk_data:
-            v = raw_chunk_data[b","][0]
-        else:
-            v = raw_chunk_data.get(b"v", "\x00")[0]
+            v = game_to_chunk_version(self.max_world_version[1])
         return (
             self.platform,
             v,

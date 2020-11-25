@@ -1,6 +1,6 @@
 import os
 import warnings
-from typing import Any, Generator, List, Tuple, Dict, TYPE_CHECKING
+from typing import Any, Generator, List, Tuple, Dict, Optional
 
 from amulet import IMG_DIRECTORY
 from amulet.api.data_types import Dimension, PlatformType, ChunkCoordinates
@@ -9,9 +9,6 @@ from .format_wrapper import FormatWrapper
 missing_world_icon = os.path.abspath(
     os.path.join(IMG_DIRECTORY, "missing_world_icon.png")
 )
-
-if TYPE_CHECKING:
-    from amulet.api.wrapper import Interface
 
 
 class WorldFormatWrapper(FormatWrapper):
@@ -78,15 +75,12 @@ class WorldFormatWrapper(FormatWrapper):
     def register_dimension(self, dimension_internal: Any, dimension_name: Dimension):
         raise NotImplementedError
 
-    def _get_interface(self, max_world_version, raw_chunk_data=None) -> "Interface":
+    def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> "Interface":
         from amulet.level.loader import Interfaces
-        if raw_chunk_data:
-            key = self._get_interface_key(raw_chunk_data)
-        else:
-            key = max_world_version
+        key = self._get_interface_key(raw_chunk_data)
         return Interfaces.get(key)
 
-    def _get_interface_key(self, raw_chunk_data) -> Any:
+    def _get_interface_key(self, raw_chunk_data: Optional[Any] = None) -> Any:
         raise NotImplementedError
 
     def _create(self, **kwargs):

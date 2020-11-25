@@ -7,7 +7,7 @@ from amulet.api.wrapper import Interface
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionBox
 from amulet.api.data_types import AnyNDArray
-from amulet.world_interface.chunk import translators
+from amulet.level.loader import Translators
 from amulet.api.block import Block
 from .chunk import MCStructureChunk
 
@@ -148,4 +148,4 @@ class MCStructureInterface(Interface):
         if platform == "java":
             version = translation_manager.get_version(platform, version_number)
             version_number = version.data_version
-        return translators.loader.get((platform, version_number)), version_number
+        return Translators.get((platform, version_number)), version_number

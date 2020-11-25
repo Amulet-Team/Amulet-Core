@@ -162,16 +162,16 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
         return (".mcstructure",)
 
     def _get_interface(
-        self, max_world_version, raw_chunk_data=None
+        self, raw_chunk_data=None
     ) -> "MCStructureInterface":
         return mcstructure_interface
 
     def _get_interface_and_translator(
-        self, max_world_version, raw_chunk_data=None
+        self, raw_chunk_data=None
     ) -> Tuple["Interface", "Translator", VersionNumberAny]:
-        interface = self._get_interface(max_world_version, raw_chunk_data)
+        interface = self._get_interface(raw_chunk_data)
         translator, version_identifier = interface.get_translator(
-            max_world_version, raw_chunk_data, self.translation_manager
+            self.max_world_version, raw_chunk_data, self.translation_manager
         )
         return interface, translator, version_identifier
 

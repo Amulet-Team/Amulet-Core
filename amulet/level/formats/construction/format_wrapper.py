@@ -1,5 +1,5 @@
 import os
-from typing import Optional, List, Tuple, Dict, Generator, TYPE_CHECKING, BinaryIO
+from typing import Optional, List, Tuple, Dict, Generator, TYPE_CHECKING, BinaryIO, Any
 import numpy
 from io import BytesIO
 import struct
@@ -214,17 +214,15 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
     def extensions(self) -> Tuple[str, ...]:
         return (".construction",)
 
-    def _get_interface(
-        self, max_world_version, raw_chunk_data=None
-    ) -> "ConstructionInterface":
+    def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> Construction0Interface:
         return construction_0_interface
 
     def _get_interface_and_translator(
-        self, max_world_version, raw_chunk_data=None
+        self, raw_chunk_data=None
     ) -> Tuple["Interface", "Translator", VersionNumberAny]:
-        interface = self._get_interface(max_world_version, raw_chunk_data)
+        interface = self._get_interface(raw_chunk_data)
         translator, version_identifier = interface.get_translator(
-            max_world_version, raw_chunk_data, self.translation_manager
+            self.max_world_version, raw_chunk_data, self.translation_manager
         )
         return interface, translator, version_identifier
 

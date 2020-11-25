@@ -5,7 +5,7 @@ from amulet.api.wrapper import Interface
 from .chunk import SchematicChunk
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionBox
-from amulet.world_interface.chunk import translators
+from amulet.level.loader import Translators
 from amulet.api.data_types import AnyNDArray
 
 if TYPE_CHECKING:
@@ -99,7 +99,7 @@ class SchematicInterface(Interface):
         if platform == "java":
             version = translation_manager.get_version(platform, version_number)
             version_number = version.data_version
-        return translators.loader.get((platform, version_number)), version_number
+        return Translators.get((platform, version_number)), version_number
 
 
 class JavaSchematicInterface(SchematicInterface):

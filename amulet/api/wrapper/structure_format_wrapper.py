@@ -1,4 +1,4 @@
-from typing import BinaryIO, List, Any, Generator, Tuple, Dict, TYPE_CHECKING
+from typing import BinaryIO, List, Any, Generator, Tuple, Dict, Optional, TYPE_CHECKING
 import os
 
 from .format_wrapper import FormatWrapper
@@ -64,7 +64,7 @@ class StructureFormatWrapper(FormatWrapper):
         eg (".schematic",)"""
         raise NotImplementedError
 
-    def _get_interface(self, max_world_version, raw_chunk_data=None) -> "Interface":
+    def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> "Interface":
         raise NotImplementedError
 
     def _create(self, **kwargs):

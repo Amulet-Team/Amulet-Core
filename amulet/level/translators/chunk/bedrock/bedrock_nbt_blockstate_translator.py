@@ -15,9 +15,7 @@ if TYPE_CHECKING:
 class BedrockNBTBlockstateTranslator(BaseBedrockTranslator):
     @staticmethod
     def is_valid(key):
-        if key[0] == "bedrock" and (1, 13, 0) <= key[1]:
-            return True
-        return False
+        return key[0] == "bedrock" and (1, 13, 0) <= key[1]
 
     def _pack_block_palette(
         self, version: "Version", palette: BlockNDArray
