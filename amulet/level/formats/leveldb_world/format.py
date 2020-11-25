@@ -145,7 +145,9 @@ class LevelDBFormat(WorldFormatWrapper):
         """
         self._level_manager.register_dimension(dimension_internal, dimension_name)
 
-    def _get_interface_key(self, raw_chunk_data: Optional[Dict[bytes, bytes]] = None) -> Tuple[str, int]:
+    def _get_interface_key(
+        self, raw_chunk_data: Optional[Dict[bytes, bytes]] = None
+    ) -> Tuple[str, int]:
         if raw_chunk_data:
             if b"," in raw_chunk_data:
                 v = raw_chunk_data[b","][0]

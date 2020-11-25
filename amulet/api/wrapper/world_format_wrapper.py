@@ -77,6 +77,7 @@ class WorldFormatWrapper(FormatWrapper):
 
     def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> "Interface":
         from amulet.level.loader import Interfaces
+
         key = self._get_interface_key(raw_chunk_data)
         return Interfaces.get(key)
 

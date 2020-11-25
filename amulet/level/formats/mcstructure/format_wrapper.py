@@ -161,9 +161,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
     def extensions(self) -> Tuple[str, ...]:
         return (".mcstructure",)
 
-    def _get_interface(
-        self, raw_chunk_data=None
-    ) -> "MCStructureInterface":
+    def _get_interface(self, raw_chunk_data=None) -> "MCStructureInterface":
         return mcstructure_interface
 
     def _get_interface_and_translator(

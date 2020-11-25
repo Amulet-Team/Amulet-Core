@@ -138,9 +138,14 @@ class AnvilFormat(WorldFormatWrapper):
             )
             self._dimension_name_map[dimension_name] = relative_dimension_path
 
-    def _get_interface_key(self, raw_chunk_data: Optional[Any] = None) -> Tuple[str, int]:
+    def _get_interface_key(
+        self, raw_chunk_data: Optional[Any] = None
+    ) -> Tuple[str, int]:
         if raw_chunk_data:
-            return self.platform, raw_chunk_data.get("DataVersion", nbt.TAG_Int(-1)).value
+            return (
+                self.platform,
+                raw_chunk_data.get("DataVersion", nbt.TAG_Int(-1)).value,
+            )
         else:
             return self.max_world_version
 

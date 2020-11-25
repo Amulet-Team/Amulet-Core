@@ -138,9 +138,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
     def extensions(self) -> Tuple[str, ...]:
         return (".schematic",)
 
-    def _get_interface(
-        self, raw_chunk_data=None
-    ) -> SchematicInterface:
+    def _get_interface(self, raw_chunk_data=None) -> SchematicInterface:
         if self._platform == "java":
             return java_interface
         elif self._platform == "bedrock":

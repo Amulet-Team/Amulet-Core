@@ -214,7 +214,9 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
     def extensions(self) -> Tuple[str, ...]:
         return (".construction",)
 
-    def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> Construction0Interface:
+    def _get_interface(
+        self, raw_chunk_data: Optional[Any] = None
+    ) -> Construction0Interface:
         return construction_0_interface
 
     def _get_interface_and_translator(
