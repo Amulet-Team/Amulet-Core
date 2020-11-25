@@ -118,9 +118,9 @@ class Loader:
             print(obj_name, obj)
 
 
-Formats = Loader("format", "./formats", create_instance=False)
-Interfaces = Loader("interface", "./interfaces")
-Translators = Loader("translator", "./translators")
+Translators = Loader("translator", os.path.join(os.path.dirname(__file__), "translators"))
+Interfaces = Loader("interface", os.path.join(os.path.dirname(__file__), "interfaces"))
+Formats = Loader("format", os.path.join(os.path.dirname(__file__), "formats"), create_instance=False)
 
 
 if __name__ == "__main__":
