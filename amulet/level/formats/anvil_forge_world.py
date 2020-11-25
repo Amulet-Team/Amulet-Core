@@ -29,7 +29,6 @@ class AnvilForgeFormat(AnvilFormat):
         if "FML" in level_dat_root:
             return True
 
-        log.info("Forge support is experimental. Use at your own risk.")
         return True
 
     @property

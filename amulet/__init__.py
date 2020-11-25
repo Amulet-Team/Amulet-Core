@@ -10,3 +10,5 @@ from ._version import get_versions
 
 __version__ = get_versions()["version"]
 del get_versions
+
+from amulet.level.load import load_level, load_format

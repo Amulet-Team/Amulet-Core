@@ -19,7 +19,7 @@ import amulet_nbt as nbt
 from amulet.utils.format_utils import check_all_exist
 from amulet.api.data_types import ChunkCoordinates, VersionNumberTuple, PlatformType
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
-from amulet.world_interface.chunk import interfaces
+from amulet.level import loader
 
 from amulet.level.interfaces.chunk.leveldb.leveldb_chunk_versions import (
     game_to_chunk_version,
@@ -153,7 +153,7 @@ class LevelDBFormat(WorldFormatWrapper):
             key = self._get_interface_key(raw_chunk_data)
         else:
             key = "bedrock", game_to_chunk_version(max_world_version[1])
-        return interfaces.loader.get(key)
+        return loader.Interfaces.get(key)
 
     def _get_interface_key(self, raw_chunk_data: Dict[bytes, bytes]) -> Tuple[str, int]:
         if b"," in raw_chunk_data:
