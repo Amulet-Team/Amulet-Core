@@ -8,8 +8,7 @@ from amulet.api.block import blockstate_to_block
 from amulet.api.chunk import Chunk
 from amulet.api.errors import ChunkDoesNotExist
 from amulet.api.selection import SelectionBox, SelectionGroup
-from amulet.world_interface import load_world, load_format
-from amulet.utils.world_utils import decode_long_array, encode_long_array
+from amulet import load_level, load_format
 from tests.test_utils import (
     get_world_path,
     get_data_path,
@@ -28,7 +27,7 @@ class WorldTestBaseCases:
     class WorldTestCase(unittest.TestCase):
         def _setUp(self, world_name):
             self._world_name = world_name
-            self.world = load_world(create_temp_world(world_name))
+            self.world = load_level(create_temp_world(world_name))
 
         def tearDown(self):
             self.world.close()

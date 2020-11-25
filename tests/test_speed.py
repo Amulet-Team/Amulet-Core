@@ -2,7 +2,7 @@ import unittest
 import time
 
 from amulet.api.errors import ChunkLoadError
-from amulet.world_interface import load_world
+from amulet import load_level
 from tests.test_utils import create_temp_world, clean_temp_world
 
 
@@ -12,7 +12,7 @@ class WorldTestBaseCases:
     class WorldTestCase(unittest.TestCase):
         def _setUp(self, world_name):
             self._world_name = world_name
-            self.world = load_world(create_temp_world(world_name))
+            self.world = load_level(create_temp_world(world_name))
 
         def tearDown(self):
             self.world.close()
