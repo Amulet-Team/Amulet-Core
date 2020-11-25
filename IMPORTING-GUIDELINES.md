@@ -47,7 +47,7 @@ Example Usage:
 from amulet.api import paths
 
 from amulet.api.block import Block
-from amulet import world_interface
+from amulet import level
 
 ...
 

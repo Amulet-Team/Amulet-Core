@@ -1,4 +1,4 @@
-from typing import Any, Generator, List, Dict, Tuple, TYPE_CHECKING
+from typing import Any, Generator, List, Dict, Tuple, Optional, TYPE_CHECKING
 
 from amulet.api.data_types import Dimension, PlatformType, ChunkCoordinates
 from amulet.api.wrapper import FormatWrapper
@@ -30,7 +30,7 @@ class VoidFormatWrapper(FormatWrapper):
     def register_dimension(self, dimension_internal: Any, dimension_name: Dimension):
         pass
 
-    def _get_interface(self, max_world_version, raw_chunk_data=None) -> "Interface":
+    def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> "Interface":
         raise Exception("If this is called something is wrong")
 
     def _create(self, **kwargs):

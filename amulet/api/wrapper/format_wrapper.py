@@ -172,13 +172,13 @@ class FormatWrapper:
         """The area that all chunk data must fit within."""
         return self._selection.copy()
 
-    def _get_interface(self, max_world_version, raw_chunk_data=None) -> "Interface":
+    def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> "Interface":
         raise NotImplementedError
 
     def _get_interface_and_translator(
-        self, max_world_version, raw_chunk_data=None
+        self, raw_chunk_data=None
     ) -> Tuple["Interface", "Translator", "VersionNumberAny"]:
-        interface = self._get_interface(max_world_version, raw_chunk_data)
+        interface = self._get_interface(raw_chunk_data)
         translator, version_identifier = interface.get_translator(
             self.max_world_version, raw_chunk_data
         )
@@ -369,7 +369,7 @@ class FormatWrapper:
         # Gets an interface (the code that actually reads the chunk data)
         raw_chunk_data = self.get_raw_chunk_data(cx, cz, dimension)
         interface, translator, game_version = self._get_interface_and_translator(
-            self.max_world_version, raw_chunk_data
+            raw_chunk_data
         )
 
         # decode the raw chunk data into the universal format
@@ -470,9 +470,7 @@ class FormatWrapper:
         cx, cz = chunk.cx, chunk.cz
 
         # Gets an interface, translator and most recent chunk version for the game version.
-        interface, translator, chunk_version = self._get_interface_and_translator(
-            self.max_world_version
-        )
+        interface, translator, chunk_version = self._get_interface_and_translator()
 
         chunk = self._convert_to_save(chunk, chunk_version, translator, recurse)
         chunk, chunk_palette = self._pack(chunk, translator, chunk_version)
