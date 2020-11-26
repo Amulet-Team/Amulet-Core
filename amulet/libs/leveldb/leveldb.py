@@ -237,9 +237,10 @@ class LevelDB:
 
         self.db = db
 
-    def close(self):
+    def close(self, compact=True):
         if self.db:
-            ldb.leveldb_compact_range(self.db, None, 0, None, 0)
+            if compact:
+                ldb.leveldb_compact_range(self.db, None, 0, None, 0)
             ldb.leveldb_close(self.db)
             self.db = None
 
