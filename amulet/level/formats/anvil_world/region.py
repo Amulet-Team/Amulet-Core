@@ -8,6 +8,7 @@ from typing import Tuple, Dict, Union, Generator, Optional, BinaryIO
 import numpy
 import time
 import re
+import threading
 
 import amulet_nbt as nbt
 
@@ -50,6 +51,7 @@ class AnvilRegion:
         # The latter can be None in which case the chunk has been deleted
         self._committed_chunks: Dict[ChunkCoordinates, Tuple[int, Optional[bytes]]] = {}
 
+        self._lock = threading.Lock()
         if create:
             # create the region from scratch.
             self._loaded = True
@@ -84,6 +86,7 @@ class AnvilRegion:
             return (cx, cz) in self._chunks
 
     def _load(self):
+        self._lock.acquire()
         if not self._loaded:
             mode = "rb+" if os.path.isfile(self._file_path) else "wb"
             with open(self._file_path, mode) as fp:
@@ -129,7 +132,6 @@ class AnvilRegion:
                 #
                 #         free_sectors[i] = False
 
-                self._chunks.clear()
                 for cx in range(32):
                     for cz in range(32):
                         sector = sectors[cz, cx]
@@ -165,6 +167,7 @@ class AnvilRegion:
                                 )
 
             self._loaded = True
+        self._lock.release()
 
     def unload(self):
         for key in self._chunks.keys():
