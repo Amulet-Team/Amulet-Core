@@ -8,6 +8,7 @@ from typing import Tuple, Any, Dict, Union, Generator, Optional, List, TYPE_CHEC
 import numpy
 import time
 import re
+import threading
 
 import amulet_nbt as nbt
 
@@ -53,6 +54,7 @@ class AnvilRegion:
         # The latter can be None in which case the chunk has been deleted
         self._committed_chunks: Dict[ChunkCoordinates, Tuple[int, Optional[bytes]]] = {}
 
+        self._lock = threading.Lock()
         if create:
             # create the region from scratch.
             self._loaded = True
@@ -81,86 +83,89 @@ class AnvilRegion:
                 yield cx + self.rx * 32, cz + self.rz * 32
 
     def _load(self):
-        if not self._loaded:
-            mode = "rb+" if os.path.isfile(self._file_path) else "wb"
-            with open(self._file_path, mode) as fp:
-                # check that the file is a multiple of 4096 bytes and extend if not
-                # TODO: perhaps rewrite this in a way that is more readable
-                file_size = os.path.getsize(self._file_path)
-                if file_size & 0xFFF:
-                    file_size = (file_size | 0xFFF) + 1
-                    fp.truncate(file_size)
+        with self._lock:
+            if not self._loaded:
+                mode = "rb+" if os.path.isfile(self._file_path) else "wb"
+                with open(self._file_path, mode) as fp:
+                    # check that the file is a multiple of 4096 bytes and extend if not
+                    # TODO: perhaps rewrite this in a way that is more readable
+                    file_size = os.path.getsize(self._file_path)
+                    if file_size & 0xFFF:
+                        file_size = (file_size | 0xFFF) + 1
+                        fp.truncate(file_size)
 
-                # if the length of the region file is 0 extend it to 8KiB TODO (perhaps have some error)
-                if file_size < world_utils.SECTOR_BYTES * 2:
-                    file_size = world_utils.SECTOR_BYTES * 2
-                    fp.truncate(file_size)
+                    # if the length of the region file is 0 extend it to 8KiB TODO (perhaps have some error)
+                    if file_size < world_utils.SECTOR_BYTES * 2:
+                        file_size = world_utils.SECTOR_BYTES * 2
+                        fp.truncate(file_size)
 
-                # read the file and populate the internal database
-                # self._file_size = file_size
+                    # read the file and populate the internal database
+                    # self._file_size = file_size
 
-                fp.seek(0)
+                    fp.seek(0)
 
-                # offsets = fp.read(world_utils.SECTOR_BYTES)
-                # mod_times = fp.read(world_utils.SECTOR_BYTES)
+                    # offsets = fp.read(world_utils.SECTOR_BYTES)
+                    # mod_times = fp.read(world_utils.SECTOR_BYTES)
 
-                # self._free_sectors = free_sectors = numpy.full(
-                #     file_size // world_utils.SECTOR_BYTES, True, bool
-                # )
-                # self._free_sectors[0:2] = False, False
+                    # self._free_sectors = free_sectors = numpy.full(
+                    #     file_size // world_utils.SECTOR_BYTES, True, bool
+                    # )
+                    # self._free_sectors[0:2] = False, False
 
-                # the first array is made of 3 byte sector offset and 1 byte sector count
-                sectors = (
-                    numpy.fromfile(fp, dtype=">u4", count=1024).reshape(32, 32) >> 8
-                )
-                mod_times = numpy.fromfile(fp, dtype=">u4", count=1024).reshape(32, 32)
+                    # the first array is made of 3 byte sector offset and 1 byte sector count
+                    sectors = (
+                        numpy.fromfile(fp, dtype=">u4", count=1024).reshape(32, 32) >> 8
+                    )
+                    mod_times = numpy.fromfile(fp, dtype=">u4", count=1024).reshape(
+                        32, 32
+                    )
 
-                # for offset in offsets:
-                #     sector = offset >> 8
-                #     count = offset & 0xFF
-                #
-                #     for i in range(sector, sector + count):
-                #         if i >= len(free_sectors):
-                #             return False
-                #
-                #         free_sectors[i] = False
+                    # for offset in offsets:
+                    #     sector = offset >> 8
+                    #     count = offset & 0xFF
+                    #
+                    #     for i in range(sector, sector + count):
+                    #         if i >= len(free_sectors):
+                    #             return False
+                    #
+                    #         free_sectors[i] = False
 
-                self._chunks.clear()
-                for cx in range(32):
-                    for cz in range(32):
-                        sector = sectors[cz, cx]
-                        if sector:
-                            fp.seek(world_utils.SECTOR_BYTES * sector)
-                            # read int value and then read that amount of data
-                            buffer_size_bytes: bytes = fp.read(4)
-                            buffer_size = struct.unpack(">I", buffer_size_bytes)[0]
-                            buffer: bytes = fp.read(buffer_size)
+                    for cx in range(32):
+                        for cz in range(32):
+                            sector = sectors[cz, cx]
+                            if sector:
+                                fp.seek(world_utils.SECTOR_BYTES * sector)
+                                # read int value and then read that amount of data
+                                buffer_size_bytes: bytes = fp.read(4)
+                                buffer_size = struct.unpack(">I", buffer_size_bytes)[0]
+                                buffer: bytes = fp.read(buffer_size)
 
-                            if buffer:
-                                if buffer[0] & 128:  # if the "external" bit is set
-                                    if self._mcc:
-                                        mcc_path = os.path.join(
-                                            os.path.dirname(self._file_path),
-                                            f"c.{cx + self.rx * 32}.{cz + self.rz * 32}.mcc",
-                                        )
-                                        if os.path.isfile(mcc_path):
-                                            with open(mcc_path, "rb") as f:
-                                                buffer = (
-                                                    bytes([buffer[0] & 127]) + f.read()
-                                                )
+                                if buffer:
+                                    if buffer[0] & 128:  # if the "external" bit is set
+                                        if self._mcc:
+                                            mcc_path = os.path.join(
+                                                os.path.dirname(self._file_path),
+                                                f"c.{cx + self.rx * 32}.{cz + self.rz * 32}.mcc",
+                                            )
+                                            if os.path.isfile(mcc_path):
+                                                with open(mcc_path, "rb") as f:
+                                                    buffer = (
+                                                        bytes([buffer[0] & 127])
+                                                        + f.read()
+                                                    )
+                                            else:
+                                                # the external flag was set but the external file cannot be found. Continue as if the chunk does not exist.
+                                                continue
                                         else:
-                                            # the external flag was set but the external file cannot be found. Continue as if the chunk does not exist.
+                                            # External bit set but this version cannot handle mcc files. Continue as if the chunk does not exist.
                                             continue
-                                    else:
-                                        # External bit set but this version cannot handle mcc files. Continue as if the chunk does not exist.
-                                        continue
 
-                                self._chunks[(cx, cz)] = (
-                                    mod_times[cz, cx],
-                                    buffer,
-                                )
+                                    self._chunks[(cx, cz)] = (
+                                        mod_times[cz, cx],
+                                        buffer,
+                                    )
 
-            self._loaded = True
+                self._loaded = True
 
     def unload(self):
         for key in self._chunks.keys():
