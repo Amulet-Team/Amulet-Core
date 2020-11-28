@@ -69,20 +69,23 @@ class DatabaseHistoryManager(ContainerHistoryManager):
     def _get_entry(self, key: EntryKeyType) -> EntryType:
         """Get a key from the database.
         Subclasses should implement a proper method calling this."""
-        with self._lock:
-            if key in self._temporary_database:
-                entry = self._temporary_database[key]
-            elif key in self._history_database:
-                entry = self._temporary_database[key] = self._history_database[
-                    key
-                ].get_current_entry()
-            else:
-                entry = self._temporary_database[key] = self._get_register_original_entry(
-                    key
-                )
-            if entry is None:
-                raise self.DoesNotExistError
-            return entry
+        if key in self._temporary_database:
+            entry = self._temporary_database[key]
+        else:
+            with self._lock:
+                if key in self._temporary_database:
+                    entry = self._temporary_database[key]
+                elif key in self._history_database:
+                    entry = self._temporary_database[key] = self._history_database[
+                        key
+                    ].get_current_entry()
+                else:
+                    entry = self._temporary_database[
+                        key
+                    ] = self._get_register_original_entry(key)
+        if entry is None:
+            raise self.DoesNotExistError
+        return entry
 
     def _get_register_original_entry(self, key: EntryKeyType) -> EntryType:
         """Get and register the original entry."""
