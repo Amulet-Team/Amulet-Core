@@ -11,6 +11,10 @@ from amulet.api.block import Block
 from amulet.api.wrapper import Interface
 from amulet.level import loader
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray
+from amulet.utils.world_utils import (
+    decode_long_array,
+    encode_long_array,
+)
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
@@ -147,7 +151,9 @@ class BaseAnvilInterface(Interface):
             "C|36LA|V4",
         ]:
             if "Heightmaps" in data["Level"]:
-                misc["height_mapC|36LA"] = data["Level"]["Heightmaps"]
+                misc["height_mapC"] = {
+                    key: decode_long_array(value, 256, len(value) == 36) for key, value in data["Level"]["Heightmaps"].items()
+                }
 
         if "Sections" in data["Level"]:
             if self.features["blocks"] in [
@@ -292,12 +298,12 @@ class BaseAnvilInterface(Interface):
             data["Level"]["HeightMap"] = amulet_nbt.TAG_Int_Array(
                 misc.get("height_map256IA", numpy.zeros(256, dtype=numpy.uint32))
             )
-        elif self.features["height_map"] in [
+        elif self.features["height_map"] in {
             "C|36LA|V1",
             "C|36LA|V2",
             "C|36LA|V3",
             "C|36LA|V4",
-        ]:
+        }:
             maps = [
                 "WORLD_SURFACE_WG",
                 "OCEAN_FLOOR_WG",
@@ -316,11 +322,17 @@ class BaseAnvilInterface(Interface):
                 maps.append("WORLD_SURFACE")
             else:
                 raise Exception
-            heightmaps = misc.get("height_mapC|36LA", amulet_nbt.TAG_Compound())
+            heightmaps_temp: Dict[str, numpy.ndarray] = misc.get("height_mapC", {})
+            heightmaps = amulet_nbt.TAG_Compound()
+            heightmap_length = 36 if max_world_version[1] < 2556 else 37  # this value is probably actually much lower
             for heightmap in maps:
-                if heightmap not in heightmaps:
+                if heightmap in heightmaps_temp:
+                    array = encode_long_array(heightmaps_temp[heightmap], max_world_version[1] < 2556, 9)
+                    assert array.size == heightmap_length, f"Expected an array of length {heightmap_length} but got an array of length {array.size}"
+                    heightmaps[heightmap] = amulet_nbt.TAG_Long_Array(array)
+                else:
                     heightmaps[heightmap] = amulet_nbt.TAG_Long_Array(
-                        numpy.zeros(36, dtype=">i8")
+                        numpy.zeros(heightmap_length, dtype=">i8")
                     )
             data["Level"]["Heightmaps"] = heightmaps
 
