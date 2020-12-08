@@ -142,7 +142,9 @@ def decode_long_array(
     ).view(dtype=">h")[::-1]
 
 
-def encode_long_array(array: numpy.ndarray, dense: bool = True, bits_per_entry: Optional[int] = None) -> numpy.ndarray:
+def encode_long_array(
+    array: numpy.ndarray, dense: bool = True, bits_per_entry: Optional[int] = None
+) -> numpy.ndarray:
     """
     Encode an long array (from BlockStates or Heightmaps)
     :param array: A numpy array of the data to be encoded.
@@ -156,7 +158,9 @@ def encode_long_array(array: numpy.ndarray, dense: bool = True, bits_per_entry: 
         bits_per_entry = required_bits_per_entry
     else:
         if required_bits_per_entry > bits_per_entry:
-            raise Exception(f"The array requires at least {required_bits_per_entry} bits per value which is more than the specified {bits_per_entry} bits")
+            raise Exception(
+                f"The array requires at least {required_bits_per_entry} bits per value which is more than the specified {bits_per_entry} bits"
+            )
     if not dense:
         if bits_per_entry == 11:
             bits_per_entry = 12  # 11 and 12 take up the same amount of space. I don't know if 11 exists any more.
