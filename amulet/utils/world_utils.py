@@ -4,7 +4,7 @@ import math
 import sys
 import gzip
 from io import StringIO
-from typing import Tuple
+from typing import Tuple, Optional
 import numpy
 from numpy import ndarray, zeros, uint8
 from amulet.api.data_types import ChunkCoordinates
@@ -16,15 +16,17 @@ VERSION_GZIP = 1
 VERSION_DEFLATE = 2
 
 
-def block_coords_to_chunk_coords(*args: int, chunk_size: int = 16) -> Tuple[int, ...]:
+def block_coords_to_chunk_coords(
+    *args: int, sub_chunk_size: int = 16
+) -> Tuple[int, ...]:
     """
     Converts the supplied block coordinates into chunk coordinates
 
     :param args: The coordinate of the block(s)
-    :param chunk_size: The dimension of the chunk (Optional. Default 16)
+    :param sub_chunk_size: The dimension of the chunk (Optional. Default 16)
     :return: The resulting chunk coordinates in (x, z) order
     """
-    return tuple(int(math.floor(coord / chunk_size)) for coord in args)
+    return tuple(int(math.floor(coord / sub_chunk_size)) for coord in args)
 
 
 def chunk_coords_to_block_coords(
@@ -140,14 +142,25 @@ def decode_long_array(
     ).view(dtype=">h")[::-1]
 
 
-def encode_long_array(array: numpy.ndarray, dense=True) -> numpy.ndarray:
+def encode_long_array(
+    array: numpy.ndarray, dense: bool = True, bits_per_entry: Optional[int] = None
+) -> numpy.ndarray:
     """
     Encode an long array (from BlockStates or Heightmaps)
     :param array: A numpy array of the data to be encoded.
+    :param dense: If true the long arrays will be treated as a bit stream. If false they are distinct values with padding
+    :param bits_per_entry: The number of bits to use to store each value. If left as None will use the smallest bits per entry.
     :return: Encoded array as numpy array
     """
     array = array.astype(">h")
-    bits_per_entry = max(int(numpy.amax(array)).bit_length(), 2)
+    required_bits_per_entry = max(int(numpy.amax(array)).bit_length(), 2)
+    if bits_per_entry is None:
+        bits_per_entry = required_bits_per_entry
+    else:
+        if required_bits_per_entry > bits_per_entry:
+            raise Exception(
+                f"The array requires at least {required_bits_per_entry} bits per value which is more than the specified {bits_per_entry} bits"
+            )
     if not dense:
         if bits_per_entry == 11:
             bits_per_entry = 12  # 11 and 12 take up the same amount of space. I don't know if 11 exists any more.
