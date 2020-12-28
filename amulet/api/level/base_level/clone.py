@@ -245,7 +245,7 @@ def clone(
                 if include_blocks:
                     # a boolean array specifying if each index should be pasted.
                     paste_blocks = gen_paste_blocks(
-                        dst_chunk.block_palette, skip_blocks
+                        src_chunk.block_palette, skip_blocks
                     )
 
                     # create a look up table converting the source block ids to the destination block ids
