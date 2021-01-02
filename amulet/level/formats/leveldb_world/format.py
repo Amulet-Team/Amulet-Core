@@ -22,7 +22,7 @@ from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.level import loader
 
 from amulet.level.interfaces.chunk.leveldb.leveldb_chunk_versions import (
-    game_to_chunk_version,
+    game_to_chunk_version
 )
 from .dimension import LevelDBDimensionManager
 
@@ -155,10 +155,7 @@ class LevelDBFormat(WorldFormatWrapper):
                 v = raw_chunk_data.get(b"v", b"\x00")[0]
         else:
             v = game_to_chunk_version(self.max_world_version[1])
-        return (
-            self.platform,
-            v,
-        )  # TODO: work out a valid default
+        return (self.platform, v)  # TODO: work out a valid default
 
     def _reload_world(self):
         try:
@@ -172,9 +169,18 @@ class LevelDBFormat(WorldFormatWrapper):
         """Open the database for reading and writing"""
         self._reload_world()
 
-    def _create(self, **kwargs):
-        # TODO: setup the database
-        raise NotImplementedError
+    def _create(self, path=None, platform=None, version=None, **kwargs):
+        if path is None:
+            raise ValueError("A path must be specified")
+        if platform is None:
+            raise ValueError("A platform must be specified")
+        if version is None:
+            raise ValueError("A version must be specified")
+
+        level = LevelDBFormat(path)
+        level.create_and_open(platform, version, **kwargs)
+        level.save()
+        level.close()
 
     @property
     def has_lock(self) -> bool:
