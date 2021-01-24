@@ -146,7 +146,10 @@ class SelectionGroup:
 
         :return: True is the selection is a rectangle, False otherwise
         """
-        return len(self._selection_boxes) == 1 or len(self.merge_boxes().selection_boxes) == 1
+        return (
+            len(self._selection_boxes) == 1
+            or len(self.merge_boxes().selection_boxes) == 1
+        )
 
     @property
     def selection_boxes(self) -> List[SelectionBox]:

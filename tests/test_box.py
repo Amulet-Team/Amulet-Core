@@ -27,70 +27,48 @@ class BoxTestCase(unittest.TestCase):
         self.assertTrue(SelectionGroup(box).is_contiguous)
         # top corner
         self.assertTrue(
-            SelectionGroup(
-                (box, SelectionBox((5, 5, 5), (10, 10, 10)))
-            ).is_contiguous
+            SelectionGroup((box, SelectionBox((5, 5, 5), (10, 10, 10)))).is_contiguous
         )
         # bottom corner
         self.assertTrue(
-            SelectionGroup(
-                (box, SelectionBox((-5, -5, -5), (0, 0, 0)))
-            ).is_contiguous
+            SelectionGroup((box, SelectionBox((-5, -5, -5), (0, 0, 0)))).is_contiguous
         )
         # top face
         self.assertTrue(
-            SelectionGroup(
-                (box, SelectionBox((0, 5, 0), (5, 10, 5)))
-            ).is_contiguous
+            SelectionGroup((box, SelectionBox((0, 5, 0), (5, 10, 5)))).is_contiguous
         )
         # bottom face
         self.assertTrue(
-            SelectionGroup(
-                (box, SelectionBox((0, -5, 0), (5, 0, 5)))
-            ).is_contiguous
+            SelectionGroup((box, SelectionBox((0, -5, 0), (5, 0, 5)))).is_contiguous
         )
         # edge
         self.assertTrue(
-            SelectionGroup(
-                (box, SelectionBox((0, 5, 5), (5, 10, 10)))
-            ).is_contiguous
+            SelectionGroup((box, SelectionBox((0, 5, 5), (5, 10, 10)))).is_contiguous
         )
         # edge partial
         self.assertTrue(
-            SelectionGroup(
-                (box, SelectionBox((1, 5, 5), (4, 10, 10)))
-            ).is_contiguous
+            SelectionGroup((box, SelectionBox((1, 5, 5), (4, 10, 10)))).is_contiguous
         )
 
         # disconnected top corner
         self.assertFalse(
-            SelectionGroup(
-                (box, SelectionBox((6, 6, 6), (10, 10, 10)))
-            ).is_contiguous
+            SelectionGroup((box, SelectionBox((6, 6, 6), (10, 10, 10)))).is_contiguous
         )
         # intersecting top corner
         self.assertFalse(
-            SelectionGroup(
-                (box, SelectionBox((4, 4, 4), (10, 10, 10)))
-            ).is_contiguous
+            SelectionGroup((box, SelectionBox((4, 4, 4), (10, 10, 10)))).is_contiguous
         )
         # intersecting top face
         self.assertFalse(
-            SelectionGroup(
-                (box, SelectionBox((0, 4, 0), (5, 10, 5)))
-            ).is_contiguous
+            SelectionGroup((box, SelectionBox((0, 4, 0), (5, 10, 5)))).is_contiguous
         )
         # intersecting bottom face
         self.assertFalse(
-            SelectionGroup(
-                (box, SelectionBox((0, -4, 0), (5, 1, 5)))
-            ).is_contiguous
+            SelectionGroup((box, SelectionBox((0, -4, 0), (5, 1, 5)))).is_contiguous
         )
         # intersecting on only two faces
         self.assertFalse(
-            SelectionGroup(
-                (box, SelectionBox((0, 5, 6), (5, 10, 10)))
-            ).is_contiguous
+            SelectionGroup((box, SelectionBox((0, 5, 6), (5, 10, 10)))).is_contiguous
         )
 
     def test_is_rectangular(self):
@@ -103,7 +81,9 @@ class BoxTestCase(unittest.TestCase):
         self.assertTrue(SelectionGroup((box_1, box_2)).is_rectangular)
         self.assertFalse(SelectionGroup((box_1, box_2, box_3)).is_rectangular)
         self.assertTrue(SelectionGroup((box_1, box_2, box_3, box_4)).is_rectangular)
-        self.assertTrue(SelectionGroup((box_1, box_2, box_3, box_4, box_2)).is_rectangular)
+        self.assertTrue(
+            SelectionGroup((box_1, box_2, box_3, box_4, box_2)).is_rectangular
+        )
 
     def test_single_block_box(self):
         box_1 = SelectionBox((0, 0, 0), (1, 1, 2))
