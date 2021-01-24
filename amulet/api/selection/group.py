@@ -65,6 +65,61 @@ class SelectionGroup:
         else:
             raise ValueError("SelectionGroup does not contain any SelectionBoxes")
 
+    def merge_boxes(self) -> "SelectionGroup":
+        """Take the boxes as they were given to this class, merge neighbouring boxes and remove overlapping regions.
+        The result should be a SelectionGroup containing one or more SelectionBox classes that represents the same
+        volume as the original but with no overlapping boxes."""
+        selection_boxes = self.selection_boxes
+        # TODO remove duplicate boxes
+
+        # remove duplicates
+        selection_boxes_ = []
+        for box in selection_boxes:
+            if not any(box == box_ for box_ in selection_boxes_):
+                selection_boxes_.append(box)
+        selection_boxes = selection_boxes_
+
+        if len(selection_boxes) >= 2:
+            merge_boxes = True
+            while merge_boxes:
+                # find two neighbouring boxes and merge them
+                merge_boxes = False  # if two boxes get merged this will be set back to True and this will run again.
+                box_index = 0  # the index of the first box
+                while box_index < len(selection_boxes):
+                    box = selection_boxes[box_index]
+                    other_index = box_index + 1  # the index of the second box.
+                    # This always starts at one greater than box_index because
+                    # the lower values were already checked the other way around
+                    while other_index < len(selection_boxes):
+                        other = selection_boxes[other_index]
+                        x_dim = box.min_x == other.min_x and box.max_x == other.max_x
+                        y_dim = box.min_y == other.min_y and box.max_y == other.max_y
+                        z_dim = box.min_z == other.min_z and box.max_z == other.max_z
+
+                        x_border = box.max_x == other.min_x or other.max_x == box.min_x
+                        y_border = box.max_y == other.min_y or other.max_y == box.min_y
+                        z_border = box.max_z == other.min_z or other.max_z == box.min_z
+
+                        if (
+                            (x_dim and y_dim and z_border)
+                            or (x_dim and z_dim and y_border)
+                            or (y_dim and z_dim and x_border)
+                        ):
+                            selection_boxes.pop(other_index)
+                            selection_boxes.pop(box_index)
+                            selection_boxes.append(
+                                SelectionBox(
+                                    numpy.min([box.min, other.min], 0),
+                                    numpy.max([box.max, other.max], 0),
+                                )
+                            )
+                            merge_boxes = True
+                            box = selection_boxes[box_index]
+                            other_index = box_index + 1
+                        else:
+                            other_index += 1
+                    box_index += 1
+        return SelectionGroup(selection_boxes)
 
     @property
     def is_contiguous(self) -> bool:
@@ -91,7 +146,7 @@ class SelectionGroup:
 
         :return: True is the selection is a rectangle, False otherwise
         """
-        return len(self._selection_boxes) == 1
+        return len(self._selection_boxes) == 1 or len(self.merge_boxes().selection_boxes) == 1
 
     @property
     def selection_boxes(self) -> List[SelectionBox]:
