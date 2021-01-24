@@ -68,18 +68,18 @@ class SelectionGroup:
 
     @property
     def is_contiguous(self) -> bool:
-        """Does the SelectionGroup represent one connected region (True) or multiple separated regions (False)"""
+        """Does the SelectionGroup represent one connected region (True) or multiple separated regions (False).
+        If two boxes are touching at the corners this is classed as contiguous."""
+        # TODO: This needs some work. It will only work if the selections touch in a chain
+        #  it does not care if it loops back and intersects itself. Does intersecting count as being contiguous?
+        #  I would say yes
         if len(self._selection_boxes) == 1:
             return True
 
         for i in range(len(self._selection_boxes) - 1):
-            sub_box = self._selection_boxes[i]
-            next_box = self._selection_boxes[i + 1]
-            if (
-                abs(sub_box.max_x - next_box.min_x)
-                and abs(sub_box.max_y - next_box.min_y)
-                and abs(sub_box.max_z - next_box.min_z)
-            ):
+            sub_box: SelectionBox = self._selection_boxes[i]
+            next_box: SelectionBox = self._selection_boxes[i + 1]
+            if not sub_box.touches(next_box):
                 return False
 
         return True
