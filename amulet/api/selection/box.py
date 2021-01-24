@@ -285,6 +285,31 @@ class SelectionBox:
         """The number of blocks in the box."""
         return self.size_x * self.size_y * self.size_z
 
+    def touches(self, other: SelectionBox) -> bool:
+        """Method to check if this instance of SelectionBox touches but does not intersect another SelectionBox
+
+        :param other: The other SelectionBox
+        :return: True if the two `SelectionBox`es touch, False otherwise
+        """
+        # It touches if the box does not intersect but intersects when expanded by one block.
+        # There may be a simpler way to do this.
+        return self.touches_or_intersects(other) and not self.intersects(other)
+
+    def touches_or_intersects(self, other: SelectionBox) -> bool:
+        """Method to check if this instance of SelectionBox touches or intersects another SelectionBox
+
+        :param other: The other SelectionBox
+        :return: True if the two `SelectionBox`es touch or intersect., False otherwise
+        """
+        return not (
+            self.min_x >= other.max_x + 1
+            or self.min_y >= other.max_y + 1
+            or self.min_z >= other.max_z + 1
+            or self.max_x <= other.min_x - 1
+            or self.max_y <= other.min_y - 1
+            or self.max_z <= other.min_z - 1
+        )
+
     def intersects(self, other: SelectionBox) -> bool:
         """
         Method to check whether this instance of SelectionBox intersects another SelectionBox
