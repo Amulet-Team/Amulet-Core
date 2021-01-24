@@ -11,6 +11,7 @@ from amulet.api.data_types import (
     SubChunkCoordinates,
     FloatTriplet,
 )
+import amulet
 from .box import SelectionBox
 
 
@@ -22,13 +23,15 @@ class SelectionGroup:
     def __init__(
         self, selection_boxes: Union[SelectionBox, Iterable[SelectionBox]] = ()
     ):
-        self._selection_boxes: List[SelectionBox] = []
-
-        if isinstance(selection_boxes, SelectionBox):
-            self.add_box(selection_boxes)
-        elif selection_boxes:
-            for box in selection_boxes:
-                self.add_box(box)
+        if type(selection_boxes) is SelectionBox:
+            self._selection_boxes: Tuple[SelectionBox, ...] = (selection_boxes,)
+        elif type(selection_boxes) in (tuple, list):
+            self._selection_boxes: Tuple[SelectionBox, ...] = tuple(
+                box for box in selection_boxes if type(box) is SelectionBox
+            )
+        else:
+            amulet.log.warning(f"Invalid format for selection_boxes {selection_boxes}")
+            self._selection_boxes: Tuple[SelectionBox, ...] = ()
 
     def __iter__(self) -> Iterable[Tuple[int, int, int]]:
         """A generator of all the block locations in every box in the group."""
@@ -40,11 +43,7 @@ class SelectionGroup:
 
     def __contains__(self, item: CoordinatesAny):
         """Is the block (int) or point (float) location within any of the boxes in this group."""
-        for subbox in self._selection_boxes:
-            if item in subbox:
-                return True
-
-        return False
+        return any(item in box for box in self._selection_boxes)
 
     def __bool__(self):
         """Are there any boxes in the group."""
@@ -66,43 +65,6 @@ class SelectionGroup:
         else:
             raise ValueError("SelectionGroup does not contain any SelectionBoxes")
 
-    def add_box(self, other: SelectionBox, do_merge_check: bool = True):
-        """
-        Adds a SelectionBox to the selection box. If `other` is next to another SelectionBox in the selection, matches in any 2 dimensions, and
-        `do_merge_check` is True, then the 2 boxes will be combined into 1 box.
-
-        :param other: The box to add
-        :param do_merge_check: Boolean flag to merge boxes if able
-        """
-        # TODO: verify that this logic actually works on more complex cases
-        if do_merge_check:
-            boxes_to_remove = None
-            new_box = None
-            for box in self._selection_boxes:
-                x_dim = box.min_x == other.min_x and box.max_x == other.max_x
-                y_dim = box.min_y == other.min_y and box.max_y == other.max_y
-                z_dim = box.min_z == other.min_z and box.max_z == other.max_z
-
-                x_border = box.max_x == other.min_x or other.max_x == box.min_x
-                y_border = box.max_y == other.min_y or other.max_y == box.min_y
-                z_border = box.max_z == other.min_z or other.max_z == box.min_z
-
-                if (
-                    (x_dim and y_dim and z_border)
-                    or (x_dim and z_dim and y_border)
-                    or (y_dim and z_dim and x_border)
-                ):
-                    boxes_to_remove = box
-                    new_box = SelectionBox(numpy.min([box.min, other.min], 0), numpy.max([box.max, other.max], 0))
-                    break
-
-            if new_box:
-                self._selection_boxes.remove(boxes_to_remove)
-                self.add_box(new_box)
-            else:
-                self._selection_boxes.append(other)
-        else:
-            self._selection_boxes.append(other)
 
     @property
     def is_contiguous(self) -> bool:
