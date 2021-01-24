@@ -22,7 +22,7 @@ class SelectionGroup:
     def __init__(
         self, selection_boxes: Union[SelectionBox, Iterable[SelectionBox]] = ()
     ):
-        self._selection_boxes = []
+        self._selection_boxes: List[SelectionBox] = []
 
         if isinstance(selection_boxes, SelectionBox):
             self.add_box(selection_boxes)
@@ -93,7 +93,7 @@ class SelectionGroup:
                     or (y_dim and z_dim and x_border)
                 ):
                     boxes_to_remove = box
-                    new_box = SelectionBox(box.min, other.max)
+                    new_box = SelectionBox(numpy.min([box.min, other.min], 0), numpy.max([box.max, other.max], 0))
                     break
 
             if new_box:
