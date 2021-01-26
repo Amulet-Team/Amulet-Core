@@ -262,13 +262,13 @@ class SelectionGroup:
         self, scale: FloatTriplet, rotation: FloatTriplet, translation: FloatTriplet
     ) -> SelectionGroup:
         """creates a new transformed SelectionGroup."""
-        selection_group = SelectionGroup()
+        selection_group = []
         for selection in self.selection_boxes:
             for transformed_selection in selection.transform(
                 scale, rotation, translation
             ):
-                selection_group.add_box(transformed_selection)
-        return selection_group
+                selection_group.append(transformed_selection)
+        return SelectionGroup(selection_group)
 
     def copy(self):
         return SelectionGroup([box for box in self.selection_boxes])
