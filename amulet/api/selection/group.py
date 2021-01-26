@@ -3,13 +3,14 @@ from __future__ import annotations
 import itertools
 import numpy
 
-from typing import Tuple, Iterable, List, Generator, Union
+from typing import Tuple, Iterable, List, Generator, Union, Optional
 
 from amulet.api.data_types import (
     CoordinatesAny,
     ChunkCoordinates,
     SubChunkCoordinates,
     FloatTriplet,
+    PointCoordinatesAny,
 )
 import amulet
 from .box import SelectionBox
@@ -48,6 +49,10 @@ class SelectionGroup:
     def __bool__(self):
         """Are there any boxes in the group."""
         return bool(self._selection_boxes)
+
+    def __getitem__(self, item: int):
+        """Get the selection box at the given index."""
+        return self._selection_boxes[item]
 
     @property
     def min(self) -> numpy.ndarray:
@@ -223,17 +228,35 @@ class SelectionGroup:
         self, other: Union[SelectionGroup, SelectionBox]
     ) -> SelectionGroup:
         """Get a new SelectionGroup that represents the area contained within self and other."""
-        intersection = SelectionGroup()
+        intersection = []
         if isinstance(other, SelectionGroup):
             for self_box in self.selection_boxes:
                 for other_box in other.selection_boxes:
                     if self_box.intersects(other_box):
-                        intersection.add_box(self_box.intersection(other_box))
+                        intersection.append(self_box.intersection(other_box))
         elif isinstance(other, SelectionBox):
             for self_box in self.selection_boxes:
                 if self_box.intersects(other):
-                    intersection.add_box(self_box.intersection(other))
-        return intersection
+                    intersection.append(self_box.intersection(other))
+        return SelectionGroup(intersection)
+
+    def closest_vector_intersection(
+        self, origin: PointCoordinatesAny, vector: PointCoordinatesAny
+    ) -> Tuple[Optional[int], float]:
+        """
+        Returns the index for the closest box in the look vector and the multiplier of the look vector to get there.
+        :param origin: The origin tuple of the vector
+        :param vector: The vector magnitude in x, y and z
+        :return: Index for the closest box and the multiplier of the vector to get there. None, inf if no intersection.
+        """
+        index_return = None
+        multiplier = float("inf")
+        for index, box in enumerate(self._selection_boxes):
+            mult = box.intersects_vector(origin, vector)
+            if mult is not None and mult < multiplier:
+                multiplier = mult
+                index_return = index
+        return index_return, multiplier
 
     def transform(
         self, scale: FloatTriplet, rotation: FloatTriplet, translation: FloatTriplet
