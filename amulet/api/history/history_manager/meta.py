@@ -44,7 +44,9 @@ class MetaHistoryManager(ContainerHistoryManager):
         for manager in self._managers():
             manager.mark_saved()
 
-    def _managers(self, world: bool = True, non_world: bool = True) -> Tuple[HistoryManager, ...]:
+    def _managers(
+        self, world: bool = True, non_world: bool = True
+    ) -> Tuple[HistoryManager, ...]:
         return (
             tuple(self._world_managers) * world
             + tuple(self._non_world_managers) * non_world
