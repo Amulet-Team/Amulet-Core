@@ -19,6 +19,11 @@ class ContainerHistoryManager(HistoryManager):
         raise NotImplementedError
 
     def _register_snapshot(self, snapshot: SnapshotType) -> bool:
+        """Create a snapshot if it contains data.
+
+        :param snapshot: The snapshot data to save.
+        :return: True if the snapshot was created, false otherwise.
+        """
         self._check_snapshot(snapshot)
         if snapshot:
             if self._last_save_snapshot > self._snapshot_index:
