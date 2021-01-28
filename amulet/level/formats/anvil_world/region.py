@@ -125,9 +125,7 @@ class AnvilRegion:
                 sectors = (
                     numpy.fromfile(fp, dtype=">u4", count=1024).reshape(32, 32) >> 8
                 )
-                mod_times = numpy.fromfile(fp, dtype=">u4", count=1024).reshape(
-                    32, 32
-                )
+                mod_times = numpy.fromfile(fp, dtype=">u4", count=1024).reshape(32, 32)
 
                 # for offset in offsets:
                 #     sector = offset >> 8
@@ -159,8 +157,7 @@ class AnvilRegion:
                                         if os.path.isfile(mcc_path):
                                             with open(mcc_path, "rb") as f:
                                                 buffer = (
-                                                    bytes([buffer[0] & 127])
-                                                    + f.read()
+                                                    bytes([buffer[0] & 127]) + f.read()
                                                 )
                                         else:
                                             # the external flag was set but the external file cannot be found. Continue as if the chunk does not exist.
