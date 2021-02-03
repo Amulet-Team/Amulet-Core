@@ -240,15 +240,20 @@ class SelectionGroup:
         elif isinstance(other, SelectionBox):
             return any(self_box.intersects(other) for self_box in self.selection_boxes)
 
+    @staticmethod
+    def _to_group(other: Union[SelectionGroup, SelectionBox]) -> SelectionGroup:
+        if type(other) not in (SelectionGroup, SelectionBox):
+            raise TypeError("other must be a SelectionGroup or SelectionBox.")
+        if isinstance(other, SelectionBox):
+            other = SelectionGroup(other)
+        return other
+
     def intersection(
         self, other: Union[SelectionGroup, SelectionBox]
     ) -> SelectionGroup:
         """Get a new SelectionGroup that represents the area contained within self and other."""
-        if type(other) not in (SelectionGroup, SelectionBox):
-            raise TypeError("other must be a SelectionGroup or SelectionBox.")
+        other = self._to_group(other)
         intersection = []
-        if isinstance(other, SelectionBox):
-            other = SelectionGroup(other)
         for self_box in self.selection_boxes:
             for other_box in other.selection_boxes:
                 if self_box.intersects(other_box):
@@ -257,24 +262,30 @@ class SelectionGroup:
 
     def subtract(self, other: Union[SelectionGroup, SelectionBox]) -> SelectionGroup:
         """Returns a new SelectionGroup containing the volume that does not intersect with other."""
-        if type(other) not in (SelectionGroup, SelectionBox):
-            raise TypeError("other must be a SelectionGroup or SelectionBox.")
+        other = self._to_group(other)
         selections = self.selection_boxes
-        if isinstance(other, SelectionBox):
-            other = SelectionGroup(other)
         for other_box in other.selection_boxes:
             # for each box in other
             selections_new = []
             for self_box in selections:
                 selections_new += self_box.subtract(other_box)
             selections = selections_new
+            if not selections:
+                break
         return SelectionGroup(selections)
 
     def union(self, other: Union[SelectionGroup, SelectionBox]) -> SelectionGroup:
         """Returns a new SelectionGroup containing the volume of self and other."""
-        if type(other) not in (SelectionGroup, SelectionBox):
-            raise TypeError("other must be a SelectionGroup or SelectionBox.")
-        return self.subtract(other) + other
+        other = self._to_group(other)
+        if other.is_subset(self):
+            return self
+        else:
+            return self.subtract(other) + other
+
+    def is_subset(self, other: Union[SelectionGroup, SelectionBox]) -> bool:
+        """Is self completely within other."""
+        other = self._to_group(other)
+        return not self.subtract(other)
 
     def closest_vector_intersection(
         self, origin: PointCoordinatesAny, vector: PointCoordinatesAny
@@ -307,7 +318,7 @@ class SelectionGroup:
         return SelectionGroup(selection_group)
 
     def copy(self):
-        return SelectionGroup([box for box in self.selection_boxes])
+        return SelectionGroup(self.selection_boxes)
 
     @property
     def volume(self) -> int:
