@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 import numpy
 
-from typing import Tuple, Iterable, List, Generator
+from typing import Tuple, Iterable, List, Generator, Optional
 
 from amulet.api.data_types import (
     BlockCoordinatesAny,
@@ -11,6 +11,7 @@ from amulet.api.data_types import (
     ChunkCoordinates,
     SubChunkCoordinates,
     FloatTriplet,
+    PointCoordinatesAny,
 )
 from amulet.utils.world_utils import (
     block_coords_to_chunk_coords,
@@ -285,6 +286,31 @@ class SelectionBox:
         """The number of blocks in the box."""
         return self.size_x * self.size_y * self.size_z
 
+    def touches(self, other: SelectionBox) -> bool:
+        """Method to check if this instance of SelectionBox touches but does not intersect another SelectionBox
+
+        :param other: The other SelectionBox
+        :return: True if the two `SelectionBox`es touch, False otherwise
+        """
+        # It touches if the box does not intersect but intersects when expanded by one block.
+        # There may be a simpler way to do this.
+        return self.touches_or_intersects(other) and not self.intersects(other)
+
+    def touches_or_intersects(self, other: SelectionBox) -> bool:
+        """Method to check if this instance of SelectionBox touches or intersects another SelectionBox
+
+        :param other: The other SelectionBox
+        :return: True if the two `SelectionBox`es touch or intersect., False otherwise
+        """
+        return not (
+            self.min_x >= other.max_x + 1
+            or self.min_y >= other.max_y + 1
+            or self.min_z >= other.max_z + 1
+            or self.max_x <= other.min_x - 1
+            or self.max_y <= other.min_y - 1
+            or self.max_z <= other.min_z - 1
+        )
+
     def intersects(self, other: SelectionBox) -> bool:
         """
         Method to check whether this instance of SelectionBox intersects another SelectionBox
@@ -309,6 +335,55 @@ class SelectionBox:
             numpy.clip(other.min, self.min, self.max),
             numpy.clip(other.max, self.min, self.max),
         )
+
+    def intersects_vector(
+        self, origin: PointCoordinatesAny, vector: PointCoordinatesAny
+    ) -> Optional[float]:
+        """
+        Determine if a look vector from a given point collides with this selection box.
+        :param origin: Location of the origin of the vector
+        :param vector: The look vector
+        :return: Multiplier of the vector to the collision location. None if it does not collide
+        """
+        # Logic based on https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
+        for obj in (origin, vector):
+            if type(obj) in (tuple, list):
+                if len(obj) != 3 or not all(type(o) in (int, float) for o in obj):
+                    raise ValueError(
+                        "Given tuple/list type must contain three ints or floats."
+                    )
+            elif type(obj) is numpy.ndarray:
+                if obj.shape != (3,) and numpy.issubdtype(obj.dtype, numpy.number):
+                    raise ValueError(
+                        "Given ndarray type must have a numerical data type with length three."
+                    )
+        vector = numpy.array(vector)
+        vector[abs(vector) < 0.000001] = 0.000001
+        (tmin, tymin, tzmin), (tmax, tymax, tzmax) = numpy.sort(
+            (numpy.array(self.bounds).reshape(2, 3) - numpy.array(origin))
+            / numpy.array(vector),
+            axis=0,
+        )
+
+        if tmin > tymax or tymin > tmax:
+            return None
+
+        if tymin > tmin:
+            tmin = tymin
+
+        if tymax < tmax:
+            tmax = tymax
+
+        if tmin > tzmax or tzmin > tmax:
+            return None
+
+        if tzmin > tmin:
+            tmin = tzmin
+
+        if tzmax < tmax:
+            tmax = tzmax
+
+        return tmin if tmin >= 0 else tmax
 
     def transform(
         self, scale: FloatTriplet, rotation: FloatTriplet, translation: FloatTriplet
