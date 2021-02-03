@@ -255,6 +255,27 @@ class SelectionGroup:
                     intersection.append(self_box.intersection(other_box))
         return SelectionGroup(intersection)
 
+    def subtract(self, other: Union[SelectionGroup, SelectionBox]) -> SelectionGroup:
+        """Returns a new SelectionGroup containing the volume that does not intersect with other."""
+        if type(other) not in (SelectionGroup, SelectionBox):
+            raise TypeError("other must be a SelectionGroup or SelectionBox.")
+        selections = self.selection_boxes
+        if isinstance(other, SelectionBox):
+            other = SelectionGroup(other)
+        for other_box in other.selection_boxes:
+            # for each box in other
+            selections_new = []
+            for self_box in selections:
+                selections_new += self_box.subtract(other_box)
+            selections = selections_new
+        return SelectionGroup(selections)
+
+    def union(self, other: Union[SelectionGroup, SelectionBox]) -> SelectionGroup:
+        """Returns a new SelectionGroup containing the volume of self and other."""
+        if type(other) not in (SelectionGroup, SelectionBox):
+            raise TypeError("other must be a SelectionGroup or SelectionBox.")
+        return self.subtract(other) + other
+
     def closest_vector_intersection(
         self, origin: PointCoordinatesAny, vector: PointCoordinatesAny
     ) -> Tuple[Optional[int], float]:
