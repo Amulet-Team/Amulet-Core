@@ -244,16 +244,15 @@ class SelectionGroup:
         self, other: Union[SelectionGroup, SelectionBox]
     ) -> SelectionGroup:
         """Get a new SelectionGroup that represents the area contained within self and other."""
+        if type(other) not in (SelectionGroup, SelectionBox):
+            raise TypeError("other must be a SelectionGroup or SelectionBox.")
         intersection = []
-        if isinstance(other, SelectionGroup):
-            for self_box in self.selection_boxes:
-                for other_box in other.selection_boxes:
-                    if self_box.intersects(other_box):
-                        intersection.append(self_box.intersection(other_box))
-        elif isinstance(other, SelectionBox):
-            for self_box in self.selection_boxes:
-                if self_box.intersects(other):
-                    intersection.append(self_box.intersection(other))
+        if isinstance(other, SelectionBox):
+            other = SelectionGroup(other)
+        for self_box in self.selection_boxes:
+            for other_box in other.selection_boxes:
+                if self_box.intersects(other_box):
+                    intersection.append(self_box.intersection(other_box))
         return SelectionGroup(intersection)
 
     def closest_vector_intersection(
