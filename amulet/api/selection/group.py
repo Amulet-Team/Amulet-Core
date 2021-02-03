@@ -35,7 +35,7 @@ class SelectionGroup:
             self._selection_boxes: Tuple[SelectionBox, ...] = ()
 
     def __eq__(self, other: SelectionGroup):
-        return self.selection_boxes == other.selection_boxes
+        return type(other) is SelectionGroup and self.selection_boxes_sorted == other.selection_boxes_sorted
 
     def __add__(self, other: SelectionGroup):
         if not type(other) is SelectionGroup:
@@ -167,7 +167,15 @@ class SelectionGroup:
     @property
     def selection_boxes(self) -> List[SelectionBox]:
         """
-        Returns a list of unmodified `SelectionBox`es in the SelectionGroup.
+        Returns a read only list of unmodified `SelectionBox`es in the SelectionGroup.
+        :return: A list of the `SelectionBox`es
+        """
+        return list(self._selection_boxes)
+
+    @property
+    def selection_boxes_sorted(self) -> List[SelectionBox]:
+        """
+        Returns a list of unmodified `SelectionBox`es in the SelectionGroup sorted based on the hash of the coordinates.
         :return: A list of the `SelectionBox`es
         """
         return sorted(self._selection_boxes, key=hash)
