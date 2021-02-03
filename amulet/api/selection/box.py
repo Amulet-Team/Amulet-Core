@@ -245,9 +245,19 @@ class SelectionBox:
         return self._min_x, self._min_y, self._min_z
 
     @property
+    def min_array(self) -> numpy.ndarray:
+        """The minimum point of the box as a numpy array."""
+        return numpy.array(self.min)
+
+    @property
     def max(self) -> Tuple[int, int, int]:
         """The maximum point of the box."""
         return self._max_x, self._max_y, self._max_z
+
+    @property
+    def max_array(self) -> numpy.ndarray:
+        """The maximum point of the box as a numpy array."""
+        return numpy.array(self.max)
 
     @property
     def bounds(self) -> Tuple[int, int, int, int, int, int]:
@@ -260,6 +270,11 @@ class SelectionBox:
             self._max_y,
             self._max_z,
         )
+
+    @property
+    def bounds_array(self) -> numpy.ndarray:
+        """The minimum and maximum points of the box as a numpy array."""
+        return numpy.array(self.bounds)
 
     @property
     def size_x(self) -> int:
