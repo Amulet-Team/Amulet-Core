@@ -37,6 +37,11 @@ class SelectionGroup:
     def __eq__(self, other: SelectionGroup):
         return self.selection_boxes == other.selection_boxes
 
+    def __add__(self, other: SelectionGroup):
+        if not type(other) is SelectionGroup:
+            return NotImplemented
+        return SelectionGroup(self.selection_boxes + other.selection_boxes)
+
     def __iter__(self) -> Iterable[Tuple[int, int, int]]:
         """A generator of all the block locations in every box in the group."""
         return itertools.chain.from_iterable(self.selection_boxes)
