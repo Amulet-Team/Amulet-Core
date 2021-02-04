@@ -35,7 +35,10 @@ class SelectionGroup:
             self._selection_boxes: Tuple[SelectionBox, ...] = ()
 
     def __eq__(self, other: SelectionGroup):
-        return type(other) is SelectionGroup and self.selection_boxes_sorted == other.selection_boxes_sorted
+        return (
+            type(other) is SelectionGroup
+            and self.selection_boxes_sorted == other.selection_boxes_sorted
+        )
 
     def __add__(self, other: SelectionGroup):
         if not type(other) is SelectionGroup:

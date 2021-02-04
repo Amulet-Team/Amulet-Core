@@ -363,11 +363,21 @@ class SelectionBox:
                 boxes = []
                 if self.min_y < other.min_y:
                     # bottom box
-                    boxes.append(SelectionBox((self.min_x, self.min_y, self.min_z), (self.max_x, other.min_y, self.max_z)))
+                    boxes.append(
+                        SelectionBox(
+                            (self.min_x, self.min_y, self.min_z),
+                            (self.max_x, other.min_y, self.max_z),
+                        )
+                    )
 
                 if other.max_y < self.max_y:
                     # top box
-                    boxes.append(SelectionBox((self.min_x, other.max_y, self.min_z), (self.max_x, self.max_y, self.max_z)))
+                    boxes.append(
+                        SelectionBox(
+                            (self.min_x, other.max_y, self.min_z),
+                            (self.max_x, self.max_y, self.max_z),
+                        )
+                    )
 
                 # BBB  NNN  TTT
                 # BBB  WOE  TTT
@@ -375,19 +385,39 @@ class SelectionBox:
 
                 if self.min_z < other.min_z:
                     # north box
-                    boxes.append(SelectionBox((self.min_x, other.min_y, self.min_z), (self.max_x, other.max_y, other.min_z)))
+                    boxes.append(
+                        SelectionBox(
+                            (self.min_x, other.min_y, self.min_z),
+                            (self.max_x, other.max_y, other.min_z),
+                        )
+                    )
 
                 if other.max_z < self.max_z:
                     # south box
-                    boxes.append(SelectionBox((self.min_x, other.min_y, other.max_z), (self.max_x, other.max_y, self.max_z)))
+                    boxes.append(
+                        SelectionBox(
+                            (self.min_x, other.min_y, other.max_z),
+                            (self.max_x, other.max_y, self.max_z),
+                        )
+                    )
 
                 if self.min_x < other.min_x:
                     # west box
-                    boxes.append(SelectionBox((self.min_x, other.min_y, other.min_z), (other.min_x, other.max_y, other.max_z)))
+                    boxes.append(
+                        SelectionBox(
+                            (self.min_x, other.min_y, other.min_z),
+                            (other.min_x, other.max_y, other.max_z),
+                        )
+                    )
 
                 if other.max_x < self.max_x:
                     # east box
-                    boxes.append(SelectionBox((other.max_x, other.min_y, other.min_z), (self.max_x, other.max_y, other.max_z)))
+                    boxes.append(
+                        SelectionBox(
+                            (other.max_x, other.min_y, other.min_z),
+                            (self.max_x, other.max_y, other.max_z),
+                        )
+                    )
 
                 return boxes
         else:
