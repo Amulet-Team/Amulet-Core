@@ -120,6 +120,7 @@ def clone(
 
             # TODO: find a way to do this without doing it block by block
             if include_blocks:
+                blocks_to_skip = set(skip_blocks)
                 for box in dst_selection.selection_boxes:
                     dst_coords = list(box.blocks())
                     coords_array = numpy.ones((len(dst_coords), 4), dtype=numpy.float)
@@ -163,28 +164,31 @@ def clone(
                             if (dst_x, dst_y, dst_z) in dst_chunk.block_entities:
                                 del dst_chunk.block_entities[(dst_x, dst_y, dst_z)]
                             if src_chunk is None:
-                                dst_chunk.blocks[
-                                    dst_x % 16, dst_y, dst_z % 16
-                                ] = dst_chunk.block_palette.get_add_block(
-                                    UniversalAirBlock
-                                )
+                                if UniversalAirBlock not in blocks_to_skip:
+                                    dst_chunk.blocks[
+                                        dst_x % 16, dst_y, dst_z % 16
+                                    ] = dst_chunk.block_palette.get_add_block(
+                                        UniversalAirBlock
+                                    )
                             else:
                                 # TODO implement support for individual block rotation
-                                dst_chunk.blocks[
-                                    dst_x % 16, dst_y, dst_z % 16
-                                ] = dst_chunk.block_palette.get_add_block(
-                                    src_chunk.block_palette[
-                                        src_chunk.blocks[src_x % 16, src_y, src_z % 16]
-                                    ]
-                                )
-                                if (src_x, src_y, src_z) in src_chunk.block_entities:
-                                    dst_chunk.block_entities[
-                                        (dst_x, dst_y, dst_z)
-                                    ] = src_chunk.block_entities[
-                                        (src_x, src_y, src_z)
-                                    ].new_at_location(
-                                        dst_x, dst_y, dst_z
+                                block = src_chunk.block_palette[
+                                    src_chunk.blocks[src_x % 16, src_y, src_z % 16]
+                                ]
+                                if block not in blocks_to_skip:
+                                    dst_chunk.blocks[
+                                        dst_x % 16, dst_y, dst_z % 16
+                                    ] = dst_chunk.block_palette.get_add_block(
+                                        block
                                     )
+                                    if (src_x, src_y, src_z) in src_chunk.block_entities:
+                                        dst_chunk.block_entities[
+                                            (dst_x, dst_y, dst_z)
+                                        ] = src_chunk.block_entities[
+                                            (src_x, src_y, src_z)
+                                        ].new_at_location(
+                                            dst_x, dst_y, dst_z
+                                        )
                             dst_chunk.changed = True
 
                         yield index / volume
