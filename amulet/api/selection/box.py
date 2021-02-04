@@ -29,6 +29,17 @@ class SelectionBox:
     The both the minimum and  maximum coordinate points are inclusive.
     """
 
+    __slots__ = (
+        "_min_x",
+        "_min_y",
+        "_min_z",
+        "_max_x",
+        "_max_y",
+        "_max_z",
+        "_point_1",
+        "_point_2",
+    )
+
     def __init__(self, point_1: BlockCoordinatesAny, point_2: BlockCoordinatesAny):
         box = numpy.array([point_1, point_2]).round().astype(numpy.int)
         p1, p2 = box.tolist()
