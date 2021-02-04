@@ -6,6 +6,7 @@ import numpy
 from typing import Tuple, Iterable, List, Generator, Optional
 
 from amulet.api.data_types import (
+    BlockCoordinates,
     BlockCoordinatesAny,
     CoordinatesAny,
     ChunkCoordinates,
@@ -28,8 +29,11 @@ class SelectionBox:
     The both the minimum and  maximum coordinate points are inclusive.
     """
 
-    def __init__(self, min_point: BlockCoordinatesAny, max_point: BlockCoordinatesAny):
-        box = numpy.array([min_point, max_point]).round().astype(numpy.int)
+    def __init__(self, point_1: BlockCoordinatesAny, point_2: BlockCoordinatesAny):
+        box = numpy.array([point_1, point_2]).round().astype(numpy.int)
+        p1, p2 = box.tolist()
+        self._point_1 = tuple(p1)
+        self._point_2 = tuple(p2)
         self._min_x, self._min_y, self._min_z = numpy.min(box, 0).tolist()
         self._max_x, self._max_y, self._max_z = numpy.max(box, 0).tolist()
 
@@ -208,6 +212,14 @@ class SelectionBox:
         x_chunk_slice, s_y, z_chunk_slice = self.chunk_slice(cx, cz, sub_chunk_size)
         y_chunk_slice = blocks_slice_to_chunk_slice(s_y, sub_chunk_size, cy)
         return x_chunk_slice, y_chunk_slice, z_chunk_slice
+
+    @property
+    def point_1(self) -> BlockCoordinates:
+        return self._point_1
+
+    @property
+    def point_2(self) -> BlockCoordinates:
+        return self._point_2
 
     @property
     def min_x(self) -> int:
