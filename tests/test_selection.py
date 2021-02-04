@@ -92,9 +92,7 @@ class SelectionTestCase(unittest.TestCase):
         self.assertEqual(2, len([x for x in box_1]))
 
         self.assertIn((0, 0, 0), box_1)
-        self.assertIn((1, 1, 2), box_1)
-
-        self.assertNotIn((1, 1, 3), box_1)
+        self.assertNotIn((1, 1, 2), box_1)
 
     def test_sorted_iterator(self):
         box_1 = SelectionBox((0, 0, 0), (4, 4, 4))

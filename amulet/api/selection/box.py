@@ -152,9 +152,9 @@ class SelectionBox:
     def __contains__(self, item: CoordinatesAny):
         """Is the block (int) or point (float) location within this box."""
         return (
-            self._min_x <= item[0] <= self._max_x
-            and self._min_y <= item[1] <= self._max_y
-            and self._min_z <= item[2] <= self._max_z
+            self._min_x <= item[0] < self._max_x
+            and self._min_y <= item[1] < self._max_y
+            and self._min_z <= item[2] < self._max_z
         )
 
     def __eq__(self, other):
