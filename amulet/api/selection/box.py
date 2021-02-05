@@ -249,6 +249,14 @@ class SelectionBox:
         return self._point_2
 
     @property
+    def points(self) -> Tuple[BlockCoordinates, BlockCoordinates]:
+        return self.point_1, self.point_2
+
+    @property
+    def points_array(self) -> numpy.ndarray:
+        return numpy.array(self.points)
+
+    @property
     def min_x(self) -> int:
         """The minimum x coordinate."""
         return self._min_x
