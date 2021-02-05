@@ -61,7 +61,7 @@ class SelectionGroup:
         """Are there any boxes in the group."""
         return bool(self._selection_boxes)
 
-    def __getitem__(self, item: int):
+    def __getitem__(self, item: int) -> SelectionBox:
         """Get the selection box at the given index."""
         return self._selection_boxes[item]
 
