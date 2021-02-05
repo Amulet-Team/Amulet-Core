@@ -299,15 +299,11 @@ class SelectionBox:
         return numpy.array(self.max)
 
     @property
-    def bounds(self) -> Tuple[int, int, int, int, int, int]:
+    def bounds(self) -> Tuple[Tuple[int, int, int], Tuple[int, int, int]]:
         """The minimum and maximum points of the box."""
         return (
-            self._min_x,
-            self._min_y,
-            self._min_z,
-            self._max_x,
-            self._max_y,
-            self._max_z,
+            (self._min_x, self._min_y, self._min_z),
+            (self._max_x, self._max_y, self._max_z),
         )
 
     @property
@@ -487,8 +483,7 @@ class SelectionBox:
         vector = numpy.array(vector)
         vector[abs(vector) < 0.000001] = 0.000001
         (tmin, tymin, tzmin), (tmax, tymax, tzmax) = numpy.sort(
-            (numpy.array(self.bounds).reshape(2, 3) - numpy.array(origin))
-            / numpy.array(vector),
+            (self.bounds_array - numpy.array(origin)) / numpy.array(vector),
             axis=0,
         )
 
