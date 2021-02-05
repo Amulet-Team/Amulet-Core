@@ -178,10 +178,12 @@ def clone(
                                 if block not in blocks_to_skip:
                                     dst_chunk.blocks[
                                         dst_x % 16, dst_y, dst_z % 16
-                                    ] = dst_chunk.block_palette.get_add_block(
-                                        block
-                                    )
-                                    if (src_x, src_y, src_z) in src_chunk.block_entities:
+                                    ] = dst_chunk.block_palette.get_add_block(block)
+                                    if (
+                                        src_x,
+                                        src_y,
+                                        src_z,
+                                    ) in src_chunk.block_entities:
                                         dst_chunk.block_entities[
                                             (dst_x, dst_y, dst_z)
                                         ] = src_chunk.block_entities[
