@@ -53,13 +53,20 @@ class SelectionGroup:
         """The number of selection boxes in the group."""
         return len(self._selection_boxes)
 
-    def __contains__(self, item: CoordinatesAny):
+    def __contains__(self, item: CoordinatesAny) -> bool:
         """Is the block (int) or point (float) location within any of the boxes in this group."""
-        return any(item in box for box in self._selection_boxes)
+        self.contains_block(item)
 
     def __bool__(self):
         """Are there any boxes in the group."""
         return bool(self._selection_boxes)
+    def contains_block(self, coords: CoordinatesAny):
+        """Is the coordinate greater than or equal to the min point but less than the max point of any of the boxes."""
+        return any(box.contains_block(coords) for box in self._selection_boxes)
+
+    def contains_point(self, coords: CoordinatesAny):
+        """Is the coordinate greater than or equal to the min point but less than or equal to the max point of any of the boxes."""
+        return any(box.contains_point(coords) for box in self._selection_boxes)
 
     def __getitem__(self, item: int) -> SelectionBox:
         """Get the selection box at the given index."""
