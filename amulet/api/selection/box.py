@@ -49,7 +49,9 @@ class SelectionBox:
         self._max_x, self._max_y, self._max_z = numpy.max(box, 0).tolist()
 
     @classmethod
-    def create_chunk_box(cls, cx: int, cz: int, sub_chunk_size: int = 16) -> SelectionBox:
+    def create_chunk_box(
+        cls, cx: int, cz: int, sub_chunk_size: int = 16
+    ) -> SelectionBox:
         """Get a SelectionBox containing the whole of a given chunk.
         :param cx: The x coordinate of the chunk
         :param cz: The z coordinate of the chunk
@@ -61,7 +63,9 @@ class SelectionBox:
         )
 
     @classmethod
-    def create_sub_chunk_box(cls, cx: int, cy: int, cz: int, sub_chunk_size: int = 16) -> SelectionBox:
+    def create_sub_chunk_box(
+        cls, cx: int, cy: int, cz: int, sub_chunk_size: int = 16
+    ) -> SelectionBox:
         """Get a SelectionBox containing the whole of a given sub-chunk.
         :param cx: The x coordinate of the chunk
         :param cy: The y coordinate of the chunk
