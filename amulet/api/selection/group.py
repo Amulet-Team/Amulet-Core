@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 import numpy
 
-from typing import Tuple, Iterable, List, Generator, Union, Optional
+from typing import Tuple, Iterable, List, Generator, Union, Optional, overload
 
 from amulet.api.data_types import (
     CoordinatesAny,
@@ -34,13 +34,13 @@ class SelectionGroup:
             amulet.log.warning(f"Invalid format for selection_boxes {selection_boxes}")
             self._selection_boxes: Tuple[SelectionBox, ...] = ()
 
-    def __eq__(self, other: SelectionGroup):
+    def __eq__(self, other: SelectionGroup) -> bool:
         return (
             type(other) is SelectionGroup
             and self.selection_boxes_sorted == other.selection_boxes_sorted
         )
 
-    def __add__(self, other: SelectionGroup):
+    def __add__(self, other: SelectionGroup) -> SelectionGroup:
         if not type(other) is SelectionGroup:
             return NotImplemented
         return SelectionGroup(self.selection_boxes + other.selection_boxes)
@@ -49,7 +49,7 @@ class SelectionGroup:
         """A generator of all the block locations in every box in the group."""
         return itertools.chain.from_iterable(self.selection_boxes)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """The number of selection boxes in the group."""
         return len(self._selection_boxes)
 
@@ -57,18 +57,27 @@ class SelectionGroup:
         """Is the block (int) or point (float) location within any of the boxes in this group."""
         self.contains_block(item)
 
-    def __bool__(self):
-        """Are there any boxes in the group."""
-        return bool(self._selection_boxes)
-    def contains_block(self, coords: CoordinatesAny):
+    def contains_block(self, coords: CoordinatesAny) -> bool:
         """Is the coordinate greater than or equal to the min point but less than the max point of any of the boxes."""
         return any(box.contains_block(coords) for box in self._selection_boxes)
 
-    def contains_point(self, coords: CoordinatesAny):
+    def contains_point(self, coords: CoordinatesAny) -> bool:
         """Is the coordinate greater than or equal to the min point but less than or equal to the max point of any of the boxes."""
         return any(box.contains_point(coords) for box in self._selection_boxes)
 
+    def __bool__(self) -> bool:
+        """Are there any boxes in the group."""
+        return bool(self._selection_boxes)
+
+    @overload
     def __getitem__(self, item: int) -> SelectionBox:
+        ...
+
+    @overload
+    def __getitem__(self, item: slice) -> Tuple[SelectionBox]:
+        ...
+
+    def __getitem__(self, item):
         """Get the selection box at the given index."""
         return self._selection_boxes[item]
 
@@ -88,7 +97,7 @@ class SelectionGroup:
         else:
             raise ValueError("SelectionGroup does not contain any SelectionBoxes")
 
-    def merge_boxes(self) -> "SelectionGroup":
+    def merge_boxes(self) -> SelectionGroup:
         """Take the boxes as they were given to this class, merge neighbouring boxes and remove overlapping regions.
         The result should be a SelectionGroup containing one or more SelectionBox classes that represents the same
         volume as the original but with no overlapping boxes."""
@@ -336,7 +345,7 @@ class SelectionGroup:
         return sum(box.volume for box in self.selection_boxes)
 
     @property
-    def footprint_area(self):
+    def footprint_area(self) -> int:
         """The flat area of the selection."""
         return SelectionGroup(
             [

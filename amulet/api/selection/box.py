@@ -49,7 +49,7 @@ class SelectionBox:
         self._max_x, self._max_y, self._max_z = numpy.max(box, 0).tolist()
 
     @classmethod
-    def create_chunk_box(cls, cx: int, cz: int, sub_chunk_size: int = 16):
+    def create_chunk_box(cls, cx: int, cz: int, sub_chunk_size: int = 16) -> SelectionBox:
         """Get a SelectionBox containing the whole of a given chunk.
         :param cx: The x coordinate of the chunk
         :param cz: The z coordinate of the chunk
@@ -61,7 +61,7 @@ class SelectionBox:
         )
 
     @classmethod
-    def create_sub_chunk_box(cls, cx: int, cy: int, cz: int, sub_chunk_size: int = 16):
+    def create_sub_chunk_box(cls, cx: int, cy: int, cz: int, sub_chunk_size: int = 16) -> SelectionBox:
         """Get a SelectionBox containing the whole of a given sub-chunk.
         :param cx: The x coordinate of the chunk
         :param cy: The y coordinate of the chunk
@@ -161,14 +161,14 @@ class SelectionBox:
             range(self._min_z, self._max_z),
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"({self.min}, {self.max})"
 
-    def __contains__(self, item: CoordinatesAny):
+    def __contains__(self, item: CoordinatesAny) -> bool:
         """Is the block (int) or point (float) location within this box."""
         return self.contains_block(item)
 
-    def contains_block(self, coords: CoordinatesAny):
+    def contains_block(self, coords: CoordinatesAny) -> bool:
         """Is the coordinate greater than or equal to the min point but less than the max point."""
         return (
             self._min_x <= item[0] < self._max_x
@@ -176,7 +176,7 @@ class SelectionBox:
             and self._min_z <= item[2] < self._max_z
         )
 
-    def contains_point(self, coords: CoordinatesAny):
+    def contains_point(self, coords: CoordinatesAny) -> bool:
         """Is the coordinate greater than or equal to the min point but less than or equal to the max point."""
         return (
             self._min_x <= item[0] <= self._max_x
@@ -184,13 +184,13 @@ class SelectionBox:
             and self._min_z <= item[2] <= self._max_z
         )
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.min == other.min and self.max == other.max
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self == other
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((*self.min, *self.max))
 
     @property
