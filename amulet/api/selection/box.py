@@ -175,17 +175,17 @@ class SelectionBox:
     def contains_block(self, coords: CoordinatesAny) -> bool:
         """Is the coordinate greater than or equal to the min point but less than the max point."""
         return (
-            self._min_x <= item[0] < self._max_x
-            and self._min_y <= item[1] < self._max_y
-            and self._min_z <= item[2] < self._max_z
+            self._min_x <= coords[0] < self._max_x
+            and self._min_y <= coords[1] < self._max_y
+            and self._min_z <= coords[2] < self._max_z
         )
 
     def contains_point(self, coords: CoordinatesAny) -> bool:
         """Is the coordinate greater than or equal to the min point but less than or equal to the max point."""
         return (
-            self._min_x <= item[0] <= self._max_x
-            and self._min_y <= item[1] <= self._max_y
-            and self._min_z <= item[2] <= self._max_z
+            self._min_x <= coords[0] <= self._max_x
+            and self._min_y <= coords[1] <= self._max_y
+            and self._min_z <= coords[2] <= self._max_z
         )
 
     def __eq__(self, other) -> bool:
