@@ -74,12 +74,16 @@ class SelectionGroup:
         ...
 
     @overload
-    def __getitem__(self, item: slice) -> Tuple[SelectionBox]:
+    def __getitem__(self, item: slice) -> SelectionGroup:
         ...
 
     def __getitem__(self, item):
         """Get the selection box at the given index."""
-        return self._selection_boxes[item]
+        val = self._selection_boxes[item]
+        if type(val) is tuple:
+            return SelectionGroup(val)
+        else:
+            return val
 
     @property
     def min(self) -> numpy.ndarray:
