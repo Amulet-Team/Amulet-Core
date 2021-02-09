@@ -513,7 +513,12 @@ class SelectionBox:
         if tzmax < tmax:
             tmax = tzmax
 
-        return tmin if tmin >= 0 else tmax
+        if tmin >= 0:
+            return tmin
+        elif tmax >= 0:
+            return tmax
+        else:
+            return None
 
     def transform(
         self, scale: FloatTriplet, rotation: FloatTriplet, translation: FloatTriplet
