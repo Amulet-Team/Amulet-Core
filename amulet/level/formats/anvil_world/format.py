@@ -191,6 +191,9 @@ class AnvilFormat(WorldFormatWrapper):
         root = nbt.TAG_Compound()
         root["Data"] = data = nbt.TAG_Compound()
         data["version"] = nbt.TAG_Int(19133)
+        data["LevelName"] = nbt.TAG_String(
+            ""
+        )  # Not needed for Minecraft, but needed for Amulet to load th world as of 10/02/2021
         nbt.NBTFile(root).save_to(level_dat_path)
 
     @property
