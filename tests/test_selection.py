@@ -2,7 +2,7 @@ import unittest
 from amulet.api.selection import SelectionGroup, SelectionBox
 
 
-class BoxTestCase(unittest.TestCase):
+class SelectionTestCase(unittest.TestCase):
     def test_equals(self):
         box_1 = SelectionBox((0, 0, 0), (5, 5, 5))
         box_2 = SelectionBox((5, 5, 5), (0, 0, 0))
@@ -92,9 +92,7 @@ class BoxTestCase(unittest.TestCase):
         self.assertEqual(2, len([x for x in box_1]))
 
         self.assertIn((0, 0, 0), box_1)
-        self.assertIn((1, 1, 2), box_1)
-
-        self.assertNotIn((1, 1, 3), box_1)
+        self.assertNotIn((1, 1, 2), box_1)
 
     def test_sorted_iterator(self):
         box_1 = SelectionBox((0, 0, 0), (4, 4, 4))
@@ -116,8 +114,7 @@ class BoxTestCase(unittest.TestCase):
             )
         )
 
-        for sb1, sb2 in zip(selection_1.selection_boxes, selection_2.selection_boxes):
-            self.assertEqual(sb1.shape, sb2.shape)
+        self.assertEqual(selection_1, selection_2)
 
 
 if __name__ == "__main__":

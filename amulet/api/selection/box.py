@@ -6,6 +6,7 @@ import numpy
 from typing import Tuple, Iterable, List, Generator, Optional
 
 from amulet.api.data_types import (
+    BlockCoordinates,
     BlockCoordinatesAny,
     CoordinatesAny,
     ChunkCoordinates,
@@ -28,13 +29,29 @@ class SelectionBox:
     The both the minimum and  maximum coordinate points are inclusive.
     """
 
-    def __init__(self, min_point: BlockCoordinatesAny, max_point: BlockCoordinatesAny):
-        box = numpy.array([min_point, max_point]).round().astype(numpy.int)
+    __slots__ = (
+        "_min_x",
+        "_min_y",
+        "_min_z",
+        "_max_x",
+        "_max_y",
+        "_max_z",
+        "_point_1",
+        "_point_2",
+    )
+
+    def __init__(self, point_1: BlockCoordinatesAny, point_2: BlockCoordinatesAny):
+        box = numpy.array([point_1, point_2]).round().astype(numpy.int)
+        p1, p2 = box.tolist()
+        self._point_1 = tuple(p1)
+        self._point_2 = tuple(p2)
         self._min_x, self._min_y, self._min_z = numpy.min(box, 0).tolist()
         self._max_x, self._max_y, self._max_z = numpy.max(box, 0).tolist()
 
     @classmethod
-    def create_chunk_box(cls, cx: int, cz: int, sub_chunk_size: int = 16):
+    def create_chunk_box(
+        cls, cx: int, cz: int, sub_chunk_size: int = 16
+    ) -> SelectionBox:
         """Get a SelectionBox containing the whole of a given chunk.
         :param cx: The x coordinate of the chunk
         :param cz: The z coordinate of the chunk
@@ -46,7 +63,9 @@ class SelectionBox:
         )
 
     @classmethod
-    def create_sub_chunk_box(cls, cx: int, cy: int, cz: int, sub_chunk_size: int = 16):
+    def create_sub_chunk_box(
+        cls, cx: int, cy: int, cz: int, sub_chunk_size: int = 16
+    ) -> SelectionBox:
         """Get a SelectionBox containing the whole of a given sub-chunk.
         :param cx: The x coordinate of the chunk
         :param cy: The y coordinate of the chunk
@@ -146,24 +165,39 @@ class SelectionBox:
             range(self._min_z, self._max_z),
         )
 
-    def __str__(self):
-        return f"({self.min}, {self.max})"
+    def __repr__(self):
+        return f"SelectionBox({self.point_1}, {self.point_2})"
 
-    def __contains__(self, item: CoordinatesAny):
+    def __str__(self) -> str:
+        return f"({self.point_1}, {self.point_2})"
+
+    def __contains__(self, item: CoordinatesAny) -> bool:
         """Is the block (int) or point (float) location within this box."""
+        return self.contains_block(item)
+
+    def contains_block(self, coords: CoordinatesAny) -> bool:
+        """Is the coordinate greater than or equal to the min point but less than the max point."""
         return (
-            self._min_x <= item[0] <= self._max_x
-            and self._min_y <= item[1] <= self._max_y
-            and self._min_z <= item[2] <= self._max_z
+            self._min_x <= coords[0] < self._max_x
+            and self._min_y <= coords[1] < self._max_y
+            and self._min_z <= coords[2] < self._max_z
         )
 
-    def __eq__(self, other):
+    def contains_point(self, coords: CoordinatesAny) -> bool:
+        """Is the coordinate greater than or equal to the min point but less than or equal to the max point."""
+        return (
+            self._min_x <= coords[0] <= self._max_x
+            and self._min_y <= coords[1] <= self._max_y
+            and self._min_z <= coords[2] <= self._max_z
+        )
+
+    def __eq__(self, other) -> bool:
         return self.min == other.min and self.max == other.max
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self == other
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((*self.min, *self.max))
 
     @property
@@ -210,6 +244,22 @@ class SelectionBox:
         return x_chunk_slice, y_chunk_slice, z_chunk_slice
 
     @property
+    def point_1(self) -> BlockCoordinates:
+        return self._point_1
+
+    @property
+    def point_2(self) -> BlockCoordinates:
+        return self._point_2
+
+    @property
+    def points(self) -> Tuple[BlockCoordinates, BlockCoordinates]:
+        return self.point_1, self.point_2
+
+    @property
+    def points_array(self) -> numpy.ndarray:
+        return numpy.array(self.points)
+
+    @property
     def min_x(self) -> int:
         """The minimum x coordinate."""
         return self._min_x
@@ -245,21 +295,32 @@ class SelectionBox:
         return self._min_x, self._min_y, self._min_z
 
     @property
+    def min_array(self) -> numpy.ndarray:
+        """The minimum point of the box as a numpy array."""
+        return numpy.array(self.min)
+
+    @property
     def max(self) -> Tuple[int, int, int]:
         """The maximum point of the box."""
         return self._max_x, self._max_y, self._max_z
 
     @property
-    def bounds(self) -> Tuple[int, int, int, int, int, int]:
+    def max_array(self) -> numpy.ndarray:
+        """The maximum point of the box as a numpy array."""
+        return numpy.array(self.max)
+
+    @property
+    def bounds(self) -> Tuple[Tuple[int, int, int], Tuple[int, int, int]]:
         """The minimum and maximum points of the box."""
         return (
-            self._min_x,
-            self._min_y,
-            self._min_z,
-            self._max_x,
-            self._max_y,
-            self._max_z,
+            (self._min_x, self._min_y, self._min_z),
+            (self._max_x, self._max_y, self._max_z),
         )
+
+    @property
+    def bounds_array(self) -> numpy.ndarray:
+        """The minimum and maximum points of the box as a numpy array."""
+        return numpy.array(self.bounds)
 
     @property
     def size_x(self) -> int:
@@ -336,6 +397,79 @@ class SelectionBox:
             numpy.clip(other.max, self.min, self.max),
         )
 
+    def subtract(self, other: SelectionBox) -> List[SelectionBox]:
+        """Get a list of `SelectionBox`es that are in self but not in other.
+        This may be empty or equal to self."""
+        if self.intersects(other):
+            other = self.intersection(other)
+            if self == other:
+                # if the two selections are the same there is no difference.
+                return []
+            else:
+                boxes = []
+                if self.min_y < other.min_y:
+                    # bottom box
+                    boxes.append(
+                        SelectionBox(
+                            (self.min_x, self.min_y, self.min_z),
+                            (self.max_x, other.min_y, self.max_z),
+                        )
+                    )
+
+                if other.max_y < self.max_y:
+                    # top box
+                    boxes.append(
+                        SelectionBox(
+                            (self.min_x, other.max_y, self.min_z),
+                            (self.max_x, self.max_y, self.max_z),
+                        )
+                    )
+
+                # BBB  NNN  TTT
+                # BBB  WOE  TTT
+                # BBB  SSS  TTT
+
+                if self.min_z < other.min_z:
+                    # north box
+                    boxes.append(
+                        SelectionBox(
+                            (self.min_x, other.min_y, self.min_z),
+                            (self.max_x, other.max_y, other.min_z),
+                        )
+                    )
+
+                if other.max_z < self.max_z:
+                    # south box
+                    boxes.append(
+                        SelectionBox(
+                            (self.min_x, other.min_y, other.max_z),
+                            (self.max_x, other.max_y, self.max_z),
+                        )
+                    )
+
+                if self.min_x < other.min_x:
+                    # west box
+                    boxes.append(
+                        SelectionBox(
+                            (self.min_x, other.min_y, other.min_z),
+                            (other.min_x, other.max_y, other.max_z),
+                        )
+                    )
+
+                if other.max_x < self.max_x:
+                    # east box
+                    boxes.append(
+                        SelectionBox(
+                            (other.max_x, other.min_y, other.min_z),
+                            (self.max_x, other.max_y, other.max_z),
+                        )
+                    )
+
+                return boxes
+        else:
+            # if the boxes do not intersect then the difference is self
+            return [self]
+
     def intersects_vector(
         self, origin: PointCoordinatesAny, vector: PointCoordinatesAny
     ) -> Optional[float]:
@@ -360,8 +494,7 @@ class SelectionBox:
         vector = numpy.array(vector)
         vector[abs(vector) < 0.000001] = 0.000001
         (tmin, tymin, tzmin), (tmax, tymax, tzmax) = numpy.sort(
-            (numpy.array(self.bounds).reshape(2, 3) - numpy.array(origin))
-            / numpy.array(vector),
+            (self.bounds_array - numpy.array(origin)) / numpy.array(vector),
             axis=0,
         )
 
@@ -383,7 +516,12 @@ class SelectionBox:
         if tzmax < tmax:
             tmax = tzmax
 
-        return tmin if tmin >= 0 else tmax
+        if tmin >= 0:
+            return tmin
+        elif tmax >= 0:
+            return tmax
+        else:
+            return None
 
     def transform(
         self, scale: FloatTriplet, rotation: FloatTriplet, translation: FloatTriplet

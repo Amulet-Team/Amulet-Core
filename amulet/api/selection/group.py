@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 import numpy
 
-from typing import Tuple, Iterable, List, Generator, Union, Optional
+from typing import Tuple, Iterable, List, Generator, Union, Optional, overload
 
 from amulet.api.data_types import (
     CoordinatesAny,
@@ -34,25 +34,64 @@ class SelectionGroup:
             amulet.log.warning(f"Invalid format for selection_boxes {selection_boxes}")
             self._selection_boxes: Tuple[SelectionBox, ...] = ()
 
+    def __repr__(self):
+        boxes = ", ".join([repr(box) for box in self.selection_boxes])
+        return f"SelectionGroup([{boxes}])"
+
+    def __str__(self):
+        boxes = ", ".join([str(box) for box in self.selection_boxes])
+        return f"[{boxes}]"
+
+    def __eq__(self, other: SelectionGroup) -> bool:
+        return (
+            type(other) is SelectionGroup
+            and self.selection_boxes_sorted == other.selection_boxes_sorted
+        )
+
+    def __add__(self, other: SelectionGroup) -> SelectionGroup:
+        if not type(other) is SelectionGroup:
+            return NotImplemented
+        return SelectionGroup(self.selection_boxes + other.selection_boxes)
+
     def __iter__(self) -> Iterable[Tuple[int, int, int]]:
         """A generator of all the block locations in every box in the group."""
         return itertools.chain.from_iterable(self.selection_boxes)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """The number of selection boxes in the group."""
         return len(self._selection_boxes)
 
-    def __contains__(self, item: CoordinatesAny):
+    def __contains__(self, item: CoordinatesAny) -> bool:
         """Is the block (int) or point (float) location within any of the boxes in this group."""
-        return any(item in box for box in self._selection_boxes)
+        self.contains_block(item)
 
-    def __bool__(self):
+    def contains_block(self, coords: CoordinatesAny) -> bool:
+        """Is the coordinate greater than or equal to the min point but less than the max point of any of the boxes."""
+        return any(box.contains_block(coords) for box in self._selection_boxes)
+
+    def contains_point(self, coords: CoordinatesAny) -> bool:
+        """Is the coordinate greater than or equal to the min point but less than or equal to the max point of any of the boxes."""
+        return any(box.contains_point(coords) for box in self._selection_boxes)
+
+    def __bool__(self) -> bool:
         """Are there any boxes in the group."""
         return bool(self._selection_boxes)
 
-    def __getitem__(self, item: int):
+    @overload
+    def __getitem__(self, item: int) -> SelectionBox:
+        ...
+
+    @overload
+    def __getitem__(self, item: slice) -> SelectionGroup:
+        ...
+
+    def __getitem__(self, item):
         """Get the selection box at the given index."""
-        return self._selection_boxes[item]
+        val = self._selection_boxes[item]
+        if type(val) is tuple:
+            return SelectionGroup(val)
+        else:
+            return val
 
     @property
     def min(self) -> numpy.ndarray:
@@ -70,7 +109,7 @@ class SelectionGroup:
         else:
             raise ValueError("SelectionGroup does not contain any SelectionBoxes")
 
-    def merge_boxes(self) -> "SelectionGroup":
+    def merge_boxes(self) -> SelectionGroup:
         """Take the boxes as they were given to this class, merge neighbouring boxes and remove overlapping regions.
         The result should be a SelectionGroup containing one or more SelectionBox classes that represents the same
         volume as the original but with no overlapping boxes."""
@@ -159,7 +198,15 @@ class SelectionGroup:
     @property
     def selection_boxes(self) -> List[SelectionBox]:
         """
-        Returns a list of unmodified `SelectionBox`es in the SelectionGroup.
+        Returns a read only list of unmodified `SelectionBox`es in the SelectionGroup.
+        :return: A list of the `SelectionBox`es
+        """
+        return list(self._selection_boxes)
+
+    @property
+    def selection_boxes_sorted(self) -> List[SelectionBox]:
+        """
+        Returns a list of unmodified `SelectionBox`es in the SelectionGroup sorted based on the hash of the coordinates.
         :return: A list of the `SelectionBox`es
         """
         return sorted(self._selection_boxes, key=hash)
@@ -224,21 +271,52 @@ class SelectionGroup:
         elif isinstance(other, SelectionBox):
             return any(self_box.intersects(other) for self_box in self.selection_boxes)
 
+    @staticmethod
+    def _to_group(other: Union[SelectionGroup, SelectionBox]) -> SelectionGroup:
+        if type(other) not in (SelectionGroup, SelectionBox):
+            raise TypeError("other must be a SelectionGroup or SelectionBox.")
+        if isinstance(other, SelectionBox):
+            other = SelectionGroup(other)
+        return other
+
     def intersection(
         self, other: Union[SelectionGroup, SelectionBox]
     ) -> SelectionGroup:
         """Get a new SelectionGroup that represents the area contained within self and other."""
+        other = self._to_group(other)
         intersection = []
-        if isinstance(other, SelectionGroup):
-            for self_box in self.selection_boxes:
-                for other_box in other.selection_boxes:
-                    if self_box.intersects(other_box):
-                        intersection.append(self_box.intersection(other_box))
-        elif isinstance(other, SelectionBox):
-            for self_box in self.selection_boxes:
-                if self_box.intersects(other):
-                    intersection.append(self_box.intersection(other))
+        for self_box in self.selection_boxes:
+            for other_box in other.selection_boxes:
+                if self_box.intersects(other_box):
+                    intersection.append(self_box.intersection(other_box))
         return SelectionGroup(intersection)
+
+    def subtract(self, other: Union[SelectionGroup, SelectionBox]) -> SelectionGroup:
+        """Returns a new SelectionGroup containing the volume that does not intersect with other."""
+        other = self._to_group(other)
+        selections = self.selection_boxes
+        for other_box in other.selection_boxes:
+            # for each box in other
+            selections_new = []
+            for self_box in selections:
+                selections_new += self_box.subtract(other_box)
+            selections = selections_new
+            if not selections:
+                break
+        return SelectionGroup(selections)
+
+    def union(self, other: Union[SelectionGroup, SelectionBox]) -> SelectionGroup:
+        """Returns a new SelectionGroup containing the volume of self and other."""
+        other = self._to_group(other)
+        if other.is_subset(self):
+            return self
+        else:
+            return self.subtract(other) + other
+
+    def is_subset(self, other: Union[SelectionGroup, SelectionBox]) -> bool:
+        """Is self completely within other."""
+        other = self._to_group(other)
+        return not self.subtract(other)
 
     def closest_vector_intersection(
         self, origin: PointCoordinatesAny, vector: PointCoordinatesAny
@@ -271,7 +349,7 @@ class SelectionGroup:
         return SelectionGroup(selection_group)
 
     def copy(self):
-        return SelectionGroup([box for box in self.selection_boxes])
+        return SelectionGroup(self.selection_boxes)
 
     @property
     def volume(self) -> int:
@@ -279,7 +357,7 @@ class SelectionGroup:
         return sum(box.volume for box in self.selection_boxes)
 
     @property
-    def footprint_area(self):
+    def footprint_area(self) -> int:
         """The flat area of the selection."""
         return SelectionGroup(
             [
