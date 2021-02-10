@@ -165,8 +165,11 @@ class SelectionBox:
             range(self._min_z, self._max_z),
         )
 
+    def __repr__(self):
+        return f"SelectionBox({self.point_1}, {self.point_2})"
+
     def __str__(self) -> str:
-        return f"({self.min}, {self.max})"
+        return f"({self.point_1}, {self.point_2})"
 
     def __contains__(self, item: CoordinatesAny) -> bool:
         """Is the block (int) or point (float) location within this box."""

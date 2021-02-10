@@ -34,6 +34,14 @@ class SelectionGroup:
             amulet.log.warning(f"Invalid format for selection_boxes {selection_boxes}")
             self._selection_boxes: Tuple[SelectionBox, ...] = ()
 
+    def __repr__(self):
+        boxes = ", ".join([repr(box) for box in self.selection_boxes])
+        return f"SelectionGroup([{boxes}])"
+
+    def __str__(self):
+        boxes = ", ".join([str(box) for box in self.selection_boxes])
+        return f"[{boxes}]"
+
     def __eq__(self, other: SelectionGroup) -> bool:
         return (
             type(other) is SelectionGroup
