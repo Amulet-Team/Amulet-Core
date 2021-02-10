@@ -11,11 +11,7 @@ import amulet_nbt as nbt
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.utils.format_utils import check_all_exist, load_leveldat
 from amulet.api.errors import LevelDoesNotExist
-from amulet.api.data_types import (
-    ChunkCoordinates,
-    VersionNumberInt,
-    PlatformType,
-)
+from amulet.api.data_types import ChunkCoordinates, VersionNumberInt, PlatformType
 from .dimension import AnvilDimensionManager
 
 if TYPE_CHECKING:
@@ -191,8 +187,11 @@ class AnvilFormat(WorldFormatWrapper):
         self._reload_world()
 
     def _create(self, **kwargs):
-        # TODO: setup the database
-        raise NotImplementedError
+        level_dat_path = os.path.join(self.path, "level.dat")
+        root = nbt.TAG_Compound()
+        root["Data"] = data = nbt.TAG_Compound()
+        data["version"] = nbt.TAG_Int(19133)
+        nbt.NBTFile(root).save_to(level_dat_path)
 
     @property
     def has_lock(self) -> bool:
