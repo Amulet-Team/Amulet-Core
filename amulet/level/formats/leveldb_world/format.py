@@ -22,7 +22,7 @@ from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.level import loader
 
 from amulet.level.interfaces.chunk.leveldb.leveldb_chunk_versions import (
-    game_to_chunk_version
+    game_to_chunk_version,
 )
 from .dimension import LevelDBDimensionManager
 
