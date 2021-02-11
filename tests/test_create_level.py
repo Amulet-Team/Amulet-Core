@@ -17,13 +17,21 @@ from .test_utils import clean_temp_world, clean_path
 
 
 class CreateWorldTestCase(unittest.TestCase):
-    def _test_create(self, cls: Type[FormatWrapper], level_name: str, platform: str, version: VersionNumberAny):
+    def _test_create(
+        self,
+        cls: Type[FormatWrapper],
+        level_name: str,
+        platform: str,
+        version: VersionNumberAny,
+    ):
         path = clean_temp_world(level_name)
 
         # create, initialise and save the level
         level = cls(path)
         if level.requires_selection:
-            level.create_and_open(platform, version, SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]))
+            level.create_and_open(
+                platform, version, SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))])
+            )
         else:
             level.create_and_open(platform, version)
         platform_ = level.platform
@@ -36,11 +44,11 @@ class CreateWorldTestCase(unittest.TestCase):
         level2 = load_format(path)
         # check that the class is the same
         self.assertIs(level.__class__, level2.__class__)
-        level2.open()
         # check that the platform and version are the same
         self.assertEqual(level2.platform, platform_)
         self.assertEqual(level2.version, version_)
         self.assertEqual(level2.selection, selection_)
+        level2.open()
         level2.close()
 
         clean_path(path)
