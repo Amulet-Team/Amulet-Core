@@ -2,7 +2,6 @@ import unittest
 from typing import Type
 
 from amulet import load_format
-from amulet.api.errors import ObjectReadWriteError
 from amulet.api.data_types import VersionNumberAny
 from amulet.api.wrapper import FormatWrapper
 from amulet.api.selection import SelectionGroup, SelectionBox
@@ -44,11 +43,11 @@ class CreateWorldTestCase(unittest.TestCase):
         level2 = load_format(path)
         # check that the class is the same
         self.assertIs(level.__class__, level2.__class__)
+        level2.open()
         # check that the platform and version are the same
         self.assertEqual(level2.platform, platform_)
         self.assertEqual(level2.version, version_)
         self.assertEqual(level2.selection, selection_)
-        level2.open()
         level2.close()
 
         clean_path(path)
