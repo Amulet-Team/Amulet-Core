@@ -208,7 +208,9 @@ class AnvilFormat(WorldFormatWrapper):
         self._reload_world()
 
     def _create(self, **kwargs):
-        self._version = self.translation_manager.get_version(self.platform, self.version).data_version
+        self._version = self.translation_manager.get_version(
+            self.platform, self.version
+        ).data_version
         self.root_tag = root = nbt.TAG_Compound()
         root["Data"] = data = nbt.TAG_Compound()
         data["version"] = nbt.TAG_Int(19133)
