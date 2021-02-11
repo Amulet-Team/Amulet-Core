@@ -64,6 +64,11 @@ class FormatWrapper:
         )
         self._changed: bool = False
 
+    def _shallow_load(self):
+        """Load some minimal metadata.
+        This should load metadata from the data if it exists."""
+        raise NotImplementedError
+
     @property
     def sub_chunk_size(self) -> int:
         return 16

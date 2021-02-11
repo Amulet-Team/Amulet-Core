@@ -67,6 +67,57 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         # which selection boxes intersect a given chunk (boxes are clipped to the size of the chunk)
         self._chunk_to_box: Dict[Tuple[int, int], List[SelectionBox]] = {}
 
+        self._shallow_load()
+
+    def _shallow_load(self):
+        if os.path.isfile(self.path):
+            with open(self.path, "rb") as f:
+                magic_num_1 = f.read(magic_num_len)
+                if magic_num_1 == magic_num:
+                    format_version = struct.unpack(">B", f.read(1))[0]
+                    if format_version == 0:
+                        f.seek(-magic_num_len, os.SEEK_END)
+                        magic_num_2 = f.read(magic_num_len)
+                        if magic_num_2 == magic_num:
+                            f.seek(-magic_num_len - INT_STRUCT.size, os.SEEK_END)
+                            metadata_end = f.tell()
+                            metadata_start = INT_STRUCT.unpack(f.read(INT_STRUCT.size))[
+                                0
+                            ]
+                            f.seek(metadata_start)
+
+                            metadata = amulet_nbt.load(
+                                f.read(metadata_end - metadata_start),
+                                compressed=True,
+                            )
+
+                            try:
+                                platform = metadata["export_version"]["edition"].value
+                                version = tuple(
+                                    map(
+                                        lambda v: v.value,
+                                        metadata["export_version"]["version"],
+                                    )
+                                )
+                                selection_boxes = (
+                                    metadata["selection_boxes"]
+                                    .value.reshape(-1, 6)
+                                    .tolist()
+                                )
+                            except:
+                                pass
+                            else:
+                                self._platform = platform
+                                self._version = version
+                                self._selection = SelectionGroup(
+                                    [
+                                        SelectionBox(
+                                            (minx, miny, minz), (maxx, maxy, maxz)
+                                        )
+                                        for minx, miny, minz, maxx, maxy, maxz in selection_boxes
+                                    ]
+                                )
+
     def _create(
         self,
         format_version=max_format_version,
@@ -88,12 +139,12 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
 
     def open_from(self, f: BinaryIO):
         f = BytesIO(f.read())
-        magic_num_1 = f.read(8)
+        magic_num_1 = f.read(magic_num_len)
         assert magic_num_1 == magic_num, f"This file is not a construction file."
         self._format_version = struct.unpack(">B", f.read(1))[0]
         if self._format_version == 0:
             f.seek(-magic_num_len, os.SEEK_END)
-            magic_num_2 = f.read(8)
+            magic_num_2 = f.read(magic_num_len)
             assert (
                 magic_num_2 == magic_num
             ), "It looks like this file is corrupt. It probably wasn't saved properly"
