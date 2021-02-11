@@ -23,7 +23,7 @@ class ImmutableStructure(BaseLevel):
         temp_dir: str = None,
     ):
         super().__init__("", VoidFormatWrapper(""), temp_dir)
-        self._selection = self._selection = SelectionGroup(
+        self._selection = SelectionGroup(
             [
                 SelectionBox(
                     (-30_000_000, -30_000_000, -30_000_000),
