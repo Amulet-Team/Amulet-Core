@@ -95,7 +95,7 @@ class CreateWorldTestCase(unittest.TestCase):
             SchematicFormatWrapper,
             "java.schematic",
             "java",
-            (1, 12, 0),
+            (1, 12, 2),
         )
         self._test_create(
             SchematicFormatWrapper,
