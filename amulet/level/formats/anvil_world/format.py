@@ -221,6 +221,9 @@ class AnvilFormat(WorldFormatWrapper):
     def has_lock(self) -> bool:
         """Verify that the world database can be read and written"""
         if self._has_lock:
+            if self._lock_time is None:
+                # the world was created not opened
+                return True
             try:
                 with open(os.path.join(self.path, "session.lock"), "rb") as f:
                     return struct.unpack(">Q", f.read(8))[0] == self._lock_time
