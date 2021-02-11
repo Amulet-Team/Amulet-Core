@@ -242,8 +242,8 @@ class FormatWrapper:
                 ]
             )
 
-        self._platform = platform
-        self._version = version
+        self._platform = translator_version.platform
+        self._version = translator_version.version_number
         self._create(**kwargs)
         self._is_open = True
         self._has_lock = True
