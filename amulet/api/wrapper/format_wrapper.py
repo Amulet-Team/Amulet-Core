@@ -64,6 +64,8 @@ class FormatWrapper:
         )
         self._changed: bool = False
 
+        self._shallow_load()
+
     def _shallow_load(self):
         """Load some minimal metadata.
         This should load metadata from the data if it exists."""

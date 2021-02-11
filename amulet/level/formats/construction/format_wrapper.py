@@ -67,8 +67,6 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         # which selection boxes intersect a given chunk (boxes are clipped to the size of the chunk)
         self._chunk_to_box: Dict[Tuple[int, int], List[SelectionBox]] = {}
 
-        self._shallow_load()
-
     def _shallow_load(self):
         if os.path.isfile(self.path):
             with open(self.path, "rb") as f:
