@@ -1,5 +1,6 @@
 import unittest
 from typing import Type
+import os
 
 from amulet import load_format
 from amulet.api.data_types import VersionNumberAny
@@ -33,11 +34,18 @@ class CreateWorldTestCase(unittest.TestCase):
             )
         else:
             level.create_and_open(platform, version)
+
+        # make sure no data has been saved at this point.
+        self.assertFalse(os.path.exists(level.path))
+
         platform_ = level.platform
         version_ = level.version
         selection_ = level.selection
+
         level.save()
         level.close()
+
+        self.assertTrue(os.path.exists(level.path))
 
         # reopen the level
         level2 = load_format(path)
