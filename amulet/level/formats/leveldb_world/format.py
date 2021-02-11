@@ -71,6 +71,10 @@ class LevelDBFormat(WorldFormatWrapper):
         self.root_tag: nbt.NBTFile = nbt.NBTFile()
         self._load_level_dat()
         self._level_manager: Optional[LevelDBDimensionManager] = None
+        self._shallow_load()
+
+    def _shallow_load(self):
+        raise NotImplementedError
 
     def _load_level_dat(self):
         """Load the level.dat file and check the image file"""

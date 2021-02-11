@@ -25,11 +25,19 @@ class AnvilFormat(WorldFormatWrapper):
         super().__init__(directory)
         self._platform = "java"
         self.root_tag: nbt.NBTFile = nbt.NBTFile()
-        self._load_level_dat()
         self._levels: Dict[InternalDimension, AnvilDimensionManager] = {}
         self._dimension_name_map: Dict["Dimension", InternalDimension] = {}
         self._mcc_support: Optional[bool] = None
         self._lock_time = None
+        self._shallow_load()
+
+    def _shallow_load(self):
+        path = os.path.join(self.path, "level.dat")
+        if os.path.isfile(path):
+            try:
+                self._load_level_dat()
+            except:
+                pass
 
     def _load_level_dat(self):
         """Load the level.dat file and check the image file"""
