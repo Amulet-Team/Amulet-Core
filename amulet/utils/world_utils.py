@@ -143,7 +143,10 @@ def decode_long_array(
 
 
 def encode_long_array(
-    array: numpy.ndarray, dense: bool = True, bits_per_entry: Optional[int] = None
+    array: numpy.ndarray,
+    dense: bool = True,
+    bits_per_entry: Optional[int] = None,
+    min_bits_per_entry=4,
 ) -> numpy.ndarray:
     """
     Encode an long array (from BlockStates or Heightmaps)
@@ -153,7 +156,9 @@ def encode_long_array(
     :return: Encoded array as numpy array
     """
     array = array.astype(">h")
-    required_bits_per_entry = max(int(numpy.amax(array)).bit_length(), 2)
+    required_bits_per_entry = max(
+        int(numpy.amax(array)).bit_length(), min_bits_per_entry
+    )
     if bits_per_entry is None:
         bits_per_entry = required_bits_per_entry
     else:

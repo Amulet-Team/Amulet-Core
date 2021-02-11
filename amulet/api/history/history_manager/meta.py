@@ -41,10 +41,12 @@ class MetaHistoryManager(ContainerHistoryManager):
             item.redo()
 
     def _mark_saved(self):
-        for manager in self._managers(True, True):
+        for manager in self._managers():
             manager.mark_saved()
 
-    def _managers(self, world: bool, non_world: bool) -> Tuple[HistoryManager, ...]:
+    def _managers(
+        self, world: bool = True, non_world: bool = True
+    ) -> Tuple[HistoryManager, ...]:
         return (
             tuple(self._world_managers) * world
             + tuple(self._non_world_managers) * non_world
@@ -60,8 +62,14 @@ class MetaHistoryManager(ContainerHistoryManager):
                 return True
         return False
 
-    def create_undo_point(self, non_world_only=False) -> bool:
-        managers = self._managers(not non_world_only, True)
+    def create_undo_point(self, world=True, non_world=True) -> bool:
+        """Create an undo point.
+
+        :param world: Should the world based history managers be included
+        :param non_world: Should the non-world based history managers be included
+        :return:
+        """
+        managers = self._managers(world, non_world)
         snapshot = []
         for manager in managers:
             if manager.create_undo_point():
@@ -69,5 +77,5 @@ class MetaHistoryManager(ContainerHistoryManager):
         return self._register_snapshot(tuple(snapshot))
 
     def restore_last_undo_point(self):
-        for manager in self._managers(True, True):
+        for manager in self._managers():
             manager.restore_last_undo_point()

@@ -93,7 +93,10 @@ class ObjectHistoryManager(HistoryManager):
         self._unpack()
 
     def _unpack(self):
-        self._value = self._revision_manager.get_current_entry()
+        self._unpack_value(self._revision_manager.get_current_entry())
+
+    def _unpack_value(self, value: Optional[Any]):
+        self._value = value
 
     def _pack(self):
         self._revision_manager.put_new_entry(self._pack_value(self._value))

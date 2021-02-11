@@ -203,7 +203,24 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             selection.shape, dtype=numpy.uint32
         )  # only 12 bits are actually used at most
         palette: List[AnyNDArray] = []
-        palette_len = 0
+        if self.version < (1, 13, 0):
+            raise Exception(
+                "Writing to mcstructre files in pre-1.13 format is not currently supported."
+            )
+        else:
+            arr = numpy.empty(1, dtype=numpy.object)
+            arr[0] = [
+                amulet_nbt.TAG_Compound(
+                    {
+                        "name": amulet_nbt.TAG_String("minecraft:air"),
+                        "states": amulet_nbt.TAG_Compound(),
+                        "version": amulet_nbt.TAG_Int(17694723),
+                    }
+                )
+            ]
+            palette.append(arr)
+
+        palette_len = 1
 
         for (
             selection_,
