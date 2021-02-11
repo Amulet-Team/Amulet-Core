@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Any, Dict, Generator, Optional, List, TYPE_CHECKING
+from typing import Tuple, Any, Dict, Generator, Optional, List, TYPE_CHECKING, Union
 import time
 import glob
 
@@ -24,7 +24,7 @@ class AnvilFormat(WorldFormatWrapper):
     def __init__(self, directory: str):
         super().__init__(directory)
         self._platform = "java"
-        self.root_tag: nbt.NBTFile = nbt.NBTFile()
+        self._root_tag: nbt.NBTFile = nbt.NBTFile()
         self._levels: Dict[InternalDimension, AnvilDimensionManager] = {}
         self._dimension_name_map: Dict["Dimension", InternalDimension] = {}
         self._mcc_support: Optional[bool] = None
@@ -90,9 +90,22 @@ class AnvilFormat(WorldFormatWrapper):
         )
 
     @property
+    def root_tag(self) -> nbt.NBTFile:
+        return self._root_tag
+
+    @root_tag.setter
+    def root_tag(self, root_tag: Union[nbt.NBTFile, nbt.TAG_Compound]):
+        if type(root_tag) is nbt.TAG_Compound:
+            self._root_tag = nbt.NBTFile(root_tag)
+        elif type(root_tag) is nbt.NBTFile:
+            self._root_tag = root_tag
+        else:
+            raise ValueError("root_tag must be a TAG_Compound or NBTFile")
+
+    @property
     def world_name(self) -> str:
         """The name of the world"""
-        return self.root_tag["Data"]["LevelName"].value
+        return str(self.root_tag["Data"].get("LevelName", ""))
 
     @world_name.setter
     def world_name(self, value: str):
