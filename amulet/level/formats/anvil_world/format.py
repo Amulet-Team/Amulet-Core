@@ -208,14 +208,11 @@ class AnvilFormat(WorldFormatWrapper):
         self._reload_world()
 
     def _create(self, **kwargs):
-        level_dat_path = os.path.join(self.path, "level.dat")
-        root = nbt.TAG_Compound()
+        self._version = self.translation_manager.get_version(self.platform, self.version).data_version
+        self.root_tag = root = nbt.TAG_Compound()
         root["Data"] = data = nbt.TAG_Compound()
         data["version"] = nbt.TAG_Int(19133)
-        data["LevelName"] = nbt.TAG_String(
-            ""
-        )  # Not needed for Minecraft, but needed for Amulet to load th world as of 10/02/2021
-        nbt.NBTFile(root).save_to(level_dat_path)
+        data["DataVersion"] = nbt.TAG_Int(self._version)
 
     @property
     def has_lock(self) -> bool:
@@ -233,8 +230,10 @@ class AnvilFormat(WorldFormatWrapper):
 
     def _save(self):
         """Save the data back to the disk database"""
+        os.makedirs(self.path, exist_ok=True)
         for level in self._levels.values():
             level.save()
+        self.root_tag.save_to(os.path.join(self.path, "level.dat"))
         # TODO: save other world data
 
     def _close(self):
