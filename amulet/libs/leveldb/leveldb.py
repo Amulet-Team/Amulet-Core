@@ -219,6 +219,17 @@ class LevelDB:
                 os.makedirs(path)
             else:
                 raise LevelDBException(f"No database exists to open at {path}")
+
+        # this has been fixed in a newer version of Mojang's fork but we can't work out how to build it.
+        current_path = os.path.join(path, "CURRENT")
+        if os.path.isfile(current_path):
+            with open(current_path, "rb") as f:
+                current_contents = f.read()
+            if b"\r" in current_contents:
+                current_contents = current_contents.replace(b"\r\n", b"\n")
+                with open(current_path, "wb") as f:
+                    f.write(current_contents)
+
         filter_policy = ldb.leveldb_filterpolicy_create_bloom(10)
         cache = ldb.leveldb_cache_create_lru(40 * 1024 * 1024)
         options = ldb.leveldb_options_create()
