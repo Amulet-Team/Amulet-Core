@@ -129,6 +129,11 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
             raise ObjectWriteError(f"There is already a file at {self.path}")
         self._format_version = format_version
         self._section_version = section_version
+        translator_version = self.translation_manager.get_version(
+            self.platform, self.version
+        )
+        self._platform = translator_version.platform
+        self._version = translator_version.version_number
         self._chunk_to_section = {}
         self._chunk_to_box = {}
         self._populate_chunk_to_box()

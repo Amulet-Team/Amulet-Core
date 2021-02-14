@@ -44,6 +44,11 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
     def _create(self, overwrite: bool, **kwargs):
         if not overwrite and os.path.isfile(self.path):
             raise ObjectWriteError(f"There is already a file at {self.path}")
+        translator_version = self.translation_manager.get_version(
+            "bedrock", (999, 999, 999)
+        )
+        self._platform = translator_version.platform
+        self._version = translator_version.version_number
         self._chunks = {}
 
     def open_from(self, f: BinaryIO):
