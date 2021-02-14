@@ -55,7 +55,7 @@ class CreateWorldTestCase(unittest.TestCase):
         self.assertEqual(level2.selection, selection_)
         level2.close()
 
-        # clean_path(path)
+        clean_path(path)
 
     def test_anvil(self):
         self._test_create(
