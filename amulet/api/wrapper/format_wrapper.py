@@ -189,6 +189,7 @@ class FormatWrapper:
         platform: PlatformType,
         version: VersionNumberAny,
         selection: Optional[SelectionGroup] = None,
+        overwrite: bool = False,
         **kwargs,
     ):
         """Remove the data at the path and set up a new database.
@@ -244,11 +245,11 @@ class FormatWrapper:
 
         self._platform = translator_version.platform
         self._version = translator_version.version_number
-        self._create(**kwargs)
+        self._create(overwrite, **kwargs)
         self._is_open = True
         self._has_lock = True
 
-    def _create(self, **kwargs):
+    def _create(self, overwrite: bool, **kwargs):
         """Set up the database from scratch."""
         raise NotImplementedError
 

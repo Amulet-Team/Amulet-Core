@@ -15,7 +15,7 @@ from amulet.api.data_types import (
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.errors import ChunkDoesNotExist
+from amulet.api.errors import ChunkDoesNotExist, ObjectWriteError
 from amulet.utils.numpy_helpers import brute_sort_objects_no_hash
 
 from .chunk import MCStructureChunk
@@ -41,7 +41,9 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             ],
         ] = {}
 
-    def _create(self, **kwargs):
+    def _create(self, overwrite: bool, **kwargs):
+        if not overwrite and os.path.isfile(self.path):
+            raise ObjectWriteError(f"There is already a file at {self.path}")
         self._chunks = {}
 
     def open_from(self, f: BinaryIO):

@@ -207,7 +207,12 @@ class AnvilFormat(WorldFormatWrapper):
         """Open the database for reading and writing"""
         self._reload_world()
 
-    def _create(self, **kwargs):
+    def _create(self, overwrite: bool, **kwargs):
+        if os.path.isdir(self.path):
+            if overwrite:
+                shutil.rmtree(self.path)
+            else:
+                raise ObjectWriteError(f"A world already exists at the path {self.path}")
         self._version = self.translation_manager.get_version(
             self.platform, self.version
         ).data_version

@@ -12,7 +12,7 @@ from amulet.api.registry import BlockManager
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.errors import ChunkDoesNotExist
+from amulet.api.errors import ChunkDoesNotExist, ObjectWriteError
 
 from .section import ConstructionSection
 from .interface import Construction0Interface, ConstructionInterface
@@ -120,10 +120,13 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
 
     def _create(
         self,
+        overwrite: bool,
         format_version=max_format_version,
         section_version=max_section_version,
         **kwargs,
     ):
+        if not overwrite and os.path.isfile(self.path):
+            raise ObjectWriteError(f"There is already a file at {self.path}")
         self._format_version = format_version
         self._section_version = section_version
         self._chunk_to_section = {}

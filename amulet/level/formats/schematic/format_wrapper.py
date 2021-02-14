@@ -41,7 +41,9 @@ class SchematicFormatWrapper(StructureFormatWrapper):
             Tuple[SelectionBox, BlockArrayType, BlockDataArrayType, list, list],
         ] = {}
 
-    def _create(self, **kwargs):
+    def _create(self, overwrite: bool, **kwargs):
+        if not overwrite and os.path.isfile(self.path):
+            raise ObjectWriteError(f"There is already a file at {self.path}")
         self._chunks = {}
 
     def open_from(self, f: BinaryIO):
