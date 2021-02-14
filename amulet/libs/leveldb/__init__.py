@@ -1,1 +1,1 @@
-from .leveldb import LevelDB
+from .leveldb import LevelDB, LevelDBException

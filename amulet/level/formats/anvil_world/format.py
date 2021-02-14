@@ -155,10 +155,15 @@ class AnvilFormat(WorldFormatWrapper):
 
         # create the session.lock file (this has mostly been lifted from MCEdit)
         self._lock_time = int(time.time() * 1000)
-        with open(os.path.join(self.path, "session.lock"), "wb") as f:
-            f.write(struct.pack(">Q", self._lock_time))
-            f.flush()
-            os.fsync(f.fileno())
+        try:
+            with open(os.path.join(self.path, "session.lock"), "wb") as f:
+                f.write(struct.pack(">Q", self._lock_time))
+                f.flush()
+                os.fsync(f.fileno())
+        except PermissionError as e:
+            raise PermissionError(
+                f"Could not access session.lock. The world may be open somewhere else.\n{e}"
+            )
 
         self._mcc_support = (
             self.version > 2203
