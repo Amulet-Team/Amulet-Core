@@ -35,9 +35,6 @@ class CreateWorldTestCase(unittest.TestCase):
         else:
             level.create_and_open(platform, version)
 
-        # make sure no data has been saved at this point.
-        self.assertFalse(os.path.exists(level.path))
-
         platform_ = level.platform
         version_ = level.version
         selection_ = level.selection
@@ -58,7 +55,7 @@ class CreateWorldTestCase(unittest.TestCase):
         self.assertEqual(level2.selection, selection_)
         level2.close()
 
-        clean_path(path)
+        # clean_path(path)
 
     def test_anvil(self):
         self._test_create(

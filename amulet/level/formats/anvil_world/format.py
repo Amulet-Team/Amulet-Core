@@ -5,12 +5,13 @@ import struct
 from typing import Tuple, Any, Dict, Generator, Optional, List, TYPE_CHECKING, Union
 import time
 import glob
+import shutil
 
 import amulet_nbt as nbt
 
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.utils.format_utils import check_all_exist, load_leveldat
-from amulet.api.errors import LevelDoesNotExist
+from amulet.api.errors import LevelDoesNotExist, ObjectWriteError
 from amulet.api.data_types import ChunkCoordinates, VersionNumberInt, PlatformType
 from .dimension import AnvilDimensionManager
 
@@ -32,20 +33,18 @@ class AnvilFormat(WorldFormatWrapper):
         self._shallow_load()
 
     def _shallow_load(self):
-        path = os.path.join(self.path, "level.dat")
-        if os.path.isfile(path):
-            try:
-                self._load_level_dat()
-            except:
-                pass
+        try:
+            self._load_level_dat()
+        except:
+            pass
 
     def _load_level_dat(self):
         """Load the level.dat file and check the image file"""
-        self.root_tag = nbt.load(os.path.join(self.path, "level.dat"))
         if os.path.isfile(os.path.join(self.path, "icon.png")):
             self._world_image_path = os.path.join(self.path, "icon.png")
         else:
             self._world_image_path = self._missing_world_icon
+        self.root_tag = nbt.load(os.path.join(self.path, "level.dat"))
 
     @staticmethod
     def is_valid(directory) -> bool:
@@ -220,6 +219,9 @@ class AnvilFormat(WorldFormatWrapper):
         root["Data"] = data = nbt.TAG_Compound()
         data["version"] = nbt.TAG_Int(19133)
         data["DataVersion"] = nbt.TAG_Int(self._version)
+        os.makedirs(self.path, exist_ok=True)
+        self.root_tag.save_to(os.path.join(self.path, "level.dat"))
+        self._reload_world()
 
     @property
     def has_lock(self) -> bool:

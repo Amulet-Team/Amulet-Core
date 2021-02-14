@@ -51,6 +51,7 @@ class AnvilDimensionManager:
         # use put_chunk_data to actually upload modified chunks
         # run this to push those changes to disk
 
+        os.makedirs(self._directory, exist_ok=True)
         for region in self._regions.values():
             region.save()
             if unload:
