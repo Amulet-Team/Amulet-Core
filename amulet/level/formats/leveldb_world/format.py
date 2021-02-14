@@ -13,6 +13,7 @@ from typing import (
 )
 from io import BytesIO
 import shutil
+import traceback
 
 import amulet_nbt as nbt
 
@@ -27,6 +28,7 @@ from amulet.api.data_types import (
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.api.errors import ObjectWriteError, ObjectReadError
 
+from amulet.libs.leveldb import LevelDBException
 from amulet.level.interfaces.chunk.leveldb.leveldb_chunk_versions import (
     game_to_chunk_version,
 )
@@ -209,7 +211,19 @@ class LevelDBFormat(WorldFormatWrapper):
             self.close()
         except:
             pass
-        self._level_manager = LevelDBDimensionManager(self.path)
+        try:
+            self._level_manager = LevelDBDimensionManager(self.path)
+        except LevelDBException as e:
+            msg = str(e)
+            # I don't know if there is a better way of handling this.
+            if msg.startswith("IO error:") and msg.endswith(": Permission denied"):
+                traceback.print_exc()
+                raise LevelDBException(
+                    f"Failed to load the database. The world may be open somewhere else.\n{msg}"
+                )
+            else:
+                raise e
+
         self._lock = True
 
     def _open(self):
