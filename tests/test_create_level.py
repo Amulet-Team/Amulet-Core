@@ -6,6 +6,7 @@ from amulet import load_format
 from amulet.api.data_types import VersionNumberAny
 from amulet.api.wrapper import FormatWrapper
 from amulet.api.selection import SelectionGroup, SelectionBox
+from amulet.api.errors import ObjectWriteError
 
 from amulet.level.formats.anvil_world import AnvilFormat
 from amulet.level.formats.leveldb_world import LevelDBFormat
@@ -30,10 +31,10 @@ class CreateWorldTestCase(unittest.TestCase):
         level = cls(path)
         if level.requires_selection:
             level.create_and_open(
-                platform, version, SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))])
+                platform, version, SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]), overwrite=True
             )
         else:
-            level.create_and_open(platform, version)
+            level.create_and_open(platform, version, overwrite=True)
 
         platform_ = level.platform
         version_ = level.version
@@ -54,6 +55,17 @@ class CreateWorldTestCase(unittest.TestCase):
         self.assertEqual(level2.version, version_)
         self.assertEqual(level2.selection, selection_)
         level2.close()
+
+        self.assertTrue(os.path.exists(level.path))
+
+        level = cls(path)
+        with self.assertRaises(ObjectWriteError):
+            if level.requires_selection:
+                level.create_and_open(
+                    platform, version, SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))])
+                )
+            else:
+                level.create_and_open(platform, version)
 
         clean_path(path)
 

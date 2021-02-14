@@ -197,8 +197,6 @@ class FormatWrapper:
         and warn the user they are going to overwrite existing data before calling this method."""
         if self.is_open:
             raise ObjectReadError(f"Cannot open {self} because it was already opened.")
-        if os.path.isdir(self.path):
-            shutil.rmtree(self.path, ignore_errors=True)
 
         if (
             platform not in self.valid_formats or len(self.valid_formats[platform]) < 2
