@@ -174,7 +174,9 @@ class LevelDBFormat(WorldFormatWrapper):
             # I don't know if there is a better way of handling this.
             if msg.startswith("IO error:") and msg.endswith(": Permission denied"):
                 traceback.print_exc()
-                raise LevelDBException(f"Failed to load the database. The world may be open somewhere else.\n{msg}")
+                raise LevelDBException(
+                    f"Failed to load the database. The world may be open somewhere else.\n{msg}"
+                )
             else:
                 raise e
 

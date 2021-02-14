@@ -161,7 +161,9 @@ class AnvilFormat(WorldFormatWrapper):
                 f.flush()
                 os.fsync(f.fileno())
         except PermissionError as e:
-            raise PermissionError(f"Could not access session.lock. The world may be open somewhere else.\n{e}")
+            raise PermissionError(
+                f"Could not access session.lock. The world may be open somewhere else.\n{e}"
+            )
 
         self._mcc_support = (
             self.version > 2203
