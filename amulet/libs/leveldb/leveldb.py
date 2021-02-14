@@ -199,7 +199,7 @@ class LevelDBException(Exception):
 def _checkError(err):
     """Utility function for checking the error code returned by some leveldb functions."""
     if bool(err):  # Not an empty null-terminated string
-        message = ctypes.string_at(err)
+        message = ctypes.string_at(err).decode("utf-8")
         ldb.leveldb_free(ctypes.cast(err, ctypes.c_void_p))
         raise LevelDBException(message)
 
