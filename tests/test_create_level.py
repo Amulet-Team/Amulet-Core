@@ -31,7 +31,10 @@ class CreateWorldTestCase(unittest.TestCase):
         level = cls(path)
         if level.requires_selection:
             level.create_and_open(
-                platform, version, SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]), overwrite=True
+                platform,
+                version,
+                SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]),
+                overwrite=True,
             )
         else:
             level.create_and_open(platform, version, overwrite=True)
@@ -62,7 +65,9 @@ class CreateWorldTestCase(unittest.TestCase):
         with self.assertRaises(ObjectWriteError):
             if level.requires_selection:
                 level.create_and_open(
-                    platform, version, SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))])
+                    platform,
+                    version,
+                    SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]),
                 )
             else:
                 level.create_and_open(platform, version)

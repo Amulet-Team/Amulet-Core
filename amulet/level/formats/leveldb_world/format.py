@@ -18,7 +18,12 @@ import amulet_nbt as nbt
 
 from amulet.libs.leveldb import LevelDB
 from amulet.utils.format_utils import check_all_exist
-from amulet.api.data_types import ChunkCoordinates, VersionNumberTuple, PlatformType, Dimension
+from amulet.api.data_types import (
+    ChunkCoordinates,
+    VersionNumberTuple,
+    PlatformType,
+    Dimension,
+)
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.api.errors import ObjectWriteError, ObjectReadError
 
@@ -50,7 +55,9 @@ class BedrockLevelDAT(nbt.NBTFile):
                 self.value = root_tag.value
             else:
                 # TODO: handle other versions
-                raise ObjectReadError(f"Unsupported level.dat version {self._level_dat_version}")
+                raise ObjectReadError(
+                    f"Unsupported level.dat version {self._level_dat_version}"
+                )
 
     def save(self, path: str = None):
         path = path or self._path
@@ -59,7 +66,10 @@ class BedrockLevelDAT(nbt.NBTFile):
         self.save_to(path)
 
     def save_to(
-        self, filename_or_buffer: Union[str, BinaryIO] = None, compressed=False, little_endian=True
+        self,
+        filename_or_buffer: Union[str, BinaryIO] = None,
+        compressed=False,
+        little_endian=True,
     ) -> Optional[bytes]:
         payload = super().save_to(compressed=compressed, little_endian=little_endian)
         buffer = BytesIO()
@@ -79,7 +89,9 @@ class LevelDBFormat(WorldFormatWrapper):
         super().__init__(directory)
         self._lock = False
         self._platform = "bedrock"
-        self._root_tag: BedrockLevelDAT = BedrockLevelDAT(os.path.join(directory, "level.dat"))
+        self._root_tag: BedrockLevelDAT = BedrockLevelDAT(
+            os.path.join(directory, "level.dat")
+        )
         self._level_manager: Optional[LevelDBDimensionManager] = None
         self._shallow_load()
 
@@ -139,7 +151,9 @@ class LevelDBFormat(WorldFormatWrapper):
             self._root_tag.name = root_tag.name
             self._root_tag.value = root_tag.value
         else:
-            raise ValueError("root_tag must be a TAG_Compound, NBTFile or BedrockLevelDAT")
+            raise ValueError(
+                "root_tag must be a TAG_Compound, NBTFile or BedrockLevelDAT"
+            )
 
     @property
     def world_name(self):
@@ -207,15 +221,19 @@ class LevelDBFormat(WorldFormatWrapper):
             if overwrite:
                 shutil.rmtree(self.path)
             else:
-                raise ObjectWriteError(f"A world already exists at the path {self.path}")
+                raise ObjectWriteError(
+                    f"A world already exists at the path {self.path}"
+                )
 
         version = self.translation_manager.get_version(
             self.platform, self.version
         ).version_number
-        self._version = version + (0, ) * (5 - len(version))
+        self._version = version + (0,) * (5 - len(version))
 
         self.root_tag = root = nbt.TAG_Compound()
-        root["lastOpenedWithVersion"] = nbt.TAG_List([nbt.TAG_Int(i) for i in self._version])
+        root["lastOpenedWithVersion"] = nbt.TAG_List(
+            [nbt.TAG_Int(i) for i in self._version]
+        )
         os.makedirs(self.path, exist_ok=True)
         self.root_tag.save(os.path.join(self.path, "level.dat"))
 

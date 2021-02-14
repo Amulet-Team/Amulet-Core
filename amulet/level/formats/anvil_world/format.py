@@ -211,7 +211,9 @@ class AnvilFormat(WorldFormatWrapper):
             if overwrite:
                 shutil.rmtree(self.path)
             else:
-                raise ObjectWriteError(f"A world already exists at the path {self.path}")
+                raise ObjectWriteError(
+                    f"A world already exists at the path {self.path}"
+                )
         self._version = self.translation_manager.get_version(
             self.platform, self.version
         ).data_version
