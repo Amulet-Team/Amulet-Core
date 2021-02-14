@@ -9,51 +9,62 @@ from typing import (
     Union,
     Optional,
     List,
-    TYPE_CHECKING,
     BinaryIO,
 )
 from io import BytesIO
+import shutil
 
 import amulet_nbt as nbt
 
+from amulet.libs.leveldb import LevelDB
 from amulet.utils.format_utils import check_all_exist
-from amulet.api.data_types import ChunkCoordinates, VersionNumberTuple, PlatformType
+from amulet.api.data_types import ChunkCoordinates, VersionNumberTuple, PlatformType, Dimension
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
-from amulet.level import loader
+from amulet.api.errors import ObjectWriteError, ObjectReadError
 
 from amulet.level.interfaces.chunk.leveldb.leveldb_chunk_versions import (
     game_to_chunk_version,
 )
 from .dimension import LevelDBDimensionManager
 
-if TYPE_CHECKING:
-    from amulet.api.wrapper import Interface
-    from amulet.api.data_types import Dimension
-
 InternalDimension = Optional[int]
 
 
-class LevelDAT(nbt.NBTFile):
-    def __init__(self, path: str):
+class BedrockLevelDAT(nbt.NBTFile):
+    def __init__(self, path: str = None):
+        self._path: Optional[str] = path
+        self._level_dat_version = 8
+        super().__init__(nbt.TAG_Compound(), "")
+        if path is not None and os.path.isfile(path):
+            self.load_from(path)
+
+    def load_from(self, path: str):
         with open(path, "rb") as f:
-            self._level_dat_version = struct.unpack("<i", f.read(4))[
-                0
-            ]  # TODO: handle other versions
-            assert (
-                4 <= self._level_dat_version <= 8
-            ), f"Unknown level.dat version {self._level_dat_version}"
-            data_length = struct.unpack("<i", f.read(4))[0]
-            root_tag = nbt.load(
-                buffer=f.read(data_length), compressed=False, little_endian=True
-            )
-        super().__init__(root_tag.value, root_tag.name)
+            self._level_dat_version = struct.unpack("<i", f.read(4))[0]
+            if 4 <= self._level_dat_version <= 8:
+                data_length = struct.unpack("<i", f.read(4))[0]
+                root_tag = nbt.load(
+                    buffer=f.read(data_length), compressed=False, little_endian=True
+                )
+                self.name = root_tag.name
+                self.value = root_tag.value
+            else:
+                # TODO: handle other versions
+                raise ObjectReadError(f"Unsupported level.dat version {self._level_dat_version}")
+
+    def save(self, path: str = None):
+        path = path or self._path
+        if not path:
+            raise ObjectWriteError("No path given.")
+        self.save_to(path)
 
     def save_to(
-        self, filename_or_buffer: Union[str, BinaryIO] = None
+        self, filename_or_buffer: Union[str, BinaryIO] = None, compressed=False, little_endian=True
     ) -> Optional[bytes]:
+        payload = super().save_to(compressed=compressed, little_endian=little_endian)
         buffer = BytesIO()
-        buffer.write(struct.pack("<i", self._level_dat_version))
-        buffer.write(super().save_to(compressed=False, little_endian=True))
+        buffer.write(struct.pack("<ii", self._level_dat_version, len(payload)))
+        buffer.write(payload)
         if filename_or_buffer is None:
             return buffer.getvalue()
         elif isinstance(filename_or_buffer, str):
@@ -68,19 +79,21 @@ class LevelDBFormat(WorldFormatWrapper):
         super().__init__(directory)
         self._lock = False
         self._platform = "bedrock"
-        self.root_tag: nbt.NBTFile = nbt.NBTFile()
-        self._load_level_dat()
+        self._root_tag: BedrockLevelDAT = BedrockLevelDAT(os.path.join(directory, "level.dat"))
         self._level_manager: Optional[LevelDBDimensionManager] = None
         self._shallow_load()
 
     def _shallow_load(self):
-        raise NotImplementedError
+        try:
+            self._load_level_dat()
+        except:
+            pass
 
     def _load_level_dat(self):
         """Load the level.dat file and check the image file"""
-        self.root_tag = LevelDAT(os.path.join(self.path, "level.dat"))
         if os.path.isfile(os.path.join(self.path, "world_icon.jpeg")):
             self._world_image_path = os.path.join(self.path, "world_icon.jpeg")
+        self.root_tag = BedrockLevelDAT(os.path.join(self.path, "level.dat"))
 
     @staticmethod
     def is_valid(directory):
@@ -113,9 +126,25 @@ class LevelDBFormat(WorldFormatWrapper):
             return 1, 2, 0
 
     @property
+    def root_tag(self) -> BedrockLevelDAT:
+        return self._root_tag
+
+    @root_tag.setter
+    def root_tag(self, root_tag: Union[nbt.NBTFile, nbt.TAG_Compound, BedrockLevelDAT]):
+        if type(root_tag) is nbt.TAG_Compound:
+            self._root_tag.value = root_tag
+        elif type(root_tag) is BedrockLevelDAT:
+            self._root_tag = root_tag
+        elif type(root_tag) is nbt.NBTFile:
+            self._root_tag.name = root_tag.name
+            self._root_tag.value = root_tag.value
+        else:
+            raise ValueError("root_tag must be a TAG_Compound, NBTFile or BedrockLevelDAT")
+
+    @property
     def world_name(self):
         """The name of the world"""
-        return self.root_tag["LevelName"].value
+        return str(self.root_tag.get("LevelName", ""))
 
     @world_name.setter
     def world_name(self, value: str):
@@ -123,7 +152,7 @@ class LevelDBFormat(WorldFormatWrapper):
 
     @property
     def last_played(self) -> int:
-        return self.root_tag["LastPlayed"].value
+        return int(self.root_tag.get("LastPlayed", 0))
 
     @property
     def game_version_string(self) -> str:
@@ -173,18 +202,27 @@ class LevelDBFormat(WorldFormatWrapper):
         """Open the database for reading and writing"""
         self._reload_world()
 
-    def _create(self, path=None, platform=None, version=None, **kwargs):
-        if path is None:
-            raise ValueError("A path must be specified")
-        if platform is None:
-            raise ValueError("A platform must be specified")
-        if version is None:
-            raise ValueError("A version must be specified")
+    def _create(self, overwrite: bool, **kwargs):
+        if os.path.isdir(self.path):
+            if overwrite:
+                shutil.rmtree(self.path)
+            else:
+                raise ObjectWriteError(f"A world already exists at the path {self.path}")
 
-        level = LevelDBFormat(path)
-        level.create_and_open(platform, version, **kwargs)
-        level.save()
-        level.close()
+        version = self.translation_manager.get_version(
+            self.platform, self.version
+        ).version_number
+        self._version = version + (0, ) * (5 - len(version))
+
+        self.root_tag = root = nbt.TAG_Compound()
+        root["lastOpenedWithVersion"] = nbt.TAG_List([nbt.TAG_Int(i) for i in self._version])
+        os.makedirs(self.path, exist_ok=True)
+        self.root_tag.save(os.path.join(self.path, "level.dat"))
+
+        db = LevelDB(os.path.join(self.path, "db"), True)
+        db.close()
+
+        self._reload_world()
 
     @property
     def has_lock(self) -> bool:
@@ -194,7 +232,11 @@ class LevelDBFormat(WorldFormatWrapper):
         return False
 
     def _save(self):
+        os.makedirs(self.path, exist_ok=True)
         self._level_manager.save()
+        self.root_tag.save(os.path.join(self.path, "level.dat"))
+        with open(os.path.join(self.path, "levelname.txt"), "w") as f:
+            f.write(self.world_name)
 
     def _close(self):
         self._level_manager.close()
