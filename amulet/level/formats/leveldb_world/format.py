@@ -14,6 +14,7 @@ from typing import (
 from io import BytesIO
 import shutil
 import traceback
+import time
 
 import amulet_nbt as nbt
 
@@ -245,9 +246,14 @@ class LevelDBFormat(WorldFormatWrapper):
         self._version = version + (0,) * (5 - len(version))
 
         self.root_tag = root = nbt.TAG_Compound()
+        root["StorageVersion"] = nbt.TAG_Int(8)
         root["lastOpenedWithVersion"] = nbt.TAG_List(
             [nbt.TAG_Int(i) for i in self._version]
         )
+        root["Generator"] = nbt.TAG_Int(1)
+        root["LastPlayed"] = nbt.TAG_Long(int(time.time()))
+        root["LevelName"] = nbt.TAG_String("World Created By Amulet")
+
         os.makedirs(self.path, exist_ok=True)
         self.root_tag.save(os.path.join(self.path, "level.dat"))
 
