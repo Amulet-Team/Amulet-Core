@@ -8,7 +8,7 @@ log.setLevel(logging.INFO)
 _formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 os.makedirs("./logs", exist_ok=True)
-_log_file = logging.FileHandler("./logs/amulet_core.log", "w")
+_log_file = logging.FileHandler("./logs/amulet_core.log", "w", encoding="utf-8")
 if "amulet-debug" in sys.argv:
     _log_file.setLevel(logging.DEBUG)
     log.setLevel(logging.DEBUG)
