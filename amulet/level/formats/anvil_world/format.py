@@ -227,7 +227,7 @@ class AnvilFormat(WorldFormatWrapper):
         root["Data"] = data = nbt.TAG_Compound()
         data["version"] = nbt.TAG_Int(19133)
         data["DataVersion"] = nbt.TAG_Int(self._version)
-        data["LastPlayed"] = nbt.TAG_Long(int(time.time()*1000))
+        data["LastPlayed"] = nbt.TAG_Long(int(time.time() * 1000))
         data["LevelName"] = nbt.TAG_String("World Created By Amulet")
 
         os.makedirs(self.path, exist_ok=True)
