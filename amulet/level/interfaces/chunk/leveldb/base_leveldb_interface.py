@@ -77,14 +77,20 @@ class BaseLevelDBInterface(Interface):
 
         chunk = Chunk(cx, cz)
         chunk_palette = numpy.empty(0, dtype=object)
+        chunk.misc = {
+            "bedrock_chunk_data": data
+        }
+
+        data.pop(b"v", None)
+        data.pop(b",", None)
 
         if self.features["terrain"].startswith(
             "2f"
         ):  # ["2farray", "2f1palette", "2fnpalette"]
-            subchunks = [data.get(b"\x2F" + bytes([i]), None) for i in range(16)]
+            subchunks = [data.pop(b"\x2F" + bytes([i]), None) for i in range(16)]
             chunk.blocks, chunk_palette = self._load_subchunks(subchunks)
         elif self.features["terrain"] == "30array":
-            chunk_data = data.get(b"\x30", None)
+            chunk_data = data.pop(b"\x30", None)
             if chunk_data is not None:
                 block_ids = numpy.frombuffer(
                     chunk_data[: 2 ** 15], dtype=numpy.uint8
@@ -116,7 +122,7 @@ class BaseLevelDBInterface(Interface):
 
         if self.features["finalised_state"] == "int0-2":
             if b"\x36" in data:
-                val = struct.unpack("<i", data[b"\x36"])[0]
+                val = struct.unpack("<i", data.pop(b"\x36"))[0]
             else:
                 val = 2
             chunk.status = val
@@ -125,7 +131,7 @@ class BaseLevelDBInterface(Interface):
             "height512|biome256",
             "unused_height512|biome256",
         ]:
-            d2d = data.get(b"\x2D", b"\x00" * 768)
+            d2d = data.pop(b"\x2D", b"\x00" * 768)
             height, biome = d2d[:512], d2d[512:]
             if self.features["data_2d"] == "height512|biome256":
                 pass  # TODO: put this data somewhere
@@ -146,11 +152,11 @@ class BaseLevelDBInterface(Interface):
 
         # unpack block entities and entities
         if self.features["block_entities"] == "31list":
-            block_entities = self._unpack_nbt_list(data.get(b"\x31", b""))
+            block_entities = self._unpack_nbt_list(data.pop(b"\x31", b""))
             chunk.block_entities = self._decode_block_entities(block_entities)
 
         if self.features["entities"] == "32list" and amulet.entity_support:
-            entities = self._unpack_nbt_list(data.get(b"\x32", b""))
+            entities = self._unpack_nbt_list(data.pop(b"\x32", b""))
             chunk.entities = self._decode_entities(entities)
 
         return chunk, chunk_palette
@@ -160,8 +166,14 @@ class BaseLevelDBInterface(Interface):
         chunk: Chunk,
         palette: AnyNDArray,
         max_world_version: Tuple[int, int, int],
-    ) -> Dict[bytes, bytes]:
-        chunk_data = {}
+    ) -> Dict[bytes, Optional[bytes]]:
+        chunk_data = chunk.misc.get("bedrock_chunk_data", {})
+        if type(chunk_data) is dict:
+            chunk_data = {k: v for k, v in chunk_data if type(k) is bytes and type(v) is bytes}
+        else:
+            chunk_data = {}
+
+        chunk_data: Dict[bytes, Optional[bytes]]
 
         # chunk version
         if self.features["chunk_version"] is not None:
