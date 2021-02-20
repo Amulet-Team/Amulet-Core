@@ -77,9 +77,7 @@ class BaseLevelDBInterface(Interface):
 
         chunk = Chunk(cx, cz)
         chunk_palette = numpy.empty(0, dtype=object)
-        chunk.misc = {
-            "bedrock_chunk_data": data
-        }
+        chunk.misc = {"bedrock_chunk_data": data}
 
         data.pop(b"v", None)
         data.pop(b",", None)
@@ -169,7 +167,9 @@ class BaseLevelDBInterface(Interface):
     ) -> Dict[bytes, Optional[bytes]]:
         chunk_data = chunk.misc.get("bedrock_chunk_data", {})
         if type(chunk_data) is dict:
-            chunk_data = {k: v for k, v in chunk_data if type(k) is bytes and type(v) is bytes}
+            chunk_data = {
+                k: v for k, v in chunk_data if type(k) is bytes and type(v) is bytes
+            }
         else:
             chunk_data = {}
 

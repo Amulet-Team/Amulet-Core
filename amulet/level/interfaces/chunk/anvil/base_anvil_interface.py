@@ -119,17 +119,17 @@ class BaseAnvilInterface(Interface):
             misc["last_update"] = self.get_obj(level, "LastUpdate", TAG_Long).value
 
         if self.features["status"] in ["j13", "j14"]:
-            chunk.status = self.get_obj(level, "Status", TAG_String, TAG_String("full")).value
+            chunk.status = self.get_obj(
+                level, "Status", TAG_String, TAG_String("full")
+            ).value
         else:
             status = "empty"
-            if (
-                self.features["terrain_populated"] == "byte"
-                and self.get_obj(level, "TerrainPopulated", TAG_Byte)
+            if self.features["terrain_populated"] == "byte" and self.get_obj(
+                level, "TerrainPopulated", TAG_Byte
             ):
                 status = "decorated"
-            if (
-                self.features["light_populated"] == "byte"
-                and self.get_obj(level, "LightPopulated", TAG_Byte)
+            if self.features["light_populated"] == "byte" and self.get_obj(
+                level, "LightPopulated", TAG_Byte
             ):
                 status = "postprocessed"
 
@@ -139,7 +139,9 @@ class BaseAnvilInterface(Interface):
             misc["V"] = self.get_obj(level, "V", TAG_Byte, TAG_Byte(1)).value
 
         if self.features["inhabited_time"] == "long":
-            misc["inhabited_time"] = self.get_obj(level, "InhabitedTime", TAG_Long).value
+            misc["inhabited_time"] = self.get_obj(
+                level, "InhabitedTime", TAG_Long
+            ).value
 
         if self.features["biomes"] is not None:
             if "Biomes" in level:
@@ -167,7 +169,9 @@ class BaseAnvilInterface(Interface):
                         }
 
         if self.features["height_map"] == "256IA":
-            height: numpy.ndarray = self.get_obj(level, "HeightMap", TAG_Int_Array).value
+            height: numpy.ndarray = self.get_obj(
+                level, "HeightMap", TAG_Int_Array
+            ).value
             if height is None or height.size != 256:
                 height = numpy.zeros(256, dtype=numpy.int32)
             misc["height_map256IA"] = height
@@ -180,7 +184,8 @@ class BaseAnvilInterface(Interface):
             heights = self.get_obj(level, "Heightmaps", TAG_Compound)
             misc["height_mapC"] = {
                 key: decode_long_array(value, 256, len(value) == 36)
-                for key, value in heights.items() if type(value) is TAG_Long_Array
+                for key, value in heights.items()
+                if type(value) is TAG_Long_Array
             }
 
         # parse sections into a more usable format
@@ -212,9 +217,7 @@ class BaseAnvilInterface(Interface):
                     sl[cy] = section.pop("SkyLight")
 
         if self.features["entities"] == "list":
-            ents = self._decode_entities(
-                self.get_obj(level, "Entities", TAG_List)
-            )
+            ents = self._decode_entities(self.get_obj(level, "Entities", TAG_List))
             if amulet.entity_support:
                 chunk.entities = ents
             else:
@@ -232,7 +235,9 @@ class BaseAnvilInterface(Interface):
             misc["liquid_ticks"] = self.get_obj(level, "LiquidTicks", TAG_List)
 
         if self.features["liquids_to_be_ticked"] == "16list|list":
-            misc["liquids_to_be_ticked"] = self.get_obj(level, "LiquidsToBeTicked", TAG_List)
+            misc["liquids_to_be_ticked"] = self.get_obj(
+                level, "LiquidsToBeTicked", TAG_List
+            )
 
         if self.features["to_be_ticked"] == "16list|list":
             misc["to_be_ticked"] = self.get_obj(level, "ToBeTicked", TAG_List)
@@ -272,9 +277,7 @@ class BaseAnvilInterface(Interface):
             del data["DataVersion"]
 
         if self.features["last_update"] == "long":
-            level["LastUpdate"] = amulet_nbt.TAG_Long(
-                misc.get("last_update", 0)
-            )
+            level["LastUpdate"] = amulet_nbt.TAG_Long(misc.get("last_update", 0))
 
         # Order the float value based on the order they would be run. Newer replacements for the same come just after
         # to save back find the next lowest valid value.
@@ -285,22 +288,16 @@ class BaseAnvilInterface(Interface):
         else:
             status = chunk.status.as_type("float")
             if self.features["terrain_populated"] == "byte":
-                level["TerrainPopulated"] = amulet_nbt.TAG_Byte(
-                    int(status > -0.3)
-                )
+                level["TerrainPopulated"] = amulet_nbt.TAG_Byte(int(status > -0.3))
 
             if self.features["light_populated"] == "byte":
-                level["LightPopulated"] = amulet_nbt.TAG_Byte(
-                    int(status > -0.2)
-                )
+                level["LightPopulated"] = amulet_nbt.TAG_Byte(int(status > -0.2))
 
         if self.features["V"] == "byte":
             level["V"] = amulet_nbt.TAG_Byte(misc.get("V", 1))
 
         if self.features["inhabited_time"] == "long":
-            level["InhabitedTime"] = amulet_nbt.TAG_Long(
-                misc.get("inhabited_time", 0)
-            )
+            level["InhabitedTime"] = amulet_nbt.TAG_Long(misc.get("inhabited_time", 0))
 
         if self.features["biomes"] == "256BA":  # TODO: support the optional variant
             if chunk.status.value > -0.7:
@@ -374,7 +371,11 @@ class BaseAnvilInterface(Interface):
 
         if "java_sections" in misc and type(misc["java_sections"]) is dict:
             # verify that the data is correctly formatted.
-            sections = {cy: section for cy, section in misc["java_sections"].items() if type(cy) is int and type(section) is TAG_Compound}
+            sections = {
+                cy: section
+                for cy, section in misc["java_sections"].items()
+                if type(cy) is int and type(section) is TAG_Compound
+            }
         else:
             sections = {}
 
@@ -422,9 +423,7 @@ class BaseAnvilInterface(Interface):
                 )
 
         if self.features["block_entities"] == "list":
-            level["TileEntities"] = self._encode_block_entities(
-                chunk.block_entities
-            )
+            level["TileEntities"] = self._encode_block_entities(chunk.block_entities)
 
         if self.features["tile_ticks"] in ["list", "list(optional)"]:
             ticks = misc.get("tile_ticks", amulet_nbt.TAG_List())
@@ -435,9 +434,7 @@ class BaseAnvilInterface(Interface):
                 level["TileTicks"] = ticks
 
         if self.features["liquid_ticks"] == "list":
-            level["LiquidTicks"] = misc.get(
-                "liquid_ticks", amulet_nbt.TAG_List()
-            )
+            level["LiquidTicks"] = misc.get("liquid_ticks", amulet_nbt.TAG_List())
 
         if self.features["liquids_to_be_ticked"] == "16list|list":
             level["LiquidsToBeTicked"] = misc.get(
@@ -497,9 +494,7 @@ class BaseAnvilInterface(Interface):
 
         return amulet_nbt.TAG_List(entities_out)
 
-    def _decode_block_entities(
-        self, block_entities: TAG_List
-    ) -> List["BlockEntity"]:
+    def _decode_block_entities(self, block_entities: TAG_List) -> List["BlockEntity"]:
         entities_out = []
         if block_entities.list_data_type == TAG_Compound.tag_id:
             for nbt in block_entities:

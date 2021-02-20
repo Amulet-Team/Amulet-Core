@@ -100,7 +100,10 @@ class Anvil1444Interface(BaseAnvilInterface):
         return blocks, np_palette
 
     def _encode_blocks(
-        self, sections: Dict[int, amulet_nbt.TAG_Compound], blocks: Blocks, palette: AnyNDArray
+        self,
+        sections: Dict[int, amulet_nbt.TAG_Compound],
+        blocks: Blocks,
+        palette: AnyNDArray,
     ):
         for cy in range(16):
             if cy in blocks:

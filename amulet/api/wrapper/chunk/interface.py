@@ -225,14 +225,28 @@ class Interface:
         return key in obj and type(obj[key]) is dtype
 
     @overload
-    def get_obj(self, obj: TAG_Compound, key: str, dtype: Type[AnyNBT], default: Optional[AnyNBT] = None) -> Optional[AnyNBT]:
+    def get_obj(
+        self,
+        obj: TAG_Compound,
+        key: str,
+        dtype: Type[AnyNBT],
+        default: Optional[AnyNBT] = None,
+    ) -> Optional[AnyNBT]:
         ...
 
     @overload
-    def get_obj(self, obj: TAG_List, key: int, dtype: Type[AnyNBT], default: Optional[AnyNBT] = None) -> Optional[AnyNBT]:
+    def get_obj(
+        self,
+        obj: TAG_List,
+        key: int,
+        dtype: Type[AnyNBT],
+        default: Optional[AnyNBT] = None,
+    ) -> Optional[AnyNBT]:
         ...
 
-    def get_obj(self, obj, key, dtype: Type[AnyNBT], default: Optional[AnyNBT] = None) -> Optional[AnyNBT]:
+    def get_obj(
+        self, obj, key, dtype: Type[AnyNBT], default: Optional[AnyNBT] = None
+    ) -> Optional[AnyNBT]:
         """Pop a key from a container object if it exists and the type is correct. Otherwise return default.
         This works in much the same way as dict.get but uses default if the data type does not match.
 
@@ -251,7 +265,12 @@ class Interface:
         return default
 
     @staticmethod
-    def set_obj(obj: TAG_Compound, key: str, dtype: Type[AnyNBT], default: Optional[AnyNBT] = None) -> AnyNBT:
+    def set_obj(
+        obj: TAG_Compound,
+        key: str,
+        dtype: Type[AnyNBT],
+        default: Optional[AnyNBT] = None,
+    ) -> AnyNBT:
         """Set a key in a compound tag if the key does not exist or is not the correct type.
         This works in much the same way as dict.setdefault but overwrites if the data type does not match.
 
