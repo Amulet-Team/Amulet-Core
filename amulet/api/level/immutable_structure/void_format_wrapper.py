@@ -33,7 +33,7 @@ class VoidFormatWrapper(FormatWrapper):
     def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> "Interface":
         raise Exception("If this is called something is wrong")
 
-    def _create(self, **kwargs):
+    def _create(self, overwrite: bool, **kwargs):
         pass
 
     def _open(self):

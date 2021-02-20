@@ -2,20 +2,17 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Any, Dict, Generator, Optional, List, TYPE_CHECKING
+from typing import Tuple, Any, Dict, Generator, Optional, List, TYPE_CHECKING, Union
 import time
 import glob
+import shutil
 
 import amulet_nbt as nbt
 
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.utils.format_utils import check_all_exist, load_leveldat
-from amulet.api.errors import LevelDoesNotExist
-from amulet.api.data_types import (
-    ChunkCoordinates,
-    VersionNumberInt,
-    PlatformType,
-)
+from amulet.api.errors import LevelDoesNotExist, ObjectWriteError
+from amulet.api.data_types import ChunkCoordinates, VersionNumberInt, PlatformType
 from .dimension import AnvilDimensionManager
 
 if TYPE_CHECKING:
@@ -28,20 +25,26 @@ class AnvilFormat(WorldFormatWrapper):
     def __init__(self, directory: str):
         super().__init__(directory)
         self._platform = "java"
-        self.root_tag: nbt.NBTFile = nbt.NBTFile()
-        self._load_level_dat()
+        self._root_tag: nbt.NBTFile = nbt.NBTFile()
         self._levels: Dict[InternalDimension, AnvilDimensionManager] = {}
         self._dimension_name_map: Dict["Dimension", InternalDimension] = {}
         self._mcc_support: Optional[bool] = None
         self._lock_time = None
+        self._shallow_load()
+
+    def _shallow_load(self):
+        try:
+            self._load_level_dat()
+        except:
+            pass
 
     def _load_level_dat(self):
         """Load the level.dat file and check the image file"""
-        self.root_tag = nbt.load(os.path.join(self.path, "level.dat"))
         if os.path.isfile(os.path.join(self.path, "icon.png")):
             self._world_image_path = os.path.join(self.path, "icon.png")
         else:
             self._world_image_path = self._missing_world_icon
+        self.root_tag = nbt.load(os.path.join(self.path, "level.dat"))
 
     @staticmethod
     def is_valid(directory) -> bool:
@@ -86,9 +89,22 @@ class AnvilFormat(WorldFormatWrapper):
         )
 
     @property
+    def root_tag(self) -> nbt.NBTFile:
+        return self._root_tag
+
+    @root_tag.setter
+    def root_tag(self, root_tag: Union[nbt.NBTFile, nbt.TAG_Compound]):
+        if type(root_tag) is nbt.TAG_Compound:
+            self._root_tag = nbt.NBTFile(root_tag)
+        elif type(root_tag) is nbt.NBTFile:
+            self._root_tag = root_tag
+        else:
+            raise ValueError("root_tag must be a TAG_Compound or NBTFile")
+
+    @property
     def world_name(self) -> str:
         """The name of the world"""
-        return self.root_tag["Data"]["LevelName"].value
+        return str(self.root_tag["Data"].get("LevelName", ""))
 
     @world_name.setter
     def world_name(self, value: str):
@@ -195,14 +211,36 @@ class AnvilFormat(WorldFormatWrapper):
         """Open the database for reading and writing"""
         self._reload_world()
 
-    def _create(self, **kwargs):
-        # TODO: setup the database
-        raise NotImplementedError
+    def _create(self, overwrite: bool, **kwargs):
+        if os.path.isdir(self.path):
+            if overwrite:
+                shutil.rmtree(self.path)
+            else:
+                raise ObjectWriteError(
+                    f"A world already exists at the path {self.path}"
+                )
+        self._version = self.translation_manager.get_version(
+            self.platform, self.version
+        ).data_version
+
+        self.root_tag = root = nbt.TAG_Compound()
+        root["Data"] = data = nbt.TAG_Compound()
+        data["version"] = nbt.TAG_Int(19133)
+        data["DataVersion"] = nbt.TAG_Int(self._version)
+        data["LastPlayed"] = nbt.TAG_Long(int(time.time() * 1000))
+        data["LevelName"] = nbt.TAG_String("World Created By Amulet")
+
+        os.makedirs(self.path, exist_ok=True)
+        self.root_tag.save_to(os.path.join(self.path, "level.dat"))
+        self._reload_world()
 
     @property
     def has_lock(self) -> bool:
         """Verify that the world database can be read and written"""
         if self._has_lock:
+            if self._lock_time is None:
+                # the world was created not opened
+                return True
             try:
                 with open(os.path.join(self.path, "session.lock"), "rb") as f:
                     return struct.unpack(">Q", f.read(8))[0] == self._lock_time
@@ -212,8 +250,10 @@ class AnvilFormat(WorldFormatWrapper):
 
     def _save(self):
         """Save the data back to the disk database"""
+        os.makedirs(self.path, exist_ok=True)
         for level in self._levels.values():
             level.save()
+        self.root_tag.save_to(os.path.join(self.path, "level.dat"))
         # TODO: save other world data
 
     def _close(self):

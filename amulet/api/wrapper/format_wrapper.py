@@ -189,6 +189,7 @@ class FormatWrapper:
         platform: PlatformType,
         version: VersionNumberAny,
         selection: Optional[SelectionGroup] = None,
+        overwrite: bool = False,
         **kwargs,
     ):
         """Remove the data at the path and set up a new database.
@@ -196,8 +197,6 @@ class FormatWrapper:
         and warn the user they are going to overwrite existing data before calling this method."""
         if self.is_open:
             raise ObjectReadError(f"Cannot open {self} because it was already opened.")
-        if os.path.isdir(self.path):
-            shutil.rmtree(self.path, ignore_errors=True)
 
         if (
             platform not in self.valid_formats or len(self.valid_formats[platform]) < 2
@@ -236,19 +235,19 @@ class FormatWrapper:
             self._selection = SelectionGroup(
                 [
                     SelectionBox(
-                        (-30_000_000, -30_000_000, -30_000_000),
-                        (30_000_000, 30_000_000, 30_000_000),
+                        (-30_000_000, 0, -30_000_000),
+                        (30_000_000, 256, 30_000_000),
                     )
                 ]
             )
 
-        self._platform = platform
-        self._version = version
-        self._create(**kwargs)
+        self._platform = translator_version.platform
+        self._version = translator_version.version_number
+        self._create(overwrite, **kwargs)
         self._is_open = True
         self._has_lock = True
 
-    def _create(self, **kwargs):
+    def _create(self, overwrite: bool, **kwargs):
         """Set up the database from scratch."""
         raise NotImplementedError
 

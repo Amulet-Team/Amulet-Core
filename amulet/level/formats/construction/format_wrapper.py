@@ -12,7 +12,7 @@ from amulet.api.registry import BlockManager
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.errors import ChunkDoesNotExist
+from amulet.api.errors import ChunkDoesNotExist, ObjectWriteError
 
 from .section import ConstructionSection
 from .interface import Construction0Interface, ConstructionInterface
@@ -67,14 +67,73 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         # which selection boxes intersect a given chunk (boxes are clipped to the size of the chunk)
         self._chunk_to_box: Dict[Tuple[int, int], List[SelectionBox]] = {}
 
+        self._shallow_load()
+
+    def _shallow_load(self):
+        if os.path.isfile(self.path):
+            with open(self.path, "rb") as f:
+                magic_num_1 = f.read(magic_num_len)
+                if magic_num_1 == magic_num:
+                    format_version = struct.unpack(">B", f.read(1))[0]
+                    if format_version == 0:
+                        f.seek(-magic_num_len, os.SEEK_END)
+                        magic_num_2 = f.read(magic_num_len)
+                        if magic_num_2 == magic_num:
+                            f.seek(-magic_num_len - INT_STRUCT.size, os.SEEK_END)
+                            metadata_end = f.tell()
+                            metadata_start = INT_STRUCT.unpack(f.read(INT_STRUCT.size))[
+                                0
+                            ]
+                            f.seek(metadata_start)
+
+                            metadata = amulet_nbt.load(
+                                f.read(metadata_end - metadata_start),
+                                compressed=True,
+                            )
+
+                            try:
+                                platform = metadata["export_version"]["edition"].value
+                                version = tuple(
+                                    map(
+                                        lambda v: v.value,
+                                        metadata["export_version"]["version"],
+                                    )
+                                )
+                                selection_boxes = (
+                                    metadata["selection_boxes"]
+                                    .value.reshape(-1, 6)
+                                    .tolist()
+                                )
+                            except:
+                                pass
+                            else:
+                                self._platform = platform
+                                self._version = version
+                                self._selection = SelectionGroup(
+                                    [
+                                        SelectionBox(
+                                            (minx, miny, minz), (maxx, maxy, maxz)
+                                        )
+                                        for minx, miny, minz, maxx, maxy, maxz in selection_boxes
+                                    ]
+                                )
+
     def _create(
         self,
+        overwrite: bool,
         format_version=max_format_version,
         section_version=max_section_version,
         **kwargs,
     ):
+        if not overwrite and os.path.isfile(self.path):
+            raise ObjectWriteError(f"There is already a file at {self.path}")
         self._format_version = format_version
         self._section_version = section_version
+        translator_version = self.translation_manager.get_version(
+            self.platform, self.version
+        )
+        self._platform = translator_version.platform
+        self._version = translator_version.version_number
         self._chunk_to_section = {}
         self._chunk_to_box = {}
         self._populate_chunk_to_box()
@@ -88,12 +147,12 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
 
     def open_from(self, f: BinaryIO):
         f = BytesIO(f.read())
-        magic_num_1 = f.read(8)
+        magic_num_1 = f.read(magic_num_len)
         assert magic_num_1 == magic_num, f"This file is not a construction file."
         self._format_version = struct.unpack(">B", f.read(1))[0]
         if self._format_version == 0:
             f.seek(-magic_num_len, os.SEEK_END)
-            magic_num_2 = f.read(8)
+            magic_num_2 = f.read(magic_num_len)
             assert (
                 magic_num_2 == magic_num
             ), "It looks like this file is corrupt. It probably wasn't saved properly"

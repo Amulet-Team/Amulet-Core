@@ -41,7 +41,14 @@ class SchematicFormatWrapper(StructureFormatWrapper):
             Tuple[SelectionBox, BlockArrayType, BlockDataArrayType, list, list],
         ] = {}
 
-    def _create(self, **kwargs):
+    def _create(self, overwrite: bool, **kwargs):
+        if not overwrite and os.path.isfile(self.path):
+            raise ObjectWriteError(f"There is already a file at {self.path}")
+        if self._platform == "bedrock":
+            self._version = (1, 12, 0)
+        else:
+            self._platform = "java"
+            self._version = (1, 12, 2)
         self._chunks = {}
 
     def open_from(self, f: BinaryIO):

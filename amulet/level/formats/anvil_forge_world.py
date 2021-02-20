@@ -29,7 +29,7 @@ class AnvilForgeFormat(AnvilFormat):
         if "FML" in level_dat_root:
             return True
 
-        return True
+        return False
 
     @property
     def game_version_string(self) -> str:
