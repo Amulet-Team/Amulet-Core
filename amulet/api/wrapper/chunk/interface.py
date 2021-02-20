@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 import numpy
-from typing import Tuple, Any, Union, TYPE_CHECKING, Optional
+from typing import Tuple, Any, Union, TYPE_CHECKING, Optional, overload, Type
 
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
 from amulet.api.data_types import AnyNDArray
 import amulet_nbt
+from amulet_nbt import (
+    TAG_List,
+    TAG_Compound,
+    AnyNBT,
+)
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
@@ -203,6 +208,38 @@ class Interface:
             raise NotImplementedError(f"Entity coord type {coord_type}")
 
         return nbt
+
+    @staticmethod
+    @overload
+    def check_type(obj: TAG_Compound, key: str, dtype: Type[AnyNBT]) -> Any:
+        ...
+
+    @staticmethod
+    @overload
+    def check_type(obj: TAG_List, key: int, dtype: Type[AnyNBT]) -> Any:
+        ...
+
+    @staticmethod
+    def check_type(obj: TAG_Compound, key: str, dtype: Type[AnyNBT]) -> bool:
+        """Check the key exists and the type is correct."""
+        return key in obj and type(obj[key]) is dtype
+
+    @overload
+    def get_obj(self, obj: TAG_Compound, key: str, dtype: Type[AnyNBT], default: Any) -> Any:
+        ...
+
+    @overload
+    def get_obj(self, obj: TAG_List, key: int, dtype: Type[AnyNBT], default: Any) -> Any:
+        ...
+
+    def get_obj(self, obj, key, dtype: Type[AnyNBT], default: Any) -> Any:
+        """Pop a key from a container object if it exists and the type is correct. Otherwise return default."""
+        if self.check_type(obj, key, dtype):
+            # if it exists and is correct
+            ret = obj[key].value
+            del obj[key]
+            return ret
+        return default
 
     def get_translator(
         self,
