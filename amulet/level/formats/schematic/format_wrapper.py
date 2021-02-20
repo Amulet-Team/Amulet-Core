@@ -324,12 +324,14 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         """
         Actually stores the data from the interface to disk.
         """
-        self._chunks[(cx, cz)] = (
-            section.selection,
-            section.blocks,
-            section.data,
-            section.block_entities,
-            section.entities,
+        self._chunks[(cx, cz)] = copy.deepcopy(
+            (
+                section.selection,
+                section.blocks,
+                section.data,
+                section.block_entities,
+                section.entities,
+            )
         )
 
     def _get_raw_chunk_data(
