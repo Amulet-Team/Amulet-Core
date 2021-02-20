@@ -76,7 +76,9 @@ class ChunkManager(DatabaseHistoryManager):
                 unload_chunks = []
                 dimension, minx, minz, maxx, maxz = safe_area
                 for (cd, cx, cz), chunk in self._temporary_database.items():
-                    if not (cd == dimension and minx <= cx <= maxx and minz <= cz <= maxz):
+                    if not (
+                        cd == dimension and minx <= cx <= maxx and minz <= cz <= maxz
+                    ):
                         unload_chunks.append((cd, cx, cz))
                 for chunk_key in unload_chunks:
                     del self._temporary_database[chunk_key]
