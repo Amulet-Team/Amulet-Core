@@ -168,7 +168,9 @@ class BaseLevelDBInterface(Interface):
         chunk_data = chunk.misc.get("bedrock_chunk_data", {})
         if type(chunk_data) is dict:
             chunk_data = {
-                k: v for k, v in chunk_data.items() if type(k) is bytes and type(v) is bytes
+                k: v
+                for k, v in chunk_data.items()
+                if type(k) is bytes and type(v) is bytes
             }
         else:
             chunk_data = {}
