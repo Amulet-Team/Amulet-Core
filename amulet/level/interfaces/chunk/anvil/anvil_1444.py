@@ -68,20 +68,19 @@ class Anvil1444Interface(BaseAnvilInterface):
         return 1444 <= key < 1466
 
     def _decode_blocks(
-        self, chunk_sections: amulet_nbt.TAG_List
+        self, chunk_sections: Dict[int, amulet_nbt.TAG_Compound]
     ) -> Tuple[Dict[int, SubChunkNDArray], AnyNDArray]:
         blocks: Dict[int, numpy.ndarray] = {}
         palette = [Block(namespace="minecraft", base_name="air")]
 
-        for section in chunk_sections:
+        for cy, section in chunk_sections.items():
             if "Palette" not in section:  # 1.14 makes block_palette/blocks optional.
                 continue
-            cy = section["Y"].value
             if self.features["long_array_format"] == "compact":
-                decoded = decode_long_array(section["BlockStates"].value, 4096)
+                decoded = decode_long_array(section.pop("BlockStates").value, 4096)
             elif self.features["long_array_format"] == "1.16":
                 decoded = decode_long_array(
-                    section["BlockStates"].value, 4096, dense=False
+                    section.pop("BlockStates").value, 4096, dense=False
                 )
             else:
                 raise Exception("long_array_format", self.features["long_array_format"])
@@ -89,7 +88,7 @@ class Anvil1444Interface(BaseAnvilInterface):
                 decoded.reshape((16, 16, 16)) + len(palette), (2, 0, 1)
             )
 
-            palette += self._decode_palette(section["Palette"])
+            palette += self._decode_palette(section.pop("Palette"))
 
         np_palette, inverse = numpy.unique(palette, return_inverse=True)
         np_palette: numpy.ndarray
@@ -101,9 +100,8 @@ class Anvil1444Interface(BaseAnvilInterface):
         return blocks, np_palette
 
     def _encode_blocks(
-        self, blocks: Blocks, palette: AnyNDArray
-    ) -> amulet_nbt.TAG_List:
-        sections = amulet_nbt.TAG_List()
+        self, sections: Dict[int, amulet_nbt.TAG_Compound], blocks: Blocks, palette: AnyNDArray
+    ):
         for cy in range(16):
             if cy in blocks:
                 block_sub_array = numpy.transpose(
@@ -120,8 +118,7 @@ class Anvil1444Interface(BaseAnvilInterface):
                 ):
                     continue
 
-                section = amulet_nbt.TAG_Compound()
-                section["Y"] = amulet_nbt.TAG_Byte(cy)
+                section = sections.setdefault(cy, amulet_nbt.TAG_Compound())
                 if self.features["long_array_format"] == "compact":
                     section["BlockStates"] = amulet_nbt.TAG_Long_Array(
                         encode_long_array(block_sub_array)
@@ -131,9 +128,6 @@ class Anvil1444Interface(BaseAnvilInterface):
                         encode_long_array(block_sub_array, dense=False)
                     )
                 section["Palette"] = sub_palette
-                sections.append(section)
-
-        return sections
 
     @staticmethod
     def _decode_palette(palette: amulet_nbt.TAG_List) -> list:

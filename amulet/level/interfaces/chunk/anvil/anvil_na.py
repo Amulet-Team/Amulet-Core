@@ -47,20 +47,16 @@ class AnvilNAInterface(BaseAnvilInterface):
         return key == -1
 
     def _decode_blocks(
-        self, chunk_sections: nbt.TAG_List
+        self, chunk_sections: Dict[int, nbt.TAG_Compound]
     ) -> Tuple[Dict[int, SubChunkNDArray], AnyNDArray]:
         blocks: Dict[int, SubChunkNDArray] = {}
         palette = []
         palette_len = 0
-        for section in chunk_sections:
-            cy: int = section["Y"].value
-
+        for cy, section in chunk_sections.items():
             section_blocks = numpy.frombuffer(
-                section["Blocks"].value, dtype=numpy.uint8
+                section.pop("Blocks").value, dtype=numpy.uint8
             )
-            del section["Blocks"]
-            section_data = numpy.frombuffer(section["Data"].value, dtype=numpy.uint8)
-            del section["Data"]
+            section_data = numpy.frombuffer(section.pop("Data").value, dtype=numpy.uint8)
             section_blocks = section_blocks.reshape((16, 16, 16))
             section_blocks = section_blocks.astype(numpy.uint16)
 
@@ -68,8 +64,7 @@ class AnvilNAInterface(BaseAnvilInterface):
             section_data = section_data.reshape((16, 16, 16))
 
             if "Add" in section:
-                add_blocks = numpy.frombuffer(section["Add"].value, dtype=numpy.uint8)
-                del section["Add"]
+                add_blocks = numpy.frombuffer(section.pop("Add").value, dtype=numpy.uint8)
                 add_blocks = world_utils.from_nibble_array(add_blocks)
                 add_blocks = add_blocks.reshape((16, 16, 16))
 
@@ -98,8 +93,7 @@ class AnvilNAInterface(BaseAnvilInterface):
             final_palette = numpy.array([], dtype=numpy.object)
         return blocks, final_palette
 
-    def _encode_blocks(self, blocks: "Blocks", palette: AnyNDArray) -> nbt.TAG_List:
-        sections = nbt.TAG_List()
+    def _encode_blocks(self, sections: Dict[int, nbt.TAG_Compound], blocks: "Blocks", palette: AnyNDArray):
         for cy in range(16):  # perhaps find a way to do this dynamically
             if cy in blocks:
                 block_sub_array = palette[
@@ -112,15 +106,11 @@ class AnvilNAInterface(BaseAnvilInterface):
                 block_sub_array = block_sub_array[:, 0]
                 if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
                     continue
-                section = nbt.TAG_Compound()
-                section["Y"] = nbt.TAG_Byte(cy)
+                section = sections.setdefault(cy, nbt.TAG_Compound())
                 section["Blocks"] = nbt.TAG_Byte_Array(block_sub_array.astype("uint8"))
                 section["Data"] = nbt.TAG_Byte_Array(
                     world_utils.to_nibble_array(data_sub_array)
                 )
-                sections.append(section)
-
-        return sections
 
 
 export = AnvilNAInterface
