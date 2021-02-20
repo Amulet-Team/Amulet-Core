@@ -69,25 +69,27 @@ class ChunkManager(DatabaseHistoryManager):
     def unload(self, safe_area: Optional[Tuple[Dimension, int, int, int, int]] = None):
         """Unload all chunks not in the safe area from the temporary database
         Safe area format: dimension, min chunk X|Z, max chunk X|Z"""
-        if safe_area is None:
-            self._temporary_database.clear()
-        else:
-            unload_chunks = []
-            dimension, minx, minz, maxx, maxz = safe_area
-            for (cd, cx, cz), chunk in self._temporary_database.items():
-                if not (cd == dimension and minx <= cx <= maxx and minz <= cz <= maxz):
-                    unload_chunks.append((cd, cx, cz))
-            for chunk_key in unload_chunks:
-                del self._temporary_database[chunk_key]
+        with self._lock:
+            if safe_area is None:
+                self._temporary_database.clear()
+            else:
+                unload_chunks = []
+                dimension, minx, minz, maxx, maxz = safe_area
+                for (cd, cx, cz), chunk in self._temporary_database.items():
+                    if not (cd == dimension and minx <= cx <= maxx and minz <= cz <= maxz):
+                        unload_chunks.append((cd, cx, cz))
+                for chunk_key in unload_chunks:
+                    del self._temporary_database[chunk_key]
 
     def unload_unchanged(self):
         """Unload all chunks that have not been marked as changed."""
-        unchanged = []
-        for key, chunk in self._temporary_database.items():
-            if not chunk.changed:
-                unchanged.append(key)
-        for key in unchanged:
-            del self._temporary_database[key]
+        with self._lock:
+            unchanged = []
+            for key, chunk in self._temporary_database.items():
+                if not chunk.changed:
+                    unchanged.append(key)
+            for key in unchanged:
+                del self._temporary_database[key]
 
     def has_chunk(self, dimension: Dimension, cx: int, cz: int) -> bool:
         """Does the ChunkManager have the chunk specified"""
@@ -101,25 +103,26 @@ class ChunkManager(DatabaseHistoryManager):
     def all_chunk_coords(self, dimension: Dimension) -> Set[Tuple[int, int]]:
         """The coordinates of every chunk in this world.
         This is the combination of chunks saved to the world and chunks yet to be saved."""
-        coords = set()
-        deleted_chunks = set()
-        for dim, cx, cz in self._temporary_database.keys():
-            if dim == dimension:
-                if self._temporary_database[(dim, cx, cz)] is None:
-                    deleted_chunks.add((cx, cz))
-                else:
-                    coords.add((cx, cz))
+        with self._lock:
+            coords = set()
+            deleted_chunks = set()
+            for dim, cx, cz in self._temporary_database.keys():
+                if dim == dimension:
+                    if self._temporary_database[(dim, cx, cz)] is None:
+                        deleted_chunks.add((cx, cz))
+                    else:
+                        coords.add((cx, cz))
 
-        for dim, cx, cz in self._history_database.keys():
-            if dim == dimension and (dim, cx, cz) not in self._temporary_database:
-                if self._history_database[(dim, cx, cz)].is_deleted:
-                    deleted_chunks.add((cx, cz))
-                else:
-                    coords.add((cx, cz))
+            for dim, cx, cz in self._history_database.keys():
+                if dim == dimension and (dim, cx, cz) not in self._temporary_database:
+                    if self._history_database[(dim, cx, cz)].is_deleted:
+                        deleted_chunks.add((cx, cz))
+                    else:
+                        coords.add((cx, cz))
 
-        for cx, cz in self.world.level_wrapper.all_chunk_coords(dimension):
-            if (cx, cz) not in coords and (cx, cz) not in deleted_chunks:
-                coords.add((cx, cz))
+            for cx, cz in self.world.level_wrapper.all_chunk_coords(dimension):
+                if (cx, cz) not in coords and (cx, cz) not in deleted_chunks:
+                    coords.add((cx, cz))
 
         return coords
 
