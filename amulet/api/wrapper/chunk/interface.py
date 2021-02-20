@@ -225,21 +225,49 @@ class Interface:
         return key in obj and type(obj[key]) is dtype
 
     @overload
-    def get_obj(self, obj: TAG_Compound, key: str, dtype: Type[AnyNBT], default: Any) -> Any:
+    def get_obj(self, obj: TAG_Compound, key: str, dtype: Type[AnyNBT], default: Optional[AnyNBT] = None) -> Optional[AnyNBT]:
         ...
 
     @overload
-    def get_obj(self, obj: TAG_List, key: int, dtype: Type[AnyNBT], default: Any) -> Any:
+    def get_obj(self, obj: TAG_List, key: int, dtype: Type[AnyNBT], default: Optional[AnyNBT] = None) -> Optional[AnyNBT]:
         ...
 
-    def get_obj(self, obj, key, dtype: Type[AnyNBT], default: Any) -> Any:
-        """Pop a key from a container object if it exists and the type is correct. Otherwise return default."""
-        if self.check_type(obj, key, dtype):
-            # if it exists and is correct
-            ret = obj[key].value
-            del obj[key]
-            return ret
+    def get_obj(self, obj, key, dtype: Type[AnyNBT], default: Optional[AnyNBT] = None) -> Optional[AnyNBT]:
+        """Pop a key from a container object if it exists and the type is correct. Otherwise return default.
+        This works in much the same way as dict.get but uses default if the data type does not match.
+
+        :param obj: The TAG_Compound to read from.
+        :param key: The key to use.
+        :param dtype: The expected data type.
+        :param default: The default value to use if the existing is not valid. If None will use dtype()
+        :return: The final value in the key.
+        """
+        if key in obj:
+            if type(obj[key]) is dtype:
+                # if it exists and is correct
+                return obj.pop(key)
+        if default is None:
+            return dtype()
         return default
+
+    @staticmethod
+    def set_obj(obj: TAG_Compound, key: str, dtype: Type[AnyNBT], default: Optional[AnyNBT] = None) -> AnyNBT:
+        """Set a key in a compound tag if the key does not exist or is not the correct type.
+        This works in much the same way as dict.setdefault but overwrites if the data type does not match.
+
+        :param obj: The TAG_Compound to apply to.
+        :param key: The key to use.
+        :param dtype: The expected data type.
+        :param default: The default value to use if the existing is not valid. If None will use dtype()
+        :return: The final value in the key.
+        """
+        if key not in obj or type(obj[key]) is not dtype:
+            if default is None:
+                obj[key] = dtype()
+            else:
+                assert type(default) is dtype
+                obj[key] = default
+        return obj[key]
 
     def get_translator(
         self,
