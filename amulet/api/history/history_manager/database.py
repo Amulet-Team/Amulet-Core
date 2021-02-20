@@ -43,20 +43,21 @@ class DatabaseHistoryManager(ContainerHistoryManager):
     def changed_entries(self) -> Generator[EntryKeyType, None, None]:
         """A generator of all the entry keys that have changed since the last save."""
         changed = set()
-        for key, entry in self._temporary_database.items():
-            if entry is None:
-                # If the temporary entry is deleted but there was no historical
-                # record or the historical record was not deleted
-                if (
-                    key not in self._history_database
-                    or not self._history_database[key].is_deleted
-                ):
+        with self._lock:
+            for key, entry in self._temporary_database.items():
+                if entry is None:
+                    # If the temporary entry is deleted but there was no historical
+                    # record or the historical record was not deleted
+                    if (
+                        key not in self._history_database
+                        or not self._history_database[key].is_deleted
+                    ):
+                        changed.add(key)
+                        yield key
+
+                elif entry.changed:
                     changed.add(key)
                     yield key
-
-            elif entry.changed:
-                changed.add(key)
-                yield key
         for key, history_entry in self._history_database.items():
             if history_entry.changed and key not in changed:
                 yield key
@@ -69,10 +70,10 @@ class DatabaseHistoryManager(ContainerHistoryManager):
     def _get_entry(self, key: EntryKeyType) -> EntryType:
         """Get a key from the database.
         Subclasses should implement a proper method calling this."""
-        if key in self._temporary_database:
-            entry = self._temporary_database[key]
-        else:
-            with self._lock:
+        with self._lock:
+            if key in self._temporary_database:
+                entry = self._temporary_database[key]
+            else:
                 if key in self._temporary_database:
                     entry = self._temporary_database[key]
                 elif key in self._history_database:
@@ -110,35 +111,38 @@ class DatabaseHistoryManager(ContainerHistoryManager):
         return RAMRevisionManager(original_entry)
 
     def _put_entry(self, key: EntryKeyType, entry: EntryType):
-        entry.changed = True
-        self._temporary_database[key] = entry
+        with self._lock:
+            entry.changed = True
+            self._temporary_database[key] = entry
 
     def _delete_entry(self, key: EntryKeyType):
-        self._temporary_database[key] = None
+        with self._lock:
+            self._temporary_database[key] = None
 
     def create_undo_point(self) -> bool:
         """
         Find all entries in the temporary database that have changed since the last undo point and create a new undo point.
         :return: Was an undo point created. If there were no changes no snapshot will be created.
         """
-        snapshot = []
-        for key, entry in tuple(self._temporary_database.items()):
-            if entry is None or entry.changed:
-                if key not in self._history_database:
-                    # The entry was added without populating from the world
-                    # populate the history with the original entry
-                    self._get_register_original_entry(key)
-                history_entry = self._history_database[key]
-                if (entry is None and not history_entry.is_deleted) or (
-                    entry is not None and entry.changed
-                ):
-                    # if the entry has been modified since the last history version
-                    history_entry.put_new_entry(entry)
-                    snapshot.append(key)
+        with self._lock:
+            snapshot = []
+            for key, entry in tuple(self._temporary_database.items()):
+                if entry is None or entry.changed:
+                    if key not in self._history_database:
+                        # The entry was added without populating from the world
+                        # populate the history with the original entry
+                        self._get_register_original_entry(key)
+                    history_entry = self._history_database[key]
+                    if (entry is None and not history_entry.is_deleted) or (
+                        entry is not None and entry.changed
+                    ):
+                        # if the entry has been modified since the last history version
+                        history_entry.put_new_entry(entry)
+                        snapshot.append(key)
 
-        self._temporary_database.clear()  # unload all the data from the temporary database
-        # so that it is repopulated from the history database. This fixes the issue of entries
-        # being modified without the `changed` flag being set to True.
+            self._temporary_database.clear()  # unload all the data from the temporary database
+            # so that it is repopulated from the history database. This fixes the issue of entries
+            # being modified without the `changed` flag being set to True.
 
         return self._register_snapshot(tuple(snapshot))
 
@@ -149,17 +153,20 @@ class DatabaseHistoryManager(ContainerHistoryManager):
 
     def _undo(self, snapshot: SnapshotType):
         """Undoes the last set of changes to the database"""
-        for key in snapshot:
-            self._history_database[key].undo()
-            if key in self._temporary_database:
-                del self._temporary_database[key]
+        with self._lock:
+            for key in snapshot:
+                self._history_database[key].undo()
+                if key in self._temporary_database:
+                    del self._temporary_database[key]
 
     def _redo(self, snapshot: SnapshotType):
         """Redoes the last set of changes to the database"""
-        for key in snapshot:
-            self._history_database[key].redo()
-            if key in self._temporary_database:
-                del self._temporary_database[key]
+        with self._lock:
+            for key in snapshot:
+                self._history_database[key].redo()
+                if key in self._temporary_database:
+                    del self._temporary_database[key]
 
     def restore_last_undo_point(self):
-        self._temporary_database.clear()
+        with self._lock:
+            self._temporary_database.clear()
