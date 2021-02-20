@@ -3,6 +3,7 @@ from typing import Optional, List, Tuple, Dict, Generator, TYPE_CHECKING, Binary
 import numpy
 from io import BytesIO
 import struct
+import copy
 
 import amulet_nbt
 
@@ -450,7 +451,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         """
         Actually stores the data from the interface to disk.
         """
-        self._chunk_to_section[cx, cz] = data
+        self._chunk_to_section[cx, cz] = copy.deepcopy(data)
 
     def _get_raw_chunk_data(
         self, cx: int, cz: int, dimension: Optional[Dimension] = None
@@ -464,6 +465,6 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         :return: The raw chunk data.
         """
         if (cx, cz) in self._chunk_to_section:
-            return self._chunk_to_section[(cx, cz)].copy()
+            return copy.deepcopy(self._chunk_to_section[(cx, cz)])
         else:
             raise ChunkDoesNotExist

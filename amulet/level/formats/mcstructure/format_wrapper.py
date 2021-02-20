@@ -355,13 +355,13 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
         """
         Actually stores the data from the interface to disk.
         """
-        self._chunks[(cx, cz)] = (
+        self._chunks[(cx, cz)] = copy.deepcopy((
             section.selection,
             section.blocks,
             section.palette,
             section.block_entities,
             section.entities,
-        )
+        ))
 
     def _get_raw_chunk_data(
         self, cx: int, cz: int, dimension: Optional[Dimension] = None
