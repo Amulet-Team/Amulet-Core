@@ -35,7 +35,7 @@ class Chunk(Changeable):
         self._entities = EntityList()
         self._block_entities = BlockEntityDict()
         self._status = Status(self)
-        self.misc = {}  # all entries that are not important enough to get an attribute
+        self._misc = {}  # all entries that are not important enough to get an attribute
 
     def __repr__(self):
         return f"Chunk({self.cx}, {self.cz}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._block_entities)})"
@@ -290,3 +290,12 @@ class Chunk(Changeable):
     @status.setter
     def status(self, value: Union[float, int, str]):
         self._status.value = value
+
+    @property
+    def misc(self) -> dict:
+        return self._misc
+
+    @misc.setter
+    def misc(self, misc: dict):
+        assert type(misc) is dict, "misc must be a dictionary."
+        self._misc = misc
