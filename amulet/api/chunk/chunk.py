@@ -12,7 +12,7 @@ from amulet.api.chunk import Biomes, Blocks, Status, BlockEntityDict, EntityList
 from amulet.api.entity import Entity
 from amulet.api.data_types import ChunkCoordinates
 from amulet.api.history.changeable import Changeable
-from amulet.api.cache import CacheDB
+from amulet.api.cache import get_cache_db
 
 PointCoordinates = Tuple[int, int, int]
 SliceCoordinates = Tuple[slice, slice, slice]
@@ -52,13 +52,13 @@ class Chunk(Changeable):
             self._status.value,
             self.misc,
         )
-        CacheDB.put(file_path.encode("utf-8"), pickle.dumps(chunk_data))
+        get_cache_db().put(file_path.encode("utf-8"), pickle.dumps(chunk_data))
 
     @classmethod
     def unpickle(
         cls, file_path: str, block_palette: BlockManager, biome_palette: BiomeManager
     ) -> Chunk:
-        chunk_data = pickle.loads(CacheDB.get(file_path.encode("utf-8")))
+        chunk_data = pickle.loads(get_cache_db().get(file_path.encode("utf-8")))
         self = cls(*chunk_data[:2])
         (
             self.blocks,

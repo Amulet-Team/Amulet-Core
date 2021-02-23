@@ -9,13 +9,20 @@ from amulet import log
 
 _path = os.path.join(get_temp_dir("cache"), "db")
 
-CacheDB = LevelDB(_path, True)
+
+_cache_db = None
 
 
-def clear_db():
-    log.info("Removing cache.")
-    CacheDB.close(compact=False)
-    shutil.rmtree(_path)
+def _clear_db():
+    if _cache_db is not None:
+        log.info("Removing cache.")
+        _cache_db.close(compact=False)
+        shutil.rmtree(_path)
 
 
-atexit.register(clear_db)
+def get_cache_db() -> LevelDB:
+    global _cache_db
+    if _cache_db is None:
+        _cache_db = LevelDB(_path, True)
+        atexit.register(_clear_db)
+    return _cache_db
