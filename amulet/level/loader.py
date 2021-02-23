@@ -1,87 +1,62 @@
 from __future__ import annotations
 
-import importlib.util
-import os
+import importlib
 from typing import AbstractSet, Any, Dict
+import pkgutil
 
 import amulet
 from amulet import log
 from amulet.api.errors import LoaderNoneMatched
+from amulet.api.wrapper import FormatWrapper, Interface, Translator
+
+ParentPackage = ".".join(__name__.split(".")[:-1])
 
 
 class Loader:
     def __init__(
         self,
+        base_class,
         object_type: str,
-        directory: str,
+        package_name: str,
         create_instance=True,
     ):
+        self._base_class = base_class
         self._object_type = object_type
         self._objects: Dict[str, Any] = {}
         self._create_instance = create_instance
-        self._recursive_find(directory)
+        self._recursive_find(f"{ParentPackage}.{package_name}")
 
-    def _load_obj(self, path: str) -> bool:
-        if os.path.isdir(path):
-            py_path = os.path.join(path, "__init__.py")
-            if not os.path.isfile(py_path):
-                return False
-            import_path = ".".join(
-                os.path.normpath(
-                    os.path.relpath(
-                        path, os.path.dirname(os.path.dirname(amulet.__file__))
-                    )
-                ).split(os.sep)
-            )
-            obj_name = os.path.basename(path)
-        elif os.path.isfile(path):
-            if not path.endswith(".py"):
-                return False
-            py_path = path
-            import_path = ".".join(
-                os.path.normpath(
-                    os.path.relpath(
-                        path[:-3], os.path.dirname(os.path.dirname(amulet.__file__))
-                    )
-                ).split(os.sep)
-            )
-            obj_name = os.path.basename(path[:-3])
-        else:
-            return False
-
-        with open(py_path) as f:
-            first_line = f.readline()
-        if first_line.strip() == f"# meta {self._object_type}":
-            if obj_name in self._objects:
-                log.error(
-                    f"Multiple {self._object_type} classes with the name {obj_name}"
-                )
-                return False
-            modu = importlib.import_module(import_path)
-
-            if not hasattr(modu, "export"):
-                log.error(
-                    f'{self._object_type} "{obj_name}" is missing the export attribute'
-                )
-                return False
-
+    def _load_obj(self, module_name: str):
+        modu = importlib.import_module(module_name)
+        if hasattr(modu, "export"):
             c = getattr(modu, "export")
-            if self._create_instance:
-                self._objects[obj_name] = c()
+            if issubclass(c, self._base_class):
+                if self._create_instance:
+                    self._objects[module_name] = c()
+                else:
+                    self._objects[module_name] = c
             else:
-                self._objects[obj_name] = c
+                log.error(
+                    f"export for {module_name} must be a subclass of {self._base_class}"
+                )
+            log.debug(f'Enabled {self._object_type} "{module_name}"')
 
-            log.debug(f'Enabled {self._object_type} "{obj_name}"')
-            return True
-        return False
+    def _recursive_find(self, package_name: str):
+        package = importlib.import_module(package_name)
+        package_prefix = package.__name__ + "."
 
-    def _recursive_find(self, path: str):
-        if os.path.isdir(path):
-            if not self._load_obj(path):
-                for p in os.listdir(path):
-                    self._recursive_find(os.path.join(path, p))
-        elif os.path.isfile(path):
-            self._load_obj(path)
+        # python file support
+        for _, name, _ in pkgutil.walk_packages(package.__path__, package_prefix):
+            self._load_obj(name)
+
+        # pyinstaller support
+        toc = set()
+        for importer in pkgutil.iter_importers(amulet.__name__):
+            if hasattr(importer, "toc"):
+                toc |= importer.toc
+        for module_name in toc:
+            if module_name.startswith(package_prefix):
+                self._load_obj(module_name)
 
     def keys(self) -> AbstractSet[str]:
         """
@@ -100,7 +75,8 @@ class Loader:
         return self._objects[object_id]
 
     def identify(self, identifier: Any) -> str:
-
+        if not self._objects:
+            raise Exception(f"No {self._object_type} loaders found.")
         for object_name, obj in self._objects.items():
             if obj.is_valid(identifier):
                 return object_name
@@ -118,13 +94,9 @@ class Loader:
             print(obj_name, obj)
 
 
-Translators = Loader(
-    "translator", os.path.join(os.path.dirname(__file__), "translators")
-)
-Interfaces = Loader("interface", os.path.join(os.path.dirname(__file__), "interfaces"))
-Formats = Loader(
-    "format", os.path.join(os.path.dirname(__file__), "formats"), create_instance=False
-)
+Translators = Loader(Translator, "translator", "translators")
+Interfaces = Loader(Interface, "interface", "interfaces")
+Formats = Loader(FormatWrapper, "format", "formats", create_instance=False)
 
 
 if __name__ == "__main__":
