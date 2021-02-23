@@ -100,7 +100,8 @@ class Loader:
         return self._objects[object_id]
 
     def identify(self, identifier: Any) -> str:
-
+        if not self._objects:
+            raise Exception(f"No {self._object_type} loaders found.")
         for object_name, obj in self._objects.items():
             if obj.is_valid(identifier):
                 return object_name
