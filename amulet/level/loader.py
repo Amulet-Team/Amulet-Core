@@ -36,7 +36,9 @@ class Loader:
                 else:
                     self._objects[module_name] = c
             else:
-                log.error(f"export for {module_name} must be a subclass of {self._base_class}")
+                log.error(
+                    f"export for {module_name} must be a subclass of {self._base_class}"
+                )
             log.debug(f'Enabled {self._object_type} "{module_name}"')
 
     def _recursive_find(self, package_name: str):
@@ -92,13 +94,9 @@ class Loader:
             print(obj_name, obj)
 
 
-Translators = Loader(
-    Translator, "translator", "translators"
-)
+Translators = Loader(Translator, "translator", "translators")
 Interfaces = Loader(Interface, "interface", "interfaces")
-Formats = Loader(
-    FormatWrapper, "format", "formats", create_instance=False
-)
+Formats = Loader(FormatWrapper, "format", "formats", create_instance=False)
 
 
 if __name__ == "__main__":
