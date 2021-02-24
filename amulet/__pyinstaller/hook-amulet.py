@@ -20,11 +20,6 @@ hiddenimports = (
     + ["amulet.api.structure"]
 )
 
-datas = collect_data_files(
-    "PyMCTranslate",
-    excludes=["__pyinstaller", "json", "*.pyc", "*.py", "*.dll", "*.so", "*.dylib"],
-)
-
 if sys.platform == "linux":
     binaries = [
         (
