@@ -451,3 +451,5 @@ class Block:
 
 # some blocks that probably will not change. Keeping these in one place will make them easier to change if they do.
 UniversalAirBlock = Block("universal_minecraft", "air")
+# do not rely on this staying the same.
+UniversalAirLikeBlocks = (UniversalAirBlock, Block("universal_minecraft", "cave_air"))
