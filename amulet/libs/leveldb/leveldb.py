@@ -1,27 +1,24 @@
 # Provides an python wrapper for the ctypes wrapper for the c wrapper for leveldb.
 
 import ctypes
-import os.path as op
-import sys
 import os
+import sys
 
 if sys.platform == "win32":
     if sys.maxsize > 2 ** 32:  # 64 bit python
-        ldb = ctypes.cdll.LoadLibrary(
-            op.join(op.dirname(op.realpath(__file__)), "LevelDB-MCPE-64.dll")
-        )
+        lib_name = "LevelDB-MCPE-64.dll"
     else:  # 32 bit python
-        ldb = ctypes.cdll.LoadLibrary(
-            op.join(op.dirname(op.realpath(__file__)), "LevelDB-MCPE-32.dll")
-        )
+        lib_name = "LevelDB-MCPE-32.dll"
 elif sys.platform == "darwin":
-    ldb = ctypes.cdll.LoadLibrary(
-        op.join(op.dirname(op.realpath(__file__)), "libleveldb.dylib")
-    )
+    lib_name = "libleveldb.dylib"
 else:  # linux, compile your own .so if this errors!
-    ldb = ctypes.cdll.LoadLibrary(
-        op.join(op.dirname(op.realpath(__file__)), "libleveldb.so")
-    )  # Load DLL
+    lib_name = "libleveldb.so"
+
+lib_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), lib_name)
+assert os.path.isfile(
+    lib_path
+), f"Could not find the leveldb shared library at {lib_path}"
+ldb = ctypes.cdll.LoadLibrary(lib_path)
 
 # Setup ctypes arguments and return types for all of the leveldb functions.
 # Most of this pulled from Podshot/MCEdit-Unified
