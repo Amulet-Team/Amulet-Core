@@ -170,3 +170,10 @@ class DatabaseHistoryManager(ContainerHistoryManager):
     def restore_last_undo_point(self):
         with self._lock:
             self._temporary_database.clear()
+
+    def purge(self):
+        """Unload all cached data. Effectively returns the class to its starting state."""
+        with self._lock:
+            super().purge()
+            self._temporary_database.clear()
+            self._history_database.clear()

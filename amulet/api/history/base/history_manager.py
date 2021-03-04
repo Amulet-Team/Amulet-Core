@@ -35,6 +35,10 @@ class HistoryManager(BaseHistory):
         This will revert those changes."""
         raise NotImplementedError
 
+    def purge(self):
+        """Unload all cached data. Effectively returns the class to its starting state."""
+        raise NotImplementedError
+
     @property
     def undo_count(self) -> int:
         """The number of times the undo method can be run."""

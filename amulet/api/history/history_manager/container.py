@@ -94,3 +94,10 @@ class ContainerHistoryManager(HistoryManager):
 
     def restore_last_undo_point(self):
         raise NotImplementedError
+
+    def purge(self):
+        """Unload all cached data. Effectively returns the class to its starting state."""
+        self._snapshots.clear()
+        self._snapshot_index: int = -1
+        self._last_save_snapshot = -1
+        self._branch_save_count = 0
