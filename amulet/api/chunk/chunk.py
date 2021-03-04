@@ -55,7 +55,10 @@ class Chunk(Changeable):
 
     @classmethod
     def unpickle(
-        cls, pickled_bytes: bytes, block_palette: BlockManager, biome_palette: BiomeManager
+        cls,
+        pickled_bytes: bytes,
+        block_palette: BlockManager,
+        biome_palette: BiomeManager,
     ) -> Chunk:
         chunk_data = pickle.loads(pickled_bytes)
         self = cls(*chunk_data[:2])
