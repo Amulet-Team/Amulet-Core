@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from amulet.api.data_types import Dimension, BlockCoordinates, FloatTriplet
-from amulet.api.block import Block, UniversalAirBlock
+from amulet.api.block import Block, UniversalAirLikeBlocks
 
 if TYPE_CHECKING:
     from amulet.api.level import BaseLevel
@@ -58,7 +58,7 @@ def paste_iter(
         rotation,
         True,
         True,
-        (UniversalAirBlock,) * bool(not copy_air)
+        tuple(UniversalAirLikeBlocks) * bool(not copy_air)
         + (Block("universal_minecraft", "water"),) * bool(not copy_water)
         + (Block("universal_minecraft", "lava"),) * bool(not copy_lava),
         True,
