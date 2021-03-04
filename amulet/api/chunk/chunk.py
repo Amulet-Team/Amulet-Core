@@ -12,7 +12,6 @@ from amulet.api.chunk import Biomes, Blocks, Status, BlockEntityDict, EntityList
 from amulet.api.entity import Entity
 from amulet.api.data_types import ChunkCoordinates
 from amulet.api.history.changeable import Changeable
-from amulet.api.cache import get_cache_db
 
 PointCoordinates = Tuple[int, int, int]
 SliceCoordinates = Tuple[slice, slice, slice]
@@ -40,7 +39,7 @@ class Chunk(Changeable):
     def __repr__(self):
         return f"Chunk({self.cx}, {self.cz}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._block_entities)})"
 
-    def pickle(self, file_path: str):
+    def pickle(self) -> bytes:
         chunk_data = (
             self._cx,
             self._cz,
@@ -52,13 +51,13 @@ class Chunk(Changeable):
             self._status.value,
             self.misc,
         )
-        get_cache_db().put(file_path.encode("utf-8"), pickle.dumps(chunk_data))
+        return pickle.dumps(chunk_data)
 
     @classmethod
     def unpickle(
-        cls, file_path: str, block_palette: BlockManager, biome_palette: BiomeManager
+        cls, pickled_bytes: bytes, block_palette: BlockManager, biome_palette: BiomeManager
     ) -> Chunk:
-        chunk_data = pickle.loads(get_cache_db().get(file_path.encode("utf-8")))
+        chunk_data = pickle.loads(pickled_bytes)
         self = cls(*chunk_data[:2])
         (
             self.blocks,
