@@ -141,7 +141,8 @@ class ChunkManager(DatabaseHistoryManager):
         :param cx: The X coordinate of the desired chunk
         :param cz: The Z coordinate of the desired chunk
         :return: A Chunk instance or None
-        :raises: ChunkDoesNotExist if there is no record of the chunk.
+        :raises:
+            ChunkDoesNotExist: If the chunk does not exist (was deleted or never created)
         """
         return self._get_entry((dimension, cx, cz))
 
