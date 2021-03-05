@@ -276,7 +276,8 @@ class FormatWrapper:
         """Ensure that the FormatWrapper is open and has a lock on the object.
 
         :return: None
-        :raises: ObjectReadWriteError if the FormatWrapper does not have a lock on the object.
+        :raises:
+            ObjectReadWriteError: if the FormatWrapper does not have a lock on the object.
         """
         if not self.is_open:
             raise ObjectReadWriteError(
@@ -334,7 +335,9 @@ class FormatWrapper:
         :param cz: The z coordinate of the chunk.
         :param dimension: The dimension to load the chunk from.
         :return: The chunk at the given coordinates.
-        :raises: ChunkLoadError or ChunkDoesNotExist as is relevant.
+        :raises:
+            ChunkDoesNotExist: If the chunk does not exist (was deleted or never created)
+            ChunkLoadError: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
         """
         try:
             self._verify_has_lock()

@@ -71,7 +71,8 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         """Get the section ndarray for a given section index.
         :param sy: The section y index
         :return: Numpy array for this section
-        :raises: KeyError if no section exists with this index
+        :raises:
+            KeyError: if no section exists with this index
         """
         if sy not in self._sections:
             self.create_section(sy)

@@ -164,7 +164,9 @@ class BaseLevel:
         :param cz: The Z coordinate of the desired chunk
         :param dimension: The dimension to get the chunk from
         :return: A Chunk object containing the data for the chunk
-        :raises: `amulet.api.errors.ChunkDoesNotExist` if the chunk does not exist or `amulet.api.errors.ChunkLoadError` if the chunk failed to load for some reason. (This also includes it not existing)
+        :raises:
+            ChunkDoesNotExist: If the chunk does not exist (was deleted or never created)
+            ChunkLoadError: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
         """
         return self._chunks.get_chunk(dimension, cx, cz)
 
@@ -177,7 +179,9 @@ class BaseLevel:
         :param z: The Z coordinate of the desired block
         :param dimension: The dimension of the desired block
         :return: The universal Block object representation of the block at that location
-        :raise: Raises ChunkDoesNotExist or ChunkLoadError if the chunk was not loaded.
+        :raises:
+            ChunkDoesNotExist: If the chunk does not exist (was deleted or never created)
+            ChunkLoadError: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
         """
         cx, cz = block_coords_to_chunk_coords(x, z, sub_chunk_size=self.sub_chunk_size)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
@@ -655,7 +659,9 @@ class BaseLevel:
         :param dimension: The dimension of the desired block
         :param version: The version to get the block converted to.
         :return: The block at the given location converted to the `version` format. Note the odd return format.
-        :raise: Raises ChunkDoesNotExist or ChunkLoadError if the chunk was not loaded.
+        :raises:
+            ChunkDoesNotExist: If the chunk does not exist (was deleted or never created)
+            ChunkLoadError: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
         """
         cx, cz = block_coords_to_chunk_coords(x, z, sub_chunk_size=self.sub_chunk_size)
         chunk = self.get_chunk(cx, cz, dimension)
@@ -688,7 +694,8 @@ class BaseLevel:
         :param block:
         :param block_entity:
         :return: The block at the given location converted to the `version` format. Note the odd return format.
-        :raise: Raises ChunkLoadError if the chunk was not loaded correctly.
+        :raises:
+            ChunkLoadError: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
         """
         cx, cz = block_coords_to_chunk_coords(x, z, sub_chunk_size=self.sub_chunk_size)
         try:
