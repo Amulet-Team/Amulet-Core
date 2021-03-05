@@ -495,10 +495,15 @@ class BaseLevel:
         wrapper.save()
         log.info(f"Finished saving changes to level {wrapper.path}")
 
+    def purge(self):
+        """Unload all loaded and cached data.
+        This is functionally the same as closing and reopening the world without creating a new class."""
+        self.unload()
+        # self.history_manager.
+
     def close(self):
         """Close the attached level and remove temporary files
         Use changed method to check if there are any changes that should be saved before closing."""
-        # TODO: add "unsaved changes" check before exit
         shutil.rmtree(self._temp_directory, ignore_errors=True)
         self.level_wrapper.close()
 

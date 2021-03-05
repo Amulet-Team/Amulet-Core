@@ -45,6 +45,16 @@ class ObjectHistoryManager(HistoryManager):
         self._branch_save_count = 0
         self._revision_manager.mark_saved()
 
+    def purge(self):
+        """Unload the cached objects and restore to the starting value."""
+        self._revision_manager = self._create_new_revision_manager(
+            self._pack_value(self._value)
+        )
+        self._snapshots_size: int = 0
+        self._snapshot_index: int = -1
+        self._last_save_snapshot = -1
+        self._branch_save_count = 0
+
     @property
     def undo_count(self) -> int:
         return self._snapshot_index + 1

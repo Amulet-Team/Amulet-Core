@@ -10,6 +10,7 @@ from amulet.api.history.base import RevisionManager
 from amulet.api.history.revision_manager import DiskRevisionManager
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.history.history_manager import DatabaseHistoryManager
+from amulet.api.cache import get_cache_db
 
 if TYPE_CHECKING:
     from amulet.api.level import BaseLevel
@@ -30,16 +31,17 @@ class ChunkDiskEntry(DiskRevisionManager):
         if entry is None:
             return None
         else:
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            entry.pickle(path)
+            pickled_bytes = entry.pickle()
+            get_cache_db().put(path.encode("utf-8"), pickled_bytes)
             return path
 
     def _deserialise(self, path: Optional[str]) -> Optional[Chunk]:
         if path is None:
             return None
         else:
+            pickled_bytes = get_cache_db().get(path.encode("utf-8"))
             return Chunk.unpickle(
-                path, self.world.block_palette, self.world.biome_palette
+                pickled_bytes, self.world.block_palette, self.world.biome_palette
             )
 
 

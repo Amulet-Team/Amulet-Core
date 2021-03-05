@@ -79,3 +79,8 @@ class MetaHistoryManager(ContainerHistoryManager):
     def restore_last_undo_point(self):
         for manager in self._managers():
             manager.restore_last_undo_point()
+
+    def purge(self):
+        """Unload all history data. Restore to the state after creation."""
+        for manager in self._managers():
+            manager.purge()
