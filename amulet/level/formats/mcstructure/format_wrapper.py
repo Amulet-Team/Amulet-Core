@@ -337,7 +337,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             chunk_palette,
             self.max_world_version,
             SelectionBox.create_chunk_box(chunk.cx, chunk.cz).intersection(
-                self._selection
+                self._selection.to_box()
             ),
         )
 

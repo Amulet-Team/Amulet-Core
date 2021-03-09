@@ -109,6 +109,10 @@ class SelectionGroup:
         else:
             raise ValueError("SelectionGroup does not contain any SelectionBoxes")
 
+    def to_box(self) -> SelectionBox:
+        """Create a `SelectionBox` based off the bounds of the boxes in the group."""
+        return SelectionBox(self.min, self.max)
+
     def merge_boxes(self) -> SelectionGroup:
         """Take the boxes as they were given to this class, merge neighbouring boxes and remove overlapping regions.
         The result should be a SelectionGroup containing one or more SelectionBox classes that represents the same
