@@ -23,6 +23,7 @@ from amulet.api.block import Block
 from amulet.api.wrapper import Interface
 from amulet.level import loader
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray
+from amulet.api.wrapper import EntityIDType, EntityCoordType
 from amulet.utils.world_utils import (
     decode_long_array,
     encode_long_array,
@@ -56,11 +57,11 @@ class BaseAnvilInterface(Interface):
             "block_light": ["Sections|2048BA"],
             "sky_light": ["Sections|2048BA"],
             "block_entities": ["list"],
-            "block_entity_format": ["namespace-str-id"],
-            "block_entity_coord_format": ["xyz-int"],
+            "block_entity_format": [EntityIDType.namespace_str_id],
+            "block_entity_coord_format": [EntityCoordType.xyz_int],
             "entities": ["list"],
-            "entity_format": ["namespace-str-id"],
-            "entity_coord_format": ["Pos-list-double"],
+            "entity_format": [EntityIDType.namespace_str_id],
+            "entity_coord_format": [EntityCoordType.Pos_list_double],
             "tile_ticks": ["list", "list(optional)"],
             "liquid_ticks": ["list"],
             # 'lights': [],

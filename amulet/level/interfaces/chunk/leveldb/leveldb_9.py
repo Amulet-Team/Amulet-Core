@@ -1,6 +1,7 @@
 # meta interface
 from __future__ import annotations
 
+from amulet.api.wrapper import EntityIDType, EntityCoordType
 from .leveldb_8 import (
     LevelDB8Interface,
 )
@@ -13,7 +14,7 @@ class LevelDB9Interface(LevelDB8Interface):
         self.features["chunk_version"] = 9
         self.features[
             "entity_format"
-        ] = "namespace-str-identifier"  # "int-id" is present until at least v7. Not sure which was present for v8
+        ] = EntityIDType.namespace_str_identifier  # EntityIDType.int_id is present until at least v7. Not sure which was present for v8
 
 
 export = LevelDB9Interface

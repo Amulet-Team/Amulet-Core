@@ -3,7 +3,7 @@ import numpy
 
 import amulet_nbt
 
-from amulet.api.wrapper import Interface
+from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionBox
 from amulet.api.data_types import AnyNDArray
@@ -17,10 +17,10 @@ if TYPE_CHECKING:
 
 
 class MCStructureInterface(Interface):
-    _entity_id_type = "namespace-str-identifier"
-    _entity_coord_type = "Pos-list-float"
-    _block_entity_id_type = "str-id"
-    _block_entity_coord_type = "xyz-int"
+    _entity_id_type = EntityIDType.namespace_str_identifier
+    _entity_coord_type = EntityCoordType.Pos_list_float
+    _block_entity_id_type = EntityIDType.str_id
+    _block_entity_coord_type = EntityCoordType.xyz_int
 
     def is_valid(self, key: Tuple) -> bool:
         return True
@@ -145,7 +145,6 @@ class MCStructureInterface(Interface):
         translation_manager: "TranslationManager" = None,
     ) -> Tuple["Translator", Union[int, Tuple[int, int, int]]]:
         platform, version_number = max_world_version
-        if platform == "java":
-            version = translation_manager.get_version(platform, version_number)
-            version_number = version.data_version
+        if platform != "bedrock":
+            raise ValueError("Platform must be bedrock")
         return Translators.get((platform, version_number)), version_number

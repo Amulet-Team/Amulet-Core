@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Any, Tuple, Union
 import numpy
 
-from amulet.api.wrapper import Interface
+from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType
 from .chunk import SchematicChunk
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionBox
@@ -103,14 +103,14 @@ class SchematicInterface(Interface):
 
 
 class JavaSchematicInterface(SchematicInterface):
-    _entity_id_type = "namespace-str-id"
-    _entity_coord_type = "Pos-list-double"
-    _block_entity_id_type = "namespace-str-id"
-    _block_entity_coord_type = "xyz-int"
+    _entity_id_type = EntityIDType.namespace_str_id
+    _entity_coord_type = EntityCoordType.Pos_list_double
+    _block_entity_id_type = EntityIDType.namespace_str_id
+    _block_entity_coord_type = EntityCoordType.xyz_int
 
 
 class BedrockSchematicInterface(SchematicInterface):
-    _entity_id_type = "namespace-str-identifier"
-    _entity_coord_type = "Pos-list-float"
-    _block_entity_id_type = "str-id"
-    _block_entity_coord_type = "xyz-int"
+    _entity_id_type = EntityIDType.namespace_str_identifier
+    _entity_coord_type = EntityCoordType.Pos_list_float
+    _block_entity_id_type = EntityIDType.str_id
+    _block_entity_coord_type = EntityCoordType.xyz_int

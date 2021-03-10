@@ -8,6 +8,7 @@ import amulet_nbt as nbt
 
 from amulet.api.data_types import SubChunkNDArray, AnyNDArray
 from amulet.utils import world_utils
+from amulet.api.wrapper import EntityIDType, EntityCoordType
 from .base_anvil_interface import (
     BaseAnvilInterface,
 )
@@ -33,12 +34,12 @@ class AnvilNAInterface(BaseAnvilInterface):
         self.features["sky_light"] = "Sections|2048BA"
 
         self.features["block_entities"] = "list"
-        self.features["block_entity_format"] = "namespace-str-id"
-        self.features["block_entity_coord_format"] = "xyz-int"
+        self.features["block_entity_format"] = EntityIDType.namespace_str_id
+        self.features["block_entity_coord_format"] = EntityCoordType.xyz_int
 
         self.features["entities"] = "list"
-        self.features["entity_format"] = "namespace-str-id"
-        self.features["entity_coord_format"] = "Pos-list-double"
+        self.features["entity_format"] = EntityIDType.namespace_str_id
+        self.features["entity_coord_format"] = EntityCoordType.Pos_list_double
 
         self.features["tile_ticks"] = "list"
 
