@@ -1,7 +1,7 @@
 # meta interface
 from __future__ import annotations
 
-from amulet.api.wrapper import EntityIDType, EntityCoordType
+from amulet.api.wrapper import EntityIDType
 from .leveldb_8 import (
     LevelDB8Interface,
 )

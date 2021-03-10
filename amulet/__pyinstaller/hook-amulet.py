@@ -1,4 +1,3 @@
-from PyInstaller.utils.hooks import collect_data_files
 import pkgutil
 import sys
 import os

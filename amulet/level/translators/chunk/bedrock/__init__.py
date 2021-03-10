@@ -42,7 +42,9 @@ class BaseBedrockTranslator(Translator):
     ):
         """
         Unpacks an object array of block data into a numpy object array containing Block objects.
-        :param version:
+        :param translation_manager:
+        :param version_identifier:
+        :param chunk:
         :param block_palette:
         :type block_palette: numpy.ndarray[
             Tuple[

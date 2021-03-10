@@ -4,7 +4,6 @@ from typing import Tuple, Any, Generator, Dict, List, Optional, TYPE_CHECKING
 import copy
 import numpy
 import os
-import shutil
 
 import PyMCTranslate
 

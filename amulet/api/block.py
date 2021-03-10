@@ -26,6 +26,7 @@ PropertyDataTypes = (
 
 
 def blockstate_to_block(blockstate: str) -> "Block":
+    """Parse a Java format blockstate string into a Block class."""
     namespace, base_name, properties = Block.parse_blockstate_string(blockstate)
     return Block(namespace=namespace, base_name=base_name, properties=properties)
 

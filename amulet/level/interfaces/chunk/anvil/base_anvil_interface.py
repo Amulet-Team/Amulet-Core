@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Tuple, Union, Iterable, Dict, TYPE_CHECKING, Optional
+from typing import List, Tuple, Union, Iterable, Dict, TYPE_CHECKING
 import numpy
 
 import amulet_nbt
@@ -19,7 +19,6 @@ from amulet_nbt import (
 
 import amulet
 from amulet.api.chunk import Chunk
-from amulet.api.block import Block
 from amulet.api.wrapper import Interface
 from amulet.level import loader
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray

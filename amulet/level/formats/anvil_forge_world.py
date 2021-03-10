@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from .anvil_world import AnvilFormat
 from amulet.utils.format_utils import check_all_exist, load_leveldat
-from amulet import log
 
 
 class AnvilForgeFormat(AnvilFormat):
