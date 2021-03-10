@@ -38,7 +38,10 @@ class BaseLevelDBInterface(Interface):
             "block_entity_format": [EntityIDType.namespace_str_id, EntityIDType.str_id],
             "block_entity_coord_format": [EntityCoordType.xyz_int],
             "entities": ["32list"],
-            "entity_format": [EntityIDType.namespace_str_identifier, EntityIDType.int_id],
+            "entity_format": [
+                EntityIDType.namespace_str_identifier,
+                EntityIDType.int_id,
+            ],
             "entity_coord_format": [EntityCoordType.Pos_list_float],
             "terrain": ["30array", "2farray", "2f1palette", "2fnpalette"],
         }

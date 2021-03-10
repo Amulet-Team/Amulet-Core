@@ -30,6 +30,14 @@ class EntityCoordType(Enum):
     xyz_int = 0
     Pos_list_float = 1
     Pos_list_double = 2
+    Pos_list_int = 3
+
+
+PosTypeMap = {
+    3: EntityCoordType.Pos_list_int,
+    5: EntityCoordType.Pos_list_float,
+    6: EntityCoordType.Pos_list_double,
+}
 
 
 class Interface:
@@ -48,7 +56,10 @@ class Interface:
         raise NotImplementedError()
 
     def _decode_entity(
-        self, nbt: amulet_nbt.NBTFile, id_type: EntityIDType, coord_type: EntityCoordType
+        self,
+        nbt: amulet_nbt.NBTFile,
+        id_type: EntityIDType,
+        coord_type: EntityCoordType,
     ) -> Optional[Entity]:
         entity = self._decode_base_entity(nbt, id_type, coord_type)
         if entity is not None:
@@ -58,7 +69,10 @@ class Interface:
             )
 
     def _decode_block_entity(
-        self, nbt: amulet_nbt.NBTFile, id_type: EntityIDType, coord_type: EntityCoordType
+        self,
+        nbt: amulet_nbt.NBTFile,
+        id_type: EntityIDType,
+        coord_type: EntityCoordType,
     ) -> Optional[BlockEntity]:
         entity = self._decode_base_entity(nbt, id_type, coord_type)
         if entity is not None:
@@ -126,12 +140,17 @@ class Interface:
         else:
             raise NotImplementedError(f"Entity id type {id_type}")
 
-        if coord_type in [EntityCoordType.Pos_list_double, EntityCoordType.Pos_list_float]:
+        if coord_type in [
+            EntityCoordType.Pos_list_double,
+            EntityCoordType.Pos_list_float,
+            EntityCoordType.Pos_list_int,
+        ]:
             if "Pos" not in nbt:
                 return
             pos = nbt.pop("Pos")
             pos: amulet_nbt.TAG_List
-            if not (5 <= pos.list_data_type <= 6 and len(pos) == 3):
+
+            if len(pos) != 3 or PosTypeMap.get(pos.list_data_type) != coord_type:
                 return
             x, y, z = [c.value for c in pos]
         elif coord_type == EntityCoordType.xyz_int:
@@ -177,7 +196,9 @@ class Interface:
 
     @staticmethod
     def _encode_base_entity(
-        entity: Union[Entity, BlockEntity], id_type: EntityIDType, coord_type: EntityCoordType
+        entity: Union[Entity, BlockEntity],
+        id_type: EntityIDType,
+        coord_type: EntityCoordType,
     ) -> Optional[amulet_nbt.NBTFile]:
         if not isinstance(entity.nbt, amulet_nbt.NBTFile) and isinstance(
             entity.nbt.value, amulet_nbt.TAG_Compound
@@ -212,6 +233,14 @@ class Interface:
                     amulet_nbt.TAG_Float(float(entity.x)),
                     amulet_nbt.TAG_Float(float(entity.y)),
                     amulet_nbt.TAG_Float(float(entity.z)),
+                ]
+            )
+        elif coord_type == EntityCoordType.Pos_list_int:
+            nbt["Pos"] = amulet_nbt.TAG_List(
+                [
+                    amulet_nbt.TAG_Int(int(entity.x)),
+                    amulet_nbt.TAG_Int(int(entity.y)),
+                    amulet_nbt.TAG_Int(int(entity.z)),
                 ]
             )
         elif coord_type == EntityCoordType.xyz_int:
