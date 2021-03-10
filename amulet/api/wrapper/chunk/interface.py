@@ -23,7 +23,8 @@ class EntityIDType(Enum):
     int_id = 0
     str_id = 1
     namespace_str_id = 2
-    namespace_str_identifier = 3
+    namespace_str_Id = 3
+    namespace_str_identifier = 4
 
 
 class EntityCoordType(Enum):
@@ -101,6 +102,16 @@ class Interface:
 
         if id_type == EntityIDType.namespace_str_id:
             entity_id = nbt.pop("id", amulet_nbt.TAG_String(""))
+            if (
+                not isinstance(entity_id, amulet_nbt.TAG_String)
+                or entity_id.value == ""
+                or ":" not in entity_id.value
+            ):
+                return
+            namespace, base_name = entity_id.value.split(":", 1)
+
+        elif id_type == EntityIDType.namespace_str_Id:
+            entity_id = nbt.pop("Id", amulet_nbt.TAG_String(""))
             if (
                 not isinstance(entity_id, amulet_nbt.TAG_String)
                 or entity_id.value == ""
@@ -208,6 +219,8 @@ class Interface:
 
         if id_type == EntityIDType.namespace_str_id:
             nbt["id"] = amulet_nbt.TAG_String(entity.namespaced_name)
+        elif id_type == EntityIDType.namespace_str_Id:
+            nbt["Id"] = amulet_nbt.TAG_String(entity.namespaced_name)
         elif id_type == EntityIDType.namespace_str_identifier:
             nbt["identifier"] = amulet_nbt.TAG_String(entity.namespaced_name)
         elif id_type == EntityIDType.str_id:
