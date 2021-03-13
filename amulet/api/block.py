@@ -194,7 +194,9 @@ class Block:
             self._blockstate = self.namespaced_name
             if self.properties:
                 props = [
-                    f"{key}={value.value}" for key, value in sorted(self.properties.items()) if isinstance(value, amulet_nbt.TAG_String)
+                    f"{key}={value.value}"
+                    for key, value in sorted(self.properties.items())
+                    if isinstance(value, amulet_nbt.TAG_String)
                 ]
                 self._blockstate += f"[{','.join(props)}]"
         return self._blockstate
@@ -209,7 +211,8 @@ class Block:
             self._snbt_blockstate = self.namespaced_name
             if self.properties:
                 props = [
-                    f"{key}={value.to_snbt()}" for key, value in sorted(self.properties.items())
+                    f"{key}={value.to_snbt()}"
+                    for key, value in sorted(self.properties.items())
                 ]
                 self._snbt_blockstate += f"[{','.join(props)}]"
         return self._snbt_blockstate
@@ -332,7 +335,11 @@ class Block:
         if self.__class__ != other.__class__:
             return False
 
-        return self.namespaced_name == other.namespaced_name and self.properties == other.properties and self.extra_blocks == other.extra_blocks
+        return (
+            self.namespaced_name == other.namespaced_name
+            and self.properties == other.properties
+            and self.extra_blocks == other.extra_blocks
+        )
 
     def __gt__(self, other: Block) -> bool:
         """

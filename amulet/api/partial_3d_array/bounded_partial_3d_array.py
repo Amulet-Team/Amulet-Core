@@ -69,9 +69,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
     def __eq__(self, value):
         def get_array(default: bool):
             return self.from_partial_array(
-                UnboundedPartial3DArray(
-                    bool, default, self.section_shape, (0, 0)
-                ),
+                UnboundedPartial3DArray(bool, default, self.section_shape, (0, 0)),
                 self.start,
                 self.stop,
                 self.step,

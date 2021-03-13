@@ -45,7 +45,7 @@ class BlockTestCase(unittest.TestCase):
         )
         self.assertEqual((), oak_leaves.extra_blocks)
         self.assertEqual(
-            'minecraft:oak_leaves[distance=1,persistent=true]',
+            "minecraft:oak_leaves[distance=1,persistent=true]",
             oak_leaves.blockstate,
         )
         self.assertEqual(
@@ -73,7 +73,7 @@ class BlockTestCase(unittest.TestCase):
         )
         self.assertEqual((), oak_leaves_2.extra_blocks)
         self.assertEqual(
-            'minecraft:oak_leaves[distance=1,persistent=true]',
+            "minecraft:oak_leaves[distance=1,persistent=true]",
             oak_leaves_2.blockstate,
         )
         self.assertEqual(
@@ -97,7 +97,7 @@ class BlockTestCase(unittest.TestCase):
         )
         self.assertEqual((), oak_leaves_3.extra_blocks)
         self.assertEqual(
-            'minecraft:oak_leaves[distance=1,persistent=true]',
+            "minecraft:oak_leaves[distance=1,persistent=true]",
             oak_leaves_3.blockstate,
         )
         self.assertEqual(
@@ -112,7 +112,7 @@ class BlockTestCase(unittest.TestCase):
 
     def test_extra_blocks(self):
         stone = Block.from_string_blockstate("minecraft:stone")
-        water = Block.from_string_blockstate('minecraft:water[level=1]')
+        water = Block.from_string_blockstate("minecraft:water[level=1]")
         granite = Block.from_string_blockstate("minecraft:granite")
         dirt = Block.from_string_blockstate("minecraft:dirt")
 
@@ -169,7 +169,7 @@ class BlockTestCase(unittest.TestCase):
 
     def test_remove_layer(self):
         stone = Block.from_string_blockstate("minecraft:stone")
-        water = Block.from_string_blockstate('minecraft:water[level=1]')
+        water = Block.from_string_blockstate("minecraft:water[level=1]")
         granite = Block.from_string_blockstate("minecraft:granite")
         dirt = Block.from_string_blockstate("minecraft:dirt")
         oak_log_axis_x = Block.from_string_blockstate("minecraft:oak_log[axis=x]")
@@ -237,7 +237,7 @@ class BlockTestCase(unittest.TestCase):
 
     def test_hash(self):
         stone = Block.from_string_blockstate("minecraft:stone")
-        water = Block.from_string_blockstate('minecraft:water[level=1]')
+        water = Block.from_string_blockstate("minecraft:water[level=1]")
         granite = Block.from_string_blockstate("minecraft:granite")
         dirt = Block.from_string_blockstate("minecraft:dirt")
 
@@ -270,7 +270,9 @@ class BlockManagerTestCase(unittest.TestCase):
         initial_stone = Block.from_string_blockstate("minecraft:stone")
         initial_granite = Block.from_string_blockstate("minecraft:granite")
 
-        initial_dirt_water = initial_dirt + Block.from_string_blockstate("minecraft:water")
+        initial_dirt_water = initial_dirt + Block.from_string_blockstate(
+            "minecraft:water"
+        )
 
         # Partially populate the manager
         self.manager.get_add_block(initial_dirt)

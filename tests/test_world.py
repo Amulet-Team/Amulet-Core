@@ -43,11 +43,11 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 3, "overworld").blockstate,
             )
             self.assertEqual(
-                'universal_minecraft:granite[polished=false]',
+                "universal_minecraft:granite[polished=false]",
                 self.world.get_block(1, 70, 5, "overworld").blockstate,
             )
             self.assertEqual(
-                'universal_minecraft:granite[polished=true]',
+                "universal_minecraft:granite[polished=true]",
                 self.world.get_block(1, 70, 7, "overworld").blockstate,
             )
 
@@ -77,7 +77,7 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 3, "overworld").blockstate,
             )  # Sanity check
             self.assertEqual(
-                'universal_minecraft:granite[polished=false]',
+                "universal_minecraft:granite[polished=false]",
                 self.world.get_block(1, 70, 5, "overworld").blockstate,
             )
 
@@ -91,7 +91,7 @@ class WorldTestBaseCases:
             self.world.undo()
 
             self.assertEqual(
-                'universal_minecraft:granite[polished=false]',
+                "universal_minecraft:granite[polished=false]",
                 self.world.get_block(1, 70, 5, "overworld").blockstate,
             )
 
@@ -105,7 +105,7 @@ class WorldTestBaseCases:
             self.world.undo()
 
             self.assertEqual(
-                'universal_minecraft:granite[polished=false]',
+                "universal_minecraft:granite[polished=false]",
                 self.world.get_block(1, 70, 5, "overworld").blockstate,
             )
 
@@ -119,13 +119,16 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 3, "overworld").blockstate,
             )
             self.assertEqual(
-                'universal_minecraft:granite[polished=false]',
+                "universal_minecraft:granite[polished=false]",
                 self.world.get_block(1, 70, 5, "overworld").blockstate,
             )
             # End sanity check
 
             self.world.run_operation(
-                fill, "overworld", box, Block.from_string_blockstate("universal_minecraft:stone")
+                fill,
+                "overworld",
+                box,
+                Block.from_string_blockstate("universal_minecraft:stone"),
             )
 
             for x, y, z in box:
@@ -143,7 +146,7 @@ class WorldTestBaseCases:
             )
 
             self.assertEqual(
-                'universal_minecraft:granite[polished=false]',
+                "universal_minecraft:granite[polished=false]",
                 self.world.get_block(1, 70, 5, "overworld").blockstate,
             )
 
@@ -165,7 +168,7 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 3, "overworld").blockstate,
             )
             self.assertEqual(
-                'universal_minecraft:granite[polished=false]',
+                "universal_minecraft:granite[polished=false]",
                 self.world.get_block(1, 70, 5, "overworld").blockstate,
             )
 
@@ -201,7 +204,7 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 3, "overworld").blockstate,
             )
             self.assertEqual(
-                'universal_minecraft:granite[polished=false]',
+                "universal_minecraft:granite[polished=false]",
                 self.world.get_block(1, 70, 5, "overworld").blockstate,
             )
 
@@ -250,7 +253,7 @@ class WorldTestBaseCases:
             )
 
             self.assertEqual(
-                'universal_minecraft:granite[polished=false]',
+                "universal_minecraft:granite[polished=false]",
                 self.world.get_block(1, 70, 3, "overworld").blockstate,
             )
 
@@ -277,7 +280,7 @@ class WorldTestBaseCases:
             self.world.redo()
 
             self.assertEqual(
-                'universal_minecraft:granite[polished=false]',
+                "universal_minecraft:granite[polished=false]",
                 self.world.get_block(1, 70, 3, "overworld").blockstate,
             )
 
@@ -297,7 +300,7 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 3, "overworld").blockstate,
             )
             self.assertEqual(
-                'universal_minecraft:granite[polished=false]',
+                "universal_minecraft:granite[polished=false]",
                 self.world.get_block(1, 70, 5, "overworld").blockstate,
             )
 
@@ -318,7 +321,7 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 3, "overworld").blockstate,
             )
             self.assertEqual(
-                'universal_minecraft:granite[polished=false]',
+                "universal_minecraft:granite[polished=false]",
                 self.world.get_block(1, 70, 5, "overworld").blockstate,
             )
 
