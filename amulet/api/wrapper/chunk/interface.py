@@ -32,6 +32,7 @@ class EntityCoordType(Enum):
     Pos_list_float = 1
     Pos_list_double = 2
     Pos_list_int = 3
+    Pos_array_int = 4
 
 
 PosTypeMap = {
@@ -161,9 +162,22 @@ class Interface:
             pos = nbt.pop("Pos")
             pos: amulet_nbt.TAG_List
 
-            if len(pos) != 3 or PosTypeMap.get(pos.list_data_type) != coord_type:
+            if (
+                not isinstance(pos, amulet_nbt.TAG_List)
+                or len(pos) != 3
+                or PosTypeMap.get(pos.list_data_type) != coord_type
+            ):
                 return
             x, y, z = [c.value for c in pos]
+        elif coord_type == EntityCoordType.Pos_array_int:
+            if "Pos" not in nbt:
+                return
+            pos = nbt.pop("Pos")
+            pos: amulet_nbt.TAG_Int_Array
+
+            if not isinstance(pos, amulet_nbt.TAG_Int_Array) or len(pos) != 3:
+                return
+            x, y, z = pos
         elif coord_type == EntityCoordType.xyz_int:
             if not all(
                 c in nbt and isinstance(nbt[c], amulet_nbt.TAG_Int)
@@ -255,6 +269,10 @@ class Interface:
                     amulet_nbt.TAG_Int(int(entity.y)),
                     amulet_nbt.TAG_Int(int(entity.z)),
                 ]
+            )
+        elif coord_type == EntityCoordType.Pos_array_int:
+            nbt["Pos"] = amulet_nbt.TAG_Int_Array(
+                [int(entity.x), int(entity.y), int(entity.z)]
             )
         elif coord_type == EntityCoordType.xyz_int:
             nbt["x"] = amulet_nbt.TAG_Int(int(entity.x))
