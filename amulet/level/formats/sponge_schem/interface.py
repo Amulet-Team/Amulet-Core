@@ -26,7 +26,7 @@ class SpongeSchemInterface(Interface):
     def decode(
         self, cx: int, cz: int, section: SpongeSchemChunk
     ) -> Tuple["Chunk", AnyNDArray]:
-        palette = numpy.empty(len(section.palette) + 1, dtype=numpy.object)
+        palette = numpy.empty(len(section.palette) + 1, dtype=object)
         palette[0] = Block(namespace="minecraft", base_name="air")
         palette[1:] = section.palette[:]
 

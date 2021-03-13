@@ -28,7 +28,7 @@ class MCStructureInterface(Interface):
     def decode(
         self, cx: int, cz: int, section: MCStructureChunk
     ) -> Tuple["Chunk", AnyNDArray]:
-        palette = numpy.empty(len(section.palette) + 1, dtype=numpy.object)
+        palette = numpy.empty(len(section.palette) + 1, dtype=object)
         palette[0] = (
             (
                 17563649,

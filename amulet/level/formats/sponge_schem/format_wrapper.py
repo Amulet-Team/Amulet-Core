@@ -230,7 +230,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper):
                                     amulet_nbt.TAG_Int(z),
                                 ]
                             )
-                            cx, cz = numpy.floor([x, z]).astype(numpy.int) >> 4
+                            cx, cz = numpy.floor([x, z]).astype(int) >> 4
                             if (cx, cz) in self._chunks and (x, y, z) in self._chunks[
                                 (cx, cz)
                             ][0]:
@@ -307,7 +307,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper):
                     "Writing to Sponge Schematic files in pre-1.13 format is not currently supported."
                 )
             else:
-                arr = numpy.empty(1, dtype=numpy.object)
+                arr = numpy.empty(1, dtype=object)
                 arr[0] = Block("minecraft", "air")
                 palette.append((arr))
 

@@ -30,7 +30,7 @@ class SchematicInterface(Interface):
             (section.blocks << 4) + (section.data & 0xF), return_inverse=True
         )
         blocks = blocks.reshape(section.blocks.shape)
-        palette = numpy.empty(len(block_palette) + 1, dtype=numpy.object)
+        palette = numpy.empty(len(block_palette) + 1, dtype=object)
         palette[0] = (0, 0)
         for index, block_num in enumerate(block_palette):
             palette[index + 1] = (block_num >> 4, block_num & 0xF)

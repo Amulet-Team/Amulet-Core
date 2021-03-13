@@ -139,7 +139,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
                         entity["Pos"][1].value,
                         entity["Pos"][2].value,
                     )
-                    cx, cz = numpy.floor([x, z]).astype(numpy.int) >> 4
+                    cx, cz = numpy.floor([x, z]).astype(int) >> 4
                     if (cx, cz) in self._chunks and (x, y, z) in self._chunks[(cx, cz)][
                         0
                     ]:
@@ -213,7 +213,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
                 "Writing to mcstructre files in pre-1.13 format is not currently supported."
             )
         else:
-            arr = numpy.empty(1, dtype=numpy.object)
+            arr = numpy.empty(1, dtype=object)
             arr[0] = [
                 amulet_nbt.TAG_Compound(
                     {

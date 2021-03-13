@@ -41,7 +41,7 @@ class SelectionBox:
     )
 
     def __init__(self, point_1: BlockCoordinatesAny, point_2: BlockCoordinatesAny):
-        box = numpy.array([point_1, point_2]).round().astype(numpy.int)
+        box = numpy.array([point_1, point_2]).round().astype(int)
         p1, p2 = box.tolist()
         self._point_1 = tuple(p1)
         self._point_2 = tuple(p2)

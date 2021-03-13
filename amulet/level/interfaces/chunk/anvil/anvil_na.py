@@ -95,7 +95,7 @@ class AnvilNAInterface(BaseAnvilInterface):
             for cy in blocks:
                 blocks[cy] = lut[blocks[cy]]
         else:
-            final_palette = numpy.array([], dtype=numpy.object)
+            final_palette = numpy.array([], dtype=object)
         return blocks, final_palette
 
     def _encode_blocks(
