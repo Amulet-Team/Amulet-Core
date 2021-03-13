@@ -206,9 +206,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
 
         entities = []
         block_entities = []
-        blocks = numpy.zeros(
-            selection.shape, dtype=numpy.uint32
-        )  # only 12 bits are actually used at most
+        blocks = numpy.zeros(selection.shape, dtype=numpy.uint32)
         palette: List[AnyNDArray] = []
         if self.version < (1, 13, 0):
             raise Exception(

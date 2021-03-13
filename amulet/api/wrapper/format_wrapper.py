@@ -42,6 +42,9 @@ class FormatWrapper:
     The FormatWrapper class holds the common methods shared by the sub-classes.
     """
 
+    _platform: PlatformType
+    _version: VersionNumberAny
+
     def __init__(self, path: str):
         if type(self) is FormatWrapper:
             raise Exception(
@@ -51,8 +54,8 @@ class FormatWrapper:
         self._is_open = False
         self._has_lock = False
         self._translation_manager = None
-        self._platform: Optional[PlatformType] = DefaultPlatform
-        self._version: Optional[VersionNumberAny] = DefaultVersion
+        self._platform: PlatformType = DefaultPlatform
+        self._version: VersionNumberAny = DefaultVersion
         self._selection = SelectionGroup(
             [
                 SelectionBox(
