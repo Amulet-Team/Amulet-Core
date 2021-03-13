@@ -133,7 +133,7 @@ class BaseBedrockTranslator(Translator):
                 if isinstance(output_object, Block):
                     if not output_object.namespace.startswith("universal"):
                         log.debug(
-                            f"Error translating {block.blockstate} to universal. Got {output_object.blockstate}"
+                            f"Error translating {block.full_blockstate} to universal. Got {output_object.full_blockstate}"
                         )
                     if final_block is None:
                         final_block = output_object
@@ -214,7 +214,7 @@ class BaseBedrockTranslator(Translator):
                 if isinstance(output_object, Block):
                     if __debug__ and output_object.namespace.startswith("universal"):
                         log.debug(
-                            f"Error translating {input_object.blockstate} from universal. Got {output_object.blockstate}"
+                            f"Error translating {input_object.full_blockstate} from universal. Got {output_object.full_blockstate}"
                         )
                     if version.data_version > 0:
                         properties = output_object.properties
