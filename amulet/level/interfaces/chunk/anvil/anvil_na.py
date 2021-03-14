@@ -103,6 +103,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         blocks: "Blocks",
         palette: AnyNDArray,
     ):
+        added_sections = set()
         for cy in range(16):  # perhaps find a way to do this dynamically
             if cy in blocks:
                 block_sub_array = palette[
@@ -115,11 +116,18 @@ class AnvilNAInterface(BaseAnvilInterface):
                 block_sub_array = block_sub_array[:, 0]
                 if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
                     continue
+                added_sections.add(cy)
                 section = sections.setdefault(cy, nbt.TAG_Compound())
                 section["Blocks"] = nbt.TAG_Byte_Array(block_sub_array.astype("uint8"))
                 section["Data"] = nbt.TAG_Byte_Array(
                     world_utils.to_nibble_array(data_sub_array)
                 )
+        # In 1.12.2 and before if the Blocks key does not exist but the sub-chunk TAG_Compound does
+        # exist the game will error and recreate the chunk. All sub-chunks that do not contain data
+        # must be deleted.
+        for cy in list(sections):
+            if cy not in added_sections:
+                del sections[cy]
 
 
 export = AnvilNAInterface
