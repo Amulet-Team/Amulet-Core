@@ -430,8 +430,13 @@ class BaseLevel:
     def save_iter(
         self, wrapper: "FormatWrapper" = None
     ) -> Generator[Tuple[int, int], None, None]:
-        """Save the level using the given wrapper.
-        Leave as None to save back to the input wrapper."""
+        """Save the level data back to the wrapper.
+
+        :param wrapper: If specified will save the data to this wrapper instead of self.level_wrapper
+        :return: A generator of the number of chunks completed and the total number of chunks
+        """
+        # TODO change the yield type to match OperationReturnType
+
         chunk_index = 0
 
         changed_chunks = list(self._chunks.changed_chunks())
