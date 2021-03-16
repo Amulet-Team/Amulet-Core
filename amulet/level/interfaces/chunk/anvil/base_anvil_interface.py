@@ -363,11 +363,13 @@ class BaseAnvilInterface(Interface):
                     if array.size == heightmap_length:
                         value = amulet_nbt.TAG_Long_Array(array)
                     else:
-                        log.error(f"Expected an array of length {heightmap_length} but got an array of length {array.size}")
+                        log.error(
+                            f"Expected an array of length {heightmap_length} but got an array of length {array.size}"
+                        )
                 if value is None:
-                     value = amulet_nbt.TAG_Long_Array(
-                         numpy.zeros(heightmap_length, dtype=">i8")
-                     )
+                    value = amulet_nbt.TAG_Long_Array(
+                        numpy.zeros(heightmap_length, dtype=">i8")
+                    )
                 heightmaps[heightmap] = value
             level["Heightmaps"] = heightmaps
 
