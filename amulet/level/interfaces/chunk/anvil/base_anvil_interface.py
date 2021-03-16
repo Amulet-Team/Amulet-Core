@@ -18,8 +18,8 @@ from amulet_nbt import (
 )
 
 import amulet
+from amulet import log
 from amulet.api.chunk import Chunk
-from amulet.api.block import Block
 from amulet.api.wrapper import Interface
 from amulet.level import loader
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray
@@ -355,18 +355,20 @@ class BaseAnvilInterface(Interface):
                 36 if max_world_version[1] < 2556 else 37
             )  # this value is probably actually much lower
             for heightmap in maps:
+                value: Optional[amulet_nbt.TAG_Long_Array] = None
                 if heightmap in heightmaps_temp:
                     array = encode_long_array(
                         heightmaps_temp[heightmap], max_world_version[1] < 2556, 9
                     )
-                    assert (
-                        array.size == heightmap_length
-                    ), f"Expected an array of length {heightmap_length} but got an array of length {array.size}"
-                    heightmaps[heightmap] = amulet_nbt.TAG_Long_Array(array)
-                else:
-                    heightmaps[heightmap] = amulet_nbt.TAG_Long_Array(
-                        numpy.zeros(heightmap_length, dtype=">i8")
-                    )
+                    if array.size == heightmap_length:
+                        value = amulet_nbt.TAG_Long_Array(array)
+                    else:
+                        log.error(f"Expected an array of length {heightmap_length} but got an array of length {array.size}")
+                if value is None:
+                     value = amulet_nbt.TAG_Long_Array(
+                         numpy.zeros(heightmap_length, dtype=">i8")
+                     )
+                heightmaps[heightmap] = value
             level["Heightmaps"] = heightmaps
 
         if "java_sections" in misc and type(misc["java_sections"]) is dict:
