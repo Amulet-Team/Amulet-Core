@@ -504,6 +504,12 @@ class BaseLevel:
         """Unload all data that has not been marked as changed."""
         self._chunks.unload_unchanged()
 
+    @property
+    def chunks(self) -> ChunkManager:
+        """The object where chunk data is stored.
+        There are methods in BaseLevel (this class) that can be used to modify chunk data."""
+        return self._chunks
+
     def all_chunk_coords(self, dimension: Dimension) -> Set[Tuple[int, int]]:
         """The coordinates of every chunk in this dimension of the level.
         This is the combination of chunks saved to the level and chunks yet to be saved."""
