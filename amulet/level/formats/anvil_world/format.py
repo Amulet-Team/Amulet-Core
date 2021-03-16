@@ -248,6 +248,19 @@ class AnvilFormat(WorldFormatWrapper):
                 return False
         return False
 
+    @staticmethod
+    def pre_save_operation(level: "BaseLevel") -> Generator[float, None, bool]:
+        """Logic to run before saving. Eg recalculating height maps or lighting.
+        Must be a generator that yields a number and returns a bool.
+        The yielded number is the progress from 0 to 1.
+        The returned bool is if changes have been made.
+        :param level: The level to apply modifications to.
+        :return: Have any modifications been made.
+        """
+        if level.level_wrapper.version < 1466:
+        yield 1
+        return False
+
     def _save(self):
         """Save the data back to the disk database"""
         os.makedirs(self.path, exist_ok=True)

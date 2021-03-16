@@ -4,7 +4,6 @@ from typing import Tuple, Any, Generator, Dict, List, Optional, TYPE_CHECKING
 import copy
 import numpy
 import os
-import shutil
 
 import PyMCTranslate
 
@@ -30,6 +29,7 @@ if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
     from amulet.api.chunk import Chunk
     from amulet.api.wrapper.chunk.translator import Translator
+    from amulet.api.level import BaseLevel
 
 
 DefaultPlatform = "Unknown Platform"
@@ -287,6 +287,18 @@ class FormatWrapper:
             raise ObjectReadWriteError(
                 f"The lock on the object {self} has been lost. It was probably opened somewhere else."
             )
+
+    @staticmethod
+    def pre_save_operation(level: "BaseLevel") -> Generator[float, None, bool]:
+        """Logic to run before saving. Eg recalculating height maps or lighting.
+        Must be a generator that yields a number and returns a bool.
+        The yielded number is the progress from 0 to 1.
+        The returned bool is if changes have been made.
+        :param level: The level to apply modifications to.
+        :return: Have any modifications been made.
+        """
+        yield 1
+        return False
 
     def save(self):
         """Save the data back to the disk database"""

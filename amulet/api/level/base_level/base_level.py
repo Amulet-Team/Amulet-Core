@@ -415,6 +415,13 @@ class BaseLevel:
                 continue
             yield chunk, src_slices, src_box, (dst_cx, dst_cz), dst_slices, dst_box
 
+    def pre_save_operation(self) -> Generator[float, None, bool]:
+        """Logic to run before saving. Eg recalculating height maps or lighting.
+        Is a generator yielding progress from 0 to 1 and returning a bool saying if changes have been made.
+        :return: Have any modifications been made.
+        """
+        return self.level_wrapper.pre_save_operation(self)
+
     def save(
         self,
         wrapper: "FormatWrapper" = None,
