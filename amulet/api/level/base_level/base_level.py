@@ -389,9 +389,7 @@ class BaseLevel:
         Is a generator yielding progress from 0 to 1 and returning a bool saying if changes have been made.
         :return: Have any modifications been made.
         """
-        return self.level_wrapper.pre_save_operation(
-            self, list(self._chunks.changed_chunks())
-        )
+        return self.level_wrapper.pre_save_operation(self)
 
     def save(
         self,
