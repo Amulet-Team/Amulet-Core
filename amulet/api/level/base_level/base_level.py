@@ -139,37 +139,6 @@ class BaseLevel:
     def dimensions(self) -> Tuple[Dimension, ...]:
         return tuple(self.level_wrapper.dimensions)
 
-    def all_chunk_coords(self, dimension: Dimension) -> Set[Tuple[int, int]]:
-        """The coordinates of every chunk in this dimension of the level.
-        This is the combination of chunks saved to the level and chunks yet to be saved."""
-        return self._chunks.all_chunk_coords(dimension)
-
-    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
-        """Does the chunk exist. This is a quick way to check if the chunk exists without loading it.
-
-        :param cx: The x coordinate of the chunk.
-        :param cz: The z coordinate of the chunk.
-        :param dimension: The dimension to load the chunk from.
-        :return: True if the chunk exists. Calling get_chunk on this chunk may still throw ChunkLoadError
-        """
-        return self._chunks.has_chunk(dimension, cx, cz)
-
-    def get_chunk(self, cx: int, cz: int, dimension: Dimension) -> Chunk:
-        """
-        Gets the chunk data of the specified chunk coordinates.
-        If the chunk does not exist ChunkDoesNotExist is raised.
-        If some other error occurs then ChunkLoadError is raised (this error will also catch ChunkDoesNotExist)
-
-        :param cx: The X coordinate of the desired chunk
-        :param cz: The Z coordinate of the desired chunk
-        :param dimension: The dimension to get the chunk from
-        :return: A Chunk object containing the data for the chunk
-        :raises:
-            ChunkDoesNotExist: If the chunk does not exist (was deleted or never created)
-            ChunkLoadError: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
-        """
-        return self._chunks.get_chunk(dimension, cx, cz)
-
     def get_block(self, x: int, y: int, z: int, dimension: Dimension) -> Block:
         """
         Gets the universal Block object at the specified coordinates
@@ -420,7 +389,9 @@ class BaseLevel:
         Is a generator yielding progress from 0 to 1 and returning a bool saying if changes have been made.
         :return: Have any modifications been made.
         """
-        return self.level_wrapper.pre_save_operation(self)
+        return self.level_wrapper.pre_save_operation(
+            self, list(self._chunks.changed_chunks())
+        )
 
     def save(
         self,
@@ -532,6 +503,37 @@ class BaseLevel:
     def unload_unchanged(self):
         """Unload all data that has not been marked as changed."""
         self._chunks.unload_unchanged()
+
+    def all_chunk_coords(self, dimension: Dimension) -> Set[Tuple[int, int]]:
+        """The coordinates of every chunk in this dimension of the level.
+        This is the combination of chunks saved to the level and chunks yet to be saved."""
+        return self._chunks.all_chunk_coords(dimension)
+
+    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
+        """Does the chunk exist. This is a quick way to check if the chunk exists without loading it.
+
+        :param cx: The x coordinate of the chunk.
+        :param cz: The z coordinate of the chunk.
+        :param dimension: The dimension to load the chunk from.
+        :return: True if the chunk exists. Calling get_chunk on this chunk may still throw ChunkLoadError
+        """
+        return self._chunks.has_chunk(dimension, cx, cz)
+
+    def get_chunk(self, cx: int, cz: int, dimension: Dimension) -> Chunk:
+        """
+        Gets the chunk data of the specified chunk coordinates.
+        If the chunk does not exist ChunkDoesNotExist is raised.
+        If some other error occurs then ChunkLoadError is raised (this error will also catch ChunkDoesNotExist)
+
+        :param cx: The X coordinate of the desired chunk
+        :param cz: The Z coordinate of the desired chunk
+        :param dimension: The dimension to get the chunk from
+        :return: A Chunk object containing the data for the chunk
+        :raises:
+            ChunkDoesNotExist: If the chunk does not exist (was deleted or never created)
+            ChunkLoadError: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
+        """
+        return self._chunks.get_chunk(dimension, cx, cz)
 
     def create_chunk(self, cx: int, cz: int, dimension: Dimension) -> Chunk:
         chunk = Chunk(cx, cz)
