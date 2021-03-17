@@ -40,12 +40,13 @@ class Anvil1444Interface(BaseAnvilInterface):
         self.features["status"] = "j13"
         self.features["inhabited_time"] = "long"
         self.features["biomes"] = "256BA"
-        self.features["height_map"] = "C5|36LA"
+        self.features["height_map"] = "256IA"
 
         self.features["blocks"] = "Sections|(BlockStates,Palette)"
         self.features["long_array_format"] = "compact"
         self.features["block_light"] = "Sections|2048BA"
         self.features["sky_light"] = "Sections|2048BA"
+        self.features["light_optional"] = "false"
 
         self.features["block_entities"] = "list"
         self.features["block_entity_format"] = "namespace-str-id"

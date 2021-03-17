@@ -31,6 +31,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         self.features["blocks"] = "Sections|(Blocks,Data,Add)"
         self.features["block_light"] = "Sections|2048BA"
         self.features["sky_light"] = "Sections|2048BA"
+        self.features["light_optional"] = "false"
 
         self.features["block_entities"] = "list"
         self.features["block_entity_format"] = "namespace-str-id"
