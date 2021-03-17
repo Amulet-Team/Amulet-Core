@@ -11,12 +11,18 @@ import amulet_nbt as nbt
 
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.utils.format_utils import check_all_exist, load_leveldat
-from amulet.api.errors import LevelDoesNotExist, ObjectWriteError
-from amulet.api.data_types import ChunkCoordinates, VersionNumberInt, PlatformType
+from amulet.api.errors import LevelDoesNotExist, ObjectWriteError, ChunkLoadError
+from amulet.api.data_types import (
+    ChunkCoordinates,
+    VersionNumberInt,
+    PlatformType,
+    DimensionCoordinates,
+)
 from .dimension import AnvilDimensionManager
 
 if TYPE_CHECKING:
     from amulet.api.data_types import Dimension
+    from amulet.api.level import BaseLevel
 
 InternalDimension = str
 
@@ -248,8 +254,7 @@ class AnvilFormat(WorldFormatWrapper):
                 return False
         return False
 
-    @staticmethod
-    def pre_save_operation(level: "BaseLevel") -> Generator[float, None, bool]:
+    def pre_save_operation(self, level: "BaseLevel") -> Generator[float, None, bool]:
         """Logic to run before saving. Eg recalculating height maps or lighting.
         Must be a generator that yields a number and returns a bool.
         The yielded number is the progress from 0 to 1.
@@ -257,9 +262,70 @@ class AnvilFormat(WorldFormatWrapper):
         :param level: The level to apply modifications to.
         :return: Have any modifications been made.
         """
-        if level.level_wrapper.version < 1466:
-        yield 1
-        return False
+        changed_chunks = list(level.chunks.changed_chunks())
+        height = self._calculate_height(level, changed_chunks)
+        try:
+            while True:
+                yield next(height) / 2
+        except StopIteration as e:
+            height_changed = e.value
+
+        light = self._calculate_light(level, changed_chunks)
+        try:
+            while True:
+                yield next(light) / 2
+        except StopIteration as e:
+            light_changed = e.value
+
+        return height_changed or light_changed
+
+    @staticmethod
+    def _calculate_height(
+        level: "BaseLevel", chunks: List[DimensionCoordinates]
+    ) -> Generator[float, None, bool]:
+        """Calculate the height values for chunks."""
+        chunk_count = len(chunks)
+        # it looks like the game recalculates the height value if not defined.
+        # Just delete the stored height values so that they do not get written back.
+        # tested as of 1.12.2. This may not be true for older versions.
+        changed = False
+        for i, (dimension, cx, cz) in enumerate(chunks):
+            try:
+                chunk = level.get_chunk(cx, cz, dimension)
+            except ChunkLoadError:
+                pass
+            else:
+                changed |= chunk.misc.pop("height_mapC", None) is not None
+                changed |= chunk.misc.pop("height_map256IA", None) is not None
+            yield i / chunk_count
+        return changed
+
+    @staticmethod
+    def _calculate_light(
+        level: "BaseLevel", chunks: List[DimensionCoordinates]
+    ) -> Generator[float, None, bool]:
+        """Calculate the height values for chunks."""
+        # this is needed for before 1.14
+        chunk_count = len(chunks)
+        changed = False
+        if (
+            level.level_wrapper.version < 1934
+        ):  # the version may be less than 1934 but is at least 1924
+            # calculate the light values
+            pass
+            #TODO
+        else:
+            # the game will recalculate the light levels
+            for i, (dimension, cx, cz) in enumerate(chunks):
+                try:
+                    chunk = level.get_chunk(cx, cz, dimension)
+                except ChunkLoadError:
+                    pass
+                else:
+                    changed |= chunk.misc.pop("block_light", None) is not None
+                    changed |= chunk.misc.pop("sky_light", None) is not None
+                yield i / chunk_count
+        return changed
 
     def _save(self):
         """Save the data back to the disk database"""
