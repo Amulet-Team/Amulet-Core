@@ -1,4 +1,3 @@
-# meta interface
 from __future__ import annotations
 
 from .anvil_1503 import (
