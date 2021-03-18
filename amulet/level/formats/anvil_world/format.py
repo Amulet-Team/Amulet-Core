@@ -295,8 +295,12 @@ class AnvilFormat(WorldFormatWrapper):
             except ChunkLoadError:
                 pass
             else:
-                changed |= chunk.misc.pop("height_mapC", None) is not None
-                changed |= chunk.misc.pop("height_map256IA", None) is not None
+                changed_ = False
+                changed_ |= chunk.misc.pop("height_mapC", None) is not None
+                changed_ |= chunk.misc.pop("height_map256IA", None) is not None
+                if changed_:
+                    changed = True
+                    chunk.changed = True
             yield i / chunk_count
         return changed
 
@@ -308,12 +312,11 @@ class AnvilFormat(WorldFormatWrapper):
         # this is needed for before 1.14
         chunk_count = len(chunks)
         changed = False
-        if (
-            level.level_wrapper.version < 1934
-        ):  # the version may be less than 1934 but is at least 1924
+        if level.level_wrapper.version < 1934:
+            # the version may be less than 1934 but is at least 1924
             # calculate the light values
             pass
-            #TODO
+            # TODO
         else:
             # the game will recalculate the light levels
             for i, (dimension, cx, cz) in enumerate(chunks):
@@ -322,8 +325,12 @@ class AnvilFormat(WorldFormatWrapper):
                 except ChunkLoadError:
                     pass
                 else:
-                    changed |= chunk.misc.pop("block_light", None) is not None
-                    changed |= chunk.misc.pop("sky_light", None) is not None
+                    changed_ = False
+                    changed_ |= chunk.misc.pop("block_light", None) is not None
+                    changed_ |= chunk.misc.pop("sky_light", None) is not None
+                    if changed_:
+                        changed = True
+                        chunk.changed = True
                 yield i / chunk_count
         return changed
 
