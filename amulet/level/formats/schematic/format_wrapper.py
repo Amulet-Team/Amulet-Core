@@ -53,7 +53,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
 
     def open_from(self, f: BinaryIO):
         schematic = amulet_nbt.load(f)
-        if any(key in schematic for key in ("Version", "Data Version", "BlockData")):
+        if "BlockData" in schematic:
             raise ObjectReadError("This file is not a legacy schematic file.")
         materials = schematic.get("Materials", amulet_nbt.TAG_String()).value
         if materials == "Alpha":
