@@ -288,7 +288,7 @@ class Translator:
                 if isinstance(output_object, Block):
                     if not output_object.namespace.startswith("universal"):
                         log.debug(
-                            f"Error translating {input_object.blockstate} to universal. Got {output_object.blockstate}"
+                            f"Error translating {input_object.full_blockstate} to universal. Got {output_object.full_blockstate}"
                         )
                     if final_block is None:
                         final_block = output_object

@@ -12,7 +12,7 @@ SubChunkCoordinates = Tuple[int, int, int]
 DimensionCoordinates = Tuple[Dimension, int, int]
 
 BlockCoordinates = Tuple[int, int, int]
-BlockCoordinatesNDArray = numpy.ndarray  # NDArray[(3, ), numpy.int]
+BlockCoordinatesNDArray = numpy.ndarray  # NDArray[(3, ), int]
 BlockCoordinatesAny = Union[BlockCoordinates, BlockCoordinatesNDArray]
 PointCoordinates = FloatTriplet
 PointCoordinatesNDArray = numpy.ndarray  # NDArray[(3, ), numpy.float]

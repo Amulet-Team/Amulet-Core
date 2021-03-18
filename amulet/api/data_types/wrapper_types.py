@@ -1,4 +1,4 @@
-from typing import Union, Callable, Tuple, Optional, TYPE_CHECKING, List, BinaryIO
+from typing import Union, Callable, Tuple, Optional, TYPE_CHECKING, List
 import numpy
 
 if TYPE_CHECKING:

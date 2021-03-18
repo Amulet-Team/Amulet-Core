@@ -15,6 +15,7 @@ from amulet.utils.world_utils import fast_unique, from_nibble_array, to_nibble_a
 from amulet.api.wrapper import Interface
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray
 from amulet.level import loader
+from amulet.api.wrapper import EntityIDType, EntityCoordType
 from .leveldb_chunk_versions import (
     chunk_to_game_version,
 )
@@ -34,11 +35,14 @@ class BaseLevelDBInterface(Interface):
             "finalised_state": ["int0-2"],
             "data_2d": ["height512|biome256", "unused_height512|biome256"],
             "block_entities": ["31list"],
-            "block_entity_format": ["namespace-str-id", "str-id"],
-            "block_entity_coord_format": ["xyz-int"],
+            "block_entity_format": [EntityIDType.namespace_str_id, EntityIDType.str_id],
+            "block_entity_coord_format": [EntityCoordType.xyz_int],
             "entities": ["32list"],
-            "entity_format": ["namespace-str-identifier", "int-id"],
-            "entity_coord_format": ["Pos-list-float"],
+            "entity_format": [
+                EntityIDType.namespace_str_identifier,
+                EntityIDType.int_id,
+            ],
+            "entity_coord_format": [EntityCoordType.Pos_list_float],
             "terrain": ["30array", "2farray", "2f1palette", "2fnpalette"],
         }
         self.features = {key: None for key in feature_options.keys()}

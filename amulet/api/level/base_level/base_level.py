@@ -297,7 +297,7 @@ class BaseLevel:
             selection = self.selection_bounds.intersection(selection)
         # the offset from self.selection to the destination location
         offset = numpy.subtract(
-            destination_origin, self.selection_bounds.min, dtype=numpy.int
+            destination_origin, self.selection_bounds.min, dtype=int
         )
         for (src_cx, src_cz), box in self.get_coord_box(
             dimension, selection, yield_missing_chunks=yield_missing_chunks

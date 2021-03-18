@@ -27,7 +27,9 @@ class JavaNumericalTranslator(Translator):
     ):
         """
         Unpacks an int array of block ids and block data values [[1, 0], [2, 0]] into a numpy array of Block objects.
-        :param version:
+        :param translation_manager:
+        :param version_identifier:
+        :param chunk:
         :param block_palette:
         :return:
         """

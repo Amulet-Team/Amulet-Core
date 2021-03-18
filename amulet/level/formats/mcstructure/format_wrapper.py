@@ -139,7 +139,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
                         entity["Pos"][1].value,
                         entity["Pos"][2].value,
                     )
-                    cx, cz = numpy.floor([x, z]).astype(numpy.int) >> 4
+                    cx, cz = numpy.floor([x, z]).astype(int) >> 4
                     if (cx, cz) in self._chunks and (x, y, z) in self._chunks[(cx, cz)][
                         0
                     ]:
@@ -206,16 +206,14 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
 
         entities = []
         block_entities = []
-        blocks = numpy.zeros(
-            selection.shape, dtype=numpy.uint32
-        )  # only 12 bits are actually used at most
+        blocks = numpy.zeros(selection.shape, dtype=numpy.uint32)
         palette: List[AnyNDArray] = []
         if self.version < (1, 13, 0):
             raise Exception(
                 "Writing to mcstructre files in pre-1.13 format is not currently supported."
             )
         else:
-            arr = numpy.empty(1, dtype=numpy.object)
+            arr = numpy.empty(1, dtype=object)
             arr[0] = [
                 amulet_nbt.TAG_Compound(
                     {
@@ -337,7 +335,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             chunk_palette,
             self.max_world_version,
             SelectionBox.create_chunk_box(chunk.cx, chunk.cz).intersection(
-                self._selection
+                self._selection.to_box()
             ),
         )
 
