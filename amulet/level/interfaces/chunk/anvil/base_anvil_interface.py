@@ -18,6 +18,7 @@ from amulet_nbt import (
 )
 
 import amulet
+from amulet import log
 from amulet.api.chunk import Chunk
 from amulet.api.wrapper import Interface
 from amulet.level import loader
@@ -46,7 +47,14 @@ class BaseAnvilInterface(Interface):
             "V": ["byte"],  # int
             "inhabited_time": ["long"],  # int
             "biomes": ["256BA", "256IA", "1024IA"],  # Biomes
-            "height_map": ["256IA", "C|36LA|V1", "C|36LA|V2", "C|36LA|V3", "C|36LA|V4"],
+            "height_map": [
+                "256IARequired",  # A 256 element Int Array in HeightMap
+                "256IA",  # A 256 element Int Array in HeightMap
+                "C|V1",  # A Compound of Long Arrays with these keys "LIQUID", "SOILD", "LIGHT", "RAIN"
+                "C|V2",  # A Compound of Long Arrays with these keys "WORLD_SURFACE_WG", "OCEAN_FLOOR_WG", "MOTION_BLOCKING", "MOTION_BLOCKING_NO_LEAVES", "OCEAN_FLOOR", "LIGHT_BLOCKING"
+                "C|V3",  # A Compound of Long Arrays with these keys "WORLD_SURFACE_WG", "OCEAN_FLOOR_WG", "MOTION_BLOCKING", "MOTION_BLOCKING_NO_LEAVES", "OCEAN_FLOOR", "LIGHT_BLOCKING", "WORLD_SURFACE"
+                "C|V4",  # A Compound of Long Arrays with these keys "WORLD_SURFACE_WG", "OCEAN_FLOOR_WG", "MOTION_BLOCKING", "MOTION_BLOCKING_NO_LEAVES", "OCEAN_FLOOR", "WORLD_SURFACE"
+            ],
             # 'carving_masks': ['C|?BA'],
             "blocks": ["Sections|(Blocks,Data,Add)", "Sections|(BlockStates,Palette)"],
             "long_array_format": [
@@ -55,6 +63,7 @@ class BaseAnvilInterface(Interface):
             ],  # before the long array was just a bit stream but it is now separete longs. The upper bits are unused in some cases.
             "block_light": ["Sections|2048BA"],
             "sky_light": ["Sections|2048BA"],
+            "light_optional": ["false", "true"],
             "block_entities": ["list"],
             "block_entity_format": [EntityIDType.namespace_str_id],
             "block_entity_coord_format": [EntityCoordType.xyz_int],
@@ -168,22 +177,19 @@ class BaseAnvilInterface(Interface):
                             )
                         }
 
-        if self.features["height_map"] == "256IA":
-            height: numpy.ndarray = self.get_obj(
-                level, "HeightMap", TAG_Int_Array
-            ).value
-            if height is None or height.size != 256:
-                height = numpy.zeros(256, dtype=numpy.int32)
-            misc["height_map256IA"] = height
+        if self.features["height_map"] in ["256IA", "256IARequired"]:
+            height = self.get_obj(level, "HeightMap", TAG_Int_Array).value
+            if isinstance(height, numpy.ndarray) and height.size == 256:
+                misc["height_map256IA"] = height.reshape((16, 16))
         elif self.features["height_map"] in [
-            "C|36LA|V1",
-            "C|36LA|V2",
-            "C|36LA|V3",
-            "C|36LA|V4",
+            "C|V1",
+            "C|V2",
+            "C|V3",
+            "C|V4",
         ]:
             heights = self.get_obj(level, "Heightmaps", TAG_Compound)
             misc["height_mapC"] = {
-                key: decode_long_array(value, 256, len(value) == 36)
+                key: decode_long_array(value, 256, len(value) == 36).reshape((16, 16))
                 for key, value in heights.items()
                 if type(value) is TAG_Long_Array
             }
@@ -204,17 +210,24 @@ class BaseAnvilInterface(Interface):
         else:
             raise Exception(f'Unsupported block format {self.features["blocks"]}')
 
-        if self.features["block_light"] == "Sections|2048BA":
-            misc["block_light"] = bl = {}
-            for cy, section in sections.items():
-                if self.check_type(section, "BlockLight", TAG_Byte_Array):
-                    bl[cy] = section.pop("BlockLight")
+        def unpack_light(feature_key: str, section_key: str):
+            if self.features[feature_key] == "Sections|2048BA":
+                misc[feature_key] = light_container = {}
+                for cy, section in sections.items():
+                    if self.check_type(section, section_key, TAG_Byte_Array):
+                        light: numpy.ndarray = section.pop(section_key).value
+                        if light.size == 2048:
+                            # TODO: check if this needs transposing or if the values are the other way around
+                            light_container[cy] = (
+                                (
+                                    light.reshape(-1, 1)
+                                    & numpy.array([0xF, 0xF0], dtype=numpy.uint8)
+                                )
+                                >> numpy.array([0, 4], dtype=numpy.uint8)
+                            ).reshape((16, 16, 16))
 
-        if self.features["sky_light"] == "Sections|2048BA":
-            misc["sky_light"] = sl = {}
-            for cy, section in sections.items():
-                if self.check_type(section, "SkyLight", TAG_Byte_Array):
-                    sl[cy] = section.pop("SkyLight")
+        unpack_light("block_light", "BlockLight")
+        unpack_light("sky_light", "SkyLight")
 
         if self.features["entities"] == "list":
             ents = self._decode_entities(self.get_obj(level, "Entities", TAG_List))
@@ -321,15 +334,23 @@ class BaseAnvilInterface(Interface):
                     ).ravel(),  # YZX -> XYZ
                 )
 
-        if self.features["height_map"] == "256IA":
-            level["HeightMap"] = amulet_nbt.TAG_Int_Array(
-                misc.get("height_map256IA", numpy.zeros(256, dtype=numpy.uint32))
-            )
+        if self.features["height_map"] in ["256IA", "256IARequired"]:
+            height = misc.get("height_map256IA", None)
+            if (
+                isinstance(height, numpy.ndarray)
+                and numpy.issubdtype(height.dtype, numpy.integer)
+                and height.shape == (16, 16)
+            ):
+                level["HeightMap"] = amulet_nbt.TAG_Int_Array(height.ravel())
+            elif self.features["height_map"] == "256IARequired":
+                level["HeightMap"] = amulet_nbt.TAG_Int_Array(
+                    numpy.zeros(256, dtype=numpy.uint32)
+                )
         elif self.features["height_map"] in {
-            "C|36LA|V1",
-            "C|36LA|V2",
-            "C|36LA|V3",
-            "C|36LA|V4",
+            "C|V1",
+            "C|V2",
+            "C|V3",
+            "C|V4",
         }:
             maps = [
                 "WORLD_SURFACE_WG",
@@ -338,14 +359,14 @@ class BaseAnvilInterface(Interface):
                 "MOTION_BLOCKING_NO_LEAVES",
                 "OCEAN_FLOOR",
             ]
-            if self.features["height_map"] == "C|36LA|V1":  # 1466
+            if self.features["height_map"] == "C|V1":  # 1466
                 maps = ("LIQUID", "SOILD", "LIGHT", "RAIN")
-            elif self.features["height_map"] == "C|36LA|V2":  # 1484
+            elif self.features["height_map"] == "C|V2":  # 1484
                 maps.append("LIGHT_BLOCKING")
-            elif self.features["height_map"] == "C|36LA|V3":  # 1503
+            elif self.features["height_map"] == "C|V3":  # 1503
                 maps.append("LIGHT_BLOCKING")
                 maps.append("WORLD_SURFACE")
-            elif self.features["height_map"] == "C|36LA|V4":  # 1908
+            elif self.features["height_map"] == "C|V4":  # 1908
                 maps.append("WORLD_SURFACE")
             else:
                 raise Exception
@@ -355,18 +376,23 @@ class BaseAnvilInterface(Interface):
                 36 if max_world_version[1] < 2556 else 37
             )  # this value is probably actually much lower
             for heightmap in maps:
-                if heightmap in heightmaps_temp:
+                value: Optional[amulet_nbt.TAG_Long_Array] = None
+                if heightmap in heightmaps_temp and isinstance(
+                    heightmaps_temp[heightmap], numpy.ndarray
+                ):
                     array = encode_long_array(
-                        heightmaps_temp[heightmap], max_world_version[1] < 2556, 9
+                        heightmaps_temp[heightmap].ravel(),
+                        max_world_version[1] < 2556,
+                        9,
                     )
-                    assert (
-                        array.size == heightmap_length
-                    ), f"Expected an array of length {heightmap_length} but got an array of length {array.size}"
-                    heightmaps[heightmap] = amulet_nbt.TAG_Long_Array(array)
-                else:
-                    heightmaps[heightmap] = amulet_nbt.TAG_Long_Array(
-                        numpy.zeros(heightmap_length, dtype=">i8")
-                    )
+                    if array.size == heightmap_length:
+                        value = amulet_nbt.TAG_Long_Array(array)
+                    else:
+                        log.error(
+                            f"Expected an array of length {heightmap_length} but got an array of length {array.size}"
+                        )
+                if value is not None:
+                    heightmaps[heightmap] = value
             level["Heightmaps"] = heightmaps
 
         if "java_sections" in misc and type(misc["java_sections"]) is dict:
@@ -387,26 +413,29 @@ class BaseAnvilInterface(Interface):
         else:
             raise Exception(f'Unsupported block format {self.features["blocks"]}')
 
-        if self.features["block_light"] in ["Sections|2048BA"] or self.features[
-            "sky_light"
-        ] in ["Sections|2048BA"]:
-            for cy, section in sections.items():
-                if self.features["block_light"] == "Sections|2048BA":
-                    block_light = misc.get("block_light", {})
-                    if cy in block_light:
-                        section["BlockLight"] = block_light[cy]
-                    else:
-                        section["BlockLight"] = amulet_nbt.TAG_Byte_Array(
+        def pack_light(feature_key: str, section_key: str):
+            if self.features[feature_key] == "Sections|2048BA":
+                light_container = misc.get(feature_key, {})
+                if not isinstance(light_container, dict):
+                    light_container = {}
+                for cy, section in sections.items():
+                    light = light_container.get(cy, None)
+                    if (
+                        isinstance(light, numpy.ndarray)
+                        and numpy.issubdtype(light.dtype, numpy.integer)
+                        and light.shape == (16, 16, 16)
+                    ):
+                        light = light.ravel() % 16
+                        section[section_key] = amulet_nbt.TAG_Byte_Array(
+                            light[::2] + (light[1::2] << 4)
+                        )
+                    elif self.features["light_optional"] == "false":
+                        section[section_key] = amulet_nbt.TAG_Byte_Array(
                             numpy.full(2048, 255, dtype=numpy.uint8)
                         )
-                if self.features["sky_light"] == "Sections|2048BA":
-                    sky_light = misc.get("sky_light", {})
-                    if cy in sky_light:
-                        section["SkyLight"] = sky_light[cy]
-                    else:
-                        section["SkyLight"] = amulet_nbt.TAG_Byte_Array(
-                            numpy.full(2048, 255, dtype=numpy.uint8)
-                        )
+
+        pack_light("block_light", "BlockLight")
+        pack_light("sky_light", "SkyLight")
 
         sections_list = []
         for cy, section in sections.items():

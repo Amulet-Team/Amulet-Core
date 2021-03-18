@@ -1,4 +1,3 @@
-# meta translator
 from __future__ import annotations
 
 from typing import Tuple, Union, TYPE_CHECKING

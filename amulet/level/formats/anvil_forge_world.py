@@ -1,4 +1,3 @@
-# meta format
 from __future__ import annotations
 
 from .anvil_world import AnvilFormat

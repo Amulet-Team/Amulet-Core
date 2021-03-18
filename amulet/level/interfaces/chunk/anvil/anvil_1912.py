@@ -1,4 +1,3 @@
-# meta interface
 from __future__ import annotations
 
 from .anvil_1908 import (
@@ -13,7 +12,7 @@ class Anvil1912Interface(Anvil1908Interface):
 
     @staticmethod
     def minor_is_valid(key: int):
-        return 1912 <= key < 2203
+        return 1912 <= key < 1934
 
 
 export = Anvil1912Interface

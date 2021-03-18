@@ -1,14 +1,13 @@
-# meta interface
 from __future__ import annotations
 
-from .anvil_1912 import (
-    Anvil1912Interface,
+from .anvil_1934 import (
+    Anvil1934Interface,
 )
 
 
-class Anvil2203Interface(Anvil1912Interface):
+class Anvil2203Interface(Anvil1934Interface):
     def __init__(self):
-        Anvil1912Interface.__init__(self)
+        Anvil1934Interface.__init__(self)
         self.features["biomes"] = "1024IA"  # optional
 
     @staticmethod
