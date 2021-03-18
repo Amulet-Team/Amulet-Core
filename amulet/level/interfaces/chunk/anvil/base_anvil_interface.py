@@ -219,11 +219,12 @@ class BaseAnvilInterface(Interface):
                         if light.size == 2048:
                             # TODO: check if this needs transposing or if the values are the other way around
                             light_container[cy] = (
-                                light.reshape(-1, 1)
-                                & numpy.array([0xF, 0xF0], dtype=numpy.uint8)
-                            ) >> numpy.array([0, 4], dtype=numpy.uint8).reshape(
-                                (16, 16, 16)
-                            )
+                                (
+                                    light.reshape(-1, 1)
+                                    & numpy.array([0xF, 0xF0], dtype=numpy.uint8)
+                                )
+                                >> numpy.array([0, 4], dtype=numpy.uint8)
+                            ).reshape((16, 16, 16))
 
         unpack_light("block_light", "BlockLight")
         unpack_light("sky_light", "SkyLight")
