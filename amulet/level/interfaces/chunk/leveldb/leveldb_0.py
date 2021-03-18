@@ -1,6 +1,7 @@
 # meta interface
 from __future__ import annotations
 
+from amulet.api.wrapper import EntityIDType, EntityCoordType
 from .base_leveldb_interface import (
     BaseLevelDBInterface,
 )
@@ -16,12 +17,12 @@ class LevelDB0Interface(BaseLevelDBInterface):
         self.features["data_2d"] = "unused_height512|biome256"
 
         self.features["block_entities"] = "31list"
-        self.features["block_entity_format"] = "str-id"
-        self.features["block_entity_coord_format"] = "xyz-int"
+        self.features["block_entity_format"] = EntityIDType.str_id
+        self.features["block_entity_coord_format"] = EntityCoordType.xyz_int
 
         self.features["entities"] = "32list"
-        self.features["entity_format"] = "int-id"
-        self.features["entity_coord_format"] = "Pos-list-float"
+        self.features["entity_format"] = EntityIDType.int_id
+        self.features["entity_coord_format"] = EntityCoordType.Pos_list_float
 
         self.features["terrain"] = "30array"
 

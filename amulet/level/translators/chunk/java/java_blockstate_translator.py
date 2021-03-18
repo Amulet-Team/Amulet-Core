@@ -6,7 +6,7 @@ import amulet_nbt
 
 from amulet.api.chunk import Chunk
 from amulet.api.wrapper import Translator
-from amulet.api.block import Block, blockstate_to_block
+from amulet.api.block import Block
 from amulet.api.registry import BlockManager
 from amulet.api.data_types import (
     VersionIdentifierType,
@@ -17,7 +17,7 @@ from amulet.api.data_types import (
 if TYPE_CHECKING:
     from PyMCTranslate import Version, TranslationManager
 
-water = blockstate_to_block('minecraft:water[level="0"]')
+water = Block.from_string_blockstate("minecraft:water[level=0]")
 
 
 class JavaBlockstateTranslator(Translator):

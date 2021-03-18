@@ -271,7 +271,7 @@ class PartialArrayTestCase(unittest.TestCase):
 
         self.assertTrue(numpy.array_equal(array_slice, bounded_partial_array))
 
-        bool_array = numpy.full(bounded_partial_array.shape, True, numpy.bool)
+        bool_array = numpy.full(bounded_partial_array.shape, True, bool)
         self.assertTrue(
             numpy.array_equal(
                 array_slice[bool_array], bounded_partial_array[bool_array]

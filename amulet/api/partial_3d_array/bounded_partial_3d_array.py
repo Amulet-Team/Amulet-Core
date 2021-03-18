@@ -69,9 +69,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
     def __eq__(self, value):
         def get_array(default: bool):
             return self.from_partial_array(
-                UnboundedPartial3DArray(
-                    numpy.bool, default, self.section_shape, (0, 0)
-                ),
+                UnboundedPartial3DArray(bool, default, self.section_shape, (0, 0)),
                 self.start,
                 self.stop,
                 self.step,
@@ -80,7 +78,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
         if (
             isinstance(value, (int, numpy.integer))
             and numpy.issubdtype(self.dtype, numpy.integer)
-        ) or (isinstance(value, bool) and numpy.issubdtype(self.dtype, numpy.bool)):
+        ) or (isinstance(value, bool) and numpy.issubdtype(self.dtype, bool)):
             out = get_array(value == self.default_value)
             for sy, slices, relative_slices in self._iter_slices(self.slices_tuple):
                 if sy in self._sections:
@@ -92,8 +90,8 @@ class BoundedPartial3DArray(BasePartial3DArray):
                 and numpy.issubdtype(self.dtype, numpy.integer)
             )
             or (
-                numpy.issubdtype(value.dtype, numpy.bool)
-                and numpy.issubdtype(self.dtype, numpy.bool)
+                numpy.issubdtype(value.dtype, bool)
+                and numpy.issubdtype(self.dtype, bool)
             )
         ):
             out = get_array(False)
@@ -343,7 +341,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
                 if (
                     isinstance(value, (int, numpy.integer))
                     and numpy.issubdtype(self.dtype, numpy.integer)
-                ) or (isinstance(value, bool) and self.dtype == numpy.bool):
+                ) or (isinstance(value, bool) and self.dtype == bool):
                     for sy, slices, _ in self._iter_slices(stacked_slices):
                         if sy in self._sections:
                             self._sections[sy][slices] = value
@@ -357,8 +355,8 @@ class BoundedPartial3DArray(BasePartial3DArray):
                         and numpy.issubdtype(self.dtype, numpy.integer)
                     )
                     or (
-                        numpy.issubdtype(value.dtype, numpy.bool)
-                        and numpy.issubdtype(self.dtype, numpy.bool)
+                        numpy.issubdtype(value.dtype, bool)
+                        and numpy.issubdtype(self.dtype, bool)
                     )
                 ):
                     size_array = self[item]
@@ -380,7 +378,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
             else:
                 raise KeyError(f"Unsupported tuple {item} for getitem")
         elif isinstance(item, (numpy.ndarray, BoundedPartial3DArray)):
-            if item.dtype == numpy.bool:
+            if item.dtype == bool:
                 if item.shape != self.shape:
                     raise ValueError(
                         f"The shape of the index ({self.shape}) and the shape of the given array ({item.shape}) do not match."
