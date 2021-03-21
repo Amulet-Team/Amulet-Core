@@ -229,7 +229,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
             numpy.transpose((blocks & 0xFF).astype(numpy.uint8), (1, 2, 0))
         )
         if numpy.max(blocks) > 0xFF:
-            add_blocks = numpy.transpose(blocks & 0xF00, (1, 2, 0)) >> 8
+            add_blocks = (numpy.transpose(blocks & 0xF00, (1, 2, 0)) >> 8).ravel()
             data["AddBlocks"] = amulet_nbt.TAG_Byte_Array(
                 add_blocks[::2] + (add_blocks[1::2] << 4)
             )
@@ -261,14 +261,15 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         version = self.translation_manager.get_version(
             *translator.translator_key(chunk_version)
         )
+        palette = []
+        for entry in chunk.block_palette.blocks():
+            b = version.block.block_to_ints(entry)
+            if b is None:
+                b = (0, 0)
+            palette.append(b)
         return (
             chunk,
-            numpy.array(
-                [
-                    version.block.block_to_ints(block)
-                    for block in chunk.block_palette.blocks()
-                ]
-            ),
+            numpy.array(palette),
         )
 
     def _encode(
