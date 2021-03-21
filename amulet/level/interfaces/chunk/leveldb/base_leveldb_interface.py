@@ -603,7 +603,7 @@ class BaseLevelDBInterface(Interface):
 
         palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
         palette, offset = amulet_nbt.load(
-            buffer=data,
+            data,
             compressed=False,
             count=palette_len,
             offset=True,
@@ -665,9 +665,7 @@ class BaseLevelDBInterface(Interface):
     def _unpack_nbt_list(raw_nbt: bytes) -> List[amulet_nbt.NBTFile]:
         nbt_list = []
         while raw_nbt:
-            nbt, index = amulet_nbt.load(
-                buffer=raw_nbt, little_endian=True, offset=True
-            )
+            nbt, index = amulet_nbt.load(raw_nbt, little_endian=True, offset=True)
             raw_nbt = raw_nbt[index:]
             nbt_list.append(nbt)
         return nbt_list

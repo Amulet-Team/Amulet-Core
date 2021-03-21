@@ -52,7 +52,7 @@ class BedrockLevelDAT(nbt.NBTFile):
             if 4 <= self._level_dat_version <= 8:
                 data_length = struct.unpack("<i", f.read(4))[0]
                 root_tag = nbt.load(
-                    buffer=f.read(data_length), compressed=False, little_endian=True
+                    f.read(data_length), compressed=False, little_endian=True
                 )
                 self.name = root_tag.name
                 self.value = root_tag.value

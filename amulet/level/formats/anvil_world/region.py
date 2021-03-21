@@ -287,7 +287,7 @@ class AnvilRegion:
     def _decompress(compress_type: int, data: bytes) -> nbt.NBTFile:
         """Convert a bytes object into an NBTFile"""
         if compress_type == world_utils.VERSION_GZIP:
-            return nbt.load(buffer=gzip.decompress(data), compressed=False)
+            return nbt.load(gzip.decompress(data), compressed=False)
         elif compress_type == world_utils.VERSION_DEFLATE:
-            return nbt.load(buffer=zlib.decompress(data), compressed=False)
+            return nbt.load(zlib.decompress(data), compressed=False)
         raise ChunkLoadError(f"Invalid compression type {compress_type}")
