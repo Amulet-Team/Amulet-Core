@@ -111,7 +111,7 @@ class WorldTestBaseCases:
 
         def test_fill_operation(self):
             subbox_1 = SelectionBox((1, 70, 3), (5, 71, 5))
-            box = SelectionGroup((subbox_1,))
+            selection = SelectionGroup((subbox_1,))
 
             # Start sanity check
             self.assertEqual(
@@ -127,11 +127,11 @@ class WorldTestBaseCases:
             self.world.run_operation(
                 fill,
                 "overworld",
-                box,
+                selection,
                 Block.from_string_blockstate("universal_minecraft:stone"),
             )
 
-            for x, y, z in box:
+            for x, y, z in selection.blocks():
                 self.assertEqual(
                     "universal_minecraft:stone",
                     self.world.get_block(x, y, z, "overworld").blockstate,
@@ -152,7 +152,7 @@ class WorldTestBaseCases:
 
             self.world.redo()
 
-            for x, y, z in box:
+            for x, y, z in selection.blocks():
                 self.assertEqual(
                     "universal_minecraft:stone",
                     self.world.get_block(x, y, z, "overworld").blockstate,

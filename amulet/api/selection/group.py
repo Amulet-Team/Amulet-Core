@@ -380,7 +380,7 @@ class SelectionGroup:
 if __name__ == "__main__":
     b1 = SelectionBox((0, 0, 0), (4, 4, 4))
     b2 = SelectionBox((7, 7, 7), (10, 10, 10))
-    sel_box = SelectionGroup((b1, b2))
+    sel = SelectionGroup((b1, b2))
 
-    for x, y, z in sel_box:
+    for x, y, z in sel.blocks():
         print(x, y, z)
