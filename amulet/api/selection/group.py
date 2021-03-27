@@ -17,8 +17,8 @@ from .box import SelectionBox
 
 
 class SelectionGroup:
-    """
-    Holding class for multiple `SelectionBox`es which allows for non-rectangular and non-contiguous selections
+    """A container for zero or more `SelectionBox`es.
+    This allows for non-rectangular and non-contiguous selections.
     """
 
     def __init__(
@@ -53,9 +53,9 @@ class SelectionGroup:
             return NotImplemented
         return SelectionGroup(self.selection_boxes + other.selection_boxes)
 
-    def __iter__(self) -> Iterable[Tuple[int, int, int]]:
-        """A generator of all the block locations in every box in the group."""
-        return itertools.chain.from_iterable(self.selection_boxes)
+    def __iter__(self) -> Iterable[SelectionBox]:
+        """A generator of all the boxes in the group."""
+        yield from self._selection_boxes
 
     def __len__(self) -> int:
         """The number of selection boxes in the group."""
@@ -63,7 +63,7 @@ class SelectionGroup:
 
     def __contains__(self, item: CoordinatesAny) -> bool:
         """Is the block (int) or point (float) location within any of the boxes in this group."""
-        self.contains_block(item)
+        return self.contains_block(item)
 
     def contains_block(self, coords: CoordinatesAny) -> bool:
         """Is the coordinate greater than or equal to the min point but less than the max point of any of the boxes."""
@@ -72,6 +72,12 @@ class SelectionGroup:
     def contains_point(self, coords: CoordinatesAny) -> bool:
         """Is the coordinate greater than or equal to the min point but less than or equal to the max point of any of the boxes."""
         return any(box.contains_point(coords) for box in self._selection_boxes)
+
+    def blocks(self) -> Iterable[Tuple[int, int, int]]:
+        """An iterable of every block in the selection.
+        Note: if boxes intersect, the blocks in the intersected region will be included multiple times.
+        If this behaviour is not desired the `merge_boxes` method will return a new SelectionGroup with no intersections."""
+        return itertools.chain.from_iterable(self.selection_boxes)
 
     def __bool__(self) -> bool:
         """Are there any boxes in the group."""
@@ -374,7 +380,7 @@ class SelectionGroup:
 if __name__ == "__main__":
     b1 = SelectionBox((0, 0, 0), (4, 4, 4))
     b2 = SelectionBox((7, 7, 7), (10, 10, 10))
-    sel_box = SelectionGroup((b1, b2))
+    sel = SelectionGroup((b1, b2))
 
-    for x, y, z in sel_box:
+    for x, y, z in sel.blocks():
         print(x, y, z)
