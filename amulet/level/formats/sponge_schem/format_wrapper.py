@@ -110,7 +110,8 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper):
             packed_block_data = sponge_schem.get("BlockData")
             if not isinstance(packed_block_data, amulet_nbt.TAG_Byte_Array):
                 raise SpongeSchemReadError("BlockData must be a TAG_Byte_Array")
-            unpacked_block_data = decode_byte_array(packed_block_data)
+
+            unpacked_block_data = decode_byte_array(numpy.array(packed_block_data, dtype=numpy.uint8))
             if len(unpacked_block_data) != numpy.prod(size):
                 raise SpongeSchemReadError(
                     "The data contained in BlockData does not match the size of the schematic."
