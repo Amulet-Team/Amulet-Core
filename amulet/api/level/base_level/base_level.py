@@ -834,9 +834,13 @@ class BaseLevel:
         """The class that manages undoing and redoing changes."""
         return self._history_manager
 
-    def create_undo_point(self, world=True, non_world=True):
+    def create_undo_point(self, world=True, non_world=True) -> bool:
         """Create a restore point for all the data that has changed."""
-        self.history_manager.create_undo_point(world, non_world)
+        return self.history_manager.create_undo_point(world, non_world)
+
+    def create_undo_point_iter(self, world=True, non_world=True) -> Generator[float, None, bool]:
+        """Create a restore point for all the data that has changed."""
+        return self.history_manager.create_undo_point_iter(world, non_world)
 
     @property
     def changed(self) -> bool:
