@@ -838,7 +838,9 @@ class BaseLevel:
         """Create a restore point for all the data that has changed."""
         return self.history_manager.create_undo_point(world, non_world)
 
-    def create_undo_point_iter(self, world=True, non_world=True) -> Generator[float, None, bool]:
+    def create_undo_point_iter(
+        self, world=True, non_world=True
+    ) -> Generator[float, None, bool]:
         """Create a restore point for all the data that has changed."""
         return self.history_manager.create_undo_point_iter(world, non_world)
 
