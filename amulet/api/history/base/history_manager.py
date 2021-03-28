@@ -1,3 +1,7 @@
+from typing import Generator
+
+from amulet.utils.generator import generator_unpacker
+
 from .base_history import BaseHistory
 
 
@@ -23,8 +27,13 @@ class HistoryManager(BaseHistory):
         raise NotImplementedError
 
     def create_undo_point(self) -> bool:
+        """Find what has changed since the last undo point and optionally create a new undo point.
+        :return: Was an undo point created. If there were no changes no snapshot will be created.
         """
-        Find what has changed since the last undo point and optionally create a new undo point.
+        return generator_unpacker(self.create_undo_point_iter())
+
+    def create_undo_point_iter(self) -> Generator[float, None, bool]:
+        """Find what has changed since the last undo point and optionally create a new undo point.
         :return: Was an undo point created. If there were no changes no snapshot will be created.
         """
         raise NotImplementedError

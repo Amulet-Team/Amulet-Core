@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List, Any, Generator
 
 from amulet.api.history.base.history_manager import HistoryManager
 
@@ -89,7 +89,7 @@ class ContainerHistoryManager(HistoryManager):
     def changed(self) -> bool:
         return bool(self.unsaved_changes)
 
-    def create_undo_point(self) -> bool:
+    def create_undo_point_iter(self) -> Generator[float, None, bool]:
         raise NotImplementedError
 
     def restore_last_undo_point(self):

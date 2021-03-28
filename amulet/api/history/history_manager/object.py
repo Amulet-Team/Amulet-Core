@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Optional, Any, Generator
 
 from amulet.api.history import Changeable
 from ..base import RevisionManager
@@ -89,7 +89,8 @@ class ObjectHistoryManager(HistoryManager):
     def changed(self) -> bool:
         return bool(self.unsaved_changes)
 
-    def create_undo_point(self) -> bool:
+    def create_undo_point_iter(self) -> Generator[float, None, bool]:
+        yield 1
         if self._value.changed:
             self._value.changed = False
             self._pack()

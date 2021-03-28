@@ -1,5 +1,6 @@
-from typing import Tuple
+from typing import Tuple, Generator
 
+from amulet.utils.generator import generator_unpacker
 from amulet.api.history.base.history_manager import HistoryManager
 from .container import ContainerHistoryManager
 
@@ -63,6 +64,11 @@ class MetaHistoryManager(ContainerHistoryManager):
         return False
 
     def create_undo_point(self, world=True, non_world=True) -> bool:
+        return generator_unpacker(self.create_undo_point_iter(world, non_world))
+
+    def create_undo_point_iter(
+        self, world=True, non_world=True
+    ) -> Generator[float, None, bool]:
         """Create an undo point.
 
         :param world: Should the world based history managers be included
@@ -72,7 +78,8 @@ class MetaHistoryManager(ContainerHistoryManager):
         managers = self._managers(world, non_world)
         snapshot = []
         for manager in managers:
-            if manager.create_undo_point():
+            changed = yield from manager.create_undo_point_iter()
+            if changed:
                 snapshot.append(manager)
         return self._register_snapshot(tuple(snapshot))
 

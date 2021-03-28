@@ -119,14 +119,17 @@ class DatabaseHistoryManager(ContainerHistoryManager):
         with self._lock:
             self._temporary_database[key] = None
 
-    def create_undo_point(self) -> bool:
+    def create_undo_point_iter(self) -> Generator[float, None, bool]:
         """
         Find all entries in the temporary database that have changed since the last undo point and create a new undo point.
         :return: Was an undo point created. If there were no changes no snapshot will be created.
         """
         with self._lock:
             snapshot = []
-            for key, entry in tuple(self._temporary_database.items()):
+            count = len(self._temporary_database)
+            for index, (key, entry) in enumerate(
+                tuple(self._temporary_database.items())
+            ):
                 if entry is None or entry.changed:
                     if key not in self._history_database:
                         # The entry was added without populating from the world
@@ -139,6 +142,7 @@ class DatabaseHistoryManager(ContainerHistoryManager):
                         # if the entry has been modified since the last history version
                         history_entry.put_new_entry(entry)
                         snapshot.append(key)
+                yield index / count
 
             self._temporary_database.clear()  # unload all the data from the temporary database
             # so that it is repopulated from the history database. This fixes the issue of entries
