@@ -1,3 +1,4 @@
+from typing import Tuple
 import math
 import numpy
 from amulet.api.data_types import FloatTriplet, PointCoordinates
@@ -178,3 +179,29 @@ def inverse_transform_matrix(
         scale_transform,
         numpy.matmul(rotation_transform, displacement_transform),
     )
+
+
+def decompose_transformation_matrix(
+    matrix: numpy.ndarray,
+) -> Tuple[
+    Tuple[float, float, float], Tuple[float, float, float], Tuple[float, float, float]
+]:
+    """Decompose a 4x4 transformation matrix into scale, rotation and displacement tuples."""
+    assert isinstance(matrix, numpy.ndarray), "Matrix must be an ndarray"
+    assert matrix.shape == (4, 4), "Expected a 4x4 numpy array"
+    matrix = matrix.copy()  # just in case
+    displacement = tuple(matrix[:3, 3].tolist())
+    matrix[:3, 3] = 0
+    scale = tuple(numpy.linalg.norm(matrix[:3, :3], axis=0).tolist())
+    matrix[:3, :3] = matrix[:3, :3] / scale
+
+    rotation = (
+        math.atan2(matrix[2, 1], matrix[2, 2]),
+        math.atan2(
+            -matrix[2, 0],
+            (matrix[2, 1] * matrix[2, 1] + matrix[2, 2] * matrix[2, 2]) ** 0.5,
+        ),
+        math.atan2(matrix[1, 0], matrix[0, 0]),
+    )
+
+    return scale, rotation, displacement
