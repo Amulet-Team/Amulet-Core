@@ -22,26 +22,9 @@ with open("./requirements.txt") as requirements_fp:
     ]
 
 package_data = [
-    os.path.relpath(path, "amulet") for path in
-    set(
-        glob.glob(
-            os.path.join(
-                "amulet",
-                "**",
-                "*.*"
-            ),
-            recursive=True
-        )
-    ) - set(
-        glob.glob(
-            os.path.join(
-                "amulet",
-                "**",
-                "*.py[cod]"
-            ),
-            recursive=True
-        )
-    )
+    os.path.relpath(path, "amulet")
+    for path in set(glob.glob(os.path.join("amulet", "**", "*.*"), recursive=True))
+    - set(glob.glob(os.path.join("amulet", "**", "*.py[cod]"), recursive=True))
 ]
 
 setup(
@@ -63,5 +46,5 @@ setup(
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
+    python_requires=">=3.6",
 )
