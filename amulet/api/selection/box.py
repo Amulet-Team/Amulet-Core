@@ -547,22 +547,23 @@ class SelectionBox:
             # find the AABB that will contain the rotated box.
             points = numpy.matmul(
                 transform_matrix(scale, rotation, translation),
-                numpy.array(list(
-                    itertools.product(
-                        [self.min_x, self.max_x],
-                        [self.min_y, self.max_y],
-                        [self.min_z, self.max_z],
-                        [1],
+                numpy.array(
+                    list(
+                        itertools.product(
+                            [self.min_x, self.max_x],
+                            [self.min_y, self.max_y],
+                            [self.min_z, self.max_z],
+                            [1],
+                        )
                     )
-                )).T
+                ).T,
             ).T[:, :3]
             # this is a larger AABB that contains the roatated box and a bit more.
-            aabb = SelectionBox(
-                numpy.min(points, axis=0),
-                numpy.max(points, axis=0)
-            )
+            aabb = SelectionBox(numpy.min(points, axis=0), numpy.max(points, axis=0))
             # the location of every block in the larger AABB
-            transformed_blocks = list(aabb.blocks())  # this will be a problem on very large selections
+            transformed_blocks = list(
+                aabb.blocks()
+            )  # this will be a problem on very large selections
 
             # the above in an array form
             transformed_points = numpy.ones((len(transformed_blocks), 4))
@@ -571,20 +572,21 @@ class SelectionBox:
             # the original points the transformed locations relate to
             tx, ty, tz = translation
             original_blocks = numpy.matmul(
-                inverse_transform_matrix(scale, rotation, (tx-0.5, ty-0.5, tz-0.5)),
-                transformed_points.T
+                inverse_transform_matrix(
+                    scale, rotation, (tx - 0.5, ty - 0.5, tz - 0.5)
+                ),
+                transformed_points.T,
             ).T[:, :3]
 
             mask = numpy.all(
                 numpy.logical_and(
-                    original_blocks < self.max,
-                    original_blocks >= self.min
+                    original_blocks < self.max, original_blocks >= self.min
                 ),
-                axis=1
+                axis=1,
             )
 
             for (x, y, z), include in zip(transformed_blocks, mask):
                 if include:
-                    boxes.append(SelectionBox((x, y, z), (x+1, y+1, z+1)))
+                    boxes.append(SelectionBox((x, y, z), (x + 1, y + 1, z + 1)))
 
         return boxes
