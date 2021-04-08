@@ -526,7 +526,12 @@ class SelectionBox:
     def transform(
         self, scale: FloatTriplet, rotation: FloatTriplet, translation: FloatTriplet
     ) -> List[SelectionBox]:
-        """creates a list of new transformed SelectionBox(es)."""
+        """creates a list of new transformed SelectionBox(es).
+        :param scale: A tuple of scaling factors in the x, y and z axis.
+        :param rotation: The rotation about the x, y and z axis in radians.
+        :param translation: The translation about the x, y and z axis.
+        :return:
+        """
         boxes = []
         # TODO: allow this to support rotations that are not 90 degrees
         min_point, max_point = numpy.matmul(

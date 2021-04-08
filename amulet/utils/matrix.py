@@ -141,7 +141,7 @@ def transform_matrix(
     """Create a 4x4 transformation matrix from the scale, rotation and displacement specified.
 
     :param scale: The scale in the x, y and z axis
-    :param rotation: The rotation in the x, y and z axis (axis can be changed using `order`)
+    :param rotation: The rotation in the x, y and z axis in radians. (axis can be changed using `order`)
     :param displacement: The displacement in the x, y and z axis
     :param order: The order to apply the rotations in.
     :return: The 4x4 transformation matrix of combined scale, rotation and displacement
