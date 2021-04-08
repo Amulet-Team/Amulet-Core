@@ -583,7 +583,9 @@ class SelectionBox:
                     ).T,
                 ).T[:, :3]
                 # this is a larger AABB that contains the roatated box and a bit more.
-                return SelectionBox(numpy.min(points, axis=0), numpy.max(points, axis=0))
+                return SelectionBox(
+                    numpy.min(points, axis=0), numpy.max(points, axis=0)
+                )
 
             aabb = transform_box(self, transform)
 
@@ -621,6 +623,8 @@ class SelectionBox:
 
                         for (x, y, z), include in zip(transformed_blocks, mask):
                             if include:
-                                boxes.append(SelectionBox((x, y, z), (x + 1, y + 1, z + 1)))
+                                boxes.append(
+                                    SelectionBox((x, y, z), (x + 1, y + 1, z + 1))
+                                )
 
         return boxes
