@@ -388,6 +388,21 @@ class SelectionBox:
             or self.max_z <= other.min_z
         )
 
+    def contains_box(self, other: SelectionBox) -> bool:
+        """Method to check if the other SelectionBox other fits entirely within this instance of SelectionBox.
+
+        :param other: The SelectionBox to test.
+        :return: True if other fits with self, False otherwise
+        """
+        return (
+            self.min_x <= other.min_x
+            and self.min_y <= other.min_y
+            and self.min_z <= other.min_z
+            and other.max_x <= self.max_x
+            and other.max_y <= self.max_y
+            and other.max_z <= self.max_z
+        )
+
     def intersection(self, other: SelectionBox) -> SelectionBox:
         """Get a SelectionBox that represents the region contained within self and other.
         Box may be a zero width box. Use self.intersects to check that it actually intersects.
