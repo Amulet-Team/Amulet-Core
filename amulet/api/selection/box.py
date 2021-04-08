@@ -18,7 +18,7 @@ from amulet.utils.world_utils import (
     block_coords_to_chunk_coords,
     blocks_slice_to_chunk_slice,
 )
-from amulet.utils.matrix import transform_matrix
+from amulet.utils.matrix import transform_matrix, inverse_transform_matrix
 
 
 class SelectionBox:
@@ -533,11 +533,58 @@ class SelectionBox:
         :return:
         """
         boxes = []
-        # TODO: allow this to support rotations that are not 90 degrees
-        min_point, max_point = numpy.matmul(
-            transform_matrix(scale, rotation, translation),
-            numpy.array([[*self.min, 1], [*self.max, 1]]).T,
-        ).T[:, :3]
-        boxes.append(SelectionBox(min_point, max_point))
+        if all(r % 90 == 0 for r in rotation):
+            min_point, max_point = numpy.matmul(
+                transform_matrix(scale, rotation, translation),
+                numpy.array([[*self.min, 1], [*self.max, 1]]).T,
+            ).T[:, :3]
+            boxes.append(SelectionBox(min_point, max_point))
+        else:
+            # TODO: Find a way to do this a lot better
+            # this could be done better by finding the maximum and minimum y values of the transformed box
+            # at each location and reconstructing the box with column boxes.
+
+            # find the AABB that will contain the rotated box.
+            points = numpy.matmul(
+                transform_matrix(scale, rotation, translation),
+                numpy.array(list(
+                    itertools.product(
+                        [self.min_x, self.max_x],
+                        [self.min_y, self.max_y],
+                        [self.min_z, self.max_z],
+                        [1],
+                    )
+                )).T
+            ).T[:, :3]
+            # this is a larger AABB that contains the roatated box and a bit more.
+            aabb = SelectionBox(
+                numpy.min(points, axis=0),
+                numpy.max(points, axis=0)
+            )
+            # the location of every block in the larger AABB
+            transformed_blocks = list(aabb.blocks())  # this will be a problem on very large selections
+
+            # the above in an array form
+            transformed_points = numpy.ones((len(transformed_blocks), 4))
+            transformed_points[:, :3] = transformed_blocks
+
+            # the original points the transformed locations relate to
+            tx, ty, tz = translation
+            original_blocks = numpy.matmul(
+                inverse_transform_matrix(scale, rotation, (tx-0.5, ty-0.5, tz-0.5)),
+                transformed_points.T
+            ).T[:, :3]
+
+            mask = numpy.all(
+                numpy.logical_and(
+                    original_blocks < self.max,
+                    original_blocks >= self.min
+                ),
+                axis=1
+            )
+
+            for (x, y, z), include in zip(transformed_blocks, mask):
+                if include:
+                    boxes.append(SelectionBox((x, y, z), (x+1, y+1, z+1)))
 
         return boxes
