@@ -192,7 +192,11 @@ def decompose_transformation_matrix(
     matrix = matrix.copy()  # just in case
     displacement = tuple(matrix[:3, 3].tolist())
     matrix[:3, 3] = 0
-    scale = tuple(numpy.linalg.norm(matrix[:3, :3], axis=0).tolist())
+    scale = tuple(
+        (
+            numpy.linalg.norm(matrix[:3, :3], axis=0) * numpy.sign(numpy.diag(matrix)[:3])
+        ).tolist()
+    )
     matrix[:3, :3] = matrix[:3, :3] / scale
 
     rotation = (
