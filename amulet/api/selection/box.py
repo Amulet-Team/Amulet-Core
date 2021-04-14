@@ -599,9 +599,7 @@ class SelectionBox:
                     else:
                         # do it block by block
                         # the location of every block in the larger AABB
-                        transformed_blocks = list(
-                            box.blocks()
-                        )
+                        transformed_blocks = list(box.blocks())
 
                         # the above in an array form
                         transformed_points = numpy.ones((len(transformed_blocks), 4))
@@ -626,7 +624,9 @@ class SelectionBox:
                         box_2d_shape = numpy.array(any_array.shape)
                         any_array_flat = any_array.ravel()
                         start_array = numpy.argmax(mask, axis=2)
-                        stop_array = box_shape[2] - numpy.argmax(numpy.flip(mask, axis=2), axis=2)
+                        stop_array = box_shape[2] - numpy.argmax(
+                            numpy.flip(mask, axis=2), axis=2
+                        )
                         index = 0
                         while index < any_array_flat.size:
                             # while there are unhandled true values
@@ -635,14 +635,20 @@ class SelectionBox:
                             if any_array_flat[index]:
                                 # check that that value is actually True
                                 # create the bounds for the box
-                                min_x, min_y = max_x, max_y = numpy.unravel_index(index, box_2d_shape)
+                                min_x, min_y = max_x, max_y = numpy.unravel_index(
+                                    index, box_2d_shape
+                                )
                                 # find the z bounds
                                 min_z = start_array[min_x, min_y]
                                 max_z = stop_array[min_x, min_y]
                                 while max_x < box_2d_shape[0] - 1:
                                     # expand in the x while the bounds are the same
                                     new_max_x = max_x + 1
-                                    if any_array[new_max_x, max_y] and start_array[new_max_x, max_y] == min_z and stop_array[new_max_x, max_y] == max_z:
+                                    if (
+                                        any_array[new_max_x, max_y]
+                                        and start_array[new_max_x, max_y] == min_z
+                                        and stop_array[new_max_x, max_y] == max_z
+                                    ):
                                         # the box z values are the same
                                         max_x = new_max_x
                                     else:
@@ -650,16 +656,30 @@ class SelectionBox:
                                 while max_y < box_2d_shape[1] - 1:
                                     # expand in the y while the bounds are the same
                                     new_max_y = max_y + 1
-                                    if numpy.all(any_array[min_x:max_x + 1, new_max_y]) and numpy.all(start_array[min_x:max_x + 1, new_max_y] == min_z) and \
-                                            numpy.all(stop_array[min_x:max_x + 1, new_max_y] == max_z):
+                                    if (
+                                        numpy.all(
+                                            any_array[min_x : max_x + 1, new_max_y]
+                                        )
+                                        and numpy.all(
+                                            start_array[min_x : max_x + 1, new_max_y]
+                                            == min_z
+                                        )
+                                        and numpy.all(
+                                            stop_array[min_x : max_x + 1, new_max_y]
+                                            == max_z
+                                        )
+                                    ):
                                         # the box z values are the same
                                         max_y = new_max_y
                                     else:
                                         break
                                 boxes.append(
-                                    SelectionBox(box.min_array + (min_x, min_y, min_z), box.min_array + (max_x + 1, max_y + 1, max_z))
+                                    SelectionBox(
+                                        box.min_array + (min_x, min_y, min_z),
+                                        box.min_array + (max_x + 1, max_y + 1, max_z),
+                                    )
                                 )
-                                any_array[min_x:max_x + 1, min_y:max_y + 1] = False
+                                any_array[min_x : max_x + 1, min_y : max_y + 1] = False
                             else:
                                 # If there are no more True values argmax will return 0
                                 break
