@@ -35,7 +35,9 @@ def gen_paste_blocks(
     :param skip_blocks: Blocks to not copy. If a property is not defined it will match any value.
     :return: Bool array of which blocks to copy.
     """
-    return numpy.invert(numpy.vectorize(lambda b: is_sub_block(skip_blocks, b))(block_palette.blocks()))
+    return numpy.invert(
+        numpy.vectorize(lambda b: is_sub_block(skip_blocks, b))(block_palette.blocks())
+    )
 
 
 def clone(
