@@ -601,7 +601,7 @@ class SelectionBox:
                         # the location of every block in the larger AABB
                         transformed_blocks = list(
                             box.blocks()
-                        )  # this will be a problem on very large selections
+                        )
 
                         # the above in an array form
                         transformed_points = numpy.ones((len(transformed_blocks), 4))
@@ -614,17 +614,23 @@ class SelectionBox:
                             transformed_points.T,
                         ).T[:, :3]
 
+                        box_shape = box.shape
                         mask = numpy.all(
                             numpy.logical_and(
                                 original_blocks < self.max, original_blocks >= self.min
                             ),
                             axis=1,
-                        )
+                        ).reshape(box_shape)
 
-                        for (x, y, z), include in zip(transformed_blocks, mask):
-                            if include:
+                        any_array = numpy.any(mask, axis=2)
+                        start_array = numpy.argmax(mask, axis=2)
+                        stop_array = mask.shape[2] - numpy.argmax(numpy.flip(mask, axis=2), axis=2)
+                        for x, y in numpy.argwhere(any_array):
+                            min_z = start_array[x, y]
+                            if min_z != -1:
+                                max_z = stop_array[x, y]
                                 boxes.append(
-                                    SelectionBox((x, y, z), (x + 1, y + 1, z + 1))
+                                    SelectionBox(box.min_array + (x, y, min_z), box.min_array + (x + 1, y + 1, max_z))
                                 )
 
         return boxes
