@@ -14,16 +14,28 @@ if TYPE_CHECKING:
     from .base_level import BaseLevel
 
 
+def is_sub_block(skip_blocks: Tuple[Block, ...], b: Block) -> bool:
+    """Is the Block `b` a sub-block of any block in skip_blocks."""
+    for skip_block in skip_blocks:
+        if skip_block.namespaced_name == b.namespaced_name:
+            other_properties = b.properties
+            if skip_block.properties == {
+                key: other_properties[key] for key in skip_block.properties.keys()
+            }:
+                return True
+    return False
+
+
 def gen_paste_blocks(
     block_palette: BlockManager, skip_blocks: Tuple[Block, ...]
 ) -> numpy.ndarray:
-    """Create a numpy array of all the blocks which should be pasted.
+    """Create a numpy bool array of all the blocks which should be pasted.
 
     :param block_palette: The block palette of the chunk.
-    :param skip_blocks: Blocks to not copy if they match exactly.
-    :return:
+    :param skip_blocks: Blocks to not copy. If a property is not defined it will match any value.
+    :return: Bool array of which blocks to copy.
     """
-    return numpy.vectorize(lambda b: b not in skip_blocks)(block_palette.blocks())
+    return numpy.invert(numpy.vectorize(lambda b: is_sub_block(skip_blocks, b))(block_palette.blocks()))
 
 
 def clone(
@@ -175,7 +187,7 @@ def clone(
                                 block = src_chunk.block_palette[
                                     src_chunk.blocks[src_x % 16, src_y, src_z % 16]
                                 ]
-                                if block not in blocks_to_skip:
+                                if not is_sub_block(skip_blocks, block):
                                     dst_chunk.blocks[
                                         dst_x % 16, dst_y, dst_z % 16
                                     ] = dst_chunk.block_palette.get_add_block(block)
