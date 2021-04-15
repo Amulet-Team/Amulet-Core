@@ -137,9 +137,7 @@ class SelectionGroup:
             merge_boxes = True
             while merge_boxes:
                 # find two neighbouring boxes and merge them
-                merge_boxes = (
-                    False
-                )  # if two boxes get merged this will be set back to True and this will run again.
+                merge_boxes = False  # if two boxes get merged this will be set back to True and this will run again.
                 box_index = 0  # the index of the first box
                 while box_index < len(selection_boxes):
                     box = selection_boxes[box_index]
