@@ -23,7 +23,7 @@ from amulet.api.errors import ObjectWriteError, ObjectReadError
 
 from amulet.libs.leveldb import LevelDBException
 from amulet.level.interfaces.chunk.leveldb.leveldb_chunk_versions import (
-    game_to_chunk_version
+    game_to_chunk_version,
 )
 from .dimension import LevelDBDimensionManager
 
