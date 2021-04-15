@@ -1,3 +1,4 @@
+from typing import Tuple
 import math
 import numpy
 from amulet.api.data_types import FloatTriplet, PointCoordinates
@@ -140,7 +141,7 @@ def transform_matrix(
     """Create a 4x4 transformation matrix from the scale, rotation and displacement specified.
 
     :param scale: The scale in the x, y and z axis
-    :param rotation: The rotation in the x, y and z axis (axis can be changed using `order`)
+    :param rotation: The rotation in the x, y and z axis in radians. (axis can be changed using `order`)
     :param displacement: The displacement in the x, y and z axis
     :param order: The order to apply the rotations in.
     :return: The 4x4 transformation matrix of combined scale, rotation and displacement
@@ -178,3 +179,50 @@ def inverse_transform_matrix(
         scale_transform,
         numpy.matmul(rotation_transform, displacement_transform),
     )
+
+
+def decompose_transformation_matrix(
+    matrix: numpy.ndarray,
+) -> Tuple[
+    Tuple[float, float, float], Tuple[float, float, float], Tuple[float, float, float]
+]:
+    """Decompose a 4x4 transformation matrix into scale, rotation and displacement tuples."""
+    assert isinstance(matrix, numpy.ndarray), "Matrix must be an ndarray"
+    assert matrix.shape == (4, 4), "Expected a 4x4 numpy array"
+    # https://gist.github.com/Aerilius/0cbc46271c163746717902b36bea8fd4
+    # 0 4 8  12
+    # 1 5 9  13
+    # 2 6 10 14
+    # 3 7 11 15
+    matrix = matrix.copy()  # just in case
+    displacement = tuple(matrix[:3, 3].tolist())
+    matrix[:3, 3] = 0
+    scale_np = numpy.linalg.norm(matrix[:3, :3], axis=0) * matrix[3, 3]
+    scale = tuple(scale_np.tolist())
+    matrix[:3, :3] = matrix[:3, :3] / scale_np
+
+    matrix[3, 3] = 1
+
+    if (
+        numpy.dot(
+            numpy.cross(
+                matrix[:3, 0],
+                matrix[:3, 1],
+            ),
+            matrix[:3, 2],
+        )
+        < 0
+    ):
+        scale = (-scale[0], scale[1], scale[2])
+        matrix[:3, 0] *= -1
+
+    rotation = (
+        math.atan2(matrix[2, 1], matrix[2, 2]),
+        math.atan2(
+            -matrix[2, 0],
+            (matrix[2, 1] ** 2 + matrix[2, 2] ** 2) ** 0.5,
+        ),
+        math.atan2(matrix[1, 0], matrix[0, 0]),
+    )
+
+    return scale, rotation, displacement

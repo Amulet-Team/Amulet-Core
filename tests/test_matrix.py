@@ -7,6 +7,7 @@ from amulet.utils.matrix import (
     rotation_matrix_xyz,
     transform_matrix,
     inverse_transform_matrix,
+    decompose_transformation_matrix,
 )
 
 
@@ -162,6 +163,32 @@ class MatrixTestCase(unittest.TestCase):
         inverse_transform = inverse_transform_matrix(*inputs)
         numpy.testing.assert_array_almost_equal(
             numpy.matmul(transform, inverse_transform), numpy.eye(4)
+        )
+
+    def test_decompose(self):
+        rotation_ = (1, 1.5, 3)
+        m = rotation_matrix_xyz(*rotation_)
+        scale, rotation, displacement = decompose_transformation_matrix(m)
+        numpy.testing.assert_array_almost_equal(
+            displacement, (0, 0, 0), err_msg="decomposed displacement is incorrect"
+        )
+        numpy.testing.assert_array_almost_equal(
+            scale, (1, 1, 1), err_msg="decomposed scale is incorrect"
+        )
+        numpy.testing.assert_array_almost_equal(
+            rotation, rotation_, err_msg="decomposed rotation is incorrect"
+        )
+
+        m = transform_matrix((1, 2, 3), rotation_, (1, 2, 3))
+        scale, rotation, displacement = decompose_transformation_matrix(m)
+        numpy.testing.assert_array_almost_equal(
+            displacement, (1, 2, 3), err_msg="decomposed displacement is incorrect"
+        )
+        numpy.testing.assert_array_almost_equal(
+            scale, (1, 2, 3), err_msg="decomposed scale is incorrect"
+        )
+        numpy.testing.assert_array_almost_equal(
+            rotation, rotation_, err_msg="decomposed rotation is incorrect"
         )
 
 
