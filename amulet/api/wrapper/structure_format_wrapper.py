@@ -17,7 +17,7 @@ class StructureFormatWrapper(FormatWrapper):
 
         :param path: The location of the file to read from and write to.
         """
-        if type(self) is StructureFormatWrapper:
+        if not issubclass(self.__class__, StructureFormatWrapper):
             raise Exception(
                 "StructureFormatWrapper is not directly usable. One of its subclasses must be used."
             )

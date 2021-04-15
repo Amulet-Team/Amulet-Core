@@ -16,9 +16,7 @@ from amulet.api.wrapper import Interface
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray
 from amulet.level import loader
 from amulet.api.wrapper import EntityIDType, EntityCoordType
-from .leveldb_chunk_versions import (
-    chunk_to_game_version,
-)
+from .leveldb_chunk_versions import chunk_to_game_version
 
 if TYPE_CHECKING:
     from amulet.api.block_entity import BlockEntity
@@ -164,17 +162,14 @@ class BaseLevelDBInterface(Interface):
         return chunk, chunk_palette
 
     def encode(
-        self,
-        chunk: Chunk,
-        palette: AnyNDArray,
-        max_world_version: Tuple[int, int, int],
+        self, chunk: Chunk, palette: AnyNDArray, max_world_version: Tuple[int, int, int]
     ) -> Dict[bytes, Optional[bytes]]:
         chunk_data = chunk.misc.get("bedrock_chunk_data", {})
-        if type(chunk_data) is dict:
+        if isinstance(chunk_data, dict):
             chunk_data = {
                 k: v
                 for k, v in chunk_data.items()
-                if type(k) is bytes and type(v) is bytes
+                if isinstance(k, bytes) and isinstance(v, bytes)
             }
         else:
             chunk_data = {}
@@ -262,13 +257,7 @@ class BaseLevelDBInterface(Interface):
         """
         blocks: Dict[int, SubChunkNDArray] = {}
         palette: List[
-            Tuple[
-                Tuple[
-                    Optional[int],
-                    Union[Tuple[int, int], Block],
-                ],
-                ...,
-            ]
+            Tuple[Tuple[Optional[int], Union[Tuple[int, int], Block]], ...]
         ] = [
             (
                 (
@@ -603,11 +592,7 @@ class BaseLevelDBInterface(Interface):
 
         palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
         palette, offset = amulet_nbt.load(
-            data,
-            compressed=False,
-            count=palette_len,
-            offset=True,
-            little_endian=True,
+            data, compressed=False, count=palette_len, offset=True, little_endian=True
         )
 
         return blocks, palette, data[offset:]

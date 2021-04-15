@@ -24,10 +24,7 @@ from amulet.api.wrapper import Interface
 from amulet.level import loader
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray
 from amulet.api.wrapper import EntityIDType, EntityCoordType
-from amulet.utils.world_utils import (
-    decode_long_array,
-    encode_long_array,
-)
+from amulet.utils.world_utils import decode_long_array, encode_long_array
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
@@ -156,13 +153,13 @@ class BaseAnvilInterface(Interface):
             if "Biomes" in level:
                 biomes = level.pop("Biomes")
                 if self.features["biomes"] == "256BA":
-                    if type(biomes) is TAG_Byte_Array and biomes.value.size == 256:
+                    if isinstance(biomes, TAG_Byte_Array) and biomes.value.size == 256:
                         chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
                 elif self.features["biomes"] == "256IA":
-                    if type(biomes) is TAG_Int_Array and biomes.value.size == 256:
+                    if isinstance(biomes, TAG_Int_Array) and biomes.value.size == 256:
                         chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
                 elif self.features["biomes"] == "1024IA":
-                    if type(biomes) is TAG_Int_Array and biomes.value.size == 1024:
+                    if isinstance(biomes, TAG_Int_Array) and biomes.value.size == 1024:
                         chunk.biomes = {
                             sy: arr
                             for sy, arr in enumerate(
@@ -181,24 +178,20 @@ class BaseAnvilInterface(Interface):
             height = self.get_obj(level, "HeightMap", TAG_Int_Array).value
             if isinstance(height, numpy.ndarray) and height.size == 256:
                 misc["height_map256IA"] = height.reshape((16, 16))
-        elif self.features["height_map"] in [
-            "C|V1",
-            "C|V2",
-            "C|V3",
-            "C|V4",
-        ]:
+        elif self.features["height_map"] in ["C|V1", "C|V2", "C|V3", "C|V4"]:
             heights = self.get_obj(level, "Heightmaps", TAG_Compound)
             misc["height_mapC"] = {
                 key: decode_long_array(value, 256, len(value) == 36).reshape((16, 16))
                 for key, value in heights.items()
-                if type(value) is TAG_Long_Array
+                if isinstance(value, TAG_Long_Array)
             }
 
         # parse sections into a more usable format
         sections: Dict[int, TAG_Compound] = {
             section.pop("Y").value: section
             for section in self.get_obj(level, "Sections", TAG_List)
-            if type(section) is TAG_Compound and self.check_type(section, "Y", TAG_Byte)
+            if isinstance(section, TAG_Compound)
+            and self.check_type(section, "Y", TAG_Byte)
         }
         misc["java_sections"] = sections
 
@@ -277,7 +270,7 @@ class BaseAnvilInterface(Interface):
         """
 
         misc = chunk.misc
-        if "java_chunk_data" in misc and type(misc["java_chunk_data"]) is NBTFile:
+        if "java_chunk_data" in misc and isinstance(misc["java_chunk_data"], NBTFile):
             data = misc["java_chunk_data"]
         else:
             data = NBTFile()
@@ -331,7 +324,7 @@ class BaseAnvilInterface(Interface):
                     numpy.transpose(
                         numpy.asarray(chunk.biomes[:, 0:64, :]).astype(numpy.uint32),
                         (1, 2, 0),
-                    ).ravel(),  # YZX -> XYZ
+                    ).ravel()  # YZX -> XYZ
                 )
 
         if self.features["height_map"] in ["256IA", "256IARequired"]:
@@ -346,12 +339,7 @@ class BaseAnvilInterface(Interface):
                 level["HeightMap"] = amulet_nbt.TAG_Int_Array(
                     numpy.zeros(256, dtype=numpy.uint32)
                 )
-        elif self.features["height_map"] in {
-            "C|V1",
-            "C|V2",
-            "C|V3",
-            "C|V4",
-        }:
+        elif self.features["height_map"] in {"C|V1", "C|V2", "C|V3", "C|V4"}:
             maps = [
                 "WORLD_SURFACE_WG",
                 "OCEAN_FLOOR_WG",
@@ -395,12 +383,12 @@ class BaseAnvilInterface(Interface):
                     heightmaps[heightmap] = value
             level["Heightmaps"] = heightmaps
 
-        if "java_sections" in misc and type(misc["java_sections"]) is dict:
+        if "java_sections" in misc and isinstance(misc["java_sections"], dict):
             # verify that the data is correctly formatted.
             sections = {
                 cy: section
                 for cy, section in misc["java_sections"].items()
-                if type(cy) is int and type(section) is TAG_Compound
+                if isinstance(cy, int) and isinstance(section, TAG_Compound)
             }
         else:
             sections = {}
@@ -527,7 +515,7 @@ class BaseAnvilInterface(Interface):
         entities_out = []
         if block_entities.list_data_type == TAG_Compound.tag_id:
             for nbt in block_entities:
-                if not type(nbt) is TAG_Compound:
+                if not isinstance(nbt, TAG_Compound):
                     continue
                 entity = self._decode_block_entity(
                     amulet_nbt.NBTFile(nbt),

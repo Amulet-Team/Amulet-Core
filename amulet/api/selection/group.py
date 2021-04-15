@@ -24,11 +24,11 @@ class SelectionGroup:
     def __init__(
         self, selection_boxes: Union[SelectionBox, Iterable[SelectionBox]] = ()
     ):
-        if type(selection_boxes) is SelectionBox:
+        if isinstance(selection_boxes, SelectionBox):
             self._selection_boxes: Tuple[SelectionBox, ...] = (selection_boxes,)
-        elif type(selection_boxes) in (tuple, list):
+        elif isinstance(selection_boxes, (tuple, list)):
             self._selection_boxes: Tuple[SelectionBox, ...] = tuple(
-                box for box in selection_boxes if type(box) is SelectionBox
+                box for box in selection_boxes if isinstance(box, SelectionBox)
             )
         else:
             amulet.log.warning(f"Invalid format for selection_boxes {selection_boxes}")
@@ -44,12 +44,12 @@ class SelectionGroup:
 
     def __eq__(self, other: SelectionGroup) -> bool:
         return (
-            type(other) is SelectionGroup
+            isinstance(other, SelectionGroup)
             and self.selection_boxes_sorted == other.selection_boxes_sorted
         )
 
     def __add__(self, other: SelectionGroup) -> SelectionGroup:
-        if not type(other) is SelectionGroup:
+        if not isinstance(other, SelectionGroup):
             return NotImplemented
         return SelectionGroup(self.selection_boxes + other.selection_boxes)
 
@@ -94,7 +94,7 @@ class SelectionGroup:
     def __getitem__(self, item):
         """Get the selection box at the given index."""
         val = self._selection_boxes[item]
-        if type(val) is tuple:
+        if isinstance(val, tuple):
             return SelectionGroup(val)
         else:
             return val
@@ -137,7 +137,9 @@ class SelectionGroup:
             merge_boxes = True
             while merge_boxes:
                 # find two neighbouring boxes and merge them
-                merge_boxes = False  # if two boxes get merged this will be set back to True and this will run again.
+                merge_boxes = (
+                    False
+                )  # if two boxes get merged this will be set back to True and this will run again.
                 box_index = 0  # the index of the first box
                 while box_index < len(selection_boxes):
                     box = selection_boxes[box_index]
@@ -283,7 +285,7 @@ class SelectionGroup:
 
     @staticmethod
     def _to_group(other: Union[SelectionGroup, SelectionBox]) -> SelectionGroup:
-        if type(other) not in (SelectionGroup, SelectionBox):
+        if not isinstance(other, (SelectionGroup, SelectionBox)):
             raise TypeError("other must be a SelectionGroup or SelectionBox.")
         if isinstance(other, SelectionBox):
             other = SelectionGroup(other)

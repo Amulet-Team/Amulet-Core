@@ -2,15 +2,7 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import (
-    Tuple,
-    Dict,
-    Generator,
-    Union,
-    Optional,
-    List,
-    BinaryIO,
-)
+from typing import Tuple, Dict, Generator, Union, Optional, List, BinaryIO
 from io import BytesIO
 import shutil
 import traceback
@@ -31,7 +23,7 @@ from amulet.api.errors import ObjectWriteError, ObjectReadError
 
 from amulet.libs.leveldb import LevelDBException
 from amulet.level.interfaces.chunk.leveldb.leveldb_chunk_versions import (
-    game_to_chunk_version,
+    game_to_chunk_version
 )
 from .dimension import LevelDBDimensionManager
 
@@ -146,11 +138,11 @@ class LevelDBFormat(WorldFormatWrapper):
 
     @root_tag.setter
     def root_tag(self, root_tag: Union[nbt.NBTFile, nbt.TAG_Compound, BedrockLevelDAT]):
-        if type(root_tag) is nbt.TAG_Compound:
+        if isinstance(root_tag, nbt.TAG_Compound):
             self._root_tag.value = root_tag
-        elif type(root_tag) is BedrockLevelDAT:
+        elif isinstance(root_tag, BedrockLevelDAT):
             self._root_tag = root_tag
-        elif type(root_tag) is nbt.NBTFile:
+        elif isinstance(root_tag, nbt.NBTFile):
             self._root_tag.name = root_tag.name
             self._root_tag.value = root_tag.value
         else:

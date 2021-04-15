@@ -299,5 +299,5 @@ class Chunk(Changeable):
 
     @misc.setter
     def misc(self, misc: dict):
-        assert type(misc) is dict, "misc must be a dictionary."
+        assert isinstance(misc, dict), "misc must be a dictionary."
         self._misc = misc
