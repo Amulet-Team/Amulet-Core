@@ -18,7 +18,11 @@ from amulet.utils.world_utils import (
     block_coords_to_chunk_coords,
     blocks_slice_to_chunk_slice,
 )
-from amulet.utils.matrix import transform_matrix, inverse_transform_matrix, displacement_matrix
+from amulet.utils.matrix import (
+    transform_matrix,
+    inverse_transform_matrix,
+    displacement_matrix,
+)
 
 
 class SelectionBox:
@@ -538,6 +542,21 @@ class SelectionBox:
         else:
             return None
 
+    @staticmethod
+    def _transform_points(points: numpy.ndarray, matrix: numpy.ndarray):
+        assert (
+            isinstance(points, numpy.ndarray)
+            and len(points.shape) == 2
+            and points.shape[1] == 3
+        )
+        assert isinstance(matrix, numpy.ndarray) and matrix.shape == (4, 4)
+        points_array = numpy.ones((points.shape[0], 4))
+        points_array[:, :3] = points
+        return numpy.matmul(
+            matrix,
+            points_array.T,
+        ).T[:, :3]
+
     def _iter_transformed_boxes(
         self, transform: numpy.ndarray
     ) -> Generator[
@@ -553,9 +572,11 @@ class SelectionBox:
         None,
     ]:
         """The core logic for transform and transformed_points"""
-        assert isinstance(transform, numpy.ndarray) and transform.shape == (4,4)
+        assert isinstance(transform, numpy.ndarray) and transform.shape == (4, 4)
         inverse_transform = numpy.linalg.inv(transform)
-        inverse_transform2 = numpy.linalg.inv(numpy.matmul(displacement_matrix(0.5, 0.5, 0.5), transform))
+        inverse_transform2 = numpy.linalg.inv(
+            numpy.matmul(displacement_matrix(-0.5, -0.5, -0.5), transform)
+        )
 
         def transform_box(box_: SelectionBox, transform_) -> SelectionBox:
             """transform a box and get the AABB that contains this rotated box."""
@@ -587,16 +608,18 @@ class SelectionBox:
                     # if the box is fully contained use the whole box.
                     yield box
                 else:
-                    # the location of every block in the larger AABB
-                    transformed_points = numpy.ones((box.volume, 4))
-                    transformed_points[:, :3] = numpy.transpose(numpy.mgrid[box.min_x:box.max_x, box.min_y:box.max_y, box.min_z:box.max_z], (1,2,3,0)).reshape(-1, 3)
-
                     # the original points the transformed locations relate to
-
-                    original_blocks: numpy.ndarray = numpy.matmul(
+                    original_blocks = self._transform_points(
+                        numpy.transpose(
+                            numpy.mgrid[
+                                box.min_x : box.max_x,
+                                box.min_y : box.max_y,
+                                box.min_z : box.max_z,
+                            ],
+                            (1, 2, 3, 0),
+                        ).reshape(-1, 3),
                         inverse_transform2,
-                        transformed_points.T,
-                    ).T[:, :3]
+                    )
 
                     box_shape = box.shape
                     mask: numpy.ndarray = numpy.all(
@@ -606,7 +629,7 @@ class SelectionBox:
                         axis=1,
                     ).reshape(box_shape)
 
-                    yield box, mask, original_blocks.reshape(box_shape + (3, ))
+                    yield box, mask, original_blocks.reshape(box_shape + (3,))
 
     def transformed_points(
         self, transform: numpy.ndarray
@@ -618,7 +641,21 @@ class SelectionBox:
         """
         for out in self._iter_transformed_boxes(transform):
             if isinstance(out, SelectionBox):
-                yield numpy.mgrid[out.min_x:out.max_x, out.min_y:out.max_y, out.min_z:out.max_z]
+                new_points = numpy.transpose(
+                    numpy.mgrid[
+                        out.min_x : out.max_x,
+                        out.min_y : out.max_y,
+                        out.min_z : out.max_z,
+                    ],
+                    (1, 2, 3, 0),
+                ).reshape(-1, 3)
+                old_points = self._transform_points(
+                    new_points,
+                    numpy.linalg.inv(
+                        numpy.matmul(displacement_matrix(-0.5, -0.5, -0.5), transform)
+                    ),
+                )
+                yield old_points, new_points
             elif isinstance(out, tuple):
                 box, mask, original = out
                 yield original[mask], box.min_array + numpy.argwhere(mask)
@@ -640,7 +677,9 @@ class SelectionBox:
             ).T[:, :3]
             boxes.append(SelectionBox(min_point, max_point))
         else:
-            for out in self._iter_transformed_boxes(transform_matrix(scale, rotation, translation)):
+            for out in self._iter_transformed_boxes(
+                transform_matrix(scale, rotation, translation)
+            ):
                 if isinstance(out, SelectionBox):
                     boxes.append(out)
                 elif isinstance(out, tuple):
