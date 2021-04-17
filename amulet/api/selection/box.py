@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 import numpy
 
-from typing import Tuple, Iterable, List, Generator, Optional
+from typing import Tuple, Iterable, List, Generator, Optional, Union
 
 from amulet.api.data_types import (
     BlockCoordinates,
@@ -18,7 +18,7 @@ from amulet.utils.world_utils import (
     block_coords_to_chunk_coords,
     blocks_slice_to_chunk_slice,
 )
-from amulet.utils.matrix import transform_matrix, inverse_transform_matrix
+from amulet.utils.matrix import transform_matrix, inverse_transform_matrix, displacement_matrix
 
 
 class SelectionBox:
@@ -538,6 +538,91 @@ class SelectionBox:
         else:
             return None
 
+    def _iter_transformed_boxes(
+        self, transform: numpy.ndarray
+    ) -> Generator[
+        Union[
+            SelectionBox,  # The sub-chunk box. All blocks are contained.
+            Tuple[  # The sub-chunk box is partially contained.
+                SelectionBox,  # The sub-chunk box.
+                numpy.ndarray,  # The bool array of which of the transformed blocks are contained.
+                numpy.ndarray,  # A float array of where those blocks came from.
+            ],
+        ],
+        None,
+        None,
+    ]:
+        """The core logic for transform and transformed_points"""
+        assert isinstance(transform, numpy.ndarray) and transform.shape == (4,4)
+        inverse_transform = numpy.linalg.inv(transform)
+        inverse_transform2 = numpy.linalg.inv(numpy.matmul(displacement_matrix(0.5, 0.5, 0.5), transform))
+
+        def transform_box(box_: SelectionBox, transform_) -> SelectionBox:
+            """transform a box and get the AABB that contains this rotated box."""
+
+            # find the transformed points of each of the corners
+            points = numpy.matmul(
+                transform_,
+                numpy.array(
+                    list(
+                        itertools.product(
+                            [box_.min_x, box_.max_x],
+                            [box_.min_y, box_.max_y],
+                            [box_.min_z, box_.max_z],
+                            [1],
+                        )
+                    )
+                ).T,
+            ).T[:, :3]
+            # this is a larger AABB that contains the roatated box and a bit more.
+            return SelectionBox(numpy.min(points, axis=0), numpy.max(points, axis=0))
+
+        aabb = transform_box(self, transform)
+
+        for _, box in aabb.sub_chunk_boxes():
+            original_box = transform_box(box, inverse_transform)
+            if self.intersects(original_box):
+                # if the boxes do not intersect then nothing needs doing.
+                if self.contains_box(original_box):
+                    # if the box is fully contained use the whole box.
+                    yield box
+                else:
+                    # the location of every block in the larger AABB
+                    transformed_points = numpy.ones((box.volume, 4))
+                    transformed_points[:, :3] = numpy.transpose(numpy.mgrid[box.min_x:box.max_x, box.min_y:box.max_y, box.min_z:box.max_z], (1,2,3,0)).reshape(-1, 3)
+
+                    # the original points the transformed locations relate to
+
+                    original_blocks: numpy.ndarray = numpy.matmul(
+                        inverse_transform2,
+                        transformed_points.T,
+                    ).T[:, :3]
+
+                    box_shape = box.shape
+                    mask: numpy.ndarray = numpy.all(
+                        numpy.logical_and(
+                            original_blocks < self.max, original_blocks >= self.min
+                        ),
+                        axis=1,
+                    ).reshape(box_shape)
+
+                    yield box, mask, original_blocks.reshape(box_shape + (3, ))
+
+    def transformed_points(
+        self, transform: numpy.ndarray
+    ) -> Generator[Tuple[numpy.ndarray, numpy.ndarray], None, None]:
+        """Get the locations of the transformed blocks and the source blocks they came from.
+
+        :param transform: The matrix that this box will be transformed by.
+        :return: A generator of two Nx3 numpy arrays of the source block locations and the destination block locations. The destination locations will be unique but the source may not be and some may not be included.
+        """
+        for out in self._iter_transformed_boxes(transform):
+            if isinstance(out, SelectionBox):
+                yield numpy.mgrid[out.min_x:out.max_x, out.min_y:out.max_y, out.min_z:out.max_z]
+            elif isinstance(out, tuple):
+                box, mask, original = out
+                yield original[mask], box.min_array + numpy.argwhere(mask)
+
     def transform(
         self, scale: FloatTriplet, rotation: FloatTriplet, translation: FloatTriplet
     ) -> List[SelectionBox]:
@@ -555,133 +640,72 @@ class SelectionBox:
             ).T[:, :3]
             boxes.append(SelectionBox(min_point, max_point))
         else:
-            # TODO: Find a way to do this a lot better
-            # this could be done better by finding the maximum and minimum y values of the transformed box
-            # at each location and reconstructing the box with column boxes.
-            transform = transform_matrix(scale, rotation, translation)
-            inverse_transform = inverse_transform_matrix(scale, rotation, translation)
-            tx, ty, tz = translation
-            inverse_transform2 = inverse_transform_matrix(
-                scale, rotation, (tx - 0.5, ty - 0.5, tz - 0.5)
-            )
-
-            def transform_box(box_: SelectionBox, transform_) -> SelectionBox:
-                """transform a box and get the AABB that contains this rotated box."""
-
-                # find the transformed points of each of the corners
-                points = numpy.matmul(
-                    transform_,
-                    numpy.array(
-                        list(
-                            itertools.product(
-                                [box_.min_x, box_.max_x],
-                                [box_.min_y, box_.max_y],
-                                [box_.min_z, box_.max_z],
-                                [1],
+            for out in self._iter_transformed_boxes(transform_matrix(scale, rotation, translation)):
+                if isinstance(out, SelectionBox):
+                    boxes.append(out)
+                elif isinstance(out, tuple):
+                    box, mask, _ = out
+                    box_shape = box.shape
+                    any_array: numpy.ndarray = numpy.any(mask, axis=2)
+                    box_2d_shape = numpy.array(any_array.shape)
+                    any_array_flat = any_array.ravel()
+                    start_array = numpy.argmax(mask, axis=2)
+                    stop_array = box_shape[2] - numpy.argmax(
+                        numpy.flip(mask, axis=2), axis=2
+                    )
+                    # effectively a greedy meshing algorithm in 2D
+                    index = 0
+                    while index < any_array_flat.size:
+                        # while there are unhandled true values
+                        index = numpy.argmax(any_array_flat[index:]) + index
+                        # find the first true value
+                        if any_array_flat[index]:
+                            # check that that value is actually True
+                            # create the bounds for the box
+                            min_x, min_y = max_x, max_y = numpy.unravel_index(
+                                index, box_2d_shape
                             )
-                        )
-                    ).T,
-                ).T[:, :3]
-                # this is a larger AABB that contains the roatated box and a bit more.
-                return SelectionBox(
-                    numpy.min(points, axis=0), numpy.max(points, axis=0)
-                )
-
-            aabb = transform_box(self, transform)
-
-            for _, box in aabb.sub_chunk_boxes():
-                original_box = transform_box(box, inverse_transform)
-                if self.intersects(original_box):
-                    # if the boxes do not intersect then nothing needs doing.
-                    if self.contains_box(original_box):
-                        # if the box is fully contained use the whole box.
-                        boxes.append(box)
-                    else:
-                        # do it block by block
-                        # the location of every block in the larger AABB
-                        transformed_blocks = list(box.blocks())
-
-                        # the above in an array form
-                        transformed_points = numpy.ones((len(transformed_blocks), 4))
-                        transformed_points[:, :3] = transformed_blocks
-
-                        # the original points the transformed locations relate to
-
-                        original_blocks = numpy.matmul(
-                            inverse_transform2,
-                            transformed_points.T,
-                        ).T[:, :3]
-
-                        box_shape = box.shape
-                        mask = numpy.all(
-                            numpy.logical_and(
-                                original_blocks < self.max, original_blocks >= self.min
-                            ),
-                            axis=1,
-                        ).reshape(box_shape)
-
-                        any_array: numpy.ndarray = numpy.any(mask, axis=2)
-                        box_2d_shape = numpy.array(any_array.shape)
-                        any_array_flat = any_array.ravel()
-                        start_array = numpy.argmax(mask, axis=2)
-                        stop_array = box_shape[2] - numpy.argmax(
-                            numpy.flip(mask, axis=2), axis=2
-                        )
-                        index = 0
-                        while index < any_array_flat.size:
-                            # while there are unhandled true values
-                            index = numpy.argmax(any_array_flat[index:]) + index
-                            # find the first true value
-                            if any_array_flat[index]:
-                                # check that that value is actually True
-                                # create the bounds for the box
-                                min_x, min_y = max_x, max_y = numpy.unravel_index(
-                                    index, box_2d_shape
-                                )
-                                # find the z bounds
-                                min_z = start_array[min_x, min_y]
-                                max_z = stop_array[min_x, min_y]
-                                while max_x < box_2d_shape[0] - 1:
-                                    # expand in the x while the bounds are the same
-                                    new_max_x = max_x + 1
-                                    if (
-                                        any_array[new_max_x, max_y]
-                                        and start_array[new_max_x, max_y] == min_z
-                                        and stop_array[new_max_x, max_y] == max_z
-                                    ):
-                                        # the box z values are the same
-                                        max_x = new_max_x
-                                    else:
-                                        break
-                                while max_y < box_2d_shape[1] - 1:
-                                    # expand in the y while the bounds are the same
-                                    new_max_y = max_y + 1
-                                    if (
-                                        numpy.all(
-                                            any_array[min_x : max_x + 1, new_max_y]
-                                        )
-                                        and numpy.all(
-                                            start_array[min_x : max_x + 1, new_max_y]
-                                            == min_z
-                                        )
-                                        and numpy.all(
-                                            stop_array[min_x : max_x + 1, new_max_y]
-                                            == max_z
-                                        )
-                                    ):
-                                        # the box z values are the same
-                                        max_y = new_max_y
-                                    else:
-                                        break
-                                boxes.append(
-                                    SelectionBox(
-                                        box.min_array + (min_x, min_y, min_z),
-                                        box.min_array + (max_x + 1, max_y + 1, max_z),
+                            # find the z bounds
+                            min_z = start_array[min_x, min_y]
+                            max_z = stop_array[min_x, min_y]
+                            while max_x < box_2d_shape[0] - 1:
+                                # expand in the x while the bounds are the same
+                                new_max_x = max_x + 1
+                                if (
+                                    any_array[new_max_x, max_y]
+                                    and start_array[new_max_x, max_y] == min_z
+                                    and stop_array[new_max_x, max_y] == max_z
+                                ):
+                                    # the box z values are the same
+                                    max_x = new_max_x
+                                else:
+                                    break
+                            while max_y < box_2d_shape[1] - 1:
+                                # expand in the y while the bounds are the same
+                                new_max_y = max_y + 1
+                                if (
+                                    numpy.all(any_array[min_x : max_x + 1, new_max_y])
+                                    and numpy.all(
+                                        start_array[min_x : max_x + 1, new_max_y]
+                                        == min_z
                                     )
+                                    and numpy.all(
+                                        stop_array[min_x : max_x + 1, new_max_y]
+                                        == max_z
+                                    )
+                                ):
+                                    # the box z values are the same
+                                    max_y = new_max_y
+                                else:
+                                    break
+                            boxes.append(
+                                SelectionBox(
+                                    box.min_array + (min_x, min_y, min_z),
+                                    box.min_array + (max_x + 1, max_y + 1, max_z),
                                 )
-                                any_array[min_x : max_x + 1, min_y : max_y + 1] = False
-                            else:
-                                # If there are no more True values argmax will return 0
-                                break
-
+                            )
+                            any_array[min_x : max_x + 1, min_y : max_y + 1] = False
+                        else:
+                            # If there are no more True values argmax will return 0
+                            break
         return boxes
