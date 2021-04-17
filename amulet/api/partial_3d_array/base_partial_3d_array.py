@@ -4,7 +4,7 @@ import numpy
 import copy
 
 from .util import get_sanitised_sliced_array_size
-from .data_types import DtypeType, UnpackedSlicesType
+from .data_types import DtypeType, UnpackedSlicesType, IntegerType
 
 if TYPE_CHECKING:
     from .unbounded_partial_3d_array import UnboundedPartial3DArray
@@ -12,6 +12,8 @@ if TYPE_CHECKING:
 
 class BasePartial3DArray:
     """Do not use this class directly. Use UnboundedPartial3DArray or BoundedPartial3DArray"""
+
+    _sections: Dict[int, numpy.ndarray]
 
     def __init__(
         self,
@@ -45,7 +47,7 @@ class BasePartial3DArray:
 
         if parent_array is None:
             # populate from sections
-            self._sections: Dict[int, numpy.ndarray] = sections or {}
+            self._sections = sections or {}
             for key, section in self._sections.items():
                 assert isinstance(key, int), "All keys must be ints"
                 assert (
@@ -179,7 +181,7 @@ class BasePartial3DArray:
     def section_shape(self) -> Tuple[int, int, int]:
         return self._section_shape
 
-    def _section_index(self, y: int) -> Tuple[int, int]:
+    def _section_index(self, y: IntegerType) -> Tuple[IntegerType, IntegerType]:
         """Get the section index and location within the section of an absolute y coordinate"""
         return y // self.section_shape[1], y % self.section_shape[1]
 
