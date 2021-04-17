@@ -74,6 +74,7 @@ def clone(
     :return: A generator of floats from 0 to 1 with the progress of the paste operation.
     """
     location = tuple(location)
+    src_selection = src_selection.merge_boxes()
     if include_blocks or include_entities:
         # we actually have to do something
         if isinstance(src_structure, amulet.api.level.World):
@@ -112,13 +113,6 @@ def clone(
             )
             inverse_transform = numpy.linalg.inv(transform)
 
-            dst_selection = (
-                src_selection.transform((1, 1, 1), (0, 0, 0), tuple(-rotation_point))
-                .transform(scale, rotation_radians, location)
-                .intersection(dst_selection_bounds)
-            )
-
-            volume = dst_selection.volume
             index = 0
 
             last_src_cx: Optional[int] = None
@@ -135,80 +129,73 @@ def clone(
             # TODO: find a way to do this without doing it block by block
             if include_blocks:
                 blocks_to_skip = set(skip_blocks)
-                for box in dst_selection.selection_boxes:
-                    dst_coords = list(box.blocks())
-                    coords_array = numpy.ones((len(dst_coords), 4), dtype=numpy.float)
-                    coords_array[:, :3] = dst_coords
-                    coords_array[:, :3] += 0.5
-                    src_coords = (
-                        numpy.floor(numpy.matmul(inverse_transform, coords_array.T))
-                        .astype(int)
-                        .T[:, :3]
-                    )
-                    for (dst_x, dst_y, dst_z), (src_x, src_y, src_z) in zip(
-                        dst_coords, src_coords
-                    ):
-                        src_cx, src_cz = (src_x >> 4, src_z >> 4)
-                        if (src_cx, src_cz) != (last_src_cx, last_src_cz):
-                            last_src_cx = src_cx
-                            last_src_cz = src_cz
-                            try:
-                                src_chunk = src_structure.get_chunk(
-                                    src_cx, src_cz, src_dimension
-                                )
-                            except ChunkLoadError:
-                                src_chunk = None
-
-                        dst_cx, dst_cz = (dst_x >> 4, dst_z >> 4)
-                        if (dst_cx, dst_cz) != (last_dst_cx, last_dst_cz):
-                            last_dst_cx = dst_cx
-                            last_dst_cz = dst_cz
-                            try:
-                                dst_chunk = dst_structure.get_chunk(
-                                    dst_cx, dst_cz, dst_dimension
-                                )
-                            except ChunkDoesNotExist:
-                                dst_chunk = dst_structure.create_chunk(
-                                    dst_cx, dst_cz, dst_dimension
-                                )
-                            except ChunkLoadError:
-                                dst_chunk = None
-
-                        if dst_chunk is not None:
-                            if (dst_x, dst_y, dst_z) in dst_chunk.block_entities:
-                                del dst_chunk.block_entities[(dst_x, dst_y, dst_z)]
-                            if src_chunk is None:
-                                if UniversalAirBlock not in blocks_to_skip:
-                                    dst_chunk.blocks[
-                                        dst_x % 16, dst_y, dst_z % 16
-                                    ] = dst_chunk.block_palette.get_add_block(
-                                        UniversalAirBlock
+                for box in src_selection.selection_boxes:
+                    for src_coords, dst_coords in box.transformed_points(transform):
+                        src_coords = numpy.floor(src_coords).astype(int)
+                        for (dst_x, dst_y, dst_z), (src_x, src_y, src_z) in zip(
+                            dst_coords, src_coords
+                        ):
+                            src_cx, src_cz = (src_x >> 4, src_z >> 4)
+                            if (src_cx, src_cz) != (last_src_cx, last_src_cz):
+                                last_src_cx = src_cx
+                                last_src_cz = src_cz
+                                try:
+                                    src_chunk = src_structure.get_chunk(
+                                        src_cx, src_cz, src_dimension
                                     )
-                            else:
-                                # TODO implement support for individual block rotation
-                                block = src_chunk.block_palette[
-                                    src_chunk.blocks[src_x % 16, src_y, src_z % 16]
-                                ]
-                                if not is_sub_block(skip_blocks, block):
-                                    dst_chunk.blocks[
-                                        dst_x % 16, dst_y, dst_z % 16
-                                    ] = dst_chunk.block_palette.get_add_block(block)
-                                    if (
-                                        src_x,
-                                        src_y,
-                                        src_z,
-                                    ) in src_chunk.block_entities:
-                                        dst_chunk.block_entities[
-                                            (dst_x, dst_y, dst_z)
-                                        ] = src_chunk.block_entities[
-                                            (src_x, src_y, src_z)
-                                        ].new_at_location(
-                                            dst_x, dst_y, dst_z
-                                        )
-                            dst_chunk.changed = True
+                                except ChunkLoadError:
+                                    src_chunk = None
 
-                        yield index / volume
-                        index += 1
+                            dst_cx, dst_cz = (dst_x >> 4, dst_z >> 4)
+                            if (dst_cx, dst_cz) != (last_dst_cx, last_dst_cz):
+                                last_dst_cx = dst_cx
+                                last_dst_cz = dst_cz
+                                try:
+                                    dst_chunk = dst_structure.get_chunk(
+                                        dst_cx, dst_cz, dst_dimension
+                                    )
+                                except ChunkDoesNotExist:
+                                    dst_chunk = dst_structure.create_chunk(
+                                        dst_cx, dst_cz, dst_dimension
+                                    )
+                                except ChunkLoadError:
+                                    dst_chunk = None
+
+                            if dst_chunk is not None:
+                                if (dst_x, dst_y, dst_z) in dst_chunk.block_entities:
+                                    del dst_chunk.block_entities[(dst_x, dst_y, dst_z)]
+                                if src_chunk is None:
+                                    if UniversalAirBlock not in blocks_to_skip:
+                                        dst_chunk.blocks[
+                                            dst_x % 16, dst_y, dst_z % 16
+                                        ] = dst_chunk.block_palette.get_add_block(
+                                            UniversalAirBlock
+                                        )
+                                else:
+                                    # TODO implement support for individual block rotation
+                                    block = src_chunk.block_palette[
+                                        src_chunk.blocks[src_x % 16, src_y, src_z % 16]
+                                    ]
+                                    if not is_sub_block(skip_blocks, block):
+                                        dst_chunk.blocks[
+                                            dst_x % 16, dst_y, dst_z % 16
+                                        ] = dst_chunk.block_palette.get_add_block(block)
+                                        if (
+                                            src_x,
+                                            src_y,
+                                            src_z,
+                                        ) in src_chunk.block_entities:
+                                            dst_chunk.block_entities[
+                                                (dst_x, dst_y, dst_z)
+                                            ] = src_chunk.block_entities[
+                                                (src_x, src_y, src_z)
+                                            ].new_at_location(
+                                                dst_x, dst_y, dst_z
+                                            )
+                                dst_chunk.changed = True
+
+                            # yield index / volume
+                            index += 1
 
         else:
             # the transform from the structure location to the world location
