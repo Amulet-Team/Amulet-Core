@@ -20,7 +20,6 @@ from amulet.utils.world_utils import (
 )
 from amulet.utils.matrix import (
     transform_matrix,
-    inverse_transform_matrix,
     displacement_matrix,
 )
 
@@ -580,13 +579,14 @@ class SelectionBox:
     def _iter_transformed_boxes(
         self, transform: numpy.ndarray
     ) -> Generator[
-        Union[
-            SelectionBox,  # The sub-chunk box. All blocks are contained.
-            Tuple[  # The sub-chunk box is partially contained.
-                SelectionBox,  # The sub-chunk box.
+        Tuple[
+            float,  # progress
+            SelectionBox,  # The sub-chunk box.
+            Union[
                 numpy.ndarray,  # The bool array of which of the transformed blocks are contained.
-                numpy.ndarray,  # A float array of where those blocks came from.
+                bool,  # If True all blocks are contained, if False no blocks are contained.
             ],
+            Optional[numpy.ndarray],  # A float array of where those blocks came from.
         ],
         None,
         None,
@@ -619,14 +619,17 @@ class SelectionBox:
             return SelectionBox(numpy.min(points, axis=0), numpy.max(points, axis=0))
 
         aabb = transform_box(self, transform)
+        count = aabb.sub_chunk_count()
+        index = 0
 
         for _, box in aabb.sub_chunk_boxes():
+            index += 1
             original_box = transform_box(box, inverse_transform)
             if self.intersects(original_box):
                 # if the boxes do not intersect then nothing needs doing.
                 if self.contains_box(original_box):
                     # if the box is fully contained use the whole box.
-                    yield box
+                    yield index / count, box, True, None
                 else:
                     # the original points the transformed locations relate to
                     original_blocks = self._transform_points(
@@ -649,23 +652,31 @@ class SelectionBox:
                         axis=1,
                     ).reshape(box_shape)
 
-                    yield box, mask, original_blocks.reshape(box_shape + (3,))
+                    yield index / count, box, mask, original_blocks.reshape(
+                        box_shape + (3,)
+                    )
+            else:
+                yield index / count, box, False, None
 
     def transformed_points(
         self, transform: numpy.ndarray
-    ) -> Generator[Tuple[numpy.ndarray, numpy.ndarray], None, None]:
+    ) -> Generator[
+        Tuple[float, Optional[numpy.ndarray], Optional[numpy.ndarray]],
+        None,
+        None,
+    ]:
         """Get the locations of the transformed blocks and the source blocks they came from.
 
         :param transform: The matrix that this box will be transformed by.
         :return: A generator of two Nx3 numpy arrays of the source block locations and the destination block locations. The destination locations will be unique but the source may not be and some may not be included.
         """
-        for out in self._iter_transformed_boxes(transform):
-            if isinstance(out, SelectionBox):
+        for progress, box, mask, original in self._iter_transformed_boxes(transform):
+            if isinstance(mask, bool) and mask:
                 new_points = numpy.transpose(
                     numpy.mgrid[
-                        out.min_x : out.max_x,
-                        out.min_y : out.max_y,
-                        out.min_z : out.max_z,
+                        box.min_x : box.max_x,
+                        box.min_y : box.max_y,
+                        box.min_z : box.max_z,
                     ],
                     (1, 2, 3, 0),
                 ).reshape(-1, 3)
@@ -675,11 +686,11 @@ class SelectionBox:
                         numpy.matmul(displacement_matrix(-0.5, -0.5, -0.5), transform)
                     ),
                 )
-                yield old_points, new_points
-            elif isinstance(out, tuple):
-                box, mask, original = out
-                if numpy.any(mask):
-                    yield original[mask], box.min_array + numpy.argwhere(mask)
+                yield progress, old_points, new_points
+            elif isinstance(mask, numpy.ndarray) and numpy.any(mask):
+                yield progress, original[mask], box.min_array + numpy.argwhere(mask)
+            else:
+                yield progress, None, None
 
     def transform(
         self, scale: FloatTriplet, rotation: FloatTriplet, translation: FloatTriplet
@@ -698,13 +709,13 @@ class SelectionBox:
             ).T[:, :3]
             boxes.append(SelectionBox(min_point, max_point))
         else:
-            for out in self._iter_transformed_boxes(
+            for _, box, mask, _ in self._iter_transformed_boxes(
                 transform_matrix(scale, rotation, translation)
             ):
-                if isinstance(out, SelectionBox):
-                    boxes.append(out)
-                elif isinstance(out, tuple):
-                    box, mask, _ = out
+                if isinstance(mask, bool):
+                    if mask:
+                        boxes.append(box)
+                else:
                     box_shape = box.shape
                     any_array: numpy.ndarray = numpy.any(mask, axis=2)
                     box_2d_shape = numpy.array(any_array.shape)
