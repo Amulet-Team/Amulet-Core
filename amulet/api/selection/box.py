@@ -658,7 +658,8 @@ class SelectionBox:
                 yield old_points, new_points
             elif isinstance(out, tuple):
                 box, mask, original = out
-                yield original[mask], box.min_array + numpy.argwhere(mask)
+                if numpy.any(mask):
+                    yield original[mask], box.min_array + numpy.argwhere(mask)
 
     def transform(
         self, scale: FloatTriplet, rotation: FloatTriplet, translation: FloatTriplet
