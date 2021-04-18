@@ -151,7 +151,10 @@ def clone(
 
                         # split the src coords into which sub-chunks they came from
                         unique_chunks, inverse, counts = numpy.unique(
-                            src_chunk_coords, return_inverse=True, return_counts=True, axis=0
+                            src_chunk_coords,
+                            return_inverse=True,
+                            return_counts=True,
+                            axis=0,
                         )
                         chunk_indexes = numpy.argsort(inverse)
                         src_block_locations = numpy.split(
@@ -160,7 +163,9 @@ def clone(
                         dst_block_locations = numpy.split(
                             dst_coords[chunk_indexes], numpy.cumsum(counts)[:-1]
                         )
-                        for chunk_location, src_blocks, dst_blocks in zip(unique_chunks, src_block_locations, dst_block_locations):
+                        for chunk_location, src_blocks, dst_blocks in zip(
+                            unique_chunks, src_block_locations, dst_block_locations
+                        ):
                             # for each src sub-chunk
                             src_cx, src_cy, src_sz = chunk_location
                             if (src_cx, src_sz) != (last_src_cx, last_src_cz):
@@ -176,7 +181,9 @@ def clone(
                             if dst_chunk is not None:
                                 if src_chunk is not None and src_cy in src_chunk.blocks:
                                     # TODO implement support for individual block rotation
-                                    block_ids = src_chunk.blocks.get_sub_chunk(src_cy)[tuple(src_blocks.T % 16)]
+                                    block_ids = src_chunk.blocks.get_sub_chunk(src_cy)[
+                                        tuple(src_blocks.T % 16)
+                                    ]
 
                                     for block_id in numpy.unique(block_ids):
                                         block = src_chunk.block_palette[block_id]
@@ -184,14 +191,27 @@ def clone(
                                             mask = block_ids == block_id
                                             dst_blocks_ = dst_blocks[mask]
 
-                                            dst_chunk.blocks.get_sub_chunk(dst_cy)[tuple(dst_blocks_.T % 16)] = dst_chunk.block_palette.get_add_block(block)
+                                            dst_chunk.blocks.get_sub_chunk(dst_cy)[
+                                                tuple(dst_blocks_.T % 16)
+                                            ] = dst_chunk.block_palette.get_add_block(
+                                                block
+                                            )
 
                                             src_blocks_ = src_blocks[mask]
-                                            for src_location, dst_location in zip(src_blocks_, dst_blocks_):
-                                                src_location = tuple(src_location.tolist())
-                                                dst_location = tuple(dst_location.tolist())
+                                            for src_location, dst_location in zip(
+                                                src_blocks_, dst_blocks_
+                                            ):
+                                                src_location = tuple(
+                                                    src_location.tolist()
+                                                )
+                                                dst_location = tuple(
+                                                    dst_location.tolist()
+                                                )
 
-                                                if src_location in src_chunk.block_entities:
+                                                if (
+                                                    src_location
+                                                    in src_chunk.block_entities
+                                                ):
                                                     dst_chunk.block_entities[
                                                         dst_location
                                                     ] = src_chunk.block_entities[
@@ -199,8 +219,13 @@ def clone(
                                                     ].new_at_location(
                                                         *dst_location
                                                     )
-                                                elif dst_location in dst_chunk.block_entities:
-                                                    del dst_chunk.block_entities[dst_location]
+                                                elif (
+                                                    dst_location
+                                                    in dst_chunk.block_entities
+                                                ):
+                                                    del dst_chunk.block_entities[
+                                                        dst_location
+                                                    ]
 
                                             dst_chunk.changed = True
                                 elif UniversalAirBlock not in blocks_to_skip:
