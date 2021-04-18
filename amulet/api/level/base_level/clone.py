@@ -126,73 +126,95 @@ def clone(
                 Chunk
             ] = None  # None here means the chunk failed to load. Do not modify it.
 
-            # TODO: find a way to do this without doing it block by block
             if include_blocks:
                 blocks_to_skip = set(skip_blocks)
                 for box in src_selection.selection_boxes:
                     for src_coords, dst_coords in box.transformed_points(transform):
+                        dst_cx, dst_cy, dst_cz = dst_coords[0] >> 4
+                        if (dst_cx, dst_cz) != (last_dst_cx, last_dst_cz):
+                            last_dst_cx = dst_cx
+                            last_dst_cz = dst_cz
+                            try:
+                                dst_chunk = dst_structure.get_chunk(
+                                    dst_cx, dst_cz, dst_dimension
+                                )
+                            except ChunkDoesNotExist:
+                                dst_chunk = dst_structure.create_chunk(
+                                    dst_cx, dst_cz, dst_dimension
+                                )
+                            except ChunkLoadError:
+                                dst_chunk = None
+
                         src_coords = numpy.floor(src_coords).astype(int)
-                        for (dst_x, dst_y, dst_z), (src_x, src_y, src_z) in zip(
-                            dst_coords, src_coords
-                        ):
-                            src_cx, src_cz = (src_x >> 4, src_z >> 4)
-                            if (src_cx, src_cz) != (last_src_cx, last_src_cz):
+                        # due to how the coords are found dst_coords will all be in the same sub-chunk
+                        src_chunk_coords = src_coords >> 4
+
+                        # split the src coords into which sub-chunks they came from
+                        unique_chunks, inverse, counts = numpy.unique(
+                            src_chunk_coords, return_inverse=True, return_counts=True, axis=0
+                        )
+                        chunk_indexes = numpy.argsort(inverse)
+                        src_block_locations = numpy.split(
+                            src_coords[chunk_indexes], numpy.cumsum(counts)[:-1]
+                        )
+                        dst_block_locations = numpy.split(
+                            dst_coords[chunk_indexes], numpy.cumsum(counts)[:-1]
+                        )
+                        for chunk_location, src_blocks, dst_blocks in zip(unique_chunks, src_block_locations, dst_block_locations):
+                            # for each src sub-chunk
+                            src_cx, src_cy, src_sz = chunk_location
+                            if (src_cx, src_sz) != (last_src_cx, last_src_cz):
                                 last_src_cx = src_cx
-                                last_src_cz = src_cz
+                                last_src_cz = src_sz
                                 try:
                                     src_chunk = src_structure.get_chunk(
-                                        src_cx, src_cz, src_dimension
+                                        last_src_cx, last_src_cz, src_dimension
                                     )
                                 except ChunkLoadError:
                                     src_chunk = None
 
-                            dst_cx, dst_cz = (dst_x >> 4, dst_z >> 4)
-                            if (dst_cx, dst_cz) != (last_dst_cx, last_dst_cz):
-                                last_dst_cx = dst_cx
-                                last_dst_cz = dst_cz
-                                try:
-                                    dst_chunk = dst_structure.get_chunk(
-                                        dst_cx, dst_cz, dst_dimension
-                                    )
-                                except ChunkDoesNotExist:
-                                    dst_chunk = dst_structure.create_chunk(
-                                        dst_cx, dst_cz, dst_dimension
-                                    )
-                                except ChunkLoadError:
-                                    dst_chunk = None
-
                             if dst_chunk is not None:
-                                if (dst_x, dst_y, dst_z) in dst_chunk.block_entities:
-                                    del dst_chunk.block_entities[(dst_x, dst_y, dst_z)]
                                 if src_chunk is None:
                                     if UniversalAirBlock not in blocks_to_skip:
-                                        dst_chunk.blocks[
-                                            dst_x % 16, dst_y, dst_z % 16
+                                        dst_chunk.blocks.get_sub_chunk(dst_cy)[
+                                            dst_blocks % 16
                                         ] = dst_chunk.block_palette.get_add_block(
                                             UniversalAirBlock
                                         )
+                                        for location in dst_blocks:
+                                            location = tuple(location.tolist())
+                                            if location in dst_chunk.block_entities:
+                                                del dst_chunk.block_entities[location]
+                                        dst_chunk.changed = True
                                 else:
                                     # TODO implement support for individual block rotation
-                                    block = src_chunk.block_palette[
-                                        src_chunk.blocks[src_x % 16, src_y, src_z % 16]
-                                    ]
-                                    if not is_sub_block(skip_blocks, block):
-                                        dst_chunk.blocks[
-                                            dst_x % 16, dst_y, dst_z % 16
-                                        ] = dst_chunk.block_palette.get_add_block(block)
-                                        if (
-                                            src_x,
-                                            src_y,
-                                            src_z,
-                                        ) in src_chunk.block_entities:
-                                            dst_chunk.block_entities[
-                                                (dst_x, dst_y, dst_z)
-                                            ] = src_chunk.block_entities[
-                                                (src_x, src_y, src_z)
-                                            ].new_at_location(
-                                                dst_x, dst_y, dst_z
-                                            )
-                                dst_chunk.changed = True
+                                    block_ids = src_chunk.blocks.get_sub_chunk(src_cy)[tuple(src_blocks.T % 16)]
+
+                                    for block_id in numpy.unique(block_ids):
+                                        block = src_chunk.block_palette[block_id]
+                                        if not is_sub_block(skip_blocks, block):
+                                            mask = block_ids == block_id
+                                            dst_blocks_ = dst_blocks[mask]
+
+                                            dst_chunk.blocks.get_sub_chunk(dst_cy)[tuple(dst_blocks_.T % 16)] = dst_chunk.block_palette.get_add_block(block)
+
+                                            src_blocks_ = src_blocks[mask]
+                                            for src_location, dst_location in zip(src_blocks_, dst_blocks_):
+                                                src_location = tuple(src_location.tolist())
+                                                dst_location = tuple(dst_location.tolist())
+
+                                                if src_location in src_chunk.block_entities:
+                                                    dst_chunk.block_entities[
+                                                        dst_location
+                                                    ] = src_chunk.block_entities[
+                                                        src_location
+                                                    ].new_at_location(
+                                                        *dst_location
+                                                    )
+                                                elif dst_location in dst_chunk.block_entities:
+                                                    del dst_chunk.block_entities[dst_location]
+
+                                            dst_chunk.changed = True
 
                             # yield index / volume
                             index += 1
