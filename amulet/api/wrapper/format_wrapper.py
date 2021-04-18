@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from typing import Tuple, Any, Generator, Dict, List, Optional, TYPE_CHECKING
 import copy
 import numpy
@@ -36,7 +37,7 @@ DefaultPlatform = "Unknown Platform"
 DefaultVersion = (0, 0, 0)
 
 
-class FormatWrapper:
+class FormatWrapper(ABC):
     """
     The Format class is a class that sits between the serialised world or structure data and the program using amulet-core.
     The Format class is used to access chunks from the serialised source in the universal format and write them back again.
@@ -47,10 +48,6 @@ class FormatWrapper:
     _version: VersionNumberAny
 
     def __init__(self, path: str):
-        if not issubclass(self.__class__, FormatWrapper):
-            raise Exception(
-                "FormatWrapper is not directly usable. One of its subclasses must be used."
-            )
         self._path = path
         self._is_open = False
         self._has_lock = False
@@ -72,6 +69,7 @@ class FormatWrapper:
         return self._path
 
     @property
+    @abstractmethod
     def world_name(self) -> str:
         """The name of the world"""
         raise NotImplementedError
@@ -94,6 +92,7 @@ class FormatWrapper:
         return os.path.exists(self.path)
 
     @staticmethod
+    @abstractmethod
     def is_valid(path: str) -> bool:
         """
         Returns whether this format is able to load the given object.
@@ -104,6 +103,7 @@ class FormatWrapper:
         raise NotImplementedError
 
     @property
+    @abstractmethod
     def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
         """The valid platform and version combinations that this object can accept.
         This is used when setting the platform and version in the create_and_open method
@@ -134,16 +134,19 @@ class FormatWrapper:
         return self._changed
 
     @property
+    @abstractmethod
     def dimensions(self) -> List[Dimension]:
         """A list of all the dimensions contained in the world"""
         raise NotImplementedError
 
     @property
+    @abstractmethod
     def can_add_dimension(self) -> bool:
         """Can external code register a new dimension.
         If False register_dimension will have no effect."""
         raise NotImplementedError
 
+    @abstractmethod
     def register_dimension(self, dimension_internal: Any, dimension_name: Dimension):
         """
         Register a new dimension.
@@ -170,6 +173,7 @@ class FormatWrapper:
         """The area that all chunk data must fit within."""
         return self._selection.copy()
 
+    @abstractmethod
     def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> "Interface":
         raise NotImplementedError
 
@@ -244,6 +248,7 @@ class FormatWrapper:
         self._is_open = True
         self._has_lock = True
 
+    @abstractmethod
     def _create(self, overwrite: bool, **kwargs):
         """Set up the database from scratch."""
         raise NotImplementedError
@@ -256,6 +261,7 @@ class FormatWrapper:
         self._is_open = True
         self._has_lock = True
 
+    @abstractmethod
     def _open(self):
         raise NotImplementedError
 
@@ -303,6 +309,7 @@ class FormatWrapper:
         self._save()
         self._changed = False
 
+    @abstractmethod
     def _save(self):
         raise NotImplementedError
 
@@ -313,19 +320,23 @@ class FormatWrapper:
             self._has_lock = False
             self._close()
 
+    @abstractmethod
     def _close(self):
         raise NotImplementedError
 
+    @abstractmethod
     def unload(self):
         """Unload data stored in the Format class"""
         raise NotImplementedError
 
+    @abstractmethod
     def all_chunk_coords(
         self, dimension: Dimension
     ) -> Generator[ChunkCoordinates, None, None]:
         """A generator of all chunk coords in the given dimension"""
         raise NotImplementedError
 
+    @abstractmethod
     def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
         """Does the chunk exist in the world database?
 
@@ -533,6 +544,7 @@ class FormatWrapper:
         self._delete_chunk(cx, cz, dimension)
         self._changed = True
 
+    @abstractmethod
     def _delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         raise NotImplementedError
 
@@ -543,6 +555,7 @@ class FormatWrapper:
         self._verify_has_lock()
         self._put_raw_chunk_data(cx, cz, data, dimension)
 
+    @abstractmethod
     def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
         """
         Actually stores the data from the interface to disk.
@@ -561,6 +574,7 @@ class FormatWrapper:
         self._verify_has_lock()
         return self._get_raw_chunk_data(cx, cz, dimension)
 
+    @abstractmethod
     def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> Any:
         """
         Return the raw data as loaded from disk.
