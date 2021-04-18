@@ -100,9 +100,9 @@ class AnvilFormat(WorldFormatWrapper):
 
     @root_tag.setter
     def root_tag(self, root_tag: Union[nbt.NBTFile, nbt.TAG_Compound]):
-        if type(root_tag) is nbt.TAG_Compound:
+        if isinstance(root_tag, nbt.TAG_Compound):
             self._root_tag = nbt.NBTFile(root_tag)
-        elif type(root_tag) is nbt.NBTFile:
+        elif isinstance(root_tag, nbt.NBTFile):
             self._root_tag = root_tag
         else:
             raise ValueError("root_tag must be a TAG_Compound or NBTFile")
