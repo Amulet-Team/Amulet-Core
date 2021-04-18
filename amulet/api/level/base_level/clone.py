@@ -174,19 +174,7 @@ def clone(
                                     src_chunk = None
 
                             if dst_chunk is not None:
-                                if src_chunk is None:
-                                    if UniversalAirBlock not in blocks_to_skip:
-                                        dst_chunk.blocks.get_sub_chunk(dst_cy)[
-                                            dst_blocks % 16
-                                        ] = dst_chunk.block_palette.get_add_block(
-                                            UniversalAirBlock
-                                        )
-                                        for location in dst_blocks:
-                                            location = tuple(location.tolist())
-                                            if location in dst_chunk.block_entities:
-                                                del dst_chunk.block_entities[location]
-                                        dst_chunk.changed = True
-                                else:
+                                if src_chunk is not None and src_cy in src_chunk.blocks:
                                     # TODO implement support for individual block rotation
                                     block_ids = src_chunk.blocks.get_sub_chunk(src_cy)[tuple(src_blocks.T % 16)]
 
@@ -215,6 +203,17 @@ def clone(
                                                     del dst_chunk.block_entities[dst_location]
 
                                             dst_chunk.changed = True
+                                elif UniversalAirBlock not in blocks_to_skip:
+                                    dst_chunk.blocks.get_sub_chunk(dst_cy)[
+                                        dst_blocks % 16
+                                    ] = dst_chunk.block_palette.get_add_block(
+                                        UniversalAirBlock
+                                    )
+                                    for location in dst_blocks:
+                                        location = tuple(location.tolist())
+                                        if location in dst_chunk.block_entities:
+                                            del dst_chunk.block_entities[location]
+                                    dst_chunk.changed = True
 
                             # yield index / volume
                             index += 1
