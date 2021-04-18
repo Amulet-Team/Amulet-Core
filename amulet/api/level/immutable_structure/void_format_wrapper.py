@@ -11,6 +11,10 @@ if TYPE_CHECKING:
 class VoidFormatWrapper(FormatWrapper):
     """There is no actual database here for chunks to be read from or written to. This is just here to make the world happy."""
 
+    @property
+    def world_name(self) -> str:
+        return "Void"
+
     @staticmethod
     def is_valid(path: str) -> bool:
         return False
