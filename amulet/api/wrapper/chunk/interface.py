@@ -8,11 +8,7 @@ from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
 from amulet.api.data_types import AnyNDArray
 import amulet_nbt
-from amulet_nbt import (
-    TAG_List,
-    TAG_Compound,
-    AnyNBT,
-)
+from amulet_nbt import TAG_List, TAG_Compound, AnyNBT
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
@@ -296,7 +292,7 @@ class Interface:
     @staticmethod
     def check_type(obj: TAG_Compound, key: str, dtype: Type[AnyNBT]) -> bool:
         """Check the key exists and the type is correct."""
-        return key in obj and type(obj[key]) is dtype
+        return key in obj and isinstance(obj[key], dtype)
 
     @overload
     def get_obj(
@@ -331,7 +327,7 @@ class Interface:
         :return: The final value in the key.
         """
         if key in obj:
-            if type(obj[key]) is dtype:
+            if isinstance(obj[key], dtype):
                 # if it exists and is correct
                 return obj.pop(key)
         if default is None:
@@ -354,11 +350,11 @@ class Interface:
         :param default: The default value to use if the existing is not valid. If None will use dtype()
         :return: The final value in the key.
         """
-        if key not in obj or type(obj[key]) is not dtype:
+        if key not in obj or not isinstance(obj[key], dtype):
             if default is None:
                 obj[key] = dtype()
             else:
-                assert type(default) is dtype
+                assert isinstance(default, dtype)
                 obj[key] = default
         return obj[key]
 

@@ -519,12 +519,12 @@ class SelectionBox:
         """
         # Logic based on https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
         for obj in (origin, vector):
-            if type(obj) in (tuple, list):
+            if isinstance(obj, (tuple, list)):
                 if len(obj) != 3 or not all(type(o) in (int, float) for o in obj):
                     raise ValueError(
                         "Given tuple/list type must contain three ints or floats."
                     )
-            elif type(obj) is numpy.ndarray:
+            elif isinstance(obj, numpy.ndarray):
                 if obj.shape != (3,) and numpy.issubdtype(obj.dtype, numpy.number):
                     raise ValueError(
                         "Given ndarray type must have a numerical data type with length three."
@@ -532,8 +532,7 @@ class SelectionBox:
         vector = numpy.array(vector)
         vector[abs(vector) < 0.000001] = 0.000001
         (tmin, tymin, tzmin), (tmax, tymax, tzmax) = numpy.sort(
-            (self.bounds_array - numpy.array(origin)) / numpy.array(vector),
-            axis=0,
+            (self.bounds_array - numpy.array(origin)) / numpy.array(vector), axis=0
         )
 
         if tmin > tymax or tymin > tmax:
