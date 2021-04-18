@@ -12,3 +12,4 @@ FlexibleSlicesType = Tuple[
 DtypeType = Union[Type[numpy.dtype], Type[bool]]
 
 Integer = (int, numpy.integer)
+IntegerType = Union[int, numpy.integer]

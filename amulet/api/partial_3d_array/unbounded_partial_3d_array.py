@@ -4,7 +4,7 @@ import math
 
 from .base_partial_3d_array import BasePartial3DArray
 from .util import sanitise_slice, to_slice, unpack_slice, sanitise_unbounded_slice
-from .data_types import DtypeType
+from .data_types import DtypeType, Integer, IntegerType
 
 
 class UnboundedPartial3DArray(BasePartial3DArray):
@@ -54,20 +54,20 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         """An iterable of the section indexes that exist"""
         return self._sections.keys()
 
-    def create_section(self, sy: int):
-        self._sections[sy] = numpy.full(
+    def create_section(self, sy: IntegerType):
+        self._sections[int(sy)] = numpy.full(
             self.section_shape, self.default_value, dtype=self._dtype
         )
 
-    def add_section(self, sy: int, section: numpy.ndarray):
+    def add_section(self, sy: IntegerType, section: numpy.ndarray):
         assert (
             section.shape == self._section_shape
         ), "The size of all sections must be equal to the section_shape."
         if section.dtype != self._dtype:
             section = section.astype(self._dtype)
-        self._sections[sy] = section
+        self._sections[int(sy)] = section
 
-    def get_section(self, sy: int) -> numpy.ndarray:
+    def get_section(self, sy: Union[int, numpy.integer]) -> numpy.ndarray:
         """Get the section ndarray for a given section index.
         :param sy: The section y index
         :return: Numpy array for this section
@@ -75,29 +75,36 @@ class UnboundedPartial3DArray(BasePartial3DArray):
             KeyError: if no section exists with this index
         """
         if sy not in self._sections:
-            self.create_section(sy)
+            self.create_section(int(sy))
         return self._sections[sy]
 
     def __setitem__(
         self,
-        slices: Tuple[Union[int, slice], Union[int, slice], Union[int, slice]],
+        slices: Tuple[
+            Union[IntegerType, slice],
+            Union[IntegerType, slice],
+            Union[IntegerType, slice],
+        ],
         value: Union[int, numpy.integer, numpy.ndarray],
     ):
-        if isinstance(value, (int, numpy.integer)) and all(
-            isinstance(s, (int, numpy.integer)) for s in slices
-        ):
+        if isinstance(value, Integer) and all(isinstance(s, Integer) for s in slices):
             sy, dy = self._section_index(slices[1])
             self.get_section(sy)[(slices[0], dy, slices[2])] = value
         else:
             self[slices][:, :, :] = value
 
     @overload
-    def __getitem__(self, slices: Tuple[int, int, int]) -> int:
+    def __getitem__(self, slices: Tuple[IntegerType, IntegerType, IntegerType]) -> int:
         ...
 
     @overload
     def __getitem__(
-        self, slices: Tuple[Union[int, slice], Union[int, slice], Union[int, slice]]
+        self,
+        slices: Tuple[
+            Union[IntegerType, slice],
+            Union[IntegerType, slice],
+            Union[IntegerType, slice],
+        ],
     ) -> "BoundedPartial3DArray":
         ...
 
@@ -105,7 +112,7 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         if isinstance(item, tuple):
             if len(item) != 3:
                 raise KeyError(f"Tuple item must be of length 3, got {len(item)}")
-            if all(isinstance(i, (int, numpy.integer)) for i in item):
+            if all(isinstance(i, Integer) for i in item):
                 sy = item[1] // self.section_shape[1]
                 if sy in self:
                     return int(

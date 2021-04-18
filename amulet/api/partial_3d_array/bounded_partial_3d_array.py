@@ -2,7 +2,13 @@ from typing import overload, Tuple, Union, Optional, Generator
 import numpy
 import math
 
-from .data_types import SliceSlicesType, UnpackedSlicesType, DtypeType
+from .data_types import (
+    SliceSlicesType,
+    UnpackedSlicesType,
+    DtypeType,
+    Integer,
+    IntegerType,
+)
 from .base_partial_3d_array import BasePartial3DArray
 from .unbounded_partial_3d_array import UnboundedPartial3DArray
 from .util import to_slice, sanitise_slice, unpack_slice, stack_sanitised_slices
@@ -76,8 +82,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
             )
 
         if (
-            isinstance(value, (int, numpy.integer))
-            and numpy.issubdtype(self.dtype, numpy.integer)
+            isinstance(value, Integer) and numpy.issubdtype(self.dtype, numpy.integer)
         ) or (isinstance(value, bool) and numpy.issubdtype(self.dtype, bool)):
             out = get_array(value == self.default_value)
             for sy, slices, relative_slices in self._iter_slices(self.slices_tuple):
@@ -205,12 +210,19 @@ class BoundedPartial3DArray(BasePartial3DArray):
         )
 
     @overload
-    def __getitem__(self, slices: Tuple[int, int, int]) -> Union[int, bool]:
+    def __getitem__(
+        self, slices: Tuple[IntegerType, IntegerType, IntegerType]
+    ) -> Union[int, bool]:
         ...
 
     @overload
     def __getitem__(
-        self, slices: Tuple[Union[int, slice], Union[int, slice], Union[int, slice]]
+        self,
+        slices: Tuple[
+            Union[IntegerType, slice],
+            Union[IntegerType, slice],
+            Union[IntegerType, slice],
+        ],
     ) -> "BoundedPartial3DArray":
         ...
 
@@ -224,7 +236,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
         if isinstance(item, tuple):
             if len(item) != 3:
                 raise KeyError(f"Tuple item must be of length 3, got {len(item)}")
-            if all(isinstance(i, (int, numpy.integer)) for i in item):
+            if all(isinstance(i, Integer) for i in item):
                 x, y, z = tuple(
                     self._relative_to_absolute(axis, item[axis]) for axis in range(3)
                 )
@@ -315,7 +327,11 @@ class BoundedPartial3DArray(BasePartial3DArray):
     @overload
     def __setitem__(
         self,
-        item: Tuple[Union[int, slice], Union[int, slice], Union[int, slice]],
+        item: Tuple[
+            Union[IntegerType, slice],
+            Union[IntegerType, slice],
+            Union[IntegerType, slice],
+        ],
         value: Union[int, bool, numpy.ndarray, "BoundedPartial3DArray"],
     ):
         ...
@@ -339,7 +355,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
                     Tuple[int, int, int],
                 ] = self._stack_slices(item)
                 if (
-                    isinstance(value, (int, numpy.integer))
+                    isinstance(value, Integer)
                     and numpy.issubdtype(self.dtype, numpy.integer)
                 ) or (isinstance(value, bool) and self.dtype == bool):
                     for sy, slices, _ in self._iter_slices(stacked_slices):
