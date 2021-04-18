@@ -144,6 +144,26 @@ class SelectionBox:
             for cy in self.chunk_y_locations(sub_chunk_size):
                 yield cx, cy, cz
 
+    def chunk_count(self, sub_chunk_size: int = 16) -> int:
+        """The number of chunks contained within this box."""
+        cx_min, cz_min, cx_max, cz_max = block_coords_to_chunk_coords(
+            self.min_x,
+            self.min_z,
+            self.max_x - 1,
+            self.max_z - 1,
+            sub_chunk_size=sub_chunk_size,
+        )
+        return (cx_max + 1 - cx_min) * (cz_max + 1 - cz_min)
+
+    def sub_chunk_count(self, sub_chunk_size: int = 16) -> int:
+        """The number of sub-chunks contained within this box."""
+        cy_min, cy_max = block_coords_to_chunk_coords(
+            self.min_y,
+            self.max_y - 1,
+            sub_chunk_size=sub_chunk_size,
+        )
+        return (cy_max + 1 - cy_min) * self.chunk_count()
+
     def sub_chunk_boxes(
         self, sub_chunk_size: int = 16
     ) -> Generator[Tuple[SubChunkCoordinates, SelectionBox], None, None]:
