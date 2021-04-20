@@ -2,11 +2,11 @@ chunk package
 =============
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
     :caption: Chunk Documentation
     :glob:
 
-    chunk/*
+    *
 
 .. automodule:: amulet.api.chunk.chunk
     :members:

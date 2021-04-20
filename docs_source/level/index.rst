@@ -2,8 +2,8 @@ wrapper package
 ===============
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
     :caption: Wrapper Documentation
     :glob:
 
-    wrapper/*.rst
+    *

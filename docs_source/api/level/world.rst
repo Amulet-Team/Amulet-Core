@@ -1,6 +1,6 @@
 world module
 ============
 
-.. automodule:: amulet.api.world
+.. automodule:: amulet.api.level.world
     :members:
     :show-inheritance:
