@@ -1,4 +1,4 @@
 -r requirements.txt
 -r requirements-docs.txt
-black==19.10b0
-pre_commit==1.11.1
+black>=19.10b0
+pre_commit>=1.11.1
