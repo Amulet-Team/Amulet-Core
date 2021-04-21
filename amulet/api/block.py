@@ -131,12 +131,17 @@ class Block:
         self._properties = properties
         self._extra_blocks = ()
         if extra_blocks:
-            if isinstance(extra_blocks, Block):
-                extra_blocks = (extra_blocks,)
-            else:
-                extra_blocks = tuple(extra_blocks)
-                assert all(isinstance(b, Block) for b in extra_blocks)
-            self._extra_blocks = extra_blocks
+            eb = []
+
+            def unpack_block(block_: Iterable[Block]):
+                for b in block_:
+                    if b.extra_blocks:
+                        unpack_block(b)
+                    else:
+                        eb.append(b)
+
+            unpack_block(extra_blocks)
+            self._extra_blocks = tuple(eb)
 
     @classmethod
     def from_string_blockstate(cls, blockstate: str):
