@@ -50,7 +50,8 @@ class AbstractBaseEntity(ABC):
     @property
     def namespaced_name(self) -> str:
         """
-        The namespace:base_name of the entity represented by the object (IE: `minecraft:creeper`)
+        The namespace:base_name of the entity represented by the object (eg: `minecraft:creeper`)
+
         If the given namespace is an empty string it will just return the base name.
 
         :return: The namespace:base_name of the block entity or just base_name if no namespace
@@ -68,7 +69,7 @@ class AbstractBaseEntity(ABC):
     @property
     def namespace(self) -> str:
         """
-        The namespace of the block entity represented by the BlockEntity object (IE: `minecraft`)
+        The namespace of the block entity represented by the BlockEntity object (eg: `minecraft`)
 
         :return: The namespace of the block entity
         """
@@ -82,7 +83,7 @@ class AbstractBaseEntity(ABC):
     @property
     def base_name(self) -> str:
         """
-        The base name of the block entity represented by the BlockEntity object (IE: `creeper`, `pig`)
+        The base name of the block entity represented by the BlockEntity object (eg: `creeper`, `pig`)
 
         :return: The base name of the block entity
         """
@@ -112,7 +113,10 @@ class AbstractBaseEntity(ABC):
     @property
     def nbt(self) -> amulet_nbt.NBTFile:
         """
-        The nbt behind the BlockEntity object
+        The NBT behind the object
+
+        :getter: Get the NBT data stored in the object
+        :setter: Set the NBT data stored in the object
 
         :return: An amulet_nbt.NBTFile
         """

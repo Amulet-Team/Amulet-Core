@@ -8,6 +8,9 @@ from .abstract_base_entity import AbstractBaseEntity
 
 
 class BlockEntity(AbstractBaseEntity):
+    """
+    A class to contain all the data to define a BlockEntity.
+    """
     obj_name = "BlockEntity"
     coord_types = (int, numpy.integer)
 
@@ -20,22 +23,36 @@ class BlockEntity(AbstractBaseEntity):
         z: int,
         nbt: amulet_nbt.NBTFile,
     ):
+        """
+        Constructs a :class:`BlockEntity` instance.
+
+        :param namespace: The namespace of the block entity eg "minecraft"
+        :param base_name: The base name of the block entity eg "chest"
+        :param x: The x coordinate of the block entity
+        :param y: The y coordinate of the block entity
+        :param z: The z coordinate of the block entity
+        :param nbt: The NBT stored with the block entity
+        """
         super().__init__(namespace, base_name, x, y, z, nbt)
 
     @property
     def x(self) -> int:
+        """The x location of the BlockEntity. Read Only"""
         return self._x
 
     @property
     def y(self) -> int:
+        """The y location of the BlockEntity. Read Only"""
         return self._y
 
     @property
     def z(self) -> int:
+        """The z location of the BlockEntity. Read Only"""
         return self._z
 
     @property
     def location(self) -> Tuple[int, int, int]:
+        """The location of the BlockEntity. Read Only"""
         return self._x, self._y, self._z
 
     def new_at_location(self, x: int, y: int, z: int) -> BlockEntity:
