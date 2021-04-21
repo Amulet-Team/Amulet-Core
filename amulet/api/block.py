@@ -246,14 +246,14 @@ class Block:
 
         :return: A Block object
         """
-        if len(self.extra_blocks) == 0:
-            return self
-        else:
+        if self.extra_blocks:
             return Block(
                 namespace=self.namespace,
                 base_name=self.base_name,
                 properties=self.properties,
             )
+        else:
+            return self
 
     @property
     def extra_blocks(self) -> Tuple[Block, ...]:
@@ -384,37 +384,11 @@ class Block:
         if not isinstance(other, Block):
             return NotImplemented
 
-        if (
-            len(other.extra_blocks) == 0
-        ):  # Reduces the amount of extra objects/references created
-            other_cpy = other
-        else:
-            other_cpy = Block(
-                namespace=other.namespace,
-                base_name=other.base_name,
-                properties=other.properties,
-            )
-
-        other_extras = []
-        for eb in other.extra_blocks:
-            if (
-                len(eb.extra_blocks) == 0
-            ):  # Reduces the amount of extra objects/references created
-                other_extras.append(eb)
-            else:
-                other_extras.append(
-                    Block(
-                        namespace=eb.namespace,
-                        base_name=eb.base_name,
-                        properties=eb.properties,
-                    )
-                )
-
         return Block(
             namespace=self.namespace,
             base_name=self.base_name,
             properties=self.properties,
-            extra_blocks=[*self.extra_blocks, other_cpy, *other_extras],
+            extra_blocks=[*self.extra_blocks, other],
         )
 
     def __sub__(self, other: Block) -> Block:
@@ -427,38 +401,8 @@ class Block:
         if not isinstance(other, Block):
             return NotImplemented
 
-        if (
-            len(other.extra_blocks) == 0
-        ):  # Reduces the amount of extra objects/references created
-            other_cpy = other
-        else:
-            other_cpy = Block(
-                namespace=other.namespace,
-                base_name=other.base_name,
-                properties=other.properties,
-            )
-
-        other_extras = []
-        for eb in other.extra_blocks:
-            if len(eb.extra_blocks) == 0:
-                other_extras.append(eb)
-            else:
-                other_extras.append(
-                    Block(
-                        namespace=eb.namespace,
-                        base_name=eb.base_name,
-                        properties=eb.properties,
-                    )
-                )
-
-        # Sets are unordered, so a regular set subtraction doesn't always return the order we want (it sometimes will!)
-        # So we loop through all of our extra blocks and only append those to the new_extras list if they aren't in
-        # extra_blocks_to_remove
-        new_extras = []
-        extra_blocks_to_remove = (other_cpy, *other_extras)
-        for eb in self.extra_blocks:
-            if eb not in extra_blocks_to_remove:
-                new_extras.append(eb)
+        extra_blocks_to_remove = set(other)
+        new_extras = tuple(eb for eb in self.extra_blocks if eb not in extra_blocks_to_remove)
 
         return Block(
             namespace=self.namespace,
@@ -475,27 +419,28 @@ class Block:
         :return: A new instance of Block with the same data but with the extra block at specified layer removed
         :raises `InvalidBlockException`: Raised when you remove the base block from a Block with no other extra blocks
         """
-        if layer == 0 and len(self.extra_blocks) > 0:
-            new_base = self._extra_blocks[0]
-            return Block(
-                namespace=new_base.namespace,
-                base_name=new_base.base_name,
-                properties=new_base.properties,
-                extra_blocks=[*self._extra_blocks[1:]],
-            )
+        if layer == 0:
+            if self.extra_blocks:
+                new_base = self._extra_blocks[0]
+                return Block(
+                    namespace=new_base.namespace,
+                    base_name=new_base.base_name,
+                    properties=new_base.properties,
+                    extra_blocks=[*self._extra_blocks[1:]],
+                )
+            else:
+                raise InvalidBlockException(
+                    "Removing the base block with no extra blocks is not supported"
+                )
         elif layer > len(self.extra_blocks):
-            raise InvalidBlockException("You cannot remove a non-existant layer")
-        elif layer == 0:
-            raise InvalidBlockException(
-                "Removing the base block with no extra blocks is not supported"
+            raise InvalidBlockException("You cannot remove a non-existent layer")
+        else:
+            return Block(
+                namespace=self.namespace,
+                base_name=self.base_name,
+                properties=self.properties,
+                extra_blocks=[*self.extra_blocks[: layer - 1], *self.extra_blocks[layer:]],
             )
-
-        return Block(
-            namespace=self.namespace,
-            base_name=self.base_name,
-            properties=self.properties,
-            extra_blocks=[*self.extra_blocks[: layer - 1], *self.extra_blocks[layer:]],
-        )
 
     def __sizeof__(self):
         size = (
