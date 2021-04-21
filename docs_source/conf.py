@@ -177,7 +177,7 @@ intersphinx_mapping = {
     "NumPy [latest]": ("https://docs.scipy.org/doc/numpy/", None),
 }
 
-autodoc_member_order = 'bysource'
+autodoc_member_order = "bysource"
 
 
 def skip(app, what, name, obj, would_skip, options):

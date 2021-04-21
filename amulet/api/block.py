@@ -541,7 +541,9 @@ class Block:
             return NotImplemented
 
         extra_blocks_to_remove = set(other)
-        new_extras = tuple(eb for eb in self.extra_blocks if eb not in extra_blocks_to_remove)
+        new_extras = tuple(
+            eb for eb in self.extra_blocks if eb not in extra_blocks_to_remove
+        )
 
         return Block(
             namespace=self.namespace,
@@ -583,7 +585,10 @@ class Block:
                 namespace=self.namespace,
                 base_name=self.base_name,
                 properties=self.properties,
-                extra_blocks=[*self.extra_blocks[: layer - 1], *self.extra_blocks[layer:]],
+                extra_blocks=[
+                    *self.extra_blocks[: layer - 1],
+                    *self.extra_blocks[layer:],
+                ],
             )
 
     def __sizeof__(self):

@@ -11,6 +11,7 @@ class BlockEntity(AbstractBaseEntity):
     """
     A class to contain all the data to define a BlockEntity.
     """
+
     obj_name = "BlockEntity"
     coord_types = (int, numpy.integer)
 
