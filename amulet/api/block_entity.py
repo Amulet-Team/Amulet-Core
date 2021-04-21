@@ -4,10 +4,10 @@ import copy
 import numpy
 
 import amulet_nbt
-from .entity_base_object import EntityObject
+from .abstract_base_entity import AbstractBaseEntity
 
 
-class BlockEntity(EntityObject):
+class BlockEntity(AbstractBaseEntity):
     obj_name = "BlockEntity"
     coord_types = (int, numpy.integer)
 

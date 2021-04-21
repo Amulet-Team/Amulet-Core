@@ -3,10 +3,10 @@ from __future__ import annotations
 import numpy
 from typing import Tuple, Union
 import amulet_nbt
-from .entity_base_object import EntityObject
+from .abstract_base_entity import AbstractBaseEntity
 
 
-class Entity(EntityObject):
+class Entity(AbstractBaseEntity):
     obj_name = "Entity"
     coord_types = (float, numpy.floating)
 

@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+from abc import ABC
 from typing import Union, Tuple, Optional
 import amulet_nbt
 
 _Coord = Union[float, int]
 
 
-class EntityObject:
-    obj_name = "Unknown"
+class AbstractBaseEntity(ABC):
+    obj_name: str = None
     coord_types: Optional[tuple] = None
 
     def __init__(
@@ -19,6 +20,8 @@ class EntityObject:
         z: _Coord,
         nbt: amulet_nbt.NBTFile,
     ):
+        assert isinstance(self.obj_name, str)
+        assert self.coord_types is not None
         assert isinstance(namespace, str), "namespace must be a string"
         assert isinstance(base_name, str), "base_name must be a string"
         self._namespace = namespace
