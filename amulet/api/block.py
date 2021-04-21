@@ -102,6 +102,8 @@ class Block:
     )
     properties_regex = re.compile(r"(?:,(?P<name>[a-z0-9_]+)=(?P<value>[a-z0-9_]+))")
 
+    _extra_blocks: Tuple[Block, ...]
+
     def __init__(
         self,
         namespace: str,
@@ -130,8 +132,11 @@ class Block:
         self._extra_blocks = ()
         if extra_blocks:
             if isinstance(extra_blocks, Block):
-                extra_blocks = [extra_blocks]
-            self._extra_blocks = tuple(extra_blocks)
+                extra_blocks = (extra_blocks,)
+            else:
+                extra_blocks = tuple(extra_blocks)
+                assert all(isinstance(b, Block) for b in extra_blocks)
+            self._extra_blocks = extra_blocks
 
     @classmethod
     def from_string_blockstate(cls, blockstate: str):
@@ -320,7 +325,14 @@ class Block:
         """
         :return: The base blockstate string of the Block object along with the blockstate strings of included extra blocks
         """
-        return f"Block({', '.join([str(b) for b in (self, *self.extra_blocks)])})"
+        if self.extra_blocks:
+            return f"Block({self.base_block}, extra_blocks=({', '.join([str(b) for b in self.extra_blocks])}))"
+        else:
+            return f"Block({self.base_block})"
+
+    def __iter__(self):
+        yield self.base_block
+        yield from self.extra_blocks
 
     def __len__(self):
         return len(self._extra_blocks) + 1
@@ -332,8 +344,8 @@ class Block:
         :param other: The Block object to check against
         :return: True if the Blocks objects are equal, False otherwise
         """
-        if self.__class__ != other.__class__:
-            return False
+        if not isinstance(other, Block):
+            return NotImplemented
 
         return (
             self.namespaced_name == other.namespaced_name
@@ -345,7 +357,7 @@ class Block:
         """
         Allows blocks to be sorted so numpy.unique can be used on them
         """
-        if self.__class__ != other.__class__:
+        if not isinstance(other, Block):
             return NotImplemented
         return hash(self).__gt__(hash(other))
 
