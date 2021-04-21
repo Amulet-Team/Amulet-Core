@@ -176,3 +176,15 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "NumPy [latest]": ("https://docs.scipy.org/doc/numpy/", None),
 }
+
+autodoc_member_order = 'bysource'
+
+
+def skip(app, what, name, obj, would_skip, options):
+    if name == "__init__":
+        return False
+    return would_skip
+
+
+def setup(app):
+    app.connect("autodoc-skip-member", skip)
