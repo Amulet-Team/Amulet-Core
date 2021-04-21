@@ -3,7 +3,6 @@ chunk package
 
 .. toctree::
     :maxdepth: 2
-    :caption: Chunk Documentation
     :glob:
 
     *

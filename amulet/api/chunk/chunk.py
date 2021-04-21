@@ -19,10 +19,16 @@ SliceCoordinates = Tuple[slice, slice, slice]
 
 class Chunk(Changeable):
     """
-    Class to represent a chunk that exists in an Minecraft world
+    A class to represent a chunk that exists in an Minecraft world
     """
 
     def __init__(self, cx: int, cz: int):
+        """
+        Construct an instance of :class:`Chunk` at the given coordinates.
+
+        :param cx: The x coordinate of the chunk (is not the same as block coordinates)
+        :param cz: The z coordinate of the chunk (is not the same as block coordinates)
+        """
         super().__init__()
         self._cx, self._cz = cx, cz
         self._changed_time = 0.0
@@ -40,6 +46,11 @@ class Chunk(Changeable):
         return f"Chunk({self.cx}, {self.cz}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._block_entities)})"
 
     def pickle(self) -> bytes:
+        """
+        Serialise the data in the chunk using pickle and return the resulting bytes.
+
+        :return: Pickled output.
+        """
         chunk_data = (
             self._cx,
             self._cz,
@@ -60,6 +71,14 @@ class Chunk(Changeable):
         block_palette: BlockManager,
         biome_palette: BiomeManager,
     ) -> Chunk:
+        """
+        Deserialise the pickled input and unpack the data into an instance of :class:`Chunk`
+
+        :param pickled_bytes: The bytes returned from :func:`pickle`
+        :param block_palette: The instance of :class:`BlockManager` associated with the level.
+        :param biome_palette: The instance of :class:`BiomeManager` associated with the level.
+        :return: An instance of :class:`Chunk` containing the unpickled data.
+        """
         chunk_data = pickle.loads(pickled_bytes)
         self = cls(*chunk_data[:2])
         (
@@ -91,13 +110,20 @@ class Chunk(Changeable):
 
     @property
     def coordinates(self) -> ChunkCoordinates:
-        """The chunk's coordinates"""
+        """The chunk's x and z coordinates"""
         return self._cx, self._cz
 
     @property
     def changed(self) -> bool:
         """
-        :return: ``True`` if the chunk has been changed since the last undo point, ``False`` otherwise
+        Has the chunk changed since the last undo point. Is used to track which chunks have changed.
+
+        >>> chunk = Chunk(0, 0)
+        >>> # Run this to notify that the chunk data has changed.
+        >>> chunk.changed = True
+
+        :setter: Set this to ``True`` if you have modified the chunk in any way.
+        :return: ``True`` if the chunk has been changed since the last undo point, ``False`` otherwise.
         """
         return self._changed
 
@@ -110,12 +136,22 @@ class Chunk(Changeable):
 
     @property
     def changed_time(self) -> float:
-        """The last time the chunk was changed
-        Used to track if the chunk was changed since the last save snapshot and if the chunk model needs rebuilding"""
+        """
+        The last time the chunk was changed
+
+        Used to track if the chunk was changed since the last save snapshot and if the chunk model needs rebuilding.
+        """
         return self._changed_time
 
     @property
     def blocks(self) -> Blocks:
+        """
+        The block array for the chunk.
+
+        This is a custom class that stores a numpy array per sub-chunk.
+
+        The values in the arrays are indexes into :attr:`block_palette`.
+        """
         if self._blocks is None:
             self._blocks = Blocks()
         return self._blocks
@@ -130,21 +166,22 @@ class Chunk(Changeable):
     def get_block(self, dx: int, y: int, dz: int) -> Block:
         """
         Get the universal Block object at the given location within the chunk.
-        :param dx: The x coordinate within the chunk. 0 is the bottom edge, 15 is the top edge
+
+        :param dx: The x coordinate within the chunk. 0-15 inclusive
         :param y: The y coordinate within the chunk. This can be any integer.
-        :param dz: The z coordinate within the chunk. 0 is the bottom edge, 15 is the top edge
+        :param dz: The z coordinate within the chunk. 0-15 inclusive
         :return: The universal Block object representation of the block at that location
         """
         return self.block_palette[self.blocks[dx, y, dz]]
 
     def set_block(self, dx: int, y: int, dz: int, block: Block):
         """
-        Get the universal Block object at the given location within the chunk.
-        :param dx: The x coordinate within the chunk. 0 is the bottom edge, 15 is the top edge
+        Set the universal Block object at the given location within the chunk.
+
+        :param dx: The x coordinate within the chunk. 0-15 inclusive
         :param y: The y coordinate within the chunk. This can be any integer.
-        :param dz: The z coordinate within the chunk. 0 is the bottom edge, 15 is the top edge
+        :param dz: The z coordinate within the chunk. 0-15 inclusive
         :param block: The universal Block object to set at the given location
-        :return:
         """
         self.blocks[dx, y, dz] = self.block_palette.get_add_block(block)
 
@@ -165,14 +202,20 @@ class Chunk(Changeable):
 
     @property
     def block_palette(self) -> BlockManager:
-        """The block block_palette for the chunk.
-        Usually will refer to a global block block_palette."""
+        """
+        The block block_palette for the chunk.
+
+        Usually will refer to the level's global block_palette.
+        """
         return self._block_palette
 
     @block_palette.setter
     def block_palette(self, new_block_palette: BlockManager):
-        """Change the block block_palette for the chunk.
-        This will copy over all block states from the old block_palette and remap the block indexes to use the new block_palette."""
+        """
+        Change the block block_palette for the chunk.
+
+        This will copy over all block states from the old block_palette and remap the block indexes to use the new block_palette.
+        """
         assert isinstance(new_block_palette, BlockManager)
         if new_block_palette is not self._block_palette:
             # if current block block_palette and the new block block_palette are not the same object
@@ -194,6 +237,13 @@ class Chunk(Changeable):
 
     @property
     def biomes(self) -> Biomes:
+        """
+        The biome array for the chunk.
+
+        This is a custom class that stores a numpy array per sub-chunk.
+
+        The values in the arrays are indexes into :attr:`biome_palette`.
+        """
         if self._biomes is None:
             self._biomes = Biomes()
         return self._biomes
@@ -204,34 +254,48 @@ class Chunk(Changeable):
 
     @property
     def _biome_palette(self) -> BiomeManager:
-        """The biome block_palette for the chunk.
-        Usually will refer to a global biome block_palette."""
+        """
+        The biome_palette for the chunk.
+
+        Usually will refer to a global biome_palette.
+        """
         return self.__biome_palette
 
     @_biome_palette.setter
     def _biome_palette(self, new_biome_palette: BiomeManager):
-        """Change the biome block_palette for the chunk.
-        This will change the biome block_palette but leave the biome array unchanged.
+        """
+        Change the biome_palette for the chunk.
+
+        This will change the biome_palette but leave the biome array unchanged.
+
         Only use this if you know what you are doing.
-        Designed for internal use. You probably want to use Chunk.biome_palette"""
+
+        Designed for internal use. You probably want to use Chunk.biome_palette
+        """
         assert isinstance(new_biome_palette, BiomeManager)
         self.__biome_palette = new_biome_palette
 
     @property
     def biome_palette(self) -> BiomeManager:
-        """The biome block_palette for the chunk.
-        Usually will refer to a global biome block_palette."""
+        """
+        The biome block_palette for the chunk.
+
+        Usually will refer to the level's global biome_palette.
+        """
         return self._biome_palette
 
     @biome_palette.setter
     def biome_palette(self, new_biome_palette: BiomeManager):
-        """Change the biome block_palette for the chunk.
-        This will copy over all biome states from the old block_palette and remap the biome indexes to use the new block_palette."""
+        """
+        Change the biome_palette for the chunk.
+
+        This will copy over all biome states from the old biome_palette and remap the biome indexes to use the new_biome_palette.
+        """
         assert isinstance(new_biome_palette, BiomeManager)
         if new_biome_palette is not self._biome_palette:
-            # if current biome block_palette and the new biome block_palette are not the same object
+            # if current biome_palette and the new biome_palette are not the same object
             if self._biome_palette:
-                # if there are biomes in the current biome block_palette remap the data
+                # if there are biomes in the current biome_palette remap the data
                 biome_lut = numpy.array(
                     [
                         new_biome_palette.get_add_biome(biome)
@@ -253,6 +317,7 @@ class Chunk(Changeable):
     def entities(self) -> EntityList:
         """
         Property that returns the chunk's entity list. Setting this property replaces the chunk's entity list
+
         :return: A list of all the entities contained in the chunk
         """
         return self._entities
@@ -271,6 +336,7 @@ class Chunk(Changeable):
     def block_entities(self) -> BlockEntityDict:
         """
         Property that returns the chunk's block entity list. Setting this property replaces the chunk's block entity list
+
         :return: A list of all the block entities contained in the chunk
         """
         return self._block_entities
@@ -287,6 +353,9 @@ class Chunk(Changeable):
 
     @property
     def status(self) -> Status:
+        """
+        A class containing the chunk's generation status.
+        """
         return self._status
 
     @status.setter
@@ -295,6 +364,11 @@ class Chunk(Changeable):
 
     @property
     def misc(self) -> dict:
+        """
+        Extra data that exists in a chunk but does not have its own location.
+
+        Data in here is not guaranteed to exist and may get moved at a later date.
+        """
         return self._misc
 
     @misc.setter
