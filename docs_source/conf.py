@@ -15,6 +15,8 @@
 import os
 import sys
 import subprocess
+import datetime
+
 import amulet
 
 sys.path.insert(0, os.path.abspath("."))
@@ -24,8 +26,8 @@ sys.path.insert(0, os.path.abspath(".."))
 # -- Project information -----------------------------------------------------
 
 project = "Amulet Map Editor"
-copyright = "2018-2019, The Amulet Map Editor Team"
-author = "The Amulet Map Editor Team"
+copyright = f"2018-{datetime.datetime.now().year}, The Amulet Team"
+author = "The Amulet Team"
 
 # The short X.Y version
 version = ""
