@@ -75,66 +75,82 @@ class BasePartial3DArray(ABC):
 
     @property
     def start_x(self) -> int:
+        """The minimum x value of the slice within the original array. Read Only"""
         return self._start_x
 
     @property
-    def start_y(self) -> int:
+    def start_y(self) -> Optional[int]:
+        """The minimum y value of the slice within the original array. Read Only"""
         return self._start_y
 
     @property
     def start_z(self) -> int:
+        """The minimum z value of the slice within the original array. Read Only"""
         return self._start_z
 
     @property
     def start(self) -> Tuple[int, int, int]:
+        """The minimum x, y and z of the slice within the original array. Read Only"""
         return self.start_x, self.start_y, self.start_z
 
     @property
     def stop_x(self) -> int:
+        """The maximum x value of the slice within the original array. Read Only"""
         return self._stop_x
 
     @property
-    def stop_y(self) -> int:
+    def stop_y(self) -> Optional[int]:
+        """The maximum y value of the slice within the original array. Read Only"""
         return self._stop_y
 
     @property
     def stop_z(self) -> int:
+        """The maximum z value of the slice within the original array. Read Only"""
         return self._stop_z
 
     @property
     def stop(self) -> Tuple[int, int, int]:
+        """The maximum x value of the slice within the original array. Read Only"""
         return self.stop_x, self.stop_y, self.stop_z
 
     @property
     def step_x(self) -> int:
+        """The step count of the slice in the x axis. Read Only"""
         return self._step_x
 
     @property
     def step_y(self) -> int:
+        """The step count of the slice in the y axis. Read Only"""
         return self._step_y
 
     @property
     def step_z(self) -> int:
+        """The step count of the slice in the z axis. Read Only"""
         return self._step_z
 
     @property
     def step(self) -> Tuple[int, int, int]:
+        """The step count of the slice in the x, y and z axis. Read Only"""
         return self.step_x, self.step_y, self.step_z
 
     @property
     def slice_x(self) -> slice:
+        """The slice in the x axis into the original array. Read Only"""
         return slice(self.start_x, self.stop_x, self.step_x)
 
     @property
     def slice_y(self) -> slice:
+        """The slice in the y axis into the original array. Read Only"""
         return slice(self.start_y, self.stop_y, self.step_y)
 
     @property
     def slice_z(self) -> slice:
+        """The slice in the z axis into the original array. Read Only"""
         return slice(self.start_z, self.stop_z, self.step_z)
 
     @property
     def slices_tuple(self) -> UnpackedSlicesType:
+        """The slices data in the x, y and z axis into the original array. Read Only"""
         return (
             (self.start_x, self.stop_x, self.step_x),
             (self.start_y, self.stop_y, self.step_y),
@@ -143,6 +159,7 @@ class BasePartial3DArray(ABC):
 
     @property
     def size_x(self) -> int:
+        """The size of the array in the x axis. Read Only"""
         if self._size_x is None:
             self._size_x = get_sanitised_sliced_array_size(
                 self.start_x, self.stop_x, self.step_x
@@ -151,6 +168,7 @@ class BasePartial3DArray(ABC):
 
     @property
     def size_y(self) -> Union[int, float]:
+        """The size of the array in the y axis. Read Only"""
         if self._size_y is None:
             self._size_y = get_sanitised_sliced_array_size(
                 self.start_y, self.stop_y, self.step_y
@@ -159,6 +177,7 @@ class BasePartial3DArray(ABC):
 
     @property
     def size_z(self) -> int:
+        """The size of the array in the z axis. Read Only"""
         if self._size_z is None:
             self._size_z = get_sanitised_sliced_array_size(
                 self.start_z, self.stop_z, self.step_z
@@ -167,23 +186,31 @@ class BasePartial3DArray(ABC):
 
     @property
     def shape(self) -> Tuple[int, Union[int, float], int]:
+        """The size of the array in the x, y and z axis. Read Only"""
         return self.size_x, self.size_y, self.size_z
 
     @property
     def dtype(self) -> Type[numpy.dtype]:
+        """The numpy dtype for the arrays. Read Only."""
         return self._dtype
 
     @property
     def default_value(self) -> Union[int, bool]:
-        """The default value to populate undefined sections with."""
+        """The default value to populate undefined sections with. Read Only"""
         return self._default_value
 
     @property
     def section_shape(self) -> Tuple[int, int, int]:
+        """The x, y and z size of a section in the original array."""
         return self._section_shape
 
     def _section_index(self, y: IntegerType) -> Tuple[IntegerType, IntegerType]:
-        """Get the section index and location within the section of an absolute y coordinate"""
+        """
+        Get the section index and location within the section of an absolute y coordinate.
+
+        :param y: The absolute y coordinate.
+        :return: The section index this coordinate is found in.
+        """
         return y // self.section_shape[1], y % self.section_shape[1]
 
     @abstractmethod
@@ -191,6 +218,15 @@ class BasePartial3DArray(ABC):
         raise NotImplementedError
 
     def __contains__(self, item: int):
+        """
+        Is a section array defined.
+
+        >>> 5 in partial_array
+        True
+
+        :param item: The section index to test.
+        :return: ``True`` if there is an array present for this section. ``False`` otherwise
+        """
         return item in self._sections
 
     def __iter__(self):

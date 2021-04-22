@@ -1,4 +1,4 @@
-from typing import Union, Tuple, overload, Iterable, Optional, Dict
+from typing import Union, Tuple, overload, Iterable, Optional, Dict, Literal
 import numpy
 import math
 
@@ -12,15 +12,15 @@ class UnboundedPartial3DArray(BasePartial3DArray):
     This is designed to work similarly to a numpy.ndarray but stores the data in a very different way.
     A numpy.ndarray stores a fixed size continuous array which for large arrays can become unmanageable.
     Sparse arrays allow individual values to exist which can be great where a small set of values are
-    defined in a large area but can be less efficient in some cases than a continuous array.
+    defined in a large area but get less efficient the denser the defined values are.
 
-    This class was born out of the need for an array that has a fixed size in the horizontal distances but an
+    This class was born out of the need for an array that has a fixed size in the horizontal directions but an
     unlimited height in the vertical distance (both above and below the origin)
     This is achieved by splitting the array into sections of fixed height and storing them sparsely so that only
     the defined sections need to be held in memory.
 
-    This class also implements an API that resembles that of the numpy.ndarray but it is not directly compatible with numpy.
-    This class implements methods to access and directly modify the underlying numpy arrays to give finer control.
+    This class implements an API that resembles that of a numpy array but it is not directly compatible with numpy.
+    This class also implements methods to access and directly modify the underlying numpy arrays to give finer control.
     """
 
     def __init__(
@@ -31,6 +31,15 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         default_section_counts: Tuple[int, int],
         sections: Optional[Dict[int, numpy.ndarray]] = None,
     ):
+        """
+        Construct a :class:`UnboundedPartial3DArray`. This should not be used directly. You should use the relevant subclass for your use.
+
+        :param dtype: The dtype that all arrays will be stored in.
+        :param default_value: The default value that all undefined arrays will be populated with if required.
+        :param section_shape: The shape of each section array.
+        :param default_section_counts: A tuple containing the default number of sections above and below the origin in the y axis. This is used to define the default bounds.
+        :param sections: The sections to initialise the array with.
+        """
         super().__init__(
             dtype,
             default_value,
@@ -47,20 +56,32 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         return f"UnboundedPartial3DArray(dtype={self.dtype}, shape={self.shape})"
 
     @property
-    def size_y(self) -> float:
+    def size_y(self) -> Literal[math.inf]:
+        """The size of the array in the y axis. Is always :attr:`math.inf` for the unbounded variant. Read Only"""
         return math.inf
 
     @property
     def sections(self) -> Iterable[int]:
-        """An iterable of the section indexes that exist"""
+        """An iterable of the section defined in the array."""
         return self._sections.keys()
 
     def create_section(self, sy: IntegerType):
+        """
+        Create a section array at the given location using the default value and dtype.
+
+        :param sy: The section index to create.
+        """
         self._sections[int(sy)] = numpy.full(
             self.section_shape, self.default_value, dtype=self._dtype
         )
 
     def add_section(self, sy: IntegerType, section: numpy.ndarray):
+        """
+        Add a section array at the given location.
+
+        :param sy: The section index to assign the array to.
+        :param section: The array to assign to the section. The shape must equal :attr:`section_shape`.
+        """
         assert (
             section.shape == self._section_shape
         ), "The size of all sections must be equal to the section_shape."
@@ -70,12 +91,12 @@ class UnboundedPartial3DArray(BasePartial3DArray):
 
     def get_section(self, sy: Union[int, numpy.integer]) -> numpy.ndarray:
         """
-        Get the section ndarray for a given section index.
+        Get the section array for a given section index.
 
-        :param sy: The section y index
+        If the section is not defined it will be populated using :meth:`create_section`
+
+        :param sy: The section index to get.
         :return: Numpy array for this section
-        :raises:
-            KeyError: if no section exists with this index
         """
         if sy not in self._sections:
             self.create_section(int(sy))
@@ -90,6 +111,21 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         ],
         value: Union[int, numpy.integer, numpy.ndarray],
     ):
+        """
+        Set a sub-section of the infinite height array.
+
+        >>> # set the value at a given location
+        >>> partial_array[3, 4, 5] = 1
+        >>> # set a cuboid volume in the array
+        >>> partial_array[2:3, 4:5, 6:7] = 1
+        >>> # slice and int can be mixed
+        >>> partial_array[2:3, 4, 6:7] = 1
+        >>> # if an unbounded slice is given in the y axis it will be capped at the default max and min y values.
+        >>> partial_array[2:3, :, 6:7] = 1
+
+        :param slices: The slices or locations that define the volume to set.
+        :param value: The value to set at the given location. Can be an integer or array.
+        """
         if isinstance(value, Integer) and all(isinstance(s, Integer) for s in slices):
             sy, dy = self._section_index(slices[1])
             self.get_section(sy)[(slices[0], dy, slices[2])] = value
@@ -112,6 +148,21 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         ...
 
     def __getitem__(self, item):
+        """
+        Get a value or sub-section of the unbounded array.
+
+        >>> # get the value at a given location
+        >>> value = partial_array[3, 4, 5]  # an integer
+        >>> # get a cuboid volume in the array
+        >>> value = partial_array[2:3, 4:5, 6:7]  # BoundedPartial3DArray
+        >>> # slice and int can be mixed
+        >>> value = partial_array[2:3, 4, 6:7]  # BoundedPartial3DArray
+        >>> # if an unbounded slice is given in the y axis it will be capped at the default max and min y values.
+        >>> value = partial_array[2:3, :, 6:7]  # BoundedPartial3DArray
+
+        :param item: The slices to extract.
+        :return: The value or BoundedPartial3DArray viewing into this array.
+        """
         if isinstance(item, tuple):
             if len(item) != 3:
                 raise KeyError(f"Tuple item must be of length 3, got {len(item)}")
@@ -154,6 +205,16 @@ class UnboundedPartial3DArray(BasePartial3DArray):
             )
 
     def __array__(self, dtype=None):
+        """
+        Get the data contained within as a numpy array.
+
+        The y axis will be clamped to the default minimum and maximum y values.
+
+        >>> numpy.array(partial_array)
+
+        :param dtype: The dtype of the returned numpy array.
+        :return: A numpy array of the contained data.
+        """
         return self[:, :, :].__array__(dtype)
 
 
