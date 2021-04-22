@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import Optional, Dict, Union, Tuple, Type, TYPE_CHECKING
 import numpy
 
@@ -10,7 +11,7 @@ if TYPE_CHECKING:
     from .unbounded_partial_3d_array import UnboundedPartial3DArray
 
 
-class BasePartial3DArray:
+class BasePartial3DArray(ABC):
     """Do not use this class directly. Use UnboundedPartial3DArray or BoundedPartial3DArray"""
 
     _sections: Dict[int, numpy.ndarray]
@@ -185,6 +186,7 @@ class BasePartial3DArray:
         """Get the section index and location within the section of an absolute y coordinate"""
         return y // self.section_shape[1], y % self.section_shape[1]
 
+    @abstractmethod
     def __array__(self, dtype=None):
         raise NotImplementedError
 
@@ -196,9 +198,11 @@ class BasePartial3DArray:
             "Please use sections method if this is what you are trying to achieve"
         )
 
+    @abstractmethod
     def __getitem__(self, item):
         raise NotImplementedError
 
+    @abstractmethod
     def __setitem__(self, key, value):
         raise NotImplementedError
 
