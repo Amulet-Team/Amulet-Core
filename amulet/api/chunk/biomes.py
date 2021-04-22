@@ -1,7 +1,7 @@
 import numpy
 from typing import Union, Optional, Dict, Tuple
 from copy import deepcopy
-from enum import Enum
+from enum import IntEnum
 
 
 from amulet.api.partial_3d_array import UnboundedPartial3DArray
@@ -21,10 +21,10 @@ class Biomes3D(UnboundedPartial3DArray):
         super().__init__(numpy.uint32, 0, (4, 4, 4), (0, 16), sections=input_array)
 
 
-class BiomesShape(Enum):
     ShapeNull = 0
     Shape2D = 2
     Shape3D = 3
+class BiomesShape(IntEnum):
 
 
 class Biomes:
@@ -88,33 +88,33 @@ class Biomes:
         """Convert the data in whatever format it is in to the 2D 16x16 format."""
         if self._2d is None:
             self._2d = numpy.zeros((16, 16), numpy.uint32)
-        if self._dimension != 2:
-            if self._dimension == 3 and self._3d is not None:
+        if self._dimension != BiomesShape.Shape2D:
+            if self._dimension == BiomesShape.Shape3D and self._3d is not None:
                 # convert from 3D
                 self._2d[:, :] = numpy.kron(
                     numpy.reshape(self._3d[:, 0, :], (4, 4)), numpy.ones((4, 4))
                 )
-            self._dimension = 2
+            self._dimension = BiomesShape.Shape2D
 
     def convert_to_3d(self):
         """Convert the data in whatever format it is in to the 3D 4xinfx4 format."""
         if self._3d is None:
             self._3d = Biomes3D()
-        if self._dimension != 3:
-            if self._dimension == 2 and self._2d is not None:
+        if self._dimension != BiomesShape.Shape3D:
+            if self._dimension == BiomesShape.Shape2D and self._2d is not None:
                 # convert from 2D
                 self._3d[:, 0, :] = self._2d[::4, ::4].reshape(4, 1, 4)
-            self._dimension = 3
+            self._dimension = BiomesShape.Shape3D
 
     def _get_active(self) -> Union[numpy.ndarray, Biomes3D]:
-        if self._dimension == 0:
+        if self._dimension == BiomesShape.ShapeNull:
             raise Exception(
                 "You are trying to use Biomes but have not picked a format. Use one of the convert methods to specify the format."
             )
-        elif self._dimension == 2:
+        elif self._dimension == BiomesShape.Shape2D:
             self.convert_to_2d()
             return self._2d
-        elif self._dimension == 3:
+        elif self._dimension == BiomesShape.Shape3D:
             self.convert_to_3d()
             return self._3d
         else:
