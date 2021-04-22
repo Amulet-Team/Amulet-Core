@@ -8,7 +8,14 @@ import pickle
 from amulet.api.block import Block
 from amulet.api.registry import BlockManager
 from amulet.api.registry.biome_manager import BiomeManager
-from amulet.api.chunk import Biomes, BiomesShape, Blocks, Status, BlockEntityDict, EntityList
+from amulet.api.chunk import (
+    Biomes,
+    BiomesShape,
+    Blocks,
+    Status,
+    BlockEntityDict,
+    EntityList,
+)
 from amulet.api.entity import Entity
 from amulet.api.data_types import ChunkCoordinates
 from amulet.api.history.changeable import Changeable

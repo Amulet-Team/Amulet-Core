@@ -53,7 +53,9 @@ extensions = [
     "sphinx.ext.intersphinx",
 ]
 
-commit_id = subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip().decode('ascii')
+commit_id = (
+    subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("ascii")
+)
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = [".templates"]
@@ -201,20 +203,23 @@ def linkcode_resolve(domain, info):
     def find_source():
         # try to find the file and line number, based on code from numpy:
         # https://github.com/numpy/numpy/blob/master/doc/source/conf.py#L286
-        obj = sys.modules[info['module']]
-        for part in info['fullname'].split('.'):
+        obj = sys.modules[info["module"]]
+        for part in info["fullname"].split("."):
             obj = getattr(obj, part)
         import inspect
         import os
+
         fn = inspect.getsourcefile(obj)
-        fn = os.path.relpath(fn, start=os.path.dirname(os.path.dirname(amulet.__file__)))
+        fn = os.path.relpath(
+            fn, start=os.path.dirname(os.path.dirname(amulet.__file__))
+        )
         source, lineno = inspect.getsourcelines(obj)
         return fn, lineno, lineno + len(source) - 1
 
-    if domain != 'py' or not info['module']:
+    if domain != "py" or not info["module"]:
         return None
     try:
         filename = "{}#L{}-L{}".format(*find_source())
     except Exception:
-        filename = info['module'].replace('.', '/') + '.py'
+        filename = info["module"].replace(".", "/") + ".py"
     return f"https://github.com/Amulet-Team/Amulet-Core/blob/{commit_id}/{filename}"

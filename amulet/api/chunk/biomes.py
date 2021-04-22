@@ -13,6 +13,7 @@ class Biomes3D(UnboundedPartial3DArray):
 
     See :class:`UnboundedPartial3DArray` for more information on how this works.
     """
+
     def __init__(
         self,
         input_array: Optional[Union[Dict[int, numpy.ndarray], "Biomes3D"]] = None,
@@ -39,6 +40,7 @@ class BiomesShape(IntEnum):
     >>> Shape2D = 2  # The biome array is a 2D array
     >>> Shape3D = 3  # The biome array is a 3D array
     """
+
     ShapeNull = 0  # doc: The biome array does not exist
     Shape2D = 2  # doc: The biome array is a 2D array
     Shape3D = 3  # doc: The biome array is a 3D array
@@ -56,6 +58,7 @@ class Biomes:
 
     The last is the 3D state used since Java 1.15. See :class:`Biomes3D` for more information.
     """
+
     __slots__ = ("_2d", "_3d", "_dimension")
     _2d: Optional[numpy.ndarray]
     _3d: Optional[Biomes3D]
@@ -86,7 +89,9 @@ class Biomes:
 
     def to_raw(
         self,
-    ) -> Tuple[BiomesShape, Optional[numpy.ndarray], Optional[Dict[int, numpy.ndarray]]]:
+    ) -> Tuple[
+        BiomesShape, Optional[numpy.ndarray], Optional[Dict[int, numpy.ndarray]]
+    ]:
         """Don't use this method. Use to pickle data."""
         if self._3d is None:
             sections = None

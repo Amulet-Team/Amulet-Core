@@ -112,6 +112,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
         :param value: The object to compare to.
         :return:
         """
+
         def get_array(default: bool):
             return self.from_partial_array(
                 UnboundedPartial3DArray(bool, default, self.section_shape, (0, 0)),
