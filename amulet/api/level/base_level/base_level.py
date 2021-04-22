@@ -277,10 +277,12 @@ class BaseLevel:
         None,
         None,
     ]:
-        """Iterate over a selection and return slices into the source object and destination object
+        """
+        Iterate over a selection and return slices into the source object and destination object
         given the origin of the destination. When copying a selection to a new area the slices will
         only be equal if the offset is a multiple of the chunk size. This will rarely be the case
         so the slices need to be split up into parts that intersect a chunk in the source and destination.
+
         :param dimension: The dimension to iterate over.
         :param destination_origin: The location where the minimum point of self.selection_bounds will end up
         :param selection: An optional selection. The overlap of this and self.selection_bounds will be used
@@ -350,10 +352,12 @@ class BaseLevel:
         None,
         None,
     ]:
-        """Iterate over a selection and return slices into the source object and destination object
+        """
+        Iterate over a selection and return slices into the source object and destination object
         given the origin of the destination. When copying a selection to a new area the slices will
         only be equal if the offset is a multiple of the chunk size. This will rarely be the case
         so the slices need to be split up into parts that intersect a chunk in the source and destination.
+
         :param dimension: The dimension to iterate over.
         :param destination_origin: The location where the minimum point of self.selection will end up
         :param selection: An optional selection. The overlap of this and self.selection will be used
@@ -487,14 +491,18 @@ class BaseLevel:
         # self.history_manager.
 
     def close(self):
-        """Close the attached level and remove temporary files
-        Use changed method to check if there are any changes that should be saved before closing."""
+        """
+        Close the attached level and remove temporary files
+        Use changed method to check if there are any changes that should be saved before closing.
+        """
         shutil.rmtree(self._temp_directory, ignore_errors=True)
         self.level_wrapper.close()
 
     def unload(self, safe_area: Optional[Tuple[Dimension, int, int, int, int]] = None):
-        """Unload all chunks not in the safe area
-        Safe area format: dimension, min chunk X|Z, max chunk X|Z"""
+        """
+        Unload all chunks not in the safe area
+        Safe area format: dimension, min chunk X|Z, max chunk X|Z
+        """
         self._chunks.unload(safe_area)
         self.level_wrapper.unload()
 

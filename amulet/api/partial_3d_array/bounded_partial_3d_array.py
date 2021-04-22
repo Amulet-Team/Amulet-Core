@@ -15,9 +15,11 @@ from .util import to_slice, sanitise_slice, unpack_slice, stack_sanitised_slices
 
 
 class BoundedPartial3DArray(BasePartial3DArray):
-    """This class should behave the same as a numpy array in all three axis
+    """
+    This class should behave the same as a numpy array in all three axis
     but the data internally is stored in chunks to minimise memory usage.
-    The array has a fixed size in all three axis much like a numpy array."""
+    The array has a fixed size in all three axis much like a numpy array.
+    """
 
     @classmethod
     def from_partial_array(

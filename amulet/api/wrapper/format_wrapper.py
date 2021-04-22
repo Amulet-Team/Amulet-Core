@@ -125,8 +125,10 @@ class FormatWrapper(ABC):
 
     @property
     def max_world_version(self) -> VersionIdentifierType:
-        """The version the world was last opened in
-        This should be greater than or equal to the chunk versions found within"""
+        """
+        The version the world was last opened in
+        This should be greater than or equal to the chunk versions found within
+        """
         return self.platform, self.version
 
     @property

@@ -124,9 +124,11 @@ class LevelDBFormat(WorldFormatWrapper):
         return self._version
 
     def _get_version(self) -> Tuple[int, ...]:
-        """The version the world was last opened in
+        """
+        The version the world was last opened in.
         This should be greater than or equal to the chunk versions found within
-        For this format wrapper it returns a tuple of 3/4 ints (the game version number)"""
+        For this format wrapper it returns a tuple of 3/4 ints (the game version number)
+        """
         try:
             return tuple([t.value for t in self.root_tag["lastOpenedWithVersion"]])
         except Exception:

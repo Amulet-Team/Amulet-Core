@@ -69,8 +69,10 @@ class ChunkManager(DatabaseHistoryManager):
         yield from self.changed_entries()
 
     def unload(self, safe_area: Optional[Tuple[Dimension, int, int, int, int]] = None):
-        """Unload all chunks not in the safe area from the temporary database
-        Safe area format: dimension, min chunk X|Z, max chunk X|Z"""
+        """
+        Unload all chunks not in the safe area from the temporary database
+        Safe area format: dimension, min chunk X|Z, max chunk X|Z
+        """
         with self._lock:
             if safe_area is None:
                 self._temporary_database.clear()

@@ -111,7 +111,8 @@ class Biomes:
 
     @property
     def dimension(self) -> BiomesShape:
-        """The number of dimensions the data has
+        """
+        The number of dimensions the data has
 
         :attr:`BiomesShape.ShapeNull` when there is no data.
         Will error if you try accessing data from it without converting to one of the other formats.

@@ -8,7 +8,8 @@ from .data_types import DtypeType, Integer, IntegerType
 
 
 class UnboundedPartial3DArray(BasePartial3DArray):
-    """This is designed to work similarly to a numpy.ndarray but stores the data in a very different way.
+    """
+    This is designed to work similarly to a numpy.ndarray but stores the data in a very different way.
     A numpy.ndarray stores a fixed size continuous array which for large arrays can become unmanageable.
     Sparse arrays allow individual values to exist which can be great where a small set of values are
     defined in a large area but can be less efficient in some cases than a continuous array.

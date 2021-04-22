@@ -57,8 +57,10 @@ class BlockEntity(AbstractBaseEntity):
         return self._x, self._y, self._z
 
     def new_at_location(self, x: int, y: int, z: int) -> BlockEntity:
-        """Creates a copy of this BlockEntity at a new location
-        BlockEntities are stored in the chunk based on their location so location cannot be mutable"""
+        """
+        Creates a copy of this BlockEntity at a new location
+        BlockEntities are stored in the chunk based on their location so location cannot be mutable
+        """
         return BlockEntity(
             self._namespace,
             self._base_name,
