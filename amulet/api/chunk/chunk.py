@@ -8,7 +8,7 @@ import pickle
 from amulet.api.block import Block
 from amulet.api.registry import BlockManager
 from amulet.api.registry.biome_manager import BiomeManager
-from amulet.api.chunk import Biomes, Blocks, Status, BlockEntityDict, EntityList
+from amulet.api.chunk import Biomes, BiomesShape, Blocks, Status, BlockEntityDict, EntityList
 from amulet.api.entity import Entity
 from amulet.api.data_types import ChunkCoordinates
 from amulet.api.history.changeable import Changeable
@@ -303,9 +303,9 @@ class Chunk(Changeable):
                     ],
                     dtype=numpy.uint32,
                 )
-                if self.biomes.dimension == 2:
+                if self.biomes.dimension == BiomesShape.Shape2D:
                     self.biomes = biome_lut[self.biomes]
-                elif self.biomes.dimension == 3:
+                elif self.biomes.dimension == BiomesShape.Shape3D:
                     self.biomes = {
                         sy: biome_lut[self.biomes.get_section(sy)]
                         for sy in self.biomes.sections

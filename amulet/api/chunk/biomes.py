@@ -1,6 +1,7 @@
 import numpy
 from typing import Union, Optional, Dict, Tuple
 from copy import deepcopy
+from enum import Enum
 
 
 from amulet.api.partial_3d_array import UnboundedPartial3DArray
@@ -20,8 +21,17 @@ class Biomes3D(UnboundedPartial3DArray):
         super().__init__(numpy.uint32, 0, (4, 4, 4), (0, 16), sections=input_array)
 
 
+class BiomesShape(Enum):
+    ShapeNull = 0
+    Shape2D = 2
+    Shape3D = 3
+
+
 class Biomes:
-    # __slots__ = ("_2d", "_3d", "_dimension")
+    __slots__ = ("_2d", "_3d", "_dimension")
+    _2d: Optional[numpy.ndarray]
+    _3d: Optional[Biomes3D]
+    _dimension: BiomesShape
 
     def __init__(
         self, array: Union[numpy.ndarray, Biomes3D, Dict[int, numpy.ndarray]] = None
@@ -29,21 +39,21 @@ class Biomes:
         self._2d: Optional[numpy.ndarray] = None
         self._3d: Optional[Biomes3D] = None
         if array is None:
-            self._dimension = 0
+            self._dimension = BiomesShape.ShapeNull
         elif isinstance(array, numpy.ndarray):
             assert array.shape == (
                 16,
                 16,
             ), "If Biomes is given an ndarray it must be 16x16"
             self._2d = array.copy()
-            self._dimension = 2
+            self._dimension = BiomesShape.Shape2D
         elif isinstance(array, (dict, Biomes3D)):
             self._3d = Biomes3D(array)
-            self._dimension = 3
+            self._dimension = BiomesShape.Shape3D
 
     def to_raw(
         self,
-    ) -> Tuple[int, Optional[numpy.ndarray], Optional[Dict[int, numpy.ndarray]]]:
+    ) -> Tuple[BiomesShape, Optional[numpy.ndarray], Optional[Dict[int, numpy.ndarray]]]:
         """Don't use this method. Use to pickle data."""
         if self._3d is None:
             sections = None
@@ -54,7 +64,7 @@ class Biomes:
     @classmethod
     def from_raw(
         cls,
-        dimension: int,
+        dimension: BiomesShape,
         d2: Optional[numpy.ndarray],
         d3: Optional[Dict[int, numpy.ndarray]],
     ) -> "Biomes":
@@ -67,7 +77,7 @@ class Biomes:
         return biomes
 
     @property
-    def dimension(self) -> int:
+    def dimension(self) -> BiomesShape:
         """The number of dimensions the data has
         0 when there is no data. Will error if you try accessing data from it without converting to one of the other formats.
         2 when the data is a 2D 16x16 numpy array.
