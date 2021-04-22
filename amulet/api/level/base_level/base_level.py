@@ -174,7 +174,7 @@ class BaseLevel:
         selection: Union[SelectionGroup, SelectionBox, None] = None,
         yield_missing_chunks=False,
     ) -> Generator[Tuple[ChunkCoordinates, SelectionBox], None, None]:
-        """Given a selection will yield chunk coordinates and `SelectionBox`es into that chunk
+        """Given a selection will yield chunk coordinates and :class:`SelectionBox` instances into that chunk
         If not given a selection will use the bounds of the object.
 
         :param selection: SelectionGroup or SelectionBox into the level
@@ -217,7 +217,7 @@ class BaseLevel:
         selection: Union[SelectionGroup, SelectionBox, None] = None,
         create_missing_chunks=False,
     ) -> Generator[Tuple[Chunk, SelectionBox], None, None]:
-        """Given a selection will yield chunks and `SelectionBox`es into that chunk
+        """Given a selection will yield chunks and :class:`SelectionBox` instances into that chunk
         If not given a selection will use the bounds of the object.
 
         :param selection: SelectionGroup or SelectionBox into the level

@@ -369,7 +369,7 @@ class Block:
         To parse the blockstate and return a :class:`Block` instance use :func:`from_string_blockstate` or :func:`from_snbt_blockstate`
 
         :param blockstate: The blockstate to parse
-        :param snbt: Are the property values in SNBT format. If false all values must be `TAG_String`s
+        :param snbt: Are the property values in SNBT format. If false all values must be an instance of :class:`~amulet_nbt.TAG_String`
         :return: namespace, block_name, properties
 
         """

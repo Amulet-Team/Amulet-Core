@@ -55,7 +55,9 @@ class SelectionBox:
     def create_chunk_box(
         cls, cx: int, cz: int, sub_chunk_size: int = 16
     ) -> SelectionBox:
-        """Get a SelectionBox containing the whole of a given chunk.
+        """
+        Get a SelectionBox containing the whole of a given chunk.
+
         :param cx: The x coordinate of the chunk
         :param cz: The z coordinate of the chunk
         :param sub_chunk_size: The dimension of the chunk (normally 16)
@@ -69,7 +71,9 @@ class SelectionBox:
     def create_sub_chunk_box(
         cls, cx: int, cy: int, cz: int, sub_chunk_size: int = 16
     ) -> SelectionBox:
-        """Get a SelectionBox containing the whole of a given sub-chunk.
+        """
+        Get a SelectionBox containing the whole of a given sub-chunk.
+
         :param cx: The x coordinate of the chunk
         :param cy: The y coordinate of the chunk
         :param cz: The z coordinate of the chunk
@@ -96,7 +100,9 @@ class SelectionBox:
     def chunk_locations(
         self, sub_chunk_size: int = 16
     ) -> Generator[ChunkCoordinates, None, None]:
-        """A generator of chunk locations that this box intersects.
+        """
+        A generator of chunk locations that this box intersects.
+
         :param sub_chunk_size: The dimension of the chunk (normally 16)
         """
         cx_min, cz_min, cx_max, cz_max = block_coords_to_chunk_coords(
@@ -113,9 +119,11 @@ class SelectionBox:
     def chunk_boxes(
         self, sub_chunk_size: int = 16
     ) -> Generator[Tuple[ChunkCoordinates, SelectionBox]]:
-        """A generator of modified `SelectionBox`es to fit within each chunk.
+        """
+        A generator of modified :class:`SelectionBox` instances to fit within each chunk.
         If this box straddles multiple chunks this method will split it up into a box
         for each chunk it intersects along with the chunk coordinates of that chunk.
+
         :param sub_chunk_size: The dimension of the chunk (normally 16)
         """
         for cx, cz in self.chunk_locations(sub_chunk_size):
@@ -124,7 +132,9 @@ class SelectionBox:
             )
 
     def chunk_y_locations(self, sub_chunk_size: int = 16) -> Generator[int, None, None]:
-        """A generator of all the sub-chunk y indexes this box intersects.
+        """
+        A generator of all the sub-chunk y indexes this box intersects.
+
         :param sub_chunk_size: The dimension of the chunk (normally 16)
         """
         cy_min, cy_max = block_coords_to_chunk_coords(
@@ -136,7 +146,9 @@ class SelectionBox:
     def sub_chunk_locations(
         self, sub_chunk_size: int = 16
     ) -> Generator[SubChunkCoordinates, None, None]:
-        """A generator of all the sub-chunk cx, cy and cz values that this box intersects.
+        """
+        A generator of all the sub-chunk cx, cy and cz values that this box intersects.
+
         :param sub_chunk_size: The dimension of the chunk (normally 16)
         """
         for cx, cz in self.chunk_locations(sub_chunk_size):
@@ -166,9 +178,11 @@ class SelectionBox:
     def sub_chunk_boxes(
         self, sub_chunk_size: int = 16
     ) -> Generator[Tuple[SubChunkCoordinates, SelectionBox], None, None]:
-        """A generator of modified `SelectionBox`es to fit within each sub-chunk.
+        """
+        A generator of modified :class:`SelectionBox` instances to fit within each sub-chunk.
         If this box straddles multiple sub-chunks this method will split it up into a box
         for each sub-chunk it intersects along with the chunk coordinates of that chunk.
+
         :param sub_chunk_size: The dimension of the chunk (normally 16)
         """
         for cx, cy, cz in self.sub_chunk_locations(sub_chunk_size):
@@ -226,9 +240,9 @@ class SelectionBox:
     @property
     def slice(self) -> Tuple[slice, slice, slice]:
         """
-        Converts the `SelectionBox`es minimum/maximum coordinates into slice arguments
+        Converts the :class:`SelectionBox` minimum/maximum coordinates into slice arguments
 
-        :return: The `SelectionBox`es coordinates as slices in (x,y,z) order
+        :return: The :class:`SelectionBox` coordinates as slices in (x,y,z) order
         """
         return (
             slice(self._min_x, self._max_x),
@@ -239,9 +253,11 @@ class SelectionBox:
     def chunk_slice(
         self, cx: int, cz: int, sub_chunk_size: int = 16
     ) -> Tuple[slice, slice, slice]:
-        """Get the slice of the box in relative form for a given chunk.
+        """
+        Get the slice of the box in relative form for a given chunk.
         eg. SelectionBox((0, 0, 0), (32, 32, 32)).chunk_slice(1, 1) will return
         (slice(0, 16, None), slice(0, 32, None), slice(0, 16, None))
+
         :param cx: The x coordinate of the chunk
         :param cz: The z coordinate of the chunk
         :param sub_chunk_size: The dimension of the chunk (normally 16)
@@ -254,9 +270,11 @@ class SelectionBox:
     def sub_chunk_slice(
         self, cx: int, cy: int, cz: int, sub_chunk_size: int = 16
     ) -> Tuple[slice, slice, slice]:
-        """Get the slice of the box in relative form for a given sub-chunk.
+        """
+        Get the slice of the box in relative form for a given sub-chunk.
         eg. SelectionBox((0, 0, 0), (32, 32, 32)).sub_chunk_slice(1, 1, 1) will return
         (slice(0, 16, None), slice(0, 16, None), slice(0, 16, None))
+
         :param cx: The x coordinate of the chunk
         :param cy: The y coordinate of the chunk
         :param cz: The z coordinate of the chunk
@@ -371,20 +389,22 @@ class SelectionBox:
         return self.size_x * self.size_y * self.size_z
 
     def touches(self, other: SelectionBox) -> bool:
-        """Method to check if this instance of SelectionBox touches but does not intersect another SelectionBox
+        """
+        Method to check if this instance of :class:`SelectionBox` touches but does not intersect another SelectionBox
 
         :param other: The other SelectionBox
-        :return: True if the two `SelectionBox`es touch, False otherwise
+        :return: True if the two :class:`SelectionBox` instances touch, False otherwise
         """
         # It touches if the box does not intersect but intersects when expanded by one block.
         # There may be a simpler way to do this.
         return self.touches_or_intersects(other) and not self.intersects(other)
 
     def touches_or_intersects(self, other: SelectionBox) -> bool:
-        """Method to check if this instance of SelectionBox touches or intersects another SelectionBox
+        """
+        Method to check if this instance of SelectionBox touches or intersects another SelectionBox
 
         :param other: The other SelectionBox
-        :return: True if the two `SelectionBox`es touch or intersect., False otherwise
+        :return: True if the two :class:`SelectionBox` instances touch or intersect., False otherwise
         """
         return not (
             self.min_x >= other.max_x + 1
@@ -400,7 +420,7 @@ class SelectionBox:
         Method to check whether this instance of SelectionBox intersects another SelectionBox
 
         :param other: The other SelectionBox to check for intersection
-        :return: True if the two `SelectionBox`es intersect, False otherwise
+        :return: True if the two :class:`SelectionBox` instances intersect, False otherwise
         """
         return not (
             self.min_x >= other.max_x
@@ -412,7 +432,8 @@ class SelectionBox:
         )
 
     def contains_box(self, other: SelectionBox) -> bool:
-        """Method to check if the other SelectionBox other fits entirely within this instance of SelectionBox.
+        """
+        Method to check if the other SelectionBox other fits entirely within this instance of SelectionBox.
 
         :param other: The SelectionBox to test.
         :return: True if other fits with self, False otherwise
@@ -427,7 +448,8 @@ class SelectionBox:
         )
 
     def intersection(self, other: SelectionBox) -> SelectionBox:
-        """Get a SelectionBox that represents the region contained within self and other.
+        """
+        Get a SelectionBox that represents the region contained within self and other.
         Box may be a zero width box. Use self.intersects to check that it actually intersects.
         """
         return SelectionBox(
@@ -436,7 +458,8 @@ class SelectionBox:
         )
 
     def subtract(self, other: SelectionBox) -> List[SelectionBox]:
-        """Get a list of `SelectionBox`es that are in self but not in other.
+        """
+        Get a list of :class:`SelectionBox` instances that are in self but not in other.
         This may be empty or equal to self."""
         if self.intersects(other):
             other = self.intersection(other)
@@ -513,6 +536,7 @@ class SelectionBox:
     ) -> Optional[float]:
         """
         Determine if a look vector from a given point collides with this selection box.
+
         :param origin: Location of the origin of the vector
         :param vector: The look vector
         :return: Multiplier of the vector to the collision location. None if it does not collide
@@ -694,7 +718,9 @@ class SelectionBox:
     def transform(
         self, scale: FloatTriplet, rotation: FloatTriplet, translation: FloatTriplet
     ) -> List[SelectionBox]:
-        """creates a list of new transformed SelectionBox(es).
+        """
+        Creates a list of new transformed SelectionBox(es).
+
         :param scale: A tuple of scaling factors in the x, y and z axis.
         :param rotation: The rotation about the x, y and z axis in radians.
         :param translation: The translation about the x, y and z axis.

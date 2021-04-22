@@ -17,7 +17,7 @@ from .box import SelectionBox
 
 
 class SelectionGroup:
-    """A container for zero or more `SelectionBox`es.
+    """A container for zero or more :class:`SelectionBox` instances.
     This allows for non-rectangular and non-contiguous selections.
     """
 
@@ -208,24 +208,26 @@ class SelectionGroup:
     @property
     def selection_boxes(self) -> List[SelectionBox]:
         """
-        Returns a read only list of unmodified `SelectionBox`es in the SelectionGroup.
-        :return: A list of the `SelectionBox`es
+        Returns a read only list of unmodified :class:`SelectionBox` instances in the SelectionGroup.
+        :return: A list of the :class:`SelectionBox` instances
         """
         return list(self._selection_boxes)
 
     @property
     def selection_boxes_sorted(self) -> List[SelectionBox]:
         """
-        Returns a list of unmodified `SelectionBox`es in the SelectionGroup sorted based on the hash of the coordinates.
-        :return: A list of the `SelectionBox`es
+        Returns a list of unmodified :class:`SelectionBox` instances in the SelectionGroup sorted based on the hash of the coordinates.
+        :return: A list of the :class:`SelectionBox` instances
         """
         return sorted(self._selection_boxes, key=hash)
 
     def chunk_locations(
         self, sub_chunk_size: int = 16
     ) -> Generator[ChunkCoordinates, None, None]:
-        """A generator of chunk locations that the boxes in this group intersect.
+        """
+        A generator of chunk locations that the boxes in this group intersect.
         Each location is only given once even if there are multiple boxes in the chunk.
+
         :param sub_chunk_size: The dimension of the chunk (normally 16)
         """
         yield from set(
@@ -237,9 +239,11 @@ class SelectionGroup:
     def chunk_boxes(
         self, sub_chunk_size: int = 16
     ) -> Generator[Tuple[ChunkCoordinates, SelectionBox], None, None]:
-        """A generator of modified `SelectionBox`es to fit within each chunk.
+        """
+        A generator of modified :class:`SelectionBox` instances to fit within each chunk.
         If a box straddles multiple chunks this method will split it up into a box
         for each chunk it intersects along with the chunk coordinates of that chunk.
+
         :param sub_chunk_size: The dimension of the chunk (normally 16)
         """
         for box in self.selection_boxes:
@@ -248,8 +252,10 @@ class SelectionGroup:
     def sub_chunk_locations(
         self, sub_chunk_size: int = 16
     ) -> Generator[SubChunkCoordinates, None, None]:
-        """A generator of sub-chunk locations that the boxes in this group intersect.
+        """
+        A generator of sub-chunk locations that the boxes in this group intersect.
         Each location is only given once even if there are multiple boxes in the chunk.
+
         :param sub_chunk_size: The dimension of the chunk (normally 16)
         """
         yield from set(
@@ -261,9 +267,11 @@ class SelectionGroup:
     def sub_chunk_boxes(
         self, sub_chunk_size: int = 16
     ) -> Generator[Tuple[SubChunkCoordinates, SelectionBox], None, None]:
-        """A generator of modified `SelectionBox`es to fit within each sub-chunk.
+        """
+        A generator of modified :class:`SelectionBox` instances to fit within each sub-chunk.
         If a box straddles multiple sub-chunks this method will split it up into a box
         for each sub-chunk it intersects along with the sub-chunk coordinates of that sub-chunk.
+
         :param sub_chunk_size: The dimension of the chunk (normally 16)
         """
         for box in self.selection_boxes:
@@ -333,6 +341,7 @@ class SelectionGroup:
     ) -> Tuple[Optional[int], float]:
         """
         Returns the index for the closest box in the look vector and the multiplier of the look vector to get there.
+
         :param origin: The origin tuple of the vector
         :param vector: The vector magnitude in x, y and z
         :return: Index for the closest box and the multiplier of the vector to get there. None, inf if no intersection.

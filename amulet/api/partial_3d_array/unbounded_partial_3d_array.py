@@ -68,7 +68,9 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         self._sections[int(sy)] = section
 
     def get_section(self, sy: Union[int, numpy.integer]) -> numpy.ndarray:
-        """Get the section ndarray for a given section index.
+        """
+        Get the section ndarray for a given section index.
+
         :param sy: The section y index
         :return: Numpy array for this section
         :raises:

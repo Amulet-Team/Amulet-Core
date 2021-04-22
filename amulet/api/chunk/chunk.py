@@ -240,7 +240,7 @@ class Chunk(Changeable):
         """
         The biome array for the chunk.
 
-        This is a custom class that stores a numpy array per sub-chunk.
+        This is a custom class that stores numpy arrays. See the :class:`Biomes` documentation for more information.
 
         The values in the arrays are indexes into :attr:`biome_palette`.
         """
