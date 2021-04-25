@@ -15,20 +15,20 @@ class ChunkList(UserList):
         raise NotImplementedError
 
     def append(self, value) -> None:
-        """ Append value to the end of the list. """
+        """Append value to the end of the list."""
         self._check_type(value)
         super().append(value)
 
     def copy(self) -> "ChunkList":
         raise NotImplementedError
 
-        """ Extend list by appending elements from the iterable. """
     def extend(self, iterable: Iterable):
+        """Extend list by appending elements from the iterable."""
         self._check_all_types(iterable)
         super().extend(iterable)
 
-        """ Insert value before index. """
     def insert(self, index: int, value):
+        """Insert value before index."""
         self._check_type(value)
         super().insert(index, value)
 
@@ -39,8 +39,18 @@ class ChunkList(UserList):
 
 
 class EntityList(ChunkList):
+    """
+    A custom implementation of the list class.
+
+    It can only store :class:`Entity` instances.
+    """
 
     def __init__(self, entities: Iterable[Entity] = ()):
+        """
+        Construct an :class:`EntityList`.
+
+        :param entities: An Iterable of :class:`Entity` objects.
+        """
         for e in entities:
             self._check_type(e)
         super().__init__(entities)
@@ -49,9 +59,15 @@ class EntityList(ChunkList):
         assert isinstance(value, Entity), f"{value} is not an instance of Entity"
 
     def copy(self) -> "EntityList":
+        """
+        Create a shallow copy of the entity container.
+        """
         return EntityList(self)
 
     def __iter__(self) -> Iterable[Entity]:
+        """
+        An iterable of all the :class:`Entity` objects.
+        """
         yield from self.data
 
     def __repr__(self) -> str:
