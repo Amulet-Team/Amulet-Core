@@ -15,7 +15,7 @@ from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
 from amulet.api.registry import BlockManager
 from amulet.api.registry.biome_manager import BiomeManager
-from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError, LevelDoesNotExist
+from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError, DimensionDoesNotExist
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet.api.paths import get_temp_dir
@@ -458,7 +458,7 @@ class BaseLevel:
                             wrapper.save()
                             self.level_wrapper.unload()
                             wrapper.unload()
-                except LevelDoesNotExist:
+                except DimensionDoesNotExist:
                     continue
 
         for dimension, cx, cz in changed_chunks:

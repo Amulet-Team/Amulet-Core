@@ -11,7 +11,7 @@ import amulet_nbt as nbt
 
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.utils.format_utils import check_all_exist, load_leveldat
-from amulet.api.errors import LevelDoesNotExist, ObjectWriteError, ChunkLoadError
+from amulet.api.errors import DimensionDoesNotExist, ObjectWriteError, ChunkLoadError
 from amulet.api.data_types import (
     ChunkCoordinates,
     VersionNumberInt,
@@ -362,7 +362,7 @@ class AnvilFormat(WorldFormatWrapper):
         if self._has_dimension(dimension):
             return self._levels[self._dimension_name_map[dimension]]
         else:
-            raise LevelDoesNotExist(dimension)
+            raise DimensionDoesNotExist(dimension)
 
     def all_chunk_coords(
         self, dimension: "Dimension"

@@ -5,7 +5,7 @@ import re
 from typing import Dict, Iterable, Tuple, Union
 import amulet_nbt
 
-from .errors import InvalidBlockException
+from .errors import BlockException
 
 PropertyValueType = Union[
     amulet_nbt.TAG_Byte,
@@ -563,7 +563,7 @@ class Block:
 
         :param layer: The layer of extra block to remove.
         :return: A new instance of Block with the same data but with the block at the specified layer removed.
-        :raises `InvalidBlockException`: Raised when you remove the base block from a Block with no other extra blocks.
+        :raises `BlockException`: Raised when you remove the base block from a Block with no other extra blocks.
         """
         if layer == 0:
             if self.extra_blocks:
@@ -575,11 +575,11 @@ class Block:
                     extra_blocks=[*self._extra_blocks[1:]],
                 )
             else:
-                raise InvalidBlockException(
+                raise BlockException(
                     "Removing the base block with no extra blocks is not supported"
                 )
         elif layer > len(self.extra_blocks):
-            raise InvalidBlockException("You cannot remove a non-existent layer")
+            raise BlockException("You cannot remove a non-existent layer")
         else:
             return Block(
                 namespace=self.namespace,

@@ -1,7 +1,7 @@
 import unittest
 from amulet.api.block import Block
 from amulet.api.registry import BlockManager
-from amulet.api.errors import InvalidBlockException
+from amulet.api.errors import BlockException
 
 import amulet_nbt as nbt
 
@@ -226,10 +226,10 @@ class BlockTestCase(unittest.TestCase):
 
         self.assertNotEqual(new_base, new_base.remove_layer(1))
 
-        with self.assertRaises(InvalidBlockException):
+        with self.assertRaises(BlockException):
             no_block = granite.remove_layer(0)
 
-        with self.assertRaises(InvalidBlockException):
+        with self.assertRaises(BlockException):
             non_present_layer = granite.remove_layer(7)
             non_present_layer = conglomerate_2.remove_layer(5)
 
