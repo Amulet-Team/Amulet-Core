@@ -198,7 +198,9 @@ class BaseLevelDBInterface(Interface):
 
         # chunk status
         if self.features["finalised_state"] == "int0-2":
-            chunk_data[b"\x36"] = struct.pack("<i", chunk.status.as_type(StatusFormats.Bedrock))
+            chunk_data[b"\x36"] = struct.pack(
+                "<i", chunk.status.as_type(StatusFormats.Bedrock)
+            )
 
         # biome and height data
         if self.features["data_2d"] in [

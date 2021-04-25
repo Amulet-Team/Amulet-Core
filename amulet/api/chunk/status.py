@@ -6,7 +6,13 @@ from enum import Enum
 class StatusFormats(Enum):
     """
     The different formats the status value can be converted to.
+
+    >>> StatusFormats.Raw  # The raw float value
+    >>> StatusFormats.Bedrock  # as an integer between 0 and 2
+    >>> StatusFormats.Java_13  # as a string
+    >>> StatusFormats.Java_14  # as a string
     """
+
     Raw = 0  # The raw float value
     Bedrock = 1  # as an integer between 0 and 2
     Java_13 = 2  # as a string
@@ -58,6 +64,7 @@ class Status:
 
     This stores the chunk status as a float in the range -1 to 2 where -1 is nothing generated and 2 being fully generated.
     """
+
     def __init__(self):
         """
         Construct an instance of the :class:`Status` class.
@@ -67,8 +74,24 @@ class Status:
     @property
     def value(self) -> float:
         """
-        The raw status value.
+        **Getter**
+
+        Get the raw status value.
+
+        >>> status = chunk.status.value
+
         :return: The float status value in the range -1 to 2
+
+        **Setter**
+
+        Set the status value.
+
+        >>> chunk.status.value = 2
+        >>> chunk.status.value = "full"
+
+        This can be a float/int or a string. If it is a string it is looked up in the states look up table to find the float value it corresponds with.
+
+        :param value: The value to set as the generation stage.
         """
         return self._value
 
@@ -76,6 +99,9 @@ class Status:
     def value(self, value: Union[float, int, str]):
         """
         Set the status value.
+
+        >>> chunk.status.value = 2
+        >>> chunk.status.value = "full"
 
         This can be a float/int or a string. If it is a string it is looked up in the states look up table to find the float value it corresponds with.
 
@@ -97,6 +123,13 @@ class Status:
         """
         Get the generation state in a given format.
 
+        >>> chunk.status.as_type(StatusFormats.Raw)
+        2.0
+        >>> chunk.status.as_type(StatusFormats.Bedrock)
+        2
+        >>> chunk.status.as_type(StatusFormats.Java_14)
+        'full'
+
         :param status_format: The format the status should be returned in. Must be from :class:`StatusFormats`.
         :return: The status code in the requested format.
         """
@@ -106,9 +139,13 @@ class Status:
             elif status_format == StatusFormats.Bedrock:  # Bedrock (0, 1 or 2)
                 return int(max(min(2, self._value), 0))
             elif status_format in versions:  # Java 1.13/1.14
-                value = next((v for v in versions[status_format] if v[0] <= self._value), None)
+                value = next(
+                    (v for v in versions[status_format] if v[0] <= self._value), None
+                )
                 if value is None:
-                    value = next((v for v in versions[status_format] if v[0] <= 2.0), None)
+                    value = next(
+                        (v for v in versions[status_format] if v[0] <= 2.0), None
+                    )
                 return value[1]
             else:
                 raise ValueError(f"Unsupported status format {status_format}")
