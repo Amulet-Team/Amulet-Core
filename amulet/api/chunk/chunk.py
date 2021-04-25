@@ -46,7 +46,7 @@ class Chunk(Changeable):
         self._biomes = None
         self._entities = EntityList()
         self._block_entities = BlockEntityDict()
-        self._status = Status(self)
+        self._status = Status()
         self._misc = {}  # all entries that are not important enough to get an attribute
 
     def __repr__(self):
