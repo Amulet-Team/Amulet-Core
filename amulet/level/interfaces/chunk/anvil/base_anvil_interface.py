@@ -19,7 +19,7 @@ from amulet_nbt import (
 
 import amulet
 from amulet import log
-from amulet.api.chunk import Chunk
+from amulet.api.chunk import Chunk, StatusFormats
 from amulet.api.wrapper import Interface
 from amulet.level import loader
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray
@@ -124,7 +124,7 @@ class BaseAnvilInterface(Interface):
         if self.features["last_update"] == "long":
             misc["last_update"] = self.get_obj(level, "LastUpdate", TAG_Long).value
 
-        if self.features["status"] in ["j13", "j14"]:
+        if self.features["status"] in [StatusFormats.Java_13, StatusFormats.Java_14]:
             chunk.status = self.get_obj(
                 level, "Status", TAG_String, TAG_String("full")
             ).value
@@ -287,12 +287,12 @@ class BaseAnvilInterface(Interface):
 
         # Order the float value based on the order they would be run. Newer replacements for the same come just after
         # to save back find the next lowest valid value.
-        if self.features["status"] in ["j13", "j14"]:
+        if self.features["status"] in [StatusFormats.Java_13, StatusFormats.Java_14]:
             status = chunk.status.as_type(self.features["status"])
             level["Status"] = amulet_nbt.TAG_String(status)
 
         else:
-            status = chunk.status.as_type("float")
+            status = chunk.status.as_type(StatusFormats.Raw)
             if self.features["terrain_populated"] == "byte":
                 level["TerrainPopulated"] = amulet_nbt.TAG_Byte(int(status > -0.3))
 

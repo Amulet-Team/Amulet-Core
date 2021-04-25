@@ -7,7 +7,7 @@ import amulet_nbt
 
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray
 from amulet.api.block import Block
-from amulet.api.chunk.blocks import Blocks
+from amulet.api.chunk import Blocks, StatusFormats
 from amulet.api.wrapper import EntityIDType, EntityCoordType
 from .base_anvil_interface import (
     BaseAnvilInterface,
@@ -37,7 +37,7 @@ class Anvil1444Interface(BaseAnvilInterface):
         self.features["data_version"] = "int"
         self.features["last_update"] = "long"
 
-        self.features["status"] = "j13"
+        self.features["status"] = StatusFormats.Java_13
         self.features["inhabited_time"] = "long"
         self.features["biomes"] = "256BA"
         self.features["height_map"] = "256IA"
