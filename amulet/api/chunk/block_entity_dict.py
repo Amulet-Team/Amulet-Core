@@ -1,6 +1,5 @@
 from collections import UserDict
 from typing import Tuple, Iterable, KeysView, ValuesView, ItemsView
-import copy
 import numpy
 
 from amulet.api.block_entity import BlockEntity
@@ -14,6 +13,7 @@ class BlockEntityDict(UserDict):
 
     It can only store :class:`BlockEntity` instances under the absolute coordinate of the block entity ``Tuple[int, int, int]``
     """
+
     InputType = Iterable[BlockEntity]
 
     def __init__(self, block_entities: InputType = ()):
@@ -29,8 +29,10 @@ class BlockEntityDict(UserDict):
 
     @staticmethod
     def _check_key(key) -> bool:
-        return isinstance(key, tuple) and len(key) == 3 and all(
-            isinstance(a, (int, numpy.integer)) for a in key
+        return (
+            isinstance(key, tuple)
+            and len(key) == 3
+            and all(isinstance(a, (int, numpy.integer)) for a in key)
         )
 
     def _assert_val(self, value):
@@ -75,7 +77,6 @@ class BlockEntityDict(UserDict):
     def copy(self) -> "BlockEntityDict":
         """
         Create a shallow copy of the block entity container.
-        :return:
         """
         return BlockEntityDict(self.values())
 
