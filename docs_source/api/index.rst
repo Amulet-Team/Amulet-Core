@@ -17,3 +17,4 @@ api package
     partial_3d_array/index
     registry/index
     selection/index
+    wrapper/index
