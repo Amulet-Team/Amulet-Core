@@ -5,5 +5,3 @@ libs package
     :maxdepth: 2
     :caption: Contents:
     :glob:
-
-
