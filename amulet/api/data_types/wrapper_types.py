@@ -31,7 +31,6 @@ GetBlockCallback = Callable[  # get a block at a different location
         "Block", Optional["BlockEntity"]
     ],  # and returns a new block and optionally a block entity
 ]
-BlockType = "Block"
 
 TranslateBlockCallbackReturn = Tuple[
     Optional["Block"], Optional["BlockEntity"], List["Entity"], bool
@@ -43,7 +42,7 @@ TranslateEntityCallbackReturn = Tuple[
 
 TranslateBlockCallback = Callable[
     [  # a callable
-        BlockType,  # that takes either a Block
+        "Block",  # that takes either a Block
         Optional[
             GetBlockCallback
         ],  # this is used in cases where the block needs data beyond itself to fully define itself (eg doors)

@@ -19,7 +19,6 @@ from amulet.api.data_types import (
     GetChunkCallback,
     TranslateBlockCallback,
     TranslateEntityCallback,
-    BlockType,
     GetBlockCallback,
     TranslateBlockCallbackReturn,
     TranslateEntityCallbackReturn,
@@ -75,7 +74,7 @@ class Translator:
 
             # translate each block without using the callback
             for i, input_block in enumerate(chunk.block_palette):
-                input_block: BlockType
+                input_block: Block
                 (
                     output_block,
                     output_block_entity,
