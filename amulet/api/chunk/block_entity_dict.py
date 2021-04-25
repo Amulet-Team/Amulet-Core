@@ -1,5 +1,5 @@
 from collections import UserDict
-from typing import Tuple, Iterable, Generator
+from typing import Tuple, Iterable, KeysView, ValuesView, ItemsView
 import copy
 import numpy
 
@@ -23,8 +23,8 @@ class BlockEntityDict(UserDict):
         ), f"Key must be in the format Tuple[int, int, int]. Got: {key}"
 
     @staticmethod
-    def _check_key(key):
-        return isinstance(key, tuple) and all(
+    def _check_key(key) -> bool:
+        return isinstance(key, tuple) and len(key) == 3 and all(
             isinstance(a, (int, numpy.integer)) for a in key
         )
 
@@ -32,7 +32,7 @@ class BlockEntityDict(UserDict):
         assert self._check_val(value), f"Val must be a BlockEntity. Got: {value}"
 
     @staticmethod
-    def _check_val(value):
+    def _check_val(value) -> bool:
         return isinstance(value, BlockEntity)
 
     def __repr__(self) -> str:
@@ -46,23 +46,23 @@ class BlockEntityDict(UserDict):
         """ Remove all items from list. """
         self.data.clear()
 
-    def keys(self) -> Generator[Coordinate, None, None]:
-        yield from self.data.keys()
+    def keys(self) -> KeysView[Coordinate]:
+        return self.data.keys()
 
-    def __iter__(self) -> Generator[BlockEntity, None, None]:
+    def __iter__(self) -> Iterable[BlockEntity]:
         yield from self.data.values()
 
-    def values(self) -> Generator[BlockEntity, None, None]:
-        yield from self.data.values()
+    def values(self) -> ValuesView[BlockEntity]:
+        return self.data.values()
 
-    def items(self) -> Generator[Tuple[Coordinate, BlockEntity], None, None]:
-        yield from self.data.items()
+    def items(self) -> ItemsView[Coordinate, BlockEntity]:
+        return self.data.items()
 
     def copy(self) -> "BlockEntityDict":
         return copy.deepcopy(self)
 
-    def insert(self, block_entity: BlockEntity) -> None:
         """ Insert block_entity at its coordinates. """
+    def insert(self, block_entity: BlockEntity):
         self._assert_val(block_entity)
         self.data[block_entity.location] = block_entity
 
@@ -75,9 +75,10 @@ class BlockEntityDict(UserDict):
         self._assert_key(coordinate)
         if coordinate in self.data:
             return self.data.pop(coordinate)
-        raise IndexError
+        raise KeyError
 
-    def __delitem__(self, coordinate: Coordinate) -> None:
+    def __delitem__(self, coordinate: Coordinate):
+
         """ Delete self[key]. """
         self._assert_key(coordinate)
         super().__delitem__(coordinate)
@@ -91,11 +92,12 @@ class BlockEntityDict(UserDict):
             block_entity = block_entity.new_at_location(*coordinate)
         return block_entity
 
-    def __getitem__(self, item: Coordinate) -> BlockEntity:
-        return super().__getitem__(item)
+    def __getitem__(self, coordinate: Coordinate) -> BlockEntity:
+        self._assert_key(coordinate)
+        return super().__getitem__(coordinate)
 
-    def __setitem__(self, coordinate: Coordinate, block_entity: BlockEntity) -> None:
         """ Set self[key] to value. """
+    def __setitem__(self, coordinate: Coordinate, block_entity: BlockEntity):
         self.data[coordinate] = self._check_block_entity(coordinate, block_entity)
 
     def setdefault(
@@ -107,7 +109,7 @@ class BlockEntityDict(UserDict):
     def popitem(self):
         raise NotImplementedError
 
-    def update(self, block_entities: InputType) -> None:
+    def update(self, block_entities: InputType):
         for block_entity in block_entities:
             self._assert_val(block_entity)
             self.data[block_entity.location] = block_entity
