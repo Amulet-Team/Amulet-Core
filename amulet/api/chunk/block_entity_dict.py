@@ -59,7 +59,7 @@ class BlockEntityDict(UserDict):
         return self.data.items()
 
     def copy(self) -> "BlockEntityDict":
-        return copy.deepcopy(self)
+        return BlockEntityDict(self.values())
 
         """ Insert block_entity at its coordinates. """
     def insert(self, block_entity: BlockEntity):
