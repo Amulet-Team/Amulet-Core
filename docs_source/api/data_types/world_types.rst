@@ -3,7 +3,6 @@ data_types.world_types module
 
 These data types relate to the world data.
 
-.. autodata:: amulet.api.data_types.world_types.OperationYieldType
 .. autodata:: amulet.api.data_types.world_types.FloatTriplet
 .. autodata:: amulet.api.data_types.world_types.Dimension
 .. autodata:: amulet.api.data_types.world_types.RegionCoordinates
