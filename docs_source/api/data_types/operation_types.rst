@@ -1,6 +1,8 @@
 data_types.operation_types module
 =================================
 
-.. automodule:: amulet.api.data_types.operation_types
-    :members:
-    :show-inheritance:
+These data types relate to the operation system.
+
+.. autodata:: amulet.api.data_types.operation_types.OperationYieldType
+.. autodata:: amulet.api.data_types.operation_types.OperationReturnType
+.. autodata:: amulet.api.data_types.operation_types.OperationType
