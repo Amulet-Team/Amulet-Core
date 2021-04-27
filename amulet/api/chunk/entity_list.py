@@ -71,7 +71,7 @@ class EntityList(ChunkList):
         yield from self.data
 
     def __repr__(self) -> str:
-        """ Return repr(self). """
+        """Return repr(self)."""
         return f"EntityList({super().__repr__()})"
 
 
