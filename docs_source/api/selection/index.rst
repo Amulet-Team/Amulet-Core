@@ -1,9 +1,10 @@
-selection package
-=================
+###################
+ selection package
+###################
 
 .. toctree::
-    :maxdepth: 2
-    :caption: Contents:
-    :glob:
+   :maxdepth: 2
+   :caption: Contents:
+   :glob:
 
-    *
+   *

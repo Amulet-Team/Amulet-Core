@@ -1,6 +1,7 @@
-blocks module
-=============
+###############
+ blocks module
+###############
 
 .. automodule:: amulet.api.block
-    :members:
-    :special-members:
+   :members:
+   :special-members:

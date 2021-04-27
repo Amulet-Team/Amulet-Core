@@ -1,13 +1,14 @@
-chunk package
-=============
+###############
+ chunk package
+###############
 
 .. toctree::
-    :maxdepth: 2
-    :caption: Contents:
-    :glob:
+   :maxdepth: 2
+   :caption: Contents:
+   :glob:
 
-    *
+   *
 
 .. automodule:: amulet.api.chunk.chunk
-    :members:
-    :show-inheritance:
+   :members:
+   :show-inheritance:

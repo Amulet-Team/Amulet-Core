@@ -1,7 +1,8 @@
-Biomes array
-===================
+##############
+ Biomes array
+##############
 
 .. autoclass:: amulet.api.chunk.biomes.Biomes3D
-    :members:
-    :show-inheritance:
-    :inherited-members:
+   :members:
+   :show-inheritance:
+   :inherited-members:

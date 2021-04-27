@@ -1,7 +1,8 @@
-unbounded_partial_3d_array module
-=================================
+###################################
+ unbounded_partial_3d_array module
+###################################
 
 .. automodule:: amulet.api.partial_3d_array.unbounded_partial_3d_array
-    :members:
-    :special-members:
-    :inherited-members:
+   :members:
+   :special-members:
+   :inherited-members:

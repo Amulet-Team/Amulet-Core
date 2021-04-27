@@ -1,7 +1,8 @@
-chunk.entity_list module
-========================
+##########################
+ chunk.entity_list module
+##########################
 
 .. autoclass:: amulet.api.chunk.entity_list.EntityList
-    :members:
-    :show-inheritance:
-    :inherited-members:
+   :members:
+   :show-inheritance:
+   :inherited-members:

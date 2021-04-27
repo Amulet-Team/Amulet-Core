@@ -1,6 +1,7 @@
-matrix module
-==================
+###############
+ matrix module
+###############
 
 .. automodule:: amulet.utils.matrix
-    :members:
-    :show-inheritance:
+   :members:
+   :show-inheritance:

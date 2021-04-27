@@ -1,9 +1,10 @@
-Design Notes
-============
+##############
+ Design Notes
+##############
 
 .. toctree::
-    :maxdepth: 2
-    :caption: Design Documentation
-    :glob:
+   :maxdepth: 2
+   :caption: Design Documentation
+   :glob:
 
-    design/*
+   design/*

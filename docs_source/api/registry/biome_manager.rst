@@ -1,6 +1,7 @@
-biome manager module
-====================
+######################
+ biome manager module
+######################
 
 .. automodule:: amulet.api.registry.biome_manager
-    :members:
-    :show-inheritance:
+   :members:
+   :show-inheritance:

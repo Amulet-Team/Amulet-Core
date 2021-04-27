@@ -1,6 +1,7 @@
-selection box module
-====================
+######################
+ selection box module
+######################
 
 .. automodule:: amulet.api.selection.box
-    :members:
-    :show-inheritance:
+   :members:
+   :show-inheritance:

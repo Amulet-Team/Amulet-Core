@@ -1,6 +1,7 @@
-format_utils module
-===================
+#####################
+ format_utils module
+#####################
 
 .. automodule:: amulet.utils.format_utils
-    :members:
-    :show-inheritance:
+   :members:
+   :show-inheritance:

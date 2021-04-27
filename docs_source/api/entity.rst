@@ -1,6 +1,7 @@
-entity module
-=============
+###############
+ entity module
+###############
 
 .. automodule:: amulet.api.entity
-    :members:
-    :inherited-members:
+   :members:
+   :inherited-members:
