@@ -9,6 +9,8 @@ import os
 import PyMCTranslate
 
 from amulet import log
+from amulet.api import level as api_level, wrapper as api_wrapper
+from amulet.api.chunk import Chunk
 from amulet.api.registry import BlockManager
 from amulet.api.errors import (
     ChunkLoadError,
@@ -27,10 +29,7 @@ from amulet.api.data_types import (
 from amulet.api.selection import SelectionGroup, SelectionBox
 
 if TYPE_CHECKING:
-    from amulet.api.wrapper import Interface
-    from amulet.api.chunk import Chunk
     from amulet.api.wrapper.chunk.translator import Translator
-    from amulet.api.level import BaseLevel
 
 
 DefaultPlatform = "Unknown Platform"
@@ -176,12 +175,14 @@ class FormatWrapper(ABC):
         return self._selection.copy()
 
     @abstractmethod
-    def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> "Interface":
+    def _get_interface(
+        self, raw_chunk_data: Optional[Any] = None
+    ) -> api_wrapper.Interface:
         raise NotImplementedError
 
     def _get_interface_and_translator(
         self, raw_chunk_data=None
-    ) -> Tuple["Interface", "Translator", "VersionNumberAny"]:
+    ) -> Tuple[api_wrapper.Interface, "Translator", "VersionNumberAny"]:
         interface = self._get_interface(raw_chunk_data)
         translator, version_identifier = interface.get_translator(
             self.max_world_version, raw_chunk_data
@@ -294,11 +295,13 @@ class FormatWrapper(ABC):
             )
 
     @staticmethod
-    def pre_save_operation(level: "BaseLevel") -> Generator[float, None, bool]:
-        """Logic to run before saving. Eg recalculating height maps or lighting.
+    def pre_save_operation(level: api_level.BaseLevel) -> Generator[float, None, bool]:
+        """
+        Logic to run before saving. Eg recalculating height maps or lighting.
         Must be a generator that yields a number and returns a bool.
         The yielded number is the progress from 0 to 1.
         The returned bool is if changes have been made.
+
         :param level: The level to apply modifications to.
         :return: Have any modifications been made.
         """
@@ -349,7 +352,7 @@ class FormatWrapper(ABC):
         """
         raise NotImplementedError
 
-    def load_chunk(self, cx: int, cz: int, dimension: Dimension) -> "Chunk":
+    def load_chunk(self, cx: int, cz: int, dimension: Dimension) -> Chunk:
         """
         Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
 
@@ -375,7 +378,7 @@ class FormatWrapper(ABC):
 
     def _load_chunk(
         self, cx: int, cz: int, dimension: Dimension, recurse: bool = True
-    ) -> "Chunk":
+    ) -> Chunk:
         """
         Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
 
@@ -402,35 +405,35 @@ class FormatWrapper(ABC):
 
     @staticmethod
     def _decode(
-        interface: "Interface", cx: int, cz: int, raw_chunk_data: Any
-    ) -> Tuple["Chunk", AnyNDArray]:
+        interface: api_wrapper.Interface, cx: int, cz: int, raw_chunk_data: Any
+    ) -> Tuple[Chunk, AnyNDArray]:
         return interface.decode(cx, cz, raw_chunk_data)
 
     def _unpack(
         self,
         translator: "Translator",
         game_version: VersionNumberAny,
-        chunk: "Chunk",
+        chunk: Chunk,
         chunk_palette: AnyNDArray,
-    ) -> "Chunk":
+    ) -> Chunk:
         return translator.unpack(
             game_version, self.translation_manager, chunk, chunk_palette
         )
 
     def _convert_to_load(
         self,
-        chunk: "Chunk",
+        chunk: Chunk,
         translator: "Translator",
         game_version: VersionNumberAny,
         dimension: Dimension,
         recurse: bool = True,
-    ) -> "Chunk":
+    ) -> Chunk:
         # set up a callback that translator can use to get chunk data
         cx, cz = chunk.cx, chunk.cz
         if recurse:
-            chunk_cache: Dict[ChunkCoordinates, "Chunk"] = {}
+            chunk_cache: Dict[ChunkCoordinates, Chunk] = {}
 
-            def get_chunk_callback(x: int, z: int) -> "Chunk":
+            def get_chunk_callback(x: int, z: int) -> Chunk:
                 cx_, cz_ = cx + x, cz + z
                 if (cx_, cz_) not in chunk_cache:
                     chunk_cache[(cx_, cz_)] = self._load_chunk(
@@ -449,7 +452,7 @@ class FormatWrapper(ABC):
         chunk.changed = False
         return chunk
 
-    def commit_chunk(self, chunk: "Chunk", dimension: Dimension):
+    def commit_chunk(self, chunk: Chunk, dimension: Dimension):
         """
         Save a universal format chunk to the Format database (not the disk database)
         call save method to write changed chunks back to the disk database
@@ -467,7 +470,7 @@ class FormatWrapper(ABC):
             log.error(f"Error saving chunk {chunk}", exc_info=True)
         self._changed = True
 
-    def _commit_chunk(self, chunk: "Chunk", dimension: Dimension, recurse: bool = True):
+    def _commit_chunk(self, chunk: Chunk, dimension: Dimension, recurse: bool = True):
         """
         Saves a universal amulet.api.chunk.Chunk object
         Calls the interface then the translator.
@@ -487,11 +490,11 @@ class FormatWrapper(ABC):
 
     def _convert_to_save(
         self,
-        chunk: "Chunk",
+        chunk: Chunk,
         chunk_version: VersionNumberAny,
         translator: "Translator",
         recurse: bool = True,
-    ) -> "Chunk":
+    ) -> Chunk:
         """Convert the Chunk in Universal format to a Chunk in the version specific format."""
         # create a new streamlined block block_palette and remap the data
         palette: List[numpy.ndarray] = []
@@ -520,7 +523,7 @@ class FormatWrapper(ABC):
         else:
             chunk._block_palette = BlockManager()
 
-        def get_chunk_callback(_: int, __: int) -> "Chunk":
+        def get_chunk_callback(_: int, __: int) -> Chunk:
             # conversion from universal should not require any data outside the block
             return chunk
 
@@ -530,14 +533,14 @@ class FormatWrapper(ABC):
         )
 
     def _pack(
-        self, chunk: "Chunk", translator: "Translator", chunk_version: VersionNumberAny
-    ) -> Tuple["Chunk", AnyNDArray]:
+        self, chunk: Chunk, translator: "Translator", chunk_version: VersionNumberAny
+    ) -> Tuple[Chunk, AnyNDArray]:
         """Pack the chunk data into the format required by the encoder.
         This includes converting the string names to numerical formats for the versions that require it."""
         return translator.pack(chunk_version, self.translation_manager, chunk)
 
     def _encode(
-        self, chunk: "Chunk", chunk_palette: AnyNDArray, interface: "Interface"
+        self, chunk: Chunk, chunk_palette: AnyNDArray, interface: api_wrapper.Interface
     ) -> Any:
         """Encode the data to the raw format as saved on disk."""
         return interface.encode(chunk, chunk_palette, self.max_world_version)
