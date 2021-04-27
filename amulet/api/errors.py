@@ -79,6 +79,7 @@ class ObjectReadWriteError(Exception):
 
     This is usually because the data has been opened somewhere else.
     """
+
     pass
 
 
@@ -88,6 +89,7 @@ class ObjectReadError(ObjectReadWriteError):
 
     This is usually because the data has been opened somewhere else.
     """
+
     pass
 
 
@@ -97,4 +99,5 @@ class ObjectWriteError(ObjectReadWriteError):
 
     This is usually because the data has been opened somewhere else.
     """
+
     pass
