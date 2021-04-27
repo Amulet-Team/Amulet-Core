@@ -78,22 +78,13 @@ class BaseLevel:
     def level_path(self) -> str:
         """The system path where the level is located.
         This may be a directory or file depending on the level that is loaded."""
-        return self._directory
 
+        return self._path
 
     @property
     def translation_manager(self) -> PyMCTranslate.TranslationManager:
         """An instance of the translation class for use with this level."""
         return self.level_wrapper.translation_manager
-
-    @property
-    def palette(self) -> BlockManager:
-        """The manager for the universal blocks in this level. New blocks must be registered here before adding to the level."""
-        warnings.warn(
-            "World.palette is depreciated and will be removed in the future. Please use BaseLevel.block_palette instead",
-            DeprecationWarning,
-        )
-        return self.block_palette
 
     @property
     def block_palette(self) -> BlockManager:
@@ -143,6 +134,20 @@ class BaseLevel:
             sub_chunk_size = self.sub_chunk_size
         return SelectionBox.create_chunk_box(cx, cz, sub_chunk_size)
 
+    def _sanitise_selection(
+        self, selection: Union[SelectionGroup, SelectionBox, None]
+    ) -> SelectionGroup:
+        if isinstance(selection, SelectionBox):
+            return SelectionGroup(selection)
+        elif isinstance(selection, SelectionGroup):
+            return selection
+        elif selection is None:
+            return self.selection_bounds
+        else:
+            raise ValueError(
+                f"Expected SelectionBox, SelectionGroup or None. Got {selection}"
+            )
+
     def get_coord_box(
         self,
         dimension: Dimension,
@@ -156,14 +161,7 @@ class BaseLevel:
         :param dimension: The dimension to take effect in
         :param yield_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false). Use this with care.
         """
-        if isinstance(selection, SelectionBox):
-            selection = SelectionGroup(selection)
-        elif selection is None:
-            selection = self.selection_bounds
-        elif not isinstance(selection, SelectionGroup):
-            raise TypeError(f"Expected a SelectionGroup but got {type(selection)}")
-
-        selection: SelectionGroup
+        selection = self._sanitise_selection(selection)
         if yield_missing_chunks or selection.footprint_area < 1_000_000:
             if yield_missing_chunks:
                 for coord, box in selection.chunk_boxes(self.sub_chunk_size):
@@ -463,7 +461,7 @@ class BaseLevel:
         """Unload all loaded and cached data.
         This is functionally the same as closing and reopening the world without creating a new class."""
         self.unload()
-        # self.history_manager.
+        self.history_manager.purge()
 
     def close(self):
         """
