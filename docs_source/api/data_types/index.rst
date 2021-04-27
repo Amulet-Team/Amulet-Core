@@ -17,4 +17,4 @@ from here rather than redeclaring it.
    :caption: Data Types Documentation
    :glob:
 
-   *
+    *

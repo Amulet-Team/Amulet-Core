@@ -7,7 +7,7 @@
    :caption: Contents:
    :glob:
 
-   *
+    *
 
 .. automodule:: amulet.api.chunk.chunk
    :members:

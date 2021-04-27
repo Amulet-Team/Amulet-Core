@@ -7,4 +7,4 @@
    :caption: Design Documentation
    :glob:
 
-   design/*
+    design/*
