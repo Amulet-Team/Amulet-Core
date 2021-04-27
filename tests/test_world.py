@@ -81,7 +81,8 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 5, "overworld").blockstate,
             )
 
-            self.world.run_operation(clone, "overworld", src_box, target)
+            clone(self.world, "overworld", src_box, target)
+            self.world.create_undo_point()
 
             self.assertEqual(
                 "universal_minecraft:stone",
@@ -124,12 +125,13 @@ class WorldTestBaseCases:
             )
             # End sanity check
 
-            self.world.run_operation(
-                fill,
+            fill(
+                self.world,
                 "overworld",
                 selection,
                 Block.from_string_blockstate("universal_minecraft:stone"),
             )
+            self.world.create_undo_point()
 
             for x, y, z in selection.blocks():
                 self.assertEqual(
@@ -172,8 +174,8 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 5, "overworld").blockstate,
             )
 
-            self.world.run_operation(
-                replace,
+            replace(
+                self.world,
                 "overworld",
                 box1,
                 {
@@ -187,6 +189,7 @@ class WorldTestBaseCases:
                     ],
                 },
             )
+            self.world.create_undo_point()
 
             self.assertEqual(
                 "universal_minecraft:stone",
@@ -234,8 +237,8 @@ class WorldTestBaseCases:
                     f"Failed at coordinate (1,{y},3)",
                 )
 
-            self.world.run_operation(
-                replace,
+            replace(
+                self.world,
                 "overworld",
                 box1,
                 {
@@ -251,6 +254,7 @@ class WorldTestBaseCases:
                     ],
                 },
             )
+            self.world.create_undo_point()
 
             self.assertEqual(
                 "universal_minecraft:granite[polished=false]",
@@ -304,7 +308,8 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 5, "overworld").blockstate,
             )
 
-            self.world.run_operation(delete_chunk, "overworld", box1)
+            delete_chunk(self.world, "overworld", box1)
+            self.world.create_undo_point()
 
             with self.assertRaises(ChunkDoesNotExist):
                 _ = self.world.get_block(1, 70, 3, "overworld").blockstate

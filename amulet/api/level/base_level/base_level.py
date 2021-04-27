@@ -793,21 +793,6 @@ class BaseLevel:
     #         entities.remove(ent)
     #         chunk.entities = entities
 
-    def run_operation(
-        self, operation: OperationType, dimension: Dimension, *args, create_undo=True
-    ) -> Any:
-        try:
-            out = operation(self, dimension, *args)
-            if inspect.isgenerator(out):
-                out: Generator
-                out = generator_unpacker(out)
-        except Exception as e:
-            self.restore_last_undo_point()
-            raise e
-        if create_undo:
-            self.create_undo_point()
-        return out
-
     @property
     def history_manager(self) -> MetaHistoryManager:
         """The class that manages undoing and redoing changes."""
