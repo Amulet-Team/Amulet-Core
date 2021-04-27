@@ -3,8 +3,11 @@
 ###############
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
    :glob:
 
-   *
+   base_level/index
+   world
+   structure
+   immutable_structure/index
