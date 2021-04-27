@@ -7,7 +7,7 @@
    :caption: Contents:
    :glob:
 
-    *
+   *
 
 *************
  The Problem
@@ -24,20 +24,20 @@ height limits.
  Definitions
 *************
 
-    -  A 3D array: A three dimensional grid of values. In this context it
-       will always store integer values greater than or equal to zero.
+   -  A 3D array: A three dimensional grid of values. In this context it
+      will always store integer values greater than or equal to zero.
 
-    -  A chunk: A part of a Minecraft world which is saved as one piece.
-       Chunks are 16 blocks long in the x and z directions and are a
-       variable number of blocks tall.
+   -  A chunk: A part of a Minecraft world which is saved as one piece.
+      Chunks are 16 blocks long in the x and z directions and are a
+      variable number of blocks tall.
 
-    -  A sub-chunk/section: A sub-chunk is a piece of a chunk. In the
-       same way that a chunk is a 16 block wide slice of the world, a
-       chunk is a 16 block tall slice of the chunk. This makes a
-       sub-chunk represent a 16x16x16 block volume.
+   -  A sub-chunk/section: A sub-chunk is a piece of a chunk. In the
+      same way that a chunk is a 16 block wide slice of the world, a
+      chunk is a 16 block tall slice of the chunk. This makes a
+      sub-chunk represent a 16x16x16 block volume.
 
-    -  sub-chunk coordinate: The y coordinate of the sub-chunk within the
-       chunk. This is not the same as block coordinate.
+   -  sub-chunk coordinate: The y coordinate of the sub-chunk within the
+      chunk. This is not the same as block coordinate.
 
 **********
  Solution
@@ -62,20 +62,20 @@ Internally it stores the arrays for each sub-chunk in a dictionary of
 the form ``Dict[SubChunkCoordinate, numpy.ndarray]``.
 
 There are two ways to read and write the data contained within this class:
-    #. The sub-chunk arrays can be directly read and written to. This is
-       the fastest and preferable way.
-    #. The class can be used in a similar way to a numpy array. This adds
-       a bit of overhead which slows it down.
+   #. The sub-chunk arrays can be directly read and written to. This is
+      the fastest and preferable way.
+   #. The class can be used in a similar way to a numpy array. This adds
+      a bit of overhead which slows it down.
 
 The direct API consists of:
-    #. :meth:`~amulet.api.partial_3d_array.unbounded_partial_3d_array.UnboundedPartial3DArray.sections`
-    #. :meth:`~amulet.api.partial_3d_array.unbounded_partial_3d_array.UnboundedPartial3DArray.create_section`
-    #. :meth:`~amulet.api.partial_3d_array.unbounded_partial_3d_array.UnboundedPartial3DArray.add_section`
-    #. :meth:`~amulet.api.partial_3d_array.unbounded_partial_3d_array.UnboundedPartial3DArray.get_section`
+   #. :meth:`~amulet.api.partial_3d_array.unbounded_partial_3d_array.UnboundedPartial3DArray.sections`
+   #. :meth:`~amulet.api.partial_3d_array.unbounded_partial_3d_array.UnboundedPartial3DArray.create_section`
+   #. :meth:`~amulet.api.partial_3d_array.unbounded_partial_3d_array.UnboundedPartial3DArray.add_section`
+   #. :meth:`~amulet.api.partial_3d_array.unbounded_partial_3d_array.UnboundedPartial3DArray.get_section`
 
 The numpy-like API consists of:
-    #. :meth:`~amulet.api.partial_3d_array.unbounded_partial_3d_array.UnboundedPartial3DArray.__getitem__`
-    #. :meth:`~amulet.api.partial_3d_array.unbounded_partial_3d_array.UnboundedPartial3DArray.__setitem__`
+   #. :meth:`~amulet.api.partial_3d_array.unbounded_partial_3d_array.UnboundedPartial3DArray.__getitem__`
+   #. :meth:`~amulet.api.partial_3d_array.unbounded_partial_3d_array.UnboundedPartial3DArray.__setitem__`
 
 These are used via the ``value = array[x, y, z]`` and ``array[x, y, z] =
 value`` syntax respectively.

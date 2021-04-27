@@ -7,4 +7,4 @@
    :caption: Contents:
    :glob:
 
-    *
+   *

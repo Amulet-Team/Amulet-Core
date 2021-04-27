@@ -7,7 +7,7 @@
    :caption: Contents:
    :glob:
 
-    biomes_array/index
+   biomes_array/index
 
 .. autoclass:: amulet.api.chunk.biomes.Biomes
    :members:
