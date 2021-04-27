@@ -17,6 +17,10 @@
    libs/index
    utils/index
 
+.. autofunction:: amulet.load_level
+
+.. autofunction:: amulet.load_format
+
 ####################
  Indices and tables
 ####################
