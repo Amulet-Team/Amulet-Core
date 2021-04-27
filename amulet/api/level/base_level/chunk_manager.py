@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Optional, Tuple, Generator, Set, TYPE_CHECKING
 import os
 import shutil
@@ -11,20 +12,20 @@ from amulet.api.history.revision_manager import DiskRevisionManager
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.history.history_manager import DatabaseHistoryManager
 from amulet.api.cache import get_cache_db
-
-if TYPE_CHECKING:
-    from amulet.api.level import BaseLevel
+from amulet.api import level
 
 
 class ChunkDiskEntry(DiskRevisionManager):
     __slots__ = ("_world",)
 
-    def __init__(self, world: "BaseLevel", directory: str, initial_state: EntryType):
+    def __init__(
+        self, world: level.BaseLevel, directory: str, initial_state: EntryType
+    ):
         self._world = weakref.ref(world)
         super().__init__(directory, initial_state)
 
     @property
-    def world(self) -> "BaseLevel":
+    def world(self) -> level.BaseLevel:
         return self._world()
 
     def _serialise(self, path: str, entry: Optional[Chunk]) -> Optional[str]:
@@ -54,14 +55,14 @@ class ChunkManager(DatabaseHistoryManager):
     DoesNotExistError = ChunkDoesNotExist
     LoadError = ChunkLoadError
 
-    def __init__(self, temp_dir: str, world: "BaseLevel"):
+    def __init__(self, temp_dir: str, world: level.BaseLevel):
         super().__init__()
         self._temp_dir: str = temp_dir  # the location to serialise Chunks to
         shutil.rmtree(self._temp_dir, ignore_errors=True)
         self._world = weakref.ref(world)
 
     @property
-    def world(self) -> "BaseLevel":
+    def world(self) -> level.BaseLevel:
         return self._world()
 
     def changed_chunks(self) -> Generator[DimensionCoordinates, None, None]:

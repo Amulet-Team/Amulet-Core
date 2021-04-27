@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import shutil
-from typing import Union, Generator, Optional, Tuple, Callable, Any, Set, TYPE_CHECKING
+from typing import Union, Generator, Optional, Tuple, Callable, Any, Set
 import warnings
 import traceback
 import numpy
@@ -32,11 +32,8 @@ from amulet.utils.world_utils import block_coords_to_chunk_coords
 from .chunk_manager import ChunkManager
 from amulet.api.history.history_manager import MetaHistoryManager
 from .clone import clone
-import amulet.api.level
-
-if TYPE_CHECKING:
-    from PyMCTranslate import TranslationManager
-    from amulet.api.wrapper import FormatWrapper
+from amulet.api import wrapper as api_wrapper, level as api_level
+import PyMCTranslate
 
 
 class BaseLevel:
@@ -44,14 +41,9 @@ class BaseLevel:
     BaseLevel handles chunk editing of any world or structure format via an separate and flexible data format.
     """
 
-    def __init__(
-        self, directory: str, format_wrapper: "FormatWrapper", temp_dir: str = None
-    ):
-        self._directory = directory
-        if temp_dir is None:
-            self._temp_directory = get_temp_dir(self._directory)
-        else:
-            self._temp_directory = temp_dir
+    def __init__(self, path: str, format_wrapper: api_wrapper.FormatWrapper):
+        self._path = path
+        self._temp_directory = get_temp_dir(self._path)
 
         self._level_wrapper = format_wrapper
         self.level_wrapper.open()
@@ -73,18 +65,9 @@ class BaseLevel:
         self.history_manager.register(self._chunks, True)
 
     @property
-    def level_wrapper(self) -> "FormatWrapper":
+    def level_wrapper(self) -> api_wrapper.FormatWrapper:
         """A class to access data directly from the level."""
         return self._level_wrapper
-
-    @property
-    def world_wrapper(self) -> "FormatWrapper":
-        """A class to access data directly from the world."""
-        warnings.warn(
-            "BaseLevel.world_wrapper is depreciated and will be removed in the future. Please use BaseLevel.level_wrapper instead.",
-            DeprecationWarning,
-        )
-        return self.level_wrapper
 
     @property
     def sub_chunk_size(self) -> int:
@@ -97,17 +80,9 @@ class BaseLevel:
         This may be a directory or file depending on the level that is loaded."""
         return self._directory
 
-    @property
-    def world_path(self) -> str:
-        """The directory where the world is located"""
-        warnings.warn(
-            "BaseLevel.world_path is depreciated and will be removed in the future. Please use BaseLevel.level_path instead.",
-            DeprecationWarning,
-        )
-        return self._directory
 
     @property
-    def translation_manager(self) -> "TranslationManager":
+    def translation_manager(self) -> PyMCTranslate.TranslationManager:
         """An instance of the translation class for use with this level."""
         return self.level_wrapper.translation_manager
 
@@ -397,7 +372,7 @@ class BaseLevel:
 
     def save(
         self,
-        wrapper: "FormatWrapper" = None,
+        wrapper: api_wrapper.FormatWrapper = None,
         progress_callback: Callable[[int, int], None] = None,
     ):
         """Save the level using the given wrapper.
@@ -408,7 +383,7 @@ class BaseLevel:
                 progress_callback(chunk_index, chunk_count)
 
     def save_iter(
-        self, wrapper: "FormatWrapper" = None
+        self, wrapper: api_wrapper.FormatWrapper = None
     ) -> Generator[Tuple[int, int], None, None]:
         """Save the level data back to the wrapper.
 
@@ -562,20 +537,18 @@ class BaseLevel:
 
     def extract_structure(
         self, selection: SelectionGroup, dimension: Dimension
-    ) -> amulet.api.level.ImmutableStructure:
+    ) -> api_level.ImmutableStructure:
         """Extract the area in the SelectionGroup from the level as a new structure"""
-        return amulet.api.level.ImmutableStructure.from_level(
-            self, selection, dimension
-        )
+        return api_level.ImmutableStructure.from_level(self, selection, dimension)
 
     def extract_structure_iter(
         self, selection: SelectionGroup, dimension: Dimension
-    ) -> Generator[float, None, amulet.api.level.ImmutableStructure]:
+    ) -> Generator[float, None, api_level.ImmutableStructure]:
         """Extract the area in the SelectionGroup from the level as a new structure"""
-        level = yield from amulet.api.level.ImmutableStructure.from_level_iter(
+        immutable_level = yield from api_level.ImmutableStructure.from_level_iter(
             self, selection, dimension
         )
-        return level
+        return immutable_level
 
     def paste(
         self,

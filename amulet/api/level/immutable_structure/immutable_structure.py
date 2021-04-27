@@ -20,9 +20,8 @@ class ImmutableStructure(BaseLevel):
 
     def __init__(
         self,
-        temp_dir: str = None,
     ):
-        super().__init__("", VoidFormatWrapper(""), temp_dir)
+        super().__init__("", VoidFormatWrapper(""))
         self._selection = SelectionGroup(
             [
                 SelectionBox(

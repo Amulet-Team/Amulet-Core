@@ -1,11 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from .base_level import BaseLevel
-
-if TYPE_CHECKING:
-    from amulet.api.wrapper import StructureFormatWrapper
+from amulet.api import wrapper as api_wrapper
 
 
 class Structure(BaseLevel):
@@ -16,12 +12,11 @@ class Structure(BaseLevel):
     def __init__(
         self,
         directory: str,
-        structure_wrapper: "StructureFormatWrapper",
-        temp_dir: str = None,
+        structure_wrapper: api_wrapper.StructureFormatWrapper,
     ):
-        super().__init__(directory, structure_wrapper, temp_dir)
+        super().__init__(directory, structure_wrapper)
 
     @property
-    def level_wrapper(self) -> "StructureFormatWrapper":
+    def level_wrapper(self) -> api_wrapper.StructureFormatWrapper:
         """A class to access data directly from the level."""
         return self._level_wrapper

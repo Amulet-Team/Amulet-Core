@@ -43,15 +43,6 @@ class WorldFormatWrapper(FormatWrapper):
         raise NotImplementedError
 
     @property
-    def world_path(self) -> str:
-        """The path to the world directory"""
-        warnings.warn(
-            "Format.world_path is depreciated and will be removed in the future. Please used WorldFormatWrapper.path instead",
-            DeprecationWarning,
-        )
-        return self._path
-
-    @property
     def world_image_path(self) -> str:
         """The path to the world icon"""
         return self._world_image_path
