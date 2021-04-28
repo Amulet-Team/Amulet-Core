@@ -17,10 +17,10 @@ import sys
 import subprocess
 import datetime
 
-import amulet
-
 sys.path.insert(0, os.path.abspath("."))
 sys.path.insert(0, os.path.abspath(".."))
+
+import amulet
 
 
 # -- Project information -----------------------------------------------------
