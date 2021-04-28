@@ -9,7 +9,13 @@ if TYPE_CHECKING:
 
 
 class VoidFormatWrapper(FormatWrapper):
-    """There is no actual database here for chunks to be read from or written to. This is just here to make the world happy."""
+    """
+    A custom :class:`FormatWrapper` class that has no associated data.
+
+    This is just to make the :class:`ImmutableStructure` class happy since it requires a :class:`FormatWrapper` class.
+
+    All methods effectively do nothing.
+    """
 
     @property
     def world_name(self) -> str:
