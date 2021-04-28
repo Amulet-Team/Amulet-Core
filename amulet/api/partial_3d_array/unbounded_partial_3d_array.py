@@ -1,4 +1,4 @@
-from typing import Union, Tuple, overload, Iterable, Optional, Dict, Literal
+from typing import Union, Tuple, overload, Iterable, Optional, Dict  # , Literal
 import numpy
 import math
 
@@ -56,7 +56,7 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         return f"UnboundedPartial3DArray(dtype={self.dtype}, shape={self.shape})"
 
     @property
-    def size_y(self) -> Literal[math.inf]:
+    def size_y(self) -> float:  # Literal[math.inf]:
         """The size of the array in the y axis. Is always :attr:`math.inf` for the unbounded variant. Read Only"""
         return math.inf
 
