@@ -30,9 +30,9 @@ class BoundedPartial3DArray(BasePartial3DArray):
         step: Tuple[int, int, int],
     ):
         """
-        Create a :class:`BoundedPartial3DArray` from an :class:`UnboundedPartial3DArray` and slices.
+        Create a :class:`BoundedPartial3DArray` from an :class:`~amulet.api.partial_3d_array.UnboundedPartial3DArray` and slices.
 
-        :param parent_array: The :class:`UnboundedPartial3DArray` to "extract" the slice from
+        :param parent_array: The :class:`~amulet.api.partial_3d_array.UnboundedPartial3DArray` to "extract" the slice from
         :param start: The starting point of the slice.
         :param stop: The end point of the slice.
         :param step: The steps of the slice.
@@ -59,7 +59,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
         parent_array: UnboundedPartial3DArray,
     ):
         """
-        Construct a :class:`BoundedPartial3DArray`. This should not be used directly. You should instead use the :meth:`~amulet.api.partial_3d_array.unbounded_partial_3d_array.UnboundedPartial3DArray.__getitem__` method of :class:`UnboundedPartial3DArray`
+        Construct a :class:`BoundedPartial3DArray`. This should not be used directly. You should instead use the :meth:`~amulet.api.partial_3d_array.UnboundedPartial3DArray.__getitem__` method of :class:`~amulet.api.partial_3d_array.UnboundedPartial3DArray`
 
         :param dtype: The dtype that all arrays will be stored in.
         :param default_value: The default value that all undefined arrays will be populated with if required.
@@ -67,7 +67,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
         :param start: The starting point of the slice.
         :param stop: The end point of the slice.
         :param step: The steps of the slice.
-        :param parent_array: The original :class:`UnboundedPartial3DArray` that the slice is viewing into.
+        :param parent_array: The original :class:`~amulet.api.partial_3d_array.UnboundedPartial3DArray` that the slice is viewing into.
         """
         assert isinstance(start[1], int) and isinstance(
             stop[1], int
