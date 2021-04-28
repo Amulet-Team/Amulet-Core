@@ -9,6 +9,6 @@
 
    *
 
-.. automodule:: amulet.api.level.base_level.base_level
+.. autoclass:: amulet.api.level.BaseLevel
    :members:
    :show-inheritance:

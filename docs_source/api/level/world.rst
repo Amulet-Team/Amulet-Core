@@ -2,7 +2,7 @@
  world module
 ##############
 
-.. automodule:: amulet.api.level.world
+.. autoclass:: amulet.api.level.World
    :members:
    :show-inheritance:
    :inherited-members:

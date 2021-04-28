@@ -2,6 +2,6 @@
  structure module
 ##################
 
-.. automodule:: amulet.api.level.structure
+.. autoclass:: amulet.api.level.Structure
    :members:
    :show-inheritance:

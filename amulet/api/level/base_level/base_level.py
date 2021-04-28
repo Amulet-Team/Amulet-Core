@@ -2,12 +2,10 @@ from __future__ import annotations
 
 import os
 import shutil
-from typing import Union, Generator, Optional, Tuple, Callable, Any, Set
-import warnings
+from typing import Union, Generator, Optional, Tuple, Callable, Set
 import traceback
 import numpy
 import itertools
-import inspect
 
 from amulet import log
 from amulet.api.block import Block, UniversalAirBlock
@@ -20,7 +18,6 @@ from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet.api.paths import get_temp_dir
 from amulet.api.data_types import (
-    OperationType,
     Dimension,
     VersionIdentifierType,
     BlockCoordinates,
@@ -130,8 +127,9 @@ class BaseLevel:
         :param dimension: The dimension of the desired block
         :return: The universal Block object representation of the block at that location
         :raises:
-            ChunkDoesNotExist: If the chunk does not exist (was deleted or never created)
-            ChunkLoadError: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
+            :class:`~amulet.api.errors.ChunkDoesNotExist`: If the chunk does not exist (was deleted or never created)
+
+            :class:`~amulet.api.errors.ChunkLoadError`: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
         """
         cx, cz = block_coords_to_chunk_coords(x, z, sub_chunk_size=self.sub_chunk_size)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
@@ -554,8 +552,9 @@ class BaseLevel:
         :param dimension: The dimension to get the chunk from
         :return: A Chunk object containing the data for the chunk
         :raises:
-            ChunkDoesNotExist: If the chunk does not exist (was deleted or never created)
-            ChunkLoadError: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
+            :class:`~amulet.api.errors.ChunkDoesNotExist`: If the chunk does not exist (was deleted or never created)
+
+            :class:`~amulet.api.errors.ChunkLoadError`: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
         """
         return self._chunks.get_chunk(dimension, cx, cz)
 
@@ -740,8 +739,9 @@ class BaseLevel:
             >>> ("bedrock", (1, 16, 210))  # Bedrock 1.16.210 format
         :return: The block at the given location converted to the `version` format. Note the odd return format.
         :raises:
-            ChunkDoesNotExist: If the chunk does not exist (was deleted or never created)
-            ChunkLoadError: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
+            :class:`~amulet.api.errors.ChunkDoesNotExist`: If the chunk does not exist (was deleted or never created)
+
+            :class:`~amulet.api.errors.ChunkLoadError`: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
         """
         cx, cz = block_coords_to_chunk_coords(x, z, sub_chunk_size=self.sub_chunk_size)
         chunk = self.get_chunk(cx, cz, dimension)

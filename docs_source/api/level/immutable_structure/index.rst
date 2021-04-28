@@ -9,6 +9,6 @@
 
    *
 
-.. automodule:: amulet.api.level.immutable_structure.immutable_structure
+.. autoclass:: amulet.api.level.ImmutableStructure
    :members:
    :show-inheritance:
