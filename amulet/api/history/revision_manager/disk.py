@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import os
 from typing import Optional
 
@@ -21,6 +22,7 @@ class DiskRevisionManager(RevisionManager):
         path = self._serialise(path, entry)
         self._revisions.append(path)
 
+    @abstractmethod
     def _serialise(self, path: str, entry: EntryType) -> Optional[str]:
         raise NotImplementedError
 
@@ -28,5 +30,6 @@ class DiskRevisionManager(RevisionManager):
         path = self._revisions[self._current_revision_index]
         return self._deserialise(path)
 
+    @abstractmethod
     def _deserialise(self, path: str) -> EntryType:
         raise NotImplementedError

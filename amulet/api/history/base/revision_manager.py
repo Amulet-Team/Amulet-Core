@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import List, Optional, Any
 
 from .base_history import BaseHistory
@@ -37,10 +38,12 @@ class RevisionManager(BaseHistory):
         self._store_entry(entry)
         self._current_revision_index += 1
 
+    @abstractmethod
     def _store_entry(self, entry: StoredEntryType):
         """Store the entry data as required."""
         raise NotImplementedError
 
+    @abstractmethod
     def get_current_entry(self):
         """Get the entry at the current revision."""
         raise NotImplementedError
