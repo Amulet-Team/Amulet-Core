@@ -12,3 +12,4 @@
 .. autoclass:: amulet.api.level.ImmutableStructure
    :members:
    :show-inheritance:
+   :inherited-members:
