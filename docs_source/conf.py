@@ -51,6 +51,8 @@ extensions = [
     "sphinx.ext.ifconfig",
     "sphinx.ext.linkcode",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.graphviz",
+    "sphinx.ext.inheritance_diagram",
 ]
 
 commit_id = (
