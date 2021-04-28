@@ -181,15 +181,16 @@ class Biomes:
     def __copy__(self):
         cls = self.__class__
         result = cls.__new__(cls)
-        result.__dict__.update(self.__dict__)
+        for k in self.__slots__:
+            setattr(result, k, getattr(self, k))
         return result
 
     def __deepcopy__(self, memodict=None):
         cls = self.__class__
         result = cls.__new__(cls)
         memodict[id(self)] = result
-        for k, v in self.__dict__.items():
-            setattr(result, k, deepcopy(v, memodict))
+        for k in self.__slots__:
+            setattr(result, k, deepcopy(getattr(self, k), memodict))
         return result
 
     def __getattr__(self, item):
