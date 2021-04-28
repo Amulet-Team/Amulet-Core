@@ -17,7 +17,7 @@ class BlockEntityDict(UserDict):
     InputType = Iterable[BlockEntity]
 
     def __init__(self, block_entities: InputType = ()):
-        super(BlockEntityDict, self).__init__()
+        super().__init__()
         for block_entity in block_entities:
             self._assert_val(block_entity)
             self.data[block_entity.location] = block_entity
