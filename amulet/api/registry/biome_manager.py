@@ -8,6 +8,7 @@ class BiomeManager(BaseRegistry):
     """
     Class to handle the mappings between biome strings and their index-based internal IDs
     """
+
     def __init__(self, biomes: Iterable[BiomeType] = ()):
         """
         Creates a new BiomeManager object

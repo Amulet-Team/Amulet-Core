@@ -63,9 +63,7 @@ class BaseLevel:
 
         self._history_manager = MetaHistoryManager()
 
-        self._chunks: ChunkManager = ChunkManager(
-            self._prefix, self
-        )
+        self._chunks: ChunkManager = ChunkManager(self._prefix, self)
 
         self.history_manager.register(self._chunks, True)
 
