@@ -405,9 +405,7 @@ class SelectionGroup(AbstractBaseSelection):
         """creates a new transformed SelectionGroup."""
         selection_group = SelectionGroup()
         for selection in self.selection_boxes:
-            selection_group += selection.transform(
-                scale, rotation, translation
-            )
+            selection_group += selection.transform(scale, rotation, translation)
         return selection_group
 
     def copy(self):

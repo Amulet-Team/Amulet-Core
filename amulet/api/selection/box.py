@@ -726,9 +726,7 @@ class SelectionBox(AbstractBaseSelection):
                 transform_matrix(scale, rotation, translation),
                 numpy.array([[*self.min, 1], [*self.max, 1]]).T,
             ).T[:, :3]
-            return selection.SelectionGroup(
-                SelectionBox(min_point, max_point)
-            )
+            return selection.SelectionGroup(SelectionBox(min_point, max_point))
         else:
             boxes = []
             for _, box, mask, _ in self._iter_transformed_boxes(

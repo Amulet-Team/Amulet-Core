@@ -130,11 +130,13 @@ class SelectionTestCase(unittest.TestCase):
             )
         )
         box_3 = box_1.subtract(box_2)
-        box_4 = SelectionGroup((
-            SelectionBox((0, 16, 0), (32, 32, 32)),
-            SelectionBox((0, 0, 16), (32, 16, 32)),
-            SelectionBox((16, 0, 0), (32, 16, 16)),
-        ))
+        box_4 = SelectionGroup(
+            (
+                SelectionBox((0, 16, 0), (32, 32, 32)),
+                SelectionBox((0, 0, 16), (32, 16, 32)),
+                SelectionBox((16, 0, 0), (32, 16, 16)),
+            )
+        )
         self.assertEqual(box_3, box_4)
 
 
