@@ -22,10 +22,11 @@ from amulet.utils.matrix import (
     transform_matrix,
     displacement_matrix,
 )
-from . import abstract_selection
+from .abstract_selection import AbstractBaseSelection
+from .. import selection
 
 
-class SelectionBox(abstract_selection.AbstractBaseSelection):
+class SelectionBox(AbstractBaseSelection):
     """
     A SelectionBox is a box that can represent the entirety of a selection or just a subsection
     of one. This allows for non-rectangular and non-contiguous selections.
@@ -456,7 +457,7 @@ class SelectionBox(abstract_selection.AbstractBaseSelection):
             numpy.clip(other.max, self.min, self.max),
         )
 
-    def subtract(self, other: SelectionBox) -> List[SelectionBox]:
+    def subtract(self, other: SelectionBox) -> selection.SelectionGroup:
         """
         Get a list of :class:`SelectionBox` instances that are in self but not in other.
         This may be empty or equal to self."""
@@ -464,7 +465,7 @@ class SelectionBox(abstract_selection.AbstractBaseSelection):
             other = self.intersection(other)
             if self == other:
                 # if the two selections are the same there is no difference.
-                return []
+                return selection.SelectionGroup()
             else:
                 boxes = []
                 if self.min_y < other.min_y:
@@ -525,10 +526,10 @@ class SelectionBox(abstract_selection.AbstractBaseSelection):
                         )
                     )
 
-                return boxes
+                return selection.SelectionGroup(boxes)
         else:
             # if the boxes do not intersect then the difference is self
-            return [self]
+            return selection.SelectionGroup(self)
 
     def intersects_vector(
         self, origin: PointCoordinatesAny, vector: PointCoordinatesAny

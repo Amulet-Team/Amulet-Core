@@ -28,13 +28,10 @@ class SelectionGroup(AbstractBaseSelection):
     ):
         if isinstance(selection_boxes, SelectionBox):
             self._selection_boxes: Tuple[SelectionBox, ...] = (selection_boxes,)
-        elif isinstance(selection_boxes, (tuple, list)):
+        else:
             self._selection_boxes: Tuple[SelectionBox, ...] = tuple(
                 box for box in selection_boxes if isinstance(box, SelectionBox)
             )
-        else:
-            amulet.log.warning(f"Invalid format for selection_boxes {selection_boxes}")
-            self._selection_boxes: Tuple[SelectionBox, ...] = ()
 
     def __repr__(self) -> str:
         boxes = ", ".join([repr(box) for box in self.selection_boxes])
@@ -358,16 +355,18 @@ class SelectionGroup(AbstractBaseSelection):
     def subtract(self, other: Union[SelectionGroup, SelectionBox]) -> SelectionGroup:
         """Returns a new SelectionGroup containing the volume that does not intersect with other."""
         other = self._to_group(other)
-        selections = self.selection_boxes
-        for other_box in other.selection_boxes:
+        selections = self
+        for other_box in other:
             # for each box in other
-            selections_new = []
+            selections_new = SelectionGroup()
             for self_box in selections:
                 selections_new += self_box.subtract(other_box)
             selections = selections_new
             if not selections:
                 break
-        return SelectionGroup(selections)
+        if selections is self:
+            return selections.copy()
+        return selections
 
     def union(self, other: Union[SelectionGroup, SelectionBox]) -> SelectionGroup:
         """Returns a new SelectionGroup containing the volume of self and other."""
