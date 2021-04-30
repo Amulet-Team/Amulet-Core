@@ -98,9 +98,7 @@ class SelectionBox(abstract_selection.AbstractBaseSelection):
             offset *= -1
         return SelectionBox(offset + self.min, offset + self.max)
 
-    def chunk_locations(
-        self, sub_chunk_size: int = 16
-    ) -> Iterable[ChunkCoordinates]:
+    def chunk_locations(self, sub_chunk_size: int = 16) -> Iterable[ChunkCoordinates]:
         """
         An iterable of chunk locations that this box intersects.
 
@@ -684,9 +682,7 @@ class SelectionBox(abstract_selection.AbstractBaseSelection):
 
     def transformed_points(
         self, transform: numpy.ndarray
-    ) -> Iterable[
-        Tuple[float, Optional[numpy.ndarray], Optional[numpy.ndarray]]
-    ]:
+    ) -> Iterable[Tuple[float, Optional[numpy.ndarray], Optional[numpy.ndarray]]]:
         """Get the locations of the transformed blocks and the source blocks they came from.
 
         :param transform: The matrix that this box will be transformed by.

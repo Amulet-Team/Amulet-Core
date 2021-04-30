@@ -62,9 +62,7 @@ class AbstractBaseSelection(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def chunk_locations(
-        self, sub_chunk_size: int = 16
-    ) -> Iterable[ChunkCoordinates]:
+    def chunk_locations(self, sub_chunk_size: int = 16) -> Iterable[ChunkCoordinates]:
         raise NotImplementedError
 
     @abstractmethod

@@ -157,10 +157,7 @@ class SelectionGroup(AbstractBaseSelection):
 
     @property
     def bounds_array(self) -> numpy.ndarray:
-        return numpy.array([
-            self.min_array,
-            self.max_array
-        ])
+        return numpy.array([self.min_array, self.max_array])
 
     def to_box(self) -> SelectionBox:
         """Create a `SelectionBox` based off the bounds of the boxes in the group."""
@@ -271,9 +268,7 @@ class SelectionGroup(AbstractBaseSelection):
     def chunk_count(self, sub_chunk_size: int = 16) -> int:
         return len(self.chunk_locations(sub_chunk_size))
 
-    def chunk_locations(
-        self, sub_chunk_size: int = 16
-    ) -> Set[ChunkCoordinates]:
+    def chunk_locations(self, sub_chunk_size: int = 16) -> Set[ChunkCoordinates]:
         """
         An iterable of chunk locations that the boxes in this group intersect.
         Each location is only given once even if there are multiple boxes in the chunk.
@@ -302,9 +297,7 @@ class SelectionGroup(AbstractBaseSelection):
     def sub_chunk_count(self, sub_chunk_size: int = 16) -> int:
         return len(self.sub_chunk_locations(sub_chunk_size))
 
-    def sub_chunk_locations(
-        self, sub_chunk_size: int = 16
-    ) -> Set[SubChunkCoordinates]:
+    def sub_chunk_locations(self, sub_chunk_size: int = 16) -> Set[SubChunkCoordinates]:
         """
         An iterable of sub-chunk locations that the boxes in this group intersect.
         Each location is only given once even if there are multiple boxes in the chunk.
@@ -431,12 +424,16 @@ class SelectionGroup(AbstractBaseSelection):
     @property
     def footprint_area(self) -> int:
         """The flat area of the selection."""
-        return SelectionGroup(
-            [
-                SelectionBox((box.min_x, 0, box.min_z), (box.max_x, 1, box.max_z))
-                for box in self.selection_boxes
-            ]
-        ).merge_boxes().volume
+        return (
+            SelectionGroup(
+                [
+                    SelectionBox((box.min_x, 0, box.min_z), (box.max_x, 1, box.max_z))
+                    for box in self.selection_boxes
+                ]
+            )
+            .merge_boxes()
+            .volume
+        )
 
 
 if __name__ == "__main__":
