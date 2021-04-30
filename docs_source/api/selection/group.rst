@@ -2,6 +2,7 @@
  selection group module
 ########################
 
-.. automodule:: amulet.api.selection.group
+.. autoclass:: amulet.api.selection.SelectionGroup
    :members:
+   :inherited-members:
    :show-inheritance:

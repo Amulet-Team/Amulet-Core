@@ -2,6 +2,7 @@
  selection box module
 ######################
 
-.. automodule:: amulet.api.selection.box
+.. autoclass:: amulet.api.selection.SelectionBox
    :members:
+   :inherited-members:
    :show-inheritance:
