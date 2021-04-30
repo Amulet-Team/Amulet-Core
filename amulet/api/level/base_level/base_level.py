@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import os
-import shutil
+import time
 from typing import Union, Generator, Optional, Tuple, Callable, Set
 import traceback
 import numpy
@@ -16,7 +15,6 @@ from amulet.api.registry.biome_manager import BiomeManager
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError, DimensionDoesNotExist
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.paths import get_temp_dir
 from amulet.api.data_types import (
     Dimension,
     VersionIdentifierType,
@@ -50,7 +48,7 @@ class BaseLevel:
         :param format_wrapper: The :class:`FormatWrapper` instance that the level will wrap around.
         """
         self._path = path
-        self._temp_directory = get_temp_dir(self._path)
+        self._prefix = str(hash((self._path, time.time())))
 
         self._level_wrapper = format_wrapper
         self.level_wrapper.open()
@@ -66,7 +64,7 @@ class BaseLevel:
         self._history_manager = MetaHistoryManager()
 
         self._chunks: ChunkManager = ChunkManager(
-            os.path.join(self._temp_directory, "chunks"), self
+            self._prefix, self
         )
 
         self.history_manager.register(self._chunks, True)
@@ -499,7 +497,6 @@ class BaseLevel:
 
         Use changed method to check if there are any changes that should be saved before closing.
         """
-        shutil.rmtree(self._temp_directory, ignore_errors=True)
         self.level_wrapper.close()
 
     def unload(self, safe_area: Optional[Tuple[Dimension, int, int, int, int]] = None):

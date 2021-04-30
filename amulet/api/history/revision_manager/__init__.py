@@ -1,2 +1,2 @@
 from .ram import RAMRevisionManager
-from .disk import DiskRevisionManager
+from .disk import DBRevisionManager

@@ -1,31 +1,29 @@
 from __future__ import annotations
 from typing import Optional, Tuple, Generator, Set
-import os
-import shutil
 import weakref
 
 from amulet.api.data_types import DimensionCoordinates, Dimension
 from amulet.api.chunk import Chunk
 from amulet.api.history.data_types import EntryType, EntryKeyType
 from amulet.api.history.base import RevisionManager
-from amulet.api.history.revision_manager import DiskRevisionManager
+from amulet.api.history.revision_manager import DBRevisionManager
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.history.history_manager import DatabaseHistoryManager
 from amulet.api.cache import get_cache_db
-from amulet.api import level
+from amulet.api import level as api_level
 
 
-class ChunkDiskEntry(DiskRevisionManager):
+class ChunkDBEntry(DBRevisionManager):
     __slots__ = ("_world",)
 
     def __init__(
-        self, world: level.BaseLevel, directory: str, initial_state: EntryType
+        self, world: api_level.BaseLevel, prefix: str, initial_state: EntryType
     ):
+        super().__init__(prefix, initial_state)
         self._world = weakref.ref(world)
-        super().__init__(directory, initial_state)
 
     @property
-    def world(self) -> level.BaseLevel:
+    def world(self) -> api_level.BaseLevel:
         return self._world()
 
     def _serialise(self, path: str, entry: Optional[Chunk]) -> Optional[str]:
@@ -60,22 +58,21 @@ class ChunkManager(DatabaseHistoryManager):
     DoesNotExistError = ChunkDoesNotExist
     LoadError = ChunkLoadError
 
-    def __init__(self, temp_dir: str, level: level.BaseLevel):
+    def __init__(self, prefix: str, level: api_level.BaseLevel):
         """
         Construct a :class:`ChunkManager` instance.
 
         Should not be directly used by third party code.
 
-        :param temp_dir: The directory to save temporary files to.
+        :param prefix: The prefix to store data under in the database. Must be unique to the world.
         :param level: The world that this chunk manager is associated with
         """
         super().__init__()
-        self._temp_dir: str = temp_dir  # the location to serialise Chunks to
-        shutil.rmtree(self._temp_dir, ignore_errors=True)
+        self._prefix: str = f"{prefix}/chunks"  # the location to serialise Chunks to
         self._level = weakref.ref(level)
 
     @property
-    def level(self) -> level.BaseLevel:
+    def level(self) -> api_level.BaseLevel:
         """The level that this chunk manager is associated with."""
         return self._level()
 
@@ -217,5 +214,5 @@ class ChunkManager(DatabaseHistoryManager):
         self, key: EntryKeyType, original_entry: EntryType
     ) -> RevisionManager:
         dimension, cx, cz = key
-        directory = os.path.join(self._temp_dir, str(dimension), f"{cx}.{cz}")
-        return ChunkDiskEntry(self.level, directory, original_entry)
+        prefix = f"{self._prefix}/{dimension}/{cx}.{cz}"
+        return ChunkDBEntry(self.level, prefix, original_entry)
