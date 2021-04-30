@@ -28,10 +28,9 @@ from .. import selection
 
 class SelectionBox(AbstractBaseSelection):
     """
-    A SelectionBox is a box that can represent the entirety of a selection or just a subsection
-    of one. This allows for non-rectangular and non-contiguous selections.
+    The SelectionBox class represents a single cuboid selection.
 
-    The both the minimum and  maximum coordinate points are inclusive.
+    When combined with :class:`~amulet.api.selection.SelectionGroup` it can represent any arbitrary shape.
     """
 
     __slots__ = (
@@ -46,6 +45,18 @@ class SelectionBox(AbstractBaseSelection):
     )
 
     def __init__(self, point_1: BlockCoordinatesAny, point_2: BlockCoordinatesAny):
+        """
+        Construct a new SelectionBox instance.
+
+        >>> # a selection box that selects one block.
+        >>> box = SelectionBox(
+        >>>     (0, 0, 0),
+        >>>     (1, 1, 1)
+        >>> )
+
+        :param point_1: The first point of the selection.
+        :param point_2: The second point of the selection.
+        """
         box = numpy.array([point_1, point_2]).round().astype(int)
         p1, p2 = box.tolist()
         self._point_1 = tuple(p1)
@@ -58,11 +69,14 @@ class SelectionBox(AbstractBaseSelection):
         cls, cx: int, cz: int, sub_chunk_size: int = 16
     ) -> SelectionBox:
         """
-        Get a SelectionBox containing the whole of a given chunk.
+        Get a :class:`SelectionBox` containing the whole of a given chunk.
+
+        >>> box = SelectionBox.create_chunk_box(1, 2)
+        SelectionBox((16, -1073741824, 32), (32, 1073741824, 48))
 
         :param cx: The x coordinate of the chunk
         :param cz: The z coordinate of the chunk
-        :param sub_chunk_size: The dimension of the chunk (normally 16)
+        :param sub_chunk_size: The dimension of a sub-chunk. Default 16.
         """
         return cls(
             (cx * sub_chunk_size, -(2 ** 30), cz * sub_chunk_size),
@@ -74,12 +88,15 @@ class SelectionBox(AbstractBaseSelection):
         cls, cx: int, cy: int, cz: int, sub_chunk_size: int = 16
     ) -> SelectionBox:
         """
-        Get a SelectionBox containing the whole of a given sub-chunk.
+        Get a :class:`SelectionBox` containing the whole of a given sub-chunk.
+
+        >>> SelectionBox.create_sub_chunk_box(1, 0, 2)
+        SelectionBox((16, 0, 32), (32, 16, 48))
 
         :param cx: The x coordinate of the chunk
         :param cy: The y coordinate of the chunk
         :param cz: The z coordinate of the chunk
-        :param sub_chunk_size: The dimension of the chunk (normally 16)
+        :param sub_chunk_size: The dimension of a sub-chunk. Default 16.
         """
         return cls(
             (cx * sub_chunk_size, cy * sub_chunk_size, cz * sub_chunk_size),
@@ -93,18 +110,19 @@ class SelectionBox(AbstractBaseSelection):
     def create_moved_box(
         self, offset: BlockCoordinatesAny, subtract=False
     ) -> SelectionBox:
-        """Create a new SelectionBox by offsetting the bounds of this box."""
+        """
+        Create a new :class:`SelectionBox` based on this one with the coordinates moved by the given offset.
+
+        :param offset: The amount to move the box.
+        :param subtract: If true will subtract the offset rather than adding.
+        :return: The new selection with the given offset.
+        """
         offset = numpy.array(offset)
         if subtract:
             offset *= -1
         return SelectionBox(offset + self.min, offset + self.max)
 
     def chunk_locations(self, sub_chunk_size: int = 16) -> Iterable[ChunkCoordinates]:
-        """
-        An iterable of chunk locations that this box intersects.
-
-        :param sub_chunk_size: The dimension of the chunk (normally 16)
-        """
         cx_min, cz_min, cx_max, cz_max = block_coords_to_chunk_coords(
             self.min_x,
             self.min_z,
@@ -119,13 +137,6 @@ class SelectionBox(AbstractBaseSelection):
     def chunk_boxes(
         self, sub_chunk_size: int = 16
     ) -> Iterable[Tuple[ChunkCoordinates, SelectionBox]]:
-        """
-        An iterable of modified :class:`SelectionBox` instances to fit within each chunk.
-        If this box straddles multiple chunks this method will split it up into a box
-        for each chunk it intersects along with the chunk coordinates of that chunk.
-
-        :param sub_chunk_size: The dimension of the chunk (normally 16)
-        """
         for cx, cz in self.chunk_locations(sub_chunk_size):
             yield (cx, cz), self.intersection(
                 SelectionBox.create_chunk_box(cx, cz, sub_chunk_size)
@@ -135,7 +146,7 @@ class SelectionBox(AbstractBaseSelection):
         """
         An iterable of all the sub-chunk y indexes this box intersects.
 
-        :param sub_chunk_size: The dimension of the chunk (normally 16)
+        :param sub_chunk_size: The dimension of a sub-chunk. Default 16.
         """
         cy_min, cy_max = block_coords_to_chunk_coords(
             self.min_y, self._max_y - 1, sub_chunk_size=sub_chunk_size
@@ -146,17 +157,11 @@ class SelectionBox(AbstractBaseSelection):
     def sub_chunk_locations(
         self, sub_chunk_size: int = 16
     ) -> Iterable[SubChunkCoordinates]:
-        """
-        An iterable of all the sub-chunk cx, cy and cz values that this box intersects.
-
-        :param sub_chunk_size: The dimension of the chunk (normally 16)
-        """
         for cx, cz in self.chunk_locations(sub_chunk_size):
             for cy in self.chunk_y_locations(sub_chunk_size):
                 yield cx, cy, cz
 
     def chunk_count(self, sub_chunk_size: int = 16) -> int:
-        """The number of chunks contained within this box."""
         cx_min, cz_min, cx_max, cz_max = block_coords_to_chunk_coords(
             self.min_x,
             self.min_z,
@@ -167,7 +172,6 @@ class SelectionBox(AbstractBaseSelection):
         return (cx_max + 1 - cx_min) * (cz_max + 1 - cz_min)
 
     def sub_chunk_count(self, sub_chunk_size: int = 16) -> int:
-        """The number of sub-chunks contained within this box."""
         cy_min, cy_max = block_coords_to_chunk_coords(
             self.min_y,
             self.max_y - 1,
@@ -178,13 +182,6 @@ class SelectionBox(AbstractBaseSelection):
     def sub_chunk_boxes(
         self, sub_chunk_size: int = 16
     ) -> Iterable[Tuple[SubChunkCoordinates, SelectionBox]]:
-        """
-        An iterable of modified :class:`SelectionBox` instances to fit within each sub-chunk.
-        If this box straddles multiple sub-chunks this method will split it up into a box
-        for each sub-chunk it intersects along with the chunk coordinates of that chunk.
-
-        :param sub_chunk_size: The dimension of the chunk (normally 16)
-        """
         for cx, cy, cz in self.sub_chunk_locations(sub_chunk_size):
             yield (cx, cy, cz), self.intersection(
                 SelectionBox.create_sub_chunk_box(cx, cy, cz, sub_chunk_size)
@@ -195,7 +192,6 @@ class SelectionBox(AbstractBaseSelection):
         return self.blocks()
 
     def blocks(self) -> Iterable[BlockCoordinates]:
-        """An iterable of all the block locations within this box."""
         return itertools.product(
             range(self._min_x, self._max_x),
             range(self._min_y, self._max_y),
@@ -209,11 +205,9 @@ class SelectionBox(AbstractBaseSelection):
         return f"({self.point_1}, {self.point_2})"
 
     def __contains__(self, item: CoordinatesAny) -> bool:
-        """Is the block (int) or point (float) location within this box."""
         return self.contains_block(item)
 
     def contains_block(self, coords: CoordinatesAny) -> bool:
-        """Is the coordinate greater than or equal to the min point but less than the max point."""
         return (
             self._min_x <= coords[0] < self._max_x
             and self._min_y <= coords[1] < self._max_y
@@ -221,7 +215,6 @@ class SelectionBox(AbstractBaseSelection):
         )
 
     def contains_point(self, coords: CoordinatesAny) -> bool:
-        """Is the coordinate greater than or equal to the min point but less than or equal to the max point."""
         return (
             self._min_x <= coords[0] <= self._max_x
             and self._min_y <= coords[1] <= self._max_y
@@ -255,12 +248,13 @@ class SelectionBox(AbstractBaseSelection):
     ) -> Tuple[slice, slice, slice]:
         """
         Get the slice of the box in relative form for a given chunk.
-        eg. SelectionBox((0, 0, 0), (32, 32, 32)).chunk_slice(1, 1) will return
+
+        >>> SelectionBox((0, 0, 0), (32, 32, 32)).chunk_slice(1, 1)
         (slice(0, 16, None), slice(0, 32, None), slice(0, 16, None))
 
         :param cx: The x coordinate of the chunk
         :param cz: The z coordinate of the chunk
-        :param sub_chunk_size: The dimension of the chunk (normally 16)
+        :param sub_chunk_size: The dimension of a sub-chunk. Default 16.
         """
         s_x, s_y, s_z = self.slice
         x_chunk_slice = blocks_slice_to_chunk_slice(s_x, sub_chunk_size, cx)
@@ -272,13 +266,14 @@ class SelectionBox(AbstractBaseSelection):
     ) -> Tuple[slice, slice, slice]:
         """
         Get the slice of the box in relative form for a given sub-chunk.
-        eg. SelectionBox((0, 0, 0), (32, 32, 32)).sub_chunk_slice(1, 1, 1) will return
+
+        >>> SelectionBox((0, 0, 0), (32, 32, 32)).sub_chunk_slice(1, 1, 1)
         (slice(0, 16, None), slice(0, 16, None), slice(0, 16, None))
 
         :param cx: The x coordinate of the chunk
         :param cy: The y coordinate of the chunk
         :param cz: The z coordinate of the chunk
-        :param sub_chunk_size: The dimension of the chunk (normally 16)
+        :param sub_chunk_size: The dimension of a sub-chunk. Default 16.
         """
         x_chunk_slice, s_y, z_chunk_slice = self.chunk_slice(cx, cz, sub_chunk_size)
         y_chunk_slice = blocks_slice_to_chunk_slice(s_y, sub_chunk_size, cy)
@@ -286,73 +281,66 @@ class SelectionBox(AbstractBaseSelection):
 
     @property
     def point_1(self) -> BlockCoordinates:
+        """The first value given to the constructor."""
         return self._point_1
 
     @property
     def point_2(self) -> BlockCoordinates:
+        """The second value given to the constructor."""
         return self._point_2
 
     @property
     def points(self) -> Tuple[BlockCoordinates, BlockCoordinates]:
+        """The points given to the constructor."""
         return self.point_1, self.point_2
 
     @property
     def points_array(self) -> numpy.ndarray:
+        """The points given to the constructor as a numpy array."""
         return numpy.array(self.points)
 
     @property
     def min_x(self) -> int:
-        """The minimum x coordinate."""
         return self._min_x
 
     @property
     def min_y(self) -> int:
-        """The minimum y coordinate."""
         return self._min_y
 
     @property
     def min_z(self) -> int:
-        """The minimum z coordinate."""
         return self._min_z
 
     @property
     def max_x(self) -> int:
-        """The maximum x coordinate."""
         return self._max_x
 
     @property
     def max_y(self) -> int:
-        """The maximum y coordinate."""
         return self._max_y
 
     @property
     def max_z(self) -> int:
-        """The maximum z coordinate."""
         return self._max_z
 
     @property
     def min(self) -> BlockCoordinates:
-        """The minimum point of the box."""
         return self._min_x, self._min_y, self._min_z
 
     @property
     def min_array(self) -> numpy.ndarray:
-        """The minimum point of the box as a numpy array."""
         return numpy.array(self.min)
 
     @property
     def max(self) -> BlockCoordinates:
-        """The maximum point of the box."""
         return self._max_x, self._max_y, self._max_z
 
     @property
     def max_array(self) -> numpy.ndarray:
-        """The maximum point of the box as a numpy array."""
         return numpy.array(self.max)
 
     @property
     def bounds(self) -> Tuple[BlockCoordinates, BlockCoordinates]:
-        """The minimum and maximum points of the box."""
         return (
             (self._min_x, self._min_y, self._min_z),
             (self._max_x, self._max_y, self._max_z),
@@ -360,7 +348,6 @@ class SelectionBox(AbstractBaseSelection):
 
     @property
     def bounds_array(self) -> numpy.ndarray:
-        """The minimum and maximum points of the box as a numpy array."""
         return numpy.array(self.bounds)
 
     @property
@@ -380,17 +367,27 @@ class SelectionBox(AbstractBaseSelection):
 
     @property
     def shape(self) -> Tuple[int, int, int]:
-        """The shape of the box."""
+        """
+        The shape of the box.
+
+        >>> SelectionBox((0, 0, 0), (1, 1, 1)).shape
+        (1, 1, 1)
+        """
         return self.size_x, self.size_y, self.size_z
 
     @property
     def volume(self) -> int:
-        """The number of blocks in the box."""
+        """
+        The number of blocks in the box.
+
+        >>> SelectionBox((0, 0, 0), (1, 1, 1)).shape
+        1
+        """
         return self.size_x * self.size_y * self.size_z
 
     def touches(self, other: SelectionBox) -> bool:
         """
-        Method to check if this instance of :class:`SelectionBox` touches but does not intersect another SelectionBox
+        Method to check if this instance of :class:`SelectionBox` touches but does not intersect another SelectionBox.
 
         :param other: The other SelectionBox
         :return: True if the two :class:`SelectionBox` instances touch, False otherwise
@@ -401,10 +398,10 @@ class SelectionBox(AbstractBaseSelection):
 
     def touches_or_intersects(self, other: SelectionBox) -> bool:
         """
-        Method to check if this instance of SelectionBox touches or intersects another SelectionBox
+        Method to check if this instance of SelectionBox touches or intersects another SelectionBox.
 
-        :param other: The other SelectionBox
-        :return: True if the two :class:`SelectionBox` instances touch or intersect., False otherwise
+        :param other: The other SelectionBox.
+        :return: True if the two :class:`SelectionBox` instances touch or intersect, False otherwise.
         """
         return not (
             self.min_x >= other.max_x + 1
@@ -417,10 +414,10 @@ class SelectionBox(AbstractBaseSelection):
 
     def intersects(self, other: SelectionBox) -> bool:
         """
-        Method to check whether this instance of SelectionBox intersects another SelectionBox
+        Method to check whether this instance of SelectionBox intersects another SelectionBox.
 
-        :param other: The other SelectionBox to check for intersection
-        :return: True if the two :class:`SelectionBox` instances intersect, False otherwise
+        :param other: The other SelectionBox to check for intersection.
+        :return: True if the two :class:`SelectionBox` instances intersect, False otherwise.
         """
         return not (
             self.min_x >= other.max_x
@@ -436,7 +433,7 @@ class SelectionBox(AbstractBaseSelection):
         Method to check if the other SelectionBox other fits entirely within this instance of SelectionBox.
 
         :param other: The SelectionBox to test.
-        :return: True if other fits with self, False otherwise
+        :return: True if other fits with self, False otherwise.
         """
         return (
             self.min_x <= other.min_x
@@ -448,10 +445,6 @@ class SelectionBox(AbstractBaseSelection):
         )
 
     def intersection(self, other: SelectionBox) -> SelectionBox:
-        """
-        Get a SelectionBox that represents the region contained within self and other.
-        Box may be a zero width box. Use self.intersects to check that it actually intersects.
-        """
         return SelectionBox(
             numpy.clip(other.min, self.min, self.max),
             numpy.clip(other.max, self.min, self.max),
@@ -459,8 +452,13 @@ class SelectionBox(AbstractBaseSelection):
 
     def subtract(self, other: SelectionBox) -> selection.SelectionGroup:
         """
-        Get a list of :class:`SelectionBox` instances that are in self but not in other.
-        This may be empty or equal to self."""
+        Get a :class:`~amulet.api.selection.SelectionGroup` containing boxes that are in self but not in other.
+
+        This may be empty if other fully contains self or equal to self if they do not intersect.
+
+        :param other: The SelectionBox to subtract.
+        :return:
+        """
         if self.intersects(other):
             other = self.intersection(other)
             if self == other:
@@ -535,7 +533,7 @@ class SelectionBox(AbstractBaseSelection):
         self, origin: PointCoordinatesAny, vector: PointCoordinatesAny
     ) -> Optional[float]:
         """
-        Determine if a look vector from a given point collides with this selection box.
+        Determine if a vector from a given point collides with this selection box.
 
         :param origin: Location of the origin of the vector
         :param vector: The look vector
@@ -684,7 +682,8 @@ class SelectionBox(AbstractBaseSelection):
     def transformed_points(
         self, transform: numpy.ndarray
     ) -> Iterable[Tuple[float, Optional[numpy.ndarray], Optional[numpy.ndarray]]]:
-        """Get the locations of the transformed blocks and the source blocks they came from.
+        """
+        Get the locations of the transformed blocks and the source blocks they came from.
 
         :param transform: The matrix that this box will be transformed by.
         :return: An iterable of two Nx3 numpy arrays of the source block locations and the destination block locations. The destination locations will be unique but the source may not be and some may not be included.
@@ -715,12 +714,12 @@ class SelectionBox(AbstractBaseSelection):
         self, scale: FloatTriplet, rotation: FloatTriplet, translation: FloatTriplet
     ) -> selection.SelectionGroup:
         """
-        Creates a list of new transformed SelectionBox(es).
+        Creates a :class:`~amulet.api.selection.SelectionGroup` of transformed SelectionBox(es).
 
         :param scale: A tuple of scaling factors in the x, y and z axis.
         :param rotation: The rotation about the x, y and z axis in radians.
         :param translation: The translation about the x, y and z axis.
-        :return:
+        :return: A new :class:`~amulet.api.selection.SelectionGroup` representing the transformed selection.
         """
         if all(r % 90 == 0 for r in rotation):
             min_point, max_point = numpy.matmul(
