@@ -13,7 +13,6 @@ from amulet.api.data_types import (
     FloatTriplet,
     PointCoordinatesAny,
 )
-import amulet
 from .abstract_selection import AbstractBaseSelection
 from .box import SelectionBox
 
@@ -404,16 +403,15 @@ class SelectionGroup(AbstractBaseSelection):
         self, scale: FloatTriplet, rotation: FloatTriplet, translation: FloatTriplet
     ) -> SelectionGroup:
         """creates a new transformed SelectionGroup."""
-        selection_group = []
+        selection_group = SelectionGroup()
         for selection in self.selection_boxes:
-            for transformed_selection in selection.transform(
+            selection_group += selection.transform(
                 scale, rotation, translation
-            ):
-                selection_group.append(transformed_selection)
-        return SelectionGroup(selection_group)
+            )
+        return selection_group
 
     def copy(self):
-        return SelectionGroup(self.selection_boxes)
+        return self
 
     @property
     def volume(self) -> int:

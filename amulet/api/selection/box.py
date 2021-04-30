@@ -713,7 +713,7 @@ class SelectionBox(AbstractBaseSelection):
 
     def transform(
         self, scale: FloatTriplet, rotation: FloatTriplet, translation: FloatTriplet
-    ) -> List[SelectionBox]:
+    ) -> selection.SelectionGroup:
         """
         Creates a list of new transformed SelectionBox(es).
 
@@ -722,14 +722,16 @@ class SelectionBox(AbstractBaseSelection):
         :param translation: The translation about the x, y and z axis.
         :return:
         """
-        boxes = []
         if all(r % 90 == 0 for r in rotation):
             min_point, max_point = numpy.matmul(
                 transform_matrix(scale, rotation, translation),
                 numpy.array([[*self.min, 1], [*self.max, 1]]).T,
             ).T[:, :3]
-            boxes.append(SelectionBox(min_point, max_point))
+            return selection.SelectionGroup(
+                SelectionBox(min_point, max_point)
+            )
         else:
+            boxes = []
             for _, box, mask, _ in self._iter_transformed_boxes(
                 transform_matrix(scale, rotation, translation)
             ):
@@ -800,4 +802,4 @@ class SelectionBox(AbstractBaseSelection):
                         else:
                             # If there are no more True values argmax will return 0
                             break
-        return boxes
+            return selection.SelectionGroup(boxes)
