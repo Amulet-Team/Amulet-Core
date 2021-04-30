@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 def clone(
     world: "BaseLevel", dimension: Dimension, selection: SelectionGroup, target: dict
 ):
-    offset_x, offset_y, offset_z = (selection.max - selection.min) // 2
+    offset_x, offset_y, offset_z = (selection.max_array - selection.min_array) // 2
     dst_location = (
         target.get("x", 0) + offset_x,
         target.get("y", 0) + offset_y,

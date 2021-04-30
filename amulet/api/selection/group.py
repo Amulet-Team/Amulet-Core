@@ -3,9 +3,10 @@ from __future__ import annotations
 import itertools
 import numpy
 
-from typing import Tuple, Iterable, List, Generator, Union, Optional, overload
+from typing import Tuple, Iterable, List, Union, Optional, overload, Set
 
 from amulet.api.data_types import (
+    BlockCoordinates,
     CoordinatesAny,
     ChunkCoordinates,
     SubChunkCoordinates,
@@ -13,10 +14,11 @@ from amulet.api.data_types import (
     PointCoordinatesAny,
 )
 import amulet
+from .abstract_selection import AbstractBaseSelection
 from .box import SelectionBox
 
 
-class SelectionGroup:
+class SelectionGroup(AbstractBaseSelection):
     """A container for zero or more :class:`SelectionBox` instances.
     This allows for non-rectangular and non-contiguous selections.
     """
@@ -34,11 +36,11 @@ class SelectionGroup:
             amulet.log.warning(f"Invalid format for selection_boxes {selection_boxes}")
             self._selection_boxes: Tuple[SelectionBox, ...] = ()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         boxes = ", ".join([repr(box) for box in self.selection_boxes])
         return f"SelectionGroup([{boxes}])"
 
-    def __str__(self):
+    def __str__(self) -> str:
         boxes = ", ".join([str(box) for box in self.selection_boxes])
         return f"[{boxes}]"
 
@@ -54,7 +56,7 @@ class SelectionGroup:
         return SelectionGroup(self.selection_boxes + other.selection_boxes)
 
     def __iter__(self) -> Iterable[SelectionBox]:
-        """A generator of all the boxes in the group."""
+        """An iterable of all the boxes in the group."""
         yield from self._selection_boxes
 
     def __len__(self) -> int:
@@ -73,7 +75,7 @@ class SelectionGroup:
         """Is the coordinate greater than or equal to the min point but less than or equal to the max point of any of the boxes."""
         return any(box.contains_point(coords) for box in self._selection_boxes)
 
-    def blocks(self) -> Iterable[Tuple[int, int, int]]:
+    def blocks(self) -> Iterable[BlockCoordinates]:
         """An iterable of every block in the selection.
         Note: if boxes intersect, the blocks in the intersected region will be included multiple times.
         If this behaviour is not desired the `merge_boxes` method will return a new SelectionGroup with no intersections."""
@@ -100,7 +102,12 @@ class SelectionGroup:
             return val
 
     @property
-    def min(self) -> numpy.ndarray:
+    def min(self) -> BlockCoordinates:
+        """The minimum point of of all the boxes in the group."""
+        return tuple(self.max_array.tolist())
+
+    @property
+    def min_array(self) -> numpy.ndarray:
         """The minimum point of of all the boxes in the group."""
         if self._selection_boxes:
             return numpy.min(numpy.array([box.min for box in self._selection_boxes]), 0)
@@ -108,12 +115,52 @@ class SelectionGroup:
             raise ValueError("SelectionGroup does not contain any SelectionBoxes")
 
     @property
-    def max(self) -> numpy.ndarray:
+    def min_x(self) -> int:
+        return int(self.min_array[0])
+
+    @property
+    def min_y(self) -> int:
+        return int(self.min_array[1])
+
+    @property
+    def min_z(self) -> int:
+        return int(self.min_array[2])
+
+    @property
+    def max(self) -> BlockCoordinates:
+        """The maximum point of of all the boxes in the group."""
+        return tuple(self.max_array.tolist())
+
+    @property
+    def max_array(self) -> numpy.ndarray:
         """The maximum point of of all the boxes in the group."""
         if self._selection_boxes:
             return numpy.max(numpy.array([box.max for box in self._selection_boxes]), 0)
         else:
             raise ValueError("SelectionGroup does not contain any SelectionBoxes")
+
+    @property
+    def max_x(self) -> int:
+        return int(self.max_array[0])
+
+    @property
+    def max_y(self) -> int:
+        return int(self.max_array[1])
+
+    @property
+    def max_z(self) -> int:
+        return int(self.max_array[2])
+
+    @property
+    def bounds(self) -> Tuple[BlockCoordinates, BlockCoordinates]:
+        return self.min, self.max
+
+    @property
+    def bounds_array(self) -> numpy.ndarray:
+        return numpy.array([
+            self.min_array,
+            self.max_array
+        ])
 
     def to_box(self) -> SelectionBox:
         """Create a `SelectionBox` based off the bounds of the boxes in the group."""
@@ -221,16 +268,19 @@ class SelectionGroup:
         """
         return sorted(self._selection_boxes, key=hash)
 
+    def chunk_count(self, sub_chunk_size: int = 16) -> int:
+        return len(self.chunk_locations(sub_chunk_size))
+
     def chunk_locations(
         self, sub_chunk_size: int = 16
-    ) -> Generator[ChunkCoordinates, None, None]:
+    ) -> Set[ChunkCoordinates]:
         """
-        A generator of chunk locations that the boxes in this group intersect.
+        An iterable of chunk locations that the boxes in this group intersect.
         Each location is only given once even if there are multiple boxes in the chunk.
 
         :param sub_chunk_size: The dimension of the chunk (normally 16)
         """
-        yield from set(
+        return set(
             location
             for box in self.selection_boxes
             for location in box.chunk_locations(sub_chunk_size)
@@ -238,9 +288,9 @@ class SelectionGroup:
 
     def chunk_boxes(
         self, sub_chunk_size: int = 16
-    ) -> Generator[Tuple[ChunkCoordinates, SelectionBox], None, None]:
+    ) -> Iterable[Tuple[ChunkCoordinates, SelectionBox]]:
         """
-        A generator of modified :class:`SelectionBox` instances to fit within each chunk.
+        An iterable of modified :class:`SelectionBox` instances to fit within each chunk.
         If a box straddles multiple chunks this method will split it up into a box
         for each chunk it intersects along with the chunk coordinates of that chunk.
 
@@ -249,11 +299,14 @@ class SelectionGroup:
         for box in self.selection_boxes:
             yield from box.chunk_boxes(sub_chunk_size)
 
+    def sub_chunk_count(self, sub_chunk_size: int = 16) -> int:
+        return len(self.sub_chunk_locations(sub_chunk_size))
+
     def sub_chunk_locations(
         self, sub_chunk_size: int = 16
-    ) -> Generator[SubChunkCoordinates, None, None]:
+    ) -> Set[SubChunkCoordinates]:
         """
-        A generator of sub-chunk locations that the boxes in this group intersect.
+        An iterable of sub-chunk locations that the boxes in this group intersect.
         Each location is only given once even if there are multiple boxes in the chunk.
 
         :param sub_chunk_size: The dimension of the chunk (normally 16)
@@ -266,9 +319,9 @@ class SelectionGroup:
 
     def sub_chunk_boxes(
         self, sub_chunk_size: int = 16
-    ) -> Generator[Tuple[SubChunkCoordinates, SelectionBox], None, None]:
+    ) -> Iterable[Tuple[SubChunkCoordinates, SelectionBox]]:
         """
-        A generator of modified :class:`SelectionBox` instances to fit within each sub-chunk.
+        An iterable of modified :class:`SelectionBox` instances to fit within each sub-chunk.
         If a box straddles multiple sub-chunks this method will split it up into a box
         for each sub-chunk it intersects along with the sub-chunk coordinates of that sub-chunk.
 
@@ -383,7 +436,7 @@ class SelectionGroup:
                 SelectionBox((box.min_x, 0, box.min_z), (box.max_x, 1, box.max_z))
                 for box in self.selection_boxes
             ]
-        ).volume
+        ).merge_boxes().volume
 
 
 if __name__ == "__main__":

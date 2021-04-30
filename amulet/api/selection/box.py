@@ -22,9 +22,10 @@ from amulet.utils.matrix import (
     transform_matrix,
     displacement_matrix,
 )
+from . import abstract_selection
 
 
-class SelectionBox:
+class SelectionBox(abstract_selection.AbstractBaseSelection):
     """
     A SelectionBox is a box that can represent the entirety of a selection or just a subsection
     of one. This allows for non-rectangular and non-contiguous selections.
@@ -99,9 +100,9 @@ class SelectionBox:
 
     def chunk_locations(
         self, sub_chunk_size: int = 16
-    ) -> Generator[ChunkCoordinates, None, None]:
+    ) -> Iterable[ChunkCoordinates]:
         """
-        A generator of chunk locations that this box intersects.
+        An iterable of chunk locations that this box intersects.
 
         :param sub_chunk_size: The dimension of the chunk (normally 16)
         """
@@ -118,9 +119,9 @@ class SelectionBox:
 
     def chunk_boxes(
         self, sub_chunk_size: int = 16
-    ) -> Generator[Tuple[ChunkCoordinates, SelectionBox]]:
+    ) -> Iterable[Tuple[ChunkCoordinates, SelectionBox]]:
         """
-        A generator of modified :class:`SelectionBox` instances to fit within each chunk.
+        An iterable of modified :class:`SelectionBox` instances to fit within each chunk.
         If this box straddles multiple chunks this method will split it up into a box
         for each chunk it intersects along with the chunk coordinates of that chunk.
 
@@ -131,9 +132,9 @@ class SelectionBox:
                 SelectionBox.create_chunk_box(cx, cz, sub_chunk_size)
             )
 
-    def chunk_y_locations(self, sub_chunk_size: int = 16) -> Generator[int, None, None]:
+    def chunk_y_locations(self, sub_chunk_size: int = 16) -> Iterable[int]:
         """
-        A generator of all the sub-chunk y indexes this box intersects.
+        An iterable of all the sub-chunk y indexes this box intersects.
 
         :param sub_chunk_size: The dimension of the chunk (normally 16)
         """
@@ -145,9 +146,9 @@ class SelectionBox:
 
     def sub_chunk_locations(
         self, sub_chunk_size: int = 16
-    ) -> Generator[SubChunkCoordinates, None, None]:
+    ) -> Iterable[SubChunkCoordinates]:
         """
-        A generator of all the sub-chunk cx, cy and cz values that this box intersects.
+        An iterable of all the sub-chunk cx, cy and cz values that this box intersects.
 
         :param sub_chunk_size: The dimension of the chunk (normally 16)
         """
@@ -177,9 +178,9 @@ class SelectionBox:
 
     def sub_chunk_boxes(
         self, sub_chunk_size: int = 16
-    ) -> Generator[Tuple[SubChunkCoordinates, SelectionBox], None, None]:
+    ) -> Iterable[Tuple[SubChunkCoordinates, SelectionBox]]:
         """
-        A generator of modified :class:`SelectionBox` instances to fit within each sub-chunk.
+        An iterable of modified :class:`SelectionBox` instances to fit within each sub-chunk.
         If this box straddles multiple sub-chunks this method will split it up into a box
         for each sub-chunk it intersects along with the chunk coordinates of that chunk.
 
@@ -190,11 +191,11 @@ class SelectionBox:
                 SelectionBox.create_sub_chunk_box(cx, cy, cz, sub_chunk_size)
             )
 
-    def __iter__(self) -> Iterable[Tuple[int, int, int]]:
+    def __iter__(self) -> Iterable[BlockCoordinates]:
         """An iterable of all the block locations within this box."""
         return self.blocks()
 
-    def blocks(self) -> Iterable[Tuple[int, int, int]]:
+    def blocks(self) -> Iterable[BlockCoordinates]:
         """An iterable of all the block locations within this box."""
         return itertools.product(
             range(self._min_x, self._max_x),
@@ -202,7 +203,7 @@ class SelectionBox:
             range(self._min_z, self._max_z),
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"SelectionBox({self.point_1}, {self.point_2})"
 
     def __str__(self) -> str:
@@ -331,7 +332,7 @@ class SelectionBox:
         return self._max_z
 
     @property
-    def min(self) -> Tuple[int, int, int]:
+    def min(self) -> BlockCoordinates:
         """The minimum point of the box."""
         return self._min_x, self._min_y, self._min_z
 
@@ -341,7 +342,7 @@ class SelectionBox:
         return numpy.array(self.min)
 
     @property
-    def max(self) -> Tuple[int, int, int]:
+    def max(self) -> BlockCoordinates:
         """The maximum point of the box."""
         return self._max_x, self._max_y, self._max_z
 
@@ -351,7 +352,7 @@ class SelectionBox:
         return numpy.array(self.max)
 
     @property
-    def bounds(self) -> Tuple[Tuple[int, int, int], Tuple[int, int, int]]:
+    def bounds(self) -> Tuple[BlockCoordinates, BlockCoordinates]:
         """The minimum and maximum points of the box."""
         return (
             (self._min_x, self._min_y, self._min_z),
@@ -683,15 +684,13 @@ class SelectionBox:
 
     def transformed_points(
         self, transform: numpy.ndarray
-    ) -> Generator[
-        Tuple[float, Optional[numpy.ndarray], Optional[numpy.ndarray]],
-        None,
-        None,
+    ) -> Iterable[
+        Tuple[float, Optional[numpy.ndarray], Optional[numpy.ndarray]]
     ]:
         """Get the locations of the transformed blocks and the source blocks they came from.
 
         :param transform: The matrix that this box will be transformed by.
-        :return: A generator of two Nx3 numpy arrays of the source block locations and the destination block locations. The destination locations will be unique but the source may not be and some may not be included.
+        :return: An iterable of two Nx3 numpy arrays of the source block locations and the destination block locations. The destination locations will be unique but the source may not be and some may not be included.
         """
         for progress, box, mask, original in self._iter_transformed_boxes(transform):
             if isinstance(mask, bool) and mask:

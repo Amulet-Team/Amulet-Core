@@ -82,7 +82,7 @@ def clone(
 
         # TODO: look into if this can be a float so it will always be the exact middle
         rotation_point: numpy.ndarray = (
-            (src_selection.max + src_selection.min) // 2
+            (src_selection.max_array + src_selection.min_array) // 2
         ).astype(int)
 
         if src_structure is dst_structure and src_dimension == dst_dimension:
@@ -255,7 +255,7 @@ def clone(
         else:
             # the transform from the structure location to the world location
             offset = numpy.asarray(location).astype(int) - rotation_point
-            moved_min_location = src_selection.min + offset
+            moved_min_location = src_selection.min_array + offset
 
             iter_count = len(
                 list(
