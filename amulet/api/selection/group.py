@@ -100,7 +100,7 @@ class SelectionGroup(AbstractBaseSelection):
     @property
     def min(self) -> BlockCoordinates:
         """The minimum point of of all the boxes in the group."""
-        return tuple(self.max_array.tolist())
+        return tuple(self.min_array.tolist())
 
     @property
     def min_array(self) -> numpy.ndarray:
