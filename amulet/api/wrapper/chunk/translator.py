@@ -529,9 +529,7 @@ class Translator:
         self._pack_biomes(translation_manager, version_identifier, chunk)
         return (
             chunk,
-            self._pack_block_palette(
-                version, numpy.array(chunk.block_palette.blocks())
-            ),
+            self._pack_block_palette(version, numpy.array(chunk.block_palette.blocks)),
         )
 
     def _pack_block_palette(

@@ -407,7 +407,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         translator: "Translator",
         chunk_version: VersionNumberAny,
     ) -> Tuple["Chunk", AnyNDArray]:
-        return chunk, numpy.array(chunk.block_palette.blocks())
+        return chunk, numpy.array(chunk.block_palette.blocks)
 
     def _encode(
         self,
@@ -431,7 +431,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
     ) -> "Chunk":
         palette = chunk._block_palette = BlockManager()
         lut = numpy.array([palette.get_add_block(block) for block in chunk_palette])
-        if len(palette.blocks()) != len(chunk_palette):
+        if len(palette.blocks) != len(chunk_palette):
             # if a blockstate was defined twice
             for cy in chunk.blocks.sub_chunks:
                 chunk.blocks.add_sub_chunk(cy, lut[chunk.blocks.get_sub_chunk(cy)])

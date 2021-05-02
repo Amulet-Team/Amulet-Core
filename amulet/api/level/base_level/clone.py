@@ -36,7 +36,7 @@ def gen_paste_blocks(
     :return: Bool array of which blocks to copy.
     """
     return numpy.invert(
-        numpy.vectorize(lambda b: is_sub_block(skip_blocks, b))(block_palette.blocks())
+        numpy.vectorize(lambda b: is_sub_block(skip_blocks, b))(block_palette.blocks)
     )
 
 
@@ -314,7 +314,7 @@ def clone(
                     gab = numpy.vectorize(
                         dst_chunk.block_palette.get_add_block, otypes=[numpy.uint32]
                     )
-                    lut = gab(src_chunk.block_palette.blocks())
+                    lut = gab(src_chunk.block_palette.blocks)
 
                     # iterate through all block entities in the chunk and work out if the block is going to be overwritten
                     remove_block_entities = []

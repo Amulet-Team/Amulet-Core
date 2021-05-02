@@ -304,7 +304,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
                 for block, data in chunk_palette
             ]
         )
-        if len(palette.blocks()) != len(chunk_palette):
+        if len(palette.blocks) != len(chunk_palette):
             # if a blockstate was defined twice
             for cy in chunk.blocks.sub_chunks:
                 chunk.blocks.add_sub_chunk(cy, lut[chunk.blocks.get_sub_chunk(cy)])
