@@ -58,6 +58,7 @@ class BiomeManager(BaseRegistry):
         """
         yield from self._index_to_biome
 
+    @property
     def biomes(self) -> Tuple[BiomeType]:
         """
         The biomes in the registry as a tuple.
@@ -68,7 +69,7 @@ class BiomeManager(BaseRegistry):
         """
         The biomes in the registry as a tuple.
         """
-        return self.biomes()
+        return self.biomes
 
     def items(self) -> Generator[Tuple[int, BiomeType], None, None]:
         """

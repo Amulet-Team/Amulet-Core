@@ -231,7 +231,7 @@ class Chunk(Changeable):
                 block_lut = numpy.array(
                     [
                         new_block_palette.get_add_block(block)
-                        for block in self._block_palette.blocks()
+                        for block in self._block_palette.blocks
                     ],
                     dtype=numpy.uint32,
                 )
@@ -306,7 +306,7 @@ class Chunk(Changeable):
                 biome_lut = numpy.array(
                     [
                         new_biome_palette.get_add_biome(biome)
-                        for biome in self._biome_palette.biomes()
+                        for biome in self._biome_palette.biomes
                     ],
                     dtype=numpy.uint32,
                 )

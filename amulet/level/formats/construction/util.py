@@ -143,14 +143,14 @@ def pack_palette(palette: BlockManager) -> amulet_nbt.TAG_List:
     block_palette_nbt = amulet_nbt.TAG_List()
     extra_blocks = set()
 
-    for block in palette.blocks():
+    for block in palette.blocks:
         if len(block.extra_blocks) > 0:
             extra_blocks.update(block.extra_blocks)
 
     extra_blocks = list(extra_blocks)
 
     palette_len = len(palette)
-    for block_entry in palette.blocks():
+    for block_entry in palette.blocks:
         block_palette_nbt.append(
             generate_block_entry(block_entry, palette_len, extra_blocks)
         )

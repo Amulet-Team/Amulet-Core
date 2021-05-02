@@ -262,7 +262,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
             *translator.translator_key(chunk_version)
         )
         palette = []
-        for entry in chunk.block_palette.blocks():
+        for entry in chunk.block_palette.blocks:
             b = version.block.block_to_ints(entry)
             if b is None:
                 b = (0, 0)

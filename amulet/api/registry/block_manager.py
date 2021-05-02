@@ -60,6 +60,7 @@ class BlockManager(BaseRegistry):
         """
         yield from self._index_to_block
 
+    @property
     def blocks(self) -> Tuple[Block, ...]:
         """
         The blocks in the registry as a tuple.
@@ -70,7 +71,7 @@ class BlockManager(BaseRegistry):
         """
         The blocks in the registry as a tuple.
         """
-        return self.blocks()
+        return self.blocks
 
     def items(self) -> Generator[Tuple[int, Block], None, None]:
         """
