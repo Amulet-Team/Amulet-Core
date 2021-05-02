@@ -172,7 +172,7 @@ class FormatWrapper(ABC):
     @property
     def selection(self) -> SelectionGroup:
         """The area that all chunk data must fit within."""
-        return self._selection.copy()
+        return self._selection
 
     @abstractmethod
     def _get_interface(
@@ -227,7 +227,7 @@ class FormatWrapper(ABC):
             if self.multi_selection:
                 self._selection = selection
             else:
-                if not selection.selection_boxes:
+                if not selection:
                     raise ObjectReadError(
                         "A single selection was required but none were given."
                     )

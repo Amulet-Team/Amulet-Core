@@ -18,13 +18,26 @@ from .box import SelectionBox
 
 
 class SelectionGroup(AbstractBaseSelection):
-    """A container for zero or more :class:`SelectionBox` instances.
+    """
+    A container for zero or more :class:`SelectionBox` instances.
+
     This allows for non-rectangular and non-contiguous selections.
     """
 
     def __init__(
         self, selection_boxes: Union[SelectionBox, Iterable[SelectionBox]] = ()
     ):
+        """
+        Construct a new :class:`SelectionGroup` class from the given data.
+
+        >>> SelectionGroup(SelectionBox((0, 0, 0), (1, 1, 1)))
+        >>> SelectionGroup([
+        >>>     SelectionBox((0, 0, 0), (1, 1, 1)),
+        >>>     SelectionBox((1, 1, 1), (2, 2, 2))
+        >>> ])
+
+        :param selection_boxes: A :class:`SelectionBox` or iterable of :class:`SelectionBox` classes.
+        """
         if isinstance(selection_boxes, SelectionBox):
             self._selection_boxes: Tuple[SelectionBox, ...] = (selection_boxes,)
         else:
@@ -41,40 +54,81 @@ class SelectionGroup(AbstractBaseSelection):
         return f"[{boxes}]"
 
     def __eq__(self, other: SelectionGroup) -> bool:
+        """
+        Does the contents of this :class:`SelectionGroup` match the other :class:`SelectionGroup`.
+
+        Note if the boxes do not exactly match this will return False even if the volume represented is the same.
+
+        :param other: The other :class:`SelectionGroup` to compare with.
+        :return: True if the boxes contained match.
+        """
         return (
             isinstance(other, SelectionGroup)
             and self.selection_boxes_sorted == other.selection_boxes_sorted
         )
 
-    def __add__(self, other: SelectionGroup) -> SelectionGroup:
-        if not isinstance(other, SelectionGroup):
-            return NotImplemented
-        return SelectionGroup(self.selection_boxes + other.selection_boxes)
+    def __add__(self, boxes: Iterable[SelectionBox]) -> SelectionGroup:
+        """
+        Add an iterable of :class:`SelectionBox` classes to this :class:`SelectionGroup`.
+
+        Note this will construct a new :class:`SelectionGroup` because it is immutable so cannot be modified in place.
+
+        >>> group1 = SelectionGroup(SelectionBox((-1, -1, -1), (0, 0, 0)))
+        >>> group2 = SelectionGroup([
+        >>>     SelectionBox((0, 0, 0), (1, 1, 1)),
+        >>>     SelectionBox((1, 1, 1), (2, 2, 2))
+        >>> ])
+        >>> group1 + group2
+        SelectionGroup([SelectionBox((-1, -1, -1), (0, 0, 0)), SelectionBox((0, 0, 0), (1, 1, 1)), SelectionBox((1, 1, 1), (2, 2, 2))])
+        >>> group1 += group2
+        >>> group1
+        SelectionGroup([SelectionBox((-1, -1, -1), (0, 0, 0)), SelectionBox((0, 0, 0), (1, 1, 1)), SelectionBox((1, 1, 1), (2, 2, 2))])
+
+        :param boxes: An iterable of boxes to add to this group.
+        :return: A new :class:`SelectionGroup` class containing the boxes from this instance and those in ``boxes``.
+        """
+        try:
+            boxes = tuple(boxes)
+        except:
+            raise NotImplemented
+        if all(isinstance(b, SelectionBox) for b in boxes):
+            return SelectionGroup(tuple(self) + boxes)
+        raise NotImplemented
 
     def __iter__(self) -> Iterable[SelectionBox]:
-        """An iterable of all the boxes in the group."""
+        """An iterable of all the :class:`SelectionBox` classes in the group."""
         yield from self._selection_boxes
 
     def __len__(self) -> int:
-        """The number of selection boxes in the group."""
+        """The number of :class:`SelectionBox` classes in the group."""
         return len(self._selection_boxes)
 
     def __contains__(self, item: CoordinatesAny) -> bool:
-        """Is the block (int) or point (float) location within any of the boxes in this group."""
         return self.contains_block(item)
 
     def contains_block(self, coords: CoordinatesAny) -> bool:
-        """Is the coordinate greater than or equal to the min point but less than the max point of any of the boxes."""
         return any(box.contains_block(coords) for box in self._selection_boxes)
 
     def contains_point(self, coords: CoordinatesAny) -> bool:
-        """Is the coordinate greater than or equal to the min point but less than or equal to the max point of any of the boxes."""
         return any(box.contains_point(coords) for box in self._selection_boxes)
 
+    @property
     def blocks(self) -> Iterable[BlockCoordinates]:
-        """An iterable of every block in the selection.
+        """
+        The location of every block in the selection.
+
+        >>> for x, y, z in group.blocks:
+        >>>     ...
+
         Note: if boxes intersect, the blocks in the intersected region will be included multiple times.
-        If this behaviour is not desired the `merge_boxes` method will return a new SelectionGroup with no intersections."""
+
+        If this behaviour is not desired the :meth:`merge_boxes` method will return a new SelectionGroup with no intersections.
+
+        >>> for x, y, z in group.merge_boxes().blocks:
+        >>>     ...
+
+        :return: An iterable of block locations.
+        """
         return itertools.chain.from_iterable(self.selection_boxes)
 
     def __bool__(self) -> bool:
@@ -104,7 +158,7 @@ class SelectionGroup(AbstractBaseSelection):
 
     @property
     def min_array(self) -> numpy.ndarray:
-        """The minimum point of of all the boxes in the group."""
+        """The minimum point of of all the boxes in the group as a numpy array."""
         if self._selection_boxes:
             return numpy.min(numpy.array([box.min for box in self._selection_boxes]), 0)
         else:
@@ -129,7 +183,7 @@ class SelectionGroup(AbstractBaseSelection):
 
     @property
     def max_array(self) -> numpy.ndarray:
-        """The maximum point of of all the boxes in the group."""
+        """The maximum point of of all the boxes in the group as a numpy array."""
         if self._selection_boxes:
             return numpy.max(numpy.array([box.max for box in self._selection_boxes]), 0)
         else:
@@ -160,9 +214,12 @@ class SelectionGroup(AbstractBaseSelection):
         return SelectionBox(self.min, self.max)
 
     def merge_boxes(self) -> SelectionGroup:
-        """Take the boxes as they were given to this class, merge neighbouring boxes and remove overlapping regions.
+        """
+        Take the boxes as they were given to this class, merge neighbouring boxes and remove overlapping regions.
+
         The result should be a SelectionGroup containing one or more SelectionBox classes that represents the same
-        volume as the original but with no overlapping boxes."""
+        volume as the original but with no overlapping boxes.
+        """
         selection_boxes = self.selection_boxes
         # TODO remove duplicate boxes
 
@@ -217,8 +274,11 @@ class SelectionGroup(AbstractBaseSelection):
 
     @property
     def is_contiguous(self) -> bool:
-        """Does the SelectionGroup represent one connected region (True) or multiple separated regions (False).
-        If two boxes are touching at the corners this is classed as contiguous."""
+        """
+        Does the SelectionGroup represent one connected region (True) or multiple separated regions (False).
+
+        If two boxes are touching at the corners this is classed as contiguous.
+        """
         # TODO: This needs some work. It will only work if the selections touch in a chain
         #  it does not care if it loops back and intersects itself. Does intersecting count as being contiguous?
         #  I would say yes
@@ -246,18 +306,16 @@ class SelectionGroup(AbstractBaseSelection):
         )
 
     @property
-    def selection_boxes(self) -> List[SelectionBox]:
+    def selection_boxes(self) -> Tuple[SelectionBox, ...]:
         """
-        Returns a read only list of unmodified :class:`SelectionBox` instances in the SelectionGroup.
-        :return: A list of the :class:`SelectionBox` instances
+        A tuple of the :class:`SelectionBox` instances stored for this group.
         """
-        return list(self._selection_boxes)
+        return self._selection_boxes
 
     @property
     def selection_boxes_sorted(self) -> List[SelectionBox]:
         """
-        Returns a list of unmodified :class:`SelectionBox` instances in the SelectionGroup sorted based on the hash of the coordinates.
-        :return: A list of the :class:`SelectionBox` instances
+        A list of the :class:`SelectionBox` instances for this group sorted by their hash.
         """
         return sorted(self._selection_boxes, key=hash)
 
@@ -265,12 +323,6 @@ class SelectionGroup(AbstractBaseSelection):
         return len(self.chunk_locations(sub_chunk_size))
 
     def chunk_locations(self, sub_chunk_size: int = 16) -> Set[ChunkCoordinates]:
-        """
-        An iterable of chunk locations that the boxes in this group intersect.
-        Each location is only given once even if there are multiple boxes in the chunk.
-
-        :param sub_chunk_size: The dimension of the chunk (normally 16)
-        """
         return set(
             location
             for box in self.selection_boxes
@@ -280,13 +332,6 @@ class SelectionGroup(AbstractBaseSelection):
     def chunk_boxes(
         self, sub_chunk_size: int = 16
     ) -> Iterable[Tuple[ChunkCoordinates, SelectionBox]]:
-        """
-        An iterable of modified :class:`SelectionBox` instances to fit within each chunk.
-        If a box straddles multiple chunks this method will split it up into a box
-        for each chunk it intersects along with the chunk coordinates of that chunk.
-
-        :param sub_chunk_size: The dimension of the chunk (normally 16)
-        """
         for box in self.selection_boxes:
             yield from box.chunk_boxes(sub_chunk_size)
 
@@ -294,12 +339,6 @@ class SelectionGroup(AbstractBaseSelection):
         return len(self.sub_chunk_locations(sub_chunk_size))
 
     def sub_chunk_locations(self, sub_chunk_size: int = 16) -> Set[SubChunkCoordinates]:
-        """
-        An iterable of sub-chunk locations that the boxes in this group intersect.
-        Each location is only given once even if there are multiple boxes in the chunk.
-
-        :param sub_chunk_size: The dimension of the chunk (normally 16)
-        """
         yield from set(
             location
             for box in self.selection_boxes
@@ -309,19 +348,11 @@ class SelectionGroup(AbstractBaseSelection):
     def sub_chunk_boxes(
         self, sub_chunk_size: int = 16
     ) -> Iterable[Tuple[SubChunkCoordinates, SelectionBox]]:
-        """
-        An iterable of modified :class:`SelectionBox` instances to fit within each sub-chunk.
-        If a box straddles multiple sub-chunks this method will split it up into a box
-        for each sub-chunk it intersects along with the sub-chunk coordinates of that sub-chunk.
-
-        :param sub_chunk_size: The dimension of the chunk (normally 16)
-        """
         for box in self.selection_boxes:
             for (cx, cy, cz), sub_box in box.sub_chunk_boxes(sub_chunk_size):
                 yield (cx, cy, cz), box
 
     def intersects(self, other: Union[SelectionGroup, SelectionBox]) -> bool:
-        """Check if self and other intersect."""
         if isinstance(other, SelectionGroup):
             return any(
                 self_box.intersects(other_box)
@@ -342,7 +373,6 @@ class SelectionGroup(AbstractBaseSelection):
     def intersection(
         self, other: Union[SelectionGroup, SelectionBox]
     ) -> SelectionGroup:
-        """Get a new SelectionGroup that represents the area contained within self and other."""
         other = self._to_group(other)
         intersection = []
         for self_box in self.selection_boxes:
@@ -352,7 +382,13 @@ class SelectionGroup(AbstractBaseSelection):
         return SelectionGroup(intersection)
 
     def subtract(self, other: Union[SelectionGroup, SelectionBox]) -> SelectionGroup:
-        """Returns a new SelectionGroup containing the volume that does not intersect with other."""
+        """
+        Returns a new :class:`SelectionGroup` containing the volume that does not intersect with other.
+
+        This may be empty if other fully contains self or equal to self if they do not intersect.
+
+        :param other: The :class:`SelectionBox` or :class:`SelectionGroup` to subtract.
+        """
         other = self._to_group(other)
         selections = self
         for other_box in other:
@@ -363,12 +399,14 @@ class SelectionGroup(AbstractBaseSelection):
             selections = selections_new
             if not selections:
                 break
-        if selections is self:
-            return selections.copy()
         return selections
 
     def union(self, other: Union[SelectionGroup, SelectionBox]) -> SelectionGroup:
-        """Returns a new SelectionGroup containing the volume of self and other."""
+        """
+        Returns a new SelectionGroup containing the volume of self and other.
+
+        :param other: The other selection to add to this one.
+        """
         other = self._to_group(other)
         if other.is_subset(self):
             return self
@@ -376,7 +414,12 @@ class SelectionGroup(AbstractBaseSelection):
             return self.subtract(other) + other
 
     def is_subset(self, other: Union[SelectionGroup, SelectionBox]) -> bool:
-        """Is self completely within other."""
+        """
+        Is this selection completely contained within ``other``.
+
+        :param other: The other selection to test against.
+        :return: True if this selection completely fits in other.
+        """
         other = self._to_group(other)
         return not self.subtract(other)
 
@@ -402,23 +445,28 @@ class SelectionGroup(AbstractBaseSelection):
     def transform(
         self, scale: FloatTriplet, rotation: FloatTriplet, translation: FloatTriplet
     ) -> SelectionGroup:
-        """creates a new transformed SelectionGroup."""
+        """
+        Creates a new :class:`SelectionGroup` transformed by the given inputs.
+
+        :param scale: A tuple of scaling factors in the x, y and z axis.
+        :param rotation: The rotation about the x, y and z axis in radians.
+        :param translation: The translation about the x, y and z axis.
+        :return: A new :class:`~amulet.api.selection.SelectionGroup` representing the transformed selection.
+        """
         selection_group = SelectionGroup()
         for selection in self.selection_boxes:
             selection_group += selection.transform(scale, rotation, translation)
         return selection_group
 
-    def copy(self):
-        return self
-
     @property
     def volume(self) -> int:
-        """The volume of all the selection boxes combined."""
         return sum(box.volume for box in self.selection_boxes)
 
     @property
     def footprint_area(self) -> int:
-        """The flat area of the selection."""
+        """
+        The 2D area that the selection fills when looking at the selection from above.
+        """
         return (
             SelectionGroup(
                 [
@@ -436,5 +484,5 @@ if __name__ == "__main__":
     b2 = SelectionBox((7, 7, 7), (10, 10, 10))
     sel = SelectionGroup((b1, b2))
 
-    for x, y, z in sel.blocks():
+    for x, y, z in sel.blocks:
         print(x, y, z)

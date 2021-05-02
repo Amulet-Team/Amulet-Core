@@ -189,8 +189,9 @@ class SelectionBox(AbstractBaseSelection):
 
     def __iter__(self) -> Iterable[BlockCoordinates]:
         """An iterable of all the block locations within this box."""
-        return self.blocks()
+        return self.blocks
 
+    @property
     def blocks(self) -> Iterable[BlockCoordinates]:
         return itertools.product(
             range(self._min_x, self._max_x),

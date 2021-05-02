@@ -132,7 +132,7 @@ class WorldTestBaseCases:
             )
             self.world.create_undo_point()
 
-            for x, y, z in selection.blocks():
+            for x, y, z in selection.blocks:
                 self.assertEqual(
                     "universal_minecraft:stone",
                     self.world.get_block(x, y, z, "overworld").blockstate,
@@ -153,7 +153,7 @@ class WorldTestBaseCases:
 
             self.world.redo()
 
-            for x, y, z in selection.blocks():
+            for x, y, z in selection.blocks:
                 self.assertEqual(
                     "universal_minecraft:stone",
                     self.world.get_block(x, y, z, "overworld").blockstate,

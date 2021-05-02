@@ -82,7 +82,7 @@ class ImmutableStructure(BaseLevel):
         :return: The created instance of :class:`ImmutableStructure`
         """
         self = cls()
-        self._selection = selection.copy()
+        self._selection = selection
         dst_dimension = self.dimensions[0]
         count = len(list(level.get_coord_box(dimension, selection)))
         for index, (chunk, _) in enumerate(level.get_chunk_boxes(dimension, selection)):

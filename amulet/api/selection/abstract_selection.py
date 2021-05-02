@@ -64,6 +64,7 @@ class AbstractBaseSelection(ABC):
     def __str__(self) -> str:
         raise NotImplementedError
 
+    @property
     @abstractmethod
     def blocks(self) -> Iterable[BlockCoordinates]:
         """
