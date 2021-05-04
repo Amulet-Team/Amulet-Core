@@ -172,6 +172,7 @@ def inverse_transform_matrix(
 ):
     """Create the inverse of the 4x4 transformation matrix from the scale, rotation and displacement specified.
     This should be the inverse of transform_matrix
+
     :param scale: The scale in the x, y and z axis
     :param rotation: The rotation in the x, y and z axis (axis can be changed using `order`)
     :param displacement: The displacement in the x, y and z axis
@@ -195,7 +196,12 @@ def decompose_transformation_matrix(
 ) -> Tuple[
     Tuple[float, float, float], Tuple[float, float, float], Tuple[float, float, float]
 ]:
-    """Decompose a 4x4 transformation matrix into scale, rotation and displacement tuples."""
+    """
+    Decompose a 4x4 transformation matrix into scale, rotation and displacement tuples.
+
+    :param matrix: The matrix to decompose.
+    :return: The scale, rotation and displacement.
+    """
     assert isinstance(matrix, numpy.ndarray), "Matrix must be an ndarray"
     assert matrix.shape == (4, 4), "Expected a 4x4 numpy array"
     # https://gist.github.com/Aerilius/0cbc46271c163746717902b36bea8fd4

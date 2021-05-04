@@ -71,6 +71,7 @@ def blocks_slice_to_chunk_slice(
 ) -> slice:
     """
     Converts the supplied blocks slice into chunk slice
+
     :param blocks_slice: The slice of the blocks
     :param chunk_shape: The shape of the chunk in this direction
     :param chunk_coord: The coordinate of the chunk in this direction
@@ -122,6 +123,7 @@ def decode_long_array(
 ) -> numpy.ndarray:
     """
     Decode an long array (from BlockStates or Heightmaps)
+
     :param long_array: Encoded long array
     :param size: int: The expected size of the returned array
     :return: Decoded array as numpy array
@@ -150,6 +152,7 @@ def encode_long_array(
 ) -> numpy.ndarray:
     """
     Encode an long array (from BlockStates or Heightmaps)
+
     :param array: A numpy array of the data to be encoded.
     :param dense: If true the long arrays will be treated as a bit stream. If false they are distinct values with padding
     :param bits_per_entry: The number of bits to use to store each value. If left as None will use the smallest bits per entry.
@@ -214,6 +217,7 @@ def get_size(obj, seen=None):
 def get_smallest_dtype(arr: ndarray, uint: bool = True) -> int:
     """
     Returns the smallest dtype (number) that the array can afford
+
     :param arr: The array to check on
     :param uint: Should the array fit in uint or not (default: True)
     :return: The number of bits all the elements can be represented with
