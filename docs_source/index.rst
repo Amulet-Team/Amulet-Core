@@ -13,7 +13,7 @@
    :caption: Contents:
 
    api/index
-   level/index
+   level.formats/index
    libs/index
    utils/index
 
