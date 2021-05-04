@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Any, Dict, Generator, Optional, List, TYPE_CHECKING, Union
+from typing import Tuple, Any, Dict, Generator, Optional, List, Union
 import time
 import glob
 import shutil
@@ -20,9 +20,7 @@ from amulet.api.data_types import (
 )
 from .dimension import AnvilDimensionManager
 from amulet.api.data_types import Dimension
-
-if TYPE_CHECKING:
-    from amulet.api.level import BaseLevel
+from amulet.api import level as api_level
 
 InternalDimension = str
 
@@ -253,7 +251,7 @@ class AnvilFormat(WorldFormatWrapper):
                 return False
         return False
 
-    def pre_save_operation(self, level: "BaseLevel") -> Generator[float, None, bool]:
+    def pre_save_operation(self, level: api_level.BaseLevel) -> Generator[float, None, bool]:
         changed_chunks = list(level.chunks.changed_chunks())
         height = self._calculate_height(level, changed_chunks)
         try:
@@ -273,7 +271,7 @@ class AnvilFormat(WorldFormatWrapper):
 
     @staticmethod
     def _calculate_height(
-        level: "BaseLevel", chunks: List[DimensionCoordinates]
+        level: api_level.BaseLevel, chunks: List[DimensionCoordinates]
     ) -> Generator[float, None, bool]:
         """Calculate the height values for chunks."""
         chunk_count = len(chunks)
@@ -298,7 +296,7 @@ class AnvilFormat(WorldFormatWrapper):
 
     @staticmethod
     def _calculate_light(
-        level: "BaseLevel", chunks: List[DimensionCoordinates]
+        level: api_level.BaseLevel, chunks: List[DimensionCoordinates]
     ) -> Generator[float, None, bool]:
         """Calculate the height values for chunks."""
         # this is needed for before 1.14
