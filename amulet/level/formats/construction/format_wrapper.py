@@ -54,6 +54,10 @@ max_section_version = 0
 
 
 class ConstructionFormatWrapper(StructureFormatWrapper):
+    """
+    This FormatWrapper class exists to interface with the construction format.
+    """
+
     def __init__(self, path: str):
         """
         Construct a new instance of :class:`ConstructionFormatWrapper`.

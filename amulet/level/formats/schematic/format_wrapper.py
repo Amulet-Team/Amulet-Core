@@ -34,6 +34,10 @@ bedrock_interface = BedrockSchematicInterface()
 
 
 class SchematicFormatWrapper(StructureFormatWrapper):
+    """
+    This FormatWrapper class exists to interface with the legacy schematic structure format.
+    """
+
     def __init__(self, path: str):
         """
         Construct a new instance of :class:`SchematicFormatWrapper`.

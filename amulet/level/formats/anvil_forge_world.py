@@ -5,6 +5,12 @@ from amulet.utils.format_utils import check_all_exist, load_leveldat
 
 
 class AnvilForgeFormat(AnvilFormat):
+    """
+    This FormatWrapper class is a modification on the :class:`AnvilFormat` class that separates Forge worlds from vanilla worlds.
+
+    Currently there is no extra logic here but this should extend the :class:`AnvilFormat` class to support Forge worlds.
+    """
+
     @staticmethod
     def is_valid(path: str) -> bool:
         if not check_all_exist(path, "level.dat"):

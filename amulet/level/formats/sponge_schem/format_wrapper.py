@@ -42,6 +42,10 @@ max_schem_version = 2
 
 
 class SpongeSchemFormatWrapper(StructureFormatWrapper):
+    """
+    This FormatWrapper class exists to interface with the sponge schematic structure format.
+    """
+
     _version: VersionNumberInt
 
     def __init__(self, path: str):

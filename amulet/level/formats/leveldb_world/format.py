@@ -80,6 +80,10 @@ class BedrockLevelDAT(nbt.NBTFile):
 
 
 class LevelDBFormat(WorldFormatWrapper):
+    """
+    This FormatWrapper class exists to interface with the Bedrock world format.
+    """
+
     def __init__(self, path: str):
         """
         Construct a new instance of :class:`LevelDBFormat`.

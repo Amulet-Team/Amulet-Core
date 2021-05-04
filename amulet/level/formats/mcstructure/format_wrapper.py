@@ -28,6 +28,10 @@ mcstructure_interface = MCStructureInterface()
 
 
 class MCStructureFormatWrapper(StructureFormatWrapper):
+    """
+    This FormatWrapper class exists to interface with the Bedrock mcstructure structure block format.
+    """
+
     def __init__(self, path: str):
         """
         Construct a new instance of :class:`MCStructureFormatWrapper`.

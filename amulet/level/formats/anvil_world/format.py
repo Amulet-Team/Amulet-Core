@@ -26,6 +26,10 @@ InternalDimension = str
 
 
 class AnvilFormat(WorldFormatWrapper):
+    """
+    This FormatWrapper class exists to interface with the Java world format.
+    """
+
     def __init__(self, path: str):
         """
         Construct a new instance of :class:`AnvilFormat`.
@@ -251,7 +255,9 @@ class AnvilFormat(WorldFormatWrapper):
                 return False
         return False
 
-    def pre_save_operation(self, level: api_level.BaseLevel) -> Generator[float, None, bool]:
+    def pre_save_operation(
+        self, level: api_level.BaseLevel
+    ) -> Generator[float, None, bool]:
         changed_chunks = list(level.chunks.changed_chunks())
         height = self._calculate_height(level, changed_chunks)
         try:
