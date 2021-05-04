@@ -265,7 +265,7 @@ class LevelDB:
 
         :param key: The key to get from the database.
         :return: The data stored behind the given key.
-        :raises KeyError if the requested key is not present.
+        :raises: KeyError if the requested key is not present.
         """
         ro = ldb.leveldb_readoptions_create()
         size = ctypes.c_size_t(0)
