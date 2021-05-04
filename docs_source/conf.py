@@ -159,9 +159,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (docs_source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, "amuletcore", "Amulet Core Documentation", [author], 1)
-]
+man_pages = [(master_doc, "amuletcore", "Amulet Core Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------------
