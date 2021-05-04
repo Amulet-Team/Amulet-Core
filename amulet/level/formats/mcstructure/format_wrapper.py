@@ -29,6 +29,13 @@ mcstructure_interface = MCStructureInterface()
 
 class MCStructureFormatWrapper(StructureFormatWrapper):
     def __init__(self, path: str):
+        """
+        Construct a new instance of :class:`MCStructureFormatWrapper`.
+
+        This should not be used directly. You should instead use :func:`amulet.load_format`.
+
+        :param path: The file path to the serialised data.
+        """
         super().__init__(path)
         self._chunks: Dict[
             ChunkCoordinates,
@@ -152,12 +159,6 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
 
     @staticmethod
     def is_valid(path: str) -> bool:
-        """
-        Returns whether this format is able to load the given object.
-
-        :param path: The path of the object to load.
-        :return: True if the world can be loaded by this format, False otherwise.
-        """
         return os.path.isfile(path) and path.endswith(".mcstructure")
 
     @property
@@ -312,13 +313,11 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
         self._chunks.clear()
 
     def unload(self):
-        """Unload data stored in the Format class"""
         pass
 
     def all_chunk_coords(
         self, dimension: Optional[Dimension] = None
     ) -> Generator[ChunkCoordinates, None, None]:
-        """A generator of all chunk coords"""
         yield from self._chunks.keys()
 
     def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
@@ -350,9 +349,6 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
         section: MCStructureChunk,
         dimension: Optional[Dimension] = None,
     ):
-        """
-        Actually stores the data from the interface to disk.
-        """
         self._chunks[(cx, cz)] = copy.deepcopy(
             (
                 section.selection,

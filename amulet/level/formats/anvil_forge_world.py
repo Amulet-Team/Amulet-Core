@@ -6,18 +6,12 @@ from amulet.utils.format_utils import check_all_exist, load_leveldat
 
 class AnvilForgeFormat(AnvilFormat):
     @staticmethod
-    def is_valid(directory) -> bool:
-        """
-        Returns whether this format is able to load a given world.
-
-        :param directory: The path to the root of the world to load.
-        :return: True if the world can be loaded by this format, False otherwise.
-        """
-        if not check_all_exist(directory, "level.dat"):
+    def is_valid(path: str) -> bool:
+        if not check_all_exist(path, "level.dat"):
             return False
 
         try:
-            level_dat_root = load_leveldat(directory)
+            level_dat_root = load_leveldat(path)
         except:
             return False
 

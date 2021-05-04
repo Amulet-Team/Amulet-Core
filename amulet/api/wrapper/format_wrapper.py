@@ -221,7 +221,7 @@ class FormatWrapper(ABC):
         """
         Remove the data at the path and set up a new database.
 
-        You might want to call FormatWrapper.exists to check if something exists at the path
+        You might want to call :attr:`exists` to check if something exists at the path
         and warn the user they are going to overwrite existing data before calling this method.
         """
         if self.is_open:

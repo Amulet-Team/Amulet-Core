@@ -68,6 +68,7 @@ class LevelDBDimensionManager:
     ):
         """
         Register a new dimension.
+
         :param dimension_internal: The internal representation of the dimension
         :param dimension_name: The name of the dimension shown to the user
         :return:

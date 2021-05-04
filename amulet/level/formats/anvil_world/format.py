@@ -19,17 +19,24 @@ from amulet.api.data_types import (
     DimensionCoordinates,
 )
 from .dimension import AnvilDimensionManager
+from amulet.api.data_types import Dimension
 
 if TYPE_CHECKING:
-    from amulet.api.data_types import Dimension
     from amulet.api.level import BaseLevel
 
 InternalDimension = str
 
 
 class AnvilFormat(WorldFormatWrapper):
-    def __init__(self, directory: str):
-        super().__init__(directory)
+    def __init__(self, path: str):
+        """
+        Construct a new instance of :class:`AnvilFormat`.
+
+        This should not be used directly. You should instead use :func:`amulet.load_format`.
+
+        :param path: The file path to the serialised data.
+        """
+        super().__init__(path)
         self._platform = "java"
         self._root_tag: nbt.NBTFile = nbt.NBTFile()
         self._levels: Dict[InternalDimension, AnvilDimensionManager] = {}
@@ -53,18 +60,12 @@ class AnvilFormat(WorldFormatWrapper):
         self.root_tag = nbt.load(os.path.join(self.path, "level.dat"))
 
     @staticmethod
-    def is_valid(directory) -> bool:
-        """
-        Returns whether this format is able to load a given world.
-
-        :param directory: The path to the root of the world to load.
-        :return: True if the world can be loaded by this format, False otherwise.
-        """
-        if not check_all_exist(directory, "level.dat"):
+    def is_valid(path: str) -> bool:
+        if not check_all_exist(path, "level.dat"):
             return False
 
         try:
-            level_dat_root = load_leveldat(directory)
+            level_dat_root = load_leveldat(path)
         except:
             return False
 
@@ -82,7 +83,7 @@ class AnvilFormat(WorldFormatWrapper):
 
     @property
     def version(self) -> VersionNumberInt:
-        """The version number for the given platform the data is stored in eg (1, 16, 2)"""
+        """The data version number that the world was last opened in. eg 2578"""
         if self._version == DefaultVersion:
             self._version = self._get_version()
         return self._version
@@ -96,6 +97,7 @@ class AnvilFormat(WorldFormatWrapper):
 
     @property
     def root_tag(self) -> nbt.NBTFile:
+        """The level.dat data for the level."""
         return self._root_tag
 
     @root_tag.setter
@@ -109,7 +111,6 @@ class AnvilFormat(WorldFormatWrapper):
 
     @property
     def level_name(self) -> str:
-        """The name of the world"""
         return str(self.root_tag["Data"].get("LevelName", ""))
 
     @level_name.setter
@@ -129,7 +130,6 @@ class AnvilFormat(WorldFormatWrapper):
 
     @property
     def dimensions(self) -> List["Dimension"]:
-        """A list of all the levels contained in the world"""
         return list(self._dimension_name_map.keys())
 
     def register_dimension(
@@ -139,9 +139,9 @@ class AnvilFormat(WorldFormatWrapper):
     ):
         """
         Register a new dimension.
+
         :param relative_dimension_path: The relative path to the dimension directory from the world root. "" for the world root.
         :param dimension_name: The name of the dimension shown to the user
-        :return:
         """
         if dimension_name is None:
             dimension_name: "Dimension" = relative_dimension_path
@@ -242,7 +242,6 @@ class AnvilFormat(WorldFormatWrapper):
 
     @property
     def has_lock(self) -> bool:
-        """Verify that the world database can be read and written"""
         if self._has_lock:
             if self._lock_time is None:
                 # the world was created not opened
@@ -255,13 +254,6 @@ class AnvilFormat(WorldFormatWrapper):
         return False
 
     def pre_save_operation(self, level: "BaseLevel") -> Generator[float, None, bool]:
-        """Logic to run before saving. Eg recalculating height maps or lighting.
-        Must be a generator that yields a number and returns a bool.
-        The yielded number is the progress from 0 to 1.
-        The returned bool is if changes have been made.
-        :param level: The level to apply modifications to.
-        :return: Have any modifications been made.
-        """
         changed_chunks = list(level.chunks.changed_chunks())
         height = self._calculate_height(level, changed_chunks)
         try:
@@ -347,7 +339,6 @@ class AnvilFormat(WorldFormatWrapper):
         pass
 
     def unload(self):
-        """Unload data stored in the Format class"""
         for level in self._levels.values():
             level.unload()
 
@@ -367,7 +358,6 @@ class AnvilFormat(WorldFormatWrapper):
     def all_chunk_coords(
         self, dimension: "Dimension"
     ) -> Generator[ChunkCoordinates, None, None]:
-        """A generator of all chunk coords in the given dimension"""
         if self._has_dimension(dimension):
             yield from self._get_dimension(dimension).all_chunk_coords()
 
@@ -382,9 +372,6 @@ class AnvilFormat(WorldFormatWrapper):
             self._get_dimension(dimension).delete_chunk(cx, cz)
 
     def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: "Dimension"):
-        """
-        Actually stores the data from the interface to disk.
-        """
         self._get_dimension(dimension).put_chunk_data(cx, cz, data)
 
     def _get_raw_chunk_data(
