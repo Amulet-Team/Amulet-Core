@@ -23,13 +23,13 @@ class WorldFormatWrapper(FormatWrapper):
         self._changed: bool = False
 
     @property
-    def world_name(self) -> str:
+    def level_name(self) -> str:
         """The name of the world"""
-        return "Unknown World"
+        raise NotImplementedError
 
-    @world_name.setter
+    @level_name.setter
     @abstractmethod
-    def world_name(self, value: str):
+    def level_name(self, value: str):
         raise NotImplementedError
 
     @property

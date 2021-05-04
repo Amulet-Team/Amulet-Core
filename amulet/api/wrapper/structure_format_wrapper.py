@@ -24,7 +24,7 @@ class StructureFormatWrapper(FormatWrapper):
                 )
 
     @property
-    def world_name(self) -> str:
+    def level_name(self) -> str:
         """The name of the world"""
         return os.path.basename(self.path)
 

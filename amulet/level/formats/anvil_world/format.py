@@ -108,12 +108,12 @@ class AnvilFormat(WorldFormatWrapper):
             raise ValueError("root_tag must be a TAG_Compound or NBTFile")
 
     @property
-    def world_name(self) -> str:
+    def level_name(self) -> str:
         """The name of the world"""
         return str(self.root_tag["Data"].get("LevelName", ""))
 
-    @world_name.setter
-    def world_name(self, value: str):
+    @level_name.setter
+    def level_name(self, value: str):
         self.root_tag["Data"]["LevelName"] = nbt.TAG_String(value)
 
     @property

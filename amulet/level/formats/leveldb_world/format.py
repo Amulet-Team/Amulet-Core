@@ -153,12 +153,12 @@ class LevelDBFormat(WorldFormatWrapper):
             )
 
     @property
-    def world_name(self):
+    def level_name(self):
         """The name of the world"""
         return str(self.root_tag.get("LevelName", ""))
 
-    @world_name.setter
-    def world_name(self, value: str):
+    @level_name.setter
+    def level_name(self, value: str):
         self.root_tag["LevelName"] = nbt.TAG_String(value)
 
     @property
@@ -268,7 +268,7 @@ class LevelDBFormat(WorldFormatWrapper):
         self._level_manager.save()
         self.root_tag.save(os.path.join(self.path, "level.dat"))
         with open(os.path.join(self.path, "levelname.txt"), "w") as f:
-            f.write(self.world_name)
+            f.write(self.level_name)
 
     def _close(self):
         self._level_manager.close()

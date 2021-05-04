@@ -18,7 +18,7 @@ class VoidFormatWrapper(FormatWrapper):
     """
 
     @property
-    def world_name(self) -> str:
+    def level_name(self) -> str:
         return "Void"
 
     @staticmethod

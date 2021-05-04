@@ -69,8 +69,8 @@ class FormatWrapper(ABC):
 
     @property
     @abstractmethod
-    def world_name(self) -> str:
-        """The name of the world"""
+    def level_name(self) -> str:
+        """The name of the level"""
         raise NotImplementedError
 
     @property
