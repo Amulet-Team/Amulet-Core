@@ -5,3 +5,4 @@
 .. autoclass:: amulet.api.wrapper.WorldFormatWrapper
    :members:
    :inherited-members:
+   :show-inheritance:
