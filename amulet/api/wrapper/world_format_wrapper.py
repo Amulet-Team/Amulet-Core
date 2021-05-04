@@ -17,14 +17,21 @@ missing_world_icon = os.path.abspath(
 class WorldFormatWrapper(FormatWrapper):
     _missing_world_icon = missing_world_icon
 
-    def __init__(self, world_path: str):
-        super().__init__(world_path)
+    def __init__(self, path: str):
+        """
+        Construct a new instance of :class:`WorldFormatWrapper`.
+
+        This should not be used directly. You should instead use :func:`amulet.load_format`.
+
+        :param path: The file path to the serialised data.
+        """
+        super().__init__(path)
         self._world_image_path = missing_world_icon
         self._changed: bool = False
 
     @property
+    @abstractmethod
     def level_name(self) -> str:
-        """The name of the world"""
         raise NotImplementedError
 
     @level_name.setter
@@ -44,13 +51,11 @@ class WorldFormatWrapper(FormatWrapper):
 
     @property
     def world_image_path(self) -> str:
-        """The path to the world icon"""
+        """The path to the world icon."""
         return self._world_image_path
 
     @property
     def can_add_dimension(self) -> bool:
-        """Can external code register a new dimension.
-        If False register_dimension will have no effect."""
         return True
 
     def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> "Interface":

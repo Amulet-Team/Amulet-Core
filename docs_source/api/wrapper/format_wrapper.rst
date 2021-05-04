@@ -2,5 +2,5 @@
  format_wrapper module
 #######################
 
-.. automodule:: amulet.api.wrapper.format_wrapper
+.. autoclass:: amulet.api.wrapper.FormatWrapper
    :members:

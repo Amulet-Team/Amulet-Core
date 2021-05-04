@@ -38,15 +38,22 @@ DefaultVersion = (0, 0, 0)
 
 class FormatWrapper(ABC):
     """
-    The Format class is a class that sits between the serialised world or structure data and the program using amulet-core.
-    The Format class is used to access chunks from the serialised source in the universal format and write them back again.
-    The FormatWrapper class holds the common methods shared by the sub-classes.
+    The FormatWrapper class is a class that sits between the serialised world or structure data and the program using amulet-core.
+
+    It is used to access data from the serialised source in the universal format and write them back again.
     """
 
     _platform: PlatformType
     _version: VersionNumberAny
 
     def __init__(self, path: str):
+        """
+        Construct a new instance of :class:`FormatWrapper`.
+
+        This should not be used directly. You should instead use :func:`amulet.load_format`.
+
+        :param path: The file path to the serialised data.
+        """
         self._path = path
         self._is_open = False
         self._has_lock = False
@@ -60,6 +67,9 @@ class FormatWrapper(ABC):
 
     @property
     def sub_chunk_size(self) -> int:
+        """
+        The dimensions of a sub-chunk.
+        """
         return 16
 
     @property
@@ -70,12 +80,12 @@ class FormatWrapper(ABC):
     @property
     @abstractmethod
     def level_name(self) -> str:
-        """The name of the level"""
+        """The name of the level."""
         raise NotImplementedError
 
     @property
     def translation_manager(self) -> PyMCTranslate.TranslationManager:
-        """The translation manager attached to the world"""
+        """The translation manager attached to the world."""
         if self._translation_manager is None:
             self._translation_manager = PyMCTranslate.new_translation_manager()
         return self._translation_manager
@@ -94,21 +104,23 @@ class FormatWrapper(ABC):
     @abstractmethod
     def is_valid(path: str) -> bool:
         """
-        Returns whether this format is able to load the given object.
+        Returns whether this format wrapper is able to load the given data.
 
-        :param path: The path of the object to load.
-        :return: True if the world can be loaded by this format, False otherwise.
+        :param path: The path of the data to load.
+        :return: True if the world can be loaded by this format wrapper, False otherwise.
         """
         raise NotImplementedError
 
     @property
     @abstractmethod
     def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
-        """The valid platform and version combinations that this object can accept.
+        """
+        The valid platform and version combinations that this object can accept.
+
         This is used when setting the platform and version in the create_and_open method
         to verify that the platform and version are valid.
 
-        :return: A tuple of tuples containing the platform followed by two booleans to determine if numerical and blockstate are valid respectively
+        :return: A dictionary mapping the platform to a tuple of two booleans to determine if numerical and blockstate are valid respectively.
         """
         raise NotImplementedError
 
@@ -125,35 +137,40 @@ class FormatWrapper(ABC):
     @property
     def max_world_version(self) -> VersionIdentifierType:
         """
-        The version the world was last opened in
-        This should be greater than or equal to the chunk versions found within
+        The version the world was last opened in.
+
+        This should be greater than or equal to the chunk versions found within.
         """
         return self.platform, self.version
 
     @property
     def changed(self) -> bool:
+        """Has any data been pushed to the format wrapper that has not been saved to disk."""
         return self._changed
 
     @property
     @abstractmethod
     def dimensions(self) -> List[Dimension]:
-        """A list of all the dimensions contained in the world"""
+        """A list of all the dimensions contained in the world."""
         raise NotImplementedError
 
     @property
     @abstractmethod
     def can_add_dimension(self) -> bool:
-        """Can external code register a new dimension.
-        If False register_dimension will have no effect."""
+        """
+        Can external code register a new dimension.
+
+        If False :meth:`register_dimension` will have no effect.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def register_dimension(self, dimension_internal: Any, dimension_name: Dimension):
         """
         Register a new dimension.
+
         :param dimension_internal: The internal representation of the dimension
         :param dimension_name: The name of the dimension shown to the user
-        :return:
         """
         raise NotImplementedError
 
@@ -164,9 +181,13 @@ class FormatWrapper(ABC):
 
     @property
     def multi_selection(self) -> bool:
-        """Does this object support having multiple selection boxes.
+        """
+        Does this object support having multiple selection boxes.
+
         If False it will be given exactly 1 selection.
-        If True can be given 0 or more."""
+
+        If True can be given 0 or more.
+        """
         return False
 
     @property
@@ -197,9 +218,12 @@ class FormatWrapper(ABC):
         overwrite: bool = False,
         **kwargs,
     ):
-        """Remove the data at the path and set up a new database.
+        """
+        Remove the data at the path and set up a new database.
+
         You might want to call FormatWrapper.exists to check if something exists at the path
-        and warn the user they are going to overwrite existing data before calling this method."""
+        and warn the user they are going to overwrite existing data before calling this method.
+        """
         if self.is_open:
             raise ObjectReadError(f"Cannot open {self} because it was already opened.")
 
@@ -257,7 +281,7 @@ class FormatWrapper(ABC):
         raise NotImplementedError
 
     def open(self):
-        """Open the database for reading and writing"""
+        """Open the database for reading and writing."""
         if self.is_open:
             raise ObjectReadError(f"Cannot open {self} because it was already opened.")
         self._open()
@@ -269,7 +293,7 @@ class FormatWrapper(ABC):
         raise NotImplementedError
 
     @property
-    def is_open(self):
+    def is_open(self) -> bool:
         """Has the object been opened."""
         return self._is_open
 
@@ -279,9 +303,9 @@ class FormatWrapper(ABC):
         return self._has_lock
 
     def _verify_has_lock(self):
-        """Ensure that the FormatWrapper is open and has a lock on the object.
+        """
+        Ensure that the FormatWrapper is open and has a lock on the object.
 
-        :return: None
         :raises:
             ObjectReadWriteError: if the FormatWrapper does not have a lock on the object.
         """
@@ -298,8 +322,11 @@ class FormatWrapper(ABC):
     def pre_save_operation(level: api_level.BaseLevel) -> Generator[float, None, bool]:
         """
         Logic to run before saving. Eg recalculating height maps or lighting.
+
         Must be a generator that yields a number and returns a bool.
+
         The yielded number is the progress from 0 to 1.
+
         The returned bool is if changes have been made.
 
         :param level: The level to apply modifications to.
@@ -309,7 +336,7 @@ class FormatWrapper(ABC):
         return False
 
     def save(self):
-        """Save the data back to the disk database"""
+        """Save the data back to the level."""
         self._verify_has_lock()
         self._save()
         self._changed = False
@@ -319,7 +346,7 @@ class FormatWrapper(ABC):
         raise NotImplementedError
 
     def close(self):
-        """Close the disk database"""
+        """Close the level."""
         if self.is_open:
             self._is_open = False
             self._has_lock = False
@@ -331,19 +358,20 @@ class FormatWrapper(ABC):
 
     @abstractmethod
     def unload(self):
-        """Unload data stored in the Format class"""
+        """Unload data stored in the FormatWrapper class"""
         raise NotImplementedError
 
     @abstractmethod
     def all_chunk_coords(
         self, dimension: Dimension
     ) -> Generator[ChunkCoordinates, None, None]:
-        """A generator of all chunk coords in the given dimension"""
+        """A generator of all chunk coords in the given dimension."""
         raise NotImplementedError
 
     @abstractmethod
     def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
-        """Does the chunk exist in the world database?
+        """
+        Does the chunk exist in the world database?
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
@@ -354,7 +382,7 @@ class FormatWrapper(ABC):
 
     def load_chunk(self, cx: int, cz: int, dimension: Dimension) -> Chunk:
         """
-        Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
+        Loads and creates a universal :class:`~amulet.api.chunk.Chunk` object from chunk coordinates.
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
@@ -380,7 +408,7 @@ class FormatWrapper(ABC):
         self, cx: int, cz: int, dimension: Dimension, recurse: bool = True
     ) -> Chunk:
         """
-        Loads and creates a universal amulet.api.chunk.Chunk object from chunk coordinates.
+        Loads and creates a universal :class:`~amulet.api.chunk.Chunk` object from chunk coordinates.
 
         :param cx: The x coordinate of the chunk.
         :param cz: The z coordinate of the chunk.
@@ -454,11 +482,12 @@ class FormatWrapper(ABC):
 
     def commit_chunk(self, chunk: Chunk, dimension: Dimension):
         """
-        Save a universal format chunk to the Format database (not the disk database)
-        call save method to write changed chunks back to the disk database
-        :param chunk: The chunk object to translate and save
+        Save a universal format chunk to the FormatWrapper database (not the level database)
+
+        Call save method to write changed chunks back to the level.
+
+        :param chunk: The chunk object to translate and save.
         :param dimension: The dimension to commit the chunk to.
-        :return:
         """
         try:
             self._verify_has_lock()
@@ -472,8 +501,10 @@ class FormatWrapper(ABC):
 
     def _commit_chunk(self, chunk: Chunk, dimension: Dimension, recurse: bool = True):
         """
-        Saves a universal amulet.api.chunk.Chunk object
+        Saves a universal :class:`~amulet.api.chunk.Chunk` object.
+
         Calls the interface then the translator.
+
         It then calls _put_chunk_data to store the data returned by the interface
         """
         # get the coordinates for later
@@ -546,6 +577,13 @@ class FormatWrapper(ABC):
         return interface.encode(chunk, chunk_palette, self.max_world_version)
 
     def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
+        """
+        Delete the given chunk from the level.
+
+        :param cx: The x coordinate of the chunk.
+        :param cz: The z coordinate of the chunk.
+        :param dimension: The dimension to load the data from.
+        """
         self._delete_chunk(cx, cz, dimension)
         self._changed = True
 
@@ -555,16 +593,20 @@ class FormatWrapper(ABC):
 
     def put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
         """
-        Actually stores the data from the interface to disk.
+        Commit the raw chunk data to the FormatWrapper cache.
+
+        Call :meth:`save` to push all the cache data to the level.
+
+        :param cx: The x coordinate of the chunk.
+        :param cz: The z coordinate of the chunk.
+        :param data: The raw data to commit to the level.
+        :param dimension: The dimension to load the data from.
         """
         self._verify_has_lock()
         self._put_raw_chunk_data(cx, cz, data, dimension)
 
     @abstractmethod
     def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
-        """
-        Actually stores the data from the interface to disk.
-        """
         raise NotImplementedError
 
     def get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> Any:

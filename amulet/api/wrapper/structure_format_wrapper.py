@@ -11,9 +11,12 @@ class StructureFormatWrapper(FormatWrapper):
     """A base FormatWrapper for all structures that only have one dimension."""
 
     def __init__(self, path: str):
-        """Set up the StructureFormatWrapper ready for accessing.
+        """
+        Construct a new instance of :class:`StructureFormatWrapper`.
 
-        :param path: The location of the file to read from and write to.
+        This should not be used directly. You should instead use :func:`amulet.load_format`.
+
+        :param path: The file path to the serialised data.
         """
         super().__init__(path)
         if self.extensions:
@@ -25,7 +28,6 @@ class StructureFormatWrapper(FormatWrapper):
 
     @property
     def level_name(self) -> str:
-        """The name of the world"""
         return os.path.basename(self.path)
 
     @property
@@ -41,19 +43,25 @@ class StructureFormatWrapper(FormatWrapper):
 
     @property
     def requires_selection(self) -> bool:
-        """Does this object require that a selection be defined when creating it from scratch?"""
         return True
 
     @property
     @abstractmethod
     def extensions(self) -> Tuple[str, ...]:
-        """The extension the file can have to be valid.
-        eg (".schematic",)"""
+        """
+        The extension the file can have to be valid.
+
+        eg (".schematic",)
+        """
         raise NotImplementedError
 
     @abstractmethod
     def open_from(self, f: BinaryIO):
-        """Load from a file like object. Useful to load from RAM rather than disk."""
+        """
+        Load from a file like object. Useful to load from RAM rather than disk.
+
+        :param f: The file like object to read data from.
+        """
         raise NotImplementedError
 
     def _open(self):
@@ -64,8 +72,11 @@ class StructureFormatWrapper(FormatWrapper):
 
     @abstractmethod
     def save_to(self, f: BinaryIO):
-        """Write to a file like object. Useful to write to RAM rather than disk.
-        _save should open the file on disk and give it to this method."""
+        """
+        Write to a file like object. Useful to write to RAM rather than disk.
+
+        :param f: The file like object to write data to.
+        """
         raise NotImplementedError
 
     def _save(self):
