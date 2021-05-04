@@ -10,11 +10,11 @@ Relevant Classes: :class:`api.world.World`,
 *******
 
 In order to make world loading simpler and more flexible to future
-changes with Minecraft, the Amulet Map Editor only loads/edits a
-proprietary format. By doing this, to support a Minecraft world format,
-the only things required are separate block/entity/tile entity
-definitions and a "conversion" wrapper, which converts the world data on
-disc to the "Amulet format"
+changes with Minecraft, the Amulet Core only loads/edits a proprietary
+format. By doing this, to support a Minecraft world format, the only
+things required are separate block/entity/tile entity definitions and a
+"conversion" wrapper, which converts the world data on disc to the
+"Amulet format"
 
 *********************
  The "Amulet Format"

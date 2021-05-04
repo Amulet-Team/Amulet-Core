@@ -25,7 +25,7 @@ import amulet
 
 # -- Project information -----------------------------------------------------
 
-project = "Amulet Map Editor"
+project = "Amulet Core"
 copyright = f"2018-{datetime.datetime.now().year}, The Amulet Team"
 author = "The Amulet Team"
 
@@ -54,6 +54,8 @@ extensions = [
     "sphinx.ext.graphviz",
     "sphinx.ext.inheritance_diagram",
 ]
+
+graphviz_dot = r"C:\Program Files\Graphviz\bin\dot.exe"
 
 commit_id = (
     subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("ascii")
@@ -119,7 +121,7 @@ html_static_path = [".static"]
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "AmuletMapEditordoc"
+htmlhelp_basename = "AmuletCoredoc"
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -145,9 +147,9 @@ latex_elements = {
 latex_documents = [
     (
         master_doc,
-        "AmuletMapEditor.tex",
-        "Amulet Map Editor Documentation",
-        "The Amulet Map Editor Team",
+        "AmuletCore.tex",
+        "Amulet Core Documentation",
+        "The Amulet Team",
         "manual",
     )
 ]
@@ -158,7 +160,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (docs_source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, "amuletmapeditor", "Amulet Map Editor Documentation", [author], 1)
+    (master_doc, "amuletcore", "Amulet Core Documentation", [author], 1)
 ]
 
 
@@ -170,10 +172,10 @@ man_pages = [
 texinfo_documents = [
     (
         master_doc,
-        "AmuletMapEditor",
-        "Amulet Map Editor Documentation",
+        "AmuletCore",
+        "Amulet Core Documentation",
         author,
-        "AmuletMapEditor",
+        "AmuletCore",
         "One line description of project.",
         "Miscellaneous",
     )
