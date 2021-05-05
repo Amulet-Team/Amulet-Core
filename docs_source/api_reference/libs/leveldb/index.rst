@@ -1,6 +1,6 @@
-#################
- leveldb package
-#################
+####################################
+ :mod:`amulet.libs.leveldb` package
+####################################
 
 .. autoclass:: amulet.libs.leveldb.LevelDBException
    :members:

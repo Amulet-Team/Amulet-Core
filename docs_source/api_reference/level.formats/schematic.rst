@@ -1,6 +1,6 @@
-###################
- schematic package
-###################
+###############################################
+ :mod:`amulet.level.formats.schematic` package
+###############################################
 
 .. autoclass:: amulet.level.formats.schematic.SchematicFormatWrapper
    :members:

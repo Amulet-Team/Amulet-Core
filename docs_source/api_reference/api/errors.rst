@@ -1,6 +1,6 @@
-###############
- errors module
-###############
+#################################
+ :mod:`amulet.api.errors` module
+#################################
 
 .. autoexception:: amulet.api.errors.FormatError
    :show-inheritance:

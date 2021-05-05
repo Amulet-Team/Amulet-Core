@@ -1,6 +1,6 @@
-###############
- level package
-###############
+#################################
+ :mod:`amulet.api.level` package
+#################################
 
 The level classes are the containers for all data related to a given world or structure.
 

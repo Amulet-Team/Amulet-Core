@@ -1,6 +1,6 @@
-###################
- selection package
-###################
+#####################################
+ :mod:`amulet.api.selection` package
+#####################################
 
 These classes represent a selection box and a group of selection boxes.
 

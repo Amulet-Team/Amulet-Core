@@ -1,6 +1,6 @@
-######################
- sponge_schem package
-######################
+##################################################
+ :mod:`amulet.level.formats.sponge_schem` package
+##################################################
 
 .. autoclass:: amulet.level.formats.sponge_schem.SpongeSchemFormatWrapper
    :members:

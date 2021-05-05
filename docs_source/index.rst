@@ -6,7 +6,6 @@
    :maxdepth: 1
    :caption: Contents:
 
-
    getting_started/index
    api_reference/index
 

@@ -1,6 +1,6 @@
-#######################
- format_wrapper module
-#######################
+#################################################
+ :mod:`amulet.api.wrapper.format_wrapper` module
+#################################################
 
 .. autoclass:: amulet.api.wrapper.FormatWrapper
    :members:

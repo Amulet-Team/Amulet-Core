@@ -1,6 +1,6 @@
-#####################
- chunk.blocks module
-#####################
+#######################################
+ :mod:`amulet.api.chunk.blocks` module
+#######################################
 
 .. automodule:: amulet.api.chunk.blocks
    :members:

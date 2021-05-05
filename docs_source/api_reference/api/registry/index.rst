@@ -1,6 +1,6 @@
-##################
- registry package
-##################
+####################################
+ :mod:`amulet.api.registry` package
+####################################
 
 The block and biome data is stored as numerical values in arrays.
 

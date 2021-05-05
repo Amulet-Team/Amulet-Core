@@ -1,6 +1,6 @@
-###############################
- data_types.world_types module
-###############################
+#################################################
+ :mod:`amulet.api.data_types.world_types` module
+#################################################
 
 These data types relate to the world data.
 

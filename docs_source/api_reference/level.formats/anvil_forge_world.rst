@@ -1,6 +1,6 @@
-##########################
- anvil_forge_world module
-##########################
+######################################################
+ :mod:`amulet.level.formats.anvil_forge_world` module
+######################################################
 
 .. autoclass:: amulet.level.formats.anvil_forge_world.AnvilForgeFormat
    :members:

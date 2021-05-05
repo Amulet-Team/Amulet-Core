@@ -1,6 +1,6 @@
-####################
- data_types package
-####################
+######################################
+ :mod:`amulet.api.data_types` package
+######################################
 
 This package contains a number of data types used in variable typing.
 

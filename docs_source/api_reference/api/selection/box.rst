@@ -1,6 +1,6 @@
-######################
- selection box module
-######################
+########################################
+ :mod:`amulet.api.selection.box` module
+########################################
 
 .. autoclass:: amulet.api.selection.SelectionBox
    :members:

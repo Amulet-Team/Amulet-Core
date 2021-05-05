@@ -1,6 +1,6 @@
-##################
- structure module
-##################
+##########################################
+ :mod:`amulet.api.level.structure` module
+##########################################
 
 .. autoclass:: amulet.api.level.Structure
    :members:

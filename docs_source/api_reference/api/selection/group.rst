@@ -1,6 +1,6 @@
-########################
- selection group module
-########################
+##########################################
+ :mod:`amulet.api.selection.group` module
+##########################################
 
 .. autoclass:: amulet.api.selection.SelectionGroup
    :members:

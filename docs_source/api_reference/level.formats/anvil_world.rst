@@ -1,6 +1,6 @@
-#####################
- anvil_world package
-#####################
+#################################################
+ :mod:`amulet.level.formats.anvil_world` package
+#################################################
 
 .. autoclass:: amulet.level.formats.anvil_world.AnvilFormat
    :members:

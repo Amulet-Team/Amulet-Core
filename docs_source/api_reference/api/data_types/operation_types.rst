@@ -1,6 +1,6 @@
-###################################
- data_types.operation_types module
-###################################
+#####################################################
+ :mod:`amulet.api.data_types.operation_types` module
+#####################################################
 
 These data types relate to the operation system.
 

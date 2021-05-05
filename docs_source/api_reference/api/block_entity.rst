@@ -1,6 +1,6 @@
-#####################
- block_entity module
-#####################
+#######################################
+ :mod:`amulet.api.block_entity` module
+#######################################
 
 .. automodule:: amulet.api.block_entity
    :members:
