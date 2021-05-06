@@ -7,4 +7,6 @@
    :glob:
 
    open_world
+   read_chunk
+   create_chunk
    blocks/index

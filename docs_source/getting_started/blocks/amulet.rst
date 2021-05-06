@@ -1,6 +1,16 @@
-##################
- Blocks in Amulet
-##################
+######################################
+ Blocks in Amulet - The Complex Route
+######################################
+
+The previous example showed off the two simple
+:meth:`~amulet.api.level.BaseLevel.get_version_block` and
+:meth:`~amulet.api.level.BaseLevel.set_version_block` methods which are
+useful helper methods for small scale operations but on larger scale
+operations they can add quite a bit of overhead which will slow things
+down.
+
+This will explain how the data is structured under the hood and how you
+can directly manipulate it.
 
 In Amulet, blocks are stored as an array of arbitrary integer values
 which refer to a global block palette stored in the level's
@@ -28,9 +38,9 @@ represented in our universal system without any data loss.
 This allows a world from any platform or version to be loaded into one
 consistent format and simplifies all editing code.
 
-Third party code however should not be directly editing the data in this
-universal format because it can and will change to support new game
-versions as they are released.
+Third party code must not directly hard code data in this universal
+format because it can and will change to support new game versions as
+they are released.
 
 The preferred way to edit data is to first use the translator to convert
 the universal representation to a platform and game version of your
@@ -41,14 +51,3 @@ Hard coding block states from the chosen game format is okay because
 they are tied to a historical version of the game so they cannot change.
 You must not hard code block states in the universal format because any
 changes we make will cause your code to break.
-
-The translator for the level is found in
-:attr:`~amulet.api.level.BaseLevel.translation_manager` and can be used
-to find which platforms and versions are supported.
-:meth:`~PyMCTranslate.py3.api.translation_manager.translation_manager.TranslationManager.platforms`
-will give a list of the valid platforms and
-:meth:`~PyMCTranslate.py3.api.translation_manager.translation_manager.TranslationManager.version_numbers`
-will give a list of versions numbers for a given platform. Using
-:meth:`~PyMCTranslate.py3.api.translation_manager.translation_manager.TranslationManager.get_version`
-with a version of your choice will give you a translator for that
-version which can be used to translate to and from the universal format.
