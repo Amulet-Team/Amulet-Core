@@ -103,32 +103,25 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
                                 compressed=True,
                             )
 
-                            try:
-                                platform = metadata["export_version"]["edition"].value
-                                version = tuple(
-                                    map(
-                                        lambda v: v.value,
-                                        metadata["export_version"]["version"],
-                                    )
+                            self._platform = metadata["export_version"]["edition"].value
+                            self._version = tuple(
+                                map(
+                                    lambda v: v.value,
+                                    metadata["export_version"]["version"],
                                 )
-                                selection_boxes = (
-                                    metadata["selection_boxes"]
-                                    .value.reshape(-1, 6)
-                                    .tolist()
-                                )
-                            except:
-                                pass
-                            else:
-                                self._platform = platform
-                                self._version = version
-                                self._selection = SelectionGroup(
-                                    [
-                                        SelectionBox(
-                                            (minx, miny, minz), (maxx, maxy, maxz)
-                                        )
-                                        for minx, miny, minz, maxx, maxy, maxz in selection_boxes
-                                    ]
-                                )
+                            )
+
+                            selection_boxes = (
+                                metadata["selection_boxes"]
+                                .value.reshape(-1, 6)
+                                .tolist()
+                            )
+                            self._selection = SelectionGroup(
+                                [
+                                    SelectionBox((minx, miny, minz), (maxx, maxy, maxz))
+                                    for minx, miny, minz, maxx, maxy, maxz in selection_boxes
+                                ]
+                            )
 
     def _create(
         self,
