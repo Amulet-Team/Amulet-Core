@@ -182,6 +182,8 @@ texinfo_documents = [
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "NumPy [latest]": ("https://docs.scipy.org/doc/numpy/", None),
+    "PyMCTranslate": ("https://pymctranslate.readthedocs.io/en/stable/", None),
+    "amulet_nbt": ("https://amulet-nbt.readthedocs.io/en/stable/", None),
 }
 
 autodoc_member_order = "bysource"
