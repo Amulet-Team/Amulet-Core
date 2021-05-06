@@ -55,8 +55,6 @@ extensions = [
     "sphinx.ext.inheritance_diagram",
 ]
 
-graphviz_dot = r"C:\Program Files\Graphviz\bin\dot.exe"
-
 commit_id = (
     subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("ascii")
 )
