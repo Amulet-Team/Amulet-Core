@@ -13,7 +13,14 @@ This will explain how the data is structured under the hood and how you
 can directly manipulate it.
 
 In Amulet, blocks are stored as an array of arbitrary integer values
-which refer to a global block palette stored in the level's
+which refer to a global block palette.
+
+See :class:`~amulet.api.chunk.blocks.Blocks` for the block array class
+which is stored in the chunk's
+:attr:`~amulet.api.chunk.chunk.Chunk.blocks` property.
+
+See :class:`~amulet.api.registry.block_manager.BlockManager` for the
+block palette class which is stored in the level's
 :attr:`~amulet.api.level.BaseLevel.block_palette` property as well as
 the chunk's :attr:`~amulet.api.chunk.chunk.Chunk.block_palette`
 property.
