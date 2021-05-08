@@ -10,11 +10,11 @@ game_version = ("bedrock", (1, 16, 20))  # the version that we want the block da
 
 # get a block
 block, block_entity = level.get_version_block(
-    0,   # x location
+    0,  # x location
     70,  # y location
-    0,   # z location
+    0,  # z location
     "overworld",  # dimension
-    game_version
+    game_version,
 )
 
 if isinstance(block, Block):
@@ -27,12 +27,12 @@ if isinstance(block, Block):
 # define a block in the format of the version we want to work with.
 block = Block("minecraft", "stone")
 level.set_version_block(
-    0,   # x location
+    0,  # x location
     70,  # y location
-    0,   # z location
+    0,  # z location
     "overworld",  # dimension
     game_version,
-    block
+    block,
 )
 
 # save the changes to the world
