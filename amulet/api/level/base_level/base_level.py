@@ -796,6 +796,7 @@ class BaseLevel:
             chunk.block_entities[(x, y, z)] = universal_block_entity
         elif (x, y, z) in chunk.block_entities:
             del chunk.block_entities[(x, y, z)]
+        chunk.changed = True
 
     # def get_entities_in_box(
     #     self, box: "SelectionGroup"
