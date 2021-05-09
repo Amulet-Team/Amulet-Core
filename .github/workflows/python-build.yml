@@ -33,6 +33,7 @@ jobs:
         python setup.py sdist bdist_wheel
         twine upload dist/*
     - name: Build Docs
+      shell: bash
       evn:
         RTDTOKEN: ${{ secrets.RTDTOKEN }}
         RTDURL: ${{ secrets.RTDURL }}
@@ -46,4 +47,3 @@ jobs:
           # if it is a beta release trigger the beta docs build
           curl -X POST -d "branches=latest" -d "token=$RTDTOKEN" $RTDURL
         fi
-      shell: bash
