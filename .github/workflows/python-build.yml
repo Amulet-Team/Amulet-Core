@@ -34,7 +34,7 @@ jobs:
         twine upload dist/*
     - name: Build Docs
       shell: bash
-      evn:
+      env:
         RTDTOKEN: ${{ secrets.RTDTOKEN }}
         RTDURL: ${{ secrets.RTDURL }}
         TAGNAME: ${{ github.event.release.tag_name }}
