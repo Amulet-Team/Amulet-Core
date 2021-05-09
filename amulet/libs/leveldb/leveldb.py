@@ -3,6 +3,7 @@
 import ctypes
 import os
 import sys
+from typing import Dict, Iterator, Tuple
 
 if sys.platform == "win32":
     if sys.maxsize > 2 ** 32:  # 64 bit python
@@ -190,6 +191,10 @@ ldb.leveldb_free.restype = None
 
 
 class LevelDBException(Exception):
+    """
+    The exception thrown for all leveldb related errors.
+    """
+
     pass
 
 
@@ -203,6 +208,14 @@ def _checkError(err):
 
 class LevelDB:
     def __init__(self, path: str, create_if_missing: bool = False):
+        """
+        Construct a new :class:`LevelDB` instance from the database at the given path.
+
+        A leveldb database is like a dictionary that only contains bytes as the keys and values and exists entirely on the disk.
+
+        :param path: The path to the database directory.
+        :param create_if_missing: If True and there is no database at the given path a new database will be created.
+        """
         self.db = None
         self._open(path, create_if_missing)
 
@@ -235,13 +248,25 @@ class LevelDB:
         self.db = db
 
     def close(self, compact=True):
+        """
+        Close the leveldb database.
+
+        :param compact: If True will compact the database making it take less memory.
+        """
         if self.db:
             if compact:
                 ldb.leveldb_compact_range(self.db, None, 0, None, 0)
             ldb.leveldb_close(self.db)
             self.db = None
 
-    def get(self, key):
+    def get(self, key: bytes):
+        """
+        Get a key from the database.
+
+        :param key: The key to get from the database.
+        :return: The data stored behind the given key.
+        :raises: KeyError if the requested key is not present.
+        """
         ro = ldb.leveldb_readoptions_create()
         size = ctypes.c_size_t(0)
         error = ctypes.POINTER(ctypes.c_char)()
@@ -257,14 +282,20 @@ class LevelDB:
             raise KeyError("Key {} not found in database.".format(key))
         return val
 
-    def put(self, key, val):
+    def put(self, key: bytes, val: bytes):
+        """
+        Add a key to the database.
+
+        :param key: The key to store the value under.
+        :param val: The value to store.
+        """
         wo = ldb.leveldb_writeoptions_create()
         error = ctypes.POINTER(ctypes.c_char)()
         ldb.leveldb_put(self.db, wo, key, len(key), val, len(val), ctypes.byref(error))
         ldb.leveldb_writeoptions_destroy(wo)
         _checkError(error)
 
-    def putBatch(self, data):
+    def putBatch(self, data: Dict[bytes, bytes]):
         batch = ldb.leveldb_writebatch_create()
         for k, v in data.items():
             ldb.leveldb_writebatch_put(batch, k, len(k), v, len(v))
@@ -274,14 +305,27 @@ class LevelDB:
         ldb.leveldb_writeoptions_destroy(wo)
         _checkError(error)
 
-    def delete(self, key):
+    def delete(self, key: bytes):
+        """
+        Delete a key from the database.
+
+        :param key: The key to delete from the database.
+        """
         wo = ldb.leveldb_writeoptions_create()
         error = ctypes.POINTER(ctypes.c_char)()
         ldb.leveldb_delete(self.db, wo, key, len(key), ctypes.byref(error))
         ldb.leveldb_writeoptions_destroy(wo)
         _checkError(error)
 
-    def iterate(self, start=None, end=None):
+    def iterate(
+        self, start: bytes = None, end: bytes = None
+    ) -> Iterator[Tuple[bytes, bytes]]:
+        """
+        Iterate through all keys and data that exist between the given keys.
+
+        :param start: The key to start at. Leave as None to start at the beginning.
+        :param end: The key to end at. Leave as None to start at the beginning.
+        """
         ro = ldb.leveldb_readoptions_create()
         it = ldb.leveldb_create_iterator(self.db, ro)
         ldb.leveldb_readoptions_destroy(ro)
@@ -303,7 +347,8 @@ class LevelDB:
         finally:
             ldb.leveldb_iter_destroy(it)
 
-    def keys(self):
+    def keys(self) -> Iterator[bytes]:
+        """An iterable of all the keys in the database."""
         ro = ldb.leveldb_readoptions_create()
         it = ldb.leveldb_create_iterator(self.db, ro)
         ldb.leveldb_readoptions_destroy(ro)

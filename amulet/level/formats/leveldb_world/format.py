@@ -80,12 +80,23 @@ class BedrockLevelDAT(nbt.NBTFile):
 
 
 class LevelDBFormat(WorldFormatWrapper):
-    def __init__(self, directory: str):
-        super().__init__(directory)
+    """
+    This FormatWrapper class exists to interface with the Bedrock world format.
+    """
+
+    def __init__(self, path: str):
+        """
+        Construct a new instance of :class:`LevelDBFormat`.
+
+        This should not be used directly. You should instead use :func:`amulet.load_format`.
+
+        :param path: The file path to the serialised data.
+        """
+        super().__init__(path)
         self._lock = False
         self._platform = "bedrock"
         self._root_tag: BedrockLevelDAT = BedrockLevelDAT(
-            os.path.join(directory, "level.dat")
+            os.path.join(path, "level.dat")
         )
         self._level_manager: Optional[LevelDBDimensionManager] = None
         self._shallow_load()
@@ -103,14 +114,8 @@ class LevelDBFormat(WorldFormatWrapper):
         self.root_tag = BedrockLevelDAT(os.path.join(self.path, "level.dat"))
 
     @staticmethod
-    def is_valid(directory):
-        """
-        Returns whether this format is able to load a given world.
-
-        :param directory: The path to the root of the world to load.
-        :return: True if the world can be loaded by this format, False otherwise.
-        """
-        return check_all_exist(directory, "db", "level.dat", "levelname.txt")
+    def is_valid(path: str):
+        return check_all_exist(path, "db", "level.dat", "levelname.txt")
 
     @property
     def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
@@ -118,15 +123,18 @@ class LevelDBFormat(WorldFormatWrapper):
 
     @property
     def version(self) -> VersionNumberTuple:
-        """The version number for the given platform the data is stored in eg (1, 16, 2)"""
         if self._version == DefaultVersion:
             self._version = self._get_version()
         return self._version
 
     def _get_version(self) -> Tuple[int, ...]:
-        """The version the world was last opened in
+        """
+        The version the world was last opened in.
+
         This should be greater than or equal to the chunk versions found within
-        For this format wrapper it returns a tuple of 3/4 ints (the game version number)"""
+
+        For this format wrapper it returns a tuple of 3/4 ints (the game version number)
+        """
         try:
             return tuple([t.value for t in self.root_tag["lastOpenedWithVersion"]])
         except Exception:
@@ -134,6 +142,7 @@ class LevelDBFormat(WorldFormatWrapper):
 
     @property
     def root_tag(self) -> BedrockLevelDAT:
+        """The level.dat data for the level."""
         return self._root_tag
 
     @root_tag.setter
@@ -151,12 +160,11 @@ class LevelDBFormat(WorldFormatWrapper):
             )
 
     @property
-    def world_name(self):
-        """The name of the world"""
+    def level_name(self):
         return str(self.root_tag.get("LevelName", ""))
 
-    @world_name.setter
-    def world_name(self, value: str):
+    @level_name.setter
+    def level_name(self, value: str):
         self.root_tag["LevelName"] = nbt.TAG_String(value)
 
     @property
@@ -172,7 +180,6 @@ class LevelDBFormat(WorldFormatWrapper):
 
     @property
     def dimensions(self) -> List["Dimension"]:
-        """A list of all the levels contained in the world"""
         self._verify_has_lock()
         return self._level_manager.dimensions
 
@@ -181,8 +188,9 @@ class LevelDBFormat(WorldFormatWrapper):
     ):
         """
         Register a new dimension.
-        :param dimension_internal: The internal representation of the dimension
-        :param dimension_name: The name of the dimension shown to the user
+
+        :param dimension_internal: The internal integer representation of the dimension.
+        :param dimension_name: The name of the dimension shown to the user.
         :return:
         """
         self._level_manager.register_dimension(dimension_internal, dimension_name)
@@ -256,7 +264,6 @@ class LevelDBFormat(WorldFormatWrapper):
 
     @property
     def has_lock(self) -> bool:
-        """Verify that the world database can be read and written"""
         if self._has_lock:
             return True  # TODO: implement a check to ensure access to the database
         return False
@@ -266,13 +273,12 @@ class LevelDBFormat(WorldFormatWrapper):
         self._level_manager.save()
         self.root_tag.save(os.path.join(self.path, "level.dat"))
         with open(os.path.join(self.path, "levelname.txt"), "w") as f:
-            f.write(self.world_name)
+            f.write(self.level_name)
 
     def _close(self):
         self._level_manager.close()
 
     def unload(self):
-        """Unload data stored in the Format class"""
         pass
 
     def all_chunk_coords(
@@ -290,9 +296,6 @@ class LevelDBFormat(WorldFormatWrapper):
     def _put_raw_chunk_data(
         self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: "Dimension"
     ):
-        """
-        Actually stores the data from the interface to disk.
-        """
         return self._level_manager.put_chunk_data(cx, cz, data, dimension)
 
     def _get_raw_chunk_data(

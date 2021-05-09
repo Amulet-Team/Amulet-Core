@@ -32,3 +32,18 @@ jobs:
       run: |
         python setup.py sdist bdist_wheel
         twine upload dist/*
+    - name: Build Docs
+      shell: bash
+      evn:
+        RTDTOKEN: ${{ secrets.RTDTOKEN }}
+        RTDURL: ${{ secrets.RTDURL }}
+        TAGNAME: ${{ github.event.release.tag_name }}
+      run: |
+        release_regex_version='^([0-9]+\.[0-9]+(\.[0-9]+)?\.)([0-9]+)$'
+        if [[ $TAGNAME =~ $release_regex_version ]]; then
+          # if it is a full release trigger the stable docs build
+          curl -X POST -d "branches=stable" -d "token=$RTDTOKEN" $RTDURL
+        else
+          # if it is a beta release trigger the beta docs build
+          curl -X POST -d "branches=latest" -d "token=$RTDTOKEN" $RTDURL
+        fi

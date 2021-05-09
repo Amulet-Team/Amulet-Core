@@ -11,7 +11,7 @@ from amulet.api.registry import BlockManager, BiomeManager
 from amulet.api.block import Block
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
-from amulet.api.chunk import Chunk
+from amulet.api.chunk import Chunk, BiomesShape
 from amulet.api.data_types import (
     AnyNDArray,
     BlockNDArray,
@@ -19,7 +19,6 @@ from amulet.api.data_types import (
     GetChunkCallback,
     TranslateBlockCallback,
     TranslateEntityCallback,
-    BlockType,
     GetBlockCallback,
     TranslateBlockCallbackReturn,
     TranslateEntityCallbackReturn,
@@ -75,7 +74,7 @@ class Translator:
 
             # translate each block without using the callback
             for i, input_block in enumerate(chunk.block_palette):
-                input_block: BlockType
+                input_block: Block
                 (
                     output_block,
                     output_block_entity,
@@ -480,7 +479,7 @@ class Translator:
         """
         version = translation_manager.get_version(*version_identifier)
 
-        if chunk.biomes.dimension == 2:
+        if chunk.biomes.dimension == BiomesShape.Shape2D:
             biome_int_palette, biome_array = numpy.unique(
                 chunk.biomes, return_inverse=True
             )
@@ -488,7 +487,7 @@ class Translator:
             chunk._biome_palette = BiomeManager(
                 [version.biome.unpack(biome) for biome in biome_int_palette]
             )
-        elif chunk.biomes.dimension == 3:
+        elif chunk.biomes.dimension == BiomesShape.Shape3D:
             biomes = {}
             palette = []
             palette_length = 0
@@ -530,9 +529,7 @@ class Translator:
         self._pack_biomes(translation_manager, version_identifier, chunk)
         return (
             chunk,
-            self._pack_block_palette(
-                version, numpy.array(chunk.block_palette.blocks())
-            ),
+            self._pack_block_palette(version, numpy.array(chunk.block_palette.blocks)),
         )
 
     def _pack_block_palette(
@@ -559,9 +556,9 @@ class Translator:
         biome_palette = numpy.array(
             [version.biome.pack(biome) for biome in chunk.biome_palette], numpy.uint32
         )
-        if chunk.biomes.dimension == 2:
+        if chunk.biomes.dimension == BiomesShape.Shape2D:
             chunk.biomes = biome_palette[chunk.biomes]
-        elif chunk.biomes.dimension == 3:
+        elif chunk.biomes.dimension == BiomesShape.Shape3D:
             chunk.biomes = {
                 sy: biome_palette[chunk.biomes.get_section(sy)]
                 for sy in chunk.biomes.sections

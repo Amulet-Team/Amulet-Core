@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import List, Any, Generator
 
 from amulet.api.history.base.history_manager import HistoryManager
@@ -15,6 +16,7 @@ class ContainerHistoryManager(HistoryManager):
         self._branch_save_count = 0  # if the user saves, undoes and does a new operation a save branch will be lost
         # This is the number of changes on that branch
 
+    @abstractmethod
     def _check_snapshot(self, snapshot: SnapshotType):
         raise NotImplementedError
 
@@ -46,6 +48,7 @@ class ContainerHistoryManager(HistoryManager):
         self._branch_save_count = 0
         self._mark_saved()
 
+    @abstractmethod
     def _mark_saved(self):
         raise NotImplementedError
 
@@ -72,6 +75,7 @@ class ContainerHistoryManager(HistoryManager):
             self._undo(snapshot)
             self._snapshot_index -= 1
 
+    @abstractmethod
     def _undo(self, snapshot: SnapshotType):
         raise NotImplementedError
 
@@ -82,18 +86,13 @@ class ContainerHistoryManager(HistoryManager):
             snapshot = self._snapshots[self._snapshot_index]
             self._redo(snapshot)
 
+    @abstractmethod
     def _redo(self, snapshot: SnapshotType):
         raise NotImplementedError
 
     @property
     def changed(self) -> bool:
         return bool(self.unsaved_changes)
-
-    def create_undo_point_iter(self) -> Generator[float, None, bool]:
-        raise NotImplementedError
-
-    def restore_last_undo_point(self):
-        raise NotImplementedError
 
     def purge(self):
         """Unload all cached data. Effectively returns the class to its starting state."""

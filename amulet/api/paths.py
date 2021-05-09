@@ -49,5 +49,5 @@ def _application_directory(
         return path
 
 
-def get_temp_dir(world_dir):
-    return os.path.join(_program_base, "world_temp", str(hash(world_dir)))
+def get_cache_dir() -> str:
+    return os.path.join(_program_base, "cache")

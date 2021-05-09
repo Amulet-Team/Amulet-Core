@@ -12,17 +12,24 @@ import copy
 
 class ImmutableStructure(BaseLevel):
     """
-    This is a special class that exists purely to hold chunk data and serialise it to the disk cache.
-    There is no level attached to load or save chunks to.
-    This class exists purely to store chunks in when copied from a level.
-    The original wrapper is mutable so the chunks must be deep copied from it and dropped into here.
+    This is a special version of the level class that is only used when extracting a region of the world.
+
+    It is much the same as a normal level class but does not have an associated file/folder data like :class:`~amulet.api.level.World` and :class:`~amulet.api.level.Structure` do.
+
+    To extract a section of a world you should use :meth:`~amulet.api.level.BaseLevel.extract_structure`.
     """
 
     def __init__(
         self,
-        temp_dir: str = None,
     ):
-        super().__init__("", VoidFormatWrapper(""), temp_dir)
+        """
+        Construct an :class:`ImmutableStructure` instance.
+
+        You probably don't want to call this directly.
+
+        To extract a section of a world you should use :meth:`~amulet.api.level.BaseLevel.extract_structure`.
+        """
+        super().__init__("", VoidFormatWrapper(""))
         self._selection = SelectionGroup(
             [
                 SelectionBox(
@@ -50,15 +57,32 @@ class ImmutableStructure(BaseLevel):
     def from_level(
         cls, level: BaseLevel, selection: SelectionGroup, dimension: Dimension
     ):
+        """
+        Extract a section of the level into an :class:`ImmutableStructure` class.
+
+        :param level: The level to extract the area from.
+        :param selection: The selection to extract.
+        :param dimension: The dimension to extract from.
+        :return: The created instance of :class:`ImmutableStructure`
+        """
         return generator_unpacker(cls.from_level_iter(level, selection, dimension))
 
     @classmethod
     def from_level_iter(
         cls, level: BaseLevel, selection: SelectionGroup, dimension: Dimension
     ) -> Generator[float, None, ImmutableStructure]:
-        """Populate this class with the chunks that intersect the selection."""
+        """
+        Extract a section of the level into an :class:`ImmutableStructure` class.
+
+        Also yields the progress from 0-1.
+
+        :param level: The level to extract the area from.
+        :param selection: The selection to extract.
+        :param dimension: The dimension to extract from.
+        :return: The created instance of :class:`ImmutableStructure`
+        """
         self = cls()
-        self._selection = selection.copy()
+        self._selection = selection
         dst_dimension = self.dimensions[0]
         count = len(list(level.get_coord_box(dimension, selection)))
         for index, (chunk, _) in enumerate(level.get_chunk_boxes(dimension, selection)):

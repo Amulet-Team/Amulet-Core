@@ -21,8 +21,10 @@ def _sanitise_slice(start: int, stop: int, step: int) -> Tuple[int, int, int]:
 def sanitise_slice(
     start: Optional[int], stop: Optional[int], step: Optional[int], arr_size: int
 ) -> Tuple[int, int, int]:
-    """Convert slices into a sane format
-    0 is always before the first number and arr_size is always after the last number."""
+    """
+    Convert slices into a sane format
+    0 is always before the first number and arr_size is always after the last number.
+    """
     # set default values
     if step is None:
         step = 1

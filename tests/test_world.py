@@ -1,7 +1,4 @@
 import unittest
-
-import json
-import numpy
 import os
 
 from amulet.api.block import Block
@@ -11,7 +8,6 @@ from amulet.api.selection import SelectionBox, SelectionGroup
 from amulet import load_level, load_format
 from tests.test_utils import (
     get_world_path,
-    get_data_path,
     create_temp_world,
     clean_temp_world,
 )
@@ -19,6 +15,7 @@ from amulet.operations.clone import clone
 from amulet.operations.delete_chunk import delete_chunk
 from amulet.operations.fill import fill
 from amulet.operations.replace import replace
+from amulet.utils.generator import generator_unpacker
 
 
 class WorldTestBaseCases:
@@ -81,7 +78,8 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 5, "overworld").blockstate,
             )
 
-            self.world.run_operation(clone, "overworld", src_box, target)
+            clone(self.world, "overworld", src_box, target)
+            self.world.create_undo_point()
 
             self.assertEqual(
                 "universal_minecraft:stone",
@@ -124,14 +122,17 @@ class WorldTestBaseCases:
             )
             # End sanity check
 
-            self.world.run_operation(
-                fill,
-                "overworld",
-                selection,
-                Block.from_string_blockstate("universal_minecraft:stone"),
+            generator_unpacker(
+                fill(
+                    self.world,
+                    "overworld",
+                    selection,
+                    Block.from_string_blockstate("universal_minecraft:stone"),
+                )
             )
+            self.world.create_undo_point()
 
-            for x, y, z in selection.blocks():
+            for x, y, z in selection.blocks:
                 self.assertEqual(
                     "universal_minecraft:stone",
                     self.world.get_block(x, y, z, "overworld").blockstate,
@@ -152,7 +153,7 @@ class WorldTestBaseCases:
 
             self.world.redo()
 
-            for x, y, z in selection.blocks():
+            for x, y, z in selection.blocks:
                 self.assertEqual(
                     "universal_minecraft:stone",
                     self.world.get_block(x, y, z, "overworld").blockstate,
@@ -172,8 +173,8 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 5, "overworld").blockstate,
             )
 
-            self.world.run_operation(
-                replace,
+            replace(
+                self.world,
                 "overworld",
                 box1,
                 {
@@ -187,6 +188,7 @@ class WorldTestBaseCases:
                     ],
                 },
             )
+            self.world.create_undo_point()
 
             self.assertEqual(
                 "universal_minecraft:stone",
@@ -234,8 +236,8 @@ class WorldTestBaseCases:
                     f"Failed at coordinate (1,{y},3)",
                 )
 
-            self.world.run_operation(
-                replace,
+            replace(
+                self.world,
                 "overworld",
                 box1,
                 {
@@ -251,6 +253,7 @@ class WorldTestBaseCases:
                     ],
                 },
             )
+            self.world.create_undo_point()
 
             self.assertEqual(
                 "universal_minecraft:granite[polished=false]",
@@ -304,7 +307,8 @@ class WorldTestBaseCases:
                 self.world.get_block(1, 70, 5, "overworld").blockstate,
             )
 
-            self.world.run_operation(delete_chunk, "overworld", box1)
+            generator_unpacker(delete_chunk(self.world, "overworld", box1))
+            self.world.create_undo_point()
 
             with self.assertRaises(ChunkDoesNotExist):
                 _ = self.world.get_block(1, 70, 3, "overworld").blockstate

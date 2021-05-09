@@ -15,9 +15,11 @@ from .util import to_slice, sanitise_slice, unpack_slice, stack_sanitised_slices
 
 
 class BoundedPartial3DArray(BasePartial3DArray):
-    """This class should behave the same as a numpy array in all three axis
-    but the data internally is stored in chunks to minimise memory usage.
-    The array has a fixed size in all three axis much like a numpy array."""
+    """
+    This class should behave the same as a numpy array in all three axis
+    but the data internally is stored in sections to minimise memory usage.
+    The array has a fixed size in all three axis much like a numpy array.
+    """
 
     @classmethod
     def from_partial_array(
@@ -27,6 +29,15 @@ class BoundedPartial3DArray(BasePartial3DArray):
         stop: Tuple[int, int, int],
         step: Tuple[int, int, int],
     ):
+        """
+        Create a :class:`BoundedPartial3DArray` from an :class:`~amulet.api.partial_3d_array.UnboundedPartial3DArray` and slices.
+
+        :param parent_array: The :class:`~amulet.api.partial_3d_array.UnboundedPartial3DArray` to "extract" the slice from
+        :param start: The starting point of the slice.
+        :param stop: The end point of the slice.
+        :param step: The steps of the slice.
+        :return: A new instance of :class:`BoundedPartial3DArray` that behaves like a view into the parent array.
+        """
         return cls(
             parent_array.dtype,
             parent_array.default_value,
@@ -47,6 +58,17 @@ class BoundedPartial3DArray(BasePartial3DArray):
         step: Tuple[Optional[int], Optional[int], Optional[int]],
         parent_array: UnboundedPartial3DArray,
     ):
+        """
+        Construct a :class:`BoundedPartial3DArray`. This should not be used directly. You should instead use the :meth:`~amulet.api.partial_3d_array.UnboundedPartial3DArray.__getitem__` method of :class:`~amulet.api.partial_3d_array.UnboundedPartial3DArray`
+
+        :param dtype: The dtype that all arrays will be stored in.
+        :param default_value: The default value that all undefined arrays will be populated with if required.
+        :param section_shape: The shape of each section array.
+        :param start: The starting point of the slice.
+        :param stop: The end point of the slice.
+        :param step: The steps of the slice.
+        :param parent_array: The original :class:`~amulet.api.partial_3d_array.UnboundedPartial3DArray` that the slice is viewing into.
+        """
         assert isinstance(start[1], int) and isinstance(
             stop[1], int
         ), "start[1] and stop[1] must both be ints."
@@ -59,7 +81,14 @@ class BoundedPartial3DArray(BasePartial3DArray):
         return f"BoundedPartial3DArray(dtype={self.dtype}, shape={self.shape})"
 
     def __array__(self, dtype=None):
-        """Convert the data to a numpy array"""
+        """
+        Get the data contained within as a numpy array.
+
+        >>> numpy.array(partial_array)
+
+        :param dtype: The dtype of the returned numpy array.
+        :return: A numpy array of the contained data.
+        """
         array = numpy.full(self.shape, self.default_value, dtype or self.dtype)
         for sy, slices, relative_slices in self._iter_slices(
             (
@@ -73,6 +102,17 @@ class BoundedPartial3DArray(BasePartial3DArray):
         return array
 
     def __eq__(self, value):
+        """
+        Check equality of this object and another object.
+
+        Behaves mostly the same as a numpy array.
+
+        >>> bounded_partial_array1 == bounded_partial_array2
+
+        :param value: The object to compare to.
+        :return:
+        """
+
         def get_array(default: bool):
             return self.from_partial_array(
                 UnboundedPartial3DArray(bool, default, self.section_shape, (0, 0)),
@@ -233,6 +273,19 @@ class BoundedPartial3DArray(BasePartial3DArray):
         ...
 
     def __getitem__(self, item):
+        """
+        Get a value or sub-section of the unbounded array.
+
+        >>> # get the value at a given location
+        >>> value = partial_array[3, 4, 5]  # an integer
+        >>> # get a cuboid volume in the array
+        >>> value = partial_array[2:3, 4:5, 6:7]  # BoundedPartial3DArray
+        >>> # slice and int can be mixed
+        >>> value = partial_array[2:3, 4, 6:7]  # BoundedPartial3DArray
+
+        :param item: The slices to extract.
+        :return: The value or BoundedPartial3DArray viewing into this array.
+        """
         if isinstance(item, tuple):
             if len(item) != 3:
                 raise KeyError(f"Tuple item must be of length 3, got {len(item)}")
@@ -345,6 +398,19 @@ class BoundedPartial3DArray(BasePartial3DArray):
         ...
 
     def __setitem__(self, item, value):
+        """
+        Set a sub-section of the array.
+
+        >>> # set the value at a given location
+        >>> partial_array[3, 4, 5] = 1
+        >>> # set a cuboid volume in the array
+        >>> partial_array[2:3, 4:5, 6:7] = 1
+        >>> # slice and int can be mixed
+        >>> partial_array[2:3, 4, 6:7] = 1
+
+        :param slices: The slices or locations that define the volume to set.
+        :param value: The value to set at the given location. Can be an integer or array.
+        """
         if isinstance(item, tuple):
             if len(item) != 3:
                 raise KeyError(f"Tuple item must be of length 3, got {len(item)}")

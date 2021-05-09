@@ -5,7 +5,8 @@ from amulet.api.data_types import FloatTriplet, PointCoordinates
 
 
 def scale_matrix(sx: float, sy: float, sz: float) -> numpy.ndarray:
-    """Create a scale matrix from the inputs specified
+    """
+    Create a scale matrix from the inputs specified
 
     :param sx: The scale in the x axis
     :param sy: The scale in the y axis
@@ -18,7 +19,8 @@ def scale_matrix(sx: float, sy: float, sz: float) -> numpy.ndarray:
 
 
 def displacement_matrix(x: float, y: float, z: float) -> numpy.ndarray:
-    """Create a displacement matrix from the inputs specified
+    """
+    Create a displacement matrix from the inputs specified
 
     :param x: The displacement in the x axis
     :param y: The displacement in the y axis
@@ -31,7 +33,8 @@ def displacement_matrix(x: float, y: float, z: float) -> numpy.ndarray:
 
 
 def _rotation_matrix(*angles: float, order=None) -> numpy.ndarray:
-    """Create a rotation matrix from the inputs specified
+    """
+    Create a rotation matrix from the inputs specified
 
     :param angles: The angles in radians
     :param order: The order the angles are specified. Transforms will be applied in this order.
@@ -75,7 +78,8 @@ def _rotation_matrix(*angles: float, order=None) -> numpy.ndarray:
 
 
 def rotation_matrix_x(rx: float) -> numpy.ndarray:
-    """Create a rotation matrix in the x axis
+    """
+    Create a rotation matrix in the x axis
 
     :param rx: The angle in radians
     :return: The 4x4 rotation matrix
@@ -84,7 +88,8 @@ def rotation_matrix_x(rx: float) -> numpy.ndarray:
 
 
 def rotation_matrix_y(ry: float) -> numpy.ndarray:
-    """Create a rotation matrix in the x axis
+    """
+    Create a rotation matrix in the x axis
 
     :param ry: The angle in radians
     :return: The 4x4 rotation matrix
@@ -93,7 +98,8 @@ def rotation_matrix_y(ry: float) -> numpy.ndarray:
 
 
 def rotation_matrix_z(rz: float) -> numpy.ndarray:
-    """Create a rotation matrix in the x axis
+    """
+    Create a rotation matrix in the x axis
 
     :param rz: The angle in radians
     :return: The 4x4 rotation matrix
@@ -102,7 +108,8 @@ def rotation_matrix_z(rz: float) -> numpy.ndarray:
 
 
 def rotation_matrix_xy(rx: float, ry: float) -> numpy.ndarray:
-    """Create a rotation matrix from the inputs specified
+    """
+    Create a rotation matrix from the inputs specified
 
     :param rx: The rotation in radians in the x axis
     :param ry: The rotation in radians in the y axis
@@ -112,7 +119,8 @@ def rotation_matrix_xy(rx: float, ry: float) -> numpy.ndarray:
 
 
 def rotation_matrix_yx(ry: float, rx: float) -> numpy.ndarray:
-    """Create a rotation matrix from the inputs specified
+    """
+    Create a rotation matrix from the inputs specified
 
     :param rx: The rotation in radians in the x axis
     :param ry: The rotation in radians in the y axis
@@ -122,7 +130,8 @@ def rotation_matrix_yx(ry: float, rx: float) -> numpy.ndarray:
 
 
 def rotation_matrix_xyz(x: float, y: float, z: float) -> numpy.ndarray:
-    """Create a rotation matrix from the inputs specified
+    """
+    Create a rotation matrix from the inputs specified
 
     :param x: The rotation in radians in the x axis
     :param y: The rotation in radians in the y axis
@@ -163,6 +172,7 @@ def inverse_transform_matrix(
 ):
     """Create the inverse of the 4x4 transformation matrix from the scale, rotation and displacement specified.
     This should be the inverse of transform_matrix
+
     :param scale: The scale in the x, y and z axis
     :param rotation: The rotation in the x, y and z axis (axis can be changed using `order`)
     :param displacement: The displacement in the x, y and z axis
@@ -186,7 +196,12 @@ def decompose_transformation_matrix(
 ) -> Tuple[
     Tuple[float, float, float], Tuple[float, float, float], Tuple[float, float, float]
 ]:
-    """Decompose a 4x4 transformation matrix into scale, rotation and displacement tuples."""
+    """
+    Decompose a 4x4 transformation matrix into scale, rotation and displacement tuples.
+
+    :param matrix: The matrix to decompose.
+    :return: The scale, rotation and displacement.
+    """
     assert isinstance(matrix, numpy.ndarray), "Matrix must be an ndarray"
     assert matrix.shape == (4, 4), "Expected a 4x4 numpy array"
     # https://gist.github.com/Aerilius/0cbc46271c163746717902b36bea8fd4

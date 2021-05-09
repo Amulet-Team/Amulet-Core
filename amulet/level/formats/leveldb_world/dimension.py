@@ -11,7 +11,7 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from amulet.api.errors import ChunkDoesNotExist, LevelDoesNotExist
+from amulet.api.errors import ChunkDoesNotExist, DimensionDoesNotExist
 from amulet.api.data_types import ChunkCoordinates
 from amulet.libs.leveldb import LevelDB
 
@@ -68,6 +68,7 @@ class LevelDBDimensionManager:
     ):
         """
         Register a new dimension.
+
         :param dimension_internal: The internal representation of the dimension
         :param dimension_name: The name of the dimension shown to the user
         :return:
@@ -86,7 +87,7 @@ class LevelDBDimensionManager:
         if dimension in self._dimension_name_map:
             return self._dimension_name_map[dimension]
         else:
-            raise LevelDoesNotExist(dimension)
+            raise DimensionDoesNotExist(dimension)
 
     def all_chunk_coords(self, dimension: "Dimension") -> Set[ChunkCoordinates]:
         internal_dimension = self._get_internal_dimension(dimension)

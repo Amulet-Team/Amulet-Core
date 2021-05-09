@@ -5,7 +5,7 @@ import re
 from typing import Dict, Iterable, Tuple, Union
 import amulet_nbt
 
-from .errors import InvalidBlockException
+from .errors import BlockException
 
 PropertyValueType = Union[
     amulet_nbt.TAG_Byte,
@@ -27,56 +27,45 @@ PropertyDataTypes = (
 
 class Block:
     """
-    Class to handle data about various blockstates and allow for extra blocks to be created and interacted with.
+    A class to manage the state of a block.
 
-    .. important::
-       Creating version specific block objects via the `Block()` constructor instead of using
-       :meth:`api.world.World.get_block_instance` is supported but not encouraged. To avoid possible caveats of doing this,
-       make sure to either only instantiate blocks with Amulet blockstate data or use
-       :meth:`api.world.World.get_block_instance` instead
+    It is an immutable object that contains a namespaced name, properties and extra blocks.
 
-    Here's a few examples on how create a Block object with extra blocks:
+    Here's a few examples on how create a Block object:
 
-    Creating a new Block object with the base of ``stone`` and has an extra block of ``water[level=1]``:
+    >>> # Create a block with the namespace `minecraft` and base name `stone`
+    >>> stone = Block("minecraft", "stone")
 
+    >>> # Create a water block with the level property
+    >>> water = Block(
+    >>>     "minecraft",  # the namespace
+    >>>     "water",  # the base name
+    >>>     {  # A dictionary of properties.
+    >>>         # Keys must be strings and values must be a numerical or string NBT type.
+    >>>         "level": amulet_nbt.TAG_String("0")  # define a property `level` with a string value `1`
+    >>>     }
+    >>> )
+
+    >>> # The above two examples can also be achieved by creating the block from the Java blockstate.
     >>> stone = Block.from_string_blockstate("minecraft:stone")
-    >>> water_level_1 = Block.from_string_blockstate("minecraft:water[level=1]")
-    >>> stone_with_extra_block = stone + water_level_1
-    >>> repr(stone_with_extra_block)
-    'Block(minecraft:stone, minecraft:water[level=1])'
+    >>> water = Block.from_string_blockstate("minecraft:water[level=0]")
 
-    Creating a new Block object using the namespace and base_name:
+    Java 1.13 added the concept of waterlogging blocks whereby some blocks have a `waterlogged` property.
+    Bedrock achieved the same behaviour by added a layering system. The layering system allows any block to be the second block.
+    In order to support both formats and future proof the editor Amulet adds the concept of extra blocks.
+    Extra blocks are a sequence of zero or more blocks stored in the `extra_blocks` property of the Block instance.
+    Amulet places no restrictions on which blocks can be extra blocks but some validation will be done when saving based on the format being saved to.
 
-    >>> granite = Block(namespace="minecraft", base_name="granite")
+    >>> # Create a waterlogged stone block.
+    >>> waterlogged_stone = Block("minecraft", "stone",
+    >>>     # extra_blocks can be a Block instance or iterable of Block instances.
+    >>>     extra_blocks=Block("minecraft", "water", {"level": amulet_nbt.TAG_String("0")})
+    >>> )
 
-
-    Creating a new Block object with another layer of extra blocks:
-
-    >>> stone_water_granite = stone_with_extra_block + granite # Doesn't modify any of the other objects
-    >>> repr(stone_water_granite)
-    'Block(minecraft:stone, minecraft:water[level=1], minecraft:granite)'
-
-
-    Creating a new Block object by removing an extra block from all layers:
-
-    *Note: This removes all instances of the Block object from extra blocks*
-
-    >>> stone_granite = stone_water_granite - water_level_1 # Doesn't modify any of the other objects either
-    >>> repr(stone_granite)
-    'Block(minecraft:stone, minecraft:granite)'
-
-
-    Creating a new Block object by removing a specific layer:
-
-    >>> oak_log_axis_x = Block.from_string_blockstate("minecraft:oak_log[axis=x]")
-    >>> stone_water_granite_water_oak_log = stone_water_granite + water_level_1 + oak_log_axis_x
-    >>> repr(stone_water_granite_water_oak_log)
-    'Block(minecraft:stone, minecraft:water[level=1], minecraft:granite, minecraft:water[level=1], minecraft:oak_log[axis=x])'
-
-    >>> stone_granite_water_oak_log = stone_water_granite_water_oak_log.remove_layer(0)
-    >>> repr(stone_granite_water_oak_log)
-    'Block(minecraft:stone, minecraft:granite, minecraft:water[level=1], minecraft:oak_log[axis=x])'
-
+    >>> # The above can also be achieved by adding together a stone and water block.
+    >>> waterlogged_stone = stone + water
+    >>> repr(waterlogged_stone)
+    'Block(minecraft:stone, extra_blocks=(minecraft:water[level="0"]))'
     """
 
     __slots__ = (
@@ -102,6 +91,8 @@ class Block:
     )
     properties_regex = re.compile(r"(?:,(?P<name>[a-z0-9_]+)=(?P<value>[a-z0-9_]+))")
 
+    _extra_blocks: Tuple[Block, ...]
+
     def __init__(
         self,
         namespace: str,
@@ -109,6 +100,26 @@ class Block:
         properties: PropertyType = None,
         extra_blocks: Union[Block, Iterable[Block]] = None,
     ):
+        """
+        Constructs a :class:`Block` instance.
+
+        >>> stone = Block("minecraft", "stone")
+        >>>
+        >>> # Create a water block with the level property
+        >>> water = Block(
+        >>>     "minecraft",  # the namespace
+        >>>     "water",  # the base name
+        >>>     {  # A dictionary of properties.
+        >>>         # Keys must be strings and values must be a numerical or string NBT type.
+        >>>         "level": amulet_nbt.TAG_String("0")  # define a property `level` with a string value `1`
+        >>>     }
+        >>> )
+
+        :param namespace: The string namespace of the block. eg `minecraft`
+        :param base_name: The string base name of the block. eg `stone`
+        :param properties: A dictionary of properties. Keys must be strings and values must be a numerical or string NBT type.
+        :param extra_blocks: A :class:`Block` instance or iterable of :class:`Block` instances
+        """
         assert (isinstance(namespace, str) or namespace is None) and isinstance(
             base_name, str
         ), f"namespace and base_name must be strings {namespace} {base_name}"
@@ -129,19 +140,37 @@ class Block:
         self._properties = properties
         self._extra_blocks = ()
         if extra_blocks:
-            if isinstance(extra_blocks, Block):
-                extra_blocks = [extra_blocks]
-            self._extra_blocks = tuple(extra_blocks)
+            eb = []
+
+            def unpack_block(block_: Iterable[Block]):
+                for b in block_:
+                    if b.extra_blocks:
+                        unpack_block(b)
+                    else:
+                        eb.append(b)
+
+            unpack_block(extra_blocks)
+            self._extra_blocks = tuple(eb)
 
     @classmethod
     def from_string_blockstate(cls, blockstate: str):
-        """Parse a Java format blockstate where values are all strings and populate a Block class with the data."""
+        """
+        Parse a Java format blockstate where values are all strings and populate a :class:`Block` class with the data.
+
+        >>> stone = Block.from_string_blockstate("minecraft:stone")
+        >>> water = Block.from_string_blockstate("minecraft:water[level=0]")
+
+        :param blockstate: The Java blockstate string to parse.
+        :return: A Block instance containing the state.
+        """
         namespace, block_name, properties = cls.parse_blockstate_string(blockstate)
         return cls(namespace, block_name, properties)
 
     @classmethod
     def from_snbt_blockstate(cls, blockstate: str):
-        """Parse a blockstate where values are SNBT of any type and populate a Block class with the data."""
+        """
+        Parse a blockstate where values are SNBT of any type and populate a :class:`Block` class with the data.
+        """
         namespace, block_name, properties = cls.parse_blockstate_string(
             blockstate, True
         )
@@ -150,7 +179,11 @@ class Block:
     @property
     def namespaced_name(self) -> str:
         """
-        The namespace:base_name of the blockstate represented by the Block object (Eg: `minecraft:stone`)
+        The namespace:base_name of the blockstate represented by the :class:`Block` object.
+
+        >>> water = Block.from_string_blockstate("minecraft:water[level=0]")
+        >>> water.namespaced_name
+        'minecraft:water'
 
         :return: The namespace:base_name of the blockstate
         """
@@ -159,7 +192,11 @@ class Block:
     @property
     def namespace(self) -> str:
         """
-        The namespace of the blockstate represented by the Block object (Eg: `minecraft`)
+        The namespace of the blockstate represented by the :class:`Block` object.
+
+        >>> water = Block.from_string_blockstate("minecraft:water[level=0]")
+        >>> water.namespace
+        'minecraft'
 
         :return: The namespace of the blockstate
         """
@@ -168,7 +205,11 @@ class Block:
     @property
     def base_name(self) -> str:
         """
-        The base name of the blockstate represented by the Block object (Eg: `stone`, `dirt`)
+        The base name of the blockstate represented by the :class:`Block` object.
+
+        >>> water = Block.from_string_blockstate("minecraft:water[level=0]")
+        >>> water.base_name
+        'water'
 
         :return: The base name of the blockstate
         """
@@ -177,7 +218,11 @@ class Block:
     @property
     def properties(self) -> PropertyType:
         """
-        The mapping of properties of the blockstate represented by the Block object (Eg: `{"level": "1"}`)
+        The mapping of properties of the blockstate represented by the :class:`Block` object.
+
+        >>> water = Block.from_string_blockstate("minecraft:water[level=0]")
+        >>> water.properties
+        {"level": TAG_String("0")}
 
         :return: A dictionary of the properties of the blockstate
         """
@@ -185,9 +230,18 @@ class Block:
 
     @property
     def blockstate(self) -> str:
-        """The Java blockstate string of this Block object (Eg: `minecraft:stone`, `minecraft:oak_log[axis=x]`)
+        """
+        The Java blockstate string of this :class:`Block` object
         Note if there are extra blocks this will only show the base block.
         Note this will only contain properties with TAG_String values.
+
+        >>> stone = Block("minecraft", "stone")
+        >>> stone.blockstate
+        'minecraft:stone'
+        >>> water = Block("minecraft", "water", {"level": amulet_nbt.TAG_String("0")})
+        >>> water.blockstate
+        `minecraft:water[level=0]`
+
         :return: The blockstate string
         """
         if self._blockstate is None:
@@ -203,9 +257,20 @@ class Block:
 
     @property
     def snbt_blockstate(self) -> str:
-        """The SNBT blockstate string of this Block object (Eg: `minecraft:bell[attachment="standing",direction=0,toggle_bit=0b]`)
+        """
+        A modified version of the Java blockstate format that supports all NBT types.
+        Converts the property values to the SNBT format to preserve type.
         Note if there are extra blocks this will only show the base block.
-        :return: The blockstate string
+
+        >>> bell = Block("minecraft", "bell", {
+        >>>     "attachment":amulet_nbt.TAG_String("standing"),
+        >>>     "direction":amulet_nbt.TAG_Int(0),
+        >>>     "toggle_bit":amulet_nbt.TAG_Byte(0)
+        >>> })
+        >>> bell.snbt_blockstate
+        'minecraft:bell[attachment="standing",direction=0,toggle_bit=0b]'
+
+        :return: The SNBT blockstate string
         """
         if self._snbt_blockstate is None:
             self._snbt_blockstate = self.namespaced_name
@@ -219,7 +284,19 @@ class Block:
 
     @property
     def full_blockstate(self) -> str:
-        """The SNBT blockstate string of the base block and extra blocks (Eg: `minecraft:fence[wood_type="oak"]{minecraft:water[liquid_depth=0]}`).
+        """
+        The SNBT blockstate string of the base block and extra blocks.
+
+        >>> bell = Block("minecraft", "bell", {
+        >>>     "attachment":amulet_nbt.TAG_String("standing"),
+        >>>     "direction":amulet_nbt.TAG_Int(0),
+        >>>     "toggle_bit":amulet_nbt.TAG_Byte(0)
+        >>> })
+        >>> water = Block("minecraft", "water", {"liquid_depth": amulet_nbt.TAG_Int(0)})
+        >>> waterlogged_bell = bell + water
+        >>> waterlogged_bell.full_blockstate
+        'minecraft:bell[attachment="standing",direction=0,toggle_bit=0b]{minecraft:water[liquid_depth=0]}'
+
         :return: The blockstate string
         """
         if self._full_blockstate is None:
@@ -232,25 +309,37 @@ class Block:
     @property
     def base_block(self) -> Block:
         """
-        Returns the block without any extra blocks
+        Returns an instance of :class:`Block` containing only the base block without any extra blocks
+
+        >>> waterlogged_stone = Block("minecraft", "stone",
+        >>>     extra_blocks=Block("minecraft", "water", {"level": amulet_nbt.TAG_String("0")})
+        >>> )
+        >>> waterlogged_stone.base_block
+        Block(minecraft:stone)
 
         :return: A Block object
         """
-        if len(self.extra_blocks) == 0:
-            return self
-        else:
+        if self.extra_blocks:
             return Block(
                 namespace=self.namespace,
                 base_name=self.base_name,
                 properties=self.properties,
             )
+        else:
+            return self
 
     @property
     def extra_blocks(self) -> Tuple[Block, ...]:
         """
-        Returns a tuple of the extra blocks contained in the Block instance
+        Returns a tuple of the extra blocks contained in the :class:`Block` instance
 
-        :return: A tuple of Block objects
+        >>> waterlogged_stone = Block("minecraft", "stone",
+        >>>     extra_blocks=Block("minecraft", "water", {"level": amulet_nbt.TAG_String("0")})
+        >>> )
+        >>> waterlogged_stone.extra_blocks
+        (Block(minecraft:water[level="0"]),)
+
+        :return: A tuple of :class:`Block` objects
         """
         return self._extra_blocks
 
@@ -259,7 +348,14 @@ class Block:
         """
         Returns the stack of blocks represented by this object as a tuple.
         This is a tuple of base_block and extra_blocks
-        :return: A tuple of Block objects
+
+        >>> waterlogged_stone = Block("minecraft", "stone",
+        >>>     extra_blocks=Block("minecraft", "water", {"level": amulet_nbt.TAG_String("0")})
+        >>> )
+        >>> waterlogged_stone.block_tuple
+        (Block(minecraft:stone), Block(minecraft:water[level="0"]))
+
+        :return: A tuple of :class:`Block` objects
         """
         return (self.base_block,) + self.extra_blocks
 
@@ -267,11 +363,15 @@ class Block:
     def parse_blockstate_string(
         blockstate: str, snbt: bool = False
     ) -> Tuple[str, str, PropertyType]:
-        """Parse a blockstate string and return the data.
+        """
+        Parse a Java or SNBT blockstate string and return the raw data.
+
+        To parse the blockstate and return a :class:`Block` instance use :func:`from_string_blockstate` or :func:`from_snbt_blockstate`
 
         :param blockstate: The blockstate to parse
-        :param snbt: Are the property values in SNBT format. If false all values will be `TAG_String`s
+        :param snbt: Are the property values in SNBT format. If false all values must be an instance of :class:`~amulet_nbt.TAG_String`
         :return: namespace, block_name, properties
+
         """
         if snbt:
             match = Block.snbt_blockstate_regex.match(blockstate)
@@ -312,28 +412,73 @@ class Block:
 
     def __str__(self) -> str:
         """
-        :return: The base blockstate string of the Block object
+
+        >>> waterlogged_stone = Block("minecraft", "stone",
+        >>>     extra_blocks=Block("minecraft", "water", {"level": amulet_nbt.TAG_String("0")})
+        >>> )
+        >>> str(waterlogged_stone)
+        'minecraft:stone{minecraft:water[level="0"]}'
+
+        :return: A string showing the information of the :class:`Block` class.
         """
         return self.full_blockstate
 
     def __repr__(self) -> str:
         """
+
+        >>> waterlogged_stone = Block("minecraft", "stone",
+        >>>     extra_blocks=Block("minecraft", "water", {"level": amulet_nbt.TAG_String("0")})
+        >>> )
+        >>> repr(waterlogged_stone)
+        'Block(minecraft:stone, extra_blocks=(minecraft:water[level="0"]))'
+
         :return: The base blockstate string of the Block object along with the blockstate strings of included extra blocks
         """
-        return f"Block({', '.join([str(b) for b in (self, *self.extra_blocks)])})"
+        if self.extra_blocks:
+            return f"Block({self.base_block}, extra_blocks=({', '.join([str(b) for b in self.extra_blocks])}))"
+        else:
+            return f"Block({self.base_block})"
 
-    def __len__(self):
+    def __iter__(self) -> Iterable[Block]:
+        """
+        Iterate through all the blocks in this :class:`Block` instance.
+
+        >>> waterlogged_stone = Block("minecraft", "stone",
+        >>>     extra_blocks=Block("minecraft", "water", {"level": amulet_nbt.TAG_String("0")})
+        >>> )
+        >>> for block in waterlogged_stone:
+        >>>     print(block)
+        minecraft:stone
+        minecraft:water[level="0"]
+        """
+        yield self.base_block
+        yield from self.extra_blocks
+
+    def __len__(self) -> int:
+        """
+        The number of blocks contained within the :class:`Block` instance.
+
+        >>> waterlogged_stone = Block("minecraft", "stone",
+        >>>     extra_blocks=Block("minecraft", "water", {"level": amulet_nbt.TAG_String("0")})
+        >>> )
+        >>> len(waterlogged_stone)
+        2
+        """
         return len(self._extra_blocks) + 1
 
     def __eq__(self, other: Block) -> bool:
         """
         Checks the equality of this Block object to another Block object
 
+        >>> stone = Block("minecraft", "stone")
+        >>> stone == stone
+        True
+
         :param other: The Block object to check against
         :return: True if the Blocks objects are equal, False otherwise
         """
-        if self.__class__ != other.__class__:
-            return False
+        if not isinstance(other, Block):
+            return NotImplemented
 
         return (
             self.namespaced_name == other.namespaced_name
@@ -345,7 +490,7 @@ class Block:
         """
         Allows blocks to be sorted so numpy.unique can be used on them
         """
-        if self.__class__ != other.__class__:
+        if not isinstance(other, Block):
             return NotImplemented
         return hash(self).__gt__(hash(other))
 
@@ -359,89 +504,46 @@ class Block:
 
     def __add__(self, other: Block) -> Block:
         """
-        Allows for other Block objects to be added to this Block object's ``extra_blocks``
+        Add the blocks from `other` to this block.
 
-        :param other: The Block object to add to the end of this Block object's `extra_blocks`
-        :return: A new Block object with the same data but with an additional Block at the end of ``extra_blocks``
+        >>> stone = Block("minecraft", "stone")
+        >>> water = Block("minecraft", "water", {"level": amulet_nbt.TAG_String("0")})
+        >>> waterlogged_stone = stone + water
+        >>> repr(waterlogged_stone)
+        'Block(minecraft:stone, extra_blocks=(minecraft:water[level="0"]))'
+
+        :param other: The :class:`Block` object to add to this :class:`Block`
+        :return: A new instance of :class:`Block` with the blocks from other appended to the end of :attr:`extra_blocks`
         """
         if not isinstance(other, Block):
             return NotImplemented
-
-        if (
-            len(other.extra_blocks) == 0
-        ):  # Reduces the amount of extra objects/references created
-            other_cpy = other
-        else:
-            other_cpy = Block(
-                namespace=other.namespace,
-                base_name=other.base_name,
-                properties=other.properties,
-            )
-
-        other_extras = []
-        for eb in other.extra_blocks:
-            if (
-                len(eb.extra_blocks) == 0
-            ):  # Reduces the amount of extra objects/references created
-                other_extras.append(eb)
-            else:
-                other_extras.append(
-                    Block(
-                        namespace=eb.namespace,
-                        base_name=eb.base_name,
-                        properties=eb.properties,
-                    )
-                )
 
         return Block(
             namespace=self.namespace,
             base_name=self.base_name,
             properties=self.properties,
-            extra_blocks=[*self.extra_blocks, other_cpy, *other_extras],
+            extra_blocks=[*self.extra_blocks, other],
         )
 
     def __sub__(self, other: Block) -> Block:
         """
-        Allows for other Block objects to be subtracted from this Block object's ``extra_blocks``
+        Remove all blocks in `other` from the :attr:`extra_blocks` of this instance of :class:`Block`
 
-        :param other: The Block object to subtract from this Block objects' ``extra_blocks``
-        :return: A new Block object without any instances of the subtracted block in ``extra_blocks``
+        >>> stone = Block("minecraft", "stone")
+        >>> water = Block("minecraft", "water", {"level": amulet_nbt.TAG_String("0")})
+        >>> waterlogged_stone = stone + water
+        >>> stone = waterlogged_stone - water
+
+        :param other: The Block object to subtract from this :class:`Block`.
+        :return: A new :class:`Block` instance with the blocks in `other` removed from the extra blocks.
         """
         if not isinstance(other, Block):
             return NotImplemented
 
-        if (
-            len(other.extra_blocks) == 0
-        ):  # Reduces the amount of extra objects/references created
-            other_cpy = other
-        else:
-            other_cpy = Block(
-                namespace=other.namespace,
-                base_name=other.base_name,
-                properties=other.properties,
-            )
-
-        other_extras = []
-        for eb in other.extra_blocks:
-            if len(eb.extra_blocks) == 0:
-                other_extras.append(eb)
-            else:
-                other_extras.append(
-                    Block(
-                        namespace=eb.namespace,
-                        base_name=eb.base_name,
-                        properties=eb.properties,
-                    )
-                )
-
-        # Sets are unordered, so a regular set subtraction doesn't always return the order we want (it sometimes will!)
-        # So we loop through all of our extra blocks and only append those to the new_extras list if they aren't in
-        # extra_blocks_to_remove
-        new_extras = []
-        extra_blocks_to_remove = (other_cpy, *other_extras)
-        for eb in self.extra_blocks:
-            if eb not in extra_blocks_to_remove:
-                new_extras.append(eb)
+        extra_blocks_to_remove = set(other)
+        new_extras = tuple(
+            eb for eb in self.extra_blocks if eb not in extra_blocks_to_remove
+        )
 
         return Block(
             namespace=self.namespace,
@@ -452,33 +554,42 @@ class Block:
 
     def remove_layer(self, layer: int) -> Block:
         """
-        Removes the Block object from the specified layer and returns the resulting new Block object
+        Removes the block at the given index and returns the resulting new Block object.
 
-        :param layer: The layer of extra block to remove
-        :return: A new instance of Block with the same data but with the extra block at specified layer removed
-        :raises `InvalidBlockException`: Raised when you remove the base block from a Block with no other extra blocks
+        >>> stone = Block("minecraft", "stone")
+        >>> water = Block("minecraft", "water", {"level": amulet_nbt.TAG_String("0")})
+        >>> waterlogged_stone = stone + water
+        >>> stone = waterlogged_stone.remove_layer(1)
+
+        :param layer: The layer of extra block to remove.
+        :return: A new instance of Block with the same data but with the block at the specified layer removed.
+        :raises `BlockException`: Raised when you remove the base block from a Block with no other extra blocks.
         """
-        if layer == 0 and len(self.extra_blocks) > 0:
-            new_base = self._extra_blocks[0]
-            return Block(
-                namespace=new_base.namespace,
-                base_name=new_base.base_name,
-                properties=new_base.properties,
-                extra_blocks=[*self._extra_blocks[1:]],
-            )
+        if layer == 0:
+            if self.extra_blocks:
+                new_base = self._extra_blocks[0]
+                return Block(
+                    namespace=new_base.namespace,
+                    base_name=new_base.base_name,
+                    properties=new_base.properties,
+                    extra_blocks=[*self._extra_blocks[1:]],
+                )
+            else:
+                raise BlockException(
+                    "Removing the base block with no extra blocks is not supported"
+                )
         elif layer > len(self.extra_blocks):
-            raise InvalidBlockException("You cannot remove a non-existant layer")
-        elif layer == 0:
-            raise InvalidBlockException(
-                "Removing the base block with no extra blocks is not supported"
+            raise BlockException("You cannot remove a non-existent layer")
+        else:
+            return Block(
+                namespace=self.namespace,
+                base_name=self.base_name,
+                properties=self.properties,
+                extra_blocks=[
+                    *self.extra_blocks[: layer - 1],
+                    *self.extra_blocks[layer:],
+                ],
             )
-
-        return Block(
-            namespace=self.namespace,
-            base_name=self.base_name,
-            properties=self.properties,
-            extra_blocks=[*self.extra_blocks[: layer - 1], *self.extra_blocks[layer:]],
-        )
 
     def __sizeof__(self):
         size = (

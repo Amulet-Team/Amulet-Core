@@ -116,6 +116,29 @@ class SelectionTestCase(unittest.TestCase):
 
         self.assertEqual(selection_1, selection_2)
 
+    def test_subtract(self):
+        box_1 = SelectionGroup(
+            SelectionBox(
+                (0, 0, 0),
+                (32, 32, 32),
+            )
+        )
+        box_2 = SelectionGroup(
+            SelectionBox(
+                (0, 0, 0),
+                (16, 16, 16),
+            )
+        )
+        box_3 = box_1.subtract(box_2)
+        box_4 = SelectionGroup(
+            (
+                SelectionBox((0, 16, 0), (32, 32, 32)),
+                SelectionBox((0, 0, 16), (32, 16, 32)),
+                SelectionBox((16, 0, 0), (32, 16, 16)),
+            )
+        )
+        self.assertEqual(box_3, box_4)
+
 
 if __name__ == "__main__":
     unittest.main()

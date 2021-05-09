@@ -14,16 +14,20 @@
 #
 import os
 import sys
+import subprocess
+import datetime
 
 sys.path.insert(0, os.path.abspath("."))
 sys.path.insert(0, os.path.abspath(".."))
 
+import amulet
+
 
 # -- Project information -----------------------------------------------------
 
-project = "Amulet Map Editor"
-copyright = "2018-2019, The Amulet Map Editor Team"
-author = "The Amulet Map Editor Team"
+project = "Amulet Core"
+copyright = f"2018-{datetime.datetime.now().year}, The Amulet Team"
+author = "The Amulet Team"
 
 # The short X.Y version
 version = ""
@@ -45,10 +49,15 @@ extensions = [
     "sphinx_autodoc_typehints",
     "sphinx.ext.coverage",
     "sphinx.ext.ifconfig",
-    "sphinx.ext.viewcode",
-    "sphinx.ext.githubpages",
+    "sphinx.ext.linkcode",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.graphviz",
+    "sphinx.ext.inheritance_diagram",
 ]
+
+commit_id = (
+    subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("ascii")
+)
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = [".templates"]
@@ -94,7 +103,7 @@ html_theme = "sphinx_rtd_theme"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = [".static"]
+# html_static_path = [".static"]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -110,7 +119,7 @@ html_static_path = [".static"]
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "AmuletMapEditordoc"
+htmlhelp_basename = "AmuletCoredoc"
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -136,9 +145,9 @@ latex_elements = {
 latex_documents = [
     (
         master_doc,
-        "AmuletMapEditor.tex",
-        "Amulet Map Editor Documentation",
-        "The Amulet Map Editor Team",
+        "AmuletCore.tex",
+        "Amulet Core Documentation",
+        "The Amulet Team",
         "manual",
     )
 ]
@@ -148,9 +157,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (docs_source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, "amuletmapeditor", "Amulet Map Editor Documentation", [author], 1)
-]
+man_pages = [(master_doc, "amuletcore", "Amulet Core Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -161,10 +168,10 @@ man_pages = [
 texinfo_documents = [
     (
         master_doc,
-        "AmuletMapEditor",
-        "Amulet Map Editor Documentation",
+        "AmuletCore",
+        "Amulet Core Documentation",
         author,
-        "AmuletMapEditor",
+        "AmuletCore",
         "One line description of project.",
         "Miscellaneous",
     )
@@ -175,4 +182,46 @@ texinfo_documents = [
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "NumPy [latest]": ("https://docs.scipy.org/doc/numpy/", None),
+    "PyMCTranslate": ("https://pymctranslate.readthedocs.io/en/stable/", None),
+    "amulet_nbt": ("https://amulet-nbt.readthedocs.io/en/stable/", None),
 }
+
+autodoc_member_order = "bysource"
+
+
+def skip(app, what, name, obj, would_skip, options):
+    if name == "__init__":
+        return False
+    return would_skip
+
+
+def setup(app):
+    app.connect("autodoc-skip-member", skip)
+
+
+# Resolve function for the linkcode extension.
+# modified from https://github.com/Lasagne/Lasagne/blob/master/docs/conf.py
+def linkcode_resolve(domain, info):
+    def find_source():
+        # try to find the file and line number, based on code from numpy:
+        # https://github.com/numpy/numpy/blob/master/doc/source/conf.py#L286
+        obj = sys.modules[info["module"]]
+        for part in info["fullname"].split("."):
+            obj = getattr(obj, part)
+        import inspect
+        import os
+
+        fn = inspect.getsourcefile(obj)
+        fn = os.path.relpath(
+            fn, start=os.path.dirname(os.path.dirname(amulet.__file__))
+        )
+        source, lineno = inspect.getsourcelines(obj)
+        return fn, lineno, lineno + len(source) - 1
+
+    if domain != "py" or not info["module"]:
+        return None
+    try:
+        filename = "{}#L{}-L{}".format(*find_source())
+    except Exception:
+        filename = info["module"].replace(".", "/") + ".py"
+    return f"https://github.com/Amulet-Team/Amulet-Core/blob/{commit_id}/{filename}"

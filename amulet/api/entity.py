@@ -3,10 +3,14 @@ from __future__ import annotations
 import numpy
 from typing import Tuple, Union
 import amulet_nbt
-from .entity_base_object import EntityObject
+from .abstract_base_entity import AbstractBaseEntity
 
 
-class Entity(EntityObject):
+class Entity(AbstractBaseEntity):
+    """
+    A class to contain all the data to define an Entity.
+    """
+
     obj_name = "Entity"
     coord_types = (float, numpy.floating)
 
@@ -19,10 +23,21 @@ class Entity(EntityObject):
         z: float,
         nbt: amulet_nbt.NBTFile,
     ):
+        """
+        Constructs a :class:`Entity` instance.
+
+        :param namespace: The namespace of the entity eg "minecraft"
+        :param base_name: The base name of the entity eg "creeper"
+        :param x: The x coordinate of the entity
+        :param y: The y coordinate of the entity
+        :param z: The z coordinate of the entity
+        :param nbt: The NBT stored with the entity
+        """
         super().__init__(namespace, base_name, x, y, z, nbt)
 
     @property
     def x(self) -> float:
+        """The x location of the Entity."""
         return self._x
 
     @x.setter
@@ -31,6 +46,7 @@ class Entity(EntityObject):
 
     @property
     def y(self) -> float:
+        """The y location of the Entity."""
         return self._y
 
     @y.setter
@@ -39,6 +55,7 @@ class Entity(EntityObject):
 
     @property
     def z(self) -> float:
+        """The z location of the Entity."""
         return self._z
 
     @z.setter
@@ -47,6 +64,7 @@ class Entity(EntityObject):
 
     @property
     def location(self) -> Tuple[float, float, float]:
+        """The location of the Entity."""
         return self._x, self._y, self._z
 
     @location.setter

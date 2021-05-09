@@ -26,21 +26,57 @@ class BlockManager(BaseRegistry):
             self._index_to_block.append(block)
 
     def __len__(self):
+        """
+        The number of blocks in the registry.
+
+        >>> len(level.block_palette)
+        10
+        """
         return len(self._index_to_block)
 
     def __contains__(self, item: Block) -> bool:
-        return item in self._block_to_index_map
+        """
+        Is the given :class:`Block` already in the registry.
+
+        >>> block in level.block_palette
+        True
+        >>> 7 in level.block_palette
+        True
+
+        :param item: The block or index to check.
+        """
+        if isinstance(item, int):
+            return item < len(self._index_to_block)
+        elif isinstance(item, Block):
+            return item in self._block_to_index_map
+        return False
 
     def __iter__(self):
+        """
+        Iterate through all blocks in the registry.
+
+        >>> for block in level.block_palette:
+        >>>     ...
+        """
         yield from self._index_to_block
 
-    def blocks(self) -> Tuple[Block]:
+    @property
+    def blocks(self) -> Tuple[Block, ...]:
+        """
+        The blocks in the registry as a tuple.
+        """
         return tuple(self._index_to_block)
 
-    def values(self) -> Tuple[Block]:
-        return self.blocks()
+    def values(self) -> Tuple[Block, ...]:
+        """
+        The blocks in the registry as a tuple.
+        """
+        return self.blocks
 
     def items(self) -> Generator[Tuple[int, Block], None, None]:
+        """
+        A generator of the block indexes and the block objects.
+        """
         yield from enumerate(self._index_to_block)
 
     @overload
@@ -54,10 +90,12 @@ class BlockManager(BaseRegistry):
     def __getitem__(self, item):
         """
         If a Block object is passed to this function, it will return the internal ID/index of the blockstate.
+
         If an int is given, this method will return the Block object at that specified index.
 
         :param item: The Block object or int to get the mapping data of
         :return: An int if a Block object was supplied, a Block object if an int was supplied
+        :raises KeyError if the requested item is not present.
         """
         try:
             if isinstance(item, Block):
@@ -72,8 +110,9 @@ class BlockManager(BaseRegistry):
 
     def get_add_block(self, block: Block) -> int:
         """
-        Adds a Block object to the internal Block object/ID mappings. If the Block already exists in the mappings,
-        then the existing ID is returned
+        Adds a Block object to the internal Block object/ID mappings.
+
+        If the Block already exists in the mappings, the existing ID is returned.
 
         :param block: The Block to add to the manager
         :return: The internal ID of the Block
@@ -88,4 +127,14 @@ class BlockManager(BaseRegistry):
         return i
 
     def register(self, block: Block) -> int:
+        """
+        An alias of :meth:`get_add_block`.
+
+        Adds a Block object to the internal Block object/ID mappings.
+
+        If the Block already exists in the mappings, the existing ID is returned.
+
+        :param block: The Block to add to the manager
+        :return: The internal ID of the Block
+        """
         return self.get_add_block(block)

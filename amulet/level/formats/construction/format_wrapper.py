@@ -54,7 +54,18 @@ max_section_version = 0
 
 
 class ConstructionFormatWrapper(StructureFormatWrapper):
+    """
+    This FormatWrapper class exists to interface with the construction format.
+    """
+
     def __init__(self, path: str):
+        """
+        Construct a new instance of :class:`ConstructionFormatWrapper`.
+
+        This should not be used directly. You should instead use :func:`amulet.load_format`.
+
+        :param path: The file path to the serialised data.
+        """
         super().__init__(path)
 
         self._format_version: int = max_format_version
@@ -92,32 +103,25 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
                                 compressed=True,
                             )
 
-                            try:
-                                platform = metadata["export_version"]["edition"].value
-                                version = tuple(
-                                    map(
-                                        lambda v: v.value,
-                                        metadata["export_version"]["version"],
-                                    )
+                            self._platform = metadata["export_version"]["edition"].value
+                            self._version = tuple(
+                                map(
+                                    lambda v: v.value,
+                                    metadata["export_version"]["version"],
                                 )
-                                selection_boxes = (
-                                    metadata["selection_boxes"]
-                                    .value.reshape(-1, 6)
-                                    .tolist()
-                                )
-                            except:
-                                pass
-                            else:
-                                self._platform = platform
-                                self._version = version
-                                self._selection = SelectionGroup(
-                                    [
-                                        SelectionBox(
-                                            (minx, miny, minz), (maxx, maxy, maxz)
-                                        )
-                                        for minx, miny, minz, maxx, maxy, maxz in selection_boxes
-                                    ]
-                                )
+                            )
+
+                            selection_boxes = (
+                                metadata["selection_boxes"]
+                                .value.reshape(-1, 6)
+                                .tolist()
+                            )
+                            self._selection = SelectionGroup(
+                                [
+                                    SelectionBox((minx, miny, minz), (maxx, maxy, maxz))
+                                    for minx, miny, minz, maxx, maxy, maxz in selection_boxes
+                                ]
+                            )
 
     def _create(
         self,
@@ -255,12 +259,6 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
 
     @staticmethod
     def is_valid(path: str) -> bool:
-        """
-        Returns whether this format is able to load the given object.
-
-        :param path: The path of the object to load.
-        :return: True if the world can be loaded by this format, False otherwise.
-        """
         return os.path.isfile(path) and path.endswith(".construction")
 
     @property
@@ -389,13 +387,11 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         pass
 
     def unload(self):
-        """Unload data stored in the Format class"""
         pass
 
     def all_chunk_coords(
         self, dimension: Optional[Dimension] = None
     ) -> Generator[Tuple[int, int], None, None]:
-        """A generator of all chunk coords"""
         yield from self._chunk_to_section.keys()
 
     def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
@@ -407,7 +403,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         translator: "Translator",
         chunk_version: VersionNumberAny,
     ) -> Tuple["Chunk", AnyNDArray]:
-        return chunk, numpy.array(chunk.block_palette.blocks())
+        return chunk, numpy.array(chunk.block_palette.blocks)
 
     def _encode(
         self,
@@ -431,7 +427,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
     ) -> "Chunk":
         palette = chunk._block_palette = BlockManager()
         lut = numpy.array([palette.get_add_block(block) for block in chunk_palette])
-        if len(palette.blocks()) != len(chunk_palette):
+        if len(palette.blocks) != len(chunk_palette):
             # if a blockstate was defined twice
             for cy in chunk.blocks.sub_chunks:
                 chunk.blocks.add_sub_chunk(cy, lut[chunk.blocks.get_sub_chunk(cy)])
@@ -448,9 +444,6 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         data: List[ConstructionSection],
         dimension: Optional[Dimension] = None,
     ):
-        """
-        Actually stores the data from the interface to disk.
-        """
         self._chunk_to_section[cx, cz] = copy.deepcopy(data)
 
     def _get_raw_chunk_data(

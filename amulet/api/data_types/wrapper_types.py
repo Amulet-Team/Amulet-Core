@@ -11,10 +11,20 @@ if TYPE_CHECKING:
 # Wrapper types
 BlockNDArray = numpy.ndarray  # NDArray[(Any, ), 'Block']
 AnyNDArray = numpy.ndarray  # NDArray[(Any, ), Any]
+
+#: The data type for the platform identifier.
 PlatformType = str
+
+#: The data type for an integer version number.
 VersionNumberInt = int
+
+#: The data type for the tuple version number.
 VersionNumberTuple = Tuple[int, ...]
+
+#: The data type for either an integer or tuple version number.
 VersionNumberAny = Union[VersionNumberInt, VersionNumberTuple]
+
+#: The data type for a version identifier containing platform and int or tuple version number
 VersionIdentifierType = Tuple[PlatformType, VersionNumberAny]
 
 GetChunkCallback = Callable[[int, int], "Chunk"]
@@ -31,7 +41,6 @@ GetBlockCallback = Callable[  # get a block at a different location
         "Block", Optional["BlockEntity"]
     ],  # and returns a new block and optionally a block entity
 ]
-BlockType = "Block"
 
 TranslateBlockCallbackReturn = Tuple[
     Optional["Block"], Optional["BlockEntity"], List["Entity"], bool
@@ -43,7 +52,7 @@ TranslateEntityCallbackReturn = Tuple[
 
 TranslateBlockCallback = Callable[
     [  # a callable
-        BlockType,  # that takes either a Block
+        "Block",  # that takes either a Block
         Optional[
             GetBlockCallback
         ],  # this is used in cases where the block needs data beyond itself to fully define itself (eg doors)

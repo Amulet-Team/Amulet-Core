@@ -1,8 +1,10 @@
+from abc import abstractmethod
 from typing import Tuple, Any, Dict, Generator
 import threading
 
 from amulet.api.history.data_types import EntryKeyType, EntryType
 from amulet.api.history.base import RevisionManager
+from amulet.api.history import Changeable
 from .container import ContainerHistoryManager
 from amulet.api.errors import EntryDoesNotExist, EntryLoadError
 from ..revision_manager import RAMRevisionManager
@@ -63,13 +65,19 @@ class DatabaseHistoryManager(ContainerHistoryManager):
                 yield key
 
     def _has_entry(self, key: EntryKeyType):
-        """Does the entry exist in one of the databases.
-        Subclasses should implement a proper method calling this."""
+        """
+        Does the entry exist in one of the databases.
+
+        Subclasses should implement a proper method calling this.
+        """
         return key in self._temporary_database or key in self._history_database
 
-    def _get_entry(self, key: EntryKeyType) -> EntryType:
-        """Get a key from the database.
-        Subclasses should implement a proper method calling this."""
+    def _get_entry(self, key: EntryKeyType) -> Changeable:
+        """
+        Get a key from the database.
+
+        Subclasses should implement a proper method calling this.
+        """
         with self._lock:
             if key in self._temporary_database:
                 entry = self._temporary_database[key]
@@ -99,6 +107,7 @@ class DatabaseHistoryManager(ContainerHistoryManager):
         self._history_database[key] = self._create_new_revision_manager(key, entry)
         return entry
 
+    @abstractmethod
     def _get_entry_from_world(self, key: EntryKeyType) -> EntryType:
         """If the entry was not found in the database request it from the world."""
         raise NotImplementedError
@@ -122,6 +131,7 @@ class DatabaseHistoryManager(ContainerHistoryManager):
     def create_undo_point_iter(self) -> Generator[float, None, bool]:
         """
         Find all entries in the temporary database that have changed since the last undo point and create a new undo point.
+
         :return: Was an undo point created. If there were no changes no snapshot will be created.
         """
         with self._lock:
@@ -172,6 +182,7 @@ class DatabaseHistoryManager(ContainerHistoryManager):
                     del self._temporary_database[key]
 
     def restore_last_undo_point(self):
+        """Restore the state of the database to what it was when :meth:`create_undo_point_iter` was last called."""
         with self._lock:
             self._temporary_database.clear()
 
