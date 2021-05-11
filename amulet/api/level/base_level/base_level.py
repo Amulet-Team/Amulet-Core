@@ -29,6 +29,7 @@ from amulet.api.history.history_manager import MetaHistoryManager
 from .clone import clone
 from amulet.api import wrapper as api_wrapper, level as api_level
 import PyMCTranslate
+from ...player.player_manager import PlayerManager
 
 
 class BaseLevel:
@@ -64,8 +65,10 @@ class BaseLevel:
         self._history_manager = MetaHistoryManager()
 
         self._chunks: ChunkManager = ChunkManager(self._prefix, self)
+        self._players = PlayerManager(self)
 
         self.history_manager.register(self._chunks, True)
+        self.history_manager.register(self._players, True)
 
     @property
     def level_wrapper(self) -> api_wrapper.FormatWrapper:
@@ -132,12 +135,7 @@ class BaseLevel:
 
         return self.get_chunk(cx, cz, dimension).get_block(offset_x, y, offset_z)
 
-    def _chunk_box(
-        self,
-        cx: int,
-        cz: int,
-        sub_chunk_size: Optional[int] = None,
-    ):
+    def _chunk_box(self, cx: int, cz: int, sub_chunk_size: Optional[int] = None):
         """Get a SelectionBox containing the whole of a given chunk"""
         if sub_chunk_size is None:
             sub_chunk_size = self.sub_chunk_size
@@ -291,10 +289,7 @@ class BaseLevel:
         for (src_cx, src_cz), box in self.get_coord_box(
             dimension, selection, yield_missing_chunks=yield_missing_chunks
         ):
-            dst_full_box = SelectionBox(
-                offset + box.min,
-                offset + box.max,
-            )
+            dst_full_box = SelectionBox(offset + box.min, offset + box.max)
 
             first_chunk = block_coords_to_chunk_coords(
                 dst_full_box.min_x,
@@ -928,3 +923,9 @@ class BaseLevel:
         This will revert those changes.
         """
         self.history_manager.restore_last_undo_point()
+
+    def get_players(self):
+        return self._players.get_players()
+
+    def get_player(self, player_id):
+        return self._players.get_player(player_id)

@@ -4,13 +4,10 @@ import os
 from amulet.api.block import Block
 from amulet.api.chunk import Chunk
 from amulet.api.errors import ChunkDoesNotExist
+from amulet.api.player.player_manager import Player
 from amulet.api.selection import SelectionBox, SelectionGroup
 from amulet import load_level, load_format
-from tests.test_utils import (
-    get_world_path,
-    create_temp_world,
-    clean_temp_world,
-)
+from tests.test_utils import get_world_path, create_temp_world, clean_temp_world
 from amulet.operations.clone import clone
 from amulet.operations.delete_chunk import delete_chunk
 from amulet.operations.fill import fill
@@ -362,6 +359,35 @@ class WorldTestBaseCases:
             output_wrapper.close()
 
             clean_temp_world(world_name_temp)
+
+        def test_get_players(self):
+            if self.world.level_wrapper.platform not in (
+                "java",
+                "bedrock",
+            ):  # Only java/bedrock platforms currently support players
+                with self.assertRaises(NotImplementedError):
+                    self.world.get_players()
+                return
+            players = [p for p in self.world.get_players()]
+            self.assertEquals(1, len(players))
+
+        def test_get_player(self):
+            if self.world.level_wrapper.platform not in (
+                "java",
+                "bedrock",
+            ):  # Only java/bedrock platforms currently support players
+                with self.assertRaises(NotImplementedError):
+                    self.world.get_players()
+                return
+            players = [p for p in self.world.get_players()]
+            self.assertEquals(1, len(players))
+            player = players[0]
+            p = self.world.get_player(player)
+            self.assertIsInstance(p, Player)
+            self.assertIsInstance(p.position, tuple)
+            self.assertEquals(3, len(p.position))
+            self.assertIsInstance(p.rotation, tuple)
+            self.assertEquals(2, len(p.rotation))
 
         @unittest.skip("Entity API currently being rewritten")
         def test_get_entities(

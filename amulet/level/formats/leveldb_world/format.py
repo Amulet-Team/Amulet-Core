@@ -9,6 +9,7 @@ import traceback
 import time
 
 import amulet_nbt as nbt
+from amulet.api.player.player_manager import Player
 
 from amulet.libs.leveldb import LevelDB
 from amulet.utils.format_utils import check_all_exist
@@ -23,7 +24,7 @@ from amulet.api.errors import ObjectWriteError, ObjectReadError
 
 from amulet.libs.leveldb import LevelDBException
 from amulet.level.interfaces.chunk.leveldb.leveldb_chunk_versions import (
-    game_to_chunk_version,
+    game_to_chunk_version
 )
 from .dimension import LevelDBDimensionManager
 
@@ -310,3 +311,17 @@ class LevelDBFormat(WorldFormatWrapper):
         :return: The raw chunk data.
         """
         return self._level_manager.get_chunk_data(cx, cz, dimension)
+
+    def get_players(self):
+        def player_filter(key):
+            return "player" in str(key) and key != b"~local_player"
+
+        yield from (
+            pid[14:].decode("utf-8")
+            for pid in filter(player_filter, self._level_manager._db.keys())
+        )
+
+    def get_player(self, player_id):
+        key = f"player_server_{player_id}".encode("utf-8")
+        data = self._level_manager._db.get(key)
+        return Player(nbt.load(buffer=data, compressed=False, little_endian=True))

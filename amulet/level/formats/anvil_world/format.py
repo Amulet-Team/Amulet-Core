@@ -8,6 +8,7 @@ import glob
 import shutil
 
 import amulet_nbt as nbt
+from amulet.api.player.player_manager import Player
 
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.utils.format_utils import check_all_exist, load_leveldat
@@ -390,6 +391,19 @@ class AnvilFormat(WorldFormatWrapper):
         :return: The raw chunk data.
         """
         return self._get_dimension(dimension).get_chunk_data(cx, cz)
+
+    def get_players(self):
+        yield from (
+            pid[0 : pid.rfind(".")]
+            for pid in (
+                os.path.basename(f)
+                for f in glob.iglob(os.path.join(self.path, "playerdata", "*.dat"))
+            )
+        )
+
+    def get_player(self, player_id):
+        path = os.path.join(self.path, "playerdata", f"{player_id}.dat")
+        return Player(nbt.load(path))
 
 
 if __name__ == "__main__":
