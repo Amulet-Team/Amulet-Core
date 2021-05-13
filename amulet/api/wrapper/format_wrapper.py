@@ -30,6 +30,7 @@ from amulet.api.selection import SelectionGroup, SelectionBox
 
 if TYPE_CHECKING:
     from amulet.api.wrapper.chunk.translator import Translator
+    from amulet.api.player.player_manager import Player
 
 
 DefaultPlatform = "Unknown Platform"
@@ -632,3 +633,9 @@ class FormatWrapper(ABC):
         :return: The raw chunk data.
         """
         raise NotImplementedError
+
+    def get_players(self) -> Generator[str, None, None]:
+        return NotImplemented
+
+    def get_player(self, key: str) -> "Player":
+        return NotImplemented

@@ -389,6 +389,9 @@ class WorldTestBaseCases:
             self.assertIsInstance(p.rotation, tuple)
             self.assertEquals(2, len(p.rotation))
 
+            with self.assertRaises(KeyError):
+                self.world.get_player("test")
+
         @unittest.skip("Entity API currently being rewritten")
         def test_get_entities(
             self,

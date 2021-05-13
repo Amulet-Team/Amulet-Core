@@ -312,16 +312,22 @@ class LevelDBFormat(WorldFormatWrapper):
         """
         return self._level_manager.get_chunk_data(cx, cz, dimension)
 
-    def get_players(self):
-        def player_filter(key):
-            return "player" in str(key) and key != b"~local_player"
-
+    def get_players(self) -> Generator[str, None, None]:
         yield from (
-            pid[14:].decode("utf-8")
-            for pid in filter(player_filter, self._level_manager._db.keys())
+            pid[7:].decode("utf-8")
+            for pid, _ in self._level_manager._db.iterate(b"player_", b"player_\xFF")
         )
 
-    def get_player(self, player_id):
-        key = f"player_server_{player_id}".encode("utf-8")
-        data = self._level_manager._db.get(key)
-        return Player(nbt.load(buffer=data, compressed=False, little_endian=True))
+    def get_player(self, player_id: str) -> Player:
+        key = f"player_{player_id}".encode("utf-8")
+        try:
+            data = self._level_manager._db.get(key)
+        except KeyError:
+            raise KeyError(f"Player {player_id} doesn't exist")
+        player_nbt = nbt.load(buffer=data, compressed=False, little_endian=True)
+
+        return Player(
+            player_id,
+            tuple(map(lambda t: t.value, player_nbt["Pos"])),
+            tuple(map(lambda t: t.value, player_nbt["Rotation"])),
+        )

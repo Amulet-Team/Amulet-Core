@@ -392,18 +392,25 @@ class AnvilFormat(WorldFormatWrapper):
         """
         return self._get_dimension(dimension).get_chunk_data(cx, cz)
 
-    def get_players(self):
+    def get_players(self) -> Generator[str, None, None]:
         yield from (
-            pid[0 : pid.rfind(".")]
+            os.path.splitext(pid)[0]
             for pid in (
                 os.path.basename(f)
                 for f in glob.iglob(os.path.join(self.path, "playerdata", "*.dat"))
             )
         )
 
-    def get_player(self, player_id):
+    def get_player(self, player_id: str) -> Player:
         path = os.path.join(self.path, "playerdata", f"{player_id}.dat")
-        return Player(nbt.load(path))
+        if not os.path.exists(path):
+            raise KeyError(f"Player {player_id} doesn't exist")
+        player_nbt = nbt.load(path)
+        return Player(
+            player_id,
+            tuple(map(lambda t: t.value, player_nbt["Pos"])),
+            tuple(map(lambda t: t.value, player_nbt["Rotation"])),
+        )
 
 
 if __name__ == "__main__":
