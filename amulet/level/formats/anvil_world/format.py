@@ -8,7 +8,7 @@ import glob
 import shutil
 
 import amulet_nbt as nbt
-from amulet.api.player.player_manager import Player
+from amulet.api.player.player_manager import Player, LOCAL_PLAYER
 
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.utils.format_utils import check_all_exist, load_leveldat
@@ -402,6 +402,17 @@ class AnvilFormat(WorldFormatWrapper):
         )
 
     def get_player(self, player_id: str) -> Player:
+        if player_id == LOCAL_PLAYER and "Player" in self.root_tag["Data"]:
+            return Player(
+                player_id,
+                tuple(map(lambda t: t.value, self.root_tag["Data"]["Player"]["Pos"])),
+                tuple(
+                    map(lambda t: t.value, self.root_tag["Data"]["Player"]["Rotation"])
+                ),
+            )
+        elif player_id == LOCAL_PLAYER:
+            raise KeyError("Local player doesn't exist")
+
         path = os.path.join(self.path, "playerdata", f"{player_id}.dat")
         if not os.path.exists(path):
             raise KeyError(f"Player {player_id} doesn't exist")

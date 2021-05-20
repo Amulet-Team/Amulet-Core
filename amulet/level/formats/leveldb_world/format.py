@@ -9,7 +9,7 @@ import traceback
 import time
 
 import amulet_nbt as nbt
-from amulet.api.player.player_manager import Player
+from amulet.api.player.player_manager import Player, LOCAL_PLAYER
 
 from amulet.libs.leveldb import LevelDB
 from amulet.utils.format_utils import check_all_exist
@@ -319,7 +319,10 @@ class LevelDBFormat(WorldFormatWrapper):
         )
 
     def get_player(self, player_id: str) -> Player:
-        key = f"player_{player_id}".encode("utf-8")
+        if player_id == LOCAL_PLAYER:
+            key = player_id
+        else:
+            key = f"player_{player_id}".encode("utf-8")
         try:
             data = self._level_manager._db.get(key)
         except KeyError:

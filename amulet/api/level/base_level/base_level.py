@@ -29,7 +29,7 @@ from amulet.api.history.history_manager import MetaHistoryManager
 from .clone import clone
 from amulet.api import wrapper as api_wrapper, level as api_level
 import PyMCTranslate
-from amulet.api.player.player_manager import PlayerManager, Player
+from amulet.api.player.player_manager import PlayerManager, Player, LOCAL_PLAYER
 
 
 class BaseLevel:
@@ -927,5 +927,5 @@ class BaseLevel:
     def get_players(self):
         return self._players.get_players()
 
-    def get_player(self, player_id: str) -> Player:
+    def get_player(self, player_id: str = LOCAL_PLAYER) -> Player:
         return self._players.get_player(player_id)

@@ -9,6 +9,8 @@ from amulet.api.history.data_types import EntryKeyType, EntryType
 from amulet.api.history.history_manager import DatabaseHistoryManager
 from amulet.api import level as api_level
 
+LOCAL_PLAYER = "~local_player"
+
 
 class Player(Changeable):
     def __init__(
@@ -50,8 +52,8 @@ class PlayerManager(DatabaseHistoryManager):
     def changed_players(self) -> Generator[str, None, None]:
         yield from self.changed_entries()
 
-    def has_player(self, uuid: str) -> bool:
-        return self._has_entry(uuid)
+    def has_player(self, player_id: str) -> bool:
+        return self._has_entry(player_id)
 
     def __contains__(self, item):
         return self.has_player(item)
@@ -59,12 +61,11 @@ class PlayerManager(DatabaseHistoryManager):
     def put_player(self, player: Player):
         self._put_entry(player.uuid, player)
 
-    def get_player(self, uuid: str) -> Player:
-        return self._get_entry(uuid)
+    def get_player(self, player_id: str = LOCAL_PLAYER) -> Player:
+        return self._get_entry(player_id)
 
-    def delete_player(self, uuid: str):
-        self._delete_entry(uuid)
+    def delete_player(self, player_id: str):
+        self._delete_entry(player_id)
 
     def _get_entry_from_world(self, key: EntryKeyType) -> EntryType:
-        print(f"entry: {key}")
         return self.level.level_wrapper.get_player(key)
