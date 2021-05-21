@@ -47,24 +47,55 @@ class PlayerManager(DatabaseHistoryManager):
         return self._level()
 
     def get_players(self) -> Generator[str, None, None]:
+        """
+        Returns a generator of all player ids that are present in the level
+        """
         yield from self.level.level_wrapper.get_players()
 
     def changed_players(self) -> Generator[str, None, None]:
+        """The player objects that have changed since the last save"""
         yield from self.changed_entries()
 
     def has_player(self, player_id: str) -> bool:
+        """
+        Is the given player id present in the level
+
+        :param player_id: The player id to check
+        :return: True if the player id is present, False otherwise
+        """
         return self._has_entry(player_id)
 
     def __contains__(self, item):
+        """
+        Is the given player id present in the level
+
+        >>> '<uuid>' in level.players
+
+        :param item: The player id to check
+        :return: True if the player id is present, False otherwise
+        """
         return self.has_player(item)
 
     def put_player(self, player: Player):
         self._put_entry(player.uuid, player)
 
     def get_player(self, player_id: str = LOCAL_PLAYER) -> Player:
+        """
+        Gets the :class:`Player` object that belongs to the specified player id
+
+        If no parameter is supplied, the data of the local player will be returned
+
+        :param player_id: The desired player id
+        :return: A Player instance
+        """
         return self._get_entry(player_id)
 
     def delete_player(self, player_id: str):
+        """
+        Deletes a player from the player manager
+
+        :param player_id: The desired player id
+        """
         self._delete_entry(player_id)
 
     def _get_entry_from_world(self, key: EntryKeyType) -> EntryType:

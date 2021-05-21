@@ -924,8 +924,28 @@ class BaseLevel:
         """
         self.history_manager.restore_last_undo_point()
 
-    def get_players(self):
+    @property
+    def players(self) -> PlayerManager:
+        """
+        The player container.
+
+        Most methods from :class:`PlayerManager` also exists in the level class.
+        """
+        return self._players
+
+    def get_players(self) -> Generator[str, None, None]:
+        """
+        Returns a generator of all player ids that are present in the level
+        """
         return self._players.get_players()
 
     def get_player(self, player_id: str = LOCAL_PLAYER) -> Player:
+        """
+        Gets the :class:`Player` object that belongs to the specified player id
+
+        If no parameter is supplied, the data of the local player will be returned
+
+        :param player_id: The desired player id
+        :return: A Player instance
+        """
         return self._players.get_player(player_id)

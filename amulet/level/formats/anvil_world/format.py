@@ -393,6 +393,9 @@ class AnvilFormat(WorldFormatWrapper):
         return self._get_dimension(dimension).get_chunk_data(cx, cz)
 
     def get_players(self) -> Generator[str, None, None]:
+        """
+        Returns a generator of all player ids that are present in the level
+        """
         yield from (
             os.path.splitext(pid)[0]
             for pid in (
@@ -401,7 +404,15 @@ class AnvilFormat(WorldFormatWrapper):
             )
         )
 
-    def get_player(self, player_id: str) -> Player:
+    def get_player(self, player_id: str = LOCAL_PLAYER) -> Player:
+        """
+        Gets the :class:`Player` object that belongs to the specified player id
+
+        If no parameter is supplied, the data of the local player will be returned
+
+        :param player_id: The desired player id
+        :return: A Player instance
+        """
         if player_id == LOCAL_PLAYER and "Player" in self.root_tag["Data"]:
             return Player(
                 player_id,

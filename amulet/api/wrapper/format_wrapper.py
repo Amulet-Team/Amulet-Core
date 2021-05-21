@@ -635,7 +635,18 @@ class FormatWrapper(ABC):
         raise NotImplementedError
 
     def get_players(self) -> Generator[str, None, None]:
+        """
+        Returns a generator of all player ids that are present in the level
+        """
         return NotImplemented
 
-    def get_player(self, key: str) -> "Player":
+    def get_player(self, player_id: str) -> "Player":
+        """
+        Gets the :class:`Player` object that belongs to the specified player id
+
+        If no parameter is supplied, the data of the local player should be returned
+
+        :param player_id: The desired player id
+        :return: A Player instance
+        """
         return NotImplemented
