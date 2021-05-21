@@ -19,6 +19,13 @@ class Player(Changeable):
         position: Tuple[float, float, float],
         rotation: Tuple[float, float],
     ):
+        """
+        Creates a new instance of :class:`Player` with the given UUID, position, and rotation
+
+        :param _uuid: The UUID of the player
+        :param position: The position of the player in world coordinates
+        :param rotation: The rotation of the player
+        """
         super().__init__()
         self._uuid = _uuid
         self._position = position
@@ -26,24 +33,35 @@ class Player(Changeable):
 
     @property
     def uuid(self) -> str:
+        """The player's UUID"""
         return self._uuid
 
     @property
     def position(self) -> Tuple[float, float, float]:
+        """The current position of the player in the world"""
         return self._position
 
     @property
     def rotation(self) -> Tuple[float, float]:
+        """The current rotation of the player in the world"""
         return self._rotation
 
 
 class PlayerManager(DatabaseHistoryManager):
     def __init__(self, level: api_level.BaseLevel):
+        """
+        Construct a new :class:`PlayerManager` instance
+
+        This should not be used by third party code
+
+        :param level: The world that this player manager is associated with
+        """
         super().__init__()
         self._level = weakref.ref(level)
 
     @property
     def level(self) -> api_level.BaseLevel:
+        """The level that this player manager is associated with."""
         return self._level()
 
     def get_players(self) -> Generator[str, None, None]:
@@ -77,6 +95,11 @@ class PlayerManager(DatabaseHistoryManager):
         return self.has_player(item)
 
     def put_player(self, player: Player):
+        """
+        Add the given player to the player manager.
+
+        :param player: The :class:`Player` object to add to the chunk manager. It will be added with the key designated by :attr:`Player.uuid`
+        """
         self._put_entry(player.uuid, player)
 
     def get_player(self, player_id: str = LOCAL_PLAYER) -> Player:
