@@ -121,5 +121,5 @@ class PlayerManager(DatabaseHistoryManager):
         """
         self._delete_entry(player_id)
 
-    def _get_entry_from_world(self, key: EntryKeyType) -> EntryType:
+    def _raw_get_entry(self, key: EntryKeyType) -> EntryType:
         return self.level.level_wrapper.get_player(key)
