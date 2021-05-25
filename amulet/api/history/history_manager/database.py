@@ -258,7 +258,6 @@ class DatabaseHistoryManager(ContainerHistoryManager):
         with self._lock:
             self._temporary_database.clear()
 
-    @abstractmethod
     def unload_unchanged(self, *args, **kwargs):
         """Unload all entries from RAM that have not been marked as changed."""
         with self._lock:
