@@ -1,3 +1,19 @@
+"""
+The DatabaseHistoryManager is like a dictionary that can cache historical versions of the values.
+The class consists of the temporary database in RAM, the cache on disk and a way to pull from the original data source.
+The temporary database:
+    This is a normal dictionary in RAM.
+    When accessing and modifying data this is the data you are modifying.
+The cache on disk:
+    This is a database on disk of the data serialised using pickle.
+    This is populated with the original version of the data and each revision of the data.
+    The temporary database can be cleared using the unload methods and successive get calls will re-populate the temporary database from this cache.
+    As previously stated, the cache also stores historical versions of the data which enables undoing and redoing changes.
+The original data source (raw form)
+    This is the original data from the world/structure.
+    If the data does not exist in the temporary or cache databases it will be loaded from here.
+"""
+
 from abc import abstractmethod
 from typing import Tuple, Any, Dict, Generator, Iterable, Set
 import threading
@@ -103,7 +119,6 @@ class DatabaseHistoryManager(ContainerHistoryManager):
     def _has_entry(self, key: EntryKeyType):
         """
         Does the entry exist in one of the databases.
-
         Subclasses should implement a proper method calling this.
         """
         with self._lock:
@@ -125,7 +140,6 @@ class DatabaseHistoryManager(ContainerHistoryManager):
     def _get_entry(self, key: EntryKeyType) -> Changeable:
         """
         Get a key from the database.
-
         Subclasses should implement a proper method calling this.
         """
         with self._lock:
