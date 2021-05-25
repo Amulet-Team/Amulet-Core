@@ -390,6 +390,26 @@ class FormatWrapper(ABC):
         """
         raise NotImplementedError
 
+    def _safe_load(
+        self,
+        meth: Callable,
+        args: Tuple[Any, ...],
+        msg: str,
+        load_error: Type[EntryLoadError],
+        does_not_exist_error: Type[EntryDoesNotExist],
+    ):
+        try:
+            self._verify_has_lock()
+        except ObjectReadWriteError as e:
+            raise does_not_exist_error(e)
+        try:
+            return meth(*args)
+        except does_not_exist_error as e:
+            raise e
+        except Exception as e:
+            log.error(msg.format(*args), exc_info=True)
+            raise load_error(e)
+
     def load_chunk(self, cx: int, cz: int, dimension: Dimension) -> Chunk:
         """
         Loads and creates a universal :class:`~amulet.api.chunk.Chunk` object from chunk coordinates.
@@ -402,17 +422,13 @@ class FormatWrapper(ABC):
             ChunkDoesNotExist: If the chunk does not exist (was deleted or never created)
             ChunkLoadError: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
         """
-        try:
-            self._verify_has_lock()
-        except ObjectReadWriteError as e:
-            raise ChunkLoadError(e)
-        try:
-            return self._load_chunk(cx, cz, dimension)
-        except ChunkDoesNotExist as e:
-            raise e
-        except Exception as e:
-            log.error(f"Error loading chunk {cx} {cz}", exc_info=True)
-            raise ChunkLoadError(e)
+        return self._safe_load(
+            self._load_chunk,
+            (cx, cz, dimension),
+            "Error loading chunk {} {} {}",
+            ChunkLoadError,
+            ChunkDoesNotExist,
+        )
 
     def _load_chunk(
         self, cx: int, cz: int, dimension: Dimension, recurse: bool = True
@@ -428,7 +444,7 @@ class FormatWrapper(ABC):
         """
 
         # Gets an interface (the code that actually reads the chunk data)
-        raw_chunk_data = self.get_raw_chunk_data(cx, cz, dimension)
+        raw_chunk_data = self._get_raw_chunk_data(cx, cz, dimension)
         interface, translator, game_version = self._get_interface_and_translator(
             raw_chunk_data
         )
@@ -628,8 +644,13 @@ class FormatWrapper(ABC):
         :param dimension: The dimension to load the data from.
         :return: The raw chunk data.
         """
-        self._verify_has_lock()
-        return self._get_raw_chunk_data(cx, cz, dimension)
+        return self._safe_load(
+            self._get_raw_chunk_data,
+            (cx, cz, dimension),
+            "Error loading chunk {} {} {}",
+            ChunkLoadError,
+            ChunkDoesNotExist,
+        )
 
     @abstractmethod
     def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> Any:
