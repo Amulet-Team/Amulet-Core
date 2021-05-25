@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Generator
+from typing import Tuple, Generator, Set, Iterable
 
 import weakref
 
@@ -64,15 +64,18 @@ class PlayerManager(DatabaseHistoryManager):
         """The level that this player manager is associated with."""
         return self._level()
 
-    def get_players(self) -> Generator[str, None, None]:
+    def all_player_ids(self) -> Set[str]:
         """
         Returns a generator of all player ids that are present in the level
         """
-        yield from self.level.level_wrapper.get_players()
+        return self._all_entries()
+
+    def _raw_all_entries(self) -> Iterable[str]:
+        return self.level.level_wrapper.all_player_ids()
 
     def changed_players(self) -> Generator[str, None, None]:
         """The player objects that have changed since the last save"""
-        yield from self.changed_entries()
+        return self.changed_entries()
 
     def has_player(self, player_id: str) -> bool:
         """
@@ -82,6 +85,9 @@ class PlayerManager(DatabaseHistoryManager):
         :return: True if the player id is present, False otherwise
         """
         return self._has_entry(player_id)
+
+    def _raw_has_entry(self, key: str) -> bool:
+        return self.level.level_wrapper.has_player(key)
 
     def __contains__(self, item):
         """
@@ -113,6 +119,9 @@ class PlayerManager(DatabaseHistoryManager):
         """
         return self._get_entry(player_id)
 
+    def _raw_get_entry(self, key: EntryKeyType) -> EntryType:
+        return self.level.level_wrapper.get_player(key)
+
     def delete_player(self, player_id: str):
         """
         Deletes a player from the player manager
@@ -120,6 +129,3 @@ class PlayerManager(DatabaseHistoryManager):
         :param player_id: The desired player id
         """
         self._delete_entry(player_id)
-
-    def _raw_get_entry(self, key: EntryKeyType) -> EntryType:
-        return self.level.level_wrapper.get_player(key)

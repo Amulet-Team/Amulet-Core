@@ -312,7 +312,7 @@ class LevelDBFormat(WorldFormatWrapper):
         """
         return self._level_manager.get_chunk_data(cx, cz, dimension)
 
-    def get_players(self) -> Generator[str, None, None]:
+    def all_player_ids(self) -> Generator[str, None, None]:
         """
         Returns a generator of all player ids that are present in the level
         """

@@ -634,12 +634,21 @@ class FormatWrapper(ABC):
         """
         raise NotImplementedError
 
-    def get_players(self) -> Generator[str, None, None]:
+    @abstractmethod
+    def all_player_ids(self) -> Generator[str, None, None]:
         """
         Returns a generator of all player ids that are present in the level
         """
         return NotImplemented
 
+    @abstractmethod
+    def has_player(self, player_id: str) -> bool:
+        """
+        Test if a player id is present in the level.
+        """
+        return NotImplemented
+
+    @abstractmethod
     def get_player(self, player_id: str) -> "Player":
         """
         Gets the :class:`Player` object that belongs to the specified player id
