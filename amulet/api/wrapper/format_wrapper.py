@@ -28,6 +28,10 @@ from amulet.api.errors import (
     ChunkDoesNotExist,
     ObjectReadError,
     ObjectReadWriteError,
+    PlayerDoesNotExist,
+    PlayerLoadError,
+    EntryLoadError,
+    EntryDoesNotExist,
 )
 from amulet.api.data_types import (
     AnyNDArray,
@@ -38,10 +42,10 @@ from amulet.api.data_types import (
     VersionIdentifierType,
 )
 from amulet.api.selection import SelectionGroup, SelectionBox
+from amulet.api.player.player_manager import Player, LOCAL_PLAYER
 
 if TYPE_CHECKING:
     from amulet.api.wrapper.chunk.translator import Translator
-    from amulet.api.player.player_manager import Player
 
 
 DefaultPlatform = "Unknown Platform"
@@ -678,8 +682,7 @@ class FormatWrapper(ABC):
         """
         return NotImplemented
 
-    @abstractmethod
-    def get_player(self, player_id: str) -> "Player":
+    def load_player(self, player_id: str = LOCAL_PLAYER) -> "Player":
         """
         Gets the :class:`Player` object that belongs to the specified player id
 
@@ -688,4 +691,39 @@ class FormatWrapper(ABC):
         :param player_id: The desired player id
         :return: A Player instance
         """
-        return NotImplemented
+        return self._safe_load(
+            self._load_player,
+            (player_id,),
+            "Error loading player {}",
+            PlayerLoadError,
+            PlayerDoesNotExist,
+        )
+
+    @abstractmethod
+    def _load_player(self, player_id: str) -> "Player":
+        """
+        Get the raw player data and unpack it into a Player class.
+
+        :param player_id: The id of the player to get.
+        :return:
+        """
+        raise NotImplementedError
+
+    def get_raw_player_data(self, player_id: str) -> Any:
+        """
+        Get the player data in the lowest level form.
+
+        :param player_id: The id of the player to get.
+        :return:
+        """
+        return self._safe_load(
+            self._get_raw_player_data,
+            (player_id,),
+            "Error loading player {}",
+            PlayerLoadError,
+            PlayerDoesNotExist,
+        )
+
+    @abstractmethod
+    def _get_raw_player_data(self, player_id: str) -> Any:
+        raise NotImplementedError

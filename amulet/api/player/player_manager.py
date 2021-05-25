@@ -138,7 +138,7 @@ class PlayerManager(DatabaseHistoryManager):
         return self._get_entry(player_id)
 
     def _raw_get_entry(self, key: str) -> Player:
-        return self.level.level_wrapper.get_player(key)
+        return self.level.level_wrapper.load_player(key)
 
     def delete_player(self, player_id: str):
         """
