@@ -319,6 +319,9 @@ class LevelDBFormat(WorldFormatWrapper):
             for pid, _ in self._level_manager._db.iterate(b"player_", b"player_\xFF")
         )
 
+    def has_player(self, player_id: str) -> bool:
+        return f"player_{player_id}".encode("utf-8") in self._level_manager._db
+
     def _load_player(self, player_id: str = LOCAL_PLAYER) -> Player:
         """
         Gets the :class:`Player` object that belongs to the specified player id

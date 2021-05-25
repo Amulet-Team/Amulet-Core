@@ -399,13 +399,11 @@ class AnvilFormat(WorldFormatWrapper):
         """
         Returns a generator of all player ids that are present in the level
         """
-        yield from (
-            os.path.splitext(pid)[0]
-            for pid in (
-                os.path.basename(f)
-                for f in glob.iglob(os.path.join(self.path, "playerdata", "*.dat"))
-            )
-        )
+        for f in glob.iglob(os.path.join(self.path, "playerdata", "*.dat")):
+            yield os.path.splitext(os.path.basename(f))[0]
+
+    def has_player(self, player_id: str) -> bool:
+        return os.path.isfile(os.path.join(self.path, "playerdata", f"{player_id}.dat"))
 
     def _load_player(self, player_id: str = LOCAL_PLAYER) -> Player:
         """
