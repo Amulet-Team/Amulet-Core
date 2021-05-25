@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-from typing import Tuple, Generator
+from typing import Tuple, Generator, Set, Iterable, Dict
 
 import weakref
 
 from amulet.api.history import Changeable
-from amulet.api.history.data_types import EntryKeyType, EntryType
 from amulet.api.history.history_manager import DatabaseHistoryManager
+from amulet.api.history.revision_manager import RAMRevisionManager
 from amulet.api import level as api_level
+from amulet.api.errors import PlayerLoadError, PlayerDoesNotExist
 
 LOCAL_PLAYER = "~local_player"
 
@@ -15,19 +16,30 @@ LOCAL_PLAYER = "~local_player"
 class Player(Changeable):
     def __init__(
         self,
-        _uuid: str,
+        uuid: str,
         position: Tuple[float, float, float],
         rotation: Tuple[float, float],
     ):
         """
         Creates a new instance of :class:`Player` with the given UUID, position, and rotation
 
-        :param _uuid: The UUID of the player
+        :param uuid: The UUID of the player
         :param position: The position of the player in world coordinates
         :param rotation: The rotation of the player
         """
         super().__init__()
-        self._uuid = _uuid
+        assert isinstance(uuid, str)
+        assert (
+            isinstance(position, tuple)
+            and len(position) == 3
+            and all(isinstance(f, float) for f in position)
+        )
+        assert (
+            isinstance(rotation, tuple)
+            and len(rotation) == 2
+            and all(isinstance(f, float) for f in rotation)
+        )
+        self._uuid = uuid
         self._position = position
         self._rotation = rotation
 
@@ -48,6 +60,12 @@ class Player(Changeable):
 
 
 class PlayerManager(DatabaseHistoryManager):
+    _temporary_database: Dict[str, Player]
+    _history_database: Dict[str, RAMRevisionManager]
+
+    DoesNotExistError = PlayerDoesNotExist
+    LoadError = PlayerLoadError
+
     def __init__(self, level: api_level.BaseLevel):
         """
         Construct a new :class:`PlayerManager` instance
@@ -64,15 +82,18 @@ class PlayerManager(DatabaseHistoryManager):
         """The level that this player manager is associated with."""
         return self._level()
 
-    def get_players(self) -> Generator[str, None, None]:
+    def all_player_ids(self) -> Set[str]:
         """
-        Returns a generator of all player ids that are present in the level
+        Returns a set of all player ids that are present in the level
         """
-        yield from self.level.level_wrapper.get_players()
+        return self._all_entries()
+
+    def _raw_all_entries(self) -> Iterable[str]:
+        return self.level.level_wrapper.all_player_ids()
 
     def changed_players(self) -> Generator[str, None, None]:
         """The player objects that have changed since the last save"""
-        yield from self.changed_entries()
+        return self.changed_entries()
 
     def has_player(self, player_id: str) -> bool:
         """
@@ -82,6 +103,9 @@ class PlayerManager(DatabaseHistoryManager):
         :return: True if the player id is present, False otherwise
         """
         return self._has_entry(player_id)
+
+    def _raw_has_entry(self, key: str) -> bool:
+        return self.level.level_wrapper.has_player(key)
 
     def __contains__(self, item):
         """
@@ -113,6 +137,9 @@ class PlayerManager(DatabaseHistoryManager):
         """
         return self._get_entry(player_id)
 
+    def _raw_get_entry(self, key: str) -> Player:
+        return self.level.level_wrapper.load_player(key)
+
     def delete_player(self, player_id: str):
         """
         Deletes a player from the player manager
@@ -120,6 +147,3 @@ class PlayerManager(DatabaseHistoryManager):
         :param player_id: The desired player id
         """
         self._delete_entry(player_id)
-
-    def _get_entry_from_world(self, key: EntryKeyType) -> EntryType:
-        return self.level.level_wrapper.get_player(key)

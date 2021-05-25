@@ -1,6 +1,5 @@
 from abc import abstractmethod
 import os
-import warnings
 from typing import Any, Optional, TYPE_CHECKING
 
 from amulet import IMG_DIRECTORY

@@ -267,6 +267,7 @@ class LevelDB:
         :return: The data stored behind the given key.
         :raises: KeyError if the requested key is not present.
         """
+        assert isinstance(key, bytes)
         ro = ldb.leveldb_readoptions_create()
         size = ctypes.c_size_t(0)
         error = ctypes.POINTER(ctypes.c_char)()
@@ -289,6 +290,7 @@ class LevelDB:
         :param key: The key to store the value under.
         :param val: The value to store.
         """
+        assert isinstance(key, bytes) and isinstance(val, bytes)
         wo = ldb.leveldb_writeoptions_create()
         error = ctypes.POINTER(ctypes.c_char)()
         ldb.leveldb_put(self.db, wo, key, len(key), val, len(val), ctypes.byref(error))
@@ -298,6 +300,7 @@ class LevelDB:
     def putBatch(self, data: Dict[bytes, bytes]):
         batch = ldb.leveldb_writebatch_create()
         for k, v in data.items():
+            assert isinstance(k, bytes) and isinstance(v, bytes)
             ldb.leveldb_writebatch_put(batch, k, len(k), v, len(v))
         wo = ldb.leveldb_writeoptions_create()
         error = ctypes.POINTER(ctypes.c_char)()
@@ -311,6 +314,7 @@ class LevelDB:
 
         :param key: The key to delete from the database.
         """
+        assert isinstance(key, bytes)
         wo = ldb.leveldb_writeoptions_create()
         error = ctypes.POINTER(ctypes.c_char)()
         ldb.leveldb_delete(self.db, wo, key, len(key), ctypes.byref(error))
@@ -332,7 +336,9 @@ class LevelDB:
         if start is None:
             ldb.leveldb_iter_seek_to_first(it)
         else:
+            assert isinstance(start, bytes)
             ldb.leveldb_iter_seek(it, start, len(start))
+        assert end is None or isinstance(end, bytes)
         try:
             while ldb.leveldb_iter_valid(it):
                 size = ctypes.c_size_t(0)
@@ -362,3 +368,11 @@ class LevelDB:
                 ldb.leveldb_iter_next(it)
         finally:
             ldb.leveldb_iter_destroy(it)
+
+    def __contains__(self, key: bytes):
+        assert isinstance(key, bytes)
+        keys = list(self.iterate(key, key + b"\x00"))
+        return keys and keys[0][0] == key
+
+    def __iter__(self) -> Iterator[bytes]:
+        return self.keys()

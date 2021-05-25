@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Dict, Generator, Union, Optional, List, BinaryIO
+from typing import Tuple, Dict, Union, Optional, List, BinaryIO, Iterable
 from io import BytesIO
 import shutil
 import traceback
@@ -20,7 +20,7 @@ from amulet.api.data_types import (
     Dimension,
 )
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
-from amulet.api.errors import ObjectWriteError, ObjectReadError
+from amulet.api.errors import ObjectWriteError, ObjectReadError, PlayerDoesNotExist
 
 from amulet.libs.leveldb import LevelDBException
 from amulet.level.interfaces.chunk.leveldb.leveldb_chunk_versions import (
@@ -282,9 +282,7 @@ class LevelDBFormat(WorldFormatWrapper):
     def unload(self):
         pass
 
-    def all_chunk_coords(
-        self, dimension: "Dimension"
-    ) -> Generator[ChunkCoordinates, None, None]:
+    def all_chunk_coords(self, dimension: "Dimension") -> Iterable[ChunkCoordinates]:
         self._verify_has_lock()
         yield from self._level_manager.all_chunk_coords(dimension)
 
@@ -312,7 +310,7 @@ class LevelDBFormat(WorldFormatWrapper):
         """
         return self._level_manager.get_chunk_data(cx, cz, dimension)
 
-    def get_players(self) -> Generator[str, None, None]:
+    def all_player_ids(self) -> Iterable[str]:
         """
         Returns a generator of all player ids that are present in the level
         """
@@ -321,7 +319,10 @@ class LevelDBFormat(WorldFormatWrapper):
             for pid, _ in self._level_manager._db.iterate(b"player_", b"player_\xFF")
         )
 
-    def get_player(self, player_id: str = LOCAL_PLAYER) -> Player:
+    def has_player(self, player_id: str) -> bool:
+        return f"player_{player_id}".encode("utf-8") in self._level_manager._db
+
+    def _load_player(self, player_id: str = LOCAL_PLAYER) -> Player:
         """
         Gets the :class:`Player` object that belongs to the specified player id
 
@@ -330,18 +331,20 @@ class LevelDBFormat(WorldFormatWrapper):
         :param player_id: The desired player id
         :return: A Player instance
         """
-        if player_id == LOCAL_PLAYER:
-            key = player_id
-        else:
-            key = f"player_{player_id}".encode("utf-8")
-        try:
-            data = self._level_manager._db.get(key)
-        except KeyError:
-            raise KeyError(f"Player {player_id} doesn't exist")
-        player_nbt = nbt.load(buffer=data, compressed=False, little_endian=True)
-
+        player_nbt = self._get_raw_player_data(player_id)
         return Player(
             player_id,
             tuple(map(lambda t: t.value, player_nbt["Pos"])),
             tuple(map(lambda t: t.value, player_nbt["Rotation"])),
         )
+
+    def _get_raw_player_data(self, player_id: str) -> nbt.NBTFile:
+        if player_id == LOCAL_PLAYER:
+            key = player_id.encode("utf-8")
+        else:
+            key = f"player_{player_id}".encode("utf-8")
+        try:
+            data = self._level_manager._db.get(key)
+        except KeyError:
+            raise PlayerDoesNotExist(f"Player {player_id} doesn't exist")
+        return nbt.load(data, compressed=False, little_endian=True)

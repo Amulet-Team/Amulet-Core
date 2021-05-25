@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Tuple, Generator, TYPE_CHECKING, BinaryIO, Dict, List
+from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, List
 import numpy
 import copy
 
@@ -321,7 +321,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
 
     def all_chunk_coords(
         self, dimension: Optional[Dimension] = None
-    ) -> Generator[ChunkCoordinates, None, None]:
+    ) -> Iterable[ChunkCoordinates]:
         yield from self._chunks.keys()
 
     def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:

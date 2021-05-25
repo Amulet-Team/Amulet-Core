@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Any, Dict, Generator, Optional, List, Union
+from typing import Tuple, Any, Dict, Generator, Optional, List, Union, Iterable
 import time
 import glob
 import shutil
@@ -12,7 +12,12 @@ from amulet.api.player.player_manager import Player, LOCAL_PLAYER
 
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.utils.format_utils import check_all_exist, load_leveldat
-from amulet.api.errors import DimensionDoesNotExist, ObjectWriteError, ChunkLoadError
+from amulet.api.errors import (
+    DimensionDoesNotExist,
+    ObjectWriteError,
+    ChunkLoadError,
+    PlayerDoesNotExist,
+)
 from amulet.api.data_types import (
     ChunkCoordinates,
     VersionNumberInt,
@@ -360,9 +365,7 @@ class AnvilFormat(WorldFormatWrapper):
         else:
             raise DimensionDoesNotExist(dimension)
 
-    def all_chunk_coords(
-        self, dimension: "Dimension"
-    ) -> Generator[ChunkCoordinates, None, None]:
+    def all_chunk_coords(self, dimension: "Dimension") -> Iterable[ChunkCoordinates]:
         if self._has_dimension(dimension):
             yield from self._get_dimension(dimension).all_chunk_coords()
 
@@ -392,19 +395,17 @@ class AnvilFormat(WorldFormatWrapper):
         """
         return self._get_dimension(dimension).get_chunk_data(cx, cz)
 
-    def get_players(self) -> Generator[str, None, None]:
+    def all_player_ids(self) -> Iterable[str]:
         """
         Returns a generator of all player ids that are present in the level
         """
-        yield from (
-            os.path.splitext(pid)[0]
-            for pid in (
-                os.path.basename(f)
-                for f in glob.iglob(os.path.join(self.path, "playerdata", "*.dat"))
-            )
-        )
+        for f in glob.iglob(os.path.join(self.path, "playerdata", "*.dat")):
+            yield os.path.splitext(os.path.basename(f))[0]
 
-    def get_player(self, player_id: str = LOCAL_PLAYER) -> Player:
+    def has_player(self, player_id: str) -> bool:
+        return os.path.isfile(os.path.join(self.path, "playerdata", f"{player_id}.dat"))
+
+    def _load_player(self, player_id: str = LOCAL_PLAYER) -> Player:
         """
         Gets the :class:`Player` object that belongs to the specified player id
 
@@ -413,26 +414,24 @@ class AnvilFormat(WorldFormatWrapper):
         :param player_id: The desired player id
         :return: A Player instance
         """
-        if player_id == LOCAL_PLAYER and "Player" in self.root_tag["Data"]:
-            return Player(
-                player_id,
-                tuple(map(lambda t: t.value, self.root_tag["Data"]["Player"]["Pos"])),
-                tuple(
-                    map(lambda t: t.value, self.root_tag["Data"]["Player"]["Rotation"])
-                ),
-            )
-        elif player_id == LOCAL_PLAYER:
-            raise KeyError("Local player doesn't exist")
-
-        path = os.path.join(self.path, "playerdata", f"{player_id}.dat")
-        if not os.path.exists(path):
-            raise KeyError(f"Player {player_id} doesn't exist")
-        player_nbt = nbt.load(path)
+        player_nbt = self._get_raw_player_data(player_id)
         return Player(
             player_id,
             tuple(map(lambda t: t.value, player_nbt["Pos"])),
             tuple(map(lambda t: t.value, player_nbt["Rotation"])),
         )
+
+    def _get_raw_player_data(self, player_id: str) -> nbt.NBTFile:
+        if player_id == LOCAL_PLAYER:
+            if "Player" in self.root_tag["Data"]:
+                return self.root_tag["Data"]["Player"]
+            else:
+                raise PlayerDoesNotExist("Local player doesn't exist")
+        else:
+            path = os.path.join(self.path, "playerdata", f"{player_id}.dat")
+            if os.path.exists(path):
+                return nbt.load(path)
+            raise PlayerDoesNotExist(f"Player {player_id} does not exist")
 
 
 if __name__ == "__main__":
@@ -440,7 +439,7 @@ if __name__ == "__main__":
 
     world_path = sys.argv[1]
     world = AnvilDimensionManager(world_path)
-    chunk = world.get_chunk_data(0, 0)
-    print(chunk)
-    world.put_chunk_data(0, 0, chunk)
+    chunk_ = world.get_chunk_data(0, 0)
+    print(chunk_)
+    world.put_chunk_data(0, 0, chunk_)
     world.save()

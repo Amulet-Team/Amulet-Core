@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Tuple, Union, Iterable, Dict, TYPE_CHECKING
+from typing import List, Tuple, Union, Iterable, Dict, TYPE_CHECKING, Optional
 import numpy
 
 import amulet_nbt

@@ -933,11 +933,11 @@ class BaseLevel:
         """
         return self._players
 
-    def get_players(self) -> Generator[str, None, None]:
+    def all_player_ids(self) -> Set[str]:
         """
-        Returns a generator of all player ids that are present in the level
+        Returns a set of all player ids that are present in the level.
         """
-        return self._players.get_players()
+        return self._players.all_player_ids()
 
     def get_player(self, player_id: str = LOCAL_PLAYER) -> Player:
         """
