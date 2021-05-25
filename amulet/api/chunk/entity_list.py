@@ -78,13 +78,13 @@ class EntityList(ChunkList):
 if __name__ == "__main__":
     import amulet_nbt
 
-    entities = EntityList()
+    entities_ = EntityList()
     block_ents = [
         Entity("minecraft", "creeper", 0.0, 0.0, 0.0, amulet_nbt.NBTFile()),
         Entity("minecraft", "cow", 0.0, 0.0, 0.0, amulet_nbt.NBTFile()),
         Entity("minecraft", "pig", 0.0, 0.0, 0.0, amulet_nbt.NBTFile()),
         Entity("minecraft", "sheep", 0.0, 0.0, 0.0, amulet_nbt.NBTFile()),
     ]
-    entities.append(Entity("minecraft", "cow", 0.0, 0.0, 0.0, amulet_nbt.NBTFile()))
-    entities += block_ents
-    print(entities)
+    entities_.append(Entity("minecraft", "cow", 0.0, 0.0, 0.0, amulet_nbt.NBTFile()))
+    entities_ += block_ents
+    print(entities_)

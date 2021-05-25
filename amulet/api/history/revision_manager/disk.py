@@ -1,5 +1,4 @@
 from abc import abstractmethod
-import os
 from typing import Optional
 
 from amulet.api.history.base import RevisionManager

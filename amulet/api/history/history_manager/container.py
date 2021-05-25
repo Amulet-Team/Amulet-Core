@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import List, Any, Generator
+from typing import List, Any
 
 from amulet.api.history.base.history_manager import HistoryManager
 

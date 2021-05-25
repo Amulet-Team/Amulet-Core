@@ -438,7 +438,7 @@ if __name__ == "__main__":
 
     world_path = sys.argv[1]
     world = AnvilDimensionManager(world_path)
-    chunk = world.get_chunk_data(0, 0)
-    print(chunk)
-    world.put_chunk_data(0, 0, chunk)
+    chunk_ = world.get_chunk_data(0, 0)
+    print(chunk_)
+    world.put_chunk_data(0, 0, chunk_)
     world.save()
