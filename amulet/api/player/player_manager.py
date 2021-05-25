@@ -16,19 +16,20 @@ LOCAL_PLAYER = "~local_player"
 class Player(Changeable):
     def __init__(
         self,
-        uuid: str,
+        player_id: str,
         position: Tuple[float, float, float],
         rotation: Tuple[float, float],
+        dimension: str,
     ):
         """
         Creates a new instance of :class:`Player` with the given UUID, position, and rotation
 
-        :param uuid: The UUID of the player
+        :param player_id: The ID of the player
         :param position: The position of the player in world coordinates
         :param rotation: The rotation of the player
         """
         super().__init__()
-        assert isinstance(uuid, str)
+        assert isinstance(player_id, str)
         assert (
             isinstance(position, tuple)
             and len(position) == 3
@@ -39,14 +40,15 @@ class Player(Changeable):
             and len(rotation) == 2
             and all(isinstance(f, float) for f in rotation)
         )
-        self._uuid = uuid
+        self._player_id = player_id
         self._position = position
         self._rotation = rotation
+        self._dimension = dimension
 
     @property
-    def uuid(self) -> str:
-        """The player's UUID"""
-        return self._uuid
+    def player_id(self) -> str:
+        """The player's ID"""
+        return self._player_id
 
     @property
     def position(self) -> Tuple[float, float, float]:
@@ -57,6 +59,11 @@ class Player(Changeable):
     def rotation(self) -> Tuple[float, float]:
         """The current rotation of the player in the world"""
         return self._rotation
+
+    @property
+    def dimension(self) -> str:
+        """The current dimension the player is in"""
+        return self._dimension
 
 
 class PlayerManager(DatabaseHistoryManager):
@@ -124,7 +131,7 @@ class PlayerManager(DatabaseHistoryManager):
 
         :param player: The :class:`Player` object to add to the chunk manager. It will be added with the key designated by :attr:`Player.uuid`
         """
-        self._put_entry(player.uuid, player)
+        self._put_entry(player.player_id, player)
 
     def get_player(self, player_id: str = LOCAL_PLAYER) -> Player:
         """

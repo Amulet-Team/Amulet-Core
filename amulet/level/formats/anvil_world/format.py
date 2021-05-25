@@ -401,6 +401,7 @@ class AnvilFormat(WorldFormatWrapper):
         """
         for f in glob.iglob(os.path.join(self.path, "playerdata", "*.dat")):
             yield os.path.splitext(os.path.basename(f))[0]
+        yield LOCAL_PLAYER
 
     def has_player(self, player_id: str) -> bool:
         return os.path.isfile(os.path.join(self.path, "playerdata", f"{player_id}.dat"))
@@ -419,6 +420,7 @@ class AnvilFormat(WorldFormatWrapper):
             player_id,
             tuple(map(lambda t: t.value, player_nbt["Pos"])),
             tuple(map(lambda t: t.value, player_nbt["Rotation"])),
+            self.dimensions[player_nbt["Dimension"].value],
         )
 
     def _get_raw_player_data(self, player_id: str) -> nbt.NBTFile:

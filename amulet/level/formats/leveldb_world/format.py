@@ -318,6 +318,7 @@ class LevelDBFormat(WorldFormatWrapper):
             pid[7:].decode("utf-8")
             for pid, _ in self._level_manager._db.iterate(b"player_", b"player_\xFF")
         )
+        yield LOCAL_PLAYER
 
     def has_player(self, player_id: str) -> bool:
         return f"player_{player_id}".encode("utf-8") in self._level_manager._db
@@ -336,6 +337,7 @@ class LevelDBFormat(WorldFormatWrapper):
             player_id,
             tuple(map(lambda t: t.value, player_nbt["Pos"])),
             tuple(map(lambda t: t.value, player_nbt["Rotation"])),
+            self.dimensions[player_nbt["DimensionId"].value],
         )
 
     def _get_raw_player_data(self, player_id: str) -> nbt.NBTFile:

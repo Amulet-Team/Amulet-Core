@@ -362,7 +362,7 @@ class WorldTestBaseCases:
 
         def test_get_players(self):
             player_ids = list(self.world.all_player_ids())
-            self.assertEquals(1, len(player_ids))
+            self.assertEquals(2, len(player_ids))
             player_id = player_ids[0]
             player = self.world.get_player(player_id)
             self.assertIsInstance(player, Player)
