@@ -16,19 +16,30 @@ LOCAL_PLAYER = "~local_player"
 class Player(Changeable):
     def __init__(
         self,
-        _uuid: str,
+        uuid: str,
         position: Tuple[float, float, float],
         rotation: Tuple[float, float],
     ):
         """
         Creates a new instance of :class:`Player` with the given UUID, position, and rotation
 
-        :param _uuid: The UUID of the player
+        :param uuid: The UUID of the player
         :param position: The position of the player in world coordinates
         :param rotation: The rotation of the player
         """
         super().__init__()
-        self._uuid = _uuid
+        assert isinstance(uuid, str)
+        assert (
+            isinstance(position, tuple)
+            and len(position) == 3
+            and all(isinstance(f, float) for f in position)
+        )
+        assert (
+            isinstance(rotation, tuple)
+            and len(rotation) == 2
+            and all(isinstance(f, float) for f in rotation)
+        )
+        self._uuid = uuid
         self._position = position
         self._rotation = rotation
 
