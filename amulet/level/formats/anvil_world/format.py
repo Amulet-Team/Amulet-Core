@@ -360,9 +360,7 @@ class AnvilFormat(WorldFormatWrapper):
         else:
             raise DimensionDoesNotExist(dimension)
 
-    def all_chunk_coords(
-        self, dimension: "Dimension"
-    ) -> Generator[ChunkCoordinates, None, None]:
+    def all_chunk_coords(self, dimension: "Dimension") -> Iterable[ChunkCoordinates]:
         if self._has_dimension(dimension):
             yield from self._get_dimension(dimension).all_chunk_coords()
 

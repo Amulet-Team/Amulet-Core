@@ -1,5 +1,5 @@
 import os
-from typing import Optional, List, Tuple, Dict, Generator, TYPE_CHECKING, BinaryIO, Any
+from typing import Optional, List, Tuple, Dict, Iterable, TYPE_CHECKING, BinaryIO, Any
 import numpy
 from io import BytesIO
 import struct
@@ -8,7 +8,13 @@ import copy
 import amulet_nbt
 
 from amulet import log
-from amulet.api.data_types import AnyNDArray, VersionNumberAny, Dimension, PlatformType
+from amulet.api.data_types import (
+    AnyNDArray,
+    VersionNumberAny,
+    Dimension,
+    PlatformType,
+    ChunkCoordinates,
+)
 from amulet.api.registry import BlockManager
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
@@ -391,7 +397,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
 
     def all_chunk_coords(
         self, dimension: Optional[Dimension] = None
-    ) -> Generator[Tuple[int, int], None, None]:
+    ) -> Iterable[ChunkCoordinates]:
         yield from self._chunk_to_section.keys()
 
     def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:

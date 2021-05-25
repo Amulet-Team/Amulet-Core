@@ -1,7 +1,18 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Tuple, Any, Generator, Dict, List, Optional, TYPE_CHECKING, Iterable
+from typing import (
+    Tuple,
+    Any,
+    Generator,
+    Dict,
+    List,
+    Optional,
+    TYPE_CHECKING,
+    Iterable,
+    Callable,
+    Type,
+)
 import copy
 import numpy
 import os
@@ -363,9 +374,7 @@ class FormatWrapper(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def all_chunk_coords(
-        self, dimension: Dimension
-    ) -> Generator[ChunkCoordinates, None, None]:
+    def all_chunk_coords(self, dimension: Dimension) -> Iterable[ChunkCoordinates]:
         """A generator of all chunk coords in the given dimension."""
         raise NotImplementedError
 

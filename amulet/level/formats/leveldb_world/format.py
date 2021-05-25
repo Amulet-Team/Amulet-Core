@@ -282,9 +282,7 @@ class LevelDBFormat(WorldFormatWrapper):
     def unload(self):
         pass
 
-    def all_chunk_coords(
-        self, dimension: "Dimension"
-    ) -> Generator[ChunkCoordinates, None, None]:
+    def all_chunk_coords(self, dimension: "Dimension") -> Iterable[ChunkCoordinates]:
         self._verify_has_lock()
         yield from self._level_manager.all_chunk_coords(dimension)
 
