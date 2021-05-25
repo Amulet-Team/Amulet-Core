@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-from typing import Tuple, Generator, Set, Iterable
+from typing import Tuple, Generator, Set, Iterable, Dict
 
 import weakref
 
 from amulet.api.history import Changeable
-from amulet.api.history.data_types import EntryKeyType, EntryType
 from amulet.api.history.history_manager import DatabaseHistoryManager
+from amulet.api.history.revision_manager import RAMRevisionManager
 from amulet.api import level as api_level
+from amulet.api.errors import PlayerLoadError, PlayerDoesNotExist
 
 LOCAL_PLAYER = "~local_player"
 
@@ -48,6 +49,12 @@ class Player(Changeable):
 
 
 class PlayerManager(DatabaseHistoryManager):
+    _temporary_database: Dict[str, Player]
+    _history_database: Dict[str, RAMRevisionManager]
+
+    DoesNotExistError = PlayerDoesNotExist
+    LoadError = PlayerLoadError
+
     def __init__(self, level: api_level.BaseLevel):
         """
         Construct a new :class:`PlayerManager` instance
@@ -66,7 +73,7 @@ class PlayerManager(DatabaseHistoryManager):
 
     def all_player_ids(self) -> Set[str]:
         """
-        Returns a generator of all player ids that are present in the level
+        Returns a set of all player ids that are present in the level
         """
         return self._all_entries()
 
@@ -119,7 +126,7 @@ class PlayerManager(DatabaseHistoryManager):
         """
         return self._get_entry(player_id)
 
-    def _raw_get_entry(self, key: EntryKeyType) -> EntryType:
+    def _raw_get_entry(self, key: str) -> Player:
         return self.level.level_wrapper.get_player(key)
 
     def delete_player(self, player_id: str):

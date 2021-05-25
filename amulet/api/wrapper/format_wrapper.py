@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Tuple, Any, Generator, Dict, List, Optional, TYPE_CHECKING
+from typing import Tuple, Any, Generator, Dict, List, Optional, TYPE_CHECKING, Iterable
 import copy
 import numpy
 import os
@@ -635,9 +635,9 @@ class FormatWrapper(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def all_player_ids(self) -> Generator[str, None, None]:
+    def all_player_ids(self) -> Iterable[str]:
         """
-        Returns a generator of all player ids that are present in the level
+        Returns a set of all player ids that are present in the level
         """
         return NotImplemented
 

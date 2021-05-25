@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Any, Dict, Generator, Optional, List, Union
+from typing import Tuple, Any, Dict, Generator, Optional, List, Union, Iterable
 import time
 import glob
 import shutil
@@ -392,7 +392,7 @@ class AnvilFormat(WorldFormatWrapper):
         """
         return self._get_dimension(dimension).get_chunk_data(cx, cz)
 
-    def all_player_ids(self) -> Generator[str, None, None]:
+    def all_player_ids(self) -> Iterable[str]:
         """
         Returns a generator of all player ids that are present in the level
         """

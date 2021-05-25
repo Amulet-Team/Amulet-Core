@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Dict, Generator, Union, Optional, List, BinaryIO
+from typing import Tuple, Dict, Generator, Union, Optional, List, BinaryIO, Iterable
 from io import BytesIO
 import shutil
 import traceback
@@ -312,7 +312,7 @@ class LevelDBFormat(WorldFormatWrapper):
         """
         return self._level_manager.get_chunk_data(cx, cz, dimension)
 
-    def all_player_ids(self) -> Generator[str, None, None]:
+    def all_player_ids(self) -> Iterable[str]:
         """
         Returns a generator of all player ids that are present in the level
         """

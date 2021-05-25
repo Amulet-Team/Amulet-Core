@@ -24,6 +24,22 @@ class EntryDoesNotExist(EntryLoadError):
     pass
 
 
+class PlayerLoadError(EntryLoadError):
+    """
+    An error thrown if a player failed to load for some reason.
+    """
+
+    pass
+
+
+class PlayerDoesNotExist(EntryDoesNotExist, PlayerLoadError):
+    """
+    An error thrown if a player does not exist.
+    """
+
+    pass
+
+
 class ChunkLoadError(EntryLoadError):
     """
     An error thrown if a chunk failed to load for some reason.
