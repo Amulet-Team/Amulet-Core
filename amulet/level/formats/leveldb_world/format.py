@@ -347,4 +347,4 @@ class LevelDBFormat(WorldFormatWrapper):
             data = self._level_manager._db.get(key)
         except KeyError:
             raise PlayerDoesNotExist(f"Player {player_id} doesn't exist")
-        return nbt.load(buffer=data, compressed=False, little_endian=True)
+        return nbt.load(data, compressed=False, little_endian=True)
