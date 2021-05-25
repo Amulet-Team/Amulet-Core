@@ -366,9 +366,9 @@ class WorldTestBaseCases:
                 "bedrock",
             ):  # Only java/bedrock platforms currently support players
                 with self.assertRaises(NotImplementedError):
-                    self.world.get_players()
+                    self.world.all_player_ids()
                 return
-            players = [p for p in self.world.get_players()]
+            players = [p for p in self.world.all_player_ids()]
             self.assertEquals(1, len(players))
 
         def test_get_player(self):
@@ -377,9 +377,9 @@ class WorldTestBaseCases:
                 "bedrock",
             ):  # Only java/bedrock platforms currently support players
                 with self.assertRaises(NotImplementedError):
-                    self.world.get_players()
+                    self.world.all_player_ids()
                 return
-            players = [p for p in self.world.get_players()]
+            players = [p for p in self.world.all_player_ids()]
             self.assertEquals(1, len(players))
             player = players[0]
             p = self.world.get_player(player)
