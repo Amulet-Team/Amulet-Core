@@ -368,3 +368,11 @@ class LevelDB:
                 ldb.leveldb_iter_next(it)
         finally:
             ldb.leveldb_iter_destroy(it)
+
+    def __contains__(self, key: bytes):
+        assert isinstance(key, bytes)
+        keys = list(self.iterate(key, key + b"\x00"))
+        return keys and keys[0][0] == key
+
+    def __iter__(self) -> Iterator[bytes]:
+        return self.keys()
