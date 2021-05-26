@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Tuple
 
 from amulet.api.history import Changeable
+from amulet.api.data_types import Dimension
 
 LOCAL_PLAYER = "~local_player"
 
@@ -56,6 +57,6 @@ class Player(Changeable):
         return self._rotation
 
     @property
-    def dimension(self) -> str:
+    def dimension(self) -> Dimension:
         """The current dimension the player is in"""
         return self._dimension
