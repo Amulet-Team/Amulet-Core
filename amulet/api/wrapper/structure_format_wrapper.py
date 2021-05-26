@@ -39,7 +39,7 @@ class StructureFormatWrapper(FormatWrapper):
     def can_add_dimension(self) -> bool:
         return False
 
-    def register_dimension(self, dimension_internal: Any, dimension_name: Dimension):
+    def register_dimension(self, dimension_identifier: Any):
         pass
 
     @property

@@ -140,7 +140,7 @@ class AnvilFormat(WorldFormatWrapper):
     def dimensions(self) -> List["Dimension"]:
         return list(self._dimension_name_map.keys())
 
-    def register_dimension(
+    def _register_dimension(
         self,
         relative_dimension_path: InternalDimension,
         dimension_name: Optional["Dimension"] = None,
@@ -200,23 +200,23 @@ class AnvilFormat(WorldFormatWrapper):
         )  # the real number might actually be lower
 
         # load all the levels
-        self.register_dimension("", "overworld")
-        self.register_dimension("DIM-1", "nether")
-        self.register_dimension("DIM1", "end")
+        self._register_dimension("", "overworld")
+        self._register_dimension("DIM-1", "nether")
+        self._register_dimension("DIM1", "end")
 
         for dir_name in os.listdir(self.path):
             level_path = os.path.join(self.path, dir_name)
             if os.path.isdir(level_path) and dir_name.startswith("DIM"):
                 if AnvilDimensionManager.level_regex.fullmatch(dir_name) is None:
                     continue
-                self.register_dimension(dir_name)
+                self._register_dimension(dir_name)
 
         for dimension_path in glob.glob(
             os.path.join(self.path, "dimensions", "*", "*", "region")
         ):
             dimension_path_split = dimension_path.split(os.sep)
             dimension_name = f"{dimension_path_split[-3]}/{dimension_path_split[-2]}"
-            self.register_dimension(
+            self._register_dimension(
                 os.path.dirname(os.path.relpath(dimension_path, self.path)),
                 dimension_name,
             )

@@ -55,7 +55,10 @@ class WorldFormatWrapper(FormatWrapper):
 
     @property
     def can_add_dimension(self) -> bool:
-        return True
+        return False
+
+    def register_dimension(self, dimension_identifier: Any):
+        pass
 
     def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> "Interface":
         from amulet.level.loader import Interfaces

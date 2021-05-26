@@ -181,12 +181,11 @@ class FormatWrapper(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def register_dimension(self, dimension_internal: Any, dimension_name: Dimension):
+    def register_dimension(self, dimension_identifier: Any):
         """
         Register a new dimension.
 
-        :param dimension_internal: The internal representation of the dimension
-        :param dimension_name: The name of the dimension shown to the user
+        :param dimension_identifier: The identifier for the dimension.
         """
         raise NotImplementedError
 

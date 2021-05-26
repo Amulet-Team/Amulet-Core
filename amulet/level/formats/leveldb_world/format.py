@@ -184,17 +184,17 @@ class LevelDBFormat(WorldFormatWrapper):
         self._verify_has_lock()
         return self._level_manager.dimensions
 
-    def register_dimension(
-        self, dimension_internal: int, dimension_name: Optional["Dimension"] = None
-    ):
-        """
-        Register a new dimension.
-
-        :param dimension_internal: The internal integer representation of the dimension.
-        :param dimension_name: The name of the dimension shown to the user.
-        :return:
-        """
-        self._level_manager.register_dimension(dimension_internal, dimension_name)
+    # def register_dimension(
+    #     self, dimension_internal: int, dimension_name: Optional["Dimension"] = None
+    # ):
+    #     """
+    #     Register a new dimension.
+    #
+    #     :param dimension_internal: The internal integer representation of the dimension.
+    #     :param dimension_name: The name of the dimension shown to the user.
+    #     :return:
+    #     """
+    #     self._level_manager.register_dimension(dimension_internal, dimension_name)
 
     def _get_interface_key(
         self, raw_chunk_data: Optional[Dict[bytes, bytes]] = None
