@@ -48,7 +48,7 @@ class AnvilFormat(WorldFormatWrapper):
         self._platform = "java"
         self._root_tag: nbt.NBTFile = nbt.NBTFile()
         self._levels: Dict[InternalDimension, AnvilDimensionManager] = {}
-        self._dimension_name_map: Dict["Dimension", InternalDimension] = {}
+        self._dimension_name_map: Dict[Dimension, InternalDimension] = {}
         self._mcc_support: Optional[bool] = None
         self._lock_time = None
         self._shallow_load()
@@ -137,13 +137,13 @@ class AnvilFormat(WorldFormatWrapper):
             return f"Java Unknown Version"
 
     @property
-    def dimensions(self) -> List["Dimension"]:
+    def dimensions(self) -> List[Dimension]:
         return list(self._dimension_name_map.keys())
 
     def _register_dimension(
         self,
         relative_dimension_path: InternalDimension,
-        dimension_name: Optional["Dimension"] = None,
+        dimension_name: Optional[Dimension] = None,
     ):
         """
         Register a new dimension.
@@ -152,7 +152,7 @@ class AnvilFormat(WorldFormatWrapper):
         :param dimension_name: The name of the dimension shown to the user
         """
         if dimension_name is None:
-            dimension_name: "Dimension" = relative_dimension_path
+            dimension_name: Dimension = relative_dimension_path
 
         if relative_dimension_path:
             path = os.path.join(self.path, relative_dimension_path)
@@ -352,20 +352,20 @@ class AnvilFormat(WorldFormatWrapper):
         for level in self._levels.values():
             level.unload()
 
-    def _has_dimension(self, dimension: "Dimension"):
+    def _has_dimension(self, dimension: Dimension):
         return (
             dimension in self._dimension_name_map
             and self._dimension_name_map[dimension] in self._levels
         )
 
-    def _get_dimension(self, dimension: "Dimension"):
+    def _get_dimension(self, dimension: Dimension):
         self._verify_has_lock()
         if self._has_dimension(dimension):
             return self._levels[self._dimension_name_map[dimension]]
         else:
             raise DimensionDoesNotExist(dimension)
 
-    def all_chunk_coords(self, dimension: "Dimension") -> Iterable[ChunkCoordinates]:
+    def all_chunk_coords(self, dimension: Dimension) -> Iterable[ChunkCoordinates]:
         if self._has_dimension(dimension):
             yield from self._get_dimension(dimension).all_chunk_coords()
 
@@ -374,16 +374,16 @@ class AnvilFormat(WorldFormatWrapper):
             dimension
         ).has_chunk(cx, cz)
 
-    def _delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
+    def _delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         """Delete a chunk from a given dimension"""
         if self._has_dimension(dimension):
             self._get_dimension(dimension).delete_chunk(cx, cz)
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: "Dimension"):
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
         self._get_dimension(dimension).put_chunk_data(cx, cz, data)
 
     def _get_raw_chunk_data(
-        self, cx: int, cz: int, dimension: "Dimension"
+        self, cx: int, cz: int, dimension: Dimension
     ) -> nbt.NBTFile:
         """
         Return the raw data as loaded from disk.
