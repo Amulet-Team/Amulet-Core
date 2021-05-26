@@ -4,6 +4,7 @@ import time
 from amulet.api.errors import ChunkLoadError
 from amulet import load_level
 from tests.test_utils import create_temp_world, clean_temp_world
+from . import worlds_src
 
 
 class WorldTestBaseCases:
@@ -35,17 +36,17 @@ class WorldTestBaseCases:
 
 class AnvilWorldTestCase(WorldTestBaseCases.WorldTestCase):
     def setUp(self):
-        self._setUp("Java 1.12.2")
+        self._setUp(worlds_src.java_vanilla_1_12_2)
 
 
 class Anvil2WorldTestCase(WorldTestBaseCases.WorldTestCase):
     def setUp(self):
-        self._setUp("Java 1.13")
+        self._setUp(worlds_src.java_vanilla_1_13)
 
 
 # class BedrockWorldTestCase(WorldTestBaseCases.WorldTestCase):
 #     def setUp(self):
-#         self._setUp("Bedrock 1.16")
+#         self._setUp(worlds_src.bedrock_vanilla_1_16)
 
 
 if __name__ == "__main__":

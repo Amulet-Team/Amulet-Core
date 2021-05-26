@@ -13,6 +13,7 @@ from amulet.operations.delete_chunk import delete_chunk
 from amulet.operations.fill import fill
 from amulet.operations.replace import replace
 from amulet.utils.generator import generator_unpacker
+from . import worlds_src
 
 
 class WorldTestBaseCases:
@@ -337,19 +338,19 @@ class WorldTestBaseCases:
             )
 
         @unittest.skipUnless(
-            os.path.exists(get_world_path("Java 1.12.2"))
-            and os.path.exists(get_world_path("Java 1.13")),
+            os.path.exists(get_world_path(worlds_src.java_vanilla_1_12_2))
+            and os.path.exists(get_world_path(worlds_src.java_vanilla_1_13)),
             reason="Output worlds do not exist",
         )
         def test_save(self):
             version_string = self.world.level_wrapper.game_version_string
 
             if "1.12.2" in version_string:
-                world_name = "Java 1.13"
-                world_name_temp = "Java 1.12.2 to Java 1.13"
+                world_name = worlds_src.java_vanilla_1_13
+                world_name_temp = f"{worlds_src.java_vanilla_1_12_2} to {worlds_src.java_vanilla_1_13}"
             else:
-                world_name = "Java 1.12.2"
-                world_name_temp = "Java 1.13 to Java 1.12.2"
+                world_name = worlds_src.java_vanilla_1_12_2
+                world_name_temp = f"{worlds_src.java_vanilla_1_13} to {worlds_src.java_vanilla_1_12_2}"
 
             output_wrapper = load_format(create_temp_world(world_name, world_name_temp))
             output_wrapper.open()
@@ -415,12 +416,12 @@ class WorldTestBaseCases:
 
 class AnvilWorldTestCase(WorldTestBaseCases.WorldTestCase):
     def setUp(self):
-        self._setUp("Java 1.12.2")
+        self._setUp(worlds_src.java_vanilla_1_12_2)
 
 
 class Anvil2WorldTestCase(WorldTestBaseCases.WorldTestCase):
     def setUp(self):
-        self._setUp("Java 1.13")
+        self._setUp(worlds_src.java_vanilla_1_13)
 
 
 if __name__ == "__main__":
