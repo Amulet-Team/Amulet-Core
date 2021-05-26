@@ -29,7 +29,8 @@ from amulet.api.history.history_manager import MetaHistoryManager
 from .clone import clone
 from amulet.api import wrapper as api_wrapper, level as api_level
 import PyMCTranslate
-from amulet.api.player.player_manager import PlayerManager, Player, LOCAL_PLAYER
+from amulet.api.player import Player, LOCAL_PLAYER
+from .player_manager import PlayerManager
 
 
 class BaseLevel:

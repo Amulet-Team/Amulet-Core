@@ -4,7 +4,7 @@ import os
 from amulet.api.block import Block
 from amulet.api.chunk import Chunk
 from amulet.api.errors import ChunkDoesNotExist, PlayerDoesNotExist
-from amulet.api.player.player_manager import Player
+from amulet.api.player import Player
 from amulet.api.selection import SelectionBox, SelectionGroup
 from amulet import load_level, load_format
 from tests.test_utils import get_world_path, create_temp_world, clean_temp_world

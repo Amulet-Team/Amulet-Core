@@ -3,7 +3,7 @@ from typing import Any, List, Dict, Tuple, Optional, TYPE_CHECKING, Iterable
 from amulet.api.data_types import Dimension, PlatformType, ChunkCoordinates
 from amulet.api.wrapper import FormatWrapper
 from amulet.api.errors import ChunkDoesNotExist, PlayerDoesNotExist
-from amulet.api.player.player_manager import Player
+from amulet.api.player import Player
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Interface

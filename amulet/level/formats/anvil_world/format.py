@@ -8,7 +8,7 @@ import glob
 import shutil
 
 import amulet_nbt as nbt
-from amulet.api.player.player_manager import Player, LOCAL_PLAYER
+from amulet.api.player import Player, LOCAL_PLAYER
 
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.utils.format_utils import check_all_exist, load_leveldat

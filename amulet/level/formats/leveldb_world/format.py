@@ -9,7 +9,7 @@ import traceback
 import time
 
 import amulet_nbt as nbt
-from amulet.api.player.player_manager import Player, LOCAL_PLAYER
+from amulet.api.player import Player, LOCAL_PLAYER
 
 from amulet.libs.leveldb import LevelDB
 from amulet.utils.format_utils import check_all_exist

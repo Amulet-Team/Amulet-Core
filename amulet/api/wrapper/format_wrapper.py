@@ -42,7 +42,7 @@ from amulet.api.data_types import (
     VersionIdentifierType,
 )
 from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.player.player_manager import Player, LOCAL_PLAYER
+from amulet.api.player import Player, LOCAL_PLAYER
 
 if TYPE_CHECKING:
     from amulet.api.wrapper.chunk.translator import Translator

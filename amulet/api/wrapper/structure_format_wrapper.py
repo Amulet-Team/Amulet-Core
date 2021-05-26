@@ -5,7 +5,7 @@ import os
 from .format_wrapper import FormatWrapper
 from amulet.api.data_types import Dimension
 from amulet.api.errors import ObjectReadError, ObjectReadWriteError, PlayerDoesNotExist
-from amulet.api.player.player_manager import Player
+from amulet.api.player import Player
 
 
 class StructureFormatWrapper(FormatWrapper):
