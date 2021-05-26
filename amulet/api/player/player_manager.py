@@ -27,6 +27,7 @@ class Player(Changeable):
         :param player_id: The ID of the player
         :param position: The position of the player in world coordinates
         :param rotation: The rotation of the player
+        :param dimension: The dimension the player is in
         """
         super().__init__()
         assert isinstance(player_id, str)
