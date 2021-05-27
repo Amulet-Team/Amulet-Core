@@ -12,24 +12,24 @@ class Player(Changeable):
     def __init__(
         self,
         player_id: str,
-        position: Tuple[float, float, float],
+        location: Tuple[float, float, float],
         rotation: Tuple[float, float],
         dimension: str,
     ):
         """
-        Creates a new instance of :class:`Player` with the given UUID, position, and rotation
+        Creates a new instance of :class:`Player` with the given UUID, location, and rotation
 
         :param player_id: The ID of the player
-        :param position: The position of the player in world coordinates
+        :param location: The location of the player in world coordinates
         :param rotation: The rotation of the player
         :param dimension: The dimension the player is in
         """
         super().__init__()
         assert isinstance(player_id, str)
         assert (
-            isinstance(position, tuple)
-            and len(position) == 3
-            and all(isinstance(f, float) for f in position)
+            isinstance(location, tuple)
+            and len(location) == 3
+            and all(isinstance(f, float) for f in location)
         )
         assert (
             isinstance(rotation, tuple)
@@ -37,12 +37,12 @@ class Player(Changeable):
             and all(isinstance(f, float) for f in rotation)
         )
         self._player_id = player_id
-        self._position = position
+        self._location = location
         self._rotation = rotation
         self._dimension = dimension
 
     def __repr__(self):
-        return f"Player({self.player_id}, {self.dimension}, {self.position}, {self.rotation})"
+        return f"Player({self.player_id}, {self.dimension}, {self.location}, {self.rotation})"
 
     @property
     def player_id(self) -> str:
@@ -50,9 +50,9 @@ class Player(Changeable):
         return self._player_id
 
     @property
-    def position(self) -> Tuple[float, float, float]:
-        """The current position of the player in the world"""
-        return self._position
+    def location(self) -> Tuple[float, float, float]:
+        """The current location of the player in the world"""
+        return self._location
 
     @property
     def rotation(self) -> Tuple[float, float]:
