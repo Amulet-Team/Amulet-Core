@@ -12,9 +12,9 @@ class Player(Changeable):
     def __init__(
         self,
         player_id: str,
+        dimension: str,
         location: Tuple[float, float, float],
         rotation: Tuple[float, float],
-        dimension: str,
     ):
         """
         Creates a new instance of :class:`Player` with the given UUID, location, and rotation

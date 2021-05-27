@@ -442,9 +442,9 @@ class AnvilFormat(WorldFormatWrapper):
             dimension_str = OVERWORLD
         return Player(
             player_id,
+            dimension_str,
             tuple(map(lambda t: t.value, player_nbt["Pos"])),
             tuple(map(lambda t: t.value, player_nbt["Rotation"])),
-            dimension_str,
         )
 
     def _get_raw_player_data(self, player_id: str) -> nbt.NBTFile:
