@@ -411,7 +411,9 @@ class AnvilFormat(WorldFormatWrapper):
         if player_id == LOCAL_PLAYER:
             return "Player" in self.root_tag["Data"]
         else:
-            return os.path.isfile(os.path.join(self.path, "playerdata", f"{player_id}.dat"))
+            return os.path.isfile(
+                os.path.join(self.path, "playerdata", f"{player_id}.dat")
+            )
 
     def _load_player(self, player_id: str) -> Player:
         """
@@ -427,11 +429,9 @@ class AnvilFormat(WorldFormatWrapper):
         # TODO: rework this when there is better dimension support.
         if isinstance(dimension, nbt.TAG_Int):
             if -1 <= dimension <= 1:
-                dimension_str = {
-                    -1: THE_NETHER,
-                    0: OVERWORLD,
-                    1: THE_END
-                }[dimension.value]
+                dimension_str = {-1: THE_NETHER, 0: OVERWORLD, 1: THE_END}[
+                    dimension.value
+                ]
             else:
                 dimension_str = f"DIM{dimension}"
         elif isinstance(dimension, nbt.TAG_String):
