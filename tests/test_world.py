@@ -4,7 +4,7 @@ import os
 from amulet.api.block import Block
 from amulet.api.chunk import Chunk
 from amulet.api.errors import ChunkDoesNotExist, PlayerDoesNotExist
-from amulet.api.player import Player
+from amulet.api.player import Player, LOCAL_PLAYER
 from amulet.api.selection import SelectionBox, SelectionGroup
 from amulet import load_level, load_format
 from tests.test_utils import get_world_path, create_temp_world, clean_temp_world
@@ -363,7 +363,7 @@ class WorldTestBaseCases:
 
         def test_get_players(self):
             player_ids = list(self.world.all_player_ids())
-            self.assertEquals(2, len(player_ids))
+            self.assertEqual(2, len(player_ids))
             player_id = player_ids[0]
             player = self.world.get_player(player_id)
             self.assertIsInstance(player, Player)
@@ -371,7 +371,7 @@ class WorldTestBaseCases:
             with self.assertRaises(PlayerDoesNotExist):
                 self.world.get_player("test")
 
-            local_player = self.world.get_player()
+            local_player = self.world.get_player(LOCAL_PLAYER)
             self.assertIsInstance(local_player, Player)
 
         @unittest.skip("Entity API currently being rewritten")

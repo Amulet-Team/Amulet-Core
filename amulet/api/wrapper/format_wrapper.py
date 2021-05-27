@@ -681,7 +681,7 @@ class FormatWrapper(ABC):
         """
         return NotImplemented
 
-    def load_player(self, player_id: str = LOCAL_PLAYER) -> "Player":
+    def load_player(self, player_id: str) -> "Player":
         """
         Gets the :class:`Player` object that belongs to the specified player id
 

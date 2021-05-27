@@ -78,7 +78,7 @@ class PlayerManager(DatabaseHistoryManager):
         """
         self._put_entry(player.player_id, player)
 
-    def get_player(self, player_id: str = LOCAL_PLAYER) -> Player:
+    def get_player(self, player_id: str) -> Player:
         """
         Gets the :class:`Player` object that belongs to the specified player id
 

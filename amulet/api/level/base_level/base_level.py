@@ -938,9 +938,18 @@ class BaseLevel:
         """
         Returns a set of all player ids that are present in the level.
         """
-        return self._players.all_player_ids()
+        return self.players.all_player_ids()
 
-    def get_player(self, player_id: str = LOCAL_PLAYER) -> Player:
+    def has_player(self, player_id: str) -> bool:
+        """
+        Is the given player id present in the level
+
+        :param player_id: The player id to check
+        :return: True if the player id is present, False otherwise
+        """
+        return self.players.has_player(player_id)
+
+    def get_player(self, player_id: str) -> Player:
         """
         Gets the :class:`Player` object that belongs to the specified player id
 
@@ -949,4 +958,4 @@ class BaseLevel:
         :param player_id: The desired player id
         :return: A Player instance
         """
-        return self._players.get_player(player_id)
+        return self.players.get_player(player_id)
