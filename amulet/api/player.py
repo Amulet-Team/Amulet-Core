@@ -41,6 +41,9 @@ class Player(Changeable):
         self._rotation = rotation
         self._dimension = dimension
 
+    def __repr__(self):
+        return f"Player({self.player_id}, {self.dimension}, {self.position}, {self.rotation})"
+
     @property
     def player_id(self) -> str:
         """The player's ID"""
