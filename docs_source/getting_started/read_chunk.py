@@ -6,7 +6,7 @@ level = amulet.load_level("level")
 
 # read a chunk
 try:
-    chunk = level.get_chunk(0, 0, "overworld")
+    chunk = level.get_chunk(0, 0, "minecraft:overworld")
 except ChunkDoesNotExist:
     # if a chunk is accessed that does not exist this code will be run.
     print("Chunk does not exist")

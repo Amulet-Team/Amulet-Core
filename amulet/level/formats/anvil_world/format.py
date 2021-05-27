@@ -29,9 +29,9 @@ from amulet.api.data_types import Dimension
 from amulet.api import level as api_level
 
 InternalDimension = str
-OVERWORLD = "overworld"
-THE_NETHER = "nether"
-THE_END = "end"
+OVERWORLD = "minecraft:overworld"
+THE_NETHER = "minecraft:the_nether"
+THE_END = "minecraft:the_end"
 
 
 class AnvilFormat(WorldFormatWrapper):

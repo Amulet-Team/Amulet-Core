@@ -11,7 +11,7 @@ new_chunk = Chunk(1, 2)
 # populate the chunk with any data you want (if any)
 
 # add the newly created chunk to the given dimension.
-level.put_chunk(new_chunk, "overworld")
+level.put_chunk(new_chunk, "minecraft:overworld")
 
 # we have changed the chunk data so we need to set this value otherwise it won't get saved.
 new_chunk.changed = True

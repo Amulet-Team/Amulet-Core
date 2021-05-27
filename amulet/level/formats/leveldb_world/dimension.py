@@ -19,6 +19,9 @@ if TYPE_CHECKING:
     from amulet.api.data_types import Dimension
 
 InternalDimension = int
+OVERWORLD = "minecraft:overworld"
+THE_NETHER = "minecraft:the_nether"
+THE_END = "minecraft:the_end"
 
 
 class LevelDBDimensionManager:
@@ -32,9 +35,9 @@ class LevelDBDimensionManager:
         self._dimension_name_map: Dict["Dimension", InternalDimension] = {}
         self._batch_temp: Dict[bytes, Union[bytes, None]] = {}
 
-        self.register_dimension(0, "overworld")
-        self.register_dimension(1, "nether")
-        self.register_dimension(2, "end")
+        self.register_dimension(0, OVERWORLD)
+        self.register_dimension(1, THE_NETHER)
+        self.register_dimension(2, THE_END)
 
         for key in self._db.keys():
             if 9 <= len(key) <= 10 and key[8] in [44, 118]:  # "," "v"

@@ -13,6 +13,7 @@ from amulet.operations.fill import fill
 from amulet.operations.replace import replace
 from amulet.utils.generator import generator_unpacker
 from tests import worlds_src
+from amulet.level.formats.anvil_world.format import OVERWORLD
 
 
 class WorldTestBaseCases:
@@ -30,30 +31,30 @@ class WorldTestBaseCases:
         def test_get_block(self):
             self.assertEqual(
                 "universal_minecraft:air",
-                self.world.get_block(0, 0, 0, "overworld").blockstate,
+                self.world.get_block(0, 0, 0, OVERWORLD).blockstate,
             )
             self.assertEqual(
                 "universal_minecraft:stone",
-                self.world.get_block(1, 70, 3, "overworld").blockstate,
+                self.world.get_block(1, 70, 3, OVERWORLD).blockstate,
             )
             self.assertEqual(
                 "universal_minecraft:granite[polished=false]",
-                self.world.get_block(1, 70, 5, "overworld").blockstate,
+                self.world.get_block(1, 70, 5, OVERWORLD).blockstate,
             )
             self.assertEqual(
                 "universal_minecraft:granite[polished=true]",
-                self.world.get_block(1, 70, 7, "overworld").blockstate,
+                self.world.get_block(1, 70, 7, OVERWORLD).blockstate,
             )
 
         def test_get_blocks(self):
             selection_box = SelectionBox((0, 0, 0), (10, 10, 10))
             for selection in [SelectionGroup(selection_box), selection_box]:
-                chunk, box = next(self.world.get_chunk_boxes("overworld", selection))
+                chunk, box = next(self.world.get_chunk_boxes(OVERWORLD, selection))
                 self.assertIsInstance(chunk, Chunk)
                 self.assertIsInstance(box, SelectionBox)
 
                 chunk, slices, _ = next(
-                    self.world.get_chunk_slice_box("overworld", selection)
+                    self.world.get_chunk_slice_box(OVERWORLD, selection)
                 )
                 self.assertIsInstance(chunk, Chunk)
                 self.assertIsInstance(slices, tuple)
@@ -68,40 +69,40 @@ class WorldTestBaseCases:
 
             self.assertEqual(
                 "universal_minecraft:stone",
-                self.world.get_block(1, 70, 3, "overworld").blockstate,
+                self.world.get_block(1, 70, 3, OVERWORLD).blockstate,
             )  # Sanity check
             self.assertEqual(
                 "universal_minecraft:granite[polished=false]",
-                self.world.get_block(1, 70, 5, "overworld").blockstate,
+                self.world.get_block(1, 70, 5, OVERWORLD).blockstate,
             )
 
-            clone(self.world, "overworld", src_box, target)
+            clone(self.world, OVERWORLD, src_box, target)
             self.world.create_undo_point()
 
             self.assertEqual(
                 "universal_minecraft:stone",
-                self.world.get_block(1, 70, 5, "overworld").blockstate,
+                self.world.get_block(1, 70, 5, OVERWORLD).blockstate,
             )
 
             self.world.undo()
 
             self.assertEqual(
                 "universal_minecraft:granite[polished=false]",
-                self.world.get_block(1, 70, 5, "overworld").blockstate,
+                self.world.get_block(1, 70, 5, OVERWORLD).blockstate,
             )
 
             self.world.redo()
 
             self.assertEqual(
                 "universal_minecraft:stone",
-                self.world.get_block(1, 70, 5, "overworld").blockstate,
+                self.world.get_block(1, 70, 5, OVERWORLD).blockstate,
             )
 
             self.world.undo()
 
             self.assertEqual(
                 "universal_minecraft:granite[polished=false]",
-                self.world.get_block(1, 70, 5, "overworld").blockstate,
+                self.world.get_block(1, 70, 5, OVERWORLD).blockstate,
             )
 
         def test_fill_operation(self):
@@ -111,18 +112,18 @@ class WorldTestBaseCases:
             # Start sanity check
             self.assertEqual(
                 "universal_minecraft:stone",
-                self.world.get_block(1, 70, 3, "overworld").blockstate,
+                self.world.get_block(1, 70, 3, OVERWORLD).blockstate,
             )
             self.assertEqual(
                 "universal_minecraft:granite[polished=false]",
-                self.world.get_block(1, 70, 5, "overworld").blockstate,
+                self.world.get_block(1, 70, 5, OVERWORLD).blockstate,
             )
             # End sanity check
 
             generator_unpacker(
                 fill(
                     self.world,
-                    "overworld",
+                    OVERWORLD,
                     selection,
                     Block.from_string_blockstate("universal_minecraft:stone"),
                 )
@@ -132,7 +133,7 @@ class WorldTestBaseCases:
             for x, y, z in selection.blocks:
                 self.assertEqual(
                     "universal_minecraft:stone",
-                    self.world.get_block(x, y, z, "overworld").blockstate,
+                    self.world.get_block(x, y, z, OVERWORLD).blockstate,
                     f"Failed at coordinate ({x},{y},{z})",
                 )
 
@@ -140,12 +141,12 @@ class WorldTestBaseCases:
 
             self.assertEqual(
                 "universal_minecraft:stone",
-                self.world.get_block(1, 70, 3, "overworld").blockstate,
+                self.world.get_block(1, 70, 3, OVERWORLD).blockstate,
             )
 
             self.assertEqual(
                 "universal_minecraft:granite[polished=false]",
-                self.world.get_block(1, 70, 5, "overworld").blockstate,
+                self.world.get_block(1, 70, 5, OVERWORLD).blockstate,
             )
 
             self.world.redo()
@@ -153,7 +154,7 @@ class WorldTestBaseCases:
             for x, y, z in selection.blocks:
                 self.assertEqual(
                     "universal_minecraft:stone",
-                    self.world.get_block(x, y, z, "overworld").blockstate,
+                    self.world.get_block(x, y, z, OVERWORLD).blockstate,
                     f"Failed at coordinate ({x},{y},{z})",
                 )
 
@@ -163,16 +164,16 @@ class WorldTestBaseCases:
 
             self.assertEqual(
                 "universal_minecraft:stone",
-                self.world.get_block(1, 70, 3, "overworld").blockstate,
+                self.world.get_block(1, 70, 3, OVERWORLD).blockstate,
             )
             self.assertEqual(
                 "universal_minecraft:granite[polished=false]",
-                self.world.get_block(1, 70, 5, "overworld").blockstate,
+                self.world.get_block(1, 70, 5, OVERWORLD).blockstate,
             )
 
             replace(
                 self.world,
-                "overworld",
+                OVERWORLD,
                 box1,
                 {
                     "original_blocks": [
@@ -189,33 +190,33 @@ class WorldTestBaseCases:
 
             self.assertEqual(
                 "universal_minecraft:stone",
-                self.world.get_block(1, 70, 3, "overworld").blockstate,
+                self.world.get_block(1, 70, 3, OVERWORLD).blockstate,
             )
             self.assertEqual(
                 "universal_minecraft:stone",
-                self.world.get_block(1, 70, 5, "overworld").blockstate,
+                self.world.get_block(1, 70, 5, OVERWORLD).blockstate,
             )
 
             self.world.undo()
 
             self.assertEqual(
                 "universal_minecraft:stone",
-                self.world.get_block(1, 70, 3, "overworld").blockstate,
+                self.world.get_block(1, 70, 3, OVERWORLD).blockstate,
             )
             self.assertEqual(
                 "universal_minecraft:granite[polished=false]",
-                self.world.get_block(1, 70, 5, "overworld").blockstate,
+                self.world.get_block(1, 70, 5, OVERWORLD).blockstate,
             )
 
             self.world.redo()
 
             self.assertEqual(
                 "universal_minecraft:stone",
-                self.world.get_block(1, 70, 3, "overworld").blockstate,
+                self.world.get_block(1, 70, 3, OVERWORLD).blockstate,
             )
             self.assertEqual(
                 "universal_minecraft:stone",
-                self.world.get_block(1, 70, 5, "overworld").blockstate,
+                self.world.get_block(1, 70, 5, OVERWORLD).blockstate,
             )
 
         def test_replace_multiblock(self):
@@ -224,18 +225,18 @@ class WorldTestBaseCases:
 
             self.assertEqual(
                 "universal_minecraft:stone",
-                self.world.get_block(1, 70, 3, "overworld").blockstate,
+                self.world.get_block(1, 70, 3, OVERWORLD).blockstate,
             )
             for y in range(71, 75):
                 self.assertEqual(
                     "universal_minecraft:air",
-                    self.world.get_block(1, y, 3, "overworld").blockstate,
+                    self.world.get_block(1, y, 3, OVERWORLD).blockstate,
                     f"Failed at coordinate (1,{y},3)",
                 )
 
             replace(
                 self.world,
-                "overworld",
+                OVERWORLD,
                 box1,
                 {
                     "original_blocks": [
@@ -254,13 +255,13 @@ class WorldTestBaseCases:
 
             self.assertEqual(
                 "universal_minecraft:granite[polished=false]",
-                self.world.get_block(1, 70, 3, "overworld").blockstate,
+                self.world.get_block(1, 70, 3, OVERWORLD).blockstate,
             )
 
             for y in range(71, 75):
                 self.assertEqual(
                     "universal_minecraft:stone",
-                    self.world.get_block(1, y, 3, "overworld").blockstate,
+                    self.world.get_block(1, y, 3, OVERWORLD).blockstate,
                     f"Failed at coordinate (1,{y},3)",
                 )
 
@@ -268,12 +269,12 @@ class WorldTestBaseCases:
 
             self.assertEqual(
                 "universal_minecraft:stone",
-                self.world.get_block(1, 70, 3, "overworld").blockstate,
+                self.world.get_block(1, 70, 3, OVERWORLD).blockstate,
             )
             for y in range(71, 75):
                 self.assertEqual(
                     "universal_minecraft:air",
-                    self.world.get_block(1, y, 3, "overworld").blockstate,
+                    self.world.get_block(1, y, 3, OVERWORLD).blockstate,
                     f"Failed at coordinate (1,{y},3)",
                 )
 
@@ -281,13 +282,13 @@ class WorldTestBaseCases:
 
             self.assertEqual(
                 "universal_minecraft:granite[polished=false]",
-                self.world.get_block(1, 70, 3, "overworld").blockstate,
+                self.world.get_block(1, 70, 3, OVERWORLD).blockstate,
             )
 
             for y in range(71, 75):
                 self.assertEqual(
                     "universal_minecraft:stone",
-                    self.world.get_block(1, y, 3, "overworld").blockstate,
+                    self.world.get_block(1, y, 3, OVERWORLD).blockstate,
                     f"Failed at coordinate (1,{y},3)",
                 )
 
@@ -297,43 +298,43 @@ class WorldTestBaseCases:
 
             self.assertEqual(
                 "universal_minecraft:stone",
-                self.world.get_block(1, 70, 3, "overworld").blockstate,
+                self.world.get_block(1, 70, 3, OVERWORLD).blockstate,
             )
             self.assertEqual(
                 "universal_minecraft:granite[polished=false]",
-                self.world.get_block(1, 70, 5, "overworld").blockstate,
+                self.world.get_block(1, 70, 5, OVERWORLD).blockstate,
             )
 
-            generator_unpacker(delete_chunk(self.world, "overworld", box1))
+            generator_unpacker(delete_chunk(self.world, OVERWORLD, box1))
             self.world.create_undo_point()
 
             with self.assertRaises(ChunkDoesNotExist):
-                _ = self.world.get_block(1, 70, 3, "overworld").blockstate
+                _ = self.world.get_block(1, 70, 3, OVERWORLD).blockstate
 
             self.assertEqual(
                 0,
-                len([x for x in self.world.get_chunk_slice_box("overworld", subbox1)]),
+                len([x for x in self.world.get_chunk_slice_box(OVERWORLD, subbox1)]),
             )
 
             self.world.undo()
 
             self.assertEqual(
                 "universal_minecraft:stone",
-                self.world.get_block(1, 70, 3, "overworld").blockstate,
+                self.world.get_block(1, 70, 3, OVERWORLD).blockstate,
             )
             self.assertEqual(
                 "universal_minecraft:granite[polished=false]",
-                self.world.get_block(1, 70, 5, "overworld").blockstate,
+                self.world.get_block(1, 70, 5, OVERWORLD).blockstate,
             )
 
             self.world.redo()
 
             with self.assertRaises(ChunkDoesNotExist):
-                _ = self.world.get_block(1, 70, 3, "overworld").blockstate
+                _ = self.world.get_block(1, 70, 3, OVERWORLD).blockstate
 
             self.assertEqual(
                 0,
-                len([x for x in self.world.get_chunk_slice_box("overworld", subbox1)]),
+                len([x for x in self.world.get_chunk_slice_box(OVERWORLD, subbox1)]),
             )
 
         @unittest.skipUnless(

@@ -107,7 +107,7 @@ class ChunkManager(DatabaseHistoryManager):
         """
         Is the chunk specified present in the level.
 
-        >>> ("overworld", 0, 0) in level.chunks
+        >>> ("minecraft:overworld", 0, 0) in level.chunks
         True
 
         :param item: A tuple of dimension, chunk x coordinate and chunk z coordinate.

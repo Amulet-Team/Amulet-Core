@@ -26,7 +26,7 @@ from amulet.libs.leveldb import LevelDBException
 from amulet.level.interfaces.chunk.leveldb.leveldb_chunk_versions import (
     game_to_chunk_version,
 )
-from .dimension import LevelDBDimensionManager
+from .dimension import LevelDBDimensionManager, OVERWORLD, THE_NETHER, THE_END
 
 InternalDimension = Optional[int]
 
@@ -339,12 +339,12 @@ class LevelDBFormat(WorldFormatWrapper):
         dimension = player_nbt["DimensionId"]
         if isinstance(dimension, nbt.TAG_Int) and 0 <= dimension <= 2:
             dimension_str = {
-                0: "overworld",
-                1: "nether",
-                2: "end",
+                0: OVERWORLD,
+                1: THE_NETHER,
+                2: THE_END,
             }[dimension.value]
         else:
-            dimension_str = "overworld"
+            dimension_str = OVERWORLD
         return Player(
             player_id,
             dimension_str,
