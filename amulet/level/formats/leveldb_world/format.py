@@ -318,12 +318,15 @@ class LevelDBFormat(WorldFormatWrapper):
             pid[7:].decode("utf-8")
             for pid, _ in self._level_manager._db.iterate(b"player_", b"player_\xFF")
         )
-        yield LOCAL_PLAYER
+        if self.has_player(LOCAL_PLAYER):
+            yield LOCAL_PLAYER
 
     def has_player(self, player_id: str) -> bool:
-        return f"player_{player_id}".encode("utf-8") in self._level_manager._db
+        if player_id != LOCAL_PLAYER:
+            player_id = f"player_{player_id}"
+        return player_id.encode("utf-8") in self._level_manager._db
 
-    def _load_player(self, player_id: str = LOCAL_PLAYER) -> Player:
+    def _load_player(self, player_id: str) -> Player:
         """
         Gets the :class:`Player` object that belongs to the specified player id
 
@@ -333,11 +336,20 @@ class LevelDBFormat(WorldFormatWrapper):
         :return: A Player instance
         """
         player_nbt = self._get_raw_player_data(player_id)
+        dimension = player_nbt["DimensionId"]
+        if isinstance(dimension, nbt.TAG_Int) and 0 <= dimension <= 2:
+            dimension_str = {
+                0: "overworld",
+                1: "nether",
+                2: "end",
+            }[dimension.value]
+        else:
+            dimension_str = "overworld"
         return Player(
             player_id,
             tuple(map(lambda t: t.value, player_nbt["Pos"])),
             tuple(map(lambda t: t.value, player_nbt["Rotation"])),
-            self.dimensions[player_nbt["DimensionId"].value],
+            dimension_str,
         )
 
     def _get_raw_player_data(self, player_id: str) -> nbt.NBTFile:

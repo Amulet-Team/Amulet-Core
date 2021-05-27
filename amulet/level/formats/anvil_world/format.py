@@ -29,6 +29,9 @@ from amulet.api.data_types import Dimension
 from amulet.api import level as api_level
 
 InternalDimension = str
+OVERWORLD = "overworld"
+THE_NETHER = "nether"
+THE_END = "end"
 
 
 class AnvilFormat(WorldFormatWrapper):
@@ -200,9 +203,9 @@ class AnvilFormat(WorldFormatWrapper):
         )  # the real number might actually be lower
 
         # load all the levels
-        self._register_dimension("", "overworld")
-        self._register_dimension("DIM-1", "nether")
-        self._register_dimension("DIM1", "end")
+        self._register_dimension("", OVERWORLD)
+        self._register_dimension("DIM-1", THE_NETHER)
+        self._register_dimension("DIM1", THE_END)
 
         for dir_name in os.listdir(self.path):
             level_path = os.path.join(self.path, dir_name)
@@ -401,12 +404,16 @@ class AnvilFormat(WorldFormatWrapper):
         """
         for f in glob.iglob(os.path.join(self.path, "playerdata", "*.dat")):
             yield os.path.splitext(os.path.basename(f))[0]
-        yield LOCAL_PLAYER
+        if self.has_player(LOCAL_PLAYER):
+            yield LOCAL_PLAYER
 
     def has_player(self, player_id: str) -> bool:
-        return os.path.isfile(os.path.join(self.path, "playerdata", f"{player_id}.dat"))
+        if player_id == LOCAL_PLAYER:
+            return "Player" in self.root_tag["Data"]
+        else:
+            return os.path.isfile(os.path.join(self.path, "playerdata", f"{player_id}.dat"))
 
-    def _load_player(self, player_id: str = LOCAL_PLAYER) -> Player:
+    def _load_player(self, player_id: str) -> Player:
         """
         Gets the :class:`Player` object that belongs to the specified player id
 
@@ -416,11 +423,28 @@ class AnvilFormat(WorldFormatWrapper):
         :return: A Player instance
         """
         player_nbt = self._get_raw_player_data(player_id)
+        dimension = player_nbt["Dimension"]
+        # TODO: rework this when there is better dimension support.
+        if isinstance(dimension, nbt.TAG_Int):
+            if -1 <= dimension <= 1:
+                dimension_str = {
+                    -1: THE_NETHER,
+                    0: OVERWORLD,
+                    1: THE_END
+                }[dimension.value]
+            else:
+                dimension_str = f"DIM{dimension}"
+        elif isinstance(dimension, nbt.TAG_String):
+            dimension_str = dimension.value
+        else:
+            dimension_str = OVERWORLD
+        if dimension_str not in self._dimension_name_map:
+            dimension_str = OVERWORLD
         return Player(
             player_id,
             tuple(map(lambda t: t.value, player_nbt["Pos"])),
             tuple(map(lambda t: t.value, player_nbt["Rotation"])),
-            self.dimensions[player_nbt["Dimension"].value],
+            dimension_str,
         )
 
     def _get_raw_player_data(self, player_id: str) -> nbt.NBTFile:
