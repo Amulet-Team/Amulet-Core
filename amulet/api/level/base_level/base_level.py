@@ -29,7 +29,7 @@ from amulet.api.history.history_manager import MetaHistoryManager
 from .clone import clone
 from amulet.api import wrapper as api_wrapper, level as api_level
 import PyMCTranslate
-from amulet.api.player import Player, LOCAL_PLAYER
+from amulet.api.player import Player
 from .player_manager import PlayerManager
 
 
