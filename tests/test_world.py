@@ -13,7 +13,7 @@ from amulet.operations.delete_chunk import delete_chunk
 from amulet.operations.fill import fill
 from amulet.operations.replace import replace
 from amulet.utils.generator import generator_unpacker
-from . import worlds_src
+from tests import worlds_src
 
 
 class WorldTestBaseCases:

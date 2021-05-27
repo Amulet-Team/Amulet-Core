@@ -5,7 +5,7 @@ from tests.test_utils import get_world_path, create_temp_world, clean_temp_world
 from amulet import load_level, load_format
 from amulet.level.formats.anvil_world import AnvilFormat
 from amulet.api.level import World
-from . import worlds_src
+from tests import worlds_src
 
 
 class DefinitionBasedLoaderTestCase(unittest.TestCase):
