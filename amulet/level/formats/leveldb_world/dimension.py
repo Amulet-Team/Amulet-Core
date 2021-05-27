@@ -108,7 +108,7 @@ class LevelDBDimensionManager:
             cx, cz, level = struct.unpack("<iii", key_[:12])
         else:
             cx, cz = struct.unpack("<ii", key_[:8])
-            level = None
+            level = 0
         if level not in self._levels:
             self.register_dimension(level)
         self._levels[level].add((cx, cz))
