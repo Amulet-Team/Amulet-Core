@@ -29,6 +29,8 @@ from amulet.api.history.history_manager import MetaHistoryManager
 from .clone import clone
 from amulet.api import wrapper as api_wrapper, level as api_level
 import PyMCTranslate
+from amulet.api.player import Player
+from .player_manager import PlayerManager
 
 
 class BaseLevel:
@@ -64,8 +66,10 @@ class BaseLevel:
         self._history_manager = MetaHistoryManager()
 
         self._chunks: ChunkManager = ChunkManager(self._prefix, self)
+        self._players = PlayerManager(self)
 
         self.history_manager.register(self._chunks, True)
+        self.history_manager.register(self._players, True)
 
     @property
     def level_wrapper(self) -> api_wrapper.FormatWrapper:
@@ -132,12 +136,7 @@ class BaseLevel:
 
         return self.get_chunk(cx, cz, dimension).get_block(offset_x, y, offset_z)
 
-    def _chunk_box(
-        self,
-        cx: int,
-        cz: int,
-        sub_chunk_size: Optional[int] = None,
-    ):
+    def _chunk_box(self, cx: int, cz: int, sub_chunk_size: Optional[int] = None):
         """Get a SelectionBox containing the whole of a given chunk"""
         if sub_chunk_size is None:
             sub_chunk_size = self.sub_chunk_size
@@ -291,10 +290,7 @@ class BaseLevel:
         for (src_cx, src_cz), box in self.get_coord_box(
             dimension, selection, yield_missing_chunks=yield_missing_chunks
         ):
-            dst_full_box = SelectionBox(
-                offset + box.min,
-                offset + box.max,
-            )
+            dst_full_box = SelectionBox(offset + box.min, offset + box.max)
 
             first_chunk = block_coords_to_chunk_coords(
                 dst_full_box.min_x,
@@ -928,3 +924,38 @@ class BaseLevel:
         This will revert those changes.
         """
         self.history_manager.restore_last_undo_point()
+
+    @property
+    def players(self) -> PlayerManager:
+        """
+        The player container.
+
+        Most methods from :class:`PlayerManager` also exists in the level class.
+        """
+        return self._players
+
+    def all_player_ids(self) -> Set[str]:
+        """
+        Returns a set of all player ids that are present in the level.
+        """
+        return self.players.all_player_ids()
+
+    def has_player(self, player_id: str) -> bool:
+        """
+        Is the given player id present in the level
+
+        :param player_id: The player id to check
+        :return: True if the player id is present, False otherwise
+        """
+        return self.players.has_player(player_id)
+
+    def get_player(self, player_id: str) -> Player:
+        """
+        Gets the :class:`Player` object that belongs to the specified player id
+
+        If no parameter is supplied, the data of the local player will be returned
+
+        :param player_id: The desired player id
+        :return: A Player instance
+        """
+        return self.players.get_player(player_id)

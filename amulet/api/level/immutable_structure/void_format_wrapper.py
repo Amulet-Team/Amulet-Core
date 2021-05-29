@@ -1,8 +1,9 @@
-from typing import Any, Generator, List, Dict, Tuple, Optional, TYPE_CHECKING
+from typing import Any, List, Dict, Tuple, Optional, TYPE_CHECKING, Iterable
 
 from amulet.api.data_types import Dimension, PlatformType, ChunkCoordinates
 from amulet.api.wrapper import FormatWrapper
-from amulet.api.errors import ChunkDoesNotExist
+from amulet.api.errors import ChunkDoesNotExist, PlayerDoesNotExist
+from amulet.api.player import Player
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
@@ -37,7 +38,7 @@ class VoidFormatWrapper(FormatWrapper):
     def can_add_dimension(self) -> bool:
         return False
 
-    def register_dimension(self, dimension_internal: Any, dimension_name: Dimension):
+    def register_dimension(self, dimension_identifier: Any):
         pass
 
     def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> "Interface":
@@ -58,9 +59,7 @@ class VoidFormatWrapper(FormatWrapper):
     def unload(self):
         pass
 
-    def all_chunk_coords(
-        self, dimension: Dimension
-    ) -> Generator[ChunkCoordinates, None, None]:
+    def all_chunk_coords(self, dimension: Dimension) -> Iterable[ChunkCoordinates]:
         yield from ()
 
     def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
@@ -74,3 +73,15 @@ class VoidFormatWrapper(FormatWrapper):
 
     def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> Any:
         raise ChunkDoesNotExist
+
+    def all_player_ids(self) -> Iterable[str]:
+        yield from ()
+
+    def has_player(self, player_id: str) -> bool:
+        return False
+
+    def _load_player(self, player_id: str) -> Player:
+        raise PlayerDoesNotExist
+
+    def _get_raw_player_data(self, player_id: str) -> Any:
+        raise PlayerDoesNotExist

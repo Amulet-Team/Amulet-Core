@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional, Tuple, Generator, Set
+from typing import Optional, Tuple, Generator, Set, Iterable, Dict
 import weakref
 
 from amulet.api.data_types import DimensionCoordinates, Dimension
@@ -55,6 +55,9 @@ class ChunkManager(DatabaseHistoryManager):
     It also contains a history manager to allow undoing and redoing of changes.
     """
 
+    _temporary_database: Dict[DimensionCoordinates, EntryType]
+    _history_database: Dict[DimensionCoordinates, RevisionManager]
+
     DoesNotExistError = ChunkDoesNotExist
     LoadError = ChunkLoadError
 
@@ -100,15 +103,17 @@ class ChunkManager(DatabaseHistoryManager):
                 for chunk_key in unload_chunks:
                     del self._temporary_database[chunk_key]
 
-    def unload_unchanged(self):
-        """Unload all chunks that have not been marked as changed."""
-        with self._lock:
-            unchanged = []
-            for key, chunk in self._temporary_database.items():
-                if not chunk.changed:
-                    unchanged.append(key)
-            for key in unchanged:
-                del self._temporary_database[key]
+    def __contains__(self, item: DimensionCoordinates) -> bool:
+        """
+        Is the chunk specified present in the level.
+
+        >>> ("minecraft:overworld", 0, 0) in level.chunks
+        True
+
+        :param item: A tuple of dimension, chunk x coordinate and chunk z coordinate.
+        :return: True if the chunk is present, False otherwise
+        """
+        return self._has_entry(item)
 
     def has_chunk(self, dimension: Dimension, cx: int, cz: int) -> bool:
         """
@@ -119,21 +124,11 @@ class ChunkManager(DatabaseHistoryManager):
         :param cz: The chunk z coordinate.
         :return: True if the chunk is present, False otherwise
         """
-        return self._has_entry(
-            (dimension, cx, cz)
-        ) or self.level.level_wrapper.has_chunk(cx, cz, dimension)
+        return self._has_entry((dimension, cx, cz))
 
-    def __contains__(self, item: DimensionCoordinates) -> bool:
-        """
-        Is the chunk specified present in the level.
-
-        >>> ("overworld", 0, 0) in level.chunks
-        True
-
-        :param item: A tuple of dimension, chunk x coordinate and chunk z coordinate.
-        :return: True if the chunk is present, False otherwise
-        """
-        return self.has_chunk(*item)
+    def _raw_has_entry(self, key: DimensionCoordinates):
+        dimension, cx, cz = key
+        return self.level.level_wrapper.has_chunk(cx, cz, dimension)
 
     def all_chunk_coords(self, dimension: Dimension) -> Set[Tuple[int, int]]:
         """
@@ -141,28 +136,37 @@ class ChunkManager(DatabaseHistoryManager):
 
         This is the combination of chunks saved to the world and chunks yet to be saved.
         """
+        return self._all_entries(dimension)
+
+    def _all_entries(self, dimension: Dimension) -> Set[Tuple[int, int]]:
+        # custom behaviour to handle the dimension option.
         with self._lock:
             coords = set()
             deleted_chunks = set()
-            for dim, cx, cz in self._temporary_database.keys():
+            for key in self._temporary_database.keys():
+                dim, cx, cz = key
                 if dim == dimension:
-                    if self._temporary_database[(dim, cx, cz)] is None:
+                    if self._temporary_database[key] is None:
                         deleted_chunks.add((cx, cz))
                     else:
                         coords.add((cx, cz))
 
-            for dim, cx, cz in self._history_database.keys():
-                if dim == dimension and (dim, cx, cz) not in self._temporary_database:
-                    if self._history_database[(dim, cx, cz)].is_deleted:
+            for key in self._history_database.keys():
+                dim, cx, cz = key
+                if dim == dimension and key not in self._temporary_database:
+                    if self._history_database[key].is_deleted:
                         deleted_chunks.add((cx, cz))
                     else:
                         coords.add((cx, cz))
 
-            for cx, cz in self.level.level_wrapper.all_chunk_coords(dimension):
-                if (cx, cz) not in coords and (cx, cz) not in deleted_chunks:
-                    coords.add((cx, cz))
+            for key in self._raw_all_entries(dimension):
+                if key not in coords and key not in deleted_chunks:
+                    coords.add(key)
 
         return coords
+
+    def _raw_all_entries(self, dimension: Dimension) -> Iterable[Tuple[int, int]]:
+        return self.level.level_wrapper.all_chunk_coords(dimension)
 
     def get_chunk(self, dimension: Dimension, cx: int, cz: int) -> Chunk:
         """
@@ -181,6 +185,13 @@ class ChunkManager(DatabaseHistoryManager):
             :class:`~amulet.api.errors.ChunkDoesNotExist`: If the chunk does not exist (was deleted or never created)
         """
         return self._get_entry((dimension, cx, cz))
+
+    def _raw_get_entry(self, key: EntryKeyType) -> EntryType:
+        dimension, cx, cz = key
+        chunk = self.level.level_wrapper.load_chunk(cx, cz, dimension)
+        chunk.block_palette = self.level.block_palette
+        chunk.biome_palette = self.level.biome_palette
+        return chunk
 
     def put_chunk(self, chunk: Chunk, dimension: Dimension):
         """
@@ -202,13 +213,6 @@ class ChunkManager(DatabaseHistoryManager):
         :param dimension: The dimension to delete the chunk from.
         """
         self._delete_entry((dimension, cx, cz))
-
-    def _get_entry_from_world(self, key: EntryKeyType) -> EntryType:
-        dimension, cx, cz = key
-        chunk = self.level.level_wrapper.load_chunk(cx, cz, dimension)
-        chunk.block_palette = self.level.block_palette
-        chunk.biome_palette = self.level.biome_palette
-        return chunk
 
     def _create_new_revision_manager(
         self, key: EntryKeyType, original_entry: EntryType

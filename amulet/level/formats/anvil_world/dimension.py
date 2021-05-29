@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Dict, Generator
+from typing import Dict, Iterable
 import re
 
 import amulet_nbt as nbt
@@ -37,7 +37,7 @@ class AnvilDimensionManager:
                     mcc=self._mcc,
                 )
 
-    def all_chunk_coords(self) -> Generator[ChunkCoordinates, None, None]:
+    def all_chunk_coords(self) -> Iterable[ChunkCoordinates]:
         for region in self._regions.values():
             yield from region.all_chunk_coords()
 

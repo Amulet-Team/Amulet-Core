@@ -1,10 +1,11 @@
 from abc import abstractmethod
-from typing import BinaryIO, List, Any, Tuple
+from typing import BinaryIO, List, Any, Tuple, Iterable
 import os
 
 from .format_wrapper import FormatWrapper
 from amulet.api.data_types import Dimension
-from amulet.api.errors import ObjectReadError, ObjectReadWriteError
+from amulet.api.errors import ObjectReadError, ObjectReadWriteError, PlayerDoesNotExist
+from amulet.api.player import Player
 
 
 class StructureFormatWrapper(FormatWrapper):
@@ -38,7 +39,7 @@ class StructureFormatWrapper(FormatWrapper):
     def can_add_dimension(self) -> bool:
         return False
 
-    def register_dimension(self, dimension_internal: Any, dimension_name: Dimension):
+    def register_dimension(self, dimension_identifier: Any):
         pass
 
     @property
@@ -83,3 +84,15 @@ class StructureFormatWrapper(FormatWrapper):
         os.makedirs(os.path.dirname(self._path), exist_ok=True)
         with open(self._path, "wb") as f:
             self.save_to(f)
+
+    def all_player_ids(self) -> Iterable[str]:
+        yield from ()
+
+    def has_player(self, player_id: str) -> bool:
+        return False
+
+    def _load_player(self, player_id: str) -> Player:
+        raise PlayerDoesNotExist
+
+    def _get_raw_player_data(self, player_id: str) -> Any:
+        raise PlayerDoesNotExist

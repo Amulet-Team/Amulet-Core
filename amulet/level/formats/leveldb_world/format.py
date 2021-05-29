@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Dict, Generator, Union, Optional, List, BinaryIO
+from typing import Tuple, Dict, Union, Optional, List, BinaryIO, Iterable
 from io import BytesIO
 import shutil
 import traceback
 import time
 
 import amulet_nbt as nbt
+from amulet.api.player import Player, LOCAL_PLAYER
 
 from amulet.libs.leveldb import LevelDB
 from amulet.utils.format_utils import check_all_exist
@@ -19,13 +20,13 @@ from amulet.api.data_types import (
     Dimension,
 )
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
-from amulet.api.errors import ObjectWriteError, ObjectReadError
+from amulet.api.errors import ObjectWriteError, ObjectReadError, PlayerDoesNotExist
 
 from amulet.libs.leveldb import LevelDBException
 from amulet.level.interfaces.chunk.leveldb.leveldb_chunk_versions import (
     game_to_chunk_version,
 )
-from .dimension import LevelDBDimensionManager
+from .dimension import LevelDBDimensionManager, OVERWORLD, THE_NETHER, THE_END
 
 InternalDimension = Optional[int]
 
@@ -183,17 +184,17 @@ class LevelDBFormat(WorldFormatWrapper):
         self._verify_has_lock()
         return self._level_manager.dimensions
 
-    def register_dimension(
-        self, dimension_internal: int, dimension_name: Optional["Dimension"] = None
-    ):
-        """
-        Register a new dimension.
-
-        :param dimension_internal: The internal integer representation of the dimension.
-        :param dimension_name: The name of the dimension shown to the user.
-        :return:
-        """
-        self._level_manager.register_dimension(dimension_internal, dimension_name)
+    # def register_dimension(
+    #     self, dimension_internal: int, dimension_name: Optional["Dimension"] = None
+    # ):
+    #     """
+    #     Register a new dimension.
+    #
+    #     :param dimension_internal: The internal integer representation of the dimension.
+    #     :param dimension_name: The name of the dimension shown to the user.
+    #     :return:
+    #     """
+    #     self._level_manager.register_dimension(dimension_internal, dimension_name)
 
     def _get_interface_key(
         self, raw_chunk_data: Optional[Dict[bytes, bytes]] = None
@@ -281,9 +282,7 @@ class LevelDBFormat(WorldFormatWrapper):
     def unload(self):
         pass
 
-    def all_chunk_coords(
-        self, dimension: "Dimension"
-    ) -> Generator[ChunkCoordinates, None, None]:
+    def all_chunk_coords(self, dimension: "Dimension") -> Iterable[ChunkCoordinates]:
         self._verify_has_lock()
         yield from self._level_manager.all_chunk_coords(dimension)
 
@@ -310,3 +309,56 @@ class LevelDBFormat(WorldFormatWrapper):
         :return: The raw chunk data.
         """
         return self._level_manager.get_chunk_data(cx, cz, dimension)
+
+    def all_player_ids(self) -> Iterable[str]:
+        """
+        Returns a generator of all player ids that are present in the level
+        """
+        yield from (
+            pid[7:].decode("utf-8")
+            for pid, _ in self._level_manager._db.iterate(b"player_", b"player_\xFF")
+        )
+        if self.has_player(LOCAL_PLAYER):
+            yield LOCAL_PLAYER
+
+    def has_player(self, player_id: str) -> bool:
+        if player_id != LOCAL_PLAYER:
+            player_id = f"player_{player_id}"
+        return player_id.encode("utf-8") in self._level_manager._db
+
+    def _load_player(self, player_id: str) -> Player:
+        """
+        Gets the :class:`Player` object that belongs to the specified player id
+
+        If no parameter is supplied, the data of the local player will be returned
+
+        :param player_id: The desired player id
+        :return: A Player instance
+        """
+        player_nbt = self._get_raw_player_data(player_id)
+        dimension = player_nbt["DimensionId"]
+        if isinstance(dimension, nbt.TAG_Int) and 0 <= dimension <= 2:
+            dimension_str = {
+                0: OVERWORLD,
+                1: THE_NETHER,
+                2: THE_END,
+            }[dimension.value]
+        else:
+            dimension_str = OVERWORLD
+        return Player(
+            player_id,
+            dimension_str,
+            tuple(map(lambda t: t.value, player_nbt["Pos"])),
+            tuple(map(lambda t: t.value, player_nbt["Rotation"])),
+        )
+
+    def _get_raw_player_data(self, player_id: str) -> nbt.NBTFile:
+        if player_id == LOCAL_PLAYER:
+            key = player_id.encode("utf-8")
+        else:
+            key = f"player_{player_id}".encode("utf-8")
+        try:
+            data = self._level_manager._db.get(key)
+        except KeyError:
+            raise PlayerDoesNotExist(f"Player {player_id} doesn't exist")
+        return nbt.load(data, compressed=False, little_endian=True)

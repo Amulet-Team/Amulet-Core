@@ -68,7 +68,7 @@ block_id_2 = level.block_palette.get_add_block(universal_block_2)
 # This code was documented in the previous example so I won't do it again.
 x, z = 15, 17
 cx, cz = block_coords_to_chunk_coords(x, z)
-chunk = level.get_chunk(cx, cz, "overworld")
+chunk = level.get_chunk(cx, cz, "minecraft:overworld")
 offset_x, offset_z = x - 16 * cx, z - 16 * cz
 
 # set the blocks into the world.

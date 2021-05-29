@@ -10,7 +10,7 @@ level = amulet.load_level("level")
 # is a helper method to get the universal Block object.
 # This method also adds a bit of overhead so is not
 # great at scale but lets show how it works anyway.
-universal_block = level.get_block(9, 98, 24, "overworld")
+universal_block = level.get_block(9, 98, 24, "minecraft:overworld")
 # Block(universal_minecraft:piston_head[facing="up",short="false"])
 
 # Lets look into what level.get_block actually does.
@@ -20,7 +20,7 @@ cx, cz = block_coords_to_chunk_coords(x, z)
 # 0, 1
 
 # read in the chunk
-chunk = level.get_chunk(cx, cz, "overworld")
+chunk = level.get_chunk(cx, cz, "minecraft:overworld")
 
 # note that level.get_block and level.get_chunk may raise ChunkLoadError or ChunkDoesNotExist
 # wrap them in a try except block to handle the error.

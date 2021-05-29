@@ -13,7 +13,7 @@ block, block_entity = level.get_version_block(
     0,  # x location
     70,  # y location
     0,  # z location
-    "overworld",  # dimension
+    "minecraft:overworld",  # dimension
     game_version,
 )
 
@@ -30,7 +30,7 @@ level.set_version_block(
     0,  # x location
     70,  # y location
     0,  # z location
-    "overworld",  # dimension
+    "minecraft:overworld",  # dimension
     game_version,
     block,
 )

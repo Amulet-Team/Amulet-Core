@@ -2,16 +2,22 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Any, Dict, Generator, Optional, List, Union
+from typing import Tuple, Any, Dict, Generator, Optional, List, Union, Iterable
 import time
 import glob
 import shutil
 
 import amulet_nbt as nbt
+from amulet.api.player import Player, LOCAL_PLAYER
 
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.utils.format_utils import check_all_exist, load_leveldat
-from amulet.api.errors import DimensionDoesNotExist, ObjectWriteError, ChunkLoadError
+from amulet.api.errors import (
+    DimensionDoesNotExist,
+    ObjectWriteError,
+    ChunkLoadError,
+    PlayerDoesNotExist,
+)
 from amulet.api.data_types import (
     ChunkCoordinates,
     VersionNumberInt,
@@ -23,6 +29,9 @@ from amulet.api.data_types import Dimension
 from amulet.api import level as api_level
 
 InternalDimension = str
+OVERWORLD = "minecraft:overworld"
+THE_NETHER = "minecraft:the_nether"
+THE_END = "minecraft:the_end"
 
 
 class AnvilFormat(WorldFormatWrapper):
@@ -42,7 +51,7 @@ class AnvilFormat(WorldFormatWrapper):
         self._platform = "java"
         self._root_tag: nbt.NBTFile = nbt.NBTFile()
         self._levels: Dict[InternalDimension, AnvilDimensionManager] = {}
-        self._dimension_name_map: Dict["Dimension", InternalDimension] = {}
+        self._dimension_name_map: Dict[Dimension, InternalDimension] = {}
         self._mcc_support: Optional[bool] = None
         self._lock_time = None
         self._shallow_load()
@@ -131,13 +140,13 @@ class AnvilFormat(WorldFormatWrapper):
             return f"Java Unknown Version"
 
     @property
-    def dimensions(self) -> List["Dimension"]:
+    def dimensions(self) -> List[Dimension]:
         return list(self._dimension_name_map.keys())
 
-    def register_dimension(
+    def _register_dimension(
         self,
         relative_dimension_path: InternalDimension,
-        dimension_name: Optional["Dimension"] = None,
+        dimension_name: Optional[Dimension] = None,
     ):
         """
         Register a new dimension.
@@ -146,7 +155,7 @@ class AnvilFormat(WorldFormatWrapper):
         :param dimension_name: The name of the dimension shown to the user
         """
         if dimension_name is None:
-            dimension_name: "Dimension" = relative_dimension_path
+            dimension_name: Dimension = relative_dimension_path
 
         if relative_dimension_path:
             path = os.path.join(self.path, relative_dimension_path)
@@ -194,23 +203,23 @@ class AnvilFormat(WorldFormatWrapper):
         )  # the real number might actually be lower
 
         # load all the levels
-        self.register_dimension("", "overworld")
-        self.register_dimension("DIM-1", "nether")
-        self.register_dimension("DIM1", "end")
+        self._register_dimension("", OVERWORLD)
+        self._register_dimension("DIM-1", THE_NETHER)
+        self._register_dimension("DIM1", THE_END)
 
         for dir_name in os.listdir(self.path):
             level_path = os.path.join(self.path, dir_name)
             if os.path.isdir(level_path) and dir_name.startswith("DIM"):
                 if AnvilDimensionManager.level_regex.fullmatch(dir_name) is None:
                     continue
-                self.register_dimension(dir_name)
+                self._register_dimension(dir_name)
 
         for dimension_path in glob.glob(
             os.path.join(self.path, "dimensions", "*", "*", "region")
         ):
             dimension_path_split = dimension_path.split(os.sep)
             dimension_name = f"{dimension_path_split[-3]}/{dimension_path_split[-2]}"
-            self.register_dimension(
+            self._register_dimension(
                 os.path.dirname(os.path.relpath(dimension_path, self.path)),
                 dimension_name,
             )
@@ -346,22 +355,20 @@ class AnvilFormat(WorldFormatWrapper):
         for level in self._levels.values():
             level.unload()
 
-    def _has_dimension(self, dimension: "Dimension"):
+    def _has_dimension(self, dimension: Dimension):
         return (
             dimension in self._dimension_name_map
             and self._dimension_name_map[dimension] in self._levels
         )
 
-    def _get_dimension(self, dimension: "Dimension"):
+    def _get_dimension(self, dimension: Dimension):
         self._verify_has_lock()
         if self._has_dimension(dimension):
             return self._levels[self._dimension_name_map[dimension]]
         else:
             raise DimensionDoesNotExist(dimension)
 
-    def all_chunk_coords(
-        self, dimension: "Dimension"
-    ) -> Generator[ChunkCoordinates, None, None]:
+    def all_chunk_coords(self, dimension: Dimension) -> Iterable[ChunkCoordinates]:
         if self._has_dimension(dimension):
             yield from self._get_dimension(dimension).all_chunk_coords()
 
@@ -370,16 +377,16 @@ class AnvilFormat(WorldFormatWrapper):
             dimension
         ).has_chunk(cx, cz)
 
-    def _delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
+    def _delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         """Delete a chunk from a given dimension"""
         if self._has_dimension(dimension):
             self._get_dimension(dimension).delete_chunk(cx, cz)
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: "Dimension"):
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
         self._get_dimension(dimension).put_chunk_data(cx, cz, data)
 
     def _get_raw_chunk_data(
-        self, cx: int, cz: int, dimension: "Dimension"
+        self, cx: int, cz: int, dimension: Dimension
     ) -> nbt.NBTFile:
         """
         Return the raw data as loaded from disk.
@@ -390,6 +397,67 @@ class AnvilFormat(WorldFormatWrapper):
         :return: The raw chunk data.
         """
         return self._get_dimension(dimension).get_chunk_data(cx, cz)
+
+    def all_player_ids(self) -> Iterable[str]:
+        """
+        Returns a generator of all player ids that are present in the level
+        """
+        for f in glob.iglob(os.path.join(self.path, "playerdata", "*.dat")):
+            yield os.path.splitext(os.path.basename(f))[0]
+        if self.has_player(LOCAL_PLAYER):
+            yield LOCAL_PLAYER
+
+    def has_player(self, player_id: str) -> bool:
+        if player_id == LOCAL_PLAYER:
+            return "Player" in self.root_tag["Data"]
+        else:
+            return os.path.isfile(
+                os.path.join(self.path, "playerdata", f"{player_id}.dat")
+            )
+
+    def _load_player(self, player_id: str) -> Player:
+        """
+        Gets the :class:`Player` object that belongs to the specified player id
+
+        If no parameter is supplied, the data of the local player will be returned
+
+        :param player_id: The desired player id
+        :return: A Player instance
+        """
+        player_nbt = self._get_raw_player_data(player_id)
+        dimension = player_nbt["Dimension"]
+        # TODO: rework this when there is better dimension support.
+        if isinstance(dimension, nbt.TAG_Int):
+            if -1 <= dimension <= 1:
+                dimension_str = {-1: THE_NETHER, 0: OVERWORLD, 1: THE_END}[
+                    dimension.value
+                ]
+            else:
+                dimension_str = f"DIM{dimension}"
+        elif isinstance(dimension, nbt.TAG_String):
+            dimension_str = dimension.value
+        else:
+            dimension_str = OVERWORLD
+        if dimension_str not in self._dimension_name_map:
+            dimension_str = OVERWORLD
+        return Player(
+            player_id,
+            dimension_str,
+            tuple(map(lambda t: t.value, player_nbt["Pos"])),
+            tuple(map(lambda t: t.value, player_nbt["Rotation"])),
+        )
+
+    def _get_raw_player_data(self, player_id: str) -> nbt.NBTFile:
+        if player_id == LOCAL_PLAYER:
+            if "Player" in self.root_tag["Data"]:
+                return self.root_tag["Data"]["Player"]
+            else:
+                raise PlayerDoesNotExist("Local player doesn't exist")
+        else:
+            path = os.path.join(self.path, "playerdata", f"{player_id}.dat")
+            if os.path.exists(path):
+                return nbt.load(path)
+            raise PlayerDoesNotExist(f"Player {player_id} does not exist")
 
 
 if __name__ == "__main__":
