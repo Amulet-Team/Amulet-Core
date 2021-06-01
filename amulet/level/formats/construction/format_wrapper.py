@@ -122,7 +122,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
                                 .value.reshape(-1, 6)
                                 .tolist()
                             )
-                            self._selection = SelectionGroup(
+                            self._bounds[self.dimensions[0]] = SelectionGroup(
                                 [
                                     SelectionBox((minx, miny, minz), (maxx, maxy, maxz))
                                     for minx, miny, minz, maxx, maxy, maxz in selection_boxes
@@ -150,7 +150,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         self._populate_chunk_to_box()
 
     def _populate_chunk_to_box(self):
-        for box in self._selection.selection_boxes:
+        for box in self._bounds[self.dimensions[0]].selection_boxes:
             for cx, cz in box.chunk_locations():
                 self._chunk_to_box.setdefault((cx, cz), []).append(
                     SelectionBox.create_chunk_box(cx, cz).intersection(box)
@@ -192,7 +192,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
 
             selection_boxes = metadata["selection_boxes"].value.reshape(-1, 6).tolist()
 
-            self._selection = SelectionGroup(
+            self._bounds[self.dimensions[0]] = SelectionGroup(
                 [
                     SelectionBox((minx, miny, minz), (maxx, maxy, maxz))
                     for minx, miny, minz, maxx, maxy, maxz in selection_boxes
@@ -306,7 +306,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
                         "selection_boxes": amulet_nbt.TAG_Int_Array(
                             [
                                 c
-                                for box in self._selection.selection_boxes
+                                for box in self._bounds[self.dimensions[0]].selection_boxes
                                 for c in (*box.min, *box.max)
                             ]
                         ),

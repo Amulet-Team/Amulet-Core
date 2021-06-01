@@ -12,10 +12,12 @@ from typing import (
     Iterable,
     Callable,
     Type,
+    Union,
 )
 import copy
 import numpy
 import os
+import warnings
 
 import PyMCTranslate
 
@@ -51,6 +53,12 @@ if TYPE_CHECKING:
 DefaultPlatform = "Unknown Platform"
 DefaultVersion = (0, 0, 0)
 
+DefaultSelection = SelectionGroup(
+    SelectionBox(
+        (-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000)
+    )
+)
+
 
 class FormatWrapper(ABC):
     """
@@ -76,9 +84,7 @@ class FormatWrapper(ABC):
         self._translation_manager = None
         self._platform: PlatformType = DefaultPlatform
         self._version: VersionNumberAny = DefaultVersion
-        self._selection = SelectionGroup(
-            [SelectionBox((-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000))]
-        )
+        self._bounds: Dict[Dimension, SelectionGroup] = {}
         self._changed: bool = False
 
     @property
@@ -208,7 +214,16 @@ class FormatWrapper(ABC):
     @property
     def selection(self) -> SelectionGroup:
         """The area that all chunk data must fit within."""
-        return self._selection
+        warnings.warn(
+            "FormatWrapper.selection is depreciated and will be removed in the future. Please use FormatWrapper.bounds(dimension) instead",
+            DeprecationWarning,
+        )
+        return self.bounds(self.dimensions[0])
+
+    def bounds(self, dimension: Dimension) -> SelectionGroup:
+        if dimension not in self._bounds and dimension in self.dimensions:
+            self._bounds[dimension] = DefaultSelection
+        return self._bounds[dimension]
 
     @abstractmethod
     def _get_interface(
@@ -229,7 +244,9 @@ class FormatWrapper(ABC):
         self,
         platform: PlatformType,
         version: VersionNumberAny,
-        selection: Optional[SelectionGroup] = None,
+        bounds: Union[
+            SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
+        ] = None,
         overwrite: bool = False,
         **kwargs,
     ):
@@ -238,6 +255,13 @@ class FormatWrapper(ABC):
 
         You might want to call :attr:`exists` to check if something exists at the path
         and warn the user they are going to overwrite existing data before calling this method.
+
+        :param platform: The platform the data should use.
+        :param version: The version the data should use.
+        :param bounds: The bounds for each dimension. If one :class:`SelectionGroup` is given it will be applied to all dimensions.
+        :param overwrite: Should an existing database be overwritten. If this is False and one exists and error will be thrown.
+        :param kwargs: Extra arguments as each implementation requires.
+        :return:
         """
         if self.is_open:
             raise ObjectReadError(f"Cannot open {self} because it was already opened.")
@@ -261,28 +285,35 @@ class FormatWrapper(ABC):
                 )
 
         if self.requires_selection:
-            if not isinstance(selection, SelectionGroup):
-                raise ObjectReadError("A selection was required but one was not given.")
-            if self.multi_selection:
-                self._selection = selection
+            def clean_selection(selection: SelectionGroup) -> SelectionGroup:
+                if self.multi_selection:
+                    return selection
+                else:
+                    if selection:
+                        return SelectionGroup(
+                            sorted(
+                                selection.selection_boxes, reverse=True, key=lambda b: b.volume
+                            )[0]
+                        )
+                    else:
+                        raise ObjectReadError(
+                            "A single selection was required but none were given."
+                        )
+
+            if isinstance(bounds, SelectionGroup):
+                bounds = clean_selection(bounds)
+                self._bounds = {dim: bounds for dim in self.dimensions}
+            elif isinstance(bounds, dict):
+                for dim in self.dimensions:
+                    group = bounds.get(dim, None)
+                    if isinstance(group, SelectionGroup):
+                        self._bounds[dim] = clean_selection(group)
+                    else:
+                        self._bounds[dim] = DefaultSelection
             else:
-                if not selection:
-                    raise ObjectReadError(
-                        "A single selection was required but none were given."
-                    )
-                self._selection = SelectionGroup(
-                    sorted(
-                        selection.selection_boxes, reverse=True, key=lambda b: b.volume
-                    )[0]
-                )
+                raise ObjectReadError("A selection was required but none were given.")
         else:
-            self._selection = SelectionGroup(
-                [
-                    SelectionBox(
-                        (-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000)
-                    )
-                ]
-            )
+            self._bounds = {dim: DefaultSelection for dim in self.dimensions}
 
         self._platform = translator_version.platform
         self._version = translator_version.version_number

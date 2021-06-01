@@ -108,7 +108,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper):
 
             max_point = min_point + size
             selection = SelectionBox(min_point, max_point)
-            self._selection = SelectionGroup(selection)
+            self._bounds[self.dimensions[0]] = SelectionGroup(selection)
             data_version = sponge_schem.get("DataVersion")
             if not isinstance(data_version, amulet_nbt.TAG_Int):
                 raise SpongeSchemReadError("DataVersion must be a TAG_Int.")
@@ -285,7 +285,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper):
                 "Sponge Schematic Version 1 is not supported currently."
             )
         elif self._schem_version == 2:
-            selection = self._selection.selection_boxes[0]
+            selection = self._bounds[self.dimensions[0]].selection_boxes[0]
             if any(s > 2 ** 16 - 1 for s in selection.shape):
                 raise SpongeSchemWriteError(
                     "The structure is too large to be exported to a Sponge Schematic file. It must be 2^16 - 1 at most in each dimension."
@@ -404,7 +404,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper):
             chunk_palette,
             self.max_world_version,
             SelectionBox.create_chunk_box(chunk.cx, chunk.cz).intersection(
-                self._selection.to_box()
+                self._bounds[self.dimensions[0]].to_box()
             ),
         )
 

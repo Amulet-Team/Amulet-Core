@@ -33,15 +33,16 @@ class CreateWorldTestCase(unittest.TestCase):
             level.create_and_open(
                 platform,
                 version,
-                SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]),
+                SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]),  # this is not used by the world classes.
                 overwrite=True,
             )
         else:
             level.create_and_open(platform, version, overwrite=True)
 
+        dimension = level.dimensions[0]
         platform_ = level.platform
         version_ = level.version
-        selection_ = level.selection
+        selection_ = level.bounds(dimension)
 
         level.save()
         level.close()
@@ -56,7 +57,7 @@ class CreateWorldTestCase(unittest.TestCase):
         # check that the platform and version are the same
         self.assertEqual(level2.platform, platform_)
         self.assertEqual(level2.version, version_)
-        self.assertEqual(level2.selection, selection_)
+        self.assertEqual(level2.bounds(dimension), selection_)
         level2.close()
 
         self.assertTrue(os.path.exists(level.path))
