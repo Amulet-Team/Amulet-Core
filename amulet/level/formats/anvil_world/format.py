@@ -9,8 +9,8 @@ import shutil
 
 import amulet_nbt as nbt
 from amulet.api.player import Player, LOCAL_PLAYER
-
-from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
+from amulet.api.selection import SelectionGroup, SelectionBox
+from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion, DefaultSelection
 from amulet.utils.format_utils import check_all_exist, load_leveldat
 from amulet.api.errors import (
     DimensionDoesNotExist,
@@ -170,6 +170,53 @@ class AnvilFormat(WorldFormatWrapper):
                 path, mcc=self._mcc_support
             )
             self._dimension_name_map[dimension_name] = relative_dimension_path
+            bounds = None
+            if self.version >= 2709:  # This number might be smaller
+                def get_recursive(obj: nbt.TAG_Compound, *keys):
+                    if isinstance(obj, nbt.TAG_Compound) and keys:
+                        key = keys[0]
+                        keys = keys[1:]
+                        if key in obj:
+                            if keys:
+                                return get_recursive(obj[key], *keys)
+                            else:
+                                return obj[key]
+                dimension_settings = get_recursive(
+                    self.root_tag.value,
+                    "Data",
+                    "WorldGenSettings",
+                    "dimensions",
+                    dimension_name,
+                    "type"
+                )
+                if isinstance(dimension_settings, nbt.TAG_String):
+                    # the settings are in the data pack
+                    # TODO: load from the data pack
+                    pass
+                if isinstance(dimension_settings, nbt.TAG_Compound):
+                    # the settings are here
+                    if "min_y" in dimension_settings and isinstance(dimension_settings["min_y"], nbt.TAG_Int):
+                        min_y = dimension_settings["min_y"].value
+                        if min_y % 16:
+                            min_y = 16 * (min_y // 16)
+                    else:
+                        min_y = 0
+                    if "height" in dimension_settings and isinstance(dimension_settings["height"], nbt.TAG_Int):
+                        height = dimension_settings["height"].value
+                        if height % 16:
+                            height = -16 * (-height // 16)
+                    else:
+                        height = 256
+
+                    bounds = SelectionGroup(
+                        SelectionBox(
+                            (-30_000_000, min_y, -30_000_000), (30_000_000, min_y + height, 30_000_000)
+                        )
+                    )
+
+            if bounds is None:
+                bounds = DefaultSelection
+            self._bounds[dimension_name] = bounds
 
     def _get_interface_key(
         self, raw_chunk_data: Optional[Any] = None
@@ -218,7 +265,7 @@ class AnvilFormat(WorldFormatWrapper):
             os.path.join(self.path, "dimensions", "*", "*", "region")
         ):
             dimension_path_split = dimension_path.split(os.sep)
-            dimension_name = f"{dimension_path_split[-3]}/{dimension_path_split[-2]}"
+            dimension_name = f"{dimension_path_split[-3]}:{dimension_path_split[-2]}"
             self._register_dimension(
                 os.path.dirname(os.path.relpath(dimension_path, self.path)),
                 dimension_name,
