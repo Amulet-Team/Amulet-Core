@@ -47,7 +47,9 @@ class BaseLevelDBInterface(Interface):
 
     def _set_feature(self, feature: str, option: Any):
         assert feature in self._feature_options, f"{feature} is not a valid feature."
-        assert option in self._feature_options[feature], f"Invalid option {option} for feature \"{feature}\""
+        assert (
+            option in self._feature_options[feature]
+        ), f'Invalid option {option} for feature "{feature}"'
         self._features[feature] = option
 
     def is_valid(self, key: Tuple) -> bool:

@@ -177,11 +177,7 @@ class Interface(ABC):
         return namespace, base_name, x, y, z, nbt
 
     @abstractmethod
-    def encode(
-        self,
-        *args,
-        **kwargs
-    ) -> Any:
+    def encode(self, *args, **kwargs) -> Any:
         """
         Take a version-specific chunk and encode it to raw data for the format to store.
         """

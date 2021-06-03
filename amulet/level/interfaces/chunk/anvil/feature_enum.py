@@ -5,7 +5,8 @@ class BiomeState(Enum):
     BA256 = "256BA"  # 2D 16x16 byte array
     IA256 = "256IA"  # 2D 16x16 int array
     IA1024 = "1024IA"  # 3D 4x64x4 int array
-    IANx64 = "NX64IA"  # 3D 4x4Nx4 int array. 4x4x4 array per sub-chunk with N sub-chunks
+    # 3D 4x4Nx4 int array. 4x4x4 array per sub-chunk with N sub-chunks
+    IANx64 = "NX64IA"
 
 
 class HeightState(Enum):

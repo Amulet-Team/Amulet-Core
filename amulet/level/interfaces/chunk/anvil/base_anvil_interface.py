@@ -83,7 +83,9 @@ class BaseAnvilInterface(Interface):
 
     def _set_feature(self, feature: str, option: Any):
         assert feature in self._feature_options, f"{feature} is not a valid feature."
-        assert option in self._feature_options[feature], f"Invalid option {option} for feature \"{feature}\""
+        assert (
+            option in self._feature_options[feature]
+        ), f'Invalid option {option} for feature "{feature}"'
         self._features[feature] = option
 
     def is_valid(self, key: Tuple) -> bool:
@@ -184,7 +186,9 @@ class BaseAnvilInterface(Interface):
                                 for sy, arr in enumerate(
                                     numpy.split(
                                         numpy.transpose(
-                                            biomes.astype(numpy.uint32).reshape(arr_height, 4, 4),
+                                            biomes.astype(numpy.uint32).reshape(
+                                                arr_height, 4, 4
+                                            ),
                                             (2, 0, 1),
                                         ),  # YZX -> XYZ
                                         16,
@@ -193,9 +197,13 @@ class BaseAnvilInterface(Interface):
                                 )
                             }
                         else:
-                            log.error(f"Expected a biome array of size {arr_height * 4 * 4} but got an array of size {biomes.value.size}")
+                            log.error(
+                                f"Expected a biome array of size {arr_height * 4 * 4} but got an array of size {biomes.value.size}"
+                            )
                     else:
-                        log.error(f"Expected a TAG_Int_Array biome array but got {biomes.__class__.__name__}")
+                        log.error(
+                            f"Expected a TAG_Int_Array biome array but got {biomes.__class__.__name__}"
+                        )
 
         if self._features["height_map"] in ["256IA", "256IARequired"]:
             height = self.get_obj(level, "HeightMap", TAG_Int_Array).value
@@ -282,7 +290,11 @@ class BaseAnvilInterface(Interface):
         return chunk, palette
 
     def encode(
-        self, chunk: "Chunk", palette: AnyNDArray, max_world_version: Tuple[str, int], bounds: Tuple[int, int]
+        self,
+        chunk: "Chunk",
+        palette: AnyNDArray,
+        max_world_version: Tuple[str, int],
+        bounds: Tuple[int, int],
     ) -> amulet_nbt.NBTFile:
         """
         Encode a version-specific chunk to raw data for the format to store.
@@ -331,7 +343,9 @@ class BaseAnvilInterface(Interface):
         if self._features["inhabited_time"] == "long":
             level["InhabitedTime"] = amulet_nbt.TAG_Long(misc.get("inhabited_time", 0))
 
-        if self._features["biomes"] == BiomeState.BA256:  # TODO: support the optional variant
+        if (
+            self._features["biomes"] == BiomeState.BA256
+        ):  # TODO: support the optional variant
             if chunk.status.value > -0.7:
                 chunk.biomes.convert_to_2d()
                 level["Biomes"] = amulet_nbt.TAG_Byte_Array(

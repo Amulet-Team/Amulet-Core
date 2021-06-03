@@ -306,7 +306,9 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
                         "selection_boxes": amulet_nbt.TAG_Int_Array(
                             [
                                 c
-                                for box in self._bounds[self.dimensions[0]].selection_boxes
+                                for box in self._bounds[
+                                    self.dimensions[0]
+                                ].selection_boxes
                                 for c in (*box.min, *box.max)
                             ]
                         ),

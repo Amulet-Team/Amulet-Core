@@ -72,7 +72,7 @@ class ConstructionInterface(Interface):
         chunk: "Chunk",
         palette: AnyNDArray,
         max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
-        boxes: List[SelectionBox]
+        boxes: List[SelectionBox],
     ) -> List[ConstructionSection]:
         """
         Take a version-specific chunk and encode it to raw data for the format to store.

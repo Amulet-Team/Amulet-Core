@@ -107,7 +107,9 @@ class DirWrapper(BaseWrapper):
     @property
     def all_files(self) -> Iterable[str]:
         for abs_path, _, files in os.walk(self.path):
-            rel_path = os.path.normpath(os.path.relpath(abs_path, self.path)).replace(os.sep, "/")
+            rel_path = os.path.normpath(os.path.relpath(abs_path, self.path)).replace(
+                os.sep, "/"
+            )
             if rel_path == ".":
                 yield from files
             else:
@@ -124,7 +126,7 @@ class DirWrapper(BaseWrapper):
         pass
 
 
-def _open_wrapper(path: str) ->BaseWrapper:
+def _open_wrapper(path: str) -> BaseWrapper:
     for cls in (ZipWrapper, DirWrapper):
         if cls.is_valid(path):
             return cls(path)
@@ -170,7 +172,9 @@ class DataPack:
                 except json.JSONDecodeError:
                     pass
                 else:
-                    if isinstance(meta_file, dict) and isinstance(meta_file.get("pack", {}).get("pack_format", None), int):
+                    if isinstance(meta_file, dict) and isinstance(
+                        meta_file.get("pack", {}).get("pack_format", None), int
+                    ):
                         # TODO: check the actual value
                         return True
         return False

@@ -86,7 +86,9 @@ class Anvil1444Interface(BaseAnvilInterface):
                     section.pop("BlockStates").value, 4096, dense=False
                 )
             else:
-                raise Exception("long_array_format", self._features["long_array_format"])
+                raise Exception(
+                    "long_array_format", self._features["long_array_format"]
+                )
             blocks[cy] = numpy.transpose(
                 decoded.reshape((16, 16, 16)) + len(palette), (2, 0, 1)
             )

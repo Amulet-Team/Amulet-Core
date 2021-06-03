@@ -177,6 +177,7 @@ class AnvilFormat(WorldFormatWrapper):
             self._dimension_name_map[dimension_name] = relative_dimension_path
             bounds = None
             if self.version >= 2709:  # This number might be smaller
+
                 def get_recursive(obj: nbt.TAG_Compound, *keys):
                     if isinstance(obj, nbt.TAG_Compound) and keys:
                         key = keys[0]
@@ -186,13 +187,14 @@ class AnvilFormat(WorldFormatWrapper):
                                 return get_recursive(obj[key], *keys)
                             else:
                                 return obj[key]
+
                 dimension_settings = get_recursive(
                     self.root_tag.value,
                     "Data",
                     "WorldGenSettings",
                     "dimensions",
                     dimension_name,
-                    "type"
+                    "type",
                 )
                 if isinstance(dimension_settings, nbt.TAG_String):
                     # the settings are in the data pack
@@ -200,13 +202,17 @@ class AnvilFormat(WorldFormatWrapper):
                     pass
                 if isinstance(dimension_settings, nbt.TAG_Compound):
                     # the settings are here
-                    if "min_y" in dimension_settings and isinstance(dimension_settings["min_y"], nbt.TAG_Int):
+                    if "min_y" in dimension_settings and isinstance(
+                        dimension_settings["min_y"], nbt.TAG_Int
+                    ):
                         min_y = dimension_settings["min_y"].value
                         if min_y % 16:
                             min_y = 16 * (min_y // 16)
                     else:
                         min_y = 0
-                    if "height" in dimension_settings and isinstance(dimension_settings["height"], nbt.TAG_Int):
+                    if "height" in dimension_settings and isinstance(
+                        dimension_settings["height"], nbt.TAG_Int
+                    ):
                         height = dimension_settings["height"].value
                         if height % 16:
                             height = -16 * (-height // 16)
@@ -215,7 +221,8 @@ class AnvilFormat(WorldFormatWrapper):
 
                     bounds = SelectionGroup(
                         SelectionBox(
-                            (-30_000_000, min_y, -30_000_000), (30_000_000, min_y + height, 30_000_000)
+                            (-30_000_000, min_y, -30_000_000),
+                            (30_000_000, min_y + height, 30_000_000),
                         )
                     )
 
@@ -235,16 +242,27 @@ class AnvilFormat(WorldFormatWrapper):
             return self.max_world_version
 
     def _decode(
-        self, interface: BaseAnvilInterface, dimension: Dimension, cx: int, cz: int, raw_chunk_data: Any
+        self,
+        interface: BaseAnvilInterface,
+        dimension: Dimension,
+        cx: int,
+        cz: int,
+        raw_chunk_data: Any,
     ) -> Tuple[Chunk, AnyNDArray]:
         bounds = self.bounds(dimension).bounds
         return interface.decode(cx, cz, raw_chunk_data, (bounds[0][1], bounds[1][1]))
 
     def _encode(
-        self, interface: BaseAnvilInterface, chunk: Chunk, dimension: Dimension, chunk_palette: AnyNDArray
+        self,
+        interface: BaseAnvilInterface,
+        chunk: Chunk,
+        dimension: Dimension,
+        chunk_palette: AnyNDArray,
     ) -> Any:
         bounds = self.bounds(dimension).bounds
-        return interface.encode(chunk, chunk_palette, self.max_world_version, (bounds[0][1], bounds[1][1]))
+        return interface.encode(
+            chunk, chunk_palette, self.max_world_version, (bounds[0][1], bounds[1][1])
+        )
 
     def _reload_world(self):
         # reload the level.dat in case it has changed

@@ -33,7 +33,9 @@ class CreateWorldTestCase(unittest.TestCase):
             level.create_and_open(
                 platform,
                 version,
-                SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]),  # this is not used by the world classes.
+                SelectionGroup(
+                    [SelectionBox((0, 0, 0), (1, 1, 1))]
+                ),  # this is not used by the world classes.
                 overwrite=True,
             )
         else:

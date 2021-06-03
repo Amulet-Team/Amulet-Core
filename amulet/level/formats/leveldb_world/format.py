@@ -30,7 +30,9 @@ from amulet.level.interfaces.chunk.leveldb.leveldb_chunk_versions import (
     game_to_chunk_version,
 )
 from .dimension import LevelDBDimensionManager, OVERWORLD, THE_NETHER, THE_END
-from amulet.level.interfaces.chunk.leveldb.base_leveldb_interface import BaseLevelDBInterface
+from amulet.level.interfaces.chunk.leveldb.base_leveldb_interface import (
+    BaseLevelDBInterface,
+)
 
 InternalDimension = Optional[int]
 
@@ -213,7 +215,11 @@ class LevelDBFormat(WorldFormatWrapper):
         return (self.platform, v)  # TODO: work out a valid default
 
     def _encode(
-        self, interface: BaseLevelDBInterface, chunk: Chunk, dimension: Dimension, chunk_palette: AnyNDArray
+        self,
+        interface: BaseLevelDBInterface,
+        chunk: Chunk,
+        dimension: Dimension,
+        chunk_palette: AnyNDArray,
     ) -> Any:
         return interface.encode(chunk, chunk_palette, self.max_world_version)
 

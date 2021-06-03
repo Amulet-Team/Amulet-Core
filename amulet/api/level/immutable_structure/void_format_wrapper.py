@@ -47,7 +47,11 @@ class VoidFormatWrapper(FormatWrapper):
         raise Exception("If this is called something is wrong")
 
     def _encode(
-        self, interface: api_wrapper.Interface, chunk: Chunk, dimension: Dimension, chunk_palette: AnyNDArray
+        self,
+        interface: api_wrapper.Interface,
+        chunk: Chunk,
+        dimension: Dimension,
+        chunk_palette: AnyNDArray,
     ) -> Any:
         raise Exception("If this is called something is wrong")
 

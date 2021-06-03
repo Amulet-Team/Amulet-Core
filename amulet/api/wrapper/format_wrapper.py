@@ -54,9 +54,7 @@ DefaultPlatform = "Unknown Platform"
 DefaultVersion = (0, 0, 0)
 
 DefaultSelection = SelectionGroup(
-    SelectionBox(
-        (-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000)
-    )
+    SelectionBox((-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000))
 )
 
 
@@ -285,6 +283,7 @@ class FormatWrapper(ABC):
                 )
 
         if self.requires_selection:
+
             def clean_selection(selection: SelectionGroup) -> SelectionGroup:
                 if self.multi_selection:
                     return selection
@@ -292,7 +291,9 @@ class FormatWrapper(ABC):
                     if selection:
                         return SelectionGroup(
                             sorted(
-                                selection.selection_boxes, reverse=True, key=lambda b: b.volume
+                                selection.selection_boxes,
+                                reverse=True,
+                                key=lambda b: b.volume,
                             )[0]
                         )
                     else:
@@ -484,7 +485,9 @@ class FormatWrapper(ABC):
         )
 
         # decode the raw chunk data into the universal format
-        chunk, chunk_palette = self._decode(interface, dimension, cx, cz, raw_chunk_data)
+        chunk, chunk_palette = self._decode(
+            interface, dimension, cx, cz, raw_chunk_data
+        )
         chunk_palette: AnyNDArray
         chunk = self._unpack(translator, game_version, chunk, chunk_palette)
         return self._convert_to_load(
@@ -493,7 +496,11 @@ class FormatWrapper(ABC):
 
     @staticmethod
     def _decode(
-        interface: api_wrapper.Interface, dimension: Dimension, cx: int, cz: int, raw_chunk_data: Any
+        interface: api_wrapper.Interface,
+        dimension: Dimension,
+        cx: int,
+        cz: int,
+        raw_chunk_data: Any,
     ) -> Tuple[Chunk, AnyNDArray]:
         return interface.decode(cx, cz, raw_chunk_data)
 
@@ -631,7 +638,11 @@ class FormatWrapper(ABC):
         return translator.pack(chunk_version, self.translation_manager, chunk)
 
     def _encode(
-        self, interface: api_wrapper.Interface, chunk: Chunk, dimension: Dimension, chunk_palette: AnyNDArray
+        self,
+        interface: api_wrapper.Interface,
+        chunk: Chunk,
+        dimension: Dimension,
+        chunk_palette: AnyNDArray,
     ) -> Any:
         """Encode the data to the raw format as saved on disk."""
         raise NotImplementedError
