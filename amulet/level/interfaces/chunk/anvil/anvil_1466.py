@@ -7,8 +7,8 @@ from .anvil_1444 import (
 
 class Anvil1466Interface(Anvil1444Interface):
     def __init__(self):
-        Anvil1444Interface.__init__(self)
-        self.features["height_map"] = "C|V1"
+        super().__init__()
+        self._set_feature("height_map", "C|V1")
 
     @staticmethod
     def minor_is_valid(key: int):

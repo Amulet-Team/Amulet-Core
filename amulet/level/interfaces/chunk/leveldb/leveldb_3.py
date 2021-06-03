@@ -7,11 +7,10 @@ from .leveldb_2 import (
 
 class LevelDB3Interface(LevelDB2Interface):
     def __init__(self):
-        LevelDB2Interface.__init__(self)
+        super().__init__()
 
-        self.features["chunk_version"] = 3
-
-        self.features["terrain"] = "2farray"
+        self._set_feature("chunk_version", 3)
+        self._set_feature("terrain", "2farray")
 
 
 export = LevelDB3Interface

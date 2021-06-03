@@ -10,20 +10,20 @@ class LevelDB0Interface(BaseLevelDBInterface):
     def __init__(self):
         super().__init__()
 
-        self.features["chunk_version"] = 0
-        self.features["finalised_state"] = "int0-2"
+        self._set_feature("chunk_version", 0)
+        self._set_feature("finalised_state", "int0-2")
 
-        self.features["data_2d"] = "unused_height512|biome256"
+        self._set_feature("data_2d", "unused_height512|biome256")
 
-        self.features["block_entities"] = "31list"
-        self.features["block_entity_format"] = EntityIDType.str_id
-        self.features["block_entity_coord_format"] = EntityCoordType.xyz_int
+        self._set_feature("block_entities", "31list")
+        self._set_feature("block_entity_format", EntityIDType.str_id)
+        self._set_feature("block_entity_coord_format", EntityCoordType.xyz_int)
 
-        self.features["entities"] = "32list"
-        self.features["entity_format"] = EntityIDType.int_id
-        self.features["entity_coord_format"] = EntityCoordType.Pos_list_float
+        self._set_feature("entities", "32list")
+        self._set_feature("entity_format", EntityIDType.int_id)
+        self._set_feature("entity_coord_format", EntityCoordType.Pos_list_float)
 
-        self.features["terrain"] = "30array"
+        self._set_feature("terrain", "30array")
 
 
 export = LevelDB0Interface

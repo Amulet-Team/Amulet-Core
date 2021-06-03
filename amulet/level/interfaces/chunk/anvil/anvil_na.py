@@ -18,30 +18,30 @@ if TYPE_CHECKING:
 
 class AnvilNAInterface(BaseAnvilInterface):
     def __init__(self):
-        BaseAnvilInterface.__init__(self)
-        self.features["data_version"] = "int"
-        self.features["last_update"] = "long"
+        super().__init__()
+        self._set_feature("data_version", "int")
+        self._set_feature("last_update", "long")
 
-        self.features["light_populated"] = "byte"
-        self.features["terrain_populated"] = "byte"
-        self.features["inhabited_time"] = "long"
-        self.features["biomes"] = "256BA"
-        self.features["height_map"] = "256IA"
+        self._set_feature("light_populated", "byte")
+        self._set_feature("terrain_populated", "byte")
+        self._set_feature("inhabited_time", "long")
+        self._set_feature("biomes", "256BA")
+        self._set_feature("height_map", "256IA")
 
-        self.features["blocks"] = "Sections|(Blocks,Data,Add)"
-        self.features["block_light"] = "Sections|2048BA"
-        self.features["sky_light"] = "Sections|2048BA"
-        self.features["light_optional"] = "false"
+        self._set_feature("blocks", "Sections|(Blocks,Data,Add)")
+        self._set_feature("block_light", "Sections|2048BA")
+        self._set_feature("sky_light", "Sections|2048BA")
+        self._set_feature("light_optional", "false")
 
-        self.features["block_entities"] = "list"
-        self.features["block_entity_format"] = EntityIDType.namespace_str_id
-        self.features["block_entity_coord_format"] = EntityCoordType.xyz_int
+        self._set_feature("block_entities", "list")
+        self._set_feature("block_entity_format", EntityIDType.namespace_str_id)
+        self._set_feature("block_entity_coord_format", EntityCoordType.xyz_int)
 
-        self.features["entities"] = "list"
-        self.features["entity_format"] = EntityIDType.namespace_str_id
-        self.features["entity_coord_format"] = EntityCoordType.Pos_list_double
+        self._set_feature("entities", "list")
+        self._set_feature("entity_format", EntityIDType.namespace_str_id)
+        self._set_feature("entity_coord_format", EntityCoordType.Pos_list_double)
 
-        self.features["tile_ticks"] = "list"
+        self._set_feature("tile_ticks", "list")
 
     @staticmethod
     def minor_is_valid(key: int):

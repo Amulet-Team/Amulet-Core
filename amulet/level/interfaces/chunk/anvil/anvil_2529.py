@@ -8,7 +8,7 @@ from .anvil_2203 import (
 class Anvil2529Interface(Anvil2203Interface):
     def __init__(self):
         super().__init__()
-        self.features["long_array_format"] = "1.16"
+        self._set_feature("long_array_format", "1.16")
 
     @staticmethod
     def minor_is_valid(key: int):

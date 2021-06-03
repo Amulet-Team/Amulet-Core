@@ -7,8 +7,8 @@ from .anvil_1934 import (
 
 class Anvil2203Interface(Anvil1934Interface):
     def __init__(self):
-        Anvil1934Interface.__init__(self)
-        self.features["biomes"] = "1024IA"  # optional
+        super().__init__()
+        self._set_feature("biomes", "1024IA")  # optional
 
     @staticmethod
     def minor_is_valid(key: int):

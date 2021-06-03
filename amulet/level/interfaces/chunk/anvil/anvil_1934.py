@@ -7,8 +7,8 @@ from .anvil_1912 import (
 
 class Anvil1934Interface(Anvil1912Interface):
     def __init__(self):
-        Anvil1912Interface.__init__(self)
-        self.features["light_optional"] = "true"
+        super().__init__()
+        self._set_feature("light_optional", "true")
 
     @staticmethod
     def minor_is_valid(key: int):

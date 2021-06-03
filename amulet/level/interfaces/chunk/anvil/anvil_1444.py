@@ -33,36 +33,36 @@ def properties_to_string(props: dict) -> str:
 
 class Anvil1444Interface(BaseAnvilInterface):
     def __init__(self):
-        BaseAnvilInterface.__init__(self)
-        self.features["data_version"] = "int"
-        self.features["last_update"] = "long"
+        super().__init__()
+        self._set_feature("data_version", "int")
+        self._set_feature("last_update", "long")
 
-        self.features["status"] = StatusFormats.Java_13
-        self.features["inhabited_time"] = "long"
-        self.features["biomes"] = "256BA"
-        self.features["height_map"] = "256IA"
+        self._set_feature("status", StatusFormats.Java_13)
+        self._set_feature("inhabited_time", "long")
+        self._set_feature("biomes", "256BA")
+        self._set_feature("height_map", "256IA")
 
-        self.features["blocks"] = "Sections|(BlockStates,Palette)"
-        self.features["long_array_format"] = "compact"
-        self.features["block_light"] = "Sections|2048BA"
-        self.features["sky_light"] = "Sections|2048BA"
-        self.features["light_optional"] = "false"
+        self._set_feature("blocks", "Sections|(BlockStates,Palette)")
+        self._set_feature("long_array_format", "compact")
+        self._set_feature("block_light", "Sections|2048BA")
+        self._set_feature("sky_light", "Sections|2048BA")
+        self._set_feature("light_optional", "false")
 
-        self.features["block_entities"] = "list"
-        self.features["block_entity_format"] = EntityIDType.namespace_str_id
-        self.features["block_entity_coord_format"] = EntityCoordType.xyz_int
+        self._set_feature("block_entities", "list")
+        self._set_feature("block_entity_format", EntityIDType.namespace_str_id)
+        self._set_feature("block_entity_coord_format", EntityCoordType.xyz_int)
 
-        self.features["entities"] = "list"
-        self.features["entity_format"] = EntityIDType.namespace_str_id
-        self.features["entity_coord_format"] = EntityCoordType.Pos_list_double
+        self._set_feature("entities", "list")
+        self._set_feature("entity_format", EntityIDType.namespace_str_id)
+        self._set_feature("entity_coord_format", EntityCoordType.Pos_list_double)
 
-        self.features["tile_ticks"] = "list"
+        self._set_feature("tile_ticks", "list")
 
-        self.features["liquid_ticks"] = "list"
-        self.features["liquids_to_be_ticked"] = "16list|list"
-        self.features["to_be_ticked"] = "16list|list"
-        self.features["post_processing"] = "16list|list"
-        self.features["structures"] = "compound"
+        self._set_feature("liquid_ticks", "list")
+        self._set_feature("liquids_to_be_ticked", "16list|list")
+        self._set_feature("to_be_ticked", "16list|list")
+        self._set_feature("post_processing", "16list|list")
+        self._set_feature("structures", "compound")
 
     @staticmethod
     def minor_is_valid(key: int):
@@ -77,14 +77,14 @@ class Anvil1444Interface(BaseAnvilInterface):
         for cy, section in chunk_sections.items():
             if "Palette" not in section:  # 1.14 makes block_palette/blocks optional.
                 continue
-            if self.features["long_array_format"] == "compact":
+            if self._features["long_array_format"] == "compact":
                 decoded = decode_long_array(section.pop("BlockStates").value, 4096)
-            elif self.features["long_array_format"] == "1.16":
+            elif self._features["long_array_format"] == "1.16":
                 decoded = decode_long_array(
                     section.pop("BlockStates").value, 4096, dense=False
                 )
             else:
-                raise Exception("long_array_format", self.features["long_array_format"])
+                raise Exception("long_array_format", self._features["long_array_format"])
             blocks[cy] = numpy.transpose(
                 decoded.reshape((16, 16, 16)) + len(palette), (2, 0, 1)
             )
@@ -123,11 +123,11 @@ class Anvil1444Interface(BaseAnvilInterface):
                     continue
 
                 section = sections.setdefault(cy, amulet_nbt.TAG_Compound())
-                if self.features["long_array_format"] == "compact":
+                if self._features["long_array_format"] == "compact":
                     section["BlockStates"] = amulet_nbt.TAG_Long_Array(
                         encode_long_array(block_sub_array)
                     )
-                elif self.features["long_array_format"] == "1.16":
+                elif self._features["long_array_format"] == "1.16":
                     section["BlockStates"] = amulet_nbt.TAG_Long_Array(
                         encode_long_array(block_sub_array, dense=False)
                     )
