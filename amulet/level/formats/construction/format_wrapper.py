@@ -413,9 +413,10 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
 
     def _encode(
         self,
-        chunk: Chunk,
-        chunk_palette: AnyNDArray,
         interface: ConstructionInterface,
+        chunk: Chunk,
+        dimension: Dimension,
+        chunk_palette: AnyNDArray,
     ):
         return interface.encode(
             chunk,

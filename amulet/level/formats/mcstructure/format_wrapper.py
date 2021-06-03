@@ -329,16 +329,17 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
 
     def _encode(
         self,
-        chunk: Chunk,
-        chunk_palette: AnyNDArray,
         interface: MCStructureInterface,
+        chunk: Chunk,
+        dimension: Dimension,
+        chunk_palette: AnyNDArray,
     ):
         return interface.encode(
             chunk,
             chunk_palette,
             self.max_world_version,
             SelectionBox.create_chunk_box(chunk.cx, chunk.cz).intersection(
-                self._bounds[self.dimensions[0]].to_box()
+                self._bounds[dimension].to_box()
             ),
         )
 

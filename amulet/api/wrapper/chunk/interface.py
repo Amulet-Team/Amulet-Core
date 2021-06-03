@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import numpy
+from abc import ABC, abstractmethod
 from typing import Tuple, Any, Union, TYPE_CHECKING, Optional, overload, Type
 from enum import Enum
 
@@ -38,20 +38,10 @@ PosTypeMap = {
 }
 
 
-class Interface:
-    def decode(self, cx: int, cz: int, data: Any) -> Tuple["Chunk", AnyNDArray]:
-        """
-        Create an amulet.api.chunk.Chunk object from raw data given by the format
-        :param cx: chunk x coordinate
-        :type cx: int
-        :param cz: chunk z coordinate
-        :type cz: int
-        :param data: Raw chunk data provided by the format.
-        :type data: Any
-        :return: Chunk object in version-specific format, along with the block_palette for that chunk.
-        :rtype: Chunk
-        """
-        raise NotImplementedError()
+class Interface(ABC):
+    @abstractmethod
+    def decode(self, *args, **kwargs) -> Tuple["Chunk", AnyNDArray]:
+        raise NotImplementedError
 
     def _decode_entity(
         self,
@@ -186,24 +176,16 @@ class Interface:
 
         return namespace, base_name, x, y, z, nbt
 
+    @abstractmethod
     def encode(
         self,
-        chunk: "Chunk",
-        palette: AnyNDArray,
-        max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
+        *args,
+        **kwargs
     ) -> Any:
         """
         Take a version-specific chunk and encode it to raw data for the format to store.
-        :param chunk: The already translated version-specfic chunk to encode.
-        :type chunk: Chunk
-        :param palette: The block_palette the ids in the chunk correspond to.
-        :type palette: numpy.ndarray[Block]
-        :param max_world_version: The key to use to find the encoder.
-        :type max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]]
-        :return: Raw data to be stored by the Format.
-        :rtype: Any
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def _encode_entity(
         self, entity: Entity, id_type: EntityIDType, coord_type: EntityCoordType
@@ -358,6 +340,7 @@ class Interface:
                 obj[key] = default
         return obj[key]
 
+    @abstractmethod
     def get_translator(
         self,
         max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
@@ -375,6 +358,7 @@ class Interface:
         raise NotImplementedError
 
     @staticmethod
+    @abstractmethod
     def is_valid(key: Tuple) -> bool:
         """
         Returns whether this Interface is able to interface with the chunk type with a given identifier key,
@@ -383,4 +367,4 @@ class Interface:
         :param key: The key who's decodability needs to be checked.
         :return: True if this interface can interface with the chunk version associated with the key, False otherwise.
         """
-        raise NotImplementedError()
+        raise NotImplementedError

@@ -23,6 +23,7 @@ from amulet import log
 from amulet.api.chunk import Chunk, StatusFormats
 from amulet.api.wrapper import Interface
 from amulet.level import loader
+from amulet.api.selection import SelectionBox
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray
 from amulet.api.wrapper import EntityIDType, EntityCoordType
 from amulet.utils.world_utils import decode_long_array, encode_long_array
@@ -106,13 +107,14 @@ class BaseAnvilInterface(Interface):
         return loader.Translators.get(key), version
 
     def decode(
-        self, cx: int, cz: int, data: amulet_nbt.NBTFile
+        self, cx: int, cz: int, data: amulet_nbt.NBTFile, bounds: Tuple[int, int]
     ) -> Tuple["Chunk", AnyNDArray]:
         """
         Create an amulet.api.chunk.Chunk object from raw data given by the format.
         :param cx: chunk x coordinate
         :param cz: chunk z coordinate
         :param data: amulet_nbt.NBTFile
+        :param bounds: The minimum and maximum bounds of the chunk. In 1.17 this is required to define where the biome array sits.
         :return: Chunk object in version-specific format, along with the block_palette for that chunk.
         """
         misc = {
@@ -166,21 +168,34 @@ class BaseAnvilInterface(Interface):
                 elif self._features["biomes"] == BiomeState.IA256:
                     if isinstance(biomes, TAG_Int_Array) and biomes.value.size == 256:
                         chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
-                elif self._features["biomes"] == BiomeState.IA1024:
-                    if isinstance(biomes, TAG_Int_Array) and biomes.value.size == 1024:
-                        chunk.biomes = {
-                            sy: arr
-                            for sy, arr in enumerate(
-                                numpy.split(
-                                    numpy.transpose(
-                                        biomes.astype(numpy.uint32).reshape(64, 4, 4),
-                                        (2, 0, 1),
-                                    ),  # YZX -> XYZ
-                                    16,
-                                    1,
+                elif self._features["biomes"] in [BiomeState.IA1024, BiomeState.IANx64]:
+                    if self._features["biomes"] == BiomeState.IANx64:
+                        min_y = bounds[0]
+                        height = bounds[1] - bounds[0]
+                    else:
+                        min_y = 0
+                        height = 256
+                    arr_start = min_y // 16
+                    arr_height = height // 4
+                    if isinstance(biomes, TAG_Int_Array):
+                        if biomes.value.size == 16 * arr_height:
+                            chunk.biomes = {
+                                sy + arr_start: arr
+                                for sy, arr in enumerate(
+                                    numpy.split(
+                                        numpy.transpose(
+                                            biomes.astype(numpy.uint32).reshape(arr_height, 4, 4),
+                                            (2, 0, 1),
+                                        ),  # YZX -> XYZ
+                                        16,
+                                        1,
+                                    )
                                 )
-                            )
-                        }
+                            }
+                        else:
+                            log.error(f"Expected a biome array of size {arr_height * 4 * 4} but got an array of size {biomes.value.size}")
+                    else:
+                        log.error(f"Expected a TAG_Int_Array biome array but got {biomes.__class__.__name__}")
 
         if self._features["height_map"] in ["256IA", "256IARequired"]:
             height = self.get_obj(level, "HeightMap", TAG_Int_Array).value
@@ -267,14 +282,17 @@ class BaseAnvilInterface(Interface):
         return chunk, palette
 
     def encode(
-        self, chunk: "Chunk", palette: AnyNDArray, max_world_version: Tuple[str, int]
+        self, chunk: "Chunk", palette: AnyNDArray, max_world_version: Tuple[str, int], bounds: Tuple[int, int]
     ) -> amulet_nbt.NBTFile:
         """
         Encode a version-specific chunk to raw data for the format to store.
-        :param chunk: The version-specific chunk to translate and encode.
+
+        :param chunk: The already translated version-specfic chunk to encode.
         :param palette: The block_palette the ids in the chunk correspond to.
+        :type palette: numpy.ndarray[Block]
         :param max_world_version: The key to use to find the encoder.
-        :return: amulet_nbt.NBTFile
+        :param bounds: The minimum and maximum bounds of the chunk. In 1.17 this is required to define where the biome array sits.
+        :return: Raw data to be stored by the Format.
         """
 
         misc = chunk.misc

@@ -10,8 +10,8 @@ from amulet.utils import world_utils
 from amulet.api.wrapper import EntityIDType, EntityCoordType
 from .base_anvil_interface import (
     BaseAnvilInterface,
-    BiomeState,
 )
+from .feature_enum import BiomeState, HeightState
 
 if TYPE_CHECKING:
     from amulet.api.chunk.blocks import Blocks
@@ -27,7 +27,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         self._set_feature("terrain_populated", "byte")
         self._set_feature("inhabited_time", "long")
         self._set_feature("biomes", BiomeState.BA256)
-        self._set_feature("height_state", "fixed256")
+        self._set_feature("height_state", HeightState.Fixed256)
         self._set_feature("height_map", "256IA")
 
         self._set_feature("blocks", "Sections|(Blocks,Data,Add)")

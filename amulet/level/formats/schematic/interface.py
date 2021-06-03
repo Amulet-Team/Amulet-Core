@@ -23,27 +23,34 @@ class SchematicInterface(Interface):
         return True
 
     def decode(
-        self, cx: int, cz: int, section: SchematicChunk
+        self, cx: int, cz: int, data: SchematicChunk
     ) -> Tuple["Chunk", AnyNDArray]:
+        """
+        Create an amulet.api.chunk.Chunk object from raw data given by the format
+        :param cx: chunk x coordinate
+        :param cz: chunk z coordinate
+        :param data: Raw chunk data provided by the format.
+        :return: Chunk object in version-specific format, along with the block_palette for that chunk.
+        """
         chunk = Chunk(cx, cz)
         block_palette, blocks = numpy.unique(
-            (section.blocks << 4) + (section.data & 0xF), return_inverse=True
+            (data.blocks << 4) + (data.data & 0xF), return_inverse=True
         )
-        blocks = blocks.reshape(section.blocks.shape)
+        blocks = blocks.reshape(data.blocks.shape)
         palette = numpy.empty(len(block_palette) + 1, dtype=object)
         palette[0] = (0, 0)
         for index, block_num in enumerate(block_palette):
             palette[index + 1] = (block_num >> 4, block_num & 0xF)
 
-        box = section.selection.create_moved_box((cx * 16, 0, cz * 16), subtract=True)
+        box = data.selection.create_moved_box((cx * 16, 0, cz * 16), subtract=True)
         chunk.blocks[box.slice] = blocks + 1
-        for b in section.block_entities:
+        for b in data.block_entities:
             b = self._decode_block_entity(
                 b, self._block_entity_id_type, self._block_entity_coord_type
             )
             if b is not None:
                 chunk.block_entities.insert(b)
-        for b in section.entities:
+        for b in data.entities:
             b = self._decode_entity(
                 b, self._block_entity_id_type, self._block_entity_coord_type
             )
@@ -57,8 +64,17 @@ class SchematicInterface(Interface):
         chunk: "Chunk",
         palette: AnyNDArray,
         max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
-        box: SelectionBox = None,
+        box: SelectionBox
     ) -> SchematicChunk:
+        """
+        Take a version-specific chunk and encode it to raw data for the format to store.
+        :param chunk: The already translated version-specfic chunk to encode.
+        :param palette: The block_palette the ids in the chunk correspond to.
+        :type palette: numpy.ndarray[Block]
+        :param max_world_version: The key to use to find the encoder.
+        :param box: The volume of the chunk to pack.
+        :return: Raw data to be stored by the Format.
+        """
         entities = []
         for e in chunk.entities:
             if e.location in box:

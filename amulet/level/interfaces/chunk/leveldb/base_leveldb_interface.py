@@ -80,6 +80,13 @@ class BaseLevelDBInterface(Interface):
     def decode(
         self, cx: int, cz: int, data: Dict[bytes, bytes]
     ) -> Tuple[Chunk, AnyNDArray]:
+        """
+        Create an amulet.api.chunk.Chunk object from raw data given by the format
+        :param cx: chunk x coordinate
+        :param cz: chunk z coordinate
+        :param data: Raw chunk data provided by the format.
+        :return: Chunk object in version-specific format, along with the block_palette for that chunk.
+        """
         # chunk_key_base = struct.pack("<ii", cx, cz)
 
         chunk = Chunk(cx, cz)

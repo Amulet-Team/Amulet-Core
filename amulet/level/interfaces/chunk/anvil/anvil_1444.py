@@ -11,12 +11,12 @@ from amulet.api.chunk import Blocks, StatusFormats
 from amulet.api.wrapper import EntityIDType, EntityCoordType
 from .base_anvil_interface import (
     BaseAnvilInterface,
-    BiomeState,
 )
 from amulet.utils.world_utils import (
     decode_long_array,
     encode_long_array,
 )
+from .feature_enum import BiomeState, HeightState
 
 
 def properties_to_string(props: dict) -> str:
@@ -41,7 +41,7 @@ class Anvil1444Interface(BaseAnvilInterface):
         self._set_feature("status", StatusFormats.Java_13)
         self._set_feature("inhabited_time", "long")
         self._set_feature("biomes", BiomeState.BA256)
-        self._set_feature("height_state", "1.17")
+        self._set_feature("height_state", HeightState.Fixed256)
         self._set_feature("height_map", "256IA")
 
         self._set_feature("blocks", "Sections|(BlockStates,Palette)")

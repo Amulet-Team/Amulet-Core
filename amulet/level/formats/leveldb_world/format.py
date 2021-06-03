@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Dict, Union, Optional, List, BinaryIO, Iterable
+from typing import Tuple, Dict, Union, Optional, List, BinaryIO, Iterable, Any
 from io import BytesIO
 import shutil
 import traceback
@@ -10,6 +10,8 @@ import time
 
 import amulet_nbt as nbt
 from amulet.api.player import Player, LOCAL_PLAYER
+from amulet.api.chunk import Chunk
+from amulet.api import wrapper as api_wrapper
 
 from amulet.libs.leveldb import LevelDB
 from amulet.utils.format_utils import check_all_exist
@@ -18,6 +20,7 @@ from amulet.api.data_types import (
     VersionNumberTuple,
     PlatformType,
     Dimension,
+    AnyNDArray,
 )
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.api.errors import ObjectWriteError, ObjectReadError, PlayerDoesNotExist
@@ -27,6 +30,7 @@ from amulet.level.interfaces.chunk.leveldb.leveldb_chunk_versions import (
     game_to_chunk_version,
 )
 from .dimension import LevelDBDimensionManager, OVERWORLD, THE_NETHER, THE_END
+from amulet.level.interfaces.chunk.leveldb.base_leveldb_interface import BaseLevelDBInterface
 
 InternalDimension = Optional[int]
 
@@ -207,6 +211,11 @@ class LevelDBFormat(WorldFormatWrapper):
         else:
             v = game_to_chunk_version(self.max_world_version[1])
         return (self.platform, v)  # TODO: work out a valid default
+
+    def _encode(
+        self, interface: BaseLevelDBInterface, chunk: Chunk, dimension: Dimension, chunk_palette: AnyNDArray
+    ) -> Any:
+        return interface.encode(chunk, chunk_palette, self.max_world_version)
 
     def _reload_world(self):
         try:

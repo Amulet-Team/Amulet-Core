@@ -9,7 +9,9 @@ import shutil
 
 import amulet_nbt as nbt
 from amulet.api.player import Player, LOCAL_PLAYER
+from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
+from amulet.api import wrapper as api_wrapper
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion, DefaultSelection
 from amulet.utils.format_utils import check_all_exist, load_leveldat
 from amulet.api.errors import (
@@ -23,10 +25,13 @@ from amulet.api.data_types import (
     VersionNumberInt,
     PlatformType,
     DimensionCoordinates,
+    AnyNDArray,
+    Dimension,
 )
 from .dimension import AnvilDimensionManager
-from amulet.api.data_types import Dimension
 from amulet.api import level as api_level
+from amulet.level.interfaces.chunk.anvil.base_anvil_interface import BaseAnvilInterface
+
 
 InternalDimension = str
 OVERWORLD = "minecraft:overworld"
@@ -228,6 +233,18 @@ class AnvilFormat(WorldFormatWrapper):
             )
         else:
             return self.max_world_version
+
+    def _decode(
+        self, interface: BaseAnvilInterface, dimension: Dimension, cx: int, cz: int, raw_chunk_data: Any
+    ) -> Tuple[Chunk, AnyNDArray]:
+        bounds = self.bounds(dimension).bounds
+        return interface.decode(cx, cz, raw_chunk_data, (bounds[0][1], bounds[1][1]))
+
+    def _encode(
+        self, interface: BaseAnvilInterface, chunk: Chunk, dimension: Dimension, chunk_palette: AnyNDArray
+    ) -> Any:
+        bounds = self.bounds(dimension).bounds
+        return interface.encode(chunk, chunk_palette, self.max_world_version, (bounds[0][1], bounds[1][1]))
 
     def _reload_world(self):
         # reload the level.dat in case it has changed

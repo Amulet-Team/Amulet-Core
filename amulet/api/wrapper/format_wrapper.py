@@ -484,7 +484,7 @@ class FormatWrapper(ABC):
         )
 
         # decode the raw chunk data into the universal format
-        chunk, chunk_palette = self._decode(interface, cx, cz, raw_chunk_data)
+        chunk, chunk_palette = self._decode(interface, dimension, cx, cz, raw_chunk_data)
         chunk_palette: AnyNDArray
         chunk = self._unpack(translator, game_version, chunk, chunk_palette)
         return self._convert_to_load(
@@ -493,7 +493,7 @@ class FormatWrapper(ABC):
 
     @staticmethod
     def _decode(
-        interface: api_wrapper.Interface, cx: int, cz: int, raw_chunk_data: Any
+        interface: api_wrapper.Interface, dimension: Dimension, cx: int, cz: int, raw_chunk_data: Any
     ) -> Tuple[Chunk, AnyNDArray]:
         return interface.decode(cx, cz, raw_chunk_data)
 
@@ -575,7 +575,7 @@ class FormatWrapper(ABC):
 
         chunk = self._convert_to_save(chunk, chunk_version, translator, recurse)
         chunk, chunk_palette = self._pack(chunk, translator, chunk_version)
-        raw_chunk_data = self._encode(chunk, chunk_palette, interface)
+        raw_chunk_data = self._encode(interface, chunk, dimension, chunk_palette)
 
         self.put_raw_chunk_data(cx, cz, raw_chunk_data, dimension)
 
@@ -631,10 +631,10 @@ class FormatWrapper(ABC):
         return translator.pack(chunk_version, self.translation_manager, chunk)
 
     def _encode(
-        self, chunk: Chunk, chunk_palette: AnyNDArray, interface: api_wrapper.Interface
+        self, interface: api_wrapper.Interface, chunk: Chunk, dimension: Dimension, chunk_palette: AnyNDArray
     ) -> Any:
         """Encode the data to the raw format as saved on disk."""
-        return interface.encode(chunk, chunk_palette, self.max_world_version)
+        raise NotImplementedError
 
     def delete_chunk(self, cx: int, cz: int, dimension: Dimension):
         """
