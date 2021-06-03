@@ -14,11 +14,13 @@ class DataPackManager:
 
         :param data_packs: The data packs to load from. Later in the list get higher priority.
         """
-        self._data_packs = reversed(
-            tuple(
-                pack
-                for pack in data_packs
-                if isinstance(pack, DataPack) and pack.is_valid
+        self._data_packs = tuple(
+            reversed(
+                tuple(
+                    pack
+                    for pack in data_packs
+                    if isinstance(pack, DataPack) and pack.is_valid
+                )
             )
         )
 

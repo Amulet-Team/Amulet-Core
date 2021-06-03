@@ -6,12 +6,13 @@ from typing import Tuple, Any, Dict, Generator, Optional, List, Union, Iterable
 import time
 import glob
 import shutil
+import json
 
 import amulet_nbt as nbt
+from amulet import log
 from amulet.api.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api import wrapper as api_wrapper
 from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion, DefaultSelection
 from amulet.utils.format_utils import check_all_exist, load_leveldat
 from amulet.api.errors import (
@@ -31,6 +32,7 @@ from amulet.api.data_types import (
 from .dimension import AnvilDimensionManager
 from amulet.api import level as api_level
 from amulet.level.interfaces.chunk.anvil.base_anvil_interface import BaseAnvilInterface
+from .data_pack import DataPack, DataPackManager
 
 
 InternalDimension = str
@@ -59,6 +61,7 @@ class AnvilFormat(WorldFormatWrapper):
         self._dimension_name_map: Dict[Dimension, InternalDimension] = {}
         self._mcc_support: Optional[bool] = None
         self._lock_time = None
+        self._data_pack: Optional[DataPackManager] = None
         self._shallow_load()
 
     def _shallow_load(self):
@@ -145,6 +148,30 @@ class AnvilFormat(WorldFormatWrapper):
             return f"Java Unknown Version"
 
     @property
+    def data_pack(self) -> DataPackManager:
+        if self._data_pack is None:
+            packs = []
+            if (
+                "DataPacks" in self.root_tag["Data"]
+                and isinstance(self.root_tag["Data"]["DataPacks"], nbt.TAG_Compound)
+                and "Enabled" in self.root_tag["Data"]["DataPacks"]
+                and isinstance(
+                    self.root_tag["Data"]["DataPacks"]["Enabled"], nbt.TAG_List
+                )
+            ):
+                for pack in self.root_tag["Data"]["DataPacks"]["Enabled"]:
+                    if isinstance(pack, nbt.TAG_String):
+                        pack_name: str = pack.value
+                        if pack_name == "vanilla":
+                            pass
+                        elif pack_name.startswith("file/"):
+                            path = os.path.join(self.path, "datapacks", pack_name[5:])
+                            if DataPack.is_path_valid(path):
+                                packs.append(DataPack(path))
+            self._data_pack = DataPackManager(packs)
+        return self._data_pack
+
+    @property
     def dimensions(self) -> List[Dimension]:
         return list(self._dimension_name_map.keys())
 
@@ -188,7 +215,7 @@ class AnvilFormat(WorldFormatWrapper):
                             else:
                                 return obj[key]
 
-                dimension_settings = get_recursive(
+                dimension_type = get_recursive(
                     self.root_tag.value,
                     "Data",
                     "WorldGenSettings",
@@ -196,12 +223,54 @@ class AnvilFormat(WorldFormatWrapper):
                     dimension_name,
                     "type",
                 )
-                if isinstance(dimension_settings, nbt.TAG_String):
+                if isinstance(dimension_type, nbt.TAG_String):
                     # the settings are in the data pack
-                    # TODO: load from the data pack
-                    pass
-                if isinstance(dimension_settings, nbt.TAG_Compound):
+                    dimension_type: str = dimension_type.value
+                    if ":" in dimension_type:
+                        namespace, base_name = dimension_type.split(":", 1)
+                        dimension_path = (
+                            f"data/{namespace}/dimension_type/{base_name}.json"
+                        )
+                        if self.data_pack.has_file(dimension_path):
+                            with self.data_pack.open(dimension_path) as d:
+                                try:
+                                    dimension_settings_json = json.load(d)
+                                except json.JSONDecodeError:
+                                    pass
+                                else:
+                                    if (
+                                        "min_y" in dimension_settings_json
+                                        and isinstance(
+                                            dimension_settings_json["min_y"], int
+                                        )
+                                    ):
+                                        min_y = dimension_settings_json["min_y"]
+                                        if min_y % 16:
+                                            min_y = 16 * (min_y // 16)
+                                    else:
+                                        min_y = 0
+                                    if (
+                                        "height" in dimension_settings_json
+                                        and isinstance(
+                                            dimension_settings_json["height"], int
+                                        )
+                                    ):
+                                        height = dimension_settings_json["height"]
+                                        if height % 16:
+                                            height = -16 * (-height // 16)
+                                    else:
+                                        height = 256
+
+                                    bounds = SelectionGroup(
+                                        SelectionBox(
+                                            (-30_000_000, min_y, -30_000_000),
+                                            (30_000_000, min_y + height, 30_000_000),
+                                        )
+                                    )
+
+                elif isinstance(dimension_type, nbt.TAG_Compound):
                     # the settings are here
+                    dimension_settings = dimension_type
                     if "min_y" in dimension_settings and isinstance(
                         dimension_settings["min_y"], nbt.TAG_Int
                     ):

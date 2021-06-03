@@ -161,49 +161,48 @@ class BaseAnvilInterface(Interface):
                 level, "InhabitedTime", TAG_Long
             ).value
 
-        if self._features["biomes"] is not None:
-            if "Biomes" in level:
-                biomes = level.pop("Biomes")
-                if self._features["biomes"] == BiomeState.BA256:
-                    if isinstance(biomes, TAG_Byte_Array) and biomes.value.size == 256:
-                        chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
-                elif self._features["biomes"] == BiomeState.IA256:
-                    if isinstance(biomes, TAG_Int_Array) and biomes.value.size == 256:
-                        chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
-                elif self._features["biomes"] in [BiomeState.IA1024, BiomeState.IANx64]:
-                    if self._features["biomes"] == BiomeState.IANx64:
-                        min_y = bounds[0]
-                        height = bounds[1] - bounds[0]
-                    else:
-                        min_y = 0
-                        height = 256
-                    arr_start = min_y // 16
-                    arr_height = height // 4
-                    if isinstance(biomes, TAG_Int_Array):
-                        if biomes.value.size == 16 * arr_height:
-                            chunk.biomes = {
-                                sy + arr_start: arr
-                                for sy, arr in enumerate(
-                                    numpy.split(
-                                        numpy.transpose(
-                                            biomes.astype(numpy.uint32).reshape(
-                                                arr_height, 4, 4
-                                            ),
-                                            (2, 0, 1),
-                                        ),  # YZX -> XYZ
-                                        16,
-                                        1,
-                                    )
+        if self._features["biomes"] is not None and "Biomes" in level:
+            biomes = level.pop("Biomes")
+            if self._features["biomes"] == BiomeState.BA256:
+                if isinstance(biomes, TAG_Byte_Array) and biomes.value.size == 256:
+                    chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
+            elif self._features["biomes"] == BiomeState.IA256:
+                if isinstance(biomes, TAG_Int_Array) and biomes.value.size == 256:
+                    chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
+            elif self._features["biomes"] in [BiomeState.IA1024, BiomeState.IANx64]:
+                if self._features["biomes"] == BiomeState.IANx64:
+                    min_y = bounds[0]
+                    height = bounds[1] - min_y
+                else:
+                    min_y = 0
+                    height = 256
+                arr_start = min_y // 16
+                arr_height = height // 4
+                if isinstance(biomes, TAG_Int_Array):
+                    if biomes.value.size == 16 * arr_height:
+                        chunk.biomes = {
+                            sy + arr_start: arr
+                            for sy, arr in enumerate(
+                                numpy.split(
+                                    numpy.transpose(
+                                        biomes.astype(numpy.uint32).reshape(
+                                            arr_height, 4, 4
+                                        ),
+                                        (2, 0, 1),
+                                    ),  # YZX -> XYZ
+                                    arr_height // 4,
+                                    1,
                                 )
-                            }
-                        else:
-                            log.error(
-                                f"Expected a biome array of size {arr_height * 4 * 4} but got an array of size {biomes.value.size}"
                             )
+                        }
                     else:
                         log.error(
-                            f"Expected a TAG_Int_Array biome array but got {biomes.__class__.__name__}"
+                            f"Expected a biome array of size {arr_height * 4 * 4} but got an array of size {biomes.value.size}"
                         )
+                else:
+                    log.error(
+                        f"Expected a TAG_Int_Array biome array but got {biomes.__class__.__name__}"
+                    )
 
         if self._features["height_map"] in ["256IA", "256IARequired"]:
             height = self.get_obj(level, "HeightMap", TAG_Int_Array).value
@@ -212,7 +211,9 @@ class BaseAnvilInterface(Interface):
         elif self._features["height_map"] in ["C|V1", "C|V2", "C|V3", "C|V4"]:
             heights = self.get_obj(level, "Heightmaps", TAG_Compound)
             misc["height_mapC"] = {
-                key: decode_long_array(value, 256, len(value) == 36).reshape((16, 16))
+                key: decode_long_array(value.value, 256, len(value) == 36).reshape(
+                    (16, 16)
+                )
                 for key, value in heights.items()
                 if isinstance(value, TAG_Long_Array)
             }
@@ -366,6 +367,18 @@ class BaseAnvilInterface(Interface):
                         (1, 2, 0),
                     ).ravel()  # YZX -> XYZ
                 )
+        elif self._features["biomes"] == BiomeState.IANx64:
+            if chunk.status.value > -0.7:
+                chunk.biomes.convert_to_3d()
+                min_y, max_y = bounds
+                level["Biomes"] = amulet_nbt.TAG_Int_Array(
+                    numpy.transpose(
+                        numpy.asarray(
+                            chunk.biomes[:, min_y // 4 : max_y // 4, :]
+                        ).astype(numpy.uint32),
+                        (1, 2, 0),
+                    ).ravel()  # YZX -> XYZ
+                )
 
         if self._features["height_map"] in ["256IA", "256IARequired"]:
             height = misc.get("height_map256IA", None)
@@ -437,7 +450,10 @@ class BaseAnvilInterface(Interface):
             "Sections|(Blocks,Data,Add)",
             "Sections|(BlockStates,Palette)",
         ]:
-            self._encode_blocks(sections, chunk.blocks, palette)
+            cy_min, cy_max = bounds
+            cy_min //= 16
+            cy_max //= 16
+            self._encode_blocks(sections, chunk.blocks, palette, cy_min, cy_max)
         else:
             raise Exception(f'Unsupported block format {self._features["blocks"]}')
 
@@ -588,6 +604,11 @@ class BaseAnvilInterface(Interface):
         raise NotImplementedError
 
     def _encode_blocks(
-        self, sections: Dict[int, TAG_Compound], blocks: "Blocks", palette: AnyNDArray
+        self,
+        sections: Dict[int, TAG_Compound],
+        blocks: "Blocks",
+        palette: AnyNDArray,
+        cy_min: int,
+        cy_max: int,
     ):
         raise NotImplementedError

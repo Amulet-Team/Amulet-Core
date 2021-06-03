@@ -105,9 +105,11 @@ class AnvilNAInterface(BaseAnvilInterface):
         sections: Dict[int, nbt.TAG_Compound],
         blocks: "Blocks",
         palette: AnyNDArray,
+        cy_min: int,
+        cy_max: int,
     ):
         added_sections = set()
-        for cy in range(16):  # perhaps find a way to do this dynamically
+        for cy in range(cy_min, cy_max):
             if cy in blocks:
                 block_sub_array = palette[
                     numpy.transpose(

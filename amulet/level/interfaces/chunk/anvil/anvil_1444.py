@@ -109,8 +109,10 @@ class Anvil1444Interface(BaseAnvilInterface):
         sections: Dict[int, amulet_nbt.TAG_Compound],
         blocks: Blocks,
         palette: AnyNDArray,
+        cy_min: int,
+        cy_max: int,
     ):
-        for cy in range(16):
+        for cy in range(cy_min, cy_max):
             if cy in blocks:
                 block_sub_array = numpy.transpose(
                     blocks.get_sub_chunk(cy), (1, 2, 0)
