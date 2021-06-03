@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import List, Tuple, Union, Iterable, Dict, TYPE_CHECKING, Optional, Any
 import numpy
+from enum import Enum
 
 import amulet_nbt
 from amulet_nbt import (
@@ -33,6 +34,12 @@ if TYPE_CHECKING:
     from amulet.api.chunk.blocks import Blocks
 
 
+class BiomeState(Enum):
+    BA256 = "256BA"
+    IA256 = "256IA"
+    IA1024 = "1024IA"
+
+
 class BaseAnvilInterface(Interface):
     def __init__(self):
         self._feature_options = {
@@ -43,7 +50,8 @@ class BaseAnvilInterface(Interface):
             "terrain_populated": ["byte"],  # int
             "V": ["byte"],  # int
             "inhabited_time": ["long"],  # int
-            "biomes": ["256BA", "256IA", "1024IA"],  # Biomes
+            "biomes": BiomeState,  # Biomes
+            "height_state": ["fixed256", "1.17"],  # The height of the chunk
             "height_map": [
                 "256IARequired",  # A 256 element Int Array in HeightMap
                 "256IA",  # A 256 element Int Array in HeightMap
@@ -157,13 +165,13 @@ class BaseAnvilInterface(Interface):
         if self._features["biomes"] is not None:
             if "Biomes" in level:
                 biomes = level.pop("Biomes")
-                if self._features["biomes"] == "256BA":
+                if self._features["biomes"] == BiomeState.BA256:
                     if isinstance(biomes, TAG_Byte_Array) and biomes.value.size == 256:
                         chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
-                elif self._features["biomes"] == "256IA":
+                elif self._features["biomes"] == BiomeState.IA256:
                     if isinstance(biomes, TAG_Int_Array) and biomes.value.size == 256:
                         chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
-                elif self._features["biomes"] == "1024IA":
+                elif self._features["biomes"] == BiomeState.IA1024:
                     if isinstance(biomes, TAG_Int_Array) and biomes.value.size == 1024:
                         chunk.biomes = {
                             sy: arr
@@ -310,19 +318,19 @@ class BaseAnvilInterface(Interface):
         if self._features["inhabited_time"] == "long":
             level["InhabitedTime"] = amulet_nbt.TAG_Long(misc.get("inhabited_time", 0))
 
-        if self._features["biomes"] == "256BA":  # TODO: support the optional variant
+        if self._features["biomes"] == BiomeState.BA256:  # TODO: support the optional variant
             if chunk.status.value > -0.7:
                 chunk.biomes.convert_to_2d()
                 level["Biomes"] = amulet_nbt.TAG_Byte_Array(
                     chunk.biomes.astype(dtype=numpy.uint8)
                 )
-        elif self._features["biomes"] == "256IA":
+        elif self._features["biomes"] == BiomeState.IA256:
             if chunk.status.value > -0.7:
                 chunk.biomes.convert_to_2d()
                 level["Biomes"] = amulet_nbt.TAG_Int_Array(
                     chunk.biomes.astype(dtype=numpy.uint32)
                 )
-        elif self._features["biomes"] == "1024IA":
+        elif self._features["biomes"] == BiomeState.IA1024:
             if chunk.status.value > -0.7:
                 chunk.biomes.convert_to_3d()
                 level["Biomes"] = amulet_nbt.TAG_Int_Array(

@@ -3,12 +3,13 @@ from __future__ import annotations
 from .anvil_1934 import (
     Anvil1934Interface,
 )
+from .base_anvil_interface import BiomeState
 
 
 class Anvil2203Interface(Anvil1934Interface):
     def __init__(self):
         super().__init__()
-        self._set_feature("biomes", "1024IA")  # optional
+        self._set_feature("biomes", BiomeState.IA1024)  # optional
 
     @staticmethod
     def minor_is_valid(key: int):
