@@ -3,7 +3,7 @@ from __future__ import annotations
 from .anvil_1466 import (
     Anvil1466Interface,
 )
-from .base_anvil_interface import BiomeState
+from .feature_enum import BiomeState
 
 
 class Anvil1467Interface(Anvil1466Interface):

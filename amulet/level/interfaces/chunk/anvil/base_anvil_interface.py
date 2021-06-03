@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List, Tuple, Union, Iterable, Dict, TYPE_CHECKING, Optional, Any
 import numpy
-from enum import Enum
+
 
 import amulet_nbt
 from amulet_nbt import (
@@ -26,18 +26,13 @@ from amulet.level import loader
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray
 from amulet.api.wrapper import EntityIDType, EntityCoordType
 from amulet.utils.world_utils import decode_long_array, encode_long_array
+from .feature_enum import BiomeState, HeightState
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
     from amulet.api.block_entity import BlockEntity
     from amulet.api.entity import Entity
     from amulet.api.chunk.blocks import Blocks
-
-
-class BiomeState(Enum):
-    BA256 = "256BA"
-    IA256 = "256IA"
-    IA1024 = "1024IA"
 
 
 class BaseAnvilInterface(Interface):
@@ -51,7 +46,7 @@ class BaseAnvilInterface(Interface):
             "V": ["byte"],  # int
             "inhabited_time": ["long"],  # int
             "biomes": BiomeState,  # Biomes
-            "height_state": ["fixed256", "1.17"],  # The height of the chunk
+            "height_state": HeightState,  # The height of the chunk
             "height_map": [
                 "256IARequired",  # A 256 element Int Array in HeightMap
                 "256IA",  # A 256 element Int Array in HeightMap
