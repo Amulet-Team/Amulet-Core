@@ -24,7 +24,8 @@ chunk_version_to_max_version = {
     19: ((1, 16, 0, 0), (1, 16, 100, 55)),
     20: ((1, 16, 100, 56), (1, 16, 100, 57)),
     21: ((1, 16, 100, 58), (1, 16, 210, 0)),
-    22: ((1, 16, 210, 0), (999, 999, 999, 9999)),
+    22: ((1, 16, 210, 0), (1, 16, 999, 999)),
+    25: ((1, 17, 0, 0), (999, 999, 999, 999))
 }  # TODO: fill this list with the actual last game version number each chunk version was last used in
 
 
@@ -37,4 +38,7 @@ def chunk_to_game_version(
 def game_to_chunk_version(max_game_version: Tuple[int, int, int]) -> int:
     for chunk_version, (first, last) in chunk_version_to_max_version.items():
         if first <= max_game_version <= last:
+            if chunk_version == 25:
+                # TODO: work out a better way to support this
+                return 22
             return chunk_version

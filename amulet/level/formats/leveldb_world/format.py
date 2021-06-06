@@ -11,7 +11,7 @@ import time
 import amulet_nbt as nbt
 from amulet.api.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
-from amulet.api import wrapper as api_wrapper
+from amulet.api.selection import SelectionBox, SelectionGroup
 
 from amulet.libs.leveldb import LevelDB
 from amulet.utils.format_utils import check_all_exist
@@ -207,12 +207,27 @@ class LevelDBFormat(WorldFormatWrapper):
     ) -> Tuple[str, int]:
         if raw_chunk_data:
             if b"," in raw_chunk_data:
-                v = raw_chunk_data[b","][0]
+                chunk_version = raw_chunk_data[b","][0]
             else:
-                v = raw_chunk_data.get(b"v", b"\x00")[0]
+                chunk_version = raw_chunk_data.get(b"v", b"\x00")[0]
         else:
-            v = game_to_chunk_version(self.max_world_version[1])
-        return (self.platform, v)  # TODO: work out a valid default
+            if self.root_tag.get("experiments", {}).get("caves_and_cliffs", nbt.TAG_Byte()).value:
+                # TODO: handle this properly when the chunk version is better understood for the 1.18 chunk
+                chunk_version = 25
+            else:
+                chunk_version = game_to_chunk_version(self.max_world_version[1])
+        return self.platform, chunk_version  # TODO: work out a valid default
+
+    def _decode(
+        self,
+        interface: BaseLevelDBInterface,
+        dimension: Dimension,
+        cx: int,
+        cz: int,
+        raw_chunk_data: Any,
+    ) -> Tuple[Chunk, AnyNDArray]:
+        bounds = self.bounds(dimension).bounds
+        return interface.decode(cx, cz, raw_chunk_data, (bounds[0][1], bounds[1][1]))
 
     def _encode(
         self,
@@ -221,7 +236,13 @@ class LevelDBFormat(WorldFormatWrapper):
         dimension: Dimension,
         chunk_palette: AnyNDArray,
     ) -> Any:
-        return interface.encode(chunk, chunk_palette, self.max_world_version)
+        bounds = self.bounds(dimension).bounds
+        return interface.encode(
+            chunk,
+            chunk_palette,
+            self.max_world_version,
+            (bounds[0][1], bounds[1][1]),
+        )
 
     def _reload_world(self):
         try:
@@ -230,6 +251,13 @@ class LevelDBFormat(WorldFormatWrapper):
             pass
         try:
             self._level_manager = LevelDBDimensionManager(self.path)
+            self._bounds[THE_NETHER] = SelectionGroup(
+                SelectionBox((-30_000_000, 0, -30_000_000), (30_000_000, 128, 30_000_000))
+            )
+            if self.root_tag.get("experiments", {}).get("caves_and_cliffs", nbt.TAG_Byte()).value:
+                self._bounds[OVERWORLD] = SelectionGroup(
+                    SelectionBox((-30_000_000, -64, -30_000_000), (30_000_000, 320, 30_000_000))
+                )
         except LevelDBException as e:
             msg = str(e)
             # I don't know if there is a better way of handling this.
