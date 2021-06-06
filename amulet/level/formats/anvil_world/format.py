@@ -9,7 +9,6 @@ import shutil
 import json
 
 import amulet_nbt as nbt
-from amulet import log
 from amulet.api.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox

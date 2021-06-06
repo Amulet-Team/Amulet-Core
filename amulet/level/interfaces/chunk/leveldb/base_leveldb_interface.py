@@ -102,7 +102,10 @@ class BaseLevelDBInterface(Interface):
         ):  # ["2farray", "2f1palette", "2fnpalette"]
             min_y = bounds[0] // 16
             height = (bounds[1] // 16) - min_y
-            subchunks = {cy+min_y: data.pop(b"\x2F" + bytes([cy]), None) for cy in range(height)}
+            subchunks = {
+                cy + min_y: data.pop(b"\x2F" + bytes([cy]), None)
+                for cy in range(height)
+            }
             chunk.blocks, chunk_palette = self._load_subchunks(subchunks)
         elif self._features["terrain"] == "30array":
             chunk_data = data.pop(b"\x30", None)
@@ -177,7 +180,11 @@ class BaseLevelDBInterface(Interface):
         return chunk, chunk_palette
 
     def encode(
-        self, chunk: Chunk, palette: AnyNDArray, max_world_version: Tuple[int, int, int], bounds: Tuple[int, int]
+        self,
+        chunk: Chunk,
+        palette: AnyNDArray,
+        max_world_version: Tuple[int, int, int],
+        bounds: Tuple[int, int],
     ) -> Dict[bytes, Optional[bytes]]:
         chunk_data = chunk.misc.get("bedrock_chunk_data", {})
         if isinstance(chunk_data, dict):
@@ -450,9 +457,8 @@ class BaseLevelDBInterface(Interface):
             if cy in blocks:
                 palette_index, sub_chunk = fast_unique(blocks.get_sub_chunk(cy))
                 sub_chunk_palette = list(palette[palette_index])
-                chunk[cy] = (
-                    b"\x01"
-                    + self._save_palette_subchunk(sub_chunk.ravel(), sub_chunk_palette)
+                chunk[cy] = b"\x01" + self._save_palette_subchunk(
+                    sub_chunk.ravel(), sub_chunk_palette
                 )
             else:
                 chunk[cy] = None

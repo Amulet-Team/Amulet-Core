@@ -211,7 +211,11 @@ class LevelDBFormat(WorldFormatWrapper):
             else:
                 chunk_version = raw_chunk_data.get(b"v", b"\x00")[0]
         else:
-            if self.root_tag.get("experiments", {}).get("caves_and_cliffs", nbt.TAG_Byte()).value:
+            if (
+                self.root_tag.get("experiments", {})
+                .get("caves_and_cliffs", nbt.TAG_Byte())
+                .value
+            ):
                 # TODO: handle this properly when the chunk version is better understood for the 1.18 chunk
                 chunk_version = 25
             else:
@@ -252,11 +256,19 @@ class LevelDBFormat(WorldFormatWrapper):
         try:
             self._level_manager = LevelDBDimensionManager(self.path)
             self._bounds[THE_NETHER] = SelectionGroup(
-                SelectionBox((-30_000_000, 0, -30_000_000), (30_000_000, 128, 30_000_000))
+                SelectionBox(
+                    (-30_000_000, 0, -30_000_000), (30_000_000, 128, 30_000_000)
+                )
             )
-            if self.root_tag.get("experiments", {}).get("caves_and_cliffs", nbt.TAG_Byte()).value:
+            if (
+                self.root_tag.get("experiments", {})
+                .get("caves_and_cliffs", nbt.TAG_Byte())
+                .value
+            ):
                 self._bounds[OVERWORLD] = SelectionGroup(
-                    SelectionBox((-30_000_000, -64, -30_000_000), (30_000_000, 320, 30_000_000))
+                    SelectionBox(
+                        (-30_000_000, -64, -30_000_000), (30_000_000, 320, 30_000_000)
+                    )
                 )
         except LevelDBException as e:
             msg = str(e)
