@@ -5,6 +5,7 @@ from typing import Union, Generator, Optional, Tuple, Callable, Set
 import traceback
 import numpy
 import itertools
+import warnings
 
 from amulet import log
 from amulet.api.block import Block, UniversalAirBlock
@@ -108,7 +109,23 @@ class BaseLevel:
     @property
     def selection_bounds(self) -> SelectionGroup:
         """The selection(s) that all chunk data must fit within. Usually +/-30M for worlds. The selection for structures."""
-        return self.level_wrapper.selection
+        warnings.warn(
+            "BaseLevel.selection_bounds is depreciated and will be removed in the future. Please use BaseLevel.bounds(dimension) instead",
+            DeprecationWarning,
+        )
+        return self.bounds(self.dimensions[0])
+
+    def bounds(self, dimension: Dimension) -> SelectionGroup:
+        """
+        The selection(s) that all chunk data must fit within.
+        This specifies the volume that can be built in.
+        Worlds will have a single cuboid volume.
+        Structures may have one or more cuboid volumes.
+
+        :param dimension: The dimension to get the bounds of.
+        :return: The build volume for the dimension.
+        """
+        return self.level_wrapper.bounds(dimension)
 
     @property
     def dimensions(self) -> Tuple[Dimension, ...]:
@@ -143,14 +160,14 @@ class BaseLevel:
         return SelectionBox.create_chunk_box(cx, cz, sub_chunk_size)
 
     def _sanitise_selection(
-        self, selection: Union[SelectionGroup, SelectionBox, None]
+        self, selection: Union[SelectionGroup, SelectionBox, None], dimension: Dimension
     ) -> SelectionGroup:
         if isinstance(selection, SelectionBox):
             return SelectionGroup(selection)
         elif isinstance(selection, SelectionGroup):
             return selection
         elif selection is None:
-            return self.selection_bounds
+            return self.bounds(dimension)
         else:
             raise ValueError(
                 f"Expected SelectionBox, SelectionGroup or None. Got {selection}"
@@ -168,10 +185,10 @@ class BaseLevel:
         If not given a selection will use the bounds of the object.
 
         :param dimension: The dimension to take effect in.
-        :param selection: SelectionGroup or SelectionBox into the level. If None will use :meth:`selection_bounds`
+        :param selection: SelectionGroup or SelectionBox into the level. If None will use :meth:`bounds` for the dimension.
         :param yield_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false). Use this with care.
         """
-        selection = self._sanitise_selection(selection)
+        selection = self._sanitise_selection(selection, dimension)
         if yield_missing_chunks or selection.footprint_area < 1_000_000:
             if yield_missing_chunks:
                 for coord, box in selection.chunk_boxes(self.sub_chunk_size):
@@ -206,7 +223,7 @@ class BaseLevel:
         If not given a selection will use the bounds of the object.
 
         :param dimension: The dimension to take effect in.
-        :param selection: SelectionGroup or SelectionBox into the level. If None will use :meth:`selection_bounds`
+        :param selection: SelectionGroup or SelectionBox into the level. If None will use :meth:`bounds` for the dimension.
         :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false). Use this with care.
         """
         for (cx, cz), box in self.get_coord_box(
@@ -232,7 +249,7 @@ class BaseLevel:
         Given a selection will yield :class:`Chunk`, slices, :class:`SelectionBox` for the contents of the selection.
 
         :param dimension: The dimension to take effect in.
-        :param selection: SelectionGroup or SelectionBox into the level. If None will use :meth:`selection_bounds`
+        :param selection: SelectionGroup or SelectionBox into the level. If None will use :meth:`bounds` for the dimension.
         :param create_missing_chunks: If a chunk does not exist an empty one will be created (defaults to false)
 
         >>> for chunk, slices, box in level.get_chunk_slice_box(selection):
@@ -270,8 +287,8 @@ class BaseLevel:
         so the slices need to be split up into parts that intersect a chunk in the source and destination.
 
         :param dimension: The dimension to iterate over.
-        :param destination_origin: The location where the minimum point of self.selection_bounds will end up
-        :param selection: An optional selection. The overlap of this and self.selection_bounds will be used
+        :param destination_origin: The location where the minimum point of the selection will end up
+        :param selection: An optional selection. The overlap of this and the dimensions bounds will be used
         :param destination_sub_chunk_shape: the chunk shape of the destination object (defaults to self.sub_chunk_size)
         :param yield_missing_chunks: Generate empty chunks if the chunk does not exist.
         :return:
@@ -280,12 +297,12 @@ class BaseLevel:
             destination_sub_chunk_shape = self.sub_chunk_size
 
         if selection is None:
-            selection = self.selection_bounds
+            selection = self.bounds(dimension)
         else:
-            selection = self.selection_bounds.intersection(selection)
+            selection = self.bounds(dimension).intersection(selection)
         # the offset from self.selection to the destination location
         offset = numpy.subtract(
-            destination_origin, self.selection_bounds.min, dtype=int
+            destination_origin, self.bounds(dimension).min, dtype=int
         )
         for (src_cx, src_cz), box in self.get_coord_box(
             dimension, selection, yield_missing_chunks=yield_missing_chunks
@@ -694,7 +711,7 @@ class BaseLevel:
             src_selection,
             self,
             dst_dimension,
-            self.selection_bounds,
+            self.bounds(dst_dimension),
             location,
             scale,
             rotation,

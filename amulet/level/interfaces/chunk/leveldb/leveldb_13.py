@@ -9,7 +9,7 @@ class LevelDB13Interface(LevelDB12Interface):
     def __init__(self):
         super().__init__()
 
-        self.features["chunk_version"] = 13
+        self._set_feature("chunk_version", 13)
 
 
 export = LevelDB13Interface

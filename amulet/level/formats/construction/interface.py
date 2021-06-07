@@ -22,6 +22,13 @@ class ConstructionInterface(Interface):
     def decode(
         self, cx: int, cz: int, data: List[ConstructionSection]
     ) -> Tuple["Chunk", AnyNDArray]:
+        """
+        Create an amulet.api.chunk.Chunk object from raw data given by the format
+        :param cx: chunk x coordinate
+        :param cz: chunk z coordinate
+        :param data: Raw chunk data provided by the format.
+        :return: Chunk object in version-specific format, along with the block_palette for that chunk.
+        """
         chunk = Chunk(cx, cz)
         palette = []
         for section in data:
@@ -65,10 +72,18 @@ class ConstructionInterface(Interface):
         chunk: "Chunk",
         palette: AnyNDArray,
         max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
-        boxes: List[SelectionBox] = None,
+        boxes: List[SelectionBox],
     ) -> List[ConstructionSection]:
+        """
+        Take a version-specific chunk and encode it to raw data for the format to store.
+        :param chunk: The already translated version-specfic chunk to encode.
+        :param palette: The block_palette the ids in the chunk correspond to.
+        :type palette: numpy.ndarray[Block]
+        :param max_world_version: The key to use to find the encoder.
+        :param boxes: The volume(s) of the chunk to pack.
+        :return: Raw data to be stored by the Format.
+        """
         sections = []
-        boxes = boxes or []
         for box in boxes:
             cx, cz = chunk.cx, chunk.cz
             for cy in box.chunk_y_locations():

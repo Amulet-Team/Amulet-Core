@@ -51,7 +51,7 @@ def paste_iter(
     yield from dst.paste_iter(
         src,
         src_dimension,
-        src.selection_bounds,
+        src.bounds(src_dimension),
         dst_dimension,
         location,
         scale,

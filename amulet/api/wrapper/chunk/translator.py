@@ -44,7 +44,7 @@ class Translator:
 
         :return: The tuple version key for PyMCTranslate
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @staticmethod
     def is_valid(key: Tuple) -> bool:
@@ -55,7 +55,7 @@ class Translator:
         :param key: The key who's decodability needs to be checked.
         :return: True if this translator is able to translate the chunk type associated with the key, False otherwise.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @staticmethod
     def _translate(

@@ -1,9 +1,11 @@
 from typing import Any, List, Dict, Tuple, Optional, TYPE_CHECKING, Iterable
 
-from amulet.api.data_types import Dimension, PlatformType, ChunkCoordinates
+from amulet.api.data_types import Dimension, PlatformType, ChunkCoordinates, AnyNDArray
 from amulet.api.wrapper import FormatWrapper
 from amulet.api.errors import ChunkDoesNotExist, PlayerDoesNotExist
 from amulet.api.player import Player
+from amulet.api.chunk import Chunk
+from amulet.api import wrapper as api_wrapper
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
@@ -42,6 +44,15 @@ class VoidFormatWrapper(FormatWrapper):
         pass
 
     def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> "Interface":
+        raise Exception("If this is called something is wrong")
+
+    def _encode(
+        self,
+        interface: api_wrapper.Interface,
+        chunk: Chunk,
+        dimension: Dimension,
+        chunk_palette: AnyNDArray,
+    ) -> Any:
         raise Exception("If this is called something is wrong")
 
     def _create(self, overwrite: bool, **kwargs):

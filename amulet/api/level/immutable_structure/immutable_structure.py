@@ -43,6 +43,9 @@ class ImmutableStructure(BaseLevel):
     def selection_bounds(self) -> SelectionGroup:
         return self._selection
 
+    def bounds(self, dimension: Dimension) -> SelectionGroup:
+        return self._selection
+
     def undo(self):
         pass
 

@@ -7,9 +7,9 @@ from .leveldb_3 import (
 
 class LevelDB4Interface(LevelDB3Interface):
     def __init__(self):
-        LevelDB3Interface.__init__(self)
+        super().__init__()
 
-        self.features["chunk_version"] = 4
+        self._set_feature("chunk_version", 4)
 
 
 export = LevelDB4Interface

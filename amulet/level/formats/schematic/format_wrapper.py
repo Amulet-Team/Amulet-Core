@@ -86,7 +86,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
                 schematic["Length"].value,
             ),
         )
-        self._selection = SelectionGroup(selection_box)
+        self._bounds[self.dimensions[0]] = SelectionGroup(selection_box)
         entities: amulet_nbt.TAG_List = schematic.get("Entities", amulet_nbt.TAG_List())
         block_entities: amulet_nbt.TAG_List = schematic.get(
             "TileEntities", amulet_nbt.TAG_List()
@@ -177,7 +177,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
                 f'"{self._platform}" is not a supported platform for a schematic file.'
             )
 
-        selection = self._selection.selection_boxes[0]
+        selection = self._bounds[self.dimensions[0]].selection_boxes[0]
 
         data = amulet_nbt.NBTFile(
             amulet_nbt.TAG_Compound(
@@ -277,16 +277,17 @@ class SchematicFormatWrapper(StructureFormatWrapper):
 
     def _encode(
         self,
-        chunk: Chunk,
-        chunk_palette: AnyNDArray,
         interface: SchematicInterface,
+        chunk: Chunk,
+        dimension: Dimension,
+        chunk_palette: AnyNDArray,
     ):
         return interface.encode(
             chunk,
             chunk_palette,
             self.max_world_version,
             SelectionBox.create_chunk_box(chunk.cx, chunk.cz).intersection(
-                self._selection.to_box()
+                self._bounds[dimension].to_box()
             ),
         )
 

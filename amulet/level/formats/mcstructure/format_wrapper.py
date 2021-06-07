@@ -70,7 +70,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             )
             max_point = min_point + tuple(c.value for c in mcstructure["size"])
             selection = SelectionBox(min_point, max_point)
-            self._selection = SelectionGroup(selection)
+            self._bounds[self.dimensions[0]] = SelectionGroup(selection)
             translator_version = self.translation_manager.get_version(
                 "bedrock", (999, 999, 999)
             )
@@ -186,7 +186,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
         return interface, translator, version_identifier
 
     def save_to(self, f: BinaryIO):
-        selection = self._selection.selection_boxes[0]
+        selection = self._bounds[self.dimensions[0]].selection_boxes[0]
         data = amulet_nbt.NBTFile(
             amulet_nbt.TAG_Compound(
                 {
@@ -329,16 +329,17 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
 
     def _encode(
         self,
-        chunk: Chunk,
-        chunk_palette: AnyNDArray,
         interface: MCStructureInterface,
+        chunk: Chunk,
+        dimension: Dimension,
+        chunk_palette: AnyNDArray,
     ):
         return interface.encode(
             chunk,
             chunk_palette,
             self.max_world_version,
             SelectionBox.create_chunk_box(chunk.cx, chunk.cz).intersection(
-                self._selection.to_box()
+                self._bounds[dimension].to_box()
             ),
         )
 

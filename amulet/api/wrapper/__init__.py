@@ -2,6 +2,7 @@ from amulet.api.wrapper.format_wrapper import (
     FormatWrapper,
     DefaultPlatform,
     DefaultVersion,
+    DefaultSelection,
 )
 from amulet.api.wrapper.chunk.translator import Translator
 from amulet.api.wrapper.chunk.interface import Interface, EntityIDType, EntityCoordType
