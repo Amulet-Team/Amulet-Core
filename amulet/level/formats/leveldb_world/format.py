@@ -215,6 +215,12 @@ class LevelDBFormat(WorldFormatWrapper):
         else:
             if (
                 self.root_tag.get("experiments", {})
+                .get("caves_and_cliffs_internal", nbt.TAG_Byte())
+                .value
+            ):
+                chunk_version = 26
+            elif (
+                self.root_tag.get("experiments", {})
                 .get("caves_and_cliffs", nbt.TAG_Byte())
                 .value
             ):
@@ -259,10 +265,10 @@ class LevelDBFormat(WorldFormatWrapper):
             self._level_manager = LevelDBDimensionManager(self.path)
             self._is_open = True
             self._has_lock = True
+            experiments = self.root_tag.get("experiments", {})
             if (
-                self.root_tag.get("experiments", {})
-                .get("caves_and_cliffs", nbt.TAG_Byte())
-                .value
+                experiments.get("caves_and_cliffs", nbt.TAG_Byte()).value
+                or experiments.get("caves_and_cliffs_internal", nbt.TAG_Byte()).value
             ):
                 self._bounds[OVERWORLD] = SelectionGroup(
                     SelectionBox(
