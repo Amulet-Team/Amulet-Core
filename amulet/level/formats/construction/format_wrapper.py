@@ -1,5 +1,15 @@
 import os
-from typing import Optional, List, Tuple, Dict, Iterable, TYPE_CHECKING, BinaryIO, Any
+from typing import (
+    Optional,
+    List,
+    Tuple,
+    Dict,
+    Iterable,
+    TYPE_CHECKING,
+    BinaryIO,
+    Any,
+    Union,
+)
 import numpy
 from io import BytesIO
 import struct
@@ -11,6 +21,7 @@ from amulet import log
 from amulet.api.data_types import (
     AnyNDArray,
     VersionNumberAny,
+    VersionNumberTuple,
     Dimension,
     PlatformType,
     ChunkCoordinates,
@@ -19,7 +30,7 @@ from amulet.api.registry import BlockManager
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.errors import ChunkDoesNotExist, ObjectWriteError
+from amulet.api.errors import ChunkDoesNotExist, ObjectWriteError, ObjectReadError
 
 from .section import ConstructionSection
 from .interface import Construction0Interface, ConstructionInterface
@@ -63,6 +74,9 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
     """
     This FormatWrapper class exists to interface with the construction format.
     """
+
+    _platform: PlatformType
+    _version: VersionNumberTuple
 
     def __init__(self, path: str):
         """
@@ -132,6 +146,9 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
     def _create(
         self,
         overwrite: bool,
+        bounds: Union[
+            SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
+        ] = None,
         format_version=max_format_version,
         section_version=max_section_version,
         **kwargs,
@@ -147,7 +164,10 @@ class ConstructionFormatWrapper(StructureFormatWrapper):
         self._version = translator_version.version_number
         self._chunk_to_section = {}
         self._chunk_to_box = {}
+        self._set_selection(bounds)
         self._populate_chunk_to_box()
+        self._is_open = True
+        self._has_lock = True
 
     def _populate_chunk_to_box(self):
         for box in self._bounds[self.dimensions[0]].selection_boxes:

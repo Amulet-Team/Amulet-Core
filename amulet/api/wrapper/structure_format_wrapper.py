@@ -1,11 +1,12 @@
 from abc import abstractmethod
-from typing import BinaryIO, List, Any, Tuple, Iterable
+from typing import BinaryIO, List, Any, Tuple, Iterable, Union, Optional, Dict
 import os
 
 from .format_wrapper import FormatWrapper
 from amulet.api.data_types import Dimension
 from amulet.api.errors import ObjectReadError, ObjectReadWriteError, PlayerDoesNotExist
 from amulet.api.player import Player
+from amulet.api.selection import SelectionGroup
 
 
 class StructureFormatWrapper(FormatWrapper):
@@ -56,6 +57,21 @@ class StructureFormatWrapper(FormatWrapper):
         """
         raise NotImplementedError
 
+    def _set_selection(
+        self,
+        bounds: Union[SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None],
+    ):
+        if isinstance(bounds, SelectionGroup):
+            bounds = self._clean_selection(bounds)
+            self._bounds = {dim: bounds for dim in self.dimensions}
+        elif isinstance(bounds, dict):
+            for dim in self.dimensions:
+                group = bounds.get(dim, None)
+                if isinstance(group, SelectionGroup):
+                    self._bounds[dim] = self._clean_selection(group)
+        else:
+            raise ObjectReadError("A selection was required but none were given.")
+
     @abstractmethod
     def open_from(self, f: BinaryIO):
         """
@@ -70,6 +86,8 @@ class StructureFormatWrapper(FormatWrapper):
             raise ObjectReadError(f"There is no file to read at {self._path}")
         with open(self._path, "rb") as f:
             self.open_from(f)
+        self._is_open = True
+        self._has_lock = True
 
     @abstractmethod
     def save_to(self, f: BinaryIO):

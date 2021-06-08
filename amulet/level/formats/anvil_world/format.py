@@ -45,6 +45,9 @@ class AnvilFormat(WorldFormatWrapper):
     This FormatWrapper class exists to interface with the Java world format.
     """
 
+    _platform: PlatformType
+    _version: VersionNumberInt
+
     def __init__(self, path: str):
         """
         Construct a new instance of :class:`AnvilFormat`.
@@ -344,13 +347,20 @@ class AnvilFormat(WorldFormatWrapper):
                 f.flush()
                 os.fsync(f.fileno())
         except PermissionError as e:
+            self._is_open = False
+            self._has_lock = False
             raise PermissionError(
                 f"Could not access session.lock. The world may be open somewhere else.\n{e}"
             )
 
-        self._mcc_support = (
-            self.version > 2203
-        )  # the real number might actually be lower
+        self._is_open = True
+        self._has_lock = True
+
+        # the real number might actually be lower
+        self._mcc_support = self.version > 2203
+
+        self._levels.clear()
+        self._bounds.clear()
 
         # load all the levels
         self._register_dimension("", OVERWORLD)
@@ -378,7 +388,14 @@ class AnvilFormat(WorldFormatWrapper):
         """Open the database for reading and writing"""
         self._reload_world()
 
-    def _create(self, overwrite: bool, **kwargs):
+    def _create(
+        self,
+        overwrite: bool,
+        bounds: Union[
+            SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
+        ] = None,
+        **kwargs,
+    ):
         if os.path.isdir(self.path):
             if overwrite:
                 shutil.rmtree(self.path)

@@ -26,7 +26,6 @@ class WorldFormatWrapper(FormatWrapper):
         """
         super().__init__(path)
         self._world_image_path = missing_world_icon
-        self._changed: bool = False
 
     @property
     @abstractmethod
