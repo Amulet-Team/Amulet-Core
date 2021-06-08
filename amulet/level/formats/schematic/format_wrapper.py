@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict
+from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, Union
 import numpy
 import copy
 
@@ -52,7 +52,14 @@ class SchematicFormatWrapper(StructureFormatWrapper):
             Tuple[SelectionBox, BlockArrayType, BlockDataArrayType, list, list],
         ] = {}
 
-    def _create(self, overwrite: bool, **kwargs):
+    def _create(
+        self,
+        overwrite: bool,
+        bounds: Union[
+            SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
+        ] = None,
+        **kwargs,
+    ):
         if not overwrite and os.path.isfile(self.path):
             raise ObjectWriteError(f"There is already a file at {self.path}")
         if self._platform == "bedrock":
@@ -61,6 +68,9 @@ class SchematicFormatWrapper(StructureFormatWrapper):
             self._platform = "java"
             self._version = (1, 12, 2)
         self._chunks = {}
+        self._set_selection(bounds)
+        self._is_open = True
+        self._has_lock = True
 
     def open_from(self, f: BinaryIO):
         schematic = amulet_nbt.load(f)

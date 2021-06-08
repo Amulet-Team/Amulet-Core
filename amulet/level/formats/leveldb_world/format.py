@@ -91,6 +91,9 @@ class LevelDBFormat(WorldFormatWrapper):
     This FormatWrapper class exists to interface with the Bedrock world format.
     """
 
+    _platform: PlatformType
+    _version: VersionNumberTuple
+
     def __init__(self, path: str):
         """
         Construct a new instance of :class:`LevelDBFormat`.
@@ -100,7 +103,6 @@ class LevelDBFormat(WorldFormatWrapper):
         :param path: The file path to the serialised data.
         """
         super().__init__(path)
-        self._lock = False
         self._platform = "bedrock"
         self._root_tag: BedrockLevelDAT = BedrockLevelDAT(
             os.path.join(path, "level.dat")
@@ -261,11 +263,8 @@ class LevelDBFormat(WorldFormatWrapper):
             pass
         try:
             self._level_manager = LevelDBDimensionManager(self.path)
-            self._bounds[THE_NETHER] = SelectionGroup(
-                SelectionBox(
-                    (-30_000_000, 0, -30_000_000), (30_000_000, 128, 30_000_000)
-                )
-            )
+            self._is_open = True
+            self._has_lock = True
             experiments = self.root_tag.get("experiments", {})
             if (
                 experiments.get("caves_and_cliffs", nbt.TAG_Byte()).value
@@ -276,9 +275,27 @@ class LevelDBFormat(WorldFormatWrapper):
                         (-30_000_000, -64, -30_000_000), (30_000_000, 320, 30_000_000)
                     )
                 )
+            else:
+                self._bounds[OVERWORLD] = SelectionGroup(
+                    SelectionBox(
+                        (-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000)
+                    )
+                )
+            self._bounds[THE_NETHER] = SelectionGroup(
+                SelectionBox(
+                    (-30_000_000, 0, -30_000_000), (30_000_000, 128, 30_000_000)
+                )
+            )
+            self._bounds[THE_END] = SelectionGroup(
+                SelectionBox(
+                    (-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000)
+                )
+            )
         except LevelDBException as e:
             msg = str(e)
             # I don't know if there is a better way of handling this.
+            self._is_open = False
+            self._has_lock = False
             if msg.startswith("IO error:") and msg.endswith(": Permission denied"):
                 traceback.print_exc()
                 raise LevelDBException(
@@ -287,13 +304,18 @@ class LevelDBFormat(WorldFormatWrapper):
             else:
                 raise e
 
-        self._lock = True
-
     def _open(self):
         """Open the database for reading and writing"""
         self._reload_world()
 
-    def _create(self, overwrite: bool, **kwargs):
+    def _create(
+        self,
+        overwrite: bool,
+        bounds: Union[
+            SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
+        ] = None,
+        **kwargs,
+    ):
         if os.path.isdir(self.path):
             if overwrite:
                 shutil.rmtree(self.path)

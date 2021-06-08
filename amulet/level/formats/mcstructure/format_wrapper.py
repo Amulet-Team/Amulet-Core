@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, List
+from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, List, Union
 import numpy
 import copy
 
@@ -15,7 +15,7 @@ from amulet.api.data_types import (
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.errors import ChunkDoesNotExist, ObjectWriteError
+from amulet.api.errors import ChunkDoesNotExist, ObjectWriteError, ObjectReadError
 from amulet.utils.numpy_helpers import brute_sort_objects_no_hash
 
 from .chunk import MCStructureChunk
@@ -52,7 +52,14 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             ],
         ] = {}
 
-    def _create(self, overwrite: bool, **kwargs):
+    def _create(
+        self,
+        overwrite: bool,
+        bounds: Union[
+            SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
+        ] = None,
+        **kwargs,
+    ):
         if not overwrite and os.path.isfile(self.path):
             raise ObjectWriteError(f"There is already a file at {self.path}")
         translator_version = self.translation_manager.get_version(
@@ -61,6 +68,9 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
         self._platform = translator_version.platform
         self._version = translator_version.version_number
         self._chunks = {}
+        self._set_selection(bounds)
+        self._is_open = True
+        self._has_lock = True
 
     def open_from(self, f: BinaryIO):
         mcstructure = amulet_nbt.load(f, little_endian=True)

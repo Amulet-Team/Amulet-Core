@@ -34,6 +34,7 @@ from amulet.api.errors import (
     PlayerLoadError,
     EntryLoadError,
     EntryDoesNotExist,
+    DimensionDoesNotExist,
 )
 from amulet.api.data_types import (
     AnyNDArray,
@@ -219,8 +220,13 @@ class FormatWrapper(ABC):
         return self.bounds(self.dimensions[0])
 
     def bounds(self, dimension: Dimension) -> SelectionGroup:
-        if dimension not in self._bounds and dimension in self.dimensions:
-            self._bounds[dimension] = DefaultSelection
+        if dimension not in self._bounds:
+            if dimension in self.dimensions:
+                raise Exception(
+                    f'The dimension exists but there is not selection registered for it. Please report this to a developer "{dimension}" {self}'
+                )
+            else:
+                raise DimensionDoesNotExist
         return self._bounds[dimension]
 
     @abstractmethod
@@ -282,48 +288,36 @@ class FormatWrapper(ABC):
                     f"The version given ({version}) is from the blockstate format but this wrapper does not support the blockstate format."
                 )
 
-        if self.requires_selection:
-
-            def clean_selection(selection: SelectionGroup) -> SelectionGroup:
-                if self.multi_selection:
-                    return selection
-                else:
-                    if selection:
-                        return SelectionGroup(
-                            sorted(
-                                selection.selection_boxes,
-                                reverse=True,
-                                key=lambda b: b.volume,
-                            )[0]
-                        )
-                    else:
-                        raise ObjectReadError(
-                            "A single selection was required but none were given."
-                        )
-
-            if isinstance(bounds, SelectionGroup):
-                bounds = clean_selection(bounds)
-                self._bounds = {dim: bounds for dim in self.dimensions}
-            elif isinstance(bounds, dict):
-                for dim in self.dimensions:
-                    group = bounds.get(dim, None)
-                    if isinstance(group, SelectionGroup):
-                        self._bounds[dim] = clean_selection(group)
-                    else:
-                        self._bounds[dim] = DefaultSelection
-            else:
-                raise ObjectReadError("A selection was required but none were given.")
-        else:
-            self._bounds = {dim: DefaultSelection for dim in self.dimensions}
-
         self._platform = translator_version.platform
         self._version = translator_version.version_number
-        self._create(overwrite, **kwargs)
-        self._is_open = True
-        self._has_lock = True
+        self._create(overwrite, bounds, **kwargs)
+
+    def _clean_selection(self, selection: SelectionGroup) -> SelectionGroup:
+        if self.multi_selection:
+            return selection
+        else:
+            if selection:
+                return SelectionGroup(
+                    sorted(
+                        selection.selection_boxes,
+                        reverse=True,
+                        key=lambda b: b.volume,
+                    )[0]
+                )
+            else:
+                raise ObjectReadError(
+                    "A single selection was required but none were given."
+                )
 
     @abstractmethod
-    def _create(self, overwrite: bool, **kwargs):
+    def _create(
+        self,
+        overwrite: bool,
+        bounds: Union[
+            SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
+        ] = None,
+        **kwargs,
+    ):
         """Set up the database from scratch."""
         raise NotImplementedError
 
@@ -332,8 +326,6 @@ class FormatWrapper(ABC):
         if self.is_open:
             raise ObjectReadError(f"Cannot open {self} because it was already opened.")
         self._open()
-        self._is_open = True
-        self._has_lock = True
 
     @abstractmethod
     def _open(self):

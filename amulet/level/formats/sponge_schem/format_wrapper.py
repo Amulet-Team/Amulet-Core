@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, List
+from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, List, Union
 import numpy
 import copy
 
@@ -69,13 +69,23 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper):
         ] = {}
         self._schem_version: int = max_schem_version
 
-    def _create(self, overwrite: bool, **kwargs):
+    def _create(
+        self,
+        overwrite: bool,
+        bounds: Union[
+            SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
+        ] = None,
+        **kwargs,
+    ):
         if not overwrite and os.path.isfile(self.path):
             raise SpongeSchemWriteError(f"There is already a file at {self.path}")
         translator_version = self.translation_manager.get_version("java", self._version)
         self._platform = translator_version.platform
         self._version = translator_version.data_version
         self._chunks = {}
+        self._set_selection(bounds)
+        self._is_open = True
+        self._has_lock = True
 
     def open_from(self, f: BinaryIO):
         sponge_schem = amulet_nbt.load(f)

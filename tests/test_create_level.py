@@ -33,21 +33,26 @@ class CreateWorldTestCase(unittest.TestCase):
             level.create_and_open(
                 platform,
                 version,
-                SelectionGroup(
-                    [SelectionBox((0, 0, 0), (1, 1, 1))]
-                ),  # this is not used by the world classes.
+                SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]),
                 overwrite=True,
             )
         else:
             level.create_and_open(platform, version, overwrite=True)
 
-        dimension = level.dimensions[0]
+        self.assertTrue(level.is_open, "The level was not opened by create_and_open()")
+        self.assertTrue(
+            level.has_lock, "The lock was not acquired by create_and_open()"
+        )
+
         platform_ = level.platform
         version_ = level.version
-        selection_ = level.bounds(dimension)
+        dimension_selections = {dim: level.bounds(dim) for dim in level.dimensions}
 
         level.save()
         level.close()
+
+        self.assertFalse(level.is_open, "The level was not closed by close()")
+        self.assertFalse(level.has_lock, "The lock was not lost by close()")
 
         self.assertTrue(os.path.exists(level.path))
 
@@ -56,11 +61,20 @@ class CreateWorldTestCase(unittest.TestCase):
         # check that the class is the same
         self.assertIs(level.__class__, level2.__class__)
         level2.open()
+
+        self.assertTrue(level2.is_open, "The level was not opened by open()")
+        self.assertTrue(level2.has_lock, "The lock was not acquired by open()")
+
         # check that the platform and version are the same
         self.assertEqual(level2.platform, platform_)
         self.assertEqual(level2.version, version_)
-        self.assertEqual(level2.bounds(dimension), selection_)
+        self.assertEqual(set(level2.dimensions), set(dimension_selections))
+        for dim, selection in dimension_selections.items():
+            self.assertEqual(level2.bounds(dim), selection)
         level2.close()
+
+        self.assertFalse(level2.is_open, "The level was not closed by close()")
+        self.assertFalse(level2.has_lock, "The lock was not lost by close()")
 
         self.assertTrue(os.path.exists(level.path))
 
@@ -77,10 +91,6 @@ class CreateWorldTestCase(unittest.TestCase):
 
         clean_path(path)
 
-    # TODO: fix this
-    @unittest.skip(
-        "Creating worlds is currently broken but is not yet used. Suppressing this to get the release out. Will fix later."
-    )
     def test_anvil(self):
         self._test_create(
             AnvilFormat,
@@ -89,10 +99,6 @@ class CreateWorldTestCase(unittest.TestCase):
             (1, 16, 0),
         )
 
-    # TODO: fix this
-    @unittest.skip(
-        "Creating worlds is currently broken but is not yet used. Suppressing this to get the release out. Will fix later."
-    )
     def test_bedrock(self):
         self._test_create(
             LevelDBFormat,
