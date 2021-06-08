@@ -268,7 +268,8 @@ class LevelDBFormat(WorldFormatWrapper):
             )
             experiments = self.root_tag.get("experiments", {})
             if (
-                experiments.get("caves_and_cliffs", nbt.TAG_Byte()).value or experiments.get("caves_and_cliffs_internal", nbt.TAG_Byte()).value
+                experiments.get("caves_and_cliffs", nbt.TAG_Byte()).value
+                or experiments.get("caves_and_cliffs_internal", nbt.TAG_Byte()).value
             ):
                 self._bounds[OVERWORLD] = SelectionGroup(
                     SelectionBox(
