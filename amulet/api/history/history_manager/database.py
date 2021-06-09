@@ -162,14 +162,17 @@ class DatabaseHistoryManager(ContainerHistoryManager):
 
     def _get_register_original_entry(self, key: EntryKeyType) -> EntryType:
         """Get and register the original entry."""
-        if key in self._history_database:
-            raise Exception(f"The entry for {key} has already been registered.")
         try:
             entry = self._raw_get_entry(key)
         except EntryDoesNotExist:
             entry = None
-        self._history_database[key] = self._create_new_revision_manager(key, entry)
+        self._register_original_entry(key, entry)
         return entry
+
+    def _register_original_entry(self, key: EntryKeyType, entry: EntryType):
+        if key in self._history_database:
+            raise Exception(f"The entry for {key} has already been registered.")
+        self._history_database[key] = self._create_new_revision_manager(key, entry)
 
     @abstractmethod
     def _raw_get_entry(self, key: EntryKeyType) -> EntryType:
