@@ -236,7 +236,7 @@ def clone(
                                                 dst_chunk.changed = True
                                     elif UniversalAirBlock not in blocks_to_skip:
                                         dst_chunk.blocks.get_sub_chunk(dst_cy)[
-                                            dst_blocks % 16
+                                            tuple(dst_blocks.T % 16)
                                         ] = dst_chunk.block_palette.get_add_block(
                                             UniversalAirBlock
                                         )
