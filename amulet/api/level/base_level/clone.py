@@ -112,13 +112,11 @@ def clone(
                 displacement_matrix(*-rotation_point),
             )
 
-            last_src_cx: Optional[int] = None
-            last_src_cz: Optional[int] = None
+            last_src: Optional[Tuple[int, int]] = None
             src_chunk: Optional[
                 Chunk
             ] = None  # None here means the chunk does not exist or failed to load. Treat it as if it was air.
-            last_dst_cx: Optional[int] = None
-            last_dst_cz: Optional[int] = None
+            last_dst: Optional[Tuple[int, int]] = None
             dst_chunk: Optional[
                 Chunk
             ] = None  # None here means the chunk failed to load. Do not modify it.
@@ -138,9 +136,8 @@ def clone(
                     ):
                         if src_coords is not None:
                             dst_cx, dst_cy, dst_cz = dst_coords[0] >> 4
-                            if (dst_cx, dst_cz) != (last_dst_cx, last_dst_cz):
-                                last_dst_cx = dst_cx
-                                last_dst_cz = dst_cz
+                            if (dst_cx, dst_cz) != last_dst:
+                                last_dst = dst_cx, dst_cz
                                 try:
                                     dst_chunk = dst_structure.get_chunk(
                                         dst_cx, dst_cz, dst_dimension
@@ -174,13 +171,12 @@ def clone(
                                 unique_chunks, src_block_locations, dst_block_locations
                             ):
                                 # for each src sub-chunk
-                                src_cx, src_cy, src_sz = chunk_location
-                                if (src_cx, src_sz) != (last_src_cx, last_src_cz):
-                                    last_src_cx = src_cx
-                                    last_src_cz = src_sz
+                                src_cx, src_cy, src_cz = chunk_location
+                                if (src_cx, src_cz) != last_src:
+                                    last_src = src_cx, src_cz
                                     try:
                                         src_chunk = src_structure.get_chunk(
-                                            last_src_cx, last_src_cz, src_dimension
+                                            src_cx, src_cz, src_dimension
                                         )
                                     except ChunkLoadError:
                                         src_chunk = None
