@@ -13,7 +13,11 @@ def delete_chunk(
     source_box: SelectionGroup,
     load_original: bool = True,
 ):
-    chunks = [(cx, cz) for (cx, cz) in source_box.chunk_locations() if world.has_chunk(cx, cz, dimension)]
+    chunks = [
+        (cx, cz)
+        for (cx, cz) in source_box.chunk_locations()
+        if world.has_chunk(cx, cz, dimension)
+    ]
     iter_count = len(chunks)
     for count, (cx, cz) in enumerate(chunks):
         world.delete_chunk(cx, cz, dimension)
