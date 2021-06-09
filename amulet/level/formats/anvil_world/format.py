@@ -442,14 +442,14 @@ class AnvilFormat(WorldFormatWrapper):
         except StopIteration as e:
             height_changed = e.value
 
-        light = self._calculate_light(level, changed_chunks)
-        try:
-            while True:
-                yield next(light) / 2
-        except StopIteration as e:
-            light_changed = e.value
+        # light = self._calculate_light(level, changed_chunks)
+        # try:
+        #     while True:
+        #         yield next(light) / 2
+        # except StopIteration as e:
+        #     light_changed = e.value
 
-        return height_changed or light_changed
+        return height_changed  # or light_changed
 
     @staticmethod
     def _calculate_height(
