@@ -79,11 +79,15 @@ class Anvil1444Interface(BaseAnvilInterface):
         for cy, section in chunk_sections.items():
             if "Palette" not in section:  # 1.14 makes block_palette/blocks optional.
                 continue
+            section_palette = self._decode_palette(section.pop("Palette"))
             if self._features["long_array_format"] == "compact":
                 decoded = decode_long_array(section.pop("BlockStates").value, 4096)
             elif self._features["long_array_format"] == "1.16":
                 decoded = decode_long_array(
-                    section.pop("BlockStates").value, 4096, dense=False
+                    section.pop("BlockStates").value,
+                    4096,
+                    dense=False,
+                    bits_per_entry=max(4, (len(section_palette)-1).bit_length()),
                 )
             else:
                 raise Exception(
@@ -93,7 +97,7 @@ class Anvil1444Interface(BaseAnvilInterface):
                 decoded.reshape((16, 16, 16)) + len(palette), (2, 0, 1)
             )
 
-            palette += self._decode_palette(section.pop("Palette"))
+            palette += section_palette
 
         np_palette, inverse = numpy.unique(palette, return_inverse=True)
         np_palette: numpy.ndarray

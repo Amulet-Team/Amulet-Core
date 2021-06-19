@@ -119,29 +119,52 @@ def to_nibble_array(arr: ndarray) -> ndarray:
 
 
 def decode_long_array(
-    long_array: numpy.ndarray, size: int, dense=True
+    long_array: numpy.ndarray,
+    size: int,
+    dense=True,
+    bits_per_entry: Optional[int] = None,
 ) -> numpy.ndarray:
     """
-    Decode an long array (from BlockStates or Heightmaps)
+    Decode a long array (from BlockStates or Heightmaps)
 
     :param long_array: Encoded long array
-    :param size: int: The expected size of the returned array
+    :param size: The expected size of the returned array
+    :param bits_per_entry: The number of bits per entry in the encoded array.
     :return: Decoded array as numpy array
     """
     long_array = long_array.astype(">q")
-    bits_per_entry = (len(long_array) * 64) // size
+    if bits_per_entry is None:
+        bits_per_entry = (len(long_array) * 64) // size
+        if not dense and bits_per_entry >= 11:
+            raise Exception(
+                f"The bit size of the array is ambiguous. The bits_per_entry input must be given."
+            )
+    else:
+        if dense:
+            expected_len = math.ceil(size * bits_per_entry / 64)
+        else:
+            expected_len = math.ceil(size / (64 // bits_per_entry))
+        if len(long_array) != expected_len:
+            raise Exception(
+                f"{'Dense e' if dense else 'E'}ncoded long array with {bits_per_entry} bits per entry should contain {expected_len} longs but got {len(long_array)}."
+            )
+
     bits = numpy.unpackbits(long_array[::-1].astype(">i8").view("uint8"))
     if not dense:
         entry_per_long = 64 // bits_per_entry
         bits = bits.reshape(-1, 64)[:, -entry_per_long * bits_per_entry :]
 
+    byte_length = 2 ** math.ceil(math.log(math.ceil(bits_per_entry / 8), 2))
+
+    dtype = {1: "B", 2: ">H", 4: ">I", 8: ">Q"}[byte_length]
+
     return numpy.packbits(
         numpy.pad(
             bits.reshape(-1, bits_per_entry)[-size:, :],
-            [(0, 0), (16 - bits_per_entry, 0)],
+            [(0, 0), (byte_length * 8 - bits_per_entry, 0)],
             "constant",
         )
-    ).view(dtype=">h")[::-1]
+    ).view(dtype=dtype)[::-1]
 
 
 def encode_long_array(
@@ -151,14 +174,14 @@ def encode_long_array(
     min_bits_per_entry=4,
 ) -> numpy.ndarray:
     """
-    Encode an long array (from BlockStates or Heightmaps)
+    Encode a long array (from BlockStates or Heightmaps)
 
     :param array: A numpy array of the data to be encoded.
     :param dense: If true the long arrays will be treated as a bit stream. If false they are distinct values with padding
     :param bits_per_entry: The number of bits to use to store each value. If left as None will use the smallest bits per entry.
     :return: Encoded array as numpy array
     """
-    array = array.astype(">h")
+    array = array.astype(">Q")
     required_bits_per_entry = max(
         int(numpy.amax(array)).bit_length(), min_bits_per_entry
     )
@@ -169,11 +192,8 @@ def encode_long_array(
             raise Exception(
                 f"The array requires at least {required_bits_per_entry} bits per value which is more than the specified {bits_per_entry} bits"
             )
-    if not dense:
-        if bits_per_entry == 11:
-            bits_per_entry = 12  # 11 and 12 take up the same amount of space. I don't know if 11 exists any more.
     bits = numpy.unpackbits(numpy.ascontiguousarray(array[::-1]).view("uint8")).reshape(
-        -1, 16
+        -1, 64
     )[:, -bits_per_entry:]
     if not dense:
         entry_per_long = 64 // bits_per_entry

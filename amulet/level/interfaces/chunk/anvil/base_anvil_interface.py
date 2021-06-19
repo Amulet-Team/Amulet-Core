@@ -23,7 +23,6 @@ from amulet import log
 from amulet.api.chunk import Chunk, StatusFormats
 from amulet.api.wrapper import Interface
 from amulet.level import loader
-from amulet.api.selection import SelectionBox
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray
 from amulet.api.wrapper import EntityIDType, EntityCoordType
 from amulet.utils.world_utils import decode_long_array, encode_long_array
@@ -211,9 +210,9 @@ class BaseAnvilInterface(Interface):
         elif self._features["height_map"] in ["C|V1", "C|V2", "C|V3", "C|V4"]:
             heights = self.get_obj(level, "Heightmaps", TAG_Compound)
             misc["height_mapC"] = {
-                key: decode_long_array(value.value, 256, len(value) == 36).reshape(
-                    (16, 16)
-                )
+                key: decode_long_array(
+                    value.value, 256, self._features["long_array_format"] == "compact", (bounds[1]-bounds[0]).bit_length()
+                ).reshape((16, 16)) + bounds[0]
                 for key, value in heights.items()
                 if isinstance(value, TAG_Long_Array)
             }
@@ -422,9 +421,9 @@ class BaseAnvilInterface(Interface):
                     heightmaps_temp[heightmap], numpy.ndarray
                 ):
                     array = encode_long_array(
-                        heightmaps_temp[heightmap].ravel(),
-                        max_world_version[1] < 2556,
-                        9,
+                        heightmaps_temp[heightmap].ravel() - bounds[0],
+                        self._features["long_array_format"] == "compact",
+                        (bounds[1]-bounds[0]).bit_length(),
                     )
                     if array.size == heightmap_length:
                         value = amulet_nbt.TAG_Long_Array(array)
