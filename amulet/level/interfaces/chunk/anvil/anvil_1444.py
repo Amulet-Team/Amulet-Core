@@ -87,7 +87,7 @@ class Anvil1444Interface(BaseAnvilInterface):
                     section.pop("BlockStates").value,
                     4096,
                     dense=False,
-                    bits_per_entry=max(4, (len(section_palette)-1).bit_length()),
+                    bits_per_entry=max(4, (len(section_palette) - 1).bit_length()),
                 )
             else:
                 raise Exception(

@@ -211,8 +211,12 @@ class BaseAnvilInterface(Interface):
             heights = self.get_obj(level, "Heightmaps", TAG_Compound)
             misc["height_mapC"] = {
                 key: decode_long_array(
-                    value.value, 256, self._features["long_array_format"] == "compact", (bounds[1]-bounds[0]).bit_length()
-                ).reshape((16, 16)) + bounds[0]
+                    value.value,
+                    256,
+                    self._features["long_array_format"] == "compact",
+                    (bounds[1] - bounds[0]).bit_length(),
+                ).reshape((16, 16))
+                + bounds[0]
                 for key, value in heights.items()
                 if isinstance(value, TAG_Long_Array)
             }
@@ -423,7 +427,7 @@ class BaseAnvilInterface(Interface):
                     array = encode_long_array(
                         heightmaps_temp[heightmap].ravel() - bounds[0],
                         self._features["long_array_format"] == "compact",
-                        (bounds[1]-bounds[0]).bit_length(),
+                        (bounds[1] - bounds[0]).bit_length(),
                     )
                     if array.size == heightmap_length:
                         value = amulet_nbt.TAG_Long_Array(array)
