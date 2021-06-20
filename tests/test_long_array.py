@@ -25,7 +25,10 @@ class LongArrayTestCase(unittest.TestCase):
                 ),
             )
 
-            numpy.testing.assert_array_equal(long_array, encode_long_array(block_array))
+            numpy.testing.assert_array_equal(
+                long_array,
+                encode_long_array(block_array, (palette_size - 1).bit_length()),
+            )
 
         # Make sure some test are ran in case the data file failed to load or has a wrong format.
         self.assertTrue(test_ran)
