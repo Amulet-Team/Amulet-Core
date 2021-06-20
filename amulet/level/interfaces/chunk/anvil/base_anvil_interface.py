@@ -452,6 +452,13 @@ class BaseAnvilInterface(Interface):
         else:
             raise Exception(f'Unsupported block format {self._features["blocks"]}')
 
+        # these data versions probably extend a little into the snapshots as well
+        if 1519 <= max_world_version[1] <= 1631:
+            # Java 1.13 to 1.13.2 cannot have empty sections
+            for cy in list(sections.keys()):
+                if "BlockStates" not in sections[cy] or "Palette" not in sections[cy]:
+                    del sections[cy]
+
         def pack_light(feature_key: str, section_key: str):
             if self._features[feature_key] == "Sections|2048BA":
                 light_container = misc.get(feature_key, {})
