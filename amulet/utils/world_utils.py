@@ -167,7 +167,6 @@ def decode_long_array(
             )
     else:
         raise ValueError(f"The bits_per_entry input must be an int.")
-
     # unpack the long array into a bit array
     bits = numpy.unpackbits(long_array[::-1].astype(">i8").view("uint8"))
     if dense:
@@ -214,6 +213,7 @@ def encode_long_array(
     :param array: A numpy array of the data to be encoded.
     :param bits_per_entry: The number of bits to use to store each value. If left as None will use the smallest bits per entry.
     :param dense: If true the long arrays will be treated as a bit stream. If false they are distinct values with padding
+    :param min_bits_per_entry: The mimimum value that bits_per_entry can be. If it is less than this it will be capped at this value.
     :return: Encoded array as numpy array
     """
     assert (
