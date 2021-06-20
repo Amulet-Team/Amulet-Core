@@ -213,8 +213,8 @@ class BaseAnvilInterface(Interface):
                 key: decode_long_array(
                     value.value,
                     256,
-                    self._features["long_array_format"] == "compact",
                     (bounds[1] - bounds[0]).bit_length(),
+                    dense=self._features["long_array_format"] == "compact",
                 ).reshape((16, 16))
                 + bounds[0]
                 for key, value in heights.items()
@@ -416,27 +416,19 @@ class BaseAnvilInterface(Interface):
                 raise Exception
             heightmaps_temp: Dict[str, numpy.ndarray] = misc.get("height_mapC", {})
             heightmaps = amulet_nbt.TAG_Compound()
-            heightmap_length = (
-                36 if max_world_version[1] < 2556 else 37
-            )  # this value is probably actually much lower
             for heightmap in maps:
-                value: Optional[amulet_nbt.TAG_Long_Array] = None
-                if heightmap in heightmaps_temp and isinstance(
-                    heightmaps_temp[heightmap], numpy.ndarray
+                if (
+                    heightmap in heightmaps_temp
+                    and isinstance(heightmaps_temp[heightmap], numpy.ndarray)
+                    and heightmaps_temp[heightmap].size == 256
                 ):
-                    array = encode_long_array(
-                        heightmaps_temp[heightmap].ravel() - bounds[0],
-                        self._features["long_array_format"] == "compact",
-                        (bounds[1] - bounds[0]).bit_length(),
-                    )
-                    if array.size == heightmap_length:
-                        value = amulet_nbt.TAG_Long_Array(array)
-                    else:
-                        log.error(
-                            f"Expected an array of length {heightmap_length} but got an array of length {array.size}"
+                    heightmaps[heightmap] = amulet_nbt.TAG_Long_Array(
+                        encode_long_array(
+                            heightmaps_temp[heightmap].ravel() - bounds[0],
+                            (bounds[1] - bounds[0]).bit_length(),
+                            self._features["long_array_format"] == "compact",
                         )
-                if value is not None:
-                    heightmaps[heightmap] = value
+                    )
             level["Heightmaps"] = heightmaps
 
         if "java_sections" in misc and isinstance(misc["java_sections"], dict):

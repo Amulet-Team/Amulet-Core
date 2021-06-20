@@ -80,14 +80,12 @@ class Anvil1444Interface(BaseAnvilInterface):
             if "Palette" not in section:  # 1.14 makes block_palette/blocks optional.
                 continue
             section_palette = self._decode_palette(section.pop("Palette"))
-            if self._features["long_array_format"] == "compact":
-                decoded = decode_long_array(section.pop("BlockStates").value, 4096)
-            elif self._features["long_array_format"] == "1.16":
+            if self._features["long_array_format"] in ("compact", "1.16"):
                 decoded = decode_long_array(
                     section.pop("BlockStates").value,
                     4096,
-                    dense=False,
-                    bits_per_entry=max(4, (len(section_palette) - 1).bit_length()),
+                    max(4, (len(section_palette) - 1).bit_length()),
+                    dense=self._features["long_array_format"] == "compact",
                 )
             else:
                 raise Exception(
@@ -135,11 +133,13 @@ class Anvil1444Interface(BaseAnvilInterface):
                 section = sections.setdefault(cy, amulet_nbt.TAG_Compound())
                 if self._features["long_array_format"] == "compact":
                     section["BlockStates"] = amulet_nbt.TAG_Long_Array(
-                        encode_long_array(block_sub_array)
+                        encode_long_array(block_sub_array, min_bits_per_entry=4)
                     )
                 elif self._features["long_array_format"] == "1.16":
                     section["BlockStates"] = amulet_nbt.TAG_Long_Array(
-                        encode_long_array(block_sub_array, dense=False)
+                        encode_long_array(
+                            block_sub_array, dense=False, min_bits_per_entry=4
+                        )
                     )
                 section["Palette"] = sub_palette
 
