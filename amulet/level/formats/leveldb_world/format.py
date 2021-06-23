@@ -291,16 +291,20 @@ class LevelDBFormat(WorldFormatWrapper):
                     (-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000)
                 )
             )
+        except OSError as e:
+            self._is_open = self._has_lock = False
+            raise LevelDBException(
+                "It looks like this world is from the marketplace.\nThese worlds are encrypted and cannot be edited."
+            ) from e
         except LevelDBException as e:
             msg = str(e)
+            self._is_open = self._has_lock = False
             # I don't know if there is a better way of handling this.
-            self._is_open = False
-            self._has_lock = False
             if msg.startswith("IO error:") and msg.endswith(": Permission denied"):
                 traceback.print_exc()
                 raise LevelDBException(
                     f"Failed to load the database. The world may be open somewhere else.\n{msg}"
-                )
+                ) from e
             else:
                 raise e
 
