@@ -5,3 +5,4 @@
 .. automodule:: amulet.api.registry.biome_manager
    :members:
    :show-inheritance:
+   :special-members:
