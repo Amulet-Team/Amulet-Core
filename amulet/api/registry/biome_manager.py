@@ -16,7 +16,7 @@ class BiomeManager(BaseRegistry):
         self._index_to_biome: List[BiomeType] = []
         self._biome_to_index: Dict[BiomeType, int] = {}
         for biome in biomes:
-            # if a list is given it is assumed that the block palette will be the same size as the list.
+            # if a list is given it is assumed that the biome palette will be the same size as the list.
             # Ensure that if a value is duplicated it will appear twice in the list
             assert isinstance(biome, str), f"biome must be a string. Got {biome}"
             if biome not in self._biome_to_index:
@@ -90,6 +90,11 @@ class BiomeManager(BaseRegistry):
         If a string is passed to this function, it will return the internal ID/index of the biome.
 
         If an int is given, this method will return the biome string at that specified index.
+
+        >>> level.biome_palette[biome]
+        7
+        >>> level.biome_palette[7]
+        biome
 
         :param item: The string or int to get the mapping data of
         :return: An int if a string was supplied, a string if an int was supplied

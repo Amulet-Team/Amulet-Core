@@ -93,6 +93,11 @@ class BlockManager(BaseRegistry):
 
         If an int is given, this method will return the Block object at that specified index.
 
+        >>> level.block_palette[block]
+        7
+        >>> level.block_palette[7]
+        block
+
         :param item: The Block object or int to get the mapping data of
         :return: An int if a Block object was supplied, a Block object if an int was supplied
         :raises KeyError if the requested item is not present.
