@@ -20,7 +20,7 @@ def fill(
         raise Exception("Fill operation was not given a Block object")
     internal_id = world.block_palette.get_add_block(fill_block)
 
-    iter_count = len(list(world.get_chunk_slice_box(dimension, target_box, True)))
+    iter_count = len(list(world.get_coord_box(dimension, target_box, True)))
     count = 0
 
     for chunk, slices, _ in world.get_chunk_slice_box(dimension, target_box, True):
