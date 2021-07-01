@@ -223,7 +223,7 @@ class BaseAnvilInterface(Interface):
                             + bounds[0]
                         )
                     except Exception as e:
-                        log.warning(e, exc_info=True)
+                        log.warning(e)
 
         # parse sections into a more usable format
         sections: Dict[int, TAG_Compound] = {
