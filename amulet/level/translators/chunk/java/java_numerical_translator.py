@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING
 import numpy
 
 from amulet.api.chunk import Chunk
@@ -13,9 +13,7 @@ if TYPE_CHECKING:
 
 
 class JavaNumericalTranslator(Translator):
-    def _translator_key(
-        self, version_number: int
-    ) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
+    def _translator_key(self, version_number: int) -> VersionIdentifierType:
         return "java", version_number
 
     @staticmethod

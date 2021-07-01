@@ -15,6 +15,7 @@ PropertyValueType = Union[
     amulet_nbt.TAG_String,
 ]
 PropertyType = Dict[str, PropertyValueType]
+PropertyTypeMultiple = Dict[str, Tuple[PropertyValueType, ...]]
 
 PropertyDataTypes = (
     amulet_nbt.TAG_Byte,

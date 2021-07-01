@@ -1,10 +1,9 @@
 from collections import UserDict
-from typing import Tuple, Iterable, KeysView, ValuesView, ItemsView
+from typing import Iterable, KeysView, ValuesView, ItemsView
 import numpy
 
+from amulet.api.data_types import BlockCoordinates
 from amulet.api.block_entity import BlockEntity
-
-Coordinate = Tuple[int, int, int]
 
 
 class BlockEntityDict(UserDict):
@@ -52,7 +51,7 @@ class BlockEntityDict(UserDict):
         """Remove all block entities from the chunk."""
         self.data.clear()
 
-    def keys(self) -> KeysView[Coordinate]:
+    def keys(self) -> KeysView[BlockCoordinates]:
         """The location of every block entity in the chunk. Absolute coordinates."""
         return self.data.keys()
 
@@ -68,7 +67,7 @@ class BlockEntityDict(UserDict):
         """
         return self.data.values()
 
-    def items(self) -> ItemsView[Coordinate, BlockEntity]:
+    def items(self) -> ItemsView[BlockCoordinates, BlockEntity]:
         """
         An iterable of all the locations and :class:`BlockEntity` objects.
         """
@@ -91,7 +90,7 @@ class BlockEntityDict(UserDict):
         self._assert_val(block_entity)
         self.data[block_entity.location] = block_entity
 
-    def pop(self, coordinate: Coordinate) -> BlockEntity:
+    def pop(self, coordinate: BlockCoordinates) -> BlockEntity:
         """
         Remove and return the :class:`BlockEntity` at ``coordinate``.
 
@@ -105,7 +104,7 @@ class BlockEntityDict(UserDict):
             return self.data.pop(coordinate)
         raise KeyError
 
-    def __delitem__(self, coordinate: Coordinate):
+    def __delitem__(self, coordinate: BlockCoordinates):
         """
         Remove the :class:`BlockEntity` at ``coordinate``.
 
@@ -115,7 +114,7 @@ class BlockEntityDict(UserDict):
         super().__delitem__(coordinate)
 
     def _check_block_entity(
-        self, coordinate: Coordinate, block_entity: BlockEntity
+        self, coordinate: BlockCoordinates, block_entity: BlockEntity
     ) -> BlockEntity:
         self._assert_key(coordinate)
         self._assert_val(block_entity)
@@ -123,7 +122,7 @@ class BlockEntityDict(UserDict):
             block_entity = block_entity.new_at_location(*coordinate)
         return block_entity
 
-    def __getitem__(self, coordinate: Coordinate) -> BlockEntity:
+    def __getitem__(self, coordinate: BlockCoordinates) -> BlockEntity:
         """
         Get the :class:`BlockEntity` at ``coordinate``.
 
@@ -137,7 +136,7 @@ class BlockEntityDict(UserDict):
         self._assert_key(coordinate)
         return super().__getitem__(coordinate)
 
-    def __setitem__(self, coordinate: Coordinate, block_entity: BlockEntity):
+    def __setitem__(self, coordinate: BlockCoordinates, block_entity: BlockEntity):
         """
         Set the :class:`BlockEntity` at ``coordinate``.
 
@@ -149,7 +148,7 @@ class BlockEntityDict(UserDict):
         self.data[coordinate] = self._check_block_entity(coordinate, block_entity)
 
     def setdefault(
-        self, coordinate: Coordinate, block_entity: BlockEntity
+        self, coordinate: BlockCoordinates, block_entity: BlockEntity
     ) -> BlockEntity:
         """
         Set the block entity at the given coordinate if there is not a block entity present.

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Union, Iterable, Dict
+from typing import Union, Iterable, Dict
 import time
 import numpy
 import pickle
@@ -19,9 +19,6 @@ from amulet.api.chunk import (
 from amulet.api.entity import Entity
 from amulet.api.data_types import ChunkCoordinates
 from amulet.api.history.changeable import Changeable
-
-PointCoordinates = Tuple[int, int, int]
-SliceCoordinates = Tuple[slice, slice, slice]
 
 
 class Chunk(Changeable):

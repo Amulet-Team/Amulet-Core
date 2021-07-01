@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING
 import amulet_nbt
 
 from amulet.api.chunk import Chunk
@@ -20,9 +20,7 @@ water = Block.from_string_blockstate("minecraft:water[level=0]")
 
 
 class JavaBlockstateTranslator(Translator):
-    def _translator_key(
-        self, version_number: int
-    ) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
+    def _translator_key(self, version_number: int) -> VersionIdentifierType:
         return "java", version_number
 
     @staticmethod

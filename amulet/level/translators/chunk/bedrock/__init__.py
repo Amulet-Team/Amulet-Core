@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Union, Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 import amulet_nbt
 
@@ -169,7 +169,7 @@ class BaseBedrockTranslator(Translator):
 
     def _blocks_entities_from_universal(
         self,
-        max_world_version_number: Union[int, Tuple[int, int, int]],
+        max_world_version_number: VersionNumberAny,
         translation_manager: "TranslationManager",
         chunk: Chunk,
         get_chunk_callback: Optional[GetChunkCallback],

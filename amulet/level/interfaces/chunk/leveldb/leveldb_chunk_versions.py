@@ -1,4 +1,4 @@
-from typing import Tuple
+from amulet.api.data_types import VersionNumberTuple
 
 # this is a dictionary of the first and last times each chunk version was written by a game version
 chunk_version_to_max_version = {
@@ -31,12 +31,12 @@ chunk_version_to_max_version = {
 
 
 def chunk_to_game_version(
-    max_game_version: Tuple[int, int, int], chunk_version: int
-) -> Tuple[int, int, int]:
+    max_game_version: VersionNumberTuple, chunk_version: int
+) -> VersionNumberTuple:
     return min(chunk_version_to_max_version[chunk_version][1], max_game_version)
 
 
-def game_to_chunk_version(max_game_version: Tuple[int, int, int]) -> int:
+def game_to_chunk_version(max_game_version: VersionNumberTuple) -> int:
     for chunk_version, (first, last) in chunk_version_to_max_version.items():
         if first <= max_game_version <= last:
             if chunk_version == 25:

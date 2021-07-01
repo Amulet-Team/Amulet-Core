@@ -264,7 +264,7 @@ class BaseLevel:
     def get_moved_coord_slice_box(
         self,
         dimension: Dimension,
-        destination_origin: Tuple[int, int, int],
+        destination_origin: BlockCoordinates,
         selection: Optional[Union[SelectionGroup, SelectionBox]] = None,
         destination_sub_chunk_shape: Optional[int] = None,
         yield_missing_chunks: bool = False,
@@ -336,7 +336,7 @@ class BaseLevel:
     def get_moved_chunk_slice_box(
         self,
         dimension: Dimension,
-        destination_origin: Tuple[int, int, int],
+        destination_origin: BlockCoordinates,
         selection: Optional[Union[SelectionGroup, SelectionBox]] = None,
         destination_sub_chunk_shape: Optional[int] = None,
         create_missing_chunks: bool = False,

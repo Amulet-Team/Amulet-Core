@@ -30,7 +30,7 @@ from amulet.api.registry import BlockManager
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.errors import ChunkDoesNotExist, ObjectWriteError, ObjectReadError
+from amulet.api.errors import ChunkDoesNotExist, ObjectWriteError
 
 from .section import ConstructionSection
 from .interface import Construction0Interface, ConstructionInterface

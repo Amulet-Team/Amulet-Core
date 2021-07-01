@@ -13,7 +13,12 @@ from amulet.api.chunk import Chunk, StatusFormats
 from amulet.utils.numpy_helpers import brute_sort_objects, brute_sort_objects_no_hash
 from amulet.utils.world_utils import fast_unique, from_nibble_array, to_nibble_array
 from amulet.api.wrapper import Interface
-from amulet.api.data_types import AnyNDArray, SubChunkNDArray
+from amulet.api.data_types import (
+    AnyNDArray,
+    SubChunkNDArray,
+    PlatformType,
+    VersionNumberTuple,
+)
 from amulet.level import loader
 from amulet.api.wrapper import EntityIDType, EntityCoordType
 from .leveldb_chunk_versions import chunk_to_game_version, chunk_version_to_max_version
@@ -57,17 +62,14 @@ class BaseLevelDBInterface(Interface):
 
     def get_translator(
         self,
-        max_world_version: Tuple[str, Tuple[int, int, int]],
+        max_world_version: Tuple[PlatformType, VersionNumberTuple],
         data: Dict[bytes, bytes] = None,
-    ) -> Tuple["Translator", Tuple[int, int, int]]:
+    ) -> Tuple["Translator", VersionNumberTuple]:
         """
         Get the Translator class for the requested version.
-        :param max_world_version: The game version the world was last opened in.
-        :type max_world_version: Java: int (DataVersion)    Bedrock: Tuple[int, int, int, ...] (game version number)
+        :param max_world_version: The game version the world was last opened in. Version number tuple or data version number.
         :param data: Optional data to get translator based on chunk version rather than world version
-        :param data: Any
         :return: Tuple[Translator, version number for PyMCTranslate to use]
-        :rtype: Tuple[translators.Translator, Tuple[int, int, int]]
         """
         if data:
             if b"," in data:
@@ -183,7 +185,7 @@ class BaseLevelDBInterface(Interface):
         self,
         chunk: Chunk,
         palette: AnyNDArray,
-        max_world_version: Tuple[int, int, int],
+        max_world_version: VersionNumberTuple,
         bounds: Tuple[int, int],
     ) -> Dict[bytes, Optional[bytes]]:
         chunk_data = chunk.misc.get("bedrock_chunk_data", {})
