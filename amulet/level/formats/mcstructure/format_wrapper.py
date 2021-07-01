@@ -103,6 +103,18 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
                 mcstructure["structure"]["palette"][palette_key]["block_palette"]
             )
 
+            if -1 in blocks_array[0]:
+                blocks_array[0][blocks_array[0] == -1] = len(block_palette)
+                block_palette.append(
+                    amulet_nbt.TAG_Compound(
+                        {
+                            "name": amulet_nbt.TAG_String("minecraft:structure_void"),
+                            "states": amulet_nbt.TAG_Compound(),
+                            "version": amulet_nbt.TAG_Int(17694723),  # 1.13.0
+                        }
+                    )
+                )
+
             for cx, cz in selection.chunk_locations():
                 chunk_box = SelectionBox.create_chunk_box(cx, cz).intersection(
                     selection
@@ -266,11 +278,12 @@ class MCStructureFormatWrapper(StructureFormatWrapper):
             for block_layer, block in enumerate(block_list):
                 if block_layer >= 2:
                     break
-                if block in block_palette:
-                    indexed_block[block_layer] = block_palette.index(block)
-                else:
-                    indexed_block[block_layer] = len(block_palette)
-                    block_palette.append(block)
+                if block["name"] != "minecraft:structure_void":
+                    if block in block_palette:
+                        indexed_block[block_layer] = block_palette.index(block)
+                    else:
+                        indexed_block[block_layer] = len(block_palette)
+                        block_palette.append(block)
             block_palette_indices.append(indexed_block)
 
         block_indices = numpy.array(block_palette_indices, dtype=numpy.int32)[blocks].T
