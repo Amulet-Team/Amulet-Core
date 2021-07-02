@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from typing import Tuple, List, Optional
+from typing import List, Optional
 
+from amulet.api.data_types import BlockCoordinates
 from amulet import Block
 from amulet.api.entity import Entity
 from amulet.api.block_entity import BlockEntity
 
 import numpy
-
-from .data_types import INT_TRIPLET
 
 
 class ConstructionSection:
@@ -25,8 +24,8 @@ class ConstructionSection:
 
     def __init__(
         self,
-        min_position: INT_TRIPLET,
-        shape: INT_TRIPLET,
+        min_position: BlockCoordinates,
+        shape: BlockCoordinates,
         blocks: Optional[numpy.ndarray],
         palette: List[Block],
         entities: List[Entity],
@@ -57,5 +56,5 @@ class ConstructionSection:
         )
 
     @property
-    def location(self) -> Tuple[int, int, int]:
+    def location(self) -> BlockCoordinates:
         return self.sx, self.sy, self.sz

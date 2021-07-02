@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Tuple, Union, Optional, List
+from typing import TYPE_CHECKING, Any, Tuple, Optional, List
 import numpy
 
 import amulet_nbt
@@ -6,7 +6,13 @@ import amulet_nbt
 from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionBox
-from amulet.api.data_types import AnyNDArray
+from amulet.api.data_types import (
+    AnyNDArray,
+    VersionNumberTuple,
+    VersionIdentifierType,
+    VersionNumberAny,
+    PlatformType,
+)
 from amulet.level.loader import Translators
 from amulet.api.block import Block
 from .chunk import MCStructureChunk
@@ -96,7 +102,7 @@ class MCStructureInterface(Interface):
         self,
         chunk: "Chunk",
         palette: AnyNDArray,
-        max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
+        max_world_version: VersionIdentifierType,
         box: SelectionBox,
     ) -> MCStructureChunk:
         """
@@ -156,10 +162,10 @@ class MCStructureInterface(Interface):
 
     def get_translator(
         self,
-        max_world_version: Tuple[str, Tuple[int, int, int]],
+        max_world_version: Tuple[PlatformType, VersionNumberTuple],
         data: Any = None,
         translation_manager: "TranslationManager" = None,
-    ) -> Tuple["Translator", Union[int, Tuple[int, int, int]]]:
+    ) -> Tuple["Translator", VersionNumberAny]:
         platform, version_number = max_world_version
         if platform != "bedrock":
             raise ValueError("Platform must be bedrock")

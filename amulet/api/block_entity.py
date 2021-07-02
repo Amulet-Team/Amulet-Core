@@ -1,9 +1,9 @@
 from __future__ import annotations
-from typing import Tuple
 import copy
 import numpy
 
 import amulet_nbt
+from amulet.api.data_types import BlockCoordinates
 from .abstract_base_entity import AbstractBaseEntity
 
 
@@ -52,7 +52,7 @@ class BlockEntity(AbstractBaseEntity):
         return self._z
 
     @property
-    def location(self) -> Tuple[int, int, int]:
+    def location(self) -> BlockCoordinates:
         """The location of the BlockEntity. Read Only"""
         return self._x, self._y, self._z
 

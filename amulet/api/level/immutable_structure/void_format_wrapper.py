@@ -5,7 +5,7 @@ from amulet.api.wrapper import FormatWrapper
 from amulet.api.errors import ChunkDoesNotExist, PlayerDoesNotExist
 from amulet.api.player import Player
 from amulet.api.chunk import Chunk
-from amulet.api.selection import SelectionBox, SelectionGroup
+from amulet.api.selection import SelectionGroup
 from amulet.api import wrapper as api_wrapper
 
 if TYPE_CHECKING:

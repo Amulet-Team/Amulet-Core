@@ -136,7 +136,7 @@ class LevelDBFormat(WorldFormatWrapper):
             self._version = self._get_version()
         return self._version
 
-    def _get_version(self) -> Tuple[int, ...]:
+    def _get_version(self) -> VersionNumberTuple:
         """
         The version the world was last opened in.
 

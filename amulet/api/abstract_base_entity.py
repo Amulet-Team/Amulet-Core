@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import Union, Tuple, Optional
+from typing import Union, Optional
 import amulet_nbt
+from amulet.api.data_types import BlockCoordinates, PointCoordinates
 
 _Coord = Union[float, int]
 
@@ -107,7 +108,7 @@ class AbstractBaseEntity(ABC):
         return self._z
 
     @property
-    def location(self) -> Union[Tuple[int, int, int], Tuple[float, float, float]]:
+    def location(self) -> Union[BlockCoordinates, PointCoordinates]:
         return self._x, self._y, self._z
 
     @property

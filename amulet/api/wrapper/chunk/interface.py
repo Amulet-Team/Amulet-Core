@@ -6,7 +6,7 @@ from enum import Enum
 
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
-from amulet.api.data_types import AnyNDArray
+from amulet.api.data_types import AnyNDArray, VersionNumberAny, VersionIdentifierType
 import amulet_nbt
 from amulet_nbt import TAG_List, TAG_Compound, AnyNBT
 
@@ -339,17 +339,14 @@ class Interface(ABC):
     @abstractmethod
     def get_translator(
         self,
-        max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
+        max_world_version: VersionIdentifierType,
         data: Any = None,
-    ) -> Tuple["Translator", Union[int, Tuple[int, int, int]]]:
+    ) -> Tuple["Translator", VersionNumberAny]:
         """
         Get the Translator class for the requested version.
-        :param max_world_version: The game version the world was last opened in.
-        :type max_world_version: Java: int (DataVersion)    Bedrock: Tuple[int, int, int, ...] (game version number)
+        :param max_world_version: The game version the world was last opened in. Version number tuple or data version number.
         :param data: Optional data to get translator based on chunk version rather than world version
-        :param data: Any
         :return: Tuple[Translator, version number for PyMCTranslate to use]
-        :rtype: Tuple[Translator, Union[int, Tuple[int, int, int]]]
         """
         raise NotImplementedError
 

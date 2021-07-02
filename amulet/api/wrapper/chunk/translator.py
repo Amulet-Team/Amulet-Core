@@ -4,7 +4,7 @@ import numpy
 import copy
 import math
 
-from typing import Tuple, Union, Optional, TYPE_CHECKING
+from typing import Tuple, Optional, TYPE_CHECKING
 
 from amulet import log, entity_support
 from amulet.api.registry import BlockManager, BiomeManager
@@ -31,14 +31,12 @@ if TYPE_CHECKING:
 
 
 class Translator:
-    def translator_key(
-        self, version_number: Union[int, Tuple[int, int, int]]
-    ) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
+    def translator_key(self, version_number: VersionNumberAny) -> VersionIdentifierType:
         return self._translator_key(version_number)
 
     def _translator_key(
-        self, version_number: Union[int, Tuple[int, int, int]]
-    ) -> Tuple[str, Union[int, Tuple[int, int, int]]]:
+        self, version_number: VersionNumberAny
+    ) -> VersionIdentifierType:
         """
         Return the version key for PyMCTranslate
 
@@ -124,7 +122,7 @@ class Translator:
                         y += cy * 16
 
                         def get_block_at(
-                            pos: Tuple[int, int, int]
+                            pos: BlockCoordinates,
                         ) -> Tuple[Block, Optional[BlockEntity]]:
                             """Get a block at a location relative to the current block"""
                             nonlocal x, y, z, chunk, cy
@@ -226,7 +224,7 @@ class Translator:
 
     def to_universal(
         self,
-        chunk_version: Union[int, Tuple[int, int, int]],
+        chunk_version: VersionNumberAny,
         translation_manager: "TranslationManager",
         chunk: Chunk,
         get_chunk_callback: Optional[GetChunkCallback],
@@ -255,7 +253,7 @@ class Translator:
 
     def _blocks_entities_to_universal(
         self,
-        chunk_version: Union[int, Tuple[int, int, int]],
+        chunk_version: VersionNumberAny,
         translation_manager: "TranslationManager",
         chunk: Chunk,
         get_chunk_callback: Optional[GetChunkCallback],
@@ -330,7 +328,7 @@ class Translator:
 
     def from_universal(
         self,
-        max_world_version_number: Union[int, Tuple[int, int, int]],
+        max_world_version_number: VersionNumberAny,
         translation_manager: "TranslationManager",
         chunk: Chunk,
         get_chunk_callback: Optional[GetChunkCallback],
@@ -361,7 +359,7 @@ class Translator:
 
     def _blocks_entities_from_universal(
         self,
-        max_world_version_number: Union[int, Tuple[int, int, int]],
+        max_world_version_number: VersionNumberAny,
         translation_manager: "TranslationManager",
         chunk: Chunk,
         get_chunk_callback: Optional[GetChunkCallback],
@@ -516,7 +514,7 @@ class Translator:
 
     def pack(
         self,
-        max_world_version_number: Union[int, Tuple[int, int, int]],
+        max_world_version_number: VersionNumberAny,
         translation_manager: "TranslationManager",
         chunk: Chunk,
     ) -> Tuple[Chunk, AnyNDArray]:

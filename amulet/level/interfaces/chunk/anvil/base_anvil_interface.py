@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Tuple, Union, Iterable, Dict, TYPE_CHECKING, Optional, Any
+from typing import List, Tuple, Iterable, Dict, TYPE_CHECKING, Any
 import numpy
 
 
@@ -23,7 +23,7 @@ from amulet import log
 from amulet.api.chunk import Chunk, StatusFormats
 from amulet.api.wrapper import Interface
 from amulet.level import loader
-from amulet.api.data_types import AnyNDArray, SubChunkNDArray
+from amulet.api.data_types import AnyNDArray, SubChunkNDArray, VersionIdentifierType
 from amulet.api.wrapper import EntityIDType, EntityCoordType
 from amulet.utils.world_utils import decode_long_array, encode_long_array
 from .feature_enum import BiomeState, HeightState
@@ -96,7 +96,7 @@ class BaseAnvilInterface(Interface):
 
     def get_translator(
         self,
-        max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
+        max_world_version: VersionIdentifierType,
         data: amulet_nbt.NBTFile = None,
     ) -> Tuple["Translator", int]:
         if data:

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Tuple, Union, List
+from typing import TYPE_CHECKING, Any, Tuple, List
 import numpy
 
 import amulet_nbt
@@ -8,7 +8,13 @@ from amulet.api.chunk import Chunk
 from amulet.api.block import Block
 from amulet.api.selection import SelectionBox
 from amulet.level.loader import Translators
-from amulet.api.data_types import AnyNDArray
+from amulet.api.data_types import (
+    AnyNDArray,
+    PlatformType,
+    VersionNumberTuple,
+    VersionIdentifierType,
+    VersionNumberAny,
+)
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
@@ -71,7 +77,7 @@ class ConstructionInterface(Interface):
         self,
         chunk: "Chunk",
         palette: AnyNDArray,
-        max_world_version: Tuple[str, Union[int, Tuple[int, int, int]]],
+        max_world_version: VersionIdentifierType,
         boxes: List[SelectionBox],
     ) -> List[ConstructionSection]:
         """
@@ -113,10 +119,10 @@ class ConstructionInterface(Interface):
 
     def get_translator(
         self,
-        max_world_version: Tuple[str, Tuple[int, int, int]],
+        max_world_version: Tuple[PlatformType, VersionNumberTuple],
         data: Any = None,
         translation_manager: "TranslationManager" = None,
-    ) -> Tuple["Translator", Union[int, Tuple[int, int, int]]]:
+    ) -> Tuple["Translator", VersionNumberAny]:
         platform, version_number = max_world_version
         version = translation_manager.get_version(platform, version_number)
         if platform == "java":
