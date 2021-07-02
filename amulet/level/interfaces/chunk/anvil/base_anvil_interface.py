@@ -209,17 +209,21 @@ class BaseAnvilInterface(Interface):
                 misc["height_map256IA"] = height.reshape((16, 16))
         elif self._features["height_map"] in ["C|V1", "C|V2", "C|V3", "C|V4"]:
             heights = self.get_obj(level, "Heightmaps", TAG_Compound)
-            misc["height_mapC"] = {
-                key: decode_long_array(
-                    value.value,
-                    256,
-                    (bounds[1] - bounds[0]).bit_length(),
-                    dense=self._features["long_array_format"] == "compact",
-                ).reshape((16, 16))
-                + bounds[0]
-                for key, value in heights.items()
-                if isinstance(value, TAG_Long_Array)
-            }
+            misc["height_mapC"] = h = {}
+            for key, value in heights.items():
+                if isinstance(value, TAG_Long_Array):
+                    try:
+                        h[key] = (
+                            decode_long_array(
+                                value.value,
+                                256,
+                                (bounds[1] - bounds[0]).bit_length(),
+                                dense=self._features["long_array_format"] == "compact",
+                            ).reshape((16, 16))
+                            + bounds[0]
+                        )
+                    except Exception as e:
+                        log.warning(e)
 
         # parse sections into a more usable format
         sections: Dict[int, TAG_Compound] = {
