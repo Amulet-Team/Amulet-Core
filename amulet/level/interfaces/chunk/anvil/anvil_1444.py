@@ -86,9 +86,7 @@ class Anvil1444Interface(BaseAnvilInterface):
                     4096,
                     max(4, (len(section_palette) - 1).bit_length()),
                     dense=self._features["long_array_format"] == "compact",
-                ).astype(
-                    numpy.uint32
-                )
+                ).astype(numpy.uint32)
             else:
                 raise Exception(
                     "long_array_format", self._features["long_array_format"]
