@@ -86,7 +86,7 @@ class Anvil1444Interface(BaseAnvilInterface):
                     4096,
                     max(4, (len(section_palette) - 1).bit_length()),
                     dense=self._features["long_array_format"] == "compact",
-                )
+                ).astype(numpy.uint32)
             else:
                 raise Exception(
                     "long_array_format", self._features["long_array_format"]
@@ -94,16 +94,14 @@ class Anvil1444Interface(BaseAnvilInterface):
             blocks[cy] = numpy.transpose(
                 decoded.reshape((16, 16, 16)) + len(palette), (2, 0, 1)
             )
-
             palette += section_palette
 
         np_palette, inverse = numpy.unique(palette, return_inverse=True)
         np_palette: numpy.ndarray
         inverse: numpy.ndarray
+        inverse = inverse.astype(numpy.uint32)
         for cy in blocks:
-            blocks[cy] = inverse[blocks[cy]].astype(
-                numpy.uint32
-            )  # TODO: find a way to make the new blocks format change dtype
+            blocks[cy] = inverse[blocks[cy]]
         return blocks, np_palette
 
     def _encode_blocks(
