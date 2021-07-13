@@ -50,4 +50,4 @@ def _application_directory(
 
 
 def get_cache_dir() -> str:
-    return os.path.join(_program_base, "cache")
+    return os.environ.get("AMULET_CACHE_DIR", os.path.join(_program_base, "cache"))
