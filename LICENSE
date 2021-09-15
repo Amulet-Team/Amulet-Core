@@ -1,4 +1,4 @@
-This is not a licence but is guidance on what the final licence will and will not allow.
+This is not a license but is guidance on what the final license will and will not allow.
 
 Definitions
 Amulet-NBT - A low level NBT editing library.
@@ -22,4 +22,4 @@ Can I use any part of Amulet as part of another program?
 Can I modify any part of Amulet?
 	You are allowed to modify Amulet however you like.
 	If you want to make improvements we accept code submissions through pull requests.
-	Note that by submitting code you are giving us permission to host, distribute and use the code under the licence in its final form.
+	Note that by submitting code you are giving us permission to host, distribute and use the code under the license in its final form.
