@@ -625,34 +625,46 @@ class BaseLevelDBInterface(Interface):
     ) -> Tuple[numpy.ndarray, List[amulet_nbt.NBTFile], bytes]:
         # Ignore LSB of data (its a flag) and get compacting level
         bits_per_block, data = data[0] >> 1, data[1:]
-        blocks_per_word = 32 // bits_per_block  # Word = 4 bytes, basis of compacting.
-        word_count = -(
-            -4096 // blocks_per_word
-        )  # Ceiling divide is inverted floor divide
+        if bits_per_block:
+            blocks_per_word = (
+                32 // bits_per_block
+            )  # Word = 4 bytes, basis of compacting.
+            word_count = -(
+                -4096 // blocks_per_word
+            )  # Ceiling divide is inverted floor divide
 
-        blocks = numpy.packbits(
-            numpy.pad(
-                numpy.unpackbits(
-                    numpy.frombuffer(
-                        bytes(reversed(data[: 4 * word_count])), dtype="uint8"
+            blocks = numpy.packbits(
+                numpy.pad(
+                    numpy.unpackbits(
+                        numpy.frombuffer(
+                            bytes(reversed(data[: 4 * word_count])), dtype="uint8"
+                        )
                     )
+                    .reshape(-1, 32)[:, -blocks_per_word * bits_per_block :]
+                    .reshape(-1, bits_per_block)[-4096:, :],
+                    [(0, 0), (16 - bits_per_block, 0)],
+                    "constant",
                 )
-                .reshape(-1, 32)[:, -blocks_per_word * bits_per_block :]
-                .reshape(-1, bits_per_block)[-4096:, :],
-                [(0, 0), (16 - bits_per_block, 0)],
-                "constant",
+            ).view(dtype=">i2")[::-1]
+            blocks = blocks.reshape((16, 16, 16)).swapaxes(1, 2)
+
+            data = data[4 * word_count :]
+
+            palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
+            palette, offset = amulet_nbt.load(
+                data,
+                compressed=False,
+                count=palette_len,
+                offset=True,
+                little_endian=True,
             )
-        ).view(dtype=">i2")[::-1]
-        blocks = blocks.reshape((16, 16, 16)).swapaxes(1, 2)
 
-        data = data[4 * word_count :]
-
-        palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
-        palette, offset = amulet_nbt.load(
-            data, compressed=False, count=palette_len, offset=True, little_endian=True
-        )
-
-        return blocks, palette, data[offset:]
+            return blocks, palette, data[offset:]
+        else:
+            palette, offset = amulet_nbt.load(
+                data, compressed=False, count=1, offset=True, little_endian=True
+            )
+            return numpy.zeros((16, 16, 16), dtype=numpy.int16), palette, data[offset:]
 
     @staticmethod
     def _save_palette_subchunk(
