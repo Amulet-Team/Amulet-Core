@@ -215,17 +215,14 @@ class LevelDBFormat(WorldFormatWrapper):
         else:
             if (
                 self.root_tag.get("experiments", {})
-                .get("caves_and_cliffs_internal", nbt.TAG_Byte())
-                .value
-            ):
-                chunk_version = 26
-            elif (
-                self.root_tag.get("experiments", {})
                 .get("caves_and_cliffs", nbt.TAG_Byte())
                 .value
             ):
                 # TODO: handle this properly when the chunk version is better understood for the 1.18 chunk
-                chunk_version = 25
+                if self.version < (1, 17, 30):
+                    chunk_version = 25
+                else:
+                    chunk_version = 29
             else:
                 chunk_version = game_to_chunk_version(self.max_world_version[1])
         return self.platform, chunk_version  # TODO: work out a valid default
