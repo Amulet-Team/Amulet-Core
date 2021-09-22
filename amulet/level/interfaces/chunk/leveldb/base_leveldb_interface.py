@@ -81,6 +81,10 @@ class BaseLevelDBInterface(Interface):
             game_version = max_world_version[1]
         return loader.Translators.get(("bedrock", game_version)), game_version
 
+    @staticmethod
+    def _get_sub_chunk_storage_byte(cy: int, min_y: int) -> bytes:
+        return struct.pack("b", cy - min_y)
+
     def decode(
         self, cx: int, cz: int, data: Dict[bytes, bytes], bounds: Tuple[int, int]
     ) -> Tuple[Chunk, AnyNDArray]:
@@ -103,10 +107,12 @@ class BaseLevelDBInterface(Interface):
             "2f"
         ):  # ["2farray", "2f1palette", "2fnpalette"]
             min_y = bounds[0] // 16
-            height = (bounds[1] // 16) - min_y
+            max_y = bounds[1] // 16
             subchunks = {
-                cy + min_y: data.pop(b"\x2F" + bytes([cy]), None)
-                for cy in range(height)
+                cy: data.pop(
+                    b"\x2F" + self._get_sub_chunk_storage_byte(cy, min_y), None
+                )
+                for cy in range(min_y, max_y)
             }
             chunk.blocks, chunk_palette = self._load_subchunks(subchunks)
         elif self._features["terrain"] == "30array":
@@ -213,13 +219,17 @@ class BaseLevelDBInterface(Interface):
         elif self._features["terrain"] == "2f1palette":
             terrain = self._save_subchunks_1(chunk.blocks, palette)
         elif self._features["terrain"] == "2fnpalette":
-            terrain = self._save_subchunks_8(chunk.blocks, palette, bounds)
+            terrain = self._save_subchunks_8(
+                chunk.blocks, palette, bounds, max_world_version
+            )
         else:
             raise Exception(f"Unsupported terrain type {self._features['terrain']}")
 
         min_y = bounds[0] // 16
         for cy, sub_chunk in terrain.items():
-            chunk_data[b"\x2F" + bytes([cy - min_y])] = sub_chunk
+            chunk_data[
+                b"\x2F" + self._get_sub_chunk_storage_byte(cy, min_y)
+            ] = sub_chunk
 
         # chunk status
         if self._features["finalised_state"] == "int0-2":
@@ -300,7 +310,6 @@ class BaseLevelDBInterface(Interface):
         for cy, data in subchunks.items():
             if data is None:
                 continue
-
             if data[0] in {0, 2, 3, 4, 5, 6, 7}:
                 block_ids = numpy.frombuffer(
                     data[1 : 1 + 2 ** 12], dtype=numpy.uint8
@@ -319,12 +328,17 @@ class BaseLevelDBInterface(Interface):
                 for b in numpy.array([combined_palette >> 4, combined_palette & 15]).T:
                     palette.append(((None, tuple(b)),))
 
-            elif data[0] in [1, 8]:
+            else:
                 if data[0] == 1:
                     storage_count = 1
                     data = data[1:]
-                else:
+                elif data[0] == 8:
                     storage_count, data = data[1], data[2:]
+                elif data[0] == 9:
+                    # There is an extra byte in this format storing the cy value
+                    storage_count, data = data[1], data[3:]
+                else:
+                    raise Exception(f"sub-chunk version {data[0]} is not known.")
 
                 sub_chunk_blocks = numpy.zeros(
                     (16, 16, 16, storage_count), dtype=numpy.uint32
@@ -393,8 +407,6 @@ class BaseLevelDBInterface(Interface):
                     ]
                 else:
                     continue
-            else:
-                raise Exception(f"sub-chunk version {data[0]} is not known.")
 
         # block_palette should now look like this
         # List[
@@ -467,7 +479,11 @@ class BaseLevelDBInterface(Interface):
         return chunk
 
     def _save_subchunks_8(
-        self, blocks: "Blocks", palette: AnyNDArray, bounds: Tuple[int, int]
+        self,
+        blocks: "Blocks",
+        palette: AnyNDArray,
+        bounds: Tuple[int, int],
+        max_world_version: VersionNumberTuple,
     ) -> Dict[int, Optional[bytes]]:
         palette_depth = numpy.array([len(block) for block in palette])
         min_y = bounds[0] // 16
@@ -563,7 +579,18 @@ class BaseLevelDBInterface(Interface):
                                 sub_chunk_palette_full[index, sub_index] = block
                         # should now be a 2D array with an amulet_nbt.NBTFile in each element
 
-                        sub_chunk_bytes = [b"\x08", bytes([sub_chunk_depth])]
+                        if max_world_version[1] >= (
+                            1,
+                            17,
+                            30,
+                        ):  # Why do I need to check against game version and not chunk verison
+                            sub_chunk_bytes = [
+                                b"\x09",
+                                bytes([sub_chunk_depth]),
+                                struct.pack("b", cy),
+                            ]
+                        else:
+                            sub_chunk_bytes = [b"\x08", bytes([sub_chunk_depth])]
                         for sub_chunk_layer_index in range(sub_chunk_depth):
                             # TODO: sort out a way to do this quicker without brute forcing it.
                             (
