@@ -313,7 +313,8 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper):
                         "Length": amulet_nbt.TAG_Short(overflowed_shape[2]),
                         "Offset": amulet_nbt.TAG_Int_Array(selection.min),
                     }
-                )
+                ),
+                name="Schematic",
             )
 
             entities = []
