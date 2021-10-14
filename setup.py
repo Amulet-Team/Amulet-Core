@@ -1,50 +1,47 @@
+from typing import List
 from setuptools import setup, find_packages
-import os
+from Cython.Build import cythonize
 import glob
 import shutil
 import versioneer
+import numpy
 
 # there were issues with other builds carrying over their cache
 for d in glob.glob("*.egg-info"):
     shutil.rmtree(d)
 
 
-def remove_git_and_http_package_links(uris):
-    for uri in uris:
-        if uri.startswith("git+") or uri.startswith("https:"):
-            continue
-        yield uri
+def load_requirements(path: str) -> List[str]:
+    requirements = []
+    with open(path) as f:
+        for line in f.readlines():
+            line = line.strip()
+            if line.startswith("git+") or line.startswith("https:"):
+                continue
+            elif line.startswith("-r "):
+                requirements += load_requirements(line[3:])
+            else:
+                requirements.append(line)
+    return requirements
 
 
-with open("./requirements.txt") as requirements_fp:
-    required_packages = [
-        line for line in remove_git_and_http_package_links(requirements_fp.readlines())
-    ]
+required_packages = load_requirements("./requirements.txt")
 
-package_data = [
-    os.path.relpath(path, "amulet")
-    for path in set(glob.glob(os.path.join("amulet", "**", "*.*"), recursive=True))
-    - set(glob.glob(os.path.join("amulet", "**", "*.py[cod]"), recursive=True))
-]
+ext = []
+if next(glob.iglob("amulet/**/*.pyx", recursive=True), None):
+    # This throws an error if it does not match any files
+    ext += cythonize(
+        "amulet/**/*.pyx",
+        language_level=3,
+        annotate=True,
+    )
 
 setup(
-    name="amulet-core",
     version=versioneer.get_version(),
-    description="A Python library for reading/writing Minecraft's various save formats.",
-    author="James Clare, Ben Gothard et al.",
-    author_email="amuleteditor@gmail.com",
     install_requires=required_packages,
     packages=find_packages(),
-    package_data={"amulet": package_data},
+    include_package_data=True,
     cmdclass=versioneer.get_cmdclass(),
-    setup_requires=required_packages,
-    dependency_links=[
-        "https://github.com/Amulet-Team/Amulet-NBT",
-        "https://github.com/gentlegiantJGC/PyMCTranslate",
-    ],
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "Operating System :: OS Independent",
-    ],
-    python_requires=">=3.6",
+    ext_modules=ext,
+    include_dirs=[numpy.get_include()],
 )

@@ -1,7 +1,9 @@
-graft amulet*
-include README.md
+graft amulet
 include requirements.txt
 include versioneer.py
-include amulet/_version.py
 prune */__pycache__/*
 global-exclude *.py[cod]
+global-exclude *.c
+global-exclude *.html
+global-exclude *.log
+global-exclude *.md
