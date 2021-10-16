@@ -1,9 +1,15 @@
 import unittest
-from amulet.libs.leveldb import LevelDB
+from amulet.libs.leveldb import LevelDB, LevelDBException
 import os
 import shutil
+import struct
 
 DB_PATH = "./worlds_temp/leveldb"
+
+num_keys = [struct.pack("<Q", i) for i in range(10_000)]
+num_db = dict(zip(num_keys, num_keys))
+incr_db = {f"key{i}".encode("utf-8"): f"val{i}".encode("utf-8") for i in range(10_000)}
+full_db = {**incr_db, **num_db}
 
 
 class LevelDBTestCase(unittest.TestCase):
@@ -15,6 +21,11 @@ class LevelDBTestCase(unittest.TestCase):
         self._clear_db()
         db = LevelDB(DB_PATH, True)
         db.close()
+
+    def test_create_fail(self):
+        self._clear_db()
+        with self.assertRaises(LevelDBException):
+            db = LevelDB(DB_PATH)
 
     def test_read_write(self):
         self._clear_db()
@@ -35,18 +46,19 @@ class LevelDBTestCase(unittest.TestCase):
 
         db.close()
 
-    def test_put_batch(self):
+    def test_put(self):
         self._clear_db()
         db = LevelDB(DB_PATH, True)
 
-        batch = {
-            f"key{i}".encode("utf-8"): f"val{i}".encode("utf-8") for i in range(100)
-        }
-        db.putBatch(batch)
+        db.putBatch(incr_db)
 
-        self.assertEqual(dict(db.iterate()), batch)
-        self.assertEqual(set(db.keys()), batch.keys())
-        self.assertEqual(set(db), batch.keys())
+        for k, v in num_db.items():
+            db.put(k, v)
+
+        self.assertEqual(dict(db.iterate()), full_db)
+        self.assertEqual(dict(db.items()), full_db)
+        self.assertEqual(set(db.keys()), full_db.keys())
+        self.assertEqual(set(db), full_db.keys())
 
         db.close()
 
