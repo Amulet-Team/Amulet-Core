@@ -26,6 +26,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        setup.py build_ext --inplace
+        python setup.py build_ext --inplace
     - name: Test with unittest
       run: python -m unittest discover -v -s tests
