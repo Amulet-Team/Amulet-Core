@@ -1,0 +1,4 @@
+-r requirements-main.txt
+-r requirements-setup.txt
+black>=19.10b0
+pre_commit>=1.11.1

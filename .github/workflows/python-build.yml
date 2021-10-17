@@ -9,11 +9,11 @@ on:
 
 jobs:
   deploy-windows:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [3.7]
-
+        python-version: [3.7, 3.8, 3.9]
+        os: [macos-latest, windows-latest]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}

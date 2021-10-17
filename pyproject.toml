@@ -1,4 +1,5 @@
 [build-system]
+# Any modifications here must also be done in the requirements/requirements-setup.toml file
 requires = [
     "setuptools >= 42",
     "wheel",
