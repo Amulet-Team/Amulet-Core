@@ -1,4 +1,5 @@
 graft amulet
+graft requirements
 include requirements.txt
 include versioneer.py
 prune */__pycache__/*
