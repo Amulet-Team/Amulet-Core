@@ -1,12 +1,12 @@
 from __future__ import annotations
 import struct
 
-from .leveldb_25 import (
-    LevelDB25Interface,
+from .leveldb_28 import (
+    LevelDB28Interface as ParentInterface,
 )
 
 
-class LevelDB29Interface(LevelDB25Interface):
+class LevelDB29Interface(ParentInterface):
     def __init__(self):
         super().__init__()
 

@@ -1,6 +1,8 @@
 from amulet.api.data_types import VersionNumberTuple
 
-# this is a dictionary of the first and last times each chunk version was written by a game version
+# This is a dictionary of the first and last times each chunk version was written by a game version
+# It is used to convert the chunk version to the game version that could have saved that chunk.
+# It is also used to convert back to the chunk version when saving based on the game version.
 chunk_version_to_max_version = {
     0: ((0, 9, 0, 0), (0, 9, 1, 9999)),
     1: ((0, 9, 2, 0), (0, 9, 4, 9999)),
@@ -24,9 +26,28 @@ chunk_version_to_max_version = {
     19: ((1, 16, 0, 0), (1, 16, 100, 55)),
     20: ((1, 16, 100, 56), (1, 16, 100, 57)),
     21: ((1, 16, 100, 58), (1, 16, 210, 0)),
-    22: ((1, 16, 210, 0), (999, 999, 999, 999)),  # caves and cliffs disabled
+    22: ((1, 16, 210, 0), (1, 17, 999, 999)),  # caves and cliffs disabled
+
+    # used with experimental features
+    23: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
+    24: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
     25: ((1, 17, 0, 0), (1, 17, 20, 999)),  # 1.17.0-20 caves and cliffs enabled
-    29: ((1, 17, 30, 0), (999, 999, 999, 999)),  # 1.17.30 caves and cliffs enabled
+    26: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
+    27: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
+    28: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
+    29: ((1, 17, 30, 0), (1, 18, 0, 0)),  # 1.17.30 caves and cliffs enabled
+    30: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
+    31: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
+    32: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
+    33: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
+    34: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
+    35: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
+    36: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
+    37: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
+    38: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
+
+    # continue without experimental gameplay
+    39: ((1, 18, 0, 0), (999, 999, 999, 999)),
 }  # TODO: fill this list with the actual last game version number each chunk version was last used in
 
 
@@ -41,7 +62,7 @@ def game_to_chunk_version(max_game_version: VersionNumberTuple) -> int:
     """Get the chunk version that should be used for the given game version number."""
     for chunk_version, (first, last) in chunk_version_to_max_version.items():
         if first <= max_game_version <= last:
-            if 25 <= chunk_version <= 29:
+            if 23 <= chunk_version <= 38:
                 # TODO: work out a better way to support this
                 #  These are currently only used with the caves and cliffs toggle enabled
                 return 22
