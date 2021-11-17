@@ -13,7 +13,7 @@ class LevelDB0Interface(BaseLevelDBInterface):
         self._set_feature("chunk_version", 0)
         self._set_feature("finalised_state", "int0-2")
 
-        self._set_feature("data_2d", "unused_height512|biome256")
+        self._set_feature("data_2d", "height512|biome256")
 
         self._set_feature("block_entities", "31list")
         self._set_feature("block_entity_format", EntityIDType.str_id)

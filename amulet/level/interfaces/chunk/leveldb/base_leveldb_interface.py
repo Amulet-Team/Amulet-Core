@@ -36,7 +36,7 @@ class BaseLevelDBInterface(Interface):
         self._feature_options = {
             "chunk_version": set(chunk_version_to_max_version.keys()),
             "finalised_state": ["int0-2"],
-            "data_2d": ["height512|biome256", "unused_height512|biome256"],
+            "data_2d": ["height512|biome256"],
             "block_entities": ["31list"],
             "block_entity_format": [EntityIDType.namespace_str_id, EntityIDType.str_id],
             "block_entity_coord_format": [EntityCoordType.xyz_int],
@@ -153,14 +153,13 @@ class BaseLevelDBInterface(Interface):
                 val = 2
             chunk.status = val
 
-        if self._features["data_2d"] in [
-            "height512|biome256",
-            "unused_height512|biome256",
-        ]:
-            d2d = data.pop(b"\x2D", b"\x00" * 768)
+        if b"+" in data:
+            height, biome = self._load_height_3d_array(data[b"+"])
+        elif b"\x2D" in data:
+            d2d = data[b"\x2D"]
             height, biome = d2d[:512], d2d[512:]
-            if self._features["data_2d"] == "height512|biome256":
-                pass  # TODO: put this data somewhere
+            # if self._features["data_2d"] == "height512|biome256":
+            #     pass  # TODO: put this data somewhere
             chunk.biomes = numpy.frombuffer(biome, dtype="uint8").reshape(16, 16).T
 
         # TODO: impliment key support
@@ -240,12 +239,8 @@ class BaseLevelDBInterface(Interface):
         # biome and height data
         if self._features["data_2d"] in [
             "height512|biome256",
-            "unused_height512|biome256",
         ]:
-            if self._features["data_2d"] == "height512|biome256":
-                d2d = b"\x00" * 512  # TODO: get this data from somewhere
-            else:
-                d2d = b"\x00" * 512
+            d2d = b"\x00" * 512  # TODO: get this data from somewhere
             chunk.biomes.convert_to_2d()
             d2d += chunk.biomes.astype("uint8").T.tobytes()
             chunk_data[b"\x2D"] = d2d
@@ -620,36 +615,68 @@ class BaseLevelDBInterface(Interface):
     # These arent actual blocks, just ids pointing to the block_palette.
 
     @staticmethod
-    def _load_palette_blocks(
-        data,
-    ) -> Tuple[numpy.ndarray, List[amulet_nbt.NBTFile], bytes]:
+    def _load_packed_array(data: bytes) -> Tuple[bytes, int, Optional[numpy.ndarray]]:
+        """
+        Parse a packed array as documented here
+        https://gist.github.com/Tomcc/a96af509e275b1af483b25c543cfbf37
+
+        :param data: The data to parse
+        :return:
+        """
         # Ignore LSB of data (its a flag) and get compacting level
-        bits_per_block, data = data[0] >> 1, data[1:]
-        if bits_per_block:
-            blocks_per_word = (
-                32 // bits_per_block
+        bits_per_value, data = struct.unpack("b", data[0:1])[0] >> 1, data[1:]
+        if bits_per_value > 0:
+            values_per_word = (
+                32 // bits_per_value
             )  # Word = 4 bytes, basis of compacting.
             word_count = -(
-                -4096 // blocks_per_word
+                -4096 // values_per_word
             )  # Ceiling divide is inverted floor divide
 
-            blocks = numpy.packbits(
+            arr = numpy.packbits(
                 numpy.pad(
                     numpy.unpackbits(
                         numpy.frombuffer(
                             bytes(reversed(data[: 4 * word_count])), dtype="uint8"
                         )
                     )
-                    .reshape(-1, 32)[:, -blocks_per_word * bits_per_block :]
-                    .reshape(-1, bits_per_block)[-4096:, :],
-                    [(0, 0), (16 - bits_per_block, 0)],
+                    .reshape(-1, 32)[:, -values_per_word * bits_per_value :]
+                    .reshape(-1, bits_per_value)[-4096:, :],
+                    [(0, 0), (16 - bits_per_value, 0)],
                     "constant",
                 )
             ).view(dtype=">i2")[::-1]
-            blocks = blocks.reshape((16, 16, 16)).swapaxes(1, 2)
-
+            arr = arr.reshape((16, 16, 16)).swapaxes(1, 2)
             data = data[4 * word_count :]
+        else:
+            arr = None
+        return data, bits_per_value, arr
 
+    def _load_height_3d_array(
+        self, data: bytes
+    ) -> Tuple[numpy.ndarray, Dict[int, numpy.ndarray]]:
+        heightmap, data = data[:512], data[512:]
+        biomes = {}
+        for cy in range(25):
+            data, bits_per_value, arr = self._load_packed_array(data)
+            if bits_per_value == 0:
+                value, data = struct.unpack(f"<I", data[:4])[0], data[4:]
+                biomes[cy] = numpy.full((16, 16, 16), value)
+            elif bits_per_value > 0:
+                biomes[cy] = arr
+                palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
+                biomes[cy] = numpy.frombuffer(data, "<i4", palette_len)[arr]
+                data = data[4 * palette_len :]
+        if data:
+            raise Exception("More data")
+        return heightmap, biomes
+
+    def _load_palette_blocks(
+        self,
+        data: bytes,
+    ) -> Tuple[numpy.ndarray, List[amulet_nbt.NBTFile], bytes]:
+        data, _, blocks = self._load_packed_array(data)
+        if blocks is not None:
             palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
             palette, offset = amulet_nbt.load(
                 data,
@@ -658,7 +685,6 @@ class BaseLevelDBInterface(Interface):
                 offset=True,
                 little_endian=True,
             )
-
             return blocks, palette, data[offset:]
         else:
             palette, offset = amulet_nbt.load(
@@ -667,39 +693,34 @@ class BaseLevelDBInterface(Interface):
             return numpy.zeros((16, 16, 16), dtype=numpy.int16), palette, data[offset:]
 
     @staticmethod
-    def _save_palette_subchunk(
-        blocks: numpy.ndarray, palette: List[amulet_nbt.NBTFile]
-    ) -> bytes:
-        """Save a single layer of blocks in the block_palette format"""
-        chunk: List[bytes] = []
+    def _save_packed_array(arr: numpy.ndarray, min_bit_size=1) -> bytes:
+        bits_per_value = max(int(numpy.amax(arr)).bit_length(), min_bit_size)
+        if bits_per_value == 7:
+            bits_per_value = 8
+        elif 9 <= bits_per_value <= 15:
+            bits_per_value = 16
+        header = bytes([bits_per_value << 1])
 
-        bits_per_block = max(int(numpy.amax(blocks)).bit_length(), 1)
-        if bits_per_block == 7:
-            bits_per_block = 8
-        elif 9 <= bits_per_block <= 15:
-            bits_per_block = 16
-        chunk.append(bytes([bits_per_block << 1]))
-
-        blocks_per_word = 32 // bits_per_block  # Word = 4 bytes, basis of compacting.
+        values_per_word = 32 // bits_per_value  # Word = 4 bytes, basis of compacting.
         word_count = -(
-            -4096 // blocks_per_word
+            -4096 // values_per_word
         )  # Ceiling divide is inverted floor divide
 
-        blocks = blocks.swapaxes(1, 2).ravel()
-        blocks = bytes(
+        arr = arr.swapaxes(1, 2).ravel()
+        packed_arr = bytes(
             reversed(
                 numpy.packbits(
                     numpy.pad(
                         numpy.pad(
                             numpy.unpackbits(
-                                numpy.ascontiguousarray(blocks[::-1], dtype=">i").view(
+                                numpy.ascontiguousarray(arr[::-1], dtype=">i").view(
                                     dtype="uint8"
                                 )
-                            ).reshape(4096, -1)[:, -bits_per_block:],
-                            [(word_count * blocks_per_word - 4096, 0), (0, 0)],
+                            ).reshape(4096, -1)[:, -bits_per_value:],
+                            [(word_count * values_per_word - 4096, 0), (0, 0)],
                             "constant",
-                        ).reshape(-1, blocks_per_word * bits_per_block),
-                        [(0, 0), (32 - blocks_per_word * bits_per_block, 0)],
+                        ).reshape(-1, values_per_word * bits_per_value),
+                        [(0, 0), (32 - values_per_word * bits_per_value, 0)],
                         "constant",
                     )
                 )
@@ -707,13 +728,16 @@ class BaseLevelDBInterface(Interface):
                 .tobytes()
             )
         )
-        chunk.append(blocks)
+        return header + packed_arr
 
-        chunk.append(struct.pack("<I", len(palette)))
-        chunk += [
-            block.save_to(compressed=False, little_endian=True) for block in palette
-        ]
-        return b"".join(chunk)
+    def _save_palette_subchunk(
+        self, blocks: numpy.ndarray, palette: List[amulet_nbt.NBTFile]
+    ) -> bytes:
+        """Save a single layer of blocks in the block_palette format"""
+        return b"".join(
+            [self._save_packed_array(blocks), struct.pack("<I", len(palette))]
+            + [block.save_to(compressed=False, little_endian=True) for block in palette]
+        )
 
     @staticmethod
     def _unpack_nbt_list(raw_nbt: bytes) -> List[amulet_nbt.NBTFile]:
