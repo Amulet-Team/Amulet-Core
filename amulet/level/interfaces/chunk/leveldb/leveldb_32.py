@@ -11,4 +11,3 @@ class LevelDB32Interface(ParentInterface):
 
 
 export = LevelDB32Interface
-

@@ -82,9 +82,10 @@ class Interface(ABC):
             amulet_nbt.NBTFile,
         ]
     ]:
-        if not (isinstance(nbt, amulet_nbt.NBTFile) and isinstance(
-            nbt.value, amulet_nbt.TAG_Compound
-        )):
+        if not (
+            isinstance(nbt, amulet_nbt.NBTFile)
+            and isinstance(nbt.value, amulet_nbt.TAG_Compound)
+        ):
             return
 
         if id_type == EntityIDType.namespace_str_id:

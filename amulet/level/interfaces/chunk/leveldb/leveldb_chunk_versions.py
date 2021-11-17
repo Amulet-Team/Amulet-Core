@@ -27,7 +27,6 @@ chunk_version_to_max_version = {
     20: ((1, 16, 100, 56), (1, 16, 100, 57)),
     21: ((1, 16, 100, 58), (1, 16, 210, 0)),
     22: ((1, 16, 210, 0), (1, 17, 999, 999)),  # caves and cliffs disabled
-
     # used with experimental features
     23: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
     24: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
@@ -45,7 +44,6 @@ chunk_version_to_max_version = {
     36: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
     37: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
     38: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
-
     # continue without experimental gameplay
     39: ((1, 18, 0, 0), (999, 999, 999, 999)),
 }  # TODO: fill this list with the actual last game version number each chunk version was last used in

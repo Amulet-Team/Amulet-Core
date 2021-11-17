@@ -11,4 +11,3 @@ class LevelDB34Interface(ParentInterface):
 
 
 export = LevelDB34Interface
-
