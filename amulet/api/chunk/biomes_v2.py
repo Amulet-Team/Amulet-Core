@@ -9,159 +9,157 @@ Current known states (more could be added)
 4x4x4 - java
 16x16x16 - bedrock
 8x1x8 - cubic chunks
-
-These are all powers of 2 which makes things a bit nicer.
-I think we can assume this will always be the case.
 """
 
 from typing import Tuple, Union, Dict, Optional
 import numpy
-from enum import IntEnum
 
 Shape2D = Tuple[int, int]
 Shape3D = Tuple[int, int, int]
-ValidShapes = {2 ** i for i in range(1, 5)}
 
 
-class BiomesShape(IntEnum):
-    """
-    An enum of the different states the :class:`Biomes` class can be in.
-
-    >>> ShapeNull = 0  # The biome array does not exist
-    >>> Shape2D = 2  # The biome array is a 2D array
-    >>> Shape3D = 3  # The biome array is a 3D array
-    """
-
-    ShapeNull = 0  # doc: The biome array does not exist
-    Shape2D = 2  # doc: The biome array is a 2D array
-    Shape3D = 3  # doc: The biome array is a 3D array
-
-
-def validate_shape(shape: Tuple[int], ndim: int):
-    if not (len(shape) == 3 and all(s in ValidShapes for s in shape)):
+def _validate_shape(shape: Tuple[int, ...], ndim: int):
+    if not (len(shape) == ndim and all(1 <= s <= 16 for s in shape)):
         raise ValueError(f"Array must be {ndim}D array with power of 2 sizes.")
 
 
-def validate_data(data: Union[int, numpy.ndarray], ndim: int) -> numpy.ndarray:
+def _validate_data(data: Union[int, numpy.ndarray], ndim: int) -> numpy.ndarray:
     if isinstance(data, int):
-        data = numpy.array(data).reshape((1, 1, 1))
+        data = numpy.array(data).reshape((1,) * ndim)
     if not isinstance(data, numpy.ndarray):
         raise TypeError(f"{ndim}D data must be a numpy array.")
-    validate_shape(data.shape, ndim)
+    _validate_shape(data.shape, ndim)
     return data
 
 
-class BiomeData:
-    default_biome: int
-    ndim: BiomesShape
-    biome_2d: Optional[numpy.ndarray]
-    biome_3d: Dict[int, Union[numpy.ndarray]]
+def _get_reshape_array(
+    src_shape: Tuple[int, ...],
+    dst_shape: Tuple[int, ...],
+) -> numpy.ndarray:
+    return numpy.meshgrid(
+        *[s * numpy.arange(d) // d for s, d in zip(src_shape, dst_shape)]
+    )
+
+
+class Biomes:
+    __slots__ = [
+        "__biome_2d",
+        "__biome_3d",
+        "__default_biome",
+    ]
 
     def __init__(
         self,
         raw_data: Union[None, numpy.ndarray, Dict[int, Union[int, numpy.ndarray]]],
         default_biome: int,
     ):
-        self.ndim = BiomesShape.ShapeNull
-        self.biome_2d = None
-        self.biome_3d = {}
-        self.default_biome = default_biome
+        self.__biome_2d = None
+        self.__biome_3d = {}
+        self.__default_biome = default_biome
 
-        if raw_data is None:
-            pass
-        elif isinstance(raw_data, numpy.ndarray):
-            validate_data(raw_data, 2)
-            self.biome_2d = raw_data.astype(numpy.uint32)
-            self.ndim = BiomesShape.Shape2D
+        if isinstance(raw_data, numpy.ndarray):
+            _validate_data(raw_data, 2)
+            self.__biome_2d = raw_data.astype(numpy.uint32)
         elif isinstance(raw_data, dict):
             for k, v in raw_data:
                 if not isinstance(k, int):
                     raise TypeError("Keys must be ints.")
-                self.biome_3d[k] = validate_data(v, 3)
-            self.ndim = BiomesShape.Shape3D
-        else:
+                self.__biome_3d[k] = _validate_data(v, 3)
+        elif raw_data is not None:
             raise ValueError(f"Unsupported type {type(raw_data)}")
 
-    def convert(self, shape: BiomesShape):
+    @property
+    def default_biome(self) -> int:
+        return self.__default_biome
+
+    @default_biome.setter
+    def default_biome(self, default_biome: int):
+        self.__default_biome = int(default_biome)
+
+    def convert_2d_to_3d(self):
         """
-        Convert from one shape to another.
-        Set the dimension number.
-        If going between 2D and 3D do a conversion step.
-
-        :param shape: The new BiomeShape
+        Convert from the 2D data to the 3D data.
+        This will replace all the data in the 3D arrays with the data from the 2D array.
+        If the 2D array is undefined this will do nothing.
+        Note this method may cause some data loss through scaling artifacts and data replacement.
         """
-        if self.ndim is not shape:
-            if not isinstance(shape, BiomesShape):
-                raise TypeError("Shape must be a value of BiomeShape")
-            if shape is BiomesShape.Shape2D:
-                if self.ndim is BiomesShape.Shape3D:
-                    # todo: convert from 2D to 3D. Replace the 2D array with the data from the 3D data.
-                    pass
-            elif shape is BiomesShape.Shape3D:
-                if self.ndim is BiomesShape.Shape2D:
-                    # todo: Convert from 2D to 3D. Replace the 3D array with the data from the 2D data.
-                    pass
-            self.ndim = shape
+        if self.__biome_2d is not None and self.__biome_3d:
+            sx, sz = self.__biome_2d.shape
+            arr = self.__biome_2d.reshape((sx, 1, sz))
+            for cy in self.__biome_3d:
+                self.__biome_3d[cy] = arr.copy()
 
+    def convert_3d_to_2d(self, cy: Optional[int] = None):
+        """
+        Convert from the 3D data to the 2D data.
+        This will replace the 2D array with data from the 3D array.
+        If there is no array at cy then this will do nothing.
+        Note this method may cause some data loss through scaling artifacts and data replacement.
 
-class BaseBiome:
-    # These are private variables. Do not use them.
-    _biome_data: BiomeData
-    _ndim = 0
-    _shape: Tuple[int, ...]
+        :param cy: The sub-chunk to use. If this is None (default) the highest sub-chunk will be used.
+        """
+        if cy is None and self.__biome_3d:
+            cy = next(sorted(self.__biome_3d, reverse=True), None)
+        if cy in self.__biome_3d:
+            self.__biome_2d = self.__biome_3d[cy][:, -1, :].copy()
 
-    def __init__(self, biome_data: BiomeData, shape: Tuple[int, ...]):
-        self._biome_data = biome_data
-        shape = tuple(shape)
-        validate_shape(shape, self._ndim)
-        self._shape = shape
+    def get_array_2d(self, shape: Shape2D) -> numpy.ndarray:
+        """
+        Get the 2D array for this chunk in the requested shape.
+        This will resize the stored array, potentially adding or destroying data that previously existed.
 
+        :param shape: The shape to get the array in. Must be a tuple of length 2 with values between 1 and 16.
+        :return: The 2D biome array reshaped to the requested shape.
+        """
+        _validate_shape(shape, 2)
+        if self.__biome_2d is None:
+            # create the array
+            if self.__biome_3d:
+                self.__biome_2d = self.__biome_3d[
+                    next(sorted(self.__biome_3d, reverse=True))
+                ][:, -1, :]
+            else:
+                self.__biome_2d = numpy.full(shape, self.__default_biome)
+        if self.__biome_2d.shape != shape:
+            # resize the array
+            self.__biome_2d = self.__biome_2d[
+                _get_reshape_array(self.__biome_2d.shape, shape)
+            ]
+        return self.__biome_2d
 
-class Biome2D(BaseBiome):
-    """Represents a 2D array storing biomes for a vertical column."""
+    def get_data_2d(self) -> Optional[numpy.ndarray]:
+        """
+        Get the raw 2D biome data for the chunk.
+        This will not modify the data stored.
+        Note this may be None if there is no data.
 
-    _ndim = 2
-    _shape: Shape2D
+        :return: The raw data as it is stored.
+        """
+        return self.__biome_2d
 
-    def __init__(self, biome_data: BiomeData, shape: Shape2D):
-        super().__init__(biome_data, shape)
+    def set_data_2d(self, array: Optional[numpy.ndarray]):
+        """
+        Set the raw 2D biome data for the chunk.
 
-    @property
-    def shape(self) -> Shape2D:
-        """The shape the array data has been requested in."""
-        return self._shape
-
-    # def _populate_2d(self):
-    #     if self._biome_data.biome_2d is None:
-    #         # populate from 3D biomes
-    #         if self._biome_data.biome_3d:
-    #             _, arr3d = next(sorted(self._biome_data.biome_3d.items(), key=lambda x: x[0]))
-    #         else:
-    #             self._biome_data.biome_2d = numpy.full(self._shape, self._biome_data.default_biome)
-
-    @property
-    def array(self) -> numpy.ndarray:
-        """Get the 2D array for this chunk."""
-        self._biome_data.ndim = BiomesShape.Shape2D
-        # TODO
-        raise NotImplementedError
-
-
-class Biome3D(BaseBiome):
-    """Represents all 3D arrays in a chunk."""
-
-    _ndim = 3
-    _shape: Shape3D
-
-    def __init__(self, biome_data: BiomeData, shape: Shape3D):
-        super().__init__(biome_data, shape)
+        :param array: A numpy array to replace the data with. None to delete the data.
+        """
+        _validate_data(array, 2)
 
     @property
-    def shape(self) -> Shape3D:
-        """The shape the array data has been requested in."""
-        return self._shape
+    def array_3d_indexes(self) -> Tuple[int]:
+        """Get a tuple of all sub-chunk indexes that are defined in the 3D data."""
+        return tuple(self.__biome_3d)
 
-    def get_raw(self, cy: int) -> numpy.ndarray:
+    def has_array_3d(self, cy: int):
+        """
+        Check if an array is defined for a given sub-chunk.
+
+        :param cy: The sub-chunk index to check.
+        :return: True if the key is populated. False otherwise.
+        """
+        return cy in self.__biome_3d
+
+    def get_data_3d(self, cy: int) -> numpy.ndarray:
         """
         Get the raw data for a given sub-chunk.
         This will not modify the data stored.
@@ -170,62 +168,46 @@ class Biome3D(BaseBiome):
         :return: The raw array as it is stored.
         :raises KeyError if the requested item is not present.
         """
-        return self._biome_data.biome_3d[cy]
+        return self.__biome_3d[cy]
 
-    def get_array(self, cy: int) -> numpy.ndarray:
+    def get_array_3d(self, cy: int, shape: Shape3D) -> numpy.ndarray:
         """
         Get the array for a given sub-chunk with the requested shape.
         This will resize the stored array, potentially adding or destroying data that previously existed.
 
         :param cy: The sub-chunk index to get.
+        :param shape: The shape to get the array in. Must be a tuple of length 3 with values between 1 and 16.
         :return: Numpy array resized to match :attr:`shape`
         :raises KeyError if the requested item is not present.
         """
-        # TODO
-        raise NotImplementedError
+        _validate_shape(shape, 3)
+        if cy in self.__biome_3d:
+            arr = self.__biome_3d[cy]
+        else:
+            # create the array
+            if self.__biome_2d is not None:
+                sx, sz = self.__biome_2d.shape
+                arr = self.__biome_3d[cy] = self.__biome_2d.copy().reshape((sx, 1, sz))
+            else:
+                arr = self.__biome_3d[cy] = numpy.full(shape, self.__default_biome)
+        if arr.shape != shape:
+            # resize the array
+            arr = self.__biome_3d[cy] = arr[_get_reshape_array(arr.shape, shape)]
+        return arr
 
-    def view_array(self, cy: int) -> numpy.ndarray:
-        """
-        Get the array for a given sub-chunk with the requested shape.
-        This will create a resized copy without modifying the internal state.
-
-        :param cy: The sub-chunk index to get.
-        :return: Numpy array resized to match :attr:`shape`
-        :raises KeyError if the requested item is not present.
-        """
-        # TODO
-        raise NotImplementedError
-
-    def set_array(self, cy: int, value: Union[int, numpy.ndarray]):
+    def set_array_3d(self, cy: int, value: Union[int, numpy.ndarray]):
         """
         Set the array for a given sub-chunk.
 
         :param cy: The sub-chunk index to set.
         :param value: The array or value to set.
         """
-        self._biome_data.biome_3d[cy] = validate_data(value, 3)
+        self.__biome_3d[cy] = _validate_data(value, 3)
 
-    def __contains__(self, cy: int):
-        """Check if an array is defined for a given sub-chunk.
-
-        >>> 5 in biome_3d
-
-        :param cy: The sub-chunk index to check.
-        :return: True if the key is populated. False otherwise.
+    def delete_array_3d(self, cy: int):
         """
-        return cy in self._biome_data.biome_3d
+        Delete the array for the given sub-chunk.
 
-    def __iter__(self):
-        """Iterate through all sub-chunk indexes that are defined in the data."""
-        yield from self._biome_data.biome_3d
-
-
-class Biomes:
-    def __init__(self, *args, **kwargs):
-        self.__biome_data = BiomeData(*args, **kwargs)
-
-    def as_2d(self, shape: Shape2D = (16, 16)) -> Biome2D:
-        return Biome2D(self.__biome_data, shape)
-
-    def as_3d(self, shape: Shape3D = (16, 16, 16)) -> Biome3D:
-        return Biome3D(self.__biome_data, shape)
+        :param cy: The sub-chunk index to delete.
+        """
+        del self.__biome_3d[cy]
