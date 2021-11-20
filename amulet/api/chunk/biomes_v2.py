@@ -35,9 +35,12 @@ def _validate_data(data: Union[int, numpy.ndarray], ndim: int) -> numpy.ndarray:
 def _get_reshape_array(
     src_shape: Tuple[int, ...],
     dst_shape: Tuple[int, ...],
-) -> numpy.ndarray:
-    return numpy.meshgrid(
-        *[s * numpy.arange(d) // d for s, d in zip(src_shape, dst_shape)]
+) -> Tuple[numpy.ndarray]:
+    return tuple(
+        numpy.meshgrid(
+            *[s * numpy.arange(d) // d for s, d in zip(src_shape, dst_shape)],
+            indexing="ij",
+        )
     )
 
 
@@ -50,8 +53,10 @@ class Biomes:
 
     def __init__(
         self,
-        raw_data: Union[None, numpy.ndarray, Dict[int, Union[int, numpy.ndarray]]],
-        default_biome: int,
+        raw_data: Union[
+            None, numpy.ndarray, Dict[int, Union[int, numpy.ndarray]]
+        ] = None,
+        default_biome: int = 0,
     ):
         self.__biome_2d = None
         self.__biome_3d = {}
@@ -127,7 +132,8 @@ class Biomes:
             ]
         return self.__biome_2d
 
-    def get_data_2d(self) -> Optional[numpy.ndarray]:
+    @property
+    def data_2d(self) -> Optional[numpy.ndarray]:
         """
         Get the raw 2D biome data for the chunk.
         This will not modify the data stored.
@@ -137,13 +143,16 @@ class Biomes:
         """
         return self.__biome_2d
 
-    def set_data_2d(self, array: Optional[numpy.ndarray]):
+    @data_2d.setter
+    def data_2d(self, array: Optional[numpy.ndarray]):
         """
         Set the raw 2D biome data for the chunk.
 
         :param array: A numpy array to replace the data with. None to delete the data.
         """
-        _validate_data(array, 2)
+        if array is not None:
+            array = _validate_data(array, 2)
+        self.__biome_2d = array
 
     @property
     def array_3d_indexes(self) -> Tuple[int]:
