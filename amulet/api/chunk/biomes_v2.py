@@ -12,6 +12,7 @@ Current known states (more could be added)
 """
 
 from typing import Tuple, Union, Dict, Optional
+import copy
 import numpy
 
 Shape2D = Tuple[int, int]
@@ -66,7 +67,7 @@ class Biomes:
             _validate_data(raw_data, 2)
             self.__biome_2d = raw_data.astype(numpy.uint32)
         elif isinstance(raw_data, dict):
-            for k, v in raw_data:
+            for k, v in raw_data.items():
                 if not isinstance(k, int):
                     raise TypeError("Keys must be ints.")
                 self.__biome_3d[k] = _validate_data(v, 3)
@@ -104,33 +105,9 @@ class Biomes:
         :param cy: The sub-chunk to use. If this is None (default) the highest sub-chunk will be used.
         """
         if cy is None and self.__biome_3d:
-            cy = next(sorted(self.__biome_3d, reverse=True), None)
+            cy = sorted(self.__biome_3d, key=lambda x: abs(x - 3))[0]
         if cy in self.__biome_3d:
             self.__biome_2d = self.__biome_3d[cy][:, -1, :].copy()
-
-    def get_array_2d(self, shape: Shape2D) -> numpy.ndarray:
-        """
-        Get the 2D array for this chunk in the requested shape.
-        This will resize the stored array, potentially adding or destroying data that previously existed.
-
-        :param shape: The shape to get the array in. Must be a tuple of length 2 with values between 1 and 16.
-        :return: The 2D biome array reshaped to the requested shape.
-        """
-        _validate_shape(shape, 2)
-        if self.__biome_2d is None:
-            # create the array
-            if self.__biome_3d:
-                self.__biome_2d = self.__biome_3d[
-                    next(sorted(self.__biome_3d, reverse=True))
-                ][:, -1, :]
-            else:
-                self.__biome_2d = numpy.full(shape, self.__default_biome)
-        if self.__biome_2d.shape != shape:
-            # resize the array
-            self.__biome_2d = self.__biome_2d[
-                _get_reshape_array(self.__biome_2d.shape, shape)
-            ]
-        return self.__biome_2d
 
     @property
     def data_2d(self) -> Optional[numpy.ndarray]:
@@ -155,7 +132,57 @@ class Biomes:
         self.__biome_2d = array
 
     @property
-    def array_3d_indexes(self) -> Tuple[int]:
+    def shape_2d(self) -> Optional[Shape2D]:
+        """
+        Get the shape of the 2D array.
+        This will be None if the 2D data does not exist.
+        """
+        if self.__biome_2d is None:
+            return None
+        else:
+            return self.__biome_2d.shape
+
+    @shape_2d.setter
+    def shape_2d(self, shape: Optional[Shape2D]):
+        """
+        Set the shape of the 2D array.
+        If the array does not exist it will be populated from the 3D data or the default biome.
+        If shape is None the array will be deleted.
+        This will resize the stored array, potentially adding or destroying data that previously existed.
+
+        :param shape: The shape to scale the array to. Must be a tuple of length 2 with values between 1 and 16.
+        """
+        if shape is None:
+            self.__biome_2d = None
+        else:
+            _validate_shape(shape, 2)
+            if self.__biome_2d is None:
+                # create the array
+                if self.__biome_3d:
+                    self.__biome_2d = self.__biome_3d[
+                        sorted(self.__biome_3d, key=lambda x: abs(x - 3))[0]
+                    ][:, -1, :].copy()
+                else:
+                    self.__biome_2d = numpy.full(shape, self.__default_biome)
+            if self.__biome_2d.shape != shape:
+                # resize the array
+                self.__biome_2d = self.__biome_2d[
+                    _get_reshape_array(self.__biome_2d.shape, shape)
+                ]
+
+    def get_array_2d(self, shape: Shape2D) -> numpy.ndarray:
+        """
+        Set the shape of the 2D array and return the result.
+        This will resize the stored array, potentially adding or destroying data that previously existed.
+
+        :param shape: The shape to get the array in. Must be a tuple of length 2 with values between 1 and 16.
+        :return: The 2D biome array reshaped to the requested shape.
+        """
+        self.shape_2d = shape
+        return self.__biome_2d
+
+    @property
+    def sub_chunks_3d(self) -> Tuple[int]:
         """Get a tuple of all sub-chunk indexes that are defined in the 3D data."""
         return tuple(self.__biome_3d)
 
@@ -179,30 +206,54 @@ class Biomes:
         """
         return self.__biome_3d[cy]
 
+    def get_shape_3d(self, cy: int) -> Shape3D:
+        """
+        Get the shape of the array for the given sub-chunk.
+
+        :param cy: The sub-chunk index to get the shape of.
+        :return: The shape of the array for the given sub-chunk.
+        :raises KeyError if the requested item is not present.
+        """
+        return self.__biome_3d[cy].shape
+
+    def set_shape_3d(self, cy: int, shape: Shape3D):
+        """
+        Set the shape of the 3D array for a given sub-chunk.
+        If the array does not exist it will be populated from the 2D data, 3D data or the default biome.
+        This will resize the stored array, potentially adding or destroying data that previously existed.
+
+        :param cy: The sub-chunk index to resize.
+        :param shape: The shape to scale the array to. Must be a tuple of length 3 with values between 1 and 16.
+        """
+        _validate_shape(shape, 3)
+        if cy not in self.__biome_3d:
+            # create the array
+            if self.__biome_2d is not None:
+                sx, sz = self.__biome_2d.shape
+                self.__biome_3d[cy] = self.__biome_2d.copy().reshape((sx, 1, sz))
+            elif self.__biome_3d:
+                # find the nearest 3d array and populate from that
+                self.__biome_3d[cy] = self.__biome_3d[
+                    sorted(self.__biome_3d, key=lambda x: abs(x - cy))[0]
+                ][:, -1:, :].copy()
+            else:
+                self.__biome_3d[cy] = numpy.full(shape, self.__default_biome)
+        arr = self.__biome_3d[cy]
+        if arr.shape != shape:
+            # resize the array
+            self.__biome_3d[cy] = arr[_get_reshape_array(arr.shape, shape)]
+
     def get_array_3d(self, cy: int, shape: Shape3D) -> numpy.ndarray:
         """
-        Get the array for a given sub-chunk with the requested shape.
+        Set the shape of the 3D array for a given sub-chunk and return the result.
         This will resize the stored array, potentially adding or destroying data that previously existed.
 
         :param cy: The sub-chunk index to get.
         :param shape: The shape to get the array in. Must be a tuple of length 3 with values between 1 and 16.
-        :return: Numpy array resized to match :attr:`shape`
-        :raises KeyError if the requested item is not present.
+        :return: Numpy array resized to match shape
         """
-        _validate_shape(shape, 3)
-        if cy in self.__biome_3d:
-            arr = self.__biome_3d[cy]
-        else:
-            # create the array
-            if self.__biome_2d is not None:
-                sx, sz = self.__biome_2d.shape
-                arr = self.__biome_3d[cy] = self.__biome_2d.copy().reshape((sx, 1, sz))
-            else:
-                arr = self.__biome_3d[cy] = numpy.full(shape, self.__default_biome)
-        if arr.shape != shape:
-            # resize the array
-            arr = self.__biome_3d[cy] = arr[_get_reshape_array(arr.shape, shape)]
-        return arr
+        self.set_shape_3d(cy, shape)
+        return self.get_data_3d(cy)
 
     def set_array_3d(self, cy: int, value: Union[int, numpy.ndarray]):
         """
