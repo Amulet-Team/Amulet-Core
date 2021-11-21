@@ -8,17 +8,16 @@ import pickle
 from amulet.api.block import Block
 from amulet.api.registry import BlockManager
 from amulet.api.registry.biome_manager import BiomeManager
-from amulet.api.chunk import (
-    Biomes,
-    BiomesShape,
-    Blocks,
-    Status,
-    BlockEntityDict,
-    EntityList,
-)
 from amulet.api.entity import Entity
 from amulet.api.data_types import ChunkCoordinates
 from amulet.api.history.changeable import Changeable
+
+from .blocks import Blocks
+from .biomes import Biomes as BiomesOld, BiomesShape
+from .biomes_v2 import Biomes
+from .status import Status
+from .block_entity_dict import BlockEntityDict
+from .entity_list import EntityList
 
 
 class Chunk(Changeable):
@@ -60,7 +59,7 @@ class Chunk(Changeable):
             self._cz,
             self._changed_time,
             {sy: self.blocks.get_sub_chunk(sy) for sy in self.blocks.sub_chunks},
-            self.biomes.to_raw(),
+            self.biomes2,
             self._entities.data,
             tuple(self._block_entities.data.values()),
             self._status.value,
@@ -87,14 +86,12 @@ class Chunk(Changeable):
         self = cls(*chunk_data[:2])
         (
             self.blocks,
-            biomes,
+            self._biomes,
             self.entities,
             self.block_entities,
             self.status,
             self.misc,
         ) = chunk_data[3:]
-
-        self._biomes = Biomes.from_raw(*biomes)
 
         self._changed_time = chunk_data[2]
         self._block_palette = block_palette
@@ -240,21 +237,34 @@ class Chunk(Changeable):
             self.__block_palette = new_block_palette
 
     @property
-    def biomes(self) -> Biomes:
+    def biomes(self) -> BiomesOld:
         """
         The biome array for the chunk.
 
-        This is a custom class that stores numpy arrays. See the :class:`Biomes` documentation for more information.
+        This is a custom class that stores numpy arrays. See the :class:`BiomesOld` documentation for more information.
 
         The values in the arrays are indexes into :attr:`biome_palette`.
         """
         if self._biomes is None:
-            self._biomes = Biomes()
+            self._biomes = BiomesOld()
         return self._biomes
 
     @biomes.setter
-    def biomes(self, value: Union[Biomes, Dict[int, numpy.ndarray]]):
-        self._biomes = Biomes(value)
+    def biomes(self, value: Union[BiomesOld, Dict[int, numpy.ndarray]]):
+        self._biomes = BiomesOld(value)
+
+    @property
+    def biomes2(self):
+        if self._biomes is None:
+            self._biomes = Biomes()
+        return self._biomes
+
+    @biomes2.setter
+    def biomes2(self, biomes: Union[Biomes, numpy.ndarray, Dict[int, numpy.ndarray]]):
+        if isinstance(biomes, Biomes):
+            self._biomes = biomes
+        else:
+            self._biomes = Biomes(biomes)
 
     @property
     def _biome_palette(self) -> BiomeManager:
@@ -307,13 +317,10 @@ class Chunk(Changeable):
                     ],
                     dtype=numpy.uint32,
                 )
-                if self.biomes.dimension == BiomesShape.Shape2D:
-                    self.biomes = biome_lut[self.biomes]
-                elif self.biomes.dimension == BiomesShape.Shape3D:
-                    self.biomes = {
-                        sy: biome_lut[self.biomes.get_section(sy)]
-                        for sy in self.biomes.sections
-                    }
+                if self.biomes2.data_2d is not None:
+                    self.biomes2.data_2d[:, :] = biome_lut[self.biomes2.data_2d]
+                for cy in self.biomes2.sub_chunks_3d:
+                    self.biomes2.get_data_3d(cy)[:, :, :] = biome_lut[self.biomes2.get_data_3d(cy)]
 
             self.__biome_palette = new_biome_palette
 

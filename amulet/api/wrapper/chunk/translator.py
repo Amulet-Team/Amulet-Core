@@ -477,40 +477,25 @@ class Translator:
         """
         version = translation_manager.get_version(*version_identifier)
 
-        if chunk.biomes.dimension == BiomesShape.Shape2D:
+        new_palette = BiomeManager()
+
+        def unpack_array(arr):
             biome_int_palette, biome_array = numpy.unique(
-                chunk.biomes, return_inverse=True
+                arr, return_inverse=True
             )
-            chunk.biomes = biome_array.reshape(chunk.biomes.shape)
-            chunk._biome_palette = BiomeManager(
-                [version.biome.unpack(biome) for biome in biome_int_palette]
-            )
-        elif chunk.biomes.dimension == BiomesShape.Shape3D:
-            biomes = {}
-            palette = []
-            palette_length = 0
-            for sy in chunk.biomes.sections:
-                biome_int_palette, biome_array = numpy.unique(
-                    chunk.biomes.get_section(sy), return_inverse=True
-                )
-                biomes[sy] = (
-                    biome_array.reshape(chunk.biomes.section_shape) + palette_length
-                )
-                palette_length += len(biome_int_palette)
-                palette.append(biome_int_palette)
+            arr[:] = numpy.array([
+                new_palette.get_add_biome(
+                    version.biome.unpack(biome)
+                ) for biome in biome_int_palette
+            ])[biome_array].reshape(arr)
 
-            if palette:
-                chunk_palette, lut = numpy.unique(
-                    numpy.concatenate(palette), return_inverse=True
-                )
-                lut = lut.astype(numpy.uint32)
-                for sy in biomes:
-                    biomes[sy] = lut[biomes[sy]]
+        if chunk.biomes2.data_2d is not None:
+            unpack_array(chunk.biomes2.data_2d)
 
-                chunk.biomes = biomes
-                chunk._biome_palette = BiomeManager(
-                    numpy.vectorize(version.biome.unpack)(chunk_palette)
-                )
+        for cy in chunk.biomes2.sub_chunks_3d:
+            unpack_array(chunk.biomes2.data_2d)
+
+        chunk._biome_palette = new_palette
 
     def pack(
         self,
