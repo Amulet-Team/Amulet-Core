@@ -155,6 +155,10 @@ class BaseLevelDBInterface(Interface):
 
         if b"+" in data:
             height, biome = self._load_height_3d_array(data[b"+"])
+            # TODO: remove this when the new biome system supports variable size arrays
+            chunk.biomes = {
+                cy: b[::4, ::4, ::4] for cy, b in biome.items()
+            }
         elif b"\x2D" in data:
             d2d = data[b"\x2D"]
             height, biome = d2d[:512], d2d[512:]
@@ -655,12 +659,13 @@ class BaseLevelDBInterface(Interface):
     def _load_height_3d_array(
         self, data: bytes
     ) -> Tuple[numpy.ndarray, Dict[int, numpy.ndarray]]:
-        heightmap, data = data[:512], data[512:]
+        heightmap, data = numpy.frombuffer(data[:512], "<i2"), data[512:]
         biomes = {}
         for cy in range(25):
             data, bits_per_value, arr = self._load_packed_array(data)
             if bits_per_value == 0:
                 value, data = struct.unpack(f"<I", data[:4])[0], data[4:]
+                # TODO: when the new biome system supports ints just return the value
                 biomes[cy] = numpy.full((16, 16, 16), value)
             elif bits_per_value > 0:
                 biomes[cy] = arr
