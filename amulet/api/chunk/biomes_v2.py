@@ -12,7 +12,6 @@ Current known states (more could be added)
 """
 
 from typing import Tuple, Union, Dict, Optional
-import copy
 import numpy
 
 Shape2D = Tuple[int, int]
@@ -155,20 +154,33 @@ class Biomes:
         if shape is None:
             self.__biome_2d = None
         else:
-            _validate_shape(shape, 2)
-            if self.__biome_2d is None:
-                # create the array
-                if self.__biome_3d:
-                    self.__biome_2d = self.__biome_3d[
-                        sorted(self.__biome_3d, key=lambda x: abs(x - 3))[0]
-                    ][:, -1, :].copy()
-                else:
-                    self.__biome_2d = numpy.full(shape, self.__default_biome)
-            if self.__biome_2d.shape != shape:
-                # resize the array
-                self.__biome_2d = self.__biome_2d[
-                    _get_reshape_array(self.__biome_2d.shape, shape)
-                ]
+            self.__biome_2d = self.view_array_2d(shape)
+
+    def view_array_2d(self, shape: Shape2D) -> numpy.ndarray:
+        """
+        View the 2D array for the chunk in the given shape.
+        This does not modify the shape of the internal array.
+        This should only be used for reading data because the returned array is not guaranteed to remain.
+
+        :param shape: The shape to scale the array to. Must be a tuple of length 2 with values between 1 and 16.
+        :return: The temporary reshaped array
+        """
+        _validate_shape(shape, 2)
+        arr = self.__biome_2d
+        if arr is None:
+            # create the array
+            if self.__biome_3d:
+                arr = self.__biome_3d[
+                      sorted(self.__biome_3d, key=lambda x: abs(x - 3))[0]
+                  ][:, -1, :].copy()
+            else:
+                return numpy.full(shape, self.__default_biome)
+        if arr.shape != shape:
+            # resize the array
+            arr = arr[
+                _get_reshape_array(arr.shape, shape)
+            ]
+        return arr
 
     def get_array_2d(self, shape: Shape2D) -> numpy.ndarray:
         """
@@ -225,23 +237,36 @@ class Biomes:
         :param cy: The sub-chunk index to resize.
         :param shape: The shape to scale the array to. Must be a tuple of length 3 with values between 1 and 16.
         """
+        self.__biome_3d[cy] = self.view_array_3d(cy, shape)
+
+    def view_array_3d(self, cy: int, shape: Shape3D) -> numpy.ndarray:
+        """
+        View the 3D array for the given sub-chunk in the given shape.
+        This does not modify the shape of the internal array.
+        This should only be used for reading data because the returned array is not guaranteed to remain.
+
+        :param cy: The sub-chunk index to view.
+        :param shape: The shape to scale the array to. Must be a tuple of length 3 with values between 1 and 16.
+        :return:
+        """
         _validate_shape(shape, 3)
-        if cy not in self.__biome_3d:
+        arr = self.__biome_3d.get(cy, None)
+        if arr is None:
             # create the array
             if self.__biome_2d is not None:
                 sx, sz = self.__biome_2d.shape
-                self.__biome_3d[cy] = self.__biome_2d.copy().reshape((sx, 1, sz))
+                arr = self.__biome_2d.copy().reshape((sx, 1, sz))
             elif self.__biome_3d:
                 # find the nearest 3d array and populate from that
-                self.__biome_3d[cy] = self.__biome_3d[
-                    sorted(self.__biome_3d, key=lambda x: abs(x - cy))[0]
-                ][:, -1:, :].copy()
+                arr = self.__biome_3d[
+                          sorted(self.__biome_3d, key=lambda x: abs(x - cy))[0]
+                      ][:, -1:, :].copy()
             else:
-                self.__biome_3d[cy] = numpy.full(shape, self.__default_biome)
-        arr = self.__biome_3d[cy]
+                return numpy.full(shape, self.__default_biome)
         if arr.shape != shape:
             # resize the array
-            self.__biome_3d[cy] = arr[_get_reshape_array(arr.shape, shape)]
+            arr = arr[_get_reshape_array(arr.shape, shape)]
+        return arr
 
     def get_array_3d(self, cy: int, shape: Shape3D) -> numpy.ndarray:
         """
