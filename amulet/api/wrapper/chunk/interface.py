@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import Tuple, Any, Union, TYPE_CHECKING, Optional, overload, Type
-from enum import Enum
+from enum import Enum, IntEnum
 
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
@@ -36,6 +36,12 @@ PosTypeMap = {
     5: EntityCoordType.Pos_list_float,
     6: EntityCoordType.Pos_list_double,
 }
+
+
+class BiomeShape(IntEnum):
+    Null = 0  # This object does not store biomes
+    Chunk2D = 2  # One 2D array for the whole chunk
+    SubChunk3D = 3  # One 3D array per sub-chunk
 
 
 class Interface(ABC):
@@ -360,4 +366,9 @@ class Interface(ABC):
         :param key: The key who's decodability needs to be checked.
         :return: True if this interface can interface with the chunk version associated with the key, False otherwise.
         """
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def native_biome_shape(self) -> Tuple[BiomeShape, Union[None, Tuple[int, int], Tuple[int, int, int]]]:
         raise NotImplementedError

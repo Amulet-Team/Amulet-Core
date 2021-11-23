@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING, Any, Tuple
+from typing import TYPE_CHECKING, Any, Tuple, Union
 import numpy
 
-from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType
+from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType, BiomeShape
 from .chunk import SchematicChunk
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionBox
@@ -122,6 +122,10 @@ class SchematicInterface(Interface):
             version = translation_manager.get_version(platform, version_number)
             version_number = version.data_version
         return Translators.get((platform, version_number)), version_number
+
+    @property
+    def native_biome_shape(self) -> Tuple[BiomeShape, Union[None, Tuple[int, int], Tuple[int, int, int]]]:
+        return BiomeShape.Null, None
 
 
 class JavaSchematicInterface(SchematicInterface):

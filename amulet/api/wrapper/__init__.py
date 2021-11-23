@@ -1,10 +1,9 @@
-from amulet.api.wrapper.format_wrapper import (
+from .format_wrapper import (
     FormatWrapper,
     DefaultPlatform,
     DefaultVersion,
     DefaultSelection,
 )
-from amulet.api.wrapper.chunk.translator import Translator
-from amulet.api.wrapper.chunk.interface import Interface, EntityIDType, EntityCoordType
-from amulet.api.wrapper.world_format_wrapper import WorldFormatWrapper
-from amulet.api.wrapper.structure_format_wrapper import StructureFormatWrapper
+from .world_format_wrapper import WorldFormatWrapper
+from .structure_format_wrapper import StructureFormatWrapper
+from .chunk import Interface, EntityIDType, EntityCoordType, BiomeShape, Translator

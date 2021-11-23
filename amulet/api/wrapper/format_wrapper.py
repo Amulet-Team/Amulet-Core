@@ -8,7 +8,6 @@ from typing import (
     Dict,
     List,
     Optional,
-    TYPE_CHECKING,
     Iterable,
     Callable,
     Type,
@@ -22,7 +21,6 @@ import warnings
 import PyMCTranslate
 
 from amulet import log
-from amulet.api import level as api_level, wrapper as api_wrapper
 from amulet.api.chunk import Chunk
 from amulet.api.registry import BlockManager
 from amulet.api.errors import (
@@ -46,9 +44,8 @@ from amulet.api.data_types import (
 )
 from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet.api.player import Player
-
-if TYPE_CHECKING:
-    from amulet.api.wrapper.chunk.translator import Translator
+from .chunk import Interface, BiomeShape, Translator
+from amulet.api import level as api_level
 
 
 DefaultPlatform = "Unknown Platform"
@@ -232,12 +229,12 @@ class FormatWrapper(ABC):
     @abstractmethod
     def _get_interface(
         self, raw_chunk_data: Optional[Any] = None
-    ) -> api_wrapper.Interface:
+    ) -> Interface:
         raise NotImplementedError
 
     def _get_interface_and_translator(
         self, raw_chunk_data=None
-    ) -> Tuple[api_wrapper.Interface, "Translator", "VersionNumberAny"]:
+    ) -> Tuple[Interface, "Translator", "VersionNumberAny"]:
         interface = self._get_interface(raw_chunk_data)
         translator, version_identifier = interface.get_translator(
             self.max_world_version, raw_chunk_data
@@ -488,7 +485,7 @@ class FormatWrapper(ABC):
 
     @staticmethod
     def _decode(
-        interface: api_wrapper.Interface,
+        interface: Interface,
         dimension: Dimension,
         cx: int,
         cz: int,
@@ -631,7 +628,7 @@ class FormatWrapper(ABC):
 
     def _encode(
         self,
-        interface: api_wrapper.Interface,
+        interface: Interface,
         chunk: Chunk,
         dimension: Dimension,
         chunk_palette: AnyNDArray,
@@ -760,3 +757,7 @@ class FormatWrapper(ABC):
     @abstractmethod
     def _get_raw_player_data(self, player_id: str) -> Any:
         raise NotImplementedError
+
+    @property
+    def native_biome_shape(self) -> Tuple[BiomeShape, Union[None, Tuple[int, int], Tuple[int, int, int]]]:
+        return self._get_interface().native_biome_shape

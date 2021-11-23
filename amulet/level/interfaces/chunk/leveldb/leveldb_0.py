@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from amulet.api.wrapper import EntityIDType, EntityCoordType
+from amulet.api.wrapper import EntityIDType, EntityCoordType, BiomeShape
 from .base_leveldb_interface import (
     BaseLevelDBInterface,
 )
@@ -24,6 +24,10 @@ class LevelDB0Interface(BaseLevelDBInterface):
         self._set_feature("entity_coord_format", EntityCoordType.Pos_list_float)
 
         self._set_feature("terrain", "30array")
+
+    @property
+    def native_biome_shape(self):
+        return BiomeShape.Chunk2D, (16, 16)
 
 
 export = LevelDB0Interface

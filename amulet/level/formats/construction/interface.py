@@ -1,8 +1,8 @@
-from typing import TYPE_CHECKING, Any, Tuple, List
+from typing import TYPE_CHECKING, Any, Tuple, List, Union
 import numpy
 
 import amulet_nbt
-from amulet.api.wrapper import Interface
+from amulet.api.wrapper import Interface, BiomeShape
 from .section import ConstructionSection
 from amulet.api.chunk import Chunk
 from amulet.api.block import Block
@@ -128,6 +128,10 @@ class ConstructionInterface(Interface):
         if platform == "java":
             version_number = version.data_version
         return Translators.get((platform, version_number)), version_number
+
+    @property
+    def native_biome_shape(self) -> Tuple[BiomeShape, Union[None, Tuple[int, int], Tuple[int, int, int]]]:
+        return BiomeShape.Null, None
 
 
 class Construction0Interface(ConstructionInterface):

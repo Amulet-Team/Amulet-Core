@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from amulet.api.wrapper import BiomeShape
 from .anvil_1934 import (
     Anvil1934Interface,
 )
@@ -14,6 +15,10 @@ class Anvil2203Interface(Anvil1934Interface):
     @staticmethod
     def minor_is_valid(key: int):
         return 2203 <= key < 2529
+
+    @property
+    def native_biome_shape(self):
+        return BiomeShape.SubChunk3D, (16, 16, 16)
 
 
 export = Anvil2203Interface

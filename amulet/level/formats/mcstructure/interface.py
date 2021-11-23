@@ -1,9 +1,9 @@
-from typing import TYPE_CHECKING, Any, Tuple, Optional, List
+from typing import TYPE_CHECKING, Any, Tuple, Optional, List, Union
 import numpy
 
 import amulet_nbt
 
-from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType
+from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType, BiomeShape
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionBox
 from amulet.api.data_types import (
@@ -170,3 +170,7 @@ class MCStructureInterface(Interface):
         if platform != "bedrock":
             raise ValueError("Platform must be bedrock")
         return Translators.get((platform, version_number)), version_number
+
+    @property
+    def native_biome_shape(self) -> Tuple[BiomeShape, Union[None, Tuple[int, int], Tuple[int, int, int]]]:
+        return BiomeShape.Null, None

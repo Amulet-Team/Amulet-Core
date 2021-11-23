@@ -7,7 +7,7 @@ import amulet_nbt as nbt
 
 from amulet.api.data_types import SubChunkNDArray, AnyNDArray
 from amulet.utils import world_utils
-from amulet.api.wrapper import EntityIDType, EntityCoordType
+from amulet.api.wrapper import EntityIDType, EntityCoordType, BiomeShape
 from .base_anvil_interface import (
     BaseAnvilInterface,
 )
@@ -133,6 +133,10 @@ class AnvilNAInterface(BaseAnvilInterface):
         for cy in list(sections):
             if cy not in added_sections:
                 del sections[cy]
+
+    @property
+    def native_biome_shape(self):
+        return BiomeShape.Chunk2D, (16, 16)
 
 
 export = AnvilNAInterface
