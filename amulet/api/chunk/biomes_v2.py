@@ -171,15 +171,13 @@ class Biomes:
             # create the array
             if self.__biome_3d:
                 arr = self.__biome_3d[
-                      sorted(self.__biome_3d, key=lambda x: abs(x - 3))[0]
-                  ][:, -1, :].copy()
+                    sorted(self.__biome_3d, key=lambda x: abs(x - 3))[0]
+                ][:, -1, :].copy()
             else:
                 return numpy.full(shape, self.__default_biome)
         if arr.shape != shape:
             # resize the array
-            arr = arr[
-                _get_reshape_array(arr.shape, shape)
-            ]
+            arr = arr[_get_reshape_array(arr.shape, shape)]
         return arr
 
     def get_array_2d(self, shape: Shape2D) -> numpy.ndarray:
@@ -259,8 +257,8 @@ class Biomes:
             elif self.__biome_3d:
                 # find the nearest 3d array and populate from that
                 arr = self.__biome_3d[
-                          sorted(self.__biome_3d, key=lambda x: abs(x - cy))[0]
-                      ][:, -1:, :].copy()
+                    sorted(self.__biome_3d, key=lambda x: abs(x - cy))[0]
+                ][:, -1:, :].copy()
             else:
                 return numpy.full(shape, self.__default_biome)
         if arr.shape != shape:

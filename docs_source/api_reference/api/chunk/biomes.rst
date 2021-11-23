@@ -12,8 +12,3 @@
 .. autoclass:: amulet.api.chunk.biomes.Biomes
    :members:
    :show-inheritance:
-
-.. autoclass:: amulet.api.chunk.biomes.BiomesShape
-   :members:
-   :show-inheritance:
-   :undoc-members:

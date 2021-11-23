@@ -164,10 +164,10 @@ class BaseAnvilInterface(Interface):
             biomes = level.pop("Biomes")
             if self._features["biomes"] == BiomeState.BA256:
                 if isinstance(biomes, TAG_Byte_Array) and biomes.value.size == 256:
-                    chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
+                    chunk.biomes2 = biomes.astype(numpy.uint32).reshape((16, 16))
             elif self._features["biomes"] == BiomeState.IA256:
                 if isinstance(biomes, TAG_Int_Array) and biomes.value.size == 256:
-                    chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
+                    chunk.biomes2 = biomes.astype(numpy.uint32).reshape((16, 16))
             elif self._features["biomes"] in [BiomeState.IA1024, BiomeState.IANx64]:
                 if self._features["biomes"] == BiomeState.IANx64:
                     min_y = bounds[0]
@@ -179,13 +179,13 @@ class BaseAnvilInterface(Interface):
                 arr_height = height // 4
                 if isinstance(biomes, TAG_Int_Array):
                     if biomes.value.size == 16 * arr_height:
-                        chunk.biomes = {
+                        chunk.biomes2 = {
                             sy + arr_start: arr
                             for sy, arr in enumerate(
                                 numpy.split(
                                     numpy.transpose(
                                         biomes.astype(numpy.uint32).reshape(
-                                            arr_height, 4, 4
+                                            (arr_height, 4, 4)
                                         ),
                                         (2, 0, 1),
                                     ),  # YZX -> XYZ
@@ -355,34 +355,30 @@ class BaseAnvilInterface(Interface):
             self._features["biomes"] == BiomeState.BA256
         ):  # TODO: support the optional variant
             if chunk.status.value > -0.7:
-                chunk.biomes.convert_to_2d()
                 level["Biomes"] = amulet_nbt.TAG_Byte_Array(
-                    chunk.biomes.astype(dtype=numpy.uint8)
+                    chunk.biomes2.get_array_2d((16, 16)).astype(dtype=numpy.uint8)
                 )
         elif self._features["biomes"] == BiomeState.IA256:
             if chunk.status.value > -0.7:
-                chunk.biomes.convert_to_2d()
                 level["Biomes"] = amulet_nbt.TAG_Int_Array(
-                    chunk.biomes.astype(dtype=numpy.uint32)
+                    chunk.biomes2.get_array_2d((16, 16)).astype(dtype=numpy.uint32)
                 )
-        elif self._features["biomes"] == BiomeState.IA1024:
+        elif self._features["biomes"] in {BiomeState.IA1024, BiomeState.IANx64}:
             if chunk.status.value > -0.7:
-                chunk.biomes.convert_to_3d()
-                level["Biomes"] = amulet_nbt.TAG_Int_Array(
-                    numpy.transpose(
-                        numpy.asarray(chunk.biomes[:, 0:64, :]).astype(numpy.uint32),
-                        (1, 2, 0),
-                    ).ravel()  # YZX -> XYZ
-                )
-        elif self._features["biomes"] == BiomeState.IANx64:
-            if chunk.status.value > -0.7:
-                chunk.biomes.convert_to_3d()
                 min_y, max_y = bounds
+                min_cy = min_y // 16
+                max_cy = max_y // 16
+
+                biomes = numpy.zeros((4, (max_cy - min_cy) * 4, 4), dtype=numpy.uint32)
+                for cy in chunk.biomes2.sub_chunks_3d:
+                    if min_cy <= cy <= max_cy:
+                        biomes[:, cy * 4 : cy * 4 + 4, :] = chunk.biomes2.get_array_3d(
+                            cy, (4, 4, 4)
+                        )
+
                 level["Biomes"] = amulet_nbt.TAG_Int_Array(
                     numpy.transpose(
-                        numpy.asarray(
-                            chunk.biomes[:, min_y // 4 : max_y // 4, :]
-                        ).astype(numpy.uint32),
+                        biomes,
                         (1, 2, 0),
                     ).ravel()  # YZX -> XYZ
                 )

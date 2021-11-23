@@ -13,7 +13,6 @@ from amulet.api.data_types import ChunkCoordinates
 from amulet.api.history.changeable import Changeable
 
 from .blocks import Blocks
-from .biomes import Biomes as BiomesOld, BiomesShape
 from .biomes_v2 import Biomes
 from .status import Status
 from .block_entity_dict import BlockEntityDict
@@ -237,23 +236,6 @@ class Chunk(Changeable):
             self.__block_palette = new_block_palette
 
     @property
-    def biomes(self) -> BiomesOld:
-        """
-        The biome array for the chunk.
-
-        This is a custom class that stores numpy arrays. See the :class:`BiomesOld` documentation for more information.
-
-        The values in the arrays are indexes into :attr:`biome_palette`.
-        """
-        if self._biomes is None:
-            self._biomes = BiomesOld()
-        return self._biomes
-
-    @biomes.setter
-    def biomes(self, value: Union[BiomesOld, Dict[int, numpy.ndarray]]):
-        self._biomes = BiomesOld(value)
-
-    @property
     def biomes2(self):
         if self._biomes is None:
             self._biomes = Biomes()
@@ -320,7 +302,9 @@ class Chunk(Changeable):
                 if self.biomes2.data_2d is not None:
                     self.biomes2.data_2d[:, :] = biome_lut[self.biomes2.data_2d]
                 for cy in self.biomes2.sub_chunks_3d:
-                    self.biomes2.get_data_3d(cy)[:, :, :] = biome_lut[self.biomes2.get_data_3d(cy)]
+                    self.biomes2.get_data_3d(cy)[:, :, :] = biome_lut[
+                        self.biomes2.get_data_3d(cy)
+                    ]
 
             self.__biome_palette = new_biome_palette
 

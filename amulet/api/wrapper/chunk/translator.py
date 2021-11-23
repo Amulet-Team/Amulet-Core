@@ -11,7 +11,7 @@ from amulet.api.registry import BlockManager, BiomeManager
 from amulet.api.block import Block
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
-from amulet.api.chunk import Chunk, BiomesShape
+from amulet.api.chunk import Chunk
 from amulet.api.data_types import (
     AnyNDArray,
     BlockNDArray,
@@ -480,20 +480,19 @@ class Translator:
         new_palette = BiomeManager()
 
         def unpack_array(arr):
-            biome_int_palette, biome_array = numpy.unique(
-                arr, return_inverse=True
-            )
-            arr[:] = numpy.array([
-                new_palette.get_add_biome(
-                    version.biome.unpack(biome)
-                ) for biome in biome_int_palette
-            ])[biome_array].reshape(arr)
+            biome_int_palette, biome_array = numpy.unique(arr, return_inverse=True)
+            arr[:] = numpy.array(
+                [
+                    new_palette.get_add_biome(version.biome.unpack(biome))
+                    for biome in biome_int_palette
+                ]
+            )[biome_array].reshape(arr)
 
         if chunk.biomes2.data_2d is not None:
             unpack_array(chunk.biomes2.data_2d)
 
         for cy in chunk.biomes2.sub_chunks_3d:
-            unpack_array(chunk.biomes2.data_2d)
+            unpack_array(chunk.biomes2.get_data_3d(cy))
 
         chunk._biome_palette = new_palette
 
@@ -539,11 +538,14 @@ class Translator:
         biome_palette = numpy.array(
             [version.biome.pack(biome) for biome in chunk.biome_palette], numpy.uint32
         )
-        if chunk.biomes.dimension == BiomesShape.Shape2D:
-            chunk.biomes = biome_palette[chunk.biomes]
-        elif chunk.biomes.dimension == BiomesShape.Shape3D:
-            chunk.biomes = {
-                sy: biome_palette[chunk.biomes.get_section(sy)]
-                for sy in chunk.biomes.sections
-            }
+
+        def pack_array(arr):
+            arr[:] = biome_palette[arr]
+
+        if chunk.biomes2.data_2d is not None:
+            pack_array(chunk.biomes2.data_2d)
+
+        for cy in chunk.biomes2.sub_chunks_3d:
+            pack_array(chunk.biomes2.get_data_3d(cy))
+
         chunk._biome_palette = BiomeManager()
