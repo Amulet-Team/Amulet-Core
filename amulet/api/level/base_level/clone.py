@@ -354,7 +354,6 @@ def clone(
                             src_chunk.blocks[src_slices]
                         ][mask]
                         dst_chunk.changed = True
-                        raise IndexError("hi")
                     except IndexError as e:
                         locals_copy = locals().copy()
                         import traceback
