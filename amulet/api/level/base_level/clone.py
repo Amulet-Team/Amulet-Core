@@ -1,3 +1,4 @@
+import sys
 from typing import TYPE_CHECKING, Tuple, Generator, Optional
 import numpy
 
@@ -346,11 +347,26 @@ def clone(
                                     )
                                 )
 
-                    mask = paste_blocks[src_chunk.blocks[src_slices]]
-                    dst_chunk.blocks[dst_slices][mask] = lut[
-                        src_chunk.blocks[src_slices]
-                    ][mask]
-                    dst_chunk.changed = True
+                    try:
+                        block_mask = src_chunk.blocks[src_slices]
+                        mask = paste_blocks[block_mask]
+                        dst_chunk.blocks[dst_slices][mask] = lut[
+                            src_chunk.blocks[src_slices]
+                        ][mask]
+                        dst_chunk.changed = True
+                    except IndexError as e:
+                        locals_copy = locals().copy()
+                        import traceback
+
+                        numpy_threshold = numpy.get_printoptions()["threshold"]
+                        numpy.set_printoptions(threshold=sys.maxsize)
+                        with open("clone_error.log", "w") as f:
+                            for k, v in locals_copy.items():
+                                f.write(f"{k}: {v}\n\n")
+                        numpy.set_printoptions(threshold=numpy_threshold)
+                        raise IndexError(
+                            f"Error pasting.\nPlease notify the developers and include the clone_error.log file.\n{e}"
+                        ) from e
 
                 if include_entities:
                     # TODO: implement pasting entities when we support entities
