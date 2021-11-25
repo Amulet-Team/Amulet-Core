@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Tuple, Dict, TYPE_CHECKING
 
 import numpy
-import amulet_nbt as nbt
+from amulet_nbt import TAG_Compound, TAG_Byte_Array, NBTFile, TAG_Byte, TAG_List
 
 from amulet.api.data_types import SubChunkNDArray, AnyNDArray
 from amulet.utils import world_utils
@@ -14,6 +14,7 @@ from .base_anvil_interface import (
 from .feature_enum import BiomeState, HeightState
 
 if TYPE_CHECKING:
+    from amulet.api.chunk import Chunk
     from amulet.api.chunk.blocks import Blocks
 
 
@@ -49,9 +50,43 @@ class AnvilNAInterface(BaseAnvilInterface):
     def minor_is_valid(key: int):
         return key == -1
 
+    def decode(
+        self, cx: int, cz: int, nbt_file: NBTFile, bounds: Tuple[int, int]
+    ) -> Tuple["Chunk", AnyNDArray]:
+        chunk, compound = self._init_decode(cx, cz, nbt_file)
+        self._remove_data_version(compound)
+        assert self.check_type(compound, "Level", TAG_Compound)
+        level = compound["Level"]
+        self._decode_last_update(chunk, level)
+        self._decode_status(chunk, level)
+        self._decode_inhabited_time(chunk, level)
+        self._decode_biomes(chunk, level)
+        self._decode_height(chunk, level)
+        sections = self._extract_sections(chunk, level)
+        palette = self._decode_blocks(chunk, sections)
+        self._decode_block_light(chunk, sections)
+        self._decode_sky_light(chunk, sections)
+        self._decode_entities(chunk, level)
+        self._decode_block_entities(chunk, level)
+        self._decode_block_ticks(chunk, level)
+        return chunk, palette
+
+    def _decode_status(self, chunk: Chunk, compound: TAG_Compound):
+        status = "empty"
+        if self._features["terrain_populated"] == "byte" and self.get_obj(
+            compound, "TerrainPopulated", TAG_Byte
+        ):
+            status = "decorated"
+        if self._features["light_populated"] == "byte" and self.get_obj(
+            compound, "LightPopulated", TAG_Byte
+        ):
+            status = "postprocessed"
+
+        chunk.status = status
+
     def _decode_blocks(
-        self, chunk_sections: Dict[int, nbt.TAG_Compound]
-    ) -> Tuple[Dict[int, SubChunkNDArray], AnyNDArray]:
+        self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]
+    ) -> AnyNDArray:
         blocks: Dict[int, SubChunkNDArray] = {}
         palette = []
         palette_len = 0
@@ -98,11 +133,15 @@ class AnvilNAInterface(BaseAnvilInterface):
                 blocks[cy] = lut[blocks[cy]]
         else:
             final_palette = numpy.array([], dtype=object)
-        return blocks, final_palette
+        chunk.blocks = blocks
+        return final_palette
+
+    def _decode_block_ticks(self, chunk: Chunk, compound: TAG_Compound):
+        chunk.misc["tile_ticks"] = self.get_obj(compound, "TileTicks", TAG_List)
 
     def _encode_blocks(
         self,
-        sections: Dict[int, nbt.TAG_Compound],
+        sections: Dict[int, TAG_Compound],
         blocks: "Blocks",
         palette: AnyNDArray,
         cy_min: int,
@@ -122,9 +161,9 @@ class AnvilNAInterface(BaseAnvilInterface):
                 if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
                     continue
                 added_sections.add(cy)
-                section = sections.setdefault(cy, nbt.TAG_Compound())
-                section["Blocks"] = nbt.TAG_Byte_Array(block_sub_array.astype("uint8"))
-                section["Data"] = nbt.TAG_Byte_Array(
+                section = sections.setdefault(cy, TAG_Compound())
+                section["Blocks"] = TAG_Byte_Array(block_sub_array.astype("uint8"))
+                section["Data"] = TAG_Byte_Array(
                     world_utils.to_nibble_array(data_sub_array)
                 )
         # In 1.12.2 and before if the Blocks key does not exist but the sub-chunk TAG_Compound does

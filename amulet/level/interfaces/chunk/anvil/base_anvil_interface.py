@@ -10,22 +10,19 @@ from amulet_nbt import (
     TAG_Int,
     TAG_Long,
     TAG_Byte_Array,
-    TAG_String,
     TAG_List,
     TAG_Compound,
     TAG_Int_Array,
-    TAG_Long_Array,
     NBTFile,
 )
 
 import amulet
-from amulet import log
 from amulet.api.chunk import Chunk, StatusFormats
 from amulet.api.wrapper import Interface
 from amulet.level import loader
-from amulet.api.data_types import AnyNDArray, SubChunkNDArray, VersionIdentifierType
+from amulet.api.data_types import AnyNDArray, VersionIdentifierType
 from amulet.api.wrapper import EntityIDType, EntityCoordType
-from amulet.utils.world_utils import decode_long_array, encode_long_array
+from amulet.utils.world_utils import encode_long_array
 from .feature_enum import BiomeState, HeightState
 
 if TYPE_CHECKING:
@@ -108,194 +105,157 @@ class BaseAnvilInterface(Interface):
         return loader.Translators.get(key), version
 
     def decode(
-        self, cx: int, cz: int, data: amulet_nbt.NBTFile, bounds: Tuple[int, int]
+        self, cx: int, cz: int, nbt_file: NBTFile, bounds: Tuple[int, int]
     ) -> Tuple["Chunk", AnyNDArray]:
         """
-        Create an amulet.api.chunk.Chunk object from raw data given by the format.
+        Create an amulet.api.chunk.Chunk object from raw data.
         :param cx: chunk x coordinate
         :param cz: chunk z coordinate
-        :param data: amulet_nbt.NBTFile
+        :param nbt_file: amulet_nbt.NBTFile
         :param bounds: The minimum and maximum bounds of the chunk. In 1.17 this is required to define where the biome array sits.
         :return: Chunk object in version-specific format, along with the block_palette for that chunk.
         """
-        misc = {
-            # store the chunk data so that any non-versioned data can get saved back
-            "java_chunk_data": data
-        }
-        # all versioned data must get removed from data
+        raise NotImplementedError
 
+    @staticmethod
+    def _init_decode(cx: int, cz: int, data: NBTFile) -> Tuple[Chunk, TAG_Compound]:
+        """Get the decode started by creating a chunk object."""
         chunk = Chunk(cx, cz)
+        assert isinstance(data.value, TAG_Compound), "Raw data must be a compound."
+        chunk.misc = {
+            # store the chunk data so that any non-versioned data can get saved back
+            "java_chunk_data": data.value
+        }
+        return chunk, data.value
 
-        if "DataVersion" in data:
-            del data["DataVersion"]
+    @staticmethod
+    def _remove_data_version(compound: TAG_Compound):
+        # all versioned data must get removed from data
+        if "DataVersion" in compound.value:
+            del compound["DataVersion"]
 
-        # make sure this exists otherwise the code below will error.
-        level = data.value.setdefault("Level", amulet_nbt.TAG_Compound())
+    def _decode_last_update(self, chunk: Chunk, compound: TAG_Compound):
+        chunk.misc["last_update"] = self.get_obj(compound, "LastUpdate", TAG_Long).value
 
-        if self._features["last_update"] == "long":
-            misc["last_update"] = self.get_obj(level, "LastUpdate", TAG_Long).value
+    def _decode_status(self, chunk: Chunk, compound: TAG_Compound):
+        raise NotImplementedError
 
-        if self._features["status"] in [StatusFormats.Java_13, StatusFormats.Java_14]:
-            chunk.status = self.get_obj(
-                level, "Status", TAG_String, TAG_String("full")
-            ).value
-        else:
-            status = "empty"
-            if self._features["terrain_populated"] == "byte" and self.get_obj(
-                level, "TerrainPopulated", TAG_Byte
-            ):
-                status = "decorated"
-            if self._features["light_populated"] == "byte" and self.get_obj(
-                level, "LightPopulated", TAG_Byte
-            ):
-                status = "postprocessed"
+    def _decode_v_tag(self, chunk: Chunk, compound: TAG_Compound):
+        chunk.misc["V"] = self.get_obj(compound, "V", TAG_Byte, TAG_Byte(1)).value
 
-            chunk.status = status
+    def _decode_inhabited_time(self, chunk: Chunk, compound: TAG_Compound):
+        chunk.misc["inhabited_time"] = self.get_obj(
+            compound, "InhabitedTime", TAG_Long
+        ).value
 
-        if self._features["V"] == "byte":
-            misc["V"] = self.get_obj(level, "V", TAG_Byte, TAG_Byte(1)).value
+    def _decode_biomes(self, chunk: Chunk, compound: TAG_Compound):
+        biomes = compound.pop("Biomes")
+        if isinstance(biomes, TAG_Byte_Array) and biomes.value.size == 256:
+            chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
 
-        if self._features["inhabited_time"] == "long":
-            misc["inhabited_time"] = self.get_obj(
-                level, "InhabitedTime", TAG_Long
-            ).value
+    def _decode_height(self, chunk: Chunk, compound: TAG_Compound):
+        height = self.get_obj(compound, "HeightMap", TAG_Int_Array).value
+        if isinstance(height, numpy.ndarray) and height.size == 256:
+            chunk.misc["height_map256IA"] = height.reshape((16, 16))
 
-        if self._features["biomes"] is not None and "Biomes" in level:
-            biomes = level.pop("Biomes")
-            if self._features["biomes"] == BiomeState.BA256:
-                if isinstance(biomes, TAG_Byte_Array) and biomes.value.size == 256:
-                    chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
-            elif self._features["biomes"] == BiomeState.IA256:
-                if isinstance(biomes, TAG_Int_Array) and biomes.value.size == 256:
-                    chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
-            elif self._features["biomes"] in [BiomeState.IA1024, BiomeState.IANx64]:
-                if self._features["biomes"] == BiomeState.IANx64:
-                    min_y = bounds[0]
-                    height = bounds[1] - min_y
-                else:
-                    min_y = 0
-                    height = 256
-                arr_start = min_y // 16
-                arr_height = height // 4
-                if isinstance(biomes, TAG_Int_Array):
-                    if biomes.value.size == 16 * arr_height:
-                        chunk.biomes = {
-                            sy + arr_start: arr
-                            for sy, arr in enumerate(
-                                numpy.split(
-                                    numpy.transpose(
-                                        biomes.astype(numpy.uint32).reshape(
-                                            arr_height, 4, 4
-                                        ),
-                                        (2, 0, 1),
-                                    ),  # YZX -> XYZ
-                                    arr_height // 4,
-                                    1,
-                                )
-                            )
-                        }
-                    else:
-                        log.error(
-                            f"Expected a biome array of size {arr_height * 4 * 4} but got an array of size {biomes.value.size}"
-                        )
-                else:
-                    log.error(
-                        f"Expected a TAG_Int_Array biome array but got {biomes.__class__.__name__}"
-                    )
-
-        if self._features["height_map"] in ["256IA", "256IARequired"]:
-            height = self.get_obj(level, "HeightMap", TAG_Int_Array).value
-            if isinstance(height, numpy.ndarray) and height.size == 256:
-                misc["height_map256IA"] = height.reshape((16, 16))
-        elif self._features["height_map"] in ["C|V1", "C|V2", "C|V3", "C|V4"]:
-            heights = self.get_obj(level, "Heightmaps", TAG_Compound)
-            misc["height_mapC"] = h = {}
-            for key, value in heights.items():
-                if isinstance(value, TAG_Long_Array):
-                    try:
-                        h[key] = (
-                            decode_long_array(
-                                value.value,
-                                256,
-                                (bounds[1] - bounds[0]).bit_length(),
-                                dense=self._features["long_array_format"] == "compact",
-                            ).reshape((16, 16))
-                            + bounds[0]
-                        )
-                    except Exception as e:
-                        log.warning(e)
-
+    def _extract_sections(
+        self, chunk: Chunk, compound: TAG_Compound, key="Sections"
+    ) -> Dict[int, TAG_Compound]:
         # parse sections into a more usable format
         sections: Dict[int, TAG_Compound] = {
             section.pop("Y").value: section
-            for section in self.get_obj(level, "Sections", TAG_List)
+            for section in self.get_obj(compound, key, TAG_List)
             if isinstance(section, TAG_Compound)
             and self.check_type(section, "Y", TAG_Byte)
         }
-        misc["java_sections"] = sections
+        chunk.misc["java_sections"] = sections
+        return sections
 
-        if self._features["blocks"] in [
-            "Sections|(Blocks,Data,Add)",
-            "Sections|(BlockStates,Palette)",
-        ]:
-            chunk.blocks, palette = self._decode_blocks(sections)
+    def _decode_blocks(
+        self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]
+    ) -> AnyNDArray:
+        raise NotImplementedError
+
+    def _unpack_light(self, sections: Dict[int, TAG_Compound], section_key: str):
+        light_container = {}
+        for cy, section in sections.items():
+            if self.check_type(section, section_key, TAG_Byte_Array):
+                light: numpy.ndarray = section.pop(section_key).value
+                if light.size == 2048:
+                    # TODO: check if this needs transposing or if the values are the other way around
+                    light_container[cy] = (
+                        (
+                            light.reshape(-1, 1)
+                            & numpy.array([0xF, 0xF0], dtype=numpy.uint8)
+                        )
+                        >> numpy.array([0, 4], dtype=numpy.uint8)
+                    ).reshape((16, 16, 16))
+        return light_container
+
+    def _decode_block_light(
+        self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]
+    ):
+        chunk.misc["block_light"] = self._unpack_light(chunk_sections, "BlockLight")
+
+    def _decode_sky_light(self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]):
+        chunk.misc["sky_light"] = self._unpack_light(chunk_sections, "SkyLight")
+
+    def _decode_entities(self, chunk: Chunk, compound: TAG_Compound, key="Entities"):
+        ents = self._decode_entity_list(self.get_obj(compound, key, TAG_List))
+        if amulet.entity_support:
+            chunk.entities = ents
         else:
-            raise Exception(f'Unsupported block format {self._features["blocks"]}')
+            chunk.misc["java_entities_temp"] = ents
 
-        def unpack_light(feature_key: str, section_key: str):
-            if self._features[feature_key] == "Sections|2048BA":
-                misc[feature_key] = light_container = {}
-                for cy, section in sections.items():
-                    if self.check_type(section, section_key, TAG_Byte_Array):
-                        light: numpy.ndarray = section.pop(section_key).value
-                        if light.size == 2048:
-                            # TODO: check if this needs transposing or if the values are the other way around
-                            light_container[cy] = (
-                                (
-                                    light.reshape(-1, 1)
-                                    & numpy.array([0xF, 0xF0], dtype=numpy.uint8)
-                                )
-                                >> numpy.array([0, 4], dtype=numpy.uint8)
-                            ).reshape((16, 16, 16))
+    def _decode_entity_list(self, entities: TAG_List) -> List["Entity"]:
+        entities_out = []
+        if entities.list_data_type == TAG_Compound.tag_id:
+            for nbt in entities:
+                entity = self._decode_entity(
+                    amulet_nbt.NBTFile(nbt),
+                    self._features["entity_format"],
+                    self._features["entity_coord_format"],
+                )
+                if entity is not None:
+                    entities_out.append(entity)
 
-        unpack_light("block_light", "BlockLight")
-        unpack_light("sky_light", "SkyLight")
+        return entities_out
 
-        if self._features["entities"] == "list":
-            ents = self._decode_entities(self.get_obj(level, "Entities", TAG_List))
-            if amulet.entity_support:
-                chunk.entities = ents
-            else:
-                misc["java_entities_temp"] = ents
+    def _decode_block_entities(
+        self, chunk: Chunk, compound: TAG_Compound, key="TileEntities"
+    ):
+        chunk.block_entities = self._decode_block_entity_list(
+            self.get_obj(compound, key, TAG_List)
+        )
 
-        if self._features["block_entities"] == "list":
-            chunk.block_entities = self._decode_block_entities(
-                self.get_obj(level, "TileEntities", TAG_List)
-            )
+    def _decode_block_entity_list(
+        self, block_entities: TAG_List
+    ) -> List["BlockEntity"]:
+        entities_out = []
+        if block_entities.list_data_type == TAG_Compound.tag_id:
+            for nbt in block_entities:
+                if not isinstance(nbt, TAG_Compound):
+                    continue
+                entity = self._decode_block_entity(
+                    amulet_nbt.NBTFile(nbt),
+                    self._features["block_entity_format"],
+                    self._features["block_entity_coord_format"],
+                )
+                if entity is not None:
+                    entities_out.append(entity)
 
-        if self._features["tile_ticks"] == "list":
-            misc["tile_ticks"] = self.get_obj(level, "TileTicks", TAG_List)
+        return entities_out
 
-        if self._features["liquid_ticks"] == "list":
-            misc["liquid_ticks"] = self.get_obj(level, "LiquidTicks", TAG_List)
+    def _decode_block_ticks(self, chunk: Chunk, compound: TAG_Compound):
+        chunk.misc["tile_ticks"] = self.get_obj(compound, "TileTicks", TAG_List)
 
-        if self._features["liquids_to_be_ticked"] == "16list|list":
-            misc["liquids_to_be_ticked"] = self.get_obj(
-                level, "LiquidsToBeTicked", TAG_List
-            )
+    def _decode_post_processing(self, chunk: Chunk, compound: TAG_Compound):
+        chunk.misc["post_processing"] = self.get_obj(
+            compound, "PostProcessing", TAG_List
+        )
 
-        if self._features["to_be_ticked"] == "16list|list":
-            misc["to_be_ticked"] = self.get_obj(level, "ToBeTicked", TAG_List)
-
-        if self._features["post_processing"] == "16list|list":
-            misc["post_processing"] = self.get_obj(level, "PostProcessing", TAG_List)
-
-        if self._features["structures"] == "compound":
-            misc["structures"] = self.get_obj(level, "Structures", TAG_Compound)
-
-        chunk.misc = misc
-
-        return chunk, palette
+    def _decode_structures(self, chunk: Chunk, compound: TAG_Compound):
+        chunk.misc["structures"] = self.get_obj(compound, "Structures", TAG_Compound)
 
     def encode(
         self,
@@ -495,14 +455,14 @@ class BaseAnvilInterface(Interface):
 
         if self._features["entities"] == "list":
             if amulet.entity_support:
-                level["Entities"] = self._encode_entities(chunk.entities)
+                level["Entities"] = self._encode_entity_list(chunk.entities)
             else:
-                level["Entities"] = self._encode_entities(
+                level["Entities"] = self._encode_entity_list(
                     misc.get("java_entities_temp", amulet_nbt.TAG_List())
                 )
 
         if self._features["block_entities"] == "list":
-            level["TileEntities"] = self._encode_block_entities(chunk.block_entities)
+            level["TileEntities"] = self._encode_block_entity_list(chunk.block_entities)
 
         if self._features["tile_ticks"] in ["list", "list(optional)"]:
             ticks = misc.get("tile_ticks", amulet_nbt.TAG_List())
@@ -546,21 +506,7 @@ class BaseAnvilInterface(Interface):
 
         return data
 
-    def _decode_entities(self, entities: TAG_List) -> List["Entity"]:
-        entities_out = []
-        if entities.list_data_type == TAG_Compound.tag_id:
-            for nbt in entities:
-                entity = self._decode_entity(
-                    amulet_nbt.NBTFile(nbt),
-                    self._features["entity_format"],
-                    self._features["entity_coord_format"],
-                )
-                if entity is not None:
-                    entities_out.append(entity)
-
-        return entities_out
-
-    def _encode_entities(self, entities: Iterable["Entity"]) -> amulet_nbt.TAG_List:
+    def _encode_entity_list(self, entities: Iterable["Entity"]) -> amulet_nbt.TAG_List:
         entities_out = []
         for entity in entities:
             nbt = self._encode_entity(
@@ -573,23 +519,7 @@ class BaseAnvilInterface(Interface):
 
         return amulet_nbt.TAG_List(entities_out)
 
-    def _decode_block_entities(self, block_entities: TAG_List) -> List["BlockEntity"]:
-        entities_out = []
-        if block_entities.list_data_type == TAG_Compound.tag_id:
-            for nbt in block_entities:
-                if not isinstance(nbt, TAG_Compound):
-                    continue
-                entity = self._decode_block_entity(
-                    amulet_nbt.NBTFile(nbt),
-                    self._features["block_entity_format"],
-                    self._features["block_entity_coord_format"],
-                )
-                if entity is not None:
-                    entities_out.append(entity)
-
-        return entities_out
-
-    def _encode_block_entities(
+    def _encode_block_entity_list(
         self, block_entities: Iterable["BlockEntity"]
     ) -> amulet_nbt.TAG_List:
         entities_out = []
@@ -603,11 +533,6 @@ class BaseAnvilInterface(Interface):
                 entities_out.append(nbt.value)
 
         return amulet_nbt.TAG_List(entities_out)
-
-    def _decode_blocks(
-        self, chunk_sections: Dict[int, TAG_Compound]
-    ) -> Tuple[Dict[int, SubChunkNDArray], AnyNDArray]:
-        raise NotImplementedError
 
     def _encode_blocks(
         self,

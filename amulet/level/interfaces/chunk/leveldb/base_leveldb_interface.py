@@ -156,9 +156,7 @@ class BaseLevelDBInterface(Interface):
         if b"+" in data:
             height, biome = self._load_height_3d_array(data[b"+"])
             # TODO: remove this when the new biome system supports variable size arrays
-            chunk.biomes = {
-                cy: b[::4, ::4, ::4] for cy, b in biome.items()
-            }
+            chunk.biomes = {cy: b[::4, ::4, ::4] for cy, b in biome.items()}
         elif b"\x2D" in data:
             d2d = data[b"\x2D"]
             height, biome = d2d[:512], d2d[512:]
@@ -182,11 +180,11 @@ class BaseLevelDBInterface(Interface):
         # unpack block entities and entities
         if self._features["block_entities"] == "31list":
             block_entities = self._unpack_nbt_list(data.pop(b"\x31", b""))
-            chunk.block_entities = self._decode_block_entities(block_entities)
+            chunk.block_entities = self._decode_block_entity_list(block_entities)
 
         if self._features["entities"] == "32list" and amulet.entity_support:
             entities = self._unpack_nbt_list(data.pop(b"\x32", b""))
-            chunk.entities = self._decode_entities(entities)
+            chunk.entities = self._decode_entity_list(entities)
 
         return chunk, chunk_palette
 
@@ -251,7 +249,7 @@ class BaseLevelDBInterface(Interface):
 
         # pack block entities and entities
         if self._features["block_entities"] == "31list":
-            block_entities_out = self._encode_block_entities(chunk.block_entities)
+            block_entities_out = self._encode_block_entity_list(chunk.block_entities)
 
             if block_entities_out:
                 chunk_data[b"\x31"] = self._pack_nbt_list(block_entities_out)
@@ -259,7 +257,7 @@ class BaseLevelDBInterface(Interface):
                 chunk_data[b"\x31"] = None
 
         if amulet.entity_support and self._features["entities"] == "32list":
-            entities_out = self._encode_entities(chunk.entities)
+            entities_out = self._encode_entity_list(chunk.entities)
 
             if entities_out:
                 chunk_data[b"\x32"] = self._pack_nbt_list(entities_out)
@@ -763,7 +761,7 @@ class BaseLevelDBInterface(Interface):
             ]
         )
 
-    def _decode_entities(self, entities: List[amulet_nbt.NBTFile]) -> List["Entity"]:
+    def _decode_entity_list(self, entities: List[amulet_nbt.NBTFile]) -> List["Entity"]:
         entities_out = []
         for nbt in entities:
             entity = self._decode_entity(
@@ -776,7 +774,7 @@ class BaseLevelDBInterface(Interface):
 
         return entities_out
 
-    def _encode_entities(self, entities: "EntityList") -> List[amulet_nbt.NBTFile]:
+    def _encode_entity_list(self, entities: "EntityList") -> List[amulet_nbt.NBTFile]:
         entities_out = []
         for entity in entities:
             nbt = self._encode_entity(
@@ -789,7 +787,7 @@ class BaseLevelDBInterface(Interface):
 
         return entities_out
 
-    def _decode_block_entities(
+    def _decode_block_entity_list(
         self, block_entities: List[amulet_nbt.NBTFile]
     ) -> List["BlockEntity"]:
         entities_out = []
@@ -804,7 +802,7 @@ class BaseLevelDBInterface(Interface):
 
         return entities_out
 
-    def _encode_block_entities(
+    def _encode_block_entity_list(
         self, block_entities: Iterable["BlockEntity"]
     ) -> List[amulet_nbt.NBTFile]:
         entities_out = []

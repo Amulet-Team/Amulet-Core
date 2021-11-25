@@ -1,9 +1,16 @@
 from __future__ import annotations
 
-from typing import Tuple, Dict
+from typing import Tuple, Dict, TYPE_CHECKING
 
 import numpy
-import amulet_nbt
+from amulet_nbt import (
+    TAG_Compound,
+    NBTFile,
+    TAG_List,
+    TAG_String,
+    TAG_Long_Array,
+    TAG_Byte_Array,
+)
 
 from amulet.api.data_types import AnyNDArray, SubChunkNDArray
 from amulet.api.block import Block
@@ -17,6 +24,9 @@ from amulet.utils.world_utils import (
     encode_long_array,
 )
 from .feature_enum import BiomeState, HeightState
+
+if TYPE_CHECKING:
+    from amulet.api.chunk import Chunk
 
 
 def properties_to_string(props: dict) -> str:
@@ -33,6 +43,8 @@ def properties_to_string(props: dict) -> str:
 
 
 class Anvil1444Interface(BaseAnvilInterface):
+    BlockStatesKey = "BlockStates"
+
     def __init__(self):
         super().__init__()
         self._set_feature("data_version", "int")
@@ -70,9 +82,43 @@ class Anvil1444Interface(BaseAnvilInterface):
     def minor_is_valid(key: int):
         return 1444 <= key < 1466
 
+    def decode(
+        self, cx: int, cz: int, nbt_file: NBTFile, bounds: Tuple[int, int]
+    ) -> Tuple["Chunk", AnyNDArray]:
+        chunk, compound = self._init_decode(cx, cz, nbt_file)
+        self._remove_data_version(compound)
+        assert self.check_type(compound, "Level", TAG_Compound)
+        level = compound["Level"]
+        self._decode_last_update(chunk, level)
+        self._decode_status(chunk, level)
+        self._decode_inhabited_time(chunk, level)
+        self._decode_biomes(chunk, level)
+        self._decode_height(chunk, level)
+        sections = self._extract_sections(chunk, level)
+        palette = self._decode_blocks(chunk, sections)
+        self._decode_block_light(chunk, sections)
+        self._decode_sky_light(chunk, sections)
+        self._decode_entities(chunk, level)
+        self._decode_block_entities(chunk, level)
+        self._decode_block_ticks(chunk, level)
+        self._decode_fluid_ticks(chunk, level)
+        self._decode_post_processing(chunk, level)
+        self._decode_structures(chunk, level)
+        return chunk, palette
+
+    def _decode_status(self, chunk: Chunk, compound: TAG_Compound):
+        chunk.status = self.get_obj(
+            compound, "Status", TAG_String, TAG_String("full")
+        ).value
+
+    def _decode_biomes(self, chunk: Chunk, compound: TAG_Compound):
+        biomes = compound.pop("Biomes")
+        if isinstance(biomes, TAG_Byte_Array) and biomes.value.size == 256:
+            chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
+
     def _decode_blocks(
-        self, chunk_sections: Dict[int, amulet_nbt.TAG_Compound]
-    ) -> Tuple[Dict[int, SubChunkNDArray], AnyNDArray]:
+        self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]
+    ) -> AnyNDArray:
         blocks: Dict[int, numpy.ndarray] = {}
         palette = [Block(namespace="minecraft", base_name="air")]
 
@@ -102,11 +148,22 @@ class Anvil1444Interface(BaseAnvilInterface):
         inverse = inverse.astype(numpy.uint32)
         for cy in blocks:
             blocks[cy] = inverse[blocks[cy]]
-        return blocks, np_palette
+        chunk.blocks = blocks
+        return np_palette
+
+    def _decode_block_ticks(self, chunk: Chunk, compound: TAG_Compound):
+        chunk.misc["tile_ticks"] = self.get_obj(compound, "TileTicks", TAG_List)
+        chunk.misc["to_be_ticked"] = self.get_obj(compound, "ToBeTicked", TAG_List)
+
+    def _decode_fluid_ticks(self, chunk: Chunk, compound: TAG_Compound):
+        chunk.misc["liquid_ticks"] = self.get_obj(compound, "LiquidTicks", TAG_List)
+        chunk.misc["liquids_to_be_ticked"] = self.get_obj(
+            compound, "LiquidsToBeTicked", TAG_List
+        )
 
     def _encode_blocks(
         self,
-        sections: Dict[int, amulet_nbt.TAG_Compound],
+        sections: Dict[int, TAG_Compound],
         blocks: Blocks,
         palette: AnyNDArray,
         cy_min: int,
@@ -128,13 +185,13 @@ class Anvil1444Interface(BaseAnvilInterface):
                 ):
                     continue
 
-                section = sections.setdefault(cy, amulet_nbt.TAG_Compound())
+                section = sections.setdefault(cy, TAG_Compound())
                 if self._features["long_array_format"] == "compact":
-                    section["BlockStates"] = amulet_nbt.TAG_Long_Array(
+                    section["BlockStates"] = TAG_Long_Array(
                         encode_long_array(block_sub_array, min_bits_per_entry=4)
                     )
                 elif self._features["long_array_format"] == "1.16":
-                    section["BlockStates"] = amulet_nbt.TAG_Long_Array(
+                    section["BlockStates"] = TAG_Long_Array(
                         encode_long_array(
                             block_sub_array, dense=False, min_bits_per_entry=4
                         )
@@ -142,11 +199,11 @@ class Anvil1444Interface(BaseAnvilInterface):
                 section["Palette"] = sub_palette
 
     @staticmethod
-    def _decode_palette(palette: amulet_nbt.TAG_List) -> list:
+    def _decode_palette(palette: TAG_List) -> list:
         blockstates = []
         for entry in palette:
             namespace, base_name = entry["Name"].value.split(":", 1)
-            properties = entry.get("Properties", amulet_nbt.TAG_Compound({})).value
+            properties = entry.get("Properties", TAG_Compound({})).value
             block = Block(
                 namespace=namespace, base_name=base_name, properties=properties
             )
@@ -154,14 +211,12 @@ class Anvil1444Interface(BaseAnvilInterface):
         return blockstates
 
     @staticmethod
-    def _encode_palette(blockstates: list) -> amulet_nbt.TAG_List:
-        palette = amulet_nbt.TAG_List()
+    def _encode_palette(blockstates: list) -> TAG_List:
+        palette = TAG_List()
         for block in blockstates:
-            entry = amulet_nbt.TAG_Compound()
-            entry["Name"] = amulet_nbt.TAG_String(
-                f"{block.namespace}:{block.base_name}"
-            )
-            entry["Properties"] = amulet_nbt.TAG_Compound(block.properties)
+            entry = TAG_Compound()
+            entry["Name"] = TAG_String(f"{block.namespace}:{block.base_name}")
+            entry["Properties"] = TAG_Compound(block.properties)
             palette.append(entry)
         return palette
 
