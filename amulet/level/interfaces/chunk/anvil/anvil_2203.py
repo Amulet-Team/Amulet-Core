@@ -16,10 +16,6 @@ class Anvil2203Interface(Anvil1934Interface):
     Made biomes 3D
     """
 
-    def __init__(self):
-        super().__init__()
-        self._set_feature("biomes", BiomeState.IA1024)  # optional
-
     @staticmethod
     def minor_is_valid(key: int):
         return 2203 <= key < 2529
@@ -54,6 +50,21 @@ class Anvil2203Interface(Anvil1934Interface):
         else:
             log.error(
                 f"Expected a TAG_Int_Array biome array but got {biomes.__class__.__name__}"
+            )
+
+    def _encode_biomes(
+        self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]
+    ):
+        if chunk.status.value > -0.7:
+            chunk.biomes.convert_to_3d()
+            min_y, max_y = bounds
+            level["Biomes"] = TAG_Int_Array(
+                numpy.transpose(
+                    numpy.asarray(chunk.biomes[:, min_y // 4 : max_y // 4, :]).astype(
+                        numpy.uint32
+                    ),
+                    (1, 2, 0),
+                ).ravel()  # YZX -> XYZ
             )
 
 

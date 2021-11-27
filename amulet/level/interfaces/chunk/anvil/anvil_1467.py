@@ -15,10 +15,6 @@ class Anvil1467Interface(Anvil1466Interface):
     Biomes now stored in an int array
     """
 
-    def __init__(self):
-        super().__init__()
-        self._set_feature("biomes", BiomeState.IA256)
-
     @staticmethod
     def minor_is_valid(key: int):
         return 1467 <= key < 1484
@@ -29,6 +25,13 @@ class Anvil1467Interface(Anvil1466Interface):
         biomes = compound.pop("Biomes")
         if isinstance(biomes, TAG_Int_Array) and biomes.value.size == 256:
             chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
+
+    def _encode_biomes(
+        self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]
+    ):
+        if chunk.status.value > -0.7:
+            chunk.biomes.convert_to_2d()
+            level["Biomes"] = TAG_Int_Array(chunk.biomes.astype(dtype=numpy.uint32))
 
 
 export = Anvil1467Interface

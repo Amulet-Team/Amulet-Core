@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, TYPE_CHECKING
+from typing import Dict, Tuple, TYPE_CHECKING
 
 import numpy
 from amulet_nbt import (
@@ -13,7 +13,7 @@ from amulet_nbt import (
 from amulet.api.data_types import AnyNDArray
 from amulet.api.block import Block
 from amulet.api.chunk import Blocks, StatusFormats
-from .anvil_0 import Anvil112Interface
+from .anvil_0 import Anvil0Interface
 from amulet.utils.world_utils import (
     decode_long_array,
     encode_long_array,
@@ -36,7 +36,7 @@ def properties_to_string(props: dict) -> str:
     return ",".join(result)
 
 
-class Anvil1444Interface(Anvil112Interface):
+class Anvil1444Interface(Anvil0Interface):
     """
     Moved light and terrain populated to Status
     Made blocks paletted
@@ -51,15 +51,7 @@ class Anvil1444Interface(Anvil112Interface):
         self._set_feature("light_populated", None)
         self._set_feature("terrain_populated", None)
         self._set_feature("status", StatusFormats.Java_13)
-
-        self._set_feature("blocks", "Sections|(BlockStates,Palette)")
         self._set_feature("long_array_format", "compact")
-
-        self._set_feature("liquid_ticks", "list")
-        self._set_feature("liquids_to_be_ticked", "16list|list")
-        self._set_feature("to_be_ticked", "16list|list")
-        self._set_feature("post_processing", "16list|list")
-        self._set_feature("structures", "compound")
 
     @staticmethod
     def minor_is_valid(key: int):
@@ -111,8 +103,20 @@ class Anvil1444Interface(Anvil112Interface):
         chunk.blocks = blocks
         return np_palette
 
+    @staticmethod
+    def _decode_palette(palette: TAG_List) -> list:
+        blockstates = []
+        for entry in palette:
+            namespace, base_name = entry["Name"].value.split(":", 1)
+            properties = entry.get("Properties", TAG_Compound({})).value
+            block = Block(
+                namespace=namespace, base_name=base_name, properties=properties
+            )
+            blockstates.append(block)
+        return blockstates
+
     def _decode_block_ticks(self, chunk: Chunk, compound: TAG_Compound):
-        chunk.misc["tile_ticks"] = self.get_obj(compound, "TileTicks", TAG_List)
+        super()._decode_block_ticks(chunk, compound)
         chunk.misc["to_be_ticked"] = self.get_obj(compound, "ToBeTicked", TAG_List)
 
     def _decode_fluid_ticks(self, chunk: Chunk, compound: TAG_Compound):
@@ -128,6 +132,18 @@ class Anvil1444Interface(Anvil112Interface):
 
     def _decode_structures(self, chunk: Chunk, compound: TAG_Compound):
         chunk.misc["structures"] = self.get_obj(compound, self.Structures, TAG_Compound)
+
+    def _encode_level(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]):
+        super()._encode_level(chunk, level, bounds)
+        self._encode_fluid_ticks(chunk, level)
+        self._encode_post_processing(chunk, level)
+        self._encode_structures(chunk, level)
+
+    def _encode_status(self, chunk: Chunk, level: TAG_Compound):
+        # Order the float value based on the order they would be run. Newer replacements for the same come just after
+        # to save back find the next lowest valid value.
+        status = chunk.status.as_type(self._features["status"])
+        level["Status"] = TAG_String(status)
 
     def _encode_blocks(
         self,
@@ -167,18 +183,6 @@ class Anvil1444Interface(Anvil112Interface):
                 section["Palette"] = sub_palette
 
     @staticmethod
-    def _decode_palette(palette: TAG_List) -> list:
-        blockstates = []
-        for entry in palette:
-            namespace, base_name = entry["Name"].value.split(":", 1)
-            properties = entry.get("Properties", TAG_Compound({})).value
-            block = Block(
-                namespace=namespace, base_name=base_name, properties=properties
-            )
-            blockstates.append(block)
-        return blockstates
-
-    @staticmethod
     def _encode_palette(blockstates: list) -> TAG_List:
         palette = TAG_List()
         for block in blockstates:
@@ -187,6 +191,37 @@ class Anvil1444Interface(Anvil112Interface):
             entry["Properties"] = TAG_Compound(block.properties)
             palette.append(entry)
         return palette
+
+    def _encode_block_ticks(self, chunk: Chunk, compound: TAG_Compound):
+        super()._encode_block_ticks(chunk, compound)
+        compound["ToBeTicked"] = chunk.misc.get(
+            "to_be_ticked",
+            TAG_List([TAG_List() for _ in range(16)]),
+        )
+
+    def _encode_fluid_ticks(self, chunk: Chunk, compound: TAG_Compound):
+        compound["LiquidTicks"] = chunk.misc.get("liquid_ticks", TAG_List())
+        compound["LiquidsToBeTicked"] = chunk.misc.get(
+            "liquids_to_be_ticked",
+            TAG_List([TAG_List() for _ in range(16)]),
+        )
+
+    def _encode_post_processing(self, chunk: Chunk, compound: TAG_Compound):
+        compound["PostProcessing"] = chunk.misc.get(
+            "post_processing",
+            TAG_List([TAG_List() for _ in range(16)]),
+        )
+
+    def _encode_structures(self, chunk: Chunk, compound: TAG_Compound):
+        compound["Structures"] = chunk.misc.get(
+            "structures",
+            TAG_Compound(
+                {
+                    "References": TAG_Compound(),
+                    "Starts": TAG_Compound(),
+                }
+            ),
+        )
 
 
 export = Anvil1444Interface

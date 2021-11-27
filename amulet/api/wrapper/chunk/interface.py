@@ -258,18 +258,20 @@ class Interface(ABC):
 
         return nbt
 
-    @staticmethod
     @overload
-    def check_type(obj: TAG_Compound, key: str, dtype: Type[AnyNBT]) -> Any:
-        ...
-
-    @staticmethod
-    @overload
-    def check_type(obj: TAG_List, key: int, dtype: Type[AnyNBT]) -> Any:
-        ...
-
     @staticmethod
     def check_type(obj: TAG_Compound, key: str, dtype: Type[AnyNBT]) -> bool:
+        ...
+
+    @overload
+    @staticmethod
+    def check_type(obj: TAG_List, key: int, dtype: Type[AnyNBT]) -> bool:
+        ...
+
+    @staticmethod
+    def check_type(
+        obj: Union[TAG_Compound, TAG_List], key: Union[str, int], dtype: Type[AnyNBT]
+    ) -> bool:
         """Check the key exists and the type is correct."""
         return key in obj and isinstance(obj[key], dtype)
 

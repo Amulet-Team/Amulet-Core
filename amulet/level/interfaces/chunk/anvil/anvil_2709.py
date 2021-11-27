@@ -12,11 +12,6 @@ class Anvil2709Interface(Anvil2529Interface):
     Made the biome array size variable to handle the increased height
     """
 
-    def __init__(self):
-        super().__init__()
-        self._set_feature("height_state", HeightState.Variable1_17)
-        self._set_feature("biomes", BiomeState.IANx64)
-
     @staticmethod
     def minor_is_valid(key: int):
         return 2709 <= key < 2800
