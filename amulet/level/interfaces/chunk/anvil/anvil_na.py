@@ -3,8 +3,17 @@ from __future__ import annotations
 from typing import Tuple, Dict, TYPE_CHECKING
 
 import numpy
-from amulet_nbt import TAG_Compound, TAG_Byte_Array, NBTFile, TAG_Byte, TAG_List
+from amulet_nbt import (
+    TAG_Compound,
+    TAG_Byte_Array,
+    NBTFile,
+    TAG_Byte,
+    TAG_List,
+    TAG_Long,
+    TAG_Int_Array,
+)
 
+import amulet
 from amulet.api.data_types import SubChunkNDArray, AnyNDArray
 from amulet.utils import world_utils
 from amulet.api.wrapper import EntityIDType, EntityCoordType
@@ -19,6 +28,10 @@ if TYPE_CHECKING:
 
 
 class AnvilNAInterface(BaseAnvilInterface):
+    BlockEntities = "TileEntities"
+    Entities = "Entities"
+    Sections = "Sections"
+
     def __init__(self):
         super().__init__()
         self._set_feature("data_version", "int")
@@ -53,23 +66,51 @@ class AnvilNAInterface(BaseAnvilInterface):
     def decode(
         self, cx: int, cz: int, nbt_file: NBTFile, bounds: Tuple[int, int]
     ) -> Tuple["Chunk", AnyNDArray]:
-        chunk, compound = self._init_decode(cx, cz, nbt_file)
-        self._remove_data_version(compound)
-        assert self.check_type(compound, "Level", TAG_Compound)
-        level = compound["Level"]
+        chunk, root = self._init_decode(cx, cz, nbt_file)
+        return self._decode_chunk(chunk, root, bounds)
+
+    def _decode_chunk(
+        self, chunk: Chunk, root: TAG_Compound, bounds: Tuple[int, int]
+    ) -> Tuple["Chunk", AnyNDArray]:
+        self._decode_root(chunk, root)
+        assert self.check_type(root, "Level", TAG_Compound)
+        level = root["Level"]
+        self._decode_level(chunk, level, bounds)
+        sections = self._extract_sections(chunk, level)
+        self._decode_sections(chunk, sections)
+        palette = self._decode_blocks(chunk, sections)
+        return chunk, palette
+
+    def _decode_root(self, chunk: Chunk, root: TAG_Compound):
+        pass
+
+    def _decode_level(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]):
         self._decode_last_update(chunk, level)
         self._decode_status(chunk, level)
         self._decode_inhabited_time(chunk, level)
-        self._decode_biomes(chunk, level)
-        self._decode_height(chunk, level)
-        sections = self._extract_sections(chunk, level)
-        palette = self._decode_blocks(chunk, sections)
-        self._decode_block_light(chunk, sections)
-        self._decode_sky_light(chunk, sections)
+        self._decode_biomes(chunk, level, bounds)
+        self._decode_height(chunk, level, bounds)
         self._decode_entities(chunk, level)
         self._decode_block_entities(chunk, level)
         self._decode_block_ticks(chunk, level)
-        return chunk, palette
+
+    def _decode_sections(self, chunk: Chunk, sections: Dict[int, TAG_Compound]):
+        self._decode_block_light(chunk, sections)
+        self._decode_sky_light(chunk, sections)
+
+    @staticmethod
+    def _init_decode(cx: int, cz: int, data: NBTFile) -> Tuple[Chunk, TAG_Compound]:
+        """Get the decode started by creating a chunk object."""
+        chunk = Chunk(cx, cz)
+        assert isinstance(data.value, TAG_Compound), "Raw data must be a compound."
+        chunk.misc = {
+            # store the chunk data so that any non-versioned data can get saved back
+            "java_chunk_data": data.value
+        }
+        return chunk, data.value
+
+    def _decode_last_update(self, chunk: Chunk, compound: TAG_Compound):
+        chunk.misc["last_update"] = self.get_obj(compound, "LastUpdate", TAG_Long).value
 
     def _decode_status(self, chunk: Chunk, compound: TAG_Compound):
         status = "empty"
@@ -83,6 +124,41 @@ class AnvilNAInterface(BaseAnvilInterface):
             status = "postprocessed"
 
         chunk.status = status
+
+    def _decode_v_tag(self, chunk: Chunk, compound: TAG_Compound):
+        chunk.misc["V"] = self.get_obj(compound, "V", TAG_Byte, TAG_Byte(1)).value
+
+    def _decode_inhabited_time(self, chunk: Chunk, compound: TAG_Compound):
+        chunk.misc["inhabited_time"] = self.get_obj(
+            compound, "InhabitedTime", TAG_Long
+        ).value
+
+    def _decode_biomes(
+        self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
+    ):
+        biomes = compound.pop("Biomes")
+        if isinstance(biomes, TAG_Byte_Array) and biomes.value.size == 256:
+            chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
+
+    def _decode_height(
+        self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
+    ):
+        height = self.get_obj(compound, "HeightMap", TAG_Int_Array).value
+        if isinstance(height, numpy.ndarray) and height.size == 256:
+            chunk.misc["height_map256IA"] = height.reshape((16, 16))
+
+    def _extract_sections(
+        self, chunk: Chunk, compound: TAG_Compound
+    ) -> Dict[int, TAG_Compound]:
+        # parse sections into a more usable format
+        sections: Dict[int, TAG_Compound] = {
+            section.pop("Y").value: section
+            for section in self.get_obj(compound, self.Sections, TAG_List)
+            if isinstance(section, TAG_Compound)
+            and self.check_type(section, "Y", TAG_Byte)
+        }
+        chunk.misc["java_sections"] = sections
+        return sections
 
     def _decode_blocks(
         self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]
@@ -135,6 +211,42 @@ class AnvilNAInterface(BaseAnvilInterface):
             final_palette = numpy.array([], dtype=object)
         chunk.blocks = blocks
         return final_palette
+
+    def _unpack_light(self, sections: Dict[int, TAG_Compound], section_key: str):
+        light_container = {}
+        for cy, section in sections.items():
+            if self.check_type(section, section_key, TAG_Byte_Array):
+                light: numpy.ndarray = section.pop(section_key).value
+                if light.size == 2048:
+                    # TODO: check if this needs transposing or if the values are the other way around
+                    light_container[cy] = (
+                        (
+                            light.reshape(-1, 1)
+                            & numpy.array([0xF, 0xF0], dtype=numpy.uint8)
+                        )
+                        >> numpy.array([0, 4], dtype=numpy.uint8)
+                    ).reshape((16, 16, 16))
+        return light_container
+
+    def _decode_block_light(
+        self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]
+    ):
+        chunk.misc["block_light"] = self._unpack_light(chunk_sections, "BlockLight")
+
+    def _decode_sky_light(self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]):
+        chunk.misc["sky_light"] = self._unpack_light(chunk_sections, "SkyLight")
+
+    def _decode_entities(self, chunk: Chunk, compound: TAG_Compound):
+        ents = self._decode_entity_list(self.get_obj(compound, self.Entities, TAG_List))
+        if amulet.entity_support:
+            chunk.entities = ents
+        else:
+            chunk.misc["java_entities_temp"] = ents
+
+    def _decode_block_entities(self, chunk: Chunk, compound: TAG_Compound):
+        chunk.block_entities = self._decode_block_entity_list(
+            self.get_obj(compound, self.BlockEntities, TAG_List)
+        )
 
     def _decode_block_ticks(self, chunk: Chunk, compound: TAG_Compound):
         chunk.misc["tile_ticks"] = self.get_obj(compound, "TileTicks", TAG_List)

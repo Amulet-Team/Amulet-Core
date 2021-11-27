@@ -12,6 +12,10 @@ from .anvil_1444 import (
 
 
 class Anvil1466Interface(Anvil1444Interface):
+    """
+    Added multiple height maps. Now stored in a compound.
+    """
+
     def __init__(self):
         super().__init__()
         self._set_feature("height_map", "C|V1")
@@ -21,7 +25,7 @@ class Anvil1466Interface(Anvil1444Interface):
         return 1466 <= key < 1467
 
     def _decode_height(
-        self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int] = (0, 256)
+        self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
     ):
         heights = self.get_obj(compound, "Heightmaps", TAG_Compound)
         chunk.misc["height_mapC"] = h = {}

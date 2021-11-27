@@ -80,7 +80,7 @@ class BaseAnvilInterface(Interface):
     def _set_feature(self, feature: str, option: Any):
         assert feature in self._feature_options, f"{feature} is not a valid feature."
         assert (
-            option in self._feature_options[feature]
+            option is None or option in self._feature_options[feature]
         ), f'Invalid option {option} for feature "{feature}"'
         self._features[feature] = option
 
@@ -117,96 +117,6 @@ class BaseAnvilInterface(Interface):
         """
         raise NotImplementedError
 
-    @staticmethod
-    def _init_decode(cx: int, cz: int, data: NBTFile) -> Tuple[Chunk, TAG_Compound]:
-        """Get the decode started by creating a chunk object."""
-        chunk = Chunk(cx, cz)
-        assert isinstance(data.value, TAG_Compound), "Raw data must be a compound."
-        chunk.misc = {
-            # store the chunk data so that any non-versioned data can get saved back
-            "java_chunk_data": data.value
-        }
-        return chunk, data.value
-
-    @staticmethod
-    def _remove_data_version(compound: TAG_Compound):
-        # all versioned data must get removed from data
-        if "DataVersion" in compound.value:
-            del compound["DataVersion"]
-
-    def _decode_last_update(self, chunk: Chunk, compound: TAG_Compound):
-        chunk.misc["last_update"] = self.get_obj(compound, "LastUpdate", TAG_Long).value
-
-    def _decode_status(self, chunk: Chunk, compound: TAG_Compound):
-        raise NotImplementedError
-
-    def _decode_v_tag(self, chunk: Chunk, compound: TAG_Compound):
-        chunk.misc["V"] = self.get_obj(compound, "V", TAG_Byte, TAG_Byte(1)).value
-
-    def _decode_inhabited_time(self, chunk: Chunk, compound: TAG_Compound):
-        chunk.misc["inhabited_time"] = self.get_obj(
-            compound, "InhabitedTime", TAG_Long
-        ).value
-
-    def _decode_biomes(self, chunk: Chunk, compound: TAG_Compound):
-        biomes = compound.pop("Biomes")
-        if isinstance(biomes, TAG_Byte_Array) and biomes.value.size == 256:
-            chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
-
-    def _decode_height(self, chunk: Chunk, compound: TAG_Compound):
-        height = self.get_obj(compound, "HeightMap", TAG_Int_Array).value
-        if isinstance(height, numpy.ndarray) and height.size == 256:
-            chunk.misc["height_map256IA"] = height.reshape((16, 16))
-
-    def _extract_sections(
-        self, chunk: Chunk, compound: TAG_Compound, key="Sections"
-    ) -> Dict[int, TAG_Compound]:
-        # parse sections into a more usable format
-        sections: Dict[int, TAG_Compound] = {
-            section.pop("Y").value: section
-            for section in self.get_obj(compound, key, TAG_List)
-            if isinstance(section, TAG_Compound)
-            and self.check_type(section, "Y", TAG_Byte)
-        }
-        chunk.misc["java_sections"] = sections
-        return sections
-
-    def _decode_blocks(
-        self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]
-    ) -> AnyNDArray:
-        raise NotImplementedError
-
-    def _unpack_light(self, sections: Dict[int, TAG_Compound], section_key: str):
-        light_container = {}
-        for cy, section in sections.items():
-            if self.check_type(section, section_key, TAG_Byte_Array):
-                light: numpy.ndarray = section.pop(section_key).value
-                if light.size == 2048:
-                    # TODO: check if this needs transposing or if the values are the other way around
-                    light_container[cy] = (
-                        (
-                            light.reshape(-1, 1)
-                            & numpy.array([0xF, 0xF0], dtype=numpy.uint8)
-                        )
-                        >> numpy.array([0, 4], dtype=numpy.uint8)
-                    ).reshape((16, 16, 16))
-        return light_container
-
-    def _decode_block_light(
-        self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]
-    ):
-        chunk.misc["block_light"] = self._unpack_light(chunk_sections, "BlockLight")
-
-    def _decode_sky_light(self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]):
-        chunk.misc["sky_light"] = self._unpack_light(chunk_sections, "SkyLight")
-
-    def _decode_entities(self, chunk: Chunk, compound: TAG_Compound, key="Entities"):
-        ents = self._decode_entity_list(self.get_obj(compound, key, TAG_List))
-        if amulet.entity_support:
-            chunk.entities = ents
-        else:
-            chunk.misc["java_entities_temp"] = ents
-
     def _decode_entity_list(self, entities: TAG_List) -> List["Entity"]:
         entities_out = []
         if entities.list_data_type == TAG_Compound.tag_id:
@@ -220,13 +130,6 @@ class BaseAnvilInterface(Interface):
                     entities_out.append(entity)
 
         return entities_out
-
-    def _decode_block_entities(
-        self, chunk: Chunk, compound: TAG_Compound, key="TileEntities"
-    ):
-        chunk.block_entities = self._decode_block_entity_list(
-            self.get_obj(compound, key, TAG_List)
-        )
 
     def _decode_block_entity_list(
         self, block_entities: TAG_List
@@ -245,17 +148,6 @@ class BaseAnvilInterface(Interface):
                     entities_out.append(entity)
 
         return entities_out
-
-    def _decode_block_ticks(self, chunk: Chunk, compound: TAG_Compound):
-        chunk.misc["tile_ticks"] = self.get_obj(compound, "TileTicks", TAG_List)
-
-    def _decode_post_processing(self, chunk: Chunk, compound: TAG_Compound):
-        chunk.misc["post_processing"] = self.get_obj(
-            compound, "PostProcessing", TAG_List
-        )
-
-    def _decode_structures(self, chunk: Chunk, compound: TAG_Compound):
-        chunk.misc["structures"] = self.get_obj(compound, "Structures", TAG_Compound)
 
     def encode(
         self,

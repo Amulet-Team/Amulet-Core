@@ -12,6 +12,10 @@ from .feature_enum import BiomeState
 
 
 class Anvil2203Interface(Anvil1934Interface):
+    """
+    Made biomes 3D
+    """
+
     def __init__(self):
         super().__init__()
         self._set_feature("biomes", BiomeState.IA1024)  # optional
@@ -21,7 +25,7 @@ class Anvil2203Interface(Anvil1934Interface):
         return 2203 <= key < 2529
 
     def _decode_biomes(
-        self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int] = (0, 256)
+        self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
     ):
         biomes = compound.pop("Biomes")
         min_y = bounds[0]

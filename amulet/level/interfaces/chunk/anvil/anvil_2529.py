@@ -6,6 +6,10 @@ from .anvil_2203 import (
 
 
 class Anvil2529Interface(Anvil2203Interface):
+    """
+    Packed long arrays switched to a less dense format
+    """
+
     def __init__(self):
         super().__init__()
         self._set_feature("long_array_format", "1.16")

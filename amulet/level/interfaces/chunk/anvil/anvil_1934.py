@@ -6,6 +6,10 @@ from .anvil_1912 import (
 
 
 class Anvil1934Interface(Anvil1912Interface):
+    """
+    Made lighting optional
+    """
+
     def __init__(self):
         super().__init__()
         self._set_feature("light_optional", "true")

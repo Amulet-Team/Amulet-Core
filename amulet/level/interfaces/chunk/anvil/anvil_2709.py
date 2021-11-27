@@ -7,6 +7,11 @@ from .feature_enum import HeightState, BiomeState
 
 
 class Anvil2709Interface(Anvil2529Interface):
+    """
+    Made height bit depth variable to store increased heights
+    Made the biome array size variable to handle the increased height
+    """
+
     def __init__(self):
         super().__init__()
         self._set_feature("height_state", HeightState.Variable1_17)

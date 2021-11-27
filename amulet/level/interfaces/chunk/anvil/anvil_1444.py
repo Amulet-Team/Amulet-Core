@@ -1,29 +1,23 @@
 from __future__ import annotations
 
-from typing import Tuple, Dict, TYPE_CHECKING
+from typing import Dict, TYPE_CHECKING
 
 import numpy
 from amulet_nbt import (
     TAG_Compound,
-    NBTFile,
     TAG_List,
     TAG_String,
     TAG_Long_Array,
-    TAG_Byte_Array,
 )
 
-from amulet.api.data_types import AnyNDArray, SubChunkNDArray
+from amulet.api.data_types import AnyNDArray
 from amulet.api.block import Block
 from amulet.api.chunk import Blocks, StatusFormats
-from amulet.api.wrapper import EntityIDType, EntityCoordType
-from .base_anvil_interface import (
-    BaseAnvilInterface,
-)
+from .anvil_0 import Anvil112Interface
 from amulet.utils.world_utils import (
     decode_long_array,
     encode_long_array,
 )
-from .feature_enum import BiomeState, HeightState
 
 if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
@@ -42,35 +36,24 @@ def properties_to_string(props: dict) -> str:
     return ",".join(result)
 
 
-class Anvil1444Interface(BaseAnvilInterface):
-    BlockStatesKey = "BlockStates"
+class Anvil1444Interface(Anvil112Interface):
+    """
+    Moved light and terrain populated to Status
+    Made blocks paletted
+    Added more tick tags
+    Added structures tag
+    """
+
+    Structures = "structures"
 
     def __init__(self):
         super().__init__()
-        self._set_feature("data_version", "int")
-        self._set_feature("last_update", "long")
-
+        self._set_feature("light_populated", None)
+        self._set_feature("terrain_populated", None)
         self._set_feature("status", StatusFormats.Java_13)
-        self._set_feature("inhabited_time", "long")
-        self._set_feature("biomes", BiomeState.BA256)
-        self._set_feature("height_state", HeightState.Fixed256)
-        self._set_feature("height_map", "256IA")
 
         self._set_feature("blocks", "Sections|(BlockStates,Palette)")
         self._set_feature("long_array_format", "compact")
-        self._set_feature("block_light", "Sections|2048BA")
-        self._set_feature("sky_light", "Sections|2048BA")
-        self._set_feature("light_optional", "false")
-
-        self._set_feature("block_entities", "list")
-        self._set_feature("block_entity_format", EntityIDType.namespace_str_id)
-        self._set_feature("block_entity_coord_format", EntityCoordType.xyz_int)
-
-        self._set_feature("entities", "list")
-        self._set_feature("entity_format", EntityIDType.namespace_str_id)
-        self._set_feature("entity_coord_format", EntityCoordType.Pos_list_double)
-
-        self._set_feature("tile_ticks", "list")
 
         self._set_feature("liquid_ticks", "list")
         self._set_feature("liquids_to_be_ticked", "16list|list")
@@ -82,39 +65,16 @@ class Anvil1444Interface(BaseAnvilInterface):
     def minor_is_valid(key: int):
         return 1444 <= key < 1466
 
-    def decode(
-        self, cx: int, cz: int, nbt_file: NBTFile, bounds: Tuple[int, int]
-    ) -> Tuple["Chunk", AnyNDArray]:
-        chunk, compound = self._init_decode(cx, cz, nbt_file)
-        self._remove_data_version(compound)
-        assert self.check_type(compound, "Level", TAG_Compound)
-        level = compound["Level"]
-        self._decode_last_update(chunk, level)
-        self._decode_status(chunk, level)
-        self._decode_inhabited_time(chunk, level)
-        self._decode_biomes(chunk, level)
-        self._decode_height(chunk, level)
-        sections = self._extract_sections(chunk, level)
-        palette = self._decode_blocks(chunk, sections)
-        self._decode_block_light(chunk, sections)
-        self._decode_sky_light(chunk, sections)
-        self._decode_entities(chunk, level)
-        self._decode_block_entities(chunk, level)
-        self._decode_block_ticks(chunk, level)
+    def _decode_level(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]):
+        super()._decode_level(chunk, level, bounds)
         self._decode_fluid_ticks(chunk, level)
         self._decode_post_processing(chunk, level)
         self._decode_structures(chunk, level)
-        return chunk, palette
 
     def _decode_status(self, chunk: Chunk, compound: TAG_Compound):
         chunk.status = self.get_obj(
             compound, "Status", TAG_String, TAG_String("full")
         ).value
-
-    def _decode_biomes(self, chunk: Chunk, compound: TAG_Compound):
-        biomes = compound.pop("Biomes")
-        if isinstance(biomes, TAG_Byte_Array) and biomes.value.size == 256:
-            chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
 
     def _decode_blocks(
         self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]
@@ -160,6 +120,14 @@ class Anvil1444Interface(BaseAnvilInterface):
         chunk.misc["liquids_to_be_ticked"] = self.get_obj(
             compound, "LiquidsToBeTicked", TAG_List
         )
+
+    def _decode_post_processing(self, chunk: Chunk, compound: TAG_Compound):
+        chunk.misc["post_processing"] = self.get_obj(
+            compound, "PostProcessing", TAG_List
+        )
+
+    def _decode_structures(self, chunk: Chunk, compound: TAG_Compound):
+        chunk.misc["structures"] = self.get_obj(compound, self.Structures, TAG_Compound)
 
     def _encode_blocks(
         self,
