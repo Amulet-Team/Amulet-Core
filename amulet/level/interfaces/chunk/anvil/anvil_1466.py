@@ -38,7 +38,7 @@ class Anvil1466Interface(Anvil1444Interface):
                             value.value,
                             256,
                             (bounds[1] - bounds[0]).bit_length(),
-                            dense=self._features["long_array_format"] == "compact",
+                            dense=self.LongArrayDense,
                         ).reshape((16, 16))
                         + bounds[0]
                     )
@@ -78,7 +78,7 @@ class Anvil1466Interface(Anvil1444Interface):
                     encode_long_array(
                         heightmaps_temp[heightmap].ravel() - bounds[0],
                         (bounds[1] - bounds[0]).bit_length(),
-                        self._features["long_array_format"] == "compact",
+                        self.LongArrayDense,
                     )
                 )
         level["Heightmaps"] = heightmaps

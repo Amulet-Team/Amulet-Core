@@ -45,13 +45,11 @@ class Anvil1444Interface(Anvil0Interface):
     """
 
     Structures = "structures"
+    LongArrayDense = True
 
     def __init__(self):
         super().__init__()
-        self._set_feature("light_populated", None)
-        self._set_feature("terrain_populated", None)
         self._set_feature("status", StatusFormats.Java_13)
-        self._set_feature("long_array_format", "compact")
 
     @staticmethod
     def minor_is_valid(key: int):
@@ -78,17 +76,12 @@ class Anvil1444Interface(Anvil0Interface):
             if "Palette" not in section:  # 1.14 makes block_palette/blocks optional.
                 continue
             section_palette = self._decode_palette(section.pop("Palette"))
-            if self._features["long_array_format"] in ("compact", "1.16"):
-                decoded = decode_long_array(
-                    section.pop("BlockStates").value,
-                    4096,
-                    max(4, (len(section_palette) - 1).bit_length()),
-                    dense=self._features["long_array_format"] == "compact",
-                ).astype(numpy.uint32)
-            else:
-                raise Exception(
-                    "long_array_format", self._features["long_array_format"]
-                )
+            decoded = decode_long_array(
+                section.pop("BlockStates").value,
+                4096,
+                max(4, (len(section_palette) - 1).bit_length()),
+                dense=self.LongArrayDense,
+            ).astype(numpy.uint32)
             blocks[cy] = numpy.transpose(
                 decoded.reshape((16, 16, 16)) + len(palette), (2, 0, 1)
             )
@@ -170,16 +163,11 @@ class Anvil1444Interface(Anvil0Interface):
                     continue
 
                 section = sections.setdefault(cy, TAG_Compound())
-                if self._features["long_array_format"] == "compact":
-                    section["BlockStates"] = TAG_Long_Array(
-                        encode_long_array(block_sub_array, min_bits_per_entry=4)
+                section["BlockStates"] = TAG_Long_Array(
+                    encode_long_array(
+                        block_sub_array, dense=self.LongArrayDense, min_bits_per_entry=4
                     )
-                elif self._features["long_array_format"] == "1.16":
-                    section["BlockStates"] = TAG_Long_Array(
-                        encode_long_array(
-                            block_sub_array, dense=False, min_bits_per_entry=4
-                        )
-                    )
+                )
                 section["Palette"] = sub_palette
 
     @staticmethod

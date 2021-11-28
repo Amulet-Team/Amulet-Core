@@ -7,7 +7,6 @@ from amulet.api.chunk import Chunk
 from .anvil_1466 import (
     Anvil1466Interface,
 )
-from .feature_enum import BiomeState
 
 
 class Anvil1467Interface(Anvil1466Interface):

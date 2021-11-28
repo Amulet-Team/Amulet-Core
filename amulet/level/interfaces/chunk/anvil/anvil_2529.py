@@ -8,11 +8,10 @@ from .anvil_2203 import (
 class Anvil2529Interface(Anvil2203Interface):
     """
     Packed long arrays switched to a less dense format
+    Before the long array was just a bit stream but it is now separate longs. The upper bits are unused in some cases.
     """
 
-    def __init__(self):
-        super().__init__()
-        self._set_feature("long_array_format", "1.16")
+    LongArrayDense = False
 
     @staticmethod
     def minor_is_valid(key: int):

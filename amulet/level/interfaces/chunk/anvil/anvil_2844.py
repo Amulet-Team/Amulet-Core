@@ -1,28 +1,12 @@
 from __future__ import annotations
 from typing import Tuple, Dict
-import numpy
 
-
-import amulet_nbt
 from amulet_nbt import (
-    TAG_Byte,
-    TAG_Int,
-    TAG_Long,
-    TAG_Byte_Array,
-    TAG_String,
-    TAG_List,
     TAG_Compound,
-    TAG_Int_Array,
-    TAG_Long_Array,
-    NBTFile,
 )
 
-import amulet
-from amulet import log
-from amulet.api.chunk import Chunk, StatusFormats
+from amulet.api.chunk import Chunk
 from amulet.api.data_types import AnyNDArray
-from amulet.utils.world_utils import decode_long_array, encode_long_array
-from .feature_enum import BiomeState
 
 from .anvil_2709 import (
     Anvil2709Interface as ParentInterface,

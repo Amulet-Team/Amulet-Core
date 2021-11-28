@@ -17,7 +17,6 @@ from amulet.api.wrapper import Interface
 from amulet.level import loader
 from amulet.api.data_types import AnyNDArray, VersionIdentifierType
 from amulet.api.wrapper import EntityIDType, EntityCoordType
-from .feature_enum import BiomeState, HeightState
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
@@ -29,8 +28,6 @@ class BaseAnvilInterface(Interface):
     def __init__(self):
         self._feature_options = {
             "status": StatusFormats,
-            "light_populated": ["byte"],  # int
-            "terrain_populated": ["byte"],  # int
             "height_map": [
                 "256IARequired",  # A 256 element Int Array in HeightMap
                 "256IA",  # A 256 element Int Array in HeightMap
@@ -40,10 +37,6 @@ class BaseAnvilInterface(Interface):
                 "C|V4",  # A Compound of Long Arrays with these keys "WORLD_SURFACE_WG", "OCEAN_FLOOR_WG", "MOTION_BLOCKING", "MOTION_BLOCKING_NO_LEAVES", "OCEAN_FLOOR", "WORLD_SURFACE"
             ],
             # 'carving_masks': ['C|?BA'],
-            "long_array_format": [
-                "compact",
-                "1.16",
-            ],  # before the long array was just a bit stream but it is now separete longs. The upper bits are unused in some cases.
             "light_optional": ["false", "true"],
             "block_entity_format": [EntityIDType.namespace_str_id],
             "block_entity_coord_format": [EntityCoordType.xyz_int],

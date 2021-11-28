@@ -22,7 +22,6 @@ from amulet.api.chunk import Chunk, StatusFormats
 from .base_anvil_interface import (
     BaseAnvilInterface,
 )
-from .feature_enum import BiomeState, HeightState
 
 if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
@@ -36,9 +35,6 @@ class AnvilNAInterface(BaseAnvilInterface):
 
     def __init__(self):
         super().__init__()
-
-        self._set_feature("light_populated", "byte")
-        self._set_feature("terrain_populated", "byte")
         self._set_feature("height_map", "256IA")
 
         self._set_feature("light_optional", "false")
@@ -106,15 +102,10 @@ class AnvilNAInterface(BaseAnvilInterface):
 
     def _decode_status(self, chunk: Chunk, compound: TAG_Compound):
         status = "empty"
-        if self._features["terrain_populated"] == "byte" and self.get_obj(
-            compound, "TerrainPopulated", TAG_Byte
-        ):
+        if self.get_obj(compound, "TerrainPopulated", TAG_Byte):
             status = "decorated"
-        if self._features["light_populated"] == "byte" and self.get_obj(
-            compound, "LightPopulated", TAG_Byte
-        ):
+        if self.get_obj(compound, "LightPopulated", TAG_Byte):
             status = "postprocessed"
-
         chunk.status = status
 
     def _decode_v_tag(self, chunk: Chunk, compound: TAG_Compound):
@@ -374,11 +365,8 @@ class AnvilNAInterface(BaseAnvilInterface):
 
     def _encode_status(self, chunk: Chunk, level: TAG_Compound):
         status = chunk.status.as_type(StatusFormats.Raw)
-        if self._features["terrain_populated"] == "byte":
-            level["TerrainPopulated"] = TAG_Byte(int(status > -0.3))
-
-        if self._features["light_populated"] == "byte":
-            level["LightPopulated"] = TAG_Byte(int(status > -0.2))
+        level["TerrainPopulated"] = TAG_Byte(int(status > -0.3))
+        level["LightPopulated"] = TAG_Byte(int(status > -0.2))
 
     def _encode_v_tag(self, chunk: Chunk, level: TAG_Compound):
         level["V"] = TAG_Byte(chunk.misc.get("V", 1))
