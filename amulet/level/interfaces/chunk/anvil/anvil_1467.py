@@ -21,7 +21,7 @@ class Anvil1467Interface(Anvil1466Interface):
     def _decode_biomes(
         self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
     ):
-        biomes = compound.pop("Biomes")
+        biomes = compound.pop("Biomes", None)
         if isinstance(biomes, TAG_Int_Array) and biomes.value.size == 256:
             chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
 
@@ -30,7 +30,7 @@ class Anvil1467Interface(Anvil1466Interface):
     ):
         if chunk.status.value > -0.7:
             chunk.biomes.convert_to_2d()
-            level["Biomes"] = TAG_Int_Array(chunk.biomes.astype(dtype=numpy.uint32))
+            level["Biomes"] = TAG_Int_Array(chunk.biomes.astype(dtype=numpy.uint32).ravel())
 
 
 export = Anvil1467Interface

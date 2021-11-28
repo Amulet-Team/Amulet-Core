@@ -22,12 +22,12 @@ class Anvil2203Interface(Anvil1934Interface):
     def _decode_biomes(
         self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
     ):
-        biomes = compound.pop("Biomes")
-        min_y = bounds[0]
-        height = bounds[1] - min_y
-        arr_start = min_y // 16
-        arr_height = height // 4
+        biomes = compound.pop("Biomes", None)
         if isinstance(biomes, TAG_Int_Array):
+            min_y = bounds[0]
+            height = bounds[1] - min_y
+            arr_start = min_y // 16
+            arr_height = height // 4
             if biomes.value.size == 16 * arr_height:
                 chunk.biomes = {
                     sy + arr_start: arr
@@ -46,10 +46,6 @@ class Anvil2203Interface(Anvil1934Interface):
                 log.error(
                     f"Expected a biome array of size {arr_height * 4 * 4} but got an array of size {biomes.value.size}"
                 )
-        else:
-            log.error(
-                f"Expected a TAG_Int_Array biome array but got {biomes.__class__.__name__}"
-            )
 
     def _encode_biomes(
         self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]

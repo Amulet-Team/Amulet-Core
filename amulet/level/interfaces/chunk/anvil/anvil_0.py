@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Tuple, TYPE_CHECKING
 
-from amulet_nbt import TAG_Compound, TAG_Int
+from amulet_nbt import TAG_Compound, TAG_Int, TAG_List
 
 from .anvil_na import (
     AnvilNAInterface,
@@ -35,6 +35,11 @@ class Anvil0Interface(AnvilNAInterface):
         self, root: TAG_Compound, max_world_version: Tuple[str, int]
     ):
         root["DataVersion"] = TAG_Int(max_world_version[1])
+
+    def _encode_block_ticks(self, chunk: Chunk, level: TAG_Compound):
+        ticks = chunk.misc.get("tile_ticks", TAG_List())
+        if isinstance(ticks, TAG_List) and len(ticks) > 0:
+            level["TileTicks"] = ticks
 
 
 export = Anvil0Interface

@@ -27,6 +27,9 @@ class WorldTemp:
         self._src_world_path = get_world_path(src_world_name)
         self._temp_world_path = get_temp_world_path(temp_world_name or src_world_name)
 
+    def __repr__(self):
+        return f"WorldTemp({self.src_path}, {self.temp_path})"
+
     @property
     def src_path(self) -> str:
         return self._src_world_path

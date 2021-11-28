@@ -119,7 +119,7 @@ class AnvilNAInterface(BaseAnvilInterface):
     def _decode_biomes(
         self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
     ):
-        biomes = compound.pop("Biomes")
+        biomes = compound.pop("Biomes", None)
         if isinstance(biomes, TAG_Byte_Array) and biomes.value.size == 256:
             chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
 
@@ -339,8 +339,8 @@ class AnvilNAInterface(BaseAnvilInterface):
 
                 data_sub_array = block_sub_array[:, 1]
                 block_sub_array = block_sub_array[:, 0]
-                if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
-                    continue
+                # if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
+                #     continue
                 added_sections.add(cy)
                 section = sections.setdefault(cy, TAG_Compound())
                 section["Blocks"] = TAG_Byte_Array(block_sub_array.astype("uint8"))
@@ -377,9 +377,8 @@ class AnvilNAInterface(BaseAnvilInterface):
     def _encode_biomes(
         self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]
     ):
-        if chunk.status.value > -0.7:
-            chunk.biomes.convert_to_2d()
-            level["Biomes"] = TAG_Byte_Array(chunk.biomes.astype(dtype=numpy.uint8))
+        chunk.biomes.convert_to_2d()
+        level["Biomes"] = TAG_Byte_Array(chunk.biomes.astype(dtype=numpy.uint8).ravel())
 
     def _encode_height(
         self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]
@@ -407,10 +406,7 @@ class AnvilNAInterface(BaseAnvilInterface):
 
     def _encode_block_ticks(self, chunk: Chunk, level: TAG_Compound):
         ticks = chunk.misc.get("tile_ticks", TAG_List())
-        if self._features["tile_ticks"] == "list(optional)":
-            if len(ticks) > 0:
-                level["TileTicks"] = ticks
-        elif self._features["tile_ticks"] == "list":
+        if isinstance(ticks, TAG_List):
             level["TileTicks"] = ticks
 
     def _encode_sections(self, chunk: Chunk, sections: Dict[int, TAG_Compound]):

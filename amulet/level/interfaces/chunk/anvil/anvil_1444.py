@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Tuple, TYPE_CHECKING
+from typing import Dict, Tuple, Optional, TYPE_CHECKING
 
 import numpy
 from amulet_nbt import (
@@ -8,6 +8,7 @@ from amulet_nbt import (
     TAG_List,
     TAG_String,
     TAG_Long_Array,
+    TAG_Long,
 )
 
 from amulet.api.data_types import AnyNDArray
@@ -23,19 +24,6 @@ if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
 
 
-def properties_to_string(props: dict) -> str:
-    """
-    Converts a dictionary of blockstate properties to a string
-
-    :param props: The dictionary of blockstate properties
-    :return: The string version of the supplied blockstate properties
-    """
-    result = []
-    for key, value in props.items():
-        result.append("{}={}".format(key, value))
-    return ",".join(result)
-
-
 class Anvil1444Interface(Anvil0Interface):
     """
     Moved light and terrain populated to Status
@@ -44,7 +32,7 @@ class Anvil1444Interface(Anvil0Interface):
     Added structures tag
     """
 
-    Structures = "structures"
+    Structures = "Structures"
     LongArrayDense = True
 
     def __init__(self):
@@ -66,6 +54,21 @@ class Anvil1444Interface(Anvil0Interface):
             compound, "Status", TAG_String, TAG_String("full")
         ).value
 
+    def _decode_block_section(self, section: TAG_Compound) -> Optional[Tuple[numpy.ndarray, list]]:
+        if "Palette" not in section:  # 1.14 makes block_palette/blocks optional.
+            return None
+        section_palette = self._decode_palette(section.pop("Palette"))
+        decoded = decode_long_array(
+            section.pop("BlockStates").value,
+            4096,
+            max(4, (len(section_palette) - 1).bit_length()),
+            dense=self.LongArrayDense,
+        ).astype(numpy.uint32)
+        arr = numpy.transpose(
+            decoded.reshape((16, 16, 16)), (2, 0, 1)
+        )
+        return arr, section_palette
+
     def _decode_blocks(
         self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]
     ) -> AnyNDArray:
@@ -73,19 +76,11 @@ class Anvil1444Interface(Anvil0Interface):
         palette = [Block(namespace="minecraft", base_name="air")]
 
         for cy, section in chunk_sections.items():
-            if "Palette" not in section:  # 1.14 makes block_palette/blocks optional.
-                continue
-            section_palette = self._decode_palette(section.pop("Palette"))
-            decoded = decode_long_array(
-                section.pop("BlockStates").value,
-                4096,
-                max(4, (len(section_palette) - 1).bit_length()),
-                dense=self.LongArrayDense,
-            ).astype(numpy.uint32)
-            blocks[cy] = numpy.transpose(
-                decoded.reshape((16, 16, 16)) + len(palette), (2, 0, 1)
-            )
-            palette += section_palette
+            data = self._decode_block_section(section)
+            if data is not None:
+                arr, section_palette = data
+                blocks[cy] = arr + len(palette)
+                palette += section_palette
 
         np_palette, inverse = numpy.unique(palette, return_inverse=True)
         np_palette: numpy.ndarray
@@ -138,6 +133,9 @@ class Anvil1444Interface(Anvil0Interface):
         status = chunk.status.as_type(self._features["status"])
         level["Status"] = TAG_String(status)
 
+    def _encode_inhabited_time(self, chunk: Chunk, level: TAG_Compound):
+        level["InhabitedTime"] = TAG_Long(chunk.misc.get("inhabited_time", 0))
+
     def _encode_blocks(
         self,
         sections: Dict[int, TAG_Compound],
@@ -176,7 +174,8 @@ class Anvil1444Interface(Anvil0Interface):
         for block in blockstates:
             entry = TAG_Compound()
             entry["Name"] = TAG_String(f"{block.namespace}:{block.base_name}")
-            entry["Properties"] = TAG_Compound(block.properties)
+            if block.properties:
+                entry["Properties"] = TAG_Compound(block.properties)
             palette.append(entry)
         return palette
 
@@ -188,7 +187,9 @@ class Anvil1444Interface(Anvil0Interface):
         )
 
     def _encode_fluid_ticks(self, chunk: Chunk, compound: TAG_Compound):
-        compound["LiquidTicks"] = chunk.misc.get("liquid_ticks", TAG_List())
+        ticks = chunk.misc.get("liquid_ticks", TAG_List())
+        if isinstance(ticks, TAG_List) and len(ticks) > 0:
+            compound["LiquidTicks"] = ticks
         compound["LiquidsToBeTicked"] = chunk.misc.get(
             "liquids_to_be_ticked",
             TAG_List([TAG_List() for _ in range(16)]),
