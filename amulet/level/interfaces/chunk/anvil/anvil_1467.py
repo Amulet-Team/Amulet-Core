@@ -30,7 +30,9 @@ class Anvil1467Interface(Anvil1466Interface):
     ):
         if chunk.status.value > -0.7:
             chunk.biomes.convert_to_2d()
-            level["Biomes"] = TAG_Int_Array(chunk.biomes.astype(dtype=numpy.uint32).ravel())
+            level["Biomes"] = TAG_Int_Array(
+                chunk.biomes.astype(dtype=numpy.uint32).ravel()
+            )
 
 
 export = Anvil1467Interface

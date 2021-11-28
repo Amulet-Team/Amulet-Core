@@ -54,7 +54,9 @@ class Anvil1444Interface(Anvil0Interface):
             compound, "Status", TAG_String, TAG_String("full")
         ).value
 
-    def _decode_block_section(self, section: TAG_Compound) -> Optional[Tuple[numpy.ndarray, list]]:
+    def _decode_block_section(
+        self, section: TAG_Compound
+    ) -> Optional[Tuple[numpy.ndarray, list]]:
         if "Palette" not in section:  # 1.14 makes block_palette/blocks optional.
             return None
         section_palette = self._decode_palette(section.pop("Palette"))
@@ -64,9 +66,7 @@ class Anvil1444Interface(Anvil0Interface):
             max(4, (len(section_palette) - 1).bit_length()),
             dense=self.LongArrayDense,
         ).astype(numpy.uint32)
-        arr = numpy.transpose(
-            decoded.reshape((16, 16, 16)), (2, 0, 1)
-        )
+        arr = numpy.transpose(decoded.reshape((16, 16, 16)), (2, 0, 1))
         return arr, section_palette
 
     def _decode_blocks(
