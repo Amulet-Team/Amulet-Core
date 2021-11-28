@@ -5,19 +5,43 @@ import shutil
 from typing import Optional
 from contextlib import contextmanager
 
-TESTS_DIR = os.path.dirname(__file__)
+import tests.data
+
+DATA_DIR = tests.data.__path__[0]
 
 
 def get_world_path(name: str) -> str:
-    return os.path.join(TESTS_DIR, "worlds_src", name)
+    return os.path.join(DATA_DIR, "worlds_src", name)
 
 
 def get_temp_world_path(name: str) -> str:
-    return os.path.join(TESTS_DIR, "worlds_temp", name)
+    return os.path.join(DATA_DIR, "worlds_temp", name)
 
 
 def get_data_path(name: str) -> str:
-    return os.path.join(TESTS_DIR, "data", name)
+    return os.path.join(DATA_DIR, "", name)
+
+
+class WorldTemp:
+    def __init__(self, src_world_name: str, temp_world_name: Optional[str] = None):
+        self._src_world_path = get_world_path(src_world_name)
+        self._temp_world_path = get_temp_world_path(temp_world_name or src_world_name)
+
+    @property
+    def src_path(self) -> str:
+        return self._src_world_path
+
+    @property
+    def temp_path(self) -> str:
+        return self._temp_world_path
+
+    def __enter__(self):
+        clean_path(self._temp_world_path)
+        create_temp_world(self.src_path, self.temp_path)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        clean_path(self.temp_path)
 
 
 def clean_path(path: str):

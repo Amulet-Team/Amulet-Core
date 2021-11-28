@@ -6,13 +6,13 @@ from amulet.api.chunk import Chunk
 from amulet.api.errors import ChunkDoesNotExist
 from amulet.api.selection import SelectionBox, SelectionGroup
 from amulet import load_level, load_format
-from tests.test_utils import get_world_path, create_temp_world, clean_temp_world
+from tests.data.util import get_world_path, create_temp_world, clean_temp_world
 from amulet.operations.clone import clone
 from amulet.operations.delete_chunk import delete_chunk
 from amulet.operations.fill import fill
 from amulet.operations.replace import replace
 from amulet.utils.generator import generator_unpacker
-from tests import worlds_src
+from tests.data import worlds_src
 from amulet.level.formats.anvil_world.format import OVERWORLD
 
 

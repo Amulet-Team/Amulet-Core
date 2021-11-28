@@ -5,7 +5,7 @@ import copy
 from amulet.api.chunk.biomes import Biomes
 
 
-class BlockTestCase(unittest.TestCase):
+class BiomeTestCase(unittest.TestCase):
     def test_biomes(self):
         biomes = Biomes()
         biomes.convert_to_3d()
