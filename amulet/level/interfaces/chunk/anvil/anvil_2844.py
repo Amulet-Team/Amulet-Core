@@ -127,7 +127,7 @@ class Anvil2844Interface(ParentInterface):
                     decode_long_array(
                         data.value,
                         4 ** 3,
-                        max(4, (len(section_palette) - 1).bit_length()),
+                        (len(section_palette) - 1).bit_length(),
                         dense=self.LongArrayDense,
                     ).astype(numpy.uint32).reshape((4, 4, 4)),
                     (2, 0, 1)
