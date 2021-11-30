@@ -2,8 +2,9 @@ import sys
 import os
 import time
 import shutil
-from typing import Optional
+from typing import Optional, Iterable
 from contextlib import contextmanager
+import re
 
 import tests.data
 
@@ -20,6 +21,23 @@ def get_temp_world_path(name: str) -> str:
 
 def get_data_path(name: str) -> str:
     return os.path.join(DATA_DIR, "", name)
+
+
+class BaseWorldTest:
+    WorldPath = ""
+
+
+def for_each_world(globals_, worlds: Iterable[str]):
+    def wrap(cls: BaseWorldTest):
+        for world in worlds:
+            world_identifier = re.sub('\W|^(?=\d)','_', world)
+            globals_[world_identifier] = type(
+                world_identifier,
+                (cls,),
+                {"WorldPath": world}
+            )
+        return None
+    return wrap
 
 
 class WorldTemp:
