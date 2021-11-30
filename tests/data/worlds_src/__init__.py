@@ -1,29 +1,44 @@
-# bedrock worlds
-bedrock_vanilla_1_16 = "bedrock_vanilla_1_16"
+import glob
+import os
+import json
 
-BedrockLevels = [bedrock_vanilla_1_16]
+BedrockLevels = []
+JavaVanillaLevels = []
+JavaForgeLevels = []
 
-# java worlds
-java_vanilla_1_13 = "java_vanilla_1_13"
-java_vanilla_1_12_2 = "java_vanilla_1_12_2"
-java_vanilla_1_16_5_dimension = "java_vanilla_1_16_5_dimension"
 
-JavaVanillaLevels = [
-    java_vanilla_1_13,
-    java_vanilla_1_12_2,
-    java_vanilla_1_16_5_dimension,
-]
+def find_levels():
+    this_dir = os.path.dirname(__file__)
+    for path in glob.glob(
+        os.path.join(
+            this_dir,
+            "**",
+            "world_test_data.json"
+        ),
+        recursive=True
+    ):
+        rel_path = os.path.dirname(os.path.relpath(path, this_dir))
+        with open(path) as f:
+            test_data = json.load(f)
+        platform = test_data["world_data"]["platform"]
+        if platform == "java":
+            origin = test_data["world_data"]["origin"]
+            if origin == "vanilla":
+                JavaVanillaLevels.append(rel_path)
+            elif origin == "forge":
+                JavaForgeLevels.append(rel_path)
+            else:
+                raise Exception(f"Unknown origin {origin}")
+        elif platform == "bedrock":
+            BedrockLevels.append(rel_path)
+        else:
+            raise Exception(f"Unknown platform {platform}")
 
-# java forge worlds
-java_forge_1_12_2_twilight_forest = "java_forge_1_12_2_twilight_forest"
-java_forge_1_16_5_twilight_forest = "java_forge_1_16_5_twilight_forest"
 
-JavaModdedLevels = [
-    java_forge_1_12_2_twilight_forest,
-    java_forge_1_16_5_twilight_forest,
-]
+find_levels()
+del find_levels
 
-JavaLevels = [*JavaVanillaLevels, *JavaModdedLevels]
+JavaLevels = [*JavaVanillaLevels, *JavaForgeLevels]
 
 levels = [
     *BedrockLevels,
