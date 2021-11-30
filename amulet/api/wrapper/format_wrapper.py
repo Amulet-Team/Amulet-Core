@@ -477,11 +477,11 @@ class FormatWrapper(ABC):
         )
 
         # decode the raw chunk data into the universal format
-        chunk, chunk_palette = self._decode(
+        chunk, block_palette = self._decode(
             interface, dimension, cx, cz, raw_chunk_data
         )
-        chunk_palette: AnyNDArray
-        chunk = self._unpack(translator, game_version, chunk, chunk_palette)
+        block_palette: AnyNDArray
+        chunk = self._unpack(translator, game_version, chunk, block_palette)
         return self._convert_to_load(
             chunk, translator, game_version, dimension, recurse=recurse
         )
@@ -501,10 +501,10 @@ class FormatWrapper(ABC):
         translator: "Translator",
         game_version: VersionNumberAny,
         chunk: Chunk,
-        chunk_palette: AnyNDArray,
+        block_palette: AnyNDArray,
     ) -> Chunk:
         return translator.unpack(
-            game_version, self.translation_manager, chunk, chunk_palette
+            game_version, self.translation_manager, chunk, block_palette
         )
 
     def _convert_to_load(

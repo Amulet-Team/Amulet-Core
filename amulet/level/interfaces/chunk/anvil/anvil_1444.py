@@ -59,7 +59,7 @@ class Anvil1444Interface(Anvil0Interface):
     ) -> Optional[Tuple[numpy.ndarray, list]]:
         if "Palette" not in section:  # 1.14 makes block_palette/blocks optional.
             return None
-        section_palette = self._decode_palette(section.pop("Palette"))
+        section_palette = self._decode_block_palette(section.pop("Palette"))
         decoded = decode_long_array(
             section.pop("BlockStates").value,
             4096,
@@ -92,7 +92,7 @@ class Anvil1444Interface(Anvil0Interface):
         return np_palette
 
     @staticmethod
-    def _decode_palette(palette: TAG_List) -> list:
+    def _decode_block_palette(palette: TAG_List) -> list:
         blockstates = []
         for entry in palette:
             namespace, base_name = entry["Name"].value.split(":", 1)
