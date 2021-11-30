@@ -1,12 +1,19 @@
 from __future__ import annotations
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Optional
+import numpy
 
 from amulet_nbt import (
     TAG_Compound,
+    TAG_List,
 )
 
 from amulet.api.chunk import Chunk
-from amulet.api.data_types import AnyNDArray
+from amulet.api.registry import BiomeManager
+from amulet.api.data_types import AnyNDArray, BiomeType
+from amulet.utils.world_utils import (
+    decode_long_array,
+    encode_long_array,
+)
 
 from .anvil_2709 import (
     Anvil2709Interface as ParentInterface,
@@ -74,10 +81,78 @@ class Anvil2844Interface(ParentInterface):
         super()._decode_sections(chunk, sections)
         self._decode_biome_sections(chunk, sections)
 
+    def _decode_block_section(
+        self, section: TAG_Compound
+    ) -> Optional[Tuple[numpy.ndarray, list]]:
+        block_states = self.get_obj(section, "block_states", TAG_Compound)
+        if (
+            isinstance(block_states, TAG_Compound) and "palette" in block_states
+        ):  # 1.14 makes block_palette/blocks optional.
+            section_palette = self._decode_block_palette(block_states.pop("palette"))
+            data = block_states.pop("data", None)
+            if data is None:
+                arr = numpy.zeros((16, 16, 16), numpy.uint32)
+            else:
+                decoded = decode_long_array(
+                    data.value,
+                    16 ** 3,
+                    max(4, (len(section_palette) - 1).bit_length()),
+                    dense=self.LongArrayDense,
+                ).astype(numpy.uint32)
+                arr = numpy.transpose(decoded.reshape((16, 16, 16)), (2, 0, 1))
+            return arr, section_palette
+        else:
+            return None
+
+    @staticmethod
+    def _decode_biome_palette(palette: TAG_List) -> list[BiomeType]:
+        return [
+            entry.value for entry in palette
+        ]
+
+    def _decode_biome_section(
+        self, section: TAG_Compound
+    ) -> Optional[Tuple[numpy.ndarray, list]]:
+        biomes = self.get_obj(section, "biomes", TAG_Compound)
+        if (
+            isinstance(biomes, TAG_Compound) and "palette" in biomes
+        ):
+            section_palette = self._decode_biome_palette(biomes.pop("palette"))
+            data = biomes.pop("data", None)
+            if data is None:
+                # TODO: in the new biome system just leave this as the number
+                arr = numpy.zeros((4, 4, 4), numpy.uint32)
+            else:
+                arr = numpy.transpose(
+                    decode_long_array(
+                        data.value,
+                        4 ** 3,
+                        max(4, (len(section_palette) - 1).bit_length()),
+                        dense=self.LongArrayDense,
+                    ).astype(numpy.uint32).reshape((4, 4, 4)),
+                    (2, 0, 1)
+                )
+            return arr, section_palette
+        else:
+            return None
+
     def _decode_biome_sections(
         self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]
     ):
-        raise NotImplementedError
+        biomes: Dict[int, numpy.ndarray] = {}
+        palette = BiomeManager()
+
+        for cy, section in chunk_sections.items():
+            data = self._decode_biome_section(section)
+            if data is not None:
+                arr, section_palette = data
+                lut = numpy.array([
+                    palette.get_add_biome(biome) for biome in section_palette
+                ])
+                biomes[cy] = lut[arr].astype(numpy.uint32)
+
+        chunk.biomes = biomes
+        chunk.biome_palette = palette
 
     def _decode_block_ticks(self, chunk: Chunk, compound: TAG_Compound):
         raise NotImplementedError
