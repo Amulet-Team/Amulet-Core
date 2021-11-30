@@ -435,7 +435,7 @@ class FormatWrapper(ABC):
             raise e
         except Exception as e:
             log.error(msg.format(*args), exc_info=True)
-            raise load_error(e)
+            raise load_error(e) from e
 
     def load_chunk(self, cx: int, cz: int, dimension: Dimension) -> Chunk:
         """
