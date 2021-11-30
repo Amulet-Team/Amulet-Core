@@ -9,7 +9,6 @@ from tests.data import worlds_src
 
 
 class DefinitionBasedLoaderTestCase(unittest.TestCase):
-    @unittest.skip
     def test_identify(self):
         with WorldTemp(worlds_src.java_vanilla_1_12_2) as world_temp:
             numerical_java_format = load_format(world_temp.temp_path)
