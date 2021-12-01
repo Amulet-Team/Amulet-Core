@@ -108,7 +108,9 @@ class Anvil1444Interface(Anvil0Interface):
         chunk.misc["to_be_ticked"] = self.get_obj(compound, "ToBeTicked", TAG_List)
 
     def _decode_fluid_ticks(self, chunk: Chunk, compound: TAG_Compound):
-        chunk.misc["liquid_ticks"] = self.get_obj(compound, "LiquidTicks", TAG_List)
+        chunk.misc.setdefault("fluid_ticks", {}).update(
+            self._decode_ticks(self.get_obj(compound, "LiquidTicks", TAG_List))
+        )
         chunk.misc["liquids_to_be_ticked"] = self.get_obj(
             compound, "LiquidsToBeTicked", TAG_List
         )
@@ -187,7 +189,7 @@ class Anvil1444Interface(Anvil0Interface):
         )
 
     def _encode_fluid_ticks(self, chunk: Chunk, compound: TAG_Compound):
-        ticks = chunk.misc.get("liquid_ticks", TAG_List())
+        ticks = chunk.misc.get("fluid_ticks", TAG_List())
         if isinstance(ticks, TAG_List) and len(ticks) > 0:
             compound["LiquidTicks"] = ticks
         compound["LiquidsToBeTicked"] = chunk.misc.get(

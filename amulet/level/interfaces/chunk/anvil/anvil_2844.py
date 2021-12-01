@@ -153,10 +153,14 @@ class Anvil2844Interface(ParentInterface):
         chunk.biome_palette = palette
 
     def _decode_block_ticks(self, chunk: Chunk, compound: TAG_Compound):
-        raise NotImplementedError
+        chunk.misc.setdefault("block_ticks", {}).update(
+            self._decode_ticks(self.get_obj(compound, "block_ticks", TAG_List))
+        )
 
     def _decode_fluid_ticks(self, chunk: Chunk, compound: TAG_Compound):
-        raise NotImplementedError
+        chunk.misc.setdefault("fluid_ticks", {}).update(
+            self._decode_ticks(self.get_obj(compound, "fluid_ticks", TAG_List))
+        )
 
 
 export = Anvil2844Interface

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Dict, TYPE_CHECKING
+from typing import Tuple, Dict, TYPE_CHECKING, List
 
 import numpy
 from amulet_nbt import (
@@ -15,7 +15,7 @@ from amulet_nbt import (
 )
 
 import amulet
-from amulet.api.data_types import SubChunkNDArray, AnyNDArray
+from amulet.api.data_types import SubChunkNDArray, AnyNDArray, BlockCoordinates
 from amulet.utils import world_utils
 from amulet.api.wrapper import EntityIDType, EntityCoordType
 from amulet.api.chunk import Chunk, StatusFormats
@@ -233,8 +233,18 @@ class AnvilNAInterface(BaseAnvilInterface):
             self.get_obj(compound, self.BlockEntities, TAG_List)
         )
 
+    @staticmethod
+    def _decode_ticks(ticks: TAG_List) -> Dict[BlockCoordinates, Tuple[int, int]]:
+        return {
+            (tick["x"], tick["y"], tick["z"]): (tick["t"], tick["p"])
+            for tick in ticks
+            if all(c in tick and isinstance(tick[c], TAG_Int) for c in "xyztp")
+        }
+
     def _decode_block_ticks(self, chunk: Chunk, compound: TAG_Compound):
-        chunk.misc["tile_ticks"] = self.get_obj(compound, "TileTicks", TAG_List)
+        chunk.misc.setdefault("block_ticks", {}).update(
+            self._decode_ticks(self.get_obj(compound, "TileTicks", TAG_List))
+        )
 
     def encode(
         self,
