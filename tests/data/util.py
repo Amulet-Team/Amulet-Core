@@ -5,6 +5,7 @@ import shutil
 from typing import Optional, Iterable
 from contextlib import contextmanager
 import re
+import json
 
 import tests.data
 
@@ -43,6 +44,7 @@ class WorldTemp:
     def __init__(self, src_world_name: str, temp_world_name: Optional[str] = None):
         self._src_world_path = get_world_path(src_world_name)
         self._temp_world_path = get_temp_world_path(temp_world_name or src_world_name)
+        self._metadata = None
 
     def __repr__(self):
         return f"WorldTemp({self.src_path}, {self.temp_path})"
@@ -54,6 +56,13 @@ class WorldTemp:
     @property
     def temp_path(self) -> str:
         return self._temp_world_path
+
+    @property
+    def metadata(self) -> dict:
+        if self._metadata is None:
+            with open(os.path.join(self.src_path, "world_test_data.json")) as f:
+                self._metadata = json.load(f)
+        return self._metadata
 
     def __enter__(self):
         clean_path(self._temp_world_path)
