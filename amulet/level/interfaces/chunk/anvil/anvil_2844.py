@@ -65,7 +65,9 @@ class Anvil2844Interface(ParentInterface):
         palette = self._decode_blocks(chunk, sections)
         return chunk, palette
 
-    def _decode_level(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int], floor_cy: int):
+    def _decode_level(
+        self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int], floor_cy: int
+    ):
         self._decode_location(chunk, level)
         self._decode_last_update(chunk, level)
         self._decode_status(chunk, level)
@@ -168,10 +170,14 @@ class Anvil2844Interface(ParentInterface):
             self._decode_ticks(self.get_obj(compound, "fluid_ticks", TAG_List))
         )
 
-    def _encode_block_ticks(self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]):
+    def _encode_block_ticks(
+        self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
+    ):
         compound["block_ticks"] = self._encode_ticks(chunk.misc.get("block_ticks", {}))
 
-    def _encode_fluid_ticks(self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]):
+    def _encode_fluid_ticks(
+        self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
+    ):
         compound["fluid_ticks"] = self._encode_ticks(chunk.misc.get("fluid_ticks", {}))
 
 

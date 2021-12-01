@@ -18,9 +18,7 @@ class Anvil1467Interface(Anvil1466Interface):
     def minor_is_valid(key: int):
         return 1467 <= key < 1484
 
-    def _decode_biomes(
-        self, chunk: Chunk, compound: TAG_Compound, floor_cy: int
-    ):
+    def _decode_biomes(self, chunk: Chunk, compound: TAG_Compound, floor_cy: int):
         biomes = compound.pop("Biomes", None)
         if isinstance(biomes, TAG_Int_Array) and biomes.value.size == 256:
             chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))

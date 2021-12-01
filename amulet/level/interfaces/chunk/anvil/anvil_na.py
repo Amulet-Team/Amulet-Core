@@ -82,7 +82,9 @@ class AnvilNAInterface(BaseAnvilInterface):
     def _decode_root(self, chunk: Chunk, root: TAG_Compound):
         pass
 
-    def _decode_level(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int], floor_cy: int):
+    def _decode_level(
+        self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int], floor_cy: int
+    ):
         self._decode_location(chunk, level)
         self._decode_last_update(chunk, level)
         self._decode_status(chunk, level)
@@ -120,9 +122,7 @@ class AnvilNAInterface(BaseAnvilInterface):
             compound, "InhabitedTime", TAG_Long
         ).value
 
-    def _decode_biomes(
-        self, chunk: Chunk, compound: TAG_Compound, floor_cy: int
-    ):
+    def _decode_biomes(self, chunk: Chunk, compound: TAG_Compound, floor_cy: int):
         biomes = compound.pop("Biomes", None)
         if isinstance(biomes, TAG_Byte_Array) and biomes.value.size == 256:
             chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
@@ -301,9 +301,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         else:
             return TAG_Compound()
 
-    def _encode_root(
-        self, root: TAG_Compound, max_world_version: Tuple[str, int]
-    ):
+    def _encode_root(self, root: TAG_Compound, max_world_version: Tuple[str, int]):
         self._encode_data_version(root, max_world_version)
 
     def _encode_data_version(
@@ -373,9 +371,7 @@ class AnvilNAInterface(BaseAnvilInterface):
                 del sections[cy]
 
     @staticmethod
-    def _encode_coords(
-        chunk: Chunk, level: TAG_Compound
-    ):
+    def _encode_coords(chunk: Chunk, level: TAG_Compound):
         level["xPos"] = TAG_Int(chunk.cx)
         level["zPos"] = TAG_Int(chunk.cz)
 
@@ -426,9 +422,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         level[self.BlockEntities] = self._encode_block_entity_list(chunk.block_entities)
 
     @staticmethod
-    def _encode_ticks(
-        ticks: Dict[BlockCoordinates, Tuple[str, int, int]]
-    ) -> TAG_List:
+    def _encode_ticks(ticks: Dict[BlockCoordinates, Tuple[str, int, int]]) -> TAG_List:
         ticks_out = TAG_List()
         if isinstance(ticks, dict):
             for k, v in ticks.items():
@@ -450,7 +444,9 @@ class AnvilNAInterface(BaseAnvilInterface):
                     amulet.log.error(f"Could not serialise tick data {k}: {v}")
         return ticks_out
 
-    def _encode_block_ticks(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]):
+    def _encode_block_ticks(
+        self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]
+    ):
         level["TileTicks"] = self._encode_ticks(chunk.misc.get("block_ticks", {}))
 
     def _encode_sections(self, chunk: Chunk, sections: Dict[int, TAG_Compound]):
