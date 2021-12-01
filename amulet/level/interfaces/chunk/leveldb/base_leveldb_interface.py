@@ -669,7 +669,9 @@ class BaseLevelDBInterface(Interface):
             elif bits_per_value > 0:
                 arr = arr[::4, ::4, ::4]
                 palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
-                biomes[cy] = numpy.frombuffer(data, "<i4", palette_len)[arr].astype(numpy.uint32)
+                biomes[cy] = numpy.frombuffer(data, "<i4", palette_len)[arr].astype(
+                    numpy.uint32
+                )
                 data = data[4 * palette_len :]
         if data:
             raise Exception("More data")

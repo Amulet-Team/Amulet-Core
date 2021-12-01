@@ -14,7 +14,10 @@ class TestWorldHeight(BaseWorldTest, unittest.TestCase):
     def test_height(self):
         with WorldTemp(self.WorldPath) as world_temp:
             test_data_path = os.path.join(world_temp.temp_path, "world_test_data.json")
-            self.assertTrue(os.path.isfile(test_data_path), msg=f"Could not find world_test_data.json for world {self.WorldPath}")
+            self.assertTrue(
+                os.path.isfile(test_data_path),
+                msg=f"Could not find world_test_data.json for world {self.WorldPath}",
+            )
             with open(test_data_path) as f:
                 test_data = json.load(f)
             self.assertIn("dim_height", test_data, msg=self.WorldPath)
@@ -25,17 +28,12 @@ class TestWorldHeight(BaseWorldTest, unittest.TestCase):
             self.assertEqual(
                 sorted(test_data["dim_height"]),
                 sorted(world_wrapper.dimensions),
-                msg=self.WorldPath
+                msg=self.WorldPath,
             )
             for dim in world_wrapper.dimensions:
                 box = world_wrapper.bounds(dim).to_box()
                 self.assertEqual(
-                    height_data[dim],
-                    [
-                        list(box.min),
-                        list(box.max)
-                    ],
-                    msg=self.WorldPath
+                    height_data[dim], [list(box.min), list(box.max)], msg=self.WorldPath
                 )
             world_wrapper.close()
 

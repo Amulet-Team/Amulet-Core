@@ -36,4 +36,5 @@ class Java118Translator(JavaBlockstateTranslator):
     ):
         pass
 
+
 export = Java118Translator

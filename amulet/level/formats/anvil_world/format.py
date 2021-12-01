@@ -230,9 +230,16 @@ class AnvilFormat(WorldFormatWrapper):
                     dimension_type: str = dimension_type.value
                     if ":" in dimension_type:
                         namespace, base_name = dimension_type.split(":", 1)
-                        if self.version >= 2834 and namespace == "minecraft" and base_name == "overworld":
+                        if (
+                            self.version >= 2834
+                            and namespace == "minecraft"
+                            and base_name == "overworld"
+                        ):
                             bounds = SelectionGroup(
-                                SelectionBox((-30_000_000, -64, -30_000_000), (30_000_000, 320, 30_000_000))
+                                SelectionBox(
+                                    (-30_000_000, -64, -30_000_000),
+                                    (30_000_000, 320, 30_000_000),
+                                )
                             )
                         dimension_path = (
                             f"data/{namespace}/dimension_type/{base_name}.json"

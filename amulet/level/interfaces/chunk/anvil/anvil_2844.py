@@ -106,17 +106,13 @@ class Anvil2844Interface(ParentInterface):
 
     @staticmethod
     def _decode_biome_palette(palette: TAG_List) -> list[BiomeType]:
-        return [
-            entry.value for entry in palette
-        ]
+        return [entry.value for entry in palette]
 
     def _decode_biome_section(
         self, section: TAG_Compound
     ) -> Optional[Tuple[numpy.ndarray, list]]:
         biomes = self.get_obj(section, "biomes", TAG_Compound)
-        if (
-            isinstance(biomes, TAG_Compound) and "palette" in biomes
-        ):
+        if isinstance(biomes, TAG_Compound) and "palette" in biomes:
             section_palette = self._decode_biome_palette(biomes.pop("palette"))
             data = biomes.pop("data", None)
             if data is None:
@@ -129,8 +125,10 @@ class Anvil2844Interface(ParentInterface):
                         4 ** 3,
                         (len(section_palette) - 1).bit_length(),
                         dense=self.LongArrayDense,
-                    ).astype(numpy.uint32).reshape((4, 4, 4)),
-                    (2, 0, 1)
+                    )
+                    .astype(numpy.uint32)
+                    .reshape((4, 4, 4)),
+                    (2, 0, 1),
                 )
             return arr, section_palette
         else:
@@ -146,9 +144,9 @@ class Anvil2844Interface(ParentInterface):
             data = self._decode_biome_section(section)
             if data is not None:
                 arr, section_palette = data
-                lut = numpy.array([
-                    palette.get_add_biome(biome) for biome in section_palette
-                ])
+                lut = numpy.array(
+                    [palette.get_add_biome(biome) for biome in section_palette]
+                )
                 biomes[cy] = lut[arr].astype(numpy.uint32)
 
         chunk.biomes = biomes

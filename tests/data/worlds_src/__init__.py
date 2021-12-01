@@ -10,12 +10,7 @@ JavaForgeLevels = []
 def find_levels():
     this_dir = os.path.dirname(__file__)
     for path in glob.glob(
-        os.path.join(
-            this_dir,
-            "**",
-            "world_test_data.json"
-        ),
-        recursive=True
+        os.path.join(this_dir, "**", "world_test_data.json"), recursive=True
     ):
         rel_path = os.path.dirname(os.path.relpath(path, this_dir))
         with open(path) as f:
