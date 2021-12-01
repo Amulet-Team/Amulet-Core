@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Dict, TYPE_CHECKING, List
+from typing import Tuple, Dict, TYPE_CHECKING
 
 import numpy
 from amulet_nbt import (
@@ -72,8 +72,8 @@ class AnvilNAInterface(BaseAnvilInterface):
     ) -> Tuple["Chunk", AnyNDArray]:
         self._decode_root(chunk, root)
         assert self.check_type(root, "Level", TAG_Compound)
-        level = root["Level"]
-        self._decode_level(chunk, level, bounds)
+        level = root.pop("Level")
+        self._decode_level(chunk, level, bounds, bounds[0] >> 4)
         sections = self._extract_sections(chunk, level)
         self._decode_sections(chunk, sections)
         palette = self._decode_blocks(chunk, sections)
@@ -82,19 +82,24 @@ class AnvilNAInterface(BaseAnvilInterface):
     def _decode_root(self, chunk: Chunk, root: TAG_Compound):
         pass
 
-    def _decode_level(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]):
+    def _decode_level(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int], floor_cy: int):
+        self._decode_location(chunk, level)
         self._decode_last_update(chunk, level)
         self._decode_status(chunk, level)
         self._decode_inhabited_time(chunk, level)
-        self._decode_biomes(chunk, level, bounds)
+        self._decode_biomes(chunk, level, floor_cy)
         self._decode_height(chunk, level, bounds)
         self._decode_entities(chunk, level)
         self._decode_block_entities(chunk, level)
-        self._decode_block_ticks(chunk, level)
+        self._decode_block_ticks(chunk, level, floor_cy)
 
     def _decode_sections(self, chunk: Chunk, sections: Dict[int, TAG_Compound]):
         self._decode_block_light(chunk, sections)
         self._decode_sky_light(chunk, sections)
+
+    @staticmethod
+    def _decode_location(chunk: Chunk, level: TAG_Compound):
+        assert chunk.coordinates == (level.pop("xPos"), level.pop("zPos"))
 
     def _decode_last_update(self, chunk: Chunk, compound: TAG_Compound):
         chunk.misc["last_update"] = self.get_obj(compound, "LastUpdate", TAG_Long).value
@@ -116,7 +121,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         ).value
 
     def _decode_biomes(
-        self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
+        self, chunk: Chunk, compound: TAG_Compound, floor_cy: int
     ):
         biomes = compound.pop("Biomes", None)
         if isinstance(biomes, TAG_Byte_Array) and biomes.value.size == 256:
@@ -233,7 +238,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         )
 
     @staticmethod
-    def _decode_ticks(ticks: TAG_List) -> Dict[BlockCoordinates, Tuple[int, int]]:
+    def _decode_ticks(ticks: TAG_List) -> Dict[BlockCoordinates, Tuple[str, int, int]]:
         return {
             (tick["x"], tick["y"], tick["z"]): (tick["i"], tick["t"], tick["p"])
             for tick in ticks
@@ -242,7 +247,7 @@ class AnvilNAInterface(BaseAnvilInterface):
             and isinstance(tick["i"], TAG_String)
         }
 
-    def _decode_block_ticks(self, chunk: Chunk, compound: TAG_Compound):
+    def _decode_block_ticks(self, chunk: Chunk, compound: TAG_Compound, floor_cy: int):
         chunk.misc.setdefault("block_ticks", {}).update(
             self._decode_ticks(self.get_obj(compound, "TileTicks", TAG_List))
         )
@@ -264,7 +269,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         bounds: Tuple[int, int],
     ) -> TAG_Compound:
         root = self._init_encode(chunk)
-        self._encode_root(chunk, root, max_world_version)
+        self._encode_root(root, max_world_version)
         level: TAG_Compound = self.set_obj(root, "Level", TAG_Compound)
         self._encode_level(chunk, level, bounds)
         sections = self._init_sections(chunk)
@@ -286,7 +291,8 @@ class AnvilNAInterface(BaseAnvilInterface):
         level[self.Sections] = TAG_List(sections_list)
         return root
 
-    def _init_encode(self, chunk: "Chunk"):
+    @staticmethod
+    def _init_encode(chunk: "Chunk"):
         """Get or create the root tag."""
         if "java_chunk_data" in chunk.misc and isinstance(
             chunk.misc["java_chunk_data"], TAG_Compound
@@ -296,7 +302,7 @@ class AnvilNAInterface(BaseAnvilInterface):
             return TAG_Compound()
 
     def _encode_root(
-        self, chunk: Chunk, root: TAG_Compound, max_world_version: Tuple[str, int]
+        self, root: TAG_Compound, max_world_version: Tuple[str, int]
     ):
         self._encode_data_version(root, max_world_version)
 
@@ -307,7 +313,7 @@ class AnvilNAInterface(BaseAnvilInterface):
             del root["DataVersion"]
 
     def _encode_level(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]):
-        self._encode_coords(chunk, level, bounds)
+        self._encode_coords(chunk, level)
         self._encode_last_update(chunk, level)
         self._encode_status(chunk, level)
         self._encode_inhabited_time(chunk, level)
@@ -315,9 +321,10 @@ class AnvilNAInterface(BaseAnvilInterface):
         self._encode_height(chunk, level, bounds)
         self._encode_entities(chunk, level)
         self._encode_block_entities(chunk, level)
-        self._encode_block_ticks(chunk, level)
+        self._encode_block_ticks(chunk, level, bounds)
 
-    def _init_sections(self, chunk: "Chunk") -> Dict[int, TAG_Compound]:
+    @staticmethod
+    def _init_sections(chunk: "Chunk") -> Dict[int, TAG_Compound]:
         """Get or create the root tag."""
         if "java_sections" in chunk.misc and isinstance(
             chunk.misc["java_sections"], dict
@@ -365,13 +372,15 @@ class AnvilNAInterface(BaseAnvilInterface):
             if cy not in added_sections:
                 del sections[cy]
 
+    @staticmethod
     def _encode_coords(
-        self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]
+        chunk: Chunk, level: TAG_Compound
     ):
         level["xPos"] = TAG_Int(chunk.cx)
         level["zPos"] = TAG_Int(chunk.cz)
 
-    def _encode_last_update(self, chunk: Chunk, level: TAG_Compound):
+    @staticmethod
+    def _encode_last_update(chunk: Chunk, level: TAG_Compound):
         level["LastUpdate"] = TAG_Long(chunk.misc.get("last_update", 0))
 
     def _encode_status(self, chunk: Chunk, level: TAG_Compound):
@@ -379,7 +388,8 @@ class AnvilNAInterface(BaseAnvilInterface):
         level["TerrainPopulated"] = TAG_Byte(int(status > -0.3))
         level["LightPopulated"] = TAG_Byte(int(status > -0.2))
 
-    def _encode_v_tag(self, chunk: Chunk, level: TAG_Compound):
+    @staticmethod
+    def _encode_v_tag(chunk: Chunk, level: TAG_Compound):
         level["V"] = TAG_Byte(chunk.misc.get("V", 1))
 
     def _encode_inhabited_time(self, chunk: Chunk, level: TAG_Compound):
@@ -415,8 +425,9 @@ class AnvilNAInterface(BaseAnvilInterface):
     def _encode_block_entities(self, chunk: Chunk, level: TAG_Compound):
         level[self.BlockEntities] = self._encode_block_entity_list(chunk.block_entities)
 
+    @staticmethod
     def _encode_ticks(
-        self, ticks: Dict[BlockCoordinates, Tuple[str, int, int]]
+        ticks: Dict[BlockCoordinates, Tuple[str, int, int]]
     ) -> TAG_List:
         ticks_out = TAG_List()
         if isinstance(ticks, dict):
@@ -435,11 +446,11 @@ class AnvilNAInterface(BaseAnvilInterface):
                             }
                         )
                     )
-                except:
+                except Exception:
                     amulet.log.error(f"Could not serialise tick data {k}: {v}")
         return ticks_out
 
-    def _encode_block_ticks(self, chunk: Chunk, level: TAG_Compound):
+    def _encode_block_ticks(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]):
         level["TileTicks"] = self._encode_ticks(chunk.misc.get("block_ticks", {}))
 
     def _encode_sections(self, chunk: Chunk, sections: Dict[int, TAG_Compound]):

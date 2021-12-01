@@ -56,7 +56,7 @@ class Anvil1466Interface(Anvil1444Interface):
             "OCEAN_FLOOR",
         ]
         if self._features["height_map"] == "C|V1":  # 1466
-            maps = ("LIQUID", "SOILD", "LIGHT", "RAIN")
+            maps = ("LIQUID", "SOLID", "LIGHT", "RAIN")
         elif self._features["height_map"] == "C|V2":  # 1484
             maps.append("LIGHT_BLOCKING")
         elif self._features["height_map"] == "C|V3":  # 1503

@@ -19,7 +19,7 @@ class Anvil1467Interface(Anvil1466Interface):
         return 1467 <= key < 1484
 
     def _decode_biomes(
-        self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
+        self, chunk: Chunk, compound: TAG_Compound, floor_cy: int
     ):
         biomes = compound.pop("Biomes", None)
         if isinstance(biomes, TAG_Int_Array) and biomes.value.size == 256:

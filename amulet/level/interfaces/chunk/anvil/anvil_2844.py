@@ -58,24 +58,30 @@ class Anvil2844Interface(ParentInterface):
         self, chunk: Chunk, root: TAG_Compound, bounds: Tuple[int, int]
     ) -> Tuple["Chunk", AnyNDArray]:
         self._decode_root(chunk, root)
-        self._decode_level(chunk, root, bounds)
+        floor_cy = root.pop("yPos").value
+        self._decode_level(chunk, root, bounds, floor_cy)
         sections = self._extract_sections(chunk, root)
         self._decode_sections(chunk, sections)
         palette = self._decode_blocks(chunk, sections)
         return chunk, palette
 
-    def _decode_level(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]):
+    def _decode_level(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int], floor_cy: int):
+        self._decode_location(chunk, level)
         self._decode_last_update(chunk, level)
         self._decode_status(chunk, level)
         self._decode_inhabited_time(chunk, level)
         self._decode_height(chunk, level, bounds)
         self._decode_entities(chunk, level)
         self._decode_block_entities(chunk, level)
-        self._decode_block_ticks(chunk, level)
-        self._decode_block_ticks(chunk, level)
-        self._decode_fluid_ticks(chunk, level)
-        self._decode_post_processing(chunk, level)
+        self._decode_block_ticks(chunk, level, floor_cy)
+        self._decode_fluid_ticks(chunk, level, floor_cy)
+        self._decode_post_processing(chunk, level, floor_cy)
         self._decode_structures(chunk, level)
+
+    @staticmethod
+    def _decode_location(chunk: Chunk, level: TAG_Compound):
+        assert chunk.coordinates == (level.pop("xPos"), level.pop("zPos"))
+        level.pop("yPos")
 
     def _decode_sections(self, chunk: Chunk, sections: Dict[int, TAG_Compound]):
         super()._decode_sections(chunk, sections)
@@ -152,20 +158,20 @@ class Anvil2844Interface(ParentInterface):
         chunk.biomes = biomes
         chunk.biome_palette = palette
 
-    def _decode_block_ticks(self, chunk: Chunk, compound: TAG_Compound):
+    def _decode_block_ticks(self, chunk: Chunk, compound: TAG_Compound, floor_cy: int):
         chunk.misc.setdefault("block_ticks", {}).update(
             self._decode_ticks(self.get_obj(compound, "block_ticks", TAG_List))
         )
 
-    def _decode_fluid_ticks(self, chunk: Chunk, compound: TAG_Compound):
+    def _decode_fluid_ticks(self, chunk: Chunk, compound: TAG_Compound, floor_cy: int):
         chunk.misc.setdefault("fluid_ticks", {}).update(
             self._decode_ticks(self.get_obj(compound, "fluid_ticks", TAG_List))
         )
 
-    def _encode_block_ticks(self, chunk: Chunk, compound: TAG_Compound):
+    def _encode_block_ticks(self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]):
         compound["block_ticks"] = self._encode_ticks(chunk.misc.get("block_ticks", {}))
 
-    def _encode_fluid_ticks(self, chunk: Chunk, compound: TAG_Compound):
+    def _encode_fluid_ticks(self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]):
         compound["fluid_ticks"] = self._encode_ticks(chunk.misc.get("fluid_ticks", {}))
 
 

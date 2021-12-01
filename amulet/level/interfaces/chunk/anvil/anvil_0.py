@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Tuple, TYPE_CHECKING
 
-from amulet_nbt import TAG_Compound, TAG_Int, TAG_List
+from amulet_nbt import TAG_Compound, TAG_Int
 
 from .anvil_na import (
     AnvilNAInterface,

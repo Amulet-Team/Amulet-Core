@@ -418,8 +418,9 @@ class BaseLevelDBInterface(Interface):
 
         return blocks, numpy_palette
 
+    @staticmethod
     def _save_subchunks_0(
-        self, blocks: "Blocks", palette: AnyNDArray
+        blocks: "Blocks", palette: AnyNDArray
     ) -> Dict[int, Optional[bytes]]:
         sections = {}
         palette = numpy.array([b[0][1] for b in palette])
@@ -580,7 +581,7 @@ class BaseLevelDBInterface(Interface):
                             1,
                             17,
                             30,
-                        ):  # Why do I need to check against game version and not chunk verison
+                        ):  # Why do I need to check against game version and not chunk version
                             sub_chunk_bytes = [
                                 b"\x09",
                                 bytes([sub_chunk_depth]),

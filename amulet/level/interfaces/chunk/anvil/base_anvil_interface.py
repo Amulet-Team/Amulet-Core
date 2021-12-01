@@ -31,7 +31,7 @@ class BaseAnvilInterface(Interface):
             "height_map": [
                 "256IARequired",  # A 256 element Int Array in HeightMap
                 "256IA",  # A 256 element Int Array in HeightMap
-                "C|V1",  # A Compound of Long Arrays with these keys "LIQUID", "SOILD", "LIGHT", "RAIN"
+                "C|V1",  # A Compound of Long Arrays with these keys "LIQUID", "SOLID", "LIGHT", "RAIN"
                 "C|V2",  # A Compound of Long Arrays with these keys "WORLD_SURFACE_WG", "OCEAN_FLOOR_WG", "MOTION_BLOCKING", "MOTION_BLOCKING_NO_LEAVES", "OCEAN_FLOOR", "LIGHT_BLOCKING"
                 "C|V3",  # A Compound of Long Arrays with these keys "WORLD_SURFACE_WG", "OCEAN_FLOOR_WG", "MOTION_BLOCKING", "MOTION_BLOCKING_NO_LEAVES", "OCEAN_FLOOR", "LIGHT_BLOCKING", "WORLD_SURFACE"
                 "C|V4",  # A Compound of Long Arrays with these keys "WORLD_SURFACE_WG", "OCEAN_FLOOR_WG", "MOTION_BLOCKING", "MOTION_BLOCKING_NO_LEAVES", "OCEAN_FLOOR", "WORLD_SURFACE"
@@ -131,7 +131,7 @@ class BaseAnvilInterface(Interface):
         """
         Encode a version-specific chunk to raw data for the format to store.
 
-        :param chunk: The already translated version-specfic chunk to encode.
+        :param chunk: The already translated version-specific chunk to encode.
         :param palette: The block_palette the ids in the chunk correspond to.
         :type palette: numpy.ndarray[Block]
         :param max_world_version: The key to use to find the encoder.
