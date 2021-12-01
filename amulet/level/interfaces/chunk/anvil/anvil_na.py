@@ -8,6 +8,7 @@ from amulet_nbt import (
     TAG_Byte,
     TAG_Int,
     TAG_Long,
+    TAG_String,
     TAG_List,
     TAG_Compound,
     TAG_Byte_Array,
@@ -44,8 +45,6 @@ class AnvilNAInterface(BaseAnvilInterface):
 
         self._set_feature("entity_format", EntityIDType.namespace_str_id)
         self._set_feature("entity_coord_format", EntityCoordType.Pos_list_double)
-
-        self._set_feature("tile_ticks", "list")
 
     @staticmethod
     def minor_is_valid(key: int):
@@ -236,9 +235,11 @@ class AnvilNAInterface(BaseAnvilInterface):
     @staticmethod
     def _decode_ticks(ticks: TAG_List) -> Dict[BlockCoordinates, Tuple[int, int]]:
         return {
-            (tick["x"], tick["y"], tick["z"]): (tick["t"], tick["p"])
+            (tick["x"], tick["y"], tick["z"]): (tick["i"], tick["t"], tick["p"])
             for tick in ticks
             if all(c in tick and isinstance(tick[c], TAG_Int) for c in "xyztp")
+            and "i" in tick
+            and isinstance(tick["i"], TAG_String)
         }
 
     def _decode_block_ticks(self, chunk: Chunk, compound: TAG_Compound):
@@ -414,10 +415,32 @@ class AnvilNAInterface(BaseAnvilInterface):
     def _encode_block_entities(self, chunk: Chunk, level: TAG_Compound):
         level[self.BlockEntities] = self._encode_block_entity_list(chunk.block_entities)
 
+    def _encode_ticks(
+        self, ticks: Dict[BlockCoordinates, Tuple[str, int, int]]
+    ) -> TAG_List:
+        ticks_out = TAG_List()
+        if isinstance(ticks, dict):
+            for k, v in ticks.items():
+                try:
+                    (x, y, z), (i, t, p) = k, v
+                    ticks_out.append(
+                        TAG_Compound(
+                            {
+                                "i": TAG_String(i),
+                                "p": TAG_Int(p),
+                                "t": TAG_Int(t),
+                                "x": TAG_Int(x),
+                                "y": TAG_Int(y),
+                                "z": TAG_Int(x),
+                            }
+                        )
+                    )
+                except:
+                    amulet.log.error(f"Could not serialise tick data {k}: {v}")
+        return ticks_out
+
     def _encode_block_ticks(self, chunk: Chunk, level: TAG_Compound):
-        ticks = chunk.misc.get("tile_ticks", TAG_List())
-        if isinstance(ticks, TAG_List):
-            level["TileTicks"] = ticks
+        level["TileTicks"] = self._encode_ticks(chunk.misc.get("block_ticks", {}))
 
     def _encode_sections(self, chunk: Chunk, sections: Dict[int, TAG_Compound]):
         self._encode_block_light(chunk, sections)

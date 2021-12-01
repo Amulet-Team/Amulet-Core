@@ -42,7 +42,6 @@ class BaseAnvilInterface(Interface):
             "block_entity_coord_format": [EntityCoordType.xyz_int],
             "entity_format": [EntityIDType.namespace_str_id],
             "entity_coord_format": [EntityCoordType.Pos_list_double],
-            "tile_ticks": ["list", "list(optional)"],
             # 'lights': [],
         }
         self._features = {key: None for key in self._feature_options.keys()}

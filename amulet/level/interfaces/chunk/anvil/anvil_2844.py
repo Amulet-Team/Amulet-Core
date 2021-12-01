@@ -162,5 +162,11 @@ class Anvil2844Interface(ParentInterface):
             self._decode_ticks(self.get_obj(compound, "fluid_ticks", TAG_List))
         )
 
+    def _encode_block_ticks(self, chunk: Chunk, compound: TAG_Compound):
+        compound["block_ticks"] = self._encode_ticks(chunk.misc.get("block_ticks", {}))
+
+    def _encode_fluid_ticks(self, chunk: Chunk, compound: TAG_Compound):
+        compound["fluid_ticks"] = self._encode_ticks(chunk.misc.get("fluid_ticks", {}))
+
 
 export = Anvil2844Interface

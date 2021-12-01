@@ -36,10 +36,5 @@ class Anvil0Interface(AnvilNAInterface):
     ):
         root["DataVersion"] = TAG_Int(max_world_version[1])
 
-    def _encode_block_ticks(self, chunk: Chunk, level: TAG_Compound):
-        ticks = chunk.misc.get("tile_ticks", TAG_List())
-        if isinstance(ticks, TAG_List) and len(ticks) > 0:
-            level["TileTicks"] = ticks
-
 
 export = Anvil0Interface
