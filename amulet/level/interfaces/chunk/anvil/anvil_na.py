@@ -85,7 +85,7 @@ class AnvilNAInterface(BaseAnvilInterface):
     def _decode_level(
         self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int], floor_cy: int
     ):
-        self._decode_location(chunk, level)
+        self._decode_coords(chunk, level)
         self._decode_last_update(chunk, level)
         self._decode_status(chunk, level)
         self._decode_inhabited_time(chunk, level)
@@ -100,7 +100,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         self._decode_sky_light(chunk, sections)
 
     @staticmethod
-    def _decode_location(chunk: Chunk, level: TAG_Compound):
+    def _decode_coords(chunk: Chunk, level: TAG_Compound):
         assert chunk.coordinates == (level.pop("xPos"), level.pop("zPos"))
 
     def _decode_last_update(self, chunk: Chunk, compound: TAG_Compound):

@@ -68,7 +68,7 @@ class Anvil2844Interface(ParentInterface):
     def _decode_level(
         self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int], floor_cy: int
     ):
-        self._decode_location(chunk, level)
+        self._decode_coords(chunk, level)
         self._decode_last_update(chunk, level)
         self._decode_status(chunk, level)
         self._decode_inhabited_time(chunk, level)
