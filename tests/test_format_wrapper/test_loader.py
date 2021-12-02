@@ -10,24 +10,17 @@ from tests.data import worlds_src
 
 class DefinitionBasedLoaderTestCase(unittest.TestCase):
     def test_identify(self):
-        with WorldTemp(worlds_src.java_vanilla_1_12_2) as world_temp:
-            numerical_java_format = load_format(world_temp.temp_path)
-            self.assertIsInstance(numerical_java_format, AnvilFormat)
-
-        with WorldTemp(worlds_src.java_vanilla_1_13) as world_temp:
-            blockstate_java_format = load_format(world_temp.temp_path)
-            self.assertIsInstance(blockstate_java_format, AnvilFormat)
+        for path in worlds_src.JavaVanillaLevels:
+            with WorldTemp(path) as world_temp:
+                java_format = load_format(world_temp.temp_path)
+                self.assertIsInstance(java_format, AnvilFormat)
 
     def test_loading(self):
-        with WorldTemp(worlds_src.java_vanilla_1_12_2) as world_temp:
-            numerical_java_world = load_level(world_temp.temp_path)
-            self.assertIsInstance(numerical_java_world, World)
-            numerical_java_world.close()
-
-        with WorldTemp(worlds_src.java_vanilla_1_13) as world_temp:
-            blocksate_java_world = load_level(world_temp.temp_path)
-            self.assertIsInstance(blocksate_java_world, World)
-            blocksate_java_world.close()
+        for path in worlds_src.levels:
+            with WorldTemp(path) as world_temp:
+                numerical_java_world = load_level(world_temp.temp_path)
+                self.assertIsInstance(numerical_java_world, World)
+                numerical_java_world.close()
 
 
 if __name__ == "__main__":
