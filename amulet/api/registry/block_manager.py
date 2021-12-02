@@ -1,6 +1,8 @@
 from __future__ import annotations
+from typing import Dict, Iterable, List, Tuple, overload, Generator, Union
+from numpy import integer
 
-from typing import Dict, Iterable, List, Tuple, overload, Generator
+from amulet_nbt import TAG_Byte, TAG_Int, TAG_Short, TAG_Long
 
 from amulet.api.data_types import Int
 from amulet.api.block import Block
@@ -87,6 +89,10 @@ class BlockManager(BaseRegistry):
     def __getitem__(self, item: Int) -> Block:
         ...
 
+    @overload
+    def __getitem__(self, item: Iterable[Union[Int, Block]]) -> List[Union[Block, Int]]:
+        ...
+
     def __getitem__(self, item):
         """
         If a Block object is passed to this function, it will return the internal ID/index of the blockstate.
@@ -103,15 +109,20 @@ class BlockManager(BaseRegistry):
         :raises KeyError if the requested item is not present.
         """
         try:
-            if isinstance(item, Block):
-                return self._block_to_index_map[item]
-
-            return self._index_to_block[item]
+            return self._get_item(item)
         except (KeyError, IndexError):
             raise KeyError(
                 f"There is no {item} in the BlockManager. "
                 f"You might want to use the `get_add_block` function for your blocks before accessing them."
             )
+
+    def _get_item(self, item):
+        if isinstance(item, Block):
+            return self._block_to_index_map[item]
+        elif isinstance(item, (int, integer, TAG_Byte, TAG_Short, TAG_Int, TAG_Long)):
+            return self._index_to_block[int(item)]
+        # if it isn't an Block or int assume an iterable of the above.
+        return [self._get_item(i) for i in item]
 
     def get_add_block(self, block: Block) -> int:
         """
