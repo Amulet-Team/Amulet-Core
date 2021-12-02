@@ -26,7 +26,6 @@ from .base_anvil_interface import (
 
 if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
-    from amulet.api.chunk.blocks import Blocks
 
 
 class AnvilNAInterface(BaseAnvilInterface):
@@ -273,8 +272,8 @@ class AnvilNAInterface(BaseAnvilInterface):
         level: TAG_Compound = self.set_obj(root, "Level", TAG_Compound)
         self._encode_level(chunk, level, bounds)
         sections = self._init_sections(chunk)
-        self._encode_sections(chunk, sections)
-        self._encode_blocks(sections, chunk.blocks, palette, bounds)
+        self._encode_sections(chunk, sections, bounds)
+        self._encode_blocks(chunk, sections, palette, bounds)
         # these data versions probably extend a little into the snapshots as well
         if 1519 <= max_world_version[1] <= 1631:
             # Java 1.13 to 1.13.2 cannot have empty sections
@@ -335,36 +334,39 @@ class AnvilNAInterface(BaseAnvilInterface):
 
     def _encode_block_section(
         self,
+        chunk: Chunk,
         sections: Dict[int, TAG_Compound],
-        blocks: Blocks,
         palette: AnyNDArray,
         cy: int,
     ) -> bool:
-        block_sub_array = palette[
-            numpy.transpose(blocks.get_sub_chunk(cy), (1, 2, 0)).ravel()  # XYZ -> YZX
-        ]
+        if cy in chunk.blocks:
+            block_sub_array = palette[
+                numpy.transpose(
+                    chunk.blocks.get_sub_chunk(cy), (1, 2, 0)
+                ).ravel()  # XYZ -> YZX
+            ]
 
-        data_sub_array = block_sub_array[:, 1]
-        block_sub_array = block_sub_array[:, 0]
-        # if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
-        #     return False
-        section = sections.setdefault(cy, TAG_Compound())
-        section["Blocks"] = TAG_Byte_Array(block_sub_array.astype("uint8"))
-        section["Data"] = TAG_Byte_Array(world_utils.to_nibble_array(data_sub_array))
-        return True
+            data_sub_array = block_sub_array[:, 1]
+            block_sub_array = block_sub_array[:, 0]
+            # if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
+            #     return False
+            section = sections.setdefault(cy, TAG_Compound())
+            section["Blocks"] = TAG_Byte_Array(block_sub_array.astype("uint8"))
+            section["Data"] = TAG_Byte_Array(
+                world_utils.to_nibble_array(data_sub_array)
+            )
+            return True
+        return False
 
     def _encode_blocks(
         self,
+        chunk: Chunk,
         sections: Dict[int, TAG_Compound],
-        blocks: Blocks,
         palette: AnyNDArray,
         bounds: Tuple[int, int],
     ):
         for cy in range(bounds[0] >> 4, bounds[1] >> 4):
-            added = False
-            if cy in blocks:
-                added = self._encode_block_section(sections, blocks, palette, cy)
-            if not added:
+            if not self._encode_block_section(chunk, sections, palette, cy):
                 # In 1.13.2 and before if the Blocks key does not exist but the sub-chunk TAG_Compound does
                 # exist the game will error and recreate the chunk. All sub-chunks that do not contain data
                 # must be deleted.
@@ -450,7 +452,9 @@ class AnvilNAInterface(BaseAnvilInterface):
     ):
         level["TileTicks"] = self._encode_ticks(chunk.misc.get("block_ticks", {}))
 
-    def _encode_sections(self, chunk: Chunk, sections: Dict[int, TAG_Compound]):
+    def _encode_sections(
+        self, chunk: Chunk, sections: Dict[int, TAG_Compound], bounds: Tuple[int, int]
+    ):
         self._encode_block_light(chunk, sections)
         self._encode_sky_light(chunk, sections)
 

@@ -15,7 +15,7 @@ from amulet_nbt import (
 import amulet
 from amulet.api.data_types import AnyNDArray, BlockCoordinates
 from amulet.api.block import Block
-from amulet.api.chunk import Blocks, StatusFormats
+from amulet.api.chunk import StatusFormats
 from .anvil_0 import Anvil0Interface
 from amulet.utils.world_utils import (
     decode_long_array,
@@ -161,42 +161,48 @@ class Anvil1444Interface(Anvil0Interface):
 
     def _encode_block_section(
         self,
+        chunk: Chunk,
         sections: Dict[int, TAG_Compound],
-        blocks: Blocks,
         palette: AnyNDArray,
         cy: int,
     ) -> bool:
-        block_sub_array = numpy.transpose(blocks.get_sub_chunk(cy), (1, 2, 0)).ravel()
+        if cy in chunk.blocks:
+            block_sub_array = numpy.transpose(
+                chunk.blocks.get_sub_chunk(cy), (1, 2, 0)
+            ).ravel()
 
-        sub_palette_, block_sub_array = numpy.unique(
-            block_sub_array, return_inverse=True
-        )
-        sub_palette = self._encode_palette(palette[sub_palette_])
-        if len(sub_palette) == 1 and sub_palette[0]["Name"].value == "minecraft:air":
-            return False
-
-        section = sections.setdefault(cy, TAG_Compound())
-        section["BlockStates"] = TAG_Long_Array(
-            encode_long_array(
-                block_sub_array, dense=self.LongArrayDense, min_bits_per_entry=4
+            sub_palette_, block_sub_array = numpy.unique(
+                block_sub_array, return_inverse=True
             )
-        )
-        section["Palette"] = sub_palette
-        return True
+            sub_palette = self._encode_block_palette(palette[sub_palette_])
+            if (
+                len(sub_palette) == 1
+                and sub_palette[0]["Name"].value == "minecraft:air"
+            ):
+                return False
+
+            section = sections.setdefault(cy, TAG_Compound())
+            section["BlockStates"] = TAG_Long_Array(
+                encode_long_array(
+                    block_sub_array, dense=self.LongArrayDense, min_bits_per_entry=4
+                )
+            )
+            section["Palette"] = sub_palette
+            return True
+        return False
 
     def _encode_blocks(
         self,
+        chunk: Chunk,
         sections: Dict[int, TAG_Compound],
-        blocks: Blocks,
         palette: AnyNDArray,
         bounds: Tuple[int, int],
     ):
         for cy in range(bounds[0] >> 4, bounds[1] >> 4):
-            if cy in blocks:
-                self._encode_block_section(sections, blocks, palette, cy)
+            self._encode_block_section(chunk, sections, palette, cy)
 
     @staticmethod
-    def _encode_palette(blockstates: list) -> TAG_List:
+    def _encode_block_palette(blockstates: list) -> TAG_List:
         palette = TAG_List()
         for block in blockstates:
             entry = TAG_Compound()
