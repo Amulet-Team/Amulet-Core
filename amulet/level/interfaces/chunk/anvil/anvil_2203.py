@@ -31,13 +31,12 @@ class Anvil2203Interface(Anvil1934Interface):
                     biomes.astype(numpy.uint32).reshape((-1, 4, 4)),
                     (2, 0, 1),
                 )  # YZX -> XYZ
-                arr_height = arr.size[1] // 4
                 chunk.biomes = {
                     sy + floor_cy: arr
                     for sy, arr in enumerate(
                         numpy.split(
                             arr,
-                            arr_height // 4,
+                            arr.shape[1] // 4,
                             1,
                         )
                     )
