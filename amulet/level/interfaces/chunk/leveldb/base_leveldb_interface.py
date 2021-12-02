@@ -30,13 +30,16 @@ if TYPE_CHECKING:
     from amulet.api.chunk.entity_list import EntityList
     from amulet.api.wrapper import Translator
 
+# This is here to scale a 4x array to a 16x array. This can be removed when we natively support 16x array
+_scale_grid = tuple(numpy.meshgrid(*[numpy.arange(16) // 4] * 3))
+
 
 class BaseLevelDBInterface(Interface):
     def __init__(self):
         self._feature_options = {
             "chunk_version": set(chunk_version_to_max_version.keys()),
             "finalised_state": ["int0-2"],
-            "data_2d": ["height512|biome256"],
+            "data_2d": ["height512|biome256", "height512|biome4096"],
             "block_entities": ["31list"],
             "block_entity_format": [EntityIDType.namespace_str_id, EntityIDType.str_id],
             "block_entity_coord_format": [EntityCoordType.xyz_int],
@@ -154,17 +157,19 @@ class BaseLevelDBInterface(Interface):
             chunk.status = val
 
         if b"+" in data:
-            height, biome = self._load_height_3d_array(data[b"+"])
-            # TODO: remove this when the new biome system supports variable size arrays
+            height, biome = self._decode_height_3d_biomes(data[b"+"])
+            chunk.misc["height"] = height
             chunk.biomes = biome
         elif b"\x2D" in data:
             d2d = data[b"\x2D"]
-            height, biome = d2d[:512], d2d[512:]
-            # if self._features["data_2d"] == "height512|biome256":
-            #     pass  # TODO: put this data somewhere
+            height, biome = (
+                numpy.frombuffer(d2d[:512], "<i2").reshape((16, 16)),
+                d2d[512:],
+            )
+            chunk.misc["height"] = height
             chunk.biomes = numpy.frombuffer(biome, dtype="uint8").reshape(16, 16).T
 
-        # TODO: impliment key support
+        # TODO: implement key support
         # \x2D  heightmap and biomes
         # \x31  block entity
         # \x32  entity
@@ -239,13 +244,13 @@ class BaseLevelDBInterface(Interface):
             )
 
         # biome and height data
-        if self._features["data_2d"] in [
-            "height512|biome256",
-        ]:
-            d2d = b"\x00" * 512  # TODO: get this data from somewhere
+        if self._features["data_2d"] == "height512|biome256":
+            d2d: List[bytes] = [self._encode_height(chunk)]
             chunk.biomes.convert_to_2d()
-            d2d += chunk.biomes.astype("uint8").T.tobytes()
-            chunk_data[b"\x2D"] = d2d
+            d2d.append(chunk.biomes.astype("uint8").T.tobytes())
+            chunk_data[b"\x2D"] = b"".join(d2d)
+        elif self._features["data_2d"] == "height512|biome4096":
+            chunk_data[b"+"] = self._encode_height_3d_biomes(chunk)
 
         # pack block entities and entities
         if self._features["block_entities"] == "31list":
@@ -618,7 +623,7 @@ class BaseLevelDBInterface(Interface):
     # These arent actual blocks, just ids pointing to the block_palette.
 
     @staticmethod
-    def _load_packed_array(data: bytes) -> Tuple[bytes, int, Optional[numpy.ndarray]]:
+    def _decode_packed_array(data: bytes) -> Tuple[bytes, int, Optional[numpy.ndarray]]:
         """
         Parse a packed array as documented here
         https://gist.github.com/Tomcc/a96af509e275b1af483b25c543cfbf37
@@ -655,14 +660,17 @@ class BaseLevelDBInterface(Interface):
             arr = None
         return data, bits_per_value, arr
 
-    def _load_height_3d_array(
+    def _decode_height_3d_biomes(
         self, data: bytes
     ) -> Tuple[numpy.ndarray, Dict[int, numpy.ndarray]]:
         # TODO: make this support the full 16x
-        heightmap, data = numpy.frombuffer(data[:512], "<i2"), data[512:]
+        heightmap, data = (
+            numpy.frombuffer(data[:512], "<i2").reshape((16, 16)),
+            data[512:],
+        )
         biomes = {}
         for cy in range(-4, 21):
-            data, bits_per_value, arr = self._load_packed_array(data)
+            data, bits_per_value, arr = self._decode_packed_array(data)
             if bits_per_value == 0:
                 value, data = struct.unpack(f"<I", data[:4])[0], data[4:]
                 # TODO: when the new biome system supports ints just return the value
@@ -678,11 +686,35 @@ class BaseLevelDBInterface(Interface):
             raise Exception("More data")
         return heightmap, biomes
 
+    def _encode_height(self, chunk) -> bytes:
+        height = chunk.misc.get("height")
+        if isinstance(height, numpy.ndarray) and height.size == 256:
+            return height.ravel().astype("<i2").tobytes()
+        else:
+            return b"\x00" * 512
+
+    def _encode_height_3d_biomes(self, chunk) -> bytes:
+        d2d: List[bytes] = [self._encode_height(chunk)]
+        chunk.biomes.convert_to_3d()
+        for cy in range(-4, 21):
+            if cy in chunk.biomes:
+                arr = chunk.biomes.get_section(cy)
+                palette, arr_uniq = numpy.unique(arr, return_inverse=True)
+                d2d.append(
+                    self._encode_packed_array(arr_uniq.reshape(arr.shape)[_scale_grid])
+                )
+                d2d.append(struct.pack("<I", len(palette)))
+                d2d.append(palette.astype("<i4").tobytes())
+            else:
+                d2d.append(b"\xFF")
+
+        return b"".join(d2d)
+
     def _load_palette_blocks(
         self,
         data: bytes,
     ) -> Tuple[numpy.ndarray, List[amulet_nbt.NBTFile], bytes]:
-        data, _, blocks = self._load_packed_array(data)
+        data, _, blocks = self._decode_packed_array(data)
         if blocks is not None:
             palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
             palette, offset = amulet_nbt.load(
@@ -700,7 +732,7 @@ class BaseLevelDBInterface(Interface):
             return numpy.zeros((16, 16, 16), dtype=numpy.int16), palette, data[offset:]
 
     @staticmethod
-    def _save_packed_array(arr: numpy.ndarray, min_bit_size=1) -> bytes:
+    def _encode_packed_array(arr: numpy.ndarray, min_bit_size=1) -> bytes:
         bits_per_value = max(int(numpy.amax(arr)).bit_length(), min_bit_size)
         if bits_per_value == 7:
             bits_per_value = 8
@@ -742,7 +774,7 @@ class BaseLevelDBInterface(Interface):
     ) -> bytes:
         """Save a single layer of blocks in the block_palette format"""
         return b"".join(
-            [self._save_packed_array(blocks), struct.pack("<I", len(palette))]
+            [self._encode_packed_array(blocks), struct.pack("<I", len(palette))]
             + [block.save_to(compressed=False, little_endian=True) for block in palette]
         )
 
