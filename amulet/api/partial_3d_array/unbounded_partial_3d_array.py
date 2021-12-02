@@ -75,6 +75,13 @@ class UnboundedPartial3DArray(BasePartial3DArray):
             self.section_shape, self.default_value, dtype=self._dtype
         )
 
+    def has_section(self, sy: int) -> bool:
+        """Check if the array for a given section exists.
+        :param cy: The section y index
+        :return: True if the array exists, False otherwise
+        """
+        return sy in self._sections
+
     def add_section(self, sy: IntegerType, section: numpy.ndarray):
         """
         Add a section array at the given location.
