@@ -82,9 +82,10 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         :param sy: The section index to assign the array to.
         :param section: The array to assign to the section. The shape must equal :attr:`section_shape`.
         """
-        assert (
-            section.shape == self._section_shape
-        ), "The size of all sections must be equal to the section_shape."
+        if section.shape != self._section_shape:
+            raise ValueError(
+                f"The size of all sections must be equal to the section_shape. Expected shape {self._section_shape}, got {section.shape}"
+            )
         if section.dtype != self._dtype:
             section = section.astype(self._dtype)
         self._sections[int(sy)] = section
