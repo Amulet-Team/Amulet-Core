@@ -274,10 +274,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         self._encode_level(chunk, level, bounds)
         sections = self._init_sections(chunk)
         self._encode_sections(chunk, sections)
-        cy_min, cy_max = bounds
-        cy_min //= 16
-        cy_max //= 16
-        self._encode_blocks(sections, chunk.blocks, palette, cy_min, cy_max)
+        self._encode_blocks(sections, chunk.blocks, palette, bounds)
         # these data versions probably extend a little into the snapshots as well
         if 1519 <= max_world_version[1] <= 1631:
             # Java 1.13 to 1.13.2 cannot have empty sections
@@ -336,39 +333,43 @@ class AnvilNAInterface(BaseAnvilInterface):
         else:
             return {}
 
+    def _encode_block_section(
+        self,
+        sections: Dict[int, TAG_Compound],
+        blocks: Blocks,
+        palette: AnyNDArray,
+        cy: int,
+    ) -> bool:
+        block_sub_array = palette[
+            numpy.transpose(blocks.get_sub_chunk(cy), (1, 2, 0)).ravel()  # XYZ -> YZX
+        ]
+
+        data_sub_array = block_sub_array[:, 1]
+        block_sub_array = block_sub_array[:, 0]
+        # if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
+        #     return False
+        section = sections.setdefault(cy, TAG_Compound())
+        section["Blocks"] = TAG_Byte_Array(block_sub_array.astype("uint8"))
+        section["Data"] = TAG_Byte_Array(world_utils.to_nibble_array(data_sub_array))
+        return True
+
     def _encode_blocks(
         self,
         sections: Dict[int, TAG_Compound],
-        blocks: "Blocks",
+        blocks: Blocks,
         palette: AnyNDArray,
-        cy_min: int,
-        cy_max: int,
+        bounds: Tuple[int, int],
     ):
-        added_sections = set()
-        for cy in range(cy_min, cy_max):
+        for cy in range(bounds[0] >> 4, bounds[1] >> 4):
+            added = False
             if cy in blocks:
-                block_sub_array = palette[
-                    numpy.transpose(
-                        blocks.get_sub_chunk(cy), (1, 2, 0)
-                    ).ravel()  # XYZ -> YZX
-                ]
-
-                data_sub_array = block_sub_array[:, 1]
-                block_sub_array = block_sub_array[:, 0]
-                # if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
-                #     continue
-                added_sections.add(cy)
-                section = sections.setdefault(cy, TAG_Compound())
-                section["Blocks"] = TAG_Byte_Array(block_sub_array.astype("uint8"))
-                section["Data"] = TAG_Byte_Array(
-                    world_utils.to_nibble_array(data_sub_array)
-                )
-        # In 1.12.2 and before if the Blocks key does not exist but the sub-chunk TAG_Compound does
-        # exist the game will error and recreate the chunk. All sub-chunks that do not contain data
-        # must be deleted.
-        for cy in list(sections):
-            if cy not in added_sections:
-                del sections[cy]
+                added = self._encode_block_section(sections, blocks, palette, cy)
+            if not added:
+                # In 1.13.2 and before if the Blocks key does not exist but the sub-chunk TAG_Compound does
+                # exist the game will error and recreate the chunk. All sub-chunks that do not contain data
+                # must be deleted.
+                if cy in sections:
+                    del sections[cy]
 
     @staticmethod
     def _encode_coords(chunk: Chunk, level: TAG_Compound):
