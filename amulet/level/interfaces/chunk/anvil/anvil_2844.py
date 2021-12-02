@@ -6,6 +6,7 @@ from amulet_nbt import (
     TAG_Compound,
     TAG_List,
     TAG_Byte,
+    TAG_Int,
     TAG_Long_Array,
     TAG_String,
 )
@@ -189,7 +190,7 @@ class Anvil2844Interface(ParentInterface):
         return root
 
     def _encode_level(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]):
-        self._encode_coords(chunk, level)
+        self._encode_coords(chunk, level, bounds)
         self._encode_last_update(chunk, level)
         self._encode_status(chunk, level)
         self._encode_inhabited_time(chunk, level)
@@ -200,6 +201,12 @@ class Anvil2844Interface(ParentInterface):
         self._encode_fluid_ticks(chunk, level, bounds)
         self._encode_post_processing(chunk, level, bounds)
         self._encode_structures(chunk, level)
+
+    def _encode_coords(
+        self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]
+    ):
+        super()._encode_coords(chunk, level, bounds)
+        level["yPos"] = TAG_Int(bounds[0] >> 4)
 
     def _encode_sections(
         self, chunk: Chunk, sections: Dict[int, TAG_Compound], bounds: Tuple[int, int]

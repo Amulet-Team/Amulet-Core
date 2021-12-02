@@ -307,7 +307,7 @@ class AnvilNAInterface(BaseAnvilInterface):
             del root["DataVersion"]
 
     def _encode_level(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]):
-        self._encode_coords(chunk, level)
+        self._encode_coords(chunk, level, bounds)
         self._encode_last_update(chunk, level)
         self._encode_status(chunk, level)
         self._encode_inhabited_time(chunk, level)
@@ -374,7 +374,7 @@ class AnvilNAInterface(BaseAnvilInterface):
                     del sections[cy]
 
     @staticmethod
-    def _encode_coords(chunk: Chunk, level: TAG_Compound):
+    def _encode_coords(chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]):
         level["xPos"] = TAG_Int(chunk.cx)
         level["zPos"] = TAG_Int(chunk.cz)
 
