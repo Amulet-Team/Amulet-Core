@@ -7,6 +7,10 @@ JavaVanillaLevels = []
 JavaForgeLevels = []
 
 
+java_vanilla_1_12_2 = "java/vanilla/1_12_2"
+java_vanilla_1_13 = "java/vanilla/1_13"
+
+
 def find_levels():
     this_dir = os.path.dirname(__file__)
     for path in glob.glob(
