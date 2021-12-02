@@ -80,11 +80,6 @@ class Anvil2844Interface(ParentInterface):
         self._decode_post_processing(chunk, level, floor_cy)
         self._decode_structures(chunk, level)
 
-    @staticmethod
-    def _decode_location(chunk: Chunk, level: TAG_Compound):
-        assert chunk.coordinates == (level.pop("xPos"), level.pop("zPos"))
-        level.pop("yPos")
-
     def _decode_sections(self, chunk: Chunk, sections: Dict[int, TAG_Compound]):
         super()._decode_sections(chunk, sections)
         self._decode_biome_sections(chunk, sections)
