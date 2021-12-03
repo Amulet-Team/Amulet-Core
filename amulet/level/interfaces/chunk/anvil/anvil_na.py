@@ -239,7 +239,11 @@ class AnvilNAInterface(BaseAnvilInterface):
     @staticmethod
     def _decode_ticks(ticks: TAG_List) -> Dict[BlockCoordinates, Tuple[str, int, int]]:
         return {
-            (tick["x"], tick["y"], tick["z"]): (tick["i"], tick["t"], tick["p"])
+            (tick["x"].value, tick["y"].value, tick["z"].value): (
+                tick["i"].value,
+                tick["t"].value,
+                tick["p"].value,
+            )
             for tick in ticks
             if all(c in tick and isinstance(tick[c], TAG_Int) for c in "xyztp")
             and "i" in tick
