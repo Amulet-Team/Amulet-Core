@@ -251,6 +251,8 @@ class BaseLevelDBInterface(Interface):
             chunk_data[b"\x2D"] = b"".join(d2d)
         elif self._features["data_2d"] == "height512|biome4096":
             chunk_data[b"+"] = self._encode_height_3d_biomes(chunk)
+            if b"\x2D" in chunk_data:
+                chunk_data[b"\x2D"] = None
 
         # pack block entities and entities
         if self._features["block_entities"] == "31list":
