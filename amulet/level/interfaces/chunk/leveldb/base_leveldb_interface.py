@@ -702,10 +702,13 @@ class BaseLevelDBInterface(Interface):
             if cy in chunk.biomes:
                 arr = chunk.biomes.get_section(cy)
                 palette, arr_uniq = numpy.unique(arr, return_inverse=True)
-                d2d.append(
-                    self._encode_packed_array(arr_uniq.reshape(arr.shape)[_scale_grid])
-                )
-                d2d.append(struct.pack("<I", len(palette)))
+                if len(palette) == 1:
+                    d2d.append(b"\x01")
+                else:
+                    d2d.append(
+                        self._encode_packed_array(arr_uniq.reshape(arr.shape)[_scale_grid])
+                    )
+                    d2d.append(struct.pack("<I", len(palette)))
                 d2d.append(palette.astype("<i4").tobytes())
             else:
                 d2d.append(b"\xFF")
