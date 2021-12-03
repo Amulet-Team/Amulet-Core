@@ -34,7 +34,7 @@ chunk_version_to_max_version = {
     26: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
     27: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
     28: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
-    29: ((1, 17, 30, 0), (1, 18, 0, 0)),  # 1.17.30 caves and cliffs enabled
+    29: ((1, 17, 30, 0), (1, 17, 999, 999)),  # 1.17.30 caves and cliffs enabled
     30: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
     31: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
     32: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
@@ -56,12 +56,13 @@ def chunk_to_game_version(
     return min(chunk_version_to_max_version[chunk_version][1], max_game_version)
 
 
-def game_to_chunk_version(max_game_version: VersionNumberTuple) -> int:
+def game_to_chunk_version(max_game_version: VersionNumberTuple, cnc=False) -> int:
     """Get the chunk version that should be used for the given game version number."""
+    cnc = cnc or max_game_version >= (1, 18, 0)
     for chunk_version, (first, last) in chunk_version_to_max_version.items():
-        if first <= max_game_version <= last:
-            if 23 <= chunk_version <= 38:
-                # TODO: work out a better way to support this
-                #  These are currently only used with the caves and cliffs toggle enabled
-                return 22
+        if (
+            first <= max_game_version <= last  # if the version is in the range
+            and
+            cnc == (chunk_version > 22)  # and it is in the correct range (caves and cliffs or not)
+        ):
             return chunk_version
