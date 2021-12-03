@@ -706,7 +706,9 @@ class BaseLevelDBInterface(Interface):
                     d2d.append(b"\x01")
                 else:
                     d2d.append(
-                        self._encode_packed_array(arr_uniq.reshape(arr.shape)[_scale_grid])
+                        self._encode_packed_array(
+                            arr_uniq.reshape(arr.shape)[_scale_grid]
+                        )
                     )
                     d2d.append(struct.pack("<I", len(palette)))
                 d2d.append(palette.astype("<i4").tobytes())

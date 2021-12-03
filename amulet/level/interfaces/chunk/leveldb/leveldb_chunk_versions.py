@@ -62,7 +62,9 @@ def game_to_chunk_version(max_game_version: VersionNumberTuple, cnc=False) -> in
     for chunk_version, (first, last) in chunk_version_to_max_version.items():
         if (
             first <= max_game_version <= last  # if the version is in the range
-            and
-            cnc == (chunk_version > 22)  # and it is in the correct range (caves and cliffs or not)
+            and cnc
+            == (
+                chunk_version > 22
+            )  # and it is in the correct range (caves and cliffs or not)
         ):
             return chunk_version

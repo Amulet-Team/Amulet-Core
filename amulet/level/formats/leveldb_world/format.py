@@ -215,7 +215,9 @@ class LevelDBFormat(WorldFormatWrapper):
         else:
             chunk_version = game_to_chunk_version(
                 self.max_world_version[1],
-                self.root_tag.get("experiments", {}).get("caves_and_cliffs", nbt.TAG_Byte()).value
+                self.root_tag.get("experiments", {})
+                .get("caves_and_cliffs", nbt.TAG_Byte())
+                .value,
             )
         return self.platform, chunk_version  # TODO: work out a valid default
 
