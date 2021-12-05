@@ -10,7 +10,6 @@ class LevelDB39Interface(ParentInterface):
         super().__init__()
 
         self._set_feature("chunk_version", 39)
-        self._set_feature("data_2d", "height512|biome4096")
 
 
 export = LevelDB39Interface

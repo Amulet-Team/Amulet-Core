@@ -249,6 +249,8 @@ class BaseLevelDBInterface(Interface):
             chunk.biomes.convert_to_2d()
             d2d.append(chunk.biomes.astype("uint8").T.tobytes())
             chunk_data[b"\x2D"] = b"".join(d2d)
+            if b"+" in chunk_data:
+                chunk_data[b"+"] = None
         elif self._features["data_2d"] == "height512|biome4096":
             chunk_data[b"+"] = self._encode_height_3d_biomes(chunk)
             if b"\x2D" in chunk_data:
@@ -671,7 +673,8 @@ class BaseLevelDBInterface(Interface):
             data[512:],
         )
         biomes = {}
-        for cy in range(-4, 21):
+        cy = -4
+        while data:
             data, bits_per_value, arr = self._decode_packed_array(data)
             if bits_per_value == 0:
                 value, data = struct.unpack(f"<I", data[:4])[0], data[4:]
@@ -684,8 +687,7 @@ class BaseLevelDBInterface(Interface):
                     numpy.uint32
                 )
                 data = data[4 * palette_len :]
-        if data:
-            raise Exception("More data")
+            cy += 1
         return heightmap, biomes
 
     def _encode_height(self, chunk) -> bytes:

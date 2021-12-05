@@ -11,6 +11,7 @@ class LevelDB29Interface(ParentInterface):
         super().__init__()
 
         self._set_feature("chunk_version", 29)
+        self._set_feature("data_2d", "height512|biome4096")
 
     @staticmethod
     def _get_sub_chunk_storage_byte(cy: int, min_y: int) -> bytes:
