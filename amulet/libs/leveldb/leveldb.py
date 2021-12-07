@@ -7,13 +7,13 @@ from typing import Dict, Iterator, Tuple
 
 if sys.platform == "win32":
     if sys.maxsize > 2 ** 32:  # 64 bit python
-        lib_name = "LevelDB-MCPE-64.dll"
+        lib_name = "leveldb_mcpe_win_amd64.dll"
     else:  # 32 bit python
-        lib_name = "LevelDB-MCPE-32.dll"
+        lib_name = "leveldb_mcpe_win32.dll"
 elif sys.platform == "darwin":
-    lib_name = "libleveldb.dylib"
+    lib_name = "leveldb_mcpe_macosx_10_9_x86_64.dylib"
 else:  # linux, compile your own .so if this errors!
-    lib_name = "libleveldb.so"
+    lib_name = "leveldb_mcpe_linux_x86_64.so"
 
 lib_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), lib_name)
 assert os.path.isfile(
