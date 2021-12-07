@@ -22,7 +22,9 @@ hiddenimports = (
 if sys.platform == "linux":
     binaries = [
         (
-            os.path.join(AMULET_PATH, "libs", "leveldb", "libleveldb.so"),
+            os.path.join(
+                AMULET_PATH, "libs", "leveldb", "leveldb_mcpe_linux_x86_64.so"
+            ),
             os.path.join(".", "amulet", "libs", "leveldb"),
         ),
     ]
@@ -30,14 +32,16 @@ elif sys.platform == "win32":
     if sys.maxsize > 2 ** 32:  # 64 bit python
         binaries = [
             (
-                os.path.join(AMULET_PATH, "libs", "leveldb", "LevelDB-MCPE-64.dll"),
+                os.path.join(
+                    AMULET_PATH, "libs", "leveldb", "leveldb_mcpe_win_amd64.dll"
+                ),
                 os.path.join(".", "amulet", "libs", "leveldb"),
             ),
         ]
     else:
         binaries = [
             (
-                os.path.join(AMULET_PATH, "libs", "leveldb", "LevelDB-MCPE-32.dll"),
+                os.path.join(AMULET_PATH, "libs", "leveldb", "leveldb_mcpe_win32.dll"),
                 os.path.join(".", "amulet", "libs", "leveldb"),
             )
         ]
@@ -45,7 +49,9 @@ elif sys.platform == "win32":
 elif sys.platform == "darwin":
     binaries = [
         (
-            os.path.join(AMULET_PATH, "libs", "leveldb", "libleveldb.dylib"),
+            os.path.join(
+                AMULET_PATH, "libs", "leveldb", "leveldb_mcpe_macosx_10_9_x86_64.dylib"
+            ),
             os.path.join(".", "amulet", "libs", "leveldb"),
         ),
     ]
