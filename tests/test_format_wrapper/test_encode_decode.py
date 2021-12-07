@@ -56,6 +56,8 @@ class BaseTestDecodeEncode(BaseWorldTest, unittest.TestCase):
                     # self.assertEqual(raw_chunk_data_in, raw_chunk_data_out)
 
                     raw_chunk_data2 = copy.deepcopy(raw_chunk_data_out)
+                    if world_temp.metadata["world_data"]["platform"] == "bedrock":
+                        raw_chunk_data2 = {key: val for key, val in raw_chunk_data2.items() if val is not None}
                     level._decode(interface, dimension, cx, cz, raw_chunk_data2)
             level.close()
 
