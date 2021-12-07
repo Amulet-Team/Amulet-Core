@@ -7,11 +7,11 @@ import numpy
 import amulet_nbt
 
 import amulet
-from amulet.api.block import Block, PropertyDataTypes
+from amulet.api.block import Block
 from amulet.api.chunk import Chunk, StatusFormats
 
-from amulet.utils.numpy_helpers import brute_sort_objects, brute_sort_objects_no_hash
-from amulet.utils.world_utils import fast_unique, from_nibble_array, to_nibble_array
+from amulet.utils.numpy_helpers import brute_sort_objects
+from amulet.utils.world_utils import fast_unique, from_nibble_array
 from amulet.api.wrapper import Interface
 from amulet.api.data_types import (
     AnyNDArray,
@@ -85,8 +85,13 @@ class BaseLevelDBInterface(Interface):
         return loader.Translators.get(("bedrock", game_version)), game_version
 
     @staticmethod
+    def _chunk_key_to_sub_chunk(cy: int, min_y: int) -> int:
+        """Convert the database sub-chunk key to the sub-chunk index."""
+        return cy
+
+    @staticmethod
     def _get_sub_chunk_storage_byte(cy: int, min_y: int) -> bytes:
-        return struct.pack("b", cy - min_y)
+        return struct.pack("b", cy)
 
     def decode(
         self, cx: int, cz: int, data: Dict[bytes, bytes], bounds: Tuple[int, int]
@@ -109,14 +114,13 @@ class BaseLevelDBInterface(Interface):
         if self._features["terrain"].startswith(
             "2f"
         ):  # ["2farray", "2f1palette", "2fnpalette"]
-            min_y = bounds[0] // 16
-            max_y = bounds[1] // 16
-            subchunks = {
-                cy: data.pop(
-                    b"\x2F" + self._get_sub_chunk_storage_byte(cy, min_y), None
-                )
-                for cy in range(min_y, max_y)
-            }
+            subchunks = {}
+            for key in data.copy().keys():
+                if len(key) == 2 and key[0:1] == b"\x2F":
+                    cy = struct.unpack("b", key[1:2])[0]
+                    subchunks[
+                        self._chunk_key_to_sub_chunk(cy, bounds[0] >> 4)
+                    ] = data.pop(key)
             chunk.blocks, chunk_palette = self._load_subchunks(subchunks)
         elif self._features["terrain"] == "30array":
             chunk_data = data.pop(b"\x30", None)
