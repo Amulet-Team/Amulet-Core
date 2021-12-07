@@ -334,7 +334,11 @@ class BaseLevelDBInterface(Interface):
                     storage_count, data = data[1], data[2:]
                 elif data[0] == 9:
                     # There is an extra byte in this format storing the cy value
-                    storage_count, data = data[1], data[3:]
+                    storage_count, cy, data = (
+                        data[1],
+                        struct.unpack("b", data[2:3])[0],
+                        data[3:],
+                    )
                 else:
                     raise Exception(f"sub-chunk version {data[0]} is not known.")
 
