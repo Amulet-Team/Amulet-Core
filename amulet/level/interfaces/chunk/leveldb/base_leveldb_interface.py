@@ -545,6 +545,25 @@ class BaseLevelDBInterface(Interface):
     def _encode_height_3d_biomes(self, chunk) -> bytes:
         d2d: List[bytes] = [self._encode_height(chunk)]
         chunk.biomes.convert_to_3d()
+        # at least one biome array needs to be defined
+        # all biome arrays below the highest biome array must be populated.
+        highest = next((cy for cy in range(20, -5, -1) if cy in chunk.biomes), None)
+        if highest is None:
+            # populate lowest array
+            chunk.biomes.create_section(-4)
+        else:
+            for cy in range(highest - 1, -5, -1):
+                if cy not in chunk.biomes:
+                    chunk.biomes.add_section(
+                        cy,
+                        numpy.repeat(
+                            # get the array for the sub-chunk above and get the lowest slice
+                            chunk.biomes.get_section(cy + 1)[:, :1, :],
+                            4,  # Repeat this slice 4 times in the first axis
+                            1,  # TODO: When biome editing supports 16x this will need to be changed.
+                        ),
+                    )
+
         for cy in range(-4, 21):
             if cy in chunk.biomes:
                 arr = chunk.biomes.get_section(cy)
