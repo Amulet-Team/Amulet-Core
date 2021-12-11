@@ -147,14 +147,17 @@ class DataPack:
         return self._path
 
     @staticmethod
-    def is_path_valid(path: str):
+    def is_path_valid(path: str) -> bool:
         """
         Check if the given path is a valid data pack.
 
         :param path: The path to the data pack. Can be a zip file or directory.
         :return: True if the path is a valid data pack, False otherwise.
         """
-        wrapper = _open_wrapper(path)
+        try:
+            wrapper = _open_wrapper(path)
+        except FileNotFoundError:
+            return False
         is_valid = DataPack.is_wrapper_valid(wrapper)
         wrapper.close()
         return is_valid
