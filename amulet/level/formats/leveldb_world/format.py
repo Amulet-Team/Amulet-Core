@@ -424,11 +424,40 @@ class LevelDBFormat(WorldFormatWrapper):
             }[dimension.value]
         else:
             dimension_str = OVERWORLD
+
+        # get the players position
+        pos_data = player_nbt.get("Pos")
+        if (
+            isinstance(pos_data, nbt.TAG_List)
+            and len(pos_data) == 3
+            and pos_data.list_data_type == nbt.TAG_Float.tag_id
+        ):
+            position = tuple(map(float, pos_data))
+            position = tuple(
+                p if -100_000_000 <= p <= 100_000_000 else 0.0 for p in position
+            )
+        else:
+            position = (0.0, 0.0, 0.0)
+
+        # get the players rotation
+        rot_data = player_nbt.get("Rotation")
+        if (
+            isinstance(rot_data, nbt.TAG_List)
+            and len(rot_data) == 2
+            and rot_data.list_data_type == nbt.TAG_Float.tag_id
+        ):
+            rotation = tuple(map(float, rot_data))
+            rotation = tuple(
+                p if -100_000_000 <= p <= 100_000_000 else 0.0 for p in rotation
+            )
+        else:
+            rotation = (0.0, 0.0)
+
         return Player(
             player_id,
             dimension_str,
-            tuple(map(lambda t: t.value, player_nbt["Pos"])),
-            tuple(map(lambda t: t.value, player_nbt["Rotation"])),
+            position,
+            rotation,
         )
 
     def _get_raw_player_data(self, player_id: str) -> nbt.NBTFile:
