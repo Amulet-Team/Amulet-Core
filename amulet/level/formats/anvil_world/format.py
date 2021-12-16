@@ -204,7 +204,7 @@ class AnvilFormat(WorldFormatWrapper):
                 path, mcc=self._mcc_support
             )
             self._dimension_name_map[dimension_name] = relative_dimension_path
-            bounds = None
+            bounds = DefaultSelection
             if self.version >= 2709:  # This number might be smaller
 
                 def get_recursive(obj: nbt.TAG_Compound, *keys):
@@ -230,6 +230,17 @@ class AnvilFormat(WorldFormatWrapper):
                     dimension_type: str = dimension_type.value
                     if ":" in dimension_type:
                         namespace, base_name = dimension_type.split(":", 1)
+                        if (
+                            self.version >= 2834
+                            and namespace == "minecraft"
+                            and base_name == "overworld"
+                        ):
+                            bounds = SelectionGroup(
+                                SelectionBox(
+                                    (-30_000_000, -64, -30_000_000),
+                                    (30_000_000, 320, 30_000_000),
+                                )
+                            )
                         dimension_path = (
                             f"data/{namespace}/dimension_type/{base_name}.json"
                         )
@@ -297,8 +308,6 @@ class AnvilFormat(WorldFormatWrapper):
                         )
                     )
 
-            if bounds is None:
-                bounds = DefaultSelection
             self._bounds[dimension_name] = bounds
 
     def _get_interface_key(

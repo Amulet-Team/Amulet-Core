@@ -213,18 +213,12 @@ class LevelDBFormat(WorldFormatWrapper):
             else:
                 chunk_version = raw_chunk_data.get(b"v", b"\x00")[0]
         else:
-            if (
+            chunk_version = game_to_chunk_version(
+                self.max_world_version[1],
                 self.root_tag.get("experiments", {})
                 .get("caves_and_cliffs", nbt.TAG_Byte())
-                .value
-            ):
-                # TODO: handle this properly when the chunk version is better understood for the 1.18 chunk
-                if self.version < (1, 17, 30):
-                    chunk_version = 25
-                else:
-                    chunk_version = 29
-            else:
-                chunk_version = game_to_chunk_version(self.max_world_version[1])
+                .value,
+            )
         return self.platform, chunk_version  # TODO: work out a valid default
 
     def _decode(
@@ -266,6 +260,7 @@ class LevelDBFormat(WorldFormatWrapper):
             if (
                 experiments.get("caves_and_cliffs", nbt.TAG_Byte()).value
                 or experiments.get("caves_and_cliffs_internal", nbt.TAG_Byte()).value
+                or self.version >= (1, 18)
             ):
                 self._bounds[OVERWORLD] = SelectionGroup(
                     SelectionBox(

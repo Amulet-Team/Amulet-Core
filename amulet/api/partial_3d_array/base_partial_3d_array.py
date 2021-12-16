@@ -50,13 +50,16 @@ class BasePartial3DArray(ABC):
             # populate from sections
             self._sections = sections or {}
             for key, section in self._sections.items():
-                assert isinstance(key, int), "All keys must be ints"
-                assert (
-                    section.shape == self._section_shape
-                ), "The size of all sections must be equal to the section_shape."
-                assert (
-                    section.dtype == self._dtype
-                ), "The given dtype does not match the arrays given."
+                if not isinstance(key, int):
+                    raise ValueError("All keys must be ints")
+                if section.shape != self._section_shape:
+                    raise ValueError(
+                        f"The size of all sections must be equal to the section_shape. Expected shape {self._section_shape}, got {section.shape}"
+                    )
+                if section.dtype != self._dtype:
+                    raise ValueError(
+                        f"The given dtype does not match the arrays given. Expected {self._default_value}, got {section.dtype}"
+                    )
 
         elif isinstance(parent_array, BasePartial3DArray):
             # populate from the array

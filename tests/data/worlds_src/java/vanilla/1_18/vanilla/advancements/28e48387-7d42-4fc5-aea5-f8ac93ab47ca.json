@@ -1,0 +1,16 @@
+{
+  "minecraft:adventure/adventuring_time": {
+    "criteria": {
+      "minecraft:windswept_hills": "2021-11-25 10:30:26 +0000",
+      "minecraft:beach": "2021-11-25 10:29:08 +0000",
+      "minecraft:river": "2021-11-25 10:29:04 +0000",
+      "minecraft:swamp": "2021-11-25 10:29:07 +0000",
+      "minecraft:cold_ocean": "2021-11-25 10:29:23 +0000",
+      "minecraft:windswept_savanna": "2021-11-25 10:30:24 +0000",
+      "minecraft:windswept_gravelly_hills": "2021-11-25 10:29:17 +0000",
+      "minecraft:plains": "2021-11-25 10:28:34 +0000"
+    },
+    "done": false
+  },
+  "DataVersion": 2855
+}

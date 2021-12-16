@@ -6,6 +6,10 @@ from .anvil_1484 import (
 
 
 class Anvil1503Interface(Anvil1484Interface):
+    """
+    Changed height keys again
+    """
+
     def __init__(self):
         super().__init__()
         self._set_feature("height_map", "C|V3")

@@ -75,6 +75,13 @@ class UnboundedPartial3DArray(BasePartial3DArray):
             self.section_shape, self.default_value, dtype=self._dtype
         )
 
+    def has_section(self, sy: int) -> bool:
+        """Check if the array for a given section exists.
+        :param cy: The section y index
+        :return: True if the array exists, False otherwise
+        """
+        return sy in self._sections
+
     def add_section(self, sy: IntegerType, section: numpy.ndarray):
         """
         Add a section array at the given location.
@@ -82,9 +89,10 @@ class UnboundedPartial3DArray(BasePartial3DArray):
         :param sy: The section index to assign the array to.
         :param section: The array to assign to the section. The shape must equal :attr:`section_shape`.
         """
-        assert (
-            section.shape == self._section_shape
-        ), "The size of all sections must be equal to the section_shape."
+        if section.shape != self._section_shape:
+            raise ValueError(
+                f"The size of all sections must be equal to the section_shape. Expected shape {self._section_shape}, got {section.shape}"
+            )
         if section.dtype != self._dtype:
             section = section.astype(self._dtype)
         self._sections[int(sy)] = section
