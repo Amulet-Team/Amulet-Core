@@ -11,7 +11,7 @@ java_vanilla_1_12_2 = "java/vanilla/1_12_2"
 java_vanilla_1_13 = "java/vanilla/1_13"
 
 
-def find_levels():
+def __find_levels():
     this_dir = os.path.dirname(__file__)
     for path in glob.glob(
         os.path.join(this_dir, "**", "world_test_data.json"), recursive=True
@@ -34,8 +34,7 @@ def find_levels():
             raise Exception(f"Unknown platform {platform}")
 
 
-find_levels()
-del find_levels
+__find_levels()
 
 JavaLevels = [*JavaVanillaLevels, *JavaForgeLevels]
 
