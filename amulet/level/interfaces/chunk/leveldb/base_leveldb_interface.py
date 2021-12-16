@@ -154,10 +154,15 @@ class BaseLevelDBInterface(Interface):
             raise Exception
 
         if self._features["finalised_state"] == "int0-2":
-            if b"\x36" in data:
-                val = struct.unpack("<i", data.pop(b"\x36"))[0]
-            else:
-                val = 2
+            state = data.pop(b"\x36", None)
+            val = 2
+            if isinstance(state, bytes):
+                if len(state) == 1:
+                    # old versions of the game store this as a byte
+                    val = struct.unpack("b", state)[0]
+                elif len(state) == 4:
+                    # newer versions store it as an int
+                    val = struct.unpack("<i", state)[0]
             chunk.status = val
 
         if b"+" in data:
