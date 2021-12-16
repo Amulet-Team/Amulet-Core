@@ -132,7 +132,7 @@ class AnvilFormat(WorldFormatWrapper):
 
     @property
     def level_name(self) -> str:
-        return str(self.root_tag["Data"].get("LevelName", ""))
+        return str(self.root_tag.get("Data", {}).get("LevelName", ""))
 
     @level_name.setter
     def level_name(self, value: str):
@@ -140,7 +140,7 @@ class AnvilFormat(WorldFormatWrapper):
 
     @property
     def last_played(self) -> int:
-        return self.root_tag["Data"]["LastPlayed"].value
+        return int(self.root_tag.get("Data", {}).get("LastPlayed", 0))
 
     @property
     def game_version_string(self) -> str:
