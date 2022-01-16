@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
 
 # This is here to scale a 4x array to a 16x array. This can be removed when we natively support 16x array
-_scale_grid = tuple(numpy.meshgrid(*[numpy.arange(16) // 4] * 3))
+_scale_grid = tuple(numpy.meshgrid(*[numpy.arange(16) // 4] * 3, indexing="ij"))
 
 
 class BaseLevelDBInterface(Interface):
