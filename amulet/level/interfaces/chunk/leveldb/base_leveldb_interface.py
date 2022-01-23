@@ -271,11 +271,13 @@ class BaseLevelDBInterface(Interface):
                 chunk_data[b"\x31"] = None
 
         if self._features["entities"] == "32list":
+
             def save_entities(entities_out):
                 if entities_out:
                     chunk_data[b"\x32"] = self._pack_nbt_list(entities_out)
                 else:
                     chunk_data[b"\x32"] = None
+
             if amulet.entity_support:
                 save_entities(self._encode_entity_list(chunk.entities))
             elif amulet.experimental_entity_support:

@@ -14,7 +14,11 @@ experimental_entity_support = False
 def _parse_args():
     global experimental_entity_support
     parser = argparse.ArgumentParser()
-    parser.add_argument("--experimental-entity-support", dest="experimental_entity_support", action="store_true")
+    parser.add_argument(
+        "--experimental-entity-support",
+        dest="experimental_entity_support",
+        action="store_true",
+    )
     args = parser.parse_known_args()[0]
     experimental_entity_support = args.experimental_entity_support
 

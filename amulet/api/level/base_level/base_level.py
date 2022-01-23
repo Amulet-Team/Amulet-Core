@@ -812,7 +812,9 @@ class BaseLevel:
             del chunk.block_entities[(x, y, z)]
         chunk.changed = True
 
-    def get_native_entities(self, cx: int, cz: int, dimension: Dimension) -> Tuple[EntityList, VersionIdentifierType]:
+    def get_native_entities(
+        self, cx: int, cz: int, dimension: Dimension
+    ) -> Tuple[EntityList, VersionIdentifierType]:
         """
         Get a list of entities in the native format from a given chunk.
         This currently returns the raw data from the chunk but in the future will convert to the world version format.
@@ -826,7 +828,9 @@ class BaseLevel:
         # To make this forwards compatible this needs to be deep copied
         return copy.deepcopy(chunk._native_entities), chunk._native_version
 
-    def set_native_entites(self, cx: int, cz: int, dimension: Dimension, entities: Iterable[Entity]):
+    def set_native_entites(
+        self, cx: int, cz: int, dimension: Dimension, entities: Iterable[Entity]
+    ):
         """
         Set the entities in the native format.
         Note that the format must be compatible with `level_wrapper.max_world_version`.
