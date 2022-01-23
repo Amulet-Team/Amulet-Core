@@ -228,6 +228,8 @@ class AnvilNAInterface(BaseAnvilInterface):
         ents = self._decode_entity_list(self.get_obj(compound, self.Entities, TAG_List))
         if amulet.entity_support:
             chunk.entities = ents
+        elif amulet.temp_entity_support:
+            chunk._native_entities = ents
         else:
             chunk.misc["java_entities_temp"] = ents
 
@@ -420,6 +422,8 @@ class AnvilNAInterface(BaseAnvilInterface):
     def _encode_entities(self, chunk: Chunk, level: TAG_Compound):
         if amulet.entity_support:
             level[self.Entities] = self._encode_entity_list(chunk.entities)
+        elif amulet.temp_entity_support:
+            level[self.Entities] = self._encode_entity_list(chunk._native_entities)
         else:
             level[self.Entities] = self._encode_entity_list(
                 chunk.misc.get("java_entities_temp", TAG_List())

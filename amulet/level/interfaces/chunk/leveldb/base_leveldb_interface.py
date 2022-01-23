@@ -196,9 +196,13 @@ class BaseLevelDBInterface(Interface):
             block_entities = self._unpack_nbt_list(data.pop(b"\x31", b""))
             chunk.block_entities = self._decode_block_entity_list(block_entities)
 
-        if self._features["entities"] == "32list" and amulet.entity_support:
-            entities = self._unpack_nbt_list(data.pop(b"\x32", b""))
-            chunk.entities = self._decode_entity_list(entities)
+        if self._features["entities"] == "32list":
+            if amulet.entity_support:
+                entities = self._unpack_nbt_list(data.pop(b"\x32", b""))
+                chunk.entities = self._decode_entity_list(entities)
+            elif amulet.temp_entity_support:
+                entities = self._unpack_nbt_list(data.pop(b"\x32", b""))
+                chunk._native_entities = self._decode_entity_list(entities)
 
         return chunk, chunk_palette
 
@@ -266,13 +270,16 @@ class BaseLevelDBInterface(Interface):
             else:
                 chunk_data[b"\x31"] = None
 
-        if amulet.entity_support and self._features["entities"] == "32list":
-            entities_out = self._encode_entity_list(chunk.entities)
-
-            if entities_out:
-                chunk_data[b"\x32"] = self._pack_nbt_list(entities_out)
-            else:
-                chunk_data[b"\x32"] = None
+        if self._features["entities"] == "32list":
+            def save_entities(entities_out):
+                if entities_out:
+                    chunk_data[b"\x32"] = self._pack_nbt_list(entities_out)
+                else:
+                    chunk_data[b"\x32"] = None
+            if amulet.entity_support:
+                save_entities(self._encode_entity_list(chunk.entities))
+            elif amulet.temp_entity_support:
+                save_entities(self._encode_entity_list(chunk._native_entities))
 
         return chunk_data
 
