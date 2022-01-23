@@ -200,7 +200,7 @@ class BaseLevelDBInterface(Interface):
             if amulet.entity_support:
                 entities = self._unpack_nbt_list(data.pop(b"\x32", b""))
                 chunk.entities = self._decode_entity_list(entities)
-            elif amulet.temp_entity_support:
+            elif amulet.experimental_entity_support:
                 entities = self._unpack_nbt_list(data.pop(b"\x32", b""))
                 chunk._native_entities = self._decode_entity_list(entities)
 
@@ -278,7 +278,7 @@ class BaseLevelDBInterface(Interface):
                     chunk_data[b"\x32"] = None
             if amulet.entity_support:
                 save_entities(self._encode_entity_list(chunk.entities))
-            elif amulet.temp_entity_support:
+            elif amulet.experimental_entity_support:
                 save_entities(self._encode_entity_list(chunk._native_entities))
 
         return chunk_data

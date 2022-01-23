@@ -8,15 +8,15 @@ del get_versions
 
 
 entity_support = False
-temp_entity_support = False
+experimental_entity_support = False
 
 
 def _parse_args():
-    global temp_entity_support
+    global experimental_entity_support
     parser = argparse.ArgumentParser()
-    parser.add_argument("--temp-entity-support", dest="temp_entity_support", action="store_true")
+    parser.add_argument("--experimental-entity-support", dest="experimental_entity_support", action="store_true")
     args = parser.parse_known_args()[0]
-    temp_entity_support = args.temp_entity_support
+    experimental_entity_support = args.experimental_entity_support
 
 
 _parse_args()
