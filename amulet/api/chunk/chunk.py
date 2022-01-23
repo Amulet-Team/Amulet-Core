@@ -17,7 +17,7 @@ from amulet.api.chunk import (
     EntityList,
 )
 from amulet.api.entity import Entity
-from amulet.api.data_types import ChunkCoordinates
+from amulet.api.data_types import ChunkCoordinates, VersionIdentifierType
 from amulet.api.history.changeable import Changeable
 
 
@@ -45,6 +45,10 @@ class Chunk(Changeable):
         self._block_entities = BlockEntityDict()
         self._status = Status()
         self._misc = {}  # all entries that are not important enough to get an attribute
+
+        # TODO: remove these variables. They are temporary until the translator supports entities
+        self._native_version: VersionIdentifierType = None
+        self._native_entities = EntityList()
 
     def __repr__(self):
         return f"Chunk({self.cx}, {self.cz}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._block_entities)})"
