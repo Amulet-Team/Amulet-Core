@@ -195,7 +195,7 @@ def decode_long_array(
         if bits_per_entry < 64:
             mask = arr >= 2 ** (bits_per_entry - 1)
             sarray[mask] = numpy.subtract(
-                arr[mask], 2 ** bits_per_entry, dtype=numpy.int64
+                arr[mask], 2**bits_per_entry, dtype=numpy.int64
             )
         arr = sarray
     return arr
@@ -250,7 +250,7 @@ def encode_long_array(
     if bits_per_entry < 64:
         mask = array < 0
         uarray[mask] = numpy.add(
-            array[mask], 2 ** bits_per_entry, dtype=numpy.uint64, casting="unsafe"
+            array[mask], 2**bits_per_entry, dtype=numpy.uint64, casting="unsafe"
         )
     array = uarray
 
@@ -318,7 +318,7 @@ def get_smallest_dtype(arr: ndarray, uint: bool = True) -> int:
     :param uint: Should the array fit in uint or not (default: True)
     :return: The number of bits all the elements can be represented with
     """
-    possible_dtypes = (2 ** x for x in range(3, 8))
+    possible_dtypes = (2**x for x in range(3, 8))
     max_number = numpy.amax(arr)
     if not uint:
         max_number = max_number * 2

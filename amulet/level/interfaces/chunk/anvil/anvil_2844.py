@@ -102,7 +102,7 @@ class Anvil2844Interface(ParentInterface):
             else:
                 decoded = decode_long_array(
                     data.value,
-                    16 ** 3,
+                    16**3,
                     max(4, (len(section_palette) - 1).bit_length()),
                     dense=self.LongArrayDense,
                 ).astype(numpy.uint32)
@@ -129,7 +129,7 @@ class Anvil2844Interface(ParentInterface):
                 arr = numpy.transpose(
                     decode_long_array(
                         data.value,
-                        4 ** 3,
+                        4**3,
                         (len(section_palette) - 1).bit_length(),
                         dense=self.LongArrayDense,
                     )

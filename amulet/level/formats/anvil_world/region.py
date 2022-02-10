@@ -194,7 +194,7 @@ class AnvilRegion:
                     mcc_chunks = set()
                 for key, val in self._committed_chunks.items():
                     if val[1] is not None:
-                        if self._mcc or len(val[1]) <= 2 ** 20 - 4:
+                        if self._mcc or len(val[1]) <= 2**20 - 4:
                             self._chunks[key] = val
                     elif key in self._chunks:
                         del self._chunks[key]
@@ -208,7 +208,7 @@ class AnvilRegion:
                         index = cx + (cz << 5)
                         buffer_size = len(buffer)
                         if (
-                            buffer_size > 2 ** 20 - 4
+                            buffer_size > 2**20 - 4
                         ):  # if mcc is false the chunks that are too large should have already been removed.
                             mcc_chunks.remove((cx, cz))
                             with open(

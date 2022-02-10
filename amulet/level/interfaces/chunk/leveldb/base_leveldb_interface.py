@@ -126,11 +126,11 @@ class BaseLevelDBInterface(Interface):
             chunk_data = data.pop(b"\x30", None)
             if chunk_data is not None:
                 block_ids = numpy.frombuffer(
-                    chunk_data[: 2 ** 15], dtype=numpy.uint8
+                    chunk_data[: 2**15], dtype=numpy.uint8
                 ).astype(numpy.uint16)
                 block_data = from_nibble_array(
                     numpy.frombuffer(
-                        chunk_data[2 ** 15 : 2 ** 15 + 2 ** 14], dtype=numpy.uint8
+                        chunk_data[2**15 : 2**15 + 2**14], dtype=numpy.uint8
                     )
                 )
 
@@ -319,11 +319,11 @@ class BaseLevelDBInterface(Interface):
                 continue
             if data[0] in {0, 2, 3, 4, 5, 6, 7}:
                 block_ids = numpy.frombuffer(
-                    data[1 : 1 + 2 ** 12], dtype=numpy.uint8
+                    data[1 : 1 + 2**12], dtype=numpy.uint8
                 ).astype(numpy.uint16)
                 block_data = from_nibble_array(
                     numpy.frombuffer(
-                        data[1 + 2 ** 12 : 1 + 2 ** 12 + 2 ** 11], dtype=numpy.uint8
+                        data[1 + 2**12 : 1 + 2**12 + 2**11], dtype=numpy.uint8
                     )
                 )
                 combined_palette, block_array = fast_unique(
