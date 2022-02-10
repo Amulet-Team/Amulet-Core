@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Any, Dict, Generator, Optional, List, Union, Iterable
+from typing import Tuple, Dict, Generator, Optional, List, Union, Iterable
 import time
 import glob
 import shutil
@@ -18,6 +18,7 @@ from amulet.api.errors import (
     DimensionDoesNotExist,
     ObjectWriteError,
     ChunkLoadError,
+    ChunkDoesNotExist,
     PlayerDoesNotExist,
 )
 from amulet.api.data_types import (
@@ -28,7 +29,7 @@ from amulet.api.data_types import (
     AnyNDArray,
     Dimension,
 )
-from .dimension import AnvilDimensionManager
+from .dimension import AnvilDimensionManager, ChunkDataType
 from amulet.api import level as api_level
 from amulet.level.interfaces.chunk.anvil.base_anvil_interface import BaseAnvilInterface
 from .data_pack import DataPack, DataPackManager
@@ -201,7 +202,7 @@ class AnvilFormat(WorldFormatWrapper):
             and dimension_name not in self._dimension_name_map
         ):
             self._levels[relative_dimension_path] = AnvilDimensionManager(
-                path, mcc=self._mcc_support
+                path, mcc=self._mcc_support, layers=("region",) + ("entities",) * (self.version >= 2681)
             )
             self._dimension_name_map[dimension_name] = relative_dimension_path
             bounds = DefaultSelection
@@ -311,15 +312,15 @@ class AnvilFormat(WorldFormatWrapper):
             self._bounds[dimension_name] = bounds
 
     def _get_interface_key(
-        self, raw_chunk_data: Optional[Any] = None
+        self, raw_chunk_data: Optional[ChunkDataType] = None
     ) -> Tuple[str, int]:
-        if raw_chunk_data:
+        if raw_chunk_data is None:
+            return self.max_world_version
+        else:
             return (
                 self.platform,
-                raw_chunk_data.get("DataVersion", nbt.TAG_Int(-1)).value,
+                raw_chunk_data.get("region", {}).get("DataVersion", nbt.TAG_Int(-1)).value,
             )
-        else:
-            return self.max_world_version
 
     def _decode(
         self,
@@ -327,7 +328,7 @@ class AnvilFormat(WorldFormatWrapper):
         dimension: Dimension,
         cx: int,
         cz: int,
-        raw_chunk_data: Any,
+        raw_chunk_data: ChunkDataType,
     ) -> Tuple[Chunk, AnyNDArray]:
         bounds = self.bounds(dimension).bounds
         return interface.decode(cx, cz, raw_chunk_data, (bounds[0][1], bounds[1][1]))
@@ -338,7 +339,7 @@ class AnvilFormat(WorldFormatWrapper):
         chunk: Chunk,
         dimension: Dimension,
         chunk_palette: AnyNDArray,
-    ) -> Any:
+    ) -> ChunkDataType:
         bounds = self.bounds(dimension).bounds
         return interface.encode(
             chunk, chunk_palette, self.max_world_version, (bounds[0][1], bounds[1][1])
@@ -558,12 +559,26 @@ class AnvilFormat(WorldFormatWrapper):
         if self._has_dimension(dimension):
             self._get_dimension(dimension).delete_chunk(cx, cz)
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
-        self._get_dimension(dimension).put_chunk_data(cx, cz, data)
+    # TODO: add a new version of this method that handles all the raw data
+    def put_raw_chunk_data(self, cx: int, cz: int, data: nbt.NBTFile, dimension: Dimension):
+        """
+        Commit the raw chunk data to the FormatWrapper cache.
 
-    def _get_raw_chunk_data(
-        self, cx: int, cz: int, dimension: Dimension
-    ) -> nbt.NBTFile:
+        Call :meth:`save` to push all the cache data to the level.
+
+        :param cx: The x coordinate of the chunk.
+        :param cz: The z coordinate of the chunk.
+        :param data: The raw data to commit to the level.
+        :param dimension: The dimension to load the data from.
+        """
+        self._verify_has_lock()
+        self._put_raw_chunk_data(cx, cz, {"region": data}, dimension)
+
+    def _put_raw_chunk_data(self, cx: int, cz: int, data: ChunkDataType, dimension: Dimension):
+        self._get_dimension(dimension).put_chunk_data_layers(cx, cz, data)
+
+    # TODO: add a new version of this method that handles all the raw data
+    def get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> nbt.NBTFile:
         """
         Return the raw data as loaded from disk.
 
@@ -572,7 +587,34 @@ class AnvilFormat(WorldFormatWrapper):
         :param dimension: The dimension to load the data from.
         :return: The raw chunk data.
         """
-        return self._get_dimension(dimension).get_chunk_data(cx, cz)
+        # TODO: make this return layer data
+        return self._safe_load(
+            self._legacy_get_raw_chunk_data,
+            (cx, cz, dimension),
+            "Error loading chunk {} {} {}",
+            ChunkLoadError,
+            ChunkDoesNotExist,
+        )
+
+    def _legacy_get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> nbt.NBTFile:
+        layers = self._get_raw_chunk_data(cx, cz, dimension)
+        if "region" in layers:
+            return layers["region"]
+        else:
+            raise ChunkDoesNotExist
+
+    def _get_raw_chunk_data(
+        self, cx: int, cz: int, dimension: Dimension
+    ) -> ChunkDataType:
+        """
+        Return the raw data as loaded from disk.
+
+        :param cx: The x coordinate of the chunk.
+        :param cz: The z coordinate of the chunk.
+        :param dimension: The dimension to load the data from.
+        :return: The raw chunk data.
+        """
+        return self._get_dimension(dimension).get_chunk_data_layers(cx, cz)
 
     def all_player_ids(self) -> Iterable[str]:
         """
