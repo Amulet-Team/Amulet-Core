@@ -38,15 +38,15 @@ class LongArrayTestCase(unittest.TestCase):
             for dense in (False, True):
                 for bits_per_entry in range(4, 65):
                     for size in set(
-                        [2 ** p for p in range(1, 13)] + list(range(100, 5000, 100))
+                        [2**p for p in range(1, 13)] + list(range(100, 5000, 100))
                     ):
                         if signed:
                             arr = numpy.random.randint(
-                                -(2 ** 63), 2 ** 63, size, dtype=numpy.int64
+                                -(2**63), 2**63, size, dtype=numpy.int64
                             )
                         else:
                             arr = numpy.random.randint(
-                                0, 2 ** 64, size, dtype=numpy.uint64
+                                0, 2**64, size, dtype=numpy.uint64
                             )
                         arr >>= 64 - bits_per_entry
 

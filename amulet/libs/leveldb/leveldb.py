@@ -6,7 +6,7 @@ import sys
 from typing import Dict, Iterator, Tuple
 
 if sys.platform == "win32":
-    if sys.maxsize > 2 ** 32:  # 64 bit python
+    if sys.maxsize > 2**32:  # 64 bit python
         lib_name = "leveldb_mcpe_win_amd64.dll"
     else:  # 32 bit python
         lib_name = "leveldb_mcpe_win32.dll"
