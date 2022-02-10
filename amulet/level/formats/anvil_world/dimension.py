@@ -5,6 +5,7 @@ from typing import Dict, Iterable
 import re
 
 import amulet_nbt as nbt
+from amulet_nbt import NBTFile
 
 from amulet.utils import world_utils
 from amulet.api.errors import ChunkDoesNotExist
@@ -15,6 +16,9 @@ from amulet.api.data_types import (
 from .region import AnvilRegion
 
 InternalDimension = str
+
+
+ChunkDataType = Dict[str, NBTFile]
 
 
 class AnvilDimensionManager:
@@ -61,7 +65,7 @@ class AnvilDimensionManager:
         # get the region key
         return self.__default_layer.get_chunk_data(cx, cz)
 
-    def get_chunk_data_layers(self, cx: int, cz: int) -> Dict[str, nbt.NBTFile]:
+    def get_chunk_data_layers(self, cx: int, cz: int) -> ChunkDataType:
         """Get the chunk data for each layer"""
         chunk_data = {}
         for layer_name, layer in self.__layers.items():
@@ -79,7 +83,7 @@ class AnvilDimensionManager:
         """pass data to the region file class"""
         self.__default_layer.put_chunk_data(cx, cz, data)
 
-    def put_chunk_data_layers(self, cx: int, cz: int, data_layers: Dict[str, nbt.NBTFile]):
+    def put_chunk_data_layers(self, cx: int, cz: int, data_layers: ChunkDataType):
         """Put one or more layers of data"""
         for layer_name, data in data_layers.items():
             if layer_name not in self.__layers and layer_name.isalpha() and layer_name.islower():
