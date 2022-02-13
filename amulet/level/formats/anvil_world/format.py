@@ -9,6 +9,7 @@ import shutil
 import json
 
 import amulet_nbt as nbt
+from amulet_nbt import TAG_Compound
 from amulet.api.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
@@ -88,6 +89,7 @@ class AnvilFormat(WorldFormatWrapper):
 
         try:
             level_dat_root = load_leveldat(path)
+            assert isinstance(level_dat_root.value, TAG_Compound)
         except:
             return False
 

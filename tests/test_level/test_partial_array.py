@@ -58,7 +58,7 @@ class PartialArrayTestCase(unittest.TestCase):
             (0, section_count),
         )
         array = numpy.arange(
-            (section_size ** 3) * section_count, dtype=partial.dtype
+            (section_size**3) * section_count, dtype=partial.dtype
         ).reshape((section_size, section_size * section_count, section_size))
         for cy in range(section_count):
             partial.add_section(
@@ -151,7 +151,7 @@ class PartialArrayTestCase(unittest.TestCase):
 
         self.assertEqual(tuple(partial.sections), (0, 1))
 
-        arange = numpy.arange(section_size ** 3 * 4).reshape(
+        arange = numpy.arange(section_size**3 * 4).reshape(
             (section_size, section_size * 4, section_size)
         )
         partial[:, int(section_size * 4.5) : int(section_size * 8.5), :] = arange
@@ -194,7 +194,7 @@ class PartialArrayTestCase(unittest.TestCase):
         self.assertFalse(numpy.any(bounded_partial == 10))
         self.assertFalse(numpy.any(10 == bounded_partial))
 
-        arange = numpy.arange(section_size ** 3 * 4).reshape(
+        arange = numpy.arange(section_size**3 * 4).reshape(
             (section_size, section_size * 4, section_size)
         )
         partial[:, int(section_size * 4.5) : int(section_size * 8.5), :] = arange
@@ -243,7 +243,7 @@ class PartialArrayTestCase(unittest.TestCase):
         bounded_partial = partial[:, :, :]
         self.assertTrue(numpy.all(bounded_partial == 0))
 
-        arange = numpy.arange(section_size ** 3 * section_count).reshape(
+        arange = numpy.arange(section_size**3 * section_count).reshape(
             (section_size, section_size * section_count, section_size)
         )
         partial[:, :, :] = arange
@@ -256,7 +256,7 @@ class PartialArrayTestCase(unittest.TestCase):
         self.assertTrue(numpy.all(bounded_partial == arange))
 
     def test_getitem_bool(self):
-        array = numpy.arange(16 ** 4, dtype=numpy.uint32).reshape((16, 16 * 16, 16))
+        array = numpy.arange(16**4, dtype=numpy.uint32).reshape((16, 16 * 16, 16))
         array[:, 128:, :] = 0
         partial_array = UnboundedPartial3DArray(
             numpy.uint32,

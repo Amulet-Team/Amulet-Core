@@ -29,7 +29,7 @@ if sys.platform == "linux":
         ),
     ]
 elif sys.platform == "win32":
-    if sys.maxsize > 2 ** 32:  # 64 bit python
+    if sys.maxsize > 2**32:  # 64 bit python
         binaries = [
             (
                 os.path.join(

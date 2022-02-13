@@ -113,7 +113,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper):
                 # convert to an unsigned short
                 val = val.value
                 if val < 0:
-                    val += 2 ** 16
+                    val += 2**16
                 size.append(val)
 
             max_point = min_point + size
@@ -296,12 +296,12 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper):
             )
         elif self._schem_version == 2:
             selection = self._bounds[self.dimensions[0]].selection_boxes[0]
-            if any(s > 2 ** 16 - 1 for s in selection.shape):
+            if any(s > 2**16 - 1 for s in selection.shape):
                 raise SpongeSchemWriteError(
                     "The structure is too large to be exported to a Sponge Schematic file. It must be 2^16 - 1 at most in each dimension."
                 )
             overflowed_shape = [
-                s if s < 2 ** 15 else s - 2 ** 16 for s in selection.shape
+                s if s < 2**15 else s - 2**16 for s in selection.shape
             ]
             data = amulet_nbt.NBTFile(
                 amulet_nbt.TAG_Compound(
