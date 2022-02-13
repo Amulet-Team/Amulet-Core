@@ -26,13 +26,16 @@ class AnvilDimensionManager:
     A class to manage the data for a dimension.
     This can consist of multiple layers. Eg the region layer which contains chunk data and the entities layer which contains entities.
     """
+
     level_regex = re.compile(r"DIM(?P<level>-?\d+)")
 
     def __init__(self, directory: str, *, mcc=False, layers=("region",)):
         self._directory = directory
         self._mcc = mcc
         self.__layers: Dict[str, AnvilRegionManager] = {
-            layer: AnvilRegionManager(os.path.join(self._directory, layer), mcc=self._mcc)
+            layer: AnvilRegionManager(
+                os.path.join(self._directory, layer), mcc=self._mcc
+            )
             for layer in layers
         }
         self.__default_layer = self.__layers[layers[0]]
@@ -86,8 +89,14 @@ class AnvilDimensionManager:
     def put_chunk_data_layers(self, cx: int, cz: int, data_layers: ChunkDataType):
         """Put one or more layers of data"""
         for layer_name, data in data_layers.items():
-            if layer_name not in self.__layers and layer_name.isalpha() and layer_name.islower():
-                self.__layers[layer_name] = AnvilRegionManager(os.path.join(self._directory, layer_name), mcc=self._mcc)
+            if (
+                layer_name not in self.__layers
+                and layer_name.isalpha()
+                and layer_name.islower()
+            ):
+                self.__layers[layer_name] = AnvilRegionManager(
+                    os.path.join(self._directory, layer_name), mcc=self._mcc
+                )
             if layer_name in self.__layers:
                 self.__layers[layer_name].put_chunk_data(cx, cz, data)
 
@@ -98,6 +107,7 @@ class AnvilDimensionManager:
 
 class AnvilRegionManager:
     """A class to manage a directory of region files."""
+
     def __init__(self, directory: str, *, mcc=False):
         self._directory = directory
         self._regions: Dict[RegionCoordinates, AnvilRegion] = {}

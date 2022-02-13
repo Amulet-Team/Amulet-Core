@@ -204,7 +204,9 @@ class AnvilFormat(WorldFormatWrapper):
             and dimension_name not in self._dimension_name_map
         ):
             self._levels[relative_dimension_path] = AnvilDimensionManager(
-                path, mcc=self._mcc_support, layers=("region",) + ("entities",) * (self.version >= 2681)
+                path,
+                mcc=self._mcc_support,
+                layers=("region",) + ("entities",) * (self.version >= 2681),
             )
             self._dimension_name_map[dimension_name] = relative_dimension_path
             bounds = DefaultSelection
@@ -321,7 +323,9 @@ class AnvilFormat(WorldFormatWrapper):
         else:
             return (
                 self.platform,
-                raw_chunk_data.get("region", {}).get("DataVersion", nbt.TAG_Int(-1)).value,
+                raw_chunk_data.get("region", {})
+                .get("DataVersion", nbt.TAG_Int(-1))
+                .value,
             )
 
     def _decode(
@@ -562,7 +566,9 @@ class AnvilFormat(WorldFormatWrapper):
             self._get_dimension(dimension).delete_chunk(cx, cz)
 
     # TODO: add a new version of this method that handles all the raw data
-    def put_raw_chunk_data(self, cx: int, cz: int, data: nbt.NBTFile, dimension: Dimension):
+    def put_raw_chunk_data(
+        self, cx: int, cz: int, data: nbt.NBTFile, dimension: Dimension
+    ):
         """
         Commit the raw chunk data to the FormatWrapper cache.
 
@@ -576,7 +582,9 @@ class AnvilFormat(WorldFormatWrapper):
         self._verify_has_lock()
         self._put_raw_chunk_data(cx, cz, {"region": data}, dimension)
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: ChunkDataType, dimension: Dimension):
+    def _put_raw_chunk_data(
+        self, cx: int, cz: int, data: ChunkDataType, dimension: Dimension
+    ):
         self._get_dimension(dimension).put_chunk_data_layers(cx, cz, data)
 
     # TODO: add a new version of this method that handles all the raw data
@@ -598,7 +606,9 @@ class AnvilFormat(WorldFormatWrapper):
             ChunkDoesNotExist,
         )
 
-    def _legacy_get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> nbt.NBTFile:
+    def _legacy_get_raw_chunk_data(
+        self, cx: int, cz: int, dimension: Dimension
+    ) -> nbt.NBTFile:
         layers = self._get_raw_chunk_data(cx, cz, dimension)
         if "region" in layers:
             return layers["region"]
