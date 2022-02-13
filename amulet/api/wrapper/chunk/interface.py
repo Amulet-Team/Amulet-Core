@@ -1,14 +1,26 @@
 from __future__ import annotations
 
+import warnings
 from abc import ABC, abstractmethod
-from typing import Tuple, Any, Union, TYPE_CHECKING, Optional, overload, Type
+from typing import (
+    Tuple,
+    Any,
+    Union,
+    TYPE_CHECKING,
+    Optional,
+    overload,
+    Type,
+    Iterable,
+    Sequence,
+    Callable,
+)
 from enum import Enum
 
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
 from amulet.api.data_types import AnyNDArray, VersionNumberAny, VersionIdentifierType
 import amulet_nbt
-from amulet_nbt import TAG_List, TAG_Compound, AnyNBT
+from amulet_nbt import TAG_List, TAG_Compound, AnyNBT, BaseTag
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
@@ -314,6 +326,46 @@ class Interface(ABC):
         if default is None:
             return dtype()
         return default
+
+    def get_nested_obj(
+        self,
+        obj: Union[TAG_Compound, TAG_List],
+        path: Sequence[  # The path to the object.
+            Tuple[Union[str, int], Type[BaseTag]],
+        ],
+        default: Union[None, AnyNBT, Callable[[], Any]] = None,
+        *,
+        pop_last=False,
+    ):
+        """
+        Get an object from a nested NBT structure
+
+        :param obj: The root NBT object
+        :param path: The path to the desired object (key, dtype)
+        :param default: The default value to use if the existing is not valid. If default is callable then return the called result.
+        :param pop_last: If true the last key will be popped
+        :return:
+        """
+        try:
+            last_index = len(path) - 1
+            for i, (key, dtype) in enumerate(path):
+                if i == last_index and pop_last:
+                    obj = obj.pop(key)
+                else:
+                    obj = obj[key]
+                if dtype is not obj.__class__:
+                    raise TypeError
+        except (KeyError, IndexError, TypeError):
+            if default is None or isinstance(default, BaseTag):
+                return default
+            elif callable(default):
+                return default()
+            else:
+                raise TypeError(
+                    "default must be None, an NBT instance or an NBT class."
+                )
+        else:
+            return obj
 
     @staticmethod
     def set_obj(
