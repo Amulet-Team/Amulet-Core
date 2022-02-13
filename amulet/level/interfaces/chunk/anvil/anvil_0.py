@@ -4,9 +4,8 @@ from typing import Tuple, TYPE_CHECKING
 
 from amulet_nbt import TAG_Compound, TAG_Int
 
-from .anvil_na import (
-    AnvilNAInterface,
-)
+from .base_anvil_interface import ChunkPathType, ChunkDataType
+from .anvil_na import AnvilNAInterface
 
 if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
@@ -18,23 +17,31 @@ class Anvil0Interface(AnvilNAInterface):
     Note that this has not been tested before 1.12
     """
 
+    V = None
+    DataVersion: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("DataVersion", TAG_Int)],
+        TAG_Int,
+    )
+
+    def __init__(self):
+        super().__init__()
+        self._register_decoder(self._decode_data_version)
+
     @staticmethod
     def minor_is_valid(key: int):
         return 0 <= key < 1444
 
-    def _decode_root(self, chunk: Chunk, root: TAG_Compound):
-        self._decode_data_version(root)
-
-    @staticmethod
-    def _decode_data_version(compound: TAG_Compound):
-        # all versioned data must get removed from data
-        if "DataVersion" in compound.value:
-            del compound["DataVersion"]
-
-    def _encode_data_version(
-        self, root: TAG_Compound, max_world_version: Tuple[str, int]
+    def _decode_data_version(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
     ):
-        root["DataVersion"] = TAG_Int(max_world_version[1])
+        # all versioned data must get removed from data
+        self.get_layer_obj(data, self.DataVersion, pop_last=True)
+
+    # def _encode_data_version(
+    #     self, root: TAG_Compound, max_world_version: Tuple[str, int]
+    # ):
+    #     root["DataVersion"] = TAG_Int(max_world_version[1])
 
 
 export = Anvil0Interface
