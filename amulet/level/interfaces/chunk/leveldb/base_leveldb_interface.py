@@ -166,7 +166,7 @@ class BaseLevelDBInterface(Interface):
             chunk.status = val
 
         if b"+" in data:
-            height, biome = self._decode_height_3d_biomes(data[b"+"])
+            height, biome = self._decode_height_3d_biomes(data[b"+"], bounds[0] >> 4)
             chunk.misc["height"] = height
             chunk.biomes = biome
         elif b"\x2D" in data:
@@ -253,7 +253,9 @@ class BaseLevelDBInterface(Interface):
             if b"+" in chunk_data:
                 chunk_data[b"+"] = None
         elif self._features["data_2d"] == "height512|biome4096":
-            chunk_data[b"+"] = self._encode_height_3d_biomes(chunk)
+            chunk_data[b"+"] = self._encode_height_3d_biomes(
+                chunk, bounds[0] >> 4, bounds[1] >> 4
+            )
             if b"\x2D" in chunk_data:
                 chunk_data[b"\x2D"] = None
 
@@ -515,15 +517,17 @@ class BaseLevelDBInterface(Interface):
         return data, bits_per_value, arr
 
     def _decode_height_3d_biomes(
-        self, data: bytes
+        self, data: bytes, floor_cy: int
     ) -> Tuple[numpy.ndarray, Dict[int, numpy.ndarray]]:
+        # The 3D biome format consists of 25 16x arrays with the first array corresponding to the lowest sub-chunk in the world
+        #  This is -64 in the overworld and 0 in the nether and end
         # TODO: make this support the full 16x
         heightmap, data = (
             numpy.frombuffer(data[:512], "<i2").reshape((16, 16)),
             data[512:],
         )
         biomes = {}
-        cy = -4
+        cy = floor_cy
         while data:
             data, bits_per_value, arr = self._decode_packed_array(data)
             if bits_per_value == 0:
@@ -547,17 +551,21 @@ class BaseLevelDBInterface(Interface):
         else:
             return b"\x00" * 512
 
-    def _encode_height_3d_biomes(self, chunk) -> bytes:
+    def _encode_height_3d_biomes(
+        self, chunk: Chunk, floor_cy: int, ceil_cy: int
+    ) -> bytes:
         d2d: List[bytes] = [self._encode_height(chunk)]
         chunk.biomes.convert_to_3d()
         # at least one biome array needs to be defined
         # all biome arrays below the highest biome array must be populated.
-        highest = next((cy for cy in range(20, -5, -1) if cy in chunk.biomes), None)
+        highest = next(
+            (cy for cy in range(ceil_cy, floor_cy - 1, -1) if cy in chunk.biomes), None
+        )
         if highest is None:
             # populate lowest array
-            chunk.biomes.create_section(-4)
+            chunk.biomes.create_section(floor_cy)
         else:
-            for cy in range(highest - 1, -5, -1):
+            for cy in range(highest - 1, floor_cy - 1, -1):
                 if cy not in chunk.biomes:
                     chunk.biomes.add_section(
                         cy,
@@ -569,7 +577,7 @@ class BaseLevelDBInterface(Interface):
                         ),
                     )
 
-        for cy in range(-4, 21):
+        for cy in range(floor_cy, floor_cy + 25):
             if cy in chunk.biomes:
                 arr = chunk.biomes.get_section(cy)
                 palette, arr_uniq = numpy.unique(arr, return_inverse=True)
