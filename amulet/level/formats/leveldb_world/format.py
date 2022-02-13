@@ -48,7 +48,7 @@ class BedrockLevelDAT(nbt.NBTFile):
     def load_from(self, path: str):
         with open(path, "rb") as f:
             self._level_dat_version = struct.unpack("<i", f.read(4))[0]
-            if 4 <= self._level_dat_version <= 8:
+            if 4 <= self._level_dat_version <= 9:
                 data_length = struct.unpack("<i", f.read(4))[0]
                 root_tag = nbt.load(
                     f.read(data_length), compressed=False, little_endian=True
