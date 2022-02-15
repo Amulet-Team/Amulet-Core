@@ -208,14 +208,15 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
             Union[None, AnyNBT, Type[BaseTag]],
         ],
         default_tag: AnyNBT = None,
-        replace_existing=False,
+        *,
+        setdefault=False,
     ) -> AnyNBT:
         """
         Setdefault on a ChunkDataType object
 
         :param obj: The ChunkDataType object to use
         :param data: The data to set
-        :param replace_existing: If True will replace existing data. If False will behave like setdefault
+        :param setdefault: If True will behave like setdefault. If False will replace existing data.
         :return: The existing data found or the default that was set
         """
         layer_key, path, default = data
@@ -229,7 +230,7 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
         else:
             key_path = ()
         return self.set_obj(
-            tag, key, dtype, default, path=key_path, replace_existing=replace_existing
+            tag, key, dtype, default, path=key_path, setdefault=setdefault
         )
 
     @abstractmethod

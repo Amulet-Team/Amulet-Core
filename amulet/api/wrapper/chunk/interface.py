@@ -374,7 +374,8 @@ class Interface(ABC):
         dtype: Type[AnyNBT],
         default: Union[None, AnyNBT, Callable[[], Any]] = None,
         path: Sequence[str] = (),  # The path to the object.
-        replace_existing=False,
+        *,
+        setdefault=False,
     ) -> AnyNBT:
         """
         Works like setdefualt on a dictionary but works with an optional nested path.
@@ -384,7 +385,7 @@ class Interface(ABC):
         :param dtype: The dtype that the key must be
         :param default: The default value to set if it does not exist or the type is wrong
         :param path: Optional path to the nested compound.
-        :param replace_existing: If True will replace existing data. If False will behave like setdefault
+        :param setdefault: If True will behave like setdefault. If False will replace existing data.
         :return: The data at the path
         """
         for path_key in path:
@@ -394,7 +395,7 @@ class Interface(ABC):
                 obj_ = obj[path_key] = TAG_Compound()
             obj = obj_
         obj_ = obj.get(key, None)
-        if replace_existing or not isinstance(obj_, dtype):
+        if not setdefault or not isinstance(obj_, dtype):
             # if it does not exist or the type is wrong then create it
             if default is None:
                 obj_ = dtype()
