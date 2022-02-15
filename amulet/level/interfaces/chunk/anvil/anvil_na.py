@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Dict, Sequence, Union, Type, TYPE_CHECKING
+from typing import Tuple, Dict, List, Sequence, Union, Type, TYPE_CHECKING
 
 import numpy
 from amulet_nbt import (
@@ -20,6 +20,7 @@ from amulet.api.data_types import SubChunkNDArray, AnyNDArray, BlockCoordinates
 from amulet.utils import world_utils
 from amulet.api.wrapper import EntityIDType, EntityCoordType
 from amulet.api.chunk import Chunk, StatusFormats, EntityList
+from amulet.api.entity import Entity
 from .base_anvil_interface import (
     BaseAnvilInterface,
     ChunkDataType,
@@ -305,12 +306,17 @@ class AnvilNAInterface(BaseAnvilInterface):
     ):
         chunk.misc["sky_light"] = self._unpack_light(data, "SkyLight")
 
+    def _do_decode_entities(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ) -> List[Entity]:
+        return self._decode_entity_list(
+            self.get_layer_obj(data, self.Entities, pop_last=True)
+        )
+
     def _decode_entities(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        ents = self._decode_entity_list(
-            self.get_layer_obj(data, self.Entities, pop_last=True)
-        )
+        ents = self._do_decode_entities(chunk, data, floor_cy, height_cy)
         if amulet.entity_support:
             chunk.entities = ents
         elif amulet.experimental_entity_support:
