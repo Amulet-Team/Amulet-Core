@@ -372,24 +372,40 @@ class Interface(ABC):
         obj: TAG_Compound,
         key: str,
         dtype: Type[AnyNBT],
-        default: Optional[AnyNBT] = None,
+        default: Union[None, AnyNBT, Callable[[], Any]] = None,
+        path: Sequence[str] = (),  # The path to the object.
     ) -> AnyNBT:
-        """Set a key in a compound tag if the key does not exist or is not the correct type.
-        This works in much the same way as dict.setdefault but overwrites if the data type does not match.
-
-        :param obj: The TAG_Compound to apply to.
-        :param key: The key to use.
-        :param dtype: The expected data type.
-        :param default: The default value to use if the existing is not valid. If None will use dtype()
-        :return: The final value in the key.
         """
-        if key not in obj or not isinstance(obj[key], dtype):
+        Works like setdefualt on a dictionary but works with an optional nested path.
+
+        :param obj: The compound tag to get the data from
+        :param key: The key to setdefault
+        :param dtype: The dtype that the key must be
+        :param default: The default value to set if it does not exist or the type is wrong
+        :param path: Optional path to the nested compound.
+        :return: The data at the path
+        """
+        for path_key in path:
+            obj_ = obj.get(path_key, None)
+            if not isinstance(obj_, TAG_Compound):
+                # if it does not exist or the type is wrong then create it
+                obj_ = obj[path_key] = TAG_Compound()
+            obj = obj_
+        obj_ = obj.get(key, None)
+        if not isinstance(obj_, dtype):
+            # if it does not exist or the type is wrong then create it
             if default is None:
-                obj[key] = dtype()
+                obj_ = dtype()
+            elif isinstance(default, BaseTag):
+                obj_ = dtype
+            elif callable(default):
+                obj_ = default()
             else:
-                assert isinstance(default, dtype)
-                obj[key] = default
-        return obj[key]
+                raise TypeError(
+                    "default must be None, an NBT instance or an NBT class."
+                )
+            obj[key] = obj_
+        return obj_
 
     @abstractmethod
     def get_translator(
