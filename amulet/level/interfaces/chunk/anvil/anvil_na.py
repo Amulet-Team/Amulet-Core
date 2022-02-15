@@ -124,9 +124,9 @@ class AnvilNAInterface(BaseAnvilInterface):
         self, cx: int, cz: int, data: ChunkDataType, bounds: Tuple[int, int]
     ) -> Tuple["Chunk", AnyNDArray]:
         chunk = self._init_decode(cx, cz, data)
-        cy_min = self._get_floor_cy(data)
-        cy_max = bounds[1] >> 4
-        self._do_decode(chunk, data, cy_min, cy_max)
+        floor_cy = self._get_floor_cy(data)
+        height_cy = (bounds[1] - bounds[0]) >> 4
+        self._do_decode(chunk, data, floor_cy, height_cy)
         block_array = chunk.misc.pop("block_array")
         return chunk, block_array
 
@@ -158,20 +158,20 @@ class AnvilNAInterface(BaseAnvilInterface):
         return self.get_layer_obj(data, self.Level)
 
     def _decode_coords(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         level = self._get_level(data)
         assert chunk.coordinates == (level.pop("xPos"), level.pop("zPos"))
 
     def _decode_last_update(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         chunk.misc["last_update"] = self.get_layer_obj(
             data, self.LastUpdate, pop_last=True
         ).value
 
     def _decode_status(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         status = "empty"
         if self.get_layer_obj(data, self.TerrainPopulated, pop_last=True):
@@ -181,26 +181,26 @@ class AnvilNAInterface(BaseAnvilInterface):
         chunk.status = status
 
     def _decode_v_tag(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         chunk.misc["V"] = self.get_layer_obj(data, self.V, pop_last=True).value
 
     def _decode_inhabited_time(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         chunk.misc["inhabited_time"] = self.get_layer_obj(
             data, self.InhabitedTime, pop_last=True
         ).value
 
     def _decode_biomes(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         biomes = self.get_layer_obj(data, self.Biomes, pop_last=True)
         if isinstance(biomes, BaseArrayType) and biomes.value.size == 256:
             chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
 
     def _decode_height(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         height = self.get_layer_obj(data, self.HeightMap, pop_last=True).value
         if isinstance(height, numpy.ndarray) and height.size == 256:
@@ -212,7 +212,7 @@ class AnvilNAInterface(BaseAnvilInterface):
             yield section["Y"].value, section
 
     def _post_decode_sections(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         sections = self.get_layer_obj(data, self.Sections)
         if sections:
@@ -226,7 +226,7 @@ class AnvilNAInterface(BaseAnvilInterface):
             self.get_layer_obj(data, self.Sections, pop_last=True)
 
     def _decode_blocks(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         blocks: Dict[int, SubChunkNDArray] = {}
         palette = []
@@ -296,17 +296,17 @@ class AnvilNAInterface(BaseAnvilInterface):
         return light_container
 
     def _decode_block_light(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         chunk.misc["block_light"] = self._unpack_light(data, "BlockLight")
 
     def _decode_sky_light(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         chunk.misc["sky_light"] = self._unpack_light(data, "SkyLight")
 
     def _decode_entities(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         ents = self._decode_entity_list(
             self.get_layer_obj(data, self.Entities, pop_last=True)
@@ -319,7 +319,7 @@ class AnvilNAInterface(BaseAnvilInterface):
             chunk.misc["java_entities_temp"] = ents
 
     def _decode_block_entities(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         chunk.block_entities = self._decode_block_entity_list(
             self.get_layer_obj(data, self.BlockEntities, pop_last=True)
@@ -340,7 +340,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         }
 
     def _decode_block_ticks(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         chunk.misc.setdefault("block_ticks", {}).update(
             self._decode_ticks(self.get_layer_obj(data, self.BlockTicks, pop_last=True))

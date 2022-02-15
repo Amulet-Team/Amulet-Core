@@ -21,7 +21,7 @@ class Anvil2203Interface(Anvil1934Interface):
         return 2203 <= key < 2529
 
     def _decode_biomes(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         biomes = self.get_layer_obj(data, self.Biomes, pop_last=True)
         if isinstance(biomes, TAG_Int_Array):

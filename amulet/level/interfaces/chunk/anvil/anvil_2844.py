@@ -136,7 +136,7 @@ class Anvil2844Interface(ParentInterface):
             return None
 
     def _decode_biomes(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         biomes: Dict[int, numpy.ndarray] = {}
         palette = BiomeManager()
@@ -154,14 +154,14 @@ class Anvil2844Interface(ParentInterface):
         chunk.biome_palette = palette
 
     def _decode_block_ticks(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         chunk.misc.setdefault("block_ticks", {}).update(
             self._decode_ticks(self.get_layer_obj(data, self.BlockTicks, pop_last=True))
         )
 
     def _decode_fluid_ticks(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         chunk.misc.setdefault("fluid_ticks", {}).update(
             self._decode_ticks(

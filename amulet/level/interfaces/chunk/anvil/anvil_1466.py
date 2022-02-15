@@ -34,7 +34,7 @@ class Anvil1466Interface(Anvil1444Interface):
         return 1466 <= key < 1467
 
     def _decode_height(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         heights = self.get_layer_obj(data, self.Heightmaps, pop_last=True)
         chunk.misc["height_mapC"] = h = {}
@@ -45,7 +45,7 @@ class Anvil1466Interface(Anvil1444Interface):
                         decode_long_array(
                             value.value,
                             256,
-                            ((ceil_cy - floor_cy) << 4).bit_length(),
+                            (height_cy << 4).bit_length(),
                             dense=self.LongArrayDense,
                         ).reshape((16, 16))
                         + floor_cy

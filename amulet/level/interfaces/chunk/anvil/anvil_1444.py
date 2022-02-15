@@ -87,7 +87,7 @@ class Anvil1444Interface(Anvil0Interface):
         return 1444 <= key < 1466
 
     def _decode_status(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         chunk.status = self.get_layer_obj(data, self.Status, pop_last=True).value
 
@@ -107,7 +107,7 @@ class Anvil1444Interface(Anvil0Interface):
         return arr, section_palette
 
     def _decode_blocks(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         blocks: Dict[int, numpy.ndarray] = {}
         palette = [Block(namespace="minecraft", base_name="air")]
@@ -154,9 +154,9 @@ class Anvil1444Interface(Anvil0Interface):
         return ticks_out
 
     def _decode_block_ticks(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        super()._decode_block_ticks(chunk, data, floor_cy, ceil_cy)
+        super()._decode_block_ticks(chunk, data, floor_cy, height_cy)
         chunk.misc["to_be_ticked"] = self._decode_to_be_ticked(
             self.get_layer_obj(data, self.ToBeTicked, pop_last=True), floor_cy
         )
@@ -172,14 +172,14 @@ class Anvil1444Interface(Anvil0Interface):
         )
 
     def _decode_post_processing(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         chunk.misc["post_processing"] = self._decode_to_be_ticked(
             self.get_layer_obj(data, self.PostProcessing, pop_last=True), floor_cy
         )
 
     def _decode_structures(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         chunk.misc["structures"] = self.get_layer_obj(
             data, self.Structures, pop_last=True

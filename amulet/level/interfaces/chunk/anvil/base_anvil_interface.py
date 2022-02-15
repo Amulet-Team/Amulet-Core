@@ -101,6 +101,7 @@ class BaseDecoderEncoder(ABC):
 
 
 class BaseAnvilInterface(Interface, BaseDecoderEncoder):
+    # The chunk object, the chunk data, the floor chunk coord, the chunk height (in sub-chunks)
     DecoderType = Callable[[Chunk, ChunkDataType, int, int], None]
     EncoderType = Callable[[Chunk, ChunkDataType, int, int], None]
     _register_decoder: Callable[[DecoderType], None]

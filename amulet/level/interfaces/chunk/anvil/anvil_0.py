@@ -33,7 +33,7 @@ class Anvil0Interface(AnvilNAInterface):
         return 0 <= key < 1444
 
     def _decode_data_version(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, ceil_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         # all versioned data must get removed from data
         self.get_layer_obj(data, self.DataVersion, pop_last=True)
