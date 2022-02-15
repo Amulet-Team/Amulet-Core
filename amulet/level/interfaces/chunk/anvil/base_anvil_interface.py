@@ -172,16 +172,13 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
         data: Tuple[
             str,
             Sequence[
-                Union[
-                    Tuple[Union[str, int], Type[BaseTag]],
-                    Tuple[Union[str, int], Type[BaseTag], bool],
-                ]
+                Tuple[Union[str, int], Type[BaseTag]],
             ],
             Union[None, AnyNBT, Type[BaseTag]],
         ],
         *,
         pop_last=False,
-    ):
+    ) -> Any:
         """
         Get an object from a nested NBT structure layer
 
@@ -201,6 +198,37 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
             return default()
         else:
             raise TypeError("default must be None, an NBT instance or an NBT class.")
+
+    def set_layer_obj(
+        self,
+        obj: ChunkDataType,
+        data: Tuple[
+            str,
+            Sequence[Tuple[Union[str, int], Type[BaseTag]]],
+            Union[None, AnyNBT, Type[BaseTag]],
+        ],
+        replace_existing=False,
+    ) -> AnyNBT:
+        """
+        Setdefault on a ChunkDataType object
+
+        :param obj: The ChunkDataType object to use
+        :param data: The data to set
+        :param replace_existing: If True will replace existing data. If False will behave like setdefault
+        :return: The existing data found or the default that was set
+        """
+        layer_key, path, default = data
+        if not path:
+            raise ValueError("was not given a path to set")
+        tag = obj.setdefault(layer_key, NBTFile()).value
+        *path, (key, dtype) = path
+        if path:
+            key_path = next(zip(*path))
+        else:
+            key_path = ()
+        return self.set_obj(
+            tag, key, dtype, default, path=key_path, replace_existing=replace_existing
+        )
 
     @abstractmethod
     def decode(
