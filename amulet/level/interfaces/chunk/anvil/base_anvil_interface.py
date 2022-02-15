@@ -207,6 +207,7 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
             Sequence[Tuple[Union[str, int], Type[BaseTag]]],
             Union[None, AnyNBT, Type[BaseTag]],
         ],
+        default_tag: AnyNBT = None,
         replace_existing=False,
     ) -> AnyNBT:
         """
@@ -218,6 +219,7 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
         :return: The existing data found or the default that was set
         """
         layer_key, path, default = data
+        default = default if default_tag is None else default_tag
         if not path:
             raise ValueError("was not given a path to set")
         tag = obj.setdefault(layer_key, NBTFile()).value
