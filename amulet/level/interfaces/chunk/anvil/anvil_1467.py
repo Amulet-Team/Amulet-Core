@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
 import numpy
 from amulet_nbt import TAG_Int_Array, TAG_Compound
 from amulet.api.chunk import Chunk
@@ -25,14 +24,16 @@ class Anvil1467Interface(Anvil1466Interface):
     def minor_is_valid(key: int):
         return 1467 <= key < 1484
 
-    # def _encode_biomes(
-    #     self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]
-    # ):
-    #     if chunk.status.value > -0.7:
-    #         chunk.biomes.convert_to_2d()
-    #         level["Biomes"] = TAG_Int_Array(
-    #             chunk.biomes.astype(dtype=numpy.uint32).ravel()
-    #         )
+    def _encode_biomes(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        if chunk.status.value > -0.7:
+            chunk.biomes.convert_to_2d()
+            self.set_layer_obj(
+                data,
+                self.Biomes,
+                TAG_Int_Array(chunk.biomes.astype(dtype=numpy.uint32).ravel()),
+            )
 
 
 export = Anvil1467Interface

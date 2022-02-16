@@ -169,127 +169,85 @@ class Anvil2844Interface(ParentInterface):
             )
         )
 
-    # def encode(
-    #     self,
-    #     chunk: "Chunk",
-    #     palette: AnyNDArray,
-    #     max_world_version: Tuple[str, int],
-    #     bounds: Tuple[int, int],
-    # ) -> ChunkDataType:
-    #     root = self._init_encode(chunk)
-    #     self._encode_root(root, max_world_version)
-    #     self._encode_level(chunk, root, bounds)
-    #     sections = self._init_sections(chunk)
-    #     self._encode_sections(chunk, sections, bounds)
-    #     self._encode_blocks(chunk, sections, palette, bounds)
-    #     sections_list = []
-    #     for cy, section in sections.items():
-    #         section["Y"] = TAG_Byte(cy)
-    #         sections_list.append(section)
-    #     root[self.Sections] = TAG_List(sections_list)
-    #     return root
-    #
-    # def _encode_level(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]):
-    #     self._encode_coords(chunk, level, bounds)
-    #     self._encode_last_update(chunk, level)
-    #     self._encode_status(chunk, level)
-    #     self._encode_inhabited_time(chunk, level)
-    #     self._encode_height(chunk, level, bounds)
-    #     self._encode_entities(chunk, level)
-    #     self._encode_block_entities(chunk, level)
-    #     self._encode_block_ticks(chunk, level, bounds)
-    #     self._encode_fluid_ticks(chunk, level, bounds)
-    #     self._encode_post_processing(chunk, level, bounds)
-    #     self._encode_structures(chunk, level)
-    #
-    # def _encode_coords(
-    #     self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]
-    # ):
-    #     super()._encode_coords(chunk, level, bounds)
-    #     level["yPos"] = TAG_Int(bounds[0] >> 4)
-    #
-    # def _encode_sections(
-    #     self, chunk: Chunk, sections: Dict[int, TAG_Compound], bounds: Tuple[int, int]
-    # ):
-    #     super()._encode_sections(chunk, sections, bounds)
-    #     self._encode_biome_sections(chunk, sections, bounds)
-    #
-    # def _encode_block_section(
-    #     self,
-    #     chunk: Chunk,
-    #     sections: Dict[int, TAG_Compound],
-    #     palette: AnyNDArray,
-    #     cy: int,
-    # ):
-    #     if cy in chunk.blocks:
-    #         block_sub_array = numpy.transpose(
-    #             chunk.blocks.get_sub_chunk(cy), (1, 2, 0)
-    #         ).ravel()
-    #
-    #         sub_palette_, block_sub_array = numpy.unique(
-    #             block_sub_array, return_inverse=True
-    #         )
-    #         sub_palette = self._encode_block_palette(palette[sub_palette_])
-    #         section = sections.setdefault(cy, TAG_Compound())
-    #         block_states = section["block_states"] = TAG_Compound(
-    #             {"palette": sub_palette}
-    #         )
-    #         if len(sub_palette) != 1:
-    #             block_states["data"] = TAG_Long_Array(
-    #                 encode_long_array(
-    #                     block_sub_array, dense=self.LongArrayDense, min_bits_per_entry=4
-    #                 )
-    #             )
-    #         return True
-    #     return False
-    #
-    # @staticmethod
-    # def _encode_biome_palette(palette: list[BiomeType]) -> TAG_List:
-    #     return TAG_List([TAG_String(entry) for entry in palette])
-    #
-    # def _encode_biome_section(
-    #     self,
-    #     chunk: Chunk,
-    #     sections: Dict[int, TAG_Compound],
-    #     cy: int,
-    # ) -> bool:
-    #     chunk.biomes.convert_to_3d()
-    #     if cy in chunk.biomes:
-    #         biome_sub_array = numpy.transpose(
-    #             chunk.biomes.get_section(cy), (1, 2, 0)
-    #         ).ravel()
-    #
-    #         sub_palette_, biome_sub_array = numpy.unique(
-    #             biome_sub_array, return_inverse=True
-    #         )
-    #         sub_palette = self._encode_biome_palette(chunk.biome_palette[sub_palette_])
-    #         section = sections.setdefault(cy, TAG_Compound())
-    #         biomes = section["biomes"] = TAG_Compound({"palette": sub_palette})
-    #         if len(sub_palette) != 1:
-    #             biomes["data"] = TAG_Long_Array(
-    #                 encode_long_array(biome_sub_array, dense=self.LongArrayDense)
-    #             )
-    #         return True
-    #     return False
-    #
-    # def _encode_biome_sections(
-    #     self,
-    #     chunk: Chunk,
-    #     sections: Dict[int, TAG_Compound],
-    #     bounds: Tuple[int, int],
-    # ):
-    #     for cy in range(bounds[0] >> 4, bounds[1] >> 4):
-    #         self._encode_biome_section(chunk, sections, cy)
-    #
-    # def _encode_block_ticks(
-    #     self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
-    # ):
-    #     compound["block_ticks"] = self._encode_ticks(chunk.misc.get("block_ticks", {}))
-    #
-    # def _encode_fluid_ticks(
-    #     self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
-    # ):
-    #     compound["fluid_ticks"] = self._encode_ticks(chunk.misc.get("fluid_ticks", {}))
+    def _encode_coords(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        super()._encode_coords(chunk, data, floor_cy, height_cy)
+        self.set_layer_obj(data, self.yPos, TAG_Int(floor_cy))
+
+    def _encode_block_section(
+        self,
+        chunk: Chunk,
+        sections: Dict[int, TAG_Compound],
+        palette: AnyNDArray,
+        cy: int,
+    ):
+        block_sub_array = numpy.transpose(
+            chunk.blocks.get_sub_chunk(cy), (1, 2, 0)
+        ).ravel()
+
+        sub_palette_, block_sub_array = numpy.unique(
+            block_sub_array, return_inverse=True
+        )
+        sub_palette = self._encode_block_palette(palette[sub_palette_])
+        section = sections.setdefault(cy, TAG_Compound())
+        block_states = section["block_states"] = TAG_Compound({"palette": sub_palette})
+        if len(sub_palette) != 1:
+            block_states["data"] = TAG_Long_Array(
+                encode_long_array(
+                    block_sub_array, dense=self.LongArrayDense, min_bits_per_entry=4
+                )
+            )
+
+    @staticmethod
+    def _encode_biome_palette(palette: list[BiomeType]) -> TAG_List:
+        return TAG_List([TAG_String(entry) for entry in palette])
+
+    def _encode_biome_section(
+        self,
+        chunk: Chunk,
+        sections: Dict[int, TAG_Compound],
+        cy: int,
+    ):
+        biome_sub_array = numpy.transpose(
+            chunk.biomes.get_section(cy), (1, 2, 0)
+        ).ravel()
+
+        sub_palette_, biome_sub_array = numpy.unique(
+            biome_sub_array, return_inverse=True
+        )
+        sub_palette = self._encode_biome_palette(chunk.biome_palette[sub_palette_])
+        biomes = sections[cy]["biomes"] = TAG_Compound({"palette": sub_palette})
+        if len(sub_palette) != 1:
+            biomes["data"] = TAG_Long_Array(
+                encode_long_array(biome_sub_array, dense=self.LongArrayDense)
+            )
+
+    def _encode_biomes(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        sections = self._get_encode_sections(data, floor_cy, height_cy)
+        ceil_cy = floor_cy + height_cy
+        chunk.biomes.convert_to_3d()
+        for cy in chunk.biomes.sections:
+            if floor_cy <= cy < ceil_cy:
+                self._encode_biome_section(chunk, sections, cy)
+
+    def _encode_block_ticks(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        self.set_layer_obj(
+            data, self.BlockTicks, self._encode_ticks(chunk.misc.get("block_ticks", {}))
+        )
+
+    def _encode_fluid_ticks(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        self.set_layer_obj(
+            data,
+            self.LiquidTicks,
+            self._encode_ticks(chunk.misc.get("fluid_ticks", {})),
+        )
 
 
 export = Anvil2844Interface

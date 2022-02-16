@@ -82,6 +82,10 @@ class Anvil1444Interface(Anvil0Interface):
         self._register_decoder(self._decode_post_processing)
         self._register_decoder(self._decode_structures)
 
+        self._register_encoder(self._encode_fluid_ticks)
+        self._register_encoder(self._encode_post_processing)
+        self._register_encoder(self._encode_structures)
+
     @staticmethod
     def minor_is_valid(key: int):
         return 1444 <= key < 1466
@@ -126,7 +130,7 @@ class Anvil1444Interface(Anvil0Interface):
         for cy in blocks:
             blocks[cy] = inverse[blocks[cy]]
         chunk.blocks = blocks
-        chunk.misc["block_array"] = np_palette
+        chunk.misc["block_palette"] = np_palette
 
     @staticmethod
     def _decode_block_palette(palette: TAG_List) -> list:
@@ -185,129 +189,133 @@ class Anvil1444Interface(Anvil0Interface):
             data, self.Structures, pop_last=True
         )
 
-    # def _encode_level(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]):
-    #     super()._encode_level(chunk, level, bounds)
-    #     self._encode_fluid_ticks(chunk, level, bounds)
-    #     self._encode_post_processing(chunk, level, bounds)
-    #     self._encode_structures(chunk, level)
-    #
-    # def _encode_status(self, chunk: Chunk, level: TAG_Compound):
-    #     # Order the float value based on the order they would be run. Newer replacements for the same come just after
-    #     # to save back find the next lowest valid value.
-    #     status = chunk.status.as_type(self._features["status"])
-    #     level["Status"] = TAG_String(status)
-    #
-    # def _encode_inhabited_time(self, chunk: Chunk, level: TAG_Compound):
-    #     level["InhabitedTime"] = TAG_Long(chunk.misc.get("inhabited_time", 0))
-    #
-    # def _encode_block_section(
-    #     self,
-    #     chunk: Chunk,
-    #     sections: Dict[int, TAG_Compound],
-    #     palette: AnyNDArray,
-    #     cy: int,
-    # ) -> bool:
-    #     if cy in chunk.blocks:
-    #         block_sub_array = numpy.transpose(
-    #             chunk.blocks.get_sub_chunk(cy), (1, 2, 0)
-    #         ).ravel()
-    #
-    #         sub_palette_, block_sub_array = numpy.unique(
-    #             block_sub_array, return_inverse=True
-    #         )
-    #         sub_palette = self._encode_block_palette(palette[sub_palette_])
-    #         if (
-    #             len(sub_palette) == 1
-    #             and sub_palette[0]["Name"].value == "minecraft:air"
-    #         ):
-    #             return False
-    #
-    #         section = sections.setdefault(cy, TAG_Compound())
-    #         section["BlockStates"] = TAG_Long_Array(
-    #             encode_long_array(
-    #                 block_sub_array, dense=self.LongArrayDense, min_bits_per_entry=4
-    #             )
-    #         )
-    #         section["Palette"] = sub_palette
-    #         return True
-    #     return False
-    #
-    # def _encode_blocks(
-    #     self,
-    #     chunk: Chunk,
-    #     sections: Dict[int, TAG_Compound],
-    #     palette: AnyNDArray,
-    #     bounds: Tuple[int, int],
-    # ):
-    #     for cy in range(bounds[0] >> 4, bounds[1] >> 4):
-    #         self._encode_block_section(chunk, sections, palette, cy)
-    #
-    # @staticmethod
-    # def _encode_block_palette(blockstates: list) -> TAG_List:
-    #     palette = TAG_List()
-    #     for block in blockstates:
-    #         entry = TAG_Compound()
-    #         entry["Name"] = TAG_String(f"{block.namespace}:{block.base_name}")
-    #         if block.properties:
-    #             entry["Properties"] = TAG_Compound(block.properties)
-    #         palette.append(entry)
-    #     return palette
-    #
-    # @staticmethod
-    # def _encode_to_be_ticked(
-    #     ticks: Set[BlockCoordinates], bounds: Tuple[int, int]
-    # ) -> TAG_List:
-    #     cy_min = bounds[0] >> 4
-    #     cy_max = bounds[1] >> 4
-    #     ticks_out = TAG_List([TAG_List([], 2) for _ in range(cy_min, cy_max)])
-    #     if isinstance(ticks, set):
-    #         for k in ticks:
-    #             try:
-    #                 (x, y, z) = k
-    #                 cy = y >> 4
-    #                 if cy_min <= cy < cy_max:
-    #                     x = x & 15
-    #                     y = y & 15
-    #                     z = z & 15
-    #                     ticks_out[cy].append(TAG_Short((z << 8) + (y << 4) + x))
-    #             except Exception:
-    #                 amulet.log.error(f"Could not serialise tick data {k}")
-    #     return ticks_out
-    #
-    # def _encode_block_ticks(
-    #     self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
-    # ):
-    #     super()._encode_block_ticks(chunk, compound, bounds)
-    #     compound["ToBeTicked"] = self._encode_to_be_ticked(
-    #         chunk.misc.get("to_be_ticked"), bounds
-    #     )
-    #
-    # def _encode_fluid_ticks(
-    #     self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
-    # ):
-    #     compound["LiquidTicks"] = self._encode_ticks(chunk.misc.get("fluid_ticks", {}))
-    #     compound["LiquidsToBeTicked"] = self._encode_to_be_ticked(
-    #         chunk.misc.get("liquids_to_be_ticked"), bounds
-    #     )
-    #
-    # def _encode_post_processing(
-    #     self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
-    # ):
-    #     compound["PostProcessing"] = self._encode_to_be_ticked(
-    #         chunk.misc.get("post_processing"), bounds
-    #     )
-    #
-    # @staticmethod
-    # def _encode_structures(chunk: Chunk, compound: TAG_Compound):
-    #     compound["Structures"] = chunk.misc.get(
-    #         "structures",
-    #         TAG_Compound(
-    #             {
-    #                 "References": TAG_Compound(),
-    #                 "Starts": TAG_Compound(),
-    #             }
-    #         ),
-    #     )
+    def _encode_status(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        # Order the float value based on the order they would be run. Newer replacements for the same come just after
+        # to save back find the next lowest valid value.
+        status = chunk.status.as_type(self._features["status"])
+        self.set_layer_obj(data, self.Status, TAG_String(status))
+
+    def _encode_inhabited_time(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        self.set_layer_obj(
+            data, self.InhabitedTime, TAG_Long(chunk.misc.get("inhabited_time", 0))
+        )
+
+    def _encode_block_section(
+        self,
+        chunk: Chunk,
+        sections: Dict[int, TAG_Compound],
+        palette: AnyNDArray,
+        cy: int,
+    ) -> bool:
+        block_sub_array = numpy.transpose(
+            chunk.blocks.get_sub_chunk(cy), (1, 2, 0)
+        ).ravel()
+
+        sub_palette_, block_sub_array = numpy.unique(
+            block_sub_array, return_inverse=True
+        )
+        sub_palette = self._encode_block_palette(palette[sub_palette_])
+        if len(sub_palette) == 1 and sub_palette[0]["Name"].value == "minecraft:air":
+            return False
+
+        section = sections.setdefault(cy, TAG_Compound())
+        section["BlockStates"] = TAG_Long_Array(
+            encode_long_array(
+                block_sub_array, dense=self.LongArrayDense, min_bits_per_entry=4
+            )
+        )
+        section["Palette"] = sub_palette
+
+    @staticmethod
+    def _encode_block_palette(blockstates: list) -> TAG_List:
+        palette = TAG_List()
+        for block in blockstates:
+            entry = TAG_Compound()
+            entry["Name"] = TAG_String(f"{block.namespace}:{block.base_name}")
+            if block.properties:
+                entry["Properties"] = TAG_Compound(block.properties)
+            palette.append(entry)
+        return palette
+
+    @staticmethod
+    def _encode_to_be_ticked(
+        ticks: Set[BlockCoordinates], floor_cy: int, height_cy: int
+    ) -> TAG_List:
+        ceil_cy = floor_cy + height_cy
+        ticks_out = TAG_List([TAG_List([], 2) for _ in range(floor_cy, ceil_cy)])
+        if isinstance(ticks, set):
+            for k in ticks:
+                try:
+                    (x, y, z) = k
+                    cy = y >> 4
+                    if floor_cy <= cy < ceil_cy:
+                        x = x & 15
+                        y = y & 15
+                        z = z & 15
+                        ticks_out[cy].append(TAG_Short((z << 8) + (y << 4) + x))
+                except Exception:
+                    amulet.log.error(f"Could not serialise tick data {k}")
+        return ticks_out
+
+    def _encode_block_ticks(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        super()._encode_block_ticks(chunk, data, floor_cy, height_cy)
+        self.set_layer_obj(
+            data,
+            self.ToBeTicked,
+            self._encode_to_be_ticked(
+                chunk.misc.get("to_be_ticked"), floor_cy, height_cy
+            ),
+        )
+
+    def _encode_fluid_ticks(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        self.set_layer_obj(
+            data,
+            self.LiquidTicks,
+            self._encode_ticks(chunk.misc.get("fluid_ticks", {})),
+        )
+        self.set_layer_obj(
+            data,
+            self.LiquidsToBeTicked,
+            self._encode_to_be_ticked(
+                chunk.misc.get("liquids_to_be_ticked"), floor_cy, height_cy
+            ),
+        )
+
+    def _encode_post_processing(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        self.set_layer_obj(
+            data,
+            self.PostProcessing,
+            self._encode_to_be_ticked(
+                chunk.misc.get("post_processing"), floor_cy, height_cy
+            ),
+        )
+
+    def _encode_structures(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        self.set_layer_obj(
+            data,
+            self.Structures,
+            chunk.misc.get(
+                "structures",
+                TAG_Compound(
+                    {
+                        "References": TAG_Compound(),
+                        "Starts": TAG_Compound(),
+                    }
+                ),
+            ),
+        )
 
 
 export = Anvil1444Interface

@@ -18,9 +18,9 @@ class Anvil0Interface(AnvilNAInterface):
     """
 
     V = None
-    DataVersion: ChunkPathType = (
+    RegionDataVersion: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("DataVersion", TAG_Int)],
+        [("DataVersion", TAG_Int)],
         TAG_Int,
     )
 
@@ -36,12 +36,18 @@ class Anvil0Interface(AnvilNAInterface):
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         # all versioned data must get removed from data
-        self.get_layer_obj(data, self.DataVersion, pop_last=True)
+        self.get_layer_obj(data, self.RegionDataVersion, pop_last=True)
 
-    # def _encode_data_version(
-    #     self, root: TAG_Compound, max_world_version: Tuple[str, int]
-    # ):
-    #     root["DataVersion"] = TAG_Int(max_world_version[1])
+    def _init_encode(
+        self,
+        chunk: Chunk,
+        max_world_version: Tuple[str, int],
+        floor_cy: int,
+        height_cy: int,
+    ) -> ChunkDataType:
+        data = super()._init_encode(chunk, max_world_version, floor_cy, height_cy)
+        self.set_layer_obj(data, self.RegionDataVersion, TAG_Int(max_world_version[1]))
+        return data
 
 
 export = Anvil0Interface

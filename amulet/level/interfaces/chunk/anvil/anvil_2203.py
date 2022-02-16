@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from typing import Tuple
 import numpy
-from amulet_nbt import TAG_Compound, TAG_Int_Array
+from amulet_nbt import TAG_Int_Array
 from amulet import log
 from amulet.api.chunk import Chunk
-from .base_anvil_interface import ChunkPathType, ChunkDataType
+from .base_anvil_interface import ChunkDataType
 from .anvil_1934 import (
     Anvil1934Interface,
 )
@@ -45,20 +44,25 @@ class Anvil2203Interface(Anvil1934Interface):
                     )
                 }
 
-    # def _encode_biomes(
-    #     self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]
-    # ):
-    #     if chunk.status.value > -0.7:
-    #         chunk.biomes.convert_to_3d()
-    #         min_y, max_y = bounds
-    #         level["Biomes"] = TAG_Int_Array(
-    #             numpy.transpose(
-    #                 numpy.asarray(chunk.biomes[:, min_y // 4 : max_y // 4, :]).astype(
-    #                     numpy.uint32
-    #                 ),
-    #                 (1, 2, 0),
-    #             ).ravel()  # YZX -> XYZ
-    #         )
+    def _encode_biomes(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        if chunk.status.value > -0.7:
+            chunk.biomes.convert_to_3d()
+            self.set_layer_obj(
+                data,
+                self.Biomes,
+                TAG_Int_Array(
+                    numpy.transpose(
+                        numpy.asarray(
+                            chunk.biomes[
+                                :, floor_cy * 4 : (floor_cy + height_cy) * 4, :
+                            ]
+                        ).astype(numpy.uint32),
+                        (1, 2, 0),
+                    ).ravel()  # YZX -> XYZ
+                ),
+            )
 
 
 export = Anvil2203Interface
