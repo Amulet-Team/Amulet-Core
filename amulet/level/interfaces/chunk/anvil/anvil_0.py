@@ -26,6 +26,8 @@ class Anvil0Interface(ParentInterface):
 
     def __init__(self):
         super().__init__()
+        self._unregister_decoder(self._decode_v_tag)
+        self._unregister_encoder(self._encode_v_tag)
         self._register_decoder(self._decode_data_version)
 
     @staticmethod

@@ -93,12 +93,12 @@ class AnvilNAInterface(BaseAnvilInterface):
     xPos: ChunkPathType = (
         "region",
         [("Level", TAG_Compound), ("xPos", TAG_Int)],
-        None,
+        TAG_Int,
     )
     zPos: ChunkPathType = (
         "region",
         [("Level", TAG_Compound), ("zPos", TAG_Int)],
-        None,
+        TAG_Int,
     )
 
     def __init__(self):
@@ -143,8 +143,6 @@ class AnvilNAInterface(BaseAnvilInterface):
         self._register_encoder(self._encode_block_light)
         self._register_encoder(self._encode_sky_light)
 
-        self._register_post_encoder(self._post_encode_sections)
-
     @staticmethod
     def minor_is_valid(key: int):
         return key == -1
@@ -184,10 +182,8 @@ class AnvilNAInterface(BaseAnvilInterface):
     def _decode_coords(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        assert chunk.coordinates == (
-            self.get_layer_obj(data, self.xPos),
-            self.get_layer_obj(data, self.zPos),
-        )
+        self.get_layer_obj(data, self.xPos, pop_last=True)
+        self.get_layer_obj(data, self.zPos, pop_last=True)
 
     def _decode_last_update(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
@@ -240,6 +236,7 @@ class AnvilNAInterface(BaseAnvilInterface):
     def _post_decode_sections(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
+        """Strip out all empty sections"""
         sections = self.get_layer_obj(data, self.Sections)
         if sections:
             for i in range(len(sections) - 1, -1, -1):
@@ -258,11 +255,15 @@ class AnvilNAInterface(BaseAnvilInterface):
         palette = []
         palette_len = 0
         for cy, section in self._iter_sections(data):
+            block_tag = section.pop("Blocks", None)
+            data_tag = section.pop("Data", None)
+            if not isinstance(block_tag, BaseArrayType) or not isinstance(data_tag, BaseArrayType):
+                continue
             section_blocks = numpy.frombuffer(
-                section.pop("Blocks").value, dtype=numpy.uint8
+                block_tag.value, dtype=numpy.uint8
             )
             section_data = numpy.frombuffer(
-                section.pop("Data").value, dtype=numpy.uint8
+                data_tag.value, dtype=numpy.uint8
             )
             section_blocks = section_blocks.reshape((16, 16, 16))
             section_blocks = section_blocks.astype(numpy.uint16)
@@ -270,9 +271,10 @@ class AnvilNAInterface(BaseAnvilInterface):
             section_data = world_utils.from_nibble_array(section_data)
             section_data = section_data.reshape((16, 16, 16))
 
-            if "Add" in section:
+            add_tag = section.pop("Add", None)
+            if isinstance(add_tag, BaseArrayType):
                 add_blocks = numpy.frombuffer(
-                    section.pop("Add").value, dtype=numpy.uint8
+                    add_tag.value, dtype=numpy.uint8
                 )
                 add_blocks = world_utils.from_nibble_array(add_blocks)
                 add_blocks = add_blocks.reshape((16, 16, 16))
@@ -387,15 +389,9 @@ class AnvilNAInterface(BaseAnvilInterface):
         floor_cy = bounds[0] >> 4
         height_cy = (bounds[1] - bounds[0]) >> 4
         data = self._init_encode(chunk, max_world_version, floor_cy, height_cy)
+        chunk.misc["block_palette"] = palette
         self._do_encode(chunk, data, floor_cy, height_cy)
         return data
-
-    # TODO
-    #     if 1519 <= max_world_version[1] <= 1631:
-    #         # Java 1.13 to 1.13.2 cannot have empty sections
-    #         for cy in list(sections.keys()):
-    #             if "BlockStates" not in sections[cy] or "Palette" not in sections[cy]:
-    #                 del sections[cy]
 
     def _init_encode(
         self,

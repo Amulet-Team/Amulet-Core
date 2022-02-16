@@ -400,7 +400,7 @@ class Interface(ABC):
             if default is None:
                 obj_ = dtype()
             elif isinstance(default, BaseValueType):
-                obj_ = dtype
+                obj_ = default
             elif callable(default):
                 obj_ = default()
             else:
