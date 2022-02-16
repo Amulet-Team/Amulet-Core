@@ -14,7 +14,7 @@ class Anvil1503Interface(ParentInterface):
 
     @staticmethod
     def minor_is_valid(key: int):
-        return 1503 <= key < 1908
+        return 1503 <= key < 1519
 
 
 export = Anvil1503Interface
