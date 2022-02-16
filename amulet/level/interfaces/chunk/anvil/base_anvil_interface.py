@@ -21,7 +21,7 @@ from amulet_nbt import (
     TAG_List,
     TAG_Compound,
     NBTFile,
-    BaseTag,
+    BaseValueType,
     AnyNBT,
 )
 
@@ -42,9 +42,9 @@ ChunkDataType = Dict[str, NBTFile]
 ChunkPathType = Tuple[
     str,  # The layer name
     Sequence[
-        Tuple[Union[str, int], Type[BaseTag]],
+        Tuple[Union[str, int], Type[BaseValueType]],
     ],
-    Type[BaseTag],
+    Type[BaseValueType],
 ]
 
 
@@ -172,9 +172,9 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
         data: Tuple[
             str,
             Sequence[
-                Tuple[Union[str, int], Type[BaseTag]],
+                Tuple[Union[str, int], Type[BaseValueType]],
             ],
-            Union[None, AnyNBT, Type[BaseTag]],
+            Union[None, AnyNBT, Type[BaseValueType]],
         ],
         *,
         pop_last=False,
@@ -192,9 +192,9 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
             return self.get_nested_obj(
                 obj[layer_key].value, path, default, pop_last=pop_last
             )
-        elif default is None or isinstance(default, BaseTag):
+        elif default is None or isinstance(default, BaseValueType):
             return default
-        elif issubclass(default, BaseTag):
+        elif issubclass(default, BaseValueType):
             return default()
         else:
             raise TypeError("default must be None, an NBT instance or an NBT class.")
@@ -204,8 +204,8 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
         obj: ChunkDataType,
         data: Tuple[
             str,
-            Sequence[Tuple[Union[str, int], Type[BaseTag]]],
-            Union[None, AnyNBT, Type[BaseTag]],
+            Sequence[Tuple[Union[str, int], Type[BaseValueType]]],
+            Union[None, AnyNBT, Type[BaseValueType]],
         ],
         default_tag: AnyNBT = None,
         *,
