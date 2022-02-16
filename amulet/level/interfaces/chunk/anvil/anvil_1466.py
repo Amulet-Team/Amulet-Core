@@ -8,12 +8,10 @@ from amulet.api.chunk import Chunk
 from amulet.utils.world_utils import decode_long_array, encode_long_array
 
 from .base_anvil_interface import ChunkPathType, ChunkDataType
-from .anvil_1444 import (
-    Anvil1444Interface,
-)
+from .anvil_1444 import Anvil1444Interface as ParentInterface
 
 
-class Anvil1466Interface(Anvil1444Interface):
+class Anvil1466Interface(ParentInterface):
     """
     Added multiple height maps. Now stored in a compound.
     """

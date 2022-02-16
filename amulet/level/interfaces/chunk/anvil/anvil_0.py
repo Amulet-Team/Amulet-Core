@@ -2,16 +2,16 @@ from __future__ import annotations
 
 from typing import Tuple, TYPE_CHECKING
 
-from amulet_nbt import TAG_Compound, TAG_Int
+from amulet_nbt import TAG_Int
 
 from .base_anvil_interface import ChunkPathType, ChunkDataType
-from .anvil_na import AnvilNAInterface
+from .anvil_na import AnvilNAInterface as ParentInterface
 
 if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
 
 
-class Anvil0Interface(AnvilNAInterface):
+class Anvil0Interface(ParentInterface):
     """
     Added the DataVersion tag
     Note that this has not been tested before 1.12

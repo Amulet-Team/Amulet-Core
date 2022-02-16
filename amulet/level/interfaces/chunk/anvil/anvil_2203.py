@@ -5,12 +5,10 @@ from amulet_nbt import TAG_Int_Array
 from amulet import log
 from amulet.api.chunk import Chunk
 from .base_anvil_interface import ChunkDataType
-from .anvil_1934 import (
-    Anvil1934Interface,
-)
+from .anvil_1934 import Anvil1934Interface as ParentInterface
 
 
-class Anvil2203Interface(Anvil1934Interface):
+class Anvil2203Interface(ParentInterface):
     """
     Made biomes 3D
     """

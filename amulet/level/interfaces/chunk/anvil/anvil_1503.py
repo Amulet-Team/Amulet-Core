@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from .anvil_1484 import (
-    Anvil1484Interface,
-)
+from .anvil_1484 import Anvil1484Interface as ParentInterface
 
 
-class Anvil1503Interface(Anvil1484Interface):
+class Anvil1503Interface(ParentInterface):
     """
     Changed height keys again
     """

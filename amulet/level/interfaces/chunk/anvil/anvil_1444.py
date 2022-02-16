@@ -17,7 +17,7 @@ from amulet.api.data_types import AnyNDArray, BlockCoordinates
 from amulet.api.block import Block
 from amulet.api.chunk import StatusFormats
 from .base_anvil_interface import ChunkDataType, ChunkPathType
-from .anvil_0 import Anvil0Interface
+from .anvil_0 import Anvil0Interface as ParentInterface
 from amulet.utils.world_utils import (
     decode_long_array,
     encode_long_array,
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
 
 
-class Anvil1444Interface(Anvil0Interface):
+class Anvil1444Interface(ParentInterface):
     """
     Moved TerrainPopulated and LightPopulated to Status
     Made blocks paletted

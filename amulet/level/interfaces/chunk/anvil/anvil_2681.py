@@ -10,12 +10,10 @@ from amulet_nbt import TAG_List, TAG_Int
 
 from .base_anvil_interface import ChunkDataType, ChunkPathType
 
-from .anvil_2529 import (
-    Anvil2529Interface,
-)
+from .anvil_2529 import Anvil2529Interface as ParentInterface
 
 
-class Anvil2681Interface(Anvil2529Interface):
+class Anvil2681Interface(ParentInterface):
     """
     Entities moved to a different storage layer
     """

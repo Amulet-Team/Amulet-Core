@@ -4,12 +4,10 @@ import numpy
 from amulet_nbt import TAG_Int_Array, TAG_Compound
 from amulet.api.chunk import Chunk
 from .base_anvil_interface import ChunkPathType, ChunkDataType
-from .anvil_1466 import (
-    Anvil1466Interface,
-)
+from .anvil_1466 import Anvil1466Interface as ParentInterface
 
 
-class Anvil1467Interface(Anvil1466Interface):
+class Anvil1467Interface(ParentInterface):
     """
     Biomes now stored in an int array
     """
