@@ -257,14 +257,12 @@ class AnvilNAInterface(BaseAnvilInterface):
         for cy, section in self._iter_sections(data):
             block_tag = section.pop("Blocks", None)
             data_tag = section.pop("Data", None)
-            if not isinstance(block_tag, BaseArrayType) or not isinstance(data_tag, BaseArrayType):
+            if not isinstance(block_tag, BaseArrayType) or not isinstance(
+                data_tag, BaseArrayType
+            ):
                 continue
-            section_blocks = numpy.frombuffer(
-                block_tag.value, dtype=numpy.uint8
-            )
-            section_data = numpy.frombuffer(
-                data_tag.value, dtype=numpy.uint8
-            )
+            section_blocks = numpy.frombuffer(block_tag.value, dtype=numpy.uint8)
+            section_data = numpy.frombuffer(data_tag.value, dtype=numpy.uint8)
             section_blocks = section_blocks.reshape((16, 16, 16))
             section_blocks = section_blocks.astype(numpy.uint16)
 
@@ -273,9 +271,7 @@ class AnvilNAInterface(BaseAnvilInterface):
 
             add_tag = section.pop("Add", None)
             if isinstance(add_tag, BaseArrayType):
-                add_blocks = numpy.frombuffer(
-                    add_tag.value, dtype=numpy.uint8
-                )
+                add_blocks = numpy.frombuffer(add_tag.value, dtype=numpy.uint8)
                 add_blocks = world_utils.from_nibble_array(add_blocks)
                 add_blocks = add_blocks.reshape((16, 16, 16))
 

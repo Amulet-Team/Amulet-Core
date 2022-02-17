@@ -70,7 +70,7 @@ class Chunk(Changeable):
             self._status.value,
             self.misc,
             self._native_entities,
-            self._native_version
+            self._native_version,
         )
         return pickle.dumps(chunk_data)
 
@@ -99,7 +99,7 @@ class Chunk(Changeable):
             self.status,
             self.misc,
             self._native_entities,
-            self._native_version
+            self._native_version,
         ) = chunk_data[3:]
 
         self._biomes = Biomes.from_raw(*biomes)
