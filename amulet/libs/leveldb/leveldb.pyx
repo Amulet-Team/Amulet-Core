@@ -285,7 +285,7 @@ class LevelDBException(Exception):
     pass
 
 
-cdef inline void _checkError(char *err):
+cdef inline void _checkError(char *err) except *:
     """Utility function for checking the error code returned by some leveldb functions."""
     cdef bytes message
     if err is not NULL:  # Not an empty null-terminated string
@@ -293,7 +293,8 @@ cdef inline void _checkError(char *err):
         leveldb_free(err)
         raise LevelDBException(message.decode("utf-8"))
 
-cdef inline void _check_db(void *db):
+
+cdef inline void _check_db(void *db) except *:
     if db is NULL:
         raise LevelDBException("The database has been closed.")
 
@@ -408,13 +409,12 @@ cdef class LevelDB:
         leveldb_put(self.db, self.write_options, key, keylen, val, vallen, &error)
         _checkError(error)
 
-    cpdef void putBatch(self, dict data: Dict[bytes, bytes]):
+    cpdef void putBatch(self, dict data: Dict[bytes, bytes]) except *:
         """
         Put one or more key and value pair into the database. Works the same as dict.update
         
         :param data: A dictionary of keys and values to add to the database
         """
-
         _check_db(self.db)
         cdef bytes k, v
         batch = leveldb_writebatch_create()
@@ -433,6 +433,7 @@ cdef class LevelDB:
         self.delete_raw(key, len(key))
 
     cdef void delete_raw(self, char *key, size_t keylen) except *:
+        _check_db(self.db)
         cdef char *error = NULL
         leveldb_delete(self.db, self.write_options, key, keylen, &error)
         _checkError(error)
