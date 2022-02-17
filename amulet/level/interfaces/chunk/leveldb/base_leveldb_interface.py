@@ -22,12 +22,12 @@ from amulet.api.data_types import (
 from amulet.level import loader
 from amulet.api.wrapper import EntityIDType, EntityCoordType
 from .leveldb_chunk_versions import chunk_to_game_version, chunk_version_to_max_version
+from amulet.api.chunk.entity_list import EntityList
 
 if TYPE_CHECKING:
     from amulet.api.block_entity import BlockEntity
     from amulet.api.entity import Entity
     from amulet.api.chunk.blocks import Blocks
-    from amulet.api.chunk.entity_list import EntityList
     from amulet.api.wrapper import Translator
 
 # This is here to scale a 4x array to a 16x array. This can be removed when we natively support 16x array
@@ -202,7 +202,8 @@ class BaseLevelDBInterface(Interface):
                 chunk.entities = self._decode_entity_list(entities)
             elif amulet.experimental_entity_support:
                 entities = self._unpack_nbt_list(data.pop(b"\x32", b""))
-                chunk._native_entities = self._decode_entity_list(entities)
+                chunk._native_entities = EntityList(self._decode_entity_list(entities))
+                chunk._native_version = ("bedrock", 0)
 
         return chunk, chunk_palette
 
@@ -283,7 +284,11 @@ class BaseLevelDBInterface(Interface):
             if amulet.entity_support:
                 save_entities(self._encode_entity_list(chunk.entities))
             elif amulet.experimental_entity_support:
-                save_entities(self._encode_entity_list(chunk._native_entities))
+                try:
+                    if chunk._native_version[0] == "bedrock":
+                        save_entities(self._encode_entity_list(chunk._native_entities))
+                except:
+                    pass
 
         return chunk_data
 

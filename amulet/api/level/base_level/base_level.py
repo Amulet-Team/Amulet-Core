@@ -842,6 +842,7 @@ class BaseLevel:
         """
         chunk = self.get_chunk(cx, cz, dimension)
         chunk._native_entities = EntityList(copy.deepcopy(entities))
+        chunk._native_version = self.level_wrapper.max_world_version
 
     # def get_entities_in_box(
     #     self, box: "SelectionGroup"

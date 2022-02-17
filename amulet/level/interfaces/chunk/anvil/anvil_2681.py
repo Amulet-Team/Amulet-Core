@@ -5,6 +5,7 @@ from typing import List, Tuple, TYPE_CHECKING
 if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
 
+import amulet
 from amulet.api.entity import Entity
 from amulet_nbt import TAG_List, TAG_Int
 
@@ -33,36 +34,45 @@ class Anvil2681Interface(ParentInterface):
     def minor_is_valid(key: int):
         return 2681 <= key < 2709
 
-    def _decode_data_version(
+    def _post_decode_data_version(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        super()._decode_data_version(chunk, data, floor_cy, height_cy)
+        super()._post_decode_data_version(chunk, data, floor_cy, height_cy)
         self.get_layer_obj(data, self.EntitiesDataVersion, pop_last=True)
 
-    def _do_decode_entities(
+    def _decode_entities(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ) -> List[Entity]:
+    ):
         # TODO: it is possible the entity data version does not match the chunk data version
-        return super()._do_decode_entities(
-            chunk, data, floor_cy, height_cy
+        ents = self._decode_entity_list(
+            self.get_layer_obj(data, self.Entities, pop_last=True)
         ) + self._decode_entity_list(
             self.get_layer_obj(data, self.EntityLayer, pop_last=True)
         )
+        if amulet.entity_support:
+            chunk.entities = ents
+        elif amulet.experimental_entity_support:
+            chunk._native_entities.extend(ents)
+            chunk._native_version = (
+                "java",
+                self.get_layer_obj(data, self.EntitiesDataVersion),
+            )
+        else:
+            chunk.misc["java_entities_temp"] = ents
 
-    def _init_encode(
-        self,
-        chunk: Chunk,
-        max_world_version: Tuple[str, int],
-        floor_cy: int,
-        height_cy: int,
-    ) -> ChunkDataType:
-        data = super()._init_encode(chunk, max_world_version, floor_cy, height_cy)
-        self.set_layer_obj(
-            data, self.EntitiesDataVersion, TAG_Int(max_world_version[1])
-        )
-        return data
-
-    # TODO: remove the entity layer if there are no entities
+    def _encode_entities(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        try:
+            platform, version = chunk._native_version
+        except:
+            pass
+        else:
+            if platform == "java" and isinstance(version, int):
+                super()._encode_entities(chunk, data, floor_cy, height_cy)
+                self.set_layer_obj(data, self.EntitiesDataVersion, TAG_Int(version))
+                return
+        data.pop(self.EntitiesDataVersion[0], None)
 
 
 export = Anvil2681Interface
