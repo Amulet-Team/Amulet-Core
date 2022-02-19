@@ -56,8 +56,7 @@ class LevelDBTestCase(unittest.TestCase):
             db.put(k, v)
 
         self.assertEqual(dict(db.iterate()), full_db)
-        # TODO: Uncomment this when the new db wrapper is fixed
-        # self.assertEqual(dict(db.items()), full_db)
+        self.assertEqual(dict(db.items()), full_db)
         self.assertEqual(set(db.keys()), full_db.keys())
         self.assertEqual(set(db), full_db.keys())
 
@@ -90,6 +89,34 @@ class LevelDBTestCase(unittest.TestCase):
         self.assertFalse(b"test_key3" in db)
 
         db.close()
+
+    def test_exception(self):
+        self._clear_db()
+        db = LevelDB(DB_PATH, True)
+        db.close()
+
+        # if the db is closed all of these functions should error
+        # they should not cause segmentation faults
+        with self.assertRaises(LevelDBException):
+            db.close()
+        with self.assertRaises(LevelDBException):
+            db.get(b"key")
+        with self.assertRaises(LevelDBException):
+            db.put(b"key", b"value")
+        with self.assertRaises(LevelDBException):
+            db.putBatch({b"key": b"value"})
+        with self.assertRaises(LevelDBException):
+            db.delete(b"key")
+        with self.assertRaises(LevelDBException):
+            list(db.iterate(b"\x00", b"\xFF"))
+        with self.assertRaises(LevelDBException):
+            list(db.keys())
+        with self.assertRaises(LevelDBException):
+            list(db.items())
+        with self.assertRaises(LevelDBException):
+            b"key" in db
+        with self.assertRaises(LevelDBException):
+            list(db)
 
 
 if __name__ == "__main__":
