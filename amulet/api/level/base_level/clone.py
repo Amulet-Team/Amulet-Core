@@ -107,6 +107,7 @@ def clone(
 
         # TODO: I don't know if this is feasible for large boxes: get the intersection of the source and destination selections and iterate over that to minimise work
         if any(rotation) or any(s != 1 for s in scale):
+            # if the selection needs transforming
             rotation_radians = tuple(numpy.radians(rotation))
             transform = numpy.matmul(
                 transform_matrix(scale, rotation_radians, location),
@@ -198,10 +199,14 @@ def clone(
                                                 mask = block_ids == block_id
                                                 dst_blocks_ = dst_blocks[mask]
 
+                                                transformed_block = src_structure.translation_manager.transform_universal_block(
+                                                    block, transform
+                                                )
+
                                                 dst_chunk.blocks.get_sub_chunk(dst_cy)[
                                                     tuple(dst_blocks_.T % 16)
                                                 ] = dst_chunk.block_palette.get_add_block(
-                                                    block
+                                                    transformed_block
                                                 )
 
                                                 src_blocks_ = src_blocks[mask]
@@ -250,6 +255,7 @@ def clone(
                     sum_progress += volumes[box_index]
 
         else:
+            # the selection can be cloned as is
             # the transform from the structure location to the world location
             offset = numpy.asarray(location).astype(int) - rotation_point
             moved_min_location = src_selection.min_array + offset
