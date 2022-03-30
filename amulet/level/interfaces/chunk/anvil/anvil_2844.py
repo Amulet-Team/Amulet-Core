@@ -56,7 +56,7 @@ class Anvil2844Interface(ParentInterface):
 
     @staticmethod
     def minor_is_valid(key: int):
-        return 2844 <= key < 2900
+        return 2844 <= key < 2976
 
     def _decode_chunk(
         self, chunk: Chunk, root: TAG_Compound, bounds: Tuple[int, int]
