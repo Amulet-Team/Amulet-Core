@@ -519,11 +519,11 @@ class AnvilNAInterface(BaseAnvilInterface):
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         if amulet.entity_support:
-            entities = self._encode_entity_list(chunk.entities)
+            entities = chunk.entities
         elif amulet.experimental_entity_support:
-            entities = self._encode_entity_list(chunk._native_entities)
+            entities = chunk._native_entities
         else:
-            entities = chunk.misc.get("java_entities_temp", TAG_List())
+            entities = chunk.misc.get("java_entities_temp", [])
 
         self.set_layer_obj(
             data,
