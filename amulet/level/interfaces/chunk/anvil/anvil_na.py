@@ -528,7 +528,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         self.set_layer_obj(
             data,
             self.Entities,
-            self._encode_entity_list(entities),
+            entities,
         )
 
     def _encode_block_entities(
