@@ -3,11 +3,13 @@ from __future__ import annotations
 import importlib
 from typing import AbstractSet, Any, Dict
 import pkgutil
+import logging
 
 import amulet
-from amulet import log
 from amulet.api.errors import LoaderNoneMatched
 from amulet.api.wrapper import FormatWrapper, Interface, Translator
+
+log = logging.getLogger(__name__)
 
 ParentPackage = ".".join(__name__.split(".")[:-1])
 

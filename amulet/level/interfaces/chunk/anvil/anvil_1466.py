@@ -1,15 +1,19 @@
 from __future__ import annotations
 
-import numpy
 from typing import Tuple, Dict
+import logging
+
+import numpy
+
 from amulet_nbt import TAG_Compound, TAG_Long_Array
-from amulet import log
 from amulet.api.chunk import Chunk
 from amulet.utils.world_utils import decode_long_array, encode_long_array
 
 from .anvil_1444 import (
     Anvil1444Interface,
 )
+
+log = logging.getLogger(__name__)
 
 
 class Anvil1466Interface(Anvil1444Interface):

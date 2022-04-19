@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import numpy
+from typing import Tuple, Optional, TYPE_CHECKING
 import copy
 import math
+import logging
 
-from typing import Tuple, Optional, TYPE_CHECKING
+import numpy
 
-from amulet import log, entity_support
+from amulet import entity_support
 from amulet.api.registry import BlockManager, BiomeManager
 from amulet.api.block import Block
 from amulet.api.block_entity import BlockEntity
@@ -25,6 +26,8 @@ from amulet.api.data_types import (
     VersionNumberAny,
     VersionIdentifierType,
 )
+
+log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from PyMCTranslate import Version, TranslationManager

@@ -3,10 +3,12 @@ import os
 import shutil
 import atexit
 import time
+import logging
 
 from amulet.libs.leveldb import LevelDB
 from amulet.api.paths import get_cache_dir
-from amulet import log
+
+log = logging.getLogger(__name__)
 
 _path = os.path.join(get_cache_dir(), "world_temp", str(int(time.time())), "db")
 

@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 from typing import Tuple
+import logging
+
 import numpy
+
 from amulet_nbt import TAG_Compound, TAG_Int_Array
-from amulet import log
 from amulet.api.chunk import Chunk
 from .anvil_1934 import (
     Anvil1934Interface,
 )
+
+log = logging.getLogger(__name__)
 
 
 class Anvil2203Interface(Anvil1934Interface):

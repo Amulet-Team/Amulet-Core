@@ -6,8 +6,9 @@ import traceback
 import numpy
 import itertools
 import warnings
+import logging
 
-from amulet import log
+
 from amulet.api.block import Block, UniversalAirBlock
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
@@ -32,6 +33,8 @@ from amulet.api import wrapper as api_wrapper, level as api_level
 import PyMCTranslate
 from amulet.api.player import Player
 from .player_manager import PlayerManager
+
+log = logging.getLogger(__name__)
 
 
 class BaseLevel:
