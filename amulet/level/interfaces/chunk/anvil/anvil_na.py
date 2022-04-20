@@ -5,7 +5,6 @@ import logging
 
 import numpy
 from amulet_nbt import (
-    NBTFile,
     TAG_Byte,
     TAG_Int,
     TAG_Long,
@@ -14,15 +13,20 @@ from amulet_nbt import (
     TAG_Compound,
     TAG_Byte_Array,
     TAG_Int_Array,
+    BaseArrayType,
+    NBTFile,
 )
 
 import amulet
 from amulet.api.data_types import SubChunkNDArray, AnyNDArray, BlockCoordinates
 from amulet.utils import world_utils
 from amulet.api.wrapper import EntityIDType, EntityCoordType
-from amulet.api.chunk import Chunk, StatusFormats
+from amulet.api.chunk import Chunk, StatusFormats, EntityList
+from amulet.api.entity import Entity
 from .base_anvil_interface import (
     BaseAnvilInterface,
+    ChunkDataType,
+    ChunkPathType,
 )
 
 if TYPE_CHECKING:
@@ -32,9 +36,73 @@ log = logging.getLogger(__name__)
 
 
 class AnvilNAInterface(BaseAnvilInterface):
-    BlockEntities = "TileEntities"
-    Entities = "Entities"
-    Sections = "Sections"
+    Level: ChunkPathType = ("region", [("Level", TAG_Compound)], TAG_Compound)
+    Sections: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("Sections", TAG_List)],
+        TAG_List,
+    )
+
+    BlockEntities: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("TileEntities", TAG_List)],
+        TAG_List,
+    )
+    Entities: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("Entities", TAG_List)],
+        TAG_List,
+    )
+    InhabitedTime: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("InhabitedTime", TAG_Long)],
+        TAG_Long,
+    )
+    LastUpdate: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("LastUpdate", TAG_Long)],
+        TAG_Compound,
+    )
+    HeightMap: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("HeightMap", TAG_Int_Array)],
+        TAG_Int_Array,
+    )
+    TerrainPopulated: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("TerrainPopulated", TAG_Byte)],
+        TAG_Byte,
+    )
+    LightPopulated: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("LightPopulated", TAG_Byte)],
+        TAG_Byte,
+    )
+    V: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("V", TAG_Byte)],
+        TAG_Byte(1),
+    )
+    BlockTicks: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("TileTicks", TAG_List)],
+        TAG_List,
+    )
+    Biomes: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("Biomes", TAG_Byte_Array)],
+        None,
+    )
+    xPos: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("xPos", TAG_Int)],
+        TAG_Int,
+    )
+    zPos: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("zPos", TAG_Int)],
+        TAG_Int,
+    )
 
     def __init__(self):
         super().__init__()
@@ -48,130 +116,165 @@ class AnvilNAInterface(BaseAnvilInterface):
         self._set_feature("entity_format", EntityIDType.namespace_str_id)
         self._set_feature("entity_coord_format", EntityCoordType.Pos_list_double)
 
+        self._register_decoder(self._decode_coords)
+        self._register_decoder(self._decode_last_update)
+        self._register_decoder(self._decode_status)
+        self._register_decoder(self._decode_v_tag)
+        self._register_decoder(self._decode_inhabited_time)
+        self._register_decoder(self._decode_biomes)
+        self._register_decoder(self._decode_height)
+        self._register_decoder(self._decode_entities)
+        self._register_decoder(self._decode_blocks)
+        self._register_decoder(self._decode_block_entities)
+        self._register_decoder(self._decode_block_ticks)
+        self._register_decoder(self._decode_block_light)
+        self._register_decoder(self._decode_sky_light)
+
+        self._register_post_decoder(self._post_decode_sections)
+
+        self._register_encoder(self._encode_coords)
+        self._register_encoder(self._encode_last_update)
+        self._register_encoder(self._encode_status)
+        self._register_encoder(self._encode_v_tag)
+        self._register_encoder(self._encode_inhabited_time)
+        self._register_encoder(self._encode_biomes)
+        self._register_encoder(self._encode_height)
+        self._register_encoder(self._encode_entities)
+        self._register_encoder(self._encode_blocks)
+        self._register_encoder(self._encode_block_entities)
+        self._register_encoder(self._encode_block_ticks)
+        self._register_encoder(self._encode_block_light)
+        self._register_encoder(self._encode_sky_light)
+
     @staticmethod
     def minor_is_valid(key: int):
         return key == -1
 
     def decode(
-        self, cx: int, cz: int, nbt_file: NBTFile, bounds: Tuple[int, int]
+        self, cx: int, cz: int, data: ChunkDataType, bounds: Tuple[int, int]
     ) -> Tuple["Chunk", AnyNDArray]:
-        chunk, root = self._init_decode(cx, cz, nbt_file)
-        return self._decode_chunk(chunk, root, bounds)
+        chunk = self._init_decode(cx, cz, data)
+        floor_cy = self._get_floor_cy(data)
+        height_cy = (bounds[1] - bounds[0]) >> 4
+        self._do_decode(chunk, data, floor_cy, height_cy)
+        block_palette = chunk.misc.pop("block_palette")
+        return chunk, block_palette
+
+    def _get_floor_cy(self, data: ChunkDataType):
+        return 0
 
     @staticmethod
-    def _init_decode(cx: int, cz: int, data: NBTFile) -> Tuple[Chunk, TAG_Compound]:
+    def _init_decode(cx: int, cz: int, data: ChunkDataType) -> Chunk:
         """Get the decode started by creating a chunk object."""
         chunk = Chunk(cx, cz)
-        assert isinstance(data.value, TAG_Compound), "Raw data must be a compound."
         chunk.misc = {
             # store the chunk data so that any non-versioned data can get saved back
-            "java_chunk_data": data.value
+            "_java_chunk_data_layers": data
         }
-        return chunk, data.value
+        return chunk
 
-    def _decode_chunk(
-        self, chunk: Chunk, root: TAG_Compound, bounds: Tuple[int, int]
-    ) -> Tuple["Chunk", AnyNDArray]:
-        self._decode_root(chunk, root)
-        assert self.check_type(root, "Level", TAG_Compound)
-        level = root.pop("Level")
-        self._decode_level(chunk, level, bounds, bounds[0] >> 4)
-        sections = self._extract_sections(chunk, level)
-        self._decode_sections(chunk, sections)
-        palette = self._decode_blocks(chunk, sections)
-        return chunk, palette
+    def _get_level(self, data: ChunkDataType) -> TAG_Compound:
+        """
+        Get the level data container
+        For older levels this is region:Level but newer worlds it is in region root
+        :param data: The raw chunk data
+        :return: The level data compound
+        """
+        return self.get_layer_obj(data, self.Level)
 
-    def _decode_root(self, chunk: Chunk, root: TAG_Compound):
-        pass
-
-    def _decode_level(
-        self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int], floor_cy: int
+    def _decode_coords(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        self._decode_coords(chunk, level)
-        self._decode_last_update(chunk, level)
-        self._decode_status(chunk, level)
-        self._decode_inhabited_time(chunk, level)
-        self._decode_biomes(chunk, level, floor_cy)
-        self._decode_height(chunk, level, bounds)
-        self._decode_entities(chunk, level)
-        self._decode_block_entities(chunk, level)
-        self._decode_block_ticks(chunk, level, floor_cy)
+        self.get_layer_obj(data, self.xPos, pop_last=True)
+        self.get_layer_obj(data, self.zPos, pop_last=True)
 
-    def _decode_sections(self, chunk: Chunk, sections: Dict[int, TAG_Compound]):
-        self._decode_block_light(chunk, sections)
-        self._decode_sky_light(chunk, sections)
+    def _decode_last_update(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        chunk.misc["last_update"] = self.get_layer_obj(
+            data, self.LastUpdate, pop_last=True
+        ).value
 
-    @staticmethod
-    def _decode_coords(chunk: Chunk, level: TAG_Compound):
-        assert chunk.coordinates == (level.pop("xPos"), level.pop("zPos"))
-
-    def _decode_last_update(self, chunk: Chunk, compound: TAG_Compound):
-        chunk.misc["last_update"] = self.get_obj(compound, "LastUpdate", TAG_Long).value
-
-    def _decode_status(self, chunk: Chunk, compound: TAG_Compound):
+    def _decode_status(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
         status = "empty"
-        if self.get_obj(compound, "TerrainPopulated", TAG_Byte):
+        if self.get_layer_obj(data, self.TerrainPopulated, pop_last=True):
             status = "decorated"
-        if self.get_obj(compound, "LightPopulated", TAG_Byte):
+        if self.get_layer_obj(data, self.LightPopulated, pop_last=True):
             status = "postprocessed"
         chunk.status = status
 
-    def _decode_v_tag(self, chunk: Chunk, compound: TAG_Compound):
-        chunk.misc["V"] = self.get_obj(compound, "V", TAG_Byte, TAG_Byte(1)).value
+    def _decode_v_tag(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        chunk.misc["V"] = self.get_layer_obj(data, self.V, pop_last=True).value
 
-    def _decode_inhabited_time(self, chunk: Chunk, compound: TAG_Compound):
-        chunk.misc["inhabited_time"] = self.get_obj(
-            compound, "InhabitedTime", TAG_Long
+    def _decode_inhabited_time(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        chunk.misc["inhabited_time"] = self.get_layer_obj(
+            data, self.InhabitedTime, pop_last=True
         ).value
 
-    def _decode_biomes(self, chunk: Chunk, compound: TAG_Compound, floor_cy: int):
-        biomes = compound.pop("Biomes", None)
-        if isinstance(biomes, TAG_Byte_Array) and biomes.value.size == 256:
+    def _decode_biomes(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        biomes = self.get_layer_obj(data, self.Biomes, pop_last=True)
+        if isinstance(biomes, BaseArrayType) and biomes.value.size == 256:
             chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
 
     def _decode_height(
-        self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        height = self.get_obj(compound, "HeightMap", TAG_Int_Array).value
+        height = self.get_layer_obj(data, self.HeightMap, pop_last=True).value
         if isinstance(height, numpy.ndarray) and height.size == 256:
             chunk.misc["height_map256IA"] = height.reshape((16, 16))
 
-    def _extract_sections(
-        self, chunk: Chunk, compound: TAG_Compound
-    ) -> Dict[int, TAG_Compound]:
-        # parse sections into a more usable format
-        sections: Dict[int, TAG_Compound] = {
-            section.pop("Y").value: section
-            for section in self.get_obj(compound, self.Sections, TAG_List)
-            if isinstance(section, TAG_Compound)
-            and self.check_type(section, "Y", TAG_Byte)
-        }
-        chunk.misc["java_sections"] = sections
-        return sections
+    def _iter_sections(self, data: ChunkDataType):
+        sections: TAG_List = self.get_layer_obj(data, self.Sections)
+        for section in sections:
+            yield section["Y"].value, section
+
+    def _post_decode_sections(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        """Strip out all empty sections"""
+        sections = self.get_layer_obj(data, self.Sections)
+        if sections:
+            for i in range(len(sections) - 1, -1, -1):
+                section = sections[i]
+                if section.keys() == {"Y"}:
+                    # if only the Y key exists we can remove it
+                    sections.pop(i)
+        if not sections:
+            # if no sections remain we can remove the sections data
+            self.get_layer_obj(data, self.Sections, pop_last=True)
 
     def _decode_blocks(
-        self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]
-    ) -> AnyNDArray:
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
         blocks: Dict[int, SubChunkNDArray] = {}
         palette = []
         palette_len = 0
-        for cy, section in chunk_sections.items():
-            section_blocks = numpy.frombuffer(
-                section.pop("Blocks").value, dtype=numpy.uint8
-            )
-            section_data = numpy.frombuffer(
-                section.pop("Data").value, dtype=numpy.uint8
-            )
+        for cy, section in self._iter_sections(data):
+            block_tag = section.pop("Blocks", None)
+            data_tag = section.pop("Data", None)
+            if not isinstance(block_tag, BaseArrayType) or not isinstance(
+                data_tag, BaseArrayType
+            ):
+                continue
+            section_blocks = numpy.frombuffer(block_tag.value, dtype=numpy.uint8)
+            section_data = numpy.frombuffer(data_tag.value, dtype=numpy.uint8)
             section_blocks = section_blocks.reshape((16, 16, 16))
             section_blocks = section_blocks.astype(numpy.uint16)
 
             section_data = world_utils.from_nibble_array(section_data)
             section_data = section_data.reshape((16, 16, 16))
 
-            if "Add" in section:
-                add_blocks = numpy.frombuffer(
-                    section.pop("Add").value, dtype=numpy.uint8
-                )
+            add_tag = section.pop("Add", None)
+            if isinstance(add_tag, BaseArrayType):
+                add_blocks = numpy.frombuffer(add_tag.value, dtype=numpy.uint8)
                 add_blocks = world_utils.from_nibble_array(add_blocks)
                 add_blocks = add_blocks.reshape((16, 16, 16))
 
@@ -199,13 +302,13 @@ class AnvilNAInterface(BaseAnvilInterface):
         else:
             final_palette = numpy.array([], dtype=object)
         chunk.blocks = blocks
-        return final_palette
+        chunk.misc["block_palette"] = final_palette
 
     def _unpack_light(
-        self, sections: Dict[int, TAG_Compound], section_key: str
+        self, data: ChunkDataType, section_key: str
     ) -> Dict[int, numpy.ndarray]:
         light_container = {}
-        for cy, section in sections.items():
+        for cy, section in self._iter_sections(data):
             if self.check_type(section, section_key, TAG_Byte_Array):
                 light: numpy.ndarray = section.pop(section_key).value
                 if light.size == 2048:
@@ -220,23 +323,34 @@ class AnvilNAInterface(BaseAnvilInterface):
         return light_container
 
     def _decode_block_light(
-        self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        chunk.misc["block_light"] = self._unpack_light(chunk_sections, "BlockLight")
+        chunk.misc["block_light"] = self._unpack_light(data, "BlockLight")
 
-    def _decode_sky_light(self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]):
-        chunk.misc["sky_light"] = self._unpack_light(chunk_sections, "SkyLight")
+    def _decode_sky_light(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        chunk.misc["sky_light"] = self._unpack_light(data, "SkyLight")
 
-    def _decode_entities(self, chunk: Chunk, compound: TAG_Compound):
-        ents = self._decode_entity_list(self.get_obj(compound, self.Entities, TAG_List))
+    def _decode_entities(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        ents = self._decode_entity_list(
+            self.get_layer_obj(data, self.Entities, pop_last=True)
+        )
         if amulet.entity_support:
             chunk.entities = ents
+        elif amulet.experimental_entity_support:
+            chunk._native_entities.extend(ents)
+            chunk._native_version = ("java", -1)
         else:
             chunk.misc["java_entities_temp"] = ents
 
-    def _decode_block_entities(self, chunk: Chunk, compound: TAG_Compound):
+    def _decode_block_entities(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
         chunk.block_entities = self._decode_block_entity_list(
-            self.get_obj(compound, self.BlockEntities, TAG_List)
+            self.get_layer_obj(data, self.BlockEntities, pop_last=True)
         )
 
     @staticmethod
@@ -253,9 +367,11 @@ class AnvilNAInterface(BaseAnvilInterface):
             and isinstance(tick["i"], TAG_String)
         }
 
-    def _decode_block_ticks(self, chunk: Chunk, compound: TAG_Compound, floor_cy: int):
+    def _decode_block_ticks(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
         chunk.misc.setdefault("block_ticks", {}).update(
-            self._decode_ticks(self.get_obj(compound, "TileTicks", TAG_List))
+            self._decode_ticks(self.get_layer_obj(data, self.BlockTicks, pop_last=True))
         )
 
     def encode(
@@ -264,80 +380,52 @@ class AnvilNAInterface(BaseAnvilInterface):
         palette: AnyNDArray,
         max_world_version: Tuple[str, int],
         bounds: Tuple[int, int],
-    ) -> NBTFile:
-        return NBTFile(self._encode_chunk(chunk, palette, max_world_version, bounds))
+    ) -> ChunkDataType:
+        floor_cy = bounds[0] >> 4
+        height_cy = (bounds[1] - bounds[0]) >> 4
+        data = self._init_encode(chunk, max_world_version, floor_cy, height_cy)
+        chunk.misc["block_palette"] = palette
+        self._do_encode(chunk, data, floor_cy, height_cy)
+        return data
 
-    def _encode_chunk(
+    def _init_encode(
         self,
         chunk: "Chunk",
-        palette: AnyNDArray,
         max_world_version: Tuple[str, int],
-        bounds: Tuple[int, int],
-    ) -> TAG_Compound:
-        root = self._init_encode(chunk)
-        self._encode_root(root, max_world_version)
-        level: TAG_Compound = self.set_obj(root, "Level", TAG_Compound)
-        self._encode_level(chunk, level, bounds)
-        sections = self._init_sections(chunk)
-        self._encode_sections(chunk, sections, bounds)
-        self._encode_blocks(chunk, sections, palette, bounds)
-        # these data versions probably extend a little into the snapshots as well
-        if 1519 <= max_world_version[1] <= 1631:
-            # Java 1.13 to 1.13.2 cannot have empty sections
-            for cy in list(sections.keys()):
-                if "BlockStates" not in sections[cy] or "Palette" not in sections[cy]:
-                    del sections[cy]
-        sections_list = []
-        for cy, section in sections.items():
-            section["Y"] = TAG_Byte(cy)
-            sections_list.append(section)
-        level[self.Sections] = TAG_List(sections_list)
-        return root
+        floor_cy: int,
+        height_cy: int,
+    ) -> ChunkDataType:
+        """Get or create the root data."""
+        data = chunk.misc.get("_java_chunk_data_layers", None)
+        if not isinstance(data, dict):
+            data = {}
+        return {
+            key: value
+            for key, value in data.items()
+            if isinstance(key, str) and isinstance(value, NBTFile)
+        }
 
-    @staticmethod
-    def _init_encode(chunk: "Chunk"):
-        """Get or create the root tag."""
-        if "java_chunk_data" in chunk.misc and isinstance(
-            chunk.misc["java_chunk_data"], TAG_Compound
-        ):
-            return chunk.misc["java_chunk_data"]
-        else:
-            return TAG_Compound()
-
-    def _encode_root(self, root: TAG_Compound, max_world_version: Tuple[str, int]):
-        self._encode_data_version(root, max_world_version)
-
-    def _encode_data_version(
-        self, root: TAG_Compound, max_world_version: Tuple[str, int]
-    ):
-        if "DataVersion" in root:
-            del root["DataVersion"]
-
-    def _encode_level(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]):
-        self._encode_coords(chunk, level, bounds)
-        self._encode_last_update(chunk, level)
-        self._encode_status(chunk, level)
-        self._encode_inhabited_time(chunk, level)
-        self._encode_biomes(chunk, level, bounds)
-        self._encode_height(chunk, level, bounds)
-        self._encode_entities(chunk, level)
-        self._encode_block_entities(chunk, level)
-        self._encode_block_ticks(chunk, level, bounds)
-
-    @staticmethod
-    def _init_sections(chunk: "Chunk") -> Dict[int, TAG_Compound]:
-        """Get or create the root tag."""
-        if "java_sections" in chunk.misc and isinstance(
-            chunk.misc["java_sections"], dict
-        ):
-            # verify that the data is correctly formatted.
-            return {
-                cy: section
-                for cy, section in chunk.misc["java_sections"].items()
-                if isinstance(cy, int) and isinstance(section, TAG_Compound)
-            }
-        else:
-            return {}
+    def _get_encode_sections(
+        self,
+        data: ChunkDataType,
+        floor_cy: int,
+        height_cy: int,
+    ) -> Dict[int, TAG_Compound]:
+        """Get or create the section array populating all valid sections"""
+        sections = self.set_layer_obj(data, self.Sections, setdefault=True)
+        section_map: Dict[int, TAG_Compound] = {}
+        for section_index in range(len(sections) - 1, -1, -1):
+            section = sections[section_index]
+            cy = section.get("Y", None)
+            if isinstance(cy, TAG_Byte):
+                section_map[cy.value] = section
+            else:
+                sections.pop(section_index)
+        for cy in range(floor_cy, floor_cy + height_cy):
+            if cy not in section_map:
+                section = section_map[cy] = TAG_Compound({"Y": TAG_Byte(cy)})
+                sections.append(section)
+        return section_map
 
     def _encode_block_section(
         self,
@@ -345,70 +433,76 @@ class AnvilNAInterface(BaseAnvilInterface):
         sections: Dict[int, TAG_Compound],
         palette: AnyNDArray,
         cy: int,
-    ) -> bool:
-        if cy in chunk.blocks:
-            block_sub_array = palette[
-                numpy.transpose(
-                    chunk.blocks.get_sub_chunk(cy), (1, 2, 0)
-                ).ravel()  # XYZ -> YZX
-            ]
+    ):
+        block_sub_array = palette[
+            numpy.transpose(
+                chunk.blocks.get_sub_chunk(cy), (1, 2, 0)
+            ).ravel()  # XYZ -> YZX
+        ]
 
-            data_sub_array = block_sub_array[:, 1]
-            block_sub_array = block_sub_array[:, 0]
-            # if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
-            #     return False
-            section = sections.setdefault(cy, TAG_Compound())
-            section["Blocks"] = TAG_Byte_Array(block_sub_array.astype("uint8"))
-            section["Data"] = TAG_Byte_Array(
-                world_utils.to_nibble_array(data_sub_array)
-            )
-            return True
-        return False
+        data_sub_array = block_sub_array[:, 1]
+        block_sub_array = block_sub_array[:, 0]
+        # if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
+        #     return False
+        sections[cy]["Blocks"] = TAG_Byte_Array(block_sub_array.astype("uint8"))
+        sections[cy]["Data"] = TAG_Byte_Array(
+            world_utils.to_nibble_array(data_sub_array)
+        )
 
     def _encode_blocks(
-        self,
-        chunk: Chunk,
-        sections: Dict[int, TAG_Compound],
-        palette: AnyNDArray,
-        bounds: Tuple[int, int],
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        for cy in range(bounds[0] >> 4, bounds[1] >> 4):
-            if not self._encode_block_section(chunk, sections, palette, cy):
-                # In 1.13.2 and before if the Blocks key does not exist but the sub-chunk TAG_Compound does
-                # exist the game will error and recreate the chunk. All sub-chunks that do not contain data
-                # must be deleted.
-                if cy in sections:
-                    del sections[cy]
+        sections = self._get_encode_sections(data, floor_cy, height_cy)
+        block_palette = chunk.misc.pop("block_palette")
+        ceil_cy = floor_cy + height_cy
+        for cy in chunk.blocks.sub_chunks:
+            if floor_cy <= cy < ceil_cy:
+                self._encode_block_section(chunk, sections, block_palette, cy)
 
-    @staticmethod
-    def _encode_coords(chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]):
-        level["xPos"] = TAG_Int(chunk.cx)
-        level["zPos"] = TAG_Int(chunk.cz)
+    def _encode_coords(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        self.set_layer_obj(data, self.xPos, TAG_Int(chunk.cx))
+        self.set_layer_obj(data, self.zPos, TAG_Int(chunk.cz))
 
-    @staticmethod
-    def _encode_last_update(chunk: Chunk, level: TAG_Compound):
-        level["LastUpdate"] = TAG_Long(chunk.misc.get("last_update", 0))
+    def _encode_last_update(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        self.set_layer_obj(
+            data, self.LastUpdate, TAG_Long(chunk.misc.get("last_update", 0))
+        )
 
-    def _encode_status(self, chunk: Chunk, level: TAG_Compound):
+    def _encode_status(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
         status = chunk.status.as_type(StatusFormats.Raw)
-        level["TerrainPopulated"] = TAG_Byte(int(status > -0.3))
-        level["LightPopulated"] = TAG_Byte(int(status > -0.2))
+        self.set_layer_obj(data, self.TerrainPopulated, TAG_Byte(int(status > -0.3)))
+        self.set_layer_obj(data, self.LightPopulated, TAG_Byte(int(status > -0.2)))
 
-    @staticmethod
-    def _encode_v_tag(chunk: Chunk, level: TAG_Compound):
-        level["V"] = TAG_Byte(chunk.misc.get("V", 1))
+    def _encode_v_tag(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        self.set_layer_obj(data, self.V, TAG_Byte(chunk.misc.get("V", 1)))
 
-    def _encode_inhabited_time(self, chunk: Chunk, level: TAG_Compound):
-        level["InhabitedTime"] = TAG_Long(chunk.misc.get("inhabited_time", 0))
+    def _encode_inhabited_time(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        self.set_layer_obj(
+            data, self.InhabitedTime, TAG_Long(chunk.misc.get("inhabited_time", 0))
+        )
 
     def _encode_biomes(
-        self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         chunk.biomes.convert_to_2d()
-        level["Biomes"] = TAG_Byte_Array(chunk.biomes.astype(dtype=numpy.uint8).ravel())
+        self.set_layer_obj(
+            data,
+            self.Biomes,
+            TAG_Byte_Array(chunk.biomes.astype(dtype=numpy.uint8).ravel()),
+        )
 
     def _encode_height(
-        self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         height = chunk.misc.get("height_map256IA", None)
         if (
@@ -416,20 +510,38 @@ class AnvilNAInterface(BaseAnvilInterface):
             and numpy.issubdtype(height.dtype, numpy.integer)
             and height.shape == (16, 16)
         ):
-            level["HeightMap"] = TAG_Int_Array(height.ravel())
-        elif self._features["height_map"] == "256IARequired":
-            level["HeightMap"] = TAG_Int_Array(numpy.zeros(256, dtype=numpy.uint32))
-
-    def _encode_entities(self, chunk: Chunk, level: TAG_Compound):
-        if amulet.entity_support:
-            level[self.Entities] = self._encode_entity_list(chunk.entities)
-        else:
-            level[self.Entities] = self._encode_entity_list(
-                chunk.misc.get("java_entities_temp", TAG_List())
+            self.set_layer_obj(
+                data,
+                self.HeightMap,
+                TAG_Int_Array(numpy.zeros(256, dtype=numpy.uint32)),
             )
+        elif self._features["height_map"] == "256IARequired":
+            self.set_layer_obj(data, self.HeightMap, TAG_Int_Array(height.ravel()))
 
-    def _encode_block_entities(self, chunk: Chunk, level: TAG_Compound):
-        level[self.BlockEntities] = self._encode_block_entity_list(chunk.block_entities)
+    def _encode_entities(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        if amulet.entity_support:
+            entities = chunk.entities
+        elif amulet.experimental_entity_support:
+            entities = chunk._native_entities
+        else:
+            entities = chunk.misc.get("java_entities_temp", [])
+
+        self.set_layer_obj(
+            data,
+            self.Entities,
+            self._encode_entity_list(entities),
+        )
+
+    def _encode_block_entities(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        self.set_layer_obj(
+            data,
+            self.BlockEntities,
+            self._encode_block_entity_list(chunk.block_entities),
+        )
 
     @staticmethod
     def _encode_ticks(ticks: Dict[BlockCoordinates, Tuple[str, int, int]]) -> TAG_List:
@@ -455,27 +567,25 @@ class AnvilNAInterface(BaseAnvilInterface):
         return ticks_out
 
     def _encode_block_ticks(
-        self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        level["TileTicks"] = self._encode_ticks(chunk.misc.get("block_ticks", {}))
-
-    def _encode_sections(
-        self, chunk: Chunk, sections: Dict[int, TAG_Compound], bounds: Tuple[int, int]
-    ):
-        self._encode_block_light(chunk, sections)
-        self._encode_sky_light(chunk, sections)
+        self.set_layer_obj(
+            data, self.BlockTicks, self._encode_ticks(chunk.misc.get("block_ticks", {}))
+        )
 
     def _pack_light(
         self,
         chunk: Chunk,
-        sections: Dict[int, TAG_Compound],
+        data: ChunkDataType,
+        floor_cy: int,
+        height_cy: int,
         feature_key: str,
         section_key: str,
     ):
         light_container = chunk.misc.get(feature_key, {})
         if not isinstance(light_container, dict):
             light_container = {}
-        for cy, section in sections.items():
+        for cy, section in self._get_encode_sections(data, floor_cy, height_cy).items():
             light = light_container.get(cy, None)
             if (
                 isinstance(light, numpy.ndarray)
@@ -489,11 +599,15 @@ class AnvilNAInterface(BaseAnvilInterface):
                     numpy.full(2048, 255, dtype=numpy.uint8)
                 )
 
-    def _encode_block_light(self, chunk: Chunk, sections: Dict[int, TAG_Compound]):
-        self._pack_light(chunk, sections, "block_light", "BlockLight")
+    def _encode_block_light(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        self._pack_light(chunk, data, floor_cy, height_cy, "block_light", "BlockLight")
 
-    def _encode_sky_light(self, chunk: Chunk, sections: Dict[int, TAG_Compound]):
-        self._pack_light(chunk, sections, "sky_light", "SkyLight")
+    def _encode_sky_light(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        self._pack_light(chunk, data, floor_cy, height_cy, "sky_light", "SkyLight")
 
 
 export = AnvilNAInterface

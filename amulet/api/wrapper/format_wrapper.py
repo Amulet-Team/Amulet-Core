@@ -578,7 +578,7 @@ class FormatWrapper(ABC):
         chunk, chunk_palette = self._pack(chunk, translator, chunk_version)
         raw_chunk_data = self._encode(interface, chunk, dimension, chunk_palette)
 
-        self.put_raw_chunk_data(cx, cz, raw_chunk_data, dimension)
+        self._put_raw_chunk_data(cx, cz, raw_chunk_data, dimension)
 
     def _convert_to_save(
         self,

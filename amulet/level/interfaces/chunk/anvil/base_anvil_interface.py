@@ -1,7 +1,18 @@
 from __future__ import annotations
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 
-from typing import List, Tuple, Iterable, TYPE_CHECKING, Any
+from typing import (
+    List,
+    Tuple,
+    Iterable,
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Callable,
+    Sequence,
+    Union,
+    Type,
+)
 import numpy
 
 
@@ -10,6 +21,8 @@ from amulet_nbt import (
     TAG_List,
     TAG_Compound,
     NBTFile,
+    BaseValueType,
+    AnyNBT,
 )
 
 from amulet.api.chunk import Chunk, StatusFormats
@@ -24,8 +37,86 @@ if TYPE_CHECKING:
     from amulet.api.entity import Entity
 
 
-class BaseAnvilInterface(Interface):
+ChunkDataType = Dict[str, NBTFile]
+
+ChunkPathType = Tuple[
+    str,  # The layer name
+    Sequence[
+        Tuple[Union[str, int], Type[BaseValueType]],
+    ],
+    Type[BaseValueType],
+]
+
+
+class BaseDecoderEncoder(ABC):
     def __init__(self):
+        self.__decoders = {}
+        self.__post_decoders = {}
+        self.__encoders = {}
+        self.__post_encoders = {}
+
+    def _register_decoder(self, decoder: Callable):
+        """Register a function that does the decoding"""
+        self.__decoders[decoder] = None
+
+    def _register_post_decoder(self, post_decoder: Callable):
+        """Register a function that runs after the decoding"""
+        self.__post_decoders[post_decoder] = None
+
+    def _unregister_decoder(self, decoder: Callable):
+        """Unregister a function that does the decoding"""
+        del self.__decoders[decoder]
+
+    def _unregister_post_decoder(self, post_decoder: Callable):
+        """Unregister a function that runs after the decoding"""
+        del self.__post_decoders[post_decoder]
+
+    def _do_decode(self, *args, **kwargs):
+        for decoder in self.__decoders:
+            decoder(*args, **kwargs)
+        for post_decoder in self.__post_decoders:
+            post_decoder(*args, **kwargs)
+
+    def _register_encoder(self, encoder: Callable):
+        """Register a function that does the encoding"""
+        self.__encoders[encoder] = None
+
+    def _register_post_encoder(self, post_encoder: Callable):
+        """Register a function that runs after the encoding"""
+        self.__post_encoders[post_encoder] = None
+
+    def _unregister_encoder(self, encoder: Callable):
+        """Unregister a function that does the encoding"""
+        del self.__encoders[encoder]
+
+    def _unregister_post_encoder(self, post_encoder: Callable):
+        """Unregister a function that runs after the encoding"""
+        del self.__post_encoders[post_encoder]
+
+    def _do_encode(self, *args, **kwargs):
+        for encoder in self.__encoders:
+            encoder(*args, **kwargs)
+        for post_encoder in self.__post_encoders:
+            post_encoder(*args, **kwargs)
+
+
+class BaseAnvilInterface(Interface, BaseDecoderEncoder):
+    # The chunk object, the chunk data, the floor chunk coord, the chunk height (in sub-chunks)
+    DecoderType = Callable[[Chunk, ChunkDataType, int, int], None]
+    EncoderType = Callable[[Chunk, ChunkDataType, int, int], None]
+    _register_decoder: Callable[[DecoderType], None]
+    _register_post_decoder: Callable[[DecoderType], None]
+    _unregister_decoder: Callable[[DecoderType], None]
+    _unregister_post_decoder: Callable[[DecoderType], None]
+    _do_decode: DecoderType
+    _register_encoder: Callable[[EncoderType], None]
+    _register_post_encoder: Callable[[EncoderType], None]
+    _unregister_encoder: Callable[[EncoderType], None]
+    _unregister_post_encoder: Callable[[EncoderType], None]
+    _do_encode: EncoderType
+
+    def __init__(self):
+        BaseDecoderEncoder.__init__(self)
         self._feature_options = {
             "status": StatusFormats,
             "height_map": [
@@ -64,25 +155,93 @@ class BaseAnvilInterface(Interface):
     def get_translator(
         self,
         max_world_version: VersionIdentifierType,
-        data: NBTFile = None,
+        data: ChunkDataType = None,
     ) -> Tuple["Translator", int]:
-        if data:
-            data_version = data.get("DataVersion", TAG_Int(-1)).value
-            key, version = (("java", data_version), data_version)
-        else:
+        if data is None:
             key = max_world_version
             version = max_world_version[1]
+        else:
+            data_version = data.get("region", {}).get("DataVersion", TAG_Int(-1)).value
+            key, version = (("java", data_version), data_version)
+
         return loader.Translators.get(key), version
+
+    def get_layer_obj(
+        self,
+        obj: ChunkDataType,
+        data: Tuple[
+            str,
+            Sequence[
+                Tuple[Union[str, int], Type[BaseValueType]],
+            ],
+            Union[None, AnyNBT, Type[BaseValueType]],
+        ],
+        *,
+        pop_last=False,
+    ) -> Any:
+        """
+        Get an object from a nested NBT structure layer
+
+        :param obj: The chunk data object
+        :param data: The data layer name, the nbt path and the default
+        :param pop_last: If true the last key will be popped
+        :return: The found data or the default
+        """
+        layer_key, path, default = data
+        if layer_key in obj:
+            return self.get_nested_obj(
+                obj[layer_key].value, path, default, pop_last=pop_last
+            )
+        elif default is None or isinstance(default, BaseValueType):
+            return default
+        elif issubclass(default, BaseValueType):
+            return default()
+        else:
+            raise TypeError("default must be None, an NBT instance or an NBT class.")
+
+    def set_layer_obj(
+        self,
+        obj: ChunkDataType,
+        data: Tuple[
+            str,
+            Sequence[Tuple[Union[str, int], Type[BaseValueType]]],
+            Union[None, AnyNBT, Type[BaseValueType]],
+        ],
+        default_tag: AnyNBT = None,
+        *,
+        setdefault=False,
+    ) -> AnyNBT:
+        """
+        Setdefault on a ChunkDataType object
+
+        :param obj: The ChunkDataType object to use
+        :param data: The data to set
+        :param setdefault: If True will behave like setdefault. If False will replace existing data.
+        :return: The existing data found or the default that was set
+        """
+        layer_key, path, default = data
+        default = default if default_tag is None else default_tag
+        if not path:
+            raise ValueError("was not given a path to set")
+        tag = obj.setdefault(layer_key, NBTFile()).value
+        *path, (key, dtype) = path
+        if path:
+            key_path = next(zip(*path))
+        else:
+            key_path = ()
+        return self.set_obj(
+            tag, key, dtype, default, path=key_path, setdefault=setdefault
+        )
 
     @abstractmethod
     def decode(
-        self, cx: int, cz: int, nbt_file: NBTFile, bounds: Tuple[int, int]
+        self, cx: int, cz: int, data: ChunkDataType, bounds: Tuple[int, int]
     ) -> Tuple["Chunk", AnyNDArray]:
         """
         Create an amulet.api.chunk.Chunk object from raw data.
         :param cx: chunk x coordinate
         :param cz: chunk z coordinate
-        :param nbt_file: NBTFile
+        :param data: The chunk data
         :param bounds: The minimum and maximum bounds of the chunk. In 1.17 this is required to define where the biome array sits.
         :return: Chunk object in version-specific format, along with the block_palette for that chunk.
         """
@@ -127,7 +286,7 @@ class BaseAnvilInterface(Interface):
         palette: AnyNDArray,
         max_world_version: Tuple[str, int],
         bounds: Tuple[int, int],
-    ) -> NBTFile:
+    ) -> ChunkDataType:
         """
         Encode a version-specific chunk to raw data for the format to store.
 

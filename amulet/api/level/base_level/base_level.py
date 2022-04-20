@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import time
-from typing import Union, Generator, Optional, Tuple, Callable, Set
+from typing import Union, Generator, Optional, Tuple, Callable, Set, Iterable
 import traceback
 import numpy
 import itertools
 import warnings
 import logging
-
+import copy
 
 from amulet.api.block import Block, UniversalAirBlock
 from amulet.api.block_entity import BlockEntity
@@ -15,7 +15,7 @@ from amulet.api.entity import Entity
 from amulet.api.registry import BlockManager
 from amulet.api.registry.biome_manager import BiomeManager
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError, DimensionDoesNotExist
-from amulet.api.chunk import Chunk
+from amulet.api.chunk import Chunk, EntityList
 from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet.api.data_types import (
     Dimension,
@@ -812,6 +812,39 @@ class BaseLevel:
             chunk.block_entities[(x, y, z)] = universal_block_entity
         elif (x, y, z) in chunk.block_entities:
             del chunk.block_entities[(x, y, z)]
+        chunk.changed = True
+
+    def get_native_entities(
+        self, cx: int, cz: int, dimension: Dimension
+    ) -> Tuple[EntityList, VersionIdentifierType]:
+        """
+        Get a list of entities in the native format from a given chunk.
+        This currently returns the raw data from the chunk but in the future will convert to the world version format.
+
+        :param cx: The chunk x position
+        :param cz: The chunk z position
+        :param dimension: The dimension of the chunk.
+        :return: A copy of the list of entities and the version format they are in.
+        """
+        chunk = self.get_chunk(cx, cz, dimension)
+        # To make this forwards compatible this needs to be deep copied
+        return copy.deepcopy(chunk._native_entities), chunk._native_version
+
+    def set_native_entites(
+        self, cx: int, cz: int, dimension: Dimension, entities: Iterable[Entity]
+    ):
+        """
+        Set the entities in the native format.
+        Note that the format must be compatible with `level_wrapper.max_world_version`.
+
+        :param cx: The chunk x position
+        :param cz: The chunk z position
+        :param dimension: The dimension of the chunk.
+        :param entities: The entities to set on the chunk.
+        """
+        chunk = self.get_chunk(cx, cz, dimension)
+        chunk._native_entities = EntityList(copy.deepcopy(entities))
+        chunk._native_version = self.level_wrapper.max_world_version
         chunk.changed = True
 
     # def get_entities_in_box(

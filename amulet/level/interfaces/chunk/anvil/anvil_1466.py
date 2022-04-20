@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Dict
+from typing import Dict
 import logging
 
 import numpy
@@ -9,17 +9,23 @@ from amulet_nbt import TAG_Compound, TAG_Long_Array
 from amulet.api.chunk import Chunk
 from amulet.utils.world_utils import decode_long_array, encode_long_array
 
-from .anvil_1444 import (
-    Anvil1444Interface,
-)
+from .base_anvil_interface import ChunkPathType, ChunkDataType
+from .anvil_1444 import Anvil1444Interface as ParentInterface
 
 log = logging.getLogger(__name__)
 
 
-class Anvil1466Interface(Anvil1444Interface):
+class Anvil1466Interface(ParentInterface):
     """
     Added multiple height maps. Now stored in a compound.
     """
+
+    HeightMap = None
+    Heightmaps: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("Heightmaps", TAG_Compound)],
+        TAG_Compound,
+    )
 
     def __init__(self):
         super().__init__()
@@ -30,27 +36,24 @@ class Anvil1466Interface(Anvil1444Interface):
         return 1466 <= key < 1467
 
     def _decode_height(
-        self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        heights = self.get_obj(compound, "Heightmaps", TAG_Compound)
+        heights = self.get_layer_obj(data, self.Heightmaps, pop_last=True)
         chunk.misc["height_mapC"] = h = {}
         for key, value in heights.items():
             if isinstance(value, TAG_Long_Array):
                 try:
-                    h[key] = (
-                        decode_long_array(
-                            value.value,
-                            256,
-                            (bounds[1] - bounds[0]).bit_length(),
-                            dense=self.LongArrayDense,
-                        ).reshape((16, 16))
-                        + bounds[0]
-                    )
+                    h[key] = decode_long_array(
+                        value.value,
+                        256,
+                        (height_cy << 4).bit_length(),
+                        dense=self.LongArrayDense,
+                    ).reshape((16, 16)) + (floor_cy << 4)
                 except Exception as e:
                     log.warning(e)
 
     def _encode_height(
-        self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         maps = [
             "WORLD_SURFACE_WG",
@@ -80,12 +83,12 @@ class Anvil1466Interface(Anvil1444Interface):
             ):
                 heightmaps[heightmap] = TAG_Long_Array(
                     encode_long_array(
-                        heightmaps_temp[heightmap].ravel() - bounds[0],
-                        (bounds[1] - bounds[0]).bit_length(),
+                        heightmaps_temp[heightmap].ravel() - (floor_cy << 4),
+                        (height_cy << 4).bit_length(),
                         self.LongArrayDense,
                     )
                 )
-        level["Heightmaps"] = heightmaps
+        self.set_layer_obj(data, self.Heightmaps, heightmaps)
 
 
 export = Anvil1466Interface

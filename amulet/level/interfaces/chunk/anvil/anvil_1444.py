@@ -17,7 +17,8 @@ import amulet
 from amulet.api.data_types import AnyNDArray, BlockCoordinates
 from amulet.api.block import Block
 from amulet.api.chunk import StatusFormats
-from .anvil_0 import Anvil0Interface
+from .base_anvil_interface import ChunkDataType, ChunkPathType
+from .anvil_0 import Anvil0Interface as ParentInterface
 from amulet.utils.world_utils import (
     decode_long_array,
     encode_long_array,
@@ -29,37 +30,73 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-class Anvil1444Interface(Anvil0Interface):
+class Anvil1444Interface(ParentInterface):
     """
-    Moved light and terrain populated to Status
+    Moved TerrainPopulated and LightPopulated to Status
     Made blocks paletted
     Added more tick tags
     Added structures tag
     """
 
-    Structures = "Structures"
+    TerrainPopulated = None
+    LightPopulated = None
+    Status: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("Status", TAG_String)],
+        TAG_String("full"),
+    )
+
+    ToBeTicked: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("ToBeTicked", TAG_List)],
+        TAG_List,
+    )
+
+    LiquidTicks: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("LiquidTicks", TAG_List)],
+        TAG_List,
+    )
+    LiquidsToBeTicked: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("LiquidsToBeTicked", TAG_List)],
+        TAG_List,
+    )
+
+    PostProcessing: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("PostProcessing", TAG_List)],
+        TAG_List,
+    )
+
+    Structures: ChunkPathType = (
+        "region",
+        [("Level", TAG_Compound), ("Structures", TAG_Compound)],
+        TAG_Compound,
+    )
+
     LongArrayDense = True
 
     def __init__(self):
         super().__init__()
         self._set_feature("status", StatusFormats.Java_13)
 
+        self._register_decoder(self._decode_fluid_ticks)
+        self._register_decoder(self._decode_post_processing)
+        self._register_decoder(self._decode_structures)
+
+        self._register_encoder(self._encode_fluid_ticks)
+        self._register_encoder(self._encode_post_processing)
+        self._register_encoder(self._encode_structures)
+
     @staticmethod
     def minor_is_valid(key: int):
         return 1444 <= key < 1466
 
-    def _decode_level(
-        self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int], floor_cy: int
+    def _decode_status(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        super()._decode_level(chunk, level, bounds, floor_cy)
-        self._decode_fluid_ticks(chunk, level, floor_cy)
-        self._decode_post_processing(chunk, level, floor_cy)
-        self._decode_structures(chunk, level)
-
-    def _decode_status(self, chunk: Chunk, compound: TAG_Compound):
-        chunk.status = self.get_obj(
-            compound, "Status", TAG_String, TAG_String("full")
-        ).value
+        chunk.status = self.get_layer_obj(data, self.Status, pop_last=True).value
 
     def _decode_block_section(
         self, section: TAG_Compound
@@ -77,12 +114,12 @@ class Anvil1444Interface(Anvil0Interface):
         return arr, section_palette
 
     def _decode_blocks(
-        self, chunk: Chunk, chunk_sections: Dict[int, TAG_Compound]
-    ) -> AnyNDArray:
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
         blocks: Dict[int, numpy.ndarray] = {}
         palette = [Block(namespace="minecraft", base_name="air")]
 
-        for cy, section in chunk_sections.items():
+        for cy, section in self._iter_sections(data):
             data = self._decode_block_section(section)
             if data is not None:
                 arr, section_palette = data
@@ -96,7 +133,7 @@ class Anvil1444Interface(Anvil0Interface):
         for cy in blocks:
             blocks[cy] = inverse[blocks[cy]]
         chunk.blocks = blocks
-        return np_palette
+        chunk.misc["block_palette"] = np_palette
 
     @staticmethod
     def _decode_block_palette(palette: TAG_List) -> list:
@@ -123,44 +160,52 @@ class Anvil1444Interface(Anvil0Interface):
                 ticks_out.add((x, block_cy + y, z))
         return ticks_out
 
-    def _decode_block_ticks(self, chunk: Chunk, compound: TAG_Compound, floor_cy: int):
-        super()._decode_block_ticks(chunk, compound, floor_cy)
+    def _decode_block_ticks(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        super()._decode_block_ticks(chunk, data, floor_cy, height_cy)
         chunk.misc["to_be_ticked"] = self._decode_to_be_ticked(
-            self.get_obj(compound, "ToBeTicked", TAG_List), floor_cy
+            self.get_layer_obj(data, self.ToBeTicked, pop_last=True), floor_cy
         )
 
-    def _decode_fluid_ticks(self, chunk: Chunk, compound: TAG_Compound, floor_cy: int):
+    def _decode_fluid_ticks(self, chunk: Chunk, data: ChunkDataType, floor_cy: int, __):
         chunk.misc.setdefault("fluid_ticks", {}).update(
-            self._decode_ticks(self.get_obj(compound, "LiquidTicks", TAG_List))
+            self._decode_ticks(
+                self.get_layer_obj(data, self.LiquidTicks, pop_last=True)
+            )
         )
         chunk.misc["liquids_to_be_ticked"] = self._decode_to_be_ticked(
-            self.get_obj(compound, "LiquidsToBeTicked", TAG_List), floor_cy
+            self.get_layer_obj(data, self.LiquidsToBeTicked, pop_last=True), floor_cy
         )
 
     def _decode_post_processing(
-        self, chunk: Chunk, compound: TAG_Compound, floor_cy: int
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         chunk.misc["post_processing"] = self._decode_to_be_ticked(
-            self.get_obj(compound, "PostProcessing", TAG_List), floor_cy
+            self.get_layer_obj(data, self.PostProcessing, pop_last=True), floor_cy
         )
 
-    def _decode_structures(self, chunk: Chunk, compound: TAG_Compound):
-        chunk.misc["structures"] = self.get_obj(compound, self.Structures, TAG_Compound)
+    def _decode_structures(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        chunk.misc["structures"] = self.get_layer_obj(
+            data, self.Structures, pop_last=True
+        )
 
-    def _encode_level(self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]):
-        super()._encode_level(chunk, level, bounds)
-        self._encode_fluid_ticks(chunk, level, bounds)
-        self._encode_post_processing(chunk, level, bounds)
-        self._encode_structures(chunk, level)
-
-    def _encode_status(self, chunk: Chunk, level: TAG_Compound):
+    def _encode_status(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
         # Order the float value based on the order they would be run. Newer replacements for the same come just after
         # to save back find the next lowest valid value.
         status = chunk.status.as_type(self._features["status"])
-        level["Status"] = TAG_String(status)
+        self.set_layer_obj(data, self.Status, TAG_String(status))
 
-    def _encode_inhabited_time(self, chunk: Chunk, level: TAG_Compound):
-        level["InhabitedTime"] = TAG_Long(chunk.misc.get("inhabited_time", 0))
+    def _encode_inhabited_time(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        self.set_layer_obj(
+            data, self.InhabitedTime, TAG_Long(chunk.misc.get("inhabited_time", 0))
+        )
 
     def _encode_block_section(
         self,
@@ -169,40 +214,24 @@ class Anvil1444Interface(Anvil0Interface):
         palette: AnyNDArray,
         cy: int,
     ) -> bool:
-        if cy in chunk.blocks:
-            block_sub_array = numpy.transpose(
-                chunk.blocks.get_sub_chunk(cy), (1, 2, 0)
-            ).ravel()
+        block_sub_array = numpy.transpose(
+            chunk.blocks.get_sub_chunk(cy), (1, 2, 0)
+        ).ravel()
 
-            sub_palette_, block_sub_array = numpy.unique(
-                block_sub_array, return_inverse=True
+        sub_palette_, block_sub_array = numpy.unique(
+            block_sub_array, return_inverse=True
+        )
+        sub_palette = self._encode_block_palette(palette[sub_palette_])
+        if len(sub_palette) == 1 and sub_palette[0]["Name"].value == "minecraft:air":
+            return False
+
+        section = sections.setdefault(cy, TAG_Compound())
+        section["BlockStates"] = TAG_Long_Array(
+            encode_long_array(
+                block_sub_array, dense=self.LongArrayDense, min_bits_per_entry=4
             )
-            sub_palette = self._encode_block_palette(palette[sub_palette_])
-            if (
-                len(sub_palette) == 1
-                and sub_palette[0]["Name"].value == "minecraft:air"
-            ):
-                return False
-
-            section = sections.setdefault(cy, TAG_Compound())
-            section["BlockStates"] = TAG_Long_Array(
-                encode_long_array(
-                    block_sub_array, dense=self.LongArrayDense, min_bits_per_entry=4
-                )
-            )
-            section["Palette"] = sub_palette
-            return True
-        return False
-
-    def _encode_blocks(
-        self,
-        chunk: Chunk,
-        sections: Dict[int, TAG_Compound],
-        palette: AnyNDArray,
-        bounds: Tuple[int, int],
-    ):
-        for cy in range(bounds[0] >> 4, bounds[1] >> 4):
-            self._encode_block_section(chunk, sections, palette, cy)
+        )
+        section["Palette"] = sub_palette
 
     @staticmethod
     def _encode_block_palette(blockstates: list) -> TAG_List:
@@ -217,17 +246,16 @@ class Anvil1444Interface(Anvil0Interface):
 
     @staticmethod
     def _encode_to_be_ticked(
-        ticks: Set[BlockCoordinates], bounds: Tuple[int, int]
+        ticks: Set[BlockCoordinates], floor_cy: int, height_cy: int
     ) -> TAG_List:
-        cy_min = bounds[0] >> 4
-        cy_max = bounds[1] >> 4
-        ticks_out = TAG_List([TAG_List([], 2) for _ in range(cy_min, cy_max)])
+        ceil_cy = floor_cy + height_cy
+        ticks_out = TAG_List([TAG_List([], 2) for _ in range(floor_cy, ceil_cy)])
         if isinstance(ticks, set):
             for k in ticks:
                 try:
                     (x, y, z) = k
                     cy = y >> 4
-                    if cy_min <= cy < cy_max:
+                    if floor_cy <= cy < ceil_cy:
                         x = x & 15
                         y = y & 15
                         z = z & 15
@@ -237,37 +265,58 @@ class Anvil1444Interface(Anvil0Interface):
         return ticks_out
 
     def _encode_block_ticks(
-        self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        super()._encode_block_ticks(chunk, compound, bounds)
-        compound["ToBeTicked"] = self._encode_to_be_ticked(
-            chunk.misc.get("to_be_ticked"), bounds
+        super()._encode_block_ticks(chunk, data, floor_cy, height_cy)
+        self.set_layer_obj(
+            data,
+            self.ToBeTicked,
+            self._encode_to_be_ticked(
+                chunk.misc.get("to_be_ticked"), floor_cy, height_cy
+            ),
         )
 
     def _encode_fluid_ticks(
-        self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        compound["LiquidTicks"] = self._encode_ticks(chunk.misc.get("fluid_ticks", {}))
-        compound["LiquidsToBeTicked"] = self._encode_to_be_ticked(
-            chunk.misc.get("liquids_to_be_ticked"), bounds
+        self.set_layer_obj(
+            data,
+            self.LiquidTicks,
+            self._encode_ticks(chunk.misc.get("fluid_ticks", {})),
+        )
+        self.set_layer_obj(
+            data,
+            self.LiquidsToBeTicked,
+            self._encode_to_be_ticked(
+                chunk.misc.get("liquids_to_be_ticked"), floor_cy, height_cy
+            ),
         )
 
     def _encode_post_processing(
-        self, chunk: Chunk, compound: TAG_Compound, bounds: Tuple[int, int]
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        compound["PostProcessing"] = self._encode_to_be_ticked(
-            chunk.misc.get("post_processing"), bounds
+        self.set_layer_obj(
+            data,
+            self.PostProcessing,
+            self._encode_to_be_ticked(
+                chunk.misc.get("post_processing"), floor_cy, height_cy
+            ),
         )
 
-    @staticmethod
-    def _encode_structures(chunk: Chunk, compound: TAG_Compound):
-        compound["Structures"] = chunk.misc.get(
-            "structures",
-            TAG_Compound(
-                {
-                    "References": TAG_Compound(),
-                    "Starts": TAG_Compound(),
-                }
+    def _encode_structures(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        self.set_layer_obj(
+            data,
+            self.Structures,
+            chunk.misc.get(
+                "structures",
+                TAG_Compound(
+                    {
+                        "References": TAG_Compound(),
+                        "Starts": TAG_Compound(),
+                    }
+                ),
             ),
         )
 

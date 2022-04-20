@@ -1,14 +1,26 @@
 from __future__ import annotations
 
+import warnings
 from abc import ABC, abstractmethod
-from typing import Tuple, Any, Union, TYPE_CHECKING, Optional, overload, Type
+from typing import (
+    Tuple,
+    Any,
+    Union,
+    TYPE_CHECKING,
+    Optional,
+    overload,
+    Type,
+    Iterable,
+    Sequence,
+    Callable,
+)
 from enum import Enum
 
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
 from amulet.api.data_types import AnyNDArray, VersionNumberAny, VersionIdentifierType
 import amulet_nbt
-from amulet_nbt import TAG_List, TAG_Compound, AnyNBT
+from amulet_nbt import TAG_List, TAG_Compound, AnyNBT, BaseValueType
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
@@ -315,29 +327,88 @@ class Interface(ABC):
             return dtype()
         return default
 
+    def get_nested_obj(
+        self,
+        obj: Union[TAG_Compound, TAG_List],
+        path: Sequence[  # The path to the object.
+            Tuple[Union[str, int], Type[BaseValueType]],
+        ],
+        default: Union[None, AnyNBT, Callable[[], Any]] = None,
+        *,
+        pop_last=False,
+    ):
+        """
+        Get an object from a nested NBT structure
+
+        :param obj: The root NBT object
+        :param path: The path to the desired object (key, dtype)
+        :param default: The default value to use if the existing is not valid. If default is callable then return the called result.
+        :param pop_last: If true the last key will be popped
+        :return:
+        """
+        try:
+            last_index = len(path) - 1
+            for i, (key, dtype) in enumerate(path):
+                if i == last_index and pop_last:
+                    obj = obj.pop(key)
+                else:
+                    obj = obj[key]
+                if dtype is not obj.__class__:
+                    raise TypeError
+        except (KeyError, IndexError, TypeError):
+            if default is None or isinstance(default, BaseValueType):
+                return default
+            elif callable(default):
+                return default()
+            else:
+                raise TypeError(
+                    "default must be None, an NBT instance or an NBT class."
+                )
+        else:
+            return obj
+
     @staticmethod
     def set_obj(
         obj: TAG_Compound,
         key: str,
         dtype: Type[AnyNBT],
-        default: Optional[AnyNBT] = None,
+        default: Union[None, AnyNBT, Callable[[], Any]] = None,
+        path: Sequence[str] = (),  # The path to the object.
+        *,
+        setdefault=False,
     ) -> AnyNBT:
-        """Set a key in a compound tag if the key does not exist or is not the correct type.
-        This works in much the same way as dict.setdefault but overwrites if the data type does not match.
-
-        :param obj: The TAG_Compound to apply to.
-        :param key: The key to use.
-        :param dtype: The expected data type.
-        :param default: The default value to use if the existing is not valid. If None will use dtype()
-        :return: The final value in the key.
         """
-        if key not in obj or not isinstance(obj[key], dtype):
+        Works like setdefualt on a dictionary but works with an optional nested path.
+
+        :param obj: The compound tag to get the data from
+        :param key: The key to setdefault
+        :param dtype: The dtype that the key must be
+        :param default: The default value to set if it does not exist or the type is wrong
+        :param path: Optional path to the nested compound.
+        :param setdefault: If True will behave like setdefault. If False will replace existing data.
+        :return: The data at the path
+        """
+        for path_key in path:
+            obj_ = obj.get(path_key, None)
+            if not isinstance(obj_, TAG_Compound):
+                # if it does not exist or the type is wrong then create it
+                obj_ = obj[path_key] = TAG_Compound()
+            obj = obj_
+        obj_ = obj.get(key, None)
+        if not setdefault or not isinstance(obj_, dtype):
+            # if it does not exist or the type is wrong then create it
             if default is None:
-                obj[key] = dtype()
+                obj_ = dtype()
+            elif isinstance(default, BaseValueType):
+                obj_ = default
+            elif callable(default):
+                obj_ = default()
             else:
-                assert isinstance(default, dtype)
-                obj[key] = default
-        return obj[key]
+                raise TypeError(
+                    "default must be None, an NBT instance or an NBT class."
+                )
+            obj[key] = obj_
+        return obj_
 
     @abstractmethod
     def get_translator(

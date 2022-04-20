@@ -1,20 +1,18 @@
 from __future__ import annotations
 
-from typing import Tuple
 import logging
 
 import numpy
 
-from amulet_nbt import TAG_Compound, TAG_Int_Array
+from amulet_nbt import TAG_Int_Array
 from amulet.api.chunk import Chunk
-from .anvil_1934 import (
-    Anvil1934Interface,
-)
+from .base_anvil_interface import ChunkDataType
+from .anvil_1934 import Anvil1934Interface as ParentInterface
 
 log = logging.getLogger(__name__)
 
 
-class Anvil2203Interface(Anvil1934Interface):
+class Anvil2203Interface(ParentInterface):
     """
     Made biomes 3D
     """
@@ -23,8 +21,10 @@ class Anvil2203Interface(Anvil1934Interface):
     def minor_is_valid(key: int):
         return 2203 <= key < 2529
 
-    def _decode_biomes(self, chunk: Chunk, compound: TAG_Compound, floor_cy: int):
-        biomes = compound.pop("Biomes", None)
+    def _decode_biomes(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        biomes = self.get_layer_obj(data, self.Biomes, pop_last=True)
         if isinstance(biomes, TAG_Int_Array):
             if (len(biomes) / 16) % 4:
                 log.error(
@@ -47,18 +47,23 @@ class Anvil2203Interface(Anvil1934Interface):
                 }
 
     def _encode_biomes(
-        self, chunk: Chunk, level: TAG_Compound, bounds: Tuple[int, int]
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         if chunk.status.value > -0.7:
             chunk.biomes.convert_to_3d()
-            min_y, max_y = bounds
-            level["Biomes"] = TAG_Int_Array(
-                numpy.transpose(
-                    numpy.asarray(chunk.biomes[:, min_y // 4 : max_y // 4, :]).astype(
-                        numpy.uint32
-                    ),
-                    (1, 2, 0),
-                ).ravel()  # YZX -> XYZ
+            self.set_layer_obj(
+                data,
+                self.Biomes,
+                TAG_Int_Array(
+                    numpy.transpose(
+                        numpy.asarray(
+                            chunk.biomes[
+                                :, floor_cy * 4 : (floor_cy + height_cy) * 4, :
+                            ]
+                        ).astype(numpy.uint32),
+                        (1, 2, 0),
+                    ).ravel()  # YZX -> XYZ
+                ),
             )
 
 
