@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Dict, Generator, Optional, List, Union, Iterable
+from typing import Tuple, Dict, Generator, Optional, List, Union, Iterable, BinaryIO
 import time
 import glob
 import shutil
 import json
+
+import portalocker
 
 import amulet_nbt as nbt
 from amulet_nbt import TAG_Compound
@@ -64,9 +66,13 @@ class AnvilFormat(WorldFormatWrapper):
         self._levels: Dict[InternalDimension, AnvilDimensionManager] = {}
         self._dimension_name_map: Dict[Dimension, InternalDimension] = {}
         self._mcc_support: Optional[bool] = None
-        self._lock_time = None
+        self._lock_time: Optional[bytes] = None
+        self._lock: Optional[BinaryIO] = None
         self._data_pack: Optional[DataPackManager] = None
         self._shallow_load()
+
+    def __del__(self):
+        self.close()
 
     def _shallow_load(self):
         try:
@@ -356,18 +362,30 @@ class AnvilFormat(WorldFormatWrapper):
         self._load_level_dat()
 
         # create the session.lock file (this has mostly been lifted from MCEdit)
-        self._lock_time = int(time.time() * 1000)
         try:
-            with open(os.path.join(self.path, "session.lock"), "wb") as f:
-                f.write(struct.pack(">Q", self._lock_time))
-                f.flush()
-                os.fsync(f.fileno())
-        except PermissionError as e:
+            # open the file for writing and reading and lock it
+            self._lock = open(os.path.join(self.path, "session.lock"), "wb+")
+            portalocker.lock(self._lock, portalocker.LockFlags.EXCLUSIVE)
+
+            # write the current time to the file
+            self._lock_time = struct.pack(">Q", int(time.time() * 1000))
+            self._lock.write(self._lock_time)
+
+            # flush the changes to disk
+            self._lock.flush()
+            os.fsync(self._lock.fileno())
+
+        except Exception as e:
+            self._lock_time = None
+            if self._lock is not None:
+                self._lock.close()
+                self._lock = None
+
             self._is_open = False
             self._has_lock = False
-            raise PermissionError(
+            raise Exception(
                 f"Could not access session.lock. The world may be open somewhere else.\n{e}"
-            )
+            ) from e
 
         self._is_open = True
         self._has_lock = True
@@ -437,14 +455,8 @@ class AnvilFormat(WorldFormatWrapper):
     @property
     def has_lock(self) -> bool:
         if self._has_lock:
-            if self._lock_time is None:
-                # the world was created not opened
-                return True
-            try:
-                with open(os.path.join(self.path, "session.lock"), "rb") as f:
-                    return struct.unpack(">Q", f.read(8))[0] == self._lock_time
-            except:
-                return False
+            self._lock.seek(0)
+            return self._lock.read(8) == self._lock_time
         return False
 
     def pre_save_operation(
@@ -532,7 +544,9 @@ class AnvilFormat(WorldFormatWrapper):
 
     def _close(self):
         """Close the disk database"""
-        pass
+        if self._lock is not None:
+            portalocker.unlock(self._lock)
+            self._lock.close()
 
     def unload(self):
         for level in self._levels.values():
