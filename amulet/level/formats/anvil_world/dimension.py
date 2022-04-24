@@ -166,7 +166,7 @@ class AnvilRegionManager:
 
         if create:
             file_path = os.path.join(self._directory, f"r.{rx}.{rz}.mca")
-            self._regions[key] = AnvilRegion(file_path, True, mcc=self._mcc)
+            self._regions[key] = AnvilRegion(file_path, mcc=self._mcc)
         else:
             raise ChunkDoesNotExist
 
