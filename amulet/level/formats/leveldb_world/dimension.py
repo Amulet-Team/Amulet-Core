@@ -134,6 +134,21 @@ class LevelDBDimensionManager:
             for key, val in self._db.iterate(prefix, iter_end):
                 if key[:prefix_len] == prefix and len(key) <= prefix_len + 2:
                     chunk_data[key[prefix_len:]] = val
+
+            # TODO: this seems a little out of place. Perhaps find a better way to do it
+            try:
+                digp_key = b"digp" + prefix
+                digp = self._db.get(digp_key)
+                chunk_data[b"digp"] = digp
+                for i in range(0, len(digp)//8 * 8, 8):
+                    actor_key = b"actorprefix" + digp[i: i + 8]
+                    try:
+                        chunk_data[actor_key] = self._db.get(actor_key)
+                    except KeyError:
+                        pass
+            except KeyError:
+                pass
+
             return chunk_data
         else:
             raise ChunkDoesNotExist
@@ -152,8 +167,24 @@ class LevelDBDimensionManager:
         key_prefix = self._get_key(cx, cz, internal_dimension)
 
         batch = {}
+
+        if b"digp" in data:
+            # if writing the digp key we need to delete all actors pointed to by the old digp key otherwise there will be memory leaks
+            digp_key = b"digp" + key_prefix
+            try:
+                old_digp = self._db.get(digp_key)
+            except KeyError:
+                pass
+            else:
+                for i in range(0, len(digp)//8 * 8, 8):
+                    actor_key = b"actorprefix" + digp[i: i + 8]
+                    self._db.delete(actor_key)
+            batch[digp_key] = data.pop(b"digp")
+
         for key, val in data.items():
-            key = key_prefix + key
+            # this is less than ideal
+            if not key.startswith(b"actorprefix"):
+                key = key_prefix + key
             if val is None:
                 self._db.delete(key)
             else:
