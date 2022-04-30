@@ -18,7 +18,7 @@ from amulet.libs.leveldb import LevelDB
 if TYPE_CHECKING:
     from amulet.api.data_types import Dimension
 
-InternalDimension = int
+InternalDimension = Optional[int]
 OVERWORLD = "minecraft:overworld"
 THE_NETHER = "minecraft:the_nether"
 THE_END = "minecraft:the_end"
@@ -35,7 +35,7 @@ class LevelDBDimensionManager:
         self._dimension_name_map: Dict["Dimension", InternalDimension] = {}
         self._batch_temp: Dict[bytes, Union[bytes, None]] = {}
 
-        self.register_dimension(0, OVERWORLD)
+        self.register_dimension(None, OVERWORLD)
         self.register_dimension(1, THE_NETHER)
         self.register_dimension(2, THE_END)
 
@@ -111,7 +111,7 @@ class LevelDBDimensionManager:
             cx, cz, level = struct.unpack("<iii", key_[:12])
         else:
             cx, cz = struct.unpack("<ii", key_[:8])
-            level = 0
+            level = None
         if level not in self._levels:
             self.register_dimension(level)
         self._levels[level].add((cx, cz))
@@ -132,17 +132,17 @@ class LevelDBDimensionManager:
         ):
             chunk_data = {}
             for key, val in self._db.iterate(iter_start, iter_end):
-                if internal_dimension:
+                if internal_dimension is None:
+                    if 9 <= len(key) <= 10:
+                        key_extension = key[8:]
+                    else:
+                        continue
+                else:
                     if (
                         13 <= len(key) <= 14
                         and struct.unpack("<i", key[8:12])[0] == internal_dimension
                     ):
                         key_extension = key[12:]
-                    else:
-                        continue
-                else:
-                    if 9 <= len(key) <= 10:
-                        key_extension = key[8:]
                     else:
                         continue
 
@@ -158,10 +158,10 @@ class LevelDBDimensionManager:
         # get the region key
         internal_dimension = self._get_internal_dimension(dimension)
         self._levels[internal_dimension].add((cx, cz))
-        if internal_dimension:
-            key_prefix = struct.pack("<iii", cx, cz, internal_dimension)
-        else:
+        if internal_dimension is None:
             key_prefix = struct.pack("<ii", cx, cz)
+        else:
+            key_prefix = struct.pack("<iii", cx, cz, internal_dimension)
 
         for key, val in data.items():
             self._batch_temp[key_prefix + key] = val
@@ -176,9 +176,9 @@ class LevelDBDimensionManager:
                 chunk_data = self.get_chunk_data(cx, cz, dimension)
                 self._levels[internal_dimension].remove((cx, cz))
                 for key in chunk_data.keys():
-                    if internal_dimension:
-                        key_prefix = struct.pack("<iii", cx, cz, internal_dimension)
-                    else:
+                    if internal_dimension is None:
                         key_prefix = struct.pack("<ii", cx, cz)
+                    else:
+                        key_prefix = struct.pack("<iii", cx, cz, internal_dimension)
 
                     self._batch_temp[key_prefix + key] = None
