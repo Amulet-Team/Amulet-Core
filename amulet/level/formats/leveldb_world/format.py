@@ -374,7 +374,6 @@ class LevelDBFormat(WorldFormatWrapper):
 
     def _save(self):
         os.makedirs(self.path, exist_ok=True)
-        self._dimension_manager.save()
         self.root_tag.save(os.path.join(self.path, "level.dat"))
         with open(os.path.join(self.path, "levelname.txt"), "w") as f:
             f.write(self.level_name)

@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-import os
 import struct
 from typing import (
     Dict,
     Set,
-    Union,
     Optional,
     List,
     TYPE_CHECKING,
 )
+from threading import RLock
 
 from amulet.api.errors import ChunkDoesNotExist, DimensionDoesNotExist
 from amulet.api.data_types import ChunkCoordinates
@@ -35,7 +34,7 @@ class LevelDBDimensionManager:
         # self._levels format Dict[level, Dict[Tuple[cx, cz], List[Tuple[full_key, key_extension]]]]
         self._levels: Dict[InternalDimension, Set[ChunkCoordinates]] = {}
         self._dimension_name_map: Dict["Dimension", InternalDimension] = {}
-        self._batch_temp: Dict[bytes, Union[bytes, None]] = {}
+        self._lock = RLock()
 
         self.register_dimension(None, OVERWORLD)
         self.register_dimension(1, THE_NETHER)
@@ -47,16 +46,6 @@ class LevelDBDimensionManager:
 
             elif 13 <= len(key) <= 14 and key[12] in [44, 118]:  # "," "v"
                 self._add_chunk(key, has_level=True)
-
-    def save(self):
-        batch = {}
-        for key, val in self._batch_temp.items():
-            if val is None:
-                self._db.delete(key)
-            else:
-                batch[key] = val
-        self._db.putBatch(batch)
-        self._batch_temp.clear()
 
     @property
     def dimensions(self) -> List["Dimension"]:
@@ -78,12 +67,13 @@ class LevelDBDimensionManager:
         if dimension_name is None:
             dimension_name: "Dimension" = f"DIM{dimension_internal}"
 
-        if (
-            dimension_internal not in self._levels
-            and dimension_name not in self._dimension_name_map
-        ):
-            self._levels[dimension_internal] = set()
-            self._dimension_name_map[dimension_name] = dimension_internal
+        with self._lock:
+            if (
+                dimension_internal not in self._levels
+                and dimension_name not in self._dimension_name_map
+            ):
+                self._levels[dimension_internal] = set()
+                self._dimension_name_map[dimension_name] = dimension_internal
 
     def _get_internal_dimension(self, dimension: "Dimension") -> InternalDimension:
         if dimension in self._dimension_name_map:
@@ -98,12 +88,24 @@ class LevelDBDimensionManager:
         else:
             return set()
 
-    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
-        internal_dimension = self._get_internal_dimension(dimension)
+    def _get_key(
+        self, cx: int, cz: int, internal_dimension: InternalDimension
+    ) -> bytes:
+        if internal_dimension is None:
+            return struct.pack("<ii", cx, cz)
+        else:
+            return struct.pack("<iii", cx, cz, internal_dimension)
+
+    def _has_chunk(
+        self, cx: int, cz: int, internal_dimension: InternalDimension
+    ) -> bool:
         return (
             internal_dimension in self._levels
             and (cx, cz) in self._levels[internal_dimension]
         )
+
+    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
+        return self._has_chunk(cx, cz, self._get_internal_dimension(dimension))
 
     def _add_chunk(self, key_: bytes, has_level: bool = False):
         if has_level:
@@ -122,62 +124,53 @@ class LevelDBDimensionManager:
         chunk key extension are the character(s) after <cx><cz>[level] in the key
         Will raise ChunkDoesNotExist if the chunk does not exist
         """
-        iter_start = struct.pack("<ii", cx, cz)
-        iter_end = iter_start + b"\xff"
         internal_dimension = self._get_internal_dimension(dimension)
-        if (
-            internal_dimension in self._levels
-            and (cx, cz) in self._levels[internal_dimension]
-        ):
-            chunk_data = {}
-            for key, val in self._db.iterate(iter_start, iter_end):
-                if internal_dimension is None:
-                    if 9 <= len(key) <= 10:
-                        key_extension = key[8:]
-                    else:
-                        continue
-                else:
-                    if (
-                        13 <= len(key) <= 14
-                        and struct.unpack("<i", key[8:12])[0] == internal_dimension
-                    ):
-                        key_extension = key[12:]
-                    else:
-                        continue
+        if self._has_chunk(cx, cz, internal_dimension):
+            prefix = self._get_key(cx, cz, internal_dimension)
+            prefix_len = len(prefix)
+            iter_end = prefix + b"\xff\xff\xff\xff"
 
-                chunk_data[key_extension] = val
+            chunk_data = {}
+            for key, val in self._db.iterate(prefix, iter_end):
+                if key[:prefix_len] == prefix and len(key) <= prefix_len + 2:
+                    chunk_data[key[prefix_len:]] = val
             return chunk_data
         else:
             raise ChunkDoesNotExist
 
     def put_chunk_data(
-        self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: "Dimension"
+        self,
+        cx: int,
+        cz: int,
+        data: Dict[bytes, Optional[bytes]],
+        dimension: "Dimension",
     ):
         """pass data to the region file class"""
         # get the region key
         internal_dimension = self._get_internal_dimension(dimension)
         self._levels[internal_dimension].add((cx, cz))
-        if internal_dimension is None:
-            key_prefix = struct.pack("<ii", cx, cz)
-        else:
-            key_prefix = struct.pack("<iii", cx, cz, internal_dimension)
+        key_prefix = self._get_key(cx, cz, internal_dimension)
 
+        batch = {}
         for key, val in data.items():
-            self._batch_temp[key_prefix + key] = val
+            key = key_prefix + key
+            if val is None:
+                self._db.delete(key)
+            else:
+                batch[key] = val
+        if batch:
+            self._db.putBatch(batch)
 
     def delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
-        if dimension in self._dimension_name_map:
-            internal_dimension = self._dimension_name_map[dimension]
-            if (
-                internal_dimension in self._levels
-                and (cx, cz) in self._levels[internal_dimension]
-            ):
-                chunk_data = self.get_chunk_data(cx, cz, dimension)
-                self._levels[internal_dimension].remove((cx, cz))
-                for key in chunk_data.keys():
-                    if internal_dimension is None:
-                        key_prefix = struct.pack("<ii", cx, cz)
-                    else:
-                        key_prefix = struct.pack("<iii", cx, cz, internal_dimension)
+        if dimension not in self._dimension_name_map:
+            return  # dimension does not exists so chunk cannot
 
-                    self._batch_temp[key_prefix + key] = None
+        internal_dimension = self._dimension_name_map[dimension]
+        if not self._has_chunk(cx, cz, internal_dimension):
+            return  # chunk does not exists
+
+        chunk_data = self.get_chunk_data(cx, cz, dimension)
+        self._levels[internal_dimension].remove((cx, cz))
+        key_prefix = self._get_key(cx, cz, internal_dimension)
+        for key in chunk_data.keys():
+            self._db.delete(key_prefix + key)
