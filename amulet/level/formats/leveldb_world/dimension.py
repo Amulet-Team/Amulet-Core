@@ -88,9 +88,8 @@ class LevelDBDimensionManager:
         else:
             return set()
 
-    def _get_key(
-        self, cx: int, cz: int, internal_dimension: InternalDimension
-    ) -> bytes:
+    @staticmethod
+    def _get_key(cx: int, cz: int, internal_dimension: InternalDimension) -> bytes:
         if internal_dimension is None:
             return struct.pack("<ii", cx, cz)
         else:
