@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import struct
+import warnings
 from typing import Tuple, Dict, Union, Optional, List, BinaryIO, Iterable, Any
 from io import BytesIO
 import shutil
@@ -94,6 +95,11 @@ class LevelDBFormat(WorldFormatWrapper):
     _platform: PlatformType
     _version: VersionNumberTuple
 
+    # The leveldb database. Access it through the public property `level_db`
+    _db: Optional[LevelDB]
+    # A class to manage dimension data. This is private
+    _dimension_manager: Optional[LevelDBDimensionManager]
+
     def __init__(self, path: str):
         """
         Construct a new instance of :class:`LevelDBFormat`.
@@ -107,7 +113,8 @@ class LevelDBFormat(WorldFormatWrapper):
         self._root_tag: BedrockLevelDAT = BedrockLevelDAT(
             os.path.join(path, "level.dat")
         )
-        self._level_manager: Optional[LevelDBDimensionManager] = None
+        self._db = None
+        self._dimension_manager = None
         self._shallow_load()
 
     def _shallow_load(self):
@@ -190,7 +197,7 @@ class LevelDBFormat(WorldFormatWrapper):
     @property
     def dimensions(self) -> List["Dimension"]:
         self._verify_has_lock()
-        return self._level_manager.dimensions
+        return self._dimension_manager.dimensions
 
     # def register_dimension(
     #     self, dimension_internal: int, dimension_name: Optional["Dimension"] = None
@@ -202,7 +209,23 @@ class LevelDBFormat(WorldFormatWrapper):
     #     :param dimension_name: The name of the dimension shown to the user.
     #     :return:
     #     """
-    #     self._level_manager.register_dimension(dimension_internal, dimension_name)
+    #     self._dimension_manager.register_dimension(dimension_internal, dimension_name)
+
+    @property
+    def level_db(self) -> LevelDB:
+        """The raw leveldb database."""
+        if self._db is None:
+            raise Exception(
+                "The world is not open. The leveldb database cannot be accessed."
+            )
+        return self._db
+
+    @property
+    def _level_manager(self) -> LevelDBDimensionManager:
+        warnings.warn(
+            "_level_manager attribute is depreciated. If you want to access the raw leveldb database it can be accessed through the level_db property."
+        )
+        return self._dimension_manager
 
     def _get_interface_key(
         self, raw_chunk_data: Optional[Dict[bytes, bytes]] = None
@@ -253,7 +276,8 @@ class LevelDBFormat(WorldFormatWrapper):
         except:
             pass
         try:
-            self._level_manager = LevelDBDimensionManager(self.path)
+            self._db = LevelDB(os.path.join(self.path, "db"))
+            self._dimension_manager = LevelDBDimensionManager(self._db)
             self._is_open = True
             self._has_lock = True
             experiments = self.root_tag.get("experiments", {})
@@ -350,31 +374,31 @@ class LevelDBFormat(WorldFormatWrapper):
 
     def _save(self):
         os.makedirs(self.path, exist_ok=True)
-        self._level_manager.save()
+        self._dimension_manager.save()
         self.root_tag.save(os.path.join(self.path, "level.dat"))
         with open(os.path.join(self.path, "levelname.txt"), "w") as f:
             f.write(self.level_name)
 
     def _close(self):
-        self._level_manager.close()
+        self._db.close()
 
     def unload(self):
         pass
 
     def all_chunk_coords(self, dimension: "Dimension") -> Iterable[ChunkCoordinates]:
         self._verify_has_lock()
-        yield from self._level_manager.all_chunk_coords(dimension)
+        yield from self._dimension_manager.all_chunk_coords(dimension)
 
     def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
-        return self._level_manager.has_chunk(cx, cz, dimension)
+        return self._dimension_manager.has_chunk(cx, cz, dimension)
 
     def _delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
-        self._level_manager.delete_chunk(cx, cz, dimension)
+        self._dimension_manager.delete_chunk(cx, cz, dimension)
 
     def _put_raw_chunk_data(
         self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: "Dimension"
     ):
-        return self._level_manager.put_chunk_data(cx, cz, data, dimension)
+        return self._dimension_manager.put_chunk_data(cx, cz, data, dimension)
 
     def _get_raw_chunk_data(
         self, cx: int, cz: int, dimension: "Dimension"
@@ -387,7 +411,7 @@ class LevelDBFormat(WorldFormatWrapper):
         :param dimension: The dimension to load the data from.
         :return: The raw chunk data.
         """
-        return self._level_manager.get_chunk_data(cx, cz, dimension)
+        return self._dimension_manager.get_chunk_data(cx, cz, dimension)
 
     def all_player_ids(self) -> Iterable[str]:
         """
@@ -395,7 +419,7 @@ class LevelDBFormat(WorldFormatWrapper):
         """
         yield from (
             pid[7:].decode("utf-8")
-            for pid, _ in self._level_manager._db.iterate(b"player_", b"player_\xFF")
+            for pid, _ in self._db.iterate(b"player_", b"player_\xFF")
         )
         if self.has_player(LOCAL_PLAYER):
             yield LOCAL_PLAYER
@@ -403,7 +427,7 @@ class LevelDBFormat(WorldFormatWrapper):
     def has_player(self, player_id: str) -> bool:
         if player_id != LOCAL_PLAYER:
             player_id = f"player_{player_id}"
-        return player_id.encode("utf-8") in self._level_manager._db
+        return player_id.encode("utf-8") in self._db
 
     def _load_player(self, player_id: str) -> Player:
         """
@@ -466,7 +490,7 @@ class LevelDBFormat(WorldFormatWrapper):
         else:
             key = f"player_{player_id}".encode("utf-8")
         try:
-            data = self._level_manager._db.get(key)
+            data = self._db.get(key)
         except KeyError:
             raise PlayerDoesNotExist(f"Player {player_id} doesn't exist")
         return nbt.load(data, compressed=False, little_endian=True)
