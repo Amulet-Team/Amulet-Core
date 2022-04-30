@@ -381,6 +381,8 @@ class LevelDBFormat(WorldFormatWrapper):
 
     def _close(self):
         self._db.close()
+        self._db = None
+        self._dimension_manager = None
 
     def unload(self):
         pass
