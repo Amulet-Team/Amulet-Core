@@ -27,9 +27,11 @@ THE_END = "minecraft:the_end"
 class LevelDBDimensionManager:
     # tag_ids = {45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 118}
 
-    def __init__(self, directory: str):
-        self._directory = directory
-        self._db = LevelDB(os.path.join(self._directory, "db"))
+    def __init__(self, db: LevelDB):
+        """
+        :param db: A borrowed reference to the leveldb database
+        """
+        self._db = db
         # self._levels format Dict[level, Dict[Tuple[cx, cz], List[Tuple[full_key, key_extension]]]]
         self._levels: Dict[InternalDimension, Set[ChunkCoordinates]] = {}
         self._dimension_name_map: Dict["Dimension", InternalDimension] = {}
@@ -55,9 +57,6 @@ class LevelDBDimensionManager:
                 batch[key] = val
         self._db.putBatch(batch)
         self._batch_temp.clear()
-
-    def close(self):
-        self._db.close()
 
     @property
     def dimensions(self) -> List["Dimension"]:
