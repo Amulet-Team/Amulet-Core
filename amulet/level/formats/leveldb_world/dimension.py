@@ -140,8 +140,8 @@ class LevelDBDimensionManager:
                 digp_key = b"digp" + prefix
                 digp = self._db.get(digp_key)
                 chunk_data[b"digp"] = digp
-                for i in range(0, len(digp)//8 * 8, 8):
-                    actor_key = b"actorprefix" + digp[i: i + 8]
+                for i in range(0, len(digp) // 8 * 8, 8):
+                    actor_key = b"actorprefix" + digp[i : i + 8]
                     try:
                         chunk_data[actor_key] = self._db.get(actor_key)
                     except KeyError:
@@ -176,8 +176,8 @@ class LevelDBDimensionManager:
             except KeyError:
                 pass
             else:
-                for i in range(0, len(digp)//8 * 8, 8):
-                    actor_key = b"actorprefix" + digp[i: i + 8]
+                for i in range(0, len(old_digp) // 8 * 8, 8):
+                    actor_key = b"actorprefix" + old_digp[i : i + 8]
                     self._db.delete(actor_key)
             batch[digp_key] = data.pop(b"digp")
 
