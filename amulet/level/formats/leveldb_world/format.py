@@ -40,12 +40,17 @@ InternalDimension = Optional[int]
 
 
 class BedrockLevelDAT(nbt.NBTFile):
-    def __init__(self, path: str = None):
-        self._path: Optional[str] = path
+    def __init__(self, path: str):
+        super().__init__()
+        self._path: str = path
         self._level_dat_version = 8
-        super().__init__(nbt.TAG_Compound(), "")
-        if path is not None and os.path.isfile(path):
+
+        if os.path.isfile(path):
             self.load_from(path)
+
+    @property
+    def path(self):
+        return self._path
 
     def load_from(self, path: str):
         with open(path, "rb") as f:
@@ -63,11 +68,11 @@ class BedrockLevelDAT(nbt.NBTFile):
                     f"Unsupported level.dat version {self._level_dat_version}"
                 )
 
+    def reload(self):
+        self.load_from(self.path)
+
     def save(self, path: str = None):
-        path = path or self._path
-        if not path:
-            raise ObjectWriteError("No path given.")
-        self.save_to(path)
+        self.save_to(path or self._path)
 
     def save_to(
         self,
@@ -166,8 +171,6 @@ class LevelDBFormat(WorldFormatWrapper):
     def root_tag(self, root_tag: Union[nbt.NBTFile, nbt.TAG_Compound, BedrockLevelDAT]):
         if isinstance(root_tag, nbt.TAG_Compound):
             self._root_tag.value = root_tag
-        elif isinstance(root_tag, BedrockLevelDAT):
-            self._root_tag = root_tag
         elif isinstance(root_tag, nbt.NBTFile):
             self._root_tag.name = root_tag.name
             self._root_tag.value = root_tag.value
@@ -363,7 +366,7 @@ class LevelDBFormat(WorldFormatWrapper):
         root["LevelName"] = nbt.TAG_String("World Created By Amulet")
 
         os.makedirs(self.path, exist_ok=True)
-        self.root_tag.save(os.path.join(self.path, "level.dat"))
+        self.root_tag.save()
 
         db = LevelDB(os.path.join(self.path, "db"), True)
         db.close()
@@ -378,7 +381,7 @@ class LevelDBFormat(WorldFormatWrapper):
 
     def _save(self):
         os.makedirs(self.path, exist_ok=True)
-        self.root_tag.save(os.path.join(self.path, "level.dat"))
+        self.root_tag.save()
         with open(os.path.join(self.path, "levelname.txt"), "w") as f:
             f.write(self.level_name)
 
