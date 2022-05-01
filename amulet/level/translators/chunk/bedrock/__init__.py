@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Optional, TYPE_CHECKING
+import numpy
 
 import amulet_nbt
 
@@ -58,6 +59,7 @@ class BaseBedrockTranslator(Translator):
         :return:
         """
         palette_ = BlockManager()
+        lut = []
         for palette_index, entry in enumerate(block_palette):
             entry: BedrockInterfaceBlockType
             block = None
@@ -82,8 +84,15 @@ class BaseBedrockTranslator(Translator):
             if block is None:
                 raise Exception(f"Empty tuple")
 
-            palette_.get_add_block(block)
+            lut.append(palette_.get_add_block(block))
         chunk._block_palette = palette_
+
+        if len(palette_) != lut:
+            # sometimes a block can be stored in different formats but unpack to the same block
+            # this means that the final palette is smaller than the original so the array needs remapping
+            np_lut = numpy.array(lut)
+            for cy in chunk.blocks.sub_chunks:
+                chunk.blocks.add_sub_chunk(cy, np_lut[chunk.blocks.get_sub_chunk(cy)])
 
     def _blocks_entities_to_universal(
         self,
