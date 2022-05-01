@@ -27,13 +27,14 @@ from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.api.errors import ObjectWriteError, ObjectReadError, PlayerDoesNotExist
 
 from amulet.libs.leveldb import LevelDBException
-from amulet.level.interfaces.chunk.leveldb.leveldb_chunk_versions import (
+from amulet.level.formats.leveldb_world.interface.chunk.leveldb_chunk_versions import (
     game_to_chunk_version,
 )
 from .dimension import LevelDBDimensionManager, OVERWORLD, THE_NETHER, THE_END
-from amulet.level.interfaces.chunk.leveldb.base_leveldb_interface import (
+from amulet.level.formats.leveldb_world.interface.chunk.base_leveldb_interface import (
     BaseLevelDBInterface,
 )
+from .interface import chunk as chunk_interface
 
 InternalDimension = Optional[int]
 
@@ -227,9 +228,12 @@ class LevelDBFormat(WorldFormatWrapper):
         )
         return self._dimension_manager
 
+    def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> "Interface":
+        return chunk_interface.get(self._get_interface_key(raw_chunk_data))
+
     def _get_interface_key(
         self, raw_chunk_data: Optional[Dict[bytes, bytes]] = None
-    ) -> Tuple[str, int]:
+    ) -> int:
         if raw_chunk_data:
             if b"," in raw_chunk_data:
                 chunk_version = raw_chunk_data[b","][0]
@@ -242,7 +246,7 @@ class LevelDBFormat(WorldFormatWrapper):
                 .get("caves_and_cliffs", nbt.TAG_Byte())
                 .value,
             )
-        return self.platform, chunk_version  # TODO: work out a valid default
+        return chunk_version
 
     def _decode(
         self,
