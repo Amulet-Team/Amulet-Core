@@ -117,7 +117,7 @@ class LevelDBDimensionManager:
 
     def __init__(self, level: LevelDBFormat):
         """
-        :param db: The leveldb format to read data from
+        :param level: The leveldb format to read data from
         """
         self._db = level.level_db
         self._actor_counter = ActorCounter.from_level(level)
@@ -397,8 +397,24 @@ class LevelDBDimensionManager:
         if not self._has_chunk(cx, cz, internal_dimension):
             return  # chunk does not exists
 
-        chunk_data = self.get_chunk_data(cx, cz, dimension)
+        prefix = self._get_key(cx, cz, internal_dimension)
+        prefix_len = len(prefix)
+        iter_end = prefix + b"\xff\xff\xff\xff"
+        keys = []
+        for key, _ in self._db.iterate(prefix, iter_end):
+            if key[:prefix_len] == prefix and len(key) <= prefix_len + 2:
+                keys.append(key)
+
+        try:
+            digp = self._db.get(b"digp" + prefix)
+        except KeyError:
+            pass
+        else:
+            self._db.delete(b"digp" + prefix)
+            for i in range(0, len(digp) // 8 * 8, 8):
+                actor_key = b"actorprefix" + digp[i : i + 8]
+                self._db.delete(actor_key)
+
         self._levels[internal_dimension].remove((cx, cz))
-        key_prefix = self._get_key(cx, cz, internal_dimension)
-        for key in chunk_data.keys():
-            self._db.delete(key_prefix + key)
+        for key in keys:
+            self._db.delete(key)
