@@ -28,14 +28,11 @@ from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.api.errors import ObjectWriteError, ObjectReadError, PlayerDoesNotExist
 
 from amulet.libs.leveldb import LevelDBException
-from amulet.level.formats.leveldb_world.interface.chunk.leveldb_chunk_versions import (
+from .interface.chunk.leveldb_chunk_versions import (
     game_to_chunk_version,
 )
 from .dimension import LevelDBDimensionManager, OVERWORLD, THE_NETHER, THE_END
-from amulet.level.formats.leveldb_world.interface.chunk.base_leveldb_interface import (
-    BaseLevelDBInterface,
-)
-from .interface import chunk as chunk_interface
+from .interface.chunk import BaseLevelDBInterface, get_interface
 
 InternalDimension = Optional[int]
 
@@ -282,8 +279,10 @@ class LevelDBFormat(WorldFormatWrapper):
         self._verify_has_lock()
         return self._actor_counter
 
-    def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> "Interface":
-        return chunk_interface.get(self._get_interface_key(raw_chunk_data))
+    def _get_interface(
+        self, raw_chunk_data: Optional[Any] = None
+    ) -> BaseLevelDBInterface:
+        return get_interface(self._get_interface_key(raw_chunk_data))
 
     def _get_interface_key(
         self, raw_chunk_data: Optional[Dict[bytes, bytes]] = None

@@ -12,7 +12,7 @@ _interfaces: Optional[Dict[int, BaseLevelDBInterface]] = None
 log = logging.getLogger(__name__)
 
 
-def get(interface_version: int):
+def get_interface(interface_version: int):
     global _interfaces
     if _interfaces is None:
         _interfaces = {}
