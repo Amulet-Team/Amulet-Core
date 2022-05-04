@@ -7,8 +7,11 @@ from typing import (
     Optional,
     List,
     TYPE_CHECKING,
+    Tuple,
 )
 from threading import RLock
+
+from amulet_nbt import TAG_Long
 
 from amulet.api.errors import ChunkDoesNotExist, DimensionDoesNotExist
 from amulet.api.data_types import ChunkCoordinates
@@ -16,6 +19,7 @@ from amulet.libs.leveldb import LevelDB
 
 if TYPE_CHECKING:
     from amulet.api.data_types import Dimension
+    from .format import LevelDBFormat
 
 InternalDimension = Optional[int]
 OVERWORLD = "minecraft:overworld"
@@ -23,14 +27,60 @@ THE_NETHER = "minecraft:the_nether"
 THE_END = "minecraft:the_end"
 
 
+class ActorCounter:
+    _lock: RLock
+    _session: int
+    _count: int
+
+    def __init__(self):
+        self._lock = RLock()
+        self._session = -1
+        self._count = 0
+
+    @classmethod
+    def from_level(cls, level: LevelDBFormat):
+        session = level.root_tag.get("worldStartCount", TAG_Long(0xFFFFFFFF)).value
+        # for some reason this is a signed int stored in a signed long. Manually apply the sign correctly
+        session -= (session & 0x80000000) << 1
+
+        # create the counter object and set the session
+        counter = ActorCounter()
+        counter._session = session
+
+        # increment and write back so there are no conflicts
+        session -= 1
+        if session < 0:
+            session += 0x100000000
+        level.root_tag.value["worldStartCount"] = TAG_Long(session)
+        level.root_tag.save()
+
+        return counter
+
+    def next(self) -> Tuple[int, int]:
+        """
+        Get the next unique session id and actor counter.
+        Session id is usually negative
+
+        :return: Tuple[session id, actor id]
+        """
+        with self._lock:
+            count = self._count
+            self._count += 1
+        return self._session, count
+
+
 class LevelDBDimensionManager:
     # tag_ids = {45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 118}
 
-    def __init__(self, db: LevelDB):
+    # A class to keep track of unique actor ids
+    _actor_counter: Optional[ActorCounter]
+
+    def __init__(self, level: LevelDBFormat):
         """
         :param db: A borrowed reference to the leveldb database
         """
-        self._db = db
+        self._db = level.level_db
+        self._actor_counter = ActorCounter.from_level(level)
         # self._levels format Dict[level, Dict[Tuple[cx, cz], List[Tuple[full_key, key_extension]]]]
         self._levels: Dict[InternalDimension, Set[ChunkCoordinates]] = {}
         self._dimension_name_map: Dict["Dimension", InternalDimension] = {}
