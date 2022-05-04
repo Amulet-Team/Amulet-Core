@@ -30,7 +30,13 @@ from amulet.libs.leveldb import LevelDBException
 from .interface.chunk.leveldb_chunk_versions import (
     game_to_chunk_version,
 )
-from .dimension import LevelDBDimensionManager, OVERWORLD, THE_NETHER, THE_END
+from .dimension import (
+    LevelDBDimensionManager,
+    ChunkData,
+    OVERWORLD,
+    THE_NETHER,
+    THE_END,
+)
 from .interface.chunk import BaseLevelDBInterface, get_interface
 
 InternalDimension = Optional[int]
@@ -233,9 +239,7 @@ class LevelDBFormat(WorldFormatWrapper):
     ) -> BaseLevelDBInterface:
         return get_interface(self._get_interface_key(raw_chunk_data))
 
-    def _get_interface_key(
-        self, raw_chunk_data: Optional[Dict[bytes, bytes]] = None
-    ) -> int:
+    def _get_interface_key(self, raw_chunk_data: Optional[ChunkData] = None) -> int:
         if raw_chunk_data:
             if b"," in raw_chunk_data:
                 chunk_version = raw_chunk_data[b","][0]
@@ -404,13 +408,13 @@ class LevelDBFormat(WorldFormatWrapper):
         self._dimension_manager.delete_chunk(cx, cz, dimension)
 
     def _put_raw_chunk_data(
-        self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: "Dimension"
+        self, cx: int, cz: int, data: ChunkData, dimension: "Dimension"
     ):
         return self._dimension_manager.put_chunk_data(cx, cz, data, dimension)
 
     def _get_raw_chunk_data(
         self, cx: int, cz: int, dimension: "Dimension"
-    ) -> Dict[bytes, bytes]:
+    ) -> ChunkData:
         """
         Return the raw data as loaded from disk.
 

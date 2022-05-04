@@ -8,10 +8,15 @@ from typing import (
     List,
     TYPE_CHECKING,
     Tuple,
+    Union,
+    Iterable,
 )
 from threading import RLock
+import logging
+from contextlib import suppress
 
-from amulet_nbt import TAG_Long
+import amulet_nbt
+from amulet_nbt import TAG_Long, TAG_String, TAG_Compound, NBTFile, NBTLoadError
 
 from amulet.api.errors import ChunkDoesNotExist, DimensionDoesNotExist
 from amulet.api.data_types import ChunkCoordinates
@@ -20,6 +25,8 @@ from amulet.libs.leveldb import LevelDB
 if TYPE_CHECKING:
     from amulet.api.data_types import Dimension
     from .format import LevelDBFormat
+
+log = logging.getLogger(__name__)
 
 InternalDimension = Optional[int]
 OVERWORLD = "minecraft:overworld"
@@ -69,15 +76,48 @@ class ActorCounter:
         return self._session, count
 
 
+class ChunkData(Dict[bytes, bytes]):
+    def __init__(
+        self,
+        chunk_data: Union[Dict[bytes, bytes], Iterable[Tuple[bytes, bytes]]] = (),
+        *,
+        entity_actor: Iterable[NBTFile] = (),
+        unknown_actor: Iterable[NBTFile] = (),
+    ):
+        super().__init__(chunk_data)
+        self._entity_actor = list(entity_actor)
+        self._unknown_actor = list(unknown_actor)
+
+    @property
+    def entity_actor(self) -> List[NBTFile]:
+        """
+        A list of entity actor data.
+        UniqueID is stripped out. internalComponents is stripped out if there is no other data.
+        """
+        return self._entity_actor
+
+    @property
+    def unknown_actor(self) -> List[NBTFile]:
+        """
+        A list of actor data that does not fit in the known actor types.
+        UniqueID is stripped out.
+        internalComponents.{StorageKeyComponent}.StorageKey is replaced with a blank string.
+        All keys matching this pattern will get replaced with the real storage key when saving (at least one must exist)
+        """
+        return self._unknown_actor
+
+
 class LevelDBDimensionManager:
     # tag_ids = {45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 118}
 
+    # A borrowed reference to the leveldb
+    _db: LevelDB
     # A class to keep track of unique actor ids
     _actor_counter: Optional[ActorCounter]
 
     def __init__(self, level: LevelDBFormat):
         """
-        :param db: A borrowed reference to the leveldb database
+        :param db: The leveldb format to read data from
         """
         self._db = level.level_db
         self._actor_counter = ActorCounter.from_level(level)
@@ -166,9 +206,7 @@ class LevelDBDimensionManager:
             self.register_dimension(level)
         self._levels[level].add((cx, cz))
 
-    def get_chunk_data(
-        self, cx: int, cz: int, dimension: "Dimension"
-    ) -> Dict[bytes, bytes]:
+    def get_chunk_data(self, cx: int, cz: int, dimension: "Dimension") -> ChunkData:
         """Get a dictionary of chunk key extension in bytes to the raw data in the key.
         chunk key extension are the character(s) after <cx><cz>[level] in the key
         Will raise ChunkDoesNotExist if the chunk does not exist
@@ -179,24 +217,76 @@ class LevelDBDimensionManager:
             prefix_len = len(prefix)
             iter_end = prefix + b"\xff\xff\xff\xff"
 
-            chunk_data = {}
+            chunk_data = ChunkData()
             for key, val in self._db.iterate(prefix, iter_end):
                 if key[:prefix_len] == prefix and len(key) <= prefix_len + 2:
                     chunk_data[key[prefix_len:]] = val
 
-            # TODO: this seems a little out of place. Perhaps find a better way to do it
-            try:
+            with suppress(KeyError):
                 digp_key = b"digp" + prefix
                 digp = self._db.get(digp_key)
-                chunk_data[b"digp"] = digp
+                chunk_data[
+                    b"digp"
+                ] = b""  # The presence of this key signals to the put method that this should be created and written
                 for i in range(0, len(digp) // 8 * 8, 8):
                     actor_key = b"actorprefix" + digp[i : i + 8]
                     try:
-                        chunk_data[actor_key] = self._db.get(actor_key)
+                        actor_bytes = self._db.get(actor_key)
+                        actor = amulet_nbt.load(actor_bytes, little_endian=True)
                     except KeyError:
-                        pass
-            except KeyError:
-                pass
+                        log.error(f"Could not find actor {actor_key}. Skipping.")
+                    except NBTLoadError:
+                        log.error(f"Failed to parse actor {actor_key}. Skipping.")
+                    else:
+                        actor.value.pop("UniqueID", None)
+                        internal_components = actor.value.get("internalComponents")
+                        if (
+                            isinstance(internal_components, TAG_Compound)
+                            and internal_components
+                        ):
+                            if "EntityStorageKeyComponent" in internal_components:
+                                # it is an entity
+                                entity_component = internal_components[
+                                    "EntityStorageKeyComponent"
+                                ]
+                                if isinstance(entity_component, TAG_Compound):
+                                    # delete the storage key component
+                                    if isinstance(
+                                        entity_component.get("StorageKey"), TAG_String
+                                    ):
+                                        del entity_component["StorageKey"]
+                                    # if there is no other data then delete internalComponents
+                                    if (
+                                        len(entity_component) == 0
+                                        and len(internal_components) == 1
+                                    ):
+                                        del actor.value["internalComponents"]
+                                    else:
+                                        log.warning(
+                                            f"Extra components found {repr(entity_component)}"
+                                        )
+                                else:
+                                    log.warning(
+                                        f"Unrecognised EntityStorageKeyComponent type {repr(entity_component)}"
+                                    )
+
+                                chunk_data.entity_actor.append(actor)
+                            else:
+                                # it is an unknown actor
+                                log.warning(
+                                    f"Actor {actor_key} has an unknown format. Please report this to a developer {repr(internal_components)}"
+                                )
+                                for k, v in internal_components.items():
+                                    if isinstance(v, TAG_Compound) and isinstance(
+                                        v.get("StorageKey"), TAG_String
+                                    ):
+                                        v["StorageKey"] = TAG_String()
+                                chunk_data.unknown_actor.append(actor)
+                        else:
+                            log.error(
+                                f"internalComponents was not valid for actor {actor_key}. Skipping."
+                            )
+                            continue
 
             return chunk_data
         else:
@@ -206,7 +296,7 @@ class LevelDBDimensionManager:
         self,
         cx: int,
         cz: int,
-        data: Dict[bytes, Optional[bytes]],
+        chunk_data: ChunkData,
         dimension: "Dimension",
     ):
         """pass data to the region file class"""
@@ -217,7 +307,7 @@ class LevelDBDimensionManager:
 
         batch = {}
 
-        if b"digp" in data:
+        if b"digp" in chunk_data:
             # if writing the digp key we need to delete all actors pointed to by the old digp key otherwise there will be memory leaks
             digp_key = b"digp" + key_prefix
             try:
@@ -228,12 +318,70 @@ class LevelDBDimensionManager:
                 for i in range(0, len(old_digp) // 8 * 8, 8):
                     actor_key = b"actorprefix" + old_digp[i : i + 8]
                     self._db.delete(actor_key)
-            batch[digp_key] = data.pop(b"digp")
 
-        for key, val in data.items():
-            # this is less than ideal
-            if not key.startswith(b"actorprefix"):
-                key = key_prefix + key
+            digp = []
+
+            def add_actor(is_entity: bool):
+                internal_components = actor.value.setdefault(
+                    "internalComponents", TAG_Compound()
+                )
+                if not isinstance(internal_components, TAG_Compound):
+                    log.error(
+                        f"Invalid internalComponents value. Must be Compound. Skipping. {repr(internal_components)}"
+                    )
+                    return
+
+                if is_entity:
+                    entity_storage = internal_components.setdefault(
+                        "EntityStorageKeyComponent", TAG_Compound()
+                    )
+                    if not isinstance(entity_storage, TAG_Compound):
+                        log.error(
+                            f"Invalid EntityStorageKeyComponent value. Must be Compound. Skipping. {repr(entity_storage)}"
+                        )
+                        return
+                    storages = [entity_storage]
+                else:
+                    storages = []
+                    for storage in internal_components.values():
+                        if (
+                            isinstance(storage, TAG_Compound)
+                            and storage.get("StorageKey") == TAG_String()
+                        ):
+                            storages.append(storage)
+                    if not storages:
+                        log.error(
+                            f"No valid StorageKeyComponent to write in for unknown actor {internal_components}"
+                        )
+                        return
+
+                session, uid = self._actor_counter.next()
+                # session is already negative
+                key = struct.pack(">ii", -session, uid)
+                # b'\x00\x00\x00\x01\x00\x00\x00\x0c' 1, 12
+                for storage in storages:
+                    storage["StorageKey"] = TAG_String(key)
+                # -4294967284 ">q" b'\xff\xff\xff\xff\x00\x00\x00\x0c' ">ii" -1, 12
+                actor.value["UniqueID"] = TAG_Long(
+                    struct.unpack(">q", struct.pack(">ii", session, uid))[0]
+                )
+
+                batch[b"actorprefix" + key] = actor.save_to(
+                    little_endian=True, compressed=False
+                )
+                digp.append(key)
+
+            for actor in chunk_data.entity_actor:
+                add_actor(True)
+
+            for actor in chunk_data.unknown_actor:
+                add_actor(False)
+
+            del chunk_data[b"digp"]
+            batch[digp_key] = b"".join(digp)
+
+        for key, val in chunk_data.items():
+            key = key_prefix + key
             if val is None:
                 self._db.delete(key)
             else:
