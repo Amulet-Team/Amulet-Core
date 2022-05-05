@@ -1,8 +1,8 @@
-from typing import Dict, Union, Iterable, Tuple, List
+from typing import Dict, Union, Iterable, Tuple, List, Optional
 from amulet_nbt import NBTFile
 
 
-class ChunkData(Dict[bytes, bytes]):
+class ChunkData(Dict[bytes, Optional[bytes]]):
     def __init__(
         self,
         chunk_data: Union[Dict[bytes, bytes], Iterable[Tuple[bytes, bytes]]] = (),
