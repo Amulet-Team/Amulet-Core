@@ -56,6 +56,9 @@ ldb.leveldb_options_destroy.restype = None
 ldb.leveldb_options_set_compression.argtypes = [ctypes.c_void_p, ctypes.c_int]
 ldb.leveldb_options_set_compression.restype = None
 
+ldb.leveldb_repair_db.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]
+ldb.leveldb_repair_db.restype = None
+
 ldb.leveldb_open.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]
 ldb.leveldb_open.restype = ctypes.c_void_p
 ldb.leveldb_close.argtypes = [ctypes.c_void_p]
@@ -240,10 +243,14 @@ class LevelDB:
         ldb.leveldb_options_set_cache(options, cache)
         ldb.leveldb_options_set_block_size(options, 163840)
 
-        error = ctypes.POINTER(ctypes.c_char)()
-        db = ldb.leveldb_open(options, path.encode("utf-8"), ctypes.byref(error))
+        repair_error = ctypes.POINTER(ctypes.c_char)()
+        ldb.leveldb_repair_db(options, path.encode("utf-8"), ctypes.byref(repair_error))
+        _checkError(repair_error)
+
+        open_error = ctypes.POINTER(ctypes.c_char)()
+        db = ldb.leveldb_open(options, path.encode("utf-8"), ctypes.byref(open_error))
         ldb.leveldb_options_destroy(options)
-        _checkError(error)
+        _checkError(open_error)
 
         self.db = db
 
