@@ -50,14 +50,12 @@ class Anvil0Interface(ParentInterface):
         )
         if amulet.entity_support:
             chunk.entities = ents
-        elif amulet.experimental_entity_support:
+        else:
             chunk._native_entities.extend(ents)
             chunk._native_version = (
                 "java",
                 self.get_layer_obj(data, self.RegionDataVersion).value,
             )
-        else:
-            chunk.misc["java_entities_temp"] = ents
 
     def _init_encode(
         self,

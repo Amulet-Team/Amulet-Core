@@ -337,11 +337,9 @@ class AnvilNAInterface(BaseAnvilInterface):
         )
         if amulet.entity_support:
             chunk.entities = ents
-        elif amulet.experimental_entity_support:
+        else:
             chunk._native_entities.extend(ents)
             chunk._native_version = ("java", -1)
-        else:
-            chunk.misc["java_entities_temp"] = ents
 
     def _decode_block_entities(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
@@ -520,10 +518,8 @@ class AnvilNAInterface(BaseAnvilInterface):
     ):
         if amulet.entity_support:
             entities = chunk.entities
-        elif amulet.experimental_entity_support:
-            entities = chunk._native_entities
         else:
-            entities = chunk.misc.get("java_entities_temp", [])
+            entities = chunk._native_entities
 
         self.set_layer_obj(
             data,

@@ -202,7 +202,7 @@ class BaseLevelDBInterface(Interface):
             if amulet.entity_support:
                 entities = self._unpack_nbt_list(data.pop(b"\x32", b""))
                 chunk.entities = self._decode_entity_list(entities)
-            elif amulet.experimental_entity_support:
+            else:
                 entities = self._unpack_nbt_list(data.pop(b"\x32", b""))
                 chunk._native_entities = EntityList(self._decode_entity_list(entities))
                 chunk._native_version = ("bedrock", 0)
@@ -284,7 +284,7 @@ class BaseLevelDBInterface(Interface):
 
             if amulet.entity_support:
                 save_entities(self._encode_entity_list(chunk.entities))
-            elif amulet.experimental_entity_support:
+            else:
                 try:
                     if chunk._native_version[0] == "bedrock":
                         save_entities(self._encode_entity_list(chunk._native_entities))
