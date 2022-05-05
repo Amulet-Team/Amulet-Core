@@ -134,6 +134,7 @@ cdef PFNleveldb_compact_rangePROC leveldb_compact_range = <PFNleveldb_compact_ra
 ctypedef void (*PFNleveldb_destroy_dbPROC)(const leveldb_options_t* options, const char* name, char** errptr)
 
 ctypedef void (*PFNleveldb_repair_dbPROC)(const leveldb_options_t* options, const char* name, char** errptr)
+cdef PFNleveldb_repair_dbPROC leveldb_repair_db = <PFNleveldb_repair_dbPROC>getFunction(b"leveldb_repair_db")
 
 ctypedef void (*PFNleveldb_iter_destroyPROC)(leveldb_iterator_t* iter)
 cdef PFNleveldb_iter_destroyPROC leveldb_iter_destroy = <PFNleveldb_iter_destroyPROC>getFunction(b"leveldb_iter_destroy")
@@ -338,10 +339,15 @@ cdef class LevelDB:
         leveldb_options_set_write_buffer_size(options, 4 * 1024 * 1024)
         leveldb_options_set_cache(options, cache)
         leveldb_options_set_block_size(options, 163840)
-        cdef char *error = NULL
-        db = leveldb_open(options, path.encode("utf-8"), &error)
-        leveldb_options_destroy(options)
-        _checkError(error)
+        cdef char *repair_error = NULL
+        cdef char *open_error = NULL
+        try:
+            leveldb_repair_db(options, path.encode("utf-8"), &repair_error)
+            _checkError(repair_error)
+            db = leveldb_open(options, path.encode("utf-8"), &open_error)
+            _checkError(open_error)
+        finally:
+            leveldb_options_destroy(options)
 
         self.db = db
         self.read_options = leveldb_readoptions_create()
