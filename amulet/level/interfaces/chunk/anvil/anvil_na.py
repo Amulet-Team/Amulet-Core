@@ -127,8 +127,6 @@ class AnvilNAInterface(BaseAnvilInterface):
         self._register_decoder(self._decode_block_light)
         self._register_decoder(self._decode_sky_light)
 
-        self._register_post_decoder(self._post_decode_sections)
-
         self._register_encoder(self._encode_coords)
         self._register_encoder(self._encode_last_update)
         self._register_encoder(self._encode_status)
@@ -142,6 +140,8 @@ class AnvilNAInterface(BaseAnvilInterface):
         self._register_encoder(self._encode_block_ticks)
         self._register_encoder(self._encode_block_light)
         self._register_encoder(self._encode_sky_light)
+
+        self._register_post_encoder(self._post_encode_sections)
 
     @staticmethod
     def minor_is_valid(key: int):
@@ -232,21 +232,6 @@ class AnvilNAInterface(BaseAnvilInterface):
         sections: TAG_List = self.get_layer_obj(data, self.Sections)
         for section in sections:
             yield section["Y"].value, section
-
-    def _post_decode_sections(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        """Strip out all empty sections"""
-        sections = self.get_layer_obj(data, self.Sections)
-        if sections:
-            for i in range(len(sections) - 1, -1, -1):
-                section = sections[i]
-                if section.keys() == {"Y"}:
-                    # if only the Y key exists we can remove it
-                    sections.pop(i)
-        if not sections:
-            # if no sections remain we can remove the sections data
-            self.get_layer_obj(data, self.Sections, pop_last=True)
 
     def _decode_blocks(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
@@ -601,6 +586,21 @@ class AnvilNAInterface(BaseAnvilInterface):
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         self._pack_light(chunk, data, floor_cy, height_cy, "sky_light", "SkyLight")
+
+    def _post_encode_sections(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        """Strip out all empty sections"""
+        sections = self.get_layer_obj(data, self.Sections)
+        if sections:
+            for i in range(len(sections) - 1, -1, -1):
+                section = sections[i]
+                if "Blocks" not in section or "Data" not in section:
+                    # in 1.12 if a section exists, Blocks and Data must exist
+                    sections.pop(i)
+        if not sections:
+            # if no sections remain we can remove the sections data
+            self.get_layer_obj(data, self.Sections, pop_last=True)
 
 
 export = AnvilNAInterface
