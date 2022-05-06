@@ -27,24 +27,33 @@ from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.api.errors import ObjectWriteError, ObjectReadError, PlayerDoesNotExist
 
 from amulet.libs.leveldb import LevelDBException
-from amulet.level.interfaces.chunk.leveldb.leveldb_chunk_versions import (
+from .interface.chunk.leveldb_chunk_versions import (
     game_to_chunk_version,
 )
-from .dimension import LevelDBDimensionManager, OVERWORLD, THE_NETHER, THE_END
-from amulet.level.interfaces.chunk.leveldb.base_leveldb_interface import (
-    BaseLevelDBInterface,
+from .dimension import (
+    LevelDBDimensionManager,
+    ChunkData,
+    OVERWORLD,
+    THE_NETHER,
+    THE_END,
 )
+from .interface.chunk import BaseLevelDBInterface, get_interface
 
 InternalDimension = Optional[int]
 
 
 class BedrockLevelDAT(nbt.NBTFile):
-    def __init__(self, path: str = None):
-        self._path: Optional[str] = path
+    def __init__(self, path: str):
+        super().__init__()
+        self._path: str = path
         self._level_dat_version = 8
-        super().__init__(nbt.TAG_Compound(), "")
-        if path is not None and os.path.isfile(path):
+
+        if os.path.isfile(path):
             self.load_from(path)
+
+    @property
+    def path(self):
+        return self._path
 
     def load_from(self, path: str):
         with open(path, "rb") as f:
@@ -62,11 +71,11 @@ class BedrockLevelDAT(nbt.NBTFile):
                     f"Unsupported level.dat version {self._level_dat_version}"
                 )
 
+    def reload(self):
+        self.load_from(self.path)
+
     def save(self, path: str = None):
-        path = path or self._path
-        if not path:
-            raise ObjectWriteError("No path given.")
-        self.save_to(path)
+        self.save_to(path or self._path)
 
     def save_to(
         self,
@@ -165,8 +174,6 @@ class LevelDBFormat(WorldFormatWrapper):
     def root_tag(self, root_tag: Union[nbt.NBTFile, nbt.TAG_Compound, BedrockLevelDAT]):
         if isinstance(root_tag, nbt.TAG_Compound):
             self._root_tag.value = root_tag
-        elif isinstance(root_tag, BedrockLevelDAT):
-            self._root_tag = root_tag
         elif isinstance(root_tag, nbt.NBTFile):
             self._root_tag.name = root_tag.name
             self._root_tag.value = root_tag.value
@@ -227,9 +234,12 @@ class LevelDBFormat(WorldFormatWrapper):
         )
         return self._dimension_manager
 
-    def _get_interface_key(
-        self, raw_chunk_data: Optional[Dict[bytes, bytes]] = None
-    ) -> Tuple[str, int]:
+    def _get_interface(
+        self, raw_chunk_data: Optional[Any] = None
+    ) -> BaseLevelDBInterface:
+        return get_interface(self._get_interface_key(raw_chunk_data))
+
+    def _get_interface_key(self, raw_chunk_data: Optional[ChunkData] = None) -> int:
         if raw_chunk_data:
             if b"," in raw_chunk_data:
                 chunk_version = raw_chunk_data[b","][0]
@@ -242,7 +252,7 @@ class LevelDBFormat(WorldFormatWrapper):
                 .get("caves_and_cliffs", nbt.TAG_Byte())
                 .value,
             )
-        return self.platform, chunk_version  # TODO: work out a valid default
+        return chunk_version
 
     def _decode(
         self,
@@ -277,7 +287,7 @@ class LevelDBFormat(WorldFormatWrapper):
             pass
         try:
             self._db = LevelDB(os.path.join(self.path, "db"))
-            self._dimension_manager = LevelDBDimensionManager(self._db)
+            self._dimension_manager = LevelDBDimensionManager(self)
             self._is_open = True
             self._has_lock = True
             experiments = self.root_tag.get("experiments", {})
@@ -359,7 +369,7 @@ class LevelDBFormat(WorldFormatWrapper):
         root["LevelName"] = nbt.TAG_String("World Created By Amulet")
 
         os.makedirs(self.path, exist_ok=True)
-        self.root_tag.save(os.path.join(self.path, "level.dat"))
+        self.root_tag.save()
 
         db = LevelDB(os.path.join(self.path, "db"), True)
         db.close()
@@ -374,8 +384,7 @@ class LevelDBFormat(WorldFormatWrapper):
 
     def _save(self):
         os.makedirs(self.path, exist_ok=True)
-        self._dimension_manager.save()
-        self.root_tag.save(os.path.join(self.path, "level.dat"))
+        self.root_tag.save()
         with open(os.path.join(self.path, "levelname.txt"), "w") as f:
             f.write(self.level_name)
 
@@ -383,6 +392,7 @@ class LevelDBFormat(WorldFormatWrapper):
         self._db.close()
         self._db = None
         self._dimension_manager = None
+        self._actor_counter = None
 
     def unload(self):
         pass
@@ -398,13 +408,13 @@ class LevelDBFormat(WorldFormatWrapper):
         self._dimension_manager.delete_chunk(cx, cz, dimension)
 
     def _put_raw_chunk_data(
-        self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: "Dimension"
+        self, cx: int, cz: int, data: ChunkData, dimension: "Dimension"
     ):
         return self._dimension_manager.put_chunk_data(cx, cz, data, dimension)
 
     def _get_raw_chunk_data(
         self, cx: int, cz: int, dimension: "Dimension"
-    ) -> Dict[bytes, bytes]:
+    ) -> ChunkData:
         """
         Return the raw data as loaded from disk.
 
