@@ -207,7 +207,10 @@ class BaseLevelDBInterface(Interface):
                 chunk.entities = self._decode_entity_list(entities)
             else:
                 chunk._native_entities = EntityList(self._decode_entity_list(entities))
-                chunk._native_version = ("bedrock", 0)
+                chunk._native_version = (
+                    "bedrock",
+                    (0, 0, 0),
+                )  # TODO: find a way to determine entity version
 
         if self._features["entities"] == "actor":
             if chunk_data.entity_actor:
@@ -217,7 +220,7 @@ class BaseLevelDBInterface(Interface):
                     chunk._native_entities += self._decode_entity_list(
                         chunk_data.entity_actor
                     )
-                    chunk._native_version = ("bedrock", 0)
+                    chunk._native_version = ("bedrock", (0, 0, 0))
                 chunk_data.entity_actor.clear()
 
         return chunk, chunk_palette
