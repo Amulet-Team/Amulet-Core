@@ -1,0 +1,10 @@
+[build-system]
+# Any modifications here must also be done in the requirements/requirements-setup.toml file
+requires = [
+    "setuptools >= 42",
+    "wheel",
+    "cython >= 3.0.0a9",
+    "versioneer-518",
+    "numpy"
+]
+build-backend = "setuptools.build_meta"

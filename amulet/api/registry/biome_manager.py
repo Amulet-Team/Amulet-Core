@@ -1,5 +1,7 @@
 from typing import Dict, overload, List, Union, Tuple, Generator, Iterable
+from numpy import character, integer
 
+from amulet_nbt import TAG_Byte, TAG_Int, TAG_Short, TAG_Long, TAG_String
 from amulet.api.data_types import Int, BiomeType
 from amulet.api.registry.base_registry import BaseRegistry
 
@@ -85,6 +87,12 @@ class BiomeManager(BaseRegistry):
     def __getitem__(self, item: Int) -> BiomeType:
         ...
 
+    @overload
+    def __getitem__(
+        self, item: Iterable[Union[Int, BiomeType]]
+    ) -> List[Union[BiomeType, Int]]:
+        ...
+
     def __getitem__(self, item):
         """
         If a string is passed to this function, it will return the internal ID/index of the biome.
@@ -101,15 +109,20 @@ class BiomeManager(BaseRegistry):
         :raises KeyError if the requested item is not present.
         """
         try:
-            if isinstance(item, str):
-                return self._biome_to_index[item]
-            return self._index_to_biome[item]
-
+            return self._get_item(item)
         except (KeyError, IndexError):
             raise KeyError(
                 f"There is no {item} in the BiomeManager. "
                 f"You might want to use the `get_add_biome` function for the biome before accessing them."
             )
+
+    def _get_item(self, item):
+        if isinstance(item, (str, character, TAG_String)):
+            return self._biome_to_index[str(item)]
+        elif isinstance(item, (int, integer, TAG_Byte, TAG_Short, TAG_Int, TAG_Long)):
+            return self._index_to_biome[int(item)]
+        # if it isn't an int or string assume an iterable of the above.
+        return [self._get_item(i) for i in item]
 
     def get_add_biome(self, biome: BiomeType) -> int:
         """

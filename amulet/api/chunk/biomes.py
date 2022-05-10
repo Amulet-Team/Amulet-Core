@@ -196,6 +196,9 @@ class Biomes:
     def __getattr__(self, item):
         return self._get_active().__getattribute__(item)
 
+    def __contains__(self, item):
+        return self._get_active().__contains__(item)
+
     def __getitem__(self, item):
         return self._get_active().__getitem__(item)
 

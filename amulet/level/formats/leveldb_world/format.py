@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import struct
+import warnings
 from typing import Tuple, Dict, Union, Optional, List, BinaryIO, Iterable, Any
 from io import BytesIO
 import shutil
@@ -26,29 +27,38 @@ from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion
 from amulet.api.errors import ObjectWriteError, ObjectReadError, PlayerDoesNotExist
 
 from amulet.libs.leveldb import LevelDBException
-from amulet.level.interfaces.chunk.leveldb.leveldb_chunk_versions import (
+from .interface.chunk.leveldb_chunk_versions import (
     game_to_chunk_version,
 )
-from .dimension import LevelDBDimensionManager, OVERWORLD, THE_NETHER, THE_END
-from amulet.level.interfaces.chunk.leveldb.base_leveldb_interface import (
-    BaseLevelDBInterface,
+from .dimension import (
+    LevelDBDimensionManager,
+    ChunkData,
+    OVERWORLD,
+    THE_NETHER,
+    THE_END,
 )
+from .interface.chunk import BaseLevelDBInterface, get_interface
 
 InternalDimension = Optional[int]
 
 
 class BedrockLevelDAT(nbt.NBTFile):
-    def __init__(self, path: str = None):
-        self._path: Optional[str] = path
+    def __init__(self, path: str):
+        super().__init__()
+        self._path: str = path
         self._level_dat_version = 8
-        super().__init__(nbt.TAG_Compound(), "")
-        if path is not None and os.path.isfile(path):
+
+        if os.path.isfile(path):
             self.load_from(path)
+
+    @property
+    def path(self):
+        return self._path
 
     def load_from(self, path: str):
         with open(path, "rb") as f:
             self._level_dat_version = struct.unpack("<i", f.read(4))[0]
-            if 4 <= self._level_dat_version <= 8:
+            if 4 <= self._level_dat_version <= 9:
                 data_length = struct.unpack("<i", f.read(4))[0]
                 root_tag = nbt.load(
                     f.read(data_length), compressed=False, little_endian=True
@@ -61,11 +71,11 @@ class BedrockLevelDAT(nbt.NBTFile):
                     f"Unsupported level.dat version {self._level_dat_version}"
                 )
 
+    def reload(self):
+        self.load_from(self.path)
+
     def save(self, path: str = None):
-        path = path or self._path
-        if not path:
-            raise ObjectWriteError("No path given.")
-        self.save_to(path)
+        self.save_to(path or self._path)
 
     def save_to(
         self,
@@ -94,6 +104,11 @@ class LevelDBFormat(WorldFormatWrapper):
     _platform: PlatformType
     _version: VersionNumberTuple
 
+    # The leveldb database. Access it through the public property `level_db`
+    _db: Optional[LevelDB]
+    # A class to manage dimension data. This is private
+    _dimension_manager: Optional[LevelDBDimensionManager]
+
     def __init__(self, path: str):
         """
         Construct a new instance of :class:`LevelDBFormat`.
@@ -107,7 +122,8 @@ class LevelDBFormat(WorldFormatWrapper):
         self._root_tag: BedrockLevelDAT = BedrockLevelDAT(
             os.path.join(path, "level.dat")
         )
-        self._level_manager: Optional[LevelDBDimensionManager] = None
+        self._db = None
+        self._dimension_manager = None
         self._shallow_load()
 
     def _shallow_load(self):
@@ -158,8 +174,6 @@ class LevelDBFormat(WorldFormatWrapper):
     def root_tag(self, root_tag: Union[nbt.NBTFile, nbt.TAG_Compound, BedrockLevelDAT]):
         if isinstance(root_tag, nbt.TAG_Compound):
             self._root_tag.value = root_tag
-        elif isinstance(root_tag, BedrockLevelDAT):
-            self._root_tag = root_tag
         elif isinstance(root_tag, nbt.NBTFile):
             self._root_tag.name = root_tag.name
             self._root_tag.value = root_tag.value
@@ -190,7 +204,7 @@ class LevelDBFormat(WorldFormatWrapper):
     @property
     def dimensions(self) -> List["Dimension"]:
         self._verify_has_lock()
-        return self._level_manager.dimensions
+        return self._dimension_manager.dimensions
 
     # def register_dimension(
     #     self, dimension_internal: int, dimension_name: Optional["Dimension"] = None
@@ -202,33 +216,43 @@ class LevelDBFormat(WorldFormatWrapper):
     #     :param dimension_name: The name of the dimension shown to the user.
     #     :return:
     #     """
-    #     self._level_manager.register_dimension(dimension_internal, dimension_name)
+    #     self._dimension_manager.register_dimension(dimension_internal, dimension_name)
 
-    def _get_interface_key(
-        self, raw_chunk_data: Optional[Dict[bytes, bytes]] = None
-    ) -> Tuple[str, int]:
+    @property
+    def level_db(self) -> LevelDB:
+        """The raw leveldb database."""
+        if self._db is None:
+            raise Exception(
+                "The world is not open. The leveldb database cannot be accessed."
+            )
+        return self._db
+
+    @property
+    def _level_manager(self) -> LevelDBDimensionManager:
+        warnings.warn(
+            "_level_manager attribute is depreciated. If you want to access the raw leveldb database it can be accessed through the level_db property."
+        )
+        return self._dimension_manager
+
+    def _get_interface(
+        self, raw_chunk_data: Optional[Any] = None
+    ) -> BaseLevelDBInterface:
+        return get_interface(self._get_interface_key(raw_chunk_data))
+
+    def _get_interface_key(self, raw_chunk_data: Optional[ChunkData] = None) -> int:
         if raw_chunk_data:
             if b"," in raw_chunk_data:
                 chunk_version = raw_chunk_data[b","][0]
             else:
                 chunk_version = raw_chunk_data.get(b"v", b"\x00")[0]
         else:
-            if (
-                self.root_tag.get("experiments", {})
-                .get("caves_and_cliffs_internal", nbt.TAG_Byte())
-                .value
-            ):
-                chunk_version = 26
-            elif (
+            chunk_version = game_to_chunk_version(
+                self.max_world_version[1],
                 self.root_tag.get("experiments", {})
                 .get("caves_and_cliffs", nbt.TAG_Byte())
-                .value
-            ):
-                # TODO: handle this properly when the chunk version is better understood for the 1.18 chunk
-                chunk_version = 25
-            else:
-                chunk_version = game_to_chunk_version(self.max_world_version[1])
-        return self.platform, chunk_version  # TODO: work out a valid default
+                .value,
+            )
+        return chunk_version
 
     def _decode(
         self,
@@ -262,13 +286,15 @@ class LevelDBFormat(WorldFormatWrapper):
         except:
             pass
         try:
-            self._level_manager = LevelDBDimensionManager(self.path)
+            self._db = LevelDB(os.path.join(self.path, "db"))
+            self._dimension_manager = LevelDBDimensionManager(self)
             self._is_open = True
             self._has_lock = True
             experiments = self.root_tag.get("experiments", {})
             if (
                 experiments.get("caves_and_cliffs", nbt.TAG_Byte()).value
                 or experiments.get("caves_and_cliffs_internal", nbt.TAG_Byte()).value
+                or self.version >= (1, 18)
             ):
                 self._bounds[OVERWORLD] = SelectionGroup(
                     SelectionBox(
@@ -343,7 +369,7 @@ class LevelDBFormat(WorldFormatWrapper):
         root["LevelName"] = nbt.TAG_String("World Created By Amulet")
 
         os.makedirs(self.path, exist_ok=True)
-        self.root_tag.save(os.path.join(self.path, "level.dat"))
+        self.root_tag.save()
 
         db = LevelDB(os.path.join(self.path, "db"), True)
         db.close()
@@ -358,35 +384,37 @@ class LevelDBFormat(WorldFormatWrapper):
 
     def _save(self):
         os.makedirs(self.path, exist_ok=True)
-        self._level_manager.save()
-        self.root_tag.save(os.path.join(self.path, "level.dat"))
+        self.root_tag.save()
         with open(os.path.join(self.path, "levelname.txt"), "w") as f:
             f.write(self.level_name)
 
     def _close(self):
-        self._level_manager.close()
+        self._db.close()
+        self._db = None
+        self._dimension_manager = None
+        self._actor_counter = None
 
     def unload(self):
         pass
 
     def all_chunk_coords(self, dimension: "Dimension") -> Iterable[ChunkCoordinates]:
         self._verify_has_lock()
-        yield from self._level_manager.all_chunk_coords(dimension)
+        yield from self._dimension_manager.all_chunk_coords(dimension)
 
     def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
-        return self._level_manager.has_chunk(cx, cz, dimension)
+        return self._dimension_manager.has_chunk(cx, cz, dimension)
 
     def _delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
-        self._level_manager.delete_chunk(cx, cz, dimension)
+        self._dimension_manager.delete_chunk(cx, cz, dimension)
 
     def _put_raw_chunk_data(
-        self, cx: int, cz: int, data: Dict[bytes, bytes], dimension: "Dimension"
+        self, cx: int, cz: int, data: ChunkData, dimension: "Dimension"
     ):
-        return self._level_manager.put_chunk_data(cx, cz, data, dimension)
+        return self._dimension_manager.put_chunk_data(cx, cz, data, dimension)
 
     def _get_raw_chunk_data(
         self, cx: int, cz: int, dimension: "Dimension"
-    ) -> Dict[bytes, bytes]:
+    ) -> ChunkData:
         """
         Return the raw data as loaded from disk.
 
@@ -395,7 +423,7 @@ class LevelDBFormat(WorldFormatWrapper):
         :param dimension: The dimension to load the data from.
         :return: The raw chunk data.
         """
-        return self._level_manager.get_chunk_data(cx, cz, dimension)
+        return self._dimension_manager.get_chunk_data(cx, cz, dimension)
 
     def all_player_ids(self) -> Iterable[str]:
         """
@@ -403,7 +431,7 @@ class LevelDBFormat(WorldFormatWrapper):
         """
         yield from (
             pid[7:].decode("utf-8")
-            for pid, _ in self._level_manager._db.iterate(b"player_", b"player_\xFF")
+            for pid, _ in self._db.iterate(b"player_", b"player_\xFF")
         )
         if self.has_player(LOCAL_PLAYER):
             yield LOCAL_PLAYER
@@ -411,7 +439,7 @@ class LevelDBFormat(WorldFormatWrapper):
     def has_player(self, player_id: str) -> bool:
         if player_id != LOCAL_PLAYER:
             player_id = f"player_{player_id}"
-        return player_id.encode("utf-8") in self._level_manager._db
+        return player_id.encode("utf-8") in self._db
 
     def _load_player(self, player_id: str) -> Player:
         """
@@ -432,11 +460,40 @@ class LevelDBFormat(WorldFormatWrapper):
             }[dimension.value]
         else:
             dimension_str = OVERWORLD
+
+        # get the players position
+        pos_data = player_nbt.get("Pos")
+        if (
+            isinstance(pos_data, nbt.TAG_List)
+            and len(pos_data) == 3
+            and pos_data.list_data_type == nbt.TAG_Float.tag_id
+        ):
+            position = tuple(map(float, pos_data))
+            position = tuple(
+                p if -100_000_000 <= p <= 100_000_000 else 0.0 for p in position
+            )
+        else:
+            position = (0.0, 0.0, 0.0)
+
+        # get the players rotation
+        rot_data = player_nbt.get("Rotation")
+        if (
+            isinstance(rot_data, nbt.TAG_List)
+            and len(rot_data) == 2
+            and rot_data.list_data_type == nbt.TAG_Float.tag_id
+        ):
+            rotation = tuple(map(float, rot_data))
+            rotation = tuple(
+                p if -100_000_000 <= p <= 100_000_000 else 0.0 for p in rotation
+            )
+        else:
+            rotation = (0.0, 0.0)
+
         return Player(
             player_id,
             dimension_str,
-            tuple(map(lambda t: t.value, player_nbt["Pos"])),
-            tuple(map(lambda t: t.value, player_nbt["Rotation"])),
+            position,
+            rotation,
         )
 
     def _get_raw_player_data(self, player_id: str) -> nbt.NBTFile:
@@ -445,7 +502,7 @@ class LevelDBFormat(WorldFormatWrapper):
         else:
             key = f"player_{player_id}".encode("utf-8")
         try:
-            data = self._level_manager._db.get(key)
+            data = self._db.get(key)
         except KeyError:
             raise PlayerDoesNotExist(f"Player {player_id} doesn't exist")
         return nbt.load(data, compressed=False, little_endian=True)

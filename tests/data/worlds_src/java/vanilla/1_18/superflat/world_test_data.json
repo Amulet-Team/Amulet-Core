@@ -1,0 +1,12 @@
+{
+	"world_data": {
+		"platform": "java",
+		"version": "1.18.0",
+		"origin": "vanilla"
+	},
+	"dim_height": {
+		"minecraft:overworld": [[-30000000, -64, -30000000], [30000000, 320, 30000000]],
+		"minecraft:the_nether": [[-30000000, 0, -30000000], [30000000, 256, 30000000]],
+		"minecraft:the_end": [[-30000000, 0, -30000000], [30000000, 256, 30000000]]
+	}
+}

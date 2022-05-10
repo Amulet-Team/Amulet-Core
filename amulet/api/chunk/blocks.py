@@ -23,6 +23,13 @@ class Blocks(UnboundedPartial3DArray):
         """An iterable of the sub-chunk indexes that exist"""
         return self.sections
 
+    def has_sub_chunk(self, cy: int) -> bool:
+        """Check if the array for a given sub-chunk exists.
+        :param cy: The section y index
+        :return: True if the array exists, False otherwise
+        """
+        return self.has_section(cy)
+
     def get_sub_chunk(self, cy: int) -> numpy.ndarray:
         """Get the section ndarray for a given section index.
         :param cy: The section y index

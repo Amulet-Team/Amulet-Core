@@ -1,0 +1,4 @@
+numpy~=1.17
+amulet-nbt~=1.2
+pymctranslate~=1.1
+portalocker~=2.4

@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Any, Dict, Generator, Optional, List, Union, Iterable
+from typing import Tuple, Dict, Generator, Optional, List, Union, Iterable, BinaryIO
 import time
 import glob
 import shutil
 import json
 
+import portalocker
+
 import amulet_nbt as nbt
+from amulet_nbt import TAG_Compound
 from amulet.api.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
@@ -18,6 +21,7 @@ from amulet.api.errors import (
     DimensionDoesNotExist,
     ObjectWriteError,
     ChunkLoadError,
+    ChunkDoesNotExist,
     PlayerDoesNotExist,
 )
 from amulet.api.data_types import (
@@ -28,7 +32,7 @@ from amulet.api.data_types import (
     AnyNDArray,
     Dimension,
 )
-from .dimension import AnvilDimensionManager
+from .dimension import AnvilDimensionManager, ChunkDataType
 from amulet.api import level as api_level
 from amulet.level.interfaces.chunk.anvil.base_anvil_interface import BaseAnvilInterface
 from .data_pack import DataPack, DataPackManager
@@ -62,9 +66,13 @@ class AnvilFormat(WorldFormatWrapper):
         self._levels: Dict[InternalDimension, AnvilDimensionManager] = {}
         self._dimension_name_map: Dict[Dimension, InternalDimension] = {}
         self._mcc_support: Optional[bool] = None
-        self._lock_time = None
+        self._lock_time: Optional[bytes] = None
+        self._lock: Optional[BinaryIO] = None
         self._data_pack: Optional[DataPackManager] = None
         self._shallow_load()
+
+    def __del__(self):
+        self.close()
 
     def _shallow_load(self):
         try:
@@ -87,6 +95,7 @@ class AnvilFormat(WorldFormatWrapper):
 
         try:
             level_dat_root = load_leveldat(path)
+            assert isinstance(level_dat_root.value, TAG_Compound)
         except:
             return False
 
@@ -132,7 +141,7 @@ class AnvilFormat(WorldFormatWrapper):
 
     @property
     def level_name(self) -> str:
-        return str(self.root_tag["Data"].get("LevelName", ""))
+        return str(self.root_tag.get("Data", {}).get("LevelName", ""))
 
     @level_name.setter
     def level_name(self, value: str):
@@ -140,7 +149,7 @@ class AnvilFormat(WorldFormatWrapper):
 
     @property
     def last_played(self) -> int:
-        return self.root_tag["Data"]["LastPlayed"].value
+        return int(self.root_tag.get("Data", {}).get("LastPlayed", 0))
 
     @property
     def game_version_string(self) -> str:
@@ -201,10 +210,12 @@ class AnvilFormat(WorldFormatWrapper):
             and dimension_name not in self._dimension_name_map
         ):
             self._levels[relative_dimension_path] = AnvilDimensionManager(
-                path, mcc=self._mcc_support
+                path,
+                mcc=self._mcc_support,
+                layers=("region",) + ("entities",) * (self.version >= 2681),
             )
             self._dimension_name_map[dimension_name] = relative_dimension_path
-            bounds = None
+            bounds = DefaultSelection
             if self.version >= 2709:  # This number might be smaller
 
                 def get_recursive(obj: nbt.TAG_Compound, *keys):
@@ -230,6 +241,17 @@ class AnvilFormat(WorldFormatWrapper):
                     dimension_type: str = dimension_type.value
                     if ":" in dimension_type:
                         namespace, base_name = dimension_type.split(":", 1)
+                        if (
+                            self.version >= 2834
+                            and namespace == "minecraft"
+                            and base_name == "overworld"
+                        ):
+                            bounds = SelectionGroup(
+                                SelectionBox(
+                                    (-30_000_000, -64, -30_000_000),
+                                    (30_000_000, 320, 30_000_000),
+                                )
+                            )
                         dimension_path = (
                             f"data/{namespace}/dimension_type/{base_name}.json"
                         )
@@ -297,20 +319,26 @@ class AnvilFormat(WorldFormatWrapper):
                         )
                     )
 
-            if bounds is None:
-                bounds = DefaultSelection
             self._bounds[dimension_name] = bounds
 
+    def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> "Interface":
+        from amulet.level.loader import Interfaces
+
+        key = self._get_interface_key(raw_chunk_data)
+        return Interfaces.get(key)
+
     def _get_interface_key(
-        self, raw_chunk_data: Optional[Any] = None
+        self, raw_chunk_data: Optional[ChunkDataType] = None
     ) -> Tuple[str, int]:
-        if raw_chunk_data:
+        if raw_chunk_data is None:
+            return self.max_world_version
+        else:
             return (
                 self.platform,
-                raw_chunk_data.get("DataVersion", nbt.TAG_Int(-1)).value,
+                raw_chunk_data.get("region", {})
+                .get("DataVersion", nbt.TAG_Int(-1))
+                .value,
             )
-        else:
-            return self.max_world_version
 
     def _decode(
         self,
@@ -318,7 +346,7 @@ class AnvilFormat(WorldFormatWrapper):
         dimension: Dimension,
         cx: int,
         cz: int,
-        raw_chunk_data: Any,
+        raw_chunk_data: ChunkDataType,
     ) -> Tuple[Chunk, AnyNDArray]:
         bounds = self.bounds(dimension).bounds
         return interface.decode(cx, cz, raw_chunk_data, (bounds[0][1], bounds[1][1]))
@@ -329,7 +357,7 @@ class AnvilFormat(WorldFormatWrapper):
         chunk: Chunk,
         dimension: Dimension,
         chunk_palette: AnyNDArray,
-    ) -> Any:
+    ) -> ChunkDataType:
         bounds = self.bounds(dimension).bounds
         return interface.encode(
             chunk, chunk_palette, self.max_world_version, (bounds[0][1], bounds[1][1])
@@ -340,18 +368,30 @@ class AnvilFormat(WorldFormatWrapper):
         self._load_level_dat()
 
         # create the session.lock file (this has mostly been lifted from MCEdit)
-        self._lock_time = int(time.time() * 1000)
         try:
-            with open(os.path.join(self.path, "session.lock"), "wb") as f:
-                f.write(struct.pack(">Q", self._lock_time))
-                f.flush()
-                os.fsync(f.fileno())
-        except PermissionError as e:
+            # open the file for writing and reading and lock it
+            self._lock = open(os.path.join(self.path, "session.lock"), "wb+")
+            portalocker.lock(self._lock, portalocker.LockFlags.EXCLUSIVE)
+
+            # write the current time to the file
+            self._lock_time = struct.pack(">Q", int(time.time() * 1000))
+            self._lock.write(self._lock_time)
+
+            # flush the changes to disk
+            self._lock.flush()
+            os.fsync(self._lock.fileno())
+
+        except Exception as e:
+            self._lock_time = None
+            if self._lock is not None:
+                self._lock.close()
+                self._lock = None
+
             self._is_open = False
             self._has_lock = False
-            raise PermissionError(
+            raise Exception(
                 f"Could not access session.lock. The world may be open somewhere else.\n{e}"
-            )
+            ) from e
 
         self._is_open = True
         self._has_lock = True
@@ -421,14 +461,8 @@ class AnvilFormat(WorldFormatWrapper):
     @property
     def has_lock(self) -> bool:
         if self._has_lock:
-            if self._lock_time is None:
-                # the world was created not opened
-                return True
-            try:
-                with open(os.path.join(self.path, "session.lock"), "rb") as f:
-                    return struct.unpack(">Q", f.read(8))[0] == self._lock_time
-            except:
-                return False
+            self._lock.seek(0)
+            return self._lock.read(8) == self._lock_time
         return False
 
     def pre_save_operation(
@@ -516,7 +550,9 @@ class AnvilFormat(WorldFormatWrapper):
 
     def _close(self):
         """Close the disk database"""
-        pass
+        if self._lock is not None:
+            portalocker.unlock(self._lock)
+            self._lock.close()
 
     def unload(self):
         for level in self._levels.values():
@@ -549,12 +585,30 @@ class AnvilFormat(WorldFormatWrapper):
         if self._has_dimension(dimension):
             self._get_dimension(dimension).delete_chunk(cx, cz)
 
-    def _put_raw_chunk_data(self, cx: int, cz: int, data: Any, dimension: Dimension):
-        self._get_dimension(dimension).put_chunk_data(cx, cz, data)
+    # TODO: add a new version of this method that handles all the raw data
+    def put_raw_chunk_data(
+        self, cx: int, cz: int, data: nbt.NBTFile, dimension: Dimension
+    ):
+        """
+        Commit the raw chunk data to the FormatWrapper cache.
 
-    def _get_raw_chunk_data(
-        self, cx: int, cz: int, dimension: Dimension
-    ) -> nbt.NBTFile:
+        Call :meth:`save` to push all the cache data to the level.
+
+        :param cx: The x coordinate of the chunk.
+        :param cz: The z coordinate of the chunk.
+        :param data: The raw data to commit to the level.
+        :param dimension: The dimension to load the data from.
+        """
+        self._verify_has_lock()
+        self._put_raw_chunk_data(cx, cz, {"region": data}, dimension)
+
+    def _put_raw_chunk_data(
+        self, cx: int, cz: int, data: ChunkDataType, dimension: Dimension
+    ):
+        self._get_dimension(dimension).put_chunk_data_layers(cx, cz, data)
+
+    # TODO: add a new version of this method that handles all the raw data
+    def get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> nbt.NBTFile:
         """
         Return the raw data as loaded from disk.
 
@@ -563,7 +617,36 @@ class AnvilFormat(WorldFormatWrapper):
         :param dimension: The dimension to load the data from.
         :return: The raw chunk data.
         """
-        return self._get_dimension(dimension).get_chunk_data(cx, cz)
+        # TODO: make this return layer data
+        return self._safe_load(
+            self._legacy_get_raw_chunk_data,
+            (cx, cz, dimension),
+            "Error loading chunk {} {} {}",
+            ChunkLoadError,
+            ChunkDoesNotExist,
+        )
+
+    def _legacy_get_raw_chunk_data(
+        self, cx: int, cz: int, dimension: Dimension
+    ) -> nbt.NBTFile:
+        layers = self._get_raw_chunk_data(cx, cz, dimension)
+        if "region" in layers:
+            return layers["region"]
+        else:
+            raise ChunkDoesNotExist
+
+    def _get_raw_chunk_data(
+        self, cx: int, cz: int, dimension: Dimension
+    ) -> ChunkDataType:
+        """
+        Return the raw data as loaded from disk.
+
+        :param cx: The x coordinate of the chunk.
+        :param cz: The z coordinate of the chunk.
+        :param dimension: The dimension to load the data from.
+        :return: The raw chunk data.
+        """
+        return self._get_dimension(dimension).get_chunk_data_layers(cx, cz)
 
     def all_player_ids(self) -> Iterable[str]:
         """
@@ -607,11 +690,40 @@ class AnvilFormat(WorldFormatWrapper):
             dimension_str = OVERWORLD
         if dimension_str not in self._dimension_name_map:
             dimension_str = OVERWORLD
+
+        # get the players position
+        pos_data = player_nbt.get("Pos")
+        if (
+            isinstance(pos_data, nbt.TAG_List)
+            and len(pos_data) == 3
+            and pos_data.list_data_type == nbt.TAG_Double.tag_id
+        ):
+            position = tuple(map(float, pos_data))
+            position = tuple(
+                p if -100_000_000 <= p <= 100_000_000 else 0.0 for p in position
+            )
+        else:
+            position = (0.0, 0.0, 0.0)
+
+        # get the players rotation
+        rot_data = player_nbt.get("Rotation")
+        if (
+            isinstance(rot_data, nbt.TAG_List)
+            and len(rot_data) == 2
+            and rot_data.list_data_type == nbt.TAG_Double.tag_id
+        ):
+            rotation = tuple(map(float, rot_data))
+            rotation = tuple(
+                p if -100_000_000 <= p <= 100_000_000 else 0.0 for p in rotation
+            )
+        else:
+            rotation = (0.0, 0.0)
+
         return Player(
             player_id,
             dimension_str,
-            tuple(map(lambda t: t.value, player_nbt["Pos"])),
-            tuple(map(lambda t: t.value, player_nbt["Rotation"])),
+            position,
+            rotation,
         )
 
     def _get_raw_player_data(self, player_id: str) -> nbt.NBTFile:

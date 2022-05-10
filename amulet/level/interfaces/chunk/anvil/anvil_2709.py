@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-from .anvil_2529 import (
-    Anvil2529Interface,
+from .anvil_2681 import (
+    Anvil2681Interface as ParentInterface,
 )
-from .feature_enum import HeightState, BiomeState
 
 
-class Anvil2709Interface(Anvil2529Interface):
-    def __init__(self):
-        super().__init__()
-        self._set_feature("height_state", HeightState.Variable1_17)
-        self._set_feature("biomes", BiomeState.IANx64)
+class Anvil2709Interface(ParentInterface):
+    """
+    Made height bit depth variable to store increased heights
+    Made the biome array size variable to handle the increased height
+    """
 
     @staticmethod
     def minor_is_valid(key: int):

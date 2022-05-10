@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from .anvil_1467 import (
-    Anvil1467Interface,
-)
+from .anvil_1467 import Anvil1467Interface as ParentInterface
 
 
-class Anvil1484Interface(Anvil1467Interface):
+class Anvil1484Interface(ParentInterface):
+    """
+    Changed height keys
+    """
+
     def __init__(self):
         super().__init__()
         self._set_feature("height_map", "C|V2")

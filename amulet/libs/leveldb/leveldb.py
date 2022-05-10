@@ -6,14 +6,14 @@ import sys
 from typing import Dict, Iterator, Tuple
 
 if sys.platform == "win32":
-    if sys.maxsize > 2 ** 32:  # 64 bit python
-        lib_name = "LevelDB-MCPE-64.dll"
+    if sys.maxsize > 2**32:  # 64 bit python
+        lib_name = "leveldb_mcpe_win_amd64.dll"
     else:  # 32 bit python
-        lib_name = "LevelDB-MCPE-32.dll"
+        lib_name = "leveldb_mcpe_win32.dll"
 elif sys.platform == "darwin":
-    lib_name = "libleveldb.dylib"
+    lib_name = "leveldb_mcpe_macosx_10_9_x86_64.dylib"
 else:  # linux, compile your own .so if this errors!
-    lib_name = "libleveldb.so"
+    lib_name = "leveldb_mcpe_linux_x86_64.so"
 
 lib_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), lib_name)
 assert os.path.isfile(
@@ -55,6 +55,9 @@ ldb.leveldb_options_destroy.restype = None
 
 ldb.leveldb_options_set_compression.argtypes = [ctypes.c_void_p, ctypes.c_int]
 ldb.leveldb_options_set_compression.restype = None
+
+ldb.leveldb_repair_db.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]
+ldb.leveldb_repair_db.restype = None
 
 ldb.leveldb_open.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]
 ldb.leveldb_open.restype = ctypes.c_void_p
@@ -240,10 +243,14 @@ class LevelDB:
         ldb.leveldb_options_set_cache(options, cache)
         ldb.leveldb_options_set_block_size(options, 163840)
 
-        error = ctypes.POINTER(ctypes.c_char)()
-        db = ldb.leveldb_open(options, path.encode("utf-8"), ctypes.byref(error))
+        repair_error = ctypes.POINTER(ctypes.c_char)()
+        ldb.leveldb_repair_db(options, path.encode("utf-8"), ctypes.byref(repair_error))
+        _checkError(repair_error)
+
+        open_error = ctypes.POINTER(ctypes.c_char)()
+        db = ldb.leveldb_open(options, path.encode("utf-8"), ctypes.byref(open_error))
         ldb.leveldb_options_destroy(options)
-        _checkError(error)
+        _checkError(open_error)
 
         self.db = db
 

@@ -79,8 +79,8 @@ class SelectionBox(AbstractBaseSelection):
         :param sub_chunk_size: The dimension of a sub-chunk. Default 16.
         """
         return cls(
-            (cx * sub_chunk_size, -(2 ** 30), cz * sub_chunk_size),
-            ((cx + 1) * sub_chunk_size, 2 ** 30, (cz + 1) * sub_chunk_size),
+            (cx * sub_chunk_size, -(2**30), cz * sub_chunk_size),
+            ((cx + 1) * sub_chunk_size, 2**30, (cz + 1) * sub_chunk_size),
         )
 
     @classmethod

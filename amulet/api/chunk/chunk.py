@@ -17,13 +17,13 @@ from amulet.api.chunk import (
     EntityList,
 )
 from amulet.api.entity import Entity
-from amulet.api.data_types import ChunkCoordinates
+from amulet.api.data_types import ChunkCoordinates, VersionIdentifierType
 from amulet.api.history.changeable import Changeable
 
 
 class Chunk(Changeable):
     """
-    A class to represent a chunk that exists in an Minecraft world
+    A class to represent a chunk that exists in a Minecraft world
     """
 
     def __init__(self, cx: int, cz: int):
@@ -46,6 +46,10 @@ class Chunk(Changeable):
         self._status = Status()
         self._misc = {}  # all entries that are not important enough to get an attribute
 
+        # TODO: remove these variables. They are temporary until the translator supports entities
+        self._native_version: VersionIdentifierType = ("java", 0)
+        self._native_entities = EntityList()
+
     def __repr__(self):
         return f"Chunk({self.cx}, {self.cz}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._block_entities)})"
 
@@ -65,6 +69,8 @@ class Chunk(Changeable):
             tuple(self._block_entities.data.values()),
             self._status.value,
             self.misc,
+            self._native_entities,
+            self._native_version,
         )
         return pickle.dumps(chunk_data)
 
@@ -92,6 +98,8 @@ class Chunk(Changeable):
             self.block_entities,
             self.status,
             self.misc,
+            self._native_entities,
+            self._native_version,
         ) = chunk_data[3:]
 
         self._biomes = Biomes.from_raw(*biomes)
