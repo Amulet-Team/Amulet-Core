@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from typing import Tuple, Dict, List, Union, Iterable, Optional, TYPE_CHECKING, Any
-
 import struct
+import logging
+
 import numpy
 import amulet_nbt
 
@@ -30,6 +31,8 @@ if TYPE_CHECKING:
     from amulet.api.entity import Entity
     from amulet.api.chunk.blocks import Blocks
     from amulet.api.wrapper import Translator
+
+log = logging.getLogger(__name__)
 
 # This is here to scale a 4x array to a 16x array. This can be removed when we natively support 16x array
 _scale_grid = tuple(numpy.meshgrid(*[numpy.arange(16) // 4] * 3, indexing="ij"))
@@ -649,8 +652,13 @@ class BaseLevelDBInterface(Interface):
         data: bytes,
     ) -> Tuple[numpy.ndarray, List[amulet_nbt.NBTFile], bytes]:
         data, _, blocks = self._decode_packed_array(data)
-        if blocks is not None:
+        if blocks is None:
+            blocks = numpy.zeros((16, 16, 16), dtype=numpy.int16)
+            palette_len = 1
+        else:
             palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
+
+        if palette_len:
             palette, offset = amulet_nbt.load(
                 data,
                 compressed=False,
@@ -658,12 +666,21 @@ class BaseLevelDBInterface(Interface):
                 offset=True,
                 little_endian=True,
             )
-            return blocks, palette, data[offset:]
+            data = data[offset:]
         else:
-            palette, offset = amulet_nbt.load(
-                data, compressed=False, count=1, offset=True, little_endian=True
-            )
-            return numpy.zeros((16, 16, 16), dtype=numpy.int16), palette, data[offset:]
+            palette = [
+                amulet_nbt.NBTFile(
+                    amulet_nbt.TAG_Compound(
+                        {
+                            "name": amulet_nbt.TAG_String("minecraft:air"),
+                            "states": amulet_nbt.TAG_Compound(),
+                            "version": amulet_nbt.TAG_Int(17694723),
+                        }
+                    )
+                )
+            ]
+
+        return blocks, palette, data
 
     @staticmethod
     def _encode_packed_array(arr: numpy.ndarray, min_bit_size=1) -> bytes:
