@@ -246,7 +246,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         if numpy.max(blocks) > 0xFF:
             add_blocks = (numpy.transpose(blocks & 0xF00, (1, 2, 0)) >> 8).ravel()
             data["AddBlocks"] = amulet_nbt.TAG_Byte_Array(
-                add_blocks[::2] + (add_blocks[1::2] << 4)
+                (add_blocks[::2] << 4) + add_blocks[1::2]
             )
         data.save_to(f)
 
