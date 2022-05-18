@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Set, Tuple, Optional, TYPE_CHECKING
+from typing import Dict, Set, Tuple, Iterable, Optional, TYPE_CHECKING
 
 import numpy
 from amulet_nbt import (
@@ -231,13 +231,19 @@ class Anvil1444Interface(ParentInterface):
         section["Palette"] = sub_palette
 
     @staticmethod
-    def _encode_block_palette(blockstates: list) -> TAG_List:
+    def _encode_block_palette(blockstates: Iterable[Block]) -> TAG_List:
         palette = TAG_List()
         for block in blockstates:
             entry = TAG_Compound()
             entry["Name"] = TAG_String(f"{block.namespace}:{block.base_name}")
             if block.properties:
-                entry["Properties"] = TAG_Compound(block.properties)
+                string_properties = {
+                    k: v
+                    for k, v in block.properties.items()
+                    if isinstance(v, TAG_String)
+                }
+                if string_properties:
+                    entry["Properties"] = TAG_Compound(string_properties)
             palette.append(entry)
         return palette
 
