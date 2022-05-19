@@ -58,7 +58,7 @@ class AnvilNAInterface(BaseAnvilInterface):
     LastUpdate: ChunkPathType = (
         "region",
         [("Level", TAG_Compound), ("LastUpdate", TAG_Long)],
-        TAG_Compound,
+        TAG_Long,
     )
     HeightMap: ChunkPathType = (
         "region",
