@@ -15,7 +15,7 @@ from amulet_nbt import TAG_Compound
 from amulet.api.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.wrapper import WorldFormatWrapper, DefaultVersion, DefaultSelection
+from amulet.api.wrapper import WorldFormatWrapper, DefaultSelection
 from amulet.utils.format_utils import check_all_exist, load_leveldat
 from amulet.api.errors import (
     DimensionDoesNotExist,
@@ -44,13 +44,10 @@ THE_NETHER = "minecraft:the_nether"
 THE_END = "minecraft:the_end"
 
 
-class AnvilFormat(WorldFormatWrapper):
+class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
     """
     This FormatWrapper class exists to interface with the Java world format.
     """
-
-    _platform: PlatformType
-    _version: VersionNumberInt
 
     def __init__(self, path: str):
         """
@@ -114,7 +111,7 @@ class AnvilFormat(WorldFormatWrapper):
     @property
     def version(self) -> VersionNumberInt:
         """The data version number that the world was last opened in. eg 2578"""
-        if self._version == DefaultVersion:
+        if self._version is None:
             self._version = self._get_version()
         return self._version
 

@@ -1,7 +1,5 @@
 from amulet.api.wrapper.format_wrapper import (
     FormatWrapper,
-    DefaultPlatform,
-    DefaultVersion,
     DefaultSelection,
 )
 from amulet.api.wrapper.chunk.translator import Translator

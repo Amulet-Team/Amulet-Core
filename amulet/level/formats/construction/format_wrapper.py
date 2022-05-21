@@ -70,13 +70,10 @@ max_format_version = 0
 max_section_version = 0
 
 
-class ConstructionFormatWrapper(StructureFormatWrapper):
+class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
     """
     This FormatWrapper class exists to interface with the construction format.
     """
-
-    _platform: PlatformType
-    _version: VersionNumberTuple
 
     def __init__(self, path: str):
         """

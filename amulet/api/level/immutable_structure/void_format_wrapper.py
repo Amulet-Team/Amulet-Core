@@ -1,6 +1,12 @@
 from typing import Any, List, Dict, Tuple, Optional, TYPE_CHECKING, Iterable, Union
 
-from amulet.api.data_types import Dimension, PlatformType, ChunkCoordinates, AnyNDArray
+from amulet.api.data_types import (
+    Dimension,
+    PlatformType,
+    ChunkCoordinates,
+    AnyNDArray,
+    VersionNumberTuple,
+)
 from amulet.api.wrapper import FormatWrapper
 from amulet.api.errors import ChunkDoesNotExist, PlayerDoesNotExist
 from amulet.api.player import Player
@@ -12,7 +18,7 @@ if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
 
 
-class VoidFormatWrapper(FormatWrapper):
+class VoidFormatWrapper(FormatWrapper[VersionNumberTuple]):
     """
     A custom :class:`FormatWrapper` class that has no associated data.
 
@@ -20,6 +26,11 @@ class VoidFormatWrapper(FormatWrapper):
 
     All methods effectively do nothing.
     """
+
+    def __init__(self, path: str):
+        super().__init__(path)
+        self._platform = "Unknown Platform"
+        self._version = (0, 0, 0)
 
     @property
     def level_name(self) -> str:

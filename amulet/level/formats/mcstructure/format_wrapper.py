@@ -7,6 +7,7 @@ import amulet_nbt
 
 from amulet.api.data_types import (
     VersionNumberAny,
+    VersionNumberTuple,
     ChunkCoordinates,
     AnyNDArray,
     Dimension,
@@ -27,7 +28,7 @@ if TYPE_CHECKING:
 mcstructure_interface = MCStructureInterface()
 
 
-class MCStructureFormatWrapper(StructureFormatWrapper):
+class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
     """
     This FormatWrapper class exists to interface with the Bedrock mcstructure structure block format.
     """
