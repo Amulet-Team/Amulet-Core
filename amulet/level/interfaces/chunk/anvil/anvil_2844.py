@@ -60,7 +60,7 @@ class Anvil2844Interface(ParentInterface):
     BlockEntities: ChunkPathType = ("region", [("block_entities", TAG_List)], TAG_List)
     Entities: ChunkPathType = ("region", [("entities", TAG_List)], TAG_List)
     InhabitedTime: ChunkPathType = ("region", [("InhabitedTime", TAG_Long)], TAG_Long)
-    LastUpdate: ChunkPathType = ("region", [("LastUpdate", TAG_Long)], TAG_Compound)
+    LastUpdate: ChunkPathType = ("region", [("LastUpdate", TAG_Long)], TAG_Long)
     Heightmaps: ChunkPathType = ("region", [("Heightmaps", TAG_Compound)], TAG_Compound)
     BlockTicks: ChunkPathType = ("region", [("block_ticks", TAG_List)], TAG_List)
     ToBeTicked = None
