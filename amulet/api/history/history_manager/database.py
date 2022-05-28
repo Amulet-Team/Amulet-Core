@@ -15,10 +15,20 @@ The original data source (raw form)
 """
 
 from abc import abstractmethod
-from typing import Tuple, Any, Dict, Generator, Iterable, Set
+from typing import (
+    Tuple,
+    Any,
+    Dict,
+    Generator,
+    Iterable,
+    Set,
+    Generic,
+    TypeVar,
+    Hashable,
+    Optional,
+)
 import threading
 
-from amulet.api.history.data_types import EntryKeyType, EntryType
 from amulet.api.history.base import RevisionManager
 from amulet.api.history import Changeable
 from .container import ContainerHistoryManager
@@ -27,12 +37,18 @@ from ..revision_manager import RAMRevisionManager
 
 SnapshotType = Tuple[Any, ...]
 
+EntryKeyT = TypeVar("EntryKeyT", bound=Hashable)
+EntryT = TypeVar("EntryT", bound=Changeable)
+RevisionManagerT = TypeVar("RevisionManagerT", bound=RevisionManager)
 
-class DatabaseHistoryManager(ContainerHistoryManager):
+
+class DatabaseHistoryManager(
+    ContainerHistoryManager, Generic[EntryKeyT, EntryT, RevisionManagerT]
+):
     """Manage the history of a number of items in a database."""
 
-    _temporary_database: Dict[EntryKeyType, EntryType]
-    _history_database: Dict[EntryKeyType, RevisionManager]
+    _temporary_database: Dict[EntryKeyT, Optional[EntryT]]
+    _history_database: Dict[EntryKeyT, RevisionManagerT]
 
     DoesNotExistError = EntryDoesNotExist
     LoadError = EntryLoadError
@@ -41,10 +57,10 @@ class DatabaseHistoryManager(ContainerHistoryManager):
         super().__init__()
         self._lock = threading.RLock()
         # this is the database that entries will be directly edited in
-        self._temporary_database: Dict[EntryKeyType, EntryType] = {}
+        self._temporary_database = {}
 
         # this is the database where revisions will be cached
-        self._history_database: Dict[EntryKeyType, RevisionManager] = {}
+        self._history_database = {}
 
     def _check_snapshot(self, snapshot: SnapshotType):
         assert isinstance(snapshot, tuple)
@@ -61,7 +77,7 @@ class DatabaseHistoryManager(ContainerHistoryManager):
         else:
             return True
 
-    def changed_entries(self) -> Generator[EntryKeyType, None, None]:
+    def changed_entries(self) -> Generator[EntryKeyT, None, None]:
         """A generator of all the entry keys that have changed since the last save."""
         changed = set()
         with self._lock:
@@ -83,7 +99,7 @@ class DatabaseHistoryManager(ContainerHistoryManager):
             if history_entry.changed and key not in changed:
                 yield key
 
-    def _all_entries(self, *args, **kwargs) -> Set[EntryKeyType]:
+    def _all_entries(self, *args, **kwargs) -> Set[EntryKeyT]:
         with self._lock:
             keys = set()
             deleted_keys = set()
@@ -107,16 +123,16 @@ class DatabaseHistoryManager(ContainerHistoryManager):
         return keys
 
     @abstractmethod
-    def _raw_all_entries(self, *args, **kwargs) -> Iterable[EntryKeyType]:
+    def _raw_all_entries(self, *args, **kwargs) -> Iterable[EntryKeyT]:
         """
         The keys for all entries in the raw database.
         """
         raise NotImplementedError
 
-    def __contains__(self, item: EntryKeyType) -> bool:
+    def __contains__(self, item: EntryKeyT) -> bool:
         return self._has_entry(item)
 
-    def _has_entry(self, key: EntryKeyType):
+    def _has_entry(self, key: EntryKeyT):
         """
         Does the entry exist in one of the databases.
         Subclasses should implement a proper method calling this.
@@ -130,14 +146,14 @@ class DatabaseHistoryManager(ContainerHistoryManager):
                 return self._raw_has_entry(key)
 
     @abstractmethod
-    def _raw_has_entry(self, key: EntryKeyType) -> bool:
+    def _raw_has_entry(self, key: EntryKeyT) -> bool:
         """
         Does the raw database have this entry.
         Will be called if the key is not present in the loaded database.
         """
         raise NotImplementedError
 
-    def _get_entry(self, key: EntryKeyType) -> Changeable:
+    def _get_entry(self, key: EntryKeyT) -> EntryT:
         """
         Get a key from the database.
         Subclasses should implement a proper method calling this.
@@ -160,7 +176,7 @@ class DatabaseHistoryManager(ContainerHistoryManager):
             raise self.DoesNotExistError
         return entry
 
-    def _get_register_original_entry(self, key: EntryKeyType) -> EntryType:
+    def _get_register_original_entry(self, key: EntryKeyT) -> Optional[EntryT]:
         """Get and register the original entry."""
         try:
             entry = self._raw_get_entry(key)
@@ -169,13 +185,13 @@ class DatabaseHistoryManager(ContainerHistoryManager):
         self._register_original_entry(key, entry)
         return entry
 
-    def _register_original_entry(self, key: EntryKeyType, entry: EntryType):
+    def _register_original_entry(self, key: EntryKeyT, entry: Optional[EntryT]):
         if key in self._history_database:
             raise Exception(f"The entry for {key} has already been registered.")
         self._history_database[key] = self._create_new_revision_manager(key, entry)
 
     @abstractmethod
-    def _raw_get_entry(self, key: EntryKeyType) -> EntryType:
+    def _raw_get_entry(self, key: EntryKeyT) -> EntryT:
         """
         Get the entry from the raw database.
         Will be called if the key is not present in the loaded database.
@@ -184,17 +200,17 @@ class DatabaseHistoryManager(ContainerHistoryManager):
 
     @staticmethod
     def _create_new_revision_manager(
-        key: EntryKeyType, original_entry: EntryType
-    ) -> RevisionManager:
+        key: EntryKeyT, original_entry: Optional[EntryT]
+    ) -> RevisionManagerT:
         """Create an RevisionManager as desired and populate it with the original entry."""
         return RAMRevisionManager(original_entry)
 
-    def _put_entry(self, key: EntryKeyType, entry: EntryType):
+    def _put_entry(self, key: EntryKeyT, entry: EntryT):
         with self._lock:
             entry.changed = True
             self._temporary_database[key] = entry
 
-    def _delete_entry(self, key: EntryKeyType):
+    def _delete_entry(self, key: EntryKeyT):
         with self._lock:
             self._temporary_database[key] = None
 

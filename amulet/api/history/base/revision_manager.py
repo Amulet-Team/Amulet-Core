@@ -1,19 +1,19 @@
 from abc import abstractmethod
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Generic, TypeVar
 
 from .base_history import BaseHistory
 
-StoredEntryType = Optional[Any]
+StoredEntryT = TypeVar("StoredEntryT", bound=Any)
 
 
-class RevisionManager(BaseHistory):
+class RevisionManager(BaseHistory, Generic[StoredEntryT]):
     """The base API for all passive history manager objects.
     The RevisionManager stores the actual versions of the object to revert to."""
 
     __slots__ = ("_revisions", "_current_revision_index", "_saved_revision_index")
 
-    def __init__(self, initial_state: StoredEntryType):
-        self._revisions: List[StoredEntryType] = []  # the data for each revision
+    def __init__(self, initial_state: Optional[StoredEntryT]):
+        self._revisions: List[Optional[StoredEntryT]] = []  # the data for each revision
         self._current_revision_index: int = (
             0  # the index into the above for the current data
         )
@@ -27,7 +27,7 @@ class RevisionManager(BaseHistory):
         """Have there been modifications since the last save."""
         return self._current_revision_index != self._saved_revision_index
 
-    def put_new_entry(self, entry: StoredEntryType):
+    def put_new_entry(self, entry: Optional[StoredEntryT]):
         """Add a new entry to the database and increment the index."""
         if len(self._revisions) > self._current_revision_index + 1:
             # if there are upstream revisions delete them
@@ -39,7 +39,7 @@ class RevisionManager(BaseHistory):
         self._current_revision_index += 1
 
     @abstractmethod
-    def _store_entry(self, entry: StoredEntryType):
+    def _store_entry(self, entry: Optional[StoredEntryT]):
         """Store the entry data as required."""
         raise NotImplementedError
 

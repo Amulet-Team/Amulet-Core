@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Generator, Set, Iterable, Dict
+from typing import Generator, Set, Iterable
 
 import weakref
 
@@ -11,10 +11,7 @@ from amulet.api import level as api_level
 from amulet.api.errors import PlayerLoadError, PlayerDoesNotExist
 
 
-class PlayerManager(DatabaseHistoryManager):
-    _temporary_database: Dict[str, Player]
-    _history_database: Dict[str, RAMRevisionManager]
-
+class PlayerManager(DatabaseHistoryManager[str, Player, RAMRevisionManager]):
     DoesNotExistError = PlayerDoesNotExist
     LoadError = PlayerLoadError
 

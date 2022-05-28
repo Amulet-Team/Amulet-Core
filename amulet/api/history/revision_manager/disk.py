@@ -1,8 +1,10 @@
 from abc import abstractmethod
-from typing import Optional
+from typing import Optional, TypeVar
 
 from amulet.api.history.base import RevisionManager
-from ..data_types import EntryType
+from ..changeable import Changeable
+
+EntryT = TypeVar("EntryT", bound=Changeable)
 
 
 class DBRevisionManager(RevisionManager):
@@ -11,17 +13,17 @@ class DBRevisionManager(RevisionManager):
 
     __slots__ = ("_prefix",)
 
-    def __init__(self, prefix: str, initial_state: EntryType):
+    def __init__(self, prefix: str, initial_state: Optional[EntryT]):
         self._prefix: str = prefix
         super().__init__(initial_state)
 
-    def _store_entry(self, entry: EntryType):
+    def _store_entry(self, entry: Optional[EntryT]):
         path = f"{self._prefix}/{len(self._revisions)}"
         path = self._serialise(path, entry)
         self._revisions.append(path)
 
     @abstractmethod
-    def _serialise(self, path: str, entry: EntryType) -> Optional[str]:
+    def _serialise(self, path: str, entry: Optional[EntryT]) -> Optional[str]:
         raise NotImplementedError
 
     def get_current_entry(self):
@@ -29,5 +31,5 @@ class DBRevisionManager(RevisionManager):
         return self._deserialise(path)
 
     @abstractmethod
-    def _deserialise(self, path: str) -> EntryType:
+    def _deserialise(self, path: str) -> Optional[EntryT]:
         raise NotImplementedError

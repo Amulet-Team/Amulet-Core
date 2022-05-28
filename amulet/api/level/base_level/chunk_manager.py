@@ -1,11 +1,9 @@
 from __future__ import annotations
-from typing import Optional, Tuple, Generator, Set, Iterable, Dict
+from typing import Optional, Tuple, Generator, Set, Iterable
 import weakref
 
 from amulet.api.data_types import DimensionCoordinates, Dimension
 from amulet.api.chunk import Chunk
-from amulet.api.history.data_types import EntryType, EntryKeyType
-from amulet.api.history.base import RevisionManager
 from amulet.api.history.revision_manager import DBRevisionManager
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.history.history_manager import DatabaseHistoryManager
@@ -13,11 +11,11 @@ from amulet.api.cache import get_cache_db
 from amulet.api import level as api_level
 
 
-class ChunkDBEntry(DBRevisionManager):
+class ChunkDBEntry(DBRevisionManager[Chunk]):
     __slots__ = ("_world",)
 
     def __init__(
-        self, world: api_level.BaseLevel, prefix: str, initial_state: EntryType
+        self, world: api_level.BaseLevel, prefix: str, initial_state: Optional[Chunk]
     ):
         super().__init__(prefix, initial_state)
         self._world = weakref.ref(world)
@@ -44,7 +42,7 @@ class ChunkDBEntry(DBRevisionManager):
             )
 
 
-class ChunkManager(DatabaseHistoryManager):
+class ChunkManager(DatabaseHistoryManager[DimensionCoordinates, Chunk, ChunkDBEntry]):
     """
     The ChunkManager class is a class that handles chunks within a world.
 
@@ -54,9 +52,6 @@ class ChunkManager(DatabaseHistoryManager):
 
     It also contains a history manager to allow undoing and redoing of changes.
     """
-
-    _temporary_database: Dict[DimensionCoordinates, EntryType]
-    _history_database: Dict[DimensionCoordinates, RevisionManager]
 
     DoesNotExistError = ChunkDoesNotExist
     LoadError = ChunkLoadError
@@ -186,7 +181,7 @@ class ChunkManager(DatabaseHistoryManager):
         """
         return self._get_entry((dimension, cx, cz))
 
-    def _raw_get_entry(self, key: EntryKeyType) -> EntryType:
+    def _raw_get_entry(self, key: DimensionCoordinates) -> Chunk:
         dimension, cx, cz = key
         chunk = self.level.level_wrapper.load_chunk(cx, cz, dimension)
         chunk.block_palette = self.level.block_palette
@@ -215,8 +210,8 @@ class ChunkManager(DatabaseHistoryManager):
         self._delete_entry((dimension, cx, cz))
 
     def _create_new_revision_manager(
-        self, key: EntryKeyType, original_entry: EntryType
-    ) -> RevisionManager:
+        self, key: DimensionCoordinates, original_entry: Optional[Chunk]
+    ) -> ChunkDBEntry:
         dimension, cx, cz = key
         prefix = f"{self._prefix}/{dimension}/{cx}.{cz}"
         return ChunkDBEntry(self.level, prefix, original_entry)
