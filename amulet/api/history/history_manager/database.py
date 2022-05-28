@@ -50,8 +50,17 @@ class AbstractDatabaseHistoryManager(
     _temporary_database: Dict[EntryKeyT, Optional[EntryT]]
     _history_database: Dict[EntryKeyT, RevisionManagerT]
 
-    DoesNotExistError = EntryDoesNotExist
-    LoadError = EntryLoadError
+    @classmethod
+    @property
+    @abstractmethod
+    def DoesNotExistError(cls) -> EntryDoesNotExist:
+        raise NotImplementedError
+
+    @classmethod
+    @property
+    @abstractmethod
+    def LoadError(cls) -> EntryLoadError:
+        raise NotImplementedError
 
     def __init__(self):
         super().__init__()
