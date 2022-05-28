@@ -29,9 +29,9 @@ from typing import (
 )
 import threading
 
-from amulet.api.history.base import RevisionManager
+from amulet.api.history.base import AbstractRevisionManager
 from amulet.api.history import Changeable
-from .container import ContainerHistoryManager
+from .container import AbstractContainerHistoryManager
 from amulet.api.errors import EntryDoesNotExist, EntryLoadError
 from ..revision_manager import RAMRevisionManager
 
@@ -39,11 +39,11 @@ SnapshotType = Tuple[Any, ...]
 
 EntryKeyT = TypeVar("EntryKeyT", bound=Hashable)
 EntryT = TypeVar("EntryT", bound=Changeable)
-RevisionManagerT = TypeVar("RevisionManagerT", bound=RevisionManager)
+RevisionManagerT = TypeVar("RevisionManagerT", bound=AbstractRevisionManager)
 
 
-class DatabaseHistoryManager(
-    ContainerHistoryManager, Generic[EntryKeyT, EntryT, RevisionManagerT]
+class AbstractDatabaseHistoryManager(
+    AbstractContainerHistoryManager, Generic[EntryKeyT, EntryT, RevisionManagerT]
 ):
     """Manage the history of a number of items in a database."""
 

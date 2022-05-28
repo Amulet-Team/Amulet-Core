@@ -4,14 +4,14 @@ import weakref
 
 from amulet.api.data_types import DimensionCoordinates, Dimension
 from amulet.api.chunk import Chunk
-from amulet.api.history.revision_manager import DBRevisionManager
+from amulet.api.history.revision_manager import AbstractDBRevisionManager
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
-from amulet.api.history.history_manager import DatabaseHistoryManager
+from amulet.api.history.history_manager import AbstractDatabaseHistoryManager
 from amulet.api.cache import get_cache_db
 from amulet.api import level as api_level
 
 
-class ChunkDBEntry(DBRevisionManager[Chunk]):
+class ChunkDBEntry(AbstractDBRevisionManager[Chunk]):
     __slots__ = ("_world",)
 
     def __init__(
@@ -42,7 +42,9 @@ class ChunkDBEntry(DBRevisionManager[Chunk]):
             )
 
 
-class ChunkManager(DatabaseHistoryManager[DimensionCoordinates, Chunk, ChunkDBEntry]):
+class ChunkManager(
+    AbstractDatabaseHistoryManager[DimensionCoordinates, Chunk, ChunkDBEntry]
+):
     """
     The ChunkManager class is a class that handles chunks within a world.
 

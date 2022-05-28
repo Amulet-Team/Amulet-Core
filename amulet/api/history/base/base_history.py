@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class BaseHistory(ABC):
+class AbstractBaseHistory(ABC):
     """The base class for all history related objects"""
 
     @abstractmethod

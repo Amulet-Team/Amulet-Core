@@ -1,13 +1,13 @@
 from abc import abstractmethod
 from typing import Optional, TypeVar
 
-from amulet.api.history.base import RevisionManager
+from amulet.api.history.base import AbstractRevisionManager
 from ..changeable import Changeable
 
 EntryT = TypeVar("EntryT", bound=Changeable)
 
 
-class DBRevisionManager(RevisionManager):
+class AbstractDBRevisionManager(AbstractRevisionManager):
     """A class to hold data about an entries history on disk.
     Revision indexes are still stored in RAM."""
 

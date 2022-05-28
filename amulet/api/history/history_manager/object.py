@@ -1,12 +1,12 @@
 from typing import Optional, Any, Generator
 
 from amulet.api.history import Changeable
-from ..base import RevisionManager
-from amulet.api.history.base.history_manager import HistoryManager
+from ..base import AbstractRevisionManager
+from amulet.api.history.base.history_manager import AbstractHistoryManager
 from ..revision_manager import RAMRevisionManager
 
 
-class ObjectHistoryManager(HistoryManager):
+class ObjectHistoryManager(AbstractHistoryManager):
     def __init__(self, original_entry: Changeable):
         super().__init__()
         self._value: Changeable = original_entry
@@ -26,7 +26,9 @@ class ObjectHistoryManager(HistoryManager):
         return self._value
 
     @staticmethod
-    def _create_new_revision_manager(original_entry: Optional[Any]) -> RevisionManager:
+    def _create_new_revision_manager(
+        original_entry: Optional[Any],
+    ) -> AbstractRevisionManager:
         """Create an RevisionManager as desired and populate it with the original entry."""
         return RAMRevisionManager(original_entry)
 

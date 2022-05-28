@@ -3,10 +3,10 @@ from typing import Generator
 
 from amulet.utils.generator import generator_unpacker
 
-from .base_history import BaseHistory
+from .base_history import AbstractBaseHistory
 
 
-class HistoryManager(BaseHistory):
+class AbstractHistoryManager(AbstractBaseHistory):
     """The base class for all active history manager objects.
     The HistoryManager tracks which objects have changed but is not aware of how they have changed."""
 

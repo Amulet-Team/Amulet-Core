@@ -1,3 +1,3 @@
 from .object import ObjectHistoryManager
-from .database import DatabaseHistoryManager
+from .database import AbstractDatabaseHistoryManager
 from .meta import MetaHistoryManager

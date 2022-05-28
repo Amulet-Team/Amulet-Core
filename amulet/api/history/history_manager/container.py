@@ -1,12 +1,12 @@
 from abc import abstractmethod
 from typing import List, Any
 
-from amulet.api.history.base.history_manager import HistoryManager
+from amulet.api.history.base.history_manager import AbstractHistoryManager
 
 SnapshotType = Any
 
 
-class ContainerHistoryManager(HistoryManager):
+class AbstractContainerHistoryManager(AbstractHistoryManager):
     def __init__(self):
         self._snapshots: List[SnapshotType] = []
         self._snapshot_index: int = -1

@@ -1,12 +1,12 @@
 from abc import abstractmethod
 from typing import List, Optional, Any, Generic, TypeVar
 
-from .base_history import BaseHistory
+from .base_history import AbstractBaseHistory
 
 StoredEntryT = TypeVar("StoredEntryT", bound=Any)
 
 
-class RevisionManager(BaseHistory, Generic[StoredEntryT]):
+class AbstractRevisionManager(AbstractBaseHistory, Generic[StoredEntryT]):
     """The base API for all passive history manager objects.
     The RevisionManager stores the actual versions of the object to revert to."""
 

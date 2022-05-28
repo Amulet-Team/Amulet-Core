@@ -1,3 +1,3 @@
-from .base_history import BaseHistory
-from .revision_manager import RevisionManager
-from .history_manager import HistoryManager
+from .base_history import AbstractBaseHistory
+from .revision_manager import AbstractRevisionManager
+from .history_manager import AbstractHistoryManager
