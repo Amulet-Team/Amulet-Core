@@ -4,16 +4,16 @@ from amulet.utils.generator import generator_unpacker
 from amulet.api.history.base.history_manager import AbstractHistoryManager
 from .container import AbstractContainerHistoryManager
 
-SnapshotType = Tuple[AbstractHistoryManager, ...]
+SnapshotT = Tuple[AbstractHistoryManager, ...]
 
 
-class MetaHistoryManager(AbstractContainerHistoryManager):
+class MetaHistoryManager(AbstractContainerHistoryManager[SnapshotT]):
     def __init__(self):
         super().__init__()
         self._world_managers = []
         self._non_world_managers = []
 
-    def _check_snapshot(self, snapshot: SnapshotType):
+    def _check_snapshot(self, snapshot: SnapshotT):
         assert isinstance(snapshot, tuple) and all(
             isinstance(item, AbstractHistoryManager) for item in snapshot
         )
@@ -33,11 +33,11 @@ class MetaHistoryManager(AbstractContainerHistoryManager):
         else:
             self._non_world_managers.append(manager)
 
-    def _undo(self, snapshot: SnapshotType):
+    def _undo(self, snapshot: SnapshotT):
         for item in snapshot:
             item.undo()
 
-    def _redo(self, snapshot: SnapshotType):
+    def _redo(self, snapshot: SnapshotT):
         for item in snapshot:
             item.redo()
 

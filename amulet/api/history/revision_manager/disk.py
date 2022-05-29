@@ -7,7 +7,7 @@ from ..changeable import Changeable
 EntryT = TypeVar("EntryT", bound=Changeable)
 
 
-class AbstractDBRevisionManager(AbstractRevisionManager):
+class AbstractDBRevisionManager(AbstractRevisionManager[EntryT]):
     """A class to hold data about an entries history on disk.
     Revision indexes are still stored in RAM."""
 

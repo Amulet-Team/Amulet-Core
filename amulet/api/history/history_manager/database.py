@@ -35,7 +35,7 @@ from .container import AbstractContainerHistoryManager
 from amulet.api.errors import EntryDoesNotExist, EntryLoadError
 from ..revision_manager import RAMRevisionManager
 
-SnapshotType = Tuple[Any, ...]
+SnapshotT = Tuple[Any, ...]
 
 EntryKeyT = TypeVar("EntryKeyT", bound=Hashable)
 EntryT = TypeVar("EntryT", bound=Changeable)
@@ -43,7 +43,8 @@ RevisionManagerT = TypeVar("RevisionManagerT", bound=AbstractRevisionManager)
 
 
 class AbstractDatabaseHistoryManager(
-    AbstractContainerHistoryManager, Generic[EntryKeyT, EntryT, RevisionManagerT]
+    AbstractContainerHistoryManager[SnapshotT],
+    Generic[EntryKeyT, EntryT, RevisionManagerT],
 ):
     """Manage the history of a number of items in a database."""
 
@@ -71,7 +72,7 @@ class AbstractDatabaseHistoryManager(
         # this is the database where revisions will be cached
         self._history_database = {}
 
-    def _check_snapshot(self, snapshot: SnapshotType):
+    def _check_snapshot(self, snapshot: SnapshotT):
         assert isinstance(snapshot, tuple)
 
     @property
@@ -260,7 +261,7 @@ class AbstractDatabaseHistoryManager(
         for entry in self._history_database.values():
             entry.mark_saved()
 
-    def _undo(self, snapshot: SnapshotType):
+    def _undo(self, snapshot: SnapshotT):
         """Undoes the last set of changes to the database"""
         with self._lock:
             for key in snapshot:
@@ -268,7 +269,7 @@ class AbstractDatabaseHistoryManager(
                 if key in self._temporary_database:
                     del self._temporary_database[key]
 
-    def _redo(self, snapshot: SnapshotType):
+    def _redo(self, snapshot: SnapshotT):
         """Redoes the last set of changes to the database"""
         with self._lock:
             for key in snapshot:

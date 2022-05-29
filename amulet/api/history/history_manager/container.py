@@ -1,26 +1,32 @@
 from abc import abstractmethod
-from typing import List, Any
+from typing import List, Generic, TypeVar
 
 from amulet.api.history.base.history_manager import AbstractHistoryManager
 
-SnapshotType = Any
+SnapshotT = TypeVar("SnapshotT")
 
 
-class AbstractContainerHistoryManager(AbstractHistoryManager):
+class AbstractContainerHistoryManager(AbstractHistoryManager, Generic[SnapshotT]):
+    # The snapshots (undo points)
+    _snapshots: List[SnapshotT] = []
+    # The shapshot index that we are currently on
+    _snapshot_index: int
+    # the snapshot that was saved or the save branches off from
+    _last_save_snapshot: int
+    # if the user saves, undoes and does a new operation a save branch will be lost. This is the number of changes on that branch
+    _branch_save_count: int
+
     def __init__(self):
-        self._snapshots: List[SnapshotType] = []
-        self._snapshot_index: int = -1
-
-        # the snapshot that was saved or the save branches off from
+        self._snapshots = []
+        self._snapshot_index = -1
         self._last_save_snapshot = -1
-        self._branch_save_count = 0  # if the user saves, undoes and does a new operation a save branch will be lost
-        # This is the number of changes on that branch
+        self._branch_save_count = 0
 
     @abstractmethod
-    def _check_snapshot(self, snapshot: SnapshotType):
+    def _check_snapshot(self, snapshot: SnapshotT):
         raise NotImplementedError
 
-    def _register_snapshot(self, snapshot: SnapshotType) -> bool:
+    def _register_snapshot(self, snapshot: SnapshotT) -> bool:
         """Create a snapshot if it contains data.
 
         :param snapshot: The snapshot data to save.
@@ -76,7 +82,7 @@ class AbstractContainerHistoryManager(AbstractHistoryManager):
             self._snapshot_index -= 1
 
     @abstractmethod
-    def _undo(self, snapshot: SnapshotType):
+    def _undo(self, snapshot: SnapshotT):
         raise NotImplementedError
 
     def redo(self):
@@ -87,7 +93,7 @@ class AbstractContainerHistoryManager(AbstractHistoryManager):
             self._redo(snapshot)
 
     @abstractmethod
-    def _redo(self, snapshot: SnapshotType):
+    def _redo(self, snapshot: SnapshotT):
         raise NotImplementedError
 
     @property
