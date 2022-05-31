@@ -34,16 +34,19 @@ class MetaHistoryManager(AbstractContainerHistoryManager[SnapshotT]):
             self._non_world_managers.append(manager)
 
     def _undo(self, snapshot: SnapshotT):
-        for item in snapshot:
-            item.undo()
+        with self._lock:
+            for item in snapshot:
+                item.undo()
 
     def _redo(self, snapshot: SnapshotT):
-        for item in snapshot:
-            item.redo()
+        with self._lock:
+            for item in snapshot:
+                item.redo()
 
     def _mark_saved(self):
-        for manager in self._managers():
-            manager.mark_saved()
+        with self._lock:
+            for manager in self._managers():
+                manager.mark_saved()
 
     def _managers(
         self, world: bool = True, non_world: bool = True
@@ -75,19 +78,22 @@ class MetaHistoryManager(AbstractContainerHistoryManager[SnapshotT]):
         :param non_world: Should the non-world based history managers be included
         :return:
         """
-        managers = self._managers(world, non_world)
-        snapshot = []
-        for manager in managers:
-            changed = yield from manager.create_undo_point_iter()
-            if changed:
-                snapshot.append(manager)
-        return self._register_snapshot(tuple(snapshot))
+        with self._lock:
+            managers = self._managers(world, non_world)
+            snapshot = []
+            for manager in managers:
+                changed = yield from manager.create_undo_point_iter()
+                if changed:
+                    snapshot.append(manager)
+            return self._register_snapshot(tuple(snapshot))
 
     def restore_last_undo_point(self):
-        for manager in self._managers():
-            manager.restore_last_undo_point()
+        with self._lock:
+            for manager in self._managers():
+                manager.restore_last_undo_point()
 
     def purge(self):
         """Unload all history data. Restore to the state after creation."""
-        for manager in self._managers():
-            manager.purge()
+        with self._lock:
+            for manager in self._managers():
+                manager.purge()
