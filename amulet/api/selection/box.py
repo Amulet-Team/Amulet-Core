@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import itertools
 import numpy
+import math
 
 from typing import Tuple, Iterable, Generator, Optional, Union
 
@@ -722,7 +723,8 @@ class SelectionBox(AbstractBaseSelection):
         :param translation: The translation about the x, y and z axis.
         :return: A new :class:`~amulet.api.selection.SelectionGroup` representing the transformed selection.
         """
-        if all(r % 90 == 0 for r in rotation):
+        quadrant = math.pi / 2
+        if all(abs(r - quadrant * round(r / quadrant)) < 0.0001 for r in rotation):
             min_point, max_point = numpy.matmul(
                 transform_matrix(scale, rotation, translation),
                 numpy.array([[*self.min, 1], [*self.max, 1]]).T,
