@@ -8,6 +8,7 @@ import amulet_nbt
 from amulet.api.data_types import (
     AnyNDArray,
     VersionNumberAny,
+    VersionNumberTuple,
     Dimension,
     PlatformType,
     PointCoordinates,
@@ -33,7 +34,7 @@ java_interface = JavaSchematicInterface()
 bedrock_interface = BedrockSchematicInterface()
 
 
-class SchematicFormatWrapper(StructureFormatWrapper):
+class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
     """
     This FormatWrapper class exists to interface with the legacy schematic structure format.
     """
