@@ -1,7 +1,17 @@
 from typing import List, Union, Type
 import numpy
 
-from amulet_nbt import IntTag, DoubleTag, StringTag, ListTag, CompoundTag, ByteArrayTag, IntArrayTag, LongArrayTag, NamedTag
+from amulet_nbt import (
+    IntTag,
+    DoubleTag,
+    StringTag,
+    ListTag,
+    CompoundTag,
+    ByteArrayTag,
+    IntArrayTag,
+    LongArrayTag,
+    NamedTag,
+)
 
 from amulet.api.block import Block
 from amulet.api.entity import Entity
@@ -66,9 +76,7 @@ def parse_block_entities(block_entities: ListTag) -> List[BlockEntity]:
     ]
 
 
-def generate_block_entry(
-    block: Block, palette_len, extra_blocks
-) -> CompoundTag:
+def generate_block_entry(block: Block, palette_len, extra_blocks) -> CompoundTag:
     return CompoundTag(
         {
             "namespace": StringTag(block.namespace),
@@ -124,11 +132,7 @@ def serialise_block_entities(
 
 def find_fitting_array_type(
     array: numpy.ndarray,
-) -> Union[
-    Type[IntArrayTag],
-    Type[ByteArrayTag],
-    Type[LongArrayTag],
-]:
+) -> Union[Type[IntArrayTag], Type[ByteArrayTag], Type[LongArrayTag],]:
     max_element = array.max(initial=0)
 
     if max_element <= 127:

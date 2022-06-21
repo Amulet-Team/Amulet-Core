@@ -3,7 +3,15 @@ from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, Uni
 import numpy
 import copy
 
-from amulet_nbt import ShortTag, StringTag, ListTag, CompoundTag, ByteArrayTag, NamedTag, load_one
+from amulet_nbt import (
+    ShortTag,
+    StringTag,
+    ListTag,
+    CompoundTag,
+    ByteArrayTag,
+    NamedTag,
+    load_one,
+)
 
 from amulet.api.data_types import (
     AnyNDArray,
@@ -99,9 +107,7 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         )
         self._bounds[self.dimensions[0]] = SelectionGroup(selection_box)
         entities: ListTag = schematic.get("Entities", ListTag())
-        block_entities: ListTag = schematic.get(
-            "TileEntities", ListTag()
-        )
+        block_entities: ListTag = schematic.get("TileEntities", ListTag())
         blocks: numpy.ndarray = (
             schematic["Blocks"].value.astype(numpy.uint8).astype(numpy.uint16)
         )
@@ -246,9 +252,7 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         )
         if numpy.max(blocks) > 0xFF:
             add_blocks = (numpy.transpose(blocks & 0xF00, (1, 2, 0)) >> 8).ravel()
-            data["AddBlocks"] = ByteArrayTag(
-                (add_blocks[::2] << 4) + add_blocks[1::2]
-            )
+            data["AddBlocks"] = ByteArrayTag((add_blocks[::2] << 4) + add_blocks[1::2])
         data.save_to(f)
 
     def _close(self):

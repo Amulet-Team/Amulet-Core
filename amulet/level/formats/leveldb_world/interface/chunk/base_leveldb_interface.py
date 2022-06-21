@@ -5,7 +5,18 @@ import struct
 import logging
 
 import numpy
-from amulet_nbt import ShortTag, IntTag, StringTag, CompoundTag, NamedTag, load_one, load_many, ReadContext, utf8_escape_decoder, utf8_escape_encoder
+from amulet_nbt import (
+    ShortTag,
+    IntTag,
+    StringTag,
+    CompoundTag,
+    NamedTag,
+    load_one,
+    load_many,
+    ReadContext,
+    utf8_escape_decoder,
+    utf8_escape_encoder,
+)
 
 import amulet
 from amulet.api.block import Block
@@ -428,9 +439,7 @@ class BaseLevelDBInterface(Interface):
                             if version is None:
                                 version = 17694720  # 1, 14, 0, 0
                         else:
-                            properties = {
-                                "block_data": IntTag(block["val"].value)
-                            }
+                            properties = {"block_data": IntTag(block["val"].value)}
                         palette_data_out.append(
                             (
                                 version,
@@ -666,9 +675,9 @@ class BaseLevelDBInterface(Interface):
                 compressed=False,
                 count=palette_len,
                 little_endian=True,
-                read_context=read_context
+                read_context=read_context,
             )
-            data = data[read_context.offset:]
+            data = data[read_context.offset :]
         else:
             palette = [
                 NamedTag(
@@ -728,7 +737,14 @@ class BaseLevelDBInterface(Interface):
         """Save a single layer of blocks in the block_palette format"""
         return b"".join(
             [self._encode_packed_array(blocks), struct.pack("<I", len(palette))]
-            + [block.save_to(compressed=False, little_endian=True, string_encoder=utf8_escape_encoder) for block in palette]
+            + [
+                block.save_to(
+                    compressed=False,
+                    little_endian=True,
+                    string_encoder=utf8_escape_encoder,
+                )
+                for block in palette
+            ]
         )
 
     @staticmethod
@@ -736,8 +752,13 @@ class BaseLevelDBInterface(Interface):
         nbt_list = []
         while raw_nbt:
             read_context = ReadContext()
-            nbt = load_one(raw_nbt, little_endian=True, read_context=read_context, string_decoder=utf8_escape_decoder)
-            raw_nbt = raw_nbt[read_context.offset:]
+            nbt = load_one(
+                raw_nbt,
+                little_endian=True,
+                read_context=read_context,
+                string_decoder=utf8_escape_decoder,
+            )
+            raw_nbt = raw_nbt[read_context.offset :]
             nbt_list.append(nbt)
         return nbt_list
 
@@ -745,7 +766,11 @@ class BaseLevelDBInterface(Interface):
     def _pack_nbt_list(nbt_list: List[NamedTag]):
         return b"".join(
             [
-                nbt.save_to(compressed=False, little_endian=True, string_encoder=utf8_escape_encoder)
+                nbt.save_to(
+                    compressed=False,
+                    little_endian=True,
+                    string_encoder=utf8_escape_encoder,
+                )
                 for nbt in nbt_list
                 if isinstance(nbt, NamedTag)
             ]

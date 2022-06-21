@@ -78,9 +78,7 @@ class LevelDB8Interface(LevelDB7Interface):
                         sub_block_ = NamedTag(
                             CompoundTag(
                                 {
-                                    "name": StringTag(
-                                        sub_block.namespaced_name
-                                    ),
+                                    "name": StringTag(sub_block.namespaced_name),
                                     "val": ShortTag(block_data),
                                 }
                             )
@@ -89,9 +87,7 @@ class LevelDB8Interface(LevelDB7Interface):
                         sub_block_ = NamedTag(
                             CompoundTag(
                                 {
-                                    "name": StringTag(
-                                        sub_block.namespaced_name
-                                    ),
+                                    "name": StringTag(sub_block.namespaced_name),
                                     "states": CompoundTag(
                                         {
                                             key: val

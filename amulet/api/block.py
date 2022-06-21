@@ -397,13 +397,9 @@ class Block:
             properties = {}
 
         if snbt:
-            properties_dict = {
-                k: from_snbt(v) for k, v in sorted(properties.items())
-            }
+            properties_dict = {k: from_snbt(v) for k, v in sorted(properties.items())}
         else:
-            properties_dict = {
-                k: StringTag(v) for k, v in sorted(properties.items())
-            }
+            properties_dict = {k: StringTag(v) for k, v in sorted(properties.items())}
 
         return (
             namespace,

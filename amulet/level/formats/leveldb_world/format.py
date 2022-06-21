@@ -9,7 +9,19 @@ import shutil
 import traceback
 import time
 
-from amulet_nbt import load_one, NamedTag, CompoundTag, StringTag, ByteTag, IntTag, ListTag, LongTag, FloatTag, utf8_escape_decoder, utf8_escape_encoder
+from amulet_nbt import (
+    load_one,
+    NamedTag,
+    CompoundTag,
+    StringTag,
+    ByteTag,
+    IntTag,
+    ListTag,
+    LongTag,
+    FloatTag,
+    utf8_escape_decoder,
+    utf8_escape_encoder,
+)
 from amulet.api.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionBox, SelectionGroup
@@ -61,7 +73,10 @@ class BedrockLevelDAT(NamedTag):
             if 4 <= self._level_dat_version <= 9:
                 data_length = struct.unpack("<i", f.read(4))[0]
                 root_tag = load_one(
-                    f.read(data_length), compressed=False, little_endian=True, string_decoder=utf8_escape_decoder
+                    f.read(data_length),
+                    compressed=False,
+                    little_endian=True,
+                    string_decoder=utf8_escape_decoder,
                 )
                 self.name = root_tag.name
                 self.value = root_tag.value
@@ -85,7 +100,11 @@ class BedrockLevelDAT(NamedTag):
         little_endian=True,
         string_encoder=utf8_escape_encoder,
     ) -> Optional[bytes]:
-        payload = super().save_to(compressed=compressed, little_endian=little_endian, string_encoder=string_encoder)
+        payload = super().save_to(
+            compressed=compressed,
+            little_endian=little_endian,
+            string_encoder=string_encoder,
+        )
         buffer = BytesIO()
         buffer.write(struct.pack("<ii", self._level_dat_version, len(payload)))
         buffer.write(payload)
@@ -162,7 +181,9 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         For this format wrapper it returns a tuple of 3/4 ints (the game version number)
         """
         try:
-            return tuple([t.value for t in self.root_tag.get_compound()["lastOpenedWithVersion"]])
+            return tuple(
+                [t.value for t in self.root_tag.get_compound()["lastOpenedWithVersion"]]
+            )
         except Exception:
             return 1, 2, 0
 
@@ -249,7 +270,8 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         else:
             chunk_version = game_to_chunk_version(
                 self.max_world_version[1],
-                self.root_tag.get_compound().get("experiments", {})
+                self.root_tag.get_compound()
+                .get("experiments", {})
                 .get("caves_and_cliffs", ByteTag())
                 .value,
             )
@@ -362,9 +384,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
 
         self.root_tag = root = CompoundTag()
         root["StorageVersion"] = IntTag(8)
-        root["lastOpenedWithVersion"] = ListTag(
-            [IntTag(i) for i in self._version]
-        )
+        root["lastOpenedWithVersion"] = ListTag([IntTag(i) for i in self._version])
         root["Generator"] = IntTag(1)
         root["LastPlayed"] = LongTag(int(time.time()))
         root["LevelName"] = StringTag("World Created By Amulet")
@@ -506,4 +526,9 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
             data = self._db.get(key)
         except KeyError:
             raise PlayerDoesNotExist(f"Player {player_id} doesn't exist")
-        return load_one(data, compressed=False, little_endian=True, string_decoder=utf8_escape_decoder)
+        return load_one(
+            data,
+            compressed=False,
+            little_endian=True,
+            string_decoder=utf8_escape_decoder,
+        )

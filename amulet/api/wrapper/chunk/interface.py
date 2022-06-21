@@ -17,7 +17,18 @@ from enum import Enum
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
 from amulet.api.data_types import AnyNDArray, VersionNumberAny, VersionIdentifierType
-from amulet_nbt import ListTag, CompoundTag, AnyNBT, BaseValueType, NamedTag, StringTag, IntTag, IntArrayTag, DoubleTag, FloatTag
+from amulet_nbt import (
+    ListTag,
+    CompoundTag,
+    AnyNBT,
+    BaseValueType,
+    NamedTag,
+    StringTag,
+    IntTag,
+    IntArrayTag,
+    DoubleTag,
+    FloatTag,
+)
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
@@ -91,10 +102,7 @@ class Interface(ABC):
             NamedTag,
         ]
     ]:
-        if not (
-            isinstance(nbt, NamedTag)
-            and isinstance(nbt.tag, CompoundTag)
-        ):
+        if not (isinstance(nbt, NamedTag) and isinstance(nbt.tag, CompoundTag)):
             return
 
         nbt_tag = nbt.tag
@@ -121,10 +129,7 @@ class Interface(ABC):
 
         elif id_type == EntityIDType.str_id:
             entity_id = nbt_tag.pop("id", StringTag(""))
-            if (
-                not isinstance(entity_id, StringTag)
-                or entity_id.value == ""
-            ):
+            if not isinstance(entity_id, StringTag) or entity_id.value == "":
                 return
             namespace = ""
             base_name = entity_id.value
@@ -178,8 +183,7 @@ class Interface(ABC):
             x, y, z = pos
         elif coord_type == EntityCoordType.xyz_int:
             if not all(
-                c in nbt_tag and isinstance(nbt_tag[c], IntTag)
-                for c in ("x", "y", "z")
+                c in nbt_tag and isinstance(nbt_tag[c], IntTag) for c in ("x", "y", "z")
             ):
                 return
             x, y, z = [nbt_tag.pop(c).value for c in ("x", "y", "z")]
@@ -257,9 +261,7 @@ class Interface(ABC):
                 ]
             )
         elif coord_type == EntityCoordType.Pos_array_int:
-            nbt_tag["Pos"] = IntArrayTag(
-                [int(entity.x), int(entity.y), int(entity.z)]
-            )
+            nbt_tag["Pos"] = IntArrayTag([int(entity.x), int(entity.y), int(entity.z)])
         elif coord_type == EntityCoordType.xyz_int:
             nbt_tag["x"] = IntTag(int(entity.x))
             nbt_tag["y"] = IntTag(int(entity.y))

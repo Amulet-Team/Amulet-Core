@@ -2,7 +2,17 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Dict, Generator, Optional, List, Union, Iterable, BinaryIO, Any
+from typing import (
+    Tuple,
+    Dict,
+    Generator,
+    Optional,
+    List,
+    Union,
+    Iterable,
+    BinaryIO,
+    Any,
+)
 import time
 import glob
 import shutil
@@ -10,7 +20,16 @@ import json
 
 import portalocker
 
-from amulet_nbt import IntTag, LongTag, DoubleTag, StringTag, ListTag, CompoundTag, NamedTag, load_one
+from amulet_nbt import (
+    IntTag,
+    LongTag,
+    DoubleTag,
+    StringTag,
+    ListTag,
+    CompoundTag,
+    NamedTag,
+    load_one,
+)
 from amulet.api.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
@@ -116,7 +135,8 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
 
     def _get_version(self) -> VersionNumberInt:
         return (
-            self.root_tag.get_compound().get("Data", CompoundTag())
+            self.root_tag.get_compound()
+            .get("Data", CompoundTag())
             .get("DataVersion", IntTag(-1))
             .value
         )
@@ -150,7 +170,9 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
     @property
     def game_version_string(self) -> str:
         try:
-            return f'Java {self.root_tag.get_compound()["Data"]["Version"]["Name"].value}'
+            return (
+                f'Java {self.root_tag.get_compound()["Data"]["Version"]["Name"].value}'
+            )
         except Exception:
             return f"Java Unknown Version"
 
@@ -160,13 +182,18 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
             packs = []
             if (
                 "DataPacks" in self.root_tag.get_compound()["Data"]
-                and isinstance(self.root_tag.get_compound()["Data"]["DataPacks"], CompoundTag)
+                and isinstance(
+                    self.root_tag.get_compound()["Data"]["DataPacks"], CompoundTag
+                )
                 and "Enabled" in self.root_tag.get_compound()["Data"]["DataPacks"]
                 and isinstance(
-                    self.root_tag.get_compound()["Data"]["DataPacks"]["Enabled"], ListTag
+                    self.root_tag.get_compound()["Data"]["DataPacks"]["Enabled"],
+                    ListTag,
                 )
             ):
-                for pack in self.root_tag.get_compound()["Data"]["DataPacks"]["Enabled"]:
+                for pack in self.root_tag.get_compound()["Data"]["DataPacks"][
+                    "Enabled"
+                ]:
                     if isinstance(pack, StringTag):
                         pack_name: str = pack.value
                         if pack_name == "vanilla":
@@ -331,9 +358,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         else:
             return (
                 self.platform,
-                raw_chunk_data.get("region", {})
-                .get("DataVersion", IntTag(-1))
-                .value,
+                raw_chunk_data.get("region", {}).get("DataVersion", IntTag(-1)).value,
             )
 
     def _decode(

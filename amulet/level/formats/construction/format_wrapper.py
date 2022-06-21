@@ -15,7 +15,17 @@ from io import BytesIO
 import struct
 import copy
 
-from amulet_nbt import ByteTag, IntTag, StringTag, ListTag, CompoundTag, ByteArrayTag, IntArrayTag, NamedTag, load_one
+from amulet_nbt import (
+    ByteTag,
+    IntTag,
+    StringTag,
+    ListTag,
+    CompoundTag,
+    ByteArrayTag,
+    IntArrayTag,
+    NamedTag,
+    load_one,
+)
 
 from amulet import log
 from amulet.api.data_types import (
@@ -317,9 +327,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             metadata = NamedTag(
                 CompoundTag(
                     {
-                        "created_with": StringTag(
-                            "amulet_python_wrapper_v2"
-                        ),
+                        "created_with": StringTag("amulet_python_wrapper_v2"),
                         "selection_boxes": IntArrayTag(
                             [
                                 c
@@ -333,9 +341,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                         "export_version": CompoundTag(
                             {
                                 "edition": StringTag(self._platform),
-                                "version": ListTag(
-                                    [IntTag(v) for v in self._version]
-                                ),
+                                "version": ListTag([IntTag(v) for v in self._version]),
                             }
                         ),
                     }
@@ -355,9 +361,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                         section_palette = section.palette
                         position = f.tell()
 
-                        _tag = CompoundTag(
-                            {"entities": serialise_entities(entities)}
-                        )
+                        _tag = CompoundTag({"entities": serialise_entities(entities)})
 
                         if blocks is None:
                             _tag["blocks_array_type"] = ByteTag(-1)
@@ -374,9 +378,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                             )
                             flattened_array = lut[flattened_array]
                             array_type = find_fitting_array_type(flattened_array)
-                            _tag["blocks_array_type"] = ByteTag(
-                                array_type().tag_id
-                            )
+                            _tag["blocks_array_type"] = ByteTag(array_type().tag_id)
                             _tag["blocks"] = array_type(flattened_array)
                             _tag["block_entities"] = serialise_block_entities(
                                 block_entities or []

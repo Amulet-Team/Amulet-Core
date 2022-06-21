@@ -261,9 +261,7 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
 
         return entities_out
 
-    def _decode_block_entity_list(
-        self, block_entities: ListTag
-    ) -> List["BlockEntity"]:
+    def _decode_block_entity_list(self, block_entities: ListTag) -> List["BlockEntity"]:
         entities_out = []
         if block_entities.list_data_type == CompoundTag.tag_id:
             for nbt in block_entities:

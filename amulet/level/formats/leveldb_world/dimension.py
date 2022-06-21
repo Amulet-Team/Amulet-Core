@@ -13,7 +13,15 @@ from threading import RLock
 import logging
 from contextlib import suppress
 
-from amulet_nbt import LongTag, StringTag, CompoundTag, NBTLoadError, load_one, utf8_escape_decoder, utf8_escape_encoder
+from amulet_nbt import (
+    LongTag,
+    StringTag,
+    CompoundTag,
+    NBTLoadError,
+    load_one,
+    utf8_escape_decoder,
+    utf8_escape_encoder,
+)
 
 from amulet.api.errors import ChunkDoesNotExist, DimensionDoesNotExist
 from amulet.api.data_types import ChunkCoordinates
@@ -199,7 +207,11 @@ class LevelDBDimensionManager:
                     actor_key = b"actorprefix" + digp[i : i + 8]
                     try:
                         actor_bytes = self._db.get(actor_key)
-                        actor = load_one(actor_bytes, little_endian=True, string_decoder=utf8_escape_decoder)
+                        actor = load_one(
+                            actor_bytes,
+                            little_endian=True,
+                            string_decoder=utf8_escape_decoder,
+                        )
                     except KeyError:
                         log.error(f"Could not find actor {actor_key}. Skipping.")
                     except NBTLoadError:
@@ -334,7 +346,9 @@ class LevelDBDimensionManager:
                 )
 
                 batch[b"actorprefix" + key] = actor.save_to(
-                    little_endian=True, compressed=False, string_encoder=utf8_escape_encoder
+                    little_endian=True,
+                    compressed=False,
+                    string_encoder=utf8_escape_encoder,
                 )
                 digp.append(key)
 

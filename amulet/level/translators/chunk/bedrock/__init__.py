@@ -227,9 +227,7 @@ class BaseBedrockTranslator(Translator):
                         )
                     if version.data_version > 0:
                         properties = output_object.properties
-                        properties["__version__"] = IntTag(
-                            version.data_version
-                        )
+                        properties["__version__"] = IntTag(version.data_version)
                         output_object = Block(
                             output_object.namespace,
                             output_object.base_name,

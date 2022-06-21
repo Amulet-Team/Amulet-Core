@@ -3,7 +3,16 @@ from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, Lis
 import numpy
 import copy
 
-from amulet_nbt import IntTag, StringTag, ListTag, CompoundTag, NamedTag, load_one, utf8_escape_decoder, utf8_escape_encoder
+from amulet_nbt import (
+    IntTag,
+    StringTag,
+    ListTag,
+    CompoundTag,
+    NamedTag,
+    load_one,
+    utf8_escape_decoder,
+    utf8_escape_encoder,
+)
 
 from amulet.api.data_types import (
     VersionNumberAny,
@@ -74,7 +83,9 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         self._has_lock = True
 
     def open_from(self, f: BinaryIO):
-        mcstructure = load_one(f, little_endian=True, string_decoder=utf8_escape_decoder)
+        mcstructure = load_one(
+            f, little_endian=True, string_decoder=utf8_escape_decoder
+        )
         if mcstructure["format_version"].value == 1:
             min_point = numpy.array(
                 tuple(c.value for c in mcstructure["structure_world_origin"])
@@ -293,9 +304,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             {
                 "block_indices": ListTag(
                     [  # a list of tag ints that index into the block_palette. One list per block layer
-                        ListTag(
-                            [IntTag(block) for block in layer]
-                        )
+                        ListTag([IntTag(block) for block in layer])
                         for layer in block_indices
                     ]
                 ),
@@ -334,7 +343,9 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                 ),
             }
         )
-        data.save_to(f, compressed=False, little_endian=True, string_encoder=utf8_escape_encoder)
+        data.save_to(
+            f, compressed=False, little_endian=True, string_encoder=utf8_escape_encoder
+        )
 
     def _close(self):
         """Close the disk database"""

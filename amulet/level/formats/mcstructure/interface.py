@@ -141,9 +141,7 @@ class MCStructureInterface(Interface):
             for version, block in block_layers:
                 block = CompoundTag(
                     {
-                        "name": StringTag(
-                            f"{block.namespace}:{block.base_name}"
-                        ),
+                        "name": StringTag(f"{block.namespace}:{block.base_name}"),
                         "states": CompoundTag(block.properties),
                     }
                 )

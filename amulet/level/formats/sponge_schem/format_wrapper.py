@@ -3,7 +3,16 @@ from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, Lis
 import numpy
 import copy
 
-from amulet_nbt import ShortTag, IntTag, ListTag, CompoundTag, ByteArrayTag, IntArrayTag, NamedTag, load_one
+from amulet_nbt import (
+    ShortTag,
+    IntTag,
+    ListTag,
+    CompoundTag,
+    ByteArrayTag,
+    IntArrayTag,
+    NamedTag,
+    load_one,
+)
 
 from amulet.api.data_types import (
     VersionNumberAny,
@@ -198,8 +207,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                 block_entities = sponge_schem["BlockEntities"]
                 if (
                     not isinstance(block_entities, ListTag)
-                    or block_entities.list_data_type
-                    != 10  # CompoundTag.tag_id
+                    or block_entities.list_data_type != 10  # CompoundTag.tag_id
                 ):
                     raise SpongeSchemReadError(
                         "BlockEntities must be a ListTag of compound tags."

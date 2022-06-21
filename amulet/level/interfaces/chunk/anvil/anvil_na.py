@@ -425,9 +425,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         # if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
         #     return False
         sections[cy]["Blocks"] = ByteArrayTag(block_sub_array.astype("uint8"))
-        sections[cy]["Data"] = ByteArrayTag(
-            world_utils.to_nibble_array(data_sub_array)
-        )
+        sections[cy]["Data"] = ByteArrayTag(world_utils.to_nibble_array(data_sub_array))
 
     def _encode_blocks(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
