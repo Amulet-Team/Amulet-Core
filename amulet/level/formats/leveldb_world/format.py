@@ -9,7 +9,7 @@ import shutil
 import traceback
 import time
 
-from amulet_nbt import load_one, NamedTag, CompoundTag, StringTag, ByteTag, IntTag, ListTag, LongTag, FloatTag, utf8_escape_decoder
+from amulet_nbt import load_one, NamedTag, CompoundTag, StringTag, ByteTag, IntTag, ListTag, LongTag, FloatTag, utf8_escape_decoder, utf8_escape_encoder
 from amulet.api.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionBox, SelectionGroup
@@ -80,10 +80,12 @@ class BedrockLevelDAT(NamedTag):
     def save_to(
         self,
         filename_or_buffer: Union[str, BinaryIO] = None,
+        *,
         compressed=False,
         little_endian=True,
+        string_encoder=utf8_escape_encoder,
     ) -> Optional[bytes]:
-        payload = super().save_to(compressed=compressed, little_endian=little_endian)
+        payload = super().save_to(compressed=compressed, little_endian=little_endian, string_encoder=string_encoder)
         buffer = BytesIO()
         buffer.write(struct.pack("<ii", self._level_dat_version, len(payload)))
         buffer.write(payload)

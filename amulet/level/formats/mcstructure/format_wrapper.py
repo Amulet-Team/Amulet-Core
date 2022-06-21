@@ -3,7 +3,7 @@ from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, Lis
 import numpy
 import copy
 
-from amulet_nbt import IntTag, StringTag, ListTag, CompoundTag, NamedTag, load_one, utf8_escape_decoder
+from amulet_nbt import IntTag, StringTag, ListTag, CompoundTag, NamedTag, load_one, utf8_escape_decoder, utf8_escape_encoder
 
 from amulet.api.data_types import (
     VersionNumberAny,
@@ -334,7 +334,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                 ),
             }
         )
-        data.save_to(f, compressed=False, little_endian=True)
+        data.save_to(f, compressed=False, little_endian=True, string_encoder=utf8_escape_encoder)
 
     def _close(self):
         """Close the disk database"""

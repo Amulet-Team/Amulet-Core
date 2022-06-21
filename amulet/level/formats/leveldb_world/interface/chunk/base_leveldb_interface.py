@@ -5,7 +5,7 @@ import struct
 import logging
 
 import numpy
-from amulet_nbt import ShortTag, IntTag, StringTag, CompoundTag, NamedTag, load_one, load_many, ReadContext, utf8_escape_decoder
+from amulet_nbt import ShortTag, IntTag, StringTag, CompoundTag, NamedTag, load_one, load_many, ReadContext, utf8_escape_decoder, utf8_escape_encoder
 
 import amulet
 from amulet.api.block import Block
@@ -727,7 +727,7 @@ class BaseLevelDBInterface(Interface):
         """Save a single layer of blocks in the block_palette format"""
         return b"".join(
             [self._encode_packed_array(blocks), struct.pack("<I", len(palette))]
-            + [block.save_to(compressed=False, little_endian=True) for block in palette]
+            + [block.save_to(compressed=False, little_endian=True, string_encoder=utf8_escape_encoder) for block in palette]
         )
 
     @staticmethod
@@ -744,7 +744,7 @@ class BaseLevelDBInterface(Interface):
     def _pack_nbt_list(nbt_list: List[NamedTag]):
         return b"".join(
             [
-                nbt.save_to(compressed=False, little_endian=True)
+                nbt.save_to(compressed=False, little_endian=True, string_encoder=utf8_escape_encoder)
                 for nbt in nbt_list
                 if isinstance(nbt, NamedTag)
             ]
