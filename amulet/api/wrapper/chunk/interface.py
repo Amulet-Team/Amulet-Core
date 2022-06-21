@@ -93,12 +93,14 @@ class Interface(ABC):
     ]:
         if not (
             isinstance(nbt, NamedTag)
-            and isinstance(nbt.value, CompoundTag)
+            and isinstance(nbt.tag, CompoundTag)
         ):
             return
 
+        nbt_tag = nbt.tag
+
         if id_type == EntityIDType.namespace_str_id:
-            entity_id = nbt.pop("id", StringTag(""))
+            entity_id = nbt_tag.pop("id", StringTag(""))
             if (
                 not isinstance(entity_id, StringTag)
                 or entity_id.value == ""
@@ -108,7 +110,7 @@ class Interface(ABC):
             namespace, base_name = entity_id.value.split(":", 1)
 
         elif id_type == EntityIDType.namespace_str_Id:
-            entity_id = nbt.pop("Id", StringTag(""))
+            entity_id = nbt_tag.pop("Id", StringTag(""))
             if (
                 not isinstance(entity_id, StringTag)
                 or entity_id.value == ""
@@ -118,7 +120,7 @@ class Interface(ABC):
             namespace, base_name = entity_id.value.split(":", 1)
 
         elif id_type == EntityIDType.str_id:
-            entity_id = nbt.pop("id", StringTag(""))
+            entity_id = nbt_tag.pop("id", StringTag(""))
             if (
                 not isinstance(entity_id, StringTag)
                 or entity_id.value == ""
@@ -128,8 +130,8 @@ class Interface(ABC):
             base_name = entity_id.value
 
         elif id_type in [EntityIDType.namespace_str_identifier, EntityIDType.int_id]:
-            if "identifier" in nbt:
-                entity_id = nbt.pop("identifier")
+            if "identifier" in nbt_tag:
+                entity_id = nbt_tag.pop("identifier")
                 if (
                     not isinstance(entity_id, StringTag)
                     or entity_id.value == ""
@@ -137,8 +139,8 @@ class Interface(ABC):
                 ):
                     return
                 namespace, base_name = entity_id.value.split(":", 1)
-            elif "id" in nbt:
-                entity_id = nbt.pop("id")
+            elif "id" in nbt_tag:
+                entity_id = nbt_tag.pop("id")
                 if not isinstance(entity_id, IntTag):
                     return
                 namespace = ""
@@ -153,9 +155,9 @@ class Interface(ABC):
             EntityCoordType.Pos_list_float,
             EntityCoordType.Pos_list_int,
         ]:
-            if "Pos" not in nbt:
+            if "Pos" not in nbt_tag:
                 return
-            pos = nbt.pop("Pos")
+            pos = nbt_tag.pop("Pos")
             pos: ListTag
 
             if (
@@ -166,9 +168,9 @@ class Interface(ABC):
                 return
             x, y, z = [c.value for c in pos]
         elif coord_type == EntityCoordType.Pos_array_int:
-            if "Pos" not in nbt:
+            if "Pos" not in nbt_tag:
                 return
-            pos = nbt.pop("Pos")
+            pos = nbt_tag.pop("Pos")
             pos: IntArrayTag
 
             if not isinstance(pos, IntArrayTag) or len(pos) != 3:
@@ -176,15 +178,15 @@ class Interface(ABC):
             x, y, z = pos
         elif coord_type == EntityCoordType.xyz_int:
             if not all(
-                c in nbt and isinstance(nbt[c], IntTag)
+                c in nbt_tag and isinstance(nbt_tag[c], IntTag)
                 for c in ("x", "y", "z")
             ):
                 return
-            x, y, z = [nbt.pop(c).value for c in ("x", "y", "z")]
+            x, y, z = [nbt_tag.pop(c).value for c in ("x", "y", "z")]
         else:
             raise NotImplementedError(f"Entity coord type {coord_type}")
 
-        return namespace, base_name, x, y, z, nbt
+        return namespace, base_name, x, y, z, nbt_tag
 
     @abstractmethod
     def encode(self, *args, **kwargs) -> Any:
@@ -210,28 +212,28 @@ class Interface(ABC):
         coord_type: EntityCoordType,
     ) -> Optional[NamedTag]:
         if not isinstance(entity.nbt, NamedTag) and isinstance(
-            entity.nbt.value, CompoundTag
+            entity.nbt.tag, CompoundTag
         ):
             return
-        nbt = entity.nbt
+        nbt_tag = entity.nbt.tag
 
         if id_type == EntityIDType.namespace_str_id:
-            nbt["id"] = StringTag(entity.namespaced_name)
+            nbt_tag["id"] = StringTag(entity.namespaced_name)
         elif id_type == EntityIDType.namespace_str_Id:
-            nbt["Id"] = StringTag(entity.namespaced_name)
+            nbt_tag["Id"] = StringTag(entity.namespaced_name)
         elif id_type == EntityIDType.namespace_str_identifier:
-            nbt["identifier"] = StringTag(entity.namespaced_name)
+            nbt_tag["identifier"] = StringTag(entity.namespaced_name)
         elif id_type == EntityIDType.str_id:
-            nbt["id"] = StringTag(entity.base_name)
+            nbt_tag["id"] = StringTag(entity.base_name)
         elif id_type == EntityIDType.int_id:
             if not entity.base_name.isnumeric():
                 return
-            nbt["id"] = IntTag(int(entity.base_name))
+            nbt_tag["id"] = IntTag(int(entity.base_name))
         else:
             raise NotImplementedError(f"Entity id type {id_type}")
 
         if coord_type == EntityCoordType.Pos_list_double:
-            nbt["Pos"] = ListTag(
+            nbt_tag["Pos"] = ListTag(
                 [
                     DoubleTag(float(entity.x)),
                     DoubleTag(float(entity.y)),
@@ -239,7 +241,7 @@ class Interface(ABC):
                 ]
             )
         elif coord_type == EntityCoordType.Pos_list_float:
-            nbt["Pos"] = ListTag(
+            nbt_tag["Pos"] = ListTag(
                 [
                     FloatTag(float(entity.x)),
                     FloatTag(float(entity.y)),
@@ -247,7 +249,7 @@ class Interface(ABC):
                 ]
             )
         elif coord_type == EntityCoordType.Pos_list_int:
-            nbt["Pos"] = ListTag(
+            nbt_tag["Pos"] = ListTag(
                 [
                     IntTag(int(entity.x)),
                     IntTag(int(entity.y)),
@@ -255,17 +257,17 @@ class Interface(ABC):
                 ]
             )
         elif coord_type == EntityCoordType.Pos_array_int:
-            nbt["Pos"] = IntArrayTag(
+            nbt_tag["Pos"] = IntArrayTag(
                 [int(entity.x), int(entity.y), int(entity.z)]
             )
         elif coord_type == EntityCoordType.xyz_int:
-            nbt["x"] = IntTag(int(entity.x))
-            nbt["y"] = IntTag(int(entity.y))
-            nbt["z"] = IntTag(int(entity.z))
+            nbt_tag["x"] = IntTag(int(entity.x))
+            nbt_tag["y"] = IntTag(int(entity.y))
+            nbt_tag["z"] = IntTag(int(entity.z))
         else:
             raise NotImplementedError(f"Entity coord type {coord_type}")
 
-        return nbt
+        return nbt_tag
 
     @overload
     @staticmethod

@@ -162,7 +162,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         For this format wrapper it returns a tuple of 3/4 ints (the game version number)
         """
         try:
-            return tuple([t.value for t in self.root_tag["lastOpenedWithVersion"]])
+            return tuple([t.value for t in self.root_tag.get_compound()["lastOpenedWithVersion"]])
         except Exception:
             return 1, 2, 0
 
@@ -185,20 +185,20 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
 
     @property
     def level_name(self):
-        return str(self.root_tag.get("LevelName", ""))
+        return str(self.root_tag.get_compound().get("LevelName", ""))
 
     @level_name.setter
     def level_name(self, value: str):
-        self.root_tag["LevelName"] = StringTag(value)
+        self.root_tag.get_compound()["LevelName"] = StringTag(value)
 
     @property
     def last_played(self) -> int:
-        return int(self.root_tag.get("LastPlayed", 0))
+        return int(self.root_tag.get_compound().get("LastPlayed", 0))
 
     @property
     def game_version_string(self) -> str:
         try:
-            return f'Bedrock {".".join(str(v.value) for v in self.root_tag["lastOpenedWithVersion"].value)}'
+            return f'Bedrock {".".join(str(v.value) for v in self.root_tag.get_compound()["lastOpenedWithVersion"].value)}'
         except Exception:
             return f"Bedrock Unknown Version"
 
@@ -249,7 +249,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         else:
             chunk_version = game_to_chunk_version(
                 self.max_world_version[1],
-                self.root_tag.get("experiments", {})
+                self.root_tag.get_compound().get("experiments", {})
                 .get("caves_and_cliffs", ByteTag())
                 .value,
             )
@@ -291,7 +291,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
             self._dimension_manager = LevelDBDimensionManager(self)
             self._is_open = True
             self._has_lock = True
-            experiments = self.root_tag.get("experiments", {})
+            experiments = self.root_tag.get_compound().get("experiments", {})
             if (
                 experiments.get("caves_and_cliffs", ByteTag()).value
                 or experiments.get("caves_and_cliffs_internal", ByteTag()).value
@@ -451,9 +451,9 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         :param player_id: The desired player id
         :return: A Player instance
         """
-        player_nbt = self._get_raw_player_data(player_id)
+        player_nbt = self._get_raw_player_data(player_id).get_compound()
         dimension = player_nbt["DimensionId"]
-        if isinstance(dimension, IntTag) and 0 <= dimension <= 2:
+        if isinstance(dimension, IntTag) and IntTag(0) <= dimension <= IntTag(2):
             dimension_str = {
                 0: OVERWORLD,
                 1: THE_NETHER,
