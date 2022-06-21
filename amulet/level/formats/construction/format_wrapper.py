@@ -15,7 +15,7 @@ from io import BytesIO
 import struct
 import copy
 
-import amulet_nbt
+from amulet_nbt import ByteTag, IntTag, StringTag, ListTag, CompoundTag, ByteArrayTag, IntArrayTag, NamedTag, load_one
 
 from amulet import log
 from amulet.api.data_types import (
@@ -115,7 +115,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                             ]
                             f.seek(metadata_start)
 
-                            metadata = amulet_nbt.load(
+                            metadata = load_one(
                                 f.read(metadata_end - metadata_start),
                                 compressed=True,
                             )
@@ -190,7 +190,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             metadata_start = INT_STRUCT.unpack(f.read(INT_STRUCT.size))[0]
             f.seek(metadata_start)
 
-            metadata = amulet_nbt.load(
+            metadata = load_one(
                 f.read(metadata_end - metadata_start),
                 compressed=True,
             )
@@ -234,7 +234,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                     length,
                 ) in section_index_table:
                     f.seek(position)
-                    nbt_obj = amulet_nbt.load(f.read(length))
+                    nbt_obj = load_one(f.read(length))
                     if nbt_obj["blocks_array_type"].value == -1:
                         blocks = None
                         block_entities = None
@@ -314,13 +314,13 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         f.write(magic_num)
         f.write(struct.pack(">B", self._format_version))
         if self._format_version == 0:
-            metadata = amulet_nbt.NBTFile(
-                amulet_nbt.TAG_Compound(
+            metadata = NamedTag(
+                CompoundTag(
                     {
-                        "created_with": amulet_nbt.TAG_String(
+                        "created_with": StringTag(
                             "amulet_python_wrapper_v2"
                         ),
-                        "selection_boxes": amulet_nbt.TAG_Int_Array(
+                        "selection_boxes": IntArrayTag(
                             [
                                 c
                                 for box in self._bounds[
@@ -329,12 +329,12 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                                 for c in (*box.min, *box.max)
                             ]
                         ),
-                        "section_version": amulet_nbt.TAG_Byte(self._section_version),
-                        "export_version": amulet_nbt.TAG_Compound(
+                        "section_version": ByteTag(self._section_version),
+                        "export_version": CompoundTag(
                             {
-                                "edition": amulet_nbt.TAG_String(self._platform),
-                                "version": amulet_nbt.TAG_List(
-                                    [amulet_nbt.TAG_Int(v) for v in self._version]
+                                "edition": StringTag(self._platform),
+                                "version": ListTag(
+                                    [IntTag(v) for v in self._version]
                                 ),
                             }
                         ),
@@ -355,12 +355,12 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                         section_palette = section.palette
                         position = f.tell()
 
-                        _tag = amulet_nbt.TAG_Compound(
+                        _tag = CompoundTag(
                             {"entities": serialise_entities(entities)}
                         )
 
                         if blocks is None:
-                            _tag["blocks_array_type"] = amulet_nbt.TAG_Byte(-1)
+                            _tag["blocks_array_type"] = ByteTag(-1)
                         else:
                             flattened_array = blocks.ravel()
                             index, flattened_array = numpy.unique(
@@ -374,7 +374,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                             )
                             flattened_array = lut[flattened_array]
                             array_type = find_fitting_array_type(flattened_array)
-                            _tag["blocks_array_type"] = amulet_nbt.TAG_Byte(
+                            _tag["blocks_array_type"] = ByteTag(
                                 array_type().tag_id
                             )
                             _tag["blocks"] = array_type(flattened_array)
@@ -382,7 +382,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                                 block_entities or []
                             )
 
-                        amulet_nbt.NBTFile(_tag).save_to(f)
+                        NamedTag(_tag).save_to(f)
 
                         length = f.tell() - position
                         section_index_table.append(
@@ -393,7 +393,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                     f"This wrapper doesn't support any section version higher than {max_section_version}"
                 )
             metadata_start = f.tell()
-            metadata["section_index_table"] = amulet_nbt.TAG_Byte_Array(
+            metadata["section_index_table"] = ByteArrayTag(
                 numpy.array(section_index_table, dtype=SECTION_ENTRY_TYPE).view(
                     numpy.int8
                 )

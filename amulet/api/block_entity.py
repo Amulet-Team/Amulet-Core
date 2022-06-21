@@ -2,7 +2,7 @@ from __future__ import annotations
 import copy
 import numpy
 
-import amulet_nbt
+from amulet_nbt import NamedTag
 from amulet.api.data_types import BlockCoordinates
 from .abstract_base_entity import AbstractBaseEntity
 
@@ -22,7 +22,7 @@ class BlockEntity(AbstractBaseEntity):
         x: int,
         y: int,
         z: int,
-        nbt: amulet_nbt.NBTFile,
+        nbt: NamedTag,
     ):
         """
         Constructs a :class:`BlockEntity` instance.

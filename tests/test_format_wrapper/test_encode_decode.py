@@ -1,7 +1,7 @@
 import copy
 import unittest
 
-from amulet_nbt import TAG_Compound
+from amulet_nbt import CompoundTag
 from amulet import load_format
 from tests.data.util import WorldTemp, for_each_world, BaseWorldTest
 from tests.data.worlds_src import levels
@@ -26,7 +26,7 @@ class BaseTestDecodeEncode(BaseWorldTest, unittest.TestCase):
                         and world_temp.metadata["world_data"]["origin"] == "vanilla"
                     ):
                         # store references to the data
-                        level_tag = raw_chunk_data.get("Level", TAG_Compound())
+                        level_tag = raw_chunk_data.get("Level", CompoundTag())
 
                     # decode the raw chunk data
                     chunk, chunk_palette = level._decode(

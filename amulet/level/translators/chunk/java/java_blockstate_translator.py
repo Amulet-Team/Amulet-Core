@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-import amulet_nbt
+from amulet_nbt import StringTag
 
 from amulet.api.chunk import Chunk
 from amulet.api.wrapper import Translator
@@ -53,9 +53,9 @@ class JavaBlockstateTranslator(Translator):
                         properties=properties,
                     )
                 else:
-                    waterlogged = amulet_nbt.TAG_String("false")
+                    waterlogged = StringTag("false")
 
-                if waterlogged == amulet_nbt.TAG_String("true"):
+                if waterlogged == StringTag("true"):
                     block_palette[index] = block + water
                 else:
                     block_palette[index] = block
@@ -80,9 +80,9 @@ class JavaBlockstateTranslator(Translator):
                     extra_blocks
                     and extra_blocks[0].namespaced_name == water.namespaced_name
                 ):
-                    properties["waterlogged"] = amulet_nbt.TAG_String("true")
+                    properties["waterlogged"] = StringTag("true")
                 else:
-                    properties["waterlogged"] = amulet_nbt.TAG_String("false")
+                    properties["waterlogged"] = StringTag("false")
                 palette[index] = Block(
                     namespace=block.namespace,
                     base_name=block.base_name,

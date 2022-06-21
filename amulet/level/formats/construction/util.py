@@ -1,7 +1,7 @@
 from typing import List, Union, Type
 import numpy
 
-import amulet_nbt
+from amulet_nbt import IntTag, DoubleTag, StringTag, ListTag, CompoundTag, ByteArrayTag, IntArrayTag, LongArrayTag, NamedTag
 
 from amulet.api.block import Block
 from amulet.api.entity import Entity
@@ -9,11 +9,11 @@ from amulet.api.block_entity import BlockEntity
 from amulet.api.registry import BlockManager
 
 
-def unpack_palette(raw_palette: amulet_nbt.TAG_List) -> List[Block]:
+def unpack_palette(raw_palette: ListTag) -> List[Block]:
     block_palette = []
     extra_block_map = {}
     for block_index, block_nbt in enumerate(raw_palette):
-        block_nbt: amulet_nbt.TAG_Compound
+        block_nbt: CompoundTag
         block_namespace = block_nbt["namespace"].value
         block_basename = block_nbt["blockname"].value
         block = Block(
@@ -38,7 +38,7 @@ def unpack_palette(raw_palette: amulet_nbt.TAG_List) -> List[Block]:
     return block_palette
 
 
-def parse_entities(entities: amulet_nbt.TAG_List) -> List[Entity]:
+def parse_entities(entities: ListTag) -> List[Entity]:
     return [
         Entity(
             entity["namespace"].value,
@@ -46,13 +46,13 @@ def parse_entities(entities: amulet_nbt.TAG_List) -> List[Entity]:
             entity["x"].value,
             entity["y"].value,
             entity["z"].value,
-            amulet_nbt.NBTFile(entity["nbt"]),
+            NamedTag(entity["nbt"]),
         )
         for entity in entities
     ]
 
 
-def parse_block_entities(block_entities: amulet_nbt.TAG_List) -> List[BlockEntity]:
+def parse_block_entities(block_entities: ListTag) -> List[BlockEntity]:
     return [
         BlockEntity(
             block_entity["namespace"].value,
@@ -60,7 +60,7 @@ def parse_block_entities(block_entities: amulet_nbt.TAG_List) -> List[BlockEntit
             block_entity["x"].value,
             block_entity["y"].value,
             block_entity["z"].value,
-            amulet_nbt.NBTFile(block_entity["nbt"]),
+            NamedTag(block_entity["nbt"]),
         )
         for block_entity in block_entities
     ]
@@ -68,15 +68,15 @@ def parse_block_entities(block_entities: amulet_nbt.TAG_List) -> List[BlockEntit
 
 def generate_block_entry(
     block: Block, palette_len, extra_blocks
-) -> amulet_nbt.TAG_Compound:
-    return amulet_nbt.TAG_Compound(
+) -> CompoundTag:
+    return CompoundTag(
         {
-            "namespace": amulet_nbt.TAG_String(block.namespace),
-            "blockname": amulet_nbt.TAG_String(block.base_name),
-            "properties": amulet_nbt.TAG_Compound(block.properties),
-            "extra_blocks": amulet_nbt.TAG_List(
+            "namespace": StringTag(block.namespace),
+            "blockname": StringTag(block.base_name),
+            "properties": CompoundTag(block.properties),
+            "extra_blocks": ListTag(
                 [
-                    amulet_nbt.TAG_Int(palette_len + extra_blocks.index(_extra_block))
+                    IntTag(palette_len + extra_blocks.index(_extra_block))
                     for _extra_block in block.extra_blocks
                 ]
             ),
@@ -84,16 +84,16 @@ def generate_block_entry(
     )
 
 
-def serialise_entities(entities: List[Entity]) -> amulet_nbt.TAG_List:
-    return amulet_nbt.TAG_List(
+def serialise_entities(entities: List[Entity]) -> ListTag:
+    return ListTag(
         [
-            amulet_nbt.TAG_Compound(
+            CompoundTag(
                 {
-                    "namespace": amulet_nbt.TAG_String(entity.namespace),
-                    "base_name": amulet_nbt.TAG_String(entity.base_name),
-                    "x": amulet_nbt.TAG_Double(entity.x),
-                    "y": amulet_nbt.TAG_Double(entity.y),
-                    "z": amulet_nbt.TAG_Double(entity.z),
+                    "namespace": StringTag(entity.namespace),
+                    "base_name": StringTag(entity.base_name),
+                    "x": DoubleTag(entity.x),
+                    "y": DoubleTag(entity.y),
+                    "z": DoubleTag(entity.z),
                     "nbt": entity.nbt.value,
                 }
             )
@@ -104,16 +104,16 @@ def serialise_entities(entities: List[Entity]) -> amulet_nbt.TAG_List:
 
 def serialise_block_entities(
     block_entities: List[BlockEntity],
-) -> amulet_nbt.TAG_List:
-    return amulet_nbt.TAG_List(
+) -> ListTag:
+    return ListTag(
         [
-            amulet_nbt.TAG_Compound(
+            CompoundTag(
                 {
-                    "namespace": amulet_nbt.TAG_String(block_entity.namespace),
-                    "base_name": amulet_nbt.TAG_String(block_entity.base_name),
-                    "x": amulet_nbt.TAG_Int(block_entity.x),
-                    "y": amulet_nbt.TAG_Int(block_entity.y),
-                    "z": amulet_nbt.TAG_Int(block_entity.z),
+                    "namespace": StringTag(block_entity.namespace),
+                    "base_name": StringTag(block_entity.base_name),
+                    "x": IntTag(block_entity.x),
+                    "y": IntTag(block_entity.y),
+                    "z": IntTag(block_entity.z),
                     "nbt": block_entity.nbt.value,
                 }
             )
@@ -125,22 +125,22 @@ def serialise_block_entities(
 def find_fitting_array_type(
     array: numpy.ndarray,
 ) -> Union[
-    Type[amulet_nbt.TAG_Int_Array],
-    Type[amulet_nbt.TAG_Byte_Array],
-    Type[amulet_nbt.TAG_Long_Array],
+    Type[IntArrayTag],
+    Type[ByteArrayTag],
+    Type[LongArrayTag],
 ]:
     max_element = array.max(initial=0)
 
     if max_element <= 127:
-        return amulet_nbt.TAG_Byte_Array
+        return ByteArrayTag
     elif max_element <= 2_147_483_647:
-        return amulet_nbt.TAG_Int_Array
+        return IntArrayTag
     else:
-        return amulet_nbt.TAG_Long_Array
+        return LongArrayTag
 
 
-def pack_palette(palette: BlockManager) -> amulet_nbt.TAG_List:
-    block_palette_nbt = amulet_nbt.TAG_List()
+def pack_palette(palette: BlockManager) -> ListTag:
+    block_palette_nbt = ListTag()
     extra_blocks = set()
 
     for block in palette.blocks:

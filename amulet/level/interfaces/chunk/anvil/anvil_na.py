@@ -4,16 +4,16 @@ from typing import Tuple, Dict, List, TYPE_CHECKING
 
 import numpy
 from amulet_nbt import (
-    TAG_Byte,
-    TAG_Int,
-    TAG_Long,
-    TAG_String,
-    TAG_List,
-    TAG_Compound,
-    TAG_Byte_Array,
-    TAG_Int_Array,
+    ByteTag,
+    IntTag,
+    LongTag,
+    StringTag,
+    ListTag,
+    CompoundTag,
+    ByteArrayTag,
+    IntArrayTag,
     BaseArrayType,
-    NBTFile,
+    NamedTag,
 )
 
 import amulet
@@ -33,72 +33,72 @@ if TYPE_CHECKING:
 
 
 class AnvilNAInterface(BaseAnvilInterface):
-    Level: ChunkPathType = ("region", [("Level", TAG_Compound)], TAG_Compound)
+    Level: ChunkPathType = ("region", [("Level", CompoundTag)], CompoundTag)
     Sections: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("Sections", TAG_List)],
-        TAG_List,
+        [("Level", CompoundTag), ("Sections", ListTag)],
+        ListTag,
     )
 
     BlockEntities: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("TileEntities", TAG_List)],
-        TAG_List,
+        [("Level", CompoundTag), ("TileEntities", ListTag)],
+        ListTag,
     )
     Entities: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("Entities", TAG_List)],
-        TAG_List,
+        [("Level", CompoundTag), ("Entities", ListTag)],
+        ListTag,
     )
     InhabitedTime: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("InhabitedTime", TAG_Long)],
-        TAG_Long,
+        [("Level", CompoundTag), ("InhabitedTime", LongTag)],
+        LongTag,
     )
     LastUpdate: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("LastUpdate", TAG_Long)],
-        TAG_Long,
+        [("Level", CompoundTag), ("LastUpdate", LongTag)],
+        LongTag,
     )
     HeightMap: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("HeightMap", TAG_Int_Array)],
-        TAG_Int_Array,
+        [("Level", CompoundTag), ("HeightMap", IntArrayTag)],
+        IntArrayTag,
     )
     TerrainPopulated: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("TerrainPopulated", TAG_Byte)],
-        TAG_Byte,
+        [("Level", CompoundTag), ("TerrainPopulated", ByteTag)],
+        ByteTag,
     )
     LightPopulated: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("LightPopulated", TAG_Byte)],
-        TAG_Byte,
+        [("Level", CompoundTag), ("LightPopulated", ByteTag)],
+        ByteTag,
     )
     V: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("V", TAG_Byte)],
-        TAG_Byte(1),
+        [("Level", CompoundTag), ("V", ByteTag)],
+        ByteTag(1),
     )
     BlockTicks: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("TileTicks", TAG_List)],
-        TAG_List,
+        [("Level", CompoundTag), ("TileTicks", ListTag)],
+        ListTag,
     )
     Biomes: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("Biomes", TAG_Byte_Array)],
+        [("Level", CompoundTag), ("Biomes", ByteArrayTag)],
         None,
     )
     xPos: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("xPos", TAG_Int)],
-        TAG_Int,
+        [("Level", CompoundTag), ("xPos", IntTag)],
+        IntTag,
     )
     zPos: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("zPos", TAG_Int)],
-        TAG_Int,
+        [("Level", CompoundTag), ("zPos", IntTag)],
+        IntTag,
     )
 
     def __init__(self):
@@ -170,7 +170,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         }
         return chunk
 
-    def _get_level(self, data: ChunkDataType) -> TAG_Compound:
+    def _get_level(self, data: ChunkDataType) -> CompoundTag:
         """
         Get the level data container
         For older levels this is region:Level but newer worlds it is in region root
@@ -229,7 +229,7 @@ class AnvilNAInterface(BaseAnvilInterface):
             chunk.misc["height_map256IA"] = height.reshape((16, 16))
 
     def _iter_sections(self, data: ChunkDataType):
-        sections: TAG_List = self.get_layer_obj(data, self.Sections)
+        sections: ListTag = self.get_layer_obj(data, self.Sections)
         for section in sections:
             yield section["Y"].value, section
 
@@ -291,7 +291,7 @@ class AnvilNAInterface(BaseAnvilInterface):
     ) -> Dict[int, numpy.ndarray]:
         light_container = {}
         for cy, section in self._iter_sections(data):
-            if self.check_type(section, section_key, TAG_Byte_Array):
+            if self.check_type(section, section_key, ByteArrayTag):
                 light: numpy.ndarray = section.pop(section_key).value
                 if light.size == 2048:
                     # TODO: check if this needs transposing or if the values are the other way around
@@ -334,7 +334,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         )
 
     @staticmethod
-    def _decode_ticks(ticks: TAG_List) -> Dict[BlockCoordinates, Tuple[str, int, int]]:
+    def _decode_ticks(ticks: ListTag) -> Dict[BlockCoordinates, Tuple[str, int, int]]:
         return {
             (tick["x"].value, tick["y"].value, tick["z"].value): (
                 tick["i"].value,
@@ -342,9 +342,9 @@ class AnvilNAInterface(BaseAnvilInterface):
                 tick["p"].value,
             )
             for tick in ticks
-            if all(c in tick and isinstance(tick[c], TAG_Int) for c in "xyztp")
+            if all(c in tick and isinstance(tick[c], IntTag) for c in "xyztp")
             and "i" in tick
-            and isinstance(tick["i"], TAG_String)
+            and isinstance(tick["i"], StringTag)
         }
 
     def _decode_block_ticks(
@@ -382,7 +382,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         return {
             key: value
             for key, value in data.items()
-            if isinstance(key, str) and isinstance(value, NBTFile)
+            if isinstance(key, str) and isinstance(value, NamedTag)
         }
 
     def _get_encode_sections(
@@ -390,27 +390,27 @@ class AnvilNAInterface(BaseAnvilInterface):
         data: ChunkDataType,
         floor_cy: int,
         height_cy: int,
-    ) -> Dict[int, TAG_Compound]:
+    ) -> Dict[int, CompoundTag]:
         """Get or create the section array populating all valid sections"""
         sections = self.set_layer_obj(data, self.Sections, setdefault=True)
-        section_map: Dict[int, TAG_Compound] = {}
+        section_map: Dict[int, CompoundTag] = {}
         for section_index in range(len(sections) - 1, -1, -1):
             section = sections[section_index]
             cy = section.get("Y", None)
-            if isinstance(cy, TAG_Byte):
+            if isinstance(cy, ByteTag):
                 section_map[cy.value] = section
             else:
                 sections.pop(section_index)
         for cy in range(floor_cy, floor_cy + height_cy):
             if cy not in section_map:
-                section = section_map[cy] = TAG_Compound({"Y": TAG_Byte(cy)})
+                section = section_map[cy] = CompoundTag({"Y": ByteTag(cy)})
                 sections.append(section)
         return section_map
 
     def _encode_block_section(
         self,
         chunk: Chunk,
-        sections: Dict[int, TAG_Compound],
+        sections: Dict[int, CompoundTag],
         palette: AnyNDArray,
         cy: int,
     ):
@@ -424,8 +424,8 @@ class AnvilNAInterface(BaseAnvilInterface):
         block_sub_array = block_sub_array[:, 0]
         # if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
         #     return False
-        sections[cy]["Blocks"] = TAG_Byte_Array(block_sub_array.astype("uint8"))
-        sections[cy]["Data"] = TAG_Byte_Array(
+        sections[cy]["Blocks"] = ByteArrayTag(block_sub_array.astype("uint8"))
+        sections[cy]["Data"] = ByteArrayTag(
             world_utils.to_nibble_array(data_sub_array)
         )
 
@@ -442,33 +442,33 @@ class AnvilNAInterface(BaseAnvilInterface):
     def _encode_coords(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        self.set_layer_obj(data, self.xPos, TAG_Int(chunk.cx))
-        self.set_layer_obj(data, self.zPos, TAG_Int(chunk.cz))
+        self.set_layer_obj(data, self.xPos, IntTag(chunk.cx))
+        self.set_layer_obj(data, self.zPos, IntTag(chunk.cz))
 
     def _encode_last_update(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         self.set_layer_obj(
-            data, self.LastUpdate, TAG_Long(chunk.misc.get("last_update", 0))
+            data, self.LastUpdate, LongTag(chunk.misc.get("last_update", 0))
         )
 
     def _encode_status(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         status = chunk.status.as_type(StatusFormats.Raw)
-        self.set_layer_obj(data, self.TerrainPopulated, TAG_Byte(int(status > -0.3)))
-        self.set_layer_obj(data, self.LightPopulated, TAG_Byte(int(status > -0.2)))
+        self.set_layer_obj(data, self.TerrainPopulated, ByteTag(int(status > -0.3)))
+        self.set_layer_obj(data, self.LightPopulated, ByteTag(int(status > -0.2)))
 
     def _encode_v_tag(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        self.set_layer_obj(data, self.V, TAG_Byte(chunk.misc.get("V", 1)))
+        self.set_layer_obj(data, self.V, ByteTag(chunk.misc.get("V", 1)))
 
     def _encode_inhabited_time(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         self.set_layer_obj(
-            data, self.InhabitedTime, TAG_Long(chunk.misc.get("inhabited_time", 0))
+            data, self.InhabitedTime, LongTag(chunk.misc.get("inhabited_time", 0))
         )
 
     def _encode_biomes(
@@ -478,7 +478,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         self.set_layer_obj(
             data,
             self.Biomes,
-            TAG_Byte_Array(chunk.biomes.astype(dtype=numpy.uint8).ravel()),
+            ByteArrayTag(chunk.biomes.astype(dtype=numpy.uint8).ravel()),
         )
 
     def _encode_height(
@@ -493,10 +493,10 @@ class AnvilNAInterface(BaseAnvilInterface):
             self.set_layer_obj(
                 data,
                 self.HeightMap,
-                TAG_Int_Array(numpy.zeros(256, dtype=numpy.uint32)),
+                IntArrayTag(numpy.zeros(256, dtype=numpy.uint32)),
             )
         elif self._features["height_map"] == "256IARequired":
-            self.set_layer_obj(data, self.HeightMap, TAG_Int_Array(height.ravel()))
+            self.set_layer_obj(data, self.HeightMap, IntArrayTag(height.ravel()))
 
     def _encode_entities(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
@@ -522,21 +522,21 @@ class AnvilNAInterface(BaseAnvilInterface):
         )
 
     @staticmethod
-    def _encode_ticks(ticks: Dict[BlockCoordinates, Tuple[str, int, int]]) -> TAG_List:
-        ticks_out = TAG_List()
+    def _encode_ticks(ticks: Dict[BlockCoordinates, Tuple[str, int, int]]) -> ListTag:
+        ticks_out = ListTag()
         if isinstance(ticks, dict):
             for k, v in ticks.items():
                 try:
                     (x, y, z), (i, t, p) = k, v
                     ticks_out.append(
-                        TAG_Compound(
+                        CompoundTag(
                             {
-                                "i": TAG_String(i),
-                                "p": TAG_Int(p),
-                                "t": TAG_Int(t),
-                                "x": TAG_Int(x),
-                                "y": TAG_Int(y),
-                                "z": TAG_Int(x),
+                                "i": StringTag(i),
+                                "p": IntTag(p),
+                                "t": IntTag(t),
+                                "x": IntTag(x),
+                                "y": IntTag(y),
+                                "z": IntTag(x),
                             }
                         )
                     )
@@ -571,9 +571,9 @@ class AnvilNAInterface(BaseAnvilInterface):
                 and light.shape == (16, 16, 16)
             ):
                 light = light.ravel() % 16
-                section[section_key] = TAG_Byte_Array(light[::2] + (light[1::2] << 4))
+                section[section_key] = ByteArrayTag(light[::2] + (light[1::2] << 4))
             elif self._features["light_optional"] == "false":
-                section[section_key] = TAG_Byte_Array(
+                section[section_key] = ByteArrayTag(
                     numpy.full(2048, 255, dtype=numpy.uint8)
                 )
 

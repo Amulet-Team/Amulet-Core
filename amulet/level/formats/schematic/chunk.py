@@ -1,7 +1,7 @@
 import numpy
 from typing import List
 
-import amulet_nbt
+from amulet_nbt import CompoundTag
 
 from amulet.api.selection import SelectionBox
 from .data_types import BlockDataArrayType, BlockArrayType
@@ -13,8 +13,8 @@ class SchematicChunk:
         selection: SelectionBox,
         blocks: BlockArrayType,
         data: BlockDataArrayType,
-        block_entities: List[amulet_nbt.TAG_Compound],
-        entities: List[amulet_nbt.TAG_Compound],
+        block_entities: List[CompoundTag],
+        entities: List[CompoundTag],
     ):
         self.selection = selection
         assert isinstance(blocks, numpy.ndarray) and blocks.dtype == numpy.uint16

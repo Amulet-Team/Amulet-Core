@@ -1,6 +1,6 @@
 <0 added
 <0 required no
-<0 type TAG_Byte_Array
+<0 type ByteArrayTag
 <0 length 256
-1467 type TAG_Int_Array
+1467 type IntArrayTag
 2203 length 1024

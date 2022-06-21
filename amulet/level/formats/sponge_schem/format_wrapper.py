@@ -3,7 +3,7 @@ from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, Lis
 import numpy
 import copy
 
-import amulet_nbt
+from amulet_nbt import ShortTag, IntTag, ListTag, CompoundTag, ByteArrayTag, IntArrayTag, NamedTag, load_one
 
 from amulet.api.data_types import (
     VersionNumberAny,
@@ -61,8 +61,8 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                 SelectionBox,
                 numpy.ndarray,
                 AnyNDArray,
-                List[amulet_nbt.TAG_Compound],
-                List[amulet_nbt.TAG_Compound],
+                List[CompoundTag],
+                List[CompoundTag],
             ],
         ] = {}
         self._schem_version: int = max_schem_version
@@ -86,9 +86,9 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
         self._has_lock = True
 
     def open_from(self, f: BinaryIO):
-        sponge_schem = amulet_nbt.load(f)
+        sponge_schem = load_one(f)
         version = sponge_schem.get("Version")
-        if not isinstance(version, amulet_nbt.TAG_Int):
+        if not isinstance(version, IntTag):
             raise SpongeSchemReadError("Version key must exist and be an integer.")
         if version == 1:
             raise SpongeSchemReadError(
@@ -96,7 +96,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             )
         elif version == 2:
             offset = sponge_schem.get("Offset")
-            if isinstance(offset, amulet_nbt.TAG_Int_Array) and len(offset) == 3:
+            if isinstance(offset, IntArrayTag) and len(offset) == 3:
                 min_point = numpy.array(offset)
             else:
                 min_point = numpy.array([0, 0, 0], dtype=numpy.int32)
@@ -104,9 +104,9 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             size = []
             for key in ("Width", "Height", "Length"):
                 val = sponge_schem.get(key)
-                if not isinstance(val, amulet_nbt.TAG_Short):
+                if not isinstance(val, ShortTag):
                     raise SpongeSchemReadError(
-                        f"Key {key} must exist and be a TAG_Short."
+                        f"Key {key} must exist and be a ShortTag."
                     )
                 # convert to an unsigned short
                 val = val.value
@@ -118,8 +118,8 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             selection = SelectionBox(min_point, max_point)
             self._bounds[self.dimensions[0]] = SelectionGroup(selection)
             data_version = sponge_schem.get("DataVersion")
-            if not isinstance(data_version, amulet_nbt.TAG_Int):
-                raise SpongeSchemReadError("DataVersion must be a TAG_Int.")
+            if not isinstance(data_version, IntTag):
+                raise SpongeSchemReadError("DataVersion must be a IntTag.")
             translator_version = self.translation_manager.get_version(
                 "java", int(data_version)
             )
@@ -127,8 +127,8 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             self._version = translator_version.data_version
 
             packed_block_data = sponge_schem.get("BlockData")
-            if not isinstance(packed_block_data, amulet_nbt.TAG_Byte_Array):
-                raise SpongeSchemReadError("BlockData must be a TAG_Byte_Array")
+            if not isinstance(packed_block_data, ByteArrayTag):
+                raise SpongeSchemReadError("BlockData must be a ByteArrayTag")
 
             unpacked_block_data = decode_byte_array(
                 numpy.array(packed_block_data, dtype=numpy.uint8)
@@ -152,8 +152,8 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                 )
 
             palette_data = sponge_schem.get("Palette")
-            if not isinstance(palette_data, amulet_nbt.TAG_Compound):
-                raise SpongeSchemReadError("Palette must be a TAG_Compound.")
+            if not isinstance(palette_data, CompoundTag):
+                raise SpongeSchemReadError("Palette must be a CompoundTag.")
 
             block_palette: Dict[int, Block] = {}
             for blockstate, index in palette_data.items():
@@ -197,25 +197,25 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             if "BlockEntities" in sponge_schem:
                 block_entities = sponge_schem["BlockEntities"]
                 if (
-                    not isinstance(block_entities, amulet_nbt.TAG_List)
+                    not isinstance(block_entities, ListTag)
                     or block_entities.list_data_type
-                    != 10  # amulet_nbt.TAG_Compound.tag_id
+                    != 10  # CompoundTag.tag_id
                 ):
                     raise SpongeSchemReadError(
-                        "BlockEntities must be a TAG_List of compound tags."
+                        "BlockEntities must be a ListTag of compound tags."
                     )
 
                 for block_entity in block_entities:
                     if "Pos" in block_entity:
                         pos = block_entity["Pos"]
-                        if isinstance(pos, amulet_nbt.TAG_Int_Array) and len(pos) == 3:
+                        if isinstance(pos, IntArrayTag) and len(pos) == 3:
                             pos = pos + min_point
                             x, y, z = (
                                 pos[0],
                                 pos[1],
                                 pos[2],
                             )
-                            block_entity["Pos"] = amulet_nbt.TAG_Int_Array(pos)
+                            block_entity["Pos"] = IntArrayTag(pos)
                             cx, cz = x >> 4, z >> 4
                             if (cx, cz) in self._chunks and (x, y, z) in self._chunks[
                                 (cx, cz)
@@ -225,31 +225,31 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             if "Entities" in sponge_schem:
                 entities = sponge_schem["Entities"]
                 if (
-                    not isinstance(entities, amulet_nbt.TAG_List)
-                    or entities.list_data_type != 10  # amulet_nbt.TAG_Compound.tag_id
+                    not isinstance(entities, ListTag)
+                    or entities.list_data_type != 10  # CompoundTag.tag_id
                 ):
                     raise SpongeSchemReadError(
-                        "Entities must be a TAG_List of compound tags."
+                        "Entities must be a ListTag of compound tags."
                     )
 
                 for entity in entities:
                     if "Pos" in entity:
                         pos = entity["Pos"]
                         if (
-                            isinstance(pos, amulet_nbt.TAG_List)
+                            isinstance(pos, ListTag)
                             and len(pos) == 3
                             and pos.list_data_type == 6
-                        ):  # amulet_nbt.TAG_Double.tag_id:
+                        ):  # DoubleTag.tag_id:
                             x, y, z = (
                                 pos[0].value + offset[0],
                                 pos[1].value + offset[0],
                                 pos[2].value + offset[0],
                             )
-                            entity["Pos"] = amulet_nbt.TAG_List(
+                            entity["Pos"] = ListTag(
                                 [
-                                    amulet_nbt.TAG_Int(x),
-                                    amulet_nbt.TAG_Int(y),
-                                    amulet_nbt.TAG_Int(z),
+                                    IntTag(x),
+                                    IntTag(y),
+                                    IntTag(z),
                                 ]
                             )
                             cx, cz = numpy.floor([x, z]).astype(int) >> 4
@@ -301,15 +301,15 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             overflowed_shape = [
                 s if s < 2**15 else s - 2**16 for s in selection.shape
             ]
-            data = amulet_nbt.NBTFile(
-                amulet_nbt.TAG_Compound(
+            data = NamedTag(
+                CompoundTag(
                     {
-                        "Version": amulet_nbt.TAG_Int(2),
-                        "DataVersion": amulet_nbt.TAG_Int(self._version),
-                        "Width": amulet_nbt.TAG_Short(overflowed_shape[0]),
-                        "Height": amulet_nbt.TAG_Short(overflowed_shape[1]),
-                        "Length": amulet_nbt.TAG_Short(overflowed_shape[2]),
-                        "Offset": amulet_nbt.TAG_Int_Array(selection.min),
+                        "Version": IntTag(2),
+                        "DataVersion": IntTag(self._version),
+                        "Width": ShortTag(overflowed_shape[0]),
+                        "Height": ShortTag(overflowed_shape[1]),
+                        "Length": ShortTag(overflowed_shape[2]),
+                        "Offset": IntArrayTag(selection.min),
                     }
                 ),
                 name="Schematic",
@@ -344,17 +344,17 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                     palette_len += len(palette_)
                     for be in block_entities_:
                         be = copy.deepcopy(be)
-                        be["Pos"] = amulet_nbt.TAG_Int_Array(be["Pos"] - selection.min)
+                        be["Pos"] = IntArrayTag(be["Pos"] - selection.min)
                         block_entities.append(be)
 
                     for e in entities_:
                         e = copy.deepcopy(e)
                         x, y, z = e["Pos"]
-                        e["Pos"] = amulet_nbt.TAG_List(
+                        e["Pos"] = ListTag(
                             [
-                                amulet_nbt.TAG_Int(x - selection.min_x),
-                                amulet_nbt.TAG_Int(y - selection.min_y),
-                                amulet_nbt.TAG_Int(z - selection.min_z),
+                                IntTag(x - selection.min_x),
+                                IntTag(y - selection.min_y),
+                                IntTag(z - selection.min_z),
                             ]
                         )
                         entities.append(e)
@@ -368,18 +368,18 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                 block: Block
                 block_palette.append(block.blockstate)
 
-            data["PaletteMax"] = amulet_nbt.TAG_Int(len(compact_palette))
-            data["Palette"] = amulet_nbt.TAG_Compound(
+            data["PaletteMax"] = IntTag(len(compact_palette))
+            data["Palette"] = CompoundTag(
                 {
-                    blockstate: amulet_nbt.TAG_Int(index)
+                    blockstate: IntTag(index)
                     for index, blockstate in enumerate(block_palette)
                 }
             )
-            data["BlockData"] = amulet_nbt.TAG_Byte_Array(list(encode_array(blocks)))
+            data["BlockData"] = ByteArrayTag(list(encode_array(blocks)))
             if block_entities:
-                data["BlockEntities"] = amulet_nbt.TAG_List(block_entities)
+                data["BlockEntities"] = ListTag(block_entities)
             if entities:
-                data["Entities"] = amulet_nbt.TAG_List(entities)
+                data["Entities"] = ListTag(entities)
 
             data.save_to(f)
         else:

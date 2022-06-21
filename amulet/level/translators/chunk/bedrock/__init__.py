@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional, TYPE_CHECKING
 import numpy
 
-import amulet_nbt
+from amulet_nbt import IntTag
 
 from amulet import log
 from amulet.api.block import Block
@@ -73,7 +73,7 @@ class BaseBedrockTranslator(Translator):
                 elif isinstance(b, Block):
                     if version_number is not None:
                         properties = b.properties
-                        properties["__version__"] = amulet_nbt.TAG_Int(version_number)
+                        properties["__version__"] = IntTag(version_number)
                         b = Block(b.namespace, b.base_name, properties, b.extra_blocks)
                 else:
                     raise Exception(f"Unsupported type {b}")
@@ -227,7 +227,7 @@ class BaseBedrockTranslator(Translator):
                         )
                     if version.data_version > 0:
                         properties = output_object.properties
-                        properties["__version__"] = amulet_nbt.TAG_Int(
+                        properties["__version__"] = IntTag(
                             version.data_version
                         )
                         output_object = Block(

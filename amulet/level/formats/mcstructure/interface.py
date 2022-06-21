@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Any, Tuple, Optional, List
 import numpy
 
-import amulet_nbt
+from amulet_nbt import IntTag, StringTag, CompoundTag
 
 from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType
 from amulet.api.chunk import Chunk
@@ -48,7 +48,7 @@ class MCStructureInterface(Interface):
                 Block(
                     namespace="minecraft",
                     base_name="air",
-                    properties={"block_data": amulet_nbt.TAG_Int(0)},
+                    properties={"block_data": IntTag(0)},
                 ),
             ),
         )
@@ -67,7 +67,7 @@ class MCStructureInterface(Interface):
                     if version is None:
                         version = 17694720  # 1, 14, 0, 0
                 else:
-                    properties = {"block_data": amulet_nbt.TAG_Int(block["val"].value)}
+                    properties = {"block_data": IntTag(block["val"].value)}
                 block_layers.append(
                     (
                         version,
@@ -139,16 +139,16 @@ class MCStructureInterface(Interface):
         for index, block_layers in enumerate(palette):
             blocks_out = []
             for version, block in block_layers:
-                block = amulet_nbt.TAG_Compound(
+                block = CompoundTag(
                     {
-                        "name": amulet_nbt.TAG_String(
+                        "name": StringTag(
                             f"{block.namespace}:{block.base_name}"
                         ),
-                        "states": amulet_nbt.TAG_Compound(block.properties),
+                        "states": CompoundTag(block.properties),
                     }
                 )
                 if version:
-                    block["version"] = amulet_nbt.TAG_Int(version)
+                    block["version"] = IntTag(version)
                 blocks_out.append(block)
             out_palette[index] = blocks_out
 

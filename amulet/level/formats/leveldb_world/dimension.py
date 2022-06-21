@@ -13,8 +13,7 @@ from threading import RLock
 import logging
 from contextlib import suppress
 
-import amulet_nbt
-from amulet_nbt import TAG_Long, TAG_String, TAG_Compound, NBTLoadError
+from amulet_nbt import LongTag, StringTag, CompoundTag, NBTLoadError, load_one, utf8_escape_decoder
 
 from amulet.api.errors import ChunkDoesNotExist, DimensionDoesNotExist
 from amulet.api.data_types import ChunkCoordinates
@@ -45,7 +44,7 @@ class ActorCounter:
 
     @classmethod
     def from_level(cls, level: LevelDBFormat):
-        session = level.root_tag.get("worldStartCount", TAG_Long(0xFFFFFFFF)).value
+        session = level.root_tag.get("worldStartCount", LongTag(0xFFFFFFFF)).value
         # for some reason this is a signed int stored in a signed long. Manually apply the sign correctly
         session -= (session & 0x80000000) << 1
 
@@ -57,7 +56,7 @@ class ActorCounter:
         session -= 1
         if session < 0:
             session += 0x100000000
-        level.root_tag.value["worldStartCount"] = TAG_Long(session)
+        level.root_tag.value["worldStartCount"] = LongTag(session)
         level.root_tag.save()
 
         return counter
@@ -200,7 +199,7 @@ class LevelDBDimensionManager:
                     actor_key = b"actorprefix" + digp[i : i + 8]
                     try:
                         actor_bytes = self._db.get(actor_key)
-                        actor = amulet_nbt.load(actor_bytes, little_endian=True)
+                        actor = load_one(actor_bytes, little_endian=True, string_decoder=utf8_escape_decoder)
                     except KeyError:
                         log.error(f"Could not find actor {actor_key}. Skipping.")
                     except NBTLoadError:
@@ -209,7 +208,7 @@ class LevelDBDimensionManager:
                         actor.value.pop("UniqueID", None)
                         internal_components = actor.value.get("internalComponents")
                         if (
-                            isinstance(internal_components, TAG_Compound)
+                            isinstance(internal_components, CompoundTag)
                             and internal_components
                         ):
                             if "EntityStorageKeyComponent" in internal_components:
@@ -217,10 +216,10 @@ class LevelDBDimensionManager:
                                 entity_component = internal_components[
                                     "EntityStorageKeyComponent"
                                 ]
-                                if isinstance(entity_component, TAG_Compound):
+                                if isinstance(entity_component, CompoundTag):
                                     # delete the storage key component
                                     if isinstance(
-                                        entity_component.get("StorageKey"), TAG_String
+                                        entity_component.get("StorageKey"), StringTag
                                     ):
                                         del entity_component["StorageKey"]
                                     # if there is no other data then delete internalComponents
@@ -245,10 +244,10 @@ class LevelDBDimensionManager:
                                     f"Actor {actor_key} has an unknown format. Please report this to a developer {repr(internal_components)}"
                                 )
                                 for k, v in internal_components.items():
-                                    if isinstance(v, TAG_Compound) and isinstance(
-                                        v.get("StorageKey"), TAG_String
+                                    if isinstance(v, CompoundTag) and isinstance(
+                                        v.get("StorageKey"), StringTag
                                     ):
-                                        v["StorageKey"] = TAG_String()
+                                        v["StorageKey"] = StringTag()
                                 chunk_data.unknown_actor.append(actor)
                         else:
                             log.error(
@@ -291,9 +290,9 @@ class LevelDBDimensionManager:
 
             def add_actor(is_entity: bool):
                 internal_components = actor.value.setdefault(
-                    "internalComponents", TAG_Compound()
+                    "internalComponents", CompoundTag()
                 )
-                if not isinstance(internal_components, TAG_Compound):
+                if not isinstance(internal_components, CompoundTag):
                     log.error(
                         f"Invalid internalComponents value. Must be Compound. Skipping. {repr(internal_components)}"
                     )
@@ -301,9 +300,9 @@ class LevelDBDimensionManager:
 
                 if is_entity:
                     entity_storage = internal_components.setdefault(
-                        "EntityStorageKeyComponent", TAG_Compound()
+                        "EntityStorageKeyComponent", CompoundTag()
                     )
-                    if not isinstance(entity_storage, TAG_Compound):
+                    if not isinstance(entity_storage, CompoundTag):
                         log.error(
                             f"Invalid EntityStorageKeyComponent value. Must be Compound. Skipping. {repr(entity_storage)}"
                         )
@@ -313,8 +312,8 @@ class LevelDBDimensionManager:
                     storages = []
                     for storage in internal_components.values():
                         if (
-                            isinstance(storage, TAG_Compound)
-                            and storage.get("StorageKey") == TAG_String()
+                            isinstance(storage, CompoundTag)
+                            and storage.get("StorageKey") == StringTag()
                         ):
                             storages.append(storage)
                     if not storages:
@@ -328,9 +327,9 @@ class LevelDBDimensionManager:
                 key = struct.pack(">ii", -session, uid)
                 # b'\x00\x00\x00\x01\x00\x00\x00\x0c' 1, 12
                 for storage in storages:
-                    storage["StorageKey"] = TAG_String(key)
+                    storage["StorageKey"] = StringTag(key)
                 # -4294967284 ">q" b'\xff\xff\xff\xff\x00\x00\x00\x0c' ">ii" -1, 12
-                actor.value["UniqueID"] = TAG_Long(
+                actor.value["UniqueID"] = LongTag(
                     struct.unpack(">q", struct.pack(">ii", session, uid))[0]
                 )
 

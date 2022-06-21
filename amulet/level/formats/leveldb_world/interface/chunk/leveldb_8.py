@@ -8,7 +8,7 @@ from typing import Tuple, Dict, Optional, TYPE_CHECKING
 
 import struct
 import numpy
-import amulet_nbt
+from amulet_nbt import NamedTag, CompoundTag, StringTag, IntTag, ShortTag
 
 from amulet.api.block import Block, PropertyDataTypes
 
@@ -43,21 +43,21 @@ class LevelDB8Interface(LevelDB7Interface):
         max_y = bounds[1] // 16
         if palette.size:
             if palette[0][0][0] is None:
-                air = amulet_nbt.NBTFile(
-                    amulet_nbt.TAG_Compound(
+                air = NamedTag(
+                    CompoundTag(
                         {
-                            "name": amulet_nbt.TAG_String("minecraft:air"),
-                            "val": amulet_nbt.TAG_Short(0),
+                            "name": StringTag("minecraft:air"),
+                            "val": ShortTag(0),
                         }
                     )
                 )
             else:
-                air = amulet_nbt.NBTFile(
-                    amulet_nbt.TAG_Compound(
+                air = NamedTag(
+                    CompoundTag(
                         {
-                            "name": amulet_nbt.TAG_String("minecraft:air"),
-                            "states": amulet_nbt.TAG_Compound({}),
-                            "version": amulet_nbt.TAG_Int(17_629_184),  # 1, 13, 0, 0
+                            "name": StringTag("minecraft:air"),
+                            "states": CompoundTag({}),
+                            "version": IntTag(17_629_184),  # 1, 13, 0, 0
                         }
                     )
                 )
@@ -68,38 +68,38 @@ class LevelDB8Interface(LevelDB7Interface):
                 for sub_block_version, sub_block in block:
                     properties = sub_block.properties
                     if sub_block_version is None:
-                        block_data = properties.get("block_data", amulet_nbt.TAG_Int(0))
-                        if isinstance(block_data, amulet_nbt.TAG_Int):
+                        block_data = properties.get("block_data", IntTag(0))
+                        if isinstance(block_data, IntTag):
                             block_data = block_data.value
                             # if block_data >= 16:
                             #     block_data = 0
                         else:
                             block_data = 0
-                        sub_block_ = amulet_nbt.NBTFile(
-                            amulet_nbt.TAG_Compound(
+                        sub_block_ = NamedTag(
+                            CompoundTag(
                                 {
-                                    "name": amulet_nbt.TAG_String(
+                                    "name": StringTag(
                                         sub_block.namespaced_name
                                     ),
-                                    "val": amulet_nbt.TAG_Short(block_data),
+                                    "val": ShortTag(block_data),
                                 }
                             )
                         )
                     else:
-                        sub_block_ = amulet_nbt.NBTFile(
-                            amulet_nbt.TAG_Compound(
+                        sub_block_ = NamedTag(
+                            CompoundTag(
                                 {
-                                    "name": amulet_nbt.TAG_String(
+                                    "name": StringTag(
                                         sub_block.namespaced_name
                                     ),
-                                    "states": amulet_nbt.TAG_Compound(
+                                    "states": CompoundTag(
                                         {
                                             key: val
                                             for key, val in properties.items()
                                             if isinstance(val, PropertyDataTypes)
                                         }
                                     ),
-                                    "version": amulet_nbt.TAG_Int(sub_block_version),
+                                    "version": IntTag(sub_block_version),
                                 }
                             )
                         )
@@ -130,7 +130,7 @@ class LevelDB8Interface(LevelDB7Interface):
                         for index, block_tuple in enumerate(sub_chunk_palette):
                             for sub_index, block in enumerate(block_tuple):
                                 sub_chunk_palette_full[index, sub_index] = block
-                        # should now be a 2D array with an amulet_nbt.NBTFile in each element
+                        # should now be a 2D array with an NamedTag in each element
 
                         if max_world_version[1] >= (
                             1,

@@ -17,10 +17,10 @@ import numpy
 
 
 from amulet_nbt import (
-    TAG_Int,
-    TAG_List,
-    TAG_Compound,
-    NBTFile,
+    IntTag,
+    ListTag,
+    CompoundTag,
+    NamedTag,
     BaseValueType,
     AnyNBT,
 )
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     from amulet.api.entity import Entity
 
 
-ChunkDataType = Dict[str, NBTFile]
+ChunkDataType = Dict[str, NamedTag]
 
 ChunkPathType = Tuple[
     str,  # The layer name
@@ -161,7 +161,7 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
             key = max_world_version
             version = max_world_version[1]
         else:
-            data_version = data.get("region", {}).get("DataVersion", TAG_Int(-1)).value
+            data_version = data.get("region", {}).get("DataVersion", IntTag(-1)).value
             key, version = (("java", data_version), data_version)
 
         return loader.Translators.get(key), version
@@ -223,7 +223,7 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
         default = default if default_tag is None else default_tag
         if not path:
             raise ValueError("was not given a path to set")
-        tag = obj.setdefault(layer_key, NBTFile()).value
+        tag = obj.setdefault(layer_key, NamedTag()).value
         *path, (key, dtype) = path
         if path:
             key_path = next(zip(*path))
@@ -247,12 +247,12 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
         """
         raise NotImplementedError
 
-    def _decode_entity_list(self, entities: TAG_List) -> List["Entity"]:
+    def _decode_entity_list(self, entities: ListTag) -> List["Entity"]:
         entities_out = []
-        if entities.list_data_type == TAG_Compound.tag_id:
+        if entities.list_data_type == CompoundTag.tag_id:
             for nbt in entities:
                 entity = self._decode_entity(
-                    NBTFile(nbt),
+                    NamedTag(nbt),
                     self._features["entity_format"],
                     self._features["entity_coord_format"],
                 )
@@ -262,15 +262,15 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
         return entities_out
 
     def _decode_block_entity_list(
-        self, block_entities: TAG_List
+        self, block_entities: ListTag
     ) -> List["BlockEntity"]:
         entities_out = []
-        if block_entities.list_data_type == TAG_Compound.tag_id:
+        if block_entities.list_data_type == CompoundTag.tag_id:
             for nbt in block_entities:
-                if not isinstance(nbt, TAG_Compound):
+                if not isinstance(nbt, CompoundTag):
                     continue
                 entity = self._decode_block_entity(
-                    NBTFile(nbt),
+                    NamedTag(nbt),
                     self._features["block_entity_format"],
                     self._features["block_entity_coord_format"],
                 )
@@ -299,7 +299,7 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
         """
         raise NotImplementedError
 
-    def _encode_entity_list(self, entities: Iterable["Entity"]) -> TAG_List:
+    def _encode_entity_list(self, entities: Iterable["Entity"]) -> ListTag:
         entities_out = []
         for entity in entities:
             nbt = self._encode_entity(
@@ -310,11 +310,11 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
             if nbt is not None:
                 entities_out.append(nbt.value)
 
-        return TAG_List(entities_out)
+        return ListTag(entities_out)
 
     def _encode_block_entity_list(
         self, block_entities: Iterable["BlockEntity"]
-    ) -> TAG_List:
+    ) -> ListTag:
         entities_out = []
         for entity in block_entities:
             nbt = self._encode_block_entity(
@@ -325,4 +325,4 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
             if nbt is not None:
                 entities_out.append(nbt.value)
 
-        return TAG_List(entities_out)
+        return ListTag(entities_out)

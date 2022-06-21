@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import struct
-from typing import Tuple, Dict, Generator, Optional, List, Union, Iterable, BinaryIO
+from typing import Tuple, Dict, Generator, Optional, List, Union, Iterable, BinaryIO, Any
 import time
 import glob
 import shutil
@@ -10,13 +10,12 @@ import json
 
 import portalocker
 
-import amulet_nbt as nbt
-from amulet_nbt import TAG_Compound
+from amulet_nbt import IntTag, LongTag, DoubleTag, StringTag, ListTag, CompoundTag, NamedTag, load_one
 from amulet.api.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet.api.wrapper import WorldFormatWrapper, DefaultSelection
-from amulet.utils.format_utils import check_all_exist, load_leveldat
+from amulet.utils.format_utils import check_all_exist
 from amulet.api.errors import (
     DimensionDoesNotExist,
     ObjectWriteError,
@@ -59,7 +58,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         """
         super().__init__(path)
         self._platform = "java"
-        self._root_tag: nbt.NBTFile = nbt.NBTFile()
+        self._root_tag: NamedTag = NamedTag()
         self._levels: Dict[InternalDimension, AnvilDimensionManager] = {}
         self._dimension_name_map: Dict[Dimension, InternalDimension] = {}
         self._mcc_support: Optional[bool] = None
@@ -83,7 +82,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
             self._world_image_path = os.path.join(self.path, "icon.png")
         else:
             self._world_image_path = self._missing_world_icon
-        self.root_tag = nbt.load(os.path.join(self.path, "level.dat"))
+        self.root_tag = load_one(os.path.join(self.path, "level.dat"))
 
     @staticmethod
     def is_valid(path: str) -> bool:
@@ -91,8 +90,8 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
             return False
 
         try:
-            level_dat_root = load_leveldat(path)
-            assert isinstance(level_dat_root.value, TAG_Compound)
+            level_dat_root = load_one(os.path.join(path, "level.dat"))
+            assert isinstance(level_dat_root.value, CompoundTag)
         except:
             return False
 
@@ -117,24 +116,24 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
 
     def _get_version(self) -> VersionNumberInt:
         return (
-            self.root_tag.get("Data", nbt.TAG_Compound())
-            .get("DataVersion", nbt.TAG_Int(-1))
+            self.root_tag.get("Data", CompoundTag())
+            .get("DataVersion", IntTag(-1))
             .value
         )
 
     @property
-    def root_tag(self) -> nbt.NBTFile:
+    def root_tag(self) -> NamedTag:
         """The level.dat data for the level."""
         return self._root_tag
 
     @root_tag.setter
-    def root_tag(self, root_tag: Union[nbt.NBTFile, nbt.TAG_Compound]):
-        if isinstance(root_tag, nbt.TAG_Compound):
-            self._root_tag = nbt.NBTFile(root_tag)
-        elif isinstance(root_tag, nbt.NBTFile):
+    def root_tag(self, root_tag: Union[NamedTag, CompoundTag]):
+        if isinstance(root_tag, CompoundTag):
+            self._root_tag = NamedTag(root_tag)
+        elif isinstance(root_tag, NamedTag):
             self._root_tag = root_tag
         else:
-            raise ValueError("root_tag must be a TAG_Compound or NBTFile")
+            raise ValueError("root_tag must be a CompoundTag or NamedTag")
 
     @property
     def level_name(self) -> str:
@@ -142,7 +141,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
 
     @level_name.setter
     def level_name(self, value: str):
-        self.root_tag["Data"]["LevelName"] = nbt.TAG_String(value)
+        self.root_tag["Data"]["LevelName"] = StringTag(value)
 
     @property
     def last_played(self) -> int:
@@ -161,14 +160,14 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
             packs = []
             if (
                 "DataPacks" in self.root_tag["Data"]
-                and isinstance(self.root_tag["Data"]["DataPacks"], nbt.TAG_Compound)
+                and isinstance(self.root_tag["Data"]["DataPacks"], CompoundTag)
                 and "Enabled" in self.root_tag["Data"]["DataPacks"]
                 and isinstance(
-                    self.root_tag["Data"]["DataPacks"]["Enabled"], nbt.TAG_List
+                    self.root_tag["Data"]["DataPacks"]["Enabled"], ListTag
                 )
             ):
                 for pack in self.root_tag["Data"]["DataPacks"]["Enabled"]:
-                    if isinstance(pack, nbt.TAG_String):
+                    if isinstance(pack, StringTag):
                         pack_name: str = pack.value
                         if pack_name == "vanilla":
                             pass
@@ -215,8 +214,8 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
             bounds = DefaultSelection
             if self.version >= 2709:  # This number might be smaller
 
-                def get_recursive(obj: nbt.TAG_Compound, *keys):
-                    if isinstance(obj, nbt.TAG_Compound) and keys:
+                def get_recursive(obj: CompoundTag, *keys):
+                    if isinstance(obj, CompoundTag) and keys:
                         key = keys[0]
                         keys = keys[1:]
                         if key in obj:
@@ -233,7 +232,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                     dimension_name,
                     "type",
                 )
-                if isinstance(dimension_type, nbt.TAG_String):
+                if isinstance(dimension_type, StringTag):
                     # the settings are in the data pack
                     dimension_type: str = dimension_type.value
                     if ":" in dimension_type:
@@ -289,11 +288,11 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                                         )
                                     )
 
-                elif isinstance(dimension_type, nbt.TAG_Compound):
+                elif isinstance(dimension_type, CompoundTag):
                     # the settings are here
                     dimension_settings = dimension_type
                     if "min_y" in dimension_settings and isinstance(
-                        dimension_settings["min_y"], nbt.TAG_Int
+                        dimension_settings["min_y"], IntTag
                     ):
                         min_y = dimension_settings["min_y"].value
                         if min_y % 16:
@@ -301,7 +300,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                     else:
                         min_y = 0
                     if "height" in dimension_settings and isinstance(
-                        dimension_settings["height"], nbt.TAG_Int
+                        dimension_settings["height"], IntTag
                     ):
                         height = dimension_settings["height"].value
                         if height % 16:
@@ -333,7 +332,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
             return (
                 self.platform,
                 raw_chunk_data.get("region", {})
-                .get("DataVersion", nbt.TAG_Int(-1))
+                .get("DataVersion", IntTag(-1))
                 .value,
             )
 
@@ -444,12 +443,12 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
             self.platform, self.version
         ).data_version
 
-        self.root_tag = root = nbt.TAG_Compound()
-        root["Data"] = data = nbt.TAG_Compound()
-        data["version"] = nbt.TAG_Int(19133)
-        data["DataVersion"] = nbt.TAG_Int(self._version)
-        data["LastPlayed"] = nbt.TAG_Long(int(time.time() * 1000))
-        data["LevelName"] = nbt.TAG_String("World Created By Amulet")
+        self.root_tag = root = CompoundTag()
+        root["Data"] = data = CompoundTag()
+        data["version"] = IntTag(19133)
+        data["DataVersion"] = IntTag(self._version)
+        data["LastPlayed"] = LongTag(int(time.time() * 1000))
+        data["LevelName"] = StringTag("World Created By Amulet")
 
         os.makedirs(self.path, exist_ok=True)
         self.root_tag.save_to(os.path.join(self.path, "level.dat"))
@@ -584,7 +583,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
 
     # TODO: add a new version of this method that handles all the raw data
     def put_raw_chunk_data(
-        self, cx: int, cz: int, data: nbt.NBTFile, dimension: Dimension
+        self, cx: int, cz: int, data: NamedTag, dimension: Dimension
     ):
         """
         Commit the raw chunk data to the FormatWrapper cache.
@@ -605,7 +604,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         self._get_dimension(dimension).put_chunk_data_layers(cx, cz, data)
 
     # TODO: add a new version of this method that handles all the raw data
-    def get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> nbt.NBTFile:
+    def get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> NamedTag:
         """
         Return the raw data as loaded from disk.
 
@@ -625,7 +624,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
 
     def _legacy_get_raw_chunk_data(
         self, cx: int, cz: int, dimension: Dimension
-    ) -> nbt.NBTFile:
+    ) -> NamedTag:
         layers = self._get_raw_chunk_data(cx, cz, dimension)
         if "region" in layers:
             return layers["region"]
@@ -674,14 +673,14 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         player_nbt = self._get_raw_player_data(player_id)
         dimension = player_nbt["Dimension"]
         # TODO: rework this when there is better dimension support.
-        if isinstance(dimension, nbt.TAG_Int):
+        if isinstance(dimension, IntTag):
             if -1 <= dimension <= 1:
                 dimension_str = {-1: THE_NETHER, 0: OVERWORLD, 1: THE_END}[
                     dimension.value
                 ]
             else:
                 dimension_str = f"DIM{dimension}"
-        elif isinstance(dimension, nbt.TAG_String):
+        elif isinstance(dimension, StringTag):
             dimension_str = dimension.value
         else:
             dimension_str = OVERWORLD
@@ -691,9 +690,9 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         # get the players position
         pos_data = player_nbt.get("Pos")
         if (
-            isinstance(pos_data, nbt.TAG_List)
+            isinstance(pos_data, ListTag)
             and len(pos_data) == 3
-            and pos_data.list_data_type == nbt.TAG_Double.tag_id
+            and pos_data.list_data_type == DoubleTag.tag_id
         ):
             position = tuple(map(float, pos_data))
             position = tuple(
@@ -705,9 +704,9 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         # get the players rotation
         rot_data = player_nbt.get("Rotation")
         if (
-            isinstance(rot_data, nbt.TAG_List)
+            isinstance(rot_data, ListTag)
             and len(rot_data) == 2
-            and rot_data.list_data_type == nbt.TAG_Double.tag_id
+            and rot_data.list_data_type == DoubleTag.tag_id
         ):
             rotation = tuple(map(float, rot_data))
             rotation = tuple(
@@ -723,7 +722,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
             rotation,
         )
 
-    def _get_raw_player_data(self, player_id: str) -> nbt.NBTFile:
+    def _get_raw_player_data(self, player_id: str) -> NamedTag:
         if player_id == LOCAL_PLAYER:
             if "Player" in self.root_tag["Data"]:
                 return self.root_tag["Data"]["Player"]
@@ -732,7 +731,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         else:
             path = os.path.join(self.path, "playerdata", f"{player_id}.dat")
             if os.path.exists(path):
-                return nbt.load(path)
+                return load_one(path)
             raise PlayerDoesNotExist(f"Player {player_id} does not exist")
 
 

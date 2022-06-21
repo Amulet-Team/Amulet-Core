@@ -3,7 +3,7 @@ from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, Lis
 import numpy
 import copy
 
-import amulet_nbt
+from amulet_nbt import IntTag, StringTag, ListTag, CompoundTag, NamedTag, load_one, utf8_escape_decoder
 
 from amulet.api.data_types import (
     VersionNumberAny,
@@ -48,8 +48,8 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                 SelectionBox,
                 numpy.ndarray,
                 AnyNDArray,
-                List[amulet_nbt.TAG_Compound],
-                List[amulet_nbt.TAG_Compound],
+                List[CompoundTag],
+                List[CompoundTag],
             ],
         ] = {}
 
@@ -74,7 +74,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         self._has_lock = True
 
     def open_from(self, f: BinaryIO):
-        mcstructure = amulet_nbt.load(f, little_endian=True)
+        mcstructure = load_one(f, little_endian=True, string_decoder=utf8_escape_decoder)
         if mcstructure["format_version"].value == 1:
             min_point = numpy.array(
                 tuple(c.value for c in mcstructure["structure_world_origin"])
@@ -107,11 +107,11 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             if -1 in blocks_array[0]:
                 blocks_array[0][blocks_array[0] == -1] = len(block_palette)
                 block_palette.append(
-                    amulet_nbt.TAG_Compound(
+                    CompoundTag(
                         {
-                            "name": amulet_nbt.TAG_String("minecraft:structure_void"),
-                            "states": amulet_nbt.TAG_Compound(),
-                            "version": amulet_nbt.TAG_Int(17694723),  # 1.13.0
+                            "name": StringTag("minecraft:structure_void"),
+                            "states": CompoundTag(),
+                            "version": IntTag(17694723),  # 1.13.0
                         }
                     )
                 )
@@ -210,22 +210,22 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
 
     def save_to(self, f: BinaryIO):
         selection = self._bounds[self.dimensions[0]].selection_boxes[0]
-        data = amulet_nbt.NBTFile(
-            amulet_nbt.TAG_Compound(
+        data = NamedTag(
+            CompoundTag(
                 {
-                    "format_version": amulet_nbt.TAG_Int(1),
-                    "structure_world_origin": amulet_nbt.TAG_List(
+                    "format_version": IntTag(1),
+                    "structure_world_origin": ListTag(
                         [
-                            amulet_nbt.TAG_Int(selection.min_x),
-                            amulet_nbt.TAG_Int(selection.min_y),
-                            amulet_nbt.TAG_Int(selection.min_z),
+                            IntTag(selection.min_x),
+                            IntTag(selection.min_y),
+                            IntTag(selection.min_z),
                         ]
                     ),
-                    "size": amulet_nbt.TAG_List(
+                    "size": ListTag(
                         [
-                            amulet_nbt.TAG_Int(selection.size_x),
-                            amulet_nbt.TAG_Int(selection.size_y),
-                            amulet_nbt.TAG_Int(selection.size_z),
+                            IntTag(selection.size_x),
+                            IntTag(selection.size_y),
+                            IntTag(selection.size_z),
                         ]
                     ),
                 }
@@ -243,11 +243,11 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         else:
             arr = numpy.empty(1, dtype=object)
             arr[0] = [
-                amulet_nbt.TAG_Compound(
+                CompoundTag(
                     {
-                        "name": amulet_nbt.TAG_String("minecraft:air"),
-                        "states": amulet_nbt.TAG_Compound(),
-                        "version": amulet_nbt.TAG_Int(17694723),
+                        "name": StringTag("minecraft:air"),
+                        "states": CompoundTag(),
+                        "version": IntTag(17694723),
                     }
                 )
             ]
@@ -289,23 +289,23 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
 
         block_indices = numpy.array(block_palette_indices, dtype=numpy.int32)[blocks].T
 
-        data["structure"] = amulet_nbt.TAG_Compound(
+        data["structure"] = CompoundTag(
             {
-                "block_indices": amulet_nbt.TAG_List(
+                "block_indices": ListTag(
                     [  # a list of tag ints that index into the block_palette. One list per block layer
-                        amulet_nbt.TAG_List(
-                            [amulet_nbt.TAG_Int(block) for block in layer]
+                        ListTag(
+                            [IntTag(block) for block in layer]
                         )
                         for layer in block_indices
                     ]
                 ),
-                "entities": amulet_nbt.TAG_List(entities),
-                "palette": amulet_nbt.TAG_Compound(
+                "entities": ListTag(entities),
+                "palette": CompoundTag(
                     {
-                        "default": amulet_nbt.TAG_Compound(
+                        "default": CompoundTag(
                             {
-                                "block_palette": amulet_nbt.TAG_List(block_palette),
-                                "block_position_data": amulet_nbt.TAG_Compound(
+                                "block_palette": ListTag(block_palette),
+                                "block_position_data": CompoundTag(
                                     {
                                         str(
                                             (
@@ -322,7 +322,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                                             * selection.size_z
                                             + block_entity["z"].value
                                             - selection.min_z
-                                        ): amulet_nbt.TAG_Compound(
+                                        ): CompoundTag(
                                             {"block_entity_data": block_entity}
                                         )
                                         for block_entity in block_entities

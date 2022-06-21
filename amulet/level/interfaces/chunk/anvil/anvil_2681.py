@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 import amulet
 from amulet.api.entity import Entity
-from amulet_nbt import TAG_List, TAG_Int
+from amulet_nbt import ListTag, IntTag
 
 from .base_anvil_interface import ChunkDataType, ChunkPathType
 
@@ -21,13 +21,13 @@ class Anvil2681Interface(ParentInterface):
 
     EntitiesDataVersion: ChunkPathType = (
         "entities",
-        [("DataVersion", TAG_Int)],
-        TAG_Int,
+        [("DataVersion", IntTag)],
+        IntTag,
     )
     EntityLayer: ChunkPathType = (
         "entities",
-        [("Entities", TAG_List)],
-        TAG_List,
+        [("Entities", ListTag)],
+        ListTag,
     )
 
     @staticmethod
@@ -68,7 +68,7 @@ class Anvil2681Interface(ParentInterface):
         else:
             if platform == "java" and isinstance(version, int):
                 super()._encode_entities(chunk, data, floor_cy, height_cy)
-                self.set_layer_obj(data, self.EntitiesDataVersion, TAG_Int(version))
+                self.set_layer_obj(data, self.EntitiesDataVersion, IntTag(version))
                 return
         data.pop(self.EntitiesDataVersion[0], None)
 

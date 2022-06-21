@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from abc import ABC, abstractmethod
 from typing import (
     Tuple,
@@ -10,7 +9,6 @@ from typing import (
     Optional,
     overload,
     Type,
-    Iterable,
     Sequence,
     Callable,
 )
@@ -19,8 +17,7 @@ from enum import Enum
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
 from amulet.api.data_types import AnyNDArray, VersionNumberAny, VersionIdentifierType
-import amulet_nbt
-from amulet_nbt import TAG_List, TAG_Compound, AnyNBT, BaseValueType
+from amulet_nbt import ListTag, CompoundTag, AnyNBT, BaseValueType, NamedTag, StringTag, IntTag, IntArrayTag, DoubleTag, FloatTag
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
@@ -57,7 +54,7 @@ class Interface(ABC):
 
     def _decode_entity(
         self,
-        nbt: amulet_nbt.NBTFile,
+        nbt: NamedTag,
         id_type: EntityIDType,
         coord_type: EntityCoordType,
     ) -> Optional[Entity]:
@@ -70,7 +67,7 @@ class Interface(ABC):
 
     def _decode_block_entity(
         self,
-        nbt: amulet_nbt.NBTFile,
+        nbt: NamedTag,
         id_type: EntityIDType,
         coord_type: EntityCoordType,
     ) -> Optional[BlockEntity]:
@@ -83,7 +80,7 @@ class Interface(ABC):
 
     @staticmethod
     def _decode_base_entity(
-        nbt: amulet_nbt.NBTFile, id_type: EntityIDType, coord_type: EntityCoordType
+        nbt: NamedTag, id_type: EntityIDType, coord_type: EntityCoordType
     ) -> Optional[
         Tuple[
             str,
@@ -91,19 +88,19 @@ class Interface(ABC):
             Union[int, float],
             Union[int, float],
             Union[int, float],
-            amulet_nbt.NBTFile,
+            NamedTag,
         ]
     ]:
         if not (
-            isinstance(nbt, amulet_nbt.NBTFile)
-            and isinstance(nbt.value, amulet_nbt.TAG_Compound)
+            isinstance(nbt, NamedTag)
+            and isinstance(nbt.value, CompoundTag)
         ):
             return
 
         if id_type == EntityIDType.namespace_str_id:
-            entity_id = nbt.pop("id", amulet_nbt.TAG_String(""))
+            entity_id = nbt.pop("id", StringTag(""))
             if (
-                not isinstance(entity_id, amulet_nbt.TAG_String)
+                not isinstance(entity_id, StringTag)
                 or entity_id.value == ""
                 or ":" not in entity_id.value
             ):
@@ -111,9 +108,9 @@ class Interface(ABC):
             namespace, base_name = entity_id.value.split(":", 1)
 
         elif id_type == EntityIDType.namespace_str_Id:
-            entity_id = nbt.pop("Id", amulet_nbt.TAG_String(""))
+            entity_id = nbt.pop("Id", StringTag(""))
             if (
-                not isinstance(entity_id, amulet_nbt.TAG_String)
+                not isinstance(entity_id, StringTag)
                 or entity_id.value == ""
                 or ":" not in entity_id.value
             ):
@@ -121,9 +118,9 @@ class Interface(ABC):
             namespace, base_name = entity_id.value.split(":", 1)
 
         elif id_type == EntityIDType.str_id:
-            entity_id = nbt.pop("id", amulet_nbt.TAG_String(""))
+            entity_id = nbt.pop("id", StringTag(""))
             if (
-                not isinstance(entity_id, amulet_nbt.TAG_String)
+                not isinstance(entity_id, StringTag)
                 or entity_id.value == ""
             ):
                 return
@@ -134,7 +131,7 @@ class Interface(ABC):
             if "identifier" in nbt:
                 entity_id = nbt.pop("identifier")
                 if (
-                    not isinstance(entity_id, amulet_nbt.TAG_String)
+                    not isinstance(entity_id, StringTag)
                     or entity_id.value == ""
                     or ":" not in entity_id.value
                 ):
@@ -142,7 +139,7 @@ class Interface(ABC):
                 namespace, base_name = entity_id.value.split(":", 1)
             elif "id" in nbt:
                 entity_id = nbt.pop("id")
-                if not isinstance(entity_id, amulet_nbt.TAG_Int):
+                if not isinstance(entity_id, IntTag):
                     return
                 namespace = ""
                 base_name = str(entity_id.value)
@@ -159,10 +156,10 @@ class Interface(ABC):
             if "Pos" not in nbt:
                 return
             pos = nbt.pop("Pos")
-            pos: amulet_nbt.TAG_List
+            pos: ListTag
 
             if (
-                not isinstance(pos, amulet_nbt.TAG_List)
+                not isinstance(pos, ListTag)
                 or len(pos) != 3
                 or PosTypeMap.get(pos.list_data_type) != coord_type
             ):
@@ -172,14 +169,14 @@ class Interface(ABC):
             if "Pos" not in nbt:
                 return
             pos = nbt.pop("Pos")
-            pos: amulet_nbt.TAG_Int_Array
+            pos: IntArrayTag
 
-            if not isinstance(pos, amulet_nbt.TAG_Int_Array) or len(pos) != 3:
+            if not isinstance(pos, IntArrayTag) or len(pos) != 3:
                 return
             x, y, z = pos
         elif coord_type == EntityCoordType.xyz_int:
             if not all(
-                c in nbt and isinstance(nbt[c], amulet_nbt.TAG_Int)
+                c in nbt and isinstance(nbt[c], IntTag)
                 for c in ("x", "y", "z")
             ):
                 return
@@ -198,12 +195,12 @@ class Interface(ABC):
 
     def _encode_entity(
         self, entity: Entity, id_type: EntityIDType, coord_type: EntityCoordType
-    ) -> Optional[amulet_nbt.NBTFile]:
+    ) -> Optional[NamedTag]:
         return self._encode_base_entity(entity, id_type, coord_type)
 
     def _encode_block_entity(
         self, entity: BlockEntity, id_type: EntityIDType, coord_type: EntityCoordType
-    ) -> Optional[amulet_nbt.NBTFile]:
+    ) -> Optional[NamedTag]:
         return self._encode_base_entity(entity, id_type, coord_type)
 
     @staticmethod
@@ -211,60 +208,60 @@ class Interface(ABC):
         entity: Union[Entity, BlockEntity],
         id_type: EntityIDType,
         coord_type: EntityCoordType,
-    ) -> Optional[amulet_nbt.NBTFile]:
-        if not isinstance(entity.nbt, amulet_nbt.NBTFile) and isinstance(
-            entity.nbt.value, amulet_nbt.TAG_Compound
+    ) -> Optional[NamedTag]:
+        if not isinstance(entity.nbt, NamedTag) and isinstance(
+            entity.nbt.value, CompoundTag
         ):
             return
         nbt = entity.nbt
 
         if id_type == EntityIDType.namespace_str_id:
-            nbt["id"] = amulet_nbt.TAG_String(entity.namespaced_name)
+            nbt["id"] = StringTag(entity.namespaced_name)
         elif id_type == EntityIDType.namespace_str_Id:
-            nbt["Id"] = amulet_nbt.TAG_String(entity.namespaced_name)
+            nbt["Id"] = StringTag(entity.namespaced_name)
         elif id_type == EntityIDType.namespace_str_identifier:
-            nbt["identifier"] = amulet_nbt.TAG_String(entity.namespaced_name)
+            nbt["identifier"] = StringTag(entity.namespaced_name)
         elif id_type == EntityIDType.str_id:
-            nbt["id"] = amulet_nbt.TAG_String(entity.base_name)
+            nbt["id"] = StringTag(entity.base_name)
         elif id_type == EntityIDType.int_id:
             if not entity.base_name.isnumeric():
                 return
-            nbt["id"] = amulet_nbt.TAG_Int(int(entity.base_name))
+            nbt["id"] = IntTag(int(entity.base_name))
         else:
             raise NotImplementedError(f"Entity id type {id_type}")
 
         if coord_type == EntityCoordType.Pos_list_double:
-            nbt["Pos"] = amulet_nbt.TAG_List(
+            nbt["Pos"] = ListTag(
                 [
-                    amulet_nbt.TAG_Double(float(entity.x)),
-                    amulet_nbt.TAG_Double(float(entity.y)),
-                    amulet_nbt.TAG_Double(float(entity.z)),
+                    DoubleTag(float(entity.x)),
+                    DoubleTag(float(entity.y)),
+                    DoubleTag(float(entity.z)),
                 ]
             )
         elif coord_type == EntityCoordType.Pos_list_float:
-            nbt["Pos"] = amulet_nbt.TAG_List(
+            nbt["Pos"] = ListTag(
                 [
-                    amulet_nbt.TAG_Float(float(entity.x)),
-                    amulet_nbt.TAG_Float(float(entity.y)),
-                    amulet_nbt.TAG_Float(float(entity.z)),
+                    FloatTag(float(entity.x)),
+                    FloatTag(float(entity.y)),
+                    FloatTag(float(entity.z)),
                 ]
             )
         elif coord_type == EntityCoordType.Pos_list_int:
-            nbt["Pos"] = amulet_nbt.TAG_List(
+            nbt["Pos"] = ListTag(
                 [
-                    amulet_nbt.TAG_Int(int(entity.x)),
-                    amulet_nbt.TAG_Int(int(entity.y)),
-                    amulet_nbt.TAG_Int(int(entity.z)),
+                    IntTag(int(entity.x)),
+                    IntTag(int(entity.y)),
+                    IntTag(int(entity.z)),
                 ]
             )
         elif coord_type == EntityCoordType.Pos_array_int:
-            nbt["Pos"] = amulet_nbt.TAG_Int_Array(
+            nbt["Pos"] = IntArrayTag(
                 [int(entity.x), int(entity.y), int(entity.z)]
             )
         elif coord_type == EntityCoordType.xyz_int:
-            nbt["x"] = amulet_nbt.TAG_Int(int(entity.x))
-            nbt["y"] = amulet_nbt.TAG_Int(int(entity.y))
-            nbt["z"] = amulet_nbt.TAG_Int(int(entity.z))
+            nbt["x"] = IntTag(int(entity.x))
+            nbt["y"] = IntTag(int(entity.y))
+            nbt["z"] = IntTag(int(entity.z))
         else:
             raise NotImplementedError(f"Entity coord type {coord_type}")
 
@@ -272,17 +269,17 @@ class Interface(ABC):
 
     @overload
     @staticmethod
-    def check_type(obj: TAG_Compound, key: str, dtype: Type[AnyNBT]) -> bool:
+    def check_type(obj: CompoundTag, key: str, dtype: Type[AnyNBT]) -> bool:
         ...
 
     @overload
     @staticmethod
-    def check_type(obj: TAG_List, key: int, dtype: Type[AnyNBT]) -> bool:
+    def check_type(obj: ListTag, key: int, dtype: Type[AnyNBT]) -> bool:
         ...
 
     @staticmethod
     def check_type(
-        obj: Union[TAG_Compound, TAG_List], key: Union[str, int], dtype: Type[AnyNBT]
+        obj: Union[CompoundTag, ListTag], key: Union[str, int], dtype: Type[AnyNBT]
     ) -> bool:
         """Check the key exists and the type is correct."""
         return key in obj and isinstance(obj[key], dtype)
@@ -290,7 +287,7 @@ class Interface(ABC):
     @overload
     def get_obj(
         self,
-        obj: TAG_Compound,
+        obj: CompoundTag,
         key: str,
         dtype: Type[AnyNBT],
         default: Optional[AnyNBT] = None,
@@ -300,7 +297,7 @@ class Interface(ABC):
     @overload
     def get_obj(
         self,
-        obj: TAG_List,
+        obj: ListTag,
         key: int,
         dtype: Type[AnyNBT],
         default: Optional[AnyNBT] = None,
@@ -313,7 +310,7 @@ class Interface(ABC):
         """Pop a key from a container object if it exists and the type is correct. Otherwise return default.
         This works in much the same way as dict.get but uses default if the data type does not match.
 
-        :param obj: The TAG_Compound to read from.
+        :param obj: The CompoundTag to read from.
         :param key: The key to use.
         :param dtype: The expected data type.
         :param default: The default value to use if the existing is not valid. If None will use dtype()
@@ -329,7 +326,7 @@ class Interface(ABC):
 
     def get_nested_obj(
         self,
-        obj: Union[TAG_Compound, TAG_List],
+        obj: Union[CompoundTag, ListTag],
         path: Sequence[  # The path to the object.
             Tuple[Union[str, int], Type[BaseValueType]],
         ],
@@ -369,7 +366,7 @@ class Interface(ABC):
 
     @staticmethod
     def set_obj(
-        obj: TAG_Compound,
+        obj: CompoundTag,
         key: str,
         dtype: Type[AnyNBT],
         default: Union[None, AnyNBT, Callable[[], Any]] = None,
@@ -390,9 +387,9 @@ class Interface(ABC):
         """
         for path_key in path:
             obj_ = obj.get(path_key, None)
-            if not isinstance(obj_, TAG_Compound):
+            if not isinstance(obj_, CompoundTag):
                 # if it does not exist or the type is wrong then create it
-                obj_ = obj[path_key] = TAG_Compound()
+                obj_ = obj[path_key] = CompoundTag()
             obj = obj_
         obj_ = obj.get(key, None)
         if not setdefault or not isinstance(obj_, dtype):

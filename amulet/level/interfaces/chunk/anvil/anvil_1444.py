@@ -4,12 +4,12 @@ from typing import Dict, Set, Tuple, Iterable, Optional, TYPE_CHECKING
 
 import numpy
 from amulet_nbt import (
-    TAG_Compound,
-    TAG_List,
-    TAG_String,
-    TAG_Long_Array,
-    TAG_Long,
-    TAG_Short,
+    CompoundTag,
+    ListTag,
+    StringTag,
+    LongArrayTag,
+    LongTag,
+    ShortTag,
 )
 
 import amulet
@@ -39,37 +39,37 @@ class Anvil1444Interface(ParentInterface):
     LightPopulated = None
     Status: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("Status", TAG_String)],
-        TAG_String("full"),
+        [("Level", CompoundTag), ("Status", StringTag)],
+        StringTag("full"),
     )
 
     ToBeTicked: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("ToBeTicked", TAG_List)],
-        TAG_List,
+        [("Level", CompoundTag), ("ToBeTicked", ListTag)],
+        ListTag,
     )
 
     LiquidTicks: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("LiquidTicks", TAG_List)],
-        TAG_List,
+        [("Level", CompoundTag), ("LiquidTicks", ListTag)],
+        ListTag,
     )
     LiquidsToBeTicked: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("LiquidsToBeTicked", TAG_List)],
-        TAG_List,
+        [("Level", CompoundTag), ("LiquidsToBeTicked", ListTag)],
+        ListTag,
     )
 
     PostProcessing: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("PostProcessing", TAG_List)],
-        TAG_List,
+        [("Level", CompoundTag), ("PostProcessing", ListTag)],
+        ListTag,
     )
 
     Structures: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("Structures", TAG_Compound)],
-        TAG_Compound,
+        [("Level", CompoundTag), ("Structures", CompoundTag)],
+        CompoundTag,
     )
 
     LongArrayDense = True
@@ -96,7 +96,7 @@ class Anvil1444Interface(ParentInterface):
         chunk.status = self.get_layer_obj(data, self.Status, pop_last=True).value
 
     def _decode_block_section(
-        self, section: TAG_Compound
+        self, section: CompoundTag
     ) -> Optional[Tuple[numpy.ndarray, list]]:
         if "Palette" not in section:  # 1.14 makes block_palette/blocks optional.
             return None
@@ -133,11 +133,11 @@ class Anvil1444Interface(ParentInterface):
         chunk.misc["block_palette"] = np_palette
 
     @staticmethod
-    def _decode_block_palette(palette: TAG_List) -> list:
+    def _decode_block_palette(palette: ListTag) -> list:
         blockstates = []
         for entry in palette:
             namespace, base_name = entry["Name"].value.split(":", 1)
-            properties = entry.get("Properties", TAG_Compound({})).value
+            properties = entry.get("Properties", CompoundTag({})).value
             block = Block(
                 namespace=namespace, base_name=base_name, properties=properties
             )
@@ -145,7 +145,7 @@ class Anvil1444Interface(ParentInterface):
         return blockstates
 
     @staticmethod
-    def _decode_to_be_ticked(ticks: TAG_List, floor_cy: int) -> Set[BlockCoordinates]:
+    def _decode_to_be_ticked(ticks: ListTag, floor_cy: int) -> Set[BlockCoordinates]:
         ticks_out = set()
         for cy, section_ticks in enumerate(ticks):
             block_cy = (floor_cy + cy) << 4
@@ -195,19 +195,19 @@ class Anvil1444Interface(ParentInterface):
         # Order the float value based on the order they would be run. Newer replacements for the same come just after
         # to save back find the next lowest valid value.
         status = chunk.status.as_type(self._features["status"])
-        self.set_layer_obj(data, self.Status, TAG_String(status))
+        self.set_layer_obj(data, self.Status, StringTag(status))
 
     def _encode_inhabited_time(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         self.set_layer_obj(
-            data, self.InhabitedTime, TAG_Long(chunk.misc.get("inhabited_time", 0))
+            data, self.InhabitedTime, LongTag(chunk.misc.get("inhabited_time", 0))
         )
 
     def _encode_block_section(
         self,
         chunk: Chunk,
-        sections: Dict[int, TAG_Compound],
+        sections: Dict[int, CompoundTag],
         palette: AnyNDArray,
         cy: int,
     ) -> bool:
@@ -222,8 +222,8 @@ class Anvil1444Interface(ParentInterface):
         if len(sub_palette) == 1 and sub_palette[0]["Name"].value == "minecraft:air":
             return False
 
-        section = sections.setdefault(cy, TAG_Compound())
-        section["BlockStates"] = TAG_Long_Array(
+        section = sections.setdefault(cy, CompoundTag())
+        section["BlockStates"] = LongArrayTag(
             encode_long_array(
                 block_sub_array, dense=self.LongArrayDense, min_bits_per_entry=4
             )
@@ -231,28 +231,28 @@ class Anvil1444Interface(ParentInterface):
         section["Palette"] = sub_palette
 
     @staticmethod
-    def _encode_block_palette(blockstates: Iterable[Block]) -> TAG_List:
-        palette = TAG_List()
+    def _encode_block_palette(blockstates: Iterable[Block]) -> ListTag:
+        palette = ListTag()
         for block in blockstates:
-            entry = TAG_Compound()
-            entry["Name"] = TAG_String(f"{block.namespace}:{block.base_name}")
+            entry = CompoundTag()
+            entry["Name"] = StringTag(f"{block.namespace}:{block.base_name}")
             if block.properties:
                 string_properties = {
                     k: v
                     for k, v in block.properties.items()
-                    if isinstance(v, TAG_String)
+                    if isinstance(v, StringTag)
                 }
                 if string_properties:
-                    entry["Properties"] = TAG_Compound(string_properties)
+                    entry["Properties"] = CompoundTag(string_properties)
             palette.append(entry)
         return palette
 
     @staticmethod
     def _encode_to_be_ticked(
         ticks: Set[BlockCoordinates], floor_cy: int, height_cy: int
-    ) -> TAG_List:
+    ) -> ListTag:
         ceil_cy = floor_cy + height_cy
-        ticks_out = TAG_List([TAG_List([], 2) for _ in range(floor_cy, ceil_cy)])
+        ticks_out = ListTag([ListTag([], 2) for _ in range(floor_cy, ceil_cy)])
         if isinstance(ticks, set):
             for k in ticks:
                 try:
@@ -262,7 +262,7 @@ class Anvil1444Interface(ParentInterface):
                         x = x & 15
                         y = y & 15
                         z = z & 15
-                        ticks_out[cy].append(TAG_Short((z << 8) + (y << 4) + x))
+                        ticks_out[cy].append(ShortTag((z << 8) + (y << 4) + x))
                 except Exception:
                     amulet.log.error(f"Could not serialise tick data {k}")
         return ticks_out
@@ -314,10 +314,10 @@ class Anvil1444Interface(ParentInterface):
             self.Structures,
             chunk.misc.get(
                 "structures",
-                TAG_Compound(
+                CompoundTag(
                     {
-                        "References": TAG_Compound(),
-                        "Starts": TAG_Compound(),
+                        "References": CompoundTag(),
+                        "Starts": CompoundTag(),
                     }
                 ),
             ),

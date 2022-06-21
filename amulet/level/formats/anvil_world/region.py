@@ -10,7 +10,7 @@ import time
 import re
 import threading
 
-import amulet_nbt as nbt
+from amulet_nbt import NamedTag, load_one
 
 from amulet.utils import world_utils
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
@@ -250,7 +250,7 @@ class AnvilRegion:
                     if os.path.isfile(mcc_path):
                         os.remove(mcc_path)
 
-    def get_chunk_data(self, cx: int, cz: int) -> nbt.NBTFile:
+    def get_chunk_data(self, cx: int, cz: int) -> NamedTag:
         """Get chunk data. Coords are in region space."""
         if (cx, cz) in self._committed_chunks:
             # if the chunk exists in the committed but unsaved chunks return that
@@ -269,7 +269,7 @@ class AnvilRegion:
 
         raise ChunkDoesNotExist
 
-    def put_chunk_data(self, cx: int, cz: int, data: nbt.NBTFile):
+    def put_chunk_data(self, cx: int, cz: int, data: NamedTag):
         """compress the data and put it in the class database"""
         bytes_data = self._compress(data)
         self._committed_chunks[(cx, cz)] = (int(time.time()), bytes_data)
@@ -278,16 +278,16 @@ class AnvilRegion:
         self._committed_chunks[(cx, cz)] = (0, None)
 
     @staticmethod
-    def _compress(data: nbt.NBTFile) -> bytes:
-        """Convert an NBTFile into a compressed bytes object"""
+    def _compress(data: NamedTag) -> bytes:
+        """Convert an NamedTag into a compressed bytes object"""
         data = data.save_to(compressed=False)
         return b"\x02" + zlib.compress(data)
 
     @staticmethod
-    def _decompress(compress_type: int, data: bytes) -> nbt.NBTFile:
-        """Convert a bytes object into an NBTFile"""
+    def _decompress(compress_type: int, data: bytes) -> NamedTag:
+        """Convert a bytes object into an NamedTag"""
         if compress_type == world_utils.VERSION_GZIP:
-            return nbt.load(gzip.decompress(data), compressed=False)
+            return load_one(gzip.decompress(data), compressed=False)
         elif compress_type == world_utils.VERSION_DEFLATE:
-            return nbt.load(zlib.decompress(data), compressed=False)
+            return load_one(zlib.decompress(data), compressed=False)
         raise ChunkLoadError(f"Invalid compression type {compress_type}")

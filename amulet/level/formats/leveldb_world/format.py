@@ -9,7 +9,7 @@ import shutil
 import traceback
 import time
 
-import amulet_nbt as nbt
+from amulet_nbt import load_one, NamedTag, CompoundTag, StringTag, ByteTag, IntTag, ListTag, LongTag, FloatTag, utf8_escape_decoder
 from amulet.api.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionBox, SelectionGroup
@@ -42,7 +42,7 @@ from .interface.chunk import BaseLevelDBInterface, get_interface
 InternalDimension = Optional[int]
 
 
-class BedrockLevelDAT(nbt.NBTFile):
+class BedrockLevelDAT(NamedTag):
     def __init__(self, path: str):
         super().__init__()
         self._path: str = path
@@ -60,8 +60,8 @@ class BedrockLevelDAT(nbt.NBTFile):
             self._level_dat_version = struct.unpack("<i", f.read(4))[0]
             if 4 <= self._level_dat_version <= 9:
                 data_length = struct.unpack("<i", f.read(4))[0]
-                root_tag = nbt.load(
-                    f.read(data_length), compressed=False, little_endian=True
+                root_tag = load_one(
+                    f.read(data_length), compressed=False, little_endian=True, string_decoder=utf8_escape_decoder
                 )
                 self.name = root_tag.name
                 self.value = root_tag.value
@@ -170,15 +170,15 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         return self._root_tag
 
     @root_tag.setter
-    def root_tag(self, root_tag: Union[nbt.NBTFile, nbt.TAG_Compound, BedrockLevelDAT]):
-        if isinstance(root_tag, nbt.TAG_Compound):
+    def root_tag(self, root_tag: Union[NamedTag, CompoundTag, BedrockLevelDAT]):
+        if isinstance(root_tag, CompoundTag):
             self._root_tag.value = root_tag
-        elif isinstance(root_tag, nbt.NBTFile):
+        elif isinstance(root_tag, NamedTag):
             self._root_tag.name = root_tag.name
             self._root_tag.value = root_tag.value
         else:
             raise ValueError(
-                "root_tag must be a TAG_Compound, NBTFile or BedrockLevelDAT"
+                "root_tag must be a CompoundTag, NamedTag or BedrockLevelDAT"
             )
 
     @property
@@ -187,7 +187,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
 
     @level_name.setter
     def level_name(self, value: str):
-        self.root_tag["LevelName"] = nbt.TAG_String(value)
+        self.root_tag["LevelName"] = StringTag(value)
 
     @property
     def last_played(self) -> int:
@@ -248,7 +248,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
             chunk_version = game_to_chunk_version(
                 self.max_world_version[1],
                 self.root_tag.get("experiments", {})
-                .get("caves_and_cliffs", nbt.TAG_Byte())
+                .get("caves_and_cliffs", ByteTag())
                 .value,
             )
         return chunk_version
@@ -291,8 +291,8 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
             self._has_lock = True
             experiments = self.root_tag.get("experiments", {})
             if (
-                experiments.get("caves_and_cliffs", nbt.TAG_Byte()).value
-                or experiments.get("caves_and_cliffs_internal", nbt.TAG_Byte()).value
+                experiments.get("caves_and_cliffs", ByteTag()).value
+                or experiments.get("caves_and_cliffs_internal", ByteTag()).value
                 or self.version >= (1, 18)
             ):
                 self._bounds[OVERWORLD] = SelectionGroup(
@@ -358,14 +358,14 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         ).version_number
         self._version = version + (0,) * (5 - len(version))
 
-        self.root_tag = root = nbt.TAG_Compound()
-        root["StorageVersion"] = nbt.TAG_Int(8)
-        root["lastOpenedWithVersion"] = nbt.TAG_List(
-            [nbt.TAG_Int(i) for i in self._version]
+        self.root_tag = root = CompoundTag()
+        root["StorageVersion"] = IntTag(8)
+        root["lastOpenedWithVersion"] = ListTag(
+            [IntTag(i) for i in self._version]
         )
-        root["Generator"] = nbt.TAG_Int(1)
-        root["LastPlayed"] = nbt.TAG_Long(int(time.time()))
-        root["LevelName"] = nbt.TAG_String("World Created By Amulet")
+        root["Generator"] = IntTag(1)
+        root["LastPlayed"] = LongTag(int(time.time()))
+        root["LevelName"] = StringTag("World Created By Amulet")
 
         os.makedirs(self.path, exist_ok=True)
         self.root_tag.save()
@@ -451,7 +451,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         """
         player_nbt = self._get_raw_player_data(player_id)
         dimension = player_nbt["DimensionId"]
-        if isinstance(dimension, nbt.TAG_Int) and 0 <= dimension <= 2:
+        if isinstance(dimension, IntTag) and 0 <= dimension <= 2:
             dimension_str = {
                 0: OVERWORLD,
                 1: THE_NETHER,
@@ -463,9 +463,9 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         # get the players position
         pos_data = player_nbt.get("Pos")
         if (
-            isinstance(pos_data, nbt.TAG_List)
+            isinstance(pos_data, ListTag)
             and len(pos_data) == 3
-            and pos_data.list_data_type == nbt.TAG_Float.tag_id
+            and pos_data.list_data_type == FloatTag.tag_id
         ):
             position = tuple(map(float, pos_data))
             position = tuple(
@@ -477,9 +477,9 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         # get the players rotation
         rot_data = player_nbt.get("Rotation")
         if (
-            isinstance(rot_data, nbt.TAG_List)
+            isinstance(rot_data, ListTag)
             and len(rot_data) == 2
-            and rot_data.list_data_type == nbt.TAG_Float.tag_id
+            and rot_data.list_data_type == FloatTag.tag_id
         ):
             rotation = tuple(map(float, rot_data))
             rotation = tuple(
@@ -495,7 +495,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
             rotation,
         )
 
-    def _get_raw_player_data(self, player_id: str) -> nbt.NBTFile:
+    def _get_raw_player_data(self, player_id: str) -> NamedTag:
         if player_id == LOCAL_PLAYER:
             key = player_id.encode("utf-8")
         else:
@@ -504,4 +504,4 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
             data = self._db.get(key)
         except KeyError:
             raise PlayerDoesNotExist(f"Player {player_id} doesn't exist")
-        return nbt.load(data, compressed=False, little_endian=True)
+        return load_one(data, compressed=False, little_endian=True, string_decoder=utf8_escape_decoder)

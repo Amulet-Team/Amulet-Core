@@ -3,13 +3,13 @@ from typing import Tuple, Dict, Optional
 import numpy
 
 from amulet_nbt import (
-    TAG_Compound,
-    TAG_List,
-    TAG_Byte,
-    TAG_Int,
-    TAG_Long,
-    TAG_Long_Array,
-    TAG_String,
+    CompoundTag,
+    ListTag,
+    ByteTag,
+    IntTag,
+    LongTag,
+    LongArrayTag,
+    StringTag,
 )
 
 from amulet.api.chunk import Chunk
@@ -54,26 +54,26 @@ class Anvil2844Interface(ParentInterface):
         Level.CarvingMasks[] is now long[] instead of byte[].
     """
 
-    Level: ChunkPathType = ("region", [], TAG_Compound)
-    Sections: ChunkPathType = ("region", [("sections", TAG_List)], TAG_List)
+    Level: ChunkPathType = ("region", [], CompoundTag)
+    Sections: ChunkPathType = ("region", [("sections", ListTag)], ListTag)
 
-    BlockEntities: ChunkPathType = ("region", [("block_entities", TAG_List)], TAG_List)
-    Entities: ChunkPathType = ("region", [("entities", TAG_List)], TAG_List)
-    InhabitedTime: ChunkPathType = ("region", [("InhabitedTime", TAG_Long)], TAG_Long)
-    LastUpdate: ChunkPathType = ("region", [("LastUpdate", TAG_Long)], TAG_Long)
-    Heightmaps: ChunkPathType = ("region", [("Heightmaps", TAG_Compound)], TAG_Compound)
-    BlockTicks: ChunkPathType = ("region", [("block_ticks", TAG_List)], TAG_List)
+    BlockEntities: ChunkPathType = ("region", [("block_entities", ListTag)], ListTag)
+    Entities: ChunkPathType = ("region", [("entities", ListTag)], ListTag)
+    InhabitedTime: ChunkPathType = ("region", [("InhabitedTime", LongTag)], LongTag)
+    LastUpdate: ChunkPathType = ("region", [("LastUpdate", LongTag)], LongTag)
+    Heightmaps: ChunkPathType = ("region", [("Heightmaps", CompoundTag)], CompoundTag)
+    BlockTicks: ChunkPathType = ("region", [("block_ticks", ListTag)], ListTag)
     ToBeTicked = None
     Biomes = None
 
-    Status: ChunkPathType = ("region", [("Status", TAG_String)], TAG_String("full"))
+    Status: ChunkPathType = ("region", [("Status", StringTag)], StringTag("full"))
 
-    LiquidTicks: ChunkPathType = ("region", [("fluid_ticks", TAG_List)], TAG_List)
-    PostProcessing: ChunkPathType = ("region", [("PostProcessing", TAG_List)], TAG_List)
+    LiquidTicks: ChunkPathType = ("region", [("fluid_ticks", ListTag)], ListTag)
+    PostProcessing: ChunkPathType = ("region", [("PostProcessing", ListTag)], ListTag)
 
-    Structures: ChunkPathType = ("region", [("structures", TAG_Compound)], TAG_Compound)
+    Structures: ChunkPathType = ("region", [("structures", CompoundTag)], CompoundTag)
 
-    yPos: ChunkPathType = ("region", [("yPos", TAG_Int)], TAG_Int)
+    yPos: ChunkPathType = ("region", [("yPos", IntTag)], IntTag)
 
     @staticmethod
     def minor_is_valid(key: int):
@@ -83,11 +83,11 @@ class Anvil2844Interface(ParentInterface):
         return self.get_layer_obj(data, self.yPos, pop_last=True).value
 
     def _decode_block_section(
-        self, section: TAG_Compound
+        self, section: CompoundTag
     ) -> Optional[Tuple[numpy.ndarray, list]]:
-        block_states = self.get_obj(section, "block_states", TAG_Compound)
+        block_states = self.get_obj(section, "block_states", CompoundTag)
         if (
-            isinstance(block_states, TAG_Compound) and "palette" in block_states
+            isinstance(block_states, CompoundTag) and "palette" in block_states
         ):  # 1.14 makes block_palette/blocks optional.
             section_palette = self._decode_block_palette(block_states.pop("palette"))
             data = block_states.pop("data", None)
@@ -106,14 +106,14 @@ class Anvil2844Interface(ParentInterface):
             return None
 
     @staticmethod
-    def _decode_biome_palette(palette: TAG_List) -> list[BiomeType]:
+    def _decode_biome_palette(palette: ListTag) -> list[BiomeType]:
         return [entry.value for entry in palette]
 
     def _decode_biome_section(
-        self, section: TAG_Compound
+        self, section: CompoundTag
     ) -> Optional[Tuple[numpy.ndarray, list]]:
-        biomes = self.get_obj(section, "biomes", TAG_Compound)
-        if isinstance(biomes, TAG_Compound) and "palette" in biomes:
+        biomes = self.get_obj(section, "biomes", CompoundTag)
+        if isinstance(biomes, CompoundTag) and "palette" in biomes:
             section_palette = self._decode_biome_palette(biomes.pop("palette"))
             data = biomes.pop("data", None)
             if data is None:
@@ -173,12 +173,12 @@ class Anvil2844Interface(ParentInterface):
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         super()._encode_coords(chunk, data, floor_cy, height_cy)
-        self.set_layer_obj(data, self.yPos, TAG_Int(floor_cy))
+        self.set_layer_obj(data, self.yPos, IntTag(floor_cy))
 
     def _encode_block_section(
         self,
         chunk: Chunk,
-        sections: Dict[int, TAG_Compound],
+        sections: Dict[int, CompoundTag],
         palette: AnyNDArray,
         cy: int,
     ):
@@ -190,23 +190,23 @@ class Anvil2844Interface(ParentInterface):
             block_sub_array, return_inverse=True
         )
         sub_palette = self._encode_block_palette(palette[sub_palette_])
-        section = sections.setdefault(cy, TAG_Compound())
-        block_states = section["block_states"] = TAG_Compound({"palette": sub_palette})
+        section = sections.setdefault(cy, CompoundTag())
+        block_states = section["block_states"] = CompoundTag({"palette": sub_palette})
         if len(sub_palette) != 1:
-            block_states["data"] = TAG_Long_Array(
+            block_states["data"] = LongArrayTag(
                 encode_long_array(
                     block_sub_array, dense=self.LongArrayDense, min_bits_per_entry=4
                 )
             )
 
     @staticmethod
-    def _encode_biome_palette(palette: list[BiomeType]) -> TAG_List:
-        return TAG_List([TAG_String(entry) for entry in palette])
+    def _encode_biome_palette(palette: list[BiomeType]) -> ListTag:
+        return ListTag([StringTag(entry) for entry in palette])
 
     def _encode_biome_section(
         self,
         chunk: Chunk,
-        sections: Dict[int, TAG_Compound],
+        sections: Dict[int, CompoundTag],
         cy: int,
     ):
         biome_sub_array = numpy.transpose(
@@ -217,9 +217,9 @@ class Anvil2844Interface(ParentInterface):
             biome_sub_array, return_inverse=True
         )
         sub_palette = self._encode_biome_palette(chunk.biome_palette[sub_palette_])
-        biomes = sections[cy]["biomes"] = TAG_Compound({"palette": sub_palette})
+        biomes = sections[cy]["biomes"] = CompoundTag({"palette": sub_palette})
         if len(sub_palette) != 1:
-            biomes["data"] = TAG_Long_Array(
+            biomes["data"] = LongArrayTag(
                 encode_long_array(biome_sub_array, dense=self.LongArrayDense)
             )
 

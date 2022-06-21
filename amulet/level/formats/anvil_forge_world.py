@@ -1,9 +1,10 @@
 from __future__ import annotations
+import os
 
-from amulet_nbt import TAG_Compound
+from amulet_nbt import CompoundTag, load_one
 
 from .anvil_world import AnvilFormat
-from amulet.utils.format_utils import check_all_exist, load_leveldat
+from amulet.utils.format_utils import check_all_exist
 
 
 class AnvilForgeFormat(AnvilFormat):
@@ -19,8 +20,8 @@ class AnvilForgeFormat(AnvilFormat):
             return False
 
         try:
-            level_dat_root = load_leveldat(path)
-            assert isinstance(level_dat_root.value, TAG_Compound)
+            level_dat_root = load_one(os.path.join(path, "level.dat"))
+            assert isinstance(level_dat_root.value, CompoundTag)
         except:
             return False
 

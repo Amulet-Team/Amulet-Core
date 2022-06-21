@@ -1,7 +1,7 @@
 from typing import Dict, overload, List, Union, Tuple, Generator, Iterable
 from numpy import character, integer
 
-from amulet_nbt import TAG_Byte, TAG_Int, TAG_Short, TAG_Long, TAG_String
+from amulet_nbt import ByteTag, IntTag, ShortTag, LongTag, StringTag
 from amulet.api.data_types import Int, BiomeType
 from amulet.api.registry.base_registry import BaseRegistry
 
@@ -117,9 +117,9 @@ class BiomeManager(BaseRegistry):
             )
 
     def _get_item(self, item):
-        if isinstance(item, (str, character, TAG_String)):
+        if isinstance(item, (str, character, StringTag)):
             return self._biome_to_index[str(item)]
-        elif isinstance(item, (int, integer, TAG_Byte, TAG_Short, TAG_Int, TAG_Long)):
+        elif isinstance(item, (int, integer, ByteTag, ShortTag, IntTag, LongTag)):
             return self._index_to_biome[int(item)]
         # if it isn't an int or string assume an iterable of the above.
         return [self._get_item(i) for i in item]

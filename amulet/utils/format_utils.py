@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import os
+import warnings
 
-import amulet_nbt as nbt
+from amulet_nbt import load_one, NamedTag
 
 
 def check_all_exist(in_dir: str, *args: str) -> bool:
@@ -29,11 +30,12 @@ def check_one_exists(in_dir: str, *args: str) -> bool:
     return any(os.path.exists(os.path.join(in_dir, child)) for child in args)
 
 
-def load_leveldat(in_dir: str) -> nbt.NBTFile:
+def load_leveldat(in_dir: str) -> NamedTag:
     """
     Load the root tag of the level.dat file in the directory
 
     :param in_dir: The world directory containing the level.dat file
     :return: The NBT root tag
     """
-    return nbt.load(os.path.join(in_dir, "level.dat"))
+    warnings.warn("load_leveldat is depreciated.", DeprecationWarning)
+    return load_one(os.path.join(in_dir, "level.dat"))

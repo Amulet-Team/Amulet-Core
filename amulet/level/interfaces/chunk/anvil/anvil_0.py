@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Tuple, TYPE_CHECKING
 
-from amulet_nbt import TAG_Int
+from amulet_nbt import IntTag
 
 import amulet
 from .base_anvil_interface import ChunkPathType, ChunkDataType
@@ -21,8 +21,8 @@ class Anvil0Interface(ParentInterface):
     V = None
     RegionDataVersion: ChunkPathType = (
         "region",
-        [("DataVersion", TAG_Int)],
-        TAG_Int,
+        [("DataVersion", IntTag)],
+        IntTag,
     )
 
     def __init__(self):
@@ -65,7 +65,7 @@ class Anvil0Interface(ParentInterface):
         height_cy: int,
     ) -> ChunkDataType:
         data = super()._init_encode(chunk, max_world_version, floor_cy, height_cy)
-        self.set_layer_obj(data, self.RegionDataVersion, TAG_Int(max_world_version[1]))
+        self.set_layer_obj(data, self.RegionDataVersion, IntTag(max_world_version[1]))
         return data
 
 

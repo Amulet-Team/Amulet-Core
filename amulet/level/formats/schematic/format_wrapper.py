@@ -3,7 +3,7 @@ from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, Uni
 import numpy
 import copy
 
-import amulet_nbt
+from amulet_nbt import ShortTag, StringTag, ListTag, CompoundTag, ByteArrayTag, NamedTag, load_one
 
 from amulet.api.data_types import (
     AnyNDArray,
@@ -74,10 +74,10 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         self._has_lock = True
 
     def open_from(self, f: BinaryIO):
-        schematic = amulet_nbt.load(f)
+        schematic = load_one(f)
         if "BlockData" in schematic:
             raise ObjectReadError("This file is not a legacy schematic file.")
-        materials = schematic.get("Materials", amulet_nbt.TAG_String()).value
+        materials = schematic.get("Materials", StringTag()).value
         if materials == "Alpha":
             self._platform = "java"
             self._version = (1, 12, 2)
@@ -98,9 +98,9 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             ),
         )
         self._bounds[self.dimensions[0]] = SelectionGroup(selection_box)
-        entities: amulet_nbt.TAG_List = schematic.get("Entities", amulet_nbt.TAG_List())
-        block_entities: amulet_nbt.TAG_List = schematic.get(
-            "TileEntities", amulet_nbt.TAG_List()
+        entities: ListTag = schematic.get("Entities", ListTag())
+        block_entities: ListTag = schematic.get(
+            "TileEntities", ListTag()
         )
         blocks: numpy.ndarray = (
             schematic["Blocks"].value.astype(numpy.uint8).astype(numpy.uint16)
@@ -190,14 +190,14 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
 
         selection = self._bounds[self.dimensions[0]].selection_boxes[0]
 
-        data = amulet_nbt.NBTFile(
-            amulet_nbt.TAG_Compound(
+        data = NamedTag(
+            CompoundTag(
                 {
-                    "TileTicks": amulet_nbt.TAG_List(),
-                    "Width": amulet_nbt.TAG_Short(selection.size_x),
-                    "Height": amulet_nbt.TAG_Short(selection.size_y),
-                    "Length": amulet_nbt.TAG_Short(selection.size_z),
-                    "Materials": amulet_nbt.TAG_String(materials),
+                    "TileTicks": ListTag(),
+                    "Width": ShortTag(selection.size_x),
+                    "Height": ShortTag(selection.size_y),
+                    "Length": ShortTag(selection.size_z),
+                    "Materials": StringTag(materials),
                 }
             ),
             "Schematic",
@@ -236,17 +236,17 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                     e["Pos"][2] = coord_type(e["Pos"][2] - selection.min_z)
                     entities.append(e)
 
-        data["Entities"] = amulet_nbt.TAG_List(entities)
-        data["TileEntities"] = amulet_nbt.TAG_List(block_entities)
-        data["Data"] = amulet_nbt.TAG_Byte_Array(
+        data["Entities"] = ListTag(entities)
+        data["TileEntities"] = ListTag(block_entities)
+        data["Data"] = ByteArrayTag(
             numpy.transpose(block_data, (1, 2, 0))  # XYZ => YZX
         )
-        data["Blocks"] = amulet_nbt.TAG_Byte_Array(
+        data["Blocks"] = ByteArrayTag(
             numpy.transpose((blocks & 0xFF).astype(numpy.uint8), (1, 2, 0))
         )
         if numpy.max(blocks) > 0xFF:
             add_blocks = (numpy.transpose(blocks & 0xF00, (1, 2, 0)) >> 8).ravel()
-            data["AddBlocks"] = amulet_nbt.TAG_Byte_Array(
+            data["AddBlocks"] = ByteArrayTag(
                 (add_blocks[::2] << 4) + add_blocks[1::2]
             )
         data.save_to(f)

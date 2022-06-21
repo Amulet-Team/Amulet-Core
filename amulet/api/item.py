@@ -1,44 +1,44 @@
-import amulet_nbt
+from amulet_nbt import CompoundTag, StringTag
 
 
-class Item(amulet_nbt.TAG_Compound):
+class Item(CompoundTag):
     """
     {
-        "namespace": TAG_String,
-        "base_name": TAG_String,
-        "metadata": TAG_Compound
+        "namespace": StringTag,
+        "base_name": StringTag,
+        "metadata": CompoundTag
     }
     """
 
     def __init__(self, namespace: str, base_name: str, metadata: dict = None):
         super().__init__(
             {
-                "namespace": amulet_nbt.TAG_String(namespace),
-                "base_name": amulet_nbt.TAG_String(base_name),
-                "metadata": amulet_nbt.TAG_Compound(metadata or {}),
+                "namespace": StringTag(namespace),
+                "base_name": StringTag(base_name),
+                "metadata": CompoundTag(metadata or {}),
             }
         )
 
     @property
     def namespace(self) -> str:
-        return self.value["namespace"].value
+        return self["namespace"].py_str
 
     @property
     def base_name(self) -> str:
-        return self.value["base_name"].value
+        return self["base_name"].py_str
 
     @property
-    def metadata(self) -> amulet_nbt.TAG_Compound:
-        return self.value["metadata"].value
+    def metadata(self) -> CompoundTag:
+        return self["metadata"]
 
 
-class BlockItem(amulet_nbt.TAG_Compound):
+class BlockItem(CompoundTag):
     """
     {
-        "namespace": TAG_String,
-        "base_name": TAG_String,
-        "properties": TAG_Compound
-        "metadata": TAG_Compound
+        "namespace": StringTag,
+        "base_name": StringTag,
+        "properties": CompoundTag
+        "metadata": CompoundTag
     }
     """
 
@@ -51,25 +51,25 @@ class BlockItem(amulet_nbt.TAG_Compound):
     ):
         super().__init__(
             {
-                "namespace": amulet_nbt.TAG_String(namespace),
-                "base_name": amulet_nbt.TAG_String(base_name),
-                "properties": amulet_nbt.TAG_Compound(properties or {}),
-                "metadata": amulet_nbt.TAG_Compound(metadata or {}),
+                "namespace": StringTag(namespace),
+                "base_name": StringTag(base_name),
+                "properties": CompoundTag(properties or {}),
+                "metadata": CompoundTag(metadata or {}),
             }
         )
 
     @property
     def namespace(self) -> str:
-        return self.value["namespace"].value
+        return self["namespace"].py_str
 
     @property
     def base_name(self) -> str:
-        return self.value["base_name"].value
+        return self["base_name"].py_str
 
     @property
-    def properties(self) -> amulet_nbt.TAG_Compound:
-        return self.value["properties"].value
+    def properties(self) -> CompoundTag:
+        return self["properties"]
 
     @property
-    def metadata(self) -> amulet_nbt.TAG_Compound:
-        return self.value["metadata"].value
+    def metadata(self) -> CompoundTag:
+        return self["metadata"]
