@@ -59,9 +59,14 @@ class BedrockLevelDAT(NamedTag):
     _path: str
     _level_dat_version: int
 
-    def __init__(self, tag = None, name: str = "", path: str = None, level_dat_version: int = None):
+    def __init__(
+        self, tag=None, name: str = "", path: str = None, level_dat_version: int = None
+    ):
         if isinstance(tag, str):
-            warnings.warn("You must use BedrockLevelDAT.from_file to load from a file.", FutureWarning)
+            warnings.warn(
+                "You must use BedrockLevelDAT.from_file to load from a file.",
+                FutureWarning,
+            )
             super().__init__()
             self._path = path = tag
             self._level_dat_version = 8
@@ -70,7 +75,9 @@ class BedrockLevelDAT(NamedTag):
             return
         else:
             if not (isinstance(path, str) and isinstance(level_dat_version, int)):
-                raise TypeError("path and level_dat_version must be specified when constructing a BedrockLevelDAT instance.")
+                raise TypeError(
+                    "path and level_dat_version must be specified when constructing a BedrockLevelDAT instance."
+                )
             super().__init__(tag, name)
             self._path = path
             self._level_dat_version = level_dat_version
@@ -161,9 +168,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         """
         super().__init__(path)
         self._platform = "bedrock"
-        self._root_tag = BedrockLevelDAT.from_file(
-            os.path.join(path, "level.dat")
-        )
+        self._root_tag = BedrockLevelDAT.from_file(os.path.join(path, "level.dat"))
         self._db = None
         self._dimension_manager = None
         self._shallow_load()
@@ -204,7 +209,10 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         """
         try:
             return tuple(
-                [t.py_int for t in self.root_tag.compound.get_list("lastOpenedWithVersion")]
+                [
+                    t.py_int
+                    for t in self.root_tag.compound.get_list("lastOpenedWithVersion")
+                ]
             )
         except Exception:
             return 1, 2, 0
@@ -292,8 +300,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         else:
             chunk_version = game_to_chunk_version(
                 self.max_world_version[1],
-                self.root_tag.compound
-                .get_compound("experiments", CompoundTag())
+                self.root_tag.compound.get_compound("experiments", CompoundTag())
                 .get_byte("caves_and_cliffs", ByteTag())
                 .py_int,
             )
@@ -335,7 +342,9 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
             self._dimension_manager = LevelDBDimensionManager(self)
             self._is_open = True
             self._has_lock = True
-            experiments = self.root_tag.compound.get_compound("experiments", CompoundTag())
+            experiments = self.root_tag.compound.get_compound(
+                "experiments", CompoundTag()
+            )
             if (
                 experiments.get_byte("caves_and_cliffs", ByteTag()).py_int
                 or experiments.get_byte("caves_and_cliffs_internal", ByteTag()).py_int

@@ -129,8 +129,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
 
     def _get_version(self) -> VersionNumberInt:
         return (
-            self.root_tag.compound
-            .get_compound("Data", CompoundTag())
+            self.root_tag.compound.get_compound("Data", CompoundTag())
             .get_int("DataVersion", IntTag(-1))
             .py_int
         )
@@ -151,11 +150,15 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
 
     @property
     def level_name(self) -> str:
-        return self.root_tag.compound.get_compound("Data").get_string("LevelName").py_str
+        return (
+            self.root_tag.compound.get_compound("Data").get_string("LevelName").py_str
+        )
 
     @level_name.setter
     def level_name(self, value: str):
-        self.root_tag.compound.setdefault_compound("Data")["LevelName"] = StringTag(value)
+        self.root_tag.compound.setdefault_compound("Data")["LevelName"] = StringTag(
+            value
+        )
 
     @property
     def last_played(self) -> int:
@@ -164,9 +167,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
     @property
     def game_version_string(self) -> str:
         try:
-            return (
-                f'Java {self.root_tag.compound.get_compound("Data").get_compound("Version").get_string("Name").py_str}'
-            )
+            return f'Java {self.root_tag.compound.get_compound("Data").get_compound("Version").get_string("Name").py_str}'
         except Exception:
             return f"Java Unknown Version"
 
@@ -174,7 +175,11 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
     def data_pack(self) -> DataPackManager:
         if self._data_pack is None:
             packs = []
-            enabled_packs = self.root_tag.compound.get_compound("Data").get_compound("DataPacks", CompoundTag()).get_list("Enabled", ListTag())
+            enabled_packs = (
+                self.root_tag.compound.get_compound("Data")
+                .get_compound("DataPacks", CompoundTag())
+                .get_list("Enabled", ListTag())
+            )
             for pack in enabled_packs:
                 if isinstance(pack, StringTag):
                     pack_name: str = pack.py_str
@@ -222,7 +227,12 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
             self._dimension_name_map[dimension_name] = relative_dimension_path
             bounds = DefaultSelection
             if self.version >= 2709:  # This number might be smaller
-                dimension_tag = self.root_tag.compound.get_compound("Data", CompoundTag()).get_compound("WorldGenSettings", CompoundTag()).get_compound("dimensions", CompoundTag()).get_compound(dimension_name, CompoundTag())["type"]
+                dimension_tag = (
+                    self.root_tag.compound.get_compound("Data", CompoundTag())
+                    .get_compound("WorldGenSettings", CompoundTag())
+                    .get_compound("dimensions", CompoundTag())
+                    .get_compound(dimension_name, CompoundTag())["type"]
+                )
                 if isinstance(dimension_tag, StringTag):
                     # the settings are in the data pack
                     dimension_name = dimension_tag.py_str
@@ -282,8 +292,12 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                 elif isinstance(dimension_tag, CompoundTag):
                     # the settings are here
                     dimension_settings = dimension_tag
-                    min_y = (dimension_settings.get_int("min_y", IntTag()).py_int // 16) * 16
-                    height = (-dimension_settings.get_int("height", IntTag(256)).py_int // 16) * -16
+                    min_y = (
+                        dimension_settings.get_int("min_y", IntTag()).py_int // 16
+                    ) * 16
+                    height = (
+                        -dimension_settings.get_int("height", IntTag(256)).py_int // 16
+                    ) * -16
                     bounds = SelectionGroup(
                         SelectionBox(
                             (-30_000_000, min_y, -30_000_000),
@@ -307,7 +321,9 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         else:
             return (
                 self.platform,
-                raw_chunk_data.get("region", NamedTag()).compound.get_int("DataVersion", IntTag(-1)).py_int,
+                raw_chunk_data.get("region", NamedTag())
+                .compound.get_int("DataVersion", IntTag(-1))
+                .py_int,
             )
 
     def _decode(
@@ -699,7 +715,9 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
     def _get_raw_player_data(self, player_id: str) -> CompoundTag:
         if player_id == LOCAL_PLAYER:
             if "Player" in self.root_tag.compound.get_compound("Data"):
-                return self.root_tag.compound.get_compound("Data").get_compound("Player")
+                return self.root_tag.compound.get_compound("Data").get_compound(
+                    "Player"
+                )
             else:
                 raise PlayerDoesNotExist("Local player doesn't exist")
         else:

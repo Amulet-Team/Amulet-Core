@@ -52,7 +52,9 @@ class ActorCounter:
 
     @classmethod
     def from_level(cls, level: LevelDBFormat):
-        session = level.root_tag.compound.get_long("worldStartCount", LongTag(0xFFFFFFFF)).py_int
+        session = level.root_tag.compound.get_long(
+            "worldStartCount", LongTag(0xFFFFFFFF)
+        ).py_int
         # for some reason this is a signed int stored in a signed long. Manually apply the sign correctly
         session -= (session & 0x80000000) << 1
 

@@ -142,7 +142,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                             self._version = tuple(
                                 map(
                                     lambda v: v.py_int,
-                                    export_version.get_list("version")
+                                    export_version.get_list("version"),
                                 )
                             )
 
@@ -226,7 +226,11 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
 
             palette = unpack_palette(metadata.get_list("block_palette"))
 
-            selection_boxes = metadata.get_int_array("selection_boxes").np_array.reshape(-1, 6).tolist()
+            selection_boxes = (
+                metadata.get_int_array("selection_boxes")
+                .np_array.reshape(-1, 6)
+                .tolist()
+            )
 
             self._bounds[self.dimensions[0]] = SelectionGroup(
                 [
@@ -238,7 +242,9 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             self._populate_chunk_to_box()
 
             section_index_table = (
-                metadata.get_byte_array("section_index_table").np_array.view(SECTION_ENTRY_TYPE).tolist()
+                metadata.get_byte_array("section_index_table")
+                .np_array.view(SECTION_ENTRY_TYPE)
+                .tolist()
             )
 
             if self._section_version == 0:
@@ -269,7 +275,9 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                             raise TypeError
 
                         blocks = block_array.reshape((shape_x, shape_y, shape_z))
-                        block_entities = parse_block_entities(nbt_obj.get_list("block_entities"))
+                        block_entities = parse_block_entities(
+                            nbt_obj.get_list("block_entities")
+                        )
 
                     start = numpy.array([start_x, start_y, start_z])
                     chunk_index: numpy.ndarray = start // self.sub_chunk_size
