@@ -427,7 +427,7 @@ class BaseLevelDBInterface(Interface):
                     ) = self._load_palette_blocks(data)
                     palette_data_out: List[Tuple[Optional[int], Block]] = []
                     for block in palette_data:
-                        block = block.get_compound()
+                        block = block.compound
                         namespace, base_name = block["name"].value.split(":", 1)
                         if "version" in block:
                             version: Optional[int] = block["version"].value

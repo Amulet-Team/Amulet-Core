@@ -85,6 +85,12 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
     This FormatWrapper class exists to interface with the construction format.
     """
 
+    _format_version: int
+    _section_version: int
+    _chunk_to_section: Dict[Tuple[int, int], List[ConstructionSection]]
+    _selection_boxes: List[SelectionBox]
+    _chunk_to_box: Dict[Tuple[int, int], List[SelectionBox]]
+
     def __init__(self, path: str):
         """
         Construct a new instance of :class:`ConstructionFormatWrapper`.
@@ -95,16 +101,16 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         """
         super().__init__(path)
 
-        self._format_version: int = max_format_version
-        self._section_version: int = max_section_version
+        self._format_version = max_format_version
+        self._section_version = max_section_version
 
         # which sections are in a given chunk
-        self._chunk_to_section: Dict[Tuple[int, int], List[ConstructionSection]] = {}
+        self._chunk_to_section = {}
 
-        self._selection_boxes: List[SelectionBox] = []
+        self._selection_boxes = []
 
         # which selection boxes intersect a given chunk (boxes are clipped to the size of the chunk)
-        self._chunk_to_box: Dict[Tuple[int, int], List[SelectionBox]] = {}
+        self._chunk_to_box = {}
 
         self._shallow_load()
 
@@ -128,19 +134,21 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                             metadata = load_one(
                                 f.read(metadata_end - metadata_start),
                                 compressed=True,
-                            )
+                            ).compound
 
-                            self._platform = metadata["export_version"]["edition"].value
+                            export_version = metadata.get_compound("export_version")
+
+                            self._platform = export_version.get_string("edition").py_str
                             self._version = tuple(
                                 map(
-                                    lambda v: v.value,
-                                    metadata["export_version"]["version"],
+                                    lambda v: v.py_int,
+                                    export_version.get_list("version")
                                 )
                             )
 
                             selection_boxes = (
-                                metadata["selection_boxes"]
-                                .value.reshape(-1, 6)
+                                metadata.get_int_array("selection_boxes")
+                                .np_array.reshape(-1, 6)
                                 .tolist()
                             )
                             self._bounds[self.dimensions[0]] = SelectionGroup(
@@ -203,21 +211,22 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             metadata = load_one(
                 f.read(metadata_end - metadata_start),
                 compressed=True,
-            )
+            ).compound
 
             try:
-                self._platform = metadata["export_version"]["edition"].value
+                export_version = metadata.get_compound("export_version")
+                self._platform = export_version.get_string("edition").py_str
                 self._version = tuple(
-                    map(lambda v: v.value, metadata["export_version"]["version"])
+                    map(lambda v: v.py_int, export_version.get_list("version"))
                 )
             except KeyError as e:
                 raise KeyError(f'Missing export version identifying key "{e.args[0]}"')
 
-            self._section_version = metadata["section_version"].value
+            self._section_version = metadata.get_byte("section_version").py_int
 
-            palette = unpack_palette(metadata["block_palette"])
+            palette = unpack_palette(metadata.get_list("block_palette"))
 
-            selection_boxes = metadata["selection_boxes"].value.reshape(-1, 6).tolist()
+            selection_boxes = metadata.get_int_array("selection_boxes").np_array.reshape(-1, 6).tolist()
 
             self._bounds[self.dimensions[0]] = SelectionGroup(
                 [
@@ -229,7 +238,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             self._populate_chunk_to_box()
 
             section_index_table = (
-                metadata["section_index_table"].value.view(SECTION_ENTRY_TYPE).tolist()
+                metadata.get_byte_array("section_index_table").np_array.view(SECTION_ENTRY_TYPE).tolist()
             )
 
             if self._section_version == 0:
@@ -244,15 +253,23 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                     length,
                 ) in section_index_table:
                     f.seek(position)
-                    nbt_obj = load_one(f.read(length))
-                    if nbt_obj["blocks_array_type"].value == -1:
+                    nbt_obj = load_one(f.read(length)).compound
+                    blocks_array_type = nbt_obj.get_byte("blocks_array_type").py_int
+                    if blocks_array_type == -1:
                         blocks = None
                         block_entities = None
                     else:
-                        blocks = numpy.reshape(
-                            nbt_obj["blocks"].value, (shape_x, shape_y, shape_z)
-                        )
-                        block_entities = parse_block_entities(nbt_obj["block_entities"])
+                        if blocks_array_type == 7:
+                            block_array = nbt_obj.get_byte_array("blocks").np_array
+                        elif blocks_array_type == 11:
+                            block_array = nbt_obj.get_int_array("blocks").np_array
+                        elif blocks_array_type == 12:
+                            block_array = nbt_obj.get_long_array("blocks").np_array
+                        else:
+                            raise TypeError
+
+                        blocks = block_array.reshape((shape_x, shape_y, shape_z))
+                        block_entities = parse_block_entities(nbt_obj.get_list("block_entities"))
 
                     start = numpy.array([start_x, start_y, start_z])
                     chunk_index: numpy.ndarray = start // self.sub_chunk_size
@@ -272,7 +289,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                             (shape_x, shape_y, shape_z),
                             blocks,
                             palette,
-                            parse_entities(nbt_obj["entities"]),
+                            parse_entities(nbt_obj.get_list("entities")),
                             block_entities,
                         )
                     )

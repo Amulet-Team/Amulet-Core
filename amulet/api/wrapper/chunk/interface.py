@@ -111,45 +111,45 @@ class Interface(ABC):
             entity_id = nbt_tag.pop("id", StringTag(""))
             if (
                 not isinstance(entity_id, StringTag)
-                or entity_id.value == ""
-                or ":" not in entity_id.value
+                or entity_id.py_str == ""
+                or ":" not in entity_id.py_str
             ):
                 return
-            namespace, base_name = entity_id.value.split(":", 1)
+            namespace, base_name = entity_id.py_str.split(":", 1)
 
         elif id_type == EntityIDType.namespace_str_Id:
             entity_id = nbt_tag.pop("Id", StringTag(""))
             if (
                 not isinstance(entity_id, StringTag)
-                or entity_id.value == ""
-                or ":" not in entity_id.value
+                or entity_id.py_str == ""
+                or ":" not in entity_id.py_str
             ):
                 return
-            namespace, base_name = entity_id.value.split(":", 1)
+            namespace, base_name = entity_id.py_str.split(":", 1)
 
         elif id_type == EntityIDType.str_id:
             entity_id = nbt_tag.pop("id", StringTag(""))
-            if not isinstance(entity_id, StringTag) or entity_id.value == "":
+            if not isinstance(entity_id, StringTag) or entity_id.py_str == "":
                 return
             namespace = ""
-            base_name = entity_id.value
+            base_name = entity_id.py_str
 
         elif id_type in [EntityIDType.namespace_str_identifier, EntityIDType.int_id]:
             if "identifier" in nbt_tag:
                 entity_id = nbt_tag.pop("identifier")
                 if (
                     not isinstance(entity_id, StringTag)
-                    or entity_id.value == ""
-                    or ":" not in entity_id.value
+                    or entity_id.py_str == ""
+                    or ":" not in entity_id.py_str
                 ):
                     return
-                namespace, base_name = entity_id.value.split(":", 1)
+                namespace, base_name = entity_id.py_str.split(":", 1)
             elif "id" in nbt_tag:
                 entity_id = nbt_tag.pop("id")
                 if not isinstance(entity_id, IntTag):
                     return
                 namespace = ""
-                base_name = str(entity_id.value)
+                base_name = str(entity_id.py_int)
             else:
                 return
         else:
@@ -171,7 +171,7 @@ class Interface(ABC):
                 or PosTypeMap.get(pos.list_data_type) != coord_type
             ):
                 return
-            x, y, z = [c.value for c in pos]
+            x, y, z = [c.py_data for c in pos]
         elif coord_type == EntityCoordType.Pos_array_int:
             if "Pos" not in nbt_tag:
                 return
@@ -186,7 +186,7 @@ class Interface(ABC):
                 c in nbt_tag and isinstance(nbt_tag[c], IntTag) for c in ("x", "y", "z")
             ):
                 return
-            x, y, z = [nbt_tag.pop(c).value for c in ("x", "y", "z")]
+            x, y, z = [nbt_tag.pop(c).py_int for c in ("x", "y", "z")]
         else:
             raise NotImplementedError(f"Entity coord type {coord_type}")
 

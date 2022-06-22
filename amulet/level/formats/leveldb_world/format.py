@@ -10,6 +10,7 @@ import traceback
 import time
 
 from amulet_nbt import (
+    AbstractBaseTag,
     load_one,
     NamedTag,
     CompoundTag,
@@ -55,22 +56,39 @@ InternalDimension = Optional[int]
 
 
 class BedrockLevelDAT(NamedTag):
-    def __init__(self, path: str):
-        super().__init__()
-        self._path: str = path
-        self._level_dat_version = 8
+    _path: str
+    _level_dat_version: int
 
-        if os.path.isfile(path):
-            self.load_from(path)
+    def __init__(self, tag = None, name: str = "", path: str = None, level_dat_version: int = None):
+        if isinstance(tag, str):
+            warnings.warn("You must use BedrockLevelDAT.from_file to load from a file.", FutureWarning)
+            super().__init__()
+            self._path = path = tag
+            self._level_dat_version = 8
+            if os.path.isfile(path):
+                self.load_from(path)
+            return
+        else:
+            if not (isinstance(path, str) and isinstance(level_dat_version, int)):
+                raise TypeError("path and level_dat_version must be specified when constructing a BedrockLevelDAT instance.")
+            super().__init__(tag, name)
+            self._path = path
+            self._level_dat_version = level_dat_version
+
+    @classmethod
+    def from_file(cls, path: str):
+        level_dat_version, name, tag = cls._read_from(path)
+        return cls(tag, name, path, level_dat_version)
 
     @property
-    def path(self):
+    def path(self) -> Optional[str]:
         return self._path
 
-    def load_from(self, path: str):
+    @staticmethod
+    def _read_from(path: str) -> Tuple[int, str, AbstractBaseTag]:
         with open(path, "rb") as f:
-            self._level_dat_version = struct.unpack("<i", f.read(4))[0]
-            if 4 <= self._level_dat_version <= 9:
+            level_dat_version = struct.unpack("<i", f.read(4))[0]
+            if 4 <= level_dat_version <= 9:
                 data_length = struct.unpack("<i", f.read(4))[0]
                 root_tag = load_one(
                     f.read(data_length),
@@ -78,13 +96,17 @@ class BedrockLevelDAT(NamedTag):
                     little_endian=True,
                     string_decoder=utf8_escape_decoder,
                 )
-                self.name = root_tag.name
-                self.value = root_tag.value
+                name = root_tag.name
+                value = root_tag.tag
             else:
                 # TODO: handle other versions
                 raise ObjectReadError(
-                    f"Unsupported level.dat version {self._level_dat_version}"
+                    f"Unsupported level.dat version {level_dat_version}"
                 )
+        return level_dat_version, name, value
+
+    def load_from(self, path: str):
+        self._level_dat_version, self.name, self.tag = self._read_from(path)
 
     def reload(self):
         self.load_from(self.path)
@@ -139,7 +161,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         """
         super().__init__(path)
         self._platform = "bedrock"
-        self._root_tag: BedrockLevelDAT = BedrockLevelDAT(
+        self._root_tag = BedrockLevelDAT.from_file(
             os.path.join(path, "level.dat")
         )
         self._db = None
@@ -156,7 +178,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         """Load the level.dat file and check the image file"""
         if os.path.isfile(os.path.join(self.path, "world_icon.jpeg")):
             self._world_image_path = os.path.join(self.path, "world_icon.jpeg")
-        self.root_tag = BedrockLevelDAT(os.path.join(self.path, "level.dat"))
+        self.root_tag = BedrockLevelDAT.from_file(os.path.join(self.path, "level.dat"))
 
     @staticmethod
     def is_valid(path: str):
@@ -182,7 +204,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         """
         try:
             return tuple(
-                [t.value for t in self.root_tag.get_compound()["lastOpenedWithVersion"]]
+                [t.py_int for t in self.root_tag.compound.get_list("lastOpenedWithVersion")]
             )
         except Exception:
             return 1, 2, 0
@@ -195,31 +217,31 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
     @root_tag.setter
     def root_tag(self, root_tag: Union[NamedTag, CompoundTag, BedrockLevelDAT]):
         if isinstance(root_tag, CompoundTag):
-            self._root_tag.value = root_tag
+            self._root_tag.tag = root_tag
         elif isinstance(root_tag, NamedTag):
             self._root_tag.name = root_tag.name
-            self._root_tag.value = root_tag.value
+            self._root_tag.tag = root_tag.tag
         else:
             raise ValueError(
                 "root_tag must be a CompoundTag, NamedTag or BedrockLevelDAT"
             )
 
     @property
-    def level_name(self):
-        return str(self.root_tag.get_compound().get("LevelName", ""))
+    def level_name(self) -> str:
+        return self.root_tag.compound.get_string("LevelName", StringTag()).py_str
 
     @level_name.setter
     def level_name(self, value: str):
-        self.root_tag.get_compound()["LevelName"] = StringTag(value)
+        self.root_tag.compound["LevelName"] = StringTag(value)
 
     @property
     def last_played(self) -> int:
-        return int(self.root_tag.get_compound().get("LastPlayed", 0))
+        return self.root_tag.compound.get_long("LastPlayed", LongTag()).py_int
 
     @property
     def game_version_string(self) -> str:
         try:
-            return f'Bedrock {".".join(str(v.value) for v in self.root_tag.get_compound()["lastOpenedWithVersion"].value)}'
+            return f'Bedrock {".".join(str(v.py_int) for v in self.root_tag.compound.get_list("lastOpenedWithVersion"))}'
         except Exception:
             return f"Bedrock Unknown Version"
 
@@ -270,10 +292,10 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         else:
             chunk_version = game_to_chunk_version(
                 self.max_world_version[1],
-                self.root_tag.get_compound()
-                .get("experiments", {})
-                .get("caves_and_cliffs", ByteTag())
-                .value,
+                self.root_tag.compound
+                .get_compound("experiments", CompoundTag())
+                .get_byte("caves_and_cliffs", ByteTag())
+                .py_int,
             )
         return chunk_version
 
@@ -313,10 +335,10 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
             self._dimension_manager = LevelDBDimensionManager(self)
             self._is_open = True
             self._has_lock = True
-            experiments = self.root_tag.get_compound().get("experiments", {})
+            experiments = self.root_tag.compound.get_compound("experiments", CompoundTag())
             if (
-                experiments.get("caves_and_cliffs", ByteTag()).value
-                or experiments.get("caves_and_cliffs_internal", ByteTag()).value
+                experiments.get_byte("caves_and_cliffs", ByteTag()).py_int
+                or experiments.get_byte("caves_and_cliffs_internal", ByteTag()).py_int
                 or self.version >= (1, 18)
             ):
                 self._bounds[OVERWORLD] = SelectionGroup(
@@ -471,7 +493,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         :param player_id: The desired player id
         :return: A Player instance
         """
-        player_nbt = self._get_raw_player_data(player_id).get_compound()
+        player_nbt = self._get_raw_player_data(player_id).compound
         dimension = player_nbt["DimensionId"]
         if isinstance(dimension, IntTag) and IntTag(0) <= dimension <= IntTag(2):
             dimension_str = {
