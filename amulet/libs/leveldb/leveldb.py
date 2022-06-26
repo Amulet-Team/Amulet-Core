@@ -254,7 +254,9 @@ class LevelDB:
         def open_db():
             nonlocal db
             open_error = ctypes.POINTER(ctypes.c_char)()
-            db = ldb.leveldb_open(options, path.encode("utf-8"), ctypes.byref(open_error))
+            db = ldb.leveldb_open(
+                options, path.encode("utf-8"), ctypes.byref(open_error)
+            )
             _checkError(open_error)
 
         # remove old lost directory if it exists
@@ -267,7 +269,9 @@ class LevelDB:
         except LevelDBException as e:
             try:
                 repair_error = ctypes.POINTER(ctypes.c_char)()
-                ldb.leveldb_repair_db(options, path.encode("utf-8"), ctypes.byref(repair_error))
+                ldb.leveldb_repair_db(
+                    options, path.encode("utf-8"), ctypes.byref(repair_error)
+                )
                 _checkError(repair_error)
                 open_db()
             except:
