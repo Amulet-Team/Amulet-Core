@@ -20,23 +20,16 @@ class AnvilForgeFormat(AnvilFormat):
             return False
 
         try:
-            level_dat_root = load_one(os.path.join(path, "level.dat"))
-            assert isinstance(level_dat_root.value, CompoundTag)
+            level_dat_root = load_one(os.path.join(path, "level.dat")).compound
         except:
             return False
 
-        if "Data" not in level_dat_root:
-            return False
-
-        if "FML" in level_dat_root:
-            return True
-
-        return False
+        return "Data" in level_dat_root and "FML" in level_dat_root
 
     @property
     def game_version_string(self) -> str:
         try:
-            return f'Java Forge {self.root_tag["Data"]["Version"]["Name"].value}'
+            return f'Java Forge {self.root_tag.compound.get_compound("Data").get_compound("Version").get_string("Name").py_str}'
         except Exception:
             return f"Java Forge Unknown Version"
 
