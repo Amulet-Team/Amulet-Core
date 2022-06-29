@@ -509,7 +509,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
                 0: OVERWORLD,
                 1: THE_NETHER,
                 2: THE_END,
-            }[dimension.value]
+            }[dimension.py_int]
         else:
             dimension_str = OVERWORLD
 

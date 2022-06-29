@@ -8,12 +8,14 @@ from typing import (
     List,
     TYPE_CHECKING,
     Tuple,
+    Union,
 )
 from threading import RLock
 import logging
 from contextlib import suppress
 
 from amulet_nbt import (
+    NamedTag,
     LongTag,
     StringTag,
     CompoundTag,
@@ -205,7 +207,7 @@ class LevelDBDimensionManager:
                 chunk_data[
                     b"digp"
                 ] = b""  # The presence of this key signals to the put method that this should be created and written
-                for i in range(0, len(digp) // 8 * 8, 8):
+                for i in range(0, (len(digp) // 8) * 8, 8):
                     actor_key = b"actorprefix" + digp[i : i + 8]
                     try:
                         actor_bytes = self._db.get(actor_key)
@@ -214,13 +216,14 @@ class LevelDBDimensionManager:
                             little_endian=True,
                             string_decoder=utf8_escape_decoder,
                         )
+                        actor_tag = actor.compound
                     except KeyError:
                         log.error(f"Could not find actor {actor_key}. Skipping.")
                     except NBTLoadError:
                         log.error(f"Failed to parse actor {actor_key}. Skipping.")
                     else:
-                        actor.value.pop("UniqueID", None)
-                        internal_components = actor.value.get("internalComponents")
+                        actor_tag.pop("UniqueID", None)
+                        internal_components = actor_tag.get("internalComponents")
                         if (
                             isinstance(internal_components, CompoundTag)
                             and internal_components
@@ -241,7 +244,7 @@ class LevelDBDimensionManager:
                                         len(entity_component) == 0
                                         and len(internal_components) == 1
                                     ):
-                                        del actor.value["internalComponents"]
+                                        del actor_tag["internalComponents"]
                                     else:
                                         log.warning(
                                             f"Extra components found {repr(entity_component)}"
@@ -302,8 +305,14 @@ class LevelDBDimensionManager:
 
             digp = []
 
-            def add_actor(is_entity: bool):
-                internal_components = actor.value.setdefault(
+            def add_actor(actor: NamedTag, is_entity: bool):
+                if not (
+                    isinstance(actor, NamedTag) and isinstance(actor.tag, CompoundTag)
+                ):
+                    log.error(f"Actor must be a NamedTag[Compound]")
+                    return
+                actor_tag = actor.compound
+                internal_components = actor_tag.setdefault(
                     "internalComponents", CompoundTag()
                 )
                 if not isinstance(internal_components, CompoundTag):
@@ -341,9 +350,9 @@ class LevelDBDimensionManager:
                 key = struct.pack(">ii", -session, uid)
                 # b'\x00\x00\x00\x01\x00\x00\x00\x0c' 1, 12
                 for storage in storages:
-                    storage["StorageKey"] = StringTag(key)
+                    storage["StorageKey"] = StringTag(utf8_escape_decoder(key))
                 # -4294967284 ">q" b'\xff\xff\xff\xff\x00\x00\x00\x0c' ">ii" -1, 12
-                actor.value["UniqueID"] = LongTag(
+                actor_tag["UniqueID"] = LongTag(
                     struct.unpack(">q", struct.pack(">ii", session, uid))[0]
                 )
 
@@ -354,11 +363,11 @@ class LevelDBDimensionManager:
                 )
                 digp.append(key)
 
-            for actor in chunk_data.entity_actor:
-                add_actor(True)
+            for actor_ in chunk_data.entity_actor:
+                add_actor(actor_, True)
 
-            for actor in chunk_data.unknown_actor:
-                add_actor(False)
+            for actor_ in chunk_data.unknown_actor:
+                add_actor(actor_, False)
 
             del chunk_data[b"digp"]
             batch[digp_key] = b"".join(digp)

@@ -428,18 +428,18 @@ class BaseLevelDBInterface(Interface):
                     palette_data_out: List[Tuple[Optional[int], Block]] = []
                     for block in palette_data:
                         block = block.compound
-                        namespace, base_name = block["name"].value.split(":", 1)
+                        namespace, base_name = block["name"].py_str.split(":", 1)
                         if "version" in block:
-                            version: Optional[int] = block["version"].value
+                            version: Optional[int] = block.get_int("version").py_int
                         else:
                             version = None
 
                         if "states" in block:  # 1.13 format
-                            properties = block["states"].value
+                            properties = block.get_compound("states").py_dict
                             if version is None:
                                 version = 17694720  # 1, 14, 0, 0
                         else:
-                            properties = {"block_data": IntTag(block["val"].value)}
+                            properties = {"block_data": IntTag(block["val"].py_int)}
                         palette_data_out.append(
                             (
                                 version,
@@ -509,9 +509,9 @@ class BaseLevelDBInterface(Interface):
     ) -> Dict[int, Optional[bytes]]:
         for index, block in enumerate(palette):
             block: Tuple[Tuple[None, Block], ...]
-            block_data = block[0][1].properties.get("block_data", IntTag(0))
-            if isinstance(block_data, IntTag):
-                block_data = block_data.value
+            block_data_tag = block[0][1].properties.get("block_data", IntTag(0))
+            if isinstance(block_data_tag, IntTag):
+                block_data = block_data_tag.py_int
                 # if block_data >= 16:
                 #     block_data = 0
             else:

@@ -18,10 +18,10 @@ from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
 from amulet.api.data_types import AnyNDArray, VersionNumberAny, VersionIdentifierType
 from amulet_nbt import (
+    AbstractBaseTag,
     ListTag,
     CompoundTag,
     AnyNBT,
-    BaseValueType,
     NamedTag,
     StringTag,
     IntTag,
@@ -332,7 +332,7 @@ class Interface(ABC):
         self,
         obj: Union[CompoundTag, ListTag],
         path: Sequence[  # The path to the object.
-            Tuple[Union[str, int], Type[BaseValueType]],
+            Tuple[Union[str, int], Type[AbstractBaseTag]],
         ],
         default: Union[None, AnyNBT, Callable[[], Any]] = None,
         *,
@@ -357,7 +357,7 @@ class Interface(ABC):
                 if dtype is not obj.__class__:
                     raise TypeError
         except (KeyError, IndexError, TypeError):
-            if default is None or isinstance(default, BaseValueType):
+            if default is None or isinstance(default, AbstractBaseTag):
                 return default
             elif callable(default):
                 return default()
@@ -400,7 +400,7 @@ class Interface(ABC):
             # if it does not exist or the type is wrong then create it
             if default is None:
                 obj_ = dtype()
-            elif isinstance(default, BaseValueType):
+            elif isinstance(default, AbstractBaseTag):
                 obj_ = default
             elif callable(default):
                 obj_ = default()

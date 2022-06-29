@@ -82,10 +82,10 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         self._has_lock = True
 
     def open_from(self, f: BinaryIO):
-        schematic = load_one(f)
+        schematic = load_one(f).compound
         if "BlockData" in schematic:
             raise ObjectReadError("This file is not a legacy schematic file.")
-        materials = schematic.get("Materials", StringTag()).value
+        materials = schematic.get_string("Materials", StringTag("Alpha")).py_str
         if materials == "Alpha":
             self._platform = "java"
             self._version = (1, 12, 2)
@@ -100,19 +100,21 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         selection_box = SelectionBox(
             (0, 0, 0),
             (
-                schematic["Width"].value,
-                schematic["Height"].value,
-                schematic["Length"].value,
+                schematic.get_short("Width").py_int,
+                schematic.get_short("Height").py_int,
+                schematic.get_short("Length").py_int,
             ),
         )
         self._bounds[self.dimensions[0]] = SelectionGroup(selection_box)
-        entities: ListTag = schematic.get("Entities", ListTag())
-        block_entities: ListTag = schematic.get("TileEntities", ListTag())
+        entities: ListTag = schematic.get_list("Entities", ListTag())
+        block_entities: ListTag = schematic.get_list("TileEntities", ListTag())
         blocks: numpy.ndarray = (
-            schematic["Blocks"].value.astype(numpy.uint8).astype(numpy.uint16)
+            schematic.get_byte_array("Blocks")
+            .np_array.astype(numpy.uint8)
+            .astype(numpy.uint16)
         )
         if "AddBlocks" in schematic:
-            add_blocks = schematic["AddBlocks"]
+            add_blocks = schematic.get_byte_array("AddBlocks").np_array
             blocks = (
                 blocks
                 + (
@@ -126,7 +128,7 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         temp_shape = (max_point[1], max_point[2], max_point[0])
         blocks = numpy.transpose(blocks.reshape(temp_shape), (2, 0, 1))  # YZX => XYZ
         data = numpy.transpose(
-            schematic["Data"].value.reshape(temp_shape), (2, 0, 1)
+            schematic.get_byte_array("Data").np_array.reshape(temp_shape), (2, 0, 1)
         ).astype(numpy.uint8)
         for cx, cz in selection_box.chunk_locations():
             box = SelectionBox(
@@ -140,16 +142,16 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             self._chunks[(cx, cz)] = (box, blocks[box.slice], data[box.slice], [], [])
         for e in block_entities:
             if all(key in e for key in ("x", "y", "z")):
-                x, y, z = e["x"].value, e["y"].value, e["z"].value
+                x = e.get_int("x").py_int
+                y = e.get_int("y").py_int
+                z = e.get_int("z").py_int
                 if (x, y, z) in selection_box:
                     cx = x >> 4
                     cz = z >> 4
                     self._chunks[(cx, cz)][3].append(e)
         for e in entities:
-            if "Pos" in e:
-                pos: PointCoordinates = tuple(
-                    map(lambda t: float(t.value), e["Pos"].value)
-                )
+            pos: PointCoordinates = tuple(map(float, e.get_list("Pos", ListTag())))
+            if len(pos) == 3:
                 if pos in selection_box:
                     cx = int(pos[0]) >> 4
                     cz = int(pos[2]) >> 4

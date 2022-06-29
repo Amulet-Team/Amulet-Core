@@ -1,4 +1,4 @@
-from typing import List, Union, Type
+from typing import List, Union, Type, Dict
 import numpy
 
 from amulet_nbt import (
@@ -21,24 +21,23 @@ from amulet.api.registry import BlockManager
 
 def unpack_palette(raw_palette: ListTag) -> List[Block]:
     block_palette = []
-    extra_block_map = {}
+    extra_block_map: Dict[int, ListTag[IntTag]] = {}
     for block_index, block_nbt in enumerate(raw_palette):
         block_nbt: CompoundTag
-        block_namespace = block_nbt["namespace"].value
-        block_basename = block_nbt["blockname"].value
         block = Block(
-            namespace=block_namespace,
-            base_name=block_basename,
-            properties=block_nbt["properties"].value,
+            namespace=block_nbt.get_string("namespace").py_str,
+            base_name=block_nbt.get_string("blockname").py_str,
+            properties=block_nbt.get_compound("properties").py_dict,
         )
 
-        if block_nbt["extra_blocks"].value:
-            extra_block_map[block_index] = block_nbt["extra_blocks"].value
+        if block_nbt.get_list("extra_blocks"):
+            extra_block_map[block_index] = block_nbt.get_list("extra_blocks")
 
         block_palette.append(block)
 
+    extra_blocks: ListTag[IntTag]
     for block_index, extra_blocks in extra_block_map.items():
-        extra_block_objects = [block_palette[i.value] for i in extra_blocks]
+        extra_block_objects = [block_palette[i.py_int] for i in extra_blocks]
 
         resulting_block = block_palette[block_index]
         for extra_block in extra_block_objects:
@@ -51,12 +50,12 @@ def unpack_palette(raw_palette: ListTag) -> List[Block]:
 def parse_entities(entities: ListTag) -> List[Entity]:
     return [
         Entity(
-            entity["namespace"].value,
-            entity["base_name"].value,
-            entity["x"].value,
-            entity["y"].value,
-            entity["z"].value,
-            NamedTag(entity["nbt"]),
+            entity.get_string("namespace").py_str,
+            entity.get_string("base_name").py_str,
+            entity.get_double("x").py_float,
+            entity.get_double("y").py_float,
+            entity.get_double("z").py_float,
+            NamedTag(entity.get_compound("nbt")),
         )
         for entity in entities
     ]
@@ -65,12 +64,12 @@ def parse_entities(entities: ListTag) -> List[Entity]:
 def parse_block_entities(block_entities: ListTag) -> List[BlockEntity]:
     return [
         BlockEntity(
-            block_entity["namespace"].value,
-            block_entity["base_name"].value,
-            block_entity["x"].value,
-            block_entity["y"].value,
-            block_entity["z"].value,
-            NamedTag(block_entity["nbt"]),
+            block_entity.get_string("namespace").py_str,
+            block_entity.get_string("base_name").py_str,
+            block_entity.get_int("x").py_int,
+            block_entity.get_int("y").py_int,
+            block_entity.get_int("z").py_int,
+            NamedTag(block_entity.get_compound("nbt")),
         )
         for block_entity in block_entities
     ]
@@ -102,7 +101,7 @@ def serialise_entities(entities: List[Entity]) -> ListTag:
                     "x": DoubleTag(entity.x),
                     "y": DoubleTag(entity.y),
                     "z": DoubleTag(entity.z),
-                    "nbt": entity.nbt.value,
+                    "nbt": entity.nbt.compound,
                 }
             )
             for entity in entities
@@ -122,7 +121,7 @@ def serialise_block_entities(
                     "x": IntTag(block_entity.x),
                     "y": IntTag(block_entity.y),
                     "z": IntTag(block_entity.z),
-                    "nbt": block_entity.nbt.value,
+                    "nbt": block_entity.nbt.compound,
                 }
             )
             for block_entity in block_entities
@@ -132,7 +131,7 @@ def serialise_block_entities(
 
 def find_fitting_array_type(
     array: numpy.ndarray,
-) -> Union[Type[IntArrayTag], Type[ByteArrayTag], Type[LongArrayTag],]:
+) -> Union[Type[IntArrayTag], Type[ByteArrayTag], Type[LongArrayTag]]:
     max_element = array.max(initial=0)
 
     if max_element <= 127:

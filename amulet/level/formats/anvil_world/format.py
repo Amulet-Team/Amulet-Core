@@ -663,9 +663,9 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         dimension = player_nbt["Dimension"]
         # TODO: rework this when there is better dimension support.
         if isinstance(dimension, IntTag):
-            if -1 <= dimension <= 1:
+            if -1 <= dimension.py_int <= 1:
                 dimension_str = {-1: THE_NETHER, 0: OVERWORLD, 1: THE_END}[
-                    dimension.value
+                    dimension.py_int
                 ]
             else:
                 dimension_str = f"DIM{dimension}"

@@ -56,18 +56,18 @@ class MCStructureInterface(Interface):
         for index, blocks in enumerate(data.palette):
             block_layers: List[Tuple[Optional[int], Block]] = []
             for block in blocks:
-                namespace, base_name = block["name"].value.split(":", 1)
+                namespace, base_name = block["name"].py_str.split(":", 1)
                 if "version" in block:
-                    version: Optional[int] = block["version"].value
+                    version: Optional[int] = block["version"].py_int
                 else:
                     version = None
 
                 if "states" in block:  # 1.13 format
-                    properties = block["states"].value
+                    properties = block["states"].py_dict
                     if version is None:
                         version = 17694720  # 1, 14, 0, 0
                 else:
-                    properties = {"block_data": IntTag(block["val"].value)}
+                    properties = {"block_data": IntTag(block["val"].py_int)}
                 block_layers.append(
                     (
                         version,
@@ -120,7 +120,7 @@ class MCStructureInterface(Interface):
                 entities.append(
                     self._encode_entity(
                         e, self._entity_id_type, self._entity_coord_type
-                    ).value
+                    ).compound
                 )
         block_entities = []
         for e in chunk.block_entities:
@@ -128,7 +128,7 @@ class MCStructureInterface(Interface):
                 block_entities.append(
                     self._encode_block_entity(
                         e, self._block_entity_id_type, self._block_entity_coord_type
-                    ).value
+                    ).compound
                 )
 
         slices = box.create_moved_box(

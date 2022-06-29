@@ -70,7 +70,7 @@ class LevelDB8Interface(LevelDB7Interface):
                     if sub_block_version is None:
                         block_data = properties.get("block_data", IntTag(0))
                         if isinstance(block_data, IntTag):
-                            block_data = block_data.value
+                            block_data = block_data.py_int
                             # if block_data >= 16:
                             #     block_data = 0
                         else:
@@ -113,7 +113,8 @@ class LevelDB8Interface(LevelDB7Interface):
                     if (
                         sub_chunk_depth == 1
                         and len(sub_chunk_palette) == 1
-                        and sub_chunk_palette[0][0]["name"].value == "minecraft:air"
+                        and sub_chunk_palette[0][0].get_string("name").py_str
+                        == "minecraft:air"
                     ):
                         chunk[cy] = None
                     else:

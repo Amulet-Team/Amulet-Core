@@ -95,10 +95,11 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
         self._has_lock = True
 
     def open_from(self, f: BinaryIO):
-        sponge_schem = load_one(f)
-        version = sponge_schem.get("Version")
-        if not isinstance(version, IntTag):
+        sponge_schem = load_one(f).compound
+        version_tag = sponge_schem.get("Version")
+        if not isinstance(version_tag, IntTag):
             raise SpongeSchemReadError("Version key must exist and be an integer.")
+        version = version_tag.py_int
         if version == 1:
             raise SpongeSchemReadError(
                 "Sponge Schematic Version 1 is not supported currently."
@@ -118,7 +119,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                         f"Key {key} must exist and be a ShortTag."
                     )
                 # convert to an unsigned short
-                val = val.value
+                val = val.py_int
                 if val < 0:
                     val += 2**16
                 size.append(val)
@@ -165,12 +166,13 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                 raise SpongeSchemReadError("Palette must be a CompoundTag.")
 
             block_palette: Dict[int, Block] = {}
-            for blockstate, index in palette_data.items():
-                if index.value in block_palette:
+            for blockstate, index_tag in palette_data.items():
+                index = index_tag.py_int
+                if index in block_palette:
                     raise SpongeSchemReadError(
                         f"Duplicate block index {index} found in the palette."
                     )
-                block_palette[index.value] = Block.from_string_blockstate(blockstate)
+                block_palette[index] = Block.from_string_blockstate(blockstate)
 
             if not numpy.all(numpy.isin(blocks_array, list(block_palette))):
                 raise SpongeSchemReadError(
@@ -249,9 +251,9 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                             and pos.list_data_type == 6
                         ):  # DoubleTag.tag_id:
                             x, y, z = (
-                                pos[0].value + offset[0],
-                                pos[1].value + offset[0],
-                                pos[2].value + offset[0],
+                                pos[0].py_float + offset[0],
+                                pos[1].py_float + offset[0],
+                                pos[2].py_float + offset[0],
                             )
                             entity["Pos"] = ListTag(
                                 [
@@ -268,7 +270,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
 
         else:
             raise SpongeSchemReadError(
-                f"Sponge Schematic Version {version.value} is not supported currently."
+                f"Sponge Schematic Version {version} is not supported currently."
             )
 
     @staticmethod

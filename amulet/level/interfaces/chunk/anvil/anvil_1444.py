@@ -93,7 +93,7 @@ class Anvil1444Interface(ParentInterface):
     def _decode_status(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        chunk.status = self.get_layer_obj(data, self.Status, pop_last=True).value
+        chunk.status = self.get_layer_obj(data, self.Status, pop_last=True).py_str
 
     def _decode_block_section(
         self, section: CompoundTag
@@ -102,7 +102,7 @@ class Anvil1444Interface(ParentInterface):
             return None
         section_palette = self._decode_block_palette(section.pop("Palette"))
         decoded = decode_long_array(
-            section.pop("BlockStates").value,
+            section.get_long_array("BlockStates").np_array,
             4096,
             max(4, (len(section_palette) - 1).bit_length()),
             dense=self.LongArrayDense,

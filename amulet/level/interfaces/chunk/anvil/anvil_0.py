@@ -54,7 +54,7 @@ class Anvil0Interface(ParentInterface):
             chunk._native_entities.extend(ents)
             chunk._native_version = (
                 "java",
-                self.get_layer_obj(data, self.RegionDataVersion).value,
+                self.get_layer_obj(data, self.RegionDataVersion).py_int,
             )
 
     def _init_encode(
