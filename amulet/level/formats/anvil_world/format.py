@@ -110,11 +110,10 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
 
         try:
             level_dat_root = load_one(os.path.join(path, "level.dat")).compound
-            assert isinstance(level_dat_root, CompoundTag)
         except:
             return False
 
-        return "Data" in level_dat_root and "FML" in level_dat_root
+        return "Data" in level_dat_root and "FML" not in level_dat_root
 
     @property
     def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
