@@ -228,7 +228,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
             self._root_tag.tag = root_tag
         elif isinstance(root_tag, NamedTag):
             self._root_tag.name = root_tag.name
-            self._root_tag.tag = root_tag.tag
+            self._root_tag.tag = root_tag.compound
         else:
             raise ValueError(
                 "root_tag must be a CompoundTag, NamedTag or BedrockLevelDAT"
