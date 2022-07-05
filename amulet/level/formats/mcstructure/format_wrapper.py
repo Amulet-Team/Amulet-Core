@@ -9,7 +9,7 @@ from amulet_nbt import (
     ListTag,
     CompoundTag,
     NamedTag,
-    load_one,
+    load as load_nbt,
     utf8_escape_decoder,
     utf8_escape_encoder,
 )
@@ -83,7 +83,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         self._has_lock = True
 
     def open_from(self, f: BinaryIO):
-        mcstructure = load_one(
+        mcstructure = load_nbt(
             f, little_endian=True, string_decoder=utf8_escape_decoder
         ).compound
         if mcstructure.get_int("format_version").py_int == 1:

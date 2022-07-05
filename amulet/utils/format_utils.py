@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import warnings
 
-from amulet_nbt import load_one, NamedTag
+from amulet_nbt import load as load_nbt, NamedTag
 
 
 def check_all_exist(in_dir: str, *args: str) -> bool:
@@ -38,4 +38,4 @@ def load_leveldat(in_dir: str) -> NamedTag:
     :return: The NBT root tag
     """
     warnings.warn("load_leveldat is depreciated.", DeprecationWarning)
-    return load_one(os.path.join(in_dir, "level.dat"))
+    return load_nbt(os.path.join(in_dir, "level.dat"))

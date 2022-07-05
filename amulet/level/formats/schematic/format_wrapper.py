@@ -10,7 +10,7 @@ from amulet_nbt import (
     CompoundTag,
     ByteArrayTag,
     NamedTag,
-    load_one,
+    load as load_nbt,
 )
 
 from amulet.api.data_types import (
@@ -82,7 +82,7 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         self._has_lock = True
 
     def open_from(self, f: BinaryIO):
-        schematic = load_one(f).compound
+        schematic = load_nbt(f).compound
         if "BlockData" in schematic:
             raise ObjectReadError("This file is not a legacy schematic file.")
         materials = schematic.get_string("Materials", StringTag("Alpha")).py_str

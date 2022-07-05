@@ -24,7 +24,7 @@ from amulet_nbt import (
     ByteArrayTag,
     IntArrayTag,
     NamedTag,
-    load_one,
+    load as load_nbt,
 )
 
 from amulet import log
@@ -131,7 +131,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                             ]
                             f.seek(metadata_start)
 
-                            metadata = load_one(
+                            metadata = load_nbt(
                                 f.read(metadata_end - metadata_start),
                                 compressed=True,
                             ).compound
@@ -208,7 +208,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             metadata_start = INT_STRUCT.unpack(f.read(INT_STRUCT.size))[0]
             f.seek(metadata_start)
 
-            metadata = load_one(
+            metadata = load_nbt(
                 f.read(metadata_end - metadata_start),
                 compressed=True,
             ).compound
@@ -259,7 +259,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                     length,
                 ) in section_index_table:
                     f.seek(position)
-                    nbt_obj = load_one(f.read(length)).compound
+                    nbt_obj = load_nbt(f.read(length)).compound
                     blocks_array_type = nbt_obj.get_byte("blocks_array_type").py_int
                     if blocks_array_type == -1:
                         blocks = None

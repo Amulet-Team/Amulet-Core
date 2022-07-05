@@ -11,7 +11,7 @@ import time
 
 from amulet_nbt import (
     AbstractBaseTag,
-    load_one,
+    load as load_nbt,
     NamedTag,
     CompoundTag,
     StringTag,
@@ -97,7 +97,7 @@ class BedrockLevelDAT(NamedTag):
             level_dat_version = struct.unpack("<i", f.read(4))[0]
             if 4 <= level_dat_version <= 9:
                 data_length = struct.unpack("<i", f.read(4))[0]
-                root_tag = load_one(
+                root_tag = load_nbt(
                     f.read(data_length),
                     compressed=False,
                     little_endian=True,
@@ -557,7 +557,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
             data = self._db.get(key)
         except KeyError:
             raise PlayerDoesNotExist(f"Player {player_id} doesn't exist")
-        return load_one(
+        return load_nbt(
             data,
             compressed=False,
             little_endian=True,

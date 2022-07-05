@@ -11,7 +11,7 @@ from amulet_nbt import (
     StringTag,
     CompoundTag,
     NamedTag,
-    load_one,
+    load as load_nbt,
     load_many,
     ReadContext,
     utf8_escape_decoder,
@@ -752,7 +752,7 @@ class BaseLevelDBInterface(Interface):
         nbt_list = []
         while raw_nbt:
             read_context = ReadContext()
-            nbt = load_one(
+            nbt = load_nbt(
                 raw_nbt,
                 little_endian=True,
                 read_context=read_context,

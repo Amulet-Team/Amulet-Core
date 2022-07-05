@@ -20,7 +20,7 @@ from amulet_nbt import (
     StringTag,
     CompoundTag,
     NBTLoadError,
-    load_one,
+    load as load_nbt,
     utf8_escape_decoder,
     utf8_escape_encoder,
 )
@@ -211,7 +211,7 @@ class LevelDBDimensionManager:
                     actor_key = b"actorprefix" + digp[i : i + 8]
                     try:
                         actor_bytes = self._db.get(actor_key)
-                        actor = load_one(
+                        actor = load_nbt(
                             actor_bytes,
                             little_endian=True,
                             string_decoder=utf8_escape_decoder,

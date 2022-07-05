@@ -10,7 +10,7 @@ import time
 import re
 import threading
 
-from amulet_nbt import NamedTag, load_one
+from amulet_nbt import NamedTag, load as load_nbt
 
 from amulet.utils import world_utils
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
@@ -287,7 +287,7 @@ class AnvilRegion:
     def _decompress(compress_type: int, data: bytes) -> NamedTag:
         """Convert a bytes object into an NamedTag"""
         if compress_type == world_utils.VERSION_GZIP:
-            return load_one(gzip.decompress(data), compressed=False)
+            return load_nbt(gzip.decompress(data), compressed=False)
         elif compress_type == world_utils.VERSION_DEFLATE:
-            return load_one(zlib.decompress(data), compressed=False)
+            return load_nbt(zlib.decompress(data), compressed=False)
         raise ChunkLoadError(f"Invalid compression type {compress_type}")

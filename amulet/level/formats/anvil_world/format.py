@@ -28,7 +28,7 @@ from amulet_nbt import (
     ListTag,
     CompoundTag,
     NamedTag,
-    load_one,
+    load as load_nbt,
 )
 from amulet.api.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
@@ -101,7 +101,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
             self._world_image_path = os.path.join(self.path, "icon.png")
         else:
             self._world_image_path = self._missing_world_icon
-        self.root_tag = load_one(os.path.join(self.path, "level.dat"))
+        self.root_tag = load_nbt(os.path.join(self.path, "level.dat"))
 
     @staticmethod
     def is_valid(path: str) -> bool:
@@ -109,7 +109,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
             return False
 
         try:
-            level_dat_root = load_one(os.path.join(path, "level.dat")).compound
+            level_dat_root = load_nbt(os.path.join(path, "level.dat")).compound
         except:
             return False
 
@@ -722,7 +722,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         else:
             path = os.path.join(self.path, "playerdata", f"{player_id}.dat")
             if os.path.exists(path):
-                return load_one(path).compound
+                return load_nbt(path).compound
             raise PlayerDoesNotExist(f"Player {player_id} does not exist")
 
 

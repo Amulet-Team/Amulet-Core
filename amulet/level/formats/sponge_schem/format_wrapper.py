@@ -11,7 +11,7 @@ from amulet_nbt import (
     ByteArrayTag,
     IntArrayTag,
     NamedTag,
-    load_one,
+    load as load_nbt,
 )
 
 from amulet.api.data_types import (
@@ -95,7 +95,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
         self._has_lock = True
 
     def open_from(self, f: BinaryIO):
-        sponge_schem = load_one(f).compound
+        sponge_schem = load_nbt(f).compound
         version_tag = sponge_schem.get("Version")
         if not isinstance(version_tag, IntTag):
             raise SpongeSchemReadError("Version key must exist and be an integer.")
