@@ -80,7 +80,7 @@ class Anvil2844Interface(ParentInterface):
         return 2844 <= key < 3150
 
     def _get_floor_cy(self, data: ChunkDataType):
-        return self.get_layer_obj(data, self.yPos, pop_last=True).value
+        return self.get_layer_obj(data, self.yPos, pop_last=True).py_int
 
     def _decode_block_section(
         self, section: CompoundTag
@@ -95,7 +95,7 @@ class Anvil2844Interface(ParentInterface):
                 arr = numpy.zeros((16, 16, 16), numpy.uint32)
             else:
                 decoded = decode_long_array(
-                    data.value,
+                    data.np_array,
                     16**3,
                     max(4, (len(section_palette) - 1).bit_length()),
                     dense=self.LongArrayDense,
@@ -107,7 +107,7 @@ class Anvil2844Interface(ParentInterface):
 
     @staticmethod
     def _decode_biome_palette(palette: ListTag) -> list[BiomeType]:
-        return [entry.value for entry in palette]
+        return [entry.py_data for entry in palette]
 
     def _decode_biome_section(
         self, section: CompoundTag
@@ -122,7 +122,7 @@ class Anvil2844Interface(ParentInterface):
             else:
                 arr = numpy.transpose(
                     decode_long_array(
-                        data.value,
+                        data.np_array,
                         4**3,
                         (len(section_palette) - 1).bit_length(),
                         dense=self.LongArrayDense,

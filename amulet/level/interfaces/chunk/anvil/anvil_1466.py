@@ -40,7 +40,7 @@ class Anvil1466Interface(ParentInterface):
             if isinstance(value, LongArrayTag):
                 try:
                     h[key] = decode_long_array(
-                        value.value,
+                        value.np_array,
                         256,
                         (height_cy << 4).bit_length(),
                         dense=self.LongArrayDense,

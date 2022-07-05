@@ -161,7 +161,7 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
             key = max_world_version
             version = max_world_version[1]
         else:
-            data_version = data.get("region", {}).get("DataVersion", IntTag(-1)).value
+            data_version = data.get("region", {}).get("DataVersion", IntTag(-1)).py_int
             key, version = (("java", data_version), data_version)
 
         return loader.Translators.get(key), version
@@ -190,7 +190,7 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
         layer_key, path, default = data
         if layer_key in obj:
             return self.get_nested_obj(
-                obj[layer_key].value, path, default, pop_last=pop_last
+                obj[layer_key].tag, path, default, pop_last=pop_last
             )
         elif default is None or isinstance(default, AbstractBaseTag):
             return default
@@ -223,7 +223,7 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
         default = default if default_tag is None else default_tag
         if not path:
             raise ValueError("was not given a path to set")
-        tag = obj.setdefault(layer_key, NamedTag()).value
+        tag = obj.setdefault(layer_key, NamedTag()).tag
         *path, (key, dtype) = path
         if path:
             key_path = next(zip(*path))
@@ -306,7 +306,7 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
                 self._features["entity_coord_format"],
             )
             if nbt is not None:
-                entities_out.append(nbt.value)
+                entities_out.append(nbt.compound)
 
         return ListTag(entities_out)
 
@@ -321,6 +321,6 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
                 self._features["block_entity_coord_format"],
             )
             if nbt is not None:
-                entities_out.append(nbt.value)
+                entities_out.append(nbt.compound)
 
         return ListTag(entities_out)

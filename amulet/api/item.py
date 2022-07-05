@@ -21,15 +21,15 @@ class Item(CompoundTag):
 
     @property
     def namespace(self) -> str:
-        return self["namespace"].py_str
+        return self.get_string("namespace").py_str
 
     @property
     def base_name(self) -> str:
-        return self["base_name"].py_str
+        return self.get_string("base_name").py_str
 
     @property
     def metadata(self) -> CompoundTag:
-        return self["metadata"]
+        return self.get_compound("metadata")
 
 
 class BlockItem(CompoundTag):
@@ -60,16 +60,16 @@ class BlockItem(CompoundTag):
 
     @property
     def namespace(self) -> str:
-        return self["namespace"].py_str
+        return self.get_string("namespace").py_str
 
     @property
     def base_name(self) -> str:
-        return self["base_name"].py_str
+        return self.get_string("base_name").py_str
 
     @property
     def properties(self) -> CompoundTag:
-        return self["properties"]
+        return self.get_compound("properties")
 
     @property
     def metadata(self) -> CompoundTag:
-        return self["metadata"]
+        return self.get_compound("metadata")

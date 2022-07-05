@@ -190,7 +190,7 @@ class AnvilNAInterface(BaseAnvilInterface):
     ):
         chunk.misc["last_update"] = self.get_layer_obj(
             data, self.LastUpdate, pop_last=True
-        ).value
+        ).py_int
 
     def _decode_status(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
@@ -205,33 +205,33 @@ class AnvilNAInterface(BaseAnvilInterface):
     def _decode_v_tag(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        chunk.misc["V"] = self.get_layer_obj(data, self.V, pop_last=True).value
+        chunk.misc["V"] = self.get_layer_obj(data, self.V, pop_last=True).py_int
 
     def _decode_inhabited_time(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         chunk.misc["inhabited_time"] = self.get_layer_obj(
             data, self.InhabitedTime, pop_last=True
-        ).value
+        ).py_int
 
     def _decode_biomes(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         biomes = self.get_layer_obj(data, self.Biomes, pop_last=True)
-        if isinstance(biomes, BaseArrayType) and biomes.value.size == 256:
+        if isinstance(biomes, BaseArrayType) and biomes.np_array.size == 256:
             chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
 
     def _decode_height(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        height = self.get_layer_obj(data, self.HeightMap, pop_last=True).value
+        height = self.get_layer_obj(data, self.HeightMap, pop_last=True).np_array
         if isinstance(height, numpy.ndarray) and height.size == 256:
             chunk.misc["height_map256IA"] = height.reshape((16, 16))
 
     def _iter_sections(self, data: ChunkDataType):
         sections: ListTag = self.get_layer_obj(data, self.Sections)
         for section in sections:
-            yield section["Y"].value, section
+            yield section["Y"].py_int, section
 
     def _decode_blocks(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
@@ -246,8 +246,8 @@ class AnvilNAInterface(BaseAnvilInterface):
                 data_tag, BaseArrayType
             ):
                 continue
-            section_blocks = numpy.frombuffer(block_tag.value, dtype=numpy.uint8)
-            section_data = numpy.frombuffer(data_tag.value, dtype=numpy.uint8)
+            section_blocks = numpy.frombuffer(block_tag, dtype=numpy.uint8)
+            section_data = numpy.frombuffer(data_tag, dtype=numpy.uint8)
             section_blocks = section_blocks.reshape((16, 16, 16))
             section_blocks = section_blocks.astype(numpy.uint16)
 
@@ -256,7 +256,7 @@ class AnvilNAInterface(BaseAnvilInterface):
 
             add_tag = section.pop("Add", None)
             if isinstance(add_tag, BaseArrayType):
-                add_blocks = numpy.frombuffer(add_tag.value, dtype=numpy.uint8)
+                add_blocks = numpy.frombuffer(add_tag, dtype=numpy.uint8)
                 add_blocks = world_utils.from_nibble_array(add_blocks)
                 add_blocks = add_blocks.reshape((16, 16, 16))
 
@@ -292,7 +292,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         light_container = {}
         for cy, section in self._iter_sections(data):
             if self.check_type(section, section_key, ByteArrayTag):
-                light: numpy.ndarray = section.pop(section_key).value
+                light: numpy.ndarray = section.pop(section_key).np_array
                 if light.size == 2048:
                     # TODO: check if this needs transposing or if the values are the other way around
                     light_container[cy] = (
@@ -336,10 +336,10 @@ class AnvilNAInterface(BaseAnvilInterface):
     @staticmethod
     def _decode_ticks(ticks: ListTag) -> Dict[BlockCoordinates, Tuple[str, int, int]]:
         return {
-            (tick["x"].value, tick["y"].value, tick["z"].value): (
-                tick["i"].value,
-                tick["t"].value,
-                tick["p"].value,
+            (tick["x"].py_data, tick["y"].py_data, tick["z"].py_data): (
+                tick["i"].py_data,
+                tick["t"].py_data,
+                tick["p"].py_data,
             )
             for tick in ticks
             if all(c in tick and isinstance(tick[c], IntTag) for c in "xyztp")
@@ -398,7 +398,7 @@ class AnvilNAInterface(BaseAnvilInterface):
             section = sections[section_index]
             cy = section.get("Y", None)
             if isinstance(cy, ByteTag):
-                section_map[cy.value] = section
+                section_map[cy.py_int] = section
             else:
                 sections.pop(section_index)
         for cy in range(floor_cy, floor_cy + height_cy):

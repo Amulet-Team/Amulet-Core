@@ -24,11 +24,11 @@ class Anvil2203Interface(ParentInterface):
         if isinstance(biomes, IntArrayTag):
             if (len(biomes) / 16) % 4:
                 log.error(
-                    f"The biome array size must be 4x4x4xN but got an array of size {biomes.value.size}"
+                    f"The biome array size must be 4x4x4xN but got an array of size {biomes.np_array.size}"
                 )
             else:
                 arr = numpy.transpose(
-                    biomes.astype(numpy.uint32).reshape((-1, 4, 4)),
+                    biomes.np_array.astype(numpy.uint32).reshape((-1, 4, 4)),
                     (2, 0, 1),
                 )  # YZX -> XYZ
                 chunk.biomes = {

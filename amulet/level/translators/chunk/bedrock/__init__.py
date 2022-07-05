@@ -119,7 +119,7 @@ class BaseBedrockTranslator(Translator):
 
             for depth, block in enumerate(input_object.block_tuple):
                 if "__version__" in block.properties:
-                    game_version_: int = block.properties["__version__"].value
+                    game_version_: int = int(block.properties.get("__version__"))
                 else:
                     if "block_data" in block.properties:
                         # if block_data is in properties cap out at 1.12.x

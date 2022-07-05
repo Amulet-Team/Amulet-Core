@@ -136,8 +136,8 @@ class Anvil1444Interface(ParentInterface):
     def _decode_block_palette(palette: ListTag) -> list:
         blockstates = []
         for entry in palette:
-            namespace, base_name = entry["Name"].value.split(":", 1)
-            properties = entry.get("Properties", CompoundTag({})).value
+            namespace, base_name = entry.get_string("Name").py_str.split(":", 1)
+            properties = entry.get_compound("Properties", CompoundTag({})).py_dict
             block = Block(
                 namespace=namespace, base_name=base_name, properties=properties
             )
@@ -219,7 +219,10 @@ class Anvil1444Interface(ParentInterface):
             block_sub_array, return_inverse=True
         )
         sub_palette = self._encode_block_palette(palette[sub_palette_])
-        if len(sub_palette) == 1 and sub_palette[0]["Name"].value == "minecraft:air":
+        if (
+            len(sub_palette) == 1
+            and sub_palette[0].get_string("Name").py_str == "minecraft:air"
+        ):
             return False
 
         section = sections.setdefault(cy, CompoundTag())
