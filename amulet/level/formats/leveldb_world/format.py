@@ -27,7 +27,7 @@ from amulet.api.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionBox, SelectionGroup
 
-from amulet.libs.leveldb import LevelDB
+from amulet.libs.leveldb import LevelDB, LevelDBException, LevelDBEncrypted
 from amulet.utils.format_utils import check_all_exist
 from amulet.api.data_types import (
     ChunkCoordinates,
@@ -39,7 +39,6 @@ from amulet.api.data_types import (
 from amulet.api.wrapper import WorldFormatWrapper
 from amulet.api.errors import ObjectWriteError, ObjectReadError, PlayerDoesNotExist
 
-from amulet.libs.leveldb import LevelDBException
 from .interface.chunk.leveldb_chunk_versions import (
     game_to_chunk_version,
 )
@@ -371,7 +370,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
                     (-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000)
                 )
             )
-        except OSError as e:
+        except LevelDBEncrypted as e:
             self._is_open = self._has_lock = False
             raise LevelDBException(
                 "It looks like this world is from the marketplace.\nThese worlds are encrypted and cannot be edited."

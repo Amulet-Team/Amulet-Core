@@ -1,1 +1,1 @@
-from .leveldb import LevelDB, LevelDBException
+from .leveldb import LevelDB, LevelDBException, LevelDBEncrypted
