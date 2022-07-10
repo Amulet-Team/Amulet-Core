@@ -146,14 +146,17 @@ class Anvil1444Interface(ParentInterface):
 
     @staticmethod
     def _decode_to_be_ticked(ticks: ListTag, floor_cy: int) -> Set[BlockCoordinates]:
+        section_ticks: ListTag
+        pos: ShortTag
         ticks_out = set()
         for cy, section_ticks in enumerate(ticks):
             block_cy = (floor_cy + cy) << 4
             for pos in section_ticks:
+                pos_int = pos.py_int
                 # TODO: check if these are correct. The order may be wrong.
-                x = pos & 0xF
-                y = (pos >> 4) & 0xF
-                z = (pos >> 8) & 0xF
+                x = pos_int & 0xF
+                y = (pos_int >> 4) & 0xF
+                z = (pos_int >> 8) & 0xF
                 ticks_out.add((x, block_cy + y, z))
         return ticks_out
 
