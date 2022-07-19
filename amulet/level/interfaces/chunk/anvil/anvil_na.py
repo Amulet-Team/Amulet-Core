@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Dict, List, TYPE_CHECKING
+from typing import Tuple, Dict, TYPE_CHECKING
 
 import numpy
 from amulet_nbt import (
@@ -12,7 +12,7 @@ from amulet_nbt import (
     CompoundTag,
     ByteArrayTag,
     IntArrayTag,
-    BaseArrayType,
+    AbstractBaseArrayTag,
     NamedTag,
 )
 
@@ -20,8 +20,7 @@ import amulet
 from amulet.api.data_types import SubChunkNDArray, AnyNDArray, BlockCoordinates
 from amulet.utils import world_utils
 from amulet.api.wrapper import EntityIDType, EntityCoordType
-from amulet.api.chunk import Chunk, StatusFormats, EntityList
-from amulet.api.entity import Entity
+from amulet.api.chunk import Chunk, StatusFormats
 from .base_anvil_interface import (
     BaseAnvilInterface,
     ChunkDataType,
@@ -218,8 +217,8 @@ class AnvilNAInterface(BaseAnvilInterface):
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         biomes = self.get_layer_obj(data, self.Biomes, pop_last=True)
-        if isinstance(biomes, BaseArrayType) and biomes.np_array.size == 256:
-            chunk.biomes = biomes.astype(numpy.uint32).reshape((16, 16))
+        if isinstance(biomes, AbstractBaseArrayTag) and biomes.np_array.size == 256:
+            chunk.biomes = biomes.np_array.astype(numpy.uint32).reshape((16, 16))
 
     def _decode_height(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
@@ -242,8 +241,8 @@ class AnvilNAInterface(BaseAnvilInterface):
         for cy, section in self._iter_sections(data):
             block_tag = section.pop("Blocks", None)
             data_tag = section.pop("Data", None)
-            if not isinstance(block_tag, BaseArrayType) or not isinstance(
-                data_tag, BaseArrayType
+            if not isinstance(block_tag, AbstractBaseArrayTag) or not isinstance(
+                data_tag, AbstractBaseArrayTag
             ):
                 continue
             section_blocks = numpy.frombuffer(block_tag, dtype=numpy.uint8)
@@ -255,7 +254,7 @@ class AnvilNAInterface(BaseAnvilInterface):
             section_data = section_data.reshape((16, 16, 16))
 
             add_tag = section.pop("Add", None)
-            if isinstance(add_tag, BaseArrayType):
+            if isinstance(add_tag, AbstractBaseArrayTag):
                 add_blocks = numpy.frombuffer(add_tag, dtype=numpy.uint8)
                 add_blocks = world_utils.from_nibble_array(add_blocks)
                 add_blocks = add_blocks.reshape((16, 16, 16))
