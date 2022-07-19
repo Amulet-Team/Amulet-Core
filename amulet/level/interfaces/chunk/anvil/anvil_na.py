@@ -245,8 +245,8 @@ class AnvilNAInterface(BaseAnvilInterface):
                 data_tag, AbstractBaseArrayTag
             ):
                 continue
-            section_blocks = numpy.frombuffer(block_tag, dtype=numpy.uint8)
-            section_data = numpy.frombuffer(data_tag, dtype=numpy.uint8)
+            section_blocks = numpy.asarray(block_tag, dtype=numpy.uint8)
+            section_data = numpy.asarray(data_tag, dtype=numpy.uint8)
             section_blocks = section_blocks.reshape((16, 16, 16))
             section_blocks = section_blocks.astype(numpy.uint16)
 
@@ -255,7 +255,7 @@ class AnvilNAInterface(BaseAnvilInterface):
 
             add_tag = section.pop("Add", None)
             if isinstance(add_tag, AbstractBaseArrayTag):
-                add_blocks = numpy.frombuffer(add_tag, dtype=numpy.uint8)
+                add_blocks = numpy.asarray(add_tag, dtype=numpy.uint8)
                 add_blocks = world_utils.from_nibble_array(add_blocks)
                 add_blocks = add_blocks.reshape((16, 16, 16))
 
