@@ -349,28 +349,24 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         f.write(magic_num)
         f.write(struct.pack(">B", self._format_version))
         if self._format_version == 0:
-            metadata = NamedTag(
-                CompoundTag(
-                    {
-                        "created_with": StringTag("amulet_python_wrapper_v2"),
-                        "selection_boxes": IntArrayTag(
-                            [
-                                c
-                                for box in self._bounds[
-                                    self.dimensions[0]
-                                ].selection_boxes
-                                for c in (*box.min, *box.max)
-                            ]
-                        ),
-                        "section_version": ByteTag(self._section_version),
-                        "export_version": CompoundTag(
-                            {
-                                "edition": StringTag(self._platform),
-                                "version": ListTag([IntTag(v) for v in self._version]),
-                            }
-                        ),
-                    }
-                )
+            metadata = CompoundTag(
+                {
+                    "created_with": StringTag("amulet_python_wrapper_v2"),
+                    "selection_boxes": IntArrayTag(
+                        [
+                            c
+                            for box in self._bounds[self.dimensions[0]].selection_boxes
+                            for c in (*box.min, *box.max)
+                        ]
+                    ),
+                    "section_version": ByteTag(self._section_version),
+                    "export_version": CompoundTag(
+                        {
+                            "edition": StringTag(self._platform),
+                            "version": ListTag([IntTag(v) for v in self._version]),
+                        }
+                    ),
+                }
             )
             section_index_table: List[
                 Tuple[int, int, int, int, int, int, int, int]
