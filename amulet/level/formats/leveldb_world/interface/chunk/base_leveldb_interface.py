@@ -140,14 +140,14 @@ class BaseLevelDBInterface(Interface):
                     ] = chunk_data.pop(key)
             chunk.blocks, chunk_palette = self._load_subchunks(subchunks)
         elif self._features["terrain"] == "30array":
-            chunk_data = chunk_data.pop(b"\x30", None)
-            if chunk_data is not None:
+            section_data = chunk_data.pop(b"\x30", None)
+            if section_data is not None:
                 block_ids = numpy.frombuffer(
-                    chunk_data[: 2**15], dtype=numpy.uint8
+                    section_data[: 2**15], dtype=numpy.uint8
                 ).astype(numpy.uint16)
                 block_data = from_nibble_array(
                     numpy.frombuffer(
-                        chunk_data[2**15 : 2**15 + 2**14], dtype=numpy.uint8
+                        section_data[2**15 : 2**15 + 2**14], dtype=numpy.uint8
                     )
                 )
 
