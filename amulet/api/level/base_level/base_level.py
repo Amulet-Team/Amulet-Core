@@ -89,7 +89,7 @@ class BaseLevel:
         """
         The system path where the level is located.
 
-        This may be a directory, file or an emtpy string depending on the level that is loaded.
+        This may be a directory, file or an empty string depending on the level that is loaded.
         """
         return self._path
 
