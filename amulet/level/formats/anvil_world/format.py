@@ -17,6 +17,7 @@ import time
 import glob
 import shutil
 import json
+import logging
 
 import portalocker
 
@@ -55,6 +56,7 @@ from amulet.api import level as api_level
 from amulet.level.interfaces.chunk.anvil.base_anvil_interface import BaseAnvilInterface
 from .data_pack import DataPack, DataPackManager
 
+log = logging.getLogger(__name__)
 
 InternalDimension = str
 OVERWORLD = "minecraft:overworld"
@@ -226,12 +228,13 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
             self._dimension_name_map[dimension_name] = relative_dimension_path
             bounds = DefaultSelection
             if self.version >= 2709:  # This number might be smaller
-                dimension_tag = (
+                dimension_settings = (
                     self.root_tag.compound.get_compound("Data", CompoundTag())
                     .get_compound("WorldGenSettings", CompoundTag())
                     .get_compound("dimensions", CompoundTag())
-                    .get_compound(dimension_name, CompoundTag())["type"]
+                    .get_compound(dimension_name, CompoundTag())
                 )
+                dimension_tag = dimension_settings.get("type")
                 if isinstance(dimension_tag, StringTag):
                     # the settings are in the data pack
                     dimension_name = dimension_tag.py_str
@@ -302,6 +305,10 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                             (-30_000_000, min_y, -30_000_000),
                             (30_000_000, min_y + height, 30_000_000),
                         )
+                    )
+                else:
+                    log.error(
+                        f"Expected dimension_tag to be a StringTag or CompoundTag. Got {repr(dimension_settings)}"
                     )
 
             self._bounds[dimension_name] = bounds
