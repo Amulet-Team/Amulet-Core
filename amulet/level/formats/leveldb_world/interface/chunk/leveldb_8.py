@@ -4,16 +4,16 @@ from .leveldb_7 import (
     LevelDB7Interface,
 )
 
-from typing import Tuple, Dict, Optional, TYPE_CHECKING
+from typing import Tuple, Dict, Optional, TYPE_CHECKING, List
 
 import struct
 import numpy
+from numpy.typing import NDArray
 from amulet_nbt import NamedTag, CompoundTag, StringTag, IntTag, ShortTag
 
 from amulet.api.block import Block, PropertyDataTypes
 
 from amulet.utils.numpy_helpers import brute_sort_objects_no_hash
-from amulet.utils.world_utils import fast_unique
 from amulet.api.data_types import (
     AnyNDArray,
     VersionIdentifierTuple,
@@ -21,6 +21,9 @@ from amulet.api.data_types import (
 
 if TYPE_CHECKING:
     from amulet.api.chunk.blocks import Blocks
+
+
+PackedBlockT = Tuple[Tuple[Optional[int], Block], ...]
 
 
 class LevelDB8Interface(LevelDB7Interface):
@@ -38,11 +41,12 @@ class LevelDB8Interface(LevelDB7Interface):
         max_world_version: VersionIdentifierTuple,
     ) -> Dict[int, Optional[bytes]]:
         # Encode sub-chunk block format 8
-        palette_depth = numpy.array([len(block) for block in palette])
+        # TODO: untangle this mess. The lack of typing in numpy is just making this harder.
+        palette_list: List[PackedBlockT] = list(palette)
         min_y = bounds[0] // 16
         max_y = bounds[1] // 16
-        if palette.size:
-            if palette[0][0][0] is None:
+        if palette_list:
+            if palette_list[0][0][0] is None:
                 air = NamedTag(
                     CompoundTag(
                         {
@@ -62,9 +66,9 @@ class LevelDB8Interface(LevelDB7Interface):
                     )
                 )
 
-            for index, block in enumerate(palette):
-                block: Tuple[Tuple[Optional[int], Block], ...]
-                full_block = []
+            packed_palette: List[Tuple[NamedTag, ...]] = []
+            for index, block in enumerate(palette_list):
+                full_block: List[NamedTag] = []
                 for sub_block_version, sub_block in block:
                     properties = sub_block.properties
                     if sub_block_version is None:
@@ -101,26 +105,31 @@ class LevelDB8Interface(LevelDB7Interface):
                         )
 
                     full_block.append(sub_block_)
-                palette[index] = tuple(full_block)
+                packed_palette.append(tuple(full_block))
 
             chunk = {}
+            palette_depth = numpy.array([len(block) for block in packed_palette])
             for cy in range(min_y, max_y):
                 if cy in blocks:
-                    palette_index, sub_chunk = fast_unique(blocks.get_sub_chunk(cy))
-                    sub_chunk_palette = palette[palette_index]
+                    palette_index, sub_chunk = numpy.unique(
+                        blocks.get_sub_chunk(cy), return_inverse=True
+                    )
+                    sub_chunk_palette: List[Tuple[NamedTag, ...]] = [
+                        packed_palette[i] for i in palette_index
+                    ]
                     sub_chunk_depth = palette_depth[palette_index].max()
 
                     if (
                         sub_chunk_depth == 1
                         and len(sub_chunk_palette) == 1
-                        and sub_chunk_palette[0][0].get_string("name").py_str
+                        and sub_chunk_palette[0][0].compound.get_string("name").py_str
                         == "minecraft:air"
                     ):
                         chunk[cy] = None
                     else:
                         # pad block_palette with air in the extra layers
-                        sub_chunk_palette_full = numpy.empty(
-                            (sub_chunk_palette.size, sub_chunk_depth), dtype=object
+                        sub_chunk_palette_full: NDArray[NamedTag] = numpy.empty(
+                            (len(sub_chunk_palette), sub_chunk_depth), dtype=object
                         )
                         sub_chunk_palette_full.fill(air)
 
