@@ -16,7 +16,7 @@ from amulet.utils.numpy_helpers import brute_sort_objects_no_hash
 from amulet.utils.world_utils import fast_unique
 from amulet.api.data_types import (
     AnyNDArray,
-    VersionNumberTuple,
+    VersionIdentifierTuple,
 )
 
 if TYPE_CHECKING:
@@ -35,7 +35,7 @@ class LevelDB8Interface(LevelDB7Interface):
         blocks: "Blocks",
         palette: AnyNDArray,
         bounds: Tuple[int, int],
-        max_world_version: VersionNumberTuple,
+        max_world_version: VersionIdentifierTuple,
     ) -> Dict[int, Optional[bytes]]:
         # Encode sub-chunk block format 8
         palette_depth = numpy.array([len(block) for block in palette])

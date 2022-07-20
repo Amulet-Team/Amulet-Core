@@ -26,6 +26,10 @@ VersionNumberAny = Union[VersionNumberInt, VersionNumberTuple]
 
 #: The data type for a version identifier containing platform and int or tuple version number
 VersionIdentifierType = Tuple[PlatformType, VersionNumberAny]
+#: The data type for a version identifier containing platform and int version number
+VersionIdentifierInt = Tuple[PlatformType, VersionNumberInt]
+#: The data type for a version identifier containing platform and tuple version number
+VersionIdentifierTuple = Tuple[PlatformType, VersionNumberTuple]
 
 GetChunkCallback = Callable[[int, int], "Chunk"]
 

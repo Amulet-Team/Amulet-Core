@@ -7,7 +7,7 @@ import numpy
 from amulet.utils.world_utils import to_nibble_array
 from amulet.api.data_types import (
     AnyNDArray,
-    VersionNumberTuple,
+    VersionIdentifierTuple,
 )
 from .leveldb_2 import (
     LevelDB2Interface,
@@ -30,7 +30,7 @@ class LevelDB3Interface(LevelDB2Interface):
         blocks: "Blocks",
         palette: AnyNDArray,
         bounds: Tuple[int, int],
-        max_world_version: VersionNumberTuple,
+        max_world_version: VersionIdentifierTuple,
     ) -> Dict[int, Optional[bytes]]:
         # encode sub-chunk block format 0
         sections = {}

@@ -30,6 +30,7 @@ from amulet.api.data_types import (
     SubChunkNDArray,
     PlatformType,
     VersionNumberTuple,
+    VersionIdentifierTuple,
 )
 from amulet.level import loader
 from amulet.api.wrapper import EntityIDType, EntityCoordType
@@ -243,7 +244,7 @@ class BaseLevelDBInterface(Interface):
         self,
         chunk: Chunk,
         palette: AnyNDArray,
-        max_world_version: VersionNumberTuple,
+        max_world_version: VersionIdentifierTuple,
         bounds: Tuple[int, int],
     ) -> Dict[bytes, Optional[bytes]]:
         chunk_data = chunk.misc.get("bedrock_chunk_data", {})
@@ -500,7 +501,7 @@ class BaseLevelDBInterface(Interface):
         blocks: "Blocks",
         palette: AnyNDArray,
         bounds: Tuple[int, int],
-        max_world_version: VersionNumberTuple,
+        max_world_version: VersionIdentifierTuple,
     ) -> Dict[int, Optional[bytes]]:
         raise NotImplementedError
 
