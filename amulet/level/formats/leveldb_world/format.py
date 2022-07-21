@@ -167,7 +167,12 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         """
         super().__init__(path)
         self._platform = "bedrock"
-        self._root_tag = BedrockLevelDAT.from_file(os.path.join(path, "level.dat"))
+        dat_path = os.path.join(path, "level.dat")
+        if os.path.isfile(dat_path):
+            self._root_tag = BedrockLevelDAT.from_file(dat_path)
+        else:
+            # TODO: handle level creation better
+            self._root_tag = BedrockLevelDAT(path=dat_path, level_dat_version=9)
         self._db = None
         self._dimension_manager = None
         self._shallow_load()
