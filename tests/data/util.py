@@ -7,9 +7,9 @@ from contextlib import contextmanager
 import re
 import json
 
-import tests.data
+import data
 
-DATA_DIR = tests.data.__path__[0]
+DATA_DIR = os.path.realpath(data.__path__[0])
 
 
 def get_world_path(name: str) -> str:

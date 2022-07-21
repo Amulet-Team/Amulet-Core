@@ -3,8 +3,8 @@ import unittest
 
 from amulet_nbt import CompoundTag
 from amulet import load_format
-from tests.data.util import WorldTemp, for_each_world, BaseWorldTest
-from tests.data.worlds_src import levels
+from data.util import WorldTemp, for_each_world, BaseWorldTest
+from data.worlds_src import levels
 
 
 @for_each_world(globals(), levels)

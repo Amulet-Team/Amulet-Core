@@ -14,7 +14,7 @@ from amulet.level.formats.construction import ConstructionFormatWrapper
 from amulet.level.formats.mcstructure import MCStructureFormatWrapper
 from amulet.level.formats.schematic import SchematicFormatWrapper
 
-from tests.data.util import clean_temp_world, clean_path
+from data.util import clean_temp_world, clean_path
 
 
 class CreateWorldTestCase(unittest.TestCase):
