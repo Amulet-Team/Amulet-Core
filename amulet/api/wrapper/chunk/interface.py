@@ -91,7 +91,7 @@ class Interface(ABC):
 
     @staticmethod
     def _decode_base_entity(
-        nbt: NamedTag, id_type: EntityIDType, coord_type: EntityCoordType
+        named_tag: NamedTag, id_type: EntityIDType, coord_type: EntityCoordType
     ) -> Optional[
         Tuple[
             str,
@@ -102,10 +102,12 @@ class Interface(ABC):
             NamedTag,
         ]
     ]:
-        if not (isinstance(nbt, NamedTag) and isinstance(nbt.tag, CompoundTag)):
+        if not (
+            isinstance(named_tag, NamedTag) and isinstance(named_tag.tag, CompoundTag)
+        ):
             return
 
-        nbt_tag = nbt.tag
+        nbt_tag = named_tag.tag
 
         if id_type == EntityIDType.namespace_str_id:
             entity_id = nbt_tag.pop("id", StringTag(""))
@@ -190,7 +192,7 @@ class Interface(ABC):
         else:
             raise NotImplementedError(f"Entity coord type {coord_type}")
 
-        return namespace, base_name, x, y, z, nbt_tag
+        return namespace, base_name, x, y, z, named_tag
 
     @abstractmethod
     def encode(self, *args, **kwargs) -> Any:
