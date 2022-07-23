@@ -399,7 +399,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                             )
                             flattened_array = lut[flattened_array]
                             array_type = find_fitting_array_type(flattened_array)
-                            _tag["blocks_array_type"] = ByteTag(array_type().tag_id)
+                            _tag["blocks_array_type"] = ByteTag(array_type.tag_id)
                             _tag["blocks"] = array_type(flattened_array)
                             _tag["block_entities"] = serialise_block_entities(
                                 block_entities or []
