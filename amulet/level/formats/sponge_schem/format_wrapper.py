@@ -66,13 +66,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
         super().__init__(path)
         self._chunks: Dict[
             ChunkCoordinates,
-            Tuple[
-                SelectionBox,
-                numpy.ndarray,
-                AnyNDArray,
-                List[CompoundTag],
-                List[CompoundTag],
-            ],
+            SpongeSchemChunk,
         ] = {}
         self._schem_version: int = max_schem_version
 
@@ -197,7 +191,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                 for palette_index, index in enumerate(chunk_palette_indexes):
                     chunk_palette[palette_index] = block_palette[index]
 
-                self._chunks[(cx, cz)] = (
+                self._chunks[(cx, cz)] = SpongeSchemChunk(
                     chunk_box,
                     chunk_blocks,
                     chunk_palette,
@@ -216,21 +210,21 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                     )
 
                 for block_entity in block_entities:
-                    if "Pos" in block_entity:
-                        pos = block_entity["Pos"]
-                        if isinstance(pos, IntArrayTag) and len(pos) == 3:
-                            pos = pos + min_point
-                            x, y, z = (
-                                pos[0],
-                                pos[1],
-                                pos[2],
-                            )
-                            block_entity["Pos"] = IntArrayTag(pos)
-                            cx, cz = x >> 4, z >> 4
-                            if (cx, cz) in self._chunks and (x, y, z) in self._chunks[
-                                (cx, cz)
-                            ][0]:
-                                self._chunks[(cx, cz)][3].append(block_entity)
+                    if "Pos" not in block_entity:
+                        continue
+
+                    pos_tag = block_entity["Pos"]
+                    if not (isinstance(pos_tag, IntArrayTag) and len(pos_tag) == 3):
+                        continue
+
+                    pos = pos_tag.np_array + min_point
+                    x, y, z = pos
+                    block_entity["Pos"] = IntArrayTag(pos)
+                    cx, cz = x >> 4, z >> 4
+                    if (cx, cz) in self._chunks and (x, y, z) in self._chunks[
+                        (cx, cz)
+                    ].selection:
+                        self._chunks[(cx, cz)].block_entities.append(block_entity)
 
             if "Entities" in sponge_schem:
                 entities = sponge_schem["Entities"]
@@ -243,30 +237,34 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                     )
 
                 for entity in entities:
-                    if "Pos" in entity:
-                        pos = entity["Pos"]
-                        if (
-                            isinstance(pos, ListTag)
-                            and len(pos) == 3
-                            and pos.list_data_type == 6
-                        ):  # DoubleTag.tag_id:
-                            x, y, z = (
-                                pos[0].py_float + offset[0],
-                                pos[1].py_float + offset[0],
-                                pos[2].py_float + offset[0],
-                            )
-                            entity["Pos"] = ListTag(
-                                [
-                                    IntTag(x),
-                                    IntTag(y),
-                                    IntTag(z),
-                                ]
-                            )
-                            cx, cz = numpy.floor([x, z]).astype(int) >> 4
-                            if (cx, cz) in self._chunks and (x, y, z) in self._chunks[
-                                (cx, cz)
-                            ][0]:
-                                self._chunks[(cx, cz)][4].append(entity)
+                    if "Pos" not in entity:
+                        continue
+
+                    pos = entity["Pos"]
+                    if not (
+                        isinstance(pos, ListTag)
+                        and len(pos) == 3
+                        and pos.list_data_type == 6
+                    ):  # DoubleTag.tag_id:
+                        continue
+
+                    x, y, z = (
+                        pos[0].py_float + offset[0],
+                        pos[1].py_float + offset[0],
+                        pos[2].py_float + offset[0],
+                    )
+                    entity["Pos"] = ListTag(
+                        [
+                            IntTag(x),
+                            IntTag(y),
+                            IntTag(z),
+                        ]
+                    )
+                    cx, cz = numpy.floor([x, z]).astype(int) >> 4
+                    if (cx, cz) in self._chunks and (x, y, z) in self._chunks[
+                        (cx, cz)
+                    ].selection:
+                        self._chunks[(cx, cz)].entities.append(entity)
 
         else:
             raise SpongeSchemReadError(
@@ -311,18 +309,15 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             overflowed_shape = [
                 s if s < 2**15 else s - 2**16 for s in selection.shape
             ]
-            data = NamedTag(
-                CompoundTag(
-                    {
-                        "Version": IntTag(2),
-                        "DataVersion": IntTag(self._version),
-                        "Width": ShortTag(overflowed_shape[0]),
-                        "Height": ShortTag(overflowed_shape[1]),
-                        "Length": ShortTag(overflowed_shape[2]),
-                        "Offset": IntArrayTag(selection.min),
-                    }
-                ),
-                name="Schematic",
+            tag = CompoundTag(
+                {
+                    "Version": IntTag(2),
+                    "DataVersion": IntTag(self._version),
+                    "Width": ShortTag(overflowed_shape[0]),
+                    "Height": ShortTag(overflowed_shape[1]),
+                    "Length": ShortTag(overflowed_shape[2]),
+                    "Offset": IntArrayTag(selection.min),
+                }
             )
 
             entities = []
@@ -336,28 +331,22 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             else:
                 arr = numpy.empty(1, dtype=object)
                 arr[0] = Block("minecraft", "air")
-                palette.append((arr))
+                palette.append(arr)
 
             palette_len = 1
 
-            for (
-                selection_,
-                blocks_,
-                palette_,
-                block_entities_,
-                entities_,
-            ) in self._chunks.values():
-                if selection_.intersects(selection):
-                    box = selection_.create_moved_box(selection.min, subtract=True)
-                    blocks[box.slice] = blocks_ + palette_len
-                    palette.append(palette_)
-                    palette_len += len(palette_)
-                    for be in block_entities_:
+            for chunk in self._chunks.values():
+                if chunk.selection.intersects(selection):
+                    box = chunk.selection.create_moved_box(selection.min, subtract=True)
+                    blocks[box.slice] = chunk.blocks + palette_len
+                    palette.append(chunk.palette)
+                    palette_len += len(chunk.palette)
+                    for be in chunk.block_entities:
                         be = copy.deepcopy(be)
-                        be["Pos"] = IntArrayTag(be["Pos"] - selection.min)
+                        be["Pos"] = IntArrayTag(be["Pos"].np_array - selection.min)
                         block_entities.append(be)
 
-                    for e in entities_:
+                    for e in chunk.entities:
                         e = copy.deepcopy(e)
                         x, y, z = e["Pos"]
                         e["Pos"] = ListTag(
@@ -378,20 +367,20 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                 block: Block
                 block_palette.append(block.blockstate)
 
-            data["PaletteMax"] = IntTag(len(compact_palette))
-            data["Palette"] = CompoundTag(
+            tag["PaletteMax"] = IntTag(len(compact_palette))
+            tag["Palette"] = CompoundTag(
                 {
                     blockstate: IntTag(index)
                     for index, blockstate in enumerate(block_palette)
                 }
             )
-            data["BlockData"] = ByteArrayTag(list(encode_array(blocks)))
+            tag["BlockData"] = ByteArrayTag(list(encode_array(blocks)))
             if block_entities:
-                data["BlockEntities"] = ListTag(block_entities)
+                tag["BlockEntities"] = ListTag(block_entities)
             if entities:
-                data["Entities"] = ListTag(entities)
+                tag["Entities"] = ListTag(entities)
 
-            data.save_to(f)
+            NamedTag(tag, "Schematic").save_to(f)
         else:
             raise SpongeSchemReadError(
                 f"Sponge Schematic Version {self._schem_version} is not supported currently."
@@ -439,15 +428,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
         section: SpongeSchemChunk,
         dimension: Optional[Dimension] = None,
     ):
-        self._chunks[(cx, cz)] = copy.deepcopy(
-            (
-                section.selection,
-                section.blocks,
-                section.palette,
-                section.block_entities,
-                section.entities,
-            )
-        )
+        self._chunks[(cx, cz)] = copy.deepcopy(section)
 
     def _get_raw_chunk_data(
         self, cx: int, cz: int, dimension: Optional[Dimension] = None
@@ -461,6 +442,6 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
         :return: The raw chunk data.
         """
         if (cx, cz) in self._chunks:
-            return SpongeSchemChunk(*copy.deepcopy(self._chunks[(cx, cz)]))
+            return copy.deepcopy(self._chunks[(cx, cz)])
         else:
             raise ChunkDoesNotExist

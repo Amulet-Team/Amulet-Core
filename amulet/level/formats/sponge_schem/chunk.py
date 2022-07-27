@@ -10,7 +10,7 @@ from amulet.api.data_types import BlockCoordinates, AnyNDArray
 class SpongeSchemChunk:
     __slots__ = (
         "selection",
-        "blocks",
+        "_blocks",
         "palette",
         "shape",
         "entities",
@@ -25,10 +25,6 @@ class SpongeSchemChunk:
         block_entities: List[CompoundTag],
         entities: List[CompoundTag],
     ):
-        assert isinstance(blocks, numpy.ndarray)
-        assert (
-            selection.shape == blocks.shape
-        ), "blocks shape does not match the specified section shape"
         self.selection = selection
         self.blocks = blocks
         self.palette = palette
@@ -37,7 +33,7 @@ class SpongeSchemChunk:
 
     def __eq__(self, other):
         return (
-            isinstance(other, self.__class__)
+            isinstance(other, SpongeSchemChunk)
             and self.selection == other.selection
             and self.shape == other.shape
             and numpy.array_equal(self.blocks, other.blocks)
@@ -48,3 +44,19 @@ class SpongeSchemChunk:
     @property
     def location(self) -> BlockCoordinates:
         return self.selection.min
+
+    @property
+    def blocks(self) -> numpy.ndarray:
+        return self._blocks
+
+    @blocks.setter
+    def blocks(self, blocks: numpy.ndarray):
+        if not (
+            isinstance(blocks, numpy.ndarray)
+            and blocks.shape == self.selection.shape
+            and numpy.issubdtype(blocks.dtype, numpy.integer)
+        ):
+            raise TypeError(
+                "SpongeSchemChunk.blocks must be a integer numpy array with shape that matches selection"
+            )
+        self._blocks = blocks
