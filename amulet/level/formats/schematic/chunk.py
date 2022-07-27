@@ -17,9 +17,39 @@ class SchematicChunk:
         entities: List[CompoundTag],
     ):
         self.selection = selection
-        assert isinstance(blocks, numpy.ndarray) and blocks.dtype == numpy.uint16
-        assert isinstance(data, numpy.ndarray) and data.dtype == numpy.uint8
         self.blocks = blocks
         self.data = data
         self.block_entities = block_entities
         self.entities = entities
+
+    @property
+    def blocks(self) -> BlockArrayType:
+        return self._blocks
+
+    @blocks.setter
+    def blocks(self, blocks: BlockArrayType):
+        if not (
+            isinstance(blocks, numpy.ndarray)
+            and blocks.shape == self.selection.shape
+            and blocks.dtype == numpy.uint16
+        ):
+            raise TypeError(
+                "SchematicChunk.blocks must be a uint16 numpy array with shape that matches selection"
+            )
+        self._blocks = blocks
+
+    @property
+    def data(self) -> BlockDataArrayType:
+        return self._data
+
+    @data.setter
+    def data(self, data: BlockDataArrayType):
+        if not (
+            isinstance(data, numpy.ndarray)
+            and data.shape == self.selection.shape
+            and data.dtype == numpy.uint8
+        ):
+            raise TypeError(
+                "SchematicChunk.data must be a uint8 numpy array with shape that matches selection"
+            )
+        self._data = data

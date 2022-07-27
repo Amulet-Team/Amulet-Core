@@ -8,7 +8,6 @@ from amulet_nbt import (
     StringTag,
     ListTag,
     CompoundTag,
-    NamedTag,
     load as load_nbt,
     utf8_escape_decoder,
     utf8_escape_encoder,
@@ -283,7 +282,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             for block_layer, block in enumerate(block_list):
                 if block_layer >= 2:
                     break
-                if block["name"] != "minecraft:structure_void":
+                if block["name"] != StringTag("minecraft:structure_void"):
                     if block in block_palette:
                         indexed_block[block_layer] = block_palette.index(block)
                     else:
