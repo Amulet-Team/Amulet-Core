@@ -293,12 +293,13 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
 
                 elif isinstance(dimension_tag, CompoundTag):
                     # the settings are here
-                    dimension_settings = dimension_tag
+                    dimension_compound_tag = dimension_tag
                     min_y = (
-                        dimension_settings.get_int("min_y", IntTag()).py_int // 16
+                        dimension_compound_tag.get_int("min_y", IntTag()).py_int // 16
                     ) * 16
                     height = (
-                        -dimension_settings.get_int("height", IntTag(256)).py_int // 16
+                        -dimension_compound_tag.get_int("height", IntTag(256)).py_int
+                        // 16
                     ) * -16
                     bounds = SelectionGroup(
                         SelectionBox(
@@ -308,7 +309,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                     )
                 else:
                     log.error(
-                        f"Expected dimension_tag to be a StringTag or CompoundTag. Got {repr(dimension_settings)}"
+                        f"Expected dimension_tag to be a StringTag or CompoundTag. Got {repr(dimension_tag)} for dimension {dimension_name}"
                     )
 
             self._bounds[dimension_name] = bounds
