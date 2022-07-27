@@ -256,10 +256,7 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         if numpy.max(blocks) > 0xFF:
             add_blocks = (numpy.transpose(blocks & 0xF00, (1, 2, 0)) >> 8).ravel()
             tag["AddBlocks"] = ByteArrayTag((add_blocks[::2] << 4) + add_blocks[1::2])
-        NamedTag(
-            tag,
-            "Schematic",
-        ).save_to(f)
+        NamedTag(tag, "Schematic").save_to(f)
 
     def _close(self):
         """Close the disk database"""
