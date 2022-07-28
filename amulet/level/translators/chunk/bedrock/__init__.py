@@ -87,7 +87,7 @@ class BaseBedrockTranslator(Translator):
             lut.append(palette_.get_add_block(block))
         chunk._block_palette = palette_
 
-        if len(palette_) != lut:
+        if len(palette_) != len(lut):
             # sometimes a block can be stored in different formats but unpack to the same block
             # this means that the final palette is smaller than the original so the array needs remapping
             np_lut = numpy.array(lut)
