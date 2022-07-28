@@ -9,6 +9,8 @@ from amulet.level.loader import Translators
 from amulet.api.block import Block
 from .chunk import SpongeSchemChunk
 
+from amulet_nbt import NamedTag
+
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
     from PyMCTranslate import TranslationManager
@@ -40,18 +42,18 @@ class SpongeSchemInterface(Interface):
         chunk = Chunk(cx, cz)
         box = data.selection.create_moved_box((cx * 16, 0, cz * 16), subtract=True)
         chunk.blocks[box.slice] = data.blocks + 1
-        for b in data.block_entities:
-            b = self._decode_block_entity(
-                b, self._block_entity_id_type, self._block_entity_coord_type
+        for tag in data.block_entities:
+            block_entity = self._decode_block_entity(
+                NamedTag(tag), self._block_entity_id_type, self._block_entity_coord_type
             )
-            if b is not None:
-                chunk.block_entities.insert(b)
-        for e in data.entities:
-            e = self._decode_entity(
-                e, self._block_entity_id_type, self._block_entity_coord_type
+            if block_entity is not None:
+                chunk.block_entities.insert(block_entity)
+        for tag in data.entities:
+            entity = self._decode_entity(
+                NamedTag(tag), self._block_entity_id_type, self._block_entity_coord_type
             )
-            if e is not None:
-                chunk.entities.append(e)
+            if entity is not None:
+                chunk.entities.append(entity)
 
         return chunk, palette
 
@@ -72,19 +74,21 @@ class SpongeSchemInterface(Interface):
         :return: Raw data to be stored by the Format.
         """
         entities = []
-        for e in chunk.entities:
-            if e.location in box:
+        for entity in chunk.entities:
+            if entity.location in box:
                 entities.append(
                     self._encode_entity(
-                        e, self._entity_id_type, self._entity_coord_type
+                        entity, self._entity_id_type, self._entity_coord_type
                     ).compound
                 )
         block_entities = []
-        for e in chunk.block_entities:
-            if e.location in box:
+        for block_entity in chunk.block_entities:
+            if block_entity.location in box:
                 block_entities.append(
                     self._encode_block_entity(
-                        e, self._block_entity_id_type, self._block_entity_coord_type
+                        block_entity,
+                        self._block_entity_id_type,
+                        self._block_entity_coord_type,
                     ).compound
                 )
 
