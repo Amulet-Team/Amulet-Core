@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Dict, TYPE_CHECKING
+from typing import Tuple, Dict, Iterator, TYPE_CHECKING
 
 import numpy
 from amulet_nbt import (
@@ -227,7 +227,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         if isinstance(height, numpy.ndarray) and height.size == 256:
             chunk.misc["height_map256IA"] = height.reshape((16, 16))
 
-    def _iter_sections(self, data: ChunkDataType):
+    def _iter_sections(self, data: ChunkDataType) -> Iterator[Tuple[int, CompoundTag]]:
         sections: ListTag = self.get_layer_obj(data, self.Sections)
         for section in sections:
             yield section["Y"].py_int, section
@@ -391,8 +391,9 @@ class AnvilNAInterface(BaseAnvilInterface):
         height_cy: int,
     ) -> Dict[int, CompoundTag]:
         """Get or create the section array populating all valid sections"""
-        sections = self.set_layer_obj(data, self.Sections, setdefault=True)
+        sections: ListTag = self.set_layer_obj(data, self.Sections, setdefault=True)
         section_map: Dict[int, CompoundTag] = {}
+        section: CompoundTag
         for section_index in range(len(sections) - 1, -1, -1):
             section = sections[section_index]
             cy = section.get("Y", None)
