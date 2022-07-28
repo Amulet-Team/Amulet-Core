@@ -28,10 +28,7 @@ from __future__ import annotations
 
 from amulet.api.block import Block
 
-from amulet.utils.format_utils import (
-    check_all_exist,
-    load_leveldat,
-)
+from amulet.utils.format_utils import check_all_exist
 ```
 
 Absolute import statements can also be used internally within the Amulet API even when not located in a dynamically imported module, but this is highly discouraged unless an exception occurs otherwise. 

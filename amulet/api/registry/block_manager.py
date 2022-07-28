@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Dict, Iterable, List, Tuple, overload, Generator, Union
 from numpy import integer
 
-from amulet_nbt import TAG_Byte, TAG_Int, TAG_Short, TAG_Long
+from amulet_nbt import ByteTag, IntTag, ShortTag, LongTag
 
 from amulet.api.data_types import Int
 from amulet.api.block import Block
@@ -119,7 +119,7 @@ class BlockManager(BaseRegistry):
     def _get_item(self, item):
         if isinstance(item, Block):
             return self._block_to_index_map[item]
-        elif isinstance(item, (int, integer, TAG_Byte, TAG_Short, TAG_Int, TAG_Long)):
+        elif isinstance(item, (int, integer, ByteTag, ShortTag, IntTag, LongTag)):
             return self._index_to_block[int(item)]
         # if it isn't an Block or int assume an iterable of the above.
         return [self._get_item(i) for i in item]

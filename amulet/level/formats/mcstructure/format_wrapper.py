@@ -3,7 +3,15 @@ from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, Lis
 import numpy
 import copy
 
-import amulet_nbt
+from amulet_nbt import (
+    IntTag,
+    StringTag,
+    ListTag,
+    CompoundTag,
+    load as load_nbt,
+    utf8_escape_decoder,
+    utf8_escape_encoder,
+)
 
 from amulet.api.data_types import (
     VersionNumberAny,
@@ -48,8 +56,8 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                 SelectionBox,
                 numpy.ndarray,
                 AnyNDArray,
-                List[amulet_nbt.TAG_Compound],
-                List[amulet_nbt.TAG_Compound],
+                List[CompoundTag],
+                List[CompoundTag],
             ],
         ] = {}
 
@@ -74,12 +82,16 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         self._has_lock = True
 
     def open_from(self, f: BinaryIO):
-        mcstructure = amulet_nbt.load(f, little_endian=True)
-        if mcstructure["format_version"].value == 1:
+        mcstructure = load_nbt(
+            f, little_endian=True, string_decoder=utf8_escape_decoder
+        ).compound
+        if mcstructure.get_int("format_version").py_int == 1:
             min_point = numpy.array(
-                tuple(c.value for c in mcstructure["structure_world_origin"])
+                tuple(c.py_int for c in mcstructure.get_list("structure_world_origin"))
             )
-            max_point = min_point + tuple(c.value for c in mcstructure["size"])
+            max_point = min_point + tuple(
+                c.py_int for c in mcstructure.get_list("size")
+            )
             selection = SelectionBox(min_point, max_point)
             self._bounds[self.dimensions[0]] = SelectionGroup(selection)
             translator_version = self.translation_manager.get_version(
@@ -87,31 +99,26 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             )
             self._platform = translator_version.platform
             self._version = translator_version.version_number
+            structure = mcstructure.get_compound("structure")
+            indices = structure.get_list("block_indices")
             blocks_array: numpy.ndarray = numpy.array(
-                [
-                    [b.value for b in layer]
-                    for layer in mcstructure["structure"]["block_indices"]
-                ],
+                [[b.py_int for b in layer] for layer in indices],
                 dtype=numpy.int32,
-            ).reshape(
-                (len(mcstructure["structure"]["block_indices"]), *selection.shape)
-            )
+            ).reshape((len(indices), *selection.shape))
 
-            palette_key = list(mcstructure["structure"]["palette"].keys())[
-                0
-            ]  # find a way to do this based on user input
-            block_palette = list(
-                mcstructure["structure"]["palette"][palette_key]["block_palette"]
-            )
+            palette_tag = structure.get_compound("palette")
+            palette_key = next(iter(palette_tag))
+            sub_palette_tag = palette_tag.get_compound(palette_key)
+            block_palette = list(sub_palette_tag.get_list("block_palette"))
 
             if -1 in blocks_array[0]:
                 blocks_array[0][blocks_array[0] == -1] = len(block_palette)
                 block_palette.append(
-                    amulet_nbt.TAG_Compound(
+                    CompoundTag(
                         {
-                            "name": amulet_nbt.TAG_String("minecraft:structure_void"),
-                            "states": amulet_nbt.TAG_Compound(),
-                            "version": amulet_nbt.TAG_Int(17694723),  # 1.13.0
+                            "name": StringTag("minecraft:structure_void"),
+                            "states": CompoundTag(),
+                            "version": IntTag(17694723),  # 1.13.0
                         }
                     )
                 )
@@ -147,17 +154,17 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
 
             block_entities = {
                 int(key): val["block_entity_data"]
-                for key, val in mcstructure["structure"]["palette"][palette_key][
+                for key, val in sub_palette_tag.get_compound(
                     "block_position_data"
-                ].items()
+                ).items()
                 if "block_entity_data" in val
             }
             for location, block_entity in block_entities.items():
                 if all(key in block_entity for key in "xyz"):
                     x, y, z = (
-                        block_entity["x"].value,
-                        block_entity["y"].value,
-                        block_entity["z"].value,
+                        block_entity["x"].py_int,
+                        block_entity["y"].py_int,
+                        block_entity["z"].py_int,
                     )
                     cx, cz = x >> 4, z >> 4
                     if (cx, cz) in self._chunks and (x, y, z) in self._chunks[(cx, cz)][
@@ -165,14 +172,12 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                     ]:
                         self._chunks[(cx, cz)][3].append(block_entity)
 
-            entities = list(mcstructure["structure"]["entities"])
-            for entity in entities:
+            for entity in structure.get_list("entities"):
                 if "Pos" in entity:
-                    x, y, z = (
-                        entity["Pos"][0].value,
-                        entity["Pos"][1].value,
-                        entity["Pos"][2].value,
-                    )
+                    pos = entity.get_list("Pos")
+                    x = pos[0].py_float
+                    y = pos[1].py_float
+                    z = pos[2].py_float
                     cx, cz = numpy.floor([x, z]).astype(int) >> 4
                     if (cx, cz) in self._chunks and (x, y, z) in self._chunks[(cx, cz)][
                         0
@@ -181,7 +186,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
 
         else:
             raise Exception(
-                f"mcstructure file with format_version=={mcstructure['format_version'].value} cannot be read"
+                f"mcstructure file with format_version=={mcstructure.get_int('format_version').py_int} cannot be read"
             )
 
     @staticmethod
@@ -210,26 +215,24 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
 
     def save_to(self, f: BinaryIO):
         selection = self._bounds[self.dimensions[0]].selection_boxes[0]
-        data = amulet_nbt.NBTFile(
-            amulet_nbt.TAG_Compound(
-                {
-                    "format_version": amulet_nbt.TAG_Int(1),
-                    "structure_world_origin": amulet_nbt.TAG_List(
-                        [
-                            amulet_nbt.TAG_Int(selection.min_x),
-                            amulet_nbt.TAG_Int(selection.min_y),
-                            amulet_nbt.TAG_Int(selection.min_z),
-                        ]
-                    ),
-                    "size": amulet_nbt.TAG_List(
-                        [
-                            amulet_nbt.TAG_Int(selection.size_x),
-                            amulet_nbt.TAG_Int(selection.size_y),
-                            amulet_nbt.TAG_Int(selection.size_z),
-                        ]
-                    ),
-                }
-            )
+        mcstructure = CompoundTag(
+            {
+                "format_version": IntTag(1),
+                "structure_world_origin": ListTag(
+                    [
+                        IntTag(selection.min_x),
+                        IntTag(selection.min_y),
+                        IntTag(selection.min_z),
+                    ]
+                ),
+                "size": ListTag(
+                    [
+                        IntTag(selection.size_x),
+                        IntTag(selection.size_y),
+                        IntTag(selection.size_z),
+                    ]
+                ),
+            }
         )
 
         entities = []
@@ -243,11 +246,11 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         else:
             arr = numpy.empty(1, dtype=object)
             arr[0] = [
-                amulet_nbt.TAG_Compound(
+                CompoundTag(
                     {
-                        "name": amulet_nbt.TAG_String("minecraft:air"),
-                        "states": amulet_nbt.TAG_Compound(),
-                        "version": amulet_nbt.TAG_Int(17694723),
+                        "name": StringTag("minecraft:air"),
+                        "states": CompoundTag(),
+                        "version": IntTag(17694723),
                     }
                 )
             ]
@@ -279,7 +282,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             for block_layer, block in enumerate(block_list):
                 if block_layer >= 2:
                     break
-                if block["name"] != "minecraft:structure_void":
+                if block["name"] != StringTag("minecraft:structure_void"):
                     if block in block_palette:
                         indexed_block[block_layer] = block_palette.index(block)
                     else:
@@ -289,40 +292,38 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
 
         block_indices = numpy.array(block_palette_indices, dtype=numpy.int32)[blocks].T
 
-        data["structure"] = amulet_nbt.TAG_Compound(
+        mcstructure["structure"] = CompoundTag(
             {
-                "block_indices": amulet_nbt.TAG_List(
+                "block_indices": ListTag(
                     [  # a list of tag ints that index into the block_palette. One list per block layer
-                        amulet_nbt.TAG_List(
-                            [amulet_nbt.TAG_Int(block) for block in layer]
-                        )
+                        ListTag([IntTag(block) for block in layer])
                         for layer in block_indices
                     ]
                 ),
-                "entities": amulet_nbt.TAG_List(entities),
-                "palette": amulet_nbt.TAG_Compound(
+                "entities": ListTag(entities),
+                "palette": CompoundTag(
                     {
-                        "default": amulet_nbt.TAG_Compound(
+                        "default": CompoundTag(
                             {
-                                "block_palette": amulet_nbt.TAG_List(block_palette),
-                                "block_position_data": amulet_nbt.TAG_Compound(
+                                "block_palette": ListTag(block_palette),
+                                "block_position_data": CompoundTag(
                                     {
                                         str(
                                             (
                                                 (
-                                                    block_entity["x"].value
+                                                    block_entity["x"].py_int
                                                     - selection.min_x
                                                 )
                                                 * selection.size_y
                                                 + (
-                                                    block_entity["y"].value
+                                                    block_entity["y"].py_int
                                                     - selection.min_y
                                                 )
                                             )
                                             * selection.size_z
-                                            + block_entity["z"].value
+                                            + block_entity["z"].py_int
                                             - selection.min_z
-                                        ): amulet_nbt.TAG_Compound(
+                                        ): CompoundTag(
                                             {"block_entity_data": block_entity}
                                         )
                                         for block_entity in block_entities
@@ -334,7 +335,9 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                 ),
             }
         )
-        data.save_to(f, compressed=False, little_endian=True)
+        mcstructure.save_to(
+            f, compressed=False, little_endian=True, string_encoder=utf8_escape_encoder
+        )
 
     def _close(self):
         """Close the disk database"""

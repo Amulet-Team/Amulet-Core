@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC
 from typing import Union, Optional
-import amulet_nbt
+from amulet_nbt import NamedTag, CompoundTag
 from amulet.api.data_types import BlockCoordinates, PointCoordinates
 
 _Coord = Union[float, int]
@@ -19,7 +19,7 @@ class AbstractBaseEntity(ABC):
         x: _Coord,
         y: _Coord,
         z: _Coord,
-        nbt: amulet_nbt.NBTFile,
+        nbt: NamedTag,
     ):
         assert isinstance(self.obj_name, str)
         assert self.coord_types is not None
@@ -35,12 +35,12 @@ class AbstractBaseEntity(ABC):
         self._x = self.coord_types[0](x)
         self._y = self.coord_types[0](y)
         self._z = self.coord_types[0](z)
-        if isinstance(nbt, amulet_nbt.TAG_Compound):
-            self._nbt = amulet_nbt.NBTFile(nbt)
-        elif isinstance(nbt, amulet_nbt.NBTFile):
+        if isinstance(nbt, CompoundTag):
+            self._nbt = NamedTag(nbt)
+        elif isinstance(nbt, NamedTag):
             self._nbt = nbt
         else:
-            raise Exception(f"nbt must be an NBTFile. Got {nbt}")
+            raise Exception(f"nbt must be an NamedTag. Got {nbt}")
 
     def _gen_namespaced_name(self):
         self._namespaced_name = f'{self.namespace or ""}:{self.base_name}'
@@ -112,17 +112,19 @@ class AbstractBaseEntity(ABC):
         return self._x, self._y, self._z
 
     @property
-    def nbt(self) -> amulet_nbt.NBTFile:
+    def nbt(self) -> NamedTag:
         """
         The NBT behind the object
 
         :getter: Get the NBT data stored in the object
         :setter: Set the NBT data stored in the object
 
-        :return: An amulet_nbt.NBTFile
+        :return: A NamedTag
         """
         return self._nbt
 
     @nbt.setter
-    def nbt(self, value: amulet_nbt.NBTFile):
+    def nbt(self, value: NamedTag):
+        if not isinstance(value, NamedTag):
+            raise TypeError
         self._nbt = value

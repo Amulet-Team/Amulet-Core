@@ -1,2 +1,2 @@
 <0 added
-<0 type TAG_Compound
+<0 type CompoundTag

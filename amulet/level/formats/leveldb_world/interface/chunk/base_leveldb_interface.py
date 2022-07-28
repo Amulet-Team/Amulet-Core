@@ -5,7 +5,18 @@ import struct
 import logging
 
 import numpy
-import amulet_nbt
+from amulet_nbt import (
+    ShortTag,
+    IntTag,
+    StringTag,
+    CompoundTag,
+    NamedTag,
+    load as load_nbt,
+    load_many,
+    ReadContext,
+    utf8_escape_decoder,
+    utf8_escape_encoder,
+)
 
 import amulet
 from amulet.api.block import Block
@@ -19,6 +30,7 @@ from amulet.api.data_types import (
     SubChunkNDArray,
     PlatformType,
     VersionNumberTuple,
+    VersionIdentifierTuple,
 )
 from amulet.level import loader
 from amulet.api.wrapper import EntityIDType, EntityCoordType
@@ -129,14 +141,14 @@ class BaseLevelDBInterface(Interface):
                     ] = chunk_data.pop(key)
             chunk.blocks, chunk_palette = self._load_subchunks(subchunks)
         elif self._features["terrain"] == "30array":
-            chunk_data = chunk_data.pop(b"\x30", None)
-            if chunk_data is not None:
+            section_data = chunk_data.pop(b"\x30", None)
+            if section_data is not None:
                 block_ids = numpy.frombuffer(
-                    chunk_data[: 2**15], dtype=numpy.uint8
+                    section_data[: 2**15], dtype=numpy.uint8
                 ).astype(numpy.uint16)
                 block_data = from_nibble_array(
                     numpy.frombuffer(
-                        chunk_data[2**15 : 2**15 + 2**14], dtype=numpy.uint8
+                        section_data[2**15 : 2**15 + 2**14], dtype=numpy.uint8
                     )
                 )
 
@@ -232,7 +244,7 @@ class BaseLevelDBInterface(Interface):
         self,
         chunk: Chunk,
         palette: AnyNDArray,
-        max_world_version: VersionNumberTuple,
+        max_world_version: VersionIdentifierTuple,
         bounds: Tuple[int, int],
     ) -> Dict[bytes, Optional[bytes]]:
         chunk_data = chunk.misc.get("bedrock_chunk_data", {})
@@ -362,7 +374,7 @@ class BaseLevelDBInterface(Interface):
                     Block(
                         namespace="minecraft",
                         base_name="air",
-                        properties={"block_data": amulet_nbt.TAG_Int(0)},
+                        properties={"block_data": IntTag(0)},
                     ),
                 ),
             )
@@ -416,20 +428,19 @@ class BaseLevelDBInterface(Interface):
                     ) = self._load_palette_blocks(data)
                     palette_data_out: List[Tuple[Optional[int], Block]] = []
                     for block in palette_data:
-                        namespace, base_name = block["name"].value.split(":", 1)
+                        block = block.compound
+                        namespace, base_name = block["name"].py_str.split(":", 1)
                         if "version" in block:
-                            version: Optional[int] = block["version"].value
+                            version: Optional[int] = block.get_int("version").py_int
                         else:
                             version = None
 
                         if "states" in block:  # 1.13 format
-                            properties = block["states"].value
+                            properties = block.get_compound("states").py_dict
                             if version is None:
                                 version = 17694720  # 1, 14, 0, 0
                         else:
-                            properties = {
-                                "block_data": amulet_nbt.TAG_Int(block["val"].value)
-                            }
+                            properties = {"block_data": IntTag(block["val"].py_int)}
                         palette_data_out.append(
                             (
                                 version,
@@ -490,7 +501,7 @@ class BaseLevelDBInterface(Interface):
         blocks: "Blocks",
         palette: AnyNDArray,
         bounds: Tuple[int, int],
-        max_world_version: VersionNumberTuple,
+        max_world_version: VersionIdentifierTuple,
     ) -> Dict[int, Optional[bytes]]:
         raise NotImplementedError
 
@@ -499,19 +510,19 @@ class BaseLevelDBInterface(Interface):
     ) -> Dict[int, Optional[bytes]]:
         for index, block in enumerate(palette):
             block: Tuple[Tuple[None, Block], ...]
-            block_data = block[0][1].properties.get("block_data", amulet_nbt.TAG_Int(0))
-            if isinstance(block_data, amulet_nbt.TAG_Int):
-                block_data = block_data.value
+            block_data_tag = block[0][1].properties.get("block_data", IntTag(0))
+            if isinstance(block_data_tag, IntTag):
+                block_data = block_data_tag.py_int
                 # if block_data >= 16:
                 #     block_data = 0
             else:
                 block_data = 0
 
-            palette[index] = amulet_nbt.NBTFile(
-                amulet_nbt.TAG_Compound(
+            palette[index] = NamedTag(
+                CompoundTag(
                     {
-                        "name": amulet_nbt.TAG_String(block[0][1].namespaced_name),
-                        "val": amulet_nbt.TAG_Short(block_data),
+                        "name": StringTag(block[0][1].namespaced_name),
+                        "val": ShortTag(block_data),
                     }
                 )
             )
@@ -650,7 +661,7 @@ class BaseLevelDBInterface(Interface):
     def _load_palette_blocks(
         self,
         data: bytes,
-    ) -> Tuple[numpy.ndarray, List[amulet_nbt.NBTFile], bytes]:
+    ) -> Tuple[numpy.ndarray, List[NamedTag], bytes]:
         data, _, blocks = self._decode_packed_array(data)
         if blocks is None:
             blocks = numpy.zeros((16, 16, 16), dtype=numpy.int16)
@@ -659,22 +670,23 @@ class BaseLevelDBInterface(Interface):
             palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
 
         if palette_len:
-            palette, offset = amulet_nbt.load(
+            read_context = ReadContext()
+            palette = load_many(
                 data,
                 compressed=False,
                 count=palette_len,
-                offset=True,
                 little_endian=True,
+                read_context=read_context,
             )
-            data = data[offset:]
+            data = data[read_context.offset :]
         else:
             palette = [
-                amulet_nbt.NBTFile(
-                    amulet_nbt.TAG_Compound(
+                NamedTag(
+                    CompoundTag(
                         {
-                            "name": amulet_nbt.TAG_String("minecraft:air"),
-                            "states": amulet_nbt.TAG_Compound(),
-                            "version": amulet_nbt.TAG_Int(17694723),
+                            "name": StringTag("minecraft:air"),
+                            "states": CompoundTag(),
+                            "version": IntTag(17694723),
                         }
                     )
                 )
@@ -721,34 +733,51 @@ class BaseLevelDBInterface(Interface):
         return header + packed_arr
 
     def _save_palette_subchunk(
-        self, blocks: numpy.ndarray, palette: List[amulet_nbt.NBTFile]
+        self, blocks: numpy.ndarray, palette: List[NamedTag]
     ) -> bytes:
         """Save a single layer of blocks in the block_palette format"""
         return b"".join(
             [self._encode_packed_array(blocks), struct.pack("<I", len(palette))]
-            + [block.save_to(compressed=False, little_endian=True) for block in palette]
+            + [
+                block.save_to(
+                    compressed=False,
+                    little_endian=True,
+                    string_encoder=utf8_escape_encoder,
+                )
+                for block in palette
+            ]
         )
 
     @staticmethod
-    def _unpack_nbt_list(raw_nbt: bytes) -> List[amulet_nbt.NBTFile]:
+    def _unpack_nbt_list(raw_nbt: bytes) -> List[NamedTag]:
         nbt_list = []
         while raw_nbt:
-            nbt, index = amulet_nbt.load(raw_nbt, little_endian=True, offset=True)
-            raw_nbt = raw_nbt[index:]
+            read_context = ReadContext()
+            nbt = load_nbt(
+                raw_nbt,
+                little_endian=True,
+                read_context=read_context,
+                string_decoder=utf8_escape_decoder,
+            )
+            raw_nbt = raw_nbt[read_context.offset :]
             nbt_list.append(nbt)
         return nbt_list
 
     @staticmethod
-    def _pack_nbt_list(nbt_list: List[amulet_nbt.NBTFile]):
+    def _pack_nbt_list(nbt_list: List[NamedTag]):
         return b"".join(
             [
-                nbt.save_to(compressed=False, little_endian=True)
+                nbt.save_to(
+                    compressed=False,
+                    little_endian=True,
+                    string_encoder=utf8_escape_encoder,
+                )
                 for nbt in nbt_list
-                if isinstance(nbt, amulet_nbt.NBTFile)
+                if isinstance(nbt, NamedTag)
             ]
         )
 
-    def _decode_entity_list(self, entities: List[amulet_nbt.NBTFile]) -> List["Entity"]:
+    def _decode_entity_list(self, entities: List[NamedTag]) -> List["Entity"]:
         entities_out = []
         for nbt in entities:
             entity = self._decode_entity(
@@ -761,7 +790,7 @@ class BaseLevelDBInterface(Interface):
 
         return entities_out
 
-    def _encode_entity_list(self, entities: "EntityList") -> List[amulet_nbt.NBTFile]:
+    def _encode_entity_list(self, entities: "EntityList") -> List[NamedTag]:
         entities_out = []
         for entity in entities:
             nbt = self._encode_entity(
@@ -775,7 +804,7 @@ class BaseLevelDBInterface(Interface):
         return entities_out
 
     def _decode_block_entity_list(
-        self, block_entities: List[amulet_nbt.NBTFile]
+        self, block_entities: List[NamedTag]
     ) -> List["BlockEntity"]:
         entities_out = []
         for nbt in block_entities:
@@ -791,7 +820,7 @@ class BaseLevelDBInterface(Interface):
 
     def _encode_block_entity_list(
         self, block_entities: Iterable["BlockEntity"]
-    ) -> List[amulet_nbt.NBTFile]:
+    ) -> List[NamedTag]:
         entities_out = []
         for entity in block_entities:
             nbt = self._encode_block_entity(
