@@ -10,6 +10,6 @@ entity_support = False
 
 IMG_DIRECTORY = os.path.join(os.path.dirname(__file__), "img")
 
+import amulet._log
 from .api import *
-from .utils.log import log
 from amulet.level.load import load_level, load_format
