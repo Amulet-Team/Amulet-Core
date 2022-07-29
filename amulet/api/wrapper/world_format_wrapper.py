@@ -3,7 +3,7 @@ import os
 from typing import Any, Optional, TYPE_CHECKING
 
 from amulet import IMG_DIRECTORY
-from .format_wrapper import FormatWrapper
+from .format_wrapper import FormatWrapper, VersionNumberT
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
@@ -13,7 +13,7 @@ missing_world_icon = os.path.abspath(
 )
 
 
-class WorldFormatWrapper(FormatWrapper):
+class WorldFormatWrapper(FormatWrapper[VersionNumberT]):
     _missing_world_icon = missing_world_icon
 
     def __init__(self, path: str):
@@ -60,12 +60,4 @@ class WorldFormatWrapper(FormatWrapper):
         pass
 
     def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> "Interface":
-        from amulet.level.loader import Interfaces
-
-        # TODO: Each class should handle itself
-        key = self._get_interface_key(raw_chunk_data)
-        return Interfaces.get(key)
-
-    @abstractmethod
-    def _get_interface_key(self, raw_chunk_data: Optional[Any] = None) -> Any:
         raise NotImplementedError

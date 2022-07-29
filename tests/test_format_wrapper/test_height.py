@@ -2,11 +2,11 @@ import os.path
 import unittest
 import json
 
-from tests.data.util import WorldTemp
+from data.util import WorldTemp
 
 from amulet import load_format
-from tests.data import worlds_src
-from tests.data.util import for_each_world, BaseWorldTest
+from data import worlds_src
+from data.util import for_each_world, BaseWorldTest
 
 
 @for_each_world(globals(), worlds_src.levels)

@@ -31,13 +31,11 @@ This library uses a number of other libraries. These will be automatically insta
 ## Contributing
 
 ### For Development
-run `pip install -r requirements-dev.txt`
-This command will install the following libraries which will be required if you plan to contribute code to the project.
+Download the code to your computer, install python and run the following command from the root directory.
+run `pip install -e .[dev]`
+This command will install the library in development mode with the libraries required for development.
 - [Black](https://github.com/ambv/black) (Required for formatting)
   - Must be run before pushing a Pull Request
-- Sphinx
-- [sphinx-autodoc-typehints](https://github.com/agronholm/sphinx-autodoc-typehints)
-- [sphinx_rtd_theme](https://github.com/rtfd/sphinx_rtd_theme)
 
 For information about contributing to this project, please see the contribution section [below](#contributing)
 

@@ -24,6 +24,7 @@ from amulet.api.data_types import (
     FloatTriplet,
     ChunkCoordinates,
 )
+from amulet.api.chunk.status import StatusFormats
 from amulet.utils.generator import generator_unpacker
 from amulet.utils.world_utils import block_coords_to_chunk_coords
 from .chunk_manager import ChunkManager
@@ -90,7 +91,7 @@ class BaseLevel:
         """
         The system path where the level is located.
 
-        This may be a directory, file or an emtpy string depending on the level that is loaded.
+        This may be a directory, file or an empty string depending on the level that is loaded.
         """
         return self._path
 
@@ -461,7 +462,8 @@ class BaseLevel:
                         log.info(f"Converting chunk {dimension} {cx}, {cz}")
                         try:
                             chunk = self.level_wrapper.load_chunk(cx, cz, dimension)
-                            wrapper.commit_chunk(chunk, dimension)
+                            if chunk.status.as_type(StatusFormats.Java_14) == "full":
+                                wrapper.commit_chunk(chunk, dimension)
                         except ChunkLoadError:
                             log.info(f"Error loading chunk {cx} {cz}", exc_info=True)
                         chunk_index += 1

@@ -3,7 +3,7 @@ import json
 import numpy
 
 from amulet.utils.world_utils import decode_long_array, encode_long_array
-from tests.data.util import get_data_path
+from data.util import get_data_path
 
 
 class LongArrayTestCase(unittest.TestCase):

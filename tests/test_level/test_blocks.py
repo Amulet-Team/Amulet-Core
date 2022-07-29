@@ -3,7 +3,7 @@ from amulet.api.block import Block
 from amulet.api.registry import BlockManager
 from amulet.api.errors import BlockException
 
-import amulet_nbt as nbt
+from amulet_nbt import StringTag
 
 
 class BlockTestCase(unittest.TestCase):
@@ -40,7 +40,7 @@ class BlockTestCase(unittest.TestCase):
         self.assertEqual("minecraft", oak_leaves.namespace)
         self.assertEqual("oak_leaves", oak_leaves.base_name)
         self.assertEqual(
-            {"distance": nbt.TAG_String("1"), "persistent": nbt.TAG_String("true")},
+            {"distance": StringTag("1"), "persistent": StringTag("true")},
             oak_leaves.properties,
         )
         self.assertEqual((), oak_leaves.extra_blocks)
@@ -61,14 +61,14 @@ class BlockTestCase(unittest.TestCase):
             namespace="minecraft",
             base_name="oak_leaves",
             properties={
-                "persistent": nbt.TAG_String("true"),
-                "distance": nbt.TAG_String("1"),
+                "persistent": StringTag("true"),
+                "distance": StringTag("1"),
             },
         )
         self.assertEqual("minecraft", oak_leaves_2.namespace)
         self.assertEqual("oak_leaves", oak_leaves_2.base_name)
         self.assertEqual(
-            {"distance": nbt.TAG_String("1"), "persistent": nbt.TAG_String("true")},
+            {"distance": StringTag("1"), "persistent": StringTag("true")},
             oak_leaves_2.properties,
         )
         self.assertEqual((), oak_leaves_2.extra_blocks)
@@ -92,7 +92,7 @@ class BlockTestCase(unittest.TestCase):
         self.assertEqual("minecraft", oak_leaves_3.namespace)
         self.assertEqual("oak_leaves", oak_leaves_3.base_name)
         self.assertEqual(
-            {"distance": nbt.TAG_String("1"), "persistent": nbt.TAG_String("true")},
+            {"distance": StringTag("1"), "persistent": StringTag("true")},
             oak_leaves_3.properties,
         )
         self.assertEqual((), oak_leaves_3.extra_blocks)
@@ -217,7 +217,7 @@ class BlockTestCase(unittest.TestCase):
         self.assertEqual(3, len(new_base.extra_blocks))
         self.assertEqual("minecraft", new_base.namespace)
         self.assertEqual("water", new_base.base_name)
-        self.assertEqual({"level": nbt.TAG_String("1")}, new_base.properties)
+        self.assertEqual({"level": StringTag("1")}, new_base.properties)
         for block_1, block_2 in zip(
             new_base.extra_blocks, (stone, dirt, oak_log_axis_x)
         ):

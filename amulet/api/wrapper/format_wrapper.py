@@ -13,6 +13,8 @@ from typing import (
     Callable,
     Type,
     Union,
+    TypeVar,
+    Generic,
 )
 import copy
 import numpy
@@ -42,7 +44,6 @@ from amulet.api.data_types import (
     ChunkCoordinates,
     Dimension,
     PlatformType,
-    VersionIdentifierType,
 )
 from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet.api.player import Player
@@ -52,24 +53,22 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-
-DefaultPlatform = "Unknown Platform"
-DefaultVersion = (0, 0, 0)
-
 DefaultSelection = SelectionGroup(
     SelectionBox((-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000))
 )
 
+VersionNumberT = TypeVar("VersionNumberT", int, Tuple[int, ...])
 
-class FormatWrapper(ABC):
+
+class FormatWrapper(Generic[VersionNumberT], ABC):
     """
     The FormatWrapper class is a class that sits between the serialised world or structure data and the program using amulet-core.
 
     It is used to access data from the serialised source in the universal format and write them back again.
     """
 
-    _platform: PlatformType
-    _version: VersionNumberAny
+    _platform: Optional[PlatformType]
+    _version: Optional[VersionNumberT]
 
     def __init__(self, path: str):
         """
@@ -83,8 +82,8 @@ class FormatWrapper(ABC):
         self._is_open = False
         self._has_lock = False
         self._translation_manager = None
-        self._platform: PlatformType = DefaultPlatform
-        self._version: VersionNumberAny = DefaultVersion
+        self._platform = None
+        self._version = None
         self._bounds: Dict[Dimension, SelectionGroup] = {}
         self._changed: bool = False
 
@@ -150,15 +149,23 @@ class FormatWrapper(ABC):
     @property
     def platform(self) -> PlatformType:
         """Platform string the data is stored in (eg "bedrock" / "java" / ...)"""
+        if self._platform is None:
+            raise Exception(
+                "Cannot access the game platform until the level has been loaded."
+            )
         return self._platform
 
     @property
-    def version(self) -> VersionNumberAny:
+    def version(self) -> VersionNumberT:
         """The version number for the given platform the data is stored in eg (1, 16, 2)"""
+        if self._version is None:
+            raise Exception(
+                "Cannot access the game version until the level has been loaded."
+            )
         return self._version
 
     @property
-    def max_world_version(self) -> VersionIdentifierType:
+    def max_world_version(self) -> Tuple[PlatformType, VersionNumberT]:
         """
         The version the world was last opened in.
 
@@ -239,7 +246,7 @@ class FormatWrapper(ABC):
 
     def _get_interface_and_translator(
         self, raw_chunk_data=None
-    ) -> Tuple[api_wrapper.Interface, "Translator", "VersionNumberAny"]:
+    ) -> Tuple[api_wrapper.Interface, "Translator", VersionNumberAny]:
         interface = self._get_interface(raw_chunk_data)
         translator, version_identifier = interface.get_translator(
             self.max_world_version, raw_chunk_data

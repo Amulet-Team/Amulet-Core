@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import Optional, TYPE_CHECKING
 import logging
+import numpy
 
-import amulet_nbt
+from amulet_nbt import IntTag
 
 
 from amulet.api.block import Block
@@ -61,6 +62,7 @@ class BaseBedrockTranslator(Translator):
         :return:
         """
         palette_ = BlockManager()
+        lut = []
         for palette_index, entry in enumerate(block_palette):
             entry: BedrockInterfaceBlockType
             block = None
@@ -74,7 +76,7 @@ class BaseBedrockTranslator(Translator):
                 elif isinstance(b, Block):
                     if version_number is not None:
                         properties = b.properties
-                        properties["__version__"] = amulet_nbt.TAG_Int(version_number)
+                        properties["__version__"] = IntTag(version_number)
                         b = Block(b.namespace, b.base_name, properties, b.extra_blocks)
                 else:
                     raise Exception(f"Unsupported type {b}")
@@ -85,8 +87,15 @@ class BaseBedrockTranslator(Translator):
             if block is None:
                 raise Exception(f"Empty tuple")
 
-            palette_.get_add_block(block)
+            lut.append(palette_.get_add_block(block))
         chunk._block_palette = palette_
+
+        if len(palette_) != len(lut):
+            # sometimes a block can be stored in different formats but unpack to the same block
+            # this means that the final palette is smaller than the original so the array needs remapping
+            np_lut = numpy.array(lut)
+            for cy in chunk.blocks.sub_chunks:
+                chunk.blocks.add_sub_chunk(cy, np_lut[chunk.blocks.get_sub_chunk(cy)])
 
     def _blocks_entities_to_universal(
         self,
@@ -113,7 +122,7 @@ class BaseBedrockTranslator(Translator):
 
             for depth, block in enumerate(input_object.block_tuple):
                 if "__version__" in block.properties:
-                    game_version_: int = block.properties["__version__"].value
+                    game_version_: int = int(block.properties.get("__version__"))
                 else:
                     if "block_data" in block.properties:
                         # if block_data is in properties cap out at 1.12.x
@@ -221,9 +230,7 @@ class BaseBedrockTranslator(Translator):
                         )
                     if version.data_version > 0:
                         properties = output_object.properties
-                        properties["__version__"] = amulet_nbt.TAG_Int(
-                            version.data_version
-                        )
+                        properties["__version__"] = IntTag(version.data_version)
                         output_object = Block(
                             output_object.namespace,
                             output_object.base_name,

@@ -33,7 +33,7 @@ class BedrockNBTBlockstateTranslator(BaseBedrockTranslator):
             for b in block.block_tuple:
                 if "__version__" in b.properties:
                     properties = b.properties
-                    version_number = properties.pop("__version__").value
+                    version_number = properties.pop("__version__").py_int
                     b = Block(b.namespace, b.base_name, properties, b.extra_blocks)
                 else:
                     version_number = None

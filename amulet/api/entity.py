@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy
 from typing import Tuple, Union
-import amulet_nbt
+from amulet_nbt import NamedTag
 from .abstract_base_entity import AbstractBaseEntity
 
 
@@ -21,7 +21,7 @@ class Entity(AbstractBaseEntity):
         x: float,
         y: float,
         z: float,
-        nbt: amulet_nbt.NBTFile,
+        nbt: NamedTag,
     ):
         """
         Constructs a :class:`Entity` instance.
