@@ -20,10 +20,10 @@ import copy
 import numpy
 import os
 import warnings
+import logging
 
 import PyMCTranslate
 
-from amulet import log
 from amulet.api import level as api_level, wrapper as api_wrapper
 from amulet.api.chunk import Chunk
 from amulet.api.registry import BlockManager
@@ -50,6 +50,8 @@ from amulet.api.player import Player
 
 if TYPE_CHECKING:
     from amulet.api.wrapper.chunk.translator import Translator
+
+log = logging.getLogger(__name__)
 
 DefaultSelection = SelectionGroup(
     SelectionBox((-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000))

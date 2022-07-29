@@ -14,6 +14,7 @@ import numpy
 from io import BytesIO
 import struct
 import copy
+import logging
 
 from amulet_nbt import (
     ByteTag,
@@ -27,7 +28,7 @@ from amulet_nbt import (
     load as load_nbt,
 )
 
-from amulet import log
+
 from amulet.api.data_types import (
     AnyNDArray,
     VersionNumberAny,
@@ -56,6 +57,8 @@ from .util import (
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator, Interface
+
+log = logging.getLogger(__name__)
 
 construction_0_interface = Construction0Interface()
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Dict, Set, Tuple, Iterable, Optional, TYPE_CHECKING
 
 import numpy
@@ -25,6 +26,8 @@ from amulet.utils.world_utils import (
 
 if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
+
+log = logging.getLogger(__name__)
 
 
 class Anvil1444Interface(ParentInterface):
@@ -270,7 +273,7 @@ class Anvil1444Interface(ParentInterface):
                         z = z & 15
                         ticks_out[cy].append(ShortTag((z << 8) + (y << 4) + x))
                 except Exception:
-                    amulet.log.error(f"Could not serialise tick data {k}")
+                    log.error(f"Could not serialise tick data {k}")
         return ticks_out
 
     def _encode_block_ticks(
