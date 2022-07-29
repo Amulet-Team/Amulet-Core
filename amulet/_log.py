@@ -17,9 +17,7 @@ log = logging.getLogger("amulet")
 if not log.handlers:
     # if no handlers have been bound then set up a default one
     log.setLevel(logging.DEBUG if "amulet-debug" in sys.argv else logging.INFO)
-
     formatter = logging.Formatter("%(levelname)s - %(message)s")
-
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(formatter)
     log.addHandler(console_handler)
