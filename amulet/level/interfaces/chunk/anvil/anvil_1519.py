@@ -17,7 +17,7 @@ class Anvil1519Interface(ParentInterface):
 
     @staticmethod
     def minor_is_valid(key: int):
-        return 1519 <= key < 1631
+        return 1519 <= key < 1901
 
     def _post_encode_sections(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int

@@ -3,7 +3,7 @@ from __future__ import annotations
 from .anvil_1519 import Anvil1519Interface as ParentInterface
 
 
-class Anvil1631Interface(ParentInterface):
+class Anvil1901Interface(ParentInterface):
     """
     Block data in a section is optional
     """
@@ -14,7 +14,7 @@ class Anvil1631Interface(ParentInterface):
 
     @staticmethod
     def minor_is_valid(key: int):
-        return 1631 <= key < 1908
+        return 1901 <= key < 1908
 
 
-export = Anvil1631Interface
+export = Anvil1901Interface
