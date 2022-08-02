@@ -223,7 +223,14 @@ class LevelDBDimensionManager:
                         log.error(f"Failed to parse actor {actor_key}. Skipping.")
                     else:
                         actor_tag.pop("UniqueID", None)
-                        internal_components = actor_tag.get("internalComponents")
+                        internal_components = actor_tag.setdefault(
+                            "internalComponents",
+                            CompoundTag(
+                                EntityStorageKeyComponent=CompoundTag(
+                                    StorageKey=StringTag()
+                                )
+                            ),
+                        )  # 717
                         if (
                             isinstance(internal_components, CompoundTag)
                             and internal_components
