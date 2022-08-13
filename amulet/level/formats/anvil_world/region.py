@@ -173,9 +173,7 @@ class AnvilRegionInterface:
                         if sector_data:
                             sector_offset = (sector_data >> 8) * 0x1000
                             sector_size = (sector_data & 0xFF) * 0x1000
-                            sector = Sector(
-                                sector_offset, sector_offset + sector_size
-                            )
+                            sector = Sector(sector_offset, sector_offset + sector_size)
                             self._sector_manager.reserve(sector)
                             self._chunk_locations[(x, z)] = sector
 
