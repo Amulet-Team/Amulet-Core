@@ -202,6 +202,7 @@ class AnvilRegionInterface:
         if sector is None:
             raise ChunkDoesNotExist
         with self._lock:
+            os.makedirs(os.path.dirname(self._path), exist_ok=True)
             with open(self._path, "rb+") as handler:
                 _sanitise_file(handler)
                 handler.seek(0, os.SEEK_END)
@@ -238,6 +239,7 @@ class AnvilRegionInterface:
 
         self._load()
         with self._lock:
+            os.makedirs(os.path.dirname(self._path), exist_ok=True)
             with open(
                 self._path, "rb+" if os.path.isfile(self._path) else "wb+"
             ) as handler:
