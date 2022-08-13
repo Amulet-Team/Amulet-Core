@@ -336,6 +336,7 @@ class BufferedAnvilRegionInterface(AnvilRegionInterface):
             if (cx, cz) in self._buffer:
                 return self._buffer[(cx, cz)] is not None
             else:
+                self._load()
                 return (cx, cz) in self._chunk_locations
 
     def get_chunk_data(self, cx: int, cz: int) -> NamedTag:
