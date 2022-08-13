@@ -153,33 +153,31 @@ class AnvilRegionInterface:
         )
 
     def _load(self):
-        # check this first without the lock so that every check does not need the lock
-        if self._sector_manager is None:
-            with self._lock:
-                if self._sector_manager is not None:
-                    return
+        with self._lock:
+            if self._sector_manager is not None:
+                return
 
-                # Create the sector manager and ensure the header is not reservable
-                self._sector_manager = SectorManager(0, 0x2000)
-                self._sector_manager.reserve(Sector(0, 0x2000))
+            # Create the sector manager and ensure the header is not reservable
+            self._sector_manager = SectorManager(0, 0x2000)
+            self._sector_manager.reserve(Sector(0, 0x2000))
 
-                if os.path.isfile(self._path):
-                    # Load the file and populate the sector manager
-                    with open(self._path, "rb+") as handler:
-                        _sanitise_file(handler)
-                        handler.seek(0)
-                        location_table = numpy.fromfile(
-                            handler, dtype=">u4", count=1024
-                        ).reshape(32, 32)
-                        for (z, x), sector_data in numpy.ndenumerate(location_table):
-                            if sector_data:
-                                sector_offset = (sector_data >> 8) * 0x1000
-                                sector_size = (sector_data & 0xFF) * 0x1000
-                                sector = Sector(
-                                    sector_offset, sector_offset + sector_size
-                                )
-                                self._sector_manager.reserve(sector)
-                                self._chunk_locations[(x, z)] = sector
+            if os.path.isfile(self._path):
+                # Load the file and populate the sector manager
+                with open(self._path, "rb+") as handler:
+                    _sanitise_file(handler)
+                    handler.seek(0)
+                    location_table = numpy.fromfile(
+                        handler, dtype=">u4", count=1024
+                    ).reshape(32, 32)
+                    for (z, x), sector_data in numpy.ndenumerate(location_table):
+                        if sector_data:
+                            sector_offset = (sector_data >> 8) * 0x1000
+                            sector_size = (sector_data & 0xFF) * 0x1000
+                            sector = Sector(
+                                sector_offset, sector_offset + sector_size
+                            )
+                            self._sector_manager.reserve(sector)
+                            self._chunk_locations[(x, z)] = sector
 
     def all_chunk_coords(self) -> Generator[ChunkCoordinates, None, None]:
         """An iterable of chunk coordinates in world space."""
