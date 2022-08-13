@@ -539,8 +539,6 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
     def _save(self):
         """Save the data back to the disk database"""
         os.makedirs(self.path, exist_ok=True)
-        for level in self._levels.values():
-            level.save()
         self.root_tag.save_to(os.path.join(self.path, "level.dat"))
         # TODO: save other world data
 
@@ -745,4 +743,3 @@ if __name__ == "__main__":
     chunk_ = world.get_chunk_data(0, 0)
     print(chunk_)
     world.put_chunk_data(0, 0, chunk_)
-    world.save()
