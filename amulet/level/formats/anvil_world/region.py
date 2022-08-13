@@ -104,7 +104,7 @@ class AnvilRegionInterface:
     _lock: threading.RLock
 
     @staticmethod
-    def get_coords(file_path: str) -> Tuple[Union[int, None], Union[int, None]]:
+    def get_coords(file_path: str) -> Union[Tuple[None, None], Tuple[int, int]]:
         """Parse a region file path to get the region coordinates."""
         file_path = os.path.basename(file_path)
         match = AnvilRegion.region_regex.fullmatch(file_path)
