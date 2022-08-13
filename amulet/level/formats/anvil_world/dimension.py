@@ -4,8 +4,7 @@ import os
 from typing import Dict, Iterable
 import re
 
-import amulet_nbt as nbt
-from amulet_nbt import NBTFile
+from amulet_nbt import NamedTag
 
 from amulet.utils import world_utils
 from amulet.api.errors import ChunkDoesNotExist
@@ -18,7 +17,7 @@ from .region import AnvilRegion
 InternalDimension = str
 
 
-ChunkDataType = Dict[str, NBTFile]
+ChunkDataType = Dict[str, NamedTag]
 
 
 class AnvilDimensionManager:
@@ -60,9 +59,9 @@ class AnvilDimensionManager:
         for layer in self.__layers.values():
             layer.unload()
 
-    def get_chunk_data(self, cx: int, cz: int) -> nbt.NBTFile:
+    def get_chunk_data(self, cx: int, cz: int) -> NamedTag:
         """
-        Get an NBTFile of a chunk from the database.
+        Get a NamedTag of a chunk from the database.
         Will raise ChunkDoesNotExist if the region or chunk does not exist
         """
         # get the region key
@@ -82,7 +81,7 @@ class AnvilDimensionManager:
         else:
             raise ChunkDoesNotExist
 
-    def put_chunk_data(self, cx: int, cz: int, data: nbt.NBTFile):
+    def put_chunk_data(self, cx: int, cz: int, data: NamedTag):
         """pass data to the region file class"""
         self.__default_layer.put_chunk_data(cx, cz, data)
 
@@ -151,9 +150,9 @@ class AnvilRegionManager:
         for region in self._regions.values():
             region.unload()
 
-    def get_chunk_data(self, cx: int, cz: int) -> nbt.NBTFile:
+    def get_chunk_data(self, cx: int, cz: int) -> NamedTag:
         """
-        Get an NBTFile of a chunk from the database.
+        Get a NamedTag of a chunk from the database.
         Will raise ChunkDoesNotExist if the region or chunk does not exist
         """
         # get the region key
@@ -172,7 +171,7 @@ class AnvilRegionManager:
 
         return self._regions[key]
 
-    def put_chunk_data(self, cx: int, cz: int, data: nbt.NBTFile):
+    def put_chunk_data(self, cx: int, cz: int, data: NamedTag):
         """pass data to the region file class"""
         # get the region key
         self._get_region(cx, cz, create=True).put_chunk_data(cx & 0x1F, cz & 0x1F, data)

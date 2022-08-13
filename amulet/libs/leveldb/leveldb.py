@@ -2,6 +2,7 @@
 
 import ctypes
 import os
+import shutil
 import sys
 from typing import Dict, Iterator, Tuple
 
@@ -55,6 +56,9 @@ ldb.leveldb_options_destroy.restype = None
 
 ldb.leveldb_options_set_compression.argtypes = [ctypes.c_void_p, ctypes.c_int]
 ldb.leveldb_options_set_compression.restype = None
+
+ldb.leveldb_repair_db.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]
+ldb.leveldb_repair_db.restype = None
 
 ldb.leveldb_open.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]
 ldb.leveldb_open.restype = ctypes.c_void_p
@@ -198,6 +202,10 @@ class LevelDBException(Exception):
     pass
 
 
+class LevelDBEncrypted(LevelDBException):
+    pass
+
+
 def _checkError(err):
     """Utility function for checking the error code returned by some leveldb functions."""
     if bool(err):  # Not an empty null-terminated string
@@ -217,6 +225,7 @@ class LevelDB:
         :param create_if_missing: If True and there is no database at the given path a new database will be created.
         """
         self.db = None
+        self._path = path
         self._open(path, create_if_missing)
 
     def __del__(self):
@@ -240,10 +249,35 @@ class LevelDB:
         ldb.leveldb_options_set_cache(options, cache)
         ldb.leveldb_options_set_block_size(options, 163840)
 
-        error = ctypes.POINTER(ctypes.c_char)()
-        db = ldb.leveldb_open(options, path.encode("utf-8"), ctypes.byref(error))
-        ldb.leveldb_options_destroy(options)
-        _checkError(error)
+        db = None
+
+        def open_db():
+            nonlocal db
+            open_error = ctypes.POINTER(ctypes.c_char)()
+            db = ldb.leveldb_open(
+                options, path.encode("utf-8"), ctypes.byref(open_error)
+            )
+            _checkError(open_error)
+
+        # remove old lost directory if it exists
+        shutil.rmtree(os.path.join(self._path, "lost"), ignore_errors=True)
+
+        try:
+            open_db()
+        except OSError:
+            raise LevelDBEncrypted
+        except LevelDBException as e:
+            try:
+                repair_error = ctypes.POINTER(ctypes.c_char)()
+                ldb.leveldb_repair_db(
+                    options, path.encode("utf-8"), ctypes.byref(repair_error)
+                )
+                _checkError(repair_error)
+                open_db()
+            except:
+                raise e
+        finally:
+            ldb.leveldb_options_destroy(options)
 
         self.db = db
 

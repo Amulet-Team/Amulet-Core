@@ -1,14 +1,18 @@
 from __future__ import annotations
 
-import numpy
 from typing import Dict
-from amulet_nbt import TAG_Compound, TAG_Long_Array
-from amulet import log
+import logging
+
+import numpy
+
+from amulet_nbt import CompoundTag, LongArrayTag
 from amulet.api.chunk import Chunk
 from amulet.utils.world_utils import decode_long_array, encode_long_array
 
 from .base_anvil_interface import ChunkPathType, ChunkDataType
 from .anvil_1444 import Anvil1444Interface as ParentInterface
+
+log = logging.getLogger(__name__)
 
 
 class Anvil1466Interface(ParentInterface):
@@ -19,8 +23,8 @@ class Anvil1466Interface(ParentInterface):
     HeightMap = None
     Heightmaps: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("Heightmaps", TAG_Compound)],
-        TAG_Compound,
+        [("Level", CompoundTag), ("Heightmaps", CompoundTag)],
+        CompoundTag,
     )
 
     def __init__(self):
@@ -37,10 +41,10 @@ class Anvil1466Interface(ParentInterface):
         heights = self.get_layer_obj(data, self.Heightmaps, pop_last=True)
         chunk.misc["height_mapC"] = h = {}
         for key, value in heights.items():
-            if isinstance(value, TAG_Long_Array):
+            if isinstance(value, LongArrayTag):
                 try:
                     h[key] = decode_long_array(
-                        value.value,
+                        value.np_array,
                         256,
                         (height_cy << 4).bit_length(),
                         dense=self.LongArrayDense,
@@ -70,14 +74,14 @@ class Anvil1466Interface(ParentInterface):
         else:
             raise Exception
         heightmaps_temp: Dict[str, numpy.ndarray] = chunk.misc.get("height_mapC", {})
-        heightmaps = TAG_Compound()
+        heightmaps = CompoundTag()
         for heightmap in maps:
             if (
                 heightmap in heightmaps_temp
                 and isinstance(heightmaps_temp[heightmap], numpy.ndarray)
                 and heightmaps_temp[heightmap].size == 256
             ):
-                heightmaps[heightmap] = TAG_Long_Array(
+                heightmaps[heightmap] = LongArrayTag(
                     encode_long_array(
                         heightmaps_temp[heightmap].ravel() - (floor_cy << 4),
                         (height_cy << 4).bit_length(),

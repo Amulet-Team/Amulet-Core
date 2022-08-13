@@ -12,7 +12,7 @@ import re
 import threading
 import logging
 
-import amulet_nbt as nbt
+from amulet_nbt import NamedTag, load as load_nbt
 
 from amulet.utils import world_utils
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
@@ -35,19 +35,19 @@ def _validate_region_coords(cx: int, cz: int):
         raise ValueError("coordinates must be in region space")
 
 
-def _compress(data: nbt.NBTFile) -> bytes:
+def _compress(data: NamedTag) -> bytes:
     """Convert an NBTFile into a compressed bytes object"""
     data = data.save_to(compressed=False)
     return b"\x02" + zlib.compress(data)
 
 
-def _decompress(data: bytes) -> nbt.NBTFile:
+def _decompress(data: bytes) -> NamedTag:
     """Convert a bytes object into an NBTFile"""
     compress_type, data = data[0], data[1:]
     if compress_type == world_utils.VERSION_GZIP:
-        return nbt.load(gzip.decompress(data), compressed=False)
+        return load_nbt(gzip.decompress(data), compressed=False)
     elif compress_type == world_utils.VERSION_DEFLATE:
-        return nbt.load(zlib.decompress(data), compressed=False)
+        return load_nbt(zlib.decompress(data), compressed=False)
     raise ChunkLoadError(f"Invalid compression type {compress_type}")
 
 
@@ -199,7 +199,7 @@ class AnvilRegionInterface:
             self._sector_manager = None
             self._chunk_locations.clear()
 
-    def get_data(self, cx: int, cz: int) -> nbt.NBTFile:
+    def get_data(self, cx: int, cz: int) -> NamedTag:
         _validate_region_coords(cx, cz)
         self._load()
         sector = self._chunk_locations.get((cx, cz))
@@ -286,7 +286,7 @@ class AnvilRegionInterface:
                 handler.seek(SectorSize, os.SEEK_CUR)
                 handler.write(struct.pack(">I", int(time.time())))
 
-    def write_data(self, cx: int, cz: int, data: nbt.NBTFile):
+    def write_data(self, cx: int, cz: int, data: NamedTag):
         """Write the data to the region file."""
         bytes_data = _compress(data)
         self._write_data(cx, cz, bytes_data)
@@ -340,7 +340,7 @@ class BufferedAnvilRegionInterface(AnvilRegionInterface):
             else:
                 return (cx, cz) in self._chunk_locations
 
-    def get_chunk_data(self, cx: int, cz: int) -> nbt.NBTFile:
+    def get_chunk_data(self, cx: int, cz: int) -> NamedTag:
         """Get chunk data. Coords are in region space."""
         _validate_region_coords(cx, cz)
         data = self._buffer.get((cx, cz))
@@ -348,7 +348,7 @@ class BufferedAnvilRegionInterface(AnvilRegionInterface):
             return _decompress(data)
         return self.get_data(cx, cz)
 
-    def put_chunk_data(self, cx: int, cz: int, data: nbt.NBTFile):
+    def put_chunk_data(self, cx: int, cz: int, data: NamedTag):
         """
         Put data to be added to the region file. `save` will push the changes to disk.
         Coords are in region space.

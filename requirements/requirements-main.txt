@@ -1,3 +1,0 @@
-numpy>=1.17.4
-amulet-nbt~=1.0.4
-pymctranslate~=1.1.0

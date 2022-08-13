@@ -3,11 +3,13 @@ from __future__ import annotations
 import importlib
 from typing import AbstractSet, Any, Dict
 import pkgutil
+import logging
+import inspect
 
-import amulet
-from amulet import log
 from amulet.api.errors import LoaderNoneMatched
 from amulet.api.wrapper import FormatWrapper, Interface, Translator
+
+log = logging.getLogger(__name__)
 
 ParentPackage = ".".join(__name__.split(".")[:-1])
 
@@ -24,39 +26,25 @@ class Loader:
         self._object_type = object_type
         self._objects: Dict[str, Any] = {}
         self._create_instance = create_instance
-        self._recursive_find(f"{ParentPackage}.{package_name}")
+        self._recursive_find(package_name)
 
-    def _load_obj(self, module_name: str):
-        modu = importlib.import_module(module_name)
-        if hasattr(modu, "export"):
-            c = getattr(modu, "export")
-            if issubclass(c, self._base_class):
-                if self._create_instance:
-                    self._objects[module_name] = c()
-                else:
-                    self._objects[module_name] = c
+    def _recursive_find(self, module_name: str):
+        module = importlib.import_module(module_name)
+
+        c = getattr(module, "export", None)
+        if inspect.isclass(c) and issubclass(c, self._base_class):
+            if self._create_instance:
+                self._objects[module_name] = c()
             else:
-                log.error(
-                    f"export for {module_name} must be a subclass of {self._base_class}"
-                )
+                self._objects[module_name] = c
+
             log.debug(f'Enabled {self._object_type} "{module_name}"')
 
-    def _recursive_find(self, package_name: str):
-        package = importlib.import_module(package_name)
-        package_prefix = package.__name__ + "."
-
-        # python file support
-        for _, name, _ in pkgutil.walk_packages(package.__path__, package_prefix):
-            self._load_obj(name)
-
-        # pyinstaller support
-        toc = set()
-        for importer in pkgutil.iter_importers(amulet.__name__):
-            if hasattr(importer, "toc"):
-                toc |= importer.toc
-        for module_name in toc:
-            if module_name.startswith(package_prefix):
-                self._load_obj(module_name)
+        elif hasattr(module, "__path__"):
+            for _, sub_module_name, ispkg in pkgutil.iter_modules(
+                module.__path__, module.__name__ + "."
+            ):
+                self._recursive_find(sub_module_name)
 
     def keys(self) -> AbstractSet[str]:
         """
@@ -94,9 +82,11 @@ class Loader:
             print(obj_name, obj)
 
 
-Translators = Loader(Translator, "translator", "translators")
-Interfaces = Loader(Interface, "interface", "interfaces")
-Formats = Loader(FormatWrapper, "format", "formats", create_instance=False)
+Translators = Loader(Translator, "translator", f"{ParentPackage}.translators")
+Interfaces = Loader(Interface, "interface", f"{ParentPackage}.interfaces")
+Formats = Loader(
+    FormatWrapper, "format", f"{ParentPackage}.formats", create_instance=False
+)
 
 
 if __name__ == "__main__":

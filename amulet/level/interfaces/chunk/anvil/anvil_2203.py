@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import logging
+
 import numpy
-from amulet_nbt import TAG_Int_Array
-from amulet import log
+from amulet_nbt import IntArrayTag
 from amulet.api.chunk import Chunk
 from .base_anvil_interface import ChunkDataType
 from .anvil_1934 import Anvil1934Interface as ParentInterface
+
+log = logging.getLogger(__name__)
 
 
 class Anvil2203Interface(ParentInterface):
@@ -21,14 +24,14 @@ class Anvil2203Interface(ParentInterface):
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         biomes = self.get_layer_obj(data, self.Biomes, pop_last=True)
-        if isinstance(biomes, TAG_Int_Array):
+        if isinstance(biomes, IntArrayTag):
             if (len(biomes) / 16) % 4:
                 log.error(
-                    f"The biome array size must be 4x4x4xN but got an array of size {biomes.value.size}"
+                    f"The biome array size must be 4x4x4xN but got an array of size {biomes.np_array.size}"
                 )
             else:
                 arr = numpy.transpose(
-                    biomes.astype(numpy.uint32).reshape((-1, 4, 4)),
+                    biomes.np_array.astype(numpy.uint32).reshape((-1, 4, 4)),
                     (2, 0, 1),
                 )  # YZX -> XYZ
                 chunk.biomes = {
@@ -50,7 +53,7 @@ class Anvil2203Interface(ParentInterface):
             self.set_layer_obj(
                 data,
                 self.Biomes,
-                TAG_Int_Array(
+                IntArrayTag(
                     numpy.transpose(
                         numpy.asarray(
                             chunk.biomes[

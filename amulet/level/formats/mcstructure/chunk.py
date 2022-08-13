@@ -1,7 +1,7 @@
 from typing import List
 import numpy
 
-import amulet_nbt
+from amulet_nbt import CompoundTag
 
 from amulet.api.selection import SelectionBox
 from amulet.api.data_types import BlockCoordinates, AnyNDArray
@@ -22,8 +22,8 @@ class MCStructureChunk:
         selection: SelectionBox,
         blocks: numpy.ndarray,
         palette: AnyNDArray,
-        block_entities: List[amulet_nbt.TAG_Compound],
-        entities: List[amulet_nbt.TAG_Compound],
+        block_entities: List[CompoundTag],
+        entities: List[CompoundTag],
     ):
         assert isinstance(blocks, numpy.ndarray)
         assert (
