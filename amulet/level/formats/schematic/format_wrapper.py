@@ -236,9 +236,9 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                 block_data[box.slice] = chunk.data
                 for be in chunk.block_entities:
                     coord_type = be["x"].__class__
-                    be["x"] = coord_type(be["x"] - selection.min_x)
-                    be["y"] = coord_type(be["y"] - selection.min_y)
-                    be["z"] = coord_type(be["z"] - selection.min_z)
+                    be["x"] = coord_type(be["x"].py_int - selection.min_x)
+                    be["y"] = coord_type(be["y"].py_int - selection.min_y)
+                    be["z"] = coord_type(be["z"].py_int - selection.min_z)
                     block_entities.append(be)
                 for e in chunk.entities:
                     coord_type = e["Pos"][0].__class__
