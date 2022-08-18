@@ -17,46 +17,10 @@ else:  # linux, compile your own .so if this errors!
     lib_name = "leveldb_mcpe_linux_x86_64.so"
 
 
-lib_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), lib_name)
-assert os.path.isfile(
-    lib_path
-), f"Could not find the leveldb shared library at {lib_path}"
-
-
-IF UNAME_SYSNAME == "Windows":
-    cdef extern from "<windows.h>":
-        pass
-    cdef extern from "<libloaderapi.h>":
-        void* LoadLibraryA(char *lpLibFileName)
-        void* GetProcAddress(void *hModule, char *lpProcName)
-
-    cdef void *module = LoadLibraryA(lib_path.encode("utf-8"))
-
-    cdef void *getFunction(char *functionName):
-        return GetProcAddress(module, functionName)
-
-ELIF UNAME_SYSNAME == "Darwin" or UNAME_SYSNAME == "Linux":
-    cdef extern from "dlfcn.h":
-        void *dlopen(char *filename, int mode)
-        void *dlsym(void *handle, char *name)
-
-        ctypedef enum DL_MODES:
-            RTLD_LAZY
-            RTLD_NOW
-            RTLD_BINDING_MASK
-            RTLD_NOLOAD
-            RTLD_GLOBAL
-
-    cdef void *module = dlopen(lib_path.encode("utf-8"), RTLD_LAZY)
-
-    cdef void *getFunction(char *functionName):
-        return dlsym(module, functionName)
-
-ELSE:
-    cdef void *getFunction(char *functionName):
-        raise Exception(f"{os.uname()[0]} not yet supported")
-
 cdef extern from "leveldb.h":
+    void* loadPlatformLibrary(const char *path)
+    bint tryToGetFunction(void *module, const char *functionName, void **functionPtr)
+
     struct leveldb_t:
         pass
     struct leveldb_cache_t:
@@ -95,6 +59,20 @@ cdef extern from "leveldb.h":
         leveldb_zlib_compression=2,
         leveldb_zlib_raw_compression=4,
 
+
+lib_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), lib_name)
+assert os.path.isfile(
+    lib_path
+), f"Could not find the leveldb shared library at {lib_path}"
+
+
+cdef void *module = loadPlatformLibrary(lib_path.encode("utf-8"))
+
+cdef void* getFunction(const char *functionName):
+    cdef void *function
+    if not tryToGetFunction(module, functionName, &function):
+        raise Exception(f"{os.uname()[0]} not yet supported")
+    return function
 
 ctypedef leveldb_t* (*PFNleveldb_openPROC)(const leveldb_options_t* options, const char* name, char** errptr)
 cdef PFNleveldb_openPROC leveldb_open = <PFNleveldb_openPROC>getFunction(b"leveldb_open")
