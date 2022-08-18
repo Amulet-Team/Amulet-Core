@@ -67,6 +67,44 @@ typedef struct leveldb_writablefile_t  leveldb_writablefile_t;
 typedef struct leveldb_writebatch_t    leveldb_writebatch_t;
 typedef struct leveldb_writeoptions_t  leveldb_writeoptions_t;
 
+/* Platform specific */
+
+#if defined(_WIN32) || defined(MS_WINDOWS) || defined(_MSC_VER)
+#   include <windows.h>
+#   include <libloaderapi.h>
+
+void* loadPlatformLibrary(const char *path) {
+    return (void *)LoadLibraryA((LPCSTR)path);
+}
+
+int tryToGetFunction(void *module, const char *functionName, void **functionPtr) {
+    *functionPtr = GetProcAddress((HMODULE)module, /*is it not LPCWSTR?*/(LPCSTR)functionName);
+    return 1;
+}
+
+#elif __unix__ /* Linux and Darwin */
+#   include <dlfcn.h>
+
+void* loadPlatformLibrary(const char *path) {
+    return (void *)dlopen(path, RTLD_LAZY);
+}
+
+int tryToGetFunction(void *module, const char *functionName, void **functionPtr) {
+    *functionPtr = dlsym(module, functionName);
+    return 1;
+}
+
+#else
+void* loadPlatformLibrary(const char *path) {
+    return (void *)NULL;
+}
+
+int tryToGetFunction(void *module, const char *functionName, void **functionPtr) {
+    return 0;
+}
+
+#endif
+
 /* DB operations */
 
 extern leveldb_t* leveldb_open(
