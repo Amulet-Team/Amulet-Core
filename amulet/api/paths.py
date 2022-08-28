@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 import os
 
-from typing import Sequence, Union
+from typing import Sequence, Union, TypeVar
 
 _executable_dir = os.path.dirname(sys.executable)
 _script_base = os.path.dirname(sys.argv[0])
@@ -49,5 +49,8 @@ def _application_directory(
         return path
 
 
-def get_cache_dir() -> str:
-    return os.environ.get("AMULET_CACHE_DIR", os.path.join(_program_base, "cache"))
+T = TypeVar("T")
+
+
+def get_cache_dir(default: T = os.path.join(_program_base, "cache")) -> Union[str, T]:
+    return os.environ.get("AMULET_CACHE_DIR", default)
