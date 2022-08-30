@@ -16,9 +16,12 @@ log = logging.getLogger(__name__)
 
 def _clear_legacy_cache():
     legacy_cache_dir = get_cache_dir()
+    world_temp_dir = os.path.join(legacy_cache_dir, "world_temp")
+    if not os.path.isdir(world_temp_dir):
+        return
     paths = [
         os.path.join(legacy_cache_dir, t)
-        for t in os.listdir(os.path.join(legacy_cache_dir, "world_temp"))
+        for t in os.listdir(world_temp_dir)
         if t.isnumeric() and int(t) < (time.time() - 7 * 24 * 3600)
     ]
     if paths:
