@@ -435,8 +435,10 @@ class BaseLevelDBInterface(Interface):
                         else:
                             version = None
 
-                        if "states" in block:  # 1.13 format
-                            properties = block.get_compound("states").py_dict
+                        if "states" in block or "val" not in block:  # 1.13 format
+                            properties = block.get_compound(
+                                "states", CompoundTag()
+                            ).py_dict
                             if version is None:
                                 version = 17694720  # 1, 14, 0, 0
                         else:
