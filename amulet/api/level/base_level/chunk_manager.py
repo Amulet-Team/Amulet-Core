@@ -9,18 +9,23 @@ from amulet.api.history.base import RevisionManager
 from amulet.api.history.revision_manager import DBRevisionManager
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.history.history_manager import DatabaseHistoryManager
-from amulet.api.cache import get_cache_db
 from amulet.api import level as api_level
+from amulet.libs.leveldb import LevelDB
 
 
 class ChunkDBEntry(DBRevisionManager):
-    __slots__ = ("_world",)
+    __slots__ = ("_world", "_history_db")
 
     def __init__(
-        self, world: api_level.BaseLevel, prefix: str, initial_state: EntryType
+        self,
+        world: api_level.BaseLevel,
+        history_db: LevelDB,
+        prefix: str,
+        initial_state: EntryType,
     ):
-        super().__init__(prefix, initial_state)
         self._world = weakref.ref(world)
+        self._history_db = weakref.ref(history_db)
+        super().__init__(prefix, initial_state)
 
     @property
     def world(self) -> api_level.BaseLevel:
@@ -31,14 +36,14 @@ class ChunkDBEntry(DBRevisionManager):
             return None
         else:
             pickled_bytes = entry.pickle()
-            get_cache_db().put(path.encode("utf-8"), pickled_bytes)
+            self._history_db().put(path.encode("utf-8"), pickled_bytes)
             return path
 
     def _deserialise(self, path: Optional[str]) -> Optional[Chunk]:
         if path is None:
             return None
         else:
-            pickled_bytes = get_cache_db().get(path.encode("utf-8"))
+            pickled_bytes = self._history_db().get(path.encode("utf-8"))
             return Chunk.unpickle(
                 pickled_bytes, self.world.block_palette, self.world.biome_palette
             )
@@ -61,18 +66,18 @@ class ChunkManager(DatabaseHistoryManager):
     DoesNotExistError = ChunkDoesNotExist
     LoadError = ChunkLoadError
 
-    def __init__(self, prefix: str, level: api_level.BaseLevel):
+    def __init__(self, level: api_level.BaseLevel, history_db: LevelDB):
         """
         Construct a :class:`ChunkManager` instance.
 
         Should not be directly used by third party code.
 
-        :param prefix: The prefix to store data under in the database. Must be unique to the world.
         :param level: The world that this chunk manager is associated with
         """
         super().__init__()
-        self._prefix: str = f"{prefix}/chunks"  # the location to serialise Chunks to
+        self._prefix: str = f"chunks"  # the location to serialise Chunks to
         self._level = weakref.ref(level)
+        self._history_db = weakref.ref(history_db)
 
     @property
     def level(self) -> api_level.BaseLevel:
@@ -219,4 +224,4 @@ class ChunkManager(DatabaseHistoryManager):
     ) -> RevisionManager:
         dimension, cx, cz = key
         prefix = f"{self._prefix}/{dimension}/{cx}.{cz}"
-        return ChunkDBEntry(self.level, prefix, original_entry)
+        return ChunkDBEntry(self.level, self._history_db(), prefix, original_entry)

@@ -8,6 +8,7 @@ import itertools
 import warnings
 import logging
 import copy
+import os
 
 from amulet.api.block import Block, UniversalAirBlock
 from amulet.api.block_entity import BlockEntity
@@ -25,6 +26,8 @@ from amulet.api.data_types import (
     ChunkCoordinates,
 )
 from amulet.api.chunk.status import StatusFormats
+from amulet.api.cache import TempDir
+from amulet.libs.leveldb import LevelDB
 from amulet.utils.generator import generator_unpacker
 from amulet.utils.world_utils import block_coords_to_chunk_coords
 from .chunk_manager import ChunkManager
@@ -55,7 +58,6 @@ class BaseLevel:
         :param format_wrapper: The :class:`FormatWrapper` instance that the level will wrap around.
         """
         self._path = path
-        self._prefix = str(hash((self._path, time.time())))
 
         self._level_wrapper = format_wrapper
         self.level_wrapper.open()
@@ -70,11 +72,18 @@ class BaseLevel:
 
         self._history_manager = MetaHistoryManager()
 
-        self._chunks: ChunkManager = ChunkManager(self._prefix, self)
+        self._temp_dir = TempDir()
+        self._history_db = LevelDB(
+            os.path.join(self._temp_dir, "history_db"), create_if_missing=True
+        )
+        self._chunks: ChunkManager = ChunkManager(self, self._history_db)
         self._players = PlayerManager(self)
 
         self.history_manager.register(self._chunks, True)
         self.history_manager.register(self._players, True)
+
+    def __del__(self):
+        self.close()
 
     @property
     def level_wrapper(self) -> api_wrapper.FormatWrapper:
@@ -514,6 +523,7 @@ class BaseLevel:
         Use changed method to check if there are any changes that should be saved before closing.
         """
         self.level_wrapper.close()
+        self._history_db.close(compact=False)
 
     def unload(self, safe_area: Optional[Tuple[Dimension, int, int, int, int]] = None):
         """
