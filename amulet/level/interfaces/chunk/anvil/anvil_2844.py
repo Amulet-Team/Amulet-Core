@@ -115,16 +115,19 @@ class Anvil2844Interface(ParentInterface):
         biomes = self.get_obj(section, "biomes", CompoundTag)
         if isinstance(biomes, CompoundTag) and "palette" in biomes:
             section_palette = self._decode_biome_palette(biomes.pop("palette"))
+            assert section_palette, "Biome palette cannot be empty"
             data = biomes.pop("data", None)
             if data is None:
+                # case 1: palette contains one value and data does not exist (undefined zero array)
                 # TODO: in the new biome system just leave this as the number
                 arr = numpy.zeros((4, 4, 4), numpy.uint32)
             else:
+                # case 2: palette contains values and data is an index array
                 arr = numpy.transpose(
                     decode_long_array(
                         data.np_array,
                         4**3,
-                        (len(section_palette) - 1).bit_length(),
+                        max(1, (len(section_palette) - 1).bit_length()),
                         dense=self.LongArrayDense,
                     )
                     .astype(numpy.uint32)
