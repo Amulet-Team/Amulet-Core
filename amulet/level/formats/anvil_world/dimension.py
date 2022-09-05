@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from typing import Dict, Iterable
 import re
+import threading
 
 from amulet_nbt import NamedTag
 
@@ -12,7 +13,7 @@ from amulet.api.data_types import (
     ChunkCoordinates,
     RegionCoordinates,
 )
-from .region import AnvilRegion
+from .region import AnvilRegionInterface
 
 InternalDimension = str
 
@@ -44,16 +45,6 @@ class AnvilDimensionManager:
 
     def has_chunk(self, cx: int, cz: int) -> bool:
         return self.__default_layer.has_chunk(cx, cz)
-
-    def save(self, unload=True):
-        # use put_chunk_data to actually upload modified chunks
-        # run this to push those changes to disk
-
-        for layer in self.__layers.values():
-            layer.save(unload)
-
-    def close(self):
-        pass
 
     def unload(self):
         for layer in self.__layers.values():
@@ -109,46 +100,55 @@ class AnvilRegionManager:
 
     def __init__(self, directory: str, *, mcc=False):
         self._directory = directory
-        self._regions: Dict[RegionCoordinates, AnvilRegion] = {}
+        self._regions: Dict[RegionCoordinates, AnvilRegionInterface] = {}
         self._mcc = mcc
+        self._lock = threading.RLock()
 
-        # shallow load all of the existing region classes
+    def unload(self):
+        with self._lock:
+            self._regions.clear()
+
+    def _region_path(self, rx, rz) -> str:
+        """Get the file path for a region file."""
+        return os.path.join(self._directory, f"r.{rx}.{rz}.mca")
+
+    def _has_region(self, rx: int, rz: int) -> bool:
+        """Does a region file exist."""
+        return os.path.isfile(self._region_path(rx, rz))
+
+    def _get_region(self, rx: int, rz: int, create=False) -> AnvilRegionInterface:
+        with self._lock:
+            if (rx, rz) in self._regions:
+                return self._regions[(rx, rz)]
+            elif create or self._has_region(rx, rz):
+                region = self._regions[(rx, rz)] = AnvilRegionInterface(
+                    self._region_path(rx, rz), mcc=self._mcc
+                )
+                return region
+            else:
+                raise ChunkDoesNotExist
+
+    def _iter_regions(self) -> Iterable[AnvilRegionInterface]:
         if os.path.isdir(self._directory):
             for region_file_name in os.listdir(self._directory):
-                rx, rz = AnvilRegion.get_coords(region_file_name)
+                rx, rz = AnvilRegionInterface.get_coords(region_file_name)
                 if rx is None:
                     continue
-                self._regions[(rx, rz)] = AnvilRegion(
-                    os.path.join(self._directory, region_file_name),
-                    mcc=self._mcc,
-                )
+                yield self._get_region(rx, rz)
 
     def all_chunk_coords(self) -> Iterable[ChunkCoordinates]:
-        for region in self._regions.values():
+        for region in self._iter_regions():
             yield from region.all_chunk_coords()
 
     def has_chunk(self, cx: int, cz: int) -> bool:
-        key = world_utils.chunk_coords_to_region_coords(cx, cz)
-        return key in self._regions and self._regions[key].has_chunk(
-            cx & 0x1F, cz & 0x1F
-        )
-
-    def save(self, unload=True):
-        # use put_chunk_data to actually upload modified chunks
-        # run this to push those changes to disk
-
-        os.makedirs(self._directory, exist_ok=True)
-        for region in self._regions.values():
-            region.save()
-            if unload:
-                region.unload()
-
-    def close(self):
-        pass
-
-    def unload(self):
-        for region in self._regions.values():
-            region.unload()
+        try:
+            region = self._get_region(
+                *world_utils.chunk_coords_to_region_coords(cx, cz)
+            )
+        except ChunkDoesNotExist:
+            return False
+        else:
+            return region.has_chunk(cx & 0x1F, cz & 0x1F)
 
     def get_chunk_data(self, cx: int, cz: int) -> NamedTag:
         """
@@ -156,28 +156,22 @@ class AnvilRegionManager:
         Will raise ChunkDoesNotExist if the region or chunk does not exist
         """
         # get the region key
-        return self._get_region(cx, cz).get_chunk_data(cx & 0x1F, cz & 0x1F)
-
-    def _get_region(self, cx: int, cz: int, create=False) -> AnvilRegion:
-        key = rx, rz = world_utils.chunk_coords_to_region_coords(cx, cz)
-        if key in self._regions:
-            return self._regions[key]
-
-        if create:
-            file_path = os.path.join(self._directory, f"r.{rx}.{rz}.mca")
-            self._regions[key] = AnvilRegion(file_path, True, mcc=self._mcc)
-        else:
-            raise ChunkDoesNotExist
-
-        return self._regions[key]
+        return self._get_region(
+            *world_utils.chunk_coords_to_region_coords(cx, cz)
+        ).get_data(cx & 0x1F, cz & 0x1F)
 
     def put_chunk_data(self, cx: int, cz: int, data: NamedTag):
         """pass data to the region file class"""
-        # get the region key
-        self._get_region(cx, cz, create=True).put_chunk_data(cx & 0x1F, cz & 0x1F, data)
+        self._get_region(
+            *world_utils.chunk_coords_to_region_coords(cx, cz), create=True
+        ).write_data(cx & 0x1F, cz & 0x1F, data)
 
     def delete_chunk(self, cx: int, cz: int):
         try:
-            self._get_region(cx, cz).delete_chunk_data(cx & 0x1F, cz & 0x1F)
+            region = self._get_region(
+                *world_utils.chunk_coords_to_region_coords(cx, cz)
+            )
         except ChunkDoesNotExist:
             pass
+        else:
+            region.delete_data(cx & 0x1F, cz & 0x1F)
