@@ -9,6 +9,8 @@ import numpy
 from numpy import ndarray, zeros, uint8
 from amulet.api.data_types import ChunkCoordinates
 
+
+# depreciated and will be removed
 SECTOR_BYTES = 4096
 SECTOR_INTS = SECTOR_BYTES / 4
 CHUNK_HEADER_SIZE = 5
