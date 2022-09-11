@@ -281,7 +281,7 @@ class AnvilRegionInterface:
                 # write the header data
                 handler.seek(4 * (cx + cz * 32))
                 handler.write(location)
-                handler.seek(SectorSize, os.SEEK_CUR)
+                handler.seek(SectorSize-4, os.SEEK_CUR)
                 handler.write(struct.pack(">I", int(time.time())))
 
     def write_data(self, cx: int, cz: int, data: NamedTag):
