@@ -11,10 +11,10 @@ import time
 import re
 import threading
 import logging
+from enum import IntEnum
 
 from amulet_nbt import NamedTag, load as load_nbt
 
-from amulet.utils import world_utils
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.data_types import (
     ChunkCoordinates,
@@ -27,6 +27,12 @@ SectorSize = 0x1000
 MaxRegionSize = 255 * SectorSize  # the maximum size data in the region file can be
 
 log = logging.getLogger(__name__)
+
+
+class RegionFileVersion(IntEnum):
+    VERSION_GZIP = 1
+    VERSION_DEFLATE = 2
+    VERSION_NONE = 3
 
 
 def _validate_region_coords(cx: int, cz: int):
@@ -44,10 +50,12 @@ def _compress(data: NamedTag) -> bytes:
 def _decompress(data: bytes) -> NamedTag:
     """Convert a bytes object into an NBTFile"""
     compress_type, data = data[0], data[1:]
-    if compress_type == world_utils.VERSION_GZIP:
+    if compress_type == RegionFileVersion.VERSION_GZIP:
         return load_nbt(gzip.decompress(data), compressed=False)
-    elif compress_type == world_utils.VERSION_DEFLATE:
+    elif compress_type == RegionFileVersion.VERSION_DEFLATE:
         return load_nbt(zlib.decompress(data), compressed=False)
+    elif compress_type == RegionFileVersion.VERSION_NONE:
+        return load_nbt(data, compressed=False)
     raise ChunkLoadError(f"Invalid compression type {compress_type}")
 
 
@@ -60,8 +68,8 @@ def _sanitise_file(handler: BinaryIO):
         handler.truncate(file_size)
 
     # if the length of the region file is less than 8KiB extend it to 8KiB
-    if file_size < world_utils.SECTOR_BYTES * 2:
-        file_size = world_utils.SECTOR_BYTES * 2
+    if file_size < SectorSize * 2:
+        file_size = SectorSize * 2
         handler.truncate(file_size)
 
 
@@ -281,7 +289,7 @@ class AnvilRegionInterface:
                 # write the header data
                 handler.seek(4 * (cx + cz * 32))
                 handler.write(location)
-                handler.seek(SectorSize, os.SEEK_CUR)
+                handler.seek(SectorSize - 4, os.SEEK_CUR)
                 handler.write(struct.pack(">I", int(time.time())))
 
     def write_data(self, cx: int, cz: int, data: NamedTag):
