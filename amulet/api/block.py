@@ -154,6 +154,26 @@ class Block:
             self._extra_blocks = tuple(eb)
 
     @classmethod
+    def join(cls, blocks: Iterable[Block]):
+        """
+        Join an interable of Block objects back into one block class.
+        This is the reverse of the __iter__ method.
+
+        >>> stone = Block.from_string_blockstate("minecraft:stone")
+        >>> water = Block.from_string_blockstate("minecraft:water[level=0]")
+        >>> stone_water = Block.join([stone, water])
+        >>> stone_water2 = Block.join(stone_water)
+        >>> assert stone_water == stone_water2
+
+        :param blocks: An iterable of one or more Block objects.
+        :return: A new Block instance
+        """
+        blocks = list(blocks)
+        return Block(
+            blocks[0].namespace, blocks[0].base_name, blocks[0].properties, blocks[1:]
+        )
+
+    @classmethod
     def from_string_blockstate(cls, blockstate: str):
         """
         Parse a Java format blockstate where values are all strings and populate a :class:`Block` class with the data.
