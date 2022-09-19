@@ -6,7 +6,7 @@ import sys
 
 if sys.version_info >= (3, 10):
     # bisect only supports key as of 3.10
-    from bisect import bisect_right
+    from bisect import bisect_left, bisect_right
 
 else:
 
