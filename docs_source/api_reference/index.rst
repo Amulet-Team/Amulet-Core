@@ -8,7 +8,6 @@
 
    api/index
    level.formats/index
-   libs/index
    utils/index
 
 .. autofunction:: amulet.load_level

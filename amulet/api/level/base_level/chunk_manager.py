@@ -10,7 +10,7 @@ from amulet.api.history.revision_manager import DBRevisionManager
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.history.history_manager import DatabaseHistoryManager
 from amulet.api import level as api_level
-from amulet.libs.leveldb import LevelDB
+from leveldb import LevelDB
 
 
 class ChunkDBEntry(DBRevisionManager):

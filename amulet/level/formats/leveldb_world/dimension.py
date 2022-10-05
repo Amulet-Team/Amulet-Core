@@ -27,7 +27,7 @@ from amulet_nbt import (
 
 from amulet.api.errors import ChunkDoesNotExist, DimensionDoesNotExist
 from amulet.api.data_types import ChunkCoordinates
-from amulet.libs.leveldb import LevelDB
+from leveldb import LevelDB
 from .chunk import ChunkData
 
 if TYPE_CHECKING:

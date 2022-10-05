@@ -27,7 +27,7 @@ from amulet.api.data_types import (
 )
 from amulet.api.chunk.status import StatusFormats
 from amulet.api.cache import TempDir
-from amulet.libs.leveldb import LevelDB
+from leveldb import LevelDB
 from amulet.utils.generator import generator_unpacker
 from amulet.utils.world_utils import block_coords_to_chunk_coords
 from .chunk_manager import ChunkManager
