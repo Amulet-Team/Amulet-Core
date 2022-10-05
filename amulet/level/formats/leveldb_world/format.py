@@ -27,7 +27,7 @@ from amulet.api.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionBox, SelectionGroup
 
-from amulet.libs.leveldb import LevelDB, LevelDBException, LevelDBEncrypted
+from leveldb import LevelDB, LevelDBException, LevelDBEncrypted
 from amulet.utils.format_utils import check_all_exist
 from amulet.api.data_types import (
     ChunkCoordinates,
