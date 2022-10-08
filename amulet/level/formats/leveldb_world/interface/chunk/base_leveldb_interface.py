@@ -429,7 +429,8 @@ class BaseLevelDBInterface(Interface):
                     palette_data_out: List[Tuple[Optional[int], Block]] = []
                     for block in palette_data:
                         block = block.compound
-                        namespace, base_name = block["name"].py_str.split(":", 1)
+                        *namespace_, base_name = block["name"].py_str.split(":", 1)
+                        namespace = namespace_[0] if namespace_ else "minecraft"
                         if "version" in block:
                             version: Optional[int] = block.get_int("version").py_int
                         else:
