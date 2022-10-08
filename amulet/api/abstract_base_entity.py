@@ -62,10 +62,8 @@ class AbstractBaseEntity(ABC):
     @namespaced_name.setter
     def namespaced_name(self, value: str):
         self._namespaced_name = value
-        if ":" in value:
-            self._namespace, self._base_name = value.split(":", 1)
-        else:
-            self._namespace, self._base_name = "", value
+        *namespace, self._base_name = value.split(":", 1)
+        self._namespace = namespace[0] if namespace else ""
 
     @property
     def namespace(self) -> str:

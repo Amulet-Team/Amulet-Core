@@ -58,7 +58,8 @@ class MCStructureInterface(Interface):
         for index, blocks in enumerate(data.palette):
             block_layers: List[Tuple[Optional[int], Block]] = []
             for block in blocks:
-                namespace, base_name = block["name"].py_str.split(":", 1)
+                *namespace_, base_name = block["name"].py_str.split(":", 1)
+                namespace = namespace_[0] if namespace_ else "minecraft"
                 if "version" in block:
                     version: Optional[int] = block["version"].py_int
                 else:
