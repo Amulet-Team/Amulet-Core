@@ -1,6 +1,5 @@
 import pkgutil
-import sys
-import os
+from PyInstaller.utils.hooks import collect_data_files
 
 import amulet
 from amulet import level
@@ -18,3 +17,5 @@ hiddenimports = (
     ]
     + ["amulet.api.structure"]
 )
+
+datas = collect_data_files("amulet")
