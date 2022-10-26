@@ -94,7 +94,7 @@ class BedrockLevelDAT(NamedTag):
     def _read_from(path: str) -> Tuple[int, str, AbstractBaseTag]:
         with open(path, "rb") as f:
             level_dat_version = struct.unpack("<i", f.read(4))[0]
-            if 4 <= level_dat_version <= 9:
+            if 4 <= level_dat_version <= 10:
                 data_length = struct.unpack("<i", f.read(4))[0]
                 root_tag = load_nbt(
                     f.read(data_length),
