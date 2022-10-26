@@ -1,7 +1,7 @@
 import amulet
 from amulet.api.block import Block
 from amulet.utils.world_utils import block_coords_to_chunk_coords
-from amulet_nbt import TAG_String, TAG_Int
+from amulet_nbt import StringTag, IntTag
 
 # load the level
 level = amulet.load_level("level")
@@ -16,10 +16,10 @@ level = amulet.load_level("level")
 # The translator holds a specification for each block for each version which the UI is built off.
 # You can also look at the Minecraft wiki to find the blockstate format.
 java_block = Block(
-    "minecraft", "green_glazed_terracotta", {"facing": TAG_String("south")}
+    "minecraft", "green_glazed_terracotta", {"facing": StringTag("south")}
 )
 bedrock_block = Block(
-    "minecraft", "green_glazed_terracotta", {"facing_direction": TAG_Int(3)}
+    "minecraft", "green_glazed_terracotta", {"facing_direction": IntTag(3)}
 )
 
 # Then we can translate the block to the universal format.

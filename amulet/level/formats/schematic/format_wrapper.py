@@ -1,13 +1,32 @@
 import os
-from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, Union
+from typing import (
+    Optional,
+    Tuple,
+    Iterable,
+    TYPE_CHECKING,
+    BinaryIO,
+    Dict,
+    Union,
+    List,
+    NamedTuple,
+)
 import numpy
 import copy
 
-import amulet_nbt
+from amulet_nbt import (
+    ShortTag,
+    StringTag,
+    ListTag,
+    CompoundTag,
+    ByteArrayTag,
+    NamedTag,
+    load as load_nbt,
+)
 
 from amulet.api.data_types import (
     AnyNDArray,
     VersionNumberAny,
+    VersionNumberTuple,
     Dimension,
     PlatformType,
     PointCoordinates,
@@ -23,7 +42,6 @@ from .interface import (
     BedrockSchematicInterface,
     SchematicInterface,
 )
-from .data_types import BlockArrayType, BlockDataArrayType
 from .chunk import SchematicChunk
 
 if TYPE_CHECKING:
@@ -33,7 +51,7 @@ java_interface = JavaSchematicInterface()
 bedrock_interface = BedrockSchematicInterface()
 
 
-class SchematicFormatWrapper(StructureFormatWrapper):
+class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
     """
     This FormatWrapper class exists to interface with the legacy schematic structure format.
     """
@@ -49,7 +67,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         super().__init__(path)
         self._chunks: Dict[
             ChunkCoordinates,
-            Tuple[SelectionBox, BlockArrayType, BlockDataArrayType, list, list],
+            SchematicChunk,
         ] = {}
 
     def _create(
@@ -73,10 +91,10 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         self._has_lock = True
 
     def open_from(self, f: BinaryIO):
-        schematic = amulet_nbt.load(f)
+        schematic = load_nbt(f).compound
         if "BlockData" in schematic:
             raise ObjectReadError("This file is not a legacy schematic file.")
-        materials = schematic.get("Materials", amulet_nbt.TAG_String()).value
+        materials = schematic.get_string("Materials", StringTag("Alpha")).py_str
         if materials == "Alpha":
             self._platform = "java"
             self._version = (1, 12, 2)
@@ -91,21 +109,21 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         selection_box = SelectionBox(
             (0, 0, 0),
             (
-                schematic["Width"].value,
-                schematic["Height"].value,
-                schematic["Length"].value,
+                schematic.get_short("Width").py_int,
+                schematic.get_short("Height").py_int,
+                schematic.get_short("Length").py_int,
             ),
         )
         self._bounds[self.dimensions[0]] = SelectionGroup(selection_box)
-        entities: amulet_nbt.TAG_List = schematic.get("Entities", amulet_nbt.TAG_List())
-        block_entities: amulet_nbt.TAG_List = schematic.get(
-            "TileEntities", amulet_nbt.TAG_List()
-        )
+        entities: ListTag = schematic.get_list("Entities", ListTag())
+        block_entities: ListTag = schematic.get_list("TileEntities", ListTag())
         blocks: numpy.ndarray = (
-            schematic["Blocks"].value.astype(numpy.uint8).astype(numpy.uint16)
+            schematic.get_byte_array("Blocks")
+            .np_array.astype(numpy.uint8)
+            .astype(numpy.uint16)
         )
         if "AddBlocks" in schematic:
-            add_blocks = schematic["AddBlocks"]
+            add_blocks = schematic.get_byte_array("AddBlocks").np_array
             blocks = (
                 blocks
                 + (
@@ -119,7 +137,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         temp_shape = (max_point[1], max_point[2], max_point[0])
         blocks = numpy.transpose(blocks.reshape(temp_shape), (2, 0, 1))  # YZX => XYZ
         data = numpy.transpose(
-            schematic["Data"].value.reshape(temp_shape), (2, 0, 1)
+            schematic.get_byte_array("Data").np_array.reshape(temp_shape), (2, 0, 1)
         ).astype(numpy.uint8)
         for cx, cz in selection_box.chunk_locations():
             box = SelectionBox(
@@ -130,23 +148,26 @@ class SchematicFormatWrapper(StructureFormatWrapper):
                     min((cz + 1) * self.sub_chunk_size, selection_box.size_z),
                 ),
             )
-            self._chunks[(cx, cz)] = (box, blocks[box.slice], data[box.slice], [], [])
+            self._chunks[(cx, cz)] = SchematicChunk(
+                box, blocks[box.slice], data[box.slice], [], []
+            )
         for e in block_entities:
-            if all(key in e for key in ("x", "y", "z")):
-                x, y, z = e["x"].value, e["y"].value, e["z"].value
+            if isinstance(e, CompoundTag) and all(key in e for key in ("x", "y", "z")):
+                x = e.get_int("x").py_int
+                y = e.get_int("y").py_int
+                z = e.get_int("z").py_int
                 if (x, y, z) in selection_box:
                     cx = x >> 4
                     cz = z >> 4
-                    self._chunks[(cx, cz)][3].append(e)
+                    self._chunks[(cx, cz)].block_entities.append(e)
         for e in entities:
-            if "Pos" in e:
-                pos: PointCoordinates = tuple(
-                    map(lambda t: float(t.value), e["Pos"].value)
-                )
-                if pos in selection_box:
-                    cx = int(pos[0]) >> 4
-                    cz = int(pos[2]) >> 4
-                    self._chunks[(cx, cz)][4].append(e)
+            if isinstance(e, CompoundTag) and "Pos" in e:
+                pos: PointCoordinates = tuple(map(float, e.get_list("Pos", ListTag())))
+                if len(pos) == 3:
+                    if pos in selection_box:
+                        cx = int(pos[0]) >> 4
+                        cz = int(pos[2]) >> 4
+                        self._chunks[(cx, cz)].entities.append(e)
 
     @staticmethod
     def is_valid(path: str) -> bool:
@@ -189,17 +210,14 @@ class SchematicFormatWrapper(StructureFormatWrapper):
 
         selection = self._bounds[self.dimensions[0]].selection_boxes[0]
 
-        data = amulet_nbt.NBTFile(
-            amulet_nbt.TAG_Compound(
-                {
-                    "TileTicks": amulet_nbt.TAG_List(),
-                    "Width": amulet_nbt.TAG_Short(selection.size_x),
-                    "Height": amulet_nbt.TAG_Short(selection.size_y),
-                    "Length": amulet_nbt.TAG_Short(selection.size_z),
-                    "Materials": amulet_nbt.TAG_String(materials),
-                }
-            ),
-            "Schematic",
+        tag = CompoundTag(
+            {
+                "TileTicks": ListTag(),
+                "Width": ShortTag(selection.size_x),
+                "Height": ShortTag(selection.size_y),
+                "Length": ShortTag(selection.size_z),
+                "Materials": StringTag(materials),
+            }
         )
 
         entities = []
@@ -211,44 +229,34 @@ class SchematicFormatWrapper(StructureFormatWrapper):
             selection.shape, dtype=numpy.uint8
         )  # only 4 bits are used
 
-        for (
-            selection_,
-            blocks_,
-            data_,
-            block_entities_,
-            entities_,
-        ) in self._chunks.values():
-            if selection_.intersects(selection):
-                box = selection_.create_moved_box(selection.min, subtract=True)
-                blocks[box.slice] = blocks_
-                block_data[box.slice] = data_
-                for be in block_entities_:
+        for chunk in self._chunks.values():
+            if chunk.selection.intersects(selection):
+                box = chunk.selection.create_moved_box(selection.min, subtract=True)
+                blocks[box.slice] = chunk.blocks
+                block_data[box.slice] = chunk.data
+                for be in chunk.block_entities:
                     coord_type = be["x"].__class__
-                    be["x"] = coord_type(be["x"] - selection.min_x)
-                    be["y"] = coord_type(be["y"] - selection.min_y)
-                    be["z"] = coord_type(be["z"] - selection.min_z)
+                    be["x"] = coord_type(be["x"].py_int - selection.min_x)
+                    be["y"] = coord_type(be["y"].py_int - selection.min_y)
+                    be["z"] = coord_type(be["z"].py_int - selection.min_z)
                     block_entities.append(be)
-                for e in entities_:
+                for e in chunk.entities:
                     coord_type = e["Pos"][0].__class__
                     e["Pos"][0] = coord_type(e["Pos"][0] - selection.min_x)
                     e["Pos"][1] = coord_type(e["Pos"][1] - selection.min_y)
                     e["Pos"][2] = coord_type(e["Pos"][2] - selection.min_z)
                     entities.append(e)
 
-        data["Entities"] = amulet_nbt.TAG_List(entities)
-        data["TileEntities"] = amulet_nbt.TAG_List(block_entities)
-        data["Data"] = amulet_nbt.TAG_Byte_Array(
-            numpy.transpose(block_data, (1, 2, 0))  # XYZ => YZX
-        )
-        data["Blocks"] = amulet_nbt.TAG_Byte_Array(
+        tag["Entities"] = ListTag(entities)
+        tag["TileEntities"] = ListTag(block_entities)
+        tag["Data"] = ByteArrayTag(numpy.transpose(block_data, (1, 2, 0)))  # XYZ => YZX
+        tag["Blocks"] = ByteArrayTag(
             numpy.transpose((blocks & 0xFF).astype(numpy.uint8), (1, 2, 0))
         )
         if numpy.max(blocks) > 0xFF:
             add_blocks = (numpy.transpose(blocks & 0xF00, (1, 2, 0)) >> 8).ravel()
-            data["AddBlocks"] = amulet_nbt.TAG_Byte_Array(
-                add_blocks[::2] + (add_blocks[1::2] << 4)
-            )
-        data.save_to(f)
+            tag["AddBlocks"] = ByteArrayTag((add_blocks[::2] << 4) + add_blocks[1::2])
+        NamedTag(tag, "Schematic").save_to(f)
 
     def _close(self):
         """Close the disk database"""
@@ -336,15 +344,7 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         section: SchematicChunk,
         dimension: Optional[Dimension] = None,
     ):
-        self._chunks[(cx, cz)] = copy.deepcopy(
-            (
-                section.selection,
-                section.blocks,
-                section.data,
-                section.block_entities,
-                section.entities,
-            )
-        )
+        self._chunks[(cx, cz)] = copy.deepcopy(section)
 
     def _get_raw_chunk_data(
         self, cx: int, cz: int, dimension: Optional[Dimension] = None
@@ -358,6 +358,6 @@ class SchematicFormatWrapper(StructureFormatWrapper):
         :return: The raw chunk data.
         """
         if (cx, cz) in self._chunks:
-            return SchematicChunk(*copy.deepcopy(self._chunks[(cx, cz)]))
+            return copy.deepcopy(self._chunks[(cx, cz)])
         else:
             raise ChunkDoesNotExist

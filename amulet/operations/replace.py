@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 from typing import List, TYPE_CHECKING
+import logging
 
 from amulet.api.selection import SelectionGroup
 from amulet.api.block import Block
 from amulet.api.data_types import Dimension
-from amulet import log
 
 if TYPE_CHECKING:
     from amulet.api.level import BaseLevel
+
+log = logging.getLogger(__name__)
 
 
 def replace(

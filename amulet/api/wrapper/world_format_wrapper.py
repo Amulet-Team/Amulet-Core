@@ -3,7 +3,7 @@ import os
 from typing import Any, Optional, TYPE_CHECKING
 
 from amulet import IMG_DIRECTORY
-from .format_wrapper import FormatWrapper
+from .format_wrapper import FormatWrapper, VersionNumberT
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
@@ -13,7 +13,7 @@ missing_world_icon = os.path.abspath(
 )
 
 
-class WorldFormatWrapper(FormatWrapper):
+class WorldFormatWrapper(FormatWrapper[VersionNumberT]):
     _missing_world_icon = missing_world_icon
 
     def __init__(self, path: str):

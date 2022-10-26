@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from typing import Union
+import logging
 
-from amulet import log
 from amulet.api.level import World, Structure
 
 from amulet.api.wrapper import WorldFormatWrapper, StructureFormatWrapper
 from . import loader
+
+log = logging.getLogger(__name__)
 
 
 def load_level(path: str) -> Union[World, Structure]:

@@ -9,6 +9,8 @@ import numpy
 from numpy import ndarray, zeros, uint8
 from amulet.api.data_types import ChunkCoordinates
 
+
+# depreciated and will be removed
 SECTOR_BYTES = 4096
 SECTOR_INTS = SECTOR_BYTES / 4
 CHUNK_HEADER_SIZE = 5
@@ -150,23 +152,26 @@ def decode_long_array(
     :param signed: Should the returned array be signed.
     :return: Decoded array as numpy array
     """
+    # validate the inputs and throw an error if there is a problem
+    if not isinstance(bits_per_entry, int):
+        raise ValueError(f"The bits_per_entry input must be an int.")
+
+    assert (
+        1 <= bits_per_entry <= 64
+    ), f"bits_per_entry must be between 1 and 64 inclusive. Got {bits_per_entry}"
+
     # force the array to be a signed long array
     long_array = long_array.astype(">q")
-    # validate the inputs and throw an error if there is a problem
-    if isinstance(bits_per_entry, int):
-        assert (
-            1 <= bits_per_entry <= 64
-        ), f"bits_per_entry must be between 1 and 64 inclusive. Got {bits_per_entry}"
-        if dense:
-            expected_len = math.ceil(size * bits_per_entry / 64)
-        else:
-            expected_len = math.ceil(size / (64 // bits_per_entry))
-        if len(long_array) != expected_len:
-            raise Exception(
-                f"{'Dense e' if dense else 'E'}ncoded long array with {bits_per_entry} bits per entry should contain {expected_len} longs but got {len(long_array)}."
-            )
+
+    if dense:
+        expected_len = math.ceil(size * bits_per_entry / 64)
     else:
-        raise ValueError(f"The bits_per_entry input must be an int.")
+        expected_len = math.ceil(size / (64 // bits_per_entry))
+    if len(long_array) != expected_len:
+        raise Exception(
+            f"{'Dense e' if dense else 'E'}ncoded long array with {bits_per_entry} bits per entry should contain {expected_len} longs but got {len(long_array)}."
+        )
+
     # unpack the long array into a bit array
     bits = numpy.unpackbits(long_array[::-1].astype(">i8").view("uint8"))
     if dense:

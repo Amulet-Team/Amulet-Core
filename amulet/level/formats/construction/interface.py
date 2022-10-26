@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Any, Tuple, List
 import numpy
 
-import amulet_nbt
+from amulet_nbt import IntTag
 from amulet.api.wrapper import Interface
 from .section import ConstructionSection
 from amulet.api.chunk import Chunk
@@ -61,7 +61,7 @@ class ConstructionInterface(Interface):
             Block(
                 namespace="minecraft",
                 base_name="air",
-                properties={"block_data": amulet_nbt.TAG_Int(0)},
+                properties={"block_data": IntTag(0)},
             ),
         )
         inverse += 1

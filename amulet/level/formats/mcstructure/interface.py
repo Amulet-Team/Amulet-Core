@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Any, Tuple, Optional, List
 import numpy
 
-import amulet_nbt
+from amulet_nbt import IntTag, StringTag, CompoundTag
 
 from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType
 from amulet.api.chunk import Chunk
@@ -16,6 +16,8 @@ from amulet.api.data_types import (
 from amulet.level.loader import Translators
 from amulet.api.block import Block
 from .chunk import MCStructureChunk
+
+from amulet_nbt import NamedTag
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
@@ -48,7 +50,7 @@ class MCStructureInterface(Interface):
                 Block(
                     namespace="minecraft",
                     base_name="air",
-                    properties={"block_data": amulet_nbt.TAG_Int(0)},
+                    properties={"block_data": IntTag(0)},
                 ),
             ),
         )
@@ -56,18 +58,19 @@ class MCStructureInterface(Interface):
         for index, blocks in enumerate(data.palette):
             block_layers: List[Tuple[Optional[int], Block]] = []
             for block in blocks:
-                namespace, base_name = block["name"].value.split(":", 1)
+                *namespace_, base_name = block["name"].py_str.split(":", 1)
+                namespace = namespace_[0] if namespace_ else "minecraft"
                 if "version" in block:
-                    version: Optional[int] = block["version"].value
+                    version: Optional[int] = block["version"].py_int
                 else:
                     version = None
 
                 if "states" in block:  # 1.13 format
-                    properties = block["states"].value
+                    properties = block["states"].py_dict
                     if version is None:
                         version = 17694720  # 1, 14, 0, 0
                 else:
-                    properties = {"block_data": amulet_nbt.TAG_Int(block["val"].value)}
+                    properties = {"block_data": IntTag(block["val"].py_int)}
                 block_layers.append(
                     (
                         version,
@@ -83,18 +86,18 @@ class MCStructureInterface(Interface):
         chunk = Chunk(cx, cz)
         box = data.selection.create_moved_box((cx * 16, 0, cz * 16), subtract=True)
         chunk.blocks[box.slice] = data.blocks + 1
-        for b in data.block_entities:
-            b = self._decode_block_entity(
-                b, self._block_entity_id_type, self._block_entity_coord_type
+        for tag in data.block_entities:
+            block_entity = self._decode_block_entity(
+                NamedTag(tag), self._block_entity_id_type, self._block_entity_coord_type
             )
-            if b is not None:
-                chunk.block_entities.insert(b)
-        for b in data.entities:
-            b = self._decode_entity(
-                b, self._block_entity_id_type, self._block_entity_coord_type
+            if block_entity is not None:
+                chunk.block_entities.insert(block_entity)
+        for tag in data.entities:
+            entity = self._decode_entity(
+                NamedTag(tag), self._block_entity_id_type, self._block_entity_coord_type
             )
-            if b is not None:
-                chunk.entities.append(b)
+            if entity is not None:
+                chunk.entities.append(entity)
 
         return chunk, palette
 
@@ -115,20 +118,22 @@ class MCStructureInterface(Interface):
         :return: Raw data to be stored by the Format.
         """
         entities = []
-        for e in chunk.entities:
-            if e.location in box:
+        for entity in chunk.entities:
+            if entity.location in box:
                 entities.append(
                     self._encode_entity(
-                        e, self._entity_id_type, self._entity_coord_type
-                    ).value
+                        entity, self._entity_id_type, self._entity_coord_type
+                    ).compound
                 )
         block_entities = []
-        for e in chunk.block_entities:
-            if e.location in box:
+        for block_entity in chunk.block_entities:
+            if block_entity.location in box:
                 block_entities.append(
                     self._encode_block_entity(
-                        e, self._block_entity_id_type, self._block_entity_coord_type
-                    ).value
+                        block_entity,
+                        self._block_entity_id_type,
+                        self._block_entity_coord_type,
+                    ).compound
                 )
 
         slices = box.create_moved_box(
@@ -139,16 +144,14 @@ class MCStructureInterface(Interface):
         for index, block_layers in enumerate(palette):
             blocks_out = []
             for version, block in block_layers:
-                block = amulet_nbt.TAG_Compound(
+                block = CompoundTag(
                     {
-                        "name": amulet_nbt.TAG_String(
-                            f"{block.namespace}:{block.base_name}"
-                        ),
-                        "states": amulet_nbt.TAG_Compound(block.properties),
+                        "name": StringTag(f"{block.namespace}:{block.base_name}"),
+                        "states": CompoundTag(block.properties),
                     }
                 )
                 if version:
-                    block["version"] = amulet_nbt.TAG_Int(version)
+                    block["version"] = IntTag(version)
                 blocks_out.append(block)
             out_palette[index] = blocks_out
 

@@ -1,5 +1,5 @@
 from typing import Dict, Union, Iterable, Tuple, List, Optional
-from amulet_nbt import NBTFile
+from amulet_nbt import NamedTag
 
 
 class ChunkData(Dict[bytes, Optional[bytes]]):
@@ -7,15 +7,15 @@ class ChunkData(Dict[bytes, Optional[bytes]]):
         self,
         chunk_data: Union[Dict[bytes, bytes], Iterable[Tuple[bytes, bytes]]] = (),
         *,
-        entity_actor: Iterable[NBTFile] = (),
-        unknown_actor: Iterable[NBTFile] = (),
+        entity_actor: Iterable[NamedTag] = (),
+        unknown_actor: Iterable[NamedTag] = (),
     ):
         super().__init__(chunk_data)
         self._entity_actor = list(entity_actor)
         self._unknown_actor = list(unknown_actor)
 
     @property
-    def entity_actor(self) -> List[NBTFile]:
+    def entity_actor(self) -> List[NamedTag]:
         """
         A list of entity actor data.
         UniqueID is stripped out. internalComponents is stripped out if there is no other data.
@@ -23,7 +23,7 @@ class ChunkData(Dict[bytes, Optional[bytes]]):
         return self._entity_actor
 
     @property
-    def unknown_actor(self) -> List[NBTFile]:
+    def unknown_actor(self) -> List[NamedTag]:
         """
         A list of actor data that does not fit in the known actor types.
         UniqueID is stripped out.

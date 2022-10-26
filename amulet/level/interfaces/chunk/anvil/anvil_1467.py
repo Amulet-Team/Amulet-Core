@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import numpy
-from amulet_nbt import TAG_Int_Array, TAG_Compound
+from amulet_nbt import IntArrayTag, CompoundTag
 from amulet.api.chunk import Chunk
 from .base_anvil_interface import ChunkPathType, ChunkDataType
 from .anvil_1466 import Anvil1466Interface as ParentInterface
@@ -14,7 +14,7 @@ class Anvil1467Interface(ParentInterface):
 
     Biomes: ChunkPathType = (
         "region",
-        [("Level", TAG_Compound), ("Biomes", TAG_Int_Array)],
+        [("Level", CompoundTag), ("Biomes", IntArrayTag)],
         None,
     )
 
@@ -30,7 +30,7 @@ class Anvil1467Interface(ParentInterface):
             self.set_layer_obj(
                 data,
                 self.Biomes,
-                TAG_Int_Array(chunk.biomes.astype(dtype=numpy.uint32).ravel()),
+                IntArrayTag(chunk.biomes.astype(dtype=numpy.uint32).ravel()),
             )
 
 
