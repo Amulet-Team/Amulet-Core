@@ -411,7 +411,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                 self._register_dimension(dir_name)
 
         for dimension_path in glob.glob(
-            os.path.join(self.path, "dimensions", "*", "*", "region")
+            os.path.join(glob.escape(self.path), "dimensions", "*", "*", "region")
         ):
             dimension_path_split = dimension_path.split(os.sep)
             dimension_name = f"{dimension_path_split[-3]}:{dimension_path_split[-2]}"
@@ -646,7 +646,9 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         """
         Returns a generator of all player ids that are present in the level
         """
-        for f in glob.iglob(os.path.join(self.path, "playerdata", "*.dat")):
+        for f in glob.iglob(
+            os.path.join(glob.escape(self.path), "playerdata", "*.dat")
+        ):
             yield os.path.splitext(os.path.basename(f))[0]
         if self.has_player(LOCAL_PLAYER):
             yield LOCAL_PLAYER
