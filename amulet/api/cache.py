@@ -45,7 +45,7 @@ def _clear_temp_dirs():
     If things went very wrong in past sessions temporary directories may still exist.
     """
     temp_dir = tempfile.gettempdir()
-    for path in glob.glob(os.path.join(temp_dir, "amulettmp*")):
+    for path in glob.glob(os.path.join(glob.escape(temp_dir), "amulettmp*")):
         name = os.path.relpath(path, temp_dir)
         match = TempPattern.fullmatch(name)
         if match and int(match.group("time")) < (time.time() - 7 * 24 * 3600):
