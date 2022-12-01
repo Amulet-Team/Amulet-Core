@@ -646,7 +646,9 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         """
         Returns a generator of all player ids that are present in the level
         """
-        for f in glob.iglob(os.path.join(glob.escape(self.path), "playerdata", "*.dat")):
+        for f in glob.iglob(
+            os.path.join(glob.escape(self.path), "playerdata", "*.dat")
+        ):
             yield os.path.splitext(os.path.basename(f))[0]
         if self.has_player(LOCAL_PLAYER):
             yield LOCAL_PLAYER
