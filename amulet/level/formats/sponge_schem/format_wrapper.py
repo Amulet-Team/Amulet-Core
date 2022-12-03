@@ -201,9 +201,11 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
 
             if "BlockEntities" in sponge_schem:
                 block_entities = sponge_schem["BlockEntities"]
-                if (
-                    not isinstance(block_entities, ListTag)
-                    or block_entities.list_data_type != 10  # CompoundTag.tag_id
+                if not (
+                    isinstance(block_entities, ListTag)
+                    and (
+                        len(block_entities) == 0 or block_entities.list_data_type == 10
+                    )  # CompoundTag.tag_id
                 ):
                     raise SpongeSchemReadError(
                         "BlockEntities must be a ListTag of compound tags."
@@ -228,9 +230,11 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
 
             if "Entities" in sponge_schem:
                 entities = sponge_schem["Entities"]
-                if (
-                    not isinstance(entities, ListTag)
-                    or entities.list_data_type != 10  # CompoundTag.tag_id
+                if not (
+                    isinstance(entities, ListTag)
+                    and (
+                        len(entities) == 0 or entities.list_data_type == 10
+                    )  # CompoundTag.tag_id
                 ):
                     raise SpongeSchemReadError(
                         "Entities must be a ListTag of compound tags."
