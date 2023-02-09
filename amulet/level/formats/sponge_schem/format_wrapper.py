@@ -50,6 +50,14 @@ sponge_schem_interface = SpongeSchemInterface()
 max_schem_version = 2
 
 
+def _is_sponge(path: str):
+    """Check if a file is actually a sponge schematic file."""
+    try:
+        return "BlockData" in load_nbt(path).compound
+    except:
+        return False
+
+
 class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
     """
     This FormatWrapper class exists to interface with the sponge schematic structure format.
@@ -277,7 +285,11 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
 
     @staticmethod
     def is_valid(path: str) -> bool:
-        return os.path.isfile(path) and path.endswith(".schem")
+        return (
+            os.path.isfile(path)
+            and path.endswith((".schem", ".schematic"))
+            and _is_sponge(path)
+        )
 
     @property
     def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
@@ -285,7 +297,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
 
     @property
     def extensions(self) -> Tuple[str, ...]:
-        return (".schem",)
+        return (".schem", ".schematic")
 
     def _get_interface(self, raw_chunk_data=None) -> "SpongeSchemInterface":
         return sponge_schem_interface
