@@ -15,7 +15,6 @@ if TYPE_CHECKING:
 
 
 class LevelDB29Interface(ParentInterface):
-
     chunk_version = 29
 
     def __init__(self):

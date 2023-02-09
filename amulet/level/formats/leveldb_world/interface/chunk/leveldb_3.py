@@ -18,7 +18,6 @@ if TYPE_CHECKING:
 
 
 class LevelDB3Interface(LevelDB2Interface):
-
     chunk_version = 3
 
     def __init__(self):

@@ -635,7 +635,8 @@ class FormatWrapper(Generic[VersionNumberT], ABC):
         self, chunk: Chunk, translator: "Translator", chunk_version: VersionNumberAny
     ) -> Tuple[Chunk, AnyNDArray]:
         """Pack the chunk data into the format required by the encoder.
-        This includes converting the string names to numerical formats for the versions that require it."""
+        This includes converting the string names to numerical formats for the versions that require it.
+        """
         return translator.pack(chunk_version, self.translation_manager, chunk)
 
     def _encode(

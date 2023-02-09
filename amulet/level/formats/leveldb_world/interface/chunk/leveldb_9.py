@@ -7,7 +7,6 @@ from .leveldb_8 import (
 
 
 class LevelDB9Interface(LevelDB8Interface):
-
     chunk_version = 9
 
     def __init__(self):
