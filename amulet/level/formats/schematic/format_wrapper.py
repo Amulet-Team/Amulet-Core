@@ -51,6 +51,14 @@ java_interface = JavaSchematicInterface()
 bedrock_interface = BedrockSchematicInterface()
 
 
+def _is_schematic(path: str):
+    """Check if a file is actually a sponge schematic file."""
+    try:
+        return "Blocks" in load_nbt(path).compound
+    except:
+        return False
+
+
 class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
     """
     This FormatWrapper class exists to interface with the legacy schematic structure format.
@@ -171,7 +179,9 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
 
     @staticmethod
     def is_valid(path: str) -> bool:
-        return os.path.isfile(path) and path.endswith(".schematic")
+        return (
+            os.path.isfile(path) and path.endswith(".schematic") and _is_schematic(path)
+        )
 
     @property
     def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
