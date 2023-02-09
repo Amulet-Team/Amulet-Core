@@ -124,7 +124,8 @@ class Biomes:
 
         :attr:`BiomesShape.Shape2D` when the data is a 2D (16, 16) numpy array.
 
-        :attr:`BiomesShape.Shape3D` when the data is a 3D (4, inf, 4) :class:`Biome3D` array made of sections of size (4, 4, 4)."""
+        :attr:`BiomesShape.Shape3D` when the data is a 3D (4, inf, 4) :class:`Biome3D` array made of sections of size (4, 4, 4).
+        """
         return self._dimension
 
     def convert_to_2d(self):

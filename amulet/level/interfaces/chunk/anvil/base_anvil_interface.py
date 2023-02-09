@@ -41,9 +41,7 @@ ChunkDataType = Dict[str, NamedTag]
 
 ChunkPathType = Tuple[
     str,  # The layer name
-    Sequence[
-        Tuple[Union[str, int], Type[AbstractBaseTag]],
-    ],
+    Sequence[Tuple[Union[str, int], Type[AbstractBaseTag]]],
     Type[AbstractBaseTag],
 ]
 
@@ -173,9 +171,7 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
         obj: ChunkDataType,
         data: Tuple[
             str,
-            Sequence[
-                Tuple[Union[str, int], Type[AbstractBaseTag]],
-            ],
+            Sequence[Tuple[Union[str, int], Type[AbstractBaseTag]]],
             Union[None, AnyNBT, Type[AbstractBaseTag]],
         ],
         *,

@@ -7,7 +7,6 @@ from .base_leveldb_interface import (
 
 
 class LevelDB0Interface(BaseLevelDBInterface):
-
     chunk_version = 0
 
     def __init__(self):

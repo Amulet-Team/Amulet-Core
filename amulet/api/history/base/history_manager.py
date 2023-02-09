@@ -8,7 +8,8 @@ from .base_history import BaseHistory
 
 class HistoryManager(BaseHistory):
     """The base class for all active history manager objects.
-    The HistoryManager tracks which objects have changed but is not aware of how they have changed."""
+    The HistoryManager tracks which objects have changed but is not aware of how they have changed.
+    """
 
     def create_undo_point(self) -> bool:
         """

@@ -51,7 +51,6 @@ _scale_grid = tuple(numpy.meshgrid(*[numpy.arange(16) // 4] * 3, indexing="ij"))
 
 
 class BaseLevelDBInterface(Interface):
-
     chunk_version: int = None
 
     def __init__(self):
