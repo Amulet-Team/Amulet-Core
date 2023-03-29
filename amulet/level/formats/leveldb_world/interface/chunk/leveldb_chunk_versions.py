@@ -63,7 +63,7 @@ def chunk_to_game_version(
 def game_to_chunk_version(max_game_version: VersionNumberTuple, cnc=False) -> int:
     """Get the chunk version that should be used for the given game version number."""
     # The comparison can fail if they are no the same length
-    max_game_version = (max_game_version + (0,)*(4-len(max_game_version)))[:4]
+    max_game_version = (max_game_version + (0,) * (4 - len(max_game_version)))[:4]
     cnc = cnc or max_game_version >= (1, 18, 0)
     for chunk_version, (first, last) in chunk_version_to_max_version.items():
         if (
