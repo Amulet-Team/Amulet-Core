@@ -160,7 +160,9 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
             version = max_world_version[1]
         else:
             data_version = (
-                data.get("region", {}).compound.get("DataVersion", IntTag(-1)).py_int
+                data.get("region", NamedTag(CompoundTag()))
+                .compound.get("DataVersion", IntTag(-1))
+                .py_int
             )
             key, version = (("java", data_version), data_version)
 
