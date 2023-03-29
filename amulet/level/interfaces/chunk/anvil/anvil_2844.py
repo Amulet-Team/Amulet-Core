@@ -54,26 +54,32 @@ class Anvil2844Interface(ParentInterface):
         Level.CarvingMasks[] is now long[] instead of byte[].
     """
 
+    OldLevel: ChunkPathType = ("region", [("Level", CompoundTag)], CompoundTag)
     Level: ChunkPathType = ("region", [], CompoundTag)
     Sections: ChunkPathType = ("region", [("sections", ListTag)], ListTag)
 
-    BlockEntities: ChunkPathType = ("region", [("block_entities", ListTag)], ListTag)
     Entities: ChunkPathType = ("region", [("entities", ListTag)], ListTag)
-    InhabitedTime: ChunkPathType = ("region", [("InhabitedTime", LongTag)], LongTag)
-    LastUpdate: ChunkPathType = ("region", [("LastUpdate", LongTag)], LongTag)
-    Heightmaps: ChunkPathType = ("region", [("Heightmaps", CompoundTag)], CompoundTag)
+    BlockEntities: ChunkPathType = ("region", [("block_entities", ListTag)], ListTag)
     BlockTicks: ChunkPathType = ("region", [("block_ticks", ListTag)], ListTag)
     ToBeTicked = None
+    LiquidTicks: ChunkPathType = ("region", [("fluid_ticks", ListTag)], ListTag)
+    LiquidsToBeTicked = None
+    Structures: ChunkPathType = ("region", [("structures", CompoundTag)], CompoundTag)
+    yPos: ChunkPathType = ("region", [("yPos", IntTag)], IntTag)
     Biomes = None
 
+    # Changed attributes not listed on the wiki
+    xPos: ChunkPathType = ("region", [("xPos", IntTag)], IntTag)
+    zPos: ChunkPathType = ("region", [("zPos", IntTag)], IntTag)
+    LastUpdate: ChunkPathType = ("region", [("LastUpdate", LongTag)], LongTag)
+    InhabitedTime: ChunkPathType = ("region", [("InhabitedTime", LongTag)], LongTag)
     Status: ChunkPathType = ("region", [("Status", StringTag)], StringTag("full"))
-
-    LiquidTicks: ChunkPathType = ("region", [("fluid_ticks", ListTag)], ListTag)
     PostProcessing: ChunkPathType = ("region", [("PostProcessing", ListTag)], ListTag)
+    Heightmaps: ChunkPathType = ("region", [("Heightmaps", CompoundTag)], CompoundTag)
 
-    Structures: ChunkPathType = ("region", [("structures", CompoundTag)], CompoundTag)
-
-    yPos: ChunkPathType = ("region", [("yPos", IntTag)], IntTag)
+    def __init__(self):
+        super().__init__()
+        self._register_post_encoder(self._post_encode_remove_old_level)
 
     @staticmethod
     def minor_is_valid(key: int):
@@ -251,6 +257,11 @@ class Anvil2844Interface(ParentInterface):
             self.LiquidTicks,
             self._encode_ticks(chunk.misc.get("fluid_ticks", {})),
         )
+
+    def _post_encode_remove_old_level(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        self.get_layer_obj(data, self.OldLevel, pop_last=True)
 
 
 export = Anvil2844Interface
