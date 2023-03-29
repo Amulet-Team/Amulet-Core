@@ -441,7 +441,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
     def _save(self):
         os.makedirs(self.path, exist_ok=True)
         self.root_tag.save()
-        with open(os.path.join(self.path, "levelname.txt"), "w") as f:
+        with open(os.path.join(self.path, "levelname.txt"), "w", encoding="utf-8") as f:
             f.write(self.level_name)
 
     def _close(self):
