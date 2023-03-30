@@ -138,13 +138,12 @@ class Biomes:
         """
         if self._2d is None:
             self._2d = numpy.zeros((16, 16), numpy.uint32)
-        if self._dimension != BiomesShape.Shape2D:
-            if self._dimension == BiomesShape.Shape3D and self._3d is not None:
-                # convert from 3D
-                self._2d[:, :] = numpy.kron(
-                    numpy.reshape(self._3d[:, 0, :], (4, 4)), numpy.ones((4, 4))
-                )
-            self._dimension = BiomesShape.Shape2D
+        if self._dimension is BiomesShape.Shape3D and self._3d is not None:
+            # convert from 3D
+            self._2d[:, :] = numpy.kron(
+                numpy.reshape(self._3d[:, 0, :], (4, 4)), numpy.ones((4, 4))
+            )
+        self._dimension = BiomesShape.Shape2D
 
     def convert_to_3d(self):
         """
@@ -156,21 +155,22 @@ class Biomes:
         """
         if self._3d is None:
             self._3d = Biomes3D()
-        if self._dimension != BiomesShape.Shape3D:
-            if self._dimension == BiomesShape.Shape2D and self._2d is not None:
-                # convert from 2D
-                self._3d[:, 0, :] = self._2d[::4, ::4].reshape(4, 1, 4)
-            self._dimension = BiomesShape.Shape3D
+        if self._dimension is BiomesShape.Shape2D and self._2d is not None:
+            # convert from 2D
+            self._3d[:, :, :] = numpy.repeat(
+                self._2d[::4, ::4].reshape(4, 1, 4), 64, axis=1
+            )
+        self._dimension = BiomesShape.Shape3D
 
     def _get_active(self) -> Union[numpy.ndarray, Biomes3D]:
-        if self._dimension == BiomesShape.ShapeNull:
+        if self._dimension is BiomesShape.ShapeNull:
             raise Exception(
                 "You are trying to use Biomes but have not picked a format. Use one of the convert methods to specify the format."
             )
-        elif self._dimension == BiomesShape.Shape2D:
+        elif self._dimension is BiomesShape.Shape2D:
             self.convert_to_2d()
             return self._2d
-        elif self._dimension == BiomesShape.Shape3D:
+        elif self._dimension is BiomesShape.Shape3D:
             self.convert_to_3d()
             return self._3d
         else:
@@ -195,13 +195,13 @@ class Biomes:
         return result
 
     def __getattr__(self, item):
-        return self._get_active().__getattribute__(item)
+        return getattr(self._get_active(), item)
 
     def __contains__(self, item):
-        return self._get_active().__contains__(item)
+        return item in self._get_active()
 
     def __getitem__(self, item):
-        return self._get_active().__getitem__(item)
+        return self._get_active()[item]
 
     def __setitem__(self, key, value):
-        self._get_active().__setitem__(key, value)
+        self._get_active()[key] = value
