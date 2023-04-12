@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sys import getsizeof
 import re
-from typing import Dict, Iterable, Tuple, Union
+from typing import Dict, Iterable, Tuple, Union, Mapping
 from amulet_nbt import ByteTag, ShortTag, IntTag, LongTag, StringTag, from_snbt
 
 from .errors import BlockException
@@ -14,7 +14,7 @@ PropertyValueType = Union[
     LongTag,
     StringTag,
 ]
-PropertyType = Dict[str, PropertyValueType]
+PropertyType = Mapping[str, PropertyValueType]
 PropertyTypeMultiple = Dict[str, Tuple[PropertyValueType, ...]]
 
 PropertyDataTypes = (
