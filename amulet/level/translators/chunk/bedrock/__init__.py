@@ -121,16 +121,15 @@ class BaseBedrockTranslator(Translator):
             final_extra = False
 
             for depth, block in enumerate(input_object.block_tuple):
-                if "__version__" in block.properties:
-                    game_version_: int = int(block.properties.get("__version__"))
+                properties = dict(block.properties)
+                if "__version__" in properties:
+                    game_version_: int = int(properties.pop("__version__"))
+                    block = Block(block.namespace, block.base_name, properties)
+                elif "block_data" in properties:
+                    # if block_data is in properties cap out at 1.12.x
+                    game_version_: VersionNumberTuple = min(game_version, (1, 12, 999))
                 else:
-                    if "block_data" in block.properties:
-                        # if block_data is in properties cap out at 1.12.x
-                        game_version_: VersionNumberTuple = min(
-                            game_version, (1, 12, 999)
-                        )
-                    else:
-                        game_version_: VersionNumberTuple = game_version
+                    game_version_: VersionNumberTuple = game_version
                 version_key = self._translator_key(game_version_)
                 if version_key not in versions:
                     versions[version_key] = translation_manager.get_version(
