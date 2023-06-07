@@ -16,12 +16,14 @@ from amulet_nbt import (
     CompoundTag,
     StringTag,
     ByteTag,
+    ShortTag,
     IntTag,
     ListTag,
     LongTag,
     FloatTag,
     utf8_escape_decoder,
     utf8_escape_encoder,
+    ReadContext,
 )
 from amulet.api.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
@@ -375,6 +377,63 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
                     (-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000)
                 )
             )
+            if b"LevelChunkMetaDataDictionary" in self.level_db:
+                data = self.level_db[b"LevelChunkMetaDataDictionary"]
+                count, data = struct.unpack("<I", data[:4])[0], data[4:]
+                for _ in range(count):
+                    key, data = data[:8], data[8:]
+                    context = ReadContext()
+                    value = load_nbt(
+                        data,
+                        little_endian=True,
+                        compressed=False,
+                        string_decoder=utf8_escape_decoder,
+                        read_context=context,
+                    ).compound
+                    data = data[context.offset :]
+
+                    dimension_name = value.get_string("DimensionName").py_str
+                    previous_bounds = self._bounds.get(
+                        dimension_name,
+                        SelectionGroup(
+                            SelectionBox(
+                                (-30_000_000, 0, -30_000_000),
+                                (30_000_000, 256, 30_000_000),
+                            )
+                        ),
+                    )
+                    min_y = min(
+                        value.get_compound(
+                            "LastSavedDimensionHeightRange", CompoundTag()
+                        )
+                        .get_short("min", ShortTag())
+                        .py_int,
+                        value.get_compound(
+                            "OriginalDimensionHeightRange", CompoundTag()
+                        )
+                        .get_short("min", ShortTag())
+                        .py_int,
+                        previous_bounds.min_y,
+                    )
+                    max_y = max(
+                        value.get_compound(
+                            "LastSavedDimensionHeightRange", CompoundTag()
+                        )
+                        .get_short("max", ShortTag())
+                        .py_int,
+                        value.get_compound(
+                            "OriginalDimensionHeightRange", CompoundTag()
+                        )
+                        .get_short("max", ShortTag())
+                        .py_int,
+                        previous_bounds.max_y,
+                    )
+                    self._bounds[dimension_name] = SelectionGroup(
+                        SelectionBox(
+                            (previous_bounds.min_x, min_y, previous_bounds.min_z),
+                            (previous_bounds.max_x, max_y, previous_bounds.max_z),
+                        )
+                    )
         except LevelDBEncrypted as e:
             self._is_open = self._has_lock = False
             raise LevelDBException(
