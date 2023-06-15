@@ -83,7 +83,7 @@ class Anvil2844Interface(ParentInterface):
 
     @staticmethod
     def minor_is_valid(key: int):
-        return 2844 <= key < 3480
+        return 2844 <= key <= 3337
 
     def _get_floor_cy(self, data: ChunkDataType):
         return self.get_layer_obj(data, self.yPos, pop_last=True).py_int

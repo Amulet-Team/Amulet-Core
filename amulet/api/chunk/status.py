@@ -19,36 +19,50 @@ class StatusFormats(Enum):
     Bedrock = 1  # as an integer between 0 and 2
     Java_13 = 2  # as a string
     Java_14 = 3  # as a string
+    Java_20 = 20  # as a string
 
 
 J13 = StatusFormats.Java_13
 J14 = StatusFormats.Java_14
+J20 = StatusFormats.Java_20
 
 states = {
     "empty": [[J13, J14], -1],
+    "minecraft:empty": [[J20], -1],
     "structure_starts": [[J14], -0.9],
+    "minecraft:structure_starts": [[J20], -0.9],
     "structure_references": [[J14], -0.8],
+    "minecraft:structure_references": [[J20], -0.8],
     "biomes": [[J14], -0.7],
+    "minecraft:biomes": [[J20], -0.7],
     "noise": [[J14], -0.6],
+    "minecraft:noise": [[J20], -0.6],
     "base": [[J13], -0.5],
     "surface": [[J14], -0.5],
+    "minecraft:surface": [[J20], -0.5],
     "carved": [[J13], -0.4],
     "carvers": [[J14], -0.4],
+    "minecraft:carvers": [[J20], -0.4],
     "liquid_carved": [[J13], -0.3],
     "liquid_carvers": [[J14], -0.3],
     "decorated": [[J13], -0.2],
     "features": [[J14], -0.2],
+    "minecraft:features": [[J20], -0.2],
     "lighted": [[J13], -0.1],
+    "minecraft:initialize_light": [[J20], -0.1],
     "light": [[J14], -0.1],
+    "minecraft:light": [[J20], -0.1],
     # 0.0	needs ticked
     # 1.0	needs population
     "mobs_spawned": [[J13], 1.1],
     "spawn": [[J14], 1.1],
+    "minecraft:spawn": [[J20], 1.1],
     "finalized": [[J13], 1.5],
     "heightmaps": [[J14], 1.5],
     "fullchunk": [[J13], 1.9],
     "postprocessed": [[J13], 2.0],
     "full": [[J14], 2.0],
+    "minecraft:full": [[J20], 2.0],
     # 2.0	done
 }
 
@@ -135,21 +149,19 @@ class Status:
         :param status_format: The format the status should be returned in. Must be from :class:`StatusFormats`.
         :return: The status code in the requested format.
         """
-        if isinstance(status_format, StatusFormats):
-            if status_format == StatusFormats.Raw:
-                return self._value
-            elif status_format == StatusFormats.Bedrock:  # Bedrock (0, 1 or 2)
-                return int(max(min(2, self._value), 0))
-            elif status_format in versions:  # Java 1.13/1.14
-                value = next(
-                    (v for v in versions[status_format] if v[0] <= self._value), None
-                )
-                if value is None:
-                    value = next(
-                        (v for v in versions[status_format] if v[0] <= 2.0), None
-                    )
-                return value[1]
-            else:
-                raise ValueError(f"Unsupported status format {status_format}")
-        else:
+        if not isinstance(status_format, StatusFormats):
             raise ValueError("Version must be one of the states of StatusFormats")
+
+        if status_format == StatusFormats.Raw:
+            return self._value
+        elif status_format == StatusFormats.Bedrock:  # Bedrock (0, 1 or 2)
+            return int(max(min(2, self._value), 0))
+        elif status_format in versions:  # Java 1.13/1.14
+            value = next(
+                (v for v in versions[status_format] if v[0] <= self._value), None
+            )
+            if value is None:
+                value = next((v for v in versions[status_format] if v[0] <= 2.0), None)
+            return value[1]
+        else:
+            raise ValueError(f"Unsupported status format {status_format}")
