@@ -394,6 +394,13 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
 
                     try:
                         dimension_name = value.get_string("DimensionName").py_str
+                        # The dimension names are stored differently TODO: split local and global names
+                        dimension_name = {
+                            "Overworld": "minecraft:overworld",
+                            "Nether": "minecraft:the_nether",
+                            "TheEnd": "minecraft:the_end",
+                        }.get(dimension_name, dimension_name)
+
                     except KeyError:
                         # Some entries seem to not have a dimension assigned to them. Is there a default? We will skip over these for now.
                         # {'LastSavedBaseGameVersion': StringTag("1.19.81"), 'LastSavedDimensionHeightRange': CompoundTag({'max': ShortTag(320), 'min': ShortTag(-64)})}
