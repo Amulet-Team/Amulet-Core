@@ -37,9 +37,9 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 InternalDimension = Optional[int]
-OVERWORLD = "Overworld"
-THE_NETHER = "Nether"
-THE_END = "TheEnd"
+OVERWORLD = "minecraft:overworld"
+THE_NETHER = "minecraft:the_nether"
+THE_END = "minecraft:the_end"
 
 
 class ActorCounter:
