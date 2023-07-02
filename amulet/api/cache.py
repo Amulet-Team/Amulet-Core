@@ -9,13 +9,18 @@ import tempfile
 
 import portalocker
 
-from amulet.api.paths import get_cache_dir
+
+def _get_cache_dir() -> str:
+    return os.environ.get("AMULET_LEVEL_CACHE_DIR", None) or os.path.join(
+        os.environ.get("CACHE_DIR"), "level_data"
+    )
+
 
 log = logging.getLogger(__name__)
 
 
 def _clear_legacy_cache():
-    legacy_cache_dir = get_cache_dir()
+    legacy_cache_dir = _get_cache_dir()
     world_temp_dir = os.path.join(legacy_cache_dir, "world_temp")
     if not os.path.isdir(world_temp_dir):
         return
@@ -76,12 +81,14 @@ class TempDir(str):
     """
 
     def __new__(cls):
+        cache_dir = _get_cache_dir()
+        os.makedirs(cache_dir, exist_ok=True)
         self = super().__new__(
             cls,
             tempfile.mkdtemp(
                 prefix="amulettmp",
                 suffix=f"-{time.time():.0f}",
-                dir=get_cache_dir(None),
+                dir=cache_dir,
             ),
         )
         self.__lock = open(os.path.join(self, "lock"), "w")
