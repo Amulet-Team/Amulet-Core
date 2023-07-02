@@ -1,6 +1,7 @@
 import sys
 from typing import TYPE_CHECKING, Tuple, Generator, Optional
 import numpy
+import os
 
 from amulet.api.data_types import Dimension, BlockCoordinates, FloatTriplet
 from amulet.api.selection import SelectionGroup, SelectionBox
@@ -366,12 +367,16 @@ def clone(
 
                         numpy_threshold = numpy.get_printoptions()["threshold"]
                         numpy.set_printoptions(threshold=sys.maxsize)
-                        with open("clone_error.log", "w") as f:
+                        log_path = os.path.join(
+                            os.environ["LOG_DIR"], "clone_error.log"
+                        )
+                        os.makedirs(os.path.dirname(log_path), exist_ok=True)
+                        with open(log_path, "w") as f:
                             for k, v in locals_copy.items():
                                 f.write(f"{k}: {v}\n\n")
                         numpy.set_printoptions(threshold=numpy_threshold)
                         raise IndexError(
-                            f"Error pasting.\nPlease notify the developers and include the clone_error.log file.\n{e}"
+                            f"Error pasting.\nPlease notify the developers and include the file {log_path}.\n{e}"
                         ) from e
 
                 if include_entities:
