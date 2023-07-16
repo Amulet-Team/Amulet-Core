@@ -164,7 +164,9 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
     @property
     def last_played(self) -> int:
         return (
-            self.root_tag.compound.get_compound("Data").get_long("LastPlayed").py_int
+            self.root_tag.compound.get_compound("Data")
+            .get_long("LastPlayed", LongTag())
+            .py_int
             // 1000
         )
 
