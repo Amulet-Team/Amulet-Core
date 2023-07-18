@@ -1,7 +1,7 @@
 from __future__ import annotations
 import os
 
-from amulet_nbt import CompoundTag, load as load_nbt
+from amulet_nbt import load as load_nbt
 
 from .anvil_world import AnvilFormat
 from amulet.utils.format_utils import check_all_exist
@@ -16,11 +16,6 @@ class AnvilForgeFormat(AnvilFormat):
 
     def __init__(self, path: str):
         super().__init__(path)
-        self._number_of_dimensions = len(
-            self.root_tag.compound.get("Data", CompoundTag())
-            .get("WorldGenSettings", CompoundTag())
-            .get("dimensions", CompoundTag())
-        )
         self._register_modded_dimensions()
 
     @staticmethod
