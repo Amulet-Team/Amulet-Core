@@ -1,4 +1,5 @@
 from __future__ import annotations
+import glob
 import os
 
 from amulet_nbt import load as load_nbt
@@ -40,14 +41,27 @@ class AnvilForgeFormat(AnvilFormat):
             return f"Java Forge Unknown Version"
 
     def _register_modded_dimensions(self):
-        for path, directories, files in os.walk(os.path.join(self.path, "dimensions")):
-            if set(("data", "entities", "poi", "region")).issubset(set(directories)):
-                dimension_path_split = path.split(os.sep)
-                dimensions_directory_index = dimension_path_split.index("dimensions")
-                dimension_name = f"{dimension_path_split[dimensions_directory_index + 1]}:{'/'.join(dimension_path_split[dimensions_directory_index + 2:])}"
-                self._register_dimension(
-                    os.path.dirname(os.path.relpath(path, self.path)), dimension_name
+        for region_path in glob.glob(
+            os.path.join(glob.escape(self.path), "dimensions", "*", "**", "region"),
+            recursive=True,
+        ):
+            dim_path = os.path.dirname(region_path)
+            child_dir_names = set(
+                map(
+                    os.path.basename,
+                    filter(
+                        os.path.isdir,
+                        map(lambda d: os.path.join(dim_path, d), os.listdir(dim_path)),
+                    ),
                 )
+            )
+            if not {"data", "entities", "poi", "region"}.issubset(child_dir_names):
+                continue
+            rel_dim_path = os.path.relpath(dim_path, self.path)
+            _, dimension, *base_name = rel_dim_path.split(os.sep)
+
+            dimension_name = f"{dimension}:{'/'.join(base_name)}"
+            self._register_dimension(os.path.dirname(rel_dim_path), dimension_name)
 
 
 export = AnvilForgeFormat
