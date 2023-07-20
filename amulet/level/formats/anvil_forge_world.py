@@ -47,13 +47,9 @@ class AnvilForgeFormat(AnvilFormat):
         ):
             dim_path = os.path.dirname(region_path)
             child_dir_names = set(
-                map(
-                    os.path.basename,
-                    filter(
-                        os.path.isdir,
-                        map(lambda d: os.path.join(dim_path, d), os.listdir(dim_path)),
-                    ),
-                )
+                basename
+                for basename in os.listdir(dim_path)
+                if os.path.isdir(os.path.join(dim_path, basename))
             )
             if not {"data", "entities", "poi", "region"}.issubset(child_dir_names):
                 continue
