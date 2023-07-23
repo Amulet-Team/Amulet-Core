@@ -51,7 +51,7 @@ class AnvilForgeFormat(AnvilFormat):
                 for basename in os.listdir(dim_path)
                 if os.path.isdir(os.path.join(dim_path, basename))
             )
-            if not {"data", "entities", "poi", "region"}.issubset(child_dir_names):
+            if not {"region"}.issubset(child_dir_names):
                 continue
             rel_dim_path = os.path.relpath(dim_path, self.path)
             _, dimension, *base_name = rel_dim_path.split(os.sep)
