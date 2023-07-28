@@ -45,14 +45,9 @@ class AnvilForgeFormat(AnvilFormat):
             os.path.join(glob.escape(self.path), "dimensions", "*", "**", "region"),
             recursive=True,
         ):
-            dim_path = os.path.dirname(region_path)
-            child_dir_names = set(
-                basename
-                for basename in os.listdir(dim_path)
-                if os.path.isdir(os.path.join(dim_path, basename))
-            )
-            if not {"region"}.issubset(child_dir_names):
+            if not os.path.isdir(region_path):
                 continue
+            dim_path = os.path.dirname(region_path)
             rel_dim_path = os.path.relpath(dim_path, self.path)
             _, dimension, *base_name = rel_dim_path.split(os.sep)
 
