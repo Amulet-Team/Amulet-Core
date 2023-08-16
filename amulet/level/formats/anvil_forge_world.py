@@ -42,7 +42,9 @@ class AnvilForgeFormat(AnvilFormat):
 
     def _register_modded_dimensions(self):
         for region_path in glob.glob(
-            os.path.join(glob.escape(self.path), "dimensions", "*", "*", "**", "region"),
+            os.path.join(
+                glob.escape(self.path), "dimensions", "*", "*", "**", "region"
+            ),
             recursive=True,
         ):
             if not os.path.isdir(region_path):
