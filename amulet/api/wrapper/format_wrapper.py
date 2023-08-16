@@ -232,7 +232,7 @@ class FormatWrapper(Generic[VersionNumberT], ABC):
         if dimension not in self._bounds:
             if dimension in self.dimensions:
                 raise Exception(
-                    f'The dimension exists but there is not selection registered for it. Please report this to a developer "{dimension}" {self}'
+                    f'The dimension exists but there is no selection registered for it. Please report this to a developer "{dimension}" {self}'
                 )
             else:
                 raise DimensionDoesNotExist

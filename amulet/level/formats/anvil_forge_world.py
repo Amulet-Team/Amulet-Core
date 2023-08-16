@@ -1,4 +1,5 @@
 from __future__ import annotations
+import glob
 import os
 
 from amulet_nbt import load as load_nbt
@@ -24,7 +25,9 @@ class AnvilForgeFormat(AnvilFormat):
         except:
             return False
 
-        return "Data" in level_dat_root and "FML" in level_dat_root
+        return "Data" in level_dat_root and (
+            "FML" in level_dat_root or "fml" in level_dat_root
+        )
 
     @property
     def game_version_string(self) -> str:
