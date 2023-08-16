@@ -412,15 +412,20 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                     continue
                 self._register_dimension(dir_name)
 
-        for dimension_path in glob.glob(
-            os.path.join(glob.escape(self.path), "dimensions", "*", "*", "region")
+        for region_path in glob.glob(
+            os.path.join(
+                glob.escape(self.path), "dimensions", "*", "*", "**", "region"
+            ),
+            recursive=True,
         ):
-            dimension_path_split = dimension_path.split(os.sep)
-            dimension_name = f"{dimension_path_split[-3]}:{dimension_path_split[-2]}"
-            self._register_dimension(
-                os.path.dirname(os.path.relpath(dimension_path, self.path)),
-                dimension_name,
-            )
+            if not os.path.isdir(region_path):
+                continue
+            dimension_path = os.path.dirname(region_path)
+            rel_dim_path = os.path.relpath(dimension_path, self.path)
+            _, dimension, *base_name = rel_dim_path.split(os.sep)
+
+            dimension_name = f"{dimension}:{'/'.join(base_name)}"
+            self._register_dimension(rel_dim_path, dimension_name)
 
     def _open(self):
         """Open the database for reading and writing"""
