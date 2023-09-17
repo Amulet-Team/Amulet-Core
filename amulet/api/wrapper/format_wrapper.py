@@ -735,6 +735,7 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
 
 # This can get removed when we know that nothing is blindly calling __init__
 from contextvars import ContextVar
+
 _blind_call_init = ContextVar("_blind_call_init", default=True)
 
 
@@ -750,7 +751,9 @@ class DiskFormatWrapper(BaseFormatWrapper[VersionNumberT]):
         :param path: The file path to the serialised data.
         """
         if _blind_call_init.get():
-            raise RuntimeError("You cannot call FormatWrapper.__init__ directly. You must use one of the constructor classmethod.")
+            raise RuntimeError(
+                "You cannot call FormatWrapper.__init__ directly. You must use one of the constructor classmethod."
+            )
         super().__init__()
         self._path = path
 
@@ -786,7 +789,8 @@ class DiskFormatWrapper(BaseFormatWrapper[VersionNumberT]):
         self = cls(path)
         _blind_call_init.reset(token)
         if (
-            platform not in self.valid_formats() or len(self.valid_formats()[platform]) < 2
+            platform not in self.valid_formats()
+            or len(self.valid_formats()[platform]) < 2
         ):  # check that the platform and version are valid
             raise ObjectReadError(
                 f"{platform} is not a valid platform for this wrapper."

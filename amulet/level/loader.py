@@ -84,7 +84,9 @@ class Loader(Generic[T]):
             print(obj_name, obj)
 
 
-Translators = Loader[Translator](Translator, "translator", f"{ParentPackage}.translators")
+Translators = Loader[Translator](
+    Translator, "translator", f"{ParentPackage}.translators"
+)
 Interfaces = Loader[Interface](Interface, "interface", f"{ParentPackage}.interfaces")
 Formats = Loader[FormatWrapper](
     FormatWrapper, "format", f"{ParentPackage}.formats", create_instance=False

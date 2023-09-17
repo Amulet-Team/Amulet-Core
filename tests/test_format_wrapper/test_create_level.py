@@ -34,14 +34,11 @@ class CreateWorldTestCase(unittest.TestCase):
                 platform=platform,
                 version=version,
                 bounds=SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]),
-                overwrite=True
+                overwrite=True,
             )
         else:
             level = cls.create_and_open(
-                path=path,
-                platform=platform,
-                version=version,
-                overwrite=True
+                path=path, platform=platform, version=version, overwrite=True
             )
 
         self.assertTrue(level.is_open, "The level was not opened by create_and_open()")
@@ -92,11 +89,7 @@ class CreateWorldTestCase(unittest.TestCase):
                     bounds=SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]),
                 )
             else:
-                cls.create_and_open(
-                    path=path,
-                    platform=platform,
-                    version=version
-                )
+                cls.create_and_open(path=path, platform=platform, version=version)
 
         clean_path(path)
 
