@@ -90,6 +90,29 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
         self._bounds: Dict[Dimension, SelectionGroup] = {}
         self._changed: bool = False
 
+    def __del__(self):
+        self.close()
+
+    @classmethod
+    @abstractmethod
+    def create_and_open(cls, *args, **kwargs) -> BaseFormatWrapper:
+        """
+        Create a new instance without any existing data.
+        This should only set instance attributes so that the level can be saved later.
+        If required, this method can save data to disk.
+        :return: A new FormatWrapper instance
+        """
+        raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
+    def load(cls, *args, **kwargs) -> BaseFormatWrapper:
+        """
+        Create a new instance from existing data.
+        :return: A new FormatWrapper instance
+        """
+        raise NotImplementedError
+
     @property
     def sub_chunk_size(self) -> int:
         """
@@ -251,54 +274,6 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
         )
         return interface, translator, version_identifier
 
-    def create_and_open(
-        self,
-        platform: PlatformType,
-        version: VersionNumberAny,
-        bounds: Union[
-            SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
-        ] = None,
-        overwrite: bool = False,
-        **kwargs,
-    ):
-        """
-        Remove the data at the path and set up a new database.
-
-        You might want to call :attr:`exists` to check if something exists at the path
-        and warn the user they are going to overwrite existing data before calling this method.
-
-        :param platform: The platform the data should use.
-        :param version: The version the data should use.
-        :param bounds: The bounds for each dimension. If one :class:`SelectionGroup` is given it will be applied to all dimensions.
-        :param overwrite: Should an existing database be overwritten. If this is False and one exists and error will be thrown.
-        :param kwargs: Extra arguments as each implementation requires.
-        :return:
-        """
-        if self.is_open:
-            raise ObjectReadError(f"Cannot open {self} because it was already opened.")
-
-        if (
-            platform not in self.valid_formats or len(self.valid_formats[platform]) < 2
-        ):  # check that the platform and version are valid
-            raise ObjectReadError(
-                f"{platform} is not a valid platform for this wrapper."
-            )
-        translator_version = self.translation_manager.get_version(platform, version)
-        if translator_version.has_abstract_format:  # numerical
-            if not self.valid_formats[platform][0]:
-                raise ObjectReadError(
-                    f"The version given ({version}) is from the numerical format but this wrapper does not support the numerical format."
-                )
-        else:
-            if not self.valid_formats[platform][1]:
-                raise ObjectReadError(
-                    f"The version given ({version}) is from the blockstate format but this wrapper does not support the blockstate format."
-                )
-
-        self._platform = translator_version.platform
-        self._version = translator_version.version_number
-        self._create(overwrite, bounds, **kwargs)
-
     def _clean_selection(self, selection: SelectionGroup) -> SelectionGroup:
         if self.multi_selection:
             return selection
@@ -315,18 +290,6 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
                 raise ObjectReadError(
                     "A single selection was required but none were given."
                 )
-
-    @abstractmethod
-    def _create(
-        self,
-        overwrite: bool,
-        bounds: Union[
-            SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
-        ] = None,
-        **kwargs,
-    ):
-        """Set up the database from scratch."""
-        raise NotImplementedError
 
     def open(self):
         """Open the database for reading and writing."""
@@ -770,7 +733,12 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
         raise NotImplementedError
 
 
-class DiskFormatWrapper(BaseFormatWrapper):
+# This can get removed when we know that nothing is blindly calling __init__
+from contextvars import ContextVar
+_blind_call_init = ContextVar("_blind_call_init", default=True)
+
+
+class DiskFormatWrapper(BaseFormatWrapper[VersionNumberT]):
     """A FormatWrapper for a level with data entirely on the users disk."""
 
     def __init__(self, path: str):
@@ -781,6 +749,9 @@ class DiskFormatWrapper(BaseFormatWrapper):
 
         :param path: The file path to the serialised data.
         """
+        if _blind_call_init.get():
+            raise RuntimeError("You cannot call FormatWrapper.__init__ directly. You must use one of the constructor classmethod.")
+        super().__init__()
         self._path = path
 
     @property
@@ -788,6 +759,87 @@ class DiskFormatWrapper(BaseFormatWrapper):
         """The path to the data on disk."""
         return self._path
 
+    @classmethod
+    def create_and_open(
+        cls,
+        *,
+        path: str,
+        platform: PlatformType,
+        version: VersionNumberAny,
+        bounds: Union[
+            SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
+        ] = None,
+        overwrite: bool = False,
+        **kwargs,
+    ) -> DiskFormatWrapper:
+        """
+        Create a new instance without any existing data.
+        :param path:
+        :param platform: The platform the data should use.
+        :param version: The version the data should use.
+        :param bounds: The bounds for each dimension. If one :class:`SelectionGroup` is given it will be applied to all dimensions.
+        :param overwrite: Should an existing database be overwritten. If this is False and one exists and error will be thrown.
+        :param kwargs: Extra arguments as each implementation requires.
+        :return: A new FormatWrapper instance
+        """
+        token = _blind_call_init.set(False)
+        self = cls(path)
+        _blind_call_init.reset(token)
+        if (
+            platform not in self.valid_formats() or len(self.valid_formats()[platform]) < 2
+        ):  # check that the platform and version are valid
+            raise ObjectReadError(
+                f"{platform} is not a valid platform for this wrapper."
+            )
+        translator_version = self.translation_manager.get_version(platform, version)
+        if translator_version.has_abstract_format:  # numerical
+            if not self.valid_formats()[platform][0]:
+                raise ObjectReadError(
+                    f"The version given ({version}) is from the numerical format but this wrapper does not support the numerical format."
+                )
+        else:
+            if not self.valid_formats()[platform][1]:
+                raise ObjectReadError(
+                    f"The version given ({version}) is from the blockstate format but this wrapper does not support the blockstate format."
+                )
+
+        self._platform = translator_version.platform
+        self._version = translator_version.version_number
+        self._create(overwrite, bounds, **kwargs)
+        return self
+
+    @abstractmethod
+    def _create(
+        self,
+        overwrite: bool,
+        bounds: Union[
+            SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
+        ] = None,
+        **kwargs,
+    ):
+        """Set up the database from scratch."""
+        raise NotImplementedError
+
+    @classmethod
+    def load(cls, path: str) -> DiskFormatWrapper:
+        """
+        Create a new instance from existing data.
+        :return: A new FormatWrapper instance
+        """
+        token = _blind_call_init.set(False)
+        self = cls(path)
+        _blind_call_init.reset(token)
+        self._shallow_load()
+        return self
+
+    @abstractmethod
+    def _shallow_load(self):
+        """
+        Load minimal data from disk.
+        The level may be open somewhere else.
+        This code must not cause issues if it is already open.
+        """
+        raise NotImplementedError
 
 
 # Backwards compatibility

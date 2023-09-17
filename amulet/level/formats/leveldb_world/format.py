@@ -177,7 +177,6 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
             self._root_tag = BedrockLevelDAT(path=dat_path, level_dat_version=9)
         self._db = None
         self._dimension_manager = None
-        self._shallow_load()
 
     def _shallow_load(self):
         try:

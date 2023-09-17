@@ -28,16 +28,21 @@ class CreateWorldTestCase(unittest.TestCase):
         path = clean_temp_world(level_name)
 
         # create, initialise and save the level
-        level = cls(path)
-        if level.requires_selection:
-            level.create_and_open(
-                platform,
-                version,
-                SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]),
-                overwrite=True,
+        if cls.requires_selection():
+            level = cls.create_and_open(
+                path=path,
+                platform=platform,
+                version=version,
+                bounds=SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]),
+                overwrite=True
             )
         else:
-            level.create_and_open(platform, version, overwrite=True)
+            level = cls.create_and_open(
+                path=path,
+                platform=platform,
+                version=version,
+                overwrite=True
+            )
 
         self.assertTrue(level.is_open, "The level was not opened by create_and_open()")
         self.assertTrue(
@@ -78,16 +83,20 @@ class CreateWorldTestCase(unittest.TestCase):
 
         self.assertTrue(os.path.exists(level.path))
 
-        level = cls(path)
         with self.assertRaises(ObjectWriteError):
-            if level.requires_selection:
-                level.create_and_open(
-                    platform,
-                    version,
-                    SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]),
+            if cls.requires_selection():
+                cls.create_and_open(
+                    path=path,
+                    platform=platform,
+                    version=version,
+                    bounds=SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]),
                 )
             else:
-                level.create_and_open(platform, version)
+                cls.create_and_open(
+                    path=path,
+                    platform=platform,
+                    version=version
+                )
 
         clean_path(path)
 

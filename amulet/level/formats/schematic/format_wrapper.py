@@ -78,6 +78,9 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             SchematicChunk,
         ] = {}
 
+    def _shallow_load(self):
+        pass
+
     def _create(
         self,
         overwrite: bool,

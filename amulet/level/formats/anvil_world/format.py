@@ -86,10 +86,6 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         self._lock_time: Optional[bytes] = None
         self._lock: Optional[BinaryIO] = None
         self._data_pack: Optional[DataPackManager] = None
-        self._shallow_load()
-
-    def __del__(self):
-        self.close()
 
     def _shallow_load(self):
         try:

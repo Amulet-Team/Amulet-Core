@@ -78,6 +78,9 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
         ] = {}
         self._schem_version: int = max_schem_version
 
+    def _shallow_load(self):
+        pass
+
     def _create(
         self,
         overwrite: bool,

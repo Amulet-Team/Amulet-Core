@@ -56,4 +56,4 @@ def load_format(path: str) -> Union[WorldFormatWrapper, StructureFormatWrapper]:
 
         Exception: Other errors.
     """
-    return loader.Formats.get(path)(path)
+    return loader.Formats.get(path).load(path)

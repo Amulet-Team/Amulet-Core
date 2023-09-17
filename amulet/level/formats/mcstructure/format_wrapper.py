@@ -81,6 +81,9 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         self._is_open = True
         self._has_lock = True
 
+    def _shallow_load(self):
+        pass
+
     def open_from(self, f: BinaryIO):
         mcstructure = load_nbt(
             f, little_endian=True, string_decoder=utf8_escape_decoder
