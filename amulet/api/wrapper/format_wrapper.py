@@ -60,9 +60,17 @@ DefaultSelection = SelectionGroup(
 VersionNumberT = TypeVar("VersionNumberT", int, Tuple[int, ...])
 
 
-class FormatWrapper(Generic[VersionNumberT], ABC):
+"""
+Terminology:
+level - a save file or structure file containing one or more dimenion
+dimension - a contiguous area of chunks
+FormatWrapper - a class that implements code to extract data from a level
+"""
+
+
+class BaseFormatWrapper(Generic[VersionNumberT], ABC):
     """
-    The FormatWrapper class is a class that sits between the serialised world or structure data and the program using amulet-core.
+    The FormatWrapper class is a low level interface between the serialised data and the program using amulet-core.
 
     It is used to access data from the serialised source in the universal format and write them back again.
     """
@@ -70,15 +78,10 @@ class FormatWrapper(Generic[VersionNumberT], ABC):
     _platform: Optional[PlatformType]
     _version: Optional[VersionNumberT]
 
-    def __init__(self, path: str):
+    def __init__(self):
         """
-        Construct a new instance of :class:`FormatWrapper`.
-
-        This should not be used directly. You should instead use :func:`amulet.load_format`.
-
-        :param path: The file path to the serialised data.
+        This must not be used directly. You should instead use :func:`amulet.load_format` or one of the class methods.
         """
-        self._path = path
         self._is_open = False
         self._has_lock = False
         self._translation_manager = None
@@ -93,11 +96,6 @@ class FormatWrapper(Generic[VersionNumberT], ABC):
         The dimensions of a sub-chunk.
         """
         return 16
-
-    @property
-    def path(self) -> str:
-        """The path to the data on disk."""
-        return self._path
 
     @property
     @abstractmethod
@@ -167,7 +165,7 @@ class FormatWrapper(Generic[VersionNumberT], ABC):
     @property
     def max_world_version(self) -> Tuple[PlatformType, VersionNumberT]:
         """
-        The version the world was last opened in.
+        The version the level was last opened in.
 
         This should be greater than or equal to the chunk versions found within.
         """
@@ -181,7 +179,7 @@ class FormatWrapper(Generic[VersionNumberT], ABC):
     @property
     @abstractmethod
     def dimensions(self) -> List[Dimension]:
-        """A list of all the dimensions contained in the world."""
+        """A list of all the dimensions contained in the level."""
         raise NotImplementedError
 
     @property
@@ -770,3 +768,27 @@ class FormatWrapper(Generic[VersionNumberT], ABC):
     @abstractmethod
     def _get_raw_player_data(self, player_id: str) -> Any:
         raise NotImplementedError
+
+
+class DiskFormatWrapper(BaseFormatWrapper):
+    """A FormatWrapper for a level with data entirely on the users disk."""
+
+    def __init__(self, path: str):
+        """
+        Construct a new instance of :class:`DiskFormatWrapper`.
+
+        This must not be used directly. You should instead use :func:`amulet.load_format` or one of the class methods.
+
+        :param path: The file path to the serialised data.
+        """
+        self._path = path
+
+    @property
+    def path(self) -> str:
+        """The path to the data on disk."""
+        return self._path
+
+
+
+# Backwards compatibility
+FormatWrapper = DiskFormatWrapper
