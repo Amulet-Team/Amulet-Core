@@ -117,8 +117,8 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
 
         return "Data" in level_dat_root and "FML" not in level_dat_root
 
-    @property
-    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
+    @staticmethod
+    def valid_formats() -> Dict[PlatformType, Tuple[bool, bool]]:
         return {"java": (True, True)}
 
     @property

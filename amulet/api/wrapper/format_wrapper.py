@@ -133,9 +133,9 @@ class FormatWrapper(Generic[VersionNumberT], ABC):
         """
         raise NotImplementedError
 
-    @property
+    @staticmethod
     @abstractmethod
-    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
+    def valid_formats() -> Dict[PlatformType, Tuple[bool, bool]]:
         """
         The valid platform and version combinations that this object can accept.
 
@@ -203,8 +203,8 @@ class FormatWrapper(Generic[VersionNumberT], ABC):
         """
         raise NotImplementedError
 
-    @property
-    def requires_selection(self) -> bool:
+    @staticmethod
+    def requires_selection() -> bool:
         """Does this object require that a selection be defined when creating it from scratch?"""
         return False
 

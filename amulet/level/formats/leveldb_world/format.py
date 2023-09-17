@@ -195,8 +195,8 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
     def is_valid(path: str):
         return check_all_exist(path, "db", "level.dat", "levelname.txt")
 
-    @property
-    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
+    @staticmethod
+    def valid_formats() -> Dict[PlatformType, Tuple[bool, bool]]:
         return {"bedrock": (True, True)}
 
     @property

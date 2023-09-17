@@ -291,8 +291,8 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             and _is_sponge(path)
         )
 
-    @property
-    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
+    @staticmethod
+    def valid_formats() -> Dict[PlatformType, Tuple[bool, bool]]:
         return {"java": (False, True)}
 
     @property

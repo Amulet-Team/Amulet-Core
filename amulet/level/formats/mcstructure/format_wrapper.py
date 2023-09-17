@@ -193,8 +193,8 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
     def is_valid(path: str) -> bool:
         return os.path.isfile(path) and path.endswith(".mcstructure")
 
-    @property
-    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
+    @staticmethod
+    def valid_formats() -> Dict[PlatformType, Tuple[bool, bool]]:
         return {"bedrock": (False, True)}
 
     @property
