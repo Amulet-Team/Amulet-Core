@@ -1,4 +1,6 @@
 from amulet.api.wrapper.format_wrapper import (
+    BaseFormatWrapper,
+    DiskFormatWrapper,
     FormatWrapper,
     DefaultSelection,
 )

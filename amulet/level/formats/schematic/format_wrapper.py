@@ -78,6 +78,9 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             SchematicChunk,
         ] = {}
 
+    def _shallow_load(self):
+        pass
+
     def _create(
         self,
         overwrite: bool,
@@ -183,8 +186,8 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             os.path.isfile(path) and path.endswith(".schematic") and _is_schematic(path)
         )
 
-    @property
-    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
+    @staticmethod
+    def valid_formats() -> Dict[PlatformType, Tuple[bool, bool]]:
         return {"java": (True, True), "bedrock": (True, True)}
 
     @property

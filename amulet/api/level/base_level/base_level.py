@@ -60,7 +60,8 @@ class BaseLevel:
         self._path = path
 
         self._level_wrapper = format_wrapper
-        self.level_wrapper.open()
+        if not self.level_wrapper.is_open:
+            self.level_wrapper.open()
 
         self._block_palette = BlockManager()
         self._block_palette.get_add_block(

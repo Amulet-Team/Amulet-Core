@@ -78,6 +78,9 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
         ] = {}
         self._schem_version: int = max_schem_version
 
+    def _shallow_load(self):
+        pass
+
     def _create(
         self,
         overwrite: bool,
@@ -291,8 +294,8 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             and _is_sponge(path)
         )
 
-    @property
-    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
+    @staticmethod
+    def valid_formats() -> Dict[PlatformType, Tuple[bool, bool]]:
         return {"java": (False, True)}
 
     @property

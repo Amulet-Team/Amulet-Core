@@ -43,8 +43,8 @@ class StructureFormatWrapper(FormatWrapper[VersionNumberT]):
     def register_dimension(self, dimension_identifier: Any):
         pass
 
-    @property
-    def requires_selection(self) -> bool:
+    @staticmethod
+    def requires_selection() -> bool:
         return True
 
     @property
