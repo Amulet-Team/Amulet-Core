@@ -287,11 +287,12 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             )
 
     @staticmethod
-    def is_valid(path: str) -> bool:
+    def is_valid(token) -> bool:
         return (
-            os.path.isfile(path)
-            and path.endswith((".schem", ".schematic"))
-            and _is_sponge(path)
+            isinstance(token, str)
+            and os.path.isfile(token)
+            and token.endswith((".schem", ".schematic"))
+            and _is_sponge(token)
         )
 
     @staticmethod

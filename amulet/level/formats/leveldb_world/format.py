@@ -191,8 +191,12 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         self.root_tag = BedrockLevelDAT.from_file(os.path.join(self.path, "level.dat"))
 
     @staticmethod
-    def is_valid(path: str):
-        return check_all_exist(path, "db", "level.dat", "levelname.txt")
+    def is_valid(token):
+        return (
+            isinstance(token, str)
+            and os.path.isdir(token)
+            and check_all_exist(token, "db", "level.dat", "levelname.txt")
+        )
 
     @staticmethod
     def valid_formats() -> Dict[PlatformType, Tuple[bool, bool]]:

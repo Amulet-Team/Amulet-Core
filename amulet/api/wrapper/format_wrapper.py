@@ -141,11 +141,11 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
 
     @staticmethod
     @abstractmethod
-    def is_valid(path: str) -> bool:
+    def is_valid(token) -> bool:
         """
         Returns whether this format wrapper is able to load the given data.
 
-        :param path: The path of the data to load.
+        :param token: The token to check. Usually a file or directory path.
         :return: True if the world can be loaded by this format wrapper, False otherwise.
         """
         raise NotImplementedError

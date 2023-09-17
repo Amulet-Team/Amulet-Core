@@ -181,9 +181,12 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                         self._chunks[(cx, cz)].entities.append(e)
 
     @staticmethod
-    def is_valid(path: str) -> bool:
+    def is_valid(token) -> bool:
         return (
-            os.path.isfile(path) and path.endswith(".schematic") and _is_schematic(path)
+            isinstance(token, str)
+            and os.path.isfile(token)
+            and token.endswith(".schematic")
+            and _is_schematic(token)
         )
 
     @staticmethod

@@ -45,7 +45,7 @@ class VoidFormatWrapper(BaseFormatWrapper[VersionNumberTuple]):
         return "Void"
 
     @staticmethod
-    def is_valid(path: str) -> bool:
+    def is_valid(token) -> bool:
         return False
 
     @staticmethod

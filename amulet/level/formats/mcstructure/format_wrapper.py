@@ -193,8 +193,12 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             )
 
     @staticmethod
-    def is_valid(path: str) -> bool:
-        return os.path.isfile(path) and path.endswith(".mcstructure")
+    def is_valid(token) -> bool:
+        return (
+            isinstance(token, str)
+            and token.endswith(".mcstructure")
+            and os.path.isfile(token)
+        )
 
     @staticmethod
     def valid_formats() -> Dict[PlatformType, Tuple[bool, bool]]:

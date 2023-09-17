@@ -102,12 +102,14 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         self.root_tag = load_nbt(os.path.join(self.path, "level.dat"))
 
     @staticmethod
-    def is_valid(path: str) -> bool:
-        if not check_all_exist(path, "level.dat"):
+    def is_valid(token) -> bool:
+        if not isinstance(token, str) and not os.path.isdir(token):
+            return False
+        if not check_all_exist(token, "level.dat"):
             return False
 
         try:
-            level_dat_root = load_nbt(os.path.join(path, "level.dat")).compound
+            level_dat_root = load_nbt(os.path.join(token, "level.dat")).compound
         except:
             return False
 
