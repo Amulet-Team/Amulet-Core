@@ -21,6 +21,7 @@ import numpy
 import os
 import warnings
 import logging
+from enum import IntEnum
 
 import PyMCTranslate
 
@@ -137,11 +138,6 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
     def translation_manager(self, value: PyMCTranslate.TranslationManager):
         # TODO: this should not be settable.
         self._translation_manager = value
-
-    @property
-    def exists(self) -> bool:
-        """Does some data exist at the specified path."""
-        return os.path.exists(self.path)
 
     @staticmethod
     @abstractmethod
@@ -739,6 +735,11 @@ from contextvars import ContextVar
 _blind_call_init = ContextVar("_blind_call_init", default=True)
 
 
+class StorageType(IntEnum):
+    File = 0
+    Directory = 1
+
+
 class DiskFormatWrapper(BaseFormatWrapper[VersionNumberT]):
     """A FormatWrapper for a level with data entirely on the users disk."""
 
@@ -844,6 +845,21 @@ class DiskFormatWrapper(BaseFormatWrapper[VersionNumberT]):
         This code must not cause issues if it is already open.
         """
         raise NotImplementedError
+
+    @staticmethod
+    @abstractmethod
+    def storage_type() -> StorageType:
+        raise NotImplementedError
+
+    @property
+    def exists(self) -> bool:
+        """Does some data exist at the specified path."""
+        if self.storage_type() is StorageType.File:
+            return os.path.isfile(self.path)
+        elif self.storage_type() is StorageType.Directory:
+            return os.path.isdir(self.path)
+        else:
+            raise RuntimeError
 
 
 # Backwards compatibility

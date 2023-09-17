@@ -3,7 +3,7 @@ import os
 from typing import Any, Optional, TYPE_CHECKING
 
 from amulet import IMG_DIRECTORY
-from .format_wrapper import FormatWrapper, VersionNumberT
+from .format_wrapper import DiskFormatWrapper, VersionNumberT, StorageType
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
@@ -13,7 +13,7 @@ missing_world_icon = os.path.abspath(
 )
 
 
-class WorldFormatWrapper(FormatWrapper[VersionNumberT]):
+class WorldFormatWrapper(DiskFormatWrapper[VersionNumberT]):
     _missing_world_icon = missing_world_icon
 
     def __init__(self, path: str):
@@ -26,6 +26,10 @@ class WorldFormatWrapper(FormatWrapper[VersionNumberT]):
         """
         super().__init__(path)
         self._world_image_path = missing_world_icon
+
+    @staticmethod
+    def storage_type() -> StorageType:
+        return StorageType.Directory
 
     @property
     @abstractmethod

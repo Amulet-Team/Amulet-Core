@@ -2,14 +2,14 @@ from abc import abstractmethod
 from typing import BinaryIO, List, Any, Tuple, Iterable, Union, Optional, Dict
 import os
 
-from .format_wrapper import FormatWrapper, VersionNumberT
+from .format_wrapper import DiskFormatWrapper, VersionNumberT, StorageType
 from amulet.api.data_types import Dimension
 from amulet.api.errors import ObjectReadError, ObjectReadWriteError, PlayerDoesNotExist
 from amulet.api.player import Player
 from amulet.api.selection import SelectionGroup
 
 
-class StructureFormatWrapper(FormatWrapper[VersionNumberT]):
+class StructureFormatWrapper(DiskFormatWrapper[VersionNumberT]):
     """A base FormatWrapper for all structures that only have one dimension."""
 
     def __init__(self, path: str):
@@ -27,6 +27,10 @@ class StructureFormatWrapper(FormatWrapper[VersionNumberT]):
                 raise ObjectReadWriteError(
                     f"The given file does not have a valid file extension. Must be one of {self.extensions}"
                 )
+
+    @staticmethod
+    def storage_type() -> StorageType:
+        return StorageType.File
 
     @property
     def level_name(self) -> str:
