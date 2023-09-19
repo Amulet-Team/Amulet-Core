@@ -712,7 +712,9 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
 class CreatableFormatWrapper(ABC):
     @classmethod
     @abstractmethod
-    def create_and_open(cls, *args, **kwargs) -> Union[BaseFormatWrapper, CreatableFormatWrapper]:
+    def create_and_open(
+        cls, *args, **kwargs
+    ) -> Union[BaseFormatWrapper, CreatableFormatWrapper]:
         """
         Create a new instance without any existing data.
         This should only set instance attributes so that the level can be saved later.
@@ -744,7 +746,9 @@ class StorageType(IntEnum):
     Directory = 1
 
 
-class DiskFormatWrapper(BaseFormatWrapper[VersionNumberT], CreatableFormatWrapper, LoadableFormatWrapper):
+class DiskFormatWrapper(
+    BaseFormatWrapper[VersionNumberT], CreatableFormatWrapper, LoadableFormatWrapper
+):
     """A FormatWrapper for a level with data entirely on the users disk."""
 
     def __init__(self, path: str):
