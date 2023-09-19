@@ -98,8 +98,7 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             self._version = (1, 12, 2)
         self._chunks = {}
         self._set_selection(bounds)
-        self._is_open = True
-        self._has_lock = True
+        self._has_disk_data = False
 
     def open_from(self, f: BinaryIO):
         schematic = load_nbt(f).compound

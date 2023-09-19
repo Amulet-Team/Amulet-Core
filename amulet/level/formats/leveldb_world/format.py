@@ -505,8 +505,6 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         db = LevelDB(os.path.join(self.path, "db"), True)
         db.close()
 
-        self._reload_world()
-
     @property
     def has_lock(self) -> bool:
         if self._has_lock:

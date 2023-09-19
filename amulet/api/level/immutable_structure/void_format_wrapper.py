@@ -33,7 +33,7 @@ class VoidFormatWrapper(BaseFormatWrapper[VersionNumberTuple], CreatableFormatWr
         self._version = (0, 0, 0)
 
     @classmethod
-    def create_and_open(cls) -> BaseFormatWrapper:
+    def create(cls) -> BaseFormatWrapper:
         return cls()
 
     @property
@@ -70,16 +70,6 @@ class VoidFormatWrapper(BaseFormatWrapper[VersionNumberTuple], CreatableFormatWr
         chunk_palette: AnyNDArray,
     ) -> Any:
         raise Exception("If this is called something is wrong")
-
-    def _create(
-        self,
-        overwrite: bool,
-        bounds: Union[
-            SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
-        ] = None,
-        **kwargs
-    ):
-        pass
 
     def _open(self):
         pass

@@ -27,6 +27,9 @@ class StructureFormatWrapper(DiskFormatWrapper[VersionNumberT]):
                 raise ObjectReadWriteError(
                     f"The given file does not have a valid file extension. Must be one of {self.extensions}"
                 )
+        # Is there data on disk to accompany the class.
+        # False if created and not saved.
+        self._has_disk_data = True
 
     @staticmethod
     def storage_type() -> StorageType:
@@ -86,10 +89,12 @@ class StructureFormatWrapper(DiskFormatWrapper[VersionNumberT]):
         raise NotImplementedError
 
     def _open(self):
-        if not os.path.isfile(self._path):
-            raise ObjectReadError(f"There is no file to read at {self._path}")
-        with open(self._path, "rb") as f:
-            self.open_from(f)
+        if self._has_disk_data:
+            # Skip normal loading if it was created
+            if not os.path.isfile(self._path):
+                raise ObjectReadError(f"There is no file to read at {self._path}")
+            with open(self._path, "rb") as f:
+                self.open_from(f)
         self._is_open = True
         self._has_lock = True
 
@@ -106,6 +111,7 @@ class StructureFormatWrapper(DiskFormatWrapper[VersionNumberT]):
         os.makedirs(os.path.dirname(self._path), exist_ok=True)
         with open(self._path, "wb") as f:
             self.save_to(f)
+        self._has_disk_data = True
 
     def all_player_ids(self) -> Iterable[str]:
         yield from ()

@@ -457,7 +457,6 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
 
         os.makedirs(self.path, exist_ok=True)
         self.root_tag.save_to(os.path.join(self.path, "level.dat"))
-        self._reload_world()
 
     @property
     def has_lock(self) -> bool:

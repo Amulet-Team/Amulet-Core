@@ -96,8 +96,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
         self._version = translator_version.data_version
         self._chunks = {}
         self._set_selection(bounds)
-        self._is_open = True
-        self._has_lock = True
+        self._has_disk_data = False
 
     def open_from(self, f: BinaryIO):
         sponge_schem = load_nbt(f).compound
