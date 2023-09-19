@@ -94,26 +94,6 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
     def __del__(self):
         self.close()
 
-    @classmethod
-    @abstractmethod
-    def create_and_open(cls, *args, **kwargs) -> BaseFormatWrapper:
-        """
-        Create a new instance without any existing data.
-        This should only set instance attributes so that the level can be saved later.
-        If required, this method can save data to disk.
-        :return: A new FormatWrapper instance
-        """
-        raise NotImplementedError
-
-    @classmethod
-    @abstractmethod
-    def load(cls, *args, **kwargs) -> BaseFormatWrapper:
-        """
-        Create a new instance from existing data.
-        :return: A new FormatWrapper instance
-        """
-        raise NotImplementedError
-
     @property
     def sub_chunk_size(self) -> int:
         """
@@ -729,6 +709,30 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
         raise NotImplementedError
 
 
+class CreatableFormatWrapper(ABC):
+    @classmethod
+    @abstractmethod
+    def create_and_open(cls, *args, **kwargs) -> Union[BaseFormatWrapper, CreatableFormatWrapper]:
+        """
+        Create a new instance without any existing data.
+        This should only set instance attributes so that the level can be saved later.
+        If required, this method can save data to disk.
+        :return: A new FormatWrapper instance
+        """
+        raise NotImplementedError
+
+
+class LoadableFormatWrapper(ABC):
+    @classmethod
+    @abstractmethod
+    def load(cls, *args, **kwargs) -> Union[BaseFormatWrapper, LoadableFormatWrapper]:
+        """
+        Create a new instance from existing data.
+        :return: A new FormatWrapper instance
+        """
+        raise NotImplementedError
+
+
 # This can get removed when we know that nothing is blindly calling __init__
 from contextvars import ContextVar
 
@@ -740,7 +744,7 @@ class StorageType(IntEnum):
     Directory = 1
 
 
-class DiskFormatWrapper(BaseFormatWrapper[VersionNumberT]):
+class DiskFormatWrapper(BaseFormatWrapper[VersionNumberT], CreatableFormatWrapper, LoadableFormatWrapper):
     """A FormatWrapper for a level with data entirely on the users disk."""
 
     def __init__(self, path: str):

@@ -7,7 +7,7 @@ from amulet.api.data_types import (
     AnyNDArray,
     VersionNumberTuple,
 )
-from amulet.api.wrapper import BaseFormatWrapper
+from amulet.api.wrapper import BaseFormatWrapper, CreatableFormatWrapper
 from amulet.api.errors import ChunkDoesNotExist, PlayerDoesNotExist
 from amulet.api.player import Player
 from amulet.api.chunk import Chunk
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
 
 
-class VoidFormatWrapper(BaseFormatWrapper[VersionNumberTuple]):
+class VoidFormatWrapper(BaseFormatWrapper[VersionNumberTuple], CreatableFormatWrapper):
     """
     A custom :class:`FormatWrapper` class that has no associated data.
 
@@ -35,10 +35,6 @@ class VoidFormatWrapper(BaseFormatWrapper[VersionNumberTuple]):
     @classmethod
     def create_and_open(cls) -> BaseFormatWrapper:
         return cls()
-
-    @classmethod
-    def load(cls):
-        raise RuntimeError("VoidFormatWrapper cannot be loaded.")
 
     @property
     def level_name(self) -> str:
