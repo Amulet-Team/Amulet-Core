@@ -13,6 +13,7 @@ from amulet.level.formats.leveldb_world import LevelDBFormat
 from amulet.level.formats.construction import ConstructionFormatWrapper
 from amulet.level.formats.mcstructure import MCStructureFormatWrapper
 from amulet.level.formats.schematic import SchematicFormatWrapper
+from amulet.level.formats.sponge_schem import SpongeSchemFormatWrapper
 
 from data.util import clean_temp_world, clean_path
 
@@ -28,21 +29,26 @@ class CreateWorldTestCase(unittest.TestCase):
         path = clean_temp_world(level_name)
 
         # create, initialise and save the level
-        level = cls(path)
-        if level.requires_selection:
-            level.create_and_open(
-                platform,
-                version,
-                SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]),
+        if cls.requires_selection():
+            level = cls.create(
+                path=path,
+                platform=platform,
+                version=version,
+                bounds=SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]),
                 overwrite=True,
             )
         else:
-            level.create_and_open(platform, version, overwrite=True)
+            level = cls.create(
+                path=path, platform=platform, version=version, overwrite=True
+            )
 
-        self.assertTrue(level.is_open, "The level was not opened by create_and_open()")
-        self.assertTrue(
-            level.has_lock, "The lock was not acquired by create_and_open()"
-        )
+        self.assertFalse(level.is_open, "The level was opened by create.")
+        self.assertFalse(level.has_lock, "The level was locked by create.")
+
+        level.open()
+
+        self.assertTrue(level.is_open, "The level was not opened")
+        self.assertTrue(level.has_lock, "The lock was not acquired")
 
         platform_ = level.platform
         version_ = level.version
@@ -78,16 +84,16 @@ class CreateWorldTestCase(unittest.TestCase):
 
         self.assertTrue(os.path.exists(level.path))
 
-        level = cls(path)
         with self.assertRaises(ObjectWriteError):
-            if level.requires_selection:
-                level.create_and_open(
-                    platform,
-                    version,
-                    SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]),
+            if cls.requires_selection():
+                cls.create(
+                    path=path,
+                    platform=platform,
+                    version=version,
+                    bounds=SelectionGroup([SelectionBox((0, 0, 0), (1, 1, 1))]),
                 )
             else:
-                level.create_and_open(platform, version)
+                cls.create(path=path, platform=platform, version=version)
 
         clean_path(path)
 
@@ -141,6 +147,14 @@ class CreateWorldTestCase(unittest.TestCase):
             "bedrock.schematic",
             "bedrock",
             (1, 12, 0),
+        )
+
+    def test_sponge_schematic(self):
+        self._test_create(
+            SpongeSchemFormatWrapper,
+            "java.schem",
+            "java",
+            (1, 19, 0),
         )
 
 

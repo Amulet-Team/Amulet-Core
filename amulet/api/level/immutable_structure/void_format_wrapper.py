@@ -7,7 +7,7 @@ from amulet.api.data_types import (
     AnyNDArray,
     VersionNumberTuple,
 )
-from amulet.api.wrapper import FormatWrapper
+from amulet.api.wrapper import BaseFormatWrapper, CreatableFormatWrapper
 from amulet.api.errors import ChunkDoesNotExist, PlayerDoesNotExist
 from amulet.api.player import Player
 from amulet.api.chunk import Chunk
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
 
 
-class VoidFormatWrapper(FormatWrapper[VersionNumberTuple]):
+class VoidFormatWrapper(BaseFormatWrapper[VersionNumberTuple], CreatableFormatWrapper):
     """
     A custom :class:`FormatWrapper` class that has no associated data.
 
@@ -27,21 +27,25 @@ class VoidFormatWrapper(FormatWrapper[VersionNumberTuple]):
     All methods effectively do nothing.
     """
 
-    def __init__(self, path: str):
-        super().__init__(path)
+    def __init__(self):
+        super().__init__()
         self._platform = "Unknown Platform"
         self._version = (0, 0, 0)
+
+    @classmethod
+    def create(cls) -> BaseFormatWrapper:
+        return cls()
 
     @property
     def level_name(self) -> str:
         return "Void"
 
     @staticmethod
-    def is_valid(path: str) -> bool:
+    def is_valid(token) -> bool:
         return False
 
-    @property
-    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
+    @staticmethod
+    def valid_formats() -> Dict[PlatformType, Tuple[bool, bool]]:
         return {}
 
     @property
@@ -66,16 +70,6 @@ class VoidFormatWrapper(FormatWrapper[VersionNumberTuple]):
         chunk_palette: AnyNDArray,
     ) -> Any:
         raise Exception("If this is called something is wrong")
-
-    def _create(
-        self,
-        overwrite: bool,
-        bounds: Union[
-            SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
-        ] = None,
-        **kwargs
-    ):
-        pass
 
     def _open(self):
         pass

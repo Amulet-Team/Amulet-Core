@@ -177,7 +177,6 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
             self._root_tag = BedrockLevelDAT(path=dat_path, level_dat_version=9)
         self._db = None
         self._dimension_manager = None
-        self._shallow_load()
 
     def _shallow_load(self):
         try:
@@ -192,11 +191,15 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         self.root_tag = BedrockLevelDAT.from_file(os.path.join(self.path, "level.dat"))
 
     @staticmethod
-    def is_valid(path: str):
-        return check_all_exist(path, "db", "level.dat", "levelname.txt")
+    def is_valid(token):
+        return (
+            isinstance(token, str)
+            and os.path.isdir(token)
+            and check_all_exist(token, "db", "level.dat", "levelname.txt")
+        )
 
-    @property
-    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
+    @staticmethod
+    def valid_formats() -> Dict[PlatformType, Tuple[bool, bool]]:
         return {"bedrock": (True, True)}
 
     @property
@@ -501,8 +504,6 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
 
         db = LevelDB(os.path.join(self.path, "db"), True)
         db.close()
-
-        self._reload_world()
 
     @property
     def has_lock(self) -> bool:
