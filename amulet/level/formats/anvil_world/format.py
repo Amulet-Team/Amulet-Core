@@ -231,93 +231,108 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                 layers=("region",) + ("entities",) * (self.version >= 2681),
             )
             self._dimension_name_map[dimension_name] = relative_dimension_path
-            bounds = DefaultSelection
-            if self.version >= 2709:  # This number might be smaller
-                dimension_settings = (
-                    self.root_tag.compound.get_compound("Data", CompoundTag())
-                    .get_compound("WorldGenSettings", CompoundTag())
-                    .get_compound("dimensions", CompoundTag())
-                    .get_compound(dimension_name, CompoundTag())
-                )
-                dimension_tag = dimension_settings.get("type")
-                if isinstance(dimension_tag, StringTag):
-                    # the settings are in the data pack
-                    dimension_name = dimension_tag.py_str
-                    if ":" in dimension_name:
-                        namespace, base_name = dimension_name.split(":", 1)
-                        if (
-                            self.version >= 2834
-                            and namespace == "minecraft"
-                            and base_name == "overworld"
-                        ):
-                            bounds = SelectionGroup(
+            self._bounds[dimension_name] = self._get_dimenion_bounds(dimension_name)
+
+    def _get_dimenion_bounds(self, dimension_type_str: Dimension) -> SelectionGroup:
+        if self.version >= 2709:  # This number might be smaller
+            # If in a version that supports custom height data packs
+            dimension_settings = (
+                self.root_tag.compound.get_compound("Data", CompoundTag())
+                .get_compound("WorldGenSettings", CompoundTag())
+                .get_compound("dimensions", CompoundTag())
+                .get_compound(dimension_type_str, CompoundTag())
+            )
+
+            # "type" can be a reference (string) or inline (compound) dimension-type data.
+            dimension_type = dimension_settings.get("type")
+
+            if isinstance(dimension_type, StringTag):
+                # Reference type. Load the dimension data
+                dimension_type_str = dimension_type.py_str
+                if ":" in dimension_type_str:
+                    namespace, base_name = dimension_type_str.split(":", 1)
+                else:
+                    namespace = "minecraft"
+                    base_name = dimension_type_str
+                name_tuple = namespace, base_name
+
+                # First try and load the reference from the data pack and then from defaults
+                dimension_path = f"data/{namespace}/dimension_type/{base_name}.json"
+                if self.data_pack.has_file(dimension_path):
+                    with self.data_pack.open(dimension_path) as d:
+                        try:
+                            dimension_settings_json = json.load(d)
+                        except json.JSONDecodeError:
+                            pass
+                        else:
+                            if "min_y" in dimension_settings_json and isinstance(
+                                dimension_settings_json["min_y"], int
+                            ):
+                                min_y = dimension_settings_json["min_y"]
+                                if min_y % 16:
+                                    min_y = 16 * (min_y // 16)
+                            else:
+                                min_y = 0
+                            if "height" in dimension_settings_json and isinstance(
+                                dimension_settings_json["height"], int
+                            ):
+                                height = dimension_settings_json["height"]
+                                if height % 16:
+                                    height = -16 * (-height // 16)
+                            else:
+                                height = 256
+
+                            return SelectionGroup(
                                 SelectionBox(
-                                    (-30_000_000, -64, -30_000_000),
-                                    (30_000_000, 320, 30_000_000),
+                                    (-30_000_000, min_y, -30_000_000),
+                                    (30_000_000, min_y + height, 30_000_000),
                                 )
                             )
-                        dimension_path = (
-                            f"data/{namespace}/dimension_type/{base_name}.json"
-                        )
-                        if self.data_pack.has_file(dimension_path):
-                            with self.data_pack.open(dimension_path) as d:
-                                try:
-                                    dimension_settings_json = json.load(d)
-                                except json.JSONDecodeError:
-                                    pass
-                                else:
-                                    if (
-                                        "min_y" in dimension_settings_json
-                                        and isinstance(
-                                            dimension_settings_json["min_y"], int
-                                        )
-                                    ):
-                                        min_y = dimension_settings_json["min_y"]
-                                        if min_y % 16:
-                                            min_y = 16 * (min_y // 16)
-                                    else:
-                                        min_y = 0
-                                    if (
-                                        "height" in dimension_settings_json
-                                        and isinstance(
-                                            dimension_settings_json["height"], int
-                                        )
-                                    ):
-                                        height = dimension_settings_json["height"]
-                                        if height % 16:
-                                            height = -16 * (-height // 16)
-                                    else:
-                                        height = 256
 
-                                    bounds = SelectionGroup(
-                                        SelectionBox(
-                                            (-30_000_000, min_y, -30_000_000),
-                                            (30_000_000, min_y + height, 30_000_000),
-                                        )
-                                    )
-
-                elif isinstance(dimension_tag, CompoundTag):
-                    # the settings are here
-                    dimension_compound_tag = dimension_tag
-                    min_y = (
-                        dimension_compound_tag.get_int("min_y", IntTag()).py_int // 16
-                    ) * 16
-                    height = (
-                        -dimension_compound_tag.get_int("height", IntTag(256)).py_int
-                        // 16
-                    ) * -16
-                    bounds = SelectionGroup(
-                        SelectionBox(
-                            (-30_000_000, min_y, -30_000_000),
-                            (30_000_000, min_y + height, 30_000_000),
+                elif name_tuple in {
+                    ("minecraft", "overworld"),
+                    ("minecraft", "overworld_caves"),
+                }:
+                    if self.version >= 2825:
+                        # If newer than the height change version
+                        return SelectionGroup(
+                            SelectionBox(
+                                (-30_000_000, -64, -30_000_000),
+                                (30_000_000, 320, 30_000_000),
+                            )
                         )
-                    )
+                    else:
+                        return DefaultSelection
+                elif name_tuple in {
+                    ("minecraft", "the_nether"),
+                    ("minecraft", "the_end"),
+                }:
+                    return DefaultSelection
                 else:
-                    log.error(
-                        f"Expected dimension_tag to be a StringTag or CompoundTag. Got {repr(dimension_tag)} for dimension {dimension_name}"
-                    )
+                    log.error(f"Could not find dimension_type {':'.join(name_tuple)}")
 
-            self._bounds[dimension_name] = bounds
+            elif isinstance(dimension_type, CompoundTag):
+                # Inline type
+                dimension_type_compound = dimension_type
+                min_y = (
+                    dimension_type_compound.get_int("min_y", IntTag()).py_int // 16
+                ) * 16
+                height = (
+                    -dimension_type_compound.get_int("height", IntTag(256)).py_int // 16
+                ) * -16
+                return SelectionGroup(
+                    SelectionBox(
+                        (-30_000_000, min_y, -30_000_000),
+                        (30_000_000, min_y + height, 30_000_000),
+                    )
+                )
+            else:
+                log.error(
+                    f'level_dat["Data"]["WorldGenSettings"]["dimensions"]["{dimension_type_str}"]["type"] was not a StringTag or CompoundTag.'
+                )
+
+        # Return the default if nothing else returned
+        return DefaultSelection
 
     def _get_interface(self, raw_chunk_data: Optional[Any] = None) -> "Interface":
         from amulet.level.loader import Interfaces
@@ -405,9 +420,9 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         self._register_dimension("DIM-1", THE_NETHER)
         self._register_dimension("DIM1", THE_END)
 
-        for dir_name in os.listdir(self.path):
-            level_path = os.path.join(self.path, dir_name)
-            if os.path.isdir(level_path) and dir_name.startswith("DIM"):
+        for level_path in glob.glob(os.path.join(glob.escape(self.path), "DIM*")):
+            if os.path.isdir(level_path):
+                dir_name = os.path.basename(level_path)
                 if AnvilDimensionManager.level_regex.fullmatch(dir_name) is None:
                     continue
                 self._register_dimension(dir_name)
