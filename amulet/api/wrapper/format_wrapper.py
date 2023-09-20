@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 from abc import ABC, abstractmethod
 from typing import (
     Tuple,
@@ -21,6 +22,7 @@ import numpy
 import os
 import warnings
 import logging
+from enum import IntEnum
 
 import PyMCTranslate
 
@@ -37,6 +39,7 @@ from amulet.api.errors import (
     EntryLoadError,
     EntryDoesNotExist,
     DimensionDoesNotExist,
+    ObjectWriteError,
 )
 from amulet.api.data_types import (
     AnyNDArray,
@@ -93,26 +96,6 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
     def __del__(self):
         self.close()
 
-    @classmethod
-    @abstractmethod
-    def create_and_open(cls, *args, **kwargs) -> BaseFormatWrapper:
-        """
-        Create a new instance without any existing data.
-        This should only set instance attributes so that the level can be saved later.
-        If required, this method can save data to disk.
-        :return: A new FormatWrapper instance
-        """
-        raise NotImplementedError
-
-    @classmethod
-    @abstractmethod
-    def load(cls, *args, **kwargs) -> BaseFormatWrapper:
-        """
-        Create a new instance from existing data.
-        :return: A new FormatWrapper instance
-        """
-        raise NotImplementedError
-
     @property
     def sub_chunk_size(self) -> int:
         """
@@ -138,18 +121,13 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
         # TODO: this should not be settable.
         self._translation_manager = value
 
-    @property
-    def exists(self) -> bool:
-        """Does some data exist at the specified path."""
-        return os.path.exists(self.path)
-
     @staticmethod
     @abstractmethod
-    def is_valid(path: str) -> bool:
+    def is_valid(token) -> bool:
         """
         Returns whether this format wrapper is able to load the given data.
 
-        :param path: The path of the data to load.
+        :param token: The token to check. Usually a file or directory path.
         :return: True if the world can be loaded by this format wrapper, False otherwise.
         """
         raise NotImplementedError
@@ -160,7 +138,7 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
         """
         The valid platform and version combinations that this object can accept.
 
-        This is used when setting the platform and version in the create_and_open method
+        This is used when setting the platform and version in the create method
         to verify that the platform and version are valid.
 
         :return: A dictionary mapping the platform to a tuple of two booleans to determine if numerical and blockstate are valid respectively.
@@ -320,7 +298,7 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
         """
         if not self.is_open:
             raise ObjectReadWriteError(
-                f"The object {self} was never opened. Call .open or .create_and_open to open it before accessing data."
+                f"The object {self} was never opened. Call .open to open it before accessing data."
             )
         elif not self.has_lock:
             raise ObjectReadWriteError(
@@ -733,13 +711,46 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
         raise NotImplementedError
 
 
+class CreatableFormatWrapper(ABC):
+    @classmethod
+    @abstractmethod
+    def create(
+        cls, *args, **kwargs
+    ) -> Union[BaseFormatWrapper, CreatableFormatWrapper]:
+        """
+        Create a new instance without any existing data.
+        If writing data to disk it must write a valid level.
+        If only setting attributes, the open method must be aware that it should not load data from disk.
+        :return: A new FormatWrapper instance
+        """
+        raise NotImplementedError
+
+
+class LoadableFormatWrapper(ABC):
+    @classmethod
+    @abstractmethod
+    def load(cls, *args, **kwargs) -> Union[BaseFormatWrapper, LoadableFormatWrapper]:
+        """
+        Create a new instance from existing data.
+        :return: A new FormatWrapper instance
+        """
+        raise NotImplementedError
+
+
 # This can get removed when we know that nothing is blindly calling __init__
 from contextvars import ContextVar
 
 _blind_call_init = ContextVar("_blind_call_init", default=True)
 
 
-class DiskFormatWrapper(BaseFormatWrapper[VersionNumberT]):
+class StorageType(IntEnum):
+    File = 0
+    Directory = 1
+
+
+class DiskFormatWrapper(
+    BaseFormatWrapper[VersionNumberT], CreatableFormatWrapper, LoadableFormatWrapper
+):
     """A FormatWrapper for a level with data entirely on the users disk."""
 
     def __init__(self, path: str):
@@ -763,7 +774,7 @@ class DiskFormatWrapper(BaseFormatWrapper[VersionNumberT]):
         return self._path
 
     @classmethod
-    def create_and_open(
+    def create(
         cls,
         *,
         path: str,
@@ -777,6 +788,8 @@ class DiskFormatWrapper(BaseFormatWrapper[VersionNumberT]):
     ) -> DiskFormatWrapper:
         """
         Create a new instance without any existing data.
+        If writing data to disk it must write a valid level.
+        If only setting attributes, the open method must be aware that it should not load data from disk.
         :param path:
         :param platform: The platform the data should use.
         :param version: The version the data should use.
@@ -785,9 +798,12 @@ class DiskFormatWrapper(BaseFormatWrapper[VersionNumberT]):
         :param kwargs: Extra arguments as each implementation requires.
         :return: A new FormatWrapper instance
         """
+        # Run the constructor
         token = _blind_call_init.set(False)
         self = cls(path)
         _blind_call_init.reset(token)
+
+        # Validate the platform and version are valid
         if (
             platform not in self.valid_formats()
             or len(self.valid_formats()[platform]) < 2
@@ -807,6 +823,7 @@ class DiskFormatWrapper(BaseFormatWrapper[VersionNumberT]):
                     f"The version given ({version}) is from the blockstate format but this wrapper does not support the blockstate format."
                 )
 
+        # Set the platform and version and call the create implementation
         self._platform = translator_version.platform
         self._version = translator_version.version_number
         self._create(overwrite, bounds, **kwargs)
@@ -844,6 +861,21 @@ class DiskFormatWrapper(BaseFormatWrapper[VersionNumberT]):
         This code must not cause issues if it is already open.
         """
         raise NotImplementedError
+
+    @staticmethod
+    @abstractmethod
+    def storage_type() -> StorageType:
+        raise NotImplementedError
+
+    @property
+    def exists(self) -> bool:
+        """Does some data exist at the specified path."""
+        if self.storage_type() is StorageType.File:
+            return os.path.isfile(self.path)
+        elif self.storage_type() is StorageType.Directory:
+            return os.path.isdir(self.path)
+        else:
+            raise RuntimeError
 
 
 # Backwards compatibility

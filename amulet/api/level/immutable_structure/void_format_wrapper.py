@@ -7,7 +7,7 @@ from amulet.api.data_types import (
     AnyNDArray,
     VersionNumberTuple,
 )
-from amulet.api.wrapper import BaseFormatWrapper
+from amulet.api.wrapper import BaseFormatWrapper, CreatableFormatWrapper
 from amulet.api.errors import ChunkDoesNotExist, PlayerDoesNotExist
 from amulet.api.player import Player
 from amulet.api.chunk import Chunk
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from amulet.api.wrapper import Interface
 
 
-class VoidFormatWrapper(BaseFormatWrapper[VersionNumberTuple]):
+class VoidFormatWrapper(BaseFormatWrapper[VersionNumberTuple], CreatableFormatWrapper):
     """
     A custom :class:`FormatWrapper` class that has no associated data.
 
@@ -33,19 +33,15 @@ class VoidFormatWrapper(BaseFormatWrapper[VersionNumberTuple]):
         self._version = (0, 0, 0)
 
     @classmethod
-    def create_and_open(cls) -> BaseFormatWrapper:
+    def create(cls) -> BaseFormatWrapper:
         return cls()
-
-    @classmethod
-    def load(cls):
-        raise RuntimeError("VoidFormatWrapper cannot be loaded.")
 
     @property
     def level_name(self) -> str:
         return "Void"
 
     @staticmethod
-    def is_valid(path: str) -> bool:
+    def is_valid(token) -> bool:
         return False
 
     @staticmethod
@@ -74,16 +70,6 @@ class VoidFormatWrapper(BaseFormatWrapper[VersionNumberTuple]):
         chunk_palette: AnyNDArray,
     ) -> Any:
         raise Exception("If this is called something is wrong")
-
-    def _create(
-        self,
-        overwrite: bool,
-        bounds: Union[
-            SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
-        ] = None,
-        **kwargs
-    ):
-        pass
 
     def _open(self):
         pass

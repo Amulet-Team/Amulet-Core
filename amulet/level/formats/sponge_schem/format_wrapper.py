@@ -96,8 +96,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
         self._version = translator_version.data_version
         self._chunks = {}
         self._set_selection(bounds)
-        self._is_open = True
-        self._has_lock = True
+        self._has_disk_data = False
 
     def open_from(self, f: BinaryIO):
         sponge_schem = load_nbt(f).compound
@@ -287,11 +286,12 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             )
 
     @staticmethod
-    def is_valid(path: str) -> bool:
+    def is_valid(token) -> bool:
         return (
-            os.path.isfile(path)
-            and path.endswith((".schem", ".schematic"))
-            and _is_sponge(path)
+            isinstance(token, str)
+            and os.path.isfile(token)
+            and token.endswith((".schem", ".schematic"))
+            and _is_sponge(token)
         )
 
     @staticmethod

@@ -182,8 +182,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         self._chunk_to_box = {}
         self._set_selection(bounds)
         self._populate_chunk_to_box()
-        self._is_open = True
-        self._has_lock = True
+        self._has_disk_data = False
 
     def _populate_chunk_to_box(self):
         for box in self._bounds[self.dimensions[0]].selection_boxes:
@@ -317,8 +316,12 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         return True
 
     @staticmethod
-    def is_valid(path: str) -> bool:
-        return os.path.isfile(path) and path.endswith(".construction")
+    def is_valid(token) -> bool:
+        return (
+            isinstance(token, str)
+            and token.endswith(".construction")
+            and os.path.isfile(token)
+        )
 
     @staticmethod
     def valid_formats() -> Dict[PlatformType, Tuple[bool, bool]]:

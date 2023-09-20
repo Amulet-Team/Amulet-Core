@@ -78,8 +78,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         self._version = translator_version.version_number
         self._chunks = {}
         self._set_selection(bounds)
-        self._is_open = True
-        self._has_lock = True
+        self._has_disk_data = False
 
     def _shallow_load(self):
         pass
@@ -193,8 +192,12 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             )
 
     @staticmethod
-    def is_valid(path: str) -> bool:
-        return os.path.isfile(path) and path.endswith(".mcstructure")
+    def is_valid(token) -> bool:
+        return (
+            isinstance(token, str)
+            and token.endswith(".mcstructure")
+            and os.path.isfile(token)
+        )
 
     @staticmethod
     def valid_formats() -> Dict[PlatformType, Tuple[bool, bool]]:
