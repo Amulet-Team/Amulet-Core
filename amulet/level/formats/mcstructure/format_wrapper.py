@@ -78,10 +78,8 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         self._version = translator_version.version_number
         self._chunks = {}
         self._set_selection(bounds)
-        self._has_disk_data = False
-
-    def _shallow_load(self):
-        pass
+        self._is_open = True
+        self._has_lock = True
 
     def open_from(self, f: BinaryIO):
         mcstructure = load_nbt(
@@ -192,15 +190,11 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             )
 
     @staticmethod
-    def is_valid(token) -> bool:
-        return (
-            isinstance(token, str)
-            and token.endswith(".mcstructure")
-            and os.path.isfile(token)
-        )
+    def is_valid(path: str) -> bool:
+        return os.path.isfile(path) and path.endswith(".mcstructure")
 
-    @staticmethod
-    def valid_formats() -> Dict[PlatformType, Tuple[bool, bool]]:
+    @property
+    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
         return {"bedrock": (False, True)}
 
     @property

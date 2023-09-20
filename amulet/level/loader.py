@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import importlib
-from typing import AbstractSet, Any, Dict, Generic, TypeVar
+from typing import AbstractSet, Any, Dict
 import pkgutil
 import logging
 import inspect
@@ -9,14 +9,12 @@ import inspect
 from amulet.api.errors import LoaderNoneMatched
 from amulet.api.wrapper import FormatWrapper, Interface, Translator
 
-T = TypeVar("T")
-
 log = logging.getLogger(__name__)
 
 ParentPackage = ".".join(__name__.split(".")[:-1])
 
 
-class Loader(Generic[T]):
+class Loader:
     def __init__(
         self,
         base_class,
@@ -26,7 +24,7 @@ class Loader(Generic[T]):
     ):
         self._base_class = base_class
         self._object_type = object_type
-        self._objects: Dict[str, T] = {}
+        self._objects: Dict[str, Any] = {}
         self._create_instance = create_instance
         self._recursive_find(package_name)
 
@@ -54,7 +52,7 @@ class Loader(Generic[T]):
         """
         return self._objects.keys()
 
-    def get(self, identifier: Any) -> T:
+    def get(self, identifier: Any) -> Any:
         """
         Given an ``identifier`` will find a valid class and return it
 
@@ -84,11 +82,9 @@ class Loader(Generic[T]):
             print(obj_name, obj)
 
 
-Translators = Loader[Translator](
-    Translator, "translator", f"{ParentPackage}.translators"
-)
-Interfaces = Loader[Interface](Interface, "interface", f"{ParentPackage}.interfaces")
-Formats = Loader[FormatWrapper](
+Translators = Loader(Translator, "translator", f"{ParentPackage}.translators")
+Interfaces = Loader(Interface, "interface", f"{ParentPackage}.interfaces")
+Formats = Loader(
     FormatWrapper, "format", f"{ParentPackage}.formats", create_instance=False
 )
 

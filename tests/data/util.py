@@ -6,14 +6,10 @@ from typing import Optional, Iterable
 from contextlib import contextmanager
 import re
 import json
-from tempfile import TemporaryDirectory
-import atexit
 
 import data
 
 DATA_DIR = os.path.realpath(data.__path__[0])
-TEMP_DIR = TemporaryDirectory()
-atexit.register(TEMP_DIR.cleanup)
 
 
 def get_world_path(name: str) -> str:
@@ -21,7 +17,7 @@ def get_world_path(name: str) -> str:
 
 
 def get_temp_world_path(name: str) -> str:
-    return os.path.join(TEMP_DIR.name, name)
+    return os.path.join(DATA_DIR, "worlds_temp", name)
 
 
 def get_data_path(name: str) -> str:

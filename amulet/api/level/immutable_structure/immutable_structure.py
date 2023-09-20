@@ -29,7 +29,7 @@ class ImmutableStructure(BaseLevel):
 
         To extract a section of a world you should use :meth:`~amulet.api.level.BaseLevel.extract_structure`.
         """
-        super().__init__("", VoidFormatWrapper.create())
+        super().__init__("", VoidFormatWrapper(""))
         self._selection = SelectionGroup(
             [
                 SelectionBox(

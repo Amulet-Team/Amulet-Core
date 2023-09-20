@@ -78,9 +78,6 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             SchematicChunk,
         ] = {}
 
-    def _shallow_load(self):
-        pass
-
     def _create(
         self,
         overwrite: bool,
@@ -98,7 +95,8 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             self._version = (1, 12, 2)
         self._chunks = {}
         self._set_selection(bounds)
-        self._has_disk_data = False
+        self._is_open = True
+        self._has_lock = True
 
     def open_from(self, f: BinaryIO):
         schematic = load_nbt(f).compound
@@ -180,16 +178,13 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                         self._chunks[(cx, cz)].entities.append(e)
 
     @staticmethod
-    def is_valid(token) -> bool:
+    def is_valid(path: str) -> bool:
         return (
-            isinstance(token, str)
-            and os.path.isfile(token)
-            and token.endswith(".schematic")
-            and _is_schematic(token)
+            os.path.isfile(path) and path.endswith(".schematic") and _is_schematic(path)
         )
 
-    @staticmethod
-    def valid_formats() -> Dict[PlatformType, Tuple[bool, bool]]:
+    @property
+    def valid_formats(self) -> Dict[PlatformType, Tuple[bool, bool]]:
         return {"java": (True, True), "bedrock": (True, True)}
 
     @property

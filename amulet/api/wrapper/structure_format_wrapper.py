@@ -2,14 +2,14 @@ from abc import abstractmethod
 from typing import BinaryIO, List, Any, Tuple, Iterable, Union, Optional, Dict
 import os
 
-from .format_wrapper import DiskFormatWrapper, VersionNumberT, StorageType
+from .format_wrapper import FormatWrapper, VersionNumberT
 from amulet.api.data_types import Dimension
 from amulet.api.errors import ObjectReadError, ObjectReadWriteError, PlayerDoesNotExist
 from amulet.api.player import Player
 from amulet.api.selection import SelectionGroup
 
 
-class StructureFormatWrapper(DiskFormatWrapper[VersionNumberT]):
+class StructureFormatWrapper(FormatWrapper[VersionNumberT]):
     """A base FormatWrapper for all structures that only have one dimension."""
 
     def __init__(self, path: str):
@@ -27,13 +27,6 @@ class StructureFormatWrapper(DiskFormatWrapper[VersionNumberT]):
                 raise ObjectReadWriteError(
                     f"The given file does not have a valid file extension. Must be one of {self.extensions}"
                 )
-        # Is there data on disk to accompany the class.
-        # False if created and not saved.
-        self._has_disk_data = True
-
-    @staticmethod
-    def storage_type() -> StorageType:
-        return StorageType.File
 
     @property
     def level_name(self) -> str:
@@ -50,8 +43,8 @@ class StructureFormatWrapper(DiskFormatWrapper[VersionNumberT]):
     def register_dimension(self, dimension_identifier: Any):
         pass
 
-    @staticmethod
-    def requires_selection() -> bool:
+    @property
+    def requires_selection(self) -> bool:
         return True
 
     @property
@@ -89,12 +82,10 @@ class StructureFormatWrapper(DiskFormatWrapper[VersionNumberT]):
         raise NotImplementedError
 
     def _open(self):
-        if self._has_disk_data:
-            # Skip normal loading if it was created
-            if not os.path.isfile(self._path):
-                raise ObjectReadError(f"There is no file to read at {self._path}")
-            with open(self._path, "rb") as f:
-                self.open_from(f)
+        if not os.path.isfile(self._path):
+            raise ObjectReadError(f"There is no file to read at {self._path}")
+        with open(self._path, "rb") as f:
+            self.open_from(f)
         self._is_open = True
         self._has_lock = True
 
@@ -111,7 +102,6 @@ class StructureFormatWrapper(DiskFormatWrapper[VersionNumberT]):
         os.makedirs(os.path.dirname(self._path), exist_ok=True)
         with open(self._path, "wb") as f:
             self.save_to(f)
-        self._has_disk_data = True
 
     def all_player_ids(self) -> Iterable[str]:
         yield from ()

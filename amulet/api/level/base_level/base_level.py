@@ -48,20 +48,19 @@ class BaseLevel:
     It exposes chunk data and other data using a history system to track and enable undoing changes.
     """
 
-    def __init__(self, path: str, format_wrapper: api_wrapper.BaseFormatWrapper):
+    def __init__(self, path: str, format_wrapper: api_wrapper.FormatWrapper):
         """
         Construct a :class:`BaseLevel` object from the given data.
 
         This should not be used directly. You should instead use :func:`amulet.load_level`.
 
         :param path: The path to the data being loaded. May be a file or directory. If blank there is no data on disk associated with this.
-        :param format_wrapper: The :class:`BaseFormatWrapper` instance that the level will wrap around.
+        :param format_wrapper: The :class:`FormatWrapper` instance that the level will wrap around.
         """
         self._path = path
 
         self._level_wrapper = format_wrapper
-        if not self.level_wrapper.is_open:
-            self.level_wrapper.open()
+        self.level_wrapper.open()
 
         self._block_palette = BlockManager()
         self._block_palette.get_add_block(
@@ -87,7 +86,7 @@ class BaseLevel:
         self.close()
 
     @property
-    def level_wrapper(self) -> api_wrapper.BaseFormatWrapper:
+    def level_wrapper(self) -> api_wrapper.FormatWrapper:
         """A class to access data directly from the level."""
         return self._level_wrapper
 
@@ -413,11 +412,11 @@ class BaseLevel:
 
     def save(
         self,
-        wrapper: api_wrapper.BaseFormatWrapper = None,
+        wrapper: api_wrapper.FormatWrapper = None,
         progress_callback: Callable[[int, int], None] = None,
     ):
         """
-        Save the level to the given :class:`BaseFormatWrapper`.
+        Save the level to the given :class:`FormatWrapper`.
 
         :param wrapper: If specified will save the data to this wrapper instead of self.level_wrapper
         :param progress_callback: Optional progress callback to let the calling program know the progress. Input format chunk_index, chunk_count
@@ -428,10 +427,10 @@ class BaseLevel:
                 progress_callback(chunk_index, chunk_count)
 
     def save_iter(
-        self, wrapper: api_wrapper.BaseFormatWrapper = None
+        self, wrapper: api_wrapper.FormatWrapper = None
     ) -> Generator[Tuple[int, int], None, None]:
         """
-        Save the level to the given :class:`BaseFormatWrapper`.
+        Save the level to the given :class:`FormatWrapper`.
 
         This will yield the progress which can be used to update a UI.
 
@@ -455,7 +454,9 @@ class BaseLevel:
         if save_as:
             # The input wrapper is not the same as the loading wrapper (save-as)
             # iterate through every chunk in the input level and save them to the wrapper
-            log.info(f"Converting level {self.level_wrapper} to level {wrapper}")
+            log.info(
+                f"Converting level {self.level_wrapper.path} to level {wrapper.path}"
+            )
             wrapper.translation_manager = (
                 self.level_wrapper.translation_manager
             )  # TODO: this might cause issues in the future
@@ -502,9 +503,9 @@ class BaseLevel:
                 wrapper.unload()
 
         self.history_manager.mark_saved()
-        log.info(f"Saving changes to level {wrapper}")
+        log.info(f"Saving changes to level {wrapper.path}")
         wrapper.save()
-        log.info(f"Finished saving changes to level {wrapper}")
+        log.info(f"Finished saving changes to level {wrapper.path}")
 
     def purge(self):
         """
