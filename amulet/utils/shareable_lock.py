@@ -7,6 +7,7 @@ import logging
 
 class LockError(RuntimeError):
     """An exception raised if the lock failed."""
+
     pass
 
 
@@ -33,7 +34,9 @@ class ShareableRLock:
         self._unique_count = 0
         self._shared_threads: dict[int, int] = {}
 
-    def _wait(self, condition: Callable[[], bool], blocking: bool = True, timeout: float = -1) -> bool:
+    def _wait(
+        self, condition: Callable[[], bool], blocking: bool = True, timeout: float = -1
+    ) -> bool:
         """
         Wait until a condition is False.
         Return True when successfully finished waiting.
@@ -76,7 +79,12 @@ class ShareableRLock:
         """
         with self._state_lock:
             ident = get_ident()
-            if ident in self._shared_threads and self._unique_waiting_blocking_threads.intersection(self._shared_threads):
+            if (
+                ident in self._shared_threads
+                and self._unique_waiting_blocking_threads.intersection(
+                    self._shared_threads
+                )
+            ):
                 # This thread has acquired the lock in shared mode
                 # At least one other thread has acquired the lock in shared mode and is also waiting for unique mode.
                 # If they both block indefinitely then neither will complete
@@ -86,9 +94,10 @@ class ShareableRLock:
                 # If it could block forever, add to this set
                 self._unique_waiting_blocking_threads.add(ident)
             locked = self._wait(
-                lambda: self._unique_thread not in (None, ident) or self._shared_threads.keys() not in (set(), {ident}),
+                lambda: self._unique_thread not in (None, ident)
+                or self._shared_threads.keys() not in (set(), {ident}),
                 blocking,
-                timeout
+                timeout,
             )
             self._unique_waiting_count -= 1
             self._unique_waiting_blocking_threads.discard(ident)
@@ -130,18 +139,17 @@ class ShareableRLock:
             def condition():
                 return (
                     # Is it locked in unique mode by another thread
-                    self._unique_thread is not None and self._unique_thread != ident
+                    self._unique_thread is not None
+                    and self._unique_thread != ident
                 ) or (
                     # Has a thread requested unique access and this thread has not yet acquired in shared mode.
                     # Without this, new threads could join in shared mode thus indefinitely blocking unique calls
-                        self._unique_waiting_count and self._shared_threads and ident not in self._shared_threads
+                    self._unique_waiting_count
+                    and self._shared_threads
+                    and ident not in self._shared_threads
                 )
 
-            if not self._wait(
-                condition,
-                blocking,
-                timeout
-            ):
+            if not self._wait(condition, blocking, timeout):
                 return False
             # Not unique locked or unique locked by the current thread
             self._shared_threads.setdefault(ident, 0)
@@ -165,7 +173,7 @@ class ShareableRLock:
                 self._state_condition.notify_all()
 
     @contextmanager
-    def unique(self, blocking: bool = True, timeout: float = -1) -> bool:
+    def unique(self, blocking: bool = True, timeout: float = -1):
         """
         Acquire the lock in unique mode.
         This is used as follows
@@ -192,7 +200,7 @@ class ShareableRLock:
             self.release_unique()
 
     @contextmanager
-    def shared(self, blocking: bool = True, timeout: float = -1) -> bool:
+    def shared(self, blocking: bool = True, timeout: float = -1):
         """
         Acquire the lock in shared mode.
         This is used as follows

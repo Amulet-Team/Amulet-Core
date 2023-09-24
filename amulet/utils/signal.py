@@ -10,11 +10,18 @@ if TYPE_CHECKING:
     import PySide6.QtCore  # noqa
 
     class SignalInstance(Protocol):
-        def connect(self, slot: Union[Callable, SignalInstance], type: Union[None, PySide6.QtCore.Qt.ConnectionType] = ...): ...
+        def connect(
+            self,
+            slot: Union[Callable, SignalInstance],
+            type: Union[None, PySide6.QtCore.Qt.ConnectionType] = ...,
+        ):
+            ...
 
-        def disconnect(self, slot: Optional[Union[Callable, SignalInstance]] = None): ...
+        def disconnect(self, slot: Optional[Union[Callable, SignalInstance]] = None):
+            ...
 
-        def emit(self, *args: Any): ...
+        def emit(self, *args: Any):
+            ...
 
 
 _signal_instance_constructor: Optional[SignalInstanceConstructor] = None
@@ -24,7 +31,9 @@ SignalInstanceCacheName = "_SignalCache"
 
 
 class Signal:
-    def __init__(self, *types: type, name: Optional[str] = "", arguments: Optional[str] = ()):
+    def __init__(
+        self, *types: type, name: Optional[str] = "", arguments: Optional[str] = ()
+    ):
         self._types = types
         self._name = name
         self._arguments = arguments
@@ -47,14 +56,16 @@ class Signal:
             setattr(instance, SignalInstanceCacheName, signal_instances)
         if self not in signal_instances:
             if _signal_instance_constructor is None:
-                set_signal_instance_constructor(get_fallback_signal_instance_constructor())
+                set_signal_instance_constructor(
+                    get_fallback_signal_instance_constructor()
+                )
             signal_instances[self] = _signal_instance_constructor(
                 types=self._types,
                 name=self._name,
                 arguments=self._arguments,
                 signal=self,
                 instance=instance,
-                owner=owner
+                owner=owner,
             )
         return signal_instances[self]
 
@@ -68,7 +79,7 @@ class SignalInstanceConstructor(Protocol):
         arguments: Optional[str],
         signal: Signal,
         instance: Any,
-        owner: Any
+        owner: Any,
     ) -> SignalInstance:
         ...
 
@@ -82,16 +93,11 @@ def set_signal_instance_constructor(constructor: SignalInstanceConstructor):
 
 def get_fallback_signal_instance_constructor() -> SignalInstanceConstructor:
     class FallbackSignalInstance:
-        def __init__(
-            self,
-            *types: type
-        ):
+        def __init__(self, *types: type):
             self._types = types
-            self._callbacks: set[Union[
-                Callable,
-                WeakMethod,
-                FallbackSignalInstance
-            ]] = set()
+            self._callbacks: set[
+                Union[Callable, WeakMethod, FallbackSignalInstance]
+            ] = set()
 
         @staticmethod
         def _wrap_slot(slot: Union[Callable, FallbackSignalInstance]):
@@ -114,7 +120,9 @@ def get_fallback_signal_instance_constructor() -> SignalInstanceConstructor:
 
         def emit(self, *args: Any):
             if len(args) != len(self._types):
-                raise TypeError(f"SignalInstance{self._types}.emit expected {len(self._types)} argument(s), {len(args)} given.")
+                raise TypeError(
+                    f"SignalInstance{self._types}.emit expected {len(self._types)} argument(s), {len(args)} given."
+                )
             for slot in self._callbacks:
                 try:
                     if isinstance(slot, FallbackSignalInstance):
@@ -135,7 +143,7 @@ def get_fallback_signal_instance_constructor() -> SignalInstanceConstructor:
         arguments: Optional[str],
         signal: Signal,
         instance: Any,
-        owner: Any
+        owner: Any,
     ) -> FallbackSignalInstance:
         return FallbackSignalInstance(*types)
 
@@ -144,7 +152,11 @@ def get_fallback_signal_instance_constructor() -> SignalInstanceConstructor:
 
 def get_pyside6_signal_instance_constructor() -> SignalInstanceConstructor:
     try:
-        from PySide6.QtCore import QObject, Signal as PySide6_Signal, SignalInstance as PySide6_SignalInstance
+        from PySide6.QtCore import (
+            QObject,
+            Signal as PySide6_Signal,
+            SignalInstance as PySide6_SignalInstance,
+        )
     except ImportError as e:
         raise ImportError("Could not import PySide6") from e
 
@@ -157,10 +169,12 @@ def get_pyside6_signal_instance_constructor() -> SignalInstanceConstructor:
         arguments: Optional[str],
         signal: Signal,
         instance: Any,
-        owner: Any
+        owner: Any,
     ) -> PySide6_SignalInstance:
         if isinstance(instance, QObject):
-            return PySide6_Signal(*types, name=name, arguments=arguments).__get__(instance, QObject)
+            return PySide6_Signal(*types, name=name, arguments=arguments).__get__(
+                instance, QObject
+            )
         else:
             try:
                 obj = getattr(instance, QObjectCacheName)
@@ -169,6 +183,8 @@ def get_pyside6_signal_instance_constructor() -> SignalInstanceConstructor:
                 setattr(instance, QObjectCacheName, obj)
             if not isinstance(obj, QObject):
                 raise RuntimeError
-            return PySide6_Signal(*types, name=name, arguments=arguments).__get__(obj, QObject)
+            return PySide6_Signal(*types, name=name, arguments=arguments).__get__(
+                obj, QObject
+            )
 
     return pyside6_signal_instance_constructor
