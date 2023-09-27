@@ -8,7 +8,6 @@ from typing import (
     List,
     TYPE_CHECKING,
     Tuple,
-    Union,
 )
 from threading import RLock
 import logging
@@ -25,21 +24,17 @@ from amulet_nbt import (
     utf8_escape_encoder,
 )
 
-from amulet.api.errors import ChunkDoesNotExist, DimensionDoesNotExist
+from amulet.api.errors import ChunkDoesNotExist
 from amulet.api.data_types import ChunkCoordinates
 from leveldb import LevelDB
 from .chunk import ChunkData
 
 if TYPE_CHECKING:
-    from amulet.api.data_types import Dimension
     from .format import LevelDBFormat
 
 log = logging.getLogger(__name__)
 
 InternalDimension = Optional[int]
-OVERWORLD = "minecraft:overworld"
-THE_NETHER = "minecraft:the_nether"
-THE_END = "minecraft:the_end"
 
 
 class ActorCounter:
@@ -102,12 +97,11 @@ class LevelDBDimensionManager:
         self._actor_counter = ActorCounter.from_level(level)
         # self._levels format Dict[level, Dict[Tuple[cx, cz], List[Tuple[full_key, key_extension]]]]
         self._levels: Dict[InternalDimension, Set[ChunkCoordinates]] = {}
-        self._dimension_name_map: Dict["Dimension", InternalDimension] = {}
         self._lock = RLock()
 
-        self.register_dimension(None, OVERWORLD)
-        self.register_dimension(1, THE_NETHER)
-        self.register_dimension(2, THE_END)
+        self.register_dimension(None)  # overworld
+        self.register_dimension(1)  # the nether
+        self.register_dimension(2)  # the end
 
         for key in self._db.keys():
             if 9 <= len(key) <= 10 and key[8] in [44, 118]:  # "," "v"
@@ -117,63 +111,36 @@ class LevelDBDimensionManager:
                 self._add_chunk(key, has_level=True)
 
     @property
-    def dimensions(self) -> List["Dimension"]:
+    def dimensions(self) -> List[InternalDimension]:
         """A list of all the levels contained in the world"""
-        return list(self._dimension_name_map.keys())
+        return list(self._levels)
 
-    def register_dimension(
-        self,
-        dimension_internal: InternalDimension,
-        dimension_name: Optional["Dimension"] = None,
-    ):
+    def register_dimension(self, dimension: InternalDimension):
         """
         Register a new dimension.
 
-        :param dimension_internal: The internal representation of the dimension
-        :param dimension_name: The name of the dimension shown to the user
+        :param dimension: The internal representation of the dimension
         :return:
         """
-        if dimension_name is None:
-            dimension_name: "Dimension" = f"DIM{dimension_internal}"
-
         with self._lock:
-            if (
-                dimension_internal not in self._levels
-                and dimension_name not in self._dimension_name_map
-            ):
-                self._levels[dimension_internal] = set()
-                self._dimension_name_map[dimension_name] = dimension_internal
+            if dimension not in self._levels:
+                self._levels[dimension] = set()
 
-    def _get_internal_dimension(self, dimension: "Dimension") -> InternalDimension:
-        if dimension in self._dimension_name_map:
-            return self._dimension_name_map[dimension]
-        else:
-            raise DimensionDoesNotExist(dimension)
-
-    def all_chunk_coords(self, dimension: "Dimension") -> Set[ChunkCoordinates]:
-        internal_dimension = self._get_internal_dimension(dimension)
-        if internal_dimension in self._levels:
-            return self._levels[internal_dimension]
+    def all_chunk_coords(self, dimension: InternalDimension) -> Set[ChunkCoordinates]:
+        if dimension in self._levels:
+            return self._levels[dimension]
         else:
             return set()
 
     @staticmethod
-    def _get_key(cx: int, cz: int, internal_dimension: InternalDimension) -> bytes:
-        if internal_dimension is None:
+    def _get_key(cx: int, cz: int, dimension: InternalDimension) -> bytes:
+        if dimension is None:
             return struct.pack("<ii", cx, cz)
         else:
-            return struct.pack("<iii", cx, cz, internal_dimension)
+            return struct.pack("<iii", cx, cz, dimension)
 
-    def _has_chunk(
-        self, cx: int, cz: int, internal_dimension: InternalDimension
-    ) -> bool:
-        return (
-            internal_dimension in self._levels
-            and (cx, cz) in self._levels[internal_dimension]
-        )
-
-    def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
-        return self._has_chunk(cx, cz, self._get_internal_dimension(dimension))
+    def has_chunk(self, cx: int, cz: int, dimension: InternalDimension) -> bool:
+        return dimension in self._levels and (cx, cz) in self._levels[dimension]
 
     def _add_chunk(self, key_: bytes, has_level: bool = False):
         if has_level:
@@ -185,14 +152,15 @@ class LevelDBDimensionManager:
             self.register_dimension(level)
         self._levels[level].add((cx, cz))
 
-    def get_chunk_data(self, cx: int, cz: int, dimension: "Dimension") -> ChunkData:
+    def get_chunk_data(
+        self, cx: int, cz: int, dimension: InternalDimension
+    ) -> ChunkData:
         """Get a dictionary of chunk key extension in bytes to the raw data in the key.
         chunk key extension are the character(s) after <cx><cz>[level] in the key
         Will raise ChunkDoesNotExist if the chunk does not exist
         """
-        internal_dimension = self._get_internal_dimension(dimension)
-        if self._has_chunk(cx, cz, internal_dimension):
-            prefix = self._get_key(cx, cz, internal_dimension)
+        if self.has_chunk(cx, cz, dimension):
+            prefix = self._get_key(cx, cz, dimension)
             prefix_len = len(prefix)
             iter_end = prefix + b"\xff\xff\xff\xff"
 
@@ -288,13 +256,12 @@ class LevelDBDimensionManager:
         cx: int,
         cz: int,
         chunk_data: ChunkData,
-        dimension: "Dimension",
+        dimension: InternalDimension,
     ):
         """pass data to the region file class"""
         # get the region key
-        internal_dimension = self._get_internal_dimension(dimension)
-        self._levels[internal_dimension].add((cx, cz))
-        key_prefix = self._get_key(cx, cz, internal_dimension)
+        self._levels[dimension].add((cx, cz))
+        key_prefix = self._get_key(cx, cz, dimension)
 
         batch = {}
 
@@ -388,15 +355,14 @@ class LevelDBDimensionManager:
         if batch:
             self._db.putBatch(batch)
 
-    def delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
-        if dimension not in self._dimension_name_map:
+    def delete_chunk(self, cx: int, cz: int, dimension: InternalDimension):
+        if dimension not in self._levels:
             return  # dimension does not exists so chunk cannot
 
-        internal_dimension = self._dimension_name_map[dimension]
-        if not self._has_chunk(cx, cz, internal_dimension):
+        if not self.has_chunk(cx, cz, dimension):
             return  # chunk does not exists
 
-        prefix = self._get_key(cx, cz, internal_dimension)
+        prefix = self._get_key(cx, cz, dimension)
         prefix_len = len(prefix)
         iter_end = prefix + b"\xff\xff\xff\xff"
         keys = []
@@ -414,6 +380,6 @@ class LevelDBDimensionManager:
                 actor_key = b"actorprefix" + digp[i : i + 8]
                 self._db.delete(actor_key)
 
-        self._levels[internal_dimension].remove((cx, cz))
+        self._levels[dimension].remove((cx, cz))
         for key in keys:
             self._db.delete(key)
