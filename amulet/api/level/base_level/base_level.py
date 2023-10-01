@@ -769,11 +769,19 @@ class BaseLevel:
         chunk = self.get_chunk(cx, cz, dimension)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
 
-        output, extra_output, _ = self.translation_manager.get_version(
-            *version
-        ).block.from_universal(
-            chunk.get_block(offset_x, y, offset_z), chunk.block_entities.get((x, y, z))
+        translator = self.translation_manager.get_version(*version).block
+
+        src_blocks = chunk.get_block(offset_x, y, offset_z).block_tuple
+        src_block_entity = chunk.block_entities.get((x, y, z))
+
+        output, extra_output, _ = translator.from_universal(
+            src_blocks[0], src_block_entity
         )
+        if isinstance(output, Block):
+            for src_block in src_blocks[1:]:
+                converted_sub_block = translator.from_universal(src_block)[0]
+                if isinstance(converted_sub_block, Block):
+                    output += converted_sub_block
         return output, extra_output
 
     def set_version_block(
@@ -811,13 +819,14 @@ class BaseLevel:
             chunk = self.create_chunk(cx, cz, dimension)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
 
-        (
-            universal_block,
-            universal_block_entity,
-            _,
-        ) = self.translation_manager.get_version(*version).block.to_universal(
-            block, block_entity
+        translator = self.translation_manager.get_version(*version).block
+        src_blocks = block.block_tuple
+
+        universal_block, universal_block_entity, _ = translator.to_universal(
+            src_blocks[0], block_entity
         )
+        for src_block in src_blocks[1:]:
+            universal_block += translator.to_universal(src_block)[0]
         chunk.set_block(offset_x, y, offset_z, universal_block),
         if isinstance(universal_block_entity, BlockEntity):
             chunk.block_entities[(x, y, z)] = universal_block_entity

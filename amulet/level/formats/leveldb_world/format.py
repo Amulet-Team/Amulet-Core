@@ -38,22 +38,23 @@ from amulet.api.data_types import (
     Dimension,
     AnyNDArray,
 )
-from amulet.api.wrapper import WorldFormatWrapper
-from amulet.api.errors import ObjectWriteError, ObjectReadError, PlayerDoesNotExist
+from amulet.api.wrapper import WorldFormatWrapper, DefaultSelection
+from amulet.api.errors import (
+    ObjectWriteError,
+    ObjectReadError,
+    PlayerDoesNotExist,
+    ChunkDoesNotExist,
+)
 
 from .interface.chunk.leveldb_chunk_versions import (
     game_to_chunk_version,
 )
-from .dimension import (
-    LevelDBDimensionManager,
-    ChunkData,
-    OVERWORLD,
-    THE_NETHER,
-    THE_END,
-)
+from .dimension import LevelDBDimensionManager, ChunkData, InternalDimension
 from .interface.chunk import BaseLevelDBInterface, get_interface
 
-InternalDimension = Optional[int]
+OVERWORLD = "minecraft:overworld"
+THE_NETHER = "minecraft:the_nether"
+THE_END = "minecraft:the_end"
 
 
 class BedrockLevelDAT(NamedTag):
@@ -177,6 +178,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
             self._root_tag = BedrockLevelDAT(path=dat_path, level_dat_version=9)
         self._db = None
         self._dimension_manager = None
+        self._dimension_to_internal: dict[Dimension, InternalDimension] = {}
 
     def _shallow_load(self):
         try:
@@ -263,12 +265,12 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
             return f"Bedrock Unknown Version"
 
     @property
-    def dimensions(self) -> List["Dimension"]:
+    def dimensions(self) -> List[Dimension]:
         self._verify_has_lock()
-        return self._dimension_manager.dimensions
+        return list(self._dimension_to_internal)
 
     # def register_dimension(
-    #     self, dimension_internal: int, dimension_name: Optional["Dimension"] = None
+    #     self, dimension_internal: int, dimension_name: Optional[Dimension] = None
     # ):
     #     """
     #     Register a new dimension.
@@ -351,6 +353,12 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
             self._dimension_manager = LevelDBDimensionManager(self)
             self._is_open = True
             self._has_lock = True
+
+            self._dimension_to_internal.clear()
+            self._dimension_to_internal[OVERWORLD] = None
+            self._dimension_to_internal[THE_NETHER] = 1
+            self._dimension_to_internal[THE_END] = 2
+
             experiments = self.root_tag.compound.get_compound(
                 "experiments", CompoundTag()
             )
@@ -365,21 +373,14 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
                     )
                 )
             else:
-                self._bounds[OVERWORLD] = SelectionGroup(
-                    SelectionBox(
-                        (-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000)
-                    )
-                )
+                self._bounds[OVERWORLD] = DefaultSelection
             self._bounds[THE_NETHER] = SelectionGroup(
                 SelectionBox(
                     (-30_000_000, 0, -30_000_000), (30_000_000, 128, 30_000_000)
                 )
             )
-            self._bounds[THE_END] = SelectionGroup(
-                SelectionBox(
-                    (-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000)
-                )
-            )
+            self._bounds[THE_END] = DefaultSelection
+
             if b"LevelChunkMetaDataDictionary" in self.level_db:
                 data = self.level_db[b"LevelChunkMetaDataDictionary"]
                 count, data = struct.unpack("<I", data[:4])[0], data[4:]
@@ -399,9 +400,9 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
                         dimension_name = value.get_string("DimensionName").py_str
                         # The dimension names are stored differently TODO: split local and global names
                         dimension_name = {
-                            "Overworld": "minecraft:overworld",
-                            "Nether": "minecraft:the_nether",
-                            "TheEnd": "minecraft:the_end",
+                            "Overworld": OVERWORLD,
+                            "Nether": THE_NETHER,
+                            "TheEnd": THE_END,
                         }.get(dimension_name, dimension_name)
 
                     except KeyError:
@@ -410,13 +411,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
                         pass
                     else:
                         previous_bounds = self._bounds.get(
-                            dimension_name,
-                            SelectionGroup(
-                                SelectionBox(
-                                    (-30_000_000, 0, -30_000_000),
-                                    (30_000_000, 256, 30_000_000),
-                                )
-                            ),
+                            dimension_name, DefaultSelection
                         )
                         min_y = min(
                             value.get_compound(
@@ -450,6 +445,15 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
                                 (previous_bounds.max_x, max_y, previous_bounds.max_z),
                             )
                         )
+
+            # Give all other dimensions found an entry
+            known_dimensions = set(self._dimension_to_internal.values())
+            for internal_dimension in self._dimension_manager.dimensions:
+                if internal_dimension not in known_dimensions:
+                    dimension_name = f"DIM{internal_dimension}"
+                    self._dimension_to_internal[dimension_name] = internal_dimension
+                    self._bounds[dimension_name] = DefaultSelection
+
         except LevelDBEncrypted as e:
             self._is_open = self._has_lock = False
             raise LevelDBException(
@@ -526,24 +530,34 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
     def unload(self):
         pass
 
-    def all_chunk_coords(self, dimension: "Dimension") -> Iterable[ChunkCoordinates]:
+    def all_chunk_coords(self, dimension: Dimension) -> Iterable[ChunkCoordinates]:
         self._verify_has_lock()
-        yield from self._dimension_manager.all_chunk_coords(dimension)
+        if dimension in self._dimension_to_internal:
+            yield from self._dimension_manager.all_chunk_coords(
+                self._dimension_to_internal[dimension]
+            )
 
     def has_chunk(self, cx: int, cz: int, dimension: Dimension) -> bool:
-        return self._dimension_manager.has_chunk(cx, cz, dimension)
+        if dimension in self._dimension_to_internal:
+            return self._dimension_manager.has_chunk(
+                cx, cz, self._dimension_to_internal[dimension]
+            )
+        return False
 
-    def _delete_chunk(self, cx: int, cz: int, dimension: "Dimension"):
-        self._dimension_manager.delete_chunk(cx, cz, dimension)
+    def _delete_chunk(self, cx: int, cz: int, dimension: Dimension):
+        if dimension in self._dimension_to_internal:
+            self._dimension_manager.delete_chunk(
+                cx, cz, self._dimension_to_internal[dimension]
+            )
 
     def _put_raw_chunk_data(
-        self, cx: int, cz: int, data: ChunkData, dimension: "Dimension"
+        self, cx: int, cz: int, data: ChunkData, dimension: Dimension
     ):
-        return self._dimension_manager.put_chunk_data(cx, cz, data, dimension)
+        self._dimension_manager.put_chunk_data(
+            cx, cz, data, self._dimension_to_internal[dimension]
+        )
 
-    def _get_raw_chunk_data(
-        self, cx: int, cz: int, dimension: "Dimension"
-    ) -> ChunkData:
+    def _get_raw_chunk_data(self, cx: int, cz: int, dimension: Dimension) -> ChunkData:
         """
         Return the raw data as loaded from disk.
 
@@ -552,7 +566,11 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         :param dimension: The dimension to load the data from.
         :return: The raw chunk data.
         """
-        return self._dimension_manager.get_chunk_data(cx, cz, dimension)
+        if dimension not in self._dimension_to_internal:
+            raise ChunkDoesNotExist
+        return self._dimension_manager.get_chunk_data(
+            cx, cz, self._dimension_to_internal[dimension]
+        )
 
     def all_player_ids(self) -> Iterable[str]:
         """
