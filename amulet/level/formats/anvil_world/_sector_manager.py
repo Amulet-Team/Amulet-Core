@@ -141,9 +141,9 @@ class SectorManager:
 
     @property
     def sectors(self) -> List[Sector]:
-        """A list of reserved sectors"""
+        """A list of reserved sectors. Ordered by their start location."""
         with self._lock:
-            return list(self._reserved)
+            return list(sorted(self._reserved, key=lambda i: i.start))
 
     def reserve_space(self, length: int) -> Sector:
         """
@@ -170,6 +170,7 @@ class SectorManager:
                     self._free_start[start_index] = free_sector
                 else:
                     del self._free_start[start_index]
+                self._reserved.add(sector)
                 return sector
             elif self._resizable:
                 sector = Sector(self._stop, self._stop + length)
@@ -261,6 +262,8 @@ class SectorManager:
         :param sector: The sector to free
         """
         with self._lock:
+            if sector not in self._reserved:
+                raise ValueError("Sector was not reserved")
             # remove the sector from the reserved storage
             self._reserved.remove(sector)
 
@@ -286,99 +289,3 @@ class SectorManager:
 
             self._free_start.insert(index, sector)
             self._add_size_sector(sector)
-
-
-def validate(m):
-    assert set(m._free_start) == set(m._free_size)
-    free = sorted(list(m._free_start) + list(m._reserved), key=lambda k: k.start)
-    if free:
-        for i in range(len(free) - 1):
-            assert free[i].stop == free[i + 1].start
-        assert free[-1].stop == m._stop
-
-
-def test1():
-    m = SectorManager(2, 3)
-    validate(m)
-    m.reserve(Sector(2, 3))
-    validate(m)
-    m.reserve(Sector(3, 4))
-    validate(m)
-    print(m.sectors)
-
-
-def test2():
-    m = SectorManager(2, 102)
-
-    m.reserve(Sector(5, 6))
-    validate(m)
-    m.reserve(Sector(6, 7))
-    validate(m)
-    # m.reserve(Sector(7, 8))
-    m.reserve(Sector(8, 9))
-    validate(m)
-
-    try:
-        m.reserve(Sector(6, 8))
-    except NoValidSector:
-        pass
-    else:
-        raise Exception
-
-    validate(m)
-
-    try:
-        m.reserve(Sector(7, 9))
-    except NoValidSector:
-        pass
-    else:
-        raise Exception
-
-    validate(m)
-    m.free(Sector(5, 6))
-    validate(m)
-    m.free(Sector(6, 7))
-    validate(m)
-    m.free(Sector(8, 9))
-    validate(m)
-
-    m.reserve(Sector(6, 8))
-    validate(m)
-    m.free(Sector(6, 8))
-    validate(m)
-
-    m.reserve(Sector(7, 9))
-    validate(m)
-    m.free(Sector(7, 9))
-
-    validate(m)
-
-    assert len(m._free_start) == 1
-
-
-# def test3():
-# reserve a number of single length units
-# for _ in range(20):
-#     i = free_indexes.pop(random.randrange(len(free_indexes)))
-#     m.reserve(Sector(i, i+1))
-#     validate(m)
-#     reserved_indexes.append(i)
-#
-# for _ in range(20):
-#     index = random.randrange(len(free_indexes))
-#     di = 1
-#     i = free_indexes.pop(index)
-#
-# for _ in range(10_000):
-#     m.reserve(Sector(i, i+1))
-#     validate(m)
-# print(m.sectors)
-
-
-def test():
-    test1()
-    test2()
-
-
-if __name__ == "__main__":
-    test()

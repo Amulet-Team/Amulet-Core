@@ -13,7 +13,7 @@ class Anvil3463Interface(ParentInterface):
 
     @staticmethod
     def minor_is_valid(key: int):
-        return 3454 <= key < 3480
+        return 3454 <= key < 3580
 
 
 export = Anvil3463Interface
