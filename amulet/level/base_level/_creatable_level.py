@@ -12,9 +12,7 @@ class CreatableLevel(ABC):
 
     @classmethod
     @abstractmethod
-    def create(
-        cls, *args, **kwargs
-    ) -> Union[BaseLevel, CreatableLevel]:
+    def create(cls, *args, **kwargs) -> Union[BaseLevel, CreatableLevel]:
         """
         Create a new instance without any existing data.
         If writing data to disk it must write a valid level.
