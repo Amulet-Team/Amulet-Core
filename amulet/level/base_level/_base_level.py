@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Callable, Optional, Generator, Any, TypeVar, Generic
+from typing import Callable, Optional, Generator, Any, TypeVar, Generic, Sequence
 from weakref import ref
 from contextlib import contextmanager
 from threading import RLock
@@ -21,6 +21,7 @@ from amulet.api.data_types import (
 from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet.api.chunk import Chunk
 from amulet.api.block import Block
+from amulet.api.registry import BlockManager, BiomeManager
 from ._key_lock import KeyLock
 
 
@@ -70,6 +71,9 @@ class BaseLevel(ABC):
 
     opened = Signal()
 
+    def save(self):
+        raise NotImplementedError
+
     def close(self):
         """
         Close and release the level.
@@ -78,6 +82,12 @@ class BaseLevel(ABC):
         pass
 
     closed = Signal()
+
+    def undo(self):
+        raise NotImplementedError
+
+    def redo(self):
+        raise NotImplementedError
 
     @contextmanager
     def lock(self):
@@ -206,16 +216,33 @@ class ReadonlyMetadataNamespace(LevelNamespace, ABC):
 
 
 class MetadataNamespace(LevelNamespace, ABC):
+    @abstractmethod
+    def dimensions(self) -> Sequence[Dimension]:
+        raise NotImplementedError
+
+    @abstractmethod
     def bounds(self, dimension: Dimension) -> SelectionGroup:
         """The editable region of the dimension."""
         raise NotImplementedError
 
+    @abstractmethod
     def default_block(self, dimension: Dimension) -> Block:
         """The default block for this dimension"""
         raise NotImplementedError
 
+    @property
+    @abstractmethod
+    def block_palette(self) -> BlockManager:
+        raise NotImplementedError
+
+    @abstractmethod
     def default_biome(self, dimension: Dimension) -> BiomeType:
         """The default biome for this dimension"""
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def biome_palette(self) -> BiomeManager:
         raise NotImplementedError
 
 
@@ -292,6 +319,25 @@ class ChunkNamespace(LevelNamespace):
         else:
             yield None
 
+    def coords(self, dimension: Dimension) -> set[tuple[int, int]]:
+        """
+        The coordinates of every chunk in this dimension of the level.
+
+        This is the combination of chunks saved to the level and chunks yet to be saved.
+        """
+        raise NotImplementedError
+
+    def has(self, dimension: Dimension, cx: int, cz: int) -> bool:
+        """
+        Does the chunk exist. This is a quick way to check if the chunk exists without loading it.
+
+        :param dimension: The dimension to load the chunk from.
+        :param cx: The x coordinate of the chunk.
+        :param cz: The z coordinate of the chunk.
+        :return: True if the chunk exists. Calling get_chunk on this chunk may still throw ChunkLoadError
+        """
+        raise NotImplementedError
+
     def get(self, dimension: str, cx: int, cz: int) -> Chunk:
         """
         Get a deep copy of the chunk data.
@@ -327,43 +373,53 @@ class ChunkNamespace(LevelNamespace):
         else:
             raise LockError("Cannot set a chunk if it is locked by another thread.")
 
+    def delete(self, dimension: Dimension, cx: int, cz: int):
+        """
+        Delete a chunk from the level.
+
+        :param dimension: The dimension to delete the chunk from.
+        :param cx: The X coordinate of the chunk
+        :param cz: The Z coordinate of the chunk
+        """
+        raise NotImplementedError
+
     # def on_change(self, callback):
     #     """A notification system for chunk changes."""
     #     raise NotImplementedError
 
-    @contextmanager
-    def edit_native(
-        self,
-        dimension: str,
-        cx: int,
-        cz: int,
-        *,
-        blocking: bool = True,
-        timeout: float = -1,
-    ) -> Generator[Optional[NativeChunk], None, None]:
-        """
-        Lock and edit a chunk.
-
-        >>> level: BaseLevel
-        >>> with level.chunk.edit_native(dimension, cx, cz) as chunk:
-        >>>     # Edit the chunk data
-        >>>     # No other threads are able to edit the chunk while in this with block.
-        >>>     # When the with block exits the edited chunk will be automatically set if no exception occurred.
-        """
-        lock = self._locks.get((dimension, cx, cz))
-        if lock.acquire(blocking, timeout):
-            chunk = self.get_native(dimension, cx, cz)
-            yield chunk
-            # If an exception occurs in user code, this line won't be run.
-            self.set_native(dimension, cx, cz, chunk)
-        else:
-            yield None
-
-    def get_native(self, dimension: str, cx: int, cz: int) -> NativeChunk:
-        raise NotImplementedError
-
-    def set_native(self, dimension: str, cx: int, cz: int, native_chunk: NativeChunk):
-        raise NotImplementedError
+    # @contextmanager
+    # def edit_native(
+    #     self,
+    #     dimension: str,
+    #     cx: int,
+    #     cz: int,
+    #     *,
+    #     blocking: bool = True,
+    #     timeout: float = -1,
+    # ) -> Generator[Optional[NativeChunk], None, None]:
+    #     """
+    #     Lock and edit a chunk.
+    #
+    #     >>> level: BaseLevel
+    #     >>> with level.chunk.edit_native(dimension, cx, cz) as chunk:
+    #     >>>     # Edit the chunk data
+    #     >>>     # No other threads are able to edit the chunk while in this with block.
+    #     >>>     # When the with block exits the edited chunk will be automatically set if no exception occurred.
+    #     """
+    #     lock = self._locks.get((dimension, cx, cz))
+    #     if lock.acquire(blocking, timeout):
+    #         chunk = self.get_native(dimension, cx, cz)
+    #         yield chunk
+    #         # If an exception occurs in user code, this line won't be run.
+    #         self.set_native(dimension, cx, cz, chunk)
+    #     else:
+    #         yield None
+    #
+    # def get_native(self, dimension: str, cx: int, cz: int) -> NativeChunk:
+    #     raise NotImplementedError
+    #
+    # def set_native(self, dimension: str, cx: int, cz: int, native_chunk: NativeChunk):
+    #     raise NotImplementedError
 
 
 class PlayerNamespace(LevelNamespace):
