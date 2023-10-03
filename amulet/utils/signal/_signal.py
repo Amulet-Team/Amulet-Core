@@ -9,19 +9,20 @@ from inspect import ismethod
 if TYPE_CHECKING:
     import PySide6.QtCore  # noqa
 
-    class SignalInstance(Protocol):
-        def connect(
-            self,
-            slot: Union[Callable, SignalInstance],
-            type: Union[None, PySide6.QtCore.Qt.ConnectionType] = ...,
-        ):
-            ...
 
-        def disconnect(self, slot: Optional[Union[Callable, SignalInstance]] = None):
-            ...
+class SignalInstance(Protocol):
+    def connect(
+        self,
+        slot: Union[Callable, SignalInstance],
+        type: Union[None, PySide6.QtCore.Qt.ConnectionType] = ...,
+    ):
+        ...
 
-        def emit(self, *args: Any):
-            ...
+    def disconnect(self, slot: Optional[Union[Callable, SignalInstance]] = None):
+        ...
+
+    def emit(self, *args: Any):
+        ...
 
 
 _signal_instance_constructor: Optional[SignalInstanceConstructor] = None
