@@ -9,6 +9,17 @@ from ._base_level import BaseLevel
 class LoadableLevel(ABC):
     """Level extension class for levels that can be loaded from existing data."""
 
+    @staticmethod
+    @abstractmethod
+    def can_load(token: Any) -> bool:
+        """
+        Returns whether this level class is able to load the given data.
+
+        :param token: The token to check. Usually a file or directory path.
+        :return: True if the level can be loaded by this format wrapper, False otherwise.
+        """
+        raise NotImplementedError
+
     @classmethod
     @abstractmethod
     def load(cls, token: Any) -> Union[BaseLevel, LoadableLevel]:
