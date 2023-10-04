@@ -25,6 +25,7 @@ class LoadableLevel(ABC):
     def load(cls, token: Any) -> Union[BaseLevel, LoadableLevel]:
         """
         Create a new instance from existing data.
+        You must call :meth:`~amulet.level.BaseLevel.open` to open the level for editing.
         :param token: The token to use to load the data.
         :return: A new BaseLevel instance
         """
