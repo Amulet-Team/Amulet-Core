@@ -42,15 +42,18 @@ class BaseLevel(ABC):
     _data: BaseLevelPrivate
 
     def __init__(self):
+        """
+        This cannot be called directly.
+        You must use one of the constructor classmethods
+        """
         # Private attributes
         self._level_lock = ShareableRLock()
         self._is_open = False
-        self._has_lock = False
-        self._translation_manager = None
-        self._platform = None
-        self._version = None
-        self._bounds: dict[Dimension, SelectionGroup] = {}
-        self._changed: bool = False
+        # self._translation_manager = None
+        # self._platform = None
+        # self._version = None
+        # self._bounds: dict[Dimension, SelectionGroup] = {}
+        # self._changed: bool = False
 
         # Private data shared by friends of the class
         self._data = self._instance_data()
@@ -62,24 +65,49 @@ class BaseLevel(ABC):
     def __del__(self):
         self.close()
 
+    @final
     def open(self):
         """
-        Open and lock the level.
-        If the level is already open this does nothing.
+        Open the level.
+        If the level is already open, this does nothing.
         """
-        pass
+        if self.is_open:
+            # Do nothing if already open
+            return
+        self._open()
+        self._is_open = True
+        self.opened.emit()
+
+    @abstractmethod
+    def _open(self):
+        raise NotImplementedError
 
     opened = Signal()
+
+    @property
+    def is_open(self) -> bool:
+        """Has the level been opened"""
+        return self._is_open
 
     def save(self):
         raise NotImplementedError
 
+    @final
     def close(self):
         """
-        Close and release the level.
-        If the level is not open this does nothing.
+        Close the level.
+        If the level is not open, this does nothing.
         """
-        pass
+        if not self.is_open:
+            # Do nothing if already closed
+            return
+        self._close()
+        self._is_open = False
+        self.closed.emit()
+
+    @abstractmethod
+    def _close(self):
+        raise NotImplementedError
 
     closed = Signal()
 
