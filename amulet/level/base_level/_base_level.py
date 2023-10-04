@@ -1,28 +1,23 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Callable, Optional, Generator, Any, TypeVar, Generic, Sequence
-from weakref import ref
+from typing import (
+    TYPE_CHECKING,
+    Any,
+)
 from contextlib import contextmanager
-from threading import RLock
-from copy import deepcopy
 from runtime_final import final
 
-from amulet.utils.shareable_lock import ShareableRLock, LockError
+from amulet.utils.shareable_lock import ShareableRLock
 from amulet.utils.signal import Signal
-from amulet.api.data_types import (
-    AnyNDArray,
-    VersionNumberAny,
-    ChunkCoordinates,
-    Dimension,
-    PlatformType,
-    BiomeType,
-)
-from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.chunk import Chunk
-from amulet.api.block import Block
-from amulet.api.registry import BlockManager, BiomeManager
-from ._key_lock import KeyLock
+
+
+if TYPE_CHECKING:
+    from ._base_level_namespaces.chunk import ChunkNamespace
+    from ._base_level_namespaces.metadata import MetadataNamespace
+    from ._base_level_namespaces.player import PlayerNamespace
+    from ._base_level_namespaces.raw import RawNamespace
+    from ._base_level_namespaces.readonly_metadata import ReadonlyMetadataNamespace
 
 
 NativeChunk = Any
@@ -88,6 +83,8 @@ class BaseLevel(ABC):
     def is_open(self) -> bool:
         """Has the level been opened"""
         return self._is_open
+
+    changed = Signal()
 
     def save(self):
         raise NotImplementedError
@@ -202,253 +199,33 @@ class BaseLevel(ABC):
         raise NotImplementedError
 
 
-LevelT = TypeVar("LevelT", bound=BaseLevel)
-LevelDataT = TypeVar("LevelDataT", bound=BaseLevelPrivate)
+"""
+History/Locking system
+Should support:
+    parallel editing
+    disabling the history system
 
-
-class LevelNamespace(Generic[LevelT]):
-    @final
-    def __init__(self, level: LevelT, data: LevelDataT):
-        self._level_ref = ref(level)
-        self._data = data
-        self._init()
-
-    def _init(self):
-        """Initialise instance attributes"""
-        pass
-
-    def _get_level(self) -> LevelT:
-        level = self._level_ref()
-        if level is None:
-            raise RuntimeError("The level no longer exists.")
-        return level
-
-
-class ReadonlyMetadataNamespace(LevelNamespace, ABC):
-    """
-    Read-only metadata about the level.
-    Everything here can be used when the level is open or closed.
-    """
-
-    @abstractmethod
-    def level_name(self) -> str:
-        """The human-readable name of the level"""
-        raise NotImplementedError
-
-    @property
-    def sub_chunk_size(self) -> int:
-        """
-        The dimensions of a sub-chunk.
-        """
-        return 16
-
-
-class MetadataNamespace(LevelNamespace, ABC):
-    @abstractmethod
-    def dimensions(self) -> Sequence[Dimension]:
-        raise NotImplementedError
-
-    @abstractmethod
-    def bounds(self, dimension: Dimension) -> SelectionGroup:
-        """The editable region of the dimension."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def default_block(self, dimension: Dimension) -> Block:
-        """The default block for this dimension"""
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def block_palette(self) -> BlockManager:
-        raise NotImplementedError
-
-    @abstractmethod
-    def default_biome(self, dimension: Dimension) -> BiomeType:
-        """The default biome for this dimension"""
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def biome_palette(self) -> BiomeManager:
-        raise NotImplementedError
-
-
-class RawNamespace(LevelNamespace):
-    pass
-
-
-class ChunkNamespace(LevelNamespace):
-    def _init(self):
-        self._locks = KeyLock[tuple[str, int, int]]()
-
-    @contextmanager
-    def lock(
-        self,
-        dimension: str,
-        cx: int,
-        cz: int,
-        *,
-        blocking: bool = True,
-        timeout: float = -1,
-    ) -> Generator[None, None, None]:
-        """
-        Lock access to the chunk.
-
-        >>> level: BaseLevel
-        >>> with level.chunk.lock(dimension, cx, cz):
-        >>>     # Do what you need to with the chunk
-        >>>     # No other threads are able to edit or set the chunk while in this with block.
-
-        If you want to lock, get and set the chunk data :meth:`edit` is probably a better fit.
-
-        :param dimension: The dimension the chunk is stored in.
-        :param cx: The chunk x coordinate.
-        :param cz: The chunk z coordinate.
-        :param blocking: Should this block until the lock is acquired.
-        :param timeout: The amount of time to wait for the lock.
-        :raises:
-            LockNotAcquired: If the lock was not acquired.
-        """
-        lock = self._locks.get((dimension, cx, cz))
-        if not lock.acquire(blocking, timeout):
-            # Thread was not acquired
-            raise LockError("Lock was not acquired.")
-        try:
-            yield
-        finally:
-            lock.release()
-
-    @contextmanager
-    def edit(
-        self,
-        dimension: str,
-        cx: int,
-        cz: int,
-        *,
-        blocking: bool = True,
-        timeout: float = -1,
-    ) -> Generator[Optional[Chunk], None, None]:
-        """
-        Lock and edit a chunk.
-
-        >>> level: BaseLevel
-        >>> with level.chunk.edit(dimension, cx, cz) as chunk:
-        >>>     # Edit the chunk data
-        >>>     # No other threads are able to edit the chunk while in this with block.
-        >>>     # When the with block exits the edited chunk will be automatically set if no exception occurred.
-        """
-        lock = self._locks.get((dimension, cx, cz))
-        if lock.acquire(blocking, timeout):
-            chunk = self.get(dimension, cx, cz)
-            yield chunk
-            # If an exception occurs in user code, this line won't be run.
-            self.set(dimension, cx, cz, chunk)
-        else:
-            yield None
-
-    def coords(self, dimension: Dimension) -> set[tuple[int, int]]:
-        """
-        The coordinates of every chunk in this dimension of the level.
-
-        This is the combination of chunks saved to the level and chunks yet to be saved.
-        """
-        raise NotImplementedError
-
-    def has(self, dimension: Dimension, cx: int, cz: int) -> bool:
-        """
-        Does the chunk exist. This is a quick way to check if the chunk exists without loading it.
-
-        :param dimension: The dimension to load the chunk from.
-        :param cx: The x coordinate of the chunk.
-        :param cz: The z coordinate of the chunk.
-        :return: True if the chunk exists. Calling get_chunk on this chunk may still throw ChunkLoadError
-        """
-        raise NotImplementedError
-
-    def get(self, dimension: str, cx: int, cz: int) -> Chunk:
-        """
-        Get a deep copy of the chunk data.
-        If you want to edit the chunk, use :meth:`edit` instead.
-
-        :param dimension: The dimension the chunk is stored in.
-        :param cx: The chunk x coordinate.
-        :param cz: The chunk z coordinate.
-        :return: A unique copy of the chunk data.
-        """
-        raise NotImplementedError
-
-    def set(self, dimension: str, cx: int, cz: int, chunk: Chunk):
-        """
-        Overwrite the chunk data.
-        You must lock access to the chunk before setting it otherwise an exception may be raised.
-        If you want to edit the chunk, use :meth:`edit` instead.
-
-        :param dimension: The dimension the chunk is stored in.
-        :param cx: The chunk x coordinate.
-        :param cz: The chunk z coordinate.
-        :param chunk: The chunk data to set.
-        :raises:
-            LockError: If the chunk is already locked by another thread.
-        """
-        lock = self._locks.get((dimension, cx, cz))
-        if lock.acquire(False):
-            try:
-                chunk = deepcopy(chunk)
-                # TODO set the chunk and notify listeners
-            finally:
-                lock.release()
-        else:
-            raise LockError("Cannot set a chunk if it is locked by another thread.")
-
-    def delete(self, dimension: Dimension, cx: int, cz: int):
-        """
-        Delete a chunk from the level.
-
-        :param dimension: The dimension to delete the chunk from.
-        :param cx: The X coordinate of the chunk
-        :param cz: The Z coordinate of the chunk
-        """
-        raise NotImplementedError
-
-    # def on_change(self, callback):
-    #     """A notification system for chunk changes."""
-    #     raise NotImplementedError
-
-    # @contextmanager
-    # def edit_native(
-    #     self,
-    #     dimension: str,
-    #     cx: int,
-    #     cz: int,
-    #     *,
-    #     blocking: bool = True,
-    #     timeout: float = -1,
-    # ) -> Generator[Optional[NativeChunk], None, None]:
-    #     """
-    #     Lock and edit a chunk.
-    #
-    #     >>> level: BaseLevel
-    #     >>> with level.chunk.edit_native(dimension, cx, cz) as chunk:
-    #     >>>     # Edit the chunk data
-    #     >>>     # No other threads are able to edit the chunk while in this with block.
-    #     >>>     # When the with block exits the edited chunk will be automatically set if no exception occurred.
-    #     """
-    #     lock = self._locks.get((dimension, cx, cz))
-    #     if lock.acquire(blocking, timeout):
-    #         chunk = self.get_native(dimension, cx, cz)
-    #         yield chunk
-    #         # If an exception occurs in user code, this line won't be run.
-    #         self.set_native(dimension, cx, cz, chunk)
-    #     else:
-    #         yield None
-    #
-    # def get_native(self, dimension: str, cx: int, cz: int) -> NativeChunk:
-    #     raise NotImplementedError
-    #
-    # def set_native(self, dimension: str, cx: int, cz: int, native_chunk: NativeChunk):
-    #     raise NotImplementedError
-
-
-class PlayerNamespace(LevelNamespace):
-    pass
+Editing: (original state gets loaded)
+    load
+    change
+    set
+    
+Setting: Creating/Deleting a chunk (setting a new state without loading the first state)
+    set
+    
+MCEdit's solution
+    History enabled:
+        Before running an operation it created a backup of all the chunks in the selection.
+        When undoing the changes it just rolled them back.
+        This meant that only chunks within the selection could be reverted.
+    History disabled:
+        No backup
+        
+Amulet's solution
+    History enabled:
+        When chunks are first loaded, they are saved to a cache so they can be restored if needed.
+        When setting a chunk, if the initial state does not exist, it gets loaded.
+    History disabled:
+        When chunks are first loaded, they are saved to a cache. This is quicker to load from and allows unloading.
+        When setting a chunk, overwrite the latest entry in the history system. Do not load the initial state.
+"""
