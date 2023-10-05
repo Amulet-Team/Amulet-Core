@@ -9,6 +9,8 @@ from ._base_level import BaseLevel
 class LoadableLevel(ABC):
     """Level extension class for levels that can be loaded from existing data."""
 
+    __slots__ = ()
+
     @staticmethod
     @abstractmethod
     def can_load(token: Any) -> bool:

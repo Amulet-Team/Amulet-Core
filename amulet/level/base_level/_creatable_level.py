@@ -10,6 +10,8 @@ if TYPE_CHECKING:
 class CreatableLevel(ABC):
     """Level extension class for levels that can be created without data."""
 
+    __slots__ = ()
+
     @classmethod
     @abstractmethod
     def create(cls, *args, **kwargs) -> Union[BaseLevel, CreatableLevel]:

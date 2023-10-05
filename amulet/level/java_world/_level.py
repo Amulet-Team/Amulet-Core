@@ -6,6 +6,7 @@ from amulet.level.base_level import DiskLevel, CreatableLevel, LoadableLevel
 
 
 class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel):
+    __slots__ = ()
     @classmethod
     def create(cls, *args, **kwargs) -> JavaLevel:
         raise NotImplementedError

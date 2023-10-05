@@ -6,6 +6,8 @@ from amulet.level.base_level import DiskLevel, CreatableLevel, LoadableLevel
 
 
 class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel):
+    __slots__ = ()
+
     @classmethod
     def create(cls, *args, **kwargs) -> BedrockLevel:
         raise NotImplementedError

@@ -9,7 +9,7 @@ from contextlib import contextmanager
 from runtime_final import final
 
 from amulet.utils.shareable_lock import ShareableRLock
-from amulet.utils.signal import Signal
+from amulet.utils.signal import Signal, SignalInstanceCacheName
 
 
 if TYPE_CHECKING:
@@ -34,7 +34,9 @@ class BaseLevelPrivate:
 class BaseLevel(ABC):
     """Base class for all levels."""
 
-    _data: BaseLevelPrivate
+    __slots__ = ("_d", SignalInstanceCacheName)
+
+    _d: BaseLevelPrivate
 
     def __init__(self):
         """
@@ -51,7 +53,7 @@ class BaseLevel(ABC):
         # self._changed: bool = False
 
         # Private data shared by friends of the class
-        self._data = self._instance_data()
+        self._d = self._instance_data()
 
     @staticmethod
     def _instance_data() -> BaseLevelPrivate:
