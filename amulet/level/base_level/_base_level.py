@@ -205,27 +205,16 @@ Should support:
     parallel editing
     disabling the history system
 
-Editing: (original state gets loaded)
-    load
-    change
-    set
-    
-Setting: Creating/Deleting a chunk (setting a new state without loading the first state)
-    set
-    
-MCEdit's solution
-    History enabled:
-        Before running an operation it created a backup of all the chunks in the selection.
-        When undoing the changes it just rolled them back.
-        This meant that only chunks within the selection could be reverted.
-    History disabled:
-        No backup
-        
-Amulet's solution
-    History enabled:
-        When chunks are first loaded, they are saved to a cache so they can be restored if needed.
-        When setting a chunk, if the initial state does not exist, it gets loaded.
-    History disabled:
-        When chunks are first loaded, they are saved to a cache. This is quicker to load from and allows unloading.
-        When setting a chunk, overwrite the latest entry in the history system. Do not load the initial state.
+History Solution
+    cache
+        A Least Recently Used RAM database
+        If the stored data overflows the configured maximum, it gets pushed to the disk database
+        Data is stored as bytes to make size checking simpler
+    getting data
+        if the data exists in the cache, it is loaded from there and returned
+        else it is loaded from the level, serialised and stored in the cache and returned
+    setting data
+        if history is enabled and the initial state does not exist in the cache,
+            load it from the level, serialise and store it in the cache
+        store data 
 """
