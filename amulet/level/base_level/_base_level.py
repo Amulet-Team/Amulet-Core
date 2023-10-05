@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import (
-    TYPE_CHECKING,
-    Any,
-)
+from typing import TYPE_CHECKING, Any, Optional
 from contextlib import contextmanager
-from runtime_final import final
+import os
 
+from runtime_final import final
+from PIL import Image
+
+from amulet import IMG_DIRECTORY
 from amulet.utils.shareable_lock import ShareableRLock
 from amulet.utils.signal import Signal, SignalInstanceCacheName
 
@@ -21,6 +22,11 @@ if TYPE_CHECKING:
 
 
 NativeChunk = Any
+
+missing_world_icon_path = os.path.abspath(
+    os.path.join(IMG_DIRECTORY, "missing_world_icon.png")
+)
+missing_world_icon: Optional[Image.Image] = None
 
 
 class BaseLevelPrivate:
@@ -111,6 +117,13 @@ class BaseLevel(ABC):
         raise NotImplementedError
 
     closed = Signal()
+
+    @property
+    def thumbnail(self) -> Image.Image:
+        global missing_world_icon
+        if missing_world_icon is None:
+            missing_world_icon = Image.open(missing_world_icon_path)
+        return missing_world_icon
 
     def undo(self):
         raise NotImplementedError
