@@ -31,6 +31,15 @@ _signal_instance_constructor: Optional[SignalInstanceConstructor] = None
 SignalInstanceCacheName = "_SignalCache"
 
 
+def _get_signal_instances(instance) -> dict:
+    try:
+        signal_instances = getattr(instance, SignalInstanceCacheName)
+    except AttributeError:
+        signal_instances = {}
+        setattr(instance, SignalInstanceCacheName, signal_instances)
+    return signal_instances
+
+
 class Signal:
     def __init__(
         self, *types: type, name: Optional[str] = "", arguments: Optional[str] = ()
@@ -50,11 +59,7 @@ class Signal:
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        try:
-            signal_instances = getattr(instance, SignalInstanceCacheName)
-        except:
-            signal_instances = {}
-            setattr(instance, SignalInstanceCacheName, signal_instances)
+        signal_instances = _get_signal_instances(instance)
         if self not in signal_instances:
             if _signal_instance_constructor is None:
                 set_signal_instance_constructor(
@@ -177,11 +182,10 @@ def get_pyside6_signal_instance_constructor() -> SignalInstanceConstructor:
                 instance, QObject
             )
         else:
-            try:
-                obj = getattr(instance, QObjectCacheName)
-            except AttributeError:
-                obj = QObject()
-                setattr(instance, QObjectCacheName, obj)
+            signal_instances = _get_signal_instances(instance)
+            if QObjectCacheName not in signal_instances:
+                signal_instances[QObjectCacheName] = QObject
+            obj = signal_instances[QObjectCacheName]
             if not isinstance(obj, QObject):
                 raise RuntimeError
             return PySide6_Signal(*types, name=name, arguments=arguments).__get__(
