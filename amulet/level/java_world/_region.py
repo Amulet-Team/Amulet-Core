@@ -73,7 +73,7 @@ def _sanitise_file(handler: BinaryIO):
         handler.truncate(file_size)
 
 
-class AnvilRegionInterface:
+class AnvilRegion:
     """
     A class to read and write Minecraft Java Edition Region files.
     Only one class should exist per region file at any given time otherwise bad things may happen.
@@ -111,11 +111,11 @@ class AnvilRegionInterface:
     # A lock to limit access to multiple threads
     _lock: threading.RLock
 
-    @staticmethod
-    def get_coords(file_path: str) -> Union[Tuple[None, None], Tuple[int, int]]:
+    @classmethod
+    def get_coords(cls, file_path: str) -> Union[Tuple[None, None], Tuple[int, int]]:
         """Parse a region file path to get the region coordinates."""
         file_path = os.path.basename(file_path)
-        match = AnvilRegion.region_regex.fullmatch(file_path)
+        match = cls.region_regex.fullmatch(file_path)
         if match is None:
             return None, None
         return int(match.group("rx")), int(match.group("rz"))
@@ -300,85 +300,3 @@ class AnvilRegionInterface:
     def delete_data(self, cx: int, cz: int):
         """Delete the data from the region file."""
         self._write_data(cx, cz, None)
-
-
-class BufferedAnvilRegionInterface(AnvilRegionInterface):
-    """An interface to an anvil region file with a buffer before writing."""
-
-    __slots__ = ("_buffer",)
-
-    _buffer: Dict[ChunkCoordinates, Optional[bytes]]
-
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            "BufferedAnvilRegionInterface aka AnvilRegion is depreciated and replaced by AnvilRegionInterface",
-            DeprecationWarning,
-        )
-        super().__init__(*args, **kwargs)
-        self._buffer = {}
-
-    def all_chunk_coords(self) -> Generator[ChunkCoordinates, None, None]:
-        """An iterable of chunk coordinates in world space."""
-        self._load()
-        with self._lock:
-            chunks = [
-                (cx + self.rx * 32, cz + self.rz * 32)
-                for cx, cz in self._chunk_locations
-                if (cx, cz) not in self._buffer
-            ] + [
-                (cx + self.rx * 32, cz + self.rz * 32)
-                for (cx, cz), value in self._buffer.items()
-                if value is not None
-            ]
-        yield from chunks
-
-    def unload(self):
-        with self._lock:
-            super().unload()
-            self._buffer.clear()
-
-    def has_chunk(self, cx: int, cz: int) -> bool:
-        """Does the chunk exists. Coords are in region space."""
-        _validate_region_coords(cx, cz)
-        with self._lock:
-            if (cx, cz) in self._buffer:
-                return self._buffer[(cx, cz)] is not None
-            else:
-                self._load()
-                return (cx, cz) in self._chunk_locations
-
-    def get_chunk_data(self, cx: int, cz: int) -> NamedTag:
-        """Get chunk data. Coords are in region space."""
-        _validate_region_coords(cx, cz)
-        data = self._buffer.get((cx, cz))
-        if data is not None:
-            return _decompress(data)
-        return self.get_data(cx, cz)
-
-    def put_chunk_data(self, cx: int, cz: int, data: NamedTag):
-        """
-        Put data to be added to the region file. `save` will push the changes to disk.
-        Coords are in region space.
-        """
-        _validate_region_coords(cx, cz)
-        with self._lock:
-            self._buffer[(cx, cz)] = _compress(data)
-
-    def delete_chunk_data(self, cx: int, cz: int):
-        """
-        Mark the data for deletion. `save` will push the changes to disk.
-        Coords are in region space.
-        """
-        _validate_region_coords(cx, cz)
-        with self._lock:
-            self._buffer[(cx, cz)] = None
-
-    def save(self):
-        """Write the buffered data to the file and clear the buffer."""
-        with self._lock:
-            for (cx, cz), data in self._buffer.items():
-                self._write_data(cx, cz, data)
-            self._buffer.clear()
-
-
-AnvilRegion = BufferedAnvilRegionInterface

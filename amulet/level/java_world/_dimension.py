@@ -13,7 +13,7 @@ from amulet.api.data_types import (
     ChunkCoordinates,
     RegionCoordinates,
 )
-from .region import AnvilRegionInterface
+from .region import AnvilRegion
 
 InternalDimension = str
 
@@ -100,7 +100,7 @@ class AnvilRegionManager:
 
     def __init__(self, directory: str, *, mcc=False):
         self._directory = directory
-        self._regions: Dict[RegionCoordinates, AnvilRegionInterface] = {}
+        self._regions: Dict[RegionCoordinates, AnvilRegion] = {}
         self._mcc = mcc
         self._lock = threading.RLock()
 
@@ -116,22 +116,22 @@ class AnvilRegionManager:
         """Does a region file exist."""
         return os.path.isfile(self._region_path(rx, rz))
 
-    def _get_region(self, rx: int, rz: int, create=False) -> AnvilRegionInterface:
+    def _get_region(self, rx: int, rz: int, create=False) -> AnvilRegion:
         with self._lock:
             if (rx, rz) in self._regions:
                 return self._regions[(rx, rz)]
             elif create or self._has_region(rx, rz):
-                region = self._regions[(rx, rz)] = AnvilRegionInterface(
+                region = self._regions[(rx, rz)] = AnvilRegion(
                     self._region_path(rx, rz), mcc=self._mcc
                 )
                 return region
             else:
                 raise ChunkDoesNotExist
 
-    def _iter_regions(self) -> Iterable[AnvilRegionInterface]:
+    def _iter_regions(self) -> Iterable[AnvilRegion]:
         if os.path.isdir(self._directory):
             for region_file_name in os.listdir(self._directory):
-                rx, rz = AnvilRegionInterface.get_coords(region_file_name)
+                rx, rz = AnvilRegion.get_coords(region_file_name)
                 if rx is None:
                     continue
                 yield self._get_region(rx, rz)
