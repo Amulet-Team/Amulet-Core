@@ -26,6 +26,8 @@ NativeChunk = Any
 class BaseLevelPrivate:
     """Private data and methods that friends of BaseLevel can use."""
 
+    __slots__ = ()
+
     def __init__(self):
         pass
         # History system will go here
