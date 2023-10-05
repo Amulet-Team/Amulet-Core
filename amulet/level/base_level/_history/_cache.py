@@ -8,11 +8,8 @@ class DiskCache:
     Keys and values are both bytes.
     The disk component is a leveldb database.
     """
-    def __init__(
-        self,
-        path: str,
-        max_size: int
-    ):
+
+    def __init__(self, path: str, max_size: int):
         """
         Create a new DiskCache
         :param path: The path to save the disk component to.
