@@ -13,6 +13,8 @@ from .._base_level import BaseLevel
 
 
 class ChunkNamespace(LevelNamespace):
+    __slots__ = ()
+
     def _init(self):
         self._locks = KeyLock[tuple[str, int, int]]()
 

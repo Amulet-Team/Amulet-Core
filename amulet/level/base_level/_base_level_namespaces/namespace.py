@@ -11,6 +11,11 @@ LevelDataT = TypeVar("LevelDataT", bound=BaseLevelPrivate)
 
 
 class LevelNamespace(Generic[LevelT]):
+    __slots__ = (
+        "_level_ref",
+        "_data",
+    )
+
     @final
     def __init__(self, level: LevelT, data: LevelDataT):
         self._level_ref = ref(level)
@@ -21,6 +26,7 @@ class LevelNamespace(Generic[LevelT]):
         """Initialise instance attributes"""
         pass
 
+    @final
     def _get_level(self) -> LevelT:
         level = self._level_ref()
         if level is None:

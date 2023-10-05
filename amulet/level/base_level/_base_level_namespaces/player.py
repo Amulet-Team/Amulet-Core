@@ -4,4 +4,4 @@ from .namespace import LevelNamespace
 
 
 class PlayerNamespace(LevelNamespace):
-    pass
+    __slots__ = ()

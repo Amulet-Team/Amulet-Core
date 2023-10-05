@@ -4,4 +4,4 @@ from .namespace import LevelNamespace
 
 
 class RawNamespace(LevelNamespace):
-    pass
+    __slots__ = ()
