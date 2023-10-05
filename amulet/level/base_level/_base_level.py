@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, Optional, Sequence
 from contextlib import contextmanager
 import os
 
@@ -9,16 +9,18 @@ from runtime_final import final
 from PIL import Image
 
 from amulet import IMG_DIRECTORY
+from amulet.api.data_types import Dimension, BiomeType
+from amulet.api.block import Block
+from amulet.api.registry import BlockManager, BiomeManager
+from amulet.api.selection import SelectionGroup
 from amulet.utils.shareable_lock import ShareableRLock
 from amulet.utils.signal import Signal, SignalInstanceCacheName
 
 
 if TYPE_CHECKING:
     from ._base_level_namespaces.chunk import ChunkNamespace
-    from ._base_level_namespaces.metadata import MetadataNamespace
     from ._base_level_namespaces.player import PlayerNamespace
     from ._base_level_namespaces.raw import RawNamespace
-    from ._base_level_namespaces.readonly_metadata import ReadonlyMetadataNamespace
 
 
 NativeChunk = Any
@@ -182,16 +184,45 @@ class BaseLevel(ABC):
         with self._level_lock.unique(blocking, timeout):
             yield
 
-    @property
     @abstractmethod
-    def readonly_metadata(self) -> ReadonlyMetadataNamespace:
-        """Data about the level that can be accessed when the level is open or closed."""
+    def level_name(self) -> str:
+        """The human-readable name of the level"""
+        raise NotImplementedError
+
+    @property
+    def sub_chunk_size(self) -> int:
+        """
+        The dimensions of a sub-chunk.
+        """
+        return 16
+
+    @abstractmethod
+    def dimensions(self) -> Sequence[Dimension]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def bounds(self, dimension: Dimension) -> SelectionGroup:
+        """The editable region of the dimension."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def default_block(self, dimension: Dimension) -> Block:
+        """The default block for this dimension"""
         raise NotImplementedError
 
     @property
     @abstractmethod
-    def metadata(self) -> MetadataNamespace:
-        """Metadata about the level."""
+    def block_palette(self) -> BlockManager:
+        raise NotImplementedError
+
+    @abstractmethod
+    def default_biome(self, dimension: Dimension) -> BiomeType:
+        """The default biome for this dimension"""
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def biome_palette(self) -> BiomeManager:
         raise NotImplementedError
 
     @property
