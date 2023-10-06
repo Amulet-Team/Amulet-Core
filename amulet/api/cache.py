@@ -9,36 +9,11 @@ import tempfile
 
 import portalocker
 
-
-def _get_cache_dir() -> str:
-    return os.environ.get("AMULET_LEVEL_CACHE_DIR", None) or os.path.join(
-        os.environ.get("CACHE_DIR"), "level_data"
-    )
-
-
 log = logging.getLogger(__name__)
 
 
-def _clear_legacy_cache():
-    legacy_cache_dir = _get_cache_dir()
-    world_temp_dir = os.path.join(legacy_cache_dir, "world_temp")
-    if not os.path.isdir(world_temp_dir):
-        return
-    paths = [
-        os.path.join(legacy_cache_dir, t)
-        for t in os.listdir(world_temp_dir)
-        if t.isnumeric() and int(t) < (time.time() - 7 * 24 * 3600)
-    ]
-    if paths:
-        log.info("Removing legacy cache.")
-
-        # remove all cache directories that were created before a week ago
-        # Sometimes if the program is stopped or it crashes the cleanup won't happen
-        for path in paths:
-            shutil.rmtree(path, ignore_errors=True)
-
-
-_clear_legacy_cache()
+def _get_cache_dir() -> str:
+    return os.path.join(os.environ.get("CACHE_DIR"), "level_data")
 
 
 TempPattern = re.compile(r"amulettmp.*?-(?P<time>\d+)")
