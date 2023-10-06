@@ -1,8 +1,8 @@
 from ._base_level import BaseLevel, BaseLevelPrivate
-from ._base_level_namespaces.namespace import LevelT, LevelDataT
-from ._base_level_namespaces.chunk import ChunkNamespace
-from ._base_level_namespaces.player import PlayerNamespace
-from ._base_level_namespaces.raw import RawNamespace
+from ._namespaces.namespace import LevelT, LevelDataT
+from ._namespaces.chunk import ChunkNamespace
+from ._namespaces.player import PlayerNamespace
+from ._namespaces.raw import RawNamespace
 from ._creatable_level import (
     CreatableLevel,
     StringArg,

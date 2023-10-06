@@ -21,9 +21,9 @@ from PyMCTranslate import TranslationManager
 
 
 if TYPE_CHECKING:
-    from ._base_level_namespaces.chunk import ChunkNamespace
-    from ._base_level_namespaces.player import PlayerNamespace
-    from ._base_level_namespaces.raw import RawNamespace
+    from ._namespaces.chunk import ChunkNamespace
+    from ._namespaces.player import PlayerNamespace
+    from ._namespaces.raw import RawNamespace
 
 
 log = logging.getLogger(__name__)
