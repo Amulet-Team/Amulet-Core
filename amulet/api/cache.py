@@ -83,7 +83,7 @@ class TempDir(str):
     def __new__(cls):
         cache_dir = _get_cache_dir()
         os.makedirs(cache_dir, exist_ok=True)
-        self = super().__new__(
+        return super().__new__(
             cls,
             tempfile.mkdtemp(
                 prefix="amulettmp",
@@ -91,9 +91,10 @@ class TempDir(str):
                 dir=cache_dir,
             ),
         )
+
+    def __init__(self):
         self.__lock = open(os.path.join(self, "lock"), "w")
         portalocker.lock(self.__lock, portalocker.LockFlags.EXCLUSIVE)
-        return self
 
     def close(self):
         """Close the lock and delete the directory."""
