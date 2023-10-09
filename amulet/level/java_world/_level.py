@@ -39,6 +39,7 @@ from amulet.level.base_level import (
     ProtocolArg,
     LoadableLevel,
     BaseLevelPrivate,
+    CompactableLevel,
 )
 from amulet.utils.format_utils import check_all_exist
 
@@ -93,7 +94,7 @@ class JavaLevelPrivate(BaseLevelPrivate):
         self.data_pack: Optional[DataPackManager] = None
 
 
-class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel):
+class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
     __slots__ = (
         "_lock_file",
         "_lock_time",
