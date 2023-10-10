@@ -13,13 +13,13 @@ LevelDataT = TypeVar("LevelDataT", bound=BaseLevelPrivate)
 class LevelNamespace(Generic[LevelT, LevelDataT]):
     __slots__ = (
         "_level_ref",
-        "_data",
+        "_d",
     )
 
     @final
     def __init__(self, level: LevelT, data: LevelDataT):
         self._level_ref = ref(level)
-        self._data = data
+        self._d = data
         self._init()
 
     def _init(self):
