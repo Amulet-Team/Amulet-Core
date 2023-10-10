@@ -1,17 +1,9 @@
-"""
-Get the current history index
-Undo
-Redo
-Add new history index
-Retrieve history items
-    mapping from key and current history index to resource id
-
-
-"""
+from __future__ import annotations
 
 from uuid import uuid4
 from threading import Lock
-from typing import Sequence, Protocol
+from typing import Sequence, Protocol, TypeVar, Generic
+
 from amulet.utils.signal import Signal
 
 from ._cache import GlobalDiskCache
@@ -66,11 +58,17 @@ class HistoryManagerPrivate:
                         resource.saved_index = -2
 
 
+ResourceIdT = TypeVar("ResourceIdT", bound=ResourceId)
+
+
 class HistoryManager:
     __slots__ = ("_d",)
 
     def __init__(self):
         self._d = HistoryManagerPrivate()
+
+    def new_layer(self) -> HistoryManagerLayer:
+        return HistoryManagerLayer(self._d)
 
     history_change = Signal()
 
@@ -127,7 +125,7 @@ class HistoryManager:
             self._d.has_redo = bool(self._redo_count())
 
 
-class HistoryManagerLayer:
+class HistoryManagerLayer(Generic[ResourceIdT]):
     __slots__ = ("_d", "_uuid")
 
     def __init__(self, _d: HistoryManagerPrivate):
@@ -135,7 +133,7 @@ class HistoryManagerLayer:
         self._uuid = uuid4().bytes
         self._d.resources[self._uuid] = {}
 
-    def has_resource(self, resource_id: ResourceId) -> bool:
+    def has_resource(self, resource_id: ResourceIdT) -> bool:
         """
         Check if a resource entry exists.
         :param resource_id: The identifier for the resource in the data group e.g. b"minecraft:overworld/10/50"
@@ -144,7 +142,7 @@ class HistoryManagerLayer:
         with self._d.lock:
             return resource_id in self._d.resources[self._uuid]
 
-    def get_resource(self, resource_id: ResourceId) -> bytes:
+    def get_resource(self, resource_id: ResourceIdT) -> bytes:
         """
         Get the newest resource data.
         :param resource_id: The identifier for the resource in the data group e.g. b"minecraft:overworld/10/50"
@@ -154,7 +152,7 @@ class HistoryManagerLayer:
             resource = self._d.resources[self._uuid][resource_id]
             return self._d.cache[resource.get_resource_key(self._uuid, resource_id)]
 
-    def set_initial_resource(self, resource_id: ResourceId, data: bytes):
+    def set_initial_resource(self, resource_id: ResourceIdT, data: bytes):
         """
         Set the data for the resource. This must only be used if the resource does not already exist.
         :param resource_id: The identifier for the resource in the data group e.g. b"minecraft:overworld/10/50"
@@ -168,7 +166,7 @@ class HistoryManagerLayer:
             resource = layer[resource_id] = Resource()
             self._d.cache[resource.get_resource_key(self._uuid, resource_id)] = data
 
-    def set_resource(self, resource_id: ResourceId, data: bytes):
+    def set_resource(self, resource_id: ResourceIdT, data: bytes):
         """
         Set the data for the resource.
         :param resource_id: The identifier for the resource in the data group e.g. b"minecraft:overworld/10/50"
@@ -187,7 +185,7 @@ class HistoryManagerLayer:
             if self._d.history_index != -1:
                 self._d.history[self._d.history_index].add(resource)
 
-    def get_changed_resource_ids(self) -> Sequence[ResourceId]:
+    def get_changed_resource_ids(self) -> Sequence[ResourceIdT]:
         """
         Get resource ids in the data layer for all resources that have changed since the last call to mark_saved.
         :return:
