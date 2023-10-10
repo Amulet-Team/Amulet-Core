@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from amulet.level.base_level import DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel
+from amulet.level.base_level import (
+    DiskLevel,
+    CreatableLevel,
+    LoadableLevel,
+    CompactableLevel,
+)
 
 
 class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):

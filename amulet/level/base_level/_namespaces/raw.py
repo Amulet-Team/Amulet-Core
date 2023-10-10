@@ -14,7 +14,11 @@ PlayerIDT = TypeVar("PlayerIDT")
 RawPlayerT = TypeVar("RawPlayerT")
 
 
-class RawNamespace(LevelNamespace[LevelT], ABC, Generic[LevelT, LevelDataT, RawChunkT, NativeChunkT, PlayerIDT, RawPlayerT]):
+class RawNamespace(
+    LevelNamespace[LevelT],
+    ABC,
+    Generic[LevelT, LevelDataT, RawChunkT, NativeChunkT, PlayerIDT, RawPlayerT],
+):
     """
     A class with raw access to the level.
     All of these methods directly read from or write to the level.
@@ -60,7 +64,9 @@ class RawNamespace(LevelNamespace[LevelT], ABC, Generic[LevelT, LevelDataT, RawC
         raise NotImplementedError
 
     @abstractmethod
-    def set_native_chunk(self, dimension: Dimension, cx: int, cz: int, chunk: NativeChunkT):
+    def set_native_chunk(
+        self, dimension: Dimension, cx: int, cz: int, chunk: NativeChunkT
+    ):
         """Set the chunk in its native format."""
         raise NotImplementedError
 
