@@ -16,4 +16,5 @@ from ._creatable_level import (
     CreateArgsT,
 )
 from ._loadable_level import LoadableLevel
+from ._compactable_level import CompactableLevel
 from ._disk_level import DiskLevel
