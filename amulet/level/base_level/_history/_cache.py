@@ -1,5 +1,13 @@
+from __future__ import annotations
+
+import shutil
+from typing import Optional, Callable
 from threading import Lock
+import os
+from weakref import ref
+
 from leveldb import LevelDB
+from amulet.api.cache import TempDir
 
 
 class DiskCache:
@@ -18,9 +26,14 @@ class DiskCache:
         """
         self._lock = Lock()
         self._ram: dict[bytes, tuple[bytes, bool]] = {}
+        self._path = path
         self._disk = LevelDB(path, create_if_missing=True)
         self._max_size: int = max_size
         self._size: int = 0
+
+    def __del__(self):
+        self._disk.close()
+        shutil.rmtree(self._path, ignore_errors=True)
 
     @property
     def max_size(self) -> int:
@@ -77,3 +90,39 @@ class DiskCache:
                 self._free()
             else:
                 raise KeyError
+
+
+class GlobalDiskCache(DiskCache):
+    _instance_ref: Callable[[], Optional[GlobalDiskCache]] = lambda: None
+    _cache_size = 100_000_000
+
+    @classmethod
+    def instance(cls) -> GlobalDiskCache:
+        """
+        Get the global disk cache instance.
+        The caller must store a strong reference to the returned value otherwise it will be destroyed.
+        """
+        instance: Optional[GlobalDiskCache] = cls._instance_ref()
+        if instance is None:
+            instance = GlobalDiskCache()
+            cls._instance_ref = ref(instance)
+        return instance
+
+    @classmethod
+    def cache_size(cls):
+        instance: Optional[GlobalDiskCache] = cls._instance_ref()
+        if instance is None:
+            return cls._cache_size
+        else:
+            return instance.max_size
+
+    @classmethod
+    def set_cache_size(cls, size: int):
+        instance: Optional[GlobalDiskCache] = cls._instance_ref()
+        cls._cache_size = size
+        if instance is not None:
+            instance.max_size = size
+
+    def __init__(self):
+        self._temp_dir = TempDir()
+        super().__init__(os.path.join(self._temp_dir, "history_db"), 100_000_000)
