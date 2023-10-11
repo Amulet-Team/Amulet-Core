@@ -4,7 +4,7 @@ from typing import TypeVar, Generic
 from weakref import ref
 from runtime_final import final
 
-from .._base_level import BaseLevel, BaseLevelPrivate
+from .._level import BaseLevel, BaseLevelPrivate
 
 LevelT = TypeVar("LevelT", bound=BaseLevel)
 LevelDataT = TypeVar("LevelDataT", bound=BaseLevelPrivate)

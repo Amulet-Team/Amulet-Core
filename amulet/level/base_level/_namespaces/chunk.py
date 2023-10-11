@@ -9,7 +9,7 @@ from amulet.api.data_types import Dimension
 from amulet.api.chunk import Chunk
 from .._key_lock import KeyLock
 from .namespace import LevelFriend
-from .._base_level import BaseLevel
+from .._level import BaseLevel
 
 
     __slots__ = ()
