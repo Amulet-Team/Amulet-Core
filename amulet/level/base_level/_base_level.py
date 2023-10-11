@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Optional, Sequence
+from typing import TYPE_CHECKING, Optional, Sequence
 from contextlib import contextmanager
 import os
 import logging
@@ -9,25 +9,26 @@ import logging
 from runtime_final import final
 from PIL import Image
 
+from PyMCTranslate import TranslationManager
+
 from amulet import IMG_DIRECTORY
-from amulet.api.data_types import Dimension, BiomeType
-from amulet.api.block import Block
+from amulet.api.data_types import Dimension
+
 from amulet.api.registry import BlockManager, BiomeManager
-from amulet.api.selection import SelectionGroup
+
 from amulet.utils.shareable_lock import ShareableRLock
 from amulet.utils.signal import Signal, SignalInstanceCacheName
 
-from PyMCTranslate import TranslationManager
+from ._history import HistoryManager
+from ._dimension import DimensionCls
 
 
 if TYPE_CHECKING:
-    from ._namespaces.chunk import ChunkNamespace
     from ._namespaces.player import PlayerNamespace
     from ._namespaces.raw import RawNamespace
 
 
 log = logging.getLogger(__name__)
-NativeChunk = Any
 
 missing_world_icon_path = os.path.abspath(
     os.path.join(IMG_DIRECTORY, "missing_world_icon.png")
@@ -38,11 +39,10 @@ missing_world_icon: Optional[Image.Image] = None
 class BaseLevelPrivate:
     """Private data and methods that friends of BaseLevel can use."""
 
-    __slots__ = ()
+    __slots__ = ("history_manager",)
 
     def __init__(self):
-        pass
-        # History system will go here
+        self.history_manager = HistoryManager()
 
 
 class BaseLevel(ABC):
@@ -68,6 +68,8 @@ class BaseLevel(ABC):
 
         # Private data shared by friends of the class
         self._d = self._instance_data()
+
+        self.history_changed.connect(self._d.history_manager.history_changed)
 
     @staticmethod
     def _instance_data() -> BaseLevelPrivate:
@@ -108,6 +110,21 @@ class BaseLevel(ABC):
     def save(self):
         raise NotImplementedError
 
+    # Signal to notify all listeners that the data they hold is no longer valid
+    purged = Signal()
+
+    def purge(self):
+        """
+        Unload all loaded data.
+        This is a nuclear function and must be used with :meth:`lock`
+
+        This is functionally the same as closing and reopening the level.
+        """
+        self._d.history_manager.reset()
+        self.purged.emit()
+        self.history_changed.emit()
+
+    # Signal to notify all listeners that the level has been closed.
     closed = Signal()
 
     @final
@@ -119,98 +136,33 @@ class BaseLevel(ABC):
         if not self.is_open:
             # Do nothing if already closed
             return
+        self._is_open = False
+        self.closed.emit()
         try:
             self._close()
         except Exception as e:
             raise e
-        finally:
-            self._is_open = False
-            self.closed.emit()
 
     @abstractmethod
     def _close(self):
         raise NotImplementedError
 
-    @property
-    def thumbnail(self) -> Image.Image:
-        global missing_world_icon
-        if missing_world_icon is None:
-            missing_world_icon = Image.open(missing_world_icon_path)
-        return missing_world_icon
+    # Emitted when the undo or redo count has changed
+    history_changed = Signal()
 
     @property
-    def translator(self) -> TranslationManager:
-        raise NotImplementedError
-
-    @abstractmethod
-    def level_name(self) -> str:
-        """The human-readable name of the level"""
-        raise NotImplementedError
-
-    @property
-    def sub_chunk_size(self) -> int:
-        """
-        The dimensions of a sub-chunk.
-        """
-        return 16
-
-    @abstractmethod
-    def dimensions(self) -> Sequence[Dimension]:
-        raise NotImplementedError
-
-    @abstractmethod
-    def bounds(self, dimension: Dimension) -> SelectionGroup:
-        """The editable region of the dimension."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def default_block(self, dimension: Dimension) -> Block:
-        """The default block for this dimension"""
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def block_palette(self) -> BlockManager:
-        """The block look up table for this level."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def default_biome(self, dimension: Dimension) -> BiomeType:
-        """The default biome for this dimension"""
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def biome_palette(self) -> BiomeManager:
-        """The biome look up table for this level."""
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def raw(self) -> RawNamespace:
-        """
-        Direct access to the level data.
-        Only use this if you know what you are doing.
-        """
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def chunk(self) -> ChunkNamespace:
-        """Methods to interact with the chunk data for the level."""
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def player(self) -> PlayerNamespace:
-        """Methods to interact with the player data for the level."""
-        raise NotImplementedError
+    def undo_count(self) -> int:
+        return self._d.history_manager.undo_count
 
     def undo(self):
-        raise NotImplementedError
+        self._d.history_manager.undo()
+
+    @property
+    def redo_count(self) -> int:
+        return self._d.history_manager.redo_count
 
     def redo(self):
-        raise NotImplementedError
+        self._d.history_manager.redo()
 
     @contextmanager
     def lock_shared(self, *, blocking: bool = True, timeout: float = -1):
@@ -263,7 +215,7 @@ class BaseLevel(ABC):
         :return:
         """
         with self._level_lock.shared(blocking, timeout):
-            # TODO: history
+            self._d.history_manager.create_undo_bin()
             yield
 
     @contextmanager
@@ -284,26 +236,63 @@ class BaseLevel(ABC):
         :return:
         """
         with self._level_lock.unique(blocking, timeout):
-            # TODO: history
+            self._d.history_manager.create_undo_bin()
             yield
 
+    @property
+    def thumbnail(self) -> Image.Image:
+        global missing_world_icon
+        if missing_world_icon is None:
+            missing_world_icon = Image.open(missing_world_icon_path)
+        return missing_world_icon
 
-"""
-History/Locking system
-Should support:
-    parallel editing
-    disabling the history system
+    @property
+    def translator(self) -> TranslationManager:
+        raise NotImplementedError
 
-History Solution
-    cache
-        A Least Recently Used RAM database
-        If the stored data overflows the configured maximum, it gets pushed to the disk database
-        Data is stored as bytes to make size checking simpler
-    getting data
-        if the data exists in the cache, it is loaded from there and returned
-        else it is loaded from the level, serialised and stored in the cache and returned
-    setting data
-        if history is enabled and the initial state does not exist in the cache,
-            load it from the level, serialise and store it in the cache
-        store data 
-"""
+    @abstractmethod
+    def level_name(self) -> str:
+        """The human-readable name of the level"""
+        raise NotImplementedError
+
+    @property
+    def sub_chunk_size(self) -> int:
+        """
+        The dimensions of a sub-chunk.
+        """
+        return 16
+
+    @abstractmethod
+    def dimensions(self) -> Sequence[Dimension]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_dimension(self) -> DimensionCls:
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def block_palette(self) -> BlockManager:
+        """The block look up table for this level."""
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def biome_palette(self) -> BiomeManager:
+        """The biome look up table for this level."""
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def raw(self) -> RawNamespace:
+        """
+        Direct access to the level data.
+        Only use this if you know what you are doing.
+        """
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def player(self) -> PlayerNamespace:
+        """Methods to interact with the player data for the level."""
+        raise NotImplementedError

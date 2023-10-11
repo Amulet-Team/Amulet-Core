@@ -73,7 +73,7 @@ class HistoryManager:
     def new_layer(self) -> HistoryManagerLayer:
         return HistoryManagerLayer(self._d)
 
-    history_change = Signal()
+    history_changed = Signal()
 
     def create_undo_bin(self):
         """
