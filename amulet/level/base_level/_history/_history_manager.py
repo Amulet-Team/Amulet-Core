@@ -3,6 +3,7 @@ from __future__ import annotations
 from uuid import uuid4
 from threading import Lock
 from typing import Sequence, Protocol, TypeVar, Generic, Mapping
+from weakref import WeakSet, WeakValueDictionary
 
 from amulet.utils.signal import Signal
 
@@ -42,8 +43,8 @@ class Resource:
 class HistoryManagerPrivate:
     def __init__(self):
         self.lock = Lock()
-        self.resources: dict[bytes, dict[ResourceId, Resource]] = {}
-        self.history: list[set[Resource]] = [set()]
+        self.resources: WeakValueDictionary[bytes, dict[ResourceId, Resource]] = WeakValueDictionary()
+        self.history: list[WeakSet[Resource]] = [WeakSet()]
         self.history_index = 0
         self.has_redo = False
         self.cache = GlobalDiskCache.instance()
@@ -83,7 +84,7 @@ class HistoryManager:
         with self._d.lock:
             self._d.invalidate_future()
             self._d.history_index += 1
-            self._d.history.append(set())
+            self._d.history.append(WeakSet())
 
     def mark_saved(self):
         with self._d.lock:
