@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from .namespace import LevelNamespace
+from .namespace import LevelFriend
 
 
-class PlayerNamespace(LevelNamespace):
+class PlayerNamespace(LevelFriend):
     __slots__ = ()

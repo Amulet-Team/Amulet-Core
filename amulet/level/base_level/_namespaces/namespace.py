@@ -10,7 +10,7 @@ LevelT = TypeVar("LevelT", bound=BaseLevel)
 LevelDataT = TypeVar("LevelDataT", bound=BaseLevelPrivate)
 
 
-class LevelNamespace(Generic[LevelT, LevelDataT]):
+class LevelFriend(Generic[LevelT, LevelDataT]):
     __slots__ = (
         "_level_ref",
         "_d",

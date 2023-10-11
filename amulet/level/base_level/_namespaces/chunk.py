@@ -8,12 +8,12 @@ from amulet.utils.shareable_lock import LockError
 from amulet.api.data_types import Dimension
 from amulet.api.chunk import Chunk
 from .._key_lock import KeyLock
-from .namespace import LevelNamespace
+from .namespace import LevelFriend
 from .._base_level import BaseLevel
 
 
-class ChunkNamespace(LevelNamespace):
     __slots__ = ()
+class ChunkNamespace(LevelFriend):
 
     def _init(self):
         self._locks = KeyLock[tuple[str, int, int]]()

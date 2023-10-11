@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from amulet.api.data_types import Dimension, ChunkCoordinates
 from amulet.api.chunk import Chunk
 
-from .namespace import LevelNamespace, LevelT, LevelDataT
+from .namespace import LevelFriend, LevelT, LevelDataT
 
 RawChunkT = TypeVar("NativeChunkT")
 NativeChunkT = TypeVar("NativeChunkT")
@@ -15,7 +15,7 @@ RawPlayerT = TypeVar("RawPlayerT")
 
 
 class RawNamespace(
-    LevelNamespace[LevelT],
+    LevelFriend[LevelT],
     ABC,
     Generic[LevelT, LevelDataT, RawChunkT, NativeChunkT, PlayerIDT, RawPlayerT],
 ):
