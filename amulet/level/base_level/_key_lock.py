@@ -1,4 +1,4 @@
-from threading import Lock
+from threading import Lock, RLock
 from weakref import WeakKeyDictionary
 from typing import Generic, TypeVar
 
@@ -14,11 +14,11 @@ class KeyLock(Generic[T]):
 
     def __init__(self):
         self._lock = Lock()
-        self._locks: WeakKeyDictionary[T, Lock] = WeakKeyDictionary()
+        self._locks: WeakKeyDictionary[T, RLock] = WeakKeyDictionary()
 
-    def get(self, key: T) -> Lock:
+    def get(self, key: T) -> RLock:
         with self._lock:
             lock = self._locks.get(key)
             if lock is None:
-                lock = self._locks[key] = Lock()
+                lock = self._locks[key] = RLock()
             return lock
