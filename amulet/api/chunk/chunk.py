@@ -18,10 +18,9 @@ from amulet.api.chunk import (
 )
 from amulet.api.entity import Entity
 from amulet.api.data_types import ChunkCoordinates, VersionIdentifierType
-from amulet.api.history.changeable import Changeable
 
 
-class Chunk(Changeable):
+class Chunk:
     """
     A class to represent a chunk that exists in a Minecraft world
     """
@@ -35,7 +34,6 @@ class Chunk(Changeable):
         """
         super().__init__()
         self._cx, self._cz = cx, cz
-        self._changed_time = 0.0
 
         self._blocks = None
         self.__block_palette = BlockManager()
@@ -62,7 +60,6 @@ class Chunk(Changeable):
         chunk_data = (
             self._cx,
             self._cz,
-            self._changed_time,
             {sy: self.blocks.get_sub_chunk(sy) for sy in self.blocks.sub_chunks},
             self.biomes.to_raw(),
             self._entities.data,
@@ -100,14 +97,11 @@ class Chunk(Changeable):
             self.misc,
             self._native_entities,
             self._native_version,
-        ) = chunk_data[3:]
+        ) = chunk_data[2:]
 
         self._biomes = Biomes.from_raw(*biomes)
-
-        self._changed_time = chunk_data[2]
         self._block_palette = block_palette
         self._biome_palette = biome_palette
-        self.changed = False
         return self
 
     @property
@@ -124,36 +118,6 @@ class Chunk(Changeable):
     def coordinates(self) -> ChunkCoordinates:
         """The chunk's x and z coordinates"""
         return self._cx, self._cz
-
-    @property
-    def changed(self) -> bool:
-        """
-        Has the chunk changed since the last undo point. Is used to track which chunks have changed.
-
-        >>> chunk = Chunk(0, 0)
-        >>> # Run this to notify that the chunk data has changed.
-        >>> chunk.changed = True
-
-        :setter: Set this to ``True`` if you have modified the chunk in any way.
-        :return: ``True`` if the chunk has been changed since the last undo point, ``False`` otherwise.
-        """
-        return self._changed
-
-    @changed.setter
-    def changed(self, changed: bool):
-        assert isinstance(changed, bool), "Changed value must be a bool"
-        self._changed = changed
-        if changed:
-            self._changed_time = time.time()
-
-    @property
-    def changed_time(self) -> float:
-        """
-        The last time the chunk was changed
-
-        Used to track if the chunk was changed since the last save snapshot and if the chunk model needs rebuilding.
-        """
-        return self._changed_time
 
     @property
     def blocks(self) -> Blocks:

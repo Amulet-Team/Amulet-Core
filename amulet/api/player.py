@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from typing import Tuple
 
-from amulet.api.history import Changeable
 from amulet.api.data_types import Dimension
 
 LOCAL_PLAYER = "~local_player"
 
 
-class Player(Changeable):
+class Player:
     def __init__(
         self,
         player_id: str,
