@@ -53,6 +53,7 @@ class BaseLevel(ABC):
         "_d",
         "_level_lock",
         "_is_open",
+        "_history_enabled",
     )
 
     _d: BaseLevelPrivate
@@ -65,6 +66,7 @@ class BaseLevel(ABC):
         # Private attributes
         self._level_lock = ShareableRLock()
         self._is_open = False
+        self._history_enabled = True
 
         # Private data shared by friends of the class
         self._d = self._instance_data()
@@ -194,6 +196,18 @@ class BaseLevel(ABC):
         with self._level_lock.unique(blocking, timeout):
             yield
 
+    history_enabled_changed = Signal()
+
+    @property
+    def history_enabled(self) -> bool:
+        """Should edit_serial and edit_parallel create undo points and should setting data load the original state."""
+        return self._history_enabled
+
+    @history_enabled.setter
+    def history_enabled(self, history_enabled: bool):
+        self._history_enabled = history_enabled
+        self.history_enabled_changed.emit()
+
     @contextmanager
     def edit_parallel(self, *, blocking: bool = True, timeout: float = -1):
         """
@@ -215,7 +229,8 @@ class BaseLevel(ABC):
         :return:
         """
         with self._level_lock.shared(blocking, timeout):
-            self._d.history_manager.create_undo_bin()
+            if self._history_enabled:
+                self._d.history_manager.create_undo_bin()
             yield
 
     @contextmanager
@@ -236,7 +251,8 @@ class BaseLevel(ABC):
         :return:
         """
         with self._level_lock.unique(blocking, timeout):
-            self._d.history_manager.create_undo_bin()
+            if self._history_enabled:
+                self._d.history_manager.create_undo_bin()
             yield
 
     @property
