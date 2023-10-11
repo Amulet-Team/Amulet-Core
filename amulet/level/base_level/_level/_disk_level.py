@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from ._base_level import BaseLevel
+from ._level import BaseLevel
 
 
 class DiskLevel(BaseLevel):

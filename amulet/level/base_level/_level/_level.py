@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional, Sequence
+from typing import TYPE_CHECKING, Optional, Sequence, Any, Union
 from contextlib import contextmanager
 import os
 import logging
@@ -19,13 +19,13 @@ from amulet.api.registry import BlockManager, BiomeManager
 from amulet.utils.shareable_lock import ShareableRLock
 from amulet.utils.signal import Signal, SignalInstanceCacheName
 
-from ._history import HistoryManager
-from ._dimension import DimensionCls
+from .._history import HistoryManager
+from .._dimension import DimensionCls
 
 
 if TYPE_CHECKING:
-    from ._namespaces.player import PlayerNamespace
-    from ._namespaces.raw import RawNamespace
+    from .._namespaces.player import PlayerNamespace
+    from .._namespaces.raw import RawNamespace
 
 
 log = logging.getLogger(__name__)

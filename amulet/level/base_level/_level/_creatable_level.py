@@ -4,7 +4,7 @@ from typing import Union, TYPE_CHECKING, Optional
 
 
 if TYPE_CHECKING:
-    from ._base_level import BaseLevel
+    from ._level import BaseLevel
 
 
 # The following classes are used to notify a GUI of the types required to create a new instance of the level.

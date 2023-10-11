@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Union
 from abc import ABC, abstractmethod
 
-from ._base_level import BaseLevel
+from ._level import BaseLevel
 
 
 class LoadableLevel(ABC):
