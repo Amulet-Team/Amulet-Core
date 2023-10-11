@@ -27,7 +27,8 @@ class LevelFriend(Generic[LevelT, LevelDataT]):
         pass
 
     @final
-    def _get_level(self) -> LevelT:
+    @property
+    def _level(self) -> LevelT:
         level = self._level_ref()
         if level is None:
             raise RuntimeError("The level no longer exists.")
