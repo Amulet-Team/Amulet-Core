@@ -9,6 +9,10 @@ from amulet.utils.signal import Signal
 
 from ._cache import GlobalDiskCache
 
+# TODO: consider adding a max undo option
+# TODO: if we clear old undo info we should remove that data from the cache
+# TODO: compact the cache periodically
+
 
 class ResourceId(Protocol):
     def __hash__(self) -> int:
@@ -59,6 +63,14 @@ class HistoryManagerPrivate:
                     if resource.saved_index > resource.index:
                         # A future index is saved that just got invalidated
                         resource.saved_index = -1
+
+    def reset(self):
+        with self.lock:
+            for layer in self.resources.values():
+                layer.clear()
+            self.history = [WeakSet()]
+            self.history_index = 0
+            self.has_redo = False
 
 
 ResourceIdT = TypeVar("ResourceIdT", bound=ResourceId)
@@ -126,6 +138,10 @@ class HistoryManager:
             for resource in self._d.history[self._d.history_index]:
                 resource.index += 1
             self._d.has_redo = bool(self._redo_count())
+
+    def reset(self):
+        """Reset to the factory state."""
+        self._d.reset()
 
 
 class HistoryManagerLayer(Generic[ResourceIdT]):
