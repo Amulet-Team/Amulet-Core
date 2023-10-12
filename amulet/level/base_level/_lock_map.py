@@ -18,6 +18,10 @@ class LockMap(Generic[T]):
         self._locks: WeakValueDictionary[T, RLock] = WeakValueDictionary()
 
     def get(self, key: T) -> RLock:
+        """
+        Get the lock for the key.
+        The lock must be strongly referenced by the caller until it is unlocked.
+        """
         with self._lock:
             lock = self._locks.get(key)
             if lock is None:
