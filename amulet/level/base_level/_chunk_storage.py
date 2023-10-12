@@ -15,31 +15,24 @@ from ._history import HistoryManagerLayer
 from ._signal_map import SignalMap
 
 
-class ChunkKey:
-    __slots__ = ("cx", "cz", "_hash", "_bytes")
+class ChunkKey(tuple):
+    def __new__(cls, cx: int, cz: int):
+        return super().__new__(cls, (cx, cz))
 
     def __init__(self, cx: int, cz: int):
-        self.cx = cx
-        self.cz = cz
-        self._hash: Optional[int] = None
         self._bytes: Optional[bytes] = None
 
-    def _data(self):
-        return self.cx, self.cz
+    @property
+    def cx(self) -> int:
+        return self[0]
 
-    def __hash__(self) -> int:
-        if self._hash is None:
-            self._hash = hash(self._data())
-        return self._hash
-
-    def __eq__(self, other):
-        if isinstance(other, ChunkKey):
-            return other._data() == self._data()
-        return NotImplemented
+    @property
+    def cz(self) -> int:
+        return self[1]
 
     def __bytes__(self) -> bytes:
         if self._bytes is None:
-            self._bytes = b"/".join((str(self.cx).encode(), str(self.cz).encode()))
+            self._bytes = b"/".join((str(self[0]).encode(), str(self[1]).encode()))
         return self._bytes
 
 
