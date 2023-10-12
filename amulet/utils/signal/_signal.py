@@ -59,9 +59,7 @@ def _get_signal_instances(instance) -> dict:
 
 
 class Signal:
-    def __init__(
-        self, *types: type, name: Optional[str] = "", arguments: Optional[str] = ()
-    ):
+    def __init__(self, *types: type, name: str = "", arguments: list[str] = ()):
         self._types = types
         self._name = name
         self._arguments = arguments
@@ -93,8 +91,8 @@ class SignalInstanceConstructor(Protocol):
         self,
         *,
         types: tuple[type, ...],
-        name: Optional[str],
-        arguments: Optional[str],
+        name: str,
+        arguments: list[str],
         instance: Any,
     ) -> SignalInstance:
         ...
@@ -155,8 +153,8 @@ def get_fallback_signal_instance_constructor() -> SignalInstanceConstructor:
     def fallback_signal_instance_constructor(
         *,
         types: tuple[type, ...],
-        name: Optional[str],
-        arguments: Optional[str],
+        name: str,
+        arguments: list[str],
         instance: Any,
     ) -> FallbackSignalInstance:
         return FallbackSignalInstance(*types)
@@ -179,8 +177,8 @@ def get_pyside6_signal_instance_constructor() -> SignalInstanceConstructor:
     def pyside6_signal_instance_constructor(
         *,
         types: tuple[type, ...],
-        name: Optional[str],
-        arguments: Optional[str],
+        name: str,
+        arguments: list[str],
         instance: Any,
     ) -> PySide6_SignalInstance:
         if isinstance(instance, QObject):
