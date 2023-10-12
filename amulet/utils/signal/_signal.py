@@ -29,11 +29,7 @@ _signal_instance_constructor: Optional[SignalInstanceConstructor] = None
 
 
 def create_signal_instance(
-    *,
-    types: tuple[type, ...],
-    name: Optional[str],
-    arguments: Optional[str],
-    instance: Any,
+    *types: type, instance: Any, name: str = "", arguments: list[str] = ()
 ) -> SignalInstance:
     """Create a new signal instance"""
     if _signal_instance_constructor is None:
@@ -78,7 +74,7 @@ class Signal:
         signal_instances = _get_signal_instances(instance)
         if self not in signal_instances:
             signal_instances[self] = create_signal_instance(
-                types=self._types,
+                *self._types,
                 name=self._name,
                 arguments=self._arguments,
                 instance=instance,
