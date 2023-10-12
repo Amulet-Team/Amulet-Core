@@ -28,6 +28,24 @@ class SignalInstance(Protocol):
 _signal_instance_constructor: Optional[SignalInstanceConstructor] = None
 
 
+def create_signal_instance(
+    *,
+    types: tuple[type, ...],
+    name: Optional[str],
+    arguments: Optional[str],
+    instance: Any,
+) -> SignalInstance:
+    """Create a new signal instance"""
+    if _signal_instance_constructor is None:
+        set_signal_instance_constructor(get_fallback_signal_instance_constructor())
+    return _signal_instance_constructor(
+        types=types,
+        name=name,
+        arguments=arguments,
+        instance=instance,
+    )
+
+
 SignalInstanceCacheName = "_SignalCache"
 
 
@@ -61,17 +79,11 @@ class Signal:
             return self
         signal_instances = _get_signal_instances(instance)
         if self not in signal_instances:
-            if _signal_instance_constructor is None:
-                set_signal_instance_constructor(
-                    get_fallback_signal_instance_constructor()
-                )
-            signal_instances[self] = _signal_instance_constructor(
+            signal_instances[self] = create_signal_instance(
                 types=self._types,
                 name=self._name,
                 arguments=self._arguments,
-                signal=self,
                 instance=instance,
-                owner=owner,
             )
         return signal_instances[self]
 
@@ -83,9 +95,7 @@ class SignalInstanceConstructor(Protocol):
         types: tuple[type, ...],
         name: Optional[str],
         arguments: Optional[str],
-        signal: Signal,
         instance: Any,
-        owner: Any,
     ) -> SignalInstance:
         ...
 
@@ -147,9 +157,7 @@ def get_fallback_signal_instance_constructor() -> SignalInstanceConstructor:
         types: tuple[type, ...],
         name: Optional[str],
         arguments: Optional[str],
-        signal: Signal,
         instance: Any,
-        owner: Any,
     ) -> FallbackSignalInstance:
         return FallbackSignalInstance(*types)
 
@@ -173,9 +181,7 @@ def get_pyside6_signal_instance_constructor() -> SignalInstanceConstructor:
         types: tuple[type, ...],
         name: Optional[str],
         arguments: Optional[str],
-        signal: Signal,
         instance: Any,
-        owner: Any,
     ) -> PySide6_SignalInstance:
         if isinstance(instance, QObject):
             return PySide6_Signal(*types, name=name, arguments=arguments).__get__(
