@@ -20,10 +20,10 @@ from amulet.utils.shareable_lock import ShareableRLock
 from amulet.utils.signal import Signal, SignalInstanceCacheName
 
 from .._history import HistoryManager
-from .._dimension import DimensionCls
 
 
 if TYPE_CHECKING:
+    from .._dimension import DimensionCls
     from .._namespaces.player import PlayerNamespace
     from .._namespaces.raw import RawNamespace
 
