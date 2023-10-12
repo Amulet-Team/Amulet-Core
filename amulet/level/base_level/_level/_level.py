@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional, Sequence, Any, Union
+from typing import TYPE_CHECKING, Optional, Sequence
 from contextlib import contextmanager
 import os
 import logging
@@ -24,7 +24,7 @@ from .._history import HistoryManager
 
 if TYPE_CHECKING:
     from .._dimension import DimensionCls
-    from .._namespaces.player import PlayerNamespace
+    from .._player_storage import PlayerStorage
     from .._namespaces.raw import RawNamespace
 
 
@@ -309,6 +309,6 @@ class BaseLevel(ABC):
 
     @property
     @abstractmethod
-    def player(self) -> PlayerNamespace:
+    def player(self) -> PlayerStorage:
         """Methods to interact with the player data for the level."""
         raise NotImplementedError

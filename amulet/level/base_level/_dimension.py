@@ -6,10 +6,10 @@ from amulet.api.data_types import BiomeType
 from amulet.api.block import Block
 from amulet.api.selection import SelectionGroup
 
-from ._namespaces.namespace import LevelFriend
+from ._level import LevelFriend
 
 if TYPE_CHECKING:
-    from ._namespaces.chunk import ChunkNamespace
+    from ._chunk_storage import ChunkStorage
 
 
 class DimensionCls(LevelFriend, ABC):
@@ -30,6 +30,6 @@ class DimensionCls(LevelFriend, ABC):
 
     @property
     @abstractmethod
-    def chunk(self) -> ChunkNamespace:
+    def chunk(self) -> ChunkStorage:
         """Methods to interact with the chunk data for the level."""
         raise NotImplementedError

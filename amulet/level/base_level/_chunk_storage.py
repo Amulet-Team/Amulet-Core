@@ -8,10 +8,10 @@ from amulet.api.chunk import Chunk
 from amulet.api.errors import ChunkDoesNotExist
 from amulet.utils.signal import SignalInstance
 
-from .._lock_map import LockMap
-from .namespace import LevelFriend
-from .._level import BaseLevel
-from .._history import HistoryManagerLayer
+from ._lock_map import LockMap
+from ._level import LevelFriend
+from ._level import BaseLevel
+from ._history import HistoryManagerLayer
 
 
 class ChunkKey:
@@ -42,7 +42,7 @@ class ChunkKey:
         return self._bytes
 
 
-class ChunkNamespace(LevelFriend):
+class ChunkStorage(LevelFriend):
     __slots__ = ("_locks", "_history")
 
     def _init(self):

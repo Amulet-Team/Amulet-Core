@@ -1,4 +1,5 @@
 from ._level import BaseLevel, BaseLevelPrivate
+from ._level_friend import LevelFriend, LevelT, LevelDataT
 from ._compactable_level import CompactableLevel
 from ._creatable_level import (
     CreatableLevel,

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Iterable, Any, TypeVar, Generic
+from typing import Iterable, TypeVar, Generic
 from abc import ABC, abstractmethod
 
 from amulet.api.data_types import Dimension, ChunkCoordinates
 from amulet.api.chunk import Chunk
 
-from .namespace import LevelFriend, LevelT, LevelDataT
+from .._level import LevelFriend, LevelT, LevelDataT
 
 RawChunkT = TypeVar("NativeChunkT")
 NativeChunkT = TypeVar("NativeChunkT")
