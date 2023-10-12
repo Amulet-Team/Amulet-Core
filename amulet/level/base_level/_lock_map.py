@@ -1,5 +1,5 @@
 from threading import Lock, RLock
-from weakref import WeakKeyDictionary
+from weakref import WeakValueDictionary
 from typing import Generic, TypeVar
 
 
@@ -8,13 +8,14 @@ T = TypeVar("T")
 
 class LockMap(Generic[T]):
     """
-    A map from weakly referenced keys to locks per key.
+    A map from keys to a weakly referenced lock per key.
     This is useful if you want to lock access to individual resources.
+    A strong reference to the lock must be held by the caller until it is released.
     """
 
     def __init__(self):
         self._lock = Lock()
-        self._locks: WeakKeyDictionary[T, RLock] = WeakKeyDictionary()
+        self._locks: WeakValueDictionary[T, RLock] = WeakValueDictionary()
 
     def get(self, key: T) -> RLock:
         with self._lock:
