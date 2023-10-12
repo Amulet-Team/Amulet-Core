@@ -47,7 +47,9 @@ class Resource:
 class HistoryManagerPrivate:
     def __init__(self):
         self.lock = Lock()
-        self.resources: WeakValueDictionary[bytes, dict[ResourceId, Resource]] = WeakValueDictionary()
+        self.resources: WeakValueDictionary[
+            bytes, dict[ResourceId, Resource]
+        ] = WeakValueDictionary()
         self.history: list[WeakSet[Resource]] = [WeakSet()]
         self.history_index = 0
         self.has_redo = False
