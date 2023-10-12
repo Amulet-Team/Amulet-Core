@@ -175,7 +175,7 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
                 if resource.saved_index != resource.index
             ]
 
-    def resources_exist(self) -> Mapping[ResourceIdT, bool]:
+    def resources_exist_map(self) -> Mapping[ResourceIdT, bool]:
         """
         Get a mapping from the resource ids to a bool stating if the data exists for that resource.
         If false that resource has been deleted.
