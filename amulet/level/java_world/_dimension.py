@@ -13,7 +13,7 @@ from amulet.api.data_types import (
     ChunkCoordinates,
     RegionCoordinates,
 )
-from .region import AnvilRegion
+from ._region import AnvilRegion
 
 InternalDimension = str
 
