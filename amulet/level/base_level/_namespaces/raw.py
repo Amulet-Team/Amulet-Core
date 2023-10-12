@@ -15,7 +15,7 @@ RawPlayerT = TypeVar("RawPlayerT")
 
 
 class RawNamespace(
-    LevelFriend[LevelT],
+    LevelFriend[LevelT, LevelDataT],
     ABC,
     Generic[LevelT, LevelDataT, RawChunkT, NativeChunkT, PlayerIDT, RawPlayerT],
 ):
