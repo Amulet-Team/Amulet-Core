@@ -12,6 +12,7 @@ from ._lock_map import LockMap
 from ._level import LevelFriend
 from ._level import BaseLevel
 from ._history import HistoryManagerLayer
+from ._signal_map import SignalMap
 
 
 class ChunkKey:
@@ -47,6 +48,7 @@ class ChunkStorage(LevelFriend):
 
     def _init(self):
         self._locks = LockMap[tuple[int, int]]()
+        self._signals = SignalMap[tuple[int, int]]()
         self._history: HistoryManagerLayer[
             ChunkKey
         ] = self._d.history_manager.new_layer()
@@ -172,6 +174,25 @@ class ChunkStorage(LevelFriend):
             # The history system is not aware of the chunk. Load from the level data
             raise NotImplementedError
 
+    def _set(self, cx: int, cz: int, data: bytes):
+        lock = self._locks.get((cx, cz))
+        if not lock.acquire(False):
+            raise LockError("Cannot set a chunk if it is locked by another thread.")
+        try:
+            history = self._history
+            key = ChunkKey(cx, cz)
+            if not history.has_resource(key):
+                if self._level.history_enabled:
+                    raise NotImplementedError
+                    # TODO: load the original state
+                    # history.set_initial_resource(key)
+                else:
+                    history.set_initial_resource(key, b"")
+            history.set_resource(key, data)
+        finally:
+            lock.release()
+        self._signals.emit((cx, cz))
+
     def set(self, cx: int, cz: int, chunk: Chunk):
         """
         Overwrite the chunk data.
@@ -184,22 +205,7 @@ class ChunkStorage(LevelFriend):
         :raises:
             LockError: If the chunk is already locked by another thread.
         """
-        lock = self._locks.get((cx, cz))
-        if not lock.acquire(False):
-            raise LockError("Cannot set a chunk if it is locked by another thread.")
-        try:
-            history = self._history
-            key = ChunkKey(cx, cz)
-            if not history.has_resource(key):
-                if self._level.history_enabled:
-                    # TODO: load the original state
-                    history.set_initial_resource(key)
-                else:
-                    history.set_initial_resource(key, b"")
-            history.set_resource(key, chunk.pickle(self._level))
-            # TODO set the chunk and notify listeners
-        finally:
-            lock.release()
+        self._set(cx, cz, chunk.pickle(self._level))
 
     def delete(self, cx: int, cz: int):
         """
@@ -208,20 +214,17 @@ class ChunkStorage(LevelFriend):
         :param cx: The X coordinate of the chunk
         :param cz: The Z coordinate of the chunk
         """
-        raise NotImplementedError
+        self._set(cx, cz, b"")
 
     def changed(self, cx: int, cz: int) -> SignalInstance:
         """
-        Delete a chunk from the level.
+        Get a signal instance that is emitted when the chunk data changes.
+        The caller must store a strong reference to the returned SignalInstance
 
         :param cx: The X coordinate of the chunk
         :param cz: The Z coordinate of the chunk
         """
-        raise NotImplementedError
-
-    # def on_change(self, callback):
-    #     """A notification system for chunk changes."""
-    #     raise NotImplementedError
+        return self._signals.get((cx, cz))
 
     # @contextmanager
     # def edit_native(

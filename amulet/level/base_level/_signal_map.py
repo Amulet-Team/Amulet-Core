@@ -45,3 +45,9 @@ class SignalMap(Generic[T]):
                     arguments=self._arguments
                 )
             return signal
+
+    def emit(self, key: T, *args):
+        """Emit from the signal if it exists."""
+        signal = self._signals.get(key)
+        if signal is not None:
+            signal.emit(*args)
