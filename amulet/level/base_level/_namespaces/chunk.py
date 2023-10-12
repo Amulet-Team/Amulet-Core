@@ -7,7 +7,7 @@ from copy import deepcopy
 from amulet.utils.shareable_lock import LockError
 from amulet.api.data_types import Dimension
 from amulet.api.chunk import Chunk
-from .._key_lock import KeyLock
+from .._lock_map import LockMap
 from .namespace import LevelFriend
 from .._level import BaseLevel
 
@@ -16,7 +16,7 @@ from .._level import BaseLevel
 class ChunkNamespace(LevelFriend):
 
     def _init(self):
-        self._locks = KeyLock[tuple[str, int, int]]()
+        self._locks = LockMap[tuple[int, int]]()
 
     @contextmanager
     def lock(
