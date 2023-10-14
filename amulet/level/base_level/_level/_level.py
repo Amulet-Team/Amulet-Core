@@ -39,12 +39,26 @@ missing_world_icon: Optional[Image.Image] = None
 class BaseLevelPrivate:
     """Private data and methods that friends of BaseLevel can use."""
 
-    history_manager: HistoryManager
+    history_manager: Optional[HistoryManager]
+    block_palette: Optional[BlockManager]
+    biome_palette: Optional[BiomeManager]
 
     __slots__ = tuple(__annotations__)
 
     def __init__(self):
+        self.history_manager = None
+        self.block_palette = None
+        self.biome_palette = None
+
+    def open(self):
         self.history_manager = HistoryManager()
+        self.block_palette = BlockManager()
+        self.biome_palette = BiomeManager()
+
+    def close(self):
+        self.history_manager = None
+        self.block_palette = None
+        self.biome_palette = None
 
 
 class BaseLevel(ABC):
@@ -90,6 +104,7 @@ class BaseLevel(ABC):
         if self.is_open:
             # Do nothing if already open
             return
+        self._d.open()
         self._open()
         self._is_open = True
         self.opened.emit()
@@ -141,8 +156,8 @@ class BaseLevel(ABC):
         self.closed.emit()
         try:
             self._close()
-        except Exception as e:
-            raise e
+        finally:
+            self._d.close()
 
     @abstractmethod
     def _close(self):
