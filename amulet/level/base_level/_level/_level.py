@@ -283,7 +283,7 @@ class BaseLevel(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_dimension(self) -> DimensionCls:
+    def get_dimension(self, dimension: Dimension) -> DimensionCls:
         raise NotImplementedError
 
     @property

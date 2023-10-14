@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Generator
+from typing import Optional, Generator, TYPE_CHECKING
 from contextlib import contextmanager
 
 from amulet.utils.shareable_lock import LockError
@@ -10,9 +10,12 @@ from amulet.utils.signal import SignalInstance
 
 from ._lock_map import LockMap
 from ._level import LevelFriend
-from ._level import BaseLevel
 from ._history import HistoryManagerLayer
 from ._signal_map import SignalMap
+
+
+if TYPE_CHECKING:
+    from ._level import BaseLevel
 
 
 class ChunkKey(tuple):
@@ -59,7 +62,8 @@ class ChunkStorage(LevelFriend):
         Lock access to the chunk.
 
         >>> level: BaseLevel
-        >>> with level.chunk.lock(cx, cz):
+        >>> dimension_name: str
+        >>> with level.get_dimension(dimension_name).chunk.lock(cx, cz):
         >>>     # Do what you need to with the chunk
         >>>     # No other threads are able to edit or set the chunk while in this with block.
 
@@ -95,7 +99,8 @@ class ChunkStorage(LevelFriend):
         If blocking is false and the lock could not be acquired within the timeout period
 
         >>> level: BaseLevel
-        >>> with level.chunk.edit(cx, cz) as chunk:
+        >>> dimension_name: str
+        >>> with level.get_dimension(dimension_name).chunk.edit(cx, cz) as chunk:
         >>>     # Edit the chunk data
         >>>     # No other threads are able to edit the chunk while in this with block.
         >>>     # When the with block exits the edited chunk will be automatically set if no exception occurred.
