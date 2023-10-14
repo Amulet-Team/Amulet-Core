@@ -56,7 +56,9 @@ class RawLevel(
         raise NotImplementedError
 
     @abstractmethod
-    def get_native_chunk(self, dimension: DimensionID, cx: int, cz: int) -> NativeChunkT:
+    def get_native_chunk(
+        self, dimension: DimensionID, cx: int, cz: int
+    ) -> NativeChunkT:
         """
         Get the raw chunk data loaded into an easier to use format.
         Block, biome and other array data should be loaded into editable arrays.
@@ -75,7 +77,9 @@ class RawLevel(
         """Get the chunk in the universal format."""
 
     @abstractmethod
-    def set_universal_chunk(self, dimension: DimensionID, cx: int, cz: int, chunk: Chunk):
+    def set_universal_chunk(
+        self, dimension: DimensionID, cx: int, cz: int, chunk: Chunk
+    ):
         """Set the chunk in the universal format."""
         raise NotImplementedError
 
