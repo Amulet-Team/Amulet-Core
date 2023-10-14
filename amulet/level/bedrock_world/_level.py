@@ -8,10 +8,14 @@ from amulet.level.base_level import (
     LoadableLevel,
     CompactableLevel,
 )
+from ._level_dat import BedrockLevelDAT
 
 
 class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
-    __slots__ = ()
+    _path: str
+    _dat: BedrockLevelDAT
+
+    __slots__ = tuple(__annotations__)
 
     @classmethod
     def create(cls, *args, **kwargs) -> BedrockLevel:

@@ -39,7 +39,9 @@ missing_world_icon: Optional[Image.Image] = None
 class BaseLevelPrivate:
     """Private data and methods that friends of BaseLevel can use."""
 
-    __slots__ = ("history_manager",)
+    history_manager: HistoryManager
+
+    __slots__ = tuple(__annotations__)
 
     def __init__(self):
         self.history_manager = HistoryManager()
@@ -48,15 +50,12 @@ class BaseLevelPrivate:
 class BaseLevel(ABC):
     """Base class for all levels."""
 
-    __slots__ = (
-        SignalInstanceCacheName,
-        "_d",
-        "_level_lock",
-        "_is_open",
-        "_history_enabled",
-    )
-
     _d: BaseLevelPrivate
+    _level_lock: ShareableRLock
+    _is_open: bool
+    _history_enabled: bool
+
+    __slots__ = (SignalInstanceCacheName,) + tuple(__annotations__)
 
     def __init__(self):
         """
