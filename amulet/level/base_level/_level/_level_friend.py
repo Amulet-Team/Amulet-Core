@@ -11,20 +11,16 @@ LevelDataT = TypeVar("LevelDataT", bound=BaseLevelPrivate)
 
 
 class LevelFriend(Generic[LevelT, LevelDataT]):
+    _d: LevelDataT
+
     __slots__ = (
         "_level_ref",
         "_d",
     )
 
-    @final
     def __init__(self, level: LevelT, data: LevelDataT):
         self._level_ref = ref(level)
         self._d = data
-        self._init()
-
-    def _init(self):
-        """Initialise instance attributes"""
-        pass
 
     @final
     @property
