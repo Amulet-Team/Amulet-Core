@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional, Sequence
+from typing import TYPE_CHECKING, Optional, Sequence, TypeVar
 from contextlib import contextmanager
 import os
 import logging
@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from .._player_storage import PlayerStorage
     from .._raw_level import RawLevel
 
+T = TypeVar("T")
 
 log = logging.getLogger(__name__)
 
@@ -34,6 +35,11 @@ missing_world_icon_path = os.path.abspath(
     os.path.join(IMG_DIRECTORY, "missing_world_icon.png")
 )
 missing_world_icon: Optional[Image.Image] = None
+
+
+def metadata(f: T) -> T:
+    """Data about a level that can be accessed without opening the level."""
+    return f
 
 
 class BaseLevelPrivate:
@@ -269,6 +275,7 @@ class BaseLevel(ABC):
                 self._d.history_manager.create_undo_bin()
             yield
 
+    @metadata
     @property
     def thumbnail(self) -> Image.Image:
         global missing_world_icon
@@ -276,21 +283,24 @@ class BaseLevel(ABC):
             missing_world_icon = Image.open(missing_world_icon_path)
         return missing_world_icon
 
+    @metadata
     @property
-    def translator(self) -> TranslationManager:
-        raise NotImplementedError
-
     @abstractmethod
     def level_name(self) -> str:
         """The human-readable name of the level"""
         raise NotImplementedError
 
+    @metadata
     @property
     def sub_chunk_size(self) -> int:
         """
         The dimensions of a sub-chunk.
         """
         return 16
+
+    @property
+    def translator(self) -> TranslationManager:
+        raise NotImplementedError
 
     @abstractmethod
     def dimensions(self) -> Sequence[DimensionID]:

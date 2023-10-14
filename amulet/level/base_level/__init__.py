@@ -14,6 +14,7 @@ from ._level import (
     UnionArg,
     ProtocolArg,
     CreateArgsT,
+    metadata,
 )
 from ._level import LevelT, LevelDataT
 from ._chunk_storage import ChunkStorage
