@@ -1,11 +1,11 @@
-from typing import Dict, Union, Iterable, Tuple, List, Optional
+from typing import Union, Iterable, Tuple, List, Optional
 from amulet_nbt import NamedTag
 
 
-class ChunkData(Dict[bytes, Optional[bytes]]):
+class ChunkData(dict[bytes, Optional[bytes]]):
     def __init__(
         self,
-        chunk_data: Union[Dict[bytes, bytes], Iterable[Tuple[bytes, bytes]]] = (),
+        chunk_data: Union[dict[bytes, bytes], Iterable[Tuple[bytes, bytes]]] = (),
         *,
         entity_actor: Iterable[NamedTag] = (),
         unknown_actor: Iterable[NamedTag] = (),

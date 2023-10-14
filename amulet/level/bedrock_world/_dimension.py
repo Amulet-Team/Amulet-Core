@@ -27,10 +27,10 @@ from amulet_nbt import (
 from amulet.api.errors import ChunkDoesNotExist
 from amulet.api.data_types import ChunkCoordinates
 from leveldb import LevelDB
-from .chunk import ChunkData
+from ._chunk import ChunkData
 
 if TYPE_CHECKING:
-    from .format import LevelDBFormat
+    from ._level_dat import BedrockLevelDAT
 
 log = logging.getLogger(__name__)
 
@@ -48,8 +48,8 @@ class ActorCounter:
         self._count = 0
 
     @classmethod
-    def from_level(cls, level: LevelDBFormat):
-        session = level.root_tag.compound.get_long(
+    def from_level(cls, level_dat: BedrockLevelDAT):
+        session = level_dat.compound.get_long(
             "worldStartCount", LongTag(0xFFFFFFFF)
         ).py_int
         # for some reason this is a signed int stored in a signed long. Manually apply the sign correctly
@@ -63,8 +63,8 @@ class ActorCounter:
         session -= 1
         if session < 0:
             session += 0x100000000
-        level.root_tag.compound["worldStartCount"] = LongTag(session)
-        level.root_tag.save()
+        level_dat.compound["worldStartCount"] = LongTag(session)
+        level_dat.save()
 
         return counter
 
@@ -89,12 +89,13 @@ class LevelDBDimensionManager:
     # A class to keep track of unique actor ids
     _actor_counter: Optional[ActorCounter]
 
-    def __init__(self, level: LevelDBFormat):
+    def __init__(self, level_db: LevelDB, level_dat: BedrockLevelDAT):
         """
-        :param level: The leveldb format to read data from
+        :param level_db: The leveldb database to read data from.
+        :param level_dat: The level.dat file for the level.
         """
-        self._db = level.level_db
-        self._actor_counter = ActorCounter.from_level(level)
+        self._db = level_db
+        self._actor_counter = ActorCounter.from_level(level_dat)
         # self._levels format Dict[level, Dict[Tuple[cx, cz], List[Tuple[full_key, key_extension]]]]
         self._levels: Dict[InternalDimension, Set[ChunkCoordinates]] = {}
         self._lock = RLock()
