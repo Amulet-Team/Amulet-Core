@@ -1,23 +1,22 @@
 from __future__ import annotations
 
-from typing import Iterable, TypeVar, Generic
+from typing import Iterable, Any
 from abc import ABC, abstractmethod
 
 from amulet.api.data_types import DimensionID, ChunkCoordinates
 from amulet.api.chunk import Chunk
 
-from ._level import LevelFriend, LevelT, LevelDataT
+from ._level import LevelFriend
 
-RawChunkT = TypeVar("NativeChunkT")
-NativeChunkT = TypeVar("NativeChunkT")
-PlayerIDT = TypeVar("PlayerIDT")
-RawPlayerT = TypeVar("RawPlayerT")
+RawChunkT = Any
+NativeChunkT = Any
+PlayerIDT = Any
+RawPlayerT = Any
 
 
 class RawLevel(
-    LevelFriend[LevelT, LevelDataT],
+    LevelFriend,
     ABC,
-    Generic[LevelT, LevelDataT, RawChunkT, NativeChunkT, PlayerIDT, RawPlayerT],
 ):
     """
     A class with raw access to the level.
