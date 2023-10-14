@@ -17,7 +17,7 @@ from ._level import (
     metadata,
 )
 from ._level import LevelT, LevelDataT
-from ._chunk_storage import ChunkStorage
+from ._chunk_handle import ChunkStorage
 from ._player_storage import PlayerStorage
 from ._raw_level import RawLevel, BufferedRawLevel
 from ._dimension import Dimension
