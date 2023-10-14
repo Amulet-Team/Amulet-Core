@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Iterable, TypeVar, Generic
 from abc import ABC, abstractmethod
 
-from amulet.api.data_types import Dimension, ChunkCoordinates
+from amulet.api.data_types import DimensionID, ChunkCoordinates
 from amulet.api.chunk import Chunk
 
 from .._level import LevelFriend, LevelT, LevelDataT
@@ -33,16 +33,16 @@ class RawNamespace(
         raise NotImplementedError
 
     @abstractmethod
-    def has_chunk(self, dimension: Dimension, cx: int, cz: int) -> bool:
+    def has_chunk(self, dimension: DimensionID, cx: int, cz: int) -> bool:
         """Check if the chunk exists in the raw level data."""
         raise NotImplementedError
 
     @abstractmethod
-    def delete_chunk(self, dimension: Dimension, cx: int, cz: int):
+    def delete_chunk(self, dimension: DimensionID, cx: int, cz: int):
         raise NotImplementedError
 
     @abstractmethod
-    def get_raw_chunk(self, dimension: Dimension, cx: int, cz: int) -> RawChunkT:
+    def get_raw_chunk(self, dimension: DimensionID, cx: int, cz: int) -> RawChunkT:
         """
         Get the chunk data in its raw format.
         This is usually the exact data that exists on disk.
@@ -51,12 +51,12 @@ class RawNamespace(
         raise NotImplementedError
 
     @abstractmethod
-    def set_raw_chunk(self, dimension: Dimension, cx: int, cz: int, chunk: RawChunkT):
+    def set_raw_chunk(self, dimension: DimensionID, cx: int, cz: int, chunk: RawChunkT):
         """Set the chunk in its raw format."""
         raise NotImplementedError
 
     @abstractmethod
-    def get_native_chunk(self, dimension: Dimension, cx: int, cz: int) -> NativeChunkT:
+    def get_native_chunk(self, dimension: DimensionID, cx: int, cz: int) -> NativeChunkT:
         """
         Get the raw chunk data loaded into an easier to use format.
         Block, biome and other array data should be loaded into editable arrays.
@@ -65,17 +65,17 @@ class RawNamespace(
 
     @abstractmethod
     def set_native_chunk(
-        self, dimension: Dimension, cx: int, cz: int, chunk: NativeChunkT
+        self, dimension: DimensionID, cx: int, cz: int, chunk: NativeChunkT
     ):
         """Set the chunk in its native format."""
         raise NotImplementedError
 
     @abstractmethod
-    def get_universal_chunk(self, dimension: Dimension, cx: int, cz: int) -> Chunk:
+    def get_universal_chunk(self, dimension: DimensionID, cx: int, cz: int) -> Chunk:
         """Get the chunk in the universal format."""
 
     @abstractmethod
-    def set_universal_chunk(self, dimension: Dimension, cx: int, cz: int, chunk: Chunk):
+    def set_universal_chunk(self, dimension: DimensionID, cx: int, cz: int, chunk: Chunk):
         """Set the chunk in the universal format."""
         raise NotImplementedError
 

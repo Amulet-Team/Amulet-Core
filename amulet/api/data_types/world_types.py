@@ -7,7 +7,7 @@ import numpy
 FloatTriplet = Tuple[float, float, float]
 
 #: The data type for the dimension identifier.
-Dimension = str
+DimensionID = Dimension = str
 
 #: The data type for the x and z coordinates of a region file. Note these are no the same as block coordinates.
 RegionCoordinates = Tuple[int, int]

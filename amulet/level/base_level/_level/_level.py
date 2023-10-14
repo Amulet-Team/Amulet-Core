@@ -12,7 +12,7 @@ from PIL import Image
 from PyMCTranslate import TranslationManager
 
 from amulet import IMG_DIRECTORY
-from amulet.api.data_types import Dimension
+from amulet.api.data_types import DimensionID
 
 from amulet.api.registry import BlockManager, BiomeManager
 
@@ -23,7 +23,7 @@ from .._history import HistoryManager
 
 
 if TYPE_CHECKING:
-    from .._dimension import DimensionCls
+    from .._dimension import Dimension
     from .._player_storage import PlayerStorage
     from .._namespaces.raw import RawNamespace
 
@@ -279,11 +279,11 @@ class BaseLevel(ABC):
         return 16
 
     @abstractmethod
-    def dimensions(self) -> Sequence[Dimension]:
+    def dimensions(self) -> Sequence[DimensionID]:
         raise NotImplementedError
 
     @abstractmethod
-    def get_dimension(self, dimension: Dimension) -> DimensionCls:
+    def get_dimension(self, dimension: DimensionID) -> Dimension:
         raise NotImplementedError
 
     @property

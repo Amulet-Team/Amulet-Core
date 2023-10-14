@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from ._chunk_storage import ChunkStorage
 
 
-class DimensionCls(LevelFriend, ABC):
+class Dimension(LevelFriend, ABC):
     @abstractmethod
     def bounds(self) -> SelectionGroup:
         """The editable region of the dimension."""
