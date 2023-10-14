@@ -311,16 +311,20 @@ class BaseLevel(ABC):
         raise NotImplementedError
 
     @property
-    @abstractmethod
     def block_palette(self) -> BlockManager:
         """The block look up table for this level."""
-        raise NotImplementedError
+        block_palette = self._d.block_palette
+        if block_palette is None:
+            raise RuntimeError("block_palette does not exist. Did you open the level?")
+        return block_palette
 
     @property
-    @abstractmethod
     def biome_palette(self) -> BiomeManager:
         """The biome look up table for this level."""
-        raise NotImplementedError
+        biome_palette = self._d.biome_palette
+        if biome_palette is None:
+            raise RuntimeError("biome_palette does not exist. Did you open the level?")
+        return biome_palette
 
     @property
     @abstractmethod
