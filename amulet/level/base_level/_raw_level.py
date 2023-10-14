@@ -27,7 +27,7 @@ class RawLevel(
     __slots__ = ()
 
     @abstractmethod
-    def all_chunk_coords(self) -> Iterable[ChunkCoordinates]:
+    def all_chunk_coords(self, dimension: DimensionID) -> Iterable[ChunkCoordinates]:
         """Get an iterable of all the chunk coordinates that exist in the raw level data."""
         raise NotImplementedError
 
