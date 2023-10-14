@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from amulet.api.data_types import DimensionID, ChunkCoordinates
 from amulet.api.chunk import Chunk
 
-from .._level import LevelFriend, LevelT, LevelDataT
+from ._level import LevelFriend, LevelT, LevelDataT
 
 RawChunkT = TypeVar("NativeChunkT")
 NativeChunkT = TypeVar("NativeChunkT")
@@ -14,7 +14,7 @@ PlayerIDT = TypeVar("PlayerIDT")
 RawPlayerT = TypeVar("RawPlayerT")
 
 
-class RawNamespace(
+class RawLevel(
     LevelFriend[LevelT, LevelDataT],
     ABC,
     Generic[LevelT, LevelDataT, RawChunkT, NativeChunkT, PlayerIDT, RawPlayerT],
@@ -112,7 +112,7 @@ class RawNamespace(
         raise NotImplementedError
 
 
-class BufferedRawNamespace(RawNamespace):
+class BufferedRawLevel(RawLevel):
     """
     A class with raw access to the level.
     All of these methods directly read from or write to the level.

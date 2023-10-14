@@ -25,7 +25,7 @@ from .._history import HistoryManager
 if TYPE_CHECKING:
     from .._dimension import Dimension
     from .._player_storage import PlayerStorage
-    from .._namespaces.raw import RawNamespace
+    from .._raw_level import RawLevel
 
 
 log = logging.getLogger(__name__)
@@ -300,7 +300,7 @@ class BaseLevel(ABC):
 
     @property
     @abstractmethod
-    def raw(self) -> RawNamespace:
+    def raw(self) -> RawLevel:
         """
         Direct access to the level data.
         Only use this if you know what you are doing.

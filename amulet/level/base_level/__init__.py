@@ -18,5 +18,5 @@ from ._level import (
 from ._level import LevelT, LevelDataT
 from ._chunk_storage import ChunkStorage
 from ._player_storage import PlayerStorage
-from ._namespaces.raw import RawNamespace
+from ._raw_level import RawLevel, BufferedRawLevel
 from ._dimension import Dimension
