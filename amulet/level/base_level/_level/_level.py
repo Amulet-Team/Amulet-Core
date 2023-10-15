@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Optional, Sequence, TypeVar, Callable
-from contextlib import contextmanager
+from contextlib import contextmanager, AbstractContextManager as ContextManager
 import os
 import logging
 from weakref import ref
@@ -204,21 +204,19 @@ class BaseLevel(ABC):
         self._d.history_manager.redo()
 
     @contextmanager
-    def lock_shared(self, *, blocking: bool = True, timeout: float = -1):
-        """
-        Share the level without editing it.
-        If you want to edit the level in parallel with other threads, use :meth:`edit_parallel` instead.
-
-        :param blocking: Should this block until the lock can be acquired. Default is True.
-            If false and the lock cannot be acquired on the first try, this returns False.
-        :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
-        :return:
-        """
-        with self._level_lock.shared(blocking, timeout):
+    def _lock(self, *, edit: bool, parallel: bool, blocking: bool, timeout: float):
+        if parallel:
+            lock = self._level_lock.shared(blocking, timeout)
+        else:
+            lock = self._level_lock.unique(blocking, timeout)
+        with lock:
+            if edit and self.history_enabled:
+                self._d.history_manager.create_undo_bin()
             yield
 
-    @contextmanager
-    def lock(self, *, blocking: bool = True, timeout: float = -1):
+    def lock_unique(
+        self, *, blocking: bool = True, timeout: float = -1
+    ) -> ContextManager[None]:
         """
         Get exclusive access to the level without editing it.
         If you want to edit the level with exclusive access, use :meth:`edit_serial` instead.
@@ -230,23 +228,47 @@ class BaseLevel(ABC):
         :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
         :return:
         """
-        with self._level_lock.unique(blocking, timeout):
-            yield
+        return self._lock(
+            edit=False, parallel=False, blocking=blocking, timeout=timeout
+        )
 
-    history_enabled_changed = Signal()
+    def lock_shared(
+        self, *, blocking: bool = True, timeout: float = -1
+    ) -> ContextManager[None]:
+        """
+        Share the level without editing it.
+        If you want to edit the level in parallel with other threads, use :meth:`edit_parallel` instead.
 
-    @property
-    def history_enabled(self) -> bool:
-        """Should edit_serial and edit_parallel create undo points and should setting data load the original state."""
-        return self._history_enabled
+        :param blocking: Should this block until the lock can be acquired. Default is True.
+            If false and the lock cannot be acquired on the first try, this returns False.
+        :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
+        :return:
+        """
+        return self._lock(edit=False, parallel=True, blocking=blocking, timeout=timeout)
 
-    @history_enabled.setter
-    def history_enabled(self, history_enabled: bool):
-        self._history_enabled = history_enabled
-        self.history_enabled_changed.emit()
+    def edit_serial(
+        self, *, blocking: bool = True, timeout: float = -1
+    ) -> ContextManager[None]:
+        """
+        Get exclusive editing permissions for this level.
+        This is useful if you are doing something nuclear to the level and you don't want other code editing it at
+        the same time. Usually :meth:`edit_parallel` is sufficient when used with other locks.
 
-    @contextmanager
-    def edit_parallel(self, *, blocking: bool = True, timeout: float = -1):
+        >>> level: BaseLevel
+        >>> with level.edit_serial():  # This will block the thread until all other threads have finished with the level
+        >>>     # any code here will be run without any other threads touching the level
+        >>> # Other threads can modify the level here
+
+        :param blocking: Should this block until the lock can be acquired. Default is True.
+            If false and the lock cannot be acquired on the first try, this returns False.
+        :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
+        :return:
+        """
+        return self._lock(edit=True, parallel=False, blocking=blocking, timeout=timeout)
+
+    def edit_parallel(
+        self, *, blocking: bool = True, timeout: float = -1
+    ) -> ContextManager[None]:
         """
         Edit the level in parallal with other threads.
         This allows multiple threads that don't make nuclear changes to work in parallel.
@@ -265,32 +287,19 @@ class BaseLevel(ABC):
         :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
         :return:
         """
-        with self._level_lock.shared(blocking, timeout):
-            if self._history_enabled:
-                self._d.history_manager.create_undo_bin()
-            yield
+        return self._lock(edit=True, parallel=True, blocking=blocking, timeout=timeout)
 
-    @contextmanager
-    def edit_serial(self, *, blocking: bool = True, timeout: float = -1):
-        """
-        Get exclusive editing permissions for this level.
-        This is useful if you are doing something nuclear to the level and you don't want other code editing it at
-        the same time. Usually :meth:`edit_parallel` is sufficient when used with other locks.
+    history_enabled_changed = Signal()
 
-        >>> level: BaseLevel
-        >>> with level.edit_serial():  # This will block the thread until all other threads have finished with the level
-        >>>     # any code here will be run without any other threads touching the level
-        >>> # Other threads can modify the level here
+    @property
+    def history_enabled(self) -> bool:
+        """Should edit_serial and edit_parallel create undo points and should setting data load the original state."""
+        return self._history_enabled
 
-        :param blocking: Should this block until the lock can be acquired. Default is True.
-            If false and the lock cannot be acquired on the first try, this returns False.
-        :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
-        :return:
-        """
-        with self._level_lock.unique(blocking, timeout):
-            if self._history_enabled:
-                self._d.history_manager.create_undo_bin()
-            yield
+    @history_enabled.setter
+    def history_enabled(self, history_enabled: bool):
+        self._history_enabled = history_enabled
+        self.history_enabled_changed.emit()
 
     @metadata
     @property
