@@ -1,31 +1,12 @@
 from __future__ import annotations
 
-from typing import TypeVar, Generic
-from weakref import ref
-from runtime_final import final
-
-from ._level import BaseLevel, BaseLevelPrivate
-
-LevelT = TypeVar("LevelT", bound=BaseLevel)
-LevelDataT = TypeVar("LevelDataT", bound=BaseLevelPrivate)
+from ._level import BaseLevelPrivate
 
 
-class LevelFriend(Generic[LevelT, LevelDataT]):
-    _d: LevelDataT
+class LevelFriend:
+    _d: BaseLevelPrivate
 
-    __slots__ = (
-        "_level_ref",
-        "_d",
-    )
+    __slots__ = ("_d",)
 
-    def __init__(self, level: LevelT, data: LevelDataT):
-        self._level_ref = ref(level)
-        self._d = data
-
-    @final
-    @property
-    def _level(self) -> LevelT:
-        level = self._level_ref()
-        if level is None:
-            raise RuntimeError("The level no longer exists.")
-        return level
+    def __init__(self, level_data: BaseLevelPrivate):
+        self._d = level_data

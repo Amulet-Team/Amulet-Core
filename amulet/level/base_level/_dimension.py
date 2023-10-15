@@ -7,7 +7,7 @@ from amulet.api.data_types import BiomeType, DimensionID
 from amulet.api.block import Block
 from amulet.api.selection import SelectionGroup
 
-from ._level import LevelFriend, LevelT, LevelDataT
+from ._level import LevelFriend, BaseLevelPrivate
 from ._history import HistoryManagerLayer
 from ._chunk_handle import ChunkKey, ChunkHandle
 
@@ -18,8 +18,8 @@ class Dimension(LevelFriend, ABC):
     _chunk_handle_lock: Lock
     _chunk_history: HistoryManagerLayer[ChunkKey]
 
-    def __init__(self, level: LevelT, data: LevelDataT, dimension: DimensionID):
-        super().__init__(level, data)
+    def __init__(self, level_data: BaseLevelPrivate, dimension: DimensionID):
+        super().__init__(level_data)
         self._dimension = dimension
         self._chunk_handles = WeakValueDictionary()
         self._chunk_handle_lock = Lock()
@@ -64,6 +64,6 @@ class Dimension(LevelFriend, ABC):
             chunk_handle = self._chunk_handles.get(key)
             if chunk_handle is None:
                 chunk_handle = self._chunk_handles[key] = ChunkHandle(
-                    self._level, self._d, self._chunk_history, cx, cz
+                    self._d, self._chunk_history, cx, cz
                 )
             return chunk_handle

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional, Sequence, TypeVar
+from typing import TYPE_CHECKING, Optional, Sequence, TypeVar, Callable
 from contextlib import contextmanager
 import os
 import logging
+from weakref import ref
 
 from runtime_final import final
 from PIL import Image
@@ -42,19 +43,36 @@ def metadata(f: T) -> T:
     return f
 
 
+LevelT = TypeVar("LevelT")
+
+
 class BaseLevelPrivate:
     """Private data and methods that friends of BaseLevel can use."""
 
+    _level: Callable[[], BaseLevel]
     history_manager: Optional[HistoryManager]
     block_palette: Optional[BlockManager]
     biome_palette: Optional[BiomeManager]
 
     __slots__ = tuple(__annotations__)
 
-    def __init__(self):
+    def __init__(self, level: BaseLevel):
+        self._level = ref(level)
         self.history_manager = None
         self.block_palette = None
         self.biome_palette = None
+
+    @final
+    @property
+    def level(self) -> BaseLevel:
+        """
+        Get the level that owns this private data.
+        If the level instance no longer exists, this will raise RuntimeError.
+        """
+        level = self._level()
+        if level is None:
+            raise RuntimeError("The level no longer exists.")
+        return level
 
     def open(self):
         self.history_manager = HistoryManager()
@@ -92,9 +110,8 @@ class BaseLevel(ABC):
 
         self.history_changed.connect(self._d.history_manager.history_changed)
 
-    @staticmethod
-    def _instance_data() -> BaseLevelPrivate:
-        return BaseLevelPrivate()
+    def _instance_data(self) -> BaseLevelPrivate:
+        return BaseLevelPrivate(self)
 
     def __del__(self):
         self.close()

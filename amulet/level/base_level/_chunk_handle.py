@@ -9,7 +9,7 @@ from amulet.api.chunk import Chunk
 from amulet.api.errors import ChunkDoesNotExist
 from amulet.utils.signal import Signal
 
-from ._level import LevelFriend, LevelT, LevelDataT
+from ._level import LevelFriend, BaseLevelPrivate
 from ._history import HistoryManagerLayer
 
 
@@ -46,13 +46,12 @@ class ChunkHandle(LevelFriend):
 
     def __init__(
         self,
-        level: LevelT,
-        data: LevelDataT,
+        level_data: BaseLevelPrivate,
         history: HistoryManagerLayer[ChunkKey],
         cx: int,
         cz: int,
     ):
-        super().__init__(level, data)
+        super().__init__(level_data)
         self._lock = RLock()
         self._key = ChunkKey(cx, cz)
         self._history = history
@@ -147,7 +146,7 @@ class ChunkHandle(LevelFriend):
         if self._history.has_resource(self._key):
             data = self._history.get_resource(self._key)
             if data:
-                return Chunk.unpickle(data, self._level)
+                return Chunk.unpickle(data, self._d.level)
             else:
                 raise ChunkDoesNotExist
         else:
@@ -160,7 +159,7 @@ class ChunkHandle(LevelFriend):
         try:
             history = self._history
             if not history.has_resource(self._key):
-                if self._level.history_enabled:
+                if self._d.level.history_enabled:
                     raise NotImplementedError
                     # TODO: load the original state
                     # history.set_initial_resource(key)
@@ -170,7 +169,7 @@ class ChunkHandle(LevelFriend):
         finally:
             self._lock.release()
         self.changed.emit()
-        self._level.changed.emit()
+        self._d.level.changed.emit()
 
     def set(self, chunk: Chunk):
         """
@@ -182,7 +181,7 @@ class ChunkHandle(LevelFriend):
         :raises:
             LockError: If the chunk is already locked by another thread.
         """
-        self._set(chunk.pickle(self._level))
+        self._set(chunk.pickle(self._d.level))
 
     def delete(self):
         """Delete the chunk from the level."""
