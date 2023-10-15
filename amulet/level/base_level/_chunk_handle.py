@@ -44,7 +44,14 @@ class ChunkHandle(LevelFriend):
 
     __slots__ = tuple(__annotations__)
 
-    def __init__(self, level: LevelT, data: LevelDataT, history: HistoryManagerLayer[ChunkKey], cx: int, cz: int):
+    def __init__(
+        self,
+        level: LevelT,
+        data: LevelDataT,
+        history: HistoryManagerLayer[ChunkKey],
+        cx: int,
+        cz: int,
+    ):
         super().__init__(level, data)
         self._lock = RLock()
         self._key = ChunkKey(cx, cz)

@@ -63,5 +63,7 @@ class Dimension(LevelFriend, ABC):
         with self._chunk_handle_lock:
             chunk_handle = self._chunk_handles.get(key)
             if chunk_handle is None:
-                chunk_handle = self._chunk_handles[key] = ChunkHandle(self._level, self._d, self._chunk_history, cx, cz)
+                chunk_handle = self._chunk_handles[key] = ChunkHandle(
+                    self._level, self._d, self._chunk_history, cx, cz
+                )
             return chunk_handle
