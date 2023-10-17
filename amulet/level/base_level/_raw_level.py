@@ -6,18 +6,20 @@ from abc import ABC, abstractmethod
 from amulet.api.data_types import DimensionID, ChunkCoordinates
 from amulet.api.chunk import Chunk
 
-from ._level import LevelFriend
-
 RawChunkT = Any
 NativeChunkT = Any
 PlayerIDT = Any
 RawPlayerT = Any
 
 
-class RawDimension(
-    LevelFriend,
-    ABC,
-):
+class RawDimension(ABC):
+    __slots__ = ()
+
+    @property
+    @abstractmethod
+    def dimension(self) -> DimensionID:
+        raise NotImplementedError
+
     @abstractmethod
     def all_chunk_coords(self) -> Iterable[ChunkCoordinates]:
         """Get an iterable of all the chunk coordinates that exist in the raw level data."""
@@ -85,10 +87,7 @@ class RawDimension(
         raise NotImplementedError
 
 
-class RawLevel(
-    LevelFriend,
-    ABC,
-):
+class RawLevel(ABC):
     """
     A class with raw access to the level.
     All of these methods directly read from or write to the level.
@@ -96,6 +95,10 @@ class RawLevel(
     """
 
     __slots__ = ()
+
+    @abstractmethod
+    def dimensions(self) -> Iterable[DimensionID]:
+        raise NotImplementedError
 
     @abstractmethod
     def get_dimension(self, dimension: DimensionID) -> RawDimension:
@@ -127,6 +130,8 @@ class BufferedRawLevel(RawLevel):
     This is a special case where the methods save to an in-memory buffer and :meth:`save` saves the data to the level.
     This is used for structure levels where the whole level must be read and written in one go.
     """
+
+    __slots__ = ()
 
     @abstractmethod
     def save(self):
