@@ -14,34 +14,26 @@ PlayerIDT = Any
 RawPlayerT = Any
 
 
-class RawLevel(
+class RawDimension(
     LevelFriend,
     ABC,
 ):
-    """
-    A class with raw access to the level.
-    All of these methods directly read from or write to the level.
-    There is no way to undo changes made with these methods.
-    """
-
-    __slots__ = ()
-
     @abstractmethod
-    def all_chunk_coords(self, dimension: DimensionID) -> Iterable[ChunkCoordinates]:
+    def all_chunk_coords(self) -> Iterable[ChunkCoordinates]:
         """Get an iterable of all the chunk coordinates that exist in the raw level data."""
         raise NotImplementedError
 
     @abstractmethod
-    def has_chunk(self, dimension: DimensionID, cx: int, cz: int) -> bool:
+    def has_chunk(self, cx: int, cz: int) -> bool:
         """Check if the chunk exists in the raw level data."""
         raise NotImplementedError
 
     @abstractmethod
-    def delete_chunk(self, dimension: DimensionID, cx: int, cz: int):
+    def delete_chunk(self, cx: int, cz: int):
         raise NotImplementedError
 
     @abstractmethod
-    def get_raw_chunk(self, dimension: DimensionID, cx: int, cz: int) -> RawChunkT:
+    def get_raw_chunk(self, cx: int, cz: int) -> RawChunkT:
         """
         Get the chunk data in its raw format.
         This is usually the exact data that exists on disk.
@@ -50,14 +42,12 @@ class RawLevel(
         raise NotImplementedError
 
     @abstractmethod
-    def set_raw_chunk(self, dimension: DimensionID, cx: int, cz: int, chunk: RawChunkT):
+    def set_raw_chunk(self, cx: int, cz: int, chunk: RawChunkT):
         """Set the chunk in its raw format."""
         raise NotImplementedError
 
     @abstractmethod
-    def get_native_chunk(
-        self, dimension: DimensionID, cx: int, cz: int
-    ) -> NativeChunkT:
+    def get_native_chunk(self, cx: int, cz: int) -> NativeChunkT:
         """
         Get the raw chunk data loaded into an easier to use format.
         Block, biome and other array data should be loaded into editable arrays.
@@ -65,20 +55,16 @@ class RawLevel(
         raise NotImplementedError
 
     @abstractmethod
-    def set_native_chunk(
-        self, dimension: DimensionID, cx: int, cz: int, chunk: NativeChunkT
-    ):
+    def set_native_chunk(self, cx: int, cz: int, chunk: NativeChunkT):
         """Set the chunk in its native format."""
         raise NotImplementedError
 
     @abstractmethod
-    def get_universal_chunk(self, dimension: DimensionID, cx: int, cz: int) -> Chunk:
+    def get_universal_chunk(self, cx: int, cz: int) -> Chunk:
         """Get the chunk in the universal format."""
 
     @abstractmethod
-    def set_universal_chunk(
-        self, dimension: DimensionID, cx: int, cz: int, chunk: Chunk
-    ):
+    def set_universal_chunk(self, cx: int, cz: int, chunk: Chunk):
         """Set the chunk in the universal format."""
         raise NotImplementedError
 
@@ -96,6 +82,23 @@ class RawLevel(
 
     @abstractmethod
     def universal_to_native_chunk(self, chunk: Chunk) -> NativeChunkT:
+        raise NotImplementedError
+
+
+class RawLevel(
+    LevelFriend,
+    ABC,
+):
+    """
+    A class with raw access to the level.
+    All of these methods directly read from or write to the level.
+    There is no way to undo changes made with these methods.
+    """
+
+    __slots__ = ()
+
+    @abstractmethod
+    def get_dimension(self, dimension: DimensionID) -> RawDimension:
         raise NotImplementedError
 
     @abstractmethod
