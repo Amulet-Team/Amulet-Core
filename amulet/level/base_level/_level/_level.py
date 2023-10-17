@@ -56,6 +56,9 @@ class BaseLevelPrivate:
 
     __slots__ = tuple(__annotations__)
 
+    opened = Signal()
+    closed = Signal()
+
     def __init__(self, level: BaseLevel):
         self._level = ref(level)
         self.history_manager = None
@@ -74,12 +77,22 @@ class BaseLevelPrivate:
             raise RuntimeError("The level no longer exists.")
         return level
 
+    @final
     def open(self):
+        self._open()
+        self.opened.emit()
+
+    def _open(self):
         self.history_manager = HistoryManager()
         self.block_palette = BlockManager()
         self.biome_palette = BiomeManager()
 
+    @final
     def close(self):
+        self.closed.emit()
+        self._close()
+
+    def _close(self):
         self.history_manager = None
         self.block_palette = None
         self.biome_palette = None
