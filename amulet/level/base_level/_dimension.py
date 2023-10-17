@@ -25,6 +25,10 @@ class Dimension(LevelFriend, ABC):
         self._chunk_handle_lock = Lock()
         self._chunk_history = self._d.history_manager.new_layer()
 
+    @property
+    def dimension(self) -> DimensionID:
+        return self._dimension
+
     @abstractmethod
     def bounds(self) -> SelectionGroup:
         """The editable region of the dimension."""
@@ -58,12 +62,12 @@ class Dimension(LevelFriend, ABC):
         """The coordinates of every chunk in this dimension that have been changed since the last save."""
         return {(key.cx, key.cz) for key in self._chunk_history.changed_resources()}
 
-    def get_chunk_handle(self, cx: int, cz: int):
+    def get_chunk_handle(self, cx: int, cz: int) -> ChunkHandle:
         key = cx, cz
         with self._chunk_handle_lock:
             chunk_handle = self._chunk_handles.get(key)
             if chunk_handle is None:
                 chunk_handle = self._chunk_handles[key] = ChunkHandle(
-                    self._d, self._chunk_history, cx, cz
+                    self._d, self._chunk_history, self._dimension, cx, cz
                 )
             return chunk_handle

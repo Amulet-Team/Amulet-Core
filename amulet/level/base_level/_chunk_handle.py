@@ -6,6 +6,7 @@ from threading import RLock
 
 from amulet.utils.shareable_lock import LockError
 from amulet.api.chunk import Chunk
+from amulet.api.data_types import DimensionID
 from amulet.api.errors import ChunkDoesNotExist
 from amulet.utils.signal import Signal
 
@@ -48,11 +49,13 @@ class ChunkHandle(LevelFriend):
         self,
         level_data: BaseLevelPrivate,
         history: HistoryManagerLayer[ChunkKey],
+        dimension: DimensionID,
         cx: int,
         cz: int,
     ):
         super().__init__(level_data)
         self._lock = RLock()
+        self._dimension = dimension
         self._key = ChunkKey(cx, cz)
         self._history = history
 
