@@ -90,7 +90,9 @@ class BedrockRawLevelFriend(LevelFriend):
 
     __slots__ = ("_r",)
 
-    def __init__(self, level_data: BedrockLevelPrivate, raw_data: BedrockRawLevelPrivate):
+    def __init__(
+        self, level_data: BedrockLevelPrivate, raw_data: BedrockRawLevelPrivate
+    ):
         super().__init__(level_data)
         self._r = raw_data
 
@@ -120,10 +122,7 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
             mask = slice(8, 13)
             key_len = 13
             dim = struct.pack("<i", self._internal_dimension)
-            keys = (
-                dim + b",",
-                dim + b"v"
-            )
+            keys = (dim + b",", dim + b"v")
         for key in self._r.db.keys():
             if len(key) == key_len and key[mask] in keys:
                 yield
@@ -136,9 +135,7 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
 
     def has_chunk(self, cx: int, cz: int) -> bool:
         key = self._chunk_prefix(cx, cz)
-        return any(
-            key + tag in self._r.db for tag in (b",", b"v")
-        )
+        return any(key + tag in self._r.db for tag in (b",", b"v"))
 
     def delete_chunk(self, cx: int, cz: int):
         if not self.has_chunk(cx, cz):
@@ -162,7 +159,7 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
         else:
             db.delete(b"digp" + prefix)
             for i in range(0, len(digp) // 8 * 8, 8):
-                actor_key = b"actorprefix" + digp[i: i + 8]
+                actor_key = b"actorprefix" + digp[i : i + 8]
                 db.delete(actor_key)
 
     def get_raw_chunk(self, cx: int, cz: int) -> ChunkData:
@@ -194,7 +191,7 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
                 b"digp"
             ] = b""  # The presence of this key signals to the put method that this should be created and written
             for i in range(0, (len(digp) // 8) * 8, 8):
-                actor_key = b"actorprefix" + digp[i: i + 8]
+                actor_key = b"actorprefix" + digp[i : i + 8]
                 try:
                     actor_bytes = self._r.db.get(actor_key)
                     actor = load_nbt(
@@ -218,8 +215,8 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
                         ),
                     )  # 717
                     if (
-                            isinstance(internal_components, CompoundTag)
-                            and internal_components
+                        isinstance(internal_components, CompoundTag)
+                        and internal_components
                     ):
                         if "EntityStorageKeyComponent" in internal_components:
                             # it is an entity
@@ -229,13 +226,13 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
                             if isinstance(entity_component, CompoundTag):
                                 # delete the storage key component
                                 if isinstance(
-                                        entity_component.get("StorageKey"), StringTag
+                                    entity_component.get("StorageKey"), StringTag
                                 ):
                                     del entity_component["StorageKey"]
                                 # if there is no other data then delete internalComponents
                                 if (
-                                        len(entity_component) == 0
-                                        and len(internal_components) == 1
+                                    len(entity_component) == 0
+                                    and len(internal_components) == 1
                                 ):
                                     del actor_tag["internalComponents"]
                                 else:
@@ -255,7 +252,7 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
                             )
                             for k, v in internal_components.items():
                                 if isinstance(v, CompoundTag) and isinstance(
-                                        v.get("StorageKey"), StringTag
+                                    v.get("StorageKey"), StringTag
                                 ):
                                     v["StorageKey"] = StringTag()
                             chunk_data.unknown_actor.append(actor)
@@ -288,14 +285,14 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
                 pass
             else:
                 for i in range(0, len(old_digp) // 8 * 8, 8):
-                    actor_key = b"actorprefix" + old_digp[i: i + 8]
+                    actor_key = b"actorprefix" + old_digp[i : i + 8]
                     self._r.db.delete(actor_key)
 
             digp = []
 
             def add_actor(actor: NamedTag, is_entity: bool):
                 if not (
-                        isinstance(actor, NamedTag) and isinstance(actor.tag, CompoundTag)
+                    isinstance(actor, NamedTag) and isinstance(actor.tag, CompoundTag)
                 ):
                     log.error(f"Actor must be a NamedTag[Compound]")
                     return
@@ -323,8 +320,8 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
                     storages = []
                     for storage in internal_components.values():
                         if (
-                                isinstance(storage, CompoundTag)
-                                and storage.get("StorageKey") == StringTag()
+                            isinstance(storage, CompoundTag)
+                            and storage.get("StorageKey") == StringTag()
                         ):
                             storages.append(storage)
                     if not storages:
@@ -457,7 +454,9 @@ class BedrockRawLevel(LevelFriend, RawLevel):
             self._r.dimensions.clear()
             self._r.dimension_aliases.clear()
 
-            def register_dimension(dimension: InternalDimension, alias: Optional[str] = None):
+            def register_dimension(
+                dimension: InternalDimension, alias: Optional[str] = None
+            ):
                 """
                 Register a new dimension.
 
@@ -468,12 +467,9 @@ class BedrockRawLevel(LevelFriend, RawLevel):
                 if dimension not in self._r.dimensions:
                     if alias is None:
                         alias = f"DIM{dimension}"
-                    self._r.dimensions[dimension] = self._r.dimensions[alias] = BedrockRawDimension(
-                        self._l,
-                        self._r,
-                        dimension,
+                    self._r.dimensions[dimension] = self._r.dimensions[
                         alias
-                    )
+                    ] = BedrockRawDimension(self._l, self._r, dimension, alias)
 
             register_dimension(None, "minecraft:overworld")
             register_dimension(1, "minecraft:the_nether")
@@ -487,7 +483,9 @@ class BedrockRawLevel(LevelFriend, RawLevel):
         self._find_dimensions()
         return tuple(self._r.dimension_aliases)
 
-    def get_dimension(self, dimension: Union[DimensionID, InternalDimension]) -> BedrockRawDimension:
+    def get_dimension(
+        self, dimension: Union[DimensionID, InternalDimension]
+    ) -> BedrockRawDimension:
         self._find_dimensions()
         if dimension not in self._r.dimensions:
             raise RuntimeError("Dimension does not exist")

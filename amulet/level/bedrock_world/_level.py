@@ -100,7 +100,9 @@ class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
     def dimensions(self) -> Iterable[DimensionID]:
         return self.raw.dimensions()
 
-    def get_dimension(self, dimension: Union[DimensionID, InternalDimension]) -> Dimension:
+    def get_dimension(
+        self, dimension: Union[DimensionID, InternalDimension]
+    ) -> Dimension:
         raise NotImplementedError
 
     @property
