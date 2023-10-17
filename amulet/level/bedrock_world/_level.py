@@ -40,11 +40,11 @@ class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
 
     __slots__ = ()
 
-    _d: BedrockLevelPrivate
+    _l: BedrockLevelPrivate
 
     def __init__(self):
         super().__init__()
-        self._raw_level = BedrockRawLevel(self._d)
+        self._raw_level = BedrockRawLevel(self._l)
         self._dimensions = {}
 
     def _instance_data(self) -> BedrockLevelPrivate:
@@ -75,8 +75,8 @@ class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
         :return:
         """
         self = cls()
-        self._d.path = path
-        self._d.level_dat = BedrockLevelDAT.from_file(
+        self._l.path = path
+        self._l.level_dat = BedrockLevelDAT.from_file(
             os.path.join(self.path, "level.dat")
         )
         return self
@@ -90,7 +90,7 @@ class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
     @metadata
     @property
     def path(self) -> str:
-        return self._d.path
+        return self._l.path
 
     @metadata
     @property

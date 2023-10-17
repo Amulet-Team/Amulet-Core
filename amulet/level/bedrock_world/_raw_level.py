@@ -23,7 +23,7 @@ from amulet_nbt import (
 from amulet.api.chunk import Chunk
 from amulet.api.data_types import DimensionID, ChunkCoordinates
 from amulet.api.errors import ChunkDoesNotExist
-from amulet.level.base_level import RawLevel, RawDimension
+from amulet.level.base_level import RawLevel, RawDimension, LevelFriend
 
 from ._level_dat import BedrockLevelDAT
 from ._chunk import ChunkData
@@ -430,20 +430,20 @@ class BedrockRawLevelPrivate:
                 register_dimension(struct.unpack("<i", key[8:12])[0])
 
 
-class BedrockRawLevel(RawLevel):
-    _d: BedrockLevelPrivate
+class BedrockRawLevel(LevelFriend, RawLevel):
+    _l: BedrockLevelPrivate
     _r: BedrockRawLevelPrivate
 
     __slots__ = tuple(__annotations__)
 
     def __init__(self, level_data: BedrockLevelPrivate):
         super().__init__(level_data)
-        self._d.opened.connect(self._open)
-        self._d.closed.connect(self._close)
+        self._l.opened.connect(self._open)
+        self._l.closed.connect(self._close)
 
     def _open(self):
-        self._r.db = LevelDB(os.path.join(self._d.level.path, "db"))
-        self._r.actor_counter = ActorCounter.from_level(self._d.level_dat)
+        self._r.db = LevelDB(os.path.join(self._l.level.path, "db"))
+        self._r.actor_counter = ActorCounter.from_level(self._l.level_dat)
         self._r.open = True
         self._r.find_dimensions()
 

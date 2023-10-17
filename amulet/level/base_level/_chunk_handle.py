@@ -149,7 +149,7 @@ class ChunkHandle(LevelFriend):
         if self._history.has_resource(self._key):
             data = self._history.get_resource(self._key)
             if data:
-                return Chunk.unpickle(data, self._d.level)
+                return Chunk.unpickle(data, self._l.level)
             else:
                 raise ChunkDoesNotExist
         else:
@@ -162,7 +162,7 @@ class ChunkHandle(LevelFriend):
         try:
             history = self._history
             if not history.has_resource(self._key):
-                if self._d.level.history_enabled:
+                if self._l.level.history_enabled:
                     raise NotImplementedError
                     # TODO: load the original state
                     # history.set_initial_resource(key)
@@ -172,7 +172,7 @@ class ChunkHandle(LevelFriend):
         finally:
             self._lock.release()
         self.changed.emit()
-        self._d.level.changed.emit()
+        self._l.level.changed.emit()
 
     def set(self, chunk: Chunk):
         """
@@ -184,7 +184,7 @@ class ChunkHandle(LevelFriend):
         :raises:
             LockError: If the chunk is already locked by another thread.
         """
-        self._set(chunk.pickle(self._d.level))
+        self._set(chunk.pickle(self._l.level))
 
     def delete(self):
         """Delete the chunk from the level."""

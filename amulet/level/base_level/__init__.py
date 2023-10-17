@@ -15,6 +15,7 @@ from ._level import (
     ProtocolArg,
     CreateArgsT,
     metadata,
+    LevelFriend,
 )
 from ._chunk_handle import ChunkHandle
 from ._player_storage import PlayerStorage

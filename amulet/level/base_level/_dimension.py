@@ -23,7 +23,7 @@ class Dimension(LevelFriend, ABC):
         self._dimension = dimension
         self._chunk_handles = WeakValueDictionary()
         self._chunk_handle_lock = Lock()
-        self._chunk_history = self._d.history_manager.new_layer()
+        self._chunk_history = self._l.history_manager.new_layer()
 
     @property
     def dimension(self) -> DimensionID:
@@ -68,6 +68,6 @@ class Dimension(LevelFriend, ABC):
             chunk_handle = self._chunk_handles.get(key)
             if chunk_handle is None:
                 chunk_handle = self._chunk_handles[key] = ChunkHandle(
-                    self._d, self._chunk_history, self._dimension, cx, cz
+                    self._l, self._chunk_history, self._dimension, cx, cz
                 )
             return chunk_handle

@@ -99,7 +99,7 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
         "_lock_file",
         "_lock_time",
     )
-    _d: JavaLevelPrivate
+    _l: JavaLevelPrivate
 
     def __init__(self):
         super().__init__()
@@ -128,14 +128,14 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
                 raise ObjectWriteError(f"A world already exists at the path {path}")
 
         self = cls()
-        self._d.path = path
+        self._l.path = path
 
-        self._d.data_version = self.translator.get_version("java", version).data_version
+        self._l.data_version = self.translator.get_version("java", version).data_version
 
         self.root_tag = root = CompoundTag()
         root["Data"] = data = CompoundTag()
         data["version"] = IntTag(19133)
-        data["DataVersion"] = IntTag(self._d.data_version)
+        data["DataVersion"] = IntTag(self._l.data_version)
         data["LastPlayed"] = LongTag(int(time.time() * 1000))
         data["LevelName"] = StringTag(name)
 
@@ -173,10 +173,10 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
     @classmethod
     def load(cls, path: str) -> JavaLevel:
         self = cls()
-        self._d.path = path
-        self._d.root_tag = load_nbt(os.path.join(self.path, "level.dat"))
-        self._d.data_version = (
-            self._d.root_tag.compound.get_compound("Data", CompoundTag())
+        self._l.path = path
+        self._l.root_tag = load_nbt(os.path.join(self.path, "level.dat"))
+        self._l.data_version = (
+            self._l.root_tag.compound.get_compound("Data", CompoundTag())
             .get_int("DataVersion", IntTag(-1))
             .py_int
         )
@@ -203,18 +203,18 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
             path = self.path
 
         if (
-            relative_dimension_path not in self._d.dimensions
-            and dimension_name not in self._d.dimensions
+            relative_dimension_path not in self._l.dimensions
+            and dimension_name not in self._l.dimensions
         ):
-            self._d.dimensions[relative_dimension_path] = self._d.dimensions[
+            self._l.dimensions[relative_dimension_path] = self._l.dimensions[
                 dimension_name
             ] = DimensionEntry(
                 relative_dimension_path,
                 dimension_name,
                 AnvilDimensionManager(
                     path,
-                    mcc=self._d.mcc_support,
-                    layers=("region",) + ("entities",) * (self._d.data_version >= 2681),
+                    mcc=self._l.mcc_support,
+                    layers=("region",) + ("entities",) * (self._l.data_version >= 2681),
                 ),
                 self._get_dimension_bounds(dimension_name),
                 UniversalAirBlock,
@@ -222,10 +222,10 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
             )
 
     def _get_dimension_bounds(self, dimension_type_str: Dimension) -> SelectionGroup:
-        if self._d.data_version >= 2709:  # This number might be smaller
+        if self._l.data_version >= 2709:  # This number might be smaller
             # If in a version that supports custom height data packs
             dimension_settings = (
-                self._d.root_tag.compound.get_compound("Data", CompoundTag())
+                self._l.root_tag.compound.get_compound("Data", CompoundTag())
                 .get_compound("WorldGenSettings", CompoundTag())
                 .get_compound("dimensions", CompoundTag())
                 .get_compound(dimension_type_str, CompoundTag())
@@ -281,7 +281,7 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
                     ("minecraft", "overworld"),
                     ("minecraft", "overworld_caves"),
                 }:
-                    if self._d.data_version >= 2825:
+                    if self._l.data_version >= 2825:
                         # If newer than the height change version
                         return SelectionGroup(
                             SelectionBox(
@@ -347,7 +347,7 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
                 f"Could not access session.lock. The world may be open somewhere else.\n{e}"
             ) from e
 
-        self._d.mcc_support = self._d.data_version > 2203
+        self._l.mcc_support = self._l.data_version > 2203
 
         # load all the levels
         self._register_dimension("", OVERWORLD)
@@ -377,16 +377,16 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
             self._register_dimension(rel_dim_path, dimension_name)
 
     def _close(self):
-        self._d.dimensions.clear()
+        self._l.dimensions.clear()
         if self._lock_file is not None:
             portalocker.unlock(self._lock_file)
             self._lock_file.close()
 
     @property
     def path(self) -> str:
-        if self._d.path is None:
+        if self._l.path is None:
             raise RuntimeError
-        return self._d.path
+        return self._l.path
 
     @property
     def thumbnail(self) -> Image.Image:
@@ -397,10 +397,10 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
 
     @property
     def data_pack(self) -> DataPackManager:
-        if self._d.data_pack is None:
+        if self._l.data_pack is None:
             packs = []
             enabled_packs = (
-                self._d.root_tag.compound.get_compound("Data")
+                self._l.root_tag.compound.get_compound("Data")
                 .get_compound("DataPacks", CompoundTag())
                 .get_list("Enabled", ListTag())
             )
@@ -413,9 +413,9 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
                         path = os.path.join(self.path, "datapacks", pack_name[5:])
                         if DataPack.is_path_valid(path):
                             packs.append(DataPack(path))
-            self._d.data_pack = DataPackManager(packs)
-        return self._d.data_pack
+            self._l.data_pack = DataPackManager(packs)
+        return self._l.data_pack
 
     @property
     def dimensions(self) -> Sequence[Dimension]:
-        return tuple(filter(lambda e: isinstance(e, Dimension), self._d.dimensions))
+        return tuple(filter(lambda e: isinstance(e, Dimension), self._l.dimensions))

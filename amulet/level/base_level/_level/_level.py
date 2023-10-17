@@ -101,7 +101,7 @@ class BaseLevelPrivate:
 class BaseLevel(ABC):
     """Base class for all levels."""
 
-    _d: BaseLevelPrivate
+    _l: BaseLevelPrivate
     _level_lock: ShareableRLock
     _is_open: bool
     _history_enabled: bool
@@ -119,9 +119,9 @@ class BaseLevel(ABC):
         self._history_enabled = True
 
         # Private data shared by friends of the class
-        self._d = self._instance_data()
+        self._l = self._instance_data()
 
-        self.history_changed.connect(self._d.history_manager.history_changed)
+        self.history_changed.connect(self._l.history_manager.history_changed)
 
     def _instance_data(self) -> BaseLevelPrivate:
         return BaseLevelPrivate(self)
@@ -140,7 +140,7 @@ class BaseLevel(ABC):
         if self.is_open:
             # Do nothing if already open
             return
-        self._d.open()
+        self._l.open()
         self._open()
         self._is_open = True
         self.opened.emit()
@@ -172,7 +172,7 @@ class BaseLevel(ABC):
 
         This is functionally the same as closing and reopening the level.
         """
-        self._d.history_manager.reset()
+        self._l.history_manager.reset()
         self.purged.emit()
         self.history_changed.emit()
 
@@ -193,7 +193,7 @@ class BaseLevel(ABC):
         try:
             self._close()
         finally:
-            self._d.close()
+            self._l.close()
 
     @abstractmethod
     def _close(self):
@@ -204,17 +204,17 @@ class BaseLevel(ABC):
 
     @property
     def undo_count(self) -> int:
-        return self._d.history_manager.undo_count
+        return self._l.history_manager.undo_count
 
     def undo(self):
-        self._d.history_manager.undo()
+        self._l.history_manager.undo()
 
     @property
     def redo_count(self) -> int:
-        return self._d.history_manager.redo_count
+        return self._l.history_manager.redo_count
 
     def redo(self):
-        self._d.history_manager.redo()
+        self._l.history_manager.redo()
 
     @contextmanager
     def _lock(self, *, edit: bool, parallel: bool, blocking: bool, timeout: float):
@@ -224,7 +224,7 @@ class BaseLevel(ABC):
             lock = self._level_lock.unique(blocking, timeout)
         with lock:
             if edit and self.history_enabled:
-                self._d.history_manager.create_undo_bin()
+                self._l.history_manager.create_undo_bin()
             yield
 
     def lock_unique(
@@ -352,7 +352,7 @@ class BaseLevel(ABC):
     @property
     def block_palette(self) -> BlockManager:
         """The block look up table for this level."""
-        block_palette = self._d.block_palette
+        block_palette = self._l.block_palette
         if block_palette is None:
             raise RuntimeError("block_palette does not exist. Did you open the level?")
         return block_palette
@@ -360,7 +360,7 @@ class BaseLevel(ABC):
     @property
     def biome_palette(self) -> BiomeManager:
         """The biome look up table for this level."""
-        biome_palette = self._d.biome_palette
+        biome_palette = self._l.biome_palette
         if biome_palette is None:
             raise RuntimeError("biome_palette does not exist. Did you open the level?")
         return biome_palette

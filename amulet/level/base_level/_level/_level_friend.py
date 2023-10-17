@@ -4,9 +4,9 @@ from ._level import BaseLevelPrivate
 
 
 class LevelFriend:
-    _d: BaseLevelPrivate
+    _l: BaseLevelPrivate
 
-    __slots__ = ("_d",)
+    __slots__ = ("_l",)
 
     def __init__(self, level_data: BaseLevelPrivate):
-        self._d = level_data
+        self._l = level_data

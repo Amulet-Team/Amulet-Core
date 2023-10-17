@@ -79,13 +79,13 @@ ResourceIdT = TypeVar("ResourceIdT", bound=ResourceId)
 
 
 class HistoryManager:
-    __slots__ = ("_d",)
+    __slots__ = ("_h",)
 
     def __init__(self):
-        self._d = HistoryManagerPrivate()
+        self._h = HistoryManagerPrivate()
 
     def new_layer(self) -> HistoryManagerLayer:
-        return HistoryManagerLayer(self._d)
+        return HistoryManagerLayer(self._h)
 
     history_changed = Signal()
 
@@ -95,72 +95,72 @@ class HistoryManager:
         All changes made after this point will be part of the same undo bin until this is called again.
         If this is not called, all changes will be part of the previous undo bin.
         """
-        with self._d.lock:
-            self._d.invalidate_future()
-            self._d.history_index += 1
-            self._d.history.append(WeakSet())
+        with self._h.lock:
+            self._h.invalidate_future()
+            self._h.history_index += 1
+            self._h.history.append(WeakSet())
 
     def mark_saved(self):
-        with self._d.lock:
-            for layer in self._d.resources.values():
+        with self._h.lock:
+            for layer in self._h.resources.values():
                 for resource in layer.values():
                     resource.saved_index = resource.index
 
     @property
     def undo_count(self) -> int:
         """The number of times undo can be called."""
-        with self._d.lock:
-            return self._d.history_index
+        with self._h.lock:
+            return self._h.history_index
 
     def undo(self):
         """Undo the changes in the current undo bin."""
-        with self._d.lock:
-            if self._d.history_index <= 0:
+        with self._h.lock:
+            if self._h.history_index <= 0:
                 raise RuntimeError
-            for resource in self._d.history[self._d.history_index]:
+            for resource in self._h.history[self._h.history_index]:
                 resource.index -= 1
-            self._d.history_index -= 1
-            self._d.has_redo = True
+            self._h.history_index -= 1
+            self._h.has_redo = True
 
     def _redo_count(self) -> int:
-        return len(self._d.history) - (self._d.history_index + 1)
+        return len(self._h.history) - (self._h.history_index + 1)
 
     @property
     def redo_count(self) -> int:
         """The number of times redo can be called."""
-        with self._d.lock:
+        with self._h.lock:
             return self._redo_count()
 
     def redo(self):
         """Redo the changes in the next undo bin."""
-        with self._d.lock:
-            if not self._d.has_redo:
+        with self._h.lock:
+            if not self._h.has_redo:
                 raise RuntimeError
-            self._d.history_index += 1
-            for resource in self._d.history[self._d.history_index]:
+            self._h.history_index += 1
+            for resource in self._h.history[self._h.history_index]:
                 resource.index += 1
-            self._d.has_redo = bool(self._redo_count())
+            self._h.has_redo = bool(self._redo_count())
 
     def reset(self):
         """Reset to the factory state."""
-        self._d.reset()
+        self._h.reset()
 
 
 class HistoryManagerLayer(Generic[ResourceIdT]):
-    __slots__ = ("_d", "_uuid", "_resources")
+    __slots__ = ("_h", "_uuid", "_resources")
 
-    def __init__(self, _d: HistoryManagerPrivate):
-        self._d = _d
+    def __init__(self, _h: HistoryManagerPrivate):
+        self._h = _h
         self._uuid = uuid4().bytes
         self._resources: dict[ResourceIdT, Resource] = {}
-        self._d.resources[self._uuid] = self._resources
+        self._h.resources[self._uuid] = self._resources
 
     def resources(self) -> Sequence[ResourceIdT]:
         """
         Get all resource ids from this layer.
         :return:
         """
-        with self._d.lock:
+        with self._h.lock:
             return list(self._resources)
 
     def changed_resources(self) -> Sequence[ResourceIdT]:
@@ -168,7 +168,7 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
         Get all resource ids from this layer that have changed since the last call to mark_saved.
         :return:
         """
-        with self._d.lock:
+        with self._h.lock:
             return [
                 resource_id
                 for resource_id, resource in self._resources
@@ -180,7 +180,7 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
         Get a mapping from the resource ids to a bool stating if the data exists for that resource.
         If false that resource has been deleted.
         """
-        with self._d.lock:
+        with self._h.lock:
             return {
                 resource_id: resource.exists[resource.index]
                 for resource_id, resource in self._resources
@@ -195,7 +195,7 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
         :param resource_id: The resource identifier
         :return:
         """
-        with self._d.lock:
+        with self._h.lock:
             return resource_id in self._resources
 
     def resource_exists(self, resource_id: ResourceIdT) -> bool:
@@ -204,7 +204,7 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
         :param resource_id: The resource identifier
         :return: True if the data exists.
         """
-        with self._d.lock:
+        with self._h.lock:
             resource = self._resources[resource_id]
             return resource.exists[resource.index]
 
@@ -214,10 +214,10 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
         :param resource_id: The resource identifier
         :return: The binary data that was previously set. An empty bytes object for the deleted state.
         """
-        with self._d.lock:
+        with self._h.lock:
             resource = self._resources[resource_id]
             if resource.exists[resource.index]:
-                return self._d.cache[resource.get_resource_key(self._uuid, resource_id)]
+                return self._h.cache[resource.get_resource_key(self._uuid, resource_id)]
             else:
                 return b""
 
@@ -229,13 +229,13 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
         :param data: The binary data to set. An empty bytes object for the deleted state.
         :return:
         """
-        with self._d.lock:
+        with self._h.lock:
             if resource_id in self._resources:
                 raise RuntimeError("Resource already exists")
             resource = self._resources[resource_id] = Resource()
             if data:
                 # Save the data to the cache if it exists
-                self._d.cache[resource.get_resource_key(self._uuid, resource_id)] = data
+                self._h.cache[resource.get_resource_key(self._uuid, resource_id)] = data
             # Store a flag if it exists
             resource.exists[resource.index] = bool(data)
 
@@ -246,23 +246,23 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
         :param data: The binary data to set. An empty bytes object for the deleted state.
         :return:
         """
-        with self._d.lock:
-            self._d.invalidate_future()
+        with self._h.lock:
+            self._h.invalidate_future()
             resource = self._resources[resource_id]
-            if resource.global_index != self._d.history_index:
+            if resource.global_index != self._h.history_index:
                 # The global history index has been increased since the last change to this resource
                 # Add a new state
                 resource.index += 1
-                resource.global_index = self._d.history_index
+                resource.global_index = self._h.history_index
                 resource.exists.append(False)
             if resource.index == resource.saved_index:
                 # The saved index has been directly modified
                 resource.saved_index = -1
             if data:
                 # Save the data to the cache if it exists
-                self._d.cache[resource.get_resource_key(self._uuid, resource_id)] = data
+                self._h.cache[resource.get_resource_key(self._uuid, resource_id)] = data
             # Store a flag if it exists
             resource.exists[resource.index] = bool(data)
-            if self._d.history_index:
+            if self._h.history_index:
                 # Add the resource to the history bin if one has been created
-                self._d.history[self._d.history_index].add(resource)
+                self._h.history[self._h.history_index].add(resource)
