@@ -85,27 +85,25 @@ class ActorCounter:
         return self._session, count
 
 
-class BedrockRawLevelFriend(LevelFriend):
+class BedrockRawLevelFriend:
     _r: BedrockRawLevelPrivate
 
     __slots__ = ("_r",)
 
     def __init__(
-        self, level_data: BedrockLevelPrivate, raw_data: BedrockRawLevelPrivate
+        self, raw_data: BedrockRawLevelPrivate
     ):
-        super().__init__(level_data)
         self._r = raw_data
 
 
 class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
     def __init__(
         self,
-        level_data: BedrockLevelPrivate,
         raw_data: BedrockRawLevelPrivate,
         internal_dimension: InternalDimension,
         alias: DimensionID,
     ):
-        super().__init__(level_data, raw_data)
+        super().__init__(raw_data)
         self._internal_dimension = internal_dimension
         self._alias = alias
 
@@ -114,6 +112,8 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
         return self._alias
 
     def all_chunk_coords(self) -> Iterable[ChunkCoordinates]:
+        if self._r.closed:
+            raise RuntimeError("Level is not open")
         if self._internal_dimension is None:
             mask = slice(8, 9)
             key_len = 9
@@ -134,10 +134,14 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
             return struct.pack("<iii", cx, cz, self._internal_dimension)
 
     def has_chunk(self, cx: int, cz: int) -> bool:
+        if self._r.closed:
+            raise RuntimeError("Level is not open")
         key = self._chunk_prefix(cx, cz)
         return any(key + tag in self._r.db for tag in (b",", b"v"))
 
     def delete_chunk(self, cx: int, cz: int):
+        if self._r.closed:
+            raise RuntimeError("Level is not open")
         if not self.has_chunk(cx, cz):
             return  # chunk does not exists
 
@@ -172,6 +176,8 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
         :raises:
             ChunkDoesNotExist if the chunk does not exist
         """
+        if self._r.closed:
+            raise RuntimeError("Level is not open")
         if not self.has_chunk(cx, cz):
             raise ChunkDoesNotExist
 
@@ -272,6 +278,8 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
         :param chunk: The chunk data to set.
         :return:
         """
+        if self._r.closed:
+            raise RuntimeError("Level is not open")
         key_prefix = self._chunk_prefix(cx, cz)
 
         batch = {}
@@ -393,7 +401,7 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
 
 class BedrockRawLevelPrivate:
     lock: RLock
-    open: bool
+    closed: bool
     db: Optional[LevelDB]
     dimensions: dict[Union[DimensionID, InternalDimension], BedrockRawDimension]
     dimension_aliases: list[DimensionID, ...]
@@ -401,11 +409,9 @@ class BedrockRawLevelPrivate:
 
     __slots__ = tuple(__annotations__)
 
-    closed = Signal()
-
     def __init__(self):
         self.lock = RLock()
-        self.open = False
+        self.closed = False
         self.db = None
         self.dimensions = {}
         self.dimension_aliases = []
@@ -414,24 +420,25 @@ class BedrockRawLevelPrivate:
 
 class BedrockRawLevel(LevelFriend, RawLevel):
     _l: BedrockLevelPrivate
-    _r: BedrockRawLevelPrivate
+    _r: Optional[BedrockRawLevelPrivate]
 
     __slots__ = tuple(__annotations__)
 
     def __init__(self, level_data: BedrockLevelPrivate):
         super().__init__(level_data)
+        self._r = None
         self._l.opened.connect(self._open)
         self._l.closed.connect(self._close)
 
     def _open(self):
+        self._r = BedrockRawLevelPrivate()
         self._r.db = LevelDB(os.path.join(self._l.level.path, "db"))
         self._r.actor_counter = ActorCounter.from_level(self._l.level_dat)
-        self._r.open = True
 
     def _close(self):
-        self._r.dimensions.clear()
+        self._r.closed = True
         self._r.db.close()
-        self._r.db = None
+        self._r = None
 
     @property
     def level_db(self) -> LevelDB:
@@ -439,20 +446,16 @@ class BedrockRawLevel(LevelFriend, RawLevel):
         The leveldb database.
         Changes made to this are made directly to the level.
         """
-        if self._r.db is None:
-            raise RuntimeError
+        if self._r is None:
+            raise RuntimeError("Level is not open")
         return self._r.db
 
     def _find_dimensions(self):
+        if self._r is None:
+            raise RuntimeError("Level is not open")
         with self._r.lock:
             if self._r.dimensions:
                 return
-
-            if not self._r.open:
-                raise RuntimeError("Level is not open.")
-
-            self._r.dimensions.clear()
-            self._r.dimension_aliases.clear()
 
             def register_dimension(
                 dimension: InternalDimension, alias: Optional[str] = None
