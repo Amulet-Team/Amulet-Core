@@ -24,6 +24,7 @@ from amulet.api.chunk import Chunk
 from amulet.api.data_types import DimensionID, ChunkCoordinates
 from amulet.api.errors import ChunkDoesNotExist
 from amulet.level.base_level import RawLevel, RawDimension, LevelFriend
+from amulet.utils.signal import Signal
 
 from ._level_dat import BedrockLevelDAT
 from ._chunk import ChunkData
@@ -84,14 +85,25 @@ class ActorCounter:
         return self._session, count
 
 
-class BedrockRawDimension(RawDimension):
+class BedrockRawLevelFriend(LevelFriend):
+    _r: BedrockRawLevelPrivate
+
+    __slots__ = ("_r",)
+
+    def __init__(self, level_data: BedrockLevelPrivate, raw_data: BedrockRawLevelPrivate):
+        super().__init__(level_data)
+        self._r = raw_data
+
+
+class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
     def __init__(
         self,
+        level_data: BedrockLevelPrivate,
         raw_data: BedrockRawLevelPrivate,
         internal_dimension: InternalDimension,
         alias: DimensionID,
     ):
-        self._r = raw_data
+        super().__init__(level_data, raw_data)
         self._internal_dimension = internal_dimension
         self._alias = alias
 
@@ -392,6 +404,8 @@ class BedrockRawLevelPrivate:
 
     __slots__ = tuple(__annotations__)
 
+    closed = Signal()
+
     def __init__(self):
         self.lock = RLock()
         self.open = False
@@ -399,35 +413,6 @@ class BedrockRawLevelPrivate:
         self.dimensions = {}
         self.dimension_aliases = []
         self.actor_counter = None
-
-    def find_dimensions(self):
-        self.dimensions.clear()
-        self.dimension_aliases.clear()
-
-        def register_dimension(dimension: InternalDimension, alias: Optional[str] = None):
-            """
-            Register a new dimension.
-
-            :param dimension: The internal representation of the dimension
-            :param alias: The name of the level visible to the user. Defaults to f"DIM{dimension}"
-            :return:
-            """
-            if dimension not in self.dimensions:
-                if alias is None:
-                    alias = f"DIM{dimension}"
-                self.dimensions[dimension] = self.dimensions[alias] = BedrockRawDimension(
-                    self,
-                    dimension,
-                    alias
-                )
-
-        register_dimension(None, "minecraft:overworld")
-        register_dimension(1, "minecraft:the_nether")
-        register_dimension(2, "minecraft:the_end")
-
-        for key in self.db.keys():
-            if len(key) == 13 and key[12] in [44, 118]:  # "," "v"
-                register_dimension(struct.unpack("<i", key[8:12])[0])
 
 
 class BedrockRawLevel(LevelFriend, RawLevel):
@@ -445,7 +430,6 @@ class BedrockRawLevel(LevelFriend, RawLevel):
         self._r.db = LevelDB(os.path.join(self._l.level.path, "db"))
         self._r.actor_counter = ActorCounter.from_level(self._l.level_dat)
         self._r.open = True
-        self._r.find_dimensions()
 
     def _close(self):
         self._r.dimensions.clear()
@@ -462,10 +446,49 @@ class BedrockRawLevel(LevelFriend, RawLevel):
             raise RuntimeError
         return self._r.db
 
+    def _find_dimensions(self):
+        with self._r.lock:
+            if self._r.dimensions:
+                return
+
+            if not self._r.open:
+                raise RuntimeError("Level is not open.")
+
+            self._r.dimensions.clear()
+            self._r.dimension_aliases.clear()
+
+            def register_dimension(dimension: InternalDimension, alias: Optional[str] = None):
+                """
+                Register a new dimension.
+
+                :param dimension: The internal representation of the dimension
+                :param alias: The name of the level visible to the user. Defaults to f"DIM{dimension}"
+                :return:
+                """
+                if dimension not in self._r.dimensions:
+                    if alias is None:
+                        alias = f"DIM{dimension}"
+                    self._r.dimensions[dimension] = self._r.dimensions[alias] = BedrockRawDimension(
+                        self._l,
+                        self._r,
+                        dimension,
+                        alias
+                    )
+
+            register_dimension(None, "minecraft:overworld")
+            register_dimension(1, "minecraft:the_nether")
+            register_dimension(2, "minecraft:the_end")
+
+            for key in self._r.db.keys():
+                if len(key) == 13 and key[12] in [44, 118]:  # "," "v"
+                    register_dimension(struct.unpack("<i", key[8:12])[0])
+
     def dimensions(self) -> Iterable[DimensionID]:
+        self._find_dimensions()
         return tuple(self._r.dimension_aliases)
 
     def get_dimension(self, dimension: Union[DimensionID, InternalDimension]) -> BedrockRawDimension:
+        self._find_dimensions()
         if dimension not in self._r.dimensions:
             raise RuntimeError("Dimension does not exist")
         return self._r.dimensions[dimension]
