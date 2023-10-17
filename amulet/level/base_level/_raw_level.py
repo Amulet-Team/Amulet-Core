@@ -105,7 +105,7 @@ class RawLevel(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def all_player_ids(self) -> Iterable[PlayerIDT]:
+    def players(self) -> Iterable[PlayerIDT]:
         raise NotImplementedError
 
     @abstractmethod

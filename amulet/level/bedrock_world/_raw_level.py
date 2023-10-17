@@ -22,9 +22,8 @@ from amulet_nbt import (
 
 from amulet.api.chunk import Chunk
 from amulet.api.data_types import DimensionID, ChunkCoordinates
-from amulet.api.errors import ChunkDoesNotExist
+from amulet.api.errors import ChunkDoesNotExist, PlayerDoesNotExist
 from amulet.level.base_level import RawLevel, RawDimension, LevelFriend
-from amulet.utils.signal import Signal
 
 from ._level_dat import BedrockLevelDAT
 from ._chunk import ChunkData
@@ -35,10 +34,12 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 InternalDimension = Optional[int]
-PlayerID = Any
-RawPlayer = Any
+PlayerID = str
+RawPlayer = NamedTag
 NativeChunk = Any
-RawChunk = Any
+
+
+LOCAL_PLAYER = "~local_player"
 
 
 class ActorCounter:
@@ -90,9 +91,7 @@ class BedrockRawLevelFriend:
 
     __slots__ = ("_r",)
 
-    def __init__(
-        self, raw_data: BedrockRawLevelPrivate
-    ):
+    def __init__(self, raw_data: BedrockRawLevelPrivate):
         self._r = raw_data
 
 
@@ -494,14 +493,34 @@ class BedrockRawLevel(LevelFriend, RawLevel):
             raise RuntimeError("Dimension does not exist")
         return self._r.dimensions[dimension]
 
-    def all_player_ids(self) -> Iterable[PlayerID]:
-        raise NotImplementedError
+    def players(self) -> Iterable[PlayerID]:
+        yield from (
+            pid[7:].decode("utf-8")
+            for pid, _ in self.level_db.iterate(b"player_", b"player_\xFF")
+        )
+        if self.has_player(LOCAL_PLAYER):
+            yield LOCAL_PLAYER
 
     def has_player(self, player_id: PlayerID) -> bool:
-        raise NotImplementedError
+        if player_id != LOCAL_PLAYER:
+            player_id = f"player_{player_id}"
+        return player_id.encode("utf-8") in self.level_db
 
     def get_raw_player(self, player_id: PlayerID) -> RawPlayer:
-        raise NotImplementedError
+        if player_id == LOCAL_PLAYER:
+            key = player_id.encode("utf-8")
+        else:
+            key = f"player_{player_id}".encode("utf-8")
+        try:
+            data = self.level_db.get(key)
+        except KeyError:
+            raise PlayerDoesNotExist(f"Player {player_id} doesn't exist")
+        return load_nbt(
+            data,
+            compressed=False,
+            little_endian=True,
+            string_decoder=utf8_escape_decoder,
+        )
 
     def set_raw_player(self, player_id: PlayerID, player: RawPlayer):
         raise NotImplementedError
