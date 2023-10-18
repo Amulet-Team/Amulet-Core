@@ -3,8 +3,10 @@ from __future__ import annotations
 from typing import Iterable, Any
 from abc import ABC, abstractmethod
 
-from amulet.api.data_types import DimensionID, ChunkCoordinates
+from amulet.api.data_types import DimensionID, ChunkCoordinates, BiomeType
+from amulet.api.block import Block
 from amulet.api.chunk import Chunk
+from amulet.api.selection import SelectionGroup
 
 RawChunkT = Any
 NativeChunkT = Any
@@ -18,6 +20,21 @@ class RawDimension(ABC):
     @property
     @abstractmethod
     def dimension(self) -> DimensionID:
+        raise NotImplementedError
+
+    @abstractmethod
+    def bounds(self) -> SelectionGroup:
+        """The editable region of the dimension."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def default_block(self) -> Block:
+        """The default block for this dimension"""
+        raise NotImplementedError
+
+    @abstractmethod
+    def default_biome(self) -> BiomeType:
+        """The default biome for this dimension"""
         raise NotImplementedError
 
     @abstractmethod

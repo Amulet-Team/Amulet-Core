@@ -22,7 +22,9 @@ from amulet_nbt import (
 )
 
 from amulet.api.chunk import Chunk
-from amulet.api.data_types import DimensionID, ChunkCoordinates
+from amulet.api.data_types import DimensionID, ChunkCoordinates, BiomeType
+from amulet.api.block import Block, UniversalAirBlock
+from amulet.api.selection import SelectionGroup
 from amulet.api.errors import ChunkDoesNotExist, PlayerDoesNotExist
 from amulet.level.base_level import RawLevel, RawDimension, LevelFriend
 
@@ -41,6 +43,9 @@ NativeChunk = Any
 
 
 LOCAL_PLAYER = "~local_player"
+OVERWORLD = "minecraft:overworld"
+THE_NETHER = "minecraft:the_nether"
+THE_END = "minecraft:the_end"
 
 
 class ActorCounter:
@@ -111,6 +116,23 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
     @property
     def dimension(self) -> DimensionID:
         return self._alias
+
+    def bounds(self) -> SelectionGroup:
+        """The editable region of the dimension."""
+        raise NotImplementedError
+
+    def default_block(self) -> Block:
+        """The default block for this dimension"""
+        return UniversalAirBlock
+
+    def default_biome(self) -> BiomeType:
+        """The default biome for this dimension"""
+        # todo: is this stored in the data somewhere?
+        return {
+            OVERWORLD: "universal_minecraft:plains",
+            THE_NETHER: "universal_minecraft:nether",
+            THE_END: "universal_minecraft:the_end",
+        }.get(self.dimension, "universal_minecraft:plains")
 
     @property
     def internal_dimension(self) -> InternalDimension:
@@ -511,9 +533,9 @@ class BedrockRawLevel(LevelFriend, RawLevel):
                     ] = BedrockRawDimension(self._r, dimension, alias)
                     dimensions.add(alias)
 
-            register_dimension(None, "minecraft:overworld")
-            register_dimension(1, "minecraft:the_nether")
-            register_dimension(2, "minecraft:the_end")
+            register_dimension(None, OVERWORLD)
+            register_dimension(1, THE_NETHER)
+            register_dimension(2, THE_END)
 
             for key in self._r.db.keys():
                 if len(key) == 13 and key[12] in [44, 118]:  # "," "v"
