@@ -49,7 +49,7 @@ LevelT = TypeVar("LevelT")
 class BaseLevelPrivate:
     """Private data and methods that friends of BaseLevel can use."""
 
-    _level: Callable[[], BaseLevel]
+    _level: Callable[[], Optional[BaseLevel]]
     history_manager: Optional[HistoryManager]
     block_palette: Optional[BlockManager]
     biome_palette: Optional[BiomeManager]
