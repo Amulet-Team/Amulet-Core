@@ -149,6 +149,7 @@ class BaseLevel(ABC):
     def _open(self):
         raise NotImplementedError
 
+    @final
     @property
     def is_open(self) -> bool:
         """Has the level been opened"""
@@ -159,6 +160,7 @@ class BaseLevel(ABC):
     # Has the external state been changed without our knowledge
     external_changed = Signal()
 
+    @abstractmethod
     def save(self):
         raise NotImplementedError
 
