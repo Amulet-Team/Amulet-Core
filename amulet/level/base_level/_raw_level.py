@@ -97,7 +97,7 @@ class RawLevel(ABC):
     __slots__ = ()
 
     @abstractmethod
-    def dimensions(self) -> Iterable[DimensionID]:
+    def dimensions(self) -> frozenset[DimensionID]:
         raise NotImplementedError
 
     @abstractmethod

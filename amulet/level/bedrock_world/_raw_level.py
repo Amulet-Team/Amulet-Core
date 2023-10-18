@@ -112,6 +112,10 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
     def dimension(self) -> DimensionID:
         return self._alias
 
+    @property
+    def internal_dimension(self) -> InternalDimension:
+        return self._internal_dimension
+
     def all_chunk_coords(self) -> Iterable[ChunkCoordinates]:
         if self._r.closed:
             raise RuntimeError("Level is not open")
@@ -406,7 +410,7 @@ class BedrockRawLevelPrivate:
     closed: bool
     db: Optional[LevelDB]
     dimensions: dict[Union[DimensionID, InternalDimension], BedrockRawDimension]
-    dimension_aliases: list[DimensionID, ...]
+    dimension_aliases: frozenset[DimensionID]
     actor_counter: Optional[ActorCounter]
 
     __slots__ = tuple(__annotations__)
@@ -416,7 +420,7 @@ class BedrockRawLevelPrivate:
         self.closed = False
         self.db = None
         self.dimensions = {}
-        self.dimension_aliases = []
+        self.dimension_aliases = frozenset()
         self.actor_counter = None
 
     # @property
@@ -487,6 +491,8 @@ class BedrockRawLevel(LevelFriend, RawLevel):
             if self._r.dimensions:
                 return
 
+            dimensions = set()
+
             def register_dimension(
                 dimension: InternalDimension, alias: Optional[str] = None
             ):
@@ -502,7 +508,8 @@ class BedrockRawLevel(LevelFriend, RawLevel):
                         alias = f"DIM{dimension}"
                     self._r.dimensions[dimension] = self._r.dimensions[
                         alias
-                    ] = BedrockRawDimension(self._l, self._r, dimension, alias)
+                    ] = BedrockRawDimension(self._r, dimension, alias)
+                    dimensions.add(alias)
 
             register_dimension(None, "minecraft:overworld")
             register_dimension(1, "minecraft:the_nether")
@@ -512,9 +519,11 @@ class BedrockRawLevel(LevelFriend, RawLevel):
                 if len(key) == 13 and key[12] in [44, 118]:  # "," "v"
                     register_dimension(struct.unpack("<i", key[8:12])[0])
 
-    def dimensions(self) -> Iterable[DimensionID]:
+            self._r.dimension_aliases = frozenset(dimensions)
+
+    def dimensions(self) -> frozenset[DimensionID]:
         self._find_dimensions()
-        return tuple(self._r.dimension_aliases)
+        return self._r.dimension_aliases
 
     def get_dimension(
         self, dimension: Union[DimensionID, InternalDimension]

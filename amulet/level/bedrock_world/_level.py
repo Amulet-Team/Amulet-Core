@@ -2,6 +2,11 @@ from __future__ import annotations
 
 from typing import Any, Iterable, Optional, Union
 import os
+import shutil
+import time
+
+from leveldb import LevelDB
+from amulet_nbt import CompoundTag, IntTag, ListTag, LongTag, StringTag
 
 from amulet.api.data_types import DimensionID
 from amulet.level.base_level import (
@@ -12,12 +17,15 @@ from amulet.level.base_level import (
     CompactableLevel,
     CreateArgsT,
     PlayerStorage,
+    Dimension,
+    metadata,
 )
+from amulet.api.errors import ObjectWriteError
 from amulet.utils.format_utils import check_all_exist
-from amulet.level.base_level import Dimension, metadata
 from amulet.utils.signal import Signal
 
 from ._raw_level import BedrockRawLevel, InternalDimension
+from ._level_dat import BedrockLevelDAT
 
 
 class BedrockLevelPrivate(BaseLevelPrivate):
@@ -34,7 +42,7 @@ class BedrockLevelPrivate(BaseLevelPrivate):
 
 
 class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
-    _dimensions: dict[DimensionID,]
+    _dimensions: dict[Union[DimensionID, InternalDimension], Dimension]
     _raw_level: BedrockRawLevel
 
     __slots__ = ()
@@ -54,8 +62,35 @@ class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
         raise NotImplementedError
 
     @classmethod
-    def create(cls, *args, **kwargs) -> BedrockLevel:
-        raise NotImplementedError
+    def create(
+        cls,
+        *,
+        overwrite: bool,
+        path: str,
+        version: tuple[int, int, int, int, int],
+        level_name: str,
+    ) -> BedrockLevel:
+        if os.path.isdir(path):
+            if overwrite:
+                shutil.rmtree(path)
+            else:
+                raise ObjectWriteError(f"A directory already exists at the path {path}")
+        os.makedirs(path, exist_ok=True)
+
+        root = CompoundTag()
+        root["StorageVersion"] = IntTag(8)
+        root["lastOpenedWithVersion"] = ListTag([IntTag(i) for i in version])
+        root["Generator"] = IntTag(1)
+        root["LastPlayed"] = LongTag(int(time.time()))
+        root["LevelName"] = StringTag(level_name)
+        BedrockLevelDAT(root, level_dat_version=9).save_to(
+            os.path.join(path, "level.dat")
+        )
+
+        db = LevelDB(os.path.join(path, "db"), True)
+        db.close()
+
+        return cls.load(path)
 
     @staticmethod
     def can_load(token: Any) -> bool:
@@ -67,18 +102,17 @@ class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
 
     @classmethod
     def load(cls, path: str) -> BedrockLevel:
-        """
-        >>> level: DiskLevel
-        >>> level.thumbnail
-        :param path:
-        :return:
-        """
+        """Create a new instance from the level at the given directory."""
         self = cls()
         self._l.path = path
         self._l.reloaded.emit()
         return self
 
     def reload(self):
+        """
+        Reload the level metadata inplace.
+        The level must be closed when this is called.
+        """
         if self.is_open:
             raise RuntimeError("Cannot reload a level when it is open.")
         self._l.reloaded.emit()
@@ -97,15 +131,25 @@ class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
     @metadata
     @property
     def level_name(self) -> str:
-        raise NotImplementedError
+        try:
+            return self.raw.level_dat.compound.get_string("LevelName").py_str
+        except Exception:
+            return "Unknown level name"
 
-    def dimensions(self) -> Iterable[DimensionID]:
+    def dimensions(self) -> frozenset[DimensionID]:
         return self.raw.dimensions()
 
     def get_dimension(
         self, dimension: Union[DimensionID, InternalDimension]
     ) -> Dimension:
-        raise NotImplementedError
+        if dimension not in self._dimensions:
+            raw_dimension = self.raw.get_dimension(dimension)
+            public_dimension = raw_dimension.dimension
+            internal_dimension = raw_dimension.internal_dimension
+            self._dimensions[internal_dimension] = self._dimensions[
+                public_dimension
+            ] = Dimension(self._l, public_dimension)
+        return self._dimensions[dimension]
 
     @property
     def raw(self) -> BedrockRawLevel:
@@ -116,4 +160,4 @@ class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
         raise NotImplementedError
 
     def compact(self):
-        raise NotImplementedError
+        self.raw.level_db.compact()

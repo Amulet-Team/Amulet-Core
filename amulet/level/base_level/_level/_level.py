@@ -344,7 +344,7 @@ class BaseLevel(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def dimensions(self) -> Sequence[DimensionID]:
+    def dimensions(self) -> frozenset[DimensionID]:
         raise NotImplementedError
 
     @abstractmethod
