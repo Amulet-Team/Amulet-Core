@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, Iterable, Optional, Union
+from typing import Any, Optional, Union
 import os
 import shutil
 import time
 
+from PIL import Image
 from leveldb import LevelDB
 from amulet_nbt import CompoundTag, IntTag, ListTag, LongTag, StringTag
 
@@ -135,6 +136,14 @@ class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
             return self.raw.level_dat.compound.get_string("LevelName").py_str
         except Exception:
             return "Unknown level name"
+
+    @metadata
+    @property
+    def thumbnail(self) -> Image.Image:
+        try:
+            return Image.open(os.path.join(self.path, "world_icon.jpeg"))
+        except Exception:
+            return super().thumbnail
 
     def dimensions(self) -> frozenset[DimensionID]:
         return self.raw.dimensions()

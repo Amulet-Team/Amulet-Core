@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from ._level import BaseLevel
+from ._level import BaseLevel, metadata
 
 
 class DiskLevel(BaseLevel):
@@ -10,6 +10,7 @@ class DiskLevel(BaseLevel):
 
     __slots__ = ()
 
+    @metadata
     @property
     @abstractmethod
     def path(self) -> str:
