@@ -449,7 +449,7 @@ class BedrockRawLevel(LevelFriend, RawLevel):
     def _open(self):
         self._r = BedrockRawLevelPrivate()
         self._r.db = LevelDB(os.path.join(self._l.level.path, "db"))
-        self._r.actor_counter = ActorCounter.from_level(self._r.level_dat)
+        self._r.actor_counter = ActorCounter.from_level(self)
 
     def _close(self):
         self._r.closed = True
