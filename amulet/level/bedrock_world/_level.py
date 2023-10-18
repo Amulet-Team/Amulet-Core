@@ -15,23 +15,22 @@ from amulet.level.base_level import (
 )
 from amulet.utils.format_utils import check_all_exist
 from amulet.level.base_level import Dimension, metadata
+from amulet.utils.signal import Signal
 
-from ._level_dat import BedrockLevelDAT
 from ._raw_level import BedrockRawLevel, InternalDimension
 
 
 class BedrockLevelPrivate(BaseLevelPrivate):
     path: Optional[str]
-    level_dat: Optional[BedrockLevelDAT]
 
     __slots__ = tuple(__annotations__)
 
     level: BedrockLevel
+    reloaded = Signal()
 
     def __init__(self, level: BedrockLevel):
         super().__init__(level)
         self.path = None
-        self.level_dat = None
 
 
 class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
@@ -76,10 +75,13 @@ class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
         """
         self = cls()
         self._l.path = path
-        self._l.level_dat = BedrockLevelDAT.from_file(
-            os.path.join(self.path, "level.dat")
-        )
+        self._l.reloaded.emit()
         return self
+
+    def reload(self):
+        if self.is_open:
+            raise RuntimeError("Cannot reload a level when it is open.")
+        self._l.reloaded.emit()
 
     def _open(self):
         raise NotImplementedError

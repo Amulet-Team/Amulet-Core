@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from typing import Iterable, Any, Optional, Union, TYPE_CHECKING
 from threading import RLock
 import os
@@ -53,7 +54,8 @@ class ActorCounter:
         self._count = 0
 
     @classmethod
-    def from_level(cls, level_dat: BedrockLevelDAT):
+    def from_level(cls, raw: BedrockRawLevel):
+        level_dat = raw.level_dat
         session = level_dat.compound.get_long(
             "worldStartCount", LongTag(0xFFFFFFFF)
         ).py_int
@@ -69,7 +71,7 @@ class ActorCounter:
         if session < 0:
             session += 0x100000000
         level_dat.compound["worldStartCount"] = LongTag(session)
-        level_dat.save()
+        raw.level_dat = level_dat
 
         return counter
 
@@ -399,9 +401,11 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
 
 
 class BedrockRawLevelPrivate:
+    # _raw_ref: Callable[[], Optional[BedrockRawLevel]]
     lock: RLock
     closed: bool
     db: Optional[LevelDB]
+    level_dat: Optional[BedrockLevelDAT]
     dimensions: dict[Union[DimensionID, InternalDimension], BedrockRawDimension]
     dimension_aliases: list[DimensionID, ...]
     actor_counter: Optional[ActorCounter]
@@ -416,6 +420,13 @@ class BedrockRawLevelPrivate:
         self.dimension_aliases = []
         self.actor_counter = None
 
+    # @property
+    # def raw(self) -> BedrockRawLevel:
+    #     raw = self._raw_ref()
+    #     if raw is None:
+    #         raise RuntimeError("Raw instance does not exist.")
+    #     return raw
+
 
 class BedrockRawLevel(LevelFriend, RawLevel):
     _l: BedrockLevelPrivate
@@ -428,11 +439,17 @@ class BedrockRawLevel(LevelFriend, RawLevel):
         self._r = None
         self._l.opened.connect(self._open)
         self._l.closed.connect(self._close)
+        self._l.reloaded.connect(self._reload)
+
+    def _reload(self):
+        self._r.level_dat = BedrockLevelDAT.from_file(
+            os.path.join(self._l.path, "level.dat")
+        )
 
     def _open(self):
         self._r = BedrockRawLevelPrivate()
         self._r.db = LevelDB(os.path.join(self._l.level.path, "db"))
-        self._r.actor_counter = ActorCounter.from_level(self._l.level_dat)
+        self._r.actor_counter = ActorCounter.from_level(self._r.level_dat)
 
     def _close(self):
         self._r.closed = True
@@ -449,9 +466,23 @@ class BedrockRawLevel(LevelFriend, RawLevel):
             raise RuntimeError("Level is not open")
         return self._r.db
 
+    @property
+    def level_dat(self) -> BedrockLevelDAT:
+        """Get the level.dat file for the world"""
+        return copy.deepcopy(self._r.level_dat)
+
+    @level_dat.setter
+    def level_dat(self, level_dat: BedrockLevelDAT):
+        if not isinstance(level_dat, BedrockLevelDAT):
+            raise TypeError
+        self._r.level_dat = level_dat = copy.deepcopy(level_dat)
+        level_dat.save_to(os.path.join(self._l.level.path, "level.dat"))
+
     def _find_dimensions(self):
         if self._r is None:
             raise RuntimeError("Level is not open")
+        if self._r.dimensions:
+            return
         with self._r.lock:
             if self._r.dimensions:
                 return

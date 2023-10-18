@@ -32,3 +32,11 @@ class LoadableLevel(ABC):
         :return: A new BaseLevel instance
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def reload(self):
+        """
+        Reload the metadata in the existing instance.
+        This can only be done when the level is not open.
+        """
+        raise NotImplementedError
