@@ -61,6 +61,18 @@ class ChunkHandle(LevelFriend):
 
     changed = Signal()
 
+    @property
+    def dimension(self) -> DimensionID:
+        return self._dimension
+
+    @property
+    def cx(self) -> int:
+        return self._key.cx
+
+    @property
+    def cz(self) -> int:
+        return self._key.cz
+
     @contextmanager
     def lock(
         self,
