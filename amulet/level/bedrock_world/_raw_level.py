@@ -405,7 +405,6 @@ class BedrockRawLevelPrivate:
     lock: RLock
     closed: bool
     db: Optional[LevelDB]
-    level_dat: Optional[BedrockLevelDAT]
     dimensions: dict[Union[DimensionID, InternalDimension], BedrockRawDimension]
     dimension_aliases: list[DimensionID, ...]
     actor_counter: Optional[ActorCounter]
@@ -431,6 +430,7 @@ class BedrockRawLevelPrivate:
 class BedrockRawLevel(LevelFriend, RawLevel):
     _l: BedrockLevelPrivate
     _r: Optional[BedrockRawLevelPrivate]
+    _level_dat: BedrockLevelDAT
 
     __slots__ = tuple(__annotations__)
 
@@ -442,7 +442,7 @@ class BedrockRawLevel(LevelFriend, RawLevel):
         self._l.reloaded.connect(self._reload)
 
     def _reload(self):
-        self._r.level_dat = BedrockLevelDAT.from_file(
+        self.level_dat = BedrockLevelDAT.from_file(
             os.path.join(self._l.path, "level.dat")
         )
 
@@ -469,13 +469,13 @@ class BedrockRawLevel(LevelFriend, RawLevel):
     @property
     def level_dat(self) -> BedrockLevelDAT:
         """Get the level.dat file for the world"""
-        return copy.deepcopy(self._r.level_dat)
+        return copy.deepcopy(self.level_dat)
 
     @level_dat.setter
     def level_dat(self, level_dat: BedrockLevelDAT):
         if not isinstance(level_dat, BedrockLevelDAT):
             raise TypeError
-        self._r.level_dat = level_dat = copy.deepcopy(level_dat)
+        self.level_dat = level_dat = copy.deepcopy(level_dat)
         level_dat.save_to(os.path.join(self._l.level.path, "level.dat"))
 
     def _find_dimensions(self):
