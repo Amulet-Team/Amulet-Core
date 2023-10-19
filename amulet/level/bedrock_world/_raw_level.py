@@ -489,6 +489,23 @@ class BedrockRawLevel(LevelFriend, RawLevel):
     def _open(self):
         self._r = BedrockRawLevelPrivate()
         self._r.db = LevelDB(os.path.join(self._l.level.path, "db"))
+        # TODO: implement error handling and level closing if the db errors
+        # except LevelDBEncrypted as e:
+        #     self._is_open = self._has_lock = False
+        #     raise LevelDBException(
+        #         "It looks like this world is from the marketplace.\nThese worlds are encrypted and cannot be edited."
+        #     ) from e
+        # except LevelDBException as e:
+        #     msg = str(e)
+        #     self._is_open = self._has_lock = False
+        #     # I don't know if there is a better way of handling this.
+        #     if msg.startswith("IO error:") and msg.endswith(": Permission denied"):
+        #         traceback.print_exc()
+        #         raise LevelDBException(
+        #             f"Failed to load the database. The world may be open somewhere else.\n{msg}"
+        #         ) from e
+        #     else:
+        #         raise e
         self._r.actor_counter = ActorCounter.from_level(self)
 
     def _close(self):
