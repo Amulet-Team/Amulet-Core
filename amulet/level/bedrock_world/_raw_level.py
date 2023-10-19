@@ -532,6 +532,13 @@ class BedrockRawLevel(LevelFriend, RawLevel):
         except Exception:
             return 1, 2, 0
 
+    @property
+    def last_played(self) -> int:
+        try:
+            return self.level_dat.compound.get_long("LastPlayed", LongTag()).py_int
+        except Exception:
+            return 0
+
     def _find_dimensions(self):
         if self._r is None:
             raise RuntimeError("Level is not open")
