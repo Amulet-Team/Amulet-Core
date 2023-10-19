@@ -15,6 +15,9 @@ from amulet_nbt import (
     LongTag,
     StringTag,
     CompoundTag,
+    ByteTag,
+    ShortTag,
+    ReadContext,
     NBTLoadError,
     load as load_nbt,
     utf8_escape_decoder,
@@ -29,7 +32,7 @@ from amulet.api.data_types import (
     VersionNumberTuple,
 )
 from amulet.api.block import Block, UniversalAirBlock
-from amulet.api.selection import SelectionGroup
+from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet.api.errors import ChunkDoesNotExist, PlayerDoesNotExist
 from amulet.level.base_level import RawLevel, RawDimension, LevelFriend
 
@@ -51,6 +54,10 @@ LOCAL_PLAYER = "~local_player"
 OVERWORLD = "minecraft:overworld"
 THE_NETHER = "minecraft:the_nether"
 THE_END = "minecraft:the_end"
+
+DefaultSelection = SelectionGroup(
+    SelectionBox((-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000))
+)
 
 
 class ActorCounter:
@@ -113,10 +120,12 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
         raw_data: BedrockRawLevelPrivate,
         internal_dimension: InternalDimension,
         alias: DimensionID,
+        bounds: SelectionGroup,
     ):
         super().__init__(raw_data)
         self._internal_dimension = internal_dimension
         self._alias = alias
+        self._bounds = bounds
 
     @property
     def dimension(self) -> DimensionID:
@@ -124,7 +133,7 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
 
     def bounds(self) -> SelectionGroup:
         """The editable region of the dimension."""
-        raise NotImplementedError
+        return self._bounds
 
     def default_block(self) -> Block:
         """The default block for this dimension"""
@@ -532,6 +541,96 @@ class BedrockRawLevel(LevelFriend, RawLevel):
             if self._r.dimensions:
                 return
 
+            dimenion_bounds = {}
+
+            # find dimension bounds
+            experiments = self.level_dat.compound.get_compound(
+                "experiments", CompoundTag()
+            )
+            if (
+                experiments.get_byte("caves_and_cliffs", ByteTag()).py_int
+                or experiments.get_byte("caves_and_cliffs_internal", ByteTag()).py_int
+                or self.max_game_version >= (1, 18)
+            ):
+                dimenion_bounds[OVERWORLD] = SelectionGroup(
+                    SelectionBox(
+                        (-30_000_000, -64, -30_000_000), (30_000_000, 320, 30_000_000)
+                    )
+                )
+            else:
+                dimenion_bounds[OVERWORLD] = DefaultSelection
+            dimenion_bounds[THE_NETHER] = SelectionGroup(
+                SelectionBox(
+                    (-30_000_000, 0, -30_000_000), (30_000_000, 128, 30_000_000)
+                )
+            )
+            dimenion_bounds[THE_END] = DefaultSelection
+
+            if b"LevelChunkMetaDataDictionary" in self.level_db:
+                data = self.level_db[b"LevelChunkMetaDataDictionary"]
+                count, data = struct.unpack("<I", data[:4])[0], data[4:]
+                for _ in range(count):
+                    key, data = data[:8], data[8:]
+                    context = ReadContext()
+                    value = load_nbt(
+                        data,
+                        little_endian=True,
+                        compressed=False,
+                        string_decoder=utf8_escape_decoder,
+                        read_context=context,
+                    ).compound
+                    data = data[context.offset :]
+
+                    try:
+                        dimension_name = value.get_string("DimensionName").py_str
+                        # The dimension names are stored differently TODO: split local and global names
+                        dimension_name = {
+                            "Overworld": OVERWORLD,
+                            "Nether": THE_NETHER,
+                            "TheEnd": THE_END,
+                        }.get(dimension_name, dimension_name)
+
+                    except KeyError:
+                        # Some entries seem to not have a dimension assigned to them. Is there a default? We will skip over these for now.
+                        # {'LastSavedBaseGameVersion': StringTag("1.19.81"), 'LastSavedDimensionHeightRange': CompoundTag({'max': ShortTag(320), 'min': ShortTag(-64)})}
+                        pass
+                    else:
+                        previous_bounds = dimenion_bounds.get(
+                            dimension_name, DefaultSelection
+                        )
+                        min_y = min(
+                            value.get_compound(
+                                "LastSavedDimensionHeightRange", CompoundTag()
+                            )
+                            .get_short("min", ShortTag())
+                            .py_int,
+                            value.get_compound(
+                                "OriginalDimensionHeightRange", CompoundTag()
+                            )
+                            .get_short("min", ShortTag())
+                            .py_int,
+                            previous_bounds.min_y,
+                        )
+                        max_y = max(
+                            value.get_compound(
+                                "LastSavedDimensionHeightRange", CompoundTag()
+                            )
+                            .get_short("max", ShortTag())
+                            .py_int,
+                            value.get_compound(
+                                "OriginalDimensionHeightRange", CompoundTag()
+                            )
+                            .get_short("max", ShortTag())
+                            .py_int,
+                            previous_bounds.max_y,
+                        )
+                        dimenion_bounds[dimension_name] = SelectionGroup(
+                            SelectionBox(
+                                (previous_bounds.min_x, min_y, previous_bounds.min_z),
+                                (previous_bounds.max_x, max_y, previous_bounds.max_z),
+                            )
+                        )
+
             dimensions = set()
 
             def register_dimension(
@@ -549,7 +648,12 @@ class BedrockRawLevel(LevelFriend, RawLevel):
                         alias = f"DIM{dimension}"
                     self._r.dimensions[dimension] = self._r.dimensions[
                         alias
-                    ] = BedrockRawDimension(self._r, dimension, alias)
+                    ] = BedrockRawDimension(
+                        self._r,
+                        dimension,
+                        alias,
+                        dimenion_bounds.get(alias, DefaultSelection),
+                    )
                     dimensions.add(alias)
 
             register_dimension(None, OVERWORLD)
