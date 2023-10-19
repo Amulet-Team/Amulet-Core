@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pickle
 from typing import Optional, Generator, TYPE_CHECKING
 from contextlib import contextmanager
 from threading import RLock
@@ -7,8 +8,10 @@ from threading import RLock
 from amulet.utils.shareable_lock import LockError
 from amulet.api.chunk import Chunk
 from amulet.api.data_types import DimensionID
-from amulet.api.errors import ChunkDoesNotExist
+from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.utils.signal import Signal
+
+from amulet.level.base_level import RawDimension
 
 from ._level import LevelFriend, BaseLevelPrivate
 from ._history import HistoryManagerLayer
@@ -41,7 +44,10 @@ class ChunkKey(tuple[int, int]):
 
 class ChunkHandle(LevelFriend):
     _lock: RLock
+    _dimension: DimensionID
+    _key: ChunkKey
     _history: HistoryManagerLayer[ChunkKey]
+    _raw: Optional[RawDimension]
 
     __slots__ = tuple(__annotations__)
 
@@ -58,6 +64,7 @@ class ChunkHandle(LevelFriend):
         self._dimension = dimension
         self._key = ChunkKey(cx, cz)
         self._history = history
+        self._raw = None
 
     changed = Signal()
 
@@ -72,6 +79,11 @@ class ChunkHandle(LevelFriend):
     @property
     def cz(self) -> int:
         return self._key.cz
+
+    def _get_raw(self):
+        if self._raw is None:
+            self._raw = self._l.level.raw.get_dimension(self.dimension)
+        return self._raw
 
     @contextmanager
     def lock(
@@ -147,26 +159,35 @@ class ChunkHandle(LevelFriend):
             return self._history.resource_exists(self._key)
         else:
             # The history system is not aware of the chunk. Look in the level data
-            raise NotImplementedError
+            return self._get_raw().has_chunk(self.cx, self.cz)
+
+    def _preload(self):
+        if not self._history.has_resource(self._key):
+            # The history system is not aware of the chunk. Load from the level data
+            try:
+                chunk = self._raw.get_universal_chunk(self.cx, self.cz)
+            except ChunkDoesNotExist:
+                data = b""
+            except ChunkLoadError as e:
+                data = pickle.dumps(e)
+            else:
+                data = chunk.pickle(self._l.level)
+
+            self._history.set_initial_resource(self._key, data)
 
     def get(self) -> Chunk:
         """
         Get a deep copy of the chunk data.
         If you want to edit the chunk, use :meth:`edit` instead.
 
-        :param cx: The chunk x coordinate.
-        :param cz: The chunk z coordinate.
         :return: A unique copy of the chunk data.
         """
-        if self._history.has_resource(self._key):
-            data = self._history.get_resource(self._key)
-            if data:
-                return Chunk.unpickle(data, self._l.level)
-            else:
-                raise ChunkDoesNotExist
+        self._preload()
+        data = self._history.get_resource(self._key)
+        if data:
+            return Chunk.unpickle(data, self._l.level)
         else:
-            # The history system is not aware of the chunk. Load from the level data
-            raise NotImplementedError
+            raise ChunkDoesNotExist
 
     def _set(self, data: bytes):
         if not self._lock.acquire(False):
@@ -175,9 +196,7 @@ class ChunkHandle(LevelFriend):
             history = self._history
             if not history.has_resource(self._key):
                 if self._l.level.history_enabled:
-                    raise NotImplementedError
-                    # TODO: load the original state
-                    # history.set_initial_resource(key)
+                    self._preload()
                 else:
                     history.set_initial_resource(self._key, b"")
             history.set_resource(self._key, data)
@@ -205,8 +224,6 @@ class ChunkHandle(LevelFriend):
     # @contextmanager
     # def edit_native(
     #     self,
-    #     cx: int,
-    #     cz: int,
     #     *,
     #     blocking: bool = True,
     #     timeout: float = -1,
@@ -229,8 +246,8 @@ class ChunkHandle(LevelFriend):
     #     else:
     #         yield None
     #
-    # def get_native(self, cx: int, cz: int) -> NativeChunk:
+    # def get_native(self) -> NativeChunk:
     #     raise NotImplementedError
     #
-    # def set_native(self, cx: int, cz: int, native_chunk: NativeChunk):
+    # def set_native(self, native_chunk: NativeChunk):
     #     raise NotImplementedError
