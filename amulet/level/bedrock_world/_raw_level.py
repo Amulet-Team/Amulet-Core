@@ -22,7 +22,12 @@ from amulet_nbt import (
 )
 
 from amulet.api.chunk import Chunk
-from amulet.api.data_types import DimensionID, ChunkCoordinates, BiomeType
+from amulet.api.data_types import (
+    DimensionID,
+    ChunkCoordinates,
+    BiomeType,
+    VersionNumberTuple,
+)
 from amulet.api.block import Block, UniversalAirBlock
 from amulet.api.selection import SelectionGroup
 from amulet.api.errors import ChunkDoesNotExist, PlayerDoesNotExist
@@ -503,6 +508,20 @@ class BedrockRawLevel(LevelFriend, RawLevel):
             raise TypeError
         self.level_dat = level_dat = copy.deepcopy(level_dat)
         level_dat.save_to(os.path.join(self._l.level.path, "level.dat"))
+
+    @property
+    def max_game_version(self) -> VersionNumberTuple:
+        """
+        The game version that the level was last opened in.
+        This is used to determine the data format to save in.
+        """
+        try:
+            return tuple(
+                t.py_int
+                for t in self.level_dat.compound.get_list("lastOpenedWithVersion")
+            )
+        except Exception:
+            return 1, 2, 0
 
     def _find_dimensions(self):
         if self._r is None:

@@ -9,7 +9,7 @@ from PIL import Image
 from leveldb import LevelDB
 from amulet_nbt import CompoundTag, IntTag, ListTag, LongTag, StringTag
 
-from amulet.api.data_types import DimensionID
+from amulet.api.data_types import DimensionID, PlatformType, VersionNumberTuple
 from amulet.level.base_level import (
     BaseLevelPrivate,
     DiskLevel,
@@ -144,6 +144,14 @@ class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
             return Image.open(os.path.join(self.path, "world_icon.jpeg"))
         except Exception:
             return super().thumbnail
+
+    @property
+    def platform(self) -> PlatformType:
+        return "bedrock"
+
+    @property
+    def version(self) -> VersionNumberTuple:
+        return self.raw.max_game_version
 
     def dimensions(self) -> frozenset[DimensionID]:
         return self.raw.dimensions()

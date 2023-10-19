@@ -13,7 +13,7 @@ from PIL import Image
 from PyMCTranslate import TranslationManager
 
 from amulet import IMG_DIRECTORY
-from amulet.api.data_types import DimensionID
+from amulet.api.data_types import DimensionID, PlatformType, VersionNumberAny
 
 from amulet.api.registry import BlockManager, BiomeManager
 
@@ -199,6 +199,16 @@ class BaseLevel(ABC):
 
     @abstractmethod
     def _close(self):
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def platform(self) -> PlatformType:
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def version(self) -> VersionNumberAny:
         raise NotImplementedError
 
     # Emitted when the undo or redo count has changed
