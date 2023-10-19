@@ -88,6 +88,9 @@ class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
             os.path.join(path, "level.dat")
         )
 
+        with open(os.path.join(path, "levelname.txt"), "w", encoding="utf-8") as f:
+            f.write(level_name)
+
         db = LevelDB(os.path.join(path, "db"), True)
         db.close()
 
