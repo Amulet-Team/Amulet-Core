@@ -5,7 +5,6 @@ import numpy
 from amulet_nbt import (
     CompoundTag,
     ListTag,
-    ByteTag,
     IntTag,
     LongTag,
     LongArrayTag,
@@ -13,7 +12,7 @@ from amulet_nbt import (
 )
 
 from amulet.api.chunk import Chunk
-from amulet.api.registry import BiomeManager
+from amulet.registry import BiomePalette
 from amulet.api.data_types import AnyNDArray, BiomeType
 from amulet.utils.world_utils import (
     decode_long_array,
@@ -148,7 +147,7 @@ class Anvil2844Interface(ParentInterface):
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         biomes: Dict[int, numpy.ndarray] = {}
-        palette = BiomeManager()
+        palette = BiomePalette()
 
         for cy, section in self._iter_sections(data):
             data = self._decode_biome_section(section)

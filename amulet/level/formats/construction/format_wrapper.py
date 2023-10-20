@@ -37,7 +37,7 @@ from amulet.api.data_types import (
     PlatformType,
     ChunkCoordinates,
 )
-from amulet.api.registry import BlockManager
+from amulet.registry import BlockPalette
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
@@ -349,7 +349,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         return interface, translator, version_identifier
 
     def save_to(self, f: BinaryIO):
-        palette: BlockManager = BlockManager()
+        palette: BlockPalette = BlockPalette()
         f.write(magic_num)
         f.write(struct.pack(">B", self._format_version))
         if self._format_version == 0:
@@ -478,7 +478,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         chunk: "Chunk",
         chunk_palette: AnyNDArray,
     ) -> "Chunk":
-        palette = chunk._block_palette = BlockManager()
+        palette = chunk._block_palette = BlockPalette()
         lut = numpy.array([palette.get_add_block(block) for block in chunk_palette])
         if len(palette.blocks) != len(chunk_palette):
             # if a blockstate was defined twice

@@ -8,7 +8,7 @@ from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet.block import Block, UniversalAirBlock
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.chunk import Chunk
-from amulet.api.registry import BlockManager
+from amulet.registry import BlockPalette
 from amulet.utils.matrix import transform_matrix, displacement_matrix
 import amulet.api.level
 
@@ -29,7 +29,7 @@ def is_sub_block(skip_blocks: Tuple[Block, ...], b: Block) -> bool:
 
 
 def gen_paste_blocks(
-    block_palette: BlockManager, skip_blocks: Tuple[Block, ...]
+    block_palette: BlockPalette, skip_blocks: Tuple[Block, ...]
 ) -> numpy.ndarray:
     """Create a numpy bool array of all the blocks which should be pasted.
 

@@ -5,8 +5,8 @@ import numpy
 import pickle
 
 from amulet.block import Block
-from amulet.api.registry import BlockManager
-from amulet.api.registry.biome_manager import BiomeManager
+from amulet.registry import BlockPalette
+from amulet.registry import BiomePalette
 from amulet.api.chunk import (
     Biomes,
     BiomesShape,
@@ -46,8 +46,8 @@ class Chunk:
         self._cx: int = cx
         self._cz: int = cz
         self._blocks: Optional[Blocks] = None
-        self._block_palette: Optional[BlockManager] = None
-        self._biome_palette: Optional[BiomeManager] = None
+        self._block_palette: Optional[BlockPalette] = None
+        self._biome_palette: Optional[BiomePalette] = None
         self._biomes: Optional[Biomes] = None
         self._entities: Optional[EntityList] = None
         self._block_entities: Optional[BlockEntityDict] = None
@@ -178,24 +178,24 @@ class Chunk:
         self.blocks[dx, y, dz] = self.block_palette.get_add_block(block)
 
     @property
-    def block_palette(self) -> BlockManager:
+    def block_palette(self) -> BlockPalette:
         """
         The block block_palette for the chunk.
 
         Usually will refer to the level's global block_palette.
         """
         if self._block_palette is None:
-            self._block_palette = BlockManager()
+            self._block_palette = BlockPalette()
         return self._block_palette
 
     @block_palette.setter
-    def block_palette(self, new_block_palette: BlockManager):
+    def block_palette(self, new_block_palette: BlockPalette):
         """
         Change the block block_palette for the chunk.
 
         This will copy over all block states from the old block_palette and remap the block indexes to use the new block_palette.
         """
-        assert isinstance(new_block_palette, BlockManager)
+        assert isinstance(new_block_palette, BlockPalette)
         if new_block_palette is not self._block_palette:
             # if current block block_palette and the new block block_palette are not the same object
             if self._block_palette:
@@ -232,24 +232,24 @@ class Chunk:
         self._biomes = Biomes(value)
 
     @property
-    def biome_palette(self) -> BiomeManager:
+    def biome_palette(self) -> BiomePalette:
         """
         The biome block_palette for the chunk.
 
         Usually will refer to the level's global biome_palette.
         """
         if self._biome_palette is None:
-            self._biome_palette = BiomeManager()
+            self._biome_palette = BiomePalette()
         return self._biome_palette
 
     @biome_palette.setter
-    def biome_palette(self, new_biome_palette: BiomeManager):
+    def biome_palette(self, new_biome_palette: BiomePalette):
         """
         Change the biome_palette for the chunk.
 
         This will copy over all biome states from the old biome_palette and remap the biome indexes to use the new_biome_palette.
         """
-        assert isinstance(new_biome_palette, BiomeManager)
+        assert isinstance(new_biome_palette, BiomePalette)
         if new_biome_palette is not self._biome_palette:
             # if current biome_palette and the new biome_palette are not the same object
             if self._biome_palette:

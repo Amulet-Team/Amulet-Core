@@ -6,7 +6,7 @@ from amulet_nbt import StringTag
 from amulet.api.chunk import Chunk
 from amulet.api.wrapper import Translator
 from amulet.block import Block
-from amulet.api.registry import BlockManager
+from amulet.registry import BlockPalette
 from amulet.api.data_types import (
     VersionIdentifierType,
     AnyNDArray,
@@ -62,7 +62,7 @@ class JavaBlockstateTranslator(Translator):
             elif version.block.is_waterloggable(block.namespaced_name, True):
                 block_palette[index] = block + water
 
-        chunk._block_palette = BlockManager(block_palette)
+        chunk._block_palette = BlockPalette(block_palette)
 
     def _pack_block_palette(
         self, version: "Version", palette: BlockNDArray

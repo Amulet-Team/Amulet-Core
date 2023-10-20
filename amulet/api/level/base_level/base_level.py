@@ -12,8 +12,8 @@ import os
 from amulet.block import Block, UniversalAirBlock
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
-from amulet.api.registry import BlockManager
-from amulet.api.registry.biome_manager import BiomeManager
+from amulet.registry import BlockPalette
+from amulet.registry import BiomePalette
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError, DimensionDoesNotExist
 from amulet.api.chunk import Chunk, EntityList
 from amulet.api.selection import SelectionGroup, SelectionBox
@@ -62,12 +62,12 @@ class BaseLevel:
         if not self.level_wrapper.is_open:
             self.level_wrapper.open()
 
-        self._block_palette = BlockManager()
+        self._block_palette = BlockPalette()
         self._block_palette.get_add_block(
             UniversalAirBlock
         )  # ensure that index 0 is always air
 
-        self._biome_palette = BiomeManager()
+        self._biome_palette = BiomePalette()
         self._biome_palette.get_add_biome("universal_minecraft:plains")
 
         self._history_manager = MetaHistoryManager()
@@ -110,12 +110,12 @@ class BaseLevel:
         return self.level_wrapper.translation_manager
 
     @property
-    def block_palette(self) -> BlockManager:
+    def block_palette(self) -> BlockPalette:
         """The manager for the universal blocks in this level. New blocks must be registered here before adding to the level."""
         return self._block_palette
 
     @property
-    def biome_palette(self) -> BiomeManager:
+    def biome_palette(self) -> BiomePalette:
         """The manager for the universal blocks in this level. New biomes must be registered here before adding to the level."""
         return self._biome_palette
 

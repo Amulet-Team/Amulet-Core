@@ -27,7 +27,7 @@ from amulet.api.data_types import (
     VersionNumberInt,
     VersionNumberTuple,
 )
-from amulet.api.block import Block, UniversalAirBlock
+from amulet.block import Block, UniversalAirBlock
 from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet.level.base_level import (
     DiskLevel,

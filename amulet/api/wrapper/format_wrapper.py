@@ -27,7 +27,7 @@ import PyMCTranslate
 
 from amulet.api import level as api_level, wrapper as api_wrapper
 from amulet.api.chunk import Chunk
-from amulet.api.registry import BlockManager
+from amulet.registry import BlockPalette
 from amulet.api.errors import (
     ChunkLoadError,
     ChunkDoesNotExist,
@@ -553,11 +553,11 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
                 chunk.blocks.add_sub_chunk(
                     cy, lut.astype(numpy.uint32)[chunk.blocks.get_sub_chunk(cy)]
                 )
-            chunk._block_palette = BlockManager(
+            chunk._block_palette = BlockPalette(
                 numpy.vectorize(chunk.block_palette.__getitem__)(chunk_palette)
             )
         else:
-            chunk._block_palette = BlockManager()
+            chunk._block_palette = BlockPalette()
 
         def get_chunk_callback(_: int, __: int) -> Chunk:
             # conversion from universal should not require any data outside the block

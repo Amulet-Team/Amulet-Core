@@ -1,6 +1,6 @@
 import unittest
 from amulet.block import Block
-from amulet.api.registry import BlockManager
+from amulet.registry import BlockPalette
 from amulet.api.errors import BlockException
 
 from amulet_nbt import StringTag
@@ -264,7 +264,7 @@ class BlockTestCase(unittest.TestCase):
 
 class BlockManagerTestCase(unittest.TestCase):
     def setUp(self):
-        self.manager = BlockManager()
+        self.manager = BlockPalette()
 
         initial_dirt = Block.from_string_blockstate("minecraft:dirt")
         initial_stone = Block.from_string_blockstate("minecraft:stone")

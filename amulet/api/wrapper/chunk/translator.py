@@ -8,7 +8,7 @@ import logging
 import numpy
 
 from amulet import entity_support
-from amulet.api.registry import BlockManager, BiomeManager
+from amulet.registry import BlockPalette, BiomePalette
 from amulet.block import Block
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
@@ -70,7 +70,7 @@ class Translator:
             todo = []
             output_block_entities = []
             output_entities = []
-            finished = BlockManager()
+            finished = BlockPalette()
             palette_mappings = {}
 
             # translate each block without using the callback
@@ -322,7 +322,7 @@ class Translator:
 
     @staticmethod
     def _biomes_to_universal(translator_version: "Version", chunk: Chunk):
-        chunk._biome_palette = BiomeManager(
+        chunk._biome_palette = BiomePalette(
             [
                 translator_version.biome.to_universal(biome)
                 for biome in chunk.biome_palette
@@ -431,7 +431,7 @@ class Translator:
 
     @staticmethod
     def _biomes_from_universal(translator_version: "Version", chunk: Chunk):
-        chunk._biome_palette = BiomeManager(
+        chunk._biome_palette = BiomePalette(
             [
                 translator_version.biome.from_universal(biome)
                 for biome in chunk.biome_palette
@@ -466,7 +466,7 @@ class Translator:
         Unpack the version-specific block_palette into the stringified version where needed.
         :return: The block_palette converted to block objects.
         """
-        chunk._block_palette = BlockManager(block_palette)
+        chunk._block_palette = BlockPalette(block_palette)
 
     @staticmethod
     def _unpack_biomes(
@@ -485,7 +485,7 @@ class Translator:
                 chunk.biomes, return_inverse=True
             )
             chunk.biomes = biome_array.reshape(chunk.biomes.shape)
-            chunk._biome_palette = BiomeManager(
+            chunk._biome_palette = BiomePalette(
                 [version.biome.unpack(biome) for biome in biome_int_palette]
             )
         elif chunk.biomes.dimension == BiomesShape.Shape3D:
@@ -511,7 +511,7 @@ class Translator:
                     biomes[sy] = lut[biomes[sy]]
 
                 chunk.biomes = biomes
-                chunk._biome_palette = BiomeManager(
+                chunk._biome_palette = BiomePalette(
                     numpy.vectorize(version.biome.unpack)(chunk_palette)
                 )
 
@@ -564,4 +564,4 @@ class Translator:
                 sy: biome_palette[chunk.biomes.get_section(sy)]
                 for sy in chunk.biomes.sections
             }
-        chunk._biome_palette = BiomeManager()
+        chunk._biome_palette = BiomePalette()

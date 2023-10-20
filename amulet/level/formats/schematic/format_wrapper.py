@@ -7,8 +7,6 @@ from typing import (
     BinaryIO,
     Dict,
     Union,
-    List,
-    NamedTuple,
 )
 import numpy
 import copy
@@ -32,7 +30,7 @@ from amulet.api.data_types import (
     PointCoordinates,
     ChunkCoordinates,
 )
-from amulet.api.registry import BlockManager
+from amulet.registry import BlockPalette
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionBox, SelectionGroup
@@ -334,7 +332,7 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         version = self.translation_manager.get_version(
             *translator.translator_key(game_version)
         )
-        palette = chunk._block_palette = BlockManager()
+        palette = chunk._block_palette = BlockPalette()
         lut = numpy.array(
             [
                 palette.get_add_block(version.block.ints_to_block(block, data))

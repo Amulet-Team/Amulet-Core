@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional, Sequence, TypeVar, Callable
+from typing import TYPE_CHECKING, Optional, TypeVar, Callable
 from contextlib import contextmanager, AbstractContextManager as ContextManager
 import os
 import logging
@@ -15,7 +15,7 @@ from PyMCTranslate import TranslationManager
 from amulet import IMG_DIRECTORY
 from amulet.api.data_types import DimensionID, PlatformType, VersionNumberAny
 
-from amulet.api.registry import BlockManager, BiomeManager
+from amulet.registry import BlockPalette, BiomePalette
 
 from amulet.utils.shareable_lock import ShareableRLock
 from amulet.utils.signal import Signal, SignalInstanceCacheName
@@ -51,8 +51,8 @@ class BaseLevelPrivate:
 
     _level: Callable[[], Optional[BaseLevel]]
     history_manager: Optional[HistoryManager]
-    block_palette: Optional[BlockManager]
-    biome_palette: Optional[BiomeManager]
+    block_palette: Optional[BlockPalette]
+    biome_palette: Optional[BiomePalette]
 
     __slots__ = tuple(__annotations__)
 
@@ -84,8 +84,8 @@ class BaseLevelPrivate:
 
     def _open(self):
         self.history_manager = HistoryManager()
-        self.block_palette = BlockManager()
-        self.biome_palette = BiomeManager()
+        self.block_palette = BlockPalette()
+        self.biome_palette = BiomePalette()
 
     @final
     def close(self):
@@ -362,7 +362,7 @@ class BaseLevel(ABC):
         raise NotImplementedError
 
     @property
-    def block_palette(self) -> BlockManager:
+    def block_palette(self) -> BlockPalette:
         """The block look up table for this level."""
         block_palette = self._l.block_palette
         if block_palette is None:
@@ -370,7 +370,7 @@ class BaseLevel(ABC):
         return block_palette
 
     @property
-    def biome_palette(self) -> BiomeManager:
+    def biome_palette(self) -> BiomePalette:
         """The biome look up table for this level."""
         biome_palette = self._l.biome_palette
         if biome_palette is None:

@@ -16,7 +16,7 @@ from amulet_nbt import (
 from amulet.block import Block
 from amulet.entity import Entity
 from amulet.block_entity import BlockEntity
-from amulet.api.registry import BlockManager
+from amulet.registry import BlockPalette
 
 
 def unpack_palette(raw_palette: ListTag) -> List[Block]:
@@ -142,7 +142,7 @@ def find_fitting_array_type(
         return LongArrayTag
 
 
-def pack_palette(palette: BlockManager) -> ListTag:
+def pack_palette(palette: BlockPalette) -> ListTag:
     block_palette_nbt = ListTag()
     extra_blocks = set()
 
