@@ -15,7 +15,7 @@ from amulet.entity import Entity
 from amulet.registry import BlockPalette, BiomePalette
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError, DimensionDoesNotExist
 from amulet.api.chunk import Chunk, EntityList
-from amulet.api.selection import SelectionGroup, SelectionBox
+from amulet.selection import SelectionGroup, SelectionBox
 from amulet.api.data_types import (
     Dimension,
     VersionIdentifierType,

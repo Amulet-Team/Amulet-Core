@@ -5,7 +5,7 @@ from ..base_level import BaseLevel
 from .void_format_wrapper import VoidFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.data_types import Dimension
-from amulet.api.selection import SelectionGroup, SelectionBox
+from amulet.selection import SelectionGroup, SelectionBox
 from amulet.utils.generator import generator_unpacker
 import copy
 

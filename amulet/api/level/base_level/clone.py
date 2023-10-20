@@ -4,7 +4,7 @@ import numpy
 import os
 
 from amulet.api.data_types import Dimension, BlockCoordinates, FloatTriplet
-from amulet.api.selection import SelectionGroup, SelectionBox
+from amulet.selection import SelectionGroup, SelectionBox
 from amulet.block import Block, UniversalAirBlock
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.chunk import Chunk

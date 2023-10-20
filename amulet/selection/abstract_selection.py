@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterable, Tuple
+from typing import Iterable, Tuple, TYPE_CHECKING
 import numpy
-from .. import selection
 
 from amulet.api.data_types import (
     CoordinatesAny,
@@ -12,6 +11,9 @@ from amulet.api.data_types import (
     FloatTriplet,
     BlockCoordinates,
 )
+
+if TYPE_CHECKING:
+    from .box import SelectionBox
 
 
 class AbstractBaseSelection(ABC):
@@ -93,7 +95,7 @@ class AbstractBaseSelection(ABC):
     @abstractmethod
     def chunk_boxes(
         self, sub_chunk_size: int = 16
-    ) -> Iterable[Tuple[ChunkCoordinates, selection.box.SelectionBox]]:
+    ) -> Iterable[Tuple[ChunkCoordinates, SelectionBox]]:
         """
         An iterable of chunk coordinates and boxes that intersect the selection and the chunk.
 
@@ -262,7 +264,7 @@ class AbstractBaseSelection(ABC):
     @abstractmethod
     def sub_chunk_boxes(
         self, sub_chunk_size: int = 16
-    ) -> Iterable[Tuple[SubChunkCoordinates, selection.box.SelectionBox]]:
+    ) -> Iterable[Tuple[SubChunkCoordinates, SelectionBox]]:
         """
         An iterable of sub-chunk coordinates and boxes that intersect the selection and the sub-chunk.
 

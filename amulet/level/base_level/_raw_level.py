@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from amulet.api.data_types import DimensionID, ChunkCoordinates, BiomeType
 from amulet.block import Block
 from amulet.api.chunk import Chunk
-from amulet.api.selection import SelectionGroup
+from amulet.selection import SelectionGroup
 
 RawChunkT = Any
 NativeChunkT = Any

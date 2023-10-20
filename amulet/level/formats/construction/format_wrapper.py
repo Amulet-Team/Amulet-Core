@@ -40,7 +40,7 @@ from amulet.api.data_types import (
 from amulet.registry import BlockPalette
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
-from amulet.api.selection import SelectionGroup, SelectionBox
+from amulet.selection import SelectionGroup, SelectionBox
 from amulet.api.errors import ChunkDoesNotExist, ObjectWriteError
 
 from .section import ConstructionSection

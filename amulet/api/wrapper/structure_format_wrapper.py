@@ -6,7 +6,7 @@ from .format_wrapper import DiskFormatWrapper, VersionNumberT, StorageType
 from amulet.api.data_types import Dimension
 from amulet.api.errors import ObjectReadError, ObjectReadWriteError, PlayerDoesNotExist
 from amulet.player import Player
-from amulet.api.selection import SelectionGroup
+from amulet.selection import SelectionGroup
 
 
 class StructureFormatWrapper(DiskFormatWrapper[VersionNumberT]):

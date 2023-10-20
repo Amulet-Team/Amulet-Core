@@ -1,5 +1,5 @@
 import unittest
-from amulet.api.selection import SelectionGroup, SelectionBox
+from amulet.selection import SelectionGroup, SelectionBox
 
 
 class SelectionTestCase(unittest.TestCase):

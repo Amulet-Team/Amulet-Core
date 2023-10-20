@@ -33,7 +33,7 @@ from amulet_nbt import (
 )
 from amulet.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
-from amulet.api.selection import SelectionGroup, SelectionBox
+from amulet.selection import SelectionGroup, SelectionBox
 from amulet.api.wrapper import WorldFormatWrapper, DefaultSelection
 from amulet.utils.format_utils import check_all_exist
 from amulet.api.errors import (

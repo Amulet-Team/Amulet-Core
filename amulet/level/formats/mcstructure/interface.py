@@ -5,7 +5,7 @@ from amulet_nbt import IntTag, StringTag, CompoundTag
 
 from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType
 from amulet.api.chunk import Chunk
-from amulet.api.selection import SelectionBox
+from amulet.selection import SelectionBox
 from amulet.api.data_types import (
     AnyNDArray,
     VersionNumberTuple,

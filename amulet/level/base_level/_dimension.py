@@ -5,7 +5,7 @@ from threading import Lock
 
 from amulet.api.data_types import BiomeType, DimensionID
 from amulet.block import Block
-from amulet.api.selection import SelectionGroup
+from amulet.selection import SelectionGroup
 
 from ._level import LevelFriend, BaseLevelPrivate
 from ._history import HistoryManagerLayer

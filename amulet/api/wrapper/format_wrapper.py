@@ -46,7 +46,7 @@ from amulet.api.data_types import (
     Dimension,
     PlatformType,
 )
-from amulet.api.selection import SelectionGroup, SelectionBox
+from amulet.selection import SelectionGroup, SelectionBox
 from amulet.player import Player
 
 if TYPE_CHECKING:
