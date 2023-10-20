@@ -398,7 +398,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                             section_palette = numpy.array(
                                 section_palette, dtype=object
                             )[index]
-                            lut = numpy.vectorize(palette.get_add_block)(
+                            lut = numpy.vectorize(palette.block_to_index)(
                                 section_palette
                             )
                             flattened_array = lut[flattened_array]
@@ -479,7 +479,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         chunk_palette: AnyNDArray,
     ) -> "Chunk":
         palette = chunk._block_palette = BlockPalette()
-        lut = numpy.array([palette.get_add_block(block) for block in chunk_palette])
+        lut = numpy.array([palette.block_to_index(block) for block in chunk_palette])
         if len(palette.blocks) != len(chunk_palette):
             # if a blockstate was defined twice
             for cy in chunk.blocks.sub_chunks:

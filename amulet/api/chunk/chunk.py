@@ -164,7 +164,7 @@ class Chunk:
         :param dz: The z coordinate within the chunk. 0-15 inclusive
         :return: The universal Block object representation of the block at that location
         """
-        return self.block_palette[self.blocks[dx, y, dz]]
+        return self.block_palette.index_to_block(self.blocks[dx, y, dz])
 
     def set_block(self, dx: int, y: int, dz: int, block: Block):
         """
@@ -175,7 +175,7 @@ class Chunk:
         :param dz: The z coordinate within the chunk. 0-15 inclusive
         :param block: The universal Block object to set at the given location
         """
-        self.blocks[dx, y, dz] = self.block_palette.get_add_block(block)
+        self.blocks[dx, y, dz] = self.block_palette.block_to_index(block)
 
     @property
     def block_palette(self) -> BlockPalette:
@@ -202,8 +202,8 @@ class Chunk:
                 # if there are blocks in the current block block_palette remap the data
                 block_lut = numpy.array(
                     [
-                        new_block_palette.get_add_block(block)
-                        for block in self._block_palette.blocks
+                        new_block_palette.block_to_index(block)
+                        for block in self._block_palette
                     ],
                     dtype=numpy.uint32,
                 )
@@ -256,8 +256,8 @@ class Chunk:
                 # if there are biomes in the current biome_palette remap the data
                 biome_lut = numpy.array(
                     [
-                        new_biome_palette.get_add_biome(biome)
-                        for biome in self._biome_palette.biomes
+                        new_biome_palette.biome_to_index(biome)
+                        for biome in self._biome_palette
                     ],
                     dtype=numpy.uint32,
                 )

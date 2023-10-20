@@ -12,8 +12,7 @@ import os
 from amulet.block import Block, UniversalAirBlock
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
-from amulet.registry import BlockPalette
-from amulet.registry import BiomePalette
+from amulet.registry import BlockPalette, BiomePalette
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError, DimensionDoesNotExist
 from amulet.api.chunk import Chunk, EntityList
 from amulet.api.selection import SelectionGroup, SelectionBox
@@ -63,12 +62,12 @@ class BaseLevel:
             self.level_wrapper.open()
 
         self._block_palette = BlockPalette()
-        self._block_palette.get_add_block(
+        self._block_palette.block_to_index(
             UniversalAirBlock
         )  # ensure that index 0 is always air
 
         self._biome_palette = BiomePalette()
-        self._biome_palette.get_add_biome("universal_minecraft:plains")
+        self._biome_palette.biome_to_index("universal_minecraft:plains")
 
         self._history_manager = MetaHistoryManager()
 

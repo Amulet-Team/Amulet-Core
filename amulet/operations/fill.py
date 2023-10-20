@@ -18,7 +18,7 @@ def fill(
 ) -> OperationReturnType:
     if not isinstance(fill_block, Block):
         raise Exception("Fill operation was not given a Block object")
-    internal_id = world.block_palette.get_add_block(fill_block)
+    internal_id = world.block_palette.block_to_index(fill_block)
 
     iter_count = len(list(world.get_coord_box(dimension, target_box, True)))
     count = 0

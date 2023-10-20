@@ -87,7 +87,7 @@ class BaseBedrockTranslator(Translator):
             if block is None:
                 raise Exception(f"Empty tuple")
 
-            lut.append(palette_.get_add_block(block))
+            lut.append(palette_.block_to_index(block))
         chunk._block_palette = palette_
 
         if len(palette_) != len(lut):

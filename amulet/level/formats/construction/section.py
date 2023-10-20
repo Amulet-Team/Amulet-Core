@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import List, Optional
 
 from amulet.api.data_types import BlockCoordinates
-from amulet import Block
+from amulet.block import Block
 from amulet.entity import Entity
 from amulet.block_entity import BlockEntity
 

@@ -85,7 +85,7 @@ class Translator:
                 if extra and get_chunk_callback:
                     todo.append(i)
                 elif output_block is not None:
-                    palette_mappings[i] = finished.get_add_block(output_block)
+                    palette_mappings[i] = finished.block_to_index(output_block)
                     if output_block_entity is not None:
                         for cy in chunk.blocks.sub_chunks:
                             for x, y, z in zip(
@@ -173,7 +173,7 @@ class Translator:
                             (x + chunk.cx * 16, y, z + chunk.cz * 16),
                         )
                         if output_block is not None:
-                            block_mappings[(x, y, z)] = finished.get_add_block(
+                            block_mappings[(x, y, z)] = finished.block_to_index(
                                 output_block
                             )
                             if output_block_entity is not None:

@@ -206,7 +206,7 @@ def clone(
 
                                                 dst_chunk.blocks.get_sub_chunk(dst_cy)[
                                                     tuple(dst_blocks_.T % 16)
-                                                ] = dst_chunk.block_palette.get_add_block(
+                                                ] = dst_chunk.block_palette.block_to_index(
                                                     transformed_block
                                                 )
 
@@ -244,7 +244,7 @@ def clone(
                                     elif UniversalAirBlock not in blocks_to_skip:
                                         dst_chunk.blocks.get_sub_chunk(dst_cy)[
                                             tuple(dst_blocks.T % 16)
-                                        ] = dst_chunk.block_palette.get_add_block(
+                                        ] = dst_chunk.block_palette.block_to_index(
                                             UniversalAirBlock
                                         )
                                         for location in dst_blocks:
@@ -316,7 +316,7 @@ def clone(
 
                     # create a look up table converting the source block ids to the destination block ids
                     gab = numpy.vectorize(
-                        dst_chunk.block_palette.get_add_block, otypes=[numpy.uint32]
+                        dst_chunk.block_palette.block_to_index, otypes=[numpy.uint32]
                     )
                     lut = gab(src_chunk.block_palette.blocks)
 

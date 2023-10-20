@@ -275,10 +275,10 @@ class BlockManagerTestCase(unittest.TestCase):
         )
 
         # Partially populate the manager
-        self.manager.get_add_block(initial_dirt)
-        self.manager.get_add_block(initial_stone)
-        self.manager.get_add_block(initial_granite)
-        self.manager.get_add_block(initial_dirt_water)
+        self.manager.block_to_index(initial_dirt)
+        self.manager.block_to_index(initial_stone)
+        self.manager.block_to_index(initial_granite)
+        self.manager.block_to_index(initial_dirt_water)
 
     def test_get_index_from_manager(self):
         dirt = Block.from_string_blockstate("minecraft:dirt")
