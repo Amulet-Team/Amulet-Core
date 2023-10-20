@@ -224,7 +224,9 @@ class Anvil2844Interface(ParentInterface):
         sub_palette_, biome_sub_array = numpy.unique(
             biome_sub_array, return_inverse=True
         )
-        sub_palette = self._encode_biome_palette(map(chunk.biome_palette.index_to_biome, map(int, sub_palette_)))
+        sub_palette = self._encode_biome_palette(
+            map(chunk.biome_palette.index_to_biome, map(int, sub_palette_))
+        )
         biomes = sections[cy]["biomes"] = CompoundTag({"palette": sub_palette})
         if len(sub_palette) != 1:
             biomes["data"] = LongArrayTag(
