@@ -8,7 +8,7 @@ from amulet_nbt import IntTag
 
 
 from amulet.block import Block
-from amulet.api.registry import BlockManager
+from amulet.registry import BlockPalette
 from amulet.entity import Entity
 from amulet.api.wrapper.chunk.translator import Translator
 from amulet.api.data_types import (
@@ -61,7 +61,7 @@ class BaseBedrockTranslator(Translator):
         ]
         :return:
         """
-        palette_ = BlockManager()
+        palette_ = BlockPalette()
         lut = []
         for palette_index, entry in enumerate(block_palette):
             entry: BedrockInterfaceBlockType
