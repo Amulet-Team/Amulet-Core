@@ -1,4 +1,4 @@
-from typing import Any, List, Dict, Tuple, Optional, TYPE_CHECKING, Iterable, Union
+from typing import Any, List, Dict, Tuple, Optional, TYPE_CHECKING, Iterable
 
 from amulet.api.data_types import (
     Dimension,
@@ -9,9 +9,8 @@ from amulet.api.data_types import (
 )
 from amulet.api.wrapper import BaseFormatWrapper, CreatableFormatWrapper
 from amulet.api.errors import ChunkDoesNotExist, PlayerDoesNotExist
-from amulet.api.player import Player
+from amulet.player import Player
 from amulet.api.chunk import Chunk
-from amulet.api.selection import SelectionGroup
 from amulet.api import wrapper as api_wrapper
 
 if TYPE_CHECKING:

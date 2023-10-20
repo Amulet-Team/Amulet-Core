@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import shutil
 from abc import ABC, abstractmethod
 from typing import (
     Tuple,
@@ -39,7 +38,6 @@ from amulet.api.errors import (
     EntryLoadError,
     EntryDoesNotExist,
     DimensionDoesNotExist,
-    ObjectWriteError,
 )
 from amulet.api.data_types import (
     AnyNDArray,
@@ -49,7 +47,7 @@ from amulet.api.data_types import (
     PlatformType,
 )
 from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.player import Player
+from amulet.player import Player
 
 if TYPE_CHECKING:
     from amulet.api.wrapper.chunk.translator import Translator

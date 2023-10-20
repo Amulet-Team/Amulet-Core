@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from typing import List, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from amulet.api.chunk import Chunk
 
 import amulet
-from amulet.api.entity import Entity
 from amulet_nbt import ListTag, IntTag
 
 from .base_anvil_interface import ChunkDataType, ChunkPathType

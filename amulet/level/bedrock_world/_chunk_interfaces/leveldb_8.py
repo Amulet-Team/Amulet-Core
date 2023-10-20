@@ -11,7 +11,7 @@ import numpy
 from numpy.typing import NDArray
 from amulet_nbt import NamedTag, CompoundTag, StringTag, IntTag, ShortTag
 
-from amulet.api.block import Block, PropertyDataTypes
+from amulet.block import Block, PropertyDataTypes
 
 from amulet.utils.numpy_helpers import brute_sort_objects_no_hash
 from amulet.api.data_types import (

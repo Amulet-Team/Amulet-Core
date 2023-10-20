@@ -4,7 +4,7 @@ from typing import Union, Iterable, Dict, TYPE_CHECKING, Optional, NamedTuple, A
 import numpy
 import pickle
 
-from amulet.api.block import Block
+from amulet.block import Block
 from amulet.api.registry import BlockManager
 from amulet.api.registry.biome_manager import BiomeManager
 from amulet.api.chunk import (
@@ -15,8 +15,8 @@ from amulet.api.chunk import (
     BlockEntityDict,
     EntityList,
 )
-from amulet.api.entity import Entity
-from amulet.api.block_entity import BlockEntity
+from amulet.entity import Entity
+from amulet.block_entity import BlockEntity
 from amulet.api.data_types import ChunkCoordinates, VersionIdentifierType
 from amulet.api.errors import ChunkLoadError
 

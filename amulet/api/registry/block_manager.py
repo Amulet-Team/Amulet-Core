@@ -5,7 +5,7 @@ from numpy import integer
 from amulet_nbt import ByteTag, IntTag, ShortTag, LongTag
 
 from amulet.api.data_types import Int
-from amulet.api.block import Block
+from amulet.block import Block
 from .base_registry import BaseRegistry
 
 

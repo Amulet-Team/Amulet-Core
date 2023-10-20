@@ -4,8 +4,8 @@ from typing import List, Optional
 
 from amulet.api.data_types import BlockCoordinates
 from amulet import Block
-from amulet.api.entity import Entity
-from amulet.api.block_entity import BlockEntity
+from amulet.entity import Entity
+from amulet.block_entity import BlockEntity
 
 import numpy
 

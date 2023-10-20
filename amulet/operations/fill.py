@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from amulet.api.selection import SelectionGroup
-from amulet.api.block import Block
+from amulet.block import Block
 from amulet.api.data_types import Dimension, OperationReturnType
 
 if TYPE_CHECKING:

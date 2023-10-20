@@ -13,9 +13,8 @@ from amulet_nbt import (
     ShortTag,
 )
 
-import amulet
 from amulet.api.data_types import AnyNDArray, BlockCoordinates
-from amulet.api.block import Block
+from amulet.block import Block
 from amulet.api.chunk import StatusFormats
 from .base_anvil_interface import ChunkDataType, ChunkPathType
 from .anvil_0 import Anvil0Interface as ParentInterface

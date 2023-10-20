@@ -4,7 +4,7 @@ from typing import Iterable, Any
 from abc import ABC, abstractmethod
 
 from amulet.api.data_types import DimensionID, ChunkCoordinates, BiomeType
-from amulet.api.block import Block
+from amulet.block import Block
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup
 

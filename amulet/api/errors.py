@@ -10,12 +10,6 @@ class LoaderNoneMatched(FormatError):
     pass
 
 
-class BlockException(Exception):
-    """An error thrown by the :class:`~amulet.api.block.Block` class."""
-
-    pass
-
-
 class EntryLoadError(Exception):
     pass
 

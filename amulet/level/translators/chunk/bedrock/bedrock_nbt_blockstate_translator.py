@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 from amulet.level.translators.chunk.bedrock import BaseBedrockTranslator
 from amulet.api.data_types import BlockNDArray, AnyNDArray
-from amulet.api.block import Block
+from amulet.block import Block
 
 if TYPE_CHECKING:
     from PyMCTranslate import Version

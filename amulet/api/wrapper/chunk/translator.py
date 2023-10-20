@@ -9,9 +9,9 @@ import numpy
 
 from amulet import entity_support
 from amulet.api.registry import BlockManager, BiomeManager
-from amulet.api.block import Block
-from amulet.api.block_entity import BlockEntity
-from amulet.api.entity import Entity
+from amulet.block import Block
+from amulet.block_entity import BlockEntity
+from amulet.entity import Entity
 from amulet.api.chunk import Chunk, BiomesShape
 from amulet.api.data_types import (
     AnyNDArray,

@@ -26,7 +26,7 @@ Absolute imports are to be used when a module will be imported dynamically at ru
 ```python
 from __future__ import annotations
 
-from amulet.api.block import Block
+from amulet.block import Block
 
 from amulet.utils.format_utils import check_all_exist
 ```
@@ -34,10 +34,11 @@ from amulet.utils.format_utils import check_all_exist
 Absolute import statements can also be used internally within the Amulet API even when not located in a dynamically imported module, but this is highly discouraged unless an exception occurs otherwise. 
 
 Example Usage:
+
 ```python
 from amulet.api import paths
 
-from amulet.api.block import Block
+from amulet.block import Block
 from amulet import level
 
 ...

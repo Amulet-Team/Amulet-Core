@@ -1,5 +1,5 @@
 import unittest
-from amulet.api.block import Block
+from amulet.block import Block
 from amulet.api.registry import BlockManager
 from amulet.api.errors import BlockException
 

@@ -7,9 +7,9 @@ import numpy
 from amulet_nbt import IntTag
 
 
-from amulet.api.block import Block
+from amulet.block import Block
 from amulet.api.registry import BlockManager
-from amulet.api.entity import Entity
+from amulet.entity import Entity
 from amulet.api.wrapper.chunk.translator import Translator
 from amulet.api.data_types import (
     GetBlockCallback,

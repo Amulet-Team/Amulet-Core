@@ -33,8 +33,8 @@ from amulet.api.wrapper import EntityIDType, EntityCoordType
 
 if TYPE_CHECKING:
     from amulet.api.wrapper import Translator
-    from amulet.api.block_entity import BlockEntity
-    from amulet.api.entity import Entity
+    from amulet.block_entity import BlockEntity
+    from amulet.entity import Entity
 
 
 ChunkDataType = Dict[str, NamedTag]

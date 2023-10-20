@@ -4,7 +4,7 @@ from typing import List, TYPE_CHECKING
 import logging
 
 from amulet.api.selection import SelectionGroup
-from amulet.api.block import Block
+from amulet.block import Block
 from amulet.api.data_types import Dimension
 
 if TYPE_CHECKING:

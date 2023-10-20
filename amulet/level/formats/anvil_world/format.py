@@ -31,7 +31,7 @@ from amulet_nbt import (
     NamedTag,
     load as load_nbt,
 )
-from amulet.api.player import Player, LOCAL_PLAYER
+from amulet.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet.api.wrapper import WorldFormatWrapper, DefaultSelection

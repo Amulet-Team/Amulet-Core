@@ -1,6 +1,6 @@
 from collections import UserList
 from typing import Iterable
-from amulet.api.entity import Entity
+from amulet.entity import Entity
 
 
 class ChunkList(UserList):

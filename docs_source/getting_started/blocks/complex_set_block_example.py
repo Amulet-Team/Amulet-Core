@@ -1,5 +1,5 @@
 import amulet
-from amulet.api.block import Block
+from amulet.block import Block
 from amulet.utils.world_utils import block_coords_to_chunk_coords
 from amulet_nbt import StringTag, IntTag
 

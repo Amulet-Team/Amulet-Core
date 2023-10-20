@@ -19,7 +19,7 @@ from amulet_nbt import (
 )
 
 import amulet
-from amulet.api.block import Block
+from amulet.block import Block
 from amulet.api.chunk import Chunk, StatusFormats
 
 from amulet.utils.numpy_helpers import brute_sort_objects
@@ -39,8 +39,8 @@ from amulet.api.chunk.entity_list import EntityList
 from amulet.level.formats.leveldb_world.chunk import ChunkData
 
 if TYPE_CHECKING:
-    from amulet.api.block_entity import BlockEntity
-    from amulet.api.entity import Entity
+    from amulet.block_entity import BlockEntity
+    from amulet.entity import Entity
     from amulet.api.chunk.blocks import Blocks
     from amulet.api.wrapper import Translator
 

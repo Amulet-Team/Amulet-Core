@@ -4,7 +4,7 @@ from weakref import WeakValueDictionary
 from threading import Lock
 
 from amulet.api.data_types import BiomeType, DimensionID
-from amulet.api.block import Block
+from amulet.block import Block
 from amulet.api.selection import SelectionGroup
 
 from ._level import LevelFriend, BaseLevelPrivate

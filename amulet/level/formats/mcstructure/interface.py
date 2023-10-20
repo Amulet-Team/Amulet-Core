@@ -14,7 +14,7 @@ from amulet.api.data_types import (
     PlatformType,
 )
 from amulet.level.loader import Translators
-from amulet.api.block import Block
+from amulet.block import Block
 from .chunk import MCStructureChunk
 
 from amulet_nbt import NamedTag

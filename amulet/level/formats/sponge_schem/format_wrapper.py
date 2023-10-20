@@ -26,7 +26,7 @@ from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
 from amulet.api.errors import ChunkDoesNotExist, ObjectWriteError, ObjectReadError
-from amulet.api.block import Block
+from amulet.block import Block
 from amulet.utils.numpy_helpers import brute_sort_objects_no_hash
 
 from .chunk import SpongeSchemChunk

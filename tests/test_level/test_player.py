@@ -1,7 +1,7 @@
 import unittest
 
 from amulet.api.errors import PlayerDoesNotExist
-from amulet.api.player import Player
+from amulet.player import Player
 from amulet import load_level
 from data.util import create_temp_world, clean_temp_world
 from data import worlds_src

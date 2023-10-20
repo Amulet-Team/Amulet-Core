@@ -5,7 +5,7 @@ from amulet_nbt import IntTag
 from amulet.api.wrapper import Interface
 from .section import ConstructionSection
 from amulet.api.chunk import Chunk
-from amulet.api.block import Block
+from amulet.block import Block
 from amulet.api.selection import SelectionBox
 from amulet.level.loader import Translators
 from amulet.api.data_types import (

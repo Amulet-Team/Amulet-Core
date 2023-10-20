@@ -3,7 +3,7 @@ from typing import Iterable, KeysView, ValuesView, ItemsView
 import numpy
 
 from amulet.api.data_types import BlockCoordinates
-from amulet.api.block_entity import BlockEntity
+from amulet.block_entity import BlockEntity
 
 
 class BlockEntityDict(UserDict):

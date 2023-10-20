@@ -14,8 +14,8 @@ from typing import (
 )
 from enum import Enum
 
-from amulet.api.block_entity import BlockEntity
-from amulet.api.entity import Entity
+from amulet.block_entity import BlockEntity
+from amulet.entity import Entity
 from amulet.api.data_types import AnyNDArray, VersionNumberAny, VersionIdentifierType
 from amulet_nbt import (
     AbstractBaseTag,

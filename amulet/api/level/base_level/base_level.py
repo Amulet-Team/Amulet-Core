@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from typing import Union, Generator, Optional, Tuple, Callable, Set, Iterable
 import traceback
 import numpy
@@ -10,9 +9,9 @@ import logging
 import copy
 import os
 
-from amulet.api.block import Block, UniversalAirBlock
-from amulet.api.block_entity import BlockEntity
-from amulet.api.entity import Entity
+from amulet.block import Block, UniversalAirBlock
+from amulet.block_entity import BlockEntity
+from amulet.entity import Entity
 from amulet.api.registry import BlockManager
 from amulet.api.registry.biome_manager import BiomeManager
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError, DimensionDoesNotExist
@@ -35,7 +34,7 @@ from amulet.api.history.history_manager import MetaHistoryManager
 from .clone import clone
 from amulet.api import wrapper as api_wrapper, level as api_level
 import PyMCTranslate
-from amulet.api.player import Player
+from amulet.player import Player
 from .player_manager import PlayerManager
 
 log = logging.getLogger(__name__)

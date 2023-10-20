@@ -5,8 +5,6 @@ import re
 from typing import Dict, Iterable, Tuple, Union, Mapping
 from amulet_nbt import ByteTag, ShortTag, IntTag, LongTag, StringTag, from_snbt
 
-from .errors import BlockException
-
 PropertyValueType = Union[
     ByteTag,
     ShortTag,
@@ -24,6 +22,12 @@ PropertyDataTypes = (
     LongTag,
     StringTag,
 )
+
+
+class BlockException(Exception):
+    """An error thrown by the :class:`~amulet.api.block.Block` class."""
+
+    pass
 
 
 class Block:
