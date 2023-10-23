@@ -16,7 +16,7 @@ from amulet_nbt import (
 from amulet.block import Block
 from amulet.entity import Entity
 from amulet.block_entity import BlockEntity
-from amulet.registry import BlockPalette
+from amulet.palette import BlockPalette
 
 
 def unpack_palette(raw_palette: ListTag) -> List[Block]:

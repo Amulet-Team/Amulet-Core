@@ -12,7 +12,7 @@ import os
 from amulet.block import Block, UniversalAirBlock
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
-from amulet.registry import BlockPalette, BiomePalette
+from amulet.palette import BlockPalette, BiomePalette
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError, DimensionDoesNotExist
 from amulet.api.chunk import Chunk, EntityList
 from amulet.selection import SelectionGroup, SelectionBox

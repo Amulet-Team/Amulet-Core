@@ -3,7 +3,7 @@ from typing import Union, Iterable
 import numpy
 from numpy.typing import ArrayLike
 
-from amulet.registry import BiomePalette
+from amulet.palette import BiomePalette
 from .sub_chunk_array import SubChunkArrayContainer
 
 

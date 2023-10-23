@@ -8,7 +8,7 @@ from amulet_nbt import IntTag
 
 
 from amulet.block import Block
-from amulet.registry import BlockPalette
+from amulet.palette import BlockPalette
 from amulet.entity import Entity
 from amulet.api.wrapper.chunk.translator import Translator
 from amulet.api.data_types import (

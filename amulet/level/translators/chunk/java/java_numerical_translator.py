@@ -6,7 +6,7 @@ import numpy
 from amulet.api.chunk import Chunk
 from amulet.api.wrapper import Translator
 from amulet.api.data_types import VersionIdentifierType, AnyNDArray, BlockNDArray
-from amulet.registry import BlockPalette
+from amulet.palette import BlockPalette
 
 if TYPE_CHECKING:
     from PyMCTranslate import Version, TranslationManager

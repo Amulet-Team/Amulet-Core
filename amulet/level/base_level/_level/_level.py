@@ -15,7 +15,7 @@ from PyMCTranslate import TranslationManager
 from amulet import IMG_DIRECTORY
 from amulet.api.data_types import DimensionID, PlatformType, VersionNumberAny
 
-from amulet.registry import BlockPalette, BiomePalette
+from amulet.palette import BlockPalette, BiomePalette
 
 from amulet.utils.shareable_lock import ShareableRLock
 from amulet.utils.signal import Signal, SignalInstanceCacheName

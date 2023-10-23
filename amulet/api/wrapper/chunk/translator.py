@@ -8,7 +8,7 @@ import logging
 import numpy
 
 from amulet import entity_support
-from amulet.registry import BlockPalette, BiomePalette
+from amulet.palette import BlockPalette, BiomePalette
 from amulet.block import Block
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity

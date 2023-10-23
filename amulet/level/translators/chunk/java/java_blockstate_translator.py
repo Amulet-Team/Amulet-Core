@@ -6,7 +6,7 @@ from amulet_nbt import StringTag
 from amulet.api.chunk import Chunk
 from amulet.api.wrapper import Translator
 from amulet.block import Block
-from amulet.registry import BlockPalette
+from amulet.palette import BlockPalette
 from amulet.api.data_types import (
     VersionIdentifierType,
     AnyNDArray,

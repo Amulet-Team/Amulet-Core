@@ -2,7 +2,7 @@ from typing import Union, Iterable
 
 from numpy.typing import ArrayLike
 
-from amulet.registry import BlockPalette
+from amulet.palette import BlockPalette
 from .sub_chunk_array import SubChunkArrayContainer
 
 

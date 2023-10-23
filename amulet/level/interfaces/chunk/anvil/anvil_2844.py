@@ -12,7 +12,7 @@ from amulet_nbt import (
 )
 
 from amulet.api.chunk import Chunk
-from amulet.registry import BiomePalette
+from amulet.palette import BiomePalette
 from amulet.api.data_types import AnyNDArray, BiomeType
 from amulet.utils.world_utils import (
     decode_long_array,

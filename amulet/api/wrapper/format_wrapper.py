@@ -27,7 +27,7 @@ import PyMCTranslate
 
 from amulet.api import level as api_level, wrapper as api_wrapper
 from amulet.api.chunk import Chunk
-from amulet.registry import BlockPalette
+from amulet.palette import BlockPalette
 from amulet.api.errors import (
     ChunkLoadError,
     ChunkDoesNotExist,

@@ -1,6 +1,6 @@
 import unittest
 from amulet.block import Block
-from amulet.registry import BlockPalette
+from amulet.palette import BlockPalette
 from amulet.api.errors import BlockException
 
 from amulet_nbt import StringTag

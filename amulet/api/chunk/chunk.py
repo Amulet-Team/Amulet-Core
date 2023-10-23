@@ -5,8 +5,8 @@ import numpy
 import pickle
 
 from amulet.block import Block
-from amulet.registry import BlockPalette
-from amulet.registry import BiomePalette
+from amulet.palette import BlockPalette
+from amulet.palette import BiomePalette
 from amulet.api.chunk import (
     Biomes,
     BiomesShape,

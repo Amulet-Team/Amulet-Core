@@ -30,7 +30,7 @@ from amulet.api.data_types import (
     PointCoordinates,
     ChunkCoordinates,
 )
-from amulet.registry import BlockPalette
+from amulet.palette import BlockPalette
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.selection import SelectionBox, SelectionGroup
