@@ -611,24 +611,3 @@ class Block:
                     *self.extra_blocks[layer:],
                 ],
             )
-
-    def __sizeof__(self):
-        size = (
-            getsizeof(self._namespace)
-            + getsizeof(self._base_name)
-            + getsizeof(self._namespaced_name)
-            + getsizeof(self._properties)
-            + getsizeof(self._blockstate)
-            + getsizeof(self._extra_blocks)
-            + getsizeof(self._snbt_blockstate)
-            + getsizeof(self._full_blockstate)
-        )
-        for eb in self.extra_blocks:
-            size += getsizeof(eb)
-        return size
-
-
-# some blocks that probably will not change. Keeping these in one place will make them easier to change if they do.
-UniversalAirBlock = Block("universal_minecraft", "air")
-# do not rely on this staying the same.
-UniversalAirLikeBlocks = (UniversalAirBlock, Block("universal_minecraft", "cave_air"))
