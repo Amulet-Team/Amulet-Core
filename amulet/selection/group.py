@@ -62,10 +62,9 @@ class SelectionGroup(AbstractBaseSelection):
         :param other: The other :class:`SelectionGroup` to compare with.
         :return: True if the boxes contained match.
         """
-        return (
-            isinstance(other, SelectionGroup)
-            and self.selection_boxes_sorted == other.selection_boxes_sorted
-        )
+        if not isinstance(other, SelectionGroup):
+            return NotImplemented
+        return self.selection_boxes_sorted == other.selection_boxes_sorted
 
     def __add__(self, boxes: Iterable[SelectionBox]) -> SelectionGroup:
         """
@@ -90,10 +89,10 @@ class SelectionGroup(AbstractBaseSelection):
         try:
             boxes = tuple(boxes)
         except:
-            raise NotImplemented
-        if all(isinstance(b, SelectionBox) for b in boxes):
-            return SelectionGroup(tuple(self) + boxes)
-        raise NotImplemented
+            return NotImplemented
+        if not all(isinstance(b, SelectionBox) for b in boxes):
+            return NotImplemented
+        return SelectionGroup(tuple(self) + boxes)
 
     def __iter__(self) -> Iterable[SelectionBox]:
         """An iterable of all the :class:`SelectionBox` classes in the group."""
@@ -102,9 +101,6 @@ class SelectionGroup(AbstractBaseSelection):
     def __len__(self) -> int:
         """The number of :class:`SelectionBox` classes in the group."""
         return len(self._selection_boxes)
-
-    def __contains__(self, item: CoordinatesAny) -> bool:
-        return self.contains_block(item)
 
     def contains_block(self, coords: CoordinatesAny) -> bool:
         return any(box.contains_block(coords) for box in self._selection_boxes)
@@ -153,12 +149,12 @@ class SelectionGroup(AbstractBaseSelection):
 
     @property
     def min(self) -> BlockCoordinates:
-        """The minimum point of of all the boxes in the group."""
+        """The minimum point of all the boxes in the group."""
         return tuple(self.min_array.tolist())
 
     @property
     def min_array(self) -> numpy.ndarray:
-        """The minimum point of of all the boxes in the group as a numpy array."""
+        """The minimum point of all the boxes in the group as a numpy array."""
         if self._selection_boxes:
             return numpy.min(numpy.array([box.min for box in self._selection_boxes]), 0)
         else:
@@ -178,12 +174,12 @@ class SelectionGroup(AbstractBaseSelection):
 
     @property
     def max(self) -> BlockCoordinates:
-        """The maximum point of of all the boxes in the group."""
+        """The maximum point of all the boxes in the group."""
         return tuple(self.max_array.tolist())
 
     @property
     def max_array(self) -> numpy.ndarray:
-        """The maximum point of of all the boxes in the group as a numpy array."""
+        """The maximum point of all the boxes in the group as a numpy array."""
         if self._selection_boxes:
             return numpy.max(numpy.array([box.max for box in self._selection_boxes]), 0)
         else:

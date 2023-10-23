@@ -188,10 +188,6 @@ class SelectionBox(AbstractBaseSelection):
                 SelectionBox.create_sub_chunk_box(cx, cy, cz, sub_chunk_size)
             )
 
-    def __iter__(self) -> Iterable[BlockCoordinates]:
-        """An iterable of all the block locations within this box."""
-        return self.blocks
-
     @property
     def blocks(self) -> Iterable[BlockCoordinates]:
         return itertools.product(
@@ -205,9 +201,6 @@ class SelectionBox(AbstractBaseSelection):
 
     def __str__(self) -> str:
         return f"({self.point_1}, {self.point_2})"
-
-    def __contains__(self, item: CoordinatesAny) -> bool:
-        return self.contains_block(item)
 
     def contains_block(self, coords: CoordinatesAny) -> bool:
         return (

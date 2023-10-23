@@ -24,24 +24,6 @@ class AbstractBaseSelection(ABC):
     __slots__ = ()
 
     @abstractmethod
-    def __contains__(self, item: CoordinatesAny) -> bool:
-        """
-        Is the given block/point contained within the selection.
-
-        >>> (1, 2, 3) in selection1
-        True
-        >>> (1.5, 2.5, 3.5) in selection1
-        True
-
-        Will return False if the coordinate is on the most positive edge.
-        See :meth:`contains_point` to include the top edge.
-
-        :param item: The block/point to check.
-        :return: True if the block/point is in the selection, False otherwise.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
     def __eq__(self, other) -> bool:
         """
         Is the selection equal to the other selection.
@@ -52,10 +34,6 @@ class AbstractBaseSelection(ABC):
         :param other: The other selection to test.
         :return: True if the selections are the same, False otherwise.
         """
-        raise NotImplementedError
-
-    @abstractmethod
-    def __iter__(self):
         raise NotImplementedError
 
     @abstractmethod
@@ -139,10 +117,6 @@ class AbstractBaseSelection(ABC):
         :return: True if the block is in the selection.
         """
         raise NotImplementedError
-
-    # @abstractmethod
-    # def contains_box(self, other: box.SelectionBox) -> bool:
-    #     raise NotImplementedError
 
     @abstractmethod
     def contains_point(self, coords: CoordinatesAny) -> bool:
