@@ -5,7 +5,6 @@ from abc import ABC, abstractmethod
 
 from amulet.api.data_types import DimensionID, ChunkCoordinates, BiomeType
 from amulet.block import Block
-from amulet.api.chunk import Chunk
 from amulet.selection import SelectionGroup
 
 RawChunkT = Any
@@ -63,44 +62,6 @@ class RawDimension(ABC):
     @abstractmethod
     def set_raw_chunk(self, cx: int, cz: int, chunk: RawChunkT):
         """Set the chunk in its raw format."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_native_chunk(self, cx: int, cz: int) -> NativeChunkT:
-        """
-        Get the raw chunk data loaded into an easier to use format.
-        Block, biome and other array data should be loaded into editable arrays.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def set_native_chunk(self, cx: int, cz: int, chunk: NativeChunkT):
-        """Set the chunk in its native format."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_universal_chunk(self, cx: int, cz: int) -> Chunk:
-        """Get the chunk in the universal format."""
-
-    @abstractmethod
-    def set_universal_chunk(self, cx: int, cz: int, chunk: Chunk):
-        """Set the chunk in the universal format."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def raw_to_native_chunk(self, chunk: RawChunkT) -> NativeChunkT:
-        raise NotImplementedError
-
-    @abstractmethod
-    def native_to_raw_chunk(self, chunk: NativeChunkT) -> RawChunkT:
-        raise NotImplementedError
-
-    @abstractmethod
-    def native_to_universal_chunk(self, chunk: NativeChunkT) -> Chunk:
-        raise NotImplementedError
-
-    @abstractmethod
-    def universal_to_native_chunk(self, chunk: Chunk) -> NativeChunkT:
         raise NotImplementedError
 
 

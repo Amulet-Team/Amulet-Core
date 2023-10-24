@@ -415,30 +415,6 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
         if batch:
             self._r.db.putBatch(batch)
 
-    def get_native_chunk(self, cx: int, cz: int) -> NativeChunk:
-        raise NotImplementedError
-
-    def set_native_chunk(self, cx: int, cz: int, chunk: NativeChunk):
-        raise NotImplementedError
-
-    def get_universal_chunk(self, cx: int, cz: int) -> Chunk:
-        raise NotImplementedError
-
-    def set_universal_chunk(self, cx: int, cz: int, chunk: Chunk):
-        raise NotImplementedError
-
-    def raw_to_native_chunk(self, chunk: ChunkData) -> NativeChunk:
-        raise NotImplementedError
-
-    def native_to_raw_chunk(self, chunk: NativeChunk) -> ChunkData:
-        raise NotImplementedError
-
-    def native_to_universal_chunk(self, chunk: NativeChunk) -> Chunk:
-        raise NotImplementedError
-
-    def universal_to_native_chunk(self, chunk: Chunk) -> NativeChunk:
-        raise NotImplementedError
-
 
 class BedrockRawLevelPrivate:
     # _raw_ref: Callable[[], Optional[BedrockRawLevel]]
