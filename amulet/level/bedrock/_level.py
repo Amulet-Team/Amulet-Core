@@ -122,7 +122,7 @@ class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
         self._l.reloaded.emit()
 
     def _open(self):
-        raise NotImplementedError
+        pass
 
     def _close(self):
         self._dimensions.clear()

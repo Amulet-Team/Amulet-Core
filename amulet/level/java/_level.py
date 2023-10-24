@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Optional, Protocol, BinaryIO, Union, NamedTuple, Sequence
+from typing import Any, Optional, BinaryIO, Union, NamedTuple, Sequence
 import os
 import shutil
 import time
@@ -36,10 +36,10 @@ from amulet.level.base_level import (
     StringArg,
     IntArg,
     SequenceArg,
-    ProtocolArg,
     LoadableLevel,
     BaseLevelPrivate,
     CompactableLevel,
+    metadata,
 )
 from amulet.utils.format_utils import check_all_exist
 
@@ -75,23 +75,32 @@ class DimensionEntry(NamedTuple):
 
 
 class JavaLevelPrivate(BaseLevelPrivate):
-    __slots__ = (
-        "path",
-        "data_version",
-        "root_tag",
-        "mcc_support",
-        "dimensions",
-        "data_pack",
-    )
+    # Instance variables
+    path: Optional[str]
+    data_version: Optional[VersionNumberInt]
+    root_tag: Optional[NamedTag]
+    mcc_support: bool
+    dimensions: dict[Union[InternalDimension, Dimension], DimensionEntry]
+    data_pack: Optional[DataPackManager]
 
-    def __init__(self):
-        super().__init__()
-        self.path: Optional[str] = None
-        self.data_version: Optional[VersionNumberInt] = None
-        self.root_tag: Optional[NamedTag] = None
-        self.mcc_support: bool = False
-        self.dimensions: dict[Union[InternalDimension, Dimension], DimensionEntry] = {}
-        self.data_pack: Optional[DataPackManager] = None
+    __slots__ = tuple(__annotations__)
+
+    # Just for type hinting
+    level: JavaLevel
+
+    def __init__(self, level: JavaLevel):
+        super().__init__(level)
+        self.path = None
+        self.data_version = None
+        self.root_tag = None
+        self.mcc_support = False
+        self.dimensions = {}
+        self.data_pack = None
+
+    def _close(self):
+        super().close()
+        self.dimensions.clear()
+        self.data_pack = None
 
 
 class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
@@ -106,9 +115,8 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
         self._lock_file: Optional[BinaryIO] = None
         self._lock_time: Optional[int] = None
 
-    @staticmethod
-    def _instance_data() -> JavaLevelPrivate:
-        return JavaLevelPrivate()
+    def _instance_data(self) -> JavaLevelPrivate:
+        return JavaLevelPrivate(self)
 
     @classmethod
     def create(
@@ -382,6 +390,7 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
             portalocker.unlock(self._lock_file)
             self._lock_file.close()
 
+    @metadata
     @property
     def path(self) -> str:
         if self._l.path is None:
