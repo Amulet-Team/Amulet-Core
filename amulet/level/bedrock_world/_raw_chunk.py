@@ -2,7 +2,7 @@ from typing import Union, Iterable, Tuple, List, Optional
 from amulet_nbt import NamedTag
 
 
-class ChunkData(dict[bytes, Optional[bytes]]):
+class RawBedrockChunk(dict[bytes, Optional[bytes]]):
     def __init__(
         self,
         chunk_data: Union[dict[bytes, bytes], Iterable[Tuple[bytes, bytes]]] = (),

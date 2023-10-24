@@ -37,7 +37,7 @@ from amulet.api.errors import ChunkDoesNotExist, PlayerDoesNotExist
 from amulet.level.base_level import RawLevel, RawDimension, LevelFriend
 
 from ._level_dat import BedrockLevelDAT
-from ._chunk import ChunkData
+from ._raw_chunk import RawBedrockChunk
 
 if TYPE_CHECKING:
     from ._level import BedrockLevelPrivate
@@ -207,7 +207,7 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
                 actor_key = b"actorprefix" + digp[i : i + 8]
                 db.delete(actor_key)
 
-    def get_raw_chunk(self, cx: int, cz: int) -> ChunkData:
+    def get_raw_chunk(self, cx: int, cz: int) -> RawBedrockChunk:
         """
         Get a dictionary of chunk key extension in bytes to the raw data in the key.
         chunk key extension are the character(s) after <cx><cz>[level] in the key
@@ -226,7 +226,7 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
         prefix_len = len(prefix)
         iter_end = prefix + b"\xff\xff\xff\xff"
 
-        chunk_data = ChunkData()
+        chunk_data = RawBedrockChunk()
         for key, val in self._r.db.iterate(prefix, iter_end):
             if key[:prefix_len] == prefix and len(key) <= prefix_len + 2:
                 chunk_data[key[prefix_len:]] = val
@@ -311,7 +311,7 @@ class BedrockRawDimension(BedrockRawLevelFriend, RawDimension):
 
         return chunk_data
 
-    def set_raw_chunk(self, cx: int, cz: int, chunk: ChunkData):
+    def set_raw_chunk(self, cx: int, cz: int, chunk: RawBedrockChunk):
         """
         Set the raw data for a chunk
         :param cx: The chunk x coordinate
