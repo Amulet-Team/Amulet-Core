@@ -4,7 +4,7 @@ import numpy
 from numpy.typing import ArrayLike
 
 from amulet.palette import BiomePalette
-from .sub_chunk_array import SubChunkArrayContainer
+from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
 
 
 class Biome3DChunk:
