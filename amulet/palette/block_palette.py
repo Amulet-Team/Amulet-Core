@@ -81,16 +81,19 @@ class BlockPalette(Sequence[BlockStack]):
 
     def fix_block(self, block_stack: BlockStack) -> BlockStack:
         """If a version has not been set for a block this sets the maximum version this palette supports."""
-        return BlockStack(
-            *(
-                Block(
-                    block.namespace,
-                    block.base_name,
-                    block.properties,
-                    self._version_range.max,
+        blocks = []
+        for block in block_stack:
+            if block.version is None:
+                blocks.append(
+                    Block(
+                        block.namespace,
+                        block.base_name,
+                        block.properties,
+                        self._version_range.max,
+                    )
                 )
-                if block.version is None
-                else block
-                for block in block_stack
-            )
-        )
+            elif block.version in self._version_range:
+                blocks.append(block)
+            else:
+                raise ValueError(block)
+        return BlockStack(*blocks)
