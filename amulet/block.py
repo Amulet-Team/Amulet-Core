@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import re
-from typing import Union, Optional
+from typing import Union
 from types import MappingProxyType
 from collections.abc import Iterator, Sequence, Hashable, Mapping
 
 from amulet_nbt import ByteTag, ShortTag, IntTag, LongTag, StringTag, from_snbt
 
-from amulet.game_version import AbstractGameVersion
+from amulet.game_version import AbstractGameVersion, JavaGameVersion
 
 PropertyValueType = Union[
     ByteTag,
@@ -27,17 +27,16 @@ PropertyDataTypes = (
     StringTag,
 )
 
-_SNBTBlockstatePattern = re.compile(
-    r"(?:(?P<namespace>[a-z0-9_.-]+):)?(?P<base_name>[a-z0-9/._-]+)(?:\[(?P<property_name>[a-z0-9_]+)=(?P<property_value>[a-z0-9_\"']+)(?P<properties>.*)\])?"
-)
 _BlockstatePattern = re.compile(
-    r"(?:(?P<namespace>[a-z0-9_.-]+):)?(?P<base_name>[a-z0-9/._-]+)(?:\[(?P<property_name>[a-z0-9_]+)=(?P<property_value>[a-z0-9_]+)(?P<properties>.*)\])?"
+    r"((?P<namespace>[a-z0-9_.-]+):)?"
+    r"(?P<base_name>[a-z0-9/._-]+)"
+    r"(\[(?P<properties>.*?)])?"
 )
 
+_PropertiesPattern = re.compile(r"(?P<name>[a-zA-Z0-9_]+)=(?P<value>[a-zA-Z0-9_]+),?")
 _SNBTPropertiesPattern = re.compile(
-    r"(?:,(?P<name>[a-z0-9_]+)=(?P<value>[a-z0-9_\"']+))"
+    r"(?P<name>[a-zA-Z0-9_]+)=(?P<value>[a-zA-Z0-9_\"']+),?"
 )
-_PropertiesPattern = re.compile(r"(?:,(?P<name>[a-z0-9_]+)=(?P<value>[a-z0-9_]+))")
 
 
 class BlockProperties(Mapping[str, PropertyValueType], Hashable):
@@ -49,7 +48,7 @@ class BlockProperties(Mapping[str, PropertyValueType], Hashable):
             raise TypeError("keys must be strings")
         if not all(isinstance(v, PropertyDataTypes) for v in self._properties.values()):
             raise TypeError("values must be nbt")
-        self._hash = hash(sorted(self._properties.items()))
+        self._hash = hash(tuple(sorted(self._properties.items())))
 
     def __getitem__(self, key: str) -> PropertyValueType:
         return self._properties[key]
@@ -73,10 +72,11 @@ class Block:
     Here's a few examples on how create a Block object:
 
     >>> # Create a block with the namespace `minecraft` and base name `stone`
-    >>> stone = Block("minecraft", "stone")
+    >>> stone = Block(JavaGameVersion(3578), "minecraft", "stone")
 
     >>> # Create a water block with the level property
     >>> water = Block(
+    >>>     JavaGameVersion(3578),
     >>>     "minecraft",  # the namespace
     >>>     "water",  # the base name
     >>>     {  # A dictionary of properties.
@@ -100,18 +100,19 @@ class Block:
 
     def __init__(
         self,
+        version: AbstractGameVersion,
         namespace: str,
         base_name: str,
         properties: PropertyType = MappingProxyType({}),
-        version: Optional[AbstractGameVersion] = None,
     ):
         """
         Constructs a :class:`Block` instance.
 
-        >>> stone = Block("minecraft", "stone")
+        >>> stone = Block(JavaGameVersion(3578), "minecraft", "stone")
         >>>
         >>> # Create a water block with the level property
         >>> water = Block(
+        >>>     JavaGameVersion(3578),
         >>>     "minecraft",  # the namespace
         >>>     "water",  # the base name
         >>>     {  # A dictionary of properties.
@@ -126,39 +127,40 @@ class Block:
         :param version: The game version this block is defined in.
             If omitted/None it will default to the highest version the container it is used in supports.
         """
+        if not isinstance(version, AbstractGameVersion):
+            raise TypeError("Invalid version", version)
+        self._version = version
         self._namespace = str(namespace)
         self._base_name = str(base_name)
         self._properties = BlockProperties(properties)
-        if version is not None and not isinstance(version, AbstractGameVersion):
-            raise TypeError("Invalid version", version)
-        self._version = version
 
     @classmethod
-    def from_string_blockstate(cls, blockstate: str):
+    def from_string_blockstate(cls, version: AbstractGameVersion, blockstate: str):
         """
         Parse a Java format blockstate where values are all strings and populate a :class:`Block` class with the data.
 
         >>> stone = Block.from_string_blockstate("minecraft:stone")
         >>> water = Block.from_string_blockstate("minecraft:water[level=0]")
 
+        :param version: The version the block is defined in.
         :param blockstate: The Java blockstate string to parse.
         :return: A Block instance containing the state.
         """
-        namespace, block_name, properties = cls.parse_blockstate_string(blockstate)
-        return cls(namespace, block_name, properties)
+        namespace, block_name, properties = cls._parse_blockstate_string(blockstate)
+        return cls(version, namespace, block_name, properties)
 
     @classmethod
-    def from_snbt_blockstate(cls, blockstate: str):
+    def from_snbt_blockstate(cls, version: AbstractGameVersion, blockstate: str):
         """
         Parse a blockstate where values are SNBT of any type and populate a :class:`Block` class with the data.
         """
-        namespace, block_name, properties = cls.parse_blockstate_string(
+        namespace, block_name, properties = cls._parse_blockstate_string(
             blockstate, True
         )
-        return cls(namespace, block_name, properties)
+        return cls(version, namespace, block_name, properties)
 
     @staticmethod
-    def parse_blockstate_string(
+    def _parse_blockstate_string(
         blockstate: str, snbt: bool = False
     ) -> tuple[str, str, PropertyType]:
         """
@@ -171,35 +173,33 @@ class Block:
         :return: namespace, block_name, properties
 
         """
-        if snbt:
-            match = _SNBTBlockstatePattern.match(blockstate)
-        else:
-            match = _BlockstatePattern.match(blockstate)
+        match = _BlockstatePattern.fullmatch(blockstate)
+        if match is None:
+            raise ValueError(f"Invalid blockstate {blockstate}")
         namespace = match.group("namespace") or "minecraft"
         base_name = match.group("base_name")
 
-        if match.group("property_name") is not None:
-            properties = {match.group("property_name"): match.group("property_value")}
-            properties_string = match.group("properties")
-            if properties_string is not None:
-                if snbt:
-                    for match in _SNBTPropertiesPattern.finditer(properties_string):
-                        properties[match.group("name")] = match.group("value")
-                else:
-                    for match in _PropertiesPattern.finditer(properties_string):
-                        properties[match.group("name")] = match.group("value")
-        else:
-            properties = {}
+        properties_str = match.group("properties")
+        properties = {}
 
         if snbt:
-            properties_dict = {k: from_snbt(v) for k, v in sorted(properties.items())}
+            pattern = _SNBTPropertiesPattern
+            wrapper = from_snbt
         else:
-            properties_dict = {k: StringTag(v) for k, v in sorted(properties.items())}
+            pattern = _PropertiesPattern
+            wrapper = StringTag
+
+        while properties_str:
+            match = pattern.match(properties_str)
+            if match is None:
+                raise ValueError(f"Invalid blockstate {blockstate}")
+            properties[match.group("name")] = wrapper(match.group("value"))
+            properties_str = properties_str[match.end() :]
 
         return (
             namespace,
             base_name,
-            properties_dict,
+            properties,
         )
 
     def _data(self):
@@ -224,7 +224,7 @@ class Block:
         return hash(self) < hash(other)
 
     def __repr__(self):
-        return f"Block({self.namespace!r}, {self.base_name!r}, {dict(self.properties)!r}, {self.version!r})"
+        return f"Block({self.version!r}, {self.namespace!r}, {self.base_name!r}, {dict(self.properties)!r})"
 
     @property
     def namespaced_name(self) -> str:
@@ -277,10 +277,9 @@ class Block:
         return self._properties
 
     @property
-    def version(self) -> Optional[AbstractGameVersion]:
+    def version(self) -> AbstractGameVersion:
         """
         The game version this block was defined in.
-        Note that this may be None.
         """
         return self._version
 
@@ -290,10 +289,10 @@ class Block:
         The Java blockstate string of this :class:`Block` object
         Note this will only contain properties with StringTag values.
 
-        >>> stone = Block("minecraft", "stone")
+        >>> stone = Block(JavaGameVersion(3578), "minecraft", "stone")
         >>> stone.blockstate
         'minecraft:stone'
-        >>> water = Block("minecraft", "water", {"level": StringTag("0")})
+        >>> water = Block(JavaGameVersion(3578), "minecraft", "water", {"level": StringTag("0")})
         >>> water.blockstate
         `minecraft:water[level=0]`
 
@@ -316,11 +315,16 @@ class Block:
         Converts the property values to the SNBT format to preserve type.
         Note if there are extra blocks this will only show the base block.
 
-        >>> bell = Block("minecraft", "bell", {
-        >>>     "attachment":StringTag("standing"),
-        >>>     "direction":IntTag(0),
-        >>>     "toggle_bit":ByteTag(0)
-        >>> })
+        >>> bell = Block(
+        >>>     JavaGameVersion(3578),
+        >>>     "minecraft",
+        >>>     "bell",
+        >>>     {
+        >>>         "attachment":StringTag("standing"),
+        >>>         "direction":IntTag(0),
+        >>>         "toggle_bit":ByteTag(0)
+        >>>     }
+        >>> )
         >>> bell.snbt_blockstate
         'minecraft:bell[attachment="standing",direction=0,toggle_bit=0b]'
 
@@ -349,8 +353,8 @@ class BlockStack(Sequence[Block]):
 
     Create a waterlogged stone block.
     >>> waterlogged_stone = BlockStack(
-    >>>     Block("minecraft", "stone"),
-    >>>     Block("minecraft", "water", {"level": StringTag("0")})
+    >>>     Block(JavaGameVersion(3578), "minecraft", "stone"),
+    >>>     Block(JavaGameVersion(3578), "minecraft", "water", {"level": StringTag("0")})
     >>> )
 
     Get a block at an index
@@ -380,11 +384,11 @@ class BlockStack(Sequence[Block]):
         The first block in the stack.
 
         >>> waterlogged_stone = BlockStack(
-        >>>     Block("minecraft", "stone"),
-        >>>     Block("minecraft", "water", {"level": StringTag("0")})
+        >>>     Block(JavaGameVersion(3578), "minecraft", "stone"),
+        >>>     Block(JavaGameVersion(3578), "minecraft", "water", {"level": StringTag("0")})
         >>> )
         >>> waterlogged_stone.base_block
-        Block("minecraft", "stone")
+        Block(JavaGameVersion(3578), "minecraft", "stone")
 
         :return: A Block object
         """
@@ -396,11 +400,11 @@ class BlockStack(Sequence[Block]):
         The extra blocks in the stack.
 
         >>> waterlogged_stone = BlockStack(
-        >>>     Block("minecraft", "stone"),
-        >>>     Block("minecraft", "water", {"level": StringTag("0")})
+        >>>     Block(JavaGameVersion(3578), "minecraft", "stone"),
+        >>>     Block(JavaGameVersion(3578), "minecraft", "water", {"level": StringTag("0")})
         >>> )
         >>> waterlogged_stone.extra_blocks
-        (Block("minecraft", "water", {"level": StringTag("0")}),)
+        (Block(JavaGameVersion(3578), "minecraft", "water", {"level": StringTag("0")}),)
 
         :return: A tuple of :class:`Block` objects
         """
