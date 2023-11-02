@@ -7,7 +7,11 @@ from collections.abc import Iterator, Sequence, Hashable, Mapping
 
 from amulet_nbt import ByteTag, ShortTag, IntTag, LongTag, StringTag, from_snbt
 
-from amulet.game_version import AbstractGameVersion, JavaGameVersion, GameVersionContainer
+from amulet.game_version import (
+    AbstractGameVersion,
+    JavaGameVersion,
+    GameVersionContainer,
+)
 
 PropertyValueType = Union[
     ByteTag,
