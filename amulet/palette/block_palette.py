@@ -16,7 +16,7 @@ class BlockPalette(GameVersionRangeContainer, Sequence[BlockStack]):
         """
         Creates a new BlockPalette object
         """
-        GameVersionRangeContainer.__init__(self, version_range)
+        super().__init__(version_range)
         self._lock = Lock()
         self._index_to_block: list[BlockStack] = []
         self._block_to_index: dict[BlockStack, int] = {}
@@ -71,7 +71,7 @@ class BlockPalette(GameVersionRangeContainer, Sequence[BlockStack]):
         """
         if not isinstance(block_stack, BlockStack):
             raise TypeError(repr(block_stack))
-        if not all(b.version in self.version_range for b in block_stack):
+        if not all(block.version in self.version_range for block in block_stack):
             raise ValueError(
                 f"BlockStack {block_stack} is incompatible with {self.version_range}"
             )
