@@ -372,11 +372,22 @@ class BlockStack(Sequence[Block]):
         if not all(isinstance(block, Block) for block in self._blocks):
             raise TypeError
 
+    def __repr__(self):
+        return f"BlockStack({', '.join(map(repr, self._blocks))})"
+
     def __len__(self) -> int:
         return len(self._blocks)
 
     def __getitem__(self, item):
         return self._blocks[item]
+
+    def __hash__(self):
+        return hash(self._blocks)
+
+    def __eq__(self, other):
+        if not isinstance(other, BlockStack):
+            return NotImplemented
+        return self._blocks == other._blocks
 
     @property
     def base_block(self) -> Block:
