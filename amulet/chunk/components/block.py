@@ -2,6 +2,7 @@ from typing import Union, Iterable
 
 from numpy.typing import ArrayLike
 
+from amulet.game_version import GameVersionRange
 from amulet.palette import BlockPalette
 from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
 
@@ -9,10 +10,11 @@ from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
 class BlockChunk:
     def __init__(
         self,
+        version_range: GameVersionRange,
         array_shape: tuple[int, int, int],
         default_array: Union[int, ArrayLike],
     ):
-        self.__block_palette = BlockPalette()
+        self.__block_palette = BlockPalette(version_range)
         self.__blocks = SubChunkArrayContainer(array_shape, default_array)
 
     @property
