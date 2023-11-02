@@ -1,13 +1,12 @@
-from typing import Optional
-from amulet.game_version import AbstractGameVersion
+from amulet.game_version import AbstractGameVersion, GameVersionContainer
 
 
-class Biome:
+class Biome(GameVersionContainer):
     def __init__(
         self,
+        version: AbstractGameVersion,
         namespace: str,
         base_name: str,
-        version: Optional[AbstractGameVersion] = None,
     ):
         """
         Constructs a :class:`Biome` instance.
@@ -19,14 +18,12 @@ class Biome:
         :param version: The game version this biome is defined in.
             If omitted/None it will default to the highest version the container it is used in supports.
         """
+        super().__init__(version)
         self._namespace = str(namespace)
         self._base_name = str(base_name)
-        if version is not None and not isinstance(version, AbstractGameVersion):
-            raise TypeError("Invalid version", version)
-        self._version = version
 
     def _data(self):
-        return self._namespace, self._base_name, self._version
+        return self.version, self._namespace, self._base_name
 
     def __hash__(self):
         return hash(self._data())
@@ -74,11 +71,3 @@ class Biome:
         :return: The base name of the biome
         """
         return self._base_name
-
-    @property
-    def version(self) -> Optional[AbstractGameVersion]:
-        """
-        The game version this biome is defined in.
-        Note that this may be None.
-        """
-        return self._version

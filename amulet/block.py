@@ -7,7 +7,7 @@ from collections.abc import Iterator, Sequence, Hashable, Mapping
 
 from amulet_nbt import ByteTag, ShortTag, IntTag, LongTag, StringTag, from_snbt
 
-from amulet.game_version import AbstractGameVersion, JavaGameVersion
+from amulet.game_version import AbstractGameVersion, JavaGameVersion, GameVersionContainer
 
 PropertyValueType = Union[
     ByteTag,
@@ -63,7 +63,7 @@ class BlockProperties(Mapping[str, PropertyValueType], Hashable):
         return self._hash
 
 
-class Block:
+class Block(GameVersionContainer):
     """
     A class to manage the state of a block.
 
@@ -91,11 +91,9 @@ class Block:
     """
 
     __slots__ = (
-        "_namespaced_name",
         "_namespace",
         "_base_name",
         "_properties",
-        "_version",
     )
 
     def __init__(
@@ -127,9 +125,7 @@ class Block:
         :param version: The game version this block is defined in.
             If omitted/None it will default to the highest version the container it is used in supports.
         """
-        if not isinstance(version, AbstractGameVersion):
-            raise TypeError("Invalid version", version)
-        self._version = version
+        super().__init__(version)
         self._namespace = str(namespace)
         self._base_name = str(base_name)
         self._properties = BlockProperties(properties)
@@ -203,7 +199,7 @@ class Block:
         )
 
     def _data(self):
-        return self._namespace, self._base_name, self._properties, self._version
+        return self.version, self._namespace, self._base_name, self._properties
 
     def __hash__(self):
         return hash(self._data())
@@ -275,13 +271,6 @@ class Block:
         :return: A mapping of the properties of the blockstate
         """
         return self._properties
-
-    @property
-    def version(self) -> AbstractGameVersion:
-        """
-        The game version this block was defined in.
-        """
-        return self._version
 
     @property
     def blockstate(self) -> str:
