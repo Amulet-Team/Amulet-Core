@@ -44,7 +44,7 @@ class Biome(GameVersionContainer):
         return hash(self) < hash(other)
 
     def __repr__(self):
-        return f"Biome({self.namespace!r}, {self.base_name!r}, {self.version!r})"
+        return f"Biome({self.version!r}, {self.namespace!r}, {self.base_name!r}, {self.version!r})"
 
     @property
     def namespace(self) -> str:
