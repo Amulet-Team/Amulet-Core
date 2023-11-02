@@ -33,6 +33,22 @@ class AbstractGameVersion(ABC):
         raise NotImplementedError
 
 
+class GameVersionContainer:
+    __slots__ = ("_version",)
+
+    def __init__(self, version: AbstractGameVersion):
+        if not isinstance(version, AbstractGameVersion):
+            raise TypeError("Invalid version", version)
+        self._version = version
+
+    @property
+    def version(self) -> AbstractGameVersion:
+        """
+        The game version this object is defined in.
+        """
+        return self._version
+
+
 GameVersionT = TypeVar("GameVersionT", bound=AbstractGameVersion)
 
 
@@ -58,6 +74,17 @@ class GameVersionRange(Generic[GameVersionT]):
 
     def __contains__(self, item):
         return self.min <= item <= self.max
+
+
+class GameVersionRangeContainer:
+    def __init__(self, version_range: GameVersionRange):
+        if not isinstance(version_range, GameVersionRange):
+            raise TypeError
+        self._version_range = version_range
+
+    @property
+    def version_range(self) -> GameVersionRange:
+        return self._version_range
 
 
 class AbstractBaseIntVersion(AbstractGameVersion, ABC):
