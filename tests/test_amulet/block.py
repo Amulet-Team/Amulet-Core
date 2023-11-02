@@ -196,20 +196,26 @@ class BlockTestCase(unittest.TestCase):
 class BlockStackTestCase(unittest.TestCase):
     def test_constructor(self):
         block_stack_1 = BlockStack(get_test_block())
+        block_stack_2 = BlockStack(get_test_block())
         self.assertEqual(block_stack_1, block_stack_1)
+        self.assertEqual(block_stack_1, block_stack_2)
+        self.assertEqual(block_stack_2, block_stack_1)
         self.assertEqual(1, len(block_stack_1))
         self.assertEqual(get_test_block(), block_stack_1[0])
         self.assertEqual(get_test_block(), block_stack_1.base_block)
 
         block_variants = get_test_block_variants()
-        block_stack_2 = BlockStack(*block_variants)
-        self.assertEqual(block_stack_2, block_stack_2)
-        for block_1, block_2 in zip(block_variants, block_stack_2):
+        block_stack_3 = BlockStack(*block_variants)
+        block_stack_4 = BlockStack(*block_variants)
+        self.assertEqual(block_stack_3, block_stack_3)
+        self.assertEqual(block_stack_3, block_stack_4)
+        self.assertEqual(block_stack_4, block_stack_3)
+        for block_1, block_2 in zip(block_variants, block_stack_3):
             self.assertEqual(block_1, block_2)
-        self.assertEqual(block_variants[0], block_stack_2.base_block)
-        self.assertEqual(block_variants[1:], block_stack_2.extra_blocks)
+        self.assertEqual(block_variants[0], block_stack_3.base_block)
+        self.assertEqual(block_variants[1:], block_stack_3.extra_blocks)
 
-        self.assertNotEqual(block_stack_1, block_stack_2)
+        self.assertNotEqual(block_stack_1, block_stack_3)
 
 
 if __name__ == "__main__":
