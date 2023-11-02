@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from typing import Tuple, Union
 from amulet_nbt import NamedTag
+from amulet.game_version import AbstractGameVersion, GameVersionContainer
 from amulet.api.data_types import PointCoordinates
 
 
-class Entity:
+class Entity(GameVersionContainer):
     """
     A class to contain all the data to define an Entity.
     """
@@ -21,6 +22,7 @@ class Entity:
 
     def __init__(
         self,
+        version: AbstractGameVersion,
         namespace: str,
         base_name: str,
         x: float,
@@ -38,6 +40,7 @@ class Entity:
         :param z: The z coordinate of the entity
         :param nbt: The NBT stored with the entity
         """
+        super().__init__(version)
         self._namespace = str(namespace)
         self._base_name = str(base_name)
         self._x = float(x)
@@ -47,8 +50,27 @@ class Entity:
             raise TypeError(f"nbt must be an NamedTag. Got {nbt}")
         self._nbt = nbt
 
+    def _data(self):
+        return (
+            self.version,
+            self._namespace,
+            self._base_name,
+            self._x,
+            self._y,
+            self._z,
+            self._nbt
+        )
+
+    def __eq__(self, other):
+        if not isinstance(other, Entity):
+            return NotImplemented
+        return self._data() == other._data()
+
+    def __hash__(self):
+        return id(self)
+
     def __repr__(self):
-        return f"Entity({self._namespace!r}, {self._base_name!r}, {self._x}, {self._y}, {self._z}, {self._nbt!r})"
+        return f"Entity({self.version!r}, {self._namespace!r}, {self._base_name!r}, {self._x}, {self._y}, {self._z}, {self._nbt!r})"
 
     @property
     def namespaced_name(self) -> str:

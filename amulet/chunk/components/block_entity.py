@@ -4,9 +4,10 @@ from typing import Iterable, Iterator
 
 from amulet.api.data_types import BlockCoordinates
 from amulet.block_entity import BlockEntity
+from amulet.game_version import GameVersionRange, GameVersionRangeContainer
 
 
-class BlockEntityContainer(MutableMapping[BlockCoordinates, BlockEntity]):
+class BlockEntityContainer(GameVersionRangeContainer, MutableMapping[BlockCoordinates, BlockEntity]):
     """
     A MutableMapping that can only store :class:`BlockEntity` instances
     under the absolute coordinate of the block entity ``Tuple[int, int, int]``
@@ -14,12 +15,10 @@ class BlockEntityContainer(MutableMapping[BlockCoordinates, BlockEntity]):
 
     def __init__(
         self,
-        block_entities: Iterable[BlockCoordinates, BlockEntity] = (),
+        version_range: GameVersionRange,
     ):
+        super().__init__(version_range)
         self._block_entities = {}
-
-        for location, block_entity in block_entities:
-            self[location] = block_entity
 
     def __setitem__(self, coordinate: BlockCoordinates, block_entity: BlockEntity):
         """
@@ -40,6 +39,8 @@ class BlockEntityContainer(MutableMapping[BlockCoordinates, BlockEntity]):
             raise TypeError
         if not isinstance(block_entity, BlockEntity):
             raise TypeError
+        if block_entity.version not in self.version_range:
+            raise ValueError(f"block entity {block_entity} is incompatible with {self.version_range}")
         self._block_entities[coordinate] = block_entity
 
     def __delitem__(self, coordinate: BlockCoordinates):
@@ -75,8 +76,8 @@ class BlockEntityContainer(MutableMapping[BlockCoordinates, BlockEntity]):
 class BlockEntityChunk:
     """A chunk that supports block entities"""
 
-    def __init__(self):
-        self.__block_entity = BlockEntityContainer()
+    def __init__(self, version_range: GameVersionRange):
+        self.__block_entity = BlockEntityContainer(version_range)
 
     @property
     def block_entity(self) -> BlockEntityContainer:
@@ -87,4 +88,6 @@ class BlockEntityChunk:
         self,
         block_entities: Iterable[BlockCoordinates, BlockEntity],
     ):
-        self.__block_entity = BlockEntityContainer(block_entities)
+        self.__block_entity.clear()
+        for coord, block_entity in block_entities:
+            self.__block_entity[coord] = block_entity

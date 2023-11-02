@@ -1,15 +1,20 @@
 from typing import Iterable, Iterator
-from amulet.entity import Entity
 from collections.abc import MutableSet
 
+from amulet.entity import Entity
+from amulet.game_version import GameVersionRange, GameVersionRangeContainer
 
-class EntityContainer(MutableSet[Entity]):
-    def __init__(self, entities: Iterable[Entity] = ()):
-        self._entities = set(entities)
+
+class EntityContainer(GameVersionRangeContainer, MutableSet[Entity]):
+    def __init__(self, version_range: GameVersionRange):
+        super().__init__(version_range)
+        self._entities = set()
 
     def add(self, entity: Entity):
         if not isinstance(entity, Entity):
             raise TypeError("Expected an Entity")
+        if entity.version not in self.version_range:
+            raise ValueError(f"entity {entity} is incompatible with {self.version_range}")
         self._entities.add(entity)
 
     def discard(self, entity: Entity) -> None:
@@ -28,8 +33,8 @@ class EntityContainer(MutableSet[Entity]):
 class EntityChunk:
     """A chunk that supports entities"""
 
-    def __init__(self):
-        self.__entity = EntityContainer()
+    def __init__(self, version_range: GameVersionRange):
+        self.__entity = EntityContainer(version_range)
 
     @property
     def entity(self) -> EntityContainer:
@@ -40,4 +45,6 @@ class EntityChunk:
         self,
         entities: Iterable[Entity],
     ):
-        self.__entity = EntityContainer(entities)
+        self.__entity.clear()
+        for entity in entities:
+            self.__entity.add(entity)

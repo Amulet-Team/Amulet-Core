@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from amulet_nbt import NamedTag
+from amulet.game_version import AbstractGameVersion, GameVersionContainer
 
 
-class BlockEntity:
+class BlockEntity(GameVersionContainer):
     """
     A class to contain all the data to define a BlockEntity.
     """
@@ -16,6 +17,7 @@ class BlockEntity:
 
     def __init__(
         self,
+        version: AbstractGameVersion,
         namespace: str,
         base_name: str,
         nbt: NamedTag,
@@ -27,6 +29,7 @@ class BlockEntity:
         :param base_name: The base name of the block entity eg "chest"
         :param nbt: The NBT stored with the block entity
         """
+        super().__init__(version)
         self._namespace = str(namespace)
         self._base_name = str(base_name)
         if not isinstance(nbt, NamedTag):
@@ -34,7 +37,15 @@ class BlockEntity:
         self._nbt = nbt
 
     def __repr__(self):
-        return f"BlockEntity({self._namespace!r}, {self._base_name!r}, {self._nbt!r})"
+        return f"BlockEntity({self.version}, {self._namespace!r}, {self._base_name!r}, {self._nbt!r})"
+
+    def _data(self):
+        return self.version, self._namespace, self._base_name, self._nbt
+
+    def __eq__(self, other):
+        if not isinstance(other, BlockEntity):
+            return NotImplemented
+        return self._data() == other._data()
 
     @property
     def namespaced_name(self) -> str:
