@@ -45,6 +45,9 @@ class GameVersionRange(Generic[GameVersionT]):
         self._min = min_version
         self._max = max_version
 
+    def __repr__(self):
+        return f"GameVersionRangeContainer({self._min!r}, {self._max!r})"
+
     @property
     def min(self) -> GameVersionT:
         return self._min
@@ -96,12 +99,18 @@ class AbstractBaseIntVersion(AbstractGameVersion):
 
 
 class JavaGameVersion(AbstractBaseIntVersion):
+    def __repr__(self):
+        return f"JavaGameVersion({self.data_version})"
+
     @staticmethod
     def platform_str() -> str:
         return "java"
 
 
 class BedrockGameVersion(AbstractBaseIntVersion):
+    def __repr__(self):
+        return f"BedrockGameVersion({self.data_version})"
+
     @staticmethod
     def platform_str() -> str:
         return "bedrock"
