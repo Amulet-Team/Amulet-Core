@@ -60,7 +60,7 @@ class GameVersionRange(Generic[GameVersionT]):
         return self.min <= item <= self.max
 
 
-class AbstractBaseIntVersion(AbstractGameVersion):
+class AbstractBaseIntVersion(AbstractGameVersion, ABC):
     def __init__(self, data_version: int):
         """Constructor subject to change"""
         self._data_version = data_version
