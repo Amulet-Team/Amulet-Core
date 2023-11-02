@@ -72,9 +72,7 @@ class BiomePalette(GameVersionRangeContainer, Sequence[Biome]):
         if not isinstance(biome, Biome):
             raise TypeError(repr(biome))
         if biome.version not in self.version_range:
-            raise ValueError(
-                f"Biome {biome} is incompatible with {self.version_range}"
-            )
+            raise ValueError(f"Biome {biome} is incompatible with {self.version_range}")
         if biome not in self._biome_to_index:
             with self._lock:
                 if biome not in self._biome_to_index:
