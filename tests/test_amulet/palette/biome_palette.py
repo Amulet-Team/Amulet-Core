@@ -1,18 +1,18 @@
 import unittest
 from amulet.biome import Biome
 from amulet.palette import BiomePalette
-from amulet.game_version import JavaGameVersion, GameVersionRange
+from amulet.version import DataVersion, VersionRange
 
 
-plains = Biome(JavaGameVersion(3578), "minecraft", "plains")
-desert = Biome(JavaGameVersion(3578), "minecraft", "desert")
-forest = Biome(JavaGameVersion(3578), "minecraft", "forest")
+plains = Biome(DataVersion("java", 3578), "minecraft", "plains")
+desert = Biome(DataVersion("java", 3578), "minecraft", "desert")
+forest = Biome(DataVersion("java", 3578), "minecraft", "forest")
 
 
 class BiomePaletteTestCase(unittest.TestCase):
     def setUp(self):
         self.palette = BiomePalette(
-            GameVersionRange(JavaGameVersion(3578), JavaGameVersion(3578))
+            VersionRange(DataVersion("java", 3578), DataVersion("java", 3578))
         )
 
         # Partially populate the manager
@@ -39,12 +39,12 @@ class BiomePaletteTestCase(unittest.TestCase):
         self.assertEqual(1, self.palette.biome_to_index(desert))
         self.assertEqual(2, self.palette.biome_to_index(forest))
         self.assertEqual(
-            3, self.palette.biome_to_index(Biome(JavaGameVersion(3578), "a", "b"))
+            3, self.palette.biome_to_index(Biome(DataVersion("java", 3578), "a", "b"))
         )
 
     def test_len(self):
         palette = BiomePalette(
-            GameVersionRange(JavaGameVersion(3578), JavaGameVersion(3578))
+            VersionRange(DataVersion("java", 3578), DataVersion("java", 3578))
         )
 
         # Partially populate the manager
@@ -56,9 +56,9 @@ class BiomePaletteTestCase(unittest.TestCase):
 
     def test_errors(self):
         with self.assertRaises(ValueError):
-            self.palette.biome_to_index(Biome(JavaGameVersion(3579), "a", "b"))
+            self.palette.biome_to_index(Biome(DataVersion("java", 3579), "a", "b"))
         with self.assertRaises(ValueError):
-            self.palette.biome_to_index(Biome(JavaGameVersion(3577), "a", "b"))
+            self.palette.biome_to_index(Biome(DataVersion("java", 3577), "a", "b"))
 
 
 if __name__ == "__main__":

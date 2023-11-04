@@ -3,7 +3,7 @@ from typing import Union, Iterable
 import numpy
 from numpy.typing import ArrayLike
 
-from amulet.game_version import GameVersionRange
+from amulet.version import VersionRange
 from amulet.palette import BiomePalette
 from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
 
@@ -11,7 +11,7 @@ from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
 class Biome3DChunk:
     def __init__(
         self,
-        version_range: GameVersionRange,
+        version_range: VersionRange,
         array_shape: tuple[int, int, int],
         default_array: Union[int, ArrayLike],
     ):
@@ -39,7 +39,7 @@ class Biome3DChunk:
 class Biome2DChunk:
     def __init__(
         self,
-        version_range: GameVersionRange,
+        version_range: VersionRange,
         array_shape: tuple[int, int],
         array: Union[int, ArrayLike],
     ):

@@ -3,77 +3,99 @@ import unittest
 from amulet_nbt import NamedTag, CompoundTag, IntTag, StringTag
 
 from amulet.entity import Entity
-from amulet.game_version import JavaGameVersion
+from amulet.version import DataVersion
 
 
 def get_test_entity() -> Entity:
-    return Entity(JavaGameVersion(3578), "namespace", "basename", 1, 2, 3, NamedTag(
-        CompoundTag({
-            "int": IntTag(1),
-            "str": StringTag("hi")
-        })
-    ))
+    return Entity(
+        DataVersion("java", 3578),
+        "namespace",
+        "basename",
+        1,
+        2,
+        3,
+        NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
+    )
 
 
 def get_test_entity_variants() -> tuple[Entity, ...]:
     return (
-        Entity(JavaGameVersion(3579), "namespace", "basename", 1, 2, 3, NamedTag(
-            CompoundTag({
-                "int": IntTag(1),
-                "str": StringTag("hi")
-            })
-        )),
-        Entity(JavaGameVersion(3578), "namespace1", "basename", 1, 2, 3, NamedTag(
-            CompoundTag({
-                "int": IntTag(1),
-                "str": StringTag("hi")
-            })
-        )),
-        Entity(JavaGameVersion(3578), "namespace", "basename1", 1, 2, 3, NamedTag(
-            CompoundTag({
-                "int": IntTag(1),
-                "str": StringTag("hi")
-            })
-        )),
-        Entity(JavaGameVersion(3578), "namespace", "basename", 0, 2, 3, NamedTag(
-            CompoundTag({
-                "int": IntTag(1),
-                "str": StringTag("hi")
-            })
-        )),
-        Entity(JavaGameVersion(3578), "namespace", "basename", 1, 0, 3, NamedTag(
-            CompoundTag({
-                "int": IntTag(1),
-                "str": StringTag("hi")
-            })
-        )),
-        Entity(JavaGameVersion(3578), "namespace", "basename", 1, 2, 0, NamedTag(
-            CompoundTag({
-                "int": IntTag(1),
-                "str": StringTag("hi")
-            })
-        )),
-        Entity(JavaGameVersion(3578), "namespace", "basename", 1, 2, 3, NamedTag(
-            CompoundTag({
-                "int": IntTag(0),
-                "str": StringTag("hi")
-            })
-        )),
+        Entity(
+            DataVersion("java", 3579),
+            "namespace",
+            "basename",
+            1,
+            2,
+            3,
+            NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
+        ),
+        Entity(
+            DataVersion("java", 3578),
+            "namespace1",
+            "basename",
+            1,
+            2,
+            3,
+            NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
+        ),
+        Entity(
+            DataVersion("java", 3578),
+            "namespace",
+            "basename1",
+            1,
+            2,
+            3,
+            NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
+        ),
+        Entity(
+            DataVersion("java", 3578),
+            "namespace",
+            "basename",
+            0,
+            2,
+            3,
+            NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
+        ),
+        Entity(
+            DataVersion("java", 3578),
+            "namespace",
+            "basename",
+            1,
+            0,
+            3,
+            NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
+        ),
+        Entity(
+            DataVersion("java", 3578),
+            "namespace",
+            "basename",
+            1,
+            2,
+            0,
+            NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
+        ),
+        Entity(
+            DataVersion("java", 3578),
+            "namespace",
+            "basename",
+            1,
+            2,
+            3,
+            NamedTag(CompoundTag({"int": IntTag(0), "str": StringTag("hi")})),
+        ),
     )
 
 
 class EntityTestCase(unittest.TestCase):
     def test_construct(self):
         entity = get_test_entity()
-        self.assertEqual(JavaGameVersion(3578), entity.version)
+        self.assertEqual(DataVersion("java", 3578), entity.version)
         self.assertEqual("namespace", entity.namespace)
         self.assertEqual("basename", entity.base_name)
-        self.assertEqual(NamedTag(
-            CompoundTag({
-                "int": IntTag(1),
-                "str": StringTag("hi")
-            })
-        ), entity.nbt)
+        self.assertEqual(
+            NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
+            entity.nbt,
+        )
 
     def test_edit(self):
         entity = get_test_entity()
@@ -82,12 +104,10 @@ class EntityTestCase(unittest.TestCase):
         entity.base_name = "basename2"
         self.assertEqual("basename2", entity.base_name)
         entity.nbt.compound["int"] = IntTag(2)
-        self.assertEqual(NamedTag(
-            CompoundTag({
-                "int": IntTag(2),
-                "str": StringTag("hi")
-            })
-        ), entity.nbt)
+        self.assertEqual(
+            NamedTag(CompoundTag({"int": IntTag(2), "str": StringTag("hi")})),
+            entity.nbt,
+        )
         entity.x = 5
         entity.y = 6
         entity.z = 7

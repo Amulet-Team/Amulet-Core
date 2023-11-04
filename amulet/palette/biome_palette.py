@@ -4,15 +4,15 @@ from threading import Lock
 from collections.abc import Sequence
 
 from amulet.biome import Biome
-from amulet.game_version import GameVersionRange, GameVersionRangeContainer
+from amulet.version import VersionRange, VersionRangeContainer
 
 
-class BiomePalette(GameVersionRangeContainer, Sequence[Biome]):
+class BiomePalette(VersionRangeContainer, Sequence[Biome]):
     """
     Class to handle the mappings between biomes and their index-based internal IDs
     """
 
-    def __init__(self, version_range: GameVersionRange):
+    def __init__(self, version_range: VersionRange):
         """
         Creates a new BiomeManager object
         """

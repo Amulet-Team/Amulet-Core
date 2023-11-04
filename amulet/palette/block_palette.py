@@ -4,15 +4,15 @@ from threading import Lock
 from collections.abc import Sequence
 
 from amulet.block import BlockStack
-from amulet.game_version import GameVersionRange, GameVersionRangeContainer
+from amulet.version import VersionRange, VersionRangeContainer
 
 
-class BlockPalette(GameVersionRangeContainer, Sequence[BlockStack]):
+class BlockPalette(VersionRangeContainer, Sequence[BlockStack]):
     """
     Class to handle the mappings between Block Stack objects and their index-based internal IDs
     """
 
-    def __init__(self, version_range: GameVersionRange):
+    def __init__(self, version_range: VersionRange):
         """
         Creates a new BlockPalette object
         """

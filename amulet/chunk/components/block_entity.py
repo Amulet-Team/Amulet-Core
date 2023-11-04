@@ -4,10 +4,12 @@ from typing import Iterable, Iterator
 
 from amulet.api.data_types import BlockCoordinates
 from amulet.block_entity import BlockEntity
-from amulet.game_version import GameVersionRange, GameVersionRangeContainer
+from amulet.version import VersionRange, VersionRangeContainer
 
 
-class BlockEntityContainer(GameVersionRangeContainer, MutableMapping[BlockCoordinates, BlockEntity]):
+class BlockEntityContainer(
+    VersionRangeContainer, MutableMapping[BlockCoordinates, BlockEntity]
+):
     """
     A MutableMapping that can only store :class:`BlockEntity` instances
     under the absolute coordinate of the block entity ``Tuple[int, int, int]``
@@ -15,7 +17,7 @@ class BlockEntityContainer(GameVersionRangeContainer, MutableMapping[BlockCoordi
 
     def __init__(
         self,
-        version_range: GameVersionRange,
+        version_range: VersionRange,
     ):
         super().__init__(version_range)
         self._block_entities = {}
@@ -40,7 +42,9 @@ class BlockEntityContainer(GameVersionRangeContainer, MutableMapping[BlockCoordi
         if not isinstance(block_entity, BlockEntity):
             raise TypeError
         if block_entity.version not in self.version_range:
-            raise ValueError(f"block entity {block_entity} is incompatible with {self.version_range}")
+            raise ValueError(
+                f"block entity {block_entity} is incompatible with {self.version_range}"
+            )
         self._block_entities[coordinate] = block_entity
 
     def __delitem__(self, coordinate: BlockCoordinates):
@@ -76,7 +80,7 @@ class BlockEntityContainer(GameVersionRangeContainer, MutableMapping[BlockCoordi
 class BlockEntityChunk:
     """A chunk that supports block entities"""
 
-    def __init__(self, version_range: GameVersionRange):
+    def __init__(self, version_range: VersionRange):
         self.__block_entity = BlockEntityContainer(version_range)
 
     @property

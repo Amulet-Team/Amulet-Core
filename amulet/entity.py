@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import Tuple, Union
 from amulet_nbt import NamedTag
-from amulet.game_version import AbstractGameVersion, GameVersionContainer
+from amulet.version import AbstractVersion, VersionContainer
 from amulet.api.data_types import PointCoordinates
 
 
-class Entity(GameVersionContainer):
+class Entity(VersionContainer):
     """
     A class to contain all the data to define an Entity.
     """
@@ -22,7 +22,7 @@ class Entity(GameVersionContainer):
 
     def __init__(
         self,
-        version: AbstractGameVersion,
+        version: AbstractVersion,
         namespace: str,
         base_name: str,
         x: float,
@@ -58,7 +58,7 @@ class Entity(GameVersionContainer):
             self._x,
             self._y,
             self._z,
-            self._nbt
+            self._nbt,
         )
 
     def __eq__(self, other):

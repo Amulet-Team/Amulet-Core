@@ -1,7 +1,7 @@
 import unittest
 from amulet.block import Block, BlockStack
 
-from amulet.game_version import JavaGameVersion
+from amulet.version import DataVersion
 
 
 from amulet_nbt import (
@@ -15,7 +15,7 @@ from amulet_nbt import (
 
 def get_test_block() -> Block:
     return Block(
-        JavaGameVersion(3578),
+        DataVersion("java", 3578),
         "namespace",
         "basename",
         {
@@ -31,7 +31,7 @@ def get_test_block() -> Block:
 def get_test_block_variants() -> tuple[Block, ...]:
     return (
         Block(
-            JavaGameVersion(3579),
+            DataVersion("java", 3579),
             "namespace",
             "basename",
             {
@@ -43,7 +43,7 @@ def get_test_block_variants() -> tuple[Block, ...]:
             },
         ),
         Block(
-            JavaGameVersion(3578),
+            DataVersion("java", 3578),
             "namespace2",
             "basename",
             {
@@ -55,7 +55,7 @@ def get_test_block_variants() -> tuple[Block, ...]:
             },
         ),
         Block(
-            JavaGameVersion(3578),
+            DataVersion("java", 3578),
             "namespace",
             "basename2",
             {
@@ -67,7 +67,7 @@ def get_test_block_variants() -> tuple[Block, ...]:
             },
         ),
         Block(
-            JavaGameVersion(3578),
+            DataVersion("java", 3578),
             "namespace",
             "basename",
             {
@@ -84,7 +84,7 @@ def get_test_block_variants() -> tuple[Block, ...]:
 class BlockTestCase(unittest.TestCase):
     def test_construct(self):
         block = get_test_block()
-        self.assertEqual(JavaGameVersion(3578), block.version)
+        self.assertEqual(DataVersion("java", 3578), block.version)
         self.assertEqual("namespace:basename", block.namespaced_name)
         self.assertEqual("namespace", block.namespace)
         self.assertEqual("basename", block.base_name)
@@ -113,58 +113,58 @@ class BlockTestCase(unittest.TestCase):
 
     def test_blockstate_constructor(self):
         self.assertEqual(
-            Block(JavaGameVersion(3578), "minecraft", "air"),
-            Block.from_string_blockstate(JavaGameVersion(3578), "air"),
+            Block(DataVersion("java", 3578), "minecraft", "air"),
+            Block.from_string_blockstate(DataVersion("java", 3578), "air"),
         )
         self.assertEqual(
-            Block(JavaGameVersion(3578), "minecraft", "air"),
-            Block.from_string_blockstate(JavaGameVersion(3578), "minecraft:air"),
+            Block(DataVersion("java", 3578), "minecraft", "air"),
+            Block.from_string_blockstate(DataVersion("java", 3578), "minecraft:air"),
         )
         self.assertEqual(
-            Block(JavaGameVersion(3578), "a", "b"),
-            Block.from_string_blockstate(JavaGameVersion(3578), "a:b[]"),
+            Block(DataVersion("java", 3578), "a", "b"),
+            Block.from_string_blockstate(DataVersion("java", 3578), "a:b[]"),
         )
         self.assertEqual(
-            Block(JavaGameVersion(3578), "a", "b", {"c": StringTag("d")}),
-            Block.from_string_blockstate(JavaGameVersion(3578), "a:b[c=d]"),
+            Block(DataVersion("java", 3578), "a", "b", {"c": StringTag("d")}),
+            Block.from_string_blockstate(DataVersion("java", 3578), "a:b[c=d]"),
         )
         self.assertEqual(
             Block(
-                JavaGameVersion(3578),
+                DataVersion("java", 3578),
                 "a",
                 "b",
                 {"c": StringTag("d"), "e": StringTag("f")},
             ),
-            Block.from_string_blockstate(JavaGameVersion(3578), "a:b[c=d,e=f]"),
+            Block.from_string_blockstate(DataVersion("java", 3578), "a:b[c=d,e=f]"),
         )
 
         with self.assertRaises(ValueError):
-            Block.from_string_blockstate(JavaGameVersion(3578), "a:")
+            Block.from_string_blockstate(DataVersion("java", 3578), "a:")
         with self.assertRaises(ValueError):
-            Block.from_string_blockstate(JavaGameVersion(3578), "a:b[")
+            Block.from_string_blockstate(DataVersion("java", 3578), "a:b[")
         with self.assertRaises(ValueError):
-            Block.from_string_blockstate(JavaGameVersion(3578), "a:b]")
+            Block.from_string_blockstate(DataVersion("java", 3578), "a:b]")
         with self.assertRaises(ValueError):
-            Block.from_string_blockstate(JavaGameVersion(3578), "a:b[c]")
+            Block.from_string_blockstate(DataVersion("java", 3578), "a:b[c]")
         with self.assertRaises(ValueError):
-            Block.from_string_blockstate(JavaGameVersion(3578), "[a=b]")
+            Block.from_string_blockstate(DataVersion("java", 3578), "[a=b]")
 
     def test_snbt_blockstate_constructor(self):
         self.assertEqual(
-            Block(JavaGameVersion(3578), "minecraft", "air"),
-            Block.from_snbt_blockstate(JavaGameVersion(3578), "air"),
+            Block(DataVersion("java", 3578), "minecraft", "air"),
+            Block.from_snbt_blockstate(DataVersion("java", 3578), "air"),
         )
         self.assertEqual(
-            Block(JavaGameVersion(3578), "minecraft", "air"),
-            Block.from_snbt_blockstate(JavaGameVersion(3578), "minecraft:air"),
+            Block(DataVersion("java", 3578), "minecraft", "air"),
+            Block.from_snbt_blockstate(DataVersion("java", 3578), "minecraft:air"),
         )
         self.assertEqual(
-            Block(JavaGameVersion(3578), "a", "b"),
-            Block.from_snbt_blockstate(JavaGameVersion(3578), "a:b[]"),
+            Block(DataVersion("java", 3578), "a", "b"),
+            Block.from_snbt_blockstate(DataVersion("java", 3578), "a:b[]"),
         )
         self.assertEqual(
             Block(
-                JavaGameVersion(3578),
+                DataVersion("java", 3578),
                 "a",
                 "b",
                 {
@@ -176,21 +176,21 @@ class BlockTestCase(unittest.TestCase):
                 },
             ),
             Block.from_snbt_blockstate(
-                JavaGameVersion(3578),
+                DataVersion("java", 3578),
                 'a:b[ByteTag=1b,ShortTag=2s,IntTag=4,LongTag=8l,StringTag="hi"]',
             ),
         )
 
         with self.assertRaises(ValueError):
-            Block.from_snbt_blockstate(JavaGameVersion(3578), "a:")
+            Block.from_snbt_blockstate(DataVersion("java", 3578), "a:")
         with self.assertRaises(ValueError):
-            Block.from_snbt_blockstate(JavaGameVersion(3578), "a:b[")
+            Block.from_snbt_blockstate(DataVersion("java", 3578), "a:b[")
         with self.assertRaises(ValueError):
-            Block.from_snbt_blockstate(JavaGameVersion(3578), "a:b]")
+            Block.from_snbt_blockstate(DataVersion("java", 3578), "a:b]")
         with self.assertRaises(ValueError):
-            Block.from_snbt_blockstate(JavaGameVersion(3578), "a:b[c]")
+            Block.from_snbt_blockstate(DataVersion("java", 3578), "a:b[c]")
         with self.assertRaises(ValueError):
-            Block.from_snbt_blockstate(JavaGameVersion(3578), "[a=b]")
+            Block.from_snbt_blockstate(DataVersion("java", 3578), "[a=b]")
 
 
 class BlockStackTestCase(unittest.TestCase):

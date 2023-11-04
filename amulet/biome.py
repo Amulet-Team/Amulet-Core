@@ -1,10 +1,10 @@
-from amulet.game_version import AbstractGameVersion, GameVersionContainer
+from amulet.version import AbstractVersion, VersionContainer
 
 
-class Biome(GameVersionContainer):
+class Biome(VersionContainer):
     def __init__(
         self,
-        version: AbstractGameVersion,
+        version: AbstractVersion,
         namespace: str,
         base_name: str,
     ):
