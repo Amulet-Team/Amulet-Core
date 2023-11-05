@@ -34,13 +34,14 @@ class AbstractVersion(ABC):
     def __ge__(self, other):
         raise NotImplementedError
 
+    def is_compatible(self, other) -> bool:
+        return isinstance(other, self.__class__) and self.platform == other.platform
+
     def _check_compatible(self, other):
         if not isinstance(other, self.__class__):
             raise TypeError(f"other must be a {self.__class__.__name__} instance.")
         if self.platform != other.platform:
-            raise ValueError(
-                f"other has platform {other.platform} which does not match {self.platform}"
-            )
+            raise ValueError(f"Version {other!r} is not compatible with {self!r}")
 
 
 class DataVersion(AbstractVersion):
@@ -55,7 +56,7 @@ class DataVersion(AbstractVersion):
         return self._data_version
 
     def __hash__(self):
-        return hash(self._data_version)
+        return hash((self.platform, self.data_version))
 
     def __eq__(self, other):
         self._check_compatible(other)
@@ -94,27 +95,43 @@ class SemanticVersion(AbstractVersion):
         return self._semantic_version
 
     def __hash__(self):
-        return hash(self._semantic_version)
+        return hash((self.platform, self.semantic_version))
+
+    @staticmethod
+    def _pad(
+        a: tuple[int, ...], b: tuple[int, ...]
+    ) -> tuple[tuple[int, ...], tuple[int, ...]]:
+        len_dif = len(a) - len(b)
+        if len_dif > 0:
+            b += (0,) * len_dif
+        elif len_dif < 0:
+            a += (0,) * abs(len_dif)
+        return a, b
 
     def __eq__(self, other):
         self._check_compatible(other)
-        return self.semantic_version == other.semantic_version
+        a, b = self._pad(self.semantic_version, other.semantic_version)
+        return a == b
 
     def __lt__(self, other):
         self._check_compatible(other)
-        return self.semantic_version < other.semantic_version
+        a, b = self._pad(self.semantic_version, other.semantic_version)
+        return a < b
 
     def __gt__(self, other):
         self._check_compatible(other)
-        return self.semantic_version > other.semantic_version
+        a, b = self._pad(self.semantic_version, other.semantic_version)
+        return a > b
 
     def __le__(self, other):
         self._check_compatible(other)
-        return self.semantic_version <= other.semantic_version
+        a, b = self._pad(self.semantic_version, other.semantic_version)
+        return a <= b
 
     def __ge__(self, other):
         self._check_compatible(other)
-        return self.semantic_version >= other.semantic_version
+        a, b = self._pad(self.semantic_version, other.semantic_version)
+        return a >= b
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.platform}, {self.semantic_version})"
@@ -141,7 +158,7 @@ VersionT = TypeVar("VersionT", bound=AbstractVersion)
 
 class VersionRange(Generic[VersionT]):
     def __init__(self, min_version: AbstractVersion, max_version: AbstractVersion):
-        if not max_version >= min_version:
+        if min_version > max_version:
             raise ValueError(min_version, max_version)
         self._min = min_version
         self._max = max_version
