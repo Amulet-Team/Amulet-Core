@@ -8,7 +8,7 @@ from amulet.palette import BiomePalette
 from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
 
 
-class Biome3DChunk:
+class Biome3DComponent:
     def __init__(
         self,
         version_range: VersionRange,
@@ -36,7 +36,7 @@ class Biome3DChunk:
         return self.__biome_palette
 
 
-class Biome2DChunk:
+class Biome2DComponent:
     def __init__(
         self,
         version_range: VersionRange,

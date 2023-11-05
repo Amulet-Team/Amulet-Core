@@ -32,7 +32,7 @@ class EntityContainer(VersionRangeContainer, MutableSet[Entity]):
         yield from self._entities
 
 
-class EntityChunk:
+class EntityComponent:
     """A chunk that supports entities"""
 
     def __init__(self, version_range: VersionRange):

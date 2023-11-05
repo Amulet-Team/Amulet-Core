@@ -77,7 +77,7 @@ class BlockEntityContainer(
         yield from self._block_entities
 
 
-class BlockEntityChunk:
+class BlockEntityComponent:
     """A chunk that supports block entities"""
 
     def __init__(self, version_range: VersionRange):

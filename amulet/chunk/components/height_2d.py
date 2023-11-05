@@ -1,7 +1,7 @@
 import numpy
 
 
-class Height2DChunk:
+class Height2DComponent:
     def __init__(self):
         self.__height = None
 

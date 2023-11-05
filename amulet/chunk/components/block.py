@@ -7,7 +7,7 @@ from amulet.palette import BlockPalette
 from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
 
 
-class BlockChunk:
+class BlockComponent:
     def __init__(
         self,
         version_range: VersionRange,
