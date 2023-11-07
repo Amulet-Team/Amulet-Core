@@ -21,7 +21,7 @@ from amulet.api.data_types import ChunkCoordinates, VersionIdentifierType
 from amulet.api.errors import ChunkLoadError
 
 if TYPE_CHECKING:
-    from amulet.level import BaseLevel
+    from amulet.level import AbstractLevel
 
 
 class _ChunkPickleData(NamedTuple):
@@ -61,7 +61,7 @@ class Chunk:
     def __repr__(self):
         return f"Chunk({self.cx}, {self.cz})"
 
-    def pickle(self, level: BaseLevel) -> bytes:
+    def pickle(self, level: AbstractLevel) -> bytes:
         """
         Serialise the data in the chunk using pickle and return the resulting bytes.
         :param level: The level to serialise against.
@@ -93,7 +93,7 @@ class Chunk:
     def unpickle(
         cls,
         pickled_bytes: bytes,
-        level: BaseLevel,
+        level: AbstractLevel,
     ) -> Chunk:
         """
         Deserialise the pickled input and unpack the data into an instance of :class:`Chunk`

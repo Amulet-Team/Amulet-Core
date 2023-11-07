@@ -10,15 +10,15 @@ from leveldb import LevelDB
 from amulet_nbt import CompoundTag, IntTag, ListTag, LongTag, StringTag
 
 from amulet.api.data_types import DimensionID, PlatformType, VersionNumberTuple
-from amulet.level.base_level import (
-    BaseLevelPrivate,
+from amulet.level.abc import (
+    LevelPrivate,
     DiskLevel,
     CreatableLevel,
     LoadableLevel,
     CompactableLevel,
     CreateArgsT,
     PlayerStorage,
-    Dimension,
+    AbstractDimension,
     metadata,
 )
 from amulet.api.errors import ObjectWriteError
@@ -29,7 +29,7 @@ from ._raw_level import BedrockRawLevel, InternalDimension
 from ._level_dat import BedrockLevelDAT
 
 
-class BedrockLevelPrivate(BaseLevelPrivate):
+class BedrockLevelPrivate(LevelPrivate):
     path: Optional[str]
 
     __slots__ = tuple(__annotations__)
@@ -42,13 +42,11 @@ class BedrockLevelPrivate(BaseLevelPrivate):
         self.path = None
 
 
-class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
-    _dimensions: dict[Union[DimensionID, InternalDimension], Dimension]
+class BedrockLevel(DiskLevel[BedrockLevelPrivate], CreatableLevel, LoadableLevel, CompactableLevel):
+    _dimensions: dict[Union[DimensionID, InternalDimension], AbstractDimension]
     _raw_level: BedrockRawLevel
 
     __slots__ = ()
-
-    _l: BedrockLevelPrivate
 
     def __init__(self):
         super().__init__()
@@ -161,14 +159,14 @@ class BedrockLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
 
     def get_dimension(
         self, dimension: Union[DimensionID, InternalDimension]
-    ) -> Dimension:
+    ) -> AbstractDimension:
         if dimension not in self._dimensions:
             raw_dimension = self.raw.get_dimension(dimension)
             public_dimension = raw_dimension.dimension
             internal_dimension = raw_dimension.internal_dimension
             self._dimensions[internal_dimension] = self._dimensions[
                 public_dimension
-            ] = Dimension(self._l, public_dimension)
+            ] = AbstractDimension(self._l, public_dimension)
         return self._dimensions[dimension]
 
     @property

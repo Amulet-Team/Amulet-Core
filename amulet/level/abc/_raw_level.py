@@ -1,19 +1,19 @@
 from __future__ import annotations
 
-from typing import Iterable, Any
+from typing import Iterable, Any, TypeVar, Generic
 from abc import ABC, abstractmethod
 
 from amulet.api.data_types import DimensionID, ChunkCoordinates, BiomeType
 from amulet.block import Block
 from amulet.selection import SelectionGroup
 
-RawChunkT = Any
-NativeChunkT = Any
-PlayerIDT = Any
-RawPlayerT = Any
+PlayerIDT = TypeVar("PlayerIDT")
+RawPlayerT = TypeVar("RawPlayerT")
+RawDimensionT = TypeVar("RawDimensionT", bound="AbstractRawDimension")
+RawLevelT = TypeVar("RawLevelT", bound="AbstractRawLevel")
 
 
-class RawDimension(ABC):
+class AbstractRawDimension(ABC):
     __slots__ = ()
 
     @property
@@ -51,7 +51,7 @@ class RawDimension(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_raw_chunk(self, cx: int, cz: int) -> RawChunkT:
+    def get_raw_chunk(self, cx: int, cz: int) -> Any:
         """
         Get the chunk data in its raw format.
         This is usually the exact data that exists on disk.
@@ -60,12 +60,12 @@ class RawDimension(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def set_raw_chunk(self, cx: int, cz: int, chunk: RawChunkT):
+    def set_raw_chunk(self, cx: int, cz: int, chunk: Any):
         """Set the chunk in its raw format."""
         raise NotImplementedError
 
 
-class RawLevel(ABC):
+class AbstractRawLevel(ABC, Generic[PlayerIDT, RawPlayerT]):
     """
     A class with raw access to the level.
     All of these methods directly read from or write to the level.
@@ -79,7 +79,7 @@ class RawLevel(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_dimension(self, dimension: DimensionID) -> RawDimension:
+    def get_dimension(self, dimension: DimensionID) -> AbstractRawDimension:
         raise NotImplementedError
 
     @abstractmethod
@@ -99,7 +99,7 @@ class RawLevel(ABC):
         raise NotImplementedError
 
 
-class BufferedRawLevel(RawLevel):
+class AbstractBufferedRawLevel(AbstractRawLevel):
     """
     A class with raw access to the level.
     All of these methods directly read from or write to the level.

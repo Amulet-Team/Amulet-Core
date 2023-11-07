@@ -4,7 +4,7 @@ from typing import Union, TYPE_CHECKING, Optional
 
 
 if TYPE_CHECKING:
-    from ._level import BaseLevel
+    from ._level import AbstractLevel
 
 
 # The following classes are used to notify a GUI of the types required to create a new instance of the level.
@@ -97,7 +97,7 @@ class CreatableLevel(ABC):
 
     @classmethod
     @abstractmethod
-    def create(cls, *args, **kwargs) -> Union[BaseLevel, CreatableLevel]:
+    def create(cls, *args, **kwargs) -> Union[AbstractLevel, CreatableLevel]:
         """
         Create a new instance without any existing data.
         You must call :meth:`~amulet.level.BaseLevel.open` to open the level for editing.

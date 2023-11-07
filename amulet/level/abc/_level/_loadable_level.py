@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Union
 from abc import ABC, abstractmethod
 
-from ._level import BaseLevel
+from ._level import AbstractLevel
 
 
 class LoadableLevel(ABC):
@@ -24,7 +24,7 @@ class LoadableLevel(ABC):
 
     @classmethod
     @abstractmethod
-    def load(cls, token: Any) -> Union[BaseLevel, LoadableLevel]:
+    def load(cls, token: Any) -> Union[AbstractLevel, LoadableLevel]:
         """
         Create a new instance from existing data.
         You must call :meth:`~amulet.level.BaseLevel.open` to open the level for editing.

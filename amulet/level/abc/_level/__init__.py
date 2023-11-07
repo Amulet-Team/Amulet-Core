@@ -1,5 +1,4 @@
-from ._level import BaseLevel, BaseLevelPrivate, metadata
-from ._level_friend import LevelFriend
+from ._level import AbstractLevel, LevelPrivate, LevelPrivateT, LevelFriend, metadata
 from ._compactable_level import CompactableLevel
 from ._creatable_level import (
     CreatableLevel,

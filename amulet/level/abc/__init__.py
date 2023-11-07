@@ -1,6 +1,6 @@
 from ._level import (
-    BaseLevel,
-    BaseLevelPrivate,
+    AbstractLevel,
+    LevelPrivate,
     LoadableLevel,
     CompactableLevel,
     DiskLevel,
@@ -17,7 +17,7 @@ from ._level import (
     metadata,
     LevelFriend,
 )
-from ._chunk_handle import ChunkHandle
+from ._chunk_handle import AbstractChunkHandle
 from ._player_storage import PlayerStorage
-from ._raw_level import RawLevel, BufferedRawLevel, RawDimension
-from ._dimension import Dimension
+from ._raw_level import AbstractRawLevel, AbstractBufferedRawLevel, AbstractRawDimension
+from ._dimension import AbstractDimension

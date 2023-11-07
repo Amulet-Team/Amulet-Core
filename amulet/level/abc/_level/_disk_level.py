@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from ._level import BaseLevel, metadata
+from ._level import AbstractLevel, LevelPrivateT, metadata
 
 
-class DiskLevel(BaseLevel):
+class DiskLevel(AbstractLevel[LevelPrivateT]):
     """A level base class for all levels with data on disk."""
 
     __slots__ = ()

@@ -29,7 +29,7 @@ from amulet.api.data_types import (
 )
 from amulet.block import Block, UniversalAirBlock
 from amulet.selection import SelectionGroup, SelectionBox
-from amulet.level.base_level import (
+from amulet.level.abc import (
     DiskLevel,
     CreatableLevel,
     CreateArgsT,
@@ -37,7 +37,7 @@ from amulet.level.base_level import (
     IntArg,
     SequenceArg,
     LoadableLevel,
-    BaseLevelPrivate,
+    LevelPrivate,
     CompactableLevel,
     metadata,
 )
@@ -74,7 +74,7 @@ class DimensionEntry(NamedTuple):
     default_biome: BiomeType
 
 
-class JavaLevelPrivate(BaseLevelPrivate):
+class JavaLevelPrivate(LevelPrivate):
     # Instance variables
     path: Optional[str]
     data_version: Optional[VersionNumberInt]

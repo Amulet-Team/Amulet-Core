@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional, TypeVar, Callable
+from typing import TYPE_CHECKING, Optional, TypeVar, Callable, Type, Generic
 from contextlib import contextmanager, AbstractContextManager as ContextManager
 import os
 import logging
@@ -10,11 +10,14 @@ from weakref import ref
 from runtime_final import final
 from PIL import Image
 
+import PyMCTranslate
 from PyMCTranslate import TranslationManager
 
 from amulet import IMG_DIRECTORY
-from amulet.api.data_types import DimensionID, PlatformType, VersionNumberAny
+from amulet.version import AbstractVersion
+from amulet.api.data_types import DimensionID, PlatformType
 
+from amulet.chunk import Chunk
 from amulet.palette import BlockPalette, BiomePalette
 
 from amulet.utils.shareable_lock import ShareableRLock
@@ -24,9 +27,9 @@ from .._history import HistoryManager
 
 
 if TYPE_CHECKING:
-    from .._dimension import Dimension
+    from .._dimension import AbstractDimension
     from .._player_storage import PlayerStorage
-    from .._raw_level import RawLevel
+    from .._raw_level import AbstractRawLevel
 
 T = TypeVar("T")
 
@@ -43,13 +46,14 @@ def metadata(f: T) -> T:
     return f
 
 
-LevelT = TypeVar("LevelT")
+LevelPrivateT = TypeVar("LevelPrivateT", bound="LevelPrivate")
+LevelT = TypeVar("LevelT", bound="AbstractLevel")
 
 
-class BaseLevelPrivate:
+class LevelPrivate(Generic[LevelT]):
     """Private data and methods that friends of BaseLevel can use."""
 
-    _level: Callable[[], Optional[BaseLevel]]
+    _level: Callable[[], Optional[AbstractLevel]]
     history_manager: Optional[HistoryManager]
     block_palette: Optional[BlockPalette]
     biome_palette: Optional[BiomePalette]
@@ -59,7 +63,7 @@ class BaseLevelPrivate:
     opened = Signal()
     closed = Signal()
 
-    def __init__(self, level: BaseLevel):
+    def __init__(self, level: AbstractLevel):
         self._level = ref(level)
         self.history_manager = None
         self.block_palette = None
@@ -67,7 +71,7 @@ class BaseLevelPrivate:
 
     @final
     @property
-    def level(self) -> BaseLevel:
+    def level(self) -> AbstractLevel:
         """
         Get the level that owns this private data.
         If the level instance no longer exists, this will raise RuntimeError.
@@ -98,13 +102,22 @@ class BaseLevelPrivate:
         self.biome_palette = None
 
 
-class BaseLevel(ABC):
+class LevelFriend(Generic[LevelPrivateT]):
+    _l: LevelPrivateT
+
+    __slots__ = ("_l",)
+
+    def __init__(self, level_data: LevelPrivateT):
+        self._l = level_data
+
+
+class AbstractLevel(LevelFriend[LevelPrivateT], ABC):
     """Base class for all levels."""
 
-    _l: BaseLevelPrivate
     _level_lock: ShareableRLock
     _is_open: bool
     _history_enabled: bool
+    _translator: TranslationManager
 
     __slots__ = (SignalInstanceCacheName,) + tuple(__annotations__)
 
@@ -119,12 +132,12 @@ class BaseLevel(ABC):
         self._history_enabled = True
 
         # Private data shared by friends of the class
-        self._l = self._instance_data()
+        super().__init__(self._instance_data())
 
         self.history_changed.connect(self._l.history_manager.history_changed)
 
-    def _instance_data(self) -> BaseLevelPrivate:
-        return BaseLevelPrivate(self)
+    def _instance_data(self) -> LevelPrivateT:
+        return LevelPrivate(self)
 
     def __del__(self):
         self.close()
@@ -208,7 +221,7 @@ class BaseLevel(ABC):
 
     @property
     @abstractmethod
-    def version(self) -> VersionNumberAny:
+    def max_game_version(self) -> AbstractVersion:
         raise NotImplementedError
 
     # Emitted when the undo or redo count has changed
@@ -279,7 +292,7 @@ class BaseLevel(ABC):
         This is useful if you are doing something nuclear to the level and you don't want other code editing it at
         the same time. Usually :meth:`edit_parallel` is sufficient when used with other locks.
 
-        >>> level: BaseLevel
+        >>> level: AbstractLevel
         >>> with level.edit_serial():  # This will block the thread until all other threads have finished with the level
         >>>     # any code here will be run without any other threads touching the level
         >>> # Other threads can modify the level here
@@ -302,7 +315,7 @@ class BaseLevel(ABC):
         If another thread has exclusive access to the level, this will block until it has finished and vice versa.
         If you are going to make any nuclear changes to the level you must use :meth:`edit_serial` instead.
 
-        >>> level: BaseLevel
+        >>> level: AbstractLevel
         >>> with level.edit_parallel():  # This will block the thread until all other threads have finished with the level
         >>>     # any code here will be run without any other threads touching the level
         >>> # Other threads can modify the level here
@@ -351,14 +364,16 @@ class BaseLevel(ABC):
 
     @property
     def translator(self) -> TranslationManager:
-        raise NotImplementedError
+        if self._translator is None:
+            self._translator = PyMCTranslate.new_translation_manager()
+        return self._translator
 
     @abstractmethod
     def dimensions(self) -> frozenset[DimensionID]:
         raise NotImplementedError
 
     @abstractmethod
-    def get_dimension(self, dimension: DimensionID) -> Dimension:
+    def get_dimension(self, dimension: DimensionID) -> AbstractDimension:
         raise NotImplementedError
 
     @property
@@ -379,7 +394,7 @@ class BaseLevel(ABC):
 
     @property
     @abstractmethod
-    def raw(self) -> RawLevel:
+    def raw(self) -> AbstractRawLevel:
         """
         Direct access to the level data.
         Only use this if you know what you are doing.
@@ -390,4 +405,9 @@ class BaseLevel(ABC):
     @abstractmethod
     def player(self) -> PlayerStorage:
         """Methods to interact with the player data for the level."""
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def native_chunk_class(self) -> Type[Chunk]:
         raise NotImplementedError
