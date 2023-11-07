@@ -25,8 +25,7 @@ from amulet.api.errors import ObjectWriteError
 from amulet.utils.format_utils import check_all_exist
 from amulet.utils.signal import Signal
 
-from ._raw_level import BedrockRawLevel, InternalDimension
-from ._level_dat import BedrockLevelDAT
+from ._raw import BedrockRawLevel, InternalDimension, BedrockLevelDAT
 
 
 class BedrockLevelPrivate(LevelPrivate):

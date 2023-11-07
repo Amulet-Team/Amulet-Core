@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import struct
-from typing import Tuple, Union, Optional, BinaryIO
+from typing import Union, Optional, BinaryIO
 from io import BytesIO
 
 from amulet_nbt import (
-    AbstractBaseTag,
     load as load_nbt,
     NamedTag,
     utf8_escape_decoder,

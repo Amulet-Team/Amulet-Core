@@ -1,21 +1,36 @@
-from typing import Union, Iterable, Tuple, List, Optional
+from typing import Union, Iterable, Optional
 from amulet_nbt import NamedTag
 
 
-class RawBedrockChunk(dict[bytes, Optional[bytes]]):
+class BedrockRawChunk:
     def __init__(
         self,
-        chunk_data: Union[dict[bytes, bytes], Iterable[Tuple[bytes, bytes]]] = (),
         *,
+        chunk_keys: Iterable[bytes] = (),
+        chunk_data: Union[dict[bytes, bytes], Iterable[tuple[bytes, bytes]]] = (),
         entity_actor: Iterable[NamedTag] = (),
         unknown_actor: Iterable[NamedTag] = (),
     ):
-        super().__init__(chunk_data)
+        self._keys = frozenset(chunk_keys)
+        self._chunk_data = dict(chunk_data)
         self._entity_actor = list(entity_actor)
         self._unknown_actor = list(unknown_actor)
 
     @property
-    def entity_actor(self) -> List[NamedTag]:
+    def keys(self) -> frozenset[bytes]:
+        """All keys that make up this chunk data."""
+        return self._keys
+
+    @property
+    def chunk_data(self) -> dict[bytes, Optional[bytes]]:
+        """
+        A dictionary mapping all chunk data keys that have the XXXXZZZZ[DDDD] prefix (without the prefix) to the data
+        stored in that key.
+        """
+        return self._chunk_data
+
+    @property
+    def entity_actor(self) -> list[NamedTag]:
         """
         A list of entity actor data.
         UniqueID is stripped out. internalComponents is stripped out if there is no other data.
@@ -23,7 +38,7 @@ class RawBedrockChunk(dict[bytes, Optional[bytes]]):
         return self._entity_actor
 
     @property
-    def unknown_actor(self) -> List[NamedTag]:
+    def unknown_actor(self) -> list[NamedTag]:
         """
         A list of actor data that does not fit in the known actor types.
         UniqueID is stripped out.
