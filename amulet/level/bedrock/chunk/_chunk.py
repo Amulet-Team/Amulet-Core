@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC
-from amulet.chunk.native_chunk import Chunk
+from amulet.chunk import Chunk
 from amulet.version import VersionRange, SemanticVersion
 
 from amulet.chunk.components.biome import Biome2DComponent
@@ -14,7 +14,7 @@ from .components.finalised_state import FinalisedStateComponent
 from .components.chunk_version import ChunkVersionComponent
 
 
-class BedrockChunk(Chunk, ABC):
+class BedrockChunk(Chunk):
     pass
 
 
