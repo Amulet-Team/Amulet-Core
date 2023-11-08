@@ -22,11 +22,11 @@ from amulet.api.data_types import (
 )
 from amulet.block import Block, BlockStack
 from amulet.biome import Biome
-from amulet.chunk import ChunkT, RawChunkT
 from amulet.selection import SelectionGroup
 from amulet.api.errors import ChunkDoesNotExist
 from amulet.level.abc import RawDimension
 from ._chunk import BedrockRawChunk
+from ._chunk_decode import raw_to_native
 from ._level_friend import BedrockRawLevelFriend
 from ._constant import THE_NETHER, THE_END
 from ._typing import InternalDimension
@@ -343,11 +343,11 @@ class BedrockRawDimension(
             self._r.db.putBatch(batch)
 
     def raw_chunk_to_native_chunk(
-        self, cx: int, cz: int, raw_chunk: RawChunkT
-    ) -> ChunkT:
-        pass
+        self, cx: int, cz: int, raw_chunk: BedrockRawChunk
+    ) -> BedrockChunk:
+        return raw_to_native(self._r.raw, self, raw_chunk)
 
     def native_chunk_to_raw_chunk(
-        self, cx: int, cz: int, raw_chunk: ChunkT
-    ) -> RawChunkT:
+        self, cx: int, cz: int, raw_chunk: BedrockChunk
+    ) -> BedrockRawChunk:
         pass
