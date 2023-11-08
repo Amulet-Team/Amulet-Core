@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from amulet.level.abc import AbstractLevel, CreatableLevel
+from amulet.level.abc import Level, CreatableLevel
 
 
-class TemporaryLevel(AbstractLevel, CreatableLevel):
+class TemporaryLevel(Level, CreatableLevel):
     """A temporary level that exists only in memory."""
 
     __slots__ = ()
