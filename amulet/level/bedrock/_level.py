@@ -18,7 +18,7 @@ from amulet.level.abc import (
     CompactableLevel,
     CreateArgsT,
     PlayerStorage,
-    AbstractDimension,
+    Dimension,
     metadata,
 )
 from amulet.api.errors import ObjectWriteError
@@ -41,8 +41,10 @@ class BedrockLevelPrivate(LevelPrivate):
         self.path = None
 
 
-class BedrockLevel(DiskLevel[BedrockLevelPrivate], CreatableLevel, LoadableLevel, CompactableLevel):
-    _dimensions: dict[Union[DimensionID, InternalDimension], AbstractDimension]
+class BedrockLevel(
+    DiskLevel[BedrockLevelPrivate], CreatableLevel, LoadableLevel, CompactableLevel
+):
+    _dimensions: dict[Union[DimensionID, InternalDimension], Dimension]
     _raw_level: BedrockRawLevel
 
     __slots__ = ()
@@ -158,14 +160,14 @@ class BedrockLevel(DiskLevel[BedrockLevelPrivate], CreatableLevel, LoadableLevel
 
     def get_dimension(
         self, dimension: Union[DimensionID, InternalDimension]
-    ) -> AbstractDimension:
+    ) -> Dimension:
         if dimension not in self._dimensions:
             raw_dimension = self.raw.get_dimension(dimension)
             public_dimension = raw_dimension.dimension
             internal_dimension = raw_dimension.internal_dimension
             self._dimensions[internal_dimension] = self._dimensions[
                 public_dimension
-            ] = AbstractDimension(self._l, public_dimension)
+            ] = Dimension(self._l, public_dimension)
         return self._dimensions[dimension]
 
     @property

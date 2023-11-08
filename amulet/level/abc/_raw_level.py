@@ -5,15 +5,16 @@ from abc import ABC, abstractmethod
 
 from amulet.api.data_types import DimensionID, ChunkCoordinates, BiomeType
 from amulet.block import Block
+from amulet.chunk import RawChunkT, ChunkT
 from amulet.selection import SelectionGroup
 
 PlayerIDT = TypeVar("PlayerIDT")
 RawPlayerT = TypeVar("RawPlayerT")
-RawDimensionT = TypeVar("RawDimensionT", bound="AbstractRawDimension")
-RawLevelT = TypeVar("RawLevelT", bound="AbstractRawLevel")
+RawDimensionT = TypeVar("RawDimensionT", bound="RawDimension")
+RawLevelT = TypeVar("RawLevelT", bound="RawLevel")
 
 
-class AbstractRawDimension(ABC):
+class RawDimension(ABC, Generic[RawChunkT, ChunkT]):
     __slots__ = ()
 
     @property
@@ -65,7 +66,7 @@ class AbstractRawDimension(ABC):
         raise NotImplementedError
 
 
-class AbstractRawLevel(ABC, Generic[PlayerIDT, RawPlayerT]):
+class RawLevel(ABC):
     """
     A class with raw access to the level.
     All of these methods directly read from or write to the level.
@@ -79,8 +80,12 @@ class AbstractRawLevel(ABC, Generic[PlayerIDT, RawPlayerT]):
         raise NotImplementedError
 
     @abstractmethod
-    def get_dimension(self, dimension: DimensionID) -> AbstractRawDimension:
+    def get_dimension(self, dimension: DimensionID) -> RawDimension:
         raise NotImplementedError
+
+
+class RawLevelPlayerComponent(ABC, Generic[PlayerIDT, RawPlayerT]):
+    """An extension for the RawLevel class for implementations that have player data."""
 
     @abstractmethod
     def players(self) -> Iterable[PlayerIDT]:
@@ -99,14 +104,11 @@ class AbstractRawLevel(ABC, Generic[PlayerIDT, RawPlayerT]):
         raise NotImplementedError
 
 
-class AbstractBufferedRawLevel(AbstractRawLevel):
+class RawLevelBufferedComponent(RawLevel):
     """
-    A class with raw access to the level.
-    All of these methods directly read from or write to the level.
-    There is no way to undo changes made with these methods.
+    An extension for the RawLevel class for implementations that need a data buffer.
 
-    This is a special case where the methods save to an in-memory buffer and :meth:`save` saves the data to the level.
-    This is used for structure levels where the whole level must be read and written in one go.
+    This should be used for formats that cannot stream data and must read and write the data in one go.
     """
 
     __slots__ = ()

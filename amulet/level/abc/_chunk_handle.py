@@ -7,7 +7,7 @@ from threading import RLock
 from abc import ABC, abstractmethod
 
 from amulet.utils.shareable_lock import LockError
-from amulet.chunk import Chunk, ChunkT, RawChunkT
+from amulet.chunk import Chunk, ChunkT
 from amulet.api.data_types import DimensionID
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.utils.signal import Signal
@@ -19,7 +19,7 @@ from ._history import HistoryManagerLayer
 
 
 if TYPE_CHECKING:
-    from ._level import AbstractLevel
+    from ._level import Level
 
 
 class ChunkKey(tuple[int, int]):
@@ -43,7 +43,11 @@ class ChunkKey(tuple[int, int]):
         return self._bytes
 
 
-class AbstractChunkHandle(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, RawDimensionT, RawChunkT, ChunkT], ABC):
+class ChunkHandle(
+    LevelFriend[LevelPrivateT],
+    Generic[LevelPrivateT, RawDimensionT, ChunkT],
+    ABC,
+):
     _lock: RLock
     _dimension: DimensionID
     _key: ChunkKey
@@ -96,7 +100,7 @@ class AbstractChunkHandle(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, Raw
         """
         Lock access to the chunk.
 
-        >>> level: AbstractLevel
+        >>> level: Level
         >>> dimension_name: str
         >>> cx: int
         >>> cz: int
@@ -130,7 +134,7 @@ class AbstractChunkHandle(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, Raw
         Lock and edit a chunk.
         If blocking is false and the lock could not be acquired within the timeout period
 
-        >>> level: AbstractLevel
+        >>> level: Level
         >>> dimension_name: str
         >>> cx: int
         >>> cz: int
@@ -238,4 +242,4 @@ class AbstractChunkHandle(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, Raw
         self._set(b"")
 
 
-ChunkHandleT = TypeVar("ChunkHandleT", bound=AbstractChunkHandle)
+ChunkHandleT = TypeVar("ChunkHandleT", bound=ChunkHandle)

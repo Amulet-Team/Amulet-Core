@@ -27,9 +27,9 @@ from .._history import HistoryManager
 
 
 if TYPE_CHECKING:
-    from .._dimension import AbstractDimension
+    from .._dimension import Dimension
     from .._player_storage import PlayerStorage
-    from .._raw_level import AbstractRawLevel
+    from .._raw_level import RawLevel
 
 T = TypeVar("T")
 
@@ -47,13 +47,13 @@ def metadata(f: T) -> T:
 
 
 LevelPrivateT = TypeVar("LevelPrivateT", bound="LevelPrivate")
-LevelT = TypeVar("LevelT", bound="AbstractLevel")
+LevelT = TypeVar("LevelT", bound="Level")
 
 
 class LevelPrivate(Generic[LevelT]):
     """Private data and methods that friends of BaseLevel can use."""
 
-    _level: Callable[[], Optional[AbstractLevel]]
+    _level: Callable[[], Optional[Level]]
     history_manager: Optional[HistoryManager]
     block_palette: Optional[BlockPalette]
     biome_palette: Optional[BiomePalette]
@@ -63,7 +63,7 @@ class LevelPrivate(Generic[LevelT]):
     opened = Signal()
     closed = Signal()
 
-    def __init__(self, level: AbstractLevel):
+    def __init__(self, level: Level):
         self._level = ref(level)
         self.history_manager = None
         self.block_palette = None
@@ -71,7 +71,7 @@ class LevelPrivate(Generic[LevelT]):
 
     @final
     @property
-    def level(self) -> AbstractLevel:
+    def level(self) -> Level:
         """
         Get the level that owns this private data.
         If the level instance no longer exists, this will raise RuntimeError.
@@ -111,7 +111,7 @@ class LevelFriend(Generic[LevelPrivateT]):
         self._l = level_data
 
 
-class AbstractLevel(LevelFriend[LevelPrivateT], ABC):
+class Level(LevelFriend[LevelPrivateT], ABC):
     """Base class for all levels."""
 
     _level_lock: ShareableRLock
@@ -292,7 +292,7 @@ class AbstractLevel(LevelFriend[LevelPrivateT], ABC):
         This is useful if you are doing something nuclear to the level and you don't want other code editing it at
         the same time. Usually :meth:`edit_parallel` is sufficient when used with other locks.
 
-        >>> level: AbstractLevel
+        >>> level: Level
         >>> with level.edit_serial():  # This will block the thread until all other threads have finished with the level
         >>>     # any code here will be run without any other threads touching the level
         >>> # Other threads can modify the level here
@@ -315,7 +315,7 @@ class AbstractLevel(LevelFriend[LevelPrivateT], ABC):
         If another thread has exclusive access to the level, this will block until it has finished and vice versa.
         If you are going to make any nuclear changes to the level you must use :meth:`edit_serial` instead.
 
-        >>> level: AbstractLevel
+        >>> level: Level
         >>> with level.edit_parallel():  # This will block the thread until all other threads have finished with the level
         >>>     # any code here will be run without any other threads touching the level
         >>> # Other threads can modify the level here
@@ -373,7 +373,7 @@ class AbstractLevel(LevelFriend[LevelPrivateT], ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_dimension(self, dimension: DimensionID) -> AbstractDimension:
+    def get_dimension(self, dimension: DimensionID) -> Dimension:
         raise NotImplementedError
 
     @property
@@ -394,7 +394,7 @@ class AbstractLevel(LevelFriend[LevelPrivateT], ABC):
 
     @property
     @abstractmethod
-    def raw(self) -> AbstractRawLevel:
+    def raw(self) -> RawLevel:
         """
         Direct access to the level data.
         Only use this if you know what you are doing.

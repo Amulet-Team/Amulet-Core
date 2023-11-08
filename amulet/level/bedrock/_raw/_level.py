@@ -25,7 +25,11 @@ from amulet.api.data_types import (
 )
 from amulet.selection import SelectionGroup, SelectionBox
 from amulet.api.errors import PlayerDoesNotExist
-from amulet.level.abc import AbstractRawLevel, LevelFriend
+from amulet.level.abc import (
+    RawLevel,
+    RawLevelPlayerComponent,
+    LevelFriend,
+)
 from amulet.version import SemanticVersion
 
 from ._level_dat import BedrockLevelDAT
@@ -33,6 +37,8 @@ from ._actor_counter import ActorCounter
 from ._dimension import BedrockRawDimension
 from ._constant import OVERWORLD, THE_NETHER, THE_END, LOCAL_PLAYER, DefaultSelection
 from ._typing import InternalDimension, PlayerID, RawPlayer
+from ._chunk import BedrockRawChunk
+from ..chunk import BedrockChunk
 
 if TYPE_CHECKING:
     from .._level import BedrockLevelPrivate
@@ -68,7 +74,11 @@ class BedrockRawLevelPrivate:
         return raw
 
 
-class BedrockRawLevel(LevelFriend[BedrockLevelPrivate], AbstractRawLevel):
+class BedrockRawLevel(
+    LevelFriend[BedrockLevelPrivate],
+    RawLevel[BedrockRawChunk, BedrockChunk],
+    RawLevelPlayerComponent[PlayerID, RawPlayer],
+):
     _r: Optional[BedrockRawLevelPrivate]
     _level_dat: BedrockLevelDAT
 

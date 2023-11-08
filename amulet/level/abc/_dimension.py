@@ -13,7 +13,9 @@ from ._chunk_handle import ChunkKey, ChunkHandleT
 from ._raw_level import RawDimensionT
 
 
-class AbstractDimension(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, RawDimensionT, ChunkHandleT], ABC):
+class Dimension(
+    LevelFriend[LevelPrivateT], Generic[LevelPrivateT, RawDimensionT, ChunkHandleT], ABC
+):
     _dimension: DimensionID
     _chunk_handles: WeakValueDictionary[tuple[int, int], ChunkHandleT]
     _chunk_handle_lock: Lock

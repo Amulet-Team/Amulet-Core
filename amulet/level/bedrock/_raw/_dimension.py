@@ -24,7 +24,7 @@ from amulet.api.data_types import (
 from amulet.block import Block
 from amulet.selection import SelectionGroup
 from amulet.api.errors import ChunkDoesNotExist
-from amulet.level.abc import AbstractRawDimension
+from amulet.level.abc import RawDimension
 from ._chunk import BedrockRawChunk
 from ._level_friend import BedrockRawLevelFriend
 from ._constant import OVERWORLD, THE_NETHER, THE_END
