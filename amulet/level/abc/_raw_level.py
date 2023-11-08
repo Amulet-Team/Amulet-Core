@@ -3,9 +3,10 @@ from __future__ import annotations
 from typing import Iterable, Any, TypeVar, Generic
 from abc import ABC, abstractmethod
 
-from amulet.api.data_types import DimensionID, ChunkCoordinates, BiomeType
-from amulet.block import Block
+from amulet.api.data_types import DimensionID, ChunkCoordinates
 from amulet.chunk import RawChunkT, ChunkT
+from amulet.block import BlockStack
+from amulet.biome import Biome
 from amulet.selection import SelectionGroup
 
 PlayerIDT = TypeVar("PlayerIDT")
@@ -28,12 +29,12 @@ class RawDimension(ABC, Generic[RawChunkT, ChunkT]):
         raise NotImplementedError
 
     @abstractmethod
-    def default_block(self) -> Block:
+    def default_block(self) -> BlockStack:
         """The default block for this dimension"""
         raise NotImplementedError
 
     @abstractmethod
-    def default_biome(self) -> BiomeType:
+    def default_biome(self) -> Biome:
         """The default biome for this dimension"""
         raise NotImplementedError
 

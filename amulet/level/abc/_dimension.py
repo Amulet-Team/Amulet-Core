@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
+from typing import Generic
 from weakref import WeakValueDictionary
 from threading import Lock
 
-from amulet.api.data_types import BiomeType, DimensionID
-from amulet.block import Block
+from amulet.api.data_types import DimensionID
+from amulet.block import BlockStack
+from amulet.biome import Biome
 from amulet.selection import SelectionGroup
 
 from ._level import LevelFriend, LevelPrivateT
@@ -38,11 +39,11 @@ class Dimension(
         """The editable region of the dimension."""
         return self._raw.bounds()
 
-    def default_block(self) -> Block:
+    def default_block(self) -> BlockStack:
         """The default block for this dimension"""
         return self._raw.default_block()
 
-    def default_biome(self) -> BiomeType:
+    def default_biome(self) -> Biome:
         """The default biome for this dimension"""
         return self._raw.default_biome()
 

@@ -19,9 +19,9 @@ from amulet_nbt import (
 from amulet.api.data_types import (
     DimensionID,
     ChunkCoordinates,
-    BiomeType,
 )
-from amulet.block import Block
+from amulet.block import Block, BlockStack
+from amulet.biome import Biome
 from amulet.selection import SelectionGroup
 from amulet.api.errors import ChunkDoesNotExist
 from amulet.level.abc import RawDimension
@@ -57,18 +57,19 @@ class BedrockRawDimension(BedrockRawLevelFriend, AbstractRawDimension):
         """The editable region of the dimension."""
         return self._bounds
 
-    def default_block(self) -> Block:
+    def default_block(self) -> BlockStack:
         """The default block for this dimension"""
-        return Block(self._r.raw.max_game_version, "minecraft", "air")
+        return BlockStack(Block(self._r.raw.max_game_version, "minecraft", "air"))
 
-    def default_biome(self) -> BiomeType:
+    def default_biome(self) -> Biome:
         """The default biome for this dimension"""
         # todo: is this stored in the data somewhere?
-        return {
-            OVERWORLD: "universal_minecraft:plains",
-            THE_NETHER: "universal_minecraft:nether",
-            THE_END: "universal_minecraft:the_end",
-        }.get(self.dimension, "universal_minecraft:plains")
+        if self.dimension == THE_NETHER:
+            return Biome(self._r.raw.max_game_version, "minecraft", "nether")
+        elif self.dimension == THE_END:
+            return Biome(self._r.raw.max_game_version, "minecraft", "the_end")
+        else:
+            return Biome(self._r.raw.max_game_version, "minecraft", "plains")
 
     @property
     def internal_dimension(self) -> InternalDimension:
