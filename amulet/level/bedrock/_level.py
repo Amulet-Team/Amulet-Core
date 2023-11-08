@@ -9,7 +9,8 @@ from PIL import Image
 from leveldb import LevelDB
 from amulet_nbt import CompoundTag, IntTag, ListTag, LongTag, StringTag
 
-from amulet.api.data_types import DimensionID, PlatformType, VersionNumberTuple
+from amulet.version import SemanticVersion
+from amulet.api.data_types import DimensionID, PlatformType
 from amulet.level.abc import (
     LevelPrivate,
     DiskLevel,
@@ -152,7 +153,7 @@ class BedrockLevel(
         return "bedrock"
 
     @property
-    def version(self) -> VersionNumberTuple:
+    def max_game_version(self) -> SemanticVersion:
         return self.raw.max_game_version
 
     def dimensions(self) -> frozenset[DimensionID]:
