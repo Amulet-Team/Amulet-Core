@@ -76,7 +76,7 @@ class BedrockRawLevelPrivate:
 
 class BedrockRawLevel(
     LevelFriend[BedrockLevelPrivate],
-    RawLevel[BedrockRawChunk, BedrockChunk],
+    RawLevel,
     RawLevelPlayerComponent[PlayerID, RawPlayer],
 ):
     _r: Optional[BedrockRawLevelPrivate]
@@ -152,10 +152,13 @@ class BedrockRawLevel(
         This is used to determine the data format to save in.
         """
         try:
-            return SemanticVersion("bedrock", tuple(
-                t.py_int
-                for t in self.level_dat.compound.get_list("lastOpenedWithVersion")
-            ))
+            return SemanticVersion(
+                "bedrock",
+                tuple(
+                    t.py_int
+                    for t in self.level_dat.compound.get_list("lastOpenedWithVersion")
+                ),
+            )
         except Exception:
             return SemanticVersion("bedrock", (1, 2, 0))
 
