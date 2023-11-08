@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, Any, TypeVar, Generic
+from typing import Iterable, TypeVar, Generic
 from abc import ABC, abstractmethod
 
 from amulet.api.data_types import DimensionID, ChunkCoordinates
@@ -53,7 +53,7 @@ class RawDimension(ABC, Generic[RawChunkT, ChunkT]):
         raise NotImplementedError
 
     @abstractmethod
-    def get_raw_chunk(self, cx: int, cz: int) -> Any:
+    def get_raw_chunk(self, cx: int, cz: int) -> RawChunkT:
         """
         Get the chunk data in its raw format.
         This is usually the exact data that exists on disk.
@@ -62,8 +62,20 @@ class RawDimension(ABC, Generic[RawChunkT, ChunkT]):
         raise NotImplementedError
 
     @abstractmethod
-    def set_raw_chunk(self, cx: int, cz: int, chunk: Any):
+    def set_raw_chunk(self, cx: int, cz: int, chunk: RawChunkT):
         """Set the chunk in its raw format."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def raw_chunk_to_native_chunk(
+        self, cx: int, cz: int, raw_chunk: RawChunkT
+    ) -> ChunkT:
+        raise NotImplementedError
+
+    @abstractmethod
+    def native_chunk_to_raw_chunk(
+        self, cx: int, cz: int, raw_chunk: ChunkT
+    ) -> RawChunkT:
         raise NotImplementedError
 
 

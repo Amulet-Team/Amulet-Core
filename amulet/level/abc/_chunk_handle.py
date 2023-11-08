@@ -166,15 +166,15 @@ class ChunkHandle(
             # The history system is not aware of the chunk. Look in the level data
             return self._get_raw_dimension().has_chunk(self.cx, self.cz)
 
-    @abstractmethod
-    def _decode(self, raw_chunk: RawChunkT) -> ChunkT:
-        raise NotImplementedError
-
     def _preload(self):
         if not self._history.has_resource(self._key):
             # The history system is not aware of the chunk. Load from the level data
             try:
-                chunk = self._decode(self._raw_dimension.get_raw_chunk(self.cx, self.cz))
+                chunk = self._raw_dimension.raw_chunk_to_native_chunk(
+                    self.cx,
+                    self.cz,
+                    self._raw_dimension.get_raw_chunk(self.cx, self.cz),
+                )
             except ChunkDoesNotExist:
                 data = b""
             except ChunkLoadError as e:

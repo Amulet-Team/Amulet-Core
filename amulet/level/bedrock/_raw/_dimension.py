@@ -22,13 +22,15 @@ from amulet.api.data_types import (
 )
 from amulet.block import Block, BlockStack
 from amulet.biome import Biome
+from amulet.chunk import ChunkT, RawChunkT
 from amulet.selection import SelectionGroup
 from amulet.api.errors import ChunkDoesNotExist
 from amulet.level.abc import RawDimension
 from ._chunk import BedrockRawChunk
 from ._level_friend import BedrockRawLevelFriend
-from ._constant import OVERWORLD, THE_NETHER, THE_END
+from ._constant import THE_NETHER, THE_END
 from ._typing import InternalDimension
+from ..chunk import BedrockChunk
 
 if TYPE_CHECKING:
     from ._level import BedrockRawLevelPrivate
@@ -36,7 +38,9 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-class BedrockRawDimension(BedrockRawLevelFriend, AbstractRawDimension):
+class BedrockRawDimension(
+    BedrockRawLevelFriend, RawDimension[BedrockRawChunk, BedrockChunk]
+):
     def __init__(
         self,
         raw_data: BedrockRawLevelPrivate,
@@ -337,3 +341,13 @@ class BedrockRawDimension(BedrockRawLevelFriend, AbstractRawDimension):
                 batch[key] = val
         if batch:
             self._r.db.putBatch(batch)
+
+    def raw_chunk_to_native_chunk(
+        self, cx: int, cz: int, raw_chunk: RawChunkT
+    ) -> ChunkT:
+        pass
+
+    def native_chunk_to_raw_chunk(
+        self, cx: int, cz: int, raw_chunk: ChunkT
+    ) -> RawChunkT:
+        pass
