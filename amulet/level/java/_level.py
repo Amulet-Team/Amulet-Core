@@ -39,7 +39,6 @@ from amulet.level.abc import (
     LoadableLevel,
     LevelPrivate,
     CompactableLevel,
-    metadata,
 )
 from amulet.utils.format_utils import check_all_exist
 

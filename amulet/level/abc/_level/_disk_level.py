@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from ._level import Level, LevelPrivateT, metadata
+from ._level import Level, LevelPrivateT
 
 
 class DiskLevel(Level[LevelPrivateT]):

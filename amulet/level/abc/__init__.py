@@ -14,7 +14,6 @@ from ._level import (
     UnionArg,
     ProtocolArg,
     CreateArgsT,
-    metadata,
     LevelFriend,
 )
 from ._chunk_handle import ChunkHandle

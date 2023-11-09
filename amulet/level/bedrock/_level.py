@@ -20,7 +20,6 @@ from amulet.level.abc import (
     CreateArgsT,
     PlayerStorage,
     Dimension,
-    metadata,
 )
 from amulet.api.errors import ObjectWriteError
 from amulet.utils.format_utils import check_all_exist
