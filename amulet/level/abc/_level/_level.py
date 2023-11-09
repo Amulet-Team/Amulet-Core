@@ -46,16 +46,19 @@ class LevelPrivate(Generic[LevelT]):
     """Private data and methods that friends of BaseLevel can use."""
 
     _level: Callable[[], Optional[Level]]
-    history_manager: Optional[HistoryManager]
+    _history_manager: Optional[HistoryManager]
 
-    __slots__ = tuple(__annotations__)
+    __slots__ = (
+        "_level",
+        "_history_manager",
+    )
 
     opened = Signal()
     closed = Signal()
 
     def __init__(self, level: Level):
         self._level = ref(level)
-        self.history_manager = None
+        self._history_manager = None
 
     @final
     @property
@@ -75,7 +78,7 @@ class LevelPrivate(Generic[LevelT]):
         self.opened.emit()
 
     def _open(self):
-        self.history_manager = HistoryManager()
+        self._history_manager = HistoryManager()
 
     @final
     def close(self):
@@ -83,7 +86,13 @@ class LevelPrivate(Generic[LevelT]):
         self._close()
 
     def _close(self):
-        self.history_manager = None
+        self._history_manager = None
+
+    @property
+    def history_manager(self) -> HistoryManager:
+        if self._history_manager is None:
+            raise RuntimeError("The level is not open.")
+        return self._history_manager
 
 
 class LevelFriend(Generic[LevelPrivateT]):
