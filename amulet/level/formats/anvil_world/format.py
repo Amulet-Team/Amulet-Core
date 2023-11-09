@@ -24,6 +24,7 @@ import portalocker
 from amulet_nbt import (
     IntTag,
     LongTag,
+    FloatTag,
     DoubleTag,
     StringTag,
     ListTag,
@@ -725,7 +726,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         if (
             isinstance(rot_data, ListTag)
             and len(rot_data) == 2
-            and rot_data.list_data_type == DoubleTag.tag_id
+            and rot_data.list_data_type == FloatTag.tag_id
         ):
             rotation = tuple(map(float, rot_data))
             rotation = tuple(
