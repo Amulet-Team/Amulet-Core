@@ -22,14 +22,13 @@ from amulet.chunk import Chunk
 from amulet.utils.shareable_lock import ShareableRLock
 from amulet.utils.signal import Signal, SignalInstanceCacheName
 
-from .._history import HistoryManager
+from amulet.level.abc._history import HistoryManager
 
 
 if TYPE_CHECKING:
-    from .._dimension import Dimension
-    from .._player_storage import PlayerStorage
-    from .._raw_level import RawLevel
-
+    from amulet.level.abc._dimension import Dimension
+    from amulet.level.abc._player_storage import PlayerStorage
+    from amulet.level.abc._raw_level import RawLevel
 
 log = logging.getLogger(__name__)
 
