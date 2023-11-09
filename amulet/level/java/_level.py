@@ -390,7 +390,6 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
             portalocker.unlock(self._lock_file)
             self._lock_file.close()
 
-    @metadata
     @property
     def path(self) -> str:
         if self._l.path is None:

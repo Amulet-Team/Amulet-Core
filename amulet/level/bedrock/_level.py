@@ -127,12 +127,10 @@ class BedrockLevel(
     def _close(self):
         self._dimensions.clear()
 
-    @metadata
     @property
     def path(self) -> str:
         return self._l.path
 
-    @metadata
     @property
     def level_name(self) -> str:
         try:
@@ -140,7 +138,6 @@ class BedrockLevel(
         except Exception:
             return "Unknown level name"
 
-    @metadata
     @property
     def thumbnail(self) -> Image.Image:
         try:

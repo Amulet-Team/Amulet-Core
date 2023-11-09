@@ -31,7 +31,6 @@ if TYPE_CHECKING:
     from .._player_storage import PlayerStorage
     from .._raw_level import RawLevel
 
-T = TypeVar("T")
 
 log = logging.getLogger(__name__)
 
@@ -39,11 +38,6 @@ missing_world_icon_path = os.path.abspath(
     os.path.join(IMG_DIRECTORY, "missing_world_icon.png")
 )
 missing_world_icon: Optional[Image.Image] = None
-
-
-def metadata(f: T) -> T:
-    """Data about a level that can be accessed without opening the level."""
-    return f
 
 
 LevelPrivateT = TypeVar("LevelPrivateT", bound="LevelPrivate")
@@ -339,7 +333,6 @@ class Level(LevelFriend[LevelPrivateT], ABC):
         self._history_enabled = history_enabled
         self.history_enabled_changed.emit()
 
-    @metadata
     @property
     def thumbnail(self) -> Image.Image:
         global missing_world_icon
@@ -347,14 +340,12 @@ class Level(LevelFriend[LevelPrivateT], ABC):
             missing_world_icon = Image.open(missing_world_icon_path)
         return missing_world_icon
 
-    @metadata
     @property
     @abstractmethod
     def level_name(self) -> str:
         """The human-readable name of the level"""
         raise NotImplementedError
 
-    @metadata
     @property
     def sub_chunk_size(self) -> int:
         """

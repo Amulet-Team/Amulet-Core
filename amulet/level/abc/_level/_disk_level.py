@@ -10,7 +10,6 @@ class DiskLevel(Level[LevelPrivateT]):
 
     __slots__ = ()
 
-    @metadata
     @property
     @abstractmethod
     def path(self) -> str:
