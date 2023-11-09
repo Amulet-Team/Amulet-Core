@@ -18,7 +18,6 @@ from amulet.version import AbstractVersion
 from amulet.api.data_types import DimensionID, PlatformType
 
 from amulet.chunk import Chunk
-from amulet.palette import BlockPalette, BiomePalette
 
 from amulet.utils.shareable_lock import ShareableRLock
 from amulet.utils.signal import Signal, SignalInstanceCacheName
@@ -49,8 +48,6 @@ class LevelPrivate(Generic[LevelT]):
 
     _level: Callable[[], Optional[Level]]
     history_manager: Optional[HistoryManager]
-    block_palette: Optional[BlockPalette]
-    biome_palette: Optional[BiomePalette]
 
     __slots__ = tuple(__annotations__)
 
@@ -60,8 +57,6 @@ class LevelPrivate(Generic[LevelT]):
     def __init__(self, level: Level):
         self._level = ref(level)
         self.history_manager = None
-        self.block_palette = None
-        self.biome_palette = None
 
     @final
     @property
@@ -82,8 +77,6 @@ class LevelPrivate(Generic[LevelT]):
 
     def _open(self):
         self.history_manager = HistoryManager()
-        self.block_palette = BlockPalette()
-        self.biome_palette = BiomePalette()
 
     @final
     def close(self):
@@ -92,8 +85,6 @@ class LevelPrivate(Generic[LevelT]):
 
     def _close(self):
         self.history_manager = None
-        self.block_palette = None
-        self.biome_palette = None
 
 
 class LevelFriend(Generic[LevelPrivateT]):
@@ -366,22 +357,6 @@ class Level(LevelFriend[LevelPrivateT], ABC):
     @abstractmethod
     def get_dimension(self, dimension: DimensionID) -> Dimension:
         raise NotImplementedError
-
-    @property
-    def block_palette(self) -> BlockPalette:
-        """The block look up table for this level."""
-        block_palette = self._l.block_palette
-        if block_palette is None:
-            raise RuntimeError("block_palette does not exist. Did you open the level?")
-        return block_palette
-
-    @property
-    def biome_palette(self) -> BiomePalette:
-        """The biome look up table for this level."""
-        biome_palette = self._l.biome_palette
-        if biome_palette is None:
-            raise RuntimeError("biome_palette does not exist. Did you open the level?")
-        return biome_palette
 
     @property
     @abstractmethod
