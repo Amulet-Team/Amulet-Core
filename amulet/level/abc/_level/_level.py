@@ -112,7 +112,13 @@ class Level(LevelFriend[LevelPrivateT], ABC):
     _history_enabled: bool
     _translator: TranslationManager
 
-    __slots__ = (SignalInstanceCacheName,) + tuple(__annotations__)
+    __slots__ = (
+        SignalInstanceCacheName,
+        "_level_lock",
+        "_is_open",
+        "_history_enabled",
+        "_translator",
+    )
 
     def __init__(self):
         """
