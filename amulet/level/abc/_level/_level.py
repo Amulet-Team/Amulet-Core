@@ -135,8 +135,9 @@ class Level(LevelFriend[LevelPrivateT], ABC):
 
         self.history_changed.connect(self._l.history_manager.history_changed)
 
+    @abstractmethod
     def _instance_data(self) -> LevelPrivateT:
-        return LevelPrivate(self)
+        raise NotImplementedError
 
     def __del__(self):
         self.close()
