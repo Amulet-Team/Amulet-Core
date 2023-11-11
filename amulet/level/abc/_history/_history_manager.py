@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from uuid import uuid4
 from threading import Lock
-from typing import Sequence, Protocol, TypeVar, Generic, Mapping
+from typing import Sequence, Protocol, TypeVar, Generic, Mapping, Any
 from weakref import WeakSet, WeakValueDictionary
 
 from amulet.utils.signal import Signal
@@ -19,7 +19,7 @@ class ResourceId(Protocol):
         """A constant hash"""
         ...
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         ...
 
     def __bytes__(self) -> bytes:
