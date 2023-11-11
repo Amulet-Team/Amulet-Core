@@ -40,12 +40,14 @@ missing_world_icon: Optional[Image.Image] = None
 
 LevelPrivateT = TypeVar("LevelPrivateT", bound="LevelPrivate")
 LevelT = TypeVar("LevelT", bound="Level")
+RawLevelT = TypeVar("RawLevelT", bound="RawLevel")
+DimensionT = TypeVar("DimensionT", bound="Dimension")
 
 
 class LevelPrivate(Generic[LevelT]):
     """Private data and methods that friends of BaseLevel can use."""
 
-    _level: Callable[[], Optional[Level]]
+    _level: Callable[[], Optional[LevelT]]
     _history_manager: Optional[HistoryManager]
 
     __slots__ = (
@@ -56,13 +58,13 @@ class LevelPrivate(Generic[LevelT]):
     opened = Signal()
     closed = Signal()
 
-    def __init__(self, level: Level) -> None:
+    def __init__(self, level: LevelT) -> None:
         self._level = ref(level)
         self._history_manager = None
 
     @final
     @property
-    def level(self) -> Level:
+    def level(self) -> LevelT:
         """
         Get the level that owns this private data.
         If the level instance no longer exists, this will raise RuntimeError.
@@ -104,7 +106,7 @@ class LevelFriend(Generic[LevelPrivateT]):
         self._l = level_data
 
 
-class Level(LevelFriend[LevelPrivateT], ABC):
+class Level(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, DimensionT, RawLevelT], ABC):
     """Base class for all levels."""
 
     _level_lock: ShareableRLock
@@ -370,12 +372,12 @@ class Level(LevelFriend[LevelPrivateT], ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_dimension(self, dimension: DimensionID) -> Dimension:
+    def get_dimension(self, dimension: DimensionID) -> DimensionT:
         raise NotImplementedError
 
     @property
     @abstractmethod
-    def raw(self) -> RawLevel:
+    def raw(self) -> RawLevelT:
         """
         Direct access to the level data.
         Only use this if you know what you are doing.

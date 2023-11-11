@@ -4,7 +4,7 @@ from typing import Iterable, TypeVar, Generic
 from abc import ABC, abstractmethod
 
 from amulet.api.data_types import DimensionID, ChunkCoordinates
-from amulet.chunk import RawChunkT, ChunkT
+from amulet.chunk import Chunk
 from amulet.block import BlockStack
 from amulet.biome import Biome
 from amulet.selection import SelectionGroup
@@ -13,6 +13,8 @@ PlayerIDT = TypeVar("PlayerIDT")
 RawPlayerT = TypeVar("RawPlayerT")
 RawDimensionT = TypeVar("RawDimensionT", bound="RawDimension")
 RawLevelT = TypeVar("RawLevelT", bound="RawLevel")
+ChunkT = TypeVar("ChunkT", bound=Chunk)
+RawChunkT = TypeVar("RawChunkT")
 
 
 class RawDimension(ABC, Generic[RawChunkT, ChunkT]):
@@ -49,7 +51,7 @@ class RawDimension(ABC, Generic[RawChunkT, ChunkT]):
         raise NotImplementedError
 
     @abstractmethod
-    def delete_chunk(self, cx: int, cz: int):
+    def delete_chunk(self, cx: int, cz: int) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -62,7 +64,7 @@ class RawDimension(ABC, Generic[RawChunkT, ChunkT]):
         raise NotImplementedError
 
     @abstractmethod
-    def set_raw_chunk(self, cx: int, cz: int, chunk: RawChunkT):
+    def set_raw_chunk(self, cx: int, cz: int, chunk: RawChunkT) -> None:
         """Set the chunk in its raw format."""
         raise NotImplementedError
 
@@ -79,7 +81,7 @@ class RawDimension(ABC, Generic[RawChunkT, ChunkT]):
         raise NotImplementedError
 
 
-class RawLevel(ABC):
+class RawLevel(ABC, Generic[RawDimensionT]):
     """
     A class with raw access to the level.
     All of these methods directly read from or write to the level.
@@ -93,7 +95,7 @@ class RawLevel(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_dimension(self, dimension: DimensionID) -> RawDimension:
+    def get_dimension(self, dimension: DimensionID) -> RawDimensionT:
         raise NotImplementedError
 
 
@@ -113,7 +115,7 @@ class RawLevelPlayerComponent(ABC, Generic[PlayerIDT, RawPlayerT]):
         raise NotImplementedError
 
     @abstractmethod
-    def set_raw_player(self, player_id: PlayerIDT, player: RawPlayerT):
+    def set_raw_player(self, player_id: PlayerIDT, player: RawPlayerT) -> None:
         raise NotImplementedError
 
 
@@ -127,5 +129,5 @@ class RawLevelBufferedComponent(RawLevel):
     __slots__ = ()
 
     @abstractmethod
-    def save(self):
+    def save(self) -> None:
         raise NotImplementedError

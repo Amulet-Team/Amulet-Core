@@ -9,11 +9,11 @@ import unittest
 
 
 class DataVersionTestCase(unittest.TestCase):
-    def test_subclass(self):
+    def test_subclass(self) -> None:
         self.assertTrue(issubclass(DataVersion, AbstractVersion))
         self.assertIsInstance(DataVersion("platform1", 1), AbstractVersion)
 
-    def test_equal(self):
+    def test_equal(self) -> None:
         data_version_1 = DataVersion("platform1", 1)
         data_version_2 = DataVersion("platform1", 2)
 
@@ -22,7 +22,11 @@ class DataVersionTestCase(unittest.TestCase):
         self.assertNotEqual(data_version_1, data_version_2)
         self.assertNotEqual(data_version_2, data_version_1)
 
-    def test_hash(self):
+        data_version_3 = DataVersion("platform2", 1)
+        self.assertNotEqual(data_version_1, data_version_3)
+        self.assertNotEqual(data_version_3, data_version_1)
+
+    def test_hash(self) -> None:
         self.assertEqual(
             hash(DataVersion("platform1", 1)), hash(DataVersion("platform1", 1))
         )
@@ -33,7 +37,7 @@ class DataVersionTestCase(unittest.TestCase):
             hash(DataVersion("platform1", 2)), hash(DataVersion("platform2", 2))
         )
 
-    def test_compare(self):
+    def test_compare(self) -> None:
         data_version_1 = DataVersion("platform1", 1)
         data_version_2 = DataVersion("platform1", 2)
         self.assertGreater(data_version_2, data_version_1)
@@ -41,13 +45,9 @@ class DataVersionTestCase(unittest.TestCase):
         self.assertLess(data_version_1, data_version_2)
         self.assertLessEqual(data_version_1, data_version_2)
 
-    def test_errors(self):
+    def test_errors(self) -> None:
         data_version_1 = DataVersion("platform1", 1)
         data_version_2 = DataVersion("platform2", 1)
-        with self.assertRaises(ValueError):
-            self.assertEqual(data_version_1, data_version_2)
-        with self.assertRaises(ValueError):
-            self.assertNotEqual(data_version_1, data_version_2)
         with self.assertRaises(ValueError):
             self.assertGreater(data_version_1, data_version_2)
         with self.assertRaises(ValueError):
@@ -57,7 +57,7 @@ class DataVersionTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.assertLessEqual(data_version_1, data_version_2)
 
-    def test_compatible(self):
+    def test_compatible(self) -> None:
         data_version_1 = DataVersion("platform1", 1)
         data_version_2 = DataVersion("platform1", 2)
         data_version_3 = DataVersion("platform2", 1)
@@ -74,11 +74,11 @@ class DataVersionTestCase(unittest.TestCase):
 
 
 class SemanticVersionTestCase(unittest.TestCase):
-    def test_subclass(self):
+    def test_subclass(self) -> None:
         self.assertTrue(issubclass(SemanticVersion, AbstractVersion))
         self.assertIsInstance(SemanticVersion("platform1", (1, 0, 0)), AbstractVersion)
 
-    def test_equal(self):
+    def test_equal(self) -> None:
         data_version_1 = SemanticVersion("platform1", (1, 0, 0))
         data_version_2 = SemanticVersion("platform1", (1, 2, 0))
 
@@ -102,7 +102,11 @@ class SemanticVersionTestCase(unittest.TestCase):
             SemanticVersion("platform1", (1,)), SemanticVersion("platform1", (1, 0, 0))
         )
 
-    def test_hash(self):
+        data_version_3 = SemanticVersion("platform2", (1, 0, 0))
+        self.assertNotEqual(data_version_1, data_version_3)
+        self.assertNotEqual(data_version_3, data_version_1)
+
+    def test_hash(self) -> None:
         self.assertEqual(
             hash(SemanticVersion("platform1", (1, 0, 0))),
             hash(SemanticVersion("platform1", (1, 0, 0))),
@@ -116,7 +120,7 @@ class SemanticVersionTestCase(unittest.TestCase):
             hash(SemanticVersion("platform2", (1, 2, 0))),
         )
 
-    def test_compare(self):
+    def test_compare(self) -> None:
         data_version_1 = SemanticVersion("platform1", (1, 0, 0))
         data_version_2 = SemanticVersion("platform1", (1, 2, 0))
         self.assertGreater(data_version_2, data_version_1)
@@ -160,13 +164,9 @@ class SemanticVersionTestCase(unittest.TestCase):
             SemanticVersion("platform1", (1,)), SemanticVersion("platform1", (1, 0, 0))
         )
 
-    def test_errors(self):
+    def test_errors(self) -> None:
         data_version_1 = SemanticVersion("platform1", (1, 0, 0))
         data_version_2 = SemanticVersion("platform2", (1, 0, 0))
-        with self.assertRaises(ValueError):
-            self.assertEqual(data_version_1, data_version_2)
-        with self.assertRaises(ValueError):
-            self.assertNotEqual(data_version_1, data_version_2)
         with self.assertRaises(ValueError):
             self.assertGreater(data_version_1, data_version_2)
         with self.assertRaises(ValueError):
@@ -176,7 +176,7 @@ class SemanticVersionTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.assertLessEqual(data_version_1, data_version_2)
 
-    def test_compatible(self):
+    def test_compatible(self) -> None:
         data_version_1 = SemanticVersion("platform1", (1, 0, 0))
         data_version_2 = SemanticVersion("platform1", (1, 2, 0))
         data_version_3 = SemanticVersion("platform2", (1, 0, 0))
@@ -193,7 +193,7 @@ class SemanticVersionTestCase(unittest.TestCase):
 
 
 class VersionRangeTestCase(unittest.TestCase):
-    def test(self):
+    def test(self) -> None:
         data_version_range = VersionRange(
             DataVersion("platform1", 1), DataVersion("platform1", 2)
         )
@@ -218,7 +218,7 @@ class VersionRangeTestCase(unittest.TestCase):
             SemanticVersion("platform1", (2, 0, 0)), semantic_version_range
         )
 
-    def test_errors(self):
+    def test_errors(self) -> None:
         data_version_range = VersionRange(
             DataVersion("platform1", 1), DataVersion("platform1", 2)
         )

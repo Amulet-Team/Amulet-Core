@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Union, TYPE_CHECKING, Optional
+from typing import Union, TYPE_CHECKING, Optional, Any
 
 
 if TYPE_CHECKING:
@@ -97,7 +97,7 @@ class CreatableLevel(ABC):
 
     @classmethod
     @abstractmethod
-    def create(cls, *args, **kwargs) -> Union[Level, CreatableLevel]:
+    def create(cls, *args: Any, **kwargs: Any) -> Union[Level, CreatableLevel]:
         """
         Create a new instance without any existing data.
         You must call :meth:`~amulet.level.BaseLevel.open` to open the level for editing.

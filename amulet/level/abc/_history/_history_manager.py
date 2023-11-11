@@ -27,6 +27,9 @@ class ResourceId(Protocol):
         ...
 
 
+ResourceIdT = TypeVar("ResourceIdT", bound=ResourceId)
+
+
 class Resource:
     __slots__ = ("index", "saved_index", "global_index", "exists")
 
@@ -78,9 +81,6 @@ class HistoryManagerPrivate:
             self.history = [WeakSet()]
             self.history_index = 0
             self.has_redo = False
-
-
-ResourceIdT = TypeVar("ResourceIdT", bound=ResourceId)
 
 
 class HistoryManager:

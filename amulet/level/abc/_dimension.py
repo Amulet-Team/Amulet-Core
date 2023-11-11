@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Generic
+from typing import Generic, TypeVar
 from weakref import WeakValueDictionary
 from threading import Lock
 
@@ -10,8 +10,12 @@ from amulet.selection import SelectionGroup
 
 from ._level import LevelFriend, LevelPrivateT
 from ._history import HistoryManagerLayer
-from ._chunk_handle import ChunkKey, ChunkHandleT
-from ._raw_level import RawDimensionT
+from ._chunk_handle import ChunkKey, ChunkHandle
+from ._raw_level import RawDimension
+
+
+ChunkHandleT = TypeVar("ChunkHandleT", bound=ChunkHandle)
+RawDimensionT = TypeVar("RawDimensionT", bound=RawDimension)
 
 
 class Dimension(
@@ -23,7 +27,7 @@ class Dimension(
     _chunk_history: HistoryManagerLayer[ChunkKey]
     _raw: RawDimensionT
 
-    def __init__(self, level_data: LevelPrivateT, dimension: DimensionID):
+    def __init__(self, level_data: LevelPrivateT, dimension: DimensionID) -> None:
         super().__init__(level_data)
         self._dimension = dimension
         self._chunk_handles = WeakValueDictionary()
