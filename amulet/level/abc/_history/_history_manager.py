@@ -30,7 +30,7 @@ class ResourceId(Protocol):
 class Resource:
     __slots__ = ("index", "saved_index", "global_index", "exists")
 
-    def __init__(self):
+    def __init__(self) -> None:
         # The index of the currently active revision
         self.index: int = 0
         # The index of the saved revision. -1 if the index no longer exists (overwritten or destroyed future)
@@ -45,7 +45,7 @@ class Resource:
 
 
 class HistoryManagerPrivate:
-    def __init__(self):
+    def __init__(self) -> None:
         self.lock = Lock()
         self.resources: WeakValueDictionary[
             bytes, dict[ResourceId, Resource]
@@ -55,7 +55,7 @@ class HistoryManagerPrivate:
         self.has_redo = False
         self.cache = GlobalDiskCache.instance()
 
-    def invalidate_future(self):
+    def invalidate_future(self) -> None:
         """Destroy all future redo bins. Caller must acquire the lock"""
         if self.has_redo:
             self.has_redo = False
@@ -66,7 +66,7 @@ class HistoryManagerPrivate:
                         # A future index is saved that just got invalidated
                         resource.saved_index = -1
 
-    def reset(self):
+    def reset(self) -> None:
         with self.lock:
             for layer in self.resources.values():
                 layer.clear()
@@ -81,7 +81,9 @@ ResourceIdT = TypeVar("ResourceIdT", bound=ResourceId)
 class HistoryManager:
     __slots__ = ("_h",)
 
-    def __init__(self):
+    _h: HistoryManagerPrivate
+
+    def __init__(self) -> None:
         self._h = HistoryManagerPrivate()
 
     def new_layer(self) -> HistoryManagerLayer:
@@ -89,7 +91,7 @@ class HistoryManager:
 
     history_changed = Signal()
 
-    def create_undo_bin(self):
+    def create_undo_bin(self) -> None:
         """
         Call this to create a new undo bin.
         All changes made after this point will be part of the same undo bin until this is called again.
@@ -100,7 +102,7 @@ class HistoryManager:
             self._h.history_index += 1
             self._h.history.append(WeakSet())
 
-    def mark_saved(self):
+    def mark_saved(self) -> None:
         with self._h.lock:
             for layer in self._h.resources.values():
                 for resource in layer.values():
@@ -112,7 +114,7 @@ class HistoryManager:
         with self._h.lock:
             return self._h.history_index
 
-    def undo(self):
+    def undo(self) -> None:
         """Undo the changes in the current undo bin."""
         with self._h.lock:
             if self._h.history_index <= 0:
@@ -131,7 +133,7 @@ class HistoryManager:
         with self._h.lock:
             return self._redo_count()
 
-    def redo(self):
+    def redo(self) -> None:
         """Redo the changes in the next undo bin."""
         with self._h.lock:
             if not self._h.has_redo:
@@ -141,7 +143,7 @@ class HistoryManager:
                 resource.index += 1
             self._h.has_redo = bool(self._redo_count())
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset to the factory state."""
         self._h.reset()
 
@@ -149,11 +151,16 @@ class HistoryManager:
 class HistoryManagerLayer(Generic[ResourceIdT]):
     __slots__ = ("_h", "_uuid", "_resources")
 
-    def __init__(self, _h: HistoryManagerPrivate):
+    _h: HistoryManagerPrivate
+    _uuid: bytes
+    _resources: dict[ResourceIdT, Resource]
+
+    def __init__(self, _h: HistoryManagerPrivate) -> None:
         self._h = _h
         self._uuid = uuid4().bytes
-        self._resources: dict[ResourceIdT, Resource] = {}
-        self._h.resources[self._uuid] = self._resources
+        self._resources = {}
+        # TODO https://github.com/python/mypy/issues/16459
+        self._h.resources[self._uuid] = self._resources  # type: ignore
 
     def resources(self) -> Sequence[ResourceIdT]:
         """
@@ -221,7 +228,7 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
             else:
                 return b""
 
-    def set_initial_resource(self, resource_id: ResourceIdT, data: bytes):
+    def set_initial_resource(self, resource_id: ResourceIdT, data: bytes) -> None:
         """
         Set the data for the resource.
         This can only be used if the resource does not already exist.
@@ -239,7 +246,7 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
             # Store a flag if it exists
             resource.exists[resource.index] = bool(data)
 
-    def set_resource(self, resource_id: ResourceIdT, data: bytes):
+    def set_resource(self, resource_id: ResourceIdT, data: bytes) -> None:
         """
         Set the data for the resource.
         :param resource_id: The resource identifier

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import shutil
-from typing import Optional, Callable
+from typing import Optional, Callable, cast
 from threading import Lock
 import os
 from weakref import ref
@@ -17,7 +17,7 @@ class DiskCache:
     The disk component is a leveldb database.
     """
 
-    def __init__(self, path: str, max_size: int):
+    def __init__(self, path: str, max_size: int) -> None:
         """
         Create a new DiskCache
         :param path: The path to save the disk component to.
@@ -31,7 +31,7 @@ class DiskCache:
         self._max_size: int = max_size
         self._size: int = 0
 
-    def __del__(self):
+    def __del__(self) -> None:
         self._disk.close()
         shutil.rmtree(self._path, ignore_errors=True)
 
@@ -40,32 +40,32 @@ class DiskCache:
         return self._max_size
 
     @max_size.setter
-    def max_size(self, max_size: int):
+    def max_size(self, max_size: int) -> None:
         if not isinstance(max_size, int):
             raise TypeError
         with self._lock:
             self._max_size = max_size
             self._free()
 
-    def __setitem__(self, key: bytes, value: bytes):
+    def __setitem__(self, key: bytes, value: bytes) -> None:
         with self._lock:
             self._remove(key)
             self._ram[key] = (value, True)
             self._size += len(value)
             self._free()
 
-    def _remove(self, key: bytes):
+    def _remove(self, key: bytes) -> None:
         if key in self._ram:
             data = self._ram.pop(key)[0]
             self._size -= len(data)
 
-    def __delitem__(self, key: bytes):
+    def __delitem__(self, key: bytes) -> None:
         with self._lock:
             self._remove(key)
             if key in self._disk:
                 del self._disk[key]
 
-    def _free(self):
+    def _free(self) -> None:
         """Push some values to disk"""
         if self._size > self._max_size:
             keys = iter(self._ram.copy())
@@ -94,7 +94,7 @@ class DiskCache:
 
 
 class GlobalDiskCache(DiskCache):
-    _instance_ref: Callable[[], Optional[GlobalDiskCache]] = lambda: None
+    _instance_ref: Callable[[], Optional[GlobalDiskCache]] = cast(Callable[[], Optional["GlobalDiskCache"]], lambda: None)
     _cache_size = 100_000_000
 
     @classmethod
@@ -110,7 +110,7 @@ class GlobalDiskCache(DiskCache):
         return instance
 
     @classmethod
-    def cache_size(cls):
+    def cache_size(cls) -> int:
         instance: Optional[GlobalDiskCache] = cls._instance_ref()
         if instance is None:
             return cls._cache_size
@@ -118,12 +118,12 @@ class GlobalDiskCache(DiskCache):
             return instance.max_size
 
     @classmethod
-    def set_cache_size(cls, size: int):
+    def set_cache_size(cls, size: int) -> None:
         instance: Optional[GlobalDiskCache] = cls._instance_ref()
         cls._cache_size = size
         if instance is not None:
             instance.max_size = size
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._temp_dir = TempDir()
         super().__init__(os.path.join(self._temp_dir, "history_db"), 100_000_000)

@@ -34,7 +34,7 @@ class LoadableLevel(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def reload(self):
+    def reload(self) -> None:
         """
         Reload the metadata in the existing instance.
         This can only be done when the level is not open.

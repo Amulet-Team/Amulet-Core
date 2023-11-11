@@ -14,21 +14,21 @@ if TYPE_CHECKING:
 class StringArg:
     """A string argument"""
 
-    def __init__(self, default: str = ""):
+    def __init__(self, default: str = "") -> None:
         self.default = default
 
 
 class BytesArg:
     """A bytes argument"""
 
-    def __init__(self, default: bytes = b""):
+    def __init__(self, default: bytes = b"") -> None:
         self.default = default
 
 
 class BoolArg:
     """A bool argument"""
 
-    def __init__(self, default: bool = False):
+    def __init__(self, default: bool = False) -> None:
         self.default = default
 
 
@@ -40,7 +40,7 @@ class IntArg:
         default: int = 0,
         min_value: Optional[int] = None,
         max_value: Optional[int] = None,
-    ):
+    ) -> None:
         self.default = default
         self.min_value = min_value
         self.max_value = max_value
@@ -54,7 +54,7 @@ class FloatArg:
         default: float = 0,
         min_value: Optional[float] = None,
         max_value: Optional[float] = None,
-    ):
+    ) -> None:
         self.default = default
         self.min_value = min_value
         self.max_value = max_value
@@ -66,7 +66,7 @@ class SequenceArg:
     Each element must match element_type
     """
 
-    def __init__(self, element_type: CreateArgsT, length: Optional[int] = None):
+    def __init__(self, element_type: CreateArgsT, length: Optional[int] = None) -> None:
         self.element_type = element_type
         self.length = length
 
@@ -74,14 +74,14 @@ class SequenceArg:
 class UnionArg:
     """The object must match one of the types in args"""
 
-    def __init__(self, *args: CreateArgsT):
+    def __init__(self, *args: CreateArgsT) -> None:
         self.args = args
 
 
 class ProtocolArg:
     """The object must have attributes matching those defined in kwargs"""
 
-    def __init__(self, **kwargs: CreateArgsT):
+    def __init__(self, **kwargs: CreateArgsT) -> None:
         self.kwargs = kwargs
 
 

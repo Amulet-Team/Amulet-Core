@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional, TypeVar, Callable, Type, Generic
+from typing import TYPE_CHECKING, Optional, TypeVar, Callable, Type, Generic, Iterator
 from contextlib import contextmanager, AbstractContextManager as ContextManager
 import os
 import logging
@@ -56,7 +56,7 @@ class LevelPrivate(Generic[LevelT]):
     opened = Signal()
     closed = Signal()
 
-    def __init__(self, level: Level):
+    def __init__(self, level: Level) -> None:
         self._level = ref(level)
         self._history_manager = None
 
@@ -73,19 +73,19 @@ class LevelPrivate(Generic[LevelT]):
         return level
 
     @final
-    def open(self):
+    def open(self) -> None:
         self._open()
         self.opened.emit()
 
-    def _open(self):
+    def _open(self) -> None:
         self._history_manager = HistoryManager()
 
     @final
-    def close(self):
+    def close(self) -> None:
         self.closed.emit()
         self._close()
 
-    def _close(self):
+    def _close(self) -> None:
         self._history_manager = None
 
     @property
@@ -100,7 +100,7 @@ class LevelFriend(Generic[LevelPrivateT]):
 
     __slots__ = ("_l",)
 
-    def __init__(self, level_data: LevelPrivateT):
+    def __init__(self, level_data: LevelPrivateT) -> None:
         self._l = level_data
 
 
@@ -120,7 +120,7 @@ class Level(LevelFriend[LevelPrivateT], ABC):
         "_translator",
     )
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         This cannot be called directly.
         You must use one of the constructor classmethods
@@ -139,13 +139,13 @@ class Level(LevelFriend[LevelPrivateT], ABC):
     def _instance_data(self) -> LevelPrivateT:
         raise NotImplementedError
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.close()
 
     opened = Signal()
 
     @final
-    def open(self):
+    def open(self) -> None:
         """
         Open the level.
         If the level is already open, this does nothing.
@@ -159,7 +159,7 @@ class Level(LevelFriend[LevelPrivateT], ABC):
         self.opened.emit()
 
     @abstractmethod
-    def _open(self):
+    def _open(self) -> None:
         raise NotImplementedError
 
     @final
@@ -174,13 +174,13 @@ class Level(LevelFriend[LevelPrivateT], ABC):
     external_changed = Signal()
 
     @abstractmethod
-    def save(self):
+    def save(self) -> None:
         raise NotImplementedError
 
     # Signal to notify all listeners that the data they hold is no longer valid
     purged = Signal()
 
-    def purge(self):
+    def purge(self) -> None:
         """
         Unload all loaded data.
         This is a nuclear function and must be used with :meth:`lock`
@@ -195,7 +195,7 @@ class Level(LevelFriend[LevelPrivateT], ABC):
     closed = Signal()
 
     @final
-    def close(self):
+    def close(self) -> None:
         """
         Close the level.
         If the level is not open, this does nothing.
@@ -211,7 +211,7 @@ class Level(LevelFriend[LevelPrivateT], ABC):
             self._l.close()
 
     @abstractmethod
-    def _close(self):
+    def _close(self) -> None:
         raise NotImplementedError
 
     @property
@@ -231,18 +231,18 @@ class Level(LevelFriend[LevelPrivateT], ABC):
     def undo_count(self) -> int:
         return self._l.history_manager.undo_count
 
-    def undo(self):
+    def undo(self) -> None:
         self._l.history_manager.undo()
 
     @property
     def redo_count(self) -> int:
         return self._l.history_manager.redo_count
 
-    def redo(self):
+    def redo(self) -> None:
         self._l.history_manager.redo()
 
     @contextmanager
-    def _lock(self, *, edit: bool, parallel: bool, blocking: bool, timeout: float):
+    def _lock(self, *, edit: bool, parallel: bool, blocking: bool, timeout: float) -> Iterator[None]:
         if parallel:
             lock = self._level_lock.shared(blocking, timeout)
         else:
@@ -335,7 +335,7 @@ class Level(LevelFriend[LevelPrivateT], ABC):
         return self._history_enabled
 
     @history_enabled.setter
-    def history_enabled(self, history_enabled: bool):
+    def history_enabled(self, history_enabled: bool) -> None:
         self._history_enabled = history_enabled
         self.history_enabled_changed.emit()
 
