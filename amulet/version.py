@@ -1,7 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TypeVar, Generic, Any
-from collections.abc import Container
 
 
 class AbstractVersion(ABC):
