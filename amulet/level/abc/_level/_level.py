@@ -14,7 +14,7 @@ import PyMCTranslate
 from PyMCTranslate import TranslationManager
 
 from amulet import IMG_DIRECTORY
-from amulet.version import AbstractVersion
+from amulet.version import VersionT
 from amulet.api.data_types import DimensionID, PlatformType
 
 from amulet.chunk import Chunk
@@ -106,7 +106,7 @@ class LevelFriend(Generic[LevelPrivateT]):
         self._l = level_data
 
 
-class Level(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, DimensionT, RawLevelT], ABC):
+class Level(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, DimensionT, VersionT, RawLevelT], ABC):
     """Base class for all levels."""
 
     _level_lock: ShareableRLock
@@ -223,7 +223,7 @@ class Level(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, DimensionT, RawLe
 
     @property
     @abstractmethod
-    def max_game_version(self) -> AbstractVersion:
+    def max_game_version(self) -> VersionT:
         raise NotImplementedError
 
     # Emitted when the undo or redo count has changed
