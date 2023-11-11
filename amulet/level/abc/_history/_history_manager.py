@@ -178,7 +178,7 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
         with self._h.lock:
             return [
                 resource_id
-                for resource_id, resource in self._resources
+                for resource_id, resource in self._resources.items()
                 if resource.saved_index != resource.index
             ]
 
@@ -190,7 +190,7 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
         with self._h.lock:
             return {
                 resource_id: resource.exists[resource.index]
-                for resource_id, resource in self._resources
+                for resource_id, resource in self._resources.items()
             }
 
     def has_resource(self, resource_id: ResourceIdT) -> bool:
