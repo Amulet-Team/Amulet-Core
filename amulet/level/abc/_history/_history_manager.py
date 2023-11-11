@@ -45,12 +45,17 @@ class Resource:
 
 
 class HistoryManagerPrivate:
+    lock: Lock
+    resources: WeakValueDictionary[bytes, dict[ResourceId, Resource]]
+    history: list[WeakSet[Resource]]
+    history_index: int
+    has_redo: bool
+    cache: GlobalDiskCache
+
     def __init__(self) -> None:
         self.lock = Lock()
-        self.resources: WeakValueDictionary[
-            bytes, dict[ResourceId, Resource]
-        ] = WeakValueDictionary()
-        self.history: list[WeakSet[Resource]] = [WeakSet()]
+        self.resources = WeakValueDictionary()
+        self.history = [WeakSet()]
         self.history_index = 0
         self.has_redo = False
         self.cache = GlobalDiskCache.instance()
@@ -87,7 +92,14 @@ class HistoryManager:
         self._h = HistoryManagerPrivate()
 
     def new_layer(self) -> HistoryManagerLayer:
-        return HistoryManagerLayer(self._h)
+        uuid = uuid4().bytes
+        resources: dict[ResourceId, Resource] = {}
+        self._h.resources[uuid] = resources
+        return HistoryManagerLayer(
+            self._h,
+            uuid,
+            resources
+        )
 
     history_changed = Signal()
 
@@ -155,12 +167,11 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
     _uuid: bytes
     _resources: dict[ResourceIdT, Resource]
 
-    def __init__(self, _h: HistoryManagerPrivate) -> None:
+    def __init__(self, _h: HistoryManagerPrivate, uuid: bytes, resources: dict[ResourceIdT, Resource]) -> None:
+        """This must not be used directly."""
         self._h = _h
-        self._uuid = uuid4().bytes
-        self._resources = {}
-        # TODO https://github.com/python/mypy/issues/16459
-        self._h.resources[self._uuid] = self._resources  # type: ignore
+        self._uuid = uuid
+        self._resources = resources
 
     def resources(self) -> Sequence[ResourceIdT]:
         """
