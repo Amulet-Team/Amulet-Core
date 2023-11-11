@@ -88,6 +88,7 @@ class DiskCache:
                 self._ram[key] = (data, False)
                 self._size += len(data)
                 self._free()
+                return data
             else:
                 raise KeyError
 
