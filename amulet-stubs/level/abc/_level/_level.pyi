@@ -12,7 +12,7 @@ from amulet.level.abc._player_storage import PlayerStorage as PlayerStorage
 from amulet.level.abc._raw_level import RawLevel as RawLevel
 from amulet.utils.shareable_lock import ShareableRLock as ShareableRLock
 from amulet.utils.signal import Signal as Signal, SignalInstanceCacheName as SignalInstanceCacheName
-from amulet.version import AbstractVersion as AbstractVersion
+from amulet.version import VersionT as VersionT
 from contextlib import AbstractContextManager as ContextManager
 from runtime_final import final as final
 from typing import Callable, Generic, Iterator, Optional, Type, TypeVar
@@ -23,6 +23,7 @@ missing_world_icon: Optional[Image.Image]
 LevelPrivateT = TypeVar('LevelPrivateT', bound='LevelPrivate')
 LevelT = TypeVar('LevelT', bound='Level')
 RawLevelT = TypeVar('RawLevelT', bound='RawLevel')
+DimensionT = TypeVar('DimensionT', bound='Dimension')
 
 class LevelPrivate(Generic[LevelT]):
     """Private data and methods that friends of BaseLevel can use."""
@@ -50,7 +51,7 @@ class LevelFriend(Generic[LevelPrivateT]):
     __slots__: Incomplete
     def __init__(self, level_data: LevelPrivateT) -> None: ...
 
-class Level(LevelFriend[LevelPrivateT], ABC, Generic[LevelPrivateT, RawLevelT], metaclass=abc.ABCMeta):
+class Level(LevelFriend[LevelPrivateT], ABC, Generic[LevelPrivateT, DimensionT, VersionT, RawLevelT], metaclass=abc.ABCMeta):
     """Base class for all levels."""
     _level_lock: ShareableRLock
     _is_open: bool
@@ -101,7 +102,7 @@ class Level(LevelFriend[LevelPrivateT], ABC, Generic[LevelPrivateT, RawLevelT], 
     def platform(self) -> PlatformType: ...
     @property
     @abstractmethod
-    def max_game_version(self) -> AbstractVersion: ...
+    def max_game_version(self) -> VersionT: ...
     history_changed: Incomplete
     @property
     def undo_count(self) -> int: ...
@@ -189,7 +190,7 @@ class Level(LevelFriend[LevelPrivateT], ABC, Generic[LevelPrivateT, RawLevelT], 
     @abstractmethod
     def dimensions(self) -> frozenset[DimensionID]: ...
     @abstractmethod
-    def get_dimension(self, dimension: DimensionID) -> Dimension: ...
+    def get_dimension(self, dimension: DimensionID) -> DimensionT: ...
     @property
     @abstractmethod
     def raw(self) -> RawLevelT:

@@ -13,13 +13,14 @@ from typing import Generic, TypeVar
 from weakref import WeakValueDictionary
 
 ChunkHandleT = TypeVar('ChunkHandleT', bound=ChunkHandle)
+RawDimensionT = TypeVar('RawDimensionT', bound=RawDimension)
 
-class Dimension(LevelFriend[LevelPrivateT], ABC, Generic[LevelPrivateT, ChunkHandleT], metaclass=abc.ABCMeta):
+class Dimension(LevelFriend[LevelPrivateT], ABC, Generic[LevelPrivateT, RawDimensionT, ChunkHandleT], metaclass=abc.ABCMeta):
     _dimension: DimensionID
     _chunk_handles: WeakValueDictionary[tuple[int, int], ChunkHandleT]
     _chunk_handle_lock: Lock
     _chunk_history: HistoryManagerLayer[ChunkKey]
-    _raw: RawDimension
+    _raw: RawDimensionT
     def __init__(self, level_data: LevelPrivateT, dimension: DimensionID) -> None: ...
     @property
     def dimension(self) -> DimensionID: ...

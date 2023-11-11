@@ -1,7 +1,6 @@
 import abc
 from _typeshed import Incomplete
 from abc import ABC, abstractmethod
-from collections.abc import Container
 from typing import Any, Generic, TypeVar
 
 class AbstractVersion(ABC, metaclass=abc.ABCMeta):
@@ -63,7 +62,7 @@ class VersionContainer:
         """
 VersionT = TypeVar('VersionT', bound=AbstractVersion)
 
-class VersionRange(Container[VersionT], Generic[VersionT]):
+class VersionRange(Generic[VersionT]):
     _min: Incomplete
     _max: Incomplete
     def __init__(self, min_version: VersionT, max_version: VersionT) -> None: ...
