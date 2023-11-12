@@ -24,7 +24,7 @@ class Biome3DComponent:
         return self.__biomes
 
     @biome.setter
-    def set_biome(
+    def _set_biome(
         self,
         sections: Iterable[tuple[int, ArrayLike]],
     ) -> None:
@@ -62,7 +62,7 @@ class Biome2DComponent:
         return self.__biomes
 
     @biome.setter
-    def set_biome(
+    def _set_biome(
         self,
         array: Union[int, ArrayLike],
     ) -> None:

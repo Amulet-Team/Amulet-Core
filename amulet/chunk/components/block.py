@@ -23,7 +23,7 @@ class BlockComponent:
         return self.__blocks
 
     @block.setter
-    def set_block(
+    def _set_block(
         self,
         sections: Iterable[tuple[int, ArrayLike]],
     ) -> None:

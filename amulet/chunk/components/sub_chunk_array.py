@@ -37,7 +37,7 @@ class SubChunkArrayContainer(MutableMapping[int, numpy.ndarray]):
         return self._default_array
 
     @default_array.setter
-    def set_default_array(self, default_array: Union[int, ArrayLike]) -> None:
+    def _set_default_array(self, default_array: Union[int, ArrayLike]) -> None:
         if isinstance(default_array, int):
             self._default_array = default_array
         else:

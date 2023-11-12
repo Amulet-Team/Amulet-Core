@@ -46,7 +46,7 @@ class EntityComponent:
         return self.__entity
 
     @entity.setter
-    def set_entity(
+    def _set_entity(
         self,
         entities: Iterable[Entity],
     ) -> None:

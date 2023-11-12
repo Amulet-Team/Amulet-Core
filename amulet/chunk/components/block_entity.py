@@ -91,7 +91,7 @@ class BlockEntityComponent:
         return self.__block_entity
 
     @block_entity.setter
-    def set_block_entity(
+    def _set_block_entity(
         self,
         block_entities: Iterable[tuple[BlockCoordinates, BlockEntity]],
     ) -> None:
