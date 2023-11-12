@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from typing import Tuple, Union
+from typing import Tuple, Union, Any
 from amulet_nbt import NamedTag
 from amulet.version import AbstractVersion, VersionContainer
 from amulet.api.data_types import PointCoordinates
+from amulet.utils.typed_property import TypedProperty
 
 
 class Entity(VersionContainer):
@@ -29,7 +30,7 @@ class Entity(VersionContainer):
         y: float,
         z: float,
         nbt: NamedTag,
-    ):
+    ) -> None:
         """
         Constructs a :class:`Entity` instance.
 
@@ -50,7 +51,7 @@ class Entity(VersionContainer):
             raise TypeError(f"nbt must be an NamedTag. Got {nbt}")
         self._nbt = nbt
 
-    def _data(self):
+    def _data(self) -> tuple:
         return (
             self.version,
             self._namespace,
@@ -61,15 +62,15 @@ class Entity(VersionContainer):
             self._nbt,
         )
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Entity):
             return NotImplemented
         return self._data() == other._data()
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return id(self)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Entity({self.version!r}, {self._namespace!r}, {self._base_name!r}, {self._x}, {self._y}, {self._z}, {self._nbt!r})"
 
     @property
@@ -93,7 +94,7 @@ class Entity(VersionContainer):
         return self._namespace
 
     @namespace.setter
-    def namespace(self, value: str):
+    def namespace(self, value: str) -> None:
         self._namespace = value
 
     @property
@@ -106,7 +107,7 @@ class Entity(VersionContainer):
         return self._base_name
 
     @base_name.setter
-    def base_name(self, value: str):
+    def base_name(self, value: str) -> None:
         self._base_name = value
 
     @property
@@ -115,8 +116,8 @@ class Entity(VersionContainer):
         return self._x
 
     @x.setter
-    def x(self, value: float):
-        self._x = value
+    def x(self, value: float) -> None:
+        self._x = float(value)
 
     @property
     def y(self) -> float:
@@ -124,8 +125,8 @@ class Entity(VersionContainer):
         return self._y
 
     @y.setter
-    def y(self, value: float):
-        self._y = value
+    def y(self, value: float) -> None:
+        self._y = float(value)
 
     @property
     def z(self) -> float:
@@ -133,8 +134,8 @@ class Entity(VersionContainer):
         return self._z
 
     @z.setter
-    def z(self, value: float):
-        self._z = value
+    def z(self, value: float) -> None:
+        self._z = float(value)
 
     @property
     def location(self) -> PointCoordinates:
@@ -143,9 +144,9 @@ class Entity(VersionContainer):
 
     @location.setter
     def location(
-        self, location: Tuple[Union[int, float], Union[int, float], Union[int, float]]
-    ):
-        self._x, self._y, self._z = location
+        self, location: PointCoordinates
+    ) -> None:
+        self.x, self.y, self.z = location
 
     @property
     def nbt(self) -> NamedTag:
@@ -160,7 +161,7 @@ class Entity(VersionContainer):
         return self._nbt
 
     @nbt.setter
-    def nbt(self, value: NamedTag):
+    def nbt(self, value: NamedTag) -> None:
         if not isinstance(value, NamedTag):
             raise TypeError
         self._nbt = value

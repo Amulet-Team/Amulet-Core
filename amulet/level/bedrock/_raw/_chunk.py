@@ -10,7 +10,7 @@ class BedrockRawChunk:
         chunk_data: Union[dict[bytes, bytes], Iterable[tuple[bytes, bytes]]] = (),
         entity_actor: Iterable[NamedTag] = (),
         unknown_actor: Iterable[NamedTag] = (),
-    ):
+    ) -> None:
         self._keys = frozenset(chunk_keys)
         self._chunk_data = dict(chunk_data)
         self._entity_actor = list(entity_actor)

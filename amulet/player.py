@@ -14,7 +14,7 @@ class Player:
         dimension: str,
         location: Tuple[float, float, float],
         rotation: Tuple[float, float],
-    ):
+    ) -> None:
         """
         Creates a new instance of :class:`Player` with the given UUID, location, and rotation
 
@@ -40,7 +40,7 @@ class Player:
         self._rotation = rotation
         self._dimension = dimension
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Player({self.player_id}, {self.dimension}, {self.location}, {self.rotation})"
 
     @property

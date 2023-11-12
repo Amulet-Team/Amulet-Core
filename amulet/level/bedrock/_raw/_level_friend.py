@@ -9,5 +9,5 @@ class BedrockRawLevelFriend:
 
     __slots__ = ("_r",)
 
-    def __init__(self, raw_data: BedrockRawLevelPrivate):
+    def __init__(self, raw_data: BedrockRawLevelPrivate) -> None:
         self._r = raw_data

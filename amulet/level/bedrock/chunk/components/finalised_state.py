@@ -1,5 +1,5 @@
 class FinalisedStateComponent:
-    def __init__(self):
+    def __init__(self) -> None:
         self.__finalised_state = 2
 
     @property
@@ -10,7 +10,7 @@ class FinalisedStateComponent:
     def finalised_state(
         self,
         finalised_state: int,
-    ):
+    ) -> None:
         if not isinstance(finalised_state, int):
             raise TypeError
         if finalised_state < 0:

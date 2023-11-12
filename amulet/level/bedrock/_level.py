@@ -36,7 +36,7 @@ class BedrockLevelPrivate(LevelPrivate):
     level: BedrockLevel
     reloaded = Signal()
 
-    def __init__(self, level: BedrockLevel):
+    def __init__(self, level: BedrockLevel) -> None:
         super().__init__(level)
         self.path = None
 
@@ -49,7 +49,7 @@ class BedrockLevel(
 
     __slots__ = ()
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._raw_level = BedrockRawLevel(self._l)
         self._dimensions = {}
@@ -111,7 +111,7 @@ class BedrockLevel(
         self._l.reloaded.emit()
         return self
 
-    def reload(self):
+    def reload(self) -> None:
         """
         Reload the level metadata inplace.
         The level must be closed when this is called.
@@ -120,10 +120,10 @@ class BedrockLevel(
             raise RuntimeError("Cannot reload a level when it is open.")
         self._l.reloaded.emit()
 
-    def _open(self):
+    def _open(self) -> None:
         pass
 
-    def _close(self):
+    def _close(self) -> None:
         self._dimensions.clear()
 
     @property
@@ -175,5 +175,5 @@ class BedrockLevel(
     def player(self) -> PlayerStorage:
         raise NotImplementedError
 
-    def compact(self):
+    def compact(self) -> None:
         self.raw.level_db.compact()

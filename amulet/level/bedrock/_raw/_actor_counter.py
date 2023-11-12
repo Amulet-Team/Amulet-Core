@@ -14,13 +14,13 @@ class ActorCounter:
     _session: int
     _count: int
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._lock = RLock()
         self._session = -1
         self._count = 0
 
     @classmethod
-    def from_level(cls, raw: BedrockRawLevel):
+    def from_level(cls, raw: BedrockRawLevel) -> ActorCounter:
         level_dat = raw.level_dat
         session = level_dat.compound.get_long(
             "worldStartCount", LongTag(0xFFFFFFFF)

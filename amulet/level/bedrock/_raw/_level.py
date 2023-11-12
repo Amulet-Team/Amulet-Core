@@ -57,7 +57,7 @@ class BedrockRawLevelPrivate:
 
     __slots__ = tuple(__annotations__)
 
-    def __init__(self, raw: BedrockRawLevel):
+    def __init__(self, raw: BedrockRawLevel) -> None:
         self._raw_ref = ref(raw)
         self.lock = RLock()
         self.closed = False
@@ -84,19 +84,19 @@ class BedrockRawLevel(
 
     __slots__ = tuple(__annotations__)
 
-    def __init__(self, level_data: BedrockLevelPrivate):
+    def __init__(self, level_data: BedrockLevelPrivate) -> None:
         super().__init__(level_data)
         self._r = None
         self._l.opened.connect(self._open)
         self._l.closed.connect(self._close)
         self._l.reloaded.connect(self._reload)
 
-    def _reload(self):
+    def _reload(self) -> None:
         self.level_dat = BedrockLevelDAT.from_file(
             os.path.join(self._l.path, "level.dat")
         )
 
-    def _open(self):
+    def _open(self) -> None:
         self._r = BedrockRawLevelPrivate()
         self._r.db = LevelDB(os.path.join(self._l.level.path, "db"))
         # TODO: implement error handling and level closing if the db errors
@@ -118,7 +118,7 @@ class BedrockRawLevel(
         #         raise e
         self._r.actor_counter = ActorCounter.from_level(self)
 
-    def _close(self):
+    def _close(self) -> None:
         self._r.closed = True
         self._r.db.close()
         self._r = None
@@ -139,7 +139,7 @@ class BedrockRawLevel(
         return copy.deepcopy(self.level_dat)
 
     @level_dat.setter
-    def level_dat(self, level_dat: BedrockLevelDAT):
+    def level_dat(self, level_dat: BedrockLevelDAT) -> None:
         if not isinstance(level_dat, BedrockLevelDAT):
             raise TypeError
         self.level_dat = level_dat = copy.deepcopy(level_dat)
@@ -169,7 +169,7 @@ class BedrockRawLevel(
         except Exception:
             return 0
 
-    def _find_dimensions(self):
+    def _find_dimensions(self) -> None:
         if self._r is None:
             raise RuntimeError("Level is not open")
         if self._r.dimensions:
@@ -272,7 +272,7 @@ class BedrockRawLevel(
 
             def register_dimension(
                 dimension: InternalDimension, alias: Optional[str] = None
-            ):
+            ) -> None:
                 """
                 Register a new dimension.
 
@@ -344,5 +344,5 @@ class BedrockRawLevel(
             string_decoder=utf8_escape_decoder,
         )
 
-    def set_raw_player(self, player_id: PlayerID, player: RawPlayer):
+    def set_raw_player(self, player_id: PlayerID, player: RawPlayer) -> None:
         raise NotImplementedError

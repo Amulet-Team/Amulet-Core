@@ -47,7 +47,7 @@ class BedrockRawDimension(
         internal_dimension: InternalDimension,
         alias: DimensionID,
         bounds: SelectionGroup,
-    ):
+    ) -> None:
         super().__init__(raw_data)
         self._internal_dimension = internal_dimension
         self._alias = alias
@@ -107,7 +107,7 @@ class BedrockRawDimension(
         key = self._chunk_prefix(cx, cz)
         return any(key + tag in self._r.db for tag in (b",", b"v"))
 
-    def delete_chunk(self, cx: int, cz: int):
+    def delete_chunk(self, cx: int, cz: int) -> None:
         if self._r.closed:
             raise RuntimeError("Level is not open")
         if not self.has_chunk(cx, cz):
@@ -238,7 +238,7 @@ class BedrockRawDimension(
 
         return chunk_data
 
-    def set_raw_chunk(self, cx: int, cz: int, chunk: BedrockRawChunk):
+    def set_raw_chunk(self, cx: int, cz: int, chunk: BedrockRawChunk) -> None:
         """
         Set the raw data for a chunk
         :param cx: The chunk x coordinate
@@ -266,7 +266,7 @@ class BedrockRawDimension(
 
             digp = []
 
-            def add_actor(actor: NamedTag, is_entity: bool):
+            def add_actor(actor: NamedTag, is_entity: bool) -> None:
                 if not (
                     isinstance(actor, NamedTag) and isinstance(actor.tag, CompoundTag)
                 ):

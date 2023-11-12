@@ -28,7 +28,7 @@ class BedrockChunk0(
     FinalisedStateComponent,
     Height2DComponent,
 ):
-    def __init__(self, max_version: SemanticVersion):
+    def __init__(self, max_version: SemanticVersion) -> None:
         version_range = VersionRange(
             SemanticVersion("bedrock", (1, 0, 0)),
             max_version,
@@ -52,7 +52,7 @@ class BedrockChunk29(
     FinalisedStateComponent,
     Height2DComponent,
 ):
-    def __init__(self, max_version: SemanticVersion):
+    def __init__(self, max_version: SemanticVersion) -> None:
         version_range = VersionRange(
             SemanticVersion("bedrock", (1, 0, 0)),
             max_version,

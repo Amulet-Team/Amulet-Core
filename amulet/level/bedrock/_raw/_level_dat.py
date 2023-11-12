@@ -18,7 +18,7 @@ from amulet.api.errors import (
 class BedrockLevelDAT(NamedTag):
     _level_dat_version: int
 
-    def __init__(self, tag=None, name: str = "", level_dat_version: int = None):
+    def __init__(self, tag=None, name: str = "", level_dat_version: int = None) -> None:
         if not isinstance(level_dat_version, int):
             raise TypeError(
                 "path and level_dat_version must be specified when constructing a BedrockLevelDAT instance."
@@ -27,7 +27,7 @@ class BedrockLevelDAT(NamedTag):
         self._level_dat_version = level_dat_version
 
     @classmethod
-    def from_file(cls, path: str):
+    def from_file(cls, path: str) -> BedrockLevelDAT:
         with open(path, "rb") as f:
             level_dat_version = struct.unpack("<i", f.read(4))[0]
             if 4 <= level_dat_version <= 10:
