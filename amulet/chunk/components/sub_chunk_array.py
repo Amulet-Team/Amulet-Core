@@ -4,20 +4,25 @@ from collections.abc import MutableMapping
 from typing import Iterator, Union, Iterable
 
 import numpy
-from numpy.typing import ArrayLike
+from numpy.typing import ArrayLike, NDArray
+
+from amulet.utils.typed_property import TypedProperty
 
 
 class SubChunkArrayContainer(MutableMapping[int, numpy.ndarray]):
     """A container of sub-chunk arrays"""
 
+    _default_array: Union[int, numpy.ndarray]
+    _arrays: dict[int, numpy.ndarray]
+
     def __init__(
         self,
         array_shape: tuple[int, int, int],
         default_array: Union[int, ArrayLike],
-        arrays: Iterable[int, ArrayLike] = (),
-    ):
+        arrays: Iterable[tuple[int, ArrayLike]] = (),
+    ) -> None:
         self._shape = array_shape
-        self.default_array = default_array
+        self.set_default_array(default_array)
 
         self._arrays = {}
         for cy, array in arrays:
@@ -27,18 +32,18 @@ class SubChunkArrayContainer(MutableMapping[int, numpy.ndarray]):
     def array_shape(self) -> tuple[int, int, int]:
         return self._shape
 
-    @property
-    def default_array(self) -> Union[int, numpy.ndarray]:
+    @TypedProperty[Union[int, NDArray], Union[int, ArrayLike]]
+    def default_array(self) -> Union[int, NDArray]:
         return self._default_array
 
     @default_array.setter
-    def default_array(self, default_array: Union[int, ArrayLike]):
+    def set_default_array(self, default_array: Union[int, ArrayLike]) -> None:
         if isinstance(default_array, int):
             self._default_array = default_array
         else:
             self._default_array = self._cast_array(default_array)
 
-    def _cast_array(self, array) -> numpy.ndarray:
+    def _cast_array(self, array: ArrayLike) -> numpy.ndarray:
         array = numpy.asarray(array)
         if not isinstance(array, numpy.ndarray):
             raise TypeError
@@ -46,7 +51,7 @@ class SubChunkArrayContainer(MutableMapping[int, numpy.ndarray]):
             raise ValueError
         return array
 
-    def populate(self, cy: int):
+    def populate(self, cy: int) -> None:
         """Populate the section from the default array."""
         if cy in self._arrays:
             return
@@ -57,7 +62,7 @@ class SubChunkArrayContainer(MutableMapping[int, numpy.ndarray]):
             arr = numpy.array(default_array, dtype=numpy.uint32)
         self[cy] = arr
 
-    def __setitem__(self, cy: int, array: ArrayLike):
+    def __setitem__(self, cy: int, array: ArrayLike) -> None:
         if not isinstance(cy, int):
             raise TypeError
         self._arrays[cy] = self._cast_array(array)

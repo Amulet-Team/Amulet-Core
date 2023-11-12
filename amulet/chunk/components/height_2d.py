@@ -1,12 +1,15 @@
+from typing import Optional
 import numpy
 
 
 class Height2DComponent:
-    def __init__(self):
+    __height: Optional[numpy.ndarray]
+
+    def __init__(self) -> None:
         self.__height = None
 
     @property
-    def height(self) -> int:
+    def height(self) -> numpy.ndarray:
         if self.__height is None:
             self.__height = numpy.zeros((16, 16), dtype=numpy.int64)
         return self.__height
@@ -15,7 +18,7 @@ class Height2DComponent:
     def height(
         self,
         height: numpy.ndarray,
-    ):
+    ) -> None:
         height = numpy.asarray(height)
         if not isinstance(height, numpy.ndarray):
             raise TypeError

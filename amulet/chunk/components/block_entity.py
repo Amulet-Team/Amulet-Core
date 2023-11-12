@@ -5,6 +5,7 @@ from typing import Iterable, Iterator
 from amulet.api.data_types import BlockCoordinates
 from amulet.block_entity import BlockEntity
 from amulet.version import VersionRange, VersionRangeContainer
+from amulet.utils.typed_property import TypedProperty
 
 
 class BlockEntityContainer(
@@ -15,14 +16,16 @@ class BlockEntityContainer(
     under the absolute coordinate of the block entity ``Tuple[int, int, int]``
     """
 
+    _block_entities: dict[BlockCoordinates, BlockEntity]
+
     def __init__(
         self,
         version_range: VersionRange,
-    ):
+    ) -> None:
         super().__init__(version_range)
         self._block_entities = {}
 
-    def __setitem__(self, coordinate: BlockCoordinates, block_entity: BlockEntity):
+    def __setitem__(self, coordinate: BlockCoordinates, block_entity: BlockEntity) -> None:
         """
         Set the :class:`BlockEntity` at ``coordinate``.
 
@@ -47,7 +50,7 @@ class BlockEntityContainer(
             )
         self._block_entities[coordinate] = block_entity
 
-    def __delitem__(self, coordinate: BlockCoordinates):
+    def __delitem__(self, coordinate: BlockCoordinates) -> None:
         """
         Remove the :class:`BlockEntity` at ``coordinate``.
 
@@ -80,18 +83,18 @@ class BlockEntityContainer(
 class BlockEntityComponent:
     """A chunk that supports block entities"""
 
-    def __init__(self, version_range: VersionRange):
+    def __init__(self, version_range: VersionRange) -> None:
         self.__block_entity = BlockEntityContainer(version_range)
 
-    @property
+    @TypedProperty[BlockEntityContainer, Iterable[tuple[BlockCoordinates, BlockEntity]]]
     def block_entity(self) -> BlockEntityContainer:
         return self.__block_entity
 
     @block_entity.setter
-    def block_entity(
+    def set_block_entity(
         self,
-        block_entities: Iterable[BlockCoordinates, BlockEntity],
-    ):
+        block_entities: Iterable[tuple[BlockCoordinates, BlockEntity]],
+    ) -> None:
         self.__block_entity.clear()
         for coord, block_entity in block_entities:
             self.__block_entity[coord] = block_entity

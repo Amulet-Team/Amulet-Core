@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TypeVar, Any, Generic, Callable
+from typing import TypeVar, Any, Generic, Callable, overload
 
 GetT = TypeVar("GetT")
 SetT = TypeVar("SetT")
@@ -72,6 +72,14 @@ class TypedProperty(Generic[GetT, SetT]):
 
     def __set_name__(self, owner: Any, name: str) -> None:
         self._name = name
+
+    @overload
+    def __get__(self, obj: Any, objtype: None = None) -> TypedProperty:
+        ...
+
+    @overload
+    def __get__(self, obj: Any, objtype: Any = None) -> GetT:
+        ...
 
     def __get__(self, obj: Any, objtype: Any = None) -> GetT | TypedProperty:
         if obj is None:

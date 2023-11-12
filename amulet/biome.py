@@ -1,3 +1,6 @@
+from __future__ import annotations
+from typing import Any
+
 from amulet.version import AbstractVersion, VersionContainer
 
 
@@ -22,28 +25,28 @@ class Biome(VersionContainer):
         self._namespace = str(namespace)
         self._base_name = str(base_name)
 
-    def _data(self):
+    def _data(self) -> tuple:
         return self.version, self._namespace, self._base_name
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self._data())
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Biome):
             return NotImplemented
         return self._data() == other._data()
 
-    def __gt__(self, other):
+    def __gt__(self, other: Biome) -> bool:
         if not isinstance(other, Biome):
             return NotImplemented
         return hash(self) > hash(other)
 
-    def __lt__(self, other):
+    def __lt__(self, other: Biome) -> bool:
         if not isinstance(other, Biome):
             return NotImplemented
         return hash(self) < hash(other)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Biome({self.version!r}, {self.namespace!r}, {self.base_name!r}, {self.version!r})"
 
     @property

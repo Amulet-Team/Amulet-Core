@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import re
-from typing import Union
+from typing import Union, Self, Callable, cast, Any, overload
 from types import MappingProxyType
 from collections.abc import Iterator, Sequence, Hashable, Mapping
 
-from amulet_nbt import ByteTag, ShortTag, IntTag, LongTag, StringTag, from_snbt
+from amulet_nbt import ByteTag, ShortTag, IntTag, LongTag, StringTag, from_snbt, AnyNBT
 
 from amulet.version import (
     AbstractVersion,
@@ -135,7 +135,7 @@ class Block(VersionContainer):
         self._properties = BlockProperties(properties)
 
     @classmethod
-    def from_string_blockstate(cls, version: AbstractVersion, blockstate: str):
+    def from_string_blockstate(cls, version: AbstractVersion, blockstate: str) -> Self:
         """
         Parse a Java format blockstate where values are all strings and populate a :class:`Block` class with the data.
 
@@ -150,7 +150,7 @@ class Block(VersionContainer):
         return cls(version, namespace, block_name, properties)
 
     @classmethod
-    def from_snbt_blockstate(cls, version: AbstractVersion, blockstate: str):
+    def from_snbt_blockstate(cls, version: AbstractVersion, blockstate: str) -> Self:
         """
         Parse a blockstate where values are SNBT of any type and populate a :class:`Block` class with the data.
         """
@@ -182,9 +182,11 @@ class Block(VersionContainer):
         properties_str = match.group("properties")
         properties = {}
 
+        wrapper: Callable[[str], PropertyValueType]
+
         if snbt:
             pattern = _SNBTPropertiesPattern
-            wrapper = from_snbt
+            wrapper = cast(Callable[[str], PropertyValueType], from_snbt)
         else:
             pattern = _PropertiesPattern
             wrapper = StringTag
@@ -202,28 +204,28 @@ class Block(VersionContainer):
             properties,
         )
 
-    def _data(self):
+    def _data(self) -> tuple:
         return self.version, self._namespace, self._base_name, self._properties
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self._data())
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Block):
             return NotImplemented
         return self._data() == other._data()
 
-    def __gt__(self, other):
+    def __gt__(self, other: Block) -> bool:
         if not isinstance(other, Block):
             return NotImplemented
         return hash(self) > hash(other)
 
-    def __lt__(self, other):
+    def __lt__(self, other: Block) -> bool:
         if not isinstance(other, Block):
             return NotImplemented
         return hash(self) < hash(other)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Block({self.version!r}, {self.namespace!r}, {self.base_name!r}, {dict(self.properties)!r})"
 
     @property
@@ -365,19 +367,27 @@ class BlockStack(Sequence[Block]):
         if not all(isinstance(block, Block) for block in self._blocks):
             raise TypeError
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"BlockStack({', '.join(map(repr, self._blocks))})"
 
     def __len__(self) -> int:
         return len(self._blocks)
 
-    def __getitem__(self, item):
+    @overload
+    def __getitem__(self, index: int) -> Block:
+        ...
+
+    @overload
+    def __getitem__(self, index: slice) -> Sequence[Block]:
+        ...
+
+    def __getitem__(self, item: int | slice) -> Block | Sequence[Block]:
         return self._blocks[item]
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self._blocks)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, BlockStack):
             return NotImplemented
         return self._blocks == other._blocks

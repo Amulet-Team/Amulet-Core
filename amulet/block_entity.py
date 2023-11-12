@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from amulet_nbt import NamedTag
 from amulet.version import AbstractVersion, VersionContainer
 
@@ -21,7 +23,7 @@ class BlockEntity(VersionContainer):
         namespace: str,
         base_name: str,
         nbt: NamedTag,
-    ):
+    ) -> None:
         """
         Constructs a :class:`BlockEntity` instance.
 
@@ -36,13 +38,13 @@ class BlockEntity(VersionContainer):
             raise TypeError(f"nbt must be an NamedTag. Got {nbt}")
         self._nbt = nbt
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"BlockEntity({self.version}, {self._namespace!r}, {self._base_name!r}, {self._nbt!r})"
 
-    def _data(self):
+    def _data(self) -> tuple:
         return self.version, self._namespace, self._base_name, self._nbt
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, BlockEntity):
             return NotImplemented
         return self._data() == other._data()
@@ -68,7 +70,7 @@ class BlockEntity(VersionContainer):
         return self._namespace
 
     @namespace.setter
-    def namespace(self, value: str):
+    def namespace(self, value: str) -> None:
         self._namespace = value
 
     @property
@@ -81,7 +83,7 @@ class BlockEntity(VersionContainer):
         return self._base_name
 
     @base_name.setter
-    def base_name(self, value: str):
+    def base_name(self, value: str) -> None:
         self._base_name = value
 
     @property
@@ -97,7 +99,7 @@ class BlockEntity(VersionContainer):
         return self._nbt
 
     @nbt.setter
-    def nbt(self, value: NamedTag):
+    def nbt(self, value: NamedTag) -> None:
         if not isinstance(value, NamedTag):
             raise TypeError
         self._nbt = value
