@@ -1,13 +1,20 @@
-from typing import Union, Iterable, Optional
+from typing import Union, Iterable
 from amulet_nbt import NamedTag
 
 
 class BedrockRawChunk:
+    _keys: frozenset[bytes]
+    _chunk_data: dict[bytes, bytes | None]
+    _entity_actor: list[NamedTag]
+    _unknown_actor: list[NamedTag]
+
     def __init__(
         self,
         *,
         chunk_keys: Iterable[bytes] = (),
-        chunk_data: Union[dict[bytes, bytes], Iterable[tuple[bytes, bytes]]] = (),
+        chunk_data: Union[
+            dict[bytes, bytes | None], Iterable[tuple[bytes, bytes | None]]
+        ] = (),
         entity_actor: Iterable[NamedTag] = (),
         unknown_actor: Iterable[NamedTag] = (),
     ) -> None:
@@ -22,7 +29,7 @@ class BedrockRawChunk:
         return self._keys
 
     @property
-    def chunk_data(self) -> dict[bytes, Optional[bytes]]:
+    def chunk_data(self) -> dict[bytes, bytes | None]:
         """
         A dictionary mapping all chunk data keys that have the XXXXZZZZ[DDDD] prefix (without the prefix) to the data
         stored in that key.
