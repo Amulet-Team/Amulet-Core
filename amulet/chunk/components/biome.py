@@ -1,4 +1,5 @@
 from typing import Union, Iterable
+from collections.abc import Mapping
 
 import numpy
 from numpy.typing import ArrayLike
@@ -19,14 +20,17 @@ class Biome3DComponent:
         self.__biome_palette = BiomePalette(version_range)
         self.__biomes = SubChunkArrayContainer(array_shape, default_array)
 
-    @TypedProperty[SubChunkArrayContainer, Iterable[tuple[int, ArrayLike]]]
+    @TypedProperty[
+        SubChunkArrayContainer,
+        Mapping[int, ArrayLike] | Iterable[tuple[int, ArrayLike]],
+    ]
     def biome(self) -> SubChunkArrayContainer:
         return self.__biomes
 
     @biome.setter
     def _set_biome(
         self,
-        sections: Iterable[tuple[int, ArrayLike]],
+        sections: Mapping[int, ArrayLike] | Iterable[tuple[int, ArrayLike]],
     ) -> None:
         self.__biomes = SubChunkArrayContainer(
             self.__biomes.array_shape, self.__biomes.default_array, sections

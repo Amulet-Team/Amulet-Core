@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import MutableMapping
+from collections.abc import MutableMapping, Mapping
 from typing import Iterator, Union, Iterable
 
 import numpy
@@ -19,12 +19,14 @@ class SubChunkArrayContainer(MutableMapping[int, numpy.ndarray]):
         self,
         array_shape: tuple[int, int, int],
         default_array: Union[int, ArrayLike],
-        arrays: Iterable[tuple[int, ArrayLike]] = (),
+        arrays: Mapping[int, ArrayLike] | Iterable[tuple[int, ArrayLike]] = (),
     ) -> None:
         self._shape = array_shape
-        self.set_default_array(default_array)
+        self._set_default_array(default_array)
 
         self._arrays = {}
+        if isinstance(arrays, Mapping):
+            arrays = arrays.items()
         for cy, array in arrays:
             self[cy] = array
 
