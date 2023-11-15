@@ -80,7 +80,7 @@ def raw_to_native(
                 if 25 <= chunk_version <= 28:
                     cy += dimension.bounds().min_y >> 4
                 subchunks[cy] = chunk_data.pop(key)
-        block_component.blocks, chunk_palette = _load_subchunks(subchunks)
+        block_component.block, chunk_palette = _load_subchunks(subchunks)
     else:
         section_data = chunk_data.pop(b"\x30", None)
         if section_data is not None:
@@ -99,7 +99,7 @@ def raw_to_native(
                     ((block_ids << 4) + block_data).reshape(16, 16, 128), (0, 2, 1)
                 )
             )
-            block_component.blocks = {
+            block_component.block = {
                 i: block_array[:, i * 16 : (i + 1) * 16, :] for i in range(8)
             }
             palette: AnyNDArray = numpy.array(
