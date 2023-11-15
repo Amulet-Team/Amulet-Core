@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import copy
-from typing import Iterable, Optional, Union, TYPE_CHECKING, Callable
+from typing import Iterable, Optional, Union, TYPE_CHECKING
 from threading import RLock
 import os
 import struct
 import logging
-from weakref import ref
 
 from leveldb import LevelDB
 
@@ -37,59 +36,50 @@ from ._actor_counter import ActorCounter
 from ._dimension import BedrockRawDimension
 from ._constant import OVERWORLD, THE_NETHER, THE_END, LOCAL_PLAYER, DefaultSelection
 from ._typing import InternalDimension, PlayerID, RawPlayer
-from ._chunk import BedrockRawChunk
-from ..chunk import BedrockChunk
 
 if TYPE_CHECKING:
-    from .._level import BedrockLevelPrivate
+    from .._level import BedrockLevel
 
 log = logging.getLogger(__name__)
 
 
-class BedrockRawLevelPrivate:
-    _raw_ref: Callable[[], Optional[BedrockRawLevel]]
-    lock: RLock
-    closed: bool
-    db: Optional[LevelDB]
+class BedrockRawLevelOpenData:
+    """Data that only exists when the level is open"""
+
     dimensions: dict[Union[DimensionID, InternalDimension], BedrockRawDimension]
+    dimensions_lock: RLock
+    db: LevelDB
     dimension_aliases: frozenset[DimensionID]
-    actor_counter: Optional[ActorCounter]
+    actor_counter: ActorCounter
 
-    __slots__ = tuple(__annotations__)
-
-    def __init__(self, raw: BedrockRawLevel) -> None:
-        self._raw_ref = ref(raw)
-        self.lock = RLock()
-        self.closed = False
-        self.db = None
+    def __init__(self, db: LevelDB, actor_counter: ActorCounter):
+        self.db = db
         self.dimensions = {}
+        self.dimensions_lock = RLock()
         self.dimension_aliases = frozenset()
-        self.actor_counter = None
-
-    @property
-    def raw(self) -> BedrockRawLevel:
-        raw = self._raw_ref()
-        if raw is None:
-            raise RuntimeError("Raw instance does not exist.")
-        return raw
+        self.actor_counter = actor_counter
 
 
 class BedrockRawLevel(
-    LevelFriend[BedrockLevelPrivate],
+    LevelFriend[BedrockLevel],
     RawLevel,
     RawLevelPlayerComponent[PlayerID, RawPlayer],
 ):
-    _r: Optional[BedrockRawLevelPrivate]
     _level_dat: BedrockLevelDAT
+    _o_data: BedrockRawLevelOpenData | None
 
     __slots__ = tuple(__annotations__)
 
-    def __init__(self, level_data: BedrockLevelPrivate) -> None:
-        super().__init__(level_data)
-        self._r = None
-        self._l.opened.connect(self._open)
-        self._l.closed.connect(self._close)
-        self._l.reloaded.connect(self._reload)
+    def __init__(self, level: BedrockLevel) -> None:
+        super().__init__(level)
+        self._o_data = None
+
+    @property
+    def _o(self) -> BedrockRawLevelOpenData:
+        o = self._o_data
+        if o is None:
+            raise RuntimeError("The level is not open.")
+        return o
 
     def _reload(self) -> None:
         self.level_dat = BedrockLevelDAT.from_file(
@@ -97,8 +87,10 @@ class BedrockRawLevel(
         )
 
     def _open(self) -> None:
-        self._r = BedrockRawLevelPrivate()
-        self._r.db = LevelDB(os.path.join(self._l.level.path, "db"))
+        db = LevelDB(os.path.join(self._l.path, "db"))
+        actor_counter = ActorCounter.from_level(self)
+        self._o_data = BedrockRawLevelOpenData(db, actor_counter)
+
         # TODO: implement error handling and level closing if the db errors
         # except LevelDBEncrypted as e:
         #     self._is_open = self._has_lock = False
@@ -116,12 +108,13 @@ class BedrockRawLevel(
         #         ) from e
         #     else:
         #         raise e
-        self._r.actor_counter = ActorCounter.from_level(self)
 
     def _close(self) -> None:
-        self._r.closed = True
-        self._r.db.close()
-        self._r = None
+        open_data = self._o
+        self._o_data = None
+        open_data.db.close()
+        for dimension in open_data.dimensions.values():
+            dimension._invalidate_r()
 
     @property
     def level_db(self) -> LevelDB:
@@ -129,21 +122,19 @@ class BedrockRawLevel(
         The leveldb database.
         Changes made to this are made directly to the level.
         """
-        if self._r is None:
-            raise RuntimeError("Level is not open")
-        return self._r.db
+        return self._o.db
 
     @property
     def level_dat(self) -> BedrockLevelDAT:
         """Get the level.dat file for the world"""
-        return copy.deepcopy(self.level_dat)
+        return copy.deepcopy(self._level_dat)
 
     @level_dat.setter
     def level_dat(self, level_dat: BedrockLevelDAT) -> None:
         if not isinstance(level_dat, BedrockLevelDAT):
             raise TypeError
         self.level_dat = level_dat = copy.deepcopy(level_dat)
-        level_dat.save_to(os.path.join(self._l.level.path, "level.dat"))
+        level_dat.save_to(os.path.join(self._l.path, "level.dat"))
 
     @property
     def max_game_version(self) -> SemanticVersion:
@@ -170,12 +161,10 @@ class BedrockRawLevel(
             return 0
 
     def _find_dimensions(self) -> None:
-        if self._r is None:
-            raise RuntimeError("Level is not open")
-        if self._r.dimensions:
+        if self._o.dimensions:
             return
-        with self._r.lock:
-            if self._r.dimensions:
+        with self._o.dimensions_lock:
+            if self._o.dimensions:
                 return
 
             dimenion_bounds = {}
@@ -280,13 +269,13 @@ class BedrockRawLevel(
                 :param alias: The name of the level visible to the user. Defaults to f"DIM{dimension}"
                 :return:
                 """
-                if dimension not in self._r.dimensions:
+                if dimension not in self._o.dimensions:
                     if alias is None:
                         alias = f"DIM{dimension}"
-                    self._r.dimensions[dimension] = self._r.dimensions[
+                    self._o.dimensions[dimension] = self._o.dimensions[
                         alias
                     ] = BedrockRawDimension(
-                        self._r,
+                        self,
                         dimension,
                         alias,
                         dimenion_bounds.get(alias, DefaultSelection),
@@ -297,23 +286,23 @@ class BedrockRawLevel(
             register_dimension(1, THE_NETHER)
             register_dimension(2, THE_END)
 
-            for key in self._r.db.keys():
+            for key in self._o.db.keys():
                 if len(key) == 13 and key[12] in [44, 118]:  # "," "v"
                     register_dimension(struct.unpack("<i", key[8:12])[0])
 
-            self._r.dimension_aliases = frozenset(dimensions)
+            self._o.dimension_aliases = frozenset(dimensions)
 
     def dimensions(self) -> frozenset[DimensionID]:
         self._find_dimensions()
-        return self._r.dimension_aliases
+        return self._o.dimension_aliases
 
     def get_dimension(
         self, dimension: Union[DimensionID, InternalDimension]
     ) -> BedrockRawDimension:
         self._find_dimensions()
-        if dimension not in self._r.dimensions:
-            raise RuntimeError("Dimension does not exist")
-        return self._r.dimensions[dimension]
+        if dimension not in self._o.dimensions:
+            raise RuntimeError(f"Dimension {dimension} does not exist")
+        return self._o.dimensions[dimension]
 
     def players(self) -> Iterable[PlayerID]:
         yield from (

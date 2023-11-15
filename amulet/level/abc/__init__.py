@@ -1,6 +1,6 @@
 from ._level import (
     Level,
-    LevelPrivate,
+    LevelOpenData,
     LoadableLevel,
     CompactableLevel,
     DiskLevel,

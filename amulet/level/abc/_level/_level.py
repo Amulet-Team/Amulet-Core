@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional, TypeVar, Callable, Type, Generic, Iterator
+from typing import TYPE_CHECKING, Optional, TypeVar, Type, Generic, Iterator, Callable
 from contextlib import contextmanager, AbstractContextManager as ContextManager
 import os
 import logging
@@ -38,86 +38,33 @@ missing_world_icon_path = os.path.abspath(
 missing_world_icon: Optional[Image.Image] = None
 
 
-LevelPrivateT = TypeVar("LevelPrivateT", bound="LevelPrivate")
-LevelT = TypeVar("LevelT", bound="Level")
 RawLevelT = TypeVar("RawLevelT", bound="RawLevel")
 DimensionT = TypeVar("DimensionT", bound="Dimension")
 
 
-class LevelPrivate(Generic[LevelT]):
-    """Private data and methods that friends of BaseLevel can use."""
+class LevelOpenData:
+    """Private level attributes that only exist when the level is open."""
+    history_manager: HistoryManager
 
-    _level: Callable[[], Optional[LevelT]]
-    _history_manager: Optional[HistoryManager]
-
-    __slots__ = (
-        "_level",
-        "_history_manager",
-    )
-
-    opened = Signal()
-    closed = Signal()
-
-    def __init__(self, level: LevelT) -> None:
-        self._level = ref(level)
-        self._history_manager = None
-
-    @final
-    @property
-    def level(self) -> LevelT:
-        """
-        Get the level that owns this private data.
-        If the level instance no longer exists, this will raise RuntimeError.
-        """
-        level = self._level()
-        if level is None:
-            raise RuntimeError("The level no longer exists.")
-        return level
-
-    @final
-    def open(self) -> None:
-        self._open()
-        self.opened.emit()
-
-    def _open(self) -> None:
-        self._history_manager = HistoryManager()
-
-    @final
-    def close(self) -> None:
-        self.closed.emit()
-        self._close()
-
-    def _close(self) -> None:
-        self._history_manager = None
-
-    @property
-    def history_manager(self) -> HistoryManager:
-        if self._history_manager is None:
-            raise RuntimeError("The level is not open.")
-        return self._history_manager
+    def __init__(self) -> None:
+        self.history_manager = HistoryManager()
 
 
-class LevelFriend(Generic[LevelPrivateT]):
-    _l: LevelPrivateT
-
-    __slots__ = ("_l",)
-
-    def __init__(self, level_data: LevelPrivateT) -> None:
-        self._l = level_data
+OpenLevelDataT = TypeVar("OpenLevelDataT", bound=LevelOpenData)
 
 
-class Level(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, DimensionT, VersionT, RawLevelT], ABC):
+class Level(Generic[OpenLevelDataT, DimensionT, VersionT, RawLevelT], ABC):
     """Base class for all levels."""
 
+    __open_data: OpenLevelDataT | None
     _level_lock: ShareableRLock
-    _is_open: bool
     _history_enabled: bool
     _translator: TranslationManager
 
     __slots__ = (
         SignalInstanceCacheName,
+        "_open_data",
         "_level_lock",
-        "_is_open",
         "_history_enabled",
         "_translator",
     )
@@ -128,18 +75,9 @@ class Level(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, DimensionT, Versi
         You must use one of the constructor classmethods
         """
         # Private attributes
+        self.__open_data = None
         self._level_lock = ShareableRLock()
-        self._is_open = False
         self._history_enabled = True
-
-        # Private data shared by friends of the class
-        super().__init__(self._instance_data())
-
-        self.history_changed.connect(self._l.history_manager.history_changed)
-
-    @abstractmethod
-    def _instance_data(self) -> LevelPrivateT:
-        raise NotImplementedError
 
     def __del__(self) -> None:
         self.close()
@@ -155,9 +93,10 @@ class Level(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, DimensionT, Versi
         if self.is_open:
             # Do nothing if already open
             return
-        self._l.open()
         self._open()
-        self._is_open = True
+        if self.__open_data is None:
+            raise RuntimeError("_open_data has not been set")
+        self.__open_data.history_manager.history_changed.connect(self.history_changed)
         self.opened.emit()
 
     @abstractmethod
@@ -168,7 +107,15 @@ class Level(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, DimensionT, Versi
     @property
     def is_open(self) -> bool:
         """Has the level been opened"""
-        return self._is_open
+        return self.__open_data is not None
+
+    @final
+    @property
+    def _o(self) -> OpenLevelDataT:
+        o = self.__open_data
+        if o is None:
+            raise RuntimeError("Level is not open")
+        return o
 
     # Has the internal state changed
     changed = Signal()
@@ -189,11 +136,12 @@ class Level(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, DimensionT, Versi
 
         This is functionally the same as closing and reopening the level.
         """
-        self._l.history_manager.reset()
+        self._o.history_manager.reset()
         self.purged.emit()
         self.history_changed.emit()
 
     # Signal to notify all listeners that the level has been closed.
+    closing = Signal()
     closed = Signal()
 
     @final
@@ -205,12 +153,11 @@ class Level(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, DimensionT, Versi
         if not self.is_open:
             # Do nothing if already closed
             return
-        self._is_open = False
+        self.closing.emit()
+        self._close()
+        if self.__open_data is not None:
+            raise RuntimeError("_open_data is still set")
         self.closed.emit()
-        try:
-            self._close()
-        finally:
-            self._l.close()
 
     @abstractmethod
     def _close(self) -> None:
@@ -231,17 +178,17 @@ class Level(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, DimensionT, Versi
 
     @property
     def undo_count(self) -> int:
-        return self._l.history_manager.undo_count
+        return self._o.history_manager.undo_count
 
     def undo(self) -> None:
-        self._l.history_manager.undo()
+        self._o.history_manager.undo()
 
     @property
     def redo_count(self) -> int:
-        return self._l.history_manager.redo_count
+        return self._o.history_manager.redo_count
 
     def redo(self) -> None:
-        self._l.history_manager.redo()
+        self._o.history_manager.redo()
 
     @contextmanager
     def _lock(self, *, edit: bool, parallel: bool, blocking: bool, timeout: float) -> Iterator[None]:
@@ -251,7 +198,7 @@ class Level(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, DimensionT, Versi
             lock = self._level_lock.unique(blocking, timeout)
         with lock:
             if edit and self.history_enabled:
-                self._l.history_manager.create_undo_bin()
+                self._o.history_manager.create_undo_bin()
             yield
 
     def lock_unique(
@@ -394,3 +341,24 @@ class Level(LevelFriend[LevelPrivateT], Generic[LevelPrivateT, DimensionT, Versi
     @abstractmethod
     def native_chunk_class(self) -> Type[Chunk]:
         raise NotImplementedError
+
+
+LevelT = TypeVar("LevelT", bound=Level)
+
+
+class LevelFriend(Generic[LevelT]):
+    """A base class for friends of the level that need to store a pointer to the level"""
+
+    _l_ref: Callable[[], LevelT | None]
+
+    __slots__ = ("_level_ref",)
+
+    def __init__(self, level: LevelT):
+        self._l_ref = ref(level)
+
+    @property
+    def _l(self) -> LevelT:
+        level = self._l_ref()
+        if level is None:
+            raise RuntimeError("The level is no longer accessible")
+        return level

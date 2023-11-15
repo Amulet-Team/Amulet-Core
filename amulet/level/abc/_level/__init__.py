@@ -1,4 +1,4 @@
-from ._level import Level, LevelPrivate, LevelPrivateT, LevelFriend
+from ._level import LevelOpenData, Level, LevelT, LevelFriend
 from ._compactable_level import CompactableLevel
 from ._creatable_level import (
     CreatableLevel,

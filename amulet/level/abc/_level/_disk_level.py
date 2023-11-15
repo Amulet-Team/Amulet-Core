@@ -3,10 +3,10 @@ from __future__ import annotations
 from abc import abstractmethod
 
 from amulet.version import VersionT
-from ._level import Level, LevelPrivateT, RawLevelT, DimensionT
+from ._level import Level, OpenLevelDataT, RawLevelT, DimensionT
 
 
-class DiskLevel(Level[LevelPrivateT, DimensionT, VersionT, RawLevelT]):
+class DiskLevel(Level[OpenLevelDataT, DimensionT, VersionT, RawLevelT]):
     """A level base class for all levels with data on disk."""
 
     __slots__ = ()

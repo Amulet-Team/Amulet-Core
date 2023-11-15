@@ -8,7 +8,7 @@ from amulet.block import BlockStack
 from amulet.biome import Biome
 from amulet.selection import SelectionGroup
 
-from ._level import LevelFriend, LevelPrivateT
+from ._level import LevelFriend, LevelT
 from ._history import HistoryManagerLayer
 from ._chunk_handle import ChunkKey, ChunkHandle
 from ._raw_level import RawDimension
@@ -19,7 +19,7 @@ RawDimensionT = TypeVar("RawDimensionT", bound=RawDimension)
 
 
 class Dimension(
-    LevelFriend[LevelPrivateT], Generic[LevelPrivateT, RawDimensionT, ChunkHandleT], ABC
+    LevelFriend[LevelT], Generic[LevelT, RawDimensionT, ChunkHandleT], ABC
 ):
     _dimension: DimensionID
     _chunk_handles: WeakValueDictionary[tuple[int, int], ChunkHandleT]
@@ -27,13 +27,13 @@ class Dimension(
     _chunk_history: HistoryManagerLayer[ChunkKey]
     _raw: RawDimensionT
 
-    def __init__(self, level_data: LevelPrivateT, dimension: DimensionID) -> None:
+    def __init__(self, level_data: LevelT, dimension: DimensionID) -> None:
         super().__init__(level_data)
         self._dimension = dimension
         self._chunk_handles = WeakValueDictionary()
         self._chunk_handle_lock = Lock()
-        self._chunk_history = self._l.history_manager.new_layer()
-        self._raw = self._l.level.raw.get_dimension(self._dimension)
+        self._chunk_history = self._l._o.history_manager.new_layer()
+        self._raw = self._l.raw.get_dimension(self._dimension)
 
     @property
     def dimension(self) -> DimensionID:

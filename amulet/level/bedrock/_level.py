@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Optional, Union
+from typing import Any, Union
 import os
 import shutil
 import time
@@ -12,50 +12,43 @@ from amulet_nbt import CompoundTag, IntTag, ListTag, LongTag, StringTag
 from amulet.version import SemanticVersion
 from amulet.api.data_types import DimensionID, PlatformType
 from amulet.level.abc import (
-    LevelPrivate,
+    LevelOpenData,
     DiskLevel,
     CreatableLevel,
     LoadableLevel,
     CompactableLevel,
     CreateArgsT,
     PlayerStorage,
-    Dimension,
 )
 from amulet.api.errors import ObjectWriteError
 from amulet.utils.format_utils import check_all_exist
-from amulet.utils.signal import Signal
 
 from ._raw import BedrockRawLevel, InternalDimension, BedrockLevelDAT
+from ._dimension import BedrockDimension
 
 
-class BedrockLevelPrivate(LevelPrivate):
-    path: Optional[str]
-
-    __slots__ = tuple(__annotations__)
-
-    level: BedrockLevel
-    reloaded = Signal()
-
-    def __init__(self, level: BedrockLevel) -> None:
-        super().__init__(level)
-        self.path = None
+class BedrockLevelOpenData(LevelOpenData):
+    pass
 
 
 class BedrockLevel(
-    DiskLevel[BedrockLevelPrivate], CreatableLevel, LoadableLevel, CompactableLevel
+    DiskLevel[BedrockLevelOpenData, BedrockDimension, SemanticVersion, BedrockRawLevel], CreatableLevel, LoadableLevel, CompactableLevel
 ):
-    _dimensions: dict[Union[DimensionID, InternalDimension], Dimension]
+    _path: str
     _raw_level: BedrockRawLevel
+    _dimensions: dict[Union[DimensionID, InternalDimension], BedrockDimension]
 
-    __slots__ = ()
+    __slots__ = (
+        "_path",
+        "_raw_level",
+        "_dimensions",
+    )
 
-    def __init__(self) -> None:
+    def __init__(self, path: str) -> None:
         super().__init__()
-        self._raw_level = BedrockRawLevel(self._l)
+        self._path = path
+        self._raw_level = BedrockRawLevel(self)
         self._dimensions = {}
-
-    def _instance_data(self) -> BedrockLevelPrivate:
-        return BedrockLevelPrivate(self)
 
     @staticmethod
     def create_args() -> dict[str, CreateArgsT]:
@@ -106,9 +99,8 @@ class BedrockLevel(
     @classmethod
     def load(cls, path: str) -> BedrockLevel:
         """Create a new instance from the level at the given directory."""
-        self = cls()
-        self._l.path = path
-        self._l.reloaded.emit()
+        self = cls(path)
+        self.reload()
         return self
 
     def reload(self) -> None:
@@ -118,7 +110,7 @@ class BedrockLevel(
         """
         if self.is_open:
             raise RuntimeError("Cannot reload a level when it is open.")
-        self._l.reloaded.emit()
+        self.raw._reload()
 
     def _open(self) -> None:
         pass
@@ -128,7 +120,7 @@ class BedrockLevel(
 
     @property
     def path(self) -> str:
-        return self._l.path
+        return self._path
 
     @property
     def level_name(self) -> str:
@@ -157,14 +149,14 @@ class BedrockLevel(
 
     def get_dimension(
         self, dimension: Union[DimensionID, InternalDimension]
-    ) -> Dimension:
+    ) -> BedrockDimension:
         if dimension not in self._dimensions:
             raw_dimension = self.raw.get_dimension(dimension)
-            public_dimension = raw_dimension.dimension
-            internal_dimension = raw_dimension.internal_dimension
-            self._dimensions[internal_dimension] = self._dimensions[
-                public_dimension
-            ] = Dimension(self._l, public_dimension)
+            public_dimension_id = raw_dimension.dimension
+            internal_dimension_id = raw_dimension.internal_dimension
+            self._dimensions[internal_dimension_id] = self._dimensions[
+                public_dimension_id
+            ] = BedrockDimension(self, public_dimension_id)
         return self._dimensions[dimension]
 
     @property

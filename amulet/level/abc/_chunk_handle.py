@@ -13,7 +13,7 @@ from amulet.api.data_types import DimensionID
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.utils.signal import Signal
 
-from ._level import LevelFriend, LevelPrivateT
+from ._level import LevelFriend, LevelT
 from ._history import HistoryManagerLayer
 
 
@@ -48,8 +48,8 @@ class ChunkKey(tuple[int, int]):
 
 
 class ChunkHandle(
-    LevelFriend[LevelPrivateT],
-    Generic[LevelPrivateT, RawDimensionT, ChunkT],
+    LevelFriend[LevelT],
+    Generic[LevelT, RawDimensionT, ChunkT],
     ABC,
 ):
     _lock: RLock
@@ -68,7 +68,7 @@ class ChunkHandle(
 
     def __init__(
         self,
-        level_data: LevelPrivateT,
+        level_data: LevelT,
         history: HistoryManagerLayer[ChunkKey],
         dimension: DimensionID,
         cx: int,
@@ -97,7 +97,7 @@ class ChunkHandle(
 
     def _get_raw_dimension(self) -> RawDimensionT:
         if self._raw_dimension is None:
-            self._raw_dimension = self._l.level.raw.get_dimension(self.dimension)
+            self._raw_dimension = self._l.raw.get_dimension(self.dimension)
         return self._raw_dimension
 
     @contextmanager
@@ -220,7 +220,7 @@ class ChunkHandle(
         try:
             history = self._history
             if not history.has_resource(self._key):
-                if self._l.level.history_enabled:
+                if self._l.history_enabled:
                     self._preload()
                 else:
                     history.set_initial_resource(self._key, b"")
@@ -228,7 +228,7 @@ class ChunkHandle(
         finally:
             self._lock.release()
         self.changed.emit()
-        self._l.level.changed.emit()
+        self._l.changed.emit()
 
     @abstractmethod
     def _validate_chunk(self, chunk: ChunkT) -> None:
