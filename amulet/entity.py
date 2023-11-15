@@ -143,9 +143,7 @@ class Entity(VersionContainer):
         return self._x, self._y, self._z
 
     @location.setter
-    def location(
-        self, location: PointCoordinates
-    ) -> None:
+    def location(self, location: PointCoordinates) -> None:
         self.x, self.y, self.z = location
 
     @property

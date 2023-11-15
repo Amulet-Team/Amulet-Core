@@ -9,9 +9,7 @@ if TYPE_CHECKING:
     from .chunk import BedrockChunk
 
 
-class BedrockChunkHandle(
-    ChunkHandle[BedrockLevel, BedrockRawDimension, BedrockChunk]
-):
+class BedrockChunkHandle(ChunkHandle[BedrockLevel, BedrockRawDimension, BedrockChunk]):
     def _validate_chunk(self, chunk: ChunkT) -> None:
         if not isinstance(chunk, BedrockChunk):
             raise TypeError

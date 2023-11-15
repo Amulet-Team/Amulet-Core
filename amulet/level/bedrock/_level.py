@@ -32,7 +32,10 @@ class BedrockLevelOpenData(LevelOpenData):
 
 
 class BedrockLevel(
-    DiskLevel[BedrockLevelOpenData, BedrockDimension, SemanticVersion, BedrockRawLevel], CreatableLevel, LoadableLevel, CompactableLevel
+    DiskLevel[BedrockLevelOpenData, BedrockDimension, SemanticVersion, BedrockRawLevel],
+    CreatableLevel,
+    LoadableLevel,
+    CompactableLevel,
 ):
     _path: str
     _raw_level: BedrockRawLevel

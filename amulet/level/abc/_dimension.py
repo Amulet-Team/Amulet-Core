@@ -18,9 +18,7 @@ ChunkHandleT = TypeVar("ChunkHandleT", bound=ChunkHandle)
 RawDimensionT = TypeVar("RawDimensionT", bound=RawDimension)
 
 
-class Dimension(
-    LevelFriend[LevelT], Generic[LevelT, RawDimensionT, ChunkHandleT], ABC
-):
+class Dimension(LevelFriend[LevelT], Generic[LevelT, RawDimensionT, ChunkHandleT], ABC):
     _dimension: DimensionID
     _chunk_handles: WeakValueDictionary[tuple[int, int], ChunkHandleT]
     _chunk_handle_lock: Lock

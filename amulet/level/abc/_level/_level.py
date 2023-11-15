@@ -44,6 +44,7 @@ DimensionT = TypeVar("DimensionT", bound="Dimension")
 
 class LevelOpenData:
     """Private level attributes that only exist when the level is open."""
+
     history_manager: HistoryManager
 
     def __init__(self) -> None:
@@ -191,7 +192,9 @@ class Level(Generic[OpenLevelDataT, DimensionT, VersionT, RawLevelT], ABC):
         self._o.history_manager.redo()
 
     @contextmanager
-    def _lock(self, *, edit: bool, parallel: bool, blocking: bool, timeout: float) -> Iterator[None]:
+    def _lock(
+        self, *, edit: bool, parallel: bool, blocking: bool, timeout: float
+    ) -> Iterator[None]:
         if parallel:
             lock = self._level_lock.shared(blocking, timeout)
         else:

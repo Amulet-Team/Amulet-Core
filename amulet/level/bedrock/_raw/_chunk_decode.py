@@ -29,7 +29,9 @@ from amulet.utils.world_utils import fast_unique, from_nibble_array
 
 from amulet.level.bedrock._raw import BedrockRawChunk
 from amulet.level.bedrock.chunk import BedrockChunk, BedrockChunk0, BedrockChunk29
-from amulet.level.bedrock.chunk.components.finalised_state import FinalisedStateComponent
+from amulet.level.bedrock.chunk.components.finalised_state import (
+    FinalisedStateComponent,
+)
 from ._level import BedrockRawLevel
 from ._dimension import BedrockRawDimension
 
@@ -47,7 +49,9 @@ def cast(obj: Any, cls: type[T]) -> T:
 
 
 def raw_to_native(
-    level: BedrockRawLevel, dimension: BedrockRawDimension, raw_chunk: BedrockRawChunk,
+    level: BedrockRawLevel,
+    dimension: BedrockRawDimension,
+    raw_chunk: BedrockRawChunk,
 ) -> BedrockChunk:
     chunk_data = raw_chunk.chunk_data
 
@@ -112,10 +116,14 @@ def raw_to_native(
         finalised_state_component.finalised_state = 2
     elif len(finalised_state) == 1:
         # old versions of the game store this as a byte
-        finalised_state_component.finalised_state = struct.unpack("b", finalised_state)[0]
+        finalised_state_component.finalised_state = struct.unpack("b", finalised_state)[
+            0
+        ]
     elif len(finalised_state) == 4:
         # newer versions store it as an int
-        finalised_state_component.finalised_state = struct.unpack("<i", finalised_state)[0]
+        finalised_state_component.finalised_state = struct.unpack(
+            "<i", finalised_state
+        )[0]
 
     # Parse biome and height data
 
@@ -126,7 +134,9 @@ def raw_to_native(
             numpy.frombuffer(d2d[:512], "<i2").reshape((16, 16)).astype(numpy.int64)
         )
         biome_component = cast(chunk, Biome3DComponent)
-        biome_component.biomes = _decode_3d_biomes(d2d[512:], dimension.bounds().min_y >> 4)
+        biome_component.biomes = _decode_3d_biomes(
+            d2d[512:], dimension.bounds().min_y >> 4
+        )
     elif b"\x2D" in chunk_data:
         d2d = chunk_data[b"\x2D"]
         height_component = cast(chunk, Height2DComponent)

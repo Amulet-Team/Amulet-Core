@@ -94,7 +94,9 @@ class DiskCache:
 
 
 class GlobalDiskCache(DiskCache):
-    _instance_ref: Callable[[], Optional[GlobalDiskCache]] = cast(Callable[[], Optional["GlobalDiskCache"]], lambda: None)
+    _instance_ref: Callable[[], Optional[GlobalDiskCache]] = cast(
+        Callable[[], Optional["GlobalDiskCache"]], lambda: None
+    )
     _cache_size = 100_000_000
 
     @classmethod

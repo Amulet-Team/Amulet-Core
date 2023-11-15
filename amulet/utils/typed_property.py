@@ -68,7 +68,7 @@ class TypedProperty(Generic[GetT, SetT]):
         if doc is None and fget is not None:
             doc = fget.__doc__
         self.__doc__ = doc
-        self._name = ''
+        self._name = ""
 
     def __set_name__(self, owner: Any, name: str) -> None:
         self._name = name

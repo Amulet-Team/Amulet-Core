@@ -25,7 +25,9 @@ class BlockEntityContainer(
         super().__init__(version_range)
         self._block_entities = {}
 
-    def __setitem__(self, coordinate: BlockCoordinates, block_entity: BlockEntity) -> None:
+    def __setitem__(
+        self, coordinate: BlockCoordinates, block_entity: BlockEntity
+    ) -> None:
         """
         Set the :class:`BlockEntity` at ``coordinate``.
 

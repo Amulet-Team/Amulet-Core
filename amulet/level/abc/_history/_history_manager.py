@@ -95,11 +95,7 @@ class HistoryManager:
         uuid = uuid4().bytes
         resources: dict[ResourceId, Resource] = {}
         self._h.resources[uuid] = resources
-        return HistoryManagerLayer(
-            self._h,
-            uuid,
-            resources
-        )
+        return HistoryManagerLayer(self._h, uuid, resources)
 
     history_changed = Signal()
 
@@ -167,7 +163,12 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
     _uuid: bytes
     _resources: dict[ResourceIdT, Resource]
 
-    def __init__(self, _h: HistoryManagerPrivate, uuid: bytes, resources: dict[ResourceIdT, Resource]) -> None:
+    def __init__(
+        self,
+        _h: HistoryManagerPrivate,
+        uuid: bytes,
+        resources: dict[ResourceIdT, Resource],
+    ) -> None:
         """This must not be used directly."""
         self._h = _h
         self._uuid = uuid
