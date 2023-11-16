@@ -12,7 +12,7 @@ class BiomePalette(VersionRangeContainer, Sequence[Biome]):
     Class to handle the mappings between biomes and their index-based internal IDs
     """
 
-    def __init__(self, version_range: VersionRange):
+    def __init__(self, version_range: VersionRange) -> None:
         """
         Creates a new BiomeManager object
         """
@@ -21,7 +21,7 @@ class BiomePalette(VersionRangeContainer, Sequence[Biome]):
         self._index_to_biome: list[Biome] = []
         self._biome_to_index: dict[Biome, int] = {}
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         The number of biomes in the palette.
 
@@ -31,7 +31,7 @@ class BiomePalette(VersionRangeContainer, Sequence[Biome]):
         """
         return len(self._index_to_biome)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int) -> Biome:
         return self._index_to_biome[item]
 
     def __contains__(self, item: Union[int, Biome]) -> bool:

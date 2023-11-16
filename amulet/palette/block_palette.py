@@ -12,7 +12,7 @@ class BlockPalette(VersionRangeContainer, Sequence[BlockStack]):
     Class to handle the mappings between Block Stack objects and their index-based internal IDs
     """
 
-    def __init__(self, version_range: VersionRange):
+    def __init__(self, version_range: VersionRange) -> None:
         """
         Creates a new BlockPalette object
         """
@@ -21,7 +21,7 @@ class BlockPalette(VersionRangeContainer, Sequence[BlockStack]):
         self._index_to_block: list[BlockStack] = []
         self._block_to_index: dict[BlockStack, int] = {}
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         The number of block stacks in the palette.
 
@@ -31,7 +31,7 @@ class BlockPalette(VersionRangeContainer, Sequence[BlockStack]):
         """
         return len(self._index_to_block)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int) -> BlockStack:
         return self._index_to_block[item]
 
     def __contains__(self, item: Union[int, BlockStack]) -> bool:
