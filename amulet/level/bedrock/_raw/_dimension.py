@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from typing import Iterator, TYPE_CHECKING
+from typing import TYPE_CHECKING
 import struct
 from contextlib import suppress
 import logging
+from collections.abc import Iterator
 
 from amulet_nbt import (
     NamedTag,
