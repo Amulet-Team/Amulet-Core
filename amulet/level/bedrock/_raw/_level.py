@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import copy
-from typing import Iterable, Optional, Union, TYPE_CHECKING
+from typing import Optional, Union, TYPE_CHECKING, overload
+from collections.abc import Iterable, Mapping, Iterator
 from threading import RLock
 import os
 import struct
@@ -43,6 +44,46 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
+class LegacyBlockIdMap(Mapping[int, tuple[str, str]]):
+    def __init__(self) -> None:
+        self._str_to_int = {}
+        self._int_to_str = {}
+
+    def int_to_str(self, index: int) -> tuple[str, str]:
+        return self._int_to_str[index]
+
+    def str_to_int(self, block_id: tuple[str, str]):
+        return self._str_to_int[block_id]
+
+    def register(self, index: int, block_id: tuple[str, str]):
+        if block_id in self._str_to_int:
+            raise RuntimeError(f"Block id {block_id} has already been registered")
+        if index in self._int_to_str:
+            raise RuntimeError(f"Block index {index} has already been registered")
+        self._str_to_int[block_id] = index
+        self._int_to_str[index] = block_id
+
+    @overload
+    def __getitem__(self, key: int) -> tuple[str, str]:
+        ...
+
+    @overload
+    def __getitem__(self, key: tuple[str, str]) -> int:
+        ...
+
+    def __getitem__(self, key: int | tuple[str, str]) -> int | tuple[str, str]:
+        if isinstance(key, int):
+            return self._int_to_str[key]
+        else:
+            return self._str_to_int[key]
+
+    def __len__(self):
+        return len(self._int_to_str)
+
+    def __iter__(self) -> Iterator[int]:
+        yield from self._int_to_str
+
+
 class BedrockRawLevelOpenData:
     """Data that only exists when the level is open"""
 
@@ -51,6 +92,7 @@ class BedrockRawLevelOpenData:
     db: LevelDB
     dimension_aliases: frozenset[DimensionID]
     actor_counter: ActorCounter
+    legacy_block_map: LegacyBlockIdMap
 
     def __init__(self, db: LevelDB, actor_counter: ActorCounter):
         self.db = db
@@ -58,6 +100,7 @@ class BedrockRawLevelOpenData:
         self.dimensions_lock = RLock()
         self.dimension_aliases = frozenset()
         self.actor_counter = actor_counter
+        self.legacy_block_map = LegacyBlockIdMap()
 
 
 class BedrockRawLevel(
@@ -335,3 +378,8 @@ class BedrockRawLevel(
 
     def set_raw_player(self, player_id: PlayerID, player: RawPlayer) -> None:
         raise NotImplementedError
+
+    @property
+    def legacy_block_map(self) -> LegacyBlockIdMap:
+        """A two-way map from legacy block id <-> block string"""
+        return self._o.legacy_block_map
