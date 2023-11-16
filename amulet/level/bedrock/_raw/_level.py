@@ -52,10 +52,10 @@ class LegacyBlockIdMap(Mapping[int, tuple[str, str]]):
     def int_to_str(self, index: int) -> tuple[str, str]:
         return self._int_to_str[index]
 
-    def str_to_int(self, block_id: tuple[str, str]):
+    def str_to_int(self, block_id: tuple[str, str]) -> int:
         return self._str_to_int[block_id]
 
-    def register(self, index: int, block_id: tuple[str, str]):
+    def register(self, index: int, block_id: tuple[str, str]) -> None:
         if block_id in self._str_to_int:
             raise RuntimeError(f"Block id {block_id} has already been registered")
         if index in self._int_to_str:
@@ -77,7 +77,7 @@ class LegacyBlockIdMap(Mapping[int, tuple[str, str]]):
         else:
             return self._str_to_int[key]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._int_to_str)
 
     def __iter__(self) -> Iterator[int]:
