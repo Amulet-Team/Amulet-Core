@@ -1,6 +1,7 @@
 import struct
-from typing import Optional, Union, List, Dict, Tuple, TypeVar, Any
+from typing import Optional, TypeVar, Any
 import logging
+from functools import cache
 
 import numpy
 
@@ -16,7 +17,7 @@ from amulet_nbt import (
     utf8_escape_decoder,
 )
 
-from amulet.block import Block
+from amulet.block import Block, BlockStack, PropertyType, PropertyDataTypes
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
 from amulet.chunk.components.block import BlockComponent
@@ -24,6 +25,7 @@ from amulet.chunk.components.block_entity import BlockEntityComponent
 from amulet.chunk.components.entity import EntityComponent
 from amulet.chunk.components.height_2d import Height2DComponent
 from amulet.chunk.components.biome import Biome2DComponent, Biome3DComponent
+from amulet.version import SemanticVersion
 
 from amulet.utils.world_utils import fast_unique, from_nibble_array
 
@@ -46,6 +48,13 @@ def cast(obj: Any, cls: type[T]) -> T:
     if not isinstance(obj, cls):
         raise TypeError("obj must be an instance of cls")
     return obj
+
+
+@cache
+def unpack_block_version(block_version: int) -> SemanticVersion:
+    return SemanticVersion(
+        "bedrock", struct.unpack("4b", struct.pack(">i", block_version))
+    )
 
 
 def raw_to_native(
@@ -80,7 +89,7 @@ def raw_to_native(
                 if 25 <= chunk_version <= 28:
                     cy += dimension.bounds().min_y >> 4
                 subchunks[cy] = chunk_data.pop(key)
-        block_component.block, chunk_palette = _load_subchunks(subchunks)
+        _load_subchunks(level, subchunks, block_component)
     else:
         section_data = chunk_data.pop(b"\x30", None)
         if section_data is not None:
@@ -99,7 +108,7 @@ def raw_to_native(
                     ((block_ids << 4) + block_data).reshape(16, 16, 128), (0, 2, 1)
                 )
             )
-            block_component.block = {
+            block_component.blocks = {
                 i: block_array[:, i * 16 : (i + 1) * 16, :] for i in range(8)
             }
             palette: AnyNDArray = numpy.array(
@@ -127,24 +136,18 @@ def raw_to_native(
 
     # Parse biome and height data
 
-    if b"+" in chunk_data:
+    if isinstance(chunk, Biome3DComponent) and b"+" in chunk_data:
         d2d = chunk_data[b"+"]
-        height_component = cast(chunk, Height2DComponent)
-        height_component.height = (
+        cast(chunk, Height2DComponent).height = (
             numpy.frombuffer(d2d[:512], "<i2").reshape((16, 16)).astype(numpy.int64)
         )
-        biome_component = cast(chunk, Biome3DComponent)
-        biome_component.biomes = _decode_3d_biomes(
-            d2d[512:], dimension.bounds().min_y >> 4
-        )
-    elif b"\x2D" in chunk_data:
+        chunk.biomes = _decode_3d_biomes(d2d[512:], dimension.bounds().min_y >> 4)
+    elif isinstance(chunk, Biome2DComponent) and b"\x2D" in chunk_data:
         d2d = chunk_data[b"\x2D"]
-        height_component = cast(chunk, Height2DComponent)
-        height_component.height = (
+        cast(chunk, Height2DComponent).height = (
             numpy.frombuffer(d2d[:512], "<i2").reshape((16, 16)).astype(numpy.int64)
         )
-        biome_component = cast(chunk, Biome2DComponent)
-        biome_component.biome = (
+        chunk.biomes = (
             numpy.frombuffer(d2d[512:], dtype="uint8")
             .reshape(16, 16)
             .T.astype(numpy.uint32)
@@ -161,60 +164,46 @@ def raw_to_native(
     # \x30  legacy terrain
 
     # Parse block entities
-    block_entity_component = cast(chunk, BlockEntityComponent)
     block_entities = _unpack_nbt_list(chunk_data.pop(b"\x31", b""))
-    block_entity_component.block_entity = _decode_block_entity_list(block_entities)
+    cast(chunk, BlockEntityComponent).block_entities = _decode_block_entity_list(
+        block_entities
+    )
 
     # Parse entities
-    entity_component = cast(chunk, EntityComponent)
     entities = _unpack_nbt_list(chunk_data.pop(b"\x32", b""))
-    entity_component.entities = _decode_entity_list(entities) + _decode_entity_list(
-        raw_chunk.entity_actor
-    )
+    cast(chunk, EntityComponent).entities = _decode_entity_list(
+        entities
+    ) + _decode_entity_list(raw_chunk.entity_actor)
     raw_chunk.entity_actor.clear()
 
     return chunk
 
 
 def _load_subchunks(
-    subchunks: dict[int, Optional[bytes]]
-) -> tuple[dict[int, SubChunkNDArray], AnyNDArray]:
+    level: BedrockRawLevel, subchunks: dict[int, bytes], chunk: BlockComponent
+) -> None:
     """
-    Load a list of bytes objects which contain chunk data
+    Load a list of bytes objects which contain chunk data into the chunk.
     This function should be able to load all sub-chunk formats (technically before it)
     All sub-chunks will almost certainly all have the same sub-chunk version but
     it should be able to handle a case where that is not true.
 
-    As such this function will return a Chunk and a rather complicated block_palette
     The newer formats allow multiple blocks to occupy the same space and the
-    newer versions also include a version ber block. So this will also need
-    returning for the translator to handle.
-
-    The block_palette will be a numpy array containing tuple objects
-        The tuple represents the "block" however can contain more than one Block object.
-        Inside the tuple are one or more tuples.
-            These include the block version number and the block itself
-                The block version number will be either None if no block version is given
-                or a tuple containing 4 ints.
-
-                The block will be either a Block class for the newer formats or a tuple of two ints for the older formats
+    newer versions also include a version ber block.
     """
-    blocks: dict[int, SubChunkNDArray] = {}
-    palette: list[tuple[tuple[Optional[int], Union[tuple[int, int], Block]], ...]] = [
-        (
-            (
-                17563649,
-                Block(
-                    namespace="minecraft",
-                    base_name="air",
-                    properties={"block_data": IntTag(0)},
-                ),
-            ),
+    blocks = chunk.blocks
+    block_palette = chunk.block_palette
+    block_palette.block_stack_to_index(
+        BlockStack(
+            Block(
+                SemanticVersion("bedrock", (1, 12, 0)),
+                namespace="minecraft",
+                base_name="air",
+                properties={"block_data": IntTag(0)},
+            )
         )
-    ]
+    )
     for cy, data in subchunks.items():
-        if data is None:
-            continue
         if data[0] in {0, 2, 3, 4, 5, 6, 7}:
             block_ids = numpy.frombuffer(
                 data[1 : 1 + 2**12], dtype=numpy.uint8
@@ -224,14 +213,30 @@ def _load_subchunks(
                     data[1 + 2**12 : 1 + 2**12 + 2**11], dtype=numpy.uint8
                 )
             )
-            combined_palette, block_array = fast_unique(
+            numerical_palette, block_array = fast_unique(
                 numpy.transpose(
                     ((block_ids << 4) + block_data).reshape(16, 16, 16), (0, 2, 1)
                 )
             )
-            blocks[cy] = block_array + len(palette)
-            for b in numpy.array([combined_palette >> 4, combined_palette & 15]).T:
-                palette.append(((None, tuple(b)),))
+            block_lut: list[int] = []
+            for block_id, block_data in numpy.array(
+                [numerical_palette >> 4, numerical_palette & 15]
+            ).T:
+                namespace, base_name = level.legacy_block_map.int_to_str(block_id)
+                block_lut.append(
+                    block_palette.block_stack_to_index(
+                        BlockStack(
+                            Block(
+                                SemanticVersion("bedrock", (1, 12, 0)),
+                                namespace=namespace,
+                                base_name=base_name,
+                                properties={"block_data": IntTag(block_data)},
+                            )
+                        )
+                    )
+                )
+
+            blocks[cy] = numpy.array(block_lut)[block_array]
 
         else:
             if data[0] == 1:
@@ -252,44 +257,56 @@ def _load_subchunks(
             sub_chunk_blocks = numpy.zeros(
                 (16, 16, 16, storage_count), dtype=numpy.uint32
             )
-            sub_chunk_palette: list[list[tuple[Optional[int], Block]]] = []
+            sub_chunk_palette: list[list[Block]] = []
             for storage_index in range(storage_count):
                 (
                     sub_chunk_blocks[:, :, :, storage_index],
                     palette_data,
                     data,
                 ) = _load_palette_blocks(data)
-                palette_data_out: list[tuple[Optional[int], Block]] = []
-                for block in palette_data:
-                    block = block.compound
-                    *namespace_, base_name = block["name"].py_str.split(":", 1)
+                palette_data_out: list[Block] = []
+                for block_nt in palette_data:
+                    block = block_nt.compound
+                    *namespace_, base_name = block.get_string("name").py_str.split(
+                        ":", 1
+                    )
                     namespace = namespace_[0] if namespace_ else "minecraft"
-                    if "version" in block:
-                        version: Optional[int] = block.get_int("version").py_int
-                    else:
-                        version = None
 
-                    if "states" in block or "val" not in block:  # 1.13 format
-                        properties = block.get_compound("states", CompoundTag()).py_dict
-                        if version is None:
-                            version = 17694720  # 1, 14, 0, 0
+                    properties: PropertyType
+                    if "states" in block:
+                        properties = {
+                            k: v
+                            for k, v in block.get_compound("states").items()
+                            if isinstance(v, PropertyDataTypes)
+                        }
+                        version = unpack_block_version(
+                            block.get_int("version", IntTag(17694720)).py_int
+                        )
+                    elif "val" in block:
+                        properties = {"block_data": IntTag(block.get_int("val").py_int)}
+                        version = SemanticVersion("bedrock", (1, 12, 0))
                     else:
-                        properties = {"block_data": IntTag(block["val"].py_int)}
+                        properties = {}
+                        version = unpack_block_version(
+                            block.get_int("version", IntTag(17694720)).py_int
+                        )
+
                     palette_data_out.append(
-                        (
+                        Block(
                             version,
-                            Block(
-                                namespace=namespace,
-                                base_name=base_name,
-                                properties=properties,
-                            ),
+                            namespace=namespace,
+                            base_name=base_name,
+                            properties=properties,
                         )
                     )
                 sub_chunk_palette.append(palette_data_out)
 
             if storage_count == 1:
-                blocks[cy] = sub_chunk_blocks[:, :, :, 0] + len(palette)
-                palette += [(val,) for val in sub_chunk_palette[0]]
+                block_lut = [
+                    block_palette.block_stack_to_index(BlockStack(block))
+                    for block in sub_chunk_palette[0]
+                ]
+                blocks[cy] = numpy.array(block_lut)[sub_chunk_blocks[:, :, :, 0]]
             elif storage_count > 1:
                 # we have two or more storages so need to find the unique block combinations and merge them together
                 sub_chunk_palette_, sub_chunk_blocks = numpy.unique(
@@ -297,43 +314,32 @@ def _load_subchunks(
                     return_inverse=True,
                     axis=0,
                 )
-                blocks[cy] = sub_chunk_blocks.reshape(16, 16, 16).astype(
-                    numpy.uint32
-                ) + len(palette)
-                palette += [
-                    tuple(
-                        sub_chunk_palette[storage_index][index]
-                        for storage_index, index in enumerate(palette_indexes)
-                        if not (
-                            storage_index > 0
-                            and sub_chunk_palette[storage_index][index][
-                                1
-                            ].namespaced_name
-                            == "minecraft:air"
+                block_lut = [
+                    block_palette.block_stack_to_index(
+                        BlockStack(
+                            *(
+                                sub_chunk_palette[storage_index][index]
+                                for storage_index, index in enumerate(palette_indexes)
+                                if storage_index == 0
+                                or sub_chunk_palette[storage_index][
+                                    index
+                                ].namespaced_name
+                                != "minecraft:air"
+                            )
                         )
                     )
                     for palette_indexes in sub_chunk_palette_
                 ]
+                blocks[cy] = numpy.array(block_lut)[
+                    sub_chunk_blocks.reshape(16, 16, 16).astype(numpy.uint32)
+                ]
             else:
                 continue
-
-    # block_palette should now look like this
-    # list[
-    #   tuple[
-    #       tuple[version, Block], ...
-    #   ]
-    # ]
-
-    numpy_palette, lut = brute_sort_objects(palette)
-    for cy in blocks.keys():
-        blocks[cy] = lut[blocks[cy]]
-
-    return blocks, numpy_palette
 
 
 def _load_palette_blocks(
     data: bytes,
-) -> Tuple[numpy.ndarray, List[NamedTag], bytes]:
+) -> tuple[numpy.ndarray, list[NamedTag], bytes]:
     data, _, blocks = _decode_packed_array(data)
     if blocks is None:
         blocks = numpy.zeros((16, 16, 16), dtype=numpy.int16)
@@ -368,7 +374,7 @@ def _load_palette_blocks(
     return blocks, palette, data
 
 
-def _decode_3d_biomes(data: bytes, floor_cy: int) -> Dict[int, numpy.ndarray]:
+def _decode_3d_biomes(data: bytes, floor_cy: int) -> dict[int, numpy.ndarray]:
     # The 3D biome format consists of 25 16x arrays with the first array corresponding to the lowest sub-chunk in the world
     #  This is -64 in the overworld and 0 in the nether and end
     biomes = {}
@@ -388,7 +394,7 @@ def _decode_3d_biomes(data: bytes, floor_cy: int) -> Dict[int, numpy.ndarray]:
     return biomes
 
 
-def _decode_packed_array(data: bytes) -> Tuple[bytes, int, Optional[numpy.ndarray]]:
+def _decode_packed_array(data: bytes) -> tuple[bytes, int, Optional[numpy.ndarray]]:
     """
     Parse a packed array as documented here
     https://gist.github.com/Tomcc/a96af509e275b1af483b25c543cfbf37
@@ -424,7 +430,7 @@ def _decode_packed_array(data: bytes) -> Tuple[bytes, int, Optional[numpy.ndarra
     return data, bits_per_value, arr
 
 
-def _unpack_nbt_list(raw_nbt: bytes) -> List[NamedTag]:
+def _unpack_nbt_list(raw_nbt: bytes) -> list[NamedTag]:
     nbt_list = []
     while raw_nbt:
         read_context = ReadContext()
@@ -439,10 +445,17 @@ def _unpack_nbt_list(raw_nbt: bytes) -> List[NamedTag]:
     return nbt_list
 
 
+def pop_nbt(tag: CompoundTag, key: str, dtype: type[T]) -> T:
+    value = tag.pop(key)
+    if not isinstance(value, dtype):
+        raise TypeError
+    return value
+
+
 def _decode_block_entity_list(
-    block_entities: List[NamedTag],
-) -> List[tuple[tuple[int, int, int], BlockEntity]]:
-    return list(filter(bool, map(_decode_block_entity, block_entities)))
+    block_entities: list[NamedTag],
+) -> list[tuple[tuple[int, int, int], BlockEntity]]:
+    return [ent for ent in map(_decode_block_entity, block_entities) if ent is not None]
 
 
 def _decode_block_entity(
@@ -451,20 +464,25 @@ def _decode_block_entity(
     try:
         tag = nbt.compound
         namespace = ""
-        base_name = tag.pop("id").py_str
+        base_name = pop_nbt(tag, "id", StringTag).py_str
         if not base_name:
             raise Exception("entity id is empty")
-        x = tag.pop("x").py_int
-        y = tag.pop("y").py_int
-        z = tag.pop("z").py_int
-        return (x, y, z), BlockEntity(namespace=namespace, base_name=base_name, nbt=nbt)
+        x = pop_nbt(tag, "x", IntTag).py_int
+        y = pop_nbt(tag, "y", IntTag).py_int
+        z = pop_nbt(tag, "z", IntTag).py_int
+        return (x, y, z), BlockEntity(
+            version=SemanticVersion("bedrock", (1, 0, 0)),
+            namespace=namespace,
+            base_name=base_name,
+            nbt=nbt,
+        )
     except Exception as e:
         log.exception(e)
         return None
 
 
-def _decode_entity_list(entities: List[NamedTag]) -> List[Entity]:
-    return list(filter(bool, map(_decode_entity, entities)))
+def _decode_entity_list(entities: list[NamedTag]) -> list[Entity]:
+    return [ent for ent in map(_decode_entity, entities) if ent is not None]
 
 
 def _decode_entity(
@@ -473,19 +491,29 @@ def _decode_entity(
     try:
         tag = nbt.compound
         if "identifier" in tag:
-            namespace, base_name = tag.pop("identifier").py_str.split(":", 1)
+            namespace, base_name = pop_nbt(tag, "identifier", StringTag).py_str.split(
+                ":", 1
+            )
         elif "id" in tag:
             namespace = ""
-            base_name = str(tag.pop("id").py_int)
+            base_name = str(pop_nbt(tag, "id", IntTag).py_int)
         else:
             raise Exception("tag does not have identifier or id keys.")
 
-        pos: ListTag = tag.pop("Pos")
+        pos = pop_nbt(tag, "Pos", ListTag)
         x = pos[0].py_float
         y = pos[1].py_float
         z = pos[2].py_float
 
-        return Entity(namespace=namespace, base_name=base_name, x=x, y=y, z=z, nbt=nbt)
+        return Entity(
+            version=SemanticVersion("bedrock", (1, 0, 0)),
+            namespace=namespace,
+            base_name=base_name,
+            x=x,
+            y=y,
+            z=z,
+            nbt=nbt,
+        )
     except Exception as e:
         log.error(e)
         return None
