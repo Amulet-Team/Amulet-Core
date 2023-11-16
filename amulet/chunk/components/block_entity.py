@@ -86,17 +86,17 @@ class BlockEntityComponent:
     """A chunk that supports block entities"""
 
     def __init__(self, version_range: VersionRange) -> None:
-        self.__block_entity = BlockEntityContainer(version_range)
+        self.__block_entities = BlockEntityContainer(version_range)
 
     @TypedProperty[BlockEntityContainer, Iterable[tuple[BlockCoordinates, BlockEntity]]]
-    def block_entity(self) -> BlockEntityContainer:
-        return self.__block_entity
+    def block_entities(self) -> BlockEntityContainer:
+        return self.__block_entities
 
-    @block_entity.setter
+    @block_entities.setter
     def _set_block_entity(
         self,
         block_entities: Iterable[tuple[BlockCoordinates, BlockEntity]],
     ) -> None:
-        self.__block_entity.clear()
+        self.__block_entities.clear()
         for coord, block_entity in block_entities:
-            self.__block_entity[coord] = block_entity
+            self.__block_entities[coord] = block_entity

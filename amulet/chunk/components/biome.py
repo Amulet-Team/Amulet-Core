@@ -24,10 +24,10 @@ class Biome3DComponent:
         SubChunkArrayContainer,
         Mapping[int, ArrayLike] | Iterable[tuple[int, ArrayLike]],
     ]
-    def biome(self) -> SubChunkArrayContainer:
+    def biomes(self) -> SubChunkArrayContainer:
         return self.__biomes
 
-    @biome.setter
+    @biomes.setter
     def _set_biome(
         self,
         sections: Mapping[int, ArrayLike] | Iterable[tuple[int, ArrayLike]],
@@ -62,10 +62,10 @@ class Biome2DComponent:
         self.set_biome(array)
 
     @TypedProperty[numpy.ndarray, Union[int, ArrayLike]]
-    def biome(self) -> numpy.ndarray:
+    def biomes(self) -> numpy.ndarray:
         return self.__biomes
 
-    @biome.setter
+    @biomes.setter
     def _set_biome(
         self,
         array: Union[int, ArrayLike],

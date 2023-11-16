@@ -39,17 +39,17 @@ class EntityComponent:
     """A chunk that supports entities"""
 
     def __init__(self, version_range: VersionRange):
-        self.__entity = EntityContainer(version_range)
+        self.__entities = EntityContainer(version_range)
 
     @TypedProperty[EntityContainer, Iterable[Entity]]
-    def entity(self) -> EntityContainer:
-        return self.__entity
+    def entities(self) -> EntityContainer:
+        return self.__entities
 
-    @entity.setter
+    @entities.setter
     def _set_entity(
         self,
         entities: Iterable[Entity],
     ) -> None:
-        self.__entity.clear()
+        self.__entities.clear()
         for entity in entities:
-            self.__entity.add(entity)
+            self.__entities.add(entity)

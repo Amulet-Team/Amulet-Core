@@ -23,10 +23,10 @@ class BlockComponent:
         SubChunkArrayContainer,
         Mapping[int, ArrayLike] | Iterable[tuple[int, ArrayLike]],
     ]
-    def block(self) -> SubChunkArrayContainer:
+    def blocks(self) -> SubChunkArrayContainer:
         return self.__blocks
 
-    @block.setter
+    @blocks.setter
     def _set_block(
         self,
         sections: Mapping[int, ArrayLike] | Iterable[tuple[int, ArrayLike]],
