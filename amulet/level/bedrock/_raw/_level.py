@@ -46,8 +46,8 @@ log = logging.getLogger(__name__)
 
 class LegacyBlockIdMap(Mapping[int, tuple[str, str]]):
     def __init__(self) -> None:
-        self._str_to_int = {}
-        self._int_to_str = {}
+        self._str_to_int: dict[tuple[str, str], int] = {}
+        self._int_to_str: dict[int, tuple[str, str]] = {}
 
     def int_to_str(self, index: int) -> tuple[str, str]:
         return self._int_to_str[index]
