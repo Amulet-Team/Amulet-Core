@@ -57,7 +57,7 @@ OpenLevelDataT = TypeVar("OpenLevelDataT", bound=LevelOpenData)
 class Level(Generic[OpenLevelDataT, DimensionT, VersionT, RawLevelT], ABC):
     """Base class for all levels."""
 
-    __open_data: OpenLevelDataT | None
+    _open_data: OpenLevelDataT | None
     _level_lock: ShareableRLock
     _history_enabled: bool
     _translator: TranslationManager
@@ -76,7 +76,7 @@ class Level(Generic[OpenLevelDataT, DimensionT, VersionT, RawLevelT], ABC):
         You must use one of the constructor classmethods
         """
         # Private attributes
-        self.__open_data = None
+        self._open_data = None
         self._level_lock = ShareableRLock()
         self._history_enabled = True
 
@@ -95,9 +95,9 @@ class Level(Generic[OpenLevelDataT, DimensionT, VersionT, RawLevelT], ABC):
             # Do nothing if already open
             return
         self._open()
-        if self.__open_data is None:
+        if self._open_data is None:
             raise RuntimeError("_open_data has not been set")
-        self.__open_data.history_manager.history_changed.connect(self.history_changed)
+        self._open_data.history_manager.history_changed.connect(self.history_changed)
         self.opened.emit()
 
     @abstractmethod
@@ -108,12 +108,12 @@ class Level(Generic[OpenLevelDataT, DimensionT, VersionT, RawLevelT], ABC):
     @property
     def is_open(self) -> bool:
         """Has the level been opened"""
-        return self.__open_data is not None
+        return self._open_data is not None
 
     @final
     @property
     def _o(self) -> OpenLevelDataT:
-        o = self.__open_data
+        o = self._open_data
         if o is None:
             raise RuntimeError("Level is not open")
         return o
@@ -156,7 +156,7 @@ class Level(Generic[OpenLevelDataT, DimensionT, VersionT, RawLevelT], ABC):
             return
         self.closing.emit()
         self._close()
-        if self.__open_data is not None:
+        if self._open_data is not None:
             raise RuntimeError("_open_data is still set")
         self.closed.emit()
 
