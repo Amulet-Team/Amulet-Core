@@ -63,6 +63,7 @@ class Level(Generic[OpenLevelDataT, DimensionT, VersionT, RawLevelT], ABC):
     _translator: Optional[TranslationManager]
 
     __slots__ = (
+        "__weakref__",
         SignalInstanceCacheName,
         "_open_data",
         "_level_lock",
