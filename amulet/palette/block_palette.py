@@ -9,6 +9,9 @@ class BlockPalette(Palette[BlockStack]):
     Class to handle the mappings between Block Stack objects and their index-based internal IDs
     """
 
+    def _is_item(self, item: BlockStack) -> bool:
+        return isinstance(item, BlockStack)
+
     def index_to_block_stack(self, index: int) -> BlockStack:
         """
         Get the block stack at the specified palette index.
