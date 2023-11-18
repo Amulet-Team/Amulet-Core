@@ -1,3 +1,4 @@
+from __future__ import annotations
 import struct
 from typing import Optional, TypeVar, Any
 import logging

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 class BedrockDimension(
-    Dimension[BedrockLevel, BedrockRawDimension, BedrockChunkHandle]
+    Dimension["BedrockLevel", "BedrockRawDimension", BedrockChunkHandle]
 ):
     def _create_chunk_handle(self, cx: int, cz: int) -> BedrockChunkHandle:
         return BedrockChunkHandle(self._l, self._chunk_history, self.dimension, cx, cz)

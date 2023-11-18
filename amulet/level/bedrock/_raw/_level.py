@@ -104,7 +104,7 @@ class BedrockRawLevelOpenData:
 
 
 class BedrockRawLevel(
-    LevelFriend[BedrockLevel],
+    LevelFriend["BedrockLevel"],
     RawLevel,
     RawLevelPlayerComponent[PlayerID, RawPlayer],
 ):
