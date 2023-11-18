@@ -33,3 +33,6 @@ class BiomePalette(Palette[Biome]):
         if biome.version not in self.version_range:
             raise ValueError(f"Biome {biome} is incompatible with {self.version_range}")
         return self._get_index(biome)
+
+    def __repr__(self) -> str:
+        return f"BiomePalette({self.version_range!r}) # {len(self)} biomes"

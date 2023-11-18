@@ -35,3 +35,6 @@ class BlockPalette(Palette[BlockStack]):
                 f"BlockStack {block_stack} is incompatible with {self.version_range}"
             )
         return self._get_index(block_stack)
+
+    def __repr__(self) -> str:
+        return f"BlockPalette({self.version_range!r}) # {len(self)} blocks"

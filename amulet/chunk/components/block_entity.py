@@ -81,6 +81,9 @@ class BlockEntityContainer(
     def __iter__(self) -> Iterator[BlockCoordinates]:
         yield from self._block_entities
 
+    def __repr__(self) -> str:
+        return f"BlockEntityContainer({self.version_range!r}) # {len(self)} block entities"
+
 
 class BlockEntityComponent:
     """A chunk that supports block entities"""

@@ -34,6 +34,9 @@ class EntityContainer(VersionRangeContainer, MutableSet[Entity]):
     def __iter__(self) -> Iterator[Entity]:
         yield from self._entities
 
+    def __repr__(self) -> str:
+        return f"EntityContainer({self.version_range!r}) # {len(self)} entities"
+
 
 class EntityComponent:
     """A chunk that supports entities"""
