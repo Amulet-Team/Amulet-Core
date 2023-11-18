@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Union
+from typing import Any, overload, Self, Callable
 from threading import Lock
 from collections.abc import Sequence
 
@@ -21,6 +21,30 @@ class BlockPalette(VersionRangeContainer, Sequence[BlockStack]):
         self._index_to_block: list[BlockStack] = []
         self._block_to_index: dict[BlockStack, int] = {}
 
+    @classmethod
+    def _reconstruct(
+        cls,
+        version_range: VersionRange,
+        index_to_block: list[BlockStack],
+        block_to_index: dict[BlockStack, int],
+    ) -> Self:
+        self = cls(version_range)
+        self._index_to_block = index_to_block
+        self._block_to_index = block_to_index
+        return self
+
+    def __reduce__(
+        self,
+    ) -> tuple[
+        Callable[[VersionRange, list[BlockStack], dict[BlockStack, int]], Self],
+        tuple[VersionRange, list[BlockStack], dict[BlockStack, int]],
+    ]:
+        return self._reconstruct, (
+            self.version_range,
+            self._index_to_block,
+            self._block_to_index,
+        )
+
     def __len__(self) -> int:
         """
         The number of block stacks in the palette.
@@ -31,10 +55,18 @@ class BlockPalette(VersionRangeContainer, Sequence[BlockStack]):
         """
         return len(self._index_to_block)
 
-    def __getitem__(self, item: int) -> BlockStack:
+    @overload
+    def __getitem__(self, index: int) -> BlockStack:
+        ...
+
+    @overload
+    def __getitem__(self, index: slice) -> Sequence[BlockStack]:
+        ...
+
+    def __getitem__(self, item: int | slice) -> BlockStack | Sequence[BlockStack]:
         return self._index_to_block[item]
 
-    def __contains__(self, item: Union[int, BlockStack]) -> bool:
+    def __contains__(self, item: Any) -> bool:
         """
         Is the given :class:`BlockStack` already in the palette.
 

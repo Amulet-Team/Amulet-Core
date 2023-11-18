@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Union
+from typing import Any, overload, Self, Callable
 from threading import Lock
 from collections.abc import Sequence
 
@@ -21,6 +21,30 @@ class BiomePalette(VersionRangeContainer, Sequence[Biome]):
         self._index_to_biome: list[Biome] = []
         self._biome_to_index: dict[Biome, int] = {}
 
+    @classmethod
+    def _reconstruct(
+        cls,
+        version_range: VersionRange,
+        index_to_biome: list[Biome],
+        biome_to_index: dict[Biome, int],
+    ) -> Self:
+        self = cls(version_range)
+        self._index_to_biome = index_to_biome
+        self._biome_to_index = biome_to_index
+        return self
+
+    def __reduce__(
+        self,
+    ) -> tuple[
+        Callable[[VersionRange, list[Biome], dict[Biome, int]], Self],
+        tuple[VersionRange, list[Biome], dict[Biome, int]],
+    ]:
+        return self._reconstruct, (
+            self.version_range,
+            self._index_to_biome,
+            self._biome_to_index,
+        )
+
     def __len__(self) -> int:
         """
         The number of biomes in the palette.
@@ -31,10 +55,18 @@ class BiomePalette(VersionRangeContainer, Sequence[Biome]):
         """
         return len(self._index_to_biome)
 
-    def __getitem__(self, item: int) -> Biome:
+    @overload
+    def __getitem__(self, index: int) -> Biome:
+        ...
+
+    @overload
+    def __getitem__(self, index: slice) -> Sequence[Biome]:
+        ...
+
+    def __getitem__(self, item: int | slice) -> Biome | Sequence[Biome]:
         return self._index_to_biome[item]
 
-    def __contains__(self, item: Union[int, Biome]) -> bool:
+    def __contains__(self, item: Any) -> bool:
         """
         Is the given biome already in the palette.
 
