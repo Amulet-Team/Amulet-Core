@@ -176,7 +176,7 @@ class BedrockRawLevel(
     def level_dat(self, level_dat: BedrockLevelDAT) -> None:
         if not isinstance(level_dat, BedrockLevelDAT):
             raise TypeError
-        self.level_dat = level_dat = copy.deepcopy(level_dat)
+        self._level_dat = level_dat = copy.deepcopy(level_dat)
         level_dat.save_to(os.path.join(self._l.path, "level.dat"))
 
     @property
