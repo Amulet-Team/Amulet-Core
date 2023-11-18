@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 class BedrockRawLevelFriend:
     _r_ref: Callable[[], BedrockRawLevel | None]
 
-    __slots__ = ("_r",)
+    __slots__ = ("_r_ref",)
 
     def __init__(self, raw_level: BedrockRawLevel) -> None:
         self._r_ref = ref(raw_level)
