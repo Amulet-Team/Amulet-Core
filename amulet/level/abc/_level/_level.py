@@ -60,7 +60,7 @@ class Level(Generic[OpenLevelDataT, DimensionT, VersionT, RawLevelT], ABC):
     _open_data: OpenLevelDataT | None
     _level_lock: ShareableRLock
     _history_enabled: bool
-    _translator: TranslationManager
+    _translator: Optional[TranslationManager]
 
     __slots__ = (
         SignalInstanceCacheName,
@@ -79,6 +79,7 @@ class Level(Generic[OpenLevelDataT, DimensionT, VersionT, RawLevelT], ABC):
         self._open_data = None
         self._level_lock = ShareableRLock()
         self._history_enabled = True
+        self._translator = None
 
     def __del__(self) -> None:
         self.close()
