@@ -1,89 +1,13 @@
 from __future__ import annotations
-from typing import Any, overload, Self, Callable
-from threading import Lock
-from collections.abc import Sequence
 
 from amulet.block import BlockStack
-from amulet.version import VersionRange, VersionRangeContainer
+from ._palette import Palette
 
 
-class BlockPalette(VersionRangeContainer, Sequence[BlockStack]):
+class BlockPalette(Palette[BlockStack]):
     """
     Class to handle the mappings between Block Stack objects and their index-based internal IDs
     """
-
-    def __init__(self, version_range: VersionRange) -> None:
-        """
-        Creates a new BlockPalette object
-        """
-        super().__init__(version_range)
-        self._lock = Lock()
-        self._index_to_block: list[BlockStack] = []
-        self._block_to_index: dict[BlockStack, int] = {}
-
-    @classmethod
-    def _reconstruct(
-        cls,
-        version_range: VersionRange,
-        index_to_block: list[BlockStack],
-        block_to_index: dict[BlockStack, int],
-    ) -> Self:
-        self = cls(version_range)
-        self._index_to_block = index_to_block
-        self._block_to_index = block_to_index
-        return self
-
-    def __reduce__(
-        self,
-    ) -> tuple[
-        Callable[[VersionRange, list[BlockStack], dict[BlockStack, int]], Self],
-        tuple[VersionRange, list[BlockStack], dict[BlockStack, int]],
-    ]:
-        return self._reconstruct, (
-            self.version_range,
-            self._index_to_block,
-            self._block_to_index,
-        )
-
-    def __len__(self) -> int:
-        """
-        The number of block stacks in the palette.
-
-        >>> block_palette: BlockPalette
-        >>> len(block_palette)
-        10
-        """
-        return len(self._index_to_block)
-
-    @overload
-    def __getitem__(self, index: int) -> BlockStack:
-        ...
-
-    @overload
-    def __getitem__(self, index: slice) -> Sequence[BlockStack]:
-        ...
-
-    def __getitem__(self, item: int | slice) -> BlockStack | Sequence[BlockStack]:
-        return self._index_to_block[item]
-
-    def __contains__(self, item: Any) -> bool:
-        """
-        Is the given :class:`BlockStack` already in the palette.
-
-        >>> block_palette: BlockPalette
-        >>> block_stack: BlockStack
-        >>> block_stack in block_palette
-        True
-        >>> 7 in block_palette
-        True
-
-        :param item: The block stack or index to check.
-        """
-        if isinstance(item, int):
-            return item < len(self._index_to_block)
-        elif isinstance(item, BlockStack):
-            return item in self._block_to_index
-        return False
 
     def index_to_block_stack(self, index: int) -> BlockStack:
         """
@@ -92,7 +16,7 @@ class BlockPalette(VersionRangeContainer, Sequence[BlockStack]):
         :return: The block stack at that index
         :raises KeyError if there is no block stack at that index.
         """
-        return self._index_to_block[index]
+        return self._index_to_item[index]
 
     def block_stack_to_index(self, block_stack: BlockStack) -> int:
         """
@@ -107,9 +31,4 @@ class BlockPalette(VersionRangeContainer, Sequence[BlockStack]):
             raise ValueError(
                 f"BlockStack {block_stack} is incompatible with {self.version_range}"
             )
-        if block_stack not in self._block_to_index:
-            with self._lock:
-                if block_stack not in self._block_to_index:
-                    self._index_to_block.append(block_stack)
-                    self._block_to_index[block_stack] = len(self._index_to_block) - 1
-        return self._block_to_index[block_stack]
+        return self._get_index(block_stack)
