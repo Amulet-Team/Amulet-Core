@@ -1,6 +1,6 @@
 from __future__ import annotations
 import struct
-from typing import Optional, TypeVar, Any
+from typing import Optional, TypeVar, Any, TYPE_CHECKING
 import logging
 from functools import cache
 
@@ -35,8 +35,10 @@ from amulet.level.bedrock.chunk import BedrockChunk, BedrockChunk0, BedrockChunk
 from amulet.level.bedrock.chunk.components.finalised_state import (
     FinalisedStateComponent,
 )
-from ._level import BedrockRawLevel
-from ._dimension import BedrockRawDimension
+
+if TYPE_CHECKING:
+    from ._level import BedrockRawLevel
+    from ._dimension import BedrockRawDimension
 
 log = logging.getLogger(__name__)
 
@@ -54,12 +56,12 @@ def cast(obj: Any, cls: type[T]) -> T:
 @cache
 def unpack_block_version(block_version: int) -> SemanticVersion:
     return SemanticVersion(
-        "bedrock", struct.unpack("4b", struct.pack(">i", block_version))
+        "bedrock", struct.unpack("4B", struct.pack(">i", block_version))
     )
 
 
 def raw_to_native(
-    level: BedrockRawLevel,
+    raw_level: BedrockRawLevel,
     dimension: BedrockRawDimension,
     raw_chunk: BedrockRawChunk,
 ) -> BedrockChunk:
@@ -73,12 +75,19 @@ def raw_to_native(
         raise RuntimeError
     chunk_version = chunk_version_byte[0]
 
+    # TODO: improve this
+    level = raw_level._l
+    version = level.translator.get_version(
+        "bedrock", raw_level.max_game_version.semantic_version
+    )
+    max_version = unpack_block_version(version.data_version)
+
     # Create the chunk instance
     chunk: BedrockChunk
     if chunk_version >= 29:
-        chunk = BedrockChunk29(level.max_game_version)
+        chunk = BedrockChunk29(max_version)
     else:
-        chunk = BedrockChunk0(level.max_game_version)
+        chunk = BedrockChunk0(max_version)
 
     # Parse blocks
     block_component = cast(chunk, BlockComponent)
@@ -90,7 +99,7 @@ def raw_to_native(
                 if 25 <= chunk_version <= 28:
                     cy += dimension.bounds().min_y >> 4
                 subchunks[cy] = chunk_data.pop(key)
-        _load_subchunks(level, subchunks, block_component)
+        _load_subchunks(raw_level, subchunks, block_component)
     else:
         section_data = chunk_data.pop(b"\x30", None)
         if section_data is not None:
@@ -237,7 +246,7 @@ def _load_subchunks(
                     )
                 )
 
-            blocks[cy] = numpy.array(block_lut)[block_array]
+            blocks[cy] = numpy.array(block_lut, dtype=numpy.uint32)[block_array]
 
         else:
             if data[0] == 1:
@@ -307,7 +316,9 @@ def _load_subchunks(
                     block_palette.block_stack_to_index(BlockStack(block))
                     for block in sub_chunk_palette[0]
                 ]
-                blocks[cy] = numpy.array(block_lut)[sub_chunk_blocks[:, :, :, 0]]
+                blocks[cy] = numpy.array(block_lut, dtype=numpy.uint32)[
+                    sub_chunk_blocks[:, :, :, 0]
+                ]
             elif storage_count > 1:
                 # we have two or more storages so need to find the unique block combinations and merge them together
                 sub_chunk_palette_, sub_chunk_blocks = numpy.unique(
@@ -331,8 +342,8 @@ def _load_subchunks(
                     )
                     for palette_indexes in sub_chunk_palette_
                 ]
-                blocks[cy] = numpy.array(block_lut)[
-                    sub_chunk_blocks.reshape(16, 16, 16).astype(numpy.uint32)
+                blocks[cy] = numpy.array(block_lut, dtype=numpy.uint32)[
+                    sub_chunk_blocks.reshape(16, 16, 16)
                 ]
             else:
                 continue
