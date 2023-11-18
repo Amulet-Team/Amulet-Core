@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Union
+from typing import Any, Union, Type
 import os
 import shutil
 import time
@@ -25,10 +25,15 @@ from amulet.utils.format_utils import check_all_exist
 
 from ._raw import BedrockRawLevel, InternalDimension, BedrockLevelDAT
 from ._dimension import BedrockDimension
+from ...chunk import Chunk
 
 
 class BedrockLevelOpenData(LevelOpenData):
-    pass
+    dimensions: dict[Union[DimensionID, InternalDimension], BedrockDimension]
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.dimensions = {}
 
 
 class BedrockLevel(
@@ -37,21 +42,25 @@ class BedrockLevel(
     LoadableLevel,
     CompactableLevel,
 ):
+    def save(self) -> None:
+        pass
+
+    @property
+    def native_chunk_class(self) -> Type[Chunk]:
+        pass
+
     _path: str
     _raw_level: BedrockRawLevel
-    _dimensions: dict[Union[DimensionID, InternalDimension], BedrockDimension]
 
     __slots__ = (
         "_path",
         "_raw_level",
-        "_dimensions",
     )
 
     def __init__(self, path: str) -> None:
         super().__init__()
         self._path = path
         self._raw_level = BedrockRawLevel(self)
-        self._dimensions = {}
 
     @staticmethod
     def create_args() -> dict[str, CreateArgsT]:
@@ -116,10 +125,13 @@ class BedrockLevel(
         self.raw._reload()
 
     def _open(self) -> None:
-        pass
+        self.raw._open()
+        self._open_data = BedrockLevelOpenData()
 
     def _close(self) -> None:
-        self._dimensions.clear()
+        self.raw._close()
+        self._o.dimensions.clear()
+        self._open_data = None
 
     @property
     def path(self) -> str:
@@ -153,14 +165,15 @@ class BedrockLevel(
     def get_dimension(
         self, dimension: Union[DimensionID, InternalDimension]
     ) -> BedrockDimension:
-        if dimension not in self._dimensions:
+        dimensions = self._o.dimensions
+        if dimension not in dimensions:
             raw_dimension = self.raw.get_dimension(dimension)
             public_dimension_id = raw_dimension.dimension
             internal_dimension_id = raw_dimension.internal_dimension
-            self._dimensions[internal_dimension_id] = self._dimensions[
+            dimensions[internal_dimension_id] = dimensions[
                 public_dimension_id
             ] = BedrockDimension(self, public_dimension_id)
-        return self._dimensions[dimension]
+        return dimensions[dimension]
 
     @property
     def raw(self) -> BedrockRawLevel:
