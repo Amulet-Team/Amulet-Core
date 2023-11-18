@@ -4,8 +4,9 @@ from uuid import uuid4
 from threading import Lock
 from typing import Sequence, Protocol, TypeVar, Generic, Mapping, Any
 from weakref import WeakSet, WeakValueDictionary
+from collections.abc import MutableMapping
 
-from amulet.utils.signal import Signal
+from amulet.utils.signal import Signal, SignalInstanceCacheName
 
 from ._cache import GlobalDiskCache
 
@@ -49,7 +50,7 @@ class Resource:
 
 class HistoryManagerPrivate:
     lock: Lock
-    resources: WeakValueDictionary[bytes, dict[ResourceId, Resource]]
+    resources: WeakValueDictionary[bytes, MutableMapping[ResourceId, Resource]]
     history: list[WeakSet[Resource]]
     history_index: int
     has_redo: bool
@@ -83,8 +84,12 @@ class HistoryManagerPrivate:
             self.has_redo = False
 
 
+class CustomDict(dict):
+    pass
+
+
 class HistoryManager:
-    __slots__ = ("_h",)
+    __slots__ = (SignalInstanceCacheName, "_h")
 
     _h: HistoryManagerPrivate
 
@@ -93,7 +98,7 @@ class HistoryManager:
 
     def new_layer(self) -> HistoryManagerLayer:
         uuid = uuid4().bytes
-        resources: dict[ResourceId, Resource] = {}
+        resources: MutableMapping[ResourceId, Resource] = CustomDict()
         self._h.resources[uuid] = resources
         return HistoryManagerLayer(self._h, uuid, resources)
 
@@ -161,13 +166,13 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
 
     _h: HistoryManagerPrivate
     _uuid: bytes
-    _resources: dict[ResourceIdT, Resource]
+    _resources: MutableMapping[ResourceIdT, Resource]
 
     def __init__(
         self,
         _h: HistoryManagerPrivate,
         uuid: bytes,
-        resources: dict[ResourceIdT, Resource],
+        resources: MutableMapping[ResourceIdT, Resource],
     ) -> None:
         """This must not be used directly."""
         self._h = _h
