@@ -1,8 +1,10 @@
 from __future__ import annotations
 from typing import Any, overload, Callable
 from collections.abc import Sequence
+from functools import cache
 
 
+@cache
 class VersionNumber(Sequence[int]):
     """
     This class is designed to store semantic versions and data versions and allow comparisons between them.
@@ -99,6 +101,7 @@ class PlatformVersionContainer:
         return self._version
 
 
+@cache
 class VersionRange:
     def __init__(
         self, platform: str, min_version: VersionNumber, max_version: VersionNumber
