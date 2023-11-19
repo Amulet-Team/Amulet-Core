@@ -1,20 +1,20 @@
 import unittest
 from amulet.block import Block, BlockStack
 from amulet.palette import BlockPalette
-from amulet.version import PlatformVersion, VersionNumber, VersionRange
+from amulet.version import VersionNumber, VersionRange
 
 
 dirt = Block.from_string_blockstate(
-    PlatformVersion("java", VersionNumber(3578)), "minecraft:dirt"
+    "java", VersionNumber(3578), "minecraft:dirt"
 )
 stone = Block.from_string_blockstate(
-    PlatformVersion("java", VersionNumber(3578)), "minecraft:stone"
+    "java", VersionNumber(3578), "minecraft:stone"
 )
 granite = Block.from_string_blockstate(
-    PlatformVersion("java", VersionNumber(3578)), "minecraft:granite"
+    "java", VersionNumber(3578), "minecraft:granite"
 )
 water = Block.from_string_blockstate(
-    PlatformVersion("java", VersionNumber(3578)), "minecraft:water"
+    "java", VersionNumber(3578), "minecraft:water"
 )
 waterlogged_dirt = BlockStack(dirt, water)
 
@@ -61,7 +61,7 @@ class BlockPaletteTestCase(unittest.TestCase):
             self.palette.block_stack_to_index(
                 BlockStack(
                     Block.from_string_blockstate(
-                        PlatformVersion("java", VersionNumber(3578)), "a:b[c=d]"
+                        "java", VersionNumber(3578), "a:b[c=d]"
                     )
                 )
             ),
@@ -86,7 +86,7 @@ class BlockPaletteTestCase(unittest.TestCase):
             self.palette.block_stack_to_index(
                 BlockStack(
                     Block.from_string_blockstate(
-                        PlatformVersion("java", VersionNumber(3579)), "a:b"
+                        "java", VersionNumber(3579), "a:b"
                     )
                 )
             )
@@ -94,7 +94,7 @@ class BlockPaletteTestCase(unittest.TestCase):
             self.palette.block_stack_to_index(
                 BlockStack(
                     Block.from_string_blockstate(
-                        PlatformVersion("java", VersionNumber(3577)), "a:b"
+                        "java", VersionNumber(3577), "a:b"
                     )
                 )
             )

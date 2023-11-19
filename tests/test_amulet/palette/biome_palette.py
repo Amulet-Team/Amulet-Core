@@ -1,12 +1,12 @@
 import unittest
 from amulet.biome import Biome
 from amulet.palette import BiomePalette
-from amulet.version import PlatformVersion, VersionNumber, VersionRange
+from amulet.version import VersionNumber, VersionRange
 
 
-plains = Biome(PlatformVersion("java", VersionNumber(3578)), "minecraft", "plains")
-desert = Biome(PlatformVersion("java", VersionNumber(3578)), "minecraft", "desert")
-forest = Biome(PlatformVersion("java", VersionNumber(3578)), "minecraft", "forest")
+plains = Biome("java", VersionNumber(3578), "minecraft", "plains")
+desert = Biome("java", VersionNumber(3578), "minecraft", "desert")
+forest = Biome("java", VersionNumber(3578), "minecraft", "forest")
 
 
 class BiomePaletteTestCase(unittest.TestCase):
@@ -41,7 +41,7 @@ class BiomePaletteTestCase(unittest.TestCase):
         self.assertEqual(
             3,
             self.palette.biome_to_index(
-                Biome(PlatformVersion("java", VersionNumber(3578)), "a", "b")
+                Biome("java", VersionNumber(3578), "a", "b")
             ),
         )
 
@@ -60,11 +60,11 @@ class BiomePaletteTestCase(unittest.TestCase):
     def test_errors(self) -> None:
         with self.assertRaises(ValueError):
             self.palette.biome_to_index(
-                Biome(PlatformVersion("java", VersionNumber(3579)), "a", "b")
+                Biome("java", VersionNumber(3579), "a", "b")
             )
         with self.assertRaises(ValueError):
             self.palette.biome_to_index(
-                Biome(PlatformVersion("java", VersionNumber(3577)), "a", "b")
+                Biome("java", VersionNumber(3577), "a", "b")
             )
 
 

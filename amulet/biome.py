@@ -1,13 +1,14 @@
 from __future__ import annotations
 from typing import Any
 
-from amulet.version import PlatformVersionContainer, PlatformVersion
+from amulet.version import PlatformVersionContainer, VersionNumber
 
 
 class Biome(PlatformVersionContainer):
     def __init__(
         self,
-        version: PlatformVersion,
+        platform: str,
+        version: VersionNumber,
         namespace: str,
         base_name: str,
     ):
@@ -20,12 +21,12 @@ class Biome(PlatformVersionContainer):
         :param namespace: The string namespace of the biome. eg `minecraft`
         :param base_name: The string base name of the biome. eg `plains`
         """
-        super().__init__(version)
+        super().__init__(platform, version)
         self._namespace = str(namespace)
         self._base_name = str(base_name)
 
     def _data(self) -> tuple:
-        return self.version, self._namespace, self._base_name
+        return self.platform, self.version, self._namespace, self._base_name
 
     def __hash__(self) -> int:
         return hash(self._data())
@@ -46,7 +47,7 @@ class Biome(PlatformVersionContainer):
         return hash(self) < hash(other)
 
     def __repr__(self) -> str:
-        return f"Biome({self.version!r}, {self.namespace!r}, {self.base_name!r}, {self.version!r})"
+        return f"Biome({self.platform!r}, {self.version!r}, {self.namespace!r}, {self.base_name!r}, {self.version!r})"
 
     @property
     def namespace(self) -> str:

@@ -26,7 +26,7 @@ from amulet.chunk.components.block_entity import BlockEntityComponent
 from amulet.chunk.components.entity import EntityComponent
 from amulet.chunk.components.height_2d import Height2DComponent
 from amulet.chunk.components.biome import Biome2DComponent, Biome3DComponent
-from amulet.version import VersionNumber, PlatformVersion
+from amulet.version import VersionNumber
 
 from amulet.utils.world_utils import fast_unique, from_nibble_array
 
@@ -75,9 +75,7 @@ def raw_to_native(
 
     # TODO: improve this
     level = raw_level._l
-    version = level.translator.get_version(
-        "bedrock", tuple(raw_level.version)
-    )
+    version = level.translator.get_version("bedrock", tuple(raw_level.version))
     max_version = unpack_block_version(version.data_version)
 
     # Create the chunk instance
@@ -203,7 +201,7 @@ def _load_subchunks(
     block_palette.block_stack_to_index(
         BlockStack(
             Block(
-                PlatformVersion("bedrock", VersionNumber(1, 12, 0)),
+                "bedrock", VersionNumber(1, 12, 0),
                 namespace="minecraft",
                 base_name="air",
                 properties={"block_data": IntTag(0)},
@@ -234,7 +232,7 @@ def _load_subchunks(
                     block_palette.block_stack_to_index(
                         BlockStack(
                             Block(
-                                PlatformVersion("bedrock", VersionNumber(1, 12, 0)),
+                                "bedrock", VersionNumber(1, 12, 0),
                                 namespace=namespace,
                                 base_name=base_name,
                                 properties={"block_data": IntTag(block_data)},
@@ -300,7 +298,7 @@ def _load_subchunks(
 
                     palette_data_out.append(
                         Block(
-                            PlatformVersion("bedrock", version),
+                            "bedrock", version,
                             namespace=namespace,
                             base_name=base_name,
                             properties=properties,
@@ -480,7 +478,8 @@ def _decode_block_entity(
         y = pop_nbt(tag, "y", IntTag).py_int
         z = pop_nbt(tag, "z", IntTag).py_int
         return (x, y, z), BlockEntity(
-            version=PlatformVersion("bedrock", VersionNumber(1, 0, 0)),
+            platform="bedrock",
+            version=VersionNumber(1, 0, 0),
             namespace=namespace,
             base_name=base_name,
             nbt=nbt,
@@ -515,7 +514,8 @@ def _decode_entity(
         z = pos[2].py_float
 
         return Entity(
-            version=PlatformVersion("bedrock", VersionNumber(1, 0, 0)),
+            platform="bedrock",
+            version=VersionNumber(1, 0, 0),
             namespace=namespace,
             base_name=base_name,
             x=x,

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 from amulet_nbt import NamedTag
-from amulet.version import PlatformVersionContainer, PlatformVersion
+from amulet.version import PlatformVersionContainer, VersionNumber
 from amulet.api.data_types import PointCoordinates
 
 
@@ -22,7 +22,8 @@ class Entity(PlatformVersionContainer):
 
     def __init__(
         self,
-        version: PlatformVersion,
+        platform: str,
+        version: VersionNumber,
         namespace: str,
         base_name: str,
         x: float,
@@ -33,7 +34,8 @@ class Entity(PlatformVersionContainer):
         """
         Constructs a :class:`Entity` instance.
 
-        :param version: The platform and version the entity is defined in.
+        :param platform: The platform the entity is defined in.
+        :param version: The version the entity is defined in.
         :param namespace: The namespace of the entity eg "minecraft"
         :param base_name: The base name of the entity eg "creeper"
         :param x: The x coordinate of the entity
@@ -41,7 +43,7 @@ class Entity(PlatformVersionContainer):
         :param z: The z coordinate of the entity
         :param nbt: The NBT stored with the entity
         """
-        super().__init__(version)
+        super().__init__(platform, version)
         self._namespace = str(namespace)
         self._base_name = str(base_name)
         self._x = float(x)
@@ -53,6 +55,7 @@ class Entity(PlatformVersionContainer):
 
     def _data(self) -> tuple:
         return (
+            self.platform,
             self.version,
             self._namespace,
             self._base_name,
@@ -71,7 +74,7 @@ class Entity(PlatformVersionContainer):
         return id(self)
 
     def __repr__(self) -> str:
-        return f"Entity({self.version!r}, {self._namespace!r}, {self._base_name!r}, {self._x}, {self._y}, {self._z}, {self._nbt!r})"
+        return f"Entity({self.platform!r}, {self.version!r}, {self._namespace!r}, {self._base_name!r}, {self._x}, {self._y}, {self._z}, {self._nbt!r})"
 
     @property
     def namespaced_name(self) -> str:

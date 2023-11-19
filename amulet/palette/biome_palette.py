@@ -30,7 +30,7 @@ class BiomePalette(Palette[Biome]):
         """
         if not isinstance(biome, Biome):
             raise TypeError(repr(biome))
-        if biome.version not in self.version_range:
+        if not self.version_range.contains(biome.platform, biome.version):
             raise ValueError(f"Biome {biome} is incompatible with {self.version_range}")
         return self._get_index(biome)
 

@@ -64,17 +64,17 @@ class BedrockRawDimension(
 
     def default_block(self) -> BlockStack:
         """The default block for this dimension"""
-        return BlockStack(Block(self._r.platform_version, "minecraft", "air"))
+        return BlockStack(Block(self._r.platform, self._r.version, "minecraft", "air"))
 
     def default_biome(self) -> Biome:
         """The default biome for this dimension"""
         # todo: is this stored in the data somewhere?
         if self.dimension == THE_NETHER:
-            return Biome(self._r.platform_version, "minecraft", "nether")
+            return Biome(self._r.platform, self._r.version, "minecraft", "nether")
         elif self.dimension == THE_END:
-            return Biome(self._r.platform_version, "minecraft", "the_end")
+            return Biome(self._r.platform, self._r.version, "minecraft", "the_end")
         else:
-            return Biome(self._r.platform_version, "minecraft", "plains")
+            return Biome(self._r.platform, self._r.version, "minecraft", "plains")
 
     @property
     def internal_dimension(self) -> InternalDimension:

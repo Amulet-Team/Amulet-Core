@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from amulet_nbt import NamedTag
-from amulet.version import PlatformVersionContainer, PlatformVersion
+from amulet.version import PlatformVersionContainer, VersionNumber
 
 
 class BlockEntity(PlatformVersionContainer):
@@ -19,7 +19,8 @@ class BlockEntity(PlatformVersionContainer):
 
     def __init__(
         self,
-        version: PlatformVersion,
+        platform: str,
+        version: VersionNumber,
         namespace: str,
         base_name: str,
         nbt: NamedTag,
@@ -32,7 +33,7 @@ class BlockEntity(PlatformVersionContainer):
         :param base_name: The base name of the block entity eg "chest"
         :param nbt: The NBT stored with the block entity
         """
-        super().__init__(version)
+        super().__init__(platform, version)
         self._namespace = str(namespace)
         self._base_name = str(base_name)
         if not isinstance(nbt, NamedTag):
@@ -40,10 +41,10 @@ class BlockEntity(PlatformVersionContainer):
         self._nbt = nbt
 
     def __repr__(self) -> str:
-        return f"BlockEntity({self.version}, {self._namespace!r}, {self._base_name!r}, {self._nbt!r})"
+        return f"BlockEntity({self.platform!r}, {self.version!r}, {self._namespace!r}, {self._base_name!r}, {self._nbt!r})"
 
     def _data(self) -> tuple:
-        return self.version, self._namespace, self._base_name, self._nbt
+        return self.platform, self.version, self._namespace, self._base_name, self._nbt
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, BlockEntity):

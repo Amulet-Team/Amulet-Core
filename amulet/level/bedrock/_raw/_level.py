@@ -30,7 +30,7 @@ from amulet.level.abc import (
     RawLevelPlayerComponent,
     LevelFriend,
 )
-from amulet.version import PlatformVersion, VersionNumber
+from amulet.version import VersionNumber
 
 from ._level_dat import BedrockLevelDAT
 from ._actor_counter import ActorCounter
@@ -200,10 +200,6 @@ class BedrockRawLevel(
             )
         except Exception:
             return VersionNumber(1, 2, 0)
-
-    @property
-    def platform_version(self) -> PlatformVersion:
-        return PlatformVersion(self.platform, self.version)
 
     @property
     def last_played(self) -> int:

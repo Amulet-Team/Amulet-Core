@@ -81,61 +81,20 @@ class VersionNumber(Sequence[int]):
         return f"{self.__class__.__name__}({', '.join(map(str, self._v))})"
 
 
-class PlatformVersion:
-    """A version number with a platform associated with it."""
+class PlatformVersionContainer:
+    __slots__ = ("_platform", "_version")
 
-    def __init__(self, platform: str, version: VersionNumber):
+    def __init__(self, platform: str, version: VersionNumber) -> None:
         self._platform = platform
         self._version = version
 
     @property
     def platform(self) -> str:
+        """The platform this object is defined in."""
         return self._platform
 
     @property
     def version(self) -> VersionNumber:
-        return self._version
-
-    def __hash__(self) -> int:
-        return hash((self._platform, self._version))
-
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, PlatformVersion):
-            return False
-        return self.platform == other.platform and self.version == other.version
-
-    def _check_compatible(self, other: PlatformVersion) -> None:
-        if self.platform != other.platform:
-            raise ValueError(f"Version {other!r} is not compatible with {self!r}")
-
-    def __lt__(self, other: PlatformVersion) -> bool:
-        self._check_compatible(other)
-        return self.version < other.version
-
-    def __gt__(self, other: PlatformVersion) -> bool:
-        self._check_compatible(other)
-        return self.version > other.version
-
-    def __le__(self, other: PlatformVersion) -> bool:
-        self._check_compatible(other)
-        return self.version <= other.version
-
-    def __ge__(self, other: PlatformVersion) -> bool:
-        self._check_compatible(other)
-        return self.version >= other.version
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({super().__repr__()})"
-
-
-class PlatformVersionContainer:
-    __slots__ = ("_platform", "_version")
-
-    def __init__(self, version: PlatformVersion) -> None:
-        self._version = version
-
-    @property
-    def version(self) -> PlatformVersion:
         """The version this object is defined in."""
         return self._version
 
@@ -168,10 +127,8 @@ class VersionRange:
         """The maximum version this range supports"""
         return self._max
 
-    def __contains__(self, item: Any) -> bool:
-        if not isinstance(item, PlatformVersion):
-            return False
-        return item.platform == self.platform and self.min <= item.version <= self.max
+    def contains(self, platform: str, version: VersionNumber) -> bool:
+        return platform == self.platform and self.min <= version <= self.max
 
 
 class VersionRangeContainer:
