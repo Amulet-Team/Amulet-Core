@@ -9,7 +9,7 @@ from PIL import Image
 from leveldb import LevelDB
 from amulet_nbt import CompoundTag, IntTag, ListTag, LongTag, StringTag
 
-from amulet.version import SemanticVersion
+from amulet.version import VersionNumber
 from amulet.api.data_types import DimensionID, PlatformType
 from amulet.level.abc import (
     LevelOpenData,
@@ -37,7 +37,7 @@ class BedrockLevelOpenData(LevelOpenData):
 
 
 class BedrockLevel(
-    DiskLevel[BedrockLevelOpenData, BedrockDimension, SemanticVersion, BedrockRawLevel],
+    DiskLevel[BedrockLevelOpenData, BedrockDimension, BedrockRawLevel],
     CreatableLevel,
     LoadableLevel,
     CompactableLevel,
@@ -156,8 +156,8 @@ class BedrockLevel(
         return "bedrock"
 
     @property
-    def max_game_version(self) -> SemanticVersion:
-        return self.raw.max_game_version
+    def max_game_version(self) -> VersionNumber:
+        return self.raw.version
 
     def dimensions(self) -> frozenset[DimensionID]:
         return self.raw.dimensions()

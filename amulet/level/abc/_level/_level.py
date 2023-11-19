@@ -14,7 +14,7 @@ import PyMCTranslate
 from PyMCTranslate import TranslationManager
 
 from amulet import IMG_DIRECTORY
-from amulet.version import VersionT
+from amulet.version import VersionNumber
 from amulet.api.data_types import DimensionID, PlatformType
 
 from amulet.chunk import Chunk
@@ -54,7 +54,7 @@ class LevelOpenData:
 OpenLevelDataT = TypeVar("OpenLevelDataT", bound=LevelOpenData)
 
 
-class Level(Generic[OpenLevelDataT, DimensionT, VersionT, RawLevelT], ABC):
+class Level(Generic[OpenLevelDataT, DimensionT, RawLevelT], ABC):
     """Base class for all levels."""
 
     _open_data: OpenLevelDataT | None
@@ -173,7 +173,7 @@ class Level(Generic[OpenLevelDataT, DimensionT, VersionT, RawLevelT], ABC):
 
     @property
     @abstractmethod
-    def max_game_version(self) -> VersionT:
+    def max_game_version(self) -> VersionNumber:
         raise NotImplementedError
 
     # Emitted when the undo or redo count has changed

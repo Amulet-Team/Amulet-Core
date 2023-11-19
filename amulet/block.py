@@ -8,9 +8,8 @@ from collections.abc import Iterator, Sequence, Hashable, Mapping
 from amulet_nbt import ByteTag, ShortTag, IntTag, LongTag, StringTag, from_snbt, AnyNBT
 
 from amulet.version import (
-    AbstractVersion,
-    DataVersion,
-    VersionContainer,
+    PlatformVersionContainer,
+    PlatformVersion,
 )
 
 PropertyValueType = Union[
@@ -67,7 +66,7 @@ class BlockProperties(Mapping[str, PropertyValueType], Hashable):
         return self._hash
 
 
-class Block(VersionContainer):
+class Block(PlatformVersionContainer):
     """
     A class to manage the state of a block.
 
@@ -76,11 +75,11 @@ class Block(VersionContainer):
     Here's a few examples on how create a Block object:
 
     >>> # Create a block with the namespace `minecraft` and base name `stone`
-    >>> stone = Block(DataVersion("java", 3578), "minecraft", "stone")
+    >>> stone = Block(PlatformVersion("java", VersionNumber(3578)), "minecraft", "stone")
 
     >>> # Create a water block with the level property
     >>> water = Block(
-    >>>     DataVersion("java", 3578),
+    >>>     PlatformVersion("java", VersionNumber(3578)),
     >>>     "minecraft",  # the namespace
     >>>     "water",  # the base name
     >>>     {  # A dictionary of properties.
@@ -102,7 +101,7 @@ class Block(VersionContainer):
 
     def __init__(
         self,
-        version: AbstractVersion,
+        version: PlatformVersion,
         namespace: str,
         base_name: str,
         properties: PropertyType = MappingProxyType({}),
@@ -110,11 +109,11 @@ class Block(VersionContainer):
         """
         Constructs a :class:`Block` instance.
 
-        >>> stone = Block(DataVersion("java", 3578), "minecraft", "stone")
+        >>> stone = Block(PlatformVersion("java", VersionNumber(3578)), "minecraft", "stone")
         >>>
         >>> # Create a water block with the level property
         >>> water = Block(
-        >>>     DataVersion("java", 3578),
+        >>>     PlatformVersion("java", VersionNumber(3578)),
         >>>     "minecraft",  # the namespace
         >>>     "water",  # the base name
         >>>     {  # A dictionary of properties.
@@ -123,11 +122,10 @@ class Block(VersionContainer):
         >>>     }
         >>> )
 
+        :param version: The game version this block is defined in.
         :param namespace: The string namespace of the block. eg `minecraft`
         :param base_name: The string base name of the block. eg `stone`
         :param properties: A mapping. Keys must be strings and values must be a numerical or string NBT type.
-        :param version: The game version this block is defined in.
-            If omitted/None it will default to the highest version the container it is used in supports.
         """
         super().__init__(version)
         self._namespace = str(namespace)
@@ -135,7 +133,7 @@ class Block(VersionContainer):
         self._properties = BlockProperties(properties)
 
     @classmethod
-    def from_string_blockstate(cls, version: AbstractVersion, blockstate: str) -> Self:
+    def from_string_blockstate(cls, version: PlatformVersion, blockstate: str) -> Self:
         """
         Parse a Java format blockstate where values are all strings and populate a :class:`Block` class with the data.
 
@@ -150,7 +148,7 @@ class Block(VersionContainer):
         return cls(version, namespace, block_name, properties)
 
     @classmethod
-    def from_snbt_blockstate(cls, version: AbstractVersion, blockstate: str) -> Self:
+    def from_snbt_blockstate(cls, version: PlatformVersion, blockstate: str) -> Self:
         """
         Parse a blockstate where values are SNBT of any type and populate a :class:`Block` class with the data.
         """
@@ -284,10 +282,10 @@ class Block(VersionContainer):
         The Java blockstate string of this :class:`Block` object
         Note this will only contain properties with StringTag values.
 
-        >>> stone = Block(DataVersion("java", 3578), "minecraft", "stone")
+        >>> stone = Block(PlatformVersion("java", VersionNumber(3578)), "minecraft", "stone")
         >>> stone.blockstate
         'minecraft:stone'
-        >>> water = Block(DataVersion("java", 3578), "minecraft", "water", {"level": StringTag("0")})
+        >>> water = Block(PlatformVersion("java", VersionNumber(3578)), "minecraft", "water", {"level": StringTag("0")})
         >>> water.blockstate
         `minecraft:water[level=0]`
 
@@ -311,7 +309,7 @@ class Block(VersionContainer):
         Note if there are extra blocks this will only show the base block.
 
         >>> bell = Block(
-        >>>     DataVersion("java", 3578),
+        >>>     PlatformVersion("java", VersionNumber(3578)),
         >>>     "minecraft",
         >>>     "bell",
         >>>     {
@@ -348,8 +346,8 @@ class BlockStack(Sequence[Block]):
 
     Create a waterlogged stone block.
     >>> waterlogged_stone = BlockStack(
-    >>>     Block(DataVersion("java", 3578), "minecraft", "stone"),
-    >>>     Block(DataVersion("java", 3578), "minecraft", "water", {"level": StringTag("0")})
+    >>>     Block(PlatformVersion("java", VersionNumber(3578)), "minecraft", "stone"),
+    >>>     Block(PlatformVersion("java", VersionNumber(3578)), "minecraft", "water", {"level": StringTag("0")})
     >>> )
 
     Get a block at an index
@@ -398,11 +396,11 @@ class BlockStack(Sequence[Block]):
         The first block in the stack.
 
         >>> waterlogged_stone = BlockStack(
-        >>>     Block(DataVersion("java", 3578), "minecraft", "stone"),
-        >>>     Block(DataVersion("java", 3578), "minecraft", "water", {"level": StringTag("0")})
+        >>>     Block(PlatformVersion("java", VersionNumber(3578)), "minecraft", "stone"),
+        >>>     Block(PlatformVersion("java", VersionNumber(3578)), "minecraft", "water", {"level": StringTag("0")})
         >>> )
         >>> waterlogged_stone.base_block
-        Block(DataVersion("java", 3578), "minecraft", "stone")
+        Block(PlatformVersion("java", VersionNumber(3578)), "minecraft", "stone")
 
         :return: A Block object
         """
@@ -414,11 +412,11 @@ class BlockStack(Sequence[Block]):
         The extra blocks in the stack.
 
         >>> waterlogged_stone = BlockStack(
-        >>>     Block(DataVersion("java", 3578), "minecraft", "stone"),
-        >>>     Block(DataVersion("java", 3578), "minecraft", "water", {"level": StringTag("0")})
+        >>>     Block(PlatformVersion("java", VersionNumber(3578)), "minecraft", "stone"),
+        >>>     Block(PlatformVersion("java", VersionNumber(3578)), "minecraft", "water", {"level": StringTag("0")})
         >>> )
         >>> waterlogged_stone.extra_blocks
-        (Block(DataVersion("java", 3578), "minecraft", "water", {"level": StringTag("0")}),)
+        (Block(PlatformVersion("java", VersionNumber(3578)), "minecraft", "water", {"level": StringTag("0")}),)
 
         :return: A tuple of :class:`Block` objects
         """

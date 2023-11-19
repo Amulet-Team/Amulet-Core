@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from typing import Tuple, Union, Any
+from typing import Any
 from amulet_nbt import NamedTag
-from amulet.version import AbstractVersion, VersionContainer
+from amulet.version import PlatformVersionContainer, PlatformVersion
 from amulet.api.data_types import PointCoordinates
-from amulet.utils.typed_property import TypedProperty
 
 
-class Entity(VersionContainer):
+class Entity(PlatformVersionContainer):
     """
     A class to contain all the data to define an Entity.
     """
@@ -23,7 +22,7 @@ class Entity(VersionContainer):
 
     def __init__(
         self,
-        version: AbstractVersion,
+        version: PlatformVersion,
         namespace: str,
         base_name: str,
         x: float,
@@ -34,6 +33,7 @@ class Entity(VersionContainer):
         """
         Constructs a :class:`Entity` instance.
 
+        :param version: The platform and version the entity is defined in.
         :param namespace: The namespace of the entity eg "minecraft"
         :param base_name: The base name of the entity eg "creeper"
         :param x: The x coordinate of the entity

@@ -20,7 +20,7 @@ class VersionNumber(Sequence[int]):
         for i, el in enumerate(v):
             if not isinstance(el, int):
                 raise TypeError(
-                    f"All elements in a SemanticVersion must be ints. Index {i} is {el}."
+                    f"All elements in the version must be ints. Index {i} is {el}."
                 )
         self._last_non_zero: None | int = None
 

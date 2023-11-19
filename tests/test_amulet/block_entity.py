@@ -3,12 +3,12 @@ import unittest
 from amulet_nbt import NamedTag, CompoundTag, IntTag, StringTag
 
 from amulet.block_entity import BlockEntity
-from amulet.version import DataVersion
+from amulet.version import VersionNumber, PlatformVersion
 
 
 def get_test_block_entity() -> BlockEntity:
     return BlockEntity(
-        DataVersion("java", 3578),
+        PlatformVersion("java", VersionNumber(3578)),
         "namespace",
         "basename",
         NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
@@ -18,25 +18,25 @@ def get_test_block_entity() -> BlockEntity:
 def get_test_block_entity_variants() -> tuple[BlockEntity, ...]:
     return (
         BlockEntity(
-            DataVersion("java", 3579),
+            PlatformVersion("java", VersionNumber(3579)),
             "namespace",
             "basename",
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         BlockEntity(
-            DataVersion("java", 3578),
+            PlatformVersion("java", VersionNumber(3578)),
             "namespace1",
             "basename",
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         BlockEntity(
-            DataVersion("java", 3578),
+            PlatformVersion("java", VersionNumber(3578)),
             "namespace",
             "basename1",
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         BlockEntity(
-            DataVersion("java", 3578),
+            PlatformVersion("java", VersionNumber(3578)),
             "namespace",
             "basename",
             NamedTag(CompoundTag({"int": IntTag(0), "str": StringTag("hi")})),
@@ -47,7 +47,9 @@ def get_test_block_entity_variants() -> tuple[BlockEntity, ...]:
 class BlockEntityTestCase(unittest.TestCase):
     def test_construct(self):
         block_entity = get_test_block_entity()
-        self.assertEqual(DataVersion("java", 3578), block_entity.version)
+        self.assertEqual(
+            PlatformVersion("java", VersionNumber(3578)), block_entity.version
+        )
         self.assertEqual("namespace", block_entity.namespace)
         self.assertEqual("basename", block_entity.base_name)
         self.assertEqual(

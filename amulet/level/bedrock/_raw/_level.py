@@ -30,7 +30,7 @@ from amulet.level.abc import (
     RawLevelPlayerComponent,
     LevelFriend,
 )
-from amulet.version import SemanticVersion
+from amulet.version import PlatformVersion, VersionNumber
 
 from ._level_dat import BedrockLevelDAT
 from ._actor_counter import ActorCounter
@@ -180,21 +180,30 @@ class BedrockRawLevel(
         level_dat.save_to(os.path.join(self._l.path, "level.dat"))
 
     @property
-    def max_game_version(self) -> SemanticVersion:
+    def platform(self) -> str:
+        return "bedrock"
+
+    @property
+    def version(self) -> VersionNumber:
         """
         The game version that the level was last opened in.
         This is used to determine the data format to save in.
         """
         try:
-            return SemanticVersion(
-                "bedrock",
-                tuple(
+            return VersionNumber(
+                *(
                     t.py_int
-                    for t in self.level_dat.compound.get_list("lastOpenedWithVersion")
-                ),
+                    for t in self.level_dat.compound.get_list(
+                        "lastOpenedWithVersion"
+                    )
+                )
             )
         except Exception:
-            return SemanticVersion("bedrock", (1, 2, 0))
+            return VersionNumber(1, 2, 0)
+
+    @property
+    def platform_version(self) -> PlatformVersion:
+        return PlatformVersion(self.platform, self.version)
 
     @property
     def last_played(self) -> int:
@@ -219,7 +228,7 @@ class BedrockRawLevel(
             if (
                 experiments.get_byte("caves_and_cliffs", ByteTag()).py_int
                 or experiments.get_byte("caves_and_cliffs_internal", ByteTag()).py_int
-                or self.max_game_version.semantic_version >= (1, 18)
+                or self.version >= VersionNumber(1, 18)
             ):
                 dimenion_bounds[OVERWORLD] = SelectionGroup(
                     SelectionBox(

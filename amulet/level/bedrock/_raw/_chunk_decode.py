@@ -26,7 +26,7 @@ from amulet.chunk.components.block_entity import BlockEntityComponent
 from amulet.chunk.components.entity import EntityComponent
 from amulet.chunk.components.height_2d import Height2DComponent
 from amulet.chunk.components.biome import Biome2DComponent, Biome3DComponent
-from amulet.version import SemanticVersion
+from amulet.version import VersionNumber, PlatformVersion
 
 from amulet.utils.world_utils import fast_unique, from_nibble_array
 
@@ -54,10 +54,8 @@ def cast(obj: Any, cls: type[T]) -> T:
 
 
 @cache
-def unpack_block_version(block_version: int) -> SemanticVersion:
-    return SemanticVersion(
-        "bedrock", struct.unpack("4B", struct.pack(">i", block_version))
-    )
+def unpack_block_version(block_version: int) -> VersionNumber:
+    return VersionNumber(*struct.unpack("4B", struct.pack(">i", block_version)))
 
 
 def raw_to_native(
@@ -78,7 +76,7 @@ def raw_to_native(
     # TODO: improve this
     level = raw_level._l
     version = level.translator.get_version(
-        "bedrock", raw_level.max_game_version.semantic_version
+        "bedrock", tuple(raw_level.version)
     )
     max_version = unpack_block_version(version.data_version)
 
@@ -145,7 +143,6 @@ def raw_to_native(
         )[0]
 
     # Parse biome and height data
-
     if isinstance(chunk, Biome3DComponent) and b"+" in chunk_data:
         d2d = chunk_data[b"+"]
         cast(chunk, Height2DComponent).height = (
@@ -206,7 +203,7 @@ def _load_subchunks(
     block_palette.block_stack_to_index(
         BlockStack(
             Block(
-                SemanticVersion("bedrock", (1, 12, 0)),
+                PlatformVersion("bedrock", VersionNumber(1, 12, 0)),
                 namespace="minecraft",
                 base_name="air",
                 properties={"block_data": IntTag(0)},
@@ -237,7 +234,7 @@ def _load_subchunks(
                     block_palette.block_stack_to_index(
                         BlockStack(
                             Block(
-                                SemanticVersion("bedrock", (1, 12, 0)),
+                                PlatformVersion("bedrock", VersionNumber(1, 12, 0)),
                                 namespace=namespace,
                                 base_name=base_name,
                                 properties={"block_data": IntTag(block_data)},
@@ -294,7 +291,7 @@ def _load_subchunks(
                         )
                     elif "val" in block:
                         properties = {"block_data": IntTag(block.get_int("val").py_int)}
-                        version = SemanticVersion("bedrock", (1, 12, 0))
+                        version = VersionNumber(1, 12, 0)
                     else:
                         properties = {}
                         version = unpack_block_version(
@@ -303,7 +300,7 @@ def _load_subchunks(
 
                     palette_data_out.append(
                         Block(
-                            version,
+                            PlatformVersion("bedrock", version),
                             namespace=namespace,
                             base_name=base_name,
                             properties=properties,
@@ -483,7 +480,7 @@ def _decode_block_entity(
         y = pop_nbt(tag, "y", IntTag).py_int
         z = pop_nbt(tag, "z", IntTag).py_int
         return (x, y, z), BlockEntity(
-            version=SemanticVersion("bedrock", (1, 0, 0)),
+            version=PlatformVersion("bedrock", VersionNumber(1, 0, 0)),
             namespace=namespace,
             base_name=base_name,
             nbt=nbt,
@@ -518,7 +515,7 @@ def _decode_entity(
         z = pos[2].py_float
 
         return Entity(
-            version=SemanticVersion("bedrock", (1, 0, 0)),
+            version=PlatformVersion("bedrock", VersionNumber(1, 0, 0)),
             namespace=namespace,
             base_name=base_name,
             x=x,

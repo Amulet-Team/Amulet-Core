@@ -3,12 +3,12 @@ import unittest
 from amulet_nbt import NamedTag, CompoundTag, IntTag, StringTag
 
 from amulet.entity import Entity
-from amulet.version import DataVersion
+from amulet.version import PlatformVersion, VersionNumber
 
 
 def get_test_entity() -> Entity:
     return Entity(
-        DataVersion("java", 3578),
+        PlatformVersion("java", VersionNumber(3578)),
         "namespace",
         "basename",
         1,
@@ -21,7 +21,7 @@ def get_test_entity() -> Entity:
 def get_test_entity_variants() -> tuple[Entity, ...]:
     return (
         Entity(
-            DataVersion("java", 3579),
+            PlatformVersion("java", VersionNumber(3579)),
             "namespace",
             "basename",
             1,
@@ -30,7 +30,7 @@ def get_test_entity_variants() -> tuple[Entity, ...]:
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         Entity(
-            DataVersion("java", 3578),
+            PlatformVersion("java", VersionNumber(3578)),
             "namespace1",
             "basename",
             1,
@@ -39,7 +39,7 @@ def get_test_entity_variants() -> tuple[Entity, ...]:
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         Entity(
-            DataVersion("java", 3578),
+            PlatformVersion("java", VersionNumber(3578)),
             "namespace",
             "basename1",
             1,
@@ -48,7 +48,7 @@ def get_test_entity_variants() -> tuple[Entity, ...]:
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         Entity(
-            DataVersion("java", 3578),
+            PlatformVersion("java", VersionNumber(3578)),
             "namespace",
             "basename",
             0,
@@ -57,7 +57,7 @@ def get_test_entity_variants() -> tuple[Entity, ...]:
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         Entity(
-            DataVersion("java", 3578),
+            PlatformVersion("java", VersionNumber(3578)),
             "namespace",
             "basename",
             1,
@@ -66,7 +66,7 @@ def get_test_entity_variants() -> tuple[Entity, ...]:
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         Entity(
-            DataVersion("java", 3578),
+            PlatformVersion("java", VersionNumber(3578)),
             "namespace",
             "basename",
             1,
@@ -75,7 +75,7 @@ def get_test_entity_variants() -> tuple[Entity, ...]:
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         Entity(
-            DataVersion("java", 3578),
+            PlatformVersion("java", VersionNumber(3578)),
             "namespace",
             "basename",
             1,
@@ -89,7 +89,7 @@ def get_test_entity_variants() -> tuple[Entity, ...]:
 class EntityTestCase(unittest.TestCase):
     def test_construct(self):
         entity = get_test_entity()
-        self.assertEqual(DataVersion("java", 3578), entity.version)
+        self.assertEqual(PlatformVersion("java", VersionNumber(3578)), entity.version)
         self.assertEqual("namespace", entity.namespace)
         self.assertEqual("basename", entity.base_name)
         self.assertEqual(

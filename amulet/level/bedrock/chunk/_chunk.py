@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC
 from amulet.chunk import Chunk
-from amulet.version import VersionRange, SemanticVersion
+from amulet.version import VersionRange, VersionNumber
 
 from amulet.chunk.components.biome import Biome2DComponent
 from amulet.chunk.components.biome import Biome3DComponent
@@ -28,9 +28,10 @@ class BedrockChunk0(
     FinalisedStateComponent,
     Height2DComponent,
 ):
-    def __init__(self, max_version: SemanticVersion) -> None:
+    def __init__(self, max_version: VersionNumber) -> None:
         version_range = VersionRange(
-            SemanticVersion("bedrock", (1, 0, 0)),
+            "bedrock",
+            VersionNumber(1, 0, 0),
             max_version,
         )
         ChunkVersionComponent.__init__(self, 0, 28, 0)
@@ -52,9 +53,10 @@ class BedrockChunk29(
     FinalisedStateComponent,
     Height2DComponent,
 ):
-    def __init__(self, max_version: SemanticVersion) -> None:
+    def __init__(self, max_version: VersionNumber) -> None:
         version_range = VersionRange(
-            SemanticVersion("bedrock", (1, 0, 0)),
+            "bedrock",
+            VersionNumber(1, 0, 0),
             max_version,
         )
         ChunkVersionComponent.__init__(self, 29, 99999, 29)

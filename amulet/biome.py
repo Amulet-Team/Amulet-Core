@@ -1,13 +1,13 @@
 from __future__ import annotations
 from typing import Any
 
-from amulet.version import AbstractVersion, VersionContainer
+from amulet.version import PlatformVersionContainer, PlatformVersion
 
 
-class Biome(VersionContainer):
+class Biome(PlatformVersionContainer):
     def __init__(
         self,
-        version: AbstractVersion,
+        version: PlatformVersion,
         namespace: str,
         base_name: str,
     ):
@@ -16,10 +16,9 @@ class Biome(VersionContainer):
 
         >>> plains = Biome("minecraft", "plains")
 
+        :param version: The platform and version the entity is defined in.
         :param namespace: The string namespace of the biome. eg `minecraft`
         :param base_name: The string base name of the biome. eg `plains`
-        :param version: The game version this biome is defined in.
-            If omitted/None it will default to the highest version the container it is used in supports.
         """
         super().__init__(version)
         self._namespace = str(namespace)

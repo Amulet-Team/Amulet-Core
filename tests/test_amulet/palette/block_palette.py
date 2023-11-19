@@ -1,20 +1,28 @@
 import unittest
 from amulet.block import Block, BlockStack
 from amulet.palette import BlockPalette
-from amulet.version import DataVersion, VersionRange
+from amulet.version import PlatformVersion, VersionNumber, VersionRange
 
 
-dirt = Block.from_string_blockstate(DataVersion("java", 3578), "minecraft:dirt")
-stone = Block.from_string_blockstate(DataVersion("java", 3578), "minecraft:stone")
-granite = Block.from_string_blockstate(DataVersion("java", 3578), "minecraft:granite")
-water = Block.from_string_blockstate(DataVersion("java", 3578), "minecraft:water")
+dirt = Block.from_string_blockstate(
+    PlatformVersion("java", VersionNumber(3578)), "minecraft:dirt"
+)
+stone = Block.from_string_blockstate(
+    PlatformVersion("java", VersionNumber(3578)), "minecraft:stone"
+)
+granite = Block.from_string_blockstate(
+    PlatformVersion("java", VersionNumber(3578)), "minecraft:granite"
+)
+water = Block.from_string_blockstate(
+    PlatformVersion("java", VersionNumber(3578)), "minecraft:water"
+)
 waterlogged_dirt = BlockStack(dirt, water)
 
 
 class BlockPaletteTestCase(unittest.TestCase):
     def setUp(self):
         self.palette = BlockPalette(
-            VersionRange(DataVersion("java", 3578), DataVersion("java", 3578))
+            VersionRange("java", VersionNumber(3578), VersionNumber(3578))
         )
 
         # Partially populate the palette
@@ -52,14 +60,16 @@ class BlockPaletteTestCase(unittest.TestCase):
             5,
             self.palette.block_stack_to_index(
                 BlockStack(
-                    Block.from_string_blockstate(DataVersion("java", 3578), "a:b[c=d]")
+                    Block.from_string_blockstate(
+                        PlatformVersion("java", VersionNumber(3578)), "a:b[c=d]"
+                    )
                 )
             ),
         )
 
     def test_len(self):
         palette = BlockPalette(
-            VersionRange(DataVersion("java", 3578), DataVersion("java", 3578))
+            VersionRange("java", VersionNumber(3578), VersionNumber(3578))
         )
 
         # Partially populate the palette
@@ -75,13 +85,17 @@ class BlockPaletteTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.palette.block_stack_to_index(
                 BlockStack(
-                    Block.from_string_blockstate(DataVersion("java", 3579), "a:b")
+                    Block.from_string_blockstate(
+                        PlatformVersion("java", VersionNumber(3579)), "a:b"
+                    )
                 )
             )
         with self.assertRaises(ValueError):
             self.palette.block_stack_to_index(
                 BlockStack(
-                    Block.from_string_blockstate(DataVersion("java", 3577), "a:b")
+                    Block.from_string_blockstate(
+                        PlatformVersion("java", VersionNumber(3577)), "a:b"
+                    )
                 )
             )
 

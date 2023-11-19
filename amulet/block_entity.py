@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import Any
 
 from amulet_nbt import NamedTag
-from amulet.version import AbstractVersion, VersionContainer
+from amulet.version import PlatformVersionContainer, PlatformVersion
 
 
-class BlockEntity(VersionContainer):
+class BlockEntity(PlatformVersionContainer):
     """
     A class to contain all the data to define a BlockEntity.
     """
@@ -19,7 +19,7 @@ class BlockEntity(VersionContainer):
 
     def __init__(
         self,
-        version: AbstractVersion,
+        version: PlatformVersion,
         namespace: str,
         base_name: str,
         nbt: NamedTag,
@@ -27,6 +27,7 @@ class BlockEntity(VersionContainer):
         """
         Constructs a :class:`BlockEntity` instance.
 
+        :param version: The game version this block entity is defined in.
         :param namespace: The namespace of the block entity eg "minecraft"
         :param base_name: The base name of the block entity eg "chest"
         :param nbt: The NBT stored with the block entity
