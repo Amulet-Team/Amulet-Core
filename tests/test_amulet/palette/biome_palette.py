@@ -40,9 +40,7 @@ class BiomePaletteTestCase(unittest.TestCase):
         self.assertEqual(2, self.palette.biome_to_index(forest))
         self.assertEqual(
             3,
-            self.palette.biome_to_index(
-                Biome("java", VersionNumber(3578), "a", "b")
-            ),
+            self.palette.biome_to_index(Biome("java", VersionNumber(3578), "a", "b")),
         )
 
     def test_len(self) -> None:
@@ -59,13 +57,9 @@ class BiomePaletteTestCase(unittest.TestCase):
 
     def test_errors(self) -> None:
         with self.assertRaises(ValueError):
-            self.palette.biome_to_index(
-                Biome("java", VersionNumber(3579), "a", "b")
-            )
+            self.palette.biome_to_index(Biome("java", VersionNumber(3579), "a", "b"))
         with self.assertRaises(ValueError):
-            self.palette.biome_to_index(
-                Biome("java", VersionNumber(3577), "a", "b")
-            )
+            self.palette.biome_to_index(Biome("java", VersionNumber(3577), "a", "b"))
 
 
 if __name__ == "__main__":

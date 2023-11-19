@@ -134,7 +134,9 @@ class Block(PlatformVersionContainer):
         self._properties = BlockProperties(properties)
 
     @classmethod
-    def from_string_blockstate(cls, platform: str, version: VersionNumber, blockstate: str) -> Self:
+    def from_string_blockstate(
+        cls, platform: str, version: VersionNumber, blockstate: str
+    ) -> Self:
         """
         Parse a Java format blockstate where values are all strings and populate a :class:`Block` class with the data.
 
@@ -149,7 +151,9 @@ class Block(PlatformVersionContainer):
         return cls(platform, version, namespace, block_name, properties)
 
     @classmethod
-    def from_snbt_blockstate(cls, platform: str, version: VersionNumber, blockstate: str) -> Self:
+    def from_snbt_blockstate(
+        cls, platform: str, version: VersionNumber, blockstate: str
+    ) -> Self:
         """
         Parse a blockstate where values are SNBT of any type and populate a :class:`Block` class with the data.
         """
@@ -204,7 +208,13 @@ class Block(PlatformVersionContainer):
         )
 
     def _data(self) -> tuple:
-        return self.platform, self.version, self._namespace, self._base_name, self._properties
+        return (
+            self.platform,
+            self.version,
+            self._namespace,
+            self._base_name,
+            self._properties,
+        )
 
     def __hash__(self) -> int:
         return hash(self._data())

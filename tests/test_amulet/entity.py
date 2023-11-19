@@ -8,7 +8,8 @@ from amulet.version import VersionNumber
 
 def get_test_entity() -> Entity:
     return Entity(
-        "java", VersionNumber(3578),
+        "java",
+        VersionNumber(3578),
         "namespace",
         "basename",
         1,
@@ -21,7 +22,8 @@ def get_test_entity() -> Entity:
 def get_test_entity_variants() -> tuple[Entity, ...]:
     return (
         Entity(
-            "java", VersionNumber(3579),
+            "java",
+            VersionNumber(3579),
             "namespace",
             "basename",
             1,
@@ -30,7 +32,8 @@ def get_test_entity_variants() -> tuple[Entity, ...]:
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         Entity(
-            "java", VersionNumber(3578),
+            "java",
+            VersionNumber(3578),
             "namespace1",
             "basename",
             1,
@@ -39,7 +42,8 @@ def get_test_entity_variants() -> tuple[Entity, ...]:
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         Entity(
-            "java", VersionNumber(3578),
+            "java",
+            VersionNumber(3578),
             "namespace",
             "basename1",
             1,
@@ -48,7 +52,8 @@ def get_test_entity_variants() -> tuple[Entity, ...]:
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         Entity(
-            "java", VersionNumber(3578),
+            "java",
+            VersionNumber(3578),
             "namespace",
             "basename",
             0,
@@ -57,7 +62,8 @@ def get_test_entity_variants() -> tuple[Entity, ...]:
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         Entity(
-            "java", VersionNumber(3578),
+            "java",
+            VersionNumber(3578),
             "namespace",
             "basename",
             1,
@@ -66,7 +72,8 @@ def get_test_entity_variants() -> tuple[Entity, ...]:
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         Entity(
-            "java", VersionNumber(3578),
+            "java",
+            VersionNumber(3578),
             "namespace",
             "basename",
             1,
@@ -75,7 +82,8 @@ def get_test_entity_variants() -> tuple[Entity, ...]:
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         Entity(
-            "java", VersionNumber(3578),
+            "java",
+            VersionNumber(3578),
             "namespace",
             "basename",
             1,

@@ -30,7 +30,10 @@ class BlockPalette(Palette[BlockStack]):
         """
         if not isinstance(block_stack, BlockStack):
             raise TypeError(repr(block_stack))
-        if not all(self.version_range.contains(block.platform, block.version) for block in block_stack):
+        if not all(
+            self.version_range.contains(block.platform, block.version)
+            for block in block_stack
+        ):
             raise ValueError(
                 f"BlockStack {block_stack} is incompatible with {self.version_range}"
             )

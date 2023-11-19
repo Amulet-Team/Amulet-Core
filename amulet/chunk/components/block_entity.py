@@ -82,7 +82,9 @@ class BlockEntityContainer(
         yield from self._block_entities
 
     def __repr__(self) -> str:
-        return f"BlockEntityContainer({self.version_range!r}) # {len(self)} block entities"
+        return (
+            f"BlockEntityContainer({self.version_range!r}) # {len(self)} block entities"
+        )
 
 
 class BlockEntityComponent:

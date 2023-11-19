@@ -96,31 +96,19 @@ class VersionRangeTestCase(unittest.TestCase):
         version_range_1 = VersionRange("platform1", VersionNumber(1), VersionNumber(2))
         self.assertTrue(version_range_1.contains("platform1", VersionNumber(1)))
         self.assertTrue(version_range_1.contains("platform1", VersionNumber(2)))
-        self.assertFalse(
-            version_range_1.contains("platform1", VersionNumber(0))
-        )
-        self.assertFalse(
-            version_range_1.contains("platform1", VersionNumber(3))
-        )
+        self.assertFalse(version_range_1.contains("platform1", VersionNumber(0)))
+        self.assertFalse(version_range_1.contains("platform1", VersionNumber(3)))
 
         version_range_2 = VersionRange(
             "platform1",
             VersionNumber(1, 0, 0),
             VersionNumber(1, 2, 0),
         )
-        self.assertTrue(
-            version_range_2.contains("platform1", VersionNumber(1, 1, 0))
-        )
+        self.assertTrue(version_range_2.contains("platform1", VersionNumber(1, 1, 0)))
         self.assertTrue(version_range_2.contains("platform1", VersionNumber(1)))
-        self.assertFalse(
-            version_range_2.contains("platform1", VersionNumber(0, 0, 0))
-        )
-        self.assertFalse(
-            version_range_2.contains("platform1", VersionNumber(1, 3, 0))
-        )
-        self.assertFalse(
-            version_range_2.contains("platform1", VersionNumber(2, 0, 0))
-        )
+        self.assertFalse(version_range_2.contains("platform1", VersionNumber(0, 0, 0)))
+        self.assertFalse(version_range_2.contains("platform1", VersionNumber(1, 3, 0)))
+        self.assertFalse(version_range_2.contains("platform1", VersionNumber(2, 0, 0)))
 
     def test_errors(self) -> None:
         with self.assertRaises(ValueError):

@@ -8,7 +8,8 @@ from amulet.version import VersionNumber
 
 def get_test_block_entity() -> BlockEntity:
     return BlockEntity(
-        "java", VersionNumber(3578),
+        "java",
+        VersionNumber(3578),
         "namespace",
         "basename",
         NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
@@ -18,25 +19,29 @@ def get_test_block_entity() -> BlockEntity:
 def get_test_block_entity_variants() -> tuple[BlockEntity, ...]:
     return (
         BlockEntity(
-            "java", VersionNumber(3579),
+            "java",
+            VersionNumber(3579),
             "namespace",
             "basename",
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         BlockEntity(
-            "java", VersionNumber(3578),
+            "java",
+            VersionNumber(3578),
             "namespace1",
             "basename",
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         BlockEntity(
-            "java", VersionNumber(3578),
+            "java",
+            VersionNumber(3578),
             "namespace",
             "basename1",
             NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
         ),
         BlockEntity(
-            "java", VersionNumber(3578),
+            "java",
+            VersionNumber(3578),
             "namespace",
             "basename",
             NamedTag(CompoundTag({"int": IntTag(0), "str": StringTag("hi")})),
@@ -47,12 +52,8 @@ def get_test_block_entity_variants() -> tuple[BlockEntity, ...]:
 class BlockEntityTestCase(unittest.TestCase):
     def test_construct(self) -> None:
         block_entity = get_test_block_entity()
-        self.assertEqual(
-            "java", block_entity.platform
-        )
-        self.assertEqual(
-            VersionNumber(3578), block_entity.version
-        )
+        self.assertEqual("java", block_entity.platform)
+        self.assertEqual(VersionNumber(3578), block_entity.version)
         self.assertEqual("namespace", block_entity.namespace)
         self.assertEqual("basename", block_entity.base_name)
         self.assertEqual(
