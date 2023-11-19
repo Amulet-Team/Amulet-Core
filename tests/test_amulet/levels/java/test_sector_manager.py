@@ -20,11 +20,11 @@ sector_21_23 = Sector(21 * SectorSize, 23 * SectorSize)
 
 
 class JavaSectorManagerTestCase(unittest.TestCase):
-    def test_init_sector_manager(self):
+    def test_init_sector_manager(self) -> None:
         manager = SectorManager(0, 0)
         self.assertEqual([], manager.sectors)
 
-    def test_reserve_free(self):
+    def test_reserve_free(self) -> None:
         # Create the manager
         manager = SectorManager(0, 0)
         self.assertEqual([], manager.sectors)
@@ -81,7 +81,7 @@ class JavaSectorManagerTestCase(unittest.TestCase):
             manager.sectors,
         )
 
-    def test_sector_merge(self):
+    def test_sector_merge(self) -> None:
         # Create the manager
         manager = SectorManager(0, 0)
         self.assertEqual([], manager.sectors)
@@ -116,12 +116,12 @@ class JavaSectorManagerTestCase(unittest.TestCase):
         manager.reserve(sector_2_10)
         self.assertEqual([sector_1, sector_2_10, sector_10], manager.sectors)
 
-    def test_free_unreserved(self):
+    def test_free_unreserved(self) -> None:
         manager = SectorManager(0, 0)
         with self.assertRaises(ValueError):
             manager.free(sector_0)
 
-    def test_reserve_error(self):
+    def test_reserve_error(self) -> None:
         # Create the manager
         manager = SectorManager(0, 0)
         self.assertEqual([], manager.sectors)

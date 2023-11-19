@@ -82,7 +82,7 @@ def get_test_block_variants() -> tuple[Block, ...]:
 
 
 class BlockTestCase(unittest.TestCase):
-    def test_construct(self):
+    def test_construct(self) -> None:
         block = get_test_block()
         self.assertEqual(PlatformVersion("java", VersionNumber(3578)), block.version)
         self.assertEqual("namespace:basename", block.namespaced_name)
@@ -99,19 +99,19 @@ class BlockTestCase(unittest.TestCase):
             block.properties,
         )
 
-    def test_equal(self):
+    def test_equal(self) -> None:
         self.assertEqual(get_test_block(), get_test_block())
         for block in get_test_block_variants():
             with self.subTest(repr(block)):
                 self.assertNotEqual(get_test_block(), block)
 
-    def test_hash(self):
+    def test_hash(self) -> None:
         self.assertEqual(hash(get_test_block()), hash(get_test_block()))
         for block in get_test_block_variants():
             with self.subTest(repr(block)):
                 self.assertNotEqual(hash(get_test_block()), hash(block))
 
-    def test_blockstate_constructor(self):
+    def test_blockstate_constructor(self) -> None:
         self.assertEqual(
             Block(PlatformVersion("java", VersionNumber(3578)), "minecraft", "air"),
             Block.from_string_blockstate(
@@ -174,7 +174,7 @@ class BlockTestCase(unittest.TestCase):
                 PlatformVersion("java", VersionNumber(3578)), "[a=b]"
             )
 
-    def test_snbt_blockstate_constructor(self):
+    def test_snbt_blockstate_constructor(self) -> None:
         self.assertEqual(
             Block(PlatformVersion("java", VersionNumber(3578)), "minecraft", "air"),
             Block.from_snbt_blockstate(
@@ -235,7 +235,7 @@ class BlockTestCase(unittest.TestCase):
 
 
 class BlockStackTestCase(unittest.TestCase):
-    def test_constructor(self):
+    def test_constructor(self) -> None:
         block_stack_1 = BlockStack(get_test_block())
         block_stack_2 = BlockStack(get_test_block())
         self.assertEqual(block_stack_1, block_stack_1)

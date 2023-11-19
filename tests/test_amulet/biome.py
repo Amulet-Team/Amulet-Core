@@ -17,19 +17,19 @@ def get_test_biome_variants() -> tuple[Biome, ...]:
 
 
 class BiomeTestCase(unittest.TestCase):
-    def test_construct(self):
+    def test_construct(self) -> None:
         biome = get_test_biome()
         self.assertEqual(PlatformVersion("java", VersionNumber(3578)), biome.version)
         self.assertEqual("namespace", biome.namespace)
         self.assertEqual("basename", biome.base_name)
 
-    def test_equal(self):
+    def test_equal(self) -> None:
         self.assertEqual(get_test_biome(), get_test_biome())
         for biome in get_test_biome_variants():
             with self.subTest(repr(biome)):
                 self.assertNotEqual(get_test_biome(), biome)
 
-    def test_hash(self):
+    def test_hash(self) -> None:
         self.assertEqual(hash(get_test_biome()), hash(get_test_biome()))
         for biome in get_test_biome_variants():
             with self.subTest(repr(biome)):

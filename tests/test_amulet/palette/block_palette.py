@@ -20,7 +20,7 @@ waterlogged_dirt = BlockStack(dirt, water)
 
 
 class BlockPaletteTestCase(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.palette = BlockPalette(
             VersionRange("java", VersionNumber(3578), VersionNumber(3578))
         )
@@ -32,7 +32,7 @@ class BlockPaletteTestCase(unittest.TestCase):
         self.palette.block_stack_to_index(BlockStack(water))
         self.palette.block_stack_to_index(waterlogged_dirt)
 
-    def test_get_item(self):
+    def test_get_item(self) -> None:
         self.assertEqual(BlockStack(dirt), self.palette[0])
         self.assertEqual(BlockStack(stone), self.palette[1])
         self.assertEqual(BlockStack(granite), self.palette[2])
@@ -41,7 +41,7 @@ class BlockPaletteTestCase(unittest.TestCase):
         with self.assertRaises(IndexError):
             self.palette[5]
 
-    def test_index_to_block_stack(self):
+    def test_index_to_block_stack(self) -> None:
         self.assertEqual(BlockStack(dirt), self.palette.index_to_block_stack(0))
         self.assertEqual(BlockStack(stone), self.palette.index_to_block_stack(1))
         self.assertEqual(BlockStack(granite), self.palette.index_to_block_stack(2))
@@ -50,7 +50,7 @@ class BlockPaletteTestCase(unittest.TestCase):
         with self.assertRaises(IndexError):
             self.palette.index_to_block_stack(5)
 
-    def test_block_stack_to_index(self):
+    def test_block_stack_to_index(self) -> None:
         self.assertEqual(0, self.palette.block_stack_to_index(BlockStack(dirt)))
         self.assertEqual(1, self.palette.block_stack_to_index(BlockStack(stone)))
         self.assertEqual(2, self.palette.block_stack_to_index(BlockStack(granite)))
@@ -67,7 +67,7 @@ class BlockPaletteTestCase(unittest.TestCase):
             ),
         )
 
-    def test_len(self):
+    def test_len(self) -> None:
         palette = BlockPalette(
             VersionRange("java", VersionNumber(3578), VersionNumber(3578))
         )
@@ -81,7 +81,7 @@ class BlockPaletteTestCase(unittest.TestCase):
 
         self.assertEqual(5, len(palette))
 
-    def test_errors(self):
+    def test_errors(self) -> None:
         with self.assertRaises(ValueError):
             self.palette.block_stack_to_index(
                 BlockStack(

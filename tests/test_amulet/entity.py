@@ -87,7 +87,7 @@ def get_test_entity_variants() -> tuple[Entity, ...]:
 
 
 class EntityTestCase(unittest.TestCase):
-    def test_construct(self):
+    def test_construct(self) -> None:
         entity = get_test_entity()
         self.assertEqual(PlatformVersion("java", VersionNumber(3578)), entity.version)
         self.assertEqual("namespace", entity.namespace)
@@ -97,7 +97,7 @@ class EntityTestCase(unittest.TestCase):
             entity.nbt,
         )
 
-    def test_edit(self):
+    def test_edit(self) -> None:
         entity = get_test_entity()
         entity.namespace = "namespace2"
         self.assertEqual("namespace2", entity.namespace)
@@ -113,13 +113,13 @@ class EntityTestCase(unittest.TestCase):
         entity.z = 7
         self.assertEqual((5, 6, 7), entity.location)
 
-    def test_equal(self):
+    def test_equal(self) -> None:
         self.assertEqual(get_test_entity(), get_test_entity())
         for entity in get_test_entity_variants():
             with self.subTest(repr(entity)):
                 self.assertNotEqual(get_test_entity(), entity)
 
-    def test_hash(self):
+    def test_hash(self) -> None:
         entity_1 = get_test_entity()
         entity_2 = get_test_entity()
         self.assertEqual(hash(entity_1), hash(entity_1))

@@ -45,7 +45,7 @@ def get_test_block_entity_variants() -> tuple[BlockEntity, ...]:
 
 
 class BlockEntityTestCase(unittest.TestCase):
-    def test_construct(self):
+    def test_construct(self) -> None:
         block_entity = get_test_block_entity()
         self.assertEqual(
             PlatformVersion("java", VersionNumber(3578)), block_entity.version
@@ -57,7 +57,7 @@ class BlockEntityTestCase(unittest.TestCase):
             block_entity.nbt,
         )
 
-    def test_edit(self):
+    def test_edit(self) -> None:
         block_entity = get_test_block_entity()
         block_entity.namespace = "namespace2"
         self.assertEqual("namespace2", block_entity.namespace)
@@ -69,7 +69,7 @@ class BlockEntityTestCase(unittest.TestCase):
             block_entity.nbt,
         )
 
-    def test_equal(self):
+    def test_equal(self) -> None:
         self.assertEqual(get_test_block_entity(), get_test_block_entity())
         for block_entity in get_test_block_entity_variants():
             with self.subTest(repr(block_entity)):

@@ -4,7 +4,7 @@ from amulet.utils.shareable_lock import ShareableRLock
 
 
 class TestShareableRLock(unittest.TestCase):
-    def test_lock(self):
+    def test_lock(self) -> None:
         lock = ShareableRLock()
 
         with lock.unique():
@@ -29,7 +29,7 @@ class TestShareableRLock(unittest.TestCase):
             with lock.shared():
                 pass
 
-    def test_deadlock(self):
+    def test_deadlock(self) -> None:
         pass
 
 
