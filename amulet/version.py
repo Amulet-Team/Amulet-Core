@@ -1,166 +1,152 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from typing import TypeVar, Generic, Any
+from typing import Any, overload, Callable
+from collections.abc import Sequence
 
 
-class AbstractVersion(ABC):
-    def __init__(self, platform: str) -> None:
-        self._platform = str(platform)
+class VersionNumber(Sequence[int]):
+    """
+    This class is designed to store semantic versions and data versions and allow comparisons between them.
 
-    @property
-    def platform(self) -> str:
-        return self._platform
+    >>> v1 = VersionNumber(1, 0, 0)
+    >>> v2 = VersionNumber(1, 0)
+    >>> assert v2 == v1
 
-    @abstractmethod
-    def __hash__(self) -> int:
-        raise NotImplementedError
+    This class should also be used to store single number data versions.
+    >>> v3 = VersionNumber(3578)
+    """
 
-    @abstractmethod
-    def __eq__(self, other: Any) -> bool:
-        raise NotImplementedError
+    def __init__(self, *v: int) -> None:
+        self._v: tuple[int, ...] = tuple(v)
+        for i, el in enumerate(v):
+            if not isinstance(el, int):
+                raise TypeError(
+                    f"All elements in a SemanticVersion must be ints. Index {i} is {el}."
+                )
+        self._last_non_zero: None | int = None
 
-    @abstractmethod
-    def __lt__(self, other: Any) -> bool:
-        raise NotImplementedError
+    def cropped_version(self) -> tuple[int, ...]:
+        """The version number with trailing zeros cut off."""
+        if self._last_non_zero is None:
+            self._last_non_zero = (
+                next((i for i in range(len(self._v) - 1, -1, -1) if self._v[i]), -1) + 1
+            )
+        return self._v[: self._last_non_zero]
 
-    @abstractmethod
-    def __gt__(self, other: Any) -> bool:
-        raise NotImplementedError
+    @overload
+    def __getitem__(self, index: int) -> int:
+        ...
 
-    @abstractmethod
-    def __le__(self, other: Any) -> bool:
-        raise NotImplementedError
+    @overload
+    def __getitem__(self, index: slice) -> Sequence[int]:
+        ...
 
-    @abstractmethod
-    def __ge__(self, other: Any) -> bool:
-        raise NotImplementedError
+    def __getitem__(self, index: int | slice) -> int | Sequence[int]:
+        return self._v[index]
 
-    def is_compatible(self, other: Any) -> bool:
-        return isinstance(other, self.__class__) and self.platform == other.platform
-
-    def _check_compatible(self, other: Any) -> None:
-        if not isinstance(other, self.__class__):
-            raise TypeError(f"other must be a {self.__class__.__name__} instance.")
-        if self.platform != other.platform:
-            raise ValueError(f"Version {other!r} is not compatible with {self!r}")
-
-
-class DataVersion(AbstractVersion):
-    def __init__(self, platform: str, data_version: int) -> None:
-        super().__init__(platform)
-        if not isinstance(data_version, int):
-            raise TypeError
-        self._data_version = data_version
-
-    @property
-    def data_version(self) -> int:
-        return self._data_version
+    def __len__(self) -> int:
+        return len(self._v)
 
     def __hash__(self) -> int:
-        return hash((self.platform, self.data_version))
-
-    def __eq__(self, other: Any) -> bool:
-        return self.is_compatible(other) and self.data_version == other.data_version
-
-    def __lt__(self, other: DataVersion) -> bool:
-        self._check_compatible(other)
-        return self.data_version < other.data_version
-
-    def __gt__(self, other: DataVersion) -> bool:
-        self._check_compatible(other)
-        return self.data_version > other.data_version
-
-    def __le__(self, other: DataVersion) -> bool:
-        self._check_compatible(other)
-        return self.data_version <= other.data_version
-
-    def __ge__(self, other: DataVersion) -> bool:
-        self._check_compatible(other)
-        return self.data_version >= other.data_version
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.platform}, {self.data_version})"
-
-
-class SemanticVersion(AbstractVersion):
-    def __init__(self, platform: str, semantic_version: tuple[int, ...]) -> None:
-        super().__init__(platform)
-        semantic_version = tuple(semantic_version)
-        if not all(isinstance(v, int) for v in semantic_version):
-            raise TypeError
-        self._semantic_version = semantic_version
-
-    @property
-    def semantic_version(self) -> tuple[int, ...]:
-        return self._semantic_version
-
-    def __hash__(self) -> int:
-        return hash((self.platform, self.semantic_version))
+        return hash(self.cropped_version())
 
     @staticmethod
-    def _pad(
-        a: tuple[int, ...], b: tuple[int, ...]
-    ) -> tuple[tuple[int, ...], tuple[int, ...]]:
+    def _op(
+        a: tuple[int, ...], b: tuple[int, ...], func: Callable[[Any, Any], bool]
+    ) -> bool:
         len_dif = len(a) - len(b)
         if len_dif > 0:
             b += (0,) * len_dif
         elif len_dif < 0:
             a += (0,) * abs(len_dif)
-        return a, b
+        return func(a, b)
 
     def __eq__(self, other: Any) -> bool:
-        if not self.is_compatible(other):
+        if not isinstance(other, VersionNumber):
             return False
-        a, b = self._pad(self.semantic_version, other.semantic_version)
-        return a == b
+        return self.cropped_version() == other.cropped_version()
 
-    def __lt__(self, other: SemanticVersion) -> bool:
-        self._check_compatible(other)
-        a, b = self._pad(self.semantic_version, other.semantic_version)
-        return a < b
+    def __lt__(self, other: VersionNumber) -> bool:
+        return self.cropped_version() < other.cropped_version()
 
-    def __gt__(self, other: SemanticVersion) -> bool:
-        self._check_compatible(other)
-        a, b = self._pad(self.semantic_version, other.semantic_version)
-        return a > b
+    def __gt__(self, other: VersionNumber) -> bool:
+        return self.cropped_version() > other.cropped_version()
 
-    def __le__(self, other: SemanticVersion) -> bool:
-        self._check_compatible(other)
-        a, b = self._pad(self.semantic_version, other.semantic_version)
-        return a <= b
+    def __le__(self, other: VersionNumber) -> bool:
+        return self.cropped_version() <= other.cropped_version()
 
-    def __ge__(self, other: SemanticVersion) -> bool:
-        self._check_compatible(other)
-        a, b = self._pad(self.semantic_version, other.semantic_version)
-        return a >= b
+    def __ge__(self, other: VersionNumber) -> bool:
+        return self.cropped_version() >= other.cropped_version()
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.platform}, {self.semantic_version})"
+        return f"{self.__class__.__name__}({', '.join(map(str, self._v))})"
 
 
-class VersionContainer:
-    __slots__ = ("_version",)
+class PlatformVersion:
+    """A version number with a platform associated with it."""
 
-    def __init__(self, version: AbstractVersion) -> None:
-        if not isinstance(version, AbstractVersion):
-            raise TypeError("Invalid version", version)
+    def __init__(self, platform: str, version: VersionNumber):
+        self._platform = platform
         self._version = version
 
     @property
-    def version(self) -> AbstractVersion:
-        """
-        The version this object is defined in.
-        """
+    def platform(self) -> str:
+        return self._platform
+
+    @property
+    def version(self) -> VersionNumber:
+        return self._version
+
+    def __hash__(self) -> int:
+        return hash((self._platform, self._version))
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, PlatformVersion):
+            return False
+        return self.platform == other.platform and self.version == other.version
+
+    def _check_compatible(self, other: PlatformVersion) -> None:
+        if self.platform != other.platform:
+            raise ValueError(f"Version {other!r} is not compatible with {self!r}")
+
+    def __lt__(self, other: PlatformVersion) -> bool:
+        self._check_compatible(other)
+        return self.version < other.version
+
+    def __gt__(self, other: PlatformVersion) -> bool:
+        self._check_compatible(other)
+        return self.version > other.version
+
+    def __le__(self, other: PlatformVersion) -> bool:
+        self._check_compatible(other)
+        return self.version <= other.version
+
+    def __ge__(self, other: PlatformVersion) -> bool:
+        self._check_compatible(other)
+        return self.version >= other.version
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({super().__repr__()})"
+
+
+class PlatformVersionContainer:
+    __slots__ = ("_platform", "_version")
+
+    def __init__(self, version: PlatformVersion) -> None:
+        self._version = version
+
+    @property
+    def version(self) -> PlatformVersion:
+        """The version this object is defined in."""
         return self._version
 
 
-VersionT = TypeVar("VersionT", bound=AbstractVersion)
-
-
-class VersionRange(Generic[VersionT]):
-    def __init__(self, min_version: VersionT, max_version: VersionT) -> None:
+class VersionRange:
+    def __init__(
+        self, platform: str, min_version: VersionNumber, max_version: VersionNumber
+    ) -> None:
         if min_version > max_version:
             raise ValueError(min_version, max_version)
+        self._platform = platform
         self._min = min_version
         self._max = max_version
 
@@ -168,28 +154,30 @@ class VersionRange(Generic[VersionT]):
         return f"VersionRangeContainer({self._min!r}, {self._max!r})"
 
     @property
-    def min(self) -> VersionT:
+    def platform(self) -> str:
+        """The platform string the object is defined in"""
+        return self._platform
+
+    @property
+    def min(self) -> VersionNumber:
+        """The minimum version this range supports"""
         return self._min
 
     @property
-    def max(self) -> VersionT:
+    def max(self) -> VersionNumber:
+        """The maximum version this range supports"""
         return self._max
 
     def __contains__(self, item: Any) -> bool:
-        if not isinstance(item, AbstractVersion):
+        if not isinstance(item, PlatformVersion):
             return False
-        return self.min <= item <= self.max
+        return item.platform == self.platform and self.min <= item.version <= self.max
 
 
-VersionRangeT = TypeVar("VersionRangeT", bound=VersionRange)
-
-
-class VersionRangeContainer(Generic[VersionRangeT]):
-    def __init__(self, version_range: VersionRangeT) -> None:
-        if not isinstance(version_range, VersionRange):
-            raise TypeError
+class VersionRangeContainer:
+    def __init__(self, version_range: VersionRange) -> None:
         self._version_range = version_range
 
     @property
-    def version_range(self) -> VersionRangeT:
+    def version_range(self) -> VersionRange:
         return self._version_range
