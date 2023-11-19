@@ -1,10 +1,9 @@
 from __future__ import annotations
 from typing import Any, overload, Callable
 from collections.abc import Sequence
-from functools import cache
+from weakref import WeakValueDictionary
 
 
-@cache
 class VersionNumber(Sequence[int]):
     """
     This class is designed to store semantic versions and data versions and allow comparisons between them.
@@ -17,14 +16,26 @@ class VersionNumber(Sequence[int]):
     >>> v3 = VersionNumber(3578)
     """
 
-    def __init__(self, *v: int) -> None:
-        self._v: tuple[int, ...] = tuple(v)
+    _cache: WeakValueDictionary[tuple[int, ...], VersionNumber] = WeakValueDictionary()
+
+    _v: tuple[int, ...]
+    _last_non_zero: None | int
+
+    def __new__(cls, *v: int) -> VersionNumber:
+        self = cls._cache.get(v)
+        if self is not None:
+            return self
+
+        self = super().__new__(cls)
+        self._v = v
         for i, el in enumerate(v):
             if not isinstance(el, int):
                 raise TypeError(
                     f"All elements in the version must be ints. Index {i} is {el}."
                 )
-        self._last_non_zero: None | int = None
+        self._last_non_zero = None
+        self._cache[v] = self
+        return self
 
     def cropped_version(self) -> tuple[int, ...]:
         """The version number with trailing zeros cut off."""
@@ -101,16 +112,30 @@ class PlatformVersionContainer:
         return self._version
 
 
-@cache
 class VersionRange:
-    def __init__(
-        self, platform: str, min_version: VersionNumber, max_version: VersionNumber
-    ) -> None:
+    _cache: WeakValueDictionary[tuple[str, VersionNumber, VersionNumber], VersionRange] = WeakValueDictionary()
+
+    _platform: str
+    _min: VersionNumber
+    _max: VersionNumber
+
+    def __new__(
+        cls,
+        platform: str, min_version: VersionNumber, max_version: VersionNumber
+    ) -> VersionRange:
+        key = (platform, min_version, max_version)
+        self = cls._cache.get(key)
+        if self is not None:
+            return self
+
+        self = super().__new__(cls)
         if min_version > max_version:
             raise ValueError(min_version, max_version)
         self._platform = platform
         self._min = min_version
         self._max = max_version
+        self._cache[key] = self
+        return self
 
     def __repr__(self) -> str:
         return f"VersionRangeContainer({self._min!r}, {self._max!r})"
