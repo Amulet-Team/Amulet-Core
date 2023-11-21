@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from ._version import Version
+from ..abc import GameVersion
 from amulet.version import VersionNumber
 
 
-class BedrockVersion(Version):
+class BedrockGameVersion(GameVersion):
     def __init__(self) -> None:
         self._min_semantic_version: VersionNumber = VersionNumber()
         self._max_semantic_version: VersionNumber = VersionNumber()

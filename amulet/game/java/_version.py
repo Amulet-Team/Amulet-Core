@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from ._version import Version
+from ..abc import GameVersion
 from amulet.version import VersionNumber
 
 
-class JavaVersion(Version):
+class JavaGameVersion(GameVersion):
     def __init__(self) -> None:
         self._min_data_version: VersionNumber = VersionNumber()
         self._max_data_version: VersionNumber = VersionNumber()
