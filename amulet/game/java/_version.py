@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from ..abc import GameVersion
+from amulet.game.abc import GameVersion, BiomeData
 from amulet.version import VersionNumber
+from ._block import JavaBlockData
 
 
 class JavaGameVersion(GameVersion):
@@ -28,3 +29,11 @@ class JavaGameVersion(GameVersion):
     @property
     def max_version(self) -> VersionNumber:
         return self._max_data_version
+
+    @property
+    def block(self) -> JavaBlockData:
+        pass
+
+    @property
+    def biome(self) -> BiomeData:
+        pass

@@ -6,7 +6,8 @@ from abc import ABC, abstractmethod
 from amulet.version import VersionNumber
 
 if TYPE_CHECKING:
-    from ._block import Block
+    from ._block import BlockData
+    from ._biome import BiomeData
 
 
 class GameVersion(ABC):
@@ -34,5 +35,10 @@ class GameVersion(ABC):
 
     @property
     @abstractmethod
-    def block(self) -> Block:
+    def block(self) -> BlockData:
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def biome(self) -> BiomeData:
         raise NotImplementedError

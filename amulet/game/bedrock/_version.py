@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from ..abc import GameVersion
+from amulet.game.abc import GameVersion, BiomeData
 from amulet.version import VersionNumber
+from ._block import BedrockBlockData
 
 
 class BedrockGameVersion(GameVersion):
@@ -26,3 +27,11 @@ class BedrockGameVersion(GameVersion):
     @property
     def max_version(self) -> VersionNumber:
         return self._max_semantic_version
+
+    @property
+    def block(self) -> BedrockBlockData:
+        pass
+
+    @property
+    def biome(self) -> BiomeData:
+        pass
