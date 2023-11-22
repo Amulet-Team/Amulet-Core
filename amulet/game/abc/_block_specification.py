@@ -1,8 +1,9 @@
 from typing import Self
+from types import MappingProxyType
 from collections.abc import Mapping, Iterator
 from dataclasses import dataclass
 
-from amulet_nbt import CompoundTag, from_snbt
+from amulet_nbt import from_snbt
 from amulet.block import PropertyValueType, PropertyDataTypes
 
 from ._json_interface import JSONInterface, JSONCompatible
@@ -16,16 +17,16 @@ def immutable_from_snbt(snbt: str) -> PropertyValueType:
 
 
 @dataclass(frozen=True)
-class PropertiesState:
+class PropertyValueSpec:
     default: PropertyValueType
     states: tuple[PropertyValueType, ...]
 
 
-class PropertiesData(Mapping[str, PropertiesState]):
-    def __init__(self, properties: dict[str, PropertiesState]):
-        self._properties = properties
+class PropertySpec(Mapping[str, PropertyValueSpec]):
+    def __init__(self, properties: Mapping[str, PropertyValueSpec] = MappingProxyType({})):
+        self._properties = dict(properties)
 
-    def __getitem__(self, name: str) -> PropertiesState:
+    def __getitem__(self, name: str) -> PropertyValueSpec:
         return self._properties[name]
 
     def __len__(self) -> int:
@@ -35,16 +36,17 @@ class PropertiesData(Mapping[str, PropertiesState]):
         yield from self._properties
 
 
-class BlockSpecification(JSONInterface):
-    def __init__(
-        self,
-        properties: PropertiesData,
-        nbt_id: tuple[str, str] | None,
-        snbt: str | None
-    ):
-        self._properties = properties
-        self._nbt_id = nbt_id
-        self._snbt = snbt
+@dataclass(frozen=True)
+class NBTSpec:
+    namespace: str
+    basename: str
+    snbt: str
+
+
+@dataclass(frozen=True)
+class BlockSpec(JSONInterface):
+    properties: PropertySpec = PropertySpec()
+    nbt: NBTSpec | None = None
 
     @classmethod
     def from_json(cls, obj: dict[str, JSONCompatible]) -> Self:
@@ -66,59 +68,45 @@ class BlockSpecification(JSONInterface):
                 val_nbt = immutable_from_snbt(val_str)
                 states.append(val_nbt)
 
-            properties_data[name] = PropertiesState(
+            properties_data[name] = PropertyValueSpec(
                 default_nbt,
                 tuple(states)
             )
 
-        nbt_id_raw = obj.get("nbt_identifier", None)
-        if nbt_id_raw is None:
-            nbt_id = None
-        else:
+        if "nbt_identifier" in obj:
+            nbt_id_raw = obj["nbt_identifier"]
             assert isinstance(nbt_id_raw, list)
             namespace, basename = nbt_id_raw
             assert isinstance(namespace, str) and isinstance(basename, str)
-            nbt_id = (namespace, basename)
 
-        snbt = obj.get("snbt", None)
-        assert snbt is None or isinstance(snbt, str)
+            snbt = obj["snbt"]
+            assert isinstance(snbt, str)
+            nbt = NBTSpec(namespace, basename, snbt)
+        else:
+            nbt = None
+            assert "snbt" not in obj
+
+        assert not set(obj.keys()).difference(("properties", "defaults", "nbt_identifier", "snbt")), obj.keys()
 
         return cls(
-            PropertiesData(properties_data),
-            nbt_id,
-            snbt,
+            PropertySpec(properties_data),
+            nbt
         )
 
     def to_json(self) -> dict[str, JSONCompatible]:
         spec: dict[str, JSONCompatible] = {}
-        if self._properties:
+        if self.properties:
             spec["properties"] = properties = {}
             spec["defaults"] = defaults = {}
-            for name, state in self._properties.items():
+            for name, state in self.properties.items():
                 properties[name] = [
                     val.to_snbt() for val in state.states
                 ]
                 defaults[name] = state.default.to_snbt()
-        if self._nbt_id is not None:
-            spec["nbt_identifier"] = self._nbt_id
-        if self._snbt is not None:
-            spec["snbt"] = self._snbt
+        if self.nbt is not None:
+            spec["nbt_identifier"] = (
+                self.nbt.namespace,
+                self.nbt.basename
+            )
+            spec["snbt"] = self.nbt.snbt
         return spec
-
-    @property
-    def properties(self) -> PropertiesData:
-        return self._properties
-
-    @property
-    def nbt_id(self) -> tuple[str, str] | None:
-        return self._nbt_id
-
-    @property
-    def default_nbt(self) -> CompoundTag | None:
-        if self._snbt is None:
-            return None
-        else:
-            tag = from_snbt(self._snbt)
-            if isinstance(tag, CompoundTag):
-                return tag
-            raise TypeError
