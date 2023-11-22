@@ -44,22 +44,22 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-class LegacyBlockIdMap(Mapping[int, tuple[str, str]]):
+class IdMap(Mapping[int, tuple[str, str]]):
     def __init__(self) -> None:
         self._str_to_int: dict[tuple[str, str], int] = {}
         self._int_to_str: dict[int, tuple[str, str]] = {}
 
-    def int_to_str(self, index: int) -> tuple[str, str]:
+    def numerical_id_to_namespace_id(self, index: int) -> tuple[str, str]:
         return self._int_to_str[index]
 
-    def str_to_int(self, block_id: tuple[str, str]) -> int:
-        return self._str_to_int[block_id]
+    def namespace_id_to_numerical_id(self, namespace: str, basename: str) -> int:
+        return self._str_to_int[(namespace, basename)]
 
     def register(self, index: int, block_id: tuple[str, str]) -> None:
         if block_id in self._str_to_int:
-            raise RuntimeError(f"Block id {block_id} has already been registered")
+            raise RuntimeError(f"id {block_id} has already been registered")
         if index in self._int_to_str:
-            raise RuntimeError(f"Block index {index} has already been registered")
+            raise RuntimeError(f"index {index} has already been registered")
         self._str_to_int[block_id] = index
         self._int_to_str[index] = block_id
 
@@ -92,7 +92,8 @@ class BedrockRawLevelOpenData:
     db: LevelDB
     dimension_aliases: frozenset[DimensionID]
     actor_counter: ActorCounter
-    legacy_block_map: LegacyBlockIdMap
+    block_id_override: IdMap
+    biome_id_override: IdMap
 
     def __init__(self, db: LevelDB, actor_counter: ActorCounter):
         self.db = db
@@ -100,7 +101,8 @@ class BedrockRawLevelOpenData:
         self.dimensions_lock = RLock()
         self.dimension_aliases = frozenset()
         self.actor_counter = actor_counter
-        self.legacy_block_map = LegacyBlockIdMap()
+        self.block_id_override = IdMap()
+        self.biome_id_override = IdMap()
 
 
 class BedrockRawLevel(
@@ -193,9 +195,7 @@ class BedrockRawLevel(
             return VersionNumber(
                 *(
                     t.py_int
-                    for t in self.level_dat.compound.get_list(
-                        "lastOpenedWithVersion"
-                    )
+                    for t in self.level_dat.compound.get_list("lastOpenedWithVersion")
                 )
             )
         except Exception:
@@ -385,6 +385,17 @@ class BedrockRawLevel(
         raise NotImplementedError
 
     @property
-    def legacy_block_map(self) -> LegacyBlockIdMap:
-        """A two-way map from legacy block id <-> block string"""
-        return self._o.legacy_block_map
+    def block_id_override(self) -> IdMap:
+        """
+        A two-way map from hard coded numerical block id <-> block string.
+        This only stores overridden values. If the value is not present here you should check the translator.
+        """
+        return self._o.block_id_override
+
+    @property
+    def biome_id_override(self) -> IdMap:
+        """
+        A two-way map from hard coded numerical biome id <-> biome string.
+        This only stores overridden values. If the value is not present here you should check the translator.
+        """
+        return self._o.biome_id_override
