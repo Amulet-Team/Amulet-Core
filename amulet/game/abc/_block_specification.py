@@ -39,7 +39,7 @@ class PropertySpec(Mapping[str, PropertyValueSpec]):
 @dataclass(frozen=True)
 class NBTSpec:
     namespace: str
-    basename: str
+    base_name: str
     snbt: str
 
 
@@ -76,12 +76,12 @@ class BlockSpec(JSONInterface):
         if "nbt_identifier" in obj:
             nbt_id_raw = obj["nbt_identifier"]
             assert isinstance(nbt_id_raw, list)
-            namespace, basename = nbt_id_raw
-            assert isinstance(namespace, str) and isinstance(basename, str)
+            namespace, base_name = nbt_id_raw
+            assert isinstance(namespace, str) and isinstance(base_name, str)
 
             snbt = obj["snbt"]
             assert isinstance(snbt, str)
-            nbt = NBTSpec(namespace, basename, snbt)
+            nbt = NBTSpec(namespace, base_name, snbt)
         else:
             nbt = None
             assert "snbt" not in obj
@@ -106,7 +106,7 @@ class BlockSpec(JSONInterface):
         if self.nbt is not None:
             spec["nbt_identifier"] = (
                 self.nbt.namespace,
-                self.nbt.basename
+                self.nbt.base_name
             )
             spec["snbt"] = self.nbt.snbt
         return spec

@@ -52,8 +52,8 @@ class IdMap(Mapping[int, tuple[str, str]]):
     def numerical_id_to_namespace_id(self, index: int) -> tuple[str, str]:
         return self._int_to_str[index]
 
-    def namespace_id_to_numerical_id(self, namespace: str, basename: str) -> int:
-        return self._str_to_int[(namespace, basename)]
+    def namespace_id_to_numerical_id(self, namespace: str, base_name: str) -> int:
+        return self._str_to_int[(namespace, base_name)]
 
     def register(self, index: int, block_id: tuple[str, str]) -> None:
         if block_id in self._str_to_int:
