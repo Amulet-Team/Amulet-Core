@@ -137,6 +137,9 @@ class VersionRange:
         self._cache[key] = self
         return self
 
+    def __reduce__(self) -> tuple[type[VersionRange], tuple[str, VersionNumber, VersionNumber]]:
+        return VersionRange, (self._platform, self._min, self._max)
+
     def __repr__(self) -> str:
         return f"VersionRangeContainer({self._min!r}, {self._max!r})"
 
