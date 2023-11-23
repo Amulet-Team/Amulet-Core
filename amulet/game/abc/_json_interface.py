@@ -4,7 +4,16 @@ from abc import ABC, abstractmethod
 from typing import Self
 
 
-JSONCompatible = str | int | float | bool | None | list["JSONCompatible"] | tuple["JSONCompatible", ...] | dict[str, "JSONCompatible"]
+JSONCompatible = (
+    str
+    | int
+    | float
+    | bool
+    | None
+    | list["JSONCompatible"]
+    | tuple["JSONCompatible", ...]
+    | dict[str, "JSONCompatible"]
+)
 
 
 class JSONInterface(ABC):

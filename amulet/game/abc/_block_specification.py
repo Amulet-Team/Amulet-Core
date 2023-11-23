@@ -23,7 +23,9 @@ class PropertyValueSpec:
 
 
 class PropertySpec(Mapping[str, PropertyValueSpec]):
-    def __init__(self, properties: Mapping[str, PropertyValueSpec] = MappingProxyType({})):
+    def __init__(
+        self, properties: Mapping[str, PropertyValueSpec] = MappingProxyType({})
+    ):
         self._properties = dict(properties)
 
     def __getitem__(self, name: str) -> PropertyValueSpec:
@@ -68,10 +70,7 @@ class BlockSpec(JSONInterface):
                 val_nbt = immutable_from_snbt(val_str)
                 states.append(val_nbt)
 
-            properties_data[name] = PropertyValueSpec(
-                default_nbt,
-                tuple(states)
-            )
+            properties_data[name] = PropertyValueSpec(default_nbt, tuple(states))
 
         if "nbt_identifier" in obj:
             nbt_id_raw = obj["nbt_identifier"]
@@ -86,12 +85,11 @@ class BlockSpec(JSONInterface):
             nbt = None
             assert "snbt" not in obj
 
-        assert not set(obj.keys()).difference(("properties", "defaults", "nbt_identifier", "snbt")), obj.keys()
+        assert not set(obj.keys()).difference(
+            ("properties", "defaults", "nbt_identifier", "snbt")
+        ), obj.keys()
 
-        return cls(
-            PropertySpec(properties_data),
-            nbt
-        )
+        return cls(PropertySpec(properties_data), nbt)
 
     def to_json(self) -> dict[str, JSONCompatible]:
         spec: dict[str, JSONCompatible] = {}
@@ -99,14 +97,9 @@ class BlockSpec(JSONInterface):
             spec["properties"] = properties = {}
             spec["defaults"] = defaults = {}
             for name, state in self.properties.items():
-                properties[name] = [
-                    val.to_snbt() for val in state.states
-                ]
+                properties[name] = [val.to_snbt() for val in state.states]
                 defaults[name] = state.default.to_snbt()
         if self.nbt is not None:
-            spec["nbt_identifier"] = (
-                self.nbt.namespace,
-                self.nbt.base_name
-            )
+            spec["nbt_identifier"] = (self.nbt.namespace, self.nbt.base_name)
             spec["snbt"] = self.nbt.snbt
         return spec

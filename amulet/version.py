@@ -113,15 +113,16 @@ class PlatformVersionContainer:
 
 
 class VersionRange:
-    _cache: WeakValueDictionary[tuple[str, VersionNumber, VersionNumber], VersionRange] = WeakValueDictionary()
+    _cache: WeakValueDictionary[
+        tuple[str, VersionNumber, VersionNumber], VersionRange
+    ] = WeakValueDictionary()
 
     _platform: str
     _min: VersionNumber
     _max: VersionNumber
 
     def __new__(
-        cls,
-        platform: str, min_version: VersionNumber, max_version: VersionNumber
+        cls, platform: str, min_version: VersionNumber, max_version: VersionNumber
     ) -> VersionRange:
         key = (platform, min_version, max_version)
         self = cls._cache.get(key)
@@ -137,7 +138,9 @@ class VersionRange:
         self._cache[key] = self
         return self
 
-    def __reduce__(self) -> tuple[type[VersionRange], tuple[str, VersionNumber, VersionNumber]]:
+    def __reduce__(
+        self,
+    ) -> tuple[type[VersionRange], tuple[str, VersionNumber, VersionNumber]]:
         return VersionRange, (self._platform, self._min, self._max)
 
     def __repr__(self) -> str:
