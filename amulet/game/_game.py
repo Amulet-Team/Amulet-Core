@@ -33,6 +33,11 @@ def game_versions(platform: Literal["bedrock"]) -> Sequence[BedrockGameVersion]:
     ...
 
 
+@overload
+def game_versions(platform: str) -> Sequence[GameVersion]:
+    ...
+
+
 def game_versions(platform: str) -> Sequence[GameVersion]:
     """
     Get all known version classes for the platform.
@@ -57,6 +62,11 @@ def get_game_version(
 def get_game_version(
     platform: Literal["bedrock"], version_number: VersionNumber
 ) -> BedrockGameVersion:
+    ...
+
+
+@overload
+def get_game_version(platform: str, version_number: VersionNumber) -> GameVersion:
     ...
 
 
