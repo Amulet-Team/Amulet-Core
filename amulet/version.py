@@ -93,6 +93,9 @@ class VersionNumber(Sequence[int]):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({', '.join(map(str, self._v))})"
 
+    def __str__(self) -> str:
+        return ".".join(map(str, self._v))
+
 
 class PlatformVersionContainer:
     __slots__ = ("_platform", "_version")
