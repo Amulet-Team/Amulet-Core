@@ -6,9 +6,15 @@ from ._block import BedrockBlockData
 
 
 class BedrockGameVersion(GameVersion):
-    def __init__(self) -> None:
-        self._min_semantic_version: VersionNumber = VersionNumber()
-        self._max_semantic_version: VersionNumber = VersionNumber()
+    def __init__(
+        self,
+        min_semantic_version: VersionNumber,
+        max_semantic_version: VersionNumber,
+        block_data: BedrockBlockData
+    ) -> None:
+        self._min_semantic_version = min_semantic_version
+        self._max_semantic_version = max_semantic_version
+        self._block_data = block_data
 
     def supports_version(self, platform: str, version: VersionNumber) -> bool:
         return (
@@ -30,7 +36,7 @@ class BedrockGameVersion(GameVersion):
 
     @property
     def block(self) -> BedrockBlockData:
-        pass
+        return self._block_data
 
     @property
     def biome(self) -> BiomeData:

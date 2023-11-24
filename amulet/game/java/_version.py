@@ -6,11 +6,19 @@ from ._block import JavaBlockData
 
 
 class JavaGameVersion(GameVersion):
-    def __init__(self) -> None:
-        self._min_data_version: VersionNumber = VersionNumber()
-        self._max_data_version: VersionNumber = VersionNumber()
-        self._min_semantic_version: VersionNumber = VersionNumber()
-        self._max_semantic_version: VersionNumber = VersionNumber()
+    def __init__(
+        self,
+        min_data_version: VersionNumber,
+        max_data_version: VersionNumber,
+        min_semantic_version: VersionNumber,
+        max_semantic_version: VersionNumber,
+        block_data: JavaBlockData
+    ) -> None:
+        self._min_data_version = min_data_version
+        self._max_data_version = max_data_version
+        self._min_semantic_version = min_semantic_version
+        self._max_semantic_version = max_semantic_version
+        self._block_data = block_data
 
     def supports_version(self, platform: str, version: VersionNumber) -> bool:
         return platform == "java" and (
@@ -32,7 +40,7 @@ class JavaGameVersion(GameVersion):
 
     @property
     def block(self) -> JavaBlockData:
-        pass
+        return self._block_data
 
     @property
     def biome(self) -> BiomeData:
