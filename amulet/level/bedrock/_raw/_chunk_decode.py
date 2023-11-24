@@ -18,7 +18,7 @@ from amulet_nbt import (
     utf8_escape_decoder,
 )
 
-from amulet.block import Block, BlockStack, PropertyType, PropertyDataTypes
+from amulet.block import Block, BlockStack, PropertyType, PropertyValueClasses
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
 from amulet.chunk.components.block import BlockComponent
@@ -282,7 +282,7 @@ def _load_subchunks(
                         properties = {
                             k: v
                             for k, v in block.get_compound("states").items()
-                            if isinstance(v, PropertyDataTypes)
+                            if isinstance(v, PropertyValueClasses)
                         }
                         version = unpack_block_version(
                             block.get_int("version", IntTag(17694720)).py_int

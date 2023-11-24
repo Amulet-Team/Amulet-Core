@@ -22,7 +22,7 @@ PropertyValueType = Union[
 PropertyType = Mapping[str, PropertyValueType]
 PropertyTypeMultiple = dict[str, tuple[PropertyValueType, ...]]
 
-PropertyDataTypes = (
+PropertyValueClasses = (
     ByteTag,
     ShortTag,
     IntTag,
@@ -49,7 +49,7 @@ class BlockProperties(Mapping[str, PropertyValueType], Hashable):
         self._properties = dict(properties)
         if not all(isinstance(k, str) for k in self._properties.keys()):
             raise TypeError("keys must be strings")
-        if not all(isinstance(v, PropertyDataTypes) for v in self._properties.values()):
+        if not all(isinstance(v, PropertyValueClasses) for v in self._properties.values()):
             raise TypeError("values must be nbt")
         self._hash = hash(tuple(sorted(self._properties.items())))
 

@@ -4,14 +4,14 @@ from collections.abc import Mapping, Iterator
 from dataclasses import dataclass
 
 from amulet_nbt import from_snbt
-from amulet.block import PropertyValueType, PropertyDataTypes
+from amulet.block import PropertyValueType, PropertyValueClasses
 
 from ._json_interface import JSONInterface, JSONCompatible
 
 
 def immutable_from_snbt(snbt: str) -> PropertyValueType:
     val = from_snbt(snbt)
-    if not isinstance(val, PropertyDataTypes):
+    if not isinstance(val, PropertyValueClasses):
         raise TypeError
     return val
 

@@ -11,7 +11,7 @@ import numpy
 from numpy.typing import NDArray
 from amulet_nbt import NamedTag, CompoundTag, StringTag, IntTag, ShortTag
 
-from amulet.block import Block, PropertyDataTypes
+from amulet.block import Block, PropertyValueClasses
 
 from amulet.utils.numpy_helpers import brute_sort_objects_no_hash
 from amulet.api.data_types import (
@@ -96,7 +96,7 @@ class LevelDB8Interface(LevelDB7Interface):
                                         {
                                             key: val
                                             for key, val in properties.items()
-                                            if isinstance(val, PropertyDataTypes)
+                                            if isinstance(val, PropertyValueClasses)
                                         }
                                     ),
                                     "version": IntTag(sub_block_version),
