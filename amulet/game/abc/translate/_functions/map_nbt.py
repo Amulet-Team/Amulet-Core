@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Self
 from collections.abc import Mapping
 
 from .abc import AbstractBaseTranslationFunction
@@ -9,6 +10,7 @@ from ._frozen_map import FrozenMapping
 class MapNBT(AbstractBaseTranslationFunction):
     # Class variables
     Name = "map_nbt"
+    _instances: dict[Self, Self] = {}
 
     # Instance variables
     _blocks: FrozenMapping[str, AbstractBaseTranslationFunction]
@@ -27,12 +29,12 @@ class MapNBT(AbstractBaseTranslationFunction):
     @classmethod
     def instance(
             cls, blocks: Mapping[str, AbstractBaseTranslationFunction]
-    ) -> MapNBT:
+    ) -> Self:
         self = cls(blocks)
         return cls._instances.setdefault(self, self)
 
     @classmethod
-    def from_json(cls, data) -> MapNBT:
+    def from_json(cls, data) -> Self:
 
     # if data.get("function") != "map_block_name":
     #     raise ValueError("Incorrect function data given.")

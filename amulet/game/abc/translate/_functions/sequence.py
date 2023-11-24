@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+from typing import Self
 from collections.abc import Sequence
 
-from .abc import AbstractBaseTranslationFunction
+from .abc import AbstractBaseTranslationFunction, from_json
 
 
 class TranslationFunctionSequence(AbstractBaseTranslationFunction):
-    # class variables
+    # Class variables
     Name = "sequence"
+    _instances: dict[Self, Self] = {}
 
-    # instance variables
+    # Instance variables
     _functions: tuple[AbstractBaseTranslationFunction]
 
     def __init__(self, functions: Sequence[AbstractBaseTranslationFunction]):
@@ -23,12 +25,12 @@ class TranslationFunctionSequence(AbstractBaseTranslationFunction):
     @classmethod
     def instance(
         cls, functions: Sequence[AbstractBaseTranslationFunction]
-    ) -> TranslationFunctionSequence:
+    ) -> Self:
         self = cls(functions)
         return cls._instances.setdefault(self, self)
 
     @classmethod
-    def from_json(cls, data: list) -> TranslationFunctionSequence:
+    def from_json(cls, data: list) -> Self:
         parsed = []
         for func in data:
             parsed.append(from_json(func))

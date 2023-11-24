@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from typing import Self
 from .abc import AbstractBaseTranslationFunction
 
 
 class NewEntity(AbstractBaseTranslationFunction):
-    # class variables
+    # Class variables
     Name = "new_entity"
+    _instances: dict[Self, Self] = {}
 
-    # instance variables
+    # Instance variables
     _entity: str
 
     def __init__(self, entity: str):
@@ -16,12 +18,12 @@ class NewEntity(AbstractBaseTranslationFunction):
         self._entity = entity
 
     @classmethod
-    def instance(cls, entity: str) -> NewEntity:
+    def instance(cls, entity: str) -> Self:
         self = cls(entity)
         return cls._instances.setdefault(self, self)
 
     @classmethod
-    def from_json(cls, data: dict) -> NewEntity:
+    def from_json(cls, data: dict) -> Self:
         if data.get("function") != "new_entity":
             raise ValueError("Incorrect function data given.")
         return cls.instance(data["options"])

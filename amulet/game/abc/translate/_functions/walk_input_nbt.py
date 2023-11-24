@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Self
 from collections.abc import Mapping
 
 from .abc import AbstractBaseTranslationFunction
@@ -7,7 +8,11 @@ from ._frozen_map import FrozenMapping
 
 
 class WalkInputNBT(AbstractBaseTranslationFunction):
+    # Class variables
     Name = "walk_input_nbt"
+    _instances: dict[Self, Self] = {}
+
+    # Instance variables
     _blocks: FrozenMapping[str, AbstractBaseTranslationFunction]
 
     def __init__(
@@ -23,12 +28,12 @@ class WalkInputNBT(AbstractBaseTranslationFunction):
     @classmethod
     def instance(
             cls, blocks: Mapping[str, AbstractBaseTranslationFunction]
-    ) -> WalkInputNBT:
+    ) -> Self:
         self = cls(blocks)
         return cls._instances.setdefault(self, self)
 
     @classmethod
-    def from_json(cls, data) -> WalkInputNBT:
+    def from_json(cls, data) -> Self:
         # if data.get("function") != "map_block_name":
         #     raise ValueError("Incorrect function data given.")
         # return cls.instance({

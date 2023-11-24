@@ -4,6 +4,7 @@ from typing import (
     Union,
     Sequence,
     Optional,
+    Self,
 )
 from collections.abc import Mapping
 
@@ -21,6 +22,7 @@ from .abc import AbstractBaseTranslationFunction
 class NewNBT(AbstractBaseTranslationFunction):
     # Class variables
     Name = "new_nbt"
+    _instances: dict[Self, Self] = {}
 
     # Instance variables
     _outer_name: str
@@ -81,12 +83,12 @@ class NewNBT(AbstractBaseTranslationFunction):
     @classmethod
     def instance(
             cls, blocks: Mapping[str, AbstractBaseTranslationFunction]
-    ) -> NewNBT:
+    ) -> Self:
         self = cls(blocks)
         return cls._instances.setdefault(self, self)
 
     @classmethod
-    def from_json(cls, data) -> NewNBT:
+    def from_json(cls, data) -> Self:
         if data.get("function") != "new_nbt":
             raise ValueError("Incorrect function data given.")
         return cls.instance({

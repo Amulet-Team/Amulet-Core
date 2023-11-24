@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Self
 from collections.abc import Mapping
 
 from amulet_nbt import from_snbt
@@ -10,11 +11,11 @@ from ._frozen_map import FrozenMapping
 
 
 class MapProperties(AbstractBaseTranslationFunction):
-    # class variables
+    # Class variables
     Name = "map_properties"
-    _instances = {}
+    _instances: dict[Self, Self] = {}
 
-    # instance variables
+    # Instance variables
     _properties: FrozenMapping[
         str, FrozenMapping[PropertyValueType, AbstractBaseTranslationFunction]
     ]
@@ -46,12 +47,12 @@ class MapProperties(AbstractBaseTranslationFunction):
         properties: Mapping[
             str, Mapping[PropertyValueType, AbstractBaseTranslationFunction]
         ],
-    ) -> MapProperties:
+    ) -> Self:
         self = cls(properties)
         return cls._instances.setdefault(self, self)
 
     @classmethod
-    def from_json(cls, data) -> MapProperties:
+    def from_json(cls, data) -> Self:
         if data.get("function") != "map_properties":
             raise ValueError("Incorrect function data given.")
         return cls.instance(

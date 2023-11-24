@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from typing import Self
 from .abc import AbstractBaseTranslationFunction
 
 
 class NewBlock(AbstractBaseTranslationFunction):
-    # class variables
+    # Class variables
     Name = "new_block"
+    _instances: dict[Self, Self] = {}
 
-    # instance variables
+    # Instance variables
     _block: str
 
     def __init__(self, block: str):
@@ -16,12 +18,12 @@ class NewBlock(AbstractBaseTranslationFunction):
         self._block = block
 
     @classmethod
-    def instance(cls, block: str) -> NewBlock:
+    def instance(cls, block: str) -> Self:
         self = cls(block)
         return cls._instances.setdefault(self, self)
 
     @classmethod
-    def from_json(cls, data: dict) -> NewBlock:
+    def from_json(cls, data: dict) -> Self:
         if data.get("function") != "new_block":
             raise ValueError("Incorrect function data given.")
         return cls.instance(data["options"])

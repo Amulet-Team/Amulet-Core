@@ -6,6 +6,7 @@ from typing import (
     Sequence,
     Optional,
     Callable,
+    Self,
 )
 from collections.abc import Mapping
 from dataclasses import dataclass, field
@@ -157,7 +158,6 @@ _translation_functions: dict[str, type[AbstractBaseTranslationFunction]] = {}
 
 class AbstractBaseTranslationFunction(ABC):
     Name: str = None
-    _instances = {}
 
     @abstractmethod
     def __init__(self, *args, **kwargs):
@@ -174,7 +174,7 @@ class AbstractBaseTranslationFunction(ABC):
 
     @classmethod
     @abstractmethod
-    def instance(cls, *args, **kwargs) -> AbstractBaseTranslationFunction:
+    def instance(cls, *args, **kwargs) -> Self:
         """
         Get the translation function for this data.
         This will return a cached instance if it already exists.
@@ -183,7 +183,7 @@ class AbstractBaseTranslationFunction(ABC):
 
     @classmethod
     @abstractmethod
-    def from_json(cls, data) -> AbstractBaseTranslationFunction:
+    def from_json(cls, data) -> Self:
         """Get a translation function from the JSON representation."""
         raise NotImplementedError
 

@@ -1,13 +1,17 @@
 from __future__ import annotations
 
-from typing import Sequence
+from typing import Sequence, Self
 
 from amulet.api.data_types import BlockCoordinates
 from .abc import AbstractBaseTranslationFunction
 
 
 class MultiBlock(AbstractBaseTranslationFunction):
+    # Class variables
     Name = "multiblock"
+    _instances: dict[Self, Self] = {}
+
+    # Instance variables
     _blocks: tuple[tuple[BlockCoordinates, AbstractBaseTranslationFunction], ...]
 
     def __init__(
@@ -27,12 +31,12 @@ class MultiBlock(AbstractBaseTranslationFunction):
     @classmethod
     def instance(
         cls, blocks: Sequence[tuple[BlockCoordinates, AbstractBaseTranslationFunction]]
-    ) -> MultiBlock:
+    ) -> Self:
         self = cls(blocks)
         return cls._instances.setdefault(self, self)
 
     @classmethod
-    def from_json(cls, data) -> MultiBlock:
+    def from_json(cls, data) -> Self:
         if data.get("function") != "multiblock":
             raise ValueError("Incorrect function data given.")
         return cls.instance(
