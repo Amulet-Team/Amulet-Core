@@ -10,18 +10,21 @@ JSONCompatible = (
     | float
     | bool
     | None
-    | list["JSONCompatible"]
+    | "JSONList"
     | tuple["JSONCompatible", ...]
-    | dict[str, "JSONCompatible"]
+    | "JSONDict"
 )
+
+JSONDict = dict[str, "JSONCompatible"]
+JSONList = list["JSONCompatible"]
 
 
 class JSONInterface(ABC):
     @classmethod
     @abstractmethod
-    def from_json(cls, obj: dict[str, JSONCompatible]) -> Self:
+    def from_json(cls, obj: JSONCompatible) -> Self:
         raise NotImplementedError
 
     @abstractmethod
-    def to_json(self) -> dict[str, JSONCompatible]:
+    def to_json(self) -> JSONCompatible:
         raise NotImplementedError

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from amulet_nbt import from_snbt
 from amulet.block import PropertyValueType, PropertyValueClasses
 
-from ._json_interface import JSONInterface, JSONCompatible
+from ._json_interface import JSONInterface, JSONDict
 
 
 def immutable_from_snbt(snbt: str) -> PropertyValueType:
@@ -51,7 +51,7 @@ class BlockSpec(JSONInterface):
     nbt: NBTSpec | None = None
 
     @classmethod
-    def from_json(cls, obj: dict[str, JSONCompatible]) -> Self:
+    def from_json(cls, obj: JSONDict) -> Self:
         properties = obj.get("properties", {})
         default_properties = obj.get("defaults", {})
         assert isinstance(properties, dict) and isinstance(default_properties, dict)
@@ -91,8 +91,8 @@ class BlockSpec(JSONInterface):
 
         return cls(PropertySpec(properties_data), nbt)
 
-    def to_json(self) -> dict[str, JSONCompatible]:
-        spec: dict[str, JSONCompatible] = {}
+    def to_json(self) -> JSONDict:
+        spec: JSONDict = {}
         if self.properties:
             spec["properties"] = properties = {}
             spec["defaults"] = defaults = {}
