@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import Self
-from .abc import AbstractBaseTranslationFunction
+from typing import Self, Any
+from .abc import AbstractBaseTranslationFunction, JSONCompatible, JSONDict
 
 
 class NewBlock(AbstractBaseTranslationFunction):
@@ -9,35 +9,29 @@ class NewBlock(AbstractBaseTranslationFunction):
     Name = "new_block"
     _instances: dict[Self, Self] = {}
 
-    # Instance variables
-    _block: str
-
-    def __init__(self, block: str):
+    def __new__(cls, block: str) -> Self:
+        self = super().__new__(cls)
         if not isinstance(block, str):
             raise TypeError
         self._block = block
-
-    @classmethod
-    def instance(cls, block: str) -> Self:
-        self = cls(block)
         return cls._instances.setdefault(self, self)
 
     @classmethod
-    def from_json(cls, data: dict) -> Self:
+    def from_json(cls, data: JSONCompatible) -> Self:
         if data.get("function") != "new_block":
             raise ValueError("Incorrect function data given.")
-        return cls.instance(data["options"])
+        return cls(data["options"])
 
-    def to_json(self) -> dict:
+    def to_json(self) -> JSONDict:
         return {"function": "new_block", "options": self._block}
 
-    def run(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self._block)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, NewBlock):
             return NotImplemented
         return self._block == other._block
+
+    def run(self, *args, **kwargs):
+        raise NotImplementedError

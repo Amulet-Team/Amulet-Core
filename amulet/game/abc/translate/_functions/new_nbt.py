@@ -5,6 +5,7 @@ from typing import (
     Sequence,
     Optional,
     Self,
+    Any,
 )
 from collections.abc import Mapping
 
@@ -16,7 +17,7 @@ from amulet_nbt import (
     LongArrayTag,
 )
 
-from .abc import AbstractBaseTranslationFunction
+from .abc import AbstractBaseTranslationFunction, JSONCompatible, JSONDict, NBTClsToStr, NBTTagClsT, NBTTagT, NBTTagClasses, from_json
 
 
 class NewNBT(AbstractBaseTranslationFunction):
@@ -31,14 +32,16 @@ class NewNBT(AbstractBaseTranslationFunction):
     _key: Union[str, int]
     _value: NBTTagT
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         outer_name: str,
         outer_type: NBTTagClsT,
         path: Optional[Sequence[tuple[Union[str, int], NBTTagClsT]]],
         key: Union[str, int],
         value: NBTTagT
-    ):
+    ) -> Self:
+        self = super().__new__(cls)
+
         if not isinstance(outer_name, str):
             raise TypeError
         self._outer_name = outer_name
@@ -79,23 +82,17 @@ class NewNBT(AbstractBaseTranslationFunction):
         if not isinstance(value, NBTTagClasses):
             raise TypeError
         self._value = value
-
-    @classmethod
-    def instance(
-            cls, blocks: Mapping[str, AbstractBaseTranslationFunction]
-    ) -> Self:
-        self = cls(blocks)
         return cls._instances.setdefault(self, self)
 
     @classmethod
-    def from_json(cls, data) -> Self:
+    def from_json(cls, data: JSONCompatible) -> Self:
         if data.get("function") != "new_nbt":
             raise ValueError("Incorrect function data given.")
-        return cls.instance({
+        return cls({
             block_name: from_json(function) for block_name, function in data["options"].items()
         })
 
-    def to_json(self):
+    def to_json(self) -> JSONDict:
 
     # return {
     #     "function": "map_block_name",
@@ -104,13 +101,13 @@ class NewNBT(AbstractBaseTranslationFunction):
     #     },
     # }
 
-    def run(self, *args, **kwargs):
-        pass
-
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self._blocks)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, NewNBT):
             return NotImplemented
         return self._blocks == other._blocks
+
+    def run(self, *args, **kwargs):
+        pass

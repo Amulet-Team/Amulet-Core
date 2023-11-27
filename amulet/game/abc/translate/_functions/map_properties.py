@@ -1,13 +1,17 @@
 from __future__ import annotations
 
-from typing import Self
+from typing import Self, Any
 from collections.abc import Mapping
 
-from amulet_nbt import from_snbt
-
 from amulet.block import PropertyValueType, PropertyValueClasses
-from .abc import AbstractBaseTranslationFunction
-from ._frozen_map import FrozenMapping
+from .abc import (
+    AbstractBaseTranslationFunction,
+    JSONCompatible,
+    JSONDict,
+    immutable_from_snbt,
+    from_json,
+)
+from ._frozen import FrozenMapping
 
 
 class MapProperties(AbstractBaseTranslationFunction):
@@ -15,17 +19,14 @@ class MapProperties(AbstractBaseTranslationFunction):
     Name = "map_properties"
     _instances: dict[Self, Self] = {}
 
-    # Instance variables
-    _properties: FrozenMapping[
-        str, FrozenMapping[PropertyValueType, AbstractBaseTranslationFunction]
-    ]
-
-    def __init__(
-        self,
+    def __new__(
+        cls,
         properties: Mapping[
             str, Mapping[PropertyValueType, AbstractBaseTranslationFunction]
         ],
-    ):
+    ) -> Self:
+        self = super().__new__(cls)
+
         hashable_properties = {}
 
         for prop, data in properties.items():
@@ -39,32 +40,26 @@ class MapProperties(AbstractBaseTranslationFunction):
                     raise TypeError
             hashable_properties[prop] = hashable_data
 
-        self._properties = FrozenMapping(hashable_properties)
-
-    @classmethod
-    def instance(
-        cls,
-        properties: Mapping[
-            str, Mapping[PropertyValueType, AbstractBaseTranslationFunction]
-        ],
-    ) -> Self:
-        self = cls(properties)
+        self._properties = FrozenMapping[
+            str, FrozenMapping[PropertyValueType, AbstractBaseTranslationFunction]
+        ](hashable_properties)
         return cls._instances.setdefault(self, self)
 
     @classmethod
-    def from_json(cls, data) -> Self:
+    def from_json(cls, data: JSONCompatible) -> Self:
         if data.get("function") != "map_properties":
             raise ValueError("Incorrect function data given.")
-        return cls.instance(
+        return cls(
             {
                 property_name: {
-                    from_snbt(snbt): from_json(func) for snbt, func in mapping.items
+                    immutable_from_snbt(snbt): from_json(func)
+                    for snbt, func in mapping.items()
                 }
                 for property_name, mapping in data["options"].items()
             }
         )
 
-    def to_json(self):
+    def to_json(self) -> JSONDict:
         return {
             "function": "map_properties",
             "options": {
@@ -75,13 +70,13 @@ class MapProperties(AbstractBaseTranslationFunction):
             },
         }
 
-    def run(self, *args, **kwargs):
-        pass
-
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self._properties)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, MapProperties):
             return NotImplemented
         return self._properties == other._properties
+
+    def run(self, *args, **kwargs):
+        pass

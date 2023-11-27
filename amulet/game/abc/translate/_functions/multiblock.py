@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Sequence, Self
+from typing import Sequence, Self, Any
 
 from amulet.api.data_types import BlockCoordinates
-from .abc import AbstractBaseTranslationFunction
+from .abc import AbstractBaseTranslationFunction, JSONCompatible, JSONDict
 
 
 class MultiBlock(AbstractBaseTranslationFunction):
@@ -11,13 +11,13 @@ class MultiBlock(AbstractBaseTranslationFunction):
     Name = "multiblock"
     _instances: dict[Self, Self] = {}
 
-    # Instance variables
-    _blocks: tuple[tuple[BlockCoordinates, AbstractBaseTranslationFunction], ...]
-
-    def __init__(
-        self, blocks: Sequence[tuple[BlockCoordinates, AbstractBaseTranslationFunction]]
-    ):
-        self._blocks = tuple(blocks)
+    def __new__(
+        cls, blocks: Sequence[tuple[BlockCoordinates, AbstractBaseTranslationFunction]]
+    ) -> Self:
+        self = super().__new__(cls)
+        self._blocks = tuple[
+            tuple[BlockCoordinates, AbstractBaseTranslationFunction], ...
+        ](blocks)
         for coords, func in self._blocks:
             if (
                 not isinstance(coords, tuple)
@@ -27,23 +27,15 @@ class MultiBlock(AbstractBaseTranslationFunction):
                 raise TypeError
             if not isinstance(func, AbstractBaseTranslationFunction):
                 raise TypeError
-
-    @classmethod
-    def instance(
-        cls, blocks: Sequence[tuple[BlockCoordinates, AbstractBaseTranslationFunction]]
-    ) -> Self:
-        self = cls(blocks)
         return cls._instances.setdefault(self, self)
 
     @classmethod
-    def from_json(cls, data) -> Self:
+    def from_json(cls, data: JSONCompatible) -> Self:
         if data.get("function") != "multiblock":
             raise ValueError("Incorrect function data given.")
-        return cls.instance(
-            [(block["coords"], block["functions"]) for block in data["options"]]
-        )
+        return cls([(block["coords"], block["functions"]) for block in data["options"]])
 
-    def to_json(self):
+    def to_json(self) -> JSONDict:
         return {
             "function": "multiblock",
             "options": [
@@ -52,13 +44,13 @@ class MultiBlock(AbstractBaseTranslationFunction):
             ],
         }
 
-    def run(self, *args, **kwargs):
-        pass
-
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self._blocks)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, MultiBlock):
             return NotImplemented
         return self._blocks == other._blocks
+
+    def run(self, *args, **kwargs):
+        pass

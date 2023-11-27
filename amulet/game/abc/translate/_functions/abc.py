@@ -7,6 +7,7 @@ from typing import (
     Optional,
     Callable,
     Self,
+    Any,
 )
 from collections.abc import Mapping
 from dataclasses import dataclass, field
@@ -26,10 +27,12 @@ from amulet_nbt import (
     IntArrayTag,
     LongArrayTag,
     NamedTag,
+    from_snbt,
 )
 
-from amulet.block import Block, PropertyValueType
+from amulet.block import Block, PropertyValueType, PropertyValueClasses
 from amulet.api.data_types import BlockCoordinates
+from ..._json_interface import JSONInterface, JSONCompatible, JSONDict, JSONList
 
 NBTTagT = Union[
     ByteTag,
@@ -142,7 +145,14 @@ class DstData:
     cacheable: bool = True
 
 
-def from_json(data) -> AbstractBaseTranslationFunction:
+def immutable_from_snbt(snbt: str) -> PropertyValueType:
+    val = from_snbt(snbt)
+    if not isinstance(val, PropertyValueClasses):
+        raise TypeError
+    return val
+
+
+def from_json(data: JSONCompatible) -> AbstractBaseTranslationFunction:
     if isinstance(data, Sequence):
         func_cls = _translation_functions["sequence"]
         return func_cls.from_json(data)
@@ -156,14 +166,10 @@ def from_json(data) -> AbstractBaseTranslationFunction:
 _translation_functions: dict[str, type[AbstractBaseTranslationFunction]] = {}
 
 
-class AbstractBaseTranslationFunction(ABC):
+class AbstractBaseTranslationFunction(JSONInterface, ABC):
     Name: str = None
 
-    @abstractmethod
-    def __init__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, **kwargs) -> None:
         if cls.Name is None:
             raise RuntimeError(f"Name attribute has not been set for {cls}")
         if cls.Name in _translation_functions:
@@ -172,35 +178,15 @@ class AbstractBaseTranslationFunction(ABC):
             )
         _translation_functions[cls.Name] = cls
 
-    @classmethod
     @abstractmethod
-    def instance(cls, *args, **kwargs) -> Self:
-        """
-        Get the translation function for this data.
-        This will return a cached instance if it already exists.
-        """
-        raise NotImplementedError
-
-    @classmethod
-    @abstractmethod
-    def from_json(cls, data) -> Self:
-        """Get a translation function from the JSON representation."""
+    def __hash__(self) -> int:
         raise NotImplementedError
 
     @abstractmethod
-    def to_json(self):
-        """Convert the translation function back to the JSON representation."""
+    def __eq__(self, other: Any) -> bool:
         raise NotImplementedError
 
     @abstractmethod
     def run(self, *args, **kwargs):
         """Run the translation function"""
-        raise NotImplementedError
-
-    @abstractmethod
-    def __hash__(self):
-        raise NotImplementedError
-
-    @abstractmethod
-    def __eq__(self, other):
         raise NotImplementedError

@@ -1,13 +1,16 @@
 from __future__ import annotations
 
-from typing import Self
+from typing import Self, Any
 from collections.abc import Mapping
 
-from amulet_nbt import from_snbt
-
 from amulet.block import Block, PropertyValueType, PropertyValueClasses
-from .abc import AbstractBaseTranslationFunction
-from ._frozen_map import FrozenMapping
+from .abc import (
+    AbstractBaseTranslationFunction,
+    JSONCompatible,
+    JSONDict,
+    immutable_from_snbt,
+)
+from ._frozen import FrozenMapping
 
 
 class NewProperties(AbstractBaseTranslationFunction):
@@ -15,11 +18,9 @@ class NewProperties(AbstractBaseTranslationFunction):
     Name = "new_properties"
     _instances: dict[Self, Self] = {}
 
-    # Instance variables
-    _properties: FrozenMapping[str, PropertyValueType]
-
-    def __init__(self, properties: Mapping[str, PropertyValueType]):
-        self._properties = FrozenMapping(properties)
+    def __new__(cls, properties: Mapping[str, PropertyValueType]) -> Self:
+        self = super().__new__(cls)
+        self._properties = FrozenMapping[str, PropertyValueType](properties)
         if not all(isinstance(key, str) for key in self._properties.keys()):
             raise TypeError
         if not all(
@@ -27,24 +28,22 @@ class NewProperties(AbstractBaseTranslationFunction):
             for value in self._properties.values()
         ):
             raise TypeError
-
-    @classmethod
-    def instance(cls, properties: Mapping[str, PropertyValueType]) -> Self:
-        self = cls(properties)
         return cls._instances.setdefault(self, self)
 
     @classmethod
-    def from_json(cls, data: dict) -> Self:
+    def from_json(cls, data: JSONCompatible) -> Self:
+        if not isinstance(data, dict):
+            raise TypeError
         if data.get("function") != "new_properties":
             raise ValueError("Incorrect function data given.")
-        return cls.instance(
+        return cls(
             {
-                property_name: from_snbt(snbt)
+                property_name: immutable_from_snbt(snbt)
                 for property_name, snbt in data["options"].items()
             }
         )
 
-    def to_json(self) -> dict:
+    def to_json(self) -> JSONDict:
         return {
             "function": "new_properties",
             "options": {
@@ -53,13 +52,13 @@ class NewProperties(AbstractBaseTranslationFunction):
             },
         }
 
-    def run(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self._properties)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, NewProperties):
             return NotImplemented
         return self._properties == other._properties
+
+    def run(self, *args, **kwargs):
+        raise NotImplementedError
