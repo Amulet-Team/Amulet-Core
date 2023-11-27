@@ -1,7 +1,15 @@
 from collections.abc import Mapping
 
-from amulet.game.abc import DatabaseBlockData, BlockDataNumericalComponent, GameVersion, BlockSpec
-from amulet.game.abc.translate import BlockToUniversalTranslator, BlockFromUniversalTranslator
+from amulet.game.abc import (
+    DatabaseBlockData,
+    BlockDataNumericalComponent,
+    GameVersion,
+    BlockSpec,
+)
+from amulet.game.abc.translate import (
+    BlockToUniversalTranslator,
+    BlockFromUniversalTranslator,
+)
 
 
 class BedrockBlockData(DatabaseBlockData, BlockDataNumericalComponent):

@@ -201,7 +201,8 @@ def _load_subchunks(
     block_palette.block_stack_to_index(
         BlockStack(
             Block(
-                "bedrock", VersionNumber(1, 12, 0),
+                "bedrock",
+                VersionNumber(1, 12, 0),
                 namespace="minecraft",
                 base_name="air",
                 properties={"block_data": IntTag(0)},
@@ -232,7 +233,8 @@ def _load_subchunks(
                     block_palette.block_stack_to_index(
                         BlockStack(
                             Block(
-                                "bedrock", VersionNumber(1, 12, 0),
+                                "bedrock",
+                                VersionNumber(1, 12, 0),
                                 namespace=namespace,
                                 base_name=base_name,
                                 properties={"block_data": IntTag(block_data)},
@@ -298,7 +300,8 @@ def _load_subchunks(
 
                     palette_data_out.append(
                         Block(
-                            "bedrock", version,
+                            "bedrock",
+                            version,
                             namespace=namespace,
                             base_name=base_name,
                             properties=properties,

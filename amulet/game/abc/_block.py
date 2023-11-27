@@ -82,8 +82,16 @@ class BlockData(ABC):
         universal_block, universal_block_entity, extra_needed = self.to_universal(
             block, block_entity, extra
         )
-        target_obj, target_block_entity, extra_needed2 = target_game_version.block.from_universal(
-            target_platform, target_version, universal_block, universal_block_entity, extra
+        (
+            target_obj,
+            target_block_entity,
+            extra_needed2,
+        ) = target_game_version.block.from_universal(
+            target_platform,
+            target_version,
+            universal_block,
+            universal_block_entity,
+            extra,
         )
         if isinstance(target_obj, Block):
             return target_obj, target_block_entity, extra_needed or extra_needed2

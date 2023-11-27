@@ -10,7 +10,7 @@ class BedrockGameVersion(GameVersion):
         self,
         min_semantic_version: VersionNumber,
         max_semantic_version: VersionNumber,
-        block_data: BedrockBlockData
+        block_data: BedrockBlockData,
     ) -> None:
         self._min_semantic_version = min_semantic_version
         self._max_semantic_version = max_semantic_version

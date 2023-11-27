@@ -12,7 +12,7 @@ class JavaGameVersion(GameVersion):
         max_data_version: VersionNumber,
         min_semantic_version: VersionNumber,
         max_semantic_version: VersionNumber,
-        block_data: JavaBlockData
+        block_data: JavaBlockData,
     ) -> None:
         self._min_data_version = min_data_version
         self._max_data_version = max_data_version

@@ -1,1 +1,6 @@
-from ._translator import BlockToUniversalTranslator, BlockFromUniversalTranslator, EntityToUniversalTranslator, EntityFromUniversalTranslator
+from ._translator import (
+    BlockToUniversalTranslator,
+    BlockFromUniversalTranslator,
+    EntityToUniversalTranslator,
+    EntityFromUniversalTranslator,
+)

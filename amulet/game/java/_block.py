@@ -7,7 +7,10 @@ from amulet.game.abc import (
     BlockSpec,
     GameVersion,
 )
-from amulet.game.abc.translate import BlockToUniversalTranslator, BlockFromUniversalTranslator
+from amulet.game.abc.translate import (
+    BlockToUniversalTranslator,
+    BlockFromUniversalTranslator,
+)
 
 
 class Waterloggable(IntEnum):
