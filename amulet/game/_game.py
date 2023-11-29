@@ -5,9 +5,9 @@ from typing import overload, Literal, TYPE_CHECKING
 from collections.abc import Sequence
 
 from amulet.version import VersionNumber
-from .abc import GameVersion
 
 if TYPE_CHECKING:
+    from .abc import GameVersion
     from .java import JavaGameVersion
     from .bedrock import BedrockGameVersion
 
