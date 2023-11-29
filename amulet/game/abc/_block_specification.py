@@ -1,18 +1,17 @@
 from typing import Self
 from types import MappingProxyType
 from collections.abc import Mapping, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from amulet_nbt import from_snbt
 from amulet.block import PropertyValueType, PropertyValueClasses
 
-from ._json_interface import JSONInterface, JSONDict
+from ._json_interface import JSONInterface, JSONDict, JSONCompatible
 
 
 def immutable_from_snbt(snbt: str) -> PropertyValueType:
     val = from_snbt(snbt)
-    if not isinstance(val, PropertyValueClasses):
-        raise TypeError
+    assert isinstance(val, PropertyValueClasses)
     return val
 
 
@@ -47,11 +46,12 @@ class NBTSpec:
 
 @dataclass(frozen=True)
 class BlockSpec(JSONInterface):
-    properties: PropertySpec = PropertySpec()
+    properties: PropertySpec = field(default_factory=PropertySpec)
     nbt: NBTSpec | None = None
 
     @classmethod
-    def from_json(cls, obj: JSONDict) -> Self:
+    def from_json(cls, obj: JSONCompatible) -> Self:
+        assert isinstance(obj, dict)
         properties = obj.get("properties", {})
         default_properties = obj.get("defaults", {})
         assert isinstance(properties, dict) and isinstance(default_properties, dict)
