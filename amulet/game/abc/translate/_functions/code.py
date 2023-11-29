@@ -1,56 +1,75 @@
 from __future__ import annotations
 
-from typing import Self, Any
-from collections.abc import Mapping
+from typing import Self, Literal
+from collections.abc import Sequence
 
-from .abc import AbstractBaseTranslationFunction, JSONCompatible, JSONDict
-from ._frozen import FrozenMapping
+from .abc import AbstractBaseTranslationFunction, JSONCompatible, JSONDict, Data
 
 
 class Code(AbstractBaseTranslationFunction):
     # Class variables
     Name = "code"
-    _instances: dict[Self, Self] = {}
+    _instances: dict[Code, Code] = {}
 
     # Instance variables
-    _blocks: FrozenMapping[str, AbstractBaseTranslationFunction]
+    _inputs: tuple[
+        Literal["namespace"]
+        | Literal["base_name"]
+        | Literal["properties"]
+        | Literal["nbt"]
+        | Literal["location"]
+    ]
+    _outputs: tuple[
+        Literal["output_name"]
+        | Literal["output_type"]
+        | Literal["new_properties"]
+        | Literal["new_nbt"]
+    ]
+    _function_name: str
 
-    def __new__(cls) -> Self:
+    def __new__(
+        cls,
+        inputs: Sequence[
+            Literal["namespace"]
+            | Literal["base_name"]
+            | Literal["properties"]
+            | Literal["nbt"]
+            | Literal["location"]
+        ],
+        outputs: Sequence[
+            Literal["output_name"]
+            | Literal["output_type"]
+            | Literal["new_properties"]
+            | Literal["new_nbt"]
+        ],
+        function_name: str,
+    ) -> Code:
         self = super().__new__(cls)
+        self._inputs = tuple(inputs)
+        self._outputs = tuple(outputs)
+        self._function_name = function_name
         return cls._instances.setdefault(self, self)
 
-    # self._blocks = HashableMapping(blocks)
-    # for block_name, func in self._blocks.items():
-    #     if not isinstance(block_name, str):
-    #         raise TypeError
-    #     if not isinstance(func, AbstractBaseTranslationFunction):
-    #         raise TypeError
+    def _data(self) -> Data:
+        return self._inputs, self._outputs, self._function_name
 
     @classmethod
     def from_json(cls, data: JSONCompatible) -> Self:
-
-    # if data.get("function") != "map_block_name":
-    #     raise ValueError("Incorrect function data given.")
-    # return cls({
-    #     block_name: from_json(function) for block_name, function in data["options"].items()
-    # })
+        assert isinstance(data, dict)
+        assert data.get("function") == "code"
+        options = data["options"]
+        assert isinstance(options, dict)
+        return cls(options["input"], options["output"], options["function"])
 
     def to_json(self) -> JSONDict:
-
-    # return {
-    #     "function": "map_block_name",
-    #     "options": {
-    #         block_name: func.to_json() for block_name, func in self._blocks.items()
-    #     },
-    # }
-
-    def __hash__(self) -> int:
-        return hash(self._blocks)
-
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, Code):
-            return NotImplemented
-        return self._blocks == other._blocks
+        return {
+            "function": "code",
+            "options": {
+                "input": list(self._inputs),
+                "output": list(self._outputs),
+                "function": self._function_name,
+            },
+        }
 
     def run(self, *args, **kwargs):
         pass

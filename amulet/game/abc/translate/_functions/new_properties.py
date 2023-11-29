@@ -9,6 +9,7 @@ from .abc import (
     JSONCompatible,
     JSONDict,
     immutable_from_snbt,
+    Data,
 )
 from ._frozen import FrozenMapping
 
@@ -16,9 +17,9 @@ from ._frozen import FrozenMapping
 class NewProperties(AbstractBaseTranslationFunction):
     # Class variables
     Name = "new_properties"
-    _instances: dict[Self, Self] = {}
+    _instances: dict[NewProperties, NewProperties] = {}
 
-    def __new__(cls, properties: Mapping[str, PropertyValueType]) -> Self:
+    def __new__(cls, properties: Mapping[str, PropertyValueType]) -> NewProperties:
         self = super().__new__(cls)
         self._properties = FrozenMapping[str, PropertyValueType](properties)
         if not all(isinstance(key, str) for key in self._properties.keys()):
@@ -30,12 +31,13 @@ class NewProperties(AbstractBaseTranslationFunction):
             raise TypeError
         return cls._instances.setdefault(self, self)
 
+    def _data(self) -> Data:
+        return self._properties
+
     @classmethod
     def from_json(cls, data: JSONCompatible) -> Self:
-        if not isinstance(data, dict):
-            raise TypeError
-        if data.get("function") != "new_properties":
-            raise ValueError("Incorrect function data given.")
+        assert isinstance(data, dict)
+        assert data.get("function") == "new_properties"
         return cls(
             {
                 property_name: immutable_from_snbt(snbt)
@@ -51,14 +53,6 @@ class NewProperties(AbstractBaseTranslationFunction):
                 for property_name, tag in self._properties.items()
             },
         }
-
-    def __hash__(self) -> int:
-        return hash(self._properties)
-
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, NewProperties):
-            return NotImplemented
-        return self._properties == other._properties
 
     def run(self, *args, **kwargs):
         raise NotImplementedError

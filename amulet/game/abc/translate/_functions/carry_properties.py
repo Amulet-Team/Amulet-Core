@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Self, Any
+from typing import Self
 from collections.abc import Mapping, Iterable
 
 from amulet.block import PropertyValueType, PropertyValueClasses
@@ -10,6 +10,7 @@ from .abc import (
     JSONCompatible,
     JSONDict,
     immutable_from_snbt,
+    Data,
 )
 from ._frozen import FrozenMapping, OrderedFrozenSet
 
@@ -17,11 +18,15 @@ from ._frozen import FrozenMapping, OrderedFrozenSet
 class CarryProperties(AbstractBaseTranslationFunction):
     # Class variables
     Name = "carry_properties"
-    _instances: dict[Self, Self] = {}
+    _instances: dict[CarryProperties, CarryProperties] = {}
 
-    def __new__(cls, properties: Mapping[str, Iterable[PropertyValueType]]) -> Self:
-        if not isinstance(properties, Mapping):
-            raise TypeError
+    # Instance variables
+    _properties: FrozenMapping[str, OrderedFrozenSet[PropertyValueType]]
+
+    def __new__(
+        cls, properties: Mapping[str, Iterable[PropertyValueType]]
+    ) -> CarryProperties:
+        assert isinstance(properties, Mapping)
         frozen_properties = {}
         for key, val in properties.items():
             frozen_val = OrderedFrozenSet(val)
@@ -37,12 +42,13 @@ class CarryProperties(AbstractBaseTranslationFunction):
         )
         return cls._instances.setdefault(self, self)
 
+    def _data(self) -> Data:
+        return self._properties
+
     @classmethod
     def from_json(cls, data: JSONCompatible) -> Self:
-        if not isinstance(data, dict):
-            raise TypeError
-        if data.get("function") != "carry_properties":
-            raise ValueError("Incorrect function data given.")
+        assert isinstance(data, dict)
+        assert data.get("function") == "carry_properties"
         return cls(
             {
                 property_name: [immutable_from_snbt(snbt) for snbt in snbt_list]
@@ -57,14 +63,6 @@ class CarryProperties(AbstractBaseTranslationFunction):
                 key: [v.to_snbt() for v in val] for key, val in self._properties.items()
             },
         }
-
-    def __hash__(self) -> int:
-        return hash(self._properties)
-
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, CarryProperties):
-            return NotImplemented
-        return self._properties == other._properties
 
     def run(self, *args, **kwargs):
         raise NotImplementedError

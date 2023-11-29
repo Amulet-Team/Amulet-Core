@@ -36,7 +36,7 @@ class FrozenMapping(Mapping[K, V], Hashable):
 class OrderedFrozenSet(Set[K], Hashable):
     def __init__(self, items: Iterable[K]) -> None:
         self._map: dict[K, None] = dict.fromkeys(items)
-        self._h = hash(frozenset(items))
+        self._h = hash(tuple(items))
 
     def __contains__(self, item: Any) -> bool:
         return item in self._map

@@ -10,6 +10,7 @@ from .abc import (
     JSONDict,
     immutable_from_snbt,
     from_json,
+    Data,
 )
 from ._frozen import FrozenMapping
 
@@ -17,27 +18,24 @@ from ._frozen import FrozenMapping
 class MapProperties(AbstractBaseTranslationFunction):
     # Class variables
     Name = "map_properties"
-    _instances: dict[Self, Self] = {}
+    _instances: dict[MapProperties, MapProperties] = {}
 
     def __new__(
         cls,
         properties: Mapping[
             str, Mapping[PropertyValueType, AbstractBaseTranslationFunction]
         ],
-    ) -> Self:
+    ) -> MapProperties:
         self = super().__new__(cls)
 
         hashable_properties = {}
 
         for prop, data in properties.items():
-            if not isinstance(prop, str):
-                raise TypeError
+            assert isinstance(prop, str)
             hashable_data = FrozenMapping(data)
             for val, func in hashable_data.items():
-                if not isinstance(val, PropertyValueClasses):
-                    raise TypeError
-                if not isinstance(func, AbstractBaseTranslationFunction):
-                    raise TypeError
+                assert isinstance(val, PropertyValueClasses)
+                assert isinstance(func, AbstractBaseTranslationFunction)
             hashable_properties[prop] = hashable_data
 
         self._properties = FrozenMapping[
@@ -45,10 +43,13 @@ class MapProperties(AbstractBaseTranslationFunction):
         ](hashable_properties)
         return cls._instances.setdefault(self, self)
 
+    def _data(self) -> Data:
+        return self._properties
+
     @classmethod
     def from_json(cls, data: JSONCompatible) -> Self:
-        if data.get("function") != "map_properties":
-            raise ValueError("Incorrect function data given.")
+        assert isinstance(data, dict)
+        assert data.get("function") == "map_properties"
         return cls(
             {
                 property_name: {
@@ -69,14 +70,6 @@ class MapProperties(AbstractBaseTranslationFunction):
                 for property_name, mapping in self._properties.items()
             },
         }
-
-    def __hash__(self) -> int:
-        return hash(self._properties)
-
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, MapProperties):
-            return NotImplemented
-        return self._properties == other._properties
 
     def run(self, *args, **kwargs):
         pass

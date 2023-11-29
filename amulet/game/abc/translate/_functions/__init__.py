@@ -1,5 +1,6 @@
 from .abc import AbstractBaseTranslationFunction
 from .carry_nbt import CarryNBT
+from .carry_properties import CarryProperties
 from .code import Code
 from .map_block_name import MapBlockName
 from .map_nbt import MapNBT

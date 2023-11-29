@@ -1,14 +1,6 @@
 from __future__ import annotations
 
-from typing import (
-    Union,
-    Type,
-    Sequence,
-    Optional,
-    Callable,
-    Self,
-    Any,
-)
+from typing import Union, Type, Sequence, Optional, Callable, Self, Any, Protocol
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
@@ -31,6 +23,7 @@ from amulet_nbt import (
 )
 
 from amulet.block import Block, PropertyValueType, PropertyValueClasses
+from amulet.block_entity import BlockEntity
 from amulet.api.data_types import BlockCoordinates
 from ..._json_interface import JSONInterface, JSONCompatible, JSONDict, JSONList
 
@@ -114,10 +107,12 @@ NBTClsToStr = {
 class SrcData:
     """Input data. This must not be changed."""
 
-    block_input: Optional[Block]
-    nbt_input: Optional[NamedTag]
-    get_block_callback: Optional[Callable]
-    absolute_location: BlockCoordinates = (0, 0, 0)
+    src_block: Optional[Block]
+    src_nbt: Optional[NamedTag]
+    extra: tuple[
+        BlockCoordinates,
+        Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
+    ]
 
 
 @dataclass
@@ -147,8 +142,7 @@ class DstData:
 
 def immutable_from_snbt(snbt: str) -> PropertyValueType:
     val = from_snbt(snbt)
-    if not isinstance(val, PropertyValueClasses):
-        raise TypeError
+    assert isinstance(val, PropertyValueClasses)
     return val
 
 
@@ -166,6 +160,14 @@ def from_json(data: JSONCompatible) -> AbstractBaseTranslationFunction:
 _translation_functions: dict[str, type[AbstractBaseTranslationFunction]] = {}
 
 
+class Data(Protocol):
+    def __hash__(self) -> int:
+        ...
+
+    def __eq__(self, other: Any) -> bool:
+        ...
+
+
 class AbstractBaseTranslationFunction(JSONInterface, ABC):
     Name: str = None
 
@@ -179,12 +181,17 @@ class AbstractBaseTranslationFunction(JSONInterface, ABC):
         _translation_functions[cls.Name] = cls
 
     @abstractmethod
-    def __hash__(self) -> int:
+    def _data(self) -> Data:
         raise NotImplementedError
 
-    @abstractmethod
+    def __bool__(self) -> bool:
+        return True
+
+    def __hash__(self) -> int:
+        return hash(self._data())
+
     def __eq__(self, other: Any) -> bool:
-        raise NotImplementedError
+        return isinstance(other, self.__class__) and self._data() == other._data()
 
     @abstractmethod
     def run(self, *args, **kwargs):

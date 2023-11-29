@@ -1,56 +1,88 @@
 from __future__ import annotations
 
 from typing import Self, Any
-from collections.abc import Mapping
+from collections.abc import Sequence
 
-from .abc import AbstractBaseTranslationFunction, JSONCompatible, JSONDict
-from ._frozen import FrozenMapping
+from amulet_nbt import CompoundTag
+
+from .abc import (
+    AbstractBaseTranslationFunction,
+    JSONCompatible,
+    JSONDict,
+    NBTTagClsT,
+    NBTClsToStr,
+    StrToNBTCls,
+    Data,
+)
 
 
 class CarryNBT(AbstractBaseTranslationFunction):
     # Class variables
     Name = "carry_nbt"
-    _instances: dict[Self, Self] = {}
+    _instances: dict[CarryNBT, CarryNBT] = {}
 
     # Instance variables
-    _blocks: FrozenMapping[str, AbstractBaseTranslationFunction]
+    _outer_name: str
+    _outer_type: NBTTagClsT
+    _path: tuple[tuple[str | int, NBTTagClsT], ...] | None
+    _key: str | int | None
+    _tag_cls: NBTTagClsT | None
 
-    def __new__(cls) -> Self:
+    def __new__(
+        cls,
+        outer_name: str = "",
+        outer_type: NBTTagClsT = CompoundTag,
+        path: Sequence[tuple[str | int, NBTTagClsT]] | None = None,
+        key: str | int | None = None,
+        tag_cls: NBTTagClsT | None = None,
+    ) -> CarryNBT:
         self = super().__new__(cls)
+        self._outer_name = outer_name
+        self._outer_type = outer_type
+        self._path = None if path is None else tuple(path)
+        self._key = key
+        self._tag_cls = tag_cls
         return cls._instances.setdefault(self, self)
 
-    # self._blocks = HashableMapping(blocks)
-    # for block_name, func in self._blocks.items():
-    #     if not isinstance(block_name, str):
-    #         raise TypeError
-    #     if not isinstance(func, AbstractBaseTranslationFunction):
-    #         raise TypeError
+    def _data(self) -> Data:
+        return (
+            self._outer_name,
+            self._outer_type,
+            self._path,
+            self._key,
+            self._tag_cls,
+        )
 
     @classmethod
     def from_json(cls, data: JSONCompatible) -> Self:
-
-    # if data.get("function") != "map_block_name":
-    #     raise ValueError("Incorrect function data given.")
-    # return cls({
-    #     block_name: from_json(function) for block_name, function in data["options"].items()
-    # })
+        assert isinstance(data, dict)
+        assert data.get("function") == "carry_nbt"
+        options = data.get("options", {})
+        assert isinstance(options, dict)
+        return cls(
+            options.get("outer_name", ""),
+            StrToNBTCls[options.get("outer_type", "compound")],
+            tuple((key, StrToNBTCls[cls_name]) for key, cls_name in options["path"])
+            if "path" in options
+            else None,
+            options.get("key", None),
+            options.get("type", None),
+        )
 
     def to_json(self) -> JSONDict:
+        options = {}
+        if self._outer_name:
+            options["outer_name"] = self._outer_name
+        if self._outer_type is not CompoundTag:
+            options["outer_type"] = NBTClsToStr[self._outer_type]
+        if self._path is not None:
+            options["path"] = [[key, NBTClsToStr[cls]] for key, cls in self._path]
+        if self._key is not None:
+            options["key"] = self._key
+        if self._tag_cls is not None:
+            options["type"] = self._tag_cls
 
-    # return {
-    #     "function": "map_block_name",
-    #     "options": {
-    #         block_name: func.to_json() for block_name, func in self._blocks.items()
-    #     },
-    # }
-
-    def __hash__(self) -> int:
-        return hash(self._blocks)
-
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, CarryNBT):
-            return NotImplemented
-        return self._blocks == other._blocks
+        return {"function": "carry_nbt", "options": options}
 
     def run(self, *args, **kwargs):
         pass
