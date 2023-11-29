@@ -1,20 +1,17 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Self
+from typing import Self, Union
 
-
-JSONCompatible = (
-    str
-    | int
-    | float
-    | bool
-    | None
-    | "JSONList"
-    | tuple["JSONCompatible", ...]
-    | "JSONDict"
-)
-
+JSONCompatible = Union[
+    str,
+    int,
+    float,
+    bool,
+    None,
+    "JSONList",
+    "JSONDict",
+]
 JSONDict = dict[str, "JSONCompatible"]
 JSONList = list["JSONCompatible"]
 
