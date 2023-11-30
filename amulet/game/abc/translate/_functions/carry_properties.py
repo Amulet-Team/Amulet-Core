@@ -49,12 +49,18 @@ class CarryProperties(AbstractBaseTranslationFunction):
     def from_json(cls, data: JSONCompatible) -> Self:
         assert isinstance(data, dict)
         assert data.get("function") == "carry_properties"
-        return cls(
-            {
-                property_name: [immutable_from_snbt(snbt) for snbt in snbt_list]
-                for property_name, snbt_list in data["options"].items()
-            }
-        )
+        options = data["options"]
+        assert isinstance(options, dict)
+        properties = {}
+        for property_name, snbt_list in options.items():
+            assert isinstance(property_name, str)
+            assert isinstance(snbt_list, list)
+            values = []
+            for snbt in snbt_list:
+                assert isinstance(snbt, str)
+                values.append(immutable_from_snbt(snbt))
+            properties[property_name] = values
+        return cls(properties)
 
     def to_json(self) -> JSONDict:
         return {

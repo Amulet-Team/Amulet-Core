@@ -46,7 +46,8 @@ class NewNBTItem(AbstractBaseTranslationFunction):
         value: NBTTagT,
         outer_name: str = "",
         outer_type: type[CompoundTag] | type[ListTag] = CompoundTag,
-        path: Sequence[tuple[str | int, NBTTagClsT]] | None = None,
+        path: Sequence[tuple[str | int, type[CompoundTag] | type[ListTag]]]
+        | None = None,
     ) -> NewNBTItem:
         self = super().__new__(cls)
         assert isinstance(outer_name, str)
@@ -56,33 +57,19 @@ class NewNBTItem(AbstractBaseTranslationFunction):
         self._outer_type = outer_type
         last_cls = outer_type
 
-        if path is not None:
-            path = list(path)
-            for i, (path_key, nbt_cls) in enumerate(path):
-                if nbt_cls not in {
-                    CompoundTag,
-                    ListTag,
-                }:  # , ByteArrayTag, IntArrayTag, LongArrayTag}:
-                    raise ValueError
+        if path is None:
+            self._path = None
+        else:
+            path_l = list(path)
+            for i, (path_key, nbt_cls) in enumerate(path_l):
+                assert nbt_cls is CompoundTag or nbt_cls is ListTag
+                assert (last_cls is CompoundTag and isinstance(path_key, str)) or (
+                    last_cls is ListTag and isinstance(path_key, int)
+                )
 
-                if isinstance(path_key, str):
-                    if last_cls is not CompoundTag:
-                        raise TypeError
-                elif isinstance(path_key, int):
-                    if last_cls not in {
-                        ListTag,
-                        ByteArrayTag,
-                        IntArrayTag,
-                        LongArrayTag,
-                    }:
-                        raise TypeError
-                else:
-                    raise TypeError
-
-                path[i] = (path_key, nbt_cls)
-                last_cls = path[i - 1][1]
-            path = tuple[tuple[str | int, NBTTagClsT], ...](path)
-        self._path = path
+                path_l[i] = (path_key, nbt_cls)
+                last_cls = nbt_cls
+            self._path = tuple[tuple[str | int, NBTTagClsT], ...](path_l)
 
         assert isinstance(key, (str, int))
         if self._path is not None:
@@ -117,14 +104,19 @@ class NewNBTItem(AbstractBaseTranslationFunction):
         outer_name = data.get("outer_name", "")
         assert isinstance(outer_name, str)
         outer_type = data.get("outer_type", "compound")
-        assert isinstance(outer_name, str)
+        assert isinstance(outer_type, str)
         raw_path = data.get("path", None)
-        assert raw_path is None or isinstance(raw_path, list)
-        path = (
-            None
-            if raw_path is None
-            else tuple((key, StrToNBTCls[cls_name]) for key, cls_name in raw_path)
-        )
+        if raw_path is None:
+            path = None
+        else:
+            assert isinstance(raw_path, list)
+            path = []
+            for item in raw_path:
+                assert isinstance(item, list) and len(item) == 2
+                key, cls_name = item
+                assert isinstance(key, str | int)
+                assert isinstance(cls_name, str)
+                path.append((key, StrToNBTCls[cls_name]))
 
         return cls(
             key,
@@ -156,7 +148,7 @@ class NewNBT(AbstractBaseTranslationFunction):
     _instances: dict[NewNBT, NewNBT] = {}
 
     # Instance variables
-    _new_nbt: tuple[NewNBTItem]
+    _new_nbt: tuple[NewNBTItem, ...]
 
     def __new__(cls, *new_nbt: NewNBTItem) -> NewNBT:
         self = super().__new__(cls)

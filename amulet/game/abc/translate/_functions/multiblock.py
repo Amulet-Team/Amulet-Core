@@ -50,7 +50,13 @@ class MultiBlock(AbstractBaseTranslationFunction):
             assert isinstance(block, dict)
             raw_coords = block["coords"]
             assert isinstance(raw_coords, list)
-            coords = (raw_coords[0], raw_coords[1], raw_coords[2])
+            x = raw_coords[0]
+            y = raw_coords[1]
+            z = raw_coords[2]
+            assert isinstance(x, int)
+            assert isinstance(y, int)
+            assert isinstance(z, int)
+            coords = (x, y, z)
             function = from_json(block["functions"])
             blocks.append((coords, function))
         return cls(blocks)

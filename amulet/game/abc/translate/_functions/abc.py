@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from typing import Union, Type, Sequence, Optional, Callable, Self, Any, Protocol
-from collections.abc import Mapping
+from typing import Union, Type, Optional, Callable, Any, Protocol
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 
@@ -118,8 +117,10 @@ class SrcData:
 @dataclass
 class StateData:
     relative_location: BlockCoordinates = (0, 0, 0)
-    nbt_path: tuple[str, str, list[tuple[Union[str, int], str]]] = None
-    inherited_data: tuple[Union[str, None], Union[str, None], dict, bool, bool] = None
+    nbt_path: tuple[str, str, list[tuple[Union[str, int], str]]] | None = None
+    inherited_data: tuple[
+        Union[str, None], Union[str, None], dict, bool, bool
+    ] | None = None
 
 
 @dataclass
@@ -131,7 +132,7 @@ class DstData:
         tuple[
             str,
             str,
-            list[Union[str, int], str],
+            tuple[tuple[str | int, str]],
             Union[str, int],
             NBTTagT,
         ]
@@ -147,11 +148,13 @@ def immutable_from_snbt(snbt: str) -> PropertyValueType:
 
 
 def from_json(data: JSONCompatible) -> AbstractBaseTranslationFunction:
-    if isinstance(data, Sequence):
+    if isinstance(data, list):
         func_cls = _translation_functions["sequence"]
         return func_cls.from_json(data)
-    elif isinstance(data, Mapping):
-        func_cls = _translation_functions[data["function"]]
+    elif isinstance(data, dict):
+        function_name = data["function"]
+        assert isinstance(function_name, str)
+        func_cls = _translation_functions[function_name]
         return func_cls.from_json(data)
     else:
         raise TypeError
@@ -169,10 +172,10 @@ class Data(Protocol):
 
 
 class AbstractBaseTranslationFunction(JSONInterface, ABC):
-    Name: str = None
+    Name: str = ""
 
     def __init_subclass__(cls, **kwargs) -> None:
-        if cls.Name is None:
+        if cls.Name == "":
             raise RuntimeError(f"Name attribute has not been set for {cls}")
         if cls.Name in _translation_functions:
             raise RuntimeError(

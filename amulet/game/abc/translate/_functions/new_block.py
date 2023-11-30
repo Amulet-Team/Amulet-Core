@@ -9,6 +9,9 @@ class NewBlock(AbstractBaseTranslationFunction):
     Name = "new_block"
     _instances: dict[NewBlock, NewBlock] = {}
 
+    # Instance variables
+    _block: str
+
     def __new__(cls, block: str) -> NewBlock:
         self = super().__new__(cls)
         assert isinstance(block, str)
@@ -22,7 +25,9 @@ class NewBlock(AbstractBaseTranslationFunction):
     def from_json(cls, data: JSONCompatible) -> Self:
         assert isinstance(data, dict)
         assert data.get("function") == "new_block"
-        return cls(data["options"])
+        block = data["options"]
+        assert isinstance(block, str)
+        return cls(block)
 
     def to_json(self) -> JSONDict:
         return {"function": "new_block", "options": self._block}

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Self, Any
+from typing import Self
 from collections.abc import Mapping
 
 from amulet.block import PropertyValueType, PropertyValueClasses
@@ -20,6 +20,11 @@ class MapProperties(AbstractBaseTranslationFunction):
     Name = "map_properties"
     _instances: dict[MapProperties, MapProperties] = {}
 
+    # Instance variables
+    _properties: FrozenMapping[
+        str, FrozenMapping[PropertyValueType, AbstractBaseTranslationFunction]
+    ]
+
     def __new__(
         cls,
         properties: Mapping[
@@ -32,7 +37,9 @@ class MapProperties(AbstractBaseTranslationFunction):
 
         for prop, data in properties.items():
             assert isinstance(prop, str)
-            hashable_data = FrozenMapping(data)
+            hashable_data = FrozenMapping[
+                PropertyValueType, AbstractBaseTranslationFunction
+            ](data)
             for val, func in hashable_data.items():
                 assert isinstance(val, PropertyValueClasses)
                 assert isinstance(func, AbstractBaseTranslationFunction)
@@ -50,15 +57,19 @@ class MapProperties(AbstractBaseTranslationFunction):
     def from_json(cls, data: JSONCompatible) -> Self:
         assert isinstance(data, dict)
         assert data.get("function") == "map_properties"
-        return cls(
-            {
-                property_name: {
-                    immutable_from_snbt(snbt): from_json(func)
-                    for snbt, func in mapping.items()
-                }
-                for property_name, mapping in data["options"].items()
-            }
-        )
+        options = data["options"]
+        assert isinstance(options, dict)
+        properties = {}
+        for property_name, mapping in options.items():
+            assert isinstance(property_name, str)
+            assert isinstance(mapping, dict)
+            values = {}
+            for snbt, func in mapping.items():
+                assert isinstance(snbt, str)
+                assert isinstance(func, dict | list)
+                values[immutable_from_snbt(snbt)] = from_json(func)
+            properties[property_name] = values
+        return cls(properties)
 
     def to_json(self) -> JSONDict:
         return {

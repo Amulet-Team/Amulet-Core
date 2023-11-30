@@ -18,6 +18,9 @@ class MapBlockName(AbstractBaseTranslationFunction):
     Name = "map_block_name"
     _instances: dict[MapBlockName, MapBlockName] = {}
 
+    # Instance variables
+    _blocks: FrozenMapping[str, AbstractBaseTranslationFunction]
+
     def __new__(
         cls, blocks: Mapping[str, AbstractBaseTranslationFunction]
     ) -> MapBlockName:
@@ -35,12 +38,13 @@ class MapBlockName(AbstractBaseTranslationFunction):
     def from_json(cls, data: JSONCompatible) -> Self:
         assert isinstance(data, dict)
         assert data.get("function") == "map_block_name"
-        return cls(
-            {
-                block_name: from_json(function)
-                for block_name, function in data["options"].items()
-            }
-        )
+        blocks = {}
+        options = data["options"]
+        assert isinstance(options, dict)
+        for block_name, function in options.items():
+            assert isinstance(block_name, str)
+            blocks[block_name] = from_json(function)
+        return cls(blocks)
 
     def to_json(self) -> JSONDict:
         return {

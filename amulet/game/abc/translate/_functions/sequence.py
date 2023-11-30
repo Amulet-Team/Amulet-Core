@@ -18,7 +18,7 @@ class TranslationFunctionSequence(AbstractBaseTranslationFunction):
     _instances: dict[TranslationFunctionSequence, TranslationFunctionSequence] = {}
 
     # Instance variables
-    _functions: tuple[AbstractBaseTranslationFunction]
+    _functions: tuple[AbstractBaseTranslationFunction, ...]
 
     def __new__(
         cls, functions: Sequence[AbstractBaseTranslationFunction]

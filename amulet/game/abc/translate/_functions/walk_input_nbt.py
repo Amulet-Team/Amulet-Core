@@ -66,22 +66,32 @@ class WalkInputNBTOptions(AbstractBaseTranslationFunction):
     @classmethod
     def from_json(cls, data: JSONCompatible) -> Self:
         assert isinstance(data, dict)
+        nbt_type = data["type"]
+        assert isinstance(nbt_type, str)
+        if "keys" in data:
+            raw_keys = data["keys"]
+            assert isinstance(raw_keys, dict)
+            keys = {
+                key: WalkInputNBTOptions.from_json(value)
+                for key, value in raw_keys.items()
+            }
+        else:
+            keys = None
+        if "index" in data:
+            raw_index = data["index"]
+            assert isinstance(raw_index, dict)
+            index = {
+                int(key): WalkInputNBTOptions.from_json(value)
+                for key, value in raw_index.items()
+            }
+        else:
+            index = None
         return cls(
-            StrToNBTCls[data["type"]],
+            StrToNBTCls[nbt_type],
             from_json(data["self_default"]) if "self_default" in data else None,
             from_json(data["functions"]) if "functions" in data else None,
-            {
-                key: WalkInputNBTOptions.from_json(value)
-                for key, value in data["keys"].items()
-            }
-            if "keys" in data
-            else None,
-            {
-                int(key): WalkInputNBTOptions.from_json(value)
-                for key, value in data["index"].items()
-            }
-            if "index" in data
-            else None,
+            keys,
+            index,
             from_json(data["nested_default"]) if "nested_default" in data else None,
         )
 
@@ -148,7 +158,7 @@ class WalkInputNBT(AbstractBaseTranslationFunction):
         )
 
     def to_json(self) -> JSONDict:
-        data = {
+        data: JSONDict = {
             "function": "walk_input_nbt",
             "options": self._walk_nbt.to_json(),
         }

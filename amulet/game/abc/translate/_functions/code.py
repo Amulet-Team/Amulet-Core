@@ -1,9 +1,17 @@
 from __future__ import annotations
 
-from typing import Self, Literal
+from typing import Self, Any, TypeVar
 from collections.abc import Sequence
 
 from .abc import AbstractBaseTranslationFunction, JSONCompatible, JSONDict, Data
+
+
+T = TypeVar("T")
+
+
+def check_list(l: list[Any], t: type[T]) -> list[T]:
+    assert all(isinstance(el, t) for el in l)
+    return l
 
 
 class Code(AbstractBaseTranslationFunction):
@@ -12,41 +20,34 @@ class Code(AbstractBaseTranslationFunction):
     _instances: dict[Code, Code] = {}
 
     # Instance variables
-    _inputs: tuple[
-        Literal["namespace"]
-        | Literal["base_name"]
-        | Literal["properties"]
-        | Literal["nbt"]
-        | Literal["location"]
-    ]
-    _outputs: tuple[
-        Literal["output_name"]
-        | Literal["output_type"]
-        | Literal["new_properties"]
-        | Literal["new_nbt"]
-    ]
+    _inputs: tuple[str, ...]
+    _outputs: tuple[str, ...]
     _function_name: str
 
     def __new__(
         cls,
-        inputs: Sequence[
-            Literal["namespace"]
-            | Literal["base_name"]
-            | Literal["properties"]
-            | Literal["nbt"]
-            | Literal["location"]
-        ],
-        outputs: Sequence[
-            Literal["output_name"]
-            | Literal["output_type"]
-            | Literal["new_properties"]
-            | Literal["new_nbt"]
-        ],
+        inputs: Sequence[str],
+        outputs: Sequence[str],
         function_name: str,
     ) -> Code:
         self = super().__new__(cls)
         self._inputs = tuple(inputs)
+        assert all(
+            el
+            in {
+                "namespace",
+                "base_name",
+                "properties",
+                "nbt",
+                "location",
+            }
+            for el in self._inputs
+        )
         self._outputs = tuple(outputs)
+        assert all(
+            el in {"output_name" "output_type" "new_properties" "new_nbt"}
+            for el in outputs
+        )
         self._function_name = function_name
         return cls._instances.setdefault(self, self)
 
@@ -59,7 +60,15 @@ class Code(AbstractBaseTranslationFunction):
         assert data.get("function") == "code"
         options = data["options"]
         assert isinstance(options, dict)
-        return cls(options["input"], options["output"], options["function"])
+        raw_inputs = options["input"]
+        assert isinstance(raw_inputs, list)
+        inputs = check_list(raw_inputs, str)
+        raw_outputs = options["output"]
+        assert isinstance(raw_outputs, list)
+        outputs = check_list(raw_outputs, str)
+        function = options["function"]
+        assert isinstance(function, str)
+        return cls(inputs, outputs, function)
 
     def to_json(self) -> JSONDict:
         return {

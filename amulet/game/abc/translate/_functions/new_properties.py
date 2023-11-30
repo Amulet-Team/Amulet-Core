@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Self, Any
+from typing import Self
 from collections.abc import Mapping
 
-from amulet.block import Block, PropertyValueType, PropertyValueClasses
+from amulet.block import PropertyValueType, PropertyValueClasses
 from .abc import (
     AbstractBaseTranslationFunction,
     JSONCompatible,
@@ -18,6 +18,9 @@ class NewProperties(AbstractBaseTranslationFunction):
     # Class variables
     Name = "new_properties"
     _instances: dict[NewProperties, NewProperties] = {}
+
+    # Instance variables
+    _properties: FrozenMapping[str, PropertyValueType]
 
     def __new__(cls, properties: Mapping[str, PropertyValueType]) -> NewProperties:
         self = super().__new__(cls)
@@ -38,12 +41,14 @@ class NewProperties(AbstractBaseTranslationFunction):
     def from_json(cls, data: JSONCompatible) -> Self:
         assert isinstance(data, dict)
         assert data.get("function") == "new_properties"
-        return cls(
-            {
-                property_name: immutable_from_snbt(snbt)
-                for property_name, snbt in data["options"].items()
-            }
-        )
+        options = data["options"]
+        assert isinstance(options, dict)
+        properties = {}
+        for property_name, snbt in options.items():
+            assert isinstance(property_name, str)
+            assert isinstance(snbt, str)
+            properties[property_name] = immutable_from_snbt(snbt)
+        return cls(properties)
 
     def to_json(self) -> JSONDict:
         return {

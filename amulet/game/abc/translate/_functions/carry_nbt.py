@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Self, Any
+from typing import Self
 from collections.abc import Sequence
 
 from amulet_nbt import CompoundTag
@@ -39,7 +39,9 @@ class CarryNBT(AbstractBaseTranslationFunction):
         self = super().__new__(cls)
         self._outer_name = outer_name
         self._outer_type = outer_type
-        self._path = None if path is None else tuple(path)
+        self._path = (
+            None if path is None else tuple[tuple[str | int, NBTTagClsT], ...](path)
+        )
         self._key = key
         self._tag_cls = tag_cls
         return cls._instances.setdefault(self, self)
@@ -59,18 +61,43 @@ class CarryNBT(AbstractBaseTranslationFunction):
         assert data.get("function") == "carry_nbt"
         options = data.get("options", {})
         assert isinstance(options, dict)
+        outer_name = options.get("outer_name", "")
+        assert isinstance(outer_name, str)
+        outer_type_name = options.get("outer_type", "compound")
+        assert isinstance(outer_type_name, str)
+        path: list[tuple[str | int, NBTTagClsT]] | None
+        if "path" in options:
+            raw_path = options["path"]
+            assert isinstance(raw_path, list)
+            path = []
+            for item in raw_path:
+                assert isinstance(item, tuple) and len(item) == 2
+                key, cls_name = item
+                assert isinstance(key, str | int)
+                assert isinstance(cls_name, str)
+                path.append((key, StrToNBTCls[cls_name]))
+        else:
+            path = None
+        key = options.get("key", None)
+        if key is not None:
+            assert isinstance(key, str | int)
+        cls_name = options.get("type", None)
+        if cls_name is None:
+            nbt_type = None
+        else:
+            assert isinstance(cls_name, str)
+            nbt_type = StrToNBTCls[cls_name]
+
         return cls(
-            options.get("outer_name", ""),
-            StrToNBTCls[options.get("outer_type", "compound")],
-            tuple((key, StrToNBTCls[cls_name]) for key, cls_name in options["path"])
-            if "path" in options
-            else None,
-            options.get("key", None),
-            options.get("type", None),
+            outer_name,
+            StrToNBTCls[outer_type_name],
+            path,
+            key,
+            nbt_type,
         )
 
     def to_json(self) -> JSONDict:
-        options = {}
+        options: JSONDict = {}
         if self._outer_name:
             options["outer_name"] = self._outer_name
         if self._outer_type is not CompoundTag:
@@ -80,7 +107,7 @@ class CarryNBT(AbstractBaseTranslationFunction):
         if self._key is not None:
             options["key"] = self._key
         if self._tag_cls is not None:
-            options["type"] = self._tag_cls
+            options["type"] = NBTClsToStr[self._tag_cls]
 
         return {"function": "carry_nbt", "options": options}
 
