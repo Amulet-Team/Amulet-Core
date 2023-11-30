@@ -71,7 +71,7 @@ class CarryNBT(AbstractBaseTranslationFunction):
             assert isinstance(raw_path, list)
             path = []
             for item in raw_path:
-                assert isinstance(item, tuple) and len(item) == 2
+                assert isinstance(item, list) and len(item) == 2
                 key, cls_name = item
                 assert isinstance(key, str | int)
                 assert isinstance(cls_name, str)

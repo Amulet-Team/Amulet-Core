@@ -113,10 +113,10 @@ class NewNBTItem(AbstractBaseTranslationFunction):
             path = []
             for item in raw_path:
                 assert isinstance(item, list) and len(item) == 2
-                key, cls_name = item
-                assert isinstance(key, str | int)
+                cls_key, cls_name = item
+                assert isinstance(cls_key, str | int)
                 assert isinstance(cls_name, str)
-                path.append((key, StrToNBTCls[cls_name]))
+                path.append((cls_key, StrToNBTCls[cls_name]))
 
         return cls(
             key,

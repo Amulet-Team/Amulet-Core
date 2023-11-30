@@ -45,8 +45,8 @@ class Code(AbstractBaseTranslationFunction):
         )
         self._outputs = tuple(outputs)
         assert all(
-            el in {"output_name" "output_type" "new_properties" "new_nbt"}
-            for el in outputs
+            el in {"output_name", "output_type", "new_properties", "new_nbt"}
+            for el in self._outputs
         )
         self._function_name = function_name
         return cls._instances.setdefault(self, self)
