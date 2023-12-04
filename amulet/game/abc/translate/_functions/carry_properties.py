@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Self
 from collections.abc import Mapping, Iterable
 
-from amulet.block import PropertyValueType, PropertyValueClasses
+from amulet.block import PropertyValueType, PropertyValueClasses, Block
 
 from .abc import (
     AbstractBaseTranslationFunction,
@@ -13,6 +13,7 @@ from .abc import (
     Data,
 )
 from ._frozen import FrozenMapping, OrderedFrozenSet
+from ._state import SrcData, StateData, DstData
 
 
 class CarryProperties(AbstractBaseTranslationFunction):
@@ -70,5 +71,11 @@ class CarryProperties(AbstractBaseTranslationFunction):
             },
         }
 
-    def run(self, *args, **kwargs):
-        raise NotImplementedError
+    def run(self, src: SrcData, state: StateData, dst: DstData) -> None:
+        block = src.block
+        assert isinstance(block, Block)
+        src_properties = block.properties
+        for key, options in self._properties.items():
+            val = src_properties.get(key)
+            if val is not None and val in options:
+                dst.properties[key] = val

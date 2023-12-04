@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from typing import Self, Any
+from typing import Self
+from amulet.block import Block
 from .abc import AbstractBaseTranslationFunction, JSONCompatible, JSONDict, Data
+from ._state import SrcData, StateData, DstData
 
 
 class NewBlock(AbstractBaseTranslationFunction):
@@ -10,12 +12,11 @@ class NewBlock(AbstractBaseTranslationFunction):
     _instances: dict[NewBlock, NewBlock] = {}
 
     # Instance variables
-    _block: str
+    _block: tuple[str, str]
 
-    def __new__(cls, block: str) -> NewBlock:
+    def __new__(cls, namespace: str, base_name: str) -> NewBlock:
         self = super().__new__(cls)
-        assert isinstance(block, str)
-        self._block = block
+        self._block = (namespace, base_name)
         return cls._instances.setdefault(self, self)
 
     def _data(self) -> Data:
@@ -27,10 +28,12 @@ class NewBlock(AbstractBaseTranslationFunction):
         assert data.get("function") == "new_block"
         block = data["options"]
         assert isinstance(block, str)
-        return cls(block)
+        namespace, base_name = block.split(":", 1)
+        return cls(namespace, base_name)
 
     def to_json(self) -> JSONDict:
-        return {"function": "new_block", "options": self._block}
+        return {"function": "new_block", "options": ":".join(self._block)}
 
-    def run(self, *args, **kwargs):
-        raise NotImplementedError
+    def run(self, src: SrcData, state: StateData, dst: DstData) -> None:
+        dst.cls = Block
+        dst.resource_id = self._block

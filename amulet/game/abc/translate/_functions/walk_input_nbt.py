@@ -1,21 +1,55 @@
 from __future__ import annotations
 
-from typing import Self
-from collections.abc import Mapping, Sequence
+from typing import Self, Any
+from collections.abc import Mapping, Sequence, Iterable
+import logging
 
-from amulet_nbt import CompoundTag, ListTag
+from amulet_nbt import (
+    AbstractBaseArrayTag,
+    ByteTag,
+    ShortTag,
+    IntTag,
+    LongTag,
+    FloatTag,
+    DoubleTag,
+    ByteArrayTag,
+    StringTag,
+    ListTag,
+    CompoundTag,
+    IntArrayTag,
+    LongArrayTag,
+)
 
 from .abc import (
     AbstractBaseTranslationFunction,
     JSONCompatible,
     JSONDict,
     Data,
-    StrToNBTCls,
-    NBTClsToStr,
     from_json,
-    NBTTagClsT,
+    follow_nbt_path,
 )
+from ._typing import NBTClsToStr, StrToNBTCls, NBTPath, NBTPathElement, NBTTagClsT
 from ._frozen import FrozenMapping
+from ._state import SrcData, StateData, DstData
+
+log = logging.getLogger(__name__)
+
+
+NBTLookUp = [
+    None,
+    ByteTag,
+    ShortTag,
+    IntTag,
+    LongTag,
+    FloatTag,
+    DoubleTag,
+    ByteArrayTag,
+    StringTag,
+    ListTag,
+    CompoundTag,
+    IntArrayTag,
+    LongArrayTag,
+]
 
 
 class WalkInputNBTOptions(AbstractBaseTranslationFunction):
@@ -115,8 +149,57 @@ class WalkInputNBTOptions(AbstractBaseTranslationFunction):
             options["nested_default"] = self._nested_default.to_json()
         return options
 
-    def run(self, *args, **kwargs):
-        pass
+    def run(self, src: SrcData, state: StateData, dst: DstData) -> None:
+        if self._functions is not None:
+            self._functions.run(src, state, dst)
+
+        assert src.nbt is not None and state.nbt_path is not None
+        nbt = follow_nbt_path(src.nbt, state.nbt_path)
+
+        nbt_cls = self._nbt_cls
+        if isinstance(nbt, nbt_cls):
+            keys: Iterable[Any]
+            lut: Mapping[Any, WalkInputNBTOptions] | None
+            nested_dtype: NBTTagClsT | None
+            if isinstance(nbt, CompoundTag):
+                keys = nbt.keys()
+                lut = self._keys
+                nested_dtype = None
+            elif isinstance(nbt, ListTag):
+                keys = range(len(nbt))
+                lut = self._index
+                nested_dtype = NBTLookUp[nbt.list_data_type]
+            elif isinstance(nbt, AbstractBaseArrayTag):
+                keys = range(len(nbt))
+                lut = self._index
+                if isinstance(nbt, ByteArrayTag):
+                    nested_dtype = ByteTag
+                elif isinstance(nbt, IntArrayTag):
+                    nested_dtype = IntTag
+                elif isinstance(nbt, LongArrayTag):
+                    nested_dtype = LongTag
+                else:
+                    raise TypeError
+            else:
+                return
+
+            for key in keys:
+                if lut is not None and key in lut:
+                    lut[key].run(src, StateData(), dst)
+                elif self._nested_default is not None and key in self._nested_default:
+                    outer_name, outer_type, path = state.nbt_path
+                    new_dtype = nbt.__class__ if nested_dtype is None else nested_dtype
+                    self._nested_default.run(
+                        src,
+                        StateData(
+                            state.relative_location,
+                            (outer_name, outer_type, path + ((key, new_dtype),)),
+                        ),
+                        dst,
+                    )
+
+        elif self._self_default is not None:
+            self._self_default.run(src, state, dst)
 
 
 class WalkInputNBT(AbstractBaseTranslationFunction):
@@ -126,12 +209,12 @@ class WalkInputNBT(AbstractBaseTranslationFunction):
 
     # Instance variables
     _walk_nbt: WalkInputNBTOptions
-    _path: tuple[tuple[str | int, NBTTagClsT], ...] | None
+    _path: NBTPath | None
 
     def __new__(
         cls,
         walk_nbt: WalkInputNBTOptions,
-        path: Sequence[tuple[str | int, NBTTagClsT]] | None = None,
+        path: Sequence[NBTPathElement] | None = None,
     ) -> WalkInputNBT:
         self = super().__new__(cls)
         self._walk_nbt = walk_nbt
@@ -149,7 +232,13 @@ class WalkInputNBT(AbstractBaseTranslationFunction):
         if raw_path is None:
             path = None
         elif isinstance(raw_path, list):
-            path = tuple((key, StrToNBTCls[cls_name]) for key, cls_name in raw_path)
+            path = []
+            for item in raw_path:
+                assert isinstance(item, list) and len(item) == 2
+                key, cls_name = item
+                assert isinstance(key, str | int)
+                assert isinstance(cls_name, str)
+                path.append((key, StrToNBTCls[cls_name]))
         else:
             raise TypeError
         return cls(
@@ -166,5 +255,22 @@ class WalkInputNBT(AbstractBaseTranslationFunction):
             data["path"] = [[key, NBTClsToStr[cls]] for key, cls in self._path]
         return data
 
-    def run(self, *args, **kwargs):
-        pass
+    def run(self, src: SrcData, state: StateData, dst: DstData) -> None:
+        dst.cacheable = False
+        nbt = src.nbt
+        if nbt is None:
+            dst.extra_needed = True
+            return
+
+        if self._path is None:
+            new_state = state
+        else:
+            path = ("", CompoundTag, self._path)
+            # verify that the data exists at the path
+            tag = follow_nbt_path(nbt, path)
+            if not isinstance(tag, self._path[-1][1]):
+                log.error(f"Tag at path {path} does not exist or has the wrong type.")
+                return
+            new_state = StateData(state.relative_location, path)
+
+        self._walk_nbt.run(src, new_state, dst)

@@ -8,9 +8,6 @@ from typing import (
 from amulet_nbt import (
     ListTag,
     CompoundTag,
-    ByteArrayTag,
-    IntArrayTag,
-    LongArrayTag,
     from_snbt,
 )
 
@@ -18,13 +15,17 @@ from .abc import (
     AbstractBaseTranslationFunction,
     JSONCompatible,
     JSONDict,
-    NBTClsToStr,
-    NBTTagClsT,
+    Data,
+)
+from ._typing import (
     NBTTagT,
     NBTTagClasses,
-    Data,
+    NBTClsToStr,
     StrToNBTCls,
+    NBTPath,
+    NBTPathElement,
 )
+from ._state import SrcData, StateData, DstData
 
 
 class NewNBTItem(AbstractBaseTranslationFunction):
@@ -38,7 +39,7 @@ class NewNBTItem(AbstractBaseTranslationFunction):
     _snbt: str
     _outer_name: str
     _outer_type: type[CompoundTag] | type[ListTag]
-    _path: tuple[tuple[str | int, NBTTagClsT], ...] | None
+    _path: NBTPath | None
 
     def __new__(
         cls,
@@ -69,7 +70,7 @@ class NewNBTItem(AbstractBaseTranslationFunction):
 
                 path_l[i] = (path_key, nbt_cls)
                 last_cls = nbt_cls
-            self._path = tuple[tuple[str | int, NBTTagClsT], ...](path_l)
+            self._path = tuple[NBTPathElement, ...](path_l)
 
         assert isinstance(key, (str, int))
         if self._path is not None:
@@ -138,8 +139,23 @@ class NewNBTItem(AbstractBaseTranslationFunction):
         options["value"] = self._value.to_snbt()
         return options
 
-    def run(self, *args, **kwargs):
-        pass
+    def run(self, src: SrcData, state: StateData, dst: DstData) -> None:
+        path: NBTPath
+        if self._path is None:
+            walked_path = state.nbt_path
+            if walked_path is None:
+                # If not used within walk_input_nbt then default to the root
+                path = ()
+            else:
+                # If used within walk_input_nbt default to
+                path = walked_path[2]
+        else:
+            # If path is defined then use that
+            path = self._path
+
+        dst.nbt.append(
+            (self._outer_name, self._outer_type, path, self._key, self._value)
+        )
 
 
 class NewNBT(AbstractBaseTranslationFunction):
@@ -174,5 +190,6 @@ class NewNBT(AbstractBaseTranslationFunction):
             "options": [opt.to_json() for opt in self._new_nbt],
         }
 
-    def run(self, *args, **kwargs):
-        pass
+    def run(self, src: SrcData, state: StateData, dst: DstData) -> None:
+        for item in self._new_nbt:
+            item.run(src, state, dst)

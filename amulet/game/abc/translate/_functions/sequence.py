@@ -10,6 +10,7 @@ from .abc import (
     JSONList,
     Data,
 )
+from ._state import SrcData, StateData, DstData
 
 
 class TranslationFunctionSequence(AbstractBaseTranslationFunction):
@@ -46,5 +47,6 @@ class TranslationFunctionSequence(AbstractBaseTranslationFunction):
     def __bool__(self) -> bool:
         return bool(self._functions)
 
-    def run(self, *args, **kwargs):
-        raise NotImplementedError
+    def run(self, src: SrcData, state: StateData, dst: DstData) -> None:
+        for func in self._functions:
+            func.run(src, state, dst)

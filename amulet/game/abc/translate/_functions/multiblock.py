@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Sequence, Self, Any
+from typing import Sequence, Self
 
 from amulet.api.data_types import BlockCoordinates
+from amulet.api.errors import ChunkLoadError
 from .abc import (
     AbstractBaseTranslationFunction,
     JSONCompatible,
@@ -10,6 +11,7 @@ from .abc import (
     Data,
     from_json,
 )
+from ._state import SrcData, SrcDataExtra, StateData, DstData
 
 
 class MultiBlock(AbstractBaseTranslationFunction):
@@ -70,5 +72,40 @@ class MultiBlock(AbstractBaseTranslationFunction):
             ],
         }
 
-    def run(self, *args, **kwargs):
-        pass
+    def run(self, src: SrcData, state: StateData, dst: DstData) -> None:
+        dst.cacheable = False
+        if src.extra is None:
+            dst.extra_needed = True
+            return
+
+        for (dx, dy, dz), func in self._blocks:
+            rx, ry, rz = state.relative_location
+            new_relative_location = (
+                rx + dx,
+                ry + dy,
+                rz + dz,
+            )
+            try:
+                new_block, new_block_entity = src.extra.get_block_callback(
+                    new_relative_location
+                )
+            except ChunkLoadError:
+                continue
+            else:
+                ax, ay, az = src.extra.absolute_coordinates
+                new_absolute_location = (
+                    ax + dx,
+                    ay + dy,
+                    az + dz,
+                )
+                # src is now the block at the new location
+                new_src = SrcData(
+                    new_block,
+                    None if new_block_entity is None else new_block_entity.nbt,
+                    SrcDataExtra(
+                        new_absolute_location,
+                        src.extra.get_block_callback,
+                    ),
+                )
+                new_state = StateData(new_relative_location)
+                func.run(new_src, new_state, dst)

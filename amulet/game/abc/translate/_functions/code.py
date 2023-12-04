@@ -4,6 +4,7 @@ from typing import Self, Any, TypeVar
 from collections.abc import Sequence
 
 from .abc import AbstractBaseTranslationFunction, JSONCompatible, JSONDict, Data
+from ._state import SrcData, StateData, DstData
 
 
 T = TypeVar("T")
@@ -80,5 +81,5 @@ class Code(AbstractBaseTranslationFunction):
             },
         }
 
-    def run(self, *args, **kwargs):
+    def run(self, src: SrcData, state: StateData, dst: DstData) -> None:
         pass

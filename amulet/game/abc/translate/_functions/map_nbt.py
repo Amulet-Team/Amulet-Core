@@ -1,27 +1,18 @@
 from __future__ import annotations
 
-from typing import Self, TypeVar, Any
-from collections.abc import Mapping, Iterator, Hashable, Iterable
-
-from amulet_nbt import (
-    ByteTag,
-    ShortTag,
-    IntTag,
-    LongTag,
-    FloatTag,
-    DoubleTag,
-    StringTag,
-)
+from typing import Self
+from collections.abc import Mapping
 
 from .abc import (
     AbstractBaseTranslationFunction,
     JSONCompatible,
     JSONDict,
-    immutable_from_snbt,
     from_json,
     Data,
+    follow_nbt_path,
 )
 from ._frozen import FrozenMapping
+from ._state import SrcData, StateData, DstData
 
 
 class MapNBT(AbstractBaseTranslationFunction):
@@ -34,7 +25,7 @@ class MapNBT(AbstractBaseTranslationFunction):
         str,
         AbstractBaseTranslationFunction,
     ]
-    _default: AbstractBaseTranslationFunction
+    _default: AbstractBaseTranslationFunction | None
 
     def __new__(
         cls,
@@ -42,7 +33,7 @@ class MapNBT(AbstractBaseTranslationFunction):
             str,
             AbstractBaseTranslationFunction,
         ],
-        default: AbstractBaseTranslationFunction,
+        default: AbstractBaseTranslationFunction | None,
     ) -> MapNBT:
         self = super().__new__(cls)
         self._cases = FrozenMapping[
@@ -57,7 +48,7 @@ class MapNBT(AbstractBaseTranslationFunction):
             and isinstance(value, AbstractBaseTranslationFunction)
             for key, value in self._cases.items()
         )
-        assert isinstance(default, AbstractBaseTranslationFunction)
+        assert default is None or isinstance(default, AbstractBaseTranslationFunction)
         self._default = default
         return cls._instances.setdefault(self, self)
 
@@ -72,11 +63,15 @@ class MapNBT(AbstractBaseTranslationFunction):
         assert isinstance(options, dict)
         cases = options.get("cases", {})
         assert isinstance(cases, dict)
-        default = options.get("default", [])
-        assert isinstance(default, list)
+        raw_default = options.get("default", None)
+        if raw_default is None:
+            default = None
+        else:
+            assert isinstance(raw_default, list)
+            default = from_json(raw_default)
         return cls(
             {key: from_json(value) for key, value in cases.items()},
-            from_json(default),
+            default,
         )
 
     def to_json(self) -> JSONDict:
@@ -89,5 +84,22 @@ class MapNBT(AbstractBaseTranslationFunction):
             options["default"] = self._default.to_json()
         return {"function": "map_nbt", "options": options}
 
-    def run(self, *args, **kwargs):
-        pass
+    def run(self, src: SrcData, state: StateData, dst: DstData) -> None:
+        dst.cacheable = False
+        if src.nbt is None:
+            dst.extra_needed = True
+            return
+
+        if state.nbt_path is None:
+            return
+
+        if self._cases:
+            nbt = follow_nbt_path(src.nbt, state.nbt_path)
+            nbt_hash = nbt.to_snbt()
+            if nbt_hash in self._cases:
+                self._cases[nbt_hash].run(src, state, dst)
+            elif self._default is not None:
+                self._default.run(src, state, dst)
+
+        elif self._default is not None:
+            self._default.run(src, state, dst)

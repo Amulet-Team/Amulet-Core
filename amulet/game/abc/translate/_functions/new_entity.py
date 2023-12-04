@@ -1,7 +1,10 @@
 from __future__ import annotations
 
-from typing import Self, Any
+from typing import Self
+
+from amulet.entity import Entity
 from .abc import AbstractBaseTranslationFunction, JSONCompatible, JSONDict, Data
+from ._state import SrcData, StateData, DstData
 
 
 class NewEntity(AbstractBaseTranslationFunction):
@@ -10,12 +13,11 @@ class NewEntity(AbstractBaseTranslationFunction):
     _instances: dict[NewEntity, NewEntity] = {}
 
     # Instance variables
-    _entity: str
+    _entity: tuple[str, str]
 
-    def __new__(cls, entity: str) -> NewEntity:
+    def __new__(cls, namespace: str, base_name: str) -> NewEntity:
         self = super().__new__(cls)
-        assert isinstance(entity, str)
-        self._entity = entity
+        self._entity = (namespace, base_name)
         return cls._instances.setdefault(self, self)
 
     def _data(self) -> Data:
@@ -27,10 +29,12 @@ class NewEntity(AbstractBaseTranslationFunction):
         assert data.get("function") == "new_entity"
         entity = data["options"]
         assert isinstance(entity, str)
-        return cls(entity)
+        namespace, base_name = entity.split(":", 1)
+        return cls(namespace, base_name)
 
     def to_json(self) -> JSONDict:
-        return {"function": "new_entity", "options": self._entity}
+        return {"function": "new_entity", "options": ":".join(self._entity)}
 
-    def run(self, *args, **kwargs):
-        raise NotImplementedError
+    def run(self, src: SrcData, state: StateData, dst: DstData) -> None:
+        dst.cls = Entity
+        dst.resource_id = self._entity

@@ -1,19 +1,18 @@
 from __future__ import annotations
 
 from typing import Self
-from collections.abc import Sequence
 
-from amulet_nbt import CompoundTag
+from amulet_nbt import CompoundTag, ListTag, AbstractBaseNumericTag
 
 from .abc import (
     AbstractBaseTranslationFunction,
     JSONCompatible,
     JSONDict,
-    NBTTagClsT,
-    NBTClsToStr,
-    StrToNBTCls,
     Data,
+    follow_nbt_path,
 )
+from ._typing import NBTTagClsT, NBTClsToStr, StrToNBTCls, NBTPath
+from ._state import SrcData, StateData, DstData
 
 
 class CarryNBT(AbstractBaseTranslationFunction):
@@ -23,25 +22,23 @@ class CarryNBT(AbstractBaseTranslationFunction):
 
     # Instance variables
     _outer_name: str
-    _outer_type: NBTTagClsT
-    _path: tuple[tuple[str | int, NBTTagClsT], ...] | None
+    _outer_type: type[CompoundTag] | type[ListTag]
+    _path: NBTPath | None
     _key: str | int | None
     _tag_cls: NBTTagClsT | None
 
     def __new__(
         cls,
         outer_name: str = "",
-        outer_type: NBTTagClsT = CompoundTag,
-        path: Sequence[tuple[str | int, NBTTagClsT]] | None = None,
+        outer_type: type[CompoundTag] | type[ListTag] = CompoundTag,
+        path: NBTPath | None = None,
         key: str | int | None = None,
         tag_cls: NBTTagClsT | None = None,
     ) -> CarryNBT:
         self = super().__new__(cls)
         self._outer_name = outer_name
         self._outer_type = outer_type
-        self._path = (
-            None if path is None else tuple[tuple[str | int, NBTTagClsT], ...](path)
-        )
+        self._path = path
         self._key = key
         self._tag_cls = tag_cls
         return cls._instances.setdefault(self, self)
@@ -64,18 +61,32 @@ class CarryNBT(AbstractBaseTranslationFunction):
         outer_name = options.get("outer_name", "")
         assert isinstance(outer_name, str)
         outer_type_name = options.get("outer_type", "compound")
+        outer_type: type[CompoundTag] | type[ListTag]
+        if outer_type_name == "compound":
+            outer_type = CompoundTag
+        elif outer_type_name == "list":
+            outer_type = ListTag
+        else:
+            raise RuntimeError
         assert isinstance(outer_type_name, str)
-        path: list[tuple[str | int, NBTTagClsT]] | None
+        path: NBTPath | None
         if "path" in options:
             raw_path = options["path"]
             assert isinstance(raw_path, list)
-            path = []
+            path_ = []
             for item in raw_path:
                 assert isinstance(item, list) and len(item) == 2
                 key, cls_name = item
                 assert isinstance(key, str | int)
-                assert isinstance(cls_name, str)
-                path.append((key, StrToNBTCls[cls_name]))
+                nbt_cls: type[CompoundTag] | type[ListTag]
+                if cls_name == "compound":
+                    nbt_cls = CompoundTag
+                elif cls_name == "list":
+                    nbt_cls = ListTag
+                else:
+                    raise RuntimeError
+                path_.append((key, nbt_cls))
+            path = NBTPath(path_)
         else:
             path = None
         key = options.get("key", None)
@@ -90,7 +101,7 @@ class CarryNBT(AbstractBaseTranslationFunction):
 
         return cls(
             outer_name,
-            StrToNBTCls[outer_type_name],
+            outer_type,
             path,
             key,
             nbt_type,
@@ -111,5 +122,32 @@ class CarryNBT(AbstractBaseTranslationFunction):
 
         return {"function": "carry_nbt", "options": options}
 
-    def run(self, *args, **kwargs):
-        pass
+    def run(self, src: SrcData, state: StateData, dst: DstData) -> None:
+        dst.cacheable = False
+
+        src_nbt = src.nbt
+        if src_nbt is None:
+            return
+
+        full_nbt_path = state.nbt_path
+        if full_nbt_path is None:
+            # This only works within walk_input_nbt
+            return
+
+        tag = follow_nbt_path(src_nbt, full_nbt_path)
+        if tag is None:
+            # Could not find the tag
+            return
+
+        nbt_path = full_nbt_path[2]
+        path = nbt_path[:-1] if self._path is None else self._path
+        src_key, src_cls = nbt_path[-1]
+        key = src_key if self._key is None else self._key
+        tag_cls = src_cls if self._tag_cls is None else self._tag_cls
+
+        if not isinstance(tag, tag_cls):
+            assert isinstance(tag, AbstractBaseNumericTag) and issubclass(
+                tag_cls, AbstractBaseNumericTag
+            )
+            tag = tag_cls(tag)
+        dst.nbt.append((self._outer_name, self._outer_type, path, key, tag))

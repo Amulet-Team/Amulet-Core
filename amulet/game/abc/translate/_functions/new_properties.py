@@ -12,6 +12,7 @@ from .abc import (
     Data,
 )
 from ._frozen import FrozenMapping
+from ._state import SrcData, StateData, DstData
 
 
 class NewProperties(AbstractBaseTranslationFunction):
@@ -59,5 +60,5 @@ class NewProperties(AbstractBaseTranslationFunction):
             },
         }
 
-    def run(self, *args, **kwargs):
-        raise NotImplementedError
+    def run(self, src: SrcData, state: StateData, dst: DstData) -> None:
+        dst.properties.update(self._properties)
