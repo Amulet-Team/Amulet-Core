@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 from abc import ABC, abstractmethod
 
 from amulet_nbt import (
@@ -38,7 +38,7 @@ def follow_nbt_path(
             return None
         if not isinstance(tag, tag_cls):
             return None
-    return tag
+    return cast(NBTTagT | None, tag)
 
 
 def from_json(data: JSONCompatible) -> AbstractBaseTranslationFunction:
@@ -68,7 +68,7 @@ class Data(Protocol):
 class AbstractBaseTranslationFunction(JSONInterface, ABC):
     Name: str = ""
 
-    def __init_subclass__(cls, **kwargs) -> None:
+    def __init_subclass__(cls, **kwargs: Any) -> None:
         if cls.Name == "":
             raise RuntimeError(f"Name attribute has not been set for {cls}")
         if cls.Name in _translation_functions:

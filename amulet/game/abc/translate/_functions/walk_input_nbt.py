@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Self, Any
+from typing import Self, TypeVar, cast
 from collections.abc import Mapping, Sequence, Iterable
 import logging
 
@@ -50,6 +50,9 @@ NBTLookUp = [
     IntArrayTag,
     LongArrayTag,
 ]
+
+
+KeyT = TypeVar("KeyT", str, int)
 
 
 class WalkInputNBTOptions(AbstractBaseTranslationFunction):
@@ -153,50 +156,76 @@ class WalkInputNBTOptions(AbstractBaseTranslationFunction):
         if self._functions is not None:
             self._functions.run(src, state, dst)
 
-        assert src.nbt is not None and state.nbt_path is not None
-        nbt = follow_nbt_path(src.nbt, state.nbt_path)
+        nbt = src.nbt
+        if nbt is None:
+            raise RuntimeError
+        nbt_path_or_none = state.nbt_path
+        if nbt_path_or_none is None:
+            raise RuntimeError
+        else:
+            nbt_path = nbt_path_or_none
+
+        tag_or_none = follow_nbt_path(nbt, nbt_path)
 
         nbt_cls = self._nbt_cls
-        if isinstance(nbt, nbt_cls):
-            keys: Iterable[Any]
-            lut: Mapping[Any, WalkInputNBTOptions] | None
-            nested_dtype: NBTTagClsT | None
-            if isinstance(nbt, CompoundTag):
-                keys = nbt.keys()
-                lut = self._keys
-                nested_dtype = None
-            elif isinstance(nbt, ListTag):
-                keys = range(len(nbt))
-                lut = self._index
-                nested_dtype = NBTLookUp[nbt.list_data_type]
-            elif isinstance(nbt, AbstractBaseArrayTag):
-                keys = range(len(nbt))
-                lut = self._index
-                if isinstance(nbt, ByteArrayTag):
-                    nested_dtype = ByteTag
-                elif isinstance(nbt, IntArrayTag):
-                    nested_dtype = IntTag
-                elif isinstance(nbt, LongArrayTag):
-                    nested_dtype = LongTag
+        if tag_or_none is None:
+            pass
+        elif isinstance(tag_or_none, nbt_cls):
+            tag = tag_or_none
+
+            def run(
+                keys: Iterable[KeyT],
+                lut: Mapping[KeyT, WalkInputNBTOptions] | None,
+                nested_dtype: NBTTagClsT | None,
+            ) -> None:
+                for key in keys:
+                    if lut is not None and key in lut:
+                        lut[key].run(src, StateData(), dst)
+                    elif self._nested_default is not None:
+                        outer_name, outer_type, path = nbt_path
+                        new_type: NBTTagClsT
+                        if nested_dtype is None:
+                            new_type = tag.__class__
+                        else:
+                            new_type = nested_dtype
+                        new_path: NBTPath = path + (
+                            (
+                                key,
+                                new_type,
+                            ),
+                        )
+                        self._nested_default.run(
+                            src,
+                            StateData(
+                                state.relative_location,
+                                (
+                                    outer_name,
+                                    outer_type,
+                                    new_path,
+                                ),
+                            ),
+                            dst,
+                        )
+
+            if isinstance(tag, CompoundTag):
+                run(tag.keys(), self._keys, None)
+            elif isinstance(tag, ListTag):
+                dtype = NBTLookUp[tag.list_data_type]
+                assert dtype is not None
+                run(range(len(tag)), self._index, dtype)
+            elif isinstance(tag, AbstractBaseArrayTag):
+                nested_dtype_: NBTTagClsT
+                if isinstance(tag, ByteArrayTag):
+                    nested_dtype_ = ByteTag
+                elif isinstance(tag, IntArrayTag):
+                    nested_dtype_ = IntTag
+                elif isinstance(tag, LongArrayTag):
+                    nested_dtype_ = LongTag
                 else:
                     raise TypeError
+                run(range(len(tag)), self._index, nested_dtype_)
             else:
                 return
-
-            for key in keys:
-                if lut is not None and key in lut:
-                    lut[key].run(src, StateData(), dst)
-                elif self._nested_default is not None and key in self._nested_default:
-                    outer_name, outer_type, path = state.nbt_path
-                    new_dtype = nbt.__class__ if nested_dtype is None else nested_dtype
-                    self._nested_default.run(
-                        src,
-                        StateData(
-                            state.relative_location,
-                            (outer_name, outer_type, path + ((key, new_dtype),)),
-                        ),
-                        dst,
-                    )
 
         elif self._self_default is not None:
             self._self_default.run(src, state, dst)

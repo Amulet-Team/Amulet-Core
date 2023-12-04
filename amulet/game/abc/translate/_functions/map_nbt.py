@@ -93,13 +93,15 @@ class MapNBT(AbstractBaseTranslationFunction):
         if state.nbt_path is None:
             return
 
+        run_default = True
+
         if self._cases:
             nbt = follow_nbt_path(src.nbt, state.nbt_path)
-            nbt_hash = nbt.to_snbt()
-            if nbt_hash in self._cases:
-                self._cases[nbt_hash].run(src, state, dst)
-            elif self._default is not None:
-                self._default.run(src, state, dst)
+            if nbt is not None:
+                nbt_hash = nbt.to_snbt()
+                if nbt_hash in self._cases:
+                    self._cases[nbt_hash].run(src, state, dst)
+                    run_default = False
 
-        elif self._default is not None:
+        if run_default and self._default is not None:
             self._default.run(src, state, dst)
