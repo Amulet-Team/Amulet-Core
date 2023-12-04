@@ -1,10 +1,15 @@
 from __future__ import annotations
 
-from typing import Self, Any, TypeVar
+from typing import Self, Any, TypeVar, Callable
 from collections.abc import Sequence
 
 from .abc import AbstractBaseTranslationFunction, JSONCompatible, JSONDict, Data
 from ._state import SrcData, StateData, DstData
+
+from ._code_functions.banner_pattern_2u import main as banner_pattern_2u
+from ._code_functions.banner_pattern_fu import main as banner_pattern_fu
+from ._code_functions.bedrock_chest_connection import bedrock_chest_connection_self, bedrock_chest_connection_other_left, bedrock_chest_connection_other_right
+from ._code_functions.bedrock_chest_fu import main as bedrock_chest_fu
 
 
 T = TypeVar("T")
@@ -13,6 +18,16 @@ T = TypeVar("T")
 def check_list(l: list[Any], t: type[T]) -> list[T]:
     assert all(isinstance(el, t) for el in l)
     return l
+
+
+FunctionLUT: dict[str, Callable[[SrcData, StateData, DstData], None]] = {
+    "banner_pattern_2u": banner_pattern_2u,
+    "banner_pattern_fu": banner_pattern_fu,
+    "bedrock_chest_connection_other_left": bedrock_chest_connection_other_left,
+    "bedrock_chest_connection_other_right": bedrock_chest_connection_other_right,
+    "bedrock_chest_connection_self": bedrock_chest_connection_self,
+    "bedrock_chest_fu": bedrock_chest_fu,
+}
 
 
 class Code(AbstractBaseTranslationFunction):
@@ -69,6 +84,7 @@ class Code(AbstractBaseTranslationFunction):
         outputs = check_list(raw_outputs, str)
         function = options["function"]
         assert isinstance(function, str)
+        assert function in FunctionLUT
         return cls(inputs, outputs, function)
 
     def to_json(self) -> JSONDict:
@@ -82,4 +98,5 @@ class Code(AbstractBaseTranslationFunction):
         }
 
     def run(self, src: SrcData, state: StateData, dst: DstData) -> None:
-        pass
+        dst.cacheable = False
+        FunctionLUT[self._function_name](src, state, dst)
