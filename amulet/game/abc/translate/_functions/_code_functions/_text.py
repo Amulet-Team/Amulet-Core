@@ -3,6 +3,7 @@ from typing import List, overload, Literal, TypeVar, Generic
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 from copy import deepcopy
+from enum import Enum
 
 # section_string is a raw string containing section (§) codes
 # raw text is a stringified json object
@@ -18,6 +19,15 @@ class Colour:
         assert 0 <= self.r <= 255
         assert 0 <= self.g <= 255
         assert 0 <= self.b <= 255
+
+
+class Formatting(Enum):
+    Reset = "reset"
+    Bold = "bold"
+    Italic = "italic"
+    Underlined = "underlined"
+    Strikethrough = "strikethrough"
+    Obfuscated = "obfuscated"
 
 
 RawColourT = TypeVar("RawColourT")
@@ -76,32 +86,38 @@ class JavaNameHexColourFactory(ColourFactory[str]):
             return f"{colour.r % 256:02X}{colour.g % 256:02X}{colour.b % 256:02X}"
 
 
-class BaseBedrockCodeColourFactory(ColourFactory[str]):
-    Name2Colour: dict[str, Colour] = {}
-    Colour2Name: dict[Colour, str] = {}
+class AbstractSectionParser:
+    """A class to serialise and deserialise section codes"""
+
+    Code2Colour: dict[str, Colour] = {}
+    Colour2Code: dict[Colour, str] = {}
+    Format2Code: dict[Formatting, str]
+    Code2Format: dict[str, Formatting]
 
     @classmethod
-    def read(cls, raw_colour: str) -> Colour:
-        if raw_colour in cls.Name2Colour:
-            return cls.Name2Colour[raw_colour]
-        raise ValueError(raw_colour)
+    def read(cls, section_code: str) -> Colour | Formatting | None:
+        return cls.Code2Colour.get(section_code) or cls.Code2Format.get(section_code)
 
     @classmethod
-    def write(cls, colour: Colour) -> str:
-        if colour not in cls.Colour2Name:
-            # Find the closest colour to this colour
-            # This is a dumb city block search
-            colour = min(
-                cls.Colour2Name,
-                key=lambda col: abs(colour.r - col.r)
-                + abs(colour.g - col.g)
-                + abs(colour.b - col.b),
-            )
-        return cls.Colour2Name[colour]
+    def write(cls, value: Colour | Formatting) -> str | None:
+        if isinstance(value, Colour):
+            if value not in cls.Colour2Code:
+                # Find the closest colour to this colour
+                # This is a dumb city block search
+                value = min(
+                    cls.Colour2Code,
+                    key=lambda col: abs(value.r - col.r)
+                    + abs(value.g - col.g)
+                    + abs(value.b - col.b),
+                )
+            return cls.Colour2Code[value]
+        elif isinstance(value, Formatting) and value in cls.Format2Code:
+            return cls.Format2Code[value]
+        return None
 
 
-class BedrockCodeColourFactory(BaseBedrockCodeColourFactory):
-    Colour2Name = {
+class JavaSectionParser(AbstractSectionParser):
+    Colour2Code = {
         Colour(0x00, 0x00, 0x00): "0",
         Colour(0x00, 0x00, 0xAA): "1",
         Colour(0x00, 0xAA, 0x00): "2",
@@ -119,11 +135,49 @@ class BedrockCodeColourFactory(BaseBedrockCodeColourFactory):
         Colour(0xFF, 0xFF, 0x55): "e",
         Colour(0xFF, 0xFF, 0xFF): "f",
     }
-    Name2Colour = {name: colour for colour, name in Colour2Name.items()}
+    Code2Colour = {name: colour for colour, name in Colour2Code.items()}
+    Format2Code = {
+        Formatting.Reset: "r",
+        Formatting.Bold: "l",
+        Formatting.Strikethrough: "m",
+        Formatting.Underlined: "n",
+        Formatting.Italic: "o",
+        Formatting.Obfuscated: "k",
+    }
+    Code2Format = {c: f for f, c in Format2Code.items()}
 
 
-class ExtendedBedrockCodeColourFactory(BaseBedrockCodeColourFactory):
-    Colour2Name = {
+class BedrockSectionParser(AbstractSectionParser):
+    Colour2Code = {
+        Colour(0x00, 0x00, 0x00): "0",
+        Colour(0x00, 0x00, 0xAA): "1",
+        Colour(0x00, 0xAA, 0x00): "2",
+        Colour(0x00, 0xAA, 0xAA): "3",
+        Colour(0xAA, 0x00, 0x00): "4",
+        Colour(0xAA, 0x00, 0xAA): "5",
+        Colour(0xFF, 0xAA, 0x00): "6",
+        Colour(0xAA, 0xAA, 0xAA): "7",
+        Colour(0x55, 0x55, 0x55): "8",
+        Colour(0x55, 0x55, 0xFF): "9",
+        Colour(0x55, 0xFF, 0x55): "a",
+        Colour(0x55, 0xFF, 0xFF): "b",
+        Colour(0xFF, 0x55, 0x55): "c",
+        Colour(0xFF, 0x55, 0xFF): "d",
+        Colour(0xFF, 0xFF, 0x55): "e",
+        Colour(0xFF, 0xFF, 0xFF): "f",
+    }
+    Code2Colour = {name: colour for colour, name in Colour2Code.items()}
+    Format2Code = {
+        Formatting.Reset: "r",
+        Formatting.Bold: "l",
+        Formatting.Italic: "o",
+        Formatting.Obfuscated: "k",
+    }
+    Code2Format = {c: f for f, c in Format2Code.items()}
+
+
+class ExtendedBedrockSectionParser(AbstractSectionParser):
+    Colour2Code = {
         Colour(0x00, 0x00, 0x00): "0",
         Colour(0x00, 0x00, 0xAA): "1",
         Colour(0x00, 0xAA, 0x00): "2",
@@ -152,7 +206,14 @@ class ExtendedBedrockCodeColourFactory(BaseBedrockCodeColourFactory):
         Colour(0x21, 0x49, 0x7B): "t",
         Colour(0x9A, 0x5C, 0xC6): "u",
     }
-    Name2Colour = {name: colour for colour, name in Colour2Name.items()}
+    Code2Colour = {name: colour for colour, name in Colour2Code.items()}
+    Format2Code = {
+        Formatting.Reset: "r",
+        Formatting.Bold: "l",
+        Formatting.Italic: "o",
+        Formatting.Obfuscated: "k",
+    }
+    Code2Format = {c: f for f, c in Format2Code.items()}
 
 
 @dataclass
@@ -272,7 +333,7 @@ class RawTextComponent:
     @overload
     @classmethod
     def from_section_text(
-        cls, section_text: str, colour_palette: type[BaseBedrockCodeColourFactory]
+        cls, section_text: str, section_parser: type[AbstractSectionParser]
     ) -> RawTextComponent:
         ...
 
@@ -281,7 +342,7 @@ class RawTextComponent:
     def from_section_text(
         cls,
         section_text: str,
-        colour_palette: type[BaseBedrockCodeColourFactory],
+        section_parser: type[AbstractSectionParser],
         split_newline: Literal[False],
     ) -> RawTextComponent:
         ...
@@ -291,7 +352,7 @@ class RawTextComponent:
     def from_section_text(
         cls,
         section_text: str,
-        colour_palette: type[BaseBedrockCodeColourFactory],
+        section_parser: type[AbstractSectionParser],
         split_newline: Literal[True],
     ) -> List[RawTextComponent]:
         ...
@@ -300,7 +361,7 @@ class RawTextComponent:
     def from_section_text(
         cls,
         section_text: str,
-        colour_palette: type[BaseBedrockCodeColourFactory],
+        section_parser: type[AbstractSectionParser],
         split_newline: bool = False,
     ) -> RawTextComponent | list[RawTextComponent]:
         """Parse a section string and convert it to raw JSON text format."""
@@ -343,35 +404,34 @@ class RawTextComponent:
 
                 index = next_section_index + 1
                 section_code = section_text[index : index + 1]
-                if section_code == "k":  # obfuscated
-                    formatting.obfuscated = True
-                    index += 1
-                elif section_code == "l":  # bold
-                    formatting.bold = True
-                    index += 1
-                elif section_code == "m":  # strikethrough
-                    formatting.strikethrough = True
-                    index += 1
-                elif section_code == "n":  # underlined
-                    formatting.underlined = True
-                    index += 1
-                elif section_code == "o":  # italic
-                    formatting.italic = True
-                    index += 1
-                elif section_code == "r":  # reset
-                    formatting.obfuscated = False
-                    formatting.bold = False
-                    formatting.strikethrough = False
-                    formatting.underlined = False
-                    formatting.italic = False
-                    formatting.colour = None
-                    index += 1
-                else:
-                    try:
-                        formatting.colour = colour_palette.read(section_code)
+                value = section_parser.read(section_code)
+                if isinstance(value, Formatting):
+                    if value is Formatting.Obfuscated:  # obfuscated
+                        formatting.obfuscated = True
                         index += 1
-                    except ValueError:
-                        pass
+                    elif value is Formatting.Bold:  # bold
+                        formatting.bold = True
+                        index += 1
+                    elif value is Formatting.Strikethrough:  # strikethrough
+                        formatting.strikethrough = True
+                        index += 1
+                    elif value is Formatting.Underlined:  # underlined
+                        formatting.underlined = True
+                        index += 1
+                    elif value is Formatting.Italic:  # italic
+                        formatting.italic = True
+                        index += 1
+                    elif value is Formatting.Reset:  # reset
+                        formatting.obfuscated = False
+                        formatting.bold = False
+                        formatting.strikethrough = False
+                        formatting.underlined = False
+                        formatting.italic = False
+                        formatting.colour = None
+                        index += 1
+                elif isinstance(value, Colour):
+                    formatting.colour = value
+                    index += 1
 
                 next_section_index = section_text.find("§", index) % (max_index + 1)
 
@@ -397,18 +457,23 @@ class RawTextComponent:
         else:
             return lines[0]
 
-    def to_section_text(
-        self, colour_palette: type[BaseBedrockCodeColourFactory]
-    ) -> str:
+    def to_section_text(self, section_parser: type[AbstractSectionParser]) -> str:
         """
         Convert the raw text object to a section text string
-        :param colour_palette: The colour palette to use.
+        :param section_parser: The colour palette to use.
         :return: The section text.
         """
 
         text: list[str] = []
 
         current_formatting = RawTextFormatting()
+
+        reset_code = section_parser.write(Formatting.Reset)
+        bold_code = section_parser.write(Formatting.Bold)
+        italic_code = section_parser.write(Formatting.Italic)
+        underlined_code = section_parser.write(Formatting.Underlined)
+        strikethrough_code = section_parser.write(Formatting.Strikethrough)
+        obfuscated_code = section_parser.write(Formatting.Obfuscated)
 
         def merge_formatting(
             a: RawTextFormatting, b: RawTextFormatting
@@ -450,7 +515,8 @@ class RawTextComponent:
                     )
                 ):
                     # A property has been unset. Reset the formatting and apply everything again
-                    text.append("§r")
+                    if reset_code is not None:
+                        text.append(f"§{reset_code}")
                     current_formatting.colour = None
                     current_formatting.bold = False
                     current_formatting.italic = False
@@ -460,28 +526,35 @@ class RawTextComponent:
 
                 # If the formatting has been set and the original formatting is not set
                 if desired_formatting.bold and not current_formatting.bold:
-                    text.append("§l")
+                    if bold_code is not None:
+                        text.append(f"§{bold_code}")
                     current_formatting.bold = True
                 if desired_formatting.italic and not current_formatting.italic:
-                    text.append("§o")
+                    if italic_code is not None:
+                        text.append(f"§{italic_code}")
                     current_formatting.italic = True
                 if desired_formatting.underlined and not current_formatting.underlined:
-                    text.append("§n")
+                    if underlined_code is not None:
+                        text.append(f"§{underlined_code}")
                     current_formatting.underlined = True
                 if (
                     desired_formatting.strikethrough
                     and not current_formatting.strikethrough
                 ):
-                    text.append("§m")
+                    if strikethrough_code is not None:
+                        text.append(f"§{strikethrough_code}")
                     current_formatting.strikethrough = True
                 if desired_formatting.obfuscated and not current_formatting.obfuscated:
-                    text.append("§k")
+                    if obfuscated_code is not None:
+                        text.append(f"§{obfuscated_code}")
                     current_formatting.obfuscated = True
                 if (
                     desired_formatting.colour is not None
                     and desired_formatting.colour != current_formatting.colour
                 ):
-                    text.append("§" + colour_palette.write(desired_formatting.colour))
+                    code = section_parser.write(desired_formatting.colour)
+                    assert code is not None
+                    text.append("§" + code)
                     current_formatting.colour = desired_formatting.colour
 
                 text.append(section.text)
