@@ -295,95 +295,59 @@ class TextTestCase(unittest.TestCase):
         )
 
         self.assertEqual(
-            RawTextComponent(
-                children=[
-                    RawTextComponent("test"),
-                ]
-            ),
+            RawTextComponent("test"),
             RawTextComponent.from_section_text("test", ExtendedBedrockSectionParser),
         )
 
         self.assertEqual(
-            RawTextComponent(
-                children=[
-                    RawTextComponent("test", RawTextFormatting(obfuscated=True)),
-                ]
-            ),
+            RawTextComponent("test", RawTextFormatting(obfuscated=True)),
             RawTextComponent.from_section_text("§ktest", ExtendedBedrockSectionParser),
         )
 
         self.assertEqual(
-            RawTextComponent(
-                children=[
-                    RawTextComponent("test", RawTextFormatting(bold=True)),
-                ]
-            ),
+            RawTextComponent("test", RawTextFormatting(bold=True)),
             RawTextComponent.from_section_text("§ltest", ExtendedBedrockSectionParser),
         )
 
         self.assertEqual(
-            RawTextComponent(
-                children=[
-                    RawTextComponent("test", RawTextFormatting(Colour(151, 22, 7))),
-                ]
-            ),
+            RawTextComponent("test", RawTextFormatting(Colour(151, 22, 7))),
             RawTextComponent.from_section_text("§mtest", ExtendedBedrockSectionParser),
         )
 
         self.assertEqual(
-            RawTextComponent(
-                children=[
-                    RawTextComponent("test", RawTextFormatting(Colour(180, 104, 77))),
-                ]
-            ),
+            RawTextComponent("test", RawTextFormatting(Colour(180, 104, 77))),
             RawTextComponent.from_section_text("§ntest", ExtendedBedrockSectionParser),
         )
 
         self.assertEqual(
-            RawTextComponent(
-                children=[
-                    RawTextComponent("test", RawTextFormatting(italic=True)),
-                ]
-            ),
+            RawTextComponent("test", RawTextFormatting(italic=True)),
             RawTextComponent.from_section_text("§otest", ExtendedBedrockSectionParser),
         )
 
         self.assertEqual(
-            RawTextComponent(
-                children=[
-                    RawTextComponent("test", RawTextFormatting(bold=True)),
-                ]
-            ),
+            RawTextComponent("test", RawTextFormatting(bold=True)),
             RawTextComponent.from_section_text("§ltest", ExtendedBedrockSectionParser),
         )
 
         self.assertEqual(
             RawTextComponent(
-                children=[
-                    RawTextComponent(
-                        "test",
-                        RawTextFormatting(None, False, False, False, False, False),
-                    ),
-                ]
+                "test",
+                RawTextFormatting(None, False, False, False, False, False),
             ),
             RawTextComponent.from_section_text("§rtest", ExtendedBedrockSectionParser),
         )
 
         self.assertEqual(
             RawTextComponent(
-                children=[
-                    RawTextComponent(
-                        "test",
-                        RawTextFormatting(
-                            None,
-                            True,
-                            True,
-                            None,
-                            None,
-                            True,
-                        ),
-                    ),
-                ]
+                "test",
+                RawTextFormatting(
+                    None,
+                    True,
+                    True,
+                    None,
+                    None,
+                    True,
+                ),
             ),
             RawTextComponent.from_section_text(
                 "§l§o§ktest", ExtendedBedrockSectionParser
@@ -394,12 +358,8 @@ class TextTestCase(unittest.TestCase):
             with self.subTest(str(colour)):
                 self.assertEqual(
                     RawTextComponent(
-                        children=[
-                            RawTextComponent(
-                                "test",
-                                RawTextFormatting(colour),
-                            ),
-                        ]
+                        "test",
+                        RawTextFormatting(colour),
                     ),
                     RawTextComponent.from_section_text(
                         f"§{code}test", ExtendedBedrockSectionParser
@@ -410,19 +370,15 @@ class TextTestCase(unittest.TestCase):
             with self.subTest(str(colour)):
                 self.assertEqual(
                     RawTextComponent(
-                        children=[
-                            RawTextComponent(
-                                "test",
-                                RawTextFormatting(
-                                    colour,
-                                    True,
-                                    True,
-                                    None,
-                                    None,
-                                    True,
-                                ),
-                            ),
-                        ]
+                        "test",
+                        RawTextFormatting(
+                            colour,
+                            True,
+                            True,
+                            None,
+                            None,
+                            True,
+                        ),
                     ),
                     RawTextComponent.from_section_text(
                         f"§l§o§k§{code}test", ExtendedBedrockSectionParser
@@ -432,12 +388,8 @@ class TextTestCase(unittest.TestCase):
         # Test child behaviour
         self.assertEqual(
             RawTextComponent(
-                children=[
-                    RawTextComponent(
-                        "testtesttest",
-                        RawTextFormatting(Colour(255, 85, 85)),
-                    )
-                ],
+                "testtesttest",
+                RawTextFormatting(Colour(255, 85, 85)),
             ),
             RawTextComponent.from_section_text(
                 "§ctesttesttest", ExtendedBedrockSectionParser
@@ -457,13 +409,7 @@ class TextTestCase(unittest.TestCase):
         )
 
         self.assertEqual(
-            RawTextComponent(
-                children=[
-                    RawTextComponent(
-                        "testtest", RawTextFormatting(Colour(255, 85, 85))
-                    ),
-                ],
-            ),
+            RawTextComponent("testtest", RawTextFormatting(Colour(255, 85, 85))),
             RawTextComponent.from_section_text(
                 "§ctesttest", ExtendedBedrockSectionParser
             ),
@@ -500,6 +446,34 @@ class TextTestCase(unittest.TestCase):
             ),
             RawTextComponent.from_section_text(
                 "§ltest§r§otest", ExtendedBedrockSectionParser
+            ),
+        )
+
+    def test_newline_split(self) -> None:
+        self.assertEqual(
+            [RawTextComponent("test"), RawTextComponent("test")],
+            RawTextComponent.from_section_text(
+                "test\ntest", ExtendedBedrockSectionParser, True
+            ),
+        )
+
+        self.assertEqual(
+            [
+                RawTextComponent("test", RawTextFormatting(Colour(255, 85, 85))),
+                RawTextComponent("test", RawTextFormatting(Colour(85, 255, 85))),
+            ],
+            RawTextComponent.from_section_text(
+                "§ctest\n§atest", ExtendedBedrockSectionParser, True
+            ),
+        )
+
+        self.assertEqual(
+            [
+                RawTextComponent("test", RawTextFormatting(Colour(255, 85, 85))),
+                RawTextComponent("test", RawTextFormatting(Colour(85, 255, 85))),
+            ],
+            RawTextComponent.from_section_text(
+                "§ctest§a\ntest", ExtendedBedrockSectionParser, True
             ),
         )
 

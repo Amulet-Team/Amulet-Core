@@ -431,15 +431,21 @@ class RawTextComponent:
                 append_section(section_text[index:next_newline_index])
                 append_line()
 
-                index += 1
+                index = next_newline_index + 1
                 next_newline_index = section_text.find("\n", index) % (max_index + 1)
             else:
                 raise RuntimeError
 
+        def compact(src: RawTextComponent) -> RawTextComponent:
+            if len(src.children) == 1:
+                # Don't need the parent node
+                return src.children[0]
+            return src
+
         if split_newline:
-            return lines
+            return list(map(compact, lines))
         else:
-            return lines[0]
+            return compact(lines[0])
 
     def to_section_text(self, section_parser: type[AbstractSectionParser]) -> str:
         """
