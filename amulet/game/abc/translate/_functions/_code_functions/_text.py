@@ -1,7 +1,6 @@
 from __future__ import annotations
-from typing import List, overload, Literal, TypeVar, Generic
+from typing import List, overload, Literal, TypeVar
 from dataclasses import dataclass, field
-from abc import ABC, abstractmethod
 from copy import deepcopy
 from enum import Enum
 
@@ -30,22 +29,7 @@ class Formatting(Enum):
     Obfuscated = "obfuscated"
 
 
-RawColourT = TypeVar("RawColourT")
-
-
-class ColourFactory(Generic[RawColourT], ABC):
-    @classmethod
-    @abstractmethod
-    def read(cls, raw_colour: RawColourT) -> Colour:
-        pass
-
-    @classmethod
-    @abstractmethod
-    def write(cls, colour: Colour) -> RawColourT:
-        pass
-
-
-class JavaNameHexColourFactory(ColourFactory[str]):
+class JavaNameHexColourFactory:
     Colour2Name = {
         Colour(0x00, 0x00, 0x00): "black",
         Colour(0x00, 0x00, 0xAA): "dark_blue",
@@ -72,8 +56,8 @@ class JavaNameHexColourFactory(ColourFactory[str]):
             return cls.Name2Colour[raw_colour]
         elif raw_colour.startswith("#"):
             num = int(raw_colour[1:], 16)
-            r = num & 0xFF0000
-            g = num & 0xFF00
+            r = (num >> 16) & 0xFF
+            g = (num >> 8) & 0xFF
             b = num & 0xFF
             return Colour(r, g, b)
         raise ValueError(raw_colour)
@@ -83,7 +67,7 @@ class JavaNameHexColourFactory(ColourFactory[str]):
         if colour in cls.Colour2Name:
             return cls.Colour2Name[colour]
         else:
-            return f"{colour.r % 256:02X}{colour.g % 256:02X}{colour.b % 256:02X}"
+            return f"#{colour.r % 256:02X}{colour.g % 256:02X}{colour.b % 256:02X}"
 
 
 class AbstractSectionParser:

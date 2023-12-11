@@ -503,12 +503,101 @@ class TextTestCase(unittest.TestCase):
             ),
         )
 
-    # TODO: implement these tests
     def test_from_raw_text(self) -> None:
-        pass
+        self.assertEqual(
+            RawTextComponent(
+                "A", children=[RawTextComponent("B"), RawTextComponent("C")]
+            ),
+            RawTextComponent.from_java_raw_text(["A", "B", "C"]),
+        )
+
+        self.assertEqual(
+            RawTextComponent(
+                "A",
+                RawTextFormatting(Colour(0xFF, 0x55, 0x55)),
+                [RawTextComponent("B"), RawTextComponent("C")],
+            ),
+            RawTextComponent.from_java_raw_text(
+                [{"text": "A", "color": "red"}, "B", "C"]
+            ),
+        )
+
+        self.assertEqual(
+            RawTextComponent("A", RawTextFormatting(Colour(0x01, 0x02, 0x03))),
+            RawTextComponent.from_java_raw_text({"text": "A", "color": "#010203"}),
+        )
+
+        self.assertEqual(
+            RawTextComponent("A", RawTextFormatting(bold=True)),
+            RawTextComponent.from_java_raw_text({"text": "A", "bold": True}),
+        )
+        self.assertEqual(
+            RawTextComponent("A", RawTextFormatting(italic=True)),
+            RawTextComponent.from_java_raw_text({"text": "A", "italic": True}),
+        )
+        self.assertEqual(
+            RawTextComponent("A", RawTextFormatting(underlined=True)),
+            RawTextComponent.from_java_raw_text({"text": "A", "underlined": True}),
+        )
+        self.assertEqual(
+            RawTextComponent("A", RawTextFormatting(strikethrough=True)),
+            RawTextComponent.from_java_raw_text({"text": "A", "strikethrough": True}),
+        )
+        self.assertEqual(
+            RawTextComponent("A", RawTextFormatting(obfuscated=True)),
+            RawTextComponent.from_java_raw_text({"text": "A", "obfuscated": True}),
+        )
 
     def test_to_raw_text(self) -> None:
-        pass
+        self.assertEqual(
+            {"text": "A", "extra": ["B", "C"]},
+            RawTextComponent(
+                "A", children=[RawTextComponent("B"), RawTextComponent("C")]
+            ).to_java_raw_text(),
+        )
+
+        self.assertEqual(
+            {"text": "A", "color": "red", "extra": ["B", "C"]},
+            RawTextComponent(
+                "A",
+                RawTextFormatting(Colour(0xFF, 0x55, 0x55)),
+                [RawTextComponent("B"), RawTextComponent("C")],
+            ).to_java_raw_text(),
+        )
+
+        self.assertEqual(
+            {"text": "A", "color": "#010203"},
+            RawTextComponent(
+                "A", RawTextFormatting(Colour(0x01, 0x02, 0x03))
+            ).to_java_raw_text(),
+        )
+
+        self.assertEqual(
+            {"text": "A", "bold": True},
+            RawTextComponent("A", RawTextFormatting(bold=True)).to_java_raw_text(),
+        )
+        self.assertEqual(
+            {"text": "A", "italic": True},
+            RawTextComponent("A", RawTextFormatting(italic=True)).to_java_raw_text(),
+        )
+        self.assertEqual(
+            {"text": "A", "underlined": True},
+            RawTextComponent(
+                "A", RawTextFormatting(underlined=True)
+            ).to_java_raw_text(),
+        )
+        self.assertEqual(
+            {"text": "A", "strikethrough": True},
+            RawTextComponent(
+                "A", RawTextFormatting(strikethrough=True)
+            ).to_java_raw_text(),
+        )
+        self.assertEqual(
+            {"text": "A", "obfuscated": True},
+            RawTextComponent(
+                "A", RawTextFormatting(obfuscated=True)
+            ).to_java_raw_text(),
+        )
 
 
 if __name__ == "__main__":
