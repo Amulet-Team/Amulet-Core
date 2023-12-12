@@ -18,7 +18,7 @@ T = TypeVar("T")
 
 if TYPE_CHECKING:
     from ._version import GameVersion
-    from ._translator import BlockToUniversalTranslator, BlockFromUniversalTranslator
+    from .translate import BlockToUniversalTranslator, BlockFromUniversalTranslator
 
     def proxy(obj: T) -> T:
         ...
@@ -233,7 +233,45 @@ class DatabaseBlockData(BlockData):
         ]
         | None,
     ) -> tuple[Block, BlockEntity | None, bool] | tuple[Entity, None, bool]:
-        raise NotImplementedError
+        if not self._game_version.supports_version(target_platform, target_version):
+            raise ValueError("The target version is not compatible with this version")
+
+        if block.platform != "universal":
+            raise ValueError("The source block is not in the universal format")
+
+        if block_entity is None:
+            if block in self._from_universal_cache:
+                output, extra_output, extra_needed = self._from_universal_cache[block]
+                if isinstance(output, Block):
+                    return output, deepcopy(extra_output), extra_needed
+                elif isinstance(output, Entity):
+                    return deepcopy(output), None, extra_needed
+        else:
+            block_entity = deepcopy(block_entity)
+
+        try:
+            translator = self._from_universal[(block.namespace, block.base_name)]
+        except KeyError:
+            raise TranslationError(
+                f"Block {block} does not exist in version {self._game_version.platform} {self._game_version.min_version}"
+            )
+
+        output, extra_output, extra_needed, cacheable = translator.run(
+            target_platform, target_version, block, block_entity, extra
+        )
+
+        if isinstance(output, Block):
+            if cacheable:
+                self._from_universal_cache[block] = (
+                    output,
+                    deepcopy(extra_output),
+                    extra_needed,
+                )
+            return output, deepcopy(extra_output), extra_needed
+        elif isinstance(output, Entity):
+            if cacheable:
+                self._from_universal_cache[block] = deepcopy(output), None, extra_needed
+            return deepcopy(output), None, extra_needed
 
 
 class BlockDataNumericalComponent(ABC):

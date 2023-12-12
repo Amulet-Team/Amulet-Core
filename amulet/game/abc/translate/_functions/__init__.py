@@ -1,4 +1,5 @@
 from .abc import AbstractBaseTranslationFunction
+from ._state import SrcData, SrcDataExtra, StateData, DstData
 from .carry_nbt import CarryNBT
 from .carry_properties import CarryProperties
 from .code import Code
