@@ -6,10 +6,31 @@ from collections.abc import Sequence
 from .abc import AbstractBaseTranslationFunction, JSONCompatible, JSONDict, Data
 from ._state import SrcData, StateData, DstData
 
-from ._code_functions.banner_pattern_2u import main as banner_pattern_2u
-from ._code_functions.banner_pattern_fu import main as banner_pattern_fu
-from ._code_functions.bedrock_chest_connection import bedrock_chest_connection_self, bedrock_chest_connection_other_left, bedrock_chest_connection_other_right
-from ._code_functions.bedrock_chest_fu import main as bedrock_chest_fu
+from ._code_functions.banner_pattern import (
+    to_universal as banner_pattern_2u,
+    from_universal as banner_pattern_fu,
+)
+from ._code_functions.bedrock_chest_connection import (
+    bedrock_chest_connection_self,
+    bedrock_chest_connection_other_left,
+    bedrock_chest_connection_other_right,
+    from_universal as bedrock_chest_fu,
+)
+from ._code_functions.custom_name import (
+    bedrock_extended_to_universal as bedrock_custom_name_2u,
+    bedrock_extended_from_universal as bedrock_custom_name_fu,
+)
+from ._code_functions.bedrock_moving_block_pos import (
+    to_universal as bedrock_moving_block_pos_2u,
+    from_universal as bedrock_moving_block_pos_fu,
+)
+from ._code_functions.bedrock_sign import (
+    to_universal as bedrock_sign_2u,
+    from_universal as bedrock_sign_fu,
+)
+from ._code_functions.bedrock_skull_rotation import (
+    to_universal as bedrock_skull_rotation_2u,
+)
 
 
 T = TypeVar("T")
@@ -27,6 +48,13 @@ FunctionLUT: dict[str, Callable[[SrcData, StateData, DstData], None]] = {
     "bedrock_chest_connection_other_right": bedrock_chest_connection_other_right,
     "bedrock_chest_connection_self": bedrock_chest_connection_self,
     "bedrock_chest_fu": bedrock_chest_fu,
+    "bedrock_cmd_custom_name_2u": bedrock_custom_name_2u,
+    "bedrock_cmd_custom_name_fu": bedrock_custom_name_fu,
+    "bedrock_moving_block_pos_2u": bedrock_moving_block_pos_2u,
+    "bedrock_moving_block_pos_fu": bedrock_moving_block_pos_fu,
+    "bedrock_sign_2u": bedrock_sign_2u,
+    "bedrock_sign_fu": bedrock_sign_fu,
+    "bedrock_skull_rotation_2u": bedrock_skull_rotation_2u,
 }
 
 
