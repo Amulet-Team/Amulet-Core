@@ -27,6 +27,7 @@ import PyMCTranslate
 from amulet.api import level as api_level, wrapper as api_wrapper
 from amulet.api.chunk import Chunk
 from amulet.api.registry import BlockManager
+from amulet.api.block import UniversalAirBlock
 from amulet.api.errors import (
     ChunkLoadError,
     ChunkDoesNotExist,
@@ -621,6 +622,9 @@ class FormatWrapper(Generic[VersionNumberT], ABC):
             )
         else:
             chunk._block_palette = BlockManager()
+            chunk._block_palette.get_add_block(
+                UniversalAirBlock
+            )
 
         def get_chunk_callback(_: int, __: int) -> Chunk:
             # conversion from universal should not require any data outside the block
