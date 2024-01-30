@@ -153,9 +153,9 @@ class DatabaseHistoryManager(ContainerHistoryManager):
                 ].get_current_entry()
             else:
                 # If it has not been loaded request it from the raw database.
-                entry = self._temporary_database[
-                    key
-                ] = self._get_register_original_entry(key)
+                entry = self._temporary_database[key] = (
+                    self._get_register_original_entry(key)
+                )
         if entry is None:
             raise self.DoesNotExistError
         return entry

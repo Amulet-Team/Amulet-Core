@@ -80,18 +80,15 @@ class BiomeManager(BaseRegistry):
         yield from enumerate(self._index_to_biome)
 
     @overload
-    def __getitem__(self, item: BiomeType) -> int:
-        ...
+    def __getitem__(self, item: BiomeType) -> int: ...
 
     @overload
-    def __getitem__(self, item: Int) -> BiomeType:
-        ...
+    def __getitem__(self, item: Int) -> BiomeType: ...
 
     @overload
     def __getitem__(
         self, item: Iterable[Union[Int, BiomeType]]
-    ) -> List[Union[BiomeType, Int]]:
-        ...
+    ) -> List[Union[BiomeType, Int]]: ...
 
     def __getitem__(self, item):
         """

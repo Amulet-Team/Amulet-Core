@@ -135,9 +135,9 @@ class BaseLevelDBInterface(Interface):
             for key in chunk_data.copy().keys():
                 if len(key) == 2 and key[0:1] == b"\x2F":
                     cy = struct.unpack("b", key[1:2])[0]
-                    subchunks[
-                        self._chunk_key_to_sub_chunk(cy, bounds[0] >> 4)
-                    ] = chunk_data.pop(key)
+                    subchunks[self._chunk_key_to_sub_chunk(cy, bounds[0] >> 4)] = (
+                        chunk_data.pop(key)
+                    )
             chunk.blocks, chunk_palette = self._load_subchunks(subchunks)
         elif self._features["terrain"] == "30array":
             section_data = chunk_data.pop(b"\x30", None)
@@ -274,9 +274,9 @@ class BaseLevelDBInterface(Interface):
         )
         min_y = bounds[0] // 16
         for cy, sub_chunk in terrain.items():
-            chunk_data[
-                b"\x2F" + self._get_sub_chunk_storage_byte(cy, min_y)
-            ] = sub_chunk
+            chunk_data[b"\x2F" + self._get_sub_chunk_storage_byte(cy, min_y)] = (
+                sub_chunk
+            )
 
         # chunk status
         if self._features["finalised_state"] == "int0-2":
