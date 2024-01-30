@@ -172,9 +172,9 @@ class LevelDBDimensionManager:
             with suppress(KeyError):
                 digp_key = b"digp" + prefix
                 digp = self._db.get(digp_key)
-                chunk_data[
-                    b"digp"
-                ] = b""  # The presence of this key signals to the put method that this should be created and written
+                chunk_data[b"digp"] = (
+                    b""  # The presence of this key signals to the put method that this should be created and written
+                )
                 for i in range(0, (len(digp) // 8) * 8, 8):
                     actor_key = b"actorprefix" + digp[i : i + 8]
                     try:

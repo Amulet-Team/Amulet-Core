@@ -82,16 +82,15 @@ class BlockManager(BaseRegistry):
         yield from enumerate(self._index_to_block)
 
     @overload
-    def __getitem__(self, item: Block) -> int:
-        ...
+    def __getitem__(self, item: Block) -> int: ...
 
     @overload
-    def __getitem__(self, item: Int) -> Block:
-        ...
+    def __getitem__(self, item: Int) -> Block: ...
 
     @overload
-    def __getitem__(self, item: Iterable[Union[Int, Block]]) -> List[Union[Block, Int]]:
-        ...
+    def __getitem__(
+        self, item: Iterable[Union[Int, Block]]
+    ) -> List[Union[Block, Int]]: ...
 
     def __getitem__(self, item):
         """

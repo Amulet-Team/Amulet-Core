@@ -141,8 +141,9 @@ class UnboundedPartial3DArray(BasePartial3DArray):
             self[slices][:, :, :] = value
 
     @overload
-    def __getitem__(self, slices: Tuple[IntegerType, IntegerType, IntegerType]) -> int:
-        ...
+    def __getitem__(
+        self, slices: Tuple[IntegerType, IntegerType, IntegerType]
+    ) -> int: ...
 
     @overload
     def __getitem__(
@@ -152,8 +153,7 @@ class UnboundedPartial3DArray(BasePartial3DArray):
             Union[IntegerType, slice],
             Union[IntegerType, slice],
         ],
-    ) -> "BoundedPartial3DArray":
-        ...
+    ) -> "BoundedPartial3DArray": ...
 
     def __getitem__(self, item):
         """

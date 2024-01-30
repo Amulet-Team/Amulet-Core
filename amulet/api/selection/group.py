@@ -136,12 +136,10 @@ class SelectionGroup(AbstractBaseSelection):
         return bool(self._selection_boxes)
 
     @overload
-    def __getitem__(self, item: int) -> SelectionBox:
-        ...
+    def __getitem__(self, item: int) -> SelectionBox: ...
 
     @overload
-    def __getitem__(self, item: slice) -> SelectionGroup:
-        ...
+    def __getitem__(self, item: slice) -> SelectionGroup: ...
 
     def __getitem__(self, item):
         """Get the selection box at the given index."""

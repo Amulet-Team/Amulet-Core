@@ -252,8 +252,7 @@ class BoundedPartial3DArray(BasePartial3DArray):
     @overload
     def __getitem__(
         self, slices: Tuple[IntegerType, IntegerType, IntegerType]
-    ) -> Union[int, bool]:
-        ...
+    ) -> Union[int, bool]: ...
 
     @overload
     def __getitem__(
@@ -263,14 +262,12 @@ class BoundedPartial3DArray(BasePartial3DArray):
             Union[IntegerType, slice],
             Union[IntegerType, slice],
         ],
-    ) -> "BoundedPartial3DArray":
-        ...
+    ) -> "BoundedPartial3DArray": ...
 
     @overload
     def __getitem__(
         self, slices: Union[numpy.ndarray, "BoundedPartial3DArray"]
-    ) -> numpy.ndarray:
-        ...
+    ) -> numpy.ndarray: ...
 
     def __getitem__(self, item):
         """
@@ -386,16 +383,14 @@ class BoundedPartial3DArray(BasePartial3DArray):
             Union[IntegerType, slice],
         ],
         value: Union[int, bool, numpy.ndarray, "BoundedPartial3DArray"],
-    ):
-        ...
+    ): ...
 
     @overload
     def __setitem__(
         self,
         item: Union[numpy.ndarray, "BoundedPartial3DArray"],
         value: Union[int, bool, numpy.ndarray],
-    ):
-        ...
+    ): ...
 
     def __setitem__(self, item, value):
         """

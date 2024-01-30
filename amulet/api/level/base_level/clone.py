@@ -116,13 +116,13 @@ def clone(
             )
 
             last_src: Optional[Tuple[int, int]] = None
-            src_chunk: Optional[
-                Chunk
-            ] = None  # None here means the chunk does not exist or failed to load. Treat it as if it was air.
+            src_chunk: Optional[Chunk] = (
+                None  # None here means the chunk does not exist or failed to load. Treat it as if it was air.
+            )
             last_dst: Optional[Tuple[int, int]] = None
-            dst_chunk: Optional[
-                Chunk
-            ] = None  # None here means the chunk failed to load. Do not modify it.
+            dst_chunk: Optional[Chunk] = (
+                None  # None here means the chunk failed to load. Do not modify it.
+            )
 
             sum_progress = 0
             volumes = tuple(

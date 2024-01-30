@@ -371,9 +371,9 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                     ),
                 }
             )
-            section_index_table: List[
-                Tuple[int, int, int, int, int, int, int, int]
-            ] = []
+            section_index_table: List[Tuple[int, int, int, int, int, int, int, int]] = (
+                []
+            )
             if self._section_version == 0:
                 for section_list in self._chunk_to_section.values():
                     for section in section_list:
