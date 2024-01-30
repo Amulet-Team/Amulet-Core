@@ -622,9 +622,7 @@ class FormatWrapper(Generic[VersionNumberT], ABC):
             )
         else:
             chunk._block_palette = BlockManager()
-            chunk._block_palette.get_add_block(
-                UniversalAirBlock
-            )
+            chunk._block_palette.get_add_block(UniversalAirBlock)
 
         def get_chunk_callback(_: int, __: int) -> Chunk:
             # conversion from universal should not require any data outside the block
