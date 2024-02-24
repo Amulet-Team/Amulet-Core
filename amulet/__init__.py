@@ -20,7 +20,5 @@ os.environ.setdefault(
 )
 os.environ.setdefault("LOG_DIR", platformdirs.user_log_dir("AmuletTeam", "AmuletTeam"))
 
-from amulet.level.load import load_level, load_format
-
 # init a default logger
 logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
