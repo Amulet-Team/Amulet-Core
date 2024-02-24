@@ -22,6 +22,7 @@ from amulet.level.abc import (
 )
 from amulet.api.errors import ObjectWriteError
 from amulet.utils.format_utils import check_all_exist
+from amulet.level import register_level_class
 
 from ._raw import BedrockRawLevel, InternalDimension, BedrockLevelDAT
 from ._dimension import BedrockDimension
@@ -185,3 +186,6 @@ class BedrockLevel(
 
     def compact(self) -> None:
         self.raw.level_db.compact()
+
+
+register_level_class(BedrockLevel)

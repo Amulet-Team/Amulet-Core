@@ -41,6 +41,7 @@ from amulet.level.abc import (
     CompactableLevel,
 )
 from amulet.utils.format_utils import check_all_exist
+from amulet.level import register_level_class
 
 from ._dimension import AnvilDimensionManager
 from ._data_pack import DataPackManager, DataPack
@@ -426,3 +427,6 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
     @property
     def dimensions(self) -> Sequence[Dimension]:
         return tuple(filter(lambda e: isinstance(e, Dimension), self._l.dimensions))
+
+
+register_level_class(JavaLevel)
