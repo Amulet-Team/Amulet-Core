@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Type, Any
+from typing import Type, Any, TypeAlias
 import logging
 from inspect import isclass
 from threading import Lock
@@ -11,12 +11,17 @@ from .abc import Level, LoadableLevel
 
 log = logging.getLogger(__name__)
 
-_level_classes = set[Type[Level] | Type[LoadableLevel]]()
-_levels = WeakValueDictionary[Any, Level | LoadableLevel]()
+# These should really be Intersection but Python doesn't have that
+LoadableLevelClsHint: TypeAlias = Type[LoadableLevel] #| Type[Level]
+LoadableLevelHint: TypeAlias = LoadableLevel #| Level
+
+
+_level_classes = set[LoadableLevelClsHint]()
+_levels = WeakValueDictionary[Any, LoadableLevelHint]()
 _lock = Lock()
 
 
-def _check_loadable_level(cls: Type[Level] | Type[LoadableLevel]) -> None:
+def _check_loadable_level(cls: LoadableLevelClsHint) -> None:
     if not isclass(cls):
         raise TypeError("cls must be a class")
     if not issubclass(cls, Level):
@@ -25,7 +30,7 @@ def _check_loadable_level(cls: Type[Level] | Type[LoadableLevel]) -> None:
         raise TypeError("cls must be a subclass of amulet.level.abc.LoadableLevel")
 
 
-def register_level_class(cls: Type[Level] | Type[LoadableLevel]) -> None:
+def register_level_class(cls: LoadableLevelClsHint) -> None:
     """Add a level class to be considered when getting a level.
 
     :param cls: The Level subclass to register.
@@ -36,7 +41,7 @@ def register_level_class(cls: Type[Level] | Type[LoadableLevel]) -> None:
         _level_classes.add(cls)
 
 
-def unregister_level_class(cls: Type[Level] | Type[LoadableLevel]) -> None:
+def unregister_level_class(cls: LoadableLevelClsHint) -> None:
     """Remove a level class from consideration when getting a level.
 
     Note that any instances of the class will remain.
@@ -54,7 +59,7 @@ class NoValidLevel(Exception):
     pass
 
 
-def get_level(token: Any) -> Level | LoadableLevel:
+def get_level(token: Any) -> Level:
     """Get the level for the given token.
 
     If a level object already exists for this token then that will be returned.
@@ -69,6 +74,7 @@ def get_level(token: Any) -> Level | LoadableLevel:
 
         Exception: Other errors.
     """
+    level: None | LoadableLevel | Level
     with _lock:
         # Find the level to load the token
         cls = next((cls for cls in _level_classes if cls.can_load(token)), None)
