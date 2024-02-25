@@ -1,6 +1,6 @@
 from typing import Self
 from types import MappingProxyType
-from collections.abc import Mapping, Iterator
+from collections.abc import Mapping, Iterator, Hashable
 from dataclasses import dataclass, field
 
 from amulet_nbt import from_snbt
@@ -21,7 +21,7 @@ class PropertyValueSpec:
     states: tuple[PropertyValueType, ...]
 
 
-class PropertySpec(Mapping[str, PropertyValueSpec]):
+class PropertySpec(Mapping[str, PropertyValueSpec], Hashable):
     def __init__(
         self, properties: Mapping[str, PropertyValueSpec] = MappingProxyType({})
     ):
@@ -35,6 +35,9 @@ class PropertySpec(Mapping[str, PropertyValueSpec]):
 
     def __iter__(self) -> Iterator[str]:
         yield from self._properties
+
+    def __hash__(self) -> int:
+        return hash(frozenset(self._properties.items()))
 
 
 @dataclass(frozen=True)
