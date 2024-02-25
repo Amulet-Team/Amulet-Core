@@ -1,16 +1,19 @@
 from enum import IntEnum
 from collections.abc import Mapping
+from typing import TYPE_CHECKING
 
 from amulet.game.abc import (
     DatabaseBlockData,
     BlockDataNumericalComponent,
     BlockSpec,
-    GameVersion,
 )
 from amulet.game.abc.translate import (
     BlockToUniversalTranslator,
     BlockFromUniversalTranslator,
 )
+
+if TYPE_CHECKING:
+    from ._version import JavaGameVersion
 
 
 class Waterloggable(IntEnum):
@@ -22,7 +25,7 @@ class Waterloggable(IntEnum):
 class JavaBlockData(DatabaseBlockData, BlockDataNumericalComponent):
     def __init__(
         self,
-        game_version: GameVersion,
+        game_version: JavaGameVersion,
         specification: Mapping[str, Mapping[str, BlockSpec]],
         to_universal: Mapping[tuple[str, str], BlockToUniversalTranslator],
         from_universal: Mapping[tuple[str, str], BlockFromUniversalTranslator],
