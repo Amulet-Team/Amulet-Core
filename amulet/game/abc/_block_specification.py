@@ -2,6 +2,9 @@ from typing import Self
 from types import MappingProxyType
 from collections.abc import Mapping, Iterator, Hashable
 from dataclasses import dataclass, field
+import os
+import json
+import glob
 
 from amulet_nbt import from_snbt
 from amulet.block import PropertyValueType, PropertyValueClasses
@@ -106,3 +109,15 @@ class BlockSpec(JSONInterface):
             spec["nbt_identifier"] = (self.nbt.namespace, self.nbt.base_name)
             spec["snbt"] = self.nbt.snbt
         return spec
+
+
+def load_json_block_spec(version_path: str, block_format: str) -> dict[str, dict[str, BlockSpec]]:
+    """Load all block specification files for the given version."""
+    block_spec = dict[str, dict[str, BlockSpec]]()
+    for file_path in glob.glob(
+            os.path.join(glob.escape(version_path), "block", block_format, "specification", "*", "*", "*.json")):
+        *_, namespace, _, base_name = os.path.splitext(os.path.normpath(file_path))[0].split(os.sep)
+        with open(file_path) as f:
+            data = json.load(f)
+        block_spec.setdefault(namespace, {})[base_name] = BlockSpec.from_json(data)
+    return block_spec
