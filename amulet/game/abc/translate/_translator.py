@@ -1,5 +1,8 @@
 from __future__ import annotations
-from typing import Callable, Union, Sequence
+from typing import Callable, Union, Sequence, TypeVar, Type
+import json
+import glob
+import os
 
 from amulet_nbt import (
     load as load_nbt,
@@ -26,6 +29,7 @@ from ._functions import (
     StateData,
     DstData,
 )
+from ._functions.abc import translation_function_from_json
 
 
 # These classes exist to do some pre-translation and post-translation processing.
@@ -318,6 +322,32 @@ class BlockFromUniversalTranslator:
 
         else:
             raise RuntimeError
+
+
+TranslationClsT = TypeVar("TranslationClsT", BlockToUniversalTranslator, BlockFromUniversalTranslator)
+
+
+def load_json_block_translations(
+    version_path: str,
+    block_format: str,
+    direction: str,
+    translation_cls: Type[TranslationClsT],
+    get_src_spec: Callable[[str, str], BlockSpec],
+    target_version: GameVersion,
+) -> dict[tuple[str, str], TranslationClsT]:
+    translations = dict[tuple[str, str], TranslationClsT]()
+    for file_path in glob.glob(
+        os.path.join(glob.escape(version_path), "block", block_format, direction, "*", "*", "*.json")
+    ):
+        *_, namespace, _, base_name = os.path.splitext(os.path.normpath(file_path))[0].split(os.sep)
+        with open(file_path) as f:
+            data = json.load(f)
+        translations[(namespace, base_name)] = translation_cls(
+            get_src_spec(namespace, base_name),
+            translation_function_from_json(data),
+            target_version
+        )
+    return translations
 
 
 class EntityToUniversalTranslator:

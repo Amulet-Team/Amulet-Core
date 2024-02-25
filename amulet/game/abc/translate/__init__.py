@@ -8,4 +8,5 @@ from ._translator import (
     BlockFromUniversalTranslator,
     EntityToUniversalTranslator,
     EntityFromUniversalTranslator,
+    load_json_block_translations,
 )
