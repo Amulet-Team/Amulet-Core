@@ -3,24 +3,20 @@ from typing import Self
 import os
 import json
 
+from amulet.game import get_game_version
 from amulet.game.abc import GameVersion, BiomeData, load_json_block_spec
-from amulet.version import VersionNumber
 from amulet.game.abc.translate import (
     BlockToUniversalTranslator,
     BlockFromUniversalTranslator,
     load_json_block_translations,
 )
-from amulet.game import get_game_version
+from amulet.version import VersionNumber
 
 from ._block import JavaBlockData, Waterloggable
 
 
 class JavaGameVersion(GameVersion):
-    _min_data_version: VersionNumber
-    _max_data_version: VersionNumber
-    _min_semantic_version: VersionNumber
-    _max_semantic_version: VersionNumber
-    _block_data: JavaBlockData
+    _block: JavaBlockData
 
     def __init__(
         self,
@@ -55,7 +51,7 @@ class JavaGameVersion(GameVersion):
 
     @property
     def block(self) -> JavaBlockData:
-        return self._block_data
+        return self._block
 
     @property
     def biome(self) -> BiomeData:
@@ -123,7 +119,7 @@ class JavaGameVersion(GameVersion):
                 namespace, base_name = block_str.split(":", 1)
                 numerical_block_map[block_num] = (namespace, base_name)
 
-        self._block_data = JavaBlockData(
+        self._block = JavaBlockData(
             self,
             block_spec,
             block_to_universal,
