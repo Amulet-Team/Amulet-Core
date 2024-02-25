@@ -41,7 +41,7 @@ def follow_nbt_path(
     return cast(NBTTagT | None, tag)
 
 
-def from_json(data: JSONCompatible) -> AbstractBaseTranslationFunction:
+def translation_function_from_json(data: JSONCompatible) -> AbstractBaseTranslationFunction:
     if isinstance(data, list):
         func_cls = _translation_functions["sequence"]
         return func_cls.from_json(data)

@@ -8,7 +8,7 @@ from .abc import (
     AbstractBaseTranslationFunction,
     JSONCompatible,
     JSONDict,
-    from_json,
+    translation_function_from_json,
     Data,
 )
 from ._frozen import FrozenMapping
@@ -45,7 +45,7 @@ class MapBlockName(AbstractBaseTranslationFunction):
         for block_name, function in options.items():
             assert isinstance(block_name, str)
             namespace, base_name = block_name.split(":", 1)
-            blocks[(namespace, base_name)] = from_json(function)
+            blocks[(namespace, base_name)] = translation_function_from_json(function)
         return cls(blocks)
 
     def to_json(self) -> JSONDict:

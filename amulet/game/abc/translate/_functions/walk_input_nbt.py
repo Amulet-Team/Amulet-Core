@@ -25,7 +25,7 @@ from .abc import (
     JSONCompatible,
     JSONDict,
     Data,
-    from_json,
+    translation_function_from_json,
     follow_nbt_path,
 )
 from ._typing import NBTClsToStr, StrToNBTCls, NBTPath, NBTPathElement, NBTTagClsT
@@ -125,11 +125,11 @@ class WalkInputNBTOptions(AbstractBaseTranslationFunction):
             index = None
         return cls(
             StrToNBTCls[nbt_type],
-            from_json(data["self_default"]) if "self_default" in data else None,
-            from_json(data["functions"]) if "functions" in data else None,
+            translation_function_from_json(data["self_default"]) if "self_default" in data else None,
+            translation_function_from_json(data["functions"]) if "functions" in data else None,
             keys,
             index,
-            from_json(data["nested_default"]) if "nested_default" in data else None,
+            translation_function_from_json(data["nested_default"]) if "nested_default" in data else None,
         )
 
     def to_json(self) -> JSONDict:

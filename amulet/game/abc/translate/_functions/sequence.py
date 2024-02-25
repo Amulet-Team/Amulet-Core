@@ -5,7 +5,7 @@ from collections.abc import Sequence
 
 from .abc import (
     AbstractBaseTranslationFunction,
-    from_json,
+    translation_function_from_json,
     JSONCompatible,
     JSONList,
     Data,
@@ -39,7 +39,7 @@ class TranslationFunctionSequence(AbstractBaseTranslationFunction):
     @classmethod
     def from_json(cls, data: JSONCompatible) -> Self:
         assert isinstance(data, Sequence)
-        return cls([from_json(func) for func in data])
+        return cls([translation_function_from_json(func) for func in data])
 
     def to_json(self) -> JSONList:
         return [func.to_json() for func in self._functions]

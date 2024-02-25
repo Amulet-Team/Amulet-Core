@@ -9,7 +9,7 @@ from .abc import (
     JSONCompatible,
     JSONDict,
     Data,
-    from_json,
+    translation_function_from_json,
 )
 from ._state import SrcData, SrcDataExtra, StateData, DstData
 
@@ -59,7 +59,7 @@ class MultiBlock(AbstractBaseTranslationFunction):
             assert isinstance(y, int)
             assert isinstance(z, int)
             coords = (x, y, z)
-            function = from_json(block["functions"])
+            function = translation_function_from_json(block["functions"])
             blocks.append((coords, function))
         return cls(blocks)
 

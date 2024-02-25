@@ -9,7 +9,7 @@ from .abc import (
     JSONCompatible,
     JSONDict,
     immutable_from_snbt,
-    from_json,
+    translation_function_from_json,
     Data,
 )
 from ._frozen import FrozenMapping
@@ -68,7 +68,7 @@ class MapProperties(AbstractBaseTranslationFunction):
             for snbt, func in mapping.items():
                 assert isinstance(snbt, str)
                 assert isinstance(func, dict | list)
-                values[immutable_from_snbt(snbt)] = from_json(func)
+                values[immutable_from_snbt(snbt)] = translation_function_from_json(func)
             properties[property_name] = values
         return cls(properties)
 

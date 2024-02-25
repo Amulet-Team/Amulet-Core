@@ -7,7 +7,7 @@ from .abc import (
     AbstractBaseTranslationFunction,
     JSONCompatible,
     JSONDict,
-    from_json,
+    translation_function_from_json,
     Data,
     follow_nbt_path,
 )
@@ -68,9 +68,9 @@ class MapNBT(AbstractBaseTranslationFunction):
             default = None
         else:
             assert isinstance(raw_default, list)
-            default = from_json(raw_default)
+            default = translation_function_from_json(raw_default)
         return cls(
-            {key: from_json(value) for key, value in cases.items()},
+            {key: translation_function_from_json(value) for key, value in cases.items()},
             default,
         )
 
