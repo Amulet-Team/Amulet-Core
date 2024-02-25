@@ -140,6 +140,9 @@ class BlockToUniversalTranslator:
         self._universal_version = universal_version
         return cls._instances.setdefault(self, self)
 
+    def __hash__(self) -> int:
+        return hash((self._src_spec, self._translation, self._universal_version))
+
     def run(
         self,
         block: Block,
@@ -225,6 +228,9 @@ class BlockFromUniversalTranslator:
         self._translation = translation
         self._target_version = target_version
         return cls._instances.setdefault(self, self)
+
+    def __hash__(self) -> int:
+        return hash((self._src_spec, self._translation, self._target_version))
 
     def run(
         self,
