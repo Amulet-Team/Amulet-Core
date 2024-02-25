@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Callable, TYPE_CHECKING, TypeVar
+from typing import Callable, TYPE_CHECKING, TypeVar, Any
 from collections.abc import Mapping, Collection
 from copy import deepcopy
+from weakref import ref
 
 from amulet.block import Block
 from amulet.block_entity import BlockEntity
@@ -20,12 +21,6 @@ if TYPE_CHECKING:
     from ._version import GameVersion
     from .translate import BlockToUniversalTranslator, BlockFromUniversalTranslator
 
-    def proxy(obj: T) -> T:
-        ...
-
-else:
-    from weakref import proxy
-
 
 class TranslationError(Exception):
     """An exception raised if the block could not be translated."""
@@ -37,8 +32,18 @@ class BlockData(ABC):
         game_version: GameVersion,
         specification: Mapping[str, Mapping[str, BlockSpec]],
     ) -> None:
-        self._game_version = proxy(game_version)
+        self._game_version_ref = ref(game_version)
         self._spec = specification
+
+    @property
+    def _game_version(self) -> GameVersion:
+        game = self._game_version_ref()
+        if game is None:
+            raise ReferenceError("Referenced GameVersion no longer exists.")
+        return game
+
+    def __reduce__(self) -> Any:
+        return BlockData, (self._game_version, self._spec)
 
     def namespaces(self) -> Collection[str]:
         """An iterable of all the valid block namespaces."""
@@ -51,7 +56,6 @@ class BlockData(ABC):
     def get_specification(self, namespace: str, base_name: str) -> BlockSpec:
         return self._spec[namespace][base_name]
 
-    @abstractmethod
     def translate(
         self,
         target_platform: str,
