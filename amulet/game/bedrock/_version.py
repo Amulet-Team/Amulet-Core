@@ -64,8 +64,8 @@ class BedrockGameVersion(GameVersion):
         assert init["platform"] == "bedrock"
         min_data_version = VersionNumber(init["data_version"])
         max_data_version = VersionNumber(init["data_version"])  # TODO: Add max field
-        min_semantic_version = VersionNumber(init["version"])
-        max_semantic_version = VersionNumber(init["version"])  # TODO: Add max field
+        min_semantic_version = VersionNumber(*init["version"])
+        max_semantic_version = VersionNumber(*init["version"])  # TODO: Add max field
 
         block_format = {
             "pseudo-numerical": "numerical",

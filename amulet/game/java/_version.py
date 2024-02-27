@@ -64,8 +64,8 @@ class JavaGameVersion(GameVersion):
         assert init["platform"] == "java"
         min_data_version = VersionNumber(init["data_version"])
         max_data_version = VersionNumber(init["data_version"])  # TODO: Add max field
-        min_semantic_version = VersionNumber(init["version"])
-        max_semantic_version = VersionNumber(init["version"])  # TODO: Add max field
+        min_semantic_version = VersionNumber(*init["version"])
+        max_semantic_version = VersionNumber(*init["version"])  # TODO: Add max field
 
         block_format = init["block_format"]
         universal_version = get_game_version("universal", VersionNumber(1))

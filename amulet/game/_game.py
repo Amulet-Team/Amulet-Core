@@ -10,13 +10,13 @@ import glob
 import json
 
 from amulet.version import VersionNumber
-from .java import JavaGameVersion
-from .bedrock import BedrockGameVersion
-from ._universal import UniversalVersion
 
 
 if TYPE_CHECKING:
     from .abc import GameVersion
+    from ._universal import UniversalVersion
+    from .java import JavaGameVersion
+    from .bedrock import BedrockGameVersion
 
 
 _versions: dict[str, list[GameVersion]] | None = None
@@ -36,6 +36,10 @@ def _get_versions() -> dict[str, list[GameVersion]]:
                 json_path = os.environ.get("AMULET_GAME_VERSION_JSON_PATH")
                 if json_path is None:
                     raise RuntimeError("Could not find game version data.")
+                from .java import JavaGameVersion
+                from .bedrock import BedrockGameVersion
+                from ._universal import UniversalVersion
+
                 _versions = {}
                 _versions.setdefault("universal", []).append(
                     UniversalVersion.from_json(

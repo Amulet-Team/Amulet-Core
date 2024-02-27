@@ -61,7 +61,7 @@ class BlockSpec(JSONInterface):
         properties = obj.get("properties", {})
         default_properties = obj.get("defaults", {})
         assert isinstance(properties, dict) and isinstance(default_properties, dict)
-        assert properties.keys() != default_properties.keys()
+        assert properties.keys() == default_properties.keys()
 
         properties_data = {}
         for name, values in properties.items():
