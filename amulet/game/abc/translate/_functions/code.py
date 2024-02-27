@@ -27,6 +27,8 @@ from ._code_functions.bedrock_moving_block_pos import (
 from ._code_functions.bedrock_sign import (
     to_universal as bedrock_sign_2u,
     from_universal as bedrock_sign_fu,
+    to_universal_120 as bedrock_sign_2u_120,
+    from_universal_120 as bedrock_sign_fu_120,
 )
 from ._code_functions.bedrock_skull_rotation import (
     to_universal as bedrock_skull_rotation_2u,
@@ -54,6 +56,8 @@ FunctionLUT: dict[str, Callable[[SrcData, StateData, DstData], None]] = {
     "bedrock_moving_block_pos_fu": bedrock_moving_block_pos_fu,
     "bedrock_sign_2u": bedrock_sign_2u,
     "bedrock_sign_fu": bedrock_sign_fu,
+    "bedrock_sign_2u_120": bedrock_sign_2u_120,
+    "bedrock_sign_fu_120": bedrock_sign_fu_120,
     "bedrock_skull_rotation_2u": bedrock_skull_rotation_2u,
 }
 
@@ -112,7 +116,7 @@ class Code(AbstractBaseTranslationFunction):
         outputs = check_list(raw_outputs, str)
         function = options["function"]
         assert isinstance(function, str)
-        assert function in FunctionLUT
+        assert function in FunctionLUT, function
         return cls(inputs, outputs, function)
 
     def to_json(self) -> JSONDict:
