@@ -62,12 +62,13 @@ class BedrockGameVersion(GameVersion):
         with open(os.path.join(version_path, "__init__.json")) as f:
             init = json.load(f)
         assert init["platform"] == "bedrock"
-        min_data_version = VersionNumber(init["data_version"])
-        max_data_version = VersionNumber(init["data_version"])  # TODO: Add max field
+        min_data_version = VersionNumber(init.get("data_version", -1))
+        max_data_version = VersionNumber(init.get("data_version", -1))  # TODO: Add max field
         min_semantic_version = VersionNumber(*init["version"])
         max_semantic_version = VersionNumber(*init["version"])  # TODO: Add max field
 
         block_format = {
+            "numerical": "numerical",
             "pseudo-numerical": "numerical",
             "nbt-blockstate": "blockstate",
         }[init["block_format"]]
