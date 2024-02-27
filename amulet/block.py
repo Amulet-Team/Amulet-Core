@@ -385,12 +385,10 @@ class BlockStack(Sequence[Block]):
         return len(self._blocks)
 
     @overload
-    def __getitem__(self, index: int) -> Block:
-        ...
+    def __getitem__(self, index: int) -> Block: ...
 
     @overload
-    def __getitem__(self, index: slice) -> Sequence[Block]:
-        ...
+    def __getitem__(self, index: slice) -> Sequence[Block]: ...
 
     def __getitem__(self, item: int | slice) -> Block | Sequence[Block]:
         return self._blocks[item]

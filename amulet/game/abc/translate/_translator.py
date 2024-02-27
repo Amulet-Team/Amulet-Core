@@ -147,11 +147,13 @@ class BlockToUniversalTranslator:
         self,
         block: Block,
         block_entity: BlockEntity | None,
-        extra: tuple[
-            BlockCoordinates,
-            Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
-        ]
-        | None,
+        extra: (
+            tuple[
+                BlockCoordinates,
+                Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
+            ]
+            | None
+        ),
     ) -> tuple[Block, BlockEntity | None, bool, bool]:
         if extra is None:
             src_extra = None
@@ -238,11 +240,13 @@ class BlockFromUniversalTranslator:
         target_version: VersionNumber,
         block: Block,
         block_entity: BlockEntity | None,
-        extra: tuple[
-            BlockCoordinates,
-            Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
-        ]
-        | None,
+        extra: (
+            tuple[
+                BlockCoordinates,
+                Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
+            ]
+            | None
+        ),
     ) -> tuple[Block, BlockEntity | None, bool, bool] | tuple[Entity, None, bool, bool]:
         if extra is None:
             src_extra = None
@@ -330,7 +334,9 @@ class BlockFromUniversalTranslator:
             raise RuntimeError
 
 
-TranslationClsT = TypeVar("TranslationClsT", BlockToUniversalTranslator, BlockFromUniversalTranslator)
+TranslationClsT = TypeVar(
+    "TranslationClsT", BlockToUniversalTranslator, BlockFromUniversalTranslator
+)
 
 
 def load_json_block_translations(
@@ -343,15 +349,25 @@ def load_json_block_translations(
 ) -> dict[tuple[str, str], TranslationClsT]:
     translations = dict[tuple[str, str], TranslationClsT]()
     for file_path in glob.glob(
-        os.path.join(glob.escape(version_path), "block", block_format, direction, "*", "*", "*.json")
+        os.path.join(
+            glob.escape(version_path),
+            "block",
+            block_format,
+            direction,
+            "*",
+            "*",
+            "*.json",
+        )
     ):
-        *_, namespace, _, base_name = os.path.splitext(os.path.normpath(file_path))[0].split(os.sep)
+        *_, namespace, _, base_name = os.path.splitext(os.path.normpath(file_path))[
+            0
+        ].split(os.sep)
         with open(file_path) as f:
             data = json.load(f)
         translations[(namespace, base_name)] = translation_cls(
             get_src_spec(namespace, base_name),
             translation_function_from_json(data),
-            target_version
+            target_version,
         )
     return translations
 
@@ -360,11 +376,13 @@ class EntityToUniversalTranslator:
     def run(
         self,
         entity: Entity,
-        extra: tuple[
-            BlockCoordinates,
-            Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
-        ]
-        | None,
+        extra: (
+            tuple[
+                BlockCoordinates,
+                Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
+            ]
+            | None
+        ),
     ) -> tuple[Block, BlockEntity | None, bool, bool]:
         raise NotImplementedError
 
@@ -373,10 +391,12 @@ class EntityFromUniversalTranslator:
     def run(
         self,
         entity: Entity | None,
-        extra: tuple[
-            BlockCoordinates,
-            Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
-        ]
-        | None,
+        extra: (
+            tuple[
+                BlockCoordinates,
+                Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
+            ]
+            | None
+        ),
     ) -> tuple[Block, BlockEntity | None, bool] | tuple[Entity, None, bool]:
         raise NotImplementedError

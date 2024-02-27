@@ -47,8 +47,9 @@ class NewNBTItem(AbstractBaseTranslationFunction):
         value: NBTTagT,
         outer_name: str = "",
         outer_type: type[CompoundTag] | type[ListTag] = CompoundTag,
-        path: Sequence[tuple[str | int, type[CompoundTag] | type[ListTag]]]
-        | None = None,
+        path: (
+            Sequence[tuple[str | int, type[CompoundTag] | type[ListTag]]] | None
+        ) = None,
     ) -> NewNBTItem:
         self = super().__new__(cls)
         assert isinstance(outer_name, str)

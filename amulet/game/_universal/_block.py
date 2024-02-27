@@ -15,11 +15,13 @@ class UniversalBlockData(BlockData):
         self,
         block: Block,
         block_entity: BlockEntity | None,
-        extra: tuple[
-            BlockCoordinates,
-            Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
-        ]
-        | None,
+        extra: (
+            tuple[
+                BlockCoordinates,
+                Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
+            ]
+            | None
+        ),
     ) -> tuple[Block, BlockEntity | None, bool]:
         # Converting universal to universal so just return as is
         if not self._game_version.supports_version(block.platform, block.version):
@@ -32,11 +34,13 @@ class UniversalBlockData(BlockData):
         target_version: VersionNumber,
         block: Block,
         block_entity: BlockEntity | None,
-        extra: tuple[
-            BlockCoordinates,
-            Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
-        ]
-        | None,
+        extra: (
+            tuple[
+                BlockCoordinates,
+                Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
+            ]
+            | None
+        ),
     ) -> tuple[Block, BlockEntity | None, bool] | tuple[Entity, None, bool]:
         # Converting universal to universal so just return as is
         if not self._game_version.supports_version(block.platform, block.version):

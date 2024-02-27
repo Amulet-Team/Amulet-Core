@@ -70,7 +70,10 @@ class MapNBT(AbstractBaseTranslationFunction):
             assert isinstance(raw_default, list)
             default = translation_function_from_json(raw_default)
         return cls(
-            {key: translation_function_from_json(value) for key, value in cases.items()},
+            {
+                key: translation_function_from_json(value)
+                for key, value in cases.items()
+            },
             default,
         )
 

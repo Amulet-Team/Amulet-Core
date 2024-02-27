@@ -64,12 +64,10 @@ class IdMap(Mapping[int, tuple[str, str]]):
         self._int_to_str[index] = block_id
 
     @overload
-    def __getitem__(self, key: int) -> tuple[str, str]:
-        ...
+    def __getitem__(self, key: int) -> tuple[str, str]: ...
 
     @overload
-    def __getitem__(self, key: tuple[str, str]) -> int:
-        ...
+    def __getitem__(self, key: tuple[str, str]) -> int: ...
 
     def __getitem__(self, key: int | tuple[str, str]) -> int | tuple[str, str]:
         if isinstance(key, int):
@@ -320,13 +318,13 @@ class BedrockRawLevel(
                 if dimension not in self._o.dimensions:
                     if alias is None:
                         alias = f"DIM{dimension}"
-                    self._o.dimensions[dimension] = self._o.dimensions[
-                        alias
-                    ] = BedrockRawDimension(
-                        self,
-                        dimension,
-                        alias,
-                        dimenion_bounds.get(alias, DefaultSelection),
+                    self._o.dimensions[dimension] = self._o.dimensions[alias] = (
+                        BedrockRawDimension(
+                            self,
+                            dimension,
+                            alias,
+                            dimenion_bounds.get(alias, DefaultSelection),
+                        )
                     )
                     dimensions.add(alias)
 

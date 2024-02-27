@@ -85,7 +85,7 @@ class JavaGameVersion(GameVersion):
             "to_universal",
             BlockToUniversalTranslator,
             lambda namespace, base_name: block_spec[namespace][base_name],
-            universal_version
+            universal_version,
         )
         block_from_universal = load_json_block_translations(
             version_path,
@@ -93,7 +93,7 @@ class JavaGameVersion(GameVersion):
             "from_universal",
             BlockFromUniversalTranslator,
             universal_version.block.get_specification,
-            self
+            self,
         )
 
         waterloggable = dict[tuple[str, str], Waterloggable]()
@@ -125,7 +125,7 @@ class JavaGameVersion(GameVersion):
             block_to_universal,
             block_from_universal,
             numerical_block_map,
-            waterloggable
+            waterloggable,
         )
 
         return self

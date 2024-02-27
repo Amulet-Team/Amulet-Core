@@ -69,7 +69,7 @@ class BedrockGameVersion(GameVersion):
 
         block_format = {
             "pseudo-numerical": "numerical",
-            "nbt-blockstate": "blockstate"
+            "nbt-blockstate": "blockstate",
         }[init["block_format"]]
         universal_version = get_game_version("universal", VersionNumber(1))
 
@@ -88,7 +88,7 @@ class BedrockGameVersion(GameVersion):
             "to_universal",
             BlockToUniversalTranslator,
             lambda namespace, base_name: block_spec[namespace][base_name],
-            universal_version
+            universal_version,
         )
         block_from_universal = load_json_block_translations(
             version_path,
@@ -96,7 +96,7 @@ class BedrockGameVersion(GameVersion):
             "from_universal",
             BlockFromUniversalTranslator,
             universal_version.block.get_specification,
-            self
+            self,
         )
 
         numerical_block_map = {}

@@ -103,9 +103,7 @@ def raw_to_native(
                 section_data[: 2**15], dtype=numpy.uint8
             ).astype(numpy.uint16)
             block_data = from_nibble_array(
-                numpy.frombuffer(
-                    section_data[2**15 : 2**15 + 2**14], dtype=numpy.uint8
-                )
+                numpy.frombuffer(section_data[2**15 : 2**15 + 2**14], dtype=numpy.uint8)
             )
 
             # there is other data here but we are going to skip over it
@@ -215,9 +213,7 @@ def _load_subchunks(
                 data[1 : 1 + 2**12], dtype=numpy.uint8
             ).astype(numpy.uint16)
             block_data = from_nibble_array(
-                numpy.frombuffer(
-                    data[1 + 2**12 : 1 + 2**12 + 2**11], dtype=numpy.uint8
-                )
+                numpy.frombuffer(data[1 + 2**12 : 1 + 2**12 + 2**11], dtype=numpy.uint8)
             )
             numerical_palette, block_array = fast_unique(
                 numpy.transpose(

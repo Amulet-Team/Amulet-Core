@@ -52,12 +52,10 @@ class Palette(VersionRangeContainer, Sequence[T], ABC):
         return len(self._index_to_item)
 
     @overload
-    def __getitem__(self, index: int) -> T:
-        ...
+    def __getitem__(self, index: int) -> T: ...
 
     @overload
-    def __getitem__(self, index: slice) -> Sequence[T]:
-        ...
+    def __getitem__(self, index: slice) -> Sequence[T]: ...
 
     def __getitem__(self, item: int | slice) -> T | Sequence[T]:
         return self._index_to_item[item]

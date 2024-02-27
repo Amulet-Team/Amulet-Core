@@ -46,12 +46,10 @@ class VersionNumber(Sequence[int]):
         return self._v[: self._last_non_zero]
 
     @overload
-    def __getitem__(self, index: int) -> int:
-        ...
+    def __getitem__(self, index: int) -> int: ...
 
     @overload
-    def __getitem__(self, index: slice) -> Sequence[int]:
-        ...
+    def __getitem__(self, index: slice) -> Sequence[int]: ...
 
     def __getitem__(self, index: int | slice) -> int | Sequence[int]:
         return self._v[index]

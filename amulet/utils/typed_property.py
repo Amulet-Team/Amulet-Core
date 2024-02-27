@@ -74,12 +74,10 @@ class TypedProperty(Generic[GetT, SetT]):
         self._name = name
 
     @overload
-    def __get__(self, obj: Any, objtype: None = None) -> TypedProperty:
-        ...
+    def __get__(self, obj: Any, objtype: None = None) -> TypedProperty: ...
 
     @overload
-    def __get__(self, obj: Any, objtype: Any = None) -> GetT:
-        ...
+    def __get__(self, obj: Any, objtype: Any = None) -> GetT: ...
 
     def __get__(self, obj: Any, objtype: Any = None) -> GetT | TypedProperty:
         if obj is None:

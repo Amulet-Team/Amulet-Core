@@ -592,9 +592,7 @@ class SelectionBox(AbstractBaseSelection):
             points_array.T,
         ).T[:, :3]
 
-    def _iter_transformed_boxes(
-        self, transform: numpy.ndarray
-    ) -> Generator[
+    def _iter_transformed_boxes(self, transform: numpy.ndarray) -> Generator[
         Tuple[
             float,  # progress
             SelectionBox,  # The sub-chunk box.

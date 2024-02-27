@@ -318,8 +318,7 @@ class RawTextComponent:
     @classmethod
     def from_section_text(
         cls, section_text: str, section_parser: type[AbstractSectionParser]
-    ) -> RawTextComponent:
-        ...
+    ) -> RawTextComponent: ...
 
     @overload
     @classmethod
@@ -328,8 +327,7 @@ class RawTextComponent:
         section_text: str,
         section_parser: type[AbstractSectionParser],
         split_newline: Literal[False],
-    ) -> RawTextComponent:
-        ...
+    ) -> RawTextComponent: ...
 
     @overload
     @classmethod
@@ -338,8 +336,7 @@ class RawTextComponent:
         section_text: str,
         section_parser: type[AbstractSectionParser],
         split_newline: Literal[True],
-    ) -> List[RawTextComponent]:
-        ...
+    ) -> List[RawTextComponent]: ...
 
     @classmethod
     def from_section_text(

@@ -15,14 +15,11 @@ class SignalInstance(Protocol):
         self,
         slot: Union[Callable, SignalInstance],
         type: Union[None, PySide6.QtCore.Qt.ConnectionType] = ...,
-    ):
-        ...
+    ): ...
 
-    def disconnect(self, slot: Optional[Union[Callable, SignalInstance]] = None):
-        ...
+    def disconnect(self, slot: Optional[Union[Callable, SignalInstance]] = None): ...
 
-    def emit(self, *args: Any):
-        ...
+    def emit(self, *args: Any): ...
 
 
 _signal_instance_constructor: Optional[SignalInstanceConstructor] = None
@@ -61,12 +58,10 @@ class Signal:
         self._arguments = arguments
 
     @overload
-    def __get__(self, instance: None, owner: Optional[Any]) -> Signal:
-        ...
+    def __get__(self, instance: None, owner: Optional[Any]) -> Signal: ...
 
     @overload
-    def __get__(self, instance: Any, owner: Optional[Any]) -> SignalInstance:
-        ...
+    def __get__(self, instance: Any, owner: Optional[Any]) -> SignalInstance: ...
 
     def __get__(self, instance, owner):
         if instance is None:
@@ -90,8 +85,7 @@ class SignalInstanceConstructor(Protocol):
         name: str,
         arguments: list[str],
         instance: Any,
-    ) -> SignalInstance:
-        ...
+    ) -> SignalInstance: ...
 
 
 def set_signal_instance_constructor(constructor: SignalInstanceConstructor):

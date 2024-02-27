@@ -20,8 +20,7 @@ class ResourceId(Protocol):
         """A constant hash"""
         ...
 
-    def __eq__(self, other: Any) -> bool:
-        ...
+    def __eq__(self, other: Any) -> bool: ...
 
     def __bytes__(self) -> bytes:
         """A constant bytes representation"""

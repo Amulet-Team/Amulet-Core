@@ -325,9 +325,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                 raise SpongeSchemWriteError(
                     "The structure is too large to be exported to a Sponge Schematic file. It must be 2^16 - 1 at most in each dimension."
                 )
-            overflowed_shape = [
-                s if s < 2**15 else s - 2**16 for s in selection.shape
-            ]
+            overflowed_shape = [s if s < 2**15 else s - 2**16 for s in selection.shape]
             tag = CompoundTag(
                 {
                     "Version": IntTag(2),

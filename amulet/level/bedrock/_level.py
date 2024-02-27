@@ -171,9 +171,9 @@ class BedrockLevel(
             raw_dimension = self.raw.get_dimension(dimension)
             public_dimension_id = raw_dimension.dimension
             internal_dimension_id = raw_dimension.internal_dimension
-            dimensions[internal_dimension_id] = dimensions[
-                public_dimension_id
-            ] = BedrockDimension(self, public_dimension_id)
+            dimensions[internal_dimension_id] = dimensions[public_dimension_id] = (
+                BedrockDimension(self, public_dimension_id)
+            )
         return dimensions[dimension]
 
     @property

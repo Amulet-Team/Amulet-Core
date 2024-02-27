@@ -28,17 +28,25 @@ def _get_versions() -> dict[str, list[GameVersion]]:
     with _lock:
         if _versions is None:
             try:
-                with open(os.path.join(os.path.dirname(__file__), "versions.pkl"), "rb") as pkl:
+                with open(
+                    os.path.join(os.path.dirname(__file__), "versions.pkl"), "rb"
+                ) as pkl:
                     _versions = pickle.load(pkl)
             except Exception:
                 json_path = os.environ.get("AMULET_GAME_VERSION_JSON_PATH")
                 if json_path is None:
                     raise RuntimeError("Could not find game version data.")
                 _versions = {}
-                _versions.setdefault("universal", []).append(UniversalVersion.from_json(os.path.join(
-                    json_path, "versions", "universal"
-                )))
-                for init_path in glob.glob(os.path.join(glob.escape(json_path), "versions", "*", "__init__.json")):
+                _versions.setdefault("universal", []).append(
+                    UniversalVersion.from_json(
+                        os.path.join(json_path, "versions", "universal")
+                    )
+                )
+                for init_path in glob.glob(
+                    os.path.join(
+                        glob.escape(json_path), "versions", "*", "__init__.json"
+                    )
+                ):
                     version_path = os.path.dirname(init_path)
 
                     with open(os.path.join(version_path, "__init__.json")) as f:
@@ -46,9 +54,13 @@ def _get_versions() -> dict[str, list[GameVersion]]:
 
                     platform = init["platform"]
                     if platform == "bedrock":
-                        _versions.setdefault("bedrock", []).append(BedrockGameVersion.from_json(version_path))
+                        _versions.setdefault("bedrock", []).append(
+                            BedrockGameVersion.from_json(version_path)
+                        )
                     elif platform == "java":
-                        _versions.setdefault("java", []).append(JavaGameVersion.from_json(version_path))
+                        _versions.setdefault("java", []).append(
+                            JavaGameVersion.from_json(version_path)
+                        )
                     elif platform == "universal":
                         pass
                     else:
@@ -72,18 +84,15 @@ def game_platforms() -> list[str]:
 
 
 @overload
-def game_versions(platform: Literal["java"]) -> Sequence[JavaGameVersion]:
-    ...
+def game_versions(platform: Literal["java"]) -> Sequence[JavaGameVersion]: ...
 
 
 @overload
-def game_versions(platform: Literal["bedrock"]) -> Sequence[BedrockGameVersion]:
-    ...
+def game_versions(platform: Literal["bedrock"]) -> Sequence[BedrockGameVersion]: ...
 
 
 @overload
-def game_versions(platform: str) -> Sequence[GameVersion]:
-    ...
+def game_versions(platform: str) -> Sequence[GameVersion]: ...
 
 
 def game_versions(platform: str) -> Sequence[GameVersion]:
@@ -102,20 +111,17 @@ def game_versions(platform: str) -> Sequence[GameVersion]:
 @overload
 def get_game_version(
     platform: Literal["java"], version_number: VersionNumber
-) -> JavaGameVersion:
-    ...
+) -> JavaGameVersion: ...
 
 
 @overload
 def get_game_version(
     platform: Literal["bedrock"], version_number: VersionNumber
-) -> BedrockGameVersion:
-    ...
+) -> BedrockGameVersion: ...
 
 
 @overload
-def get_game_version(platform: str, version_number: VersionNumber) -> GameVersion:
-    ...
+def get_game_version(platform: str, version_number: VersionNumber) -> GameVersion: ...
 
 
 @cache  # type: ignore

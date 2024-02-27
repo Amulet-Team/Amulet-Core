@@ -62,11 +62,13 @@ class BlockData(ABC):
         target_version: VersionNumber,
         block: Block,
         block_entity: BlockEntity | None = None,
-        extra: tuple[
-            BlockCoordinates,
-            Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
-        ]
-        | None = None,
+        extra: (
+            tuple[
+                BlockCoordinates,
+                Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
+            ]
+            | None
+        ) = None,
     ) -> tuple[Block, BlockEntity | None, bool] | tuple[Entity, None, bool]:
         """
         Translate a block from this version to the output version specified.
@@ -111,11 +113,13 @@ class BlockData(ABC):
         self,
         block: Block,
         block_entity: BlockEntity | None,
-        extra: tuple[
-            BlockCoordinates,
-            Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
-        ]
-        | None,
+        extra: (
+            tuple[
+                BlockCoordinates,
+                Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
+            ]
+            | None
+        ),
     ) -> tuple[Block, BlockEntity | None, bool]:
         """
         Convert a block to the universal format.
@@ -143,11 +147,13 @@ class BlockData(ABC):
         target_version: VersionNumber,
         block: Block,
         block_entity: BlockEntity | None,
-        extra: tuple[
-            BlockCoordinates,
-            Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
-        ]
-        | None,
+        extra: (
+            tuple[
+                BlockCoordinates,
+                Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
+            ]
+            | None
+        ),
     ) -> tuple[Block, BlockEntity | None, bool] | tuple[Entity, None, bool]:
         """
         Convert a block to the universal format.
@@ -193,11 +199,13 @@ class DatabaseBlockData(BlockData):
         self,
         block: Block,
         block_entity: BlockEntity | None,
-        extra: tuple[
-            BlockCoordinates,
-            Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
-        ]
-        | None,
+        extra: (
+            tuple[
+                BlockCoordinates,
+                Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
+            ]
+            | None
+        ),
     ) -> tuple[Block, BlockEntity | None, bool]:
         if not self._game_version.supports_version(block.platform, block.version):
             raise ValueError("The block is not compatible with this version")
@@ -231,11 +239,13 @@ class DatabaseBlockData(BlockData):
         target_version: VersionNumber,
         block: Block,
         block_entity: BlockEntity | None,
-        extra: tuple[
-            BlockCoordinates,
-            Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
-        ]
-        | None,
+        extra: (
+            tuple[
+                BlockCoordinates,
+                Callable[[BlockCoordinates], tuple[Block, BlockEntity | None]],
+            ]
+            | None
+        ),
     ) -> tuple[Block, BlockEntity | None, bool] | tuple[Entity, None, bool]:
         if not self._game_version.supports_version(target_platform, target_version):
             raise ValueError("The target version is not compatible with this version")
