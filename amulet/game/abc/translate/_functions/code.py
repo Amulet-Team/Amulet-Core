@@ -12,8 +12,11 @@ from ._code_functions.banner_pattern import (
 )
 from ._code_functions.bedrock_chest_connection import (
     bedrock_chest_connection_self,
+    bedrock_chest_connection_self_120,
     bedrock_chest_connection_other_left,
+    bedrock_chest_connection_other_left_120,
     bedrock_chest_connection_other_right,
+    bedrock_chest_connection_other_right_120,
     from_universal as bedrock_chest_fu,
 )
 from ._code_functions.custom_name import (
@@ -47,16 +50,19 @@ FunctionLUT: dict[str, Callable[[SrcData, StateData, DstData], None]] = {
     "banner_pattern_2u": banner_pattern_2u,
     "banner_pattern_fu": banner_pattern_fu,
     "bedrock_chest_connection_other_left": bedrock_chest_connection_other_left,
+    "bedrock_chest_connection_other_left_120": bedrock_chest_connection_other_left_120,
     "bedrock_chest_connection_other_right": bedrock_chest_connection_other_right,
+    "bedrock_chest_connection_other_right_120": bedrock_chest_connection_other_right_120,
     "bedrock_chest_connection_self": bedrock_chest_connection_self,
+    "bedrock_chest_connection_self_120": bedrock_chest_connection_self_120,
     "bedrock_chest_fu": bedrock_chest_fu,
     "bedrock_cmd_custom_name_2u": bedrock_custom_name_2u,
     "bedrock_cmd_custom_name_fu": bedrock_custom_name_fu,
     "bedrock_moving_block_pos_2u": bedrock_moving_block_pos_2u,
     "bedrock_moving_block_pos_fu": bedrock_moving_block_pos_fu,
     "bedrock_sign_2u": bedrock_sign_2u,
-    "bedrock_sign_fu": bedrock_sign_fu,
     "bedrock_sign_2u_120": bedrock_sign_2u_120,
+    "bedrock_sign_fu": bedrock_sign_fu,
     "bedrock_sign_fu_120": bedrock_sign_fu_120,
     "bedrock_skull_rotation_2u": bedrock_skull_rotation_2u,
 }

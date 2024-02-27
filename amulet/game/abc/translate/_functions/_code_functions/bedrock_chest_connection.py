@@ -1,10 +1,11 @@
-from typing import Callable
-from amulet_nbt import CompoundTag, IntTag, ByteTag, StringTag
+from typing import Callable, Any
+from amulet_nbt import CompoundTag, IntTag, ByteTag, StringTag, AbstractBaseTag
 from .._state import SrcData, StateData, DstData
 
 
 def _bedrock_chest_connection(
-    connections: dict[tuple[int, int, int], StringTag]
+    facing_property: str,
+    connections: dict[tuple[Any, int, int], StringTag]
 ) -> Callable[[SrcData, StateData, DstData], None]:
     def main(src: SrcData, state: StateData, dst: DstData) -> None:
         nbt = src.nbt
@@ -34,14 +35,14 @@ def _bedrock_chest_connection(
             dst.extra_needed = True
             return
 
-        facing_direction = block.properties.get("facing_direction")
-        if not isinstance(facing_direction, IntTag):
+        facing_direction = block.properties.get(facing_property)
+        if not isinstance(facing_direction, AbstractBaseTag):
             return
 
         dx = pairx.py_int - extra.absolute_coordinates[0]
         dz = pairz.py_int - extra.absolute_coordinates[2]
 
-        connection = connections.get((facing_direction.py_int, dx, dz))
+        connection = connections.get((facing_direction.py_data, dx, dz))
         if connection is None:
             return
         dst.properties["connection"] = connection
@@ -50,6 +51,7 @@ def _bedrock_chest_connection(
 
 
 bedrock_chest_connection_other_left = _bedrock_chest_connection(
+"facing_direction",
     {
         (2, -1, 0): StringTag("left"),  # north
         (3, 1, 0): StringTag("left"),  # south
@@ -59,6 +61,7 @@ bedrock_chest_connection_other_left = _bedrock_chest_connection(
 )
 
 bedrock_chest_connection_other_right = _bedrock_chest_connection(
+    "facing_direction",
     {
         (2, 1, 0): StringTag("right"),  # north
         (3, -1, 0): StringTag("right"),  # south
@@ -68,6 +71,7 @@ bedrock_chest_connection_other_right = _bedrock_chest_connection(
 )
 
 bedrock_chest_connection_self = _bedrock_chest_connection(
+    "facing_direction",
     {
         (2, -1, 0): StringTag("right"),  # north
         (2, 1, 0): StringTag("left"),  # north
@@ -77,6 +81,40 @@ bedrock_chest_connection_self = _bedrock_chest_connection(
         (4, 0, -1): StringTag("left"),  # west
         (5, 0, -1): StringTag("right"),  # east
         (5, 0, 1): StringTag("left"),  # east
+    }
+)
+
+bedrock_chest_connection_other_left_120 = _bedrock_chest_connection(
+"minecraft:cardinal_direction",
+    {
+        ("north", -1, 0): StringTag("left"),  # north
+        ("south", 1, 0): StringTag("left"),  # south
+        ("west", 0, 1): StringTag("left"),  # west
+        ("east", 0, -1): StringTag("left"),  # east
+    }
+)
+
+bedrock_chest_connection_other_right_120 = _bedrock_chest_connection(
+    "minecraft:cardinal_direction",
+    {
+        ("north", 1, 0): StringTag("right"),  # north
+        ("south", -1, 0): StringTag("right"),  # south
+        ("west", 0, -1): StringTag("right"),  # west
+        ("east", 0, 1): StringTag("right"),  # east
+    }
+)
+
+bedrock_chest_connection_self_120 = _bedrock_chest_connection(
+    "minecraft:cardinal_direction",
+    {
+        ("north", -1, 0): StringTag("right"),  # north
+        ("north", 1, 0): StringTag("left"),  # north
+        ("south", 1, 0): StringTag("right"),  # south
+        ("south", -1, 0): StringTag("left"),  # south
+        ("west", 0, 1): StringTag("right"),  # west
+        ("west", 0, -1): StringTag("left"),  # west
+        ("east", 0, -1): StringTag("right"),  # east
+        ("east", 0, 1): StringTag("left"),  # east
     }
 )
 
