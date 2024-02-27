@@ -78,6 +78,10 @@ class AbstractBaseTranslationFunction(JSONInterface, ABC):
         _translation_functions[cls.Name] = cls
 
     @abstractmethod
+    def __reduce__(self) -> Any:
+        raise NotImplementedError
+
+    @abstractmethod
     def _data(self) -> Data:
         raise NotImplementedError
 

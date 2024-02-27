@@ -105,6 +105,9 @@ class Code(AbstractBaseTranslationFunction):
         self._function_name = function_name
         return cls._instances.setdefault(self, self)
 
+    def __reduce__(self) -> Any:
+        return Code, (self._inputs, self._outputs, self._function_name)
+
     def _data(self) -> Data:
         return self._inputs, self._outputs, self._function_name
 

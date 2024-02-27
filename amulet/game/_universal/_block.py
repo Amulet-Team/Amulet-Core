@@ -1,4 +1,3 @@
-from collections.abc import Mapping
 from typing import Callable
 
 from amulet.api.data_types import BlockCoordinates

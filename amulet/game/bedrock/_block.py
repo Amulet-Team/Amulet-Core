@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+from typing import Any
 
 from amulet.game.abc import (
     DatabaseBlockData,
@@ -24,6 +25,15 @@ class BedrockBlockData(DatabaseBlockData, BlockDataNumericalComponent):
         super().__init__(game_version, specification, to_universal, from_universal)
         self._num_to_str = numerical_map
         self._str_to_num = {v: k for k, v in self._num_to_str.items()}
+
+    def __getstate__(self) -> dict:
+        state = super().__getstate__()
+        state["_num_to_str"] = self._num_to_str
+        return state
+
+    def __setstate__(self, state: dict) -> None:
+        super().__setstate__(state)
+        self._num_to_str = state["_num_to_str"]
 
     def numerical_id_to_namespace_id(self, numerical_id: int) -> tuple[str, str]:
         return self._num_to_str[numerical_id]

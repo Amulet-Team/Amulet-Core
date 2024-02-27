@@ -35,15 +35,22 @@ class BlockData(ABC):
         self._game_version_ref = ref(game_version)
         self._spec = specification
 
+    def __getstate__(self) -> dict:
+        return {
+            "_game_version": self._game_version,
+            "_spec": self._spec
+        }
+
+    def __setstate__(self, state: dict) -> None:
+        self._game_version_ref = ref(state["_game_version"])
+        self._spec = state["_spec"]
+
     @property
     def _game_version(self) -> GameVersion:
         game = self._game_version_ref()
         if game is None:
             raise ReferenceError("Referenced GameVersion no longer exists.")
         return game
-
-    def __reduce__(self) -> Any:
-        return BlockData, (self._game_version, self._spec)
 
     def namespaces(self) -> Collection[str]:
         """An iterable of all the valid block namespaces."""
@@ -176,7 +183,12 @@ class BlockData(ABC):
         raise NotImplementedError
 
 
-class DatabaseBlockData(BlockData):
+class DatabaseBlockData(BlockData, ABC):
+    _to_universal: Mapping[tuple[str, str], BlockToUniversalTranslator]
+    _from_universal: Mapping[tuple[str, str], BlockFromUniversalTranslator]
+    _to_universal_cache: dict[Block, tuple[Block, BlockEntity | None, bool]]
+    _from_universal_cache: dict[Block, tuple[Block, BlockEntity | None, bool] | tuple[Entity, None, bool]]
+
     def __init__(
         self,
         game_version: GameVersion,
@@ -188,12 +200,21 @@ class DatabaseBlockData(BlockData):
         self._to_universal = to_universal
         self._from_universal = from_universal
         # Cache computed results so we don't need to recompute unnecessarily.
-        self._to_universal_cache: dict[
-            Block, tuple[Block, BlockEntity | None, bool]
-        ] = {}
-        self._from_universal_cache: dict[
-            Block, tuple[Block, BlockEntity | None, bool] | tuple[Entity, None, bool]
-        ] = {}
+        self._to_universal_cache = {}
+        self._from_universal_cache = {}
+
+    def __getstate__(self) -> dict:
+        state = super().__getstate__()
+        state["_to_universal"] = self._to_universal
+        state["_from_universal"] = self._from_universal
+        return state
+
+    def __setstate__(self, state: dict) -> None:
+        super().__setstate__(state)
+        self._to_universal = state["_to_universal"]
+        self._from_universal = state["_from_universal"]
+        self._to_universal_cache = {}
+        self._from_universal_cache = {}
 
     def to_universal(
         self,

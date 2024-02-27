@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Sequence, Self
+from typing import Sequence, Self, Any
 
 from amulet.api.data_types import BlockCoordinates
 from amulet.api.errors import ChunkLoadError
@@ -37,6 +37,9 @@ class MultiBlock(AbstractBaseTranslationFunction):
                 raise TypeError
             assert isinstance(func, AbstractBaseTranslationFunction)
         return cls._instances.setdefault(self, self)
+
+    def __reduce__(self) -> Any:
+        return MultiBlock, (self._blocks,)
 
     def _data(self) -> Data:
         return self._blocks

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Self
+from typing import Self, Any
 from collections.abc import Mapping
 
 from amulet.block import PropertyValueType, PropertyValueClasses
@@ -34,6 +34,9 @@ class NewProperties(AbstractBaseTranslationFunction):
         ):
             raise TypeError
         return cls._instances.setdefault(self, self)
+
+    def __reduce__(self) -> Any:
+        return NewProperties, (self._properties,)
 
     def _data(self) -> Data:
         return self._properties

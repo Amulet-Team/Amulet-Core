@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Self
+from typing import Self, Any
 
 from amulet_nbt import CompoundTag, ListTag, AbstractBaseNumericTag
 
@@ -42,6 +42,9 @@ class CarryNBT(AbstractBaseTranslationFunction):
         self._key = key
         self._tag_cls = tag_cls
         return cls._instances.setdefault(self, self)
+
+    def __reduce__(self) -> Any:
+        return CarryNBT, (self._outer_name, self._outer_type, self._path, self._key, self._tag_cls)
 
     def _data(self) -> Data:
         return (

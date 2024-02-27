@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Self
+from typing import Self, Any
 from collections.abc import Mapping
 
 from .abc import (
@@ -51,6 +51,9 @@ class MapNBT(AbstractBaseTranslationFunction):
         assert default is None or isinstance(default, AbstractBaseTranslationFunction)
         self._default = default
         return cls._instances.setdefault(self, self)
+
+    def __reduce__(self) -> Any:
+        return MapNBT, (self._cases, self._default)
 
     def _data(self) -> Data:
         return self._cases, self._default

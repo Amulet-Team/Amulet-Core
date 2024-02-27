@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Self
+from typing import Self, Any
 from amulet.block import Block
 from .abc import AbstractBaseTranslationFunction, JSONCompatible, JSONDict, Data
 from ._state import SrcData, StateData, DstData
@@ -18,6 +18,9 @@ class NewBlock(AbstractBaseTranslationFunction):
         self = super().__new__(cls)
         self._block = (namespace, base_name)
         return cls._instances.setdefault(self, self)
+
+    def __reduce__(self) -> Any:
+        return NewBlock, (self._block[0], self._block[1])
 
     def _data(self) -> Data:
         return self._block

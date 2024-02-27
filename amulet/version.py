@@ -37,6 +37,15 @@ class VersionNumber(Sequence[int]):
         self._cache[v] = self
         return self
 
+    def __getnewargs__(self) -> tuple[int, ...]:
+        return self._v
+
+    def __getstate__(self) -> dict:
+        return {}
+
+    def __setstate__(self, state: dict) -> None:
+        pass
+
     def cropped_version(self) -> tuple[int, ...]:
         """The version number with trailing zeros cut off."""
         if self._last_non_zero is None:

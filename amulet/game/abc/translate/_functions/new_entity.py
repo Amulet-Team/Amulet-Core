@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Self
+from typing import Self, Any
 
 from amulet.entity import Entity
 from .abc import AbstractBaseTranslationFunction, JSONCompatible, JSONDict, Data
@@ -19,6 +19,9 @@ class NewEntity(AbstractBaseTranslationFunction):
         self = super().__new__(cls)
         self._entity = (namespace, base_name)
         return cls._instances.setdefault(self, self)
+
+    def __reduce__(self) -> Any:
+        return NewEntity, (self._entity,)
 
     def _data(self) -> Data:
         return self._entity

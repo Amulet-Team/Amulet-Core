@@ -1,7 +1,7 @@
 from __future__ import annotations
 from enum import IntEnum
 from collections.abc import Mapping
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from amulet.game.abc import (
     DatabaseBlockData,
@@ -37,6 +37,17 @@ class JavaBlockData(DatabaseBlockData, BlockDataNumericalComponent):
         self._num_to_str = numerical_map
         self._str_to_num = {v: k for k, v in self._num_to_str.items()}
         self._waterloggable = waterloggable
+
+    def __getstate__(self) -> dict:
+        state = super().__getstate__()
+        state["_num_to_str"] = self._num_to_str
+        state["_waterloggable"] = self._waterloggable
+        return state
+
+    def __setstate__(self, state: dict) -> None:
+        super().__setstate__(state)
+        self._num_to_str = state["_num_to_str"]
+        self._waterloggable = state["_waterloggable"]
 
     def numerical_id_to_namespace_id(self, numerical_id: int) -> tuple[str, str]:
         return self._num_to_str[numerical_id]

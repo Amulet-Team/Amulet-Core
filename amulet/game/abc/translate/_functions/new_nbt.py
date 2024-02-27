@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import (
     Sequence,
     Self,
+    Any,
 )
 
 from amulet_nbt import (
@@ -85,6 +86,9 @@ class NewNBTItem(AbstractBaseTranslationFunction):
         self._snbt = value.to_snbt()
         self._value = value
         return cls._instances.setdefault(self, self)
+
+    def __reduce__(self) -> Any:
+        return NewNBTItem, (self._key, self._value, self._outer_name, self._outer_type, self._path)
 
     def _data(self) -> Data:
         return (
@@ -173,6 +177,9 @@ class NewNBT(AbstractBaseTranslationFunction):
         if not all(isinstance(nbt, NewNBTItem) for nbt in self._new_nbt):
             raise TypeError
         return cls._instances.setdefault(self, self)
+
+    def __reduce__(self) -> Any:
+        return NewNBT, (*self._new_nbt,)
 
     def _data(self) -> Data:
         return self._new_nbt

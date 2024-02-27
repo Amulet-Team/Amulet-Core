@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Self, TypeVar, cast
+from typing import Self, TypeVar, cast, Any
 from collections.abc import Mapping, Sequence, Iterable
 import logging
 
@@ -89,6 +89,9 @@ class WalkInputNBTOptions(AbstractBaseTranslationFunction):
         )
         self._nested_default = nested_default
         return cls._instances.setdefault(self, self)
+
+    def __reduce__(self) -> Any:
+        return WalkInputNBTOptions, (self._nbt_cls, self._self_default, self._functions, self._keys, self._index, self._nested_default)
 
     def _data(self) -> Data:
         return (
@@ -261,6 +264,9 @@ class WalkInputNBT(AbstractBaseTranslationFunction):
         self._walk_nbt = walk_nbt
         self._path = None if path is None else tuple(path)
         return cls._instances.setdefault(self, self)
+
+    def __reduce__(self) -> Any:
+        return WalkInputNBT, (self._walk_nbt, self._path)
 
     def _data(self) -> Data:
         return self._walk_nbt, self._path

@@ -33,6 +33,9 @@ class TranslationFunctionSequence(AbstractBaseTranslationFunction):
             raise TypeError
         return cls._instances.setdefault(self, self)
 
+    def __reduce__(self) -> Any:
+        return TranslationFunctionSequence, (self._functions,)
+
     def _data(self) -> Data:
         return self._functions
 
