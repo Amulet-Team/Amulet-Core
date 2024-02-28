@@ -69,8 +69,7 @@ class BlockData(GameVersionContainer, ABC):
             | None
         ) = None,
     ) -> tuple[Block, BlockEntity | None, bool] | tuple[Entity, None, bool]:
-        """
-        Translate a block from this version to the output version specified.
+        """Translate a block from this version to the target version specified.
 
         :param target_platform: The game platform to convert to.
         :param target_version: The game version number to convert to.
@@ -120,8 +119,8 @@ class BlockData(GameVersionContainer, ABC):
             | None
         ),
     ) -> tuple[Block, BlockEntity | None, bool]:
-        """
-        Convert a block to the universal format.
+        """Convert a block to the universal format.
+
         This method should be considered private.
 
         :meta private:
@@ -154,8 +153,8 @@ class BlockData(GameVersionContainer, ABC):
             | None
         ),
     ) -> tuple[Block, BlockEntity | None, bool] | tuple[Entity, None, bool]:
-        """
-        Convert a block to the universal format.
+        """Convert a block from the universal format.
+
         This method should be considered private.
 
         :meta private:

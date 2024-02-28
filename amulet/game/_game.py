@@ -37,14 +37,10 @@ def _compile_raw_versions() -> None:
 
         _versions = {}
         _versions.setdefault("universal", []).append(
-            UniversalVersion.from_json(
-                os.path.join(json_path, "versions", "universal")
-            )
+            UniversalVersion.from_json(os.path.join(json_path, "versions", "universal"))
         )
         for init_path in glob.glob(
-            os.path.join(
-                glob.escape(json_path), "versions", "*", "__init__.json"
-            )
+            os.path.join(glob.escape(json_path), "versions", "*", "__init__.json")
         ):
             version_path = os.path.dirname(init_path)
 
@@ -64,7 +60,9 @@ def _compile_raw_versions() -> None:
                 pass
             else:
                 raise RuntimeError
-        with open(os.path.join(os.path.dirname(__file__), "versions.pkl.gz"), "wb") as pkl:
+        with open(
+            os.path.join(os.path.dirname(__file__), "versions.pkl.gz"), "wb"
+        ) as pkl:
             pkl.write(gzip.compress(pickle.dumps(_versions)))
 
 
