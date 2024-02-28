@@ -47,6 +47,7 @@ class JavaBlockData(DatabaseBlockData, BlockDataNumericalComponent):
     def __setstate__(self, state: dict) -> None:
         super().__setstate__(state)
         self._num_to_str = state["_num_to_str"]
+        self._str_to_num = {v: k for k, v in self._num_to_str.items()}
         self._waterloggable = state["_waterloggable"]
 
     def numerical_id_to_namespace_id(self, numerical_id: int) -> tuple[str, str]:
