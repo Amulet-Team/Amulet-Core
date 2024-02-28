@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Callable, TYPE_CHECKING, TypeVar, Any
+from typing import Callable, TYPE_CHECKING, TypeVar
 from collections.abc import Mapping, Collection
 from copy import deepcopy
-from weakref import ref
 
 from amulet.block import Block
 from amulet.block_entity import BlockEntity
@@ -14,6 +13,7 @@ from amulet.version import VersionNumber
 from amulet.game import get_game_version
 
 from ._block_specification import BlockSpec
+from ._game_version_container import GameVersionContainer
 
 T = TypeVar("T")
 
@@ -26,31 +26,23 @@ class TranslationError(Exception):
     """An exception raised if the block could not be translated."""
 
 
-class BlockData(ABC):
+class BlockData(GameVersionContainer, ABC):
     def __init__(
         self,
         game_version: GameVersion,
         specification: Mapping[str, Mapping[str, BlockSpec]],
     ) -> None:
-        self._game_version_ref = ref(game_version)
+        super().__init__(game_version)
         self._spec = specification
 
     def __getstate__(self) -> dict:
-        return {
-            "_game_version": self._game_version,
-            "_spec": self._spec
-        }
+        state = super().__getstate__()
+        state["_spec"] = self._spec
+        return state
 
     def __setstate__(self, state: dict) -> None:
-        self._game_version_ref = ref(state["_game_version"])
+        super().__setstate__(state)
         self._spec = state["_spec"]
-
-    @property
-    def _game_version(self) -> GameVersion:
-        game = self._game_version_ref()
-        if game is None:
-            raise ReferenceError("Referenced GameVersion no longer exists.")
-        return game
 
     def namespaces(self) -> Collection[str]:
         """An iterable of all the valid block namespaces."""
