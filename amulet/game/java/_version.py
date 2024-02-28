@@ -3,8 +3,9 @@ from typing import Self
 import os
 import json
 
+from amulet.biome import Biome
 from amulet.game import get_game_version
-from amulet.game.abc import GameVersion, BiomeData, load_json_block_spec
+from amulet.game.abc import GameVersion, load_json_block_spec, load_json_biome_data
 from amulet.game.abc.translate import (
     BlockToUniversalTranslator,
     BlockFromUniversalTranslator,
@@ -13,10 +14,12 @@ from amulet.game.abc.translate import (
 from amulet.version import VersionNumber
 
 from ._block import JavaBlockData, Waterloggable
+from ._biome import JavaBiomeData
 
 
 class JavaGameVersion(GameVersion):
     _block: JavaBlockData
+    _biome: JavaBiomeData
 
     def __init__(
         self,
@@ -30,32 +33,6 @@ class JavaGameVersion(GameVersion):
         self._max_data_version = max_data_version
         self._min_semantic_version = min_semantic_version
         self._max_semantic_version = max_semantic_version
-
-    def supports_version(self, platform: str, version: VersionNumber) -> bool:
-        return platform == "java" and (
-            self._min_data_version <= version <= self._max_data_version
-            or self._min_semantic_version <= version <= self._max_semantic_version
-        )
-
-    @property
-    def platform(self) -> str:
-        return "java"
-
-    @property
-    def min_version(self) -> VersionNumber:
-        return self._min_data_version
-
-    @property
-    def max_version(self) -> VersionNumber:
-        return self._max_data_version
-
-    @property
-    def block(self) -> JavaBlockData:
-        return self._block
-
-    @property
-    def biome(self) -> BiomeData:
-        raise NotImplementedError
 
     @classmethod
     def from_json(cls, version_path: str) -> Self:
@@ -128,4 +105,69 @@ class JavaGameVersion(GameVersion):
             waterloggable,
         )
 
+        biomes, to_universal, from_universal = load_json_biome_data(version_path)
+        biome_namespace = dict[str, list[str]]()
+        for namespace, base_name in biomes:
+            biome_namespace.setdefault(namespace, []).append(base_name)
+
+        self._biome = JavaBiomeData(
+            self,
+            biome_namespace,
+            {
+                biome: Biome(
+                    "universal",
+                    VersionNumber(1),
+                    universal_namespace,
+                    universal_base_name,
+                )
+                for (
+                    biome,
+                    (universal_namespace, universal_base_name),
+                ) in to_universal.items()
+            },
+            {
+                Biome(
+                    "universal",
+                    VersionNumber(1),
+                    universal_namespace,
+                    universal_base_name,
+                ): biome
+                for (
+                    (universal_namespace, universal_base_name),
+                    biome,
+                ) in from_universal.items()
+            },
+            {
+                biome_id: biome
+                for biome, biome_id in biomes.items()
+                if biome_id is not None
+            },
+        )
+
         return self
+
+    def supports_version(self, platform: str, version: VersionNumber) -> bool:
+        return platform == "java" and (
+            self._min_data_version <= version <= self._max_data_version
+            or self._min_semantic_version <= version <= self._max_semantic_version
+        )
+
+    @property
+    def platform(self) -> str:
+        return "java"
+
+    @property
+    def min_version(self) -> VersionNumber:
+        return self._min_data_version
+
+    @property
+    def max_version(self) -> VersionNumber:
+        return self._max_data_version
+
+    @property
+    def block(self) -> JavaBlockData:
+        return self._block
+
+    @property
+    def biome(self) -> JavaBiomeData:
+        return self._biome

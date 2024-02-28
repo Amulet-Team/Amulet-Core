@@ -1,16 +1,18 @@
 from __future__ import annotations
-from typing import Self, Any
+from typing import Self
 import os
 import json
 
-from amulet.game.abc import GameVersion, BiomeData, load_json_block_spec
+from amulet.game.abc import GameVersion, load_json_block_spec, load_json_biome_data
 from amulet.version import VersionNumber
 
 from ._block import UniversalBlockData
+from _biome import UniversalBiomeData
 
 
 class UniversalVersion(GameVersion):
     _block: UniversalBlockData
+    _biome: UniversalBiomeData
 
     @classmethod
     def from_json(cls, version_path: str) -> Self:
@@ -29,6 +31,13 @@ class UniversalVersion(GameVersion):
             self,
             block_spec,
         )
+
+        biomes, _, _ = load_json_biome_data(version_path)
+        biomes_namespace = dict[str, list[str]]()
+        for namespace, base_name in biomes:
+            biomes_namespace.setdefault(namespace, []).append(base_name)
+
+        self._biome = UniversalBiomeData(self, biomes_namespace)
 
         return self
 
@@ -52,5 +61,5 @@ class UniversalVersion(GameVersion):
         return self._block
 
     @property
-    def biome(self) -> BiomeData:
-        raise NotImplementedError
+    def biome(self) -> UniversalBiomeData:
+        return self._biome
