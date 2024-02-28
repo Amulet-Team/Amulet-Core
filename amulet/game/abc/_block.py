@@ -179,7 +179,10 @@ class DatabaseBlockData(BlockData, ABC):
     _to_universal: Mapping[tuple[str, str], BlockToUniversalTranslator]
     _from_universal: Mapping[tuple[str, str], BlockFromUniversalTranslator]
     _to_universal_cache: dict[Block, tuple[Block, BlockEntity | None, bool]]
-    _from_universal_cache: dict[Block, tuple[Block, BlockEntity | None, bool] | tuple[Entity, None, bool]]
+    _from_universal_cache: dict[
+        tuple[Block, VersionNumber],
+        tuple[Block, BlockEntity | None, bool] | tuple[Entity, None, bool],
+    ]
 
     def __init__(
         self,
@@ -266,9 +269,13 @@ class DatabaseBlockData(BlockData, ABC):
         if block.platform != "universal":
             raise ValueError("The source block is not in the universal format")
 
+        cache_token = (block, target_version)
+
         if block_entity is None:
-            if block in self._from_universal_cache:
-                output, extra_output, extra_needed = self._from_universal_cache[block]
+            if cache_token in self._from_universal_cache:
+                output, extra_output, extra_needed = self._from_universal_cache[
+                    cache_token
+                ]
                 if isinstance(output, Block):
                     return output, deepcopy(extra_output), extra_needed
                 elif isinstance(output, Entity):
@@ -289,7 +296,7 @@ class DatabaseBlockData(BlockData, ABC):
 
         if isinstance(output, Block):
             if cacheable:
-                self._from_universal_cache[block] = (
+                self._from_universal_cache[cache_token] = (
                     output,
                     deepcopy(extra_output),
                     extra_needed,
@@ -297,7 +304,11 @@ class DatabaseBlockData(BlockData, ABC):
             return output, deepcopy(extra_output), extra_needed
         elif isinstance(output, Entity):
             if cacheable:
-                self._from_universal_cache[block] = deepcopy(output), None, extra_needed
+                self._from_universal_cache[cache_token] = (
+                    deepcopy(output),
+                    None,
+                    extra_needed,
+                )
             return deepcopy(output), None, extra_needed
 
 
