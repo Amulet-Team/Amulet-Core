@@ -12,6 +12,7 @@ import re
 import threading
 import logging
 from enum import IntEnum
+import lz4.block as lz4_block
 
 from amulet_nbt import NamedTag, load as load_nbt
 
@@ -33,6 +34,7 @@ class RegionFileVersion(IntEnum):
     VERSION_GZIP = 1
     VERSION_DEFLATE = 2
     VERSION_NONE = 3
+    VERSION_LZ4 = 4
 
 
 def _validate_region_coords(cx: int, cz: int):
@@ -47,6 +49,50 @@ def _compress(data: NamedTag) -> bytes:
     return b"\x02" + zlib.compress(data)
 
 
+LZ4_HEADER = struct.Struct("<8sBiii")
+LZ4_MAGIC = b"LZ4Block"
+COMPRESSION_METHOD_RAW = 0x10
+COMPRESSION_METHOD_LZ4 = 0x20
+
+
+def _decompress_lz4(data: bytes) -> bytes:
+    """The LZ4 compression format is a sequence of LZ4 blocks with some header data."""
+    # https://github.com/lz4/lz4-java/blob/7c931bef32d179ec3d3286ee71638b23ebde3459/src/java/net/jpountz/lz4/LZ4BlockInputStream.java#L200
+    decompressed: list[bytes] = []
+    index = 0
+    while index < len(data):
+        magic, token, compressed_length, original_length, checksum = LZ4_HEADER.unpack(
+            data[index : index + LZ4_HEADER.size]
+        )
+        index += LZ4_HEADER.size
+        compression_method = token & 0xF0
+        if (
+            magic != LZ4_MAGIC
+            or original_length < 0
+            or compressed_length < 0
+            or (original_length == 0 and compressed_length != 0)
+            or (original_length != 0 and compressed_length == 0)
+            or (
+                compression_method == COMPRESSION_METHOD_RAW
+                and original_length != compressed_length
+            )
+        ):
+            raise ValueError("LZ4 compressed block is corrupted.")
+        if compression_method == COMPRESSION_METHOD_RAW:
+            decompressed.append(data[index : index + original_length])
+            index += original_length
+        elif compression_method == COMPRESSION_METHOD_LZ4:
+            decompressed.append(
+                lz4_block.decompress(
+                    data[index : index + compressed_length], original_length
+                )
+            )
+            index += compressed_length
+        else:
+            raise ValueError("LZ4 compressed block is corrupted.")
+    return b"".join(decompressed)
+
+
 def _decompress(data: bytes) -> NamedTag:
     """Convert a bytes object into an NBTFile"""
     compress_type, data = data[0], data[1:]
@@ -56,6 +102,8 @@ def _decompress(data: bytes) -> NamedTag:
         return load_nbt(zlib.decompress(data), compressed=False)
     elif compress_type == RegionFileVersion.VERSION_NONE:
         return load_nbt(data, compressed=False)
+    elif compress_type == RegionFileVersion.VERSION_LZ4:
+        return load_nbt(_decompress_lz4(data), compressed=False)
     raise ChunkLoadError(f"Invalid compression type {compress_type}")
 
 
