@@ -61,23 +61,32 @@ def _decompress_lz4(data: bytes) -> bytes:
     decompressed: list[bytes] = []
     index = 0
     while index < len(data):
-        magic, token, compressed_length, original_length, checksum = LZ4_HEADER.unpack(data[index:index+LZ4_HEADER.size])
+        magic, token, compressed_length, original_length, checksum = LZ4_HEADER.unpack(
+            data[index : index + LZ4_HEADER.size]
+        )
         index += LZ4_HEADER.size
         compression_method = token & 0xF0
         if (
-            magic != LZ4_MAGIC or
-            original_length < 0 or
-            compressed_length < 0 or
-            (original_length == 0 and compressed_length != 0) or
-            (original_length != 0 and compressed_length == 0) or
-            (compression_method == COMPRESSION_METHOD_RAW and original_length != compressed_length)
+            magic != LZ4_MAGIC
+            or original_length < 0
+            or compressed_length < 0
+            or (original_length == 0 and compressed_length != 0)
+            or (original_length != 0 and compressed_length == 0)
+            or (
+                compression_method == COMPRESSION_METHOD_RAW
+                and original_length != compressed_length
+            )
         ):
             raise ValueError("LZ4 compressed block is corrupted.")
         if compression_method == COMPRESSION_METHOD_RAW:
-            decompressed.append(data[index:index+original_length])
+            decompressed.append(data[index : index + original_length])
             index += original_length
         elif compression_method == COMPRESSION_METHOD_LZ4:
-            decompressed.append(lz4_block.decompress(data[index:index+compressed_length], original_length))
+            decompressed.append(
+                lz4_block.decompress(
+                    data[index : index + compressed_length], original_length
+                )
+            )
             index += compressed_length
         else:
             raise ValueError("LZ4 compressed block is corrupted.")
