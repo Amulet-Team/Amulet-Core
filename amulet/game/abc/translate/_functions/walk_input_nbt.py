@@ -91,7 +91,14 @@ class WalkInputNBTOptions(AbstractBaseTranslationFunction):
         return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
-        return WalkInputNBTOptions, (self._nbt_cls, self._self_default, self._functions, self._keys, self._index, self._nested_default)
+        return WalkInputNBTOptions, (
+            self._nbt_cls,
+            self._self_default,
+            self._functions,
+            self._keys,
+            self._index,
+            self._nested_default,
+        )
 
     def _data(self) -> Data:
         return (

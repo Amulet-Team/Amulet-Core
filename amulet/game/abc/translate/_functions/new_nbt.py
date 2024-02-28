@@ -88,7 +88,13 @@ class NewNBTItem(AbstractBaseTranslationFunction):
         return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
-        return NewNBTItem, (self._key, self._value, self._outer_name, self._outer_type, self._path)
+        return NewNBTItem, (
+            self._key,
+            self._value,
+            self._outer_name,
+            self._outer_type,
+            self._path,
+        )
 
     def _data(self) -> Data:
         return (

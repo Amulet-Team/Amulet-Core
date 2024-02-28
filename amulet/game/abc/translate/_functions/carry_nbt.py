@@ -44,7 +44,13 @@ class CarryNBT(AbstractBaseTranslationFunction):
         return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
-        return CarryNBT, (self._outer_name, self._outer_type, self._path, self._key, self._tag_cls)
+        return CarryNBT, (
+            self._outer_name,
+            self._outer_type,
+            self._path,
+            self._key,
+            self._tag_cls,
+        )
 
     def _data(self) -> Data:
         return (

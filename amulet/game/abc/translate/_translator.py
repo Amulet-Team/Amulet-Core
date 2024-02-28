@@ -141,7 +141,11 @@ class BlockToUniversalTranslator:
         return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
-        return BlockToUniversalTranslator, (self._src_spec, self._translation, self._universal_version)
+        return BlockToUniversalTranslator, (
+            self._src_spec,
+            self._translation,
+            self._universal_version,
+        )
 
     def __hash__(self) -> int:
         return hash((self._src_spec, self._translation, self._universal_version))
@@ -235,7 +239,11 @@ class BlockFromUniversalTranslator:
         return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
-        return BlockToUniversalTranslator, (self._src_spec, self._translation, self._target_version)
+        return BlockToUniversalTranslator, (
+            self._src_spec,
+            self._translation,
+            self._target_version,
+        )
 
     def __hash__(self) -> int:
         return hash((self._src_spec, self._translation, self._target_version))
