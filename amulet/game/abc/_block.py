@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from .translate import BlockToUniversalTranslator, BlockFromUniversalTranslator
 
 
-class TranslationError(Exception):
+class BlockTranslationError(Exception):
     """An exception raised if the block could not be translated."""
 
 
@@ -83,6 +83,9 @@ class BlockData(GameVersionContainer, ABC):
             The first is a Block, optional BlockEntity and a bool.
             The second is an Entity, None and a bool.
             The bool specifies if block_location and get_block_callback are required to fully define the output data.
+        :raises:
+            ValueError: The arguments are incorrect. You did something wrong.
+            BlockTranslationError: The translator is not aware of the block. You should handle a sensible default.
         """
         target_game_version = get_game_version(target_platform, target_version)
         universal_block, universal_block_entity, extra_needed = self.to_universal(
@@ -133,8 +136,8 @@ class BlockData(GameVersionContainer, ABC):
         :return: A Block, optional BlockEntity and a bool.
             If the bool is True, the extra parameter is required to fully define the output data.
         :raises:
-            ValueError: If the block is not compatible with this version.
-            TranslationError: If the block does not exist in this version.
+            ValueError: The arguments are incorrect. You did something wrong.
+            BlockTranslationError: The translator is not aware of the block. You should handle a sensible default.
         """
         raise NotImplementedError
 
@@ -170,6 +173,9 @@ class BlockData(GameVersionContainer, ABC):
             Block, optional BlockEntity and a bool.
             Entity, None and a bool.
             If the bool is True, the extra parameter is required to fully define the output data.
+        :raises:
+            ValueError: The arguments are incorrect. You did something wrong.
+            BlockTranslationError: The translator is not aware of the block. You should handle a sensible default.
         """
         raise NotImplementedError
 
@@ -235,7 +241,7 @@ class DatabaseBlockData(BlockData, ABC):
         try:
             translator = self._to_universal[(block.namespace, block.base_name)]
         except KeyError:
-            raise TranslationError(
+            raise BlockTranslationError(
                 f"Block {block} does not exist in version {self._game_version.platform} {self._game_version.min_version}"
             )
 
@@ -285,7 +291,7 @@ class DatabaseBlockData(BlockData, ABC):
         try:
             translator = self._from_universal[(block.namespace, block.base_name)]
         except KeyError:
-            raise TranslationError(
+            raise BlockTranslationError(
                 f"Block {block} does not exist in version {self._game_version.platform} {self._game_version.min_version}"
             )
 
