@@ -41,6 +41,9 @@ class UniversalVersion(GameVersion):
 
         return self
 
+    def __repr__(self) -> str:
+        return f"UniversalVersion()"
+
     def supports_version(self, platform: str, version: VersionNumber) -> bool:
         return platform == "universal"
 

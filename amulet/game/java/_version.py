@@ -146,6 +146,9 @@ class JavaGameVersion(GameVersion):
 
         return self
 
+    def __repr__(self) -> str:
+        return f"JavaGameVersion({self.min_version!r})"
+
     def supports_version(self, platform: str, version: VersionNumber) -> bool:
         return platform == "java" and (
             self._min_data_version <= version <= self._max_data_version

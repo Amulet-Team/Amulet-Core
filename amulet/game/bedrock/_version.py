@@ -143,6 +143,9 @@ class BedrockGameVersion(GameVersion):
 
         return self
 
+    def __repr__(self) -> str:
+        return f"BedrockGameVersion({self.min_version!r})"
+
     @property
     def platform(self) -> str:
         return "bedrock"
