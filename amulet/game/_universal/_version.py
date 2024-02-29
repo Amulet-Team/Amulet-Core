@@ -7,7 +7,7 @@ from amulet.game.abc import GameVersion, load_json_block_spec, load_json_biome_d
 from amulet.version import VersionNumber
 
 from ._block import UniversalBlockData
-from _biome import UniversalBiomeData
+from ._biome import UniversalBiomeData
 
 
 class UniversalVersion(GameVersion):
