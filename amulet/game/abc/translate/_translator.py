@@ -246,7 +246,7 @@ class BlockFromUniversalTranslator:
         return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
-        return BlockToUniversalTranslator, (
+        return BlockFromUniversalTranslator, (
             self._src_spec,
             self._translation,
             self._target_version,
