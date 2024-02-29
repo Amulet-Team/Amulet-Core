@@ -103,6 +103,7 @@ class Block(PlatformVersionContainer):
         "_namespace",
         "_base_name",
         "_properties",
+        "_hash",
     )
 
     def __init__(
