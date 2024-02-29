@@ -11,9 +11,12 @@ class FrozenMapping(Mapping[K, V], Hashable):
     All values in the mapping must be hashable.
     """
 
+    _map: Mapping[K, V]
+    _h: int | None
+
     def __init__(self, mapping: Mapping) -> None:
         self._map: dict[K, V] = dict(mapping)
-        self._h = hash(frozenset(self._map.items()))
+        self._h = None
 
     def __getitem__(self, k: K) -> V:
         return self._map[k]
@@ -25,6 +28,8 @@ class FrozenMapping(Mapping[K, V], Hashable):
         return iter(self._map)
 
     def __hash__(self) -> int:
+        if self._h is None:
+            self._h = hash(frozenset(self._map.items()))
         return self._h
 
     def __eq__(self, other: Any) -> bool:
@@ -34,9 +39,12 @@ class FrozenMapping(Mapping[K, V], Hashable):
 
 
 class OrderedFrozenSet(Set[K], Hashable):
+    _map: dict[K, None]
+    _h: int | None
+
     def __init__(self, items: Iterable[K]) -> None:
-        self._map: dict[K, None] = dict.fromkeys(items)
-        self._h = hash(tuple(items))
+        self._map = dict.fromkeys(items)
+        self._h = None
 
     def __contains__(self, item: Any) -> bool:
         return item in self._map
@@ -48,6 +56,8 @@ class OrderedFrozenSet(Set[K], Hashable):
         yield from self._map
 
     def __hash__(self) -> int:
+        if self._h is None:
+            self._h = hash(tuple(self._map))
         return self._h
 
     def __eq__(self, other: Any) -> bool:

@@ -127,6 +127,7 @@ class BlockToUniversalTranslator:
     _src_spec: BlockSpec
     _translation: AbstractBaseTranslationFunction
     _universal_version: GameVersion
+    _hash: int | None
 
     def __new__(
         cls,
@@ -138,6 +139,7 @@ class BlockToUniversalTranslator:
         self._src_spec = src_spec
         self._translation = translation
         self._universal_version = universal_version
+        self._hash = None
         return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
@@ -148,7 +150,9 @@ class BlockToUniversalTranslator:
         )
 
     def __hash__(self) -> int:
-        return hash((self._src_spec, self._translation, self._universal_version))
+        if self._hash is None:
+            self._hash = hash((self._src_spec, self._translation, self._universal_version))
+        return self._hash
 
     def run(
         self,
@@ -225,6 +229,7 @@ class BlockFromUniversalTranslator:
     _src_spec: BlockSpec
     _translation: AbstractBaseTranslationFunction
     _target_version: GameVersion
+    _hash: int | None
 
     def __new__(
         cls,
@@ -236,6 +241,7 @@ class BlockFromUniversalTranslator:
         self._src_spec = src_spec
         self._translation = translation
         self._target_version = target_version
+        self._hash = None
         return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
@@ -246,7 +252,9 @@ class BlockFromUniversalTranslator:
         )
 
     def __hash__(self) -> int:
-        return hash((self._src_spec, self._translation, self._target_version))
+        if self._hash is None:
+            self._hash = hash((self._src_spec, self._translation, self._target_version))
+        return self._hash
 
     def run(
         self,

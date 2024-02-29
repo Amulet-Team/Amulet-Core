@@ -25,10 +25,14 @@ class PropertyValueSpec:
 
 
 class PropertySpec(Mapping[str, PropertyValueSpec], Hashable):
+    _properties: Mapping[str, PropertyValueSpec]
+    _hash: int | None
+
     def __init__(
         self, properties: Mapping[str, PropertyValueSpec] = MappingProxyType({})
     ):
         self._properties = dict(properties)
+        self._hash = None
 
     def __getitem__(self, name: str) -> PropertyValueSpec:
         return self._properties[name]
@@ -40,7 +44,9 @@ class PropertySpec(Mapping[str, PropertyValueSpec], Hashable):
         yield from self._properties
 
     def __hash__(self) -> int:
-        return hash(frozenset(self._properties.items()))
+        if self._hash is None:
+            self._hash = hash(frozenset(self._properties.items()))
+        return self._hash
 
 
 @dataclass(frozen=True)

@@ -44,6 +44,7 @@ _SNBTPropertiesPattern = re.compile(
 
 class BlockProperties(Mapping[str, PropertyValueType], Hashable):
     """An immutable and hashable mapping from strings to nbt objects."""
+    _hash: int | None
 
     def __init__(self, properties: Mapping[str, PropertyValueType]):
         self._properties = dict(properties)
@@ -53,7 +54,7 @@ class BlockProperties(Mapping[str, PropertyValueType], Hashable):
             isinstance(v, PropertyValueClasses) for v in self._properties.values()
         ):
             raise TypeError("values must be nbt")
-        self._hash = hash(tuple(sorted(self._properties.items())))
+        self._hash = None
 
     def __getitem__(self, key: str) -> PropertyValueType:
         return self._properties[key]
@@ -65,6 +66,8 @@ class BlockProperties(Mapping[str, PropertyValueType], Hashable):
         return iter(self._properties)
 
     def __hash__(self) -> int:
+        if self._hash is None:
+            self._hash = hash(tuple(sorted(self._properties.items())))
         return self._hash
 
 
@@ -94,6 +97,7 @@ class Block(PlatformVersionContainer):
     >>> stone = Block.from_string_blockstate("minecraft:stone")
     >>> water = Block.from_string_blockstate("minecraft:water[level=0]")
     """
+    _hash: int | None
 
     __slots__ = (
         "_namespace",
@@ -134,6 +138,7 @@ class Block(PlatformVersionContainer):
         self._namespace = str(namespace)
         self._base_name = str(base_name)
         self._properties = BlockProperties(properties)
+        self._hash = None
 
     @classmethod
     def from_string_blockstate(
@@ -219,7 +224,9 @@ class Block(PlatformVersionContainer):
         )
 
     def __hash__(self) -> int:
-        return hash(self._data())
+        if self._hash is None:
+            self._hash = hash(self._data())
+        return self._hash
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Block):
@@ -371,12 +378,16 @@ class BlockStack(Sequence[Block]):
     >>> blocks = list(waterlogged_stone)
     """
 
-    __slots__ = ("_blocks",)
+    _blocks: tuple[Block, ...]
+    _hash: int | None
+
+    __slots__ = ("_blocks", "_hash")
 
     def __init__(self, block: Block, *extra_blocks: Block):
         self._blocks = (block, *extra_blocks)
         if not all(isinstance(block, Block) for block in self._blocks):
             raise TypeError
+        self._hash = None
 
     def __repr__(self) -> str:
         return f"BlockStack({', '.join(map(repr, self._blocks))})"
@@ -394,7 +405,9 @@ class BlockStack(Sequence[Block]):
         return self._blocks[item]
 
     def __hash__(self) -> int:
-        return hash(self._blocks)
+        if self._hash is None:
+            self._hash = hash(self._blocks)
+        return self._hash
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, BlockStack):

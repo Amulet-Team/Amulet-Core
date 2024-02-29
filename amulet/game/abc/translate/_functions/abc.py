@@ -67,6 +67,12 @@ class Data(Protocol):
 
 class AbstractBaseTranslationFunction(JSONInterface, ABC):
     Name: str = ""
+    _hash: int | None
+
+    def __new__(cls) -> AbstractBaseTranslationFunction:
+        self = super().__new__(cls)
+        self._hash = None
+        return self
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         if cls.Name == "":
@@ -89,7 +95,9 @@ class AbstractBaseTranslationFunction(JSONInterface, ABC):
         return True
 
     def __hash__(self) -> int:
-        return hash(self._data())
+        if self._hash is None:
+            self._hash = hash(self._data())
+        return self._hash
 
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, self.__class__) and self._data() == other._data()
