@@ -3,6 +3,7 @@ from typing import Callable, Union, Sequence, TypeVar, Type, Any
 import json
 import glob
 import os
+from concurrent.futures import ThreadPoolExecutor
 
 from amulet_nbt import (
     load as load_nbt,
@@ -361,6 +362,11 @@ TranslationClsT = TypeVar(
 )
 
 
+def _read_file(path: str) -> str:
+    with open(path) as f:
+        return f.read()
+
+
 def load_json_block_translations(
     version_path: str,
     block_format: str,
@@ -370,7 +376,7 @@ def load_json_block_translations(
     target_version: GameVersion,
 ) -> dict[tuple[str, str], TranslationClsT]:
     translations = dict[tuple[str, str], TranslationClsT]()
-    for file_path in glob.glob(
+    paths = glob.glob(
         os.path.join(
             glob.escape(version_path),
             "block",
@@ -380,17 +386,17 @@ def load_json_block_translations(
             "*",
             "*.json",
         )
-    ):
-        *_, namespace, _, base_name = os.path.splitext(os.path.normpath(file_path))[
-            0
-        ].split(os.sep)
-        with open(file_path) as f:
-            data = json.load(f)
-        translations[(namespace, base_name)] = translation_cls(
-            get_src_spec(namespace, base_name),
-            translation_function_from_json(data),
-            target_version,
-        )
+    )
+    with ThreadPoolExecutor() as e:
+        for file_path, data in zip(paths, e.map(_read_file, paths)):
+            *_, namespace, _, base_name = os.path.splitext(os.path.normpath(file_path))[
+                0
+            ].split(os.sep)
+            translations[(namespace, base_name)] = translation_cls(
+                get_src_spec(namespace, base_name),
+                translation_function_from_json(json.loads(data)),
+                target_version,
+            )
     return translations
 
 
