@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from threading import RLock
 from abc import ABC, abstractmethod
 
-from amulet.utils.shareable_lock import LockError
+from amulet.utils.shareable_lock import LockNotAcquired
 from amulet.chunk import Chunk
 from amulet.api.data_types import DimensionID
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
@@ -216,7 +216,9 @@ class ChunkHandle(
 
     def _set(self, data: bytes) -> None:
         if not self._lock.acquire(False):
-            raise LockError("Cannot set a chunk if it is locked by another thread.")
+            raise LockNotAcquired(
+                "Cannot set a chunk if it is locked by another thread."
+            )
         try:
             history = self._history
             if not history.has_resource(self._key):
@@ -242,7 +244,7 @@ class ChunkHandle(
 
         :param chunk: The chunk data to set.
         :raises:
-            LockError: If the chunk is already locked by another thread.
+            LockNotAcquired: If the chunk is already locked by another thread.
         """
         self._validate_chunk(chunk)
         self._set(pickle.dumps(chunk))

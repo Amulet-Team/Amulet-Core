@@ -1,14 +1,47 @@
-from typing import Optional, Callable
+from typing import Callable, Iterator
 from threading import Lock, Condition, get_ident
 from contextlib import contextmanager
 import time
 import logging
 
 
-class LockError(RuntimeError):
-    """An exception raised if the lock failed."""
+log = logging.getLogger(__name__)
 
-    pass
+
+class LockNotAcquired(Exception):
+    """An exception raised if the lock was not acquired."""
+
+
+class CancelContext:
+    _cancelled: bool
+    _on_cancelled: list[Callable[[], None]]
+
+    def __init__(self) -> None:
+        """Construct a new AcquireParams instance."""
+        self._cancelled = False
+        self._on_cancelled = []
+
+    def register_cancel_callback(self, callback: Callable[[], None]) -> None:
+        """Register a callback to get called when cancel is called."""
+        self._on_cancelled.append(callback)
+
+    def cancel(self) -> None:
+        """Cancel waiting for the lock."""
+        if not self._cancelled:
+            self._cancelled = True
+            for callback in self._on_cancelled:
+                try:
+                    callback()
+                except Exception as e:
+                    log.exception(e)
+
+    @property
+    def cancelled(self) -> bool:
+        """Has cancel been called."""
+        return self._cancelled
+
+    def __bool__(self) -> bool:
+        return self._cancelled
 
 
 class ShareableRLock:
@@ -25,23 +58,44 @@ class ShareableRLock:
 
     """
 
-    def __init__(self):
+    _state_lock: Lock
+    _state_condition: Condition
+    _unique_waiting_blocking_threads: set[int]
+    _unique_waiting_count: int
+    _unique_thread: int | None
+    _unique_count: int
+    _shared_threads: dict[int, int]
+
+    def __init__(self) -> None:
         self._state_lock = Lock()
         self._state_condition = Condition(self._state_lock)
-        self._unique_waiting_blocking_threads: set[int] = set()
+        self._unique_waiting_blocking_threads = set()
         self._unique_waiting_count = 0
-        self._unique_thread: Optional[int] = None
+        self._unique_thread = None
         self._unique_count = 0
-        self._shared_threads: dict[int, int] = {}
+        self._shared_threads = {}
 
     def _wait(
-        self, condition: Callable[[], bool], blocking: bool = True, timeout: float = -1
+        self,
+        condition: Callable[[], bool],
+        blocking: bool = True,
+        timeout: float = -1,
+        cancelled: CancelContext | None = None,
     ) -> bool:
+        """Wait until a condition is False.
+
+        :param condition: The condition to check.
+        :param blocking: Should this block until the lock can be acquired. Default is True.
+            If false and the lock cannot be acquired on the first try, this returns False.
+        :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
+        :param cancelled: A custom object through which acquiring can be cancelled.
+            This effectively manually triggers timeout.
+            This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.
+        :return: True if the lock was acquired, otherwise False.
         """
-        Wait until a condition is False.
-        Return True when successfully finished waiting.
-        Return False if blocking is False and it failed on the first try or if timeout is reached.
-        """
+        if cancelled:
+            return False
+
         if not condition():
             # We don't need to wait
             return True
@@ -53,6 +107,8 @@ class ShareableRLock:
         if timeout == -1:
             # wait with no timeout
             while condition():
+                if cancelled:
+                    return False
                 self._state_condition.wait()
             return True
 
@@ -60,6 +116,8 @@ class ShareableRLock:
             # Wait with a timeout
             end_time = time.time() + timeout
             while condition():
+                if cancelled:
+                    return False
                 wait_time = end_time - time.time()
                 if wait_time > 0:
                     self._state_condition.wait(wait_time)
@@ -67,7 +125,12 @@ class ShareableRLock:
                     return False
             return True
 
-    def acquire_unique(self, blocking: bool = True, timeout: float = -1) -> bool:
+    def acquire_unique(
+        self,
+        blocking: bool = True,
+        timeout: float = -1,
+        cancelled: CancelContext | None = None,
+    ) -> bool:
         """
         Only use this if you know what you are doing. Consider using :meth:`unique` instead
         Acquire the lock in unique mode. This is equivalent to threading.RLock.acquire
@@ -75,6 +138,9 @@ class ShareableRLock:
         :param blocking: Should this block until the lock can be acquired. Default is True.
             If false and the lock cannot be acquired on the first try, this returns False.
         :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
+        :param cancelled: A custom object through which acquiring can be cancelled.
+            This effectively manually triggers timeout.
+            This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.
         :return: True if the lock was acquired otherwise False.
         """
         with self._state_lock:
@@ -93,11 +159,18 @@ class ShareableRLock:
             if blocking and timeout == -1:
                 # If it could block forever, add to this set
                 self._unique_waiting_blocking_threads.add(ident)
+
+            if cancelled is not None:
+                cancelled.register_cancel_callback(
+                    lambda: self._state_condition.notify_all()
+                )
+
             locked = self._wait(
                 lambda: self._unique_thread not in (None, ident)
                 or self._shared_threads.keys() not in (set(), {ident}),
                 blocking,
                 timeout,
+                cancelled,
             )
             self._unique_waiting_count -= 1
             self._unique_waiting_blocking_threads.discard(ident)
@@ -108,7 +181,7 @@ class ShareableRLock:
             self._unique_count += 1
             return True
 
-    def release_unique(self):
+    def release_unique(self) -> None:
         """
         Only use this if you know what you are doing. Consider using :meth:`unique` instead
         Release the unique hold on the lock. This must be called by the same thread that acquired it.
@@ -124,39 +197,54 @@ class ShareableRLock:
                 # Let another thread continue
                 self._state_condition.notify_all()
 
-    def acquire_shared(self, blocking: bool = True, timeout: float = -1) -> bool:
+    def acquire_shared(
+        self,
+        blocking: bool = True,
+        timeout: float = -1,
+        cancelled: CancelContext | None = None,
+    ) -> bool:
         """
         Only use this if you know what you are doing. Consider using :meth:`shared` instead
         Acquire the lock in shared mode.
         :param blocking: Should this block until the lock can be acquired. Default is True.
             If false and the lock cannot be acquired on the first try, this returns False.
         :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
+        :param cancelled: A custom object through which acquiring can be cancelled.
+            This effectively manually triggers timeout.
+            This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.
         :return: True if the lock was acquired otherwise False.
         """
         with self._state_lock:
             ident = get_ident()
 
-            def condition():
-                return (
+            def condition() -> bool:
+                locked_unique_other = bool(
                     # Is it locked in unique mode by another thread
                     self._unique_thread is not None
                     and self._unique_thread != ident
-                ) or (
+                )
+                other_waiting_unique = bool(
                     # Has a thread requested unique access and this thread has not yet acquired in shared mode.
                     # Without this, new threads could join in shared mode thus indefinitely blocking unique calls
                     self._unique_waiting_count
                     and self._shared_threads
                     and ident not in self._shared_threads
                 )
+                return locked_unique_other or other_waiting_unique
 
-            if not self._wait(condition, blocking, timeout):
+            if cancelled is not None:
+                cancelled.register_cancel_callback(
+                    lambda: self._state_condition.notify_all()
+                )
+
+            if not self._wait(condition, blocking, timeout, cancelled):
                 return False
             # Not unique locked or unique locked by the current thread
             self._shared_threads.setdefault(ident, 0)
             self._shared_threads[ident] += 1
             return True
 
-    def release_shared(self):
+    def release_shared(self) -> None:
         """
         Only use this if you know what you are doing. Consider using :meth:`shared` instead
         Release the shared hold on the lock. This must be called by the same thread that acquired it.
@@ -173,7 +261,12 @@ class ShareableRLock:
                 self._state_condition.notify_all()
 
     @contextmanager
-    def unique(self, blocking: bool = True, timeout: float = -1):
+    def unique(
+        self,
+        blocking: bool = True,
+        timeout: float = -1,
+        cancelled: CancelContext | None = None,
+    ) -> Iterator[None]:
         """
         Acquire the lock in unique mode.
         This is used as follows
@@ -189,18 +282,26 @@ class ShareableRLock:
         :param blocking: Should this block until the lock can be acquired. Default is True.
             If false and the lock cannot be acquired on the first try, this returns False.
         :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
+        :param cancelled: A custom object through which acquiring can be cancelled.
+            This effectively manually triggers timeout.
+            This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.
         :return: None
-        :raises: LockError if the lock could not be acquired.
+        :raises: LockNotAcquired if the lock could not be acquired.
         """
-        if not self.acquire_unique(blocking, timeout):
-            raise LockError
+        if not self.acquire_unique(blocking, timeout, cancelled):
+            raise LockNotAcquired
         try:
             yield
         finally:
             self.release_unique()
 
     @contextmanager
-    def shared(self, blocking: bool = True, timeout: float = -1):
+    def shared(
+        self,
+        blocking: bool = True,
+        timeout: float = -1,
+        cancelled: CancelContext | None = None,
+    ) -> Iterator[None]:
         """
         Acquire the lock in shared mode.
         This is used as follows
@@ -220,11 +321,14 @@ class ShareableRLock:
         :param blocking: Should this block until the lock can be acquired. Default is True.
             If false and the lock cannot be acquired on the first try, this returns False.
         :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
+        :param cancelled: A custom object through which acquiring can be cancelled.
+            This effectively manually triggers timeout.
+            This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.
         :return: None
-        :raises: LockError if the lock could not be acquired.
+        :raises: LockNotAcquired if the lock could not be acquired.
         """
-        if not self.acquire_shared(blocking, timeout):
-            raise LockError
+        if not self.acquire_shared(blocking, timeout, cancelled):
+            raise LockNotAcquired
         try:
             yield
         finally:
