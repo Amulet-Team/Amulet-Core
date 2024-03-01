@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterable, Tuple, TYPE_CHECKING
+from typing import Iterable, Iterator, TYPE_CHECKING, Any, Self
 import numpy
 
 from amulet.api.data_types import (
@@ -14,6 +14,7 @@ from amulet.api.data_types import (
 
 if TYPE_CHECKING:
     from .box import SelectionBox
+    from .group import SelectionGroup
 
 
 class AbstractBaseSelection(ABC):
@@ -24,10 +25,12 @@ class AbstractBaseSelection(ABC):
     __slots__ = ()
 
     @abstractmethod
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         """
         Is the selection equal to the other selection.
 
+        >>> selection1: AbstractBaseSelection
+        >>> selection2: AbstractBaseSelection
         >>> selection1 == selection2
         True
 
@@ -46,17 +49,17 @@ class AbstractBaseSelection(ABC):
 
     @property
     @abstractmethod
-    def blocks(self) -> Iterable[BlockCoordinates]:
+    def blocks(self) -> Iterator[BlockCoordinates]:
         """
         The location of every block in the selection.
 
-        :return: An iterable of block locations.
+        :return: An Iterator of block locations.
         """
         raise NotImplementedError
 
     @property
     @abstractmethod
-    def bounds(self) -> Tuple[BlockCoordinates, BlockCoordinates]:
+    def bounds(self) -> tuple[BlockCoordinates, BlockCoordinates]:
         """
         The minimum and maximum points in the selection.
         """
@@ -71,12 +74,23 @@ class AbstractBaseSelection(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def bounding_box(self) -> SelectionBox:
+        """Get a SelectionBox that contains this selection."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def selection_group(self) -> SelectionGroup:
+        """Get this selection as a SelectionGroup."""
+        raise NotImplementedError
+
+    @abstractmethod
     def chunk_boxes(
         self, sub_chunk_size: int = 16
-    ) -> Iterable[Tuple[ChunkCoordinates, SelectionBox]]:
+    ) -> Iterator[tuple[ChunkCoordinates, SelectionBox]]:
         """
-        An iterable of chunk coordinates and boxes that intersect the selection and the chunk.
+        An Iterator of chunk coordinates and boxes that intersect the selection and the chunk.
 
+        >>> selection1: AbstractBaseSelection
         >>> for (cx, cz), box in selection1.chunk_boxes():
         >>>     ...
 
@@ -98,6 +112,7 @@ class AbstractBaseSelection(ABC):
         """
         An iterable of chunk coordinates that intersect the selection.
 
+        >>> selection1: AbstractBaseSelection
         >>> for cx, cz in selection1.chunk_locations():
         >>>     ...
 
@@ -110,6 +125,7 @@ class AbstractBaseSelection(ABC):
         """
         Is the block contained within the selection.
 
+        >>> selection1: AbstractBaseSelection
         >>> (1, 2, 3) in selection1
         True
 
@@ -123,6 +139,7 @@ class AbstractBaseSelection(ABC):
         """
         Is the point contained within the selection.
 
+        >>> selection1: AbstractBaseSelection
         >>> (1.5, 2.5, 3.5) in selection1
         True
 
@@ -131,8 +148,7 @@ class AbstractBaseSelection(ABC):
         """
         raise NotImplementedError
 
-    @abstractmethod
-    def intersection(self, other):
+    def intersection(self, other: AbstractBaseSelection) -> AbstractBaseSelection:
         """
         Create and return a new a selection containing the volume that this selection and other both contain.
 
@@ -143,15 +159,42 @@ class AbstractBaseSelection(ABC):
         :param other: The other selection.
         :return: A new selection containing the intersection.
         """
-        raise NotImplementedError
+        out = self._intersection(other)
+        if out is NotImplemented:
+            out = other._intersection(self)
+        if out is NotImplemented:
+            raise TypeError(
+                f"intersection is not supported between instances of type {self.__class__} and {other.__class__}")
+        return out
 
     @abstractmethod
-    def intersects(self, other) -> bool:
+    def _intersection(self, other: AbstractBaseSelection) -> AbstractBaseSelection:
+        """Get the intersection between self and other.
+
+        :param other: The other selection
+        :return: The selection that intersects. NotImplemented if the operation is not supported.
+        """
+
+    def intersects(self, other: AbstractBaseSelection) -> bool:
         """
         Does this selection intersect ``other``.
 
         :param other: The other selection.
         :return: True if the selections intersect, False otherwise.
+        """
+        out = self._intersects(other)
+        if out is NotImplemented:
+            out = other._intersects(self)
+        if out is NotImplemented:
+            raise TypeError(f"intersects is not supported between instances of type {self.__class__} and {other.__class__}")
+        return out
+
+    @abstractmethod
+    def _intersects(self, other: AbstractBaseSelection) -> bool:
+        """Check if other intersects this instance.
+
+        :param other: The other selection to test
+        :return: True if intersects, False if not intersects and NotImplemented if the operation is not supported.
         """
         raise NotImplementedError
 
@@ -238,10 +281,11 @@ class AbstractBaseSelection(ABC):
     @abstractmethod
     def sub_chunk_boxes(
         self, sub_chunk_size: int = 16
-    ) -> Iterable[Tuple[SubChunkCoordinates, SelectionBox]]:
+    ) -> Iterator[tuple[SubChunkCoordinates, SelectionBox]]:
         """
-        An iterable of sub-chunk coordinates and boxes that intersect the selection and the sub-chunk.
+        An Iterator of sub-chunk coordinates and boxes that intersect the selection and the sub-chunk.
 
+        >>> selection1: AbstractBaseSelection
         >>> for (cx, cy, cz), box in selection1.sub_chunk_boxes():
         >>>     ...
 
@@ -265,6 +309,7 @@ class AbstractBaseSelection(ABC):
         """
         An iterable of sub-chunk coordinates that intersect the selection.
 
+        >>> selection1: AbstractBaseSelection
         >>> for cx, cy, cz in selection1.sub_chunk_locations():
         >>>     ...
 
@@ -273,13 +318,13 @@ class AbstractBaseSelection(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def subtract(self, other):
+    def subtract(self, other: AbstractBaseSelection) -> AbstractBaseSelection:
         raise NotImplementedError
 
     @abstractmethod
     def transform(
         self, scale: FloatTriplet, rotation: FloatTriplet, translation: FloatTriplet
-    ):
+    ) -> AbstractBaseSelection:
         raise NotImplementedError
 
     @property

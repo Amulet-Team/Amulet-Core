@@ -4,7 +4,7 @@ import itertools
 import numpy
 import math
 
-from typing import Tuple, Iterable, Generator, Optional, Union
+from typing import Iterable, Iterator, TYPE_CHECKING, Any, TypeAlias, overload
 
 from amulet.api.data_types import (
     BlockCoordinates,
@@ -24,7 +24,12 @@ from amulet.utils.matrix import (
     displacement_matrix,
 )
 from .abstract_selection import AbstractBaseSelection
-from .. import selection
+from amulet import selection
+
+if TYPE_CHECKING:
+    from .group import SelectionGroup
+
+PySlice: TypeAlias = slice
 
 
 class SelectionBox(AbstractBaseSelection):
@@ -44,6 +49,15 @@ class SelectionBox(AbstractBaseSelection):
         "_point_1",
         "_point_2",
     )
+
+    _min_x: int
+    _min_y: int
+    _min_z: int
+    _max_x: int
+    _max_y: int
+    _max_z: int
+    _point_1: tuple[int, int, int]
+    _point_2: tuple[int, int, int]
 
     def __init__(self, point_1: BlockCoordinatesAny, point_2: BlockCoordinatesAny):
         """
@@ -109,7 +123,7 @@ class SelectionBox(AbstractBaseSelection):
         )
 
     def create_moved_box(
-        self, offset: BlockCoordinatesAny, subtract=False
+        self, offset: BlockCoordinatesAny, subtract: bool = False
     ) -> SelectionBox:
         """
         Create a new :class:`SelectionBox` based on this one with the coordinates moved by the given offset.
@@ -123,7 +137,7 @@ class SelectionBox(AbstractBaseSelection):
             offset *= -1
         return SelectionBox(offset + self.min, offset + self.max)
 
-    def chunk_locations(self, sub_chunk_size: int = 16) -> Iterable[ChunkCoordinates]:
+    def chunk_locations(self, sub_chunk_size: int = 16) -> Iterator[ChunkCoordinates]:
         cx_min, cz_min, cx_max, cz_max = block_coords_to_chunk_coords(
             self.min_x,
             self.min_z,
@@ -137,7 +151,7 @@ class SelectionBox(AbstractBaseSelection):
 
     def chunk_boxes(
         self, sub_chunk_size: int = 16
-    ) -> Iterable[Tuple[ChunkCoordinates, SelectionBox]]:
+    ) -> Iterator[tuple[ChunkCoordinates, SelectionBox]]:
         for cx, cz in self.chunk_locations(sub_chunk_size):
             yield (cx, cz), self.intersection(
                 SelectionBox.create_chunk_box(cx, cz, sub_chunk_size)
@@ -157,7 +171,7 @@ class SelectionBox(AbstractBaseSelection):
 
     def sub_chunk_locations(
         self, sub_chunk_size: int = 16
-    ) -> Iterable[SubChunkCoordinates]:
+    ) -> Iterator[SubChunkCoordinates]:
         for cx, cz in self.chunk_locations(sub_chunk_size):
             for cy in self.chunk_y_locations(sub_chunk_size):
                 yield cx, cy, cz
@@ -182,14 +196,14 @@ class SelectionBox(AbstractBaseSelection):
 
     def sub_chunk_boxes(
         self, sub_chunk_size: int = 16
-    ) -> Iterable[Tuple[SubChunkCoordinates, SelectionBox]]:
+    ) -> Iterator[tuple[SubChunkCoordinates, SelectionBox]]:
         for cx, cy, cz in self.sub_chunk_locations(sub_chunk_size):
             yield (cx, cy, cz), self.intersection(
                 SelectionBox.create_sub_chunk_box(cx, cy, cz, sub_chunk_size)
             )
 
     @property
-    def blocks(self) -> Iterable[BlockCoordinates]:
+    def blocks(self) -> Iterator[BlockCoordinates]:
         return itertools.product(
             range(self._min_x, self._max_x),
             range(self._min_y, self._max_y),
@@ -216,17 +230,19 @@ class SelectionBox(AbstractBaseSelection):
             and self._min_z <= coords[2] <= self._max_z
         )
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, AbstractBaseSelection):
+            return NotImplemented
         return self.min == other.min and self.max == other.max
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: Any) -> bool:
         return not self == other
 
     def __hash__(self) -> int:
         return hash((*self.min, *self.max))
 
     @property
-    def slice(self) -> Tuple[slice, slice, slice]:
+    def slice(self) -> tuple[PySlice, PySlice, PySlice]:
         """
         Converts the :class:`SelectionBox` minimum/maximum coordinates into slice arguments
 
@@ -240,7 +256,7 @@ class SelectionBox(AbstractBaseSelection):
 
     def chunk_slice(
         self, cx: int, cz: int, sub_chunk_size: int = 16
-    ) -> Tuple[slice, slice, slice]:
+    ) -> tuple[PySlice, PySlice, PySlice]:
         """
         Get the slice of the box in relative form for a given chunk.
 
@@ -258,7 +274,7 @@ class SelectionBox(AbstractBaseSelection):
 
     def sub_chunk_slice(
         self, cx: int, cy: int, cz: int, sub_chunk_size: int = 16
-    ) -> Tuple[slice, slice, slice]:
+    ) -> tuple[PySlice, PySlice, PySlice]:
         """
         Get the slice of the box in relative form for a given sub-chunk.
 
@@ -285,7 +301,7 @@ class SelectionBox(AbstractBaseSelection):
         return self._point_2
 
     @property
-    def points(self) -> Tuple[BlockCoordinates, BlockCoordinates]:
+    def points(self) -> tuple[BlockCoordinates, BlockCoordinates]:
         """The points given to the constructor."""
         return self.point_1, self.point_2
 
@@ -335,7 +351,7 @@ class SelectionBox(AbstractBaseSelection):
         return numpy.array(self.max)
 
     @property
-    def bounds(self) -> Tuple[BlockCoordinates, BlockCoordinates]:
+    def bounds(self) -> tuple[BlockCoordinates, BlockCoordinates]:
         return (
             (self._min_x, self._min_y, self._min_z),
             (self._max_x, self._max_y, self._max_z),
@@ -344,6 +360,12 @@ class SelectionBox(AbstractBaseSelection):
     @property
     def bounds_array(self) -> numpy.ndarray:
         return numpy.array(self.bounds)
+
+    def bounding_box(self) -> SelectionBox:
+        return self
+
+    def selection_group(self) -> SelectionGroup:
+        return selection.SelectionGroup(self)
 
     @property
     def size_x(self) -> int:
@@ -361,7 +383,7 @@ class SelectionBox(AbstractBaseSelection):
         return self._max_z - self._min_z
 
     @property
-    def shape(self) -> Tuple[int, int, int]:
+    def shape(self) -> tuple[int, int, int]:
         """
         The shape of the box.
 
@@ -407,21 +429,23 @@ class SelectionBox(AbstractBaseSelection):
             or self.max_z <= other.min_z - 1
         )
 
-    def intersects(self, other: SelectionBox) -> bool:
+    def _intersects(self, other: AbstractBaseSelection) -> bool:
         """
         Method to check whether this instance of SelectionBox intersects another SelectionBox.
 
         :param other: The other SelectionBox to check for intersection.
         :return: True if the two :class:`SelectionBox` instances intersect, False otherwise.
         """
-        return not (
-            self.min_x >= other.max_x
-            or self.min_y >= other.max_y
-            or self.min_z >= other.max_z
-            or self.max_x <= other.min_x
-            or self.max_y <= other.min_y
-            or self.max_z <= other.min_z
-        )
+        if isinstance(other, SelectionBox):
+            return not (
+                self.min_x >= other.max_x
+                or self.min_y >= other.max_y
+                or self.min_z >= other.max_z
+                or self.max_x <= other.min_x
+                or self.max_y <= other.min_y
+                or self.max_z <= other.min_z
+            )
+        return NotImplemented
 
     def contains_box(self, other: SelectionBox) -> bool:
         """
@@ -439,13 +463,30 @@ class SelectionBox(AbstractBaseSelection):
             and other.max_z <= self.max_z
         )
 
+    @overload
     def intersection(self, other: SelectionBox) -> SelectionBox:
-        return SelectionBox(
-            numpy.clip(other.min, self.min, self.max),
-            numpy.clip(other.max, self.min, self.max),
-        )
+        ...
 
-    def subtract(self, other: SelectionBox) -> selection.SelectionGroup:
+    @overload
+    def intersection(self, other: SelectionGroup) -> SelectionGroup:
+        ...
+
+    @overload
+    def intersection(self, other: AbstractBaseSelection) -> AbstractBaseSelection:
+        ...
+
+    def intersection(self, other: AbstractBaseSelection) -> AbstractBaseSelection:
+        return super().intersection(other)
+
+    def _intersection(self, other: AbstractBaseSelection) -> SelectionBox:
+        if isinstance(other, SelectionBox):
+            return SelectionBox(
+                numpy.clip(other.min, self.min, self.max),
+                numpy.clip(other.max, self.min, self.max),
+            )
+        return NotImplemented
+
+    def subtract(self, other: AbstractBaseSelection) -> SelectionGroup:
         """
         Get a :class:`~amulet.api.selection.SelectionGroup` containing boxes that are in self but not in other.
 
@@ -454,27 +495,30 @@ class SelectionBox(AbstractBaseSelection):
         :param other: The SelectionBox to subtract.
         :return:
         """
-        if self.intersects(other):
-            other = self.intersection(other)
-            if self == other:
+        if isinstance(other, SelectionBox):
+            intersection = self._intersection(other)
+            if intersection.volume == 0:
+                # if the boxes do not intersect then the difference is self
+                return selection.SelectionGroup(self)
+            elif self == intersection:
                 # if the two selections are the same there is no difference.
                 return selection.SelectionGroup()
             else:
                 boxes = []
-                if self.min_y < other.min_y:
+                if self.min_y < intersection.min_y:
                     # bottom box
                     boxes.append(
                         SelectionBox(
                             (self.min_x, self.min_y, self.min_z),
-                            (self.max_x, other.min_y, self.max_z),
+                            (self.max_x, intersection.min_y, self.max_z),
                         )
                     )
 
-                if other.max_y < self.max_y:
+                if intersection.max_y < self.max_y:
                     # top box
                     boxes.append(
                         SelectionBox(
-                            (self.min_x, other.max_y, self.min_z),
+                            (self.min_x, intersection.max_y, self.min_z),
                             (self.max_x, self.max_y, self.max_z),
                         )
                     )
@@ -483,50 +527,49 @@ class SelectionBox(AbstractBaseSelection):
                 # BBB  WOE  TTT
                 # BBB  SSS  TTT
 
-                if self.min_z < other.min_z:
+                if self.min_z < intersection.min_z:
                     # north box
                     boxes.append(
                         SelectionBox(
-                            (self.min_x, other.min_y, self.min_z),
-                            (self.max_x, other.max_y, other.min_z),
+                            (self.min_x, intersection.min_y, self.min_z),
+                            (self.max_x, intersection.max_y, intersection.min_z),
                         )
                     )
 
-                if other.max_z < self.max_z:
+                if intersection.max_z < self.max_z:
                     # south box
                     boxes.append(
                         SelectionBox(
-                            (self.min_x, other.min_y, other.max_z),
-                            (self.max_x, other.max_y, self.max_z),
+                            (self.min_x, intersection.min_y, intersection.max_z),
+                            (self.max_x, intersection.max_y, self.max_z),
                         )
                     )
 
-                if self.min_x < other.min_x:
+                if self.min_x < intersection.min_x:
                     # west box
                     boxes.append(
                         SelectionBox(
-                            (self.min_x, other.min_y, other.min_z),
-                            (other.min_x, other.max_y, other.max_z),
+                            (self.min_x, intersection.min_y, intersection.min_z),
+                            (intersection.min_x, intersection.max_y, intersection.max_z),
                         )
                     )
 
-                if other.max_x < self.max_x:
+                if intersection.max_x < self.max_x:
                     # east box
                     boxes.append(
                         SelectionBox(
-                            (other.max_x, other.min_y, other.min_z),
-                            (self.max_x, other.max_y, other.max_z),
+                            (intersection.max_x, intersection.min_y, intersection.min_z),
+                            (self.max_x, intersection.max_y, intersection.max_z),
                         )
                     )
 
                 return selection.SelectionGroup(boxes)
         else:
-            # if the boxes do not intersect then the difference is self
-            return selection.SelectionGroup(self)
+            return self.selection_group().subtract(other)
 
     def intersects_vector(
         self, origin: PointCoordinatesAny, vector: PointCoordinatesAny
-    ) -> Optional[float]:
+    ) -> float | None:
         """
         Determine if a vector from a given point collides with this selection box.
 
@@ -548,37 +591,43 @@ class SelectionBox(AbstractBaseSelection):
                     )
         vector = numpy.array(vector)
         vector[abs(vector) < 0.000001] = 0.000001
-        (tmin, tymin, tzmin), (tmax, tymax, tzmax) = numpy.sort(
+        t_min: float
+        ty_min: float
+        tz_min: float
+        t_max: float
+        ty_max: float
+        tz_max: float
+        (t_min, ty_min, tz_min), (t_max, ty_max, tz_max) = numpy.sort(
             (self.bounds_array - numpy.array(origin)) / numpy.array(vector), axis=0
         )
 
-        if tmin > tymax or tymin > tmax:
+        if t_min > ty_max or ty_min > t_max:
             return None
 
-        if tymin > tmin:
-            tmin = tymin
+        if ty_min > t_min:
+            t_min = ty_min
 
-        if tymax < tmax:
-            tmax = tymax
+        if ty_max < t_max:
+            t_max = ty_max
 
-        if tmin > tzmax or tzmin > tmax:
+        if t_min > tz_max or tz_min > t_max:
             return None
 
-        if tzmin > tmin:
-            tmin = tzmin
+        if tz_min > t_min:
+            t_min = tz_min
 
-        if tzmax < tmax:
-            tmax = tzmax
+        if tz_max < t_max:
+            t_max = tz_max
 
-        if tmin >= 0:
-            return tmin
-        elif tmax >= 0:
-            return tmax
+        if t_min >= 0:
+            return t_min
+        elif t_max >= 0:
+            return t_max
         else:
             return None
 
     @staticmethod
-    def _transform_points(points: numpy.ndarray, matrix: numpy.ndarray):
+    def _transform_points(points: numpy.ndarray, matrix: numpy.ndarray) -> numpy.ndarray:
         assert (
             isinstance(points, numpy.ndarray)
             and len(points.shape) == 2
@@ -587,23 +636,23 @@ class SelectionBox(AbstractBaseSelection):
         assert isinstance(matrix, numpy.ndarray) and matrix.shape == (4, 4)
         points_array = numpy.ones((points.shape[0], 4))
         points_array[:, :3] = points
-        return numpy.matmul(
+        return numpy.matmul(  # type: ignore
             matrix,
             points_array.T,
         ).T[:, :3]
 
-    def _iter_transformed_boxes(self, transform: numpy.ndarray) -> Generator[
-        Tuple[
+    def _iter_transformed_boxes(self, transform: numpy.ndarray) -> Iterator[
+        tuple[
             float,  # progress
             SelectionBox,  # The sub-chunk box.
-            Union[
-                numpy.ndarray,  # The bool array of which of the transformed blocks are contained.
-                bool,  # If True all blocks are contained, if False no blocks are contained.
-            ],
-            Optional[numpy.ndarray],  # A float array of where those blocks came from.
-        ],
-        None,
-        None,
+            bool,  # If True all blocks are contained, if False no blocks are contained.
+            None,
+        ] | tuple[
+            float,  # progress
+            SelectionBox,  # The sub-chunk box.
+            numpy.ndarray,  # The bool array of which of the transformed blocks are contained.
+            numpy.ndarray,  # A float array of where those blocks came from.
+        ]
     ]:
         """The core logic for transform and transformed_points"""
         assert isinstance(transform, numpy.ndarray) and transform.shape == (4, 4)
@@ -612,7 +661,7 @@ class SelectionBox(AbstractBaseSelection):
             numpy.matmul(displacement_matrix(-0.5, -0.5, -0.5), transform)
         )
 
-        def transform_box(box_: SelectionBox, transform_) -> SelectionBox:
+        def transform_box(box_: SelectionBox, transform_: numpy.ndarray) -> SelectionBox:
             """transform a box and get the AABB that contains this rotated box."""
 
             # find the transformed points of each of the corners
@@ -629,7 +678,7 @@ class SelectionBox(AbstractBaseSelection):
                     )
                 ).T,
             ).T[:, :3]
-            # this is a larger AABB that contains the roatated box and a bit more.
+            # this is a larger AABB that contains the rotated box and a bit more.
             return SelectionBox(numpy.min(points, axis=0), numpy.max(points, axis=0))
 
         aabb = transform_box(self, transform)
@@ -674,7 +723,7 @@ class SelectionBox(AbstractBaseSelection):
 
     def transformed_points(
         self, transform: numpy.ndarray
-    ) -> Iterable[Tuple[float, Optional[numpy.ndarray], Optional[numpy.ndarray]]]:
+    ) -> Iterable[tuple[float, numpy.ndarray | None, numpy.ndarray | None]]:
         """
         Get the locations of the transformed blocks and the source blocks they came from.
 
@@ -699,13 +748,14 @@ class SelectionBox(AbstractBaseSelection):
                 )
                 yield progress, old_points, new_points
             elif isinstance(mask, numpy.ndarray) and numpy.any(mask):
+                assert isinstance(original, numpy.ndarray)
                 yield progress, original[mask], box.min_array + numpy.argwhere(mask)
             else:
                 yield progress, None, None
 
     def transform(
         self, scale: FloatTriplet, rotation: FloatTriplet, translation: FloatTriplet
-    ) -> selection.SelectionGroup:
+    ) -> SelectionGroup:
         """
         Creates a :class:`~amulet.api.selection.SelectionGroup` of transformed SelectionBox(es).
 
@@ -739,7 +789,7 @@ class SelectionBox(AbstractBaseSelection):
                         numpy.flip(mask, axis=2), axis=2
                     )
                     # effectively a greedy meshing algorithm in 2D
-                    index = 0
+                    index: int | numpy.integer = 0
                     while index < any_array_flat.size:
                         # while there are unhandled true values
                         index = numpy.argmax(any_array_flat[index:]) + index
