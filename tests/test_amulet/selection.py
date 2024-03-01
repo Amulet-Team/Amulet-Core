@@ -3,12 +3,12 @@ from amulet.selection import SelectionGroup, SelectionBox
 
 
 class SelectionTestCase(unittest.TestCase):
-    def test_equals(self):
+    def test_equals(self) -> None:
         box_1 = SelectionBox((0, 0, 0), (5, 5, 5))
         box_2 = SelectionBox((5, 5, 5), (0, 0, 0))
         self.assertEqual(box_1, box_2)
 
-    def test_intersects(self):
+    def test_intersects(self) -> None:
         box_1 = SelectionBox((0, 0, 0), (5, 5, 5))
         box_2 = SelectionBox((4, 4, 4), (10, 10, 10))
         box_3 = SelectionBox((5, 5, 5), (10, 10, 10))
@@ -21,7 +21,7 @@ class SelectionTestCase(unittest.TestCase):
         self.assertFalse(box_1.intersects(box_4))
         self.assertFalse(box_4.intersects(box_1))
 
-    def test_is_contiguous(self):
+    def test_is_contiguous(self) -> None:
         box = SelectionBox((0, 0, 0), (5, 5, 5))
 
         self.assertTrue(SelectionGroup(box).is_contiguous)
@@ -71,7 +71,7 @@ class SelectionTestCase(unittest.TestCase):
             SelectionGroup((box, SelectionBox((0, 5, 6), (5, 10, 10)))).is_contiguous
         )
 
-    def test_is_rectangular(self):
+    def test_is_rectangular(self) -> None:
         box_1 = SelectionBox((0, 0, 0), (5, 5, 5))
         box_2 = SelectionBox((0, 5, 0), (5, 10, 5))
         box_3 = SelectionBox((0, 0, 5), (5, 5, 10))
@@ -85,16 +85,16 @@ class SelectionTestCase(unittest.TestCase):
             SelectionGroup((box_1, box_2, box_3, box_4, box_2)).is_rectangular
         )
 
-    def test_single_block_box(self):
+    def test_single_block_box(self) -> None:
         box_1 = SelectionBox((0, 0, 0), (1, 1, 2))
 
         self.assertEqual((1, 1, 2), box_1.shape)
-        self.assertEqual(2, len([x for x in box_1]))
+        self.assertEqual(2, len([x for x in box_1.blocks]))
 
-        self.assertIn((0, 0, 0), box_1)
-        self.assertNotIn((1, 1, 2), box_1)
+        self.assertTrue(box_1.contains_block((0, 0, 0)))
+        self.assertFalse(box_1.contains_block((1, 1, 2)))
 
-    def test_sorted_iterator(self):
+    def test_sorted_iterator(self) -> None:
         box_1 = SelectionBox((0, 0, 0), (4, 4, 4))
         box_2 = SelectionBox((7, 7, 7), (10, 10, 10))
         box_3 = SelectionBox((15, 15, 15), (20, 20, 20))
@@ -116,7 +116,7 @@ class SelectionTestCase(unittest.TestCase):
 
         self.assertEqual(selection_1, selection_2)
 
-    def test_subtract(self):
+    def test_subtract(self) -> None:
         box_1 = SelectionGroup(
             SelectionBox(
                 (0, 0, 0),
