@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable, Union, Sequence, TypeVar, Type, Any
+from typing import Callable, Union, Sequence, TypeVar, Type, Any, TYPE_CHECKING
 import json
 import glob
 import os
@@ -13,7 +13,6 @@ from amulet_nbt import (
     CompoundTag,
     AnyNBT,
 )
-from ._functions._typing import NBTPath
 
 from amulet.block import Block
 from amulet.block_entity import BlockEntity
@@ -21,8 +20,6 @@ from amulet.entity import Entity
 from amulet.api.data_types import BlockCoordinates
 from amulet.version import VersionNumber
 
-from .._block_specification import BlockSpec
-from .._version import GameVersion
 from ._functions import (
     AbstractBaseTranslationFunction,
     SrcData,
@@ -31,6 +28,10 @@ from ._functions import (
     DstData,
 )
 from ._functions.abc import translation_function_from_json
+from ._functions._typing import NBTPath
+
+if TYPE_CHECKING:
+    from amulet.game.abc import GameVersion, BlockSpec
 
 
 # These classes exist to do some pre-translation and post-translation processing.

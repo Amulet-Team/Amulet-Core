@@ -1,11 +1,12 @@
-from ._version import GameVersion
-from ._block import (
+from .json_interface import JSONInterface, JSONCompatible, JSONDict, JSONList
+from .version import GameVersion
+from .block import (
     BlockData,
     DatabaseBlockData,
     BlockDataNumericalComponent,
     BlockTranslationError,
 )
-from ._biome import (
+from .biome import (
     BiomeData,
     DatabaseBiomeData,
     BiomeDataNumericalComponent,

@@ -10,11 +10,11 @@ from amulet.biome import Biome
 from amulet.version import VersionNumber
 from amulet.game import get_game_version
 
-from ._game_version_container import GameVersionContainer
+from .game_version_container import GameVersionContainer
 
 
 if TYPE_CHECKING:
-    from ._version import GameVersion
+    from .version import GameVersion
 
 
 class BiomeTranslationError(Exception):

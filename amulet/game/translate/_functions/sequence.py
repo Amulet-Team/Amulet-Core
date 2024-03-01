@@ -6,10 +6,9 @@ from collections.abc import Sequence
 from .abc import (
     AbstractBaseTranslationFunction,
     translation_function_from_json,
-    JSONCompatible,
-    JSONList,
     Data,
 )
+from amulet.game.abc import JSONCompatible, JSONList
 from ._state import SrcData, StateData, DstData
 
 

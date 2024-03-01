@@ -1,9 +1,8 @@
 import unittest
 
-from amulet.game.abc.translate._functions._code_functions._text import (
+from amulet.game.translate._functions._code_functions._text import (
     RawTextComponent,
     RawTextFormatting,
-    BedrockSectionParser,
     ExtendedBedrockSectionParser,
     Colour,
 )

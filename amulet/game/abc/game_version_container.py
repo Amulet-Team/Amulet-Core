@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from weakref import ref
 
 if TYPE_CHECKING:
-    from ._version import GameVersion
+    from .version import GameVersion
 
 
 class GameVersionContainer:

@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import Self, Any, TypeVar, Callable
 from collections.abc import Sequence
 
-from .abc import AbstractBaseTranslationFunction, JSONCompatible, JSONDict, Data
+from .abc import AbstractBaseTranslationFunction, Data
+from amulet.game.abc import JSONCompatible, JSONDict
 from ._state import SrcData, StateData, DstData
 
 from ._code_functions.banner_pattern import (

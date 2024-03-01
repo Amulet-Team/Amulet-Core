@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 from amulet_nbt import from_snbt
 from amulet.block import PropertyValueType, PropertyValueClasses
 
-from ._json_interface import JSONInterface, JSONDict, JSONCompatible
+from .json_interface import JSONInterface, JSONDict, JSONCompatible
 
 
 def immutable_from_snbt(snbt: str) -> PropertyValueType:

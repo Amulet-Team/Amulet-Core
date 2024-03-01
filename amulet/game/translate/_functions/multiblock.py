@@ -6,11 +6,10 @@ from amulet.api.data_types import BlockCoordinates
 from amulet.api.errors import ChunkLoadError
 from .abc import (
     AbstractBaseTranslationFunction,
-    JSONCompatible,
-    JSONDict,
     Data,
     translation_function_from_json,
 )
+from amulet.game.abc import JSONCompatible, JSONDict
 from ._state import SrcData, SrcDataExtra, StateData, DstData
 
 

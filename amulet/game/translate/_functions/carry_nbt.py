@@ -6,11 +6,10 @@ from amulet_nbt import CompoundTag, ListTag, AbstractBaseNumericTag
 
 from .abc import (
     AbstractBaseTranslationFunction,
-    JSONCompatible,
-    JSONDict,
     Data,
     follow_nbt_path,
 )
+from amulet.game.abc import JSONCompatible, JSONDict
 from ._typing import NBTTagClsT, NBTClsToStr, StrToNBTCls, NBTPath
 from ._state import SrcData, StateData, DstData
 

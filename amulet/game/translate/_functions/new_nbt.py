@@ -14,10 +14,9 @@ from amulet_nbt import (
 
 from .abc import (
     AbstractBaseTranslationFunction,
-    JSONCompatible,
-    JSONDict,
     Data,
 )
+from amulet.game.abc import JSONCompatible, JSONDict
 from ._typing import (
     NBTTagT,
     NBTTagClasses,

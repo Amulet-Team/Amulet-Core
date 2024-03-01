@@ -11,7 +11,7 @@ from amulet_nbt import (
 )
 
 from amulet.block import PropertyValueType, PropertyValueClasses
-from ..._json_interface import JSONInterface, JSONCompatible, JSONDict, JSONList
+from amulet.game.abc import JSONInterface, JSONCompatible
 from ._state import SrcData, StateData, DstData
 from ._typing import NBTPath, NBTTagT
 

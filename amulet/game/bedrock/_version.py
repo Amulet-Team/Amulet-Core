@@ -6,7 +6,7 @@ import os
 from amulet.biome import Biome
 from amulet.game import get_game_version
 from amulet.game.abc import GameVersion, load_json_block_spec, load_json_biome_data
-from amulet.game.abc.translate import (
+from amulet.game.translate import (
     BlockToUniversalTranslator,
     BlockFromUniversalTranslator,
     load_json_block_translations,

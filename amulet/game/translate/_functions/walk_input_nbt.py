@@ -22,12 +22,11 @@ from amulet_nbt import (
 
 from .abc import (
     AbstractBaseTranslationFunction,
-    JSONCompatible,
-    JSONDict,
     Data,
     translation_function_from_json,
     follow_nbt_path,
 )
+from amulet.game.abc import JSONCompatible, JSONDict
 from ._typing import NBTClsToStr, StrToNBTCls, NBTPath, NBTPathElement, NBTTagClsT
 from ._frozen import FrozenMapping
 from ._state import SrcData, StateData, DstData

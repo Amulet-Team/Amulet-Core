@@ -6,7 +6,7 @@ from amulet.game.abc import (
     GameVersion,
     BlockSpec,
 )
-from amulet.game.abc.translate import (
+from amulet.game.translate import (
     BlockToUniversalTranslator,
     BlockFromUniversalTranslator,
 )

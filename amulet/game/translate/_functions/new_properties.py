@@ -6,11 +6,10 @@ from collections.abc import Mapping
 from amulet.block import PropertyValueType, PropertyValueClasses
 from .abc import (
     AbstractBaseTranslationFunction,
-    JSONCompatible,
-    JSONDict,
     immutable_from_snbt,
     Data,
 )
+from amulet.game.abc import JSONCompatible, JSONDict
 from ._frozen import FrozenMapping
 from ._state import SrcData, StateData, DstData
 

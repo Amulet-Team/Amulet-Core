@@ -6,8 +6,8 @@ from abc import ABC, abstractmethod
 from amulet.version import VersionNumber
 
 if TYPE_CHECKING:
-    from ._block import BlockData
-    from ._biome import BiomeData
+    from .block import BlockData
+    from .biome import BiomeData
 
 
 class GameVersion(ABC):

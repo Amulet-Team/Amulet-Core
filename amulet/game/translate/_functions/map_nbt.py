@@ -5,12 +5,11 @@ from collections.abc import Mapping
 
 from .abc import (
     AbstractBaseTranslationFunction,
-    JSONCompatible,
-    JSONDict,
     translation_function_from_json,
     Data,
     follow_nbt_path,
 )
+from amulet.game.abc import JSONCompatible, JSONDict
 from ._frozen import FrozenMapping
 from ._state import SrcData, StateData, DstData
 

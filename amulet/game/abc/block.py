@@ -13,13 +13,13 @@ from amulet.version import VersionNumber
 from amulet.game import get_game_version
 
 from ._block_specification import BlockSpec
-from ._game_version_container import GameVersionContainer
+from .game_version_container import GameVersionContainer
 
 T = TypeVar("T")
 
 if TYPE_CHECKING:
-    from ._version import GameVersion
-    from .translate import BlockToUniversalTranslator, BlockFromUniversalTranslator
+    from .version import GameVersion
+    from amulet.game.translate import BlockToUniversalTranslator, BlockFromUniversalTranslator
 
 
 class BlockTranslationError(Exception):

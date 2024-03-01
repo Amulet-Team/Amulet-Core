@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import Self, Any
 from amulet.block import Block
-from .abc import AbstractBaseTranslationFunction, JSONCompatible, JSONDict, Data
+from .abc import AbstractBaseTranslationFunction, Data
+from amulet.game.abc import JSONCompatible, JSONDict
 from ._state import SrcData, StateData, DstData
 
 

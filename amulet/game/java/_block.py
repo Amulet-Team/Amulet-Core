@@ -1,14 +1,14 @@
 from __future__ import annotations
 from enum import IntEnum
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from amulet.game.abc import (
     DatabaseBlockData,
     BlockDataNumericalComponent,
     BlockSpec,
 )
-from amulet.game.abc.translate import (
+from amulet.game.translate import (
     BlockToUniversalTranslator,
     BlockFromUniversalTranslator,
 )
