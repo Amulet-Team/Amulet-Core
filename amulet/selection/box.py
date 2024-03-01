@@ -464,16 +464,13 @@ class SelectionBox(AbstractBaseSelection):
         )
 
     @overload
-    def intersection(self, other: SelectionBox) -> SelectionBox:
-        ...
+    def intersection(self, other: SelectionBox) -> SelectionBox: ...
 
     @overload
-    def intersection(self, other: SelectionGroup) -> SelectionGroup:
-        ...
+    def intersection(self, other: SelectionGroup) -> SelectionGroup: ...
 
     @overload
-    def intersection(self, other: AbstractBaseSelection) -> AbstractBaseSelection:
-        ...
+    def intersection(self, other: AbstractBaseSelection) -> AbstractBaseSelection: ...
 
     def intersection(self, other: AbstractBaseSelection) -> AbstractBaseSelection:
         return super().intersection(other)
@@ -550,7 +547,11 @@ class SelectionBox(AbstractBaseSelection):
                     boxes.append(
                         SelectionBox(
                             (self.min_x, intersection.min_y, intersection.min_z),
-                            (intersection.min_x, intersection.max_y, intersection.max_z),
+                            (
+                                intersection.min_x,
+                                intersection.max_y,
+                                intersection.max_z,
+                            ),
                         )
                     )
 
@@ -558,7 +559,11 @@ class SelectionBox(AbstractBaseSelection):
                     # east box
                     boxes.append(
                         SelectionBox(
-                            (intersection.max_x, intersection.min_y, intersection.min_z),
+                            (
+                                intersection.max_x,
+                                intersection.min_y,
+                                intersection.min_z,
+                            ),
                             (self.max_x, intersection.max_y, intersection.max_z),
                         )
                     )
@@ -627,7 +632,9 @@ class SelectionBox(AbstractBaseSelection):
             return None
 
     @staticmethod
-    def _transform_points(points: numpy.ndarray, matrix: numpy.ndarray) -> numpy.ndarray:
+    def _transform_points(
+        points: numpy.ndarray, matrix: numpy.ndarray
+    ) -> numpy.ndarray:
         assert (
             isinstance(points, numpy.ndarray)
             and len(points.shape) == 2
@@ -647,7 +654,8 @@ class SelectionBox(AbstractBaseSelection):
             SelectionBox,  # The sub-chunk box.
             bool,  # If True all blocks are contained, if False no blocks are contained.
             None,
-        ] | tuple[
+        ]
+        | tuple[
             float,  # progress
             SelectionBox,  # The sub-chunk box.
             numpy.ndarray,  # The bool array of which of the transformed blocks are contained.
@@ -661,7 +669,9 @@ class SelectionBox(AbstractBaseSelection):
             numpy.matmul(displacement_matrix(-0.5, -0.5, -0.5), transform)
         )
 
-        def transform_box(box_: SelectionBox, transform_: numpy.ndarray) -> SelectionBox:
+        def transform_box(
+            box_: SelectionBox, transform_: numpy.ndarray
+        ) -> SelectionBox:
             """transform a box and get the AABB that contains this rotated box."""
 
             # find the transformed points of each of the corners

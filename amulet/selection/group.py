@@ -26,9 +26,7 @@ class SelectionGroup(AbstractBaseSelection, Iterable[SelectionBox]):
 
     _selection_boxes: tuple[SelectionBox, ...]
 
-    def __init__(
-        self, selection_boxes: SelectionBox | Iterable[SelectionBox] = ()
-    ):
+    def __init__(self, selection_boxes: SelectionBox | Iterable[SelectionBox] = ()):
         """
         Construct a new :class:`SelectionGroup` class from the given data.
 
@@ -210,7 +208,9 @@ class SelectionGroup(AbstractBaseSelection, Iterable[SelectionBox]):
 
     def to_box(self) -> SelectionBox:
         """Create a `SelectionBox` based off the bounds of the boxes in the group."""
-        warnings.warn("to_box is depceciated. Use bounding_box instead.", DeprecationWarning)
+        warnings.warn(
+            "to_box is depceciated. Use bounding_box instead.", DeprecationWarning
+        )
         return self.bounding_box()
 
     def bounding_box(self) -> SelectionBox:
@@ -368,9 +368,7 @@ class SelectionGroup(AbstractBaseSelection, Iterable[SelectionBox]):
     def intersection(self, other: AbstractBaseSelection) -> SelectionGroup:
         return self._intersection(other)
 
-    def _intersection(
-        self, other: AbstractBaseSelection
-    ) -> SelectionGroup:
+    def _intersection(self, other: AbstractBaseSelection) -> SelectionGroup:
         group = other.selection_group()
         intersection: list[SelectionBox] = []
         for self_box in self.selection_boxes:

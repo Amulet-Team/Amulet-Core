@@ -19,7 +19,10 @@ T = TypeVar("T")
 
 if TYPE_CHECKING:
     from .version import GameVersion
-    from amulet.game.translate import BlockToUniversalTranslator, BlockFromUniversalTranslator
+    from amulet.game.translate import (
+        BlockToUniversalTranslator,
+        BlockFromUniversalTranslator,
+    )
 
 
 class BlockTranslationError(Exception):

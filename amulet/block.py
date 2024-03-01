@@ -44,6 +44,7 @@ _SNBTPropertiesPattern = re.compile(
 
 class BlockProperties(Mapping[str, PropertyValueType], Hashable):
     """An immutable and hashable mapping from strings to nbt objects."""
+
     _hash: int | None
 
     def __init__(self, properties: Mapping[str, PropertyValueType]):
@@ -97,6 +98,7 @@ class Block(PlatformVersionContainer):
     >>> stone = Block.from_string_blockstate("minecraft:stone")
     >>> water = Block.from_string_blockstate("minecraft:water[level=0]")
     """
+
     _hash: int | None
 
     __slots__ = (

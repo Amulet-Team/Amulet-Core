@@ -144,5 +144,7 @@ def load_json_block_spec(
             *_, namespace, _, base_name = os.path.splitext(os.path.normpath(file_path))[
                 0
             ].split(os.sep)
-            block_spec.setdefault(namespace, {})[base_name] = BlockSpec.from_json(json.loads(data))
+            block_spec.setdefault(namespace, {})[base_name] = BlockSpec.from_json(
+                json.loads(data)
+            )
     return block_spec

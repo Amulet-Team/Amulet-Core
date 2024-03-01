@@ -153,7 +153,9 @@ class BlockToUniversalTranslator:
 
     def __hash__(self) -> int:
         if self._hash is None:
-            self._hash = hash((self._src_spec, self._translation, self._universal_version))
+            self._hash = hash(
+                (self._src_spec, self._translation, self._universal_version)
+            )
         return self._hash
 
     def run(
