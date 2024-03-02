@@ -1,7 +1,16 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional, Union, Callable, Any, overload, Protocol, TYPE_CHECKING
+from typing import (
+    Callable,
+    Any,
+    overload,
+    Protocol,
+    TYPE_CHECKING,
+    TypeVarTuple,
+    Generic,
+)
+from collections.abc import Sequence
 from weakref import WeakMethod
 from inspect import ismethod
 
@@ -10,27 +19,34 @@ if TYPE_CHECKING:
     import PySide6.QtCore  # noqa
 
 
-class SignalInstance(Protocol):
+CallArgs = TypeVarTuple("CallArgs")
+
+
+class SignalInstance(Protocol[*CallArgs]):
     def connect(
         self,
-        slot: Union[Callable, SignalInstance],
-        type: Union[None, PySide6.QtCore.Qt.ConnectionType] = ...,
-    ): ...
+        slot: Callable[[*CallArgs], None] | SignalInstance[*CallArgs] | None,
+        type: PySide6.QtCore.Qt.ConnectionType | None = ...,
+    ) -> None: ...
 
-    def disconnect(self, slot: Optional[Union[Callable, SignalInstance]] = None): ...
+    def disconnect(
+        self,
+        slot: Callable[[*CallArgs], None] | SignalInstance[*CallArgs] | None = None,
+    ) -> None: ...
 
-    def emit(self, *args: Any): ...
+    def emit(self, *args: *CallArgs) -> None: ...
 
 
-_signal_instance_constructor: Optional[SignalInstanceConstructor] = None
+_signal_instance_constructor: SignalInstanceConstructor | None = None
 
 
 def create_signal_instance(
-    *types: type, instance: Any, name: str = "", arguments: list[str] = ()
-) -> SignalInstance:
+    *types: *CallArgs, instance: Any, name: str = "", arguments: Sequence[str] = ()
+) -> SignalInstance[*CallArgs]:
     """Create a new signal instance"""
     if _signal_instance_constructor is None:
         set_signal_instance_constructor(get_fallback_signal_instance_constructor())
+        assert _signal_instance_constructor is not None
     return _signal_instance_constructor(
         types=types,
         name=name,
@@ -42,28 +58,34 @@ def create_signal_instance(
 SignalInstanceCacheName = "_SignalCache"
 
 
-def _get_signal_instances(instance) -> dict:
+def _get_signal_instances(instance: Any) -> dict[Any, SignalInstance]:
     try:
         signal_instances = getattr(instance, SignalInstanceCacheName)
     except AttributeError:
         signal_instances = {}
         setattr(instance, SignalInstanceCacheName, signal_instances)
-    return signal_instances
+    return signal_instances  # type: ignore
 
 
-class Signal:
-    def __init__(self, *types: type, name: str = "", arguments: list[str] = ()):
+class Signal(Generic[*CallArgs]):
+    def __init__(
+        self, *types: *CallArgs, name: str = "", arguments: Sequence[str] = ()
+    ):
         self._types = types
         self._name = name
         self._arguments = arguments
 
     @overload
-    def __get__(self, instance: None, owner: Optional[Any]) -> Signal: ...
+    def __get__(self, instance: None, owner: Any | None) -> Signal[*CallArgs]: ...
 
     @overload
-    def __get__(self, instance: Any, owner: Optional[Any]) -> SignalInstance: ...
+    def __get__(
+        self, instance: Any, owner: Any | None
+    ) -> SignalInstance[*CallArgs]: ...
 
-    def __get__(self, instance, owner):
+    def __get__(
+        self, instance: Any, owner: Any
+    ) -> Signal[*CallArgs] | SignalInstance[*CallArgs]:
         if instance is None:
             return self
         signal_instances = _get_signal_instances(instance)
@@ -77,18 +99,18 @@ class Signal:
         return signal_instances[self]
 
 
-class SignalInstanceConstructor(Protocol):
+class SignalInstanceConstructor(Protocol[*CallArgs]):
     def __call__(
         self,
         *,
-        types: tuple[type, ...],
+        types: tuple[*CallArgs],
         name: str,
-        arguments: list[str],
+        arguments: Sequence[str],
         instance: Any,
-    ) -> SignalInstance: ...
+    ) -> SignalInstance[*CallArgs]: ...
 
 
-def set_signal_instance_constructor(constructor: SignalInstanceConstructor):
+def set_signal_instance_constructor(constructor: SignalInstanceConstructor) -> None:
     global _signal_instance_constructor
     if _signal_instance_constructor is not None:
         raise RuntimeError("Signal instance constructor has already been set.")
@@ -96,33 +118,50 @@ def set_signal_instance_constructor(constructor: SignalInstanceConstructor):
 
 
 def get_fallback_signal_instance_constructor() -> SignalInstanceConstructor:
-    class FallbackSignalInstance:
-        def __init__(self, *types: type):
+    class FallbackSignalInstance(SignalInstance[*CallArgs]):
+        _callbacks: set[
+            Callable[[*CallArgs], None]
+            | WeakMethod[Callable[[*CallArgs], None]]
+            | FallbackSignalInstance[*CallArgs]
+        ]
+
+        def __init__(self, *types: *CallArgs):
             self._types = types
-            self._callbacks: set[
-                Union[Callable, WeakMethod, FallbackSignalInstance]
-            ] = set()
+            self._callbacks = set()
 
         @staticmethod
-        def _wrap_slot(slot: Union[Callable, FallbackSignalInstance]):
+        def _wrap_slot(
+            slot: Callable[[*CallArgs], None] | SignalInstance[*CallArgs] | None
+        ) -> (
+            Callable[[*CallArgs], None]
+            | WeakMethod[Callable[[*CallArgs], None]]
+            | FallbackSignalInstance[*CallArgs]
+        ):
             if ismethod(slot):
-                return WeakMethod(slot)
+                return WeakMethod(slot)  # type: ignore
             elif isinstance(slot, FallbackSignalInstance) or callable(slot):
-                return slot
+                return slot  # type: ignore
             else:
                 raise RuntimeError(f"{slot} is not a supported slot type.")
 
-        def connect(self, slot: Union[Callable, FallbackSignalInstance], type=None):
+        def connect(
+            self,
+            slot: Callable[[*CallArgs], None] | SignalInstance[*CallArgs] | None,
+            type: PySide6.QtCore.Qt.ConnectionType | None = None,
+        ) -> None:
             if type is not None:
                 logging.warning(
                     "FallbackSignalInstance does not support custom connection types. Using DirectConnection"
                 )
             self._callbacks.add(self._wrap_slot(slot))
 
-        def disconnect(self, slot: Union[Callable, FallbackSignalInstance] = None):
+        def disconnect(
+            self,
+            slot: Callable[[*CallArgs], None] | SignalInstance[*CallArgs] | None = None,
+        ) -> None:
             self._callbacks.remove(self._wrap_slot(slot))
 
-        def emit(self, *args: Any):
+        def emit(self, *args: *CallArgs) -> None:
             if len(args) != len(self._types):
                 raise TypeError(
                     f"SignalInstance{self._types}.emit expected {len(self._types)} argument(s), {len(args)} given."
@@ -130,11 +169,11 @@ def get_fallback_signal_instance_constructor() -> SignalInstanceConstructor:
             for slot in self._callbacks:
                 try:
                     if isinstance(slot, FallbackSignalInstance):
-                        slot.emit(*args)
+                        slot.emit(*args)  # type: ignore
                     elif isinstance(slot, WeakMethod):
-                        slot = slot()
-                        if slot is not None:
-                            slot(*args)
+                        method = slot()
+                        if method is not None:
+                            method(*args)
                     else:
                         slot(*args)
                 except Exception as e:
@@ -142,11 +181,11 @@ def get_fallback_signal_instance_constructor() -> SignalInstanceConstructor:
 
     def fallback_signal_instance_constructor(
         *,
-        types: tuple[type, ...],
+        types: tuple[*CallArgs],
         name: str,
-        arguments: list[str],
+        arguments: Sequence[str],
         instance: Any,
-    ) -> FallbackSignalInstance:
+    ) -> FallbackSignalInstance[*CallArgs]:
         return FallbackSignalInstance(*types)
 
     return fallback_signal_instance_constructor
@@ -166,9 +205,9 @@ def get_pyside6_signal_instance_constructor() -> SignalInstanceConstructor:
 
     def pyside6_signal_instance_constructor(
         *,
-        types: tuple[type, ...],
+        types: tuple[*CallArgs],
         name: str,
-        arguments: list[str],
+        arguments: Sequence[str],
         instance: Any,
     ) -> PySide6_SignalInstance:
         if isinstance(instance, QObject):
