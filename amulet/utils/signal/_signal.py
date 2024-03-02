@@ -71,9 +71,7 @@ def _get_signal_instances(instance: Any) -> dict[Any, SignalInstance]:
 
 
 class Signal(Generic[*CallArgs]):
-    def __init__(
-        self, *types: type, name: str = "", arguments: Sequence[str] = ()
-    ):
+    def __init__(self, *types: type, name: str = "", arguments: Sequence[str] = ()):
         self._types = types
         self._name = name
         self._arguments = arguments
@@ -86,9 +84,7 @@ class Signal(Generic[*CallArgs]):
         self, instance: Any, owner: Any | None
     ) -> SignalInstance[*CallArgs]: ...
 
-    def __get__(
-        self, instance: Any, owner: Any
-    ) -> Signal[*CallArgs] | SignalInstance[*CallArgs]:
+    def __get__(self, instance: Any, owner: Any) -> Any:
         if instance is None:
             return self
         signal_instances = _get_signal_instances(instance)
