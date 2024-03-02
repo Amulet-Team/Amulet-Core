@@ -40,8 +40,11 @@ class SignalInstance(Protocol[*CallArgs]):
 _signal_instance_constructor: SignalInstanceConstructor | None = None
 
 
+# TODO: https://github.com/python/typing/issues/1216
+
+
 def create_signal_instance(
-    *types: *CallArgs, instance: Any, name: str = "", arguments: Sequence[str] = ()
+    *types: type, instance: Any, name: str = "", arguments: Sequence[str] = ()
 ) -> SignalInstance[*CallArgs]:
     """Create a new signal instance"""
     if _signal_instance_constructor is None:
@@ -69,7 +72,7 @@ def _get_signal_instances(instance: Any) -> dict[Any, SignalInstance]:
 
 class Signal(Generic[*CallArgs]):
     def __init__(
-        self, *types: *CallArgs, name: str = "", arguments: Sequence[str] = ()
+        self, *types: type, name: str = "", arguments: Sequence[str] = ()
     ):
         self._types = types
         self._name = name
@@ -103,7 +106,7 @@ class SignalInstanceConstructor(Protocol[*CallArgs]):
     def __call__(
         self,
         *,
-        types: tuple[*CallArgs],
+        types: tuple[type, ...],
         name: str,
         arguments: Sequence[str],
         instance: Any,
@@ -125,7 +128,7 @@ def get_fallback_signal_instance_constructor() -> SignalInstanceConstructor:
             | FallbackSignalInstance[*CallArgs]
         ]
 
-        def __init__(self, *types: *CallArgs):
+        def __init__(self, *types: type):
             self._types = types
             self._callbacks = set()
 
@@ -181,7 +184,7 @@ def get_fallback_signal_instance_constructor() -> SignalInstanceConstructor:
 
     def fallback_signal_instance_constructor(
         *,
-        types: tuple[*CallArgs],
+        types: tuple[type, ...],
         name: str,
         arguments: Sequence[str],
         instance: Any,
@@ -205,7 +208,7 @@ def get_pyside6_signal_instance_constructor() -> SignalInstanceConstructor:
 
     def pyside6_signal_instance_constructor(
         *,
-        types: tuple[*CallArgs],
+        types: tuple[type, ...],
         name: str,
         arguments: Sequence[str],
         instance: Any,
