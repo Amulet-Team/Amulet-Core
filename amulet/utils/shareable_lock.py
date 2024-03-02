@@ -4,44 +4,14 @@ from contextlib import contextmanager
 import time
 import logging
 
+from .task_manager import AbstractCancelManager, VoidCancelManager
+
 
 log = logging.getLogger(__name__)
 
 
 class LockNotAcquired(Exception):
     """An exception raised if the lock was not acquired."""
-
-
-class CancelContext:
-    _cancelled: bool
-    _on_cancelled: list[Callable[[], None]]
-
-    def __init__(self) -> None:
-        """Construct a new AcquireParams instance."""
-        self._cancelled = False
-        self._on_cancelled = []
-
-    def register_cancel_callback(self, callback: Callable[[], None]) -> None:
-        """Register a callback to get called when cancel is called."""
-        self._on_cancelled.append(callback)
-
-    def cancel(self) -> None:
-        """Cancel waiting for the lock."""
-        if not self._cancelled:
-            self._cancelled = True
-            for callback in self._on_cancelled:
-                try:
-                    callback()
-                except Exception as e:
-                    log.exception(e)
-
-    @property
-    def cancelled(self) -> bool:
-        """Has cancel been called."""
-        return self._cancelled
-
-    def __bool__(self) -> bool:
-        return self._cancelled
 
 
 class ShareableRLock:
@@ -80,7 +50,7 @@ class ShareableRLock:
         condition: Callable[[], bool],
         blocking: bool = True,
         timeout: float = -1,
-        cancelled: CancelContext | None = None,
+        task_manager: AbstractCancelManager = VoidCancelManager(),
     ) -> bool:
         """Wait until a condition is False.
 
@@ -88,12 +58,12 @@ class ShareableRLock:
         :param blocking: Should this block until the lock can be acquired. Default is True.
             If false and the lock cannot be acquired on the first try, this returns False.
         :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
-        :param cancelled: A custom object through which acquiring can be cancelled.
+        :param task_manager: A custom object through which acquiring can be cancelled.
             This effectively manually triggers timeout.
             This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.
         :return: True if the lock was acquired, otherwise False.
         """
-        if cancelled:
+        if task_manager.is_cancel_requested():
             return False
 
         if not condition():
@@ -107,7 +77,7 @@ class ShareableRLock:
         if timeout == -1:
             # wait with no timeout
             while condition():
-                if cancelled:
+                if task_manager.is_cancel_requested():
                     return False
                 self._state_condition.wait()
             return True
@@ -116,7 +86,7 @@ class ShareableRLock:
             # Wait with a timeout
             end_time = time.time() + timeout
             while condition():
-                if cancelled:
+                if task_manager.is_cancel_requested():
                     return False
                 wait_time = end_time - time.time()
                 if wait_time > 0:
@@ -129,7 +99,7 @@ class ShareableRLock:
         self,
         blocking: bool = True,
         timeout: float = -1,
-        cancelled: CancelContext | None = None,
+        task_manager: AbstractCancelManager = VoidCancelManager(),
     ) -> bool:
         """
         Only use this if you know what you are doing. Consider using :meth:`unique` instead
@@ -138,7 +108,7 @@ class ShareableRLock:
         :param blocking: Should this block until the lock can be acquired. Default is True.
             If false and the lock cannot be acquired on the first try, this returns False.
         :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
-        :param cancelled: A custom object through which acquiring can be cancelled.
+        :param task_manager: A custom object through which acquiring can be cancelled.
             This effectively manually triggers timeout.
             This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.
         :return: True if the lock was acquired otherwise False.
@@ -160,18 +130,21 @@ class ShareableRLock:
                 # If it could block forever, add to this set
                 self._unique_waiting_blocking_threads.add(ident)
 
-            if cancelled is not None:
-                cancelled.register_cancel_callback(
-                    lambda: self._state_condition.notify_all()
-                )
+            def on_cancel() -> None:
+                self._state_condition.notify_all()
+
+            task_manager.register_on_cancel(on_cancel)
 
             locked = self._wait(
                 lambda: self._unique_thread not in (None, ident)
                 or self._shared_threads.keys() not in (set(), {ident}),
                 blocking,
                 timeout,
-                cancelled,
+                task_manager,
             )
+
+            task_manager.unregister_on_cancel(on_cancel)
+
             self._unique_waiting_count -= 1
             self._unique_waiting_blocking_threads.discard(ident)
             if not locked:
@@ -201,7 +174,7 @@ class ShareableRLock:
         self,
         blocking: bool = True,
         timeout: float = -1,
-        cancelled: CancelContext | None = None,
+        task_manager: AbstractCancelManager = VoidCancelManager(),
     ) -> bool:
         """
         Only use this if you know what you are doing. Consider using :meth:`shared` instead
@@ -209,7 +182,7 @@ class ShareableRLock:
         :param blocking: Should this block until the lock can be acquired. Default is True.
             If false and the lock cannot be acquired on the first try, this returns False.
         :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
-        :param cancelled: A custom object through which acquiring can be cancelled.
+        :param task_manager: A custom object through which acquiring can be cancelled.
             This effectively manually triggers timeout.
             This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.
         :return: True if the lock was acquired otherwise False.
@@ -232,12 +205,16 @@ class ShareableRLock:
                 )
                 return locked_unique_other or other_waiting_unique
 
-            if cancelled is not None:
-                cancelled.register_cancel_callback(
-                    lambda: self._state_condition.notify_all()
-                )
+            def on_cancel() -> None:
+                self._state_condition.notify_all()
 
-            if not self._wait(condition, blocking, timeout, cancelled):
+            task_manager.register_on_cancel(on_cancel)
+
+            locked = self._wait(condition, blocking, timeout, task_manager)
+
+            task_manager.unregister_on_cancel(on_cancel)
+
+            if not locked:
                 return False
             # Not unique locked or unique locked by the current thread
             self._shared_threads.setdefault(ident, 0)
@@ -265,7 +242,7 @@ class ShareableRLock:
         self,
         blocking: bool = True,
         timeout: float = -1,
-        cancelled: CancelContext | None = None,
+        task_manager: AbstractCancelManager = VoidCancelManager(),
     ) -> Iterator[None]:
         """
         Acquire the lock in unique mode.
@@ -282,13 +259,13 @@ class ShareableRLock:
         :param blocking: Should this block until the lock can be acquired. Default is True.
             If false and the lock cannot be acquired on the first try, this returns False.
         :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
-        :param cancelled: A custom object through which acquiring can be cancelled.
+        :param task_manager: A custom object through which acquiring can be cancelled.
             This effectively manually triggers timeout.
             This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.
         :return: None
         :raises: LockNotAcquired if the lock could not be acquired.
         """
-        if not self.acquire_unique(blocking, timeout, cancelled):
+        if not self.acquire_unique(blocking, timeout, task_manager):
             raise LockNotAcquired
         try:
             yield
@@ -300,7 +277,7 @@ class ShareableRLock:
         self,
         blocking: bool = True,
         timeout: float = -1,
-        cancelled: CancelContext | None = None,
+        task_manager: AbstractCancelManager = VoidCancelManager(),
     ) -> Iterator[None]:
         """
         Acquire the lock in shared mode.
@@ -321,13 +298,13 @@ class ShareableRLock:
         :param blocking: Should this block until the lock can be acquired. Default is True.
             If false and the lock cannot be acquired on the first try, this returns False.
         :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
-        :param cancelled: A custom object through which acquiring can be cancelled.
+        :param task_manager: A custom object through which acquiring can be cancelled.
             This effectively manually triggers timeout.
             This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.
         :return: None
         :raises: LockNotAcquired if the lock could not be acquired.
         """
-        if not self.acquire_shared(blocking, timeout, cancelled):
+        if not self.acquire_shared(blocking, timeout, task_manager):
             raise LockNotAcquired
         try:
             yield
