@@ -1,12 +1,19 @@
 from __future__ import annotations
 
-from typing import Generic, TypeVar, Self, Callable
+from typing import Generic, TypeVar, Callable
 from abc import ABC, abstractmethod
 
 from .signal import Signal, SignalInstance
 
 
 T = TypeVar("T")
+
+
+class TaskCancelled(Exception):
+    """Exception to be raised by the callee when a task is cancelled.
+
+    The callee may define a custom return instead of using this.
+    """
 
 
 class AbstractCancelManager(ABC):

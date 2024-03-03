@@ -4,13 +4,13 @@ from contextlib import contextmanager
 import time
 import logging
 
-from .task_manager import AbstractCancelManager, VoidCancelManager
+from .task_manager import AbstractCancelManager, VoidCancelManager, TaskCancelled
 
 
 log = logging.getLogger(__name__)
 
 
-class LockNotAcquired(Exception):
+class LockNotAcquired(TaskCancelled):
     """An exception raised if the lock was not acquired."""
 
 
