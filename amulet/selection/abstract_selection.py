@@ -164,7 +164,8 @@ class AbstractBaseSelection(ABC):
             out = other._intersection(self)
         if out is NotImplemented:
             raise TypeError(
-                f"intersection is not supported between instances of type {self.__class__} and {other.__class__}")
+                f"intersection is not supported between instances of type {self.__class__} and {other.__class__}"
+            )
         return out
 
     @abstractmethod
@@ -186,7 +187,9 @@ class AbstractBaseSelection(ABC):
         if out is NotImplemented:
             out = other._intersects(self)
         if out is NotImplemented:
-            raise TypeError(f"intersects is not supported between instances of type {self.__class__} and {other.__class__}")
+            raise TypeError(
+                f"intersects is not supported between instances of type {self.__class__} and {other.__class__}"
+            )
         return out
 
     @abstractmethod

@@ -12,8 +12,8 @@ from .abc import Level, LoadableLevel
 log = logging.getLogger(__name__)
 
 # These should really be Intersection but Python doesn't have that
-LoadableLevelClsHint: TypeAlias = Type[LoadableLevel] #| Type[Level]
-LoadableLevelHint: TypeAlias = LoadableLevel #| Level
+LoadableLevelClsHint: TypeAlias = Type[LoadableLevel]  # | Type[Level]
+LoadableLevelHint: TypeAlias = LoadableLevel  # | Level
 
 
 _level_classes = set[LoadableLevelClsHint]()
