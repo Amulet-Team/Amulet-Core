@@ -21,6 +21,7 @@ from amulet.chunk import Chunk
 
 from amulet.utils.shareable_lock import ShareableRLock
 from amulet.utils.signal import Signal, SignalInstanceCacheName
+from amulet.utils.task_manager import AbstractCancelManager, VoidCancelManager
 
 from amulet.level.abc._history import HistoryManager
 
@@ -195,19 +196,29 @@ class Level(Generic[OpenLevelDataT, DimensionT, RawLevelT], ABC):
 
     @contextmanager
     def _lock(
-        self, *, edit: bool, parallel: bool, blocking: bool, timeout: float
+        self,
+        *,
+        edit: bool,
+        parallel: bool,
+        blocking: bool,
+        timeout: float,
+        task_manager: AbstractCancelManager = VoidCancelManager(),
     ) -> Iterator[None]:
         if parallel:
-            lock = self._level_lock.shared(blocking, timeout)
+            lock = self._level_lock.shared(blocking, timeout, task_manager)
         else:
-            lock = self._level_lock.unique(blocking, timeout)
+            lock = self._level_lock.unique(blocking, timeout, task_manager)
         with lock:
             if edit and self.history_enabled:
                 self._o.history_manager.create_undo_bin()
             yield
 
     def lock_unique(
-        self, *, blocking: bool = True, timeout: float = -1
+        self,
+        *,
+        blocking: bool = True,
+        timeout: float = -1,
+        task_manager: AbstractCancelManager = VoidCancelManager(),
     ) -> ContextManager[None]:
         """
         Get exclusive access to the level without editing it.
@@ -215,31 +226,63 @@ class Level(Generic[OpenLevelDataT, DimensionT, RawLevelT], ABC):
         If the level is being used by other threads, this will block until they are done.
         Once acquired it will block other threads from accessing the level until this is released.
 
+        >>> level: Level
+        >>> with level.lock_unique():
+        >>>     # Lock is acquired before entering this block
+        >>>     ...
+        >>>     # Lock is released before exiting this block
+
         :param blocking: Should this block until the lock can be acquired. Default is True.
-            If false and the lock cannot be acquired on the first try, this returns False.
         :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
-        :return:
+        :param task_manager: The cancel manager through which cancel can be requested.
+        :return: A context manager to acquire the lock.
+        :raises amulet.utils.shareable_lock.LockNotAcquired: If timeout was reached or cancel was called.
         """
         return self._lock(
-            edit=False, parallel=False, blocking=blocking, timeout=timeout
+            edit=False,
+            parallel=False,
+            blocking=blocking,
+            timeout=timeout,
+            task_manager=task_manager,
         )
 
     def lock_shared(
-        self, *, blocking: bool = True, timeout: float = -1
+        self,
+        *,
+        blocking: bool = True,
+        timeout: float = -1,
+        task_manager: AbstractCancelManager = VoidCancelManager(),
     ) -> ContextManager[None]:
         """
         Share the level without editing it.
         If you want to edit the level in parallel with other threads, use :meth:`edit_parallel` instead.
 
+        >>> level: Level
+        >>> with level.lock_shared():
+        >>>     # Lock is acquired before entering this block
+        >>>     ...
+        >>>     # Lock is released before exiting this block
+
         :param blocking: Should this block until the lock can be acquired. Default is True.
-            If false and the lock cannot be acquired on the first try, this returns False.
         :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
-        :return:
+        :param task_manager: The cancel manager through which cancel can be requested.
+        :return: A context manager to acquire the lock.
+        :raises amulet.utils.shareable_lock.LockNotAcquired: If timeout was reached or cancel was called.
         """
-        return self._lock(edit=False, parallel=True, blocking=blocking, timeout=timeout)
+        return self._lock(
+            edit=False,
+            parallel=True,
+            blocking=blocking,
+            timeout=timeout,
+            task_manager=task_manager,
+        )
 
     def edit_serial(
-        self, *, blocking: bool = True, timeout: float = -1
+        self,
+        *,
+        blocking: bool = True,
+        timeout: float = -1,
+        task_manager: AbstractCancelManager = VoidCancelManager(),
     ) -> ContextManager[None]:
         """
         Get exclusive editing permissions for this level.
@@ -248,18 +291,32 @@ class Level(Generic[OpenLevelDataT, DimensionT, RawLevelT], ABC):
 
         >>> level: Level
         >>> with level.edit_serial():  # This will block the thread until all other threads have finished with the level
+        >>>     # Lock is acquired before entering this block
         >>>     # any code here will be run without any other threads touching the level
+        >>>     ...
+        >>>     # Lock is released before exiting this block
         >>> # Other threads can modify the level here
 
         :param blocking: Should this block until the lock can be acquired. Default is True.
-            If false and the lock cannot be acquired on the first try, this returns False.
         :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
-        :return:
+        :param task_manager: The cancel manager through which cancel can be requested.
+        :return: A context manager to acquire the lock.
+        :raises amulet.utils.shareable_lock.LockNotAcquired: If timeout was reached or cancel was called.
         """
-        return self._lock(edit=True, parallel=False, blocking=blocking, timeout=timeout)
+        return self._lock(
+            edit=True,
+            parallel=False,
+            blocking=blocking,
+            timeout=timeout,
+            task_manager=task_manager,
+        )
 
     def edit_parallel(
-        self, *, blocking: bool = True, timeout: float = -1
+        self,
+        *,
+        blocking: bool = True,
+        timeout: float = -1,
+        task_manager: AbstractCancelManager = VoidCancelManager(),
     ) -> ContextManager[None]:
         """
         Edit the level in parallal with other threads.
@@ -270,16 +327,26 @@ class Level(Generic[OpenLevelDataT, DimensionT, RawLevelT], ABC):
         If you are going to make any nuclear changes to the level you must use :meth:`edit_serial` instead.
 
         >>> level: Level
-        >>> with level.edit_parallel():  # This will block the thread until all other threads have finished with the level
-        >>>     # any code here will be run without any other threads touching the level
+        >>> with level.edit_serial():  # This will block the thread until all other unique calls have finished with the level
+        >>>     # Lock is acquired before entering this block
+        >>>     # any code here will be run in parallel with other parallel calls.
+        >>>     ...
+        >>>     # Lock is released before exiting this block
         >>> # Other threads can modify the level here
 
         :param blocking: Should this block until the lock can be acquired. Default is True.
-            If false and the lock cannot be acquired on the first try, this returns False.
         :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
-        :return:
+        :param task_manager: The cancel manager through which cancel can be requested.
+        :return: A context manager to acquire the lock.
+        :raises amulet.utils.shareable_lock.LockNotAcquired: If timeout was reached or cancel was called.
         """
-        return self._lock(edit=True, parallel=True, blocking=blocking, timeout=timeout)
+        return self._lock(
+            edit=True,
+            parallel=True,
+            blocking=blocking,
+            timeout=timeout,
+            task_manager=task_manager,
+        )
 
     history_enabled_changed = Signal()
 
