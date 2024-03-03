@@ -111,7 +111,7 @@ def game_versions(platform: str) -> Sequence[GameVersion]:
 
     :param platform: The platform name (use :attr:`platforms` to get the valid platforms)
     :return: The version classes for the platform
-    :raise: Raises a KeyError if the platform is not present.
+    :raises KeyError: If the platform is not present.
     """
     if platform not in _get_versions():
         raise KeyError(f'The requested platform "{platform}" is not present')
@@ -142,7 +142,7 @@ def get_game_version(platform: str, version_number: VersionNumber) -> GameVersio
     :param platform: The platform name (use ``TranslationManager.platforms`` to get the valid platforms)
     :param version_number: The version number or DataVersion (use ``TranslationManager.version_numbers`` to get version numbers for a given platforms)
     :return: The Version class for the given inputs.
-    :raise: Raises a KeyError if it does not exist.
+    :raises KeyError: If it does not exist.
     """
     if platform not in _get_versions():
         raise KeyError(f'The requested platform "{platform}" is not present')
