@@ -30,31 +30,33 @@ class ShareableRLock:
 
     _state_lock: Lock
     _state_condition: Condition
-    _unique_waiting_blocking_threads: set[int]
-    _unique_waiting_count: int
+    _blocking_threads: dict[
+        int, tuple[bool, bool]
+    ]  # dict[thread_id, tuple[is_serial, is_blocking]]
     _unique_thread: int | None
-    _unique_count: int
-    _shared_threads: dict[int, int]
+    _unique_r_count: int
+    _shared_threads: dict[
+        int, int
+    ]  # Map from thread id to the number of times it has been acquired in shared mode.
 
     def __init__(self) -> None:
         self._state_lock = Lock()
         self._state_condition = Condition(self._state_lock)
-        self._unique_waiting_blocking_threads = set()
-        self._unique_waiting_count = 0
+        self._blocking_threads = {}
         self._unique_thread = None
-        self._unique_count = 0
+        self._unique_r_count = 0
         self._shared_threads = {}
 
     def _wait(
         self,
-        condition: Callable[[], bool],
+        exit_condition: Callable[[], bool],
         blocking: bool = True,
         timeout: float = -1,
         task_manager: AbstractCancelManager = VoidCancelManager(),
     ) -> bool:
         """Wait until a condition is False.
 
-        :param condition: The condition to check.
+        :param exit_condition: The condition to check.
         :param blocking: Should this block until the lock can be acquired. Default is True.
             If false and the lock cannot be acquired on the first try, this returns False.
         :param timeout: Maximum amount of time to block for. Has no effect is blocking is False. Default is forever.
@@ -66,7 +68,7 @@ class ShareableRLock:
         if task_manager.is_cancel_requested():
             return False
 
-        if not condition():
+        if exit_condition():
             # We don't need to wait
             return True
 
@@ -76,7 +78,7 @@ class ShareableRLock:
 
         if timeout == -1:
             # wait with no timeout
-            while condition():
+            while not exit_condition():
                 if task_manager.is_cancel_requested():
                     return False
                 self._state_condition.wait()
@@ -85,7 +87,7 @@ class ShareableRLock:
         else:
             # Wait with a timeout
             end_time = time.time() + timeout
-            while condition():
+            while not exit_condition():
                 if task_manager.is_cancel_requested():
                     return False
                 wait_time = end_time - time.time()
@@ -117,18 +119,15 @@ class ShareableRLock:
             ident = get_ident()
             if (
                 ident in self._shared_threads
-                and self._unique_waiting_blocking_threads.intersection(
-                    self._shared_threads
+                and blocking
+                and timeout == -1
+                and any(
+                    self._blocking_threads[thread_id][1]
+                    for thread_id in self._blocking_threads
+                    if thread_id in self._shared_threads
                 )
             ):
-                # This thread has acquired the lock in shared mode
-                # At least one other thread has acquired the lock in shared mode and is also waiting for unique mode.
-                # If they both block indefinitely then neither will complete
-                logging.warning("Probable deadlock")
-            self._unique_waiting_count += 1
-            if blocking and timeout == -1:
-                # If it could block forever, add to this set
-                self._unique_waiting_blocking_threads.add(ident)
+                logging.warning("Possible deadlock")
 
             def on_cancel() -> None:
                 with self._state_lock:
@@ -136,9 +135,27 @@ class ShareableRLock:
 
             task_manager.register_on_cancel(on_cancel)
 
+            self._blocking_threads[ident] = (
+                True,
+                blocking
+                and timeout == -1
+                and isinstance(task_manager, VoidCancelManager),
+            )
+
+            def exit_condition() -> bool:
+                # The thread was the first to join
+                # The lock is not locked or is locked by this thread
+                can_exit = (
+                    next(iter(self._blocking_threads)) == ident
+                    and self._unique_thread in (None, ident)
+                    and self._shared_threads.keys() in (set(), {ident})
+                )
+                if can_exit:
+                    self._blocking_threads.pop(ident)
+                return can_exit
+
             locked = self._wait(
-                lambda: self._unique_thread not in (None, ident)
-                or self._shared_threads.keys() not in (set(), {ident}),
+                exit_condition,
                 blocking,
                 timeout,
                 task_manager,
@@ -146,14 +163,14 @@ class ShareableRLock:
 
             task_manager.unregister_on_cancel(on_cancel)
 
-            self._unique_waiting_count -= 1
-            self._unique_waiting_blocking_threads.discard(ident)
-            if not locked:
+            if locked:
+                # Lock it
+                self._unique_thread = ident
+                self._unique_r_count += 1
+                return True
+            else:
+                self._blocking_threads.pop(ident)
                 return False
-            # Lock it
-            self._unique_thread = ident
-            self._unique_count += 1
-            return True
 
     def release_unique(self) -> None:
         """
@@ -165,8 +182,8 @@ class ShareableRLock:
             if self._unique_thread != get_ident():
                 raise RuntimeError("Lock released by a thread that does not own it.")
 
-            self._unique_count -= 1
-            if self._unique_count == 0:
+            self._unique_r_count -= 1
+            if self._unique_r_count == 0:
                 self._unique_thread = None
                 # Let another thread continue
                 self._state_condition.notify_all()
@@ -191,20 +208,20 @@ class ShareableRLock:
         with self._state_lock:
             ident = get_ident()
 
-            def condition() -> bool:
-                locked_unique_other = bool(
-                    # Is it locked in unique mode by another thread
-                    self._unique_thread is not None
-                    and self._unique_thread != ident
-                )
-                other_waiting_unique = bool(
-                    # Has a thread requested unique access and this thread has not yet acquired in shared mode.
-                    # Without this, new threads could join in shared mode thus indefinitely blocking unique calls
-                    self._unique_waiting_count
-                    and self._shared_threads
-                    and ident not in self._shared_threads
-                )
-                return locked_unique_other or other_waiting_unique
+            def exit_condition() -> bool:
+                if self._unique_thread == ident or ident in self._shared_threads:
+                    # Lock is already acquired by this thread
+                    self._blocking_threads.pop(ident)
+                    return True
+                elif self._unique_thread is None:
+                    # Is it not locked in unique mode
+                    for thread_id, (is_serial, _) in self._blocking_threads.items():
+                        if is_serial:
+                            return False
+                        elif thread_id == ident:
+                            self._blocking_threads.pop(ident)
+                            return True
+                return False
 
             def on_cancel() -> None:
                 with self._state_lock:
@@ -212,16 +229,20 @@ class ShareableRLock:
 
             task_manager.register_on_cancel(on_cancel)
 
-            locked = self._wait(condition, blocking, timeout, task_manager)
+            self._blocking_threads[ident] = (False, False)
+
+            locked = self._wait(exit_condition, blocking, timeout, task_manager)
 
             task_manager.unregister_on_cancel(on_cancel)
 
-            if not locked:
+            if locked:
+                # Not unique locked or unique locked by the current thread
+                self._shared_threads.setdefault(ident, 0)
+                self._shared_threads[ident] += 1
+                return True
+            else:
+                self._blocking_threads.pop(ident)
                 return False
-            # Not unique locked or unique locked by the current thread
-            self._shared_threads.setdefault(ident, 0)
-            self._shared_threads[ident] += 1
-            return True
 
     def release_shared(self) -> None:
         """
