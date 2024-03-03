@@ -101,7 +101,7 @@ class HistoryManager:
         self._h.resources[uuid] = resources
         return HistoryManagerLayer(self._h, uuid, resources)
 
-    history_changed = Signal()
+    history_changed = Signal[()]()
 
     def create_undo_bin(self) -> None:
         """

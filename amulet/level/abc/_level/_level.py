@@ -86,7 +86,7 @@ class Level(Generic[OpenLevelDataT, DimensionT, RawLevelT], ABC):
     def __del__(self) -> None:
         self.close()
 
-    opened = Signal()
+    opened = Signal[()]()
 
     @final
     def open(self) -> None:
@@ -122,16 +122,16 @@ class Level(Generic[OpenLevelDataT, DimensionT, RawLevelT], ABC):
         return o
 
     # Has the internal state changed
-    changed = Signal()
+    changed = Signal[()]()
     # Has the external state been changed without our knowledge
-    external_changed = Signal()
+    external_changed = Signal[()]()
 
     @abstractmethod
     def save(self) -> None:
         raise NotImplementedError
 
     # Signal to notify all listeners that the data they hold is no longer valid
-    purged = Signal()
+    purged = Signal[()]()
 
     def purge(self) -> None:
         """
@@ -145,8 +145,8 @@ class Level(Generic[OpenLevelDataT, DimensionT, RawLevelT], ABC):
         self.history_changed.emit()
 
     # Signal to notify all listeners that the level has been closed.
-    closing = Signal()
-    closed = Signal()
+    closing = Signal[()]()
+    closed = Signal[()]()
 
     @final
     def close(self) -> None:
@@ -178,7 +178,7 @@ class Level(Generic[OpenLevelDataT, DimensionT, RawLevelT], ABC):
         raise NotImplementedError
 
     # Emitted when the undo or redo count has changed
-    history_changed = Signal()
+    history_changed = Signal[()]()
 
     @property
     def undo_count(self) -> int:
@@ -348,7 +348,7 @@ class Level(Generic[OpenLevelDataT, DimensionT, RawLevelT], ABC):
             task_manager=task_manager,
         )
 
-    history_enabled_changed = Signal()
+    history_enabled_changed = Signal[()]()
 
     @property
     def history_enabled(self) -> bool:

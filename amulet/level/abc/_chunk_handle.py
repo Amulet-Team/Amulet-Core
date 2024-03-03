@@ -81,7 +81,7 @@ class ChunkHandle(
         self._history = history
         self._raw_dimension = None
 
-    changed = Signal()
+    changed = Signal[()]()
 
     @property
     def dimension(self) -> DimensionID:
