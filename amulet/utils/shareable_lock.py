@@ -131,7 +131,8 @@ class ShareableRLock:
                 self._unique_waiting_blocking_threads.add(ident)
 
             def on_cancel() -> None:
-                self._state_condition.notify_all()
+                with self._state_lock:
+                    self._state_condition.notify_all()
 
             task_manager.register_on_cancel(on_cancel)
 
@@ -206,7 +207,8 @@ class ShareableRLock:
                 return locked_unique_other or other_waiting_unique
 
             def on_cancel() -> None:
-                self._state_condition.notify_all()
+                with self._state_lock:
+                    self._state_condition.notify_all()
 
             task_manager.register_on_cancel(on_cancel)
 
