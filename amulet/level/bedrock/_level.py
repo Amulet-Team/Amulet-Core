@@ -121,7 +121,7 @@ class BedrockLevel(
         Reload the level metadata inplace.
         The level must be closed when this is called.
         """
-        if self.is_open:
+        if self.is_open():
             raise RuntimeError("Cannot reload a level when it is open.")
         self.raw._reload()
 

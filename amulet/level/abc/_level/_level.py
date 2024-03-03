@@ -89,29 +89,40 @@ class Level(Generic[OpenLevelDataT, DimensionT, RawLevelT], ABC):
     opened = Signal[()]()
 
     @final
-    def open(self) -> None:
-        """
-        Open the level.
+    def open(self, task_manager: AbstractCancelManager = VoidCancelManager()) -> None:
+        """Open the level.
+
         If the level is already open, this does nothing.
+
+        :param task_manager: The cancel manager through which cancel can be requested.
+        :raises amulet.utils.task_manager.TaskCancelled: If the task is cancelled.
         """
-        if self.is_open:
-            # Do nothing if already open
-            return
-        self._open()
-        if self._open_data is None:
-            raise RuntimeError("_open_data has not been set")
-        self._open_data.history_manager.history_changed.connect(self.history_changed)
-        self.opened.emit()
+        with self.lock_unique(task_manager=task_manager):
+            if self.is_open(task_manager=task_manager):
+                # Do nothing if already open
+                return
+            self._open()
+            if self._open_data is None:
+                raise RuntimeError("_open_data has not been set")
+            self._open_data.history_manager.history_changed.connect(
+                self.history_changed
+            )
+            self.opened.emit()
 
     @abstractmethod
     def _open(self) -> None:
         raise NotImplementedError
 
     @final
-    @property
-    def is_open(self) -> bool:
-        """Has the level been opened"""
-        return self._open_data is not None
+    def is_open(self, task_manager: AbstractCancelManager = VoidCancelManager()) -> bool:
+        """Has the level been opened.
+
+        :param task_manager: The cancel manager through which cancel can be requested.
+        :return: True if the level is open otherwise False.
+        :raises amulet.utils.task_manager.TaskCancelled: If the task is cancelled.
+        """
+        with self.lock_shared(task_manager=task_manager):
+            return self._open_data is not None
 
     @final
     @property
@@ -149,19 +160,23 @@ class Level(Generic[OpenLevelDataT, DimensionT, RawLevelT], ABC):
     closed = Signal[()]()
 
     @final
-    def close(self) -> None:
-        """
-        Close the level.
+    def close(self, task_manager: AbstractCancelManager = VoidCancelManager()) -> None:
+        """Close the level.
+
         If the level is not open, this does nothing.
+
+        :param task_manager: The cancel manager through which cancel can be requested.
+        :raises amulet.utils.task_manager.TaskCancelled: If the task is cancelled.
         """
-        if not self.is_open:
-            # Do nothing if already closed
-            return
-        self.closing.emit()
-        self._close()
-        if self._open_data is not None:
-            raise RuntimeError("_open_data is still set")
-        self.closed.emit()
+        with self.lock_unique(task_manager=task_manager):
+            if not self.is_open(task_manager=task_manager):
+                # Do nothing if already closed
+                return
+            self.closing.emit()
+            self._close()
+            if self._open_data is not None:
+                raise RuntimeError("_open_data is still set")
+            self.closed.emit()
 
     @abstractmethod
     def _close(self) -> None:
