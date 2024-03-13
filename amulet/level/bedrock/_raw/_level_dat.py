@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import struct
-from typing import Union, Optional, BinaryIO
-from io import BytesIO
+from typing import BinaryIO
 
 from amulet_nbt import (
     load as load_nbt,
@@ -20,10 +19,15 @@ from amulet.api.errors import (
 class BedrockLevelDAT(NamedTag):
     _level_dat_version: int
 
-    def __init__(self, tag=None, name: str = "", level_dat_version: int = None) -> None:
+    def __init__(
+        self,
+        tag: AnyNBT | None = None,
+        name: str | bytes = "",
+        level_dat_version: int | None = None,
+    ) -> None:
         if not isinstance(level_dat_version, int):
             raise TypeError(
-                "path and level_dat_version must be specified when constructing a BedrockLevelDAT instance."
+                "level_dat_version must be specified when constructing a BedrockLevelDAT instance."
             )
         super().__init__(tag, name)
         self._level_dat_version = level_dat_version
@@ -51,24 +55,22 @@ class BedrockLevelDAT(NamedTag):
 
     def save_to(
         self,
-        filename_or_buffer: Union[str, BinaryIO] = None,
+        filename_or_buffer: str | BinaryIO | None = None,
         *,
-        compressed=False,
-        little_endian=True,
-    ) -> Optional[bytes]:
+        preset: EncodingPreset | None = None,
+        compressed: bool = False,
+        little_endian: bool = True,
         string_encoding: StringEncoding = utf8_escape_encoding,
+    ) -> bytes:
         payload = super().save_to(
             compressed=compressed,
             little_endian=little_endian,
             string_encoding=string_encoding,
         )
-        buffer = BytesIO()
-        buffer.write(struct.pack("<ii", self._level_dat_version, len(payload)))
-        buffer.write(payload)
-        if filename_or_buffer is None:
-            return buffer.getvalue()
-        elif isinstance(filename_or_buffer, str):
+        dat = struct.pack("<ii", self._level_dat_version, len(payload)) + payload
+        if isinstance(filename_or_buffer, str):
             with open(filename_or_buffer, "wb") as f:
-                f.write(buffer.getvalue())
-        else:
-            filename_or_buffer.write(buffer.getvalue())
+                f.write(dat)
+        elif filename_or_buffer is not None:
+            filename_or_buffer.write(dat)
+        return dat
