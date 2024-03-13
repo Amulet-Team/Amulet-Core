@@ -127,7 +127,7 @@ class ChunkHandle(
         """
         if not self._lock.acquire(blocking, timeout):
             # Thread was not acquired
-            raise LockError("Lock was not acquired.")
+            raise LockNotAcquired("Lock was not acquired.")
         try:
             yield
         finally:
