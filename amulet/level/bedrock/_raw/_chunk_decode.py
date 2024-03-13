@@ -12,10 +12,10 @@ from amulet_nbt import (
     StringTag,
     ListTag,
     NamedTag,
-    ReadContext,
+    ReadOffset,
     load_array as load_nbt_array,
     load as load_nbt,
-    utf8_escape_decoder,
+    utf8_escape_encoding,
 )
 
 from amulet.block import Block, BlockStack, PropertyType, PropertyValueClasses
@@ -354,16 +354,16 @@ def _load_palette_blocks(
         palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
 
     if palette_len:
-        read_context = ReadContext()
+        read_offset = ReadOffset()
         palette = load_nbt_array(
             data,
             compressed=False,
             count=palette_len,
             little_endian=True,
-            read_context=read_context,
-            string_decoder=utf8_escape_decoder,
+            read_offset=read_offset,
+            string_encoding=utf8_escape_encoding,
         )
-        data = data[read_context.offset :]
+        data = data[read_offset.offset :]
     else:
         palette = [
             NamedTag(
@@ -439,14 +439,14 @@ def _decode_packed_array(data: bytes) -> tuple[bytes, int, Optional[numpy.ndarra
 def _unpack_nbt_list(raw_nbt: bytes) -> list[NamedTag]:
     nbt_list = []
     while raw_nbt:
-        read_context = ReadContext()
+        read_offset = ReadOffset()
         nbt = load_nbt(
             raw_nbt,
             little_endian=True,
-            read_context=read_context,
-            string_decoder=utf8_escape_decoder,
+            read_offset=read_offset,
+            string_encoding=utf8_escape_encoding,
         )
-        raw_nbt = raw_nbt[read_context.offset :]
+        raw_nbt = raw_nbt[read_offset.offset :]
         nbt_list.append(nbt)
     return nbt_list
 

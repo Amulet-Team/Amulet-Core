@@ -7,8 +7,10 @@ from io import BytesIO
 from amulet_nbt import (
     load as load_nbt,
     NamedTag,
-    utf8_escape_decoder,
-    utf8_escape_encoder,
+    utf8_escape_encoding,
+    AnyNBT,
+    EncodingPreset,
+    StringEncoding,
 )
 from amulet.api.errors import (
     ObjectReadError,
@@ -36,7 +38,7 @@ class BedrockLevelDAT(NamedTag):
                     f.read(data_length),
                     compressed=False,
                     little_endian=True,
-                    string_decoder=utf8_escape_decoder,
+                    string_encoding=utf8_escape_encoding,
                 )
                 name = root_tag.name
                 tag = root_tag.tag
@@ -53,12 +55,12 @@ class BedrockLevelDAT(NamedTag):
         *,
         compressed=False,
         little_endian=True,
-        string_encoder=utf8_escape_encoder,
     ) -> Optional[bytes]:
+        string_encoding: StringEncoding = utf8_escape_encoding,
         payload = super().save_to(
             compressed=compressed,
             little_endian=little_endian,
-            string_encoder=string_encoder,
+            string_encoding=string_encoding,
         )
         buffer = BytesIO()
         buffer.write(struct.pack("<ii", self._level_dat_version, len(payload)))

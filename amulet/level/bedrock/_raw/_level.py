@@ -15,9 +15,9 @@ from amulet_nbt import (
     CompoundTag,
     ByteTag,
     ShortTag,
-    ReadContext,
+    ReadOffset,
     load as load_nbt,
-    utf8_escape_decoder,
+    utf8_escape_encoding,
 )
 
 from amulet.api.data_types import (
@@ -243,15 +243,15 @@ class BedrockRawLevel(
                 count, data = struct.unpack("<I", data[:4])[0], data[4:]
                 for _ in range(count):
                     key, data = data[:8], data[8:]
-                    context = ReadContext()
+                    offset = ReadOffset()
                     value = load_nbt(
                         data,
                         little_endian=True,
                         compressed=False,
-                        string_decoder=utf8_escape_decoder,
-                        read_context=context,
+                        string_encoding=utf8_escape_encoding,
+                        read_offset=offset,
                     ).compound
-                    data = data[context.offset :]
+                    data = data[offset.offset :]
 
                     try:
                         dimension_name = value.get_string("DimensionName").py_str
@@ -376,7 +376,7 @@ class BedrockRawLevel(
             data,
             compressed=False,
             little_endian=True,
-            string_decoder=utf8_escape_decoder,
+            string_encoding=utf8_escape_encoding,
         )
 
     def set_raw_player(self, player_id: PlayerID, player: RawPlayer) -> None:

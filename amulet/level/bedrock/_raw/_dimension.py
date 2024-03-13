@@ -13,8 +13,7 @@ from amulet_nbt import (
     CompoundTag,
     NBTLoadError,
     load as load_nbt,
-    utf8_escape_decoder,
-    utf8_escape_encoder,
+    utf8_escape_encoding,
 )
 
 from amulet.api.data_types import (
@@ -164,7 +163,7 @@ class BedrockRawDimension(
                     actor = load_nbt(
                         actor_bytes,
                         little_endian=True,
-                        string_decoder=utf8_escape_decoder,
+                        string_encoding=utf8_escape_encoding,
                     )
                     actor_tag = actor.compound
                 except KeyError:
@@ -302,7 +301,7 @@ class BedrockRawDimension(
                 key = struct.pack(">ii", -session, uid)
                 # b'\x00\x00\x00\x01\x00\x00\x00\x0c' 1, 12
                 for storage in storages:
-                    storage["StorageKey"] = StringTag(utf8_escape_decoder(key))
+                    storage["StorageKey"] = StringTag(utf8_escape_encoding.decode(key))
                 # -4294967284 ">q" b'\xff\xff\xff\xff\x00\x00\x00\x0c' ">ii" -1, 12
                 actor_tag["UniqueID"] = LongTag(
                     struct.unpack(">q", struct.pack(">ii", session, uid))[0]
@@ -311,7 +310,7 @@ class BedrockRawDimension(
                 batch[b"actorprefix" + key] = actor.save_to(
                     little_endian=True,
                     compressed=False,
-                    string_encoder=utf8_escape_encoder,
+                    string_encoding=utf8_escape_encoding,
                 )
                 digp.append(key)
 
