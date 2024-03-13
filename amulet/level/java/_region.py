@@ -5,7 +5,8 @@ import struct
 import warnings
 import zlib
 import gzip
-from typing import Tuple, Dict, Union, Optional, BinaryIO, Generator
+from typing import Tuple, Dict, Union, Optional, BinaryIO
+from collections.abc import Iterator
 import numpy
 import time
 import re
@@ -185,7 +186,7 @@ class AnvilRegion:
                             self._sector_manager.reserve(sector)
                             self._chunk_locations[(x, z)] = sector
 
-    def all_chunk_coords(self) -> Generator[ChunkCoordinates, None, None]:
+    def all_chunk_coords(self) -> Iterator[ChunkCoordinates]:
         """An iterable of chunk coordinates in world space."""
         self._load()
         for cx, cz in list(self._chunk_locations):

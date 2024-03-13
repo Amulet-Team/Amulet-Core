@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pickle
-from typing import Optional, Generator, TYPE_CHECKING, Generic, TypeVar, cast
+from typing import Optional, TYPE_CHECKING, Generic, TypeVar, cast
 from collections.abc import Iterator
 from contextlib import contextmanager
 from threading import RLock
@@ -106,7 +106,7 @@ class ChunkHandle(
         *,
         blocking: bool = True,
         timeout: float = -1,
-    ) -> Generator[None, None, None]:
+    ) -> Iterator[None]:
         """
         Lock access to the chunk.
 
