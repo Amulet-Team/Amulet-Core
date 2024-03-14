@@ -1,6 +1,6 @@
 class ChunkVersionComponent:
     def __init__(
-        self, min_chunk_version: int, max_chunk_version: int, chunk_version
+        self, min_chunk_version: int, max_chunk_version: int, chunk_version: int
     ) -> None:
         self.__min_chunk_version = min_chunk_version
         self.__max_chunk_version = max_chunk_version

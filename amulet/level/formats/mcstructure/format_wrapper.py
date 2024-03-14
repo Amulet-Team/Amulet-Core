@@ -341,7 +341,10 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             }
         )
         mcstructure.save_to(
-            f, compressed=False, little_endian=True, string_encoding=utf8_escape_encoding
+            f,
+            compressed=False,
+            little_endian=True,
+            string_encoding=utf8_escape_encoding,
         )
 
     def _close(self):

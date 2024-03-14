@@ -118,7 +118,9 @@ class Level(Generic[OpenLevelDataT, DimensionT, RawLevelT], ABC):
         raise NotImplementedError
 
     @final
-    def is_open(self, task_manager: AbstractCancelManager = VoidCancelManager()) -> bool:
+    def is_open(
+        self, task_manager: AbstractCancelManager = VoidCancelManager()
+    ) -> bool:
         """Has the level been opened.
 
         :param task_manager: The cancel manager through which cancel can be requested.

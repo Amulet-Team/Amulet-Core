@@ -18,7 +18,10 @@ log = logging.getLogger(__name__)
 
 
 def _get_cache_dir() -> str:
-    return os.path.join(os.environ.get("CACHE_DIR"), "level_data")
+    cache_dir = os.environ.get("CACHE_DIR")
+    if cache_dir is None:
+        raise RuntimeError
+    return os.path.join(cache_dir, "level_data")
 
 
 TempPattern = re.compile(r"amulettmp.*?-(?P<time>\d+)")
@@ -75,12 +78,12 @@ class TempDir(str):
             ),
         )
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.__lock = open(os.path.join(self, "lock"), "w")
         portalocker.lock(self.__lock, portalocker.LockFlags.EXCLUSIVE)
         self.__finalise = finalize(self, CallableWeakMethod(self.close))
 
-    def close(self):
+    def close(self) -> None:
         """Close the lock and delete the directory."""
         if self.__lock is not None:
             portalocker.unlock(self.__lock)

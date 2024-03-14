@@ -53,7 +53,7 @@ _scale_grid = tuple(numpy.meshgrid(*[numpy.arange(16) // 4] * 3, indexing="ij"))
 class BaseLevelDBInterface(Interface):
     chunk_version: int = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._feature_options = {
             "finalised_state": ["int0-2"],
             "data_2d": ["height512|biome256", "height512|biome4096"],
