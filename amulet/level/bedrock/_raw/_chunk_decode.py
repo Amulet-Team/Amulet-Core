@@ -9,6 +9,7 @@ import numpy
 from amulet_nbt import (
     CompoundTag,
     IntTag,
+    FloatTag,
     StringTag,
     ListTag,
     NamedTag,
@@ -21,11 +22,13 @@ from amulet_nbt import (
 from amulet.block import Block, BlockStack, PropertyType, PropertyValueClasses
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
+from amulet.biome import Biome
 from amulet.chunk.components.block import BlockComponent
 from amulet.chunk.components.block_entity import BlockEntityComponent
 from amulet.chunk.components.entity import EntityComponent
 from amulet.chunk.components.height_2d import Height2DComponent
 from amulet.chunk.components.biome import Biome2DComponent, Biome3DComponent
+from amulet.game import get_game_version
 from amulet.version import VersionNumber
 
 from amulet.utils.world_utils import fast_unique, from_nibble_array
@@ -144,7 +147,7 @@ def raw_to_native(
         cast(chunk, Height2DComponent).height = (
             numpy.frombuffer(d2d[:512], "<i2").reshape((16, 16)).astype(numpy.int64)
         )
-        chunk.biomes = _decode_3d_biomes(d2d[512:], dimension.bounds().min_y >> 4)
+        _decode_3d_biomes(raw_level, chunk, d2d[512:], dimension.bounds().min_y >> 4)
     elif isinstance(chunk, Biome2DComponent) and b"\x2D" in chunk_data:
         d2d = chunk_data[b"\x2D"]
         cast(chunk, Height2DComponent).height = (
@@ -224,7 +227,16 @@ def _load_subchunks(
             for block_id, block_data in numpy.array(
                 [numerical_palette >> 4, numerical_palette & 15]
             ).T:
-                namespace, base_name = level.legacy_block_map.int_to_str(block_id)
+                try:
+                    (
+                        namespace,
+                        base_name,
+                    ) = level.block_id_override.numerical_id_to_namespace_id(block_id)
+                except KeyError:
+                    namespace, base_name = get_game_version(
+                        "bedrock", level.version
+                    ).block.numerical_id_to_namespace_id(block_id)
+
                 block_lut.append(
                     block_palette.block_stack_to_index(
                         BlockStack(
@@ -270,23 +282,28 @@ def _load_subchunks(
                 palette_data_out: list[Block] = []
                 for block_nt in palette_data:
                     block = block_nt.compound
-                    *namespace_, base_name = block.get_string("name").py_str.split(
-                        ":", 1
-                    )
+                    block_name = block.get_string("name")
+                    assert block_name is not None
+                    *namespace_, base_name = block_name.py_str.split(":", 1)
                     namespace = namespace_[0] if namespace_ else "minecraft"
 
                     properties: PropertyType
                     if "states" in block:
+                        states = block.get_compound("states")
+                        assert states is not None
                         properties = {
                             k: v
-                            for k, v in block.get_compound("states").items()
-                            if isinstance(v, PropertyValueClasses)
+                            for k, v in states.items()
+                            if isinstance(k, str)
+                            and isinstance(v, PropertyValueClasses)
                         }
                         version = unpack_block_version(
                             block.get_int("version", IntTag(17694720)).py_int
                         )
                     elif "val" in block:
-                        properties = {"block_data": IntTag(block.get_int("val").py_int)}
+                        val = block.get_int("val")
+                        assert val is not None
+                        properties = {"block_data": IntTag(val.py_int)}
                         version = VersionNumber(1, 12, 0)
                     else:
                         properties = {}
@@ -380,24 +397,60 @@ def _load_palette_blocks(
     return blocks, palette, data
 
 
-def _decode_3d_biomes(data: bytes, floor_cy: int) -> dict[int, numpy.ndarray]:
+def _decode_3d_biomes(
+    raw_level: BedrockRawLevel, chunk: Biome3DComponent, data: bytes, floor_cy: int
+) -> None:
+    # TODO: how does Bedrock store custom biomes?
+    # TODO: can I use one global lookup based on the max version or does it need to be done for the version the chunk was saved in?
+
     # The 3D biome format consists of 25 16x arrays with the first array corresponding to the lowest sub-chunk in the world
     #  This is -64 in the overworld and 0 in the nether and end
-    biomes = {}
     cy = floor_cy
     while data:
         data, bits_per_value, arr = _decode_packed_array(data)
         if bits_per_value == 0:
-            value, data = struct.unpack(f"<I", data[:4])[0], data[4:]
-            biomes[cy] = numpy.full((16, 16, 16), value, dtype=numpy.uint32)
+            numerical_id = struct.unpack(f"<I", data[:4])[0]
+            try:
+                (
+                    namespace,
+                    base_name,
+                ) = raw_level.biome_id_override.numerical_id_to_namespace_id(
+                    numerical_id
+                )
+            except KeyError:
+                namespace, base_name = get_game_version(
+                    "bedrock", raw_level.version
+                ).biome.numerical_id_to_namespace_id(numerical_id)
+            # TODO: should this be based on the chunk version?
+            runtime_id = chunk.biome_palette.biome_to_index(
+                Biome("bedrock", raw_level.version, namespace, base_name)
+            )
+            chunk.biomes[cy] = numpy.full((16, 16, 16), runtime_id, dtype=numpy.uint32)
+            data = data[4:]
         elif bits_per_value > 0:
             palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
-            biomes[cy] = numpy.frombuffer(data, "<i4", palette_len)[arr].astype(
-                numpy.uint32
-            )
+            numerical_palette = numpy.frombuffer(data, "<i4", palette_len)
+            lut = []
+            for numerical_id in numerical_palette:
+                try:
+                    (
+                        namespace,
+                        base_name,
+                    ) = raw_level.biome_id_override.numerical_id_to_namespace_id(
+                        numerical_id
+                    )
+                except KeyError:
+                    namespace, base_name = get_game_version(
+                        "bedrock", raw_level.version
+                    ).biome.numerical_id_to_namespace_id(numerical_id)
+                    # TODO: should this be based on the chunk version?
+                runtime_id = chunk.biome_palette.biome_to_index(
+                    Biome("bedrock", raw_level.version, namespace, base_name)
+                )
+                lut.append(runtime_id)
+            chunk.biomes[cy] = numpy.array(lut, dtype=numpy.uint32)[arr]
             data = data[4 * palette_len :]
         cy += 1
-    return biomes
 
 
 def _decode_packed_array(data: bytes) -> tuple[bytes, int, Optional[numpy.ndarray]]:
@@ -508,9 +561,7 @@ def _decode_entity(
             raise Exception("tag does not have identifier or id keys.")
 
         pos = pop_nbt(tag, "Pos", ListTag)
-        x = pos[0].py_float
-        y = pos[1].py_float
-        z = pos[2].py_float
+        x, y, z = (v.py_float for v in pos if isinstance(v, FloatTag))
 
         return Entity(
             platform="bedrock",
