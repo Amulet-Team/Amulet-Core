@@ -4,10 +4,11 @@ import shutil
 from typing import Optional, Callable, cast
 from threading import Lock
 import os
-from weakref import ref
+from weakref import ref, finalize
 
 from leveldb import LevelDB
 from amulet.api.cache import TempDir
+from amulet.utils.weakref import CallableWeakMethod
 
 
 class DiskCache:
@@ -30,10 +31,14 @@ class DiskCache:
         self._disk = LevelDB(path, create_if_missing=True)
         self._max_size: int = max_size
         self._size: int = 0
+        self.__finalise = finalize(self, CallableWeakMethod(self._close))
 
-    def __del__(self) -> None:
+    def _close(self) -> None:
         self._disk.close()
         shutil.rmtree(self._path, ignore_errors=True)
+
+    def __del__(self) -> None:
+        self.__finalise()
 
     @property
     def max_size(self) -> int:

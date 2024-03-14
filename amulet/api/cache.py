@@ -1,4 +1,7 @@
 # A cache for objects implemented using leveldb for speed.
+from __future__ import annotations
+
+from typing import IO
 import os
 import shutil
 import time
@@ -6,8 +9,10 @@ import logging
 import glob
 import re
 import tempfile
+from weakref import finalize
 
 import portalocker
+from amulet.utils.weakref import CallableWeakMethod
 
 log = logging.getLogger(__name__)
 
@@ -55,7 +60,10 @@ class TempDir(str):
     >>> # The temporary directory will be deleted when the last reference to `t` is lost or when `t.close()` is called
     """
 
-    def __new__(cls):
+    __lock: IO | None
+    __finalise: finalize
+
+    def __new__(cls) -> TempDir:
         cache_dir = _get_cache_dir()
         os.makedirs(cache_dir, exist_ok=True)
         return super().__new__(
@@ -70,6 +78,7 @@ class TempDir(str):
     def __init__(self):
         self.__lock = open(os.path.join(self, "lock"), "w")
         portalocker.lock(self.__lock, portalocker.LockFlags.EXCLUSIVE)
+        self.__finalise = finalize(self, CallableWeakMethod(self.close))
 
     def close(self):
         """Close the lock and delete the directory."""
@@ -79,5 +88,5 @@ class TempDir(str):
             self.__lock = None
             shutil.rmtree(self)
 
-    def __del__(self):
-        self.close()
+    def __del__(self) -> None:
+        self.__finalise()

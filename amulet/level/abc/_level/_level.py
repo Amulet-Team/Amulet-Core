@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional, TypeVar, Type, Generic, Iterator, Ca
 from contextlib import contextmanager, AbstractContextManager as ContextManager
 import os
 import logging
-from weakref import ref
+from weakref import ref, finalize
 
 from runtime_final import final
 from PIL import Image
@@ -24,6 +24,7 @@ from amulet.utils.signal import Signal, SignalInstanceCacheName
 from amulet.utils.task_manager import AbstractCancelManager, VoidCancelManager
 
 from amulet.level.abc._history import HistoryManager
+from amulet.utils.weakref import CallableWeakMethod
 
 
 if TYPE_CHECKING:
@@ -58,6 +59,7 @@ OpenLevelDataT = TypeVar("OpenLevelDataT", bound=LevelOpenData)
 class Level(Generic[OpenLevelDataT, DimensionT, RawLevelT], ABC):
     """Base class for all levels."""
 
+    __finalise: finalize
     _open_data: OpenLevelDataT | None
     _level_lock: ShareableRLock
     _history_enabled: bool
@@ -65,6 +67,7 @@ class Level(Generic[OpenLevelDataT, DimensionT, RawLevelT], ABC):
 
     __slots__ = (
         "__weakref__",
+        "__finalise",
         SignalInstanceCacheName,
         "_open_data",
         "_level_lock",
@@ -82,9 +85,10 @@ class Level(Generic[OpenLevelDataT, DimensionT, RawLevelT], ABC):
         self._level_lock = ShareableRLock()
         self._history_enabled = True
         self._translator = None
+        self.__finalise = finalize(self, CallableWeakMethod(self.close))
 
     def __del__(self) -> None:
-        self.close()
+        self.__finalise()
 
     opened = Signal[()]()
 
