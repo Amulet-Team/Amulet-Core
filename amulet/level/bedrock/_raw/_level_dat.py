@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import struct
-from typing import BinaryIO
+from typing import BinaryIO, Any
+from copy import deepcopy
 
 from amulet_nbt import (
     load as load_nbt,
@@ -31,6 +32,21 @@ class BedrockLevelDAT(NamedTag):
             )
         super().__init__(tag, name)
         self._level_dat_version = level_dat_version
+
+    def __reduce__(self) -> Any:
+        return BedrockLevelDAT, (self.tag, self.name, self.level_dat_version)
+
+    def __copy__(self) -> BedrockLevelDAT:
+        return BedrockLevelDAT(self.tag, self.name, self.level_dat_version)
+
+    def __deepcopy__(self, memo: dict) -> BedrockLevelDAT:
+        return BedrockLevelDAT(
+            deepcopy(self.tag, memo=memo), self.name, self.level_dat_version
+        )
+
+    @property
+    def level_dat_version(self) -> int:
+        return self._level_dat_version
 
     @classmethod
     def from_file(cls, path: str) -> BedrockLevelDAT:
