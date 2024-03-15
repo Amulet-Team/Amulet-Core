@@ -141,7 +141,9 @@ class BedrockLevel(
     @property
     def level_name(self) -> str:
         try:
-            return self.raw.level_dat.compound.get_string("LevelName").py_str
+            level_name_tag = self.raw.level_dat.compound.get_string("LevelName")
+            assert level_name_tag is not None
+            return level_name_tag.py_str
         except Exception:
             return "Unknown level name"
 

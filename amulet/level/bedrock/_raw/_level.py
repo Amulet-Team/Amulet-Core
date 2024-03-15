@@ -190,10 +190,12 @@ class BedrockRawLevel(
         This is used to determine the data format to save in.
         """
         try:
+            last_opened_tag = self.level_dat.compound.get_list("lastOpenedWithVersion")
+            assert last_opened_tag is not None
             return VersionNumber(
                 *(
                     t.py_int
-                    for t in self.level_dat.compound.get_list("lastOpenedWithVersion")
+                    for t in last_opened_tag
                 )
             )
         except Exception:
@@ -254,7 +256,9 @@ class BedrockRawLevel(
                     data = data[offset.offset :]
 
                     try:
-                        dimension_name = value.get_string("DimensionName").py_str
+                        dimension_name_tag = value.get_string("DimensionName")
+                        assert dimension_name_tag is not None
+                        dimension_name = dimension_name_tag.py_str
                         # The dimension names are stored differently TODO: split local and global names
                         dimension_name = {
                             "Overworld": OVERWORLD,
