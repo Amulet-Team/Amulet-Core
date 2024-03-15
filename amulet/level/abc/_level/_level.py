@@ -25,9 +25,9 @@ from amulet.utils.weakref import CallableWeakMethod
 
 
 if TYPE_CHECKING:
-    from amulet.level.abc._dimension import Dimension
+    from amulet.level.abc._dimension import Dimension  # noqa
     from amulet.level.abc._player_storage import PlayerStorage
-    from amulet.level.abc._raw_level import RawLevel
+    from amulet.level.abc._raw_level import RawLevel  # noqa
 
 log = logging.getLogger(__name__)
 
