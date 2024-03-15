@@ -147,7 +147,7 @@ class Level(ABC, Generic[OpenLevelDataT, DimensionT, RawLevelT]):
     def purge(self) -> None:
         """
         Unload all loaded data.
-        This is a nuclear function and must be used with :meth:`lock`
+        This is a nuclear function and must be used with :meth:`lock_unique`
 
         This is functionally the same as closing and reopening the level.
         """
