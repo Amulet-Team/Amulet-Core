@@ -125,7 +125,7 @@ class BedrockRawLevel(
         return o
 
     def _reload(self) -> None:
-        self.level_dat = BedrockLevelDAT.from_file(
+        self._level_dat = BedrockLevelDAT.from_file(
             os.path.join(self._l.path, "level.dat")
         )
 
