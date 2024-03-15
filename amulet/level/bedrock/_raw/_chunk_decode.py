@@ -78,8 +78,8 @@ def raw_to_native(
 
     # TODO: improve this
     level = raw_level._l
-    version = level.translator.get_version("bedrock", tuple(raw_level.version))
-    max_version = unpack_block_version(version.data_version)
+    version = get_game_version("bedrock", raw_level.version)
+    max_version = version.max_version
 
     # Create the chunk instance
     chunk: BedrockChunk

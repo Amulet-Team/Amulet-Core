@@ -24,8 +24,6 @@ from amulet_nbt import (
 from amulet.api.data_types import (
     Dimension,
     BiomeType,
-    VersionNumberInt,
-    VersionNumberTuple,
 )
 from amulet.block import Block, UniversalAirBlock
 from amulet.selection import SelectionGroup, SelectionBox
@@ -42,6 +40,8 @@ from amulet.level.abc import (
 )
 from amulet.utils.format_utils import check_all_exist
 from amulet.level import register_level_class
+from amulet.game import get_game_version
+from amulet.version import VersionNumber
 
 from ._dimension import AnvilDimensionManager
 from ._data_pack import DataPackManager, DataPack
@@ -77,7 +77,7 @@ class DimensionEntry(NamedTuple):
 class JavaLevelPrivate(LevelPrivate):
     # Instance variables
     path: Optional[str]
-    data_version: Optional[VersionNumberInt]
+    data_version: VersionNumber | None
     root_tag: Optional[NamedTag]
     mcc_support: bool
     dimensions: dict[Union[InternalDimension, Dimension], DimensionEntry]
@@ -124,7 +124,7 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
         *,
         path: str,
         name: str,
-        version: VersionNumberTuple,
+        version: VersionNumber,
         # dimensions: Sequence[DimensionData],
         overwrite: bool = False,
         **kwargs,
@@ -138,12 +138,12 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
         self = cls()
         self._l.path = path
 
-        self._l.data_version = self.translator.get_version("java", version).data_version
+        self._l.data_version = get_game_version("java", version).max_version
 
         self.root_tag = root = CompoundTag()
         root["Data"] = data = CompoundTag()
         data["version"] = IntTag(19133)
-        data["DataVersion"] = IntTag(self._l.data_version)
+        data["DataVersion"] = IntTag(self._l.data_version[0])
         data["LastPlayed"] = LongTag(int(time.time() * 1000))
         data["LevelName"] = StringTag(name)
 
@@ -222,7 +222,7 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
                 AnvilDimensionManager(
                     path,
                     mcc=self._l.mcc_support,
-                    layers=("region",) + ("entities",) * (self._l.data_version >= 2681),
+                    layers=("region",) + ("entities",) * (self._l.data_version >= VersionNumber(2681)),
                 ),
                 self._get_dimension_bounds(dimension_name),
                 UniversalAirBlock,
@@ -230,7 +230,7 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
             )
 
     def _get_dimension_bounds(self, dimension_type_str: Dimension) -> SelectionGroup:
-        if self._l.data_version >= 2709:  # This number might be smaller
+        if self._l.data_version >= VersionNumber(2709):  # This number might be smaller
             # If in a version that supports custom height data packs
             dimension_settings = (
                 self._l.root_tag.compound.get_compound("Data", CompoundTag())
@@ -289,7 +289,7 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
                     ("minecraft", "overworld"),
                     ("minecraft", "overworld_caves"),
                 }:
-                    if self._l.data_version >= 2825:
+                    if self._l.data_version >= VersionNumber(2825):
                         # If newer than the height change version
                         return SelectionGroup(
                             SelectionBox(
@@ -355,7 +355,7 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
                 f"Could not access session.lock. The world may be open somewhere else.\n{e}"
             ) from e
 
-        self._l.mcc_support = self._l.data_version > 2203
+        self._l.mcc_support = self._l.data_version > VersionNumber(2203)
 
         # load all the levels
         self._register_dimension("", OVERWORLD)

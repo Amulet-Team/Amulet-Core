@@ -10,9 +10,6 @@ from weakref import ref, finalize
 from runtime_final import final
 from PIL import Image
 
-import PyMCTranslate
-from PyMCTranslate import TranslationManager
-
 from amulet import IMG_DIRECTORY
 from amulet.version import VersionNumber
 from amulet.api.data_types import DimensionID, PlatformType
@@ -63,7 +60,6 @@ class Level(ABC, Generic[OpenLevelDataT, DimensionT, RawLevelT]):
     _open_data: OpenLevelDataT | None
     _level_lock: ShareableRLock
     _history_enabled: bool
-    _translator: Optional[TranslationManager]
 
     __slots__ = (
         "__weakref__",
@@ -72,7 +68,6 @@ class Level(ABC, Generic[OpenLevelDataT, DimensionT, RawLevelT]):
         "_open_data",
         "_level_lock",
         "_history_enabled",
-        "_translator",
     )
 
     def __init__(self) -> None:
@@ -84,7 +79,6 @@ class Level(ABC, Generic[OpenLevelDataT, DimensionT, RawLevelT]):
         self._open_data = None
         self._level_lock = ShareableRLock()
         self._history_enabled = True
-        self._translator = None
         self.__finalise = finalize(self, CallableWeakMethod(self.close))
 
     def __del__(self) -> None:
@@ -400,12 +394,6 @@ class Level(ABC, Generic[OpenLevelDataT, DimensionT, RawLevelT]):
         The dimensions of a sub-chunk.
         """
         return 16
-
-    @property
-    def translator(self) -> TranslationManager:
-        if self._translator is None:
-            self._translator = PyMCTranslate.new_translation_manager()
-        return self._translator
 
     @abstractmethod
     def dimensions(self) -> frozenset[DimensionID]:
