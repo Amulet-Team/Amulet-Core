@@ -40,9 +40,9 @@ class JavaGameVersion(GameVersion):
             init = json.load(f)
         assert init["platform"] == "java"
         min_data_version = VersionNumber(init["data_version"])
-        max_data_version = VersionNumber(init["data_version"])  # TODO: Add max field
+        max_data_version = VersionNumber(init["data_version_max"])
         min_semantic_version = VersionNumber(*init["version"])
-        max_semantic_version = VersionNumber(*init["version"])  # TODO: Add max field
+        max_semantic_version = VersionNumber(*init["version_max"])
 
         block_format = init["block_format"]
         universal_version = get_game_version("universal", VersionNumber(1))
