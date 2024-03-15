@@ -68,13 +68,13 @@ class ChunkHandle(
 
     def __init__(
         self,
-        level_data: LevelT,
+        level: LevelT,
         history: HistoryManagerLayer[ChunkKey],
         dimension: DimensionID,
         cx: int,
         cz: int,
     ) -> None:
-        super().__init__(level_data)
+        super().__init__(level)
         self._lock = RLock()
         self._dimension = dimension
         self._key = ChunkKey(cx, cz)
