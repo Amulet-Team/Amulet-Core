@@ -56,7 +56,7 @@ class LevelOpenData:
 OpenLevelDataT = TypeVar("OpenLevelDataT", bound=LevelOpenData)
 
 
-class Level(Generic[OpenLevelDataT, DimensionT, RawLevelT], ABC):
+class Level(ABC, Generic[OpenLevelDataT, DimensionT, RawLevelT]):
     """Base class for all levels."""
 
     __finalise: finalize

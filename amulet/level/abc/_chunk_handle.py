@@ -49,8 +49,8 @@ class ChunkKey(tuple[int, int]):
 
 class ChunkHandle(
     LevelFriend[LevelT],
-    Generic[LevelT, RawDimensionT, ChunkT],
     ABC,
+    Generic[LevelT, RawDimensionT, ChunkT],
 ):
     _lock: RLock
     _dimension: DimensionID
