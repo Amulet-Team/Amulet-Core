@@ -1,5 +1,4 @@
 from __future__ import annotations
-from abc import ABC
 from amulet.chunk import Chunk
 from amulet.version import VersionRange, VersionNumber
 
@@ -12,6 +11,7 @@ from amulet.chunk.components.height_2d import Height2DComponent
 
 from .components.finalised_state import FinalisedStateComponent
 from .components.chunk_version import ChunkVersionComponent
+from .components.raw_chunk import RawChunkComponent
 
 
 class BedrockChunk(Chunk):
@@ -20,6 +20,7 @@ class BedrockChunk(Chunk):
 
 class BedrockChunk0(
     BedrockChunk,
+    RawChunkComponent,
     ChunkVersionComponent,
     BlockComponent,
     BlockEntityComponent,
@@ -34,6 +35,7 @@ class BedrockChunk0(
             VersionNumber(1, 0, 0),
             max_version,
         )
+        RawChunkComponent.__init__(self)
         ChunkVersionComponent.__init__(self, 0, 28, 0)
         BlockComponent.__init__(self, version_range, (16, 16, 16), 0)
         BlockEntityComponent.__init__(self, version_range)
@@ -45,6 +47,7 @@ class BedrockChunk0(
 
 class BedrockChunk29(
     BedrockChunk,
+    RawChunkComponent,
     ChunkVersionComponent,
     BlockComponent,
     BlockEntityComponent,
@@ -59,6 +62,7 @@ class BedrockChunk29(
             VersionNumber(1, 0, 0),
             max_version,
         )
+        RawChunkComponent.__init__(self)
         ChunkVersionComponent.__init__(self, 29, 99999, 29)
         BlockComponent.__init__(self, version_range, (16, 16, 16), 0)
         BlockEntityComponent.__init__(self, version_range)

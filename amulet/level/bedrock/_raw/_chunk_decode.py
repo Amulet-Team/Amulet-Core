@@ -76,8 +76,6 @@ def raw_to_native(
         raise RuntimeError
     chunk_version = chunk_version_byte[0]
 
-    # TODO: improve this
-    level = raw_level._l
     version = get_game_version("bedrock", raw_level.version)
     max_version = version.max_version
 
@@ -87,6 +85,8 @@ def raw_to_native(
         chunk = BedrockChunk29(max_version)
     else:
         chunk = BedrockChunk0(max_version)
+
+    chunk.raw_chunk = raw_chunk
 
     # Parse blocks
     block_component = cast(chunk, BlockComponent)
