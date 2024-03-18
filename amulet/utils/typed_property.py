@@ -57,8 +57,8 @@ class TypedProperty(Generic[GetT, SetT]):
 
     def __init__(
         self,
-        fget: Callable[[Any], Any] | None = None,
-        fset: Callable[[Any, Any], None] | None = None,
+        fget: Callable[[Any], GetT] | None = None,
+        fset: Callable[[Any, SetT], None] | None = None,
         fdel: Callable[[Any], None] | None = None,
         doc: str | None = None,
     ) -> None:
@@ -74,12 +74,12 @@ class TypedProperty(Generic[GetT, SetT]):
         self._name = name
 
     @overload
-    def __get__(self, obj: Any, objtype: None = None) -> TypedProperty: ...
+    def __get__(self, obj: None, objtype: None) -> TypedProperty[GetT, SetT]: ...
 
     @overload
-    def __get__(self, obj: Any, objtype: Any = None) -> GetT: ...
+    def __get__(self, obj: object, objtype: type[object]) -> GetT: ...
 
-    def __get__(self, obj: Any, objtype: Any = None) -> GetT | TypedProperty:
+    def __get__(self, obj: Any, objtype: Any = None) -> GetT | TypedProperty[GetT, SetT]:
         if obj is None:
             return self
         if self.fget is None:
