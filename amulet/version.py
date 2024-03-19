@@ -54,6 +54,12 @@ class VersionNumber(Sequence[int]):
             )
         return self._v[: self._last_non_zero]
 
+    def padded_version(self, length: int) -> tuple[int, ...]:
+        """Get the version number padded with zeros to the given length."""
+        if length < 0:
+            raise ValueError("Length must be at least 0.")
+        return self._v[:length] + (0,) * (length - len(self))
+
     @overload
     def __getitem__(self, index: int) -> int: ...
 
@@ -86,16 +92,20 @@ class VersionNumber(Sequence[int]):
         return self.cropped_version() == other.cropped_version()
 
     def __lt__(self, other: VersionNumber) -> bool:
-        return self.cropped_version() < other.cropped_version()
+        length = max(len(self), len(other))
+        return self.padded_version(length) < other.padded_version(length)
 
     def __gt__(self, other: VersionNumber) -> bool:
-        return self.cropped_version() > other.cropped_version()
+        length = max(len(self), len(other))
+        return self.padded_version(length) > other.padded_version(length)
 
     def __le__(self, other: VersionNumber) -> bool:
-        return self.cropped_version() <= other.cropped_version()
+        length = max(len(self), len(other))
+        return self.padded_version(length) <= other.padded_version(length)
 
     def __ge__(self, other: VersionNumber) -> bool:
-        return self.cropped_version() >= other.cropped_version()
+        length = max(len(self), len(other))
+        return self.padded_version(length) >= other.padded_version(length)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({', '.join(map(str, self._v))})"

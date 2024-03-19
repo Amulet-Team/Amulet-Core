@@ -90,6 +90,29 @@ class VersionNumberTestCase(unittest.TestCase):
         )
         self.assertLessEqual(VersionNumber(1), VersionNumber(1, 0, 0))
 
+        # Check negative numbers work
+        self.assertLess(VersionNumber(1, -1), VersionNumber(1))
+        self.assertLessEqual(VersionNumber(1, -1), VersionNumber(1))
+        self.assertLess(VersionNumber(1, -1), VersionNumber(1, 0))
+        self.assertLessEqual(VersionNumber(1, -1), VersionNumber(1, 0))
+        self.assertGreater(VersionNumber(1), VersionNumber(1, -1))
+        self.assertGreaterEqual(VersionNumber(1), VersionNumber(1, -1))
+        self.assertGreater(VersionNumber(1, 0), VersionNumber(1, -1))
+        self.assertGreaterEqual(VersionNumber(1, 0), VersionNumber(1, -1))
+
+    def test_crop(self) -> None:
+        self.assertEqual((1,), VersionNumber(1, 0, 0, 0, 0, 0, 0).cropped_version())
+
+    def test_pad(self) -> None:
+        with self.assertRaises(ValueError):
+            VersionNumber(1, 2, 3).padded_version(-1)
+        self.assertEqual((), VersionNumber(1, 2, 3).padded_version(0))
+        self.assertEqual((1,), VersionNumber(1, 2, 3).padded_version(1))
+        self.assertEqual((1, 2), VersionNumber(1, 2, 3).padded_version(2))
+        self.assertEqual((1, 2, 3), VersionNumber(1, 2, 3).padded_version(3))
+        self.assertEqual((1, 2, 3, 0), VersionNumber(1, 2, 3).padded_version(4))
+        self.assertEqual((1, 2, 3, 0, 0), VersionNumber(1, 2, 3).padded_version(5))
+
 
 class VersionRangeTestCase(unittest.TestCase):
     def test(self) -> None:
