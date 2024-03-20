@@ -38,6 +38,7 @@ from amulet.level.bedrock.chunk import BedrockChunk, BedrockChunk0, BedrockChunk
 from amulet.level.bedrock.chunk.components.finalised_state import (
     FinalisedStateComponent,
 )
+from amulet.level.bedrock.chunk.components.raw_chunk import RawChunkComponent
 
 if TYPE_CHECKING:
     from ._level import BedrockRawLevel
@@ -66,6 +67,11 @@ def raw_to_native(
     dimension: BedrockRawDimension,
     raw_chunk: BedrockRawChunk,
 ) -> BedrockChunk:
+    game_version = get_game_version("bedrock", raw_level.version)
+    max_version = game_version.max_version
+
+    floor_cy = dimension.bounds().min_y >> 4
+
     chunk_data = raw_chunk.chunk_data
 
     # Get the chunk format version
@@ -76,9 +82,6 @@ def raw_to_native(
         raise RuntimeError
     chunk_version = chunk_version_byte[0]
 
-    version = get_game_version("bedrock", raw_level.version)
-    max_version = version.max_version
-
     # Create the chunk instance
     chunk: BedrockChunk
     if chunk_version >= 29:
@@ -86,7 +89,7 @@ def raw_to_native(
     else:
         chunk = BedrockChunk0(max_version)
 
-    chunk.raw_chunk = raw_chunk
+    cast(chunk, RawChunkComponent).raw_chunk = raw_chunk
 
     # Parse blocks
     block_component = cast(chunk, BlockComponent)
@@ -96,7 +99,7 @@ def raw_to_native(
             if len(key) == 2 and key[0] == 0x2F:
                 cy = struct.unpack("b", key[1:2])[0]
                 if 25 <= chunk_version <= 28:
-                    cy += dimension.bounds().min_y >> 4
+                    cy += floor_cy
                 subchunks[cy] = chunk_data.pop(key)
         _load_subchunks(raw_level, subchunks, block_component)
     else:
@@ -203,7 +206,7 @@ def _load_subchunks(
         BlockStack(
             Block(
                 "bedrock",
-                VersionNumber(1, 12, 0),
+                VersionNumber(1, 12),
                 namespace="minecraft",
                 base_name="air",
                 properties={"block_data": IntTag(0)},
@@ -242,7 +245,7 @@ def _load_subchunks(
                         BlockStack(
                             Block(
                                 "bedrock",
-                                VersionNumber(1, 12, 0),
+                                VersionNumber(1, 12),
                                 namespace=namespace,
                                 base_name=base_name,
                                 properties={"block_data": IntTag(block_data)},
@@ -304,7 +307,7 @@ def _load_subchunks(
                         val = block.get_int("val")
                         assert val is not None
                         properties = {"block_data": IntTag(val.py_int)}
-                        version = VersionNumber(1, 12, 0)
+                        version = VersionNumber(1, 12)
                     else:
                         properties = {}
                         version = unpack_block_version(
