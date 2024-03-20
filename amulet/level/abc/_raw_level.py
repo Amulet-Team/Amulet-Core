@@ -56,10 +56,15 @@ class RawDimension(ABC, Generic[RawChunkT, ChunkT]):
 
     @abstractmethod
     def get_raw_chunk(self, cx: int, cz: int) -> RawChunkT:
-        """
-        Get the chunk data in its raw format.
+        """Get the chunk data in its raw format.
+
         This is usually the exact data that exists on disk.
         The raw chunk format varies between each level class.
+        Each call to this method will return a unique object.
+
+        :param cx: The chunk x coordinate
+        :param cz: The chunk z coordinate
+        :return: The raw chunk.
         """
         raise NotImplementedError
 
@@ -72,12 +77,28 @@ class RawDimension(ABC, Generic[RawChunkT, ChunkT]):
     def raw_chunk_to_native_chunk(
         self, cx: int, cz: int, raw_chunk: RawChunkT
     ) -> ChunkT:
+        """Unpack data from the raw chunk format (as stored on disk) into editable classes.
+
+        This takes ownership of the raw_chunk object.
+
+        :param cx: The chunk x coordinate
+        :param cz: The chunk z coordinate
+        :param raw_chunk: The raw chunk to unpack.
+        :return: The unpacked chunk.
+        """
         raise NotImplementedError
 
     @abstractmethod
-    def native_chunk_to_raw_chunk(
-        self, cx: int, cz: int, raw_chunk: ChunkT
-    ) -> RawChunkT:
+    def native_chunk_to_raw_chunk(self, cx: int, cz: int, chunk: ChunkT) -> RawChunkT:
+        """Pack the data from the editable classes into the raw format.
+
+        This takes ownership of the chunk object.
+
+        :param cx: The chunk x coordinate
+        :param cz: The chunk z coordinate
+        :param chunk: The native chunk to pack
+        :return: The packed chunk.
+        """
         raise NotImplementedError
 
 
