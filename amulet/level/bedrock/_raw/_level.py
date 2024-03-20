@@ -192,12 +192,7 @@ class BedrockRawLevel(
         try:
             last_opened_tag = self.level_dat.compound.get_list("lastOpenedWithVersion")
             assert last_opened_tag is not None
-            return VersionNumber(
-                *(
-                    t.py_int
-                    for t in last_opened_tag
-                )
-            )
+            return VersionNumber(*(t.py_int for t in last_opened_tag))
         except Exception:
             return VersionNumber(1, 2, 0)
 

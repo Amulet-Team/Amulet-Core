@@ -222,7 +222,8 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
                 AnvilDimensionManager(
                     path,
                     mcc=self._l.mcc_support,
-                    layers=("region",) + ("entities",) * (self._l.data_version >= VersionNumber(2681)),
+                    layers=("region",)
+                    + ("entities",) * (self._l.data_version >= VersionNumber(2681)),
                 ),
                 self._get_dimension_bounds(dimension_name),
                 UniversalAirBlock,

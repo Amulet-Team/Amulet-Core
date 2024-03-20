@@ -46,9 +46,7 @@ class BedrockGameVersion(GameVersion):
             init = json.load(f)
         assert init["platform"] == "bedrock"
         min_data_version = VersionNumber(init.get("data_version", -1))
-        max_data_version = VersionNumber(
-            init.get("data_version_max", -1)
-        )
+        max_data_version = VersionNumber(init.get("data_version_max", -1))
         min_semantic_version = VersionNumber(*init["version"])
         max_semantic_version = VersionNumber(*init["version_max"])
 
