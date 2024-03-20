@@ -27,6 +27,7 @@ from amulet.api.errors import ChunkDoesNotExist
 from amulet.level.abc import RawDimension
 from ._chunk import BedrockRawChunk
 from ._chunk_decode import raw_to_native
+from ._chunk_encode import native_to_raw
 from ._level_friend import BedrockRawLevelFriend
 from ._constant import THE_NETHER, THE_END
 from ._typing import InternalDimension
@@ -129,9 +130,8 @@ class BedrockRawDimension(
                 db.delete(actor_key)
 
     def get_raw_chunk(self, cx: int, cz: int) -> BedrockRawChunk:
-        """
-        Get a dictionary of chunk key extension in bytes to the raw data in the key.
-        chunk key extension are the character(s) after <cx><cz>[level] in the key
+        """Get the raw data for the chunk.
+
         :param cx: The chunk x coordinate
         :param cz: The chunk z coordinate
         :return:
@@ -323,6 +323,7 @@ class BedrockRawDimension(
             del chunk.chunk_data[b"digp"]
             batch[digp_key] = b"".join(digp)
 
+        # TODO: find all existing keys for this chunk in the database and delete them
         for key, val in chunk.chunk_data.items():
             key = key_prefix + key
             if val is None:
@@ -338,6 +339,6 @@ class BedrockRawDimension(
         return raw_to_native(self._r, self, raw_chunk)
 
     def native_chunk_to_raw_chunk(
-        self, cx: int, cz: int, raw_chunk: BedrockChunk
+        self, cx: int, cz: int, chunk: BedrockChunk
     ) -> BedrockRawChunk:
-        raise NotImplementedError
+        return native_to_raw(self._r, self, chunk)
