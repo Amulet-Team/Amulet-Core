@@ -196,7 +196,7 @@ def _load_palettized_subchunk(
     block_palette: BlockPalette,
     storage_count: int,
     cy: int,
-):
+) -> None:
     """Load a sub-chunk stored in the palettized format."""
     sub_chunk_blocks = numpy.zeros((16, 16, 16, storage_count), dtype=numpy.uint32)
     sub_chunk_palette: list[list[Block]] = []
@@ -288,7 +288,7 @@ def _load_binary_subchunk(
     blocks: SubChunkArrayContainer,
     block_palette: BlockPalette,
     cy: int,
-):
+) -> None:
     block_ids = numpy.frombuffer(data[: 2**12], dtype=numpy.uint8).astype(numpy.uint16)
     block_data = from_nibble_array(
         numpy.frombuffer(data[2**12 : 2**12 + 2**11], dtype=numpy.uint8)
