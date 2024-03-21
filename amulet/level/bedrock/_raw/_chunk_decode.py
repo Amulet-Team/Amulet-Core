@@ -23,6 +23,8 @@ from amulet.block import Block, BlockStack, PropertyType, PropertyValueClasses
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
 from amulet.biome import Biome
+from amulet.palette import BlockPalette
+from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
 from amulet.chunk.components.block import BlockComponent
 from amulet.chunk.components.block_entity import BlockEntityComponent
 from amulet.chunk.components.entity import EntityComponent
@@ -188,6 +190,147 @@ def raw_to_native(
     return chunk
 
 
+def _load_palettized_subchunk(
+    data: bytes,
+    blocks: SubChunkArrayContainer,
+    block_palette: BlockPalette,
+    storage_count: int,
+    cy: int,
+):
+    """Load a sub-chunk stored in the palettized format."""
+    sub_chunk_blocks = numpy.zeros((16, 16, 16, storage_count), dtype=numpy.uint32)
+    sub_chunk_palette: list[list[Block]] = []
+    for storage_index in range(storage_count):
+        (
+            sub_chunk_blocks[:, :, :, storage_index],
+            palette_data,
+            data,
+        ) = _load_palette_blocks(data)
+        palette_data_out: list[Block] = []
+        for block_nt in palette_data:
+            block = block_nt.compound
+            block_name = block.get_string("name")
+            assert block_name is not None
+            *namespace_, base_name = block_name.py_str.split(":", 1)
+            namespace = namespace_[0] if namespace_ else "minecraft"
+
+            properties: PropertyType
+            if "states" in block:
+                states = block.get_compound("states")
+                assert states is not None
+                properties = {
+                    k: v
+                    for k, v in states.items()
+                    if isinstance(k, str) and isinstance(v, PropertyValueClasses)
+                }
+                version = unpack_block_version(
+                    block.get_int("version", IntTag(17694720)).py_int
+                )
+            elif "val" in block:
+                val = block.get_int("val")
+                assert val is not None
+                properties = {"block_data": IntTag(val.py_int)}
+                version = VersionNumber(1, 12)
+            else:
+                properties = {}
+                version = unpack_block_version(
+                    block.get_int("version", IntTag(17694720)).py_int
+                )
+
+            palette_data_out.append(
+                Block(
+                    "bedrock",
+                    version,
+                    namespace=namespace,
+                    base_name=base_name,
+                    properties=properties,
+                )
+            )
+        sub_chunk_palette.append(palette_data_out)
+
+    if storage_count == 1:
+        block_lut = [
+            block_palette.block_stack_to_index(BlockStack(block))
+            for block in sub_chunk_palette[0]
+        ]
+        blocks[cy] = numpy.array(block_lut, dtype=numpy.uint32)[
+            sub_chunk_blocks[:, :, :, 0]
+        ]
+    elif storage_count > 1:
+        # we have two or more storages so need to find the unique block combinations and merge them together
+        sub_chunk_palette_, sub_chunk_blocks = numpy.unique(
+            sub_chunk_blocks.reshape(-1, storage_count),
+            return_inverse=True,
+            axis=0,
+        )
+        block_lut = [
+            block_palette.block_stack_to_index(
+                BlockStack(
+                    *(
+                        sub_chunk_palette[storage_index][index]
+                        for storage_index, index in enumerate(palette_indexes)
+                        if storage_index == 0
+                        or sub_chunk_palette[storage_index][index].namespaced_name
+                        != "minecraft:air"
+                    )
+                )
+            )
+            for palette_indexes in sub_chunk_palette_
+        ]
+        blocks[cy] = numpy.array(block_lut, dtype=numpy.uint32)[
+            sub_chunk_blocks.reshape(16, 16, 16)
+        ]
+
+
+def _load_binary_subchunk(
+    data: bytes,
+    level: BedrockRawLevel,
+    blocks: SubChunkArrayContainer,
+    block_palette: BlockPalette,
+    cy: int,
+):
+    block_ids = numpy.frombuffer(data[: 2**12], dtype=numpy.uint8).astype(numpy.uint16)
+    block_data = from_nibble_array(
+        numpy.frombuffer(data[2**12 : 2**12 + 2**11], dtype=numpy.uint8)
+    )
+    numerical_palette, block_array = fast_unique(
+        numpy.transpose(((block_ids << 4) + block_data).reshape(16, 16, 16), (0, 2, 1))
+    )
+    block_lut: list[int] = []
+    for block_id, block_data in numpy.array(
+        [numerical_palette >> 4, numerical_palette & 15]
+    ).T:
+        try:
+            (
+                namespace,
+                base_name,
+            ) = level.block_id_override.numerical_id_to_namespace_id(block_id)
+        except KeyError:
+            try:
+                namespace, base_name = get_game_version(
+                    "bedrock", level.version
+                ).block.numerical_id_to_namespace_id(block_id)
+            except KeyError:
+                namespace = "numerical"
+                base_name = str(block_id)
+
+        block_lut.append(
+            block_palette.block_stack_to_index(
+                BlockStack(
+                    Block(
+                        "bedrock",
+                        VersionNumber(1, 12),
+                        namespace=namespace,
+                        base_name=base_name,
+                        properties={"block_data": IntTag(block_data)},
+                    )
+                )
+            )
+        )
+
+    blocks[cy] = numpy.array(block_lut, dtype=numpy.uint32)[block_array]
+
+
 def _load_subchunks(
     level: BedrockRawLevel, subchunks: dict[int, bytes], chunk: BlockComponent
 ) -> None:
@@ -200,8 +343,8 @@ def _load_subchunks(
     The newer formats allow multiple blocks to occupy the same space and the
     newer versions also include a version ber block.
     """
-    blocks = chunk.blocks
-    block_palette = chunk.block_palette
+    blocks: SubChunkArrayContainer = chunk.blocks
+    block_palette: BlockPalette = chunk.block_palette
     block_palette.block_stack_to_index(
         BlockStack(
             Block(
@@ -214,153 +357,28 @@ def _load_subchunks(
         )
     )
     for cy, data in subchunks.items():
-        if data[0] in {0, 2, 3, 4, 5, 6, 7}:
-            block_ids = numpy.frombuffer(
-                data[1 : 1 + 2**12], dtype=numpy.uint8
-            ).astype(numpy.uint16)
-            block_data = from_nibble_array(
-                numpy.frombuffer(data[1 + 2**12 : 1 + 2**12 + 2**11], dtype=numpy.uint8)
+        sub_chunk_version, data = data[0], data[1:]
+
+        if sub_chunk_version == 9:
+            # There is an extra byte in this format storing the cy value
+            storage_count, cy, data = (
+                data[0],
+                struct.unpack("b", data[1:2])[0],
+                data[2:],
             )
-            numerical_palette, block_array = fast_unique(
-                numpy.transpose(
-                    ((block_ids << 4) + block_data).reshape(16, 16, 16), (0, 2, 1)
-                )
-            )
-            block_lut: list[int] = []
-            for block_id, block_data in numpy.array(
-                [numerical_palette >> 4, numerical_palette & 15]
-            ).T:
-                try:
-                    (
-                        namespace,
-                        base_name,
-                    ) = level.block_id_override.numerical_id_to_namespace_id(block_id)
-                except KeyError:
-                    namespace, base_name = get_game_version(
-                        "bedrock", level.version
-                    ).block.numerical_id_to_namespace_id(block_id)
+            _load_palettized_subchunk(data, blocks, block_palette, storage_count, cy)
 
-                block_lut.append(
-                    block_palette.block_stack_to_index(
-                        BlockStack(
-                            Block(
-                                "bedrock",
-                                VersionNumber(1, 12),
-                                namespace=namespace,
-                                base_name=base_name,
-                                properties={"block_data": IntTag(block_data)},
-                            )
-                        )
-                    )
-                )
+        elif sub_chunk_version == 8:
+            storage_count, data = data[0], data[1:]
+            _load_palettized_subchunk(data, blocks, block_palette, storage_count, cy)
 
-            blocks[cy] = numpy.array(block_lut, dtype=numpy.uint32)[block_array]
+        elif sub_chunk_version == 1:
+            _load_palettized_subchunk(data, blocks, block_palette, 1, cy)
 
+        elif 0 <= sub_chunk_version <= 7:
+            _load_binary_subchunk(data, level, blocks, block_palette, cy)
         else:
-            if data[0] == 1:
-                storage_count = 1
-                data = data[1:]
-            elif data[0] == 8:
-                storage_count, data = data[1], data[2:]
-            elif data[0] == 9:
-                # There is an extra byte in this format storing the cy value
-                storage_count, cy, data = (
-                    data[1],
-                    struct.unpack("b", data[2:3])[0],
-                    data[3:],
-                )
-            else:
-                raise Exception(f"sub-chunk version {data[0]} is not known.")
-
-            sub_chunk_blocks = numpy.zeros(
-                (16, 16, 16, storage_count), dtype=numpy.uint32
-            )
-            sub_chunk_palette: list[list[Block]] = []
-            for storage_index in range(storage_count):
-                (
-                    sub_chunk_blocks[:, :, :, storage_index],
-                    palette_data,
-                    data,
-                ) = _load_palette_blocks(data)
-                palette_data_out: list[Block] = []
-                for block_nt in palette_data:
-                    block = block_nt.compound
-                    block_name = block.get_string("name")
-                    assert block_name is not None
-                    *namespace_, base_name = block_name.py_str.split(":", 1)
-                    namespace = namespace_[0] if namespace_ else "minecraft"
-
-                    properties: PropertyType
-                    if "states" in block:
-                        states = block.get_compound("states")
-                        assert states is not None
-                        properties = {
-                            k: v
-                            for k, v in states.items()
-                            if isinstance(k, str)
-                            and isinstance(v, PropertyValueClasses)
-                        }
-                        version = unpack_block_version(
-                            block.get_int("version", IntTag(17694720)).py_int
-                        )
-                    elif "val" in block:
-                        val = block.get_int("val")
-                        assert val is not None
-                        properties = {"block_data": IntTag(val.py_int)}
-                        version = VersionNumber(1, 12)
-                    else:
-                        properties = {}
-                        version = unpack_block_version(
-                            block.get_int("version", IntTag(17694720)).py_int
-                        )
-
-                    palette_data_out.append(
-                        Block(
-                            "bedrock",
-                            version,
-                            namespace=namespace,
-                            base_name=base_name,
-                            properties=properties,
-                        )
-                    )
-                sub_chunk_palette.append(palette_data_out)
-
-            if storage_count == 1:
-                block_lut = [
-                    block_palette.block_stack_to_index(BlockStack(block))
-                    for block in sub_chunk_palette[0]
-                ]
-                blocks[cy] = numpy.array(block_lut, dtype=numpy.uint32)[
-                    sub_chunk_blocks[:, :, :, 0]
-                ]
-            elif storage_count > 1:
-                # we have two or more storages so need to find the unique block combinations and merge them together
-                sub_chunk_palette_, sub_chunk_blocks = numpy.unique(
-                    sub_chunk_blocks.reshape(-1, storage_count),
-                    return_inverse=True,
-                    axis=0,
-                )
-                block_lut = [
-                    block_palette.block_stack_to_index(
-                        BlockStack(
-                            *(
-                                sub_chunk_palette[storage_index][index]
-                                for storage_index, index in enumerate(palette_indexes)
-                                if storage_index == 0
-                                or sub_chunk_palette[storage_index][
-                                    index
-                                ].namespaced_name
-                                != "minecraft:air"
-                            )
-                        )
-                    )
-                    for palette_indexes in sub_chunk_palette_
-                ]
-                blocks[cy] = numpy.array(block_lut, dtype=numpy.uint32)[
-                    sub_chunk_blocks.reshape(16, 16, 16)
-                ]
-            else:
-                continue
+            raise Exception(f"sub-chunk version {sub_chunk_version} is not known.")
 
 
 def _load_palette_blocks(
