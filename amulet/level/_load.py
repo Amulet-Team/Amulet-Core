@@ -1,36 +1,31 @@
 from __future__ import annotations
 
-from typing import Type, Any, TypeAlias
+from typing import Type, Any, cast
 import logging
 from inspect import isclass
 from threading import Lock
 from weakref import WeakValueDictionary
 
-from .abc import Level, LoadableLevel
+from amulet.utils.typing import Intersection
+from amulet.level.abc import Level, LoadableLevel
 
 
 log = logging.getLogger(__name__)
 
-# These should really be Intersection but Python doesn't have that
-LoadableLevelClsHint: TypeAlias = Type[LoadableLevel]  # | Type[Level]
-LoadableLevelHint: TypeAlias = LoadableLevel  # | Level
 
-
-_level_classes = set[LoadableLevelClsHint]()
-_levels = WeakValueDictionary[Any, LoadableLevelHint]()
+_level_classes = set[Intersection[Type[LoadableLevel], Type[Level]]]()
+_levels = WeakValueDictionary[Any, Intersection[LoadableLevel, Level]]()
 _lock = Lock()
 
 
-def _check_loadable_level(cls: LoadableLevelClsHint) -> None:
-    if not isclass(cls):
-        raise TypeError("cls must be a class")
-    if not issubclass(cls, Level):
-        raise TypeError("cls must be a subclass of amulet.level.abc.Level")
-    if not issubclass(cls, LoadableLevel):
-        raise TypeError("cls must be a subclass of amulet.level.abc.LoadableLevel")
+def _check_loadable_level(cls: Any) -> None:
+    if not (isclass(cls) and issubclass(cls, Level) and issubclass(cls, LoadableLevel)):
+        raise TypeError(
+            "cls must be a subclass of amulet.level.abc.Level and amulet.level.abc.LoadableLevel"
+        )
 
 
-def register_level_class(cls: LoadableLevelClsHint) -> None:
+def register_level_class(cls: Intersection[Type[LoadableLevel], Type[Level]]) -> None:
     """Add a level class to be considered when getting a level.
 
     :param cls: The Level subclass to register.
@@ -41,7 +36,7 @@ def register_level_class(cls: LoadableLevelClsHint) -> None:
         _level_classes.add(cls)
 
 
-def unregister_level_class(cls: LoadableLevelClsHint) -> None:
+def unregister_level_class(cls: Intersection[Type[LoadableLevel], Type[Level]]) -> None:
     """Remove a level class from consideration when getting a level.
 
     Note that any instances of the class will remain.
@@ -59,7 +54,7 @@ class NoValidLevel(Exception):
     pass
 
 
-def get_level(token: Any) -> Level:
+def get_level(token: Any) -> Intersection[Level, LoadableLevel]:
     """Get the level for the given token.
 
     If a level object already exists for this token then that will be returned.
@@ -77,7 +72,8 @@ def get_level(token: Any) -> Level:
     level: None | LoadableLevel | Level
     with _lock:
         # Find the level to load the token
-        cls = next((cls for cls in _level_classes if cls.can_load(token)), None)
+        classes = cast(set[LoadableLevel], _level_classes)
+        cls = next((cls for cls in classes if cls.can_load(token)), None)
 
         if cls is None:
             # If no level could load the token then raise
