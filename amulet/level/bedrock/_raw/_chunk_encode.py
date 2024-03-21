@@ -1,8 +1,6 @@
 from __future__ import annotations
 import struct
-from typing import Optional, TypeVar, Any, TYPE_CHECKING
-from collections.abc import Iterable
-import logging
+from typing import TYPE_CHECKING, Callable, Iterable
 from functools import cache
 
 import numpy
@@ -15,9 +13,6 @@ from amulet_nbt import (
     StringTag,
     ListTag,
     NamedTag,
-    ReadOffset,
-    load_array as load_nbt_array,
-    load as load_nbt,
     utf8_escape_encoding,
 )
 
@@ -38,10 +33,8 @@ from amulet.game import get_game_version
 from amulet.version import VersionNumber
 from amulet.palette import BlockPalette
 
-from amulet.utils.world_utils import fast_unique, from_nibble_array
-
 from amulet.level.bedrock._raw import BedrockRawChunk
-from amulet.level.bedrock.chunk import BedrockChunk, BedrockChunk0, BedrockChunk29
+from amulet.level.bedrock.chunk import BedrockChunk
 from amulet.level.bedrock.chunk.components.finalised_state import (
     FinalisedStateComponent,
 )
@@ -55,7 +48,7 @@ if TYPE_CHECKING:
 
 @cache
 def pack_block_version(version: VersionNumber) -> int:
-    return struct.unpack(">i", bytes([*version.padded_version(4)]))[0]
+    return struct.unpack(">i", bytes([*version.padded_version(4)]))[0]  # type: ignore
 
 
 def native_to_raw(
@@ -98,7 +91,7 @@ def native_to_raw(
             )
         elif max_version >= VersionNumber(0, 17):
             terrain = _encode_blocks_v1(
-                chunk, floor_cy, ceil_cy, dimension.default_block()[0]
+                chunk, dimension.default_block()[0]
             )
         else:
             terrain = _encode_blocks_v0(chunk)
@@ -161,9 +154,12 @@ def native_to_raw(
             chunk_data[b"\x31"] = _pack_nbt_list(block_entities_out)
 
     if isinstance(chunk, EntityComponent):
-        entities_out = _encode_entities(chunk.entities, chunk_version)
+        entities_out = _encode_entities(chunk.entities, max_version >= VersionNumber(1, 8))
         if entities_out:
-            chunk_data[b"\x32"] = _pack_nbt_list(entities_out)
+            if max_version >= VersionNumber(1, 18, 30):
+                raw_chunk.entity_actor.extend(entities_out)
+            else:
+                chunk_data[b"\x32"] = _pack_nbt_list(entities_out)
 
     return raw_chunk
 
@@ -215,7 +211,7 @@ def _encode_block(block: Block) -> NamedTag:
         )
 
 
-def _encode_palette(
+def _encode_block_palette(
     block_palette: BlockPalette, default_block: Block, max_block_depth: int
 ) -> list[tuple[list[NamedTag], numpy.ndarray]]:
     """Encode the block palette.
@@ -322,7 +318,7 @@ def _encode_palettized_chunk(
     """Encode the palettized sections of the chunk data. The caller handles the header."""
     blocks: SubChunkArrayContainer = chunk.blocks
     block_palette: BlockPalette = chunk.block_palette
-    encoded_block_palette = _encode_palette(
+    encoded_block_palette = _encode_block_palette(
         block_palette, default_block, max_block_depth
     )
 
@@ -340,12 +336,12 @@ def _encode_palettized_chunk(
 
 
 def _encode_blocks_v1(
-    chunk: BlockComponent, min_cy: int, max_cy: int, default_block: Block
+    chunk: BlockComponent, default_block: Block
 ) -> dict[int, bytes]:
     return {
         cy: b"".join((b"\x01", *layers))
         for cy, layers in _encode_palettized_chunk(
-            chunk, min_cy, max_cy, default_block, 1
+            chunk, 0, 16, default_block, 1
         ).items()
     }
 
@@ -421,23 +417,23 @@ def _pack_nbt_list(nbt_list: list[NamedTag]) -> bytes:
     )
 
 
-def _encode_entities(entities: EntityContainer, chunk_version: int) -> list[NamedTag]:
+def _encode_entities(entities: EntityContainer, str_id: bool) -> list[NamedTag]:
     entities_out = []
     for entity in entities:
-        nbt = _encode_entity(entity, chunk_version)
+        nbt = _encode_entity(entity, str_id)
         if nbt is not None:
             entities_out.append(nbt)
 
     return entities_out
 
 
-def _encode_entity(entity: Entity, chunk_version: int) -> NamedTag | None:
+def _encode_entity(entity: Entity, str_id: bool) -> NamedTag | None:
     named_tag = entity.nbt
     tag = named_tag.tag
     if not isinstance(tag, CompoundTag):
         return None
 
-    if chunk_version >= 9:
+    if str_id:
         tag["identifier"] = StringTag(entity.namespaced_name)
     else:
         if not entity.base_name.isnumeric():
