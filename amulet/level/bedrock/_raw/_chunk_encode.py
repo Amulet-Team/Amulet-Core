@@ -17,7 +17,6 @@ from amulet_nbt import (
     utf8_escape_encoding,
 )
 
-from amulet.biome import Biome
 from amulet.block import Block, PropertyValueClasses
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
@@ -33,6 +32,7 @@ from amulet.chunk.components.biome import Biome2DComponent, Biome3DComponent
 from amulet.game import get_game_version
 from amulet.version import VersionNumber
 from amulet.palette import BlockPalette, BiomePalette
+from amulet.utils.world_utils import to_nibble_array
 
 from amulet.level.bedrock._raw import BedrockRawChunk
 from amulet.level.bedrock.chunk import BedrockChunk
@@ -98,7 +98,37 @@ def native_to_raw(
                 chunk, dimension.default_block()[0]
             )
         else:
-            terrain = _encode_blocks_v0(chunk)
+            get_block_id_override = raw_level.block_id_override.namespace_id_to_numerical_id
+            get_block_id_game = game_version.block.namespace_id_to_numerical_id
+
+            @cache
+            def encode_block(block: Block) -> tuple[int, int]:
+                namespace = block.namespace
+                base_name = block.base_name
+
+                def get_block_data() -> int:
+                    nbt_block_data = block.properties.get("block_data")
+                    if isinstance(nbt_block_data, IntTag):
+                        return nbt_block_data.py_int % 16
+                    return 0
+
+                # encode namespace
+                if namespace == "numerical":
+                    if base_name.isnumeric():
+                        return int(base_name) % 256, get_block_data()
+                else:
+                    try:
+                        return get_block_id_override(namespace, base_name), get_block_data()
+                    except KeyError:
+                        pass
+                    try:
+                        return get_block_id_game(namespace, base_name), get_block_data()
+                    except KeyError:
+                        pass
+
+                return 0, 0
+
+            terrain = _encode_blocks_v0(chunk, encode_block)
 
         # TODO: is this right?
         for cy, sub_chunk in terrain.items():
@@ -222,8 +252,27 @@ def _encode_biome_palette(
     return biome_int_palette
 
 
-def _encode_blocks_v0(chunk: BlockComponent) -> dict[int, bytes]:
-    raise NotImplementedError
+def _encode_blocks_v0(chunk: BlockComponent, encode_block: Callable[[Block], tuple[int, int]]) -> dict[int, bytes]:
+    blocks: SubChunkArrayContainer = chunk.blocks
+    block_palette = chunk.block_palette
+    sections: dict[int, bytes] = {}
+
+    palette = numpy.array([encode_block(block_stack[0]) for block_stack in block_palette])
+    for cy in range(16):
+        if cy in blocks:
+            block_sub_array = palette[
+                numpy.transpose(blocks[cy], (0, 2, 1)).ravel()
+            ]
+            if numpy.any(block_sub_array):
+                data_sub_array = block_sub_array[:, 1]
+                block_sub_array = block_sub_array[:, 0]
+                sections[cy] = (
+                    b"\00"
+                    + block_sub_array.astype("uint8").tobytes()
+                    + to_nibble_array(data_sub_array).tobytes()
+                )
+
+    return sections
 
 
 @cache
