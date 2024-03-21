@@ -2,6 +2,7 @@ from __future__ import annotations
 import struct
 from typing import TYPE_CHECKING, Callable, Iterable
 from functools import cache
+from logging import getLogger
 
 import numpy
 
@@ -16,10 +17,10 @@ from amulet_nbt import (
     utf8_escape_encoding,
 )
 
-from amulet.block import Block, BlockStack, PropertyType, PropertyValueClasses
+from amulet.biome import Biome
+from amulet.block import Block, PropertyValueClasses
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
-from amulet.biome import Biome
 from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
 from amulet.chunk.components.block import BlockComponent
 from amulet.chunk.components.block_entity import (
@@ -31,7 +32,7 @@ from amulet.chunk.components.height_2d import Height2DComponent
 from amulet.chunk.components.biome import Biome2DComponent, Biome3DComponent
 from amulet.game import get_game_version
 from amulet.version import VersionNumber
-from amulet.palette import BlockPalette
+from amulet.palette import BlockPalette, BiomePalette
 
 from amulet.level.bedrock._raw import BedrockRawChunk
 from amulet.level.bedrock.chunk import BedrockChunk
@@ -44,6 +45,9 @@ from amulet.level.bedrock.chunk.components.chunk_version import ChunkVersionComp
 if TYPE_CHECKING:
     from ._level import BedrockRawLevel
     from ._dimension import BedrockRawDimension
+
+
+log = getLogger(__name__)
 
 
 @cache
@@ -113,36 +117,78 @@ def native_to_raw(
     else:
         height = bytes(512)
 
+    get_biome_id_override = raw_level.biome_id_override.namespace_id_to_numerical_id
+    get_biome_id_game = game_version.biome.namespace_id_to_numerical_id
+
+    @cache
+    def encode_biome(
+        namespace: str,
+        base_name: str
+    ) -> int:
+        try:
+            # First try overrides
+            return get_biome_id_override(namespace, base_name)
+        except KeyError:
+            try:
+                # Then fall back to the game implementation.
+                return get_biome_id_game(namespace, base_name)
+            except KeyError:
+                log.error(f"Unknown biome {namespace}:{base_name}. Falling back to default.")
+                default_biome = dimension.default_biome()
+                if namespace == default_biome.namespace and base_name == default_biome.base_name:
+                    raise RuntimeError("Could not encode default biome.")
+                return encode_biome(default_biome.namespace, default_biome.base_name)
+
     if isinstance(chunk, Biome2DComponent):
-        biomes_array = chunk.biomes.astype("uint8").T.tobytes()
+        palette_indexes, array = numpy.unique(chunk.biomes, return_inverse=True)
+
+        biome_id_palette = _encode_biome_palette(
+            chunk.biome_palette,
+            palette_indexes,
+            encode_biome,
+        )
+
+        biomes_array = numpy.asarray(biome_id_palette, dtype=numpy.uint8)[array].T.tobytes()
         chunk_data[b"\x2D"] = height + biomes_array
 
     elif isinstance(chunk, Biome3DComponent):
         d2d: list[bytes] = [height]
 
         biomes: SubChunkArrayContainer = chunk.biomes
+        biome_palette = chunk.biome_palette
 
-        highest = next(
-            (cy for cy in range(ceil_cy, floor_cy - 1, -1) if cy in biomes), None
+        def encode_biome_section(array: numpy.ndarray) -> bytes:
+            palette_indexes, arr_uniq = numpy.unique(array, return_inverse=True)
+
+            biome_id_palette = _encode_biome_palette(
+                biome_palette,
+                palette_indexes,
+                encode_biome,
+            )
+            
+            if len(biome_id_palette) == 1:
+                encoded_section = b"\x01"
+            else:
+                encoded_section = _encode_packed_array(arr_uniq.reshape(array.shape)) + struct.pack("<I", len(biome_id_palette))
+            return encoded_section + numpy.asarray(biome_id_palette, dtype=numpy.uint32).tobytes()
+
+        @cache
+        def get_default_biome_section() -> bytes:
+            default_section = biomes.default_array
+            if isinstance(default_section, int):
+                default_section = numpy.full((16, 16, 16), default_section, dtype=numpy.uint32)
+            return encode_biome_section(default_section)
+
+        highest_cy = next(
+            (cy for cy in range(ceil_cy, floor_cy - 1, -1) if cy in biomes), floor_cy
         )
-        if highest is None:
-            # populate the lowest array
-            biomes.populate(floor_cy)
-        else:
-            for cy in range(highest - 1, floor_cy - 1, -1):
-                if cy not in biomes:
-                    biomes.populate(cy)
 
         for cy in range(floor_cy, floor_cy + 25):
             if cy in biomes:
-                arr = biomes[cy]
-                palette, arr_uniq = numpy.unique(arr, return_inverse=True)
-                if len(palette) == 1:
-                    d2d.append(b"\x01")
-                else:
-                    d2d.append(_encode_packed_array(arr_uniq.reshape(arr.shape)))
-                    d2d.append(struct.pack("<I", len(palette)))
-                d2d.append(palette.astype("<i4").tobytes())
+                d2d.append(encode_biome_section(biomes[cy]))
+            elif cy <= highest_cy:
+                # Everything below the highest must be defined
+                d2d.append(get_default_biome_section())
             else:
                 d2d.append(b"\xFF")
 
@@ -162,6 +208,18 @@ def native_to_raw(
                 chunk_data[b"\x32"] = _pack_nbt_list(entities_out)
 
     return raw_chunk
+
+
+def _encode_biome_palette(
+    biome_palette: BiomePalette,
+    palette_indexes: Iterable[int],
+    encode_biome: Callable[[str, str], int],
+) -> list[int]:
+    biome_int_palette: list[int] = []
+    for palette_index in palette_indexes:
+        biome = biome_palette[palette_index]
+        biome_int_palette.append(encode_biome(biome.namespace, biome.base_name))
+    return biome_int_palette
 
 
 def _encode_blocks_v0(chunk: BlockComponent) -> dict[int, bytes]:
