@@ -165,7 +165,7 @@ def native_to_raw(
                 palette_indexes,
                 encode_biome,
             )
-            
+
             if len(biome_id_palette) == 1:
                 encoded_section = b"\x01"
             else:
@@ -491,12 +491,12 @@ def _encode_entity(entity: Entity, str_id: bool) -> NamedTag | None:
     if not isinstance(tag, CompoundTag):
         return None
 
-    if str_id:
+    if entity.namespace == "numerical" and entity.base_name.isnumeric():
+        tag["id"] = IntTag(int(entity.base_name))
+    elif str_id:
         tag["identifier"] = StringTag(entity.namespaced_name)
     else:
-        if not entity.base_name.isnumeric():
-            return None
-        tag["id"] = IntTag(int(entity.base_name))
+        return None
 
     tag["Pos"] = ListTag(
         [

@@ -558,7 +558,8 @@ def _decode_entity(
                 ":", 1
             )
         elif "id" in tag:
-            namespace = ""
+            # TODO: we should probably look up the real entity id
+            namespace = "numerical"
             base_name = str(pop_nbt(tag, "id", IntTag).py_int)
         else:
             raise Exception("tag does not have identifier or id keys.")
