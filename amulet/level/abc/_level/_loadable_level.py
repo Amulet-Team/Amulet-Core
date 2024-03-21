@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, Union
+from typing import Any
 from abc import ABC, abstractmethod
 
+from amulet.utils.typing import Intersection
 from ._level import Level
 
 
@@ -24,7 +25,7 @@ class LoadableLevel(ABC):
 
     @classmethod
     @abstractmethod
-    def load(cls, token: Any) -> Union[Level, LoadableLevel]:
+    def load(cls, token: Any) -> Intersection[Level, LoadableLevel]:
         """
         Create a new instance from existing data.
         You must call :meth:`~amulet.level.BaseLevel.open` to open the level for editing.
