@@ -18,7 +18,7 @@ from amulet.api.chunk import (
 from amulet.entity import Entity
 from amulet.block_entity import BlockEntity
 from amulet.api.data_types import ChunkCoordinates, VersionIdentifierType
-from amulet.api.errors import ChunkLoadError
+from amulet.errors import ChunkLoadError
 
 if TYPE_CHECKING:
     from amulet.level import Level
@@ -101,7 +101,7 @@ class Chunk:
         :param pickled_bytes: The bytes returned from :func:`pickle`
         :param level: The level to deserialise against.
         :raises:
-            :class:`~amulet.api.errors.ChunkLoadError`: If pickled data was a ChunkLoadError instance.
+            :class:`~amulet.errors.ChunkLoadError`: If pickled data was a ChunkLoadError instance.
             RuntimeError if any other case
         :return: An instance of :class:`Chunk` containing the unpickled data.
         """

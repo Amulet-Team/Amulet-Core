@@ -20,7 +20,7 @@ from amulet.level.abc import (
     CreateArgsT,
     PlayerStorage,
 )
-from amulet.api.errors import ObjectWriteError
+from amulet.errors import ObjectWriteError
 from amulet.utils.format_utils import check_all_exist
 from amulet.level import register_level_class
 

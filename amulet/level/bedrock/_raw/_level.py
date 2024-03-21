@@ -24,7 +24,7 @@ from amulet.api.data_types import (
     DimensionID,
 )
 from amulet.selection import SelectionGroup, SelectionBox
-from amulet.api.errors import PlayerDoesNotExist
+from amulet.errors import PlayerDoesNotExist
 from amulet.level.abc import (
     RawLevel,
     RawLevelPlayerComponent,

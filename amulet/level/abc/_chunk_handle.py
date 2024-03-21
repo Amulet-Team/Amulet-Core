@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from amulet.utils.shareable_lock import LockNotAcquired
 from amulet.chunk import Chunk
 from amulet.api.data_types import DimensionID
-from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
+from amulet.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.utils.signal import Signal
 
 from ._level import LevelFriend, LevelT

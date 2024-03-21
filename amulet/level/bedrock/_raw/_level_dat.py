@@ -12,9 +12,7 @@ from amulet_nbt import (
     EncodingPreset,
     StringEncoding,
 )
-from amulet.api.errors import (
-    ObjectReadError,
-)
+from amulet.errors import ObjectReadError
 
 
 class BedrockLevelDAT(NamedTag):

@@ -8,7 +8,7 @@ import threading
 from amulet_nbt import NamedTag
 
 from amulet.utils import world_utils
-from amulet.api.errors import ChunkDoesNotExist
+from amulet.errors import ChunkDoesNotExist
 from amulet.api.data_types import (
     ChunkCoordinates,
     RegionCoordinates,

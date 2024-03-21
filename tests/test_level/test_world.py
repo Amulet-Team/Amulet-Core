@@ -3,7 +3,7 @@ import os
 
 from amulet.block import Block
 from amulet.api.chunk import Chunk
-from amulet.api.errors import ChunkDoesNotExist
+from amulet.errors import ChunkDoesNotExist
 from amulet.selection import SelectionBox, SelectionGroup
 from amulet import load_level, load_format
 from data.util import get_world_path, create_temp_world, clean_temp_world

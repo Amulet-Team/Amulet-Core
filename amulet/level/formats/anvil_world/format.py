@@ -37,7 +37,7 @@ from amulet.api.chunk import Chunk
 from amulet.selection import SelectionGroup, SelectionBox
 from amulet.api.wrapper import WorldFormatWrapper, DefaultSelection
 from amulet.utils.format_utils import check_all_exist
-from amulet.api.errors import (
+from amulet.errors import (
     DimensionDoesNotExist,
     ObjectWriteError,
     ChunkLoadError,

@@ -16,7 +16,7 @@ from enum import IntEnum
 
 from amulet_nbt import NamedTag, load as load_nbt
 
-from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
+from amulet.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.data_types import (
     ChunkCoordinates,
 )

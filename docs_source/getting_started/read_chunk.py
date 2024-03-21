@@ -1,5 +1,5 @@
 import amulet
-from amulet.api.errors import ChunkLoadError, ChunkDoesNotExist
+from amulet.errors import ChunkLoadError, ChunkDoesNotExist
 
 # load the level
 level = amulet.load_level("level")

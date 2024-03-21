@@ -1,7 +1,7 @@
 import unittest
 import time
 
-from amulet.api.errors import ChunkLoadError
+from amulet.errors import ChunkLoadError
 from amulet import load_level
 from data.util import create_temp_world, clean_temp_world
 from data import worlds_src

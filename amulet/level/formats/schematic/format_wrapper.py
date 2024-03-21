@@ -34,7 +34,7 @@ from amulet.palette import BlockPalette
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.selection import SelectionBox, SelectionGroup
-from amulet.api.errors import ObjectReadError, ObjectWriteError, ChunkDoesNotExist
+from amulet.errors import ObjectReadError, ObjectWriteError, ChunkDoesNotExist
 from .interface import (
     JavaSchematicInterface,
     BedrockSchematicInterface,

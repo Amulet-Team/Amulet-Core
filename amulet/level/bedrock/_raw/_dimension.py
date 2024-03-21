@@ -23,7 +23,7 @@ from amulet.api.data_types import (
 from amulet.block import Block, BlockStack
 from amulet.biome import Biome
 from amulet.selection import SelectionGroup
-from amulet.api.errors import ChunkDoesNotExist
+from amulet.errors import ChunkDoesNotExist
 from amulet.level.abc import RawDimension
 from ._chunk import BedrockRawChunk
 from ._chunk_decode import raw_to_native

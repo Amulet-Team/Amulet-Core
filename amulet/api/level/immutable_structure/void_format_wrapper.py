@@ -8,7 +8,7 @@ from amulet.api.data_types import (
     VersionNumberTuple,
 )
 from amulet.api.wrapper import BaseFormatWrapper, CreatableFormatWrapper
-from amulet.api.errors import ChunkDoesNotExist, PlayerDoesNotExist
+from amulet.errors import ChunkDoesNotExist, PlayerDoesNotExist
 from amulet.player import Player
 from amulet.api.chunk import Chunk
 from amulet.api import wrapper as api_wrapper

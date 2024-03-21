@@ -41,7 +41,7 @@ from amulet.palette import BlockPalette
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.selection import SelectionGroup, SelectionBox
-from amulet.api.errors import ChunkDoesNotExist, ObjectWriteError
+from amulet.errors import ChunkDoesNotExist, ObjectWriteError
 
 from .section import ConstructionSection
 from .interface import Construction0Interface, ConstructionInterface

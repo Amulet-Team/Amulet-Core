@@ -1,40 +1,8 @@
-class FormatError(Exception):
-    """A base error for all errors related to the :class:`~amulet.api.wrapper.format_wrapper.FormatWrapper` class."""
-
-    pass
+class DimensionDoesNotExist(Exception):
+    """An error thrown if trying to load data from a dimension that does not exist."""
 
 
-class LoaderNoneMatched(FormatError):
-    """An error thrown if no loader could be found that could load the given data."""
-
-    pass
-
-
-class EntryLoadError(Exception):
-    pass
-
-
-class EntryDoesNotExist(EntryLoadError):
-    pass
-
-
-class PlayerLoadError(EntryLoadError):
-    """
-    An error thrown if a player failed to load for some reason.
-    """
-
-    pass
-
-
-class PlayerDoesNotExist(EntryDoesNotExist, PlayerLoadError):
-    """
-    An error thrown if a player does not exist.
-    """
-
-    pass
-
-
-class ChunkLoadError(EntryLoadError):
+class ChunkLoadError(Exception):
     """
     An error thrown if a chunk failed to load for some reason.
 
@@ -50,10 +18,8 @@ class ChunkLoadError(EntryLoadError):
     >>>     # either because they do not exist or errored during loading.
     """
 
-    pass
 
-
-class ChunkDoesNotExist(EntryDoesNotExist, ChunkLoadError):
+class ChunkDoesNotExist(ChunkLoadError):
     """
     An error thrown if a chunk does not exist and therefor cannot be loaded.
 
@@ -68,46 +34,30 @@ class ChunkDoesNotExist(EntryDoesNotExist, ChunkLoadError):
     >>>     # chunks that do not exist were caught by the previous except section.
     """
 
-    pass
 
-
-class ChunkSaveError(Exception):
-    """An error thrown if there was an error during the chunk saving process."""
-
-    pass
-
-
-class DimensionDoesNotExist(Exception):
-    """An error thrown if trying to load data from a dimension that does not exist."""
-
-    pass
-
-
-class ObjectReadWriteError(Exception):
+class PlayerLoadError(Exception):
     """
-    An error thrown when the raw level data cannot be read from or written to.
-
-    This is usually because the data has been opened somewhere else.
+    An error thrown if a player failed to load for some reason.
     """
 
-    pass
+
+class PlayerDoesNotExist(PlayerLoadError):
+    """
+    An error thrown if a player does not exist.
+    """
 
 
-class ObjectReadError(ObjectReadWriteError):
+class ObjectReadError(Exception):
     """
     An error thrown when the raw level data cannot be read from.
 
     This is usually because the data has been opened somewhere else.
     """
 
-    pass
 
-
-class ObjectWriteError(ObjectReadWriteError):
+class ObjectWriteError(Exception):
     """
     An error thrown when the raw level data cannot be written to.
 
     This is usually because the data has been opened somewhere else.
     """
-
-    pass
