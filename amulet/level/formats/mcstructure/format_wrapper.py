@@ -23,7 +23,7 @@ from amulet.api.data_types import (
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.selection import SelectionGroup, SelectionBox
-from amulet.errors import ChunkDoesNotExist, ObjectWriteError
+from amulet.errors import ChunkDoesNotExist, LevelWriteError
 from amulet.utils.numpy_helpers import brute_sort_objects_no_hash
 
 from .chunk import MCStructureChunk
@@ -69,7 +69,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         **kwargs,
     ):
         if not overwrite and os.path.isfile(self.path):
-            raise ObjectWriteError(f"There is already a file at {self.path}")
+            raise LevelWriteError(f"There is already a file at {self.path}")
         translator_version = self.translation_manager.get_version(
             "bedrock", (999, 999, 999)
         )

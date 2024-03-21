@@ -42,6 +42,7 @@ from amulet.utils.format_utils import check_all_exist
 from amulet.level import register_level_class
 from amulet.game import get_game_version
 from amulet.version import VersionNumber
+from amulet.errors import LevelWriteError
 
 from ._dimension import AnvilDimensionManager
 from ._data_pack import DataPackManager, DataPack
@@ -133,7 +134,7 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
             if overwrite:
                 shutil.rmtree(path)
             else:
-                raise ObjectWriteError(f"A world already exists at the path {path}")
+                raise LevelWriteError(f"A world already exists at the path {path}")
 
         self = cls()
         self._l.path = path

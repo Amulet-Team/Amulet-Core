@@ -6,7 +6,7 @@ from amulet import load_format
 from amulet.api.data_types import VersionNumberAny
 from amulet.api.wrapper import FormatWrapper
 from amulet.selection import SelectionGroup, SelectionBox
-from amulet.errors import ObjectWriteError
+from amulet.errors import LevelWriteError
 
 from amulet.level.formats.anvil_world import AnvilFormat
 from amulet.level.formats.leveldb_world import LevelDBFormat
@@ -84,7 +84,7 @@ class CreateWorldTestCase(unittest.TestCase):
 
         self.assertTrue(os.path.exists(level.path))
 
-        with self.assertRaises(ObjectWriteError):
+        with self.assertRaises(LevelWriteError):
             if cls.requires_selection():
                 cls.create(
                     path=path,

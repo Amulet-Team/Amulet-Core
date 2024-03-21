@@ -12,7 +12,7 @@ from amulet_nbt import (
     EncodingPreset,
     StringEncoding,
 )
-from amulet.errors import ObjectReadError
+from amulet.errors import LevelReadError
 
 
 class BedrockLevelDAT(NamedTag):
@@ -62,7 +62,7 @@ class BedrockLevelDAT(NamedTag):
                 tag = root_tag.tag
             else:
                 # TODO: handle other versions
-                raise ObjectReadError(
+                raise LevelReadError(
                     f"Unsupported level.dat version {level_dat_version}"
                 )
         return cls(tag, name, level_dat_version)

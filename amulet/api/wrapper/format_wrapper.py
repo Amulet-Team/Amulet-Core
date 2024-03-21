@@ -31,7 +31,7 @@ from amulet.palette import BlockPalette
 from amulet.errors import (
     ChunkLoadError,
     ChunkDoesNotExist,
-    ObjectReadError,
+    LevelReadError,
     ObjectReadWriteError,
     PlayerDoesNotExist,
     PlayerLoadError,
@@ -263,14 +263,14 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
                     )[0]
                 )
             else:
-                raise ObjectReadError(
+                raise LevelReadError(
                     "A single selection was required but none were given."
                 )
 
     def open(self):
         """Open the database for reading and writing."""
         if self.is_open:
-            raise ObjectReadError(f"Cannot open {self} because it was already opened.")
+            raise LevelReadError(f"Cannot open {self} because it was already opened.")
         self._open()
 
     @abstractmethod
@@ -806,18 +806,18 @@ class DiskFormatWrapper(
             platform not in self.valid_formats()
             or len(self.valid_formats()[platform]) < 2
         ):  # check that the platform and version are valid
-            raise ObjectReadError(
+            raise LevelReadError(
                 f"{platform} is not a valid platform for this wrapper."
             )
         translator_version = self.translation_manager.get_version(platform, version)
         if translator_version.has_abstract_format:  # numerical
             if not self.valid_formats()[platform][0]:
-                raise ObjectReadError(
+                raise LevelReadError(
                     f"The version given ({version}) is from the numerical format but this wrapper does not support the numerical format."
                 )
         else:
             if not self.valid_formats()[platform][1]:
-                raise ObjectReadError(
+                raise LevelReadError(
                     f"The version given ({version}) is from the blockstate format but this wrapper does not support the blockstate format."
                 )
 

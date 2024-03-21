@@ -39,7 +39,7 @@ from amulet.api.wrapper import WorldFormatWrapper, DefaultSelection
 from amulet.utils.format_utils import check_all_exist
 from amulet.errors import (
     DimensionDoesNotExist,
-    ObjectWriteError,
+    LevelWriteError,
     ChunkLoadError,
     ChunkDoesNotExist,
     PlayerDoesNotExist,
@@ -457,7 +457,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
             if overwrite:
                 shutil.rmtree(self.path)
             else:
-                raise ObjectWriteError(
+                raise LevelWriteError(
                     f"A world already exists at the path {self.path}"
                 )
         self._version = self.translation_manager.get_version(

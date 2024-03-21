@@ -4,7 +4,7 @@ import os
 
 from .format_wrapper import DiskFormatWrapper, VersionNumberT, StorageType
 from amulet.api.data_types import Dimension
-from amulet.errors import ObjectReadError, ObjectReadWriteError, PlayerDoesNotExist
+from amulet.errors import LevelReadError, ObjectReadWriteError, PlayerDoesNotExist
 from amulet.player import Player
 from amulet.selection import SelectionGroup
 
@@ -77,7 +77,7 @@ class StructureFormatWrapper(DiskFormatWrapper[VersionNumberT]):
                 if isinstance(group, SelectionGroup):
                     self._bounds[dim] = self._clean_selection(group)
         else:
-            raise ObjectReadError("A selection was required but none were given.")
+            raise TypeError("A selection was required but none were given.")
 
     @abstractmethod
     def open_from(self, f: BinaryIO):
@@ -92,7 +92,7 @@ class StructureFormatWrapper(DiskFormatWrapper[VersionNumberT]):
         if self._has_disk_data:
             # Skip normal loading if it was created
             if not os.path.isfile(self._path):
-                raise ObjectReadError(f"There is no file to read at {self._path}")
+                raise LevelReadError(f"There is no file to read at {self._path}")
             with open(self._path, "rb") as f:
                 self.open_from(f)
         self._is_open = True

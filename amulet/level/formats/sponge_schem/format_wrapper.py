@@ -25,7 +25,7 @@ from amulet.api.data_types import (
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.selection import SelectionGroup, SelectionBox
-from amulet.errors import ChunkDoesNotExist, ObjectWriteError, ObjectReadError
+from amulet.errors import ChunkDoesNotExist, LevelWriteError, LevelReadError
 from amulet.block import Block
 from amulet.utils.numpy_helpers import brute_sort_objects_no_hash
 
@@ -37,11 +37,11 @@ if TYPE_CHECKING:
     from amulet.api.wrapper import Translator, Interface
 
 
-class SpongeSchemReadError(ObjectReadError):
+class SpongeSchemReadError(LevelReadError):
     pass
 
 
-class SpongeSchemWriteError(ObjectWriteError):
+class SpongeSchemWriteError(LevelWriteError):
     pass
 
 

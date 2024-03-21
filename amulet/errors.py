@@ -47,7 +47,7 @@ class PlayerDoesNotExist(PlayerLoadError):
     """
 
 
-class ObjectReadError(Exception):
+class LevelReadError(Exception):
     """
     An error thrown when the raw level data cannot be read from.
 
@@ -55,7 +55,7 @@ class ObjectReadError(Exception):
     """
 
 
-class ObjectWriteError(Exception):
+class LevelWriteError(Exception):
     """
     An error thrown when the raw level data cannot be written to.
 

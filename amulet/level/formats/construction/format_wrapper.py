@@ -41,7 +41,7 @@ from amulet.palette import BlockPalette
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.selection import SelectionGroup, SelectionBox
-from amulet.errors import ChunkDoesNotExist, ObjectWriteError
+from amulet.errors import ChunkDoesNotExist, LevelWriteError
 
 from .section import ConstructionSection
 from .interface import Construction0Interface, ConstructionInterface
@@ -170,7 +170,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         **kwargs,
     ):
         if not overwrite and os.path.isfile(self.path):
-            raise ObjectWriteError(f"There is already a file at {self.path}")
+            raise LevelWriteError(f"There is already a file at {self.path}")
         self._format_version = format_version
         self._section_version = section_version
         translator_version = self.translation_manager.get_version(

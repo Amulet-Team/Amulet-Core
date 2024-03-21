@@ -34,7 +34,7 @@ from amulet.palette import BlockPalette
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.selection import SelectionBox, SelectionGroup
-from amulet.errors import ObjectReadError, ObjectWriteError, ChunkDoesNotExist
+from amulet.errors import LevelReadError, LevelWriteError, ChunkDoesNotExist
 from .interface import (
     JavaSchematicInterface,
     BedrockSchematicInterface,
@@ -88,7 +88,7 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         **kwargs,
     ):
         if not overwrite and os.path.isfile(self.path):
-            raise ObjectWriteError(f"There is already a file at {self.path}")
+            raise LevelWriteError(f"There is already a file at {self.path}")
         if self._platform == "bedrock":
             self._version = (1, 12, 0)
         else:
@@ -101,7 +101,7 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
     def open_from(self, f: BinaryIO):
         schematic = load_nbt(f).compound
         if "BlockData" in schematic:
-            raise ObjectReadError("This file is not a legacy schematic file.")
+            raise LevelReadError("This file is not a legacy schematic file.")
         materials = schematic.get_string("Materials", StringTag("Alpha")).py_str
         if materials == "Alpha":
             self._platform = "java"
@@ -217,7 +217,7 @@ class SchematicFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         elif self._platform == "bedrock":
             materials = "Pocket"
         else:
-            raise ObjectWriteError(
+            raise LevelWriteError(
                 f'"{self._platform}" is not a supported platform for a schematic file.'
             )
 

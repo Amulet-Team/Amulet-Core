@@ -20,7 +20,7 @@ from amulet.level.abc import (
     CreateArgsT,
     PlayerStorage,
 )
-from amulet.errors import ObjectWriteError
+from amulet.errors import LevelWriteError
 from amulet.utils.format_utils import check_all_exist
 from amulet.level import register_level_class
 
@@ -80,7 +80,7 @@ class BedrockLevel(
             if overwrite:
                 shutil.rmtree(path)
             else:
-                raise ObjectWriteError(f"A directory already exists at the path {path}")
+                raise LevelWriteError(f"A directory already exists at the path {path}")
         os.makedirs(path, exist_ok=True)
 
         root = CompoundTag()
