@@ -4,6 +4,7 @@ from typing import Any, Union, Type
 import os
 import shutil
 import time
+from dataclasses import dataclass
 
 from PIL import Image
 from leveldb import LevelDB
@@ -11,22 +12,42 @@ from amulet_nbt import CompoundTag, IntTag, ListTag, LongTag, StringTag
 
 from amulet.version import VersionNumber
 from amulet.api.data_types import DimensionID, PlatformType
+from amulet.level import register_level_class
 from amulet.level.abc import (
     LevelOpenData,
     DiskLevel,
     CreatableLevel,
     LoadableLevel,
     CompactableLevel,
-    CreateArgsT,
     PlayerStorage,
+    method_spec,
+    CallableArg,
+    BoolArg,
+    DirectoryPathArg,
+    PositionalArgs,
+    IntArg,
+    StringArg
 )
 from amulet.errors import LevelWriteError
 from amulet.utils.format_utils import check_all_exist
-from amulet.level import register_level_class
 
 from ._raw import BedrockRawLevel, InternalDimension, BedrockLevelDAT
 from ._dimension import BedrockDimension
 from ...chunk import Chunk
+
+
+@dataclass
+class BedrockCreateArgsV1:
+    """A class to house call arguments to create.
+
+    If the call arguments to create need to be modified in the future a new arguments class can be created.
+    The create method can inspect which class it was given and access arguments accordingly.
+    """
+
+    overwrite: bool
+    path: str
+    version: VersionNumber
+    level_name: str
 
 
 class BedrockLevelOpenData(LevelOpenData):
@@ -63,19 +84,28 @@ class BedrockLevel(
         self._path = path
         self._raw_level = BedrockRawLevel(self)
 
-    @staticmethod
-    def create_args() -> dict[str, CreateArgsT]:
-        raise NotImplementedError
-
     @classmethod
-    def create(
-        cls,
-        *,
-        overwrite: bool,
-        path: str,
-        version: tuple[int, int, int, int, int],
-        level_name: str,
-    ) -> BedrockLevel:
+    @method_spec(
+        CallableArg(
+            BedrockCreateArgsV1,
+            BoolArg(True),
+            DirectoryPathArg(),
+            CallableArg(
+                VersionNumber,
+                PositionalArgs(
+                    IntArg(min_value=0),
+                    (IntArg(1), IntArg(20))
+                )
+            ),
+            StringArg("New World")
+        )
+    )
+    def create(cls, args: BedrockCreateArgsV1) -> BedrockLevel:
+        overwrite = args.overwrite
+        path = args.path
+        version = args.version
+        level_name = args.level_name
+
         if os.path.isdir(path):
             if overwrite:
                 shutil.rmtree(path)
@@ -85,7 +115,9 @@ class BedrockLevel(
 
         root = CompoundTag()
         root["StorageVersion"] = IntTag(8)
-        root["lastOpenedWithVersion"] = ListTag([IntTag(i) for i in version])
+        root["lastOpenedWithVersion"] = ListTag(
+            [IntTag(i) for i in version.padded_version(5)]
+        )
         root["Generator"] = IntTag(1)
         root["LastPlayed"] = LongTag(int(time.time()))
         root["LevelName"] = StringTag(level_name)

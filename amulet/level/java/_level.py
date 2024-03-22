@@ -8,6 +8,7 @@ import struct
 import glob
 import json
 import logging
+from dataclasses import dataclass
 
 from PIL import Image
 import portalocker
@@ -25,18 +26,21 @@ from amulet.api.data_types import (
     Dimension,
     BiomeType,
 )
-from amulet.block import Block, UniversalAirBlock
+from amulet.block import Block
 from amulet.selection import SelectionGroup, SelectionBox
 from amulet.level.abc import (
     DiskLevel,
     CreatableLevel,
-    CreateArgsT,
     StringArg,
     IntArg,
-    SequenceArg,
     LoadableLevel,
-    LevelPrivate,
     CompactableLevel,
+    LevelOpenData,
+    CallableArg,
+    BoolArg,
+    DirectoryPathArg,
+    PositionalArgs,
+    method_spec,
 )
 from amulet.utils.format_utils import check_all_exist
 from amulet.level import register_level_class
@@ -57,6 +61,14 @@ THE_END = "minecraft:the_end"
 DefaultSelection = SelectionGroup(
     SelectionBox((-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000))
 )
+
+
+@dataclass
+class JavaCreateArgsV1:
+    overwrite: bool
+    path: str
+    version: VersionNumber
+    level_name: str
 
 
 # class DimensionData(Protocol):
@@ -120,16 +132,30 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
         return JavaLevelPrivate(self)
 
     @classmethod
+    @method_spec(
+        CallableArg(
+            JavaCreateArgsV1,
+            BoolArg(True),
+            DirectoryPathArg(),
+            CallableArg(
+                VersionNumber,
+                PositionalArgs(
+                    IntArg(min_value=0),
+                    (IntArg(1), IntArg(20))
+                )
+            ),
+            StringArg("New World")
+        )
+    )
     def create(
         cls,
-        *,
-        path: str,
-        name: str,
-        version: VersionNumber,
-        # dimensions: Sequence[DimensionData],
-        overwrite: bool = False,
-        **kwargs,
+        args: JavaCreateArgsV1
     ) -> JavaLevel:
+        overwrite = args.overwrite
+        path = args.path
+        version = args.version
+        level_name = args.level_name
+
         if os.path.isdir(path):
             if overwrite:
                 shutil.rmtree(path)
@@ -153,16 +179,6 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
 
         return self
 
-    @staticmethod
-    def create_args() -> dict[str, CreateArgsT]:
-        return {
-            "path": StringArg(),
-            "name": StringArg(),
-            "version": SequenceArg(IntArg()),
-            # "dimensions": SequenceArg(ProtocolArg(
-            #
-            # ))
-        }
 
     @staticmethod
     def can_load(token: Any) -> bool:

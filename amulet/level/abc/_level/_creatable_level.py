@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
 from amulet.utils.typing import Intersection
+from ._call_spec import method_spec, CallSpec
 
 
 if TYPE_CHECKING:
@@ -16,6 +17,7 @@ class CreatableLevel(ABC):
 
     @classmethod
     @abstractmethod
+    @method_spec(CallSpec())
     def create(cls, *args: Any, **kwargs: Any) -> Intersection[Level, CreatableLevel]:
         """
         Create a new instance without any existing data.
@@ -24,10 +26,4 @@ class CreatableLevel(ABC):
         """
         # If writing data to disk, it must write a valid level.
         # If only setting attributes, the open method must be aware that it should not load data from disk.
-        raise NotImplementedError
-
-    @staticmethod
-    @abstractmethod
-    def create_args() -> dict[str, CreateArgsT]:
-        """The arguments required to create a new instance of this level."""
         raise NotImplementedError
