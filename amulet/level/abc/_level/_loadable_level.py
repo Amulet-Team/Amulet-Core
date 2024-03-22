@@ -28,9 +28,9 @@ class LoadableLevel(ABC):
     def load(cls, token: Any) -> Intersection[Level, LoadableLevel]:
         """
         Create a new instance from existing data.
-        You must call :meth:`~amulet.level.BaseLevel.open` to open the level for editing.
+        You must call :meth:`~amulet.level.abc.Level.open` to open the level for editing.
         :param token: The token to use to load the data.
-        :return: A new BaseLevel instance
+        :return: A new Level instance
         """
         raise NotImplementedError
 
