@@ -16,6 +16,7 @@ from typing import (
     Concatenate,
     runtime_checkable,
 )
+from collections.abc import Sequence
 from abc import ABC, abstractmethod
 
 
@@ -30,7 +31,19 @@ class AbstractArg(ABC):
 class AbstractHashableArg(AbstractArg, ABC):
     """A base class for all arguments that are hashable."""
 
-    pass
+
+class DocumentationArg(AbstractArg):
+    """A way to add documentation for an argument."""
+    def __init__(self, arg: AbstractArg, name: str | None = None, description: str | None = None) -> None:
+        """Construct a DocumentationArg instance.
+
+        :param arg: The argument this documentation relates to.
+        :param name: The short name for the argument.
+        :param description: A longer description for the argument.
+        """
+        self.arg = arg
+        self.name = name
+        self.description = description
 
 
 class ConstantArg(AbstractArg):
@@ -47,6 +60,14 @@ class StringArg(AbstractHashableArg):
 
     def __init__(self, default: str = "") -> None:
         self.default = default
+
+
+class FilePathArg(StringArg):
+    """A path to a file on disk. Converts to a string."""
+
+
+class DirectoryPathArg(StringArg):
+    """A path to a directory on disk. Converts to a string."""
 
 
 class BytesArg(AbstractHashableArg):
@@ -105,7 +126,7 @@ class HashableTupleArg(AbstractArg):
         self.args = args
 
 
-class ListArg(AbstractArg):
+class SequenceArg(AbstractArg):
     """
     A sequence of other arguments.
     Each element must match element_type.
@@ -115,12 +136,20 @@ class ListArg(AbstractArg):
     def __init__(
         self,
         element_type: AbstractArg,
+        default: Sequence[AbstractArg] = (),
         min_length: int | None = None,
         max_length: int | None = None,
     ) -> None:
         self.element_type = element_type
+        self.default = default
         self.min_length = min_length
         self.max_length = max_length
+
+
+class PositionalArgs(SequenceArg):
+    """A sequence of arguments that should be unpacked into the container.
+    This is useful when a CallableArg can take a variable number of an argument.
+    """
 
 
 class DictArg(AbstractArg):
@@ -151,9 +180,9 @@ class CallableArg(AbstractArg):
     kwargs specify the arguments to pass to the function.
     """
 
-    def __init__(self, func: Callable[..., Any], call_spec: CallSpec) -> None:
+    def __init__(self, func: Callable[..., Any], *args: AbstractArg, **kwargs: AbstractArg) -> None:
         self.func = func
-        self.call_spec = call_spec
+        self.call_spec = CallSpec(*args, **kwargs)
 
 
 class HashableCallableArg(AbstractHashableArg):
@@ -203,8 +232,9 @@ class TypedMethod(Protocol[P, R]):
 
 
 def callable_spec(
-    call_spec: CallSpec,
+    *args: AbstractArg, **kwargs: AbstractArg
 ) -> Callable[[Callable[P, R]], TypedCallable[P, R]]:
+    call_spec: CallSpec = CallSpec(*args, **kwargs)
     def wrap(func: Callable[P, R]) -> TypedCallable[P, R]:
         func_ = cast(TypedCallable[P, R], func)
         func_.call_spec = call_spec
@@ -214,8 +244,9 @@ def callable_spec(
 
 
 def method_spec(
-    call_spec: CallSpec,
+    *args: AbstractArg, **kwargs: AbstractArg
 ) -> Callable[[Callable[Concatenate[Any, P], R]], TypedMethod[P, R]]:
+    call_spec: CallSpec = CallSpec(*args, **kwargs)
     def wrap(func: Callable[Concatenate[Any, P], R]) -> TypedMethod[P, R]:
         func_ = cast(TypedMethod[P, R], func)
         func_.call_spec = call_spec
