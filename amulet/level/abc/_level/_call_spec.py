@@ -173,3 +173,52 @@ class CallSpec:
     def __init__(self, *args: AbstractArg, **kwargs: AbstractArg) -> None:
         self.args = args
         self.kwargs = kwargs
+
+
+# The following is a really janky workaround to add a variable to a function or method in a way that mypy likes.
+# This would be made so much simpler if Python had an Intersection type hint.
+
+P = ParamSpec("P")
+R = TypeVar("R", covariant=True)
+
+
+@runtime_checkable
+class TypedCallable(Protocol[P, R]):
+    call_spec: CallSpec
+
+    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> R: ...
+
+
+@runtime_checkable
+class TypedMethod(Protocol[P, R]):
+    call_spec: CallSpec
+
+    def __call__(self, self_: Any, *args: P.args, **kwargs: P.kwargs) -> R: ...
+
+    @overload
+    def __get__(self, instance: None, owner: None) -> TypedMethod[P, R]: ...
+
+    @overload
+    def __get__(self, instance: object, owner: object) -> TypedCallable[P, R]: ...
+
+
+def callable_spec(
+    call_spec: CallSpec,
+) -> Callable[[Callable[P, R]], TypedCallable[P, R]]:
+    def wrap(func: Callable[P, R]) -> TypedCallable[P, R]:
+        func_ = cast(TypedCallable[P, R], func)
+        func_.call_spec = call_spec
+        return func_
+
+    return wrap
+
+
+def method_spec(
+    call_spec: CallSpec,
+) -> Callable[[Callable[Concatenate[Any, P], R]], TypedMethod[P, R]]:
+    def wrap(func: Callable[Concatenate[Any, P], R]) -> TypedMethod[P, R]:
+        func_ = cast(TypedMethod[P, R], func)
+        func_.call_spec = call_spec
+        return func_
+
+    return wrap
