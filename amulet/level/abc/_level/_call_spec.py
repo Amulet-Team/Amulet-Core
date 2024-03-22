@@ -34,7 +34,10 @@ class AbstractHashableArg(AbstractArg, ABC):
 
 class DocumentationArg(AbstractArg):
     """A way to add documentation for an argument."""
-    def __init__(self, arg: AbstractArg, name: str | None = None, description: str | None = None) -> None:
+
+    def __init__(
+        self, arg: AbstractArg, name: str | None = None, description: str | None = None
+    ) -> None:
         """Construct a DocumentationArg instance.
 
         :param arg: The argument this documentation relates to.
@@ -180,7 +183,9 @@ class CallableArg(AbstractArg):
     kwargs specify the arguments to pass to the function.
     """
 
-    def __init__(self, func: Callable[..., Any], *args: AbstractArg, **kwargs: AbstractArg) -> None:
+    def __init__(
+        self, func: Callable[..., Any], *args: AbstractArg, **kwargs: AbstractArg
+    ) -> None:
         self.func = func
         self.call_spec = CallSpec(*args, **kwargs)
 
@@ -235,6 +240,7 @@ def callable_spec(
     *args: AbstractArg, **kwargs: AbstractArg
 ) -> Callable[[Callable[P, R]], TypedCallable[P, R]]:
     call_spec: CallSpec = CallSpec(*args, **kwargs)
+
     def wrap(func: Callable[P, R]) -> TypedCallable[P, R]:
         func_ = cast(TypedCallable[P, R], func)
         func_.call_spec = call_spec
@@ -247,6 +253,7 @@ def method_spec(
     *args: AbstractArg, **kwargs: AbstractArg
 ) -> Callable[[Callable[Concatenate[Any, P], R]], TypedMethod[P, R]]:
     call_spec: CallSpec = CallSpec(*args, **kwargs)
+
     def wrap(func: Callable[Concatenate[Any, P], R]) -> TypedMethod[P, R]:
         func_ = cast(TypedMethod[P, R], func)
         func_.call_spec = call_spec

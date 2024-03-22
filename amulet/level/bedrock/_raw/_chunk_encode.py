@@ -94,11 +94,11 @@ def native_to_raw(
                 chunk, floor_cy, ceil_cy, dimension.default_block()[0]
             )
         elif max_version >= VersionNumber(0, 17):
-            terrain = _encode_blocks_v1(
-                chunk, dimension.default_block()[0]
-            )
+            terrain = _encode_blocks_v1(chunk, dimension.default_block()[0])
         else:
-            get_block_id_override = raw_level.block_id_override.namespace_id_to_numerical_id
+            get_block_id_override = (
+                raw_level.block_id_override.namespace_id_to_numerical_id
+            )
             get_block_id_game = game_version.block.namespace_id_to_numerical_id
 
             @cache
@@ -118,7 +118,10 @@ def native_to_raw(
                         return int(base_name) % 256, get_block_data()
                 else:
                     try:
-                        return get_block_id_override(namespace, base_name), get_block_data()
+                        return (
+                            get_block_id_override(namespace, base_name),
+                            get_block_data(),
+                        )
                     except KeyError:
                         pass
                     try:
@@ -151,10 +154,7 @@ def native_to_raw(
     get_biome_id_game = game_version.biome.namespace_id_to_numerical_id
 
     @cache
-    def encode_biome(
-        namespace: str,
-        base_name: str
-    ) -> int:
+    def encode_biome(namespace: str, base_name: str) -> int:
         try:
             # First try overrides
             return get_biome_id_override(namespace, base_name)
@@ -163,9 +163,14 @@ def native_to_raw(
                 # Then fall back to the game implementation.
                 return get_biome_id_game(namespace, base_name)
             except KeyError:
-                log.error(f"Unknown biome {namespace}:{base_name}. Falling back to default.")
+                log.error(
+                    f"Unknown biome {namespace}:{base_name}. Falling back to default."
+                )
                 default_biome = dimension.default_biome()
-                if namespace == default_biome.namespace and base_name == default_biome.base_name:
+                if (
+                    namespace == default_biome.namespace
+                    and base_name == default_biome.base_name
+                ):
                     raise RuntimeError("Could not encode default biome.")
                 return encode_biome(default_biome.namespace, default_biome.base_name)
 
@@ -178,7 +183,9 @@ def native_to_raw(
             encode_biome,
         )
 
-        biomes_array = numpy.asarray(biome_id_palette, dtype=numpy.uint8)[array].T.tobytes()
+        biomes_array = numpy.asarray(biome_id_palette, dtype=numpy.uint8)[
+            array
+        ].T.tobytes()
         chunk_data[b"\x2D"] = height + biomes_array
 
     elif isinstance(chunk, Biome3DComponent):
@@ -199,14 +206,21 @@ def native_to_raw(
             if len(biome_id_palette) == 1:
                 encoded_section = b"\x01"
             else:
-                encoded_section = _encode_packed_array(arr_uniq.reshape(array.shape)) + struct.pack("<I", len(biome_id_palette))
-            return encoded_section + numpy.asarray(biome_id_palette, dtype=numpy.uint32).tobytes()
+                encoded_section = _encode_packed_array(
+                    arr_uniq.reshape(array.shape)
+                ) + struct.pack("<I", len(biome_id_palette))
+            return (
+                encoded_section
+                + numpy.asarray(biome_id_palette, dtype=numpy.uint32).tobytes()
+            )
 
         @cache
         def get_default_biome_section() -> bytes:
             default_section = biomes.default_array
             if isinstance(default_section, int):
-                default_section = numpy.full((16, 16, 16), default_section, dtype=numpy.uint32)
+                default_section = numpy.full(
+                    (16, 16, 16), default_section, dtype=numpy.uint32
+                )
             return encode_biome_section(default_section)
 
         highest_cy = next(
@@ -230,7 +244,9 @@ def native_to_raw(
             chunk_data[b"\x31"] = _pack_nbt_list(block_entities_out)
 
     if isinstance(chunk, EntityComponent):
-        entities_out = _encode_entities(chunk.entities, max_version >= VersionNumber(1, 8))
+        entities_out = _encode_entities(
+            chunk.entities, max_version >= VersionNumber(1, 8)
+        )
         if entities_out:
             if max_version >= VersionNumber(1, 18, 30):
                 raw_chunk.entity_actor.extend(entities_out)
@@ -252,17 +268,19 @@ def _encode_biome_palette(
     return biome_int_palette
 
 
-def _encode_blocks_v0(chunk: BlockComponent, encode_block: Callable[[Block], tuple[int, int]]) -> dict[int, bytes]:
+def _encode_blocks_v0(
+    chunk: BlockComponent, encode_block: Callable[[Block], tuple[int, int]]
+) -> dict[int, bytes]:
     blocks: SubChunkArrayContainer = chunk.blocks
     block_palette = chunk.block_palette
     sections: dict[int, bytes] = {}
 
-    palette = numpy.array([encode_block(block_stack[0]) for block_stack in block_palette])
+    palette = numpy.array(
+        [encode_block(block_stack[0]) for block_stack in block_palette]
+    )
     for cy in range(16):
         if cy in blocks:
-            block_sub_array = palette[
-                numpy.transpose(blocks[cy], (0, 2, 1)).ravel()
-            ]
+            block_sub_array = palette[numpy.transpose(blocks[cy], (0, 2, 1)).ravel()]
             if numpy.any(block_sub_array):
                 data_sub_array = block_sub_array[:, 1]
                 block_sub_array = block_sub_array[:, 0]
@@ -442,9 +460,7 @@ def _encode_palettized_chunk(
     return encoded
 
 
-def _encode_blocks_v1(
-    chunk: BlockComponent, default_block: Block
-) -> dict[int, bytes]:
+def _encode_blocks_v1(chunk: BlockComponent, default_block: Block) -> dict[int, bytes]:
     return {
         cy: b"".join((b"\x01", *layers))
         for cy, layers in _encode_palettized_chunk(

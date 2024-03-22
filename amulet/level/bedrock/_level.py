@@ -26,7 +26,7 @@ from amulet.level.abc import (
     DirectoryPathArg,
     PositionalArgs,
     IntArg,
-    StringArg
+    StringArg,
 )
 from amulet.errors import LevelWriteError
 from amulet.utils.format_utils import check_all_exist
@@ -92,12 +92,9 @@ class BedrockLevel(
             DirectoryPathArg(),
             CallableArg(
                 VersionNumber,
-                PositionalArgs(
-                    IntArg(min_value=0),
-                    (IntArg(1), IntArg(20))
-                )
+                PositionalArgs(IntArg(min_value=0), (IntArg(1), IntArg(20))),
             ),
-            StringArg("New World")
+            StringArg("New World"),
         )
     )
     def create(cls, args: BedrockCreateArgsV1) -> BedrockLevel:
