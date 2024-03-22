@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
 from amulet.utils.typing import Intersection
-from ._call_spec import method_spec, CallSpec
+from amulet.utils.call_spec import method_spec
 
 
 if TYPE_CHECKING:
@@ -17,7 +17,7 @@ class CreatableLevel(ABC):
 
     @classmethod
     @abstractmethod
-    @method_spec(CallSpec())
+    @method_spec()
     def create(cls, *args: Any, **kwargs: Any) -> Intersection[Level, CreatableLevel]:
         """
         Create a new instance without any existing data.

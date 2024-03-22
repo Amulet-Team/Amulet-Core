@@ -20,16 +20,18 @@ from amulet.level.abc import (
     LoadableLevel,
     CompactableLevel,
     PlayerStorage,
-    method_spec,
+)
+from amulet.errors import LevelWriteError
+from amulet.utils.format_utils import check_all_exist
+from amulet.utils.call_spec import (
+    StringArg,
+    IntArg,
     CallableArg,
     BoolArg,
     DirectoryPathArg,
     PositionalArgs,
-    IntArg,
-    StringArg,
+    method_spec,
 )
-from amulet.errors import LevelWriteError
-from amulet.utils.format_utils import check_all_exist
 
 from ._raw import BedrockRawLevel, InternalDimension, BedrockLevelDAT
 from ._dimension import BedrockDimension
