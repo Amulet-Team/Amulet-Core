@@ -2,13 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Union, Type
 import os
-import shutil
-import time
-from dataclasses import dataclass
 
 from PIL import Image
-from leveldb import LevelDB
-from amulet_nbt import CompoundTag, IntTag, ListTag, LongTag, StringTag
 
 from amulet.version import VersionNumber
 from amulet.api.data_types import DimensionID, PlatformType
@@ -21,7 +16,6 @@ from amulet.level.abc import (
     CompactableLevel,
     PlayerStorage,
 )
-from amulet.errors import LevelWriteError
 from amulet.utils.format_utils import check_all_exist
 from amulet.utils.call_spec import (
     StringArg,
@@ -33,23 +27,9 @@ from amulet.utils.call_spec import (
     method_spec,
 )
 
-from ._raw import BedrockRawLevel, InternalDimension, BedrockLevelDAT
+from ._raw import BedrockRawLevel, InternalDimension, BedrockCreateArgsV1
 from ._dimension import BedrockDimension
 from ...chunk import Chunk
-
-
-@dataclass
-class BedrockCreateArgsV1:
-    """A class to house call arguments to create.
-
-    If the call arguments to create need to be modified in the future a new arguments class can be created.
-    The create method can inspect which class it was given and access arguments accordingly.
-    """
-
-    overwrite: bool
-    path: str
-    version: VersionNumber
-    level_name: str
 
 
 class BedrockLevelOpenData(LevelOpenData):
@@ -71,15 +51,21 @@ class BedrockLevel(
 
     @property
     def native_chunk_class(self) -> Type[Chunk]:
-        pass
+        raise NotImplementedError
 
     _raw_level: BedrockRawLevel
 
     __slots__ = ("_raw_level",)
 
-    def __init__(self, path: str) -> None:
+    def __init__(self, _ikwiad: bool = False) -> None:
+        if not _ikwiad:
+            raise RuntimeError(
+                "BedrockLevel cannot be directly initialised. Use create or load classmethod."
+            )
         super().__init__()
-        self._raw_level = BedrockRawLevel(path)
+
+    def __init(self, raw: BedrockRawLevel) -> None:
+        self._raw_level = raw
         self._raw_level.opened.connect(self.open)
         self._raw_level.closed.connect(self.close)
 
@@ -97,37 +83,10 @@ class BedrockLevel(
         )
     )
     def create(cls, args: BedrockCreateArgsV1) -> BedrockLevel:
-        overwrite = args.overwrite
-        path = args.path
-        version = args.version
-        level_name = args.level_name
-
-        if os.path.isdir(path):
-            if overwrite:
-                shutil.rmtree(path)
-            else:
-                raise LevelWriteError(f"A directory already exists at the path {path}")
-        os.makedirs(path, exist_ok=True)
-
-        root = CompoundTag()
-        root["StorageVersion"] = IntTag(8)
-        root["lastOpenedWithVersion"] = ListTag(
-            [IntTag(i) for i in version.padded_version(5)]
-        )
-        root["Generator"] = IntTag(1)
-        root["LastPlayed"] = LongTag(int(time.time()))
-        root["LevelName"] = StringTag(level_name)
-        BedrockLevelDAT(root, level_dat_version=9).save_to(
-            os.path.join(path, "level.dat")
-        )
-
-        with open(os.path.join(path, "levelname.txt"), "w", encoding="utf-8") as f:
-            f.write(level_name)
-
-        db = LevelDB(os.path.join(path, "db"), True)
-        db.close()
-
-        return cls.load(path)
+        raw = BedrockRawLevel.create(args)
+        self = cls(True)
+        self.__init(raw)
+        return self
 
     @staticmethod
     def can_load(token: Any) -> bool:
@@ -140,8 +99,9 @@ class BedrockLevel(
     @classmethod
     def load(cls, path: str) -> BedrockLevel:
         """Create a new instance from the level at the given directory."""
-        self = cls(path)
-        self.reload()
+        raw = BedrockRawLevel.load(path)
+        self = cls(True)
+        self.__init(raw)
         return self
 
     def reload(self) -> None:

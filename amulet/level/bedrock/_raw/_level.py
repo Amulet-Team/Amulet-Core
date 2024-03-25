@@ -7,11 +7,17 @@ from threading import RLock
 import os
 import struct
 import logging
+from dataclasses import dataclass
+import shutil
+import time
 
 from leveldb import LevelDB
 
 from amulet_nbt import (
+    IntTag,
     LongTag,
+    StringTag,
+    ListTag,
     CompoundTag,
     ByteTag,
     ShortTag,
@@ -23,6 +29,7 @@ from amulet_nbt import (
 from amulet.api.data_types import (
     DimensionID,
 )
+from amulet.errors import LevelWriteError
 from amulet.selection import SelectionGroup, SelectionBox
 from amulet.errors import PlayerDoesNotExist
 from amulet.level.abc import (
@@ -39,6 +46,20 @@ from ._constant import OVERWORLD, THE_NETHER, THE_END, LOCAL_PLAYER, DefaultSele
 from ._typing import InternalDimension, PlayerID, RawPlayer
 
 log = logging.getLogger(__name__)
+
+
+@dataclass
+class BedrockCreateArgsV1:
+    """A class to house call arguments to create.
+
+    If the call arguments to create need to be modified in the future a new arguments class can be created.
+    The create method can inspect which class it was given and access arguments accordingly.
+    """
+
+    overwrite: bool
+    path: str
+    version: VersionNumber
+    level_name: str
 
 
 class IdMap(Mapping[int, tuple[str, str]]):
@@ -110,9 +131,53 @@ class BedrockRawLevel(
 
     __slots__ = tuple(__annotations__)  # type: ignore
 
-    def __init__(self, path: str) -> None:
+    def __init__(self, _ikwiad: bool = False) -> None:
+        if not _ikwiad:
+            raise RuntimeError(
+                "BedrockRawLevel must be constructed using the create or load classmethod."
+            )
+
+    @classmethod
+    def load(cls, path: str) -> BedrockRawLevel:
+        self = cls(True)
         self._path = path
         self._raw_open_data = None
+        self.reload()
+        return self
+
+    @classmethod
+    def create(cls, args: BedrockCreateArgsV1) -> BedrockRawLevel:
+        overwrite = args.overwrite
+        path = args.path
+        version = args.version
+        level_name = args.level_name
+
+        if os.path.isdir(path):
+            if overwrite:
+                shutil.rmtree(path)
+            else:
+                raise LevelWriteError(f"A directory already exists at the path {path}")
+        os.makedirs(path, exist_ok=True)
+
+        root = CompoundTag()
+        root["StorageVersion"] = IntTag(8)
+        root["lastOpenedWithVersion"] = ListTag(
+            [IntTag(i) for i in version.padded_version(5)]
+        )
+        root["Generator"] = IntTag(1)
+        root["LastPlayed"] = LongTag(int(time.time()))
+        root["LevelName"] = StringTag(level_name)
+        BedrockLevelDAT(root, level_dat_version=9).save_to(
+            os.path.join(path, "level.dat")
+        )
+
+        with open(os.path.join(path, "levelname.txt"), "w", encoding="utf-8") as f:
+            f.write(level_name)
+
+        db = LevelDB(os.path.join(path, "db"), True)
+        db.close()
+
+        return cls.load(path)
 
     @property
     def path(self) -> str:
