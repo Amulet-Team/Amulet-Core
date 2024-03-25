@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import os
-from typing import Dict, Iterable
+from typing import Dict
+from collections.abc import Iterator, Sequence
 import re
 import threading
 
@@ -29,7 +30,9 @@ class AnvilDimensionManager:
 
     level_regex = re.compile(r"DIM(?P<level>-?\d+)")
 
-    def __init__(self, directory: str, *, mcc=False, layers=("region",)):
+    def __init__(
+        self, directory: str, *, mcc: bool = False, layers: Sequence[str] = ("region",)
+    ) -> None:
         self._directory = directory
         self._mcc = mcc
         self.__layers: Dict[str, AnvilRegionManager] = {
@@ -40,13 +43,13 @@ class AnvilDimensionManager:
         }
         self.__default_layer = self.__layers[layers[0]]
 
-    def all_chunk_coords(self) -> Iterable[ChunkCoordinates]:
+    def all_chunk_coords(self) -> Iterator[ChunkCoordinates]:
         yield from self.__default_layer.all_chunk_coords()
 
     def has_chunk(self, cx: int, cz: int) -> bool:
         return self.__default_layer.has_chunk(cx, cz)
 
-    def unload(self):
+    def unload(self) -> None:
         for layer in self.__layers.values():
             layer.unload()
 
@@ -72,11 +75,13 @@ class AnvilDimensionManager:
         else:
             raise ChunkDoesNotExist
 
-    def put_chunk_data(self, cx: int, cz: int, data: NamedTag):
+    def put_chunk_data(self, cx: int, cz: int, data: NamedTag) -> None:
         """pass data to the region file class"""
         self.__default_layer.put_chunk_data(cx, cz, data)
 
-    def put_chunk_data_layers(self, cx: int, cz: int, data_layers: ChunkDataType):
+    def put_chunk_data_layers(
+        self, cx: int, cz: int, data_layers: ChunkDataType
+    ) -> None:
         """Put one or more layers of data"""
         for layer_name, data in data_layers.items():
             if (
@@ -90,7 +95,7 @@ class AnvilDimensionManager:
             if layer_name in self.__layers:
                 self.__layers[layer_name].put_chunk_data(cx, cz, data)
 
-    def delete_chunk(self, cx: int, cz: int):
+    def delete_chunk(self, cx: int, cz: int) -> None:
         for layer in self.__layers.values():
             layer.delete_chunk(cx, cz)
 
@@ -98,17 +103,17 @@ class AnvilDimensionManager:
 class AnvilRegionManager:
     """A class to manage a directory of region files."""
 
-    def __init__(self, directory: str, *, mcc=False):
+    def __init__(self, directory: str, *, mcc: bool = False):
         self._directory = directory
         self._regions: Dict[RegionCoordinates, AnvilRegion] = {}
         self._mcc = mcc
         self._lock = threading.RLock()
 
-    def unload(self):
+    def unload(self) -> None:
         with self._lock:
             self._regions.clear()
 
-    def _region_path(self, rx, rz) -> str:
+    def _region_path(self, rx: int, rz: int) -> str:
         """Get the file path for a region file."""
         return os.path.join(self._directory, f"r.{rx}.{rz}.mca")
 
@@ -116,7 +121,7 @@ class AnvilRegionManager:
         """Does a region file exist."""
         return os.path.isfile(self._region_path(rx, rz))
 
-    def _get_region(self, rx: int, rz: int, create=False) -> AnvilRegion:
+    def _get_region(self, rx: int, rz: int, create: bool = False) -> AnvilRegion:
         with self._lock:
             if (rx, rz) in self._regions:
                 return self._regions[(rx, rz)]
@@ -128,15 +133,17 @@ class AnvilRegionManager:
             else:
                 raise ChunkDoesNotExist
 
-    def _iter_regions(self) -> Iterable[AnvilRegion]:
+    def _iter_regions(self) -> Iterator[AnvilRegion]:
         if os.path.isdir(self._directory):
             for region_file_name in os.listdir(self._directory):
-                rx, rz = AnvilRegion.get_coords(region_file_name)
-                if rx is None:
+                try:
+                    rx, rz = AnvilRegion.get_coords(region_file_name)
+                except ValueError:
                     continue
-                yield self._get_region(rx, rz)
+                else:
+                    yield self._get_region(rx, rz)
 
-    def all_chunk_coords(self) -> Iterable[ChunkCoordinates]:
+    def all_chunk_coords(self) -> Iterator[ChunkCoordinates]:
         for region in self._iter_regions():
             yield from region.all_chunk_coords()
 
@@ -160,13 +167,13 @@ class AnvilRegionManager:
             *world_utils.chunk_coords_to_region_coords(cx, cz)
         ).get_data(cx & 0x1F, cz & 0x1F)
 
-    def put_chunk_data(self, cx: int, cz: int, data: NamedTag):
+    def put_chunk_data(self, cx: int, cz: int, data: NamedTag) -> None:
         """pass data to the region file class"""
         self._get_region(
             *world_utils.chunk_coords_to_region_coords(cx, cz), create=True
         ).write_data(cx & 0x1F, cz & 0x1F, data)
 
-    def delete_chunk(self, cx: int, cz: int):
+    def delete_chunk(self, cx: int, cz: int) -> None:
         try:
             region = self._get_region(
                 *world_utils.chunk_coords_to_region_coords(cx, cz)

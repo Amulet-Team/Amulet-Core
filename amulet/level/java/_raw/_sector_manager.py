@@ -87,15 +87,15 @@ class Sector(NamedTuple):
     def length(self) -> int:
         return self.stop - self.start
 
-    def intersects(self, other: Sector):
+    def intersects(self, other: Sector) -> bool:
         """Do the two sectors intersect each other."""
         return not (other.stop <= self.start or self.stop <= other.start)
 
-    def contains(self, other: Sector):
+    def contains(self, other: Sector) -> bool:
         """Is the other sector entirely within this sector."""
         return self.start <= other.start and other.stop <= self.stop
 
-    def neighbours(self, other: Sector):
+    def neighbours(self, other: Sector) -> bool:
         """Do the two sectors neighbour but not intersect."""
         return other.stop == self.start or self.stop == other.start
 
@@ -137,7 +137,7 @@ class SectorManager:
         self._free_size = [Sector(start, stop)]
 
         # A set of reserved sectors
-        self._reserved = set()
+        self._reserved: set[Sector] = set()
 
     @property
     def sectors(self) -> List[Sector]:
@@ -182,7 +182,7 @@ class SectorManager:
                     "There is not enough contiguous space to allocate the length."
                 )
 
-    def reserve(self, sector: Sector):
+    def reserve(self, sector: Sector) -> None:
         """
         Mark a section as reserved.
         If you don't know exactly where the sector is use `reserve_space` to find and reserve a new sector
@@ -244,7 +244,7 @@ class SectorManager:
                 self._add_size_sector(s)
             self._reserved.add(sector)
 
-    def _add_size_sector(self, sector: Sector):
+    def _add_size_sector(self, sector: Sector) -> None:
         self._free_size.insert(
             bisect_left(
                 self._free_size,
@@ -254,7 +254,7 @@ class SectorManager:
             sector,
         )
 
-    def free(self, sector: Sector):
+    def free(self, sector: Sector) -> None:
         """
         Free a reserved sector.
         The sector must match exactly a sector previously reserved.
