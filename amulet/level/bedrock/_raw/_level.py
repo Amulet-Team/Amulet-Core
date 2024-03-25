@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Optional, Union, TYPE_CHECKING, overload
+from typing import Optional, Union, overload
 from collections.abc import Iterable, Mapping, Iterator
 from threading import RLock
 import os
@@ -28,18 +28,15 @@ from amulet.errors import PlayerDoesNotExist
 from amulet.level.abc import (
     RawLevel,
     RawLevelPlayerComponent,
-    LevelFriend,
 )
 from amulet.version import VersionNumber
+from amulet.utils.signal import Signal
 
 from ._level_dat import BedrockLevelDAT
 from ._actor_counter import ActorCounter
 from ._dimension import BedrockRawDimension
 from ._constant import OVERWORLD, THE_NETHER, THE_END, LOCAL_PLAYER, DefaultSelection
 from ._typing import InternalDimension, PlayerID, RawPlayer
-
-if TYPE_CHECKING:
-    from .._level import BedrockLevel
 
 log = logging.getLogger(__name__)
 
@@ -121,6 +118,9 @@ class BedrockRawLevel(
     def path(self) -> str:
         return self._path
 
+    def is_open(self) -> bool:
+        return self._raw_open_data is not None
+
     @property
     def _o(self) -> BedrockRawLevelOpenData:
         o = self._raw_open_data
@@ -128,15 +128,24 @@ class BedrockRawLevel(
             raise RuntimeError("The level is not open.")
         return o
 
-    def _reload(self) -> None:
+    def reload(self) -> None:
+        """Reload the raw level."""
+        if self.is_open():
+            raise RuntimeError("Cannot reload a level when it is open.")
         self._level_dat = BedrockLevelDAT.from_file(
             os.path.join(self.path, "level.dat")
         )
 
-    def _open(self) -> None:
+    opened = Signal[()]()
+
+    def open(self) -> None:
+        """Open the raw level."""
+        if self.is_open():
+            return
         db = LevelDB(os.path.join(self.path, "db"))
         actor_counter = ActorCounter.from_level(self)
         self._raw_open_data = BedrockRawLevelOpenData(db, actor_counter)
+        self.opened.emit()
 
         # TODO: implement error handling and level closing if the db errors
         # except LevelDBEncrypted as e:
@@ -156,12 +165,18 @@ class BedrockRawLevel(
         #     else:
         #         raise e
 
-    def _close(self) -> None:
+    closed = Signal[()]()
+
+    def close(self) -> None:
+        """Close the raw level."""
+        if not self.is_open():
+            return
         open_data = self._o
         self._raw_open_data = None
         open_data.db.close()
         for dimension in open_data.dimensions.values():
             dimension._invalidate_r()
+        self.closed.emit()
 
     @property
     def level_db(self) -> LevelDB:

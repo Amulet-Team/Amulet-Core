@@ -80,6 +80,8 @@ class BedrockLevel(
     def __init__(self, path: str) -> None:
         super().__init__()
         self._raw_level = BedrockRawLevel(path)
+        self._raw_level.opened.connect(self.open)
+        self._raw_level.closed.connect(self.close)
 
     @classmethod
     @method_spec(
@@ -147,18 +149,16 @@ class BedrockLevel(
         Reload the level metadata inplace.
         The level must be closed when this is called.
         """
-        if self.is_open():
-            raise RuntimeError("Cannot reload a level when it is open.")
-        self.raw._reload()
+        self.raw.reload()
 
     def _open(self) -> None:
-        self.raw._open()
+        self.raw.open()
         self._open_data = BedrockLevelOpenData()
 
     def _close(self) -> None:
-        self.raw._close()
         self._o.dimensions.clear()
         self._open_data = None
+        self.raw.close()
 
     @property
     def path(self) -> str:
