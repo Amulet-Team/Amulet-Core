@@ -109,17 +109,17 @@ class BedrockRawLevel(
     RawLevelPlayerComponent[PlayerID, RawPlayer],
 ):
     _level_dat: BedrockLevelDAT
-    _o_data: BedrockRawLevelOpenData | None
+    _raw_open_data: BedrockRawLevelOpenData | None
 
     __slots__ = tuple(__annotations__)
 
     def __init__(self, level: BedrockLevel) -> None:
         super().__init__(level)
-        self._o_data = None
+        self._raw_open_data = None
 
     @property
     def _o(self) -> BedrockRawLevelOpenData:
-        o = self._o_data
+        o = self._raw_open_data
         if o is None:
             raise RuntimeError("The level is not open.")
         return o
@@ -132,7 +132,7 @@ class BedrockRawLevel(
     def _open(self) -> None:
         db = LevelDB(os.path.join(self._l.path, "db"))
         actor_counter = ActorCounter.from_level(self)
-        self._o_data = BedrockRawLevelOpenData(db, actor_counter)
+        self._raw_open_data = BedrockRawLevelOpenData(db, actor_counter)
 
         # TODO: implement error handling and level closing if the db errors
         # except LevelDBEncrypted as e:
@@ -154,7 +154,7 @@ class BedrockRawLevel(
 
     def _close(self) -> None:
         open_data = self._o
-        self._o_data = None
+        self._raw_open_data = None
         open_data.db.close()
         for dimension in open_data.dimensions.values():
             dimension._invalidate_r()
