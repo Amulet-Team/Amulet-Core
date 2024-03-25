@@ -104,18 +104,22 @@ class BedrockRawLevelOpenData:
 
 
 class BedrockRawLevel(
-    LevelFriend["BedrockLevel"],
     RawLevel,
     RawLevelPlayerComponent[PlayerID, RawPlayer],
 ):
+    _path: str
     _level_dat: BedrockLevelDAT
     _raw_open_data: BedrockRawLevelOpenData | None
 
-    __slots__ = tuple(__annotations__)
+    __slots__ = tuple(__annotations__)  # type: ignore
 
-    def __init__(self, level: BedrockLevel) -> None:
-        super().__init__(level)
+    def __init__(self, path: str) -> None:
+        self._path = path
         self._raw_open_data = None
+
+    @property
+    def path(self) -> str:
+        return self._path
 
     @property
     def _o(self) -> BedrockRawLevelOpenData:
@@ -126,11 +130,11 @@ class BedrockRawLevel(
 
     def _reload(self) -> None:
         self._level_dat = BedrockLevelDAT.from_file(
-            os.path.join(self._l.path, "level.dat")
+            os.path.join(self.path, "level.dat")
         )
 
     def _open(self) -> None:
-        db = LevelDB(os.path.join(self._l.path, "db"))
+        db = LevelDB(os.path.join(self.path, "db"))
         actor_counter = ActorCounter.from_level(self)
         self._raw_open_data = BedrockRawLevelOpenData(db, actor_counter)
 
@@ -177,7 +181,7 @@ class BedrockRawLevel(
         if not isinstance(level_dat, BedrockLevelDAT):
             raise TypeError
         self._level_dat = level_dat = copy.deepcopy(level_dat)
-        level_dat.save_to(os.path.join(self._l.path, "level.dat"))
+        level_dat.save_to(os.path.join(self.path, "level.dat"))
 
     @property
     def platform(self) -> str:

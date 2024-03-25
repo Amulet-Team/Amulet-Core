@@ -73,18 +73,13 @@ class BedrockLevel(
     def native_chunk_class(self) -> Type[Chunk]:
         pass
 
-    _path: str
     _raw_level: BedrockRawLevel
 
-    __slots__ = (
-        "_path",
-        "_raw_level",
-    )
+    __slots__ = ("_raw_level",)
 
     def __init__(self, path: str) -> None:
         super().__init__()
-        self._path = path
-        self._raw_level = BedrockRawLevel(self)
+        self._raw_level = BedrockRawLevel(path)
 
     @classmethod
     @method_spec(
@@ -167,7 +162,7 @@ class BedrockLevel(
 
     @property
     def path(self) -> str:
-        return self._path
+        return self.raw.path
 
     @property
     def level_name(self) -> str:
