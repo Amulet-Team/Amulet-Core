@@ -35,6 +35,7 @@ from amulet.errors import PlayerDoesNotExist
 from amulet.level.abc import (
     RawLevel,
     RawLevelPlayerComponent,
+    IdRegistry,
 )
 from amulet.version import VersionNumber
 from amulet.utils.signal import Signal
@@ -62,44 +63,6 @@ class BedrockCreateArgsV1:
     level_name: str
 
 
-class IdMap(Mapping[int, tuple[str, str]]):
-    def __init__(self) -> None:
-        self._str_to_int: dict[tuple[str, str], int] = {}
-        self._int_to_str: dict[int, tuple[str, str]] = {}
-
-    def numerical_id_to_namespace_id(self, index: int) -> tuple[str, str]:
-        return self._int_to_str[index]
-
-    def namespace_id_to_numerical_id(self, namespace: str, base_name: str) -> int:
-        return self._str_to_int[(namespace, base_name)]
-
-    def register(self, index: int, block_id: tuple[str, str]) -> None:
-        if block_id in self._str_to_int:
-            raise RuntimeError(f"id {block_id} has already been registered")
-        if index in self._int_to_str:
-            raise RuntimeError(f"index {index} has already been registered")
-        self._str_to_int[block_id] = index
-        self._int_to_str[index] = block_id
-
-    @overload
-    def __getitem__(self, key: int) -> tuple[str, str]: ...
-
-    @overload
-    def __getitem__(self, key: tuple[str, str]) -> int: ...
-
-    def __getitem__(self, key: int | tuple[str, str]) -> int | tuple[str, str]:
-        if isinstance(key, int):
-            return self._int_to_str[key]
-        else:
-            return self._str_to_int[key]
-
-    def __len__(self) -> int:
-        return len(self._int_to_str)
-
-    def __iter__(self) -> Iterator[int]:
-        yield from self._int_to_str
-
-
 class BedrockRawLevelOpenData:
     """Data that only exists when the level is open"""
 
@@ -108,8 +71,8 @@ class BedrockRawLevelOpenData:
     db: LevelDB
     dimension_aliases: frozenset[DimensionID]
     actor_counter: ActorCounter
-    block_id_override: IdMap
-    biome_id_override: IdMap
+    block_id_override: IdRegistry
+    biome_id_override: IdRegistry
 
     def __init__(self, db: LevelDB, actor_counter: ActorCounter):
         self.db = db
@@ -117,8 +80,8 @@ class BedrockRawLevelOpenData:
         self.dimensions_lock = RLock()
         self.dimension_aliases = frozenset()
         self.actor_counter = actor_counter
-        self.block_id_override = IdMap()
-        self.biome_id_override = IdMap()
+        self.block_id_override = IdRegistry()
+        self.biome_id_override = IdRegistry()
 
 
 class BedrockRawLevel(
@@ -466,7 +429,7 @@ class BedrockRawLevel(
         raise NotImplementedError
 
     @property
-    def block_id_override(self) -> IdMap:
+    def block_id_override(self) -> IdRegistry:
         """
         A two-way map from hard coded numerical block id <-> block string.
         This only stores overridden values. If the value is not present here you should check the translator.
@@ -474,7 +437,7 @@ class BedrockRawLevel(
         return self._o.block_id_override
 
     @property
-    def biome_id_override(self) -> IdMap:
+    def biome_id_override(self) -> IdRegistry:
         """
         A two-way map from hard coded numerical biome id <-> biome string.
         This only stores overridden values. If the value is not present here you should check the translator.

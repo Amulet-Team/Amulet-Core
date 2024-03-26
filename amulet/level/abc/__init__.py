@@ -8,3 +8,4 @@ from ._raw_level import (
     RawDimension,
 )
 from ._dimension import Dimension
+from ._registry import IdRegistry
