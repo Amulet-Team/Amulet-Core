@@ -222,6 +222,8 @@ class BedrockRawLevel(
     def level_dat(self, level_dat: BedrockLevelDAT) -> None:
         if not isinstance(level_dat, BedrockLevelDAT):
             raise TypeError
+        if not self.is_open():
+            raise RuntimeError("Level is not open.")
         self._level_dat = level_dat = copy.deepcopy(level_dat)
         level_dat.save_to(os.path.join(self.path, "level.dat"))
 
