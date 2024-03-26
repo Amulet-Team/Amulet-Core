@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Optional, Union, overload
+from typing import Optional, overload
 from collections.abc import Iterable, Mapping, Iterator
 from threading import RLock
 import os
@@ -29,9 +29,8 @@ from amulet_nbt import (
 from amulet.api.data_types import (
     DimensionID,
 )
-from amulet.errors import LevelWriteError
 from amulet.selection import SelectionGroup, SelectionBox
-from amulet.errors import PlayerDoesNotExist
+from amulet.errors import PlayerDoesNotExist, LevelWriteError
 from amulet.level.abc import (
     RawLevel,
     RawLevelPlayerComponent,
@@ -66,7 +65,7 @@ class BedrockCreateArgsV1:
 class BedrockRawLevelOpenData:
     """Data that only exists when the level is open"""
 
-    dimensions: dict[Union[DimensionID, InternalDimension], BedrockRawDimension]
+    dimensions: dict[DimensionID | InternalDimension, BedrockRawDimension]
     dimensions_lock: RLock
     db: LevelDB
     dimension_aliases: frozenset[DimensionID]
@@ -142,10 +141,6 @@ class BedrockRawLevel(
 
         return cls.load(path)
 
-    @property
-    def path(self) -> str:
-        return self._path
-
     def is_open(self) -> bool:
         return self._raw_open_data is not None
 
@@ -205,6 +200,10 @@ class BedrockRawLevel(
         for dimension in open_data.dimensions.values():
             dimension._invalidate_r()
         self.closed.emit()
+
+    @property
+    def path(self) -> str:
+        return self._path
 
     @property
     def level_db(self) -> LevelDB:
@@ -389,7 +388,7 @@ class BedrockRawLevel(
         return self._o.dimension_aliases
 
     def get_dimension(
-        self, dimension: Union[DimensionID, InternalDimension]
+        self, dimension: DimensionID | InternalDimension
     ) -> BedrockRawDimension:
         self._find_dimensions()
         if dimension not in self._o.dimensions:
