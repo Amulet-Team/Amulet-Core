@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import copy
-from typing import Optional, overload
-from collections.abc import Iterable, Mapping, Iterator
+from typing import Optional
+from collections.abc import Iterable
 from threading import RLock
 import os
 import struct
@@ -84,7 +84,7 @@ class BedrockRawLevelOpenData:
 
 
 class BedrockRawLevel(
-    RawLevel,
+    RawLevel[BedrockRawDimension],
     RawLevelPlayerComponent[PlayerID, RawPlayer],
 ):
     _path: str
@@ -252,8 +252,6 @@ class BedrockRawLevel(
             return 0
 
     def _find_dimensions(self) -> None:
-        if self._o.dimensions:
-            return
         with self._o.dimensions_lock:
             if self._o.dimensions:
                 return
