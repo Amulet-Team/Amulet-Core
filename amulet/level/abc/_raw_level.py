@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import Iterable, TypeVar, Generic
 from abc import ABC, abstractmethod
 
-from amulet.api.data_types import DimensionID, ChunkCoordinates
+from amulet.api.data_types import ChunkCoordinates
+from amulet.data_types import DimensionId
 from amulet.chunk import Chunk
 from amulet.block import BlockStack
 from amulet.biome import Biome
@@ -22,7 +23,7 @@ class RawDimension(ABC, Generic[RawChunkT, ChunkT]):
 
     @property
     @abstractmethod
-    def dimension(self) -> DimensionID:
+    def dimension_id(self) -> DimensionId:
         raise NotImplementedError
 
     @abstractmethod
@@ -112,11 +113,11 @@ class RawLevel(ABC, Generic[RawDimensionT]):
     __slots__ = ()
 
     @abstractmethod
-    def dimensions(self) -> frozenset[DimensionID]:
+    def dimension_ids(self) -> frozenset[DimensionId]:
         raise NotImplementedError
 
     @abstractmethod
-    def get_dimension(self, dimension: DimensionID) -> RawDimensionT:
+    def get_dimension(self, dimension: DimensionId) -> RawDimensionT:
         raise NotImplementedError
 
 

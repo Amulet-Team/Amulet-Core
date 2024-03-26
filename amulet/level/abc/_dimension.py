@@ -3,7 +3,7 @@ from typing import Generic, TypeVar
 from weakref import WeakValueDictionary
 from threading import Lock
 
-from amulet.api.data_types import DimensionID
+from amulet.data_types import DimensionId
 from amulet.block import BlockStack
 from amulet.biome import Biome
 from amulet.selection import SelectionGroup
@@ -19,13 +19,13 @@ RawDimensionT = TypeVar("RawDimensionT", bound=RawDimension)
 
 
 class Dimension(LevelFriend[LevelT], ABC, Generic[LevelT, RawDimensionT, ChunkHandleT]):
-    _dimension: DimensionID
+    _dimension: DimensionId
     _chunk_handles: WeakValueDictionary[tuple[int, int], ChunkHandleT]
     _chunk_handle_lock: Lock
     _chunk_history: HistoryManagerLayer[ChunkKey]
     _raw: RawDimensionT
 
-    def __init__(self, level: LevelT, dimension: DimensionID) -> None:
+    def __init__(self, level: LevelT, dimension: DimensionId) -> None:
         super().__init__(level)
         self._dimension = dimension
         self._chunk_handles = WeakValueDictionary()
@@ -34,7 +34,7 @@ class Dimension(LevelFriend[LevelT], ABC, Generic[LevelT, RawDimensionT, ChunkHa
         self._raw = self._l.raw.get_dimension(self._dimension)
 
     @property
-    def dimension(self) -> DimensionID:
+    def dimension_id(self) -> DimensionId:
         return self._dimension
 
     def bounds(self) -> SelectionGroup:

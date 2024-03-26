@@ -6,7 +6,8 @@ import os
 from PIL import Image
 
 from amulet.version import VersionNumber
-from amulet.api.data_types import DimensionID, PlatformType
+from amulet.api.data_types import PlatformType
+from amulet.data_types import DimensionId
 from amulet.level import register_level_class
 from amulet.level.abc import (
     LevelOpenData,
@@ -33,7 +34,7 @@ from ...chunk import Chunk
 
 
 class BedrockLevelOpenData(LevelOpenData):
-    dimensions: dict[Union[DimensionID, InternalDimension], BedrockDimension]
+    dimensions: dict[Union[DimensionId, InternalDimension], BedrockDimension]
 
     def __init__(self) -> None:
         super().__init__()
@@ -148,21 +149,21 @@ class BedrockLevel(
     def max_game_version(self) -> VersionNumber:
         return self.raw.version
 
-    def dimensions(self) -> frozenset[DimensionID]:
+    def dimension_ids(self) -> frozenset[DimensionId]:
         return self.raw.dimensions()
 
     def get_dimension(
-        self, dimension: Union[DimensionID, InternalDimension]
+        self, dimension_id: Union[DimensionId, InternalDimension]
     ) -> BedrockDimension:
         dimensions = self._o.dimensions
-        if dimension not in dimensions:
-            raw_dimension = self.raw.get_dimension(dimension)
-            public_dimension_id = raw_dimension.dimension
+        if dimension_id not in dimensions:
+            raw_dimension = self.raw.get_dimension(dimension_id)
+            public_dimension_id = raw_dimension.dimension_id
             internal_dimension_id = raw_dimension.internal_dimension
             dimensions[internal_dimension_id] = dimensions[public_dimension_id] = (
                 BedrockDimension(self, public_dimension_id)
             )
-        return dimensions[dimension]
+        return dimensions[dimension_id]
 
     @property
     def raw(self) -> BedrockRawLevel:

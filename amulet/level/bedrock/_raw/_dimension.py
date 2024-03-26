@@ -16,10 +16,8 @@ from amulet_nbt import (
     utf8_escape_encoding,
 )
 
-from amulet.api.data_types import (
-    DimensionID,
-    ChunkCoordinates,
-)
+from amulet.api.data_types import ChunkCoordinates
+from amulet.data_types import DimensionId
 from amulet.block import Block, BlockStack
 from amulet.biome import Biome
 from amulet.selection import SelectionGroup
@@ -46,7 +44,7 @@ class BedrockRawDimension(
         self,
         raw_level: BedrockRawLevel,
         internal_dimension: InternalDimension,
-        alias: DimensionID,
+        alias: DimensionId,
         bounds: SelectionGroup,
     ) -> None:
         super().__init__(raw_level)
@@ -55,7 +53,7 @@ class BedrockRawDimension(
         self._bounds = bounds
 
     @property
-    def dimension(self) -> DimensionID:
+    def dimension_id(self) -> DimensionId:
         return self._alias
 
     def bounds(self) -> SelectionGroup:
@@ -69,9 +67,9 @@ class BedrockRawDimension(
     def default_biome(self) -> Biome:
         """The default biome for this dimension"""
         # todo: is this stored in the data somewhere?
-        if self.dimension == THE_NETHER:
+        if self.dimension_id == THE_NETHER:
             return Biome(self._r.platform, self._r.version, "minecraft", "nether")
-        elif self.dimension == THE_END:
+        elif self.dimension_id == THE_END:
             return Biome(self._r.platform, self._r.version, "minecraft", "the_end")
         else:
             return Biome(self._r.platform, self._r.version, "minecraft", "plains")

@@ -1,7 +1,7 @@
-from typing import Optional, Any
+from typing import Any
 from amulet_nbt import NamedTag
 
-InternalDimension = Optional[int]
+InternalDimension = int | None
 PlayerID = str
 RawPlayer = NamedTag
 NativeChunk = Any

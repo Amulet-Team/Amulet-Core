@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 
 from amulet.utils.shareable_lock import LockNotAcquired
 from amulet.chunk import Chunk
-from amulet.api.data_types import DimensionID
+from amulet.data_types import DimensionId
 from amulet.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.utils.signal import Signal
 
@@ -53,7 +53,7 @@ class ChunkHandle(
     Generic[LevelT, RawDimensionT, ChunkT],
 ):
     _lock: RLock
-    _dimension: DimensionID
+    _dimension: DimensionId
     _key: ChunkKey
     _history: HistoryManagerLayer[ChunkKey]
     _raw_dimension: Optional[RawDimensionT]
@@ -70,13 +70,13 @@ class ChunkHandle(
         self,
         level: LevelT,
         history: HistoryManagerLayer[ChunkKey],
-        dimension: DimensionID,
+        dimension_id: DimensionId,
         cx: int,
         cz: int,
     ) -> None:
         super().__init__(level)
         self._lock = RLock()
-        self._dimension = dimension
+        self._dimension_id = dimension_id
         self._key = ChunkKey(cx, cz)
         self._history = history
         self._raw_dimension = None
@@ -84,7 +84,7 @@ class ChunkHandle(
     changed = Signal[()]()
 
     @property
-    def dimension(self) -> DimensionID:
+    def dimension_id(self) -> DimensionId:
         return self._dimension
 
     @property
@@ -97,7 +97,7 @@ class ChunkHandle(
 
     def _get_raw_dimension(self) -> RawDimensionT:
         if self._raw_dimension is None:
-            self._raw_dimension = self._l.raw.get_dimension(self.dimension)
+            self._raw_dimension = self._l.raw.get_dimension(self.dimension_id)
         return self._raw_dimension
 
     @contextmanager

@@ -26,9 +26,7 @@ from amulet_nbt import (
     utf8_escape_encoding,
 )
 
-from amulet.api.data_types import (
-    DimensionID,
-)
+from amulet.data_types import DimensionId
 from amulet.selection import SelectionGroup, SelectionBox
 from amulet.errors import PlayerDoesNotExist, LevelWriteError
 from amulet.level.abc import (
@@ -65,10 +63,10 @@ class BedrockCreateArgsV1:
 class BedrockRawLevelOpenData:
     """Data that only exists when the level is open"""
 
-    dimensions: dict[DimensionID | InternalDimension, BedrockRawDimension]
+    dimensions: dict[DimensionId | InternalDimension, BedrockRawDimension]
     dimensions_lock: RLock
     db: LevelDB
-    dimension_aliases: frozenset[DimensionID]
+    dimension_aliases: frozenset[DimensionId]
     actor_counter: ActorCounter
     block_id_override: IdRegistry
     biome_id_override: IdRegistry
@@ -383,12 +381,12 @@ class BedrockRawLevel(
 
             self._o.dimension_aliases = frozenset(dimensions)
 
-    def dimensions(self) -> frozenset[DimensionID]:
+    def dimension_ids(self) -> frozenset[DimensionId]:
         self._find_dimensions()
         return self._o.dimension_aliases
 
     def get_dimension(
-        self, dimension: DimensionID | InternalDimension
+        self, dimension: DimensionId | InternalDimension
     ) -> BedrockRawDimension:
         self._find_dimensions()
         if dimension not in self._o.dimensions:

@@ -12,7 +12,8 @@ from PIL import Image
 
 from amulet import IMG_DIRECTORY
 from amulet.version import VersionNumber
-from amulet.api.data_types import DimensionID, PlatformType
+from amulet.api.data_types import PlatformType
+from amulet.data_types import DimensionId
 
 from amulet.chunk import Chunk
 
@@ -25,9 +26,9 @@ from amulet.utils.weakref import CallableWeakMethod
 
 
 if TYPE_CHECKING:
-    from amulet.level.abc._dimension import Dimension  # noqa
-    from amulet.level.abc._player_storage import PlayerStorage
-    from amulet.level.abc._raw_level import RawLevel  # noqa
+    from amulet.level.abc import Dimension  # noqa
+    from amulet.level.abc import PlayerStorage
+    from amulet.level.abc import RawLevel  # noqa
 
 log = logging.getLogger(__name__)
 
@@ -396,11 +397,11 @@ class Level(ABC, Generic[OpenLevelDataT, DimensionT, RawLevelT]):
         return 16
 
     @abstractmethod
-    def dimensions(self) -> frozenset[DimensionID]:
+    def dimension_ids(self) -> frozenset[DimensionId]:
         raise NotImplementedError
 
     @abstractmethod
-    def get_dimension(self, dimension: DimensionID) -> DimensionT:
+    def get_dimension(self, dimension_id: DimensionId) -> DimensionT:
         raise NotImplementedError
 
     @property
