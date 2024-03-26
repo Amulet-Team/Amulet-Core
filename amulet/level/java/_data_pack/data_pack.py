@@ -1,9 +1,24 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Iterable, BinaryIO
+from typing import Iterable, Protocol
+from types import TracebackType
 import os
 import json
 from zipfile import ZipFile
 import re
+
+
+class Readable(Protocol):
+    def read(self, n: int = -1) -> bytes: ...
+
+    def __enter__(self) -> Readable: ...
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None: ...
 
 
 class BaseWrapper(ABC):
@@ -55,7 +70,7 @@ class BaseWrapper(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def open(self, relative_path: str, **kwargs) -> BinaryIO:
+    def open(self, relative_path: str) -> Readable:
         """
         Get the contents of the file.
 
@@ -65,15 +80,15 @@ class BaseWrapper(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def close(self):
+    def close(self) -> None:
         """Close the contents."""
         raise NotImplementedError
 
 
-class ZipWrapper(BaseWrapper, ZipFile):
+class ZipWrapper(BaseWrapper):
     def __init__(self, path: str):
         BaseWrapper.__init__(self, path)
-        ZipFile.__init__(self, path)
+        self._zip_file = ZipFile(path)
 
     @staticmethod
     def is_valid(path: str) -> bool:
@@ -81,7 +96,7 @@ class ZipWrapper(BaseWrapper, ZipFile):
 
     @property
     def all_files(self) -> Iterable[str]:
-        for path in self.NameToInfo:
+        for path in self._zip_file.NameToInfo:
             if not path.endswith("/"):
                 yield path
 
@@ -90,10 +105,13 @@ class ZipWrapper(BaseWrapper, ZipFile):
             # is a directory
             return False
         else:
-            return relative_path in self.NameToInfo
+            return relative_path in self._zip_file.NameToInfo
 
-    open = ZipFile.open
-    close = ZipFile.close
+    def open(self, name: str) -> Readable:
+        return self._zip_file.open(name)
+
+    def close(self) -> None:
+        self._zip_file.close()
 
 
 class DirWrapper(BaseWrapper):
@@ -119,10 +137,10 @@ class DirWrapper(BaseWrapper):
     def has_file(self, relative_path: str) -> bool:
         return os.path.isfile(os.path.join(self.path, relative_path))
 
-    def open(self, relative_path: str, **kwargs) -> BinaryIO:
-        return open(os.path.join(self.path, relative_path), "rb", **kwargs)
+    def open(self, relative_path: str) -> Readable:
+        return open(os.path.join(self.path, relative_path), "rb")
 
-    def close(self):
+    def close(self) -> None:
         pass
 
 
@@ -167,7 +185,7 @@ class DataPack:
         return self._is_valid
 
     @staticmethod
-    def is_wrapper_valid(wrapper: BaseWrapper):
+    def is_wrapper_valid(wrapper: BaseWrapper) -> bool:
         if wrapper.has_file("pack.mcmeta"):
             with wrapper.open("pack.mcmeta") as m:
                 try:
@@ -209,7 +227,7 @@ class DataPack:
         """
         return self._wrapper.has_file(relative_path)
 
-    def open(self, relative_path: str) -> BinaryIO:
+    def open(self, relative_path: str) -> Readable:
         """
         Get the contents of the file.
 
@@ -219,6 +237,6 @@ class DataPack:
         return self._wrapper.open(relative_path)
 
     @abstractmethod
-    def close(self):
+    def close(self) -> None:
         """Close the contents."""
         self._wrapper.close()

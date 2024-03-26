@@ -1,5 +1,5 @@
-from typing import Iterable, BinaryIO
-from .data_pack import DataPack
+from typing import Iterable
+from .data_pack import DataPack, Readable
 
 
 class DataPackManager:
@@ -31,7 +31,7 @@ class DataPackManager:
 
         :return: An iterable of paths.
         """
-        all_files = set()
+        all_files: set[str] = set()
         for pack in self._data_packs:
             all_files.update(pack.all_files)
         return all_files
@@ -43,7 +43,7 @@ class DataPackManager:
         :param match: The regex string to match again.
         :return: An iterable of file paths that match the given regex.
         """
-        all_files = set()
+        all_files: set[str] = set()
         for pack in self._data_packs:
             all_files.update(pack.all_files_match(match))
         return all_files
@@ -57,7 +57,7 @@ class DataPackManager:
         """
         return any(pack.has_file(relative_path) for pack in self._data_packs)
 
-    def open(self, relative_path: str) -> BinaryIO:
+    def open(self, relative_path: str) -> Readable:
         """
         Get the contents of the file.
 
@@ -71,7 +71,7 @@ class DataPackManager:
             f"The requested path {relative_path} could not be found."
         )
 
-    def close(self):
+    def close(self) -> None:
         """Close the contents."""
         for pack in self._data_packs:
             pack.close()
