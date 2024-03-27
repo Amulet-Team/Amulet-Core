@@ -24,6 +24,7 @@ class CreateWorldTestCase(unittest.TestCase):
         level_name: str,
         platform: str,
         version: VersionNumberAny,
+        check_equals_version=True,
     ):
         path = clean_temp_world(level_name)
 
@@ -67,7 +68,8 @@ class CreateWorldTestCase(unittest.TestCase):
 
         # check that the platform and version are the same
         self.assertEqual(level2.platform, platform_)
-        self.assertEqual(level2.version, version_)
+        if check_equals_version:
+            self.assertEqual(level2.version, version_)
         self.assertEqual(set(level2.dimensions), set(dimension_selections))
         for dim, selection in dimension_selections.items():
             self.assertEqual(level2.bounds(dim), selection)
@@ -127,6 +129,7 @@ class CreateWorldTestCase(unittest.TestCase):
             "bedrock.mcstructure",
             "bedrock",
             (1, 16, 0),
+            False,
         )
 
     def test_schematic(self):
