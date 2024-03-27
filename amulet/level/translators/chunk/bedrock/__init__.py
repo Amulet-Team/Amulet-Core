@@ -7,9 +7,9 @@ import numpy
 from amulet_nbt import IntTag
 
 
-from amulet.api.block import Block
-from amulet.api.registry import BlockManager
-from amulet.api.entity import Entity
+from amulet.block import Block
+from amulet.palette import BlockPalette
+from amulet.entity import Entity
 from amulet.api.wrapper.chunk.translator import Translator
 from amulet.api.data_types import (
     GetBlockCallback,
@@ -61,7 +61,7 @@ class BaseBedrockTranslator(Translator):
         ]
         :return:
         """
-        palette_ = BlockManager()
+        palette_ = BlockPalette()
         lut = []
         for palette_index, entry in enumerate(block_palette):
             entry: BedrockInterfaceBlockType
@@ -87,7 +87,7 @@ class BaseBedrockTranslator(Translator):
             if block is None:
                 raise Exception(f"Empty tuple")
 
-            lut.append(palette_.get_add_block(block))
+            lut.append(palette_.block_to_index(block))
         chunk._block_palette = palette_
 
         if len(palette_) != len(lut):

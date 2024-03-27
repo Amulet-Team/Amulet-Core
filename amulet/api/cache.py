@@ -1,4 +1,7 @@
 # A cache for objects implemented using leveldb for speed.
+from __future__ import annotations
+
+from typing import IO
 import os
 import shutil
 import time
@@ -6,39 +9,19 @@ import logging
 import glob
 import re
 import tempfile
+from weakref import finalize
 
 import portalocker
-
-
-def _get_cache_dir() -> str:
-    return os.environ.get("AMULET_LEVEL_CACHE_DIR", None) or os.path.join(
-        os.environ.get("CACHE_DIR"), "level_data"
-    )
-
+from amulet.utils.weakref import CallableWeakMethod
 
 log = logging.getLogger(__name__)
 
 
-def _clear_legacy_cache():
-    legacy_cache_dir = _get_cache_dir()
-    world_temp_dir = os.path.join(legacy_cache_dir, "world_temp")
-    if not os.path.isdir(world_temp_dir):
-        return
-    paths = [
-        os.path.join(legacy_cache_dir, t)
-        for t in os.listdir(world_temp_dir)
-        if t.isnumeric() and int(t) < (time.time() - 7 * 24 * 3600)
-    ]
-    if paths:
-        log.info("Removing legacy cache.")
-
-        # remove all cache directories that were created before a week ago
-        # Sometimes if the program is stopped or it crashes the cleanup won't happen
-        for path in paths:
-            shutil.rmtree(path, ignore_errors=True)
-
-
-_clear_legacy_cache()
+def _get_cache_dir() -> str:
+    cache_dir = os.environ.get("CACHE_DIR")
+    if cache_dir is None:
+        raise RuntimeError
+    return os.path.join(cache_dir, "level_data")
 
 
 TempPattern = re.compile(r"amulettmp.*?-(?P<time>\d+)")
@@ -80,10 +63,13 @@ class TempDir(str):
     >>> # The temporary directory will be deleted when the last reference to `t` is lost or when `t.close()` is called
     """
 
-    def __new__(cls):
+    __lock: IO | None
+    __finalise: finalize
+
+    def __new__(cls) -> TempDir:
         cache_dir = _get_cache_dir()
         os.makedirs(cache_dir, exist_ok=True)
-        self = super().__new__(
+        return super().__new__(
             cls,
             tempfile.mkdtemp(
                 prefix="amulettmp",
@@ -91,11 +77,13 @@ class TempDir(str):
                 dir=cache_dir,
             ),
         )
+
+    def __init__(self) -> None:
         self.__lock = open(os.path.join(self, "lock"), "w")
         portalocker.lock(self.__lock, portalocker.LockFlags.EXCLUSIVE)
-        return self
+        self.__finalise = finalize(self, CallableWeakMethod(self.close))
 
-    def close(self):
+    def close(self) -> None:
         """Close the lock and delete the directory."""
         if self.__lock is not None:
             portalocker.unlock(self.__lock)
@@ -103,5 +91,5 @@ class TempDir(str):
             self.__lock = None
             shutil.rmtree(self)
 
-    def __del__(self):
-        self.close()
+    def __del__(self) -> None:
+        self.__finalise()

@@ -1,4 +1,4 @@
-from amulet.api.selection import SelectionGroup
+from amulet.selection import SelectionGroup
 from amulet.api.data_types import Dimension
 from typing import TYPE_CHECKING
 

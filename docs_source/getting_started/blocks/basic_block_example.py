@@ -1,5 +1,5 @@
 import amulet
-from amulet.api.block import Block
+from amulet.block import Block
 
 # load the level
 level = amulet.load_level("level")

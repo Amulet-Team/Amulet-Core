@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from typing import Union, Generator, Optional, Tuple, Callable, Set, Iterable
 import traceback
 import numpy
@@ -10,14 +9,13 @@ import logging
 import copy
 import os
 
-from amulet.api.block import Block, UniversalAirBlock
-from amulet.api.block_entity import BlockEntity
-from amulet.api.entity import Entity
-from amulet.api.registry import BlockManager
-from amulet.api.registry.biome_manager import BiomeManager
-from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError, DimensionDoesNotExist
+from amulet.block import Block, UniversalAirBlock
+from amulet.block_entity import BlockEntity
+from amulet.entity import Entity
+from amulet.palette import BlockPalette, BiomePalette
+from amulet.errors import ChunkDoesNotExist, ChunkLoadError, DimensionDoesNotExist
 from amulet.api.chunk import Chunk, EntityList
-from amulet.api.selection import SelectionGroup, SelectionBox
+from amulet.selection import SelectionGroup, SelectionBox
 from amulet.api.data_types import (
     Dimension,
     VersionIdentifierType,
@@ -35,7 +33,7 @@ from amulet.api.history.history_manager import MetaHistoryManager
 from .clone import clone
 from amulet.api import wrapper as api_wrapper, level as api_level
 import PyMCTranslate
-from amulet.api.player import Player
+from amulet.player import Player
 from .player_manager import PlayerManager
 
 log = logging.getLogger(__name__)
@@ -63,13 +61,13 @@ class BaseLevel:
         if not self.level_wrapper.is_open:
             self.level_wrapper.open()
 
-        self._block_palette = BlockManager()
-        self._block_palette.get_add_block(
+        self._block_palette = BlockPalette()
+        self._block_palette.block_to_index(
             UniversalAirBlock
         )  # ensure that index 0 is always air
 
-        self._biome_palette = BiomeManager()
-        self._biome_palette.get_add_biome("universal_minecraft:plains")
+        self._biome_palette = BiomePalette()
+        self._biome_palette.biome_to_index("universal_minecraft:plains")
 
         self._history_manager = MetaHistoryManager()
 
@@ -111,12 +109,12 @@ class BaseLevel:
         return self.level_wrapper.translation_manager
 
     @property
-    def block_palette(self) -> BlockManager:
+    def block_palette(self) -> BlockPalette:
         """The manager for the universal blocks in this level. New blocks must be registered here before adding to the level."""
         return self._block_palette
 
     @property
-    def biome_palette(self) -> BiomeManager:
+    def biome_palette(self) -> BiomePalette:
         """The manager for the universal blocks in this level. New biomes must be registered here before adding to the level."""
         return self._biome_palette
 
@@ -158,9 +156,9 @@ class BaseLevel:
         :param dimension: The dimension of the desired block
         :return: The universal Block object representation of the block at that location
         :raises:
-            :class:`~amulet.api.errors.ChunkDoesNotExist`: If the chunk does not exist (was deleted or never created)
+            :class:`~amulet.errors.ChunkDoesNotExist`: If the chunk does not exist (was deleted or never created)
 
-            :class:`~amulet.api.errors.ChunkLoadError`: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
+            :class:`~amulet.errors.ChunkLoadError`: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
         """
         cx, cz = block_coords_to_chunk_coords(x, z, sub_chunk_size=self.sub_chunk_size)
         offset_x, offset_z = x - 16 * cx, z - 16 * cz
@@ -574,9 +572,9 @@ class BaseLevel:
         :param dimension: The dimension to get the chunk from
         :return: A Chunk object containing the data for the chunk
         :raises:
-            :class:`~amulet.api.errors.ChunkDoesNotExist`: If the chunk does not exist (was deleted or never created)
+            :class:`~amulet.errors.ChunkDoesNotExist`: If the chunk does not exist (was deleted or never created)
 
-            :class:`~amulet.api.errors.ChunkLoadError`: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
+            :class:`~amulet.errors.ChunkLoadError`: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
         """
         return self._chunks.get_chunk(dimension, cx, cz)
 
@@ -761,9 +759,9 @@ class BaseLevel:
             >>> ("bedrock", (1, 16, 210))  # Bedrock 1.16.210 format
         :return: The block at the given location converted to the `version` format. Note the odd return format.
         :raises:
-            :class:`~amulet.api.errors.ChunkDoesNotExist`: If the chunk does not exist (was deleted or never created)
+            :class:`~amulet.errors.ChunkDoesNotExist`: If the chunk does not exist (was deleted or never created)
 
-            :class:`~amulet.api.errors.ChunkLoadError`: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
+            :class:`~amulet.errors.ChunkLoadError`: If the chunk was not able to be loaded. Eg. If the chunk is corrupt or some error occurred when loading.
         """
         cx, cz = block_coords_to_chunk_coords(x, z, sub_chunk_size=self.sub_chunk_size)
         chunk = self.get_chunk(cx, cz, dimension)

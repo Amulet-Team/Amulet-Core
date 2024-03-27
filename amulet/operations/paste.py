@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from amulet.api.data_types import Dimension, BlockCoordinates, FloatTriplet
-from amulet.api.block import Block, UniversalAirLikeBlocks
+from amulet.block import Block, UniversalAirLikeBlocks
 
 if TYPE_CHECKING:
     from amulet.api.level import BaseLevel

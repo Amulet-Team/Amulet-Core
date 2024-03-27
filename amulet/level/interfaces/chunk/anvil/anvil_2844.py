@@ -1,11 +1,10 @@
 from __future__ import annotations
-from typing import Tuple, Dict, Optional
+from typing import Tuple, Dict, Optional, Iterable
 import numpy
 
 from amulet_nbt import (
     CompoundTag,
     ListTag,
-    ByteTag,
     IntTag,
     LongTag,
     LongArrayTag,
@@ -13,7 +12,7 @@ from amulet_nbt import (
 )
 
 from amulet.api.chunk import Chunk
-from amulet.api.registry import BiomeManager
+from amulet.palette import BiomePalette
 from amulet.api.data_types import AnyNDArray, BiomeType
 from amulet.utils.world_utils import (
     decode_long_array,
@@ -148,14 +147,14 @@ class Anvil2844Interface(ParentInterface):
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         biomes: Dict[int, numpy.ndarray] = {}
-        palette = BiomeManager()
+        palette = BiomePalette()
 
         for cy, section in self._iter_sections(data):
             data = self._decode_biome_section(section)
             if data is not None:
                 arr, section_palette = data
                 lut = numpy.array(
-                    [palette.get_add_biome(biome) for biome in section_palette]
+                    [palette.biome_to_index(biome) for biome in section_palette]
                 )
                 biomes[cy] = lut[arr].astype(numpy.uint32)
 
@@ -209,7 +208,7 @@ class Anvil2844Interface(ParentInterface):
             )
 
     @staticmethod
-    def _encode_biome_palette(palette: list[BiomeType]) -> ListTag:
+    def _encode_biome_palette(palette: Iterable[BiomeType]) -> ListTag:
         return ListTag([StringTag(entry) for entry in palette])
 
     def _encode_biome_section(
@@ -225,7 +224,9 @@ class Anvil2844Interface(ParentInterface):
         sub_palette_, biome_sub_array = numpy.unique(
             biome_sub_array, return_inverse=True
         )
-        sub_palette = self._encode_biome_palette(chunk.biome_palette[sub_palette_])
+        sub_palette = self._encode_biome_palette(
+            map(chunk.biome_palette.index_to_biome, map(int, sub_palette_))
+        )
         biomes = sections[cy]["biomes"] = CompoundTag({"palette": sub_palette})
         if len(sub_palette) != 1:
             biomes["data"] = LongArrayTag(

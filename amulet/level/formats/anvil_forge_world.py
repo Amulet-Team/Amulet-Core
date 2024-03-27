@@ -1,5 +1,4 @@
 from __future__ import annotations
-import glob
 import os
 
 from amulet_nbt import load as load_nbt

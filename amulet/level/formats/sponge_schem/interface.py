@@ -3,10 +3,10 @@ import numpy
 
 from amulet.api.wrapper import Interface, EntityIDType, EntityCoordType
 from amulet.api.chunk import Chunk
-from amulet.api.selection import SelectionBox
+from amulet.selection import SelectionBox
 from amulet.api.data_types import AnyNDArray, VersionIdentifierType, VersionNumberAny
 from amulet.level.loader import Translators
-from amulet.api.block import Block
+from amulet.block import Block
 from .chunk import SpongeSchemChunk
 
 from amulet_nbt import NamedTag

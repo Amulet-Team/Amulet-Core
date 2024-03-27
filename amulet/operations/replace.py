@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import List, TYPE_CHECKING
 import logging
 
-from amulet.api.selection import SelectionGroup
-from amulet.api.block import Block
+from amulet.selection import SelectionGroup
+from amulet.block import Block
 from amulet.api.data_types import Dimension
 
 if TYPE_CHECKING:
@@ -41,10 +41,10 @@ def replace(
             )
 
     original_internal_ids = list(
-        map(world.block_palette.get_add_block, original_blocks)
+        map(world.block_palette.block_to_index, original_blocks)
     )
     replacement_internal_ids = list(
-        map(world.block_palette.get_add_block, replacement_blocks)
+        map(world.block_palette.block_to_index, replacement_blocks)
     )
 
     for chunk, slices, _ in world.get_chunk_slice_box(dimension, selection):

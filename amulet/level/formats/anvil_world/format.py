@@ -24,6 +24,7 @@ import portalocker
 from amulet_nbt import (
     IntTag,
     LongTag,
+    FloatTag,
     DoubleTag,
     StringTag,
     ListTag,
@@ -31,14 +32,14 @@ from amulet_nbt import (
     NamedTag,
     load as load_nbt,
 )
-from amulet.api.player import Player, LOCAL_PLAYER
+from amulet.player import Player, LOCAL_PLAYER
 from amulet.api.chunk import Chunk
-from amulet.api.selection import SelectionGroup, SelectionBox
+from amulet.selection import SelectionGroup, SelectionBox
 from amulet.api.wrapper import WorldFormatWrapper, DefaultSelection
 from amulet.utils.format_utils import check_all_exist
-from amulet.api.errors import (
+from amulet.errors import (
     DimensionDoesNotExist,
-    ObjectWriteError,
+    LevelWriteError,
     ChunkLoadError,
     ChunkDoesNotExist,
     PlayerDoesNotExist,
@@ -456,9 +457,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
             if overwrite:
                 shutil.rmtree(self.path)
             else:
-                raise ObjectWriteError(
-                    f"A world already exists at the path {self.path}"
-                )
+                raise LevelWriteError(f"A world already exists at the path {self.path}")
         self._version = self.translation_manager.get_version(
             self.platform, self.version
         ).data_version
@@ -725,7 +724,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         if (
             isinstance(rot_data, ListTag)
             and len(rot_data) == 2
-            and rot_data.list_data_type == DoubleTag.tag_id
+            and rot_data.list_data_type == FloatTag.tag_id
         ):
             rotation = tuple(map(float, rot_data))
             rotation = tuple(

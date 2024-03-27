@@ -4,9 +4,9 @@ import numpy
 if TYPE_CHECKING:
     from .world_types import BlockCoordinates
     from amulet.api.chunk import Chunk
-    from amulet.api.block import Block
-    from amulet.api.block_entity import BlockEntity
-    from amulet.api.entity import Entity
+    from amulet.block import Block
+    from amulet.block_entity import BlockEntity
+    from amulet.entity import Entity
 
 # Wrapper types
 BlockNDArray = numpy.ndarray  # NDArray[(Any, ), 'Block']

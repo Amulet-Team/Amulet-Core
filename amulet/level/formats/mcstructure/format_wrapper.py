@@ -9,8 +9,7 @@ from amulet_nbt import (
     ListTag,
     CompoundTag,
     load as load_nbt,
-    utf8_escape_decoder,
-    utf8_escape_encoder,
+    utf8_escape_encoding,
 )
 
 from amulet.api.data_types import (
@@ -23,8 +22,8 @@ from amulet.api.data_types import (
 )
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
-from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.errors import ChunkDoesNotExist, ObjectWriteError
+from amulet.selection import SelectionGroup, SelectionBox
+from amulet.errors import ChunkDoesNotExist, LevelWriteError
 from amulet.utils.numpy_helpers import brute_sort_objects_no_hash
 
 from .chunk import MCStructureChunk
@@ -70,7 +69,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         **kwargs,
     ):
         if not overwrite and os.path.isfile(self.path):
-            raise ObjectWriteError(f"There is already a file at {self.path}")
+            raise LevelWriteError(f"There is already a file at {self.path}")
         translator_version = self.translation_manager.get_version(
             "bedrock", (999, 999, 999)
         )
@@ -85,7 +84,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
 
     def open_from(self, f: BinaryIO):
         mcstructure = load_nbt(
-            f, little_endian=True, string_decoder=utf8_escape_decoder
+            f, little_endian=True, string_encoding=utf8_escape_encoding
         ).compound
         if mcstructure.get_int("format_version").py_int == 1:
             min_point = numpy.array(
@@ -342,7 +341,10 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             }
         )
         mcstructure.save_to(
-            f, compressed=False, little_endian=True, string_encoder=utf8_escape_encoder
+            f,
+            compressed=False,
+            little_endian=True,
+            string_encoding=utf8_escape_encoding,
         )
 
     def _close(self):

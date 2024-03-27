@@ -14,8 +14,8 @@ from typing import (
 )
 from enum import Enum
 
-from amulet.api.block_entity import BlockEntity
-from amulet.api.entity import Entity
+from amulet.block_entity import BlockEntity
+from amulet.entity import Entity
 from amulet.api.data_types import AnyNDArray, VersionNumberAny, VersionIdentifierType
 from amulet_nbt import (
     AbstractBaseTag,
@@ -276,13 +276,11 @@ class Interface(ABC):
 
     @overload
     @staticmethod
-    def check_type(obj: CompoundTag, key: str, dtype: Type[AnyNBT]) -> bool:
-        ...
+    def check_type(obj: CompoundTag, key: str, dtype: Type[AnyNBT]) -> bool: ...
 
     @overload
     @staticmethod
-    def check_type(obj: ListTag, key: int, dtype: Type[AnyNBT]) -> bool:
-        ...
+    def check_type(obj: ListTag, key: int, dtype: Type[AnyNBT]) -> bool: ...
 
     @staticmethod
     def check_type(
@@ -298,8 +296,7 @@ class Interface(ABC):
         key: str,
         dtype: Type[AnyNBT],
         default: Optional[AnyNBT] = None,
-    ) -> Optional[AnyNBT]:
-        ...
+    ) -> Optional[AnyNBT]: ...
 
     @overload
     def get_obj(
@@ -308,8 +305,7 @@ class Interface(ABC):
         key: int,
         dtype: Type[AnyNBT],
         default: Optional[AnyNBT] = None,
-    ) -> Optional[AnyNBT]:
-        ...
+    ) -> Optional[AnyNBT]: ...
 
     def get_obj(
         self, obj, key, dtype: Type[AnyNBT], default: Optional[AnyNBT] = None

@@ -24,9 +24,9 @@ from amulet.api.data_types import (
 )
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
-from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.errors import ChunkDoesNotExist, ObjectWriteError, ObjectReadError
-from amulet.api.block import Block
+from amulet.selection import SelectionGroup, SelectionBox
+from amulet.errors import ChunkDoesNotExist, LevelWriteError, LevelReadError
+from amulet.block import Block
 from amulet.utils.numpy_helpers import brute_sort_objects_no_hash
 
 from .chunk import SpongeSchemChunk
@@ -37,11 +37,11 @@ if TYPE_CHECKING:
     from amulet.api.wrapper import Translator, Interface
 
 
-class SpongeSchemReadError(ObjectReadError):
+class SpongeSchemReadError(LevelReadError):
     pass
 
 
-class SpongeSchemWriteError(ObjectWriteError):
+class SpongeSchemWriteError(LevelWriteError):
     pass
 
 
@@ -325,9 +325,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                 raise SpongeSchemWriteError(
                     "The structure is too large to be exported to a Sponge Schematic file. It must be 2^16 - 1 at most in each dimension."
                 )
-            overflowed_shape = [
-                s if s < 2**15 else s - 2**16 for s in selection.shape
-            ]
+            overflowed_shape = [s if s < 2**15 else s - 2**16 for s in selection.shape]
             tag = CompoundTag(
                 {
                     "Version": IntTag(2),
