@@ -19,23 +19,23 @@ RawDimensionT = TypeVar("RawDimensionT", bound=RawDimension)
 
 
 class Dimension(LevelFriend[LevelT], ABC, Generic[LevelT, RawDimensionT, ChunkHandleT]):
-    _dimension: DimensionId
+    _dimension_id: DimensionId
     _chunk_handles: WeakValueDictionary[tuple[int, int], ChunkHandleT]
     _chunk_handle_lock: Lock
     _chunk_history: HistoryManagerLayer[ChunkKey]
     _raw: RawDimensionT
 
-    def __init__(self, level: LevelT, dimension: DimensionId) -> None:
+    def __init__(self, level: LevelT, dimension_id: DimensionId) -> None:
         super().__init__(level)
-        self._dimension = dimension
+        self._dimension_id = dimension_id
         self._chunk_handles = WeakValueDictionary()
         self._chunk_handle_lock = Lock()
         self._chunk_history = self._l._o.history_manager.new_layer()
-        self._raw = self._l.raw.get_dimension(self._dimension)
+        self._raw = self._l.raw.get_dimension(self._dimension_id)
 
     @property
     def dimension_id(self) -> DimensionId:
-        return self._dimension
+        return self._dimension_id
 
     def bounds(self) -> SelectionGroup:
         """The editable region of the dimension."""

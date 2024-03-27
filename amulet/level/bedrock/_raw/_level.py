@@ -386,12 +386,12 @@ class BedrockRawLevel(
         return self._o.dimension_aliases
 
     def get_dimension(
-        self, dimension: DimensionId | InternalDimension
+        self, dimension_id: DimensionId | InternalDimension
     ) -> BedrockRawDimension:
         self._find_dimensions()
-        if dimension not in self._o.dimensions:
-            raise RuntimeError(f"Dimension {dimension} does not exist")
-        return self._o.dimensions[dimension]
+        if dimension_id not in self._o.dimensions:
+            raise RuntimeError(f"Dimension {dimension_id} does not exist")
+        return self._o.dimensions[dimension_id]
 
     def players(self) -> Iterable[PlayerID]:
         yield from (

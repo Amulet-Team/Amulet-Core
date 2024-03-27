@@ -117,7 +117,7 @@ class RawLevel(ABC, Generic[RawDimensionT]):
         raise NotImplementedError
 
     @abstractmethod
-    def get_dimension(self, dimension: DimensionId) -> RawDimensionT:
+    def get_dimension(self, dimension_id: DimensionId) -> RawDimensionT:
         raise NotImplementedError
 
 
