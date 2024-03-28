@@ -161,15 +161,6 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         )
 
     @property
-    def last_played(self) -> int:
-        return (
-            self.root_tag.compound.get_compound("Data")
-            .get_long("LastPlayed", LongTag())
-            .py_int
-            // 1000
-        )
-
-    @property
     def game_version_string(self) -> str:
         try:
             return f'Java {self.root_tag.compound.get_compound("Data").get_compound("Version").get_string("Name").py_str}'

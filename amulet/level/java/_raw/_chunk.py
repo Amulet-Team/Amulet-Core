@@ -1,0 +1,2 @@
+class JavaRawChunk:
+    pass

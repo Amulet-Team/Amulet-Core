@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Tuple
 
-from amulet.api.data_types import Dimension
+from amulet.data_types import DimensionId
 
 LOCAL_PLAYER = "~local_player"
 
@@ -11,7 +11,7 @@ class Player:
     def __init__(
         self,
         player_id: str,
-        dimension: str,
+        dimension_id: DimensionId,
         location: Tuple[float, float, float],
         rotation: Tuple[float, float],
     ) -> None:
@@ -21,7 +21,7 @@ class Player:
         :param player_id: The ID of the player
         :param location: The location of the player in world coordinates
         :param rotation: The rotation of the player
-        :param dimension: The dimension the player is in
+        :param dimension_id: The dimension the player is in
         """
         super().__init__()
         assert isinstance(player_id, str)
@@ -38,10 +38,10 @@ class Player:
         self._player_id = player_id
         self._location = location
         self._rotation = rotation
-        self._dimension = dimension
+        self._dimension_id = dimension_id
 
     def __repr__(self) -> str:
-        return f"Player({self.player_id}, {self.dimension}, {self.location}, {self.rotation})"
+        return f"Player({self.player_id}, {self.dimension_id}, {self.location}, {self.rotation})"
 
     @property
     def player_id(self) -> str:
@@ -59,6 +59,6 @@ class Player:
         return self._rotation
 
     @property
-    def dimension(self) -> Dimension:
+    def dimension_id(self) -> DimensionId:
         """The current dimension the player is in"""
-        return self._dimension
+        return self._dimension_id

@@ -2,9 +2,10 @@ from __future__ import annotations
 from typing import Any
 
 from amulet.version import PlatformVersionContainer, VersionNumber
+from pickle_db import Constant
 
 
-class Biome(PlatformVersionContainer):
+class Biome(PlatformVersionContainer, Constant):
     def __init__(
         self,
         platform: str,

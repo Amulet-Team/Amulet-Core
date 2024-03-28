@@ -9,5 +9,5 @@ class TemporaryLevel(Level, CreatableLevel):
     __slots__ = ()
 
     @classmethod
-    def create(cls, *args, **kwargs) -> TemporaryLevel:
-        raise NotImplementedError
+    def create(cls) -> TemporaryLevel:
+        return cls()

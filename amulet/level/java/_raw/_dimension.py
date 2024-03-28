@@ -16,8 +16,6 @@ from amulet.api.data_types import (
 )
 from ._region import AnvilRegion
 
-InternalDimension = str
-
 
 ChunkDataType = Dict[str, NamedTag]
 

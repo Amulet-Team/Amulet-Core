@@ -12,6 +12,8 @@ from amulet.version import (
     VersionNumber,
 )
 
+from pickle_db import Constant
+
 PropertyValueType = Union[
     ByteTag,
     ShortTag,
@@ -42,7 +44,7 @@ _SNBTPropertiesPattern = re.compile(
 )
 
 
-class BlockProperties(Mapping[str, PropertyValueType], Hashable):
+class BlockProperties(Mapping[str, PropertyValueType], Hashable, Constant):
     """An immutable and hashable mapping from strings to nbt objects."""
 
     _hash: int | None
@@ -72,7 +74,7 @@ class BlockProperties(Mapping[str, PropertyValueType], Hashable):
         return self._hash
 
 
-class Block(PlatformVersionContainer):
+class Block(PlatformVersionContainer, Constant):
     """
     A class to manage the state of a block.
 
@@ -356,7 +358,7 @@ class Block(PlatformVersionContainer):
         return snbt_blockstate
 
 
-class BlockStack(Sequence[Block]):
+class BlockStack(Sequence[Block], Constant):
     """
     A stack of block objects.
 
