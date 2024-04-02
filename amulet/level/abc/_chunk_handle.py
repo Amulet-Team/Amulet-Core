@@ -85,7 +85,7 @@ class ChunkHandle(
 
     @property
     def dimension_id(self) -> DimensionId:
-        return self._dimension
+        return self._dimension_id
 
     @property
     def cx(self) -> int:
