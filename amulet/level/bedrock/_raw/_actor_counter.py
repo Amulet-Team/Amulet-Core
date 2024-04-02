@@ -19,8 +19,10 @@ class ActorCounter:
         self._session = -1
         self._count = 0
 
-    @classmethod
-    def from_level(cls, raw: BedrockRawLevel) -> ActorCounter:
+    def init(self, raw: BedrockRawLevel) -> None:
+        """Initialise the session from the level.dat file.
+        This must be run after the level has been opened so that the level.dat can be written.
+        """
         level_dat = raw.level_dat
         session = level_dat.compound.get_long(
             "worldStartCount", LongTag(0xFFFFFFFF)
@@ -29,8 +31,7 @@ class ActorCounter:
         session -= (session & 0x80000000) << 1
 
         # create the counter object and set the session
-        counter = ActorCounter()
-        counter._session = session
+        self._session = session
 
         # increment and write back so there are no conflicts
         session -= 1
@@ -38,8 +39,6 @@ class ActorCounter:
             session += 0x100000000
         level_dat.compound["worldStartCount"] = LongTag(session)
         raw.level_dat = level_dat
-
-        return counter
 
     def next(self) -> tuple[int, int]:
         """

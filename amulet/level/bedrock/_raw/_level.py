@@ -164,8 +164,9 @@ class BedrockRawLevel(
         if self.is_open():
             return
         db = LevelDB(os.path.join(self.path, "db"))
-        actor_counter = ActorCounter.from_level(self)
+        actor_counter = ActorCounter()
         self._raw_open_data = BedrockRawLevelOpenData(db, actor_counter)
+        actor_counter.init(self)
         self.opened.emit()
 
         # TODO: implement error handling and level closing if the db errors
