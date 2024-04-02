@@ -59,7 +59,7 @@ class Biome2DComponent:
 
         self.__array_shape = array_shape
         self.__biome_palette = BiomePalette(version_range)
-        self.set_biome(array)
+        self._set_biome(array)
 
     @TypedProperty[numpy.ndarray, Union[int, ArrayLike]]
     def biomes(self) -> numpy.ndarray:
