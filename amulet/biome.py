@@ -25,16 +25,20 @@ class Biome(PlatformVersionContainer):
         self._namespace = str(namespace)
         self._base_name = str(base_name)
 
-    def _data(self) -> tuple:
-        return self.platform, self.version, self._namespace, self._base_name
+    def __getstate__(self) -> tuple[Any, ...]:
+        return *super().__getstate__(), self._namespace, self._base_name
+
+    def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
+        self._namespace, self._base_name, *state = super().__setstate__(state)
+        return state
 
     def __hash__(self) -> int:
-        return hash(self._data())
+        return hash(self.__getstate__())
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Biome):
             return NotImplemented
-        return self._data() == other._data()
+        return self.__getstate__() == other.__getstate__()
 
     def __gt__(self, other: Biome) -> bool:
         if not isinstance(other, Biome):

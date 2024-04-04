@@ -45,7 +45,13 @@ _SNBTPropertiesPattern = re.compile(
 class BlockProperties(Mapping[str, PropertyValueType], Hashable):
     """An immutable and hashable mapping from strings to nbt objects."""
 
+    _properties: Mapping[str, PropertyValueType]
     _hash: int | None
+
+    __slots__ = (
+        "_properties",
+        "_hash",
+    )
 
     def __init__(self, properties: Mapping[str, PropertyValueType]):
         self._properties = dict(properties)
@@ -55,6 +61,13 @@ class BlockProperties(Mapping[str, PropertyValueType], Hashable):
             isinstance(v, PropertyValueClasses) for v in self._properties.values()
         ):
             raise TypeError("values must be nbt")
+        self._hash = None
+
+    def __getstate__(self) -> tuple[Any, ...]:
+        return self._properties
+
+    def __setstate__(self, state: tuple[Any, ...]) -> None:
+        self._properties = state
         self._hash = None
 
     def __getitem__(self, key: str) -> PropertyValueType:
@@ -143,6 +156,14 @@ class Block(PlatformVersionContainer):
         self._properties = BlockProperties(properties)
         self._hash = None
 
+    def __getstate__(self) -> tuple[Any, ...]:
+        return *super().__getstate__(), self._namespace, self._base_name, self._properties
+
+    def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
+        self._namespace, self._base_name, self._properties, *state = super().__setstate__(state)
+        self._hash = None
+        return state
+
     @classmethod
     def from_string_blockstate(
         cls, platform: str, version: VersionNumber, blockstate: str
@@ -217,24 +238,15 @@ class Block(PlatformVersionContainer):
             properties,
         )
 
-    def _data(self) -> tuple:
-        return (
-            self.platform,
-            self.version,
-            self._namespace,
-            self._base_name,
-            self._properties,
-        )
-
     def __hash__(self) -> int:
         if self._hash is None:
-            self._hash = hash(self._data())
+            self._hash = hash(self.__getstate__())
         return self._hash
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Block):
             return NotImplemented
-        return self._data() == other._data()
+        return self.__getstate__() == other.__getstate__()
 
     def __gt__(self, other: Block) -> bool:
         if not isinstance(other, Block):

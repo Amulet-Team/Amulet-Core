@@ -53,22 +53,17 @@ class Entity(PlatformVersionContainer):
             raise TypeError(f"nbt must be an NamedTag. Got {nbt}")
         self._nbt = nbt
 
-    def _data(self) -> tuple:
-        return (
-            self.platform,
-            self.version,
-            self._namespace,
-            self._base_name,
-            self._x,
-            self._y,
-            self._z,
-            self._nbt,
-        )
+    def __getstate__(self) -> tuple[Any, ...]:
+        return *super().__getstate__(), self._namespace, self._base_name, self._x, self._y, self._z, self._nbt
+
+    def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
+        self._namespace, self._base_name, self._x, self._y, self._z, self._nbt, *state = super().__setstate__(state)
+        return state
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Entity):
             return NotImplemented
-        return self._data() == other._data()
+        return self.__getstate__() == other.__getstate__()
 
     def __hash__(self) -> int:
         return id(self)

@@ -40,16 +40,20 @@ class BlockEntity(PlatformVersionContainer):
             raise TypeError(f"nbt must be an NamedTag. Got {nbt}")
         self._nbt = nbt
 
+    def __getstate__(self) -> tuple[Any, ...]:
+        return *super().__getstate__(), self._namespace, self._base_name, self._nbt
+
+    def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
+        self._namespace, self._base_name, self._nbt, *state = super().__setstate__(state)
+        return state
+
     def __repr__(self) -> str:
         return f"BlockEntity({self.platform!r}, {self.version!r}, {self._namespace!r}, {self._base_name!r}, {self._nbt!r})"
-
-    def _data(self) -> tuple:
-        return self.platform, self.version, self._namespace, self._base_name, self._nbt
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, BlockEntity):
             return NotImplemented
-        return self._data() == other._data()
+        return self.__getstate__() == other.__getstate__()
 
     @property
     def namespaced_name(self) -> str:
