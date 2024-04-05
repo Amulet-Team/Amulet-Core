@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pickle
-from typing import Optional, TYPE_CHECKING, Generic, TypeVar, cast
+from typing import Optional, TYPE_CHECKING, Generic, TypeVar, Iterable
 from collections.abc import Iterator
 from contextlib import contextmanager
 from threading import RLock
@@ -9,6 +9,7 @@ from abc import ABC, abstractmethod
 
 from amulet.utils.shareable_lock import LockNotAcquired
 from amulet.chunk import Chunk
+from amulet.chunk.components.abc import ChunkComponent, UnloadedComponent
 from amulet.data_types import DimensionId
 from amulet.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.utils.signal import Signal
@@ -52,6 +53,11 @@ class ChunkHandle(
     ABC,
     Generic[LevelT, RawDimensionT, ChunkT],
 ):
+    """
+    A class which manages chunk data.
+    You must acquire the lock for the chunk before reading or writing data.
+    Some internal synchronisation is done to catch some threading issues.
+    """
     _lock: RLock
     _dimension: DimensionId
     _key: ChunkKey
@@ -137,12 +143,14 @@ class ChunkHandle(
     def edit(
         self,
         *,
+        components: Iterable[type[ChunkComponent]] | None = None,
         blocking: bool = True,
         timeout: float = -1,
     ) -> Iterator[Optional[ChunkT]]:
-        """
-        Lock and edit a chunk.
-        If blocking is false and the lock could not be acquired within the timeout period
+        """Lock and edit a chunk.
+
+        If you only want to access/modify parts of the chunk data you can specify the components you want to load.
+        This makes it faster because you don't need to load unneeded parts.
 
         >>> level: Level
         >>> dimension_name: str
@@ -153,22 +161,27 @@ class ChunkHandle(
         >>>     # No other threads are able to edit the chunk while in this with block.
         >>>     # When the with block exits the edited chunk will be automatically set if no exception occurred.
 
+        :param components: None to load all components or an iterable of :class:`ChunkComponent`s to load.
         :param blocking: Should this block until the lock is acquired.
         :param timeout: The amount of time to wait for the lock.
         :raises:
             LockNotAcquired: If the lock could not be acquired.
         """
         with self.lock(blocking=blocking, timeout=timeout):
-            chunk = self.get()
+            chunk = self.get(components)
             yield chunk
             # If an exception occurs in user code, this line won't be run.
-            self.set(chunk)
+            self._set(chunk)
+        self.changed.emit()
+        self._l.changed.emit()
 
     def exists(self) -> bool:
         """
         Does the chunk exist. This is a quick way to check if the chunk exists without loading it.
 
-        :return: True if the chunk exists. Calling get_chunk on this chunk may still throw ChunkLoadError
+        This state may change if the lock is not acquired.
+
+        :return: True if the chunk exists. Calling get on this chunk handle may still throw ChunkLoadError
         """
         if self._history.has_resource(self._key):
             return self._history.resource_exists(self._key)
@@ -177,78 +190,116 @@ class ChunkHandle(
             return self._get_raw_dimension().has_chunk(self.cx, self.cz)
 
     def _preload(self) -> None:
+        """Load the chunk data if it has not already been loaded."""
         if not self._history.has_resource(self._key):
             # The history system is not aware of the chunk. Load from the level data
             try:
+                raw_chunk = self._get_raw_dimension().get_raw_chunk(self.cx, self.cz)
                 chunk = self._get_raw_dimension().raw_chunk_to_native_chunk(
                     self.cx,
                     self.cz,
-                    self._get_raw_dimension().get_raw_chunk(self.cx, self.cz),
+                    raw_chunk,
                 )
             except ChunkDoesNotExist:
-                data = b""
+                self._history.set_initial_resource(self._key, b"")
             except ChunkLoadError as e:
-                data = pickle.dumps(e)
+                self._history.set_initial_resource(self._key, pickle.dumps(e))
             else:
-                data = pickle.dumps(chunk)
+                chunk_class = type(chunk)
+                self._history.set_initial_resource(self._key, pickle.dumps(chunk_class))
+                for component_cls, component_data in chunk.component_data.items():
+                    self._history.set_initial_resource(self._key + b"/" + component_cls.storage_key, pickle.dumps(component_data))
 
-            self._history.set_initial_resource(self._key, data)
+    def get_class(self) -> type[ChunkT]:
+        """Get the chunk class used for this chunk.
 
-    def get(self) -> ChunkT:
+        :raises:
+            ChunkDoesNotExist if the chunk does not exist.
         """
-        Get a deep copy of the chunk data.
-        If you want to edit the chunk, use :meth:`edit` instead.
-
-        :return: A unique copy of the chunk data.
-        """
-        self._preload()
         data = self._history.get_resource(self._key)
         if data:
-            chunk = pickle.loads(data)
-            if isinstance(chunk, Chunk):
-                return cast(ChunkT, chunk)
-            elif isinstance(chunk, ChunkLoadError):
-                raise chunk
+            obj = pickle.loads(data)
+            if isinstance(obj, ChunkLoadError):
+                raise obj
+            elif issubclass(obj, Chunk):
+                return obj
             else:
                 raise RuntimeError
         else:
             raise ChunkDoesNotExist
 
-    def _set(self, data: bytes) -> None:
-        if not self._lock.acquire(False):
-            raise LockNotAcquired(
-                "Cannot set a chunk if it is locked by another thread."
-            )
-        try:
-            history = self._history
-            if not history.has_resource(self._key):
-                if self._l.history_enabled:
-                    self._preload()
-                else:
-                    history.set_initial_resource(self._key, b"")
-            history.set_resource(self._key, data)
-        finally:
-            self._lock.release()
-        self.changed.emit()
-        self._l.changed.emit()
+    def get(self, components: Iterable[type[ChunkComponent]] | None = None) -> ChunkT:
+        """Get a unique copy of the chunk data.
 
+        If you want to edit the chunk, use :meth:`edit` instead.
+
+        If you only want to access/modify parts of the chunk data you can specify the components you want to load.
+        This makes it faster because you don't need to load unneeded parts.
+
+        :param components: None to load all components or an iterable of :class:`ChunkComponent`s to load.
+        :return: A unique copy of the chunk data.
+        """
+        with self.lock(blocking=False):
+            self._preload()
+            chunk_class = self.get_class()
+            if components is None:
+                components = chunk_class.components
+            return chunk_class.from_component_data({
+                component_class: pickle.loads(
+                    self._history.get_resource(self._key + b"/" + component_class.storage_key)
+                )
+                for component_class in components
+            })
+
+    def _set(self, chunk: ChunkT | None) -> None:
+        """Lock must be acquired before calling this"""
+        history = self._history
+        if not history.has_resource(self._key):
+            if self._l.history_enabled:
+                self._preload()
+            else:
+                history.set_initial_resource(self._key, b"")
+        if chunk is None:
+            history.set_resource(self._key, b"")
+        else:
+            self._validate_chunk(chunk)
+            try:
+                old_chunk_class = self.get_class()
+            except ChunkLoadError:
+                old_chunk_class = None
+            new_chunk_class = type(chunk)
+            component_data = chunk.component_data
+            if old_chunk_class != new_chunk_class and UnloadedComponent in component_data.values():
+                raise RuntimeError("When changing chunk class all the data must be present.")
+            history.set_resource(self._key, pickle.dumps(new_chunk_class))
+            for component_cls, data in component_data.items():
+                if data is UnloadedComponent:
+                    continue
+                self._history.set_resource(self._key + b"/" + component_cls.storage_key, pickle.dumps(data))
+
+    @staticmethod
     @abstractmethod
-    def _validate_chunk(self, chunk: ChunkT) -> None:
+    def _validate_chunk(chunk: ChunkT) -> None:
         raise NotImplementedError
 
     def set(self, chunk: ChunkT) -> None:
         """
         Overwrite the chunk data.
-        You must lock access to the chunk before setting it otherwise an exception may be raised.
+        You must acquire the chunk lock before setting.
         If you want to edit the chunk, use :meth:`edit` instead.
 
         :param chunk: The chunk data to set.
         :raises:
             LockNotAcquired: If the chunk is already locked by another thread.
         """
-        self._validate_chunk(chunk)
-        self._set(pickle.dumps(chunk))
+        with self.lock(blocking=False):
+            self._set(chunk)
+        self.changed.emit()
+        self._l.changed.emit()
 
     def delete(self) -> None:
         """Delete the chunk from the level."""
-        self._set(b"")
+        with self.lock(blocking=False):
+            self._set(None)
+        self.changed.emit()
+        self._l.changed.emit()
