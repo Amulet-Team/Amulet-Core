@@ -201,14 +201,16 @@ class Level(ABC, Generic[OpenLevelDataT, DimensionT, RawLevelT]):
         return self._o.history_manager.undo_count
 
     def undo(self) -> None:
-        self._o.history_manager.undo()
+        with self.lock_unique(blocking=False):
+            self._o.history_manager.undo()
 
     @property
     def redo_count(self) -> int:
         return self._o.history_manager.redo_count
 
     def redo(self) -> None:
-        self._o.history_manager.redo()
+        with self.lock_unique(blocking=False):
+            self._o.history_manager.redo()
 
     @contextmanager
     def _lock(
