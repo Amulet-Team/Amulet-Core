@@ -5,7 +5,7 @@ from typing import Union, Self, Callable, cast, Any, overload
 from types import MappingProxyType
 from collections.abc import Iterator, Sequence, Hashable, Mapping
 
-from amulet_nbt import ByteTag, ShortTag, IntTag, LongTag, StringTag, from_snbt, AnyNBT
+from amulet_nbt import ByteTag, ShortTag, IntTag, LongTag, StringTag, from_snbt
 
 from amulet.version import (
     PlatformVersionContainer,
@@ -63,10 +63,10 @@ class BlockProperties(Mapping[str, PropertyValueType], Hashable):
             raise TypeError("values must be nbt")
         self._hash = None
 
-    def __getstate__(self) -> tuple[Any, ...]:
+    def __getstate__(self) -> Any:
         return self._properties
 
-    def __setstate__(self, state: tuple[Any, ...]) -> None:
+    def __setstate__(self, state: Any) -> None:
         self._properties = state
         self._hash = None
 
