@@ -1,18 +1,13 @@
-class FinalisedStateComponent:
-    def __init__(self) -> None:
-        self.__finalised_state = 2
+from amulet.chunk.components.abc import ChunkComponent
 
-    @property
-    def finalised_state(self) -> int:
-        return self.__finalised_state
 
-    @finalised_state.setter
-    def finalised_state(
-        self,
-        finalised_state: int,
-    ) -> None:
-        if not isinstance(finalised_state, int):
+class FinalisedStateComponent(ChunkComponent[int, int]):
+    storage_key = "bfs"
+
+    @staticmethod
+    def fix_set_data(old_obj: int, new_obj: int) -> int:
+        if not isinstance(new_obj, int):
             raise TypeError
-        if finalised_state < 0:
+        if new_obj < 0:
             raise ValueError
-        self.__finalised_state = int(finalised_state)
+        return new_obj

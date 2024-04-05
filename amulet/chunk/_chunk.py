@@ -14,7 +14,7 @@ class Chunk(ABC):
 
     @classmethod
     @abstractmethod
-    def new(cls) -> Self:
+    def new(cls, *args, **kwargs) -> Self:
         """Create a new empty chunk with all components defined."""
         raise NotImplementedError
 

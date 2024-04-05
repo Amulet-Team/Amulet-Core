@@ -3,7 +3,7 @@ from numpy.typing import ArrayLike
 from .abc import ChunkComponent
 
 
-class Height2DComponent(ChunkComponent[numpy.ndarray, numpy.ndarray]):
+class Height2DComponent(ChunkComponent[numpy.ndarray, ArrayLike]):
     storage_key = "h2d"
 
     @staticmethod

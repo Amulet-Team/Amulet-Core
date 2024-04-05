@@ -1,24 +1,13 @@
+from __future__ import annotations
 from amulet.level.bedrock._raw import BedrockRawChunk
+from amulet.chunk.components.abc import ChunkComponent
 
 
-class RawChunkComponent:
-    """Storage for the unhandled raw chunk data."""
+class RawChunkComponent(ChunkComponent[BedrockRawChunk | None, BedrockRawChunk | None]):
+    storage_key = "brc"
 
-    __raw_chunk: BedrockRawChunk | None
-
-    def __init__(self) -> None:
-        self.__raw_chunk = None
-
-    @property
-    def raw_chunk(self) -> BedrockRawChunk | None:
-        return self.__raw_chunk
-
-    @raw_chunk.setter
-    def raw_chunk(
-        self,
-        raw_chunk: BedrockRawChunk | None,
-    ) -> None:
-        if isinstance(raw_chunk, BedrockRawChunk) or raw_chunk is None:
-            self.__raw_chunk = raw_chunk
-        else:
-            raise TypeError
+    @staticmethod
+    def fix_set_data(old_obj: BedrockRawChunk | None, new_obj: BedrockRawChunk | None) -> BedrockRawChunk | None:
+        if new_obj is None or isinstance(new_obj, BedrockRawChunk):
+            return new_obj
+        raise TypeError
