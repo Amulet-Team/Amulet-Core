@@ -24,13 +24,24 @@ class Chunk(ABC):
         return component_class in cls.components
 
     def get_component(self, component_class: type[ChunkComponent[GetT, SetT]]) -> GetT:
-        """Get the data for the requested component."""
-        return self._component_data[component_class]
+        """Get the data for the requested component.
+
+        :param component_class: The component class to get the data for.
+        :return: The components data.
+        :raises:
+            RuntimeError
+        """
+        if component_class not in self._component_data:
+            raise ValueError(f"This chunk does not have component {component_class}")
+        component_data = self._component_data[component_class]
+        if component_data is UnloadedComponent:
+            raise RuntimeError(f"Component {component_class} has not been loaded.")
+        return component_data
 
     def set_component(self, component_class: type[ChunkComponent[GetT, SetT]], component_data: SetT) -> None:
         """Set the component data."""
         if component_class not in self._component_data:
-            raise ValueError
+            raise ValueError(f"This chunk does not have component {component_class}")
         old_component_data = self._component_data[component_class]
         new_component_data = component_class.fix_set_data(old_component_data, component_data)
         self._component_data[component_class] = new_component_data
