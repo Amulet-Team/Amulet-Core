@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from amulet.level.abc import ChunkHandle
 from ..abc._chunk_handle import ChunkT
-from .chunk import BedrockChunk
+from .chunk import BedrockChunk, BedrockChunk
 
 if TYPE_CHECKING:
     from ._level import BedrockLevel
@@ -11,8 +11,9 @@ if TYPE_CHECKING:
 
 
 class BedrockChunkHandle(
-    ChunkHandle["BedrockLevel", "BedrockRawDimension", "BedrockChunk"]
+    ChunkHandle["BedrockLevel", "BedrockRawDimension", BedrockChunk]
 ):
-    def _validate_chunk(self, chunk: ChunkT) -> None:
+    @staticmethod
+    def _validate_chunk(chunk: ChunkT) -> None:
         if not isinstance(chunk, BedrockChunk):
             raise TypeError
