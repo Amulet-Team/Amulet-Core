@@ -12,8 +12,11 @@ from amulet.utils.typed_property import TypedProperty
 class SubChunkArrayContainer(MutableMapping[int, numpy.ndarray]):
     """A container of sub-chunk arrays"""
 
+    _shape: tuple[int, int, int]
     _default_array: Union[int, numpy.ndarray]
     _arrays: dict[int, numpy.ndarray]
+
+    __slots__ = ("_shape", "_default_array", "_arrays")
 
     def __init__(
         self,
@@ -29,6 +32,12 @@ class SubChunkArrayContainer(MutableMapping[int, numpy.ndarray]):
             arrays = arrays.items()
         for cy, array in arrays:
             self[cy] = array
+
+    def __getstate__(self) -> tuple[tuple[int, int, int], int | numpy.ndarray, dict[int, numpy.ndarray]]:
+        return self._shape, self._default_array, self._arrays
+
+    def __setstate__(self, state: tuple[tuple[int, int, int], int | numpy.ndarray, dict[int, numpy.ndarray]]):
+        self._shape, self._default_array, self._arrays = state
 
     @property
     def array_shape(self) -> tuple[int, int, int]:

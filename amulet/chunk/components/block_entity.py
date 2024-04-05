@@ -1,14 +1,16 @@
 from __future__ import annotations
+
 from collections.abc import MutableMapping
-from typing import Iterable, Iterator
+from typing import Iterator
 
 from amulet.api.data_types import BlockCoordinates
 from amulet.block_entity import BlockEntity
 from amulet.version import VersionRange, VersionRangeContainer
-from amulet.utils.typed_property import TypedProperty
+
+from .abc import ChunkComponent, UnloadedComponent
 
 
-class BlockEntityContainer(
+class BlockEntityComponentData(
     VersionRangeContainer, MutableMapping[BlockCoordinates, BlockEntity]
 ):
     """
@@ -31,7 +33,7 @@ class BlockEntityContainer(
         """
         Set the :class:`BlockEntity` at ``coordinate``.
 
-        >>> block_entities: BlockEntityContainer
+        >>> block_entities: BlockEntityComponentData
         >>> x = y = z = 0
         >>> block_entities[(x, y, z)] = block_entity
 
@@ -64,7 +66,7 @@ class BlockEntityContainer(
         """
         Get the :class:`BlockEntity` at ``coordinate``.
 
-        >>> block_entities: BlockEntityContainer
+        >>> block_entities: BlockEntityComponentData
         >>> x = y = z = 0
         >>> block_entity = block_entities[(x, y, z)]
 
@@ -87,21 +89,15 @@ class BlockEntityContainer(
         )
 
 
-class BlockEntityComponent:
-    """A chunk that supports block entities"""
+class BlockEntityComponent(ChunkComponent[BlockEntityComponentData, BlockEntityComponentData]):
+    storage_key = "be"
 
-    def __init__(self, version_range: VersionRange) -> None:
-        self.__block_entities = BlockEntityContainer(version_range)
-
-    @TypedProperty[BlockEntityContainer, Iterable[tuple[BlockCoordinates, BlockEntity]]]
-    def block_entities(self) -> BlockEntityContainer:
-        return self.__block_entities
-
-    @block_entities.setter
-    def _set_block_entity(
-        self,
-        block_entities: Iterable[tuple[BlockCoordinates, BlockEntity]],
-    ) -> None:
-        self.__block_entities.clear()
-        for coord, block_entity in block_entities:
-            self.__block_entities[coord] = block_entity
+    @staticmethod
+    def fix_set_data(old_obj: BlockEntityComponentData | UnloadedComponent,
+                     new_obj: BlockEntityComponentData) -> BlockEntityComponentData:
+        if not isinstance(new_obj, BlockEntityComponentData):
+            raise TypeError
+        assert isinstance(old_obj, BlockEntityComponentData)
+        if old_obj.version_range != new_obj.version_range:
+            raise ValueError("New version range does not match old version range.")
+        return new_obj

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Union, Iterable
 from collections.abc import Mapping
 
@@ -8,33 +10,50 @@ from amulet.palette import BlockPalette
 from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
 from amulet.utils.typed_property import TypedProperty
 
+from .abc import ChunkComponent, UnloadedComponent
 
-class BlockComponent:
+
+class BlockComponentData:
     def __init__(
         self,
         version_range: VersionRange,
         array_shape: tuple[int, int, int],
         default_array: Union[int, ArrayLike],
     ):
-        self.__block_palette = BlockPalette(version_range)
-        self.__blocks = SubChunkArrayContainer(array_shape, default_array)
+        self._palette = BlockPalette(version_range)
+        self._sections = SubChunkArrayContainer(array_shape, default_array)
 
     @TypedProperty[
         SubChunkArrayContainer,
         Mapping[int, ArrayLike] | Iterable[tuple[int, ArrayLike]],
     ]
-    def blocks(self) -> SubChunkArrayContainer:
-        return self.__blocks
+    def sections(self) -> SubChunkArrayContainer:
+        return self._sections
 
-    @blocks.setter
+    @sections.setter
     def _set_block(
         self,
         sections: Mapping[int, ArrayLike] | Iterable[tuple[int, ArrayLike]],
     ) -> None:
-        self.__blocks = SubChunkArrayContainer(
-            self.__blocks.array_shape, self.__blocks.default_array, sections
+        self._sections = SubChunkArrayContainer(
+            self._sections.array_shape, self._sections.default_array, sections
         )
 
     @property
-    def block_palette(self) -> BlockPalette:
-        return self.__block_palette
+    def palette(self) -> BlockPalette:
+        return self._palette
+
+
+class BlockComponent(ChunkComponent[BlockComponentData, BlockComponentData]):
+    storage_key = "bl"
+
+    @staticmethod
+    def fix_set_data(old_obj: BlockComponentData | UnloadedComponent, new_obj: BlockComponentData) -> BlockComponentData:
+        if not isinstance(new_obj, BlockComponentData):
+            raise TypeError
+        assert isinstance(old_obj, BlockComponentData)
+        if old_obj.sections.array_shape != new_obj.sections.array_shape:
+            raise ValueError("New array shape does not match old array shape.")
+        elif old_obj.palette.version_range != new_obj.palette.version_range:
+            raise ValueError("New version range does not match old version range.")
+        return new_obj

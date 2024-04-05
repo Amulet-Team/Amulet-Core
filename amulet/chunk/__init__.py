@@ -1,5 +1,1 @@
-from __future__ import annotations
-
-
-class Chunk:
-    pass
+from ._chunk import Chunk

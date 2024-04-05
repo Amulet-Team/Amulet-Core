@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Union, Iterable
 from collections.abc import Mapping
 
@@ -9,40 +11,11 @@ from amulet.palette import BiomePalette
 from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
 from amulet.utils.typed_property import TypedProperty
 
-
-class Biome3DComponent:
-    def __init__(
-        self,
-        version_range: VersionRange,
-        array_shape: tuple[int, int, int],
-        default_array: Union[int, ArrayLike],
-    ):
-        self.__biome_palette = BiomePalette(version_range)
-        self.__biomes = SubChunkArrayContainer(array_shape, default_array)
-
-    @TypedProperty[
-        SubChunkArrayContainer,
-        Mapping[int, ArrayLike] | Iterable[tuple[int, ArrayLike]],
-    ]
-    def biomes(self) -> SubChunkArrayContainer:
-        return self.__biomes
-
-    @biomes.setter
-    def _set_biome(
-        self,
-        sections: Mapping[int, ArrayLike] | Iterable[tuple[int, ArrayLike]],
-    ) -> None:
-        self.__biomes = SubChunkArrayContainer(
-            self.__biomes.array_shape, self.__biomes.default_array, sections
-        )
-
-    @property
-    def biome_palette(self) -> BiomePalette:
-        return self.__biome_palette
+from .abc import ChunkComponent
 
 
-class Biome2DComponent:
-    __biomes: numpy.ndarray
+class Biome2DComponentData:
+    _array: numpy.ndarray
 
     def __init__(
         self,
@@ -57,29 +30,106 @@ class Biome2DComponent:
         ):
             raise TypeError
 
-        self.__array_shape = array_shape
-        self.__biome_palette = BiomePalette(version_range)
+        self._array_shape = array_shape
+        self._palette = BiomePalette(version_range)
         self._set_biome(array)
 
-    @TypedProperty[numpy.ndarray, Union[int, ArrayLike]]
-    def biomes(self) -> numpy.ndarray:
-        return self.__biomes
+    def __getstate__(self) -> tuple[tuple[int, int], BiomePalette, numpy.ndarray]:
+        return self._array_shape, self._palette, self._array
 
-    @biomes.setter
+    def __setstate__(self, state: tuple[tuple[int, int], BiomePalette, numpy.ndarray]):
+        self._array_shape, self._palette, self._array = state
+
+    @property
+    def array_shape(self) -> tuple[int, int]:
+        return self._array_shape
+
+    @TypedProperty[numpy.ndarray, Union[int, ArrayLike]]
+    def array(self) -> numpy.ndarray:
+        return self._array
+
+    @array.setter
     def _set_biome(
         self,
         array: Union[int, ArrayLike],
     ) -> None:
         if isinstance(array, int):
-            self.__biomes = numpy.full(self.__array_shape, array, dtype=numpy.uint32)
+            self._array = numpy.full(self._array_shape, array, dtype=numpy.uint32)
         else:
             array = numpy.asarray(array)
             if not isinstance(array, numpy.ndarray):
                 raise TypeError
-            if array.shape != self.__array_shape or array.dtype != numpy.uint32:
+            if array.shape != self._array_shape or array.dtype != numpy.uint32:
                 raise ValueError
-            self.__biomes = numpy.array(array)
+            self._array = numpy.array(array)
 
     @property
-    def biome_palette(self) -> BiomePalette:
-        return self.__biome_palette
+    def palette(self) -> BiomePalette:
+        return self._palette
+
+
+class Biome2DComponent(ChunkComponent[Biome2DComponentData, Biome2DComponentData]):
+    storage_key = b"b2d"
+
+    @staticmethod
+    def fix_set_data(old_obj: Biome2DComponentData, new_obj: Biome2DComponentData) -> Biome2DComponentData:
+        if not isinstance(new_obj, Biome2DComponentData):
+            raise TypeError
+        assert isinstance(old_obj, Biome2DComponentData)
+        if old_obj.array.shape != new_obj.array.shape or old_obj.array_shape != new_obj.array_shape:
+            raise ValueError("New array shape does not match old array shape.")
+        elif old_obj.palette.version_range != new_obj.palette.version_range:
+            raise ValueError("New version range does not match old version range.")
+        return new_obj
+
+
+class Biome3DComponentData:
+    def __init__(
+        self,
+        version_range: VersionRange,
+        array_shape: tuple[int, int, int],
+        default_array: Union[int, ArrayLike],
+    ):
+        self._palette = BiomePalette(version_range)
+        self.__sections = SubChunkArrayContainer(array_shape, default_array)
+
+    def __getstate__(self) -> tuple[BiomePalette, SubChunkArrayContainer]:
+        return self._palette, self.__sections
+
+    def __setstate__(self, state: tuple[tuple[int, int], BiomePalette, numpy.ndarray]):
+        self._palette, self.__sections = state
+
+    @TypedProperty[
+        SubChunkArrayContainer,
+        Mapping[int, ArrayLike] | Iterable[tuple[int, ArrayLike]],
+    ]
+    def sections(self) -> SubChunkArrayContainer:
+        return self.__sections
+
+    @sections.setter
+    def _set_biome(
+        self,
+        sections: Mapping[int, ArrayLike] | Iterable[tuple[int, ArrayLike]],
+    ) -> None:
+        self.__sections = SubChunkArrayContainer(
+            self.__sections.array_shape, self.__sections.default_array, sections
+        )
+
+    @property
+    def palette(self) -> BiomePalette:
+        return self._palette
+
+
+class Biome3DComponent(ChunkComponent[Biome3DComponentData, Biome3DComponentData]):
+    storage_key = b"b3d"
+
+    @staticmethod
+    def fix_set_data(old_obj: Biome3DComponentData, new_obj: Biome3DComponentData) -> Biome3DComponentData:
+        if not isinstance(new_obj, Biome3DComponentData):
+            raise TypeError
+        assert isinstance(old_obj, Biome3DComponentData)
+        if old_obj.sections.array_shape != new_obj.sections.array_shape:
+            raise ValueError("New array shape does not match old array shape.")
+        elif old_obj.palette.version_range != new_obj.palette.version_range:
+            raise ValueError("New version range does not match old version range.")
+        return new_obj

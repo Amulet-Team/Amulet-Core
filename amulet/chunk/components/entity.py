@@ -1,12 +1,13 @@
-from typing import Iterable, Iterator
+from __future__ import annotations
+from typing import Iterator
 from collections.abc import MutableSet
 
 from amulet.entity import Entity
 from amulet.version import VersionRange, VersionRangeContainer
-from amulet.utils.typed_property import TypedProperty
+from .abc import ChunkComponent
 
 
-class EntityContainer(VersionRangeContainer, MutableSet[Entity]):
+class EntityComponentData(VersionRangeContainer, MutableSet[Entity]):
     _entities: set[Entity]
 
     def __init__(self, version_range: VersionRange):
@@ -38,21 +39,15 @@ class EntityContainer(VersionRangeContainer, MutableSet[Entity]):
         return f"EntityContainer({self.version_range!r}) # {len(self)} entities"
 
 
-class EntityComponent:
-    """A chunk that supports entities"""
+class EntityComponent(ChunkComponent[EntityComponentData, EntityComponentData]):
+    storage_key = "e"
 
-    def __init__(self, version_range: VersionRange):
-        self.__entities = EntityContainer(version_range)
-
-    @TypedProperty[EntityContainer, Iterable[Entity]]
-    def entities(self) -> EntityContainer:
-        return self.__entities
-
-    @entities.setter
-    def _set_entity(
-        self,
-        entities: Iterable[Entity],
-    ) -> None:
-        self.__entities.clear()
-        for entity in entities:
-            self.__entities.add(entity)
+    @staticmethod
+    def fix_set_data(old_obj: EntityComponentData,
+                     new_obj: EntityComponentData) -> EntityComponentData:
+        if not isinstance(new_obj, EntityComponentData):
+            raise TypeError
+        assert isinstance(old_obj, EntityComponentData)
+        if old_obj.version_range != new_obj.version_range:
+            raise ValueError("New version range does not match old version range.")
+        return new_obj
