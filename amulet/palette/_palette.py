@@ -17,29 +17,16 @@ class Palette(VersionRangeContainer, Sequence[T], ABC):
         self._index_to_item: list[T] = []
         self._item_to_index: dict[T, int] = {}
 
-    @classmethod
-    def _reconstruct(
-        cls,
-        version_range: VersionRange,
-        index_to_item: list[T],
-        item_to_index: dict[T, int],
-    ) -> Self:
-        self = cls(version_range)
-        self._index_to_item = index_to_item
-        self._item_to_index = item_to_index
-        return self
-
-    def __reduce__(
-        self,
-    ) -> tuple[
-        Callable[[VersionRange, list[T], dict[T, int]], Self],
-        tuple[VersionRange, list[T], dict[T, int]],
-    ]:
-        return self._reconstruct, (
-            self.version_range,
+    def __getstate__(self) -> tuple[Any, ...]:
+        return (
+            *super().__getstate__(),
             self._index_to_item,
-            self._item_to_index,
         )
+
+    def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
+        self._index_to_item, *state = super().__setstate__(state)
+        self._item_to_index = {item: index for index, item in enumerate(self._index_to_item)}
+        return state
 
     def __len__(self) -> int:
         """

@@ -40,10 +40,10 @@ class VersionNumber(Sequence[int]):
     def __getnewargs__(self) -> tuple[int, ...]:
         return self._v
 
-    def __getstate__(self) -> dict:
-        return {}
+    def __getstate__(self) -> None:
+        return None
 
-    def __setstate__(self, state: dict) -> None:
+    def __setstate__(self, state: None) -> None:
         pass
 
     def cropped_version(self) -> tuple[int, ...]:
@@ -121,6 +121,13 @@ class PlatformVersionContainer:
         self._platform = platform
         self._version = version
 
+    def __getstate__(self) -> tuple[Any, ...]:
+        return self._platform, self._version
+
+    def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
+        self._platform, self._version, *state = state
+        return state
+
     @property
     def platform(self) -> str:
         """The platform this object is defined in."""
@@ -158,10 +165,16 @@ class VersionRange:
         self._cache[key] = self
         return self
 
-    def __reduce__(
+    def __getnewargs__(
         self,
-    ) -> tuple[type[VersionRange], tuple[str, VersionNumber, VersionNumber]]:
-        return VersionRange, (self._platform, self._min, self._max)
+    ) -> tuple[str, VersionNumber, VersionNumber]:
+        return self._platform, self._min, self._max
+
+    def __getstate__(self) -> None:
+        return None
+
+    def __setstate__(self, state: None):
+        pass
 
     def __repr__(self) -> str:
         return f"VersionRangeContainer({self._min!r}, {self._max!r})"
@@ -192,3 +205,10 @@ class VersionRangeContainer:
     @property
     def version_range(self) -> VersionRange:
         return self._version_range
+
+    def __getstate__(self) -> tuple[Any, ...]:
+        return self._version_range,
+
+    def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
+        self._version_range, *state = state
+        return state
