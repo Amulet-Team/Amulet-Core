@@ -90,7 +90,7 @@ class BlockEntityComponentData(
 
 
 class BlockEntityComponent(ChunkComponent[BlockEntityComponentData, BlockEntityComponentData]):
-    storage_key = "be"
+    storage_key = b"be"
 
     @staticmethod
     def fix_set_data(old_obj: BlockEntityComponentData | UnloadedComponent,

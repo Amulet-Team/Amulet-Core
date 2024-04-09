@@ -45,7 +45,7 @@ class BlockComponentData:
 
 
 class BlockComponent(ChunkComponent[BlockComponentData, BlockComponentData]):
-    storage_key = "bl"
+    storage_key = b"bl"
 
     @staticmethod
     def fix_set_data(old_obj: BlockComponentData | UnloadedComponent, new_obj: BlockComponentData) -> BlockComponentData:

@@ -40,7 +40,7 @@ class EntityComponentData(VersionRangeContainer, MutableSet[Entity]):
 
 
 class EntityComponent(ChunkComponent[EntityComponentData, EntityComponentData]):
-    storage_key = "e"
+    storage_key = b"e"
 
     @staticmethod
     def fix_set_data(old_obj: EntityComponentData,

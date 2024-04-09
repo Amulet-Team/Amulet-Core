@@ -2,7 +2,7 @@ from amulet.chunk.components.abc import ChunkComponent
 
 
 class FinalisedStateComponent(ChunkComponent[int, int]):
-    storage_key = "bfs"
+    storage_key = b"bfs"
 
     @staticmethod
     def fix_set_data(old_obj: int, new_obj: int) -> int:

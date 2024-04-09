@@ -4,7 +4,7 @@ from amulet.chunk.components.abc import ChunkComponent
 
 
 class RawChunkComponent(ChunkComponent[BedrockRawChunk | None, BedrockRawChunk | None]):
-    storage_key = "brc"
+    storage_key = b"brc"
 
     @staticmethod
     def fix_set_data(old_obj: BedrockRawChunk | None, new_obj: BedrockRawChunk | None) -> BedrockRawChunk | None:

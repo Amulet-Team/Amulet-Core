@@ -4,7 +4,7 @@ from .abc import ChunkComponent
 
 
 class Height2DComponent(ChunkComponent[numpy.ndarray, ArrayLike]):
-    storage_key = "h2d"
+    storage_key = b"h2d"
 
     @staticmethod
     def fix_set_data(old_obj: numpy.ndarray, new_obj: ArrayLike) -> numpy.ndarray:

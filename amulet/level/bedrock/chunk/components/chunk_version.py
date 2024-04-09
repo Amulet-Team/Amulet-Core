@@ -3,7 +3,7 @@ from amulet.chunk.components.abc import ChunkComponent
 
 
 class ChunkVersionComponent(ChunkComponent[int, int]):
-    storage_key = "bcv"
+    storage_key = b"bcv"
 
     @staticmethod
     def fix_set_data(old_obj: int, new_obj: int) -> int:
