@@ -67,12 +67,12 @@ class Chunk(ABC):
     components: ClassVar[frozenset[type[ChunkComponent]]] = frozenset()
     _component_data: ComponentDataMapping
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._component_data = dict.fromkeys(self.components, UnloadedComponent.value)  # type: ignore
 
     @classmethod
     @abstractmethod
-    def new(cls, *args, **kwargs) -> Self:
+    def new(cls, *args: Any, **kwargs: Any) -> Self:
         """Create a new empty chunk with all components defined."""
         raise NotImplementedError
 
@@ -85,7 +85,7 @@ class Chunk(ABC):
         """Get the data for the requested component.
 
         :param component_class: The component class to get the data for.
-        :return: The components data.
+        :return: The component's data.
         :raises:
             RuntimeError
         """

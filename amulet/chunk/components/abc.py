@@ -1,10 +1,10 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, ClassVar
+from typing import Generic, TypeVar, ClassVar, Any
 from enum import Enum
 
-GetT = TypeVar("GetT")
-SetT = TypeVar("SetT")
+GetT = TypeVar("GetT", bound=Any)
+SetT = TypeVar("SetT", bound=Any)
 
 
 class UnloadedComponent(Enum):
@@ -14,7 +14,7 @@ class UnloadedComponent(Enum):
 _storage_keys = set[str]()
 
 
-class ChunkComponent(ABC, Generic[T]):
+class ChunkComponent(ABC, Generic[GetT, SetT]):
     storage_key: ClassVar[bytes] = b""
 
     @staticmethod
@@ -30,6 +30,6 @@ class ChunkComponent(ABC, Generic[T]):
         """
         raise NotImplementedError
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         assert isinstance(cls.storage_key, bytes) and cls.storage_key and cls.storage_key not in _storage_keys, "Suffix must be a unique identifier."
