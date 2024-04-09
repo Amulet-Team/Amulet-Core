@@ -117,8 +117,8 @@ class Chunk(ABC):
 
         Create a new chunk from component data.
         """
-        self = cls()
         if components.keys() != cls.components:
             raise ValueError("Components do not match the components for this class.")
+        self = cls()
         self._component_data.update(components)
         return self
