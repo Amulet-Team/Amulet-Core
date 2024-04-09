@@ -1,6 +1,6 @@
 from __future__ import annotations
 import struct
-from typing import Optional, TypeVar, Any, TYPE_CHECKING
+from typing import Optional, TypeVar, TYPE_CHECKING
 import logging
 from functools import cache
 
@@ -24,14 +24,15 @@ from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
 from amulet.biome import Biome
 from amulet.palette import BlockPalette
+from amulet.chunk import ComponentDataMapping
 from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
-from amulet.chunk.components.block import BlockComponent
-from amulet.chunk.components.block_entity import BlockEntityComponent
-from amulet.chunk.components.entity import EntityComponent
+from amulet.chunk.components.block import BlockComponent, BlockComponentData
+from amulet.chunk.components.block_entity import BlockEntityComponent, BlockEntityComponentData
+from amulet.chunk.components.entity import EntityComponent, EntityComponentData
 from amulet.chunk.components.height_2d import Height2DComponent
-from amulet.chunk.components.biome import Biome2DComponent, Biome3DComponent
+from amulet.chunk.components.biome import Biome2DComponent, Biome2DComponentData, Biome3DComponent, Biome3DComponentData
 from amulet.game import get_game_version
-from amulet.version import VersionNumber
+from amulet.version import VersionNumber, VersionRange
 
 from amulet.utils.world_utils import fast_unique, from_nibble_array
 
@@ -41,6 +42,7 @@ from amulet.level.bedrock.chunk.components.finalised_state import (
     FinalisedStateComponent,
 )
 from amulet.level.bedrock.chunk.components.raw_chunk import RawChunkComponent
+from amulet.level.bedrock.chunk.components.chunk_version import ChunkVersionComponent
 
 if TYPE_CHECKING:
     from ._level import BedrockRawLevel
@@ -51,12 +53,8 @@ log = logging.getLogger(__name__)
 SubChunkNDArray = numpy.ndarray
 AnyNDArray = numpy.ndarray
 T = TypeVar("T")
-
-
-def cast(obj: Any, cls: type[T]) -> T:
-    if not isinstance(obj, cls):
-        raise TypeError("obj must be an instance of cls")
-    return obj
+GetT = TypeVar("GetT")
+SetT = TypeVar("SetT")
 
 
 @cache
@@ -84,17 +82,39 @@ def raw_to_native(
         raise RuntimeError
     chunk_version = chunk_version_byte[0]
 
-    # Create the chunk instance
-    chunk: BedrockChunk
+    chunk_components: ComponentDataMapping = {}  # type: ignore
+    chunk_class: type[BedrockChunk]
     if chunk_version >= 29:
-        chunk = BedrockChunk29(max_version)
+        chunk_class = BedrockChunk29
     else:
-        chunk = BedrockChunk0(max_version)
+        chunk_class = BedrockChunk0
 
-    cast(chunk, RawChunkComponent).raw_chunk = raw_chunk
+    version_range = VersionRange(
+        "bedrock",
+        VersionNumber(1, 0, 0),
+        max_version,
+    )
+
+    chunk_components[RawChunkComponent] = raw_chunk
+    chunk_components[ChunkVersionComponent] = chunk_version
+
+    # Parse finalised state
+    finalised_state = chunk_data.pop(b"\x36", None)
+    if finalised_state is None:
+        chunk_components[FinalisedStateComponent] = 2
+    elif len(finalised_state) == 1:
+        # old versions of the game store this as a byte
+        chunk_components[FinalisedStateComponent] = struct.unpack("b", finalised_state)[
+            0
+        ]
+    elif len(finalised_state) == 4:
+        # newer versions store it as an int
+        chunk_components[FinalisedStateComponent] = struct.unpack(
+            "<i", finalised_state
+        )[0]
 
     # Parse blocks
-    block_component = cast(chunk, BlockComponent)
+    chunk_components[BlockComponent] = block_component_data = BlockComponentData(version_range, (16, 16, 16), 0)
     if chunk_version >= 3:
         subchunks = {}
         for key in chunk_data.copy().keys():
@@ -103,7 +123,7 @@ def raw_to_native(
                 if 25 <= chunk_version <= 28:
                     cy += floor_cy
                 subchunks[cy] = chunk_data.pop(key)
-        _load_subchunks(raw_level, subchunks, block_component)
+        _load_subchunks(raw_level, subchunks, block_component_data)
     else:
         section_data = chunk_data.pop(b"\x30", None)
         if section_data is not None:
@@ -120,7 +140,7 @@ def raw_to_native(
                     ((block_ids << 4) + block_data).reshape(16, 16, 128), (0, 2, 1)
                 )
             )
-            block_component.blocks = {
+            block_component_data.sections = {
                 i: block_array[:, i * 16 : (i + 1) * 16, :] for i in range(8)
             }
             palette: AnyNDArray = numpy.array(
@@ -129,40 +149,49 @@ def raw_to_native(
             chunk_palette = numpy.empty(len(palette), dtype=object)
             for i, b in enumerate(palette):
                 chunk_palette[i] = ((None, tuple(b)),)
+            raise NotImplementedError("Need to set up the block palette")
 
-    # Parse finalised state
-    finalised_state_component = cast(chunk, FinalisedStateComponent)
-    finalised_state = chunk_data.pop(b"\x36", None)
-    if finalised_state is None:
-        finalised_state_component.finalised_state = 2
-    elif len(finalised_state) == 1:
-        # old versions of the game store this as a byte
-        finalised_state_component.finalised_state = struct.unpack("b", finalised_state)[
-            0
-        ]
-    elif len(finalised_state) == 4:
-        # newer versions store it as an int
-        finalised_state_component.finalised_state = struct.unpack(
-            "<i", finalised_state
-        )[0]
+    # Parse block entities
+    block_entity_component_data = BlockEntityComponentData(version_range)
+    block_entities = _unpack_nbt_list(chunk_data.pop(b"\x31", b""))
+    block_entity_component_data.update(_decode_block_entity_list(
+        block_entities
+    ))
+    chunk_components[BlockEntityComponent] = block_entity_component_data
+
+    # Parse entities
+    entity_component_data = EntityComponentData(version_range)
+    entities = _unpack_nbt_list(chunk_data.pop(b"\x32", b""))
+    entity_component_data |= set(_decode_entity_list(entities) + _decode_entity_list(raw_chunk.entity_actor))
+    raw_chunk.entity_actor.clear()
+    chunk_components[EntityComponent] = entity_component_data
 
     # Parse biome and height data
-    if isinstance(chunk, Biome3DComponent) and b"+" in chunk_data:
-        d2d = chunk_data[b"+"]
-        cast(chunk, Height2DComponent).height = (
-            numpy.frombuffer(d2d[:512], "<i2").reshape((16, 16)).astype(numpy.int64)
-        )
-        _decode_3d_biomes(raw_level, chunk, d2d[512:], dimension.bounds().min_y >> 4)
-    elif isinstance(chunk, Biome2DComponent) and b"\x2D" in chunk_data:
-        d2d = chunk_data[b"\x2D"]
-        cast(chunk, Height2DComponent).height = (
-            numpy.frombuffer(d2d[:512], "<i2").reshape((16, 16)).astype(numpy.int64)
-        )
-        chunk.biomes = (
-            numpy.frombuffer(d2d[512:], dtype="uint8")
-            .reshape(16, 16)
-            .T.astype(numpy.uint32)
-        )
+    if chunk_class.has_component(Biome3DComponent):
+        chunk_components[Biome3DComponent] = biome_3d = Biome3DComponentData(version_range, (16, 16, 16), 0)
+        if b"+" in chunk_data:
+            d2d = chunk_data[b"+"]
+            chunk_components[Height2DComponent] = numpy.frombuffer(d2d[:512], "<i2").reshape((16, 16)).astype(numpy.int64)
+            _decode_3d_biomes(raw_level, biome_3d, d2d[512:], dimension.bounds().min_y >> 4)
+        else:
+            chunk_components[Height2DComponent] = numpy.zeros((16, 16), numpy.int64)
+            raise NotImplementedError("Need to set up the biome palette")
+    elif chunk_class.has_component(Biome2DComponent):
+        chunk_components[Biome2DComponent] = biome_2d = Biome2DComponentData(version_range, (16, 16), 0)
+        if b"\x2D" in chunk_data:
+            d2d = chunk_data[b"\x2D"]
+            chunk_components[Height2DComponent] = numpy.frombuffer(d2d[:512], "<i2").reshape((16, 16)).astype(numpy.int64)
+            biome_2d.array = (
+                numpy.frombuffer(d2d[512:], dtype="uint8")
+                .reshape(16, 16)
+                .T.astype(numpy.uint32)
+            )
+            raise NotImplementedError("Need to set up the biome palette")
+        else:
+            chunk_components[Height2DComponent] = numpy.zeros((16, 16), numpy.int64)
+            raise NotImplementedError("Need to set up the biome palette")
+    else:
+        raise RuntimeError
 
     # TODO: implement key support
     # \x33  ticks
@@ -174,20 +203,7 @@ def raw_to_native(
     # \x2E  2d legacy
     # \x30  legacy terrain
 
-    # Parse block entities
-    block_entities = _unpack_nbt_list(chunk_data.pop(b"\x31", b""))
-    cast(chunk, BlockEntityComponent).block_entities = _decode_block_entity_list(
-        block_entities
-    )
-
-    # Parse entities
-    entities = _unpack_nbt_list(chunk_data.pop(b"\x32", b""))
-    cast(chunk, EntityComponent).entities = _decode_entity_list(
-        entities
-    ) + _decode_entity_list(raw_chunk.entity_actor)
-    raw_chunk.entity_actor.clear()
-
-    return chunk
+    return chunk_class.from_component_data(chunk_components)
 
 
 def _load_palettized_subchunk(
@@ -332,7 +348,7 @@ def _load_binary_subchunk(
 
 
 def _load_subchunks(
-    level: BedrockRawLevel, subchunks: dict[int, bytes], chunk: BlockComponent
+    level: BedrockRawLevel, subchunks: dict[int, bytes], block_data: BlockComponentData
 ) -> None:
     """
     Load a list of bytes objects which contain chunk data into the chunk.
@@ -343,8 +359,8 @@ def _load_subchunks(
     The newer formats allow multiple blocks to occupy the same space and the
     newer versions also include a version ber block.
     """
-    blocks: SubChunkArrayContainer = chunk.blocks
-    block_palette: BlockPalette = chunk.block_palette
+    blocks: SubChunkArrayContainer = block_data.sections
+    block_palette: BlockPalette = block_data.palette
     block_palette.block_stack_to_index(
         BlockStack(
             Block(
@@ -419,7 +435,7 @@ def _load_palette_blocks(
 
 
 def _decode_3d_biomes(
-    raw_level: BedrockRawLevel, chunk: Biome3DComponent, data: bytes, floor_cy: int
+    raw_level: BedrockRawLevel, biome_3d_data: Biome3DComponentData, data: bytes, floor_cy: int
 ) -> None:
     # TODO: how does Bedrock store custom biomes?
     # TODO: can I use one global lookup based on the max version or does it need to be done for the version the chunk was saved in?
@@ -443,10 +459,10 @@ def _decode_3d_biomes(
                     "bedrock", raw_level.version
                 ).biome.numerical_id_to_namespace_id(numerical_id)
             # TODO: should this be based on the chunk version?
-            runtime_id = chunk.biome_palette.biome_to_index(
+            runtime_id = biome_3d_data.palette.biome_to_index(
                 Biome("bedrock", raw_level.version, namespace, base_name)
             )
-            chunk.biomes[cy] = numpy.full((16, 16, 16), runtime_id, dtype=numpy.uint32)
+            biome_3d_data.sections[cy] = numpy.full((16, 16, 16), runtime_id, dtype=numpy.uint32)
             data = data[4:]
         elif bits_per_value > 0:
             palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]
@@ -465,11 +481,11 @@ def _decode_3d_biomes(
                         "bedrock", raw_level.version
                     ).biome.numerical_id_to_namespace_id(numerical_id)
                     # TODO: should this be based on the chunk version?
-                runtime_id = chunk.biome_palette.biome_to_index(
+                runtime_id = biome_3d_data.palette.biome_to_index(
                     Biome("bedrock", raw_level.version, namespace, base_name)
                 )
                 lut.append(runtime_id)
-            chunk.biomes[cy] = numpy.array(lut, dtype=numpy.uint32)[arr]
+            biome_3d_data.sections[cy] = numpy.array(lut, dtype=numpy.uint32)[arr]
             data = data[4 * palette_len :]
         cy += 1
 

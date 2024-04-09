@@ -21,12 +21,9 @@ from amulet.block import Block, PropertyValueClasses
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
 from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
-from amulet.chunk.components.block import BlockComponent
-from amulet.chunk.components.block_entity import (
-    BlockEntityComponent,
-    BlockEntityContainer,
-)
-from amulet.chunk.components.entity import EntityComponent, EntityContainer
+from amulet.chunk.components.block import BlockComponent, BlockComponentData
+from amulet.chunk.components.block_entity import BlockEntityComponent, BlockEntityComponentData
+from amulet.chunk.components.entity import EntityComponent, EntityComponentData
 from amulet.chunk.components.height_2d import Height2DComponent
 from amulet.chunk.components.biome import Biome2DComponent, Biome3DComponent
 from amulet.game import get_game_version
@@ -64,91 +61,112 @@ def native_to_raw(
     floor_cy = dimension.bounds().min_y >> 4
     ceil_cy = dimension.bounds().max_y >> 4
 
-    if isinstance(chunk, RawChunkComponent) and chunk.raw_chunk is not None:
-        raw_chunk = chunk.raw_chunk
+    if chunk.has_component(RawChunkComponent):
+        raw_chunk_component = chunk.get_component(RawChunkComponent)
+        if raw_chunk_component is None:
+            raw_chunk = BedrockRawChunk()
+        else:
+            raw_chunk = raw_chunk_component
     else:
         raw_chunk = BedrockRawChunk()
+
     chunk_data = raw_chunk.chunk_data
 
-    if isinstance(chunk, ChunkVersionComponent):
-        chunk_version = chunk.chunk_version
-        chunk_data[b"v" if chunk.chunk_version <= 20 else b","] = bytes([chunk_version])
+    # Chunk version
+    chunk_version = chunk.get_component(ChunkVersionComponent)
+    chunk_data[b"v" if chunk_version <= 20 else b","] = bytes([chunk_version])
+
+    # Finalised state
+    finalised_state = chunk.get_component(FinalisedStateComponent)
+    if max_version >= VersionNumber(1):
+        # TODO: when did this become an int?
+        chunk_data[b"\x36"] = struct.pack("<i", finalised_state)
     else:
-        raise RuntimeError
+        chunk_data[b"\x36"] = struct.pack("b", finalised_state)
 
-    if isinstance(chunk, FinalisedStateComponent):
-        if max_version >= VersionNumber(1):
-            # TODO: when did this become an int?
-            chunk_data[b"\x36"] = struct.pack("<i", chunk.finalised_state)
-        else:
-            chunk_data[b"\x36"] = struct.pack("b", chunk.finalised_state)
+    # blocks
+    block_component = chunk.get_component(BlockComponent)
+    terrain: dict[int, bytes]
+    if max_version >= VersionNumber(1, 17, 30):
+        terrain = _encode_blocks_v9(
+            block_component, floor_cy, ceil_cy, dimension.default_block()[0]
+        )
+    elif max_version >= VersionNumber(1, 3):
+        terrain = _encode_blocks_v8(
+            block_component, floor_cy, ceil_cy, dimension.default_block()[0]
+        )
+    elif max_version >= VersionNumber(0, 17):
+        terrain = _encode_blocks_v1(block_component, dimension.default_block()[0])
+    else:
+        get_block_id_override = (
+            raw_level.block_id_override.namespace_id_to_numerical_id
+        )
+        get_block_id_game = game_version.block.namespace_id_to_numerical_id
 
-    if isinstance(chunk, BlockComponent):
-        terrain: dict[int, bytes]
-        if max_version >= VersionNumber(1, 17, 30):
-            terrain = _encode_blocks_v9(
-                chunk, floor_cy, ceil_cy, dimension.default_block()[0]
-            )
-        elif max_version >= VersionNumber(1, 3):
-            terrain = _encode_blocks_v8(
-                chunk, floor_cy, ceil_cy, dimension.default_block()[0]
-            )
-        elif max_version >= VersionNumber(0, 17):
-            terrain = _encode_blocks_v1(chunk, dimension.default_block()[0])
-        else:
-            get_block_id_override = (
-                raw_level.block_id_override.namespace_id_to_numerical_id
-            )
-            get_block_id_game = game_version.block.namespace_id_to_numerical_id
+        @cache
+        def encode_block(block: Block) -> tuple[int, int]:
+            namespace = block.namespace
+            base_name = block.base_name
 
-            @cache
-            def encode_block(block: Block) -> tuple[int, int]:
-                namespace = block.namespace
-                base_name = block.base_name
+            def get_block_data() -> int:
+                nbt_block_data = block.properties.get("block_data")
+                if isinstance(nbt_block_data, IntTag):
+                    return nbt_block_data.py_int % 16
+                return 0
 
-                def get_block_data() -> int:
-                    nbt_block_data = block.properties.get("block_data")
-                    if isinstance(nbt_block_data, IntTag):
-                        return nbt_block_data.py_int % 16
-                    return 0
-
-                # encode namespace
-                if namespace == "numerical":
-                    if base_name.isnumeric():
-                        return int(base_name) % 256, get_block_data()
-                else:
-                    try:
-                        return (
-                            get_block_id_override(namespace, base_name),
-                            get_block_data(),
-                        )
-                    except KeyError:
-                        pass
-                    try:
-                        return get_block_id_game(namespace, base_name), get_block_data()
-                    except KeyError:
-                        pass
-
-                return 0, 0
-
-            terrain = _encode_blocks_v0(chunk, encode_block)
-
-        # TODO: is this right?
-        for cy, sub_chunk in terrain.items():
-            if 25 <= chunk_version <= 28:
-                # The chunk db keys all start at 0 regardless of chunk floor position.
-                # This is the floor position of when the world was created.
-                # If the floor position changes in the future this will break.
-                chunk_key = struct.pack("b", cy - floor_cy)
+            # encode namespace
+            if namespace == "numerical":
+                if base_name.isnumeric():
+                    return int(base_name) % 256, get_block_data()
             else:
-                chunk_key = struct.pack("b", cy)
+                try:
+                    return (
+                        get_block_id_override(namespace, base_name),
+                        get_block_data(),
+                    )
+                except KeyError:
+                    pass
+                try:
+                    return get_block_id_game(namespace, base_name), get_block_data()
+                except KeyError:
+                    pass
 
-            chunk_data[b"\x2F" + chunk_key] = sub_chunk
+            return 0, 0
 
-    if isinstance(chunk, Height2DComponent) and chunk.height is not None:
-        height = chunk.height.ravel().astype("<i2").tobytes()
-    else:
+        terrain = _encode_blocks_v0(block_component, encode_block)
+
+    # TODO: is this right?
+    for cy, sub_chunk in terrain.items():
+        if 25 <= chunk_version <= 28:
+            # The chunk db keys all start at 0 regardless of chunk floor position.
+            # This is the floor position of when the world was created.
+            # If the floor position changes in the future this will break.
+            chunk_key = struct.pack("b", cy - floor_cy)
+        else:
+            chunk_key = struct.pack("b", cy)
+
+        chunk_data[b"\x2F" + chunk_key] = sub_chunk
+
+    block_entity_component = chunk.get_component(BlockEntityComponent)
+    block_entities_out = _encode_block_entities(block_entity_component)
+    if block_entities_out:
+        chunk_data[b"\x31"] = _pack_nbt_list(block_entities_out)
+
+    entity_component = chunk.get_component(EntityComponent)
+    entities_out = _encode_entities(
+        entity_component, max_version >= VersionNumber(1, 8)
+    )
+    if entities_out:
+        if max_version >= VersionNumber(1, 18, 30):
+            raw_chunk.entity_actor.extend(entities_out)
+        else:
+            chunk_data[b"\x32"] = _pack_nbt_list(entities_out)
+
+    height_component = chunk.get_component(Height2DComponent)
+    if height_component is None:
         height = bytes(512)
+    else:
+        height = height_component.ravel().astype("<i2").tobytes()
 
     get_biome_id_override = raw_level.biome_id_override.namespace_id_to_numerical_id
     get_biome_id_game = game_version.biome.namespace_id_to_numerical_id
@@ -174,11 +192,12 @@ def native_to_raw(
                     raise RuntimeError("Could not encode default biome.")
                 return encode_biome(default_biome.namespace, default_biome.base_name)
 
-    if isinstance(chunk, Biome2DComponent):
-        palette_indexes, array = numpy.unique(chunk.biomes, return_inverse=True)
+    if chunk.has_component(Biome2DComponent):
+        biome_2d_component = chunk.get_component(Biome2DComponent)
+        palette_indexes, array = numpy.unique(biome_2d_component.array, return_inverse=True)
 
         biome_id_palette = _encode_biome_palette(
-            chunk.biome_palette,
+            biome_2d_component.palette,
             palette_indexes,
             encode_biome,
         )
@@ -188,11 +207,12 @@ def native_to_raw(
         ].T.tobytes()
         chunk_data[b"\x2D"] = height + biomes_array
 
-    elif isinstance(chunk, Biome3DComponent):
+    elif chunk.has_component(Biome3DComponent):
+        biome_3d_component = chunk.get_component(Biome3DComponent)
         d2d: list[bytes] = [height]
 
-        biomes: SubChunkArrayContainer = chunk.biomes
-        biome_palette = chunk.biome_palette
+        biomes: SubChunkArrayContainer = biome_3d_component.sections
+        biome_palette = biome_3d_component.palette
 
         def encode_biome_section(array: numpy.ndarray) -> bytes:
             palette_indexes, arr_uniq = numpy.unique(array, return_inverse=True)
@@ -237,21 +257,8 @@ def native_to_raw(
                 d2d.append(b"\xFF")
 
         chunk_data[b"+"] = b"".join(d2d)
-
-    if isinstance(chunk, BlockEntityComponent):
-        block_entities_out = _encode_block_entities(chunk.block_entities)
-        if block_entities_out:
-            chunk_data[b"\x31"] = _pack_nbt_list(block_entities_out)
-
-    if isinstance(chunk, EntityComponent):
-        entities_out = _encode_entities(
-            chunk.entities, max_version >= VersionNumber(1, 8)
-        )
-        if entities_out:
-            if max_version >= VersionNumber(1, 18, 30):
-                raw_chunk.entity_actor.extend(entities_out)
-            else:
-                chunk_data[b"\x32"] = _pack_nbt_list(entities_out)
+    else:
+        raise RuntimeError
 
     return raw_chunk
 
@@ -269,10 +276,10 @@ def _encode_biome_palette(
 
 
 def _encode_blocks_v0(
-    chunk: BlockComponent, encode_block: Callable[[Block], tuple[int, int]]
+    block_component: BlockComponentData, encode_block: Callable[[Block], tuple[int, int]]
 ) -> dict[int, bytes]:
-    blocks: SubChunkArrayContainer = chunk.blocks
-    block_palette = chunk.block_palette
+    blocks: SubChunkArrayContainer = block_component.sections
+    block_palette = block_component.palette
     sections: dict[int, bytes] = {}
 
     palette = numpy.array(
@@ -434,15 +441,15 @@ def _encode_block_palette_layer(
 
 
 def _encode_palettized_chunk(
-    chunk: BlockComponent,
+    block_component: BlockComponentData,
     min_cy: int,
     max_cy: int,
     default_block: Block,
     max_block_depth: int,
 ) -> dict[int, list[bytes]]:
     """Encode the palettized sections of the chunk data. The caller handles the header."""
-    blocks: SubChunkArrayContainer = chunk.blocks
-    block_palette: BlockPalette = chunk.block_palette
+    blocks: SubChunkArrayContainer = block_component.sections
+    block_palette: BlockPalette = block_component.palette
     encoded_block_palette = _encode_block_palette(
         block_palette, default_block, max_block_depth
     )
@@ -460,33 +467,33 @@ def _encode_palettized_chunk(
     return encoded
 
 
-def _encode_blocks_v1(chunk: BlockComponent, default_block: Block) -> dict[int, bytes]:
+def _encode_blocks_v1(block_component: BlockComponentData, default_block: Block) -> dict[int, bytes]:
     return {
         cy: b"".join((b"\x01", *layers))
         for cy, layers in _encode_palettized_chunk(
-            chunk, 0, 16, default_block, 1
+            block_component, 0, 16, default_block, 1
         ).items()
     }
 
 
 def _encode_blocks_v8(
-    chunk: BlockComponent, min_cy: int, max_cy: int, default_block: Block
+    block_component: BlockComponentData, min_cy: int, max_cy: int, default_block: Block
 ) -> dict[int, bytes]:
     return {
         cy: b"".join((b"\x08", struct.pack("b", len(layers)), *layers))
         for cy, layers in _encode_palettized_chunk(
-            chunk, min_cy, max_cy, default_block, 2
+            block_component, min_cy, max_cy, default_block, 2
         ).items()
     }
 
 
 def _encode_blocks_v9(
-    chunk: BlockComponent, min_cy: int, max_cy: int, default_block: Block
+    block_component: BlockComponentData, min_cy: int, max_cy: int, default_block: Block
 ) -> dict[int, bytes]:
     return {
         cy: b"".join((b"\x09", struct.pack("bb", len(layers), cy), *layers))
         for cy, layers in _encode_palettized_chunk(
-            chunk, min_cy, max_cy, default_block, 2
+            block_component, min_cy, max_cy, default_block, 2
         ).items()
     }
 
@@ -540,7 +547,7 @@ def _pack_nbt_list(nbt_list: list[NamedTag]) -> bytes:
     )
 
 
-def _encode_entities(entities: EntityContainer, str_id: bool) -> list[NamedTag]:
+def _encode_entities(entities: EntityComponentData, str_id: bool) -> list[NamedTag]:
     entities_out = []
     for entity in entities:
         nbt = _encode_entity(entity, str_id)
@@ -573,7 +580,7 @@ def _encode_entity(entity: Entity, str_id: bool) -> NamedTag | None:
     return named_tag
 
 
-def _encode_block_entities(block_entities: BlockEntityContainer) -> list[NamedTag]:
+def _encode_block_entities(block_entities: BlockEntityComponentData) -> list[NamedTag]:
     entities_out = []
     for location, block_entity in block_entities.items():
         nbt = _encode_block_entity(location, block_entity)
