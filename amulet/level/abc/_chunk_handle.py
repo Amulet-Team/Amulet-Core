@@ -269,11 +269,11 @@ class ChunkHandle(
                 old_chunk_class = None
             new_chunk_class = type(chunk)
             component_data = chunk.component_data
-            if old_chunk_class != new_chunk_class and UnloadedComponent in component_data.values():
+            if old_chunk_class != new_chunk_class and UnloadedComponent.value in component_data.values():
                 raise RuntimeError("When changing chunk class all the data must be present.")
             history.set_resource(self._key, pickle.dumps(new_chunk_class))
             for component_cls, data in component_data.items():
-                if data is UnloadedComponent:
+                if data is UnloadedComponent.value:
                     continue
                 self._history.set_resource(self._key + b"/" + component_cls.storage_key, pickle.dumps(data))
 

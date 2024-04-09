@@ -10,7 +10,7 @@ class Chunk(ABC):
     _component_data: dict[type[ChunkComponent[GetT, SetT]], GetT | UnloadedComponent]
 
     def __init__(self):
-        self._component_data = dict.fromkeys(self.components, UnloadedComponent)
+        self._component_data = dict.fromkeys(self.components, UnloadedComponent.value)  # type: ignore
 
     @classmethod
     @abstractmethod
@@ -34,7 +34,7 @@ class Chunk(ABC):
         if component_class not in self._component_data:
             raise ValueError(f"This chunk does not have component {component_class}")
         component_data = self._component_data[component_class]
-        if component_data is UnloadedComponent:
+        if component_data is UnloadedComponent.value:
             raise RuntimeError(f"Component {component_class} has not been loaded.")
         return component_data
 

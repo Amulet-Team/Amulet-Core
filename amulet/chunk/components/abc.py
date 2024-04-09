@@ -1,12 +1,14 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, ClassVar
+from enum import Enum
 
 GetT = TypeVar("GetT")
 SetT = TypeVar("SetT")
 
 
-UnloadedComponent = object()
+class UnloadedComponent(Enum):
+    value = 0
 
 
 _storage_keys = set[str]()
