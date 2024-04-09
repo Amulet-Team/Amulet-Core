@@ -1,1 +1,1 @@
-from ._chunk import Chunk
+from ._chunk import Chunk, ComponentDataMapping
