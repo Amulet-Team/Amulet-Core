@@ -101,6 +101,8 @@ class Chunk(ABC):
         if component_class not in self._component_data:
             raise ValueError(f"This chunk does not have component {component_class}")
         old_component_data = self._component_data[component_class]
+        if old_component_data is UnloadedComponent.value:
+            raise RuntimeError(f"Cannot set unloaded component {component_class}")
         new_component_data = component_class.fix_set_data(old_component_data, component_data)
         self._component_data[component_class] = new_component_data
 
