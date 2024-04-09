@@ -23,11 +23,11 @@ class BedrockChunk0(Chunk):
     components = frozenset((
         RawChunkComponent,
         ChunkVersionComponent,
+        FinalisedStateComponent,
         BlockComponent,
         BlockEntityComponent,
         Biome2DComponent,
         EntityComponent,
-        FinalisedStateComponent,
         Height2DComponent,
     ))
 
@@ -42,11 +42,11 @@ class BedrockChunk0(Chunk):
         return cls.from_component_data({
             RawChunkComponent: None,
             ChunkVersionComponent: 0,
+            FinalisedStateComponent: 2,
             BlockComponent: BlockComponentData(version_range, (16, 16, 16), 0),
             BlockEntityComponent: BlockEntityComponentData(version_range),
             EntityComponent: EntityComponentData(version_range),
             Biome2DComponent: Biome2DComponentData(version_range, (16, 16), 0),
-            FinalisedStateComponent: 2,
             Height2DComponent: numpy.zeros((16, 16), dtype=numpy.int64),
         })
 
@@ -55,11 +55,11 @@ class BedrockChunk29(Chunk):
     components = frozenset((
         RawChunkComponent,
         ChunkVersionComponent,
+        FinalisedStateComponent,
         BlockComponent,
         BlockEntityComponent,
         Biome3DComponent,
         EntityComponent,
-        FinalisedStateComponent,
         Height2DComponent,
     ))
 
@@ -74,11 +74,11 @@ class BedrockChunk29(Chunk):
         return cls.from_component_data({
             RawChunkComponent: None,
             ChunkVersionComponent: 29,
+            FinalisedStateComponent: 2,
             BlockComponent: BlockComponentData(version_range, (16, 16, 16), 0),
             BlockEntityComponent: BlockEntityComponentData(version_range),
             EntityComponent: EntityComponentData(version_range),
             Biome3DComponent: Biome3DComponentData(version_range, (16, 16, 16), 0),
-            FinalisedStateComponent: 2,
             Height2DComponent: numpy.zeros((16, 16), dtype=numpy.int64),
         })
 
