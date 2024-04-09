@@ -61,21 +61,24 @@ class ChunkHandle(
     _lock: RLock
     _dimension: DimensionId
     _key: ChunkKey
-    _history: HistoryManagerLayer[ChunkKey]
+    _chunk_history: HistoryManagerLayer[ChunkKey]
+    _chunk_data_history: HistoryManagerLayer[bytes]
     _raw_dimension: Optional[RawDimensionT]
 
     __slots__ = (
         "_lock",
-        "_dimension",
+        "_dimension_id",
         "_key",
-        "_history",
+        "_chunk_history",
+        "_chunk_data_history",
         "_raw_dimension",
     )
 
     def __init__(
         self,
         level: LevelT,
-        history: HistoryManagerLayer[ChunkKey],
+        chunk_history: HistoryManagerLayer[ChunkKey],
+        chunk_data_history: HistoryManagerLayer[bytes],
         dimension_id: DimensionId,
         cx: int,
         cz: int,
@@ -84,7 +87,8 @@ class ChunkHandle(
         self._lock = RLock()
         self._dimension_id = dimension_id
         self._key = ChunkKey(cx, cz)
-        self._history = history
+        self._chunk_history = chunk_history
+        self._chunk_data_history = chunk_data_history
         self._raw_dimension = None
 
     changed = Signal[()]()
@@ -183,15 +187,15 @@ class ChunkHandle(
 
         :return: True if the chunk exists. Calling get on this chunk handle may still throw ChunkLoadError
         """
-        if self._history.has_resource(self._key):
-            return self._history.resource_exists(self._key)
+        if self._chunk_history.has_resource(self._key):
+            return self._chunk_history.resource_exists(self._key)
         else:
             # The history system is not aware of the chunk. Look in the level data
             return self._get_raw_dimension().has_chunk(self.cx, self.cz)
 
     def _preload(self) -> None:
         """Load the chunk data if it has not already been loaded."""
-        if not self._history.has_resource(self._key):
+        if not self._chunk_history.has_resource(self._key):
             # The history system is not aware of the chunk. Load from the level data
             try:
                 raw_chunk = self._get_raw_dimension().get_raw_chunk(self.cx, self.cz)
@@ -201,14 +205,14 @@ class ChunkHandle(
                     raw_chunk,
                 )
             except ChunkDoesNotExist:
-                self._history.set_initial_resource(self._key, b"")
+                self._chunk_history.set_initial_resource(self._key, b"")
             except ChunkLoadError as e:
-                self._history.set_initial_resource(self._key, pickle.dumps(e))
+                self._chunk_history.set_initial_resource(self._key, pickle.dumps(e))
             else:
                 chunk_class = type(chunk)
-                self._history.set_initial_resource(self._key, pickle.dumps(chunk_class))
+                self._chunk_history.set_initial_resource(self._key, pickle.dumps(chunk_class))
                 for component_cls, component_data in chunk.component_data.items():
-                    self._history.set_initial_resource(self._key + b"/" + component_cls.storage_key, pickle.dumps(component_data))
+                    self._chunk_data_history.set_initial_resource(b"/".join((bytes(self._key), component_cls.storage_key)), pickle.dumps(component_data))
 
     def get_class(self) -> type[ChunkT]:
         """Get the chunk class used for this chunk.
@@ -216,7 +220,7 @@ class ChunkHandle(
         :raises:
             ChunkDoesNotExist if the chunk does not exist.
         """
-        data = self._history.get_resource(self._key)
+        data = self._chunk_history.get_resource(self._key)
         if data:
             obj = pickle.loads(data)
             if isinstance(obj, ChunkLoadError):
@@ -246,14 +250,14 @@ class ChunkHandle(
                 components = chunk_class.components
             return chunk_class.from_component_data({
                 component_class: pickle.loads(
-                    self._history.get_resource(self._key + b"/" + component_class.storage_key)
+                    self._chunk_data_history.get_resource(b"/".join((bytes(self._key), component_class.storage_key)))
                 )
                 for component_class in components
             })
 
     def _set(self, chunk: ChunkT | None) -> None:
         """Lock must be acquired before calling this"""
-        history = self._history
+        history = self._chunk_history
         if not history.has_resource(self._key):
             if self._l.history_enabled:
                 self._preload()
@@ -275,7 +279,7 @@ class ChunkHandle(
             for component_cls, data in component_data.items():
                 if data is UnloadedComponent.value:
                     continue
-                self._history.set_resource(self._key + b"/" + component_cls.storage_key, pickle.dumps(data))
+                self._chunk_data_history.set_resource(b"/".join((bytes(self._key), component_cls.storage_key)), pickle.dumps(data))
 
     @staticmethod
     @abstractmethod
