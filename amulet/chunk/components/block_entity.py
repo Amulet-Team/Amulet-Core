@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import MutableMapping
-from typing import Iterator
+from typing import Iterator, Any
 
 from amulet.api.data_types import BlockCoordinates
 from amulet.block_entity import BlockEntity
@@ -26,6 +26,16 @@ class BlockEntityComponentData(
     ) -> None:
         super().__init__(version_range)
         self._block_entities = {}
+
+    def __getstate__(self) -> tuple[Any, ...]:
+        return (
+            *super().__getstate__(),
+            self._block_entities,
+        )
+
+    def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
+        self._block_entities, *state = super().__setstate__(state)
+        return state
 
     def __setitem__(
         self, coordinate: BlockCoordinates, block_entity: BlockEntity

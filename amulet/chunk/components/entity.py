@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Iterator
+from typing import Iterator, Any
 from collections.abc import MutableSet
 
 from amulet.entity import Entity
@@ -13,6 +13,16 @@ class EntityComponentData(VersionRangeContainer, MutableSet[Entity]):
     def __init__(self, version_range: VersionRange):
         super().__init__(version_range)
         self._entities = set()
+
+    def __getstate__(self) -> tuple[Any, ...]:
+        return (
+            *super().__getstate__(),
+            self._entities,
+        )
+
+    def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
+        self._entities, *state = super().__setstate__(state)
+        return state
 
     def add(self, entity: Entity) -> None:
         if not isinstance(entity, Entity):
