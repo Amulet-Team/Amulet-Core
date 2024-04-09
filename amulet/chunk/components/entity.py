@@ -27,7 +27,7 @@ class EntityComponentData(VersionRangeContainer, MutableSet[Entity]):
     def add(self, entity: Entity) -> None:
         if not isinstance(entity, Entity):
             raise TypeError("Expected an Entity")
-        if entity.version not in self.version_range:
+        if not self.version_range.contains(entity.platform, entity.version):
             raise ValueError(
                 f"entity {entity} is incompatible with {self.version_range}"
             )

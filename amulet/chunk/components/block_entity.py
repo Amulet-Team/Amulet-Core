@@ -58,7 +58,7 @@ class BlockEntityComponentData(
             raise TypeError
         if not isinstance(block_entity, BlockEntity):
             raise TypeError
-        if block_entity.version not in self.version_range:
+        if not self.version_range.contains(block_entity.platform, block_entity.version):
             raise ValueError(
                 f"block entity {block_entity} is incompatible with {self.version_range}"
             )
