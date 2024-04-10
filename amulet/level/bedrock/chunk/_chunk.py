@@ -50,7 +50,7 @@ class BedrockChunk0(Chunk):
             EntityComponent: EntityComponentData(version_range),
             Biome2DComponent: Biome2DComponentData(version_range, (16, 16), 0),
             Height2DComponent: numpy.zeros((16, 16), dtype=numpy.int64),
-        })
+        })  # type: ignore
 
 
 class BedrockChunk29(Chunk):
@@ -82,7 +82,7 @@ class BedrockChunk29(Chunk):
             EntityComponent: EntityComponentData(version_range),
             Biome3DComponent: Biome3DComponentData(version_range, (16, 16, 16), 0),
             Height2DComponent: numpy.zeros((16, 16), dtype=numpy.int64),
-        })
+        })  # type: ignore
 
 
 # TODO: Improve this if python/mypy#11673 gets fixed.
