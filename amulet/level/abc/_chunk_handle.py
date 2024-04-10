@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import pickle
 from typing import Optional, TYPE_CHECKING, Generic, TypeVar, Iterable
-from collections.abc import Iterator
+from collections.abc import Iterator, Set
 from contextlib import contextmanager
 from threading import RLock
 from abc import ABC, abstractmethod
 
 from amulet.utils.shareable_lock import LockNotAcquired
-from amulet.chunk import Chunk
+from amulet.chunk import Chunk, ComponentDataMapping
 from amulet.chunk.components.abc import ChunkComponent, UnloadedComponent
 from amulet.data_types import DimensionId
 from amulet.errors import ChunkDoesNotExist, ChunkLoadError
@@ -232,7 +232,7 @@ class ChunkHandle(
         else:
             raise ChunkDoesNotExist
 
-    def get(self, components: Iterable[type[ChunkComponent]] | None = None) -> ChunkT:
+    def get(self, components: Set[type[ChunkComponent]] | None = None) -> ChunkT:
         """Get a unique copy of the chunk data.
 
         If you want to edit the chunk, use :meth:`edit` instead.
@@ -248,12 +248,12 @@ class ChunkHandle(
             chunk_class = self.get_class()
             if components is None:
                 components = chunk_class.components
-            return chunk_class.from_component_data({
-                component_class: pickle.loads(
+            chunk_components: ComponentDataMapping = dict.fromkeys(chunk_class.components, UnloadedComponent.value)  # type: ignore
+            for component_class in components:
+                chunk_components[component_class] = pickle.loads(
                     self._chunk_data_history.get_resource(b"/".join((bytes(self._key), component_class.storage_key)))
                 )
-                for component_class in components
-            })
+            return chunk_class.from_component_data(chunk_components)
 
     def _set(self, chunk: ChunkT | None) -> None:
         """Lock must be acquired before calling this"""
