@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from amulet.level.abc import ChunkHandle
 from ..abc._chunk_handle import ChunkT
-from .chunk import BedrockChunk, BedrockChunk
+from .chunk import BedrockChunk
 
 if TYPE_CHECKING:
     from ._level import BedrockLevel
