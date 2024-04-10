@@ -1,5 +1,7 @@
 from __future__ import annotations
-from typing import TypeVar, Self
+
+from typing import TypeVar, Self, TypeAlias, cast
+from types import UnionType
 
 import numpy
 
@@ -83,4 +85,5 @@ class BedrockChunk29(Chunk):
         })
 
 
-BedrockChunk = BedrockChunk0 | BedrockChunk29
+# TODO: Improve this if python/mypy#11673 gets fixed.
+BedrockChunk: TypeAlias = cast(UnionType, BedrockChunk0 | BedrockChunk29)
