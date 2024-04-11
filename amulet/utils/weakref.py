@@ -1,7 +1,10 @@
 """Extension to the builtin weakref module."""
 
-from typing import Any
-from weakref import WeakMethod
+from __future__ import annotations
+from typing import Any, TypeVar, Generic, Callable, final
+from weakref import WeakMethod as _WeakMethod, ReferenceType as _ReferenceType
+
+T = TypeVar("T")
 
 
 # Classes have an __del__ method to run code at object destruction.
@@ -25,12 +28,13 @@ from weakref import WeakMethod
 # >>> t = Cls()
 #
 # weakref.finalize takes care of this. It can be manually called in the __del__ method if the object is garbage
-# collected before interpreter shutdown or automatically run at interperter exit. It can only be called once.
+# collected before interpreter shutdown or automatically run at interpreter exit. It can only be called once.
 # It must be given a weak method otherwise the instance will be kept alive until interpreter exit.
 # weakref.WeakMethod is not directly callable so CallableWeakMethod is implemented to allow this.
 
 
-class CallableWeakMethod(WeakMethod):
+@final
+class CallableWeakMethod(_WeakMethod):
     """
     A wrapper around WeakMethod that makes the method directly callable.
     If the method no longer exists, this does nothing.
@@ -40,3 +44,27 @@ class CallableWeakMethod(WeakMethod):
         meth = super().__call__()
         if meth is not None:
             return meth(*args, **kwargs)
+
+
+@final
+class DetachableWeakRef(Generic[T]):
+    """A weak reference that can be detached by the creator before the object is deleted."""
+
+    _ref: Callable[[], T | None]
+
+    @classmethod
+    def new(cls, obj: T) -> tuple[DetachableWeakRef[T], Callable[[], None]]:
+        """Get a new weak reference and a callable to detach the object.
+        Once called the reference will always return None.
+        """
+        self = cls(obj)
+        return self, self._detach
+
+    def __init__(self, obj: T) -> None:
+        self._ref = _ReferenceType(obj)
+
+    def __call__(self) -> T | None:
+        return self._ref()
+
+    def _detach(self) -> None:
+        self._ref = lambda: None
