@@ -437,8 +437,8 @@ class LevelFriend(Generic[LevelT]):
 
     __slots__ = ("_level_ref",)
 
-    def __init__(self, level: LevelT):
-        self._l_ref = ref(level)
+    def __init__(self, level_ref: Callable[[], LevelT | None]):
+        self._l_ref = level_ref
 
     @property
     def _l(self) -> LevelT:

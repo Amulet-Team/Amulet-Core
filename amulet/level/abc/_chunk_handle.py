@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pickle
-from typing import Optional, TYPE_CHECKING, Generic, TypeVar, Iterable
+from typing import Optional, TYPE_CHECKING, Generic, TypeVar, Iterable, Callable
 from collections.abc import Iterator, Set
 from contextlib import contextmanager
 from threading import RLock
@@ -76,14 +76,14 @@ class ChunkHandle(
 
     def __init__(
         self,
-        level: LevelT,
+        level_ref: Callable[[], LevelT | None],
         chunk_history: HistoryManagerLayer[ChunkKey],
         chunk_data_history: HistoryManagerLayer[bytes],
         dimension_id: DimensionId,
         cx: int,
         cz: int,
     ) -> None:
-        super().__init__(level)
+        super().__init__(level_ref)
         self._lock = RLock()
         self._dimension_id = dimension_id
         self._key = ChunkKey(cx, cz)

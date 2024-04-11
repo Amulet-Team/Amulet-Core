@@ -13,5 +13,5 @@ class BedrockDimension(
 ):
     def _create_chunk_handle(self, cx: int, cz: int) -> BedrockChunkHandle:
         return BedrockChunkHandle(
-            self._l, self._chunk_history, self._chunk_data_history, self.dimension_id, cx, cz
+            self._l_ref, self._chunk_history, self._chunk_data_history, self.dimension_id, cx, cz
         )

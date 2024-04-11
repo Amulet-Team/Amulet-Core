@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, Callable
 from weakref import WeakValueDictionary
 from threading import Lock
 
@@ -26,8 +26,8 @@ class Dimension(LevelFriend[LevelT], ABC, Generic[LevelT, RawDimensionT, ChunkHa
     _chunk_data_history: HistoryManagerLayer[bytes]
     _raw: RawDimensionT
 
-    def __init__(self, level: LevelT, dimension_id: DimensionId) -> None:
-        super().__init__(level)
+    def __init__(self, level_ref: Callable[[], LevelT | None], dimension_id: DimensionId) -> None:
+        super().__init__(level_ref)
         self._dimension_id = dimension_id
         self._chunk_handles = WeakValueDictionary()
         self._chunk_handle_lock = Lock()

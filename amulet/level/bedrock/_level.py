@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Union, Type
+from typing import Any, Union, Type, Callable
 import os
 
 from PIL import Image
@@ -27,6 +27,7 @@ from amulet.utils.call_spec import (
     PositionalArgs,
     method_spec,
 )
+from amulet.utils.weakref import DetachableWeakRef
 
 from ._raw import BedrockRawLevel, InternalDimension, BedrockCreateArgsV1
 from ._dimension import BedrockDimension
@@ -34,10 +35,13 @@ from ...chunk import Chunk
 
 
 class BedrockLevelOpenData(LevelOpenData):
+    back_reference: Callable[[], BedrockLevel | None]
+    detach_back_reference: Callable[[], None]
     dimensions: dict[Union[DimensionId, InternalDimension], BedrockDimension]
 
-    def __init__(self) -> None:
+    def __init__(self, level: BedrockLevel) -> None:
         super().__init__()
+        self.back_reference, self.detach_back_reference = DetachableWeakRef.new(level)
         self.dimensions = {}
 
 
@@ -114,10 +118,10 @@ class BedrockLevel(
 
     def _open(self) -> None:
         self.raw.open()
-        self._open_data = BedrockLevelOpenData()
+        self._open_data = BedrockLevelOpenData(self)
 
     def _close(self) -> None:
-        self._o.dimensions.clear()
+        self._o.detach_back_reference()
         self._open_data = None
         self.raw.close()
 
@@ -161,7 +165,7 @@ class BedrockLevel(
             public_dimension_id = raw_dimension.dimension_id
             internal_dimension_id = raw_dimension.internal_dimension
             dimensions[internal_dimension_id] = dimensions[public_dimension_id] = (
-                BedrockDimension(self, public_dimension_id)
+                BedrockDimension(self._o.back_reference, public_dimension_id)
             )
         return dimensions[dimension_id]
 
