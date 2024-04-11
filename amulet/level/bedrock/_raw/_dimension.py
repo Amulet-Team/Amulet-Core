@@ -55,6 +55,10 @@ class BedrockRawDimension(
     def dimension_id(self) -> DimensionId:
         return self._alias
 
+    @property
+    def internal_dimension_id(self) -> InternalDimension:
+        return self._internal_dimension
+
     def bounds(self) -> SelectionGroup:
         """The editable region of the dimension."""
         return self._bounds
@@ -72,10 +76,6 @@ class BedrockRawDimension(
             return Biome(self._r.platform, self._r.version, "minecraft", "the_end")
         else:
             return Biome(self._r.platform, self._r.version, "minecraft", "plains")
-
-    @property
-    def internal_dimension(self) -> InternalDimension:
-        return self._internal_dimension
 
     def all_chunk_coords(self) -> Iterator[ChunkCoordinates]:
         if self._internal_dimension is None:
