@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Optional
+from typing import Optional, Callable
 from collections.abc import Iterable
 from threading import RLock
 import os
@@ -36,6 +36,7 @@ from amulet.level.abc import (
 )
 from amulet.version import VersionNumber
 from amulet.utils.signal import Signal
+from amulet.utils.weakref import DetachableWeakRef
 
 from ._level_dat import BedrockLevelDAT
 from ._actor_counter import ActorCounter
@@ -63,6 +64,8 @@ class BedrockCreateArgsV1:
 class BedrockRawLevelOpenData:
     """Data that only exists when the level is open"""
 
+    back_reference: Callable[[], BedrockRawLevel | None]
+    detach_back_reference: Callable[[], None]
     dimensions: dict[DimensionId | InternalDimension, BedrockRawDimension]
     dimensions_lock: RLock
     db: LevelDB
@@ -71,7 +74,8 @@ class BedrockRawLevelOpenData:
     block_id_override: IdRegistry
     biome_id_override: IdRegistry
 
-    def __init__(self, db: LevelDB, actor_counter: ActorCounter):
+    def __init__(self, raw_level: BedrockRawLevel, db: LevelDB, actor_counter: ActorCounter):
+        self.back_reference, self.detach_back_reference = DetachableWeakRef.new(raw_level)
         self.db = db
         self.dimensions = {}
         self.dimensions_lock = RLock()
@@ -165,7 +169,7 @@ class BedrockRawLevel(
             return
         db = LevelDB(os.path.join(self.path, "db"))
         actor_counter = ActorCounter()
-        self._raw_open_data = BedrockRawLevelOpenData(db, actor_counter)
+        self._raw_open_data = BedrockRawLevelOpenData(self, db, actor_counter)
         actor_counter.init(self)
         self.opened.emit()
 
@@ -196,8 +200,7 @@ class BedrockRawLevel(
         open_data = self._o
         self._raw_open_data = None
         open_data.db.close()
-        for dimension in open_data.dimensions.values():
-            dimension._invalidate_r()
+        open_data.detach_back_reference()
         self.closed.emit()
 
     @property
@@ -364,7 +367,7 @@ class BedrockRawLevel(
                         alias = f"DIM{dimension}"
                     self._o.dimensions[dimension] = self._o.dimensions[alias] = (
                         BedrockRawDimension(
-                            self,
+                            self._o.back_reference,
                             dimension,
                             alias,
                             dimenion_bounds.get(alias, DefaultSelection),

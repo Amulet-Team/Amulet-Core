@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from typing import Iterable, TypeVar, Generic
+from typing import Iterable, TypeVar, Generic, Callable
 from abc import ABC, abstractmethod
+from weakref import ref
 
 from amulet.api.data_types import ChunkCoordinates
 from amulet.data_types import DimensionId
@@ -12,8 +13,6 @@ from amulet.selection import SelectionGroup
 
 PlayerIDT = TypeVar("PlayerIDT")
 RawPlayerT = TypeVar("RawPlayerT")
-RawDimensionT = TypeVar("RawDimensionT", bound="RawDimension")
-RawLevelT = TypeVar("RawLevelT", bound="RawLevel")
 ChunkT = TypeVar("ChunkT", bound=Chunk)
 RawChunkT = TypeVar("RawChunkT")
 
@@ -103,6 +102,9 @@ class RawDimension(ABC, Generic[RawChunkT, ChunkT]):
         raise NotImplementedError
 
 
+RawDimensionT = TypeVar("RawDimensionT", bound=RawDimension)
+
+
 class RawLevel(ABC, Generic[RawDimensionT]):
     """
     A class with raw access to the level.
@@ -119,6 +121,27 @@ class RawLevel(ABC, Generic[RawDimensionT]):
     @abstractmethod
     def get_dimension(self, dimension_id: DimensionId) -> RawDimensionT:
         raise NotImplementedError
+
+
+RawLevelT = TypeVar("RawLevelT", bound=RawLevel)
+
+
+class RawLevelFriend(Generic[RawLevelT]):
+    """A base class for friends of the raw level that need to store a pointer to the raw level"""
+
+    _r_ref: Callable[[], RawLevelT | None]
+
+    __slots__ = ("_r_ref",)
+
+    def __init__(self, raw_level_ref: Callable[[], RawLevelT | None]) -> None:
+        self._r_ref = raw_level_ref
+
+    @property
+    def _r(self) -> RawLevelT:
+        r = self._r_ref()
+        if r is None:
+            raise RuntimeError("Cannot access raw level")
+        return r
 
 
 class RawLevelPlayerComponent(ABC, Generic[PlayerIDT, RawPlayerT]):

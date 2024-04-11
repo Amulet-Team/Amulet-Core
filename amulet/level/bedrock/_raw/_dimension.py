@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 import struct
 from contextlib import suppress
 import logging
@@ -22,11 +22,10 @@ from amulet.block import Block, BlockStack
 from amulet.biome import Biome
 from amulet.selection import SelectionGroup
 from amulet.errors import ChunkDoesNotExist
-from amulet.level.abc import RawDimension
+from amulet.level.abc import RawDimension, RawLevelFriend
 from ._chunk import BedrockRawChunk
 from ._chunk_decode import raw_to_native
 from ._chunk_encode import native_to_raw
-from ._level_friend import BedrockRawLevelFriend
 from ._constant import THE_NETHER, THE_END
 from ._typing import InternalDimension
 from ..chunk import BedrockChunk
@@ -38,16 +37,16 @@ log = logging.getLogger(__name__)
 
 
 class BedrockRawDimension(
-    BedrockRawLevelFriend, RawDimension[BedrockRawChunk, BedrockChunk]
+    RawLevelFriend["BedrockRawLevel"], RawDimension[BedrockRawChunk, BedrockChunk]
 ):
     def __init__(
         self,
-        raw_level: BedrockRawLevel,
+        raw_level_ref: Callable[[], BedrockRawLevel | None],
         internal_dimension: InternalDimension,
         alias: DimensionId,
         bounds: SelectionGroup,
     ) -> None:
-        super().__init__(raw_level)
+        super().__init__(raw_level_ref)
         self._internal_dimension = internal_dimension
         self._alias = alias
         self._bounds = bounds
