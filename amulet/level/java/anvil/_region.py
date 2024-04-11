@@ -229,12 +229,6 @@ class AnvilRegion:
         self._load()
         return (cx, cz) in self._chunk_locations
 
-    def unload(self) -> None:
-        """Unload the data if it is not being used."""
-        with self._lock:
-            self._sector_manager = None
-            self._chunk_locations.clear()
-
     def get_data(self, cx: int, cz: int) -> NamedTag:
         self._load()
         sector = self._chunk_locations.get((cx, cz))

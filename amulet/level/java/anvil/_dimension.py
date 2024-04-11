@@ -29,10 +29,6 @@ class AnvilDimensionLayer:
         self._mcc = mcc
         self._lock = threading.RLock()
 
-    def unload(self) -> None:
-        with self._lock:
-            self._regions.clear()
-
     def _region_path(self, rx: int, rz: int) -> str:
         """Get the file path for a region file."""
         return os.path.join(self._directory, f"r.{rx}.{rz}.mca")
@@ -130,10 +126,6 @@ class AnvilDimension:
 
     def has_chunk(self, cx: int, cz: int) -> bool:
         return self.__default_layer.has_chunk(cx, cz)
-
-    def unload(self) -> None:
-        for layer in self.__layers.values():
-            layer.unload()
 
     def get_chunk_data(self, cx: int, cz: int) -> ChunkDataType:
         """Get the chunk data for each layer"""
