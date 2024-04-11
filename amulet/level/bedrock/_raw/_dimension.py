@@ -22,6 +22,7 @@ from amulet.block import Block, BlockStack
 from amulet.biome import Biome
 from amulet.selection import SelectionGroup
 from amulet.errors import ChunkDoesNotExist
+from amulet.version import VersionNumber
 from amulet.level.abc import RawDimension, RawLevelFriend
 from ._chunk import BedrockRawChunk
 from ._chunk_decode import raw_to_native
@@ -65,17 +66,17 @@ class BedrockRawDimension(
 
     def default_block(self) -> BlockStack:
         """The default block for this dimension"""
-        return BlockStack(Block(self._r.platform, self._r.version, "minecraft", "air"))
+        return BlockStack(Block("bedrock", VersionNumber(1, 20, 61), "minecraft", "air"))
 
     def default_biome(self) -> Biome:
         """The default biome for this dimension"""
         # todo: is this stored in the data somewhere?
         if self.dimension_id == THE_NETHER:
-            return Biome(self._r.platform, self._r.version, "minecraft", "nether")
+            return Biome("bedrock", VersionNumber(1, 20, 61), "minecraft", "hell")
         elif self.dimension_id == THE_END:
-            return Biome(self._r.platform, self._r.version, "minecraft", "the_end")
+            return Biome("bedrock", VersionNumber(1, 20, 61), "minecraft", "the_end")
         else:
-            return Biome(self._r.platform, self._r.version, "minecraft", "plains")
+            return Biome("bedrock", VersionNumber(1, 20, 61), "minecraft", "plains")
 
     def all_chunk_coords(self) -> Iterator[ChunkCoordinates]:
         if self._internal_dimension is None:
