@@ -154,7 +154,7 @@ class BedrockLevel(
         return self.raw.version
 
     def dimension_ids(self) -> frozenset[DimensionId]:
-        return self.raw.dimensions()
+        return self.raw.dimension_ids()
 
     def get_dimension(
         self, dimension_id: Union[DimensionId, InternalDimension]
