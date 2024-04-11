@@ -15,7 +15,7 @@ class Biome(PlatformVersionContainer):
         """
         Constructs a :class:`Biome` instance.
 
-        >>> plains = Biome("minecraft", "plains")
+        >>> plains = Biome("java", VersionNumber(3700), "minecraft", "plains")
 
         :param version: The platform and version the entity is defined in.
         :param namespace: The string namespace of the biome. eg `minecraft`
@@ -58,7 +58,7 @@ class Biome(PlatformVersionContainer):
         """
         The namespace of the biome represented by the :class:`Biome` object.
 
-        >>> plains = Biome("minecraft", "plains")
+        >>> plains = Biome("bedrock", VersionNumber(1, 20, 61), "minecraft", "plains")
         >>> plains.namespace
         "minecraft"
 
@@ -71,7 +71,7 @@ class Biome(PlatformVersionContainer):
         """
         The base name of the biome represented by the :class:`Biome` object.
 
-        >>> plains = Biome("minecraft", "plains")
+        >>> plains = Biome("bedrock", VersionNumber(1, 20, 61), "minecraft", "plains")
         >>> plains.base_name
         "plains"
 
