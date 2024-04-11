@@ -147,7 +147,7 @@ class ChunkHandle(
     def edit(
         self,
         *,
-        components: Iterable[type[ChunkComponent]] | None = None,
+        components: Set[type[ChunkComponent]] | None = None,
         blocking: bool = True,
         timeout: float = -1,
     ) -> Iterator[Optional[ChunkT]]:
