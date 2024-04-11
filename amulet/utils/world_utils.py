@@ -10,14 +10,6 @@ from numpy import ndarray, zeros, uint8
 from amulet.api.data_types import ChunkCoordinates
 
 
-# depreciated and will be removed
-SECTOR_BYTES = 4096
-SECTOR_INTS = SECTOR_BYTES / 4
-CHUNK_HEADER_SIZE = 5
-VERSION_GZIP = 1
-VERSION_DEFLATE = 2
-
-
 def block_coords_to_chunk_coords(
     *args: int, sub_chunk_size: int = 16
 ) -> Tuple[int, ...]:
@@ -83,13 +75,6 @@ def blocks_slice_to_chunk_slice(
         min(max(0, blocks_slice.start - chunk_coord * chunk_shape), chunk_shape),
         min(max(0, blocks_slice.stop - chunk_coord * chunk_shape), chunk_shape),
     )
-
-
-def gunzip(data):
-    """
-    Decompresses data that is in Gzip format
-    """
-    return gzip.GzipFile(fileobj=StringIO(data)).read()
 
 
 def from_nibble_array(arr: ndarray) -> ndarray:
