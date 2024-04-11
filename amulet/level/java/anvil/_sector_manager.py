@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import NamedTuple, List
+from typing import NamedTuple
 import threading
 from bisect import bisect_left, bisect_right
 
@@ -31,7 +31,7 @@ class Sector(NamedTuple):
         """Do the two sectors neighbour but not intersect."""
         return other.stop == self.start or self.stop == other.start
 
-    def split(self, other: Sector) -> List[Sector]:
+    def split(self, other: Sector) -> list[Sector]:
         """
         Split this sector around another sector.
         The other sector must be contained within this sector
@@ -72,7 +72,7 @@ class SectorManager:
         self._reserved: set[Sector] = set()
 
     @property
-    def sectors(self) -> List[Sector]:
+    def sectors(self) -> list[Sector]:
         """A list of reserved sectors. Ordered by their start location."""
         with self._lock:
             return list(sorted(self._reserved, key=lambda i: i.start))
