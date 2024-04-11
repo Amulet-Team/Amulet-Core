@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Union, Self, Callable, cast, Any, overload
+from typing import Union, Self, Callable, cast, Any, overload, TypeAlias
 from types import MappingProxyType
 from collections.abc import Iterator, Sequence, Hashable, Mapping
 
@@ -12,15 +12,15 @@ from amulet.version import (
     VersionNumber,
 )
 
-PropertyValueType = Union[
+PropertyValueType: TypeAlias = Union[
     ByteTag,
     ShortTag,
     IntTag,
     LongTag,
     StringTag,
 ]
-PropertyType = Mapping[str, PropertyValueType]
-PropertyTypeMultiple = dict[str, tuple[PropertyValueType, ...]]
+PropertyType: TypeAlias = Mapping[str, PropertyValueType]
+PropertyTypeMultiple: TypeAlias = dict[str, tuple[PropertyValueType, ...]]
 
 PropertyValueClasses = (
     ByteTag,

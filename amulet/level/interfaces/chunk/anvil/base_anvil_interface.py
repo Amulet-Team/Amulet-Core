@@ -12,6 +12,7 @@ from typing import (
     Sequence,
     Union,
     Type,
+    TypeAlias,
 )
 import numpy
 
@@ -37,9 +38,9 @@ if TYPE_CHECKING:
     from amulet.entity import Entity
 
 
-ChunkDataType = Dict[str, NamedTag]
+ChunkDataType: TypeAlias = Dict[str, NamedTag]
 
-ChunkPathType = Tuple[
+ChunkPathType: TypeAlias = Tuple[
     str,  # The layer name
     Sequence[Tuple[Union[str, int], Type[AbstractBaseTag]]],
     Type[AbstractBaseTag],

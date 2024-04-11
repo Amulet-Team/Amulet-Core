@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Self, Union
+from typing import Self, Union, TypeAlias
 
-JSONCompatible = Union[
+JSONCompatible: TypeAlias = Union[
     str,
     int,
     float,
@@ -12,8 +12,8 @@ JSONCompatible = Union[
     "JSONList",
     "JSONDict",
 ]
-JSONDict = dict[str, "JSONCompatible"]
-JSONList = list["JSONCompatible"]
+JSONDict: TypeAlias = dict[str, "JSONCompatible"]
+JSONList: TypeAlias = list["JSONCompatible"]
 
 
 class JSONInterface(ABC):

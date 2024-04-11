@@ -1,4 +1,4 @@
-from typing import Union, Callable, Tuple, Optional, TYPE_CHECKING, List
+from typing import Union, Callable, Tuple, Optional, TYPE_CHECKING, List, TypeAlias
 import numpy
 
 if TYPE_CHECKING:
@@ -9,35 +9,35 @@ if TYPE_CHECKING:
     from amulet.entity import Entity
 
 # Wrapper types
-BlockNDArray = numpy.ndarray  # NDArray[(Any, ), 'Block']
-AnyNDArray = numpy.ndarray  # NDArray[(Any, ), Any]
+BlockNDArray: TypeAlias = numpy.ndarray  # NDArray[(Any, ), 'Block']
+AnyNDArray: TypeAlias = numpy.ndarray  # NDArray[(Any, ), Any]
 
 #: The data type for the platform identifier.
-PlatformType = str
+PlatformType: TypeAlias = str
 
 #: The data type for an integer version number.
-VersionNumberInt = int
+VersionNumberInt: TypeAlias = int
 
 #: The data type for the tuple version number.
-VersionNumberTuple = Tuple[int, ...]
+VersionNumberTuple: TypeAlias = Tuple[int, ...]
 
 #: The data type for either an integer or tuple version number.
-VersionNumberAny = Union[VersionNumberInt, VersionNumberTuple]
+VersionNumberAny: TypeAlias = Union[VersionNumberInt, VersionNumberTuple]
 
 #: The data type for a version identifier containing platform and int or tuple version number
-VersionIdentifierType = Tuple[PlatformType, VersionNumberAny]
+VersionIdentifierType: TypeAlias = Tuple[PlatformType, VersionNumberAny]
 #: The data type for a version identifier containing platform and int version number
-VersionIdentifierInt = Tuple[PlatformType, VersionNumberInt]
+VersionIdentifierInt: TypeAlias = Tuple[PlatformType, VersionNumberInt]
 #: The data type for a version identifier containing platform and tuple version number
-VersionIdentifierTuple = Tuple[PlatformType, VersionNumberTuple]
+VersionIdentifierTuple: TypeAlias = Tuple[PlatformType, VersionNumberTuple]
 
-GetChunkCallback = Callable[[int, int], "Chunk"]
+GetChunkCallback: TypeAlias = Callable[[int, int], "Chunk"]
 
-BedrockInterfaceBlockType = Tuple[
+BedrockInterfaceBlockType: TypeAlias = Tuple[
     Union[Tuple[None, Tuple[int, int]], Tuple[None, "Block"], Tuple[int, "Block"]], ...
 ]
 
-GetBlockCallback = Callable[  # get a block at a different location
+GetBlockCallback: TypeAlias = Callable[  # get a block at a different location
     [
         "BlockCoordinates"
     ],  # this takes the coordinates relative to the block in question
@@ -46,15 +46,15 @@ GetBlockCallback = Callable[  # get a block at a different location
     ],  # and returns a new block and optionally a block entity
 ]
 
-TranslateBlockCallbackReturn = Tuple[
+TranslateBlockCallbackReturn: TypeAlias = Tuple[
     Optional["Block"], Optional["BlockEntity"], List["Entity"], bool
 ]
 
-TranslateEntityCallbackReturn = Tuple[
+TranslateEntityCallbackReturn: TypeAlias = Tuple[
     Optional["Block"], Optional["BlockEntity"], List["Entity"]
 ]
 
-TranslateBlockCallback = Callable[
+TranslateBlockCallback: TypeAlias = Callable[
     [  # a callable
         "Block",  # that takes either a Block
         Optional[
@@ -65,7 +65,7 @@ TranslateBlockCallback = Callable[
     TranslateBlockCallbackReturn,  # ultimately return the converted objects(s)
 ]
 
-TranslateEntityCallback = Callable[
+TranslateEntityCallback: TypeAlias = Callable[
     ["Entity"],  # a callable  # that takes either an Entity
     TranslateEntityCallbackReturn,  # ultimately return the converted objects(s)
 ]

@@ -18,7 +18,7 @@ from amulet_nbt import (
     LongArrayTag,
 )
 
-NBTTagT = Union[
+NBTTagT: TypeAlias = Union[
     ByteTag,
     ShortTag,
     IntTag,
@@ -48,7 +48,7 @@ NBTTagClasses = (
     LongArrayTag,
 )
 
-NBTTagClsT = Union[
+NBTTagClsT: TypeAlias = Union[
     Type[ByteTag],
     Type[ShortTag],
     Type[IntTag],

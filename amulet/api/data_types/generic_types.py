@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, TypeAlias
 from numpy import integer
 
-Int = Union[int, integer]
+Int: TypeAlias = Union[int, integer]

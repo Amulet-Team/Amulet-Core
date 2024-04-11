@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import TypeAlias
 import os
 from collections.abc import Iterator, Sequence
 import re
@@ -16,7 +17,7 @@ from amulet.api.data_types import (
 from ._region import AnvilRegion
 
 
-ChunkDataType = dict[str, NamedTag]
+ChunkDataType: TypeAlias = dict[str, NamedTag]
 
 
 class AnvilDimensionLayer:
