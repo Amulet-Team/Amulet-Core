@@ -93,7 +93,11 @@ class BedrockRawLevel(
     _level_dat: BedrockLevelDAT
     _raw_open_data: BedrockRawLevelOpenData | None
 
-    __slots__ = tuple(__annotations__)  # type: ignore
+    __slots__ = (
+        "_path",
+        "_level_dat",
+        "_raw_open_data",
+    )
 
     def __init__(self, _ikwiad: bool = False) -> None:
         if not _ikwiad:
