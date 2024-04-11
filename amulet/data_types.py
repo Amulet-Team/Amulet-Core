@@ -1,2 +1,4 @@
+from typing import TypeAlias
+
 #: The type for a dimension identifier
-DimensionId = str
+DimensionId: TypeAlias = str
