@@ -236,7 +236,6 @@ class DataPack:
         """
         return self._wrapper.open(relative_path)
 
-    @abstractmethod
     def close(self) -> None:
         """Close the contents."""
         self._wrapper.close()
