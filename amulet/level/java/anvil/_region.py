@@ -35,12 +35,6 @@ class RegionFileVersion(IntEnum):
     VERSION_LZ4 = 4
 
 
-def _validate_region_coords(cx: int, cz: int) -> None:
-    """Make sure that the coordinates are in region space."""
-    if not (0 <= cx <= 32 and 0 <= cz <= 32):
-        raise ValueError("coordinates must be in region space")
-
-
 LZ4_HEADER = struct.Struct("<8sBiii")
 LZ4_MAGIC = b"LZ4Block"
 COMPRESSION_METHOD_RAW = 0x10
@@ -151,7 +145,6 @@ class AnvilRegion:
     _sector_manager: SectorManager | None
 
     # A dictionary mapping the chunk coordinate to the location on disk
-    # Key is a Sector if stored in the region file and str to the file path if stored externally
     _chunk_locations: dict[ChunkCoordinates, Sector]
 
     # A lock to limit access to multiple threads
@@ -195,10 +188,10 @@ class AnvilRegion:
         return self._rz
 
     def get_mcc_path(self, cx: int, cz: int) -> str:
-        """Get the mcc path. Coordinates are global chunk coordinates."""
+        """Get the mcc path. Coordinates are world chunk coordinates."""
         return os.path.join(
             os.path.dirname(self._path),
-            f"c.{cx + self._rx * 32}.{cz + self._rz * 32}.mcc",
+            f"c.{cx}.{cz}.mcc",
         )
 
     def _load(self) -> None:
@@ -218,23 +211,21 @@ class AnvilRegion:
                     location_table = numpy.fromfile(
                         handler, dtype=">u4", count=1024
                     ).reshape(32, 32)
-                    for (z, x), sector_data in numpy.ndenumerate(location_table):
+                    for (cz, cx), sector_data in numpy.ndenumerate(location_table):
                         if sector_data:
                             sector_offset = (sector_data >> 8) * 0x1000
                             sector_size = (sector_data & 0xFF) * 0x1000
                             sector = Sector(sector_offset, sector_offset + sector_size)
                             self._sector_manager.reserve(sector)
-                            self._chunk_locations[(x, z)] = sector
+                            self._chunk_locations[(cx + self.rx * 32, cz + self.rz * 32)] = sector
 
-    def all_chunk_coords(self) -> Iterator[ChunkCoordinates]:
+    def all_coords(self) -> Iterator[ChunkCoordinates]:
         """An iterable of chunk coordinates in world space."""
         self._load()
-        for cx, cz in list(self._chunk_locations):
-            yield cx + self.rx * 32, cz + self.rz * 32
+        yield from list(self._chunk_locations)
 
-    def has_chunk(self, cx: int, cz: int) -> bool:
-        """Does the chunk exists. Coords are in region space."""
-        _validate_region_coords(cx, cz)
+    def has_data(self, cx: int, cz: int) -> bool:
+        """Does the chunk exists. Coords are in world space."""
         self._load()
         return (cx, cz) in self._chunk_locations
 
@@ -245,7 +236,6 @@ class AnvilRegion:
             self._chunk_locations.clear()
 
     def get_data(self, cx: int, cz: int) -> NamedTag:
-        _validate_region_coords(cx, cz)
         self._load()
         sector = self._chunk_locations.get((cx, cz))
         if sector is None:
@@ -278,7 +268,7 @@ class AnvilRegion:
         raise ChunkDoesNotExist
 
     def _write_data(self, cx: int, cz: int, data: bytes | None) -> None:
-        _validate_region_coords(cx, cz)
+        assert self.rx * 32 <= cx < (self.rx + 1) * 32 and self.rz * 32 <= cz < (self.rz + 1) * 32
         if isinstance(data, bytes) and len(data) + 4 > MaxRegionSize and not self._mcc:
             # if the data is too large and mcc files are not supported then do nothing
             log.error(
@@ -286,10 +276,10 @@ class AnvilRegion:
             )
             return
 
-        self._load()
-        sector_manager = self._sector_manager
-        assert sector_manager is not None
         with self._lock:
+            self._load()
+            sector_manager = self._sector_manager
+            assert sector_manager is not None
             os.makedirs(os.path.dirname(self._path), exist_ok=True)
             handler: BinaryIO
             with open(
@@ -330,12 +320,12 @@ class AnvilRegion:
                     _sanitise_file(handler)
 
                 # write the header data
-                handler.seek(4 * (cx + cz * 32))
+                handler.seek(4 * (cx - self.rx * 32 + (cz - self.rz * 32) * 32))
                 handler.write(location)
                 handler.seek(SectorSize - 4, os.SEEK_CUR)
                 handler.write(struct.pack(">I", int(time.time())))
 
-    def write_data(self, cx: int, cz: int, data: NamedTag) -> None:
+    def set_data(self, cx: int, cz: int, data: NamedTag) -> None:
         """Write the data to the region file."""
         bytes_data = _compress(data)
         self._write_data(cx, cz, bytes_data)
