@@ -1,6 +1,6 @@
 import unittest
 
-from amulet.level.java.anvil import (
+from amulet.level.java.anvil._sector_manager import (
     Sector,
     SectorManager,
     NoValidSector,
