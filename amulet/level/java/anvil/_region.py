@@ -302,7 +302,9 @@ class AnvilRegion:
                             mcc.write(data[1:])
                         data = bytes([data[0] | 128])
                     data = struct.pack(">I", len(data)) + data
-                    sector_length = (len(data) | 0xFFF) + 1
+                    sector_length = len(data)
+                    if sector_length & 0xFFF:
+                        sector_length = (sector_length | 0xFFF) + 1
                     sector = sector_manager.reserve_space(sector_length)
                     assert sector.start & 0xFFF == 0
                     self._chunk_locations[(cx, cz)] = sector
