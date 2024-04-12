@@ -24,6 +24,7 @@ from ._sector_manager import SectorManager, Sector
 
 SectorSize = 0x1000
 MaxRegionSize = 255 * SectorSize  # the maximum size data in the region file can be
+HeaderSector = Sector(0, 0x2000)
 
 log = logging.getLogger(__name__)
 
@@ -201,7 +202,7 @@ class AnvilRegion:
 
             # Create the sector manager and ensure the header is not reservable
             self._sector_manager = SectorManager(0, 0x2000)
-            self._sector_manager.reserve(Sector(0, 0x2000))
+            self._sector_manager.reserve(HeaderSector)
 
             if os.path.isfile(self._path):
                 # Load the file and populate the sector manager
@@ -329,3 +330,83 @@ class AnvilRegion:
     def delete_data(self, cx: int, cz: int) -> None:
         """Delete the data from the region file."""
         self._write_data(cx, cz, None)
+
+    def compact(self) -> None:
+        """Compact the region file.
+        This moves all entries to the front of the file and deletes any unused space."""
+        with self._lock:
+            if not os.path.isfile(self._path):
+                # Do nothing if there is no file.
+                return
+
+            # All chunks in the region must be valid at all times.
+            # Load metadata
+            self._load()
+            sector_manager = self._sector_manager
+            assert sector_manager is not None
+
+            # Generate a list of sectors in sequential order
+            # location header index, chunk coordinate, sector
+            chunk_sectors: list[tuple[int, tuple[int, int], Sector]] = [
+                (
+                    4 * (cx - self.rx * 32 + (cz - self.rz * 32) * 32),
+                    (cx, cz),
+                    sector
+                )
+                for (cx, cz), sector in sorted(self._chunk_locations.items(), key=lambda item: item[1].start)
+            ]
+
+            # Set the position to the end of the header
+            file_position = HeaderSector.stop
+            # The end of the last chunk or the end of the header if no chunks exist.
+            if chunk_sectors:
+                file_end = chunk_sectors[-1][2].stop
+            else:
+                file_end = HeaderSector.stop
+
+            with open(self._path, "rb+") as handler:
+                while chunk_sectors:
+                    # While there are remaining sectors
+                    # Get the first sector
+                    header_index, chunk_coordinate, sector = chunk_sectors.pop(0)
+
+                    if file_position == sector.start:
+                        # There isn't any space before the sector. Do nothing.
+                        file_position = sector.stop
+                    else:
+                        # There is space before the sector
+                        if file_position + sector.length <= sector.start:
+                            # There is enough space before the sector to fit the whole sector.
+                            # Copy it to the new location
+                            new_sector = Sector(file_position, file_position + sector.length)
+                            file_position = new_sector.stop
+                        else:
+                            # There is space before the sector but not enough to fit the sector.
+                            # Move it to the end for processing later.
+                            new_sector = Sector(file_end, file_end + sector.length)
+                            file_end = new_sector.stop
+                            chunk_sectors.append((header_index, chunk_coordinate, new_sector))
+
+                        # Read in the data
+                        handler.seek(sector.start)
+                        data = handler.read(sector.length)
+
+                        # Reserve and write the data to the new sector
+                        sector_manager.reserve(new_sector)
+                        handler.seek(new_sector.start)
+                        handler.write(data)
+
+                        # Update the index
+                        handler.seek(header_index)
+                        handler.write(
+                            struct.pack(
+                                ">I", (new_sector.start >> 4) + (new_sector.length >> 12)
+                            )
+                        )
+                        self._chunk_locations[chunk_coordinate] = new_sector
+
+                        # Free the old sector
+                        sector_manager.free(sector)
+
+                # Delete any unused data at the end.
+                handler.truncate(file_position)

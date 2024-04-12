@@ -99,6 +99,11 @@ class AnvilDimensionLayer:
         else:
             region.delete_data(cx, cz)
 
+    def compact(self) -> None:
+        """Compact all region files in this layer"""
+        for region in self._iter_regions():
+            region.compact()
+
 
 class AnvilDimension:
     """
@@ -160,3 +165,8 @@ class AnvilDimension:
     def delete_chunk(self, cx: int, cz: int) -> None:
         for layer in self.__layers.values():
             layer.delete_chunk(cx, cz)
+
+    def compact(self) -> None:
+        """Compact all region files in this dimension"""
+        for layer in self.__layers.values():
+            layer.compact()
