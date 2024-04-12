@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING, Callable
 
 from amulet.api.data_types import ChunkCoordinates
@@ -75,3 +76,7 @@ class JavaRawDimension(
 
     def native_chunk_to_raw_chunk(self, cx: int, cz: int, chunk: JavaChunk) -> ChunkDataType:
         raise NotImplementedError
+
+    def compact(self) -> None:
+        """Compact all region files"""
+        self._anvil_dimension.compact()
