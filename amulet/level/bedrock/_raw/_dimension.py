@@ -212,7 +212,7 @@ class BedrockRawDimension(
                         else:
                             # it is an unknown actor
                             log.warning(
-                                f"Actor {actor_key} has an unknown format. Please report this to a developer {repr(internal_components)}"
+                                f"Actor {actor_key!r} has an unknown format. Please report this to a developer {repr(internal_components)}"
                             )
                             for k, v in internal_components.items():
                                 if isinstance(v, CompoundTag) and isinstance(
@@ -222,7 +222,7 @@ class BedrockRawDimension(
                             chunk_data.unknown_actor.append(actor)
                     else:
                         log.error(
-                            f"internalComponents was not valid for actor {actor_key}. Skipping."
+                            f"internalComponents was not valid for actor {actor_key!r}. Skipping."
                         )
                         continue
 
