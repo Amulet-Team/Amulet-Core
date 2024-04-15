@@ -410,7 +410,6 @@ class JavaRawLevel(RawLevel[JavaRawDimension]):
                 dimension_name,
                 self._get_dimension_bounds(dimension_name),
                 # TODO: Is this data stored somewhere?
-                # TODO: We should use the translator rather than assume it won't change
                 BlockStack(Block("java", VersionNumber(3700), "minecraft", "air")),
                 Biome("java", VersionNumber(3700), "minecraft", "nether_wastes") if dimension_name == THE_NETHER else
                 Biome("java", VersionNumber(3700), "minecraft", "the_end") if dimension_name == THE_END else
@@ -451,7 +450,7 @@ class JavaRawLevel(RawLevel[JavaRawDimension]):
 
     def dimension_ids(self) -> frozenset[DimensionId]:
         self._find_dimensions()
-        return frozenset(self._o.dimensions)
+        return frozenset(self._o.dimension_ids)
 
     def get_dimension(self, dimension_id: DimensionId) -> JavaRawDimension:
         self._find_dimensions()
