@@ -196,46 +196,49 @@ class AnvilRegion:
         )
 
     def _load(self) -> None:
-        with self._lock:
-            if self._sector_manager is not None:
-                return
+        """Load region metadata. The lock must be acquired when calling this."""
+        if self._sector_manager is not None:
+            return
 
-            # Create the sector manager and ensure the header is not reservable
-            self._sector_manager = SectorManager(0, 0x2000)
-            self._sector_manager.reserve(HeaderSector)
+        # Create the sector manager and ensure the header is not reservable
+        self._sector_manager = SectorManager(0, 0x2000)
+        self._sector_manager.reserve(HeaderSector)
 
-            if os.path.isfile(self._path):
-                # Load the file and populate the sector manager
-                with open(self._path, "rb+") as handler:
-                    _sanitise_file(handler)
-                    handler.seek(0)
-                    location_table = numpy.fromfile(
-                        handler, dtype=">u4", count=1024
-                    ).reshape(32, 32)
-                    for (cz, cx), sector_data in numpy.ndenumerate(location_table):
-                        if sector_data:
-                            sector_offset = (sector_data >> 8) * 0x1000
-                            sector_size = (sector_data & 0xFF) * 0x1000
-                            sector = Sector(sector_offset, sector_offset + sector_size)
-                            self._sector_manager.reserve(sector)
-                            self._chunk_locations[(cx + self.rx * 32, cz + self.rz * 32)] = sector
+        if os.path.isfile(self._path):
+            # Load the file and populate the sector manager
+            with open(self._path, "rb+") as handler:
+                _sanitise_file(handler)
+                handler.seek(0)
+                location_table = numpy.fromfile(
+                    handler, dtype=">u4", count=1024
+                ).reshape(32, 32)
+                for (cz, cx), sector_data in numpy.ndenumerate(location_table):
+                    if sector_data:
+                        sector_offset = (sector_data >> 8) * 0x1000
+                        sector_size = (sector_data & 0xFF) * 0x1000
+                        sector = Sector(sector_offset, sector_offset + sector_size)
+                        self._sector_manager.reserve(sector)
+                        self._chunk_locations[(cx + self.rx * 32, cz + self.rz * 32)] = sector
 
     def all_coords(self) -> Iterator[ChunkCoordinates]:
         """An iterable of chunk coordinates in world space."""
-        self._load()
-        yield from list(self._chunk_locations)
+        with self._lock:
+            self._load()
+            coords = list(self._chunk_locations)
+        yield from coords
 
     def has_data(self, cx: int, cz: int) -> bool:
         """Does the chunk exists. Coords are in world space."""
-        self._load()
-        return (cx, cz) in self._chunk_locations
+        with self._lock:
+            self._load()
+            return (cx, cz) in self._chunk_locations
 
     def get_data(self, cx: int, cz: int) -> NamedTag:
-        self._load()
-        sector = self._chunk_locations.get((cx, cz))
-        if sector is None:
-            raise ChunkDoesNotExist
         with self._lock:
+            self._load()
+            sector = self._chunk_locations.get((cx, cz))
+            if sector is None:
+                raise ChunkDoesNotExist
             os.makedirs(os.path.dirname(self._path), exist_ok=True)
             with open(self._path, "rb+") as handler:
                 _sanitise_file(handler)
