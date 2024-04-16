@@ -35,7 +35,7 @@ from amulet.level.abc import (
     IdRegistry,
 )
 from amulet.version import VersionNumber
-from amulet.utils.signal import Signal
+from amulet.utils.signal import Signal, SignalInstanceCacheName
 from amulet.utils.weakref import DetachableWeakRef
 
 from ._level_dat import BedrockLevelDAT
@@ -97,6 +97,7 @@ class BedrockRawLevel(
         "_path",
         "_level_dat",
         "_raw_open_data",
+        SignalInstanceCacheName,
     )
 
     def __init__(self, _ikwiad: bool = False) -> None:
