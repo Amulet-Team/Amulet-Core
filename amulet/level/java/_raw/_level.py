@@ -35,7 +35,7 @@ from amulet.level.abc import (
     IdRegistry,
 )
 from amulet.version import VersionNumber
-from amulet.utils.signal import Signal
+from amulet.utils.signal import Signal, SignalInstanceCacheName
 from amulet.utils.weakref import DetachableWeakRef
 
 from amulet.level.java.anvil import AnvilDimension
@@ -99,6 +99,7 @@ class JavaRawLevel(RawLevel[JavaRawDimension]):
         "_level_dat",
         "_data_version",
         "_raw_open_data",
+        SignalInstanceCacheName,
     )
 
     def __init__(self, _ikwiad: bool = False) -> None:
