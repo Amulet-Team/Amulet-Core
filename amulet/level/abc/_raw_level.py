@@ -112,7 +112,7 @@ class RawLevel(ABC, Generic[RawDimensionT]):
     There is no way to undo changes made with these methods.
     """
 
-    __slots__ = ()
+    __slots__ = ("__weakref__")
 
     @abstractmethod
     def dimension_ids(self) -> frozenset[DimensionId]:
@@ -146,6 +146,8 @@ class RawLevelFriend(Generic[RawLevelT]):
 
 class RawLevelPlayerComponent(ABC, Generic[PlayerIDT, RawPlayerT]):
     """An extension for the RawLevel class for implementations that have player data."""
+
+    __slots__ = ()
 
     @abstractmethod
     def players(self) -> Iterable[PlayerIDT]:
