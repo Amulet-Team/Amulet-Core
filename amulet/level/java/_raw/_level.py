@@ -178,29 +178,24 @@ class JavaRawLevel(RawLevel[JavaRawDimension]):
         # create the session.lock file
         try:
             # Try to open the file
-            lock_file = open(os.path.join(self.path, "session.lock"), "wb+")
-        except OSError:
+            lock = portalocker.Lock(
+                os.path.join(self.path, "session.lock"),
+                "wb+",
+                fail_when_locked=True,
+            )
+            lock_file: BinaryIO = lock.acquire()  # type: ignore
+        except portalocker.LockException:
             raise Exception(
-                f"Could not open session.lock. The world may be open somewhere else."
+                f"Could not acquire session.lock. The world may be open somewhere else."
             )
         else:
-            try:
-                # File opened successfully. Try to lock it
-                portalocker.lock(lock_file, portalocker.LockFlags.EXCLUSIVE)
+            # write the current time to the file
+            lock_time = time.time()
+            lock_file.write(struct.pack(">Q", int(lock_time * 1000)))
 
-                # write the current time to the file
-                lock_time = time.time()
-                lock_file.write(struct.pack(">Q", int(lock_time * 1000)))
-
-                # flush the changes to disk
-                lock_file.flush()
-                os.fsync(lock_file.fileno())
-
-            except Exception as e:
-                lock_file.close()
-                raise Exception(
-                    f"Could not acquire session.lock. The world may be open somewhere else."
-                ) from e
+            # flush the changes to disk
+            lock_file.flush()
+            os.fsync(lock_file.fileno())
 
         packs = []
         enabled_packs = (
