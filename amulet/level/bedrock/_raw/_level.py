@@ -33,6 +33,7 @@ from amulet.level.abc import (
     RawLevel,
     RawLevelPlayerComponent,
     IdRegistry,
+    RawLevelBufferedComponent,
 )
 from amulet.version import VersionNumber
 from amulet.utils.signal import Signal, SignalInstanceCacheName
@@ -88,6 +89,7 @@ class BedrockRawLevelOpenData:
 class BedrockRawLevel(
     RawLevel[BedrockRawDimension],
     RawLevelPlayerComponent[PlayerID, RawPlayer],
+    RawLevelBufferedComponent,
 ):
     _path: str
     _level_dat: BedrockLevelDAT
@@ -208,6 +210,12 @@ class BedrockRawLevel(
         open_data.detach_back_reference()
         self.closed.emit()
 
+    def pre_save(self) -> None:
+        self._level_dat.save_to(os.path.join(self.path, "level.dat"))
+
+    def save(self) -> None:
+        pass
+
     @property
     def path(self) -> str:
         return self._path
@@ -227,12 +235,12 @@ class BedrockRawLevel(
 
     @level_dat.setter
     def level_dat(self, level_dat: BedrockLevelDAT) -> None:
+        """Set the level.dat. :meth:`pre_save` need to be run to push this to disk."""
         if not isinstance(level_dat, BedrockLevelDAT):
             raise TypeError
         if not self.is_open():
             raise RuntimeError("Level is not open.")
-        self._level_dat = level_dat = copy.deepcopy(level_dat)
-        level_dat.save_to(os.path.join(self.path, "level.dat"))
+        self._level_dat = copy.deepcopy(level_dat)
 
     @property
     def platform(self) -> str:

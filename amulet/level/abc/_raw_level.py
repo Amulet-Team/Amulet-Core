@@ -166,7 +166,7 @@ class RawLevelPlayerComponent(ABC, Generic[PlayerIDT, RawPlayerT]):
         raise NotImplementedError
 
 
-class RawLevelBufferedComponent(RawLevel):
+class RawLevelBufferedComponent(ABC):
     """
     An extension for the RawLevel class for implementations that need a data buffer.
 
@@ -176,5 +176,13 @@ class RawLevelBufferedComponent(RawLevel):
     __slots__ = ()
 
     @abstractmethod
+    def pre_save(self) -> None:
+        """A method to run before data is pushed to the raw level.
+        This is useful to save the level.dat before pushing chunk data."""
+        raise NotImplementedError
+
+    @abstractmethod
     def save(self) -> None:
+        """A method to run after data is pushed to the raw level.
+        This is useful for structure files to write the actual data to disk."""
         raise NotImplementedError
