@@ -8,7 +8,7 @@ from amulet.data_types import DimensionId
 from amulet.level.abc import RawDimension, RawLevelFriend
 from amulet.selection import SelectionGroup
 
-from amulet.level.java.anvil import ChunkDataType, AnvilDimension
+from amulet.level.java.anvil import RawChunkType, AnvilDimension
 from amulet.level.java.chunk import JavaChunk
 from ._typing import InternalDimensionId
 
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 class JavaRawDimension(
     RawLevelFriend["JavaRawLevel"],
-    RawDimension[ChunkDataType, JavaChunk]
+    RawDimension[RawChunkType, JavaChunk]
 ):
     def __init__(
         self,
@@ -65,10 +65,10 @@ class JavaRawDimension(
     def delete_chunk(self, cx: int, cz: int) -> None:
         self._anvil_dimension.delete_chunk(cx, cz)
 
-    def get_raw_chunk(self, cx: int, cz: int) -> ChunkDataType:
+    def get_raw_chunk(self, cx: int, cz: int) -> RawChunkType:
         return self._anvil_dimension.get_chunk_data(cx, cz)
 
-    def set_raw_chunk(self, cx: int, cz: int, chunk: ChunkDataType) -> None:
+    def set_raw_chunk(self, cx: int, cz: int, chunk: RawChunkType) -> None:
         self._anvil_dimension.put_chunk_data(cx, cz, chunk)
 
     def raw_chunk_to_native_chunk(self, cx: int, cz: int, raw_chunk: ChunkDataType) -> JavaChunk:

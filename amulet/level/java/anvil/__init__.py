@@ -1,2 +1,2 @@
 from ._region import AnvilRegion
-from ._dimension import AnvilDimension, AnvilDimensionLayer, ChunkDataType
+from ._dimension import AnvilDimension, AnvilDimensionLayer, RawChunkType

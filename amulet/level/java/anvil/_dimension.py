@@ -17,7 +17,7 @@ from amulet.api.data_types import (
 from ._region import AnvilRegion
 
 
-ChunkDataType: TypeAlias = dict[str, NamedTag]
+RawChunkType: TypeAlias = dict[str, NamedTag]
 
 
 class AnvilDimensionLayer:
@@ -132,7 +132,7 @@ class AnvilDimension:
     def has_chunk(self, cx: int, cz: int) -> bool:
         return self.__default_layer.has_chunk(cx, cz)
 
-    def get_chunk_data(self, cx: int, cz: int) -> ChunkDataType:
+    def get_chunk_data(self, cx: int, cz: int) -> RawChunkType:
         """Get the chunk data for each layer"""
         chunk_data = {}
         for layer_name, layer in self.__layers.items():
@@ -147,7 +147,7 @@ class AnvilDimension:
             raise ChunkDoesNotExist
 
     def put_chunk_data(
-        self, cx: int, cz: int, data_layers: ChunkDataType
+        self, cx: int, cz: int, data_layers: RawChunkType
     ) -> None:
         """Put one or more layers of data"""
         for layer_name, data in data_layers.items():
