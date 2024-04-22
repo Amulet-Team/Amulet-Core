@@ -270,6 +270,18 @@ class JavaRawLevel(RawLevel[JavaRawDimension]):
             // 1000
         )
 
+    @property
+    def level_name(self) -> str:
+        return (
+            self._level_dat.compound.get_compound("Data", CompoundTag()).get_string("LevelName", StringTag("Undefined")).py_str
+        )
+
+    @level_name.setter
+    def level_name(self, value: str) -> None:
+        level_dat = self.level_dat
+        level_dat.compound.setdefault_compound("Data")["LevelName"] = StringTag(value)
+        self.level_dat = level_dat
+
     def _get_dimension_bounds(self, dimension_type_str: DimensionId) -> SelectionGroup:
         if self._data_version >= VersionNumber(2709):  # This number might be smaller
             # If in a version that supports custom height data packs
