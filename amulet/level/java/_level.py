@@ -1,135 +1,68 @@
 from __future__ import annotations
 
-from typing import Any, Optional, BinaryIO, Union, NamedTuple, Sequence
+from typing import Any, Type, Callable
 import os
-import shutil
-import time
-import struct
-import glob
-import json
 import logging
-from dataclasses import dataclass
 
 from PIL import Image
-import portalocker
 from amulet_nbt import (
     load as load_nbt,
-    NamedTag,
-    CompoundTag,
-    IntTag,
-    LongTag,
-    StringTag,
-    ListTag,
 )
 
-from amulet.api.data_types import (
-    Dimension,
-    BiomeType,
-)
-from amulet.block import Block
-from amulet.selection import SelectionGroup, SelectionBox
+from amulet.api.data_types import PlatformType
+from amulet.data_types import DimensionId
 from amulet.level.abc import (
     DiskLevel,
     CreatableLevel,
-    StringArg,
-    IntArg,
     LoadableLevel,
     CompactableLevel,
-    LevelOpenData,
+    LevelOpenData, PlayerStorage,
+)
+from amulet.utils.call_spec import (
+    StringArg,
+    IntArg,
     CallableArg,
     BoolArg,
     DirectoryPathArg,
     PositionalArgs,
     method_spec,
 )
-from amulet.utils.format_utils import check_all_exist
+from amulet.utils.weakref import DetachableWeakRef
 from amulet.level import register_level_class
-from amulet.game import get_game_version
 from amulet.version import VersionNumber
-from amulet.errors import LevelWriteError
 
-from ._dimension import AnvilDimensionManager
-from ._data_pack import DataPackManager, DataPack
+from ._dimension import JavaDimension
+from ._raw import JavaCreateArgsV1, JavaRawLevel, InternalDimensionId
+from amulet.chunk import Chunk
 
 log = logging.getLogger(__name__)
 
-InternalDimension = str
-OVERWORLD = "minecraft:overworld"
-THE_NETHER = "minecraft:the_nether"
-THE_END = "minecraft:the_end"
 
-DefaultSelection = SelectionGroup(
-    SelectionBox((-30_000_000, 0, -30_000_000), (30_000_000, 256, 30_000_000))
-)
+class JavaLevelOpenData(LevelOpenData):
+    back_reference: Callable[[], JavaLevel | None]
+    detach_back_reference: Callable[[], None]
+    dimensions: dict[DimensionId | InternalDimensionId, JavaDimension]
 
-
-@dataclass
-class JavaCreateArgsV1:
-    overwrite: bool
-    path: str
-    version: VersionNumber
-    level_name: str
-
-
-# class DimensionData(Protocol):
-#     name: Dimension
-#     bounds: SelectionGroup
-#     default_block: Block
-#     default_biome: BiomeType
-
-
-class DimensionEntry(NamedTuple):
-    relative_dimension_path: InternalDimension
-    dimension_name: Dimension
-    manager: AnvilDimensionManager
-    bounds: SelectionGroup
-    default_block: Block
-    default_biome: BiomeType
-
-
-class JavaLevelPrivate(LevelPrivate):
-    # Instance variables
-    path: Optional[str]
-    data_version: VersionNumber | None
-    root_tag: Optional[NamedTag]
-    mcc_support: bool
-    dimensions: dict[Union[InternalDimension, Dimension], DimensionEntry]
-    data_pack: Optional[DataPackManager]
-
-    __slots__ = tuple(__annotations__)
-
-    # Just for type hinting
-    level: JavaLevel
-
-    def __init__(self, level: JavaLevel):
-        super().__init__(level)
-        self.path = None
-        self.data_version = None
-        self.root_tag = None
-        self.mcc_support = False
-        self.dimensions = {}
-        self.data_pack = None
-
-    def _close(self):
-        super().close()
-        self.dimensions.clear()
-        self.data_pack = None
-
-
-class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
-    __slots__ = (
-        "_lock_file",
-        "_lock_time",
-    )
-    _l: JavaLevelPrivate
-
-    def __init__(self):
+    def __init__(self, level: JavaLevel) -> None:
         super().__init__()
-        self._lock_file: Optional[BinaryIO] = None
-        self._lock_time: Optional[int] = None
+        self.back_reference, self.detach_back_reference = DetachableWeakRef.new(level)
+        self.dimensions = {}
 
-    def _instance_data(self) -> JavaLevelPrivate:
-        return JavaLevelPrivate(self)
+
+class JavaLevel(DiskLevel[JavaLevelOpenData, JavaDimension, JavaRawLevel], CreatableLevel, LoadableLevel, CompactableLevel):
+    __slots__ = ("_raw_level",)
+
+    def __init__(self, _ikwiad: bool = False) -> None:
+        if not _ikwiad:
+            raise RuntimeError(
+                "BedrockRawLevel must be constructed using the create or load classmethod."
+            )
+        super().__init__()
+
+    def __init(self, raw: JavaRawLevel) -> None:
+        self._raw_level = raw
+        self._raw_level.opened.connect(self.open)
+        self._raw_level.closed.connect(self.close)
 
     @classmethod
     @method_spec(
@@ -139,53 +72,23 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
             DirectoryPathArg(),
             CallableArg(
                 VersionNumber,
-                PositionalArgs(
-                    IntArg(min_value=0),
-                    (IntArg(1), IntArg(20))
-                )
+                PositionalArgs(IntArg(min_value=0), (IntArg(1), IntArg(20))),
             ),
-            StringArg("New World")
+            StringArg("New World"),
         )
     )
-    def create(
-        cls,
-        args: JavaCreateArgsV1
-    ) -> JavaLevel:
-        overwrite = args.overwrite
-        path = args.path
-        version = args.version
-        level_name = args.level_name
-
-        if os.path.isdir(path):
-            if overwrite:
-                shutil.rmtree(path)
-            else:
-                raise LevelWriteError(f"A world already exists at the path {path}")
-
-        self = cls()
-        self._l.path = path
-
-        self._l.data_version = get_game_version("java", version).max_version
-
-        self.root_tag = root = CompoundTag()
-        root["Data"] = data = CompoundTag()
-        data["version"] = IntTag(19133)
-        data["DataVersion"] = IntTag(self._l.data_version[0])
-        data["LastPlayed"] = LongTag(int(time.time() * 1000))
-        data["LevelName"] = StringTag(name)
-
-        os.makedirs(self.path, exist_ok=True)
-        self.root_tag.save_to(os.path.join(self.path, "level.dat"))
-
+    def create(cls, args: JavaCreateArgsV1) -> JavaLevel:
+        raw = JavaRawLevel.create(args)
+        self = cls(True)
+        self.__init(raw)
         return self
-
 
     @staticmethod
     def can_load(token: Any) -> bool:
         if (
             isinstance(token, str)
             and os.path.isdir(token)
-            and check_all_exist(token, "level.dat")
+            and os.path.isfile(os.path.join(token, "level.dat"))
         ):
             try:
                 level_dat_root = load_nbt(os.path.join(token, "level.dat")).compound
@@ -197,222 +100,41 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
 
     @classmethod
     def load(cls, path: str) -> JavaLevel:
-        self = cls()
-        self._l.path = path
-        self._l.root_tag = load_nbt(os.path.join(self.path, "level.dat"))
-        self._l.data_version = (
-            self._l.root_tag.compound.get_compound("Data", CompoundTag())
-            .get_int("DataVersion", IntTag(-1))
-            .py_int
-        )
+        raw = JavaRawLevel.load(path)
+        self = cls(True)
+        self.__init(raw)
         return self
 
-    def _register_dimension(
-        self,
-        relative_dimension_path: InternalDimension,
-        dimension_name: Optional[Dimension] = None,
-    ):
-        """
-        Register a new dimension.
+    def reload(self) -> None:
+        self.raw.reload()
 
-        :param relative_dimension_path: The relative path to the dimension directory from the world root.
-            "" for the world root.
-        :param dimension_name: The name of the dimension shown to the user
-        """
-        if dimension_name is None:
-            dimension_name: Dimension = relative_dimension_path
+    def _open(self) -> None:
+        self.raw.open()
+        self._open_data = JavaLevelOpenData(self)
 
-        if relative_dimension_path:
-            path = os.path.join(self.path, relative_dimension_path)
-        else:
-            path = self.path
+    def _close(self) -> None:
+        self._o.detach_back_reference()
+        self._open_data = None
+        self.raw.close()
 
-        if (
-            relative_dimension_path not in self._l.dimensions
-            and dimension_name not in self._l.dimensions
-        ):
-            self._l.dimensions[relative_dimension_path] = self._l.dimensions[
-                dimension_name
-            ] = DimensionEntry(
-                relative_dimension_path,
-                dimension_name,
-                AnvilDimensionManager(
-                    path,
-                    mcc=self._l.mcc_support,
-                    layers=("region",)
-                    + ("entities",) * (self._l.data_version >= VersionNumber(2681)),
-                ),
-                self._get_dimension_bounds(dimension_name),
-                UniversalAirBlock,
-                "universal_minecraft:plains",  # TODO: get this data from somewhere
-            )
+    def save(self) -> None:
+        raise NotImplementedError
 
-    def _get_dimension_bounds(self, dimension_type_str: Dimension) -> SelectionGroup:
-        if self._l.data_version >= VersionNumber(2709):  # This number might be smaller
-            # If in a version that supports custom height data packs
-            dimension_settings = (
-                self._l.root_tag.compound.get_compound("Data", CompoundTag())
-                .get_compound("WorldGenSettings", CompoundTag())
-                .get_compound("dimensions", CompoundTag())
-                .get_compound(dimension_type_str, CompoundTag())
-            )
+    @property
+    def platform(self) -> PlatformType:
+        return self.raw.platform
 
-            # "type" can be a reference (string) or inline (compound) dimension-type data.
-            dimension_type = dimension_settings.get("type")
+    @property
+    def max_game_version(self) -> VersionNumber:
+        return self.raw.data_version
 
-            if isinstance(dimension_type, StringTag):
-                # Reference type. Load the dimension data
-                dimension_type_str = dimension_type.py_str
-                if ":" in dimension_type_str:
-                    namespace, base_name = dimension_type_str.split(":", 1)
-                else:
-                    namespace = "minecraft"
-                    base_name = dimension_type_str
-                name_tuple = namespace, base_name
-
-                # First try and load the reference from the data pack and then from defaults
-                dimension_path = f"data/{namespace}/dimension_type/{base_name}.json"
-                if self.data_pack.has_file(dimension_path):
-                    with self.data_pack.open(dimension_path) as d:
-                        try:
-                            dimension_settings_json = json.load(d)
-                        except json.JSONDecodeError:
-                            pass
-                        else:
-                            if "min_y" in dimension_settings_json and isinstance(
-                                dimension_settings_json["min_y"], int
-                            ):
-                                min_y = dimension_settings_json["min_y"]
-                                if min_y % 16:
-                                    min_y = 16 * (min_y // 16)
-                            else:
-                                min_y = 0
-                            if "height" in dimension_settings_json and isinstance(
-                                dimension_settings_json["height"], int
-                            ):
-                                height = dimension_settings_json["height"]
-                                if height % 16:
-                                    height = -16 * (-height // 16)
-                            else:
-                                height = 256
-
-                            return SelectionGroup(
-                                SelectionBox(
-                                    (-30_000_000, min_y, -30_000_000),
-                                    (30_000_000, min_y + height, 30_000_000),
-                                )
-                            )
-
-                elif name_tuple in {
-                    ("minecraft", "overworld"),
-                    ("minecraft", "overworld_caves"),
-                }:
-                    if self._l.data_version >= VersionNumber(2825):
-                        # If newer than the height change version
-                        return SelectionGroup(
-                            SelectionBox(
-                                (-30_000_000, -64, -30_000_000),
-                                (30_000_000, 320, 30_000_000),
-                            )
-                        )
-                    else:
-                        return DefaultSelection
-                elif name_tuple in {
-                    ("minecraft", "the_nether"),
-                    ("minecraft", "the_end"),
-                }:
-                    return DefaultSelection
-                else:
-                    log.error(f"Could not find dimension_type {':'.join(name_tuple)}")
-
-            elif isinstance(dimension_type, CompoundTag):
-                # Inline type
-                dimension_type_compound = dimension_type
-                min_y = (
-                    dimension_type_compound.get_int("min_y", IntTag()).py_int // 16
-                ) * 16
-                height = (
-                    -dimension_type_compound.get_int("height", IntTag(256)).py_int // 16
-                ) * -16
-                return SelectionGroup(
-                    SelectionBox(
-                        (-30_000_000, min_y, -30_000_000),
-                        (30_000_000, min_y + height, 30_000_000),
-                    )
-                )
-            else:
-                log.error(
-                    f'level_dat["Data"]["WorldGenSettings"]["dimensions"]["{dimension_type_str}"]["type"] was not a StringTag or CompoundTag.'
-                )
-
-        # Return the default if nothing else returned
-        return DefaultSelection
-
-    def _open(self):
-        # create the session.lock file
-        try:
-            # open the file for writing and reading and lock it
-            self._lock_file = open(os.path.join(self.path, "session.lock"), "wb+")
-            portalocker.lock(self._lock_file, portalocker.LockFlags.EXCLUSIVE)
-
-            # write the current time to the file
-            self._lock_time = struct.pack(">Q", int(time.time() * 1000))
-            self._lock_file.write(self._lock_time)
-
-            # flush the changes to disk
-            self._lock_file.flush()
-            os.fsync(self._lock_file.fileno())
-
-        except Exception as e:
-            self._lock_time = None
-            if self._lock_file is not None:
-                self._lock_file.close()
-                self._lock_file = None
-
-            raise Exception(
-                f"Could not access session.lock. The world may be open somewhere else.\n{e}"
-            ) from e
-
-        self._l.mcc_support = self._l.data_version > VersionNumber(2203)
-
-        # load all the levels
-        self._register_dimension("", OVERWORLD)
-        self._register_dimension("DIM-1", THE_NETHER)
-        self._register_dimension("DIM1", THE_END)
-
-        for level_path in glob.glob(os.path.join(glob.escape(self.path), "DIM*")):
-            if os.path.isdir(level_path):
-                dir_name = os.path.basename(level_path)
-                if AnvilDimensionManager.level_regex.fullmatch(dir_name) is None:
-                    continue
-                self._register_dimension(dir_name)
-
-        for region_path in glob.glob(
-            os.path.join(
-                glob.escape(self.path), "dimensions", "*", "*", "**", "region"
-            ),
-            recursive=True,
-        ):
-            if not os.path.isdir(region_path):
-                continue
-            dimension_path = os.path.dirname(region_path)
-            rel_dim_path = os.path.relpath(dimension_path, self.path)
-            _, dimension, *base_name = rel_dim_path.split(os.sep)
-
-            dimension_name = f"{dimension}:{'/'.join(base_name)}"
-            self._register_dimension(rel_dim_path, dimension_name)
-
-    def _close(self):
-        self._l.dimensions.clear()
-        if self._lock_file is not None:
-            portalocker.unlock(self._lock_file)
-            self._lock_file.close()
+    @property
+    def level_name(self) -> str:
+        return self.raw.level_name
 
     @property
     def path(self) -> str:
-        if self._l.path is None:
-            raise RuntimeError
-        return self._l.path
+        return self.raw.path
 
     @property
     def thumbnail(self) -> Image.Image:
@@ -421,30 +143,29 @@ class JavaLevel(DiskLevel, CreatableLevel, LoadableLevel, CompactableLevel):
         except Exception:
             return super().thumbnail
 
-    @property
-    def data_pack(self) -> DataPackManager:
-        if self._l.data_pack is None:
-            packs = []
-            enabled_packs = (
-                self._l.root_tag.compound.get_compound("Data")
-                .get_compound("DataPacks", CompoundTag())
-                .get_list("Enabled", ListTag())
-            )
-            for pack in enabled_packs:
-                if isinstance(pack, StringTag):
-                    pack_name: str = pack.py_str
-                    if pack_name == "vanilla":
-                        pass
-                    elif pack_name.startswith("file/"):
-                        path = os.path.join(self.path, "datapacks", pack_name[5:])
-                        if DataPack.is_path_valid(path):
-                            packs.append(DataPack(path))
-            self._l.data_pack = DataPackManager(packs)
-        return self._l.data_pack
+    def dimension_ids(self) -> frozenset[DimensionId]:
+        return self.raw.dimension_ids()
+
+    def get_dimension(self, dimension_id: DimensionId | InternalDimensionId) -> JavaDimension:
+        if dimension_id not in self._o.dimensions:
+            raw_dimension = self.raw.get_dimension(dimension_id)
+            self._o.dimensions[raw_dimension.dimension_id] = self._o.dimensions[raw_dimension.relative_path] = JavaDimension(self._o.back_reference, raw_dimension.dimension_id)
+        return self._o.dimensions[dimension_id]
 
     @property
-    def dimensions(self) -> Sequence[Dimension]:
-        return tuple(filter(lambda e: isinstance(e, Dimension), self._l.dimensions))
+    def player(self) -> PlayerStorage:
+        raise NotImplementedError
+
+    @property
+    def native_chunk_class(self) -> Type[Chunk]:
+        raise NotImplementedError
+
+    @property
+    def raw(self) -> JavaRawLevel:
+        return self._raw_level
+
+    def compact(self) -> None:
+        self.raw.compact()
 
 
 register_level_class(JavaLevel)
