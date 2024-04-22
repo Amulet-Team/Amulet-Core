@@ -200,9 +200,9 @@ class ChunkHandle(
             try:
                 raw_chunk = self._get_raw_dimension().get_raw_chunk(self.cx, self.cz)
                 chunk = self._get_raw_dimension().raw_chunk_to_native_chunk(
+                    raw_chunk,
                     self.cx,
                     self.cz,
-                    raw_chunk,
                 )
             except ChunkDoesNotExist:
                 self._chunk_history.set_initial_resource(self._key, b"")

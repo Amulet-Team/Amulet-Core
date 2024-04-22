@@ -75,7 +75,7 @@ class RawDimension(ABC, Generic[RawChunkT, ChunkT]):
 
     @abstractmethod
     def raw_chunk_to_native_chunk(
-        self, cx: int, cz: int, raw_chunk: RawChunkT
+        self, raw_chunk: RawChunkT, cx: int, cz: int
     ) -> ChunkT:
         """Unpack data from the raw chunk format (as stored on disk) into editable classes.
 
@@ -89,7 +89,7 @@ class RawDimension(ABC, Generic[RawChunkT, ChunkT]):
         raise NotImplementedError
 
     @abstractmethod
-    def native_chunk_to_raw_chunk(self, cx: int, cz: int, chunk: ChunkT) -> RawChunkT:
+    def native_chunk_to_raw_chunk(self, chunk: ChunkT, cx: int, cz: int) -> RawChunkT:
         """Pack the data from the editable classes into the raw format.
 
         This takes ownership of the chunk object.

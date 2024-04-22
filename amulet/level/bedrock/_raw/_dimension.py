@@ -332,11 +332,11 @@ class BedrockRawDimension(
             self._r.level_db.putBatch(batch)
 
     def raw_chunk_to_native_chunk(
-        self, cx: int, cz: int, raw_chunk: BedrockRawChunk
+        self, raw_chunk: BedrockRawChunk, cx: int, cz: int
     ) -> BedrockChunk:
         return raw_to_native(self._r, self, raw_chunk)
 
     def native_chunk_to_raw_chunk(
-        self, cx: int, cz: int, chunk: BedrockChunk
+        self, chunk: BedrockChunk, cx: int, cz: int
     ) -> BedrockRawChunk:
         return native_to_raw(self._r, self, chunk)
