@@ -39,11 +39,6 @@ class Anvil1444Interface(ParentInterface):
 
     TerrainPopulated = None
     LightPopulated = None
-    Status: ChunkPathType = (
-        "region",
-        [("Level", CompoundTag), ("Status", StringTag)],
-        StringTag("full"),
-    )
 
     ToBeTicked: ChunkPathType = (
         "region",
@@ -78,7 +73,6 @@ class Anvil1444Interface(ParentInterface):
 
     def __init__(self):
         super().__init__()
-        self._set_feature("status", StatusFormats.Java_13)
 
         self._register_decoder(self._decode_fluid_ticks)
         self._register_decoder(self._decode_post_processing)
@@ -91,11 +85,6 @@ class Anvil1444Interface(ParentInterface):
     @staticmethod
     def minor_is_valid(key: int):
         return 1444 <= key < 1466
-
-    def _decode_status(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        chunk.status = self.get_layer_obj(data, self.Status, pop_last=True).py_str
 
     def _decode_block_section(
         self, section: CompoundTag
@@ -192,21 +181,6 @@ class Anvil1444Interface(ParentInterface):
     ):
         chunk.misc["structures"] = self.get_layer_obj(
             data, self.Structures, pop_last=True
-        )
-
-    def _encode_status(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        # Order the float value based on the order they would be run. Newer replacements for the same come just after
-        # to save back find the next lowest valid value.
-        status = chunk.status.as_type(self._features["status"])
-        self.set_layer_obj(data, self.Status, StringTag(status))
-
-    def _encode_inhabited_time(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        self.set_layer_obj(
-            data, self.InhabitedTime, LongTag(chunk.misc.get("inhabited_time", 0))
         )
 
     def _encode_block_section(

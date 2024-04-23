@@ -117,7 +117,6 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
     def __init__(self):
         BaseDecoderEncoder.__init__(self)
         self._feature_options = {
-            "status": StatusFormats,
             "height_map": [
                 "256IARequired",  # A 256 element Int Array in HeightMap
                 "256IA",  # A 256 element Int Array in HeightMap

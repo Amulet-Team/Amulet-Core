@@ -18,7 +18,6 @@ class Anvil0Interface(ParentInterface):
     Note that this has not been tested before 1.12
     """
 
-    V = None
     RegionDataVersion: ChunkPathType = (
         "region",
         [("DataVersion", IntTag)],
@@ -27,8 +26,6 @@ class Anvil0Interface(ParentInterface):
 
     def __init__(self):
         super().__init__()
-        self._unregister_decoder(self._decode_v_tag)
-        self._unregister_encoder(self._encode_v_tag)
 
         self._register_post_decoder(self._post_decode_data_version)
 

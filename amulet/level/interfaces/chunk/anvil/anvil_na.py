@@ -52,36 +52,6 @@ class AnvilNAInterface(BaseAnvilInterface):
         [("Level", CompoundTag), ("Entities", ListTag)],
         ListTag,
     )
-    InhabitedTime: ChunkPathType = (
-        "region",
-        [("Level", CompoundTag), ("InhabitedTime", LongTag)],
-        LongTag,
-    )
-    LastUpdate: ChunkPathType = (
-        "region",
-        [("Level", CompoundTag), ("LastUpdate", LongTag)],
-        LongTag,
-    )
-    HeightMap: ChunkPathType = (
-        "region",
-        [("Level", CompoundTag), ("HeightMap", IntArrayTag)],
-        IntArrayTag,
-    )
-    TerrainPopulated: ChunkPathType = (
-        "region",
-        [("Level", CompoundTag), ("TerrainPopulated", ByteTag)],
-        ByteTag,
-    )
-    LightPopulated: ChunkPathType = (
-        "region",
-        [("Level", CompoundTag), ("LightPopulated", ByteTag)],
-        ByteTag,
-    )
-    V: ChunkPathType = (
-        "region",
-        [("Level", CompoundTag), ("V", ByteTag)],
-        ByteTag(1),
-    )
     BlockTicks: ChunkPathType = (
         "region",
         [("Level", CompoundTag), ("TileTicks", ListTag)],
@@ -92,20 +62,9 @@ class AnvilNAInterface(BaseAnvilInterface):
         [("Level", CompoundTag), ("Biomes", ByteArrayTag)],
         None,
     )
-    xPos: ChunkPathType = (
-        "region",
-        [("Level", CompoundTag), ("xPos", IntTag)],
-        IntTag,
-    )
-    zPos: ChunkPathType = (
-        "region",
-        [("Level", CompoundTag), ("zPos", IntTag)],
-        IntTag,
-    )
 
     def __init__(self):
         super().__init__()
-        self._set_feature("height_map", "256IA")
 
         self._set_feature("light_optional", "false")
 
@@ -115,13 +74,8 @@ class AnvilNAInterface(BaseAnvilInterface):
         self._set_feature("entity_format", EntityIDType.namespace_str_id)
         self._set_feature("entity_coord_format", EntityCoordType.Pos_list_double)
 
-        self._register_decoder(self._decode_coords)
-        self._register_decoder(self._decode_last_update)
-        self._register_decoder(self._decode_status)
-        self._register_decoder(self._decode_v_tag)
         self._register_decoder(self._decode_inhabited_time)
         self._register_decoder(self._decode_biomes)
-        self._register_decoder(self._decode_height)
         self._register_decoder(self._decode_entities)
         self._register_decoder(self._decode_blocks)
         self._register_decoder(self._decode_block_entities)
@@ -129,13 +83,8 @@ class AnvilNAInterface(BaseAnvilInterface):
         self._register_decoder(self._decode_block_light)
         self._register_decoder(self._decode_sky_light)
 
-        self._register_encoder(self._encode_coords)
-        self._register_encoder(self._encode_last_update)
-        self._register_encoder(self._encode_status)
-        self._register_encoder(self._encode_v_tag)
         self._register_encoder(self._encode_inhabited_time)
         self._register_encoder(self._encode_biomes)
-        self._register_encoder(self._encode_height)
         self._register_encoder(self._encode_entities)
         self._register_encoder(self._encode_blocks)
         self._register_encoder(self._encode_block_entities)
@@ -159,9 +108,6 @@ class AnvilNAInterface(BaseAnvilInterface):
         block_palette = chunk.misc.pop("block_palette")
         return chunk, block_palette
 
-    def _get_floor_cy(self, data: ChunkDataType):
-        return 0
-
     @staticmethod
     def _init_decode(cx: int, cz: int, data: ChunkDataType) -> Chunk:
         """Get the decode started by creating a chunk object."""
@@ -181,54 +127,12 @@ class AnvilNAInterface(BaseAnvilInterface):
         """
         return self.get_layer_obj(data, self.Level)
 
-    def _decode_coords(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        self.get_layer_obj(data, self.xPos, pop_last=True)
-        self.get_layer_obj(data, self.zPos, pop_last=True)
-
-    def _decode_last_update(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        chunk.misc["last_update"] = self.get_layer_obj(
-            data, self.LastUpdate, pop_last=True
-        ).py_int
-
-    def _decode_status(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        status = "empty"
-        if self.get_layer_obj(data, self.TerrainPopulated, pop_last=True):
-            status = "decorated"
-        if self.get_layer_obj(data, self.LightPopulated, pop_last=True):
-            status = "postprocessed"
-        chunk.status = status
-
-    def _decode_v_tag(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        chunk.misc["V"] = self.get_layer_obj(data, self.V, pop_last=True).py_int
-
-    def _decode_inhabited_time(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        chunk.misc["inhabited_time"] = self.get_layer_obj(
-            data, self.InhabitedTime, pop_last=True
-        ).py_int
-
     def _decode_biomes(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         biomes = self.get_layer_obj(data, self.Biomes, pop_last=True)
         if isinstance(biomes, AbstractBaseArrayTag) and biomes.np_array.size == 256:
             chunk.biomes = biomes.np_array.astype(numpy.uint32).reshape((16, 16))
-
-    def _decode_height(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        height = self.get_layer_obj(data, self.HeightMap, pop_last=True).np_array
-        if isinstance(height, numpy.ndarray) and height.size == 256:
-            chunk.misc["height_map256IA"] = height.reshape((16, 16))
 
     def _iter_sections(self, data: ChunkDataType) -> Iterator[Tuple[int, CompoundTag]]:
         sections: ListTag = self.get_layer_obj(data, self.Sections)
@@ -440,38 +344,6 @@ class AnvilNAInterface(BaseAnvilInterface):
             if floor_cy <= cy < ceil_cy:
                 self._encode_block_section(chunk, sections, block_palette, cy)
 
-    def _encode_coords(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        self.set_layer_obj(data, self.xPos, IntTag(chunk.cx))
-        self.set_layer_obj(data, self.zPos, IntTag(chunk.cz))
-
-    def _encode_last_update(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        self.set_layer_obj(
-            data, self.LastUpdate, LongTag(chunk.misc.get("last_update", 0))
-        )
-
-    def _encode_status(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        status = chunk.status.as_type(StatusFormats.Raw)
-        self.set_layer_obj(data, self.TerrainPopulated, ByteTag(int(status > -0.3)))
-        self.set_layer_obj(data, self.LightPopulated, ByteTag(int(status > -0.2)))
-
-    def _encode_v_tag(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        self.set_layer_obj(data, self.V, ByteTag(chunk.misc.get("V", 1)))
-
-    def _encode_inhabited_time(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        self.set_layer_obj(
-            data, self.InhabitedTime, LongTag(chunk.misc.get("inhabited_time", 0))
-        )
-
     def _encode_biomes(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
@@ -481,23 +353,6 @@ class AnvilNAInterface(BaseAnvilInterface):
             self.Biomes,
             ByteArrayTag(chunk.biomes.astype(dtype=numpy.uint8).ravel()),
         )
-
-    def _encode_height(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        height = chunk.misc.get("height_map256IA", None)
-        if (
-            isinstance(height, numpy.ndarray)
-            and numpy.issubdtype(height.dtype, numpy.integer)
-            and height.shape == (16, 16)
-        ):
-            self.set_layer_obj(
-                data,
-                self.HeightMap,
-                IntArrayTag(numpy.zeros(256, dtype=numpy.uint32)),
-            )
-        elif self._features["height_map"] == "256IARequired":
-            self.set_layer_obj(data, self.HeightMap, IntArrayTag(height.ravel()))
 
     def _encode_entities(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int

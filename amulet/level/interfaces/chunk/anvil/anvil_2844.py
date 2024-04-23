@@ -64,17 +64,10 @@ class Anvil2844Interface(ParentInterface):
     LiquidTicks: ChunkPathType = ("region", [("fluid_ticks", ListTag)], ListTag)
     LiquidsToBeTicked = None
     Structures: ChunkPathType = ("region", [("structures", CompoundTag)], CompoundTag)
-    yPos: ChunkPathType = ("region", [("yPos", IntTag)], IntTag)
     Biomes = None
 
     # Changed attributes not listed on the wiki
-    xPos: ChunkPathType = ("region", [("xPos", IntTag)], IntTag)
-    zPos: ChunkPathType = ("region", [("zPos", IntTag)], IntTag)
-    LastUpdate: ChunkPathType = ("region", [("LastUpdate", LongTag)], LongTag)
-    InhabitedTime: ChunkPathType = ("region", [("InhabitedTime", LongTag)], LongTag)
-    Status: ChunkPathType = ("region", [("Status", StringTag)], StringTag("full"))
     PostProcessing: ChunkPathType = ("region", [("PostProcessing", ListTag)], ListTag)
-    Heightmaps: ChunkPathType = ("region", [("Heightmaps", CompoundTag)], CompoundTag)
 
     def __init__(self):
         super().__init__()
@@ -83,9 +76,6 @@ class Anvil2844Interface(ParentInterface):
     @staticmethod
     def minor_is_valid(key: int):
         return 2844 <= key <= 3337
-
-    def _get_floor_cy(self, data: ChunkDataType):
-        return self.get_layer_obj(data, self.yPos, pop_last=True).py_int
 
     def _decode_block_section(
         self, section: CompoundTag
@@ -176,12 +166,6 @@ class Anvil2844Interface(ParentInterface):
                 self.get_layer_obj(data, self.LiquidTicks, pop_last=True)
             )
         )
-
-    def _encode_coords(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        super()._encode_coords(chunk, data, floor_cy, height_cy)
-        self.set_layer_obj(data, self.yPos, IntTag(floor_cy))
 
     def _encode_block_section(
         self,

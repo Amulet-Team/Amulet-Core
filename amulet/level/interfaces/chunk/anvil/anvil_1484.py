@@ -8,10 +8,6 @@ class Anvil1484Interface(ParentInterface):
     Changed height keys
     """
 
-    def __init__(self):
-        super().__init__()
-        self._set_feature("height_map", "C|V2")
-
     @staticmethod
     def minor_is_valid(key: int):
         return 1484 <= key < 1503

@@ -75,10 +75,10 @@ class JavaRawDimension(
         self._anvil_dimension.put_chunk_data(cx, cz, chunk)
 
     def raw_chunk_to_native_chunk(self, raw_chunk: RawChunkType, cx: int, cz: int) -> JavaChunk:
-        return raw_to_native(self._r, self, raw_chunk)
+        return raw_to_native(self._r, self, raw_chunk, cx, cz)
 
     def native_chunk_to_raw_chunk(self, chunk: JavaChunk, cx: int, cz: int) -> RawChunkType:
-        return native_to_raw(self._r, self, chunk)
+        return native_to_raw(self._r, self, chunk, cx, cz)
 
     def compact(self) -> None:
         """Compact all region files"""
