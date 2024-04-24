@@ -6,8 +6,8 @@ from types import UnionType
 import numpy
 
 from amulet.version import VersionNumber, VersionRange
-from amulet.chunk import Chunk
-from amulet.block import BlockStack
+from amulet.chunk import Chunk, ComponentDataMapping
+from amulet.block import BlockStack, Block
 from amulet.biome import Biome
 
 from amulet.chunk.components.biome import (
@@ -31,17 +31,44 @@ from .components.raw_chunk import RawChunkComponent
 T = TypeVar("T")
 
 
+def _get_components(
+    chunk_version: int,
+    version_range: VersionRange,
+    default_block: BlockStack,
+    default_biome: Biome,
+) -> ComponentDataMapping:
+    components: ComponentDataMapping = {}  # type: ignore
+    components[RawChunkComponent] = None
+    components[ChunkVersionComponent] = chunk_version
+    components[FinalisedStateComponent] = 2
+    components[BlockComponent] = BlockComponentData(
+        version_range, (16, 16, 16), 0, default_block
+    )
+    components[BlockEntityComponent] = BlockEntityComponentData(version_range)
+    components[EntityComponent] = EntityComponentData(version_range)
+    if chunk_version >= 29:
+        components[Biome3DComponent] = Biome3DComponentData(
+            version_range, (16, 16, 16), 0, default_biome
+        )
+    else:
+        components[Biome2DComponent] = Biome2DComponentData(
+            version_range, (16, 16), 0, default_biome
+        )
+    components[Height2DComponent] = numpy.zeros((16, 16), dtype=numpy.int64)
+    return components
+
+
 class BedrockChunk0(Chunk):
     components = frozenset(
-        (
-            RawChunkComponent,
-            ChunkVersionComponent,
-            FinalisedStateComponent,
-            BlockComponent,
-            BlockEntityComponent,
-            Biome2DComponent,
-            EntityComponent,
-            Height2DComponent,
+        _get_components(
+            0,
+            VersionRange(
+                "bedrock",
+                VersionNumber(1, 0, 0),
+                VersionNumber(1, 0, 0),
+            ),
+            BlockStack(Block("bedrock", VersionNumber(), "", "")),
+            Biome("bedrock", VersionNumber(), "", ""),
         )
     )
 
@@ -49,41 +76,31 @@ class BedrockChunk0(Chunk):
     def new(
         cls, max_version: VersionNumber, default_block: BlockStack, default_biome: Biome
     ) -> Self:
-        version_range = VersionRange(
-            "bedrock",
-            VersionNumber(1, 0, 0),
-            max_version,
-        )
-
         return cls.from_component_data(
-            {
-                RawChunkComponent: None,
-                ChunkVersionComponent: 0,
-                FinalisedStateComponent: 2,
-                BlockComponent: BlockComponentData(
-                    version_range, (16, 16, 16), 0, default_block
+            _get_components(
+                0,
+                VersionRange(
+                    "bedrock",
+                    VersionNumber(1, 0, 0),
+                    max_version,
                 ),
-                BlockEntityComponent: BlockEntityComponentData(version_range),
-                EntityComponent: EntityComponentData(version_range),
-                Biome2DComponent: Biome2DComponentData(
-                    version_range, (16, 16), 0, default_biome
-                ),
-                Height2DComponent: numpy.zeros((16, 16), dtype=numpy.int64),
-            }
-        )  # type: ignore
+                default_block,
+                default_biome,
+            )
+        )
 
 
 class BedrockChunk29(Chunk):
     components = frozenset(
-        (
-            RawChunkComponent,
-            ChunkVersionComponent,
-            FinalisedStateComponent,
-            BlockComponent,
-            BlockEntityComponent,
-            Biome3DComponent,
-            EntityComponent,
-            Height2DComponent,
+        _get_components(
+            29,
+            VersionRange(
+                "bedrock",
+                VersionNumber(1, 0, 0),
+                VersionNumber(1, 0, 0),
+            ),
+            BlockStack(Block("bedrock", VersionNumber(), "", "")),
+            Biome("bedrock", VersionNumber(), "", ""),
         )
     )
 
@@ -91,28 +108,18 @@ class BedrockChunk29(Chunk):
     def new(
         cls, max_version: VersionNumber, default_block: BlockStack, default_biome: Biome
     ) -> Self:
-        version_range = VersionRange(
-            "bedrock",
-            VersionNumber(1, 0, 0),
-            max_version,
-        )
-
         return cls.from_component_data(
-            {
-                RawChunkComponent: None,
-                ChunkVersionComponent: 29,
-                FinalisedStateComponent: 2,
-                BlockComponent: BlockComponentData(
-                    version_range, (16, 16, 16), 0, default_block
+            _get_components(
+                29,
+                VersionRange(
+                    "bedrock",
+                    VersionNumber(1, 0, 0),
+                    max_version,
                 ),
-                BlockEntityComponent: BlockEntityComponentData(version_range),
-                EntityComponent: EntityComponentData(version_range),
-                Biome3DComponent: Biome3DComponentData(
-                    version_range, (16, 16, 16), 0, default_biome
-                ),
-                Height2DComponent: numpy.zeros((16, 16), dtype=numpy.int64),
-            }
-        )  # type: ignore
+                default_block,
+                default_biome,
+            )
+        )
 
 
 # TODO: Improve this if python/mypy#11673 gets fixed.
