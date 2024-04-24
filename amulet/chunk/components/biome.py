@@ -37,7 +37,7 @@ class Biome2DComponentData:
     def __getstate__(self) -> tuple[tuple[int, int], BiomePalette, numpy.ndarray]:
         return self._array_shape, self._palette, self._array
 
-    def __setstate__(self, state: tuple[tuple[int, int], BiomePalette, numpy.ndarray]):
+    def __setstate__(self, state: tuple[tuple[int, int], BiomePalette, numpy.ndarray]) -> None:
         self._array_shape, self._palette, self._array = state
 
     @property
@@ -96,7 +96,7 @@ class Biome3DComponentData:
     def __getstate__(self) -> tuple[BiomePalette, SubChunkArrayContainer]:
         return self._palette, self.__sections
 
-    def __setstate__(self, state: tuple[tuple[int, int], BiomePalette, numpy.ndarray]):
+    def __setstate__(self, state: tuple[BiomePalette, SubChunkArrayContainer]) -> None:
         self._palette, self.__sections = state
 
     @TypedProperty[
