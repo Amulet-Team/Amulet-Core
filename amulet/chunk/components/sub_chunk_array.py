@@ -33,10 +33,17 @@ class SubChunkArrayContainer(MutableMapping[int, numpy.ndarray]):
         for cy, array in arrays:
             self[cy] = array
 
-    def __getstate__(self) -> tuple[tuple[int, int, int], int | numpy.ndarray, dict[int, numpy.ndarray]]:
+    def __getstate__(
+        self,
+    ) -> tuple[tuple[int, int, int], int | numpy.ndarray, dict[int, numpy.ndarray]]:
         return self._shape, self._default_array, self._arrays
 
-    def __setstate__(self, state: tuple[tuple[int, int, int], int | numpy.ndarray, dict[int, numpy.ndarray]]):
+    def __setstate__(
+        self,
+        state: tuple[
+            tuple[int, int, int], int | numpy.ndarray, dict[int, numpy.ndarray]
+        ],
+    ):
         self._shape, self._default_array, self._arrays = state
 
     @property

@@ -51,7 +51,9 @@ class BlockComponent(ChunkComponent[BlockComponentData, BlockComponentData]):
     storage_key = b"bl"
 
     @staticmethod
-    def fix_set_data(old_obj: BlockComponentData | UnloadedComponent, new_obj: BlockComponentData) -> BlockComponentData:
+    def fix_set_data(
+        old_obj: BlockComponentData | UnloadedComponent, new_obj: BlockComponentData
+    ) -> BlockComponentData:
         if not isinstance(new_obj, BlockComponentData):
             raise TypeError
         assert isinstance(old_obj, BlockComponentData)

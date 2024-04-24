@@ -40,7 +40,9 @@ class Biome2DComponentData:
     def __getstate__(self) -> tuple[tuple[int, int], BiomePalette, numpy.ndarray]:
         return self._array_shape, self._palette, self._array
 
-    def __setstate__(self, state: tuple[tuple[int, int], BiomePalette, numpy.ndarray]) -> None:
+    def __setstate__(
+        self, state: tuple[tuple[int, int], BiomePalette, numpy.ndarray]
+    ) -> None:
         self._array_shape, self._palette, self._array = state
 
     @property
@@ -75,11 +77,16 @@ class Biome2DComponent(ChunkComponent[Biome2DComponentData, Biome2DComponentData
     storage_key = b"b2d"
 
     @staticmethod
-    def fix_set_data(old_obj: Biome2DComponentData, new_obj: Biome2DComponentData) -> Biome2DComponentData:
+    def fix_set_data(
+        old_obj: Biome2DComponentData, new_obj: Biome2DComponentData
+    ) -> Biome2DComponentData:
         if not isinstance(new_obj, Biome2DComponentData):
             raise TypeError
         assert isinstance(old_obj, Biome2DComponentData)
-        if old_obj.array.shape != new_obj.array.shape or old_obj.array_shape != new_obj.array_shape:
+        if (
+            old_obj.array.shape != new_obj.array.shape
+            or old_obj.array_shape != new_obj.array_shape
+        ):
             raise ValueError("New array shape does not match old array shape.")
         elif old_obj.palette.version_range != new_obj.palette.version_range:
             raise ValueError("New version range does not match old version range.")
@@ -129,7 +136,9 @@ class Biome3DComponent(ChunkComponent[Biome3DComponentData, Biome3DComponentData
     storage_key = b"b3d"
 
     @staticmethod
-    def fix_set_data(old_obj: Biome3DComponentData, new_obj: Biome3DComponentData) -> Biome3DComponentData:
+    def fix_set_data(
+        old_obj: Biome3DComponentData, new_obj: Biome3DComponentData
+    ) -> Biome3DComponentData:
         if not isinstance(new_obj, Biome3DComponentData):
             raise TypeError
         assert isinstance(old_obj, Biome3DComponentData)

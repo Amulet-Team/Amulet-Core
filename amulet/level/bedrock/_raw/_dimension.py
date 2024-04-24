@@ -66,7 +66,9 @@ class BedrockRawDimension(
 
     def default_block(self) -> BlockStack:
         """The default block for this dimension"""
-        return BlockStack(Block("bedrock", VersionNumber(1, 20, 61), "minecraft", "air"))
+        return BlockStack(
+            Block("bedrock", VersionNumber(1, 20, 61), "minecraft", "air")
+        )
 
     def default_biome(self) -> Biome:
         """The default biome for this dimension"""

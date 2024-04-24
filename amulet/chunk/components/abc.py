@@ -32,5 +32,9 @@ class ChunkComponent(ABC, Generic[GetT, SetT]):
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
-        assert isinstance(cls.storage_key, bytes) and cls.storage_key, "storage_key must be a bytes object."
-        assert cls.storage_key not in _storage_keys, "storage_key must be a unique bytes object."
+        assert (
+            isinstance(cls.storage_key, bytes) and cls.storage_key
+        ), "storage_key must be a bytes object."
+        assert (
+            cls.storage_key not in _storage_keys
+        ), "storage_key must be a unique bytes object."

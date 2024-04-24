@@ -26,7 +26,9 @@ class Dimension(LevelFriend[LevelT], ABC, Generic[LevelT, RawDimensionT, ChunkHa
     _chunk_data_history: HistoryManagerLayer[bytes]
     _raw: RawDimensionT
 
-    def __init__(self, level_ref: Callable[[], LevelT | None], dimension_id: DimensionId) -> None:
+    def __init__(
+        self, level_ref: Callable[[], LevelT | None], dimension_id: DimensionId
+    ) -> None:
         super().__init__(level_ref)
         self._dimension_id = dimension_id
         self._chunk_handles = WeakValueDictionary()

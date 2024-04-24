@@ -75,9 +75,15 @@ class JavaRawLevelOpenData:
     biome_id_override: IdRegistry
 
     def __init__(
-        self, raw_level: JavaRawLevel, lock_file: BinaryIO, lock_time: float, data_pack: DataPackManager
+        self,
+        raw_level: JavaRawLevel,
+        lock_file: BinaryIO,
+        lock_time: float,
+        data_pack: DataPackManager,
     ) -> None:
-        self.back_reference, self.detach_back_reference = DetachableWeakRef.new(raw_level)
+        self.back_reference, self.detach_back_reference = DetachableWeakRef.new(
+            raw_level
+        )
         self.lock_file = lock_file
         self.lock_time = lock_time
         self.data_pack = data_pack
@@ -214,7 +220,9 @@ class JavaRawLevel(RawLevel[JavaRawDimension]):
                         packs.append(DataPack(path))
         data_pack = DataPackManager(packs)
 
-        self._raw_open_data = JavaRawLevelOpenData(self, lock_file, lock_time, data_pack)
+        self._raw_open_data = JavaRawLevelOpenData(
+            self, lock_file, lock_time, data_pack
+        )
         self.opened.emit()
 
     closed = Signal[()]()
@@ -273,7 +281,9 @@ class JavaRawLevel(RawLevel[JavaRawDimension]):
     @property
     def level_name(self) -> str:
         return (
-            self._level_dat.compound.get_compound("Data", CompoundTag()).get_string("LevelName", StringTag("Undefined")).py_str
+            self._level_dat.compound.get_compound("Data", CompoundTag())
+            .get_string("LevelName", StringTag("Undefined"))
+            .py_str
         )
 
     @level_name.setter
@@ -412,16 +422,23 @@ class JavaRawLevel(RawLevel[JavaRawDimension]):
                 AnvilDimension(
                     path,
                     mcc=self.data_version > VersionNumber(2203),
-                    layers=("region",) + ("entities",) * (self.data_version >= VersionNumber(2681)),
+                    layers=("region",)
+                    + ("entities",) * (self.data_version >= VersionNumber(2681)),
                 ),
                 relative_dimension_path,
                 dimension_name,
                 self._get_dimension_bounds(dimension_name),
                 # TODO: Is this data stored somewhere?
                 BlockStack(Block("java", VersionNumber(3700), "minecraft", "air")),
-                Biome("java", VersionNumber(3700), "minecraft", "nether_wastes") if dimension_name == THE_NETHER else
-                Biome("java", VersionNumber(3700), "minecraft", "the_end") if dimension_name == THE_END else
-                Biome("java", VersionNumber(3700), "minecraft", "plains")
+                (
+                    Biome("java", VersionNumber(3700), "minecraft", "nether_wastes")
+                    if dimension_name == THE_NETHER
+                    else (
+                        Biome("java", VersionNumber(3700), "minecraft", "the_end")
+                        if dimension_name == THE_END
+                        else Biome("java", VersionNumber(3700), "minecraft", "plains")
+                    )
+                ),
             )
 
     def _find_dimensions(self) -> None:

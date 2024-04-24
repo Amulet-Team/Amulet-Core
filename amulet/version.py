@@ -207,7 +207,7 @@ class VersionRangeContainer:
         return self._version_range
 
     def __getstate__(self) -> tuple[Any, ...]:
-        return self._version_range,
+        return (self._version_range,)
 
     def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
         self._version_range, *state = state

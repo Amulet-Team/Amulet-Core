@@ -146,9 +146,7 @@ class AnvilDimension:
         else:
             raise ChunkDoesNotExist
 
-    def put_chunk_data(
-        self, cx: int, cz: int, data_layers: RawChunkType
-    ) -> None:
+    def put_chunk_data(self, cx: int, cz: int, data_layers: RawChunkType) -> None:
         """Put one or more layers of data"""
         for layer_name, data in data_layers.items():
             if (

@@ -75,8 +75,12 @@ class BedrockRawLevelOpenData:
     block_id_override: IdRegistry
     biome_id_override: IdRegistry
 
-    def __init__(self, raw_level: BedrockRawLevel, db: LevelDB, actor_counter: ActorCounter):
-        self.back_reference, self.detach_back_reference = DetachableWeakRef.new(raw_level)
+    def __init__(
+        self, raw_level: BedrockRawLevel, db: LevelDB, actor_counter: ActorCounter
+    ):
+        self.back_reference, self.detach_back_reference = DetachableWeakRef.new(
+            raw_level
+        )
         self.db = db
         self.dimensions = {}
         self.dimensions_lock = RLock()

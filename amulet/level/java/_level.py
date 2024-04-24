@@ -16,7 +16,8 @@ from amulet.level.abc import (
     CreatableLevel,
     LoadableLevel,
     CompactableLevel,
-    LevelOpenData, PlayerStorage,
+    LevelOpenData,
+    PlayerStorage,
 )
 from amulet.utils.call_spec import (
     StringArg,
@@ -49,7 +50,12 @@ class JavaLevelOpenData(LevelOpenData):
         self.dimensions = {}
 
 
-class JavaLevel(DiskLevel[JavaLevelOpenData, JavaDimension, JavaRawLevel], CreatableLevel, LoadableLevel, CompactableLevel):
+class JavaLevel(
+    DiskLevel[JavaLevelOpenData, JavaDimension, JavaRawLevel],
+    CreatableLevel,
+    LoadableLevel,
+    CompactableLevel,
+):
     __slots__ = ("_raw_level",)
 
     def __init__(self, _ikwiad: bool = False) -> None:
@@ -146,10 +152,14 @@ class JavaLevel(DiskLevel[JavaLevelOpenData, JavaDimension, JavaRawLevel], Creat
     def dimension_ids(self) -> frozenset[DimensionId]:
         return self.raw.dimension_ids()
 
-    def get_dimension(self, dimension_id: DimensionId | InternalDimensionId) -> JavaDimension:
+    def get_dimension(
+        self, dimension_id: DimensionId | InternalDimensionId
+    ) -> JavaDimension:
         if dimension_id not in self._o.dimensions:
             raw_dimension = self.raw.get_dimension(dimension_id)
-            self._o.dimensions[raw_dimension.dimension_id] = self._o.dimensions[raw_dimension.relative_path] = JavaDimension(self._o.back_reference, raw_dimension.dimension_id)
+            self._o.dimensions[raw_dimension.dimension_id] = self._o.dimensions[
+                raw_dimension.relative_path
+            ] = JavaDimension(self._o.back_reference, raw_dimension.dimension_id)
         return self._o.dimensions[dimension_id]
 
     @property

@@ -1,7 +1,21 @@
 from typing import TYPE_CHECKING
 
 import numpy
-from amulet_nbt import NamedTag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, StringTag, CompoundTag, ListTag, ByteArrayTag, IntArrayTag, LongArrayTag
+from amulet_nbt import (
+    NamedTag,
+    ByteTag,
+    ShortTag,
+    IntTag,
+    LongTag,
+    FloatTag,
+    DoubleTag,
+    StringTag,
+    CompoundTag,
+    ListTag,
+    ByteArrayTag,
+    IntArrayTag,
+    LongArrayTag,
+)
 
 from amulet.chunk import ComponentDataMapping
 from amulet.chunk.components.height_2d import Height2DComponent
@@ -9,15 +23,27 @@ from amulet.chunk.components.height_2d import Height2DComponent
 from amulet.utils.world_utils import decode_long_array
 
 from amulet.level.java.anvil import RawChunkType
-from amulet.level.java.chunk import JavaChunk, JavaChunkNA, JavaChunk0, JavaChunk1444, JavaChunk1466, JavaChunk2203
+from amulet.level.java.chunk import (
+    JavaChunk,
+    JavaChunkNA,
+    JavaChunk0,
+    JavaChunk1444,
+    JavaChunk1466,
+    JavaChunk2203,
+)
 
 from amulet.level.java.chunk.components.raw_chunk import RawChunkComponent
 from amulet.level.java.chunk.components.data_version import DataVersionComponent
 from amulet.level.java.chunk.components.legacy_version import LegacyVersionComponent
 from amulet.level.java.chunk.components.status import StatusComponent
 from amulet.level.java.chunk.components.light_populated import LightPopulatedComponent
-from amulet.level.java.chunk.components.terrain_populated import TerrainPopulatedComponent
-from amulet.level.java.chunk.components.named_height_2d import NamedHeight2DComponent, NamedHeight2DData
+from amulet.level.java.chunk.components.terrain_populated import (
+    TerrainPopulatedComponent,
+)
+from amulet.level.java.chunk.components.named_height_2d import (
+    NamedHeight2DComponent,
+    NamedHeight2DData,
+)
 from amulet.level.java.chunk.components.last_update import LastUpdateComponent
 from amulet.level.java.chunk.components.inhabited_time import InhabitedTimeComponent
 
@@ -48,7 +74,9 @@ def raw_to_native(
     level = region.get_compound("Level", CompoundTag())
 
     # Pull out the data version
-    chunk_components[DataVersionComponent] = data_version = region.pop_int("DataVersion", IntTag(-1)).py_int
+    chunk_components[DataVersionComponent] = data_version = region.pop_int(
+        "DataVersion", IntTag(-1)
+    ).py_int
 
     # Get the chunk class
     chunk_class: type[JavaChunk]
@@ -64,7 +92,9 @@ def raw_to_native(
         chunk_class = JavaChunkNA
 
     if data_version == -1:
-        chunk_components[LegacyVersionComponent] = level.pop_byte("V", ByteTag(1)).py_int
+        chunk_components[LegacyVersionComponent] = level.pop_byte(
+            "V", ByteTag(1)
+        ).py_int
 
     # Chunk x and y pos
     if data_version >= 2844:
@@ -78,11 +108,19 @@ def raw_to_native(
 
     # LastUpdate and InhabitedTime
     if data_version >= 2844:
-        chunk_components[LastUpdateComponent] = region.pop_long("LastUpdate", LongTag(0)).py_int
-        chunk_components[InhabitedTimeComponent] = region.pop_long("InhabitedTime", LongTag(0)).py_int
+        chunk_components[LastUpdateComponent] = region.pop_long(
+            "LastUpdate", LongTag(0)
+        ).py_int
+        chunk_components[InhabitedTimeComponent] = region.pop_long(
+            "InhabitedTime", LongTag(0)
+        ).py_int
     else:
-        chunk_components[LastUpdateComponent] = level.pop_long("LastUpdate", LongTag(0)).py_int
-        chunk_components[InhabitedTimeComponent] = level.pop_long("InhabitedTime", LongTag(0)).py_int
+        chunk_components[LastUpdateComponent] = level.pop_long(
+            "LastUpdate", LongTag(0)
+        ).py_int
+        chunk_components[InhabitedTimeComponent] = level.pop_long(
+            "InhabitedTime", LongTag(0)
+        ).py_int
 
     # Status
     def set_status(status: StringTag | None) -> None:
@@ -100,8 +138,12 @@ def raw_to_native(
     elif data_version >= 1444:
         set_status(level.pop_string("Status"))
     else:
-        chunk_components[TerrainPopulatedComponent] = bool(level.pop_byte("TerrainPopulated", ByteTag(1)))
-        chunk_components[LightPopulatedComponent] = bool(level.pop_byte("LightPopulated", ByteTag(1)))
+        chunk_components[TerrainPopulatedComponent] = bool(
+            level.pop_byte("TerrainPopulated", ByteTag(1))
+        )
+        chunk_components[LightPopulatedComponent] = bool(
+            level.pop_byte("LightPopulated", ByteTag(1))
+        )
 
     # Height map
     if data_version >= 1466:
@@ -118,14 +160,13 @@ def raw_to_native(
                     height_y.bit_length(),
                     dense=data_version <= 2529,
                 ).reshape((16, 16)) + (floor_cy << 4)
-        chunk_components[NamedHeight2DComponent] = NamedHeight2DData(
-            (16, 16),
-            arrays
-        )
+        chunk_components[NamedHeight2DComponent] = NamedHeight2DData((16, 16), arrays)
     else:
         height = level.pop_int_array("HeightMap")
         if isinstance(height, IntArrayTag) and len(height) == 256:
-            chunk_components[Height2DComponent] = height.np_array.astype(numpy.int64).reshape((16, 16))
+            chunk_components[Height2DComponent] = height.np_array.astype(
+                numpy.int64
+            ).reshape((16, 16))
         else:
             chunk_components[Height2DComponent] = numpy.zeros((16, 16), numpy.int64)
 

@@ -218,7 +218,9 @@ class AnvilRegion:
                         sector_size = (sector_data & 0xFF) * 0x1000
                         sector = Sector(sector_offset, sector_offset + sector_size)
                         self._sector_manager.reserve(sector)
-                        self._chunk_locations[(cx + self.rx * 32, cz + self.rz * 32)] = sector
+                        self._chunk_locations[
+                            (cx + self.rx * 32, cz + self.rz * 32)
+                        ] = sector
 
     def all_coords(self) -> Iterator[ChunkCoordinates]:
         """An iterable of chunk coordinates in world space."""
@@ -266,7 +268,10 @@ class AnvilRegion:
         raise ChunkDoesNotExist
 
     def _write_data(self, cx: int, cz: int, data: bytes | None) -> None:
-        assert self.rx * 32 <= cx < (self.rx + 1) * 32 and self.rz * 32 <= cz < (self.rz + 1) * 32
+        assert (
+            self.rx * 32 <= cx < (self.rx + 1) * 32
+            and self.rz * 32 <= cz < (self.rz + 1) * 32
+        )
         if isinstance(data, bytes) and len(data) + 4 > MaxRegionSize and not self._mcc:
             # if the data is too large and mcc files are not supported then do nothing
             log.error(
@@ -351,12 +356,10 @@ class AnvilRegion:
             # Generate a list of sectors in sequential order
             # location header index, chunk coordinate, sector
             chunk_sectors: list[tuple[int, tuple[int, int], Sector]] = [
-                (
-                    4 * (cx - self.rx * 32 + (cz - self.rz * 32) * 32),
-                    (cx, cz),
-                    sector
+                (4 * (cx - self.rx * 32 + (cz - self.rz * 32) * 32), (cx, cz), sector)
+                for (cx, cz), sector in sorted(
+                    self._chunk_locations.items(), key=lambda item: item[1].start
                 )
-                for (cx, cz), sector in sorted(self._chunk_locations.items(), key=lambda item: item[1].start)
             ]
 
             # Set the position to the end of the header
@@ -381,14 +384,18 @@ class AnvilRegion:
                         if file_position + sector.length <= sector.start:
                             # There is enough space before the sector to fit the whole sector.
                             # Copy it to the new location
-                            new_sector = Sector(file_position, file_position + sector.length)
+                            new_sector = Sector(
+                                file_position, file_position + sector.length
+                            )
                             file_position = new_sector.stop
                         else:
                             # There is space before the sector but not enough to fit the sector.
                             # Move it to the end for processing later.
                             new_sector = Sector(file_end, file_end + sector.length)
                             file_end = new_sector.stop
-                            chunk_sectors.append((header_index, chunk_coordinate, new_sector))
+                            chunk_sectors.append(
+                                (header_index, chunk_coordinate, new_sector)
+                            )
 
                         # Read in the data
                         handler.seek(sector.start)
@@ -403,7 +410,8 @@ class AnvilRegion:
                         handler.seek(header_index)
                         handler.write(
                             struct.pack(
-                                ">I", (new_sector.start >> 4) + (new_sector.length >> 12)
+                                ">I",
+                                (new_sector.start >> 4) + (new_sector.length >> 12),
                             )
                         )
                         self._chunk_locations[chunk_coordinate] = new_sector

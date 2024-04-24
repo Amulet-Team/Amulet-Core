@@ -99,12 +99,16 @@ class BlockEntityComponentData(
         )
 
 
-class BlockEntityComponent(ChunkComponent[BlockEntityComponentData, BlockEntityComponentData]):
+class BlockEntityComponent(
+    ChunkComponent[BlockEntityComponentData, BlockEntityComponentData]
+):
     storage_key = b"be"
 
     @staticmethod
-    def fix_set_data(old_obj: BlockEntityComponentData | UnloadedComponent,
-                     new_obj: BlockEntityComponentData) -> BlockEntityComponentData:
+    def fix_set_data(
+        old_obj: BlockEntityComponentData | UnloadedComponent,
+        new_obj: BlockEntityComponentData,
+    ) -> BlockEntityComponentData:
         if not isinstance(new_obj, BlockEntityComponentData):
             raise TypeError
         assert isinstance(old_obj, BlockEntityComponentData)

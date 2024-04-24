@@ -25,7 +25,9 @@ class Palette(VersionRangeContainer, Sequence[T], ABC):
 
     def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
         self._index_to_item, *state = super().__setstate__(state)
-        self._item_to_index = {item: index for index, item in enumerate(self._index_to_item)}
+        self._item_to_index = {
+            item: index for index, item in enumerate(self._index_to_item)
+        }
         return state
 
     def __len__(self) -> int:

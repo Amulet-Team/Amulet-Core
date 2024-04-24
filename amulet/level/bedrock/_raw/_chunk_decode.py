@@ -27,10 +27,18 @@ from amulet.palette import BlockPalette
 from amulet.chunk import ComponentDataMapping
 from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
 from amulet.chunk.components.block import BlockComponent, BlockComponentData
-from amulet.chunk.components.block_entity import BlockEntityComponent, BlockEntityComponentData
+from amulet.chunk.components.block_entity import (
+    BlockEntityComponent,
+    BlockEntityComponentData,
+)
 from amulet.chunk.components.entity import EntityComponent, EntityComponentData
 from amulet.chunk.components.height_2d import Height2DComponent
-from amulet.chunk.components.biome import Biome2DComponent, Biome2DComponentData, Biome3DComponent, Biome3DComponentData
+from amulet.chunk.components.biome import (
+    Biome2DComponent,
+    Biome2DComponentData,
+    Biome3DComponent,
+    Biome3DComponentData,
+)
 from amulet.game import get_game_version
 from amulet.version import VersionNumber, VersionRange
 
@@ -119,10 +127,14 @@ def raw_to_native(
         if version_range.contains(block.platform, block.version):
             blocks.append(block)
         else:
-            block_ = get_game_version(block.platform, block.version).block.translate("bedrock", max_version, block)[0]
+            block_ = get_game_version(block.platform, block.version).block.translate(
+                "bedrock", max_version, block
+            )[0]
             if isinstance(block_, Block):
                 blocks.append(block_)
-    chunk_components[BlockComponent] = block_component_data = BlockComponentData(version_range, (16, 16, 16), 0, BlockStack(*blocks))
+    chunk_components[BlockComponent] = block_component_data = BlockComponentData(
+        version_range, (16, 16, 16), 0, BlockStack(*blocks)
+    )
     if chunk_version >= 3:
         subchunks = {}
         for key in chunk_data.copy().keys():
@@ -162,35 +174,47 @@ def raw_to_native(
     # Parse block entities
     block_entity_component_data = BlockEntityComponentData(version_range)
     block_entities = _unpack_nbt_list(chunk_data.pop(b"\x31", b""))
-    block_entity_component_data.update(_decode_block_entity_list(
-        block_entities
-    ))
+    block_entity_component_data.update(_decode_block_entity_list(block_entities))
     chunk_components[BlockEntityComponent] = block_entity_component_data
 
     # Parse entities
     entity_component_data = EntityComponentData(version_range)
     entities = _unpack_nbt_list(chunk_data.pop(b"\x32", b""))
-    entity_component_data |= set(_decode_entity_list(entities) + _decode_entity_list(raw_chunk.entity_actor))
+    entity_component_data |= set(
+        _decode_entity_list(entities) + _decode_entity_list(raw_chunk.entity_actor)
+    )
     raw_chunk.entity_actor.clear()
     chunk_components[EntityComponent] = entity_component_data
 
     # Parse biome and height data
     default_biome = dimension.default_biome()
     if not version_range.contains(default_biome.platform, default_biome.version):
-        default_biome = get_game_version(default_biome.platform, default_biome.version).biome.translate("bedrock", max_version, default_biome)
+        default_biome = get_game_version(
+            default_biome.platform, default_biome.version
+        ).biome.translate("bedrock", max_version, default_biome)
     if chunk_class.has_component(Biome3DComponent):
-        chunk_components[Biome3DComponent] = biome_3d = Biome3DComponentData(version_range, (16, 16, 16), 0, default_biome)
+        chunk_components[Biome3DComponent] = biome_3d = Biome3DComponentData(
+            version_range, (16, 16, 16), 0, default_biome
+        )
         if b"+" in chunk_data:
             d2d = chunk_data[b"+"]
-            chunk_components[Height2DComponent] = numpy.frombuffer(d2d[:512], "<i2").reshape((16, 16)).astype(numpy.int64)
-            _decode_3d_biomes(raw_level, biome_3d, d2d[512:], dimension.bounds().min_y >> 4)
+            chunk_components[Height2DComponent] = (
+                numpy.frombuffer(d2d[:512], "<i2").reshape((16, 16)).astype(numpy.int64)
+            )
+            _decode_3d_biomes(
+                raw_level, biome_3d, d2d[512:], dimension.bounds().min_y >> 4
+            )
         else:
             chunk_components[Height2DComponent] = numpy.zeros((16, 16), numpy.int64)
     elif chunk_class.has_component(Biome2DComponent):
-        chunk_components[Biome2DComponent] = biome_2d = Biome2DComponentData(version_range, (16, 16), 0, default_biome)
+        chunk_components[Biome2DComponent] = biome_2d = Biome2DComponentData(
+            version_range, (16, 16), 0, default_biome
+        )
         if b"\x2D" in chunk_data:
             d2d = chunk_data[b"\x2D"]
-            chunk_components[Height2DComponent] = numpy.frombuffer(d2d[:512], "<i2").reshape((16, 16)).astype(numpy.int64)
+            chunk_components[Height2DComponent] = (
+                numpy.frombuffer(d2d[:512], "<i2").reshape((16, 16)).astype(numpy.int64)
+            )
             biome_2d.array = (
                 numpy.frombuffer(d2d[512:], dtype="uint8")
                 .reshape(16, 16)
@@ -444,7 +468,10 @@ def _load_palette_blocks(
 
 
 def _decode_3d_biomes(
-    raw_level: BedrockRawLevel, biome_3d_data: Biome3DComponentData, data: bytes, floor_cy: int
+    raw_level: BedrockRawLevel,
+    biome_3d_data: Biome3DComponentData,
+    data: bytes,
+    floor_cy: int,
 ) -> None:
     # TODO: how does Bedrock store custom biomes?
     # TODO: can I use one global lookup based on the max version or does it need to be done for the version the chunk was saved in?
@@ -471,7 +498,9 @@ def _decode_3d_biomes(
             runtime_id = biome_3d_data.palette.biome_to_index(
                 Biome("bedrock", raw_level.version, namespace, base_name)
             )
-            biome_3d_data.sections[cy] = numpy.full((16, 16, 16), runtime_id, dtype=numpy.uint32)
+            biome_3d_data.sections[cy] = numpy.full(
+                (16, 16, 16), runtime_id, dtype=numpy.uint32
+            )
             data = data[4:]
         elif bits_per_value > 0:
             palette_len, data = struct.unpack("<I", data[:4])[0], data[4:]

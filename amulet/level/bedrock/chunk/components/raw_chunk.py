@@ -7,7 +7,9 @@ class RawChunkComponent(ChunkComponent[BedrockRawChunk | None, BedrockRawChunk |
     storage_key = b"brc"
 
     @staticmethod
-    def fix_set_data(old_obj: BedrockRawChunk | None, new_obj: BedrockRawChunk | None) -> BedrockRawChunk | None:
+    def fix_set_data(
+        old_obj: BedrockRawChunk | None, new_obj: BedrockRawChunk | None
+    ) -> BedrockRawChunk | None:
         if new_obj is None or isinstance(new_obj, BedrockRawChunk):
             return new_obj
         raise TypeError

@@ -58,6 +58,7 @@ class ChunkHandle(
     You must acquire the lock for the chunk before reading or writing data.
     Some internal synchronisation is done to catch some threading issues.
     """
+
     _lock: RLock
     _dimension: DimensionId
     _key: ChunkKey
@@ -210,9 +211,14 @@ class ChunkHandle(
                 self._chunk_history.set_initial_resource(self._key, pickle.dumps(e))
             else:
                 chunk_class = type(chunk)
-                self._chunk_history.set_initial_resource(self._key, pickle.dumps(chunk_class))
+                self._chunk_history.set_initial_resource(
+                    self._key, pickle.dumps(chunk_class)
+                )
                 for component_cls, component_data in chunk.component_data.items():
-                    self._chunk_data_history.set_initial_resource(b"/".join((bytes(self._key), component_cls.storage_key)), pickle.dumps(component_data))
+                    self._chunk_data_history.set_initial_resource(
+                        b"/".join((bytes(self._key), component_cls.storage_key)),
+                        pickle.dumps(component_data),
+                    )
 
     def get_class(self) -> type[ChunkT]:
         """Get the chunk class used for this chunk.
@@ -251,7 +257,9 @@ class ChunkHandle(
             chunk_components: ComponentDataMapping = dict.fromkeys(chunk_class.components, UnloadedComponent.value)  # type: ignore
             for component_class in components:
                 chunk_components[component_class] = pickle.loads(
-                    self._chunk_data_history.get_resource(b"/".join((bytes(self._key), component_class.storage_key)))
+                    self._chunk_data_history.get_resource(
+                        b"/".join((bytes(self._key), component_class.storage_key))
+                    )
                 )
             return chunk_class.from_component_data(chunk_components)
 
@@ -273,13 +281,21 @@ class ChunkHandle(
                 old_chunk_class = None
             new_chunk_class = type(chunk)
             component_data = chunk.component_data
-            if old_chunk_class != new_chunk_class and UnloadedComponent.value in component_data.values():
-                raise RuntimeError("When changing chunk class all the data must be present.")
+            if (
+                old_chunk_class != new_chunk_class
+                and UnloadedComponent.value in component_data.values()
+            ):
+                raise RuntimeError(
+                    "When changing chunk class all the data must be present."
+                )
             history.set_resource(self._key, pickle.dumps(new_chunk_class))
             for component_cls, data in component_data.items():
                 if data is UnloadedComponent.value:
                     continue
-                self._chunk_data_history.set_resource(b"/".join((bytes(self._key), component_cls.storage_key)), pickle.dumps(data))
+                self._chunk_data_history.set_resource(
+                    b"/".join((bytes(self._key), component_cls.storage_key)),
+                    pickle.dumps(data),
+                )
 
     @staticmethod
     @abstractmethod

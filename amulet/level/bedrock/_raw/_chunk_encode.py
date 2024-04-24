@@ -22,7 +22,10 @@ from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
 from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
 from amulet.chunk.components.block import BlockComponent, BlockComponentData
-from amulet.chunk.components.block_entity import BlockEntityComponent, BlockEntityComponentData
+from amulet.chunk.components.block_entity import (
+    BlockEntityComponent,
+    BlockEntityComponentData,
+)
 from amulet.chunk.components.entity import EntityComponent, EntityComponentData
 from amulet.chunk.components.height_2d import Height2DComponent
 from amulet.chunk.components.biome import Biome2DComponent, Biome3DComponent
@@ -98,9 +101,7 @@ def native_to_raw(
     elif max_version >= VersionNumber(0, 17):
         terrain = _encode_blocks_v1(block_component, dimension.default_block()[0])
     else:
-        get_block_id_override = (
-            raw_level.block_id_override.namespace_id_to_numerical_id
-        )
+        get_block_id_override = raw_level.block_id_override.namespace_id_to_numerical_id
         get_block_id_game = game_version.block.namespace_id_to_numerical_id
 
         @cache
@@ -194,7 +195,9 @@ def native_to_raw(
 
     if chunk.has_component(Biome2DComponent):
         biome_2d_component = chunk.get_component(Biome2DComponent)
-        palette_indexes, array = numpy.unique(biome_2d_component.array, return_inverse=True)
+        palette_indexes, array = numpy.unique(
+            biome_2d_component.array, return_inverse=True
+        )
 
         biome_id_palette = _encode_biome_palette(
             biome_2d_component.palette,
@@ -276,7 +279,8 @@ def _encode_biome_palette(
 
 
 def _encode_blocks_v0(
-    block_component: BlockComponentData, encode_block: Callable[[Block], tuple[int, int]]
+    block_component: BlockComponentData,
+    encode_block: Callable[[Block], tuple[int, int]],
 ) -> dict[int, bytes]:
     blocks: SubChunkArrayContainer = block_component.sections
     block_palette = block_component.palette
@@ -467,7 +471,9 @@ def _encode_palettized_chunk(
     return encoded
 
 
-def _encode_blocks_v1(block_component: BlockComponentData, default_block: Block) -> dict[int, bytes]:
+def _encode_blocks_v1(
+    block_component: BlockComponentData, default_block: Block
+) -> dict[int, bytes]:
     return {
         cy: b"".join((b"\x01", *layers))
         for cy, layers in _encode_palettized_chunk(

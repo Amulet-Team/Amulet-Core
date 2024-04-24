@@ -1,7 +1,21 @@
 from typing import TYPE_CHECKING
 
 import numpy
-from amulet_nbt import NamedTag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, StringTag, CompoundTag, ListTag, ByteArrayTag, IntArrayTag, LongArrayTag
+from amulet_nbt import (
+    NamedTag,
+    ByteTag,
+    ShortTag,
+    IntTag,
+    LongTag,
+    FloatTag,
+    DoubleTag,
+    StringTag,
+    CompoundTag,
+    ListTag,
+    ByteArrayTag,
+    IntArrayTag,
+    LongArrayTag,
+)
 
 from amulet.utils.world_utils import encode_long_array
 
@@ -15,8 +29,13 @@ from amulet.level.java.chunk.components.data_version import DataVersionComponent
 from amulet.level.java.chunk.components.legacy_version import LegacyVersionComponent
 from amulet.level.java.chunk.components.status import StatusComponent
 from amulet.level.java.chunk.components.light_populated import LightPopulatedComponent
-from amulet.level.java.chunk.components.terrain_populated import TerrainPopulatedComponent
-from amulet.level.java.chunk.components.named_height_2d import NamedHeight2DComponent, NamedHeight2DData
+from amulet.level.java.chunk.components.terrain_populated import (
+    TerrainPopulatedComponent,
+)
+from amulet.level.java.chunk.components.named_height_2d import (
+    NamedHeight2DComponent,
+    NamedHeight2DData,
+)
 from amulet.level.java.chunk.components.last_update import LastUpdateComponent
 from amulet.level.java.chunk.components.inhabited_time import InhabitedTimeComponent
 
@@ -83,22 +102,30 @@ def native_to_raw(
     elif data_version >= 1444:
         level["Status"] = StringTag(chunk.get_component(StatusComponent))
     else:
-        level["TerrainPopulated"] = ByteTag(chunk.get_component(TerrainPopulatedComponent))
+        level["TerrainPopulated"] = ByteTag(
+            chunk.get_component(TerrainPopulatedComponent)
+        )
         level["LightPopulated"] = ByteTag(chunk.get_component(LightPopulatedComponent))
 
     # Height map
     if data_version >= 1466:
-        height_maps = CompoundTag({
-            key: LongArrayTag(
-                encode_long_array(
-                    value.ravel() - (floor_cy << 4),
-                    height.bit_length(),
-                    data_version <= 2529,
+        height_maps = CompoundTag(
+            {
+                key: LongArrayTag(
+                    encode_long_array(
+                        value.ravel() - (floor_cy << 4),
+                        height.bit_length(),
+                        data_version <= 2529,
+                    )
                 )
-            )
-            for key, value in chunk.get_component(NamedHeight2DComponent).arrays.items()
-            if isinstance(key, str) and isinstance(value, numpy.ndarray) and value.size == 256
-        })
+                for key, value in chunk.get_component(
+                    NamedHeight2DComponent
+                ).arrays.items()
+                if isinstance(key, str)
+                and isinstance(value, numpy.ndarray)
+                and value.size == 256
+            }
+        )
         if data_version >= 2844:
             region["HeightMaps"] = height_maps
         else:

@@ -53,8 +53,9 @@ class EntityComponent(ChunkComponent[EntityComponentData, EntityComponentData]):
     storage_key = b"e"
 
     @staticmethod
-    def fix_set_data(old_obj: EntityComponentData,
-                     new_obj: EntityComponentData) -> EntityComponentData:
+    def fix_set_data(
+        old_obj: EntityComponentData, new_obj: EntityComponentData
+    ) -> EntityComponentData:
         if not isinstance(new_obj, EntityComponentData):
             raise TypeError
         assert isinstance(old_obj, EntityComponentData)

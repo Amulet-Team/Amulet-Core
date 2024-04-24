@@ -157,10 +157,17 @@ class Block(PlatformVersionContainer):
         self._hash = None
 
     def __getstate__(self) -> tuple[Any, ...]:
-        return *super().__getstate__(), self._namespace, self._base_name, self._properties
+        return (
+            *super().__getstate__(),
+            self._namespace,
+            self._base_name,
+            self._properties,
+        )
 
     def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
-        self._namespace, self._base_name, self._properties, *state = super().__setstate__(state)
+        self._namespace, self._base_name, self._properties, *state = (
+            super().__setstate__(state)
+        )
         self._hash = None
         return state
 

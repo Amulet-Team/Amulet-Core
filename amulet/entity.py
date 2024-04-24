@@ -54,10 +54,26 @@ class Entity(PlatformVersionContainer):
         self._nbt = nbt
 
     def __getstate__(self) -> tuple[Any, ...]:
-        return *super().__getstate__(), self._namespace, self._base_name, self._x, self._y, self._z, self._nbt
+        return (
+            *super().__getstate__(),
+            self._namespace,
+            self._base_name,
+            self._x,
+            self._y,
+            self._z,
+            self._nbt,
+        )
 
     def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
-        self._namespace, self._base_name, self._x, self._y, self._z, self._nbt, *state = super().__setstate__(state)
+        (
+            self._namespace,
+            self._base_name,
+            self._x,
+            self._y,
+            self._z,
+            self._nbt,
+            *state,
+        ) = super().__setstate__(state)
         return state
 
     def __eq__(self, other: Any) -> bool:

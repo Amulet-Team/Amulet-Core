@@ -1,4 +1,13 @@
-from typing import Any, Union, Generator, Callable, Tuple, TYPE_CHECKING, Optional, TypeAlias
+from typing import (
+    Any,
+    Union,
+    Generator,
+    Callable,
+    Tuple,
+    TYPE_CHECKING,
+    Optional,
+    TypeAlias,
+)
 
 if TYPE_CHECKING:
     from amulet.api.level import BaseLevel
@@ -10,7 +19,11 @@ if TYPE_CHECKING:
 OperationYieldType: TypeAlias = Union[int, float, Tuple[Union[int, float], str]]
 
 #: The data type that an operation is able to return.
-OperationReturnType: TypeAlias = Optional[Union[Generator[OperationYieldType, None, Any], Any]]
+OperationReturnType: TypeAlias = Optional[
+    Union[Generator[OperationYieldType, None, Any], Any]
+]
 
 #: The data type for an operation callable object.
-OperationType: TypeAlias = Callable[["BaseLevel", "Dimension", Any], OperationReturnType]
+OperationType: TypeAlias = Callable[
+    ["BaseLevel", "Dimension", Any], OperationReturnType
+]

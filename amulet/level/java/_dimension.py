@@ -10,4 +10,11 @@ if TYPE_CHECKING:
 
 class JavaDimension(Dimension["JavaLevel", "JavaRawDimension", JavaChunkHandle]):
     def _create_chunk_handle(self, cx: int, cz: int) -> JavaChunkHandle:
-        return JavaChunkHandle(self._l_ref, self._chunk_history, self._chunk_data_history, self.dimension_id, cx, cz)
+        return JavaChunkHandle(
+            self._l_ref,
+            self._chunk_history,
+            self._chunk_data_history,
+            self.dimension_id,
+            cx,
+            cz,
+        )

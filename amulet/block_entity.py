@@ -44,7 +44,9 @@ class BlockEntity(PlatformVersionContainer):
         return *super().__getstate__(), self._namespace, self._base_name, self._nbt
 
     def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
-        self._namespace, self._base_name, self._nbt, *state = super().__setstate__(state)
+        self._namespace, self._base_name, self._nbt, *state = super().__setstate__(
+            state
+        )
         return state
 
     def __repr__(self) -> str:

@@ -8,59 +8,64 @@ from .components.abc import ChunkComponent, GetT, SetT, UnloadedComponent
 
 class ComponentDataMapping(Protocol[GetT, SetT]):
     """A MutableMapping with values that match the first generic argument of ChunkComponent."""
-    def __contains__(self, item: type[ChunkComponent[GetT, SetT]]) -> bool:
-        ...
 
-    def keys(self) -> KeysView[type[ChunkComponent[GetT, SetT]]]:
-        ...
+    def __contains__(self, item: type[ChunkComponent[GetT, SetT]]) -> bool: ...
 
-    def items(self) -> ItemsView[type[ChunkComponent[GetT, SetT]], GetT | UnloadedComponent]:
-        ...
+    def keys(self) -> KeysView[type[ChunkComponent[GetT, SetT]]]: ...
 
-    def values(self) -> ValuesView[GetT | UnloadedComponent]:
-        ...
+    def items(
+        self,
+    ) -> ItemsView[type[ChunkComponent[GetT, SetT]], GetT | UnloadedComponent]: ...
 
-    def get(self, key: type[ChunkComponent[GetT, SetT]]) -> GetT | UnloadedComponent:
-        ...
+    def values(self) -> ValuesView[GetT | UnloadedComponent]: ...
 
-    def __eq__(self, other: Any) -> bool:
-        ...
+    def get(
+        self, key: type[ChunkComponent[GetT, SetT]]
+    ) -> GetT | UnloadedComponent: ...
 
-    def __ne__(self, other: Any) -> bool:
-        ...
+    def __eq__(self, other: Any) -> bool: ...
 
-    def pop(self, key: type[ChunkComponent[GetT, SetT]]) -> GetT | UnloadedComponent:
-        ...
+    def __ne__(self, other: Any) -> bool: ...
 
-    def popitem(self) -> GetT | UnloadedComponent:
-        ...
+    def pop(
+        self, key: type[ChunkComponent[GetT, SetT]]
+    ) -> GetT | UnloadedComponent: ...
 
-    def clear(self) -> None:
-        ...
+    def popitem(self) -> GetT | UnloadedComponent: ...
 
-    def update(self, value: ComponentDataMapping | Iterable[tuple[type[ChunkComponent[GetT, SetT]], GetT | UnloadedComponent]]) -> None:
-        ...
+    def clear(self) -> None: ...
 
-    def setdefault(self, key: type[ChunkComponent[GetT, SetT]], default: GetT | UnloadedComponent | None = None) -> GetT | None:
-        ...
+    def update(
+        self,
+        value: (
+            ComponentDataMapping
+            | Iterable[
+                tuple[type[ChunkComponent[GetT, SetT]], GetT | UnloadedComponent]
+            ]
+        ),
+    ) -> None: ...
 
-    def __getitem__(self, key: type[ChunkComponent[GetT, SetT]]) -> GetT | UnloadedComponent:
-        ...
+    def setdefault(
+        self,
+        key: type[ChunkComponent[GetT, SetT]],
+        default: GetT | UnloadedComponent | None = None,
+    ) -> GetT | None: ...
 
-    def __setitem__(self, key: type[ChunkComponent[GetT, SetT]], value: GetT | UnloadedComponent) -> None:
-        ...
+    def __getitem__(
+        self, key: type[ChunkComponent[GetT, SetT]]
+    ) -> GetT | UnloadedComponent: ...
 
-    def __delitem__(self, key: type[ChunkComponent[GetT, SetT]]) -> None:
-        ...
+    def __setitem__(
+        self, key: type[ChunkComponent[GetT, SetT]], value: GetT | UnloadedComponent
+    ) -> None: ...
 
-    def __len__(self) -> int:
-        ...
+    def __delitem__(self, key: type[ChunkComponent[GetT, SetT]]) -> None: ...
 
-    def __iter__(self) -> Iterator[type[ChunkComponent[GetT, SetT]]]:
-        ...
+    def __len__(self) -> int: ...
 
-    def copy(self) -> Self:
-        ...
+    def __iter__(self) -> Iterator[type[ChunkComponent[GetT, SetT]]]: ...
+
+    def copy(self) -> Self: ...
 
 
 class Chunk(ABC):
@@ -96,14 +101,18 @@ class Chunk(ABC):
             raise RuntimeError(f"Component {component_class} has not been loaded.")
         return component_data
 
-    def set_component(self, component_class: type[ChunkComponent[GetT, SetT]], component_data: SetT) -> None:
+    def set_component(
+        self, component_class: type[ChunkComponent[GetT, SetT]], component_data: SetT
+    ) -> None:
         """Set the component data."""
         if component_class not in self._component_data:
             raise ValueError(f"This chunk does not have component {component_class}")
         old_component_data = self._component_data[component_class]
         if old_component_data is UnloadedComponent.value:
             raise RuntimeError(f"Cannot set unloaded component {component_class}")
-        new_component_data = component_class.fix_set_data(old_component_data, component_data)
+        new_component_data = component_class.fix_set_data(
+            old_component_data, component_data
+        )
         self._component_data[component_class] = new_component_data
 
     @property

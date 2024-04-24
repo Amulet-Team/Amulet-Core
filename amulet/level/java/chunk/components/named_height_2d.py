@@ -5,7 +5,9 @@ from amulet.chunk.components.abc import ChunkComponent
 class NamedHeight2DData:
     arrays: dict[str, numpy.ndarray]
 
-    def __init__(self, shape: tuple[int, int], arrays: dict[str, numpy.ndarray]) -> None:
+    def __init__(
+        self, shape: tuple[int, int], arrays: dict[str, numpy.ndarray]
+    ) -> None:
         self._shape = shape
         self.arrays = arrays
 
@@ -18,7 +20,9 @@ class NamedHeight2DComponent(ChunkComponent[NamedHeight2DData, NamedHeight2DData
     storage_key = b"nh2d"
 
     @staticmethod
-    def fix_set_data(old_obj: NamedHeight2DData, new_obj: NamedHeight2DData) -> NamedHeight2DData:
+    def fix_set_data(
+        old_obj: NamedHeight2DData, new_obj: NamedHeight2DData
+    ) -> NamedHeight2DData:
         if not isinstance(new_obj, NamedHeight2DData):
             raise TypeError
         if new_obj.shape != old_obj.shape:
