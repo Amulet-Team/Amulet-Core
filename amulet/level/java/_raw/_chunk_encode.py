@@ -19,7 +19,25 @@ from amulet_nbt import (
 
 from amulet.utils.world_utils import encode_long_array
 
+from amulet.block import Block, BlockStack
+from amulet.biome import Biome
+from amulet.block_entity import BlockEntity
+from amulet.entity import Entity
+from amulet.version import VersionNumber, VersionRange
+
 from amulet.chunk.components.height_2d import Height2DComponent
+from amulet.chunk.components.biome import (
+    Biome2DComponent,
+    Biome2DComponentData,
+    Biome3DComponent,
+    Biome3DComponentData,
+)
+from amulet.chunk.components.block import BlockComponent, BlockComponentData
+from amulet.chunk.components.block_entity import (
+    BlockEntityComponent,
+    BlockEntityComponentData,
+)
+from amulet.chunk.components.entity import EntityComponent, EntityComponentData
 
 from amulet.level.java.anvil import RawChunkType
 from amulet.level.java.chunk import JavaChunk
@@ -132,5 +150,38 @@ def native_to_raw(
             level["HeightMaps"] = height_maps
     else:
         level["HeightMap"] = IntArrayTag(chunk.get_component(Height2DComponent).ravel())
+
+    # block entities
+    block_entities = ListTag()
+    block_entity: BlockEntity
+    for (x, y, z), block_entity in chunk.get_component(BlockEntityComponent).items():
+        tag = block_entity.nbt.compound
+        tag["id"] = StringTag(block_entity.namespaced_name)
+        tag["x"] = IntTag(x)
+        tag["y"] = IntTag(y)
+        tag["z"] = IntTag(z)
+        block_entities.append(tag)
+    if data_version >= 2844:
+        # region.block_entities
+        region["block_entities"] = block_entities
+    else:
+        # region.Level.TileEntities
+        level["TileEntities"] = block_entities
+
+    # entities
+    entities = ListTag()
+    entity: Entity
+    for entity in chunk.get_component(EntityComponent):
+        tag = entity.nbt.compound
+        tag["id"] = StringTag(entity.namespaced_name)
+        tag["Pos"] = ListTag([DoubleTag(entity.x), DoubleTag(entity.y), DoubleTag(entity.z)])
+        entities.append(tag)
+    if data_version >= 2681:
+        # entities.Entities
+        entity_layer = raw_chunk.setdefault("entities", NamedTag()).compound
+        entity_layer["Entities"] = entities
+    else:
+        # region.Level.Entities
+        level["Entities"] = entities
 
     return raw_chunk

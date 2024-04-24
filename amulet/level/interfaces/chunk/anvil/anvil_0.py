@@ -39,21 +39,6 @@ class Anvil0Interface(ParentInterface):
         # all versioned data must get removed from data
         self.get_layer_obj(data, self.RegionDataVersion, pop_last=True)
 
-    def _decode_entities(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        ents = self._decode_entity_list(
-            self.get_layer_obj(data, self.Entities, pop_last=True)
-        )
-        if amulet.entity_support:
-            chunk.entities = ents
-        else:
-            chunk._native_entities.extend(ents)
-            chunk._native_version = (
-                "java",
-                self.get_layer_obj(data, self.RegionDataVersion).py_int,
-            )
-
     def _init_encode(
         self,
         chunk: Chunk,

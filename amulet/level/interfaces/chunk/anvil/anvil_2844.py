@@ -57,8 +57,6 @@ class Anvil2844Interface(ParentInterface):
     Level: ChunkPathType = ("region", [], CompoundTag)
     Sections: ChunkPathType = ("region", [("sections", ListTag)], ListTag)
 
-    Entities: ChunkPathType = ("region", [("entities", ListTag)], ListTag)
-    BlockEntities: ChunkPathType = ("region", [("block_entities", ListTag)], ListTag)
     BlockTicks: ChunkPathType = ("region", [("block_ticks", ListTag)], ListTag)
     ToBeTicked = None
     LiquidTicks: ChunkPathType = ("region", [("fluid_ticks", ListTag)], ListTag)

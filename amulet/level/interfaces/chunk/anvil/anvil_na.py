@@ -42,16 +42,6 @@ class AnvilNAInterface(BaseAnvilInterface):
         ListTag,
     )
 
-    BlockEntities: ChunkPathType = (
-        "region",
-        [("Level", CompoundTag), ("TileEntities", ListTag)],
-        ListTag,
-    )
-    Entities: ChunkPathType = (
-        "region",
-        [("Level", CompoundTag), ("Entities", ListTag)],
-        ListTag,
-    )
     BlockTicks: ChunkPathType = (
         "region",
         [("Level", CompoundTag), ("TileTicks", ListTag)],
@@ -68,26 +58,14 @@ class AnvilNAInterface(BaseAnvilInterface):
 
         self._set_feature("light_optional", "false")
 
-        self._set_feature("block_entity_format", EntityIDType.namespace_str_id)
-        self._set_feature("block_entity_coord_format", EntityCoordType.xyz_int)
-
-        self._set_feature("entity_format", EntityIDType.namespace_str_id)
-        self._set_feature("entity_coord_format", EntityCoordType.Pos_list_double)
-
-        self._register_decoder(self._decode_inhabited_time)
         self._register_decoder(self._decode_biomes)
-        self._register_decoder(self._decode_entities)
         self._register_decoder(self._decode_blocks)
-        self._register_decoder(self._decode_block_entities)
         self._register_decoder(self._decode_block_ticks)
         self._register_decoder(self._decode_block_light)
         self._register_decoder(self._decode_sky_light)
 
-        self._register_encoder(self._encode_inhabited_time)
         self._register_encoder(self._encode_biomes)
-        self._register_encoder(self._encode_entities)
         self._register_encoder(self._encode_blocks)
-        self._register_encoder(self._encode_block_entities)
         self._register_encoder(self._encode_block_ticks)
         self._register_encoder(self._encode_block_light)
         self._register_encoder(self._encode_sky_light)
@@ -220,25 +198,6 @@ class AnvilNAInterface(BaseAnvilInterface):
     ):
         chunk.misc["sky_light"] = self._unpack_light(data, "SkyLight")
 
-    def _decode_entities(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        ents = self._decode_entity_list(
-            self.get_layer_obj(data, self.Entities, pop_last=True)
-        )
-        if amulet.entity_support:
-            chunk.entities = ents
-        else:
-            chunk._native_entities.extend(ents)
-            chunk._native_version = ("java", -1)
-
-    def _decode_block_entities(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        chunk.block_entities = self._decode_block_entity_list(
-            self.get_layer_obj(data, self.BlockEntities, pop_last=True)
-        )
-
     @staticmethod
     def _decode_ticks(ticks: ListTag) -> Dict[BlockCoordinates, Tuple[str, int, int]]:
         return {
@@ -352,29 +311,6 @@ class AnvilNAInterface(BaseAnvilInterface):
             data,
             self.Biomes,
             ByteArrayTag(chunk.biomes.astype(dtype=numpy.uint8).ravel()),
-        )
-
-    def _encode_entities(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        if amulet.entity_support:
-            entities = chunk.entities
-        else:
-            entities = chunk._native_entities
-
-        self.set_layer_obj(
-            data,
-            self.Entities,
-            self._encode_entity_list(entities),
-        )
-
-    def _encode_block_entities(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        self.set_layer_obj(
-            data,
-            self.BlockEntities,
-            self._encode_block_entity_list(chunk.block_entities),
         )
 
     @staticmethod

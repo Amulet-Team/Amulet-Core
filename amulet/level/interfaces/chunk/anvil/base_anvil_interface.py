@@ -117,20 +117,8 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
     def __init__(self):
         BaseDecoderEncoder.__init__(self)
         self._feature_options = {
-            "height_map": [
-                "256IARequired",  # A 256 element Int Array in HeightMap
-                "256IA",  # A 256 element Int Array in HeightMap
-                "C|V1",  # A Compound of Long Arrays with these keys "LIQUID", "SOLID", "LIGHT", "RAIN"
-                "C|V2",  # A Compound of Long Arrays with these keys "WORLD_SURFACE_WG", "OCEAN_FLOOR_WG", "MOTION_BLOCKING", "MOTION_BLOCKING_NO_LEAVES", "OCEAN_FLOOR", "LIGHT_BLOCKING"
-                "C|V3",  # A Compound of Long Arrays with these keys "WORLD_SURFACE_WG", "OCEAN_FLOOR_WG", "MOTION_BLOCKING", "MOTION_BLOCKING_NO_LEAVES", "OCEAN_FLOOR", "LIGHT_BLOCKING", "WORLD_SURFACE"
-                "C|V4",  # A Compound of Long Arrays with these keys "WORLD_SURFACE_WG", "OCEAN_FLOOR_WG", "MOTION_BLOCKING", "MOTION_BLOCKING_NO_LEAVES", "OCEAN_FLOOR", "WORLD_SURFACE"
-            ],
             # 'carving_masks': ['C|?BA'],
             "light_optional": ["false", "true"],
-            "block_entity_format": [EntityIDType.namespace_str_id],
-            "block_entity_coord_format": [EntityCoordType.xyz_int],
-            "entity_format": [EntityIDType.namespace_str_id],
-            "entity_coord_format": [EntityCoordType.Pos_list_double],
             # 'lights': [],
         }
         self._features = {key: None for key in self._feature_options.keys()}
@@ -247,36 +235,6 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
         """
         raise NotImplementedError
 
-    def _decode_entity_list(self, entities: ListTag) -> List["Entity"]:
-        entities_out = []
-        if entities.list_data_type == CompoundTag.tag_id:
-            for nbt in entities:
-                entity = self._decode_entity(
-                    NamedTag(nbt),
-                    self._features["entity_format"],
-                    self._features["entity_coord_format"],
-                )
-                if entity is not None:
-                    entities_out.append(entity)
-
-        return entities_out
-
-    def _decode_block_entity_list(self, block_entities: ListTag) -> List["BlockEntity"]:
-        entities_out = []
-        if block_entities.list_data_type == CompoundTag.tag_id:
-            for nbt in block_entities:
-                if not isinstance(nbt, CompoundTag):
-                    continue
-                entity = self._decode_block_entity(
-                    NamedTag(nbt),
-                    self._features["block_entity_format"],
-                    self._features["block_entity_coord_format"],
-                )
-                if entity is not None:
-                    entities_out.append(entity)
-
-        return entities_out
-
     @abstractmethod
     def encode(
         self,
@@ -296,31 +254,3 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
         :return: Raw data to be stored by the Format.
         """
         raise NotImplementedError
-
-    def _encode_entity_list(self, entities: Iterable["Entity"]) -> ListTag:
-        entities_out = []
-        for entity in entities:
-            nbt = self._encode_entity(
-                entity,
-                self._features["entity_format"],
-                self._features["entity_coord_format"],
-            )
-            if nbt is not None:
-                entities_out.append(nbt.compound)
-
-        return ListTag(entities_out)
-
-    def _encode_block_entity_list(
-        self, block_entities: Iterable["BlockEntity"]
-    ) -> ListTag:
-        entities_out = []
-        for entity in block_entities:
-            nbt = self._encode_block_entity(
-                entity,
-                self._features["block_entity_format"],
-                self._features["block_entity_coord_format"],
-            )
-            if nbt is not None:
-                entities_out.append(nbt.compound)
-
-        return ListTag(entities_out)

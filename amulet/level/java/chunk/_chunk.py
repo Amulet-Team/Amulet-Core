@@ -16,6 +16,11 @@ from amulet.chunk.components.biome import (
     Biome3DComponentData,
 )
 from amulet.chunk.components.block import BlockComponent, BlockComponentData
+from amulet.chunk.components.block_entity import (
+    BlockEntityComponent,
+    BlockEntityComponentData,
+)
+from amulet.chunk.components.entity import EntityComponent, EntityComponentData
 from amulet.level.java.chunk.components.raw_chunk import RawChunkComponent
 from amulet.level.java.chunk.components.data_version import DataVersionComponent
 from amulet.level.java.chunk.components.legacy_version import LegacyVersionComponent
@@ -59,6 +64,8 @@ def _get_components(
     components[BlockComponent] = BlockComponentData(
         version_range, (16, 16, 16), 0, default_block
     )
+    components[BlockEntityComponent] = BlockEntityComponentData(version_range)
+    components[EntityComponent] = EntityComponentData(version_range)
 
     if data_version >= 2203:
         components[Biome3DComponent] = Biome3DComponentData(
