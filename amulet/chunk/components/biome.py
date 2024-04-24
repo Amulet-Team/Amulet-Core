@@ -7,6 +7,7 @@ import numpy
 from numpy.typing import ArrayLike
 
 from amulet.version import VersionRange
+from amulet.biome import Biome
 from amulet.palette import BiomePalette
 from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
 from amulet.utils.typed_property import TypedProperty
@@ -22,6 +23,7 @@ class Biome2DComponentData:
         version_range: VersionRange,
         array_shape: tuple[int, int],
         array: Union[int, ArrayLike],
+        default_biome: Biome,
     ):
         if (
             not isinstance(array_shape, tuple)
@@ -32,6 +34,7 @@ class Biome2DComponentData:
 
         self._array_shape = array_shape
         self._palette = BiomePalette(version_range)
+        self._palette.biome_to_index(default_biome)
         self._set_biome(array)
 
     def __getstate__(self) -> tuple[tuple[int, int], BiomePalette, numpy.ndarray]:
@@ -89,8 +92,10 @@ class Biome3DComponentData:
         version_range: VersionRange,
         array_shape: tuple[int, int, int],
         default_array: Union[int, ArrayLike],
+        default_biome: Biome,
     ):
         self._palette = BiomePalette(version_range)
+        self._palette.biome_to_index(default_biome)
         self.__sections = SubChunkArrayContainer(array_shape, default_array)
 
     def __getstate__(self) -> tuple[BiomePalette, SubChunkArrayContainer]:

@@ -7,6 +7,7 @@ from numpy.typing import ArrayLike
 
 from amulet.version import VersionRange
 from amulet.palette import BlockPalette
+from amulet.block import BlockStack
 from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
 from amulet.utils.typed_property import TypedProperty
 
@@ -19,8 +20,10 @@ class BlockComponentData:
         version_range: VersionRange,
         array_shape: tuple[int, int, int],
         default_array: Union[int, ArrayLike],
+        default_block: BlockStack,
     ):
         self._palette = BlockPalette(version_range)
+        self._palette.block_stack_to_index(default_block)
         self._sections = SubChunkArrayContainer(array_shape, default_array)
 
     @TypedProperty[

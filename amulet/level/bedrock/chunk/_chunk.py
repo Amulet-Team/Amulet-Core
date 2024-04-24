@@ -7,6 +7,8 @@ import numpy
 
 from amulet.version import VersionNumber, VersionRange
 from amulet.chunk import Chunk
+from amulet.block import BlockStack
+from amulet.biome import Biome
 
 from amulet.chunk.components.biome import Biome2DComponent, Biome2DComponentData, Biome3DComponent, Biome3DComponentData
 from amulet.chunk.components.block import BlockComponent, BlockComponentData
@@ -34,7 +36,7 @@ class BedrockChunk0(Chunk):
     ))
 
     @classmethod
-    def new(cls, max_version: VersionNumber) -> Self:
+    def new(cls, max_version: VersionNumber, default_block: BlockStack, default_biome: Biome) -> Self:
         version_range = VersionRange(
             "bedrock",
             VersionNumber(1, 0, 0),
@@ -45,10 +47,10 @@ class BedrockChunk0(Chunk):
             RawChunkComponent: None,
             ChunkVersionComponent: 0,
             FinalisedStateComponent: 2,
-            BlockComponent: BlockComponentData(version_range, (16, 16, 16), 0),
+            BlockComponent: BlockComponentData(version_range, (16, 16, 16), 0, default_block),
             BlockEntityComponent: BlockEntityComponentData(version_range),
             EntityComponent: EntityComponentData(version_range),
-            Biome2DComponent: Biome2DComponentData(version_range, (16, 16), 0),
+            Biome2DComponent: Biome2DComponentData(version_range, (16, 16), 0, default_biome),
             Height2DComponent: numpy.zeros((16, 16), dtype=numpy.int64),
         })  # type: ignore
 
@@ -66,7 +68,7 @@ class BedrockChunk29(Chunk):
     ))
 
     @classmethod
-    def new(cls, max_version: VersionNumber) -> Self:
+    def new(cls, max_version: VersionNumber, default_block: BlockStack, default_biome: Biome) -> Self:
         version_range = VersionRange(
             "bedrock",
             VersionNumber(1, 0, 0),
@@ -77,10 +79,10 @@ class BedrockChunk29(Chunk):
             RawChunkComponent: None,
             ChunkVersionComponent: 29,
             FinalisedStateComponent: 2,
-            BlockComponent: BlockComponentData(version_range, (16, 16, 16), 0),
+            BlockComponent: BlockComponentData(version_range, (16, 16, 16), 0, default_block),
             BlockEntityComponent: BlockEntityComponentData(version_range),
             EntityComponent: EntityComponentData(version_range),
-            Biome3DComponent: Biome3DComponentData(version_range, (16, 16, 16), 0),
+            Biome3DComponent: Biome3DComponentData(version_range, (16, 16, 16), 0, default_biome),
             Height2DComponent: numpy.zeros((16, 16), dtype=numpy.int64),
         })  # type: ignore
 
