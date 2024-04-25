@@ -22,7 +22,6 @@ class Biome2DComponentData:
         self,
         version_range: VersionRange,
         array_shape: tuple[int, int],
-        array: Union[int, ArrayLike],
         default_biome: Biome,
     ):
         if (
@@ -35,7 +34,7 @@ class Biome2DComponentData:
         self._array_shape = array_shape
         self._palette = BiomePalette(version_range)
         self._palette.biome_to_index(default_biome)
-        self._set_biome(array)
+        self._set_biome(0)
 
     def __getstate__(self) -> tuple[tuple[int, int], BiomePalette, numpy.ndarray]:
         return self._array_shape, self._palette, self._array

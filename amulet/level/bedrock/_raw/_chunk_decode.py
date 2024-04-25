@@ -208,7 +208,7 @@ def raw_to_native(
             chunk_components[Height2DComponent] = numpy.zeros((16, 16), numpy.int64)
     elif chunk_class.has_component(Biome2DComponent):
         chunk_components[Biome2DComponent] = biome_2d = Biome2DComponentData(
-            version_range, (16, 16), 0, default_biome
+            version_range, (16, 16), default_biome
         )
         if b"\x2D" in chunk_data:
             d2d = chunk_data[b"\x2D"]
