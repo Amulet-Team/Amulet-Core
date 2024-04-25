@@ -43,7 +43,7 @@ class SubChunkArrayContainer(MutableMapping[int, numpy.ndarray]):
         state: tuple[
             tuple[int, int, int], int | numpy.ndarray, dict[int, numpy.ndarray]
         ],
-    ):
+    ) -> None:
         self._shape, self._default_array, self._arrays = state
 
     @property
