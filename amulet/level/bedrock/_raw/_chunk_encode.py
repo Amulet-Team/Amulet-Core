@@ -190,7 +190,7 @@ def native_to_raw(
                     namespace == default_biome.namespace
                     and base_name == default_biome.base_name
                 ):
-                    raise RuntimeError("Could not encode default biome.")
+                    return 0
                 return encode_biome(default_biome.namespace, default_biome.base_name)
 
     if chunk.has_component(Biome2DComponent):

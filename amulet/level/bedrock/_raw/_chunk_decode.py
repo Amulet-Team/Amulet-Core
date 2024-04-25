@@ -1,6 +1,6 @@
 from __future__ import annotations
 import struct
-from typing import Optional, TypeVar, TYPE_CHECKING
+from typing import Optional, TypeVar, TYPE_CHECKING, Callable
 import logging
 from functools import cache
 
@@ -215,12 +215,13 @@ def raw_to_native(
             chunk_components[Height2DComponent] = (
                 numpy.frombuffer(d2d[:512], "<i2").reshape((16, 16)).astype(numpy.int64)
             )
-            biome_2d.array = (
-                numpy.frombuffer(d2d[512:], dtype="uint8")
-                .reshape(16, 16)
-                .T.astype(numpy.uint32)
+            _decode_2d_biomes(
+                biome_2d,
+                raw_level.version,
+                numpy.frombuffer(d2d[512:], dtype="uint8"),
+                raw_level.biome_id_override.numerical_id_to_namespace_id,
+                game_version.biome.numerical_id_to_namespace_id,
             )
-            raise NotImplementedError("Need to set up the biome palette")
         else:
             chunk_components[Height2DComponent] = numpy.zeros((16, 16), numpy.int64)
     else:
@@ -467,6 +468,30 @@ def _load_palette_blocks(
     return blocks, palette, data
 
 
+def _decode_2d_biomes(
+    biome_2d_data: Biome2DComponentData,
+    version: VersionNumber,
+    arr: numpy.ndarray,
+    numerical_id_to_namespace_id_override: Callable[[int], tuple[str, str]],
+    numerical_id_to_namespace_id: Callable[[int], tuple[str, str]],
+) -> None:
+    numerical_ids, arr = numpy.unique(arr, return_inverse=True)
+    arr = arr.reshape(16, 16).T.astype(numpy.uint32)
+    lut = []
+    for numerical_id in numerical_ids:
+        try:
+            (
+                namespace,
+                base_name,
+            ) = numerical_id_to_namespace_id_override(numerical_id)
+        except KeyError:
+            namespace, base_name = numerical_id_to_namespace_id(numerical_id)
+        biome = Biome("bedrock", version, namespace, base_name)
+        runtime_id = biome_2d_data.palette.biome_to_index(biome)
+        lut.append(runtime_id)
+    biome_2d_data.array[:, :] = numpy.array(lut, dtype=numpy.uint32)[arr]
+
+
 def _decode_3d_biomes(
     raw_level: BedrockRawLevel,
     biome_3d_data: Biome3DComponentData,
@@ -479,6 +504,7 @@ def _decode_3d_biomes(
     # The 3D biome format consists of 25 16x arrays with the first array corresponding to the lowest sub-chunk in the world
     #  This is -64 in the overworld and 0 in the nether and end
     cy = floor_cy
+    game_version = get_game_version("bedrock", raw_level.version)
     while data:
         data, bits_per_value, arr = _decode_packed_array(data)
         if bits_per_value == 0:
@@ -491,9 +517,9 @@ def _decode_3d_biomes(
                     numerical_id
                 )
             except KeyError:
-                namespace, base_name = get_game_version(
-                    "bedrock", raw_level.version
-                ).biome.numerical_id_to_namespace_id(numerical_id)
+                namespace, base_name = game_version.biome.numerical_id_to_namespace_id(
+                    numerical_id
+                )
             # TODO: should this be based on the chunk version?
             runtime_id = biome_3d_data.palette.biome_to_index(
                 Biome("bedrock", raw_level.version, namespace, base_name)
@@ -515,9 +541,9 @@ def _decode_3d_biomes(
                         numerical_id
                     )
                 except KeyError:
-                    namespace, base_name = get_game_version(
-                        "bedrock", raw_level.version
-                    ).biome.numerical_id_to_namespace_id(numerical_id)
+                    namespace, base_name = (
+                        game_version.biome.numerical_id_to_namespace_id(numerical_id)
+                    )
                     # TODO: should this be based on the chunk version?
                 runtime_id = biome_3d_data.palette.biome_to_index(
                     Biome("bedrock", raw_level.version, namespace, base_name)
