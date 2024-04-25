@@ -1,4 +1,6 @@
 from typing import TYPE_CHECKING
+from functools import cache
+import logging
 
 import numpy
 from amulet_nbt import (
@@ -17,6 +19,7 @@ from amulet_nbt import (
     LongArrayTag,
 )
 
+from amulet.game import get_game_version
 from amulet.utils.world_utils import encode_long_array
 
 from amulet.block import Block, BlockStack
@@ -33,6 +36,7 @@ from amulet.chunk.components.biome import (
     Biome3DComponentData,
 )
 from amulet.chunk.components.block import BlockComponent, BlockComponentData
+from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
 from amulet.chunk.components.block_entity import (
     BlockEntityComponent,
     BlockEntityComponentData,
@@ -62,6 +66,9 @@ if TYPE_CHECKING:
     from ._dimension import JavaRawDimension
 
 
+log = logging.getLogger(__name__)
+
+
 def native_to_raw(
     raw_level: JavaRawLevel,
     dimension: JavaRawDimension,
@@ -74,6 +81,7 @@ def native_to_raw(
 
     # Get the data version. All Java chunk classes must have this
     data_version = chunk.get_component(DataVersionComponent)
+    game_version = get_game_version("java", VersionNumber(data_version))
 
     # Pull out or create the raw chunk data
     raw_chunk_component = chunk.get_component(RawChunkComponent)
@@ -100,10 +108,12 @@ def native_to_raw(
         region["xPos"] = IntTag(cx)
         floor_cy = bounds.min_y >> 4
         region["yPos"] = IntTag(floor_cy)
+        ceil_cy = bounds.max_y >> 4
         region["zPos"] = IntTag(cz)
     else:
         level["xPos"] = IntTag(cx)
         floor_cy = 0
+        ceil_cy = 16
         level["zPos"] = IntTag(cz)
 
     # LastUpdate
@@ -151,6 +161,78 @@ def native_to_raw(
     else:
         level["HeightMap"] = IntArrayTag(chunk.get_component(Height2DComponent).ravel())
 
+    # biomes
+    get_biome_id_override = raw_level.biome_id_override.namespace_id_to_numerical_id
+    get_biome_id_game = game_version.biome.namespace_id_to_numerical_id
+
+    @cache
+    def encode_biome(namespace: str, base_name: str) -> int:
+        try:
+            # First try overrides
+            return get_biome_id_override(namespace, base_name)
+        except KeyError:
+            try:
+                # Then fall back to the game implementation.
+                return get_biome_id_game(namespace, base_name)
+            except KeyError:
+                log.error(
+                    f"Unknown biome {namespace}:{base_name}. Falling back to default."
+                )
+                default_biome = dimension.default_biome()
+                if (
+                    namespace == default_biome.namespace
+                    and base_name == default_biome.base_name
+                ):
+                    return 0
+                return encode_biome(default_biome.namespace, default_biome.base_name)
+
+    if data_version >= 2844:
+        # region.sections[].biomes
+        raise NotImplementedError
+    elif data_version >= 2836:
+        # region.Level.sections[].biomes
+        raise NotImplementedError
+    if data_version >= 2203:
+        # region.Level.Biomes (4x64x4 IntArrayTag[1024])
+        biome_data_3d: Biome3DComponentData = chunk.get_component(Biome3DComponent)
+        biome_sections: SubChunkArrayContainer = biome_data_3d.sections
+        arrays = []
+        for cy in range(floor_cy, ceil_cy):
+            if cy not in biome_sections:
+                biome_data_3d.sections.populate(cy)
+            arrays.append(biome_sections[cy])
+        arr = numpy.transpose(
+            numpy.stack(arrays, 1, dtype=numpy.uint32),
+            (1, 2, 0),
+        ).ravel()  # YZX -> XYZ
+        runtime_ids, arr = numpy.unique(arr, return_inverse=True)
+        numerical_ids = []
+        for rid in runtime_ids:
+            biome = biome_data_3d.palette.index_to_biome(rid)
+            numerical_ids.append(encode_biome(biome.namespace, biome.base_name))
+        level["Biomes"] = IntArrayTag(
+            numpy.asarray(numerical_ids, dtype=numpy.uint32)[arr]
+        )
+
+    else:
+        biome_data_2d: Biome2DComponentData = chunk.get_component(Biome2DComponent)
+        runtime_ids, arr = numpy.unique(
+            biome_data_2d.array.ravel(), return_inverse=True
+        )
+        numerical_ids = []
+        for rid in runtime_ids:
+            biome = biome_data_2d.palette.index_to_biome(rid)
+            numerical_ids.append(encode_biome(biome.namespace, biome.base_name))
+        if data_version >= 1467:
+            # region.Level.Biomes (16x16 IntArrayTag[256])
+            level["Biomes"] = IntArrayTag(
+                numpy.asarray(numerical_ids, dtype=numpy.uint32)[arr]
+            )
+        else:
+            # region.Level.Biomes (16x16 ByteArrayTag[256])
+            level["Biomes"] = ByteArrayTag(
+                numpy.asarray(numerical_ids, dtype=numpy.uint8)[arr]
+            )
     # block entities
     block_entities = ListTag()
     block_entity: BlockEntity
@@ -174,7 +256,9 @@ def native_to_raw(
     for entity in chunk.get_component(EntityComponent):
         tag = entity.nbt.compound
         tag["id"] = StringTag(entity.namespaced_name)
-        tag["Pos"] = ListTag([DoubleTag(entity.x), DoubleTag(entity.y), DoubleTag(entity.z)])
+        tag["Pos"] = ListTag(
+            [DoubleTag(entity.x), DoubleTag(entity.y), DoubleTag(entity.z)]
+        )
         entities.append(tag)
     if data_version >= 2681:
         # entities.Entities

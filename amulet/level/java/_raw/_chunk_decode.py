@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 import numpy
 from amulet_nbt import (
@@ -17,6 +17,7 @@ from amulet_nbt import (
     LongArrayTag,
 )
 
+from amulet.game import get_game_version
 from amulet.block import Block, BlockStack
 from amulet.biome import Biome
 from amulet.block_entity import BlockEntity
@@ -94,7 +95,9 @@ def raw_to_native(
     chunk_components[DataVersionComponent] = data_version = region.pop_int(
         "DataVersion", IntTag(-1)
     ).py_int
-    version_range = VersionRange("java", VersionNumber(data_version), VersionNumber(data_version))
+    version = VersionNumber(data_version)
+    version_range = VersionRange("java", version, version)
+    game_version = get_game_version("java", version)
 
     # Get the chunk class
     chunk_class: type[JavaChunk]
@@ -188,6 +191,79 @@ def raw_to_native(
         else:
             chunk_components[Height2DComponent] = numpy.zeros((16, 16), numpy.int64)
 
+    # biomes
+    default_biome = dimension.default_biome()
+    if not version_range.contains(default_biome.platform, default_biome.version):
+        default_biome = get_game_version(
+            default_biome.platform, default_biome.version
+        ).biome.translate("java", version, default_biome)
+    if data_version >= 2836:
+        if data_version >= 2844:
+            # region.sections[].biomes
+            sections = region.get_list("sections", ListTag())
+        else:
+            # region.Level.sections[].biomes
+            sections = level.get_list("sections", ListTag())
+        biome_sections: dict[int, numpy.ndarray] = {}
+        raise NotImplementedError
+    elif data_version >= 2203:
+        # region.Level.Biomes (4x64x4 IntArrayTag[1024])
+        biomes_3d = level.pop_int_array("Biomes")
+        chunk_components[Biome3DComponent] = biome_data_3d = Biome3DComponentData(
+            version_range, (16, 16, 16), 0, default_biome
+        )
+        if biomes_3d is not None:
+            arr: numpy.ndarray = biomes_3d.np_array
+            assert len(arr) % 64 == 0
+            numerical_ids, arr = numpy.unique(arr, return_inverse=True)
+            arr = numpy.transpose(
+                arr.astype(numpy.uint32).reshape((-1, 4, 4)),
+                (2, 0, 1),
+            )  # YZX -> XYZ
+            lut = []
+            for numerical_id in numerical_ids:
+                try:
+                    (
+                        namespace,
+                        base_name,
+                    ) = raw_level.biome_id_override.numerical_id_to_namespace_id(
+                        numerical_id
+                    )
+                except KeyError:
+                    namespace, base_name = (
+                        game_version.biome.numerical_id_to_namespace_id(numerical_id)
+                    )
+                biome = Biome("java", version, namespace, base_name)
+                runtime_id = biome_data_3d.palette.biome_to_index(biome)
+                lut.append(runtime_id)
+            arr = numpy.array(lut, dtype=numpy.uint32)[arr]
+            for sy, sub_arr in enumerate(
+                numpy.split(
+                    arr,
+                    arr.shape[1] // 4,
+                    1,
+                )
+            ):
+                biome_data_3d.sections[sy + floor_cy] = sub_arr
+    else:
+        biomes_2d: ByteArrayTag | IntArrayTag | None
+        if data_version >= 1467:
+            # region.Level.Biomes (16x16 IntArrayTag[256])
+            biomes_2d = level.pop_int_array("Biomes")
+        else:
+            # region.Level.Biomes (16x16 ByteArrayTag[256])
+            biomes_2d = level.pop_byte_array("Biomes")
+        chunk_components[Biome2DComponent] = biome_data_2d = Biome2DComponentData(
+            version_range, (16, 16), default_biome
+        )
+        if biomes_2d is not None and len(biomes_2d) == 256:
+            _decode_2d_biomes(
+                biome_data_2d,
+                version,
+                biomes_2d.np_array,
+                raw_level.biome_id_override.numerical_id_to_namespace_id,
+                game_version.biome.numerical_id_to_namespace_id,
+            )
     # block entities
     if data_version >= 2844:
         # region.block_entities
@@ -195,7 +271,9 @@ def raw_to_native(
     else:
         # region.Level.TileEntities
         block_entities = level.pop_list("TileEntities", ListTag())
-    chunk_components[BlockEntityComponent] = block_entity_component = BlockEntityComponentData(version_range)
+    chunk_components[BlockEntityComponent] = block_entity_component = (
+        BlockEntityComponentData(version_range)
+    )
     for tag in block_entities:
         if not isinstance(tag, CompoundTag):
             continue
@@ -206,7 +284,9 @@ def raw_to_native(
         y = tag.pop_int("y", raise_errors=True).py_int
         z = tag.pop_int("z", raise_errors=True).py_int
 
-        block_entity_component[(x, y, z)] = BlockEntity("java", VersionNumber(data_version), namespace, base_name, NamedTag(tag))
+        block_entity_component[(x, y, z)] = BlockEntity(
+            "java", version, namespace, base_name, NamedTag(tag)
+        )
 
     # entities
     entities = ListTag()
@@ -214,7 +294,10 @@ def raw_to_native(
         # It seems like the inline version can exist at the same time as the external format.
         # entities.Entities
         entity_layer = raw_chunk.get("entities", NamedTag()).compound
-        assert entity_layer.get_int("DataVersion", IntTag(data_version)).py_int == data_version, "data version mismatch."
+        assert (
+            entity_layer.get_int("DataVersion", IntTag(data_version)).py_int
+            == data_version
+        ), "data version mismatch."
         entities.extend(entity_layer.pop_list("Entities", ListTag()))
     if data_version >= 2844:
         # region.entities
@@ -222,7 +305,9 @@ def raw_to_native(
     else:
         # region.Level.Entities
         entities.extend(level.pop_list("Entities"))
-    chunk_components[EntityComponent] = entity_component = EntityComponentData(version_range)
+    chunk_components[EntityComponent] = entity_component = EntityComponentData(
+        version_range
+    )
     for tag in entities:
         if not isinstance(tag, CompoundTag):
             continue
@@ -233,6 +318,32 @@ def raw_to_native(
         x = pos[0].py_float
         y = pos[1].py_float
         z = pos[2].py_float
-        entity_component.add(Entity("java", VersionNumber(data_version), namespace, base_name, x, y, z, NamedTag(tag)))
+        entity_component.add(
+            Entity("java", version, namespace, base_name, x, y, z, NamedTag(tag))
+        )
 
     return chunk_class.from_component_data(chunk_components)
+
+
+def _decode_2d_biomes(
+    biome_data_2d: Biome2DComponentData,
+    version: VersionNumber,
+    arr: numpy.ndarray,
+    numerical_id_to_namespace_id_override: Callable[[int], tuple[str, str]],
+    numerical_id_to_namespace_id: Callable[[int], tuple[str, str]],
+) -> None:
+    numerical_ids, arr = numpy.unique(arr, return_inverse=True)
+    arr = arr.reshape(16, 16).T.astype(numpy.uint32)
+    lut = []
+    for numerical_id in numerical_ids:
+        try:
+            (
+                namespace,
+                base_name,
+            ) = numerical_id_to_namespace_id_override(numerical_id)
+        except KeyError:
+            namespace, base_name = numerical_id_to_namespace_id(numerical_id)
+        biome = Biome("java", version, namespace, base_name)
+        runtime_id = biome_data_2d.palette.biome_to_index(biome)
+        lut.append(runtime_id)
+    biome_data_2d.array[:, :] = numpy.array(lut, dtype=numpy.uint32)[arr]
