@@ -97,12 +97,11 @@ class Biome3DComponentData:
         self,
         version_range: VersionRange,
         array_shape: tuple[int, int, int],
-        default_array: Union[int, ArrayLike],
         default_biome: Biome,
     ):
         self._palette = BiomePalette(version_range)
         self._palette.biome_to_index(default_biome)
-        self.__sections = SubChunkArrayContainer(array_shape, default_array)
+        self.__sections = SubChunkArrayContainer(array_shape, 0)
 
     def __getstate__(self) -> tuple[BiomePalette, SubChunkArrayContainer]:
         return self._palette, self.__sections

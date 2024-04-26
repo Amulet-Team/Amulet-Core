@@ -69,7 +69,7 @@ def _get_components(
 
     if data_version >= 2203:
         components[Biome3DComponent] = Biome3DComponentData(
-            version_range, (4, 4, 4), 0, default_biome
+            version_range, (4, 4, 4), default_biome
         )
     else:
         components[Biome2DComponent] = Biome2DComponentData(

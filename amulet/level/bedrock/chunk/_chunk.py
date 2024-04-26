@@ -48,7 +48,7 @@ def _get_components(
     components[EntityComponent] = EntityComponentData(version_range)
     if chunk_version >= 29:
         components[Biome3DComponent] = Biome3DComponentData(
-            version_range, (16, 16, 16), 0, default_biome
+            version_range, (16, 16, 16), default_biome
         )
     else:
         components[Biome2DComponent] = Biome2DComponentData(

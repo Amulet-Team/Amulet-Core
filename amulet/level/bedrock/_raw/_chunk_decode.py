@@ -194,7 +194,7 @@ def raw_to_native(
         ).biome.translate("bedrock", max_version, default_biome)
     if chunk_class.has_component(Biome3DComponent):
         chunk_components[Biome3DComponent] = biome_3d = Biome3DComponentData(
-            version_range, (16, 16, 16), 0, default_biome
+            version_range, (16, 16, 16), default_biome
         )
         if b"+" in chunk_data:
             d2d = chunk_data[b"+"]
