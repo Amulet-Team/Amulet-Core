@@ -187,13 +187,15 @@ def native_to_raw(
                 return encode_biome(default_biome.namespace, default_biome.base_name)
 
     if data_version >= 2844:
+        # region.sections[]
         sections = region.setdefault_list("sections")
     else:
+        # region.Level.sections[]
         sections = level.setdefault_list("sections")
     sections_map = {}
     for section in sections:
         assert isinstance(section, CompoundTag)
-        sections_map[section.get_byte("Y", raise_errors=True).py_int] = section
+        sections_map[section.get_byte("Y", ByteTag(0)).py_int] = section
 
     if data_version >= 2203:
         # 3D

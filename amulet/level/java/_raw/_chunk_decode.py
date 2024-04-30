@@ -193,6 +193,17 @@ def raw_to_native(
         else:
             chunk_components[Height2DComponent] = numpy.zeros((16, 16), numpy.int64)
 
+    if data_version >= 2844:
+        # region.sections[]
+        sections = region.get_list("sections", ListTag())
+    else:
+        # region.Level.sections[]
+        sections = level.get_list("sections", ListTag())
+    sections_map = {}
+    for section in sections:
+        assert isinstance(section, CompoundTag)
+        sections_map[section.get_byte("Y", ByteTag(0)).py_int] = section
+
     # biomes
     default_biome = dimension.default_biome()
     if not version_range.contains(default_biome.platform, default_biome.version):
@@ -200,18 +211,14 @@ def raw_to_native(
             default_biome.platform, default_biome.version
         ).biome.translate("java", version, default_biome)
     if data_version >= 2836:
-        if data_version >= 2844:
-            # region.sections[].biomes
-            sections = region.get_list("sections", ListTag())
-        else:
-            # region.Level.sections[].biomes
-            sections = level.get_list("sections", ListTag())
+        # if data_version >= 2844:
+        #     # region.sections[].biomes
+        # else:
+        #     # region.Level.sections[].biomes
         chunk_components[Biome3DComponent] = biome_data_3d = Biome3DComponentData(
             version_range, (4, 4, 4), default_biome
         )
-        for section in sections:
-            assert isinstance(section, CompoundTag)
-            cy = section.get_byte("Y", ByteTag()).py_int
+        for cy, section in sections_map.items():
             biomes_structure = section.get_compound("biomes")
             if biomes_structure is None:
                 continue
