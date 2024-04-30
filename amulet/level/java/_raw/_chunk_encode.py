@@ -272,7 +272,7 @@ def native_to_raw(
                 numpy.asarray(numerical_ids, dtype=numpy.uint8)[arr]
             )
     # block entities
-    block_entities = ListTag()
+    block_entities = ListTag[CompoundTag]()
     block_entity: BlockEntity
     for (x, y, z), block_entity in chunk.get_component(BlockEntityComponent).items():
         tag = block_entity.nbt.compound
@@ -289,7 +289,7 @@ def native_to_raw(
         level["TileEntities"] = block_entities
 
     # entities
-    entities = ListTag()
+    entities = ListTag[CompoundTag]()
     entity: Entity
     for entity in chunk.get_component(EntityComponent):
         tag = entity.nbt.compound

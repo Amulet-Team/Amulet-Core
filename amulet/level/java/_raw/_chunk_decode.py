@@ -312,16 +312,16 @@ def raw_to_native(
 
         entity_id = tag.pop_string("id", raise_errors=True)
         namespace, base_name = entity_id.py_str.split(":", 1)
-        x = tag.pop_int("x", raise_errors=True).py_int
-        y = tag.pop_int("y", raise_errors=True).py_int
-        z = tag.pop_int("z", raise_errors=True).py_int
+        x_int = tag.pop_int("x", raise_errors=True).py_int
+        y_int = tag.pop_int("y", raise_errors=True).py_int
+        z_int = tag.pop_int("z", raise_errors=True).py_int
 
-        block_entity_component[(x, y, z)] = BlockEntity(
+        block_entity_component[(x_int, y_int, z_int)] = BlockEntity(
             "java", version, namespace, base_name, NamedTag(tag)
         )
 
     # entities
-    entities = ListTag()
+    entities = ListTag[CompoundTag]()
     if data_version >= 2681:
         # It seems like the inline version can exist at the same time as the external format.
         # entities.Entities
@@ -333,10 +333,10 @@ def raw_to_native(
         entities.extend(entity_layer.pop_list("Entities", ListTag()))
     if data_version >= 2844:
         # region.entities
-        entities.extend(region.pop_list("entities"))
+        entities.extend(region.pop_list("entities", ListTag()))
     else:
         # region.Level.Entities
-        entities.extend(level.pop_list("Entities"))
+        entities.extend(level.pop_list("Entities", ListTag()))
     chunk_components[EntityComponent] = entity_component = EntityComponentData(
         version_range
     )
@@ -347,11 +347,11 @@ def raw_to_native(
         entity_id = tag.pop_string("id", raise_errors=True)
         namespace, base_name = entity_id.py_str.split(":", 1)
         pos = tag.pop_list("Pos", raise_errors=True)
-        x = pos[0].py_float
-        y = pos[1].py_float
-        z = pos[2].py_float
+        x_float = pos.get_double(0).py_float
+        y_float = pos.get_double(1).py_float
+        z_float = pos.get_double(2).py_float
         entity_component.add(
-            Entity("java", version, namespace, base_name, x, y, z, NamedTag(tag))
+            Entity("java", version, namespace, base_name, x_float, y_float, z_float, NamedTag(tag))
         )
 
     return chunk_class.from_component_data(chunk_components)
