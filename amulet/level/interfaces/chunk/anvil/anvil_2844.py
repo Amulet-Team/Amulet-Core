@@ -62,7 +62,6 @@ class Anvil2844Interface(ParentInterface):
     LiquidTicks: ChunkPathType = ("region", [("fluid_ticks", ListTag)], ListTag)
     LiquidsToBeTicked = None
     Structures: ChunkPathType = ("region", [("structures", CompoundTag)], CompoundTag)
-    Biomes = None
 
     # Changed attributes not listed on the wiki
     PostProcessing: ChunkPathType = ("region", [("PostProcessing", ListTag)], ListTag)
@@ -97,57 +96,6 @@ class Anvil2844Interface(ParentInterface):
             return arr, section_palette
         else:
             return None
-
-    @staticmethod
-    def _decode_biome_palette(palette: ListTag) -> list[BiomeType]:
-        return [entry.py_data for entry in palette]
-
-    def _decode_biome_section(
-        self, section: CompoundTag
-    ) -> Optional[Tuple[numpy.ndarray, list]]:
-        biomes = self.get_obj(section, "biomes", CompoundTag)
-        if isinstance(biomes, CompoundTag) and "palette" in biomes:
-            section_palette = self._decode_biome_palette(biomes.pop("palette"))
-            assert section_palette, "Biome palette cannot be empty"
-            data = biomes.pop("data", None)
-            if data is None:
-                # case 1: palette contains one value and data does not exist (undefined zero array)
-                # TODO: in the new biome system just leave this as the number
-                arr = numpy.zeros((4, 4, 4), numpy.uint32)
-            else:
-                # case 2: palette contains values and data is an index array
-                arr = numpy.transpose(
-                    decode_long_array(
-                        data.np_array,
-                        4**3,
-                        max(1, (len(section_palette) - 1).bit_length()),
-                        dense=self.LongArrayDense,
-                    )
-                    .astype(numpy.uint32)
-                    .reshape((4, 4, 4)),
-                    (2, 0, 1),
-                )
-            return arr, section_palette
-        else:
-            return None
-
-    def _decode_biomes(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        biomes: Dict[int, numpy.ndarray] = {}
-        palette = BiomePalette()
-
-        for cy, section in self._iter_sections(data):
-            data = self._decode_biome_section(section)
-            if data is not None:
-                arr, section_palette = data
-                lut = numpy.array(
-                    [palette.biome_to_index(biome) for biome in section_palette]
-                )
-                biomes[cy] = lut[arr].astype(numpy.uint32)
-
-        chunk.biomes = biomes
-        chunk.biome_palette = palette
 
     def _decode_block_ticks(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
@@ -188,42 +136,6 @@ class Anvil2844Interface(ParentInterface):
                     block_sub_array, dense=self.LongArrayDense, min_bits_per_entry=4
                 )
             )
-
-    @staticmethod
-    def _encode_biome_palette(palette: Iterable[BiomeType]) -> ListTag:
-        return ListTag([StringTag(entry) for entry in palette])
-
-    def _encode_biome_section(
-        self,
-        chunk: Chunk,
-        sections: Dict[int, CompoundTag],
-        cy: int,
-    ):
-        biome_sub_array = numpy.transpose(
-            chunk.biomes.get_section(cy), (1, 2, 0)
-        ).ravel()
-
-        sub_palette_, biome_sub_array = numpy.unique(
-            biome_sub_array, return_inverse=True
-        )
-        sub_palette = self._encode_biome_palette(
-            map(chunk.biome_palette.index_to_biome, map(int, sub_palette_))
-        )
-        biomes = sections[cy]["biomes"] = CompoundTag({"palette": sub_palette})
-        if len(sub_palette) != 1:
-            biomes["data"] = LongArrayTag(
-                encode_long_array(biome_sub_array, dense=self.LongArrayDense)
-            )
-
-    def _encode_biomes(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        sections = self._get_encode_sections(data, floor_cy, height_cy)
-        ceil_cy = floor_cy + height_cy
-        chunk.biomes.convert_to_3d()
-        for cy in chunk.biomes.sections:
-            if floor_cy <= cy < ceil_cy:
-                self._encode_biome_section(chunk, sections, cy)
 
     def _encode_block_ticks(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int

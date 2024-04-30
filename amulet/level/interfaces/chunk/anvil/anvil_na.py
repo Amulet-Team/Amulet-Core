@@ -47,11 +47,6 @@ class AnvilNAInterface(BaseAnvilInterface):
         [("Level", CompoundTag), ("TileTicks", ListTag)],
         ListTag,
     )
-    Biomes: ChunkPathType = (
-        "region",
-        [("Level", CompoundTag), ("Biomes", ByteArrayTag)],
-        None,
-    )
 
     def __init__(self):
         super().__init__()
@@ -104,13 +99,6 @@ class AnvilNAInterface(BaseAnvilInterface):
         :return: The level data compound
         """
         return self.get_layer_obj(data, self.Level)
-
-    def _decode_biomes(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        biomes = self.get_layer_obj(data, self.Biomes, pop_last=True)
-        if isinstance(biomes, AbstractBaseArrayTag) and biomes.np_array.size == 256:
-            chunk.biomes = biomes.np_array.astype(numpy.uint32).reshape((16, 16))
 
     def _iter_sections(self, data: ChunkDataType) -> Iterator[Tuple[int, CompoundTag]]:
         sections: ListTag = self.get_layer_obj(data, self.Sections)
@@ -302,16 +290,6 @@ class AnvilNAInterface(BaseAnvilInterface):
         for cy in chunk.blocks.sub_chunks:
             if floor_cy <= cy < ceil_cy:
                 self._encode_block_section(chunk, sections, block_palette, cy)
-
-    def _encode_biomes(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        chunk.biomes.convert_to_2d()
-        self.set_layer_obj(
-            data,
-            self.Biomes,
-            ByteArrayTag(chunk.biomes.astype(dtype=numpy.uint8).ravel()),
-        )
 
     @staticmethod
     def _encode_ticks(ticks: Dict[BlockCoordinates, Tuple[str, int, int]]) -> ListTag:
