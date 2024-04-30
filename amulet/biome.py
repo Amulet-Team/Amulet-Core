@@ -54,6 +54,19 @@ class Biome(PlatformVersionContainer):
         return f"Biome({self.platform!r}, {self.version!r}, {self.namespace!r}, {self.base_name!r}, {self.version!r})"
 
     @property
+    def namespaced_name(self) -> str:
+        """
+        The namespace:base_name of the biome represented by the :class:`Biome` object.
+
+        >>> plains = Biome("java", VersionNumber(3837), "minecraft", "plains")
+        >>> plains.namespaced_name
+        'minecraft:plains'
+
+        :return: The namespace:base_name of the biome
+        """
+        return f"{self.namespace}:{self.base_name}"
+
+    @property
     def namespace(self) -> str:
         """
         The namespace of the biome represented by the :class:`Biome` object.
