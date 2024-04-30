@@ -210,7 +210,7 @@ def raw_to_native(
         # region.Level.Biomes (4x64x4 IntArrayTag[1024])
         biomes_3d = level.pop_int_array("Biomes")
         chunk_components[Biome3DComponent] = biome_data_3d = Biome3DComponentData(
-            version_range, (16, 16, 16), default_biome
+            version_range, (4, 4, 4), default_biome
         )
         if biomes_3d is not None:
             arr: numpy.ndarray = biomes_3d.np_array
