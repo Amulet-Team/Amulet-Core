@@ -10,8 +10,7 @@ if next(glob.iglob(pyx_path, recursive=True), None):
     # This throws an error if it does not match any files
     ext += cythonize(
         pyx_path,
-        language_level=3,
-        annotate=True,
+        language_level=3
     )
 
 setup(
