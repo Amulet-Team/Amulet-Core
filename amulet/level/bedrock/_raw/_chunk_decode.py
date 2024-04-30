@@ -42,7 +42,8 @@ from amulet.chunk.components.biome import (
 from amulet.game import get_game_version
 from amulet.version import VersionNumber, VersionRange
 
-from amulet.utils.world_utils import fast_unique, from_nibble_array
+from amulet.utils.world_utils import from_nibble_array
+from amulet.utils.numpy import unique_inverse
 
 from amulet.level.bedrock._raw import BedrockRawChunk
 from amulet.level.bedrock.chunk import BedrockChunk, BedrockChunk0, BedrockChunk29
@@ -149,16 +150,15 @@ def raw_to_native(
         if section_data is not None:
             block_ids = numpy.frombuffer(
                 section_data[: 2**15], dtype=numpy.uint8
-            ).astype(numpy.uint16)
+            ).astype(numpy.uint32)
             block_data = from_nibble_array(
                 numpy.frombuffer(section_data[2**15 : 2**15 + 2**14], dtype=numpy.uint8)
             )
 
             # there is other data here but we are going to skip over it
-            combined_palette, block_array = fast_unique(
-                numpy.transpose(
-                    ((block_ids << 4) + block_data).reshape(16, 16, 128), (0, 2, 1)
-                )
+            combined_palette, block_array = unique_inverse((block_ids << 4) + block_data)
+            block_array = numpy.transpose(
+                block_array.reshape(16, 16, 128), (0, 2, 1)
             )
             block_component_data.sections = {
                 i: block_array[:, i * 16 : (i + 1) * 16, :] for i in range(8)
@@ -339,13 +339,12 @@ def _load_binary_subchunk(
     block_palette: BlockPalette,
     cy: int,
 ) -> None:
-    block_ids = numpy.frombuffer(data[: 2**12], dtype=numpy.uint8).astype(numpy.uint16)
+    block_ids = numpy.frombuffer(data[: 2**12], dtype=numpy.uint8).astype(numpy.uint32)
     block_data = from_nibble_array(
         numpy.frombuffer(data[2**12 : 2**12 + 2**11], dtype=numpy.uint8)
     )
-    numerical_palette, block_array = fast_unique(
-        numpy.transpose(((block_ids << 4) + block_data).reshape(16, 16, 16), (0, 2, 1))
-    )
+    numerical_palette, block_array = unique_inverse((block_ids << 4) + block_data)
+    block_array = numpy.transpose(block_array.reshape(16, 16, 16), (0, 2, 1))
     block_lut: list[int] = []
     for block_id, block_data in numpy.array(
         [numerical_palette >> 4, numerical_palette & 15]

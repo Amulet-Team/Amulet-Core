@@ -324,11 +324,3 @@ def entity_position_to_chunk_coordinates(
         int(math.floor(entity_coordinates[0])) >> 4,
         int(math.floor(entity_coordinates[2])) >> 4,
     )
-
-
-def fast_unique(array: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]:
-    uni = numpy.unique(array)
-    lut = numpy.zeros(numpy.amax(uni) + 1, dtype=numpy.uint32)
-    lut[uni] = numpy.arange(uni.size)
-    inv = lut[array]
-    return uni, inv
