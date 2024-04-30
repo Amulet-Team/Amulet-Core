@@ -53,13 +53,11 @@ class AnvilNAInterface(BaseAnvilInterface):
 
         self._set_feature("light_optional", "false")
 
-        self._register_decoder(self._decode_biomes)
         self._register_decoder(self._decode_blocks)
         self._register_decoder(self._decode_block_ticks)
         self._register_decoder(self._decode_block_light)
         self._register_decoder(self._decode_sky_light)
 
-        self._register_encoder(self._encode_biomes)
         self._register_encoder(self._encode_blocks)
         self._register_encoder(self._encode_block_ticks)
         self._register_encoder(self._encode_block_light)

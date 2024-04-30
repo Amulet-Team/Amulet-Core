@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .anvil_1912 import Anvil1912Interface as ParentInterface
+from .anvil_1444 import Anvil1444Interface as ParentInterface
 
 
 class Anvil1934Interface(ParentInterface):
