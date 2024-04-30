@@ -168,6 +168,7 @@ def raw_to_native(
 
     # Height map
     if data_version >= 1466:
+        # CompoundTag of named heightmaps
         if data_version >= 2844:
             heights = region.pop_compound("HeightMaps", CompoundTag())
         else:
@@ -183,6 +184,7 @@ def raw_to_native(
                 ).reshape((16, 16)) + (floor_cy << 4)
         chunk_components[NamedHeight2DComponent] = NamedHeight2DData((16, 16), arrays)
     else:
+        # Single heightmap
         height = level.pop_int_array("HeightMap")
         if isinstance(height, IntArrayTag) and len(height) == 256:
             chunk_components[Height2DComponent] = height.np_array.astype(
@@ -204,8 +206,38 @@ def raw_to_native(
         else:
             # region.Level.sections[].biomes
             sections = level.get_list("sections", ListTag())
-        biome_sections: dict[int, numpy.ndarray] = {}
-        raise NotImplementedError
+        chunk_components[Biome3DComponent] = biome_data_3d = Biome3DComponentData(
+            version_range, (4, 4, 4), default_biome
+        )
+        for section in sections:
+            assert isinstance(section, CompoundTag)
+            cy = section.get_byte("Y", ByteTag()).py_int
+            biomes_structure = section.get_compound("biomes")
+            if biomes_structure is None:
+                continue
+            palette = biomes_structure.get_list("palette", raise_errors=True)
+            lut = []
+            for biome_name in palette:
+                assert isinstance(biome_name, StringTag)
+                namespace, base_name = biome_name.py_str.split(":", 1)
+                lut.append(biome_data_3d.palette.biome_to_index(Biome("java", version, namespace, base_name)))
+            data = biomes_structure.get_long_array("data")
+            if data is None:
+                biome_data_3d.sections[cy] = numpy.full((4, 4, 4), lut[0], numpy.uint32)
+            else:
+                biome_data_3d.sections[cy] = numpy.array(lut, numpy.uint32)[
+                    numpy.transpose(
+                        decode_long_array(
+                            data.np_array,
+                            4 ** 3,
+                            max(1, (len(lut) - 1).bit_length()),
+                            dense=data_version <= 2529,
+                        )
+                        .astype(numpy.uint32)
+                        .reshape((4, 4, 4)),
+                        (2, 0, 1),
+                    )
+                ]
     elif data_version >= 2203:
         # region.Level.Biomes (4x64x4 IntArrayTag[1024])
         biomes_3d = level.pop_int_array("Biomes")

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 from functools import cache
 import logging
 
@@ -162,8 +162,8 @@ def native_to_raw(
         level["HeightMap"] = IntArrayTag(chunk.get_component(Height2DComponent).ravel())
 
     # biomes
-    get_biome_id_override = raw_level.biome_id_override.namespace_id_to_numerical_id
-    get_biome_id_game = game_version.biome.namespace_id_to_numerical_id
+    get_biome_id_override: Callable[[str, str], int] = raw_level.biome_id_override.namespace_id_to_numerical_id
+    get_biome_id_game: Callable[[str, str], int] = game_version.biome.namespace_id_to_numerical_id
 
     @cache
     def encode_biome(namespace: str, base_name: str) -> int:
@@ -187,34 +187,72 @@ def native_to_raw(
                 return encode_biome(default_biome.namespace, default_biome.base_name)
 
     if data_version >= 2844:
-        # region.sections[].biomes
-        raise NotImplementedError
-    elif data_version >= 2836:
-        # region.Level.sections[].biomes
-        raise NotImplementedError
+        sections = region.setdefault_list("sections")
+    else:
+        sections = level.setdefault_list("sections")
+    sections_map = {}
+    for section in sections:
+        assert isinstance(section, CompoundTag)
+        sections_map[section.get_byte("Y", raise_errors=True).py_int] = section
+
     if data_version >= 2203:
-        # region.Level.Biomes (4x64x4 IntArrayTag[1024])
+        # 3D
         biome_data_3d: Biome3DComponentData = chunk.get_component(Biome3DComponent)
         biome_sections: SubChunkArrayContainer = biome_data_3d.sections
-        arrays = []
-        for cy in range(floor_cy, ceil_cy):
-            if cy not in biome_sections:
-                biome_data_3d.sections.populate(cy)
-            arrays.append(biome_sections[cy])
-        arr = numpy.transpose(
-            numpy.stack(arrays, 1, dtype=numpy.uint32),
-            (1, 2, 0),
-        ).ravel()  # YZX -> XYZ
-        runtime_ids, arr = numpy.unique(arr, return_inverse=True)
-        numerical_ids = []
-        for rid in runtime_ids:
-            biome = biome_data_3d.palette.index_to_biome(rid)
-            numerical_ids.append(encode_biome(biome.namespace, biome.base_name))
-        level["Biomes"] = IntArrayTag(
-            numpy.asarray(numerical_ids, dtype=numpy.uint32)[arr]
-        )
+        palette = biome_data_3d.palette
+        if data_version >= 2836:
+            # Paletted
+            # if data_version >= 2844:
+            #     # region.sections[].biomes.palette
+            #     # region.sections[].biomes.data
+            # else:
+            #     # region.Level.sections[].biomes.palette
+            #     # region.Level.sections[].biomes.data
 
+            for cy in range(floor_cy, ceil_cy):
+                if cy not in biome_sections:
+                    continue
+                arr = numpy.transpose(
+                    biome_sections[cy], (1, 2, 0)
+                ).ravel()
+                runtime_ids, arr = numpy.unique(
+                    arr, return_inverse=True
+                )
+                sub_palette = ListTag([
+                    StringTag(palette.index_to_biome(runtime_id).namespaced_name)
+                    for runtime_id in runtime_ids
+                ])
+                section = sections_map.get(cy, None)
+                if section is None:
+                    section = sections_map[cy] = CompoundTag()
+                    sections.append(section)
+                biomes = section["biomes"] = CompoundTag({"palette": sub_palette})
+                if len(sub_palette) > 1:
+                    biomes["data"] = LongArrayTag(
+                        encode_long_array(arr, dense=data_version <= 2529)
+                    )
+        else:
+            # hard coded ids
+            # region.Level.Biomes (4x64x4 IntArrayTag[1024])
+            arrays = []
+            for cy in range(floor_cy, ceil_cy):
+                if cy not in biome_sections:
+                    biome_sections.populate(cy)
+                arrays.append(biome_sections[cy])
+            arr = numpy.transpose(
+                numpy.stack(arrays, 1, dtype=numpy.uint32),
+                (1, 2, 0),
+            ).ravel()  # YZX -> XYZ
+            runtime_ids, arr = numpy.unique(arr, return_inverse=True)
+            numerical_ids = []
+            for rid in runtime_ids:
+                biome = palette.index_to_biome(rid)
+                numerical_ids.append(encode_biome(biome.namespace, biome.base_name))
+            level["Biomes"] = IntArrayTag(
+                numpy.asarray(numerical_ids, dtype=numpy.uint32)[arr]
+            )
     else:
+        # 2D
         biome_data_2d: Biome2DComponentData = chunk.get_component(Biome2DComponent)
         runtime_ids, arr = numpy.unique(
             biome_data_2d.array.ravel(), return_inverse=True
