@@ -102,7 +102,7 @@ def to_nibble_array(arr: ndarray) -> ndarray:
     :return: The nibble array
     """
     arr = arr.ravel()
-    return (arr[::2] + (arr[1::2] << 4)).astype("uint8")
+    return (arr[::2] + (arr[1::2] << 4)).astype(uint8)
 
 
 """
