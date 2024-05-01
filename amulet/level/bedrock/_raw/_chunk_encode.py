@@ -8,6 +8,7 @@ import numpy
 
 from amulet_nbt import (
     CompoundTag,
+    AbstractBaseIntTag,
     ShortTag,
     IntTag,
     FloatTag,
@@ -108,31 +109,22 @@ def native_to_raw(
         def encode_block(block: Block) -> tuple[int, int]:
             namespace = block.namespace
             base_name = block.base_name
-
-            def get_block_data() -> int:
-                nbt_block_data = block.properties.get("block_data")
-                if isinstance(nbt_block_data, IntTag):
-                    return nbt_block_data.py_int % 16
-                return 0
-
-            # encode namespace
-            if namespace == "numerical":
-                if base_name.isnumeric():
-                    return int(base_name) % 256, get_block_data()
+            try:
+                block_id = get_block_id_override(namespace, base_name)
+            except KeyError:
+                try:
+                    block_id = get_block_id_game(namespace, base_name)
+                except KeyError:
+                    if namespace == "numerical" and base_name.isnumeric():
+                        block_id = int(base_name) & 255
+                    else:
+                        return 0, 0
+            block_data_tag = block.properties.get("block_data")
+            if isinstance(block_data_tag, AbstractBaseIntTag):
+                block_data = block_data_tag.py_int & 15
             else:
-                try:
-                    return (
-                        get_block_id_override(namespace, base_name),
-                        get_block_data(),
-                    )
-                except KeyError:
-                    pass
-                try:
-                    return get_block_id_game(namespace, base_name), get_block_data()
-                except KeyError:
-                    pass
-
-            return 0, 0
+                block_data = 0
+            return block_id, block_data
 
         terrain = _encode_blocks_v0(block_component, encode_block)
 

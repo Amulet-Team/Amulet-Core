@@ -394,17 +394,6 @@ def _load_subchunks(
     """
     blocks: SubChunkArrayContainer = block_data.sections
     block_palette: BlockPalette = block_data.palette
-    block_palette.block_stack_to_index(
-        BlockStack(
-            Block(
-                "bedrock",
-                VersionNumber(1, 12),
-                namespace="minecraft",
-                base_name="air",
-                properties={"block_data": IntTag(0)},
-            )
-        )
-    )
     for cy, data in subchunks.items():
         sub_chunk_version, data = data[0], data[1:]
 
