@@ -5,6 +5,7 @@ import logging
 import numpy
 from amulet_nbt import (
     NamedTag,
+    AbstractBaseIntTag,
     ByteTag,
     ShortTag,
     IntTag,
@@ -20,13 +21,14 @@ from amulet_nbt import (
 )
 
 from amulet.game import get_game_version
-from amulet.utils.world_utils import encode_long_array
+from amulet.utils.world_utils import encode_long_array, to_nibble_array
 
 from amulet.block import Block, BlockStack
 from amulet.biome import Biome
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
 from amulet.version import VersionNumber, VersionRange
+from amulet.palette import BlockPalette
 
 from amulet.chunk.components.height_2d import Height2DComponent
 from amulet.chunk.components.biome import (
@@ -188,14 +190,22 @@ def native_to_raw(
 
     if data_version >= 2844:
         # region.sections[]
-        sections = region.setdefault_list("sections")
+        sections_tag = region.setdefault_list("sections")
     else:
         # region.Level.sections[]
-        sections = level.setdefault_list("sections")
+        sections_tag = level.setdefault_list("sections")
     sections_map = {}
-    for section in sections:
-        assert isinstance(section, CompoundTag)
-        sections_map[section.get_byte("Y", ByteTag(0)).py_int] = section
+    for section_tag in sections_tag:
+        assert isinstance(section_tag, CompoundTag)
+        sections_map[section_tag.get_byte("Y", ByteTag(0)).py_int] = section_tag
+
+    def get_section(cy_: int) -> CompoundTag:
+        section_tag_ = sections_map.get(cy_, None)
+        if section_tag_ is None:
+            section_tag_ = sections_map[cy_] = CompoundTag()
+            section_tag_["Y"] = ByteTag(cy_)
+            sections_tag.append(section_tag_)
+        return section_tag_
 
     if data_version >= 2203:
         # 3D
@@ -224,11 +234,8 @@ def native_to_raw(
                     StringTag(palette.index_to_biome(runtime_id).namespaced_name)
                     for runtime_id in runtime_ids
                 ])
-                section = sections_map.get(cy, None)
-                if section is None:
-                    section = sections_map[cy] = CompoundTag()
-                    sections.append(section)
-                biomes = section["biomes"] = CompoundTag({"palette": sub_palette})
+                section_tag = get_section(cy)
+                biomes = section_tag["biomes"] = CompoundTag({"palette": sub_palette})
                 if len(sub_palette) > 1:
                     biomes["data"] = LongArrayTag(
                         encode_long_array(arr, dense=data_version <= 2529)
@@ -273,6 +280,62 @@ def native_to_raw(
             level["Biomes"] = ByteArrayTag(
                 numpy.asarray(numerical_ids, dtype=numpy.uint8)[arr]
             )
+
+    # blocks
+    block_component_data = chunk.get_component(BlockComponent)
+    block_palette: BlockPalette = block_component_data.palette
+    block_sections: SubChunkArrayContainer = block_component_data.sections
+    if data_version >= 2836:
+        # if data_version >= 2844:
+        #     # region.sections[].block_states
+        # elif data_version >= 2836:
+        #     # region.Level.Sections[].block_states
+    elif data_version >= 1444:
+        # region.Level.Sections[].BlockStates
+        # region.Level.Sections[].Palette
+        raise NotImplementedError
+    else:
+        # region.Level.Sections[].Blocks
+        # region.Level.Sections[].Add
+        # region.Level.Sections[].Data
+        get_block_id_override = raw_level.block_id_override.namespace_id_to_numerical_id
+        get_block_id_game = game_version.block.namespace_id_to_numerical_id
+        block_ids = []
+        block_datas = []
+        for block_stack in block_palette:
+            block = block_stack[0]
+            namespace = block.namespace
+            base_name = block.base_name
+            try:
+                block_id = get_block_id_override(namespace, base_name)
+            except KeyError:
+                try:
+                    block_id = get_block_id_game(namespace, base_name)
+                except KeyError:
+                    if namespace == "numerical" and base_name.isnumeric():
+                        block_id = int(base_name) & 255
+                    else:
+                        block_id = 0
+
+            block_data_tag = block.properties.get("block_data")
+            if isinstance(block_data_tag, AbstractBaseIntTag):
+                block_data = block_data_tag.py_int & 15
+            else:
+                block_data = 0
+            block_ids.append(block_id)
+            block_datas.append(block_data)
+        block_id_array = numpy.array(block_ids, dtype=numpy.uint8)
+        block_data_array = numpy.array(block_datas, dtype=numpy.uint8)
+
+        for cy, block_section in block_sections.items():
+            if 0 <= cy <= 16:
+                flat_block_section = numpy.transpose(
+                    block_section, (1, 2, 0)
+                ).ravel()  # XYZ -> YZX
+                section_tag = get_section(cy)
+                section_tag["Blocks"] = ByteArrayTag(block_id_array[flat_block_section])
+                section_tag["Data"] = ByteArrayTag(to_nibble_array(block_data_array[flat_block_section]))
+
     # block entities
     block_entities = ListTag[CompoundTag]()
     block_entity: BlockEntity
@@ -307,5 +370,9 @@ def native_to_raw(
     else:
         # region.Level.Entities
         level["Entities"] = entities
+
+    if 1519 <= data_version <= 1900:
+        # all defined sections must have the BlockStates and Palette fields
+        raise NotImplementedError
 
     return raw_chunk

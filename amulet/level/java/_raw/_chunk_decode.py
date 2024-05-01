@@ -23,8 +23,10 @@ from amulet.biome import Biome
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
 from amulet.version import VersionNumber, VersionRange
+from amulet.palette import BlockPalette
 from amulet.chunk import ComponentDataMapping
 from amulet.chunk.components.height_2d import Height2DComponent
+from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
 from amulet.chunk.components.biome import (
     Biome2DComponent,
     Biome2DComponentData,
@@ -38,7 +40,8 @@ from amulet.chunk.components.block_entity import (
 )
 from amulet.chunk.components.entity import EntityComponent, EntityComponentData
 
-from amulet.utils.world_utils import decode_long_array
+from amulet.utils.world_utils import decode_long_array, from_nibble_array
+from amulet.utils.numpy import unique_inverse
 
 from amulet.level.java.anvil import RawChunkType
 from amulet.level.java.chunk import (
@@ -222,9 +225,9 @@ def raw_to_native(
             biomes_structure = section.get_compound("biomes")
             if biomes_structure is None:
                 continue
-            palette = biomes_structure.get_list("palette", raise_errors=True)
+            palette_tag = biomes_structure.get_list("palette", raise_errors=True)
             lut = []
-            for biome_name in palette:
+            for biome_name in palette_tag:
                 assert isinstance(biome_name, StringTag)
                 namespace, base_name = biome_name.py_str.split(":", 1)
                 lut.append(biome_data_3d.palette.biome_to_index(Biome("java", version, namespace, base_name)))
@@ -303,6 +306,75 @@ def raw_to_native(
                 raw_level.biome_id_override.numerical_id_to_namespace_id,
                 game_version.biome.numerical_id_to_namespace_id,
             )
+
+    # blocks
+    blocks: list[Block] = []
+    for block in dimension.default_block():
+        if version_range.contains(block.platform, block.version):
+            blocks.append(block)
+        else:
+            block_ = get_game_version(block.platform, block.version).block.translate(
+                "java", version, block
+            )[0]
+            if isinstance(block_, Block):
+                blocks.append(block_)
+    chunk_components[BlockComponent] = block_component_data = BlockComponentData(version_range, (16, 16, 16), BlockStack(*blocks))
+    block_palette: BlockPalette = block_component_data.palette
+    block_sections: SubChunkArrayContainer = block_component_data.sections
+
+    if data_version >= 2836:
+        # if data_version >= 2844:
+        #     # region.sections[].block_states
+        # elif data_version >= 2836:
+        #     # region.Level.Sections[].block_states
+        raise NotImplementedError
+    elif data_version >= 1444:
+        # region.Level.Sections[].BlockStates
+        # region.Level.Sections[].Palette
+        raise NotImplementedError
+    else:
+        # region.Level.Sections[].Blocks
+        # region.Level.Sections[].Add
+        # region.Level.Sections[].Data
+        get_block_namespace_override = raw_level.biome_id_override.numerical_id_to_namespace_id
+        get_block_namespace_game = game_version.biome.numerical_id_to_namespace_id
+        for cy, section in sections_map.items():
+            block_tag = section.pop_byte_array("Blocks")
+            data_tag = section.pop_byte_array("Data")
+            if block_tag is None or data_tag is None:
+                continue
+            section_blocks = numpy.asarray(block_tag, dtype=numpy.uint16)
+            section_data = from_nibble_array(numpy.asarray(data_tag, dtype=numpy.uint8))
+
+            # add_tag = section.pop_byte_array("Add")
+            # if add_tag is not None:
+            #     add_blocks = from_nibble_array(numpy.asarray(add_tag, dtype=numpy.uint8)).astype(numpy.uint16)
+            #     section_blocks |= add_blocks << 8
+            #     # TODO: fix this
+
+            section_palette, section_array = unique_inverse((section_blocks << 4) + section_data)
+            section_array = numpy.transpose(section_array.reshape((16, 16, 16)), (2, 0, 1))  # YZX -> XYZ
+            section_block_ids = section_palette >> 4
+            section_block_datas = section_palette & 15
+            lut = []
+            for block_id, block_data in zip(section_block_ids, section_block_datas):
+                try:
+                    namespace, base_name = get_block_namespace_override(block_id)
+                except KeyError:
+                    try:
+                        namespace, base_name = get_block_namespace_game(block_id)
+                    except KeyError:
+                        namespace = "numerical"
+                        base_name = str(block_id)
+                lut.append(block_palette.block_stack_to_index(BlockStack(Block(
+                    "java",
+                    version,
+                    namespace,
+                    base_name,
+                    {"block_data": IntTag(block_data)}
+                ))))
+            block_sections[cy] = numpy.array(lut, dtype=numpy.uint32)[section_array]
+
     # block entities
     if data_version >= 2844:
         # region.block_entities
