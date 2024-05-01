@@ -1,9 +1,6 @@
 from __future__ import annotations
 
 import math
-import sys
-import gzip
-from io import StringIO
 from typing import Tuple, Optional
 import numpy
 from numpy import ndarray, zeros, uint8
@@ -276,51 +273,3 @@ def encode_long_array(
 
     # pack the bits into a long array
     return numpy.packbits(bits).view(dtype=">q")[::-1]
-
-
-def get_size(obj, seen=None):
-    """Recursively finds size of objects"""
-    size = sys.getsizeof(obj)
-    if seen is None:
-        seen = set()
-    obj_id = id(obj)
-    if obj_id in seen:
-        return 0
-
-    # Important mark as seen *before* entering recursion to gracefully handle
-    # self-referential objects
-    seen.add(obj_id)
-    if isinstance(obj, dict):
-        size += sum([get_size(v, seen) for v in obj.values()])
-        size += sum([get_size(k, seen) for k in obj.keys()])
-    elif hasattr(obj, "__dict__"):
-        size += get_size(obj.__dict__, seen)
-    elif hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes, bytearray)):
-        size += sum([get_size(i, seen) for i in obj])
-    return size
-
-
-def get_smallest_dtype(arr: ndarray, uint: bool = True) -> int:
-    """
-    Returns the smallest dtype (number) that the array can afford
-
-    :param arr: The array to check on
-    :param uint: Should the array fit in uint or not (default: True)
-    :return: The number of bits all the elements can be represented with
-    """
-    possible_dtypes = (2**x for x in range(3, 8))
-    max_number = numpy.amax(arr)
-    if not uint:
-        max_number = max_number * 2
-    if max_number == 0:
-        max_number = 1
-    return next(dtype for dtype in possible_dtypes if dtype > math.log(max_number, 2))
-
-
-def entity_position_to_chunk_coordinates(
-    entity_coordinates: Tuple[float, float, float]
-):
-    return (
-        int(math.floor(entity_coordinates[0])) >> 4,
-        int(math.floor(entity_coordinates[2])) >> 4,
-    )
