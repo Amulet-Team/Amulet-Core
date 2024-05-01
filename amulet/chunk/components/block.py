@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Union, Iterable
 from collections.abc import Mapping
 
+import numpy
 from numpy.typing import ArrayLike
 
 from amulet.version import VersionRange
@@ -28,7 +29,7 @@ class BlockComponentData:
 
     @TypedProperty[
         SubChunkArrayContainer,
-        Mapping[int, ArrayLike] | Iterable[tuple[int, ArrayLike]],
+        SubChunkArrayContainer | Mapping[int, numpy.ndarray] | Iterable[tuple[int, numpy.ndarray]],
     ]
     def sections(self) -> SubChunkArrayContainer:
         return self._sections
@@ -36,11 +37,13 @@ class BlockComponentData:
     @sections.setter
     def _set_block(
         self,
-        sections: Mapping[int, ArrayLike] | Iterable[tuple[int, ArrayLike]],
+        sections: SubChunkArrayContainer | Mapping[int, numpy.ndarray] | Iterable[tuple[int, numpy.ndarray]],
     ) -> None:
-        self._sections = SubChunkArrayContainer(
-            self._sections.array_shape, self._sections.default_array, sections
-        )
+        if sections is not self._sections:
+            self._sections.clear()
+            self._sections.update(sections)
+            if isinstance(sections, SubChunkArrayContainer):
+                self._sections.default_array = sections.default_array
 
     @property
     def palette(self) -> BlockPalette:

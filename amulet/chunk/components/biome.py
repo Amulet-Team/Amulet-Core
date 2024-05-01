@@ -101,29 +101,31 @@ class Biome3DComponentData:
     ):
         self._palette = BiomePalette(version_range)
         self._palette.biome_to_index(default_biome)
-        self.__sections = SubChunkArrayContainer(array_shape, 0)
+        self._sections = SubChunkArrayContainer(array_shape, 0)
 
     def __getstate__(self) -> tuple[BiomePalette, SubChunkArrayContainer]:
-        return self._palette, self.__sections
+        return self._palette, self._sections
 
     def __setstate__(self, state: tuple[BiomePalette, SubChunkArrayContainer]) -> None:
-        self._palette, self.__sections = state
+        self._palette, self._sections = state
 
     @TypedProperty[
         SubChunkArrayContainer,
-        Mapping[int, ArrayLike] | Iterable[tuple[int, ArrayLike]],
+        SubChunkArrayContainer | Mapping[int, numpy.ndarray] | Iterable[tuple[int, numpy.ndarray]],
     ]
     def sections(self) -> SubChunkArrayContainer:
-        return self.__sections
+        return self._sections
 
     @sections.setter
     def _set_biome(
         self,
-        sections: Mapping[int, ArrayLike] | Iterable[tuple[int, ArrayLike]],
+        sections: SubChunkArrayContainer | Mapping[int, numpy.ndarray] | Iterable[tuple[int, numpy.ndarray]],
     ) -> None:
-        self.__sections = SubChunkArrayContainer(
-            self.__sections.array_shape, self.__sections.default_array, sections
-        )
+        if sections is not self._sections:
+            self._sections.clear()
+            self._sections.update(sections)
+            if isinstance(sections, SubChunkArrayContainer):
+                self._sections.default_array = sections.default_array
 
     @property
     def palette(self) -> BiomePalette:
