@@ -134,7 +134,7 @@ def raw_to_native(
             if isinstance(block_, Block):
                 blocks.append(block_)
     chunk_components[BlockComponent] = block_component_data = BlockComponentData(
-        version_range, (16, 16, 16), 0, BlockStack(*blocks)
+        version_range, (16, 16, 16), BlockStack(*blocks)
     )
     if chunk_version >= 3:
         subchunks = {}

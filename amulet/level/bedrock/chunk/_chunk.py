@@ -42,7 +42,7 @@ def _get_components(
     components[ChunkVersionComponent] = chunk_version
     components[FinalisedStateComponent] = 2
     components[BlockComponent] = BlockComponentData(
-        version_range, (16, 16, 16), 0, default_block
+        version_range, (16, 16, 16), default_block
     )
     components[BlockEntityComponent] = BlockEntityComponentData(version_range)
     components[EntityComponent] = EntityComponentData(version_range)
