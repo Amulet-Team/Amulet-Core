@@ -111,7 +111,9 @@ class Biome3DComponentData:
 
     @TypedProperty[
         SubChunkArrayContainer,
-        SubChunkArrayContainer | Mapping[int, numpy.ndarray] | Iterable[tuple[int, numpy.ndarray]],
+        SubChunkArrayContainer
+        | Mapping[int, numpy.ndarray]
+        | Iterable[tuple[int, numpy.ndarray]],
     ]
     def sections(self) -> SubChunkArrayContainer:
         return self._sections
@@ -119,7 +121,11 @@ class Biome3DComponentData:
     @sections.setter
     def _set_biome(
         self,
-        sections: SubChunkArrayContainer | Mapping[int, numpy.ndarray] | Iterable[tuple[int, numpy.ndarray]],
+        sections: (
+            SubChunkArrayContainer
+            | Mapping[int, numpy.ndarray]
+            | Iterable[tuple[int, numpy.ndarray]]
+        ),
     ) -> None:
         if sections is not self._sections:
             self._sections.clear()

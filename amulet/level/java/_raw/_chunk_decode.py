@@ -230,7 +230,11 @@ def raw_to_native(
             for biome_name in palette_tag:
                 assert isinstance(biome_name, StringTag)
                 namespace, base_name = biome_name.py_str.split(":", 1)
-                lut.append(biome_data_3d.palette.biome_to_index(Biome("java", version, namespace, base_name)))
+                lut.append(
+                    biome_data_3d.palette.biome_to_index(
+                        Biome("java", version, namespace, base_name)
+                    )
+                )
             data = biomes_structure.get_long_array("data")
             if data is None:
                 biome_data_3d.sections[cy] = numpy.full((4, 4, 4), lut[0], numpy.uint32)
@@ -239,7 +243,7 @@ def raw_to_native(
                     numpy.transpose(
                         decode_long_array(
                             data.np_array,
-                            4 ** 3,
+                            4**3,
                             max(1, (len(lut) - 1).bit_length()),
                             dense=data_version <= 2529,
                         )
@@ -318,7 +322,9 @@ def raw_to_native(
             )[0]
             if isinstance(block_, Block):
                 blocks.append(block_)
-    chunk_components[BlockComponent] = block_component_data = BlockComponentData(version_range, (16, 16, 16), BlockStack(*blocks))
+    chunk_components[BlockComponent] = block_component_data = BlockComponentData(
+        version_range, (16, 16, 16), BlockStack(*blocks)
+    )
     block_palette: BlockPalette = block_component_data.palette
     block_sections: SubChunkArrayContainer = block_component_data.sections
 
@@ -336,7 +342,9 @@ def raw_to_native(
         # region.Level.Sections[].Blocks
         # region.Level.Sections[].Add
         # region.Level.Sections[].Data
-        get_block_namespace_override = raw_level.biome_id_override.numerical_id_to_namespace_id
+        get_block_namespace_override = (
+            raw_level.biome_id_override.numerical_id_to_namespace_id
+        )
         get_block_namespace_game = game_version.biome.numerical_id_to_namespace_id
         for cy, section in sections_map.items():
             block_tag = section.pop_byte_array("Blocks")
@@ -352,8 +360,12 @@ def raw_to_native(
             #     section_blocks |= add_blocks << 8
             #     # TODO: fix this
 
-            section_palette, section_array = unique_inverse((section_blocks << 4) + section_data)
-            section_array = numpy.transpose(section_array.reshape((16, 16, 16)), (2, 0, 1))  # YZX -> XYZ
+            section_palette, section_array = unique_inverse(
+                (section_blocks << 4) + section_data
+            )
+            section_array = numpy.transpose(
+                section_array.reshape((16, 16, 16)), (2, 0, 1)
+            )  # YZX -> XYZ
             section_block_ids = section_palette >> 4
             section_block_datas = section_palette & 15
             lut = []
@@ -366,13 +378,19 @@ def raw_to_native(
                     except KeyError:
                         namespace = "numerical"
                         base_name = str(block_id)
-                lut.append(block_palette.block_stack_to_index(BlockStack(Block(
-                    "java",
-                    version,
-                    namespace,
-                    base_name,
-                    {"block_data": IntTag(block_data)}
-                ))))
+                lut.append(
+                    block_palette.block_stack_to_index(
+                        BlockStack(
+                            Block(
+                                "java",
+                                version,
+                                namespace,
+                                base_name,
+                                {"block_data": IntTag(block_data)},
+                            )
+                        )
+                    )
+                )
             block_sections[cy] = numpy.array(lut, dtype=numpy.uint32)[section_array]
 
     # block entities
@@ -430,7 +448,16 @@ def raw_to_native(
         y_float = pos.get_double(1).py_float
         z_float = pos.get_double(2).py_float
         entity_component.add(
-            Entity("java", version, namespace, base_name, x_float, y_float, z_float, NamedTag(tag))
+            Entity(
+                "java",
+                version,
+                namespace,
+                base_name,
+                x_float,
+                y_float,
+                z_float,
+                NamedTag(tag),
+            )
         )
 
     return chunk_class.from_component_data(chunk_components)

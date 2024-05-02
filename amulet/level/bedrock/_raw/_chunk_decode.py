@@ -156,10 +156,10 @@ def raw_to_native(
             )
 
             # there is other data here but we are going to skip over it
-            combined_palette, block_array = unique_inverse((block_ids << 4) + block_data)
-            block_array = numpy.transpose(
-                block_array.reshape(16, 16, 128), (0, 2, 1)
+            combined_palette, block_array = unique_inverse(
+                (block_ids << 4) + block_data
             )
+            block_array = numpy.transpose(block_array.reshape(16, 16, 128), (0, 2, 1))
             block_component_data.sections = {
                 i: block_array[:, i * 16 : (i + 1) * 16, :] for i in range(8)
             }

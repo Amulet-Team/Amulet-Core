@@ -28,7 +28,9 @@ class BlockComponentData:
 
     @TypedProperty[
         SubChunkArrayContainer,
-        SubChunkArrayContainer | Mapping[int, numpy.ndarray] | Iterable[tuple[int, numpy.ndarray]],
+        SubChunkArrayContainer
+        | Mapping[int, numpy.ndarray]
+        | Iterable[tuple[int, numpy.ndarray]],
     ]
     def sections(self) -> SubChunkArrayContainer:
         return self._sections
@@ -36,7 +38,11 @@ class BlockComponentData:
     @sections.setter
     def _set_block(
         self,
-        sections: SubChunkArrayContainer | Mapping[int, numpy.ndarray] | Iterable[tuple[int, numpy.ndarray]],
+        sections: (
+            SubChunkArrayContainer
+            | Mapping[int, numpy.ndarray]
+            | Iterable[tuple[int, numpy.ndarray]]
+        ),
     ) -> None:
         if sections is not self._sections:
             self._sections.clear()

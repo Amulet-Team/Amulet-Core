@@ -164,8 +164,12 @@ def native_to_raw(
         level["HeightMap"] = IntArrayTag(chunk.get_component(Height2DComponent).ravel())
 
     # biomes
-    get_biome_id_override: Callable[[str, str], int] = raw_level.biome_id_override.namespace_id_to_numerical_id
-    get_biome_id_game: Callable[[str, str], int] = game_version.biome.namespace_id_to_numerical_id
+    get_biome_id_override: Callable[[str, str], int] = (
+        raw_level.biome_id_override.namespace_id_to_numerical_id
+    )
+    get_biome_id_game: Callable[[str, str], int] = (
+        game_version.biome.namespace_id_to_numerical_id
+    )
 
     @cache
     def encode_biome(namespace: str, base_name: str) -> int:
@@ -224,16 +228,14 @@ def native_to_raw(
             for cy in range(floor_cy, ceil_cy):
                 if cy not in biome_sections:
                     continue
-                arr = numpy.transpose(
-                    biome_sections[cy], (1, 2, 0)
-                ).ravel()
-                runtime_ids, arr = numpy.unique(
-                    arr, return_inverse=True
+                arr = numpy.transpose(biome_sections[cy], (1, 2, 0)).ravel()
+                runtime_ids, arr = numpy.unique(arr, return_inverse=True)
+                sub_palette = ListTag(
+                    [
+                        StringTag(palette.index_to_biome(runtime_id).namespaced_name)
+                        for runtime_id in runtime_ids
+                    ]
                 )
-                sub_palette = ListTag([
-                    StringTag(palette.index_to_biome(runtime_id).namespaced_name)
-                    for runtime_id in runtime_ids
-                ])
                 section_tag = get_section(cy)
                 biomes = section_tag["biomes"] = CompoundTag({"palette": sub_palette})
                 if len(sub_palette) > 1:
@@ -334,7 +336,9 @@ def native_to_raw(
                 ).ravel()  # XYZ -> YZX
                 section_tag = get_section(cy)
                 section_tag["Blocks"] = ByteArrayTag(block_id_array[flat_block_section])
-                section_tag["Data"] = ByteArrayTag(to_nibble_array(block_data_array[flat_block_section]))
+                section_tag["Data"] = ByteArrayTag(
+                    to_nibble_array(block_data_array[flat_block_section])
+                )
 
     # block entities
     block_entities = ListTag[CompoundTag]()
