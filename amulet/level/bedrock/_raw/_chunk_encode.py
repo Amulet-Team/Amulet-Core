@@ -34,6 +34,7 @@ from amulet.game import get_game_version
 from amulet.version import VersionNumber
 from amulet.palette import BlockPalette, BiomePalette
 from amulet.utils.world_utils import to_nibble_array
+from amulet.utils.numpy import unique_inverse
 
 from amulet.level.bedrock._raw import BedrockRawChunk
 from amulet.level.bedrock.chunk import BedrockChunk
@@ -453,7 +454,7 @@ def _encode_palettized_chunk(
     encoded = {}
     for cy in range(min_cy, max_cy):
         if cy in blocks:
-            block_lut, block_arr = numpy.unique(blocks[cy], return_inverse=True)
+            block_lut, block_arr = unique_inverse(blocks[cy])
             encoded[cy] = [
                 _encode_block_palette_layer(
                     layer_palette, layer_palette_lut, block_lut, block_arr
