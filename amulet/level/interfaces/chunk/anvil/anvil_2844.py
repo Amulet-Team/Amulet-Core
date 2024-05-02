@@ -74,29 +74,6 @@ class Anvil2844Interface(ParentInterface):
     def minor_is_valid(key: int):
         return 2844 <= key <= 3337
 
-    def _decode_block_section(
-        self, section: CompoundTag
-    ) -> Optional[Tuple[numpy.ndarray, list]]:
-        block_states = self.get_obj(section, "block_states", CompoundTag)
-        if (
-            isinstance(block_states, CompoundTag) and "palette" in block_states
-        ):  # 1.14 makes block_palette/blocks optional.
-            section_palette = self._decode_block_palette(block_states.pop("palette"))
-            data = block_states.pop("data", None)
-            if data is None:
-                arr = numpy.zeros((16, 16, 16), numpy.uint32)
-            else:
-                decoded = decode_long_array(
-                    data.np_array,
-                    16**3,
-                    max(4, (len(section_palette) - 1).bit_length()),
-                    dense=self.LongArrayDense,
-                ).astype(numpy.uint32)
-                arr = numpy.transpose(decoded.reshape((16, 16, 16)), (2, 0, 1))
-            return arr, section_palette
-        else:
-            return None
-
     def _decode_block_ticks(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
@@ -112,30 +89,6 @@ class Anvil2844Interface(ParentInterface):
                 self.get_layer_obj(data, self.LiquidTicks, pop_last=True)
             )
         )
-
-    def _encode_block_section(
-        self,
-        chunk: Chunk,
-        sections: Dict[int, CompoundTag],
-        palette: AnyNDArray,
-        cy: int,
-    ):
-        block_sub_array = numpy.transpose(
-            chunk.blocks.get_sub_chunk(cy), (1, 2, 0)
-        ).ravel()
-
-        sub_palette_, block_sub_array = numpy.unique(
-            block_sub_array, return_inverse=True
-        )
-        sub_palette = self._encode_block_palette(palette[sub_palette_])
-        section = sections.setdefault(cy, CompoundTag())
-        block_states = section["block_states"] = CompoundTag({"palette": sub_palette})
-        if len(sub_palette) != 1:
-            block_states["data"] = LongArrayTag(
-                encode_long_array(
-                    block_sub_array, dense=self.LongArrayDense, min_bits_per_entry=4
-                )
-            )
 
     def _encode_block_ticks(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int

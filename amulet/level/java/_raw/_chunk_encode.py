@@ -21,7 +21,9 @@ from amulet_nbt import (
 )
 
 from amulet.game import get_game_version
+from amulet.game.java import JavaGameVersion, Waterloggable
 from amulet.utils.world_utils import encode_long_array, to_nibble_array
+from amulet.utils.numpy import unique_inverse
 
 from amulet.block import Block, BlockStack
 from amulet.biome import Biome
@@ -287,15 +289,50 @@ def native_to_raw(
     block_component_data = chunk.get_component(BlockComponent)
     block_palette: BlockPalette = block_component_data.palette
     block_sections: SubChunkArrayContainer = block_component_data.sections
-    if data_version >= 2836:
+
+    if data_version >= 1444:
         # if data_version >= 2844:
-        #     # region.sections[].block_states
+        #     # region.sections[].block_states.data
+        #     # region.sections[].block_states.palette
         # elif data_version >= 2836:
-        #     # region.Level.Sections[].block_states
-    elif data_version >= 1444:
-        # region.Level.Sections[].BlockStates
-        # region.Level.Sections[].Palette
-        raise NotImplementedError
+        #     # region.Level.Sections[].block_states.data
+        #     # region.Level.Sections[].block_states.palette
+        # else:
+        #     # region.Level.Sections[].BlockStates
+        #     # region.Level.Sections[].Palette
+        for cy, block_section in block_sections.items():
+            if floor_cy <= cy <= ceil_cy:
+                block_sub_array = numpy.transpose(block_section, (1, 2, 0)).ravel()
+                block_lut, block_arr = unique_inverse(block_sub_array)
+                palette_tag = ListTag[CompoundTag]()
+                for palette_index in block_lut:
+                    palette_tag.append(
+                        encode_block(block_palette.index_to_block_stack(palette_index))
+                    )
+
+                section_tag = get_section(cy)
+                if data_version >= 2836:
+                    section_tag["block_states"] = block_states_tag = CompoundTag(
+                        {"palette": palette_tag}
+                    )
+                    if len(palette_tag) > 1:
+                        block_states_tag["data"] = LongArrayTag(
+                            encode_long_array(
+                                block_sub_array,
+                                dense=data_version <= 2529,
+                                min_bits_per_entry=4,
+                            )
+                        )
+                else:
+                    section_tag["Palette"] = palette_tag
+                    section_tag["BlockStates"] = LongArrayTag(
+                        encode_long_array(
+                            block_sub_array,
+                            dense=data_version <= 2529,
+                            min_bits_per_entry=4,
+                        )
+                    )
+
     else:
         # region.Level.Sections[].Blocks
         # region.Level.Sections[].Add
@@ -375,8 +412,40 @@ def native_to_raw(
         # region.Level.Entities
         level["Entities"] = entities
 
-    if 1519 <= data_version <= 1900:
+    if 1519 <= data_version < 1901:
         # all defined sections must have the BlockStates and Palette fields
-        raise NotImplementedError
+        for section in sections_map.values():
+            if "Palette" in section:
+                if "BlockStates" not in section:
+                    assert len(section["Palette"]) == 1
+                    section["BlockStates"] = LongArrayTag([0] * 256)
+            else:
+                section["Palette"] = ListTag(
+                    [CompoundTag({"Name": StringTag("minecraft:air")})]
+                )
+                section["BlockStates"] = LongArrayTag([0] * 256)
 
     return raw_chunk
+
+
+def encode_block(game_version: JavaGameVersion, block_stack: BlockStack) -> CompoundTag:
+    base_block = block_stack[0]
+    namespace = base_block.namespace
+    base_name = base_block.base_name
+    properties = dict(base_block.properties)
+    block_tag = CompoundTag({"Name": StringTag(f"{namespace}:{base_name}")})
+    if game_version.block.waterlogable(namespace, base_name) == Waterloggable.Yes:
+        if (
+            len(block_stack) >= 2
+            and block_stack[1].namespaced_name == "minecraft:water"
+        ):
+            properties["waterlogged"] = StringTag("true")
+        else:
+            properties["waterlogged"] = StringTag("false")
+    if properties:
+        string_properties = {
+            k: v for k, v in properties.items() if isinstance(v, StringTag)
+        }
+        if string_properties:
+            block_tag["Properties"] = CompoundTag(string_properties)
+    return block_tag

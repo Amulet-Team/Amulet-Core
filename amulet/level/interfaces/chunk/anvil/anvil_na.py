@@ -103,59 +103,6 @@ class AnvilNAInterface(BaseAnvilInterface):
         for section in sections:
             yield section["Y"].py_int, section
 
-    def _decode_blocks(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        blocks: Dict[int, SubChunkNDArray] = {}
-        palette = []
-        palette_len = 0
-        for cy, section in self._iter_sections(data):
-            block_tag = section.pop("Blocks", None)
-            data_tag = section.pop("Data", None)
-            if not isinstance(block_tag, AbstractBaseArrayTag) or not isinstance(
-                data_tag, AbstractBaseArrayTag
-            ):
-                continue
-            section_blocks = numpy.asarray(block_tag, dtype=numpy.uint8)
-            section_data = numpy.asarray(data_tag, dtype=numpy.uint8)
-            section_blocks = section_blocks.reshape((16, 16, 16))
-            section_blocks = section_blocks.astype(numpy.uint16)
-
-            section_data = world_utils.from_nibble_array(section_data)
-            section_data = section_data.reshape((16, 16, 16))
-
-            add_tag = section.pop("Add", None)
-            if isinstance(add_tag, AbstractBaseArrayTag):
-                add_blocks = numpy.asarray(add_tag, dtype=numpy.uint8)
-                add_blocks = world_utils.from_nibble_array(add_blocks)
-                add_blocks = add_blocks.reshape((16, 16, 16))
-
-                section_blocks |= add_blocks.astype(numpy.uint16) << 8
-                # TODO: fix this
-
-            (section_palette, blocks[cy]) = world_utils.fast_unique(
-                numpy.transpose(
-                    (section_blocks << 4) + section_data, (2, 0, 1)
-                )  # YZX -> XYZ
-            )
-            blocks[cy] += palette_len
-            palette_len += len(section_palette)
-            palette.append(section_palette)
-
-        if palette:
-            final_palette, lut = numpy.unique(
-                numpy.concatenate(palette), return_inverse=True
-            )
-            final_palette: numpy.ndarray = numpy.array(
-                [final_palette >> 4, final_palette & 15]
-            ).T
-            for cy in blocks:
-                blocks[cy] = lut[blocks[cy]]
-        else:
-            final_palette = numpy.array([], dtype=object)
-        chunk.blocks = blocks
-        chunk.misc["block_palette"] = final_palette
-
     def _unpack_light(
         self, data: ChunkDataType, section_key: str
     ) -> Dict[int, numpy.ndarray]:
@@ -258,26 +205,6 @@ class AnvilNAInterface(BaseAnvilInterface):
                 section = section_map[cy] = CompoundTag({"Y": ByteTag(cy)})
                 sections.append(section)
         return section_map
-
-    def _encode_block_section(
-        self,
-        chunk: Chunk,
-        sections: Dict[int, CompoundTag],
-        palette: AnyNDArray,
-        cy: int,
-    ):
-        block_sub_array = palette[
-            numpy.transpose(
-                chunk.blocks.get_sub_chunk(cy), (1, 2, 0)
-            ).ravel()  # XYZ -> YZX
-        ]
-
-        data_sub_array = block_sub_array[:, 1]
-        block_sub_array = block_sub_array[:, 0]
-        # if not numpy.any(block_sub_array) and not numpy.any(data_sub_array):
-        #     return False
-        sections[cy]["Blocks"] = ByteArrayTag(block_sub_array.astype("uint8"))
-        sections[cy]["Data"] = ByteArrayTag(world_utils.to_nibble_array(data_sub_array))
 
     def _encode_blocks(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int

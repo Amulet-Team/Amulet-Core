@@ -18,7 +18,8 @@ from amulet_nbt import (
 )
 
 from amulet.game import get_game_version
-from amulet.block import Block, BlockStack
+from amulet.game.java import Waterloggable
+from amulet.block import Block, BlockStack, PropertyValueClasses
 from amulet.biome import Biome
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
@@ -328,16 +329,88 @@ def raw_to_native(
     block_palette: BlockPalette = block_component_data.palette
     block_sections: SubChunkArrayContainer = block_component_data.sections
 
-    if data_version >= 2836:
+    if data_version >= 1444:
         # if data_version >= 2844:
-        #     # region.sections[].block_states
+        #     # region.sections[].block_states.data
+        #     # region.sections[].block_states.palette
         # elif data_version >= 2836:
-        #     # region.Level.Sections[].block_states
-        raise NotImplementedError
-    elif data_version >= 1444:
-        # region.Level.Sections[].BlockStates
-        # region.Level.Sections[].Palette
-        raise NotImplementedError
+        #     # region.Level.Sections[].block_states.data
+        #     # region.Level.Sections[].block_states.palette
+        # else:
+        #     # region.Level.Sections[].BlockStates
+        #     # region.Level.Sections[].Palette
+
+        _water_block: Block | None = None
+
+        def get_water() -> Block:
+            nonlocal _water_block
+            if _water_block is None:
+                _block, _, _ = get_game_version(
+                    "java", VersionNumber(1, 20, 5)
+                ).block.translate(
+                    "java",
+                    version,
+                    Block(
+                        "java",
+                        VersionNumber(1, 20, 5),
+                        "minecraft",
+                        "water",
+                        {"level": StringTag("0")},
+                    ),
+                )
+                if not isinstance(_block, Block):
+                    raise RuntimeError
+                _water_block = _block
+            return _water_block
+
+        for cy, section in sections_map.items():
+            if data_version >= 2836:
+                block_states_tag = section.pop_compound("block_states", CompoundTag())
+                palette_tag = block_states_tag.pop_list("palette")
+                data_tag = block_states_tag.pop_long_array("data")
+            else:
+                palette_tag = section.pop_list("Palette")
+                data_tag = section.pop_long_array("BlockStates")
+            if palette_tag is None:
+                continue
+            lut = []
+            for block_tag in palette_tag:
+                assert isinstance(block_tag, CompoundTag)
+                namespace, base_name = block_tag.get_string(
+                    "Name", raise_errors=True
+                ).py_str.split(":", 1)
+                properties = {
+                    k: v
+                    for k, v in block_tag.get_compound(
+                        "Properties", CompoundTag({})
+                    ).items()
+                    if isinstance(k, str) and isinstance(v, PropertyValueClasses)
+                }
+                blocks = []
+                waterloggable = game_version.block.waterlogable(namespace, base_name)
+                if waterloggable == Waterloggable.Yes:
+                    # waterlogged property
+                    if properties.get("waterlogged") == StringTag("true"):
+                        del properties["waterlogged"]
+                        blocks.append(get_water())
+                elif waterloggable == Waterloggable.Always:
+                    blocks.append(get_water())
+                blocks.insert(
+                    0, Block("java", version, namespace, base_name, properties)
+                )
+                lut.append(block_palette.block_stack_to_index(BlockStack(*blocks)))
+
+            if data_tag is None:
+                arr = numpy.zeros((16, 16, 16), numpy.uint32)
+            else:
+                decoded = decode_long_array(
+                    data_tag.np_array,
+                    16**3,
+                    max(4, (len(palette_tag) - 1).bit_length()),
+                    dense=data_version <= 2529,
+                ).astype(numpy.uint32)
+                arr = numpy.transpose(decoded.reshape((16, 16, 16)), (2, 0, 1))
+            block_sections[cy] = numpy.array(lut, dtype=numpy.uint32)[arr]
     else:
         # region.Level.Sections[].Blocks
         # region.Level.Sections[].Add
