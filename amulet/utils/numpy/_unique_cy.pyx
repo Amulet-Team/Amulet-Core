@@ -11,7 +11,7 @@ from libcpp.unordered_map cimport unordered_map
 numpy.import_array()
 
 
-def unique_inverse(numpy.ndarray[numpy.uint32_t, ndim=1] array not None) -> tuple[numpy.ndarray, numpy.ndarray]:
+def unique_inverse(numpy.ndarray[numpy.uint32_t, ndim=1] array not None: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray]:
     """Like numpy.unique(array, return_inverse=True) but 3-9 times faster.
     This only works on 1D uint32 arrays.
     The unique values are returned in the order they are found.
