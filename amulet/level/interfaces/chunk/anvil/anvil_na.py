@@ -51,8 +51,6 @@ class AnvilNAInterface(BaseAnvilInterface):
     def __init__(self):
         super().__init__()
 
-        self._set_feature("light_optional", "false")
-
         self._register_decoder(self._decode_blocks)
         self._register_decoder(self._decode_block_ticks)
         self._register_decoder(self._decode_block_light)
@@ -267,10 +265,6 @@ class AnvilNAInterface(BaseAnvilInterface):
             ):
                 light = light.ravel() % 16
                 section[section_key] = ByteArrayTag(light[::2] + (light[1::2] << 4))
-            elif self._features["light_optional"] == "false":
-                section[section_key] = ByteArrayTag(
-                    numpy.full(2048, 255, dtype=numpy.uint8)
-                )
 
     def _encode_block_light(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int

@@ -118,7 +118,6 @@ class BaseAnvilInterface(Interface, BaseDecoderEncoder):
         BaseDecoderEncoder.__init__(self)
         self._feature_options = {
             # 'carving_masks': ['C|?BA'],
-            "light_optional": ["false", "true"],
             # 'lights': [],
         }
         self._features = {key: None for key in self._feature_options.keys()}

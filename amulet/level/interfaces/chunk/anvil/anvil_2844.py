@@ -23,8 +23,8 @@ from .base_anvil_interface import (
     ChunkDataType,
     ChunkPathType,
 )
-from .anvil_1934 import (
-    Anvil1934Interface as ParentInterface,
+from .anvil_1444 import (
+    Anvil1444Interface as ParentInterface,
 )
 
 

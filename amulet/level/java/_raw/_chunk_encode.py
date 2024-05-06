@@ -332,7 +332,6 @@ def native_to_raw(
                             min_bits_per_entry=4,
                         )
                     )
-
     else:
         # region.Level.Sections[].Blocks
         # region.Level.Sections[].Add
@@ -424,6 +423,15 @@ def native_to_raw(
                     [CompoundTag({"Name": StringTag("minecraft:air")})]
                 )
                 section["BlockStates"] = LongArrayTag([0] * 256)
+
+    if data_version < 1934:
+        # BlockLight and SkyLight are required
+        for section_tag in sections_map.values():
+            for key in ("BlockLight", "SkyLight"):
+                if key not in section_tag:
+                    section_tag[key] = ByteArrayTag(
+                        numpy.full(2048, 255, dtype=numpy.uint8)
+                    )
 
     return raw_chunk
 
