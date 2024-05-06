@@ -13,12 +13,11 @@ from amulet_nbt import (
     ShortTag,
 )
 
-import amulet
 from amulet.api.data_types import AnyNDArray, BlockCoordinates
-from amulet.api.block import Block
+from amulet.block import Block
 from amulet.api.chunk import StatusFormats
 from .base_anvil_interface import ChunkDataType, ChunkPathType
-from .anvil_0 import Anvil0Interface as ParentInterface
+from .anvil_na import AnvilNAInterface as ParentInterface
 from amulet.utils.world_utils import (
     decode_long_array,
     encode_long_array,
@@ -40,11 +39,6 @@ class Anvil1444Interface(ParentInterface):
 
     TerrainPopulated = None
     LightPopulated = None
-    Status: ChunkPathType = (
-        "region",
-        [("Level", CompoundTag), ("Status", StringTag)],
-        StringTag("full"),
-    )
 
     ToBeTicked: ChunkPathType = (
         "region",
@@ -79,7 +73,6 @@ class Anvil1444Interface(ParentInterface):
 
     def __init__(self):
         super().__init__()
-        self._set_feature("status", StatusFormats.Java_13)
 
         self._register_decoder(self._decode_fluid_ticks)
         self._register_decoder(self._decode_post_processing)
@@ -92,48 +85,6 @@ class Anvil1444Interface(ParentInterface):
     @staticmethod
     def minor_is_valid(key: int):
         return 1444 <= key < 1466
-
-    def _decode_status(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        chunk.status = self.get_layer_obj(data, self.Status, pop_last=True).py_str
-
-    def _decode_block_section(
-        self, section: CompoundTag
-    ) -> Optional[Tuple[numpy.ndarray, list]]:
-        if "Palette" not in section:  # 1.14 makes block_palette/blocks optional.
-            return None
-        section_palette = self._decode_block_palette(section.pop("Palette"))
-        decoded = decode_long_array(
-            section.get_long_array("BlockStates").np_array,
-            4096,
-            max(4, (len(section_palette) - 1).bit_length()),
-            dense=self.LongArrayDense,
-        ).astype(numpy.uint32)
-        arr = numpy.transpose(decoded.reshape((16, 16, 16)), (2, 0, 1))
-        return arr, section_palette
-
-    def _decode_blocks(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        blocks: Dict[int, numpy.ndarray] = {}
-        palette = [Block(namespace="minecraft", base_name="air")]
-
-        for cy, section in self._iter_sections(data):
-            data = self._decode_block_section(section)
-            if data is not None:
-                arr, section_palette = data
-                blocks[cy] = arr + len(palette)
-                palette += section_palette
-
-        np_palette, inverse = numpy.unique(palette, return_inverse=True)
-        np_palette: numpy.ndarray
-        inverse: numpy.ndarray
-        inverse = inverse.astype(numpy.uint32)
-        for cy in blocks:
-            blocks[cy] = inverse[blocks[cy]]
-        chunk.blocks = blocks
-        chunk.misc["block_palette"] = np_palette
 
     @staticmethod
     def _decode_block_palette(palette: ListTag) -> list:
@@ -194,67 +145,6 @@ class Anvil1444Interface(ParentInterface):
         chunk.misc["structures"] = self.get_layer_obj(
             data, self.Structures, pop_last=True
         )
-
-    def _encode_status(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        # Order the float value based on the order they would be run. Newer replacements for the same come just after
-        # to save back find the next lowest valid value.
-        status = chunk.status.as_type(self._features["status"])
-        self.set_layer_obj(data, self.Status, StringTag(status))
-
-    def _encode_inhabited_time(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        self.set_layer_obj(
-            data, self.InhabitedTime, LongTag(chunk.misc.get("inhabited_time", 0))
-        )
-
-    def _encode_block_section(
-        self,
-        chunk: Chunk,
-        sections: Dict[int, CompoundTag],
-        palette: AnyNDArray,
-        cy: int,
-    ) -> bool:
-        block_sub_array = numpy.transpose(
-            chunk.blocks.get_sub_chunk(cy), (1, 2, 0)
-        ).ravel()
-
-        sub_palette_, block_sub_array = numpy.unique(
-            block_sub_array, return_inverse=True
-        )
-        sub_palette = self._encode_block_palette(palette[sub_palette_])
-        if (
-            len(sub_palette) == 1
-            and sub_palette[0].get_string("Name").py_str == "minecraft:air"
-        ):
-            return False
-
-        section = sections.setdefault(cy, CompoundTag())
-        section["BlockStates"] = LongArrayTag(
-            encode_long_array(
-                block_sub_array, dense=self.LongArrayDense, min_bits_per_entry=4
-            )
-        )
-        section["Palette"] = sub_palette
-
-    @staticmethod
-    def _encode_block_palette(blockstates: Iterable[Block]) -> ListTag:
-        palette = ListTag()
-        for block in blockstates:
-            entry = CompoundTag()
-            entry["Name"] = StringTag(f"{block.namespace}:{block.base_name}")
-            if block.properties:
-                string_properties = {
-                    k: v
-                    for k, v in block.properties.items()
-                    if isinstance(v, StringTag)
-                }
-                if string_properties:
-                    entry["Properties"] = CompoundTag(string_properties)
-            palette.append(entry)
-        return palette
 
     @staticmethod
     def _encode_to_be_ticked(

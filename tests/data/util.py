@@ -50,7 +50,7 @@ class WorldTemp:
         self._temp_world_path = get_temp_world_path(temp_world_name or src_world_name)
         self._metadata = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"WorldTemp({self.src_path}, {self.temp_path})"
 
     @property

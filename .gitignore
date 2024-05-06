@@ -111,8 +111,9 @@ prototyping/
 *.npy
 
 # Cython Files
-*.c
 *.html
+*_cy.c
+*_cy.cpp
 
 worlds_temp/
 world_temp/

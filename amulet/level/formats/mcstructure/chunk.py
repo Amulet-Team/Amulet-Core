@@ -3,7 +3,7 @@ import numpy
 
 from amulet_nbt import CompoundTag
 
-from amulet.api.selection import SelectionBox
+from amulet.selection import SelectionBox
 from amulet.api.data_types import BlockCoordinates, AnyNDArray
 
 

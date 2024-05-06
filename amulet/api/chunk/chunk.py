@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from typing import Union, Iterable, Dict
-import time
+from typing import Union, Iterable, Dict, TYPE_CHECKING, Optional, NamedTuple, Any
 import numpy
 import pickle
 
-from amulet.api.block import Block
-from amulet.api.registry import BlockManager
-from amulet.api.registry.biome_manager import BiomeManager
+from amulet.block import Block
+from amulet.palette import BlockPalette
+from amulet.palette import BiomePalette
 from amulet.api.chunk import (
     Biomes,
     BiomesShape,
@@ -16,12 +15,22 @@ from amulet.api.chunk import (
     BlockEntityDict,
     EntityList,
 )
-from amulet.api.entity import Entity
+from amulet.entity import Entity
+from amulet.block_entity import BlockEntity
 from amulet.api.data_types import ChunkCoordinates, VersionIdentifierType
-from amulet.api.history.changeable import Changeable
+from amulet.errors import ChunkLoadError
+
+if TYPE_CHECKING:
+    from amulet.level import Level
 
 
-class Chunk(Changeable):
+class _ChunkPickleData(NamedTuple):
+    level_id: int
+    init_args: tuple[int, int]
+    args: dict[str, Any]
+
+
+class Chunk:
     """
     A class to represent a chunk that exists in a Minecraft world
     """
@@ -34,15 +43,14 @@ class Chunk(Changeable):
         :param cz: The z coordinate of the chunk (is not the same as block coordinates)
         """
         super().__init__()
-        self._cx, self._cz = cx, cz
-        self._changed_time = 0.0
-
-        self._blocks = None
-        self.__block_palette = BlockManager()
-        self.__biome_palette = BiomeManager()
-        self._biomes = None
-        self._entities = EntityList()
-        self._block_entities = BlockEntityDict()
+        self._cx: int = cx
+        self._cz: int = cz
+        self._blocks: Optional[Blocks] = None
+        self._block_palette: Optional[BlockPalette] = None
+        self._biome_palette: Optional[BiomePalette] = None
+        self._biomes: Optional[Biomes] = None
+        self._entities: Optional[EntityList] = None
+        self._block_entities: Optional[BlockEntityDict] = None
         self._status = Status()
         self._misc = {}  # all entries that are not important enough to get an attribute
 
@@ -51,64 +59,66 @@ class Chunk(Changeable):
         self._native_entities = EntityList()
 
     def __repr__(self):
-        return f"Chunk({self.cx}, {self.cz}, {repr(self._blocks)}, {repr(self._entities)}, {repr(self._block_entities)})"
+        return f"Chunk({self.cx}, {self.cz})"
 
-    def pickle(self) -> bytes:
+    def pickle(self, level: Level) -> bytes:
         """
         Serialise the data in the chunk using pickle and return the resulting bytes.
-
+        :param level: The level to serialise against.
         :return: Pickled output.
         """
-        chunk_data = (
-            self._cx,
-            self._cz,
-            self._changed_time,
-            {sy: self.blocks.get_sub_chunk(sy) for sy in self.blocks.sub_chunks},
-            self.biomes.to_raw(),
-            self._entities.data,
-            tuple(self._block_entities.data.values()),
-            self._status.value,
-            self.misc,
-            self._native_entities,
-            self._native_version,
+        if self.block_palette is not level.block_palette:
+            self.block_palette = level.block_palette
+        if self.biome_palette is not level.biome_palette:
+            self.biome_palette = level.biome_palette
+
+        return pickle.dumps(
+            _ChunkPickleData(
+                id(level),
+                (self._cx, self._cz),
+                {
+                    "_blocks": self._blocks,
+                    "_biomes": self._biomes,
+                    "_entities": self._entities,
+                    "_block_entities": self._block_entities,
+                    "_status": self._status,
+                    "_misc": self._misc,
+                    "_native_version": self._native_version,
+                    "_native_entities": self._native_entities,
+                },
+            )
         )
-        return pickle.dumps(chunk_data)
 
     @classmethod
     def unpickle(
         cls,
         pickled_bytes: bytes,
-        block_palette: BlockManager,
-        biome_palette: BiomeManager,
+        level: Level,
     ) -> Chunk:
         """
         Deserialise the pickled input and unpack the data into an instance of :class:`Chunk`
 
         :param pickled_bytes: The bytes returned from :func:`pickle`
-        :param block_palette: The instance of :class:`BlockManager` associated with the level.
-        :param biome_palette: The instance of :class:`BiomeManager` associated with the level.
+        :param level: The level to deserialise against.
+        :raises:
+            :class:`~amulet.errors.ChunkLoadError`: If pickled data was a ChunkLoadError instance.
+            RuntimeError if any other case
         :return: An instance of :class:`Chunk` containing the unpickled data.
         """
         chunk_data = pickle.loads(pickled_bytes)
-        self = cls(*chunk_data[:2])
-        (
-            self.blocks,
-            biomes,
-            self.entities,
-            self.block_entities,
-            self.status,
-            self.misc,
-            self._native_entities,
-            self._native_version,
-        ) = chunk_data[3:]
-
-        self._biomes = Biomes.from_raw(*biomes)
-
-        self._changed_time = chunk_data[2]
-        self._block_palette = block_palette
-        self._biome_palette = biome_palette
-        self.changed = False
-        return self
+        if isinstance(chunk_data, _ChunkPickleData):
+            if id(level) != chunk_data.level_id:
+                raise RuntimeError("level is a different level")
+            self = cls(*chunk_data.init_args)
+            for name, arg in chunk_data.args.items():
+                setattr(self, name, arg)
+            self._block_palette = level.block_palette
+            self._biome_palette = level.biome_palette
+            return self
+        elif isinstance(chunk_data, ChunkLoadError):
+            raise chunk_data
+        else:
+            raise RuntimeError
 
     @property
     def cx(self) -> int:
@@ -124,36 +134,6 @@ class Chunk(Changeable):
     def coordinates(self) -> ChunkCoordinates:
         """The chunk's x and z coordinates"""
         return self._cx, self._cz
-
-    @property
-    def changed(self) -> bool:
-        """
-        Has the chunk changed since the last undo point. Is used to track which chunks have changed.
-
-        >>> chunk = Chunk(0, 0)
-        >>> # Run this to notify that the chunk data has changed.
-        >>> chunk.changed = True
-
-        :setter: Set this to ``True`` if you have modified the chunk in any way.
-        :return: ``True`` if the chunk has been changed since the last undo point, ``False`` otherwise.
-        """
-        return self._changed
-
-    @changed.setter
-    def changed(self, changed: bool):
-        assert isinstance(changed, bool), "Changed value must be a bool"
-        self._changed = changed
-        if changed:
-            self._changed_time = time.time()
-
-    @property
-    def changed_time(self) -> float:
-        """
-        The last time the chunk was changed
-
-        Used to track if the chunk was changed since the last save snapshot and if the chunk model needs rebuilding.
-        """
-        return self._changed_time
 
     @property
     def blocks(self) -> Blocks:
@@ -184,7 +164,7 @@ class Chunk(Changeable):
         :param dz: The z coordinate within the chunk. 0-15 inclusive
         :return: The universal Block object representation of the block at that location
         """
-        return self.block_palette[self.blocks[dx, y, dz]]
+        return self.block_palette.index_to_block(self.blocks[dx, y, dz])
 
     def set_block(self, dx: int, y: int, dz: int, block: Block):
         """
@@ -195,48 +175,35 @@ class Chunk(Changeable):
         :param dz: The z coordinate within the chunk. 0-15 inclusive
         :param block: The universal Block object to set at the given location
         """
-        self.blocks[dx, y, dz] = self.block_palette.get_add_block(block)
+        self.blocks[dx, y, dz] = self.block_palette.block_to_index(block)
 
     @property
-    def _block_palette(self) -> BlockManager:
-        """The block block_palette for the chunk.
-        Usually will refer to a global block block_palette."""
-        return self.__block_palette
-
-    @_block_palette.setter
-    def _block_palette(self, new_block_palette: BlockManager):
-        """Change the block block_palette for the chunk.
-        This will change the block block_palette but leave the block array unchanged.
-        Only use this if you know what you are doing.
-        Designed for internal use. You probably want to use Chunk.block_palette"""
-        assert isinstance(new_block_palette, BlockManager)
-        self.__block_palette = new_block_palette
-
-    @property
-    def block_palette(self) -> BlockManager:
+    def block_palette(self) -> BlockPalette:
         """
         The block block_palette for the chunk.
 
         Usually will refer to the level's global block_palette.
         """
+        if self._block_palette is None:
+            self._block_palette = BlockPalette()
         return self._block_palette
 
     @block_palette.setter
-    def block_palette(self, new_block_palette: BlockManager):
+    def block_palette(self, new_block_palette: BlockPalette):
         """
         Change the block block_palette for the chunk.
 
         This will copy over all block states from the old block_palette and remap the block indexes to use the new block_palette.
         """
-        assert isinstance(new_block_palette, BlockManager)
+        assert isinstance(new_block_palette, BlockPalette)
         if new_block_palette is not self._block_palette:
             # if current block block_palette and the new block block_palette are not the same object
             if self._block_palette:
                 # if there are blocks in the current block block_palette remap the data
                 block_lut = numpy.array(
                     [
-                        new_block_palette.get_add_block(block)
-                        for block in self._block_palette.blocks
+                        new_block_palette.block_to_index(block)
+                        for block in self._block_palette
                     ],
                     dtype=numpy.uint32,
                 )
@@ -245,7 +212,7 @@ class Chunk(Changeable):
                         cy, block_lut[self.blocks.get_sub_chunk(cy)]
                     )
 
-            self.__block_palette = new_block_palette
+            self._block_palette = new_block_palette
 
     @property
     def biomes(self) -> Biomes:
@@ -265,53 +232,32 @@ class Chunk(Changeable):
         self._biomes = Biomes(value)
 
     @property
-    def _biome_palette(self) -> BiomeManager:
-        """
-        The biome_palette for the chunk.
-
-        Usually will refer to a global biome_palette.
-        """
-        return self.__biome_palette
-
-    @_biome_palette.setter
-    def _biome_palette(self, new_biome_palette: BiomeManager):
-        """
-        Change the biome_palette for the chunk.
-
-        This will change the biome_palette but leave the biome array unchanged.
-
-        Only use this if you know what you are doing.
-
-        Designed for internal use. You probably want to use Chunk.biome_palette
-        """
-        assert isinstance(new_biome_palette, BiomeManager)
-        self.__biome_palette = new_biome_palette
-
-    @property
-    def biome_palette(self) -> BiomeManager:
+    def biome_palette(self) -> BiomePalette:
         """
         The biome block_palette for the chunk.
 
         Usually will refer to the level's global biome_palette.
         """
+        if self._biome_palette is None:
+            self._biome_palette = BiomePalette()
         return self._biome_palette
 
     @biome_palette.setter
-    def biome_palette(self, new_biome_palette: BiomeManager):
+    def biome_palette(self, new_biome_palette: BiomePalette):
         """
         Change the biome_palette for the chunk.
 
         This will copy over all biome states from the old biome_palette and remap the biome indexes to use the new_biome_palette.
         """
-        assert isinstance(new_biome_palette, BiomeManager)
+        assert isinstance(new_biome_palette, BiomePalette)
         if new_biome_palette is not self._biome_palette:
             # if current biome_palette and the new biome_palette are not the same object
             if self._biome_palette:
                 # if there are biomes in the current biome_palette remap the data
                 biome_lut = numpy.array(
                     [
-                        new_biome_palette.get_add_biome(biome)
-                        for biome in self._biome_palette.biomes
+                        new_biome_palette.biome_to_index(biome)
+                        for biome in self._biome_palette
                     ],
                     dtype=numpy.uint32,
                 )
@@ -323,7 +269,7 @@ class Chunk(Changeable):
                         for sy in self.biomes.sections
                     }
 
-            self.__biome_palette = new_biome_palette
+            self._biome_palette = new_biome_palette
 
     @property
     def entities(self) -> EntityList:
@@ -332,15 +278,12 @@ class Chunk(Changeable):
 
         :return: A list of all the entities contained in the chunk
         """
+        if self._entities is None:
+            self._entities = EntityList()
         return self._entities
 
     @entities.setter
     def entities(self, value: Iterable[Entity]):
-        """
-        :param value: The new entity list
-        :type value: list
-        :return:
-        """
         if self._entities != value:
             self._entities = EntityList(value)
 
@@ -351,15 +294,12 @@ class Chunk(Changeable):
 
         :return: A list of all the block entities contained in the chunk
         """
+        if self._block_entities is None:
+            self._block_entities = BlockEntityDict()
         return self._block_entities
 
     @block_entities.setter
-    def block_entities(self, value: BlockEntityDict.InputType):
-        """
-        :param value: The new block entity list
-        :type value: list
-        :return:
-        """
+    def block_entities(self, value: Iterable[BlockEntity]):
         if self._block_entities != value:
             self._block_entities = BlockEntityDict(value)
 

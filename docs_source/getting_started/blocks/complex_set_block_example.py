@@ -1,5 +1,5 @@
 import amulet
-from amulet.api.block import Block
+from amulet.block import Block
 from amulet.utils.world_utils import block_coords_to_chunk_coords
 from amulet_nbt import StringTag, IntTag
 
@@ -61,8 +61,8 @@ bedrock_block = Block(
 # Now we now have the universal block state converted from both Bedrock and Java. Lets set the data in the level.
 
 # First we need to register the Block objects with the block palette to get the runtime block id.
-block_id_1 = level.block_palette.get_add_block(universal_block_1)
-block_id_2 = level.block_palette.get_add_block(universal_block_2)
+block_id_1 = level.block_palette.block_to_index(universal_block_1)
+block_id_2 = level.block_palette.block_to_index(universal_block_2)
 # In this case the two translations gave the same universal block object so the block ids are the same.
 
 # This code was documented in the previous example so I won't do it again.

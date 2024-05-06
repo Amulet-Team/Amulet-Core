@@ -7,7 +7,7 @@ from amulet.api.chunk import Chunk
 from amulet.api.history.data_types import EntryType, EntryKeyType
 from amulet.api.history.base import RevisionManager
 from amulet.api.history.revision_manager import DBRevisionManager
-from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
+from amulet.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.history.history_manager import DatabaseHistoryManager
 from amulet.api import level as api_level
 from leveldb import LevelDB
@@ -178,7 +178,7 @@ class ChunkManager(DatabaseHistoryManager):
         Gets the :class:`Chunk` object at the specified chunk coordinates.
 
         This may be a :class:`Chunk` instance if the chunk exists, None if it is known to not exist
-        or :class:`~amulet.api.errors.ChunkDoesNotExist` will be raised if there is no record so it is unknown if it exists or not.
+        or :class:`~amulet.errors.ChunkDoesNotExist` will be raised if there is no record so it is unknown if it exists or not.
 
         Use has_chunk to check if there is a record of the chunk.
 
@@ -187,7 +187,7 @@ class ChunkManager(DatabaseHistoryManager):
         :param cz: The Z coordinate of the desired chunk
         :return: A Chunk instance or None
         :raises:
-            :class:`~amulet.api.errors.ChunkDoesNotExist`: If the chunk does not exist (was deleted or never created)
+            :class:`~amulet.errors.ChunkDoesNotExist`: If the chunk does not exist (was deleted or never created)
         """
         return self._get_entry((dimension, cx, cz))
 

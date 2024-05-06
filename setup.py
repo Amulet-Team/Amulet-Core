@@ -8,11 +8,7 @@ ext = []
 pyx_path = f"amulet/**/*.pyx"
 if next(glob.iglob(pyx_path, recursive=True), None):
     # This throws an error if it does not match any files
-    ext += cythonize(
-        pyx_path,
-        language_level=3,
-        annotate=True,
-    )
+    ext += cythonize(pyx_path, language_level=3)
 
 setup(
     version=versioneer.get_version(),

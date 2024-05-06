@@ -6,7 +6,7 @@ import numpy
 from amulet.api.chunk import Chunk
 from amulet.api.wrapper import Translator
 from amulet.api.data_types import VersionIdentifierType, AnyNDArray, BlockNDArray
-from amulet.api.registry import BlockManager
+from amulet.palette import BlockPalette
 
 if TYPE_CHECKING:
     from PyMCTranslate import Version, TranslationManager
@@ -32,7 +32,7 @@ class JavaNumericalTranslator(Translator):
         :return:
         """
         version = translation_manager.get_version(*version_identifier)
-        chunk._block_palette = BlockManager(
+        chunk._block_palette = BlockPalette(
             [version.block.ints_to_block(*entry) for entry in block_palette]
         )
 

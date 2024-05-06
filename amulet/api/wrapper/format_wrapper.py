@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import shutil
 from abc import ABC, abstractmethod
 from typing import (
     Tuple,
@@ -28,18 +27,17 @@ import PyMCTranslate
 
 from amulet.api import level as api_level, wrapper as api_wrapper
 from amulet.api.chunk import Chunk
-from amulet.api.registry import BlockManager
-from amulet.api.errors import (
+from amulet.palette import BlockPalette
+from amulet.errors import (
     ChunkLoadError,
     ChunkDoesNotExist,
-    ObjectReadError,
+    LevelReadError,
     ObjectReadWriteError,
     PlayerDoesNotExist,
     PlayerLoadError,
     EntryLoadError,
     EntryDoesNotExist,
     DimensionDoesNotExist,
-    ObjectWriteError,
 )
 from amulet.api.data_types import (
     AnyNDArray,
@@ -48,8 +46,8 @@ from amulet.api.data_types import (
     Dimension,
     PlatformType,
 )
-from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.player import Player
+from amulet.selection import SelectionGroup, SelectionBox
+from amulet.player import Player
 
 if TYPE_CHECKING:
     from amulet.api.wrapper.chunk.translator import Translator
@@ -265,14 +263,14 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
                     )[0]
                 )
             else:
-                raise ObjectReadError(
+                raise LevelReadError(
                     "A single selection was required but none were given."
                 )
 
     def open(self):
         """Open the database for reading and writing."""
         if self.is_open:
-            raise ObjectReadError(f"Cannot open {self} because it was already opened.")
+            raise LevelReadError(f"Cannot open {self} because it was already opened.")
         self._open()
 
     @abstractmethod
@@ -555,11 +553,11 @@ class BaseFormatWrapper(Generic[VersionNumberT], ABC):
                 chunk.blocks.add_sub_chunk(
                     cy, lut.astype(numpy.uint32)[chunk.blocks.get_sub_chunk(cy)]
                 )
-            chunk._block_palette = BlockManager(
+            chunk._block_palette = BlockPalette(
                 numpy.vectorize(chunk.block_palette.__getitem__)(chunk_palette)
             )
         else:
-            chunk._block_palette = BlockManager()
+            chunk._block_palette = BlockPalette()
 
         def get_chunk_callback(_: int, __: int) -> Chunk:
             # conversion from universal should not require any data outside the block
@@ -808,18 +806,18 @@ class DiskFormatWrapper(
             platform not in self.valid_formats()
             or len(self.valid_formats()[platform]) < 2
         ):  # check that the platform and version are valid
-            raise ObjectReadError(
+            raise LevelReadError(
                 f"{platform} is not a valid platform for this wrapper."
             )
         translator_version = self.translation_manager.get_version(platform, version)
         if translator_version.has_abstract_format:  # numerical
             if not self.valid_formats()[platform][0]:
-                raise ObjectReadError(
+                raise LevelReadError(
                     f"The version given ({version}) is from the numerical format but this wrapper does not support the numerical format."
                 )
         else:
             if not self.valid_formats()[platform][1]:
-                raise ObjectReadError(
+                raise LevelReadError(
                     f"The version given ({version}) is from the blockstate format but this wrapper does not support the blockstate format."
                 )
 

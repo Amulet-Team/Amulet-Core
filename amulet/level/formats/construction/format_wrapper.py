@@ -37,11 +37,11 @@ from amulet.api.data_types import (
     PlatformType,
     ChunkCoordinates,
 )
-from amulet.api.registry import BlockManager
+from amulet.palette import BlockPalette
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
-from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.errors import ChunkDoesNotExist, ObjectWriteError
+from amulet.selection import SelectionGroup, SelectionBox
+from amulet.errors import ChunkDoesNotExist, LevelWriteError
 
 from .section import ConstructionSection
 from .interface import Construction0Interface, ConstructionInterface
@@ -170,7 +170,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         **kwargs,
     ):
         if not overwrite and os.path.isfile(self.path):
-            raise ObjectWriteError(f"There is already a file at {self.path}")
+            raise LevelWriteError(f"There is already a file at {self.path}")
         self._format_version = format_version
         self._section_version = section_version
         translator_version = self.translation_manager.get_version(
@@ -349,7 +349,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         return interface, translator, version_identifier
 
     def save_to(self, f: BinaryIO):
-        palette: BlockManager = BlockManager()
+        palette: BlockPalette = BlockPalette()
         f.write(magic_num)
         f.write(struct.pack(">B", self._format_version))
         if self._format_version == 0:
@@ -372,9 +372,9 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                     ),
                 }
             )
-            section_index_table: List[
-                Tuple[int, int, int, int, int, int, int, int]
-            ] = []
+            section_index_table: List[Tuple[int, int, int, int, int, int, int, int]] = (
+                []
+            )
             if self._section_version == 0:
                 for section_list in self._chunk_to_section.values():
                     for section in section_list:
@@ -398,7 +398,7 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                             section_palette = numpy.array(
                                 section_palette, dtype=object
                             )[index]
-                            lut = numpy.vectorize(palette.get_add_block)(
+                            lut = numpy.vectorize(palette.block_to_index)(
                                 section_palette
                             )
                             flattened_array = lut[flattened_array]
@@ -478,8 +478,8 @@ class ConstructionFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         chunk: "Chunk",
         chunk_palette: AnyNDArray,
     ) -> "Chunk":
-        palette = chunk._block_palette = BlockManager()
-        lut = numpy.array([palette.get_add_block(block) for block in chunk_palette])
+        palette = chunk._block_palette = BlockPalette()
+        lut = numpy.array([palette.block_to_index(block) for block in chunk_palette])
         if len(palette.blocks) != len(chunk_palette):
             # if a blockstate was defined twice
             for cy in chunk.blocks.sub_chunks:

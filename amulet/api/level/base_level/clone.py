@@ -4,11 +4,11 @@ import numpy
 import os
 
 from amulet.api.data_types import Dimension, BlockCoordinates, FloatTriplet
-from amulet.api.selection import SelectionGroup, SelectionBox
-from amulet.api.block import Block, UniversalAirBlock
-from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
+from amulet.selection import SelectionGroup, SelectionBox
+from amulet.block import Block, UniversalAirBlock
+from amulet.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.chunk import Chunk
-from amulet.api.registry import BlockManager
+from amulet.palette import BlockPalette
 from amulet.utils.matrix import transform_matrix, displacement_matrix
 import amulet.api.level
 
@@ -29,7 +29,7 @@ def is_sub_block(skip_blocks: Tuple[Block, ...], b: Block) -> bool:
 
 
 def gen_paste_blocks(
-    block_palette: BlockManager, skip_blocks: Tuple[Block, ...]
+    block_palette: BlockPalette, skip_blocks: Tuple[Block, ...]
 ) -> numpy.ndarray:
     """Create a numpy bool array of all the blocks which should be pasted.
 
@@ -116,13 +116,13 @@ def clone(
             )
 
             last_src: Optional[Tuple[int, int]] = None
-            src_chunk: Optional[
-                Chunk
-            ] = None  # None here means the chunk does not exist or failed to load. Treat it as if it was air.
+            src_chunk: Optional[Chunk] = (
+                None  # None here means the chunk does not exist or failed to load. Treat it as if it was air.
+            )
             last_dst: Optional[Tuple[int, int]] = None
-            dst_chunk: Optional[
-                Chunk
-            ] = None  # None here means the chunk failed to load. Do not modify it.
+            dst_chunk: Optional[Chunk] = (
+                None  # None here means the chunk failed to load. Do not modify it.
+            )
 
             sum_progress = 0
             volumes = tuple(
@@ -206,7 +206,7 @@ def clone(
 
                                                 dst_chunk.blocks.get_sub_chunk(dst_cy)[
                                                     tuple(dst_blocks_.T % 16)
-                                                ] = dst_chunk.block_palette.get_add_block(
+                                                ] = dst_chunk.block_palette.block_to_index(
                                                     transformed_block
                                                 )
 
@@ -244,7 +244,7 @@ def clone(
                                     elif UniversalAirBlock not in blocks_to_skip:
                                         dst_chunk.blocks.get_sub_chunk(dst_cy)[
                                             tuple(dst_blocks.T % 16)
-                                        ] = dst_chunk.block_palette.get_add_block(
+                                        ] = dst_chunk.block_palette.block_to_index(
                                             UniversalAirBlock
                                         )
                                         for location in dst_blocks:
@@ -316,7 +316,7 @@ def clone(
 
                     # create a look up table converting the source block ids to the destination block ids
                     gab = numpy.vectorize(
-                        dst_chunk.block_palette.get_add_block, otypes=[numpy.uint32]
+                        dst_chunk.block_palette.block_to_index, otypes=[numpy.uint32]
                     )
                     lut = gab(src_chunk.block_palette.blocks)
 

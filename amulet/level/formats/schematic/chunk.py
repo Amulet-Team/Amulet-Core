@@ -3,7 +3,7 @@ from typing import List
 
 from amulet_nbt import CompoundTag
 
-from amulet.api.selection import SelectionBox
+from amulet.selection import SelectionBox
 from .data_types import BlockDataArrayType, BlockArrayType
 
 
