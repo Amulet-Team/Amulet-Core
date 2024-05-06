@@ -67,8 +67,8 @@ class BedrockChunk0(Chunk):
                 VersionNumber(1, 0, 0),
                 VersionNumber(1, 0, 0),
             ),
-            BlockStack(Block("bedrock", VersionNumber(), "", "")),
-            Biome("bedrock", VersionNumber(), "", ""),
+            BlockStack(Block("bedrock", VersionNumber(1, 0, 0), "", "")),
+            Biome("bedrock", VersionNumber(1, 0, 0), "", ""),
         )
     )
 
@@ -99,8 +99,8 @@ class BedrockChunk29(Chunk):
                 VersionNumber(1, 0, 0),
                 VersionNumber(1, 0, 0),
             ),
-            BlockStack(Block("bedrock", VersionNumber(), "", "")),
-            Biome("bedrock", VersionNumber(), "", ""),
+            BlockStack(Block("bedrock", VersionNumber(1, 0, 0), "", "")),
+            Biome("bedrock", VersionNumber(1, 0, 0), "", ""),
         )
     )
 
