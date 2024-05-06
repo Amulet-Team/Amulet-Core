@@ -3,11 +3,10 @@ from __future__ import annotations
 from typing import Any
 from abc import ABC, abstractmethod
 
-from amulet.utils.typing import Intersection
 from ._level import Level
 
 
-class LoadableLevel(ABC):
+class LoadableLevel(Level, ABC):
     """Level extension class for levels that can be loaded from existing data."""
 
     __slots__ = ()
@@ -25,7 +24,7 @@ class LoadableLevel(ABC):
 
     @classmethod
     @abstractmethod
-    def load(cls, token: Any) -> Intersection[Level, LoadableLevel]:
+    def load(cls, token: Any) -> LoadableLevel:
         """
         Create a new instance from existing data.
         You must call :meth:`~amulet.level.abc.Level.open` to open the level for editing.
