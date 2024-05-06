@@ -139,6 +139,10 @@ class BedrockLevel(
             return "Unknown level name"
 
     @property
+    def modified_time(self) -> float:
+        return self.raw.modified_time
+
+    @property
     def thumbnail(self) -> Image.Image:
         try:
             return Image.open(os.path.join(self.path, "world_icon.jpeg"))

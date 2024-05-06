@@ -264,7 +264,7 @@ class BedrockRawLevel(
             return VersionNumber(1, 2, 0)
 
     @property
-    def last_played(self) -> int:
+    def modified_time(self) -> float:
         try:
             return self.level_dat.compound.get_long("LastPlayed", LongTag()).py_int
         except Exception:
