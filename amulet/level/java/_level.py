@@ -139,6 +139,10 @@ class JavaLevel(
         return self.raw.level_name
 
     @property
+    def modified_time(self) -> float:
+        return self.raw.modified_time
+
+    @property
     def path(self) -> str:
         return self.raw.path
 

@@ -392,6 +392,12 @@ class Level(ABC, Generic[OpenLevelDataT, DimensionT, RawLevelT]):
         raise NotImplementedError
 
     @property
+    @abstractmethod
+    def modified_time(self) -> float:
+        """The unix float timestamp of when the level was last modified."""
+        raise NotImplementedError
+
+    @property
     def sub_chunk_size(self) -> int:
         """
         The dimensions of a sub-chunk.
