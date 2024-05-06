@@ -35,7 +35,7 @@ class BlockPalette(Palette[BlockStack]):
             for block in block_stack
         ):
             raise ValueError(
-                f"BlockStack {block_stack} is incompatible with {self.version_range}"
+                f"{block_stack} is incompatible with {self.version_range}"
             )
         return self._get_index(block_stack)
 
