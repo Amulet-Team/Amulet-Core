@@ -72,6 +72,11 @@ class AnvilNAInterface(BaseAnvilInterface):
         [("Level", CompoundTag), ("TerrainPopulated", ByteTag)],
         ByteTag,
     )
+    isLightOn: ChunkPathType = (
+        "region",
+        [("Level", CompoundTag), ("isLightOn", ByteTag)],
+        ByteTag,
+    )
     LightPopulated: ChunkPathType = (
         "region",
         [("Level", CompoundTag), ("LightPopulated", ByteTag)],
@@ -126,6 +131,7 @@ class AnvilNAInterface(BaseAnvilInterface):
         self._register_decoder(self._decode_blocks)
         self._register_decoder(self._decode_block_entities)
         self._register_decoder(self._decode_block_ticks)
+        self._register_decoder(self._decode_islighton)
         self._register_decoder(self._decode_block_light)
         self._register_decoder(self._decode_sky_light)
 
@@ -305,6 +311,13 @@ class AnvilNAInterface(BaseAnvilInterface):
                         >> numpy.array([0, 4], dtype=numpy.uint8)
                     ).reshape((16, 16, 16))
         return light_container
+
+    def _decode_islighton(
+        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+    ):
+        chunk.misc["isLightOn"] = self.get_layer_obj(
+            data, self.isLightOn, pop_last=True
+        )
 
     def _decode_block_light(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
