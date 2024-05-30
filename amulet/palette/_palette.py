@@ -17,18 +17,18 @@ class Palette(VersionRangeContainer, Sequence[T], ABC):
         self._index_to_item: list[T] = []
         self._item_to_index: dict[T, int] = {}
 
-    def __getstate__(self) -> tuple[Any, ...]:
+    def __getstate__(self) -> tuple[VersionRange, list[T]]:  # type: ignore[override]
         return (
-            *super().__getstate__(),
+            super().__getstate__(),
             self._index_to_item,
         )
 
-    def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
-        self._index_to_item, *state = super().__setstate__(state)
+    def __setstate__(self, state: tuple[VersionRange, list[T]]) -> None:  # type: ignore[override]
+        super().__setstate__(state[0])
+        self._index_to_item = state[1]
         self._item_to_index = {
             item: index for index, item in enumerate(self._index_to_item)
         }
-        return state
 
     def __len__(self) -> int:
         """

@@ -14,15 +14,15 @@ class EntityComponentData(VersionRangeContainer, MutableSet[Entity]):
         super().__init__(version_range)
         self._entities = set()
 
-    def __getstate__(self) -> tuple[Any, ...]:
+    def __getstate__(self) -> tuple[VersionRange, set[Entity]]:  # type: ignore[override]
         return (
-            *super().__getstate__(),
+            super().__getstate__(),
             self._entities,
         )
 
-    def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
-        self._entities, *state = super().__setstate__(state)
-        return state
+    def __setstate__(self, state: tuple[VersionRange, set[Entity]]) -> None:  # type: ignore[override]
+        super().__setstate__(state[0])
+        self._entities = state[1]
 
     def add(self, entity: Entity) -> None:
         if not isinstance(entity, Entity):

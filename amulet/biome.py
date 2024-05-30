@@ -25,12 +25,12 @@ class Biome(PlatformVersionContainer):
         self._namespace = str(namespace)
         self._base_name = str(base_name)
 
-    def __getstate__(self) -> tuple[Any, ...]:
-        return *super().__getstate__(), self._namespace, self._base_name
+    def __getstate__(self) -> tuple[tuple[str, VersionNumber], tuple[str, str]]:  # type: ignore[override]
+        return super().__getstate__(), (self._namespace, self._base_name)
 
-    def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
-        self._namespace, self._base_name, *state = super().__setstate__(state)
-        return state
+    def __setstate__(self, state: tuple[tuple[str, VersionNumber], tuple[str, str]]) -> None:  # type: ignore[override]
+        super().__setstate__(state[0])
+        self._namespace, self._base_name = state[1]
 
     def __hash__(self) -> int:
         return hash(self.__getstate__())

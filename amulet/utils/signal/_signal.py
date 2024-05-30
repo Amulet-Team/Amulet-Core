@@ -16,7 +16,7 @@ from inspect import ismethod
 
 
 if TYPE_CHECKING:
-    import PySide6.QtCore  # noqa
+    import PySide6.QtCore  # type: ignore  # noqa
 
 
 CallArgs = TypeVarTuple("CallArgs")
@@ -61,13 +61,14 @@ def create_signal_instance(
 SignalInstanceCacheName = "_SignalCache"
 
 
-def _get_signal_instances(instance: Any) -> dict[Any, SignalInstance]:
+def _get_signal_instances(instance: Any) -> dict[Signal, SignalInstance]:
+    signal_instances: dict[Any, SignalInstance]
     try:
         signal_instances = getattr(instance, SignalInstanceCacheName)
     except AttributeError:
         signal_instances = {}
         setattr(instance, SignalInstanceCacheName, signal_instances)
-    return signal_instances  # type: ignore
+    return signal_instances
 
 
 class Signal(Generic[*CallArgs]):
@@ -210,18 +211,18 @@ def get_pyside6_signal_instance_constructor() -> SignalInstanceConstructor:
         instance: Any,
     ) -> PySide6_SignalInstance:
         if isinstance(instance, QObject):
-            return PySide6_Signal(*types, name=name, arguments=arguments).__get__(
-                instance, QObject
-            )
+            return PySide6_Signal(
+                *types, name=name, arguments=list(arguments) if arguments else None
+            ).__get__(instance, QObject)
         else:
             signal_instances = _get_signal_instances(instance)
             if QObjectCacheName not in signal_instances:
-                signal_instances[QObjectCacheName] = QObject
-            obj = signal_instances[QObjectCacheName]
+                signal_instances[QObjectCacheName] = QObject()  # type: ignore
+            obj = signal_instances[QObjectCacheName]  # type: ignore
             if not isinstance(obj, QObject):
                 raise RuntimeError
             return PySide6_Signal(*types, name=name, arguments=arguments).__get__(
                 obj, QObject
             )
 
-    return pyside6_signal_instance_constructor
+    return pyside6_signal_instance_constructor  # type: ignore

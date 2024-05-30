@@ -45,7 +45,7 @@ _SNBTPropertiesPattern = re.compile(
 class BlockProperties(Mapping[str, PropertyValueType], Hashable):
     """An immutable and hashable mapping from strings to nbt objects."""
 
-    _properties: Mapping[str, PropertyValueType]
+    _properties: dict[str, PropertyValueType]
     _hash: int | None
 
     __slots__ = (
@@ -63,10 +63,10 @@ class BlockProperties(Mapping[str, PropertyValueType], Hashable):
             raise TypeError("values must be nbt")
         self._hash = None
 
-    def __getstate__(self) -> Any:
+    def __getstate__(self) -> dict[str, PropertyValueType]:
         return self._properties
 
-    def __setstate__(self, state: Any) -> None:
+    def __setstate__(self, state: dict[str, PropertyValueType]) -> None:
         self._properties = state
         self._hash = None
 
@@ -156,20 +156,20 @@ class Block(PlatformVersionContainer):
         self._properties = BlockProperties(properties)
         self._hash = None
 
-    def __getstate__(self) -> tuple[Any, ...]:
+    def __getstate__(self) -> tuple[tuple[str, VersionNumber], tuple[str, str, BlockProperties]]:  # type: ignore[override]
         return (
-            *super().__getstate__(),
-            self._namespace,
-            self._base_name,
-            self._properties,
+            super().__getstate__(),
+            (
+                self._namespace,
+                self._base_name,
+                self._properties,
+            ),
         )
 
-    def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
-        self._namespace, self._base_name, self._properties, *state = (
-            super().__setstate__(state)
-        )
+    def __setstate__(self, state: tuple[tuple[str, VersionNumber], tuple[str, str, BlockProperties]]) -> None:  # type: ignore[override]
+        super().__setstate__(state[0])
+        self._namespace, self._base_name, self._properties = state[1]
         self._hash = None
-        return state
 
     @classmethod
     def from_string_blockstate(

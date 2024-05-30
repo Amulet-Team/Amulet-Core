@@ -27,15 +27,15 @@ class BlockEntityComponentData(
         super().__init__(version_range)
         self._block_entities = {}
 
-    def __getstate__(self) -> tuple[Any, ...]:
+    def __getstate__(self) -> tuple[VersionRange, dict[BlockCoordinates, BlockEntity]]:  # type: ignore[override]
         return (
-            *super().__getstate__(),
+            super().__getstate__(),
             self._block_entities,
         )
 
-    def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
-        self._block_entities, *state = super().__setstate__(state)
-        return state
+    def __setstate__(self, state: tuple[VersionRange, dict[BlockCoordinates, BlockEntity]]) -> None:  # type: ignore[override]
+        super().__setstate__(state[0])
+        self._block_entities = state[1]
 
     def __setitem__(
         self, coordinate: BlockCoordinates, block_entity: BlockEntity
