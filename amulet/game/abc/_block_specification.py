@@ -113,7 +113,7 @@ class BlockSpec(JSONInterface):
                 properties[name] = [val.to_snbt() for val in state.states]
                 defaults[name] = state.default.to_snbt()
         if self.nbt is not None:
-            spec["nbt_identifier"] = (self.nbt.namespace, self.nbt.base_name)
+            spec["nbt_identifier"] = [self.nbt.namespace, self.nbt.base_name]
             spec["snbt"] = self.nbt.snbt
         return spec
 

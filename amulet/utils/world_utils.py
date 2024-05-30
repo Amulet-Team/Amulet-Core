@@ -99,7 +99,7 @@ def to_nibble_array(arr: ndarray) -> ndarray:
     :return: The nibble array
     """
     arr = arr.ravel()
-    return (arr[::2] + (arr[1::2] << 4)).astype(uint8)
+    return (arr[::2] + (arr[1::2] << 4)).astype(uint8)  # type: ignore
 
 
 """
@@ -121,7 +121,7 @@ def decode_long_array(
     long_array: numpy.ndarray,
     size: int,
     bits_per_entry: int,
-    dense=True,
+    dense: bool = True,
     signed: bool = False,
 ) -> numpy.ndarray:
     """
@@ -192,7 +192,7 @@ def encode_long_array(
     array: numpy.ndarray,
     bits_per_entry: Optional[int] = None,
     dense: bool = True,
-    min_bits_per_entry=1,
+    min_bits_per_entry: int = 1,
 ) -> numpy.ndarray:
     """
     Encode a long array (from BlockStates or Heightmaps)

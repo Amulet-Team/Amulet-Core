@@ -1,7 +1,10 @@
-from typing import Generator
+from typing import Generator, TypeVar, Any
 
 
-def generator_unpacker(gen: Generator):
+T = TypeVar("T")
+
+
+def generator_unpacker(gen: Generator[Any, Any, T]) -> T:
     """
     Unpack a generator and return the value returned by the generator.
 
@@ -12,4 +15,4 @@ def generator_unpacker(gen: Generator):
         while True:
             next(gen)
     except StopIteration as e:
-        return e.value
+        return e.value  # type: ignore

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pickle
-from typing import Optional, TYPE_CHECKING, Generic, TypeVar, Iterable, Callable
+from typing import Optional, TYPE_CHECKING, Generic, TypeVar, Callable
 from collections.abc import Iterator, Set
 from contextlib import contextmanager
 from threading import RLock
@@ -228,11 +228,11 @@ class ChunkHandle(
         """
         data = self._chunk_history.get_resource(self._key)
         if data:
-            obj = pickle.loads(data)
+            obj: ChunkLoadError | type[Chunk] = pickle.loads(data)
             if isinstance(obj, ChunkLoadError):
                 raise obj
             elif issubclass(obj, Chunk):
-                return obj
+                return obj  # type: ignore
             else:
                 raise RuntimeError
         else:

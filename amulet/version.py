@@ -121,12 +121,11 @@ class PlatformVersionContainer:
         self._platform = platform
         self._version = version
 
-    def __getstate__(self) -> tuple[Any, ...]:
+    def __getstate__(self) -> tuple[str, VersionNumber]:
         return self._platform, self._version
 
-    def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
-        self._platform, self._version, *state = state
-        return state
+    def __setstate__(self, state: tuple[str, VersionNumber]) -> None:
+        self._platform, self._version = state
 
     @property
     def platform(self) -> str:
@@ -173,7 +172,7 @@ class VersionRange:
     def __getstate__(self) -> None:
         return None
 
-    def __setstate__(self, state: None):
+    def __setstate__(self, state: None) -> None:
         pass
 
     def __repr__(self) -> str:
@@ -206,9 +205,8 @@ class VersionRangeContainer:
     def version_range(self) -> VersionRange:
         return self._version_range
 
-    def __getstate__(self) -> tuple[Any, ...]:
-        return (self._version_range,)
+    def __getstate__(self) -> VersionRange:
+        return self._version_range
 
-    def __setstate__(self, state: tuple[Any, ...]) -> tuple[Any, ...]:
-        self._version_range, *state = state
-        return state
+    def __setstate__(self, state: VersionRange) -> None:
+        self._version_range = state
