@@ -211,9 +211,9 @@ def get_pyside6_signal_instance_constructor() -> SignalInstanceConstructor:
         instance: Any,
     ) -> PySide6_SignalInstance:
         if isinstance(instance, QObject):
-            return PySide6_Signal(*types, name=name, arguments=list(arguments) if arguments else None).__get__(
-                instance, QObject
-            )
+            return PySide6_Signal(
+                *types, name=name, arguments=list(arguments) if arguments else None
+            ).__get__(instance, QObject)
         else:
             signal_instances = _get_signal_instances(instance)
             if QObjectCacheName not in signal_instances:

@@ -163,7 +163,7 @@ class Block(PlatformVersionContainer):
                 self._namespace,
                 self._base_name,
                 self._properties,
-            )
+            ),
         )
 
     def __setstate__(self, state: tuple[tuple[str, VersionNumber], tuple[str, str, BlockProperties]]) -> None:  # type: ignore[override]

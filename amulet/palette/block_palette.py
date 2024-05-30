@@ -34,9 +34,7 @@ class BlockPalette(Palette[BlockStack]):
             self.version_range.contains(block.platform, block.version)
             for block in block_stack
         ):
-            raise ValueError(
-                f"{block_stack} is incompatible with {self.version_range}"
-            )
+            raise ValueError(f"{block_stack} is incompatible with {self.version_range}")
         return self._get_index(block_stack)
 
     def __repr__(self) -> str:

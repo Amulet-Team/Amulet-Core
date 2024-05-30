@@ -63,7 +63,7 @@ class Entity(PlatformVersionContainer):
                 self._y,
                 self._z,
                 self._nbt,
-            )
+            ),
         )
 
     def __setstate__(self, state: tuple[tuple[str, VersionNumber], tuple[str, str, float, float, float, NamedTag]]) -> None:  # type: ignore[override]
