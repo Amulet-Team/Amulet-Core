@@ -307,7 +307,10 @@ def native_to_raw(
                 palette_tag = ListTag[CompoundTag]()
                 for palette_index in block_lut:
                     palette_tag.append(
-                        encode_block(block_palette.index_to_block_stack(palette_index))
+                        encode_block(
+                            game_version,
+                            block_palette.index_to_block_stack(palette_index),
+                        )
                     )
 
                 section_tag = get_section(cy)
@@ -416,7 +419,7 @@ def native_to_raw(
         for section in sections_map.values():
             if "Palette" in section:
                 if "BlockStates" not in section:
-                    assert len(section["Palette"]) == 1
+                    assert len(section.get_list("Palette", raise_errors=True)) == 1
                     section["BlockStates"] = LongArrayTag([0] * 256)
             else:
                 section["Palette"] = ListTag(
