@@ -1,4 +1,5 @@
 from typing import TypeAlias
+import numpy
 
 #: The type for a dimension identifier
 DimensionId: TypeAlias = str
@@ -15,8 +16,14 @@ SubChunkCoordinates: TypeAlias = tuple[int, int, int]
 #: The data type for the x, y and z location of a block within the world.
 BlockCoordinates: TypeAlias = tuple[int, int, int]
 
+#: The data type for the x, y and z location of a block within the world in the form of a numpy array.
+BlockCoordinatesArray: TypeAlias = numpy.ndarray  # NDArray[(3, ), int]
+
 #: The data type for the x, y and z location of a point within the world.
 PointCoordinates: TypeAlias = tuple[float, float, float]
+
+#: The data type for the x, y and z location of a point within the world in the form of a numpy array.
+PointCoordinatesArray: TypeAlias = numpy.ndarray  # NDArray[(3, ), numpy.float]
 
 #: The data type for a tuple containing three floats. Use :data:`PointCoordinates` for x, y, z float coordinates.
 FloatTriplet: TypeAlias = tuple[float, float, float]
