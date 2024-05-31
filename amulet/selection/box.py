@@ -8,14 +8,12 @@ from typing import Iterable, Iterator, TYPE_CHECKING, Any, TypeAlias, overload
 
 from amulet.data_types import (
     BlockCoordinates,
+    BlockCoordinatesArray,
+    PointCoordinates,
+    PointCoordinatesArray,
     ChunkCoordinates,
     SubChunkCoordinates,
     FloatTriplet,
-)
-from amulet.api.data_types import (
-    BlockCoordinatesAny,
-    CoordinatesAny,
-    PointCoordinatesAny,
 )
 from amulet.utils.world_utils import (
     block_coords_to_chunk_coords,
@@ -61,7 +59,11 @@ class SelectionBox(AbstractBaseSelection):
     _point_1: tuple[int, int, int]
     _point_2: tuple[int, int, int]
 
-    def __init__(self, point_1: BlockCoordinatesAny, point_2: BlockCoordinatesAny):
+    def __init__(
+        self,
+        point_1: BlockCoordinates | BlockCoordinatesArray,
+        point_2: BlockCoordinates | BlockCoordinatesArray,
+    ):
         """
         Construct a new SelectionBox instance.
 
@@ -125,7 +127,7 @@ class SelectionBox(AbstractBaseSelection):
         )
 
     def create_moved_box(
-        self, offset: BlockCoordinatesAny, subtract: bool = False
+        self, offset: BlockCoordinates | BlockCoordinatesArray, subtract: bool = False
     ) -> SelectionBox:
         """
         Create a new :class:`SelectionBox` based on this one with the coordinates moved by the given offset.
@@ -218,18 +220,18 @@ class SelectionBox(AbstractBaseSelection):
     def __str__(self) -> str:
         return f"({self.point_1}, {self.point_2})"
 
-    def contains_block(self, coords: CoordinatesAny) -> bool:
+    def contains_block(self, x: int, y: int, z: int) -> bool:
         return (
-            self._min_x <= coords[0] < self._max_x
-            and self._min_y <= coords[1] < self._max_y
-            and self._min_z <= coords[2] < self._max_z
+            self._min_x <= x < self._max_x
+            and self._min_y <= y < self._max_y
+            and self._min_z <= z < self._max_z
         )
 
-    def contains_point(self, coords: CoordinatesAny) -> bool:
+    def contains_point(self, x: float, y: float, z: float) -> bool:
         return (
-            self._min_x <= coords[0] <= self._max_x
-            and self._min_y <= coords[1] <= self._max_y
-            and self._min_z <= coords[2] <= self._max_z
+            self._min_x <= x <= self._max_x
+            and self._min_y <= y <= self._max_y
+            and self._min_z <= z <= self._max_z
         )
 
     def __eq__(self, other: Any) -> bool:
@@ -575,29 +577,21 @@ class SelectionBox(AbstractBaseSelection):
             return self.selection_group().subtract(other)
 
     def intersects_vector(
-        self, origin: PointCoordinatesAny, vector: PointCoordinatesAny
+        self,
+        origin: PointCoordinates | PointCoordinatesArray,
+        direction: PointCoordinates | PointCoordinatesArray,
     ) -> float | None:
         """
         Determine if a vector from a given point collides with this selection box.
 
         :param origin: Location of the origin of the vector
-        :param vector: The look vector
+        :param direction: The look vector
         :return: Multiplier of the vector to the collision location. None if it does not collide
         """
         # Logic based on https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
-        for obj in (origin, vector):
-            if isinstance(obj, (tuple, list)):
-                if len(obj) != 3 or not all(type(o) in (int, float) for o in obj):
-                    raise ValueError(
-                        "Given tuple/list type must contain three ints or floats."
-                    )
-            elif isinstance(obj, numpy.ndarray):
-                if obj.shape != (3,) and numpy.issubdtype(obj.dtype, numpy.number):
-                    raise ValueError(
-                        "Given ndarray type must have a numerical data type with length three."
-                    )
-        vector = numpy.array(vector)
-        vector[abs(vector) < 0.000001] = 0.000001
+        origin_arr = numpy.asarray(origin, dtype=numpy.float64)
+        direction_arr = numpy.asarray(direction, dtype=numpy.float64)
+        direction_arr[abs(direction_arr) < 0.000001] = 0.000001
         t_min: float
         ty_min: float
         tz_min: float
@@ -605,7 +599,7 @@ class SelectionBox(AbstractBaseSelection):
         ty_max: float
         tz_max: float
         (t_min, ty_min, tz_min), (t_max, ty_max, tz_max) = numpy.sort(
-            (self.bounds_array - numpy.array(origin)) / numpy.array(vector), axis=0
+            (self.bounds_array - origin_arr) / direction_arr, axis=0
         )
 
         if t_min > ty_max or ty_min > t_max:

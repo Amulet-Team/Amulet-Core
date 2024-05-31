@@ -11,9 +11,9 @@ from amulet.data_types import (
     SubChunkCoordinates,
     FloatTriplet,
 )
-from amulet.api.data_types import (
-    CoordinatesAny,
-    PointCoordinatesAny,
+from amulet.data_types import (
+    PointCoordinates,
+    PointCoordinatesArray,
 )
 from .abstract_selection import AbstractBaseSelection
 from .box import SelectionBox
@@ -104,11 +104,11 @@ class SelectionGroup(AbstractBaseSelection, Iterable[SelectionBox]):
         """The number of :class:`SelectionBox` classes in the group."""
         return len(self._selection_boxes)
 
-    def contains_block(self, coords: CoordinatesAny) -> bool:
-        return any(box.contains_block(coords) for box in self._selection_boxes)
+    def contains_block(self, x: int, y: int, z: int) -> bool:
+        return any(box.contains_block(x, y, z) for box in self._selection_boxes)
 
-    def contains_point(self, coords: CoordinatesAny) -> bool:
-        return any(box.contains_point(coords) for box in self._selection_boxes)
+    def contains_point(self, x: float, y: float, z: float) -> bool:
+        return any(box.contains_point(x, y, z) for box in self._selection_boxes)
 
     @property
     def blocks(self) -> Iterator[BlockCoordinates]:
@@ -424,19 +424,21 @@ class SelectionGroup(AbstractBaseSelection, Iterable[SelectionBox]):
         return not self.subtract(other.selection_group())
 
     def closest_vector_intersection(
-        self, origin: PointCoordinatesAny, vector: PointCoordinatesAny
+        self,
+        origin: PointCoordinates | PointCoordinatesArray,
+        direction: PointCoordinates | PointCoordinatesArray,
     ) -> tuple[int | None, float]:
         """
         Returns the index for the closest box in the look vector and the multiplier of the look vector to get there.
 
-        :param origin: The origin tuple of the vector
-        :param vector: The vector magnitude in x, y and z
+        :param origin: The origin of the vector
+        :param direction: The vector magnitude in x, y and z
         :return: Index for the closest box and the multiplier of the vector to get there. None, inf if no intersection.
         """
         index_return = None
         multiplier = float("inf")
         for index, box in enumerate(self._selection_boxes):
-            mult = box.intersects_vector(origin, vector)
+            mult = box.intersects_vector(origin, direction)
             if mult is not None and mult < multiplier:
                 multiplier = mult
                 index_return = index
