@@ -5,8 +5,7 @@ import os
 
 from PIL import Image
 
-from amulet.version import VersionNumber
-from amulet.api.data_types import PlatformType
+from amulet.version import VersionNumber, PlatformType
 from amulet.data_types import DimensionId
 from amulet.level import register_level_class
 from amulet.level.abc import (

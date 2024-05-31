@@ -5,14 +5,13 @@ from typing import TYPE_CHECKING, Optional, TypeVar, Type, Generic, Iterator, Ca
 from contextlib import contextmanager, AbstractContextManager as ContextManager
 import os
 import logging
-from weakref import ref, finalize
+from weakref import finalize
 
 from runtime_final import final
 from PIL import Image
 
 from amulet import IMG_DIRECTORY
-from amulet.version import VersionNumber
-from amulet.api.data_types import PlatformType
+from amulet.version import PlatformType, VersionNumber
 from amulet.data_types import DimensionId
 
 from amulet.chunk import Chunk

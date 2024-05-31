@@ -12,7 +12,7 @@ from amulet_nbt import (
 from amulet.block import Block, PropertyValueType
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
-from amulet.api.data_types import BlockCoordinates
+from amulet.data_types import BlockCoordinates
 from ._typing import NBTTagT, NBTPath
 
 

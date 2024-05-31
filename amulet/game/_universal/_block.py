@@ -1,6 +1,6 @@
 from typing import Callable
 
-from amulet.api.data_types import BlockCoordinates
+from amulet.data_types import BlockCoordinates
 from amulet.block import Block
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity

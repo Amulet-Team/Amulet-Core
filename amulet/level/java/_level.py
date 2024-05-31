@@ -9,7 +9,6 @@ from amulet_nbt import (
     load as load_nbt,
 )
 
-from amulet.api.data_types import PlatformType
 from amulet.data_types import DimensionId
 from amulet.level.abc import (
     DiskLevel,
@@ -30,7 +29,7 @@ from amulet.utils.call_spec import (
 )
 from amulet.utils.weakref import DetachableWeakRef
 from amulet.level import register_level_class
-from amulet.version import VersionNumber
+from amulet.version import VersionNumber, PlatformType
 
 from ._dimension import JavaDimension
 from ._raw import JavaCreateArgsV1, JavaRawLevel, InternalDimensionId

@@ -5,12 +5,14 @@ import numpy
 from typing import Iterable, Iterator, overload, Any
 import warnings
 
-from amulet.api.data_types import (
+from amulet.data_types import (
     BlockCoordinates,
-    CoordinatesAny,
     ChunkCoordinates,
     SubChunkCoordinates,
     FloatTriplet,
+)
+from amulet.api.data_types import (
+    CoordinatesAny,
     PointCoordinatesAny,
 )
 from .abstract_selection import AbstractBaseSelection

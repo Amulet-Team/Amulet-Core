@@ -12,9 +12,6 @@ if TYPE_CHECKING:
 BlockNDArray: TypeAlias = numpy.ndarray  # NDArray[(Any, ), 'Block']
 AnyNDArray: TypeAlias = numpy.ndarray  # NDArray[(Any, ), Any]
 
-#: The data type for the platform identifier.
-PlatformType: TypeAlias = str
-
 #: The data type for an integer version number.
 VersionNumberInt: TypeAlias = int
 

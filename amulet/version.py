@@ -1,7 +1,11 @@
 from __future__ import annotations
-from typing import Any, overload, Callable
+from typing import Any, overload, Callable, TypeAlias
 from collections.abc import Sequence
 from weakref import WeakValueDictionary
+
+
+#: The data type for the platform identifier.
+PlatformType: TypeAlias = str
 
 
 class VersionNumber(Sequence[int]):
@@ -117,18 +121,18 @@ class VersionNumber(Sequence[int]):
 class PlatformVersionContainer:
     __slots__ = ("_platform", "_version")
 
-    def __init__(self, platform: str, version: VersionNumber) -> None:
+    def __init__(self, platform: PlatformType, version: VersionNumber) -> None:
         self._platform = platform
         self._version = version
 
-    def __getstate__(self) -> tuple[str, VersionNumber]:
+    def __getstate__(self) -> tuple[PlatformType, VersionNumber]:
         return self._platform, self._version
 
-    def __setstate__(self, state: tuple[str, VersionNumber]) -> None:
+    def __setstate__(self, state: tuple[PlatformType, VersionNumber]) -> None:
         self._platform, self._version = state
 
     @property
-    def platform(self) -> str:
+    def platform(self) -> PlatformType:
         """The platform this object is defined in."""
         return self._platform
 
@@ -140,15 +144,18 @@ class PlatformVersionContainer:
 
 class VersionRange:
     _cache: WeakValueDictionary[
-        tuple[str, VersionNumber, VersionNumber], VersionRange
+        tuple[PlatformType, VersionNumber, VersionNumber], VersionRange
     ] = WeakValueDictionary()
 
-    _platform: str
+    _platform: PlatformType
     _min: VersionNumber
     _max: VersionNumber
 
     def __new__(
-        cls, platform: str, min_version: VersionNumber, max_version: VersionNumber
+        cls,
+        platform: PlatformType,
+        min_version: VersionNumber,
+        max_version: VersionNumber,
     ) -> VersionRange:
         key = (platform, min_version, max_version)
         self = cls._cache.get(key)
@@ -166,7 +173,7 @@ class VersionRange:
 
     def __getnewargs__(
         self,
-    ) -> tuple[str, VersionNumber, VersionNumber]:
+    ) -> tuple[PlatformType, VersionNumber, VersionNumber]:
         return self._platform, self._min, self._max
 
     def __getstate__(self) -> None:
@@ -179,7 +186,7 @@ class VersionRange:
         return f"VersionRangeContainer({self._min!r}, {self._max!r})"
 
     @property
-    def platform(self) -> str:
+    def platform(self) -> PlatformType:
         """The platform string the object is defined in"""
         return self._platform
 
@@ -193,7 +200,7 @@ class VersionRange:
         """The maximum version this range supports"""
         return self._max
 
-    def contains(self, platform: str, version: VersionNumber) -> bool:
+    def contains(self, platform: PlatformType, version: VersionNumber) -> bool:
         return platform == self.platform and self.min <= version <= self.max
 
 

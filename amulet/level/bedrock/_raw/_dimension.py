@@ -16,8 +16,7 @@ from amulet_nbt import (
     utf8_escape_encoding,
 )
 
-from amulet.api.data_types import ChunkCoordinates
-from amulet.data_types import DimensionId
+from amulet.data_types import DimensionId, ChunkCoordinates
 from amulet.block import Block, BlockStack
 from amulet.biome import Biome
 from amulet.selection import SelectionGroup

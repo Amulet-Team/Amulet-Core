@@ -6,13 +6,15 @@ import math
 
 from typing import Iterable, Iterator, TYPE_CHECKING, Any, TypeAlias, overload
 
-from amulet.api.data_types import (
+from amulet.data_types import (
     BlockCoordinates,
-    BlockCoordinatesAny,
-    CoordinatesAny,
     ChunkCoordinates,
     SubChunkCoordinates,
     FloatTriplet,
+)
+from amulet.api.data_types import (
+    BlockCoordinatesAny,
+    CoordinatesAny,
     PointCoordinatesAny,
 )
 from amulet.utils.world_utils import (

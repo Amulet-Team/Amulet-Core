@@ -17,7 +17,8 @@ from amulet.api.chunk import (
 )
 from amulet.entity import Entity
 from amulet.block_entity import BlockEntity
-from amulet.api.data_types import ChunkCoordinates, VersionIdentifierType
+from amulet.data_types import ChunkCoordinates
+from amulet.api.data_types import VersionIdentifierType
 from amulet.errors import ChunkLoadError
 
 if TYPE_CHECKING:

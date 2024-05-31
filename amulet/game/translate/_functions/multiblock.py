@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Sequence, Self, Any
 
-from amulet.api.data_types import BlockCoordinates
+from amulet.data_types import BlockCoordinates
 from amulet.errors import ChunkLoadError
 from .abc import (
     AbstractBaseTranslationFunction,

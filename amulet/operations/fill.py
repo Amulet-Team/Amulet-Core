@@ -4,7 +4,8 @@ from typing import TYPE_CHECKING
 
 from amulet.selection import SelectionGroup
 from amulet.block import Block
-from amulet.api.data_types import Dimension, OperationReturnType
+from amulet.data_types import DimensionId
+from amulet.api.data_types import OperationReturnType
 
 if TYPE_CHECKING:
     from amulet.api.level import BaseLevel
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
 
 def fill(
     world: "BaseLevel",
-    dimension: Dimension,
+    dimension: DimensionId,
     target_box: SelectionGroup,
     fill_block: Block,
 ) -> OperationReturnType:

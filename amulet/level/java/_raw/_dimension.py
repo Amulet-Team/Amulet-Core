@@ -1,10 +1,9 @@
 from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING, Callable
 
-from amulet.api.data_types import ChunkCoordinates
 from amulet.biome import Biome
 from amulet.block import BlockStack
-from amulet.data_types import DimensionId
+from amulet.data_types import DimensionId, ChunkCoordinates
 from amulet.level.abc import RawDimension, RawLevelFriend
 from amulet.selection import SelectionGroup
 

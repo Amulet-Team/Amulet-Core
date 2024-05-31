@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import MutableMapping
 from typing import Iterator, Any
 
-from amulet.api.data_types import BlockCoordinates
+from amulet.data_types import BlockCoordinates
 from amulet.block_entity import BlockEntity
 from amulet.version import VersionRange, VersionRangeContainer
 

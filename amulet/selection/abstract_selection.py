@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 from typing import Iterable, Iterator, TYPE_CHECKING, Any, Self
 import numpy
 
-from amulet.api.data_types import (
-    CoordinatesAny,
+from amulet.api.data_types import CoordinatesAny
+from amulet.data_types import (
     ChunkCoordinates,
     SubChunkCoordinates,
     FloatTriplet,

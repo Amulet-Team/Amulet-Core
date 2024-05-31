@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 from amulet_nbt import NamedTag
 from amulet.version import PlatformVersionContainer, VersionNumber
-from amulet.api.data_types import PointCoordinates
+from amulet.data_types import PointCoordinates
 
 
 class Entity(PlatformVersionContainer):

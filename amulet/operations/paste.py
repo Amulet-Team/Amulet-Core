@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from amulet.api.data_types import Dimension, BlockCoordinates, FloatTriplet
+from amulet.data_types import DimensionId, BlockCoordinates, FloatTriplet
 from amulet.block import Block, UniversalAirLikeBlocks
 
 if TYPE_CHECKING:
@@ -11,9 +11,9 @@ if TYPE_CHECKING:
 
 def paste(
     dst: "BaseLevel",
-    dst_dimension: Dimension,
+    dst_dimension: DimensionId,
     src: "BaseLevel",
-    src_dimension: Dimension,
+    src_dimension: DimensionId,
     location: BlockCoordinates,
     scale: FloatTriplet,
     rotation: FloatTriplet,
@@ -38,9 +38,9 @@ def paste(
 
 def paste_iter(
     dst: "BaseLevel",
-    dst_dimension: Dimension,
+    dst_dimension: DimensionId,
     src: "BaseLevel",
-    src_dimension: Dimension,
+    src_dimension: DimensionId,
     location: BlockCoordinates,
     scale: FloatTriplet,
     rotation: FloatTriplet,

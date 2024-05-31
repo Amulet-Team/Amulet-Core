@@ -10,7 +10,7 @@ from amulet_nbt import NamedTag
 
 from amulet.utils import world_utils
 from amulet.errors import ChunkDoesNotExist
-from amulet.api.data_types import (
+from amulet.data_types import (
     ChunkCoordinates,
     RegionCoordinates,
 )

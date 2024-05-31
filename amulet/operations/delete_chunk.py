@@ -1,5 +1,5 @@
 from amulet.selection import SelectionGroup
-from amulet.api.data_types import Dimension
+from amulet.data_types import DimensionId
 from amulet.api.chunk import Chunk
 from typing import TYPE_CHECKING
 
@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 def delete_chunk(
     world: "BaseLevel",
-    dimension: Dimension,
+    dimension: DimensionId,
     source_box: SelectionGroup,
     load_original: bool = True,
 ):

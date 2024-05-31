@@ -5,7 +5,7 @@ import logging
 
 from amulet.selection import SelectionGroup
 from amulet.block import Block
-from amulet.api.data_types import Dimension
+from amulet.data_types import DimensionId
 
 if TYPE_CHECKING:
     from amulet.api.level import BaseLevel
@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 
 def replace(
-    world: "BaseLevel", dimension: Dimension, selection: SelectionGroup, options: dict
+    world: "BaseLevel", dimension: DimensionId, selection: SelectionGroup, options: dict
 ):
     original_blocks = options.get("original_blocks", None)
     if not isinstance(original_blocks, list) and all(

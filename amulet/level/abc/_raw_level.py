@@ -4,8 +4,7 @@ from typing import Iterable, TypeVar, Generic, Callable
 from abc import ABC, abstractmethod
 from weakref import ref
 
-from amulet.api.data_types import ChunkCoordinates
-from amulet.data_types import DimensionId
+from amulet.data_types import ChunkCoordinates, DimensionId
 from amulet.chunk import Chunk
 from amulet.block import BlockStack
 from amulet.biome import Biome

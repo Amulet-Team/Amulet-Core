@@ -17,9 +17,7 @@ import lz4.block as lz4_block
 from amulet_nbt import NamedTag, load as load_nbt
 
 from amulet.errors import ChunkDoesNotExist, ChunkLoadError
-from amulet.api.data_types import (
-    ChunkCoordinates,
-)
+from amulet.data_types import ChunkCoordinates
 from ._sector_manager import SectorManager, Sector
 
 SectorSize = 0x1000

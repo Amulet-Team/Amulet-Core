@@ -1,5 +1,5 @@
 from amulet.selection import SelectionGroup
-from amulet.api.data_types import Dimension
+from amulet.data_types import DimensionId
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 
 def clone(
-    world: "BaseLevel", dimension: Dimension, selection: SelectionGroup, target: dict
+    world: "BaseLevel", dimension: DimensionId, selection: SelectionGroup, target: dict
 ):
     offset_x, offset_y, offset_z = (selection.max_array - selection.min_array) // 2
     dst_location = (

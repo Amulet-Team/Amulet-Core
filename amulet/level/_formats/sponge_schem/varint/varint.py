@@ -68,7 +68,7 @@ def decode_byte_array(buf: Iterable[int]) -> List[int]:
     return decode_bytes(bytes(buf))
 
 
-def encode(number: int):
+def encode(number: int) -> bytes:
     """Pack `number` into varint bytes"""
     buf = []
     while True:

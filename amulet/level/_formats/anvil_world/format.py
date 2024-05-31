@@ -44,10 +44,10 @@ from amulet.errors import (
     ChunkDoesNotExist,
     PlayerDoesNotExist,
 )
+from amulet.version import PlatformType
+from amulet.data_types import ChunkCoordinates
 from amulet.api.data_types import (
-    ChunkCoordinates,
     VersionNumberInt,
-    PlatformType,
     DimensionCoordinates,
     AnyNDArray,
     Dimension,

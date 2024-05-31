@@ -1,7 +1,7 @@
 from typing import Tuple, Literal
 import math
 import numpy
-from amulet.api.data_types import FloatTriplet, PointCoordinates
+from amulet.data_types import FloatTriplet, PointCoordinates
 
 
 def scale_matrix(sx: float, sy: float, sz: float) -> numpy.ndarray:

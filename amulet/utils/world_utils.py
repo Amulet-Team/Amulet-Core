@@ -4,7 +4,7 @@ import math
 from typing import Tuple, Optional
 import numpy
 from numpy import ndarray, zeros, uint8
-from amulet.api.data_types import ChunkCoordinates
+from amulet.data_types import ChunkCoordinates
 
 
 def block_coords_to_chunk_coords(
