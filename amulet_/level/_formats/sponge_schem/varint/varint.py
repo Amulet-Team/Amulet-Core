@@ -40,7 +40,7 @@ def decode_stream_one(stream: BytesIO) -> int:
     return result
 
 
-def decode_bytes_one(buf: bytes):
+def decode_bytes_one(buf: bytes) -> int:
     """Read a varint from `buf` bytes"""
     return decode_stream_one(BytesIO(buf))
 

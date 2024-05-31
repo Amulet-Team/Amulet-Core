@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pickle
-from typing import Optional, TYPE_CHECKING, Generic, TypeVar, Callable
+from typing import Optional, TYPE_CHECKING, Generic, TypeVar, Callable, Self
 from collections.abc import Iterator, Set
 from contextlib import contextmanager
 from threading import RLock
@@ -28,7 +28,7 @@ RawDimensionT = TypeVar("RawDimensionT", bound="RawDimension")
 
 
 class ChunkKey(tuple[int, int]):
-    def __new__(cls, cx: int, cz: int) -> ChunkKey:
+    def __new__(cls, cx: int, cz: int) -> Self:
         return tuple.__new__(cls, (cx, cz))
 
     def __init__(self, cx: int, cz: int) -> None:

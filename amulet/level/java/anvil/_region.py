@@ -13,7 +13,7 @@ import threading
 import logging
 from enum import IntEnum
 
-import lz4.block as lz4_block
+import lz4.block as lz4_block  # type: ignore
 from amulet_nbt import NamedTag, load as load_nbt
 
 from amulet.errors import ChunkDoesNotExist, ChunkLoadError

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import shutil
-from typing import Optional, Callable, cast, IO
+from typing import Optional, Callable, cast, IO, Self
 from threading import Lock
 import os
 from weakref import ref, finalize
@@ -67,7 +67,7 @@ class TempDir(str):
     __lock: IO | None
     __finalise: finalize
 
-    def __new__(cls, group: str) -> TempDir:
+    def __new__(cls, group: str) -> Self:
         cache_dir = os.path.join(_temp_dir(), group)
         os.makedirs(cache_dir, exist_ok=True)
         return super().__new__(
