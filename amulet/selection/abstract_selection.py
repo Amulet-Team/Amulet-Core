@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterable, Iterator, TYPE_CHECKING, Any, Self
+from typing import Iterable, Iterator, TYPE_CHECKING, Any
 import numpy
 
-from amulet.api.data_types import CoordinatesAny
 from amulet.data_types import (
     ChunkCoordinates,
     SubChunkCoordinates,
@@ -121,7 +120,7 @@ class AbstractBaseSelection(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def contains_block(self, coords: CoordinatesAny) -> bool:
+    def contains_block(self, x: int, y: int, z: int) -> bool:
         """
         Is the block contained within the selection.
 
@@ -129,13 +128,15 @@ class AbstractBaseSelection(ABC):
         >>> (1, 2, 3) in selection1
         True
 
-        :param coords: The coordinate of the block defined by the most negative corner.
+        :param x: The x coordinate of the block. Defined by the most negative corner.
+        :param y: The y coordinate of the block. Defined by the most negative corner.
+        :param z: The z coordinate of the block. Defined by the most negative corner.
         :return: True if the block is in the selection.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def contains_point(self, coords: CoordinatesAny) -> bool:
+    def contains_point(self, x: float, y: float, z: float) -> bool:
         """
         Is the point contained within the selection.
 
@@ -143,7 +144,9 @@ class AbstractBaseSelection(ABC):
         >>> (1.5, 2.5, 3.5) in selection1
         True
 
-        :param coords: The coordinate of the point.
+        :param x: The x coordinate of the point.
+        :param y: The y coordinate of the point.
+        :param z: The z coordinate of the point.
         :return: True if the point is in the selection.
         """
         raise NotImplementedError

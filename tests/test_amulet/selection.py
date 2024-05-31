@@ -91,8 +91,8 @@ class SelectionTestCase(unittest.TestCase):
         self.assertEqual((1, 1, 2), box_1.shape)
         self.assertEqual(2, len([x for x in box_1.blocks]))
 
-        self.assertTrue(box_1.contains_block((0, 0, 0)))
-        self.assertFalse(box_1.contains_block((1, 1, 2)))
+        self.assertTrue(box_1.contains_block(0, 0, 0))
+        self.assertFalse(box_1.contains_block(1, 1, 2))
 
     def test_sorted_iterator(self) -> None:
         box_1 = SelectionBox((0, 0, 0), (4, 4, 4))
