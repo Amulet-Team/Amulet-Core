@@ -11,15 +11,14 @@ from ._state import SrcData, StateData, DstData
 class NewEntity(AbstractBaseTranslationFunction):
     # Class variables
     Name = "new_entity"
-    _instances: dict[NewEntity, NewEntity] = {}
+    _instances = {}
 
     # Instance variables
     _entity: tuple[str, str]
 
-    def __new__(cls, namespace: str, base_name: str) -> NewEntity:
-        self = super().__new__(cls)
+    def __init__(self, namespace: str, base_name: str) -> None:
+        super().__init__()
         self._entity = (namespace, base_name)
-        return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
         return NewEntity, (self._entity,)

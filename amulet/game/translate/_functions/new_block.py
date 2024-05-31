@@ -10,15 +10,14 @@ from ._state import SrcData, StateData, DstData
 class NewBlock(AbstractBaseTranslationFunction):
     # Class variables
     Name = "new_block"
-    _instances: dict[NewBlock, NewBlock] = {}
+    _instances = {}
 
     # Instance variables
     _block: tuple[str, str]
 
-    def __new__(cls, namespace: str, base_name: str) -> NewBlock:
-        self = super().__new__(cls)
+    def __init__(self, namespace: str, base_name: str) -> None:
+        super().__init__()
         self._block = (namespace, base_name)
-        return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
         return NewBlock, (self._block[0], self._block[1])

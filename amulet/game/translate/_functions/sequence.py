@@ -15,22 +15,19 @@ from ._state import SrcData, StateData, DstData
 class TranslationFunctionSequence(AbstractBaseTranslationFunction):
     # Class variables
     Name = "sequence"
-    _instances: dict[TranslationFunctionSequence, TranslationFunctionSequence] = {}
+    _instances = {}
 
     # Instance variables
     _functions: tuple[AbstractBaseTranslationFunction, ...]
 
-    def __new__(
-        cls, functions: Sequence[AbstractBaseTranslationFunction]
-    ) -> TranslationFunctionSequence:
-        self = super().__new__(cls)
+    def __init__(self, functions: Sequence[AbstractBaseTranslationFunction]) -> None:
+        super().__init__()
         self._functions = tuple(functions)
         if not all(
             isinstance(inst, AbstractBaseTranslationFunction)
             for inst in self._functions
         ):
             raise TypeError
-        return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
         return TranslationFunctionSequence, (self._functions,)

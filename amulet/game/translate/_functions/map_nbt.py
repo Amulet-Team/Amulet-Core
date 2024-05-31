@@ -17,7 +17,7 @@ from ._state import SrcData, StateData, DstData
 class MapNBT(AbstractBaseTranslationFunction):
     # Class variables
     Name = "map_nbt"
-    _instances: dict[MapNBT, MapNBT] = {}
+    _instances = {}
 
     # Instance variables
     _cases: FrozenMapping[
@@ -26,15 +26,15 @@ class MapNBT(AbstractBaseTranslationFunction):
     ]
     _default: AbstractBaseTranslationFunction | None
 
-    def __new__(
-        cls,
+    def __init__(
+        self,
         cases: Mapping[
             str,
             AbstractBaseTranslationFunction,
         ],
         default: AbstractBaseTranslationFunction | None,
-    ) -> MapNBT:
-        self = super().__new__(cls)
+    ) -> None:
+        super().__init__()
         self._cases = FrozenMapping[
             str,
             AbstractBaseTranslationFunction,
@@ -49,7 +49,6 @@ class MapNBT(AbstractBaseTranslationFunction):
         )
         assert default is None or isinstance(default, AbstractBaseTranslationFunction)
         self._default = default
-        return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
         return MapNBT, (self._cases, self._default)

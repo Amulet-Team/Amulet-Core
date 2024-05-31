@@ -17,13 +17,13 @@ from ._state import SrcData, StateData, DstData
 class NewProperties(AbstractBaseTranslationFunction):
     # Class variables
     Name = "new_properties"
-    _instances: dict[NewProperties, NewProperties] = {}
+    _instances = {}
 
     # Instance variables
     _properties: FrozenMapping[str, PropertyValueType]
 
-    def __new__(cls, properties: Mapping[str, PropertyValueType]) -> NewProperties:
-        self = super().__new__(cls)
+    def __init__(self, properties: Mapping[str, PropertyValueType]) -> None:
+        super().__init__()
         self._properties = FrozenMapping[str, PropertyValueType](properties)
         if not all(isinstance(key, str) for key in self._properties.keys()):
             raise TypeError
@@ -32,7 +32,6 @@ class NewProperties(AbstractBaseTranslationFunction):
             for value in self._properties.values()
         ):
             raise TypeError
-        return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
         return NewProperties, (self._properties,)

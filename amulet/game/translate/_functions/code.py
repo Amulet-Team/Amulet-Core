@@ -72,20 +72,20 @@ FunctionLUT: dict[str, Callable[[SrcData, StateData, DstData], None]] = {
 class Code(AbstractBaseTranslationFunction):
     # Class variables
     Name = "code"
-    _instances: dict[Code, Code] = {}
+    _instances = {}
 
     # Instance variables
     _inputs: tuple[str, ...]
     _outputs: tuple[str, ...]
     _function_name: str
 
-    def __new__(
-        cls,
+    def __init__(
+        self,
         inputs: Sequence[str],
         outputs: Sequence[str],
         function_name: str,
-    ) -> Code:
-        self = super().__new__(cls)
+    ) -> None:
+        super().__init__()
         self._inputs = tuple(inputs)
         assert all(
             el
@@ -104,7 +104,6 @@ class Code(AbstractBaseTranslationFunction):
             for el in self._outputs
         )
         self._function_name = function_name
-        return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
         return Code, (self._inputs, self._outputs, self._function_name)

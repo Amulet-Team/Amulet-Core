@@ -17,19 +17,18 @@ from ._state import SrcData, StateData, DstData
 class MapBlockName(AbstractBaseTranslationFunction):
     # Class variables
     Name = "map_block_name"
-    _instances: dict[MapBlockName, MapBlockName] = {}
+    _instances = {}
 
     # Instance variables
     _blocks: FrozenMapping[tuple[str, str], AbstractBaseTranslationFunction]
 
-    def __new__(
-        cls, blocks: Mapping[tuple[str, str], AbstractBaseTranslationFunction]
-    ) -> MapBlockName:
-        self = super().__new__(cls)
+    def __init__(
+        self, blocks: Mapping[tuple[str, str], AbstractBaseTranslationFunction]
+    ) -> None:
+        super().__init__()
         self._blocks = FrozenMapping[tuple[str, str], AbstractBaseTranslationFunction](
             blocks
         )
-        return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
         return MapBlockName, (self._blocks,)

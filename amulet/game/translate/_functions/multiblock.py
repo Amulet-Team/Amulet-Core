@@ -16,14 +16,14 @@ from ._state import SrcData, SrcDataExtra, StateData, DstData
 class MultiBlock(AbstractBaseTranslationFunction):
     # Class variables
     Name = "multiblock"
-    _instances: dict[MultiBlock, MultiBlock] = {}
+    _instances = {}
 
     _blocks: tuple[tuple[BlockCoordinates, AbstractBaseTranslationFunction], ...]
 
-    def __new__(
-        cls, blocks: Sequence[tuple[BlockCoordinates, AbstractBaseTranslationFunction]]
-    ) -> MultiBlock:
-        self = super().__new__(cls)
+    def __init__(
+        self, blocks: Sequence[tuple[BlockCoordinates, AbstractBaseTranslationFunction]]
+    ) -> None:
+        super().__init__()
         self._blocks = tuple[
             tuple[BlockCoordinates, AbstractBaseTranslationFunction], ...
         ](blocks)
@@ -35,7 +35,6 @@ class MultiBlock(AbstractBaseTranslationFunction):
             ):
                 raise TypeError
             assert isinstance(func, AbstractBaseTranslationFunction)
-        return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
         return MultiBlock, (self._blocks,)

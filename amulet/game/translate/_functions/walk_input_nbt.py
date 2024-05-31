@@ -57,7 +57,7 @@ KeyT = TypeVar("KeyT", str, int)
 class WalkInputNBTOptions(AbstractBaseTranslationFunction):
     # Class variables
     Name = "_walk_input_nbt"
-    _instances: dict[WalkInputNBTOptions, WalkInputNBTOptions] = {}
+    _instances = {}
 
     # Instance variables
     _nbt_cls: type[CompoundTag] | type[ListTag]
@@ -67,16 +67,16 @@ class WalkInputNBTOptions(AbstractBaseTranslationFunction):
     _index: FrozenMapping[int, WalkInputNBTOptions] | None
     _nested_default: AbstractBaseTranslationFunction | None
 
-    def __new__(
-        cls,
+    def __init__(
+        self,
         nbt_cls: type[CompoundTag] | type[ListTag],
         self_default: AbstractBaseTranslationFunction | None = None,
         functions: AbstractBaseTranslationFunction | None = None,
         keys: Mapping[str, WalkInputNBTOptions] | None = None,
         index: Mapping[int, WalkInputNBTOptions] | None = None,
         nested_default: AbstractBaseTranslationFunction | None = None,
-    ) -> WalkInputNBTOptions:
-        self = super().__new__(cls)
+    ) -> None:
+        super().__init__()
         self._nbt_cls = nbt_cls
         self._self_default = self_default
         self._functions = functions
@@ -87,7 +87,6 @@ class WalkInputNBTOptions(AbstractBaseTranslationFunction):
             None if index is None else FrozenMapping[int, WalkInputNBTOptions](index)
         )
         self._nested_default = nested_default
-        return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
         return WalkInputNBTOptions, (
@@ -229,9 +228,9 @@ class WalkInputNBTOptions(AbstractBaseTranslationFunction):
                         )
 
             if isinstance(tag, CompoundTag):
-                run(tag.keys(), self._keys, None)
+                run([key for key in tag.keys() if isinstance(key, str)], self._keys, None)
             elif isinstance(tag, ListTag):
-                dtype = NBTLookUp[tag.list_data_type]
+                dtype = NBTLookUp[tag.element_tag_id]
                 assert dtype is not None
                 run(range(len(tag)), self._index, dtype)
             elif isinstance(tag, AbstractBaseArrayTag):
@@ -255,21 +254,20 @@ class WalkInputNBTOptions(AbstractBaseTranslationFunction):
 class WalkInputNBT(AbstractBaseTranslationFunction):
     # Class variables
     Name = "walk_input_nbt"
-    _instances: dict[WalkInputNBT, WalkInputNBT] = {}
+    _instances = {}
 
     # Instance variables
     _walk_nbt: WalkInputNBTOptions
     _path: NBTPath | None
 
-    def __new__(
-        cls,
+    def __init__(
+        self,
         walk_nbt: WalkInputNBTOptions,
         path: Sequence[NBTPathElement] | None = None,
-    ) -> WalkInputNBT:
-        self = super().__new__(cls)
+    ) -> None:
+        super().__init__()
         self._walk_nbt = walk_nbt
         self._path = None if path is None else tuple(path)
-        return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
         return WalkInputNBT, (self._walk_nbt, self._path)

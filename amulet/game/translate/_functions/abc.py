@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Protocol, cast
-from abc import ABC, abstractmethod
+from typing import Any, Protocol, cast, Self, ClassVar
+from abc import ABC, abstractmethod, ABCMeta
 
 from amulet_nbt import (
     from_snbt,
@@ -65,14 +65,22 @@ class Data(Protocol):
     def __eq__(self, other: Any) -> bool: ...
 
 
-class AbstractBaseTranslationFunction(JSONInterface, ABC):
-    Name: str = ""
+class CacheMeta(ABCMeta):
+    """This modifies the construction of the instance to always return a cached instance, if one exists."""
+
+    def __call__(cls: type[AbstractBaseTranslationFunction], *args: Any, **kwargs: Any) -> AbstractBaseTranslationFunction:  # type: ignore
+        obj = cls.__new__(cls)
+        obj.__init__(*args, **kwargs)  # type: ignore
+        return cls._instances.setdefault(obj, obj)
+
+
+class AbstractBaseTranslationFunction(JSONInterface, metaclass=CacheMeta):
+    Name: ClassVar[str] = ""
+    _instances: ClassVar[dict[Self, Self]]
     _hash: int | None
 
-    def __new__(cls) -> AbstractBaseTranslationFunction:
-        self = super().__new__(cls)
+    def __init__(self) -> None:
         self._hash = None
-        return self
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         if cls.Name == "":

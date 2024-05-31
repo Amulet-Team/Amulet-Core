@@ -17,7 +17,7 @@ from ._state import SrcData, StateData, DstData
 class CarryNBT(AbstractBaseTranslationFunction):
     # Class variables
     Name = "carry_nbt"
-    _instances: dict[CarryNBT, CarryNBT] = {}
+    _instances = {}
 
     # Instance variables
     _outer_name: str
@@ -26,21 +26,20 @@ class CarryNBT(AbstractBaseTranslationFunction):
     _key: str | int | None
     _tag_cls: NBTTagClsT | None
 
-    def __new__(
-        cls,
+    def __init__(
+        self,
         outer_name: str = "",
         outer_type: type[CompoundTag] | type[ListTag] = CompoundTag,
         path: NBTPath | None = None,
         key: str | int | None = None,
         tag_cls: NBTTagClsT | None = None,
-    ) -> CarryNBT:
-        self = super().__new__(cls)
+    ) -> None:
+        super().__init__()
         self._outer_name = outer_name
         self._outer_type = outer_type
         self._path = path
         self._key = key
         self._tag_cls = tag_cls
-        return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
         return CarryNBT, (

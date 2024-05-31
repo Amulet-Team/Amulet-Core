@@ -31,7 +31,7 @@ from ._state import SrcData, StateData, DstData
 class NewNBTItem(AbstractBaseTranslationFunction):
     # Class variables
     Name = "_new_nbt"
-    _instances: dict[NewNBTItem, NewNBTItem] = {}
+    _instances = {}
 
     # Instance variables
     _key: str | int
@@ -41,8 +41,8 @@ class NewNBTItem(AbstractBaseTranslationFunction):
     _outer_type: type[CompoundTag] | type[ListTag]
     _path: NBTPath | None
 
-    def __new__(
-        cls,
+    def __init__(
+        self,
         key: str | int,
         value: NBTTagT,
         outer_name: str = "",
@@ -50,8 +50,8 @@ class NewNBTItem(AbstractBaseTranslationFunction):
         path: (
             Sequence[tuple[str | int, type[CompoundTag] | type[ListTag]]] | None
         ) = None,
-    ) -> NewNBTItem:
-        self = super().__new__(cls)
+    ) -> None:
+        super().__init__()
         assert isinstance(outer_name, str)
         self._outer_name = outer_name
 
@@ -84,7 +84,6 @@ class NewNBTItem(AbstractBaseTranslationFunction):
         assert isinstance(value, NBTTagClasses)
         self._snbt = value.to_snbt()
         self._value = value
-        return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
         return NewNBTItem, (
@@ -171,17 +170,16 @@ class NewNBTItem(AbstractBaseTranslationFunction):
 class NewNBT(AbstractBaseTranslationFunction):
     # Class variables
     Name = "new_nbt"
-    _instances: dict[NewNBT, NewNBT] = {}
+    _instances = {}
 
     # Instance variables
     _new_nbt: tuple[NewNBTItem, ...]
 
-    def __new__(cls, *new_nbt: NewNBTItem) -> NewNBT:
-        self = super().__new__(cls)
+    def __init__(self, *new_nbt: NewNBTItem) -> None:
+        super().__init__()
         self._new_nbt = tuple(new_nbt)
         if not all(isinstance(nbt, NewNBTItem) for nbt in self._new_nbt):
             raise TypeError
-        return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
         return NewNBT, (*self._new_nbt,)

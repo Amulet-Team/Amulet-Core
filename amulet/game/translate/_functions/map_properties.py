@@ -18,21 +18,20 @@ from ._state import SrcData, StateData, DstData
 class MapProperties(AbstractBaseTranslationFunction):
     # Class variables
     Name = "map_properties"
-    _instances: dict[MapProperties, MapProperties] = {}
+    _instances = {}
 
     # Instance variables
     _properties: FrozenMapping[
         str, FrozenMapping[PropertyValueType, AbstractBaseTranslationFunction]
     ]
 
-    def __new__(
-        cls,
+    def __init__(
+        self,
         properties: Mapping[
             str, Mapping[PropertyValueType, AbstractBaseTranslationFunction]
         ],
-    ) -> MapProperties:
-        self = super().__new__(cls)
-
+    ) -> None:
+        super().__init__()
         hashable_properties = {}
 
         for prop, data in properties.items():
@@ -48,7 +47,6 @@ class MapProperties(AbstractBaseTranslationFunction):
         self._properties = FrozenMapping[
             str, FrozenMapping[PropertyValueType, AbstractBaseTranslationFunction]
         ](hashable_properties)
-        return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
         return MapProperties, (self._properties,)

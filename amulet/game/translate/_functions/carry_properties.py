@@ -18,14 +18,13 @@ from ._state import SrcData, StateData, DstData
 class CarryProperties(AbstractBaseTranslationFunction):
     # Class variables
     Name = "carry_properties"
-    _instances: dict[CarryProperties, CarryProperties] = {}
+    _instances = {}
 
     # Instance variables
     _properties: FrozenMapping[str, OrderedFrozenSet[PropertyValueType]]
 
-    def __new__(
-        cls, properties: Mapping[str, Iterable[PropertyValueType]]
-    ) -> CarryProperties:
+    def __init__(self, properties: Mapping[str, Iterable[PropertyValueType]]) -> None:
+        super().__init__()
         assert isinstance(properties, Mapping)
         frozen_properties = {}
         for key, val in properties.items():
@@ -36,11 +35,9 @@ class CarryProperties(AbstractBaseTranslationFunction):
             ):
                 raise TypeError
             frozen_properties[key] = frozen_val
-        self = super().__new__(cls)
         self._properties = FrozenMapping[str, OrderedFrozenSet[PropertyValueType]](
             frozen_properties
         )
-        return cls._instances.setdefault(self, self)
 
     def __reduce__(self) -> Any:
         return CarryProperties, (self._properties,)
