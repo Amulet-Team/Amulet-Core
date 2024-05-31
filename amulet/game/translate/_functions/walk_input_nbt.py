@@ -228,7 +228,11 @@ class WalkInputNBTOptions(AbstractBaseTranslationFunction):
                         )
 
             if isinstance(tag, CompoundTag):
-                run([key for key in tag.keys() if isinstance(key, str)], self._keys, None)
+                run(
+                    [key for key in tag.keys() if isinstance(key, str)],
+                    self._keys,
+                    None,
+                )
             elif isinstance(tag, ListTag):
                 dtype = NBTLookUp[tag.element_tag_id]
                 assert dtype is not None
