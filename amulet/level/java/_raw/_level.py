@@ -270,14 +270,6 @@ class JavaRawLevel(RawLevel[JavaRawDimension]):
         return self._data_version
 
     @property
-    def level_name(self) -> str:
-        return (
-            self._level_dat.compound.get_compound("Data", CompoundTag())
-            .get_string("LevelName", StringTag("Undefined"))
-            .py_str
-        )
-
-    @property
     def modified_time(self) -> float:
         """Unix timestamp of when the level was last modified."""
         return (
@@ -285,6 +277,14 @@ class JavaRawLevel(RawLevel[JavaRawDimension]):
             .get_long("LastPlayed", LongTag())
             .py_int
             / 1000
+        )
+
+    @property
+    def level_name(self) -> str:
+        return (
+            self._level_dat.compound.get_compound("Data", CompoundTag())
+            .get_string("LevelName", StringTag("Undefined"))
+            .py_str
         )
 
     @level_name.setter
