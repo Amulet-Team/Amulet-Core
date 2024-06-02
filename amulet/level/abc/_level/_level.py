@@ -10,7 +10,7 @@ from weakref import finalize
 from runtime_final import final
 from PIL import Image
 
-from amulet import IMG_DIRECTORY
+import amulet.image
 from amulet.version import PlatformType, VersionNumber
 from amulet.data_types import DimensionId
 
@@ -31,9 +31,6 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-missing_world_icon_path = os.path.abspath(
-    os.path.join(IMG_DIRECTORY, "missing_world_icon.png")
-)
 missing_world_icon: Optional[Image.Image] = None
 
 
@@ -381,7 +378,7 @@ class Level(ABC, Generic[OpenLevelDataT, DimensionT, RawLevelT]):
     def thumbnail(self) -> Image.Image:
         global missing_world_icon
         if missing_world_icon is None:
-            missing_world_icon = Image.open(missing_world_icon_path)
+            missing_world_icon = Image.open(amulet.image.missing_world)
         return missing_world_icon
 
     @property
