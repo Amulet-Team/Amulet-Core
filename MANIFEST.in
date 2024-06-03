@@ -1,1 +1,1 @@
-recursive-include amulet *.py *.pyi *.pyx *.pxd *.jpg *.png
+recursive-include src *.py *.pyi *.pyx *.pxd *.jpg *.png
