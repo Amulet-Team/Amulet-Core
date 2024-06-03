@@ -539,11 +539,23 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         changed = False
         if level.level_wrapper.version < 1934:
             # the version may be less than 1934 but is at least 1924
-            # calculate the light values
+            # TODO need to calculate the light values for 1,12 > 1.13.
+            # for i, (dimension, cx, cz) in enumerate(chunks):
+            #     try:
+            #         chunk = level.get_chunk(cx, cz, dimension)
+            #     except ChunkLoadError:
+            #         pass
+            #     else:
+            #         changed_ = False # Use Interface in anvil_na.py
+            #         changed_ |= chunk.misc.pop("block_light", None) is not None
+            #         changed_ |= chunk.misc.pop("sky_light", None) is not None
+            #         if changed_:
+            #             changed = True
+            #             chunk.changed = True
+            #     yield i / chunk_count
             pass
-            # TODO
         else:
-            # the game will recalculate the light levels
+            # the game its self will recalculate the light levels for 1.14 to 1.21
             for i, (dimension, cx, cz) in enumerate(chunks):
                 try:
                     chunk = level.get_chunk(cx, cz, dimension)
@@ -551,12 +563,10 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                     pass
                 else:
                     changed_ = False
-                    changed_ |= chunk.misc.pop("block_light", None) is not None
-                    changed_ |= chunk.misc.pop("sky_light", None) is not None
-                    changed_ |= chunk.misc['_java_chunk_data_layers']['region'].pop("isLightOn", None) is not None
-                    if changed_:
-                        changed = True
-                        chunk.changed = True
+                    changed_ |= chunk.misc.pop("isLightOn", None) is not None
+                if changed_:
+                    changed = True
+                    chunk.changed = True
                 yield i / chunk_count
         return changed
 
