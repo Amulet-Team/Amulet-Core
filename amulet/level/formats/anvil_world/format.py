@@ -555,7 +555,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
             #     yield i / chunk_count
             pass
         else:
-            # the game will recalculate the light levels for (19w08b) 1934 <= 1.14 => 1.21s
+            # the game will recalculate the light levels for (19w08b) 1934 <= 1.14 => 1.21
             for i, (dimension, cx, cz) in enumerate(chunks):
                 try:
                     chunk = level.get_chunk(cx, cz, dimension)
