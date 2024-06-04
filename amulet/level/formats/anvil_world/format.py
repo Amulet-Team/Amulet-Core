@@ -547,7 +547,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
             #         pass
             #     else:
             #         changed_ = False
-            #         changed_ |= chunk.misc.pop("block_light", None) is not None Needs better 
+            #         changed_ |= chunk.misc.pop("block_light", None) is not None Needs better
             #         changed_ |= chunk.misc.pop("sky_light", None) is not None
             #         if changed_:
             #             changed = True
@@ -555,7 +555,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
             #     yield i / chunk_count
             pass
         else:
-            # the game its self will recalculate the light levels for 1.14 to 1.21
+            # the game will recalculate the light levels for (19w08b) 1934 <= 1.14 => 1.21
             for i, (dimension, cx, cz) in enumerate(chunks):
                 try:
                     chunk = level.get_chunk(cx, cz, dimension)
@@ -564,9 +564,9 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                 else:
                     changed_ = False
                     changed_ |= chunk.misc.pop("isLightOn", None) is not None
-                if changed_:
-                    changed = True
-                    chunk.changed = True
+                    if changed_:
+                        changed = True
+                        chunk.changed = True
                 yield i / chunk_count
         return changed
 
