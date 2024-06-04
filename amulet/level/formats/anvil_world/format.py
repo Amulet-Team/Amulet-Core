@@ -495,12 +495,12 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         except StopIteration as e:
             height_changed = e.value
 
-        # light = self._calculate_light(level, changed_chunks)
-        # try:
-        #     while True:
-        #         yield next(light) / 2
-        # except StopIteration as e:
-        #     light_changed = e.value
+        light = self._calculate_light(level, changed_chunks)
+        try:
+            while True:
+                yield next(light) / 2
+        except StopIteration as e:
+            light_changed = e.value
 
         return height_changed  # or light_changed
 
@@ -539,11 +539,24 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         changed = False
         if level.level_wrapper.version < 1934:
             # the version may be less than 1934 but is at least 1924
-            # calculate the light values
+            # TODO need to calculate the light values for 1,12 > 1.13.
+            # for i, (dimension, cx, cz) in enumerate(chunks):
+            #     try:
+            #         chunk = level.get_chunk(cx, cz, dimension)
+            #     except ChunkLoadError:
+            #         pass
+            #     else:
+            #         changed_ = False
+            #         changed_ |= chunk.misc.pop("block_light", None) is not None
+            #         changed_ |= chunk.misc.pop("sky_light", None) is not None
+            #         if changed_:
+            #             changed = True
+            #             chunk.changed = True
+            #     yield i / chunk_count
             pass
-            # TODO
         else:
             # the game will recalculate the light levels
+            # applies to versions (19w08b) 1934 to 3949 (1.21.Pre2)
             for i, (dimension, cx, cz) in enumerate(chunks):
                 try:
                     chunk = level.get_chunk(cx, cz, dimension)
@@ -551,8 +564,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                     pass
                 else:
                     changed_ = False
-                    changed_ |= chunk.misc.pop("block_light", None) is not None
-                    changed_ |= chunk.misc.pop("sky_light", None) is not None
+                    changed_ |= chunk.misc.get("isLightOn", None) is not None
                     if changed_:
                         changed = True
                         chunk.changed = True
