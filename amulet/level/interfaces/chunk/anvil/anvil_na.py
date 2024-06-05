@@ -537,7 +537,7 @@ class AnvilNAInterface(BaseAnvilInterface):
                                 "t": IntTag(t),
                                 "x": IntTag(x),
                                 "y": IntTag(y),
-                                "z": IntTag(x),
+                                "z": IntTag(z),
                             }
                         )
                     )
