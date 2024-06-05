@@ -33,18 +33,16 @@ class Anvil1934Interface(ParentInterface):
     def _decode_islighton(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        chunk.misc["isLightOn"] = self.get_layer_obj(
-            data, self.isLightOn, pop_last=True
-        )
+        if self.get_layer_obj(data, self.isLightOn) == ByteTag(1):
+            chunk.misc["isLightOn"] = self.get_layer_obj(
+                data, self.isLightOn, pop_last=True
+            )
 
     def _encode_islighton(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-        self.set_layer_obj(
-            data,
-            self.isLightOn,
-            chunk.misc.get("isLightOn", None),
-        )
+        if chunk.misc.get("isLightOn", None):
+            self.set_layer_obj(data, self.isLightOn, ByteTag(0))
 
     @staticmethod
     def minor_is_valid(key: int):
