@@ -564,10 +564,11 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                     pass
                 else:
                     changed_ = False
-                    changed_ |= chunk.misc.get("isLightOn", None) is not None
+                    changed_ |= chunk.set_light_off
                     if changed_:
                         changed = True
                         chunk.changed = True
+
                 yield i / chunk_count
         return changed
 

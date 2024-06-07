@@ -23,30 +23,38 @@ class Anvil1934Interface(ParentInterface):
     Made game recalculate lighting 
     """
 
-    def __init__(self):
-        super().__init__()
-        self._set_feature("light_optional", "true")
+    class Anvil1934Interface(ParentInterface):
+        isLightOn: ChunkPathType = (
+            "region",
+            [("Level", CompoundTag), ("isLightOn", ByteTag)],
+            ByteTag,
+        )
+        """
+        Made game recalulate lighting 
+        """
 
-        self._register_decoder(self._decode_islighton)
-        self._register_encoder(self._encode_islighton)
+        def __init__(self):
+            super().__init__()
+            self._set_feature("light_optional", "true")
 
-    def _decode_islighton(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        if self.get_layer_obj(data, self.isLightOn) == ByteTag(1):
-            chunk.misc["isLightOn"] = self.get_layer_obj(
-                data, self.isLightOn, pop_last=True
-            )
+            self._register_decoder(self._decode_islighton)
+            self._register_encoder(self._encode_islighton)
 
-    def _encode_islighton(
-        self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
-    ):
-        if chunk.misc.get("isLightOn", None):
-            self.set_layer_obj(data, self.isLightOn, ByteTag(0))
+        @staticmethod
+        def minor_is_valid(key: int):
+            return 1934 <= key < 2203
 
-    @staticmethod
-    def minor_is_valid(key: int):
-        return 1934 <= key < 2203
+        def _decode_islighton(
+            self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+        ):
+            light_on = self.get_layer_obj(data, self.isLightOn)
+            if light_on == ByteTag(1):
+                chunk.set_light_off = True
 
+        def _encode_islighton(
+            self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
+        ):
+            if chunk.set_light_off:
+                self.set_layer_obj(data, self.isLightOn, ByteTag(0))
 
-export = Anvil1934Interface
+    export = Anvil1934Interface

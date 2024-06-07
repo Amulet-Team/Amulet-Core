@@ -45,7 +45,7 @@ class Chunk(Changeable):
         self._block_entities = BlockEntityDict()
         self._status = Status()
         self._misc = {}  # all entries that are not important enough to get an attribute
-
+        self._set_light_off = False
         # TODO: remove these variables. They are temporary until the translator supports entities
         self._native_version: VersionIdentifierType = ("java", 0)
         self._native_entities = EntityList()
@@ -69,6 +69,7 @@ class Chunk(Changeable):
             tuple(self._block_entities.data.values()),
             self._status.value,
             self.misc,
+            self.set_light_off,
             self._native_entities,
             self._native_version,
         )
@@ -98,6 +99,7 @@ class Chunk(Changeable):
             self.block_entities,
             self.status,
             self.misc,
+            self.set_light_off,
             self._native_entities,
             self._native_version,
         ) = chunk_data[3:]
@@ -387,3 +389,14 @@ class Chunk(Changeable):
     def misc(self, misc: dict):
         assert isinstance(misc, dict), "misc must be a dictionary."
         self._misc = misc
+
+    @property
+    def set_light_off(self) -> bool:
+        """
+        A Boolean for isLightOn tag.
+        """
+        return self._set_light_off
+
+    @set_light_off.setter
+    def set_light_off(self, set_light_off: bool):
+        self._set_light_off = set_light_off
