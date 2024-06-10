@@ -104,7 +104,7 @@ class VersionNumberTestCase(unittest.TestCase):
         self.assertEqual((1,), VersionNumber(1, 0, 0, 0, 0, 0, 0).cropped_version())
 
     def test_pad(self) -> None:
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             VersionNumber(1, 2, 3).padded_version(-1)
         self.assertEqual((), VersionNumber(1, 2, 3).padded_version(0))
         self.assertEqual((1,), VersionNumber(1, 2, 3).padded_version(1))
