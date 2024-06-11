@@ -7,9 +7,10 @@ namespace py = pybind11;
 PYBIND11_MODULE(version, m) {
     py::options options;
 
+    py::object ABC = py::module_::import("amulet.abc").attr("ABC");
     m.attr("PlatformType") = py::module_::import("builtins").attr("str");
 
-    py::class_<Amulet::VersionNumber, std::shared_ptr<Amulet::VersionNumber>> VersionNumber(m, "VersionNumber",
+    py::class_<Amulet::VersionNumber, std::shared_ptr<Amulet::VersionNumber>> VersionNumber(m, "VersionNumber", ABC,
 R"doc(This class is designed to store semantic versions and data versions and allow comparisons between them.
 
 >>> v1 = VersionNumber(1, 0, 0)
@@ -104,10 +105,6 @@ Overloaded function.
             "__str__",
             &Amulet::VersionNumber::toString);
 
-        VersionNumber.def(
-            "__repr__",
-            &Amulet::VersionNumber::repr);
-
         VersionNumber.def(pybind11::self == pybind11::self);
         VersionNumber.def(pybind11::self != pybind11::self);
         VersionNumber.def(pybind11::self < pybind11::self);
@@ -136,17 +133,14 @@ Overloaded function.
     py::module_::import("collections.abc").attr("Sequence").attr("register")(VersionNumber);
 
 
-    py::class_<Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::PlatformVersionContainer>> PlatformVersionContainer(m, "PlatformVersionContainer");
+    py::class_<Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::PlatformVersionContainer>> PlatformVersionContainer(m, "PlatformVersionContainer", ABC);
         PlatformVersionContainer.def(
             py::init<const Amulet::PlatformType&, const Amulet::VersionNumber&>(),
             py::arg("platform"), py::arg("version"));
         PlatformVersionContainer.def_readonly("platform", &Amulet::PlatformVersionContainer::platform);
         PlatformVersionContainer.def_readonly("version", &Amulet::PlatformVersionContainer::version);
-        PlatformVersionContainer.def(
-            "__repr__",
-            &Amulet::PlatformVersionContainer::repr);
 
-    py::class_<Amulet::VersionRange, std::shared_ptr<Amulet::VersionRange>> VersionRange(m, "VersionRange");
+    py::class_<Amulet::VersionRange, std::shared_ptr<Amulet::VersionRange>> VersionRange(m, "VersionRange", ABC);
         VersionRange.def(
             py::init<const Amulet::PlatformType&, const Amulet::VersionNumber&, const Amulet::VersionNumber&>(),
             py::arg("platform"), py::arg("min_version"), py::arg("max_version"));
@@ -154,18 +148,12 @@ Overloaded function.
         VersionRange.def_readonly("min_version", &Amulet::VersionRange::min_version);
         VersionRange.def_readonly("max_version", &Amulet::VersionRange::max_version);
         VersionRange.def(
-            "__repr__",
-            &Amulet::VersionRange::repr);
-        VersionRange.def(
             "contains",
             &Amulet::VersionRange::contains);
 
-    py::class_<Amulet::VersionRangeContainer, std::shared_ptr<Amulet::VersionRangeContainer>> VersionRangeContainer(m, "VersionRangeContainer");
+    py::class_<Amulet::VersionRangeContainer, std::shared_ptr<Amulet::VersionRangeContainer>> VersionRangeContainer(m, "VersionRangeContainer", ABC);
         VersionRangeContainer.def(
             py::init<const Amulet::VersionRange&>(),
             py::arg("version_range"));
         VersionRangeContainer.def_readonly("version_range", &Amulet::VersionRangeContainer::version_range);
-        VersionRangeContainer.def(
-            "__repr__",
-            &Amulet::VersionRangeContainer::repr);
 }

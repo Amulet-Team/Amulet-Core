@@ -14,6 +14,6 @@ namespace Amulet {
                 const std::string&
             );
 
-            std::string repr() const;
+            virtual std::string repr() const;
     };
 }

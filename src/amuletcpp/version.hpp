@@ -6,11 +6,12 @@
 #include <sstream>
 #include <memory>
 #include <algorithm>
+#include <amuletcpp/abc.hpp>
 
 
 namespace Amulet {
     typedef std::string PlatformType;
-    class VersionNumber {
+    class VersionNumber: public Amulet::ABC {
         private:
             const std::vector<std::int64_t> value;
         public:
@@ -31,12 +32,12 @@ namespace Amulet {
             bool operator<=(const VersionNumber& other) const;
             bool operator>=(const VersionNumber& other) const;
             std::string toString() const;
-            std::string repr() const;
+            virtual std::string repr() const;
             std::vector<std::int64_t> cropped_version() const;
             std::vector<std::int64_t> padded_version(size_t len) const;
     };
 
-    class PlatformVersionContainer {
+    class PlatformVersionContainer: public Amulet::ABC {
         public:
             const PlatformType platform;
             const VersionNumber version;
@@ -46,10 +47,10 @@ namespace Amulet {
                 const VersionNumber& version
             );
 
-            std::string repr() const;
+            virtual std::string repr() const;
     };
 
-    class VersionRange {
+    class VersionRange: public Amulet::ABC {
         public:
             const PlatformType platform;
             const VersionNumber min_version;
@@ -61,11 +62,11 @@ namespace Amulet {
                 const VersionNumber& max_version
             );
 
-            std::string repr() const;
+            virtual std::string repr() const;
             bool contains(const PlatformType& platform_, const VersionNumber& version) const;
     };
 
-    class VersionRangeContainer {
+    class VersionRangeContainer: public Amulet::ABC {
         public:
             const VersionRange version_range;
 
@@ -73,6 +74,6 @@ namespace Amulet {
                 const VersionRange& version_range
             );
 
-            std::string repr() const;
+            virtual std::string repr() const;
     };
 }
