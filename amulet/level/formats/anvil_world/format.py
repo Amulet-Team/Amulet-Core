@@ -553,7 +553,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                     changed_ = False
                     changed_ |= chunk.misc.pop("block_light", None) is not None
                     changed_ |= chunk.misc.pop("sky_light", None) is not None
-                    changed_ |= chunk.misc.pop("isLightOn", None)
+                    changed_ |= bool(chunk.misc.pop("isLightOn", None))
                     if changed_:
                         changed = True
                         chunk.changed = True
