@@ -27,21 +27,21 @@ class Anvil1934Interface(ParentInterface):
     def __init__(self):
         super().__init__()
         self._set_feature("light_optional", "true")
-        self._register_encoder(self._encode_islighton)
-        self._register_decoder(self._decode_islighton)
+        self._register_encoder(self._encode_is_light_on)
+        self._register_decoder(self._decode_is_light_on)
 
     @staticmethod
     def minor_is_valid(key: int):
         return 1934 <= key < 2203
 
-    def _decode_islighton(
+    def _decode_is_light_on(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
         chunk.misc["isLightOn"] = self.get_layer_obj(
             data, self.isLightOn, pop_last=True
         )
 
-    def _encode_islighton(
+    def _encode_is_light_on(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
 
