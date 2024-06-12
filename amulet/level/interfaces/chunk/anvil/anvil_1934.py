@@ -15,7 +15,6 @@ from .anvil_1912 import Anvil1912Interface as ParentInterface
 class Anvil1934Interface(ParentInterface):
     """
     Made lighting optional
-    Made game recalculate lighting
     """
 
     isLightOn: ChunkPathType = (
