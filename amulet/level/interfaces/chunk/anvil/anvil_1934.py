@@ -43,9 +43,8 @@ class Anvil1934Interface(ParentInterface):
     def _encode_is_light_on(
         self, chunk: Chunk, data: ChunkDataType, floor_cy: int, height_cy: int
     ):
-
-        if chunk.misc.pop("isLightOn", None):
-            self.set_layer_obj(data, self.isLightOn, ByteTag(0))
+        is_light_on = bool(chunk.misc.pop("isLightOn", None))
+        self.set_layer_obj(data, self.isLightOn, ByteTag(is_light_on))
 
 
 export = Anvil1934Interface
