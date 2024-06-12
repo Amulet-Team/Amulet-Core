@@ -1,5 +1,6 @@
 #include "abc.hpp"
 #include <amuletcpp/version.hpp>
+//include amuletcpp/version.cpp
 
 
 namespace py = pybind11;
