@@ -495,14 +495,14 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         except StopIteration as e:
             height_changed = e.value
 
-        # light = self._calculate_light(level, changed_chunks)
-        # try:
-        #     while True:
-        #         yield next(light) / 2
-        # except StopIteration as e:
-        #     light_changed = e.value
+        light = self._calculate_light(level, changed_chunks)
+        try:
+            while True:
+                yield next(light) / 2
+        except StopIteration as e:
+            light_changed = e.value
 
-        return height_changed  # or light_changed
+        return height_changed or light_changed
 
     @staticmethod
     def _calculate_height(
@@ -553,6 +553,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                     changed_ = False
                     changed_ |= chunk.misc.pop("block_light", None) is not None
                     changed_ |= chunk.misc.pop("sky_light", None) is not None
+                    changed_ |= chunk.misc.pop("isLightOn", None)
                     if changed_:
                         changed = True
                         chunk.changed = True
