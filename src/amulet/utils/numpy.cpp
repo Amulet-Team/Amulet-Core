@@ -1,4 +1,4 @@
-#include <amulet/abc.hpp>
+#include <amulet/common.hpp>
 #include <amuletcpp/utils/numpy/unique.hpp>
 #include <iostream>
 

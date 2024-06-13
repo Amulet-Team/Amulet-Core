@@ -1,4 +1,4 @@
-#include "abc.hpp"
+#include <amulet/common.hpp>
 //include amuletcpp/version.cpp
 #include <amuletcpp/block.hpp>
 //include amuletcpp/block.cpp
