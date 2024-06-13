@@ -6,12 +6,11 @@
 #include <sstream>
 #include <memory>
 #include <algorithm>
-#include <amuletcpp/abc.hpp>
 
 
 namespace Amulet {
     typedef std::string PlatformType;
-    class VersionNumber: public Amulet::ABC {
+    class VersionNumber {
         private:
             const std::vector<std::int64_t> value;
         public:
@@ -37,7 +36,7 @@ namespace Amulet {
             std::vector<std::int64_t> padded_version(size_t len) const;
     };
 
-    class PlatformVersionContainer: public Amulet::ABC {
+    class PlatformVersionContainer {
         public:
             const PlatformType platform;
             const VersionNumber version;
@@ -50,7 +49,7 @@ namespace Amulet {
             virtual std::string repr() const;
     };
 
-    class VersionRange: public Amulet::ABC {
+    class VersionRange {
         public:
             const PlatformType platform;
             const VersionNumber min_version;
@@ -66,7 +65,7 @@ namespace Amulet {
             bool contains(const PlatformType& platform_, const VersionNumber& version) const;
     };
 
-    class VersionRangeContainer: public Amulet::ABC {
+    class VersionRangeContainer {
         public:
             const VersionRange version_range;
 

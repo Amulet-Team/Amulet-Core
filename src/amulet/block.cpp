@@ -10,6 +10,7 @@ PYBIND11_MODULE(block, m) {
     py::object PlatformVersionContainer = py::module_::import("amulet.version").attr("PlatformVersionContainer");
 
     py::class_<Amulet::Block, std::shared_ptr<Amulet::Block>> Block(m, "Block", PlatformVersionContainer);
+        PYCOMMON(Block)
         Block.def(
             py::init<const Amulet::PlatformType&, const Amulet::VersionNumber&, const std::string&, const std::string&>(),
             py::arg("platform"), py::arg("version"), py::arg("namespace"), py::arg("base_name"));

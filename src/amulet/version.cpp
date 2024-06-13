@@ -21,6 +21,7 @@ R"doc(This class is designed to store semantic versions and data versions and al
 This class should also be used to store single number data versions.
 >>> v3 = VersionNumber(3578)
 )doc");
+        PYCOMMON(VersionNumber)
 
         options.disable_function_signatures();
         VersionNumber.def(
@@ -135,13 +136,16 @@ Overloaded function.
 
 
     py::class_<Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::PlatformVersionContainer>> PlatformVersionContainer(m, "PlatformVersionContainer", ABC);
+        PYCOMMON(PlatformVersionContainer)
         PlatformVersionContainer.def(
             py::init<const Amulet::PlatformType&, const Amulet::VersionNumber&>(),
             py::arg("platform"), py::arg("version"));
         PlatformVersionContainer.def_readonly("platform", &Amulet::PlatformVersionContainer::platform);
         PlatformVersionContainer.def_readonly("version", &Amulet::PlatformVersionContainer::version);
 
+
     py::class_<Amulet::VersionRange, std::shared_ptr<Amulet::VersionRange>> VersionRange(m, "VersionRange", ABC);
+        PYCOMMON(VersionRange)
         VersionRange.def(
             py::init<const Amulet::PlatformType&, const Amulet::VersionNumber&, const Amulet::VersionNumber&>(),
             py::arg("platform"), py::arg("min_version"), py::arg("max_version"));
@@ -152,7 +156,9 @@ Overloaded function.
             "contains",
             &Amulet::VersionRange::contains);
 
+
     py::class_<Amulet::VersionRangeContainer, std::shared_ptr<Amulet::VersionRangeContainer>> VersionRangeContainer(m, "VersionRangeContainer", ABC);
+        PYCOMMON(VersionRangeContainer)
         VersionRangeContainer.def(
             py::init<const Amulet::VersionRange&>(),
             py::arg("version_range"));
