@@ -13,7 +13,9 @@ class TestUtilsNumpy(unittest.TestCase):
                 count = 2**count_power
                 for max_value_power in range(1, 20):
                     max_value = 2**max_value_power
-                    values = numpy.random.randint(max_value, size=count, dtype=numpy.uint32)
+                    values = numpy.random.randint(
+                        max_value, size=count, dtype=numpy.uint32
+                    )
 
                     indexes = numpy.random.randint(count, size=length)
                     arr = values[indexes]
