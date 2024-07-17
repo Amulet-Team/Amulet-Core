@@ -1,4 +1,4 @@
-#include <amuletcpp/version.hpp>
+#include <amulet/version.hpp>
 
 
 namespace Amulet {
@@ -13,7 +13,5 @@ namespace Amulet {
                 const std::string&,
                 const std::string&
             );
-
-            virtual std::string repr() const;
     };
 }

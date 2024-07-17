@@ -6,18 +6,19 @@
 #include <sstream>
 #include <memory>
 #include <algorithm>
+#include <iostream>
 
 
 namespace Amulet {
     typedef std::string PlatformType;
     class VersionNumber {
-        private:
-            const std::vector<std::int64_t> value;
         public:
+            const std::vector<std::int64_t> value;
+
             VersionNumber(std::initializer_list<std::int64_t> value);
             VersionNumber(std::vector<std::int64_t> value);
-            // serialise
-            // deserialise
+//            void serialise(std::ostream);
+//            static VersionNumber deserialise(std::istream);
             std::vector<std::int64_t>::const_iterator begin() const;
             std::vector<std::int64_t>::const_iterator end() const;
             std::vector<std::int64_t>::const_reverse_iterator rbegin() const;
@@ -31,7 +32,6 @@ namespace Amulet {
             bool operator<=(const VersionNumber& other) const;
             bool operator>=(const VersionNumber& other) const;
             std::string toString() const;
-            virtual std::string repr() const;
             std::vector<std::int64_t> cropped_version() const;
             std::vector<std::int64_t> padded_version(size_t len) const;
     };
@@ -45,8 +45,6 @@ namespace Amulet {
                 const PlatformType& platform,
                 const VersionNumber& version
             );
-
-            virtual std::string repr() const;
     };
 
     class VersionRange {
@@ -61,7 +59,6 @@ namespace Amulet {
                 const VersionNumber& max_version
             );
 
-            virtual std::string repr() const;
             bool contains(const PlatformType& platform_, const VersionNumber& version) const;
     };
 
@@ -72,7 +69,5 @@ namespace Amulet {
             VersionRangeContainer(
                 const VersionRange& version_range
             );
-
-            virtual std::string repr() const;
     };
 }

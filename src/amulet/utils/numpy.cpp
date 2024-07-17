@@ -1,7 +1,10 @@
-#include <amulet/common.hpp>
-#include <amuletcpp/utils/numpy/unique.hpp>
 #include <iostream>
 
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <pybind11/numpy.h>
+
+#include <amulet/utils/numpy/unique.hpp>
 
 namespace py = pybind11;
 

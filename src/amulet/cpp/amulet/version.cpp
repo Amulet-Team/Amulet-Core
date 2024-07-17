@@ -1,13 +1,17 @@
 #include <stdexcept>
-#include <amuletcpp/version.hpp>
+#include <amulet/version.hpp>
 
 
 namespace Amulet {
     VersionNumber::VersionNumber(std::initializer_list<std::int64_t> value): value(value) {};
     VersionNumber::VersionNumber(std::vector<std::int64_t> value): value(value) {};
 
-    // serialise
-    // deserialise
+//    void VersionNumber::serialise(std::ostream f){
+//        f.write()
+//    }
+//    static VersionNumber VersionNumber::deserialise(std::istream){
+//
+//    }
 
     std::vector<std::int64_t>::const_iterator VersionNumber::begin() const {
         return value.begin();
@@ -92,19 +96,6 @@ namespace Amulet {
         return oss.str();
     }
 
-    std::string VersionNumber::repr() const {
-        std::ostringstream oss;
-        oss << "VersionNumber(";
-        for (size_t i = 0; i < value.size(); ++i) {
-            if (i > 0){
-                oss << ", ";
-            }
-            oss << value[i];
-        }
-        oss << ")";
-        return oss.str();
-    }
-
     std::vector<std::int64_t> VersionNumber::cropped_version() const {
         bool found_non_zero = false;
         std::vector<std::int64_t> out;
@@ -134,10 +125,6 @@ namespace Amulet {
         const VersionNumber& version
     ): platform(platform), version(version) {}
 
-    std::string PlatformVersionContainer::repr() const {
-        return "PlatformVersionContainer(" + platform + ", " + version.repr() + ")";
-    }
-
 
     VersionRange::VersionRange(
         const PlatformType& platform,
@@ -149,10 +136,6 @@ namespace Amulet {
         }
     }
 
-    std::string VersionRange::repr() const {
-        return "VersionRange(" + platform + ", " + min_version.repr() + ", " + max_version.repr() + ")";
-    }
-
     bool VersionRange::contains(const PlatformType& platform_, const VersionNumber& version) const {
         return platform == platform_ && min_version <= version && version <= max_version;
     }
@@ -161,8 +144,4 @@ namespace Amulet {
     VersionRangeContainer::VersionRangeContainer(
         const VersionRange& version_range
     ): version_range(version_range) {}
-
-    std::string VersionRangeContainer::repr() const {
-        return "VersionRangeContainer(" + version_range.repr() + ")";
-    }
 }
