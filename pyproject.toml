@@ -2,8 +2,8 @@
 requires = [
     "setuptools >= 42",
     "wheel",
-    "cython >= 3.0.0a9",
     "versioneer",
-    "numpy ~= 1.17"
+    "pybind11 ~= 2.12",
+    "amulet_nbt ~= 4.0a0"
 ]
 build-backend = "setuptools.build_meta"
