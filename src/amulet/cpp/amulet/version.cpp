@@ -1,10 +1,12 @@
 #include <stdexcept>
+#include <cstdint>
+
 #include <amulet/version.hpp>
 
 
 namespace Amulet {
-    VersionNumber::VersionNumber(std::initializer_list<std::int64_t> value): value(value) {};
-    VersionNumber::VersionNumber(std::vector<std::int64_t> value): value(value) {};
+    VersionNumber::VersionNumber(std::initializer_list<std::int64_t> vec): vec(vec) {};
+    VersionNumber::VersionNumber(std::vector<std::int64_t> vec): vec(vec) {};
 
 //    void VersionNumber::serialise(std::ostream f){
 //        f.write()
@@ -14,34 +16,34 @@ namespace Amulet {
 //    }
 
     std::vector<std::int64_t>::const_iterator VersionNumber::begin() const {
-        return value.begin();
+        return vec.begin();
     }
 
     std::vector<std::int64_t>::const_iterator VersionNumber::end() const {
-        return value.end();
+        return vec.end();
     }
 
     std::vector<std::int64_t>::const_reverse_iterator VersionNumber::rbegin() const {
-        return value.rbegin();
+        return vec.rbegin();
     }
 
     std::vector<std::int64_t>::const_reverse_iterator VersionNumber::rend() const {
-        return value.rend();
+        return vec.rend();
     }
 
     size_t VersionNumber::size() const {
-        return value.size();
+        return vec.size();
     }
 
     std::int64_t VersionNumber::operator[](size_t index) const {
-        if (index >= value.size()) {
+        if (index >= vec.size()) {
             return 0;
         }
-        return value[index];
+        return vec[index];
     }
 
     bool VersionNumber::operator==(const VersionNumber& other) const {
-        size_t max_len = std::max(value.size(), other.size());
+        size_t max_len = std::max(vec.size(), other.size());
         for (size_t i = 0; i < max_len; i++){
             if ((*this)[i] != other[i]){
                 return false;
@@ -55,7 +57,7 @@ namespace Amulet {
     }
 
     bool VersionNumber::operator<(const VersionNumber& other) const {
-        size_t max_len = std::max(value.size(), other.size());
+        size_t max_len = std::max(vec.size(), other.size());
         std::int64_t v1, v2;
         for (size_t i = 0; i < max_len; i++){
             v1 = (*this)[i];
@@ -87,11 +89,11 @@ namespace Amulet {
 
     std::string VersionNumber::toString() const {
         std::ostringstream oss;
-        for (size_t i = 0; i < value.size(); ++i) {
+        for (size_t i = 0; i < vec.size(); ++i) {
             if (i > 0){
                 oss << '.';
             }
-            oss << value[i];
+            oss << vec[i];
         }
         return oss.str();
     }
@@ -99,7 +101,7 @@ namespace Amulet {
     std::vector<std::int64_t> VersionNumber::cropped_version() const {
         bool found_non_zero = false;
         std::vector<std::int64_t> out;
-        for (auto it = value.rbegin(); it != value.rend(); ++it) {
+        for (auto it = vec.rbegin(); it != vec.rend(); ++it) {
             if (found_non_zero){
                 out.push_back(*it);
             } else if (*it != 0) {

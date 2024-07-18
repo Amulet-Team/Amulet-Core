@@ -8,17 +8,20 @@
 #include <algorithm>
 #include <iostream>
 
+#include <amulet/io/binary_reader.hpp>
+#include <amulet/io/binary_writer.hpp>
+
 
 namespace Amulet {
     typedef std::string PlatformType;
     class VersionNumber {
         public:
-            const std::vector<std::int64_t> value;
+            const std::vector<std::int64_t> vec;
 
-            VersionNumber(std::initializer_list<std::int64_t> value);
-            VersionNumber(std::vector<std::int64_t> value);
 //            void serialise(std::ostream);
 //            static VersionNumber deserialise(std::istream);
+            VersionNumber(std::initializer_list<std::int64_t>);
+            VersionNumber(std::vector<std::int64_t>);
             std::vector<std::int64_t>::const_iterator begin() const;
             std::vector<std::int64_t>::const_iterator end() const;
             std::vector<std::int64_t>::const_reverse_iterator rbegin() const;

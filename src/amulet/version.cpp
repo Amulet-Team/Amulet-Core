@@ -33,7 +33,8 @@ PYBIND11_MODULE(version, m) {
                     );
                 }
             ),
-            py::doc("__init__(self: amulet.version.VersionNumber, *args: typing.SupportsInt) -> None"));
+            py::doc("__init__(self: amulet.version.VersionNumber, *args: typing.SupportsInt) -> None")
+        );
 
         // Start collections.abc.Sequence
         VersionNumber.def(
@@ -68,11 +69,11 @@ PYBIND11_MODULE(version, m) {
             [](const Amulet::VersionNumber& self){
                 std::ostringstream oss;
                 oss << "VersionNumber(";
-                for (size_t i = 0; i < self.value.size(); i++){
+                for (size_t i = 0; i < self.vec.size(); i++){
                     if (i != 0){
                         oss << ", ";
                     }
-                    oss << self.value[i];
+                    oss << self.vec[i];
                 }
                 oss << ")";
                 return oss.str();
@@ -183,8 +184,13 @@ PYBIND11_MODULE(version, m) {
 
     py::class_<Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::PlatformVersionContainer>> PlatformVersionContainer(m, "PlatformVersionContainer", ABC);
         PlatformVersionContainer.def(
-            py::init<const Amulet::PlatformType&, const Amulet::VersionNumber&>(),
-            py::arg("platform"), py::arg("version"));
+            py::init<
+                const Amulet::PlatformType&,
+                const Amulet::VersionNumber&
+            >(),
+            py::arg("platform"),
+            py::arg("version")
+        );
         PlatformVersionContainer.def_readonly("platform", &Amulet::PlatformVersionContainer::platform);
         PlatformVersionContainer.def_readonly("version", &Amulet::PlatformVersionContainer::version);
         PlatformVersionContainer.def(
@@ -212,14 +218,22 @@ PYBIND11_MODULE(version, m) {
 
     py::class_<Amulet::VersionRange, std::shared_ptr<Amulet::VersionRange>> VersionRange(m, "VersionRange", ABC);
         VersionRange.def(
-            py::init<const Amulet::PlatformType&, const Amulet::VersionNumber&, const Amulet::VersionNumber&>(),
-            py::arg("platform"), py::arg("min_version"), py::arg("max_version"));
+            py::init<
+                const Amulet::PlatformType&,
+                const Amulet::VersionNumber&,
+                const Amulet::VersionNumber&
+            >(),
+            py::arg("platform"),
+            py::arg("min_version"),
+            py::arg("max_version")
+        );
         VersionRange.def_readonly("platform", &Amulet::VersionRange::platform);
         VersionRange.def_readonly("min_version", &Amulet::VersionRange::min_version);
         VersionRange.def_readonly("max_version", &Amulet::VersionRange::max_version);
         VersionRange.def(
             "contains",
-            &Amulet::VersionRange::contains);
+            &Amulet::VersionRange::contains
+        );
         VersionRange.def(
             "__repr__",
             [](const Amulet::VersionRange& self){
@@ -246,8 +260,11 @@ PYBIND11_MODULE(version, m) {
 
     py::class_<Amulet::VersionRangeContainer, std::shared_ptr<Amulet::VersionRangeContainer>> VersionRangeContainer(m, "VersionRangeContainer", ABC);
         VersionRangeContainer.def(
-            py::init<const Amulet::VersionRange&>(),
-            py::arg("version_range"));
+            py::init<
+                const Amulet::VersionRange&
+            >(),
+            py::arg("version_range")
+        );
         VersionRangeContainer.def_readonly("version_range", &Amulet::VersionRangeContainer::version_range);
         VersionRangeContainer.def(
             "__repr__",
