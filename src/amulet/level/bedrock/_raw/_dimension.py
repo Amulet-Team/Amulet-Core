@@ -12,7 +12,7 @@ from amulet_nbt import (
     StringTag,
     CompoundTag,
     NBTLoadError,
-    load as load_nbt,
+    read_nbt,
     utf8_escape_encoding,
 )
 
@@ -159,7 +159,7 @@ class BedrockRawDimension(
                 actor_key = b"actorprefix" + digp[i : i + 8]
                 try:
                     actor_bytes = self._r.level_db.get(actor_key)
-                    actor = load_nbt(
+                    actor = read_nbt(
                         actor_bytes,
                         little_endian=True,
                         string_encoding=utf8_escape_encoding,

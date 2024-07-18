@@ -15,7 +15,7 @@ from amulet_nbt import (
     NamedTag,
     ReadOffset,
     load_array as load_nbt_array,
-    load as load_nbt,
+    read_nbt,
     utf8_escape_encoding,
 )
 
@@ -582,7 +582,7 @@ def _unpack_nbt_list(raw_nbt: bytes) -> list[NamedTag]:
     nbt_list = []
     while raw_nbt:
         read_offset = ReadOffset()
-        nbt = load_nbt(
+        nbt = read_nbt(
             raw_nbt,
             little_endian=True,
             read_offset=read_offset,

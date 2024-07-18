@@ -6,8 +6,8 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 
 from amulet_nbt import (
-    load as load_nbt,
-    from_snbt,
+    read_nbt,
+    read_snbt,
     NamedTag,
     ListTag,
     CompoundTag,
@@ -57,7 +57,7 @@ def create_nbt(
     if default_template is None:
         nbt_object = outer_type()
     else:
-        nbt_object = from_snbt(default_template)
+        nbt_object = read_snbt(default_template)
 
     for nbt_entry in nbt_list:
         (
@@ -187,7 +187,7 @@ class BlockToUniversalTranslator:
                     block_entity_nbt = block_entity.nbt
             if block_entity_nbt is None:
                 # If it is still None then load it from the specification
-                block_entity_nbt = load_nbt(self._src_spec.nbt.snbt)
+                block_entity_nbt = read_nbt(self._src_spec.nbt.snbt)
 
         src = SrcData(block, block_entity_nbt, src_extra)
         state = StateData()
@@ -291,7 +291,7 @@ class BlockFromUniversalTranslator:
                     block_entity_nbt = block_entity.nbt
             if block_entity_nbt is None:
                 # If it is still None then load it from the specification
-                block_entity_nbt = load_nbt(self._src_spec.nbt.snbt)
+                block_entity_nbt = read_nbt(self._src_spec.nbt.snbt)
 
         src = SrcData(block, block_entity_nbt, src_extra)
         state = StateData()

@@ -5,7 +5,7 @@ from typing import BinaryIO, Any
 from copy import deepcopy
 
 from amulet_nbt import (
-    load as load_nbt,
+    read_nbt,
     NamedTag,
     utf8_escape_encoding,
     AnyNBT,
@@ -52,7 +52,7 @@ class BedrockLevelDAT(NamedTag):
             level_dat_version = struct.unpack("<i", f.read(4))[0]
             if 4 <= level_dat_version <= 10:
                 data_length = struct.unpack("<i", f.read(4))[0]
-                root_tag = load_nbt(
+                root_tag = read_nbt(
                     f.read(data_length),
                     compressed=False,
                     little_endian=True,

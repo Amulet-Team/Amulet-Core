@@ -9,7 +9,7 @@ from typing import (
 from amulet_nbt import (
     ListTag,
     CompoundTag,
-    from_snbt,
+    read_snbt,
 )
 
 from .abc import (
@@ -130,7 +130,7 @@ class NewNBTItem(AbstractBaseTranslationFunction):
 
         return cls(
             key,
-            from_snbt(raw_value),
+            read_snbt(raw_value),
             outer_name,
             StrToNBTCls[outer_type],
             path,
