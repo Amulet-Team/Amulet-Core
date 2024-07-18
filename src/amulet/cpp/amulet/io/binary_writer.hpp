@@ -43,4 +43,11 @@ namespace Amulet {
             return data;
         }
     };
+
+    template <typename T>
+    std::string serialise(const T& obj){
+        BinaryWriter writer;
+        obj.serialise(writer);
+        return writer.getBuffer();
+    }
 }

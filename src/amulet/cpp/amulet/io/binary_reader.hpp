@@ -83,4 +83,11 @@ namespace Amulet {
             return position < data.size();
         }
     };
+
+    template <typename T>
+    T deserialise(const std::string& data){
+        size_t position = 0;
+        BinaryReader reader(data, position);
+        return T::deserialise(reader);
+    }
 }
