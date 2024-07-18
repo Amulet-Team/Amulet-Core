@@ -8,12 +8,30 @@ namespace Amulet {
     VersionNumber::VersionNumber(std::initializer_list<std::int64_t> vec): vec(vec) {};
     VersionNumber::VersionNumber(std::vector<std::int64_t> vec): vec(vec) {};
 
-//    void VersionNumber::serialise(std::ostream f){
-//        f.write()
-//    }
-//    static VersionNumber VersionNumber::deserialise(std::istream){
-//
-//    }
+    void VersionNumber::serialise(Amulet::BinaryWriter& writer) const {
+        writer.writeNumeric<std::uint8_t>(1);
+        writer.writeNumeric<std::uint64_t>(vec.size());
+        for (const std::int64_t& v : vec){
+            writer.writeNumeric<std::int64_t>(v);
+        }
+    }
+    VersionNumber VersionNumber::deserialise(Amulet::BinaryReader& reader){
+        auto version_number = reader.readNumeric<std::uint8_t>();
+        switch (version_number) {
+            case 1:
+            {
+                std::uint64_t count;
+                reader.readNumericInto(count);
+                std::vector<std::int64_t> vec(count);
+                for (size_t i = 0; i < count; i++) {
+                    reader.readNumericInto<std::int64_t>(vec[i]);
+                }
+                return VersionNumber(vec);
+            }
+            default:
+                throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
+        }
+    }
 
     std::vector<std::int64_t>::const_iterator VersionNumber::begin() const {
         return vec.begin();
@@ -127,6 +145,25 @@ namespace Amulet {
         const VersionNumber& version
     ): platform(platform), version(version) {}
 
+    void PlatformVersionContainer::serialise(Amulet::BinaryWriter& writer) const {
+        writer.writeNumeric<std::uint8_t>(1);
+        writer.writeString(platform);
+        version.serialise(writer);
+    }
+    PlatformVersionContainer PlatformVersionContainer::deserialise(Amulet::BinaryReader& reader){
+        auto version_number = reader.readNumeric<std::uint8_t>();
+        switch (version_number) {
+        case 1:
+        {
+            std::string platform = reader.readString();
+            VersionNumber version = VersionNumber::deserialise(reader);
+            return PlatformVersionContainer(platform, version);
+        }
+        default:
+            throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
+        }
+    }
+
 
     VersionRange::VersionRange(
         const PlatformType& platform,
@@ -138,6 +175,27 @@ namespace Amulet {
         }
     }
 
+    void VersionRange::serialise(Amulet::BinaryWriter& writer) const {
+        writer.writeNumeric<std::uint8_t>(1);
+        writer.writeString(platform);
+        min_version.serialise(writer);
+        max_version.serialise(writer);
+    }
+    VersionRange VersionRange::deserialise(Amulet::BinaryReader& reader) {
+        auto version_number = reader.readNumeric<std::uint8_t>();
+        switch (version_number) {
+        case 1:
+        {
+            std::string platform = reader.readString();
+            VersionNumber min_version = VersionNumber::deserialise(reader);
+            VersionNumber max_version = VersionNumber::deserialise(reader);
+            return VersionRange(platform, min_version, max_version);
+        }
+        default:
+            throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
+        }
+    }
+
     bool VersionRange::contains(const PlatformType& platform_, const VersionNumber& version) const {
         return platform == platform_ && min_version <= version && version <= max_version;
     }
@@ -146,4 +204,21 @@ namespace Amulet {
     VersionRangeContainer::VersionRangeContainer(
         const VersionRange& version_range
     ): version_range(version_range) {}
+
+    void VersionRangeContainer::serialise(Amulet::BinaryWriter& writer) const {
+        writer.writeNumeric<std::uint8_t>(1);
+        version_range.serialise(writer);
+    }
+    VersionRangeContainer VersionRangeContainer::deserialise(Amulet::BinaryReader& reader) {
+        auto version_number = reader.readNumeric<std::uint8_t>();
+        switch (version_number) {
+        case 1:
+        {
+            VersionRange version_range = VersionRange::deserialise(reader);
+            return VersionRangeContainer(version_range);
+        }
+        default:
+            throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
+        }
+    }
 }

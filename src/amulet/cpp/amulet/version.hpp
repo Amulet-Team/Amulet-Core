@@ -18,10 +18,10 @@ namespace Amulet {
         public:
             const std::vector<std::int64_t> vec;
 
-//            void serialise(std::ostream);
-//            static VersionNumber deserialise(std::istream);
             VersionNumber(std::initializer_list<std::int64_t>);
             VersionNumber(std::vector<std::int64_t>);
+            void serialise(Amulet::BinaryWriter&) const;
+            static VersionNumber deserialise(Amulet::BinaryReader&);
             std::vector<std::int64_t>::const_iterator begin() const;
             std::vector<std::int64_t>::const_iterator end() const;
             std::vector<std::int64_t>::const_reverse_iterator rbegin() const;
@@ -48,6 +48,8 @@ namespace Amulet {
                 const PlatformType& platform,
                 const VersionNumber& version
             );
+            void serialise(Amulet::BinaryWriter&) const;
+            static PlatformVersionContainer deserialise(Amulet::BinaryReader&);
     };
 
     class VersionRange {
@@ -61,6 +63,8 @@ namespace Amulet {
                 const VersionNumber& min_version,
                 const VersionNumber& max_version
             );
+            void serialise(Amulet::BinaryWriter&) const;
+            static VersionRange deserialise(Amulet::BinaryReader&);
 
             bool contains(const PlatformType& platform_, const VersionNumber& version) const;
     };
@@ -72,5 +76,7 @@ namespace Amulet {
             VersionRangeContainer(
                 const VersionRange& version_range
             );
+            void serialise(Amulet::BinaryWriter&) const;
+            static VersionRangeContainer deserialise(Amulet::BinaryReader&);
     };
 }

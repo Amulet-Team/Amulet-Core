@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+import pickle
 
 from amulet.version import (
     VersionNumber,
@@ -112,6 +113,12 @@ class VersionNumberTestCase(unittest.TestCase):
         self.assertEqual((1, 2, 3), VersionNumber(1, 2, 3).padded_version(3))
         self.assertEqual((1, 2, 3, 0), VersionNumber(1, 2, 3).padded_version(4))
         self.assertEqual((1, 2, 3, 0, 0), VersionNumber(1, 2, 3).padded_version(5))
+
+    def test_pickle(self) -> None:
+        v = VersionNumber(-1, 0, 1)
+        b = pickle.dumps(v)
+        v2 = pickle.loads(b)
+        self.assertEqual(v, v2)
 
 
 class VersionRangeTestCase(unittest.TestCase):

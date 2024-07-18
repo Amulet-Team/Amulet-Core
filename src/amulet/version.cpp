@@ -78,18 +78,16 @@ PYBIND11_MODULE(version, m) {
                 return oss.str();
             }
         );
-//        VersionNumber.def(
-//            py::pickle(
-//                [](const Amulet::VersionNumber& self) -> py::bytes {
-//                    PyErr_SetString(PyExc_NotImplementedError, "");
-//                    throw py::error_already_set();
-//                },
-//                [](py::bytes state){
-//                    PyErr_SetString(PyExc_NotImplementedError, "");
-//                    throw py::error_already_set();
-//                }
-//            )
-//        );
+        VersionNumber.def(
+            py::pickle(
+                [](const Amulet::VersionNumber& self) {
+                    return py::bytes(Amulet::serialise(self));
+                },
+                [](py::bytes state){
+                    return Amulet::deserialise<Amulet::VersionNumber>(state.cast<std::string>());
+                }
+            )
+        );
 
         VersionNumber.def(
             "__len__",
@@ -201,18 +199,16 @@ PYBIND11_MODULE(version, m) {
                 ")";
             }
         );
-//        PlatformVersionContainer.def(
-//            py::pickle(
-//                [](const Amulet::PlatformVersionContainer& self) -> py::bytes {
-//                    PyErr_SetString(PyExc_NotImplementedError, "");
-//                    throw py::error_already_set();
-//                },
-//                [](py::bytes state){
-//                    PyErr_SetString(PyExc_NotImplementedError, "");
-//                    throw py::error_already_set();
-//                }
-//            )
-//        );
+        PlatformVersionContainer.def(
+            py::pickle(
+                [](const Amulet::PlatformVersionContainer& self) -> py::bytes {
+                    return py::bytes(Amulet::serialise(self));
+                },
+                [](py::bytes state){
+                    return Amulet::deserialise<Amulet::PlatformVersionContainer>(state.cast<std::string>());
+                }
+            )
+        );
 
 
     py::class_<Amulet::VersionRange, std::shared_ptr<Amulet::VersionRange>> VersionRange(m, "VersionRange");
@@ -243,18 +239,16 @@ PYBIND11_MODULE(version, m) {
                 ")";
             }
         );
-//        VersionRange.def(
-//            py::pickle(
-//                [](const Amulet::VersionRange& self) -> py::bytes {
-//                    PyErr_SetString(PyExc_NotImplementedError, "");
-//                    throw py::error_already_set();
-//                },
-//                [](py::bytes state){
-//                    PyErr_SetString(PyExc_NotImplementedError, "");
-//                    throw py::error_already_set();
-//                }
-//            )
-//        );
+        VersionRange.def(
+            py::pickle(
+                [](const Amulet::VersionRange& self) -> py::bytes {
+                    return py::bytes(Amulet::serialise(self));
+                },
+                [](py::bytes state){
+                    return Amulet::deserialise<Amulet::VersionRange>(state.cast<std::string>());
+                }
+            )
+        );
 
 
     py::class_<Amulet::VersionRangeContainer, std::shared_ptr<Amulet::VersionRangeContainer>> VersionRangeContainer(m, "VersionRangeContainer");
@@ -271,16 +265,14 @@ PYBIND11_MODULE(version, m) {
                 return "VersionRangeContainer(" + py::repr(py::cast(self.version_range)).cast<std::string>() + ")";
             }
         );
-//        VersionRangeContainer.def(
-//            py::pickle(
-//                [](const Amulet::VersionRangeContainer& self) -> py::bytes {
-//                    PyErr_SetString(PyExc_NotImplementedError, "");
-//                    throw py::error_already_set();
-//                },
-//                [](py::bytes state){
-//                    PyErr_SetString(PyExc_NotImplementedError, "");
-//                    throw py::error_already_set();
-//                }
-//            )
-//        );
+        VersionRangeContainer.def(
+            py::pickle(
+                [](const Amulet::VersionRangeContainer& self) -> py::bytes {
+                    return py::bytes(Amulet::serialise(self));
+                },
+                [](py::bytes state){
+                    return Amulet::deserialise<Amulet::VersionRangeContainer>(state.cast<std::string>());
+                }
+            )
+        );
 }
