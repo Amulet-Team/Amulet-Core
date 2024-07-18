@@ -11,10 +11,9 @@ namespace py = pybind11;
 PYBIND11_MODULE(version, m) {
     py::options options;
 
-    py::object ABC = py::module_::import("amulet.abc").attr("ABC");
     m.attr("PlatformType") = py::module_::import("builtins").attr("str");
 
-    py::class_<Amulet::VersionNumber, std::shared_ptr<Amulet::VersionNumber>> VersionNumber(m, "VersionNumber", ABC,
+    py::class_<Amulet::VersionNumber, std::shared_ptr<Amulet::VersionNumber>> VersionNumber(m, "VersionNumber",
         "This class is designed to store semantic versions and data versions and allow comparisons between them.\n"
         "\n"
         ">>> v1 = VersionNumber(1, 0, 0)\n"
@@ -182,7 +181,7 @@ PYBIND11_MODULE(version, m) {
     py::module_::import("collections.abc").attr("Sequence").attr("register")(VersionNumber);
 
 
-    py::class_<Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::PlatformVersionContainer>> PlatformVersionContainer(m, "PlatformVersionContainer", ABC);
+    py::class_<Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::PlatformVersionContainer>> PlatformVersionContainer(m, "PlatformVersionContainer");
         PlatformVersionContainer.def(
             py::init<
                 const Amulet::PlatformType&,
@@ -216,7 +215,7 @@ PYBIND11_MODULE(version, m) {
 //        );
 
 
-    py::class_<Amulet::VersionRange, std::shared_ptr<Amulet::VersionRange>> VersionRange(m, "VersionRange", ABC);
+    py::class_<Amulet::VersionRange, std::shared_ptr<Amulet::VersionRange>> VersionRange(m, "VersionRange");
         VersionRange.def(
             py::init<
                 const Amulet::PlatformType&,
@@ -258,7 +257,7 @@ PYBIND11_MODULE(version, m) {
 //        );
 
 
-    py::class_<Amulet::VersionRangeContainer, std::shared_ptr<Amulet::VersionRangeContainer>> VersionRangeContainer(m, "VersionRangeContainer", ABC);
+    py::class_<Amulet::VersionRangeContainer, std::shared_ptr<Amulet::VersionRangeContainer>> VersionRangeContainer(m, "VersionRangeContainer");
         VersionRangeContainer.def(
             py::init<
                 const Amulet::VersionRange&
