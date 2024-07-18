@@ -5,7 +5,7 @@ from typing import Union, Self, Callable, cast, Any, overload, TypeAlias
 from types import MappingProxyType
 from collections.abc import Iterator, Sequence, Hashable, Mapping
 
-from amulet_nbt import ByteTag, ShortTag, IntTag, LongTag, StringTag, from_snbt
+from amulet_nbt import ByteTag, ShortTag, IntTag, LongTag, StringTag, read_snbt
 
 from amulet.version import (
     PlatformVersionContainer,
@@ -227,7 +227,7 @@ class Block(PlatformVersionContainer):
 
         if snbt:
             pattern = _SNBTPropertiesPattern
-            wrapper = cast(Callable[[str], PropertyValueType], from_snbt)
+            wrapper = cast(Callable[[str], PropertyValueType], read_snbt)
         else:
             pattern = _PropertiesPattern
             wrapper = StringTag
