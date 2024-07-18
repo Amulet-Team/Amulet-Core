@@ -42,16 +42,14 @@ PYBIND11_MODULE(block, m) {
                 ")";
             }
         );
-//        Block.def(
-//            py::pickle(
-//                [](const Amulet::Block& self) -> py::bytes {
-//                    PyErr_SetString(PyExc_NotImplementedError, "");
-//                    throw py::error_already_set();
-//                },
-//                [](py::bytes state){
-//                    PyErr_SetString(PyExc_NotImplementedError, "");
-//                    throw py::error_already_set();
-//                }
-//            )
-//        );
+        Block.def(
+            py::pickle(
+                [](const Amulet::Block& self) -> py::bytes {
+                    return py::bytes(Amulet::serialise(self));
+                },
+                [](py::bytes state){
+                    return Amulet::deserialise<Amulet::Block>(state.cast<std::string>());
+                }
+            )
+        );
 }
