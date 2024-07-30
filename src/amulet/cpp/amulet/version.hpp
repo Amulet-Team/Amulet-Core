@@ -18,11 +18,14 @@ namespace Amulet {
         private:
             std::vector<std::int64_t> vec;
         public:
+            const std::vector<std::int64_t>& get_vector() const;
+
             VersionNumber(std::initializer_list<std::int64_t>);
             VersionNumber(std::vector<std::int64_t>);
+
             void serialise(Amulet::BinaryWriter&) const;
             static VersionNumber deserialise(Amulet::BinaryReader&);
-            const std::vector<std::int64_t>& get_vector() const;
+
             std::vector<std::int64_t>::const_iterator begin() const;
             std::vector<std::int64_t>::const_iterator end() const;
             std::vector<std::int64_t>::const_reverse_iterator rbegin() const;
@@ -45,14 +48,16 @@ namespace Amulet {
             PlatformType platform;
             VersionNumber version;
         public:
+            const PlatformType& get_platform() const;
+            const VersionNumber& get_version() const;
+
             PlatformVersionContainer(
                 const PlatformType& platform,
                 const VersionNumber& version
             );
+
             void serialise(Amulet::BinaryWriter&) const;
             static PlatformVersionContainer deserialise(Amulet::BinaryReader&);
-            const PlatformType& get_platform() const;
-            const VersionNumber& get_version() const;
     };
 
     class VersionRange {
@@ -61,16 +66,18 @@ namespace Amulet {
             VersionNumber min_version;
             VersionNumber max_version;
         public:
+            const PlatformType& get_platform() const;
+            const VersionNumber& get_min_version() const;
+            const VersionNumber& get_max_version() const;
+
             VersionRange(
                 const PlatformType& platform,
                 const VersionNumber& min_version,
                 const VersionNumber& max_version
             );
+
             void serialise(Amulet::BinaryWriter&) const;
             static VersionRange deserialise(Amulet::BinaryReader&);
-            const PlatformType& get_platform() const;
-            const VersionNumber& get_min_version() const;
-            const VersionNumber& get_max_version() const;
 
             bool contains(const PlatformType& platform_, const VersionNumber& version) const;
     };
@@ -79,11 +86,14 @@ namespace Amulet {
         private:
             VersionRange version_range;
         public:
+            const VersionRange& get_version_range() const;
+
             VersionRangeContainer(
                 const VersionRange& version_range
             );
+
             void serialise(Amulet::BinaryWriter&) const;
             static VersionRangeContainer deserialise(Amulet::BinaryReader&);
-            const VersionRange& get_version_range() const;
+            
     };
 }
