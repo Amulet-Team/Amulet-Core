@@ -9,60 +9,24 @@
 #include <functional>
 #include <stdexcept>
 
+#include <amulet_nbt/io/binary_reader.hpp>
+
 
 namespace Amulet {
-    class BinaryReader {
-    private:
-        const std::string& data;
-        size_t& position;
+    namespace detail {
+        std::string decode_null(const std::string& value) { return value; }
+    }
+
+    class BinaryReader: public AmuletNBT::BinaryReader {
+    
 
     public:
         BinaryReader(
             const std::string& input,
             size_t& position
-        )
-            : data(input), position(position) {}
+        ): AmuletNBT::BinaryReader(input, position, std::endian::big, detail::decode_null) {}
 
-        /**
-         * Read a numeric type from the buffer into the given value and fix its endianness.
-         */
-        template <typename T> inline void readNumericInto(T& value) {
-            // Ensure the buffer is long enough
-            if (position + sizeof(T) > data.size()) {
-                throw std::out_of_range(std::string("Cannot read ") + typeid(T).name() + " at position " + std::to_string(position));
-            }
-
-            // Create
-            const char* src = &data[position];
-            char* dst = (char*)&value;
-
-            // Copy
-            if (std::endian::big == std::endian::native){
-                for (size_t i = 0; i < sizeof(T); i++){
-                    dst[i] = src[i];
-                }
-            } else {
-                for (size_t i = 0; i < sizeof(T); i++){
-                    dst[i] = src[sizeof(T) - i - 1];
-                }
-            }
-
-            // Increment position
-            position += sizeof(T);
-        }
-
-        /**
-         * Read a numeric type from the buffer and fix its endianness.
-         *
-         * @return A value of the requested type.
-         */
-        template <typename T> inline T readNumeric() {
-            T value;
-            readNumericInto<T>(value);
-            return value;
-        }
-
-        std::string readString() {
+        std::string readSizeAndBytes() {
             std::uint64_t length;
             readNumericInto<std::uint64_t>(length);
             // Ensure the buffer is long enough
@@ -73,14 +37,6 @@ namespace Amulet {
             std::string value = data.substr(position, length);
             position += length;
             return value;
-        }
-
-        size_t getPosition(){
-            return position;
-        }
-
-        bool has_more_data(){
-            return position < data.size();
         }
     };
 

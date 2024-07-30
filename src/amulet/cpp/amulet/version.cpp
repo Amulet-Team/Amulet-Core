@@ -147,7 +147,7 @@ namespace Amulet {
 
     void PlatformVersionContainer::serialise(Amulet::BinaryWriter& writer) const {
         writer.writeNumeric<std::uint8_t>(1);
-        writer.writeString(platform);
+        writer.writeSizeAndBytes(platform);
         version.serialise(writer);
     }
     PlatformVersionContainer PlatformVersionContainer::deserialise(Amulet::BinaryReader& reader){
@@ -155,7 +155,7 @@ namespace Amulet {
         switch (version_number) {
         case 1:
         {
-            std::string platform = reader.readString();
+            std::string platform = reader.readSizeAndBytes();
             VersionNumber version = VersionNumber::deserialise(reader);
             return PlatformVersionContainer(platform, version);
         }
@@ -177,7 +177,7 @@ namespace Amulet {
 
     void VersionRange::serialise(Amulet::BinaryWriter& writer) const {
         writer.writeNumeric<std::uint8_t>(1);
-        writer.writeString(platform);
+        writer.writeSizeAndBytes(platform);
         min_version.serialise(writer);
         max_version.serialise(writer);
     }
@@ -186,7 +186,7 @@ namespace Amulet {
         switch (version_number) {
         case 1:
         {
-            std::string platform = reader.readString();
+            std::string platform = reader.readSizeAndBytes();
             VersionNumber min_version = VersionNumber::deserialise(reader);
             VersionNumber max_version = VersionNumber::deserialise(reader);
             return VersionRange(platform, min_version, max_version);

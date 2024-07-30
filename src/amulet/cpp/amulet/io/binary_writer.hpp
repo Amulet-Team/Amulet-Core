@@ -8,40 +8,22 @@
 #include <bit>
 #include <functional>
 
+#include <amulet_nbt/io/binary_writer.hpp>
+
 
 namespace Amulet {
-    class BinaryWriter {
-    private:
-        std::string data;
+    namespace detail {
+        std::string encode_null(const std::string& value) { return value; }
+    }
 
-    public:
-        BinaryWriter() {}
+    class BinaryWriter: public AmuletNBT::BinaryWriter {
+        public:
+            BinaryWriter(): AmuletNBT::BinaryWriter(std::endian::big, detail::encode_null) {}
 
-        /**
-         * Fix the endianness of the numeric value and write it to the buffer.
-         */
-        template <typename T> inline void writeNumeric(const T& value) {
-            // Create
-            char* src = (char*)&value;
-
-            // Copy
-            if (std::endian::big == std::endian::native){
-                data.append(src, sizeof(T));
-            } else {
-                for (size_t i = 0; i < sizeof(T); i++){
-                    data.push_back(src[sizeof(T) - i - 1]);
-                }
+            void writeSizeAndBytes(const std::string& value) {
+                writeNumeric<std::uint64_t>(value.size());
+                data.append(value);
             }
-        }
-
-        void writeString(const std::string& value) {
-            writeNumeric<std::uint64_t>(value.size());
-            data.append(value);
-        }
-
-        std::string getBuffer(){
-            return data;
-        }
     };
 
     template <typename T>

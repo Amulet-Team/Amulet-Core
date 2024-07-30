@@ -13,21 +13,21 @@ namespace Amulet {
 
     void Block::serialise(Amulet::BinaryWriter& writer) const {
         writer.writeNumeric<std::uint8_t>(1);
-        writer.writeString(platform);
-        version.serialise(writer);
-        writer.writeString(namespace_);
-        writer.writeString(base_name);
-        // TODO: properties
+        writer.writeSizeAndBytes(get_platform());
+        get_version().serialise(writer);
+        writer.writeSizeAndBytes(namespace_);
+        writer.writeSizeAndBytes(base_name);
+        
     }
     Block Block::deserialise(Amulet::BinaryReader& reader){
         auto version_number = reader.readNumeric<std::uint8_t>();
         switch (version_number) {
         case 1:
         {
-            std::string platform = reader.readString();
+            std::string platform = reader.readSizeAndBytes();
             VersionNumber version = VersionNumber::deserialise(reader);
-            std::string namespace_ = reader.readString();
-            std::string base_name = reader.readString();
+            std::string namespace_ = reader.readSizeAndBytes();
+            std::string base_name = reader.readSizeAndBytes();
             // TODO: properties
             return Block(platform, version, namespace_, base_name);
         }
