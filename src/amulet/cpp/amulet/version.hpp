@@ -18,7 +18,7 @@ namespace Amulet {
         private:
             std::vector<std::int64_t> vec;
         public:
-            const std::vector<std::int64_t>& get_vector() const;
+            const std::vector<std::int64_t>& get_vector() const { return vec; }
 
             VersionNumber(std::initializer_list<std::int64_t>);
             VersionNumber(std::vector<std::int64_t>);
@@ -48,8 +48,8 @@ namespace Amulet {
             PlatformType platform;
             VersionNumber version;
         public:
-            const PlatformType& get_platform() const;
-            const VersionNumber& get_version() const;
+            const PlatformType& get_platform() const { return platform; }
+            const VersionNumber& get_version() const { return version; }
 
             PlatformVersionContainer(
                 const PlatformType& platform,
@@ -66,9 +66,9 @@ namespace Amulet {
             VersionNumber min_version;
             VersionNumber max_version;
         public:
-            const PlatformType& get_platform() const;
-            const VersionNumber& get_min_version() const;
-            const VersionNumber& get_max_version() const;
+            const PlatformType& get_platform() const { return platform; }
+            const VersionNumber& get_min_version() const { return min_version; }
+            const VersionNumber& get_max_version() const { return max_version; }
 
             VersionRange(
                 const PlatformType& platform,
@@ -86,7 +86,7 @@ namespace Amulet {
         private:
             VersionRange version_range;
         public:
-            const VersionRange& get_version_range() const;
+            const VersionRange& get_version_range() const { return version_range; }
 
             VersionRangeContainer(
                 const VersionRange& version_range
