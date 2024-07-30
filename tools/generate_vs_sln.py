@@ -422,8 +422,8 @@ def main() -> None:
                 )
 
     write(
-        r"D:\Data\GitHub\Amulet-Core\src",
-        r"D:\Data\GitHub\Amulet-Core\src\sln",
+        SrcDir,
+        os.path.join(SrcDir, "sln"),
         "Amulet-Core",
         projects,
     )
