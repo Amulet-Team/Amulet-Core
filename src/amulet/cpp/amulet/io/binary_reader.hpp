@@ -13,10 +13,6 @@
 
 
 namespace Amulet {
-    namespace detail {
-        std::string decode_null(const std::string& value) { return value; }
-    }
-
     class BinaryReader: public AmuletNBT::BinaryReader {
     
 
@@ -24,7 +20,7 @@ namespace Amulet {
         BinaryReader(
             const std::string& input,
             size_t& position
-        ): AmuletNBT::BinaryReader(input, position, std::endian::big, detail::decode_null) {}
+        ) : AmuletNBT::BinaryReader(input, position, std::endian::big, [](const std::string& value) {return value; }) {}
 
         std::string readSizeAndBytes() {
             std::uint64_t length;
