@@ -16,29 +16,35 @@ PYBIND11_MODULE(block, m) {
                 const Amulet::PlatformType&,
                 const Amulet::VersionNumber&,
                 const std::string&,
-                const std::string&
+                const std::string&,
+                const std::map<std::string, Amulet::PropertyValueType>&
             >(),
             py::arg("platform"),
             py::arg("version"),
             py::arg("namespace"),
-            py::arg("base_name")
+            py::arg("base_name"),
+            py::arg("properties") = py::tuple()
         );
-        Block.def_readonly(
+        Block.def_property_readonly(
             "namespace",
-            &Amulet::Block::namespace_
+            &Amulet::Block::get_namespace
         );
-        Block.def_readonly(
+        Block.def_property_readonly(
             "base_name",
-            &Amulet::Block::base_name
+            &Amulet::Block::get_base_name
+        );
+        Block.def_property_readonly(
+            "properties",
+            &Amulet::Block::get_properties
         );
         Block.def(
             "__repr__",
             [](const Amulet::Block& self){
                 return "Block(" +
-                    py::repr(py::cast(self.platform)).cast<std::string>() + ", " +
-                    py::repr(py::cast(self.version)).cast<std::string>() + ", " +
-                    py::repr(py::cast(self.namespace_)).cast<std::string>() + ", " +
-                    py::repr(py::cast(self.base_name)).cast<std::string>() +
+                    py::repr(py::cast(self.get_platform())).cast<std::string>() + ", " +
+                    py::repr(py::cast(self.get_version())).cast<std::string>() + ", " +
+                    py::repr(py::cast(self.get_namespace())).cast<std::string>() + ", " +
+                    py::repr(py::cast(self.get_base_name())).cast<std::string>() +
                 ")";
             }
         );
