@@ -33,6 +33,10 @@ namespace Amulet {
         }
     }
 
+    const std::vector<std::int64_t>& VersionNumber::get_vector() const {
+        return vec;
+    }
+
     std::vector<std::int64_t>::const_iterator VersionNumber::begin() const {
         return vec.begin();
     }
@@ -163,6 +167,12 @@ namespace Amulet {
             throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
         }
     }
+    const PlatformType& PlatformVersionContainer::get_platform() const {
+        return platform;
+    }
+    const VersionNumber& PlatformVersionContainer::get_version() const {
+        return version;
+    }
 
 
     VersionRange::VersionRange(
@@ -195,6 +205,15 @@ namespace Amulet {
             throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
         }
     }
+    const PlatformType& VersionRange::get_platform() const {
+        return platform;
+    }
+    const VersionNumber& VersionRange::get_min_version() const {
+        return min_version;
+    }
+    const VersionNumber& VersionRange::get_max_version() const {
+        return max_version;
+    }
 
     bool VersionRange::contains(const PlatformType& platform_, const VersionNumber& version) const {
         return platform == platform_ && min_version <= version && version <= max_version;
@@ -220,5 +239,8 @@ namespace Amulet {
         default:
             throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
         }
+    }
+    const VersionRange& VersionRangeContainer::get_version_range() const {
+        return version_range;
     }
 }
