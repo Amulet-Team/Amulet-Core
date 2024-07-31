@@ -77,12 +77,14 @@ VCXProj = r"""<?xml version="1.0" encoding="utf-8"?>
     <OutDir>{out_dir}</OutDir>
     <TargetExt>{file_extension}</TargetExt>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);{library_path}</LibraryPath>
+    <TargetName>{ext_name}</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>$(SolutionDir)$(Platform)\$(Configuration)\int\{project_name}\</IntDir>
     <OutDir>{out_dir}</OutDir>
     <TargetExt>{file_extension}</TargetExt>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);{library_path}</LibraryPath>
+    <TargetName>{ext_name}</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -255,41 +257,44 @@ def write(
         vcxproj_includes = "\n".join(
             VCXProjInclude.format(path=path) for path in project.include_files
         )
-        with open(
-            os.path.join(solution_dir, f"{project.name}.vcxproj"), "w", encoding="utf8"
-        ) as f:
-            library_type = project.compile_mode
-            if library_type == CompileMode.PythonExtension:
-                extension = PythonExtensionModuleSuffix
-                library_type = CompileMode.DynamicLibrary
-                if project.py_package:
-                    module_path = project.py_package.replace(".", "\\")
-                    out_dir = f"{src_dir}\\{module_path}\\"
-                else:
-                    out_dir = f"{src_dir}\\"
-            elif library_type == CompileMode.StaticLibrary:
-                extension = ".lib"
-                out_dir = f"$(SolutionDir)$(Platform)\\$(Configuration)\\out\\{project.name}\\"
-            # elif library_type == CompileMode.DynamicLibrary:
-            #     extension = ".dll"
-            #     out_dir = f"$(SolutionDir)$(Platform)\\$(Configuration)\\out\\{project.name}\\"
+        library_type = project.compile_mode
+        project_name = project.name
+        if library_type == CompileMode.PythonExtension:
+            extension = PythonExtensionModuleSuffix
+            library_type = CompileMode.DynamicLibrary
+            if project.py_package:
+                module_path = project.py_package.replace(".", "\\")
+                out_dir = f"{src_dir}\\{module_path}\\"
+                project_name = f"{project.py_package}.{project_name}"
             else:
-                raise RuntimeError
+                out_dir = f"{src_dir}\\"
+        elif library_type == CompileMode.StaticLibrary:
+            extension = ".lib"
+            out_dir = f"$(SolutionDir)$(Platform)\\$(Configuration)\\out\\{project.name}\\"
+        # elif library_type == CompileMode.DynamicLibrary:
+        #     extension = ".dll"
+        #     out_dir = f"$(SolutionDir)$(Platform)\\$(Configuration)\\out\\{project.name}\\"
+        else:
+            raise RuntimeError
+        with open(
+            os.path.join(solution_dir, f"{project_name}.vcxproj"), "w", encoding="utf8"
+        ) as f:
             f.write(
                 VCXProj.format(
-                    project_name=project.name,
+                    project_name=project_name,
+                    ext_name=project.name,
                     source_files=vcxproj_sources,
                     include_files=vcxproj_includes,
                     include_dirs="".join(f"{path};" for path in project.include_dirs),
                     library_path="".join(
                         [f"{path};" for path in project.library_dirs]
                         + [
-                            f"$(SolutionDir)$(Platform)\\$(Configuration)\\out\\{dep.name}\\;"
+                            f"$(SolutionDir)$(Platform)\\$(Configuration)\\out\\{f"{dep.py_package}.{dep.name}" if dep.py_package else dep.name}\\;"
                             for dep in project.dependencies
                         ]
                     ),
                     libraries="".join(
-                        f"{dep.name}.lib;" for dep in project.dependencies
+                        f"{dep.py_package}.{dep.name}.lib" if dep.py_package else f"{dep.name}.lib;" for dep in project.dependencies
                     ),
                     library_type=library_type.value,
                     project_guid=project_guid,
@@ -304,7 +309,7 @@ def write(
             VCXProjFiltersInclude.format(path=path) for path in project.include_files
         )
         with open(
-            os.path.join(solution_dir, f"{project.name}.vcxproj.filters"),
+            os.path.join(solution_dir, f"{project_name}.vcxproj.filters"),
             "w",
             encoding="utf8",
         ) as f:
@@ -314,7 +319,7 @@ def write(
                 )
             )
         with open(
-            os.path.join(solution_dir, f"{project.name}.vcxproj.user"),
+            os.path.join(solution_dir, f"{project_name}.vcxproj.user"),
             "w",
             encoding="utf8",
         ) as f:
@@ -328,6 +333,7 @@ def write(
         global_configuration_platforms = []
         for project in projects:
             project_guid = project.project_guid()
+            project_name = f"{project.py_package}.{project.name}" if project.py_package else project.name
             if project.dependencies:
                 project_dependencies = "".join(
                     SolutionProjectDependency.format(dependency_guid=dep.project_guid())
@@ -340,7 +346,7 @@ def write(
                 project_dependencies = ""
             f.write(
                 SolutionProject.format(
-                    project_name=project.name,
+                    project_name=project_name,
                     project_guid=project_guid,
                     project_dependencies=project_dependencies,
                 )
