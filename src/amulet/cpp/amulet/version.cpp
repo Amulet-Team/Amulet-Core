@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <cstdint>
+#include <compare>
 
 #include <amulet/version.hpp>
 
@@ -58,51 +59,6 @@ namespace Amulet {
             return 0;
         }
         return vec[index];
-    }
-
-    bool VersionNumber::operator==(const VersionNumber& other) const {
-        size_t max_len = std::max(vec.size(), other.size());
-        for (size_t i = 0; i < max_len; i++){
-            if ((*this)[i] != other[i]){
-                return false;
-            }
-        }
-        return true;
-    }
-
-    bool VersionNumber::operator!=(const VersionNumber& other) const {
-        return !(*this == other);
-    }
-
-    bool VersionNumber::operator<(const VersionNumber& other) const {
-        size_t max_len = std::max(vec.size(), other.size());
-        std::int64_t v1, v2;
-        for (size_t i = 0; i < max_len; i++){
-            v1 = (*this)[i];
-            v2 = other[i];
-            if (v1 < v2){
-                // Less than
-                return true;
-            }
-            if (v1 > v2){
-                // Greater than
-                return false;
-            }
-        }
-        // equal
-        return false;
-    }
-
-    bool VersionNumber::operator>(const VersionNumber& other) const {
-        return other < *this;
-    }
-
-    bool VersionNumber::operator<=(const VersionNumber& other) const {
-        return !(*this > other);
-    }
-
-    bool VersionNumber::operator>=(const VersionNumber& other) const {
-        return !(*this < other);
     }
 
     std::string VersionNumber::toString() const {

@@ -32,12 +32,27 @@ namespace Amulet {
             std::vector<std::int64_t>::const_reverse_iterator rend() const;
             size_t size() const;
             std::int64_t operator[](size_t index) const;
-            bool operator==(const VersionNumber& other) const;
-            bool operator!=(const VersionNumber& other) const;
-            bool operator<(const VersionNumber& other) const;
-            bool operator>(const VersionNumber& other) const;
-            bool operator<=(const VersionNumber& other) const;
-            bool operator>=(const VersionNumber& other) const;
+            auto operator<=>(const VersionNumber& other) const {
+                size_t max_len = std::max(vec.size(), other.size());
+                std::int64_t v1, v2;
+                for (size_t i = 0; i < max_len; i++) {
+                    v1 = (*this)[i];
+                    v2 = other[i];
+                    if (v1 < v2) {
+                        // Less than
+                        return std::strong_ordering::less;
+                    }
+                    if (v1 > v2) {
+                        // Greater than
+                        return std::strong_ordering::greater;
+                    }
+                }
+                // equal
+                return std::strong_ordering::equal;
+            }
+            bool operator==(const VersionNumber& other) const {
+                return (*this <=> other) == 0;
+            };
             std::string toString() const;
             std::vector<std::int64_t> cropped_version() const;
             std::vector<std::int64_t> padded_version(size_t len) const;
@@ -58,6 +73,8 @@ namespace Amulet {
 
             void serialise(Amulet::BinaryWriter&) const;
             static PlatformVersionContainer deserialise(Amulet::BinaryReader&);
+
+            auto operator<=>(const PlatformVersionContainer&) const = default;
     };
 
     class VersionRange {
