@@ -211,6 +211,7 @@ EndGlobal
 
 
 class CompileMode(Enum):
+    HeaderLibrary = "HeaderLibrary"
     DynamicLibrary = "DynamicLibrary"
     StaticLibrary = "StaticLibrary"
     PythonExtension = "pyd"
@@ -268,7 +269,7 @@ def write(
                 project_name = f"{project.py_package}.{project_name}"
             else:
                 out_dir = f"{src_dir}\\"
-        elif library_type == CompileMode.StaticLibrary:
+        elif library_type == CompileMode.StaticLibrary or library_type == CompileMode.DynamicLibrary.HeaderLibrary:
             extension = ".lib"
             out_dir = f"$(SolutionDir)$(Platform)\\$(Configuration)\\out\\{project.name}\\"
         # elif library_type == CompileMode.DynamicLibrary:
@@ -289,12 +290,13 @@ def write(
                     library_path="".join(
                         [f"{path};" for path in project.library_dirs]
                         + [
-                            f"$(SolutionDir)$(Platform)\\$(Configuration)\\out\\{f"{dep.py_package}.{dep.name}" if dep.py_package else dep.name}\\;"
+                            f"$(SolutionDir)$(Platform)\\$(Configuration)\\out\\{dep.name}\\;"
                             for dep in project.dependencies
+                            if dep.compile_mode == CompileMode.StaticLibrary
                         ]
                     ),
                     libraries="".join(
-                        f"{dep.py_package}.{dep.name}.lib" if dep.py_package else f"{dep.name}.lib;" for dep in project.dependencies
+                        f"{dep.name}.lib;" for dep in project.dependencies if dep.compile_mode == CompileMode.StaticLibrary
                     ),
                     library_type=library_type.value,
                     project_guid=project_guid,
