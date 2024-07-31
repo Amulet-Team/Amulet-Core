@@ -7,7 +7,7 @@
 
 namespace Amulet {
     VersionNumber::VersionNumber(std::initializer_list<std::int64_t> vec): vec(vec) {};
-    VersionNumber::VersionNumber(std::vector<std::int64_t> vec): vec(vec) {};
+    VersionNumber::VersionNumber(const std::vector<std::int64_t>& vec): vec(vec) {};
 
     void VersionNumber::serialise(Amulet::BinaryWriter& writer) const {
         writer.writeNumeric<std::uint8_t>(1);

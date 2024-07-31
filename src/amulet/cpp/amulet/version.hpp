@@ -21,7 +21,7 @@ namespace Amulet {
             const std::vector<std::int64_t>& get_vector() const { return vec; }
 
             VersionNumber(std::initializer_list<std::int64_t>);
-            VersionNumber(std::vector<std::int64_t>);
+            VersionNumber(const std::vector<std::int64_t>&);
 
             void serialise(Amulet::BinaryWriter&) const;
             static VersionNumber deserialise(Amulet::BinaryReader&);
