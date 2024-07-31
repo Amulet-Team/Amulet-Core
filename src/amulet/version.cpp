@@ -11,7 +11,7 @@ namespace py = pybind11;
 PYBIND11_MODULE(version, m) {
     py::options options;
 
-    m.attr("PlatformType") = py::module_::import("builtins").attr("str");
+    m.attr("PlatformType") = py::module::import("builtins").attr("str");
 
     py::class_<Amulet::VersionNumber, std::shared_ptr<Amulet::VersionNumber>> VersionNumber(m, "VersionNumber",
         "This class is designed to store semantic versions and data versions and allow comparisons between them.\n"
@@ -177,7 +177,7 @@ PYBIND11_MODULE(version, m) {
             }
         );
 
-    py::module_::import("collections.abc").attr("Sequence").attr("register")(VersionNumber);
+    py::module::import("collections.abc").attr("Sequence").attr("register")(VersionNumber);
 
 
     py::class_<Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::PlatformVersionContainer>> PlatformVersionContainer(m, "PlatformVersionContainer");

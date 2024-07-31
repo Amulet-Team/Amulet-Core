@@ -8,7 +8,7 @@
 namespace py = pybind11;
 
 PYBIND11_MODULE(block, m) {
-    py::object PlatformVersionContainer = py::module_::import("amulet.version").attr("PlatformVersionContainer");
+    py::object PlatformVersionContainer = py::module::import("amulet.version").attr("PlatformVersionContainer");
 
     py::class_<Amulet::Block, std::shared_ptr<Amulet::Block>> Block(m, "Block", PlatformVersionContainer);
         Block.def(
