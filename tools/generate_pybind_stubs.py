@@ -1,6 +1,7 @@
 import os
 import glob
 import importlib.util
+import sys
 from concurrent.futures import ThreadPoolExecutor
 import subprocess
 
@@ -30,10 +31,10 @@ def main() -> None:
     for module_name in compiled_modules:
         subprocess.run(
             [
-                "python",
+                sys.executable,
                 "-m",
                 "pybind11_stubgen",
-                "--output-dir=src",
+                f"--output-dir={src_path}",
                 "--root-suffix=-stubs",
                 module_name,
             ]
