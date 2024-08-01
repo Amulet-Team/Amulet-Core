@@ -219,7 +219,18 @@ PYBIND11_MODULE(block, m) {
 
         BlockStack.def(
             "__getitem__",
-            &Amulet::BlockStack::operator[]
+            [](const Amulet::BlockStack& self, Py_ssize_t index) {
+                if (index < 0) {
+                    index += self.size();
+                    if (index < 0) {
+                        throw py::index_error("");
+                    }
+                }
+                if (index >= self.size()) {
+                    throw py::index_error("");
+                }
+                return self[index];
+            }
         );
         BlockStack.def(
             "__hash__",
