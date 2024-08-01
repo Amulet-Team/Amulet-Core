@@ -38,5 +38,25 @@ namespace Amulet {
             void serialise(Amulet::BinaryWriter&) const;
             static Block deserialise(Amulet::BinaryReader&);
             
+            auto operator<=>(const Block&) const = default;
+    };
+
+    class BlockStack {
+        private:
+            std::vector<Block> blocks;
+        public:
+            const std::vector<Block>& get_blocks() const { return blocks; }
+
+            BlockStack(std::initializer_list<Block> blocks) : blocks(blocks) {}
+            BlockStack(const std::vector<Block>& blocks) : blocks(blocks) {}
+
+            auto operator<=>(const BlockStack&) const = default;
+
+            std::vector<Block>::const_iterator begin() const { return blocks.begin(); }
+            std::vector<Block>::const_iterator end() const { return blocks.end(); }
+            std::vector<Block>::const_reverse_iterator rbegin() const { return blocks.rbegin(); }
+            std::vector<Block>::const_reverse_iterator rend() const { return blocks.rend(); }
+            size_t size() const { return blocks.size(); }
+            const Block& operator[](size_t index) const { return blocks[index]; };
     };
 }
