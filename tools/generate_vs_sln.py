@@ -381,19 +381,36 @@ def main() -> None:
         name="amulet_core",
         compile_mode=CompileMode.StaticLibrary,
         source_files=glob.glob(
-            os.path.join(glob.escape(SrcDir), "amulet", "cpp", "**", "*.cpp"),
+            os.path.join(glob.escape(SrcDir), "amulet", "cpp", "amulet", "**", "*.cpp"),
             recursive=True,
         ),
         include_files=glob.glob(
-            os.path.join(glob.escape(SrcDir), "amulet", "cpp", "**", "*.hpp"),
+            os.path.join(glob.escape(SrcDir), "amulet", "cpp", "amulet", "**", "*.hpp"),
             recursive=True,
         ),
         include_dirs=[amulet_nbt.get_include(), os.path.join(SrcDir, "amulet", "cpp")],
         dependencies=[amulet_nbt_project],
     )
+    collections_project = ProjectData(
+        name="collections_abc",
+        compile_mode=CompileMode.HeaderLibrary,
+        include_files=[
+            os.path.join(SrcDir, "amulet", "cpp", "collections_abc.hpp"),
+        ],
+        include_dirs=[
+            PythonIncludeDir,
+            pybind11.get_include(),
+            amulet_nbt.get_include(),
+            os.path.join(SrcDir, "amulet", "cpp"),
+        ],
+        library_dirs=[
+            PythonLibraryDir,
+        ],
+    )
     projects = [
         amulet_nbt_project,
         amulet_project,
+        collections_project,
     ]
 
     for cpp_path in glob.glob(
@@ -425,7 +442,7 @@ def main() -> None:
                             PythonLibraryDir,
                         ],
                         py_package=package,
-                        dependencies=[amulet_nbt_project, amulet_project],
+                        dependencies=[amulet_nbt_project, amulet_project, collections_project],
                     )
                 )
 
