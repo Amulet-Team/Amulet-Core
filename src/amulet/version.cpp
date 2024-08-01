@@ -11,6 +11,7 @@ namespace py = pybind11;
 PYBIND11_MODULE(version, m) {
     py::options options;
 
+    py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");
     m.attr("PlatformType") = py::module::import("builtins").attr("str");
 
     py::class_<Amulet::VersionNumber, std::shared_ptr<Amulet::VersionNumber>> VersionNumber(m, "VersionNumber",
@@ -149,8 +150,26 @@ PYBIND11_MODULE(version, m) {
             &Amulet::VersionNumber::toString
         );
 
-        VersionNumber.def(pybind11::self == pybind11::self);
-        VersionNumber.def(pybind11::self != pybind11::self);
+        VersionNumber.def(
+            "__eq__",
+            [NotImplemented](const Amulet::VersionNumber& self, py::object other) -> py::object {
+                if (py::isinstance<Amulet::VersionNumber>(other)) {
+                    return py::cast(self == other.cast<Amulet::VersionNumber>());
+                }
+                return NotImplemented;
+            },
+            py::is_operator()
+        );
+        VersionNumber.def(
+            "__ne__",
+            [NotImplemented](const Amulet::VersionNumber& self, py::object other) -> py::object {
+                if (py::isinstance<Amulet::VersionNumber>(other)) {
+                    return py::cast(self != other.cast<Amulet::VersionNumber>());
+                }
+                return NotImplemented;
+            },
+            py::is_operator()
+        );
         VersionNumber.def(pybind11::self < pybind11::self);
         VersionNumber.def(pybind11::self > pybind11::self);
         VersionNumber.def(pybind11::self <= pybind11::self);
