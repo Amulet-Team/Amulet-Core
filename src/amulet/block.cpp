@@ -19,8 +19,14 @@ PYBIND11_MODULE(block, m) {
 
     py::object PlatformVersionContainer = py::module::import("amulet.version").attr("PlatformVersionContainer");
     // Required for docstrings
-    py::module::import("amulet_nbt");
+    py::object amulet_nbt = py::module::import("amulet_nbt");
+    py::object ByteTag = amulet_nbt.attr("ByteTag");
+    py::object ShortTag = amulet_nbt.attr("ShortTag");
+    py::object IntTag = amulet_nbt.attr("IntTag");
+    py::object LongTag = amulet_nbt.attr("LongTag");
+    py::object StringTag = amulet_nbt.attr("StringTag");
 
+    m.attr("PropertyValueType") = ByteTag | ShortTag | IntTag | LongTag | StringTag;
 
     py::class_<Amulet::Block> Block(m, "Block", PlatformVersionContainer,
         "A class to manage the state of a block.\n"
