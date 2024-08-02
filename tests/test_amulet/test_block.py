@@ -3,7 +3,6 @@ from amulet.block import Block, BlockStack
 
 from amulet.version import VersionNumber
 
-
 from amulet_nbt import (
     ByteTag,
     ShortTag,
@@ -215,8 +214,6 @@ class BlockStackTestCase(unittest.TestCase):
         self.assertEqual(block_stack_1, block_stack_1)
         self.assertEqual(block_stack_1, block_stack_2)
         self.assertEqual(block_stack_2, block_stack_1)
-        self.assertEqual(1, len(block_stack_1))
-        self.assertEqual(get_test_block(), block_stack_1[0])
         self.assertEqual(get_test_block(), block_stack_1.base_block)
 
         block_variants = get_test_block_variants()
@@ -231,6 +228,40 @@ class BlockStackTestCase(unittest.TestCase):
         self.assertEqual(block_variants[1:], block_stack_3.extra_blocks)
 
         self.assertNotEqual(block_stack_1, block_stack_3)
+
+    def test_get_item(self) -> None:
+        block1 = Block("java", VersionNumber(3578), "namespace", "block1")
+        block2 = Block("java", VersionNumber(3578), "namespace", "block2")
+        block_stack = BlockStack(block1, block2)
+
+        self.assertEqual(block1, block_stack[0])
+        self.assertEqual(block2, block_stack[1])
+        self.assertEqual(block1, block_stack[-2])
+        self.assertEqual(block2, block_stack[-1])
+        with self.assertRaises(IndexError):
+            block_stack[-3]
+        with self.assertRaises(IndexError):
+            block_stack[2]
+
+        self.assertIsInstance(
+            block_stack[:],
+            list
+        )
+        self.assertEqual(
+            [block1, block2],
+            block_stack[:]
+        )
+
+    def test_len(self) -> None:
+        self.assertEqual(1, len(
+            BlockStack(Block("java", VersionNumber(3578), "namespace", "block1"))
+        ))
+        self.assertEqual(2, len(
+            BlockStack(
+                Block("java", VersionNumber(3578), "namespace", "block1"),
+                Block("java", VersionNumber(3578), "namespace", "block2")
+            )
+        ))
 
 
 if __name__ == "__main__":
