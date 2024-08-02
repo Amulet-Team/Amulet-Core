@@ -4,10 +4,10 @@ from amulet.palette import BlockPalette
 from amulet.version import VersionNumber, VersionRange
 
 
-dirt = Block.from_string_blockstate("java", VersionNumber(3578), "minecraft:dirt")
-stone = Block.from_string_blockstate("java", VersionNumber(3578), "minecraft:stone")
-granite = Block.from_string_blockstate("java", VersionNumber(3578), "minecraft:granite")
-water = Block.from_string_blockstate("java", VersionNumber(3578), "minecraft:water")
+dirt = Block.from_java_blockstate("java", VersionNumber(3578), "minecraft:dirt")
+stone = Block.from_java_blockstate("java", VersionNumber(3578), "minecraft:stone")
+granite = Block.from_java_blockstate("java", VersionNumber(3578), "minecraft:granite")
+water = Block.from_java_blockstate("java", VersionNumber(3578), "minecraft:water")
 waterlogged_dirt = BlockStack(dirt, water)
 
 
@@ -52,7 +52,7 @@ class BlockPaletteTestCase(unittest.TestCase):
             5,
             self.palette.block_stack_to_index(
                 BlockStack(
-                    Block.from_string_blockstate(
+                    Block.from_java_blockstate(
                         "java", VersionNumber(3578), "a:b[c=d]"
                     )
                 )
@@ -77,13 +77,13 @@ class BlockPaletteTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.palette.block_stack_to_index(
                 BlockStack(
-                    Block.from_string_blockstate("java", VersionNumber(3579), "a:b")
+                    Block.from_java_blockstate("java", VersionNumber(3579), "a:b")
                 )
             )
         with self.assertRaises(ValueError):
             self.palette.block_stack_to_index(
                 BlockStack(
-                    Block.from_string_blockstate("java", VersionNumber(3577), "a:b")
+                    Block.from_java_blockstate("java", VersionNumber(3577), "a:b")
                 )
             )
 

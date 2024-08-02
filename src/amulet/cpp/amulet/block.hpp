@@ -1,5 +1,6 @@
 #include <map>
 #include <variant>
+#include <string>
 
 #include <amulet/version.hpp>
 #include <amulet_nbt/tag/int.hpp>
@@ -34,11 +35,22 @@ namespace Amulet {
                 const std::string& base_name,
                 const std::map<std::string, PropertyValueType>&
             );
+            Block(
+                const PlatformType&,
+                const VersionNumber&,
+                const std::string& namespace_,
+                const std::string& base_name
+            );
 
             void serialise(Amulet::BinaryWriter&) const;
             static Block deserialise(Amulet::BinaryReader&);
             
             auto operator<=>(const Block&) const = default;
+
+            std::string java_blockstate() const;
+            std::string bedrock_blockstate() const;
+            static Block from_java_blockstate(const PlatformType&, const VersionNumber&, const std::string&);
+            static Block from_bedrock_blockstate(const PlatformType&, const VersionNumber&, const std::string&);
     };
 
     class BlockStack {

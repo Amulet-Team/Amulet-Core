@@ -154,8 +154,6 @@ PYBIND11_MODULE(block, m) {
             )
         );
 
-        // TODO: from_string_blockstate, from_snbt_blockstate
-
         Block.def(
             "__eq__",
             [NotImplemented](const Amulet::Block& self, py::object other) -> py::object {
@@ -181,7 +179,83 @@ PYBIND11_MODULE(block, m) {
         Block.def(py::self >= py::self);
         Block.def(py::self <= py::self);
 
-        // TODO: blockstate, snbt_blockstate
+        Block.def_static(
+            "from_java_blockstate",
+            &Amulet::Block::from_java_blockstate,
+            py::doc(
+                "Parse a Java format blockstate where values are all strings and populate a :class:`Block` class with the data.\n"
+                "\n"
+                ">>> stone = Block.from_java_blockstate(\"minecraft:stone\")\n"
+                ">>> water = Block.from_java_blockstate(\"minecraft:water[level=0]\")\n"
+                "\n"
+                ":param platform: The platform the block is defined in.\n"
+                ":param version: The version the block is defined in.\n"
+                ":param blockstate: The Java blockstate string to parse.\n"
+                ":return: A Block instance containing the state."
+            ),
+            py::arg("platform"),
+            py::arg("version"),
+            py::arg("blockstate")
+        );
+        Block.def_static(
+            "from_bedrock_blockstate",
+            &Amulet::Block::from_bedrock_blockstate,
+            py::doc(
+                "Parse a Bedrock format blockstate where values are all strings and populate a :class:`Block` class with the data.\n"
+                "\n"
+                ">>> stone = Block.from_bedrock_blockstate(\"minecraft:stone\")\n"
+                ">>> water = Block.from_bedrock_blockstate(\"minecraft:water[\"liquid_depth\"=0]\")\n"
+                "\n"
+                ":param platform: The platform the block is defined in.\n"
+                ":param version: The version the block is defined in.\n"
+                ":param blockstate: The Bedrock blockstate string to parse.\n"
+                ":return: A Block instance containing the state."
+            ),
+            py::arg("platform"),
+            py::arg("version"),
+            py::arg("blockstate")
+        );
+
+        Block.def_property_readonly(
+            "java_blockstate",
+            &Amulet::Block::java_blockstate,
+            py::doc(
+                "The Java blockstate string of this :class:`Block` object.\n"
+                "Note this will only contain properties with StringTag values.\n"
+                "\n"
+                ">>> stone = Block(\"java\", VersionNumber(3578), \"minecraft\", \"stone\")\n"
+                ">>> stone.java_blockstate\n"
+                "minecraft:stone\n"
+                ">>> water = Block(\"java\", VersionNumber(3578), \"minecraft\", \"water\", {\"level\": StringTag(\"0\")})\n"
+                ">>> water.java_blockstate\n"
+                "minecraft:water[level=0]\n"
+                "\n"
+                ":return: The blockstate string"
+            )
+        );
+        Block.def_property_readonly(
+            "bedrock_blockstate",
+            &Amulet::Block::bedrock_blockstate,
+            py::doc(
+                "The Bedrock blockstate string of this :class:`Block` object.\n"
+                "Converts the property values to the SNBT format to preserve type.\n"
+                "\n"
+                ">>> bell = Block(\n"
+                ">>>     \"java\", VersionNumber(3578),\n"
+                ">>>     \"minecraft\",\n"
+                ">>>     \"bell\",\n"
+                ">>>     {\n"
+                ">>>         \"attachment\":StringTag(\"standing\"),\n"
+                ">>>         \"direction\":IntTag(0),\n"
+                ">>>         \"toggle_bit\":ByteTag(0)\n"
+                ">>>     }\n"
+                ">>> )\n"
+                ">>> bell.bedrock_blockstate\n"
+                "minecraft:bell[\"attachment\"=\"standing\",\"direction\"=0,\"toggle_bit\"=false]\n"
+                "\n"
+                ":return: The SNBT blockstate string"
+            )
+        );
 
     py::class_<Amulet::BlockStack> BlockStack(m, "BlockStack",
         "A stack of block objects.\n"

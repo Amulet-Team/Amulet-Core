@@ -116,18 +116,58 @@ class BlockTestCase(unittest.TestCase):
             with self.subTest(repr(block)):
                 self.assertNotEqual(hash(get_test_block()), hash(block))
 
-    def test_blockstate_constructor(self) -> None:
+    def test_java_blockstate(self) -> None:
+        self.assertEqual(
+            "namespace:basename",
+            Block("platform", VersionNumber(), "namespace", "basename").java_blockstate
+        )
+        self.assertEqual(
+            'namespace:basename[g=helloworld]',
+            Block("platform", VersionNumber(), "namespace", "basename", {
+                "g": StringTag("helloworld"),
+                "f": LongTag(0),
+                "e": IntTag(0),
+                "d": ShortTag(0),
+                "c": ByteTag(2),
+                "b": ByteTag(1),
+                "a": ByteTag(0),
+            }).java_blockstate
+        )
+
+    def test_bedrock_blockstate(self) -> None:
+        self.assertEqual(
+            "namespace:basename",
+            Block("platform", VersionNumber(), "namespace", "basename").bedrock_blockstate
+        )
+        self.assertEqual(
+            'namespace:basename["a"=false,"b"=true,"c"=2b,"d"=0s,"e"=0,"f"=0L,"g"="helloworld"]',
+            Block("platform", VersionNumber(), "namespace", "basename", {
+                "g": StringTag("helloworld"),
+                "f": LongTag(0),
+                "e": IntTag(0),
+                "d": ShortTag(0),
+                "c": ByteTag(2),
+                "b": ByteTag(1),
+                "a": ByteTag(0),
+            }).bedrock_blockstate
+        )
+
+    def test_java_blockstate_constructor(self) -> None:
         self.assertEqual(
             Block("java", VersionNumber(3578), "minecraft", "air"),
-            Block.from_string_blockstate("java", VersionNumber(3578), "air"),
+            Block.from_java_blockstate("java", VersionNumber(3578), "air"),
         )
         self.assertEqual(
             Block("java", VersionNumber(3578), "minecraft", "air"),
-            Block.from_string_blockstate("java", VersionNumber(3578), "minecraft:air"),
+            Block.from_java_blockstate("java", VersionNumber(3578), "minecraft:air"),
         )
         self.assertEqual(
             Block("java", VersionNumber(3578), "a", "b"),
-            Block.from_string_blockstate("java", VersionNumber(3578), "a:b[]"),
+            Block.from_java_blockstate("java", VersionNumber(3578), "a:b[]"),
+        )
+        self.assertEqual(
+            Block("java", VersionNumber(3578), "minecraft", "b"),
+            Block.from_java_blockstate("java", VersionNumber(3578), "b[]"),
         )
         self.assertEqual(
             Block(
@@ -137,7 +177,7 @@ class BlockTestCase(unittest.TestCase):
                 "b",
                 {"c": StringTag("d")},
             ),
-            Block.from_string_blockstate("java", VersionNumber(3578), "a:b[c=d]"),
+            Block.from_java_blockstate("java", VersionNumber(3578), "a:b[c=d]"),
         )
         self.assertEqual(
             Block(
@@ -147,32 +187,32 @@ class BlockTestCase(unittest.TestCase):
                 "b",
                 {"c": StringTag("d"), "e": StringTag("f")},
             ),
-            Block.from_string_blockstate("java", VersionNumber(3578), "a:b[c=d,e=f]"),
+            Block.from_java_blockstate("java", VersionNumber(3578), "a:b[c=d,e=f]"),
         )
 
         with self.assertRaises(ValueError):
-            Block.from_string_blockstate("java", VersionNumber(3578), "a:")
+            Block.from_java_blockstate("java", VersionNumber(3578), "a:")
         with self.assertRaises(ValueError):
-            Block.from_string_blockstate("java", VersionNumber(3578), "a:b[")
+            Block.from_java_blockstate("java", VersionNumber(3578), "a:b[")
         with self.assertRaises(ValueError):
-            Block.from_string_blockstate("java", VersionNumber(3578), "a:b]")
+            Block.from_java_blockstate("java", VersionNumber(3578), "a:b]")
         with self.assertRaises(ValueError):
-            Block.from_string_blockstate("java", VersionNumber(3578), "a:b[c]")
+            Block.from_java_blockstate("java", VersionNumber(3578), "a:b[c]")
         with self.assertRaises(ValueError):
-            Block.from_string_blockstate("java", VersionNumber(3578), "[a=b]")
+            Block.from_java_blockstate("java", VersionNumber(3578), "[a=b]")
 
-    def test_snbt_blockstate_constructor(self) -> None:
+    def test_bedrock_blockstate_constructor(self) -> None:
         self.assertEqual(
             Block("java", VersionNumber(3578), "minecraft", "air"),
-            Block.from_snbt_blockstate("java", VersionNumber(3578), "air"),
+            Block.from_bedrock_blockstate("java", VersionNumber(3578), "air"),
         )
         self.assertEqual(
             Block("java", VersionNumber(3578), "minecraft", "air"),
-            Block.from_snbt_blockstate("java", VersionNumber(3578), "minecraft:air"),
+            Block.from_bedrock_blockstate("java", VersionNumber(3578), "minecraft:air"),
         )
         self.assertEqual(
             Block("java", VersionNumber(3578), "a", "b"),
-            Block.from_snbt_blockstate("java", VersionNumber(3578), "a:b[]"),
+            Block.from_bedrock_blockstate("java", VersionNumber(3578), "a:b[]"),
         )
         self.assertEqual(
             Block(
@@ -182,29 +222,31 @@ class BlockTestCase(unittest.TestCase):
                 "b",
                 {
                     "ByteTag": ByteTag(1),
+                    "false": ByteTag(0),
+                    "true": ByteTag(1),
                     "ShortTag": ShortTag(2),
                     "IntTag": IntTag(4),
                     "LongTag": LongTag(8),
                     "StringTag": StringTag("hi"),
                 },
             ),
-            Block.from_snbt_blockstate(
+            Block.from_bedrock_blockstate(
                 "java",
                 VersionNumber(3578),
-                'a:b[ByteTag=1b,ShortTag=2s,IntTag=4,LongTag=8l,StringTag="hi"]',
+                'a:b["false"=false,"true"=true,"ByteTag"=1b,"ShortTag"=2s,"IntTag"=4,"LongTag"=8l,"StringTag"="hi"]',
             ),
         )
 
         with self.assertRaises(ValueError):
-            Block.from_snbt_blockstate("java", VersionNumber(3578), "a:")
+            Block.from_bedrock_blockstate("java", VersionNumber(3578), "a:")
         with self.assertRaises(ValueError):
-            Block.from_snbt_blockstate("java", VersionNumber(3578), "a:b[")
+            Block.from_bedrock_blockstate("java", VersionNumber(3578), "a:b[")
         with self.assertRaises(ValueError):
-            Block.from_snbt_blockstate("java", VersionNumber(3578), "a:b]")
+            Block.from_bedrock_blockstate("java", VersionNumber(3578), "a:b]")
         with self.assertRaises(ValueError):
-            Block.from_snbt_blockstate("java", VersionNumber(3578), "a:b[c]")
+            Block.from_bedrock_blockstate("java", VersionNumber(3578), "a:b[c]")
         with self.assertRaises(ValueError):
-            Block.from_snbt_blockstate("java", VersionNumber(3578), "[a=b]")
+            Block.from_bedrock_blockstate("java", VersionNumber(3578), "[a=b]")
 
 
 class BlockStackTestCase(unittest.TestCase):

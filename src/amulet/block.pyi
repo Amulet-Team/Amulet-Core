@@ -31,6 +31,32 @@ class Block(amulet.version.PlatformVersionContainer):
     >>>     }
     >>> )
     """
+    @staticmethod
+    def from_bedrock_blockstate(platform: str, version: amulet.version.VersionNumber, blockstate: str) -> Block:
+        """
+        Parse a Bedrock format blockstate where values are all strings and populate a :class:`Block` class with the data.
+        
+        >>> stone = Block.from_bedrock_blockstate("minecraft:stone")
+        >>> water = Block.from_bedrock_blockstate("minecraft:water["liquid_depth"=0]")
+        
+        :param platform: The platform the block is defined in.
+        :param version: The version the block is defined in.
+        :param blockstate: The Bedrock blockstate string to parse.
+        :return: A Block instance containing the state.
+        """
+    @staticmethod
+    def from_java_blockstate(platform: str, version: amulet.version.VersionNumber, blockstate: str) -> Block:
+        """
+        Parse a Java format blockstate where values are all strings and populate a :class:`Block` class with the data.
+        
+        >>> stone = Block.from_java_blockstate("minecraft:stone")
+        >>> water = Block.from_java_blockstate("minecraft:water[level=0]")
+        
+        :param platform: The platform the block is defined in.
+        :param version: The version the block is defined in.
+        :param blockstate: The Java blockstate string to parse.
+        :return: A Block instance containing the state.
+        """
     def __eq__(self, arg0: typing.Any) -> typing.Any:
         ...
     def __ge__(self, arg0: Block) -> bool:
@@ -62,6 +88,42 @@ class Block(amulet.version.PlatformVersionContainer):
         >>> block.base_name
         
         :return: The base name of the blockstate
+        """
+    @property
+    def bedrock_blockstate(self) -> str:
+        """
+        The Bedrock blockstate string of this :class:`Block` object.
+        Converts the property values to the SNBT format to preserve type.
+        
+        >>> bell = Block(
+        >>>     "java", VersionNumber(3578),
+        >>>     "minecraft",
+        >>>     "bell",
+        >>>     {
+        >>>         "attachment":StringTag("standing"),
+        >>>         "direction":IntTag(0),
+        >>>         "toggle_bit":ByteTag(0)
+        >>>     }
+        >>> )
+        >>> bell.bedrock_blockstate
+        minecraft:bell["attachment"="standing","direction"=0,"toggle_bit"=false]
+        
+        :return: The SNBT blockstate string
+        """
+    @property
+    def java_blockstate(self) -> str:
+        """
+        The Java blockstate string of this :class:`Block` object.
+        Note this will only contain properties with StringTag values.
+        
+        >>> stone = Block("java", VersionNumber(3578), "minecraft", "stone")
+        >>> stone.java_blockstate
+        minecraft:stone
+        >>> water = Block("java", VersionNumber(3578), "minecraft", "water", {"level": StringTag("0")})
+        >>> water.java_blockstate
+        minecraft:water[level=0]
+        
+        :return: The blockstate string
         """
     @property
     def namespace(self) -> str:
