@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Self, Any
 from collections.abc import Mapping
 
-from amulet.block import PropertyValueType, PropertyValueClasses
+from amulet.block import PropertyValueType
 from .abc import (
     AbstractBaseTranslationFunction,
     immutable_from_snbt,
@@ -28,7 +28,7 @@ class NewProperties(AbstractBaseTranslationFunction):
         if not all(isinstance(key, str) for key in self._properties.keys()):
             raise TypeError
         if not all(
-            isinstance(value, PropertyValueClasses)
+            isinstance(value, PropertyValueType)
             for value in self._properties.values()
         ):
             raise TypeError

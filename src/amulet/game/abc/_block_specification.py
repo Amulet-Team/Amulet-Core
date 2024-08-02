@@ -8,14 +8,14 @@ import glob
 from concurrent.futures import ThreadPoolExecutor
 
 from amulet_nbt import read_snbt
-from amulet.block import PropertyValueType, PropertyValueClasses
+from amulet.block import PropertyValueType
 
 from .json_interface import JSONInterface, JSONDict, JSONCompatible
 
 
 def immutable_from_snbt(snbt: str) -> PropertyValueType:
     val = read_snbt(snbt)
-    assert isinstance(val, PropertyValueClasses)
+    assert isinstance(val, PropertyValueType)
     return val
 
 

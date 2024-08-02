@@ -10,7 +10,7 @@ from amulet_nbt import (
     ListTag,
 )
 
-from amulet.block import PropertyValueType, PropertyValueClasses
+from amulet.block import PropertyValueType
 from amulet.game.abc import JSONInterface, JSONCompatible
 from ._state import SrcData, StateData, DstData
 from ._typing import NBTPath, NBTTagT
@@ -18,7 +18,7 @@ from ._typing import NBTPath, NBTTagT
 
 def immutable_from_snbt(snbt: str) -> PropertyValueType:
     val = read_snbt(snbt)
-    assert isinstance(val, PropertyValueClasses)
+    assert isinstance(val, PropertyValueType)
     return val
 
 
