@@ -418,7 +418,7 @@ def main() -> None:
     ):
         with open(cpp_path) as f:
             src = f.read()
-            match = re.search(r"PYBIND11_MODULE\((?P<module>[a-zA-Z0-9]+), m\)", src)
+            match = re.search(r"PYBIND11_MODULE\((?P<module>[a-zA-Z_][a-zA-Z0-9_]*), m\)", src)
             if match:
                 module_name = match.group("module")
                 assert (
