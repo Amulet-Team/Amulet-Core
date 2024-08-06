@@ -29,46 +29,65 @@ namespace Amulet {
             }
 
             Block(
-                const PlatformType&,
-                const VersionNumber&,
+                const PlatformType& platform,
+                std::shared_ptr<VersionNumber> version,
                 const std::string& namespace_,
                 const std::string& base_name,
-                const std::map<std::string, PropertyValueType>&
-            );
-            Block(
-                const PlatformType&,
-                const VersionNumber&,
-                const std::string& namespace_,
-                const std::string& base_name
-            );
+                const std::map<std::string, PropertyValueType>& properties = std::map<std::string, PropertyValueType>()
+            ):
+                PlatformVersionContainer(platform, version),
+                namespace_(namespace_),
+                base_name(base_name),
+                properties(properties) {}
 
             void serialise(Amulet::BinaryWriter&) const;
-            static Block deserialise(Amulet::BinaryReader&);
+            static std::shared_ptr<Block> deserialise(Amulet::BinaryReader&);
             
-            auto operator<=>(const Block&) const = default;
+            auto operator<=>(const Block& other) const {
+                auto cmp = PlatformVersionContainer::operator<=>(other);
+                if (cmp != 0) { return cmp; }
+                cmp = namespace_ <=> other.namespace_;
+                if (cmp != 0) { return cmp; }
+                cmp = base_name <=> other.base_name;
+                if (cmp != 0) { return cmp; }
+                return properties <=> other.properties;
+            }
+            bool operator==(const Block& other) const {
+                return (*this <=> other) == 0;
+            };
 
             std::string java_blockstate() const;
             std::string bedrock_blockstate() const;
-            static Block from_java_blockstate(const PlatformType&, const VersionNumber&, const std::string&);
-            static Block from_bedrock_blockstate(const PlatformType&, const VersionNumber&, const std::string&);
+            static std::shared_ptr<Block> from_java_blockstate(const PlatformType&, std::shared_ptr<VersionNumber>, const std::string&);
+            static std::shared_ptr<Block> from_bedrock_blockstate(const PlatformType&, std::shared_ptr<VersionNumber>, const std::string&);
     };
 
     class BlockStack {
         private:
-            std::vector<Block> blocks;
+            std::vector<std::shared_ptr<Block>> blocks;
         public:
-            const std::vector<Block>& get_blocks() const { return blocks; }
+            const std::vector<std::shared_ptr<Block>>& get_blocks() const { return blocks; }
 
-            BlockStack(std::initializer_list<Block> blocks) : blocks(blocks) {}
-            BlockStack(const std::vector<Block>& blocks) : blocks(blocks) {}
+            BlockStack(std::initializer_list<std::shared_ptr<Block>> blocks) : blocks(blocks) {}
+            BlockStack(const std::vector<std::shared_ptr<Block>>& blocks) : blocks(blocks) {}
 
-            auto operator<=>(const BlockStack&) const = default;
+            void serialise(Amulet::BinaryWriter&) const;
+            static std::shared_ptr<BlockStack> deserialise(Amulet::BinaryReader&);
 
-            std::vector<Block>::const_iterator begin() const { return blocks.begin(); }
-            std::vector<Block>::const_iterator end() const { return blocks.end(); }
-            std::vector<Block>::const_reverse_iterator rbegin() const { return blocks.rbegin(); }
-            std::vector<Block>::const_reverse_iterator rend() const { return blocks.rend(); }
+            auto operator<=>(const BlockStack& other) const {
+                auto cmp = size() <=> other.size();
+                if (cmp != 0) { return cmp; }
+                for (size_t i = 0; i < size(); i++) {
+                    cmp = *(*this)[i] <=> *other[i];
+                    if (cmp != 0) { return cmp; }
+                }
+                return std::strong_ordering::equal;
+            }
+            bool operator==(const BlockStack& other) const {
+                return (*this <=> other) == 0;
+            };
+
             size_t size() const { return blocks.size(); }
-            const Block& operator[](size_t index) const { return blocks[index]; };
+            std::shared_ptr<Block> operator[](size_t index) const { return blocks[index]; };
     };
 }

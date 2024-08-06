@@ -10,33 +10,10 @@
 #include <amulet_nbt/nbt_encoding/string.hpp>
 
 namespace Amulet {
-    Block::Block(
-        const PlatformType& platform,
-        const VersionNumber& version,
-        const std::string& namespace_,
-        const std::string& base_name,
-        const std::map<std::string, PropertyValueType>& properties
-    ): 
-        PlatformVersionContainer(platform, version), 
-        namespace_(namespace_), 
-        base_name(base_name), 
-        properties(properties) {}
-
-    Block::Block(
-        const PlatformType& platform,
-        const VersionNumber& version,
-        const std::string& namespace_,
-        const std::string& base_name
-    ) :
-        PlatformVersionContainer(platform, version),
-        namespace_(namespace_),
-        base_name(base_name),
-        properties() {}
-
     void Block::serialise(Amulet::BinaryWriter& writer) const {
         writer.writeNumeric<std::uint8_t>(1);
         writer.writeSizeAndBytes(get_platform());
-        get_version().serialise(writer);
+        get_version()->serialise(writer);
         writer.writeSizeAndBytes(namespace_);
         writer.writeSizeAndBytes(base_name);
         
@@ -48,13 +25,13 @@ namespace Amulet {
             }, val);
         }
     }
-    Block Block::deserialise(Amulet::BinaryReader& reader){
+    std::shared_ptr<Block> Block::deserialise(Amulet::BinaryReader& reader){
         auto version_number = reader.readNumeric<std::uint8_t>();
         switch (version_number) {
         case 1:
         {
             std::string platform = reader.readSizeAndBytes();
-            VersionNumber version = VersionNumber::deserialise(reader);
+            std::shared_ptr<VersionNumber> version = VersionNumber::deserialise(reader);
             std::string namespace_ = reader.readSizeAndBytes();
             std::string base_name = reader.readSizeAndBytes();
             std::uint64_t property_count;
@@ -79,7 +56,7 @@ namespace Amulet {
                     }
                 }, named_tag.tag_node);
             }
-            return Block(platform, version, namespace_, base_name, properties);
+            return std::make_shared<Block>(platform, version, namespace_, base_name, properties);
         }
         default:
             throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
@@ -188,9 +165,9 @@ namespace Amulet {
         std::string(*capture_key)(const std::string&, size_t&),
         PropertyValueType(*capture_value)(const std::string&, size_t&)
     >
-    Block parse_blockstate(
+    std::shared_ptr<Block> parse_blockstate(
         const PlatformType& platform,
-        const VersionNumber& version,
+        std::shared_ptr<VersionNumber> version,
         const std::string& blockstate
     ) {
         // This is more lenient than the game parser.
@@ -232,7 +209,7 @@ namespace Amulet {
                 if (property_pos < blockstate.size()) {
                     throw std::invalid_argument("Extra data after ]");
                 }
-                return Block(platform, version, namespace_, base_name, properties);
+                return std::make_shared<Block>(platform, version, namespace_, base_name, properties);
             }
             for (;;) {
                 std::string key = capture_key(blockstate, property_pos);
@@ -255,7 +232,7 @@ namespace Amulet {
                         if (property_pos < blockstate.size()) {
                             throw std::invalid_argument("Extra data after ]");
                         }
-                        return Block(platform, version, namespace_, base_name, properties);
+                        return std::make_shared<Block>(platform, version, namespace_, base_name, properties);
                     default:
                         throw std::invalid_argument("Expected , or ] at position " + std::to_string(property_pos));
                 }
@@ -264,7 +241,7 @@ namespace Amulet {
         }
         else {
             // does not have properties
-            return Block(platform, version, namespace_, base_name);
+            return std::make_shared<Block>(platform, version, namespace_, base_name);
         }
     }
 
@@ -407,7 +384,7 @@ namespace Amulet {
         );
     }
 
-    Block Block::from_java_blockstate(const PlatformType& platform, const VersionNumber& version, const std::string& blockstate) {
+    std::shared_ptr<Block> Block::from_java_blockstate(const PlatformType& platform, std::shared_ptr<VersionNumber> version, const std::string& blockstate) {
         return parse_blockstate<
             validate_java_namespace,
             validate_java_base_name,
@@ -419,7 +396,7 @@ namespace Amulet {
             blockstate
         );
     }
-    Block Block::from_bedrock_blockstate(const PlatformType& platform, const VersionNumber& version, const std::string& blockstate) {
+    std::shared_ptr<Block> Block::from_bedrock_blockstate(const PlatformType& platform, std::shared_ptr<VersionNumber> version, const std::string& blockstate) {
         return parse_blockstate<
             validate_bedrock_namespace,
             validate_bedrock_base_name,

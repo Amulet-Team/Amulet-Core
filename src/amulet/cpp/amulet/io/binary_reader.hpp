@@ -36,8 +36,8 @@ namespace Amulet {
         }
     };
 
-    template <typename T>
-    T deserialise(const std::string& data){
+    template <class T>
+    std::shared_ptr<T> deserialise(const std::string& data){
         size_t position = 0;
         BinaryReader reader(data, position);
         return T::deserialise(reader);

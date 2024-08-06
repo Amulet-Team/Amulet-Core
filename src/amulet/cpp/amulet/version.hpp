@@ -20,17 +20,17 @@ namespace Amulet {
         public:
             const std::vector<std::int64_t>& get_vector() const { return vec; }
 
-            VersionNumber(std::initializer_list<std::int64_t>);
-            VersionNumber(const std::vector<std::int64_t>&);
+            VersionNumber(std::initializer_list<std::int64_t> vec) : vec(vec) {};
+            VersionNumber(const std::vector<std::int64_t>& vec) : vec(vec) {};
 
             void serialise(Amulet::BinaryWriter&) const;
-            static VersionNumber deserialise(Amulet::BinaryReader&);
+            static std::shared_ptr<VersionNumber> deserialise(Amulet::BinaryReader&);
 
-            std::vector<std::int64_t>::const_iterator begin() const;
-            std::vector<std::int64_t>::const_iterator end() const;
-            std::vector<std::int64_t>::const_reverse_iterator rbegin() const;
-            std::vector<std::int64_t>::const_reverse_iterator rend() const;
-            size_t size() const;
+            std::vector<std::int64_t>::const_iterator begin() const { return vec.begin(); };
+            std::vector<std::int64_t>::const_iterator end() const { return vec.end(); };
+            std::vector<std::int64_t>::const_reverse_iterator rbegin() const { return vec.rbegin(); };
+            std::vector<std::int64_t>::const_reverse_iterator rend() const { return vec.rend(); };
+            size_t size() const { return vec.size(); };
             std::int64_t operator[](size_t index) const;
             auto operator<=>(const VersionNumber& other) const {
                 size_t max_len = std::max(vec.size(), other.size());
@@ -61,56 +61,70 @@ namespace Amulet {
     class PlatformVersionContainer {
         private:
             PlatformType platform;
-            VersionNumber version;
+            std::shared_ptr<VersionNumber> version;
         public:
             const PlatformType& get_platform() const { return platform; }
-            const VersionNumber& get_version() const { return version; }
+            std::shared_ptr<VersionNumber> get_version() const { return version; }
 
             PlatformVersionContainer(
                 const PlatformType& platform,
-                const VersionNumber& version
-            );
+                std::shared_ptr<VersionNumber> version
+            ) : platform(platform), version(version) {};
 
             void serialise(Amulet::BinaryWriter&) const;
-            static PlatformVersionContainer deserialise(Amulet::BinaryReader&);
+            static std::shared_ptr<PlatformVersionContainer> deserialise(Amulet::BinaryReader&);
 
-            auto operator<=>(const PlatformVersionContainer&) const = default;
+            auto operator<=>(const PlatformVersionContainer& other) const {
+                auto cmp = platform <=> other.platform;
+                if (cmp != 0) { return cmp; }
+                return *version <=> *other.version;
+            }
+            bool operator==(const PlatformVersionContainer& other) const {
+                return (*this <=> other) == 0;
+            };
     };
 
     class VersionRange {
         private:
             PlatformType platform;
-            VersionNumber min_version;
-            VersionNumber max_version;
+            std::shared_ptr<VersionNumber> min_version;
+            std::shared_ptr<VersionNumber> max_version;
         public:
             const PlatformType& get_platform() const { return platform; }
-            const VersionNumber& get_min_version() const { return min_version; }
-            const VersionNumber& get_max_version() const { return max_version; }
+            std::shared_ptr<VersionNumber> get_min_version() const { return min_version; }
+            std::shared_ptr<VersionNumber> get_max_version() const { return max_version; }
 
             VersionRange(
                 const PlatformType& platform,
-                const VersionNumber& min_version,
-                const VersionNumber& max_version
-            );
+                std::shared_ptr<VersionNumber> min_version,
+                std::shared_ptr<VersionNumber> max_version
+            ) :
+                platform(platform),
+                min_version(min_version),
+                max_version(max_version)
+            {
+                if (*min_version > *max_version) {
+                    throw std::invalid_argument("min_version must be less than or equal to max_version");
+                }
+            };
 
             void serialise(Amulet::BinaryWriter&) const;
-            static VersionRange deserialise(Amulet::BinaryReader&);
+            static std::shared_ptr<VersionRange> deserialise(Amulet::BinaryReader&);
 
             bool contains(const PlatformType& platform_, const VersionNumber& version) const;
     };
 
     class VersionRangeContainer {
         private:
-            VersionRange version_range;
+            std::shared_ptr<const VersionRange> version_range;
         public:
-            const VersionRange& get_version_range() const { return version_range; }
+            std::shared_ptr<const VersionRange> get_version_range() const { return version_range; }
 
             VersionRangeContainer(
-                const VersionRange& version_range
-            );
+                std::shared_ptr<VersionRange> version_range
+            ): version_range(version_range) {}
 
             void serialise(Amulet::BinaryWriter&) const;
-            static VersionRangeContainer deserialise(Amulet::BinaryReader&);
-            
+            static std::shared_ptr<VersionRangeContainer> deserialise(Amulet::BinaryReader&);
     };
 }

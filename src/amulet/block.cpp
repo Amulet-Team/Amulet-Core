@@ -1,4 +1,5 @@
 #include <span>
+#include <memory>
 
 #include <amulet/block.hpp>
 
@@ -28,7 +29,7 @@ PYBIND11_MODULE(block, m) {
 
     m.attr("PropertyValueType") = ByteTag | ShortTag | IntTag | LongTag | StringTag;
 
-    py::class_<Amulet::Block> Block(m, "Block", PlatformVersionContainer,
+    py::class_<Amulet::Block, std::shared_ptr<Amulet::Block>> Block(m, "Block", PlatformVersionContainer,
         "A class to manage the state of a block.\n"
         "\n"
         "It is an immutable object that contains the platform, version, namespace, base name and properties.\n"
@@ -57,7 +58,7 @@ PYBIND11_MODULE(block, m) {
         Block.def(
             py::init<
                 const Amulet::PlatformType&,
-                const Amulet::VersionNumber&,
+                std::shared_ptr<Amulet::VersionNumber>,
                 const std::string&,
                 const std::string&,
                 const std::map<std::string, Amulet::PropertyValueType>&
@@ -257,7 +258,7 @@ PYBIND11_MODULE(block, m) {
             )
         );
 
-    py::class_<Amulet::BlockStack> BlockStack(m, "BlockStack",
+    py::class_<Amulet::BlockStack, std::shared_ptr<Amulet::BlockStack>> BlockStack(m, "BlockStack",
         "A stack of block objects.\n"
         "\n"
         "Java 1.13 added the concept of waterlogging blocks whereby some blocks have a `waterlogged` property.\n"
@@ -283,10 +284,10 @@ PYBIND11_MODULE(block, m) {
         options.disable_function_signatures();
         BlockStack.def(
             py::init(
-                [](Amulet::Block block, py::args py_extra_blocks){
-                    std::vector<Amulet::Block> blocks;
+                [](std::shared_ptr<Amulet::Block> block, py::args py_extra_blocks){
+                    std::vector<std::shared_ptr<Amulet::Block>> blocks;
                     blocks.push_back(block);
-                    std::vector<Amulet::Block> extra_blocks = py_extra_blocks.cast<std::vector<Amulet::Block>>();
+                    auto extra_blocks = py_extra_blocks.cast<std::vector<std::shared_ptr<Amulet::Block>>>();
                     blocks.insert(blocks.end(), extra_blocks.begin(), extra_blocks.end());
                     return Amulet::BlockStack(blocks);
                 }
@@ -369,7 +370,7 @@ PYBIND11_MODULE(block, m) {
 
         BlockStack.def_property_readonly(
             "base_block",
-            [](const Amulet::BlockStack& self) -> Amulet::Block {
+            [](const Amulet::BlockStack& self) -> std::shared_ptr<Amulet::Block> {
                 return self.get_blocks()[0];
             },
             py::doc(
