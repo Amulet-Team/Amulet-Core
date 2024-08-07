@@ -203,7 +203,7 @@ PYBIND11_MODULE(version, m) {
         PlatformVersionContainer.def(
             py::init<
                 const Amulet::PlatformType&,
-                const Amulet::VersionNumber&
+                std::shared_ptr<Amulet::VersionNumber>
             >(),
             py::arg("platform"),
             py::arg("version")
@@ -235,8 +235,8 @@ PYBIND11_MODULE(version, m) {
         VersionRange.def(
             py::init<
                 const Amulet::PlatformType&,
-                const Amulet::VersionNumber&,
-                const Amulet::VersionNumber&
+                std::shared_ptr<Amulet::VersionNumber>,
+                std::shared_ptr<Amulet::VersionNumber>
             >(),
             py::arg("platform"),
             py::arg("min_version"),
@@ -274,7 +274,7 @@ PYBIND11_MODULE(version, m) {
     py::class_<Amulet::VersionRangeContainer, std::shared_ptr<Amulet::VersionRangeContainer>> VersionRangeContainer(m, "VersionRangeContainer");
         VersionRangeContainer.def(
             py::init<
-                const Amulet::VersionRange&
+                std::shared_ptr<Amulet::VersionRange>
             >(),
             py::arg("version_range")
         );
