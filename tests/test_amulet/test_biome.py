@@ -10,6 +10,7 @@ def get_test_biome() -> Biome:
 
 def get_test_biome_variants() -> tuple[Biome, ...]:
     return (
+        Biome("other", VersionNumber(3578), "namespace", "basename"),
         Biome("java", VersionNumber(3579), "namespace", "basename"),
         Biome("java", VersionNumber(3578), "namespace1", "basename"),
         Biome("java", VersionNumber(3578), "namespace", "basename1"),
