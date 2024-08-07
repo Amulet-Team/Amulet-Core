@@ -35,7 +35,7 @@ PYBIND11_MODULE(block_palette, m) {
 		BlockPalette.def(
 			"__repr__",
 			[PyList](const Amulet::BlockPalette& self) {
-				return "Block(" +
+				return "BlockPalette(" +
                     py::repr(py::cast(self.get_version_range())).cast<std::string>() + 
 				") # " +
                     py::repr(PyList(py::cast(self))).cast<std::string>();
