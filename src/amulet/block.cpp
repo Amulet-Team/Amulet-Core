@@ -7,7 +7,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
 #include <pybind11/typing.h>
-#include <collections_abc.hpp>
+#include <amulet_py/collections_abc.hpp>
 
 
 namespace py = pybind11;
