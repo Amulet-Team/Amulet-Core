@@ -4,6 +4,8 @@
 #include <variant>
 #include <string>
 
+#include <amulet/io/binary_reader.hpp>
+#include <amulet/io/binary_writer.hpp>
 #include <amulet/version.hpp>
 #include <amulet_nbt/tag/int.hpp>
 #include <amulet_nbt/tag/string.hpp>
