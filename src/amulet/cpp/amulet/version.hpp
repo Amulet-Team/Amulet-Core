@@ -6,7 +6,6 @@
 #include <sstream>
 #include <memory>
 #include <algorithm>
-#include <iostream>
 
 #include <amulet/io/binary_reader.hpp>
 #include <amulet/io/binary_writer.hpp>
