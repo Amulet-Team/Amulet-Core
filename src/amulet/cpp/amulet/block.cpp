@@ -283,7 +283,7 @@ namespace Amulet {
         }
         return std::string(blockstate.begin() + key_start, blockstate.begin() + offset);
     }
-    inline PropertyValueType capture_java_blockstate_property_vaue(const std::string& blockstate, size_t& offset) {
+    inline PropertyValueType capture_java_blockstate_property_value(const std::string& blockstate, size_t& offset) {
         size_t value_start = offset;
         while (offset < blockstate.size()) {
             const auto& chr = blockstate[offset];
@@ -347,7 +347,7 @@ namespace Amulet {
 
         return std::string(blockstate.begin() + key_start, blockstate.begin() + key_end);
     }
-    inline PropertyValueType capture_bedrock_blockstate_property_vaue(const std::string& blockstate, size_t& offset) {
+    inline PropertyValueType capture_bedrock_blockstate_property_value(const std::string& blockstate, size_t& offset) {
         size_t value_start = offset;
         size_t value_end = std::min(
             blockstate.find(",", value_start),
@@ -389,7 +389,7 @@ namespace Amulet {
             validate_java_namespace,
             validate_java_base_name,
             capture_java_blockstate_property_key,
-            capture_java_blockstate_property_vaue
+            capture_java_blockstate_property_value
         >(
             platform, 
             version, 
@@ -401,7 +401,7 @@ namespace Amulet {
             validate_bedrock_namespace,
             validate_bedrock_base_name,
             capture_bedrock_blockstate_property_key,
-            capture_bedrock_blockstate_property_vaue
+            capture_bedrock_blockstate_property_value
         >(
             platform, 
             version, 
