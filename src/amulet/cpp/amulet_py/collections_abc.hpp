@@ -68,24 +68,7 @@ namespace collections_abc {
 	};
 
 	void _register_sequence_iterator(py::module m) {
-		if (!py::hasattr(m, "_PySequenceIterator")){
-			py::class_<PySequenceIterator>(m, "_PySequenceIterator")
-				.def(
-					"__next__",
-					[](PySequenceIterator& self) {
-						if (self.has_next()) {
-							return self.next();
-						}
-						throw py::stop_iteration("");
-					}
-				)
-				.def(
-					"__iter__",
-					[](PySequenceIterator& self) {
-						return self;
-					}
-				);
-		}
+		py::module::import("amulet.utils.collections");
 	}
 
 	template <typename T>

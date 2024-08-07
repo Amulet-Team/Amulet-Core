@@ -1,4 +1,5 @@
 from __future__ import annotations
+import amulet.utils.collections
 import amulet.version
 import amulet_nbt
 import types
@@ -196,7 +197,7 @@ class BlockStack:
         ...
     def __init__(self, block: Block, *extra_blocks: Block) -> None:
         ...
-    def __iter__(self) -> _PySequenceIterator:
+    def __iter__(self) -> amulet.utils.collections.PySequenceIterator:
         ...
     def __le__(self, arg0: BlockStack) -> bool:
         ...
@@ -208,7 +209,7 @@ class BlockStack:
         ...
     def __repr__(self) -> str:
         ...
-    def __reversed__(self) -> _PySequenceIterator:
+    def __reversed__(self) -> amulet.utils.collections.PySequenceIterator:
         ...
     def count(self, value: typing.Any) -> int:
         ...
@@ -242,9 +243,4 @@ class BlockStack:
         
         :return: A tuple of :class:`Block` objects
         """
-class _PySequenceIterator:
-    def __iter__(self) -> _PySequenceIterator:
-        ...
-    def __next__(self) -> typing.Any:
-        ...
 PropertyValueType: typing.TypeAlias = amulet_nbt.ByteTag | amulet_nbt.ShortTag | amulet_nbt.IntTag | amulet_nbt.LongTag | amulet_nbt.StringTag
