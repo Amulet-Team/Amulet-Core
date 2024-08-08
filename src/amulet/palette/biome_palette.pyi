@@ -4,7 +4,7 @@ import amulet.utils.collections
 import amulet.version
 import typing
 __all__ = ['BiomePalette']
-class BiomePalette:
+class BiomePalette(amulet.version.VersionRange):
     @typing.overload
     def __contains__(self, arg0: int) -> bool:
         ...

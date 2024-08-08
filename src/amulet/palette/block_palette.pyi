@@ -4,7 +4,7 @@ import amulet.utils.collections
 import amulet.version
 import typing
 __all__ = ['BlockPalette']
-class BlockPalette:
+class BlockPalette(amulet.version.VersionRange):
     @typing.overload
     def __contains__(self, arg0: int) -> bool:
         ...
