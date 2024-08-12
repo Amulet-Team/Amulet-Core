@@ -352,8 +352,10 @@ def write(
             rel_path = path[1]
             while rel_path:
                 if rel_path not in filter_includes_groups:
-                    filter_includes_groups[rel_path] = VCXProjFiltersIncludeGroup.format(
-                        path=rel_path, uuid=str(uuid.uuid4())
+                    filter_includes_groups[rel_path] = (
+                        VCXProjFiltersIncludeGroup.format(
+                            path=rel_path, uuid=str(uuid.uuid4())
+                        )
                     )
                 rel_path = os.path.dirname(rel_path)
         with open(
