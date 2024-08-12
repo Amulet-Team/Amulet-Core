@@ -3,6 +3,7 @@
 from __future__ import annotations
 import os
 import re
+import uuid
 from dataclasses import dataclass, field
 from enum import Enum
 import amulet_nbt
@@ -118,14 +119,28 @@ VCXProj = r"""<?xml version="1.0" encoding="utf-8"?>
 
 VCXProjFiltersSource = """\
     <ClCompile Include="{path}">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files{rel_path}</Filter>
     </ClCompile>"""
+
+
+VCXProjFiltersSourceGroup = """\
+    <Filter Include="Source Files\\{path}">
+      <UniqueIdentifier>{{{uuid}}}</UniqueIdentifier>
+    </Filter>
+"""
 
 
 VCXProjFiltersInclude = """\
     <ClInclude Include="{path}">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files{rel_path}</Filter>
     </ClInclude>"""
+
+
+VCXProjFiltersIncludeGroup = """\
+    <Filter Include="Header Files\\{path}">
+      <UniqueIdentifier>{{{uuid}}}</UniqueIdentifier>
+    </Filter>
+"""
 
 
 VCXProjFilters = r"""<?xml version="1.0" encoding="utf-8"?>
@@ -143,7 +158,7 @@ VCXProjFilters = r"""<?xml version="1.0" encoding="utf-8"?>
       <UniqueIdentifier>{{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
-  </ItemGroup>
+{filter_groups}  </ItemGroup>
   <ItemGroup>
 {source_files}
   </ItemGroup>
@@ -220,8 +235,8 @@ class CompileMode(Enum):
 class ProjectData:
     name: str
     compile_mode: CompileMode
-    source_files: list[str] = field(default_factory=list)
-    include_files: list[str] = field(default_factory=list)
+    source_files: list[tuple[str, str, str]] = field(default_factory=list)
+    include_files: list[tuple[str, str, str]] = field(default_factory=list)
     include_dirs: list[str] = field(default_factory=list)
     library_dirs: list[str] = field(default_factory=list)
     dependencies: list[ProjectData] = field(default_factory=list)
@@ -252,10 +267,10 @@ def write(
     for project in projects:
         project_guid = project.project_guid()
         vcxproj_sources = "\n".join(
-            VCXProjSource.format(path=path) for path in project.source_files
+            VCXProjSource.format(path=os.path.join(*path)) for path in project.source_files
         )
         vcxproj_includes = "\n".join(
-            VCXProjInclude.format(path=path) for path in project.include_files
+            VCXProjInclude.format(path=os.path.join(*path)) for path in project.include_files
         )
         library_type = project.compile_mode
         project_name = project.name
@@ -303,12 +318,30 @@ def write(
                     out_dir=out_dir,
                 )
             )
-        filter_sources = "\n".join(
-            VCXProjFiltersSource.format(path=path) for path in project.source_files
-        )
-        filter_includes = "\n".join(
-            VCXProjFiltersInclude.format(path=path) for path in project.include_files
-        )
+        filter_sources = []
+        filter_includes = []
+        filter_sources_groups = dict[str, str]()
+        filter_includes_groups = dict[str, str]()
+        for path in project.source_files:
+            filter_sources.append(VCXProjFiltersSource.format(
+                path=os.path.join(*path),
+                rel_path=f"\\{path[1]}" if path[1] else ""
+            ))
+            if path[1] not in filter_sources_groups:
+                filter_sources_groups[path[1]] = VCXProjFiltersSourceGroup.format(
+                    path=path[1],
+                    uuid=str(uuid.uuid4())
+                )
+        for path in project.include_files:
+            filter_includes.append(VCXProjFiltersInclude.format(
+                path=os.path.join(*path),
+                rel_path=f"\\{path[1]}" if path[1] else ""
+            ))
+            if path[1] not in filter_includes_groups:
+                filter_includes_groups[path[1]] = VCXProjFiltersIncludeGroup.format(
+                    path=path[1],
+                    uuid=str(uuid.uuid4())
+                )
         with open(
             os.path.join(solution_dir, f"{project_name}.vcxproj.filters"),
             "w",
@@ -316,7 +349,9 @@ def write(
         ) as f:
             f.write(
                 VCXProjFilters.format(
-                    source_files=filter_sources, include_files=filter_includes
+                    source_files="\n".join(filter_sources),
+                    include_files="\n".join(filter_includes),
+                    filter_groups="".join(filter_sources_groups.values()) + "".join(filter_includes_groups.values())
                 )
             )
         with open(
@@ -362,45 +397,45 @@ def write(
         )
 
 
+def get_files(folder: str, ext: str, folder_extra: str = "") -> list[tuple[str, str, str]]:
+    """
+    Get file paths split into
+    1) containing folder ("your/path")
+    2) relative path within folder ("amulet/io")
+    3) file name. ("binary_reader.hpp")
+    get_files("your/path", "hpp")
+    """
+    paths = list[tuple[str, str, str]]()
+    search_path = folder
+    if folder_extra:
+        search_path = os.path.join(search_path, folder_extra)
+    for path in glob.iglob(os.path.join(glob.escape(search_path), "**", f"*.{ext}"), recursive=True):
+        rel_path = os.path.relpath(path, folder)
+        paths.append((folder, os.path.dirname(rel_path), os.path.basename(rel_path)))
+    return paths
+
+
 def main() -> None:
     amulet_nbt_project = ProjectData(
         name="amulet_nbt",
         compile_mode=CompileMode.StaticLibrary,
-        source_files=glob.glob(
-            os.path.join(glob.escape(amulet_nbt.get_source()), "**", "*.cpp"),
-            recursive=True,
-        ),
-        include_files=glob.glob(
-            os.path.join(glob.escape(amulet_nbt.get_include()), "**", "*.hpp"),
-            recursive=True,
-        ),
+        include_files=get_files(amulet_nbt.get_include(), "hpp"),
+        source_files=get_files(amulet_nbt.get_source(), "cpp"),
         include_dirs=[amulet_nbt.get_include()],
     )
     amulet_project = ProjectData(
         name="amulet_core",
         compile_mode=CompileMode.StaticLibrary,
-        include_files=glob.glob(
-            os.path.join(glob.escape(SrcDir), "amulet", "cpp", "amulet", "**", "*.hpp"),
-            recursive=True,
-        ),
-        source_files=glob.glob(
-            os.path.join(glob.escape(SrcDir), "amulet", "cpp", "amulet", "**", "*.cpp"),
-            recursive=True,
-        ),
+        include_files=get_files(os.path.join(glob.escape(SrcDir), "amulet", "cpp"), "hpp", "amulet"),
+        source_files=get_files(os.path.join(glob.escape(SrcDir), "amulet", "cpp"), "cpp", "amulet"),
         include_dirs=[amulet_nbt.get_include(), os.path.join(SrcDir, "amulet", "cpp")],
         dependencies=[amulet_nbt_project],
     )
     amulet_py_project = ProjectData(
         name="amulet_py",
         compile_mode=CompileMode.StaticLibrary,
-        include_files=glob.glob(
-            os.path.join(glob.escape(SrcDir), "amulet", "cpp", "amulet_py", "**", "*.hpp"),
-            recursive=True,
-        ),
-        source_files=glob.glob(
-            os.path.join(glob.escape(SrcDir), "amulet", "cpp", "amulet_py", "**", "*.cpp"),
-            recursive=True,
-        ),
+        include_files=get_files(os.path.join(glob.escape(SrcDir), "amulet", "cpp"), "hpp", "amulet_py"),
+        source_files=get_files(os.path.join(glob.escape(SrcDir), "amulet", "cpp"), "cpp", "amulet_py"),
         include_dirs=[
             PythonIncludeDir,
             pybind11.get_include(),
@@ -435,7 +470,7 @@ def main() -> None:
                     ProjectData(
                         name=module_name,
                         compile_mode=CompileMode.PythonExtension,
-                        source_files=[cpp_path],
+                        source_files=[(os.path.dirname(cpp_path), "", os.path.basename(cpp_path))],
                         include_dirs=[
                             PythonIncludeDir,
                             pybind11.get_include(),
