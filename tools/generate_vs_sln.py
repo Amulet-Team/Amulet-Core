@@ -336,20 +336,26 @@ def write(
                     path=os.path.join(*path), rel_path=f"\\{path[1]}" if path[1] else ""
                 )
             )
-            if path[1] not in filter_sources_groups:
-                filter_sources_groups[path[1]] = VCXProjFiltersSourceGroup.format(
-                    path=path[1], uuid=str(uuid.uuid4())
-                )
+            rel_path = path[1]
+            while rel_path:
+                if rel_path not in filter_sources_groups:
+                    filter_sources_groups[rel_path] = VCXProjFiltersSourceGroup.format(
+                        path=rel_path, uuid=str(uuid.uuid4())
+                    )
+                rel_path = os.path.dirname(rel_path)
         for path in project.include_files:
             filter_includes.append(
                 VCXProjFiltersInclude.format(
                     path=os.path.join(*path), rel_path=f"\\{path[1]}" if path[1] else ""
                 )
             )
-            if path[1] not in filter_includes_groups:
-                filter_includes_groups[path[1]] = VCXProjFiltersIncludeGroup.format(
-                    path=path[1], uuid=str(uuid.uuid4())
-                )
+            rel_path = path[1]
+            while rel_path:
+                if rel_path not in filter_includes_groups:
+                    filter_includes_groups[rel_path] = VCXProjFiltersIncludeGroup.format(
+                        path=rel_path, uuid=str(uuid.uuid4())
+                    )
+                rel_path = os.path.dirname(rel_path)
         with open(
             os.path.join(solution_dir, f"{project_name}.vcxproj.filters"),
             "w",
