@@ -267,10 +267,12 @@ def write(
     for project in projects:
         project_guid = project.project_guid()
         vcxproj_sources = "\n".join(
-            VCXProjSource.format(path=os.path.join(*path)) for path in project.source_files
+            VCXProjSource.format(path=os.path.join(*path))
+            for path in project.source_files
         )
         vcxproj_includes = "\n".join(
-            VCXProjInclude.format(path=os.path.join(*path)) for path in project.include_files
+            VCXProjInclude.format(path=os.path.join(*path))
+            for path in project.include_files
         )
         library_type = project.compile_mode
         project_name = project.name
@@ -285,7 +287,9 @@ def write(
                 out_dir = f"{src_dir}\\"
         elif library_type == CompileMode.StaticLibrary:
             extension = ".lib"
-            out_dir = f"$(SolutionDir)$(Platform)\\$(Configuration)\\out\\{project.name}\\"
+            out_dir = (
+                f"$(SolutionDir)$(Platform)\\$(Configuration)\\out\\{project.name}\\"
+            )
         # elif library_type == CompileMode.DynamicLibrary:
         #     extension = ".dll"
         #     out_dir = f"$(SolutionDir)$(Platform)\\$(Configuration)\\out\\{project.name}\\"
@@ -306,11 +310,15 @@ def write(
                         + [
                             f"$(SolutionDir)$(Platform)\\$(Configuration)\\out\\{dep.name}\\;"
                             for dep in project.dependencies
-                            if dep.compile_mode == CompileMode.StaticLibrary and dep.source_files
+                            if dep.compile_mode == CompileMode.StaticLibrary
+                            and dep.source_files
                         ]
                     ),
                     libraries="".join(
-                        f"{dep.name}.lib;" for dep in project.dependencies if dep.compile_mode == CompileMode.StaticLibrary and dep.source_files
+                        f"{dep.name}.lib;"
+                        for dep in project.dependencies
+                        if dep.compile_mode == CompileMode.StaticLibrary
+                        and dep.source_files
                     ),
                     library_type=library_type.value,
                     project_guid=project_guid,
@@ -323,24 +331,24 @@ def write(
         filter_sources_groups = dict[str, str]()
         filter_includes_groups = dict[str, str]()
         for path in project.source_files:
-            filter_sources.append(VCXProjFiltersSource.format(
-                path=os.path.join(*path),
-                rel_path=f"\\{path[1]}" if path[1] else ""
-            ))
+            filter_sources.append(
+                VCXProjFiltersSource.format(
+                    path=os.path.join(*path), rel_path=f"\\{path[1]}" if path[1] else ""
+                )
+            )
             if path[1] not in filter_sources_groups:
                 filter_sources_groups[path[1]] = VCXProjFiltersSourceGroup.format(
-                    path=path[1],
-                    uuid=str(uuid.uuid4())
+                    path=path[1], uuid=str(uuid.uuid4())
                 )
         for path in project.include_files:
-            filter_includes.append(VCXProjFiltersInclude.format(
-                path=os.path.join(*path),
-                rel_path=f"\\{path[1]}" if path[1] else ""
-            ))
+            filter_includes.append(
+                VCXProjFiltersInclude.format(
+                    path=os.path.join(*path), rel_path=f"\\{path[1]}" if path[1] else ""
+                )
+            )
             if path[1] not in filter_includes_groups:
                 filter_includes_groups[path[1]] = VCXProjFiltersIncludeGroup.format(
-                    path=path[1],
-                    uuid=str(uuid.uuid4())
+                    path=path[1], uuid=str(uuid.uuid4())
                 )
         with open(
             os.path.join(solution_dir, f"{project_name}.vcxproj.filters"),
@@ -351,7 +359,8 @@ def write(
                 VCXProjFilters.format(
                     source_files="\n".join(filter_sources),
                     include_files="\n".join(filter_includes),
-                    filter_groups="".join(filter_sources_groups.values()) + "".join(filter_includes_groups.values())
+                    filter_groups="".join(filter_sources_groups.values())
+                    + "".join(filter_includes_groups.values()),
                 )
             )
         with open(
@@ -369,7 +378,11 @@ def write(
         global_configuration_platforms = []
         for project in projects:
             project_guid = project.project_guid()
-            project_name = f"{project.py_package}.{project.name}" if project.py_package else project.name
+            project_name = (
+                f"{project.py_package}.{project.name}"
+                if project.py_package
+                else project.name
+            )
             if project.dependencies:
                 project_dependencies = "".join(
                     SolutionProjectDependency.format(dependency_guid=dep.project_guid())
@@ -397,7 +410,9 @@ def write(
         )
 
 
-def get_files(folder: str, ext: str, folder_extra: str = "") -> list[tuple[str, str, str]]:
+def get_files(
+    folder: str, ext: str, folder_extra: str = ""
+) -> list[tuple[str, str, str]]:
     """
     Get file paths split into
     1) containing folder ("your/path")
@@ -409,7 +424,9 @@ def get_files(folder: str, ext: str, folder_extra: str = "") -> list[tuple[str, 
     search_path = folder
     if folder_extra:
         search_path = os.path.join(search_path, folder_extra)
-    for path in glob.iglob(os.path.join(glob.escape(search_path), "**", f"*.{ext}"), recursive=True):
+    for path in glob.iglob(
+        os.path.join(glob.escape(search_path), "**", f"*.{ext}"), recursive=True
+    ):
         rel_path = os.path.relpath(path, folder)
         paths.append((folder, os.path.dirname(rel_path), os.path.basename(rel_path)))
     return paths
@@ -426,16 +443,24 @@ def main() -> None:
     amulet_project = ProjectData(
         name="amulet_core",
         compile_mode=CompileMode.StaticLibrary,
-        include_files=get_files(os.path.join(glob.escape(SrcDir), "amulet", "cpp"), "hpp", "amulet"),
-        source_files=get_files(os.path.join(glob.escape(SrcDir), "amulet", "cpp"), "cpp", "amulet"),
+        include_files=get_files(
+            os.path.join(glob.escape(SrcDir), "amulet", "cpp"), "hpp", "amulet"
+        ),
+        source_files=get_files(
+            os.path.join(glob.escape(SrcDir), "amulet", "cpp"), "cpp", "amulet"
+        ),
         include_dirs=[amulet_nbt.get_include(), os.path.join(SrcDir, "amulet", "cpp")],
         dependencies=[amulet_nbt_project],
     )
     amulet_py_project = ProjectData(
         name="amulet_py",
         compile_mode=CompileMode.StaticLibrary,
-        include_files=get_files(os.path.join(glob.escape(SrcDir), "amulet", "cpp"), "hpp", "amulet_py"),
-        source_files=get_files(os.path.join(glob.escape(SrcDir), "amulet", "cpp"), "cpp", "amulet_py"),
+        include_files=get_files(
+            os.path.join(glob.escape(SrcDir), "amulet", "cpp"), "hpp", "amulet_py"
+        ),
+        source_files=get_files(
+            os.path.join(glob.escape(SrcDir), "amulet", "cpp"), "cpp", "amulet_py"
+        ),
         include_dirs=[
             PythonIncludeDir,
             pybind11.get_include(),
@@ -457,7 +482,9 @@ def main() -> None:
     ):
         with open(cpp_path) as f:
             src = f.read()
-            match = re.search(r"PYBIND11_MODULE\((?P<module>[a-zA-Z_][a-zA-Z0-9_]*), m\)", src)
+            match = re.search(
+                r"PYBIND11_MODULE\((?P<module>[a-zA-Z_][a-zA-Z0-9_]*), m\)", src
+            )
             if match:
                 module_name = match.group("module")
                 assert (
@@ -470,7 +497,9 @@ def main() -> None:
                     ProjectData(
                         name=module_name,
                         compile_mode=CompileMode.PythonExtension,
-                        source_files=[(os.path.dirname(cpp_path), "", os.path.basename(cpp_path))],
+                        source_files=[
+                            (os.path.dirname(cpp_path), "", os.path.basename(cpp_path))
+                        ],
                         include_dirs=[
                             PythonIncludeDir,
                             pybind11.get_include(),
@@ -481,7 +510,11 @@ def main() -> None:
                             PythonLibraryDir,
                         ],
                         py_package=package,
-                        dependencies=[amulet_nbt_project, amulet_project, amulet_py_project],
+                        dependencies=[
+                            amulet_nbt_project,
+                            amulet_project,
+                            amulet_py_project,
+                        ],
                     )
                 )
 

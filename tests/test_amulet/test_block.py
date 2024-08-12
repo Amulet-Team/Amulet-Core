@@ -119,37 +119,51 @@ class BlockTestCase(unittest.TestCase):
     def test_java_blockstate(self) -> None:
         self.assertEqual(
             "namespace:basename",
-            Block("platform", VersionNumber(), "namespace", "basename").java_blockstate
+            Block("platform", VersionNumber(), "namespace", "basename").java_blockstate,
         )
         self.assertEqual(
-            'namespace:basename[g=helloworld]',
-            Block("platform", VersionNumber(), "namespace", "basename", {
-                "g": StringTag("helloworld"),
-                "f": LongTag(0),
-                "e": IntTag(0),
-                "d": ShortTag(0),
-                "c": ByteTag(2),
-                "b": ByteTag(1),
-                "a": ByteTag(0),
-            }).java_blockstate
+            "namespace:basename[g=helloworld]",
+            Block(
+                "platform",
+                VersionNumber(),
+                "namespace",
+                "basename",
+                {
+                    "g": StringTag("helloworld"),
+                    "f": LongTag(0),
+                    "e": IntTag(0),
+                    "d": ShortTag(0),
+                    "c": ByteTag(2),
+                    "b": ByteTag(1),
+                    "a": ByteTag(0),
+                },
+            ).java_blockstate,
         )
 
     def test_bedrock_blockstate(self) -> None:
         self.assertEqual(
             "namespace:basename",
-            Block("platform", VersionNumber(), "namespace", "basename").bedrock_blockstate
+            Block(
+                "platform", VersionNumber(), "namespace", "basename"
+            ).bedrock_blockstate,
         )
         self.assertEqual(
             'namespace:basename["a"=false,"b"=true,"c"=2b,"d"=0s,"e"=0,"f"=0L,"g"="helloworld"]',
-            Block("platform", VersionNumber(), "namespace", "basename", {
-                "g": StringTag("helloworld"),
-                "f": LongTag(0),
-                "e": IntTag(0),
-                "d": ShortTag(0),
-                "c": ByteTag(2),
-                "b": ByteTag(1),
-                "a": ByteTag(0),
-            }).bedrock_blockstate
+            Block(
+                "platform",
+                VersionNumber(),
+                "namespace",
+                "basename",
+                {
+                    "g": StringTag("helloworld"),
+                    "f": LongTag(0),
+                    "e": IntTag(0),
+                    "d": ShortTag(0),
+                    "c": ByteTag(2),
+                    "b": ByteTag(1),
+                    "a": ByteTag(0),
+                },
+            ).bedrock_blockstate,
         )
 
     def test_java_blockstate_constructor(self) -> None:
@@ -285,25 +299,23 @@ class BlockStackTestCase(unittest.TestCase):
         with self.assertRaises(IndexError):
             block_stack[2]
 
-        self.assertIsInstance(
-            block_stack[:],
-            list
-        )
-        self.assertEqual(
-            [block1, block2],
-            block_stack[:]
-        )
+        self.assertIsInstance(block_stack[:], list)
+        self.assertEqual([block1, block2], block_stack[:])
 
     def test_len(self) -> None:
-        self.assertEqual(1, len(
-            BlockStack(Block("java", VersionNumber(3578), "namespace", "block1"))
-        ))
-        self.assertEqual(2, len(
-            BlockStack(
-                Block("java", VersionNumber(3578), "namespace", "block1"),
-                Block("java", VersionNumber(3578), "namespace", "block2")
-            )
-        ))
+        self.assertEqual(
+            1,
+            len(BlockStack(Block("java", VersionNumber(3578), "namespace", "block1"))),
+        )
+        self.assertEqual(
+            2,
+            len(
+                BlockStack(
+                    Block("java", VersionNumber(3578), "namespace", "block1"),
+                    Block("java", VersionNumber(3578), "namespace", "block2"),
+                )
+            ),
+        )
 
 
 if __name__ == "__main__":

@@ -52,9 +52,7 @@ class BlockPaletteTestCase(unittest.TestCase):
             5,
             self.palette.block_stack_to_index(
                 BlockStack(
-                    Block.from_java_blockstate(
-                        "java", VersionNumber(3578), "a:b[c=d]"
-                    )
+                    Block.from_java_blockstate("java", VersionNumber(3578), "a:b[c=d]")
                 )
             ),
         )

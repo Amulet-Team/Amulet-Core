@@ -28,8 +28,7 @@ class NewProperties(AbstractBaseTranslationFunction):
         if not all(isinstance(key, str) for key in self._properties.keys()):
             raise TypeError
         if not all(
-            isinstance(value, PropertyValueType)
-            for value in self._properties.values()
+            isinstance(value, PropertyValueType) for value in self._properties.values()
         ):
             raise TypeError
 
