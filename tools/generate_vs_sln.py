@@ -119,12 +119,12 @@ VCXProj = r"""<?xml version="1.0" encoding="utf-8"?>
 
 VCXProjFiltersSource = """\
     <ClCompile Include="{path}">
-      <Filter>Source Files{rel_path}</Filter>
+      <Filter>{rel_path}</Filter>
     </ClCompile>"""
 
 
 VCXProjFiltersSourceGroup = """\
-    <Filter Include="Source Files\\{path}">
+    <Filter Include="{path}">
       <UniqueIdentifier>{{{uuid}}}</UniqueIdentifier>
     </Filter>
 """
@@ -132,12 +132,12 @@ VCXProjFiltersSourceGroup = """\
 
 VCXProjFiltersInclude = """\
     <ClInclude Include="{path}">
-      <Filter>Header Files{rel_path}</Filter>
+      <Filter>{rel_path}</Filter>
     </ClInclude>"""
 
 
 VCXProjFiltersIncludeGroup = """\
-    <Filter Include="Header Files\\{path}">
+    <Filter Include="{path}">
       <UniqueIdentifier>{{{uuid}}}</UniqueIdentifier>
     </Filter>
 """
@@ -146,18 +146,6 @@ VCXProjFiltersIncludeGroup = """\
 VCXProjFilters = r"""<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{{4FC737F1-C7A5-4376-A066-2A32D752A2FF}}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{{93995380-89BD-4b04-88EB-625FBE52EBFB}}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
-    </Filter>
 {filter_groups}  </ItemGroup>
   <ItemGroup>
 {source_files}
@@ -333,7 +321,7 @@ def write(
         for path in project.source_files:
             filter_sources.append(
                 VCXProjFiltersSource.format(
-                    path=os.path.join(*path), rel_path=f"\\{path[1]}" if path[1] else ""
+                    path=os.path.join(*path), rel_path=path[1] or ""
                 )
             )
             rel_path = path[1]
@@ -346,7 +334,7 @@ def write(
         for path in project.include_files:
             filter_includes.append(
                 VCXProjFiltersInclude.format(
-                    path=os.path.join(*path), rel_path=f"\\{path[1]}" if path[1] else ""
+                    path=os.path.join(*path), rel_path=path[1] or ""
                 )
             )
             rel_path = path[1]
