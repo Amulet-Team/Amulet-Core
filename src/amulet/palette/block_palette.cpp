@@ -27,9 +27,9 @@ inline void bounds_check(const size_t& size, Py_ssize_t& index) {
 
 PYBIND11_MODULE(block_palette, m) {
 	py::object PyList = py::module::import("builtins").attr("list");
-	py::object VersionRange = py::module::import("amulet.version").attr("VersionRange");
+	py::object VersionRangeContainer = py::module::import("amulet.version").attr("VersionRangeContainer");
 	py::module::import("amulet.block");
-	py::class_<Amulet::BlockPalette, std::shared_ptr<Amulet::BlockPalette>> BlockPalette(m, "BlockPalette", VersionRange);
+	py::class_<Amulet::BlockPalette, std::shared_ptr<Amulet::BlockPalette>> BlockPalette(m, "BlockPalette", VersionRangeContainer);
 		BlockPalette.def(
 			py::init<std::shared_ptr<Amulet::VersionRange>>()
 		);
