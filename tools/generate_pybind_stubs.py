@@ -2,7 +2,6 @@ import os
 import glob
 import importlib.util
 import sys
-from concurrent.futures import ThreadPoolExecutor
 import subprocess
 import re
 
@@ -57,13 +56,6 @@ def main() -> None:
             f.write(pyi)
 
     subprocess.run([sys.executable, "-m", "black", src_path])
-
-    # with ThreadPoolExecutor() as executor:
-    #     results = executor.map(
-    #         lambda module_name_: subprocess.run(["python", "-m", "pybind11_stubgen", "--output-dir=src", "--root-suffix=-stubs", module_name_]),
-    #         compiled_modules
-    #     )
-    #     list(results)
 
 
 if __name__ == "__main__":

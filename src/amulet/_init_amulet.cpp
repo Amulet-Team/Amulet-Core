@@ -11,10 +11,9 @@ void init_chunk(py::module);
 static bool init_run = false;
 
 void init_amulet(py::module amulet){
-    if (init_run){
-        return;
-    }
+    if (init_run){ return; }
     init_run = true;
+
     auto utils_module = amulet.def_submodule("utils");
     init_utils(utils_module);
 
