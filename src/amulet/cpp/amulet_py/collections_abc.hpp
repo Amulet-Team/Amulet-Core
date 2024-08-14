@@ -1,6 +1,8 @@
 // This is a C++ implementation of the python collections.abc module
 // These functions will add the minxin methods and register your class with the ABC.
 
+#pragma once
+
 #include <algorithm>
 #include <cstddef>
 
@@ -67,13 +69,13 @@ namespace collections_abc {
 			bool has_next() { return 0 <= index && index < py::len(obj); };
 	};
 
-	void _register_sequence_iterator(py::module m) {
+	inline void _register_sequence_iterator() {
 		py::module::import("amulet.utils.collections");
 	}
 
 	template <typename T>
-	void Sequence_iter(py::module m, T cls) {
-		_register_sequence_iterator(m);
+	void Sequence_iter(T cls) {
+		_register_sequence_iterator();
 		cls.def(
 			"__iter__",
 			[](py::object self) {
@@ -83,8 +85,8 @@ namespace collections_abc {
 	}
 
 	template <typename T>
-	void Sequence_reversed(py::module m, T cls) {
-		_register_sequence_iterator(m);
+	void Sequence_reversed(T cls) {
+		_register_sequence_iterator();
 		cls.def(
 			"__reversed__",
 			[](py::object self) {
@@ -165,11 +167,11 @@ namespace collections_abc {
 	}
 
 	template <typename T>
-	void Sequence(py::module m, T cls) {
+	void Sequence(T cls) {
 		Sequence_getitem_slice(cls);
 		Sequence_contains(cls);
-		Sequence_iter(m, cls);
-		Sequence_reversed(m, cls);
+		Sequence_iter(cls);
+		Sequence_reversed(cls);
 		Sequence_index(cls);
 		Sequence_count(cls);
 		Sequence_register(cls);

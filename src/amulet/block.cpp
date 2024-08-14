@@ -12,7 +12,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(block, m) {
+void init_block(py::module block_module) {
     py::options options;
 
     py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");
@@ -27,9 +27,9 @@ PYBIND11_MODULE(block, m) {
     py::object LongTag = amulet_nbt.attr("LongTag");
     py::object StringTag = amulet_nbt.attr("StringTag");
 
-    m.attr("PropertyValueType") = ByteTag | ShortTag | IntTag | LongTag | StringTag;
+    block_module.attr("PropertyValueType") = ByteTag | ShortTag | IntTag | LongTag | StringTag;
 
-    py::class_<Amulet::Block, std::shared_ptr<Amulet::Block>> Block(m, "Block", PlatformVersionContainer,
+    py::class_<Amulet::Block, std::shared_ptr<Amulet::Block>> Block(block_module, "Block", PlatformVersionContainer,
         "A class to manage the state of a block.\n"
         "\n"
         "It is an immutable object that contains the platform, version, namespace, base name and properties.\n"
@@ -258,7 +258,7 @@ PYBIND11_MODULE(block, m) {
             )
         );
 
-    py::class_<Amulet::BlockStack, std::shared_ptr<Amulet::BlockStack>> BlockStack(m, "BlockStack",
+    py::class_<Amulet::BlockStack, std::shared_ptr<Amulet::BlockStack>> BlockStack(block_module, "BlockStack",
         "A stack of block objects.\n"
         "\n"
         "Java 1.13 added the concept of waterlogging blocks whereby some blocks have a `waterlogged` property.\n"
@@ -341,7 +341,7 @@ PYBIND11_MODULE(block, m) {
             }
         );
 
-        Amulet::collections_abc::Sequence(m, BlockStack);
+        Amulet::collections_abc::Sequence(BlockStack);
 
         BlockStack.def(
             "__eq__",

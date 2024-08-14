@@ -25,11 +25,11 @@ inline void bounds_check(const size_t& size, Py_ssize_t& index) {
 	}
 }
 
-PYBIND11_MODULE(biome_palette, m) {
+void init_biome_palette(py::module biome_palette_module) {
     py::object PyList = py::module::import("builtins").attr("list");
 	py::object VersionRangeContainer = py::module::import("amulet.version").attr("VersionRangeContainer");
 	py::module::import("amulet.biome");
-	py::class_<Amulet::BiomePalette, std::shared_ptr<Amulet::BiomePalette>> BiomePalette(m, "BiomePalette", VersionRangeContainer);
+	py::class_<Amulet::BiomePalette, std::shared_ptr<Amulet::BiomePalette>> BiomePalette(biome_palette_module, "BiomePalette", VersionRangeContainer);
 		BiomePalette.def(
 			py::init<std::shared_ptr<Amulet::VersionRange>>()
 		);
@@ -67,8 +67,8 @@ PYBIND11_MODULE(biome_palette, m) {
 				return self.contains_biome(item);
 			}
 		);
-		Amulet::collections_abc::Sequence_iter(m, BiomePalette);
-		Amulet::collections_abc::Sequence_reversed(m, BiomePalette);
+		Amulet::collections_abc::Sequence_iter(BiomePalette);
+		Amulet::collections_abc::Sequence_reversed(BiomePalette);
 		Amulet::collections_abc::Sequence_index(BiomePalette);
 		Amulet::collections_abc::Sequence_count(BiomePalette);
 		Amulet::collections_abc::Sequence_register(BiomePalette);

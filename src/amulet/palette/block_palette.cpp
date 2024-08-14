@@ -25,11 +25,11 @@ inline void bounds_check(const size_t& size, Py_ssize_t& index) {
 	}
 }
 
-PYBIND11_MODULE(block_palette, m) {
+void init_block_palette(py::module block_palette_module) {
 	py::object PyList = py::module::import("builtins").attr("list");
 	py::object VersionRangeContainer = py::module::import("amulet.version").attr("VersionRangeContainer");
 	py::module::import("amulet.block");
-	py::class_<Amulet::BlockPalette, std::shared_ptr<Amulet::BlockPalette>> BlockPalette(m, "BlockPalette", VersionRangeContainer);
+	py::class_<Amulet::BlockPalette, std::shared_ptr<Amulet::BlockPalette>> BlockPalette(block_palette_module, "BlockPalette", VersionRangeContainer);
 		BlockPalette.def(
 			py::init<std::shared_ptr<Amulet::VersionRange>>()
 		);
@@ -67,8 +67,8 @@ PYBIND11_MODULE(block_palette, m) {
 				return self.contains_block(item);
 			}
 		);
-		Amulet::collections_abc::Sequence_iter(m, BlockPalette);
-		Amulet::collections_abc::Sequence_reversed(m, BlockPalette);
+		Amulet::collections_abc::Sequence_iter(BlockPalette);
+		Amulet::collections_abc::Sequence_reversed(BlockPalette);
 		Amulet::collections_abc::Sequence_index(BlockPalette);
 		Amulet::collections_abc::Sequence_count(BlockPalette);
 		Amulet::collections_abc::Sequence_register(BlockPalette);

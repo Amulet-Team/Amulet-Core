@@ -8,7 +8,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(version, m) {
+void init_version(py::module m) {
     py::options options;
 
     py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");

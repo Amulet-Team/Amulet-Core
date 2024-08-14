@@ -6,7 +6,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(numpy, m) {
+void init_utils_numpy(py::module m) {
     m.def("unique_inverse", [](py::buffer arr_buffer){
         py::buffer_info arr_info = arr_buffer.request();
         // validate the input

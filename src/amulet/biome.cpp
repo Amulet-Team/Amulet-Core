@@ -12,14 +12,14 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(biome, m) {
+void init_biome(py::module biome_module) {
     py::options options;
 
     py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");
 
     py::object PlatformVersionContainer = py::module::import("amulet.version").attr("PlatformVersionContainer");
 
-    py::class_<Amulet::Biome, std::shared_ptr<Amulet::Biome>> Biome(m, "Biome", PlatformVersionContainer,
+    py::class_<Amulet::Biome, std::shared_ptr<Amulet::Biome>> Biome(biome_module, "Biome", PlatformVersionContainer,
         "A class to manage the state of a biome.\n"
         "\n"
         "It is an immutable object that contains the platform, version, namespace and base name.\n"

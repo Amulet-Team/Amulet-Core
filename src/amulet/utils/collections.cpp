@@ -6,7 +6,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(collections, m) {
+void init_utils_collections(py::module m) {
 	py::class_<Amulet::collections_abc::PySequenceIterator>(m, "PySequenceIterator")
 		.def(
 			"__next__",
