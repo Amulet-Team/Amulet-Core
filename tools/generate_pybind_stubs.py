@@ -31,41 +31,32 @@ def get_package_dir(name: str) -> str:
 def main() -> None:
     amulet_path = get_package_dir("amulet")
     src_path = os.path.dirname(amulet_path)
-    compiled_module_paths = glob.glob(
-        os.path.join(glob.escape(amulet_path), "**", "*.pyd"), recursive=True
-    )
-    compiled_modules = list[str]()
-    for compiled_module_path in compiled_module_paths:
-        package_dir, module_path = os.path.split(compiled_module_path)
-        module_name = module_path.split(".", 1)[0]
-        package_name = os.path.normpath(os.path.relpath(package_dir, src_path)).replace(
-            os.sep, "."
-        )
-        if package_name:
-            module_name = f"{package_name}.{module_name}"
-        compiled_modules.append(module_name)
-    print(compiled_modules)
 
-    for module_name in compiled_modules:
-        subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "pybind11_stubgen",
-                f"--output-dir={src_path}",
-                module_name,
-            ]
-        )
-        module_path = get_module_path(module_name)
-        pyi_path = os.path.join(
-            os.path.dirname(module_path),
-            os.path.basename(module_path).split(".", 1)[0] + ".pyi",
-        )
-        with open(pyi_path, encoding="utf-8") as f:
+    for stub_path in glob.iglob(
+        os.path.join(glob.escape(src_path), "**", "*.pyi"), recursive=True
+    ):
+        os.remove(stub_path)
+
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pybind11_stubgen",
+            f"--output-dir={src_path}",
+            "amulet",
+        ]
+    )
+
+    for stub_path in glob.iglob(
+        os.path.join(glob.escape(src_path), "**", "*.pyi"), recursive=True
+    ):
+        with open(stub_path, encoding="utf-8") as f:
             pyi = f.read()
         pyi = UnionPattern.sub(union_sub_func, pyi)
-        with open(pyi_path, "w", encoding="utf-8") as f:
+        with open(stub_path, "w", encoding="utf-8") as f:
             f.write(pyi)
+
+    subprocess.run([sys.executable, "-m", "black", src_path])
 
     # with ThreadPoolExecutor() as executor:
     #     results = executor.map(
