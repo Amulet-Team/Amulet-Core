@@ -12,6 +12,7 @@ from binascii import hexlify
 import sys
 import glob
 import sysconfig
+from collections.abc import Iterable
 
 SrcDir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "src")
 
@@ -407,24 +408,30 @@ def write(
 
 
 def get_files(
-    folder: str, ext: str, folder_extra: str = ""
+    *,
+    root_dir: str,
+    ext: str,
+    root_dir_suffix: str = "",
+    exclude_dirs: Iterable[str] = (),
 ) -> list[tuple[str, str, str]]:
     """
     Get file paths split into
     1) containing folder ("your/path")
-    2) relative path within folder ("amulet/io")
+    2) relative path to parent directory within containing folder ("amulet/io")
     3) file name. ("binary_reader.hpp")
     get_files("your/path", "hpp")
     """
     paths = list[tuple[str, str, str]]()
-    search_path = folder
-    if folder_extra:
-        search_path = os.path.join(search_path, folder_extra)
+    search_path = root_dir
+    if root_dir_suffix:
+        search_path = os.path.join(search_path, root_dir_suffix)
     for path in glob.iglob(
         os.path.join(glob.escape(search_path), "**", f"*.{ext}"), recursive=True
     ):
-        rel_path = os.path.relpath(path, folder)
-        paths.append((folder, os.path.dirname(rel_path), os.path.basename(rel_path)))
+        if any(path.startswith(d) for d in exclude_dirs):
+            continue
+        rel_path = os.path.relpath(path, root_dir)
+        paths.append((root_dir, os.path.dirname(rel_path), os.path.basename(rel_path)))
     return paths
 
 
@@ -432,30 +439,37 @@ def main() -> None:
     amulet_nbt_project = ProjectData(
         name="amulet_nbt",
         compile_mode=CompileMode.StaticLibrary,
-        include_files=get_files(amulet_nbt.get_include(), "hpp"),
-        source_files=get_files(amulet_nbt.get_source(), "cpp"),
+        include_files=get_files(root_dir=amulet_nbt.get_include(), ext="hpp"),
+        source_files=get_files(root_dir=amulet_nbt.get_source(), ext="cpp"),
         include_dirs=[amulet_nbt.get_include()],
     )
+    cpp_src_dir = os.path.join(SrcDir, "amulet", "cpp")
     amulet_project = ProjectData(
         name="amulet_core",
         compile_mode=CompileMode.StaticLibrary,
         include_files=get_files(
-            os.path.join(glob.escape(SrcDir), "amulet", "cpp"), "hpp", "amulet"
+            root_dir=cpp_src_dir, ext="hpp", root_dir_suffix="amulet"
         ),
         source_files=get_files(
-            os.path.join(glob.escape(SrcDir), "amulet", "cpp"), "cpp", "amulet"
+            root_dir=cpp_src_dir, ext="cpp", root_dir_suffix="amulet"
         ),
         include_dirs=[amulet_nbt.get_include(), os.path.join(SrcDir, "amulet", "cpp")],
         dependencies=[amulet_nbt_project],
     )
     amulet_py_project = ProjectData(
-        name="amulet_py",
-        compile_mode=CompileMode.StaticLibrary,
+        name="__init__",
+        compile_mode=CompileMode.PythonExtension,
         include_files=get_files(
-            os.path.join(glob.escape(SrcDir), "amulet", "cpp"), "hpp", "amulet_py"
+            root_dir=cpp_src_dir, ext="hpp", root_dir_suffix="amulet_py"
         ),
         source_files=get_files(
-            os.path.join(glob.escape(SrcDir), "amulet", "cpp"), "cpp", "amulet_py"
+            root_dir=cpp_src_dir, ext="cpp", root_dir_suffix="amulet_py"
+        )
+        + get_files(
+            root_dir=SrcDir,
+            ext="cpp",
+            root_dir_suffix="amulet",
+            exclude_dirs=[cpp_src_dir],
         ),
         include_dirs=[
             PythonIncludeDir,
@@ -466,53 +480,17 @@ def main() -> None:
         library_dirs=[
             PythonLibraryDir,
         ],
+        dependencies=[
+            amulet_nbt_project,
+            amulet_project,
+        ],
+        py_package="amulet",
     )
     projects = [
         amulet_nbt_project,
         amulet_project,
         amulet_py_project,
     ]
-
-    for cpp_path in glob.glob(
-        os.path.join(glob.escape(SrcDir), "**", "*.cpp"), recursive=True
-    ):
-        with open(cpp_path) as f:
-            src = f.read()
-            match = re.search(
-                r"PYBIND11_MODULE\((?P<module>[a-zA-Z_][a-zA-Z0-9_]*), m\)", src
-            )
-            if match:
-                module_name = match.group("module")
-                assert (
-                    os.path.splitext(os.path.basename(cpp_path))[0] == module_name
-                ), f"module name must match file name. {cpp_path}"
-                package = os.path.relpath(os.path.dirname(cpp_path), SrcDir).replace(
-                    os.sep, "."
-                )
-                projects.append(
-                    ProjectData(
-                        name=module_name,
-                        compile_mode=CompileMode.PythonExtension,
-                        source_files=[
-                            (os.path.dirname(cpp_path), "", os.path.basename(cpp_path))
-                        ],
-                        include_dirs=[
-                            PythonIncludeDir,
-                            pybind11.get_include(),
-                            amulet_nbt.get_include(),
-                            os.path.join(SrcDir, "amulet", "cpp"),
-                        ],
-                        library_dirs=[
-                            PythonLibraryDir,
-                        ],
-                        py_package=package,
-                        dependencies=[
-                            amulet_nbt_project,
-                            amulet_project,
-                            amulet_py_project,
-                        ],
-                    )
-                )
 
     write(
         SrcDir,
