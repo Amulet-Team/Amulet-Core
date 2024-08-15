@@ -5,28 +5,28 @@
 #include <optional>
 
 #include <amulet/version.hpp>
-#include <amulet/block.hpp>
-#include <amulet/palette/block_palette.hpp>
+#include <amulet/biome.hpp>
+#include <amulet/palette/biome_palette.hpp>
 #include <amulet/chunk_components/section_array_map.hpp>
 
 
 namespace Amulet {
-	class BlockComponentData {
+	class Biome3DComponentData {
 	private:
-		std::shared_ptr<BlockPalette> _palette;
+		std::shared_ptr<BiomePalette> _palette;
 		std::shared_ptr<SectionArrayMap> _sections;
 	public:
-		BlockComponentData(
+		Biome3DComponentData(
 			std::shared_ptr<VersionRange> version_range,
 			const SectionShape& array_shape,
-			std::shared_ptr<BlockStack> default_block
+			std::shared_ptr<Biome> default_biome
 		):
-			_palette(std::make_shared<BlockPalette>(version_range)),
+			_palette(std::make_shared<BiomePalette>(version_range)),
 			_sections(std::make_shared<SectionArrayMap>(array_shape, static_cast<std::uint32_t>(0)))
 		{
-			_palette->block_stack_to_index(default_block);
+			_palette->biome_to_index(default_biome);
 		}
-		std::shared_ptr<BlockPalette> get_palette() {
+		std::shared_ptr<BiomePalette> get_palette() {
 			return _palette;
 		}
 		std::shared_ptr<SectionArrayMap> get_sections() {
@@ -34,18 +34,18 @@ namespace Amulet {
 		}
 	};
 
-	class BlockComponent {
+	class Biome3DComponent {
 	private:
-		std::optional<std::shared_ptr<BlockComponentData>> _value;
+		std::optional<std::shared_ptr<Biome3DComponentData>> _value;
 	protected:
 		// Null constructor
-		BlockComponent() {};
+		Biome3DComponent() {};
 		// Default constructor
 		void init(
 			std::shared_ptr<VersionRange> version_range,
 			const SectionShape& array_shape,
-			std::shared_ptr<BlockStack> default_block
-		) { _value = std::make_shared<BlockComponentData>(version_range, array_shape, default_block); }
+			std::shared_ptr<Biome> default_biome
+		) { _value = std::make_shared<Biome3DComponentData>(version_range, array_shape, default_biome); }
 		
 		// Serialise the component data
 		std::optional<std::string> serialise();
@@ -53,24 +53,24 @@ namespace Amulet {
 		void deserialise(std::optional<std::string>);
 	public:
 		static const std::string ComponentID;
-		std::shared_ptr<BlockComponentData> get_block() {
+		std::shared_ptr<Biome3DComponentData> get_biome() {
 			if (_value) {
 				return *_value;
 			}
-			throw std::runtime_error("BlockComponent has not been loaded.");
+			throw std::runtime_error("BiomeComponent has not been loaded.");
 		};
-		void set_block(std::shared_ptr<BlockComponentData> component) {
+		void set_biome(std::shared_ptr<Biome3DComponentData> component) {
 			if (_value) {
 				if ((*_value)->get_sections()->get_array_shape() != component->get_sections()->get_array_shape()) {
-					throw std::invalid_argument("New block array shape does not match old array shape.");
+					throw std::invalid_argument("New biome array shape does not match old array shape.");
 				}
 				if ((*_value)->get_palette()->get_version_range() != component->get_palette()->get_version_range()) {
-					throw std::invalid_argument("New block version range does not match old version range.");
+					throw std::invalid_argument("New biome version range does not match old version range.");
 				}
 				_value = component;
 			}
 			else {
-				throw std::runtime_error("BlockComponent has not been loaded.");
+				throw std::runtime_error("BiomeComponent has not been loaded.");
 			}
 		};
 	};
