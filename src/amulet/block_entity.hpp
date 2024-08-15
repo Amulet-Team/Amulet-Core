@@ -25,7 +25,7 @@ namespace Amulet {
             const std::string& get_base_name() const { return _base_name; }
             void set_base_name(const std::string& base_name) { _base_name = base_name; }
             
-            std::shared_ptr<AmuletNBT::NamedTag> get_nbt() { return _nbt; }
+            std::shared_ptr<AmuletNBT::NamedTag> get_nbt() const { return _nbt; }
             void set_nbt(std::shared_ptr<AmuletNBT::NamedTag> nbt) { _nbt = nbt; }
 
             BlockEntity(

@@ -4,6 +4,7 @@ namespace py = pybind11;
 void init_utils(py::module);
 void init_version(py::module);
 void init_block(py::module);
+void init_block_entity(py::module);
 void init_biome(py::module);
 void init_palette(py::module);
 void init_chunk(py::module);
@@ -22,6 +23,9 @@ void init_amulet(py::module amulet){
 
     auto block_module = amulet.def_submodule("block");
     init_block(block_module);
+
+    auto block_entity_module = amulet.def_submodule("block_entity");
+    init_block_entity(block_entity_module);
 
     auto biome_module = amulet.def_submodule("biome");
     init_biome(biome_module);
