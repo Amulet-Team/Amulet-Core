@@ -9,7 +9,7 @@
 
 #include <amulet/biome.hpp>
 #include <amulet/palette/biome_palette.hpp>
-#include <amulet_py/collections_abc.hpp>
+#include <amulet/utils/collections.hpp>
 
 namespace py = pybind11;
 

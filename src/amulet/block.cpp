@@ -1,412 +1,411 @@
-#include <span>
-#include <memory>
+#include <map>
+#include <variant>
+#include <type_traits>
+#include <string>
+#include <functional>
+#include <stdexcept>
 
 #include <amulet/block.hpp>
+#include <amulet_nbt/nbt_encoding/binary.hpp>
+#include <amulet_nbt/nbt_encoding/string.hpp>
 
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-#include <pybind11/operators.h>
-#include <pybind11/typing.h>
-#include <amulet_py/collections_abc.hpp>
-
-
-namespace py = pybind11;
-
-void init_block(py::module block_module) {
-    py::options options;
-
-    py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");
-    py::object PySorted = py::module::import("builtins").attr("sorted");
-
-    py::object PlatformVersionContainer = py::module::import("amulet.version").attr("PlatformVersionContainer");
-    // Required for docstrings
-    py::object amulet_nbt = py::module::import("amulet_nbt");
-    py::object ByteTag = amulet_nbt.attr("ByteTag");
-    py::object ShortTag = amulet_nbt.attr("ShortTag");
-    py::object IntTag = amulet_nbt.attr("IntTag");
-    py::object LongTag = amulet_nbt.attr("LongTag");
-    py::object StringTag = amulet_nbt.attr("StringTag");
-
-    block_module.attr("PropertyValueType") = ByteTag | ShortTag | IntTag | LongTag | StringTag;
-
-    py::class_<Amulet::Block, std::shared_ptr<Amulet::Block>> Block(block_module, "Block", PlatformVersionContainer,
-        "A class to manage the state of a block.\n"
-        "\n"
-        "It is an immutable object that contains the platform, version, namespace, base name and properties.\n"
-        "\n"
-        "Here's a few examples on how create a Block object:\n"
-        "\n"
-        ">>> # Create a stone block for Java 1.20.2\n"
-        ">>> stone = Block(\"java\", VersionNumber(3578), \"minecraft\", \"stone\")\n"
-        ">>> # The Java block version number is the Java data version\n"
-        "\n"
-        ">>> # Create a stone block for Bedrock \n"
-        ">>> stone = Block(\"bedrock\", VersionNumber(1, 21, 0, 3), \"minecraft\", \"stone\")\n"
-        ">>> # The Bedrock block version number is the value stored as an int with the block data.\n"
-        "\n"
-        ">>> # Create a Java water block with the level property\n"
-        ">>> water = Block(\n"
-        ">>>     \"java\", VersionNumber(3578),\n"
-        ">>>     \"minecraft\",  # the namespace\n"
-        ">>>     \"water\",  # the base name\n"
-        ">>>     {  # A dictionary of properties.\n"
-        ">>>         # Keys must be strings and values must be a numerical or string NBT type.\n"
-        ">>>         \"level\": StringTag(\"0\")  # define a property `level` with a string value `0`\n"
-        ">>>     }\n"
-        ">>> )"
-    );
-        Block.def(
-            py::init<
-                const Amulet::PlatformType&,
-                std::shared_ptr<Amulet::VersionNumber>,
-                const std::string&,
-                const std::string&,
-                const std::map<std::string, Amulet::PropertyValueType>&
-            >(),
-            py::arg("platform"),
-            py::arg("version"),
-            py::arg("namespace"),
-            py::arg("base_name"),
-            py::arg("properties") = py::dict()
-        );
-        Block.def_property_readonly(
-            "namespaced_name",
-            [](const Amulet::Block& self) {
-                return self.get_namespace() + ":" + self.get_base_name();
-            },
-            py::doc(
-                "The namespace:base_name of the blockstate represented by the :class:`Block` object.\n"
-                "\n"
-                ">>> block: Block\n"
-                ">>> block.namespaced_name\n"
-                "\n"
-                ":return: The namespace:base_name of the blockstate"
-            )
-        );
-        Block.def_property_readonly(
-            "namespace",
-            &Amulet::Block::get_namespace,
-            py::doc(
-                "The namespace of the blockstate represented by the :class:`Block` object.\n"
-                "\n"
-                ">>> block: Block\n"
-                ">>> water.namespace\n"
-                "\n"
-                ":return: The namespace of the blockstate"
-            )
-        );
-        Block.def_property_readonly(
-            "base_name",
-            &Amulet::Block::get_base_name,
-            py::doc(
-                "The base name of the blockstate represented by the :class:`Block` object.\n"
-                "\n"
-                ">>> block: Block\n"
-                ">>> block.base_name\n"
-                "\n"
-                ":return: The base name of the blockstate"
-            )
-        );
-        Block.def_property_readonly(
-            "properties",
-            &Amulet::Block::get_properties,
-            py::doc(
-                "The properties of the blockstate represented by the :class:`Block` object as a dictionary.\n"
-                ">>> block: Block\n"
-                ">>> block.properties\n"
-                "\n"
-                ":return: A mapping of the properties of the blockstate"
-            )
-        );
-        Block.def(
-            "__repr__",
-            [](const Amulet::Block& self){
-                return "Block(" +
-                    py::repr(py::cast(self.get_platform())).cast<std::string>() + ", " +
-                    py::repr(py::cast(self.get_version())).cast<std::string>() + ", " +
-                    py::repr(py::cast(self.get_namespace())).cast<std::string>() + ", " +
-                    py::repr(py::cast(self.get_base_name())).cast<std::string>() + ", " +
-                    py::repr(py::cast(self.get_properties())).cast<std::string>() +
-                ")";
+namespace Amulet {
+    void Block::serialise(Amulet::BinaryWriter& writer) const {
+        writer.writeNumeric<std::uint8_t>(1);
+        writer.writeSizeAndBytes(get_platform());
+        get_version()->serialise(writer);
+        writer.writeSizeAndBytes(namespace_);
+        writer.writeSizeAndBytes(base_name);
+        
+        writer.writeNumeric<std::uint64_t>(properties.size());
+        for (auto const& [key, val] : properties) {
+            writer.writeSizeAndBytes(key);
+            std::visit([&writer](auto&& tag) {
+                AmuletNBT::write_nbt(writer, "", tag);
+            }, val);
+        }
+    }
+    std::shared_ptr<Block> Block::deserialise(Amulet::BinaryReader& reader){
+        auto version_number = reader.readNumeric<std::uint8_t>();
+        switch (version_number) {
+        case 1:
+        {
+            std::string platform = reader.readSizeAndBytes();
+            std::shared_ptr<VersionNumber> version = VersionNumber::deserialise(reader);
+            std::string namespace_ = reader.readSizeAndBytes();
+            std::string base_name = reader.readSizeAndBytes();
+            std::uint64_t property_count;
+            std::map<std::string, PropertyValueType> properties;
+            reader.readNumericInto<std::uint64_t>(property_count);
+            for (std::uint64_t i = 0; i < property_count; i++) {
+                std::string name = reader.readSizeAndBytes();
+                AmuletNBT::NamedTag named_tag = AmuletNBT::read_nbt(reader);
+                properties[name] = std::visit([](auto&& tag) -> PropertyValueType {
+                    using T = std::decay_t<decltype(tag)>;
+                    if constexpr (
+                        std::is_same_v<T, AmuletNBT::ByteTag> ||
+                        std::is_same_v<T, AmuletNBT::ShortTag> ||
+                        std::is_same_v<T, AmuletNBT::IntTag> ||
+                        std::is_same_v<T, AmuletNBT::LongTag> ||
+                        std::is_same_v<T, AmuletNBT::StringTag>
+                    ) {
+                        return tag;
+                    }
+                    else {
+                        throw std::invalid_argument("Property tag must be Byte, Short, Int, Long or String");
+                    }
+                }, named_tag.tag_node);
             }
-        );
-        Block.def(
-            "__hash__",
-            [PySorted](const Amulet::Block& self) {
-                return py::hash(
-                    py::make_tuple(
-                        py::cast(self.get_platform()),
-                        py::cast(self.get_version()),
-                        py::cast(self.get_namespace()),
-                        py::cast(self.get_base_name()),
-                        py::tuple(PySorted(py::cast(self.get_properties()).attr("items")()))
-                    )
+            return std::make_shared<Block>(platform, version, namespace_, base_name, properties);
+        }
+        default:
+            throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
+        }
+    }
+
+    template <typename T>
+    inline std::vector<std::string> get_ordered_keys(const T& map) {
+        std::vector<std::string> keys;
+        keys.reserve(map.size());
+        for (const auto& [key, _] : map) {
+            keys.push_back(key);
+        }
+        std::sort(keys.begin(), keys.end());
+        return keys;
+    }
+
+    std::string Block::java_blockstate() const {
+        std::string blockstate;
+        blockstate += get_namespace();
+        blockstate += ":";
+        blockstate += get_base_name();
+        const auto& properties = get_properties();
+        if (!properties.empty()) {
+            blockstate += "[";
+            auto keys = get_ordered_keys(properties);
+            bool is_first = true;
+            for (const std::string& key : keys) {
+                const auto& it = properties.find(key);
+                std::visit(
+                    [&is_first, &blockstate, &key](auto&& tag) {
+                        using T = std::decay_t<decltype(tag)>;
+                        if constexpr (std::is_same_v<T, AmuletNBT::StringTag>) {
+                            if (is_first) {
+                                is_first = false;
+                            }
+                            else {
+                                blockstate += ",";
+                            }
+                            blockstate += key;
+                            blockstate += "=";
+                            blockstate += tag;
+                        }
+                    },
+                    it->second
                 );
             }
-        );
-        Block.def(
-            py::pickle(
-                [](const Amulet::Block& self) -> py::bytes {
-                    return py::bytes(Amulet::serialise(self));
-                },
-                [](py::bytes state){
-                    return Amulet::deserialise<Amulet::Block>(state.cast<std::string>());
-                }
-            )
-        );
-
-        Block.def(
-            "__eq__",
-            [NotImplemented](const Amulet::Block& self, py::object other) -> py::object {
-                if (py::isinstance<Amulet::Block>(other)) {
-                    return py::cast(self == other.cast<Amulet::Block>());
-                }
-                return NotImplemented;
-            },
-            py::is_operator()
-        );
-        Block.def(
-            "__ne__",
-            [NotImplemented](const Amulet::Block& self, py::object other) -> py::object {
-                if (py::isinstance<Amulet::Block>(other)) {
-                    return py::cast(self != other.cast<Amulet::Block>());
-                }
-                return NotImplemented;
-            },
-            py::is_operator()
-        );
-        Block.def(py::self > py::self);
-        Block.def(py::self < py::self);
-        Block.def(py::self >= py::self);
-        Block.def(py::self <= py::self);
-
-        Block.def_static(
-            "from_java_blockstate",
-            &Amulet::Block::from_java_blockstate,
-            py::doc(
-                "Parse a Java format blockstate where values are all strings and populate a :class:`Block` class with the data.\n"
-                "\n"
-                ">>> stone = Block.from_java_blockstate(\"minecraft:stone\")\n"
-                ">>> water = Block.from_java_blockstate(\"minecraft:water[level=0]\")\n"
-                "\n"
-                ":param platform: The platform the block is defined in.\n"
-                ":param version: The version the block is defined in.\n"
-                ":param blockstate: The Java blockstate string to parse.\n"
-                ":return: A Block instance containing the state."
-            ),
-            py::arg("platform"),
-            py::arg("version"),
-            py::arg("blockstate")
-        );
-        Block.def_static(
-            "from_bedrock_blockstate",
-            &Amulet::Block::from_bedrock_blockstate,
-            py::doc(
-                "Parse a Bedrock format blockstate where values are all strings and populate a :class:`Block` class with the data.\n"
-                "\n"
-                ">>> stone = Block.from_bedrock_blockstate(\"minecraft:stone\")\n"
-                ">>> water = Block.from_bedrock_blockstate(\"minecraft:water[\"liquid_depth\"=0]\")\n"
-                "\n"
-                ":param platform: The platform the block is defined in.\n"
-                ":param version: The version the block is defined in.\n"
-                ":param blockstate: The Bedrock blockstate string to parse.\n"
-                ":return: A Block instance containing the state."
-            ),
-            py::arg("platform"),
-            py::arg("version"),
-            py::arg("blockstate")
-        );
-
-        Block.def_property_readonly(
-            "java_blockstate",
-            &Amulet::Block::java_blockstate,
-            py::doc(
-                "The Java blockstate string of this :class:`Block` object.\n"
-                "Note this will only contain properties with StringTag values.\n"
-                "\n"
-                ">>> stone = Block(\"java\", VersionNumber(3578), \"minecraft\", \"stone\")\n"
-                ">>> stone.java_blockstate\n"
-                "minecraft:stone\n"
-                ">>> water = Block(\"java\", VersionNumber(3578), \"minecraft\", \"water\", {\"level\": StringTag(\"0\")})\n"
-                ">>> water.java_blockstate\n"
-                "minecraft:water[level=0]\n"
-                "\n"
-                ":return: The blockstate string"
-            )
-        );
-        Block.def_property_readonly(
-            "bedrock_blockstate",
-            &Amulet::Block::bedrock_blockstate,
-            py::doc(
-                "The Bedrock blockstate string of this :class:`Block` object.\n"
-                "Converts the property values to the SNBT format to preserve type.\n"
-                "\n"
-                ">>> bell = Block(\n"
-                ">>>     \"java\", VersionNumber(3578),\n"
-                ">>>     \"minecraft\",\n"
-                ">>>     \"bell\",\n"
-                ">>>     {\n"
-                ">>>         \"attachment\":StringTag(\"standing\"),\n"
-                ">>>         \"direction\":IntTag(0),\n"
-                ">>>         \"toggle_bit\":ByteTag(0)\n"
-                ">>>     }\n"
-                ">>> )\n"
-                ">>> bell.bedrock_blockstate\n"
-                "minecraft:bell[\"attachment\"=\"standing\",\"direction\"=0,\"toggle_bit\"=false]\n"
-                "\n"
-                ":return: The SNBT blockstate string"
-            )
-        );
-
-    py::class_<Amulet::BlockStack, std::shared_ptr<Amulet::BlockStack>> BlockStack(block_module, "BlockStack",
-        "A stack of block objects.\n"
-        "\n"
-        "Java 1.13 added the concept of waterlogging blocks whereby some blocks have a `waterlogged` property.\n"
-        "Bedrock achieved the same behaviour by added a layering system which allows the second block to be any block.\n"
-        "\n"
-        "Amulet supports both implementations with a stack of one or more block objects similar to how Bedrock handles it.\n"
-        "Amulet places no restrictions on which blocks can be extra blocks.\n"
-        "Extra block may be discarded if the format does not support them.\n"
-        "\n"
-        "Create a waterlogged stone block.\n"
-        ">>> waterlogged_stone = BlockStack(\n"
-        ">>>     Block(\"java\", VersionNumber(3578), \"minecraft\", \"stone\"),\n"
-        ">>>     Block(\"java\", VersionNumber(3578), \"minecraft\", \"water\", {\"level\": StringTag(\"0\")})\n"
-        ">>> )\n"
-        "\n"
-        "Get a block at an index\n"
-        ">>> stone = waterlogged_stone[0]\n"
-        ">>> water = waterlogged_stone[1]\n"
-        "\n"
-        "Get the blocks as a list\n"
-        ">>> blocks = list(waterlogged_stone)"
-    );
-        options.disable_function_signatures();
-        BlockStack.def(
-            py::init(
-                [](std::shared_ptr<Amulet::Block> block, py::args py_extra_blocks){
-                    std::vector<std::shared_ptr<Amulet::Block>> blocks;
-                    blocks.push_back(block);
-                    auto extra_blocks = py_extra_blocks.cast<std::vector<std::shared_ptr<Amulet::Block>>>();
-                    blocks.insert(blocks.end(), extra_blocks.begin(), extra_blocks.end());
-                    return Amulet::BlockStack(blocks);
-                }
-            ),
-            py::doc("__init__(self, block: amulet.block.Block, *extra_blocks: amulet.block.Block) -> None")
-        );
-        options.enable_function_signatures();
-
-        BlockStack.def(
-            "__repr__",
-            [](const Amulet::BlockStack& self) {
-                const auto& blocks = self.get_blocks();
-                std::string repr = "BlockStack(";
-                for (size_t i = 0; i < blocks.size(); i++) {
-                    if (i != 0) {
-                        repr += ", ";
-                    }
-                    repr += py::repr(py::cast(blocks[i])).cast<std::string>();
-                }
-                repr += ")";
-                return repr;
-            }
-        );
-
-        BlockStack.def(
-            "__len__",
-            &Amulet::BlockStack::size
-        );
-
-        BlockStack.def(
-            "__getitem__",
-            [](const Amulet::BlockStack& self, Py_ssize_t index) {
-                if (index < 0) {
-                    index += self.size();
-                    if (index < 0) {
-                        throw py::index_error("");
-                    }
-                }
-                if (index >= self.size()) {
-                    throw py::index_error("");
-                }
-                return self[index];
-            }
-        );
-        BlockStack.def(
-            "__hash__",
-            [](const Amulet::BlockStack& self) {
-                return py::hash(
-                    py::tuple(py::cast(self.get_blocks()))
+            blockstate += "]";
+        }
+        return blockstate;
+    }
+    std::string Block::bedrock_blockstate() const {
+        std::string blockstate;
+        blockstate += get_namespace();
+        blockstate += ":";
+        blockstate += get_base_name();
+        const auto& properties = get_properties();
+        if (!properties.empty()) {
+            blockstate += "[";
+            auto keys = get_ordered_keys(properties);
+            bool is_first = true;
+            for (const std::string& key : keys) {
+                const auto& it = properties.find(key);
+                std::visit(
+                    [&is_first, &blockstate, &key](auto&& tag) {
+                        if (is_first) {
+                            is_first = false;
+                        }
+                        else {
+                            blockstate += ",";
+                        }
+                        blockstate += "\"";
+                        blockstate += key;
+                        blockstate += "\"=";
+                        using T = std::decay_t<decltype(tag)>;
+                        if constexpr (std::is_same_v<T, AmuletNBT::ByteTag>) {
+                            if (tag == 0) {
+                                blockstate += "false";
+                            } else if (tag == 1) {
+                                blockstate += "true";
+                            }
+                            else {
+                                blockstate += AmuletNBT::write_snbt(tag);
+                            }
+                        }
+                        else if constexpr (std::is_same_v<T, AmuletNBT::StringTag>) {
+                            blockstate += "\"";
+                            blockstate += tag;
+                            blockstate += "\"";
+                        }
+                        else {
+                            blockstate += AmuletNBT::write_snbt(tag);
+                        }
+                    },
+                    it->second
                 );
             }
-        );
+            blockstate += "]";
+        }
+        return blockstate;
+    }
 
-        Amulet::collections_abc::Sequence(BlockStack);
+    template <
+        void(*namespace_validator)(const size_t&, const std::string&),
+        void(*base_name_validator)(const size_t&, const std::string&),
+        std::string(*capture_key)(const std::string&, size_t&),
+        PropertyValueType(*capture_value)(const std::string&, size_t&)
+    >
+    std::shared_ptr<Block> parse_blockstate(
+        const PlatformType& platform,
+        std::shared_ptr<VersionNumber> version,
+        const std::string& blockstate
+    ) {
+        // This is more lenient than the game parser.
+        // It may parse formats that the game parsers wouldn't parse but it should support everything they do parse.
+        
+        // Find the start of the property section and the end of the resource identifier.
+        size_t property_start = blockstate.find("[");
+        if (property_start > blockstate.size()) {
+            property_start = blockstate.size();
+        }
 
-        BlockStack.def(
-            "__eq__",
-            [NotImplemented](const Amulet::BlockStack& self, py::object other) -> py::object {
-                if (py::isinstance<Amulet::BlockStack>(other)) {
-                    return py::cast(self == other.cast<Amulet::BlockStack>());
-                }
-                return NotImplemented;
-            },
-            py::is_operator()
-        );
-        BlockStack.def(
-            "__ne__",
-            [NotImplemented](const Amulet::BlockStack& self, py::object other) -> py::object {
-                if (py::isinstance<Amulet::BlockStack>(other)) {
-                    return py::cast(self != other.cast<Amulet::BlockStack>());
-                }
-                return NotImplemented;
-            },
-            py::is_operator()
-        );
-        BlockStack.def(py::self > py::self);
-        BlockStack.def(py::self < py::self);
-        BlockStack.def(py::self >= py::self);
-        BlockStack.def(py::self <= py::self);
+        size_t colon_pos = blockstate.find(":");
+        std::string namespace_;
+        std::string base_name;
+        if (colon_pos < property_start) {
+            // namespaced name
+            if (colon_pos == 0) { throw std::invalid_argument("namespace is empty"); }
+            namespace_ = std::string(blockstate.begin(), blockstate.begin() + colon_pos);
+            if (colon_pos + 1 == property_start) { throw std::invalid_argument("base name is empty"); }
+            base_name = std::string(blockstate.begin() + colon_pos + 1, blockstate.begin() + property_start);
+            namespace_validator(0, namespace_);
+            base_name_validator(colon_pos + 1, base_name);
+        }
+        else {
+            // only base name
+            namespace_ = "minecraft";
+            if (property_start == 0) { throw std::invalid_argument("base name is empty"); }
+            base_name = std::string(blockstate.begin(), blockstate.begin() + property_start);
+            base_name_validator(0, base_name);
+        }
 
-        BlockStack.def_property_readonly(
-            "base_block",
-            [](const Amulet::BlockStack& self) -> std::shared_ptr<Amulet::Block> {
-                return self.get_blocks()[0];
-            },
-            py::doc(
-                "The first block in the stack.\n"
-                "\n"
-                ">>> waterlogged_stone = BlockStack(\n"
-                ">>>     Block(\"java\", VersionNumber(3578), \"minecraft\", \"stone\"),\n"
-                ">>>     Block(\"java\", VersionNumber(3578), \"minecraft\", \"water\", {\"level\": StringTag(\"0\")})\n"
-                ">>> )\n"
-                ">>> waterlogged_stone.base_block\n"
-                "Block(\"java\", VersionNumber(3578), \"minecraft\", \"stone\")\n"
-                "\n"
-                ":return: A Block object"
-            )
-        );
-        BlockStack.def_property_readonly(
-            "extra_blocks",
-            [](const Amulet::BlockStack& self) -> py::tuple {
-                const auto& blocks = self.get_blocks();
-                py::tuple py_blocks(blocks.size() - 1);
-                for (size_t i = 1; i < blocks.size(); i++) {
-                    py_blocks[i - 1] = py::cast(blocks[i]);
+        if (property_start < blockstate.size()) {
+            // has properties
+            std::map<std::string, PropertyValueType> properties;
+            size_t property_pos = property_start + 1;
+            if (property_pos < blockstate.size() && blockstate[property_pos] == ']') {
+                // []
+                property_pos++;
+                if (property_pos < blockstate.size()) {
+                    throw std::invalid_argument("Extra data after ]");
                 }
-                return py_blocks;
-            },
-            py::doc(
-                "The extra blocks in the stack.\n"
-                "\n"
-                ">>> waterlogged_stone = BlockStack(\n"
-                ">>>     Block(\"java\", VersionNumber(3578), \"minecraft\", \"stone\"),\n"
-                ">>>     Block(\"java\", VersionNumber(3578), \"minecraft\", \"water\", {\"level\": StringTag(\"0\")})\n"
-                ">>> )\n"
-                ">>> waterlogged_stone.extra_blocks\n"
-                "(Block(\"java\", VersionNumber(3578), \"minecraft\", \"water\", {\"level\": StringTag(\"0\")}),)\n"
-                "\n"
-                ":return: A tuple of :class:`Block` objects"
-            )
+                return std::make_shared<Block>(platform, version, namespace_, base_name, properties);
+            }
+            for (;;) {
+                std::string key = capture_key(blockstate, property_pos);
+
+                if (property_pos >= blockstate.size() || blockstate[property_pos] != '=') {
+                    throw std::invalid_argument("Expected = at position " + std::to_string(property_pos));
+                }
+                property_pos++;
+
+                properties[key] = capture_value(blockstate, property_pos);
+
+                if (property_pos >= blockstate.size()) {
+                    throw std::invalid_argument("Expected , or ] at position " + std::to_string(property_pos));
+                }
+                switch (blockstate[property_pos]) {
+                    case ',':
+                        break;
+                    case ']':
+                        property_pos++;
+                        if (property_pos < blockstate.size()) {
+                            throw std::invalid_argument("Extra data after ]");
+                        }
+                        return std::make_shared<Block>(platform, version, namespace_, base_name, properties);
+                    default:
+                        throw std::invalid_argument("Expected , or ] at position " + std::to_string(property_pos));
+                }
+                property_pos++;
+            }
+        }
+        else {
+            // does not have properties
+            return std::make_shared<Block>(platform, version, namespace_, base_name);
+        }
+    }
+
+    auto is_alnum = [](const char& chr) {
+        return (
+            ('0' <= chr && chr <= '9') ||
+            ('a' <= (chr | 32) && (chr | 32) <= 'z')
         );
+    };
+    
+    inline void validate_java_namespace(const size_t& offset, const std::string& namespace_) {
+        for (size_t i = 0; i < namespace_.size(); i++) {
+            const auto& chr = namespace_[i];
+            if (!(is_alnum(chr) || chr == '_' || chr == '-' || chr == '.')){
+                throw std::invalid_argument("Invalid namespace character at position " + std::to_string(offset + i));
+            }
+        }
+    }
+    inline void validate_java_base_name(const size_t& offset, const std::string& base_name) {
+        for (size_t i = 0; i < base_name.size(); i++) {
+            const auto& chr = base_name[i];
+            if (!(is_alnum(chr) || chr == '_' || chr == '-' || chr == '.' || chr == '/')) {
+                throw std::invalid_argument("Invalid base name character at position " + std::to_string(offset + i));
+            }
+        }
+    }
+    // key=str
+    inline std::string capture_java_blockstate_property_key(const std::string& blockstate, size_t& offset) {
+        size_t key_start = offset;
+        while (offset < blockstate.size()) {
+            const auto& chr = blockstate[offset];
+            if (!(is_alnum(chr) || chr == '_')) {
+                break;
+            }
+            offset++;
+        }
+        if (key_start == offset) {
+            throw std::invalid_argument("Expected a key or ] at position " + std::to_string(offset));
+        }
+        return std::string(blockstate.begin() + key_start, blockstate.begin() + offset);
+    }
+    inline PropertyValueType capture_java_blockstate_property_value(const std::string& blockstate, size_t& offset) {
+        size_t value_start = offset;
+        while (offset < blockstate.size()) {
+            const auto& chr = blockstate[offset];
+            if (!(is_alnum(chr) || chr == '_')) {
+                break;
+            }
+            offset++;
+        }
+        if (value_start == offset) {
+            throw std::invalid_argument("Expected a value at position " + std::to_string(offset));
+        }
+        return AmuletNBT::StringTag(blockstate.begin() + value_start, blockstate.begin() + offset);
+    }
+
+    // I think Bedrock resource identifiers are not limited to a-z0-9_-.
+    inline void validate_bedrock_namespace(const size_t& offset, const std::string& namespace_) {
+        for (size_t i = 0; i < namespace_.size(); i++) {
+            const auto& chr = namespace_[i];
+            if (!(is_alnum(chr) || chr == '_' || chr == '-' || chr == '.')) {
+                throw std::invalid_argument("Invalid namespace character at position " + std::to_string(offset + i));
+            }
+        }
+    }
+    inline void validate_bedrock_base_name(const size_t& offset, const std::string& base_name) {
+        for (size_t i = 0; i < base_name.size(); i++) {
+            const auto& chr = base_name[i];
+            if (!(is_alnum(chr) || chr == '_' || chr == '-' || chr == '.')) {
+                throw std::invalid_argument("Invalid base name character at position " + std::to_string(offset + i));
+            }
+        }
+    }
+    // "key"=false
+    // "key"=true
+    // "key"=nbt
+    inline std::string capture_bedrock_blockstate_property_key(const std::string& blockstate, size_t& offset) {
+        // Opening "
+        if (offset >= blockstate.size() || blockstate[offset] != '"') {
+            throw std::invalid_argument("Expected \" at position " + std::to_string(offset));
+        }
+        offset++;
+
+        // Key
+        size_t key_start = offset;
+        while (offset < blockstate.size()) {
+            const auto& chr = blockstate[offset];
+            if (!(is_alnum(chr) || chr == '_')) {
+                break;
+            }
+            offset++;
+        }
+        if (key_start == offset) {
+            throw std::invalid_argument("Expected a key or ] at position " + std::to_string(offset));
+        }
+        size_t key_end = offset;
+
+        // Closing "
+        if (offset >= blockstate.size() || blockstate[offset] != '"') {
+            throw std::invalid_argument("Expected \" at position " + std::to_string(offset));
+        }
+        offset++;
+
+        return std::string(blockstate.begin() + key_start, blockstate.begin() + key_end);
+    }
+    inline PropertyValueType capture_bedrock_blockstate_property_value(const std::string& blockstate, size_t& offset) {
+        size_t value_start = offset;
+        size_t value_end = std::min(
+            blockstate.find(",", value_start),
+            blockstate.find("]", value_start)
+        );
+        if (value_end >= blockstate.size()) {
+            throw std::invalid_argument("Expected , or ] after position " + std::to_string(offset));
+        }
+        offset = value_end;
+        AmuletNBT::TagNode node;
+        try {
+            node = AmuletNBT::read_snbt(std::string(blockstate.begin() + value_start, blockstate.begin() + value_end));
+        }
+        catch (const std::exception& e) {
+            throw std::invalid_argument("Failed parsing SNBT at position " + std::to_string(value_start) + ". " + e.what());
+        }
+        return std::visit(
+            [](auto&& tag) -> PropertyValueType {
+                using T = std::decay_t<decltype(tag)>;
+                if constexpr (
+                    std::is_same_v<T, AmuletNBT::ByteTag> ||
+                    std::is_same_v<T, AmuletNBT::ShortTag> ||
+                    std::is_same_v<T, AmuletNBT::IntTag> ||
+                    std::is_same_v<T, AmuletNBT::LongTag> ||
+                    std::is_same_v<T, AmuletNBT::StringTag>
+                ) {
+                    return tag;
+                }
+                else {
+                    throw std::invalid_argument("Values must be byte, short, int, long or string tags.");
+                }
+            },
+            node
+        );
+    }
+
+    std::shared_ptr<Block> Block::from_java_blockstate(const PlatformType& platform, std::shared_ptr<VersionNumber> version, const std::string& blockstate) {
+        return parse_blockstate<
+            validate_java_namespace,
+            validate_java_base_name,
+            capture_java_blockstate_property_key,
+            capture_java_blockstate_property_value
+        >(
+            platform, 
+            version, 
+            blockstate
+        );
+    }
+    std::shared_ptr<Block> Block::from_bedrock_blockstate(const PlatformType& platform, std::shared_ptr<VersionNumber> version, const std::string& blockstate) {
+        return parse_blockstate<
+            validate_bedrock_namespace,
+            validate_bedrock_base_name,
+            capture_bedrock_blockstate_property_key,
+            capture_bedrock_blockstate_property_value
+        >(
+            platform, 
+            version, 
+            blockstate
+        );
+    }
 }

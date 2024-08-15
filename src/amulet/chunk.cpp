@@ -1,18 +1,13 @@
+#include <string>
+#include <unordered_map>
+#include <optional>
+#include <functional>
+#include <memory>
+
 #include <amulet/chunk.hpp>
 
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-#include <pybind11/operators.h>
-
-
-namespace py = pybind11;
-
-void init_chunk(py::module m) {
-    py::class_<Amulet::Chunk, std::shared_ptr<Amulet::Chunk>> Chunk(m, "Chunk",
-        "A base class for all chunk classes."
-    );
-        Chunk.def_property_readonly(
-            "chunk_id",
-            &Amulet::Chunk::get_chunk_id
-        );
+namespace Amulet {
+	namespace detail {
+		std::unordered_map<std::string, std::function<std::shared_ptr<Chunk>()>> chunk_constructors;
+	}
 }

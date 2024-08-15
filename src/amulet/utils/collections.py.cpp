@@ -2,7 +2,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
-#include <amulet_py/collections_abc.hpp>
+#include <amulet/utils/collections.hpp>
 
 namespace py = pybind11;
 
