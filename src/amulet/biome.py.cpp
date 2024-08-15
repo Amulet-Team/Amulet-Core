@@ -17,9 +17,7 @@ void init_biome(py::module biome_module) {
 
     py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");
 
-    py::object PlatformVersionContainer = py::module::import("amulet.version").attr("PlatformVersionContainer");
-
-    py::class_<Amulet::Biome, std::shared_ptr<Amulet::Biome>> Biome(biome_module, "Biome", PlatformVersionContainer,
+    py::class_<Amulet::Biome, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::Biome>> Biome(biome_module, "Biome",
         "A class to manage the state of a biome.\n"
         "\n"
         "It is an immutable object that contains the platform, version, namespace and base name.\n"

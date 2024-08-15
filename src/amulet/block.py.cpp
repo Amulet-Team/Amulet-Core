@@ -18,7 +18,6 @@ void init_block(py::module block_module) {
     py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");
     py::object PySorted = py::module::import("builtins").attr("sorted");
 
-    py::object PlatformVersionContainer = py::module::import("amulet.version").attr("PlatformVersionContainer");
     // Required for docstrings
     py::object amulet_nbt = py::module::import("amulet_nbt");
     py::object ByteTag = amulet_nbt.attr("ByteTag");
@@ -29,7 +28,7 @@ void init_block(py::module block_module) {
 
     block_module.attr("PropertyValueType") = ByteTag | ShortTag | IntTag | LongTag | StringTag;
 
-    py::class_<Amulet::Block, std::shared_ptr<Amulet::Block>> Block(block_module, "Block", PlatformVersionContainer,
+    py::class_<Amulet::Block, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::Block>> Block(block_module, "Block",
         "A class to manage the state of a block.\n"
         "\n"
         "It is an immutable object that contains the platform, version, namespace, base name and properties.\n"

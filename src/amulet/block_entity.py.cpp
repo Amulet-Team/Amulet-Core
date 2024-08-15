@@ -16,12 +16,10 @@ namespace py = pybind11;
 void init_block_entity(py::module block_entity_module) {
     py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");
 
-    py::object PlatformVersionContainer = py::module::import("amulet.version").attr("PlatformVersionContainer");
     // Required for docstrings
-    py::object amulet_nbt = py::module::import("amulet_nbt");
-    py::object NamedTag = amulet_nbt.attr("NamedTag");
+    py::module::import("amulet_nbt");
 
-    py::class_<Amulet::BlockEntity, std::shared_ptr<Amulet::BlockEntity>> BlockEntity(block_entity_module, "BlockEntity", PlatformVersionContainer,
+    py::class_<Amulet::BlockEntity, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::BlockEntity>> BlockEntity(block_entity_module, "BlockEntity",
         "A class to contain all the data to define a BlockEntity."
     );
         BlockEntity.def(
