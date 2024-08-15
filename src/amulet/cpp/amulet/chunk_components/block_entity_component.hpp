@@ -5,6 +5,7 @@
 #include <optional>
 #include <cstdint>
 #include <memory>
+#include <map>
 
 #include <amulet/version.hpp>
 #include <amulet/block_entity.hpp>
@@ -15,7 +16,7 @@ namespace Amulet {
 	private:
 		size_t _x_size;
 		size_t _z_size;
-		std::unordered_map<
+		std::map<
 			std::tuple<std::int64_t, std::int64_t, std::int64_t>, 
 			std::shared_ptr<BlockEntity>
 		> _block_entities;
@@ -34,7 +35,7 @@ namespace Amulet {
 		size_t get_x_size() const { return _x_size; }
 		size_t get_z_size() const { return _z_size; }
 
-		const std::unordered_map<
+		const std::map<
 			std::tuple<std::int64_t, std::int64_t, std::int64_t>,
 			std::shared_ptr<BlockEntity>
 		>& get_block_entities() const {
