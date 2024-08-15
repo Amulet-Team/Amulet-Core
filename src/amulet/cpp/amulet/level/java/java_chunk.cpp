@@ -16,6 +16,10 @@ namespace Amulet {
 	const std::string JavaChunk2203::ChunkID = "Amulet::JavaChunk2203";
 	
 	std::string JavaChunkNA::chunk_id() { return ChunkID; }
+	std::string JavaChunk0::chunk_id() { return ChunkID; }
+	std::string JavaChunk1444::chunk_id() { return ChunkID; }
+	std::string JavaChunk1466::chunk_id() { return ChunkID; }
+	std::string JavaChunk2203::chunk_id() { return ChunkID; }
 	
 	JavaChunkNA::JavaChunkNA(
 		std::shared_ptr<BlockStack> default_block,
