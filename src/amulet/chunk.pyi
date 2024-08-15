@@ -7,4 +7,5 @@ class Chunk:
     A base class for all chunk classes.
     """
 
+    @property
     def chunk_id(self) -> str: ...

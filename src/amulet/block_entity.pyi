@@ -1,0 +1,75 @@
+from __future__ import annotations
+import amulet.version
+import amulet_nbt
+import typing
+
+__all__ = ["BlockEntity"]
+
+class BlockEntity(amulet.version.PlatformVersionContainer):
+    """
+    A class to contain all the data to define a BlockEntity.
+    """
+
+    __hash__: typing.ClassVar[None] = None
+    def __eq__(self, arg0: typing.Any) -> typing.Any: ...
+    def __getstate__(self) -> bytes: ...
+    def __init__(
+        self,
+        platform: str,
+        version: amulet.version.VersionNumber,
+        namespace: str,
+        base_name: str,
+        nbt: amulet_nbt.NamedTag,
+    ) -> None: ...
+    def __ne__(self, arg0: typing.Any) -> typing.Any: ...
+    def __repr__(self) -> str: ...
+    def __setstate__(self, arg0: bytes) -> None: ...
+    @property
+    def base_name(self) -> str:
+        """
+        The base name of the block entity represented by the :class:`BlockEntity` object.
+
+        >>> block_entity: BlockEntity
+        >>> block_entity.base_name
+
+        :return: The base name of the block entity
+        """
+
+    @base_name.setter
+    def base_name(self, arg1: str) -> None: ...
+    @property
+    def namespace(self) -> str:
+        """
+        The namespace of the block entity represented by the :class:`BlockEntity` object.
+
+        >>> block_entity: BlockEntity
+        >>> block_entity.namespace
+
+        :return: The namespace of the block entity
+        """
+
+    @namespace.setter
+    def namespace(self, arg1: str) -> None: ...
+    @property
+    def namespaced_name(self) -> str:
+        """
+        The namespace:base_name of the block entity represented by the :class:`BlockEntity` object.
+
+        >>> block_entity: BlockEntity
+        >>> block_entity.namespaced_name
+
+        :return: The namespace:base_name of the block entity
+        """
+
+    @property
+    def properties(self) -> amulet_nbt.NamedTag:
+        """
+        The nbt data for the block entity.
+        >>> block_entity: BlockEntity
+        >>> block_entity.nbt
+
+        :return: The NamedTag of the block entity
+        """
+
+    @properties.setter
+    def properties(self, arg1: amulet_nbt.NamedTag) -> None: ...
