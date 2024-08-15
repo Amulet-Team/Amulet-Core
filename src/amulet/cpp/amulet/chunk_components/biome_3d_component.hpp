@@ -3,6 +3,8 @@
 #include <memory>
 #include <tuple>
 #include <optional>
+#include <cstdint>
+#include <memory>
 
 #include <amulet/version.hpp>
 #include <amulet/biome.hpp>
