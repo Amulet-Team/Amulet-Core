@@ -25,7 +25,7 @@ namespace Amulet {
 	public:
 		static const std::string ChunkID;
 
-		std::string chunk_id();
+		std::string get_chunk_id();
 
 		using ChunkComponentHelper::ChunkComponentHelper;
 		JavaChunkNA(
@@ -49,7 +49,7 @@ namespace Amulet {
 	public:
 		static const std::string ChunkID;
 
-		std::string chunk_id();
+		std::string get_chunk_id();
 
 		using ChunkComponentHelper::ChunkComponentHelper;
 		JavaChunk0(
@@ -73,7 +73,7 @@ namespace Amulet {
 	public:
 		static const std::string ChunkID;
 
-		std::string chunk_id();
+		std::string get_chunk_id();
 
 		using ChunkComponentHelper::ChunkComponentHelper;
 		JavaChunk1444(
@@ -97,7 +97,7 @@ namespace Amulet {
 	public:
 		static const std::string ChunkID;
 
-		std::string chunk_id();
+		std::string get_chunk_id();
 
 		using ChunkComponentHelper::ChunkComponentHelper;
 		JavaChunk1466(
@@ -121,7 +121,7 @@ namespace Amulet {
 	public:
 		static const std::string ChunkID;
 
-		std::string chunk_id();
+		std::string get_chunk_id();
 
 		using ChunkComponentHelper::ChunkComponentHelper;
 		JavaChunk2203(

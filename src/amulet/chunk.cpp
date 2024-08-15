@@ -11,8 +11,8 @@ void init_chunk(py::module m) {
     py::class_<Amulet::Chunk, std::shared_ptr<Amulet::Chunk>> Chunk(m, "Chunk",
         "A base class for all chunk classes."
     );
-        Chunk.def(
+        Chunk.def_property_readonly(
             "chunk_id",
-            &Amulet::Chunk::chunk_id
+            &Amulet::Chunk::get_chunk_id
         );
 }

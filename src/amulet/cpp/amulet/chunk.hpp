@@ -14,7 +14,7 @@ namespace Amulet {
 	class Chunk {
 	public:
 		virtual ~Chunk() {}
-		virtual std::string chunk_id() = 0;
+		virtual std::string get_chunk_id() = 0;
 	private:
 		friend class ChunkHandle;
 		virtual std::vector<std::string> get_component_ids() = 0;
