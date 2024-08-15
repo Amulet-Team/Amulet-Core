@@ -77,7 +77,7 @@ void init_block_entity(py::module block_entity_module) {
             )
         );
         BlockEntity.def_property(
-            "properties",
+            "nbt",
             &Amulet::BlockEntity::get_nbt,
             &Amulet::BlockEntity::set_nbt,
             py::doc(
