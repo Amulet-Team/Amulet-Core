@@ -443,52 +443,33 @@ def main() -> None:
         source_files=get_files(root_dir=amulet_nbt.get_source(), ext="cpp"),
         include_dirs=[amulet_nbt.get_include()],
     )
-    cpp_src_dir = os.path.join(SrcDir, "amulet", "cpp")
-    amulet_project = ProjectData(
-        name="amulet_core",
-        compile_mode=CompileMode.StaticLibrary,
-        include_files=get_files(
-            root_dir=cpp_src_dir, ext="hpp", root_dir_suffix="amulet"
-        ),
-        source_files=get_files(
-            root_dir=cpp_src_dir, ext="cpp", root_dir_suffix="amulet"
-        ),
-        include_dirs=[amulet_nbt.get_include(), os.path.join(SrcDir, "amulet", "cpp")],
-        dependencies=[amulet_nbt_project],
-    )
     amulet_py_project = ProjectData(
         name="__init__",
         compile_mode=CompileMode.PythonExtension,
         include_files=get_files(
-            root_dir=cpp_src_dir, ext="hpp", root_dir_suffix="amulet_py"
+            root_dir=SrcDir, ext="hpp", root_dir_suffix="amulet"
         ),
         source_files=get_files(
-            root_dir=cpp_src_dir, ext="cpp", root_dir_suffix="amulet_py"
-        )
-        + get_files(
             root_dir=SrcDir,
             ext="cpp",
             root_dir_suffix="amulet",
-            exclude_dirs=[cpp_src_dir],
         ),
         include_dirs=[
             PythonIncludeDir,
             pybind11.get_include(),
             amulet_nbt.get_include(),
-            os.path.join(SrcDir, "amulet", "cpp"),
+            SrcDir,
         ],
         library_dirs=[
             PythonLibraryDir,
         ],
         dependencies=[
             amulet_nbt_project,
-            amulet_project,
         ],
         py_package="amulet",
     )
     projects = [
         amulet_nbt_project,
-        amulet_project,
         amulet_py_project,
     ]
 
