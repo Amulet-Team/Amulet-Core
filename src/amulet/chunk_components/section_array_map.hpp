@@ -100,20 +100,20 @@ namespace Amulet {
 
 		size_t get_size() const { return _arrays.size(); }
 
-		bool contains_section(std::uint64_t cy) const {
+		bool contains_section(std::int64_t cy) const {
 			return _arrays.contains(cy);
 		}
 
-		std::shared_ptr<IndexArray3D> get_section(std::uint64_t cy) const {
+		std::shared_ptr<IndexArray3D> get_section(std::int64_t cy) const {
 			return _arrays.at(cy);
 		}
 
-		void set_section(std::uint64_t cy, std::shared_ptr<IndexArray3D> section) {
+		void set_section(std::int64_t cy, std::shared_ptr<IndexArray3D> section) {
 			detail::validate_array_shape(section, _array_shape);
 			_arrays[cy] = section;
 		}
 
-		void populate_section(std::uint64_t cy) {
+		void populate_section(std::int64_t cy) {
 			if (_arrays.contains(cy)) {
 				return;
 			}
@@ -128,7 +128,7 @@ namespace Amulet {
 				}, _default_array);
 		}
 
-		void del_section(std::uint64_t cy) {
+		void del_section(std::int64_t cy) {
 			_arrays.erase(cy);
 		}
 	};
