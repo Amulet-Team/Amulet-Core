@@ -1,8 +1,19 @@
 from __future__ import annotations
+import collections.abc
 import typing
 
-__all__ = ["PySequenceIterator"]
+__all__ = ["PyIterator", "PySequenceIterator"]
+
+class PyIterator:
+    @classmethod
+    def __class_getitem__(cls, arg: type[_T]) -> collections.abc.Iterator[_T]: ...
+    def __iter__(self) -> PyIterator: ...
+    def __next__(self) -> typing.Any: ...
 
 class PySequenceIterator:
+    @classmethod
+    def __class_getitem__(cls, arg: type[_T]) -> collections.abc.Iterator[_T]: ...
     def __iter__(self) -> PySequenceIterator: ...
     def __next__(self) -> typing.Any: ...
+
+_T: typing.TypeVar  # value = ~T

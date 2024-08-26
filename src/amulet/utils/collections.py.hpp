@@ -177,5 +177,12 @@ namespace collections_abc {
 		Sequence_register(cls);
 	}
 
+	class PyIterator {
+	public:
+		virtual ~PyIterator() = 0;
+		virtual bool has_next() = 0;
+		virtual py::object next() = 0;
+	};
+
 }
 }
