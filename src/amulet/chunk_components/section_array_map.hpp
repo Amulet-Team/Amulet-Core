@@ -15,12 +15,12 @@
 namespace Amulet {
 	namespace detail {
 		template <typename T>
-		inline std::shared_ptr<T*> new_shared_buffer(size_t count) {
+		inline std::unique_ptr<T*> new_buffer(size_t count) {
 			T* buffer = (T*) std::malloc(sizeof(T) * count);
 			if (buffer == nullptr) {
 				throw std::runtime_error("Could not allocate buffer");
 			}
-			return std::make_shared<T*>(buffer);
+			return std::make_unique<T*>(buffer);
 		}
 	}
 
@@ -30,12 +30,12 @@ namespace Amulet {
 	private:
 		SectionShape _shape;
 		size_t _size;
-		std::shared_ptr<std::uint32_t*> _buffer;
+		std::unique_ptr<std::uint32_t*> _buffer;
 	public:
 		IndexArray3D(const SectionShape& shape) :
 			_shape(shape),
 			_size(std::get<0>(shape)* std::get<1>(shape)* std::get<2>(shape)),
-			_buffer(detail::new_shared_buffer<std::uint32_t>(_size))
+			_buffer(detail::new_buffer<std::uint32_t>(_size))
 		{}
 		IndexArray3D(const SectionShape& shape, std::uint32_t value) :
 			IndexArray3D(shape) {
@@ -44,13 +44,13 @@ namespace Amulet {
 		IndexArray3D(const IndexArray3D& other):
 			IndexArray3D(other.get_shape())
 		{
-			std::memcpy(*_buffer, *other._buffer, other.get_size());
+			std::memcpy(*_buffer, *other._buffer, sizeof(std::uint32_t) * other.get_size());
 		}
 		const SectionShape& get_shape() const {
 			return _shape;
 		}
 		const size_t& get_size() const { return _size; }
-		std::shared_ptr<std::uint32_t*> get_buffer() const { return _buffer; }
+		std::uint32_t* get_buffer() const { return *_buffer; }
 	};
 
 	namespace detail {
