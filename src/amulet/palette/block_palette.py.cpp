@@ -9,7 +9,7 @@
 
 #include <amulet/block.hpp>
 #include <amulet/palette/block_palette.hpp>
-#include <amulet/utils/collections.hpp>
+#include <amulet/utils/collections.py.hpp>
 
 namespace py = pybind11;
 

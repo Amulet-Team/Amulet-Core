@@ -7,14 +7,12 @@
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
 #include <pybind11/typing.h>
-#include <amulet/utils/collections.hpp>
+#include <amulet/utils/collections.py.hpp>
 
 
 namespace py = pybind11;
 
 void init_biome(py::module biome_module) {
-    py::options options;
-
     py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");
 
     py::class_<Amulet::Biome, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::Biome>> Biome(biome_module, "Biome",
