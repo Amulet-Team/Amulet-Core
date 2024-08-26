@@ -62,7 +62,7 @@ class BlockEntity(amulet.version.PlatformVersionContainer):
         """
 
     @property
-    def properties(self) -> amulet_nbt.NamedTag:
+    def nbt(self) -> amulet_nbt.NamedTag:
         """
         The nbt data for the block entity.
         >>> block_entity: BlockEntity
@@ -71,5 +71,5 @@ class BlockEntity(amulet.version.PlatformVersionContainer):
         :return: The NamedTag of the block entity
         """
 
-    @properties.setter
-    def properties(self, arg1: amulet_nbt.NamedTag) -> None: ...
+    @nbt.setter
+    def nbt(self, arg1: amulet_nbt.NamedTag) -> None: ...
