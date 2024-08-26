@@ -446,9 +446,7 @@ def main() -> None:
     amulet_py_project = ProjectData(
         name="__init__",
         compile_mode=CompileMode.PythonExtension,
-        include_files=get_files(
-            root_dir=SrcDir, ext="hpp", root_dir_suffix="amulet"
-        ),
+        include_files=get_files(root_dir=SrcDir, ext="hpp", root_dir_suffix="amulet"),
         source_files=get_files(
             root_dir=SrcDir,
             ext="cpp",

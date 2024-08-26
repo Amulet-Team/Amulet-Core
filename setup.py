@@ -51,5 +51,5 @@ setup(
             define_macros=[("PYBIND11_DETAILED_ERROR_MESSAGES", None)],
             extra_compile_args=CompileArgs,
         ),
-    ]
+    ],
 )
