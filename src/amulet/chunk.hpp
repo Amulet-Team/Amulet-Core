@@ -7,10 +7,20 @@
 #include <memory>
 #include <stdexcept>
 
+// Requirements:
+// Split chunk data into components that are orthogonal to each other.
+// create a chunk with all components default initialised.
+// reconstruct a chunk from a subset of its components.
+// reconstruct a chunk with all components.
+// query if a chunk has a component. (isinstance/is_base_of/dynamic_cast or has_component)
+// get a component. (method/property or get_component)
+// set and validate a component. (method/property or set_component)
+// serialise loaded components.
 
 namespace Amulet {
 	typedef std::unordered_map<std::string, std::optional<std::string>> SerialisedComponents;
 
+    // The abstract chunk class
 	class Chunk {
 	public:
 		virtual ~Chunk() {}
@@ -26,6 +36,8 @@ namespace Amulet {
 		extern std::unordered_map<std::string, std::function<std::shared_ptr<Chunk>()>> chunk_constructors;
 	}
 
+    // An object that concrete chunk classes must be registered with.
+    // This enables reconstructing the chunk class.
 	template <typename ChunkT>
 	class ChunkNullConstructor {
 	public:
@@ -42,6 +54,7 @@ namespace Amulet {
 		};
 	};
 
+    // A utility class to simplify component serialisation and deserialisation.
 	template <class ... Components>
 	class ChunkComponentHelper: public Chunk, public Components... {
 	public:
