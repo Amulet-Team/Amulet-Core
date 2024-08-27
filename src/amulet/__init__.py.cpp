@@ -9,6 +9,7 @@ void init_biome(py::module);
 void init_palette(py::module);
 void init_chunk(py::module);
 void init_chunk_components(py::module);
+void init_level(py::module);
 
 static bool init_run = false;
 
@@ -39,6 +40,9 @@ void init_amulet(py::module amulet){
 
     auto chunk_components_module = amulet.def_submodule("chunk_components");
     init_chunk_components(chunk_components_module);
+
+    auto level_module = amulet.def_submodule("level");
+    init_level(level_module);
 }
 
 PYBIND11_MODULE(__init__, m) { init_amulet(m); }
