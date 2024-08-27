@@ -1,5 +1,5 @@
 from __future__ import annotations
-import amulet.utils.collections
+import amulet.collections
 import numpy
 import typing
 import typing_extensions
@@ -47,7 +47,7 @@ class SectionArrayMap:
         array_shape: tuple[int, int, int],
         default_array: int | IndexArray3D | typing_extensions.Buffer,
     ) -> None: ...
-    def __iter__(self) -> amulet.utils.collections.PyIterator: ...
+    def __iter__(self) -> amulet.collections.Iterator: ...
     def __len__(self) -> int: ...
     def __setitem__(
         self, arg0: int, arg1: IndexArray3D | typing_extensions.Buffer

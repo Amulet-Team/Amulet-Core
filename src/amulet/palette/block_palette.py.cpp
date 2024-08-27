@@ -9,7 +9,7 @@
 
 #include <amulet/block.hpp>
 #include <amulet/palette/block_palette.hpp>
-#include <amulet/utils/collections.py.hpp>
+#include <amulet/collections/collections.py.hpp>
 
 namespace py = pybind11;
 
@@ -53,7 +53,7 @@ void init_block_palette(py::module block_palette_module) {
 				return self.index_to_block_stack(index);
 			}
 		);
-		Amulet::collections_abc::Sequence_getitem_slice(BlockPalette);
+		Amulet::collections::Sequence_getitem_slice(BlockPalette);
 		//Amulet::collections_abc::Sequence_contains(BlockPalette);
 		BlockPalette.def(
 			"__contains__",
@@ -67,11 +67,11 @@ void init_block_palette(py::module block_palette_module) {
 				return self.contains_block(item);
 			}
 		);
-		Amulet::collections_abc::Sequence_iter(BlockPalette);
-		Amulet::collections_abc::Sequence_reversed(BlockPalette);
-		Amulet::collections_abc::Sequence_index(BlockPalette);
-		Amulet::collections_abc::Sequence_count(BlockPalette);
-		Amulet::collections_abc::Sequence_register(BlockPalette);
+		Amulet::collections::Sequence_iter(BlockPalette);
+		Amulet::collections::Sequence_reversed(BlockPalette);
+		Amulet::collections::Sequence_index(BlockPalette);
+		Amulet::collections::Sequence_count(BlockPalette);
+		Amulet::collections::Sequence_register(BlockPalette);
 
 		BlockPalette.def(
 			"index_to_block_stack",

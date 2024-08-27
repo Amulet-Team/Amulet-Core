@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 namespace py = pybind11;
 
+void init_collections(py::module);
 void init_utils(py::module);
 void init_version(py::module);
 void init_block(py::module);
@@ -16,6 +17,9 @@ static bool init_run = false;
 void init_amulet(py::module amulet){
     if (init_run){ return; }
     init_run = true;
+
+    auto collections_module = amulet.def_submodule("collections");
+    init_collections(collections_module);
 
     auto utils_module = amulet.def_submodule("utils");
     init_utils(utils_module);

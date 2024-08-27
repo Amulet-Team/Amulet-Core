@@ -9,7 +9,7 @@
 
 #include <amulet/biome.hpp>
 #include <amulet/palette/biome_palette.hpp>
-#include <amulet/utils/collections.py.hpp>
+#include <amulet/collections/collections.py.hpp>
 
 namespace py = pybind11;
 
@@ -53,8 +53,8 @@ void init_biome_palette(py::module biome_palette_module) {
 				return self.index_to_biome(index);
 			}
 		);
-		Amulet::collections_abc::Sequence_getitem_slice(BiomePalette);
-		//Amulet::collections_abc::Sequence_contains(BiomePalette);
+		Amulet::collections::Sequence_getitem_slice(BiomePalette);
+		//Amulet::collections::Sequence_contains(BiomePalette);
 		BiomePalette.def(
 			"__contains__",
 			[](const Amulet::BiomePalette& self, Py_ssize_t index) {
@@ -67,11 +67,11 @@ void init_biome_palette(py::module biome_palette_module) {
 				return self.contains_biome(item);
 			}
 		);
-		Amulet::collections_abc::Sequence_iter(BiomePalette);
-		Amulet::collections_abc::Sequence_reversed(BiomePalette);
-		Amulet::collections_abc::Sequence_index(BiomePalette);
-		Amulet::collections_abc::Sequence_count(BiomePalette);
-		Amulet::collections_abc::Sequence_register(BiomePalette);
+		Amulet::collections::Sequence_iter(BiomePalette);
+		Amulet::collections::Sequence_reversed(BiomePalette);
+		Amulet::collections::Sequence_index(BiomePalette);
+		Amulet::collections::Sequence_count(BiomePalette);
+		Amulet::collections::Sequence_register(BiomePalette);
 
 		BiomePalette.def(
 			"index_to_biome",

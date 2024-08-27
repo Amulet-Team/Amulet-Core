@@ -7,8 +7,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
 #include <pybind11/typing.h>
-#include <amulet/utils/collections.py.hpp>
-
+#include <amulet/collections/collections.py.hpp>
 
 namespace py = pybind11;
 
@@ -340,7 +339,7 @@ void init_block(py::module block_module) {
             }
         );
 
-        Amulet::collections_abc::Sequence(BlockStack);
+        Amulet::collections::Sequence(BlockStack);
 
         BlockStack.def(
             "__eq__",

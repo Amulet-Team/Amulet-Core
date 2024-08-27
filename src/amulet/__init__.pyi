@@ -4,6 +4,7 @@ from . import block
 from . import block_entity
 from . import chunk
 from . import chunk_components
+from . import collections
 from . import level
 from . import palette
 from . import utils
@@ -15,6 +16,7 @@ __all__ = [
     "block_entity",
     "chunk",
     "chunk_components",
+    "collections",
     "level",
     "palette",
     "utils",

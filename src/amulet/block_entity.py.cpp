@@ -8,7 +8,6 @@
 #include <amulet_nbt/tag/named_tag.hpp>
 #include <amulet/version.hpp>
 #include <amulet/block_entity.hpp>
-#include <amulet/utils/collections.py.hpp>
 
 
 namespace py = pybind11;
