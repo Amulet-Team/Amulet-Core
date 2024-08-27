@@ -1,13 +1,9 @@
 #pragma once
 
-#include <memory>
-#include <tuple>
 #include <optional>
-
-#include <amulet/version.hpp>
-#include <amulet/block.hpp>
-#include <amulet/palette/block_palette.hpp>
-#include <amulet/chunk_components/section_array_map.hpp>
+#include <cstdint>
+#include <string>
+#include <stdexcept>
 
 
 namespace Amulet {
