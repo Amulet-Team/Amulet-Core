@@ -1,4 +1,4 @@
-#include <amulet/level/java/chunk_components/data_version.hpp>
+#include <amulet/level/java/chunk_components/data_version_component.hpp>
 
 namespace Amulet {
 	const std::string DataVersionComponent::ComponentID = "Amulet::DataVersionComponent";
