@@ -104,6 +104,11 @@ namespace collections {
 		);
 	}
 
+	template <typename clsT>
+	void PyMapping_register(clsT cls) {
+		py::module::import("collections.abc").attr("Mapping").attr("register")(cls);
+	}
+
 	class Mapping {
 	public:
 		virtual ~Mapping() {};

@@ -153,6 +153,11 @@ namespace collections {
 		);
 	}
 
+	template <typename clsT>
+	void PyMutableMapping_register(clsT cls) {
+		py::module::import("collections.abc").attr("MutableMapping").attr("register")(cls);
+	}
+
 	class MutableMapping : public Mapping {
 	public:
 		virtual ~MutableMapping() {};

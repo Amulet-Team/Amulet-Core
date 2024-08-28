@@ -266,4 +266,5 @@ void init_section_array_map(py::module section_array_map_module) {
     Amulet::collections::PyMutableMapping_popitem(SectionArrayMap);
     Amulet::collections::PyMutableMapping_update(SectionArrayMap);
     Amulet::collections::PyMutableMapping_setdefault(SectionArrayMap);
+    Amulet::collections::PyMutableMapping_register(SectionArrayMap);
 }

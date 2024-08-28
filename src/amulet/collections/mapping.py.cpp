@@ -38,4 +38,5 @@ void init_collections_mapping(py::module m) {
 	Amulet::collections::PyMapping_items(Mapping);
 	Amulet::collections::PyMapping_get(Mapping);
 	Amulet::collections::PyMapping_eq(Mapping);
+	Amulet::collections::PyMapping_register(Mapping);
 }

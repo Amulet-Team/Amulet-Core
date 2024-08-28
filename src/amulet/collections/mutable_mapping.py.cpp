@@ -27,4 +27,5 @@ void init_collections_mutable_mapping(py::module m) {
 	PyMutableMapping_popitem(MutableMapping);
 	PyMutableMapping_update(MutableMapping);
 	PyMutableMapping_setdefault(MutableMapping);
+	PyMutableMapping_register(MutableMapping);
 }
