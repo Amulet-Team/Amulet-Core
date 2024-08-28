@@ -12,6 +12,30 @@ namespace py = pybind11;
 namespace Amulet {
 namespace collections {
 	template <typename clsT>
+	void PyMapping_repr(clsT cls) {
+		cls.def(
+			"__repr__",
+			[](py::object self) {
+				std::string repr = "{";
+				bool is_first = true;
+				for (auto it = self.begin(); it != self.end(); it++) {
+					if (is_first) {
+						is_first = false;
+					}
+					else {
+						repr += ", ";
+					}
+					repr += py::repr(*it);
+					repr += ": ";
+					repr += py::repr(self.attr("__getitem__")(*it));
+				}
+				repr += "}";
+				return repr;
+			}
+		);
+	}
+
+	template <typename clsT>
 	void PyMapping_contains(clsT cls) {
 		cls.def(
 			"__contains__",

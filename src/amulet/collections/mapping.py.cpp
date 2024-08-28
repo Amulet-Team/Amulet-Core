@@ -33,6 +33,7 @@ void init_collections_mapping(py::module m) {
 		"__contains__",
 		&Amulet::collections::Mapping::contains
 	);
+	Amulet::collections::PyMapping_repr(Mapping);
 	Amulet::collections::PyMapping_keys(Mapping);
 	Amulet::collections::PyMapping_values(Mapping);
 	Amulet::collections::PyMapping_items(Mapping);
