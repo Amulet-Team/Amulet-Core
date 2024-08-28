@@ -1,6 +1,3 @@
-// This is a C++ implementation of the python collections.abc module
-// These functions will add the minxin methods and register your class with the ABC.
-
 #pragma once
 #include <stdexcept>
 
@@ -17,6 +14,27 @@ namespace collections {
 		virtual py::object next() = 0;
 	};
 
+	// An iterator for the collections.abc.Sequence protocol.
+	class PySequenceIterator: public Iterator {
+	private:
+		py::object obj;
+		size_t index;
+		std::ptrdiff_t step;
+	public:
+		PySequenceIterator(
+			py::object obj,
+			size_t start,
+			std::ptrdiff_t step
+		) : obj(obj), index(start), step(step) {};
+		bool has_next() override{ return 0 <= index && index < py::len(obj); };
+		py::object next() override {
+			py::object item = obj.attr("__getitem__")(index);
+			index += step;
+			return item;
+		};
+	};
+
+	// An iterator for a C++ map-like object.
 	template <typename mapT>
 	class MapIterator: public Iterator {
 	private:

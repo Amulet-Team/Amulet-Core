@@ -1,7 +1,7 @@
 from __future__ import annotations
 import typing
 
-__all__ = ["Holder", "Iterator", "Mapping", "MutableMapping", "PySequenceIterator"]
+__all__ = ["Holder", "Iterator", "Mapping", "MutableMapping"]
 
 class Holder:
     """
@@ -24,7 +24,3 @@ class Mapping:
 class MutableMapping(Mapping):
     def __delitem__(self, arg0: typing.Any) -> None: ...
     def __setitem__(self, arg0: typing.Any, arg1: typing.Any) -> None: ...
-
-class PySequenceIterator:
-    def __iter__(self) -> PySequenceIterator: ...
-    def __next__(self) -> typing.Any: ...

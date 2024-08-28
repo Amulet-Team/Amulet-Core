@@ -1,6 +1,3 @@
-// This is a C++ implementation of the python collections.abc module
-// These functions will add the minxin methods and register your class with the ABC.
-
 #pragma once
 
 #include <memory>
