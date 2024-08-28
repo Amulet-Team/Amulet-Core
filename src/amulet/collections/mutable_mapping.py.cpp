@@ -19,4 +19,12 @@ void init_collections_mutable_mapping(py::module m) {
 		"__delitem__",
 		&Amulet::collections::MutableMapping::delitem
 	);
+	MutableMapping.def(
+		"clear",
+		&Amulet::collections::MutableMapping::clear
+	);
+	PyMutableMapping_pop(MutableMapping);
+	PyMutableMapping_popitem(MutableMapping);
+	PyMutableMapping_update(MutableMapping);
+	PyMutableMapping_setdefault(MutableMapping);
 }

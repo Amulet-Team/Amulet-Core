@@ -9,6 +9,8 @@
 #include <pybind11/numpy.h>
 
 #include <amulet/collections/iterator.py.hpp>
+#include <amulet/collections/mapping.py.hpp>
+#include <amulet/collections/mutable_mapping.py.hpp>
 #include <amulet/chunk_components/section_array_map.hpp>
 
 
@@ -255,25 +257,13 @@ void init_section_array_map(py::module section_array_map_module) {
         "__contains__",
         &Amulet::SectionArrayMap::contains_section
     );
-    py::object KeysView = py::module::import("collections.abc").attr("KeysView");
-    SectionArrayMap.def(
-        "keys",
-        [KeysView](Amulet::SectionArrayMap& self) {
-            return KeysView(py::cast(self));
-        }
-    );
-    py::object ValuesView = py::module::import("collections.abc").attr("ValuesView");
-    SectionArrayMap.def(
-        "values",
-        [ValuesView](Amulet::SectionArrayMap& self) {
-            return ValuesView(py::cast(self));
-        }
-    );
-    py::object ItemsView = py::module::import("collections.abc").attr("ItemsView");
-    SectionArrayMap.def(
-        "items",
-        [ItemsView](Amulet::SectionArrayMap& self) {
-            return ItemsView(py::cast(self));
-        }
-    );
+    Amulet::collections::PyMapping_keys(SectionArrayMap);
+    Amulet::collections::PyMapping_values(SectionArrayMap);
+    Amulet::collections::PyMapping_items(SectionArrayMap);
+    Amulet::collections::PyMapping_get(SectionArrayMap);
+    Amulet::collections::PyMapping_eq(SectionArrayMap);
+    Amulet::collections::PyMutableMapping_pop(SectionArrayMap);
+    Amulet::collections::PyMutableMapping_popitem(SectionArrayMap);
+    Amulet::collections::PyMutableMapping_update(SectionArrayMap);
+    Amulet::collections::PyMutableMapping_setdefault(SectionArrayMap);
 }

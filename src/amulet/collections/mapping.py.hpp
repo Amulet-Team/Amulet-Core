@@ -4,12 +4,106 @@
 
 #include <pybind11/pybind11.h>
 
+#include <amulet/pybind11/types.hpp>
 #include "iterator.py.hpp"
 
 namespace py = pybind11;
 
 namespace Amulet {
 namespace collections {
+	template <typename clsT>
+	void PyMapping_contains(clsT cls) {
+		cls.def(
+			"__contains__",
+			[](py::object self, py::object key) {  
+				try {
+					self.attr("__getitem__")(key);
+					return true;
+				}
+				catch (const py::error_already_set& e) {
+					if (e.matches(PyExc_KeyError)) {
+						return false;
+					}
+					else {
+						throw;
+					}
+				}
+			}
+		);
+	}
+
+	template <typename clsT>
+	void PyMapping_keys(clsT cls) {
+		py::object KeysView = py::module::import("collections.abc").attr("KeysView");
+		cls.def(
+			"keys",
+			[KeysView](py::object self) { return KeysView(self); }
+		);
+	}
+
+	template <typename clsT>
+	void PyMapping_values(clsT cls) {
+		py::object ValuesView = py::module::import("collections.abc").attr("ValuesView");
+		cls.def(
+			"values",
+			[ValuesView](py::object self) { return ValuesView(self); }
+		);
+	}
+
+	template <typename clsT>
+	void PyMapping_items(clsT cls) {
+		py::object ItemsView = py::module::import("collections.abc").attr("ItemsView");
+		cls.def(
+			"items",
+			[ItemsView](py::object self) { return ItemsView(self); }
+		);
+	}
+
+	template <typename clsT>
+	void PyMapping_get(clsT cls) {
+		cls.def(
+			"get",
+			[](py::object self, py::object key, py::object default_ = py::none()) {
+				try {
+					return self.attr("__getitem__")(key);
+				}
+				catch (const py::error_already_set& e) {
+					if (e.matches(PyExc_KeyError)) {
+						return default_;
+					}
+					else {
+						throw;
+					}
+				}
+			}
+		);
+	}
+
+	template <typename clsT>
+	void PyMapping_eq(clsT cls) {
+		py::object dict = py::module::import("builtins").attr("dict");
+		py::object isinstance = py::module::import("builtins").attr("isinstance");
+		py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");
+		py::object PyMapping = py::module::import("collections.abc").attr("Mapping");
+		cls.def(
+			"__eq__",
+			[
+				dict,
+				isinstance, 
+				NotImplemented,
+				PyMapping
+			](
+				py::object self, 
+				py::object other
+			) -> std::variant<bool, py::types::NotImplementedType> {
+				if (!isinstance(other, PyMapping)) {
+					return NotImplemented;
+				}
+				return dict(self.attr("items")()) == dict(other.attr("items")());
+			}
+		);
+	}
+
 	class Mapping {
 	public:
 		virtual ~Mapping() {};

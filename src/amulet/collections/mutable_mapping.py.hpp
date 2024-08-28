@@ -10,6 +10,149 @@ namespace py = pybind11;
 
 namespace Amulet {
 namespace collections {
+	template <typename clsT>
+	void PyMutableMapping_pop(clsT cls) {
+		py::object marker = py::module::import("builtins").attr("Ellipsis");
+		cls.def(
+			"pop",
+			[marker](py::object self, py::object key, py::object default_) {
+				py::object value;
+				try {
+					value = self.attr("__getitem__")(key);
+				}
+				catch (const py::error_already_set& e) {
+					if (e.matches(PyExc_KeyError)) {
+						if (default_.is(marker)) {
+							throw;
+						}
+						return default_;
+					}
+					else {
+						throw;
+					}
+				}
+				self.attr("__delitem__")(key);
+				return value;
+			},
+			py::arg("key"),
+			py::arg("default") = marker
+		);
+	}
+
+	template <typename clsT>
+	void PyMutableMapping_popitem(clsT cls) {
+		py::object iter = py::module::import("builtins").attr("iter");
+		py::object next = py::module::import("builtins").attr("next");
+		cls.def(
+			"popitem",
+			[iter, next](py::object self) {
+				py::object key;
+				try {
+					key = next(iter(self));
+				} 
+				catch (const py::error_already_set& e) {
+					if (e.matches(PyExc_StopIteration)) {
+						throw py::key_error();
+					}
+					else {
+						throw;
+					}
+				}
+				py::object value = self.attr("__getitem__")(key);
+				self.attr("__delitem__")(key);
+				return std::make_pair(key, value);
+			}
+		);
+	}
+
+	template <typename clsT>
+	void PyMutableMapping_clear(clsT cls) {
+		cls.def(
+			"clear",
+			[](py::object self) {
+				try {
+					while (true) {
+						self.attr("popitem")();
+					}
+				}
+				catch (const py::error_already_set& e) {
+					if (!e.matches(PyExc_KeyError)) {
+						throw;
+					}
+				}
+			}
+		);
+	}
+
+	template <typename clsT>
+	void PyMutableMapping_update(clsT cls) {
+		py::object isinstance = py::module::import("builtins").attr("isinstance");
+		py::object hasattr = py::module::import("builtins").attr("hasattr");
+		py::object PyMapping = py::module::import("collections.abc").attr("Mapping");
+		cls.def(
+			"update",
+			[
+				isinstance, 
+				hasattr, 
+				PyMapping
+			](
+				py::object self, 
+				py::object other, 
+				py::kwargs kwargs
+			) {
+				if (isinstance(other, PyMapping)) {
+					for (auto it = other.begin(); it != other.end(); it++) {
+						self.attr("__setitem__")(*it, other.attr("__getitem__")(*it));
+					}
+				}
+				else if (hasattr(other, "keys")) {
+					py::object keys = other.attr("keys")();
+					for (auto it = keys.begin(); it != keys.end(); it++) {
+						self.attr("__setitem__")(*it, other.attr("__getitem__")(*it));
+					}
+				}
+				else {
+					for (auto it = other.begin(); it != other.end(); it++) {
+						self.attr("__setitem__")(
+							*it->attr("__getitem__")(0),
+							*it->attr("__getitem__")(1)
+						);
+					}
+				}
+				py::object items = kwargs.attr("items")();
+				for (auto it = items.begin(); it != items.end(); it++) {
+					self.attr("__setitem__")(
+						*it->attr("__getitem__")(0),
+						*it->attr("__getitem__")(1)
+					);
+				}
+
+			},
+			py::arg("other") = py::tuple()
+		);
+	}
+
+	template <typename clsT>
+	void PyMutableMapping_setdefault(clsT cls) {
+		cls.def(
+			"setdefault",
+			[](py::object self, py::object key, py::object default_ = py::none()) {
+				try {
+					return self.attr("__getitem__")(key);
+				}
+				catch (const py::error_already_set& e) {
+					if (e.matches(PyExc_KeyError)) {
+						self.attr("__setitem__")(key, default_);
+					}
+					else {
+						throw;
+					}
+				}
+				return default_;
+			}
+		);
+	}
+
 	class MutableMapping : public Mapping {
 	public:
 		virtual ~MutableMapping() {};

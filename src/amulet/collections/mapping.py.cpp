@@ -33,25 +33,9 @@ void init_collections_mapping(py::module m) {
 		"__contains__",
 		&Amulet::collections::Mapping::contains
 	);
-	py::object KeysView = py::module::import("collections.abc").attr("KeysView");
-	Mapping.def(
-		"keys",
-		[KeysView](Amulet::collections::Mapping& self) {
-			return KeysView(py::cast(self));
-		}
-	);
-	py::object ValuesView = py::module::import("collections.abc").attr("ValuesView");
-	Mapping.def(
-		"values",
-		[ValuesView](Amulet::collections::Mapping& self) {
-			return ValuesView(py::cast(self));
-		}
-	);
-	py::object ItemsView = py::module::import("collections.abc").attr("ItemsView");
-	Mapping.def(
-		"items",
-		[ItemsView](Amulet::collections::Mapping& self) {
-			return ItemsView(py::cast(self));
-		}
-	);
+	Amulet::collections::PyMapping_keys(Mapping);
+	Amulet::collections::PyMapping_values(Mapping);
+	Amulet::collections::PyMapping_items(Mapping);
+	Amulet::collections::PyMapping_get(Mapping);
+	Amulet::collections::PyMapping_eq(Mapping);
 }
