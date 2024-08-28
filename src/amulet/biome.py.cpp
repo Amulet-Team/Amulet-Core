@@ -1,19 +1,17 @@
 #include <span>
 #include <memory>
 
-#include <amulet/biome.hpp>
-
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
 #include <pybind11/typing.h>
 
+#include <amulet/biome.hpp>
+#include <amulet/collections/eq.py.hpp>
 
 namespace py = pybind11;
 
 void init_biome(py::module biome_module) {
-    py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");
-
     py::class_<Amulet::Biome, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::Biome>> Biome(biome_module, "Biome",
         "A class to manage the state of a biome.\n"
         "\n"
@@ -114,26 +112,8 @@ void init_biome(py::module biome_module) {
             )
         );
 
-        Biome.def(
-            "__eq__",
-            [NotImplemented](const Amulet::Biome& self, py::object other) -> py::object {
-                if (py::isinstance<Amulet::Biome>(other)) {
-                    return py::cast(self == other.cast<Amulet::Biome>());
-                }
-                return NotImplemented;
-            },
-            py::is_operator()
-        );
-        Biome.def(
-            "__ne__",
-            [NotImplemented](const Amulet::Biome& self, py::object other) -> py::object {
-                if (py::isinstance<Amulet::Biome>(other)) {
-                    return py::cast(self != other.cast<Amulet::Biome>());
-                }
-                return NotImplemented;
-            },
-            py::is_operator()
-        );
+        Eq(Biome);
+        Eq_default(Biome);
         Biome.def(py::self > py::self);
         Biome.def(py::self < py::self);
         Biome.def(py::self >= py::self);

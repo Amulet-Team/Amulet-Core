@@ -5,6 +5,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/typing.h>
 
+#include <amulet/collections/eq.py.hpp>
 #include <amulet_nbt/tag/named_tag.hpp>
 #include <amulet/version.hpp>
 #include <amulet/block_entity.hpp>
@@ -13,8 +14,6 @@
 namespace py = pybind11;
 
 void init_block_entity(py::module block_entity_module) {
-    py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");
-
     // Required for docstrings
     py::module::import("amulet_nbt");
 
@@ -110,24 +109,6 @@ void init_block_entity(py::module block_entity_module) {
             )
         );
 
-        BlockEntity.def(
-            "__eq__",
-            [NotImplemented](const Amulet::BlockEntity& self, py::object other) -> py::object {
-                if (py::isinstance<Amulet::BlockEntity>(other)) {
-                    return py::cast(self == other.cast<Amulet::BlockEntity>());
-                }
-                return NotImplemented;
-            },
-            py::is_operator()
-        );
-        BlockEntity.def(
-            "__ne__",
-            [NotImplemented](const Amulet::BlockEntity& self, py::object other) -> py::object {
-                if (py::isinstance<Amulet::BlockEntity>(other)) {
-                    return py::cast(self != other.cast<Amulet::BlockEntity>());
-                }
-                return NotImplemented;
-            },
-            py::is_operator()
-        );
+        Eq(BlockEntity);
+        Eq_default(BlockEntity);
 }

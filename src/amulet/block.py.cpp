@@ -1,20 +1,21 @@
 #include <span>
 #include <memory>
 
-#include <amulet/block.hpp>
-
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
 #include <pybind11/typing.h>
-#include <amulet/collections/collections.py.hpp>
+
+#include <amulet/collections/sequence.py.hpp>
+#include <amulet/collections/eq.py.hpp>
+#include <amulet/pybind11/types.hpp>
+#include <amulet/block.hpp>
 
 namespace py = pybind11;
 
 void init_block(py::module block_module) {
     py::options options;
 
-    py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");
     py::object PySorted = py::module::import("builtins").attr("sorted");
 
     // Required for docstrings
@@ -153,26 +154,8 @@ void init_block(py::module block_module) {
             )
         );
 
-        Block.def(
-            "__eq__",
-            [NotImplemented](const Amulet::Block& self, py::object other) -> py::object {
-                if (py::isinstance<Amulet::Block>(other)) {
-                    return py::cast(self == other.cast<Amulet::Block>());
-                }
-                return NotImplemented;
-            },
-            py::is_operator()
-        );
-        Block.def(
-            "__ne__",
-            [NotImplemented](const Amulet::Block& self, py::object other) -> py::object {
-                if (py::isinstance<Amulet::Block>(other)) {
-                    return py::cast(self != other.cast<Amulet::Block>());
-                }
-                return NotImplemented;
-            },
-            py::is_operator()
-        );
+        Eq(Block);
+        Eq_default(Block);
         Block.def(py::self > py::self);
         Block.def(py::self < py::self);
         Block.def(py::self >= py::self);
@@ -339,28 +322,11 @@ void init_block(py::module block_module) {
             }
         );
 
-        Amulet::collections::Sequence(BlockStack);
+        Amulet::collections::Sequence<Amulet::Block>(BlockStack);
 
-        BlockStack.def(
-            "__eq__",
-            [NotImplemented](const Amulet::BlockStack& self, py::object other) -> py::object {
-                if (py::isinstance<Amulet::BlockStack>(other)) {
-                    return py::cast(self == other.cast<Amulet::BlockStack>());
-                }
-                return NotImplemented;
-            },
-            py::is_operator()
-        );
-        BlockStack.def(
-            "__ne__",
-            [NotImplemented](const Amulet::BlockStack& self, py::object other) -> py::object {
-                if (py::isinstance<Amulet::BlockStack>(other)) {
-                    return py::cast(self != other.cast<Amulet::BlockStack>());
-                }
-                return NotImplemented;
-            },
-            py::is_operator()
-        );
+        Eq(BlockStack);
+        Eq_default(BlockStack);
+
         BlockStack.def(py::self > py::self);
         BlockStack.def(py::self < py::self);
         BlockStack.def(py::self >= py::self);

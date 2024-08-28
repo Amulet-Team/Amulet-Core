@@ -4,6 +4,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
 
+#include <amulet/collections/eq.py.hpp>
 #include <amulet/version.hpp>
 
 namespace py = pybind11;
@@ -11,7 +12,6 @@ namespace py = pybind11;
 void init_version(py::module m) {
     py::options options;
 
-    py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");
     m.attr("PlatformType") = py::module::import("builtins").attr("str");
 
     py::class_<Amulet::VersionNumber, std::shared_ptr<Amulet::VersionNumber>> VersionNumber(m, "VersionNumber",
@@ -150,26 +150,8 @@ void init_version(py::module m) {
             &Amulet::VersionNumber::toString
         );
 
-        VersionNumber.def(
-            "__eq__",
-            [NotImplemented](const Amulet::VersionNumber& self, py::object other) -> py::object {
-                if (py::isinstance<Amulet::VersionNumber>(other)) {
-                    return py::cast(self == other.cast<Amulet::VersionNumber>());
-                }
-                return NotImplemented;
-            },
-            py::is_operator()
-        );
-        VersionNumber.def(
-            "__ne__",
-            [NotImplemented](const Amulet::VersionNumber& self, py::object other) -> py::object {
-                if (py::isinstance<Amulet::VersionNumber>(other)) {
-                    return py::cast(self != other.cast<Amulet::VersionNumber>());
-                }
-                return NotImplemented;
-            },
-            py::is_operator()
-        );
+        Eq(VersionNumber);
+        Eq_default(VersionNumber);
         VersionNumber.def(pybind11::self < pybind11::self);
         VersionNumber.def(pybind11::self > pybind11::self);
         VersionNumber.def(pybind11::self <= pybind11::self);
