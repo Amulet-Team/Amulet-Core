@@ -174,14 +174,14 @@ namespace collections {
 	public:
 		Map(
 			mapT& map,
-			py::object owner
+			py::object owner = py::none()
 		) : _owner(owner), _map(map) {}
 
 		py::object getitem(py::object py_key) const override {
 			return py::cast(_map.at(py_key.cast<mapT::key_type>()));
 		}
-		std::unique_ptr<Iterator> iter() const override {
-			return std::make_unique<MapIterator<mapT>>(_map, _owner);
+		std::shared_ptr<Iterator> iter() const override {
+			return std::make_shared<MapIterator<mapT>>(_map, _owner);
 		}
 		size_t size() const override {
 			return _map.size();

@@ -99,7 +99,7 @@ namespace collections {
 				if (!isinstance(other, PyMapping)) {
 					return NotImplemented;
 				}
-				return dict(self.attr("items")()) == dict(other.attr("items")());
+				return dict(self.attr("items")()).equal(dict(other.attr("items")()).cast<py::dict>());
 			}
 		);
 	}
@@ -113,7 +113,7 @@ namespace collections {
 	public:
 		virtual ~Mapping() {};
 		virtual py::object getitem(py::object py_key) const = 0;
-		virtual std::unique_ptr<Iterator> iter() const = 0;
+		virtual std::shared_ptr<Iterator> iter() const = 0;
 		virtual size_t size() const = 0;
 		virtual bool contains(py::object py_key) const = 0;
 	};
@@ -126,14 +126,14 @@ namespace collections {
 	public:
 		ConstMap(
 			const mapT& map,
-			py::object owner
+			py::object owner = py::none()
 		) : _owner(owner), _map(map) {}
 
 		py::object getitem(py::object py_key) const override {
 			return py::cast(_map.at(py_key.cast<mapT::key_type>()));
 		}
-		std::unique_ptr<Iterator> iter() const override {
-			return std::make_unique<MapIterator<mapT>>(_map, _owner);
+		std::shared_ptr<Iterator> iter() const override {
+			return std::make_shared<MapIterator<mapT>>(_map, _owner);
 		}
 		size_t size() const override {
 			return _map.size();
