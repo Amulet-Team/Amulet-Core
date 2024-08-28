@@ -16,12 +16,6 @@ void Eq(clsT cls) {
             return self == other;
         }
     );
-    cls.def(
-        "__ne__",
-        [](const clsT::type& self, R other) {
-            return self != other;
-        }
-    );
 }
 
 
@@ -36,12 +30,6 @@ void Eq_default(clsT cls) {
     py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");
     cls.def(
         "__eq__",
-        [NotImplemented](const clsT::type& self, py::object other) -> std::variant<bool, py::types::NotImplementedType> {
-            return NotImplemented;
-        }
-    );
-    cls.def(
-        "__ne__",
         [NotImplemented](const clsT::type& self, py::object other) -> std::variant<bool, py::types::NotImplementedType> {
             return NotImplemented;
         }
