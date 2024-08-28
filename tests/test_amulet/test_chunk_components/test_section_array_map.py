@@ -4,6 +4,7 @@ import numpy
 import numpy.testing
 from amulet.chunk_components.section_array_map import IndexArray3D, SectionArrayMap
 import faulthandler
+import gc
 
 faulthandler.enable()
 
@@ -212,6 +213,17 @@ class SectionArrayMapTestCase(unittest.TestCase):
         sections.populate(0)
         sections.populate(1)
         self.assertEqual({0, 1}, set(iter(sections)))
+
+    def test_iter_del(self) -> None:
+        sections = SectionArrayMap((16, 16, 16), 1)
+        sections_ref = ref(sections)
+        sections.populate(0)
+        it = iter(sections)
+        del sections
+        # ensure the garbage collector runs
+        gc.collect()
+        self.assertIsNot(None, sections_ref())
+        next(it)
 
     def test_contains(self) -> None:
         sections = SectionArrayMap((16, 16, 16), 1)

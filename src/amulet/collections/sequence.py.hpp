@@ -56,7 +56,11 @@ namespace Amulet {
 			cls.def(
 				"__iter__",
 				[](py::object self) -> py::collections::Iterator<elemT> {
-					return py::cast(std::make_unique<PySequenceIterator>(self, 0, 1));
+					return py::cast(
+						static_cast<std::shared_ptr<Amulet::collections::Iterator>>(
+							std::make_shared<PySequenceIterator>(self, 0, 1)
+						)
+					);
 				}
 			);
 		}
@@ -67,7 +71,11 @@ namespace Amulet {
 			cls.def(
 				"__reversed__",
 				[](py::object self) -> py::collections::Iterator<elemT> {
-					return py::cast(std::make_unique<PySequenceIterator>(self, py::len(self), -1));
+					return py::cast(
+						static_cast<std::shared_ptr<Amulet::collections::Iterator>>(
+							std::make_shared<PySequenceIterator>(self, py::len(self) - 1, -1)
+						)
+					);
 				}
 			);
 		}

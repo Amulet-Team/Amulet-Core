@@ -26,7 +26,9 @@ namespace collections {
 			size_t start,
 			std::ptrdiff_t step
 		) : obj(obj), index(start), step(step) {};
-		bool has_next() override{ return 0 <= index && index < py::len(obj); };
+		bool has_next() override{ 
+			return 0 <= index && index < py::len(obj); 
+		};
 		py::object next() override {
 			py::object item = obj.attr("__getitem__")(index);
 			index += step;

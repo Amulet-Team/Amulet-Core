@@ -243,8 +243,8 @@ void init_section_array_map(py::module section_array_map_module) {
     );
     SectionArrayMap.def(
         "__iter__",
-        [](const Amulet::SectionArrayMap& self) -> std::unique_ptr<Amulet::collections::Iterator> {
-            return std::make_unique<
+        [](const Amulet::SectionArrayMap& self) -> std::shared_ptr<Amulet::collections::Iterator> {
+            return std::make_shared<
                 Amulet::collections::MapIterator<
                     std::unordered_map<std::int64_t, std::shared_ptr<Amulet::IndexArray3D>>
                 >

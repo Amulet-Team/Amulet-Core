@@ -317,6 +317,22 @@ class BlockStackTestCase(unittest.TestCase):
             ),
         )
 
+    def test_iter(self) -> None:
+        a = Block("a", VersionNumber(1), "a", "a")
+        b = Block("b", VersionNumber(1), "b", "b")
+        c = Block("c", VersionNumber(1), "c", "c")
+        block_stack = BlockStack(a, b, c)
+        it = iter(block_stack)
+        self.assertEqual(a, next(it))
+        self.assertEqual(b, next(it))
+        self.assertEqual(c, next(it))
+        it = reversed(block_stack)
+        self.assertEqual(c, next(it))
+        self.assertEqual(b, next(it))
+        self.assertEqual(a, next(it))
+        self.assertEqual([a, b, c], list(block_stack))
+        self.assertEqual([c, b, a], list(reversed(block_stack)))
+
 
 if __name__ == "__main__":
     unittest.main()
