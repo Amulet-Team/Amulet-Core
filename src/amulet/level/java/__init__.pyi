@@ -1,5 +1,6 @@
 from __future__ import annotations
 import typing
+from . import chunk
 from . import chunk_components
 
 __all__: list = ["chunk_components", "JavaLevel"]

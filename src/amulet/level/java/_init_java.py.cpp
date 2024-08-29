@@ -4,10 +4,14 @@
 namespace py = pybind11;
 
 void init_java_chunk_components(py::module);
+void init_java_chunk(py::module);
 
 void init_java(py::module java_module) {
     auto chunk_components_module = java_module.def_submodule("chunk_components");
     init_java_chunk_components(chunk_components_module);
+
+    auto chunk_module = java_module.def_submodule("chunk");
+    init_java_chunk(chunk_module);
 
     java_module.def(
         "__getattr__",
