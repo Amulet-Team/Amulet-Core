@@ -16,7 +16,7 @@ namespace Amulet {
 		// Default constructor
 		void init(std::int64_t data_version) { _data_version = data_version; }
 		// Serialise the component data
-		std::optional<std::string> serialise();
+		std::optional<std::string> serialise() const;
 		// Deserialise the component
 		void deserialise(std::optional<std::string>);
 	public:

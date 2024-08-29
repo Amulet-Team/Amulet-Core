@@ -3,7 +3,7 @@
 namespace Amulet {
 	const std::string BlockComponent::ComponentID = "Amulet::BlockComponent";
 
-	std::optional<std::string> BlockComponent::serialise() {
+	std::optional<std::string> BlockComponent::serialise() const {
 		throw std::runtime_error("NotImplemented");
 	}
 	void BlockComponent::deserialise(std::optional<std::string>) {

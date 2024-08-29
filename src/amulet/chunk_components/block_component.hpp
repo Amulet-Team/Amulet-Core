@@ -48,7 +48,7 @@ namespace Amulet {
 		) { _value = std::make_shared<BlockComponentData>(version_range, array_shape, default_block); }
 		
 		// Serialise the component data
-		std::optional<std::string> serialise();
+		std::optional<std::string> serialise() const;
 		// Deserialise the component
 		void deserialise(std::optional<std::string>);
 	public:

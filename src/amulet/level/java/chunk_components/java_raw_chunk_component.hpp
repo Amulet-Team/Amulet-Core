@@ -22,7 +22,7 @@ namespace Amulet {
 		void init(std::shared_ptr<JavaRawChunkType> raw_data) { _raw_data = raw_data; }
 		void init() { _raw_data = std::make_shared<JavaRawChunkType>(); }
 		// Serialise the component data
-		std::optional<std::string> serialise();
+		std::optional<std::string> serialise() const;
 		// Deserialise the component
 		void deserialise(std::optional<std::string>);
 	public:

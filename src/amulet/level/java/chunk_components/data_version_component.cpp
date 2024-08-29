@@ -3,7 +3,7 @@
 namespace Amulet {
 	const std::string DataVersionComponent::ComponentID = "Amulet::DataVersionComponent";
 
-	std::optional<std::string> DataVersionComponent::serialise() {
+	std::optional<std::string> DataVersionComponent::serialise() const {
 		throw std::runtime_error("NotImplemented");
 	}
 	void DataVersionComponent::deserialise(std::optional<std::string>) {
