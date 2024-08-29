@@ -24,11 +24,11 @@ namespace Amulet {
 	class Chunk {
 	public:
 		virtual ~Chunk() {}
-		virtual std::string get_chunk_id() = 0;
+		virtual std::string get_chunk_id() const = 0;
 	private:
 		friend class ChunkHandle;
-		virtual std::vector<std::string> get_component_ids() = 0;
-		virtual SerialisedComponents serialise_chunk() = 0;
+		virtual std::vector<std::string> get_component_ids() const = 0;
+		virtual SerialisedComponents serialise_chunk() const = 0;
 		virtual void reconstruct_chunk(SerialisedComponents) = 0;
 	};
 
@@ -62,7 +62,7 @@ namespace Amulet {
 		ChunkComponentHelper() : Components()... {}
 	private:
 		// Component list
-		std::vector<std::string> get_component_ids() {
+		std::vector<std::string> get_component_ids() const override {
 			std::vector<std::string> component_ids;
 			(
 				[&]{
@@ -73,7 +73,7 @@ namespace Amulet {
 			return component_ids;
 		}
 		// Serialiser
-		SerialisedComponents serialise_chunk() {
+		SerialisedComponents serialise_chunk() const override {
 			SerialisedComponents component_data;
 			(
 				[&]{
@@ -84,7 +84,7 @@ namespace Amulet {
 			return component_data;
 		}
 		// Deserialiser
-		void reconstruct_chunk(SerialisedComponents component_data) {
+		void reconstruct_chunk(SerialisedComponents component_data) override {
 			(
 				[&]{
 					Components::deserialise(component_data.extract(Components::ComponentID).mapped());
