@@ -3,7 +3,12 @@ import amulet_nbt
 import collections.abc
 import typing
 
-__all__ = ["JavaRawChunkComponent"]
+__all__ = ["DataVersionComponent", "JavaRawChunkComponent"]
+
+class DataVersionComponent:
+    ComponentID: typing.ClassVar[str] = "Amulet::DataVersionComponent"
+    @property
+    def data_version(self) -> int: ...
 
 class JavaRawChunkComponent:
     ComponentID: typing.ClassVar[str] = "Amulet::JavaRawChunkComponent"
