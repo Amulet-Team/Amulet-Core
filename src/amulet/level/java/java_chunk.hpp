@@ -8,11 +8,12 @@
 #include <amulet/biome.hpp>
 #include <amulet/chunk.hpp>
 #include <amulet/chunk_components/block_component.hpp>
+#include "chunk_components/java_raw_chunk_component.hpp"
 #include "chunk_components/data_version_component.hpp"
 
 namespace Amulet {
 	class JavaChunkNA : public ChunkComponentHelper<
-		// JavaRawChunkComponent,
+		JavaRawChunkComponent,
 		DataVersionComponent,
 		// LastUpdateComponent,
 		// JavaLegacyVersionComponent,
@@ -35,7 +36,7 @@ namespace Amulet {
 	};
 
 	class JavaChunk0 : public ChunkComponentHelper<
-		// JavaRawChunkComponent,
+		JavaRawChunkComponent,
 		DataVersionComponent,
 		// LastUpdateComponent,
 		// TerrainPopulatedComponent,
@@ -60,7 +61,7 @@ namespace Amulet {
 	};
 
 	class JavaChunk1444 : public ChunkComponentHelper<
-		// JavaRawChunkComponent,
+		JavaRawChunkComponent,
 		DataVersionComponent,
 		// LastUpdateComponent,
 		// StatusStringComponent,
@@ -84,7 +85,7 @@ namespace Amulet {
 	};
 
 	class JavaChunk1466 : public ChunkComponentHelper<
-		// JavaRawChunkComponent,
+		JavaRawChunkComponent,
 		DataVersionComponent,
 		// LastUpdateComponent,
 		// StatusStringComponent,
@@ -108,7 +109,7 @@ namespace Amulet {
 	};
 
 	class JavaChunk2203 : public ChunkComponentHelper<
-		// JavaRawChunkComponent,
+		JavaRawChunkComponent,
 		DataVersionComponent,
 		// LastUpdateComponent,
 		// StatusStringComponent,

@@ -33,6 +33,7 @@ namespace Amulet {
 			version_number,
 			version_number
 		);
+		JavaRawChunkComponent::init();
 		DataVersionComponent::init(-1);
 		BlockComponent::init(
 			version_range,
@@ -61,6 +62,7 @@ namespace Amulet {
 			version_number,
 			version_number
 			);
+		JavaRawChunkComponent::init();
 		DataVersionComponent::init(data_version);
 		BlockComponent::init(
 			version_range,
@@ -89,6 +91,7 @@ namespace Amulet {
 			version_number,
 			version_number
 			);
+		JavaRawChunkComponent::init();
 		DataVersionComponent::init(data_version);
 		BlockComponent::init(
 			version_range,
@@ -117,6 +120,7 @@ namespace Amulet {
 			version_number,
 			version_number
 			);
+		JavaRawChunkComponent::init();
 		DataVersionComponent::init(data_version);
 		BlockComponent::init(
 			version_range,
@@ -145,6 +149,7 @@ namespace Amulet {
 			version_number,
 			version_number
 			);
+		JavaRawChunkComponent::init();
 		DataVersionComponent::init(data_version);
 		BlockComponent::init(
 			version_range,
