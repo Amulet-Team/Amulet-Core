@@ -55,10 +55,22 @@ namespace Amulet {
 			if (it != _block_to_index.end()) {
 				return it->second;
 			}
-			const auto& version_range = get_version_range();
+			auto version_range = get_version_range();
 			for (const auto& block : block->get_blocks()) {
 				if (!version_range->contains(block->get_platform(), *block->get_version())) {
-					throw std::invalid_argument("BlockStack is incompatible with VersionRange.");
+					throw std::invalid_argument(
+						"BlockStack(\"" + 
+						block->get_platform() +
+						"\", " +
+						block->get_version()->toString() +
+						") is incompatible with VersionRange(\"" +
+						version_range->get_platform() +
+						"\", " +
+						version_range->get_min_version()->toString() +
+						", " +
+						version_range->get_max_version()->toString() +
+						")."
+					);
 				}
 			}
 			size_t index = _index_to_block.size();
