@@ -8,10 +8,21 @@ from amulet.block import Block, BlockStack
 from amulet.biome import Biome
 from amulet.chunk import Chunk
 
-from amulet.level.java.chunk import JavaChunkNA, JavaChunk0, JavaChunk1444, JavaChunk1466, JavaChunk2203
-from amulet.level.java.chunk_components import JavaRawChunkComponent, DataVersionComponent
+from amulet.level.java.chunk import (
+    JavaChunkNA,
+    JavaChunk0,
+    JavaChunk1444,
+    JavaChunk1466,
+    JavaChunk2203,
+)
+from amulet.level.java.chunk_components import (
+    JavaRawChunkComponent,
+    DataVersionComponent,
+)
 
-from tests.test_amulet.test_chunk_components.test_block_component import test_block_component
+from tests.test_amulet.test_chunk_components.test_block_component import (
+    test_block_component,
+)
 from tests.test_amulet.test_chunk_components.test_component import test_component
 
 
@@ -34,7 +45,7 @@ def test_java_raw_chunk_component(self: TestCase, chunk: Chunk) -> None:
     self.assertEqual({"test", "test2"}, set(chunk.raw_data))
     self.assertEqual(
         {"test": NamedTag(CompoundTag(a=ByteTag(1))), "test2": NamedTag(ByteTag(2))},
-        dict(chunk.raw_data)
+        dict(chunk.raw_data),
     )
 
     chunk.raw_data = {}
@@ -42,19 +53,22 @@ def test_java_raw_chunk_component(self: TestCase, chunk: Chunk) -> None:
     self.assertEqual({}, dict(chunk.raw_data))
     self.assertEqual(
         {"test": NamedTag(CompoundTag(a=ByteTag(1))), "test2": NamedTag(ByteTag(2))},
-        dict(raw_data)
+        dict(raw_data),
     )
 
     chunk.raw_data = raw_data
     self.assertEqual(
         {"test": NamedTag(CompoundTag(a=ByteTag(1))), "test2": NamedTag(ByteTag(2))},
-        dict(chunk.raw_data)
+        dict(chunk.raw_data),
     )
 
-    chunk.raw_data = {"test": NamedTag(ByteTag(2)), "test2": NamedTag(CompoundTag(a=ByteTag(1)))}
+    chunk.raw_data = {
+        "test": NamedTag(ByteTag(2)),
+        "test2": NamedTag(CompoundTag(a=ByteTag(1))),
+    }
     self.assertEqual(
         {"test": NamedTag(ByteTag(2)), "test2": NamedTag(CompoundTag(a=ByteTag(1)))},
-        dict(chunk.raw_data)
+        dict(chunk.raw_data),
     )
 
 
@@ -67,10 +81,8 @@ class JavaChunkTestCase(TestCase):
 
     def test_java_chunk_na(self) -> None:
         chunk = JavaChunkNA(
-            BlockStack(
-                Block("java", VersionNumber(-1), "minecraft", "stone")
-            ),
-            Biome("java", VersionNumber(-1), "minecraft", "plains")
+            BlockStack(Block("java", VersionNumber(-1), "minecraft", "stone")),
+            Biome("java", VersionNumber(-1), "minecraft", "plains"),
         )
         self.assertIsInstance(chunk, Chunk)
         test_java_raw_chunk_component(self, chunk)
@@ -86,10 +98,8 @@ class JavaChunkTestCase(TestCase):
     def test_java_chunk_0(self) -> None:
         chunk = JavaChunk0(
             1443,  # any int from 0-1443
-            BlockStack(
-                Block("java", VersionNumber(1443), "minecraft", "stone")
-            ),
-            Biome("java", VersionNumber(1443), "minecraft", "plains")
+            BlockStack(Block("java", VersionNumber(1443), "minecraft", "stone")),
+            Biome("java", VersionNumber(1443), "minecraft", "plains"),
         )
         self.assertIsInstance(chunk, Chunk)
         test_java_raw_chunk_component(self, chunk)
@@ -106,10 +116,8 @@ class JavaChunkTestCase(TestCase):
     def test_java_chunk_1444(self) -> None:
         chunk = JavaChunk1444(
             1465,  # any int from 1444-1465
-            BlockStack(
-                Block("java", VersionNumber(1465), "minecraft", "stone")
-            ),
-            Biome("java", VersionNumber(1465), "minecraft", "plains")
+            BlockStack(Block("java", VersionNumber(1465), "minecraft", "stone")),
+            Biome("java", VersionNumber(1465), "minecraft", "plains"),
         )
         self.assertIsInstance(chunk, Chunk)
         test_java_raw_chunk_component(self, chunk)
@@ -125,10 +133,8 @@ class JavaChunkTestCase(TestCase):
     def test_java_chunk_1466(self) -> None:
         chunk = JavaChunk1466(
             2202,  # any int from 1466-2202
-            BlockStack(
-                Block("java", VersionNumber(2202), "minecraft", "stone")
-            ),
-            Biome("java", VersionNumber(2202), "minecraft", "plains")
+            BlockStack(Block("java", VersionNumber(2202), "minecraft", "stone")),
+            Biome("java", VersionNumber(2202), "minecraft", "plains"),
         )
         self.assertIsInstance(chunk, Chunk)
         test_java_raw_chunk_component(self, chunk)
@@ -144,10 +150,8 @@ class JavaChunkTestCase(TestCase):
     def test_java_chunk_2203(self) -> None:
         chunk = JavaChunk2203(
             2203,  # any int from 1466-?
-            BlockStack(
-                Block("java", VersionNumber(2203), "minecraft", "stone")
-            ),
-            Biome("java", VersionNumber(2203), "minecraft", "plains")
+            BlockStack(Block("java", VersionNumber(2203), "minecraft", "stone")),
+            Biome("java", VersionNumber(2203), "minecraft", "plains"),
         )
         self.assertIsInstance(chunk, Chunk)
         test_java_raw_chunk_component(self, chunk)
