@@ -27,9 +27,7 @@ inline void bounds_check(const size_t& size, Py_ssize_t& index) {
 
 void init_block_palette(py::module block_palette_module) {
 	py::object PyList = py::module::import("builtins").attr("list");
-	py::object VersionRangeContainer = py::module::import("amulet.version").attr("VersionRangeContainer");
-	py::module::import("amulet.block");
-	py::class_<Amulet::BlockPalette, std::shared_ptr<Amulet::BlockPalette>> BlockPalette(block_palette_module, "BlockPalette", VersionRangeContainer);
+	py::class_<Amulet::BlockPalette, std::shared_ptr<Amulet::BlockPalette>, Amulet::VersionRangeContainer> BlockPalette(block_palette_module, "BlockPalette");
 		BlockPalette.def(
 			py::init<std::shared_ptr<Amulet::VersionRange>>()
 		);

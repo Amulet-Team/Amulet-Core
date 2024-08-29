@@ -13,9 +13,6 @@
 namespace py = pybind11;
 
 void init_block_component(py::module block_component_module) {
-    py::module::import("amulet.palette.block_palette");
-    py::module::import("amulet.chunk_components.section_array_map");
-
     py::class_<Amulet::BlockComponentData, std::shared_ptr<Amulet::BlockComponentData>>
         BlockComponentData(block_component_module, "BlockComponentData");
     

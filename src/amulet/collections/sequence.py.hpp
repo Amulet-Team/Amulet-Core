@@ -52,7 +52,6 @@ namespace Amulet {
 
 		template <typename elemT = py::object, typename clsT>
 		void Sequence_iter(clsT cls) {
-			py::module::import("amulet.collections");
 			cls.def(
 				"__iter__",
 				[](py::object self) -> py::collections::Iterator<elemT> {
@@ -67,7 +66,6 @@ namespace Amulet {
 
 		template <typename elemT = py::object, typename clsT>
 		void Sequence_reversed(clsT cls) {
-			py::module::import("amulet.collections");
 			cls.def(
 				"__reversed__",
 				[](py::object self) -> py::collections::Iterator<elemT> {

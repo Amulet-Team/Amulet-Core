@@ -27,9 +27,7 @@ inline void bounds_check(const size_t& size, Py_ssize_t& index) {
 
 void init_biome_palette(py::module biome_palette_module) {
     py::object PyList = py::module::import("builtins").attr("list");
-	py::object VersionRangeContainer = py::module::import("amulet.version").attr("VersionRangeContainer");
-	py::module::import("amulet.biome");
-	py::class_<Amulet::BiomePalette, std::shared_ptr<Amulet::BiomePalette>> BiomePalette(biome_palette_module, "BiomePalette", VersionRangeContainer);
+	py::class_<Amulet::BiomePalette, std::shared_ptr<Amulet::BiomePalette>, Amulet::VersionRangeContainer> BiomePalette(biome_palette_module, "BiomePalette");
 		BiomePalette.def(
 			py::init<std::shared_ptr<Amulet::VersionRange>>()
 		);

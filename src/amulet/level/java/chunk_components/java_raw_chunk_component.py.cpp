@@ -17,7 +17,6 @@ namespace py = pybind11;
 
 void init_java_raw_chunk_component(py::module m) {
     py::module::import("amulet_nbt");
-    py::module::import("amulet.collections");
 
     py::class_<Amulet::JavaRawChunkComponent, std::shared_ptr<Amulet::JavaRawChunkComponent>>
     JavaRawChunkComponent(m, "JavaRawChunkComponent");
