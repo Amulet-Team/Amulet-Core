@@ -22,5 +22,16 @@ namespace collections {
 		HolderTemplate(T&& value): value(std::move(value)){}
 	};
 
+	template <typename T>
+	static py::object make_holder(T&& value) {
+		return py::cast(
+			static_cast<std::unique_ptr<Holder>>(
+				std::make_unique<HolderTemplate<T>>(
+					std::move(value)
+				)
+			)
+		);
+	}
+
 }
 }

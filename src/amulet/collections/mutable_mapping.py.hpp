@@ -202,5 +202,14 @@ namespace collections {
 			_map.clear();
 		}
 	};
+
+	template <typename mapT>
+	static py::object make_map(mapT& value, py::object owner = py::none()) {
+		return py::cast(
+			static_cast<std::shared_ptr<MutableMapping>>(
+				std::make_shared<Map<mapT>>(value, owner)
+			)
+		);
+	}
 }
 }
