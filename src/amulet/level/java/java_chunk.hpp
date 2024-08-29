@@ -8,7 +8,7 @@
 #include <amulet/biome.hpp>
 #include <amulet/chunk.hpp>
 #include <amulet/chunk_components/block_component.hpp>
-#include <amulet/level/java/chunk_components/data_version_component.hpp>
+#include "chunk_components/data_version_component.hpp"
 
 namespace Amulet {
 	class JavaChunkNA : public ChunkComponentHelper<
