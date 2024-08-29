@@ -32,13 +32,10 @@ void init_java_raw_chunk_component(py::module m) {
         [](
             Amulet::JavaRawChunkComponent& self
         ) -> py::collections::MutableMapping<std::string, AmuletNBT::NamedTag> {
-            auto raw_data = self.get_raw_data();
-            return py::cast(
-                std::make_shared<Amulet::collections::Map<Amulet::JavaRawChunkType>>(
-                    *raw_data,
-                    py::cast(Amulet::collections::HolderTemplate(raw_data))
-                )
-            );
+            auto raw_data_ptr = self.get_raw_data();
+            Amulet::JavaRawChunkType& raw_data = *raw_data_ptr;
+            py::object py_holder = Amulet::collections::make_holder(std::move(raw_data_ptr));
+            return Amulet::collections::make_map<Amulet::JavaRawChunkType>(raw_data, py_holder);
         },
         [](
             Amulet::JavaRawChunkComponent& self, py::collections::Mapping<std::string, AmuletNBT::NamedTag> py_raw_data
