@@ -13,7 +13,8 @@
 
 namespace py = pybind11;
 
-void init_block(py::module block_module) {
+void init_block(py::module m_parent) {
+    auto m = m_parent.def_submodule("block");
     py::options options;
 
     py::object PySorted = py::module::import("builtins").attr("sorted");
@@ -26,9 +27,9 @@ void init_block(py::module block_module) {
     py::object LongTag = amulet_nbt.attr("LongTag");
     py::object StringTag = amulet_nbt.attr("StringTag");
 
-    block_module.attr("PropertyValueType") = ByteTag | ShortTag | IntTag | LongTag | StringTag;
+    m.attr("PropertyValueType") = ByteTag | ShortTag | IntTag | LongTag | StringTag;
 
-    py::class_<Amulet::Block, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::Block>> Block(block_module, "Block",
+    py::class_<Amulet::Block, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::Block>> Block(m, "Block",
         "A class to manage the state of a block.\n"
         "\n"
         "It is an immutable object that contains the platform, version, namespace, base name and properties.\n"
@@ -239,7 +240,7 @@ void init_block(py::module block_module) {
             )
         );
 
-    py::class_<Amulet::BlockStack, std::shared_ptr<Amulet::BlockStack>> BlockStack(block_module, "BlockStack",
+    py::class_<Amulet::BlockStack, std::shared_ptr<Amulet::BlockStack>> BlockStack(m, "BlockStack",
         "A stack of block objects.\n"
         "\n"
         "Java 1.13 added the concept of waterlogging blocks whereby some blocks have a `waterlogged` property.\n"

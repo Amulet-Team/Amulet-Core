@@ -4,9 +4,8 @@ namespace py = pybind11;
 
 void init_java(py::module);
 
-void init_level(py::module level_module) {
-    auto java_module = level_module.def_submodule("java");
-    init_java(java_module);
+void init_level(py::module m_parent) {
+    auto m = m_parent.def_submodule("level");
 
     //from ._load import register_level_class, unregister_level_class, get_level, NoValidLevel
     //from .temporary_level import TemporaryLevel
@@ -41,4 +40,6 @@ void init_level(py::module level_module) {
     all.append(py::str("JavaLevel"));
     all.append(py::str("BedrockLevel"));
     level_module.attr("__all__") = all;
+    // Submodules
+    init_java(m);
 }

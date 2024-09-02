@@ -9,7 +9,8 @@
 
 namespace py = pybind11;
 
-void init_version(py::module m) {
+void init_version(py::module m_parent) {
+    auto m = m_parent.def_submodule("version");
     py::options options;
 
     m.attr("PlatformType") = py::module::import("builtins").attr("str");

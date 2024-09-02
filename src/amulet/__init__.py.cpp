@@ -14,39 +14,21 @@ void init_level(py::module);
 
 static bool init_run = false;
 
-void init_amulet(py::module amulet){
+void init_amulet(py::module m){
     if (init_run){ return; }
     init_run = true;
 
-    auto collections_module = amulet.def_submodule("collections");
-    init_collections(collections_module);
-
-    auto utils_module = amulet.def_submodule("utils");
-    init_utils(utils_module);
-
-    auto version_module = amulet.def_submodule("version");
-    init_version(version_module);
-
-    auto block_module = amulet.def_submodule("block");
-    init_block(block_module);
-
-    auto block_entity_module = amulet.def_submodule("block_entity");
-    init_block_entity(block_entity_module);
-
-    auto biome_module = amulet.def_submodule("biome");
-    init_biome(biome_module);
-
-    auto palette_module = amulet.def_submodule("palette");
-    init_palette(palette_module);
-
-    auto chunk_module = amulet.def_submodule("chunk");
-    init_chunk(chunk_module);
-
-    auto chunk_components_module = amulet.def_submodule("chunk_components");
-    init_chunk_components(chunk_components_module);
-
-    auto level_module = amulet.def_submodule("level");
-    init_level(level_module);
+    // Submodules
+    init_collections(m);
+    init_utils(m);
+    init_version(m);
+    init_block(m);
+    init_block_entity(m);
+    init_biome(m);
+    init_palette(m);
+    init_chunk(m);
+    init_chunk_components(m);
+    init_level(m);
 }
 
 PYBIND11_MODULE(__init__, m) { init_amulet(m); }

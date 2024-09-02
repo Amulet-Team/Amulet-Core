@@ -4,7 +4,8 @@ namespace py = pybind11;
 void init_section_array_map(py::module);
 void init_block_component(py::module);
 
-void init_chunk_components(py::module chunk_components_module) {
-    init_section_array_map(chunk_components_module);
-    init_block_component(chunk_components_module);
+void init_chunk_components(py::module m_parent) {
+    auto m = m_parent.def_submodule("chunk_components");
+    init_section_array_map(m);
+    init_block_component(m);
 }

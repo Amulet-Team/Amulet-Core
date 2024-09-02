@@ -11,8 +11,9 @@
 
 namespace py = pybind11;
 
-void init_biome(py::module biome_module) {
-    py::class_<Amulet::Biome, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::Biome>> Biome(biome_module, "Biome",
+void init_biome(py::module m_parent) {
+    auto m = m_parent.def_submodule("biome");
+    py::class_<Amulet::Biome, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::Biome>> Biome(m, "Biome",
         "A class to manage the state of a biome.\n"
         "\n"
         "It is an immutable object that contains the platform, version, namespace and base name.\n"
