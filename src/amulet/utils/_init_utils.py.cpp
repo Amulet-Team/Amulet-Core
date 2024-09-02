@@ -12,7 +12,7 @@ void init_utils(py::module m_parent){
     py::def_deferred(
         m,
         {
-            py::getattr_path(m_parent, m, "utils")
+            py::deferred_package_path(m_parent, m, "utils")
         }
     );
 }

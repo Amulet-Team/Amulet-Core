@@ -12,8 +12,8 @@ void init_java(py::module m_parent) {
     py::def_deferred(
         m,
         {
-            py::getattr_path(m_parent, m, "level")//,
-            //py::getattr_import("amulet.level.java._level", "JavaLevel")
+            py::deferred_package_path(m_parent, m, "level")//,
+            //py::deferred_import("amulet.level.java._level", "JavaLevel")
         }
     );
 

@@ -48,7 +48,7 @@ namespace pybind11 {
 		);
 	}
 
-	inline std::pair<std::string, std::function<py::object()>> getattr_path(py::module m_parent, py::module m, std::string name) {
+	inline std::pair<std::string, std::function<py::object()>> deferred_package_path(py::module m_parent, py::module m, std::string name) {
 		auto getter = [m_parent, m, name]() {
 			std::string path = m_parent.attr("__path__").attr("__getitem__")(0).cast<std::string>();
 			path.push_back(std::filesystem::path::preferred_separator);
@@ -60,7 +60,7 @@ namespace pybind11 {
 		return std::make_pair("__path__", getter);
 	}
 
-	inline std::pair<std::string, std::function<py::object()>> getattr_import(std::string module_name, std::string name) {
+	inline std::pair<std::string, std::function<py::object()>> deferred_import(std::string module_name, std::string name) {
 		auto getter = [module_name, name]() {
 			return py::module::import(module_name.c_str()).attr(name.c_str());
 		};
