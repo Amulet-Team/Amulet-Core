@@ -6,6 +6,7 @@ namespace py = pybind11;
 
 void init_java_chunk_components(py::module);
 void init_java_chunk(py::module);
+void init_java_raw(py::module);
 
 void init_java(py::module m_parent) {
     auto m = m_parent.def_submodule("java");
@@ -23,4 +24,5 @@ void init_java(py::module m_parent) {
     auto chunk_module = m.def_submodule("chunk");
     init_java_chunk(chunk_module);
 
+    init_java_raw(m);
 }
