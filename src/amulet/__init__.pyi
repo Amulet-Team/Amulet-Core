@@ -11,6 +11,7 @@ from . import utils
 from . import version
 
 __all__ = [
+    "IMG_DIRECTORY",
     "biome",
     "block",
     "block_entity",
@@ -22,3 +23,5 @@ __all__ = [
     "utils",
     "version",
 ]
+IMG_DIRECTORY: str = "D:\\Data\\GitHub\\Amulet-Core\\src\\amulet\\img"
+__version__: str = "2.0a0+172.gced1a31c.dirty"
