@@ -1,8 +1,7 @@
 from __future__ import annotations
 from builtins import str as InternalDimensionId
 import typing
-from . import _chunk_decode
-from . import _chunk_encode
+from . import _chunk
 
 __all__ = ["InternalDimensionId"]
 
