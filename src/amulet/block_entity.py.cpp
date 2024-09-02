@@ -16,9 +16,6 @@ namespace py = pybind11;
 void init_block_entity(py::module m_parent) {
     auto m = m_parent.def_submodule("block_entity");
 
-    // Required for docstrings
-    py::module::import("amulet_nbt");
-
     py::class_<Amulet::BlockEntity, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::BlockEntity>> BlockEntity(m, "BlockEntity",
         "A class to contain all the data to define a BlockEntity."
     );

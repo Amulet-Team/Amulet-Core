@@ -18,6 +18,8 @@ void init_amulet(py::module m){
     if (init_run){ return; }
     init_run = true;
 
+    py::module::import("amulet_nbt");
+
     py::module::import("amulet._init").attr("init")(m);
 
     // Submodules
