@@ -16,9 +16,16 @@ namespace py = pybind11;
 
 void init_java_chunk(py::module m) {
     py::class_<
+        Amulet::JavaChunk,
+        std::shared_ptr<Amulet::JavaChunk>,
+        Amulet::Chunk
+    >
+        JavaChunk(m, "JavaChunk");
+
+    py::class_<
         Amulet::JavaChunkNA, 
         std::shared_ptr<Amulet::JavaChunkNA>,
-        Amulet::Chunk,
+        Amulet::JavaChunk,
         Amulet::JavaRawChunkComponent,
         Amulet::DataVersionComponent,
         // Amulet::LastUpdateComponent,
@@ -43,7 +50,7 @@ void init_java_chunk(py::module m) {
     py::class_<
         Amulet::JavaChunk0,
         std::shared_ptr<Amulet::JavaChunk0>,
-        Amulet::Chunk,
+        Amulet::JavaChunk,
         Amulet::JavaRawChunkComponent,
         Amulet::DataVersionComponent,
         // Amulet::LastUpdateComponent,
@@ -71,7 +78,7 @@ void init_java_chunk(py::module m) {
     py::class_<
         Amulet::JavaChunk1444,
         std::shared_ptr<Amulet::JavaChunk1444>,
-        Amulet::Chunk,
+        Amulet::JavaChunk,
         Amulet::JavaRawChunkComponent,
         Amulet::DataVersionComponent,
         // Amulet::LastUpdateComponent,
@@ -98,7 +105,7 @@ void init_java_chunk(py::module m) {
     py::class_<
         Amulet::JavaChunk1466,
         std::shared_ptr<Amulet::JavaChunk1466>,
-        Amulet::Chunk,
+        Amulet::JavaChunk,
         Amulet::JavaRawChunkComponent,
         Amulet::DataVersionComponent,
         // Amulet::LastUpdateComponent,
@@ -125,7 +132,7 @@ void init_java_chunk(py::module m) {
     py::class_<
         Amulet::JavaChunk2203,
         std::shared_ptr<Amulet::JavaChunk2203>,
-        Amulet::Chunk,
+        Amulet::JavaChunk,
         Amulet::JavaRawChunkComponent,
         Amulet::DataVersionComponent,
         // Amulet::LastUpdateComponent,

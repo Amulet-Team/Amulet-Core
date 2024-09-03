@@ -12,7 +12,10 @@
 #include "chunk_components/data_version_component.hpp"
 
 namespace Amulet {
+	class JavaChunk : public Chunk {};
+
 	class JavaChunkNA : public ChunkComponentHelper<
+		JavaChunk,
 		JavaRawChunkComponent,
 		DataVersionComponent,
 		// LastUpdateComponent,
@@ -36,6 +39,7 @@ namespace Amulet {
 	};
 
 	class JavaChunk0 : public ChunkComponentHelper<
+		JavaChunk,
 		JavaRawChunkComponent,
 		DataVersionComponent,
 		// LastUpdateComponent,
@@ -61,6 +65,7 @@ namespace Amulet {
 	};
 
 	class JavaChunk1444 : public ChunkComponentHelper<
+		JavaChunk,
 		JavaRawChunkComponent,
 		DataVersionComponent,
 		// LastUpdateComponent,
@@ -85,6 +90,7 @@ namespace Amulet {
 	};
 
 	class JavaChunk1466 : public ChunkComponentHelper<
+		JavaChunk,
 		JavaRawChunkComponent,
 		DataVersionComponent,
 		// LastUpdateComponent,
@@ -109,6 +115,7 @@ namespace Amulet {
 	};
 
 	class JavaChunk2203 : public ChunkComponentHelper<
+		JavaChunk,
 		JavaRawChunkComponent,
 		DataVersionComponent,
 		// LastUpdateComponent,

@@ -6,6 +6,7 @@ import amulet.chunk_components
 import amulet.level.java.chunk_components
 
 __all__ = [
+    "JavaChunk",
     "JavaChunk0",
     "JavaChunk1444",
     "JavaChunk1466",
@@ -13,8 +14,11 @@ __all__ = [
     "JavaChunkNA",
 ]
 
+class JavaChunk(amulet.chunk.Chunk):
+    pass
+
 class JavaChunk0(
-    amulet.chunk.Chunk,
+    JavaChunk,
     amulet.level.java.chunk_components.JavaRawChunkComponent,
     amulet.level.java.chunk_components.DataVersionComponent,
     amulet.chunk_components.BlockComponent,
@@ -27,7 +31,7 @@ class JavaChunk0(
     ) -> None: ...
 
 class JavaChunk1444(
-    amulet.chunk.Chunk,
+    JavaChunk,
     amulet.level.java.chunk_components.JavaRawChunkComponent,
     amulet.level.java.chunk_components.DataVersionComponent,
     amulet.chunk_components.BlockComponent,
@@ -40,7 +44,7 @@ class JavaChunk1444(
     ) -> None: ...
 
 class JavaChunk1466(
-    amulet.chunk.Chunk,
+    JavaChunk,
     amulet.level.java.chunk_components.JavaRawChunkComponent,
     amulet.level.java.chunk_components.DataVersionComponent,
     amulet.chunk_components.BlockComponent,
@@ -53,7 +57,7 @@ class JavaChunk1466(
     ) -> None: ...
 
 class JavaChunk2203(
-    amulet.chunk.Chunk,
+    JavaChunk,
     amulet.level.java.chunk_components.JavaRawChunkComponent,
     amulet.level.java.chunk_components.DataVersionComponent,
     amulet.chunk_components.BlockComponent,
@@ -66,7 +70,7 @@ class JavaChunk2203(
     ) -> None: ...
 
 class JavaChunkNA(
-    amulet.chunk.Chunk,
+    JavaChunk,
     amulet.level.java.chunk_components.JavaRawChunkComponent,
     amulet.level.java.chunk_components.DataVersionComponent,
     amulet.chunk_components.BlockComponent,

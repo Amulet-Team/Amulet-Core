@@ -55,8 +55,8 @@ namespace Amulet {
 	};
 
     // A utility class to simplify component serialisation and deserialisation.
-	template <class ... Components>
-	class ChunkComponentHelper: public Chunk, public Components... {
+	template <class ChunkBaseClass, class ... Components>
+	class ChunkComponentHelper: public ChunkBaseClass, public Components... {
 	public:
 		// Null constructor
 		ChunkComponentHelper() : Components()... {}
