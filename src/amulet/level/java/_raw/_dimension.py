@@ -11,8 +11,7 @@ from amulet.level.java.anvil import RawChunkType, AnvilDimension
 from amulet.level.java.chunk import JavaChunk
 from ._typing import InternalDimensionId
 
-from ._chunk_decode import raw_to_native
-from ._chunk_encode import native_to_raw
+from ._chunk import decode_chunk, encode_chunk
 
 
 if TYPE_CHECKING:
@@ -75,12 +74,12 @@ class JavaRawDimension(
     def raw_chunk_to_native_chunk(
         self, raw_chunk: RawChunkType, cx: int, cz: int
     ) -> JavaChunk:
-        return raw_to_native(self._r, self, raw_chunk, cx, cz)
+        return decode_chunk(self._r, self, raw_chunk, cx, cz)
 
     def native_chunk_to_raw_chunk(
         self, chunk: JavaChunk, cx: int, cz: int
     ) -> RawChunkType:
-        return native_to_raw(self._r, self, chunk, cx, cz)
+        return encode_chunk(self._r, self, chunk, cx, cz)
 
     def compact(self) -> None:
         """Compact all region files"""
