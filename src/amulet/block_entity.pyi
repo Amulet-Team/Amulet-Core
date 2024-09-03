@@ -11,12 +11,12 @@ class BlockEntity(amulet.version.PlatformVersionContainer):
     A class to contain all the data to define a BlockEntity.
     """
 
-    __hash__: typing.ClassVar[None] = None
     @typing.overload
     def __eq__(self, arg0: BlockEntity) -> bool: ...
     @typing.overload
     def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...
     def __getstate__(self) -> bytes: ...
+    def __hash__(self) -> int: ...
     def __init__(
         self,
         platform: str,

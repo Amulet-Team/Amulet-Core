@@ -6,6 +6,7 @@
 #include <pybind11/typing.h>
 
 #include <amulet/collections/eq.py.hpp>
+#include <amulet/collections/hash.py.hpp>
 #include <amulet_nbt/tag/named_tag.hpp>
 #include <amulet/version.hpp>
 #include <amulet/block_entity.hpp>
@@ -110,4 +111,5 @@ void init_block_entity(py::module m_parent) {
 
         Eq(BlockEntity);
         Eq_default(BlockEntity);
+        hash_default(BlockEntity);
 }
