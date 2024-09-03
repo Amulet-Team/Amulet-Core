@@ -1,7 +1,7 @@
-from types import ModuleType
+from typing import Any
 
 
-def init(m: ModuleType) -> None:
+def init(m: Any) -> None:
     import os
     import logging
     import platformdirs

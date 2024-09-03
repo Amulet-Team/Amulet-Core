@@ -129,6 +129,18 @@ namespace collections {
 	}
 
 	template <typename clsT>
+	void PyMapping_hash(clsT cls) {
+		cls.def(
+			"__hash__",
+			[](
+				py::object self
+			) -> size_t {
+				throw py::type_error("Mapping is not hashable");
+			}
+		);
+	}
+
+	template <typename clsT>
 	void PyMapping_register(clsT cls) {
 		py::module::import("collections.abc").attr("Mapping").attr("register")(cls);
 	}
