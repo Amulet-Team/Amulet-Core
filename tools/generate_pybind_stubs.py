@@ -4,6 +4,9 @@ import importlib.util
 import sys
 import subprocess
 import re
+import pybind11_stubgen
+from pybind11_stubgen.structs import Identifier
+from pybind11_stubgen.parser.mixins.filter import FilterClassMembers
 
 UnionPattern = re.compile(
     r"^(?P<variable>[a-zA-Z_][a-zA-Z0-9_]*): types\.UnionType\s*#\s*value = (?P<value>.*)$",
@@ -27,6 +30,22 @@ def get_package_dir(name: str) -> str:
     return os.path.dirname(get_module_path(name))
 
 
+def patch_stubgen():
+    # Is there a better way to add items to the blacklist?
+    # ABC
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("__abstractmethods__"))
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("__orig_bases__"))
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("__parameters__"))
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("_abc_impl"))
+    # Protocol
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("__protocol_attrs__"))
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("_is_protocol"))
+    # dataclass
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("__dataclass_fields__"))
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("__dataclass_params__"))
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("__match_args__"))
+
+
 def main() -> None:
     amulet_path = get_package_dir("amulet")
     src_path = os.path.dirname(amulet_path)
@@ -36,15 +55,18 @@ def main() -> None:
     ):
         os.remove(stub_path)
 
-    subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "pybind11_stubgen",
-            f"--output-dir={src_path}",
-            "amulet",
-        ]
-    )
+    patch_stubgen()
+    sys.argv = [
+        "pybind11_stubgen",
+        f"--output-dir={src_path}",
+        "amulet",
+    ]
+    pybind11_stubgen.main()
+    # If pybind11_stubgen adds args to main
+    # pybind11_stubgen.main([
+    #     f"--output-dir={src_path}",
+    #     "amulet",
+    # ])
 
     for stub_path in glob.iglob(
         os.path.join(glob.escape(src_path), "**", "*.pyi"), recursive=True
