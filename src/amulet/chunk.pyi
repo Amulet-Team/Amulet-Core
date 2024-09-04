@@ -1,4 +1,5 @@
 from __future__ import annotations
+import typing
 
 __all__ = ["Chunk", "get_null_chunk"]
 
@@ -7,8 +8,21 @@ class Chunk:
     A base class for all chunk classes.
     """
 
+    def reconstruct_chunk(self, arg0: dict[str, bytes | None]) -> None:
+        """
+        This is private. Do not use this. It will be removed in the future.
+        """
+
+    def serialise_chunk(self) -> dict[str, bytes | None]:
+        """
+        This is private. Do not use this. It will be removed in the future.
+        """
+
     @property
     def chunk_id(self) -> str: ...
+    @property
+    def component_ids(self) -> list[str]: ...
+
 def get_null_chunk(arg0: str) -> Chunk:
     """
     This is a private function
