@@ -25,9 +25,9 @@ namespace Amulet {
 	public:
 		virtual ~Chunk() {}
 		virtual std::string get_chunk_id() const = 0;
-	private:
-		friend class ChunkHandle;
 		virtual std::vector<std::string> get_component_ids() const = 0;
+	//private:
+	// These are public but may become private one day
 		virtual SerialisedComponents serialise_chunk() const = 0;
 		virtual void reconstruct_chunk(SerialisedComponents) = 0;
 	};
@@ -60,9 +60,6 @@ namespace Amulet {
 	template <class ChunkBaseClass, class ... Components>
 	class ChunkComponentHelper: public ChunkBaseClass, public Components... {
 	public:
-		// Null constructor
-		ChunkComponentHelper() : Components()... {}
-	private:
 		// Component list
 		std::vector<std::string> get_component_ids() const override {
 			std::vector<std::string> component_ids;
@@ -74,6 +71,10 @@ namespace Amulet {
 			);
 			return component_ids;
 		}
+	// These are public but may become private one day
+		// Null constructor
+		ChunkComponentHelper() : Components()... {}
+	//private:
 		// Serialiser
 		SerialisedComponents serialise_chunk() const override {
 			SerialisedComponents component_data;
