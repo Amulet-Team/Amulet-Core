@@ -17,9 +17,9 @@ void init_java_raw(py::module m_parent) {
         m,
         {
             py::deferred_package_path(m_parent, m, "_raw"),
-            //py::deferred_import("amulet.level.java._raw._level", "JavaRawLevel"),
-            //py::deferred_import("amulet.level.java._raw._level", "JavaCreateArgsV1"),
-            //py::deferred_import("amulet.level.java._raw._dimension", "JavaRawDimension"),
+            py::deferred_import("amulet.level.java._raw._level", "JavaRawLevel"),
+            py::deferred_import("amulet.level.java._raw._level", "JavaCreateArgsV1"),
+            py::deferred_import("amulet.level.java._raw._dimension", "JavaRawDimension"),
             py::deferred_import("amulet.level.java._raw._typing", "InternalDimensionId")
         }
     );

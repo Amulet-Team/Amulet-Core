@@ -14,10 +14,14 @@ void init_level(py::module m_parent) {
     py::def_deferred(
         m,
         {
-            py::deferred_package_path(m_parent, m, "level")//,
-            //py::deferred_import("amulet.level.abc", "Level"),
-            //py::deferred_import("amulet.level.java", "JavaLevel"),
+            py::deferred_package_path(m_parent, m, "level"),
+            py::deferred_import("amulet.level.abc", "Level"),
+            py::deferred_import("amulet.level.java", "JavaLevel"),
             //py::deferred_import("amulet.level.bedrock", "BedrockLevel")
+            py::deferred_import("amulet.level._load", "register_level_class"),
+            py::deferred_import("amulet.level._load", "unregister_level_class"),
+            py::deferred_import("amulet.level._load", "get_level"),
+            py::deferred_import("amulet.level._load", "NoValidLevel")
         }
     );
 
