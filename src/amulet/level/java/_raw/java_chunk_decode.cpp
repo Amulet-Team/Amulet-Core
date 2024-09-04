@@ -185,7 +185,7 @@ std::shared_ptr<Amulet::Biome> get_default_biome(
 
 
 namespace Amulet {
-	std::shared_ptr<Amulet::Chunk> decode_java_chunk(
+	std::shared_ptr<Amulet::JavaChunk> decode_java_chunk(
 		py::object raw_level,
 		py::object dimension,
 		std::map<std::string, AmuletNBT::NamedTag> raw_chunk,

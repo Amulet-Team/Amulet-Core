@@ -1,5 +1,5 @@
 from __future__ import annotations
-import amulet.chunk
+import amulet.level.java.chunk
 import amulet_nbt
 import typing
 
@@ -11,7 +11,11 @@ def decode_chunk(
     arg2: dict[str, amulet_nbt.NamedTag],
     arg3: int,
     arg4: int,
-) -> amulet.chunk.Chunk: ...
+) -> amulet.level.java.chunk.JavaChunk: ...
 def encode_chunk(
-    arg0: typing.Any, arg1: typing.Any, arg2: amulet.chunk.Chunk, arg3: int, arg4: int
+    arg0: typing.Any,
+    arg1: typing.Any,
+    arg2: amulet.level.java.chunk.JavaChunk,
+    arg3: int,
+    arg4: int,
 ) -> dict[str, amulet_nbt.NamedTag]: ...
