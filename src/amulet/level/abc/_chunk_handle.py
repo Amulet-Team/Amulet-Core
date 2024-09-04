@@ -2,14 +2,13 @@ from __future__ import annotations
 
 import pickle
 from typing import Optional, TYPE_CHECKING, Generic, TypeVar, Callable, Self
-from collections.abc import Iterator, Set
+from collections.abc import Iterator, Iterable
 from contextlib import contextmanager
 from threading import RLock
 from abc import ABC, abstractmethod
 
 from amulet.utils.shareable_lock import LockNotAcquired
-from amulet.chunk import Chunk, ComponentDataMapping
-from amulet.chunk.components.abc import ChunkComponent, UnloadedComponent
+from amulet.chunk import Chunk, get_null_chunk
 from amulet.data_types import DimensionId
 from amulet.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.utils.signal import Signal
@@ -148,10 +147,10 @@ class ChunkHandle(
     def edit(
         self,
         *,
-        components: Set[type[ChunkComponent]] | None = None,
+        components: Iterable[str] | None = None,
         blocking: bool = True,
         timeout: float = -1,
-    ) -> Iterator[Optional[ChunkT]]:
+    ) -> Iterator[ChunkT | None]:
         """Lock and edit a chunk.
 
         If you only want to access/modify parts of the chunk data you can specify the components you want to load.
@@ -166,7 +165,7 @@ class ChunkHandle(
         >>>     # No other threads are able to edit the chunk while in this with block.
         >>>     # When the with block exits the edited chunk will be automatically set if no exception occurred.
 
-        :param components: None to load all components or an iterable of :class:`ChunkComponent`s to load.
+        :param components: None to load all components or an iterable of component strings to load.
         :param blocking: Should this block until the lock is acquired.
         :param timeout: The amount of time to wait for the lock.
         :raises:
@@ -198,6 +197,7 @@ class ChunkHandle(
         """Load the chunk data if it has not already been loaded."""
         if not self._chunk_history.has_resource(self._key):
             # The history system is not aware of the chunk. Load from the level data
+            chunk: Chunk
             try:
                 raw_chunk = self._get_raw_dimension().get_raw_chunk(self.cx, self.cz)
                 chunk = self._get_raw_dimension().raw_chunk_to_native_chunk(
@@ -210,15 +210,36 @@ class ChunkHandle(
             except ChunkLoadError as e:
                 self._chunk_history.set_initial_resource(self._key, pickle.dumps(e))
             else:
-                chunk_class = type(chunk)
                 self._chunk_history.set_initial_resource(
-                    self._key, pickle.dumps(chunk_class)
+                    self._key, pickle.dumps(chunk.chunk_id)
                 )
-                for component_cls, component_data in chunk.component_data.items():
+                for component_id, component_data in chunk.serialise_chunk().items():
+                    if component_data is None:
+                        raise RuntimeError(
+                            "Component must not be None when initialising chunk"
+                        )
                     self._chunk_data_history.set_initial_resource(
-                        b"/".join((bytes(self._key), component_cls.storage_key)),
-                        pickle.dumps(component_data),
+                        b"/".join((bytes(self._key), component_id.encode())),
+                        component_data,
                     )
+
+    def _get_null_chunk(self) -> ChunkT:
+        """Get a null chunk instance used for this chunk.
+
+        :raises:
+            ChunkDoesNotExist if the chunk does not exist.
+        """
+        data = self._chunk_history.get_resource(self._key)
+        if data:
+            obj: ChunkLoadError | str = pickle.loads(data)
+            if isinstance(obj, ChunkLoadError):
+                raise obj
+            elif isinstance(obj, str):
+                return get_null_chunk(obj)  # type: ignore
+            else:
+                raise RuntimeError
+        else:
+            raise ChunkDoesNotExist
 
     def get_class(self) -> type[ChunkT]:
         """Get the chunk class used for this chunk.
@@ -226,19 +247,9 @@ class ChunkHandle(
         :raises:
             ChunkDoesNotExist if the chunk does not exist.
         """
-        data = self._chunk_history.get_resource(self._key)
-        if data:
-            obj: ChunkLoadError | type[Chunk] = pickle.loads(data)
-            if isinstance(obj, ChunkLoadError):
-                raise obj
-            elif issubclass(obj, Chunk):
-                return obj  # type: ignore
-            else:
-                raise RuntimeError
-        else:
-            raise ChunkDoesNotExist
+        return type(self._get_null_chunk())
 
-    def get(self, components: Set[type[ChunkComponent]] | None = None) -> ChunkT:
+    def get(self, components: Iterable[str] | None = None) -> ChunkT:
         """Get a unique copy of the chunk data.
 
         If you want to edit the chunk, use :meth:`edit` instead.
@@ -246,22 +257,24 @@ class ChunkHandle(
         If you only want to access/modify parts of the chunk data you can specify the components you want to load.
         This makes it faster because you don't need to load unneeded parts.
 
-        :param components: None to load all components or an iterable of :class:`ChunkComponent`s to load.
+        :param components: None to load all components or an iterable of component strings to load.
         :return: A unique copy of the chunk data.
         """
         with self.lock(blocking=False):
             self._preload()
-            chunk_class = self.get_class()
+            chunk = self._get_null_chunk()
             if components is None:
-                components = chunk_class.components
-            chunk_components: ComponentDataMapping = dict.fromkeys(chunk_class.components, UnloadedComponent.value)  # type: ignore
-            for component_class in components:
-                chunk_components[component_class] = pickle.loads(
-                    self._chunk_data_history.get_resource(
-                        b"/".join((bytes(self._key), component_class.storage_key))
-                    )
+                components = chunk.component_ids
+            else:
+                # Ensure all component ids are valid for this class.
+                components = set(components).intersection(chunk.component_ids)
+            chunk_components = dict[str, bytes | None]()
+            for component_id in components:
+                chunk_components[component_id] = self._chunk_data_history.get_resource(
+                    b"/".join((bytes(self._key), component_id.encode()))
                 )
-            return chunk_class.from_component_data(chunk_components)
+            chunk.reconstruct_chunk(chunk_components)
+            return chunk
 
     def _set(self, chunk: ChunkT | None) -> None:
         """Lock must be acquired before calling this"""
@@ -280,21 +293,18 @@ class ChunkHandle(
             except ChunkLoadError:
                 old_chunk_class = None
             new_chunk_class = type(chunk)
-            component_data = chunk.component_data
-            if (
-                old_chunk_class != new_chunk_class
-                and UnloadedComponent.value in component_data.values()
-            ):
+            component_data = chunk.serialise_chunk()
+            if old_chunk_class != new_chunk_class and None in component_data.values():
                 raise RuntimeError(
                     "When changing chunk class all the data must be present."
                 )
             history.set_resource(self._key, pickle.dumps(new_chunk_class))
-            for component_cls, data in component_data.items():
-                if data is UnloadedComponent.value:
+            for component_id, data in component_data.items():
+                if data is None:
                     continue
                 self._chunk_data_history.set_resource(
-                    b"/".join((bytes(self._key), component_cls.storage_key)),
-                    pickle.dumps(data),
+                    b"/".join((bytes(self._key), component_id.encode())),
+                    data,
                 )
 
     @staticmethod
