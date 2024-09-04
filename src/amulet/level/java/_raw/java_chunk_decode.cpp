@@ -144,7 +144,7 @@ std::shared_ptr<Amulet::BlockStack> get_default_block(
 				"java", 
 				py::cast(version_range.get_max_version()),
 				py::cast(block)
-			).attr("__getattr__")(0);
+			).attr("__getitem__")(0);
 			if (py::isinstance<Amulet::Block>(block_)) {
 				blocks.push_back(block_.cast<std::shared_ptr<Amulet::Block>>());
 			}
