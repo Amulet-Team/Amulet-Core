@@ -16,4 +16,10 @@ void init_chunk(py::module m_parent) {
             "chunk_id",
             &Amulet::Chunk::get_chunk_id
         );
+
+    m.def(
+        "get_null_chunk", 
+        &Amulet::get_null_chunk,
+        py::doc("This is a private function")
+    );
 }

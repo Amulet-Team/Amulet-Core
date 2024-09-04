@@ -36,6 +36,8 @@ namespace Amulet {
 		extern std::unordered_map<std::string, std::function<std::shared_ptr<Chunk>()>> chunk_constructors;
 	}
 
+	std::shared_ptr<Chunk> get_null_chunk(std::string chunk_id);
+
     // An object that concrete chunk classes must be registered with.
     // This enables reconstructing the chunk class.
 	template <typename ChunkT>
