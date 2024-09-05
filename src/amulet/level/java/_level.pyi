@@ -26,9 +26,9 @@ from amulet.utils.call_spec._call_spec import method_spec
 from amulet.utils.weakref import DetachableWeakRef
 from amulet.version import VersionNumber
 from amulet_nbt import read_nbt
-from builtins import str as PlatformType
-from builtins import str as InternalDimensionId
 from builtins import str as DimensionId
+from builtins import str as InternalDimensionId
+from builtins import str as PlatformType
 import logging as logging
 import os as os
 import typing

@@ -24,8 +24,8 @@ from amulet_nbt import LongTag
 from amulet_nbt import NamedTag
 from amulet_nbt import StringTag
 from amulet_nbt import read_nbt
-from builtins import str as DimensionId
 from builtins import str as InternalDimensionId
+from builtins import str as DimensionId
 import copy as copy
 from dataclasses import dataclass
 import glob as glob

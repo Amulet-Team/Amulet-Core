@@ -9,8 +9,8 @@ from amulet.level.java._raw._chunk import encode_chunk
 from amulet.level.java.anvil._dimension import AnvilDimension
 from amulet.level.java.chunk import JavaChunk
 from amulet.selection.group import SelectionGroup
-from builtins import str as InternalDimensionId
 from builtins import str as DimensionId
+from builtins import str as InternalDimensionId
 import types
 import typing
 
