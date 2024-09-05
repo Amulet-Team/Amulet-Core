@@ -59,7 +59,7 @@ namespace Amulet {
             return std::make_shared<Block>(platform, version, namespace_, base_name, properties);
         }
         default:
-            throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
+            throw std::invalid_argument("Unsupported Block version " + std::to_string(version_number));
         }
     }
 
@@ -407,5 +407,28 @@ namespace Amulet {
             version, 
             blockstate
         );
+    }
+
+    void BlockStack::serialise(BinaryWriter& writer) const {
+        writer.writeNumeric<std::uint8_t>(1);
+        writer.writeNumeric<std::uint64_t>(get_blocks().size());
+        for (const auto& block : get_blocks()) {
+            block->serialise(writer);
+        }
+    }
+    std::shared_ptr<BlockStack> BlockStack::deserialise(BinaryReader& reader) {
+        auto version_number = reader.readNumeric<std::uint8_t>();
+        switch (version_number) {
+        case 1:
+        {
+            std::vector<std::shared_ptr<Block>> blocks;
+            auto count = reader.readNumeric<std::uint64_t>();
+            for (auto i = 0; i < count; i++) {
+                blocks.push_back(Block::deserialise(reader));
+            }
+        }
+        default:
+            throw std::invalid_argument("Unsupported BlockStack version " + std::to_string(version_number));
+        }
     }
 }
