@@ -7,6 +7,9 @@
 #include <amulet/version.hpp>
 #include <amulet/block.hpp>
 
+#include <amulet/io/binary_reader.hpp>
+#include <amulet/io/binary_writer.hpp>
+
 
 namespace Amulet {
 
@@ -31,6 +34,9 @@ namespace Amulet {
 			VersionRangeContainer(version_range),
 			_index_to_block(),
 			_block_to_index() {}
+
+		void serialise(BinaryWriter&) const;
+		static std::shared_ptr<BlockPalette> deserialise(BinaryReader&);
 
 		bool operator==(const BlockPalette& other) const {
 			if (size() != other.size()) {
