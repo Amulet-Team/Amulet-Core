@@ -10,7 +10,7 @@
 
 
 namespace Amulet {
-	typedef std::map<std::string, AmuletNBT::NamedTag> JavaRawChunkType;
+	typedef std::map<std::string, std::shared_ptr<AmuletNBT::NamedTag>> JavaRawChunkType;
 
 	class JavaRawChunkComponent {
 	private:

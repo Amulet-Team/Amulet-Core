@@ -19,7 +19,7 @@ namespace Amulet {
 			writer.writeNumeric<std::uint64_t>(raw_data->size());
 			for (const auto& [k, v] : *raw_data) {
 				writer.writeSizeAndBytes(k);
-				AmuletNBT::write_nbt(writer, v);
+				AmuletNBT::write_nbt(writer, *v);
 			}
 			return writer.getBuffer();
 		}

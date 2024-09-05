@@ -42,7 +42,7 @@ void init_java_raw_chunk_component(py::module m) {
             for (auto it = py_raw_data.begin(); it != py_raw_data.end(); it++){
                 raw_data->insert_or_assign(
                     it->cast<std::string>(),
-                    py_raw_data.attr("__getitem__")(*it).cast<AmuletNBT::NamedTag>()
+                    py_raw_data.attr("__getitem__")(*it).cast<std::shared_ptr<AmuletNBT::NamedTag>>()
                 );
             }
             self.set_raw_data(raw_data);
