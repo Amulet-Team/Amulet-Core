@@ -13,7 +13,7 @@
 namespace Amulet {
     class BinaryWriter: public AmuletNBT::BinaryWriter {
         public:
-            BinaryWriter(): AmuletNBT::BinaryWriter(std::endian::big, [](const std::string& value) {return value; }) {}
+            BinaryWriter(): AmuletNBT::BinaryWriter(std::endian::little, [](const std::string& value) {return value; }) {}
 
             void writeSizeAndBytes(const std::string& value) {
                 writeNumeric<std::uint64_t>(value.size());
