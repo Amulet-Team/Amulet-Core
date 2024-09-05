@@ -6,14 +6,14 @@
 
 
 namespace Amulet {
-    void VersionNumber::serialise(Amulet::BinaryWriter& writer) const {
+    void VersionNumber::serialise(BinaryWriter& writer) const {
         writer.writeNumeric<std::uint8_t>(1);
         writer.writeNumeric<std::uint64_t>(vec.size());
         for (const std::int64_t& v : vec){
             writer.writeNumeric<std::int64_t>(v);
         }
     }
-    std::shared_ptr<VersionNumber> VersionNumber::deserialise(Amulet::BinaryReader& reader){
+    std::shared_ptr<VersionNumber> VersionNumber::deserialise(BinaryReader& reader){
         auto version_number = reader.readNumeric<std::uint8_t>();
         switch (version_number) {
             case 1:
@@ -72,12 +72,12 @@ namespace Amulet {
         return out;
     }
 
-    void PlatformVersionContainer::serialise(Amulet::BinaryWriter& writer) const {
+    void PlatformVersionContainer::serialise(BinaryWriter& writer) const {
         writer.writeNumeric<std::uint8_t>(1);
         writer.writeSizeAndBytes(platform);
         version->serialise(writer);
     }
-    std::shared_ptr<PlatformVersionContainer> PlatformVersionContainer::deserialise(Amulet::BinaryReader& reader){
+    std::shared_ptr<PlatformVersionContainer> PlatformVersionContainer::deserialise(BinaryReader& reader){
         auto version_number = reader.readNumeric<std::uint8_t>();
         switch (version_number) {
         case 1:
@@ -91,13 +91,13 @@ namespace Amulet {
         }
     }
 
-    void VersionRange::serialise(Amulet::BinaryWriter& writer) const {
+    void VersionRange::serialise(BinaryWriter& writer) const {
         writer.writeNumeric<std::uint8_t>(1);
         writer.writeSizeAndBytes(platform);
         min_version->serialise(writer);
         max_version->serialise(writer);
     }
-    std::shared_ptr<VersionRange> VersionRange::deserialise(Amulet::BinaryReader& reader) {
+    std::shared_ptr<VersionRange> VersionRange::deserialise(BinaryReader& reader) {
         auto version_number = reader.readNumeric<std::uint8_t>();
         switch (version_number) {
         case 1:
@@ -116,11 +116,11 @@ namespace Amulet {
         return platform == platform_ && *min_version <= version && version <= *max_version;
     }
 
-    void VersionRangeContainer::serialise(Amulet::BinaryWriter& writer) const {
+    void VersionRangeContainer::serialise(BinaryWriter& writer) const {
         writer.writeNumeric<std::uint8_t>(1);
         version_range->serialise(writer);
     }
-    std::shared_ptr<VersionRangeContainer> VersionRangeContainer::deserialise(Amulet::BinaryReader& reader) {
+    std::shared_ptr<VersionRangeContainer> VersionRangeContainer::deserialise(BinaryReader& reader) {
         auto version_number = reader.readNumeric<std::uint8_t>();
         switch (version_number) {
         case 1:

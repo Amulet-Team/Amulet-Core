@@ -23,8 +23,8 @@ namespace Amulet {
             VersionNumber(std::initializer_list<std::int64_t> vec) : vec(vec) {};
             VersionNumber(const std::vector<std::int64_t>& vec) : vec(vec) {};
 
-            void serialise(Amulet::BinaryWriter&) const;
-            static std::shared_ptr<VersionNumber> deserialise(Amulet::BinaryReader&);
+            void serialise(BinaryWriter&) const;
+            static std::shared_ptr<VersionNumber> deserialise(BinaryReader&);
 
             std::vector<std::int64_t>::const_iterator begin() const { return vec.begin(); };
             std::vector<std::int64_t>::const_iterator end() const { return vec.end(); };
@@ -71,8 +71,8 @@ namespace Amulet {
                 std::shared_ptr<VersionNumber> version
             ) : platform(platform), version(version) {};
 
-            void serialise(Amulet::BinaryWriter&) const;
-            static std::shared_ptr<PlatformVersionContainer> deserialise(Amulet::BinaryReader&);
+            void serialise(BinaryWriter&) const;
+            static std::shared_ptr<PlatformVersionContainer> deserialise(BinaryReader&);
 
             auto operator<=>(const PlatformVersionContainer& other) const {
                 auto cmp = platform <=> other.platform;
@@ -108,8 +108,8 @@ namespace Amulet {
                 }
             };
 
-            void serialise(Amulet::BinaryWriter&) const;
-            static std::shared_ptr<VersionRange> deserialise(Amulet::BinaryReader&);
+            void serialise(BinaryWriter&) const;
+            static std::shared_ptr<VersionRange> deserialise(BinaryReader&);
 
             bool contains(const PlatformType& platform_, const VersionNumber& version) const;
     };
@@ -124,7 +124,7 @@ namespace Amulet {
                 std::shared_ptr<VersionRange> version_range
             ): version_range(version_range) {}
 
-            void serialise(Amulet::BinaryWriter&) const;
-            static std::shared_ptr<VersionRangeContainer> deserialise(Amulet::BinaryReader&);
+            void serialise(BinaryWriter&) const;
+            static std::shared_ptr<VersionRangeContainer> deserialise(BinaryReader&);
     };
 }

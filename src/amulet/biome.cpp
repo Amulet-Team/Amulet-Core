@@ -10,14 +10,14 @@
 #include <amulet_nbt/nbt_encoding/string.hpp>
 
 namespace Amulet {
-    void Biome::serialise(Amulet::BinaryWriter& writer) const {
+    void Biome::serialise(BinaryWriter& writer) const {
         writer.writeNumeric<std::uint8_t>(1);
         writer.writeSizeAndBytes(get_platform());
         get_version()->serialise(writer);
         writer.writeSizeAndBytes(namespace_);
         writer.writeSizeAndBytes(base_name);
     }
-    std::shared_ptr<Biome> Biome::deserialise(Amulet::BinaryReader& reader){
+    std::shared_ptr<Biome> Biome::deserialise(BinaryReader& reader){
         auto version_number = reader.readNumeric<std::uint8_t>();
         switch (version_number) {
         case 1:

@@ -41,8 +41,8 @@ namespace Amulet {
                 _nbt(nbt)
             {}
 
-            void serialise(Amulet::BinaryWriter&) const;
-            static std::shared_ptr<BlockEntity> deserialise(Amulet::BinaryReader&);
+            void serialise(BinaryWriter&) const;
+            static std::shared_ptr<BlockEntity> deserialise(BinaryReader&);
 
             bool operator==(const BlockEntity& other) const {
                 return (

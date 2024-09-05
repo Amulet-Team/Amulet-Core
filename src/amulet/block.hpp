@@ -44,8 +44,8 @@ namespace Amulet {
                 base_name(base_name),
                 properties(properties) {}
 
-            void serialise(Amulet::BinaryWriter&) const;
-            static std::shared_ptr<Block> deserialise(Amulet::BinaryReader&);
+            void serialise(BinaryWriter&) const;
+            static std::shared_ptr<Block> deserialise(BinaryReader&);
             
             auto operator<=>(const Block& other) const {
                 auto cmp = PlatformVersionContainer::operator<=>(other);
@@ -75,8 +75,8 @@ namespace Amulet {
             BlockStack(std::initializer_list<std::shared_ptr<Block>> blocks) : blocks(blocks) {}
             BlockStack(const std::vector<std::shared_ptr<Block>>& blocks) : blocks(blocks) {}
 
-            void serialise(Amulet::BinaryWriter&) const;
-            static std::shared_ptr<BlockStack> deserialise(Amulet::BinaryReader&);
+            void serialise(BinaryWriter&) const;
+            static std::shared_ptr<BlockStack> deserialise(BinaryReader&);
 
             auto operator<=>(const BlockStack& other) const {
                 auto cmp = size() <=> other.size();

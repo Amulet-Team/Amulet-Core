@@ -10,7 +10,7 @@
 #include <amulet_nbt/nbt_encoding/string.hpp>
 
 namespace Amulet {
-    void Block::serialise(Amulet::BinaryWriter& writer) const {
+    void Block::serialise(BinaryWriter& writer) const {
         writer.writeNumeric<std::uint8_t>(1);
         writer.writeSizeAndBytes(get_platform());
         get_version()->serialise(writer);
@@ -25,7 +25,7 @@ namespace Amulet {
             }, val);
         }
     }
-    std::shared_ptr<Block> Block::deserialise(Amulet::BinaryReader& reader){
+    std::shared_ptr<Block> Block::deserialise(BinaryReader& reader){
         auto version_number = reader.readNumeric<std::uint8_t>();
         switch (version_number) {
         case 1:
