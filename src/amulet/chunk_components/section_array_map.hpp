@@ -85,6 +85,10 @@ namespace Amulet {
 		) : _array_shape(array_shape), _default_array(default_array), _arrays() {
 			detail::validate_array_shape(_default_array, _array_shape);
 		}
+
+		void serialise(BinaryWriter&) const;
+		static std::shared_ptr<SectionArrayMap> deserialise(BinaryReader&);
+
 		const SectionShape& get_array_shape() const { return _array_shape; }
 		
 		std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> get_default_array() const { return _default_array; }
