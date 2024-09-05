@@ -46,6 +46,10 @@ namespace Amulet {
 		{
 			std::memcpy(*_buffer, *other._buffer, sizeof(std::uint32_t) * other.get_size());
 		}
+
+		void serialise(BinaryWriter&) const;
+		static std::shared_ptr<IndexArray3D> deserialise(BinaryReader&);
+
 		const SectionShape& get_shape() const {
 			return _shape;
 		}
