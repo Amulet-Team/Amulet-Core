@@ -47,7 +47,7 @@ namespace Amulet {
 			return self;
 		}
 		default:
-			throw std::invalid_argument("Unsupported BlockComponentData version " + std::to_string(version));
+			throw std::invalid_argument("Unsupported IndexArray3D version " + std::to_string(version));
 		}
 	}
 

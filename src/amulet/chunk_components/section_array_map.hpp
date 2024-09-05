@@ -11,6 +11,9 @@
 #include <memory>
 #include <stdexcept>
 
+#include <amulet/io/binary_writer.hpp>
+#include <amulet/io/binary_reader.hpp>
+
 
 namespace Amulet {
 	namespace detail {

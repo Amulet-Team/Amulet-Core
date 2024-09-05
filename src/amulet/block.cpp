@@ -426,6 +426,7 @@ namespace Amulet {
             for (auto i = 0; i < count; i++) {
                 blocks.push_back(Block::deserialise(reader));
             }
+            return std::make_shared<BlockStack>(blocks);
         }
         default:
             throw std::invalid_argument("Unsupported BlockStack version " + std::to_string(version_number));
