@@ -8,6 +8,8 @@
 #include <amulet/block.hpp>
 #include <amulet/palette/block_palette.hpp>
 #include <amulet/chunk_components/section_array_map.hpp>
+#include <amulet/io/binary_writer.hpp>
+#include <amulet/io/binary_reader.hpp>
 
 
 namespace Amulet {
@@ -26,12 +28,21 @@ namespace Amulet {
 		{
 			_palette->block_stack_to_index(default_block);
 		}
-		std::shared_ptr<BlockPalette> get_palette() {
+		BlockComponentData(
+			std::shared_ptr<BlockPalette> palette,
+			std::shared_ptr<SectionArrayMap> sections
+		): _palette(palette), _sections(sections){}
+
+		void serialise(BinaryWriter&) const;
+		static std::shared_ptr<BlockComponentData> deserialise(BinaryReader&);
+
+		std::shared_ptr<BlockPalette> get_palette() const {
 			return _palette;
 		}
-		std::shared_ptr<SectionArrayMap> get_sections() {
+		std::shared_ptr<SectionArrayMap> get_sections() const {
 			return _sections;
 		}
+		
 	};
 
 	class BlockComponent {
