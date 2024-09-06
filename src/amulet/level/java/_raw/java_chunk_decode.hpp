@@ -15,7 +15,7 @@ namespace Amulet {
 	std::shared_ptr<Amulet::JavaChunk> decode_java_chunk(
 		py::object raw_level,
 		py::object dimension,
-		std::map<std::string, AmuletNBT::NamedTag> raw_chunk,
+		std::map<std::string, AmuletNBT::NamedTag>& raw_chunk,
 		std::int64_t cx,
 		std::int64_t cz
 	);
