@@ -18,10 +18,11 @@
 #include <amulet/level/java/java_chunk.hpp>
 
 namespace py = pybind11;
+using namespace AmuletNBT;
 
 namespace Amulet {
 	template <typename tagT>
-	tagT get_tag(const AmuletNBT::CompoundTag& compound, std::string name, std::function<tagT()> get_default) {
+	tagT get_tag(const CompoundTag& compound, std::string name, std::function<tagT()> get_default) {
 		const auto& it = compound.find(name);
 		if (
 			it != compound.end() &&
@@ -33,7 +34,7 @@ namespace Amulet {
 	}
 
 	template <typename tagT>
-	tagT pop_tag(AmuletNBT::CompoundTag& compound, std::string name, std::function<tagT()> get_default) {
+	tagT pop_tag(CompoundTag& compound, std::string name, std::function<tagT()> get_default) {
 		auto node = compound.extract(name);
 		if (
 			node &&
@@ -44,68 +45,68 @@ namespace Amulet {
 		return get_default();
 	}
 
-	AmuletNBT::CompoundTagPtr get_region(const std::map<std::string, AmuletNBT::NamedTag>& raw_chunk) {
+	CompoundTagPtr get_region(const std::map<std::string, NamedTag>& raw_chunk) {
 		const auto& it = raw_chunk.find("region");
 		if (
 			it != raw_chunk.end() &&
-			std::holds_alternative<AmuletNBT::CompoundTagPtr>(it->second.tag_node)
+			std::holds_alternative<CompoundTagPtr>(it->second.tag_node)
 			) {
-			return std::get<AmuletNBT::CompoundTagPtr>(it->second.tag_node);
+			return std::get<CompoundTagPtr>(it->second.tag_node);
 		}
-		return std::make_shared<AmuletNBT::CompoundTag>();
+		return std::make_shared<CompoundTag>();
 	}
 
-	AmuletNBT::CompoundTagPtr get_level(const AmuletNBT::CompoundTag& region) {
-		return get_tag<AmuletNBT::CompoundTagPtr>(
+	CompoundTagPtr get_level(const CompoundTag& region) {
+		return get_tag<CompoundTagPtr>(
 			region,
 			"Level",
-			[]() { return std::make_shared<AmuletNBT::CompoundTag>(); }
+			[]() { return std::make_shared<CompoundTag>(); }
 		);
 	}
 
 	std::int64_t validate_coords(
-		AmuletNBT::CompoundTag& level,
+		CompoundTag& level,
 		std::int64_t cx,
 		std::int64_t cz
 	) {
 		if (
-			pop_tag<AmuletNBT::IntTag>(level, "xPos", []() { return AmuletNBT::IntTag(); }).value != cx ||
-			pop_tag<AmuletNBT::IntTag>(level, "zPos", []() { return AmuletNBT::IntTag(); }).value != cz
+			pop_tag<IntTag>(level, "xPos", []() { return IntTag(); }).value != cx ||
+			pop_tag<IntTag>(level, "zPos", []() { return IntTag(); }).value != cz
 			) {
 			throw std::runtime_error("Chunk coord data is incorrect.");
 		}
-		std::int64_t cy = pop_tag<AmuletNBT::IntTag>(level, "yPos", []() { return AmuletNBT::IntTag(); }).value;
+		std::int64_t cy = pop_tag<IntTag>(level, "yPos", []() { return IntTag(); }).value;
 		return cy << 4;
 	}
 
 	template <typename chunkT>
-	void decode_last_update(chunkT& chunk, AmuletNBT::CompoundTag& level) {
+	void decode_last_update(chunkT& chunk, CompoundTag& level) {
 		// TODO
-		//pop_tag<AmuletNBT::LongTag>(level, "LastUpdate", []() { return AmuletNBT::LongTag(); }).value;
+		//pop_tag<LongTag>(level, "LastUpdate", []() { return LongTag(); }).value;
 	}
 
 	template <typename chunkT>
-	void decode_inhabited_time(chunkT& chunk, AmuletNBT::CompoundTag& level) {
+	void decode_inhabited_time(chunkT& chunk, CompoundTag& level) {
 		// TODO
-		//pop_tag<AmuletNBT::LongTag>(level, "InhabitedTime", []() { return AmuletNBT::LongTag(); }).value;
+		//pop_tag<LongTag>(level, "InhabitedTime", []() { return LongTag(); }).value;
 	}
 
 	template <typename chunkT>
-	void decode_terrain_populated(chunkT& chunk, AmuletNBT::CompoundTag& level) {
+	void decode_terrain_populated(chunkT& chunk, CompoundTag& level) {
 		// TODO
-		//pop_tag<AmuletNBT::ByteTag>(level, "TerrainPopulated", []() { return AmuletNBT::ByteTag(1); }).value;
+		//pop_tag<ByteTag>(level, "TerrainPopulated", []() { return ByteTag(1); }).value;
 	}
 
 	template <typename chunkT>
-	void decode_light_populated(chunkT& chunk, AmuletNBT::CompoundTag& level) {
+	void decode_light_populated(chunkT& chunk, CompoundTag& level) {
 		// TODO
-		//pop_tag<AmuletNBT::ByteTag>(level, "LightPopulated", []() { return AmuletNBT::ByteTag(1); }).value;
+		//pop_tag<ByteTag>(level, "LightPopulated", []() { return ByteTag(1); }).value;
 	}
 
 	template <typename chunkT>
-	void decode_status(chunkT& chunk, AmuletNBT::CompoundTag& level, std::int64_t data_version) {
+	void decode_status(chunkT& chunk, CompoundTag& level, std::int64_t data_version) {
 		// TODO
-		/*std::string status = pop_tag<AmuletNBT::StringTag>(level, "Status", []() { return AmuletNBT::StringTag(); });
+		/*std::string status = pop_tag<StringTag>(level, "Status", []() { return StringTag(); });
 		if (!status.empty()) {
 			chunk.set_status(status);
 		}
@@ -121,12 +122,12 @@ namespace Amulet {
 	}
 
 	template <typename chunkT>
-	void decode_heightmap(chunkT& chunk, AmuletNBT::CompoundTag& level) {
+	void decode_heightmap(chunkT& chunk, CompoundTag& level) {
 		// TODO
 	}
 
 	template <typename chunkT>
-	void decode_heightmaps_compound(chunkT& chunk, AmuletNBT::CompoundTag& level) {
+	void decode_heightmaps_compound(chunkT& chunk, CompoundTag& level) {
 		// TODO
 	}
 
@@ -139,8 +140,8 @@ namespace Amulet {
 		JavaChunkNA
 		>>>>
 	> _decode_java_chunk(
-		std::map<std::string, AmuletNBT::NamedTag>& raw_chunk,
-		AmuletNBT::CompoundTag& region,
+		std::map<std::string, NamedTag>& raw_chunk,
+		CompoundTag& region,
 		std::int64_t cx,
 		std::int64_t cz,
 		std::int64_t data_version,
@@ -148,8 +149,8 @@ namespace Amulet {
 		std::shared_ptr<Biome> default_biome
 	) {
 		// Validate coordinates
-		AmuletNBT::CompoundTagPtr level_ptr;
-		AmuletNBT::CompoundTag& level = [&]() -> AmuletNBT::CompoundTag& {
+		CompoundTagPtr level_ptr;
+		CompoundTag& level = [&]() -> CompoundTag& {
 			if constexpr (DataVersion >= 2203) {
 				return data_version >= 2844 ? region : *(level_ptr = get_level(region));
 			}
@@ -202,7 +203,7 @@ namespace Amulet {
 
 		if constexpr (DataVersion == -1) {
 			// LegacyVersionComponent TODO
-			//pop_tag<AmuletNBT::ByteTag>(*level, "V", []() { return AmuletNBT::ByteTag(1); });
+			//pop_tag<ByteTag>(*level, "V", []() { return ByteTag(1); });
 		}
 
 		decode_last_update(chunk, level);
@@ -291,17 +292,17 @@ namespace Amulet {
 	std::shared_ptr<JavaChunk> decode_java_chunk(
 		py::object raw_level,
 		py::object dimension,
-		std::map<std::string, AmuletNBT::NamedTag>& raw_chunk,
+		std::map<std::string, NamedTag>& raw_chunk,
 		std::int64_t cx,
 		std::int64_t cz
 	) {
 		// Get the region compound tag
-		AmuletNBT::CompoundTagPtr region = get_region(raw_chunk);
+		CompoundTagPtr region = get_region(raw_chunk);
 
-		std::int64_t data_version = pop_tag<AmuletNBT::IntTag>(
+		std::int64_t data_version = pop_tag<IntTag>(
 			*region,
 			"DataVersion",
-			[]() { return AmuletNBT::IntTag(-1); }
+			[]() { return IntTag(-1); }
 		).value;
 
 		auto version = std::make_shared<VersionNumber>(std::initializer_list<std::int64_t>{ data_version });
