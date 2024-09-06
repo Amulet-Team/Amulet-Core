@@ -68,12 +68,16 @@ namespace Amulet {
 
     class BlockStack {
         private:
-            std::vector<std::shared_ptr<Block>> blocks;
+            std::vector<std::shared_ptr<Block>> _blocks;
         public:
-            const std::vector<std::shared_ptr<Block>>& get_blocks() const { return blocks; }
+            const std::vector<std::shared_ptr<Block>>& get_blocks() const { return _blocks; }
 
-            BlockStack(std::initializer_list<std::shared_ptr<Block>> blocks) : blocks(blocks) {}
-            BlockStack(const std::vector<std::shared_ptr<Block>>& blocks) : blocks(blocks) {}
+            template <typename T>
+            BlockStack(const T& blocks) : _blocks(blocks) {
+                if (_blocks.empty()) {
+                    throw std::invalid_argument("A BlockStack must contain at least one block");
+                }
+            }
 
             void serialise(BinaryWriter&) const;
             static std::shared_ptr<BlockStack> deserialise(BinaryReader&);
@@ -91,7 +95,7 @@ namespace Amulet {
                 return (*this <=> other) == 0;
             };
 
-            size_t size() const { return blocks.size(); }
-            std::shared_ptr<Block> operator[](size_t index) const { return blocks[index]; };
+            size_t size() const { return _blocks.size(); }
+            std::shared_ptr<Block> operator[](size_t index) const { return _blocks[index]; };
     };
 }
