@@ -9,6 +9,8 @@
 
 #include <pybind11/pybind11.h>
 
+#include <amulet/pybind11/python.hpp>
+
 #include <amulet_nbt/tag/named_tag.hpp>
 #include <amulet_nbt/tag/compound.hpp>
 
@@ -140,13 +142,16 @@ namespace Amulet {
 		JavaChunkNA
 		>>>>
 	> _decode_java_chunk(
+		py::object game_version,
 		std::map<std::string, NamedTag>& raw_chunk,
 		CompoundTag& region,
 		std::int64_t cx,
 		std::int64_t cz,
+		std::shared_ptr<VersionNumber> version,
 		std::int64_t data_version,
 		std::shared_ptr<BlockStack> default_block,
-		std::shared_ptr<Biome> default_biome
+		std::shared_ptr<Biome> default_biome,
+		std::function<std::shared_ptr<Block>()> get_water
 	) {
 		// Validate coordinates
 		CompoundTagPtr level_ptr;
@@ -225,6 +230,151 @@ namespace Amulet {
 		else {
 			decode_heightmap(chunk, level);
 		}
+
+		// Sections
+		ListTagPtr sections_ptr = get_tag<ListTagPtr>(level, "sections", []() { return std::make_shared<ListTag>(); });
+		if (!std::holds_alternative<CompoundListTag>(*sections_ptr)) {
+			throw std::invalid_argument("Chunk sections is not a list of compound tags.");
+		}
+		auto& sections = std::get<CompoundListTag>(*sections_ptr);
+		std::map<std::int64_t, CompoundTagPtr> sections_map;
+		for (auto& tag : sections) {
+			sections_map.emplace(
+				get_tag<ByteTag>(*tag, "Y", []() { return ByteTag(); }).value,
+				tag
+			);
+		}
+
+		// blocks
+		auto block_component = chunk.get_block();
+		auto block_palette = block_component->get_palette();
+		auto block_sections = block_component->get_sections();
+		if constexpr (DataVersion >= 1444) {
+			// Palette format
+			// if data_version >= 2844:
+			//     region.sections[].block_states.data
+			//     region.sections[].block_states.palette
+			// elif data_version >= 2836:
+			//     region.Level.Sections[].block_states.data
+			//     region.Level.Sections[].block_states.palette
+			// else:
+			//     region.Level.Sections[].BlockStates
+			//     region.Level.Sections[].Palette
+			
+			// TODO: move this to C++
+			py::object Waterloggable = py::module::import("amulet.game.java").attr("Waterloggable");
+			py::object WaterloggableYes = Waterloggable.attr("Yes");
+			py::object WaterloggableAlways = Waterloggable.attr("Always");
+
+			for (auto& [cy, section] : sections_map) {
+				auto [palette_tag, data_tag] = [&]() {
+					if (data_version >= 2836) {
+						auto block_states_tag = pop_tag<CompoundTagPtr>(*section, "block_states", []() { return std::make_shared<CompoundTag>(); });
+						return std::make_pair(
+							pop_tag<ListTagPtr>(*block_states_tag, "palette", []() { return std::make_shared<ListTag>(); }),
+							pop_tag<LongArrayTagPtr>(*block_states_tag, "data", []() { return std::make_shared<LongArrayTag>(); })
+						);
+					}
+					else {
+						return std::make_pair(
+							pop_tag<ListTagPtr>(*section, "Palette", []() { return std::make_shared<ListTag>(); }),
+							pop_tag<LongArrayTagPtr>(*section, "BlockStates", []() { return std::make_shared<LongArrayTag>(); })
+						);
+					}
+				}();
+				if (!std::holds_alternative<CompoundListTag>(*palette_tag)) { continue; }
+				auto& palette = std::get<CompoundListTag>(*palette_tag);
+				std::vector<std::uint32_t> lut;
+				lut.reserve(palette.size());
+				for (auto& block_tag : palette) {
+					auto block_name = get_tag<StringTag>(*block_tag, "Name", []() -> StringTag { throw std::invalid_argument("Block has no Name attribute."); });
+					auto colon_index = block_name.find(':');
+					auto [block_namespace, block_base_name] = [&]() -> std::pair<std::string, std::string> {
+						if (colon_index == std::string::npos) {
+							return std::make_pair("", block_name);
+						}
+						else {
+							return std::make_pair(
+								block_name.substr(0, colon_index),
+								block_name.substr(colon_index + 1)
+							);
+						}
+					}();
+					auto properties_tag = get_tag<CompoundTagPtr>(*block_tag, "Properties", []() { return std::make_shared<CompoundTag>(); });
+					std::map<std::string, PropertyValueType> block_properties;
+					for (const auto& [k, v] : *properties_tag) {
+						std::visit([&block_properties, &k](auto&& arg) {
+							using T = std::decay_t<decltype(arg)>;
+							if constexpr (
+								std::is_same_v<T, AmuletNBT::ByteTag> ||
+								std::is_same_v<T, AmuletNBT::ShortTag> ||
+								std::is_same_v<T, AmuletNBT::IntTag> ||
+								std::is_same_v<T, AmuletNBT::LongTag> ||
+								std::is_same_v<T, AmuletNBT::StringTag>
+							) {
+								block_properties.emplace(k, arg);
+							}
+						}, v);
+					}
+					std::vector<std::shared_ptr<Block>> blocks;
+					
+					// TODO: convert this to C++
+					py::object waterloggable = game_version.attr("block").attr("waterloggable")(block_namespace, block_base_name);
+					if (py::equals(waterloggable, WaterloggableYes)) {
+						auto waterlogged_it = block_properties.find("waterlogged");
+						if (
+							waterlogged_it != block_properties.end() and 
+							std::holds_alternative<StringTag>(waterlogged_it->second)
+						) {
+							if (std::get<StringTag>(waterlogged_it->second) == "true") {
+								blocks.push_back(get_water());
+							}
+							block_properties.erase(waterlogged_it);
+						}
+					}
+					else if (py::equals(waterloggable, WaterloggableAlways)) {
+						blocks.push_back(get_water());
+					}
+					blocks.insert(
+						blocks.begin(), 
+						std::make_shared<Block>(
+							"java",
+							version,
+							block_namespace,
+							block_base_name,
+							block_properties
+						)
+					);
+
+					lut.push_back(
+						block_palette->block_stack_to_index(
+							std::make_shared<BlockStack>(blocks)
+						)
+					);
+				}
+
+				block_sections->set_section(
+					cy,
+					[&] {
+						if (data_tag->empty()) {
+							return std::make_shared<IndexArray3D>(
+								std::initializer_list<std::uint16_t>{16, 16, 16}, 
+								0
+							);
+						}
+						else {
+
+						}
+					}()
+				);
+			}
+		}
+		else {
+			// Numerical format
+			throw std::runtime_error("NotImplemented");
+		}
+
+		// TODO: biomes
 
 		// Return the chunk
 		return chunk_ptr;
@@ -309,21 +459,47 @@ namespace Amulet {
 		auto version_range = std::make_shared<VersionRange>("java", version, version);
 		auto default_block = get_default_block(dimension, *version_range);
 		auto default_biome = get_default_biome(dimension, *version_range);
+		py::object game_version = py::module::import("amulet.game").attr("get_game_version")("java", py::cast(version));
+
+		std::shared_ptr<Block> _water_block;
+		auto get_water = [&version, &_water_block]() {
+			if (!_water_block) {
+				py::object block = py::module::import("amulet.game").attr("get_game_version")(
+					"java",
+					VersionNumber({ 3837 })
+				).attr("block").attr("translate")(
+					"java",
+					version,
+					Block(
+						"java",
+						VersionNumber({ 3837 }),
+						"minecraft",
+						"water",
+						std::initializer_list<BlockProperites::value_type>{ {"level", StringTag("0")} }
+					)
+				).attr("__getitem__")(0);
+				if (!py::isinstance<Block>(block)) {
+					throw std::runtime_error("Water block did not convert to a block in version Java " + version->toString());
+				}
+				_water_block = block.cast<std::shared_ptr<Block>>();
+			}
+			return _water_block;
+		};
 
 		if (data_version >= 2203) {
-			return _decode_java_chunk<2203>(raw_chunk, *region, cx, cz, data_version, default_block, default_biome);
+			return _decode_java_chunk<2203>(game_version, raw_chunk, *region, cx, cz, version, data_version, default_block, default_biome, get_water);
 		}
 		else if (data_version >= 1466) {
-			return _decode_java_chunk<1466>(raw_chunk, *region, cx, cz, data_version, default_block, default_biome);
+			return _decode_java_chunk<1466>(game_version, raw_chunk, *region, cx, cz, version, data_version, default_block, default_biome, get_water);
 		}
 		else if (data_version >= 1444) {
-			return _decode_java_chunk<1444>(raw_chunk, *region, cx, cz, data_version, default_block, default_biome);
+			return _decode_java_chunk<1444>(game_version, raw_chunk, *region, cx, cz, version, data_version, default_block, default_biome, get_water);
 		}
 		else if (data_version >= 0) {
-			return _decode_java_chunk<0>(raw_chunk, *region, cx, cz, data_version, default_block, default_biome);
+			return _decode_java_chunk<0>(game_version, raw_chunk, *region, cx, cz, version, data_version, default_block, default_biome, get_water);
 		}
 		else {
-			return _decode_java_chunk<-1>(raw_chunk, *region, cx, cz, data_version, default_block, default_biome);
+			return _decode_java_chunk<-1>(game_version, raw_chunk, *region, cx, cz, version, data_version, default_block, default_biome, get_water);
 		}
 	}
 }
