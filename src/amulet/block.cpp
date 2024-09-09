@@ -35,7 +35,7 @@ namespace Amulet {
             std::string namespace_ = reader.readSizeAndBytes();
             std::string base_name = reader.readSizeAndBytes();
             std::uint64_t property_count;
-            std::map<std::string, PropertyValueType> properties;
+            BlockProperites properties;
             reader.readNumericInto<std::uint64_t>(property_count);
             for (std::uint64_t i = 0; i < property_count; i++) {
                 std::string name = reader.readSizeAndBytes();
@@ -201,7 +201,7 @@ namespace Amulet {
 
         if (property_start < blockstate.size()) {
             // has properties
-            std::map<std::string, PropertyValueType> properties;
+            BlockProperites properties;
             size_t property_pos = property_start + 1;
             if (property_pos < blockstate.size() && blockstate[property_pos] == ']') {
                 // []

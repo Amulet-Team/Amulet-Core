@@ -20,15 +20,17 @@ namespace Amulet {
         AmuletNBT::StringTag
     > PropertyValueType;
 
+    typedef std::map<std::string, PropertyValueType> BlockProperites;
+
     class Block: public PlatformVersionContainer {
         private:
             std::string namespace_;
             std::string base_name;
-            std::map<std::string, PropertyValueType> properties;
+            BlockProperites properties;
         public:
             const std::string& get_namespace() const { return namespace_; }
             const std::string& get_base_name() const { return base_name; }
-            const std::map<std::string, PropertyValueType>& get_properties() const {
+            const BlockProperites& get_properties() const {
                 return properties;
             }
 
