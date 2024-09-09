@@ -66,10 +66,22 @@ namespace Amulet {
             const PlatformType& get_platform() const { return platform; }
             std::shared_ptr<VersionNumber> get_version() const { return version; }
 
+            template <typename versionT>
             PlatformVersionContainer(
                 const PlatformType& platform,
-                std::shared_ptr<VersionNumber> version
-            ) : platform(platform), version(version) {};
+                const versionT& version
+            ) : 
+                platform(platform), 
+                version([&]{
+                    if constexpr (std::is_same_v<versionT, std::shared_ptr<VersionNumber>>){
+                        if (!version) { throw std::runtime_error("Version is nullptr"); }
+                        return version;
+                    }
+                    else {
+                        return std::make_shared<VersionNumber>(version);
+                    }
+                }())
+            {};
 
             void serialise(BinaryWriter&) const;
             static std::shared_ptr<PlatformVersionContainer> deserialise(BinaryReader&);
