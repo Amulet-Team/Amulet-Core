@@ -180,7 +180,7 @@ namespace collections {
 	};
 
 	template <typename mapT>
-	static py::object make_const_map(mapT& value, py::object owner = py::none()) {
+	static py::object make_const_map(const mapT& value, py::object owner = py::none()) {
 		return py::cast(
 			static_cast<std::shared_ptr<Mapping>>(
 				std::make_shared<ConstMap<mapT>>(value, owner)
