@@ -1,7 +1,9 @@
 from __future__ import annotations
-import amulet_nbt
+
 import collections.abc
 import typing
+
+import amulet_nbt
 
 __all__ = ["DataVersionComponent", "JavaRawChunkComponent"]
 

@@ -1,18 +1,18 @@
 from __future__ import annotations
+
+import types
+import typing
+from builtins import str as DimensionId
+from builtins import str as InternalDimensionId
+
+import amulet.level.abc._raw_level
 from amulet.biome import Biome
 from amulet.block import BlockStack
-import amulet.level.abc._raw_level
-from amulet.level.abc._raw_level import RawDimension
-from amulet.level.abc._raw_level import RawLevelFriend
-from amulet.level.java._raw._chunk import decode_chunk
-from amulet.level.java._raw._chunk import encode_chunk
+from amulet.level.abc._raw_level import RawDimension, RawLevelFriend
+from amulet.level.java._raw._chunk import decode_chunk, encode_chunk
 from amulet.level.java.anvil._dimension import AnvilDimension
 from amulet.level.java.chunk import JavaChunk
 from amulet.selection.group import SelectionGroup
-from builtins import str as DimensionId
-from builtins import str as InternalDimensionId
-import types
-import typing
 
 __all__ = [
     "AnvilDimension",

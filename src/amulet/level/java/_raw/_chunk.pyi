@@ -1,7 +1,9 @@
 from __future__ import annotations
+
+import typing
+
 import amulet.level.java.chunk
 import amulet_nbt
-import typing
 
 __all__ = ["decode_chunk", "encode_chunk"]
 

@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 import math as math
-import numpy as numpy
 import types
+
+import numpy as numpy
 
 __all__ = [
     "FloatTriplet",

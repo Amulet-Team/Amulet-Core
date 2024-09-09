@@ -1,15 +1,16 @@
 from __future__ import annotations
-from amulet.errors import ChunkDoesNotExist
-from amulet.level.java.anvil._region import AnvilRegion
-from amulet.utils import world_utils
-from amulet_nbt import NamedTag
-from collections.abc import Iterator
-from collections.abc import Sequence
+
 import os as os
 import re as re
 import threading as threading
 import types
 import typing
+from collections.abc import Iterator, Sequence
+
+from amulet.errors import ChunkDoesNotExist
+from amulet.level.java.anvil._region import AnvilRegion
+from amulet.utils import world_utils
+from amulet_nbt import NamedTag
 
 __all__ = [
     "AnvilDimension",

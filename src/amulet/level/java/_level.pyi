@@ -1,38 +1,41 @@
-from PIL import Image
 from __future__ import annotations
-from amulet.chunk import Chunk
-from amulet.level._load import register_level_class
-import amulet.level.abc._level._compactable_level
-from amulet.level.abc._level._compactable_level import CompactableLevel
-import amulet.level.abc._level._creatable_level
-from amulet.level.abc._level._creatable_level import CreatableLevel
-import amulet.level.abc._level._disk_level
-from amulet.level.abc._level._disk_level import DiskLevel
-import amulet.level.abc._level._level
-from amulet.level.abc._level._level import LevelOpenData
-import amulet.level.abc._level._loadable_level
-from amulet.level.abc._level._loadable_level import LoadableLevel
-from amulet.level.abc._player_storage import PlayerStorage
-from amulet.level.java._dimension import JavaDimension
-from amulet.level.java._raw._level import JavaCreateArgsV1
-from amulet.level.java._raw._level import JavaRawLevel
-from amulet.utils.call_spec._call_spec import BoolArg
-from amulet.utils.call_spec._call_spec import CallableArg
-from amulet.utils.call_spec._call_spec import DirectoryPathArg
-from amulet.utils.call_spec._call_spec import IntArg
-from amulet.utils.call_spec._call_spec import PositionalArgs
-from amulet.utils.call_spec._call_spec import StringArg
-from amulet.utils.call_spec._call_spec import method_spec
-from amulet.utils.weakref import DetachableWeakRef
-from amulet.version import VersionNumber
-from amulet_nbt import read_nbt
-from builtins import str as DimensionId
-from builtins import str as InternalDimensionId
-from builtins import str as PlatformType
+
 import logging as logging
 import os as os
 import typing
+from builtins import str as DimensionId
+from builtins import str as InternalDimensionId
+from builtins import str as PlatformType
 from typing import Any
+
+import amulet.level.abc._level._compactable_level
+import amulet.level.abc._level._creatable_level
+import amulet.level.abc._level._disk_level
+import amulet.level.abc._level._level
+import amulet.level.abc._level._loadable_level
+from amulet.chunk import Chunk
+from amulet.level._load import register_level_class
+from amulet.level.abc._level._compactable_level import CompactableLevel
+from amulet.level.abc._level._creatable_level import CreatableLevel
+from amulet.level.abc._level._disk_level import DiskLevel
+from amulet.level.abc._level._level import LevelOpenData
+from amulet.level.abc._level._loadable_level import LoadableLevel
+from amulet.level.abc._player_storage import PlayerStorage
+from amulet.level.java._dimension import JavaDimension
+from amulet.level.java._raw._level import JavaCreateArgsV1, JavaRawLevel
+from amulet.utils.call_spec._call_spec import (
+    BoolArg,
+    CallableArg,
+    DirectoryPathArg,
+    IntArg,
+    PositionalArgs,
+    StringArg,
+    method_spec,
+)
+from amulet.utils.weakref import DetachableWeakRef
+from amulet.version import VersionNumber
+from amulet_nbt import read_nbt
+from PIL import Image
 
 __all__ = [
     "Any",

@@ -1,12 +1,11 @@
 from __future__ import annotations
+
 import abc
-from abc import ABC
-from abc import abstractmethod
-from amulet.utils.signal._signal import Signal
-from amulet.utils.signal._signal import SignalInstance
 import typing
-from typing import Generic
-from typing import TypeVar
+from abc import ABC, abstractmethod
+from typing import Generic, TypeVar
+
+from amulet.utils.signal._signal import Signal, SignalInstance
 
 __all__ = [
     "ABC",

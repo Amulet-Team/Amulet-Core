@@ -1,14 +1,18 @@
 from __future__ import annotations
+
+import logging as logging
+import time as time
 from _thread import allocate_lock as Lock
 from _thread import get_ident
-import amulet.utils.task_manager
-from amulet.utils.task_manager import AbstractCancelManager
-from amulet.utils.task_manager import TaskCancelled
-from amulet.utils.task_manager import VoidCancelManager
 from contextlib import contextmanager
-import logging as logging
 from threading import Condition
-import time as time
+
+import amulet.utils.task_manager
+from amulet.utils.task_manager import (
+    AbstractCancelManager,
+    TaskCancelled,
+    VoidCancelManager,
+)
 
 __all__ = [
     "AbstractCancelManager",

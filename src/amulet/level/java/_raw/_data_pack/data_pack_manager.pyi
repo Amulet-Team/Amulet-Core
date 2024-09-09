@@ -1,7 +1,7 @@
 from __future__ import annotations
+
 import amulet.level.java._raw._data_pack.data_pack
-from amulet.level.java._raw._data_pack.data_pack import DataPack
-from amulet.level.java._raw._data_pack.data_pack import Readable
+from amulet.level.java._raw._data_pack.data_pack import DataPack, Readable
 
 __all__ = ["DataPack", "DataPackManager", "Readable"]
 

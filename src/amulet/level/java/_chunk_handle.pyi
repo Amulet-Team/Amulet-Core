@@ -1,8 +1,10 @@
 from __future__ import annotations
+
+import typing
+
 import amulet.level.abc._chunk_handle
 from amulet.level.abc._chunk_handle import ChunkHandle
 from amulet.level.java.chunk import JavaChunk
-import typing
 
 __all__ = ["ChunkHandle", "ChunkT", "JavaChunk", "JavaChunkHandle"]
 

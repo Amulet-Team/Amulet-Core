@@ -1,7 +1,8 @@
 from __future__ import annotations
-from builtins import str as PlatformType
+
 import types
 import typing
+from builtins import str as PlatformType
 
 __all__ = [
     "PlatformType",

@@ -1,8 +1,10 @@
 from __future__ import annotations
-import amulet.version
-import amulet_nbt
+
 import types
 import typing
+
+import amulet.version
+import amulet_nbt
 
 __all__ = ["BlockEntity"]
 

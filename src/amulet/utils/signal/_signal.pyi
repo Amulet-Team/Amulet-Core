@@ -1,13 +1,10 @@
 from __future__ import annotations
-from collections.abc import Sequence
-from inspect import ismethod
+
 import logging as logging
 import typing
-from typing import Any
-from typing import Generic
-from typing import Protocol
-from typing import TypeVarTuple
-from typing import overload
+from collections.abc import Sequence
+from inspect import ismethod
+from typing import Any, Generic, Protocol, TypeVarTuple, overload
 from weakref import WeakMethod
 
 __all__ = [
@@ -34,7 +31,7 @@ __all__ = [
 class Signal(typing.Generic):
     def __get__(self, instance: typing.Any, owner: typing.Any) -> typing.Any: ...
     def __init__(
-        self, *types: type, name: str = "", arguments: typing.Sequence[str] = tuple()
+        self, *types: type, name: str, arguments: typing.Sequence[str] = tuple()
     ): ...
 
 class SignalInstance(typing.Protocol):
@@ -71,7 +68,7 @@ def _get_signal_instances(instance: typing.Any) -> dict[Signal, SignalInstance]:
 def create_signal_instance(
     *types: type,
     instance: typing.Any,
-    name: str = "",
+    name: str,
     arguments: typing.Sequence[str] = tuple(),
 ) -> SignalInstance[*CallArgs,]:
     """
@@ -83,5 +80,5 @@ def get_pyside6_signal_instance_constructor() -> SignalInstanceConstructor: ...
 def set_signal_instance_constructor(constructor: SignalInstanceConstructor) -> None: ...
 
 CallArgs: typing.TypeVarTuple  # value = CallArgs
-SignalInstanceCacheName: str = "_SignalCache"
+SignalInstanceCacheName: str
 _signal_instance_constructor = None

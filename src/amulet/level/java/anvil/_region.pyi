@@ -1,19 +1,8 @@
 from __future__ import annotations
-import _struct
-from amulet.errors import ChunkDoesNotExist
-from amulet.errors import ChunkLoadError
-import amulet.level.java.anvil._sector_manager
-from amulet.level.java.anvil._sector_manager import Sector
-from amulet.level.java.anvil._sector_manager import SectorManager
-from amulet_nbt import NamedTag
-from amulet_nbt import read_nbt
-from collections.abc import Iterator
+
 import enum
-from enum import IntEnum
 import gzip as gzip
 import logging as logging
-from lz4 import block as lz4_block
-import numpy as numpy
 import os as os
 import re as re
 import struct as struct
@@ -21,8 +10,18 @@ import threading as threading
 import time as time
 import types
 import typing
-from typing import BinaryIO
 import zlib as zlib
+from collections.abc import Iterator
+from enum import IntEnum
+from typing import BinaryIO
+
+import _struct
+import amulet.level.java.anvil._sector_manager
+import numpy as numpy
+from amulet.errors import ChunkDoesNotExist, ChunkLoadError
+from amulet.level.java.anvil._sector_manager import Sector, SectorManager
+from amulet_nbt import NamedTag, read_nbt
+from lz4 import block as lz4_block
 
 __all__ = [
     "AnvilRegion",

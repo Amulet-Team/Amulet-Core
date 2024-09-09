@@ -1,15 +1,12 @@
 from __future__ import annotations
-from amulet.level.java._raw._dimension import JavaRawDimension
-from amulet.level.java._raw._level import JavaCreateArgsV1
-from amulet.level.java._raw._level import JavaRawLevel
-from builtins import str as InternalDimensionId
+
 import typing
-from . import _chunk
-from . import _constant
-from . import _data_pack
-from . import _dimension
-from . import _level
-from . import _typing
+from builtins import str as InternalDimensionId
+
+from amulet.level.java._raw._dimension import JavaRawDimension
+from amulet.level.java._raw._level import JavaCreateArgsV1, JavaRawLevel
+
+from . import _chunk, _constant, _data_pack, _dimension, _level, _typing
 
 __all__ = [
     "InternalDimensionId",

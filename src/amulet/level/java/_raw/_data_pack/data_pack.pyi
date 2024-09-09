@@ -1,12 +1,12 @@
 from __future__ import annotations
+
 import abc
-from abc import ABC
-from abc import abstractmethod
-from builtins import traceback as TracebackType
 import json as json
 import os as os
 import re as re
 import typing
+from abc import ABC, abstractmethod
+from builtins import traceback as TracebackType
 from typing import Protocol
 from zipfile import ZipFile
 

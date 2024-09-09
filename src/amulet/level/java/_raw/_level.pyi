@@ -1,10 +1,27 @@
 from __future__ import annotations
+
+import copy as copy
+import glob as glob
+import json as json
+import logging as logging
+import os as os
+import shutil as shutil
+import struct as struct
+import time as time
+import typing
+from builtins import str as DimensionId
+from builtins import str as InternalDimensionId
+from dataclasses import dataclass
+from threading import RLock
+from typing import BinaryIO
+
+import amulet.level.abc._raw_level
+import amulet.selection.group
+import portalocker as portalocker
 from amulet.biome import Biome
-from amulet.block import Block
-from amulet.block import BlockStack
+from amulet.block import Block, BlockStack
 from amulet.errors import LevelWriteError
 from amulet.game._game import get_game_version
-import amulet.level.abc._raw_level
 from amulet.level.abc._raw_level import RawLevel
 from amulet.level.abc._registry import IdRegistry
 from amulet.level.java._raw._data_pack.data_pack import DataPack
@@ -12,33 +29,19 @@ from amulet.level.java._raw._data_pack.data_pack_manager import DataPackManager
 from amulet.level.java._raw._dimension import JavaRawDimension
 from amulet.level.java.anvil._dimension import AnvilDimension
 from amulet.selection.box import SelectionBox
-import amulet.selection.group
 from amulet.selection.group import SelectionGroup
 from amulet.utils.signal._signal import Signal
 from amulet.utils.weakref import DetachableWeakRef
 from amulet.version import VersionNumber
-from amulet_nbt import CompoundTag
-from amulet_nbt import IntTag
-from amulet_nbt import ListTag
-from amulet_nbt import LongTag
-from amulet_nbt import NamedTag
-from amulet_nbt import StringTag
-from amulet_nbt import read_nbt
-from builtins import str as InternalDimensionId
-from builtins import str as DimensionId
-import copy as copy
-from dataclasses import dataclass
-import glob as glob
-import json as json
-import logging as logging
-import os as os
-import portalocker as portalocker
-import shutil as shutil
-import struct as struct
-from threading import RLock
-import time as time
-import typing
-from typing import BinaryIO
+from amulet_nbt import (
+    CompoundTag,
+    IntTag,
+    ListTag,
+    LongTag,
+    NamedTag,
+    StringTag,
+    read_nbt,
+)
 
 __all__ = [
     "AnvilDimension",
@@ -228,8 +231,8 @@ class JavaRawLevelOpenData:
 DefaultSelection: (
     amulet.selection.group.SelectionGroup
 )  # value = SelectionGroup([SelectionBox((-30000000, 0, -30000000), (30000000, 256, 30000000))])
-OVERWORLD: str = "minecraft:overworld"
-SignalInstanceCacheName: str = "_SignalCache"
-THE_END: str = "minecraft:the_end"
-THE_NETHER: str = "minecraft:the_nether"
+OVERWORLD: str
+SignalInstanceCacheName: str
+THE_END: str
+THE_NETHER: str
 log: logging.Logger  # value = <Logger amulet.level.java._raw._level (INFO)>

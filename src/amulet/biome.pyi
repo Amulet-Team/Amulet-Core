@@ -1,7 +1,9 @@
 from __future__ import annotations
-import amulet.version
+
 import types
 import typing
+
+import amulet.version
 
 __all__ = ["Biome"]
 

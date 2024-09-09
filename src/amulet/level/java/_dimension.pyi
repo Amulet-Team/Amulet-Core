@@ -1,7 +1,8 @@
 from __future__ import annotations
+
 import amulet.level.abc._dimension
-from amulet.level.abc._dimension import Dimension
 import amulet.level.java._chunk_handle
+from amulet.level.abc._dimension import Dimension
 from amulet.level.java._chunk_handle import JavaChunkHandle
 
 __all__ = ["Dimension", "JavaChunkHandle", "JavaDimension"]

@@ -1,5 +1,4 @@
 from __future__ import annotations
-import typing
 
 __all__ = ["Chunk", "get_null_chunk"]
 

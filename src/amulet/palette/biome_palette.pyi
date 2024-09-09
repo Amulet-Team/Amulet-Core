@@ -1,8 +1,10 @@
 from __future__ import annotations
-import amulet.biome
-import amulet.version
+
 import collections.abc
 import typing
+
+import amulet.biome
+import amulet.version
 
 __all__ = ["BiomePalette"]
 

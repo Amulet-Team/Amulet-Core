@@ -1,11 +1,13 @@
 from __future__ import annotations
+
+import types
+import typing
+
 import amulet.block
 import amulet.collections
 import amulet.palette.block_palette
 import amulet.version
 import numpy
-import types
-import typing
 import typing_extensions
 
 __all__ = ["BlockComponent", "BlockComponentData", "IndexArray3D", "SectionArrayMap"]

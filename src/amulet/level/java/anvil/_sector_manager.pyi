@@ -1,9 +1,10 @@
 from __future__ import annotations
-from _bisect import bisect_left
-from _bisect import bisect_right
+
 import threading as threading
 import typing
 from typing import NamedTuple
+
+from _bisect import bisect_left, bisect_right
 
 __all__ = [
     "NamedTuple",

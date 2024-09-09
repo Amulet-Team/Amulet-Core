@@ -4,18 +4,12 @@ The aim is to support generating GUIs without having to manually program a GUI t
 """
 
 from __future__ import annotations
+
 import abc
-from abc import ABC
-from abc import abstractmethod
-from collections.abc import Sequence
 import typing
-from typing import Any
-from typing import ParamSpec
-from typing import Protocol
-from typing import TypeVar
-from typing import cast
-from typing import overload
-from typing import runtime_checkable
+from abc import ABC, abstractmethod
+from collections.abc import Sequence
+from typing import Any, ParamSpec, Protocol, TypeVar, cast, overload, runtime_checkable
 
 __all__ = [
     "ABC",
@@ -227,7 +221,7 @@ class StringArg(AbstractHashableArg):
     A string argument
     """
 
-    def __init__(self, default: str = "") -> None: ...
+    def __init__(self, default: str) -> None: ...
 
 class TupleArg(AbstractArg):
     """

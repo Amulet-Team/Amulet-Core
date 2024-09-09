@@ -1,8 +1,10 @@
 from __future__ import annotations
-import amulet.block
-import amulet.version
+
 import collections.abc
 import typing
+
+import amulet.block
+import amulet.version
 
 __all__ = ["BlockPalette"]
 

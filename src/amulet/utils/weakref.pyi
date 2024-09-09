@@ -3,14 +3,10 @@ Extension to the builtin weakref module.
 """
 
 from __future__ import annotations
+
 import typing
-from typing import Any
-from typing import Generic
-from typing import TypeVar
-from typing import final
 import weakref
-from weakref import ReferenceType as _ReferenceType
-from weakref import WeakMethod as _WeakMethod
+from typing import Any, Generic, TypeVar, final
 
 __all__ = [
     "Any",

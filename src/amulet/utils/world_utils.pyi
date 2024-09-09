@@ -1,11 +1,10 @@
 from __future__ import annotations
+
 import math as math
-import numpy as numpy
-from numpy import ndarray
-from numpy import uint8
-from numpy import zeros
 import types
-import typing
+
+import numpy as numpy
+from numpy import ndarray, uint8, zeros
 
 __all__ = [
     "ChunkCoordinates",
