@@ -32,12 +32,28 @@ namespace Amulet {
                 return properties;
             }
 
+            template <typename versionT>
             Block(
                 const PlatformType& platform,
-                std::shared_ptr<VersionNumber> version,
+                const versionT& version,
+                const std::string& namespace_,
+                const std::string& base_name
+            ) :
+                PlatformVersionContainer(platform, version),
+                namespace_(namespace_),
+                base_name(base_name),
+                properties() {}
+
+            template <
+                typename versionT,
+                typename propertiesT
+            >
+            Block(
+                const PlatformType& platform,
+                const versionT& version,
                 const std::string& namespace_,
                 const std::string& base_name,
-                const std::map<std::string, PropertyValueType>& properties = std::map<std::string, PropertyValueType>()
+                const propertiesT& properties
             ):
                 PlatformVersionContainer(platform, version),
                 namespace_(namespace_),
