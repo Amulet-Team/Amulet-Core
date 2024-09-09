@@ -82,6 +82,22 @@ def main() -> None:
         with open(stub_path, "w", encoding="utf-8") as f:
             f.write(pyi)
 
+        subprocess.run(
+            [
+                "isort",
+                stub_path,
+            ]
+        )
+
+        subprocess.run(
+            [
+                "autoflake",
+                "--in-place",
+                "--remove-unused-variables",
+                stub_path,
+            ]
+        )
+
     subprocess.run([sys.executable, "-m", "black", src_path])
 
 
