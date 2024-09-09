@@ -12,10 +12,14 @@ UnionPattern = re.compile(
     r"^(?P<variable>[a-zA-Z_][a-zA-Z0-9_]*): types\.UnionType\s*#\s*value = (?P<value>.*)$",
     flags=re.MULTILINE,
 )
+VersionPattern = re.compile(r"(?P<var>[a-zA-Z0-9_].*): str = '.*?'")
 
 
 def union_sub_func(match: re.Match) -> str:
     return f'{match.group("variable")}: typing.TypeAlias = {match.group("value")}'
+
+def str_sub_func(match: re.Match) -> str:
+    return f"{match.group("var")}: str"
 
 
 def get_module_path(name: str) -> str:
@@ -74,6 +78,7 @@ def main() -> None:
         with open(stub_path, encoding="utf-8") as f:
             pyi = f.read()
         pyi = UnionPattern.sub(union_sub_func, pyi)
+        pyi = VersionPattern.sub(str_sub_func, pyi)
         with open(stub_path, "w", encoding="utf-8") as f:
             f.write(pyi)
 
