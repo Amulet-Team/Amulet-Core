@@ -18,11 +18,7 @@ void init_java(py::module m_parent) {
         }
     );
 
-    auto chunk_components_module = m.def_submodule("chunk_components");
-    init_java_chunk_components(chunk_components_module);
-
-    auto chunk_module = m.def_submodule("chunk");
-    init_java_chunk(chunk_module);
-
+    init_java_chunk_components(m);
+    init_java_chunk(m);
     init_java_raw(m);
 }

@@ -14,7 +14,9 @@
 namespace py = pybind11;
 
 
-void init_java_chunk(py::module m) {
+void init_java_chunk(py::module m_parent) {
+    auto m = m_parent.def_submodule("chunk");
+
     py::class_<
         Amulet::JavaChunk,
         std::shared_ptr<Amulet::JavaChunk>,
