@@ -36,31 +36,25 @@ class LongArrayTestCase(unittest.TestCase):
         self.assertTrue(test_ran)
 
     def test_encode_decode(self):
-        for signed in (False, True):
-            for dense in (False, True):
-                for bits_per_entry in range(4, 65):
-                    for size in set(
-                        [2**p for p in range(1, 13)] + list(range(100, 5000, 100))
-                    ):
-                        if signed:
-                            arr = numpy.random.randint(
-                                -(2**63), 2**63, size, dtype=numpy.int64
-                            )
-                        else:
-                            arr = numpy.random.randint(
-                                0, 2**64, size, dtype=numpy.uint64
-                            )
-                        arr >>= 64 - bits_per_entry
+        for dense in (False, True):
+            for bits_per_entry in range(4, 65):
+                for size in set(
+                    [2**p for p in range(1, 13)] + list(range(100, 5000, 100))
+                ):
+                    arr = numpy.random.randint(
+                        0, 2**64, size, dtype=numpy.uint64
+                    )
+                    arr >>= 64 - bits_per_entry
 
-                        packed = encode_long_array(arr, bits_per_entry, dense)
-                        arr2 = decode_long_array(
-                            packed, len(arr), bits_per_entry, dense=dense, signed=signed
-                        )
-                        numpy.testing.assert_array_equal(
-                            arr,
-                            arr2,
-                            f"Long array does not equal. Dense: {dense}, bits per entry: {bits_per_entry}, size: {size}",
-                        )
+                    packed = encode_long_array(arr, bits_per_entry, dense)
+                    arr2 = decode_long_array(
+                        packed, len(arr), bits_per_entry, dense=dense
+                    )
+                    numpy.testing.assert_array_equal(
+                        arr,
+                        arr2,
+                        f"Long array does not equal. Dense: {dense}, bits per entry: {bits_per_entry}, size: {size}",
+                    )
 
 
 if __name__ == "__main__":
