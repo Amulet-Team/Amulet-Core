@@ -4,6 +4,7 @@
 #include <amulet/pybind11/py_module.hpp>
 namespace py = pybind11;
 
+void init_long_array(py::module);
 void init_java_chunk_components(py::module);
 void init_java_chunk(py::module);
 void init_java_raw(py::module);
@@ -18,6 +19,7 @@ void init_java(py::module m_parent) {
         }
     );
 
+    init_long_array(m);
     init_java_chunk_components(m);
     init_java_chunk(m);
     init_java_raw(m);
