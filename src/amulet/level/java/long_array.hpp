@@ -4,6 +4,9 @@
 #include <stdexcept>
 #include <string>
 #include <cmath>
+#include <algorithm>
+#include <bit>
+#include <type_traits>
 
 namespace Amulet {
 	/*
@@ -18,62 +21,155 @@ namespace Amulet {
 	PGGGGGGGGGFFFFFFFFFEEEEEEEEEDDDDDDDDDCCCCCCCCCBBBBBBBBBAAAAAAAAA PNNNNNNNNNMMMMMMMMMLLLLLLLLLKKKKKKKKKJJJJJJJJJIIIIIIIIIHHHHHHHHH
 	*/
 
-	template <typename dstT>
+	template <typename decodedT>
 	void decode_long_array(
-		const std::span<std::uint64_t>& src,  // The long array to decode
-		std::span<dstT>& dst,  // The array to unpack values into
+		const std::span<std::uint64_t>& encoded,  // The long array to decode
+		std::span<decodedT>& decoded,  // The array to unpack values into
 		std::uint8_t bits_per_entry,  // The number of bits per entry
 		bool dense = true
 	) {
+		static_assert(std::is_unsigned_v<decodedT>, "decodedT must be unsigned");
 		if (bits_per_entry < 1 || 64 < bits_per_entry) {
 			throw std::invalid_argument("bits_per_entry must be between 1 and 64 inclusive. Got " + std::to_string(bits_per_entry));
 		}
 
 		size_t expected_len = std::ceil(
-			dense ? static_cast<float>(dst.size()) * bits_per_entry / 64 : static_cast<float>(dst.size()) / (64 / bits_per_entry)
+			dense ? static_cast<float>(decoded.size()) * bits_per_entry / 64 : static_cast<float>(decoded.size()) / (64 / bits_per_entry)
 		);
 
-		if (src.size() != expected_len) {
+		if (encoded.size() != expected_len) {
 			throw std::invalid_argument(
 				dense ? "Dense encoded long array with " : "Encoded long array with " +
 				std::to_string(bits_per_entry) +
 				" bits per entry should contain " +
 				std::to_string(expected_len) +
 				" longs but got " +
-				std::to_string(src.size()) +
+				std::to_string(encoded.size()) +
 				"."
 			);
 		}
 
-		size_t entries_per_long = 64 / bits_per_entry;
-		const std::uint64_t mask = std::pow(2, bits_per_entry) - 1;
+		const std::uint64_t mask = ~0ull >> (64 - bits_per_entry);
 		if (dense) {
-			for (size_t dst_index = 0; dst_index < dst.size(); dst_index++) {
-				size_t bit_start = dst_index * bits_per_entry;
-				size_t bit_stop = (dst_index + 1) * bits_per_entry;
+			for (size_t decoded_index = 0; decoded_index < decoded.size(); decoded_index++) {
+				size_t bit_start = decoded_index * bits_per_entry;
+				size_t bit_stop = (decoded_index + 1) * bits_per_entry;
 				size_t long_start = bit_start / 64;
-				dstT& value = dst[dst_index];
-				value = (src[long_start] >> (bit_start % 64)) & mask;
+				decodedT& value = decoded[decoded_index];
+				value = (encoded[long_start] >> (bit_start % 64)) & mask;
 				if ((long_start + 1) * 64 < bit_stop) {
 					// Overflows into the next long
 					size_t overflow_bits = bit_stop - (long_start + 1) * 64;
 					size_t previous_bits = bits_per_entry - overflow_bits;
-					value |= (src[long_start + 1] & (mask >> previous_bits)) << previous_bits;
+					value |= (encoded[long_start + 1] & (mask >> previous_bits)) << previous_bits;
 				}
 			}
 		}
 		else {
-			const std::uint64_t mask = std::pow(2, bits_per_entry) - 1;
-			size_t dst_index = 0;
-			for (const auto& src_value : src) {
+			size_t entries_per_long = 64 / bits_per_entry;
+			size_t decoded_index = 0;
+			for (const auto& encoded_value : encoded) {
 				for (
 					size_t offset = 0;
-					offset < entries_per_long && dst_index < dst.size();
-					offset++, dst_index++
+					offset < entries_per_long && decoded_index < decoded.size();
+					offset++, decoded_index++
 				) {
-					dst[dst_index] = (src_value >> (bits_per_entry * offset)) & mask;
+					decoded[decoded_index] = (encoded_value >> (bits_per_entry * offset)) & mask;
 				}
 			}
 		}
+	}
+
+	// Get the number of longs required to store the encoded long array.
+	size_t encoded_long_array_size(
+		size_t decoded_size,  // The number of elements to encode
+		std::uint8_t bits_per_entry,  // The number of bits of each number to use
+		bool dense = true
+	) {
+		if (dense) {
+			return std::ceil(static_cast<float>(decoded_size * bits_per_entry) / 64);
+		}
+		else {
+			size_t entries_per_long = 64 / bits_per_entry;
+			return std::ceil(static_cast<float>(decoded_size) / entries_per_long);
+		}
+	}
+
+	// Encode the array to a long array with the specified number of bits. Extra bits are ignored.
+	template <typename decodedT>
+	void encode_long_array(
+		const std::span<decodedT>& decoded,  // The array to encode
+		std::span<std::uint64_t> encoded,  // The array to encode into. This must be large enough.
+		std::uint8_t bits_per_entry,  // The number of bits of each number to use
+		bool dense = true
+	) {
+		static_assert(std::is_unsigned_v<decodedT>, "decodedT must be unsigned");
+		if (bits_per_entry < 1 || 64 < bits_per_entry) {
+			throw std::invalid_argument("bits_per_entry must be between 1 and 64 inclusive. Got " + std::to_string(bits_per_entry));
+		}
+
+		// Set all values to 0
+		std::fill(encoded.begin(), encoded.end(), 0);
+		const std::uint64_t mask = ~0ull >> (64 - bits_per_entry);
+		if (dense) {
+			for (size_t decoded_index = 0; decoded_index < decoded.size(); decoded_index++) {
+				// The bit in the array where the value starts
+				size_t bit_start = decoded_index * bits_per_entry;
+				// The bit in the array where the value stops
+				size_t bit_stop = bit_start + bits_per_entry;
+				// The long number that the value starts in
+				size_t long_start = bit_start / 64;
+				// The bit offset in the long where the value starts
+				size_t long_bit_offset = bit_start % 64;
+				// The bit in the array where the long stops
+				size_t long_bit_stop = (long_start + 1) * 64;
+				decodedT& value = decoded[decoded_index];
+				encoded[long_start] = (encoded[long_start] & ~(mask << long_bit_offset)) + ((value & mask) << long_bit_offset);
+				if (long_bit_stop < bit_stop) {
+					// Overflows into the next long
+					// The number of bits that overflow into the next long
+					size_t overflow_bits = bit_stop - long_bit_stop;
+					// The number of bits in the previous long
+					size_t previous_bits = bits_per_entry - overflow_bits;
+					encoded[long_start + 1] = (encoded[long_start + 1] & ~(mask >> previous_bits)) + ((value & mask) >> previous_bits);
+				}
+			}
+		}
+		else {
+			size_t entries_per_long = 64 / bits_per_entry;
+			size_t decoded_index = 0;
+			size_t long_count = std::ceil(static_cast<float>(decoded.size()) / entries_per_long);
+			for (size_t encoded_index = 0; encoded_index < long_count; encoded_index++) {
+				auto& encoded_value = encoded[encoded_index];
+				encoded_value = 0;
+				for (
+					size_t offset = 0;
+					offset < entries_per_long && decoded_index < decoded.size();
+					offset++, decoded_index++
+				) {
+					std::uint64_t value = decoded[decoded_index] & mask;
+					encoded_value += value << (bits_per_entry * offset);
+				}
+			}
+		}
+	}
+
+	// Encode the array to a long aray with at least this number of bits. The number of required bits is computed before encoding.
+	template <typename decodedT>
+	void encode_long_array_min(
+		const std::span<decodedT>& decoded,  // The array to encode
+		std::span<std::uint64_t> encoded,  // The array to encode into
+		std::uint8_t min_bits_per_entry,  // The minimum number of bits of each number to use
+		bool dense = true
+	) {
+		static_assert(std::is_unsigned_v<decodedT>, "decodedT must be unsigned");
+		if (min_bits_per_entry < 1 || 64 < min_bits_per_entry) {
+			throw std::invalid_argument("min_bits_per_entry must be between 1 and 64 inclusive. Got " + std::to_string(min_bits_per_entry));
+		}
+		std::uint8_t bits_per_entry = std::max(
+			min_bits_per_entry, 
+			std::bit_width(*std::max_element(decoded.begin(), decoded.end()))
+		);
+		encode_long_array(decoded, encoded, bits_per_entry, dense);
 	}
 }
