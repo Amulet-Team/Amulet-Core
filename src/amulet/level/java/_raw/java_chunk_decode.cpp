@@ -6,6 +6,7 @@
 #include <string>
 #include <functional>
 #include <variant>
+#include <algorithm>
 
 #include <pybind11/pybind11.h>
 
@@ -18,6 +19,7 @@
 #include <amulet/block.hpp>
 #include <amulet/chunk.hpp>
 #include <amulet/level/java/java_chunk.hpp>
+#include <amulet/level/java/long_array.hpp>
 
 namespace py = pybind11;
 using namespace AmuletNBT;
@@ -276,9 +278,10 @@ namespace Amulet {
 					}
 				}();
 				if (!std::holds_alternative<CompoundListTag>(*palette_tag)) { continue; }
-				auto& palette = std::get<CompoundListTag>(*palette_tag);
+				const auto& palette = std::get<CompoundListTag>(*palette_tag);
+				size_t palette_size = palette.size();
 				std::vector<std::uint32_t> lut;
-				lut.reserve(palette.size());
+				lut.reserve(palette_size);
 				for (auto& block_tag : palette) {
 					auto block_name = get_tag<StringTag>(*block_tag, "Name", []() -> StringTag { throw std::invalid_argument("Block has no Name attribute."); });
 					auto colon_index = block_name.find(':');
@@ -356,7 +359,39 @@ namespace Amulet {
 							);
 						}
 						else {
-
+							std::vector<std::uint32_t> decoded_vector(4096);
+							std::span<std::uint32_t> decoded_span(decoded_vector);
+							Amulet::decode_long_array(
+								std::span<std::uint64_t>(reinterpret_cast<std::uint64_t*>(data_tag->data()), data_tag->size()),
+								decoded_span,
+								std::max<std::uint8_t>(4, std::bit_width(palette_size - 1)),
+								data_version <= 2529
+							);
+							auto index_array = std::make_shared<IndexArray3D>(
+								std::make_tuple<std::uint16_t>(16, 16, 16)
+							);
+							std::span<std::uint32_t> index_array_span(index_array->get_buffer(), index_array->get_size());
+							// Convert YZX to XYZ and look up in lut.
+							for (size_t y = 0; y < 16; y++) {
+								for (size_t x = 0; x < 16; x++) {
+									for (size_t z = 0; z < 16; z++) {
+										auto& block_index = decoded_span[y * 256 + z * 16 + x];
+										if (palette_size <= block_index) {
+											throw std::runtime_error(
+												"Block index at cx=" + std::to_string(cx) + 
+												",cy=" + std::to_string(cy) + 
+												",cz=" + std::to_string(cx) + 
+												",dx=" + std::to_string(x) + 
+												",dy=" + std::to_string(y) + 
+												",dz=" + std::to_string(z) +
+												" is larger than the block palette size."
+											);
+										}
+										index_array_span[x * 256 + y * 16 + z] = lut[block_index];
+									}
+								}
+							}
+							return index_array;
 						}
 					}()
 				);
