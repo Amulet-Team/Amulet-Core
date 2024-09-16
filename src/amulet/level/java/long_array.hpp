@@ -81,7 +81,7 @@ namespace Amulet {
 	}
 
 	// Get the number of longs required to store the encoded long array.
-	size_t encoded_long_array_size(
+	inline size_t encoded_long_array_size(
 		size_t decoded_size,  // The number of elements to encode
 		std::uint8_t bits_per_entry,  // The number of bits of each number to use
 		bool dense = true
