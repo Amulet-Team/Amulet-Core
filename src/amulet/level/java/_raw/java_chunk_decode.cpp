@@ -134,14 +134,7 @@ namespace Amulet {
 	}
 
 	template <int DataVersion>
-	std::shared_ptr<
-		std::conditional_t<DataVersion >= 2203, JavaChunk2203,
-		std::conditional_t<DataVersion >= 1466, JavaChunk1466,
-		std::conditional_t<DataVersion >= 1444, JavaChunk1444,
-		std::conditional_t<DataVersion >= 0, JavaChunk0,
-		JavaChunkNA
-		>>>>
-	> _decode_java_chunk(
+	std::shared_ptr<JavaChunk> _decode_java_chunk(
 		py::object game_version,
 		std::map<std::string, NamedTag>& raw_chunk,
 		CompoundTag& region,
