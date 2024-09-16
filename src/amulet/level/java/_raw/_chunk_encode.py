@@ -446,7 +446,7 @@ def encode_block(game_version: JavaGameVersion, block_stack: BlockStack) -> Comp
     base_name = base_block.base_name
     properties = dict(base_block.properties)
     block_tag = CompoundTag({"Name": StringTag(f"{namespace}:{base_name}")})
-    if game_version.block.waterlogable(namespace, base_name) == Waterloggable.Yes:
+    if game_version.block.waterloggable(namespace, base_name) == Waterloggable.Yes:
         if (
             len(block_stack) >= 2
             and block_stack[1].namespaced_name == "minecraft:water"

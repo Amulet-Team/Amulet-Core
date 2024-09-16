@@ -388,7 +388,7 @@ def raw_to_native(
                     if isinstance(k, str) and isinstance(v, PropertyValueType)
                 }
                 blocks = []
-                waterloggable = game_version.block.waterlogable(namespace, base_name)
+                waterloggable = game_version.block.waterloggable(namespace, base_name)
                 if waterloggable == Waterloggable.Yes:
                     # waterlogged property
                     if properties.get("waterlogged") == StringTag("true"):

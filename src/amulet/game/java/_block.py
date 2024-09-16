@@ -56,5 +56,5 @@ class JavaBlockData(DatabaseBlockData, BlockDataNumericalComponent):
     def namespace_id_to_numerical_id(self, namespace: str, base_name: str) -> int:
         return self._str_to_num[(namespace, base_name)]
 
-    def waterlogable(self, namespace: str, base_name: str) -> Waterloggable:
+    def waterloggable(self, namespace: str, base_name: str) -> Waterloggable:
         return self._waterloggable.get((namespace, base_name), Waterloggable.No)
