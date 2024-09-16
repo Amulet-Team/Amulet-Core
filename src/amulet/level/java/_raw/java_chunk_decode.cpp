@@ -351,7 +351,7 @@ namespace Amulet {
 					[&] {
 						if (data_tag->empty()) {
 							return std::make_shared<IndexArray3D>(
-								std::initializer_list<std::uint16_t>{16, 16, 16}, 
+								std::make_tuple<std::uint16_t>(16, 16, 16),
 								0
 							);
 						}
