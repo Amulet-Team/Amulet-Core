@@ -42,9 +42,9 @@ namespace collections {
 	private:
 		py::object owner;
 		const mapT& map;
-		mapT::const_iterator begin;
-		mapT::const_iterator end;
-		mapT::const_iterator pos;
+		typename mapT::const_iterator begin;
+		typename mapT::const_iterator end;
+		typename mapT::const_iterator pos;
 		size_t size;
 
 	public:

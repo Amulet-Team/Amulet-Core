@@ -166,7 +166,7 @@ namespace collections {
 		) : _owner(owner), _map(map) {}
 
 		py::object getitem(py::object py_key) const override {
-			return py::cast(_map.at(py_key.cast<mapT::key_type>()));
+			return py::cast(_map.at(py_key.cast<typename mapT::key_type>()));
 		}
 		std::shared_ptr<Iterator> iter() const override {
 			return std::make_shared<MapIterator<mapT>>(_map, _owner);
@@ -175,7 +175,7 @@ namespace collections {
 			return _map.size();
 		}
 		bool contains(py::object py_key) const override {
-			return _map.contains(py_key.cast<mapT::key_type>());
+			return _map.contains(py_key.cast<typename mapT::key_type>());
 		}
 	};
 
