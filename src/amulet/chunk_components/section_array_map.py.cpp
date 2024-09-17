@@ -41,10 +41,7 @@ void init_section_array_map(py::module section_array_map_module) {
     );
     auto index_array_from_buffer = [](py::buffer other) {
         py::buffer_info info = other.request();
-        if (!(
-            (sizeof(unsigned int) == 4 && info.format != "I") ||
-            (sizeof(unsigned long) == 4 && info.format != "L")
-            )) {
+        if (!info.item_type_is_equivalent_to<std::uint32_t>()) {
             throw std::invalid_argument("Array must be a std::uint32_t array.");
         }
         if (info.ndim != 3) {

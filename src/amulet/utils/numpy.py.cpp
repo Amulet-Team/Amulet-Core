@@ -16,10 +16,7 @@ void init_utils_numpy(py::module m_parent) {
         [](py::buffer arr_buffer){
             py::buffer_info arr_info = arr_buffer.request();
             // validate the input
-            if (!(
-                arr_info.format == py::format_descriptor<std::uint32_t>::format() ||
-                (arr_info.format == "L" && arr_info.itemsize == 4)
-            )) {
+            if (!arr_info.item_type_is_equivalent_to<std::uint32_t>()) {
                 throw std::invalid_argument("dtype must be uint32.");
             }
             if (arr_info.ndim != 1){
