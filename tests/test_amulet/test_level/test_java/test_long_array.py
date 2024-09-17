@@ -246,18 +246,16 @@ class LongArrayTestCase(unittest.TestCase):
                     signed_dtype = numpy.int64
                 else:
                     raise RuntimeError
-                with self.subTest(dense=dense, dtype=dtype, bits_per_entry=bits_per_entry):
+                with self.subTest(
+                    dense=dense, dtype=dtype, bits_per_entry=bits_per_entry
+                ):
                     self.assertArrayEqual(
                         numpy.array([], dtype=numpy.uint64),
-                        encode_long_array(
-                            numpy.array([], dtype=dtype), dense=dense
-                        ),
+                        encode_long_array(numpy.array([], dtype=dtype), dense=dense),
                     )
                     arr = numpy.array([], dtype=signed_dtype)
                     with self.assertRaises(ValueError):
-                        encode_long_array(
-                            arr, 0, dense=dense
-                        )
+                        encode_long_array(arr, 0, dense=dense)
 
     def test_encode_endianness(self) -> None:
         """Test encoding different endiannesses."""
@@ -272,28 +270,20 @@ class LongArrayTestCase(unittest.TestCase):
                 with self.subTest(dense=dense, byte_count=byte_count):
                     self.assertArrayEqual(
                         numpy.array([], dtype=numpy.uint64),
-                        encode_long_array(
-                            numpy.array([], dtype=dtype), dense=dense
-                        ),
+                        encode_long_array(numpy.array([], dtype=dtype), dense=dense),
                     )
                     arr = numpy.array([], dtype=signed_dtype)
                     with self.assertRaises(ValueError):
-                        encode_long_array(
-                            arr, dense=dense
-                        )
+                        encode_long_array(arr, dense=dense)
                     if byte_count == 1:
                         # Endianness does not exist for 1 byte ints
                         continue
                     arr = numpy.array([], dtype=opposite_dtype)
                     with self.assertRaises(ValueError):
-                        encode_long_array(
-                            arr, dense=dense
-                        )
+                        encode_long_array(arr, dense=dense)
                     arr = numpy.array([], dtype=opposite_signed_dtype)
                     with self.assertRaises(ValueError):
-                        encode_long_array(
-                            arr, dense=dense
-                        )
+                        encode_long_array(arr, dense=dense)
 
     def test_encode(self) -> None:
         """Test encoding some values."""
@@ -301,71 +291,78 @@ class LongArrayTestCase(unittest.TestCase):
             with self.subTest(dense=dense):
                 self.assertArrayEqual(
                     numpy.array([0b0], dtype=numpy.uint64),
-                    encode_long_array(
-                        numpy.array([0], dtype=numpy.uint8),
-                        dense=dense
-                    )
+                    encode_long_array(numpy.array([0], dtype=numpy.uint8), dense=dense),
                 )
                 self.assertArrayEqual(
                     numpy.array([0b1], dtype=numpy.uint64),
-                    encode_long_array(
-                        numpy.array([1], dtype=numpy.uint8),
-                        dense=dense
-                    )
+                    encode_long_array(numpy.array([1], dtype=numpy.uint8), dense=dense),
                 )
                 self.assertArrayEqual(
                     numpy.array([0b11], dtype=numpy.uint64),
                     encode_long_array(
-                        numpy.array([1, 1], dtype=numpy.uint8),
-                        dense=dense
-                    )
+                        numpy.array([1, 1], dtype=numpy.uint8), dense=dense
+                    ),
                 )
                 self.assertArrayEqual(
                     numpy.array([0b101010], dtype=numpy.uint64),
                     encode_long_array(
-                        numpy.array([0, 1, 0, 1, 0, 1], dtype=numpy.uint8),
-                        dense=dense
-                    )
+                        numpy.array([0, 1, 0, 1, 0, 1], dtype=numpy.uint8), dense=dense
+                    ),
                 )
                 self.assertArrayEqual(
                     numpy.array([0], dtype=numpy.uint64),
                     encode_long_array(
-                        numpy.array([0] * 32, dtype=numpy.uint8),
-                        dense=dense
-                    )
+                        numpy.array([0] * 32, dtype=numpy.uint8), dense=dense
+                    ),
                 )
                 self.assertArrayEqual(
-                    numpy.array([-4575586849434615808], dtype=numpy.int64).astype(numpy.uint64),
+                    numpy.array([-4575586849434615808], dtype=numpy.int64).astype(
+                        numpy.uint64
+                    ),
                     encode_long_array(
-                        numpy.array([0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3] * 2, dtype=numpy.uint8),
-                        dense=dense
-                    )
+                        numpy.array(
+                            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3] * 2,
+                            dtype=numpy.uint8,
+                        ),
+                        dense=dense,
+                    ),
                 )
                 self.assertArrayEqual(
-                    numpy.array([-4575586849434615808, -4575586849434615807], dtype=numpy.int64).astype(numpy.uint64),
+                    numpy.array(
+                        [-4575586849434615808, -4575586849434615807], dtype=numpy.int64
+                    ).astype(numpy.uint64),
                     encode_long_array(
-                        numpy.array([
-                            *[0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3],
-                            *[0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3],
-                            *[1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3],
-                            *[0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3],
-                        ], dtype=numpy.uint8),
-                        dense=dense
-                    )
+                        numpy.array(
+                            [
+                                *[0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3],
+                                *[0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3],
+                                *[1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3],
+                                *[0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3],
+                            ],
+                            dtype=numpy.uint8,
+                        ),
+                        dense=dense,
+                    ),
                 )
                 self.assertArrayEqual(
-                    numpy.array([-7027331075698876807, 65194966034315751], dtype=numpy.int64).astype(numpy.uint64),
+                    numpy.array(
+                        [-7027331075698876807, 65194966034315751], dtype=numpy.int64
+                    ).astype(numpy.uint64),
                     encode_long_array(
-                        numpy.array([1, 2, 3] * 20, dtype=numpy.uint8),
-                        dense=dense
-                    )
+                        numpy.array([1, 2, 3] * 20, dtype=numpy.uint8), dense=dense
+                    ),
                 )
                 self.assertArrayEqual(
-                    numpy.array([-4575586849434615808, -4575586849434615808], dtype=numpy.int64).astype(numpy.uint64),
+                    numpy.array(
+                        [-4575586849434615808, -4575586849434615808], dtype=numpy.int64
+                    ).astype(numpy.uint64),
                     encode_long_array(
-                        numpy.array([0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3] * 4, dtype=numpy.uint8),
-                        dense=dense
-                    )
+                        numpy.array(
+                            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3] * 4,
+                            dtype=numpy.uint8,
+                        ),
+                        dense=dense,
+                    ),
                 )
 
     def test_encode_overflow(self) -> None:
@@ -374,13 +371,17 @@ class LongArrayTestCase(unittest.TestCase):
             numpy.array(
                 [1788365664777214161, 79430520021295898], dtype=numpy.int64
             ).astype(numpy.uint64),
-            encode_long_array(numpy.array([1, 2, 3, 4] * 10, dtype=numpy.uint8), dense=False)
+            encode_long_array(
+                numpy.array([1, 2, 3, 4] * 10, dtype=numpy.uint8), dense=False
+            ),
         )
         self.assertArrayEqual(
             numpy.array(
                 [1788365664777214161, 39715260010647949], dtype=numpy.int64
             ).astype(numpy.uint64),
-            encode_long_array(numpy.array([1, 2, 3, 4] * 10, dtype=numpy.uint8), dense=True)
+            encode_long_array(
+                numpy.array([1, 2, 3, 4] * 10, dtype=numpy.uint8), dense=True
+            ),
         )
 
     def test_longarray(self) -> None:
@@ -391,8 +392,12 @@ class LongArrayTestCase(unittest.TestCase):
 
         for test_entry in tests:
             with self.subTest(test_entry=test_entry):
-                block_array = numpy.asarray(test_entry["block_array"]).astype(numpy.uint64)
-                long_array = numpy.asarray(test_entry["long_array"]).astype(numpy.uint64)
+                block_array = numpy.asarray(test_entry["block_array"]).astype(
+                    numpy.uint64
+                )
+                long_array = numpy.asarray(test_entry["long_array"]).astype(
+                    numpy.uint64
+                )
                 palette_size = test_entry["palette_size"]
 
                 numpy.testing.assert_array_equal(
@@ -406,7 +411,9 @@ class LongArrayTestCase(unittest.TestCase):
 
                 numpy.testing.assert_array_equal(
                     long_array,
-                    encode_long_array(block_array, max(1, (palette_size - 1).bit_length())),
+                    encode_long_array(
+                        block_array, max(1, (palette_size - 1).bit_length())
+                    ),
                 )
 
     def test_encode_decode(self) -> None:
@@ -418,7 +425,9 @@ class LongArrayTestCase(unittest.TestCase):
                     arr = numpy.random.randint(0, 2**64, size, dtype=numpy.uint64)
                     arr >>= 64 - bits_per_entry
 
-                    with self.subTest(dense=dense, bits_per_entry=bits_per_entry, size=size):
+                    with self.subTest(
+                        dense=dense, bits_per_entry=bits_per_entry, size=size
+                    ):
                         packed = encode_long_array(arr, bits_per_entry, dense)
                         arr2 = decode_long_array(
                             packed, len(arr), bits_per_entry, dense=dense

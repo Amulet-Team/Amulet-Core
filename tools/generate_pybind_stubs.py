@@ -18,8 +18,9 @@ VersionPattern = re.compile(r"(?P<var>[a-zA-Z0-9_].*): str = '.*?'")
 def union_sub_func(match: re.Match) -> str:
     return f'{match.group("variable")}: typing.TypeAlias = {match.group("value")}'
 
+
 def str_sub_func(match: re.Match) -> str:
-    return f"{match.group("var")}: str"
+    return f"{match.group('var')}: str"
 
 
 def get_module_path(name: str) -> str:
@@ -37,17 +38,35 @@ def get_package_dir(name: str) -> str:
 def patch_stubgen():
     # Is there a better way to add items to the blacklist?
     # ABC
-    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("__abstractmethods__"))
-    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("__orig_bases__"))
-    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("__parameters__"))
-    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("_abc_impl"))
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
+        Identifier("__abstractmethods__")
+    )
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
+        Identifier("__orig_bases__")
+    )
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
+        Identifier("__parameters__")
+    )
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
+        Identifier("_abc_impl")
+    )
     # Protocol
-    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("__protocol_attrs__"))
-    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("_is_protocol"))
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
+        Identifier("__protocol_attrs__")
+    )
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
+        Identifier("_is_protocol")
+    )
     # dataclass
-    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("__dataclass_fields__"))
-    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("__dataclass_params__"))
-    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(Identifier("__match_args__"))
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
+        Identifier("__dataclass_fields__")
+    )
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
+        Identifier("__dataclass_params__")
+    )
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
+        Identifier("__match_args__")
+    )
 
 
 def main() -> None:
