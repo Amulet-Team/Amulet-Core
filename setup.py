@@ -16,7 +16,7 @@ else:
     CompileArgs = ["-std=c++20"]
 
 if sys.platform == "darwin":
-    CompileArgs.append("-mmacosx-version-min=10.13")
+    CompileArgs.append("-mmacosx-version-min=10.15")
 
 
 # TODO: Would it be better to compile a shared library and link against that?
