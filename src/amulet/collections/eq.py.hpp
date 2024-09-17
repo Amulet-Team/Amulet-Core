@@ -12,7 +12,7 @@ template <typename R, typename clsT>
 void Eq(clsT cls) {
     cls.def(
         "__eq__",
-        [](const clsT::type& self, R other) {
+        [](const typename clsT::type& self, R other) {
             return self == other;
         }
     );
@@ -21,7 +21,7 @@ void Eq(clsT cls) {
 
 template <typename clsT>
 void Eq(clsT cls) {
-    Eq<const clsT::type&>(cls);
+    Eq<const typename clsT::type&>(cls);
 }
 
 
@@ -30,7 +30,7 @@ void Eq_default(clsT cls) {
     py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");
     cls.def(
         "__eq__",
-        [NotImplemented](const clsT::type& self, py::object other) -> std::variant<bool, py::types::NotImplementedType> {
+        [NotImplemented](const typename clsT::type& self, py::object other) -> std::variant<bool, py::types::NotImplementedType> {
             return NotImplemented;
         }
     );
