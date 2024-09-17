@@ -7,6 +7,7 @@
 #include <pybind11/pybind11.h>
 #include "iterator.py.hpp"
 #include <amulet/pybind11/collections.hpp>
+#include <amulet/pybind11/python.hpp>
 
 namespace py = pybind11;
 
@@ -40,7 +41,7 @@ namespace Amulet {
 				[](py::object self, py::object value) {
 					py::iterator it = py::iter(self);
 					while (it != py::iterator::sentinel()) {
-						if (*it == value) {
+						if (py::equals(*it, value)) {
 							return true;
 						}
 						++it;
@@ -113,7 +114,7 @@ namespace Amulet {
 							}
 						}
 
-						if (value == obj) {
+						if (py::equals(value, obj)) {
 							return start;
 						}
 
@@ -134,7 +135,7 @@ namespace Amulet {
 					size_t size = py::len(self);
 					py::object getitem = self.attr("__getitem__");
 					for (size_t i = 0; i < size; ++i) {
-						if (value == getitem(i)) {
+						if (py::equals(value, getitem(i))) {
 							count++;
 						}
 					}
