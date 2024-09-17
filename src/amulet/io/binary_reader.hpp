@@ -7,6 +7,7 @@
 #include <bit>
 #include <functional>
 #include <stdexcept>
+#include <memory>
 
 #include <amulet_nbt/io/binary_reader.hpp>
 
