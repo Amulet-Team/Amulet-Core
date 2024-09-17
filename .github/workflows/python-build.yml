@@ -8,7 +8,7 @@ on:
     types: [published]
 
 jobs:
-  deploy-windows:
+  deploy:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
