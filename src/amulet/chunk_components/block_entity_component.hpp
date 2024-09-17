@@ -12,19 +12,20 @@
 
 
 namespace Amulet {
+	typedef std::tuple<std::uint16_t, std::int64_t, std::uint16_t> BlockEntityChunkCoord;
 	class BlockEntityComponentData: public VersionRangeContainer {
 	private:
-		size_t _x_size;
-		size_t _z_size;
+		std::uint16_t _x_size;
+		std::uint16_t _z_size;
 		std::map<
-			std::tuple<std::int64_t, std::int64_t, std::int64_t>, 
+			BlockEntityChunkCoord,
 			std::shared_ptr<BlockEntity>
 		> _block_entities;
 	public:
 		BlockEntityComponentData(
 			std::shared_ptr<VersionRange> version_range,
-			const size_t& x_size,
-			const size_t& z_size
+			const std::uint16_t& x_size,
+			const std::uint16_t& z_size
 		) :
 			VersionRangeContainer(version_range),
 			_x_size(x_size),
@@ -32,11 +33,11 @@ namespace Amulet {
 			_block_entities()
 		{}
 
-		size_t get_x_size() const { return _x_size; }
-		size_t get_z_size() const { return _z_size; }
+		std::uint16_t get_x_size() const { return _x_size; }
+		std::uint16_t get_z_size() const { return _z_size; }
 
 		const std::map<
-			std::tuple<std::int64_t, std::int64_t, std::int64_t>,
+			BlockEntityChunkCoord,
 			std::shared_ptr<BlockEntity>
 		>& get_block_entities() const {
 			return _block_entities;
@@ -45,19 +46,19 @@ namespace Amulet {
 		size_t get_size() const { return _block_entities.size(); }
 		
 		bool contains(
-			const std::tuple<std::int64_t, std::int64_t, std::int64_t>& coord
+			const BlockEntityChunkCoord& coord
 		) const {
 			return _block_entities.contains(coord);
 		}
 
 		std::shared_ptr<BlockEntity> get(
-			const std::tuple<std::int64_t, std::int64_t, std::int64_t>& coord
+			const BlockEntityChunkCoord& coord
 		) const {
 			return _block_entities.at(coord);
 		}
 
 		void set(
-			const std::tuple<std::int64_t, std::int64_t, std::int64_t>& coord,
+			const BlockEntityChunkCoord& coord,
 			std::shared_ptr<BlockEntity> block_entity
 		) {
 			if (
@@ -91,7 +92,7 @@ namespace Amulet {
 		}
 
 		void del(
-			const std::tuple<std::int64_t, std::int64_t, std::int64_t>& coord
+			const BlockEntityChunkCoord& coord
 		) {
 			_block_entities.erase(coord);
 		}
@@ -107,8 +108,8 @@ namespace Amulet {
 		// Default constructor
 		void init(
 			std::shared_ptr<VersionRange> version_range,
-			const size_t& x_size,
-			const size_t& z_size
+			const std::uint16_t& x_size,
+			const std::uint16_t& z_size
 		) {
 			_value = std::make_shared<BlockEntityComponentData>(version_range, x_size, z_size);
 		}
