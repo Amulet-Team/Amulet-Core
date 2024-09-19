@@ -22,7 +22,7 @@ from amulet_nbt import (
     ByteTag,
     ShortTag,
     ReadOffset,
-    load as load_nbt,
+    read_nbt,
     utf8_escape_encoding,
 )
 
@@ -306,7 +306,7 @@ class BedrockRawLevel(
                 for _ in range(count):
                     key, data = data[:8], data[8:]
                     offset = ReadOffset()
-                    value = load_nbt(
+                    value = read_nbt(
                         data,
                         little_endian=True,
                         compressed=False,
@@ -436,7 +436,7 @@ class BedrockRawLevel(
             data = self.level_db.get(key)
         except KeyError:
             raise PlayerDoesNotExist(f"Player {player_id} doesn't exist")
-        return load_nbt(
+        return read_nbt(
             data,
             compressed=False,
             little_endian=True,

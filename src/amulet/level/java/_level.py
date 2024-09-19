@@ -6,7 +6,7 @@ import logging
 
 from PIL import Image
 from amulet_nbt import (
-    load as load_nbt,
+    read_nbt,
 )
 
 from amulet.data_types import DimensionId
@@ -96,7 +96,7 @@ class JavaLevel(
             and os.path.isfile(os.path.join(token, "level.dat"))
         ):
             try:
-                level_dat_root = load_nbt(os.path.join(token, "level.dat")).compound
+                level_dat_root = read_nbt(os.path.join(token, "level.dat")).compound
             except Exception:
                 pass
             else:

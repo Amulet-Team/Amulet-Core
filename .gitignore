@@ -106,14 +106,13 @@ venv*
 # mypy
 .mypy_cache/
 
-# Amulet-Map-Editor
-prototyping/
-*.npy
-
-# Cython Files
-*.html
-*_cy.c
-*_cy.cpp
+# Visual Studio
+src/sln
+.vs
+*.lib
+*.exp
+*.pdb
+*.ilk
 
 worlds_temp/
 world_temp/

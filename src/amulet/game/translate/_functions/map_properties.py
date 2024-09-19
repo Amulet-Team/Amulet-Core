@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Self, Any
 from collections.abc import Mapping
 
-from amulet.block import PropertyValueType, PropertyValueClasses, Block
+from amulet.block import PropertyValueType, Block
 from .abc import (
     AbstractBaseTranslationFunction,
     immutable_from_snbt,
@@ -40,7 +40,7 @@ class MapProperties(AbstractBaseTranslationFunction):
                 PropertyValueType, AbstractBaseTranslationFunction
             ](data)
             for val, func in hashable_data.items():
-                assert isinstance(val, PropertyValueClasses)
+                assert isinstance(val, PropertyValueType)
                 assert isinstance(func, AbstractBaseTranslationFunction)
             hashable_properties[prop] = hashable_data
 

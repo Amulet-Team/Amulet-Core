@@ -15,11 +15,11 @@ from amulet_nbt import (
     NamedTag,
     ReadOffset,
     load_array as load_nbt_array,
-    load as load_nbt,
+    read_nbt,
     utf8_escape_encoding,
 )
 
-from amulet.block import Block, BlockStack, PropertyType, PropertyValueClasses
+from amulet.block import Block, BlockStack, PropertyValueType
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
 from amulet.biome import Biome
@@ -264,14 +264,14 @@ def _load_palettized_subchunk(
             *namespace_, base_name = block_name.py_str.split(":", 1)
             namespace = namespace_[0] if namespace_ else "minecraft"
 
-            properties: PropertyType
+            properties: dict[str, PropertyValueType]
             if "states" in block:
                 states = block.get_compound("states")
                 assert states is not None
                 properties = {
                     k: v
                     for k, v in states.items()
-                    if isinstance(k, str) and isinstance(v, PropertyValueClasses)
+                    if isinstance(k, str) and isinstance(v, PropertyValueType)
                 }
                 version = unpack_block_version(
                     block.get_int("version", IntTag(17694720)).py_int
@@ -582,7 +582,7 @@ def _unpack_nbt_list(raw_nbt: bytes) -> list[NamedTag]:
     nbt_list = []
     while raw_nbt:
         read_offset = ReadOffset()
-        nbt = load_nbt(
+        nbt = read_nbt(
             raw_nbt,
             little_endian=True,
             read_offset=read_offset,

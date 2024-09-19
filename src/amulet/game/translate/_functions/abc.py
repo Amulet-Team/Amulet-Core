@@ -4,21 +4,21 @@ from typing import Any, Protocol, cast, Self, ClassVar
 from abc import ABC, abstractmethod, ABCMeta
 
 from amulet_nbt import (
-    from_snbt,
+    read_snbt,
     NamedTag,
     CompoundTag,
     ListTag,
 )
 
-from amulet.block import PropertyValueType, PropertyValueClasses
+from amulet.block import PropertyValueType
 from amulet.game.abc import JSONInterface, JSONCompatible
 from ._state import SrcData, StateData, DstData
 from ._typing import NBTPath, NBTTagT
 
 
 def immutable_from_snbt(snbt: str) -> PropertyValueType:
-    val = from_snbt(snbt)
-    assert isinstance(val, PropertyValueClasses)
+    val = read_snbt(snbt)
+    assert isinstance(val, PropertyValueType)
     return val
 
 

@@ -18,7 +18,7 @@ from amulet_nbt import (
     utf8_escape_encoding,
 )
 
-from amulet.block import Block, PropertyValueClasses
+from amulet.block import Block, PropertyValueType
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
 from amulet.chunk.components.sub_chunk_array import SubChunkArrayContainer
@@ -316,7 +316,7 @@ def _encode_block(block: Block) -> NamedTag:
                         {
                             key: val
                             for key, val in block.properties.items()
-                            if isinstance(val, PropertyValueClasses)
+                            if isinstance(val, PropertyValueType)
                         }
                     ),
                     "version": IntTag(pack_block_version(block.version)),

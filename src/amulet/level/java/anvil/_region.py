@@ -14,7 +14,7 @@ import logging
 from enum import IntEnum
 
 import lz4.block as lz4_block  # type: ignore
-from amulet_nbt import NamedTag, load as load_nbt
+from amulet_nbt import NamedTag, read_nbt
 
 from amulet.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.data_types import ChunkCoordinates
@@ -88,13 +88,13 @@ def _decompress(data: bytes) -> NamedTag:
     """Convert a bytes object into an NBTFile"""
     compress_type, data = data[0], data[1:]
     if compress_type == RegionFileVersion.VERSION_GZIP:
-        return load_nbt(gzip.decompress(data), compressed=False)
+        return read_nbt(gzip.decompress(data), compressed=False)
     elif compress_type == RegionFileVersion.VERSION_DEFLATE:
-        return load_nbt(zlib.decompress(data), compressed=False)
+        return read_nbt(zlib.decompress(data), compressed=False)
     elif compress_type == RegionFileVersion.VERSION_NONE:
-        return load_nbt(data, compressed=False)
+        return read_nbt(data, compressed=False)
     elif compress_type == RegionFileVersion.VERSION_LZ4:
-        return load_nbt(_decompress_lz4(data), compressed=False)
+        return read_nbt(_decompress_lz4(data), compressed=False)
     raise ChunkLoadError(f"Invalid compression type {compress_type}")
 
 

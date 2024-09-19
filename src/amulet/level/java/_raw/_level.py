@@ -20,7 +20,7 @@ from amulet_nbt import (
     StringTag,
     ListTag,
     CompoundTag,
-    load as load_nbt,
+    read_nbt,
     NamedTag,
 )
 
@@ -171,7 +171,7 @@ class JavaRawLevel(RawLevel[JavaRawDimension]):
         """Reload the raw level."""
         if self.is_open():
             raise RuntimeError("Cannot reload a level when it is open.")
-        self._level_dat = load_nbt(os.path.join(self.path, "level.dat"))
+        self._level_dat = read_nbt(os.path.join(self.path, "level.dat"))
         self._update_data_version()
 
     opened = Signal[()]()

@@ -20,7 +20,7 @@ from amulet_nbt import (
 
 from amulet.game import get_game_version
 from amulet.game.java import Waterloggable
-from amulet.block import Block, BlockStack, PropertyValueClasses
+from amulet.block import Block, BlockStack, PropertyValueType
 from amulet.biome import Biome
 from amulet.block_entity import BlockEntity
 from amulet.entity import Entity
@@ -385,10 +385,10 @@ def raw_to_native(
                     for k, v in block_tag.get_compound(
                         "Properties", CompoundTag({})
                     ).items()
-                    if isinstance(k, str) and isinstance(v, PropertyValueClasses)
+                    if isinstance(k, str) and isinstance(v, PropertyValueType)
                 }
                 blocks = []
-                waterloggable = game_version.block.waterlogable(namespace, base_name)
+                waterloggable = game_version.block.waterloggable(namespace, base_name)
                 if waterloggable == Waterloggable.Yes:
                     # waterlogged property
                     if properties.get("waterlogged") == StringTag("true"):
