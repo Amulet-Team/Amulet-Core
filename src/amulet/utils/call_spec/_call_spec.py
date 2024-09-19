@@ -17,15 +17,11 @@ from typing import (
     runtime_checkable,
 )
 from collections.abc import Sequence
-from abc import ABC, abstractmethod
+from abc import ABC
 
 
 class AbstractArg(ABC):
     """The base class for all arguments."""
-
-    @abstractmethod
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        raise NotImplementedError
 
 
 class AbstractHashableArg(AbstractArg, ABC):
