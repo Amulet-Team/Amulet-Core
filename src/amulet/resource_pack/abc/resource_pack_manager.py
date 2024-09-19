@@ -70,11 +70,15 @@ class BaseResourcePackManager(Generic[PackT]):
         The block should already be in the resource pack format"""
         if block_stack not in self._cached_models:
             if len(block_stack) == 1:
-                self._cached_models[block_stack] = self._get_model(block_stack.base_block)
+                self._cached_models[block_stack] = self._get_model(
+                    block_stack.base_block
+                )
             else:
                 self._cached_models[block_stack] = BlockMesh.merge(
                     (self._get_model(block_stack.base_block),)
-                    + tuple(self._get_model(block_) for block_ in block_stack.extra_blocks)
+                    + tuple(
+                        self._get_model(block_) for block_ in block_stack.extra_blocks
+                    )
                 )
 
         return copy.deepcopy(self._cached_models[block_stack])
