@@ -45,7 +45,7 @@ class ActorCounter:
         Get the next unique session id and actor counter.
         Session id is usually negative
 
-        :return: Tuple[session id, actor id]
+        :return: tuple[session id, actor id]
         """
         with self._lock:
             count = self._count

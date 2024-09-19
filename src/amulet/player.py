@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 from amulet.data_types import DimensionId
 
 LOCAL_PLAYER = "~local_player"
@@ -12,8 +10,8 @@ class Player:
         self,
         player_id: str,
         dimension_id: DimensionId,
-        location: Tuple[float, float, float],
-        rotation: Tuple[float, float],
+        location: tuple[float, float, float],
+        rotation: tuple[float, float],
     ) -> None:
         """
         Creates a new instance of :class:`Player` with the given UUID, location, and rotation
@@ -49,12 +47,12 @@ class Player:
         return self._player_id
 
     @property
-    def location(self) -> Tuple[float, float, float]:
+    def location(self) -> tuple[float, float, float]:
         """The current location of the player in the world"""
         return self._location
 
     @property
-    def rotation(self) -> Tuple[float, float]:
+    def rotation(self) -> tuple[float, float]:
         """The current rotation of the player in the world"""
         return self._rotation
 

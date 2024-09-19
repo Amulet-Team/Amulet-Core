@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, TypeAlias
+from typing import TypeAlias
 
 # from amulet.api.data_types import VersionNumberTuple
 VersionNumberTuple: TypeAlias = tuple[int, ...]
@@ -6,8 +6,8 @@ VersionNumberTuple: TypeAlias = tuple[int, ...]
 # This is a dictionary of the first and last times each chunk version was written by a game version
 # It is used to convert the chunk version to the game version that could have saved that chunk.
 # It is also used to convert back to the chunk version when saving based on the game version.
-chunk_version_to_max_version: Dict[
-    int, Tuple[VersionNumberTuple, VersionNumberTuple]
+chunk_version_to_max_version: dict[
+    int, tuple[VersionNumberTuple, VersionNumberTuple]
 ] = {
     0: ((0, 9, 0, 0), (0, 9, 1, 9999)),
     1: ((0, 9, 2, 0), (0, 9, 4, 9999)),

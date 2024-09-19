@@ -36,10 +36,8 @@ def _rotation_matrix(*angles: float, order: str) -> numpy.ndarray:
 
 def decompose_transformation_matrix(
     matrix: numpy.ndarray,
-) -> typing.Tuple[
-    typing.Tuple[float, float, float],
-    typing.Tuple[float, float, float],
-    typing.Tuple[float, float, float],
+) -> tuple[
+    tuple[float, float, float], tuple[float, float, float], tuple[float, float, float]
 ]:
     """
 

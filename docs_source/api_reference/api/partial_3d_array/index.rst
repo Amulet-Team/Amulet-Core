@@ -59,7 +59,7 @@ be partially defined.
 is the implementation of this behaviour.
 
 Internally it stores the arrays for each sub-chunk in a dictionary of
-the form ``Dict[SubChunkCoordinate, numpy.ndarray]``.
+the form ``dict[SubChunkCoordinate, numpy.ndarray]``.
 
 There are two ways to read and write the data contained within this class:
    #. The sub-chunk arrays can be directly read and written to. This is
