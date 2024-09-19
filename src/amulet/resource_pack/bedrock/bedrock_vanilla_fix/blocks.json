@@ -1,0 +1,39 @@
+{
+   "light_block" : {
+      "textures" : "light_block_carried"
+   },
+   "piston" : {
+      "textures" : {
+         "down" : "piston_bottom",
+         "side" : "piston_side",
+         "up" : "piston_top_normal"
+      }
+   },
+   "sticky_piston" : {
+      "textures" : {
+         "down" : "piston_bottom",
+         "side" : "piston_side",
+         "up" : "piston_top_sticky"
+      }
+   },
+   "pistonArmCollision" : {
+      "textures" : {
+         "down" : "piston_top_normal",
+         "up" : "piston_top_normal",
+         "north" : "piston_side",
+         "east" : "piston_side",
+         "south" : "piston_side",
+         "west" : "planks"
+      }
+   },
+   "stickyPistonArmCollision" : {
+      "textures" : {
+         "down" : "piston_top_normal",
+         "up" : "piston_top_sticky",
+         "north" : "piston_side",
+         "east" : "piston_side",
+         "south" : "piston_side",
+         "west" : "planks"
+      }
+   }
+}

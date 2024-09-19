@@ -1,0 +1,18 @@
+{
+    "format_version": 2,
+    "header": {
+        "description": "Fix for Minecraft's hard coded models",
+        "name": "Fix for Minecraft's hard coded models",
+        "uuid": "da69fc84-89c0-4dcb-a02b-faadf7e5606a",
+        "version": [0, 0, 1],
+        "min_engine_version": [ 1, 14, 0 ]
+    },
+    "modules": [
+        {
+            "description": "Fix for Minecraft's hard coded models",
+            "type": "resources",
+            "uuid": "107ae160-7568-467b-b6bf-d457a61c433d",
+            "version": [0, 0, 1]
+        }
+    ]
+}

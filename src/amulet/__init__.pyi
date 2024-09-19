@@ -14,7 +14,6 @@ from . import (
 )
 
 __all__ = [
-    "IMG_DIRECTORY",
     "biome",
     "block",
     "block_entity",
@@ -26,5 +25,4 @@ __all__ = [
     "utils",
     "version",
 ]
-IMG_DIRECTORY: str
 __version__: str

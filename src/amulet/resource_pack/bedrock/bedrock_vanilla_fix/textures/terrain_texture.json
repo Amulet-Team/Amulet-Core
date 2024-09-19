@@ -1,0 +1,17 @@
+{
+   "num_mip_levels" : 4,
+   "padding" : 8,
+   "resource_pack_name" : "vanilla_fix",
+   "texture_data" : {
+      "still_water_grey" : {
+         "textures" : "textures/blocks/water"
+      },
+      "grass_side" : {
+         "textures" : "textures/blocks/grass_side_carried"
+      },
+      "grass_top" : {
+         "textures" : "textures/blocks/grass_carried"
+      }
+   },
+   "texture_name" : "atlas.terrain"
+}
