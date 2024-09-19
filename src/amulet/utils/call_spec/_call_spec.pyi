@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import abc
 import typing
-from abc import ABC, abstractmethod
-from collections.abc import Sequence
+from abc import ABC
+from collections.abc import Hashable, Sequence
 from typing import Any, ParamSpec, Protocol, TypeVar, cast, overload, runtime_checkable
 
 __all__ = [
@@ -26,6 +26,7 @@ __all__ = [
     "DocumentationArg",
     "FilePathArg",
     "FloatArg",
+    "Hashable",
     "HashableCallableArg",
     "HashableTupleArg",
     "HashableUnionArg",
@@ -43,7 +44,6 @@ __all__ = [
     "TypedCallable",
     "TypedMethod",
     "UnionArg",
-    "abstractmethod",
     "callable_spec",
     "cast",
     "method_spec",
@@ -55,8 +55,6 @@ class AbstractArg(abc.ABC):
     """
     The base class for all arguments.
     """
-
-    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None: ...
 
 class AbstractHashableArg(AbstractArg, abc.ABC):
     """
