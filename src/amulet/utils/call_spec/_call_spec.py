@@ -7,7 +7,6 @@ from __future__ import annotations
 from typing import (
     Any,
     Callable,
-    Hashable,
     Protocol,
     TypeVar,
     cast,
@@ -16,7 +15,7 @@ from typing import (
     Concatenate,
     runtime_checkable,
 )
-from collections.abc import Sequence
+from collections.abc import Sequence, Hashable
 from abc import ABC
 
 
