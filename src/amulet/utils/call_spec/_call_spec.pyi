@@ -229,24 +229,16 @@ class TupleArg(AbstractArg):
     def __init__(self, *args: AbstractArg) -> None: ...
 
 class TypedCallable(typing.Protocol):
-    __non_callable_proto_members__: typing.ClassVar[set] = {"call_spec"}
-    _is_runtime_protocol: typing.ClassVar[bool] = True
-    @classmethod
-    def __subclasshook__(cls, other): ...
     def __call__(self, *args: P.args, **kwargs: P.kwargs) -> R: ...
     def __init__(self, *args, **kwargs): ...
 
 class TypedMethod(typing.Protocol):
-    __non_callable_proto_members__: typing.ClassVar[set] = {"call_spec"}
-    _is_runtime_protocol: typing.ClassVar[bool] = True
     @staticmethod
     def __get__(*args, **kwds):
         """
         Helper for @overload to raise when called.
         """
 
-    @classmethod
-    def __subclasshook__(cls, other): ...
     def __call__(self, self_: typing.Any, *args: P.args, **kwargs: P.kwargs) -> R: ...
     def __init__(self, *args, **kwargs): ...
 

@@ -35,8 +35,6 @@ class Signal(typing.Generic):
     ): ...
 
 class SignalInstance(typing.Protocol):
-    @classmethod
-    def __subclasshook__(cls, other): ...
     def __init__(self, *args, **kwargs): ...
     def connect(
         self,
@@ -52,8 +50,6 @@ class SignalInstance(typing.Protocol):
     def emit(self, *args: *CallArgs) -> None: ...
 
 class SignalInstanceConstructor(typing.Protocol):
-    @classmethod
-    def __subclasshook__(cls, other): ...
     def __call__(
         self,
         *,

@@ -45,6 +45,9 @@ def patch_stubgen():
     FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
         Identifier("__new__")
     )
+    FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
+        Identifier("__subclasshook__")
+    )
     # Pickle
     FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
         Identifier("__getnewargs__")
@@ -73,7 +76,13 @@ def patch_stubgen():
         Identifier("__protocol_attrs__")
     )
     FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
+        Identifier("__non_callable_proto_members__")
+    )
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
         Identifier("_is_protocol")
+    )
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
+        Identifier("_is_runtime_protocol")
     )
     # dataclass
     FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
