@@ -29,21 +29,10 @@ class Sector(tuple):
     __slots__: typing.ClassVar[tuple] = tuple()
     _field_defaults: typing.ClassVar[dict] = {}
     _fields: typing.ClassVar[tuple] = ("start", "stop")
-    @staticmethod
-    def __new__(_cls, start: ForwardRef("int"), stop: ForwardRef("int")):
-        """
-        Create new instance of Sector(start, stop)
-        """
-
     @classmethod
     def _make(cls, iterable):
         """
         Make a new Sector object from a sequence or iterable
-        """
-
-    def __getnewargs__(self):
-        """
-        Return self as a plain tuple.  Used by copy and pickle.
         """
 
     def __repr__(self):

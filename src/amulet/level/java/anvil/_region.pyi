@@ -160,8 +160,6 @@ class RegionFileVersion(enum.IntEnum):
     VERSION_NONE: typing.ClassVar[
         RegionFileVersion
     ]  # value = <RegionFileVersion.VERSION_NONE: 3>
-    @classmethod
-    def __new__(cls, value): ...
     def __format__(self, format_spec):
         """
         Convert to a string according to format_spec.

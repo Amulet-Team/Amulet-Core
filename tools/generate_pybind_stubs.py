@@ -41,6 +41,20 @@ def patch_stubgen():
     FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
         Identifier("_pybind11_conduit_v1_")
     )
+    # Python
+    FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
+        Identifier("__new__")
+    )
+    # Pickle
+    FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
+        Identifier("__getnewargs__")
+    )
+    FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
+        Identifier("__getstate__")
+    )
+    FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
+        Identifier("__setstate__")
+    )
     # ABC
     FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
         Identifier("__abstractmethods__")
