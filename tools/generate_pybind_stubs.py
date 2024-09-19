@@ -37,6 +37,10 @@ def get_package_dir(name: str) -> str:
 
 def patch_stubgen():
     # Is there a better way to add items to the blacklist?
+    # Pybind11
+    FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
+        Identifier("_pybind11_conduit_v1_")
+    )
     # ABC
     FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
         Identifier("__abstractmethods__")
