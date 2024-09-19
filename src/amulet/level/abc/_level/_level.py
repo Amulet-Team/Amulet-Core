@@ -3,16 +3,15 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Optional, TypeVar, Type, Generic, Iterator, Callable
 from contextlib import contextmanager, AbstractContextManager as ContextManager
-import os
 import logging
 from weakref import finalize
 
 from runtime_final import final
 from PIL import Image
 
-from amulet import IMG_DIRECTORY
 from amulet.version import PlatformType, VersionNumber
 from amulet.data_types import DimensionId
+from amulet.img import missing_world_icon_path
 
 from amulet.chunk import Chunk
 
@@ -31,9 +30,6 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-missing_world_icon_path = os.path.abspath(
-    os.path.join(IMG_DIRECTORY, "missing_world_icon.png")
-)
 missing_world_icon: Optional[Image.Image] = None
 
 
