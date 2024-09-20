@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy
+import numpy.typing
 import typing_extensions
 
 __all__ = ["decode_long_array", "encode_long_array"]
@@ -26,7 +27,7 @@ def encode_long_array(
     bits_per_entry: None | int = None,
     dense: bool = True,
     min_bits_per_entry: int = 1,
-) -> numpy.ndarray[numpy.uint64]:
+) -> numpy.typing.NDArray[numpy.uint64]:
     """
     Encode a long array (from BlockStates or Heightmaps)
 

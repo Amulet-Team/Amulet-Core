@@ -316,7 +316,7 @@ namespace Amulet {
 					
 					// TODO: convert this to C++
 					py::object waterloggable = game_version.attr("block").attr("waterloggable")(block_namespace, block_base_name);
-					if (py::equals(waterloggable, WaterloggableYes)) {
+					if (Amulet::pybind11::equals(waterloggable, WaterloggableYes)) {
 						auto waterlogged_it = block_properties.find("waterlogged");
 						if (
 							waterlogged_it != block_properties.end() and 
@@ -328,7 +328,7 @@ namespace Amulet {
 							block_properties.erase(waterlogged_it);
 						}
 					}
-					else if (py::equals(waterloggable, WaterloggableAlways)) {
+					else if (Amulet::pybind11::equals(waterloggable, WaterloggableAlways)) {
 						blocks.push_back(get_water());
 					}
 					blocks.insert(
