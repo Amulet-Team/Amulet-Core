@@ -133,14 +133,15 @@ def main() -> None:
         ),
         "-o",
         src_path,
-        "--include-docstrings"
+        "--include-docstrings",
     ])
 
     print("Patching stub files...")
     # Fix some issues and reformat the stub files.
-    for stub_path in glob.iglob(
+    stub_paths = glob.glob(
         os.path.join(glob.escape(src_path), "**", "*.pyi"), recursive=True
-    ):
+    )
+    for stub_path in stub_paths:
         with open(stub_path, encoding="utf-8") as f:
             pyi = f.read()
         pyi = UnionPattern.sub(union_sub_func, pyi)
@@ -148,21 +149,21 @@ def main() -> None:
         with open(stub_path, "w", encoding="utf-8") as f:
             f.write(pyi)
 
-        subprocess.run(
-            [
-                "isort",
-                stub_path,
-            ]
-        )
+    subprocess.run(
+        [
+            "isort",
+            *stub_paths,
+        ]
+    )
 
-        subprocess.run(
-            [
-                "autoflake",
-                "--in-place",
-                "--remove-unused-variables",
-                stub_path,
-            ]
-        )
+    subprocess.run(
+        [
+            "autoflake",
+            "--in-place",
+            "--remove-unused-variables",
+            *stub_paths,
+        ]
+    )
 
     subprocess.run([sys.executable, "-m", "black", src_path])
 
