@@ -1,13 +1,7 @@
-from __future__ import annotations
+from amulet.level.abc import Dimension as Dimension
 
-import amulet.level.abc._dimension
-import amulet.level.java._chunk_handle
-from amulet.level.abc._dimension import Dimension
-from amulet.level.java._chunk_handle import JavaChunkHandle
+from ._chunk_handle import JavaChunkHandle as JavaChunkHandle
+from ._level import JavaLevel as JavaLevel
+from ._raw import JavaRawDimension as JavaRawDimension
 
-__all__ = ["Dimension", "JavaChunkHandle", "JavaDimension"]
-
-class JavaDimension(amulet.level.abc._dimension.Dimension):
-    def _create_chunk_handle(
-        self, cx: int, cz: int
-    ) -> amulet.level.java._chunk_handle.JavaChunkHandle: ...
+class JavaDimension(Dimension["JavaLevel", "JavaRawDimension", JavaChunkHandle]): ...

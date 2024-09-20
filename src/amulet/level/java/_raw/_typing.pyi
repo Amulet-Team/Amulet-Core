@@ -1,5 +1,3 @@
-from __future__ import annotations
+from typing import TypeAlias
 
-from builtins import str as InternalDimensionId
-
-__all__ = ["InternalDimensionId"]
+InternalDimensionId: TypeAlias

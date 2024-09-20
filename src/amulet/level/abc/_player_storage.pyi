@@ -1,0 +1,3 @@
+from ._level import LevelFriend as LevelFriend
+
+class PlayerStorage(LevelFriend): ...

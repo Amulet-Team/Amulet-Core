@@ -1,80 +1,56 @@
-from __future__ import annotations
-
-import logging as logging
-import typing
 from collections.abc import Sequence
-from inspect import ismethod
-from typing import Any, Generic, Protocol, TypeVarTuple, overload
-from weakref import WeakMethod
+from typing import Any, Callable, Generic, Protocol, TypeVarTuple, overload
 
-__all__ = [
-    "Any",
-    "CallArgs",
-    "Generic",
-    "Protocol",
-    "Sequence",
-    "Signal",
-    "SignalInstance",
-    "SignalInstanceCacheName",
-    "SignalInstanceConstructor",
-    "TypeVarTuple",
-    "WeakMethod",
-    "create_signal_instance",
-    "get_fallback_signal_instance_constructor",
-    "get_pyside6_signal_instance_constructor",
-    "ismethod",
-    "logging",
-    "overload",
-    "set_signal_instance_constructor",
-]
+import PySide6.QtCore
 
-class Signal(typing.Generic):
-    def __get__(self, instance: typing.Any, owner: typing.Any) -> typing.Any: ...
-    def __init__(
-        self, *types: type, name: str, arguments: typing.Sequence[str] = tuple()
-    ): ...
+CallArgs = TypeVarTuple("CallArgs")
 
-class SignalInstance(typing.Protocol):
-    def __init__(self, *args, **kwargs): ...
+class SignalInstance(Protocol[*CallArgs]):
     def connect(
         self,
-        slot: typing.Callable[[*CallArgs], None] | SignalInstance[*CallArgs,] | None,
+        slot: (
+            Callable[[Unpack[CallArgs]], None] | SignalInstance[Unpack[CallArgs]] | None
+        ),
         type: PySide6.QtCore.Qt.ConnectionType | None = ...,
     ) -> None: ...
     def disconnect(
         self,
         slot: (
-            typing.Callable[[*CallArgs], None] | SignalInstance[*CallArgs,] | None
+            Callable[[Unpack[CallArgs]], None] | SignalInstance[Unpack[CallArgs]] | None
         ) = None,
     ) -> None: ...
-    def emit(self, *args: *CallArgs) -> None: ...
+    def emit(self, *args: Unpack[CallArgs]) -> None: ...
 
-class SignalInstanceConstructor(typing.Protocol):
+def create_signal_instance(
+    *types: type, instance: Any, name: str, arguments: Sequence[str] = ()
+) -> SignalInstance[Unpack[CallArgs]]:
+    """Create a new signal instance"""
+
+SignalInstanceCacheName: str
+
+class Signal(Generic[*CallArgs]):
+    def __init__(
+        self, *types: type, name: str, arguments: Sequence[str] = ()
+    ) -> None: ...
+    @overload
+    def __get__(
+        self, instance: None, owner: Any | None
+    ) -> Signal[Unpack[CallArgs]]: ...
+    @overload
+    def __get__(
+        self, instance: Any, owner: Any | None
+    ) -> SignalInstance[Unpack[CallArgs]]: ...
+
+class SignalInstanceConstructor(Protocol[*CallArgs]):
     def __call__(
         self,
         *,
         types: tuple[type, ...],
         name: str,
-        arguments: typing.Sequence[str],
-        instance: typing.Any,
-    ) -> SignalInstance[*CallArgs,]: ...
-    def __init__(self, *args, **kwargs): ...
+        arguments: Sequence[str],
+        instance: Any,
+    ) -> SignalInstance[Unpack[CallArgs]]: ...
 
-def _get_signal_instances(instance: typing.Any) -> dict[Signal, SignalInstance]: ...
-def create_signal_instance(
-    *types: type,
-    instance: typing.Any,
-    name: str,
-    arguments: typing.Sequence[str] = tuple(),
-) -> SignalInstance[*CallArgs,]:
-    """
-    Create a new signal instance
-    """
-
+def set_signal_instance_constructor(constructor: SignalInstanceConstructor) -> None: ...
 def get_fallback_signal_instance_constructor() -> SignalInstanceConstructor: ...
 def get_pyside6_signal_instance_constructor() -> SignalInstanceConstructor: ...
-def set_signal_instance_constructor(constructor: SignalInstanceConstructor) -> None: ...
-
-CallArgs: typing.TypeVarTuple  # value = CallArgs
-SignalInstanceCacheName: str
-_signal_instance_constructor = None
