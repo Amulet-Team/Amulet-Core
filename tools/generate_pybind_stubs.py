@@ -126,15 +126,22 @@ def main() -> None:
     # ])
 
     # Run normal stubgen on the python files
-    print("Running stubgen...")
-    stubgen.main([
-        *glob.glob(
-            os.path.join(glob.escape(src_path), "**", "*.py"), recursive=True
-        ),
-        "-o",
-        src_path,
-        "--include-docstrings",
-    ])
+    # print("Running stubgen...")
+    # stubgen.main([
+    #     *glob.glob(
+    #         os.path.join(glob.escape(src_path), "**", "*.py"), recursive=True
+    #     ),
+    #     "-o",
+    #     src_path,
+    #     "--include-docstrings",
+    # ])
+
+    # Remove stub files generated for python modules
+    for stub_path in glob.iglob(
+        os.path.join(glob.escape(src_path), "**", "*.pyi"), recursive=True
+    ):
+        if os.path.isfile(stub_path[:-1]):
+            os.remove(stub_path)
 
     print("Patching stub files...")
     # Fix some issues and reformat the stub files.

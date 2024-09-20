@@ -1,2 +1,0 @@
-from .resource_pack import BaseResourcePack as BaseResourcePack
-from .resource_pack_manager import BaseResourcePackManager as BaseResourcePackManager
