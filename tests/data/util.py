@@ -35,7 +35,7 @@ class BaseWorldTest:
 def for_each_world(globals_, worlds: Iterable[str]):
     def wrap(cls: BaseWorldTest):
         for world in worlds:
-            world_identifier = re.sub("\W|^(?=\d)", "_", world)
+            world_identifier = re.sub(r"\W|^(?=\d)", "_", world)
             globals_[world_identifier] = type(
                 world_identifier, (cls,), {"WorldPath": world}
             )
