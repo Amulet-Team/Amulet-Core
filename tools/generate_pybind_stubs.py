@@ -4,6 +4,7 @@ import importlib.util
 import sys
 import subprocess
 import re
+from mypy import stubgen
 import pybind11_stubgen
 from pybind11_stubgen.structs import Identifier
 from pybind11_stubgen.parser.mixins.filter import FilterClassMembers
@@ -100,12 +101,18 @@ def main() -> None:
     amulet_path = get_package_dir("amulet")
     src_path = os.path.dirname(amulet_path)
 
+    # Remove all existing stub files
+    print("Removing stub files...")
     for stub_path in glob.iglob(
         os.path.join(glob.escape(src_path), "**", "*.pyi"), recursive=True
     ):
         os.remove(stub_path)
 
+    # Extend pybind11-stubgen
     patch_stubgen()
+
+    # Call pybind11-stubgen
+    print("Running pybind11-stubgen...")
     sys.argv = [
         "pybind11_stubgen",
         f"--output-dir={src_path}",
@@ -118,6 +125,19 @@ def main() -> None:
     #     "amulet",
     # ])
 
+    # Run normal stubgen on the python files
+    print("Running stubgen...")
+    stubgen.main([
+        *glob.glob(
+            os.path.join(glob.escape(src_path), "**", "*.py"), recursive=True
+        ),
+        "-o",
+        src_path,
+        "--include-docstrings"
+    ])
+
+    print("Patching stub files...")
+    # Fix some issues and reformat the stub files.
     for stub_path in glob.iglob(
         os.path.join(glob.escape(src_path), "**", "*.pyi"), recursive=True
     ):
