@@ -22,8 +22,14 @@ namespace Amulet {
 		// Type hint for a native python object.
 		namespace type_hints {
 			template <detail::FixedString T>
-			class PyObject : public py::object {
-				PYBIND11_OBJECT_DEFAULT(PyObject, object, PyObject_Type)
+			class PyObjectStr : public py::object {
+				PYBIND11_OBJECT_DEFAULT(PyObjectStr, object, PyObject_Type)
+					using object::object;
+			};
+
+			template <typename cppT>
+			class PyObjectCpp : public py::object {
+				PYBIND11_OBJECT_DEFAULT(PyObjectCpp, object, PyObject_Type)
 					using object::object;
 			};
 		}
@@ -33,8 +39,13 @@ namespace Amulet {
 namespace pybind11 {
 	namespace detail {
 		template <Amulet::pybind11::detail::FixedString T>
-		struct handle_type_name<Amulet::pybind11::type_hints::PyObject<T>> {
+		struct handle_type_name<Amulet::pybind11::type_hints::PyObjectStr<T>> {
 			static constexpr auto name = pybind11::detail::const_name(T.buf);
+		};
+
+		template <typename cppT>
+		struct handle_type_name<Amulet::pybind11::type_hints::PyObjectCpp<cppT>> {
+			static constexpr auto name = make_caster<cppT>::name;
 		};
 	}
 }
