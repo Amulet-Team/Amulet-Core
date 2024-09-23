@@ -2,7 +2,6 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
-from amulet.utils.typing import Intersection
 from amulet.utils.call_spec import method_spec
 
 
@@ -18,7 +17,7 @@ class CreatableLevel(ABC):
     @classmethod
     @abstractmethod
     @method_spec()
-    def create(cls, *args: Any, **kwargs: Any) -> Intersection[Level, CreatableLevel]:
+    def create(cls, *args: Any, **kwargs: Any) -> Level:
         """
         Create a new instance without any existing data.
         You must call :meth:`~amulet.level.abc.Level.open` to open the level for editing.
