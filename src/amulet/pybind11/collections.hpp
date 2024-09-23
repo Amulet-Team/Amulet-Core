@@ -11,25 +11,19 @@ namespace Amulet {
 				PYBIND11_OBJECT_DEFAULT(Iterator, object, PyObject_Type)
 				using object::object;
 			};
-		}
 
-		namespace collections {
 			template <typename T>
 			class Sequence : public py::object {
 				PYBIND11_OBJECT_DEFAULT(Sequence, object, PyObject_Type)
 				using object::object;
 			};
-		}
-
-		namespace collections {
+		
 			template <typename K, typename V>
 			class Mapping : public py::object {
 				PYBIND11_OBJECT_DEFAULT(Mapping, object, PyObject_Type)
 				using object::object;
 			};
-		}
 
-		namespace collections {
 			template <typename K, typename V>
 			class MutableMapping : public py::object {
 				PYBIND11_OBJECT_DEFAULT(MutableMapping, object, PyObject_Type)
