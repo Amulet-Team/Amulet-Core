@@ -7,7 +7,6 @@
 #include <pybind11/pybind11.h>
 #include "iterator.py.hpp"
 #include <amulet/pybind11/collections.hpp>
-#include <amulet/pybind11/python.hpp>
 
 namespace py = pybind11;
 
@@ -41,7 +40,7 @@ namespace Amulet {
 				[](py::object self, py::object value) {
 					py::iterator it = py::iter(self);
 					while (it != py::iterator::sentinel()) {
-						if (py::equals(*it, value)) {
+						if (it->equal(value)) {
 							return true;
 						}
 						++it;
@@ -55,7 +54,7 @@ namespace Amulet {
 		void Sequence_iter(clsT cls) {
 			cls.def(
 				"__iter__",
-				[](py::object self) -> py::collections::Iterator<elemT> {
+				[](py::object self) -> Amulet::pybind11::collections::Iterator<elemT> {
 					return py::cast(
 						static_cast<std::shared_ptr<Amulet::collections::Iterator>>(
 							std::make_shared<PySequenceIterator>(self, 0, 1)
@@ -69,7 +68,7 @@ namespace Amulet {
 		void Sequence_reversed(clsT cls) {
 			cls.def(
 				"__reversed__",
-				[](py::object self) -> py::collections::Iterator<elemT> {
+				[](py::object self) -> Amulet::pybind11::collections::Iterator<elemT> {
 					return py::cast(
 						static_cast<std::shared_ptr<Amulet::collections::Iterator>>(
 							std::make_shared<PySequenceIterator>(self, py::len(self) - 1, -1)
@@ -114,7 +113,7 @@ namespace Amulet {
 							}
 						}
 
-						if (py::equals(value, obj)) {
+						if (value.equal(obj)) {
 							return start;
 						}
 
@@ -135,7 +134,7 @@ namespace Amulet {
 					size_t size = py::len(self);
 					py::object getitem = self.attr("__getitem__");
 					for (size_t i = 0; i < size; ++i) {
-						if (py::equals(value, getitem(i))) {
+						if (value.equal(getitem(i))) {
 							count++;
 						}
 					}

@@ -4,6 +4,7 @@ import importlib.util
 import sys
 import subprocess
 import re
+from mypy import stubgen
 import pybind11_stubgen
 from pybind11_stubgen.structs import Identifier
 from pybind11_stubgen.parser.mixins.filter import FilterClassMembers
@@ -41,6 +42,23 @@ def patch_stubgen():
     FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
         Identifier("_pybind11_conduit_v1_")
     )
+    # Python
+    FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
+        Identifier("__new__")
+    )
+    FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
+        Identifier("__subclasshook__")
+    )
+    # Pickle
+    FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
+        Identifier("__getnewargs__")
+    )
+    FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
+        Identifier("__getstate__")
+    )
+    FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
+        Identifier("__setstate__")
+    )
     # ABC
     FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
         Identifier("__abstractmethods__")
@@ -59,7 +77,13 @@ def patch_stubgen():
         Identifier("__protocol_attrs__")
     )
     FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
+        Identifier("__non_callable_proto_members__")
+    )
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
         Identifier("_is_protocol")
+    )
+    FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
+        Identifier("_is_runtime_protocol")
     )
     # dataclass
     FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
@@ -71,18 +95,31 @@ def patch_stubgen():
     FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
         Identifier("__match_args__")
     )
+    # Buffer protocol
+    FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
+        Identifier("__buffer__")
+    )
+    FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
+        Identifier("__release_buffer__")
+    )
 
 
 def main() -> None:
     amulet_path = get_package_dir("amulet")
     src_path = os.path.dirname(amulet_path)
 
+    # Remove all existing stub files
+    print("Removing stub files...")
     for stub_path in glob.iglob(
         os.path.join(glob.escape(src_path), "**", "*.pyi"), recursive=True
     ):
         os.remove(stub_path)
 
+    # Extend pybind11-stubgen
     patch_stubgen()
+
+    # Call pybind11-stubgen
+    print("Running pybind11-stubgen...")
     sys.argv = [
         "pybind11_stubgen",
         f"--output-dir={src_path}",
@@ -95,9 +132,30 @@ def main() -> None:
     #     "amulet",
     # ])
 
+    # Run normal stubgen on the python files
+    # print("Running stubgen...")
+    # stubgen.main([
+    #     *glob.glob(
+    #         os.path.join(glob.escape(src_path), "**", "*.py"), recursive=True
+    #     ),
+    #     "-o",
+    #     src_path,
+    #     "--include-docstrings",
+    # ])
+
+    # Remove stub files generated for python modules
     for stub_path in glob.iglob(
         os.path.join(glob.escape(src_path), "**", "*.pyi"), recursive=True
     ):
+        if os.path.isfile(stub_path[:-1]):
+            os.remove(stub_path)
+
+    print("Patching stub files...")
+    # Fix some issues and reformat the stub files.
+    stub_paths = glob.glob(
+        os.path.join(glob.escape(src_path), "**", "*.pyi"), recursive=True
+    )
+    for stub_path in stub_paths:
         with open(stub_path, encoding="utf-8") as f:
             pyi = f.read()
         pyi = UnionPattern.sub(union_sub_func, pyi)
@@ -105,21 +163,21 @@ def main() -> None:
         with open(stub_path, "w", encoding="utf-8") as f:
             f.write(pyi)
 
-        subprocess.run(
-            [
-                "isort",
-                stub_path,
-            ]
-        )
+    subprocess.run(
+        [
+            "isort",
+            *stub_paths,
+        ]
+    )
 
-        subprocess.run(
-            [
-                "autoflake",
-                "--in-place",
-                "--remove-unused-variables",
-                stub_path,
-            ]
-        )
+    subprocess.run(
+        [
+            "autoflake",
+            "--in-place",
+            "--remove-unused-variables",
+            *stub_paths,
+        ]
+    )
 
     subprocess.run([sys.executable, "-m", "black", src_path])
 

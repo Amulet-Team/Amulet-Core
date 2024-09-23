@@ -119,7 +119,7 @@ namespace collections {
 			](
 				py::object self, 
 				py::object other
-			) -> std::variant<bool, py::types::NotImplementedType> {
+			) -> std::variant<bool, Amulet::pybind11::types::NotImplementedType> {
 				if (!isinstance(other, PyMapping)) {
 					return NotImplemented;
 				}

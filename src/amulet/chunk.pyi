@@ -7,8 +7,6 @@ class Chunk:
     A base class for all chunk classes.
     """
 
-    def __getstate__(self) -> tuple: ...
-    def __setstate__(self, arg0: tuple) -> None: ...
     def reconstruct_chunk(self, arg0: dict[str, bytes | None]) -> None:
         """
         This is private. Do not use this. It will be removed in the future.

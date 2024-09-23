@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, overload, Literal, TypeVar
+from typing import overload, Literal, TypeVar
 from dataclasses import dataclass, field
 from copy import deepcopy
 from enum import Enum
@@ -336,7 +336,7 @@ class RawTextComponent:
         section_text: str,
         section_parser: type[AbstractSectionParser],
         split_newline: Literal[True],
-    ) -> List[RawTextComponent]: ...
+    ) -> list[RawTextComponent]: ...
 
     @classmethod
     def from_section_text(

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import typing
+
 from . import (
     call_spec,
     matrix,
@@ -7,7 +9,6 @@ from . import (
     shareable_lock,
     signal,
     task_manager,
-    typing,
     weakref,
     world_utils,
 )
@@ -19,10 +20,9 @@ __all__ = [
     "shareable_lock",
     "signal",
     "task_manager",
-    "typing",
     "weakref",
     "world_utils",
 ]
 
-def __dir__() -> typing.Any: ...
+def __dir__() -> list[str]: ...
 def __getattr__(arg0: typing.Any) -> typing.Any: ...

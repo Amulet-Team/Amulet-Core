@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Tuple, Optional
+from typing import Optional
 import numpy
 from numpy import ndarray, zeros, uint8
 from amulet.data_types import ChunkCoordinates
@@ -9,7 +9,7 @@ from amulet.data_types import ChunkCoordinates
 
 def block_coords_to_chunk_coords(
     *args: int, sub_chunk_size: int = 16
-) -> Tuple[int, ...]:
+) -> tuple[int, ...]:
     """
     Converts the supplied block coordinates into chunk coordinates
 

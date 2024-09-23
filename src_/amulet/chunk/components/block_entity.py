@@ -15,7 +15,7 @@
 # ):
 #     """
 #     A MutableMapping that can only store :class:`BlockEntity` instances
-#     under the absolute coordinate of the block entity ``Tuple[int, int, int]``
+#     under the absolute coordinate of the block entity ``tuple[int, int, int]``
 #     """
 #
 #     _block_entities: dict[BlockCoordinates, BlockEntity]

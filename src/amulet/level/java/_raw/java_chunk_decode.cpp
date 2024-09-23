@@ -10,8 +10,6 @@
 
 #include <pybind11/pybind11.h>
 
-#include <amulet/pybind11/python.hpp>
-
 #include <amulet_nbt/tag/named_tag.hpp>
 #include <amulet_nbt/tag/compound.hpp>
 
@@ -316,7 +314,7 @@ namespace Amulet {
 					
 					// TODO: convert this to C++
 					py::object waterloggable = game_version.attr("block").attr("waterloggable")(block_namespace, block_base_name);
-					if (py::equals(waterloggable, WaterloggableYes)) {
+					if (waterloggable.equal(WaterloggableYes)) {
 						auto waterlogged_it = block_properties.find("waterlogged");
 						if (
 							waterlogged_it != block_properties.end() and 
@@ -328,7 +326,7 @@ namespace Amulet {
 							block_properties.erase(waterlogged_it);
 						}
 					}
-					else if (py::equals(waterloggable, WaterloggableAlways)) {
+					else if (waterloggable.equal(WaterloggableAlways)) {
 						blocks.push_back(get_water());
 					}
 					blocks.insert(

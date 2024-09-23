@@ -14,7 +14,6 @@ from __future__ import annotations
 
 from sys import getsizeof
 import re
-from typing import Dict, Iterable, Tuple, Union
 import amulet_nbt
 
 from .errors import BlockException

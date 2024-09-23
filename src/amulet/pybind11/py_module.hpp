@@ -7,6 +7,7 @@
 #include <utility>
 
 #include <pybind11/pybind11.h>
+#include <amulet/pybind11/typing.hpp>
 
 namespace py = pybind11;
 
@@ -31,7 +32,7 @@ namespace pybind11 {
 		);
 		m.def(
 			"__dir__",
-			[attrs, m]() {
+			[attrs, m]() -> py::typing::List<py::str> {
 				py::set names;
 				// Add the variables defined in the module
 				py::object dict = m.attr("__dict__");

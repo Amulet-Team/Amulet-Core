@@ -1,4 +1,4 @@
-from typing import Tuple, Literal
+from typing import Literal
 import math
 import numpy
 from amulet.data_types import FloatTriplet, PointCoordinates
@@ -193,8 +193,8 @@ def inverse_transform_matrix(
 
 def decompose_transformation_matrix(
     matrix: numpy.ndarray,
-) -> Tuple[
-    Tuple[float, float, float], Tuple[float, float, float], Tuple[float, float, float]
+) -> tuple[
+    tuple[float, float, float], tuple[float, float, float], tuple[float, float, float]
 ]:
     """
     Decompose a 4x4 transformation matrix into scale, rotation and displacement tuples.

@@ -7,7 +7,6 @@ from __future__ import annotations
 from typing import (
     Any,
     Callable,
-    Hashable,
     Protocol,
     TypeVar,
     cast,
@@ -16,16 +15,12 @@ from typing import (
     Concatenate,
     runtime_checkable,
 )
-from collections.abc import Sequence
-from abc import ABC, abstractmethod
+from collections.abc import Sequence, Hashable
+from abc import ABC
 
 
 class AbstractArg(ABC):
     """The base class for all arguments."""
-
-    @abstractmethod
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        raise NotImplementedError
 
 
 class AbstractHashableArg(AbstractArg, ABC):

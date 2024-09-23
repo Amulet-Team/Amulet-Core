@@ -1,11 +1,11 @@
-from typing import Tuple, TypeVar
+from typing import TypeVar
 from collections.abc import Collection
 import numpy
 
 T = TypeVar("T")
 
 
-def brute_sort_objects_no_hash(data: Collection[T]) -> Tuple[list[T], numpy.ndarray]:
+def brute_sort_objects_no_hash(data: Collection[T]) -> tuple[list[T], numpy.ndarray]:
     unique: list[T] = []
     inverse = numpy.zeros(dtype=numpy.uint32, shape=len(data))
     for i, d in enumerate(data):

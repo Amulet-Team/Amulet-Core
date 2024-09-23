@@ -30,7 +30,7 @@ void Eq_default(clsT cls) {
     py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");
     cls.def(
         "__eq__",
-        [NotImplemented](const typename clsT::type& self, py::object other) -> std::variant<bool, py::types::NotImplementedType> {
+        [NotImplemented](const typename clsT::type& self, py::object other) -> std::variant<bool, Amulet::pybind11::types::NotImplementedType> {
             return NotImplemented;
         }
     );

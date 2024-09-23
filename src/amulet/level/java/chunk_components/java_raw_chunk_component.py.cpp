@@ -29,14 +29,14 @@ void init_java_raw_chunk_component(py::module m) {
         "raw_data",
         [](
             Amulet::JavaRawChunkComponent& self
-        ) -> py::collections::MutableMapping<std::string, AmuletNBT::NamedTag> {
+        ) -> Amulet::pybind11::collections::MutableMapping<std::string, AmuletNBT::NamedTag> {
             auto raw_data_ptr = self.get_raw_data();
             Amulet::JavaRawChunkType& raw_data = *raw_data_ptr;
             py::object py_holder = Amulet::collections::make_holder(std::move(raw_data_ptr));
             return Amulet::collections::make_map<Amulet::JavaRawChunkType>(raw_data, py_holder);
         },
         [](
-            Amulet::JavaRawChunkComponent& self, py::collections::Mapping<std::string, AmuletNBT::NamedTag> py_raw_data
+            Amulet::JavaRawChunkComponent& self, Amulet::pybind11::collections::Mapping<std::string, AmuletNBT::NamedTag> py_raw_data
         ){
             auto raw_data = std::make_shared<Amulet::JavaRawChunkType>();
             for (auto it = py_raw_data.begin(); it != py_raw_data.end(); it++){

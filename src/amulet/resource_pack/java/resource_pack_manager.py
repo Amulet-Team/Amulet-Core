@@ -7,6 +7,7 @@ import numpy
 import glob
 import itertools
 import logging
+import re
 
 import amulet_nbt
 
@@ -38,6 +39,8 @@ UselessImageGroups = {
     "mob_effect",
     "particle",
 }
+
+_PropertiesPattern = re.compile(r"(?P<name>[a-zA-Z0-9_]+)=(?P<value>[a-zA-Z0-9_]+),?")
 
 
 class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
@@ -240,9 +243,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                                 f"Failed to load block model {blockstate['variants'][variant]}\n{e}"
                             )
                     else:
-                        properties_match = Block.properties_regex.finditer(
-                            f",{variant}"
-                        )
+                        properties_match = _PropertiesPattern.finditer(f",{variant}")
                         if all(
                             block.properties.get(
                                 match.group("name"),
