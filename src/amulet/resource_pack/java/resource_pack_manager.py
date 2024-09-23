@@ -243,9 +243,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                                 f"Failed to load block model {blockstate['variants'][variant]}\n{e}"
                             )
                     else:
-                        properties_match = _PropertiesPattern.finditer(
-                            f",{variant}"
-                        )
+                        properties_match = _PropertiesPattern.finditer(f",{variant}")
                         if all(
                             block.properties.get(
                                 match.group("name"),

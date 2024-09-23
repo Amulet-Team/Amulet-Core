@@ -18,7 +18,17 @@ class Cake(PartialBlock):
     ) -> tuple[tuple[float, float], tuple[float, float], tuple[float, float]]:
         bite_count = block.properties["bite_counter"]
         return (
-            (1 / 16 + (bite_count.py_int if isinstance(bite_count, AbstractBaseIntTag) else 0) * 2 / 16, 15 / 16),
+            (
+                1 / 16
+                + (
+                    bite_count.py_int
+                    if isinstance(bite_count, AbstractBaseIntTag)
+                    else 0
+                )
+                * 2
+                / 16,
+                15 / 16,
+            ),
             (0, 0.5),
             (1 / 16, 15 / 16),
         )
