@@ -54,28 +54,30 @@ class Entity(PlatformVersionContainer):
         self._nbt = nbt
 
     def __getstate__(self) -> tuple[tuple[str, VersionNumber], tuple[str, str, float, float, float, NamedTag]]:  # type: ignore[override]
-        return (
-            super().__getstate__(),
-            (
-                self._namespace,
-                self._base_name,
-                self._x,
-                self._y,
-                self._z,
-                self._nbt,
-            ),
-        )
+        raise NotImplementedError
+        # return (
+        #     super().__getstate__(),
+        #     (
+        #         self._namespace,
+        #         self._base_name,
+        #         self._x,
+        #         self._y,
+        #         self._z,
+        #         self._nbt,
+        #     ),
+        # )
 
     def __setstate__(self, state: tuple[tuple[str, VersionNumber], tuple[str, str, float, float, float, NamedTag]]) -> None:  # type: ignore[override]
-        super().__setstate__(state[0])
-        (
-            self._namespace,
-            self._base_name,
-            self._x,
-            self._y,
-            self._z,
-            self._nbt,
-        ) = state[1]
+        raise NotImplementedError
+        # super().__setstate__(state[0])
+        # (
+        #     self._namespace,
+        #     self._base_name,
+        #     self._x,
+        #     self._y,
+        #     self._z,
+        #     self._nbt,
+        # ) = state[1]
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Entity):
