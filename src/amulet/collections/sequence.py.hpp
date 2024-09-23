@@ -7,7 +7,6 @@
 #include <pybind11/pybind11.h>
 #include "iterator.py.hpp"
 #include <amulet/pybind11/collections.hpp>
-#include <amulet/pybind11/python.hpp>
 
 namespace py = pybind11;
 

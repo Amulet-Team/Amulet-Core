@@ -10,8 +10,6 @@
 
 #include <pybind11/pybind11.h>
 
-#include <amulet/pybind11/python.hpp>
-
 #include <amulet_nbt/tag/named_tag.hpp>
 #include <amulet_nbt/tag/compound.hpp>
 
