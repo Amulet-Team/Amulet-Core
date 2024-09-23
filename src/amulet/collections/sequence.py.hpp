@@ -41,7 +41,7 @@ namespace Amulet {
 				[](py::object self, py::object value) {
 					py::iterator it = py::iter(self);
 					while (it != py::iterator::sentinel()) {
-						if (Amulet::pybind11::equals(*it, value)) {
+						if (it->equal(value)) {
 							return true;
 						}
 						++it;
@@ -114,7 +114,7 @@ namespace Amulet {
 							}
 						}
 
-						if (Amulet::pybind11::equals(value, obj)) {
+						if (value.equal(obj)) {
 							return start;
 						}
 
@@ -135,7 +135,7 @@ namespace Amulet {
 					size_t size = py::len(self);
 					py::object getitem = self.attr("__getitem__");
 					for (size_t i = 0; i < size; ++i) {
-						if (Amulet::pybind11::equals(value, getitem(i))) {
+						if (value.equal(getitem(i))) {
 							count++;
 						}
 					}
