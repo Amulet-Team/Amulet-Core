@@ -95,6 +95,13 @@ def patch_stubgen():
     FilterClassMembers._FilterClassMembers__attribute_blacklist.add(
         Identifier("__match_args__")
     )
+    # Buffer protocol
+    FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
+        Identifier("__buffer__")
+    )
+    FilterClassMembers._FilterClassMembers__class_member_blacklist.add(
+        Identifier("__release_buffer__")
+    )
 
 
 def main() -> None:
