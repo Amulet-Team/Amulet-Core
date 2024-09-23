@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Protocol, cast, Self, ClassVar
-from abc import ABC, abstractmethod, ABCMeta
+from typing import Any, Protocol, cast, Self, ClassVar, TypeVar
+from abc import abstractmethod, ABCMeta
 
 from amulet_nbt import (
     read_snbt,
@@ -65,10 +65,17 @@ class Data(Protocol):
     def __eq__(self, other: Any) -> bool: ...
 
 
+class TranslationFunctionProtocol(Protocol):
+    _instances: ClassVar[dict[Self, Self]]
+
+
+T = TypeVar("T", bound=TranslationFunctionProtocol)
+
+
 class CacheMeta(ABCMeta):
     """This modifies the construction of the instance to always return a cached instance, if one exists."""
 
-    def __call__(cls: type[AbstractBaseTranslationFunction], *args: Any, **kwargs: Any) -> AbstractBaseTranslationFunction:  # type: ignore
+    def __call__(cls: type[T], *args: Any, **kwargs: Any) -> T:  # type: ignore
         obj = cls.__new__(cls)
         obj.__init__(*args, **kwargs)  # type: ignore
         return cls._instances.setdefault(obj, obj)
