@@ -3,8 +3,11 @@
 #include <memory>
 
 #include <pybind11/pybind11.h>
+#include <pybind11/typing.h>
 
 #include <amulet/pybind11/types.hpp>
+#include <amulet/pybind11/type_hints.hpp>
+#include <amulet/pybind11/collections.hpp>
 #include "iterator.py.hpp"
 
 namespace py = pybind11;
@@ -35,11 +38,11 @@ namespace collections {
 		);
 	}
 
-	template <typename clsT>
+	template <typename KT = py::object, typename clsT>
 	void PyMapping_contains(clsT cls) {
 		cls.def(
 			"__contains__",
-			[](py::object self, py::object key) {  
+			[](py::object self, Amulet::pybind11::type_hints::PyObjectCpp<KT> key) {
 				try {
 					self.attr("__getitem__")(key);
 					return true;
@@ -56,38 +59,42 @@ namespace collections {
 		);
 	}
 
-	template <typename clsT>
+	template <typename KT = py::object, typename clsT>
 	void PyMapping_keys(clsT cls) {
 		py::object KeysView = py::module::import("collections.abc").attr("KeysView");
 		cls.def(
 			"keys",
-			[KeysView](py::object self) { return KeysView(self); }
+			[KeysView](py::object self) -> Amulet::pybind11::collections::KeysView<KT> { return KeysView(self); }
 		);
 	}
 
-	template <typename clsT>
+	template <typename VT = py::object, typename clsT>
 	void PyMapping_values(clsT cls) {
 		py::object ValuesView = py::module::import("collections.abc").attr("ValuesView");
 		cls.def(
 			"values",
-			[ValuesView](py::object self) { return ValuesView(self); }
+			[ValuesView](py::object self) -> Amulet::pybind11::collections::ValuesView<VT> { return ValuesView(self); }
 		);
 	}
 
-	template <typename clsT>
+	template <typename KT = py::object, typename VT = py::object, typename clsT>
 	void PyMapping_items(clsT cls) {
 		py::object ItemsView = py::module::import("collections.abc").attr("ItemsView");
 		cls.def(
 			"items",
-			[ItemsView](py::object self) { return ItemsView(self); }
+			[ItemsView](py::object self) -> Amulet::pybind11::collections::ItemsView<KT, VT> { return ItemsView(self); }
 		);
 	}
 
-	template <typename clsT>
+	template <typename KT = py::object, typename VT = py::object, typename clsT>
 	void PyMapping_get(clsT cls) {
 		cls.def(
 			"get",
-			[](py::object self, py::object key, py::object default_ = py::none()) {
+			[](
+				py::object self, 
+				Amulet::pybind11::type_hints::PyObjectCpp<KT> key, 
+				py::typing::Optional<VT> default_ = py::none()
+			) -> py::typing::Optional<VT> {
 				try {
 					return self.attr("__getitem__")(key);
 				}

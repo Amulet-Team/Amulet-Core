@@ -10,12 +10,16 @@ namespace py = pybind11;
 
 namespace Amulet {
 namespace collections {
-	template <typename clsT>
+	template <typename KT = py::object, typename VT = py::object, typename clsT>
 	void PyMutableMapping_pop(clsT cls) {
 		py::object marker = py::module::import("builtins").attr("Ellipsis");
 		cls.def(
 			"pop",
-			[marker](py::object self, py::object key, py::object default_) {
+			[marker](
+				py::object self, 
+				Amulet::pybind11::type_hints::PyObjectCpp<KT> key, 
+				Amulet::pybind11::type_hints::PyObjectCpp<VT> default_
+			) -> Amulet::pybind11::type_hints::PyObjectCpp<VT> {
 				py::object value;
 				try {
 					value = self.attr("__getitem__")(key);
@@ -39,13 +43,16 @@ namespace collections {
 		);
 	}
 
-	template <typename clsT>
+	template <typename KT = py::object, typename VT = py::object, typename clsT>
 	void PyMutableMapping_popitem(clsT cls) {
 		py::object iter = py::module::import("builtins").attr("iter");
 		py::object next = py::module::import("builtins").attr("next");
 		cls.def(
 			"popitem",
-			[iter, next](py::object self) {
+			[iter, next](py::object self) -> std::pair<
+				Amulet::pybind11::type_hints::PyObjectCpp<KT>,
+				Amulet::pybind11::type_hints::PyObjectCpp<VT>
+			> {
 				py::object key;
 				try {
 					key = next(iter(self));
@@ -132,11 +139,15 @@ namespace collections {
 		);
 	}
 
-	template <typename clsT>
+	template <typename KT = py::object, typename VT = py::object, typename clsT>
 	void PyMutableMapping_setdefault(clsT cls) {
 		cls.def(
 			"setdefault",
-			[](py::object self, py::object key, py::object default_ = py::none()) {
+			[](
+				py::object self, 
+				Amulet::pybind11::type_hints::PyObjectCpp<KT> key,
+				py::typing::Optional<VT> default_ = py::none()
+			) -> py::typing::Optional<VT> {
 				try {
 					return self.attr("__getitem__")(key);
 				}
