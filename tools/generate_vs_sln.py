@@ -448,8 +448,12 @@ def main() -> None:
     amulet_nbt_lib = ProjectData(
         name="amulet_nbt",
         compile_mode=CompileMode.StaticLibrary,
-        include_files=get_files(root_dir=amulet_nbt_path, root_dir_suffix="include", ext="hpp"),
-        source_files=get_files(root_dir=amulet_nbt_path, root_dir_suffix="cpp", ext="cpp"),
+        include_files=get_files(
+            root_dir=amulet_nbt_path, root_dir_suffix="include", ext="hpp"
+        ),
+        source_files=get_files(
+            root_dir=amulet_nbt_path, root_dir_suffix="cpp", ext="cpp"
+        ),
         include_dirs=[os.path.join(amulet_nbt_path, "include")],
     )
     amulet_nbt_py = ProjectData(
@@ -472,7 +476,7 @@ def main() -> None:
             amulet_nbt_lib,
         ],
         py_package="amulet_nbt",
-        package_dir=os.path.dirname(amulet_nbt_path)
+        package_dir=os.path.dirname(amulet_nbt_path),
     )
     amulet_core_py = ProjectData(
         name="__init__",
