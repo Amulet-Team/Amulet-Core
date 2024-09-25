@@ -3,28 +3,23 @@
 #include <amulet/pybind11/py_module.hpp>
 namespace py = pybind11;
 
-void init_java(py::module);
+py::module init_java(py::module);
 
 void init_level(py::module m_parent) {
-    auto m = m_parent.def_submodule("level");
+    auto m = py::def_subpackage(m_parent, "level");
 
-    //from ._load import register_level_class, unregister_level_class, get_level, NoValidLevel
+    m.attr("Level") = py::module::import("amulet.level.abc").attr("Level");
+
+    m.attr("register_level_class") = py::module::import("amulet.level._load").attr("register_level_class");
+    m.attr("unregister_level_class") = py::module::import("amulet.level._load").attr("unregister_level_class");
+    m.attr("get_level") = py::module::import("amulet.level._load").attr("get_level");
+    m.attr("NoValidLevel") = py::module::import("amulet.level._load").attr("NoValidLevel");
+
     //from .temporary_level import TemporaryLevel
 
-    py::def_deferred(
-        m,
-        {
-            py::deferred_package_path(m_parent, m, "level"),
-            py::deferred_import("amulet.level.abc", "Level"),
-            py::deferred_import("amulet.level.java", "JavaLevel"),
-            //py::deferred_import("amulet.level.bedrock", "BedrockLevel")
-            py::deferred_import("amulet.level._load", "register_level_class"),
-            py::deferred_import("amulet.level._load", "unregister_level_class"),
-            py::deferred_import("amulet.level._load", "get_level"),
-            py::deferred_import("amulet.level._load", "NoValidLevel")
-        }
-    );
-
     // Submodules
-    init_java(m);
+    auto java_module = init_java(m);
+    m.attr("JavaLevel") = java_module.attr("JavaLevel");
+    
+    //m.attr("BedrockLevel") = py::module::import("amulet.level.bedrock").attr("BedrockLevel");
 }
