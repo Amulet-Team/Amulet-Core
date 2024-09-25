@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import typing
-
 from . import (
     call_spec,
     matrix,
@@ -23,6 +21,3 @@ __all__ = [
     "weakref",
     "world_utils",
 ]
-
-def __dir__() -> list[str]: ...
-def __getattr__(arg0: typing.Any) -> typing.Any: ...
