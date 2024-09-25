@@ -18,6 +18,10 @@ void init_amulet(py::module m){
     if (init_run){ return; }
     init_run = true;
 
+    // This is normally added after initilsation but we need it to pass to subpackages.
+    // This may cause issues with frozen installs.
+    m.attr("__path__") = py::module::import("importlib.util").attr("find_spec")("amulet").attr("submodule_search_locations");
+
     py::module::import("amulet_nbt");
 
     py::module::import("amulet._init").attr("init")(m);

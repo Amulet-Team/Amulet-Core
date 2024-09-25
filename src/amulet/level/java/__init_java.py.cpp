@@ -9,18 +9,15 @@ void init_java_chunk_components(py::module);
 void init_java_chunk(py::module);
 void init_java_raw(py::module);
 
-void init_java(py::module m_parent) {
-    auto m = m_parent.def_submodule("java");
-    py::def_deferred(
-        m,
-        {
-            py::deferred_package_path(m_parent, m, "java"),
-            py::deferred_import("amulet.level.java._level", "JavaLevel")
-        }
-    );
+py::module init_java(py::module m_parent) {
+    auto m = py::def_subpackage(m_parent, "java");
 
     init_long_array(m);
     init_java_chunk_components(m);
     init_java_chunk(m);
     init_java_raw(m);
+
+    m.attr("JavaLevel") = py::module::import("amulet.level.java._level").attr("JavaLevel");
+
+    return m;
 }

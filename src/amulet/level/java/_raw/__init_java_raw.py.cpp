@@ -12,17 +12,7 @@ void init_java_chunk_decode(py::module);
 void init_java_chunk_encode(py::module);
 
 void init_java_raw(py::module m_parent) {
-    auto m = m_parent.def_submodule("_raw");
-    py::def_deferred(
-        m,
-        {
-            py::deferred_package_path(m_parent, m, "_raw"),
-            py::deferred_import("amulet.level.java._raw._level", "JavaRawLevel"),
-            py::deferred_import("amulet.level.java._raw._level", "JavaCreateArgsV1"),
-            py::deferred_import("amulet.level.java._raw._dimension", "JavaRawDimension"),
-            py::deferred_import("amulet.level.java._raw._typing", "InternalDimensionId")
-        }
-    );
+    auto m = py::def_subpackage(m_parent, "_raw");
 
     auto m_chunk = m.def_submodule("_chunk");
     m_chunk.def(
@@ -33,4 +23,9 @@ void init_java_raw(py::module m_parent) {
         "encode_chunk",
         &Amulet::encode_java_chunk
     );
+
+    m.attr("JavaRawLevel") = py::module::import("amulet.level.java._raw._level").attr("JavaRawLevel");
+    m.attr("JavaCreateArgsV1") = py::module::import("amulet.level.java._raw._level").attr("JavaCreateArgsV1");
+    m.attr("JavaRawDimension") = py::module::import("amulet.level.java._raw._dimension").attr("JavaRawDimension");
+    m.attr("InternalDimensionId") = py::module::import("amulet.level.java._raw._typing").attr("InternalDimensionId");
 }

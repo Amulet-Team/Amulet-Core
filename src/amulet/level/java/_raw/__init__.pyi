@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import typing
 from builtins import str as InternalDimensionId
 
 from amulet.level.java._raw._dimension import JavaRawDimension
@@ -14,6 +13,3 @@ __all__ = [
     "JavaRawDimension",
     "JavaRawLevel",
 ]
-
-def __dir__() -> list[str]: ...
-def __getattr__(arg0: typing.Any) -> typing.Any: ...

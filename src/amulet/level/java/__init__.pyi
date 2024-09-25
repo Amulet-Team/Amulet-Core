@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import typing
-
 from amulet.level.java._level import JavaLevel
 
 from . import (
@@ -16,6 +14,3 @@ from . import (
 )
 
 __all__ = ["JavaLevel", "anvil", "chunk", "chunk_components", "long_array"]
-
-def __dir__() -> list[str]: ...
-def __getattr__(arg0: typing.Any) -> typing.Any: ...
