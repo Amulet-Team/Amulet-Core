@@ -6,13 +6,13 @@ import re
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-import amulet_nbt
 import pybind11
-from binascii import hexlify
 import sys
 import glob
 import sysconfig
 from collections.abc import Iterable
+from hashlib import md5
+import importlib.util
 
 SrcDir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "src")
 
@@ -230,22 +230,21 @@ class ProjectData:
     library_dirs: list[str] = field(default_factory=list)
     dependencies: list[ProjectData] = field(default_factory=list)
     py_package: str | None = None
+    package_dir: str | None = None
 
     def project_guid(self) -> str:
         encoded_name = self.name.encode()
-        if len(encoded_name) > 16:
-            raise Exception("Name too long. Fix this.")
-        encoded_name = b"\x00" * (16 - len(encoded_name)) + encoded_name
+        digest = md5(encoded_name).hexdigest()
         return (
-            hexlify(encoded_name[0:4]).decode().upper()
+            digest[0:8].upper()
             + "-"
-            + hexlify(encoded_name[4:6]).decode().upper()
+            + digest[8:12].upper()
             + "-"
-            + hexlify(encoded_name[6:8]).decode().upper()
+            + digest[12:16].upper()
             + "-"
-            + hexlify(encoded_name[8:10]).decode().upper()
+            + digest[16:20].upper()
             + "-"
-            + hexlify(encoded_name[10:16]).decode().upper()
+            + digest[20:32].upper()
         )
 
 
@@ -270,10 +269,10 @@ def write(
             library_type = CompileMode.DynamicLibrary
             if project.py_package:
                 module_path = project.py_package.replace(".", "\\")
-                out_dir = f"{src_dir}\\{module_path}\\"
+                out_dir = f"{project.package_dir or src_dir}\\{module_path}\\"
                 project_name = f"{project.py_package}.{project_name}"
             else:
-                out_dir = f"{src_dir}\\"
+                out_dir = f"{project.package_dir or src_dir}\\"
         elif library_type == CompileMode.StaticLibrary:
             extension = ".lib"
             out_dir = (
@@ -413,6 +412,7 @@ def get_files(
     ext: str,
     root_dir_suffix: str = "",
     exclude_dirs: Iterable[str] = (),
+    exclude_exts: Iterable[str] = (),
 ) -> list[tuple[str, str, str]]:
     """
     Get file paths split into
@@ -428,7 +428,9 @@ def get_files(
     for path in glob.iglob(
         os.path.join(glob.escape(search_path), "**", f"*.{ext}"), recursive=True
     ):
-        if any(path.startswith(d) for d in exclude_dirs):
+        if any(map(path.startswith, exclude_dirs)):
+            continue
+        if any(map(path.endswith, exclude_exts)):
             continue
         rel_path = os.path.relpath(path, root_dir)
         paths.append((root_dir, os.path.dirname(rel_path), os.path.basename(rel_path)))
@@ -436,39 +438,69 @@ def get_files(
 
 
 def main() -> None:
-    amulet_nbt_project = ProjectData(
+    amulet_nbt_spec = importlib.util.find_spec("amulet_nbt")
+    if amulet_nbt_spec is None:
+        raise RuntimeError("Could not find amulet_nbt")
+    amulet_nbt_search_path = amulet_nbt_spec.submodule_search_locations
+    if amulet_nbt_search_path is None:
+        raise RuntimeError("Amulet NBT search path is None")
+    amulet_nbt_path = amulet_nbt_search_path[0]
+    amulet_nbt_lib = ProjectData(
         name="amulet_nbt",
         compile_mode=CompileMode.StaticLibrary,
-        include_files=get_files(root_dir=amulet_nbt.get_include(), ext="hpp"),
-        source_files=get_files(root_dir=amulet_nbt.get_source(), ext="cpp"),
-        include_dirs=[amulet_nbt.get_include()],
+        include_files=get_files(root_dir=amulet_nbt_path, root_dir_suffix="include", ext="hpp"),
+        source_files=get_files(root_dir=amulet_nbt_path, root_dir_suffix="cpp", ext="cpp"),
+        include_dirs=[os.path.join(amulet_nbt_path, "include")],
     )
-    amulet_py_project = ProjectData(
+    amulet_nbt_py = ProjectData(
         name="__init__",
         compile_mode=CompileMode.PythonExtension,
-        include_files=get_files(root_dir=SrcDir, ext="hpp", root_dir_suffix="amulet"),
         source_files=get_files(
-            root_dir=SrcDir,
+            root_dir=amulet_nbt_path,
+            root_dir_suffix="pybind",
             ext="cpp",
-            root_dir_suffix="amulet",
         ),
         include_dirs=[
             PythonIncludeDir,
             pybind11.get_include(),
-            amulet_nbt.get_include(),
+            os.path.join(amulet_nbt_path, "include"),
+        ],
+        library_dirs=[
+            PythonLibraryDir,
+        ],
+        dependencies=[
+            amulet_nbt_lib,
+        ],
+        py_package="amulet_nbt",
+        package_dir=os.path.dirname(amulet_nbt_path)
+    )
+    amulet_core_py = ProjectData(
+        name="__init__",
+        compile_mode=CompileMode.PythonExtension,
+        include_files=get_files(root_dir=SrcDir, root_dir_suffix="amulet", ext="hpp"),
+        source_files=get_files(
+            root_dir=SrcDir,
+            root_dir_suffix="amulet",
+            ext="cpp",
+        ),
+        include_dirs=[
+            PythonIncludeDir,
+            pybind11.get_include(),
+            os.path.join(amulet_nbt_path, "include"),
             SrcDir,
         ],
         library_dirs=[
             PythonLibraryDir,
         ],
         dependencies=[
-            amulet_nbt_project,
+            amulet_nbt_lib,
         ],
         py_package="amulet",
     )
     projects = [
-        amulet_nbt_project,
-        amulet_py_project,
+        amulet_nbt_lib,
+        amulet_nbt_py,
+        amulet_core_py,
     ]
 
     write(
