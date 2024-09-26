@@ -90,7 +90,8 @@ namespace Amulet {
 		void reconstruct_chunk(SerialisedComponents component_data) override {
 			(
 				[&]{
-					Components::deserialise(component_data.extract(Components::ComponentID).mapped());
+					auto node = component_data.extract(Components::ComponentID);
+					Components::deserialise(node ? node.mapped() : std::nullopt);
 				}(),
 				...
 			);
