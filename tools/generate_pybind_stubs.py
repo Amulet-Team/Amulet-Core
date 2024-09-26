@@ -4,7 +4,6 @@ import importlib.util
 import sys
 import subprocess
 import re
-from mypy import stubgen
 import pybind11_stubgen
 from pybind11_stubgen.structs import Identifier
 from pybind11_stubgen.parser.mixins.filter import FilterClassMembers
