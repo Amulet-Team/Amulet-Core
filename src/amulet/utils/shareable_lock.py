@@ -289,7 +289,7 @@ class ShareableRLock:
         :raises: LockNotAcquired if the lock could not be acquired.
         """
         if not self.acquire_unique(blocking, timeout, task_manager):
-            raise LockNotAcquired
+            raise LockNotAcquired("Lock was not acquired.")
         try:
             yield
         finally:
@@ -328,7 +328,7 @@ class ShareableRLock:
         :raises: LockNotAcquired if the lock could not be acquired.
         """
         if not self.acquire_shared(blocking, timeout, task_manager):
-            raise LockNotAcquired
+            raise LockNotAcquired("Lock was not acquired.")
         try:
             yield
         finally:
