@@ -29,7 +29,7 @@ class Air(BaseBlockShape):
         west: str,
         transparency: tuple[bool, bool, bool, bool, bool, bool],
     ) -> BlockMesh:
-        return BlockMesh(3, {}, {}, {}, {}, {}, (), Transparency.Partial)
+        return BlockMesh({}, {}, {}, {}, {}, (), Transparency.Partial)
 
 
 BlockShape = Air()

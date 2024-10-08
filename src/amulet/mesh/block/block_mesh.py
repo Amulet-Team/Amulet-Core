@@ -81,7 +81,7 @@ class BlockMesh:
                 texture_indexes_src[cull_dir].append(texture_index)
 
                 vert_count[cull_dir] += int(
-                    temp_model.verts[cull_dir].shape[0] / temp_model.face_mode
+                    temp_model.verts[cull_dir].shape[0] / 3
                 )
 
             textures_src += temp_model.textures
@@ -124,16 +124,14 @@ class BlockMesh:
                     tint_verts[cull_dir] = numpy.zeros(0, float)
 
         return cls(
-            3, verts, tverts, tint_verts, faces, texture_indexes, textures, transparent
+            verts, tverts, tint_verts, faces, texture_indexes, textures, transparent
         )
 
     def __init__(
         self,
-        face_width: int,
         verts: dict[Optional[str], numpy.ndarray],
         texture_coords: dict[Optional[str], numpy.ndarray],
         tint_verts: dict[Optional[str], numpy.ndarray],
-        # normals: dict[Optional[str], numpy.ndarray],
         faces: dict[Optional[str], numpy.ndarray],
         texture_index: dict[Optional[str], numpy.ndarray],
         textures: tuple[str, ...],
@@ -141,12 +139,11 @@ class BlockMesh:
     ):
         """
 
-        :param face_width: the number of vertices per face (3 or 4)
         :param verts: a numpy float array containing the vert data. One line per vertex
         :param texture_coords: a numpy float array containing the texture coordinate data. One line per vertex
         :param tint_verts: a numpy bool array if the vertex should have a tint applied to it. One line per vertex
         :param faces: a dictionary of numpy int arrays (stored under cull direction) containing
-            the vertex indexes (<face_width> columns) and
+            the vertex indexes (3 columns) and
             texture index (1 column)
         :param texture_index:
         :param textures:
@@ -186,7 +183,7 @@ class BlockMesh:
             and isinstance(val, numpy.ndarray)
             and numpy.issubdtype(val.dtype, numpy.unsignedinteger)
             and val.ndim == 1
-            and val.shape[0] % face_width == 0
+            and val.shape[0] % 3 == 0
             for key, val in faces.items()
         ), "The format of faces is incorrect"
 
@@ -195,7 +192,7 @@ class BlockMesh:
             and isinstance(val, numpy.ndarray)
             and numpy.issubdtype(val.dtype, numpy.unsignedinteger)
             and val.ndim == 1
-            and val.shape[0] == faces[key].shape[0] / face_width
+            and val.shape[0] == faces[key].shape[0] / 3
             for key, val in texture_index.items()
         ), "The format of texture index is incorrect"
 
@@ -203,7 +200,6 @@ class BlockMesh:
             isinstance(texture, str) for texture in textures
         ), "The format of the textures is incorrect"
 
-        self._face_mode = face_width
         self._verts = verts
         self._texture_coords = texture_coords
         self._tint_verts = tint_verts
@@ -223,20 +219,14 @@ class BlockMesh:
             array.setflags(write=False)
 
     @property
-    def face_mode(self) -> int:
-        """The number of vertices per face"""
-        return self._face_mode
-
-    @property
     def vert_tables(self) -> dict[Optional[str], numpy.ndarray]:
-        """A dictionary of cull dir -> the flat vert table containing vertices, texture coords and (in the future) normals"""
+        """A dictionary of cull dir -> the flat vert table containing vertices and texture coords."""
         if self._vert_tables is None:
             self._vert_tables = {
                 key: numpy.hstack(
                     (
-                        self._verts[key].reshape(-1, self._face_mode),
-                        self._texture_coords[key].reshape(-1, 2),
-                        # TODO: add in face normals
+                        self._verts[key].reshape(-1, 3),
+                        self._texture_coords[key].reshape(-1, 2)
                     )
                 ).ravel()
                 for key in self._verts.keys()
@@ -269,7 +259,7 @@ class BlockMesh:
     @property
     def faces(self) -> dict[Optional[str], numpy.ndarray]:
         """A dictionary mapping face cull direction to the face table for that direction.
-        The face table is a flat numpy array of multiple 3 or 4 depending on face_mode.
+        The face table is a flat numpy array of multiple 3.
         First 3 or 4 columns index into the verts table.
         Last column indexes into textures."""
         return self._faces
@@ -309,11 +299,10 @@ class BlockMesh:
         if rotx or roty and (roty, rotx) in cull_remap_all:
             cull_remap = cull_remap_all[(roty, rotx)]
             return BlockMesh(
-                self.face_mode,
                 {
                     cull_remap[cull_dir]: rotate_3d(
                         rotate_3d(
-                            self.verts[cull_dir].reshape((-1, self.face_mode)),
+                            self.verts[cull_dir].reshape((-1, 3)),
                             rotx * 90,
                             0,
                             0,
@@ -352,8 +341,7 @@ class BlockMesh:
         if not isinstance(other, BlockMesh):
             return NotImplemented
         return (
-            self.face_mode == other.face_mode
-            and all(
+            all(
                 obj1.keys() == obj2.keys()
                 and all(numpy.array_equal(obj1[key], obj2[key]) for key in obj1.keys())
                 for obj1, obj2 in (

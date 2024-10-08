@@ -514,7 +514,6 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                 )
 
         return BlockMesh(
-            3,
             verts,
             tverts,
             tint_verts,

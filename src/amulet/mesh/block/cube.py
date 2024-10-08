@@ -125,7 +125,6 @@ def get_cube(
             del _tri_faces[key]
 
     return BlockMesh(
-        3,
         _verts,
         _texture_coords,
         _tint_verts,

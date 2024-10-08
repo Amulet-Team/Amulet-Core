@@ -36,7 +36,6 @@ class Cross(BaseBlockShape):
         transparency: tuple[bool, bool, bool, bool, bool, bool],
     ) -> BlockMesh:
         return BlockMesh(
-            3,
             {
                 None: numpy.array(
                     [
