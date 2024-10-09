@@ -196,7 +196,9 @@ class ChunkHandle(
                 # The history system is not aware of the chunk. Load from the level data
                 chunk: Chunk
                 try:
-                    raw_chunk = self._get_raw_dimension().get_raw_chunk(self.cx, self.cz)
+                    raw_chunk = self._get_raw_dimension().get_raw_chunk(
+                        self.cx, self.cz
+                    )
                     chunk = self._get_raw_dimension().raw_chunk_to_native_chunk(
                         raw_chunk,
                         self.cx,
@@ -292,7 +294,10 @@ class ChunkHandle(
                     old_chunk_class = None
                 new_chunk_class = type(chunk)
                 component_data = chunk.serialise_chunk()
-                if old_chunk_class != new_chunk_class and None in component_data.values():
+                if (
+                    old_chunk_class != new_chunk_class
+                    and None in component_data.values()
+                ):
                     raise RuntimeError(
                         "When changing chunk class all the data must be present."
                     )
