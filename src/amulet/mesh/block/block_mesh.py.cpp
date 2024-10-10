@@ -16,7 +16,8 @@ void init_block_mesh(py::module m_parent)
     auto m = m_mesh.def_submodule("block");
 
     // FloatVec2
-    py::class_<Amulet::FloatVec2> FloatVec2(m, "FloatVec2");
+    py::class_<Amulet::FloatVec2> FloatVec2(m, "FloatVec2",
+        "A 2D floating point vector");
     FloatVec2.def(
         py::init<
             float,
@@ -27,7 +28,8 @@ void init_block_mesh(py::module m_parent)
     FloatVec2.def_readwrite("y", &Amulet::FloatVec2::y);
 
     // FloatVec3
-    py::class_<Amulet::FloatVec3> FloatVec3(m, "FloatVec3");
+    py::class_<Amulet::FloatVec3> FloatVec3(m, "FloatVec3",
+        "A 3D floating point vector");
     FloatVec3.def(
         py::init<
             float,
@@ -41,7 +43,8 @@ void init_block_mesh(py::module m_parent)
     FloatVec3.def_readwrite("z", &Amulet::FloatVec3::z);
 
     // Vertex
-    py::class_<Amulet::Vertex> Vertex(m, "Vertex");
+    py::class_<Amulet::Vertex> Vertex(m, "Vertex",
+        "Attributes for a single vertex.");
     Vertex.def(
         py::init<
             const Amulet::FloatVec3&,
@@ -50,12 +53,13 @@ void init_block_mesh(py::module m_parent)
         py::arg("coord"),
         py::arg("texture_coord"),
         py::arg("tint"));
-    Vertex.def_readwrite("coord", &Amulet::Vertex::coord);
-    Vertex.def_readwrite("texture_coord", &Amulet::Vertex::texture_coord);
-    Vertex.def_readwrite("tint", &Amulet::Vertex::tint);
+    Vertex.def_readwrite("coord", &Amulet::Vertex::coord, py::doc("The spatial coordinate of the vertex."));
+    Vertex.def_readwrite("texture_coord", &Amulet::Vertex::texture_coord, py::doc("The texture coordinate of the vertex."));
+    Vertex.def_readwrite("tint", &Amulet::Vertex::tint, py::doc("The tint colour for the vertex."));
 
     // Triangle
-    py::class_<Amulet::Triangle> Triangle(m, "Triangle");
+    py::class_<Amulet::Triangle> Triangle(m, "Triangle",
+        "The vertex and texture indexes that make up a triangle.");
     Triangle.def(
         py::init<
             size_t,
@@ -72,46 +76,48 @@ void init_block_mesh(py::module m_parent)
     Triangle.def_readwrite("texture_index", &Amulet::Triangle::texture_index);
 
     // BlockMeshPart
-    py::class_<Amulet::BlockMeshPart> BlockMeshPart(m, "BlockMeshPart");
+    py::class_<Amulet::BlockMeshPart> BlockMeshPart(m, "BlockMeshPart",
+        "A part of a block mesh for one of the culling directions.");
     BlockMeshPart.def(
         py::init<
             const std::vector<Amulet::Vertex>&,
             const std::vector<Amulet::Triangle>&>(),
         py::arg("verts"),
         py::arg("triangles"));
-    BlockMeshPart.def_readwrite("verts", &Amulet::BlockMeshPart::verts);
-    BlockMeshPart.def_readwrite("triangles", &Amulet::BlockMeshPart::triangles);
+    BlockMeshPart.def_readwrite("verts", &Amulet::BlockMeshPart::verts, py::doc("The vertices in this block mesh part."));
+    BlockMeshPart.def_readwrite("triangles", &Amulet::BlockMeshPart::triangles, py::doc("The triangles in this block mesh part."));
 
-    // Transparency
-    py::enum_<Amulet::Transparency>(m, "Transparency")
-        .value("FullOpaque", Amulet::Transparency::FullOpaque)
-        .value("FullTranslucent", Amulet::Transparency::FullTranslucent)
-        .value("Partial", Amulet::Transparency::Partial);
+    // BlockMeshTransparency
+    py::enum_<Amulet::BlockMeshTransparency>(m, "BlockMeshTransparency",
+        "The transparency of a block mesh.")
+        .value("FullOpaque", Amulet::BlockMeshTransparency::FullOpaque, "A block that ocupies the whole block and is opaque.")
+        .value("FullTranslucent", Amulet::BlockMeshTransparency::FullTranslucent, "A block that ocupies the whole block and has at least one translucent face.")
+        .value("Partial", Amulet::BlockMeshTransparency::Partial, "A block that does not ocupy the whole block.");
 
-    // CullDirection
-    py::enum_<Amulet::CullDirection>(m, "CullDirection")
-        .value("CullNone", Amulet::CullDirection::CullNone)
-        .value("CullUp", Amulet::CullDirection::CullUp)
-        .value("CullDown", Amulet::CullDirection::CullDown)
-        .value("CullNorth", Amulet::CullDirection::CullNorth)
-        .value("CullEast", Amulet::CullDirection::CullEast)
-        .value("CullSouth", Amulet::CullDirection::CullSouth)
-        .value("CullWest", Amulet::CullDirection::CullWest);
+    // BlockMeshCullDirection
+    py::enum_<Amulet::BlockMeshCullDirection>(m, "BlockMeshCullDirection", "The direction a mesh part is culled by. The value corrosponds to the index in the mesh parts array.")
+        .value("CullNone", Amulet::BlockMeshCullDirection::CullNone, "Is not culled by any neighbouring blocks.")
+        .value("CullUp", Amulet::BlockMeshCullDirection::CullUp, "Is culled by an opaque block above.")
+        .value("CullDown", Amulet::BlockMeshCullDirection::CullDown, "Is culled by an opaque block below.")
+        .value("CullNorth", Amulet::BlockMeshCullDirection::CullNorth, "Is culled by an opaque block to the north.")
+        .value("CullEast", Amulet::BlockMeshCullDirection::CullEast, "Is culled by an opaque block to the east.")
+        .value("CullSouth", Amulet::BlockMeshCullDirection::CullSouth, "Is culled by an opaque block to the south.")
+        .value("CullWest", Amulet::BlockMeshCullDirection::CullWest, "Is culled by an opaque block to the west.");
 
     // BlockMesh
-    py::class_<Amulet::BlockMesh> BlockMesh(m, "BlockMesh");
+    py::class_<Amulet::BlockMesh> BlockMesh(m, "BlockMesh", "All the data that makes up a block mesh.");
     BlockMesh.def(
         py::init<
-            Amulet::Transparency,
+            Amulet::BlockMeshTransparency,
             std::vector<std::string>,
             std::array<std::optional<Amulet::BlockMeshPart>, 7>>(),
         py::arg("transparency"),
         py::arg("textures"),
         py::arg("parts"));
-    BlockMesh.def_readwrite("transparency", &Amulet::BlockMesh::transparency);
-    BlockMesh.def_readwrite("textures", &Amulet::BlockMesh::textures);
-    BlockMesh.def_readwrite("parts", &Amulet::BlockMesh::parts);
-    BlockMesh.def("rotate", &Amulet::BlockMesh::rotate, py::arg("rotx"), py::arg("roty"));
+    BlockMesh.def_readwrite("transparency", &Amulet::BlockMesh::transparency, py::doc("The transparency state of this block mesh."));
+    BlockMesh.def_readwrite("textures", &Amulet::BlockMesh::textures, py::doc("The texture paths used in this block mesh. The Triangle's texture_index attribute is an index into this list."));
+    BlockMesh.def_readwrite("parts", &Amulet::BlockMesh::parts, py::doc("The mesh parts that make up this mesh. The index corrosponds to the value of BlockMeshCullDirection."));
+    BlockMesh.def("rotate", &Amulet::BlockMesh::rotate, py::arg("rotx"), py::arg("roty"), py::doc("Rotate the mesh in the x and y axis. Accepted values are -3 to 3 which corrospond to 90 degree rotations."));
 
     m.def(
         "merge_block_meshes", [](Amulet::pybind11::collections::Sequence<Amulet::BlockMesh> py_meshes) {
@@ -122,5 +128,5 @@ void init_block_mesh(py::module m_parent)
             }
             return Amulet::merge_block_meshes(meshes);
         },
-        py::arg("meshes"));
+        py::arg("meshes"), py::doc("Merge multiple block mesh objects into one block mesh."));
 }

@@ -4,22 +4,22 @@
 
 namespace Amulet {
 
-const std::array<CullDirection, 4> roty_map = { CullNorth, CullEast, CullSouth, CullWest };
+const std::array<BlockMeshCullDirection, 4> roty_map = { CullNorth, CullEast, CullSouth, CullWest };
 
 const RotationCullMapType RotationCullMap = []() {
     RotationCullMapType cull_map;
     for (std::int8_t roty = -3; roty < 4; roty++) {
         // Create the rotated Y array
-        std::array<CullDirection, 4> roty_map_rotated;
+        std::array<BlockMeshCullDirection, 4> roty_map_rotated;
         auto split_y_point = 0 <= roty ? roty : roty + roty_map.size();
         std::copy(roty_map.begin() + split_y_point, roty_map.end(), roty_map_rotated.begin());
         std::copy(roty_map.begin(), roty_map.begin() + split_y_point, roty_map_rotated.end() - split_y_point);
         // Create the X array
-        const std::array<CullDirection, 4> rotx_map = { roty_map_rotated[0], CullDown, roty_map_rotated[2], CullUp };
+        const std::array<BlockMeshCullDirection, 4> rotx_map = { roty_map_rotated[0], CullDown, roty_map_rotated[2], CullUp };
         
         for (std::int8_t rotx = -3; rotx < 4; rotx++) { 
             // Create the rotated X array
-            std::array<CullDirection, 4> rotx_map_rotated;
+            std::array<BlockMeshCullDirection, 4> rotx_map_rotated;
             auto split_x_point = 0 <= rotx ? rotx : rotx + rotx_map.size();
             std::copy(rotx_map.begin() + split_x_point, rotx_map.end(), rotx_map_rotated.begin());
             std::copy(rotx_map.begin(), rotx_map.begin() + split_x_point, rotx_map_rotated.end() - split_x_point);
@@ -40,7 +40,7 @@ const RotationCullMapType RotationCullMap = []() {
 
 BlockMesh merge_block_meshes(std::vector<std::reference_wrapper<const BlockMesh>> meshes) {
     BlockMesh new_mesh;
-    new_mesh.transparency = Transparency::Partial;
+    new_mesh.transparency = BlockMeshTransparency::Partial;
     std::map<std::string, size_t> texture_index_map;
     for (const auto& wrapper : meshes) {
         const auto& temp_mesh = wrapper.get();

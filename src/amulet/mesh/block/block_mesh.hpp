@@ -95,7 +95,7 @@ public:
     }
 };
 
-enum class Transparency {
+enum class BlockMeshTransparency {
     // The block is a full block with opaque textures
     FullOpaque,
     // The block is a full block with transparent / translucent textures
@@ -104,7 +104,7 @@ enum class Transparency {
     Partial
 };
 
-enum CullDirection {
+enum BlockMeshCullDirection {
     CullNone,
     CullUp,
     CullDown,
@@ -116,7 +116,7 @@ enum CullDirection {
 
 typedef std::map<
     std::pair<std::int8_t, std::int8_t>,
-    std::array<CullDirection, 7>>
+    std::array<BlockMeshCullDirection, 7>>
     RotationCullMapType;
 
 // For every combination of 90 degree rotations in y and x axis
@@ -125,9 +125,9 @@ extern const RotationCullMapType RotationCullMap;
 
 class BlockMesh {
 public:
-    Transparency transparency;
+    BlockMeshTransparency transparency;
     std::vector<std::string> textures;
-    // The mesh parts. Index matches CullDirection.
+    // The mesh parts. Index matches BlockMeshCullDirection.
     std::array<std::optional<BlockMeshPart>, 7> parts;
 
     BlockMesh()
@@ -137,7 +137,7 @@ public:
     {
     }
     BlockMesh(
-        Transparency transparency,
+        BlockMeshTransparency transparency,
         const std::vector<std::string>& textures,
         const std::array<std::optional<BlockMeshPart>, 7>& parts)
         : transparency(transparency)
