@@ -87,6 +87,16 @@ void init_block_mesh(py::module m_parent)
         .value("FullTranslucent", Amulet::Transparency::FullTranslucent)
         .value("Partial", Amulet::Transparency::Partial);
 
+    // CullDirection
+    py::enum_<Amulet::CullDirection>(m, "CullDirection")
+        .value("CullNone", Amulet::CullDirection::CullNone)
+        .value("CullUp", Amulet::CullDirection::CullUp)
+        .value("CullDown", Amulet::CullDirection::CullDown)
+        .value("CullNorth", Amulet::CullDirection::CullNorth)
+        .value("CullEast", Amulet::CullDirection::CullEast)
+        .value("CullSouth", Amulet::CullDirection::CullSouth)
+        .value("CullWest", Amulet::CullDirection::CullWest);
+
     // BlockMesh
     py::class_<Amulet::BlockMesh> BlockMesh(m, "BlockMesh");
     BlockMesh.def(
