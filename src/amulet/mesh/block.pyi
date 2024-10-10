@@ -17,7 +17,7 @@ __all__ = [
 
 class BlockMesh:
     parts: typing.Annotated[
-        list[BlockMeshPart | None], pybind11_stubgen.typing_ext.FixedSize(6)
+        list[BlockMeshPart | None], pybind11_stubgen.typing_ext.FixedSize(7)
     ]
     textures: list[str]
     transparency: Transparency
@@ -26,7 +26,7 @@ class BlockMesh:
         transparency: Transparency,
         textures: list[str],
         parts: typing.Annotated[
-            list[BlockMeshPart | None], pybind11_stubgen.typing_ext.FixedSize(6)
+            list[BlockMeshPart | None], pybind11_stubgen.typing_ext.FixedSize(7)
         ],
     ) -> None: ...
     def rotate(self, rotx: int, roty: int) -> BlockMesh: ...
