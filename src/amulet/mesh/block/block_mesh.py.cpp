@@ -6,6 +6,7 @@
 #include <pybind11/typing.h>
 
 #include <amulet/mesh/block/block_mesh.hpp>
+#include <amulet/pybind11/collections.hpp>
 
 namespace py = pybind11;
 
@@ -111,4 +112,15 @@ void init_block_mesh(py::module m_parent)
     BlockMesh.def_readwrite("textures", &Amulet::BlockMesh::textures);
     BlockMesh.def_readwrite("parts", &Amulet::BlockMesh::parts);
     BlockMesh.def("rotate", &Amulet::BlockMesh::rotate, py::arg("rotx"), py::arg("roty"));
+
+    m.def(
+        "merge_block_meshes", [](Amulet::pybind11::collections::Sequence<Amulet::BlockMesh> py_meshes) {
+            std::vector<std::reference_wrapper<const Amulet::BlockMesh>> meshes;
+            for (auto py_mesh : py_meshes) {
+                const auto& mesh = py_mesh.cast<const Amulet::BlockMesh&>();
+                meshes.push_back(mesh);
+            }
+            return Amulet::merge_block_meshes(meshes);
+        },
+        py::arg("meshes"));
 }

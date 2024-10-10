@@ -7,7 +7,6 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <iostream>
 
 namespace Amulet {
 
@@ -86,6 +85,7 @@ public:
     // The triangles in this mesh part.
     std::vector<Triangle> triangles;
 
+    BlockMeshPart(): verts(), triangles() {}
     BlockMeshPart(
         const std::vector<Vertex>& verts,
         const std::vector<Triangle>& triangles)
@@ -201,6 +201,6 @@ public:
     }
 };
 
- BlockMesh merge_block_mesh(std::initializer_list<std::reference_wrapper<BlockMesh>>);
+ BlockMesh merge_block_meshes(std::vector<std::reference_wrapper<const BlockMesh>>);
 
 }

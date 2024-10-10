@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import collections.abc
 import typing
 
 import pybind11_stubgen.typing_ext
@@ -13,6 +14,7 @@ __all__ = [
     "Transparency",
     "Triangle",
     "Vertex",
+    "merge_block_meshes",
 ]
 
 class BlockMesh:
@@ -141,3 +143,5 @@ class Vertex:
     def __init__(
         self, coord: FloatVec3, texture_coord: FloatVec2, tint: FloatVec3
     ) -> None: ...
+
+def merge_block_meshes(meshes: collections.abc.Sequence[BlockMesh]) -> BlockMesh: ...

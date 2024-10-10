@@ -38,8 +38,65 @@ const RotationCullMapType RotationCullMap = []() {
     return cull_map;
 }();
 
-BlockMesh merge_block_mesh(std::initializer_list<std::reference_wrapper<BlockMesh>> meshes) {
+BlockMesh merge_block_meshes(std::vector<std::reference_wrapper<const BlockMesh>> meshes) {
     BlockMesh new_mesh;
+    new_mesh.transparency = Transparency::Partial;
+    std::map<std::string, size_t> texture_index_map;
+    for (const auto& wrapper : meshes) {
+        const auto& temp_mesh = wrapper.get();
+        // Get the minimum transparency of the two meshes.
+        new_mesh.transparency = std::min(new_mesh.transparency, temp_mesh.transparency);
+        
+        // Copy over mesh parts
+        for (std::uint8_t cull_direction = 0; cull_direction < 7; cull_direction++) {
+            const auto& temp_mesh_part = temp_mesh.parts[cull_direction];
+            if (temp_mesh_part) {
+                auto& new_mesh_part = new_mesh.parts[cull_direction];
+                if (!new_mesh_part) {
+                    // Initialise the mesh part if it is null.
+                    new_mesh_part = BlockMeshPart();
+                }
+                // Get the number of triangles before copying
+                size_t vert_count = new_mesh_part->verts.size();
+                size_t triangle_count = new_mesh_part->triangles.size();
+
+                auto& new_verts = new_mesh_part->verts;
+                auto& temp_verts = temp_mesh_part->verts;
+                auto& new_triangles = new_mesh_part->triangles;
+                auto& temp_triangles = temp_mesh_part->triangles;
+                
+                // Copy over vertices
+                new_verts.insert(
+                    new_verts.end(),
+                    temp_verts.begin(),
+                    temp_verts.end());
+                // Copy over triangles
+                new_triangles.insert(
+                    new_triangles.end(),
+                    temp_triangles.begin(),
+                    temp_triangles.end());
+                
+                for (size_t i = triangle_count; i < new_mesh_part->triangles.size(); i++) {
+                    // Update the triangle indexes
+                    auto& triangle = new_mesh_part->triangles[i];
+                    triangle.vert_index_a += vert_count;
+                    triangle.vert_index_b += vert_count;
+                    triangle.vert_index_c += vert_count;
+                    const auto& texture_path = temp_mesh.textures.at(triangle.texture_index);
+                    auto it = texture_index_map.find(texture_path);
+                    if (it == texture_index_map.end()) {
+                        // Texture has not been added yet.
+                        size_t texture_index = new_mesh.textures.size();
+                        new_mesh.textures.push_back(texture_path);
+                        triangle.texture_index = texture_index;
+                        texture_index_map[texture_path] = texture_index;
+                    } else {
+                        triangle.texture_index = it->second;
+                    }
+                }
+            }
+        }
+    }
     return new_mesh;
 }
 
