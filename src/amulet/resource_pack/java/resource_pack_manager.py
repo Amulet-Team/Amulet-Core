@@ -14,17 +14,16 @@ import amulet_nbt
 from amulet.block import Block
 from amulet.resource_pack import BaseResourcePackManager
 from amulet.resource_pack.java import JavaResourcePack
-from amulet.mesh.block.block_mesh import (
+from amulet.mesh.block import (
     BlockMesh,
+    BlockMeshTransparency,
+    merge_block_meshes,
     FACE_KEYS,
-    Transparency,
+    CUBE_FACE_LUT,
+    UV_ROTATION_LUT,
+    TRI_FACE,
 )
 from amulet.mesh.util import rotate_3d
-from amulet.mesh.block.cube import (
-    cube_face_lut,
-    uv_rotation_lut,
-    tri_face,
-)
 
 log = logging.getLogger(__name__)
 
@@ -307,7 +306,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                     except Exception as e:
                         log.error(f"Failed to parse block state for {block}\n{e}")
 
-                return BlockMesh.merge(models)
+                return merge_block_meshes(models)
 
         return self.missing_block
 
@@ -355,7 +354,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
         texture_indexes_src: dict[Optional[str], list[int]] = {
             side: [] for side in FACE_KEYS
         }
-        transparent = Transparency.Partial
+        transparent = BlockMeshTransparency.Partial
 
         if java_model.get("textures", {}) and not java_model.get("elements"):
             return self.missing_block
@@ -375,7 +374,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                 # if the block is not yet defined as a solid block
                 # and this element is a full size element
                 # check if the texture is opaque
-                transparent = Transparency.FullTranslucent
+                transparent = BlockMeshTransparency.FullTranslucent
                 check_faces = True
             else:
                 check_faces = False
@@ -396,7 +395,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
             )
 
             for face_dir in element_faces:
-                if face_dir in cube_face_lut:
+                if face_dir in CUBE_FACE_LUT:
                     # get the cull direction. If there is an opaque block in this direction then cull this face
                     cull_dir = element_faces[face_dir].get("cullface", None)
                     if cull_dir not in FACE_KEYS:
@@ -446,12 +445,12 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                     )
                     texture_rotation = element_faces[face_dir].get("rotation", 0)
                     uv_slice = (
-                        uv_rotation_lut[2 * int(texture_rotation / 90) :]
-                        + uv_rotation_lut[: 2 * int(texture_rotation / 90)]
+                        UV_ROTATION_LUT[2 * int(texture_rotation / 90) :]
+                        + UV_ROTATION_LUT[: 2 * int(texture_rotation / 90)]
                     )
 
                     # merge the vertex coordinates and texture coordinates
-                    face_verts = box_coordinates[cube_face_lut[face_dir]]
+                    face_verts = box_coordinates[CUBE_FACE_LUT[face_dir]]
                     if "rotation" in element:
                         rotation = element["rotation"]
                         origin = [r / 16 for r in rotation.get("origin", [8, 8, 8])]
@@ -483,7 +482,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                         tint_verts_src[cull_dir] += [1, 1, 1] * 4
 
                     # merge the face indexes and texture index
-                    face_table = tri_face + vert_count[cull_dir]
+                    face_table = TRI_FACE + vert_count[cull_dir]
                     texture_indexes_src[cull_dir] += [texture_index, texture_index]
 
                     # faces stored under cull direction because this is the criteria to render them or not
@@ -492,7 +491,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                     vert_count[cull_dir] += 4
 
             if opaque_face_count == 6:
-                transparent = Transparency.FullOpaque
+                transparent = BlockMeshTransparency.FullOpaque
 
         verts: dict[Optional[str], numpy.ndarray] = {}
         tverts: dict[Optional[str], numpy.ndarray] = {}
