@@ -8,6 +8,7 @@ from amulet.resource_pack.java import (
     JavaResourcePack,
     JavaResourcePackManager,
 )
+
 # from amulet.resource_pack.bedrock import (
 #     BedrockResourcePack,
 #     BedrockResourcePackManager,
