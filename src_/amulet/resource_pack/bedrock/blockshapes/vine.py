@@ -2,7 +2,7 @@ from amulet.block import Block
 from amulet.resource_pack.bedrock.blockshapes.flat_wall import (
     FlatWall,
 )
-from amulet.mesh.block import BlockMesh
+from amulet.mesh.block import BlockMesh, merge_block_meshes
 import amulet_nbt
 
 
@@ -46,7 +46,7 @@ class Vine(FlatWall):
                 models.append(model.rotate(0, 0))
             if data & 8:
                 models.append(model.rotate(0, 1))
-        return BlockMesh.merge(models)
+        return merge_block_meshes(models)
 
 
 BlockShape = Vine()

@@ -1,7 +1,7 @@
 import numpy
 
 from amulet.block import Block
-from amulet.mesh.block.block_mesh import BlockMesh, Transparency
+from amulet.mesh.block import BlockMesh, BlockMeshTransparency
 from amulet.resource_pack.bedrock.blockshapes.default import Default
 
 
@@ -50,5 +50,5 @@ class FlatWall(Default):
             {None: numpy.array([0, 1, 2, 0, 2, 3], numpy.uint32)},
             {None: numpy.array([0, 0], numpy.uint32)},
             (up,),
-            Transparency.Partial,
+            BlockMeshTransparency.Partial,
         )
