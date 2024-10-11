@@ -3,7 +3,12 @@ from __future__ import annotations
 import collections.abc
 import typing
 
+import numpy
 import pybind11_stubgen.typing_ext
+from amulet.mesh.block._cube import get_cube, get_unit_cube
+from amulet.mesh.block._missing_block import get_missing_block
+
+from . import _cube, _missing_block
 
 __all__ = [
     "BlockMesh",
@@ -14,7 +19,13 @@ __all__ = [
     "FloatVec3",
     "Triangle",
     "Vertex",
+    "cube_face_lut",
+    "get_cube",
+    "get_missing_block",
+    "get_unit_cube",
     "merge_block_meshes",
+    "tri_face",
+    "uv_rotation_lut",
 ]
 
 class BlockMesh:
@@ -261,3 +272,7 @@ def merge_block_meshes(meshes: collections.abc.Sequence[BlockMesh]) -> BlockMesh
     """
     Merge multiple block mesh objects into one block mesh.
     """
+
+cube_face_lut: dict  # value = {'down': array([0, 4, 5, 1]), 'up': array([3, 7, 6, 2]), 'north': array([4, 0, 2, 6]), 'east': array([5, 4, 6, 7]), 'south': array([1, 5, 7, 3]), 'west': array([0, 1, 3, 2])}
+tri_face: numpy.ndarray  # value = array([0, 1, 2, 0, 2, 3], dtype=uint32)
+uv_rotation_lut: list = [0, 3, 2, 3, 2, 1, 0, 1]

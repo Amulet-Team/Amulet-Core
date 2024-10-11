@@ -1,11 +1,13 @@
-from typing import Optional
+from typing import Optional, TypeAlias
 import numpy
 import itertools
 
-from amulet.mesh.block.block_mesh import BlockMesh, Transparency
+from amulet.mesh.block import BlockMesh, BlockMeshTransparency
 
-BoundsType = tuple[tuple[float, float], tuple[float, float], tuple[float, float]]
-TextureUVType = tuple[
+BoundsType: TypeAlias = tuple[
+    tuple[float, float], tuple[float, float], tuple[float, float]
+]
+TextureUVType: TypeAlias = tuple[
     tuple[float, float, float, float],
     tuple[float, float, float, float],
     tuple[float, float, float, float],
@@ -70,7 +72,7 @@ def get_cube(
     east: str,
     south: str,
     west: str,
-    transparency: Transparency = Transparency.FullOpaque,
+    transparency: BlockMeshTransparency = BlockMeshTransparency.FullOpaque,
     tint: tuple[int, int, int] = (1, 1, 1),
     bounds: BoundsType = ((0, 1), (0, 1), (0, 1)),
     texture_uv: TextureUVType = ((0, 0, 1, 1),) * 6,
@@ -142,7 +144,7 @@ def get_unit_cube(
     east: str,
     south: str,
     west: str,
-    transparency: Transparency = Transparency.FullOpaque,
+    transparency: BlockMeshTransparency = BlockMeshTransparency.FullOpaque,
     tint: tuple[int, int, int] = (1, 1, 1),
 ) -> BlockMesh:
     return get_cube(down, up, north, east, south, west, transparency, tint)

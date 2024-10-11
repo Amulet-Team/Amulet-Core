@@ -5,15 +5,16 @@
 #include <pybind11/stl.h>
 #include <pybind11/typing.h>
 
-#include <amulet/mesh/block/block_mesh.hpp>
 #include <amulet/pybind11/collections.hpp>
+#include <amulet/pybind11/py_module.hpp>
+#include "block_mesh.hpp"
 
 namespace py = pybind11;
 
 void init_block_mesh(py::module m_parent)
 {
-    auto m_mesh = m_parent.def_submodule("mesh");
-    auto m = m_mesh.def_submodule("block");
+    auto m_mesh = py::def_subpackage(m_parent, "mesh");
+    auto m = py::def_subpackage(m_mesh, "block");
 
     // FloatVec2
     py::class_<Amulet::FloatVec2> FloatVec2(m, "FloatVec2",
@@ -129,4 +130,11 @@ void init_block_mesh(py::module m_parent)
             return Amulet::merge_block_meshes(meshes);
         },
         py::arg("meshes"), py::doc("Merge multiple block mesh objects into one block mesh."));
+
+    m.attr("cube_face_lut") = py::module::import("amulet.mesh.block._cube").attr("cube_face_lut");
+    m.attr("tri_face") = py::module::import("amulet.mesh.block._cube").attr("tri_face");
+    m.attr("uv_rotation_lut") = py::module::import("amulet.mesh.block._cube").attr("uv_rotation_lut");
+    m.attr("get_cube") = py::module::import("amulet.mesh.block._cube").attr("get_cube");
+    m.attr("get_unit_cube") = py::module::import("amulet.mesh.block._cube").attr("get_unit_cube");
+    m.attr("get_missing_block") = py::module::import("amulet.mesh.block._missing_block").attr("get_missing_block");
 }
