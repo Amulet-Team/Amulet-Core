@@ -131,9 +131,9 @@ void init_block_mesh(py::module m_parent)
         },
         py::arg("meshes"), py::doc("Merge multiple block mesh objects into one block mesh."));
 
-    m.attr("cube_face_lut") = py::module::import("amulet.mesh.block._cube").attr("cube_face_lut");
-    m.attr("tri_face") = py::module::import("amulet.mesh.block._cube").attr("tri_face");
-    m.attr("uv_rotation_lut") = py::module::import("amulet.mesh.block._cube").attr("uv_rotation_lut");
+    m.attr("CUBE_FACE_LUT") = py::module::import("amulet.mesh.block._cube").attr("CUBE_FACE_LUT");
+    m.attr("TRI_FACE") = py::module::import("amulet.mesh.block._cube").attr("TRI_FACE");
+    m.attr("UV_ROTATION_LUT") = py::module::import("amulet.mesh.block._cube").attr("UV_ROTATION_LUT");
     m.attr("get_cube") = py::module::import("amulet.mesh.block._cube").attr("get_cube");
     m.attr("get_unit_cube") = py::module::import("amulet.mesh.block._cube").attr("get_unit_cube");
     m.attr("get_missing_block") = py::module::import("amulet.mesh.block._missing_block").attr("get_missing_block");
