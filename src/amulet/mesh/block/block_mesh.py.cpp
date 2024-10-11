@@ -137,4 +137,14 @@ void init_block_mesh(py::module m_parent)
     m.attr("get_cube") = py::module::import("amulet.mesh.block._cube").attr("get_cube");
     m.attr("get_unit_cube") = py::module::import("amulet.mesh.block._cube").attr("get_unit_cube");
     m.attr("get_missing_block") = py::module::import("amulet.mesh.block._missing_block").attr("get_missing_block");
+
+    py::dict face_keys;
+    face_keys[py::none()] = Amulet::BlockMeshCullDirection::CullNone;
+    face_keys[py::str("up")] = Amulet::BlockMeshCullDirection::CullUp;
+    face_keys[py::str("down")] = Amulet::BlockMeshCullDirection::CullDown;
+    face_keys[py::str("north")] = Amulet::BlockMeshCullDirection::CullNorth;
+    face_keys[py::str("east")] = Amulet::BlockMeshCullDirection::CullEast;
+    face_keys[py::str("south")] = Amulet::BlockMeshCullDirection::CullSouth;
+    face_keys[py::str("west")] = Amulet::BlockMeshCullDirection::CullWest;
+    m.attr("FACE_KEYS") = face_keys;
 }
