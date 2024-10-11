@@ -15,17 +15,18 @@ __all__ = [
     "BlockMeshCullDirection",
     "BlockMeshPart",
     "BlockMeshTransparency",
+    "CUBE_FACE_LUT",
+    "FACE_KEYS",
     "FloatVec2",
     "FloatVec3",
+    "TRI_FACE",
     "Triangle",
+    "UV_ROTATION_LUT",
     "Vertex",
-    "cube_face_lut",
     "get_cube",
     "get_missing_block",
     "get_unit_cube",
     "merge_block_meshes",
-    "tri_face",
-    "uv_rotation_lut",
 ]
 
 class BlockMesh:
@@ -273,6 +274,7 @@ def merge_block_meshes(meshes: collections.abc.Sequence[BlockMesh]) -> BlockMesh
     Merge multiple block mesh objects into one block mesh.
     """
 
-cube_face_lut: dict  # value = {'down': array([0, 4, 5, 1]), 'up': array([3, 7, 6, 2]), 'north': array([4, 0, 2, 6]), 'east': array([5, 4, 6, 7]), 'south': array([1, 5, 7, 3]), 'west': array([0, 1, 3, 2])}
-tri_face: numpy.ndarray  # value = array([0, 1, 2, 0, 2, 3], dtype=uint32)
-uv_rotation_lut: list = [0, 3, 2, 3, 2, 1, 0, 1]
+CUBE_FACE_LUT: dict  # value = {'down': array([0, 4, 5, 1]), 'up': array([3, 7, 6, 2]), 'north': array([4, 0, 2, 6]), 'east': array([5, 4, 6, 7]), 'south': array([1, 5, 7, 3]), 'west': array([0, 1, 3, 2])}
+FACE_KEYS: dict  # value = {None: <BlockMeshCullDirection.CullNone: 0>, 'up': <BlockMeshCullDirection.CullUp: 1>, 'down': <BlockMeshCullDirection.CullDown: 2>, 'north': <BlockMeshCullDirection.CullNorth: 3>, 'east': <BlockMeshCullDirection.CullEast: 4>, 'south': <BlockMeshCullDirection.CullSouth: 5>, 'west': <BlockMeshCullDirection.CullWest: 6>}
+TRI_FACE: numpy.ndarray  # value = array([0, 1, 2, 0, 2, 3], dtype=uint32)
+UV_ROTATION_LUT: list = [0, 3, 2, 3, 2, 1, 0, 1]
