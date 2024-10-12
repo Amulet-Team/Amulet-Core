@@ -11,12 +11,19 @@ import re
 
 import amulet_nbt
 
+from amulet.utils.cast import dynamic_cast
 from amulet.block import Block
 from amulet.resource_pack import BaseResourcePackManager
 from amulet.resource_pack.java import JavaResourcePack
 from amulet.mesh.block import (
     BlockMesh,
+    BlockMeshPart,
+    Triangle,
+    Vertex,
+    FloatVec3,
+    FloatVec2,
     BlockMeshTransparency,
+    BlockMeshCullDirection,
     merge_block_meshes,
     FACE_KEYS,
     CUBE_FACE_LUT,
@@ -40,6 +47,16 @@ UselessImageGroups = {
 }
 
 _PropertiesPattern = re.compile(r"(?P<name>[a-zA-Z0-9_]+)=(?P<value>[a-zA-Z0-9_]+),?")
+
+CULL_DIRECTIONS = {
+    None: BlockMeshCullDirection.CullNone,
+    "down": BlockMeshCullDirection.CullDown,
+    "up": BlockMeshCullDirection.CullUp,
+    "north": BlockMeshCullDirection.CullNorth,
+    "east": BlockMeshCullDirection.CullEast,
+    "south": BlockMeshCullDirection.CullSouth,
+    "west": BlockMeshCullDirection.CullWest,
+}
 
 
 class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
@@ -333,39 +350,29 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
         # recursively load model files into one dictionary
         java_model = self._recursive_load_block_model(model_path)
 
-        # set up some variables
-        texture_dict = {}
-        textures = []
-        texture_count = 0
-        vert_count = {side: 0 for side in FACE_KEYS}
-        verts_src: dict[Optional[str], list[numpy.ndarray]] = {
-            side: [] for side in FACE_KEYS
-        }
-        tverts_src: dict[Optional[str], list[numpy.ndarray]] = {
-            side: [] for side in FACE_KEYS
-        }
-        tint_verts_src: dict[Optional[str], list[float]] = {
-            side: [] for side in FACE_KEYS
-        }
-        faces_src: dict[Optional[str], list[numpy.ndarray]] = {
-            side: [] for side in FACE_KEYS
-        }
-
-        texture_indexes_src: dict[Optional[str], list[int]] = {
-            side: [] for side in FACE_KEYS
-        }
-        transparent = BlockMeshTransparency.Partial
-
         if java_model.get("textures", {}) and not java_model.get("elements"):
             return self.missing_block
 
-        for element in java_model.get("elements", {}):
+        # set up some variables
+        texture_paths: dict[str, int] = {}
+        mesh_parts: list[tuple[list[Vertex], list[Triangle]] | None] = [
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ]
+        transparency = BlockMeshTransparency.Partial
+
+        for element in dynamic_cast(java_model.get("elements", {}), dict):
             # iterate through elements (one cube per element)
-            element_faces = element.get("faces", {})
+            element_faces = dynamic_cast(element.get("faces", {}), dict)
 
             opaque_face_count = 0
             if (
-                transparent
+                transparency
                 and "rotation" not in element
                 and element.get("to", [16, 16, 16]) == [16, 16, 16]
                 and element.get("from", [0, 0, 0]) == [0, 0, 0]
@@ -374,152 +381,140 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                 # if the block is not yet defined as a solid block
                 # and this element is a full size element
                 # check if the texture is opaque
-                transparent = BlockMeshTransparency.FullTranslucent
+                transparency = BlockMeshTransparency.FullTranslucent
                 check_faces = True
             else:
                 check_faces = False
 
             # lower and upper box coordinates
-            corners = numpy.sort(
-                numpy.array(
-                    [element.get("to", [16, 16, 16]), element.get("from", [0, 0, 0])],
-                    float,
-                )
-                / 16,
-                0,
-            )
+            x1, y1, z1 = [v / 16.0 for v in element.get("from", [0, 0, 0])]
+            x2, y2, z2 = [v / 16.0 for v in element.get("to", [16, 16, 16])]
 
             # vertex coordinates of the box
             box_coordinates = numpy.array(
-                list(itertools.product(corners[:, 0], corners[:, 1], corners[:, 2]))
+                list(
+                    itertools.product(
+                        (min(x1, x2), max(x1, x2)),
+                        (min(y1, y2), max(y1, y2)),
+                        (min(z1, z2), max(z1, x2)),
+                    )
+                )
             )
 
-            for face_dir in element_faces:
-                if face_dir in CUBE_FACE_LUT:
-                    # get the cull direction. If there is an opaque block in this direction then cull this face
-                    cull_dir = element_faces[face_dir].get("cullface", None)
-                    if cull_dir not in FACE_KEYS:
-                        cull_dir = None
+            for face_dir, face_data in element_faces.items():
+                if face_dir not in CUBE_FACE_LUT:
+                    continue
 
-                    # get the relative texture path for the texture used
-                    texture_relative_path = element_faces[face_dir].get("texture", None)
-                    while isinstance(
-                        texture_relative_path, str
-                    ) and texture_relative_path.startswith("#"):
-                        texture_relative_path = java_model["textures"].get(
-                            texture_relative_path[1:], None
-                        )
-                    texture_path_list = texture_relative_path.split(":", 1)
-                    if len(texture_path_list) == 2:
-                        namespace, texture_relative_path = texture_path_list
-                    else:
-                        namespace = "minecraft"
+                # get the cull direction. If there is an opaque block in this direction then cull this face
+                cull_dir = face_data.get("cullface", None)
+                if cull_dir not in FACE_KEYS:
+                    cull_dir = None
 
-                    texture_path = self.get_texture_path(
-                        namespace, texture_relative_path
+                # get the relative texture path for the texture used
+                texture_relative_path = face_data.get("texture", None)
+                while isinstance(
+                    texture_relative_path, str
+                ) and texture_relative_path.startswith("#"):
+                    texture_relative_path = java_model["textures"].get(
+                        texture_relative_path[1:], None
                     )
+                texture_path_list = texture_relative_path.split(":", 1)
+                if len(texture_path_list) == 2:
+                    namespace, texture_relative_path = texture_path_list
+                else:
+                    namespace = "minecraft"
 
-                    if check_faces:
-                        if self._texture_is_transparent[texture_path][1]:
-                            check_faces = False
-                        else:
-                            opaque_face_count += 1
+                texture_path = self.get_texture_path(namespace, texture_relative_path)
 
-                    # get the texture
-                    if texture_relative_path not in texture_dict:
-                        texture_dict[texture_relative_path] = texture_count
-                        textures.append(texture_path)
-                        texture_count += 1
+                if check_faces:
+                    if self._texture_is_transparent[texture_path][1]:
+                        check_faces = False
+                    else:
+                        opaque_face_count += 1
 
-                    # texture index for the face
-                    texture_index = texture_dict[texture_relative_path]
+                # texture index for the face
+                texture_index = texture_paths.setdefault(
+                    texture_relative_path, len(texture_paths)
+                )
 
-                    # get the uv values for each vertex
-                    # TODO: get the uv based on box location if not defined
+                # get the uv values for each vertex
+                texture_uv: tuple[float, float, float, float]
+                if "uv" in face_data:
+                    uv = face_data["uv"]
                     texture_uv = (
-                        numpy.array(
-                            element_faces[face_dir].get("uv", [0, 0, 16, 16]),
-                            float,
+                        uv[0] / 16.0,
+                        uv[1] / 16.0,
+                        uv[2] / 16.0,
+                        uv[3] / 16.0,
+                    )
+                else:
+                    # TODO: get the uv based on box location if not defined
+                    texture_uv = (0.0, 0.0, 1.0, 1.0)
+
+                texture_rotation = face_data.get("rotation", 0)
+                uv_slice = (
+                    UV_ROTATION_LUT[2 * int(texture_rotation / 90) :]
+                    + UV_ROTATION_LUT[: 2 * int(texture_rotation / 90)]
+                )
+
+                # merge the vertex coordinates and texture coordinates
+                face_verts = box_coordinates[CUBE_FACE_LUT[face_dir]]
+                if "rotation" in element:
+                    rotation = element["rotation"]
+                    origin = [r / 16 for r in rotation.get("origin", [8, 8, 8])]
+                    angle = rotation.get("angle", 0)
+                    axis = rotation.get("axis", "x")
+                    angles = [0, 0, 0]
+                    if axis == "x":
+                        angles[0] = -angle
+                    elif axis == "y":
+                        angles[1] = -angle
+                    elif axis == "z":
+                        angles[2] = -angle
+                    face_verts = rotate_3d(face_verts, *angles, *origin)
+
+                cull_direction = CULL_DIRECTIONS[cull_dir]
+                part = mesh_parts[cull_direction]
+                if part is None:
+                    mesh_parts[cull_direction] = part = ([], [])
+                verts, tris = part
+                vert_count = len(verts)
+
+                if "tintindex" in face_data:
+                    # TODO: set this up for each supported block
+                    tint_vec = FloatVec3(0, 1, 0)
+                else:
+                    tint_vec = FloatVec3(1, 1, 1)
+
+                for i in range(4):
+                    x, y, z = face_verts[i]
+                    uvx = texture_uv[uv_slice[i * 2]]
+                    uvy = texture_uv[uv_slice[i * 2 + 1]]
+                    verts.append(
+                        Vertex(
+                            FloatVec3(x, y, z),
+                            FloatVec2(uvx, uvy),
+                            tint_vec,
                         )
-                        / 16
-                    )
-                    texture_rotation = element_faces[face_dir].get("rotation", 0)
-                    uv_slice = (
-                        UV_ROTATION_LUT[2 * int(texture_rotation / 90) :]
-                        + UV_ROTATION_LUT[: 2 * int(texture_rotation / 90)]
                     )
 
-                    # merge the vertex coordinates and texture coordinates
-                    face_verts = box_coordinates[CUBE_FACE_LUT[face_dir]]
-                    if "rotation" in element:
-                        rotation = element["rotation"]
-                        origin = [r / 16 for r in rotation.get("origin", [8, 8, 8])]
-                        angle = rotation.get("angle", 0)
-                        axis = rotation.get("axis", "x")
-                        angles = [0, 0, 0]
-                        if axis == "x":
-                            angles[0] = -angle
-                        elif axis == "y":
-                            angles[1] = -angle
-                        elif axis == "z":
-                            angles[2] = -angle
-                        face_verts = rotate_3d(face_verts, *angles, *origin)
-
-                    verts_src[cull_dir].append(
-                        face_verts
-                    )  # vertex coordinates for this face
-
-                    tverts_src[cull_dir].append(
-                        texture_uv[uv_slice].reshape((-1, 2))  # texture vertices
+                for a, b, c in TRI_FACE.reshape((2, 3)):
+                    tris.append(
+                        Triangle(
+                            a + vert_count,
+                            b + vert_count,
+                            c + vert_count,
+                            texture_index,
+                        )
                     )
-                    if "tintindex" in element_faces[face_dir]:
-                        tint_verts_src[cull_dir] += [
-                            0,
-                            1,
-                            0,
-                        ] * 4  # TODO: set this up for each supported block
-                    else:
-                        tint_verts_src[cull_dir] += [1, 1, 1] * 4
-
-                    # merge the face indexes and texture index
-                    face_table = TRI_FACE + vert_count[cull_dir]
-                    texture_indexes_src[cull_dir] += [texture_index, texture_index]
-
-                    # faces stored under cull direction because this is the criteria to render them or not
-                    faces_src[cull_dir].append(face_table)
-
-                    vert_count[cull_dir] += 4
 
             if opaque_face_count == 6:
-                transparent = BlockMeshTransparency.FullOpaque
-
-        verts: dict[Optional[str], numpy.ndarray] = {}
-        tverts: dict[Optional[str], numpy.ndarray] = {}
-        tint_verts: dict[Optional[str], numpy.ndarray] = {}
-        faces: dict[Optional[str], numpy.ndarray] = {}
-        texture_indexes: dict[Optional[str], numpy.ndarray] = {}
-
-        for cull_dir in FACE_KEYS:
-            face_array = faces_src[cull_dir]
-            if len(face_array) > 0:
-                faces[cull_dir] = numpy.concatenate(face_array, axis=None)
-                tint_verts[cull_dir] = numpy.concatenate(
-                    tint_verts_src[cull_dir], axis=None
-                )
-                verts[cull_dir] = numpy.concatenate(verts_src[cull_dir], axis=None)
-                tverts[cull_dir] = numpy.concatenate(tverts_src[cull_dir], axis=None)
-                texture_indexes[cull_dir] = numpy.array(
-                    texture_indexes_src[cull_dir], dtype=numpy.uint32
-                )
+                transparency = BlockMeshTransparency.FullOpaque
 
         return BlockMesh(
-            verts,
-            tverts,
-            tint_verts,
-            faces,
-            texture_indexes,
-            tuple(textures),
-            transparent,
+            transparency,
+            list(texture_paths),
+            [None if part is None else BlockMeshPart(*part) for part in mesh_parts],
         )
 
     def _recursive_load_block_model(self, model_path: str) -> dict:
