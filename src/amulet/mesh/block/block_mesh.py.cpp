@@ -91,9 +91,9 @@ void init_block_mesh(py::module m_parent)
     // BlockMeshTransparency
     py::enum_<Amulet::BlockMeshTransparency>(m, "BlockMeshTransparency",
         "The transparency of a block mesh.")
-        .value("FullOpaque", Amulet::BlockMeshTransparency::FullOpaque, "A block that ocupies the whole block and is opaque.")
-        .value("FullTranslucent", Amulet::BlockMeshTransparency::FullTranslucent, "A block that ocupies the whole block and has at least one translucent face.")
-        .value("Partial", Amulet::BlockMeshTransparency::Partial, "A block that does not ocupy the whole block.");
+        .value("FullOpaque", Amulet::BlockMeshTransparency::FullOpaque, "A block that occupies the whole block and is opaque.")
+        .value("FullTranslucent", Amulet::BlockMeshTransparency::FullTranslucent, "A block that occupies the whole block and has at least one translucent face.")
+        .value("Partial", Amulet::BlockMeshTransparency::Partial, "A block that does not occupy the whole block.");
 
     // BlockMeshCullDirection
     py::enum_<Amulet::BlockMeshCullDirection>(m, "BlockMeshCullDirection", "The direction a mesh part is culled by. The value corrosponds to the index in the mesh parts array.")

@@ -168,11 +168,11 @@ class BlockMeshTransparency:
 
     Members:
 
-      FullOpaque : A block that ocupies the whole block and is opaque.
+      FullOpaque : A block that occupies the whole block and is opaque.
 
-      FullTranslucent : A block that ocupies the whole block and has at least one translucent face.
+      FullTranslucent : A block that occupies the whole block and has at least one translucent face.
 
-      Partial : A block that does not ocupy the whole block.
+      Partial : A block that does not occupy the whole block.
     """
 
     FullOpaque: typing.ClassVar[
