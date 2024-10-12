@@ -105,13 +105,13 @@ enum class BlockMeshTransparency {
 };
 
 enum BlockMeshCullDirection {
-    CullNone,
-    CullUp,
-    CullDown,
-    CullNorth,
-    CullEast,
-    CullSouth,
-    CullWest
+    BlockMeshCullNone,
+    BlockMeshCullUp,
+    BlockMeshCullDown,
+    BlockMeshCullNorth,
+    BlockMeshCullEast,
+    BlockMeshCullSouth,
+    BlockMeshCullWest
 };
 
 typedef std::map<

@@ -4,7 +4,7 @@
 
 namespace Amulet {
 
-const std::array<BlockMeshCullDirection, 4> roty_map = { CullNorth, CullEast, CullSouth, CullWest };
+const std::array<BlockMeshCullDirection, 4> roty_map = { BlockMeshCullNorth, BlockMeshCullEast, BlockMeshCullSouth, BlockMeshCullWest };
 
 const RotationCullMapType RotationCullMap = []() {
     RotationCullMapType cull_map;
@@ -15,7 +15,7 @@ const RotationCullMapType RotationCullMap = []() {
         std::copy(roty_map.begin() + split_y_point, roty_map.end(), roty_map_rotated.begin());
         std::copy(roty_map.begin(), roty_map.begin() + split_y_point, roty_map_rotated.end() - split_y_point);
         // Create the X array
-        const std::array<BlockMeshCullDirection, 4> rotx_map = { roty_map_rotated[0], CullDown, roty_map_rotated[2], CullUp };
+        const std::array<BlockMeshCullDirection, 4> rotx_map = { roty_map_rotated[0], BlockMeshCullDown, roty_map_rotated[2], BlockMeshCullUp };
         
         for (std::int8_t rotx = -3; rotx < 4; rotx++) { 
             // Create the rotated X array
@@ -25,7 +25,7 @@ const RotationCullMapType RotationCullMap = []() {
             std::copy(rotx_map.begin(), rotx_map.begin() + split_x_point, rotx_map_rotated.end() - split_x_point);
 
             cull_map[std::make_pair(roty, rotx)] = {
-                CullNone,
+                BlockMeshCullNone,
                 rotx_map_rotated[3],
                 rotx_map_rotated[1],
                 rotx_map_rotated[0],

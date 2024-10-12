@@ -90,20 +90,22 @@ void init_block_mesh(py::module m_parent)
 
     // BlockMeshTransparency
     py::enum_<Amulet::BlockMeshTransparency>(m, "BlockMeshTransparency",
-        "The transparency of a block mesh.")
+        "The transparency of a block mesh.", py::arithmetic())
         .value("FullOpaque", Amulet::BlockMeshTransparency::FullOpaque, "A block that occupies the whole block and is opaque.")
         .value("FullTranslucent", Amulet::BlockMeshTransparency::FullTranslucent, "A block that occupies the whole block and has at least one translucent face.")
         .value("Partial", Amulet::BlockMeshTransparency::Partial, "A block that does not occupy the whole block.");
 
     // BlockMeshCullDirection
-    py::enum_<Amulet::BlockMeshCullDirection>(m, "BlockMeshCullDirection", "The direction a mesh part is culled by. The value corrosponds to the index in the mesh parts array.")
-        .value("CullNone", Amulet::BlockMeshCullDirection::CullNone, "Is not culled by any neighbouring blocks.")
-        .value("CullUp", Amulet::BlockMeshCullDirection::CullUp, "Is culled by an opaque block above.")
-        .value("CullDown", Amulet::BlockMeshCullDirection::CullDown, "Is culled by an opaque block below.")
-        .value("CullNorth", Amulet::BlockMeshCullDirection::CullNorth, "Is culled by an opaque block to the north.")
-        .value("CullEast", Amulet::BlockMeshCullDirection::CullEast, "Is culled by an opaque block to the east.")
-        .value("CullSouth", Amulet::BlockMeshCullDirection::CullSouth, "Is culled by an opaque block to the south.")
-        .value("CullWest", Amulet::BlockMeshCullDirection::CullWest, "Is culled by an opaque block to the west.");
+    py::enum_<Amulet::BlockMeshCullDirection>(m, "BlockMeshCullDirection", 
+        "The direction a mesh part is culled by. The value corrosponds to the index in the mesh parts array.", 
+        py::arithmetic())
+        .value("CullNone", Amulet::BlockMeshCullDirection::BlockMeshCullNone, "Is not culled by any neighbouring blocks.")
+        .value("CullUp", Amulet::BlockMeshCullDirection::BlockMeshCullUp, "Is culled by an opaque block above.")
+        .value("CullDown", Amulet::BlockMeshCullDirection::BlockMeshCullDown, "Is culled by an opaque block below.")
+        .value("CullNorth", Amulet::BlockMeshCullDirection::BlockMeshCullNorth, "Is culled by an opaque block to the north.")
+        .value("CullEast", Amulet::BlockMeshCullDirection::BlockMeshCullEast, "Is culled by an opaque block to the east.")
+        .value("CullSouth", Amulet::BlockMeshCullDirection::BlockMeshCullSouth, "Is culled by an opaque block to the south.")
+        .value("CullWest", Amulet::BlockMeshCullDirection::BlockMeshCullWest, "Is culled by an opaque block to the west.");
 
     // BlockMesh
     py::class_<Amulet::BlockMesh> BlockMesh(m, "BlockMesh", "All the data that makes up a block mesh.");
@@ -139,12 +141,12 @@ void init_block_mesh(py::module m_parent)
     m.attr("get_missing_block") = py::module::import("amulet.mesh.block._missing_block").attr("get_missing_block");
 
     py::dict face_keys;
-    face_keys[py::none()] = Amulet::BlockMeshCullDirection::CullNone;
-    face_keys[py::str("up")] = Amulet::BlockMeshCullDirection::CullUp;
-    face_keys[py::str("down")] = Amulet::BlockMeshCullDirection::CullDown;
-    face_keys[py::str("north")] = Amulet::BlockMeshCullDirection::CullNorth;
-    face_keys[py::str("east")] = Amulet::BlockMeshCullDirection::CullEast;
-    face_keys[py::str("south")] = Amulet::BlockMeshCullDirection::CullSouth;
-    face_keys[py::str("west")] = Amulet::BlockMeshCullDirection::CullWest;
+    face_keys[py::none()] = Amulet::BlockMeshCullDirection::BlockMeshCullNone;
+    face_keys[py::str("up")] = Amulet::BlockMeshCullDirection::BlockMeshCullUp;
+    face_keys[py::str("down")] = Amulet::BlockMeshCullDirection::BlockMeshCullDown;
+    face_keys[py::str("north")] = Amulet::BlockMeshCullDirection::BlockMeshCullNorth;
+    face_keys[py::str("east")] = Amulet::BlockMeshCullDirection::BlockMeshCullEast;
+    face_keys[py::str("south")] = Amulet::BlockMeshCullDirection::BlockMeshCullSouth;
+    face_keys[py::str("west")] = Amulet::BlockMeshCullDirection::BlockMeshCullWest;
     m.attr("FACE_KEYS") = face_keys;
 }
