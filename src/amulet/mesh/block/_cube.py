@@ -29,15 +29,27 @@ UNIT_BOX_COORDINATES = numpy.array(
     list(itertools.product((0, 1), (0, 1), (0, 1)))
 )  # X, Y, Z
 
+CULL_DIRECTION_NAMES = (
+    "down",
+    "up",
+    "north",
+    "east",
+    "south",
+    "west",
+)
+
 # This maps face direction to the vertices used (defined in UNIT_BOX_COORDINATES)
-CUBE_FACE_LUT = {
-    "down": numpy.array([0, 4, 5, 1]),
-    "up": numpy.array([3, 7, 6, 2]),
-    "north": numpy.array([4, 0, 2, 6]),
-    "east": numpy.array([5, 4, 6, 7]),
-    "south": numpy.array([1, 5, 7, 3]),
-    "west": numpy.array([0, 1, 3, 2]),
-}
+VERTEX_INDEXES = (
+    numpy.array([0, 4, 5, 1]),
+    numpy.array([3, 7, 6, 2]),
+    numpy.array([4, 0, 2, 6]),
+    numpy.array([5, 4, 6, 7]),
+    numpy.array([1, 5, 7, 3]),
+    numpy.array([0, 1, 3, 2]),
+)
+
+# This maps face direction to the vertices used (defined in UNIT_BOX_COORDINATES)
+CUBE_FACE_LUT = dict(zip(CULL_DIRECTION_NAMES, VERTEX_INDEXES))
 
 TRI_FACE = numpy.array([0, 1, 2, 0, 2, 3], numpy.uint32)
 
@@ -122,7 +134,7 @@ def get_cube(
             BlockMeshCullDirection.CullSouth,
             BlockMeshCullDirection.CullWest,
         ),
-        CUBE_FACE_LUT.values(),
+        VERTEX_INDEXES,
         do_not_cull,
         (down, up, north, east, south, west),
         texture_uv,
