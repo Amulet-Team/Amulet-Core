@@ -5,9 +5,9 @@
 #include <pybind11/stl.h>
 #include <pybind11/typing.h>
 
+#include "block_mesh.hpp"
 #include <amulet/pybind11/collections.hpp>
 #include <amulet/pybind11/py_module.hpp>
-#include "block_mesh.hpp"
 
 namespace py = pybind11;
 
@@ -96,8 +96,8 @@ void init_block_mesh(py::module m_parent)
         .value("Partial", Amulet::BlockMeshTransparency::Partial, "A block that does not occupy the whole block.");
 
     // BlockMeshCullDirection
-    py::enum_<Amulet::BlockMeshCullDirection>(m, "BlockMeshCullDirection", 
-        "The direction a mesh part is culled by. The value corrosponds to the index in the mesh parts array.", 
+    py::enum_<Amulet::BlockMeshCullDirection>(m, "BlockMeshCullDirection",
+        "The direction a mesh part is culled by. The value corrosponds to the index in the mesh parts array.",
         py::arithmetic())
         .value("CullNone", Amulet::BlockMeshCullDirection::BlockMeshCullNone, "Is not culled by any neighbouring blocks.")
         .value("CullUp", Amulet::BlockMeshCullDirection::BlockMeshCullUp, "Is culled by an opaque block above.")
@@ -110,10 +110,25 @@ void init_block_mesh(py::module m_parent)
     // BlockMesh
     py::class_<Amulet::BlockMesh> BlockMesh(m, "BlockMesh", "All the data that makes up a block mesh.");
     BlockMesh.def(
-        py::init<
-            Amulet::BlockMeshTransparency,
-            std::vector<std::string>,
-            std::array<std::optional<Amulet::BlockMeshPart>, 7>>(),
+        py::init(
+            [](
+                Amulet::BlockMeshTransparency transparency,
+                std::vector<std::string> textures,
+                py::typing::Tuple<
+                    std::optional<Amulet::BlockMeshPart>,
+                    std::optional<Amulet::BlockMeshPart>,
+                    std::optional<Amulet::BlockMeshPart>,
+                    std::optional<Amulet::BlockMeshPart>,
+                    std::optional<Amulet::BlockMeshPart>,
+                    std::optional<Amulet::BlockMeshPart>,
+                    std::optional<Amulet::BlockMeshPart>>
+                    py_parts) {
+                auto parts = py_parts.cast<std::array<std::optional<Amulet::BlockMeshPart>, 7>>();
+                return Amulet::BlockMesh(
+                    transparency,
+                    textures,
+                    parts);
+            }),
         py::arg("transparency"),
         py::arg("textures"),
         py::arg("parts"));

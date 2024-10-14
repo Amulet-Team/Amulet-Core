@@ -38,8 +38,14 @@ class BlockMesh:
         self,
         transparency: BlockMeshTransparency,
         textures: list[str],
-        parts: typing.Annotated[
-            list[BlockMeshPart | None], pybind11_stubgen.typing_ext.FixedSize(7)
+        parts: tuple[
+            BlockMeshPart | None,
+            BlockMeshPart | None,
+            BlockMeshPart | None,
+            BlockMeshPart | None,
+            BlockMeshPart | None,
+            BlockMeshPart | None,
+            BlockMeshPart | None,
         ],
     ) -> None: ...
     def rotate(self, rotx: int, roty: int) -> BlockMesh:
