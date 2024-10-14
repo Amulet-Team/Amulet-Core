@@ -82,7 +82,10 @@ BlockMesh merge_block_meshes(std::vector<std::reference_wrapper<const BlockMesh>
                     triangle.vert_index_a += vert_count;
                     triangle.vert_index_b += vert_count;
                     triangle.vert_index_c += vert_count;
-                    const auto& texture_path = temp_mesh.textures.at(triangle.texture_index);
+                    if (temp_mesh.textures.size() <= triangle.texture_index) {
+                        throw std::invalid_argument("Texture index is higher than the number of textures.");
+                    }
+                    const auto& texture_path = temp_mesh.textures[triangle.texture_index];
                     auto it = texture_index_map.find(texture_path);
                     if (it == texture_index_map.end()) {
                         // Texture has not been added yet.
