@@ -1,5 +1,3 @@
-from enum import Enum
-from turtledemo.sorting_animate import Block
 from unittest import TestCase
 from amulet.mesh.block import (
     BlockMeshCullDirection,
@@ -10,7 +8,9 @@ from amulet.mesh.block import (
     Triangle,
     BlockMeshPart,
     BlockMesh,
+    merge_block_meshes,
 )
+
 
 class BlockMeshTestCase(TestCase):
     def test_cull_direction(self) -> None:
@@ -44,11 +44,11 @@ class BlockMeshTestCase(TestCase):
         self.assertEqual("2", l[BlockMeshTransparency.Partial])
         self.assertEqual(
             BlockMeshTransparency.FullOpaque,
-            min(BlockMeshTransparency.FullOpaque, BlockMeshTransparency.Partial)
+            min(BlockMeshTransparency.FullOpaque, BlockMeshTransparency.Partial),
         )
         self.assertEqual(
             BlockMeshTransparency.Partial,
-            max(BlockMeshTransparency.FullOpaque, BlockMeshTransparency.Partial)
+            max(BlockMeshTransparency.FullOpaque, BlockMeshTransparency.Partial),
         )
 
     def test_vec_2(self) -> None:
@@ -82,11 +82,7 @@ class BlockMeshTestCase(TestCase):
         self.assertAlmostEqual(8.0, vertex.tint.z)
 
     def test_vertex(self) -> None:
-        vertex = Vertex(
-            FloatVec3(1, 2, 3),
-            FloatVec2(4, 5),
-            FloatVec3(6, 7, 8)
-        )
+        vertex = Vertex(FloatVec3(1, 2, 3), FloatVec2(4, 5), FloatVec3(6, 7, 8))
         self._validate_vertex(vertex)
 
     def _validate_triangle(self, triangle: Triangle) -> None:
@@ -117,13 +113,106 @@ class BlockMeshTestCase(TestCase):
         self.assertEqual([], part.verts)
         self.assertEqual([], part.triangles)
 
-        part = BlockMeshPart([
-            Vertex(
-                FloatVec3(1, 2, 3),
-                FloatVec2(4, 5),
-                FloatVec3(6, 7, 8)
-            )
-        ], [
-            Triangle(1, 2, 3, 4)
-        ])
+        part = BlockMeshPart(
+            [Vertex(FloatVec3(1, 2, 3), FloatVec2(4, 5), FloatVec3(6, 7, 8))],
+            [Triangle(1, 2, 3, 4)],
+        )
         self._validate_part(part)
+
+    def test_block_mesh(self) -> None:
+        part = BlockMeshPart(
+            [Vertex(FloatVec3(1, 2, 3), FloatVec2(4, 5), FloatVec3(6, 7, 8))],
+            [Triangle(1, 2, 3, 4)],
+        )
+        mesh = BlockMesh(
+            BlockMeshTransparency.FullOpaque,
+            ["texture/one", "texture/two"],
+            (
+                part,
+                part,
+                part,
+                part,
+                part,
+                part,
+                part,
+            ),
+        )
+        self.assertEqual(BlockMeshTransparency.FullOpaque, mesh.transparency)
+        self.assertEqual(["texture/one", "texture/two"], mesh.textures)
+        for part in mesh.parts:
+            self._validate_part(part)
+
+    def test_merge_block_meshes(self) -> None:
+        part1 = BlockMeshPart(
+            [Vertex(FloatVec3(1, 2, 3), FloatVec2(4, 5), FloatVec3(6, 7, 8))],
+            [Triangle(0, 0, 0, 0)],
+        )
+        mesh1 = BlockMesh(
+            BlockMeshTransparency.FullTranslucent,
+            ["texture/one", "texture/two"],
+            (
+                part1,
+                part1,
+                part1,
+                part1,
+                part1,
+                part1,
+                part1,
+            ),
+        )
+        part2 = BlockMeshPart(
+            [Vertex(FloatVec3(9, 10, 11), FloatVec2(12, 13), FloatVec3(14, 15, 16))],
+            [Triangle(0, 0, 0, 0)],
+        )
+        mesh2 = BlockMesh(
+            BlockMeshTransparency.Partial,
+            ["texture/three", "texture/four"],
+            (
+                part2,
+                part2,
+                part2,
+                part2,
+                part2,
+                part2,
+                part2,
+            ),
+        )
+        merged_mesh = merge_block_meshes([mesh1, mesh2])
+        self.assertIsInstance(merged_mesh, BlockMesh)
+        self.assertEqual(
+            BlockMeshTransparency.FullTranslucent, merged_mesh.transparency
+        )
+        self.assertEqual(["texture/one", "texture/three"], merged_mesh.textures)
+        for part in merged_mesh.parts:
+            self.assertIsInstance(part, BlockMeshPart)
+            self.assertAlmostEqual(1.0, part.verts[0].coord.x)
+            self.assertAlmostEqual(9.0, part.verts[1].coord.x)
+            self.assertEqual(0, part.triangles[0].vert_index_a)
+            self.assertEqual(0, part.triangles[0].vert_index_b)
+            self.assertEqual(0, part.triangles[0].vert_index_c)
+            self.assertEqual(0, part.triangles[0].texture_index)
+            self.assertEqual(1, part.triangles[1].vert_index_a)
+            self.assertEqual(1, part.triangles[1].vert_index_b)
+            self.assertEqual(1, part.triangles[1].vert_index_c)
+            self.assertEqual(1, part.triangles[1].texture_index)
+
+    def test_merge_block_mesh_errors(self) -> None:
+        part = BlockMeshPart(
+            [Vertex(FloatVec3(1, 2, 3), FloatVec2(4, 5), FloatVec3(6, 7, 8))],
+            [Triangle(0, 0, 0, 1)],
+        )
+        mesh = BlockMesh(
+            BlockMeshTransparency.FullTranslucent,
+            ["texture/one"],
+            (
+                part,
+                part,
+                part,
+                part,
+                part,
+                part,
+                part,
+            ),
+        )
+        with self.assertRaises(ValueError):
+            merge_block_meshes([mesh])
