@@ -165,9 +165,10 @@ def get_cube(
                 Triangle(a + vert_count, b + vert_count, c + vert_count, texture_index)
             )
 
-    def create_part(part: tuple[list[Vertex], list[Triangle]] | None) -> BlockMeshPart | None:
+    def create_part(
+        part: tuple[list[Vertex], list[Triangle]] | None
+    ) -> BlockMeshPart | None:
         return None if part is None else BlockMeshPart(*part)
-
 
     return BlockMesh(
         transparency,
@@ -180,7 +181,7 @@ def get_cube(
             create_part(mesh_parts[4]),
             create_part(mesh_parts[5]),
             create_part(mesh_parts[6]),
-        )
+        ),
     )
 
 

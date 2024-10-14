@@ -511,7 +511,9 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
             if opaque_face_count == 6:
                 transparency = BlockMeshTransparency.FullOpaque
 
-        def create_part(part: tuple[list[Vertex], list[Triangle]] | None) -> BlockMeshPart | None:
+        def create_part(
+            part: tuple[list[Vertex], list[Triangle]] | None
+        ) -> BlockMeshPart | None:
             return None if part is None else BlockMeshPart(*part)
 
         return BlockMesh(
@@ -525,7 +527,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                 create_part(mesh_parts[4]),
                 create_part(mesh_parts[5]),
                 create_part(mesh_parts[6]),
-            )
+            ),
         )
 
     def _recursive_load_block_model(self, model_path: str) -> dict:
