@@ -1,13 +1,12 @@
 from amulet.block import Block
-from amulet.mesh.block.block_mesh import BlockMesh, Transparency
-from amulet.mesh.block.cube import get_unit_cube
+from amulet.mesh.block import BlockMesh, BlockMeshTransparency, get_unit_cube
 from amulet.resource_pack.bedrock.blockshapes.cube import Cube
 
 
-class Water(Cube):
+class GreenCube(Cube):
     @property
     def blockshape(self) -> str:
-        return "water"
+        return "greencube"
 
     def get_block_model(
         self,
@@ -22,17 +21,18 @@ class Water(Cube):
     ) -> BlockMesh:
         return get_unit_cube(
             down,
-            down,
-            down,
-            down,
-            down,
-            down,
+            up,
+            north,
+            east,
+            south,
+            west,
             (
-                Transparency.FullTranslucent
-                if transparency[0]
-                else Transparency.FullOpaque
+                BlockMeshTransparency.FullTranslucent
+                if any(transparency)
+                else BlockMeshTransparency.FullOpaque
             ),
+            (0, 1, 0),
         )
 
 
-BlockShape = Water()
+BlockShape = GreenCube()

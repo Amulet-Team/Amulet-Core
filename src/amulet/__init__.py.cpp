@@ -11,6 +11,7 @@ void init_palette(py::module);
 void init_chunk(py::module);
 void init_chunk_components(py::module);
 void init_level(py::module);
+void init_block_mesh(py::module);
 
 static bool init_run = false;
 
@@ -37,6 +38,7 @@ void init_amulet(py::module m){
     init_chunk(m);
     init_chunk_components(m);
     init_level(m);
+    init_block_mesh(m);
 }
 
 PYBIND11_MODULE(__init__, m) { init_amulet(m); }

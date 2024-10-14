@@ -8,7 +8,7 @@ from amulet.block import Block
 from amulet.utils import comment_json
 from amulet.resource_pack import BaseResourcePackManager
 from amulet.resource_pack.bedrock import BedrockResourcePack
-from amulet.mesh.block.block_mesh import BlockMesh
+from amulet.mesh.block import BlockMesh
 from .blockshapes import BlockShapeClasses
 
 

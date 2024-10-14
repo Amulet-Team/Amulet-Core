@@ -1,6 +1,6 @@
 from typing import Any
 from amulet.block import Block
-from amulet.mesh.block import BlockMesh
+from amulet.mesh.block import BlockMesh, merge_block_meshes
 from amulet.resource_pack.bedrock.blockshapes.partial_block import (
     PartialBlock,
 )
@@ -39,7 +39,7 @@ class PistonArm(PartialBlock):
             block.properties["facing_direction"].py_data, (0, 0)
         )
 
-        return BlockMesh.merge(
+        return merge_block_meshes(
             [
                 super().get_block_model(
                     block,

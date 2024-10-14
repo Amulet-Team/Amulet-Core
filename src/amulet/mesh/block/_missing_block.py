@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from .block_mesh import BlockMesh
-from .cube import get_unit_cube
+from amulet.mesh.block import BlockMesh
+from ._cube import get_unit_cube
 
 if TYPE_CHECKING:
     from amulet.resource_pack.abc import BaseResourcePackManager

@@ -1,8 +1,7 @@
 from typing import Optional
 
 from amulet.block import Block
-from amulet.mesh.block.block_mesh import BlockMesh, Transparency
-from amulet.mesh.block.cube import get_cube
+from amulet.mesh.block import BlockMesh, BlockMeshTransparency, get_cube
 from amulet.resource_pack.bedrock.blockshapes.default import Default
 
 BoundsType = tuple[tuple[float, float], tuple[float, float], tuple[float, float]]
@@ -50,7 +49,7 @@ class PartialBlock(Default):
             east,
             south,
             west,
-            Transparency.Partial,
+            BlockMeshTransparency.Partial,
             bounds=bounds,
             texture_uv=uv,
             do_not_cull=do_not_cull or self.do_not_cull,

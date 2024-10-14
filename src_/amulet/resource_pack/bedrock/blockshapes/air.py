@@ -1,5 +1,5 @@
 from amulet.block import Block
-from amulet.mesh.block.block_mesh import BlockMesh, Transparency
+from amulet.mesh.block import BlockMesh, BlockMeshTransparency
 from amulet.resource_pack.bedrock.blockshapes.base_blockshape import (
     BaseBlockShape,
 )
@@ -29,7 +29,7 @@ class Air(BaseBlockShape):
         west: str,
         transparency: tuple[bool, bool, bool, bool, bool, bool],
     ) -> BlockMesh:
-        return BlockMesh({}, {}, {}, {}, {}, (), Transparency.Partial)
+        return BlockMesh({}, {}, {}, {}, {}, (), BlockMeshTransparency.Partial)
 
 
 BlockShape = Air()
