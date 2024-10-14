@@ -160,10 +160,10 @@ public:
                 // Compuate rotation values
                 float theta_x = std::numbers::pi * rotx / 2.0;
                 float theta_y = std::numbers::pi * roty / 2.0;
-                float sin_x = std::sinf(theta_x);
-                float cos_x = std::cosf(theta_x);
-                float sin_y = std::sinf(theta_y);
-                float cos_y = std::cosf(theta_y);
+                float sin_x = std::sin(theta_x);
+                float cos_x = std::cos(theta_x);
+                float sin_y = std::sin(theta_y);
+                float cos_y = std::cos(theta_y);
 
                 for (std::uint8_t cull_direction = 0; cull_direction < 7; cull_direction++) {
                     // Copy the part to the new cull direction.
