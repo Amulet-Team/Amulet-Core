@@ -1,5 +1,6 @@
 #include <string>
 #include <array>
+#include <functional>
 #include "block_mesh.hpp"
 
 namespace Amulet {
