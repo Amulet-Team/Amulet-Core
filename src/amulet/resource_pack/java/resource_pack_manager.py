@@ -365,7 +365,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
         ]
         transparency = BlockMeshTransparency.Partial
 
-        for element in dynamic_cast(java_model.get("elements", {}), dict):
+        for element in dynamic_cast(java_model.get("elements", []), list):
             # iterate through elements (one cube per element)
             element_faces = dynamic_cast(element.get("faces", {}), dict)
 
