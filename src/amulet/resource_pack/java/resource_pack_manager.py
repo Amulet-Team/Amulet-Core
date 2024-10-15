@@ -433,7 +433,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
 
                 # texture index for the face
                 texture_index = texture_paths.setdefault(
-                    texture_relative_path, len(texture_paths)
+                    texture_path, len(texture_paths)
                 )
 
                 # get the uv values for each vertex
