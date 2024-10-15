@@ -254,7 +254,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                                 blockstate["variants"][variant]
                             )
                         except Exception as e:
-                            log.error(
+                            log.exception(
                                 f"Failed to load block model {blockstate['variants'][variant]}\n{e}"
                             )
                     else:
@@ -272,7 +272,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                                     blockstate["variants"][variant]
                                 )
                             except Exception as e:
-                                log.error(
+                                log.exception(
                                     f"Failed to load block model {blockstate['variants'][variant]}\n{e}"
                                 )
 
@@ -316,11 +316,11 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                                 )
 
                             except Exception as e:
-                                log.error(
+                                log.exception(
                                     f"Failed to load block model {case['apply']}\n{e}"
                                 )
                     except Exception as e:
-                        log.error(f"Failed to parse block state for {block}\n{e}")
+                        log.exception(f"Failed to parse block state for {block}\n{e}")
 
                 return merge_block_meshes(models)
 
