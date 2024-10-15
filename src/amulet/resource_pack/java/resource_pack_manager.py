@@ -1,6 +1,5 @@
 import os
 import json
-import copy
 from typing import Union, Iterable, Iterator, Optional
 from PIL import Image
 import numpy
@@ -340,7 +339,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
         roty = int(blockstate_value.get("y", 0) // 90)
         uvlock = blockstate_value.get("uvlock", False)
 
-        model = copy.deepcopy(self._load_block_model(model_path))
+        model = self._load_block_model(model_path)
 
         # TODO: rotate model based on uv_lock
         return model.rotate(rotx, roty)
