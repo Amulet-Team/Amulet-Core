@@ -8,10 +8,10 @@ import itertools
 import logging
 import re
 
-import amulet_nbt
+from amulet_nbt import StringTag
 
 from amulet.utils.cast import dynamic_cast
-from amulet.block import Block
+from amulet.block import Block, PropertyValueType
 from amulet.resource_pack import BaseResourcePackManager
 from amulet.resource_pack.java import JavaResourcePack
 from amulet.mesh.block import (
@@ -56,6 +56,13 @@ CULL_DIRECTIONS = {
     "south": BlockMeshCullDirection.CullSouth,
     "west": BlockMeshCullDirection.CullWest,
 }
+
+
+def get_py_data(obj: PropertyValueType) -> str | bytes | int:
+    if isinstance(obj, StringTag):
+        return obj.py_str_or_bytes
+    else:
+        return obj.py_int
 
 
 class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
@@ -232,11 +239,9 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
     def parse_state_val(val: Union[str, bool]) -> list:
         """Convert the json block state format into a consistent format."""
         if isinstance(val, str):
-            return [amulet_nbt.TAG_String(v) for v in val.split("|")]
+            return [StringTag(v) for v in val.split("|")]
         elif isinstance(val, bool):
-            return [
-                amulet_nbt.TAG_String("true") if val else amulet_nbt.TAG_String("false")
-            ]
+            return [StringTag("true") if val else StringTag("false")]
         else:
             raise Exception(f"Could not parse state val {val}")
 
@@ -260,10 +265,12 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                     else:
                         properties_match = _PropertiesPattern.finditer(f",{variant}")
                         if all(
-                            block.properties.get(
-                                match.group("name"),
-                                amulet_nbt.TAG_String(match.group("value")),
-                            ).py_data
+                            get_py_data(
+                                block.properties.get(
+                                    match.group("name"),
+                                    StringTag(match.group("value")),
+                                )
+                            )
                             == match.group("value")
                             for match in properties_match
                         ):

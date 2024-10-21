@@ -4,6 +4,6 @@ requires = [
     "wheel",
     "versioneer",
     "pybind11 ~= 2.12",
-    "amulet_nbt ~= 4.0a3"
+    "amulet_nbt ~= 4.0a6"
 ]
 build-backend = "setuptools.build_meta"
