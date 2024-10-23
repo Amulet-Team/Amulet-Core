@@ -114,6 +114,14 @@ prototyping/
 *.c
 *.html
 
+# Visual Studio Files
+.vs/
+sln/
+*.ilk
+*.exp
+*.lib
+*.pdb
+
 worlds_temp/
 world_temp/
 logs/
