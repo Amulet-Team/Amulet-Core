@@ -49,7 +49,8 @@ chunk_version_to_max_version: Dict[
     38: ((1, 17, 0, 0), (1, 17, 0, 0)),  # ?
     # continue without experimental gameplay
     39: ((1, 18, 0, 0), (1, 18, 29, 999)),
-    40: ((1, 18, 30, 0), (999, 999, 999, 999)),
+    40: ((1, 18, 30, 0), (1, 21, 31, 999)),
+    41: ((1, 21, 40, 0), (999, 999, 999, 999)),
 }  # TODO: fill this list with the actual last game version number each chunk version was last used in
 
 
