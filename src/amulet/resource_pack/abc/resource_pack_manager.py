@@ -1,6 +1,5 @@
 from typing import Optional, Iterator, TypeVar, Generic
 import json
-import copy
 
 from amulet.block import Block, BlockStack
 from amulet.mesh.block import BlockMesh, merge_block_meshes, get_missing_block
@@ -80,7 +79,7 @@ class BaseResourcePackManager(Generic[PackT]):
                     )
                 )
 
-        return copy.deepcopy(self._cached_models[block_stack])
+        return self._cached_models[block_stack]
 
     def _get_model(self, block: Block) -> BlockMesh:
         raise NotImplementedError

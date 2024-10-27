@@ -1,6 +1,5 @@
 import os
 import json
-import copy
 from typing import Union, Iterable, Iterator, Optional
 from PIL import Image
 import numpy
@@ -9,10 +8,10 @@ import itertools
 import logging
 import re
 
-import amulet_nbt
+from amulet_nbt import StringTag
 
 from amulet.utils.cast import dynamic_cast
-from amulet.block import Block
+from amulet.block import Block, PropertyValueType
 from amulet.resource_pack import BaseResourcePackManager
 from amulet.resource_pack.java import JavaResourcePack
 from amulet.mesh.block import (
@@ -57,6 +56,13 @@ CULL_DIRECTIONS = {
     "south": BlockMeshCullDirection.CullSouth,
     "west": BlockMeshCullDirection.CullWest,
 }
+
+
+def get_py_data(obj: PropertyValueType) -> str | bytes | int:
+    if isinstance(obj, StringTag):
+        return obj.py_str_or_bytes
+    else:
+        return obj.py_int
 
 
 class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
@@ -233,11 +239,9 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
     def parse_state_val(val: Union[str, bool]) -> list:
         """Convert the json block state format into a consistent format."""
         if isinstance(val, str):
-            return [amulet_nbt.TAG_String(v) for v in val.split("|")]
+            return [StringTag(v) for v in val.split("|")]
         elif isinstance(val, bool):
-            return [
-                amulet_nbt.TAG_String("true") if val else amulet_nbt.TAG_String("false")
-            ]
+            return [StringTag("true") if val else StringTag("false")]
         else:
             raise Exception(f"Could not parse state val {val}")
 
@@ -255,16 +259,18 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                                 blockstate["variants"][variant]
                             )
                         except Exception as e:
-                            log.error(
+                            log.exception(
                                 f"Failed to load block model {blockstate['variants'][variant]}\n{e}"
                             )
                     else:
                         properties_match = _PropertiesPattern.finditer(f",{variant}")
                         if all(
-                            block.properties.get(
-                                match.group("name"),
-                                amulet_nbt.TAG_String(match.group("value")),
-                            ).py_data
+                            get_py_data(
+                                block.properties.get(
+                                    match.group("name"),
+                                    StringTag(match.group("value")),
+                                )
+                            )
                             == match.group("value")
                             for match in properties_match
                         ):
@@ -273,7 +279,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                                     blockstate["variants"][variant]
                                 )
                             except Exception as e:
-                                log.error(
+                                log.exception(
                                     f"Failed to load block model {blockstate['variants'][variant]}\n{e}"
                                 )
 
@@ -317,11 +323,11 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                                 )
 
                             except Exception as e:
-                                log.error(
+                                log.exception(
                                     f"Failed to load block model {case['apply']}\n{e}"
                                 )
                     except Exception as e:
-                        log.error(f"Failed to parse block state for {block}\n{e}")
+                        log.exception(f"Failed to parse block state for {block}\n{e}")
 
                 return merge_block_meshes(models)
 
@@ -340,7 +346,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
         roty = int(blockstate_value.get("y", 0) // 90)
         uvlock = blockstate_value.get("uvlock", False)
 
-        model = copy.deepcopy(self._load_block_model(model_path))
+        model = self._load_block_model(model_path)
 
         # TODO: rotate model based on uv_lock
         return model.rotate(rotx, roty)
@@ -366,7 +372,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
         ]
         transparency = BlockMeshTransparency.Partial
 
-        for element in dynamic_cast(java_model.get("elements", {}), dict):
+        for element in dynamic_cast(java_model.get("elements", []), list):
             # iterate through elements (one cube per element)
             element_faces = dynamic_cast(element.get("faces", {}), dict)
 
@@ -434,7 +440,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
 
                 # texture index for the face
                 texture_index = texture_paths.setdefault(
-                    texture_relative_path, len(texture_paths)
+                    texture_path, len(texture_paths)
                 )
 
                 # get the uv values for each vertex

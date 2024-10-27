@@ -96,7 +96,7 @@ public:
     }
 };
 
-enum class BlockMeshTransparency {
+enum class BlockMeshTransparency : std::uint8_t {
     // The block is a full block with opaque textures
     FullOpaque,
     // The block is a full block with transparent / translucent textures

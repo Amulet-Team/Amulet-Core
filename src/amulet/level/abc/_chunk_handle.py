@@ -190,37 +190,37 @@ class ChunkHandle(
                 return self._get_raw_dimension().has_chunk(self.cx, self.cz)
 
     def _preload(self) -> None:
-        """Load the chunk data if it has not already been loaded."""
-        with self._lock.unique():
-            if not self._chunk_history.has_resource(self._key):
-                # The history system is not aware of the chunk. Load from the level data
-                chunk: Chunk
-                try:
-                    raw_chunk = self._get_raw_dimension().get_raw_chunk(
-                        self.cx, self.cz
-                    )
-                    chunk = self._get_raw_dimension().raw_chunk_to_native_chunk(
-                        raw_chunk,
-                        self.cx,
-                        self.cz,
-                    )
-                except ChunkDoesNotExist:
-                    self._chunk_history.set_initial_resource(self._key, b"")
-                except ChunkLoadError as e:
-                    self._chunk_history.set_initial_resource(self._key, pickle.dumps(e))
-                else:
-                    self._chunk_history.set_initial_resource(
-                        self._key, pickle.dumps(chunk.chunk_id)
-                    )
-                    for component_id, component_data in chunk.serialise_chunk().items():
-                        if component_data is None:
-                            raise RuntimeError(
-                                "Component must not be None when initialising chunk"
-                            )
-                        self._chunk_data_history.set_initial_resource(
-                            b"/".join((bytes(self._key), component_id.encode())),
-                            component_data,
+        """
+        Load the chunk data if it has not already been loaded.
+        The lock must be acquired in unique mode before calling this.
+        """
+        if not self._chunk_history.has_resource(self._key):
+            # The history system is not aware of the chunk. Load from the level data
+            chunk: Chunk
+            try:
+                raw_chunk = self._get_raw_dimension().get_raw_chunk(self.cx, self.cz)
+                chunk = self._get_raw_dimension().raw_chunk_to_native_chunk(
+                    raw_chunk,
+                    self.cx,
+                    self.cz,
+                )
+            except ChunkDoesNotExist:
+                self._chunk_history.set_initial_resource(self._key, b"")
+            except ChunkLoadError as e:
+                self._chunk_history.set_initial_resource(self._key, pickle.dumps(e))
+            else:
+                self._chunk_history.set_initial_resource(
+                    self._key, pickle.dumps(chunk.chunk_id)
+                )
+                for component_id, component_data in chunk.serialise_chunk().items():
+                    if component_data is None:
+                        raise RuntimeError(
+                            "Component must not be None when initialising chunk"
                         )
+                    self._chunk_data_history.set_initial_resource(
+                        b"/".join((bytes(self._key), component_id.encode())),
+                        component_data,
+                    )
 
     def _get_null_chunk(self) -> ChunkT:
         """Get a null chunk instance used for this chunk.
@@ -259,8 +259,9 @@ class ChunkHandle(
         :param components: None to load all components or an iterable of component strings to load.
         :return: A unique copy of the chunk data.
         """
-        with self._lock.shared():
-            self._preload()
+
+        def get_chunk() -> ChunkT:
+            nonlocal components
             chunk = self._get_null_chunk()
             if components is None:
                 components = chunk.component_ids
@@ -275,40 +276,53 @@ class ChunkHandle(
             chunk.reconstruct_chunk(chunk_components)
             return chunk
 
-    def _set(self, chunk: ChunkT | None) -> None:
-        """Public lock must be acquired before calling this"""
+        # Block if the chunk is locked in unique mode.
+        with self._lock.shared():
+            if self._chunk_history.has_resource(self._key):
+                # Does not need loading from disk.
+                return get_chunk()
+
+        # Acquire the lock in unique mode.
         with self._lock.unique():
-            history = self._chunk_history
-            if not history.has_resource(self._key):
-                if self._l.history_enabled:
-                    self._preload()
-                else:
-                    history.set_initial_resource(self._key, b"")
-            if chunk is None:
-                history.set_resource(self._key, b"")
+            # If it wasn't already loaded by another thread.
+            if not self._chunk_history.has_resource(self._key):
+                # Load it from disk.
+                self._preload()
+
+        with self._lock.shared():
+            # If it was loaded in another thread just read it from the cache.
+            return get_chunk()
+
+    def _set(self, chunk: ChunkT | None) -> None:
+        """lock must be acquired in unique mode before calling this."""
+        history = self._chunk_history
+        if not history.has_resource(self._key):
+            if self._l.history_enabled:
+                self._preload()
             else:
-                self._validate_chunk(chunk)
-                try:
-                    old_chunk_class = self.get_class()
-                except ChunkLoadError:
-                    old_chunk_class = None
-                new_chunk_class = type(chunk)
-                component_data = chunk.serialise_chunk()
-                if (
-                    old_chunk_class != new_chunk_class
-                    and None in component_data.values()
-                ):
-                    raise RuntimeError(
-                        "When changing chunk class all the data must be present."
-                    )
-                history.set_resource(self._key, pickle.dumps(new_chunk_class))
-                for component_id, data in component_data.items():
-                    if data is None:
-                        continue
-                    self._chunk_data_history.set_resource(
-                        b"/".join((bytes(self._key), component_id.encode())),
-                        data,
-                    )
+                history.set_initial_resource(self._key, b"")
+        if chunk is None:
+            history.set_resource(self._key, b"")
+        else:
+            self._validate_chunk(chunk)
+            try:
+                old_chunk_class = self.get_class()
+            except ChunkLoadError:
+                old_chunk_class = None
+            new_chunk_class = type(chunk)
+            component_data = chunk.serialise_chunk()
+            if old_chunk_class != new_chunk_class and None in component_data.values():
+                raise RuntimeError(
+                    "When changing chunk class all the data must be present."
+                )
+            history.set_resource(self._key, pickle.dumps(new_chunk_class))
+            for component_id, data in component_data.items():
+                if data is None:
+                    continue
+                self._chunk_data_history.set_resource(
+                    b"/".join((bytes(self._key), component_id.encode())),
+                    data,
+                )
 
     @staticmethod
     @abstractmethod
@@ -331,7 +345,13 @@ class ChunkHandle(
         self._l.changed.emit()
 
     def delete(self) -> None:
-        """Delete the chunk from the level."""
+        """
+        Delete the chunk from the level.
+        You must acquire the chunk lock before deleting.
+
+        :raises:
+            LockNotAcquired: If the chunk is already locked by another thread.
+        """
         with self._lock.unique(blocking=False):
             self._set(None)
         self.changed.emit()
