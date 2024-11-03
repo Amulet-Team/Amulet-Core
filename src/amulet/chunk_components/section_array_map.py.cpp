@@ -7,7 +7,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
 #include <pybind11/numpy.h>
-#include <amulet/pybind11/numpy.hpp>
+#include <pybind11_extensions/numpy.hpp>
 
 #include <amulet/collections/iterator.py.hpp>
 #include <amulet/collections/mapping.py.hpp>
@@ -228,7 +228,7 @@ void init_section_array_map(py::module section_array_map_module) {
     );
     SectionArrayMap.def(
         "__getitem__",
-        [asarray](const Amulet::SectionArrayMap& self, std::int64_t cy) -> Amulet::pybind11::numpy::array_t<std::uint32_t> {
+        [asarray](const Amulet::SectionArrayMap& self, std::int64_t cy) -> pybind11_extensions::numpy::array_t<std::uint32_t> {
             try {
                 return asarray(py::cast(self.get_section(cy)));
             }
@@ -256,14 +256,14 @@ void init_section_array_map(py::module section_array_map_module) {
         &Amulet::SectionArrayMap::contains_section
     );
     Amulet::collections::PyMapping_keys<std::int64_t>(SectionArrayMap);
-    Amulet::collections::PyMapping_values<Amulet::pybind11::numpy::array_t<std::uint32_t>>(SectionArrayMap);
-    Amulet::collections::PyMapping_items<std::int64_t, Amulet::pybind11::numpy::array_t<std::uint32_t>>(SectionArrayMap);
-    Amulet::collections::PyMapping_get<std::int64_t, Amulet::pybind11::numpy::array_t<std::uint32_t>>(SectionArrayMap);
+    Amulet::collections::PyMapping_values<pybind11_extensions::numpy::array_t<std::uint32_t>>(SectionArrayMap);
+    Amulet::collections::PyMapping_items<std::int64_t, pybind11_extensions::numpy::array_t<std::uint32_t>>(SectionArrayMap);
+    Amulet::collections::PyMapping_get<std::int64_t, pybind11_extensions::numpy::array_t<std::uint32_t>>(SectionArrayMap);
     Amulet::collections::PyMapping_eq(SectionArrayMap);
     Amulet::collections::PyMapping_hash(SectionArrayMap);
-    Amulet::collections::PyMutableMapping_pop<std::int64_t, Amulet::pybind11::numpy::array_t<std::uint32_t>>(SectionArrayMap);
-    Amulet::collections::PyMutableMapping_popitem<std::int64_t, Amulet::pybind11::numpy::array_t<std::uint32_t>>(SectionArrayMap);
+    Amulet::collections::PyMutableMapping_pop<std::int64_t, pybind11_extensions::numpy::array_t<std::uint32_t>>(SectionArrayMap);
+    Amulet::collections::PyMutableMapping_popitem<std::int64_t, pybind11_extensions::numpy::array_t<std::uint32_t>>(SectionArrayMap);
     Amulet::collections::PyMutableMapping_update(SectionArrayMap);
-    Amulet::collections::PyMutableMapping_setdefault<std::int64_t, Amulet::pybind11::numpy::array_t<std::uint32_t>>(SectionArrayMap);
+    Amulet::collections::PyMutableMapping_setdefault<std::int64_t, pybind11_extensions::numpy::array_t<std::uint32_t>>(SectionArrayMap);
     Amulet::collections::PyMutableMapping_register(SectionArrayMap);
 }

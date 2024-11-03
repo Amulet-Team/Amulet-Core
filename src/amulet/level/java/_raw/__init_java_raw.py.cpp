@@ -3,7 +3,7 @@
 #include <map>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <amulet/pybind11/py_module.hpp>
+#include <pybind11_extensions/py_module.hpp>
 #include "java_chunk_decode.hpp"
 #include "java_chunk_encode.hpp"
 namespace py = pybind11;
@@ -12,7 +12,7 @@ void init_java_chunk_decode(py::module);
 void init_java_chunk_encode(py::module);
 
 void init_java_raw(py::module m_parent) {
-    auto m = py::def_subpackage(m_parent, "_raw");
+    auto m = pybind11_extensions::def_subpackage(m_parent, "_raw");
 
     auto m_chunk = m.def_submodule("_chunk");
     m_chunk.def(

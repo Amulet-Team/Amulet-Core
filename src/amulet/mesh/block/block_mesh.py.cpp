@@ -6,15 +6,15 @@
 #include <pybind11/typing.h>
 
 #include "block_mesh.hpp"
-#include <amulet/pybind11/collections.hpp>
-#include <amulet/pybind11/py_module.hpp>
+#include <pybind11_extensions/collections.hpp>
+#include <pybind11_extensions/py_module.hpp>
 
 namespace py = pybind11;
 
 void init_block_mesh(py::module m_parent)
 {
-    auto m_mesh = py::def_subpackage(m_parent, "mesh");
-    auto m = py::def_subpackage(m_mesh, "block");
+    auto m_mesh = pybind11_extensions::def_subpackage(m_parent, "mesh");
+    auto m = pybind11_extensions::def_subpackage(m_mesh, "block");
 
     // FloatVec2
     py::class_<Amulet::FloatVec2> FloatVec2(m, "FloatVec2",
@@ -138,7 +138,7 @@ void init_block_mesh(py::module m_parent)
     BlockMesh.def("rotate", &Amulet::BlockMesh::rotate, py::arg("rotx"), py::arg("roty"), py::doc("Rotate the mesh in the x and y axis. Accepted values are -3 to 3 which corrospond to 90 degree rotations."));
 
     m.def(
-        "merge_block_meshes", [](Amulet::pybind11::collections::Sequence<Amulet::BlockMesh> py_meshes) {
+        "merge_block_meshes", [](pybind11_extensions::collections::abc::Sequence<Amulet::BlockMesh> py_meshes) {
             std::vector<std::reference_wrapper<const Amulet::BlockMesh>> meshes;
             for (auto py_mesh : py_meshes) {
                 const auto& mesh = py_mesh.cast<const Amulet::BlockMesh&>();

@@ -2,7 +2,7 @@
 // Better type hinting for equality methods that pybind11 has natively
 
 #include <variant>
-#include <amulet/pybind11/types.hpp>
+#include <pybind11_extensions/types.hpp>
 
 #include <pybind11/pybind11.h>
 
@@ -30,7 +30,7 @@ void Eq_default(clsT cls) {
     py::object NotImplemented = py::module::import("builtins").attr("NotImplemented");
     cls.def(
         "__eq__",
-        [NotImplemented](const typename clsT::type& self, py::object other) -> std::variant<bool, Amulet::pybind11::types::NotImplementedType> {
+        [NotImplemented](const typename clsT::type& self, py::object other) -> std::variant<bool, pybind11_extensions::types::NotImplementedType> {
             return NotImplemented;
         }
     );

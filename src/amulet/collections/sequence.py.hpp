@@ -6,7 +6,7 @@
 
 #include <pybind11/pybind11.h>
 #include "iterator.py.hpp"
-#include <amulet/pybind11/collections.hpp>
+#include <pybind11_extensions/collections.hpp>
 
 namespace py = pybind11;
 
@@ -54,7 +54,7 @@ namespace Amulet {
 		void Sequence_iter(clsT cls) {
 			cls.def(
 				"__iter__",
-				[](py::object self) -> Amulet::pybind11::collections::Iterator<elemT> {
+				[](py::object self) -> pybind11_extensions::collections::abc::Iterator<elemT> {
 					return py::cast(
 						static_cast<std::shared_ptr<Amulet::collections::Iterator>>(
 							std::make_shared<PySequenceIterator>(self, 0, 1)
@@ -68,7 +68,7 @@ namespace Amulet {
 		void Sequence_reversed(clsT cls) {
 			cls.def(
 				"__reversed__",
-				[](py::object self) -> Amulet::pybind11::collections::Iterator<elemT> {
+				[](py::object self) -> pybind11_extensions::collections::abc::Iterator<elemT> {
 					return py::cast(
 						static_cast<std::shared_ptr<Amulet::collections::Iterator>>(
 							std::make_shared<PySequenceIterator>(self, py::len(self) - 1, -1)

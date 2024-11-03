@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include <pybind11/pybind11.h>
+#include <pybind11_extensions/builtins.hpp>
 
 #include <amulet_nbt/tag/named_tag.hpp>
 
@@ -14,8 +15,8 @@ namespace py = pybind11;
 
 namespace Amulet {
 	std::map<std::string, AmuletNBT::NamedTag> encode_java_chunk(
-		py::object raw_level,
-		py::object dimension,
+		pybind11_extensions::PyObjectStr<"amulet.level.abc.Level"> raw_level,
+		pybind11_extensions::PyObjectStr<"amulet.level.abc.Dimension"> dimension,
 		std::shared_ptr<Amulet::JavaChunk> chunk,
 		std::int64_t cx,
 		std::int64_t cz
