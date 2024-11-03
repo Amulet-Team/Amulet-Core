@@ -3,7 +3,7 @@ from __future__ import annotations
 import pickle
 from typing import Optional, TYPE_CHECKING, Generic, TypeVar, Callable, Self
 from collections.abc import Iterator, Iterable
-from contextlib import contextmanager
+from contextlib import contextmanager, AbstractContextManager as ContextManager
 from threading import RLock
 from abc import ABC, abstractmethod
 
@@ -111,13 +111,12 @@ class ChunkHandle(
             self._raw_dimension = self._l.raw.get_dimension(self.dimension_id)
         return self._raw_dimension
 
-    @contextmanager
     def lock(
         self,
         *,
         blocking: bool = True,
         timeout: float = -1,
-    ) -> Iterator[None]:
+    ) -> ContextManager[None]:
         """
         Lock access to the chunk.
 
@@ -236,7 +235,7 @@ class ChunkHandle(
             elif isinstance(obj, str):
                 return get_null_chunk(obj)  # type: ignore
             else:
-                raise RuntimeError
+                raise RuntimeError(obj)
         else:
             raise ChunkDoesNotExist
 
@@ -315,7 +314,7 @@ class ChunkHandle(
                 raise RuntimeError(
                     "When changing chunk class all the data must be present."
                 )
-            history.set_resource(self._key, pickle.dumps(new_chunk_class))
+            history.set_resource(self._key, pickle.dumps(chunk.chunk_id))
             for component_id, data in component_data.items():
                 if data is None:
                     continue
