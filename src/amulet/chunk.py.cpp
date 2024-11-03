@@ -22,8 +22,13 @@ void init_chunk(py::module m_parent) {
             &Amulet::Chunk::get_component_ids
         );
         auto py_serialise = [](const Amulet::Chunk& self) -> py::typing::Dict<py::str, py::typing::Optional<py::bytes>> {
+            Amulet::SerialisedComponents chunk_data;
+            {;
+                py::gil_scoped_release gil;
+                chunk_data = self.serialise_chunk();
+            }
             py::dict data;
-            for (const auto& [k, v] : self.serialise_chunk()) {
+            for (const auto& [k, v] : chunk_data) {
                 if (v) {
                     data[py::str(k)] = py::bytes(v.value());
                 }
@@ -48,7 +53,10 @@ void init_chunk(py::module m_parent) {
                     component_data[k.cast<std::string>()] = v.cast<std::string>();
                 }
             }
-            self.reconstruct_chunk(component_data);
+            {
+                py::gil_scoped_release gil;
+                self.reconstruct_chunk(component_data);
+            }
         };
         Chunk.def(
             "reconstruct_chunk",
