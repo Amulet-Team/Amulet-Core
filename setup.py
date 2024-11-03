@@ -4,6 +4,7 @@ import sysconfig
 from distutils import ccompiler
 import sys
 import pybind11
+import pybind11_extensions
 import glob
 import os
 import amulet_nbt
@@ -44,6 +45,7 @@ setup(
             sources=glob.glob("src/**/*.cpp", recursive=True),
             include_dirs=[
                 pybind11.get_include(),
+                pybind11_extensions.get_include(),
                 amulet_nbt.get_include(),
                 "src",
             ],

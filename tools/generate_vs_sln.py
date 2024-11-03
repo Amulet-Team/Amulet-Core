@@ -7,6 +7,7 @@ import uuid
 from dataclasses import dataclass, field
 from enum import Enum
 import pybind11
+import pybind11_extensions
 import sys
 import glob
 import sysconfig
@@ -467,6 +468,7 @@ def main() -> None:
         include_dirs=[
             PythonIncludeDir,
             pybind11.get_include(),
+            pybind11_extensions.get_include(),
             os.path.join(amulet_nbt_path, "include"),
         ],
         library_dirs=[
@@ -490,6 +492,7 @@ def main() -> None:
         include_dirs=[
             PythonIncludeDir,
             pybind11.get_include(),
+            pybind11_extensions.get_include(),
             os.path.join(amulet_nbt_path, "include"),
             SrcDir,
         ],

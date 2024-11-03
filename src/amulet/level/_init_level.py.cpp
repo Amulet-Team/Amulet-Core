@@ -1,12 +1,12 @@
 #include <string>
 #include <pybind11/pybind11.h>
-#include <amulet/pybind11/py_module.hpp>
+#include <pybind11_extensions/py_module.hpp>
 namespace py = pybind11;
 
 py::module init_java(py::module);
 
 void init_level(py::module m_parent) {
-    auto m = py::def_subpackage(m_parent, "level");
+    auto m = pybind11_extensions::def_subpackage(m_parent, "level");
 
     m.attr("Level") = py::module::import("amulet.level.abc").attr("Level");
 

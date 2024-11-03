@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #include <pybind11/pybind11.h>
+#include <pybind11_extensions/builtins.hpp>
 
 #include <amulet_nbt/tag/named_tag.hpp>
 #include <amulet_nbt/tag/compound.hpp>
@@ -466,8 +467,8 @@ namespace Amulet {
 	}
 
 	std::shared_ptr<JavaChunk> decode_java_chunk(
-		py::object raw_level,
-		py::object dimension,
+        pybind11_extensions::PyObjectStr<"amulet.level.abc.Level"> raw_level,
+        pybind11_extensions::PyObjectStr<"amulet.level.abc.Dimension"> dimension,
 		std::map<std::string, NamedTag>& raw_chunk,
 		std::int64_t cx,
 		std::int64_t cz

@@ -8,7 +8,7 @@
 
 #include <amulet/collections/sequence.py.hpp>
 #include <amulet/collections/eq.py.hpp>
-#include <amulet/pybind11/types.hpp>
+#include <pybind11_extensions/types.hpp>
 #include <amulet/block.hpp>
 
 namespace py = pybind11;

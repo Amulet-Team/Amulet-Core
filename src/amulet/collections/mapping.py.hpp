@@ -5,9 +5,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/typing.h>
 
-#include <amulet/pybind11/types.hpp>
-#include <amulet/pybind11/type_hints.hpp>
-#include <amulet/pybind11/collections.hpp>
+#include <pybind11_extensions/types.hpp>
+#include <pybind11_extensions/builtins.hpp>
+#include <pybind11_extensions/collections.hpp>
 #include "iterator.py.hpp"
 
 namespace py = pybind11;
@@ -42,7 +42,7 @@ namespace collections {
 	void PyMapping_contains(clsT cls) {
 		cls.def(
 			"__contains__",
-			[](py::object self, Amulet::pybind11::type_hints::PyObjectCpp<KT> key) {
+			[](py::object self, pybind11_extensions::PyObjectCpp<KT> key) {
 				try {
 					self.attr("__getitem__")(key);
 					return true;
@@ -64,7 +64,7 @@ namespace collections {
 		py::object KeysView = py::module::import("collections.abc").attr("KeysView");
 		cls.def(
 			"keys",
-			[KeysView](py::object self) -> Amulet::pybind11::collections::KeysView<KT> { return KeysView(self); }
+			[KeysView](py::object self) -> pybind11_extensions::collections::abc::KeysView<KT> { return KeysView(self); }
 		);
 	}
 
@@ -73,7 +73,7 @@ namespace collections {
 		py::object ValuesView = py::module::import("collections.abc").attr("ValuesView");
 		cls.def(
 			"values",
-			[ValuesView](py::object self) -> Amulet::pybind11::collections::ValuesView<VT> { return ValuesView(self); }
+			[ValuesView](py::object self) -> pybind11_extensions::collections::abc::ValuesView<VT> { return ValuesView(self); }
 		);
 	}
 
@@ -82,7 +82,7 @@ namespace collections {
 		py::object ItemsView = py::module::import("collections.abc").attr("ItemsView");
 		cls.def(
 			"items",
-			[ItemsView](py::object self) -> Amulet::pybind11::collections::ItemsView<KT, VT> { return ItemsView(self); }
+			[ItemsView](py::object self) -> pybind11_extensions::collections::abc::ItemsView<KT, VT> { return ItemsView(self); }
 		);
 	}
 
@@ -92,7 +92,7 @@ namespace collections {
 			"get",
 			[](
 				py::object self, 
-				Amulet::pybind11::type_hints::PyObjectCpp<KT> key, 
+				pybind11_extensions::PyObjectCpp<KT> key,
 				py::typing::Optional<VT> default_ = py::none()
 			) -> py::typing::Optional<VT> {
 				try {
@@ -126,7 +126,7 @@ namespace collections {
 			](
 				py::object self, 
 				py::object other
-			) -> std::variant<bool, Amulet::pybind11::types::NotImplementedType> {
+			) -> std::variant<bool, pybind11_extensions::types::NotImplementedType> {
 				if (!isinstance(other, PyMapping)) {
 					return NotImplemented;
 				}

@@ -17,9 +17,9 @@ namespace collections {
 			"pop",
 			[marker](
 				py::object self, 
-				Amulet::pybind11::type_hints::PyObjectCpp<KT> key, 
-				Amulet::pybind11::type_hints::PyObjectCpp<VT> default_
-			) -> Amulet::pybind11::type_hints::PyObjectCpp<VT> {
+				pybind11_extensions::PyObjectCpp<KT> key,
+				pybind11_extensions::PyObjectCpp<VT> default_
+			) -> pybind11_extensions::PyObjectCpp<VT> {
 				py::object value;
 				try {
 					value = self.attr("__getitem__")(key);
@@ -50,8 +50,8 @@ namespace collections {
 		cls.def(
 			"popitem",
 			[iter, next](py::object self) -> std::pair<
-				Amulet::pybind11::type_hints::PyObjectCpp<KT>,
-				Amulet::pybind11::type_hints::PyObjectCpp<VT>
+				pybind11_extensions::PyObjectCpp<KT>,
+				pybind11_extensions::PyObjectCpp<VT>
 			> {
 				py::object key;
 				try {
@@ -145,7 +145,7 @@ namespace collections {
 			"setdefault",
 			[](
 				py::object self, 
-				Amulet::pybind11::type_hints::PyObjectCpp<KT> key,
+				pybind11_extensions::PyObjectCpp<KT> key,
 				py::typing::Optional<VT> default_ = py::none()
 			) -> py::typing::Optional<VT> {
 				try {
