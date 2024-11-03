@@ -63,29 +63,17 @@ class BlockMesh:
         The mesh parts that make up this mesh. The index corrosponds to the value of BlockMeshCullDirection.
         """
 
-    @parts.setter
-    def parts(
-        self,
-        arg0: typing.Annotated[
-            list[BlockMeshPart | None], pybind11_stubgen.typing_ext.FixedSize(7)
-        ],
-    ) -> None: ...
     @property
     def textures(self) -> list[str]:
         """
         The texture paths used in this block mesh. The Triangle's texture_index attribute is an index into this list.
         """
 
-    @textures.setter
-    def textures(self, arg0: list[str]) -> None: ...
     @property
     def transparency(self) -> BlockMeshTransparency:
         """
         The transparency state of this block mesh.
         """
-
-    @transparency.setter
-    def transparency(self, arg0: BlockMeshTransparency) -> None: ...
 
 class BlockMeshCullDirection:
     """
@@ -168,16 +156,11 @@ class BlockMeshPart:
         The triangles in this block mesh part.
         """
 
-    @triangles.setter
-    def triangles(self, arg0: list[Triangle]) -> None: ...
     @property
     def verts(self) -> list[Vertex]:
         """
         The vertices in this block mesh part.
         """
-
-    @verts.setter
-    def verts(self, arg0: list[Vertex]) -> None: ...
 
 class BlockMeshTransparency:
     """
@@ -226,29 +209,30 @@ class FloatVec2:
     A 2D floating point vector
     """
 
-    x: float
-    y: float
     def __init__(self, x: float, y: float) -> None: ...
+    @property
+    def x(self) -> float: ...
+    @property
+    def y(self) -> float: ...
 
 class FloatVec3:
     """
     A 3D floating point vector
     """
 
-    x: float
-    y: float
-    z: float
     def __init__(self, x: float, y: float, z: float) -> None: ...
+    @property
+    def x(self) -> float: ...
+    @property
+    def y(self) -> float: ...
+    @property
+    def z(self) -> float: ...
 
 class Triangle:
     """
     The vertex and texture indexes that make up a triangle.
     """
 
-    texture_index: int
-    vert_index_a: int
-    vert_index_b: int
-    vert_index_c: int
     def __init__(
         self,
         vert_index_a: int,
@@ -256,6 +240,14 @@ class Triangle:
         vert_index_c: int,
         texture_index: int,
     ) -> None: ...
+    @property
+    def texture_index(self) -> int: ...
+    @property
+    def vert_index_a(self) -> int: ...
+    @property
+    def vert_index_b(self) -> int: ...
+    @property
+    def vert_index_c(self) -> int: ...
 
 class Vertex:
     """
@@ -271,24 +263,17 @@ class Vertex:
         The spatial coordinate of the vertex.
         """
 
-    @coord.setter
-    def coord(self, arg0: FloatVec3) -> None: ...
     @property
     def texture_coord(self) -> FloatVec2:
         """
         The texture coordinate of the vertex.
         """
 
-    @texture_coord.setter
-    def texture_coord(self, arg0: FloatVec2) -> None: ...
     @property
     def tint(self) -> FloatVec3:
         """
         The tint colour for the vertex.
         """
-
-    @tint.setter
-    def tint(self, arg0: FloatVec3) -> None: ...
 
 def merge_block_meshes(meshes: collections.abc.Sequence[BlockMesh]) -> BlockMesh:
     """
