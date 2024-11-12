@@ -5,10 +5,13 @@ from threading import Lock
 from typing import Sequence, Protocol, TypeVar, Generic, Mapping, Any
 from weakref import WeakSet, WeakValueDictionary
 from collections.abc import MutableMapping
+import os
+
+from leveldb import LevelDB
 
 from amulet.utils.signal import Signal, SignalInstanceCacheName
 
-from ._cache import GlobalDiskCache
+from ._cache import TempDir
 
 # TODO: consider adding a max undo option
 # TODO: if we clear old undo info we should remove that data from the cache
@@ -53,7 +56,7 @@ class HistoryManagerPrivate:
     history: list[WeakSet[Resource]]
     history_index: int
     has_redo: bool
-    cache: GlobalDiskCache
+    db: LevelDB
 
     def __init__(self) -> None:
         self.lock = Lock()
@@ -61,7 +64,11 @@ class HistoryManagerPrivate:
         self.history = [WeakSet()]
         self.history_index = 0
         self.has_redo = False
-        self.cache = GlobalDiskCache.instance()
+        self._db_path = TempDir("level_data")
+        self.db = LevelDB(os.path.join(self._db_path, "history_db"))
+
+    def __del__(self) -> None:
+        self.db.close()
 
     def invalidate_future(self) -> None:
         """Destroy all future redo bins. Caller must acquire the lock"""
@@ -240,7 +247,7 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
         with self._h.lock:
             resource = self._resources[resource_id]
             if resource.exists[resource.index]:
-                return self._h.cache[resource.get_resource_key(self._uuid, resource_id)]
+                return self._h.db[resource.get_resource_key(self._uuid, resource_id)]
             else:
                 return b""
 
@@ -257,8 +264,8 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
                 raise RuntimeError("Resource already exists")
             resource = self._resources[resource_id] = Resource()
             if data:
-                # Save the data to the cache if it exists
-                self._h.cache[resource.get_resource_key(self._uuid, resource_id)] = data
+                # Save the data to the database if it exists
+                self._h.db[resource.get_resource_key(self._uuid, resource_id)] = data
             # Store a flag if it exists
             resource.exists[resource.index] = bool(data)
 
@@ -282,8 +289,8 @@ class HistoryManagerLayer(Generic[ResourceIdT]):
                 # The saved index has been directly modified
                 resource.saved_index = -1
             if data:
-                # Save the data to the cache if it exists
-                self._h.cache[resource.get_resource_key(self._uuid, resource_id)] = data
+                # Save the data to the database if it exists
+                self._h.db[resource.get_resource_key(self._uuid, resource_id)] = data
             # Store a flag if it exists
             resource.exists[resource.index] = bool(data)
             if self._h.history_index:
