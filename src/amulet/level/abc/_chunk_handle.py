@@ -1,30 +1,24 @@
 from __future__ import annotations
 
 import pickle
-from typing import Optional, TYPE_CHECKING, Generic, TypeVar, Callable, Self
+from typing import Optional, TYPE_CHECKING, Callable, Self
 from collections.abc import Iterator, Iterable
 from contextlib import contextmanager, AbstractContextManager as ContextManager
-from threading import RLock
 from abc import ABC, abstractmethod
 
-from amulet.utils.shareable_lock import LockNotAcquired
 from amulet.chunk import Chunk, get_null_chunk
 from amulet.data_types import DimensionId
 from amulet.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.utils.signal import Signal
 from amulet.utils.shareable_lock import ShareableRLock
 
-from ._level import LevelFriend, LevelT
+from ._level import LevelFriend
 from ._history import HistoryManagerLayer
 
 
 if TYPE_CHECKING:
     from ._level import Level
     from ._raw_level import RawDimension
-
-
-ChunkT = TypeVar("ChunkT", bound=Chunk)
-RawDimensionT = TypeVar("RawDimensionT", bound="RawDimension")
 
 
 class ChunkKey(tuple[int, int]):
@@ -48,11 +42,7 @@ class ChunkKey(tuple[int, int]):
         return self._bytes
 
 
-class ChunkHandle(
-    LevelFriend[LevelT],
-    ABC,
-    Generic[LevelT, RawDimensionT, ChunkT],
-):
+class ChunkHandle(LevelFriend, ABC):
     """
     A class which manages chunk data.
     You must acquire the lock for the chunk before reading or writing data.
@@ -64,7 +54,7 @@ class ChunkHandle(
     _key: ChunkKey
     _chunk_history: HistoryManagerLayer[ChunkKey]
     _chunk_data_history: HistoryManagerLayer[bytes]
-    _raw_dimension: Optional[RawDimensionT]
+    _raw_dimension: Optional[RawDimension]
 
     __slots__ = (
         "_lock",
@@ -77,7 +67,7 @@ class ChunkHandle(
 
     def __init__(
         self,
-        level_ref: Callable[[], LevelT | None],
+        level_ref: Callable[[], Level | None],
         chunk_history: HistoryManagerLayer[ChunkKey],
         chunk_data_history: HistoryManagerLayer[bytes],
         dimension_id: DimensionId,
@@ -106,7 +96,7 @@ class ChunkHandle(
     def cz(self) -> int:
         return self._key.cz
 
-    def _get_raw_dimension(self) -> RawDimensionT:
+    def _get_raw_dimension(self) -> RawDimension:
         if self._raw_dimension is None:
             self._raw_dimension = self._l.raw.get_dimension(self.dimension_id)
         return self._raw_dimension
@@ -144,7 +134,7 @@ class ChunkHandle(
         components: Iterable[str] | None = None,
         blocking: bool = True,
         timeout: float = -1,
-    ) -> Iterator[ChunkT | None]:
+    ) -> Iterator[Chunk | None]:
         """Lock and edit a chunk.
 
         If you only want to access/modify parts of the chunk data you can specify the components you want to load.
@@ -221,7 +211,7 @@ class ChunkHandle(
                         component_data,
                     )
 
-    def _get_null_chunk(self) -> ChunkT:
+    def _get_null_chunk(self) -> Chunk:
         """Get a null chunk instance used for this chunk.
 
         :raises:
@@ -239,7 +229,7 @@ class ChunkHandle(
         else:
             raise ChunkDoesNotExist
 
-    def get_class(self) -> type[ChunkT]:
+    def get_class(self) -> type[Chunk]:
         """Get the chunk class used for this chunk.
 
         :raises:
@@ -247,7 +237,7 @@ class ChunkHandle(
         """
         return type(self._get_null_chunk())
 
-    def get(self, components: Iterable[str] | None = None) -> ChunkT:
+    def get(self, components: Iterable[str] | None = None) -> Chunk:
         """Get a unique copy of the chunk data.
 
         If you want to edit the chunk, use :meth:`edit` instead.
@@ -259,7 +249,7 @@ class ChunkHandle(
         :return: A unique copy of the chunk data.
         """
 
-        def get_chunk() -> ChunkT:
+        def get_chunk() -> Chunk:
             nonlocal components
             chunk = self._get_null_chunk()
             if components is None:
@@ -292,7 +282,7 @@ class ChunkHandle(
             # If it was loaded in another thread just read it from the cache.
             return get_chunk()
 
-    def _set(self, chunk: ChunkT | None) -> None:
+    def _set(self, chunk: Chunk | None) -> None:
         """lock must be acquired in unique mode before calling this."""
         history = self._chunk_history
         if not history.has_resource(self._key):
@@ -325,10 +315,10 @@ class ChunkHandle(
 
     @staticmethod
     @abstractmethod
-    def _validate_chunk(chunk: ChunkT) -> None:
+    def _validate_chunk(chunk: Chunk) -> None:
         raise NotImplementedError
 
-    def set(self, chunk: ChunkT) -> None:
+    def set(self, chunk: Chunk) -> None:
         """
         Overwrite the chunk data.
         You must acquire the chunk lock before setting.
