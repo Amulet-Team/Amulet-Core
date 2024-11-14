@@ -72,7 +72,7 @@ private:
     std::set<Sector, SectorStartSort> _reserved;
 
 public:
-    SectorManager(size_t start, size_t stop, bool resizable = true)
+    SectorManager(size_t start = 0, size_t stop = 0, bool resizable = true)
         : _stop(stop)
         , _resizable(resizable)
     {
