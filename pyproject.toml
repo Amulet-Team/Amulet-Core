@@ -5,6 +5,6 @@ requires = [
     "versioneer",
     "pybind11 ~= 2.12",
     "Amulet-pybind11-extensions @ git+https://github.com/Amulet-Team/Amulet-pybind11-extensions.git@4d7292f3090bb739a55f8377c8f096d134910720",
-    "amulet_nbt ~= 4.0a6"
+    "amulet_nbt ~= 4.0a7"
 ]
 build-backend = "setuptools.build_meta"

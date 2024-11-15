@@ -8,6 +8,7 @@
 #include <functional>
 #include <stdexcept>
 #include <memory>
+#include <string_view>
 
 #include <amulet_nbt/io/binary_reader.hpp>
 
@@ -20,7 +21,7 @@ namespace Amulet {
         BinaryReader(
             const std::string& input,
             size_t& position
-        ) : AmuletNBT::BinaryReader(input, position, std::endian::little, [](const std::string& value) {return value; }) {}
+        ) : AmuletNBT::BinaryReader(input, position, std::endian::little, [](std::string_view value) {return std::string(value); }) {}
 
         std::string readSizeAndBytes() {
             std::uint64_t length;
@@ -30,9 +31,9 @@ namespace Amulet {
                 throw std::out_of_range("Cannot read string of length " + std::to_string(length) + " at position " + std::to_string(position));
             }
 
-            std::string value = data.substr(position, length);
+            std::string_view value = data.substr(position, length);
             position += length;
-            return value;
+            return std::string(value);
         }
     };
 
