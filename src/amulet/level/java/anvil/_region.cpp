@@ -1,10 +1,10 @@
+#include <algorithm>
+#include <bit>
+#include <fstream>
 #include <regex>
 #include <stdexcept>
-#include <fstream>
-#include <vector>
-#include <bit>
-#include <algorithm>
 #include <string_view>
+#include <vector>
 
 #include <amulet_nbt/nbt_encoding/binary.hpp>
 
@@ -32,7 +32,7 @@ AnvilRegion::AnvilRegion(
     const std::string& file_name,
     std::int64_t rx,
     std::int64_t rz,
-    bool mcc = false)
+    bool mcc)
     : _dir(directory)
     , _path(directory / file_name)
     , _rx(rx)
@@ -45,7 +45,7 @@ AnvilRegion::AnvilRegion(
     const std::filesystem::path& directory,
     const std::string& file_name,
     const std::pair<std::int64_t, std::int64_t>& region_coordinate,
-    bool mcc = false)
+    bool mcc)
     : AnvilRegion(
         directory,
         file_name,
@@ -59,7 +59,7 @@ AnvilRegion::AnvilRegion(
     const std::filesystem::path& directory,
     std::int64_t rx,
     std::int64_t rz,
-    bool mcc = false)
+    bool mcc)
     : AnvilRegion(
         directory,
         "r." + std::to_string(rx) + "." + std::to_string(rz) + ".mca",
@@ -67,7 +67,7 @@ AnvilRegion::AnvilRegion(
 {
 }
 
-AnvilRegion::AnvilRegion(std::filesystem::path path, bool mcc = false)
+AnvilRegion::AnvilRegion(std::filesystem::path path, bool mcc)
     : AnvilRegion(
         path.parent_path(),
         path.filename().string(),
@@ -84,7 +84,8 @@ std::filesystem::path AnvilRegion::path() const
 std::int64_t AnvilRegion::rx() const { return _rx; }
 std::int64_t AnvilRegion::rz() const { return _rz; }
 
-static void sanitise_file(const std::filesystem::path& path) {
+static void sanitise_file(const std::filesystem::path& path)
+{
     auto size = std::filesystem::file_size(path);
     if (size & 0xFFF) {
         // ensure the file is a multiple of 4096 bytes
@@ -126,31 +127,34 @@ void AnvilRegion::load()
             }
         }
         for (size_t cx = 0; cx < 32; cx++) {
-            for (size_t cz = 0; cz < 32; cz++) { 
+            for (size_t cz = 0; cz < 32; cz++) {
                 const auto& sector_data = location_table[cx * 32 + cz];
                 if (sector_data) {
                     size_t sector_offset = (sector_data >> 8) * 0x1000;
                     size_t sector_size = (sector_data & 0xFF) * 0x1000;
                     Sector sector(sector_offset, sector_offset + sector_size);
                     _sector_manager->reserve(sector);
-                    _chunk_locations[std::make_pair(
-                        cx + _rx * 32, cz + _rz * 32
-                    )] = sector;
+                    _chunk_locations.emplace(std::make_pair(
+                        std::make_pair(
+                            cx + _rx * 32, cz + _rz * 32),
+                        sector));
                 }
             }
         }
     }
 }
 
-void AnvilRegion::all_coords();
+// void AnvilRegion::all_coords();
 
-bool AnvilRegion::has_data(std::uint8_t cx, std::uint8_t cz) {
-    std::lock_guard(mutex);
+bool AnvilRegion::has_data(std::uint8_t cx, std::uint8_t cz)
+{
+    std::lock_guard lock(mutex);
     load();
     return _chunk_locations.contains(std::make_pair(cx, cz));
 };
 
-static AmuletNBT::NamedTag decompress(char compression_type, const std::string_view& data) {
+static AmuletNBT::NamedTag decompress(char compression_type, const std::string_view& data)
+{
     switch (compression_type) {
     case 1: // GZIP
     case 2: // Deflate
@@ -159,11 +163,12 @@ static AmuletNBT::NamedTag decompress(char compression_type, const std::string_v
     default:
         throw std::runtime_error("Unknown chunk compression format " + std::to_string(static_cast<std::int16_t>(compression_type)));
     }
-    AmuletNBT::read_nbt();
+    // AmuletNBT::read_nbt();
 }
 
-AmuletNBT::NamedTag AnvilRegion::get_data(std::uint8_t cx, std::uint8_t cz) {
-    std::lock_guard(mutex);
+AmuletNBT::NamedTag AnvilRegion::get_data(std::uint8_t cx, std::uint8_t cz)
+{
+    std::lock_guard lock(mutex);
     load();
     auto it = _chunk_locations.find(std::make_pair(cx, cz));
     if (it == _chunk_locations.end()) {
@@ -212,20 +217,23 @@ AmuletNBT::NamedTag AnvilRegion::get_data(std::uint8_t cx, std::uint8_t cz) {
     }
 };
 
-void AnvilRegion::set_data(std::uint8_t cx, std::uint8_t cz, const AmuletNBT::NamedTag& tag) {
-    std::lock_guard(mutex);
+void AnvilRegion::set_data(std::uint8_t cx, std::uint8_t cz, const AmuletNBT::NamedTag& tag)
+{
+    std::lock_guard lock(mutex);
     load();
     throw std::runtime_error("NotImplemented");
 };
 
-void AnvilRegion::delete_data(std::uint8_t cx, std::uint8_t cz) {
-    std::lock_guard(mutex);
+void AnvilRegion::delete_data(std::uint8_t cx, std::uint8_t cz)
+{
+    std::lock_guard lock(mutex);
     load();
     throw std::runtime_error("NotImplemented");
 };
 
-void AnvilRegion::compact() {
-    std::lock_guard(mutex);
+void AnvilRegion::compact()
+{
+    std::lock_guard lock(mutex);
     load();
     throw std::runtime_error("NotImplemented");
 };
