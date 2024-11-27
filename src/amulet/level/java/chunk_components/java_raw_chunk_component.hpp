@@ -6,7 +6,10 @@
 #include <stdexcept>
 #include <memory>
 #include <map>
+
 #include <amulet_nbt/tag/named_tag.hpp>
+
+#include <amulet/dll.hpp>
 
 
 namespace Amulet {
@@ -17,22 +20,22 @@ namespace Amulet {
 		std::optional<std::shared_ptr<JavaRawChunkType>> _raw_data;
 	protected:
 		// Null constructor
-		JavaRawChunkComponent() {};
+		JavaRawChunkComponent() {}
 		// Default constructor
 		void init(std::shared_ptr<JavaRawChunkType> raw_data) { _raw_data = raw_data; }
 		void init() { _raw_data = std::make_shared<JavaRawChunkType>(); }
 		// Serialise the component data
-		std::optional<std::string> serialise() const;
+		AMULET_CORE_DLLX std::optional<std::string> serialise() const;
 		// Deserialise the component
-		void deserialise(std::optional<std::string>);
+		AMULET_CORE_DLLX void deserialise(std::optional<std::string>);
 	public:
-		static const std::string ComponentID;
+		AMULET_CORE_DLLX static const std::string ComponentID;
 		std::shared_ptr<JavaRawChunkType> get_raw_data() {
 			if (_raw_data) {
 				return *_raw_data;
 			}
 			throw std::runtime_error("JavaRawChunkComponent has not been loaded.");
-		};
+		}
 		void set_raw_data(std::shared_ptr<JavaRawChunkType> raw_data) {
 			if (_raw_data) {
 				_raw_data = raw_data;

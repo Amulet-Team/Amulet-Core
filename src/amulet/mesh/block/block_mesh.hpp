@@ -9,6 +9,8 @@
 #include <vector>
 #include <functional>
 
+#include <amulet/dll.hpp>
+
 namespace Amulet {
 
 class FloatVec2 {
@@ -122,7 +124,7 @@ typedef std::map<
 
 // For every combination of 90 degree rotations in y and x axis
 // gives the rotated cull direction.
-extern const RotationCullMapType RotationCullMap;
+//extern const RotationCullMapType RotationCullMap;
 
 class BlockMesh {
 public:
@@ -147,61 +149,9 @@ public:
     {
     }
 
-    BlockMesh rotate(std::int8_t rotx, std::int8_t roty) const
-    {
-        if (rotx || roty) {
-            auto rotation_key = std::make_pair(rotx, roty);
-            auto it = RotationCullMap.find(rotation_key);
-            if (it != RotationCullMap.end()) {
-                const auto& cull_map = it->second;
-                BlockMesh mesh;
-                mesh.transparency = transparency;
-                mesh.textures = textures;
-
-                // Compuate rotation values
-                float theta_x = std::numbers::pi * rotx / 2.0;
-                float theta_y = std::numbers::pi * roty / 2.0;
-                float sin_x = std::sin(theta_x);
-                float cos_x = std::cos(theta_x);
-                float sin_y = std::sin(theta_y);
-                float cos_y = std::cos(theta_y);
-
-                for (std::uint8_t cull_direction = 0; cull_direction < 7; cull_direction++) {
-                    // Copy the part to the new cull direction.
-                    auto new_cull_direction = cull_map[cull_direction];
-                    auto& part = mesh.parts[new_cull_direction] = parts[cull_direction];
-
-                    if (part) {
-                        // Rotate the vertex coords.
-                        for (auto& vertex : part->verts) {
-                            auto& coord = vertex.coord;
-                            float x = coord.x - 0.5;
-                            float y = coord.y - 0.5;
-                            float z = coord.z - 0.5;
-
-                            // Rotate in X axis
-                            float y_ = y * cos_x - z * sin_x;
-                            z = y * sin_x + z * cos_x;
-                            y = y_;
-
-                            // Rotate in Y axis
-                            float x_ = x * cos_y + z * sin_y;
-                            z = -x * sin_y + z * cos_y;
-                            x = x_;
-
-                            coord.x = x + 0.5;
-                            coord.y = y + 0.5;
-                            coord.z = z + 0.5;
-                        }
-                    }
-                }
-                return mesh;
-            }
-        }
-        return *this;
-    }
+    AMULET_CORE_DLLX BlockMesh rotate(std::int8_t rotx, std::int8_t roty) const;
 };
 
- BlockMesh merge_block_meshes(std::vector<std::reference_wrapper<const BlockMesh>>);
+AMULET_CORE_DLLX BlockMesh merge_block_meshes(std::vector<std::reference_wrapper<const BlockMesh>>);
 
 }

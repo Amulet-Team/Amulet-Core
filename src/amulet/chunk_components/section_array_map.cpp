@@ -1,12 +1,13 @@
 #include <string>
 
+#include <amulet/dll.hpp>
 #include <amulet/io/binary_writer.hpp>
 #include <amulet/io/binary_reader.hpp>
 
 #include "section_array_map.hpp"
 
 namespace Amulet {
-	void IndexArray3D::serialise(BinaryWriter& writer) const {
+	AMULET_CORE_DLLX void IndexArray3D::serialise(BinaryWriter& writer) const {
 		writer.writeNumeric<std::uint8_t>(1);
 		
 		// Write array shape
@@ -22,7 +23,7 @@ namespace Amulet {
 			writer.writeNumeric<std::uint32_t>(buffer[i]);
 		}
 	}
-	std::shared_ptr<IndexArray3D> IndexArray3D::deserialise(BinaryReader& reader) {
+	AMULET_CORE_DLLX std::shared_ptr<IndexArray3D> IndexArray3D::deserialise(BinaryReader& reader) {
 		auto version = reader.readNumeric<std::uint8_t>();
 		switch (version) {
 		case 1:
@@ -51,7 +52,7 @@ namespace Amulet {
 		}
 	}
 
-	void SectionArrayMap::serialise(BinaryWriter& writer) const {
+	AMULET_CORE_DLLX void SectionArrayMap::serialise(BinaryWriter& writer) const {
 		writer.writeNumeric<std::uint8_t>(1);
 		
 		// Write array shape
@@ -84,7 +85,7 @@ namespace Amulet {
 			arr->serialise(writer);
 		}
 	}
-	std::shared_ptr<SectionArrayMap> SectionArrayMap::deserialise(BinaryReader& reader) {
+	AMULET_CORE_DLLX std::shared_ptr<SectionArrayMap> SectionArrayMap::deserialise(BinaryReader& reader) {
 		auto version = reader.readNumeric<std::uint8_t>();
 		switch (version) {
 		case 1:

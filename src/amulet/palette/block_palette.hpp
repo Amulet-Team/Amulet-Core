@@ -4,9 +4,9 @@
 #include <memory>
 #include <stdexcept>
 
+#include <amulet/dll.hpp>
 #include <amulet/version.hpp>
 #include <amulet/block.hpp>
-
 #include <amulet/io/binary_reader.hpp>
 #include <amulet/io/binary_writer.hpp>
 
@@ -35,8 +35,8 @@ namespace Amulet {
 			_index_to_block(),
 			_block_to_index() {}
 
-		void serialise(BinaryWriter&) const;
-		static std::shared_ptr<BlockPalette> deserialise(BinaryReader&);
+		AMULET_CORE_DLLX void serialise(BinaryWriter&) const;
+		AMULET_CORE_DLLX static std::shared_ptr<BlockPalette> deserialise(BinaryReader&);
 
 		bool operator==(const BlockPalette& other) const {
 			if (size() != other.size()) {
@@ -48,13 +48,13 @@ namespace Amulet {
 				}
 			}
 			return true;
-		};
+		}
 
 		size_t size() const { return _index_to_block.size(); }
 		
 		std::shared_ptr<BlockStack> index_to_block_stack(size_t index) const {
 			return _index_to_block[index];
-		};
+		}
 
 		size_t block_stack_to_index(std::shared_ptr<BlockStack> block) {
 			auto it = _block_to_index.find(block);
@@ -83,7 +83,7 @@ namespace Amulet {
 			_index_to_block.push_back(block);
 			_block_to_index[block] = index;
 			return index;
-		};
+		}
 
 		bool contains_block(std::shared_ptr<BlockStack> block) const {
 			return _block_to_index.contains(block);

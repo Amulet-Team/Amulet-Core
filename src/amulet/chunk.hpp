@@ -7,6 +7,8 @@
 #include <memory>
 #include <stdexcept>
 
+#include <amulet/dll.hpp>
+
 // Requirements:
 // Split chunk data into components that are orthogonal to each other.
 // create a chunk with all components default initialised.
@@ -36,7 +38,7 @@ namespace Amulet {
 		extern std::unordered_map<std::string, std::function<std::shared_ptr<Chunk>()>> chunk_constructors;
 	}
 
-	std::shared_ptr<Chunk> get_null_chunk(std::string chunk_id);
+	AMULET_CORE_DLLX std::shared_ptr<Chunk> get_null_chunk(std::string chunk_id);
 
     // An object that concrete chunk classes must be registered with.
     // This enables reconstructing the chunk class.
@@ -50,10 +52,10 @@ namespace Amulet {
 			detail::chunk_constructors[ChunkT::ChunkID] = []() {
 				return std::make_shared<ChunkT>();
 			};
-		};
+		}
 		~ChunkNullConstructor() {
 			detail::chunk_constructors.erase(ChunkT::ChunkID);
-		};
+		}
 	};
 
     // A utility class to simplify component serialisation and deserialisation.

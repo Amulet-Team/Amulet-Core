@@ -4,6 +4,7 @@
 #include <tuple>
 #include <optional>
 
+#include <amulet/dll.hpp>
 #include <amulet/version.hpp>
 #include <amulet/block.hpp>
 #include <amulet/palette/block_palette.hpp>
@@ -33,8 +34,8 @@ namespace Amulet {
 			std::shared_ptr<SectionArrayMap> sections
 		): _palette(palette), _sections(sections){}
 
-		void serialise(BinaryWriter&) const;
-		static std::shared_ptr<BlockComponentData> deserialise(BinaryReader&);
+		AMULET_CORE_DLLX void serialise(BinaryWriter&) const;
+		AMULET_CORE_DLLX static std::shared_ptr<BlockComponentData> deserialise(BinaryReader&);
 
 		std::shared_ptr<BlockPalette> get_palette() const {
 			return _palette;
@@ -50,7 +51,7 @@ namespace Amulet {
 		std::optional<std::shared_ptr<BlockComponentData>> _value;
 	protected:
 		// Null constructor
-		BlockComponent() {};
+		BlockComponent() {}
 		// Default constructor
 		void init(
 			std::shared_ptr<VersionRange> version_range,
@@ -59,17 +60,17 @@ namespace Amulet {
 		) { _value = std::make_shared<BlockComponentData>(version_range, array_shape, default_block); }
 		
 		// Serialise the component data
-		std::optional<std::string> serialise() const;
+		AMULET_CORE_DLLX std::optional<std::string> serialise() const;
 		// Deserialise the component
-		void deserialise(std::optional<std::string>);
+		AMULET_CORE_DLLX void deserialise(std::optional<std::string>);
 	public:
-		static const std::string ComponentID;
+		AMULET_CORE_DLLX static const std::string ComponentID;
 		std::shared_ptr<BlockComponentData> get_block() {
 			if (_value) {
 				return *_value;
 			}
 			throw std::runtime_error("BlockComponent has not been loaded.");
-		};
+		}
 		void set_block(std::shared_ptr<BlockComponentData> component) {
 			if (_value) {
 				if ((*_value)->get_sections()->get_array_shape() != component->get_sections()->get_array_shape()) {
@@ -83,6 +84,6 @@ namespace Amulet {
 			else {
 				throw std::runtime_error("BlockComponent has not been loaded.");
 			}
-		};
+		}
 	};
 }
