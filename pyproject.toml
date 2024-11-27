@@ -4,8 +4,8 @@ requires = [
     "wheel",
     "versioneer",
     "pybind11[global] == 2.13.6",
-    "Amulet_pybind11_extensions @ git+https://github.com/Amulet-Team/Amulet-pybind11-extensions.git@4d7292f3090bb739a55f8377c8f096d134910720",
-    "amulet_nbt == 4.0a8",
+    "Amulet_pybind11_extensions @ git+https://github.com/Amulet-Team/Amulet-pybind11-extensions.git@d79a41e0cb26c965c34f2b52c85496798e82121f",
+    "amulet_nbt == 4.0a9",
     "amulet_leveldb == 2.0a2",
 ]
 build-backend = "setuptools.build_meta"
@@ -31,7 +31,7 @@ dependencies = [
     "lz4 ~= 4.3",
     "amulet_runtime_final ~= 1.1",
     "amulet_compiler_target == 1.0",
-    "amulet_nbt == 4.0a8",
+    "amulet_nbt == 4.0a9",
     "amulet_leveldb ~= 2.0a2",
 ]
 
