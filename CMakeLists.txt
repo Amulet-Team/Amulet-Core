@@ -27,9 +27,9 @@ find_package(amulet_nbt CONFIG REQUIRED)
 find_package(leveldb_mcpe CONFIG REQUIRED)
 
 # Find C++ files
-file(GLOB EXTENSION_SOURCES src/amulet/**/*.py.cpp)
-file(GLOB SOURCES src/amulet/**/*.cpp)
-list(REMOVE_ITEM SOURCES ${EXTENSION_SOURCES})
+file(GLOB_RECURSE AMULET_EXTENSION_SOURCES LIST_DIRECTORIES false src/amulet/*.py.cpp)
+file(GLOB_RECURSE AMULET_SOURCES LIST_DIRECTORIES false src/amulet/*.cpp)
+list(REMOVE_ITEM AMULET_SOURCES ${AMULET_EXTENSION_SOURCES})
 
 # Add implementation
 add_library(amulet_core SHARED)
@@ -37,16 +37,16 @@ target_link_libraries( amulet_core PRIVATE amulet_nbt )
 target_link_libraries( amulet_core PRIVATE leveldb_mcpe )
 target_compile_definitions(amulet_core PRIVATE ExportAmuletCore)
 target_include_directories(amulet_core PUBLIC src)
-target_sources(amulet_core PRIVATE ${SOURCES})
+target_sources(amulet_core PRIVATE ${AMULET_SOURCES})
 
 # Add python extension
 pybind11_add_module(_amulet)
 target_link_libraries( _amulet PRIVATE amulet_nbt )
 target_link_libraries( _amulet PRIVATE leveldb_mcpe )
-target_compile_definitions(_amulet PRIVATE PYBIND11_DETAILED_ERROR_MESSAGES)
 target_link_libraries( _amulet PRIVATE amulet_core )
 target_link_libraries( _amulet PRIVATE pybind11_extensions )
-target_sources(_amulet PRIVATE ${EXTENSION_SOURCES})
+target_compile_definitions(_amulet PRIVATE PYBIND11_DETAILED_ERROR_MESSAGES)
+target_sources(_amulet PRIVATE ${AMULET_EXTENSION_SOURCES})
 
 # Install
 install(TARGETS amulet_core DESTINATION "${SRC_INSTALL_DIR}/amulet")
