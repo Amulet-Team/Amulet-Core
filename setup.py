@@ -44,7 +44,7 @@ class CMakeBuild(cmdclass.get("build_ext", build_ext)):
                 f"-DPYTHON_EXECUTABLE={sys.executable}",
                 f"-Dpybind11_DIR={pybind11.get_cmake_dir().replace(os.sep, '/')}",
                 f"-Dpybind11_extensions_DIR={pybind11_extensions.__path__[0].replace(os.sep, '/')}",
-                f"-Damulet_leveldb_DIR={amulet_nbt.__path__[0].replace(os.sep, '/')}",
+                f"-Damulet_nbt_DIR={amulet_nbt.__path__[0].replace(os.sep, '/')}",
                 f"-Dleveldb_mcpe_DIR={leveldb.__path__[0].replace(os.sep, '/')}",
                 f"-DCMAKE_INSTALL_PREFIX=install",
                 f"-DSRC_INSTALL_DIR={src_dir}",
