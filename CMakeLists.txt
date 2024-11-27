@@ -33,12 +33,16 @@ list(REMOVE_ITEM SOURCES ${EXTENSION_SOURCES})
 
 # Add implementation
 add_library(amulet_core SHARED)
+target_link_libraries( amulet_core PRIVATE amulet_nbt )
+target_link_libraries( amulet_core PRIVATE leveldb_mcpe )
 target_compile_definitions(amulet_core PRIVATE ExportAmuletCore)
 target_include_directories(amulet_core PUBLIC src)
 target_sources(amulet_core PRIVATE ${SOURCES})
 
 # Add python extension
 pybind11_add_module(_amulet)
+target_link_libraries( _amulet PRIVATE amulet_nbt )
+target_link_libraries( _amulet PRIVATE leveldb_mcpe )
 target_compile_definitions(_amulet PRIVATE PYBIND11_DETAILED_ERROR_MESSAGES)
 target_link_libraries( _amulet PRIVATE amulet_core )
 target_link_libraries( _amulet PRIVATE pybind11_extensions )
