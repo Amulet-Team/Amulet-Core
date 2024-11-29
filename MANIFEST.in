@@ -1,1 +1,5 @@
-recursive-include src *.pyi py.typed *.py *.png *.cpp *.hpp
+recursive-include src/amulet *.png *.cpp *.hpp *Config.cmake
+
+include CMakeLists.txt
+
+prune tests

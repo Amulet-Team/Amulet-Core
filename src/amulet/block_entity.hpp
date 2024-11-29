@@ -4,6 +4,7 @@
 #include <variant>
 #include <string>
 
+#include <amulet/dll.hpp>
 #include <amulet/io/binary_reader.hpp>
 #include <amulet/io/binary_writer.hpp>
 #include <amulet/version.hpp>
@@ -41,8 +42,8 @@ namespace Amulet {
                 _nbt(nbt)
             {}
 
-            void serialise(BinaryWriter&) const;
-            static std::shared_ptr<BlockEntity> deserialise(BinaryReader&);
+            AMULET_CORE_DLLX void serialise(BinaryWriter&) const;
+            AMULET_CORE_DLLX static std::shared_ptr<BlockEntity> deserialise(BinaryReader&);
 
             bool operator==(const BlockEntity& other) const {
                 return (
@@ -51,6 +52,6 @@ namespace Amulet {
                     _base_name == other._base_name &&
                     AmuletNBT::NBTTag_eq(*_nbt, *other._nbt)
                 );
-            };
+            }
     };
 }

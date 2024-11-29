@@ -9,7 +9,7 @@ namespace Amulet {
 namespace collections {
 	class Iterator {
 	public:
-		virtual ~Iterator() {};
+		virtual ~Iterator() {}
 		virtual bool has_next() = 0;
 		virtual py::object next() = 0;
 	};
@@ -25,15 +25,15 @@ namespace collections {
 			py::object obj,
 			size_t start,
 			std::ptrdiff_t step
-		) : obj(obj), index(start), step(step) {};
-		bool has_next() override{ 
+		) : obj(obj), index(start), step(step) {}
+		bool has_next() override {
 			return 0 <= index && index < py::len(obj); 
-		};
+		}
 		py::object next() override {
 			py::object item = obj.attr("__getitem__")(index);
 			index += step;
 			return item;
-		};
+		}
 	};
 
 	// An iterator for a C++ map-like object.

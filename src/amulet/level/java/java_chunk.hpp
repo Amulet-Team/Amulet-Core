@@ -4,6 +4,8 @@
 #include <optional>
 #include <stdexcept>
 #include <vector>
+
+#include <amulet/dll.hpp>
 #include <amulet/block.hpp>
 #include <amulet/biome.hpp>
 #include <amulet/chunk.hpp>
@@ -27,12 +29,12 @@ namespace Amulet {
 		// Height2DComponent,
 	> {
 	public:
-		static const std::string ChunkID;
+		AMULET_CORE_DLLX static const std::string ChunkID;
 
-		std::string get_chunk_id() const override;
+		AMULET_CORE_DLLX std::string get_chunk_id() const override;
 
 		using ChunkComponentHelper::ChunkComponentHelper;
-		JavaChunkNA(
+		AMULET_CORE_DLLX JavaChunkNA(
 			std::shared_ptr<BlockStack> default_block,
 			std::shared_ptr<Biome> default_biome
 		);
@@ -52,12 +54,12 @@ namespace Amulet {
 		// Height2DComponent,
 	> {
 	public:
-		static const std::string ChunkID;
+		AMULET_CORE_DLLX static const std::string ChunkID;
 
-		std::string get_chunk_id() const override;
+		AMULET_CORE_DLLX std::string get_chunk_id() const override;
 
 		using ChunkComponentHelper::ChunkComponentHelper;
-		JavaChunk0(
+		AMULET_CORE_DLLX JavaChunk0(
 			std::int64_t data_version,
 			std::shared_ptr<BlockStack> default_block,
 			std::shared_ptr<Biome> default_biome
@@ -77,12 +79,12 @@ namespace Amulet {
 		// Height2DComponent,
 	> {
 	public:
-		static const std::string ChunkID;
+		AMULET_CORE_DLLX static const std::string ChunkID;
 
-		std::string get_chunk_id() const override;
+		AMULET_CORE_DLLX std::string get_chunk_id() const override;
 
 		using ChunkComponentHelper::ChunkComponentHelper;
-		JavaChunk1444(
+		AMULET_CORE_DLLX JavaChunk1444(
 			std::int64_t data_version,
 			std::shared_ptr<BlockStack> default_block,
 			std::shared_ptr<Biome> default_biome
@@ -102,12 +104,12 @@ namespace Amulet {
 		// NamedHeight2DComponent,
 	> {
 	public:
-		static const std::string ChunkID;
+		AMULET_CORE_DLLX static const std::string ChunkID;
 
-		std::string get_chunk_id() const override;
+		AMULET_CORE_DLLX std::string get_chunk_id() const override;
 
 		using ChunkComponentHelper::ChunkComponentHelper;
-		JavaChunk1466(
+		AMULET_CORE_DLLX JavaChunk1466(
 			std::int64_t data_version,
 			std::shared_ptr<BlockStack> default_block,
 			std::shared_ptr<Biome> default_biome
@@ -127,12 +129,12 @@ namespace Amulet {
 		// NamedHeight2DComponent,
 	> {
 	public:
-		static const std::string ChunkID;
+		AMULET_CORE_DLLX static const std::string ChunkID;
 
-		std::string get_chunk_id() const override;
+		AMULET_CORE_DLLX std::string get_chunk_id() const override;
 
 		using ChunkComponentHelper::ChunkComponentHelper;
-		JavaChunk2203(
+		AMULET_CORE_DLLX JavaChunk2203(
 			std::int64_t data_version,
 			std::shared_ptr<BlockStack> default_block,
 			std::shared_ptr<Biome> default_biome

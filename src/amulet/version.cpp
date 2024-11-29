@@ -2,18 +2,19 @@
 #include <cstdint>
 #include <compare>
 
+#include <amulet/dll.hpp>
 #include <amulet/version.hpp>
 
 
 namespace Amulet {
-    void VersionNumber::serialise(BinaryWriter& writer) const {
+    AMULET_CORE_DLLX void VersionNumber::serialise(BinaryWriter& writer) const {
         writer.writeNumeric<std::uint8_t>(1);
         writer.writeNumeric<std::uint64_t>(vec.size());
         for (const std::int64_t& v : vec){
             writer.writeNumeric<std::int64_t>(v);
         }
     }
-    std::shared_ptr<VersionNumber> VersionNumber::deserialise(BinaryReader& reader){
+    AMULET_CORE_DLLX std::shared_ptr<VersionNumber> VersionNumber::deserialise(BinaryReader& reader){
         auto version_number = reader.readNumeric<std::uint8_t>();
         switch (version_number) {
             case 1:
@@ -31,14 +32,14 @@ namespace Amulet {
         }
     }
 
-    std::int64_t VersionNumber::operator[](size_t index) const {
+    AMULET_CORE_DLLX std::int64_t VersionNumber::operator[](size_t index) const {
         if (index >= vec.size()) {
             return 0;
         }
         return vec[index];
     }
 
-    std::string VersionNumber::toString() const {
+    AMULET_CORE_DLLX std::string VersionNumber::toString() const {
         std::ostringstream oss;
         for (size_t i = 0; i < vec.size(); ++i) {
             if (i > 0){
@@ -49,7 +50,7 @@ namespace Amulet {
         return oss.str();
     }
 
-    std::vector<std::int64_t> VersionNumber::cropped_version() const {
+    AMULET_CORE_DLLX std::vector<std::int64_t> VersionNumber::cropped_version() const {
         bool found_non_zero = false;
         std::vector<std::int64_t> out;
         for (auto it = vec.rbegin(); it != vec.rend(); ++it) {
@@ -64,7 +65,7 @@ namespace Amulet {
         return out;
     }
 
-    std::vector<std::int64_t> VersionNumber::padded_version(size_t len) const {
+    AMULET_CORE_DLLX std::vector<std::int64_t> VersionNumber::padded_version(size_t len) const {
         std::vector<std::int64_t> out(len);
         for (size_t i = 0; i < len; i++){
             out[i] = (*this)[i];
@@ -72,12 +73,12 @@ namespace Amulet {
         return out;
     }
 
-    void PlatformVersionContainer::serialise(BinaryWriter& writer) const {
+    AMULET_CORE_DLLX void PlatformVersionContainer::serialise(BinaryWriter& writer) const {
         writer.writeNumeric<std::uint8_t>(1);
         writer.writeSizeAndBytes(platform);
         version->serialise(writer);
     }
-    std::shared_ptr<PlatformVersionContainer> PlatformVersionContainer::deserialise(BinaryReader& reader){
+    AMULET_CORE_DLLX std::shared_ptr<PlatformVersionContainer> PlatformVersionContainer::deserialise(BinaryReader& reader){
         auto version_number = reader.readNumeric<std::uint8_t>();
         switch (version_number) {
         case 1:
@@ -91,13 +92,13 @@ namespace Amulet {
         }
     }
 
-    void VersionRange::serialise(BinaryWriter& writer) const {
+    AMULET_CORE_DLLX void VersionRange::serialise(BinaryWriter& writer) const {
         writer.writeNumeric<std::uint8_t>(1);
         writer.writeSizeAndBytes(platform);
         min_version->serialise(writer);
         max_version->serialise(writer);
     }
-    std::shared_ptr<VersionRange> VersionRange::deserialise(BinaryReader& reader) {
+    AMULET_CORE_DLLX std::shared_ptr<VersionRange> VersionRange::deserialise(BinaryReader& reader) {
         auto version_number = reader.readNumeric<std::uint8_t>();
         switch (version_number) {
         case 1:
@@ -112,15 +113,15 @@ namespace Amulet {
         }
     }
 
-    bool VersionRange::contains(const PlatformType& platform_, const VersionNumber& version) const {
+    AMULET_CORE_DLLX bool VersionRange::contains(const PlatformType& platform_, const VersionNumber& version) const {
         return platform == platform_ && *min_version <= version && version <= *max_version;
     }
 
-    void VersionRangeContainer::serialise(BinaryWriter& writer) const {
+    AMULET_CORE_DLLX void VersionRangeContainer::serialise(BinaryWriter& writer) const {
         writer.writeNumeric<std::uint8_t>(1);
         version_range->serialise(writer);
     }
-    std::shared_ptr<VersionRangeContainer> VersionRangeContainer::deserialise(BinaryReader& reader) {
+    AMULET_CORE_DLLX std::shared_ptr<VersionRangeContainer> VersionRangeContainer::deserialise(BinaryReader& reader) {
         auto version_number = reader.readNumeric<std::uint8_t>();
         switch (version_number) {
         case 1:

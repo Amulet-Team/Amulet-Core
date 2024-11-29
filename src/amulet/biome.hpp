@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include <amulet/dll.hpp>
 #include <amulet/version.hpp>
 #include <amulet/io/binary_reader.hpp>
 #include <amulet/io/binary_writer.hpp>
@@ -26,8 +27,8 @@ namespace Amulet {
                 namespace_(namespace_),
                 base_name(base_name) {}
 
-            void serialise(BinaryWriter&) const;
-            static std::shared_ptr<Biome> deserialise(BinaryReader&);
+            AMULET_CORE_DLLX void serialise(BinaryWriter&) const;
+            AMULET_CORE_DLLX static std::shared_ptr<Biome> deserialise(BinaryReader&);
 
             auto operator<=>(const Biome& other) const {
                 auto cmp = PlatformVersionContainer::operator<=>(other);
@@ -38,6 +39,6 @@ namespace Amulet {
             }
             bool operator==(const Biome& other) const {
                 return (*this <=> other) == 0;
-            };
+            }
     };
 }
