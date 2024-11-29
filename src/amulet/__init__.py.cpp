@@ -1,3 +1,6 @@
+#include <stdexcept>
+#include <string>
+
 #include <pybind11/pybind11.h>
 #include <pybind11_extensions/py_module.hpp>
 namespace py = pybind11;
@@ -14,19 +17,13 @@ void init_chunk_components(py::module);
 void init_level(py::module);
 void init_block_mesh(py::module);
 
-static bool init_run = false;
 
-void init_amulet(py::module m){
-    if (init_run){ return; }
-    init_run = true;
 
-    py::module::import("amulet_nbt");
 
-    // This is normally added after initilsation but we need it to pass to subpackages.
-    // This may cause issues with frozen installs.
-    pybind11_extensions::set_package_path(m, "amulet");
 
-    py::module::import("amulet._init").attr("init")(m);
+void init_module(py::module m){
+    auto amulet_nbt = py::module::import("amulet_nbt");
+    auto leveldb = py::module::import("leveldb");
 
     // Submodules
     init_collections(m);
@@ -42,5 +39,6 @@ void init_amulet(py::module m){
     init_block_mesh(m);
 }
 
-PYBIND11_MODULE(__init__, m) { init_amulet(m); }
-PYBIND11_MODULE(amulet, m) { init_amulet(m); }
+PYBIND11_MODULE(_amulet, m) {
+    m.def("init", &init_module);
+}
