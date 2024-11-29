@@ -53,9 +53,13 @@ class CMakeBuild(cmdclass.get("build_ext", build_ext)):
             ]
         ).returncode:
             raise RuntimeError("Error configuring amulet_nbt")
-        if subprocess.run(["cmake", "--build", "build", "--config", "Release"]).returncode:
+        if subprocess.run(
+            ["cmake", "--build", "build", "--config", "Release"]
+        ).returncode:
             raise RuntimeError("Error installing amulet_nbt")
-        if subprocess.run(["cmake", "--install", "build", "--config", "Release"]).returncode:
+        if subprocess.run(
+            ["cmake", "--install", "build", "--config", "Release"]
+        ).returncode:
             raise RuntimeError("Error installing amulet_nbt")
 
 

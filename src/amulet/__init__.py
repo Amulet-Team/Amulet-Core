@@ -12,9 +12,7 @@ __version__ = _version.get_versions()["version"]
 os.environ.setdefault(
     "CACHE_DIR", platformdirs.user_cache_dir("AmuletTeam", "AmuletTeam")
 )
-os.environ.setdefault(
-    "LOG_DIR", platformdirs.user_log_dir("AmuletTeam", "AmuletTeam")
-)
+os.environ.setdefault("LOG_DIR", platformdirs.user_log_dir("AmuletTeam", "AmuletTeam"))
 
 # init a default logger
 logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")

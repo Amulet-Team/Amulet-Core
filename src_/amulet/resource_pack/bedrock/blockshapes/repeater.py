@@ -41,7 +41,7 @@ class Repeater(PartialBlock):
         west: str,
         transparency: tuple[bool, bool, bool, bool, bool, bool],
         *args: Any,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> BlockMesh:
         return (
             super()
