@@ -46,6 +46,9 @@ target_link_libraries( _amulet PRIVATE leveldb_mcpe )
 target_link_libraries( _amulet PRIVATE amulet_core )
 target_link_libraries( _amulet PRIVATE pybind11_extensions )
 target_compile_definitions(_amulet PRIVATE PYBIND11_DETAILED_ERROR_MESSAGES)
+target_compile_definitions(_amulet PRIVATE PYBIND11_VERSION="${pybind11_VERSION}")
+target_compile_definitions(_amulet PRIVATE COMPILER_ID="${CMAKE_CXX_COMPILER_ID}")
+target_compile_definitions(_amulet PRIVATE COMPILER_VERSION="${CMAKE_CXX_COMPILER_VERSION}")
 target_sources(_amulet PRIVATE ${AMULET_EXTENSION_SOURCES})
 
 # Install
