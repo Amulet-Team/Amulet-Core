@@ -4,6 +4,7 @@
 #include <variant>
 #include <string>
 
+#include <amulet/dll.hpp>
 #include <amulet/io/binary_reader.hpp>
 #include <amulet/io/binary_writer.hpp>
 #include <amulet/version.hpp>
@@ -62,8 +63,8 @@ namespace Amulet {
                 base_name(base_name),
                 properties(properties) {}
 
-            void serialise(BinaryWriter&) const;
-            static std::shared_ptr<Block> deserialise(BinaryReader&);
+            AMULET_CORE_DLLX void serialise(BinaryWriter&) const;
+            AMULET_CORE_DLLX static std::shared_ptr<Block> deserialise(BinaryReader&);
             
             auto operator<=>(const Block& other) const {
                 auto cmp = PlatformVersionContainer::operator<=>(other);
@@ -76,12 +77,12 @@ namespace Amulet {
             }
             bool operator==(const Block& other) const {
                 return (*this <=> other) == 0;
-            };
+            }
 
-            std::string java_blockstate() const;
-            std::string bedrock_blockstate() const;
-            static std::shared_ptr<Block> from_java_blockstate(const PlatformType&, std::shared_ptr<VersionNumber>, const std::string&);
-            static std::shared_ptr<Block> from_bedrock_blockstate(const PlatformType&, std::shared_ptr<VersionNumber>, const std::string&);
+            AMULET_CORE_DLLX std::string java_blockstate() const;
+            AMULET_CORE_DLLX std::string bedrock_blockstate() const;
+            AMULET_CORE_DLLX static std::shared_ptr<Block> from_java_blockstate(const PlatformType&, std::shared_ptr<VersionNumber>, const std::string&);
+            AMULET_CORE_DLLX static std::shared_ptr<Block> from_bedrock_blockstate(const PlatformType&, std::shared_ptr<VersionNumber>, const std::string&);
     };
 
     class BlockStack {
@@ -97,8 +98,8 @@ namespace Amulet {
                 }
             }
 
-            void serialise(BinaryWriter&) const;
-            static std::shared_ptr<BlockStack> deserialise(BinaryReader&);
+            AMULET_CORE_DLLX void serialise(BinaryWriter&) const;
+            AMULET_CORE_DLLX static std::shared_ptr<BlockStack> deserialise(BinaryReader&);
 
             auto operator<=>(const BlockStack& other) const {
                 auto cmp = size() <=> other.size();
@@ -111,9 +112,9 @@ namespace Amulet {
             }
             bool operator==(const BlockStack& other) const {
                 return (*this <=> other) == 0;
-            };
+            }
 
             size_t size() const { return _blocks.size(); }
-            std::shared_ptr<Block> operator[](size_t index) const { return _blocks[index]; };
+            std::shared_ptr<Block> operator[](size_t index) const { return _blocks[index]; }
     };
 }

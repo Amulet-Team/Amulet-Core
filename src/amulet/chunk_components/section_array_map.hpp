@@ -11,6 +11,7 @@
 #include <memory>
 #include <stdexcept>
 
+#include <amulet/dll.hpp>
 #include <amulet/io/binary_writer.hpp>
 #include <amulet/io/binary_reader.hpp>
 
@@ -50,8 +51,8 @@ namespace Amulet {
 			std::memcpy(*_buffer, *other._buffer, sizeof(std::uint32_t) * other.get_size());
 		}
 
-		void serialise(BinaryWriter&) const;
-		static std::shared_ptr<IndexArray3D> deserialise(BinaryReader&);
+		AMULET_CORE_DLLX void serialise(BinaryWriter&) const;
+		AMULET_CORE_DLLX static std::shared_ptr<IndexArray3D> deserialise(BinaryReader&);
 
 		const SectionShape& get_shape() const {
 			return _shape;
@@ -93,8 +94,8 @@ namespace Amulet {
 			detail::validate_array_shape(_default_array, _array_shape);
 		}
 
-		void serialise(BinaryWriter&) const;
-		static std::shared_ptr<SectionArrayMap> deserialise(BinaryReader&);
+		AMULET_CORE_DLLX void serialise(BinaryWriter&) const;
+		AMULET_CORE_DLLX static std::shared_ptr<SectionArrayMap> deserialise(BinaryReader&);
 
 		const SectionShape& get_array_shape() const { return _array_shape; }
 		

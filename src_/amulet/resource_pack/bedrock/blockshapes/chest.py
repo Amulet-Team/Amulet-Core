@@ -36,7 +36,7 @@ class Chest(PartialBlock):
         transparency: tuple[bool, bool, bool, bool, bool, bool],
         modify_uv: bool = True,
         *args: Any,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> BlockMesh:
         rotation = {2: 2, 3: 0, 4: 1, 5: 3}.get(
             block.properties["facing_direction"].py_data, 0

@@ -42,13 +42,13 @@ namespace Amulet {
 				}
 			}
 			return true;
-		};
+		}
 
 		size_t size() const { return _index_to_biome.size(); }
 
 		std::shared_ptr<Biome> index_to_biome(size_t index) const {
 			return _index_to_biome[index];
-		};
+		}
 
 		size_t biome_to_index(std::shared_ptr<Biome> biome) {
 			auto it = _biome_to_index.find(biome);
@@ -75,7 +75,7 @@ namespace Amulet {
 			_index_to_biome.push_back(biome);
 			_biome_to_index[biome] = index;
 			return index;
-		};
+		}
 
 		bool contains_biome(std::shared_ptr<Biome> biome) const {
 			return _biome_to_index.contains(biome);

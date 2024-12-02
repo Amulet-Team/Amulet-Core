@@ -7,6 +7,7 @@
 #include <memory>
 #include <map>
 
+#include <amulet/dll.hpp>
 #include <amulet/version.hpp>
 #include <amulet/block_entity.hpp>
 
@@ -104,7 +105,7 @@ namespace Amulet {
 		std::optional<std::shared_ptr<BlockEntityComponentData>> _value;
 	protected:
 		// Null constructor
-		BlockEntityComponent() {};
+		BlockEntityComponent() {}
 		// Default constructor
 		void init(
 			std::shared_ptr<VersionRange> version_range,
@@ -115,17 +116,17 @@ namespace Amulet {
 		}
 
 		// Serialise the component data
-		std::optional<std::string> serialise() const;
+		AMULET_CORE_DLLX std::optional<std::string> serialise() const;
 		// Deserialise the component
-		void deserialise(std::optional<std::string>);
+		AMULET_CORE_DLLX void deserialise(std::optional<std::string>);
 	public:
-		static const std::string ComponentID;
+		AMULET_CORE_DLLX static const std::string ComponentID;
 		std::shared_ptr<BlockEntityComponentData> get_block_entity() {
 			if (_value) {
 				return *_value;
 			}
 			throw std::runtime_error("BlockEntityComponent has not been loaded.");
-		};
+		}
 		void set_block_entity(std::shared_ptr<BlockEntityComponentData> component) {
 			if (_value) {
 				if (
@@ -142,6 +143,6 @@ namespace Amulet {
 			else {
 				throw std::runtime_error("BlockEntityComponent has not been loaded.");
 			}
-		};
+		}
 	};
 }

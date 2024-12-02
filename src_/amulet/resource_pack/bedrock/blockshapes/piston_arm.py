@@ -33,7 +33,7 @@ class PistonArm(PartialBlock):
         west: str,
         transparency: tuple[bool, bool, bool, bool, bool, bool],
         *args: Any,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> BlockMesh:
         rotation = self.rotation_map.get(
             block.properties["facing_direction"].py_data, (0, 0)

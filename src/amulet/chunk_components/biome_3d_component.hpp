@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <memory>
 
+#include <amulet/dll.hpp>
 #include <amulet/version.hpp>
 #include <amulet/biome.hpp>
 #include <amulet/palette/biome_palette.hpp>
@@ -41,7 +42,7 @@ namespace Amulet {
 		std::optional<std::shared_ptr<Biome3DComponentData>> _value;
 	protected:
 		// Null constructor
-		Biome3DComponent() {};
+		Biome3DComponent() {}
 		// Default constructor
 		void init(
 			std::shared_ptr<VersionRange> version_range,
@@ -50,17 +51,17 @@ namespace Amulet {
 		) { _value = std::make_shared<Biome3DComponentData>(version_range, array_shape, default_biome); }
 		
 		// Serialise the component data
-		std::optional<std::string> serialise() const;
+		AMULET_CORE_DLLX std::optional<std::string> serialise() const;
 		// Deserialise the component
-		void deserialise(std::optional<std::string>);
+		AMULET_CORE_DLLX void deserialise(std::optional<std::string>);
 	public:
-		static const std::string ComponentID;
+		AMULET_CORE_DLLX static const std::string ComponentID;
 		std::shared_ptr<Biome3DComponentData> get_biome() {
 			if (_value) {
 				return *_value;
 			}
 			throw std::runtime_error("BiomeComponent has not been loaded.");
-		};
+		}
 		void set_biome(std::shared_ptr<Biome3DComponentData> component) {
 			if (_value) {
 				if ((*_value)->get_sections()->get_array_shape() != component->get_sections()->get_array_shape()) {
@@ -74,6 +75,6 @@ namespace Amulet {
 			else {
 				throw std::runtime_error("BiomeComponent has not been loaded.");
 			}
-		};
+		}
 	};
 }
