@@ -321,7 +321,8 @@ void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
         // Pad to sector_length
         size_t pad_size = sector_length - data_size;
         if (pad_size) {
-            regionf.write(std::string(0, pad_size).data(), pad_size);
+            std::string padding(pad_size, 0);
+            regionf.write(padding.data(), pad_size);
         }
         // Create the location value
         location = static_cast<std::uint32_t>((sector.start >> 4) + (sector_length >> 12));
