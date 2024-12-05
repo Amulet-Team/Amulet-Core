@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <string_view>
 #include <vector>
+#include <list>
 
 #include <amulet_nbt/nbt_encoding/binary.hpp>
 
@@ -362,8 +363,86 @@ AMULET_CORE_DLLX void AnvilRegion::delete_data(std::int64_t cx, std::int64_t cz)
 AMULET_CORE_DLLX void AnvilRegion::compact()
 {
     std::lock_guard lock(mutex);
+    if (!std::filesystem::is_regular_file(_path)) {
+        // Do nothing if there is no file.
+        return;
+    }
+
     load();
-    throw std::runtime_error("NotImplemented");
+    if (_chunk_locations.empty()) {
+        // No chunks in the region file. Delete it.
+        std::filesystem::remove(_path);
+        return;
+    }
+
+    // Generate a list of sectors in sequential order
+    // location header index, chunk coordinate, sector
+    std::list<std::tuple<size_t, std::pair<std::int64_t, std::int64_t>, Sector>> chunk_sectors;
+    for (const auto& [coord, sector] : _chunk_locations) {
+        chunk_sectors.emplace_back(
+            4 * (coord.first - _rx * 32 + (coord.second - _rz * 32) * 32),
+            std::make_pair(coord.first, coord.second),
+            sector);
+    }
+
+    // Set the position to the end of the header
+    size_t file_position = 2 * SectorSize;
+    size_t file_end = std::get<2>(chunk_sectors.back()).stop;
+
+    sanitise_file(_path);
+    std::fstream regionf(_path, std::ios::in | std::ios::out | std::ios::binary);
+
+    while (!chunk_sectors.empty()) {
+        // While there are remaining sectors, get the first sector.
+        const auto [header_index, chunk_coordinate, sector] = chunk_sectors.front();
+        chunk_sectors.pop_front();
+
+        if (file_position == sector.start) {
+            // There isn't any space before the sector. Do nothing.
+            file_position = sector.stop;
+        } else {
+            // There is space before the sector
+            Sector new_sector;
+            if (file_position + sector.length() <= sector.start) {
+                // There is enough space before the sector to fit the whole sector.
+                // Copy it to the new location
+                new_sector = Sector(file_position, file_position + sector.length());
+                file_position = new_sector.stop;
+            } else {
+                // There is space before the sector but not enough to fit the sector.
+                // Move it to the end for processing later.
+                new_sector = Sector(file_end, file_end + sector.length());
+                file_end = new_sector.stop;
+                chunk_sectors.emplace_back(header_index, chunk_coordinate, new_sector);
+            }
+
+            // Read in the data
+            std::string data(sector.length(), 0);
+            regionf.seekg(sector.start);
+            regionf.read(data.data(), sector.length());
+
+            // Reserve and write the data to the new sector
+            _sector_manager->reserve(new_sector);
+            regionf.seekp(new_sector.start);
+            regionf.write(data.data(), sector.length());
+
+            // Update the index
+            std::uint32_t location = static_cast<std::uint32_t>((new_sector.start >> 4) + (new_sector.length() >> 12));
+            char* location_char = reinterpret_cast<char*>(&location);
+            if constexpr (std::endian::native != std::endian::big) {
+                std::reverse(location_char, location_char + 4);
+            }
+            regionf.seekp(header_index);
+            regionf.write(location_char, 4);
+
+            // Update internal state
+            _chunk_locations[chunk_coordinate] = new_sector;
+            _sector_manager->free(sector);
+        }
+    }
+    regionf.close();
+    // Delete any unused data at the end.
+    std::filesystem::resize_file(_path, file_position);
 }
 
 } // namespace Amulet
