@@ -1,8 +1,8 @@
 #include <cstdint>
 #include <filesystem>
 #include <map>
-#include <optional>
 #include <mutex>
+#include <optional>
 #include <string>
 
 #include <amulet/dll.hpp>
@@ -40,7 +40,7 @@ private:
     std::mutex mutex;
 
     AnvilRegion(const std::filesystem::path& directory, const std::string& file_name, const std::pair<std::int64_t, std::int64_t>& region_coordinate, bool mcc = false);
-    
+
     // Load data from the region file if it exists.
     // Must be called with the lock.
     void load();
@@ -54,20 +54,20 @@ public:
     AMULET_CORE_DLLX AnvilRegion(const std::filesystem::path& directory, const std::string& file_name, std::int64_t rx, std::int64_t rz, bool mcc = false);
     AMULET_CORE_DLLX AnvilRegion(const std::filesystem::path& directory, std::int64_t rx, std::int64_t rz, bool mcc = false);
     AMULET_CORE_DLLX AnvilRegion(std::filesystem::path path, bool mcc = false);
-    
+
     // The path of the region file.
     AMULET_CORE_DLLX std::filesystem::path path() const;
-    
+
     // The region coordinates of the file.
     AMULET_CORE_DLLX std::int64_t rx() const;
     AMULET_CORE_DLLX std::int64_t rz() const;
 
     //
     AMULET_CORE_DLLX void all_coords();
-    
+
     // Does the chunk exists. Coords are in world space.
     AMULET_CORE_DLLX bool has_data(std::int64_t cx, std::int64_t cz);
-    
+
     // Get the data for the chunk. Coords are in world space.
     AMULET_CORE_DLLX AmuletNBT::NamedTag get_data(std::int64_t cx, std::int64_t cz);
 
@@ -76,7 +76,7 @@ public:
 
     // Delete the chunk data. Coords are in world space.
     AMULET_CORE_DLLX void delete_data(std::int64_t cx, std::int64_t cz);
-    
+
     // Compact the region file.
     // Defragments the file and deletes unused space.
     // If there are no chunks remaining in the region file it will be deleted.
