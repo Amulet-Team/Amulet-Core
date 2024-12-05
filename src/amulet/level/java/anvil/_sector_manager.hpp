@@ -13,7 +13,7 @@ public:
     size_t start;
     size_t stop;
 
-    Sector(size_t start, size_t stop)
+    Sector(size_t start = 0, size_t stop = 0)
         : start(start)
         , stop(stop)
     {
