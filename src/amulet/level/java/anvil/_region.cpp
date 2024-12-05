@@ -143,7 +143,15 @@ void AnvilRegion::load()
     }
 }
 
-// void AnvilRegion::all_coords()
+AMULET_CORE_DLLX std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion::all_coords()
+{
+    std::vector<std::pair<std::int64_t, std::int64_t>> coords;
+    coords.reserve(_chunk_locations.size());
+    for (const auto& it : _chunk_locations) {
+        coords.push_back(it.first);
+    }
+    return coords;
+}
 
 AMULET_CORE_DLLX bool AnvilRegion::has_data(std::int64_t cx, std::int64_t cz)
 {
