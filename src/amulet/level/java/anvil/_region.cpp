@@ -10,6 +10,8 @@
 #include <vector>
 #include <list>
 
+#include <zlib.h>
+
 #include <amulet_nbt/nbt_encoding/binary.hpp>
 
 #include <amulet/chunk.hpp>
@@ -352,14 +354,30 @@ void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
     regionf.write(t_char, 4);
 }
 
-static std::string compress(const AmuletNBT::NamedTag& tag)
-{
-    throw std::runtime_error("NotImplemented");
-}
-
 AMULET_CORE_DLLX void AnvilRegion::set_data(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag)
 {
-    std::string data = compress(tag);
+    // Encode the tag
+    AmuletNBT::BinaryWriter writer(
+        std::endian::big,
+        &AmuletNBT::utf8_to_mutf8
+    );
+    AmuletNBT::write_nbt(writer, tag);
+    const std::string& bnbt = writer.getBuffer();
+
+    // Get the size of the data
+    uLong source_length = bnbt.size();
+    uLongf compressed_size = compressBound(source_length);
+
+    // Create the output string
+    std::string data;
+    data.resize(compressed_size + 1);
+    data[0] = 2;
+    
+    if (compress(reinterpret_cast<Bytef*>(&data[1]), &compressed_size, reinterpret_cast<const Bytef*>(bnbt.data()), source_length) != Z_OK) { 
+        throw std::runtime_error("Error compressing data.");
+    };
+    data.resize(compressed_size + 1);
+
     _set_data<std::string_view>(cx, cz, data);
 }
 

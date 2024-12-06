@@ -117,3 +117,5 @@ src/sln
 worlds_temp/
 world_temp/
 logs/
+install/
+*.dll
