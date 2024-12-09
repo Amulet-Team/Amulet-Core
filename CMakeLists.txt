@@ -25,6 +25,7 @@ set(ZLIB_ROOT submodules/zlib)
 set(ZLIB_USE_STATIC_LIBS ON)
 set(ZLIB_LIBRARY ${INSTALL_LIB_DIR})
 find_package(ZLIB REQUIRED)
+target_compile_definitions(zlibstatic PUBLIC ZLIB_CONST)
 
 # Add pybind11
 find_package(pybind11 CONFIG REQUIRED)
