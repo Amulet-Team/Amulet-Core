@@ -147,6 +147,7 @@ void AnvilRegion::load()
 
 AMULET_CORE_DLLX std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion::all_coords()
 {
+    std::lock_guard lock(mutex);
     std::vector<std::pair<std::int64_t, std::int64_t>> coords;
     coords.reserve(_chunk_locations.size());
     for (const auto& it : _chunk_locations) {
