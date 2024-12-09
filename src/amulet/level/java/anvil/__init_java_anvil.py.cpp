@@ -1,6 +1,9 @@
-#include "_region.hpp"
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
 #include <pybind11_extensions/py_module.hpp>
+
+#include "_region.hpp"
 namespace py = pybind11;
 
 void init_java_anvil(py::module m_parent)
