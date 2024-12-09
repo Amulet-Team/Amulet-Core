@@ -417,6 +417,9 @@ AMULET_CORE_DLLX void AnvilRegion::compact()
 
     sanitise_file(_path);
     std::fstream regionf(_path, std::ios::in | std::ios::out | std::ios::binary);
+    if (!regionf) {
+        throw std::runtime_error("Could not open file " + _path.string());
+    }
 
     while (!chunk_sectors.empty()) {
         // While there are remaining sectors, get the first sector.
