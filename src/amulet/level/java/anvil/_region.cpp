@@ -163,13 +163,69 @@ AMULET_CORE_DLLX bool AnvilRegion::has_data(std::int64_t cx, std::int64_t cz)
     return _chunk_locations.contains(std::make_pair(cx, cz));
 }
 
+static void decompress_zlib(const std::string_view src, std::string& dst) {
+    z_stream stream = {};
+    stream.next_in = reinterpret_cast<z_const Bytef*>(src.data());
+    stream.avail_in = static_cast<uInt>(src.size());
+
+    switch (inflateInit(&stream)) {
+    case Z_MEM_ERROR:
+        throw std::bad_alloc();
+    case Z_VERSION_ERROR:
+        throw std::runtime_error("Incompatible zlib library.");
+    case Z_STREAM_ERROR:
+        throw std::runtime_error("zlib stream is invalid.");
+    }
+
+    const size_t chunk_size = 65536;
+    int err;
+    do {
+        // allocate data after dst
+        size_t dst_size = dst.size();
+        dst.resize(dst_size + chunk_size);
+
+        // Assign the location to decompress into
+        stream.next_out = reinterpret_cast<Bytef*>(&dst[dst_size]);
+        stream.avail_out = chunk_size;
+        
+        // Decompress
+        err = inflate(&stream, Z_NO_FLUSH);
+
+    // Continue until error or end of stream.
+    } while (err == Z_OK);
+
+    // Remove unused bytes
+    dst.resize(dst.size() - stream.avail_out);
+    // Clear stream data
+    inflateEnd(&stream);
+
+    switch (err) {
+    case Z_STREAM_END:
+        return;
+    case Z_DATA_ERROR:
+        throw std::invalid_argument("Cannot decompress corrupt zlib data.");
+    case Z_MEM_ERROR:
+        throw std::bad_alloc();
+    case Z_STREAM_ERROR:
+        throw std::runtime_error("zlib stream is invalid.");
+    case Z_BUF_ERROR:
+        throw std::runtime_error("Decompression requires a larger buffer than the one provided.");
+    default:
+        throw std::runtime_error("zlib decompression error.");
+    }
+}
+
 static AmuletNBT::NamedTag decompress(char compression_type, const std::string_view& data)
 {
     switch (compression_type) {
     case 1: // GZIP
         throw std::runtime_error("GZIP compression has not been implemented.");
     case 2: // Deflate
-        throw std::runtime_error("Deflate compression has not been implemented.");
+    {
+        std::string dst;
+        decompress_zlib(data, dst);
+        return AmuletNBT::read_nbt(dst, std::endian::big, AmuletNBT::mutf8_to_utf8);
+    }
     case 3: // None
         return AmuletNBT::read_nbt(data, std::endian::big, AmuletNBT::mutf8_to_utf8);
     case 4: // LZ4
