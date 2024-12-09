@@ -14,7 +14,7 @@ from amulet.data_types import (
     ChunkCoordinates,
     RegionCoordinates,
 )
-from ._region import AnvilRegion
+from . import AnvilRegion
 
 
 RawChunkType: TypeAlias = dict[str, NamedTag]
