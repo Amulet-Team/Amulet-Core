@@ -107,12 +107,12 @@ void SectorManager::reserve(const Sector& sector) {
         // The sector fits within the contained sector
         // remove the contained sector
         it = _free_start.erase(it);
-        _free_start.erase(free_sector);
+        _free_size.erase(free_sector);
     } else if (free_sector.stop == _stop) {
         if (_resizable) {
             // The sector is the last one and the memory region is resizable
             it = _free_start.erase(it);
-            _free_start.erase(free_sector);
+            _free_size.erase(free_sector);
             free_sector = Sector(free_sector.start, sector.stop);
             _stop = sector.stop;
         } else {
