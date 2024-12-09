@@ -348,6 +348,7 @@ void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
             }
         }
         _sector_manager->free(old_sector->second);
+        _chunk_locations.erase(old_sector);
     }
 
     std::uint32_t location = 0;
