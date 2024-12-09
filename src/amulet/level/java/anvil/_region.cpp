@@ -4,11 +4,12 @@
 #include <cstdint>
 #include <ctime>
 #include <fstream>
+#include <list>
 #include <regex>
+#include <set>
 #include <stdexcept>
 #include <string_view>
 #include <vector>
-#include <list>
 
 #include <zlib.h>
 
@@ -132,7 +133,7 @@ void AnvilRegion::load()
         }
         for (size_t cx = 0; cx < 32; cx++) {
             for (size_t cz = 0; cz < 32; cz++) {
-                const auto& sector_data = location_table[cx * 32 + cz];
+                const auto& sector_data = location_table[cx + cz * 32];
                 if (sector_data) {
                     size_t sector_offset = (sector_data >> 8) * SectorSize;
                     size_t sector_size = (sector_data & 0xFF) * SectorSize;
@@ -165,7 +166,8 @@ AMULET_CORE_DLLX bool AnvilRegion::has_data(std::int64_t cx, std::int64_t cz)
     return _chunk_locations.contains(std::make_pair(cx, cz));
 }
 
-static void decompress_zlib(const std::string_view src, std::string& dst) {
+static void decompress_zlib(const std::string_view src, std::string& dst)
+{
     z_stream stream = {};
     stream.next_in = reinterpret_cast<z_const Bytef*>(src.data());
     stream.avail_in = static_cast<uInt>(src.size());
@@ -189,11 +191,11 @@ static void decompress_zlib(const std::string_view src, std::string& dst) {
         // Assign the location to decompress into
         stream.next_out = reinterpret_cast<Bytef*>(&dst[dst_size]);
         stream.avail_out = chunk_size;
-        
+
         // Decompress
         err = inflate(&stream, Z_NO_FLUSH);
 
-    // Continue until error or end of stream.
+        // Continue until error or end of stream.
     } while (err == Z_OK);
 
     // Remove unused bytes
@@ -417,8 +419,7 @@ AMULET_CORE_DLLX void AnvilRegion::set_data(std::int64_t cx, std::int64_t cz, co
     // Encode the tag
     AmuletNBT::BinaryWriter writer(
         std::endian::big,
-        &AmuletNBT::utf8_to_mutf8
-    );
+        &AmuletNBT::utf8_to_mutf8);
     AmuletNBT::write_nbt(writer, tag);
     const std::string& bnbt = writer.getBuffer();
 
@@ -430,8 +431,8 @@ AMULET_CORE_DLLX void AnvilRegion::set_data(std::int64_t cx, std::int64_t cz, co
     std::string data;
     data.resize(compressed_size + 1);
     data[0] = 2;
-    
-    if (compress(reinterpret_cast<Bytef*>(&data[1]), &compressed_size, reinterpret_cast<const Bytef*>(bnbt.data()), source_length) != Z_OK) { 
+
+    if (compress(reinterpret_cast<Bytef*>(&data[1]), &compressed_size, reinterpret_cast<const Bytef*>(bnbt.data()), source_length) != Z_OK) {
         throw std::runtime_error("Error compressing data.");
     };
     data.resize(compressed_size + 1);
@@ -459,11 +460,24 @@ AMULET_CORE_DLLX void AnvilRegion::compact()
         return;
     }
 
+    // Sort by length then start.
+    struct SectorStartSort {
+        bool operator()(
+            const std::tuple<size_t, std::pair<std::int64_t, std::int64_t>, Sector>& a,
+            const std::tuple<size_t, std::pair<std::int64_t, std::int64_t>, Sector>& b) const
+        {
+            return std::get<2>(a).start < std::get<2>(b).start;
+        }
+    };
+
     // Generate a list of sectors in sequential order
     // location header index, chunk coordinate, sector
-    std::list<std::tuple<size_t, std::pair<std::int64_t, std::int64_t>, Sector>> chunk_sectors;
+    std::set<
+        std::tuple<size_t, std::pair<std::int64_t, std::int64_t>, Sector>,
+        SectorStartSort>
+        chunk_sectors;
     for (const auto& [coord, sector] : _chunk_locations) {
-        chunk_sectors.emplace_back(
+        chunk_sectors.emplace(
             4 * (coord.first - _rx * 32 + (coord.second - _rz * 32) * 32),
             std::make_pair(coord.first, coord.second),
             sector);
@@ -471,7 +485,7 @@ AMULET_CORE_DLLX void AnvilRegion::compact()
 
     // Set the position to the end of the header
     size_t file_position = 2 * SectorSize;
-    size_t file_end = std::get<2>(chunk_sectors.back()).stop;
+    size_t file_end = std::get<2>(*chunk_sectors.rbegin()).stop;
 
     sanitise_file(_path);
     std::fstream regionf(_path, std::ios::in | std::ios::out | std::ios::binary);
@@ -481,8 +495,8 @@ AMULET_CORE_DLLX void AnvilRegion::compact()
 
     while (!chunk_sectors.empty()) {
         // While there are remaining sectors, get the first sector.
-        const auto [header_index, chunk_coordinate, sector] = chunk_sectors.front();
-        chunk_sectors.pop_front();
+        const auto [header_index, chunk_coordinate, sector] = *chunk_sectors.begin();
+        chunk_sectors.erase(chunk_sectors.begin());
 
         if (file_position == sector.start) {
             // There isn't any space before the sector. Do nothing.
@@ -500,18 +514,18 @@ AMULET_CORE_DLLX void AnvilRegion::compact()
                 // Move it to the end for processing later.
                 new_sector = Sector(file_end, file_end + sector.length());
                 file_end = new_sector.stop;
-                chunk_sectors.emplace_back(header_index, chunk_coordinate, new_sector);
+                chunk_sectors.emplace(header_index, chunk_coordinate, new_sector);
             }
 
             // Read in the data
             std::string data(sector.length(), 0);
             regionf.seekg(sector.start);
-            regionf.read(data.data(), sector.length());
+            regionf.read(data.data(), data.size());
 
             // Reserve and write the data to the new sector
             _sector_manager->reserve(new_sector);
             regionf.seekp(new_sector.start);
-            regionf.write(data.data(), sector.length());
+            regionf.write(data.data(), data.size());
 
             // Update the index
             std::uint32_t location = static_cast<std::uint32_t>((new_sector.start >> 4) + (new_sector.length() >> 12));
