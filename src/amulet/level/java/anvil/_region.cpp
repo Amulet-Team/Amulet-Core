@@ -331,32 +331,24 @@ void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
         regionf.write(std::string(SectorSize * 2, 0).c_str(), SectorSize * 2);
     }
 
-    // Remove old data
-    auto old_sector = _chunk_locations.find(std::make_pair(cx, cz));
-    if (old_sector != _chunk_locations.end()) {
-        // Delete the old chunk
-        if (_mcc) {
-            regionf.seekg(old_sector->second.start + 4);
-            std::uint8_t format_byte;
-            regionf.read(reinterpret_cast<char*>(&format_byte), 1);
-            if (format_byte & 127) {
-                // Delete the external mcc file
-                std::filesystem::path mcc_path = _dir / ("c." + std::to_string(cx) + "." + std::to_string(cz) + ".mcc");
-                if (std::filesystem::is_regular_file(mcc_path)) {
-                    std::filesystem::remove(mcc_path);
-                }
-            }
-        }
-        _sector_manager->free(old_sector->second);
-        _chunk_locations.erase(old_sector);
+    // Find the old sector
+    std::optional<Sector> old_sector;
+    auto old_sector_it = _chunk_locations.find(std::make_pair(cx, cz));
+    if (old_sector_it != _chunk_locations.end()) {
+        old_sector = old_sector_it->second;
+        _chunk_locations.erase(old_sector_it);
     }
+
+    bool mcc_overwritten = false;
 
     std::uint32_t location = 0;
     char* location_char = reinterpret_cast<char*>(&location);
     if constexpr (std::is_same_v<T, std::string_view>) {
+        // Write the new chunk data
         char format_byte = 0;
         if (data.size() + 4 > MaxRegionSize) {
             // save externally (if mcc files are not supported the check at the top will filter large files out)
+            mcc_overwritten = true;
             std::filesystem::path mcc_path = _dir / ("c." + std::to_string(cx) + "." + std::to_string(cz) + ".mcc");
             std::ofstream mccf(mcc_path, std::ios::out | std::ios::binary | std::ios::trunc);
             if (!mccf) {
@@ -413,6 +405,24 @@ void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
         std::reverse(t_char, t_char + 4);
     }
     regionf.write(t_char, 4);
+
+    // Only do this after updating the header so that the file is always in a valid state.
+    if (old_sector) {
+        if (_mcc && !mcc_overwritten) {
+            regionf.seekg(old_sector->start + 4);
+            std::uint8_t format_byte;
+            regionf.read(reinterpret_cast<char*>(&format_byte), 1);
+            if (format_byte & 127) {
+                // Delete the old external mcc file
+                std::filesystem::path mcc_path = _dir / ("c." + std::to_string(cx) + "." + std::to_string(cz) + ".mcc");
+                if (std::filesystem::is_regular_file(mcc_path)) {
+                    std::filesystem::remove(mcc_path);
+                }
+            }
+        }
+        // Free the old sector
+        _sector_manager->free(old_sector_it->second);
+    }
 }
 
 AMULET_CORE_DLLX void AnvilRegion::set_data(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag)
