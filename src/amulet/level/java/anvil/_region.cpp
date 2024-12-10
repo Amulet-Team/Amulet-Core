@@ -335,8 +335,8 @@ void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
     auto old_sector = _chunk_locations.find(std::make_pair(cx, cz));
     if (old_sector != _chunk_locations.end()) {
         // Delete the old chunk
-        regionf.seekg(old_sector->second.start + 4);
         if (_mcc) {
+            regionf.seekg(old_sector->second.start + 4);
             std::uint8_t format_byte;
             regionf.read(reinterpret_cast<char*>(&format_byte), 1);
             if (format_byte & 127) {
