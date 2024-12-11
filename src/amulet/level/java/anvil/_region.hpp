@@ -83,6 +83,7 @@ public:
 
     // Delete the chunk data. Coords are in world space.
     AMULET_CORE_DLLX void delete_data(std::int64_t cx, std::int64_t cz);
+    AMULET_CORE_DLLX void delete_datas(std::vector<std::pair<std::int64_t, std::int64_t>>& coords);
 
     // Compact the region file.
     // Defragments the file and deletes unused space.

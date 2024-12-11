@@ -48,6 +48,7 @@ void init_java_anvil(py::module m_parent)
     AnvilRegion.def("get_data", &Amulet::AnvilRegion::get_data, py::arg("cx"), py::arg("cz"));
     AnvilRegion.def("set_data", &Amulet::AnvilRegion::set_data, py::arg("cx"), py::arg("cz"), py::arg("tag"));
     AnvilRegion.def("delete_data", &Amulet::AnvilRegion::delete_data, py::arg("cx"), py::arg("cz"));
+    AnvilRegion.def("delete_datas", [](Amulet::AnvilRegion& self, std::vector<std::pair<std::int64_t, std::int64_t>> coords) { self.delete_datas(coords); }, py::arg("coords"));
     AnvilRegion.def("compact", &Amulet::AnvilRegion::compact);
 
     m.attr("AnvilDimension") = py::module::import("amulet.level.java.anvil._dimension").attr("AnvilDimension");

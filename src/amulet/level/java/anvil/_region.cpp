@@ -470,6 +470,22 @@ AMULET_CORE_DLLX void AnvilRegion::delete_data(std::int64_t cx, std::int64_t cz)
     _set_data<std::nullopt_t>(cx, cz, std::nullopt);
 }
 
+AMULET_CORE_DLLX void AnvilRegion::delete_datas(std::vector<std::pair<std::int64_t, std::int64_t>>& coords)
+{
+    std::lock_guard lock(mutex);
+    
+    // Open the file (create if needed)
+    read_file_header();
+    std::fstream regionf;
+    open_region_file(regionf, _path);
+    
+    for (const auto& [cx, cz] : coords) {
+        if (contains(cx, cz)) {
+            _set_data<std::nullopt_t>(regionf, cx, cz, std::nullopt);
+        }
+    }
+}
+
 AMULET_CORE_DLLX void AnvilRegion::compact()
 {
     std::lock_guard lock(mutex);
