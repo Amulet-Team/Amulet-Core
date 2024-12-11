@@ -42,13 +42,13 @@ void init_java_anvil(py::module m_parent)
     AnvilRegion.def_property_readonly("rx", &Amulet::AnvilRegion::rx);
     AnvilRegion.def_property_readonly("rz", &Amulet::AnvilRegion::rz);
 
-    AnvilRegion.def("all_coords", &Amulet::AnvilRegion::all_coords);
+    AnvilRegion.def("get_coords", &Amulet::AnvilRegion::get_coords);
     AnvilRegion.def("contains", &Amulet::AnvilRegion::contains, py::arg("cx"), py::arg("cz"));
-    AnvilRegion.def("has_data", &Amulet::AnvilRegion::has_data, py::arg("cx"), py::arg("cz"));
-    AnvilRegion.def("get_data", &Amulet::AnvilRegion::get_data, py::arg("cx"), py::arg("cz"));
-    AnvilRegion.def("set_data", &Amulet::AnvilRegion::set_data, py::arg("cx"), py::arg("cz"), py::arg("tag"));
-    AnvilRegion.def("delete_data", &Amulet::AnvilRegion::delete_data, py::arg("cx"), py::arg("cz"));
-    AnvilRegion.def("delete_datas", [](Amulet::AnvilRegion& self, std::vector<std::pair<std::int64_t, std::int64_t>> coords) { self.delete_datas(coords); }, py::arg("coords"));
+    AnvilRegion.def("has_value", &Amulet::AnvilRegion::has_value, py::arg("cx"), py::arg("cz"));
+    AnvilRegion.def("get_value", &Amulet::AnvilRegion::get_value, py::arg("cx"), py::arg("cz"));
+    AnvilRegion.def("set_value", &Amulet::AnvilRegion::set_value, py::arg("cx"), py::arg("cz"), py::arg("tag"));
+    AnvilRegion.def("delete_value", &Amulet::AnvilRegion::delete_value, py::arg("cx"), py::arg("cz"));
+    AnvilRegion.def("delete_batch", &Amulet::AnvilRegion::delete_batch, py::arg("coords"));
     AnvilRegion.def("compact", &Amulet::AnvilRegion::compact);
 
     m.attr("AnvilDimension") = py::module::import("amulet.level.java.anvil._dimension").attr("AnvilDimension");

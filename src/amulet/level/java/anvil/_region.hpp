@@ -66,24 +66,24 @@ public:
     AMULET_CORE_DLLX std::int64_t rx() const;
     AMULET_CORE_DLLX std::int64_t rz() const;
 
-    // All chunk coordinates in the region file. Coords are in world space.
-    AMULET_CORE_DLLX std::vector<std::pair<std::int64_t, std::int64_t>> all_coords();
+    // Get the coordinates of all values in the region file. Coordinates are in world space.
+    AMULET_CORE_DLLX std::vector<std::pair<std::int64_t, std::int64_t>> get_coords();
 
-    // Is the coordinate in the region. Coords are in world space.
+    // Is the coordinate in the region. This returns true even if there is no value for the coordinate. Coordinates are in world space.
     AMULET_CORE_DLLX bool contains(std::int64_t cx, std::int64_t cz);
 
-    // Does the chunk exists. Coords are in world space.
-    AMULET_CORE_DLLX bool has_data(std::int64_t cx, std::int64_t cz);
+    // Is there a value stored for this coordinate. Coordinates are in world space.
+    AMULET_CORE_DLLX bool has_value(std::int64_t cx, std::int64_t cz);
 
-    // Get the data for the chunk. Coords are in world space.
-    AMULET_CORE_DLLX AmuletNBT::NamedTag get_data(std::int64_t cx, std::int64_t cz);
+    // Get the value for this coordinate. Coordinates are in world space.
+    AMULET_CORE_DLLX AmuletNBT::NamedTag get_value(std::int64_t cx, std::int64_t cz);
 
-    // Set the data for the chunk. Coords are in world space.
-    AMULET_CORE_DLLX void set_data(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag);
+    // Set the value for this coordinate. Coordinates are in world space.
+    AMULET_CORE_DLLX void set_value(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag);
 
-    // Delete the chunk data. Coords are in world space.
-    AMULET_CORE_DLLX void delete_data(std::int64_t cx, std::int64_t cz);
-    AMULET_CORE_DLLX void delete_datas(std::vector<std::pair<std::int64_t, std::int64_t>>& coords);
+    // Delete the chunk data. Coordinates are in world space.
+    AMULET_CORE_DLLX void delete_value(std::int64_t cx, std::int64_t cz);
+    AMULET_CORE_DLLX void delete_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords);
 
     // Compact the region file.
     // Defragments the file and deletes unused space.

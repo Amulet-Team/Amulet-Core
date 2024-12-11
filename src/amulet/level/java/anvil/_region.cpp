@@ -146,7 +146,7 @@ void AnvilRegion::read_file_header()
     }
 }
 
-AMULET_CORE_DLLX std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion::all_coords()
+AMULET_CORE_DLLX std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion::get_coords()
 {
     std::lock_guard lock(mutex);
     read_file_header();
@@ -171,7 +171,7 @@ void AnvilRegion::validate_coord(std::int64_t cx, std::int64_t cz)
     }
 }
 
-AMULET_CORE_DLLX bool AnvilRegion::has_data(std::int64_t cx, std::int64_t cz)
+AMULET_CORE_DLLX bool AnvilRegion::has_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
     std::lock_guard lock(mutex);
@@ -252,7 +252,7 @@ static AmuletNBT::NamedTag decompress(char compression_type, const std::string_v
     }
 }
 
-AMULET_CORE_DLLX AmuletNBT::NamedTag AnvilRegion::get_data(std::int64_t cx, std::int64_t cz)
+AMULET_CORE_DLLX AmuletNBT::NamedTag AnvilRegion::get_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
     std::lock_guard lock(mutex);
@@ -439,7 +439,7 @@ void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
     _set_data<T>(regionf, cx, cz, data);
 }
 
-AMULET_CORE_DLLX void AnvilRegion::set_data(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag)
+AMULET_CORE_DLLX void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag)
 {
     // Encode the tag
     AmuletNBT::BinaryWriter writer(
@@ -465,12 +465,12 @@ AMULET_CORE_DLLX void AnvilRegion::set_data(std::int64_t cx, std::int64_t cz, co
     _set_data<std::string_view>(cx, cz, data);
 }
 
-AMULET_CORE_DLLX void AnvilRegion::delete_data(std::int64_t cx, std::int64_t cz)
+AMULET_CORE_DLLX void AnvilRegion::delete_value(std::int64_t cx, std::int64_t cz)
 {
     _set_data<std::nullopt_t>(cx, cz, std::nullopt);
 }
 
-AMULET_CORE_DLLX void AnvilRegion::delete_datas(std::vector<std::pair<std::int64_t, std::int64_t>>& coords)
+AMULET_CORE_DLLX void AnvilRegion::delete_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords)
 {
     std::lock_guard lock(mutex);
     
