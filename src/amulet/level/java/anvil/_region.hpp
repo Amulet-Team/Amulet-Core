@@ -50,6 +50,8 @@ private:
     void validate_coord(std::int64_t cx, std::int64_t cz);
     template <typename T>
     void _set_data(std::int64_t cx, std::int64_t cz, T data);
+    template <typename T>
+    void _set_data(std::fstream& regionf, std::int64_t cx, std::int64_t cz, T data);
 
 public:
     // Constructors.

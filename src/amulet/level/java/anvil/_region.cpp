@@ -305,37 +305,8 @@ AMULET_CORE_DLLX AmuletNBT::NamedTag AnvilRegion::get_data(std::int64_t cx, std:
 }
 
 template <typename T>
-void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
+void AnvilRegion::_set_data(std::fstream& regionf, std::int64_t cx, std::int64_t cz, T data)
 {
-    validate_coord(cx, cz);
-    if constexpr (std::is_same_v<T, std::string_view>) {
-        if (!_mcc && data.size() + 4 > MaxRegionSize) {
-            // Skip saving large chunks if mcc files are not enabled.
-            // TODO: add an error message.
-            // f"Could not save data {cx},{cz} in region file {self._path} because it was too large."
-            return;
-        }
-    }
-
-    std::lock_guard lock(mutex);
-
-    // Open the file (create if needed)
-    load();
-    std::fstream regionf;
-    if (std::filesystem::is_regular_file(_path)) {
-        sanitise_file(_path);
-        regionf.open(_path, std::ios::in | std::ios::out | std::ios::binary);
-        if (!regionf) {
-            throw std::runtime_error("Could not open file " + _path.string());
-        }
-    } else {
-        regionf.open(_path, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
-        if (!regionf) {
-            throw std::runtime_error("Could not open file " + _path.string());
-        }
-        regionf.write(std::string(SectorSize * 2, 0).c_str(), SectorSize * 2);
-    }
-
     // Find the old sector
     std::optional<Sector> old_sector;
     auto old_sector_it = _chunk_locations.find(std::make_pair(cx, cz));
@@ -428,6 +399,44 @@ void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
         // Free the old sector
         _sector_manager->free(*old_sector);
     }
+}
+
+static void open_region_file(std::fstream& regionf, const std::filesystem::path& path) {
+    if (std::filesystem::is_regular_file(path)) {
+        sanitise_file(path);
+        regionf.open(path, std::ios::in | std::ios::out | std::ios::binary);
+        if (!regionf) {
+            throw std::runtime_error("Could not open file " + path.string());
+        }
+    } else {
+        regionf.open(path, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+        if (!regionf) {
+            throw std::runtime_error("Could not open file " + path.string());
+        }
+        regionf.write(std::string(SectorSize * 2, 0).c_str(), SectorSize * 2);
+    }
+}
+
+template <typename T>
+void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
+{
+    validate_coord(cx, cz);
+    if constexpr (std::is_same_v<T, std::string_view>) {
+        if (!_mcc && data.size() + 4 > MaxRegionSize) {
+            // Skip saving large chunks if mcc files are not enabled.
+            // TODO: add an error message.
+            // f"Could not save data {cx},{cz} in region file {self._path} because it was too large."
+            return;
+        }
+    }
+
+    std::lock_guard lock(mutex);
+
+    // Open the file (create if needed)
+    read_file_header();
+    std::fstream regionf;
+    open_region_file(regionf, _path);
+    _set_data<T>(regionf, cx, cz, data);
 }
 
 AMULET_CORE_DLLX void AnvilRegion::set_data(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag)
