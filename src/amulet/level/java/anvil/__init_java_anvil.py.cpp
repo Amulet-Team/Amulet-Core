@@ -41,8 +41,9 @@ void init_java_anvil(py::module m_parent)
     AnvilRegion.def_property_readonly("path", [](Amulet::AnvilRegion& self) -> std::string { return self.path().string(); });
     AnvilRegion.def_property_readonly("rx", &Amulet::AnvilRegion::rx);
     AnvilRegion.def_property_readonly("rz", &Amulet::AnvilRegion::rz);
-    
+
     AnvilRegion.def("all_coords", &Amulet::AnvilRegion::all_coords);
+    AnvilRegion.def("contains", &Amulet::AnvilRegion::contains, py::arg("cx"), py::arg("cz"));
     AnvilRegion.def("has_data", &Amulet::AnvilRegion::has_data, py::arg("cx"), py::arg("cz"));
     AnvilRegion.def("get_data", &Amulet::AnvilRegion::get_data, py::arg("cx"), py::arg("cz"));
     AnvilRegion.def("set_data", &Amulet::AnvilRegion::set_data, py::arg("cx"), py::arg("cz"), py::arg("tag"));
