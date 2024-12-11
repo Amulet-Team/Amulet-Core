@@ -426,7 +426,7 @@ void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
             }
         }
         // Free the old sector
-        _sector_manager->free(old_sector_it->second);
+        _sector_manager->free(*old_sector);
     }
 }
 
