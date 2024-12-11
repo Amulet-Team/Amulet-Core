@@ -51,6 +51,7 @@ void init_java_anvil(py::module m_parent)
     AnvilRegion.def("delete_batch", &Amulet::AnvilRegion::delete_batch, py::arg("coords"));
     AnvilRegion.def("compact", &Amulet::AnvilRegion::compact);
     AnvilRegion.def("close", &Amulet::AnvilRegion::close);
+    AnvilRegion.def("destroy", &Amulet::AnvilRegion::destroy);
 
     m.attr("AnvilDimension") = py::module::import("amulet.level.java.anvil._dimension").attr("AnvilDimension");
     m.attr("AnvilDimensionLayer") = py::module::import("amulet.level.java.anvil._dimension").attr("AnvilDimensionLayer");

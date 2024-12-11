@@ -42,6 +42,9 @@ private:
     // The region file handle
     std::fstream regionf;
 
+    // Has the region been marked as destroyed.
+    bool destroyed;
+
     // This mutex must be acquired to access the container data or the file.
     std::mutex mutex;
 
@@ -126,6 +129,12 @@ public:
     // This is automatically called when the instance is destroyed but may be called earlier.
     // Thread safe.
     AMULET_CORE_DLLX void close();
+    
+    // Destroy the instance.
+    // Calls made after this will fail.
+    // This may only be called by the owner of the instance.
+    // Thread safe.
+    AMULET_CORE_DLLX void destroy();
 };
 
 } // namespace Amulet

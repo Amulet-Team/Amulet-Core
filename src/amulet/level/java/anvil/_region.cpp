@@ -150,6 +150,10 @@ void AnvilRegion::read_file_header()
         return;
     }
 
+    if (destroyed) {
+        throw std::runtime_error("This region instance has been destroyed.");
+    }
+
     // Load the region data
     _sector_manager = SectorManager(0, SectorSize * 2);
     _sector_manager->reserve(Sector(0, SectorSize * 2));
@@ -193,6 +197,19 @@ AMULET_CORE_DLLX void AnvilRegion::close()
     if (regionf.is_open()) {
         regionf.close();
     }
+}
+
+// Destroy the instance.
+// Calls made after this will fail.
+// Thread safe.
+AMULET_CORE_DLLX void AnvilRegion::destroy() {
+    std::lock_guard lock(mutex);
+    if (regionf.is_open()) {
+        regionf.close();
+    }
+    _sector_manager = std::nullopt;
+    _chunk_locations.clear();
+    destroyed = true;
 }
 
 // Get the coordinates of all values in the region file.
