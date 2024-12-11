@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <filesystem>
+#include <fstream>
 #include <map>
 #include <mutex>
 #include <optional>
@@ -38,20 +39,33 @@ private:
     // A map from the chunk coordinate to the location on disk
     std::map<std::pair<std::int64_t, std::int64_t>, Sector> _chunk_locations;
 
+    // The region file handle
+    std::fstream regionf;
+
     // This mutex must be acquired to access the container data or the file.
     std::mutex mutex;
 
     AnvilRegion(const std::filesystem::path& directory, const std::string& file_name, const std::pair<std::int64_t, std::int64_t>& region_coordinate, bool mcc = false);
 
     // Load data from the region file if it exists.
-    // Must be called with the lock.
+    // Lock must be acquired before calling this.
     void read_file_header();
+
+    // Create the region file.
+    // Lock must be acquired before calling this.
+    void create_region_file();
+
+    // Open the region file and fix any size issues.
+    // Lock must be acquired before calling this.
+    void open_region_file();
+
+    // Create or open the region file if it is closed.
+    // Lock must be acquired before calling this.
+    void create_open_region_file_if_closed();
 
     void validate_coord(std::int64_t cx, std::int64_t cz);
     template <typename T>
     void _set_data(std::int64_t cx, std::int64_t cz, T data);
-    template <typename T>
-    void _set_data(std::fstream& regionf, std::int64_t cx, std::int64_t cz, T data);
 
 public:
     // Constructors.
@@ -59,36 +73,59 @@ public:
     AMULET_CORE_DLLX AnvilRegion(const std::filesystem::path& directory, std::int64_t rx, std::int64_t rz, bool mcc = false);
     AMULET_CORE_DLLX AnvilRegion(std::filesystem::path path, bool mcc = false);
 
-    // The path of the region file.
+    // The path of the region file. Thread safe.
     AMULET_CORE_DLLX std::filesystem::path path() const;
 
-    // The region coordinates of the file.
+    // The region x coordinate of the file. Thread safe.
     AMULET_CORE_DLLX std::int64_t rx() const;
+
+    // The region z coordinate of the file. Thread safe.
     AMULET_CORE_DLLX std::int64_t rz() const;
 
-    // Get the coordinates of all values in the region file. Coordinates are in world space.
+    // Get the coordinates of all values in the region file.
+    // Coordinates are in world space.
+    // Thread safe.
     AMULET_CORE_DLLX std::vector<std::pair<std::int64_t, std::int64_t>> get_coords();
 
-    // Is the coordinate in the region. This returns true even if there is no value for the coordinate. Coordinates are in world space.
+    // Is the coordinate in the region.
+    // This returns true even if there is no value for the coordinate.
+    // Coordinates are in world space.
+    // Thread safe.
     AMULET_CORE_DLLX bool contains(std::int64_t cx, std::int64_t cz);
 
-    // Is there a value stored for this coordinate. Coordinates are in world space.
+    // Is there a value stored for this coordinate.
+    // Coordinates are in world space.
+    // Thread safe.
     AMULET_CORE_DLLX bool has_value(std::int64_t cx, std::int64_t cz);
 
-    // Get the value for this coordinate. Coordinates are in world space.
+    // Get the value for this coordinate.
+    // Coordinates are in world space.
+    // Thread safe.
     AMULET_CORE_DLLX AmuletNBT::NamedTag get_value(std::int64_t cx, std::int64_t cz);
+    // AMULET_CORE_DLLX std::vector<std::optional<AmuletNBT::NamedTag>> get_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords);
 
-    // Set the value for this coordinate. Coordinates are in world space.
+    // Set the value for this coordinate.
+    // Coordinates are in world space.
+    // Thread safe.
     AMULET_CORE_DLLX void set_value(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag);
+    // AMULET_CORE_DLLX void set_batch(std::vector<std::tuple<std::int64_t, std::int64_t, AmuletNBT::NamedTag>>& batch);
 
-    // Delete the chunk data. Coordinates are in world space.
+    // Delete the chunk data.
+    // Coordinates are in world space.
+    // Thread safe.
     AMULET_CORE_DLLX void delete_value(std::int64_t cx, std::int64_t cz);
     AMULET_CORE_DLLX void delete_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords);
 
     // Compact the region file.
     // Defragments the file and deletes unused space.
     // If there are no chunks remaining in the region file it will be deleted.
+    // Thread safe.
     AMULET_CORE_DLLX void compact();
+
+    // Close the file object if open.
+    // This is automatically called when the instance is destroyed but may be called earlier.
+    // Thread safe.
+    AMULET_CORE_DLLX void close();
 };
 
 } // namespace Amulet

@@ -36,6 +36,7 @@ AMULET_CORE_DLLX std::pair<std::int64_t, std::int64_t> parse_region_filename(con
     return std::make_pair(std::stoll(match[1]), std::stoll(match[2]));
 }
 
+// Constructors.
 AMULET_CORE_DLLX AnvilRegion::AnvilRegion(
     const std::filesystem::path& directory,
     const std::string& file_name,
@@ -85,25 +86,63 @@ AMULET_CORE_DLLX AnvilRegion::AnvilRegion(std::filesystem::path path, bool mcc)
 {
 }
 
+// The path of the region file. Thread safe.
 AMULET_CORE_DLLX std::filesystem::path AnvilRegion::path() const { return _path; }
+
+// The region x coordinate of the file. Thread safe.
 AMULET_CORE_DLLX std::int64_t AnvilRegion::rx() const { return _rx; }
+
+// The region z coordinate of the file. Thread safe.
 AMULET_CORE_DLLX std::int64_t AnvilRegion::rz() const { return _rz; }
 
-static void sanitise_file(const std::filesystem::path& path)
+// Create the region file.
+// Lock must be acquired before calling this.
+void AnvilRegion::create_region_file()
 {
-    auto size = std::filesystem::file_size(path);
-    if (size & 0xFFF) {
-        // ensure the file is a multiple of 4096 bytes
-        size = (size | 0xFFF) + 1;
-        std::filesystem::resize_file(path, size);
+    regionf.open(_path, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+    if (!regionf) {
+        throw std::runtime_error("Could not open file " + _path.string());
     }
-    if (size < SectorSize * 2) {
+    std::string padding(SectorSize * 2, 0);
+    regionf.write(padding.data(), padding.size());
+}
+
+// Open the region file and fix any size issues.
+// Lock must be acquired before calling this.
+void AnvilRegion::open_region_file()
+{
+    regionf.open(_path, std::ios::in | std::ios::out | std::ios::binary);
+    if (!regionf) {
+        throw std::runtime_error("Could not open file " + _path.string());
+    }
+    regionf.seekp(0, std::ios::end);
+    size_t file_size = regionf.tellp();
+    if (file_size < SectorSize * 2) {
         // if the length of the region file is less than 8KiB extend it to 8KiB
-        size = SectorSize * 2;
-        std::filesystem::resize_file(path, size);
+        std::string padding(SectorSize * 2 - file_size, 0);
+        regionf.write(padding.data(), padding.size());
+    } else if (file_size & 0xFFF) {
+        // ensure the file is a multiple of 4096 bytes
+        std::string padding((file_size | 0xFFF) + 1 - file_size, 0);
+        regionf.write(padding.data(), padding.size());
     }
 }
 
+// Create or open the region file if it is closed.
+// Lock must be acquired before calling this.
+void AnvilRegion::create_open_region_file_if_closed()
+{
+    if (!regionf.is_open()) {
+        if (std::filesystem::is_regular_file(_path)) {
+            open_region_file();
+        } else {
+            create_region_file();
+        }
+    }
+}
+
+// Read the header data into memory.
+// Lock must be acquired before calling this.
 void AnvilRegion::read_file_header()
 {
     if (_sector_manager) {
@@ -116,14 +155,13 @@ void AnvilRegion::read_file_header()
     _sector_manager->reserve(Sector(0, SectorSize * 2));
 
     if (std::filesystem::is_regular_file(_path)) {
-        sanitise_file(_path);
-        std::ifstream f(_path, std::ios::in | std::ios::binary);
-        if (!f) {
-            throw std::runtime_error("Could not open file " + _path.string());
+        if (!regionf.is_open()) {
+            open_region_file();
         }
         // Read the location table header.
+        regionf.seekg(0);
         std::vector<std::uint32_t> location_table(1024);
-        f.read(reinterpret_cast<char*>(location_table.data()), 4096);
+        regionf.read(reinterpret_cast<char*>(location_table.data()), 4096);
         if (std::endian::native == std::endian::little) {
             // Raw data is big endian. Convert to little.
             for (auto& v : location_table) {
@@ -146,6 +184,20 @@ void AnvilRegion::read_file_header()
     }
 }
 
+// Close the file object if open.
+// This is automatically called when the instance is destroyed but may be called earlier.
+// Thread safe.
+AMULET_CORE_DLLX void AnvilRegion::close()
+{
+    std::lock_guard lock(mutex);
+    if (regionf.is_open()) {
+        regionf.close();
+    }
+}
+
+// Get the coordinates of all values in the region file.
+// Coordinates are in world space.
+// Thread safe.
 AMULET_CORE_DLLX std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion::get_coords()
 {
     std::lock_guard lock(mutex);
@@ -158,6 +210,10 @@ AMULET_CORE_DLLX std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion:
     return coords;
 }
 
+// Is the coordinate in the region.
+// This returns true even if there is no value for the coordinate.
+// Coordinates are in world space.
+// Thread safe.
 AMULET_CORE_DLLX bool AnvilRegion::contains(std::int64_t cx, std::int64_t cz)
 {
     return _rx * 32 <= cx && cx < (_rx + 1) * 32 && _rz * 32 <= cz && cz < (_rz + 1) * 32;
@@ -171,6 +227,9 @@ void AnvilRegion::validate_coord(std::int64_t cx, std::int64_t cz)
     }
 }
 
+// Is there a value stored for this coordinate.
+// Coordinates are in world space.
+// Thread safe.
 AMULET_CORE_DLLX bool AnvilRegion::has_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
@@ -179,6 +238,7 @@ AMULET_CORE_DLLX bool AnvilRegion::has_value(std::int64_t cx, std::int64_t cz)
     return _chunk_locations.contains(std::make_pair(cx, cz));
 }
 
+// Decompress src into dst.
 static void decompress_zlib(const std::string_view src, std::string& dst)
 {
     z_stream stream = {};
@@ -232,6 +292,7 @@ static void decompress_zlib(const std::string_view src, std::string& dst)
     }
 }
 
+// Decompress the data according to the compression type
 static AmuletNBT::NamedTag decompress(char compression_type, const std::string_view& data)
 {
     switch (compression_type) {
@@ -252,6 +313,9 @@ static AmuletNBT::NamedTag decompress(char compression_type, const std::string_v
     }
 }
 
+// Get the value for this coordinate.
+// Coordinates are in world space.
+// Thread safe.
 AMULET_CORE_DLLX AmuletNBT::NamedTag AnvilRegion::get_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
@@ -261,19 +325,14 @@ AMULET_CORE_DLLX AmuletNBT::NamedTag AnvilRegion::get_value(std::int64_t cx, std
     if (it == _chunk_locations.end()) {
         throw ChunkDoesNotExist("Chunk " + std::to_string(cx) + ", " + std::to_string(cz) + "does not exist.");
     }
-    std::ifstream regionf(_path, std::ios::in | std::ios::binary);
-    if (!regionf) {
-        throw std::runtime_error("Could not open file " + _path.string());
-    }
-    regionf.seekg(it->second.start);
-    if (!regionf) {
+    create_open_region_file_if_closed();
+    if (!regionf.seekg(it->second.start)) {
         throw std::runtime_error("Failed seeking.");
     }
 
     // Read the size of the buffer.
     std::uint32_t buffer_size;
-    regionf.read(reinterpret_cast<char*>(&buffer_size), sizeof(std::uint32_t));
-    if (!regionf) {
+    if (!regionf.read(reinterpret_cast<char*>(&buffer_size), sizeof(std::uint32_t))) {
         throw std::runtime_error("Failed reading size.");
     }
     if (std::endian::native == std::endian::little) {
@@ -284,8 +343,7 @@ AMULET_CORE_DLLX AmuletNBT::NamedTag AnvilRegion::get_value(std::int64_t cx, std
 
     // Read the buffer.
     std::string buffer(buffer_size, 0);
-    regionf.read(buffer.data(), buffer_size);
-    if (!regionf) {
+    if (!regionf.read(buffer.data(), buffer_size)) {
         throw std::runtime_error("Failed reading buffer.");
     }
 
@@ -304,8 +362,11 @@ AMULET_CORE_DLLX AmuletNBT::NamedTag AnvilRegion::get_value(std::int64_t cx, std
     }
 }
 
+// Set chunk data.
+// Lock must be acquired before calling this.
+// Caller must ensure the file is open.
 template <typename T>
-void AnvilRegion::_set_data(std::fstream& regionf, std::int64_t cx, std::int64_t cz, T data)
+void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
 {
     // Find the old sector
     std::optional<Sector> old_sector;
@@ -385,15 +446,10 @@ void AnvilRegion::_set_data(std::fstream& regionf, std::int64_t cx, std::int64_t
     // Only do this after updating the header so that the file is always in a valid state.
     if (old_sector) {
         if (_mcc && !mcc_overwritten) {
-            regionf.seekg(old_sector->start + 4);
-            std::uint8_t format_byte;
-            regionf.read(reinterpret_cast<char*>(&format_byte), 1);
-            if (format_byte & 127) {
-                // Delete the old external mcc file
-                std::filesystem::path mcc_path = _dir / ("c." + std::to_string(cx) + "." + std::to_string(cz) + ".mcc");
-                if (std::filesystem::is_regular_file(mcc_path)) {
-                    std::filesystem::remove(mcc_path);
-                }
+            // Delete the old external mcc file
+            std::filesystem::path mcc_path = _dir / ("c." + std::to_string(cx) + "." + std::to_string(cz) + ".mcc");
+            if (std::filesystem::is_regular_file(mcc_path)) {
+                std::filesystem::remove(mcc_path);
             }
         }
         // Free the old sector
@@ -401,46 +457,12 @@ void AnvilRegion::_set_data(std::fstream& regionf, std::int64_t cx, std::int64_t
     }
 }
 
-static void open_region_file(std::fstream& regionf, const std::filesystem::path& path) {
-    if (std::filesystem::is_regular_file(path)) {
-        sanitise_file(path);
-        regionf.open(path, std::ios::in | std::ios::out | std::ios::binary);
-        if (!regionf) {
-            throw std::runtime_error("Could not open file " + path.string());
-        }
-    } else {
-        regionf.open(path, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
-        if (!regionf) {
-            throw std::runtime_error("Could not open file " + path.string());
-        }
-        regionf.write(std::string(SectorSize * 2, 0).c_str(), SectorSize * 2);
-    }
-}
-
-template <typename T>
-void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
-{
-    validate_coord(cx, cz);
-    if constexpr (std::is_same_v<T, std::string_view>) {
-        if (!_mcc && data.size() + 4 > MaxRegionSize) {
-            // Skip saving large chunks if mcc files are not enabled.
-            // TODO: add an error message.
-            // f"Could not save data {cx},{cz} in region file {self._path} because it was too large."
-            return;
-        }
-    }
-
-    std::lock_guard lock(mutex);
-
-    // Open the file (create if needed)
-    read_file_header();
-    std::fstream regionf;
-    open_region_file(regionf, _path);
-    _set_data<T>(regionf, cx, cz, data);
-}
-
+// Set the value for this coordinate.
+// Coordinates are in world space.
+// Thread safe.
 AMULET_CORE_DLLX void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag)
 {
+    validate_coord(cx, cz);
     // Encode the tag
     AmuletNBT::BinaryWriter writer(
         std::endian::big,
@@ -462,30 +484,55 @@ AMULET_CORE_DLLX void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, c
     };
     data.resize(compressed_size + 1);
 
+    if (!_mcc && data.size() + 4 > MaxRegionSize) {
+        // Skip saving large chunks if mcc files are not enabled.
+        // TODO: add an error message.
+        // f"Could not save data {cx},{cz} in region file {self._path} because it was too large."
+        return;
+    }
+
+    std::lock_guard lock(mutex);
+    read_file_header();
+    create_open_region_file_if_closed();
     _set_data<std::string_view>(cx, cz, data);
 }
 
+// Delete the chunk data.
+// Coordinates are in world space.
+// Thread safe.
 AMULET_CORE_DLLX void AnvilRegion::delete_value(std::int64_t cx, std::int64_t cz)
 {
+    std::lock_guard lock(mutex);
+    if (!std::filesystem::is_regular_file(_path)) {
+        // Do nothing if there is no file.
+        return;
+    }
+    read_file_header();
+    create_open_region_file_if_closed();
     _set_data<std::nullopt_t>(cx, cz, std::nullopt);
 }
 
 AMULET_CORE_DLLX void AnvilRegion::delete_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords)
 {
     std::lock_guard lock(mutex);
-    
-    // Open the file (create if needed)
+    if (!std::filesystem::is_regular_file(_path)) {
+        // Do nothing if there is no file.
+        return;
+    }
     read_file_header();
-    std::fstream regionf;
-    open_region_file(regionf, _path);
-    
+    create_open_region_file_if_closed();
+
     for (const auto& [cx, cz] : coords) {
         if (contains(cx, cz)) {
-            _set_data<std::nullopt_t>(regionf, cx, cz, std::nullopt);
+            _set_data<std::nullopt_t>(cx, cz, std::nullopt);
         }
     }
 }
 
+// Compact the region file.
+// Defragments the file and deletes unused space.
+// If there are no chunks remaining in the region file it will be deleted.
+// Thread safe.
 AMULET_CORE_DLLX void AnvilRegion::compact()
 {
     std::lock_guard lock(mutex);
@@ -497,11 +544,14 @@ AMULET_CORE_DLLX void AnvilRegion::compact()
     read_file_header();
     if (_chunk_locations.empty()) {
         // No chunks in the region file. Delete it.
+        if (regionf.is_open()) {
+            regionf.close();
+        }
         std::filesystem::remove(_path);
         return;
     }
 
-    // Sort by length then start.
+    // Sort by start position.
     struct SectorStartSort {
         bool operator()(
             const std::tuple<size_t, std::pair<std::int64_t, std::int64_t>, Sector>& a,
@@ -528,11 +578,7 @@ AMULET_CORE_DLLX void AnvilRegion::compact()
     size_t file_position = 2 * SectorSize;
     size_t file_end = std::get<2>(*chunk_sectors.rbegin()).stop;
 
-    sanitise_file(_path);
-    std::fstream regionf(_path, std::ios::in | std::ios::out | std::ios::binary);
-    if (!regionf) {
-        throw std::runtime_error("Could not open file " + _path.string());
-    }
+    create_open_region_file_if_closed();
 
     while (!chunk_sectors.empty()) {
         // While there are remaining sectors, get the first sector.
