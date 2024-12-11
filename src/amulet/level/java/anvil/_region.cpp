@@ -158,6 +158,19 @@ AMULET_CORE_DLLX std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion:
     return coords;
 }
 
+AMULET_CORE_DLLX bool AnvilRegion::contains(std::int64_t cx, std::int64_t cz)
+{
+    return _rx * 32 <= cx && cx < (_rx + 1) * 32 && _rz * 32 <= cz && cz < (_rz + 1) * 32;
+}
+
+void AnvilRegion::validate_coord(std::int64_t cx, std::int64_t cz)
+{
+    if (!contains(cx, cz)) {
+        throw std::invalid_argument(
+            "Chunk coordinate " + std::to_string(cx) + ", " + std::to_string(cz) + " is not in region " + std::to_string(_rx) + ", " + std::to_string(_rz));
+    }
+}
+
 AMULET_CORE_DLLX bool AnvilRegion::has_data(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
@@ -236,14 +249,6 @@ static AmuletNBT::NamedTag decompress(char compression_type, const std::string_v
         throw std::runtime_error("LZ4 compression has not been implemented.");
     default:
         throw std::runtime_error("Unknown chunk compression format " + std::to_string(static_cast<std::int16_t>(compression_type)));
-    }
-}
-
-void AnvilRegion::validate_coord(std::int64_t cx, std::int64_t cz)
-{
-    if (cx < _rx * 32 || (_rx + 1) * 32 <= cx || cz < _rz * 32 || (_rz + 1) * 32 <= cz) {
-        throw std::invalid_argument(
-            "Chunk coordinate " + std::to_string(cx) + ", " + std::to_string(cz) + " is not in region " + std::to_string(_rx) + ", " + std::to_string(_rz));
     }
 }
 

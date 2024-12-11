@@ -67,6 +67,9 @@ public:
     // All chunk coordinates in the region file. Coords are in world space.
     AMULET_CORE_DLLX std::vector<std::pair<std::int64_t, std::int64_t>> all_coords();
 
+    // Is the coordinate in the region. Coords are in world space.
+    AMULET_CORE_DLLX bool contains(std::int64_t cx, std::int64_t cz);
+
     // Does the chunk exists. Coords are in world space.
     AMULET_CORE_DLLX bool has_data(std::int64_t cx, std::int64_t cz);
 
