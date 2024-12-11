@@ -104,7 +104,7 @@ static void sanitise_file(const std::filesystem::path& path)
     }
 }
 
-void AnvilRegion::load()
+void AnvilRegion::read_file_header()
 {
     if (_sector_manager) {
         // Already loaded.
@@ -149,7 +149,7 @@ void AnvilRegion::load()
 AMULET_CORE_DLLX std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion::all_coords()
 {
     std::lock_guard lock(mutex);
-    load();
+    read_file_header();
     std::vector<std::pair<std::int64_t, std::int64_t>> coords;
     coords.reserve(_chunk_locations.size());
     for (const auto& it : _chunk_locations) {
@@ -162,7 +162,7 @@ AMULET_CORE_DLLX bool AnvilRegion::has_data(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
     std::lock_guard lock(mutex);
-    load();
+    read_file_header();
     return _chunk_locations.contains(std::make_pair(cx, cz));
 }
 
@@ -251,7 +251,7 @@ AMULET_CORE_DLLX AmuletNBT::NamedTag AnvilRegion::get_data(std::int64_t cx, std:
 {
     validate_coord(cx, cz);
     std::lock_guard lock(mutex);
-    load();
+    read_file_header();
     auto it = _chunk_locations.find(std::make_pair(cx, cz));
     if (it == _chunk_locations.end()) {
         throw ChunkDoesNotExist("Chunk " + std::to_string(cx) + ", " + std::to_string(cz) + "does not exist.");
@@ -464,7 +464,7 @@ AMULET_CORE_DLLX void AnvilRegion::compact()
         return;
     }
 
-    load();
+    read_file_header();
     if (_chunk_locations.empty()) {
         // No chunks in the region file. Delete it.
         std::filesystem::remove(_path);

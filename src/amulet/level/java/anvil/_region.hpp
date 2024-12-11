@@ -45,7 +45,7 @@ private:
 
     // Load data from the region file if it exists.
     // Must be called with the lock.
-    void load();
+    void read_file_header();
 
     void validate_coord(std::int64_t cx, std::int64_t cz);
     template <typename T>
