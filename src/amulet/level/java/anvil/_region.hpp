@@ -19,7 +19,21 @@ AMULET_CORE_DLLX std::pair<std::int64_t, std::int64_t> parse_region_filename(con
 
 // A class to read and write Minecraft Java Edition Region files.
 // Only one instance should exist per region file at any given time otherwise bad things may happen.
-class AnvilRegion {
+class AnvilRegion: public std::enable_shared_from_this<AnvilRegion> {
+public:
+    // A class to manage closing the region file.
+    // When the instance is deleted the region file will be closed.
+    // The region file can be manually closed before this is deleted.
+    class FileCloser {
+    private:
+        // A weak reference to the region
+        std::weak_ptr<AnvilRegion> _region;
+    public:
+        AMULET_CORE_DLLX FileCloser(std::weak_ptr<AnvilRegion> region);
+        AMULET_CORE_DLLX ~FileCloser();
+    };
+
+    friend FileCloser;
 private:
     // The directory the region file is in.
     std::filesystem::path _dir;
@@ -42,11 +56,14 @@ private:
     // The region file handle
     std::fstream regionf;
 
+    // Region file closer
+    std::weak_ptr<FileCloser> _closer;
+
     // Has the region been marked as destroyed.
     bool destroyed = false;
 
     // This mutex must be acquired to access the container data or the file.
-    std::mutex mutex;
+    std::recursive_mutex mutex;
 
     AnvilRegion(const std::filesystem::path& directory, const std::string& file_name, const std::pair<std::int64_t, std::int64_t>& region_coordinate, bool mcc = false);
 
@@ -69,6 +86,13 @@ private:
     void validate_coord(std::int64_t cx, std::int64_t cz);
     template <typename T>
     void _set_data(std::int64_t cx, std::int64_t cz, T data);
+
+    // Get the object responsible for closing the region file.
+    // When this object is deleted it will close the region file
+    // This means that holding a reference to this will delay when the region file is closed.
+    // The region file may still be closed manually before this object is deleted.
+    // Lock must be acquired before calling this.
+    AMULET_CORE_DLLX std::shared_ptr<FileCloser> _get_file_closer();
 
 public:
     // Constructors.
@@ -135,6 +159,13 @@ public:
     // This may only be called by the owner of the instance.
     // Thread safe.
     AMULET_CORE_DLLX void destroy();
+    
+    // Get the object responsible for closing the region file.
+    // When this object is deleted it will close the region file
+    // This means that holding a reference to this will delay when the region file is closed.
+    // The region file may still be closed manually before this object is deleted.
+    // Thread safe.
+    AMULET_CORE_DLLX std::shared_ptr<FileCloser> get_file_closer();
 };
 
 } // namespace Amulet

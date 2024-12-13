@@ -218,6 +218,7 @@ AMULET_CORE_DLLX void AnvilRegion::destroy() {
 AMULET_CORE_DLLX std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion::get_coords()
 {
     std::lock_guard lock(mutex);
+    auto closer = _get_file_closer();
     read_file_header();
     std::vector<std::pair<std::int64_t, std::int64_t>> coords;
     coords.reserve(_chunk_locations.size());
@@ -251,6 +252,7 @@ AMULET_CORE_DLLX bool AnvilRegion::has_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
     std::lock_guard lock(mutex);
+    auto closer = _get_file_closer();
     read_file_header();
     return _chunk_locations.contains(std::make_pair(cx, cz));
 }
@@ -337,6 +339,7 @@ AMULET_CORE_DLLX AmuletNBT::NamedTag AnvilRegion::get_value(std::int64_t cx, std
 {
     validate_coord(cx, cz);
     std::lock_guard lock(mutex);
+    auto closer = _get_file_closer();
     read_file_header();
     auto it = _chunk_locations.find(std::make_pair(cx, cz));
     if (it == _chunk_locations.end()) {
@@ -509,6 +512,7 @@ AMULET_CORE_DLLX void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, c
     }
 
     std::lock_guard lock(mutex);
+    auto closer = _get_file_closer();
     read_file_header();
     create_open_region_file_if_closed();
     _set_data<std::string_view>(cx, cz, data);
@@ -524,6 +528,7 @@ AMULET_CORE_DLLX void AnvilRegion::delete_value(std::int64_t cx, std::int64_t cz
         // Do nothing if there is no file.
         return;
     }
+    auto closer = _get_file_closer();
     read_file_header();
     create_open_region_file_if_closed();
     _set_data<std::nullopt_t>(cx, cz, std::nullopt);
@@ -536,6 +541,7 @@ AMULET_CORE_DLLX void AnvilRegion::delete_batch(std::vector<std::pair<std::int64
         // Do nothing if there is no file.
         return;
     }
+    auto closer = _get_file_closer();
     read_file_header();
     create_open_region_file_if_closed();
 
@@ -558,6 +564,7 @@ AMULET_CORE_DLLX void AnvilRegion::compact()
         return;
     }
 
+    auto closer = _get_file_closer();
     read_file_header();
     if (_chunk_locations.empty()) {
         // No chunks in the region file. Delete it.
@@ -648,6 +655,27 @@ AMULET_CORE_DLLX void AnvilRegion::compact()
     regionf.close();
     // Delete any unused data at the end.
     std::filesystem::resize_file(_path, file_position);
+}
+
+std::shared_ptr<AnvilRegion::FileCloser> AnvilRegion::_get_file_closer() {
+    std::shared_ptr<AnvilRegion::FileCloser> closer = _closer.lock();
+    if (!closer) {
+        closer = std::make_shared<AnvilRegion::FileCloser>(shared_from_this());
+        _closer = closer;
+    }
+    return closer;
+}
+
+AMULET_CORE_DLLX std::shared_ptr<AnvilRegion::FileCloser> AnvilRegion::get_file_closer() {
+    std::lock_guard lock(mutex);
+    return _get_file_closer();
+}
+
+AMULET_CORE_DLLX AnvilRegion::FileCloser::FileCloser(std::weak_ptr<AnvilRegion> region): _region(region) {}
+AMULET_CORE_DLLX AnvilRegion::FileCloser::~FileCloser() {
+    if (std::shared_ptr<AnvilRegion> region = _region.lock()) {
+        region->close();
+    }
 }
 
 } // namespace Amulet
