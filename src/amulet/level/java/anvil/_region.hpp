@@ -43,7 +43,7 @@ private:
     std::fstream regionf;
 
     // Has the region been marked as destroyed.
-    bool destroyed;
+    bool destroyed = false;
 
     // This mutex must be acquired to access the container data or the file.
     std::mutex mutex;
