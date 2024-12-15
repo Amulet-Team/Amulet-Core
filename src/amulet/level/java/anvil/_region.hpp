@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <list>
 #include <map>
 #include <mutex>
 #include <optional>
@@ -15,11 +16,57 @@
 
 namespace Amulet {
 
+template <typename K, typename V>
+class LRICache {
+private:
+    size_t _max_size;
+    std::list<std::pair<K, V>> _values;
+    std::map<K, typename std::list<std::pair<K, V>>::iterator> _map;
+    void remove_extra()
+    {
+        while (_max_size < _values.size()) {
+            _map.erase(_values.front().first);
+            _values.pop_front();
+        }
+    }
+
+public:
+    LRICache(size_t max_size)
+        : _max_size(max_size) {};
+    size_t max_size() const { return _max_size; };
+    void set_max_size(size_t max_size)
+    {
+        _max_size = max_size;
+        remove_extra();
+    };
+    void add(const K& k, const V& v)
+    {
+        auto it = _map.find(k);
+        if (it == _map.end()) {
+            // Create and insert the value
+            _values.emplace_back(k, v);
+            _map.emplace(k, --_values.end());
+            remove_extra();
+        } else {
+            // Move the value to the end.
+            _values.splice(_values.end(), _values, it->second);
+        }
+    };
+    void remove(const K& k)
+    {
+        auto it = _map.find(k);
+        if (it != _map.end()) {
+            _values.erase(it->second);
+            _map.erase(it);
+        }
+    }
+};
+
 AMULET_CORE_DLLX std::pair<std::int64_t, std::int64_t> parse_region_filename(const std::string& filename);
 
 // A class to read and write Minecraft Java Edition Region files.
 // Only one instance should exist per region file at any given time otherwise bad things may happen.
-class AnvilRegion: public std::enable_shared_from_this<AnvilRegion> {
+class AnvilRegion : public std::enable_shared_from_this<AnvilRegion> {
 public:
     // A class to manage closing the region file.
     // When the instance is deleted the region file will be closed.
@@ -28,12 +75,14 @@ public:
     private:
         // A weak reference to the region
         std::weak_ptr<AnvilRegion> _region;
+
     public:
         AMULET_CORE_DLLX FileCloser(std::weak_ptr<AnvilRegion> region);
         AMULET_CORE_DLLX ~FileCloser();
     };
 
     friend FileCloser;
+
 private:
     // The directory the region file is in.
     std::filesystem::path _dir;
@@ -94,6 +143,12 @@ private:
     // Lock must be acquired before calling this.
     AMULET_CORE_DLLX std::shared_ptr<FileCloser> _get_file_closer();
 
+    // Close the file object if open.
+    // This is automatically called when the instance is destroyed but may be called earlier.
+    // Lock must be acquired before calling this.
+    void _close();
+    void _close_if_open();
+
 public:
     // Constructors.
     AMULET_CORE_DLLX AnvilRegion(const std::filesystem::path& directory, const std::string& file_name, std::int64_t rx, std::int64_t rz, bool mcc = false);
@@ -153,13 +208,13 @@ public:
     // This is automatically called when the instance is destroyed but may be called earlier.
     // Thread safe.
     AMULET_CORE_DLLX void close();
-    
+
     // Destroy the instance.
     // Calls made after this will fail.
     // This may only be called by the owner of the instance.
     // Thread safe.
     AMULET_CORE_DLLX void destroy();
-    
+
     // Get the object responsible for closing the region file.
     // When this object is deleted it will close the region file
     // This means that holding a reference to this will delay when the region file is closed.
