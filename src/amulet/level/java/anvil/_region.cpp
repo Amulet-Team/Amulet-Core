@@ -280,14 +280,14 @@ AMULET_CORE_DLLX bool AnvilRegion::has_value(std::int64_t cx, std::int64_t cz)
     return _chunk_locations.contains(std::make_pair(cx, cz));
 }
 
-// Decompress src into dst.
+// Decompress zlib or gzip compressed data from src into dst.
 static void decompress_zlib(const std::string_view src, std::string& dst)
 {
     z_stream stream = {};
     stream.next_in = reinterpret_cast<z_const Bytef*>(src.data());
     stream.avail_in = static_cast<uInt>(src.size());
 
-    switch (inflateInit(&stream)) {
+    switch (inflateInit2(&stream, 32 + MAX_WBITS)) {
     case Z_MEM_ERROR:
         throw std::bad_alloc();
     case Z_VERSION_ERROR:
@@ -339,7 +339,6 @@ static AmuletNBT::NamedTag decompress(char compression_type, const std::string_v
 {
     switch (compression_type) {
     case 1: // GZIP
-        throw std::runtime_error("GZIP compression has not been implemented.");
     case 2: // Deflate
     {
         std::string dst;
