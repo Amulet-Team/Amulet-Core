@@ -28,7 +28,6 @@ dependencies = [
     "portalocker ~= 2.4",
     "platformdirs ~= 3.1",
     "pillow ~= 10.0",
-    "lz4 ~= 4.3",
     "amulet_runtime_final ~= 1.1",
     "amulet_compiler_target == 1.0",
     "amulet_nbt == 4.0a10",

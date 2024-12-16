@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <zlib.h>
+#include <lz4.h>
 
 #include <amulet_nbt/nbt_encoding/binary.hpp>
 
@@ -334,6 +335,75 @@ static void decompress_zlib(const std::string_view src, std::string& dst)
     }
 }
 
+static const std::string LZ4_MAGIC = "LZ4Block";
+static const char COMPRESSION_METHOD_RAW = 0x10;
+static const char COMPRESSION_METHOD_LZ4 = 0x20;
+
+template <typename T>
+static void little_endian_swap(T& value) {
+    if constexpr (std::endian::native != std::endian::little) {
+        char* vv = reinterpret_cast<char*>(&value);
+        std::reverse(vv, vv + 4);
+    }
+}
+
+template <typename T>
+static void big_endian_swap(T& value)
+{
+    if constexpr (std::endian::native != std::endian::big) {
+        char* vv = reinterpret_cast<char*>(&value);
+        std::reverse(vv, vv + 4);
+    }
+}
+
+// Decompress lz4 compressed data from src into dst.
+static void decompress_lz4(const std::string_view src, std::string& dst)
+{
+    // https://github.com/lz4/lz4-java/blob/7c931bef32d179ec3d3286ee71638b23ebde3459/src/java/net/jpountz/lz4/LZ4BlockInputStream.java#L200
+    size_t index = 0;
+    while (index < src.size()) {
+        if (src.size() < index + 21) {
+            throw std::invalid_argument("Corrupt lz4 data. Needed 21 bytes for the header.");
+        }
+        const std::string_view magic = src.substr(index, 8);
+        if (magic != LZ4_MAGIC) {
+            throw std::invalid_argument("LZ4 compressed block does not start with LZ4Block.");
+        }
+        char compression_method = src[index + 8] & 0xF0;
+        std::int32_t compressed_length = *reinterpret_cast<const std::int32_t*>(&src[index + 9]);
+        little_endian_swap(compressed_length);
+        std::int32_t original_length = *reinterpret_cast<const std::int32_t*>(&src[index + 13]);
+        little_endian_swap(original_length);
+        index += 21;
+        if (
+            original_length < 0
+            || compressed_length < 0
+            || (original_length == 0 and compressed_length != 0)
+            || (original_length != 0 and compressed_length == 0)) {
+            throw std::invalid_argument("LZ4 compressed block is corrupted.");
+        }
+        switch (compression_method) {
+        case COMPRESSION_METHOD_RAW: {
+            if (original_length != compressed_length) {
+                throw std::invalid_argument("LZ4 compressed block is corrupted.");
+            }
+            dst.append(src.substr(index, original_length));
+            index += original_length;
+            break;
+        }
+        case COMPRESSION_METHOD_LZ4: {
+            size_t buf_index = dst.size();
+            dst.resize(dst.size() + original_length);
+            LZ4_decompress_safe(&src[index], &dst[buf_index], compressed_length, original_length);
+            index += compressed_length;
+            break;
+        }
+        default:
+            throw std::invalid_argument("LZ4 compressed block is corrupted.");
+        }
+    }
+}
+
 // Decompress the data according to the compression type
 static AmuletNBT::NamedTag decompress(char compression_type, const std::string_view& data)
 {
@@ -348,7 +418,11 @@ static AmuletNBT::NamedTag decompress(char compression_type, const std::string_v
     case 3: // None
         return AmuletNBT::read_nbt(data, std::endian::big, AmuletNBT::mutf8_to_utf8);
     case 4: // LZ4
-        throw std::runtime_error("LZ4 compression has not been implemented.");
+    {
+        std::string dst;
+        decompress_lz4(data, dst);
+        return AmuletNBT::read_nbt(dst, std::endian::big, AmuletNBT::mutf8_to_utf8);
+    }
     default:
         throw std::runtime_error("Unknown chunk compression format " + std::to_string(static_cast<std::int16_t>(compression_type)));
     }
