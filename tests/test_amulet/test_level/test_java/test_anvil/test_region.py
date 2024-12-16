@@ -5,10 +5,11 @@ import shutil
 import glob
 from concurrent.futures import ThreadPoolExecutor
 
-from amulet_nbt import NamedTag, CompoundTag, StringTag
+from amulet_nbt import NamedTag, CompoundTag, StringTag, ListTag, ByteArrayTag
 
 from amulet.level.java.anvil import AnvilRegion
 import tests.data.worlds_src
+import tests.data.region
 
 
 class JavaSectorManagerTestCase(unittest.TestCase):
@@ -48,6 +49,38 @@ class JavaSectorManagerTestCase(unittest.TestCase):
             self.assertEqual(10, region.rx)
             self.assertEqual(20, region.rz)
             self.assertEqual(os.path.join(tmpdir, "r.10.20.mca"), region.path)
+
+    def test_compression(self) -> None:
+        with TemporaryDirectory() as tempdir:
+            shutil.rmtree(tempdir)
+            shutil.copytree(tests.data.region.__path__[0], tempdir)
+            zlib_region = AnvilRegion(os.path.join(tempdir, "zlib"), 5, 5)
+            lz4_region = AnvilRegion(os.path.join(tempdir, "lz4"), 5, 5)
+            try:
+                self.assertEqual(zlib_region.get_coords(), lz4_region.get_coords())
+                for x, z in zlib_region.get_coords():
+                    zlib_chunk = zlib_region.get_value(x, z)
+                    lz4_chunk = lz4_region.get_value(x, z)
+                    lz4_chunk.compound["DataVersion"] = zlib_chunk.compound["DataVersion"]
+                    lz4_chunk.compound["LastUpdate"] = zlib_chunk.compound["LastUpdate"]
+                    lz4_chunk.compound["InhabitedTime"] = zlib_chunk.compound["InhabitedTime"]
+                    def remove_sections(sections: ListTag) -> None:
+                        for i, section in enumerate(reversed(sections)):
+                            if "block_states" not in section:
+                                sections.pop(len(sections) - 1 - i)
+                            else:
+                                if isinstance(section, CompoundTag) and "SkyLight" in section:
+                                    section.pop("SkyLight")
+                                if isinstance(section, CompoundTag) and "BlockLight" in section:
+                                    section.pop("BlockLight")
+                        
+                    remove_sections(zlib_chunk.compound.get_list("sections"))
+                    remove_sections(lz4_chunk.compound.get_list("sections"))
+
+                    self.assertEqual(zlib_chunk, lz4_chunk)
+            finally:
+                zlib_region.destroy()
+                lz4_region.destroy()
 
     def test_compact(self) -> None:
         with TemporaryDirectory() as tempdir:
