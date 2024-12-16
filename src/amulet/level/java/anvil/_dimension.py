@@ -19,6 +19,8 @@ from . import AnvilRegion
 
 RawChunkType: TypeAlias = dict[str, NamedTag]
 
+_region_regex = re.compile(r"r\.(?P<rx>-?\d+)\.(?P<rz>-?\d+)\.mca")
+
 
 class AnvilDimensionLayer:
     """A class to manage a directory of region files."""
@@ -43,25 +45,25 @@ class AnvilDimensionLayer:
                 return self._regions[(rx, rz)]
             elif create or self._has_region(rx, rz):
                 region = self._regions[(rx, rz)] = AnvilRegion(
-                    self._region_path(rx, rz), mcc=self._mcc
+                    self._directory, rx, rz, mcc=self._mcc
                 )
                 return region
             else:
                 raise ChunkDoesNotExist
 
     def _iter_regions(self) -> Iterator[AnvilRegion]:
-        if os.path.isdir(self._directory):
-            for region_file_name in os.listdir(self._directory):
-                try:
-                    rx, rz = AnvilRegion.get_coords(region_file_name)
-                except ValueError:
-                    continue
-                else:
-                    yield self._get_region(rx, rz)
+        if not os.path.isdir(self._directory):
+            return
+        for region_file_name in os.listdir(self._directory):
+            if not os.path.isfile(os.path.join(self._directory, region_file_name)):
+                continue
+            match = _region_regex.fullmatch(region_file_name)
+            if match:
+                yield int(match.group("rx")), int(match.group("rz"))
 
     def all_chunk_coords(self) -> Iterator[ChunkCoordinates]:
         for region in self._iter_regions():
-            yield from region.all_coords()
+            yield from region.get_coords()
 
     def has_chunk(self, cx: int, cz: int) -> bool:
         try:
@@ -71,7 +73,7 @@ class AnvilDimensionLayer:
         except ChunkDoesNotExist:
             return False
         else:
-            return region.has_data(cx, cz)
+            return region.has_value(cx, cz)
 
     def get_chunk_data(self, cx: int, cz: int) -> NamedTag:
         """
@@ -81,13 +83,13 @@ class AnvilDimensionLayer:
         # get the region key
         return self._get_region(
             *world_utils.chunk_coords_to_region_coords(cx, cz)
-        ).get_data(cx, cz)
+        ).get_value(cx, cz)
 
     def put_chunk_data(self, cx: int, cz: int, data: NamedTag) -> None:
         """pass data to the region file class"""
         self._get_region(
             *world_utils.chunk_coords_to_region_coords(cx, cz), create=True
-        ).set_data(cx, cz, data)
+        ).set_value(cx, cz, data)
 
     def delete_chunk(self, cx: int, cz: int) -> None:
         try:
@@ -97,7 +99,7 @@ class AnvilDimensionLayer:
         except ChunkDoesNotExist:
             pass
         else:
-            region.delete_data(cx, cz)
+            region.delete_value(cx, cz)
 
     def compact(self) -> None:
         """Compact all region files in this layer"""
