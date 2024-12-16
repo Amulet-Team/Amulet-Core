@@ -23,6 +23,24 @@
 
 namespace Amulet {
 
+template <typename T>
+static void little_endian_swap(T& value)
+{
+    if constexpr (std::endian::native != std::endian::little) {
+        char* vv = reinterpret_cast<char*>(&value);
+        std::reverse(vv, vv + sizeof(T));
+    }
+}
+
+template <typename T>
+static void big_endian_swap(T& value)
+{
+    if constexpr (std::endian::native != std::endian::big) {
+        char* vv = reinterpret_cast<char*>(&value);
+        std::reverse(vv, vv + sizeof(T));
+    }
+}
+
 static const std::uint64_t SectorSize = 0x1000;
 static const std::uint64_t MaxRegionSize = SectorSize * 255; // The maximum size data in the region file can be
 
@@ -170,12 +188,9 @@ void AnvilRegion::read_file_header()
         regionf.seekg(0);
         std::vector<std::uint32_t> location_table(1024);
         regionf.read(reinterpret_cast<char*>(location_table.data()), 4096);
-        if (std::endian::native == std::endian::little) {
-            // Raw data is big endian. Convert to little.
-            for (auto& v : location_table) {
-                char* vv = reinterpret_cast<char*>(&v);
-                std::reverse(vv, vv + 4);
-            }
+        // Convert from big endian to native endianness
+        for (auto& v : location_table) { 
+            big_endian_swap(v);
         }
         for (size_t cx = 0; cx < 32; cx++) {
             for (size_t cz = 0; cz < 32; cz++) {
@@ -339,23 +354,6 @@ static const std::string LZ4_MAGIC = "LZ4Block";
 static const char COMPRESSION_METHOD_RAW = 0x10;
 static const char COMPRESSION_METHOD_LZ4 = 0x20;
 
-template <typename T>
-static void little_endian_swap(T& value) {
-    if constexpr (std::endian::native != std::endian::little) {
-        char* vv = reinterpret_cast<char*>(&value);
-        std::reverse(vv, vv + 4);
-    }
-}
-
-template <typename T>
-static void big_endian_swap(T& value)
-{
-    if constexpr (std::endian::native != std::endian::big) {
-        char* vv = reinterpret_cast<char*>(&value);
-        std::reverse(vv, vv + 4);
-    }
-}
-
 // Decompress lz4 compressed data from src into dst.
 static void decompress_lz4(const std::string_view src, std::string& dst)
 {
@@ -451,11 +449,7 @@ AMULET_CORE_DLLX AmuletNBT::NamedTag AnvilRegion::get_value(std::int64_t cx, std
     if (!regionf.read(reinterpret_cast<char*>(&buffer_size), sizeof(std::uint32_t))) {
         throw std::runtime_error("Failed reading size.");
     }
-    if (std::endian::native == std::endian::little) {
-        // Raw data is big endian. Convert to little.
-        char* vv = reinterpret_cast<char*>(&buffer_size);
-        std::reverse(vv, vv + 4);
-    }
+    big_endian_swap(buffer_size);
 
     // Read the buffer.
     std::string buffer(buffer_size, 0);
@@ -495,7 +489,6 @@ void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
     bool mcc_overwritten = false;
 
     std::uint32_t location = 0;
-    char* location_char = reinterpret_cast<char*>(&location);
     if constexpr (std::is_same_v<T, std::string_view>) {
         // Write the new chunk data
         char format_byte = 0;
@@ -528,11 +521,8 @@ void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
         regionf.seekp(sector.start);
         // Write the size value
         std::uint32_t data_size_buffer = static_cast<std::uint32_t>(data_size);
-        char* size_char = reinterpret_cast<char*>(&data_size_buffer);
-        if constexpr (std::endian::native != std::endian::big) {
-            std::reverse(size_char, size_char + 4);
-        }
-        regionf.write(size_char, 4);
+        big_endian_swap(data_size_buffer);
+        regionf.write(reinterpret_cast<char*>(&data_size_buffer), 4);
         // Write the data
         regionf.write(data.data(), data.size());
         // Pad to sector_length
@@ -543,21 +533,16 @@ void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
         }
         // Create the location value
         location = static_cast<std::uint32_t>((sector.start >> 4) + (sector_length >> 12));
-        if constexpr (std::endian::native != std::endian::big) {
-            std::reverse(location_char, location_char + 4);
-        }
+        big_endian_swap(location);
     }
 
     // Write header data
     regionf.seekp(4 * (cx - _rx * 32 + (cz - _rz * 32) * 32));
-    regionf.write(location_char, 4);
+    regionf.write(reinterpret_cast<char*>(&location), 4);
     regionf.seekg(SectorSize - 4, std::ios::cur);
     std::uint32_t t = static_cast<std::uint32_t>(std::time(NULL));
-    char* t_char = reinterpret_cast<char*>(&t);
-    if constexpr (std::endian::native != std::endian::big) {
-        std::reverse(t_char, t_char + 4);
-    }
-    regionf.write(t_char, 4);
+    big_endian_swap(t);
+    regionf.write(reinterpret_cast<char*>(&t), 4);
 
     // Only do this after updating the header so that the file is always in a valid state.
     if (old_sector) {
@@ -734,12 +719,9 @@ AMULET_CORE_DLLX void AnvilRegion::compact()
 
             // Update the index
             std::uint32_t location = static_cast<std::uint32_t>((new_sector.start >> 4) + (new_sector.length() >> 12));
-            char* location_char = reinterpret_cast<char*>(&location);
-            if constexpr (std::endian::native != std::endian::big) {
-                std::reverse(location_char, location_char + 4);
-            }
+            big_endian_swap(location);
             regionf.seekp(header_index);
-            regionf.write(location_char, 4);
+            regionf.write(reinterpret_cast<char*>(&location), 4);
 
             // Update internal state
             _chunk_locations[chunk_coordinate] = new_sector;
