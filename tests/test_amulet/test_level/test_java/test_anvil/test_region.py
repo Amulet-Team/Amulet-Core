@@ -5,13 +5,50 @@ import shutil
 import glob
 from concurrent.futures import ThreadPoolExecutor
 
-from amulet_nbt import NamedTag
+from amulet_nbt import NamedTag, CompoundTag, StringTag
 
 from amulet.level.java.anvil import AnvilRegion
 import tests.data.worlds_src
 
 
 class JavaSectorManagerTestCase(unittest.TestCase):
+    def test_methods(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            region = AnvilRegion(tmpdir, 0, 0)
+            self.assertFalse(os.path.exists(region.path))
+            self.assertEqual([], region.get_coords())
+            self.assertFalse(region.has_value(0, 0))
+            self.assertFalse(os.path.exists(region.path))
+            value = NamedTag(CompoundTag(test=StringTag("test")), "test")
+            region.set_value(0, 0, value)
+            self.assertEqual([(0, 0)], region.get_coords())
+            self.assertTrue(region.has_value(0, 0))
+            self.assertTrue(os.path.exists(region.path))
+            self.assertEqual(value, region.get_value(0, 0))
+            region.close()
+            self.assertEqual(value, region.get_value(0, 0))
+            region.destroy()
+            self.assertTrue(os.path.exists(region.path))
+            region = AnvilRegion(tmpdir, 0, 0)
+            self.assertEqual([(0, 0)], region.get_coords())
+            self.assertTrue(region.has_value(0, 0))
+            self.assertEqual(value, region.get_value(0, 0))
+            region.delete_value(0, 0)
+            self.assertEqual([], region.get_coords())
+            self.assertFalse(region.has_value(0, 0))
+            region.compact()
+            self.assertEqual([], region.get_coords())
+            self.assertFalse(region.has_value(0, 0))
+            self.assertFalse(os.path.exists(region.path))
+            region.destroy()
+
+    def test_properties(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            region = AnvilRegion(tmpdir, 10, 20)
+            self.assertEqual(10, region.rx)
+            self.assertEqual(20, region.rz)
+            self.assertEqual(os.path.join(tmpdir, "r.10.20.mca"), region.path)
+
     def test_compact(self) -> None:
         with TemporaryDirectory() as tempdir:
             # Create a temporary directory and copy all Java worlds to it.
