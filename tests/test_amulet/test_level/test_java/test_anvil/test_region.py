@@ -61,19 +61,30 @@ class JavaSectorManagerTestCase(unittest.TestCase):
                 for x, z in zlib_region.get_coords():
                     zlib_chunk = zlib_region.get_value(x, z)
                     lz4_chunk = lz4_region.get_value(x, z)
-                    lz4_chunk.compound["DataVersion"] = zlib_chunk.compound["DataVersion"]
+                    lz4_chunk.compound["DataVersion"] = zlib_chunk.compound[
+                        "DataVersion"
+                    ]
                     lz4_chunk.compound["LastUpdate"] = zlib_chunk.compound["LastUpdate"]
-                    lz4_chunk.compound["InhabitedTime"] = zlib_chunk.compound["InhabitedTime"]
+                    lz4_chunk.compound["InhabitedTime"] = zlib_chunk.compound[
+                        "InhabitedTime"
+                    ]
+
                     def remove_sections(sections: ListTag) -> None:
                         for i, section in enumerate(reversed(sections)):
                             if "block_states" not in section:
                                 sections.pop(len(sections) - 1 - i)
                             else:
-                                if isinstance(section, CompoundTag) and "SkyLight" in section:
+                                if (
+                                    isinstance(section, CompoundTag)
+                                    and "SkyLight" in section
+                                ):
                                     section.pop("SkyLight")
-                                if isinstance(section, CompoundTag) and "BlockLight" in section:
+                                if (
+                                    isinstance(section, CompoundTag)
+                                    and "BlockLight" in section
+                                ):
                                     section.pop("BlockLight")
-                        
+
                     remove_sections(zlib_chunk.compound.get_list("sections"))
                     remove_sections(lz4_chunk.compound.get_list("sections"))
 
@@ -106,30 +117,23 @@ class JavaSectorManagerTestCase(unittest.TestCase):
                 region.compact()
 
                 # Verify that the data is the same
-                self.assertEqual(
-                    original_chunk_data,
-                    get_data()
-                )
+                self.assertEqual(original_chunk_data, get_data())
 
                 # Close, reopen and verify that the data is the same
                 region.destroy()
                 region = AnvilRegion(path, mcc=True)
-                self.assertEqual(
-                    original_chunk_data,
-                    get_data()
-                )
+                self.assertEqual(original_chunk_data, get_data())
 
                 if original_chunk_data:
-                    self.assertLessEqual(
-                        os.stat(path).st_size, original_file_size
-                    )
+                    self.assertLessEqual(os.stat(path).st_size, original_file_size)
                 else:
                     self.assertFalse(os.path.isfile(path))
                 region.destroy()
 
             with ThreadPoolExecutor() as executor:
                 for region_file_path in glob.glob(
-                    os.path.join(glob.escape(tempdir), "**", "r.*.*.mca"), recursive=True
+                    os.path.join(glob.escape(tempdir), "**", "r.*.*.mca"),
+                    recursive=True,
                 ):
                     executor.submit(compact, region_file_path)
 
