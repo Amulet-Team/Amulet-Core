@@ -43,17 +43,17 @@ void init_java_anvil(py::module m_parent)
     AnvilRegion.def_property_readonly("rx", &Amulet::AnvilRegion::rx);
     AnvilRegion.def_property_readonly("rz", &Amulet::AnvilRegion::rz);
 
-    AnvilRegion.def("get_coords", &Amulet::AnvilRegion::get_coords);
-    AnvilRegion.def("contains", &Amulet::AnvilRegion::contains, py::arg("cx"), py::arg("cz"));
-    AnvilRegion.def("has_value", &Amulet::AnvilRegion::has_value, py::arg("cx"), py::arg("cz"));
-    AnvilRegion.def("get_value", &Amulet::AnvilRegion::get_value, py::arg("cx"), py::arg("cz"));
-    AnvilRegion.def("set_value", &Amulet::AnvilRegion::set_value, py::arg("cx"), py::arg("cz"), py::arg("tag"));
-    AnvilRegion.def("delete_value", &Amulet::AnvilRegion::delete_value, py::arg("cx"), py::arg("cz"));
-    AnvilRegion.def("delete_batch", &Amulet::AnvilRegion::delete_batch, py::arg("coords"));
-    AnvilRegion.def("compact", &Amulet::AnvilRegion::compact);
-    AnvilRegion.def("close", &Amulet::AnvilRegion::close);
-    AnvilRegion.def("destroy", &Amulet::AnvilRegion::destroy);
-    AnvilRegion.def("get_file_closer", &Amulet::AnvilRegion::get_file_closer);
+    AnvilRegion.def("get_coords", &Amulet::AnvilRegion::get_coords, py::call_guard<py::gil_scoped_release>());
+    AnvilRegion.def("contains", &Amulet::AnvilRegion::contains, py::arg("cx"), py::arg("cz"), py::call_guard<py::gil_scoped_release>());
+    AnvilRegion.def("has_value", &Amulet::AnvilRegion::has_value, py::arg("cx"), py::arg("cz"), py::call_guard<py::gil_scoped_release>());
+    AnvilRegion.def("get_value", &Amulet::AnvilRegion::get_value, py::arg("cx"), py::arg("cz"), py::call_guard<py::gil_scoped_release>());
+    AnvilRegion.def("set_value", &Amulet::AnvilRegion::set_value, py::arg("cx"), py::arg("cz"), py::arg("tag"), py::call_guard<py::gil_scoped_release>());
+    AnvilRegion.def("delete_value", &Amulet::AnvilRegion::delete_value, py::arg("cx"), py::arg("cz"), py::call_guard<py::gil_scoped_release>());
+    AnvilRegion.def("delete_batch", &Amulet::AnvilRegion::delete_batch, py::arg("coords"), py::call_guard<py::gil_scoped_release>());
+    AnvilRegion.def("compact", &Amulet::AnvilRegion::compact, py::call_guard<py::gil_scoped_release>());
+    AnvilRegion.def("close", &Amulet::AnvilRegion::close, py::call_guard<py::gil_scoped_release>());
+    AnvilRegion.def("destroy", &Amulet::AnvilRegion::destroy, py::call_guard<py::gil_scoped_release>());
+    AnvilRegion.def("get_file_closer", &Amulet::AnvilRegion::get_file_closer, py::call_guard<py::gil_scoped_release>());
 
     m.attr("AnvilDimension") = py::module::import("amulet.level.java.anvil._dimension").attr("AnvilDimension");
     m.attr("AnvilDimensionLayer") = py::module::import("amulet.level.java.anvil._dimension").attr("AnvilDimensionLayer");
