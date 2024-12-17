@@ -1,3 +1,20 @@
+graft submodules/zlib
+prune submodules/zlib/contrib
+prune submodules/zlib/doc
+prune submodules/zlib/examples
+prune submodules/zlib/test
+
+graft submodules/lz4
+prune submodules/lz4/.circleci
+prune submodules/lz4/.github
+prune submodules/lz4/build
+graft submodules/lz4/build/cmake
+prune submodules/lz4/contrib
+prune submodules/lz4/doc
+prune submodules/lz4/examples
+prune submodules/lz4/programs
+prune submodules/lz4/tests
+
 recursive-include src/amulet *.png *.cpp *.hpp *Config.cmake
 
 include CMakeLists.txt
