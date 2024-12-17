@@ -22,6 +22,8 @@ jobs:
         os: [windows-latest, macos-latest, ubuntu-latest]
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: 'recursive'
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
