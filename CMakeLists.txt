@@ -18,6 +18,19 @@ else()
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
 
+# Add zlib
+set(ZLIB_BUILD_EXAMPLES OFF)
+add_subdirectory(submodules/zlib)
+set(ZLIB_ROOT submodules/zlib)
+set(ZLIB_USE_STATIC_LIBS ON)
+set(ZLIB_LIBRARY ${INSTALL_LIB_DIR})
+find_package(ZLIB REQUIRED)
+target_compile_definitions(zlibstatic PUBLIC ZLIB_CONST)
+
+# Add lz4
+set(LZ4_BUILD_CLI OFF)
+add_subdirectory(submodules/lz4/build/cmake)
+
 # Add pybind11
 find_package(pybind11 CONFIG REQUIRED)
 find_package(pybind11_extensions CONFIG REQUIRED)
@@ -33,6 +46,8 @@ list(REMOVE_ITEM AMULET_SOURCES ${AMULET_EXTENSION_SOURCES})
 
 # Add implementation
 add_library(amulet_core SHARED)
+target_link_libraries( amulet_core PRIVATE zlibstatic )
+target_link_libraries( amulet_core PRIVATE lz4_static )
 target_link_libraries( amulet_core PRIVATE amulet_nbt )
 target_link_libraries( amulet_core PRIVATE leveldb_mcpe )
 target_compile_definitions(amulet_core PRIVATE ExportAmuletCore)

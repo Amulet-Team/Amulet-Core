@@ -1,0 +1,8 @@
+[submodule "submodules/zlib"]
+	path = submodules/zlib
+	url = https://github.com/madler/zlib.git
+	branch = master
+[submodule "submodules/lz4"]
+	path = submodules/lz4
+	url = https://github.com/lz4/lz4.git
+	branch = release
