@@ -12,8 +12,6 @@ graft submodules/lz4/build/cmake
 prune submodules/lz4/contrib
 prune submodules/lz4/doc
 prune submodules/lz4/examples
-prune submodules/lz4/programs
-prune submodules/lz4/tests
 
 recursive-include src/amulet *.png *.cpp *.hpp *Config.cmake
 
