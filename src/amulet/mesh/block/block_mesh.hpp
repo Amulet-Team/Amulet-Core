@@ -11,34 +11,12 @@
 #include <functional>
 
 #include <amulet/dll.hpp>
+#include <amulet/vector.hpp>
 
 namespace Amulet {
 
-class FloatVec2 {
-public:
-    float x;
-    float y;
-
-    FloatVec2(float x, float y)
-        : x(x)
-        , y(y)
-    {
-    }
-};
-
-class FloatVec3 {
-public:
-    float x;
-    float y;
-    float z;
-
-    FloatVec3(float x, float y, float z)
-        : x(x)
-        , y(y)
-        , z(z)
-    {
-    }
-};
+using FloatVec2 = Vec2<float>;
+using FloatVec3 = Vec3<float>;
 
 class Vertex {
 public:
