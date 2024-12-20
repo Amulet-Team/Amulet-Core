@@ -4,7 +4,7 @@
 
 #include <amulet/selection/box.hpp>
 #include <amulet/selection/group.hpp>
-#include <pybind11_extensions/builtins.hpp>
+#include <pybind11_extensions/collections.hpp>
 
 namespace py = pybind11;
 
@@ -237,7 +237,7 @@ void init_selection(py::module m_parent)
     SelectionGroup.def(py::init<const Amulet::SelectionBox&>(), py::arg("box"));
     SelectionGroup.def(
         py::init(
-            [](std::vector<Amulet::SelectionBox> boxes) {
+            [](pybind11_extensions::Iterable<Amulet::SelectionBox> boxes) {
                 return Amulet::SelectionGroup(boxes);
             }),
         py::arg("boxes"));
