@@ -13,7 +13,7 @@ AMULET_CORE_DLLX SelectionGroup::SelectionGroup(const SelectionBox& box)
 }
 
 // Accessors
-AMULET_CORE_DLLX const std::set<SelectionBox>& SelectionGroup::selection_boxes()
+AMULET_CORE_DLLX const std::set<SelectionBox>& SelectionGroup::selection_boxes() const
 {
     return _boxes;
 }
