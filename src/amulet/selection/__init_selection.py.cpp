@@ -209,11 +209,29 @@ void init_selection(py::module m_parent)
         py::arg("y"),
         py::arg("z"));
 
+    // Dunder methods
     SelectionBox.def(py::self < py::self);
     SelectionBox.def(py::self <= py::self);
     SelectionBox.def(py::self == py::self);
     SelectionBox.def(py::self >= py::self);
     SelectionBox.def(py::self > py::self);
+    SelectionBox.def(
+        "__repr__",
+        [](const Amulet::SelectionBox& self) {
+            return "SelectionBox(("
+                + std::to_string(std::get<0>(self.point_1()))
+                + ", "
+                + std::to_string(std::get<1>(self.point_1()))
+                + ", "
+                + std::to_string(std::get<2>(self.point_1()))
+                + "), ("
+                + std::to_string(std::get<0>(self.point_2()))
+                + ", "
+                + std::to_string(std::get<1>(self.point_2()))
+                + ", "
+                + std::to_string(std::get<2>(self.point_2()))
+                + "))";
+        });
 
     SelectionGroup.def(py::init<>());
     SelectionGroup.def(py::init<const Amulet::SelectionBox&>(), py::arg("box"));
@@ -223,6 +241,36 @@ void init_selection(py::module m_parent)
                 return Amulet::SelectionGroup(boxes);
             }),
         py::arg("boxes"));
+
+    // Dunder methods
+    SelectionGroup.def(
+        "__repr__",
+        [](const Amulet::SelectionGroup& self) {
+            std::string out = "SelectionGroup([";
+            bool comma = false;
+            for (const auto& box : self.selection_boxes()) {
+                if (comma) {
+                    out += ", ";
+                } else {
+                    comma = true;
+                }
+                out += "SelectionBox((";
+                out += std::to_string(std::get<0>(box.point_1()));
+                out += ", ";
+                out += std::to_string(std::get<1>(box.point_1()));
+                out += ", ";
+                out += std::to_string(std::get<2>(box.point_1()));
+                out += "), (";
+                out += std::to_string(std::get<0>(box.point_2()));
+                out += ", ";
+                out += std::to_string(std::get<1>(box.point_2()));
+                out += ", ";
+                out += std::to_string(std::get<2>(box.point_2()));
+                out += "))";
+            }
+            out += "])";
+            return out;
+        });
 
     m.attr("SelectionBox") = selection_box_module.attr("SelectionBox");
     m.attr("SelectionGroup") = selection_group_module.attr("SelectionGroup");
