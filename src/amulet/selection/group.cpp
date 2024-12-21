@@ -17,6 +17,12 @@ AMULET_CORE_DLLX const std::set<SelectionBox>& SelectionGroup::selection_boxes()
 {
     return _boxes;
 }
+AMULET_CORE_DLLX size_t SelectionGroup::size() const
+{
+    return _boxes.size();
+}
+
+// Bounds
 AMULET_CORE_DLLX std::int64_t SelectionGroup::min_x() const
 {
     if (_boxes.empty()) {

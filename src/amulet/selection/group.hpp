@@ -27,6 +27,7 @@ public:
 
     // Accessors
     AMULET_CORE_DLLX const std::set<SelectionBox>& selection_boxes() const;
+    AMULET_CORE_DLLX size_t size() const;
 
     // Bounds
     AMULET_CORE_DLLX std::int64_t min_x() const;
