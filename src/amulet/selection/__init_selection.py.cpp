@@ -85,53 +85,53 @@ static void init_selection_box(py::class_<Amulet::SelectionBox> SelectionBox)
         py::arg("point_2"));
 
     // Accessors
-    SelectionBox.def(
+    SelectionBox.def_property_readonly(
         "min_x",
         &Amulet::SelectionBox::min_x,
         py::doc("The minimum x coordinate of the box."));
-    SelectionBox.def(
+    SelectionBox.def_property_readonly(
         "min_y",
         &Amulet::SelectionBox::min_y,
         py::doc("The minimum y coordinate of the box."));
-    SelectionBox.def(
+    SelectionBox.def_property_readonly(
         "min_z",
         &Amulet::SelectionBox::min_z,
         py::doc("The minimum z coordinate of the box."));
-    SelectionBox.def(
+    SelectionBox.def_property_readonly(
         "max_x",
         &Amulet::SelectionBox::max_x,
         py::doc("The maximum x coordinate of the box."));
-    SelectionBox.def(
+    SelectionBox.def_property_readonly(
         "max_y",
         &Amulet::SelectionBox::max_y,
         py::doc("The maximum y coordinate of the box."));
-    SelectionBox.def(
+    SelectionBox.def_property_readonly(
         "max_z",
         &Amulet::SelectionBox::max_z,
         py::doc("The maximum z coordinate of the box."));
-    SelectionBox.def(
+    SelectionBox.def_property_readonly(
         "min",
         [](const Amulet::SelectionBox& self) { return wrap_array(self.min()); },
         py::doc("The minimum coordinate of the box."));
-    SelectionBox.def(
+    SelectionBox.def_property_readonly(
         "max",
         [](const Amulet::SelectionBox& self) { return wrap_array(self.max()); },
         py::doc("The maximum coordinate of the box."));
 
     // Shape and volume
-    SelectionBox.def(
+    SelectionBox.def_property_readonly(
         "size_x",
         &Amulet::SelectionBox::size_x,
         py::doc("The length of the box in the x axis."));
-    SelectionBox.def(
+    SelectionBox.def_property_readonly(
         "size_y",
         &Amulet::SelectionBox::size_y,
         py::doc("The length of the box in the y axis."));
-    SelectionBox.def(
+    SelectionBox.def_property_readonly(
         "size_z",
         &Amulet::SelectionBox::size_z,
         py::doc("The length of the box in the z axis."));
-    SelectionBox.def(
+    SelectionBox.def_property_readonly(
         "shape",
         [](const Amulet::SelectionBox& self) { return wrap_array(self.shape()); },
         py::doc(
@@ -139,7 +139,7 @@ static void init_selection_box(py::class_<Amulet::SelectionBox> SelectionBox)
             "\n"
             ">>> SelectionBox(0, 0, 0, 1, 1, 1).shape\n"
             "(1, 1, 1)"));
-    SelectionBox.def(
+    SelectionBox.def_property_readonly(
         "volume",
         &Amulet::SelectionBox::volume,
         py::doc(

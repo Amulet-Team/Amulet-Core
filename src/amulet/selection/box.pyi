@@ -100,69 +100,6 @@ class SelectionBox:
 
     @typing.overload
     def intersects(self, other: amulet.selection.group.SelectionGroup) -> bool: ...
-    def max(self) -> tuple[int, int, int]:
-        """
-        The maximum coordinate of the box.
-        """
-
-    def max_x(self) -> int:
-        """
-        The maximum x coordinate of the box.
-        """
-
-    def max_y(self) -> int:
-        """
-        The maximum y coordinate of the box.
-        """
-
-    def max_z(self) -> int:
-        """
-        The maximum z coordinate of the box.
-        """
-
-    def min(self) -> tuple[int, int, int]:
-        """
-        The minimum coordinate of the box.
-        """
-
-    def min_x(self) -> int:
-        """
-        The minimum x coordinate of the box.
-        """
-
-    def min_y(self) -> int:
-        """
-        The minimum y coordinate of the box.
-        """
-
-    def min_z(self) -> int:
-        """
-        The minimum z coordinate of the box.
-        """
-
-    def shape(self) -> tuple[int, int, int]:
-        """
-        The length of the box in the x, y and z axis.
-
-        >>> SelectionBox(0, 0, 0, 1, 1, 1).shape
-        (1, 1, 1)
-        """
-
-    def size_x(self) -> int:
-        """
-        The length of the box in the x axis.
-        """
-
-    def size_y(self) -> int:
-        """
-        The length of the box in the y axis.
-        """
-
-    def size_z(self) -> int:
-        """
-        The length of the box in the z axis.
-        """
-
     def touches(self, other: SelectionBox) -> bool:
         """
         Method to check if this instance of :class:`SelectionBox` touches but does not intersect another SelectionBox.
@@ -189,6 +126,82 @@ class SelectionBox:
         :return: The new selection with the given offset.
         """
 
+    @property
+    def max(self) -> tuple[int, int, int]:
+        """
+        The maximum coordinate of the box.
+        """
+
+    @property
+    def max_x(self) -> int:
+        """
+        The maximum x coordinate of the box.
+        """
+
+    @property
+    def max_y(self) -> int:
+        """
+        The maximum y coordinate of the box.
+        """
+
+    @property
+    def max_z(self) -> int:
+        """
+        The maximum z coordinate of the box.
+        """
+
+    @property
+    def min(self) -> tuple[int, int, int]:
+        """
+        The minimum coordinate of the box.
+        """
+
+    @property
+    def min_x(self) -> int:
+        """
+        The minimum x coordinate of the box.
+        """
+
+    @property
+    def min_y(self) -> int:
+        """
+        The minimum y coordinate of the box.
+        """
+
+    @property
+    def min_z(self) -> int:
+        """
+        The minimum z coordinate of the box.
+        """
+
+    @property
+    def shape(self) -> tuple[int, int, int]:
+        """
+        The length of the box in the x, y and z axis.
+
+        >>> SelectionBox(0, 0, 0, 1, 1, 1).shape
+        (1, 1, 1)
+        """
+
+    @property
+    def size_x(self) -> int:
+        """
+        The length of the box in the x axis.
+        """
+
+    @property
+    def size_y(self) -> int:
+        """
+        The length of the box in the y axis.
+        """
+
+    @property
+    def size_z(self) -> int:
+        """
+        The length of the box in the z axis.
+        """
+
+    @property
     def volume(self) -> int:
         """
         The number of blocks in the box.
