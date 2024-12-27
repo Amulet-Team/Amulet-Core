@@ -1,6 +1,6 @@
 #pragma once
 #include <cstdint>
-#include <tuple>
+#include <array>
 
 #include <amulet/dll.hpp>
 #include <amulet/selection/group.hpp>
@@ -12,37 +12,40 @@ class SelectionGroup;
 // The SelectionBox class represents a single cuboid selection.
 class SelectionBox {
 private:
-    std::tuple<std::int64_t, std::int64_t, std::int64_t> _point_1;
-    std::tuple<std::int64_t, std::int64_t, std::int64_t> _point_2;
     std::int64_t _min_x;
     std::int64_t _min_y;
     std::int64_t _min_z;
-    std::int64_t _max_x;
-    std::int64_t _max_y;
-    std::int64_t _max_z;
+    std::uint64_t _size_x;
+    std::uint64_t _size_y;
+    std::uint64_t _size_z;
 
 public:
     AMULET_CORE_DLLX SelectionBox(
-        std::tuple<std::int64_t, std::int64_t, std::int64_t> point_1,
-        std::tuple<std::int64_t, std::int64_t, std::int64_t> point_2);
+        std::int64_t min_x,
+        std::int64_t min_y,
+        std::int64_t min_z,
+        std::uint64_t size_x,
+        std::uint64_t size_y,
+        std::uint64_t size_z);
+    AMULET_CORE_DLLX SelectionBox(
+        std::array<std::int64_t, 3> point_1,
+        std::array<std::int64_t, 3> point_2);
 
     // Accessors
-    AMULET_CORE_DLLX std::tuple<std::int64_t, std::int64_t, std::int64_t> point_1() const;
-    AMULET_CORE_DLLX std::tuple<std::int64_t, std::int64_t, std::int64_t> point_2() const;
     AMULET_CORE_DLLX std::int64_t min_x() const;
     AMULET_CORE_DLLX std::int64_t min_y() const;
     AMULET_CORE_DLLX std::int64_t min_z() const;
     AMULET_CORE_DLLX std::int64_t max_x() const;
     AMULET_CORE_DLLX std::int64_t max_y() const;
     AMULET_CORE_DLLX std::int64_t max_z() const;
-    AMULET_CORE_DLLX std::tuple<std::int64_t, std::int64_t, std::int64_t> min() const;
-    AMULET_CORE_DLLX std::tuple<std::int64_t, std::int64_t, std::int64_t> max() const;
+    AMULET_CORE_DLLX std::array<std::int64_t, 3> min() const;
+    AMULET_CORE_DLLX std::array<std::int64_t, 3> max() const;
 
     // Shape and volume
-    AMULET_CORE_DLLX std::int64_t size_x() const;
-    AMULET_CORE_DLLX std::int64_t size_y() const;
-    AMULET_CORE_DLLX std::int64_t size_z() const;
-    AMULET_CORE_DLLX std::tuple<std::int64_t, std::int64_t, std::int64_t> shape() const;
+    AMULET_CORE_DLLX std::uint64_t size_x() const;
+    AMULET_CORE_DLLX std::uint64_t size_y() const;
+    AMULET_CORE_DLLX std::uint64_t size_z() const;
+    AMULET_CORE_DLLX std::array<std::uint64_t, 3> shape() const;
     AMULET_CORE_DLLX size_t volume() const;
 
     // Contains and intersects

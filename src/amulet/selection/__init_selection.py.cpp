@@ -8,35 +8,83 @@
 
 namespace py = pybind11;
 
+template <typename T, std::size_t N, typename... Ts>
+struct PyTuple : PyTuple<T, N - 1, T, Ts...> { };
+
+template <typename T, typename... Ts>
+struct PyTuple<T, 0, Ts...> {
+    using type = py::typing::Tuple<Ts...>;
+};
+
+template <typename arrayT>
+PyTuple<typename arrayT::value_type, std::tuple_size_v<typename arrayT>>::type wrap_array(const arrayT& arr)
+{
+    auto t = py::tuple(3);
+    for (std::uint8_t i = 0; i < 3; i++) {
+        t[i] = py::cast(arr[i]);
+    }
+    return t;
+}
+
 static void init_selection_box(py::class_<Amulet::SelectionBox> SelectionBox)
 {
     // Constructors
     SelectionBox.def(
         py::init<
-            std::tuple<std::int64_t, std::int64_t, std::int64_t>,
-            std::tuple<std::int64_t, std::int64_t, std::int64_t>>(),
+            std::int64_t,
+            std::int64_t,
+            std::int64_t,
+            std::uint64_t,
+            std::uint64_t,
+            std::uint64_t>(),
         py::doc(
-            "Construct a new :class:`SelectionGroup` class from the given data.\n"
+            "Construct a new SelectionBox instance.\n"
             "\n"
-            ">>> SelectionGroup(SelectionBox((0, 0, 0), (1, 1, 1)))\n"
-            ">>> SelectionGroup([\n"
-            ">>>     SelectionBox((0, 0, 0), (1, 1, 1)),\n"
-            ">>>     SelectionBox((1, 1, 1), (2, 2, 2))\n"
-            ">>> ])\n"
+            ">>> # a selection box that selects one block.\n"
+            ">>> box = SelectionBox(0, 0, 0, 1, 1, 1)\n"
             "\n"
-            ":param selection_boxes: A :class:`SelectionBox` or iterable of :class:`SelectionBox` classes."),
+            ":param min_x: The minimum x coordinate of the box.\n"
+            ":param min_y: The minimum y coordinate of the box.\n"
+            ":param min_z: The minimum z coordinate of the box.\n"
+            ":param size_x: The size of the box in the x axis.\n"
+            ":param size_y: The size of the box in the y axis.\n"
+            ":param size_z: The size of the box in the z axis."),
+        py::arg("min_x"),
+        py::arg("min_y"),
+        py::arg("min_z"),
+        py::arg("size_x"),
+        py::arg("size_y"),
+        py::arg("size_z"));
+
+    SelectionBox.def(
+        py::init(
+            [](
+                py::typing::Tuple<std::int64_t, std::int64_t, std::int64_t> point_1,
+                py::typing::Tuple<std::int64_t, std::int64_t, std::int64_t> point_2) {
+                return Amulet::SelectionBox(
+                    {
+                        py::cast<std::int64_t>(point_1[0]),
+                        py::cast<std::int64_t>(point_1[1]),
+                        py::cast<std::int64_t>(point_1[2]),
+                    },
+                    {
+                        py::cast<std::int64_t>(point_2[0]),
+                        py::cast<std::int64_t>(point_2[1]),
+                        py::cast<std::int64_t>(point_2[2]),
+                    });
+            }),
+        py::doc(
+            "Construct a new SelectionBox instance.\n"
+            "\n"
+            ">>> # a selection box that selects one block.\n"
+            ">>> box = SelectionBox((0, 0, 0), (1, 1, 1))\n"
+            "\n"
+            ":param point_1: The first coordinate of the box.\n"
+            ":param point_2: The second coordinate of the box."),
         py::arg("point_1"),
         py::arg("point_2"));
 
     // Accessors
-    SelectionBox.def(
-        "point_1",
-        &Amulet::SelectionBox::point_1,
-        py::doc("The first value given to the constructor."));
-    SelectionBox.def(
-        "point_2",
-        &Amulet::SelectionBox::point_2,
-        py::doc("The second value given to the constructor."));
     SelectionBox.def(
         "min_x",
         &Amulet::SelectionBox::min_x,
@@ -63,11 +111,11 @@ static void init_selection_box(py::class_<Amulet::SelectionBox> SelectionBox)
         py::doc("The maximum z coordinate of the box."));
     SelectionBox.def(
         "min",
-        &Amulet::SelectionBox::min,
+        [](const Amulet::SelectionBox& self) { return wrap_array(self.min()); },
         py::doc("The minimum coordinate of the box."));
     SelectionBox.def(
         "max",
-        &Amulet::SelectionBox::max,
+        [](const Amulet::SelectionBox& self) { return wrap_array(self.max()); },
         py::doc("The maximum coordinate of the box."));
 
     // Shape and volume
@@ -85,11 +133,11 @@ static void init_selection_box(py::class_<Amulet::SelectionBox> SelectionBox)
         py::doc("The length of the box in the z axis."));
     SelectionBox.def(
         "shape",
-        &Amulet::SelectionBox::shape,
+        [](const Amulet::SelectionBox& self) { return wrap_array(self.shape()); },
         py::doc(
             "The length of the box in the x, y and z axis.\n"
             "\n"
-            ">>> SelectionBox((0, 0, 0), (1, 1, 1)).shape\n"
+            ">>> SelectionBox(0, 0, 0, 1, 1, 1).shape\n"
             "(1, 1, 1)"));
     SelectionBox.def(
         "volume",
@@ -97,7 +145,7 @@ static void init_selection_box(py::class_<Amulet::SelectionBox> SelectionBox)
         py::doc(
             "The number of blocks in the box.\n"
             "\n"
-            ">>> SelectionBox((0, 0, 0), (1, 1, 1)).shape\n"
+            ">>> SelectionBox(0, 0, 0, 1, 1, 1).volume\n"
             "1"));
 
     // Contains and intersects
@@ -204,44 +252,48 @@ static void init_selection_box(py::class_<Amulet::SelectionBox> SelectionBox)
     SelectionBox.def(
         "__repr__",
         [](const Amulet::SelectionBox& self) {
-            return "SelectionBox(("
-                + std::to_string(std::get<0>(self.point_1()))
+            return "SelectionBox("
+                + std::to_string(self.min_x())
                 + ", "
-                + std::to_string(std::get<1>(self.point_1()))
+                + std::to_string(self.min_y())
                 + ", "
-                + std::to_string(std::get<2>(self.point_1()))
-                + "), ("
-                + std::to_string(std::get<0>(self.point_2()))
+                + std::to_string(self.min_z())
                 + ", "
-                + std::to_string(std::get<1>(self.point_2()))
+                + std::to_string(self.size_x())
                 + ", "
-                + std::to_string(std::get<2>(self.point_2()))
-                + "))";
+                + std::to_string(self.size_y())
+                + ", "
+                + std::to_string(self.size_z())
+                + ")";
         });
     SelectionBox.def(
         "__str__",
         [](const Amulet::SelectionBox& self) {
-            return "(("
-                + std::to_string(std::get<0>(self.point_1()))
+            return "("
+                + std::to_string(self.min_x())
                 + ", "
-                + std::to_string(std::get<1>(self.point_1()))
+                + std::to_string(self.min_y())
                 + ", "
-                + std::to_string(std::get<2>(self.point_1()))
-                + "), ("
-                + std::to_string(std::get<0>(self.point_2()))
+                + std::to_string(self.min_z())
                 + ", "
-                + std::to_string(std::get<1>(self.point_2()))
+                + std::to_string(self.size_x())
                 + ", "
-                + std::to_string(std::get<2>(self.point_2()))
-                + "))";
+                + std::to_string(self.size_y())
+                + ", "
+                + std::to_string(self.size_z())
+                + ")";
         });
     SelectionBox.def(
         "__hash__",
         [](const Amulet::SelectionBox& self) {
             return py::hash(
                 py::make_tuple(
-                    py::cast(self.point_1()),
-                    py::cast(self.point_2())));
+                    self.min_x(),
+                    self.min_y(),
+                    self.min_z(),
+                    self.size_x(),
+                    self.size_y(),
+                    self.size_z()));
         });
 }
 
@@ -260,7 +312,7 @@ void init_selection_group(py::class_<Amulet::SelectionGroup> SelectionGroup)
         py::doc(
             "Create a SelectionGroup containing the given box.\n"
             "\n"
-            ">>> SelectionGroup(SelectionBox((0, 0, 0), (1, 1, 1)))"));
+            ">>> SelectionGroup(SelectionBox(0, 0, 0, 1, 1, 1))"));
     SelectionGroup.def(
         py::init(
             [](pybind11_extensions::Iterable<Amulet::SelectionBox> boxes) {
@@ -271,8 +323,8 @@ void init_selection_group(py::class_<Amulet::SelectionGroup> SelectionGroup)
             "Create a SelectionGroup from the boxes in the iterable.\n"
             "\n"
             ">>> SelectionGroup([\n"
-            ">>> SelectionBox((0, 0, 0), (1, 1, 1)),\n"
-            ">>> SelectionBox((1, 1, 1), (2, 2, 2))\n"
+            ">>> SelectionBox(0, 0, 0, 1, 1, 1),\n"
+            ">>> SelectionBox(1, 1, 1, 1, 1, 1)\n"
             ">>> ])\n"));
 
     // Accessors
@@ -327,21 +379,26 @@ void init_selection_group(py::class_<Amulet::SelectionGroup> SelectionGroup)
             ":raises RuntimeError: If there are no boxes in the selection."));
     SelectionGroup.def_property_readonly(
         "min",
-        &Amulet::SelectionGroup::min,
+        [](const Amulet::SelectionGroup& self) { return wrap_array(self.min()); },
         py::doc(
             "The minimum x, y and z coordinates in the selection.\n"
             "\n"
             ":raises RuntimeError: If there are no boxes in the selection."));
     SelectionGroup.def_property_readonly(
         "max",
-        &Amulet::SelectionGroup::max,
+        [](const Amulet::SelectionGroup& self) { return wrap_array(self.max()); },
         py::doc(
             "The maximum x, y and z coordinates in the selection.\n"
             "\n"
             ":raises RuntimeError: If there are no boxes in the selection."));
     SelectionGroup.def_property_readonly(
         "bounds",
-        &Amulet::SelectionGroup::bounds,
+        [](const Amulet::SelectionGroup& self) {
+            auto [point_1, point_2] = self.bounds();
+            return std::make_pair(
+                wrap_array(point_1),
+                wrap_array(point_2));
+        },
         py::doc(
             "The minimum and maximum x, y and z coordinates in the selection.\n"
             "\n"
@@ -434,19 +491,19 @@ void init_selection_group(py::class_<Amulet::SelectionGroup> SelectionGroup)
                 } else {
                     comma = true;
                 }
-                out += "SelectionBox((";
-                out += std::to_string(std::get<0>(box.point_1()));
+                out += "SelectionBox(";
+                out += std::to_string(box.min_x());
                 out += ", ";
-                out += std::to_string(std::get<1>(box.point_1()));
+                out += std::to_string(box.min_y());
                 out += ", ";
-                out += std::to_string(std::get<2>(box.point_1()));
-                out += "), (";
-                out += std::to_string(std::get<0>(box.point_2()));
+                out += std::to_string(box.min_z());
                 out += ", ";
-                out += std::to_string(std::get<1>(box.point_2()));
+                out += std::to_string(box.size_x());
                 out += ", ";
-                out += std::to_string(std::get<2>(box.point_2()));
-                out += "))";
+                out += std::to_string(box.size_y());
+                out += ", ";
+                out += std::to_string(box.size_z());
+                out += ")";
             }
             out += "])";
             return out;
@@ -462,19 +519,19 @@ void init_selection_group(py::class_<Amulet::SelectionGroup> SelectionGroup)
                 } else {
                     comma = true;
                 }
-                out += "((";
-                out += std::to_string(std::get<0>(box.point_1()));
+                out += "(";
+                out += std::to_string(box.min_x());
                 out += ", ";
-                out += std::to_string(std::get<1>(box.point_1()));
+                out += std::to_string(box.min_y());
                 out += ", ";
-                out += std::to_string(std::get<2>(box.point_1()));
-                out += "), (";
-                out += std::to_string(std::get<0>(box.point_2()));
+                out += std::to_string(box.min_z());
                 out += ", ";
-                out += std::to_string(std::get<1>(box.point_2()));
+                out += std::to_string(box.size_x());
                 out += ", ";
-                out += std::to_string(std::get<2>(box.point_2()));
-                out += "))";
+                out += std::to_string(box.size_y());
+                out += ", ";
+                out += std::to_string(box.size_z());
+                out += ")";
             }
             out += "]";
             return out;

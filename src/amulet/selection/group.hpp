@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <set>
 
 #include <amulet/dll.hpp>
@@ -36,11 +37,11 @@ public:
     AMULET_CORE_DLLX std::int64_t max_x() const;
     AMULET_CORE_DLLX std::int64_t max_y() const;
     AMULET_CORE_DLLX std::int64_t max_z() const;
-    AMULET_CORE_DLLX std::tuple<std::int64_t, std::int64_t, std::int64_t> min() const;
-    AMULET_CORE_DLLX std::tuple<std::int64_t, std::int64_t, std::int64_t> max() const;
+    AMULET_CORE_DLLX std::array<std::int64_t, 3> min() const;
+    AMULET_CORE_DLLX std::array<std::int64_t, 3> max() const;
     AMULET_CORE_DLLX std::pair<
-        std::tuple<std::int64_t, std::int64_t, std::int64_t>,
-        std::tuple<std::int64_t, std::int64_t, std::int64_t>>
+        std::array<std::int64_t, 3>,
+        std::array<std::int64_t, 3>>
     bounds() const;
     AMULET_CORE_DLLX SelectionBox bounding_box() const;
 

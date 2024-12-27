@@ -43,7 +43,7 @@ class SelectionGroup:
         """
         Create a SelectionGroup containing the given box.
 
-        >>> SelectionGroup(SelectionBox((0, 0, 0), (1, 1, 1)))
+        >>> SelectionGroup(SelectionBox(0, 0, 0, 1, 1, 1))
         """
 
     @typing.overload
@@ -54,8 +54,8 @@ class SelectionGroup:
         Create a SelectionGroup from the boxes in the iterable.
 
         >>> SelectionGroup([
-        >>> SelectionBox((0, 0, 0), (1, 1, 1)),
-        >>> SelectionBox((1, 1, 1), (2, 2, 2))
+        >>> SelectionBox(0, 0, 0, 1, 1, 1),
+        >>> SelectionBox(1, 1, 1, 1, 1, 1)
         >>> ])
         """
 

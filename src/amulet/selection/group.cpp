@@ -101,7 +101,7 @@ AMULET_CORE_DLLX std::int64_t SelectionGroup::max_z() const
     }
     return value;
 }
-AMULET_CORE_DLLX std::tuple<std::int64_t, std::int64_t, std::int64_t> SelectionGroup::min() const
+AMULET_CORE_DLLX std::array<std::int64_t, 3> SelectionGroup::min() const
 {
     if (_boxes.empty()) {
         throw std::runtime_error("Empty SelectionGroup has no minimum");
@@ -120,9 +120,9 @@ AMULET_CORE_DLLX std::tuple<std::int64_t, std::int64_t, std::int64_t> SelectionG
             z = box.min_z();
         }
     }
-    return std::make_tuple(x, y, z);
+    return { x, y, z };
 }
-AMULET_CORE_DLLX std::tuple<std::int64_t, std::int64_t, std::int64_t> SelectionGroup::max() const
+AMULET_CORE_DLLX std::array<std::int64_t, 3> SelectionGroup::max() const
 {
     if (_boxes.empty()) {
         throw std::runtime_error("Empty SelectionGroup has no maximum");
@@ -141,11 +141,11 @@ AMULET_CORE_DLLX std::tuple<std::int64_t, std::int64_t, std::int64_t> SelectionG
             z = box.max_z();
         }
     }
-    return std::make_tuple(x, y, z);
+    return { x, y, z };
 }
 AMULET_CORE_DLLX std::pair<
-    std::tuple<std::int64_t, std::int64_t, std::int64_t>,
-    std::tuple<std::int64_t, std::int64_t, std::int64_t>>
+    std::array<std::int64_t, 3>,
+    std::array<std::int64_t, 3>>
 SelectionGroup::bounds() const
 {
     if (_boxes.empty()) {
@@ -178,13 +178,19 @@ SelectionGroup::bounds() const
         }
     }
     return std::make_pair(
-        std::make_tuple(x_min, y_min, z_min),
-        std::make_tuple(x_max, y_max, z_max));
+        std::array<std::int64_t, 3>({ x_min, y_min, z_min }),
+        std::array<std::int64_t, 3>({ x_max, y_max, z_max }));
 }
 AMULET_CORE_DLLX SelectionBox SelectionGroup::bounding_box() const
 {
-    auto [point_1, point_2] = bounds();
-    return SelectionBox(point_1, point_2);
+    auto [min_point, max_point] = bounds();
+    return SelectionBox(
+        min_point[0],
+        min_point[1],
+        min_point[2],
+        max_point[0] - min_point[0],
+        max_point[1] - min_point[1],
+        max_point[2] - min_point[2]);
 }
 
 // Contains and intersects
@@ -232,17 +238,13 @@ AMULET_CORE_DLLX SelectionGroup SelectionGroup::translate(std::int64_t dx, std::
 {
     SelectionGroup group;
     for (const auto& box : _boxes) {
-        const auto& point_1 = box.point_1();
-        const auto& point_2 = box.point_2();
         group._boxes.emplace(
-            std::make_tuple(
-                std::get<0>(point_1),
-                std::get<1>(point_1),
-                std::get<2>(point_1)),
-            std::make_tuple(
-                std::get<0>(point_2),
-                std::get<1>(point_2),
-                std::get<2>(point_2)));
+            box.min_x() + dx,
+            box.min_y() + dy,
+            box.min_z() + dz,
+            box.size_x(),
+            box.size_y(),
+            box.size_z());
     }
     return group;
 }

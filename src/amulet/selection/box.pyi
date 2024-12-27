@@ -17,19 +17,36 @@ class SelectionBox:
     def __ge__(self, arg0: SelectionBox) -> bool: ...
     def __gt__(self, arg0: SelectionBox) -> bool: ...
     def __hash__(self) -> int: ...
+    @typing.overload
+    def __init__(
+        self, min_x: int, min_y: int, min_z: int, size_x: int, size_y: int, size_z: int
+    ) -> None:
+        """
+        Construct a new SelectionBox instance.
+
+        >>> # a selection box that selects one block.
+        >>> box = SelectionBox(0, 0, 0, 1, 1, 1)
+
+        :param min_x: The minimum x coordinate of the box.
+        :param min_y: The minimum y coordinate of the box.
+        :param min_z: The minimum z coordinate of the box.
+        :param size_x: The size of the box in the x axis.
+        :param size_y: The size of the box in the y axis.
+        :param size_z: The size of the box in the z axis.
+        """
+
+    @typing.overload
     def __init__(
         self, point_1: tuple[int, int, int], point_2: tuple[int, int, int]
     ) -> None:
         """
-        Construct a new :class:`SelectionGroup` class from the given data.
+        Construct a new SelectionBox instance.
 
-        >>> SelectionGroup(SelectionBox((0, 0, 0), (1, 1, 1)))
-        >>> SelectionGroup([
-        >>>     SelectionBox((0, 0, 0), (1, 1, 1)),
-        >>>     SelectionBox((1, 1, 1), (2, 2, 2))
-        >>> ])
+        >>> # a selection box that selects one block.
+        >>> box = SelectionBox((0, 0, 0), (1, 1, 1))
 
-        :param selection_boxes: A :class:`SelectionBox` or iterable of :class:`SelectionBox` classes.
+        :param point_1: The first coordinate of the box.
+        :param point_2: The second coordinate of the box.
         """
 
     def __le__(self, arg0: SelectionBox) -> bool: ...
@@ -123,21 +140,11 @@ class SelectionBox:
         The minimum z coordinate of the box.
         """
 
-    def point_1(self) -> tuple[int, int, int]:
-        """
-        The first value given to the constructor.
-        """
-
-    def point_2(self) -> tuple[int, int, int]:
-        """
-        The second value given to the constructor.
-        """
-
     def shape(self) -> tuple[int, int, int]:
         """
         The length of the box in the x, y and z axis.
 
-        >>> SelectionBox((0, 0, 0), (1, 1, 1)).shape
+        >>> SelectionBox(0, 0, 0, 1, 1, 1).shape
         (1, 1, 1)
         """
 
@@ -186,6 +193,6 @@ class SelectionBox:
         """
         The number of blocks in the box.
 
-        >>> SelectionBox((0, 0, 0), (1, 1, 1)).shape
+        >>> SelectionBox(0, 0, 0, 1, 1, 1).volume
         1
         """
