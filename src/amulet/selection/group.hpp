@@ -56,6 +56,8 @@ public:
 
     // Operators
     AMULET_CORE_DLLX operator bool() const;
+    bool operator==(const SelectionGroup& rhs) const = default;
+    bool operator!=(const SelectionGroup& rhs) const = default;
 };
 
 }
