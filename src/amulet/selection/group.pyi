@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections.abc
+import types
 import typing
 
 import amulet.selection.box
@@ -20,6 +21,7 @@ class SelectionGroup:
         The number of :class:`SelectionBox` classes in the group.
         """
 
+    @typing.overload
     def __eq__(self, arg0: SelectionGroup) -> bool:
         """
         Does the contents of this :class:`SelectionGroup` match the other :class:`SelectionGroup`.
@@ -30,6 +32,8 @@ class SelectionGroup:
         :return: True if the boxes contained match.
         """
 
+    @typing.overload
+    def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...
     @typing.overload
     def __init__(self) -> None:
         """

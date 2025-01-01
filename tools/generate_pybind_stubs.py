@@ -23,7 +23,10 @@ def str_sub_func(match: re.Match) -> str:
     return f"{match.group('var')}: str"
 
 
-EqPattern = re.compile(r"(?P<indent>[ \t]+)def __eq__\(self, arg0: (?P<other>[a-zA-Z1-9.]+)\) -> bool:\s*\.\.\.")
+EqPattern = re.compile(
+    r"(?P<indent>[ \t]+)def __eq__\(self, arg0: (?P<other>[a-zA-Z1-9.]+)\) -> (?P<return>[a-zA-Z1-9.]+):"
+    r"(?P<ellipsis_docstring>\s*((\.\.\.)|(\"\"\"(.|\n)*?\"\"\")))"
+)
 
 
 def eq_sub_func(match: re.Match) -> str:
@@ -41,14 +44,14 @@ def eq_sub_func(match: re.Match) -> str:
             return match.group()
         else:
             return "\n".join([
-                f"{match.group('indent')}def __eq__(self, arg0: {match.group('other')}) -> bool: ...",
+                f"{match.group('indent')}def __eq__(self, arg0: {match.group('other')}) -> {match.group('return')}:{match.group('ellipsis_docstring')}",
                 f"{match.group('indent')}@typing.overload",
                 f"{match.group('indent')}def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...",
             ])
     else:
         return "\n".join([
             f"{match.group('indent')}@typing.overload",
-            f"{match.group('indent')}def __eq__(self, arg0: {match.group('other')}) -> bool: ...",
+            f"{match.group('indent')}def __eq__(self, arg0: {match.group('other')}) -> {match.group('return')}:{match.group('ellipsis_docstring')}",
             f"{match.group('indent')}@typing.overload",
             f"{match.group('indent')}def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...",
         ])
