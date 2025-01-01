@@ -159,6 +159,10 @@ def main() -> None:
             pyi = f.read()
         pyi = UnionPattern.sub(union_sub_func, pyi)
         pyi = VersionPattern.sub(str_sub_func, pyi)
+        pyi = pyi.replace(
+            "__hash__: typing.ClassVar[None] = None",
+            "__hash__: typing.ClassVar[None] = None  # type: ignore"
+        )
         with open(stub_path, "w", encoding="utf-8") as f:
             f.write(pyi)
 

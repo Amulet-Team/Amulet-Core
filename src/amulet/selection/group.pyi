@@ -14,7 +14,7 @@ class SelectionGroup:
     This allows for non-rectangular and non-contiguous selections.
     """
 
-    __hash__: typing.ClassVar[None] = None
+    __hash__: typing.ClassVar[None] = None  # type: ignore
     def __bool__(self) -> bool:
         """
         The number of :class:`SelectionBox` classes in the group.
