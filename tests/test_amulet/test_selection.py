@@ -95,6 +95,10 @@ class SelectionBoxTestCase(unittest.TestCase):
         self.assertTrue(box.intersects(SelectionBox(0, 0, 0, 2, 2, 2)))
         self.assertFalse(box.intersects(SelectionBox(1, 1, 1, 1, 1, 1)))
 
+        self.assertTrue(box.intersects(SelectionGroup(SelectionBox(0, 0, 0, 1, 1, 1))))
+        self.assertTrue(box.intersects(SelectionGroup(SelectionBox(0, 0, 0, 2, 2, 2))))
+        self.assertFalse(box.intersects(SelectionGroup(SelectionBox(1, 1, 1, 1, 1, 1))))
+
         self.assertTrue(box.touches_or_intersects(SelectionBox(0, 0, 0, 1, 1, 1)))
         self.assertTrue(box.touches_or_intersects(SelectionBox(0, 0, 0, 2, 2, 2)))
         self.assertTrue(box.touches_or_intersects(SelectionBox(1, 1, 1, 1, 1, 1)))
@@ -129,6 +133,14 @@ class SelectionGroupTestCase(unittest.TestCase):
         self.assertEqual(2, len(SelectionGroup([SelectionBox(0, 1, 2, 3, 4, 5), SelectionBox(1, 2, 3, 4, 5, 6)])))
         self.assertEqual(2, len(SelectionGroup((SelectionBox(0, 1, 2, 3, 4, 5), SelectionBox(1, 2, 3, 4, 5, 6)))))
         self.assertEqual(2, len(SelectionGroup({SelectionBox(0, 1, 2, 3, 4, 5), SelectionBox(1, 2, 3, 4, 5, 6)})))
+
+    def test_attrs(self) -> None:
+        boxes = {
+            SelectionBox(0, 1, 2, 3, 4, 5),
+            SelectionBox(1, 2, 3, 4, 5, 6)
+        }
+        group = SelectionGroup(boxes)
+        self.assertEqual(boxes, group.selection_boxes)
 
     def test_equals(self) -> None:
         self.assertEqual(
@@ -182,6 +194,74 @@ class SelectionGroupTestCase(unittest.TestCase):
                 SelectionGroup((SelectionBox(0, 1, 2, 3, 4, 5), SelectionBox(1, 2, 3, 4, 5, 6))),
                 SelectionGroup((box, SelectionBox(1, 2, 3, 4, 5, 6))),
             )
+
+    def test_bounds(self) -> None:
+        group = SelectionGroup([
+            SelectionBox(0, 1, 2, 3, 4, 5),
+            SelectionBox(1, 2, 3, 4, 5, 6)
+        ])
+        self.assertEqual(0, group.min_x)
+        self.assertEqual(1, group.min_y)
+        self.assertEqual(2, group.min_z)
+        self.assertEqual(5, group.max_x)
+        self.assertEqual(7, group.max_y)
+        self.assertEqual(9, group.max_z)
+        self.assertEqual((0, 1, 2), group.min)
+        self.assertEqual((5, 7, 9), group.max)
+        self.assertEqual(((0, 1, 2), (5, 7, 9)), group.bounds)
+        self.assertEqual(SelectionBox(0, 1, 2, 5, 6, 7), group.bounding_box)
+
+    def test_contains(self) -> None:
+        group = SelectionGroup([
+            SelectionBox(0, 1, 2, 3, 4, 5),
+            SelectionBox(1, 2, 3, 4, 5, 6)
+        ])
+        self.assertTrue(group.contains_block(0, 1, 2))
+        self.assertTrue(group.contains_block(1, 2, 3))
+        self.assertFalse(group.contains_block(0, 0, 0))
+        self.assertTrue(group.contains_point(0, 1, 2))
+        self.assertTrue(group.contains_point(0.0, 1.0, 2.0))
+        self.assertTrue(group.contains_point(1, 2, 3))
+        self.assertTrue(group.contains_point(1.0, 2.0, 3.0))
+        self.assertFalse(group.contains_point(0, 0, 0))
+        self.assertFalse(group.contains_point(0.0, 0.0, 0.0))
+
+    def test_intersects(self) -> None:
+        group = SelectionGroup(SelectionBox(-1, -1, -1, 2, 2, 2))
+
+        self.assertTrue(group.intersects(SelectionBox(0, 0, 0, 1, 1, 1)))
+        self.assertTrue(group.intersects(SelectionBox(0, 0, 0, 2, 2, 2)))
+        self.assertFalse(group.intersects(SelectionBox(1, 1, 1, 1, 1, 1)))
+
+        self.assertTrue(group.intersects(SelectionGroup(SelectionBox(0, 0, 0, 1, 1, 1))))
+        self.assertTrue(group.intersects(SelectionGroup(SelectionBox(0, 0, 0, 2, 2, 2))))
+        self.assertFalse(group.intersects(SelectionGroup(SelectionBox(1, 1, 1, 1, 1, 1))))
+
+    def test_translate(self) -> None:
+        group = SelectionGroup([
+            SelectionBox(0, 1, 2, 3, 4, 5),
+            SelectionBox(1, 2, 3, 4, 5, 6)
+        ])
+        self.assertEqual(
+            SelectionGroup([
+                SelectionBox(1, 2, 3, 3, 4, 5),
+                SelectionBox(2, 3, 4, 4, 5, 6)
+            ]),
+            group.translate(1, 1, 1)
+        )
+        self.assertEqual(
+            SelectionGroup([
+                SelectionBox(-1, 0, 1, 3, 4, 5),
+                SelectionBox(0, 1, 2, 4, 5, 6)
+            ]),
+            group.translate(-1, -1, -1)
+        )
+
+    def test_bool(self) -> None:
+        self.assertFalse(SelectionGroup())
+        self.assertFalse(SelectionGroup([]))
+        self.assertTrue(SelectionGroup(SelectionBox(0, 1, 2, 3, 4, 5)))
+        self.assertTrue(SelectionGroup([SelectionBox(0, 1, 2, 3, 4, 5)]))
 
     # def test_subtract(self) -> None:
     #     box_1 = SelectionGroup(
