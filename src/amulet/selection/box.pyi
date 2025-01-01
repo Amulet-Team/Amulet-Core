@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import types
 import typing
 
 import amulet.selection.group

@@ -195,6 +195,12 @@ def main() -> None:
             "__hash__: typing.ClassVar[None] = None  # type: ignore"
         )
         pyi = EqPattern.sub(eq_sub_func, pyi)
+        pyi_split = [l.rstrip("\r") for l in pyi.split("\n")]
+        if "import typing" not in pyi_split:
+            pyi_split.insert(2, "import typing")
+        if "import types" not in pyi_split:
+            pyi_split.insert(2, "import types")
+        pyi = "\n".join(pyi_split)
         with open(stub_path, "w", encoding="utf-8") as f:
             f.write(pyi)
 
