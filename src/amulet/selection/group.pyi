@@ -54,8 +54,8 @@ class SelectionGroup:
         Create a SelectionGroup from the boxes in the iterable.
 
         >>> SelectionGroup([
-        >>> SelectionBox(0, 0, 0, 1, 1, 1),
-        >>> SelectionBox(1, 1, 1, 1, 1, 1)
+        >>>     SelectionBox(0, 0, 0, 1, 1, 1),
+        >>>     SelectionBox(1, 1, 1, 1, 1, 1)
         >>> ])
         """
 
