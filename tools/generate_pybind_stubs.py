@@ -23,6 +23,37 @@ def str_sub_func(match: re.Match) -> str:
     return f"{match.group('var')}: str"
 
 
+EqPattern = re.compile(r"(?P<indent>[ \t]+)def __eq__\(self, arg0: (?P<other>[a-zA-Z1-9.]+)\) -> bool:\s*\.\.\.")
+
+
+def eq_sub_func(match: re.Match) -> str:
+    """
+    if one - add @overload and overloaded signature
+
+    """
+    if match.string[:match.start()].endswith("@typing.overload\n"):
+        # is overload
+        if re.match(
+            f"\n{match.group('indent')}@typing.overload\n{match.group('indent')}def __eq__\(self, ",
+            match.string[match.end():]
+        ):
+            # is not last overload
+            return match.group()
+        else:
+            return "\n".join([
+                f"{match.group('indent')}def __eq__(self, arg0: {match.group('other')}) -> bool: ...",
+                f"{match.group('indent')}@typing.overload",
+                f"{match.group('indent')}def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...",
+            ])
+    else:
+        return "\n".join([
+            f"{match.group('indent')}@typing.overload",
+            f"{match.group('indent')}def __eq__(self, arg0: {match.group('other')}) -> bool: ...",
+            f"{match.group('indent')}@typing.overload",
+            f"{match.group('indent')}def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...",
+        ])
+
+
 def get_module_path(name: str) -> str:
     spec = importlib.util.find_spec(name)
     assert spec is not None
@@ -163,6 +194,7 @@ def main() -> None:
             "__hash__: typing.ClassVar[None] = None",
             "__hash__: typing.ClassVar[None] = None  # type: ignore"
         )
+        pyi = EqPattern.sub(eq_sub_func, pyi)
         with open(stub_path, "w", encoding="utf-8") as f:
             f.write(pyi)
 
