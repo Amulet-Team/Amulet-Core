@@ -1,3 +1,7 @@
+#include <concepts>
+#include <ranges>
+#include <type_traits>
+
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -313,6 +317,8 @@ void init_selection_group(py::class_<Amulet::SelectionGroup> SelectionGroup)
             "Create a SelectionGroup containing the given box.\n"
             "\n"
             ">>> SelectionGroup(SelectionBox(0, 0, 0, 1, 1, 1))"));
+    static_assert(std::ranges::input_range<pybind11_extensions::Iterable<Amulet::SelectionBox>>);
+    static_assert(std::convertible_to<std::ranges::range_value_t<pybind11_extensions::Iterable<Amulet::SelectionBox>>, const Amulet::SelectionBox&>);
     SelectionGroup.def(
         py::init(
             [](pybind11_extensions::Iterable<Amulet::SelectionBox> boxes) {
@@ -323,8 +329,8 @@ void init_selection_group(py::class_<Amulet::SelectionGroup> SelectionGroup)
             "Create a SelectionGroup from the boxes in the iterable.\n"
             "\n"
             ">>> SelectionGroup([\n"
-            ">>> SelectionBox(0, 0, 0, 1, 1, 1),\n"
-            ">>> SelectionBox(1, 1, 1, 1, 1, 1)\n"
+            ">>>     SelectionBox(0, 0, 0, 1, 1, 1),\n"
+            ">>>     SelectionBox(1, 1, 1, 1, 1, 1)\n"
             ">>> ])\n"));
 
     // Accessors

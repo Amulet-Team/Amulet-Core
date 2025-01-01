@@ -1,6 +1,8 @@
 #pragma once
 
 #include <array>
+#include <concepts>
+#include <ranges>
 #include <set>
 
 #include <amulet/dll.hpp>
@@ -18,7 +20,9 @@ public:
     // Constructors
     SelectionGroup() {};
     AMULET_CORE_DLLX SelectionGroup(const SelectionBox& box);
+
     template <typename Iterable>
+        requires std::ranges::input_range<Iterable> && std::convertible_to<std::ranges::range_value_t<Iterable>, const SelectionBox&>
     SelectionGroup(const Iterable& boxes)
     {
         for (const SelectionBox& box : boxes) {
