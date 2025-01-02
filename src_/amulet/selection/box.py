@@ -59,30 +59,6 @@ class SelectionBox(AbstractBaseSelection):
     _point_1: tuple[int, int, int]
     _point_2: tuple[int, int, int]
 
-    def __init__(
-        self,
-        point_1: BlockCoordinates | BlockCoordinatesArray,
-        point_2: BlockCoordinates | BlockCoordinatesArray,
-    ):
-        """
-        Construct a new SelectionBox instance.
-
-        >>> # a selection box that selects one block.
-        >>> box = SelectionBox(
-        >>>     (0, 0, 0),
-        >>>     (1, 1, 1)
-        >>> )
-
-        :param point_1: The first point of the selection.
-        :param point_2: The second point of the selection.
-        """
-        box = numpy.array([point_1, point_2]).round().astype(int)
-        p1, p2 = box.tolist()
-        self._point_1 = tuple(p1)
-        self._point_2 = tuple(p2)
-        self._min_x, self._min_y, self._min_z = numpy.min(box, 0).tolist()
-        self._max_x, self._max_y, self._max_z = numpy.max(box, 0).tolist()
-
     @classmethod
     def create_chunk_box(
         cls, cx: int, cz: int, sub_chunk_size: int = 16
@@ -125,21 +101,6 @@ class SelectionBox(AbstractBaseSelection):
                 (cz + 1) * sub_chunk_size,
             ),
         )
-
-    def create_moved_box(
-        self, offset: BlockCoordinates | BlockCoordinatesArray, subtract: bool = False
-    ) -> SelectionBox:
-        """
-        Create a new :class:`SelectionBox` based on this one with the coordinates moved by the given offset.
-
-        :param offset: The amount to move the box.
-        :param subtract: If true will subtract the offset rather than adding.
-        :return: The new selection with the given offset.
-        """
-        offset = numpy.array(offset)
-        if subtract:
-            offset *= -1
-        return SelectionBox(offset + self.min, offset + self.max)
 
     def chunk_locations(self, sub_chunk_size: int = 16) -> Iterator[ChunkCoordinates]:
         cx_min, cz_min, cx_max, cz_max = block_coords_to_chunk_coords(
@@ -214,37 +175,6 @@ class SelectionBox(AbstractBaseSelection):
             range(self._min_z, self._max_z),
         )
 
-    def __repr__(self) -> str:
-        return f"SelectionBox({self.point_1}, {self.point_2})"
-
-    def __str__(self) -> str:
-        return f"({self.point_1}, {self.point_2})"
-
-    def contains_block(self, x: int, y: int, z: int) -> bool:
-        return (
-            self._min_x <= x < self._max_x
-            and self._min_y <= y < self._max_y
-            and self._min_z <= z < self._max_z
-        )
-
-    def contains_point(self, x: float, y: float, z: float) -> bool:
-        return (
-            self._min_x <= x <= self._max_x
-            and self._min_y <= y <= self._max_y
-            and self._min_z <= z <= self._max_z
-        )
-
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, AbstractBaseSelection):
-            return NotImplemented
-        return self.min == other.min and self.max == other.max
-
-    def __ne__(self, other: Any) -> bool:
-        return not self == other
-
-    def __hash__(self) -> int:
-        return hash((*self.min, *self.max))
-
     @property
     def slice(self) -> tuple[PySlice, PySlice, PySlice]:
         """
@@ -293,179 +223,6 @@ class SelectionBox(AbstractBaseSelection):
         x_chunk_slice, s_y, z_chunk_slice = self.chunk_slice(cx, cz, sub_chunk_size)
         y_chunk_slice = blocks_slice_to_chunk_slice(s_y, sub_chunk_size, cy)
         return x_chunk_slice, y_chunk_slice, z_chunk_slice
-
-    @property
-    def point_1(self) -> BlockCoordinates:
-        """The first value given to the constructor."""
-        return self._point_1
-
-    @property
-    def point_2(self) -> BlockCoordinates:
-        """The second value given to the constructor."""
-        return self._point_2
-
-    @property
-    def points(self) -> tuple[BlockCoordinates, BlockCoordinates]:
-        """The points given to the constructor."""
-        return self.point_1, self.point_2
-
-    @property
-    def points_array(self) -> numpy.ndarray:
-        """The points given to the constructor as a numpy array."""
-        return numpy.array(self.points)
-
-    @property
-    def min_x(self) -> int:
-        return self._min_x
-
-    @property
-    def min_y(self) -> int:
-        return self._min_y
-
-    @property
-    def min_z(self) -> int:
-        return self._min_z
-
-    @property
-    def max_x(self) -> int:
-        return self._max_x
-
-    @property
-    def max_y(self) -> int:
-        return self._max_y
-
-    @property
-    def max_z(self) -> int:
-        return self._max_z
-
-    @property
-    def min(self) -> BlockCoordinates:
-        return self._min_x, self._min_y, self._min_z
-
-    @property
-    def min_array(self) -> numpy.ndarray:
-        return numpy.array(self.min)
-
-    @property
-    def max(self) -> BlockCoordinates:
-        return self._max_x, self._max_y, self._max_z
-
-    @property
-    def max_array(self) -> numpy.ndarray:
-        return numpy.array(self.max)
-
-    @property
-    def bounds(self) -> tuple[BlockCoordinates, BlockCoordinates]:
-        return (
-            (self._min_x, self._min_y, self._min_z),
-            (self._max_x, self._max_y, self._max_z),
-        )
-
-    @property
-    def bounds_array(self) -> numpy.ndarray:
-        return numpy.array(self.bounds)
-
-    def bounding_box(self) -> SelectionBox:
-        return self
-
-    def selection_group(self) -> SelectionGroup:
-        return selection.SelectionGroup(self)
-
-    @property
-    def size_x(self) -> int:
-        """The length of the box in the x axis."""
-        return self._max_x - self._min_x
-
-    @property
-    def size_y(self) -> int:
-        """The length of the box in the y axis."""
-        return self._max_y - self._min_y
-
-    @property
-    def size_z(self) -> int:
-        """The length of the box in the z axis."""
-        return self._max_z - self._min_z
-
-    @property
-    def shape(self) -> tuple[int, int, int]:
-        """
-        The shape of the box.
-
-        >>> SelectionBox((0, 0, 0), (1, 1, 1)).shape
-        (1, 1, 1)
-        """
-        return self.size_x, self.size_y, self.size_z
-
-    @property
-    def volume(self) -> int:
-        """
-        The number of blocks in the box.
-
-        >>> SelectionBox((0, 0, 0), (1, 1, 1)).shape
-        1
-        """
-        return self.size_x * self.size_y * self.size_z
-
-    def touches(self, other: SelectionBox) -> bool:
-        """
-        Method to check if this instance of :class:`SelectionBox` touches but does not intersect another SelectionBox.
-
-        :param other: The other SelectionBox
-        :return: True if the two :class:`SelectionBox` instances touch, False otherwise
-        """
-        # It touches if the box does not intersect but intersects when expanded by one block.
-        # There may be a simpler way to do this.
-        return self.touches_or_intersects(other) and not self.intersects(other)
-
-    def touches_or_intersects(self, other: SelectionBox) -> bool:
-        """
-        Method to check if this instance of SelectionBox touches or intersects another SelectionBox.
-
-        :param other: The other SelectionBox.
-        :return: True if the two :class:`SelectionBox` instances touch or intersect, False otherwise.
-        """
-        return not (
-            self.min_x >= other.max_x + 1
-            or self.min_y >= other.max_y + 1
-            or self.min_z >= other.max_z + 1
-            or self.max_x <= other.min_x - 1
-            or self.max_y <= other.min_y - 1
-            or self.max_z <= other.min_z - 1
-        )
-
-    def _intersects(self, other: AbstractBaseSelection) -> bool:
-        """
-        Method to check whether this instance of SelectionBox intersects another SelectionBox.
-
-        :param other: The other SelectionBox to check for intersection.
-        :return: True if the two :class:`SelectionBox` instances intersect, False otherwise.
-        """
-        if isinstance(other, SelectionBox):
-            return not (
-                self.min_x >= other.max_x
-                or self.min_y >= other.max_y
-                or self.min_z >= other.max_z
-                or self.max_x <= other.min_x
-                or self.max_y <= other.min_y
-                or self.max_z <= other.min_z
-            )
-        return NotImplemented
-
-    def contains_box(self, other: SelectionBox) -> bool:
-        """
-        Method to check if the other SelectionBox other fits entirely within this instance of SelectionBox.
-
-        :param other: The SelectionBox to test.
-        :return: True if other fits with self, False otherwise.
-        """
-        return (
-            self.min_x <= other.min_x
-            and self.min_y <= other.min_y
-            and self.min_z <= other.min_z
-            and other.max_x <= self.max_x
-            and other.max_y <= self.max_y
-            and other.max_z <= self.max_z
-        )
 
     @overload
     def intersection(self, other: SelectionBox) -> SelectionBox: ...

@@ -7,7 +7,6 @@
 #include <pybind11/typing.h>
 
 #include <amulet/biome.hpp>
-#include <amulet/collections/eq.py.hpp>
 
 namespace py = pybind11;
 
@@ -113,8 +112,7 @@ void init_biome(py::module m_parent) {
             )
         );
 
-        Eq(Biome);
-        Eq_default(Biome);
+        Biome.def(py::self == py::self);
         Biome.def(py::self > py::self);
         Biome.def(py::self < py::self);
         Biome.def(py::self >= py::self);

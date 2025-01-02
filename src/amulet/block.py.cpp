@@ -7,7 +7,6 @@
 #include <pybind11/typing.h>
 
 #include <amulet/collections/sequence.py.hpp>
-#include <amulet/collections/eq.py.hpp>
 #include <pybind11_extensions/types.hpp>
 #include <amulet/block.hpp>
 
@@ -155,8 +154,7 @@ void init_block(py::module m_parent) {
             )
         );
 
-        Eq(Block);
-        Eq_default(Block);
+        Block.def(py::self == py::self);
         Block.def(py::self > py::self);
         Block.def(py::self < py::self);
         Block.def(py::self >= py::self);
@@ -325,9 +323,7 @@ void init_block(py::module m_parent) {
 
         Amulet::collections::Sequence<Amulet::Block>(BlockStack);
 
-        Eq(BlockStack);
-        Eq_default(BlockStack);
-
+        BlockStack.def(py::self == py::self);
         BlockStack.def(py::self > py::self);
         BlockStack.def(py::self < py::self);
         BlockStack.def(py::self >= py::self);

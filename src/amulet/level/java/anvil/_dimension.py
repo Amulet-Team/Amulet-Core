@@ -59,7 +59,7 @@ class AnvilDimensionLayer:
                 continue
             match = _region_regex.fullmatch(region_file_name)
             if match:
-                yield int(match.group("rx")), int(match.group("rz"))
+                yield self._get_region(int(match.group("rx")), int(match.group("rz")))
 
     def all_chunk_coords(self) -> Iterator[ChunkCoordinates]:
         for region in self._iter_regions():

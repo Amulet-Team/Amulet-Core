@@ -4,7 +4,6 @@
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
 
-#include <amulet/collections/eq.py.hpp>
 #include <amulet/version.hpp>
 
 namespace py = pybind11;
@@ -151,8 +150,7 @@ void init_version(py::module m_parent) {
             &Amulet::VersionNumber::toString
         );
 
-        Eq(VersionNumber);
-        Eq_default(VersionNumber);
+        VersionNumber.def(pybind11::self == pybind11::self);
         VersionNumber.def(pybind11::self < pybind11::self);
         VersionNumber.def(pybind11::self > pybind11::self);
         VersionNumber.def(pybind11::self <= pybind11::self);

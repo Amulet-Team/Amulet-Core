@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from . import (
     call_spec,
-    matrix,
     numpy,
     shareable_lock,
     signal,
@@ -13,7 +12,6 @@ from . import (
 
 __all__ = [
     "call_spec",
-    "matrix",
     "numpy",
     "shareable_lock",
     "signal",
