@@ -21,7 +21,7 @@ struct PyTuple<T, 0, Ts...> {
 };
 
 template <typename arrayT>
-PyTuple<typename arrayT::value_type, std::tuple_size_v<typename arrayT>>::type wrap_array(const arrayT& arr)
+PyTuple<typename arrayT::value_type, std::tuple_size_v<arrayT>>::type wrap_array(const arrayT& arr)
 {
     auto t = py::tuple(3);
     for (std::uint8_t i = 0; i < 3; i++) {
