@@ -210,10 +210,10 @@ def decompose_transformation_matrix(
     # 2 6 10 14
     # 3 7 11 15
     matrix = matrix.copy()  # just in case
-    displacement = tuple(matrix[:3, 3].tolist())
+    displacement = (float(matrix[0, 3]), float(matrix[1, 3]), float(matrix[2, 3]))
     matrix[:3, 3] = 0
     scale_np = numpy.linalg.norm(matrix[:3, :3], axis=0) * matrix[3, 3]
-    scale = tuple(scale_np.tolist())
+    scale = (float(scale_np[0]), float(scale_np[1]), float(scale_np[2]))
     matrix[:3, :3] = matrix[:3, :3] / scale_np
 
     matrix[3, 3] = 1
