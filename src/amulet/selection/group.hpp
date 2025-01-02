@@ -26,7 +26,7 @@ public:
     SelectionGroup(const Iterable& boxes)
     {
         for (const SelectionBox& box : boxes) {
-            _boxes.insert(box);
+            _boxes.emplace(box);
         }
     }
 
