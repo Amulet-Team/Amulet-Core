@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import types
 import typing
 
 import amulet_nbt
@@ -40,4 +39,4 @@ class AnvilRegion:
     @property
     def rz(self) -> int: ...
 
-RawChunkType: types.GenericAlias  # value = dict[str, amulet_nbt.NamedTag]
+RawChunkType: typing.TypeAlias = dict[str, amulet_nbt.NamedTag]
