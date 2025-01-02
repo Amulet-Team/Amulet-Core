@@ -36,30 +36,36 @@ def eq_sub_func(match: re.Match) -> str:
     if one - add @overload and overloaded signature
 
     """
-    if match.string[:match.start()].endswith("@typing.overload\n"):
+    if match.string[: match.start()].endswith("@typing.overload\n"):
         # is overload
         if re.match(
             f"\n{match.group('indent')}@typing.overload\n{match.group('indent')}def __eq__\(self, ",
-            match.string[match.end():]
+            match.string[match.end() :],
         ):
             # is not last overload
             return match.group()
         else:
-            return "\n".join([
+            return "\n".join(
+                [
+                    f"{match.group('indent')}def __eq__(self, arg0: {match.group('other')}) -> {match.group('return')}:{match.group('ellipsis_docstring')}",
+                    f"{match.group('indent')}@typing.overload",
+                    f"{match.group('indent')}def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...",
+                ]
+            )
+    else:
+        return "\n".join(
+            [
+                f"{match.group('indent')}@typing.overload",
                 f"{match.group('indent')}def __eq__(self, arg0: {match.group('other')}) -> {match.group('return')}:{match.group('ellipsis_docstring')}",
                 f"{match.group('indent')}@typing.overload",
                 f"{match.group('indent')}def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...",
-            ])
-    else:
-        return "\n".join([
-            f"{match.group('indent')}@typing.overload",
-            f"{match.group('indent')}def __eq__(self, arg0: {match.group('other')}) -> {match.group('return')}:{match.group('ellipsis_docstring')}",
-            f"{match.group('indent')}@typing.overload",
-            f"{match.group('indent')}def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...",
-        ])
+            ]
+        )
 
 
-GenericAliasPattern = re.compile(r"(?P<variable>[a-zA-Z0-9]+): types.GenericAlias\s*# value = (?P<value>.*)")
+GenericAliasPattern = re.compile(
+    r"(?P<variable>[a-zA-Z0-9]+): types.GenericAlias\s*# value = (?P<value>.*)"
+)
 
 
 def generic_alias_sub_func(match: re.Match) -> str:
@@ -205,7 +211,7 @@ def main() -> None:
         pyi = GenericAliasPattern.sub(generic_alias_sub_func, pyi)
         pyi = pyi.replace(
             "__hash__: typing.ClassVar[None] = None",
-            "__hash__: typing.ClassVar[None] = None  # type: ignore"
+            "__hash__: typing.ClassVar[None] = None  # type: ignore",
         )
         pyi = EqPattern.sub(eq_sub_func, pyi)
         pyi_split = [l.rstrip("\r") for l in pyi.split("\n")]
