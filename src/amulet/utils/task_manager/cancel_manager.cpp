@@ -35,6 +35,9 @@ detail::InternalCancelManager::InternalCancelManager(
 void detail::InternalCancelManager::cancel()
 {
     std::lock_guard<std::mutex> guard(_cancel_mutex);
+    if (_cancelled) {
+        return;
+    }
     _cancelled = true;
     for (const auto& callback : _cancel_callbacks) {
         callback();
