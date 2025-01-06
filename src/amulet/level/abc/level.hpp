@@ -1,40 +1,15 @@
 #pragma once
-#include <cstdint>
-#include <filesystem>
+
 #include <memory>
 #include <shared_mutex>
 #include <string>
 #include <vector>
 
-#include <amulet/biome.hpp>
-#include <amulet/block.hpp>
-#include <amulet/chunk.hpp>
 #include <amulet/version.hpp>
-#include <amulet/utils/task_manager/cancel_manager.hpp>
-#include <amulet/utils/task_manager/progress_manager.hpp>
+
+#include "dimension.hpp"
 
 namespace Amulet {
-
-class ChunkHandle {
-public:
-    virtual ~ChunkHandle() { }
-    virtual std::string dimension_id() = 0;
-    virtual std::int64_t cx() = 0;
-    virtual std::int64_t cz() = 0;
-    virtual bool exists() = 0;
-    virtual std::shared_ptr<Chunk> get_chunk() = 0;
-    virtual void set_chunk(std::shared_ptr<Chunk>) = 0;
-    virtual void delete_chunk() = 0;
-};
-
-class Dimension {
-public:
-    virtual ~Dimension() { }
-    virtual std::string dimension_id() = 0;
-    virtual const BlockStack& default_block() = 0;
-    virtual const Biome& default_biome() = 0;
-    virtual std::shared_ptr<ChunkHandle> get_chunk_handle(std::int64_t, std::int64_t) = 0;
-};
 
 // Functions that can be accessed while the level is closed.
 class LevelMetadata {
@@ -95,59 +70,6 @@ public:
 
     // Get a dimension.
     virtual std::shared_ptr<Dimension> get_dimension(const std::string&) = 0;
-};
-
-class CompactibleLevel {
-public:
-    virtual ~CompactibleLevel() {};
-
-    // Compact the level data to reduce file size.
-    virtual void compact() = 0;
-};
-
-class DiskLevel {
-public:
-    virtual ~DiskLevel() {};
-
-    // The path to the level on disk.
-    virtual std::filesystem::path path() = 0;
-};
-
-class ReloadableLevel {
-public:
-    virtual ~ReloadableLevel() {};
-
-    // Reload the metadata in the existing instance.
-    // This can only be done when the level is not open.
-    virtual void reload() = 0;
-};
-
-class LevelLoader {
-public:
-    class Token {
-    public:
-        virtual ~Token() { }
-    };
-
-    class PathToken : public Token {
-    public:
-        std::filesystem::path path;
-        PathToken(std::filesystem::path path)
-            : path(path)
-        {
-        }
-    };
-
-    virtual ~LevelLoader() {};
-
-    // The name of the loader.
-    virtual std::string name() const = 0;
-
-    // Can the loader load the level token.
-    virtual bool can_load(const Token&) const = 0;
-
-    // Load the level from the token.
-    virtual std::unique_ptr<Level> load(const Token&) const = 0;
 };
 
 } // namespace Amulet
