@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Amulet {
 
 template <typename T>
