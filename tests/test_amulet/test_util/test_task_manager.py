@@ -1,4 +1,5 @@
 from unittest import TestCase
+from weakref import ref
 
 from amulet.utils.task_manager import (
     TaskCancelled,
@@ -159,3 +160,31 @@ class ProgressManagerTestCase(TestCase):
         self.assertEqual(0.0, progress)
         sub_manager.update_progress_text("Hello World2")
         self.assertEqual("", text)
+
+    def test_del(self) -> None:
+        """Ensure the data remains valid when the root manager is destroyed."""
+        progress = 0.0
+        text = ""
+
+        def progress_callback(p: float) -> None:
+            nonlocal progress
+            progress = p
+
+        def text_callback(t: str) -> None:
+            nonlocal text
+            text = t
+
+        manager = ProgressManager()
+        manager_ref = ref(manager)
+        sub_manager = manager.get_child(0.0, 0.5)
+
+        manager.register_progress_callback(progress_callback)
+        manager.register_progress_text_callback(text_callback)
+
+        del manager
+        self.assertIs(None, manager_ref())
+
+        sub_manager.update_progress(0.5)
+        self.assertEqual(0.25, progress)
+        sub_manager.update_progress_text("Hello World")
+        self.assertEqual("Hello World", text)

@@ -56,41 +56,31 @@ public:
         float progress_min, float progress_max) override;
 };
 
-namespace detail {
-    class InternalProgressManager : public AbstractProgressManager {
-    public:
-        std::mutex& _progress_mutex;
-        std::list<ProgressCallback>& _progress_callbacks;
-        std::list<ProgressTextCallback>& _progress_text_callbacks;
-        float _progress_min;
-        float _progress_max;
+class ProgressManagerData {
+public:
+    std::mutex mutex;
+    std::list<ProgressCallback> progress_callbacks;
+    std::list<ProgressTextCallback> progress_text_callbacks;
+};
 
-        InternalProgressManager(
-            std::mutex& progress_mutex,
-            std::list<ProgressCallback>& progress_callbacks,
-            std::list<ProgressTextCallback>& progress_text_callbacks,
-            float progress_min,
-            float progress_max);
-
-        void register_progress_callback(ProgressCallback callback) override;
-        void unregister_progress_callback(ProgressCallback callback) override;
-        void update_progress(float progress) override;
-        void register_progress_text_callback(ProgressTextCallback callback) override;
-        void unregister_progress_text_callback(ProgressTextCallback callback) override;
-        void update_progress_text(const std::string& text) override;
-        std::unique_ptr<AbstractProgressManager> get_child(
-            float progress_min, float progress_max) override;
-    };
-}
-
-class ProgressManager : public detail::InternalProgressManager {
+class ProgressManager : public AbstractProgressManager {
 private:
-    std::mutex _progress_mutex;
-    std::list<ProgressCallback> _progress_callbacks;
-    std::list<ProgressTextCallback> _progress_text_callbacks;
+    std::shared_ptr<ProgressManagerData> data;
+    float _progress_min;
+    float _progress_max;
 
 public:
+    AMULET_CORE_DLLX ProgressManager(const std::shared_ptr<ProgressManagerData>& data, float progress_min, float progress_max);
     AMULET_CORE_DLLX ProgressManager();
+
+    void register_progress_callback(ProgressCallback callback) override;
+    void unregister_progress_callback(ProgressCallback callback) override;
+    void update_progress(float progress) override;
+    void register_progress_text_callback(ProgressTextCallback callback) override;
+    void unregister_progress_text_callback(ProgressTextCallback callback) override;
+    void update_progress_text(const std::string& text) override;
+    std::unique_ptr<AbstractProgressManager> get_child(
+        float progress_min, float progress_max) override;
 };
 
 } // namespace Amulet

@@ -20,71 +20,69 @@ std::unique_ptr<AbstractProgressManager> VoidProgressManager::get_child(
     return std::make_unique<VoidProgressManager>(*this);
 }
 
-detail::InternalProgressManager::InternalProgressManager(
-    std::mutex& progress_mutex,
-    std::list<ProgressCallback>& progress_callbacks,
-    std::list<ProgressTextCallback>& progress_text_callbacks,
-    float progress_min,
-    float progress_max)
-    : _progress_mutex(progress_mutex)
-    , _progress_callbacks(progress_callbacks)
-    , _progress_text_callbacks(progress_text_callbacks)
+AMULET_CORE_DLLX ProgressManager::ProgressManager(const std::shared_ptr<ProgressManagerData>& data, float progress_min, float progress_max)
+    : data(data)
     , _progress_min(progress_min)
     , _progress_max(progress_max)
 {
 }
 
-void detail::InternalProgressManager::register_progress_callback(ProgressCallback callback)
+AMULET_CORE_DLLX ProgressManager::ProgressManager()
+    : ProgressManager(std::make_shared<ProgressManagerData>(), 0.0, 1.0)
 {
-    std::lock_guard<std::mutex> guard(_progress_mutex);
-    // Add the callback to the end.
-    _progress_callbacks.push_back(callback);
 }
 
-void detail::InternalProgressManager::unregister_progress_callback(ProgressCallback callback)
+void ProgressManager::register_progress_callback(ProgressCallback callback)
 {
-    std::lock_guard<std::mutex> guard(_progress_mutex);
+    std::lock_guard<std::mutex> guard(data->mutex);
+    // Add the callback to the end.
+    data->progress_callbacks.push_back(callback);
+}
+
+void ProgressManager::unregister_progress_callback(ProgressCallback callback)
+{
+    std::lock_guard<std::mutex> guard(data->mutex);
     // Remove all callbacks matching the given callback.
-    _progress_callbacks.remove_if(
+    data->progress_callbacks.remove_if(
         [&callback](ProgressCallback callback_) { return callback_.target<void(float)>() == callback.target<void(float)>(); });
 }
 
-void detail::InternalProgressManager::update_progress(float progress)
+void ProgressManager::update_progress(float progress)
 {
     if (progress < 0.0 || 1.0 < progress) {
         throw std::runtime_error("progress must be between 0.0 and 1.0");
     }
     progress = _progress_min + progress * (_progress_max - _progress_min);
-    std::lock_guard<std::mutex> guard(_progress_mutex);
-    for (const auto& callback : _progress_callbacks) {
+    std::lock_guard<std::mutex> guard(data->mutex);
+    for (const auto& callback : data->progress_callbacks) {
         callback(progress);
     }
 }
 
-void detail::InternalProgressManager::register_progress_text_callback(ProgressTextCallback callback)
+void ProgressManager::register_progress_text_callback(ProgressTextCallback callback)
 {
-    std::lock_guard<std::mutex> guard(_progress_mutex);
+    std::lock_guard<std::mutex> guard(data->mutex);
     // Add the callback to the end.
-    _progress_text_callbacks.push_back(callback);
+    data->progress_text_callbacks.push_back(callback);
 }
 
-void detail::InternalProgressManager::unregister_progress_text_callback(ProgressTextCallback callback)
+void ProgressManager::unregister_progress_text_callback(ProgressTextCallback callback)
 {
-    std::lock_guard<std::mutex> guard(_progress_mutex);
+    std::lock_guard<std::mutex> guard(data->mutex);
     // Remove all callbacks matching the given callback.
-    _progress_text_callbacks.remove_if(
+    data->progress_text_callbacks.remove_if(
         [&callback](ProgressTextCallback callback_) { return callback_.target<void(const std::string&)>() == callback.target<void(const std::string&)>(); });
 }
 
-void detail::InternalProgressManager::update_progress_text(const std::string& text)
+void ProgressManager::update_progress_text(const std::string& text)
 {
-    std::lock_guard<std::mutex> guard(_progress_mutex);
-    for (const auto& callback : _progress_text_callbacks) {
+    std::lock_guard<std::mutex> guard(data->mutex);
+    for (const auto& callback : data->progress_text_callbacks) {
         callback(text);
     }
 }
 
-std::unique_ptr<AbstractProgressManager> detail::InternalProgressManager::get_child(
+std::unique_ptr<AbstractProgressManager> ProgressManager::get_child(
     float progress_min, float progress_max)
 {
     if (progress_min < 0.0 || 1.0 < progress_min) {
@@ -93,17 +91,10 @@ std::unique_ptr<AbstractProgressManager> detail::InternalProgressManager::get_ch
     if (progress_max < 0.0 || 1.0 < progress_max) {
         throw std::runtime_error("progress_max must be between 0.0 and 1.0");
     }
-    return std::make_unique<detail::InternalProgressManager>(
-        _progress_mutex,
-        _progress_callbacks,
-        _progress_text_callbacks,
+    return std::make_unique<ProgressManager>(
+        data,
         _progress_min + progress_min * (_progress_max - _progress_min),
         _progress_min + progress_max * (_progress_max - _progress_min));
-}
-
-AMULET_CORE_DLLX ProgressManager::ProgressManager()
-    : detail::InternalProgressManager(_progress_mutex, _progress_callbacks, _progress_text_callbacks, 0.0, 1.0)
-{
 }
 
 } // namespace Amulet

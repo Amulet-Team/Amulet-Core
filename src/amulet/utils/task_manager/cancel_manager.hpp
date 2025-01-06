@@ -1,5 +1,6 @@
 #include <functional>
 #include <list>
+#include <memory>
 #include <mutex>
 #include <stdexcept>
 
@@ -48,33 +49,25 @@ public:
     void unregister_cancel_callback(CancelCallback callback) override;
 };
 
-namespace detail {
-    class InternalCancelManager : public AbstractCancelManager {
-    public:
-        std::mutex& _cancel_mutex;
-        bool& _cancelled;
-        std::list<CancelCallback>& _cancel_callbacks;
-
-        InternalCancelManager(
-            std::mutex& cancel_mutex,
-            bool& cancelled,
-            std::list<CancelCallback>& cancel_callbacks);
-
-        void cancel() override;
-        bool is_cancel_requested() override;
-        void register_cancel_callback(CancelCallback callback) override;
-        void unregister_cancel_callback(CancelCallback callback) override;
-    };
-}
-
-class CancelManager : public detail::InternalCancelManager {
-private:
-    std::mutex cancel_mutex;
+class CancelManagerData {
+public:
+    std::mutex mutex;
     bool cancelled = false;
-    std::list<CancelCallback> cancel_callbacks;
+    std::list<CancelCallback> callbacks;
+};
+
+class CancelManager : public AbstractCancelManager {
+private:
+    std::shared_ptr<CancelManagerData> data;
 
 public:
+    AMULET_CORE_DLLX CancelManager(const std::shared_ptr<CancelManagerData>& data);
     AMULET_CORE_DLLX CancelManager();
+
+    void cancel() override;
+    bool is_cancel_requested() override;
+    void register_cancel_callback(CancelCallback callback) override;
+    void unregister_cancel_callback(CancelCallback callback) override;
 };
 
 } // namespace Amulet

@@ -22,8 +22,6 @@ static py::module init_cancel_manager(py::module m_parent)
 
     py::class_<Amulet::VoidCancelManager, Amulet::AbstractCancelManager> VoidCancelManager(m, "VoidCancelManager");
     VoidCancelManager.def(py::init<>());
-
-    py::class_<Amulet::detail::InternalCancelManager, Amulet::AbstractCancelManager> _CancelManager(m, "_CancelManager");
     
     py::class_<Amulet::CancelManager, Amulet::AbstractCancelManager> CancelManager(m, "CancelManager");
     CancelManager.def(py::init<>());
@@ -46,8 +44,6 @@ static py::module init_progress_manager(py::module m_parent)
 
     py::class_<Amulet::VoidProgressManager, Amulet::AbstractProgressManager> VoidProgressManager(m, "VoidProgressManager");
     VoidProgressManager.def(py::init<>());
-
-    py::class_<Amulet::detail::InternalProgressManager, Amulet::AbstractProgressManager> _ProgressManager(m, "_ProgressManager");
 
     py::class_<Amulet::ProgressManager, Amulet::AbstractProgressManager> ProgressManager(m, "ProgressManager");
     ProgressManager.def(py::init<>());
