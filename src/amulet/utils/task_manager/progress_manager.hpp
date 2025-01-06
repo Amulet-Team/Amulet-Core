@@ -7,8 +7,8 @@
 
 namespace Amulet {
 
-using ProgressCallback = void (*)(float);
-using ProgressTextCallback = void (*)(const std::string&);
+using ProgressCallback = std::function<void(float)>;
+using ProgressTextCallback = std::function<void(const std::string&)>;
 
 class AbstractProgressManager {
 public:
@@ -42,8 +42,9 @@ public:
         = 0;
 };
 
-class VoidProgressManager : public virtual AbstractProgressManager {
+class VoidProgressManager : public AbstractProgressManager {
 public:
+    AMULET_CORE_DLLX VoidProgressManager();
     void register_progress_callback(ProgressCallback callback) override;
     void unregister_progress_callback(ProgressCallback callback) override;
     void update_progress(float progress) override;
@@ -55,7 +56,7 @@ public:
 };
 
 namespace detail {
-    class InternalProgressManager : public virtual AbstractProgressManager {
+    class InternalProgressManager : public AbstractProgressManager {
     public:
         std::mutex& _progress_mutex;
         std::list<ProgressCallback>& _progress_callbacks;

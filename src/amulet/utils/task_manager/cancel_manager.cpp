@@ -17,6 +17,7 @@ AMULET_CORE_DLLX TaskCancelled::TaskCancelled()
 }
 const char* TaskCancelled::what() const noexcept { return msg.c_str(); }
 
+AMULET_CORE_DLLX VoidCancelManager::VoidCancelManager() {};
 void VoidCancelManager::cancel() { }
 bool VoidCancelManager::is_cancel_requested() { return false; }
 void VoidCancelManager::register_cancel_callback(CancelCallback callback) {};
@@ -54,7 +55,7 @@ void detail::InternalCancelManager::unregister_cancel_callback(CancelCallback ca
     std::lock_guard<std::mutex> guard(_cancel_mutex);
     // Remove all callbacks matching the given callback.
     _cancel_callbacks.remove_if(
-        [&callback](CancelCallback callback_) { return callback_ == callback; });
+        [&callback](CancelCallback callback_) { return callback_.target<void()>() == callback.target<void()>(); });
 }
 
 AMULET_CORE_DLLX CancelManager::CancelManager()

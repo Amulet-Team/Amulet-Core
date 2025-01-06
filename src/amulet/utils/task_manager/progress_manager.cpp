@@ -7,6 +7,7 @@
 
 namespace Amulet {
 
+AMULET_CORE_DLLX VoidProgressManager::VoidProgressManager() { }
 void VoidProgressManager::register_progress_callback(ProgressCallback callback) { }
 void VoidProgressManager::unregister_progress_callback(ProgressCallback callback) { }
 void VoidProgressManager::update_progress(float progress) { }
@@ -45,7 +46,7 @@ void detail::InternalProgressManager::unregister_progress_callback(ProgressCallb
     std::lock_guard<std::mutex> guard(_progress_mutex);
     // Remove all callbacks matching the given callback.
     _progress_callbacks.remove_if(
-        [&callback](ProgressCallback callback_) { return callback_ == callback; });
+        [&callback](ProgressCallback callback_) { return callback_.target<void(float)>() == callback.target<void(float)>(); });
 }
 
 void detail::InternalProgressManager::update_progress(float progress)
@@ -72,7 +73,7 @@ void detail::InternalProgressManager::unregister_progress_text_callback(Progress
     std::lock_guard<std::mutex> guard(_progress_mutex);
     // Remove all callbacks matching the given callback.
     _progress_text_callbacks.remove_if(
-        [&callback](ProgressTextCallback callback_) { return callback_ == callback; });
+        [&callback](ProgressTextCallback callback_) { return callback_.target<void(const std::string&)>() == callback.target<void(const std::string&)>(); });
 }
 
 void detail::InternalProgressManager::update_progress_text(const std::string& text)

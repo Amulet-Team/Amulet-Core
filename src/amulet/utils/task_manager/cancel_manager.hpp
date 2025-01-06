@@ -18,7 +18,7 @@ public:
     const char* what() const noexcept override;
 };
 
-using CancelCallback = void (*)();
+using CancelCallback = std::function<void()>;
 
 class AbstractCancelManager {
 public:
@@ -39,8 +39,9 @@ public:
     virtual void unregister_cancel_callback(CancelCallback callback) = 0;
 };
 
-class VoidCancelManager : public virtual AbstractCancelManager {
+class VoidCancelManager : public AbstractCancelManager {
 public:
+    AMULET_CORE_DLLX VoidCancelManager();
     void cancel() override;
     bool is_cancel_requested() override;
     void register_cancel_callback(CancelCallback callback) override;
@@ -48,7 +49,7 @@ public:
 };
 
 namespace detail {
-    class InternalCancelManager : public virtual AbstractCancelManager {
+    class InternalCancelManager : public AbstractCancelManager {
     public:
         std::mutex& _cancel_mutex;
         bool& _cancelled;
