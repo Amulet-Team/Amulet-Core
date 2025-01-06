@@ -160,40 +160,4 @@ public:
     AMULET_CORE_DLLX ProgressManager();
 };
 
-class AbstractTaskManager : public virtual AbstractCancelManager, public virtual AbstractProgressManager { };
-
-// An empty TaskManager that ignores all calls.
-class VoidTaskManager : public AbstractTaskManager, public VoidCancelManager, public VoidProgressManager { };
-
-namespace detail {
-    class InternalTaskManager : public AbstractTaskManager, public detail::InternalCancelManager, public detail::InternalProgressManager {
-    public:
-        InternalTaskManager(
-            std::mutex& cancel_mutex,
-            bool& cancelled,
-            std::list<CancelCallback>& cancel_callbacks,
-            std::mutex& progress_mutex,
-            std::list<ProgressCallback>& progress_callbacks,
-            std::list<ProgressTextCallback>& progress_text_callbacks,
-            float progress_min,
-            float progress_max);
-
-        std::unique_ptr<AbstractProgressManager> get_child(
-            float progress_min, float progress_max) override;
-    };
-}
-
-class TaskManager : public detail::InternalTaskManager {
-private:
-    std::mutex cancel_mutex;
-    bool cancelled = false;
-    std::list<CancelCallback> cancel_callbacks;
-    std::mutex _progress_mutex;
-    std::list<ProgressCallback> _progress_callbacks;
-    std::list<ProgressTextCallback> _progress_text_callbacks;
-
-public:
-    AMULET_CORE_DLLX TaskManager();
-};
-
 } // namespace Amulet
