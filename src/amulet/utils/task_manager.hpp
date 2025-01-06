@@ -1,6 +1,9 @@
 #include <functional>
+#include <list>
 #include <mutex>
 #include <stdexcept>
+
+#include <amulet/dll.hpp>
 
 namespace Amulet {
 
@@ -10,22 +13,16 @@ private:
     std::string msg;
 
 public:
-    TaskCancelled(std::string msg)
-        : msg(msg)
-    {
-    }
-    TaskCancelled()
-        : TaskCancelled("Task Cancelled")
-    {
-    }
-    const char* what() const noexcept override { return msg.c_str(); }
+    AMULET_CORE_DLLX TaskCancelled(std::string msg);
+    AMULET_CORE_DLLX TaskCancelled();
+    const char* what() const noexcept override;
 };
 
 using CancelCallback = void (*)();
 
 class AbstractCancelManager {
 public:
-    virtual ~AbstractCancelManager() { }
+    virtual ~AbstractCancelManager() = default;
 
     // Request the operation be canceled.
     // It is down to the operation to implement support for this.
@@ -42,68 +39,41 @@ public:
     virtual void unregister_cancel_callback(CancelCallback callback) = 0;
 };
 
-class VoidCancelManager : public AbstractCancelManager {
-    void cancel() override { }
-    bool is_cancel_requested() override { return false; }
-    virtual void register_cancel_callback(CancelCallback callback) override {};
-    virtual void unregister_cancel_callback(CancelCallback callback) override {};
-};
-
-class _CancelManager : public AbstractCancelManager {
-protected:
-    std::mutex& _cancel_mutex;
-    bool& _cancelled;
-    std::list<CancelCallback>& _cancel_callbacks;
-
-    _CancelManager(
-        std::mutex& cancel_mutex,
-        bool& cancelled,
-        std::list<CancelCallback>& cancel_callbacks)
-        : _cancelled(cancelled)
-        , _cancel_mutex(cancel_mutex)
-        , _cancel_callbacks(cancel_callbacks)
-    {
-    }
-
+class VoidCancelManager : public virtual AbstractCancelManager {
 public:
-    void cancel() override
-    {
-        std::lock_guard guard(_cancel_mutex);
-        _cancelled = true;
-        for (const auto& callback : _cancel_callbacks) {
-            callback();
-        }
-    }
-    bool is_cancel_requested() override
-    {
-        return _cancelled;
-    }
-    virtual void register_cancel_callback(CancelCallback callback) override
-    {
-        std::lock_guard guard(_cancel_mutex);
-        // Add the callback to the end.
-        _cancel_callbacks.push_back(callback);
-    };
-    virtual void unregister_cancel_callback(CancelCallback callback) override
-    {
-        std::lock_guard guard(_cancel_mutex);
-        // Remove all callbacks matching the given callback.
-        _cancel_callbacks.remove_if(
-            [&callback](CancelCallback callback_) { return callback_ == callback; });
-    };
+    void cancel() override;
+    bool is_cancel_requested() override;
+    void register_cancel_callback(CancelCallback callback) override;
+    void unregister_cancel_callback(CancelCallback callback) override;
 };
 
-class CancelManager : public _CancelManager {
+namespace detail {
+    class InternalCancelManager : public virtual AbstractCancelManager {
+    public:
+        std::mutex& _cancel_mutex;
+        bool& _cancelled;
+        std::list<CancelCallback>& _cancel_callbacks;
+
+        InternalCancelManager(
+            std::mutex& cancel_mutex,
+            bool& cancelled,
+            std::list<CancelCallback>& cancel_callbacks);
+
+        void cancel() override;
+        bool is_cancel_requested() override;
+        void register_cancel_callback(CancelCallback callback) override;
+        void unregister_cancel_callback(CancelCallback callback) override;
+    };
+}
+
+class CancelManager : public detail::InternalCancelManager {
 private:
     std::mutex cancel_mutex;
     bool cancelled = false;
     std::list<CancelCallback> cancel_callbacks;
 
 public:
-    CancelManager()
-        : _CancelManager(cancel_mutex, cancelled, cancel_callbacks)
-    {
-    }
+    AMULET_CORE_DLLX CancelManager();
 };
 
 using ProgressCallback = void (*)(float);
@@ -111,7 +81,7 @@ using ProgressTextCallback = void (*)(const std::string&);
 
 class AbstractProgressManager {
 public:
-    virtual ~AbstractProgressManager() {};
+    virtual ~AbstractProgressManager() = default;
 
     // Register a function to get called when progress changes.
     // The callback will be called from the thread `update_progress` is called in.
@@ -136,172 +106,84 @@ public:
 
     // Get a child ProgressManager.
     // If calling multiple functions, this allows segmenting the reported time.
-    virtual std::unique_ptr<AbstractProgressManager> get_child(float progress_min, float progress_max) = 0;
-};
-
-class VoidProgressManager : public AbstractProgressManager {
-public:
-    virtual void register_progress_callback(ProgressCallback callback) override { }
-    virtual void unregister_progress_callback(ProgressCallback callback) override { }
-    virtual void update_progress(float progress) override { }
-    virtual void register_progress_text_callback(ProgressTextCallback callback) override { }
-    virtual void unregister_progress_text_callback(ProgressTextCallback callback) override { }
-    virtual void update_progress_text(const std::string& text) override { }
     virtual std::unique_ptr<AbstractProgressManager> get_child(
-        float progress_min, float progress_max) override
-    {
-        return std::make_unique<VoidProgressManager>(this);
-    }
+        float progress_min, float progress_max)
+        = 0;
 };
 
-class _ProgressManager : public AbstractProgressManager {
-protected:
-    std::mutex& _progress_mutex;
-    std::list<ProgressCallback>& _progress_callbacks;
-    std::list<ProgressTextCallback>& _progress_text_callbacks;
-    float _progress_min;
-    float _progress_max;
-
-    _ProgressManager(
-        std::mutex& progress_mutex,
-        std::list<ProgressCallback>& progress_callbacks,
-        std::list<ProgressTextCallback>& progress_text_callbacks,
-        float progress_min,
-        float progress_max)
-        : _progress_mutex(progress_mutex)
-        , _progress_callbacks(progress_callbacks)
-        , _progress_text_callbacks(progress_text_callbacks)
-        , _progress_min(progress_min)
-        , _progress_max(progress_max)
-    {
-    }
-
+class VoidProgressManager : public virtual AbstractProgressManager {
 public:
-    virtual void register_progress_callback(ProgressCallback callback) override
-    {
-        std::lock_guard guard(_progress_mutex);
-        // Add the callback to the end.
-        _progress_callbacks.push_back(callback);
-    }
-
-    virtual void unregister_progress_callback(ProgressCallback callback) override
-    {
-        std::lock_guard guard(_progress_mutex);
-        // Remove all callbacks matching the given callback.
-        _progress_callbacks.remove_if(
-            [&callback](ProgressCallback callback_) { return callback_ == callback; });
-    }
-
-    virtual void update_progress(float progress) override
-    {
-        if (progress < 0.0 || 1.0 < progress) {
-            throw std::runtime_error("progress must be between 0.0 and 1.0");
-        }
-        progress = _progress_min + progress * (_progress_max - _progress_min);
-        std::lock_guard guard(_progress_mutex);
-        for (const auto& callback : _progress_callbacks) {
-            callback(progress);
-        }
-    }
-
-    virtual void register_progress_text_callback(ProgressTextCallback callback) override
-    {
-        std::lock_guard guard(_progress_mutex);
-        // Add the callback to the end.
-        _progress_text_callbacks.push_back(callback);
-    }
-
-    virtual void unregister_progress_text_callback(ProgressTextCallback callback) override
-    {
-        std::lock_guard guard(_progress_mutex);
-        // Remove all callbacks matching the given callback.
-        _progress_text_callbacks.remove_if(
-            [&callback](ProgressTextCallback callback_) { return callback_ == callback; });
-    }
-
-    virtual void update_progress_text(const std::string& text) override
-    {
-        std::lock_guard guard(_progress_mutex);
-        for (const auto& callback : _progress_text_callbacks) {
-            callback(text);
-        }
-    }
-
-    virtual std::unique_ptr<AbstractProgressManager> get_child(
-        float progress_min, float progress_max) override
-    {
-        if (progress_min < 0.0 || 1.0 < progress_min) {
-            throw std::runtime_error("progress_min must be between 0.0 and 1.0");
-        }
-        if (progress_max < 0.0 || 1.0 < progress_max) {
-            throw std::runtime_error("progress_max must be between 0.0 and 1.0");
-        }
-        return std::make_unique<_ProgressManager>(
-            _progress_mutex,
-            _progress_callbacks,
-            _progress_text_callbacks,
-            _progress_min + progress_min * (_progress_max - _progress_min),
-            _progress_min + progress_max * (_progress_max - _progress_min));
-    }
+    void register_progress_callback(ProgressCallback callback) override;
+    void unregister_progress_callback(ProgressCallback callback) override;
+    void update_progress(float progress) override;
+    void register_progress_text_callback(ProgressTextCallback callback) override;
+    void unregister_progress_text_callback(ProgressTextCallback callback) override;
+    void update_progress_text(const std::string& text) override;
+    std::unique_ptr<AbstractProgressManager> get_child(
+        float progress_min, float progress_max) override;
 };
 
-class ProgressManager : public _ProgressManager {
+namespace detail {
+    class InternalProgressManager : public virtual AbstractProgressManager {
+    public:
+        std::mutex& _progress_mutex;
+        std::list<ProgressCallback>& _progress_callbacks;
+        std::list<ProgressTextCallback>& _progress_text_callbacks;
+        float _progress_min;
+        float _progress_max;
+
+        InternalProgressManager(
+            std::mutex& progress_mutex,
+            std::list<ProgressCallback>& progress_callbacks,
+            std::list<ProgressTextCallback>& progress_text_callbacks,
+            float progress_min,
+            float progress_max);
+
+        void register_progress_callback(ProgressCallback callback) override;
+        void unregister_progress_callback(ProgressCallback callback) override;
+        void update_progress(float progress) override;
+        void register_progress_text_callback(ProgressTextCallback callback) override;
+        void unregister_progress_text_callback(ProgressTextCallback callback) override;
+        void update_progress_text(const std::string& text) override;
+        std::unique_ptr<AbstractProgressManager> get_child(
+            float progress_min, float progress_max) override;
+    };
+}
+
+class ProgressManager : public detail::InternalProgressManager {
 private:
     std::mutex _progress_mutex;
     std::list<ProgressCallback> _progress_callbacks;
     std::list<ProgressTextCallback> _progress_text_callbacks;
 
 public:
-    ProgressManager()
-        : _ProgressManager(_progress_mutex, _progress_callbacks, _progress_text_callbacks, 0.0, 1.0)
-    {
-    }
+    AMULET_CORE_DLLX ProgressManager();
 };
 
-class AbstractTaskManager : public AbstractCancelManager, public AbstractProgressManager { };
+class AbstractTaskManager : public virtual AbstractCancelManager, public virtual AbstractProgressManager { };
 
 // An empty TaskManager that ignores all calls.
-class VoidTaskManager : public VoidCancelManager, public VoidProgressManager, public AbstractTaskManager { };
+class VoidTaskManager : public AbstractTaskManager, public VoidCancelManager, public VoidProgressManager { };
 
-class _TaskManager : public _CancelManager, public _ProgressManager, public AbstractTaskManager {
-protected:
-    _TaskManager(
-        std::mutex& cancel_mutex,
-        bool& cancelled,
-        std::list<CancelCallback>& cancel_callbacks,
-        std::mutex& progress_mutex,
-        std::list<ProgressCallback>& progress_callbacks,
-        std::list<ProgressTextCallback>& progress_text_callbacks,
-        float progress_min,
-        float progress_max)
-        : _CancelManager(cancelled, cancel_mutex, cancel_callbacks)
-        , _ProgressManager(progress_mutex, progress_callbacks, progress_text_callbacks, progress_min, progress_max)
-    {
-    }
+namespace detail {
+    class InternalTaskManager : public AbstractTaskManager, public detail::InternalCancelManager, public detail::InternalProgressManager {
+    public:
+        InternalTaskManager(
+            std::mutex& cancel_mutex,
+            bool& cancelled,
+            std::list<CancelCallback>& cancel_callbacks,
+            std::mutex& progress_mutex,
+            std::list<ProgressCallback>& progress_callbacks,
+            std::list<ProgressTextCallback>& progress_text_callbacks,
+            float progress_min,
+            float progress_max);
 
-public:
-    virtual std::unique_ptr<AbstractProgressManager> get_child(
-        float progress_min, float progress_max) override
-    {
-        if (progress_min < 0.0 || 1.0 < progress_min) {
-            throw std::runtime_error("progress_min must be between 0.0 and 1.0");
-        }
-        if (progress_max < 0.0 || 1.0 < progress_max) {
-            throw std::runtime_error("progress_max must be between 0.0 and 1.0");
-        }
-        return std::make_unique<_TaskManager>(
-            _cancel_mutex,
-            _cancelled,
-            _cancel_callbacks,
-            _progress_mutex,
-            _progress_callbacks,
-            _progress_text_callbacks,
-            _progress_min + progress_min * (_progress_max - _progress_min),
-            _progress_min + progress_max * (_progress_max - _progress_min));
-    }
-};
+        std::unique_ptr<AbstractProgressManager> get_child(
+            float progress_min, float progress_max) override;
+    };
+}
 
-class TaskManager : public _TaskManager {
+class TaskManager : public detail::InternalTaskManager {
 private:
     std::mutex cancel_mutex;
     bool cancelled = false;
@@ -311,18 +193,7 @@ private:
     std::list<ProgressTextCallback> _progress_text_callbacks;
 
 public:
-    TaskManager()
-        : _TaskManager(
-              cancel_mutex,
-              cancelled,
-              cancel_callbacks,
-              _progress_mutex,
-              _progress_callbacks,
-              _progress_text_callbacks,
-              0.0,
-              1.0)
-    {
-    }
+    AMULET_CORE_DLLX TaskManager();
 };
 
 } // namespace Amulet
