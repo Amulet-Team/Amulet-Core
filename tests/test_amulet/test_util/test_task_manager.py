@@ -1,6 +1,15 @@
 from unittest import TestCase
 
-from amulet.utils.task_manager import TaskCancelled, AbstractCancelManager, CancelManager, VoidCancelManager, AbstractProgressManager, ProgressManager, VoidProgressManager
+from amulet.utils.task_manager import (
+    TaskCancelled,
+    AbstractCancelManager,
+    CancelManager,
+    VoidCancelManager,
+    AbstractProgressManager,
+    ProgressManager,
+    VoidProgressManager,
+)
+
 
 class CancelManagerTestCase(TestCase):
     def test_task_cancelled(self) -> None:
