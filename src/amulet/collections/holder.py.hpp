@@ -11,7 +11,7 @@ namespace collections {
 	// A class to allow python to hold a reference to a smart pointer
 	class Holder {
 	public:
-		virtual ~Holder() {}
+		virtual ~Holder() = default;
 	};
 
 	template <typename T>

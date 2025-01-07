@@ -25,7 +25,7 @@ namespace Amulet {
     // The abstract chunk class
 	class Chunk {
 	public:
-		virtual ~Chunk() {}
+		virtual ~Chunk() = default;
 		virtual std::string get_chunk_id() const = 0;
 		virtual std::vector<std::string> get_component_ids() const = 0;
 	//private:
