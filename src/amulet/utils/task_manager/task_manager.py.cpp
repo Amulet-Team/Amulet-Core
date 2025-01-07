@@ -12,7 +12,7 @@ static py::module init_cancel_manager(py::module m_parent)
 {
     auto m = m_parent.def_submodule("cancel_manager");
     
-    py::register_exception<Amulet::TaskCancelled>(m, "TaskCancelled", PyExc_Exception);
+    py::register_exception<Amulet::TaskCancelled>(m, "TaskCancelled");
     
     py::class_<Amulet::AbstractCancelManager> AbstractCancelManager(m, "AbstractCancelManager");
     AbstractCancelManager.def("cancel", &Amulet::AbstractCancelManager::cancel);
