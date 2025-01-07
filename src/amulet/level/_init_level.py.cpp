@@ -13,7 +13,7 @@ void init_level(py::module m_parent) {
     m.attr("register_level_class") = py::module::import("amulet.level._load").attr("register_level_class");
     m.attr("unregister_level_class") = py::module::import("amulet.level._load").attr("unregister_level_class");
     m.attr("get_level") = py::module::import("amulet.level._load").attr("get_level");
-    m.attr("NoValidLevel") = py::module::import("amulet.level._load").attr("NoValidLevel");
+    m.attr("NoValidLevelLoader") = py::module::import("amulet.level._load").attr("NoValidLevelLoader");
 
     //from .temporary_level import TemporaryLevel
 

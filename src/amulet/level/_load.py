@@ -47,7 +47,7 @@ def unregister_level_class(cls: Type[LoadableLevel]) -> None:
         _level_classes.discard(cls)
 
 
-class NoValidLevel(Exception):
+class NoValidLevelLoader(Exception):
     """An error thrown if no level could load the token."""
 
     pass
@@ -64,7 +64,7 @@ def get_level(token: Any) -> LoadableLevel:
     :param token: The token to load. This may be a file/directory path or some other token.
     :return: The level instance.
     :raises:
-        NoValidLevel: If no level could load the token.
+        NoValidLevelLoader: If no level could load the token.
 
         Exception: Other errors.
     """
@@ -75,7 +75,7 @@ def get_level(token: Any) -> LoadableLevel:
 
         if cls is None:
             # If no level could load the token then raise
-            raise NoValidLevel(f"Could not load {token}")
+            raise NoValidLevelLoader(f"Could not load {token}")
 
         try:
             # Try and get a cached instance of the level
