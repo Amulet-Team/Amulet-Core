@@ -17,6 +17,8 @@ public:
     public:
         virtual ~Token() = default;
         virtual std::string repr() const = 0;
+        virtual size_t hash() const = 0;
+        virtual bool operator==(const Token&) const = 0;
     };
 
     class PathToken : public Token {
@@ -24,6 +26,8 @@ public:
         std::filesystem::path path;
         AMULET_CORE_DLLX PathToken(std::filesystem::path path);
         std::string repr() const override;
+        size_t hash() const override;
+        bool operator==(const Token&) const override;
     };
 
     // The name of the loader.
@@ -35,6 +39,15 @@ public:
         const std::string& name,
         std::function<std::unique_ptr<Level>(const Token&)> loader);
 };
+
+}
+
+template <>
+struct std::hash<Amulet::LevelLoader::Token> {
+    size_t operator()(const Amulet::LevelLoader::Token& token) const noexcept;
+};
+
+namespace Amulet{
 
 class LevelLoaderRegister {
 private:
@@ -49,6 +62,6 @@ class NoValidLevelLoader : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };
 
-AMULET_CORE_DLLX std::unique_ptr<Level> load_level(const LevelLoader::Token&);
+AMULET_CORE_DLLX std::shared_ptr<Level> get_level(const std::shared_ptr<LevelLoader::Token>&);
 
 } // namespace Amulet
