@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 #include <amulet/dll.hpp>
@@ -15,30 +16,24 @@ public:
     class Token {
     public:
         virtual ~Token() = default;
+        virtual std::string repr() const = 0;
     };
 
     class PathToken : public Token {
     public:
         std::filesystem::path path;
-        PathToken(std::filesystem::path path)
-            : path(path)
-        {
-        }
+        AMULET_CORE_DLLX PathToken(std::filesystem::path path);
+        std::string repr() const override;
     };
 
     // The name of the loader.
     std::string name;
     // The function to load the level.
     std::function<std::unique_ptr<Level>(const Token&)> loader;
-    
-    LevelLoader(
+
+    AMULET_CORE_DLLX LevelLoader(
         const std::string& name,
-        std::function<std::unique_ptr<Level>(const Token&)> loader
-    )
-        : name(name)
-        , loader(loader)
-    {
-    }
+        std::function<std::unique_ptr<Level>(const Token&)> loader);
 };
 
 class LevelLoaderRegister {
@@ -46,10 +41,14 @@ private:
     std::shared_ptr<LevelLoader> loader;
 
 public:
-    LevelLoaderRegister(const std::shared_ptr<LevelLoader>&);
-    ~LevelLoaderRegister();
+    AMULET_CORE_DLLX LevelLoaderRegister(const std::shared_ptr<LevelLoader>&);
+    AMULET_CORE_DLLX ~LevelLoaderRegister();
 };
 
-std::unique_ptr<Level> load_level(const LevelLoader::Token&);
+class NoValidLevelLoader : public std::runtime_error {
+    using std::runtime_error::runtime_error;
+};
+
+AMULET_CORE_DLLX std::unique_ptr<Level> load_level(const LevelLoader::Token&);
 
 } // namespace Amulet
