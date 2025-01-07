@@ -5,29 +5,29 @@
 
 #include "loader.hpp"
 
-size_t std::hash<Amulet::LevelLoader::Token>::operator()(const Amulet::LevelLoader::Token& token) const noexcept
+size_t std::hash<Amulet::LevelLoaderToken>::operator()(const Amulet::LevelLoaderToken& token) const noexcept
 {
     return token.hash();
 }
 
 namespace Amulet {
 
-AMULET_CORE_DLLX LevelLoader::PathToken::PathToken(
+AMULET_CORE_DLLX LevelLoaderPathToken::LevelLoaderPathToken(
     std::filesystem::path path)
     : path(path)
 {
 }
-std::string LevelLoader::PathToken::repr() const
+std::string LevelLoaderPathToken::repr() const
 {
-    return "PathToken(" + path.string() + ")";
+    return "LevelLoaderPathToken(" + path.string() + ")";
 }
-size_t LevelLoader::PathToken::hash() const
+size_t LevelLoaderPathToken::hash() const
 {
-    return std::hash(path);
+    return std::hash<std::filesystem::path> {}(path);
 }
-bool LevelLoader::PathToken::operator==(const Token& token) const
+bool LevelLoaderPathToken::operator==(const LevelLoaderToken& token) const
 {
-    if (const PathToken* path_token = dynamic_cast<const PathToken*>(&token)) {
+    if (const LevelLoaderPathToken* path_token = dynamic_cast<const LevelLoaderPathToken*>(&token)) {
         return path == path_token->path;
     }
     return false;
@@ -35,7 +35,7 @@ bool LevelLoader::PathToken::operator==(const Token& token) const
 
 AMULET_CORE_DLLX LevelLoader::LevelLoader(
     const std::string& name,
-    std::function<std::unique_ptr<Level>(const Token&)> loader)
+    std::function<std::unique_ptr<Level>(const LevelLoaderToken&)> loader)
     : name(name)
     , loader(loader)
 {
@@ -76,28 +76,28 @@ struct SmartPointerEqual {
 };
 
 // Level storage with mutex
-static class LevelData {
+class LevelData {
 public:
     std::mutex mutex;
     std::weak_ptr<Level> level;
 };
 // Weak map of levels
 static std::unordered_map<
-    std::shared_ptr<LevelLoader::Token>,
+    std::shared_ptr<LevelLoaderToken>,
     LevelData,
-    SmartPointerHash<std::shared_ptr<LevelLoader::Token>>,
-    SmartPointerEqual<std::shared_ptr<LevelLoader::Token>>>
+    SmartPointerHash<std::shared_ptr<LevelLoaderToken>>,
+    SmartPointerEqual<std::shared_ptr<LevelLoaderToken>>>
     levels;
 // Mutex to modify levels
 static std::mutex levels_mutex;
 
-static LevelData& get_level_data(const std::shared_ptr<LevelLoader::Token>& token)
+static LevelData& get_level_data(const std::shared_ptr<LevelLoaderToken>& token)
 {
     std::unique_lock levels_lock(levels_mutex);
     return levels[token];
 }
 
-AMULET_CORE_DLLX std::shared_ptr<Level> get_level(const std::shared_ptr<LevelLoader::Token>& token)
+AMULET_CORE_DLLX std::shared_ptr<Level> get_level(const std::shared_ptr<LevelLoaderToken>& token)
 {
     // Get the level storage
     auto& level_data = get_level_data(token);
