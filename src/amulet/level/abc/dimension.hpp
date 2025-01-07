@@ -12,7 +12,7 @@ namespace Amulet {
 
 class Dimension {
 public:
-    virtual ~Dimension() { }
+    virtual ~Dimension() = default;
     virtual std::string dimension_id() = 0;
     virtual const BlockStack& default_block() = 0;
     virtual const Biome& default_biome() = 0;

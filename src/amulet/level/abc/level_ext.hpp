@@ -5,7 +5,7 @@ namespace Amulet {
 
 class CompactibleLevel {
 public:
-    virtual ~CompactibleLevel() {};
+    virtual ~CompactibleLevel() = default;
 
     // Compact the level data to reduce file size.
     virtual void compact() = 0;
@@ -13,7 +13,7 @@ public:
 
 class DiskLevel {
 public:
-    virtual ~DiskLevel() {};
+    virtual ~DiskLevel() = default;
 
     // The path to the level on disk.
     virtual std::filesystem::path path() = 0;
@@ -21,7 +21,7 @@ public:
 
 class ReloadableLevel {
 public:
-    virtual ~ReloadableLevel() {};
+    virtual ~ReloadableLevel() = default;
 
     // Reload the metadata in the existing instance.
     // This can only be done when the level is not open.
