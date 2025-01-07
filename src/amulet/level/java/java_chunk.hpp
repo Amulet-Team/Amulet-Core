@@ -31,7 +31,7 @@ namespace Amulet {
 	public:
 		AMULET_CORE_DLLX static const std::string ChunkID;
 
-		AMULET_CORE_DLLX std::string get_chunk_id() const override;
+		std::string get_chunk_id() const override;
 
 		using ChunkComponentHelper::ChunkComponentHelper;
 		AMULET_CORE_DLLX JavaChunkNA(
@@ -56,7 +56,7 @@ namespace Amulet {
 	public:
 		AMULET_CORE_DLLX static const std::string ChunkID;
 
-		AMULET_CORE_DLLX std::string get_chunk_id() const override;
+		std::string get_chunk_id() const override;
 
 		using ChunkComponentHelper::ChunkComponentHelper;
 		AMULET_CORE_DLLX JavaChunk0(
@@ -81,7 +81,7 @@ namespace Amulet {
 	public:
 		AMULET_CORE_DLLX static const std::string ChunkID;
 
-		AMULET_CORE_DLLX std::string get_chunk_id() const override;
+		std::string get_chunk_id() const override;
 
 		using ChunkComponentHelper::ChunkComponentHelper;
 		AMULET_CORE_DLLX JavaChunk1444(
@@ -106,7 +106,7 @@ namespace Amulet {
 	public:
 		AMULET_CORE_DLLX static const std::string ChunkID;
 
-		AMULET_CORE_DLLX std::string get_chunk_id() const override;
+		std::string get_chunk_id() const override;
 
 		using ChunkComponentHelper::ChunkComponentHelper;
 		AMULET_CORE_DLLX JavaChunk1466(
@@ -131,7 +131,7 @@ namespace Amulet {
 	public:
 		AMULET_CORE_DLLX static const std::string ChunkID;
 
-		AMULET_CORE_DLLX std::string get_chunk_id() const override;
+		std::string get_chunk_id() const override;
 
 		using ChunkComponentHelper::ChunkComponentHelper;
 		AMULET_CORE_DLLX JavaChunk2203(
