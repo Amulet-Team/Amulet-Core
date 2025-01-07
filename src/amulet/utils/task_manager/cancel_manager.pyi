@@ -25,6 +25,3 @@ class TaskCancelled(Exception):
 
 class VoidCancelManager(AbstractCancelManager):
     def __init__(self) -> None: ...
-
-class _CancelManager(AbstractCancelManager):
-    pass

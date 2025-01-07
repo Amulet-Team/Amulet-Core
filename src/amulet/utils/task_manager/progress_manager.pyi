@@ -28,6 +28,3 @@ class ProgressManager(AbstractProgressManager):
 
 class VoidProgressManager(AbstractProgressManager):
     def __init__(self) -> None: ...
-
-class _ProgressManager(AbstractProgressManager):
-    pass
