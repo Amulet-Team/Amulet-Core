@@ -1,7 +1,7 @@
 #include <set>
 #include <shared_mutex>
 
-#include "level_loader.hpp"
+#include "loader.hpp"
 
 namespace Amulet {
 
