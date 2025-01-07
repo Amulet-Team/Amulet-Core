@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from amulet.level._load import (
-    NoValidLevel,
+    NoValidLevelLoader,
     get_level,
     register_level_class,
     unregister_level_class,
@@ -14,7 +14,7 @@ from . import _load, abc, java
 __all__ = [
     "JavaLevel",
     "Level",
-    "NoValidLevel",
+    "NoValidLevelLoader",
     "abc",
     "get_level",
     "java",
