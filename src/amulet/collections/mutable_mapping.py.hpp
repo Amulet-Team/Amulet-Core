@@ -171,7 +171,7 @@ namespace collections {
 
 	class MutableMapping : public Mapping {
 	public:
-		virtual ~MutableMapping() {}
+		virtual ~MutableMapping() = default;
 		virtual void setitem(py::object py_key, py::object py_value) = 0;
 		virtual void delitem(py::object py_key) = 0;
 		virtual void clear() = 0;

@@ -154,7 +154,7 @@ namespace collections {
 
 	class Mapping {
 	public:
-		virtual ~Mapping() {}
+		virtual ~Mapping() = default;
 		virtual py::object getitem(py::object py_key) const = 0;
 		virtual std::shared_ptr<Iterator> iter() const = 0;
 		virtual size_t size() const = 0;

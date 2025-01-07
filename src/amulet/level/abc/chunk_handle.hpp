@@ -10,7 +10,7 @@ namespace Amulet {
 
 class ChunkHandle {
 public:
-    virtual ~ChunkHandle() { }
+    virtual ~ChunkHandle() = default;
     virtual std::string dimension_id() = 0;
     virtual std::int64_t cx() = 0;
     virtual std::int64_t cz() = 0;

@@ -9,7 +9,7 @@ namespace Amulet {
 namespace collections {
 	class Iterator {
 	public:
-		virtual ~Iterator() {}
+		virtual ~Iterator() = default;
 		virtual bool has_next() = 0;
 		virtual py::object next() = 0;
 	};
