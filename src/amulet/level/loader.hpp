@@ -23,6 +23,7 @@ class LevelLoaderPathToken : public LevelLoaderToken {
 public:
     std::filesystem::path path;
     AMULET_CORE_DLLX LevelLoaderPathToken(std::filesystem::path path);
+    AMULET_CORE_DLLX LevelLoaderPathToken(const LevelLoaderPathToken& token) = default;
     std::string repr() const override;
     size_t hash() const override;
     bool operator==(const LevelLoaderToken&) const override;
