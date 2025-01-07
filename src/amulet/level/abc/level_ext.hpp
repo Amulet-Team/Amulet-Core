@@ -16,7 +16,7 @@ public:
     virtual ~DiskLevel() = default;
 
     // The path to the level on disk.
-    virtual std::filesystem::path path() = 0;
+    virtual const std::filesystem::path& path() = 0;
 };
 
 class ReloadableLevel {

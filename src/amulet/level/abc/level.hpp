@@ -20,7 +20,7 @@ public:
     virtual ~LevelMetadata() = default;
 
     // Is the level open.
-    virtual void is_open() = 0;
+    virtual bool is_open() = 0;
 
     // The platform string for the level.
     virtual const std::string& platform() = 0;
@@ -32,7 +32,7 @@ public:
     // virtual void thumbnail() = 0;
 
     // The name of the level.
-    virtual std::string level_name() = 0;
+    virtual const std::string& level_name() = 0;
 
     // The time the level was modified (Unix time in seconds) or 0 if unknown.
     virtual double modified_time() = 0;
