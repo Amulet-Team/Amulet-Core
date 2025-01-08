@@ -25,7 +25,7 @@ public:
     // The platform string for the level.
     virtual const std::string& platform() = 0;
 
-    // The maximum game version the leve has been opened with.
+    // The maximum game version the level has been opened with.
     virtual const VersionNumber& max_game_version() = 0;
 
     // The thumbnail for the level.
