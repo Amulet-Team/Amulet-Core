@@ -69,7 +69,7 @@ class JavaRawDimension(
         return self._anvil_dimension.get_chunk_data(cx, cz)
 
     def set_raw_chunk(self, cx: int, cz: int, chunk: RawChunkType) -> None:
-        self._anvil_dimension.put_chunk_data(cx, cz, chunk)
+        self._anvil_dimension.set_chunk_data(cx, cz, chunk)
 
     def raw_chunk_to_native_chunk(
         self, raw_chunk: RawChunkType, cx: int, cz: int
