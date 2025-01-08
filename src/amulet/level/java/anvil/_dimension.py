@@ -85,7 +85,7 @@ class AnvilDimensionLayer:
             *world_utils.chunk_coords_to_region_coords(cx, cz)
         ).get_value(cx, cz)
 
-    def put_chunk_data(self, cx: int, cz: int, data: NamedTag) -> None:
+    def set_chunk_data(self, cx: int, cz: int, data: NamedTag) -> None:
         """pass data to the region file class"""
         self._get_region(
             *world_utils.chunk_coords_to_region_coords(cx, cz), create=True
@@ -148,7 +148,7 @@ class AnvilDimension:
         else:
             raise ChunkDoesNotExist
 
-    def put_chunk_data(self, cx: int, cz: int, data_layers: RawChunkType) -> None:
+    def set_chunk_data(self, cx: int, cz: int, data_layers: RawChunkType) -> None:
         """Put one or more layers of data"""
         for layer_name, data in data_layers.items():
             if (
@@ -160,7 +160,7 @@ class AnvilDimension:
                     os.path.join(self._directory, layer_name), mcc=self._mcc
                 )
             if layer_name in self.__layers:
-                self.__layers[layer_name].put_chunk_data(cx, cz, data)
+                self.__layers[layer_name].set_chunk_data(cx, cz, data)
 
     def delete_chunk(self, cx: int, cz: int) -> None:
         for layer in self.__layers.values():
