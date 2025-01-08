@@ -10,7 +10,7 @@ namespace py = pybind11;
 
 py::module init_level_abc_level(py::module m_parent)
 {
-    auto m = pybind11_extensions::def_subpackage(m_parent, "level");
+    auto m = m_parent.def_submodule("level");
 
     py::class_<Amulet::LevelMetadata, std::shared_ptr<Amulet::LevelMetadata>> LevelMetadata(m, "LevelMetadata");
     LevelMetadata.def(
