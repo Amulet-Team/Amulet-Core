@@ -9,7 +9,7 @@ namespace py = pybind11;
 
 py::module init_chunk_handle(py::module m_parent)
 {
-    auto m = pybind11_extensions::def_subpackage(m_parent, "chunk_handle");
+    auto m = m_parent.def_submodule("chunk_handle");
 
     py::class_<Amulet::ChunkHandle, std::shared_ptr<Amulet::ChunkHandle>> ChunkHandle(m, "ChunkHandle");
     ChunkHandle.def_property_readonly("dimension_id", &Amulet::ChunkHandle::dimension_id);

@@ -9,7 +9,7 @@ namespace py = pybind11;
 
 py::module init_dimension(py::module m_parent)
 {
-    auto m = pybind11_extensions::def_subpackage(m_parent, "dimension");
+    auto m = m_parent.def_submodule("dimension");
 
     py::class_<Amulet::Dimension, std::shared_ptr<Amulet::Dimension>> Dimension(m, "Dimension");
     Dimension.def_property_readonly("dimension_id", &Amulet::Dimension::dimension_id);
