@@ -3,7 +3,13 @@ from __future__ import annotations
 import amulet.level.abc.dimension
 import amulet.version
 
-__all__ = ["Level", "LevelMetadata"]
+__all__ = ["CompactibleLevel", "DiskLevel", "Level", "LevelMetadata", "ReloadableLevel"]
+
+class CompactibleLevel:
+    def compact(self) -> None: ...
+
+class DiskLevel:
+    def path(self) -> str: ...
 
 class Level(LevelMetadata):
     def close(self) -> None:
@@ -74,3 +80,6 @@ class LevelMetadata:
         """
         The dimensions of a sub-chunk.
         """
+
+class ReloadableLevel:
+    def reload(self) -> None: ...

@@ -83,5 +83,14 @@ py::module init_level_abc_level(py::module m_parent)
         &Amulet::Level::get_dimension,
         py::arg("dimension_id"));
 
+    py::class_<Amulet::CompactibleLevel, std::shared_ptr<Amulet::CompactibleLevel>> CompactibleLevel(m, "CompactibleLevel");
+    CompactibleLevel.def("compact", &Amulet::CompactibleLevel::compact);
+
+    py::class_<Amulet::DiskLevel, std::shared_ptr<Amulet::DiskLevel>> DiskLevel(m, "DiskLevel");
+    DiskLevel.def("path", [](Amulet::DiskLevel& self) { return self.path().string(); });
+
+    py::class_<Amulet::ReloadableLevel, std::shared_ptr<Amulet::ReloadableLevel>> ReloadableLevel(m, "ReloadableLevel");
+    ReloadableLevel.def("reload", &Amulet::ReloadableLevel::reload);
+
     return m;
 }
