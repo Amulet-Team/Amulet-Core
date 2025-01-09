@@ -102,6 +102,9 @@ namespace Amulet {
 
 	
 	class ChunkDoesNotExist : public std::runtime_error {
+        public:
 		using std::runtime_error::runtime_error;
+            ChunkDoesNotExist()
+                : ChunkDoesNotExist("ChunkDoesNotExist"){}
 	};
 }
