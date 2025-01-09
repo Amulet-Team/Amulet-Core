@@ -47,7 +47,7 @@ static const std::uint64_t MaxRegionSize = SectorSize * 255; // The maximum size
 static const std::regex region_regex(R"(r\.(\-?\d+)\.(\-?\d+)\.mca)");
 
 std::mutex region_file_cache_mutex;
-static LRICache<size_t, std::shared_ptr<AnvilRegion::FileCloser>> region_file_cache(16);
+static LRICache<size_t, std::shared_ptr<AnvilRegion::FileCloser>> region_file_cache(64);
 
 AMULET_CORE_DLLX std::pair<std::int64_t, std::int64_t> parse_region_filename(const std::string& filename)
 {
