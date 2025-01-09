@@ -11,7 +11,6 @@ void init_java_anvil(py::module m_parent)
     auto m = pybind11_extensions::def_subpackage(m_parent, "anvil");
 
     py::class_<Amulet::AnvilRegion, std::shared_ptr<Amulet::AnvilRegion>> AnvilRegion(m, "AnvilRegion");
-    py::class_<Amulet::AnvilRegion::FileCloser, std::shared_ptr<Amulet::AnvilRegion::FileCloser>> FileCloser(AnvilRegion, "FileCloser");
     AnvilRegion.def(
         py::init(
             [](std::string directory, std::string file_name, std::int64_t rx, std::int64_t rz, bool mcc) {
@@ -53,7 +52,6 @@ void init_java_anvil(py::module m_parent)
     AnvilRegion.def("compact", &Amulet::AnvilRegion::compact, py::call_guard<py::gil_scoped_release>());
     AnvilRegion.def("close", &Amulet::AnvilRegion::close, py::call_guard<py::gil_scoped_release>());
     AnvilRegion.def("destroy", &Amulet::AnvilRegion::destroy, py::call_guard<py::gil_scoped_release>());
-    AnvilRegion.def("get_file_closer", &Amulet::AnvilRegion::get_file_closer, py::call_guard<py::gil_scoped_release>());
 
     m.attr("AnvilDimension") = py::module::import("amulet.level.java.anvil._dimension").attr("AnvilDimension");
     m.attr("AnvilDimensionLayer") = py::module::import("amulet.level.java.anvil._dimension").attr("AnvilDimensionLayer");
