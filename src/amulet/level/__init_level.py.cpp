@@ -20,7 +20,7 @@ void init_level(py::module m_parent)
     // from .temporary_level import TemporaryLevel
 
     // Submodules
-    // auto java_module = init_java(m);
+    auto java_module = init_java(m);
     // m.attr("JavaLevel") = java_module.attr("JavaLevel");
 
     // m.attr("BedrockLevel") = py::module::import("amulet.level.bedrock").attr("BedrockLevel");
