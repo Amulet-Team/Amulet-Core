@@ -239,4 +239,13 @@ public:
     AMULET_CORE_DLLX std::shared_ptr<FileCloser> get_file_closer();
 };
 
+class RegionDoesNotExist : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+    RegionDoesNotExist()
+        : RegionDoesNotExist("RegionDoesNotExist")
+    {
+    }
+};
+
 } // namespace Amulet
