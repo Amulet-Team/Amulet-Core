@@ -16,6 +16,7 @@ void AnvilRegionCoordIterator::seek_to_valid()
                 continue;
             }
             coord = parse_region_filename(it->path().filename().string());
+            return;
         } catch (std::invalid_argument) {
             continue;
         }
@@ -37,7 +38,7 @@ AMULET_CORE_DLLX AnvilRegionCoordIterator::AnvilRegionCoordIterator(const std::f
     // Seek to first valid region
     seek_to_valid();
 }
-AMULET_CORE_DLLX std::pair<std::int64_t, std::int64_t> AnvilRegionCoordIterator::operator*() const
+AMULET_CORE_DLLX const std::pair<std::int64_t, std::int64_t>& AnvilRegionCoordIterator::operator*() const
 {
     return coord;
 }
@@ -52,24 +53,73 @@ AMULET_CORE_DLLX AnvilRegionCoordIterator AnvilRegionCoordIterator::operator++(i
     seek_to_next_valid();
     return rv;
 }
-AMULET_CORE_DLLX bool AnvilRegionCoordIterator::operator==(const AnvilRegionCoordIterator& other)
+AMULET_CORE_DLLX bool operator==(const AnvilRegionCoordIterator& lhs, const AnvilRegionCoordIterator& rhs)
 {
-    return it == other.it;
+    return lhs.it == rhs.it;
 }
 
 // AnvilChunkCoordIterator
-void AnvilChunkCoordIterator::seek_to_valid();
-void AnvilChunkCoordIterator::seek_to_next_valid();
+void AnvilChunkCoordIterator::seek_to_valid()
+{
+    auto layer = _layer.lock();
+    if (!layer) {
+        throw std::runtime_error("layer attached to AnvilChunkCoordIterator has been destroyed.");
+    }
+    for (; _region_it != AnvilRegionCoordIterator(); _region_it++) {
+        const auto& [rx, rz] = *_region_it;
+        std::shared_ptr<AnvilRegion> region;
+        try {
+            region = layer->get_region(rx, rz);
+        } catch (RegionDoesNotExist) {
+            continue;
+        }
+        _coords = region->get_coords();
+        _coord_it = _coords.begin();
+        if (!_coords.empty()) {
+            return;
+        }
+    }
+}
+void AnvilChunkCoordIterator::seek_to_next_valid()
+{
+    if (_coord_it != _coords.end()) {
+        _coord_it++;
+    }
+    if (_coord_it == _coords.end()) {
+        seek_to_valid();
+    }
+}
 AMULET_CORE_DLLX AnvilChunkCoordIterator::AnvilChunkCoordIterator() { }
-AMULET_CORE_DLLX AnvilChunkCoordIterator::AnvilChunkCoordIterator(const std::filesystem::path&);
-AMULET_CORE_DLLX std::pair<std::int64_t, std::int64_t> AnvilChunkCoordIterator::operator*() const;
-AMULET_CORE_DLLX AnvilChunkCoordIterator& AnvilChunkCoordIterator::operator++();
-AMULET_CORE_DLLX AnvilChunkCoordIterator AnvilChunkCoordIterator::operator++(int);
-AMULET_CORE_DLLX bool AnvilChunkCoordIterator::operator==(const AnvilChunkCoordIterator&);
+AMULET_CORE_DLLX AnvilChunkCoordIterator::AnvilChunkCoordIterator(std::shared_ptr<class AnvilDimensionLayer> layer)
+    : _layer(layer)
+    , _region_it(layer->all_region_coords())
+    , _coord_it(_coords.end())
+{
+    seek_to_valid();
+}
+AMULET_CORE_DLLX std::pair<std::int64_t, std::int64_t> AnvilChunkCoordIterator::operator*() const
+{
+    return *_coord_it;
+}
+AMULET_CORE_DLLX AnvilChunkCoordIterator& AnvilChunkCoordIterator::operator++()
+{
+    seek_to_next_valid();
+    return *this;
+}
+AMULET_CORE_DLLX AnvilChunkCoordIterator AnvilChunkCoordIterator::operator++(int)
+{
+    auto rv = *this;
+    seek_to_next_valid();
+    return rv;
+}
+AMULET_CORE_DLLX bool operator==(const AnvilChunkCoordIterator& lhs, const AnvilChunkCoordIterator& rhs)
+{
+    return lhs._region_it == AnvilRegionCoordIterator() && rhs._region_it == AnvilRegionCoordIterator();
+}
 
 // AnvilDimensionLayer
 AMULET_CORE_DLLX AnvilDimensionLayer::AnvilDimensionLayer(
-    std::filesystem::path directory, bool mcc = false)
+    std::filesystem::path directory, bool mcc)
     : _directory(directory)
     , _mcc(mcc)
 {
@@ -88,7 +138,7 @@ bool AnvilDimensionLayer::has_region(
     return std::filesystem::is_regular_file(region_path(rx, rz));
 }
 std::shared_ptr<AnvilRegion> AnvilDimensionLayer::get_region(
-    std::int64_t rx, std::int64_t rz, bool create = false)
+    std::int64_t rx, std::int64_t rz, bool create)
 {
     // Lock parallel modifications
     std::lock_guard<std::mutex> guard(_mutex);
@@ -101,10 +151,10 @@ std::shared_ptr<AnvilRegion> AnvilDimensionLayer::get_region(
         return it->second;
     } else if (create or has_region(rx, rz)) {
         // Create the region class
-        auto emp = _regions.try_emplace(key, _directory, rx, rz, _mcc);
+        auto emp = _regions.emplace(key, std::make_shared<AnvilRegion>(_directory, rx, rz, _mcc));
         return emp.first->second;
     } else {
-        throw ChunkDoesNotExist();
+        throw RegionDoesNotExist();
     }
 }
 
@@ -112,20 +162,21 @@ AnvilRegionCoordIterator AnvilDimensionLayer::all_region_coords()
 {
     return AnvilRegionCoordIterator(_directory);
 }
-AMULET_CORE_DLLX AnvilChunkCoordIterator AnvilDimensionLayer::all_chunk_coords()
-{
-}
 AMULET_CORE_DLLX bool AnvilDimensionLayer::has_chunk(std::int64_t cx, std::int64_t cz)
 {
     try {
         return get_region(cx >> 5, cz >> 5)->has_value(cx, cz);
-    } catch (Amulet::ChunkDoesNotExist) {
+    } catch (RegionDoesNotExist) {
         return false;
     }
 }
 AMULET_CORE_DLLX AmuletNBT::NamedTag AnvilDimensionLayer::get_chunk_data(std::int64_t cx, std::int64_t cz)
 {
-    return get_region(cx >> 5, cz >> 5)->get_value(cx, cz);
+    try {
+        return get_region(cx >> 5, cz >> 5)->get_value(cx, cz);
+    } catch (RegionDoesNotExist) {
+        throw ChunkDoesNotExist("Chunk " + std::to_string(cx) + ", " + std::to_string(cz) + "does not exist.");
+    }
 }
 AMULET_CORE_DLLX void AnvilDimensionLayer::set_chunk_data(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag)
 {
@@ -135,7 +186,7 @@ AMULET_CORE_DLLX void AnvilDimensionLayer::delete_chunk(std::int64_t cx, std::in
 {
     try {
         get_region(cx >> 5, cz >> 5)->delete_value(cx, cz);
-    } catch (Amulet::ChunkDoesNotExist) {
+    } catch (RegionDoesNotExist) {
         return;
     }
 }
@@ -165,7 +216,7 @@ AMULET_CORE_DLLX std::shared_ptr<AnvilDimensionLayer> AnvilDimension::get_layer(
 
 AMULET_CORE_DLLX AnvilChunkCoordIterator AnvilDimension::all_chunk_coords() const
 {
-    return _default_layer->all_chunk_coords();
+    return AnvilChunkCoordIterator(_default_layer);
 }
 AMULET_CORE_DLLX bool AnvilDimension::has_chunk(std::int64_t cx, std::int64_t cz) const
 {
@@ -177,7 +228,7 @@ AMULET_CORE_DLLX std::map<std::string, AmuletNBT::NamedTag> AnvilDimension::get_
     std::map<std::string, AmuletNBT::NamedTag> chunk_data;
     for (const auto& [layer_name, layer] : _layers) {
         try {
-            chunk_data[layer_name] = layer->get_chunk_data(cx, cz);
+            chunk_data.emplace(layer_name, layer->get_chunk_data(cx, cz));
         } catch (ChunkDoesNotExist) {
         }
     }
@@ -226,5 +277,6 @@ AMULET_CORE_DLLX void AnvilDimension::compact()
     for (const auto& layer : _layers) {
         layer.second->compact();
     }
+}
 
 } // namespace Amulet
