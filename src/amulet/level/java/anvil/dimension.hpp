@@ -31,21 +31,23 @@ public:
 
     AMULET_CORE_DLLX AnvilRegionCoordIterator();
     AMULET_CORE_DLLX AnvilRegionCoordIterator(const std::filesystem::path&);
-    AMULET_CORE_DLLX std::pair<std::int64_t, std::int64_t> operator*() const;
+    AMULET_CORE_DLLX const std::pair<std::int64_t, std::int64_t>& operator*() const;
     AMULET_CORE_DLLX AnvilRegionCoordIterator& operator++();
     AMULET_CORE_DLLX AnvilRegionCoordIterator operator++(int);
-    AMULET_CORE_DLLX bool operator==(const AnvilRegionCoordIterator&);
+    friend AMULET_CORE_DLLX bool operator==(const AnvilRegionCoordIterator&, const AnvilRegionCoordIterator&);
 };
+
+AMULET_CORE_DLLX bool operator==(const AnvilRegionCoordIterator& , const AnvilRegionCoordIterator&);
 
 static_assert(std::input_iterator<AnvilRegionCoordIterator>);
 
 class AnvilChunkCoordIterator {
 private:
-    std::weak_ptr<class AnvilDimensionLayer> layer;
-    AnvilRegionCoordIterator region_it;
+    std::weak_ptr<class AnvilDimensionLayer> _layer;
+    AnvilRegionCoordIterator _region_it;
     using coordsT = std::vector<std::pair<std::int64_t, std::int64_t>>;
-    coordsT coords;
-    coordsT::iterator coord_it;
+    coordsT _coords;
+    coordsT::iterator _coord_it;
 
     void seek_to_valid();
     void seek_to_next_valid();
@@ -55,12 +57,14 @@ public:
     using value_type = std::pair<std::int64_t, std::int64_t>;
 
     AMULET_CORE_DLLX AnvilChunkCoordIterator();
-    AMULET_CORE_DLLX AnvilChunkCoordIterator(std::weak_ptr<class AnvilDimensionLayer>, const std::filesystem::path&);
+    AMULET_CORE_DLLX AnvilChunkCoordIterator(std::shared_ptr<class AnvilDimensionLayer>);
     AMULET_CORE_DLLX std::pair<std::int64_t, std::int64_t> operator*() const;
     AMULET_CORE_DLLX AnvilChunkCoordIterator& operator++();
     AMULET_CORE_DLLX AnvilChunkCoordIterator operator++(int);
-    AMULET_CORE_DLLX bool operator==(const AnvilChunkCoordIterator&);
+    friend AMULET_CORE_DLLX bool operator==(const AnvilChunkCoordIterator&, const AnvilChunkCoordIterator&);
 };
+
+AMULET_CORE_DLLX bool operator==(const AnvilChunkCoordIterator&, const AnvilChunkCoordIterator&);
 
 static_assert(std::input_iterator<AnvilChunkCoordIterator>);
 
@@ -87,7 +91,6 @@ public:
     std::shared_ptr<AnvilRegion> get_region(std::int64_t rx, std::int64_t rz, bool create = false);
 
     // Chunk
-    AMULET_CORE_DLLX AnvilChunkCoordIterator all_chunk_coords();
     // Check if the chunk has data in this layer.
     AMULET_CORE_DLLX bool has_chunk(std::int64_t cx, std::int64_t cz);
     // Get the chunk data for this layer.
@@ -113,7 +116,7 @@ private:
 
 public:
     template <TypedInputRange<std::string> layersT>
-    AnvilDimension(std::filesystem::path directory, bool mcc = false, layersT layer_names)
+    AnvilDimension(std::filesystem::path directory, layersT layer_names, bool mcc = false)
         : _directory(directory)
         , _mcc(mcc)
     {
