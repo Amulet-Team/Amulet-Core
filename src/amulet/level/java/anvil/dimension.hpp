@@ -120,7 +120,7 @@ public:
         : _directory(directory)
         , _mcc(mcc)
     {
-        if (layer_names.empty()) {
+        if (layer_names.begin() == layer_names.end()) {
             throw std::invalid_argument("layer_names must contain at least one name.");
         }
         for (const auto& layer_name : layer_names) {
