@@ -7,6 +7,7 @@
 namespace py = pybind11;
 
 void init_anvil_region(py::module);
+void init_anvil_dimension(py::module);
 
 void init_java_anvil(py::module m_parent)
 {
@@ -15,7 +16,5 @@ void init_java_anvil(py::module m_parent)
     init_anvil_region(m);
     init_anvil_dimension(m);
 
-    m.attr("AnvilDimension") = py::module::import("amulet.level.java.anvil._dimension").attr("AnvilDimension");
-    m.attr("AnvilDimensionLayer") = py::module::import("amulet.level.java.anvil._dimension").attr("AnvilDimensionLayer");
     m.attr("RawChunkType") = py::module::import("amulet.level.java.anvil._dimension").attr("RawChunkType");
 }
