@@ -86,9 +86,9 @@ public:
     // An iterator of all region coordinates in this layer.
     AMULET_CORE_DLLX AnvilRegionCoordIterator all_region_coords();
     // Check if a region file exists in this layer.
-    bool has_region(std::int64_t rx, std::int64_t rz) const;
+    AMULET_CORE_DLLX bool has_region(std::int64_t rx, std::int64_t rz) const;
     // Get an AnvilRegion instance. This must not be stored long-term.
-    std::shared_ptr<AnvilRegion> get_region(std::int64_t rx, std::int64_t rz, bool create = false);
+    AMULET_CORE_DLLX std::shared_ptr<AnvilRegion> get_region(std::int64_t rx, std::int64_t rz, bool create = false);
 
     // Chunk
     // Check if the chunk has data in this layer.
@@ -130,9 +130,9 @@ public:
     }
 
     // Check if this dimension has the requested layer.
-    AMULET_CORE_DLLX bool has_layer(const std::string& name);
+    AMULET_CORE_DLLX bool has_layer(const std::string& layer_name);
     // Get the AnvilDimensionLayer for a specific layer. The returned value must not be stored long-term.
-    AMULET_CORE_DLLX std::shared_ptr<AnvilDimensionLayer> get_layer(const std::string& name);
+    AMULET_CORE_DLLX std::shared_ptr<AnvilDimensionLayer> get_layer(const std::string& layer_name);
 
     // Get an iterator for all the chunks that exist.
     AMULET_CORE_DLLX AnvilChunkCoordIterator all_chunk_coords() const;
