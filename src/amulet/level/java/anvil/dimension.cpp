@@ -132,12 +132,12 @@ std::filesystem::path AnvilDimensionLayer::region_path(
 {
     return _directory / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mca");
 }
-bool AnvilDimensionLayer::has_region(
+AMULET_CORE_DLLX bool AnvilDimensionLayer::has_region(
     std::int64_t rx, std::int64_t rz) const
 {
     return std::filesystem::is_regular_file(region_path(rx, rz));
 }
-std::shared_ptr<AnvilRegion> AnvilDimensionLayer::get_region(
+AMULET_CORE_DLLX std::shared_ptr<AnvilRegion> AnvilDimensionLayer::get_region(
     std::int64_t rx, std::int64_t rz, bool create)
 {
     // Lock parallel modifications
@@ -199,17 +199,17 @@ AMULET_CORE_DLLX void AnvilDimensionLayer::compact()
     }
 }
 
-AMULET_CORE_DLLX bool AnvilDimension::has_layer(const std::string& name)
+AMULET_CORE_DLLX bool AnvilDimension::has_layer(const std::string& layer_name)
 {
     std::shared_lock lock(_mutex);
-    return _layers.contains(name);
+    return _layers.contains(layer_name);
 }
-AMULET_CORE_DLLX std::shared_ptr<AnvilDimensionLayer> AnvilDimension::get_layer(const std::string& name)
+AMULET_CORE_DLLX std::shared_ptr<AnvilDimensionLayer> AnvilDimension::get_layer(const std::string& layer_name)
 {
     std::shared_lock lock(_mutex);
-    auto it = _layers.find(name);
+    auto it = _layers.find(layer_name);
     if (it == _layers.end()) {
-        throw std::invalid_argument("No layer exists with name " + name);
+        throw std::invalid_argument("No layer exists with name " + layer_name);
     }
     return it->second;
 }
