@@ -1,8 +1,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include <pybind11_extensions/py_module.hpp>
-
 #include "region.hpp"
 namespace py = pybind11;
 
