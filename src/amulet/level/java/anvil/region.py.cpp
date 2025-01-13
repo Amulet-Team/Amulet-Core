@@ -4,8 +4,10 @@
 #include "region.hpp"
 namespace py = pybind11;
 
-void init_anvil_region(py::module m)
+py::module init_anvil_region(py::module m_parent)
 {
+    py::module m = m_parent.def_submodule("region");
+
     py::class_<Amulet::AnvilRegion, std::shared_ptr<Amulet::AnvilRegion>> AnvilRegion(m, "AnvilRegion");
     py::class_<Amulet::AnvilRegion::FileCloser, std::shared_ptr<Amulet::AnvilRegion::FileCloser>> FileCloser(AnvilRegion, "FileCloser");
     AnvilRegion.def(
@@ -50,4 +52,6 @@ void init_anvil_region(py::module m)
     AnvilRegion.def("close", &Amulet::AnvilRegion::close, py::call_guard<py::gil_scoped_release>());
     AnvilRegion.def("destroy", &Amulet::AnvilRegion::destroy, py::call_guard<py::gil_scoped_release>());
     AnvilRegion.def("get_file_closer", &Amulet::AnvilRegion::get_file_closer, py::call_guard<py::gil_scoped_release>());
+
+    return m;
 }
