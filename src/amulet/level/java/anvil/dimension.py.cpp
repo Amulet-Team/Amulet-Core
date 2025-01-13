@@ -6,8 +6,10 @@
 #include "dimension.hpp"
 namespace py = pybind11;
 
-void init_anvil_dimension(py::module m)
+py::module init_anvil_dimension(py::module m_parent)
 {
+    py::module m = m_parent.def_submodule("dimension");
+
     py::class_<Amulet::AnvilDimensionLayer, std::shared_ptr<Amulet::AnvilDimensionLayer>> AnvilDimensionLayer(m, "AnvilDimensionLayer");
     AnvilDimensionLayer.def(
         py::init(
@@ -112,4 +114,6 @@ void init_anvil_dimension(py::module m)
     auto str = py::module::import("builtins").attr("str");
     auto NamedTag = py::module::import("amulet_nbt").attr("NamedTag");
     m.attr("RawChunkType") = dict.attr("__class_getitem__")(py::make_tuple(str, NamedTag));
+
+    return m;
 }

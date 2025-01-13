@@ -6,15 +6,18 @@
 #include "region.hpp"
 namespace py = pybind11;
 
-void init_anvil_region(py::module);
-void init_anvil_dimension(py::module);
+py::module init_anvil_region(py::module);
+py::module init_anvil_dimension(py::module);
 
 void init_java_anvil(py::module m_parent)
 {
     auto m = pybind11_extensions::def_subpackage(m_parent, "anvil");
 
-    init_anvil_region(m);
-    init_anvil_dimension(m);
+    auto region = init_anvil_region(m);
+    auto dimension = init_anvil_dimension(m);
 
-    m.attr("RawChunkType") = py::module::import("amulet.level.java.anvil._dimension").attr("RawChunkType");
+    m.attr("AnvilRegion") = region.attr("AnvilRegion");
+    m.attr("AnvilDimensionLayer") = dimension.attr("AnvilDimensionLayer");
+    m.attr("AnvilDimension") = dimension.attr("AnvilDimension");
+    m.attr("RawChunkType") = dimension.attr("RawChunkType");
 }
