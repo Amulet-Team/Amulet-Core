@@ -141,7 +141,7 @@ public:
     // Get the AnvilDimensionLayer for a specific layer. The returned value must not be stored long-term.
     AMULET_CORE_DLLX std::shared_ptr<AnvilDimensionLayer> get_layer(const std::string& layer_name);
 
-    // Get an iterator for all the chunks that exist.
+    // Get an iterator for all the chunks that exist in this dimension.
     AMULET_CORE_DLLX AnvilChunkCoordIterator all_chunk_coords() const;
     // Check if a chunk exists.
     AMULET_CORE_DLLX bool has_chunk(std::int64_t cx, std::int64_t cz) const;
