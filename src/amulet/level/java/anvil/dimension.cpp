@@ -237,35 +237,6 @@ AMULET_CORE_DLLX std::map<std::string, AmuletNBT::NamedTag> AnvilDimension::get_
     }
     return chunk_data;
 }
-AMULET_CORE_DLLX void AnvilDimension::set_chunk_data(std::int64_t cx, std::int64_t cz, const std::map<std::string, std::optional<AmuletNBT::NamedTag>>& data_layers)
-{
-    std::shared_lock slock(_mutex);
-    for (const auto& [layer_name, data] : data_layers) {
-        auto it = _layers.find(layer_name);
-        if (it == _layers.end()) {
-            // Layer does not currently exist.
-            if (!data) {
-                // If it was going to be deleted then do nothing.
-                continue;
-            }
-            if (std::all_of(layer_name.begin(), layer_name.end(), [](char c) { return 0x61 <= c && c <= 0x7A; })) {
-                // Switch to a unique lock to mutate _layers
-                slock.unlock();
-                std::unique_lock ulock(_mutex);
-                // Create the layer.
-                it = _layers.emplace(layer_name, std::make_shared<AnvilDimensionLayer>(_directory / layer_name, _mcc)).first;
-                // Switch back to a shared lock
-                ulock.unlock();
-                slock.lock();
-            }
-        }
-        if (data) {
-            it->second->set_chunk_data(cx, cz, *data);
-        } else {
-            it->second->delete_chunk(cx, cz);
-        }
-    }
-}
 AMULET_CORE_DLLX void AnvilDimension::delete_chunk(std::int64_t cx, std::int64_t cz)
 {
     for (const auto& layer : _layers) {
