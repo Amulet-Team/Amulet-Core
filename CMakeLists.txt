@@ -28,6 +28,7 @@ FetchContent_Declare(
   GIT_TAG        51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf
 )
 FetchContent_MakeAvailable(zlib)
+set(ZLIB_ROOT ${zlib_SOURCE_DIR})
 set(ZLIB_USE_STATIC_LIBS ON)
 set(ZLIB_LIBRARY ${INSTALL_LIB_DIR})
 find_package(ZLIB REQUIRED)
