@@ -8,6 +8,7 @@
 #include <ranges>
 #include <shared_mutex>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 #include <amulet_nbt/tag/named_tag.hpp>
@@ -16,6 +17,12 @@
 #include <amulet/dll.hpp>
 
 namespace Amulet {
+
+template <bool condition, typename... values>
+struct Ensure {
+    static_assert(condition);
+    static bool const value = condition;
+};
 
 class AnvilRegionCoordIterator {
 private:
@@ -37,7 +44,7 @@ public:
     friend AMULET_CORE_DLLX bool operator==(const AnvilRegionCoordIterator&, const AnvilRegionCoordIterator&);
 };
 
-AMULET_CORE_DLLX bool operator==(const AnvilRegionCoordIterator& , const AnvilRegionCoordIterator&);
+AMULET_CORE_DLLX bool operator==(const AnvilRegionCoordIterator&, const AnvilRegionCoordIterator&);
 
 static_assert(std::input_iterator<AnvilRegionCoordIterator>);
 
@@ -140,8 +147,53 @@ public:
     AMULET_CORE_DLLX bool has_chunk(std::int64_t cx, std::int64_t cz) const;
     // Get the data for a chunk
     AMULET_CORE_DLLX std::map<std::string, AmuletNBT::NamedTag> get_chunk_data(std::int64_t cx, std::int64_t cz);
-    // Set the data for a chunk. If the value is nullopt it will be deleted.
-    AMULET_CORE_DLLX void set_chunk_data(std::int64_t cx, std::int64_t cz, const std::map<std::string, std::optional<AmuletNBT::NamedTag>>&);
+    // Set the data for a chunk.
+    // data_layers can be any object supporting std::ranges::input_range of [std::string, AmuletNBT::NamedTag || std::optional<AmuletNBT::NamedTag>]
+    // If the second value is a nullopt optional, the value will be deleted.
+    template <typename dataT>
+    void set_chunk_data(std::int64_t cx, std::int64_t cz, const dataT& data_layers)
+    {
+        std::shared_lock slock(_mutex);
+        for (const auto& [layer_name, data] : data_layers) {
+            static_assert(Ensure<
+                std::is_same_v<decltype(layer_name), const std::string>,
+                decltype(layer_name),
+                const std::string>::value);
+            static_assert(Ensure < std::is_same_v<decltype(data), const AmuletNBT::NamedTag> || std::is_same_v<decltype(data), const std::optional<AmuletNBT::NamedTag>>,
+                decltype(layer_name),
+                const AmuletNBT::NamedTag,
+                const std::optional < AmuletNBT::NamedTag >> ::value);
+            auto it = _layers.find(layer_name);
+            if (it == _layers.end()) {
+                // Layer does not currently exist.
+                if constexpr (std::is_same_v<decltype(data), const std::optional<AmuletNBT::NamedTag>>) {
+                    if (!data) {
+                        // If it was going to be deleted then do nothing.
+                        continue;
+                    }
+                }
+                if (std::all_of(layer_name.begin(), layer_name.end(), [](char c) { return 0x61 <= c && c <= 0x7A; })) {
+                    // Switch to a unique lock to mutate _layers
+                    slock.unlock();
+                    std::unique_lock ulock(_mutex);
+                    // Create the layer.
+                    it = _layers.emplace(layer_name, std::make_shared<AnvilDimensionLayer>(_directory / layer_name, _mcc)).first;
+                    // Switch back to a shared lock
+                    ulock.unlock();
+                    slock.lock();
+                }
+            }
+            if constexpr (std::is_same_v<decltype(data), const std::optional<AmuletNBT::NamedTag>>) {
+                if (data) {
+                    it->second->set_chunk_data(cx, cz, *data);
+                } else {
+                    it->second->delete_chunk(cx, cz);
+                }
+            } else {
+                it->second->set_chunk_data(cx, cz, data);
+            }
+        }
+    }
     // Delete all data for the given chunk.
     AMULET_CORE_DLLX void delete_chunk(std::int64_t cx, std::int64_t cz);
     // Defragment the region files and remove unused region files.
