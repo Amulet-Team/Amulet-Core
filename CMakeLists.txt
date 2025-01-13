@@ -18,6 +18,10 @@ else()
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
 
+if (MSVC)
+    add_definitions("/MP")
+endif()
+
 include(FetchContent)
 
 # Add zlib
