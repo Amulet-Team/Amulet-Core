@@ -18,18 +18,31 @@ else()
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
 
+include(FetchContent)
+
 # Add zlib
 set(ZLIB_BUILD_EXAMPLES OFF)
-add_subdirectory(submodules/zlib)
-set(ZLIB_ROOT submodules/zlib)
+FetchContent_Declare(
+  zlib
+  GIT_REPOSITORY https://github.com/madler/zlib.git
+  GIT_TAG        51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf
+)
+FetchContent_MakeAvailable(zlib)
+set(ZLIB_ROOT ${zlib_SOURCE_DIR})
 set(ZLIB_USE_STATIC_LIBS ON)
 set(ZLIB_LIBRARY ${INSTALL_LIB_DIR})
 find_package(ZLIB REQUIRED)
 target_compile_definitions(zlibstatic PUBLIC ZLIB_CONST)
 
 # Add lz4
+FetchContent_Declare(
+  lz4
+  GIT_REPOSITORY https://github.com/lz4/lz4.git
+  GIT_TAG        ebb370ca83af193212df4dcbadcc5d87bc0de2f0
+)
+FetchContent_MakeAvailable(lz4)
 set(LZ4_BUILD_CLI OFF)
-add_subdirectory(submodules/lz4/build/cmake)
+add_subdirectory(${lz4_SOURCE_DIR}/build/cmake)
 
 # Add pybind11
 find_package(pybind11 CONFIG REQUIRED)
