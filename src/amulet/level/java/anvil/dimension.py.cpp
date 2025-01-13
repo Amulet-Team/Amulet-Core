@@ -16,7 +16,13 @@ void init_anvil_dimension(py::module m)
             }),
         py::arg("directory"),
         py::arg("mcc") = false);
-    // AnvilDimensionLayer.def("all_region_coords", &Amulet::AnvilDimensionLayer::all_region_coords);
+    AnvilDimensionLayer.def(
+        "all_region_coords",
+        [](Amulet::AnvilDimensionLayer& self) {
+            return py::make_iterator(
+                self.all_region_coords(),
+                Amulet::AnvilRegionCoordIterator());
+        });
     AnvilDimensionLayer.def(
         "has_region",
         &Amulet::AnvilDimensionLayer::has_region,
@@ -72,7 +78,11 @@ void init_anvil_dimension(py::module m)
         py::arg("layer_name"));
     AnvilDimension.def(
         "all_chunk_coords",
-        &Amulet::AnvilDimension::all_chunk_coords);
+        [](Amulet::AnvilDimension& self) {
+            return py::make_iterator(
+                self.all_chunk_coords(),
+                Amulet::AnvilChunkCoordIterator());
+        });
     AnvilDimension.def(
         "has_chunk",
         &Amulet::AnvilDimension::has_chunk,
@@ -85,11 +95,10 @@ void init_anvil_dimension(py::module m)
         py::arg("cz"));
     AnvilDimension.def(
         "set_chunk_data",
-        &Amulet::AnvilDimension::set_chunk_data,
+        &Amulet::AnvilDimension::set_chunk_data<pybind11_extensions::Iterable<std::pair<std::string, AmuletNBT::NamedTag>>>,
         py::arg("cx"),
         py::arg("cz"),
-        py::arg("data_layers")
-        );
+        py::arg("data_layers"));
     AnvilDimension.def(
         "delete_chunk",
         &Amulet::AnvilDimension::delete_chunk,
@@ -98,4 +107,9 @@ void init_anvil_dimension(py::module m)
     AnvilDimension.def(
         "compact",
         &Amulet::AnvilDimension::compact);
+
+    auto dict = py::module::import("builtins").attr("dict");
+    auto str = py::module::import("builtins").attr("str");
+    auto NamedTag = py::module::import("amulet_nbt").attr("NamedTag");
+    m.attr("RawChunkType") = dict.attr("__class_getitem__")(py::make_tuple(str, NamedTag));
 }
