@@ -140,6 +140,8 @@ public:
         _default_layer = _layers[*layer_names.begin()];
     }
 
+    // Get the layers defined in this dimension.
+    AMULET_CORE_DLLX std::vector<std::string> layer_names();
     // Check if this dimension has the requested layer.
     AMULET_CORE_DLLX bool has_layer(const std::string& layer_name);
     // Get the AnvilDimensionLayer for a specific layer. The returned value must not be stored long-term.

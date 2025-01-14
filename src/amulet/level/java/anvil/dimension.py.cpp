@@ -102,6 +102,10 @@ py::module init_anvil_dimension(py::module m_parent)
         py::arg("layer_names"),
         py::arg("mcc") = false);
     AnvilDimension.def(
+        "layer_names",
+        &Amulet::AnvilDimension::layer_names,
+        py::doc("Get the names of all layers in this dimension."));
+    AnvilDimension.def(
         "has_layer",
         &Amulet::AnvilDimension::has_layer,
         py::arg("layer_name"),
