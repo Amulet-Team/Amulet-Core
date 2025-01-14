@@ -3,8 +3,9 @@ import unittest
 from amulet.errors import PlayerDoesNotExist
 from amulet.player import Player
 from amulet import load_level
-from data.util import create_temp_world, clean_temp_world
-from data import worlds_src
+
+from tests.data.world_utils import create_temp_world, clean_temp_world
+from tests.data import worlds_src
 
 
 class WorldTestBaseCases:

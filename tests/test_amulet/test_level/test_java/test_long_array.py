@@ -4,7 +4,8 @@ import numpy
 import sys
 
 from amulet.level.java.long_array import decode_long_array, encode_long_array
-from data.util import get_data_path
+
+from tests.data.utils import get_data_path
 
 
 class LongArrayTestCase(unittest.TestCase):
