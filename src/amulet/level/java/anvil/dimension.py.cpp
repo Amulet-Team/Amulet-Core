@@ -74,8 +74,7 @@ py::module init_anvil_dimension(py::module m_parent)
 
     py::class_<Amulet::AnvilDimension, std::shared_ptr<Amulet::AnvilDimension>> AnvilDimension(m, "AnvilDimension",
         "A class to manage the data for a dimension.\n"
-        "This can consist of multiple layers. Eg the region layer which contains chunk data and the entities layer which contains entities."
-    );
+        "This can consist of multiple layers. Eg the region layer which contains chunk data and the entities layer which contains entities.");
     AnvilDimension.def(
         py::init(
             [](std::string directory, pybind11_extensions::Iterable<std::string> layer_names, bool mcc) {
