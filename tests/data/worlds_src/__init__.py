@@ -7,8 +7,8 @@ JavaVanillaLevels: list[str] = []
 JavaForgeLevels: list[str] = []
 
 
-java_vanilla_1_12_2 = "java/vanilla/1_12_2"
-java_vanilla_1_13 = "java/vanilla/1_13"
+java_vanilla_1_12_2 = os.path.join("java", "vanilla", "1_12_2")
+java_vanilla_1_13 = os.path.join("java", "vanilla", "1_13")
 
 
 def __find_levels():
