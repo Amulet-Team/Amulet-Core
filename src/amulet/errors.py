@@ -1,6 +1,7 @@
 # TODO: move all references to chunk
 from .chunk import ChunkLoadError, ChunkDoesNotExist
 
+
 class DimensionDoesNotExist(Exception):
     """An error thrown if trying to load data from a dimension that does not exist."""
 
