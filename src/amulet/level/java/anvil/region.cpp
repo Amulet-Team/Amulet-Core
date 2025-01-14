@@ -109,6 +109,11 @@ AMULET_CORE_DLLX AnvilRegion::AnvilRegion(std::filesystem::path path, bool mcc)
 {
 }
 
+AMULET_CORE_DLLX AnvilRegion::~AnvilRegion()
+{
+    close();
+}
+
 // The path of the region file. Thread safe.
 AMULET_CORE_DLLX std::filesystem::path AnvilRegion::path() const { return _path; }
 

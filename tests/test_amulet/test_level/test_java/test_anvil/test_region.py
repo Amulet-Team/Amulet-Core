@@ -137,6 +137,13 @@ class AnvilRegionTestCase(unittest.TestCase):
                 ):
                     executor.submit(compact, region_file_path)
 
+    def test_del(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            region = AnvilRegion(tmpdir, 0, 0)
+            value = NamedTag(CompoundTag(test=StringTag("test")), "test")
+            region.set_value(0, 0, value)
+            del region
+
 
 if __name__ == "__main__":
     unittest.main()
