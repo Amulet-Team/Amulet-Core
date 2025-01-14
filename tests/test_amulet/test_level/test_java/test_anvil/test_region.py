@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from amulet_nbt import NamedTag, CompoundTag, StringTag, ListTag
 
+from amulet.chunk import ChunkDoesNotExist
 from amulet.level.java.anvil import AnvilRegion
 import tests.data.worlds_src
 import tests.data.region
@@ -136,6 +137,35 @@ class AnvilRegionTestCase(unittest.TestCase):
                     recursive=True,
                 ):
                     executor.submit(compact, region_file_path)
+
+    def test_exceptions(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            region = AnvilRegion(tmpdir, 0, 0)
+
+            with self.assertRaises(ChunkDoesNotExist):
+                region.get_value(0, 0)
+
+            with self.assertRaises(ValueError):
+                region.has_value(-1, -1)
+            with self.assertRaises(ValueError):
+                region.has_value(32, 0)
+            with self.assertRaises(ChunkDoesNotExist):
+                region.get_value(0, 0)
+
+            value = NamedTag(CompoundTag(test=StringTag("test")), "test")
+            with self.assertRaises(ValueError):
+                region.set_value(-1, -1, value)
+            with self.assertRaises(ValueError):
+                region.set_value(32, 0, value)
+            with self.assertRaises(ValueError):
+                region.set_value(0, 32, value)
+
+            with self.assertRaises(ValueError):
+                region.delete_value(-1, -1)
+            with self.assertRaises(ValueError):
+                region.delete_value(32, 0)
+            with self.assertRaises(ValueError):
+                region.delete_value(0, 32)
 
     def test_del(self) -> None:
         with TemporaryDirectory() as tmpdir:

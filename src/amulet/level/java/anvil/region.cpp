@@ -618,6 +618,7 @@ AMULET_CORE_DLLX void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, c
 // Thread safe.
 AMULET_CORE_DLLX void AnvilRegion::delete_value(std::int64_t cx, std::int64_t cz)
 {
+    validate_coord(cx, cz);
     std::lock_guard lock(_shared->mutex);
     if (!std::filesystem::is_regular_file(_path)) {
         // Do nothing if there is no file.
