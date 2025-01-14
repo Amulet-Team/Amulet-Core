@@ -4,7 +4,7 @@ import typing
 
 import amulet_nbt
 
-__all__ = ["AnvilRegion"]
+__all__ = ["AnvilRegion", "RegionDoesNotExist"]
 
 class AnvilRegion:
     class FileCloser:
@@ -35,3 +35,6 @@ class AnvilRegion:
     def rx(self) -> int: ...
     @property
     def rz(self) -> int: ...
+
+class RegionDoesNotExist(RuntimeError):
+    pass

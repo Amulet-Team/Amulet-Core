@@ -3,7 +3,7 @@ from __future__ import annotations
 import typing
 
 from amulet.level.java.anvil.dimension import AnvilDimension, AnvilDimensionLayer
-from amulet.level.java.anvil.region import AnvilRegion
+from amulet.level.java.anvil.region import AnvilRegion, RegionDoesNotExist
 
 from . import dimension, region
 
@@ -12,6 +12,7 @@ __all__ = [
     "AnvilDimensionLayer",
     "AnvilRegion",
     "RawChunkType",
+    "RegionDoesNotExist",
     "dimension",
     "region",
 ]

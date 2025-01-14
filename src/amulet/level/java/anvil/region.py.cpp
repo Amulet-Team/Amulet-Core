@@ -53,5 +53,7 @@ py::module init_anvil_region(py::module m_parent)
     AnvilRegion.def("destroy", &Amulet::AnvilRegion::destroy, py::call_guard<py::gil_scoped_release>());
     AnvilRegion.def("get_file_closer", &Amulet::AnvilRegion::get_file_closer, py::call_guard<py::gil_scoped_release>());
 
+    py::register_exception<Amulet::RegionDoesNotExist>(m, "RegionDoesNotExist", PyExc_RuntimeError);
+
     return m;
 }
