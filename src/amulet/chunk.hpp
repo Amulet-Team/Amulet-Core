@@ -100,11 +100,22 @@ namespace Amulet {
 		}
 	};
 
-	
-	class ChunkDoesNotExist : public std::runtime_error {
-        public:
+	class ChunkLoadError : public std::runtime_error {
+	public:
 		using std::runtime_error::runtime_error;
-            ChunkDoesNotExist()
-                : ChunkDoesNotExist("ChunkDoesNotExist"){}
+		ChunkLoadError()
+			: ChunkLoadError("ChunkLoadError")
+		{
+		}
 	};
-}
+
+	class ChunkDoesNotExist : public ChunkLoadError {
+	public:
+		using ChunkLoadError::ChunkLoadError;
+		ChunkDoesNotExist()
+			: ChunkDoesNotExist("ChunkDoesNotExist")
+		{
+		}
+	};
+
+} // namespace Amulet
