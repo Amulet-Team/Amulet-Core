@@ -91,7 +91,7 @@ void AnvilChunkCoordIterator::seek_to_next_valid()
 }
 AMULET_CORE_DLLX AnvilChunkCoordIterator::AnvilChunkCoordIterator() { }
 AMULET_CORE_DLLX AnvilChunkCoordIterator::AnvilChunkCoordIterator(std::shared_ptr<class AnvilDimensionLayer> layer)
-    : _layer(layer)
+    : _layer(std::move(layer))
     , _region_it(layer->all_region_coords())
     , _coord_it(_coords.end())
 {
