@@ -211,6 +211,16 @@ AMULET_CORE_DLLX void AnvilDimensionLayer::compact()
     }
 }
 
+AMULET_CORE_DLLX std::vector<std::string> AnvilDimension::layer_names()
+{
+    std::shared_lock lock(_mutex);
+    std::vector<std::string> layers;
+    layers.reserve(_layers.size());
+    for (const auto& node : _layers) {
+        layers.push_back(node.first);
+    }
+    return layers;
+}
 AMULET_CORE_DLLX bool AnvilDimension::has_layer(const std::string& layer_name)
 {
     std::shared_lock lock(_mutex);

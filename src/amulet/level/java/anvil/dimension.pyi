@@ -55,6 +55,11 @@ class AnvilDimension:
         Check if this dimension has the requested layer.
         """
 
+    def layer_names(self) -> list[str]:
+        """
+        Get the names of all layers in this dimension.
+        """
+
     def set_chunk_data(
         self,
         cx: int,
