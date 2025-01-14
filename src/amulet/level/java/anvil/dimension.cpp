@@ -61,11 +61,14 @@ AMULET_CORE_DLLX bool operator==(const AnvilRegionCoordIterator& lhs, const Anvi
 // AnvilChunkCoordIterator
 void AnvilChunkCoordIterator::seek_to_valid()
 {
-    auto layer = _layer.lock();
-    if (!layer) {
-        throw std::runtime_error("layer attached to AnvilChunkCoordIterator has been destroyed.");
-    }
+    std::shared_ptr<AnvilDimensionLayer> layer;
     for (; _region_it != AnvilRegionCoordIterator(); _region_it++) {
+        if (!layer) {
+            layer = _layer.lock();
+            if (!layer) {
+                throw std::runtime_error("layer attached to AnvilChunkCoordIterator has been destroyed.");
+            }
+        }
         const auto& [rx, rz] = *_region_it;
         std::shared_ptr<AnvilRegion> region;
         try {
@@ -86,6 +89,10 @@ void AnvilChunkCoordIterator::seek_to_next_valid()
         _coord_it++;
     }
     if (_coord_it == _coords.end()) {
+        if (_region_it == AnvilRegionCoordIterator()) {
+            return;
+        }
+        _region_it++;
         seek_to_valid();
     }
 }
