@@ -5,14 +5,14 @@ import shutil
 import glob
 from concurrent.futures import ThreadPoolExecutor
 
-from amulet_nbt import NamedTag, CompoundTag, StringTag, ListTag, ByteArrayTag
+from amulet_nbt import NamedTag, CompoundTag, StringTag, ListTag
 
 from amulet.level.java.anvil import AnvilRegion
 import tests.data.worlds_src
 import tests.data.region
 
 
-class JavaSectorManagerTestCase(unittest.TestCase):
+class AnvilRegionTestCase(unittest.TestCase):
     def test_methods(self) -> None:
         with TemporaryDirectory() as tmpdir:
             region = AnvilRegion(tmpdir, 0, 0)
