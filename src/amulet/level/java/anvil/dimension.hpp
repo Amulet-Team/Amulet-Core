@@ -86,6 +86,10 @@ private:
     std::map<std::pair<std::int64_t, std::int64_t>, std::shared_ptr<Amulet::AnvilRegion>> _regions;
 
 public:
+    // Accessors
+    AMULET_CORE_DLLX const std::filesystem::path& directory() const;
+    AMULET_CORE_DLLX bool mcc() const;
+
     AMULET_CORE_DLLX AnvilDimensionLayer(std::filesystem::path directory, bool mcc = false);
     // Region
     // Get the path to the region file
