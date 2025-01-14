@@ -167,6 +167,9 @@ public:
     AMULET_CORE_DLLX AnvilRegion(const std::filesystem::path& directory, std::int64_t rx, std::int64_t rz, bool mcc = false);
     AMULET_CORE_DLLX AnvilRegion(std::filesystem::path path, bool mcc = false);
 
+    // Destructor
+    AMULET_CORE_DLLX ~AnvilRegion();
+
     // Assignment operators
     AnvilRegion& operator=(const AnvilRegion&) = delete;
     AnvilRegion& operator=(AnvilRegion&&) = delete;
