@@ -112,5 +112,83 @@ class AnvilDimensionLayerTestCase(unittest.TestCase):
             del layer
 
 
+class AnvilDimensionTestCase(unittest.TestCase):
+    def test_methods(self) -> None:
+        with WorldTemp(java_vanilla_1_13) as world:
+            dimension = AnvilDimension(world.temp_path, ["region"])
+
+            # Properties
+            self.assertEqual(world.temp_path, dimension.directory)
+            self.assertFalse(dimension.mcc)
+            self.assertEqual(["region"], dimension.layer_names)
+
+            # Layers
+            self.assertTrue(dimension.has_layer("region"))
+            self.assertFalse(dimension.has_layer("other"))
+            region_layer = dimension.get_layer("region")
+            self.assertIsInstance(region_layer, AnvilDimensionLayer)
+            with self.assertRaises(ValueError):
+                dimension.get_layer("other")
+            self.assertEqual(os.path.join(world.temp_path, "region"), region_layer.directory)
+
+            # Chunk coords
+            self.assertEqual(Chunks, set(dimension.all_chunk_coords()))
+
+            # Has chunk
+            self.assertTrue(dimension.has_chunk(0, 0))
+            self.assertFalse(dimension.has_chunk(50, 50))
+
+            # Get chunk
+            chunk_data = dimension.get_chunk_data(0, 0)
+            self.assertIsInstance(chunk_data, dict)
+            self.assertEqual(1, len(chunk_data))
+            for k, v in chunk_data.items():
+                self.assertIsInstance(k, str)
+                self.assertIsInstance(v, NamedTag)
+            with self.assertRaises(ChunkDoesNotExist):
+                dimension.get_chunk_data(50, 50)
+
+            # Set chunk
+            value = {"region": NamedTag(CompoundTag(test=StringTag("test")), "test")}
+            dimension.set_chunk_data(50, 50, value.items())
+            self.assertTrue(value, dimension.get_chunk_data(50, 50))
+            self.assertTrue(os.path.isfile(region_layer.get_region(1, 1).path))
+
+            # Delete chunk
+            dimension.delete_chunk(50, 50)
+            with self.assertRaises(ChunkDoesNotExist):
+                dimension.get_chunk_data(50, 50)
+            self.assertTrue(region_layer.has_region(1, 1))
+
+            # Compact
+            chunks = {
+                (cx, cz): dimension.get_chunk_data(cx, cz)
+                for cx, cz in dimension.all_chunk_coords()
+            }
+            self.assertEqual(1089, len(chunks))
+            region_sizes = {
+                (rx, rz): os.path.getsize(region_layer.get_region(rx, rz).path)
+                for rx, rz in region_layer.all_region_coords()
+            }
+            dimension.compact()
+            self.assertEqual(
+                chunks,
+                {
+                    (cx, cz): dimension.get_chunk_data(cx, cz)
+                    for cx, cz in dimension.all_chunk_coords()
+                },
+            )
+            self.assertFalse(region_layer.has_region(1, 1))
+            for (rx, rz), size in region_sizes.items():
+                if (rx, rz) == (1, 1):
+                    continue
+                self.assertLessEqual(
+                    os.path.getsize(region_layer.get_region(rx, rz).path), size
+                )
+
+            del region_layer
+            del dimension
+
+
 if __name__ == "__main__":
     unittest.main()
