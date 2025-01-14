@@ -17,6 +17,7 @@ void init_java_anvil(py::module m_parent)
     auto dimension = init_anvil_dimension(m);
 
     m.attr("AnvilRegion") = region.attr("AnvilRegion");
+    m.attr("RegionDoesNotExist") = region.attr("RegionDoesNotExist");
     m.attr("AnvilDimensionLayer") = dimension.attr("AnvilDimensionLayer");
     m.attr("AnvilDimension") = dimension.attr("AnvilDimension");
     m.attr("RawChunkType") = dimension.attr("RawChunkType");
