@@ -71,6 +71,11 @@ class AnvilDimensionLayer:
     """
 
     def __init__(self, directory: str, mcc: bool = False) -> None: ...
+    def all_chunk_coords(self) -> typing.Iterator[tuple[int, int]]:
+        """
+        An iterator of all chunk coordinates in this layer.
+        """
+
     def all_region_coords(self) -> typing.Iterator[tuple[int, int]]:
         """
         An iterator of all region coordinates in this layer.
