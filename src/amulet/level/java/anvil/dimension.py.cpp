@@ -101,7 +101,17 @@ py::module init_anvil_dimension(py::module m_parent)
         py::arg("directory"),
         py::arg("layer_names"),
         py::arg("mcc") = false);
-    AnvilDimension.def(
+    AnvilDimension.def_property_readonly(
+        "directory",
+        [](const Amulet::AnvilDimension& self) {
+            return self.directory().string();
+        },
+        py::doc("The directory this dimension is in."));
+    AnvilDimension.def_property_readonly(
+        "mcc",
+        &Amulet::AnvilDimension::mcc,
+        py::doc("Are mcc files enabled for this dimension."));
+    AnvilDimension.def_property_readonly(
         "layer_names",
         &Amulet::AnvilDimension::layer_names,
         py::doc("Get the names of all layers in this dimension."));

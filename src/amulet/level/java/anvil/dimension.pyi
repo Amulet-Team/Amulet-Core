@@ -55,11 +55,6 @@ class AnvilDimension:
         Check if this dimension has the requested layer.
         """
 
-    def layer_names(self) -> list[str]:
-        """
-        Get the names of all layers in this dimension.
-        """
-
     def set_chunk_data(
         self,
         cx: int,
@@ -68,6 +63,24 @@ class AnvilDimension:
     ) -> None:
         """
         Set the data for a chunk.
+        """
+
+    @property
+    def directory(self) -> str:
+        """
+        The directory this dimension is in.
+        """
+
+    @property
+    def layer_names(self) -> list[str]:
+        """
+        Get the names of all layers in this dimension.
+        """
+
+    @property
+    def mcc(self) -> bool:
+        """
+        Are mcc files enabled for this dimension.
         """
 
 class AnvilDimensionLayer:

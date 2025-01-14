@@ -211,6 +211,9 @@ AMULET_CORE_DLLX void AnvilDimensionLayer::compact()
     }
 }
 
+AMULET_CORE_DLLX const std::filesystem::path& AnvilDimension::directory() const { return _directory; }
+AMULET_CORE_DLLX bool AnvilDimension::mcc() const { return _mcc; }
+
 AMULET_CORE_DLLX std::vector<std::string> AnvilDimension::layer_names()
 {
     std::shared_lock lock(_mutex);

@@ -140,6 +140,9 @@ public:
         _default_layer = _layers[*layer_names.begin()];
     }
 
+    AMULET_CORE_DLLX const std::filesystem::path& directory() const;
+    AMULET_CORE_DLLX bool mcc() const;
+
     // Get the layers defined in this dimension.
     AMULET_CORE_DLLX std::vector<std::string> layer_names();
     // Check if this dimension has the requested layer.
