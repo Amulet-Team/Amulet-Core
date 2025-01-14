@@ -119,4 +119,16 @@ class AnvilDimensionLayer:
         Set the chunk data for this layer.
         """
 
+    @property
+    def directory(self) -> str:
+        """
+        The directory this instance manages.
+        """
+
+    @property
+    def mcc(self) -> bool:
+        """
+        Is mcc file support enabled for this instance.
+        """
+
 RawChunkType: typing.TypeAlias = dict[str, amulet_nbt.NamedTag]

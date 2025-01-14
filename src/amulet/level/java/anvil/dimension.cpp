@@ -127,6 +127,11 @@ AMULET_CORE_DLLX AnvilDimensionLayer::AnvilDimensionLayer(
         throw std::invalid_argument("path is not a directory");
     }
 }
+
+// Accessors
+AMULET_CORE_DLLX const std::filesystem::path& AnvilDimensionLayer::directory() const { return _directory; }
+AMULET_CORE_DLLX bool AnvilDimensionLayer::mcc() const { return _mcc; }
+
 std::filesystem::path AnvilDimensionLayer::region_path(
     std::int64_t rx, std::int64_t rz) const
 {

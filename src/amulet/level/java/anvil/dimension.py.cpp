@@ -19,6 +19,16 @@ py::module init_anvil_dimension(py::module m_parent)
             }),
         py::arg("directory"),
         py::arg("mcc") = false);
+    AnvilDimensionLayer.def_property_readonly(
+        "directory",
+        [](const Amulet::AnvilDimensionLayer& self) {
+            return self.directory().string();
+        },
+        py::doc("The directory this instance manages."));
+    AnvilDimensionLayer.def_property_readonly(
+        "mcc",
+        &Amulet::AnvilDimensionLayer::mcc,
+        py::doc("Is mcc file support enabled for this instance."));
     AnvilDimensionLayer.def(
         "all_region_coords",
         [](Amulet::AnvilDimensionLayer& self) {
