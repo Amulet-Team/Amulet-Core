@@ -1,11 +1,11 @@
 import unittest
 
-from data.util import WorldTemp
-
 from amulet import load_level, load_format
 from amulet.level.formats.anvil_world import AnvilFormat
 from amulet.api.level import World
-from data import worlds_src
+
+from tests.data import worlds_src
+from tests.data.world_utils import WorldTemp
 
 
 class DefinitionBasedLoaderTestCase(unittest.TestCase):
