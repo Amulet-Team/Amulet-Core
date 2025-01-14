@@ -2,9 +2,9 @@ import glob
 import os
 import json
 
-BedrockLevels = []
-JavaVanillaLevels = []
-JavaForgeLevels = []
+BedrockLevels: list[str] = []
+JavaVanillaLevels: list[str] = []
+JavaForgeLevels: list[str] = []
 
 
 java_vanilla_1_12_2 = "java/vanilla/1_12_2"
@@ -36,9 +36,9 @@ def __find_levels():
 
 __find_levels()
 
-JavaLevels = [*JavaVanillaLevels, *JavaForgeLevels]
+JavaLevels: list[str] = [*JavaVanillaLevels, *JavaForgeLevels]
 
-levels = [
+levels: list[str] = [
     *BedrockLevels,
     *JavaLevels,
 ]
