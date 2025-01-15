@@ -51,6 +51,8 @@ public:
     void unregister_cancel_callback(CancelCallback callback) override;
 };
 
+extern VoidCancelManager global_VoidCancelManager;
+
 class CancelManagerData {
 public:
     std::mutex mutex;

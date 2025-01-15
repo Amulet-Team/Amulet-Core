@@ -24,6 +24,8 @@ bool VoidCancelManager::is_cancel_requested() { return false; }
 void VoidCancelManager::register_cancel_callback(CancelCallback callback) {};
 void VoidCancelManager::unregister_cancel_callback(CancelCallback callback) {};
 
+VoidCancelManager global_VoidCancelManager;
+
 AMULET_CORE_DLLX CancelManager::CancelManager(const std::shared_ptr<CancelManagerData>& data)
     : data(data)
 {
