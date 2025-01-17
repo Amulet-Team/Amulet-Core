@@ -1,4 +1,4 @@
-#include "lock.hpp"
+#include "mutex.hpp"
 
 namespace Amulet {
 
