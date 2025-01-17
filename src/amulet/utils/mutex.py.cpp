@@ -1,7 +1,7 @@
 #include <memory>
 
-#include <pybind11/pybind11.h>
 #include <pybind11/chrono.h>
+#include <pybind11/pybind11.h>
 #include <pybind11_extensions/py_module.hpp>
 
 #include "mutex.hpp"
@@ -14,6 +14,8 @@ void init_mutex(py::module m_parent)
     auto m = m_parent.def_submodule("mutex");
 
     std::string module_name = m.attr("__name__").cast<std::string>();
+
+    py::register_exception<Amulet::Deadlock>(m, "Deadlock", PyExc_RuntimeError);
 
     py::class_<Amulet::OrderedSharedMutex, std::shared_ptr<Amulet::OrderedSharedMutex>> OrderedSharedMutex(m, "OrderedSharedMutex");
     OrderedSharedMutex.def(py::init<>());
