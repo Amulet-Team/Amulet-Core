@@ -11,6 +11,8 @@ namespace py = pybind11;
 static py::module init_cancel_manager(py::module m_parent)
 {
     auto m = m_parent.def_submodule("cancel_manager");
+
+    std::string module_name = m.attr("__name__").cast<std::string>();
     
     py::register_exception<Amulet::TaskCancelled>(m, "TaskCancelled");
     
@@ -22,9 +24,15 @@ static py::module init_cancel_manager(py::module m_parent)
 
     py::class_<Amulet::VoidCancelManager, Amulet::AbstractCancelManager> VoidCancelManager(m, "VoidCancelManager");
     VoidCancelManager.def(py::init<>());
+    VoidCancelManager.def_static(
+        "__repr__",
+        [module_name]() { return module_name + ".VoidCancelManager()"; });
     
     py::class_<Amulet::CancelManager, Amulet::AbstractCancelManager> CancelManager(m, "CancelManager");
     CancelManager.def(py::init<>());
+    CancelManager.def_static(
+        "__repr__",
+        [module_name]() { return module_name + ".CancelManager()"; });
 
     return m;
 }
@@ -32,6 +40,8 @@ static py::module init_cancel_manager(py::module m_parent)
 static py::module init_progress_manager(py::module m_parent)
 {
     auto m = m_parent.def_submodule("progress_manager");
+
+    std::string module_name = m.attr("__name__").cast<std::string>();
 
     py::class_<Amulet::AbstractProgressManager> AbstractProgressManager(m, "AbstractProgressManager");
     AbstractProgressManager.def("register_progress_callback", &Amulet::AbstractProgressManager::register_progress_callback, py::arg("callback"));
@@ -44,9 +54,15 @@ static py::module init_progress_manager(py::module m_parent)
 
     py::class_<Amulet::VoidProgressManager, Amulet::AbstractProgressManager> VoidProgressManager(m, "VoidProgressManager");
     VoidProgressManager.def(py::init<>());
+    VoidProgressManager.def_static(
+        "__repr__",
+        [module_name]() { return module_name + ".VoidProgressManager()"; });
 
     py::class_<Amulet::ProgressManager, Amulet::AbstractProgressManager> ProgressManager(m, "ProgressManager");
     ProgressManager.def(py::init<>());
+    ProgressManager.def_static(
+        "__repr__",
+        [module_name]() { return module_name + ".ProgressManager()"; });
 
     return m;
 }
