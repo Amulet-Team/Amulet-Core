@@ -39,7 +39,7 @@ void init_mutex(py::module m_parent)
         &Amulet::OrderedSharedMutex::unlock_shared);
     OrderedSharedMutex.def_static(
         "__repr__",
-        [module_name]() { return module_name + "OrderedSharedMutex()"; });
+        [module_name](const Amulet::OrderedSharedMutex&) { return module_name + "OrderedSharedMutex()"; });
 
     py::class_<Amulet::OrderedSharedTimedMutex, std::shared_ptr<Amulet::OrderedSharedTimedMutex>, Amulet::OrderedSharedMutex> OrderedSharedTimedMutex(m, "OrderedSharedTimedMutex");
     OrderedSharedTimedMutex.def(
@@ -64,5 +64,5 @@ void init_mutex(py::module m_parent)
         py::arg("cancel_manager") = Amulet::global_VoidCancelManager);
     OrderedSharedTimedMutex.def_static(
         "__repr__",
-        [module_name]() { return module_name + "OrderedSharedTimedMutex()"; });
+        [module_name](Amulet::OrderedSharedTimedMutex&) { return module_name + "OrderedSharedTimedMutex()"; });
 }

@@ -7,9 +7,8 @@ import amulet.utils.task_manager.cancel_manager
 __all__ = ["OrderedSharedMutex", "OrderedSharedTimedMutex"]
 
 class OrderedSharedMutex:
-    @staticmethod
-    def __repr__() -> str: ...
     def __init__(self) -> None: ...
+    def __repr__(self) -> str: ...
     def lock(
         self,
         cancel_manager: amulet.utils.task_manager.cancel_manager.AbstractCancelManager = ...,
@@ -24,8 +23,7 @@ class OrderedSharedMutex:
     def unlock_shared(self) -> None: ...
 
 class OrderedSharedTimedMutex(OrderedSharedMutex):
-    @staticmethod
-    def __repr__() -> str: ...
+    def __repr__(self) -> str: ...
     def try_lock_for(
         self,
         timeout_duration: datetime.timedelta,
