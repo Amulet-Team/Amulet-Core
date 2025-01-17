@@ -7,7 +7,6 @@
 
 namespace Amulet {
 
-AMULET_CORE_DLLX VoidProgressManager::VoidProgressManager() { }
 void VoidProgressManager::register_progress_callback(ProgressCallback callback) { }
 void VoidProgressManager::unregister_progress_callback(ProgressCallback callback) { }
 void VoidProgressManager::update_progress(float progress) { }

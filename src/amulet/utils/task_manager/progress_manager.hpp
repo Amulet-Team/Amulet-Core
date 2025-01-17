@@ -47,8 +47,8 @@ public:
 
 class VoidProgressManager : public AbstractProgressManager {
 public:
-    AMULET_CORE_DLLX VoidProgressManager();
-    VoidProgressManager(VoidProgressManager&) = default;
+    AMULET_CORE_DLLX VoidProgressManager() = default;
+    AMULET_CORE_DLLX VoidProgressManager(VoidProgressManager&) = default;
     void register_progress_callback(ProgressCallback callback) override;
     void unregister_progress_callback(ProgressCallback callback) override;
     void update_progress(float progress) override;
