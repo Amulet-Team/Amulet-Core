@@ -22,24 +22,30 @@ void init_mutex(py::module m_parent)
     OrderedSharedMutex.def(
         "lock",
         &Amulet::OrderedSharedMutex::lock,
-        py::arg("cancel_manager") = Amulet::VoidCancelManager());
+        py::arg("cancel_manager") = Amulet::VoidCancelManager(),
+        py::call_guard<py::gil_scoped_release>());
     OrderedSharedMutex.def(
         "try_lock",
-        &Amulet::OrderedSharedMutex::try_lock);
+        &Amulet::OrderedSharedMutex::try_lock,
+        py::call_guard<py::gil_scoped_release>());
     OrderedSharedMutex.def(
         "unlock",
-        &Amulet::OrderedSharedMutex::unlock);
+        &Amulet::OrderedSharedMutex::unlock,
+        py::call_guard<py::gil_scoped_release>());
     OrderedSharedMutex.def(
         "lock_shared",
         &Amulet::OrderedSharedMutex::lock_shared,
-        py::arg("cancel_manager") = Amulet::global_VoidCancelManager);
+        py::arg("cancel_manager") = Amulet::global_VoidCancelManager,
+        py::call_guard<py::gil_scoped_release>());
     OrderedSharedMutex.def(
         "try_lock_shared",
-        &Amulet::OrderedSharedMutex::try_lock_shared);
+        &Amulet::OrderedSharedMutex::try_lock_shared,
+        py::call_guard<py::gil_scoped_release>());
     OrderedSharedMutex.def(
         "unlock_shared",
-        &Amulet::OrderedSharedMutex::unlock_shared);
-    OrderedSharedMutex.def_static(
+        &Amulet::OrderedSharedMutex::unlock_shared,
+        py::call_guard<py::gil_scoped_release>());
+    OrderedSharedMutex.def(
         "__repr__",
         [module_name](const Amulet::OrderedSharedMutex&) { return module_name + "OrderedSharedMutex()"; });
 
@@ -48,23 +54,27 @@ void init_mutex(py::module m_parent)
         "try_lock_for",
         &Amulet::OrderedSharedTimedMutex::try_lock_for<std::chrono::seconds::rep, std::chrono::seconds::period>,
         py::arg("timeout_duration"),
-        py::arg("cancel_manager") = Amulet::global_VoidCancelManager);
+        py::arg("cancel_manager") = Amulet::global_VoidCancelManager,
+        py::call_guard<py::gil_scoped_release>());
     OrderedSharedTimedMutex.def(
         "try_lock_until",
         &Amulet::OrderedSharedTimedMutex::try_lock_until<std::chrono::system_clock, std::chrono::system_clock::duration>,
         py::arg("timeout_time"),
-        py::arg("cancel_manager") = Amulet::global_VoidCancelManager);
+        py::arg("cancel_manager") = Amulet::global_VoidCancelManager,
+        py::call_guard<py::gil_scoped_release>());
     OrderedSharedTimedMutex.def(
         "try_lock_shared_for",
         &Amulet::OrderedSharedTimedMutex::try_lock_shared_for<std::chrono::seconds::rep, std::chrono::seconds::period>,
         py::arg("timeout_duration"),
-        py::arg("cancel_manager") = Amulet::global_VoidCancelManager);
+        py::arg("cancel_manager") = Amulet::global_VoidCancelManager,
+        py::call_guard<py::gil_scoped_release>());
     OrderedSharedTimedMutex.def(
         "try_lock_shared_until",
         &Amulet::OrderedSharedTimedMutex::try_lock_shared_until<std::chrono::system_clock, std::chrono::system_clock::duration>,
         py::arg("timeout_time"),
-        py::arg("cancel_manager") = Amulet::global_VoidCancelManager);
-    OrderedSharedTimedMutex.def_static(
+        py::arg("cancel_manager") = Amulet::global_VoidCancelManager,
+        py::call_guard<py::gil_scoped_release>());
+    OrderedSharedTimedMutex.def(
         "__repr__",
         [module_name](Amulet::OrderedSharedTimedMutex&) { return module_name + "OrderedSharedTimedMutex()"; });
 }
