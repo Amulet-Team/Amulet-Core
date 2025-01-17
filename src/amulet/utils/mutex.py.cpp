@@ -50,6 +50,7 @@ void init_mutex(py::module m_parent)
         [module_name](const Amulet::OrderedSharedMutex&) { return module_name + "OrderedSharedMutex()"; });
 
     py::class_<Amulet::OrderedSharedTimedMutex, std::shared_ptr<Amulet::OrderedSharedTimedMutex>, Amulet::OrderedSharedMutex> OrderedSharedTimedMutex(m, "OrderedSharedTimedMutex");
+    OrderedSharedTimedMutex.def(py::init<>());
     OrderedSharedTimedMutex.def(
         "try_lock_for",
         &Amulet::OrderedSharedTimedMutex::try_lock_for<std::chrono::seconds::rep, std::chrono::seconds::period>,
