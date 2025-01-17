@@ -81,8 +81,7 @@ protected:
             }
         };
 
-        if (pending_threads.empty() && is_needed_state())
-        {
+        if (pending_threads.empty() && is_needed_state()) {
             // mutex can be locked without blocking. Lock it.
             state = DesiredState;
             auto it = locked_threads.insert(locked_threads.end(), { id, DesiredState, DesiredState });
@@ -90,9 +89,7 @@ protected:
             if constexpr (ReturnBool) {
                 return true;
             }
-        }
-        else if constexpr (Blocking)
-        {
+        } else if constexpr (Blocking) {
             // Wait until the mutex can be locked.
 
             // Unpack the args
@@ -136,7 +133,7 @@ protected:
                 static_assert(std::tuple_size_v<decltype(args)> == 2);
                 const auto& timeout = std::get<0>(args);
                 using TimeoutT = std::remove_cvref_t<decltype(timeout)>;
-                
+
                 auto wait = [&](std::unique_lock<std::mutex>& _lck, decltype(timeout) _timeout, std::function<bool()> _pred) -> bool {
                     if constexpr (is_specialization_of<std::chrono::duration, TimeoutT>::value) {
                         return condition.wait_for(_lck, _timeout, _pred);
@@ -168,9 +165,7 @@ protected:
                 unregister_cancel();
                 lock_state();
             }
-        }
-        else if constexpr (ReturnBool)
-        {
+        } else if constexpr (ReturnBool) {
             return false;
         }
     }
