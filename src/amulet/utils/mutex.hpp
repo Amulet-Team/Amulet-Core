@@ -199,13 +199,28 @@ protected:
         if (it == threads.end() || it->second->state != required_state) {
             if constexpr (required_state == LockState::Unique) {
                 throw std::runtime_error("This mutex is not locked in unique mode by this thread.");
-            } else if constexpr (required_state == LockState::Shared) {
+            } else {
+                static_assert(required_state == LockState::Shared);
                 throw std::runtime_error("This mutex is not locked in shared mode by this thread.");
             }
         }
 
+        // Remove the thread state
         locked_threads.erase(it->second);
         threads.erase(it);
+
+        // Reset mutex state
+        if constexpr (required_state == LockState::Unique) {
+            state = LockState::Unlocked;
+        } else {
+            static_assert(required_state == LockState::Shared);
+            if (locked_threads.empty()) {
+                state = LockState::Unlocked;
+            }
+        }
+
+        // Wake up pending threads
+        condition.notify_all();
     }
 
 public:
