@@ -54,7 +54,7 @@ protected:
     // The pending threads in the order the lock call was made.
     std::list<ThreadState> pending_threads;
     // Lookup from thread id to the iterator in locked_threads or pending_thread.
-    std::map<std::thread::id, std::list<ThreadState>::iterator&> threads;
+    std::map<std::thread::id, std::list<ThreadState>::iterator> threads;
 
     template <bool ReturnBool, bool Blocking, LockState DesiredState, class... Args>
         requires(DesiredState == LockState::Shared || DesiredState == LockState::Unique)
