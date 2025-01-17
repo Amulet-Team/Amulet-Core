@@ -4,7 +4,10 @@ import datetime
 
 import amulet.utils.task_manager.cancel_manager
 
-__all__ = ["OrderedSharedMutex", "OrderedSharedTimedMutex"]
+__all__ = ["Deadlock", "OrderedSharedMutex", "OrderedSharedTimedMutex"]
+
+class Deadlock(RuntimeError):
+    pass
 
 class OrderedSharedMutex:
     def __init__(self) -> None: ...
