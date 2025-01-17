@@ -108,6 +108,11 @@ protected:
             auto erase_state = [&]() -> void {
                 threads.erase(it->id);
                 pending_threads.erase(it);
+
+                // Notify other threads if the top pending thread changes.
+                if (it == pending_threads.begin()) {
+                    condition.notify_all();
+                }
             };
 
             // Function to lock the mutex.
@@ -118,6 +123,9 @@ protected:
                 // Move the thread state
                 locked_threads.splice(locked_threads.end(), pending_threads, pending_threads.begin());
                 it->state = DesiredState;
+
+                // Notify other threads that the top pending thread changed.
+                condition.notify_all();
             };
 
             auto on_cancel = [&]() -> void {
