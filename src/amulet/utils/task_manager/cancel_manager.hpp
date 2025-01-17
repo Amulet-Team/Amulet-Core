@@ -44,8 +44,8 @@ public:
 
 class VoidCancelManager : public AbstractCancelManager {
 public:
-    AMULET_CORE_DLLX VoidCancelManager();
-    VoidCancelManager(VoidCancelManager&) = default;
+    AMULET_CORE_DLLX VoidCancelManager() = default;
+    AMULET_CORE_DLLX VoidCancelManager(const VoidCancelManager&) = default;
     void cancel() override;
     bool is_cancel_requested() override;
     void register_cancel_callback(CancelCallback callback) override;
