@@ -24,15 +24,15 @@ static py::module init_cancel_manager(py::module m_parent)
 
     py::class_<Amulet::VoidCancelManager, Amulet::AbstractCancelManager> VoidCancelManager(m, "VoidCancelManager");
     VoidCancelManager.def(py::init<>());
-    VoidCancelManager.def_static(
+    VoidCancelManager.def(
         "__repr__",
-        [module_name]() { return module_name + ".VoidCancelManager()"; });
+        [module_name](const Amulet::VoidCancelManager&) { return module_name + ".VoidCancelManager()"; });
     
     py::class_<Amulet::CancelManager, Amulet::AbstractCancelManager> CancelManager(m, "CancelManager");
     CancelManager.def(py::init<>());
-    CancelManager.def_static(
+    CancelManager.def(
         "__repr__",
-        [module_name]() { return module_name + ".CancelManager()"; });
+        [module_name](const Amulet::CancelManager&) { return module_name + ".CancelManager()"; });
 
     return m;
 }
@@ -54,15 +54,15 @@ static py::module init_progress_manager(py::module m_parent)
 
     py::class_<Amulet::VoidProgressManager, Amulet::AbstractProgressManager> VoidProgressManager(m, "VoidProgressManager");
     VoidProgressManager.def(py::init<>());
-    VoidProgressManager.def_static(
+    VoidProgressManager.def(
         "__repr__",
-        [module_name]() { return module_name + ".VoidProgressManager()"; });
+        [module_name](const Amulet::VoidProgressManager&) { return module_name + ".VoidProgressManager()"; });
 
     py::class_<Amulet::ProgressManager, Amulet::AbstractProgressManager> ProgressManager(m, "ProgressManager");
     ProgressManager.def(py::init<>());
-    ProgressManager.def_static(
+    ProgressManager.def(
         "__repr__",
-        [module_name]() { return module_name + ".ProgressManager()"; });
+        [module_name](const Amulet::ProgressManager&) { return module_name + ".ProgressManager()"; });
 
     return m;
 }
