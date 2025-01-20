@@ -140,7 +140,7 @@ OrderedSharedLock::OrderedSharedLock(std::unique_ptr<OrderedSharedTimedMutex> mu
     , _mutex(*_mutex_storage)
 {
 }
-// Default constructor 
+// Default constructor
 OrderedSharedLock::OrderedSharedLock()
     : OrderedSharedLock(std::make_unique<OrderedSharedTimedMutex>())
 {
@@ -208,11 +208,23 @@ void init_lock(py::module m_parent)
     LockNotAcquired.doc() = "An exception raised if the lock was not acquired.";
 
     py::class_<Amulet::UniqueLockContextManager> UniqueLockContextManager(m, "UniqueLockContextManager");
-    UniqueLockContextManager.def("__enter__", &Amulet::UniqueLockContextManager::enter);
-    UniqueLockContextManager.def("__exit__", &Amulet::UniqueLockContextManager::exit);
+    UniqueLockContextManager.def(
+        "__enter__",
+        &Amulet::UniqueLockContextManager::enter,
+        py::call_guard<py::gil_scoped_release>());
+    UniqueLockContextManager.def(
+        "__exit__",
+        &Amulet::UniqueLockContextManager::exit,
+        py::call_guard<py::gil_scoped_release>());
     py::class_<Amulet::SharedLockContextManager> SharedLockContextManager(m, "SharedLockContextManager");
-    SharedLockContextManager.def("__enter__", &Amulet::SharedLockContextManager::enter);
-    SharedLockContextManager.def("__exit__", &Amulet::SharedLockContextManager::exit);
+    SharedLockContextManager.def(
+        "__enter__",
+        &Amulet::SharedLockContextManager::enter,
+        py::call_guard<py::gil_scoped_release>());
+    SharedLockContextManager.def(
+        "__exit__",
+        &Amulet::SharedLockContextManager::exit,
+        py::call_guard<py::gil_scoped_release>());
 
     py::class_<Amulet::OrderedSharedLock> OrderedSharedLock(m, "OrderedSharedLock",
         "This is a custom lock implementation that can be acquired in\n"
