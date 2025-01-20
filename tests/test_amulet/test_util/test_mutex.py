@@ -4,7 +4,11 @@ from threading import Thread
 import time
 
 from amulet.utils.mutex import OrderedSharedMutex, OrderedSharedTimedMutex, Deadlock
-from amulet.utils.task_manager import CancelManager, TaskCancelled, AbstractCancelManager
+from amulet.utils.task_manager import (
+    CancelManager,
+    TaskCancelled,
+    AbstractCancelManager,
+)
 
 
 class MutexTestCase(unittest.TestCase):
@@ -31,7 +35,9 @@ class MutexTestCase(unittest.TestCase):
                     with self.assertRaises(exc):
                         mutex.try_lock_for(timedelta(seconds=1))
                     with self.assertRaises(exc):
-                        mutex.try_lock_shared_until(datetime.now() + timedelta(seconds=1))
+                        mutex.try_lock_shared_until(
+                            datetime.now() + timedelta(seconds=1)
+                        )
 
     def test_lock(self) -> None:
         mutex = OrderedSharedMutex()
@@ -91,7 +97,9 @@ class MutexTestCase(unittest.TestCase):
 
     def test_try_lock_shared_until(self) -> None:
         mutex = OrderedSharedTimedMutex()
-        self.assertTrue(mutex.try_lock_shared_until(datetime.now() + timedelta(seconds=1)))
+        self.assertTrue(
+            mutex.try_lock_shared_until(datetime.now() + timedelta(seconds=1))
+        )
         self._test_self_deadlock(mutex)
         with self.assertRaises(RuntimeError):
             mutex.unlock()
@@ -199,7 +207,10 @@ class MutexTestCase(unittest.TestCase):
 
         # Validate time
         expected_time = sleep_time * 3
-        self.assertTrue(expected_time - 0.01 <= dt <= expected_time + 0.1, f"Expected {expected_time}s. Got {dt}s")
+        self.assertTrue(
+            expected_time - 0.01 <= dt <= expected_time + 0.1,
+            f"Expected {expected_time}s. Got {dt}s",
+        )
 
     def test_threads_3(self) -> None:
         """Test 1 serial thread followed by 4 parallel."""
@@ -252,7 +263,10 @@ class MutexTestCase(unittest.TestCase):
 
         # Validate time
         expected_time = sleep_time * 2
-        self.assertTrue(expected_time - 0.01 <= dt <= expected_time + 0.1, f"Expected {expected_time}s. Got {dt}s")
+        self.assertTrue(
+            expected_time - 0.01 <= dt <= expected_time + 0.1,
+            f"Expected {expected_time}s. Got {dt}s",
+        )
 
     def test_try_lock_thread_false(self) -> None:
         mutex = OrderedSharedTimedMutex()
@@ -295,21 +309,27 @@ class MutexTestCase(unittest.TestCase):
 
         def try_lock_until():
             nonlocal try_lock_until_result
-            try_lock_until_result = mutex.try_lock_until(datetime.now() + timedelta(milliseconds=500))
+            try_lock_until_result = mutex.try_lock_until(
+                datetime.now() + timedelta(milliseconds=500)
+            )
             if try_lock_until_result:
                 exec_order.append("unique")
                 mutex.unlock()
 
         def try_lock_shared_for():
             nonlocal try_lock_shared_for_result
-            try_lock_shared_for_result = mutex.try_lock_shared_for(timedelta(milliseconds=500))
+            try_lock_shared_for_result = mutex.try_lock_shared_for(
+                timedelta(milliseconds=500)
+            )
             if try_lock_shared_for_result:
                 exec_order.append("shared")
                 mutex.unlock_shared()
 
         def try_lock_shared_until():
             nonlocal try_lock_shared_until_result
-            try_lock_shared_until_result = mutex.try_lock_shared_until(datetime.now() + timedelta(milliseconds=500))
+            try_lock_shared_until_result = mutex.try_lock_shared_until(
+                datetime.now() + timedelta(milliseconds=500)
+            )
             if try_lock_shared_until_result:
                 exec_order.append("shared")
                 mutex.unlock_shared()
@@ -377,7 +397,9 @@ class MutexTestCase(unittest.TestCase):
 
         def try_lock_until():
             nonlocal try_lock_until_result
-            try_lock_until_result = mutex.try_lock_until(datetime.now() + timedelta(seconds=2))
+            try_lock_until_result = mutex.try_lock_until(
+                datetime.now() + timedelta(seconds=2)
+            )
             if try_lock_until_result:
                 exec_order.append(3)
                 time.sleep(0.5)
@@ -393,7 +415,9 @@ class MutexTestCase(unittest.TestCase):
 
         def try_lock_shared_until():
             nonlocal try_lock_shared_until_result
-            try_lock_shared_until_result = mutex.try_lock_shared_until(datetime.now() + timedelta(seconds=2))
+            try_lock_shared_until_result = mutex.try_lock_shared_until(
+                datetime.now() + timedelta(seconds=2)
+            )
             if try_lock_shared_until_result:
                 exec_order.append("shared")
                 time.sleep(0.5)
@@ -448,7 +472,9 @@ class MutexTestCase(unittest.TestCase):
                         mutex_1.lock(cancel_manager)
                         time.sleep(0.5)
                         if timeout:
-                            locked = mutex_2.try_lock_for(timedelta(seconds=1), cancel_manager)
+                            locked = mutex_2.try_lock_for(
+                                timedelta(seconds=1), cancel_manager
+                            )
                             if locked:
                                 mutex_2.unlock()
                             thread_1_result = locked
@@ -467,7 +493,9 @@ class MutexTestCase(unittest.TestCase):
                         mutex_2.lock(cancel_manager)
                         time.sleep(0.5)
                         if timeout:
-                            locked = mutex_1.try_lock_for(timedelta(seconds=1), cancel_manager)
+                            locked = mutex_1.try_lock_for(
+                                timedelta(seconds=1), cancel_manager
+                            )
                             if locked:
                                 mutex_1.unlock()
                             thread_2_result = not locked
@@ -483,8 +511,8 @@ class MutexTestCase(unittest.TestCase):
                     cancel_manager_1 = CancelManager()
                     cancel_manager_2 = CancelManager()
 
-                    thread_1 = Thread(target=thread_1_func, args=(cancel_manager_1, ))
-                    thread_2 = Thread(target=thread_2_func, args=(cancel_manager_2, ))
+                    thread_1 = Thread(target=thread_1_func, args=(cancel_manager_1,))
+                    thread_2 = Thread(target=thread_2_func, args=(cancel_manager_2,))
 
                     t = time.time()
                     thread_1.start()
@@ -501,7 +529,10 @@ class MutexTestCase(unittest.TestCase):
 
                     dt = time.time() - t
                     expected_time = max(0.5, sleep_time)
-                    self.assertTrue(expected_time - 0.01 <= dt <= expected_time + 0.1,f"Expected {expected_time}s. Got {dt}s")
+                    self.assertTrue(
+                        expected_time - 0.01 <= dt <= expected_time + 0.1,
+                        f"Expected {expected_time}s. Got {dt}s",
+                    )
 
                     self.assertTrue(thread_1_result)
                     self.assertTrue(thread_2_result)
