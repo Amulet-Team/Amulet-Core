@@ -4,6 +4,7 @@ from threading import Thread
 import time
 
 from amulet.utils.mutex import OrderedSharedMutex, OrderedSharedTimedMutex, Deadlock
+from amulet.utils.task_manager import CancelManager, TaskCancelled, AbstractCancelManager
 
 
 class MutexTestCase(unittest.TestCase):
@@ -427,6 +428,83 @@ class MutexTestCase(unittest.TestCase):
 
         self.assertTrue(try_lock_for_result)
         self.assertTrue(try_lock_until_result)
+
+    def test_cancel(self) -> None:
+        """
+        Two threads acquire a mutex then trying to acquire the other mutex.
+        Test the cancel manager working when called before and after the second mutex lock is called.
+        """
+        for sleep_time in [0.1, 1.0]:
+            for timeout in [False, True]:
+                with self.subTest(sleep_time=sleep_time, timeout=timeout):
+                    mutex_1 = OrderedSharedTimedMutex()
+                    mutex_2 = OrderedSharedTimedMutex()
+
+                    thread_1_result = False
+                    thread_2_result = False
+
+                    def thread_1_func(cancel_manager: AbstractCancelManager):
+                        nonlocal thread_1_result
+                        mutex_1.lock(cancel_manager)
+                        time.sleep(0.5)
+                        if timeout:
+                            locked = mutex_2.try_lock_for(timedelta(seconds=1), cancel_manager)
+                            if locked:
+                                mutex_2.unlock()
+                            thread_1_result = locked
+                        else:
+                            try:
+                                mutex_2.lock(cancel_manager)
+                            except TaskCancelled:
+                                pass
+                            else:
+                                thread_1_result = True
+                                mutex_2.unlock()
+                        mutex_1.unlock()
+
+                    def thread_2_func(cancel_manager: AbstractCancelManager):
+                        nonlocal thread_2_result
+                        mutex_2.lock(cancel_manager)
+                        time.sleep(0.5)
+                        if timeout:
+                            locked = mutex_1.try_lock_for(timedelta(seconds=1), cancel_manager)
+                            if locked:
+                                mutex_1.unlock()
+                            thread_2_result = not locked
+                        else:
+                            try:
+                                mutex_1.lock(cancel_manager)
+                            except TaskCancelled:
+                                thread_2_result = True
+                            else:
+                                mutex_1.unlock()
+                        mutex_2.unlock()
+
+                    cancel_manager_1 = CancelManager()
+                    cancel_manager_2 = CancelManager()
+
+                    thread_1 = Thread(target=thread_1_func, args=(cancel_manager_1, ))
+                    thread_2 = Thread(target=thread_2_func, args=(cancel_manager_2, ))
+
+                    t = time.time()
+                    thread_1.start()
+                    thread_2.start()
+
+                    # Wait for the mutexes to be locked
+                    time.sleep(sleep_time)
+
+                    # cancel the second thread
+                    cancel_manager_2.cancel()
+
+                    thread_1.join()
+                    thread_2.join()
+
+                    dt = time.time() - t
+                    expected_time = max(0.5, sleep_time)
+                    self.assertTrue(expected_time - 0.01 <= dt <= expected_time + 0.1,f"Expected {expected_time}s. Got {dt}s")
+
+                    self.assertTrue(thread_1_result)
+                    self.assertTrue(thread_2_result)
 
 
 if __name__ == "__main__":
