@@ -31,7 +31,10 @@ class OrderedSharedLock:
     Tasks are prioritised in the order the call is made
     """
 
-    def __init__(self, arg0: amulet.utils.mutex.OrderedSharedTimedMutex) -> None: ...
+    @typing.overload
+    def __init__(self, mutex: amulet.utils.mutex.OrderedSharedTimedMutex) -> None: ...
+    @typing.overload
+    def __init__(self) -> None: ...
     def acquire_shared(
         self,
         blocking: bool = True,
