@@ -102,7 +102,7 @@ class OrderedSharedLock:
         >>> # the lock will automatically be released here
 
         If the lock is acquired by a different thread in unique mode then this will block until it is finished.
-        If the lock is acquired in unique mode by this thread or by otherthreads in shared mode then this will acquire
+        If the lock is acquired in unique mode by this thread or by other threads in shared mode then this will acquire
         the lock.
 
         If another thread wants to acquire the lock in unique mode it will block until all threads have finished in
