@@ -4,6 +4,7 @@
 // They aren't particuarly pythonic hence this class existing.
 
 #include <chrono>
+#include <stdexcept>
 
 #include <pybind11/pybind11.h>
 #include <pybind11_extensions/py_module.hpp>
@@ -15,8 +16,8 @@ namespace py = pybind11;
 
 namespace Amulet {
 
-class LockNotAcquired : public TaskCancelled {
-    using TaskCancelled::TaskCancelled;
+class LockNotAcquired: public std::runtime_error {
+    using std::runtime_error::runtime_error;
 };
 
 class OrderedSharedLock;
@@ -186,8 +187,7 @@ void init_lock(py::module m_parent)
 {
     auto m = m_parent.def_submodule("lock");
 
-    auto TaskCancelled = py::module::import("amulet.utils.task_manager").attr("TaskCancelled");
-    auto LockNotAcquired = py::register_exception<Amulet::LockNotAcquired>(m, "LockNotAcquired", TaskCancelled);
+    auto LockNotAcquired = py::register_exception<Amulet::LockNotAcquired>(m, "LockNotAcquired", PyExc_RuntimeError);
     LockNotAcquired.doc() = "An exception raised if the lock was not acquired.";
 
     py::class_<Amulet::UniqueLockContextManager> UniqueLockContextManager(m, "UniqueLockContextManager");
