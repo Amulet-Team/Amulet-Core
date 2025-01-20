@@ -327,7 +327,7 @@ void init_lock(py::module m_parent)
             ">>> # the lock will automatically be released here\n"
             "\n"
             "If the lock is acquired by a different thread in unique mode then this will block until it is finished.\n"
-            "If the lock is acquired in unique mode by this thread or by otherthreads in shared mode then this will acquire\n"
+            "If the lock is acquired in unique mode by this thread or by other threads in shared mode then this will acquire\n"
             "the lock.\n"
             "\n"
             "If another thread wants to acquire the lock in unique mode it will block until all threads have finished in\n"
