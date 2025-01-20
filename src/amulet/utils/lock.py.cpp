@@ -4,6 +4,7 @@
 // They aren't particuarly pythonic hence this class existing.
 
 #include <chrono>
+#include <memory>
 #include <stdexcept>
 
 #include <pybind11/pybind11.h>
@@ -56,10 +57,14 @@ public:
 };
 
 class OrderedSharedLock {
+    // Will be a nullptr if constructed from a reference
+    std::unique_ptr<OrderedSharedTimedMutex> _mutex_storage;
     OrderedSharedTimedMutex& _mutex;
 
 public:
     OrderedSharedLock(OrderedSharedTimedMutex& mutex);
+    OrderedSharedLock(std::unique_ptr<OrderedSharedTimedMutex> mutex);
+    OrderedSharedLock();
     bool acquire_unique(
         bool blocking = true,
         double timeout = -1,
@@ -124,8 +129,20 @@ void SharedLockContextManager::exit(py::object, py::object, py::object)
     lock.release_shared();
 }
 
+// Construct from reference
 OrderedSharedLock::OrderedSharedLock(OrderedSharedTimedMutex& mutex)
     : _mutex(mutex)
+{
+}
+// Construct from unique_ptr
+OrderedSharedLock::OrderedSharedLock(std::unique_ptr<OrderedSharedTimedMutex> mutex)
+    : _mutex_storage(std::move(mutex))
+    , _mutex(*_mutex_storage)
+{
+}
+// Default constructor 
+OrderedSharedLock::OrderedSharedLock()
+    : OrderedSharedLock(std::make_unique<OrderedSharedTimedMutex>())
 {
 }
 bool OrderedSharedLock::acquire_unique(
@@ -210,7 +227,9 @@ void init_lock(py::module m_parent)
         "Tasks are prioritised in the order the call is made");
     OrderedSharedLock.def(
         py::init<Amulet::OrderedSharedTimedMutex&>(),
+        py::arg("mutex"),
         py::keep_alive<1, 2>());
+    OrderedSharedLock.def(py::init<>());
     OrderedSharedLock.def(
         "acquire_unique",
         &Amulet::OrderedSharedLock::acquire_unique,
