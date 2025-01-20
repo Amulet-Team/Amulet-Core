@@ -7,7 +7,10 @@ import amulet.utils.task_manager.cancel_manager
 __all__ = ["Deadlock", "OrderedSharedMutex", "OrderedSharedTimedMutex"]
 
 class Deadlock(RuntimeError):
-    pass
+    """
+    This exception signals that a deadlock occurred when locking a mutex.
+    Not all deadlock cases raise an exception.
+    """
 
 class OrderedSharedMutex:
     def __init__(self) -> None: ...
