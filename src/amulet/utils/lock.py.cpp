@@ -56,7 +56,7 @@ public:
 };
 
 class OrderedSharedLock {
-    OrderedSharedTimedMutex& mutex;
+    OrderedSharedTimedMutex& _mutex;
 
 public:
     OrderedSharedLock(OrderedSharedTimedMutex& mutex);
@@ -125,7 +125,7 @@ void SharedLockContextManager::exit(py::object, py::object, py::object)
 }
 
 OrderedSharedLock::OrderedSharedLock(OrderedSharedTimedMutex& mutex)
-    : mutex(mutex)
+    : _mutex(mutex)
 {
 }
 bool OrderedSharedLock::acquire_unique(
@@ -135,17 +135,17 @@ bool OrderedSharedLock::acquire_unique(
 {
     if (blocking) {
         if (timeout > 0) {
-            return mutex.try_lock_for(std::chrono::duration<double>(timeout), cancel_manager);
+            return _mutex.try_lock_for(std::chrono::duration<double>(timeout), cancel_manager);
         } else {
-            return mutex.try_lock_for(std::chrono::duration<double>::max(), cancel_manager);
+            return _mutex.try_lock_for(std::chrono::duration<double>::max(), cancel_manager);
         }
     } else {
-        return mutex.try_lock();
+        return _mutex.try_lock();
     }
 }
 void OrderedSharedLock::release_unique()
 {
-    mutex.unlock();
+    _mutex.unlock();
 }
 bool OrderedSharedLock::acquire_shared(
     bool blocking,
@@ -154,17 +154,17 @@ bool OrderedSharedLock::acquire_shared(
 {
     if (blocking) {
         if (timeout > 0) {
-            return mutex.try_lock_shared_for(std::chrono::duration<double>(timeout), cancel_manager);
+            return _mutex.try_lock_shared_for(std::chrono::duration<double>(timeout), cancel_manager);
         } else {
-            return mutex.try_lock_shared_for(std::chrono::duration<double>::max(), cancel_manager);
+            return _mutex.try_lock_shared_for(std::chrono::duration<double>::max(), cancel_manager);
         }
     } else {
-        return mutex.try_lock_shared();
+        return _mutex.try_lock_shared();
     }
 }
 void OrderedSharedLock::release_shared()
 {
-    mutex.unlock_shared();
+    _mutex.unlock_shared();
 }
 UniqueLockContextManager OrderedSharedLock::unique(
     bool blocking,
