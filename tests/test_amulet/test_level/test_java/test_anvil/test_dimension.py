@@ -129,7 +129,9 @@ class AnvilDimensionTestCase(unittest.TestCase):
             self.assertIsInstance(region_layer, AnvilDimensionLayer)
             with self.assertRaises(ValueError):
                 dimension.get_layer("other")
-            self.assertEqual(os.path.join(world.temp_path, "region"), region_layer.directory)
+            self.assertEqual(
+                os.path.join(world.temp_path, "region"), region_layer.directory
+            )
 
             # Chunk coords
             self.assertEqual(Chunks, set(dimension.all_chunk_coords()))
