@@ -25,9 +25,14 @@ struct is_specialization_of<Template, Template<Args...>> : std::true_type { };
 
 namespace Amulet {
 
-class Deadlock : public std::runtime_error {
+class Deadlock : public std::exception {
+private:
+    std::string msg;
+
 public:
-    using std::runtime_error::runtime_error;
+    AMULET_CORE_DLLX Deadlock(std::string msg);
+    AMULET_CORE_DLLX Deadlock();
+    const char* what() const noexcept override;
 };
 
 // std::shared_timed_mutex does not have order priority meaning that an older lock call can be blocked by newer lock_shared calls.
