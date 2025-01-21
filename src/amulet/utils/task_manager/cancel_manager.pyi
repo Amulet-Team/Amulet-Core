@@ -19,12 +19,11 @@ class AbstractCancelManager:
 
 class CancelManager(AbstractCancelManager):
     def __init__(self) -> None: ...
+    def __repr__(self) -> str: ...
 
 class TaskCancelled(Exception):
     pass
 
 class VoidCancelManager(AbstractCancelManager):
     def __init__(self) -> None: ...
-
-class _CancelManager(AbstractCancelManager):
-    pass
+    def __repr__(self) -> str: ...

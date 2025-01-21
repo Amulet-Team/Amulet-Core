@@ -44,12 +44,15 @@ public:
 
 class VoidCancelManager : public AbstractCancelManager {
 public:
-    AMULET_CORE_DLLX VoidCancelManager();
+    AMULET_CORE_DLLX VoidCancelManager() = default;
+    AMULET_CORE_DLLX VoidCancelManager(const VoidCancelManager&) = default;
     void cancel() override;
     bool is_cancel_requested() override;
     void register_cancel_callback(CancelCallback callback) override;
     void unregister_cancel_callback(CancelCallback callback) override;
 };
+
+AMULET_CORE_DLLX extern VoidCancelManager global_VoidCancelManager;
 
 class CancelManagerData {
 public:
@@ -65,6 +68,7 @@ private:
 public:
     AMULET_CORE_DLLX CancelManager(const std::shared_ptr<CancelManagerData>& data);
     AMULET_CORE_DLLX CancelManager();
+    CancelManager(CancelManager&) = delete;
 
     void cancel() override;
     bool is_cancel_requested() override;
