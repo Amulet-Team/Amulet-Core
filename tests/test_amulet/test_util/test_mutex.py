@@ -43,9 +43,7 @@ class MutexTestCase(unittest.TestCase):
             with self.assertRaises(Deadlock):
                 mutex.try_lock_for(timedelta(seconds=1))
             with self.assertRaises(Deadlock):
-                mutex.try_lock_shared_until(
-                    datetime.now() + timedelta(seconds=1)
-                )
+                mutex.try_lock_shared_until(datetime.now() + timedelta(seconds=1))
 
     def test_lock(self) -> None:
         mutex = OrderedSharedMutex()
