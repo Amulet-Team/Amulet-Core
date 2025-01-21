@@ -2,15 +2,16 @@
 
 namespace Amulet {
 
-AMULET_CORE_DLLX Deadlock::Deadlock(std::string msg)
-    : msg(msg)
+Deadlock::Deadlock(const std::string& msg)
+    : std::runtime_error(msg)
 {
 }
-AMULET_CORE_DLLX Deadlock::Deadlock()
+Deadlock::Deadlock()
     : Deadlock("Deadlock")
 {
 }
-AMULET_CORE_DLLX const char* Deadlock::what() const noexcept { return msg.c_str(); }
+Deadlock::~Deadlock() = default;
+const char* Deadlock::what() const noexcept { return std::runtime_error::what(); }
 
 AMULET_CORE_DLLX void OrderedSharedMutex::lock(AbstractCancelManager& cancel_manager)
 {

@@ -26,13 +26,11 @@ struct is_specialization_of<Template, Template<Args...>> : std::true_type { };
 
 namespace Amulet {
 
-class Deadlock : public std::exception {
-private:
-    std::string msg;
-
+class Deadlock : public std::runtime_error {
 public:
-    AMULET_CORE_DLLX Deadlock(std::string msg);
+    AMULET_CORE_DLLX explicit Deadlock(const std::string& msg);
     AMULET_CORE_DLLX Deadlock();
+    AMULET_CORE_DLLX ~Deadlock() noexcept override;
     AMULET_CORE_DLLX const char* what() const noexcept override;
 };
 

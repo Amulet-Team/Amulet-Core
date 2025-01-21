@@ -15,7 +15,7 @@ void init_mutex(py::module m_parent)
 
     std::string module_name = m.attr("__name__").cast<std::string>();
 
-    auto Deadlock = py::register_exception<Amulet::Deadlock>(m, "Deadlock");
+    auto Deadlock = py::register_exception<Amulet::Deadlock>(m, "Deadlock", PyExc_RuntimeError);
     Deadlock.doc() = "This exception signals that a deadlock occurred when locking a mutex.\n"
                      "Not all deadlock cases raise an exception.";
 

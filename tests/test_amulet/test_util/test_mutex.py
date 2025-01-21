@@ -14,14 +14,14 @@ from tests.test_amulet.test_util.test_mutex_ import throw_deadlock
 
 class MutexTestCase(unittest.TestCase):
     def test_deadlock(self) -> None:
-        # self.assertTrue(issubclass(Deadlock, RuntimeError))
+        self.assertTrue(issubclass(Deadlock, RuntimeError))
 
-        # with self.assertRaises(RuntimeError):
-        #     raise Deadlock
+        with self.assertRaises(RuntimeError):
+            raise Deadlock
         with self.assertRaises(Deadlock):
             raise Deadlock
-        # with self.assertRaises(RuntimeError):
-        #     throw_deadlock()
+        with self.assertRaises(RuntimeError):
+            throw_deadlock()
         with self.assertRaises(Deadlock):
             throw_deadlock()
 
