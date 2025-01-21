@@ -6,6 +6,7 @@
 #include <map>
 #include <mutex>
 #include <stdexcept>
+#include <thread>
 #include <tuple>
 #include <type_traits>
 
@@ -26,7 +27,7 @@ namespace Amulet {
 
 class Deadlock : public std::runtime_error {
 public:
-    std::runtime_error::runtime_error;
+    using std::runtime_error::runtime_error;
 };
 
 // std::shared_timed_mutex does not have order priority meaning that an older lock call can be blocked by newer lock_shared calls.
