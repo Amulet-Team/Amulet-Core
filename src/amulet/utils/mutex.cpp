@@ -10,7 +10,7 @@ AMULET_CORE_DLLX Deadlock::Deadlock()
     : Deadlock("Deadlock")
 {
 }
-const char* Deadlock::what() const noexcept { return msg.c_str(); }
+AMULET_CORE_DLLX const char* Deadlock::what() const noexcept { return msg.c_str(); }
 
 AMULET_CORE_DLLX void OrderedSharedMutex::lock(AbstractCancelManager& cancel_manager)
 {

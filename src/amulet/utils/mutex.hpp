@@ -33,7 +33,7 @@ private:
 public:
     AMULET_CORE_DLLX Deadlock(std::string msg);
     AMULET_CORE_DLLX Deadlock();
-    const char* what() const noexcept override;
+    AMULET_CORE_DLLX const char* what() const noexcept override;
 };
 
 // std::shared_timed_mutex does not have order priority meaning that an older lock call can be blocked by newer lock_shared calls.
