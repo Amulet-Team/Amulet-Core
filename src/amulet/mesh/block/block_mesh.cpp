@@ -55,8 +55,8 @@ AMULET_CORE_DLLX BlockMesh BlockMesh::rotate(std::int8_t rotx, std::int8_t roty)
             mesh.textures = textures;
 
             // Compuate rotation values
-            float theta_x = std::numbers::pi * rotx / 2.0;
-            float theta_y = std::numbers::pi * roty / 2.0;
+            float theta_x = static_cast<float>(std::numbers::pi * rotx / 2.0);
+            float theta_y = static_cast<float>(std::numbers::pi * roty / 2.0);
             float sin_x = std::sin(theta_x);
             float cos_x = std::cos(theta_x);
             float sin_y = std::sin(theta_y);
@@ -71,9 +71,9 @@ AMULET_CORE_DLLX BlockMesh BlockMesh::rotate(std::int8_t rotx, std::int8_t roty)
                     // Rotate the vertex coords.
                     for (auto& vertex : part->verts) {
                         auto& coord = vertex.coord;
-                        float x = coord.x - 0.5;
-                        float y = coord.y - 0.5;
-                        float z = coord.z - 0.5;
+                        float x = coord.x - 0.5f;
+                        float y = coord.y - 0.5f;
+                        float z = coord.z - 0.5f;
 
                         // Rotate in X axis
                         float y_ = y * cos_x - z * sin_x;
@@ -85,9 +85,9 @@ AMULET_CORE_DLLX BlockMesh BlockMesh::rotate(std::int8_t rotx, std::int8_t roty)
                         z = -x * sin_y + z * cos_y;
                         x = x_;
 
-                        coord.x = x + 0.5;
-                        coord.y = y + 0.5;
-                        coord.z = z + 0.5;
+                        coord.x = x + 0.5f;
+                        coord.y = y + 0.5f;
+                        coord.z = z + 0.5f;
                     }
                 }
             }

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <set>
 #include <stdexcept>
 #include <vector>

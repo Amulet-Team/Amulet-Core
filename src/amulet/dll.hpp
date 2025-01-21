@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef AMULET_CORE_DLLX
     #ifdef _WIN32
         #ifdef ExportAmuletCore

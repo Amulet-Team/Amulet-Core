@@ -87,11 +87,11 @@ namespace Amulet {
 		bool dense = true
 	) {
 		if (dense) {
-			return std::ceil(static_cast<float>(decoded_size * bits_per_entry) / 64);
+			return static_cast<size_t>(std::ceil(static_cast<float>(decoded_size * bits_per_entry) / 64));
 		}
 		else {
 			size_t entries_per_long = 64 / bits_per_entry;
-			return std::ceil(static_cast<float>(decoded_size) / entries_per_long);
+			return static_cast<size_t>(std::ceil(static_cast<float>(decoded_size) / entries_per_long));
 		}
 	}
 

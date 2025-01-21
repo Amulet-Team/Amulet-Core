@@ -16,11 +16,11 @@ namespace Amulet {
 	AMULET_CORE_DLLX const std::string JavaChunk1466::ChunkID = "Amulet::JavaChunk1466";
 	AMULET_CORE_DLLX const std::string JavaChunk2203::ChunkID = "Amulet::JavaChunk2203";
 	
-	AMULET_CORE_DLLX std::string JavaChunkNA::get_chunk_id() const { return ChunkID; }
-	AMULET_CORE_DLLX std::string JavaChunk0::get_chunk_id() const { return ChunkID; }
-	AMULET_CORE_DLLX std::string JavaChunk1444::get_chunk_id() const { return ChunkID; }
-	AMULET_CORE_DLLX std::string JavaChunk1466::get_chunk_id() const { return ChunkID; }
-	AMULET_CORE_DLLX std::string JavaChunk2203::get_chunk_id() const { return ChunkID; }
+	std::string JavaChunkNA::get_chunk_id() const { return ChunkID; }
+	std::string JavaChunk0::get_chunk_id() const { return ChunkID; }
+	std::string JavaChunk1444::get_chunk_id() const { return ChunkID; }
+	std::string JavaChunk1466::get_chunk_id() const { return ChunkID; }
+	std::string JavaChunk2203::get_chunk_id() const { return ChunkID; }
 	
 	AMULET_CORE_DLLX JavaChunkNA::JavaChunkNA(
 		std::shared_ptr<BlockStack> default_block,
