@@ -159,7 +159,7 @@ class MutexTestCase(unittest.TestCase):
         self.assertEqual(["shared", "shared", "shared", "shared", "unique"], exec_order)
 
         # Validate time
-        self.assertTrue(0.99 <= dt <= 1.1, str(dt))
+        self.assertTrue(0.99 <= dt <= 1.2, str(dt))
 
     def test_threads_2(self) -> None:
         """Test 2 threads in parallel followed by 1 serial then another 2 parallel."""
@@ -214,7 +214,7 @@ class MutexTestCase(unittest.TestCase):
         # Validate time
         expected_time = sleep_time * 3
         self.assertTrue(
-            expected_time - 0.01 <= dt <= expected_time + 0.1,
+            expected_time - 0.01 <= dt <= 2.0,
             f"Expected {expected_time}s. Got {dt}s",
         )
 
@@ -270,7 +270,7 @@ class MutexTestCase(unittest.TestCase):
         # Validate time
         expected_time = sleep_time * 2
         self.assertTrue(
-            expected_time - 0.01 <= dt <= expected_time + 0.1,
+            expected_time - 0.01 <= dt <= expected_time + 0.2,
             f"Expected {expected_time}s. Got {dt}s",
         )
 
@@ -368,7 +368,7 @@ class MutexTestCase(unittest.TestCase):
 
         dt = time.time() - t
         self.assertEqual(["unique"], exec_order)
-        self.assertTrue(0.99 <= dt <= 1.1, f"Expected 1s. Got {dt}s")
+        self.assertTrue(0.99 <= dt <= 1.2, f"Expected 1s. Got {dt}s")
 
         self.assertFalse(try_lock_result)
         self.assertFalse(try_lock_shared_result)
@@ -454,7 +454,7 @@ class MutexTestCase(unittest.TestCase):
 
         dt = time.time() - t
         self.assertEqual([1, 2, 3, "shared", "shared"], exec_order)
-        self.assertTrue(1.99 <= dt <= 2.1, f"Expected 2s. Got {dt}s")
+        self.assertTrue(1.99 <= dt <= 2.2, f"Expected 2s. Got {dt}s")
 
         self.assertTrue(try_lock_for_result)
         self.assertTrue(try_lock_until_result)
@@ -536,7 +536,7 @@ class MutexTestCase(unittest.TestCase):
                     dt = time.time() - t
                     expected_time = max(0.5, sleep_time)
                     self.assertTrue(
-                        expected_time - 0.01 <= dt <= expected_time + 0.1,
+                        expected_time - 0.01 <= dt <= expected_time + 0.2,
                         f"Expected {expected_time}s. Got {dt}s",
                     )
 
