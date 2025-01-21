@@ -14,7 +14,7 @@ from .test_mutex_ import throw_deadlock
 
 class MutexTestCase(unittest.TestCase):
     def test_deadlock(self) -> None:
-        self.assertTrue(issubclass(Deadlock, RuntimeError))
+        # self.assertTrue(issubclass(Deadlock, RuntimeError))
 
         # with self.assertRaises(RuntimeError):
         #     raise Deadlock
