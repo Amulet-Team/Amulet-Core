@@ -8,6 +8,8 @@ namespace py = pybind11;
 void init_test_mutex(py::module);
 
 void init_module(py::module m){
+    auto test_util = pybind11_extensions::def_subpackage(m, "test_util");
+    init_test_mutex(test_util);
 }
 
 PYBIND11_MODULE(_test_amulet, m) {

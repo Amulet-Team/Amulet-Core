@@ -9,11 +9,21 @@ from amulet.utils.task_manager import (
     TaskCancelled,
     AbstractCancelManager,
 )
+from .test_mutex_ import throw_deadlock
 
 
 class MutexTestCase(unittest.TestCase):
     def test_deadlock(self) -> None:
         self.assertTrue(issubclass(Deadlock, RuntimeError))
+
+        with self.assertRaises(RuntimeError):
+            raise Deadlock
+        with self.assertRaises(Deadlock):
+            raise Deadlock
+        with self.assertRaises(RuntimeError):
+            throw_deadlock()
+        with self.assertRaises(Deadlock):
+            throw_deadlock()
 
     def _test_self_deadlock(self, mutex):
         """Test that a deadlock exception is raised when locking an already locked mutex."""
