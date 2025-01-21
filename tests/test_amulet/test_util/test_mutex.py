@@ -9,7 +9,7 @@ from amulet.utils.task_manager import (
     TaskCancelled,
     AbstractCancelManager,
 )
-from .test_mutex_ import throw_deadlock
+from tests.test_amulet.test_util.test_mutex_ import throw_deadlock
 
 
 class MutexTestCase(unittest.TestCase):
