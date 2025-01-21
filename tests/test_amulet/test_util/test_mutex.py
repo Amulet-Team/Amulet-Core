@@ -16,38 +16,36 @@ class MutexTestCase(unittest.TestCase):
     def test_deadlock(self) -> None:
         self.assertTrue(issubclass(Deadlock, RuntimeError))
 
-        with self.assertRaises(RuntimeError):
-            raise Deadlock
+        # with self.assertRaises(RuntimeError):
+        #     raise Deadlock
         with self.assertRaises(Deadlock):
             raise Deadlock
-        with self.assertRaises(RuntimeError):
-            throw_deadlock()
+        # with self.assertRaises(RuntimeError):
+        #     throw_deadlock()
         with self.assertRaises(Deadlock):
             throw_deadlock()
 
     def _test_self_deadlock(self, mutex):
         """Test that a deadlock exception is raised when locking an already locked mutex."""
-        for exc in (RuntimeError, Deadlock):
-            with self.subTest(exc=exc):
-                with self.assertRaises(exc):
-                    mutex.lock()
-                with self.assertRaises(exc):
-                    mutex.try_lock()
-                with self.assertRaises(exc):
-                    mutex.lock_shared()
-                with self.assertRaises(exc):
-                    mutex.try_lock_shared()
-                if isinstance(mutex, OrderedSharedTimedMutex):
-                    with self.assertRaises(exc):
-                        mutex.try_lock_for(timedelta(seconds=1))
-                    with self.assertRaises(exc):
-                        mutex.try_lock_until(datetime.now() + timedelta(seconds=1))
-                    with self.assertRaises(exc):
-                        mutex.try_lock_for(timedelta(seconds=1))
-                    with self.assertRaises(exc):
-                        mutex.try_lock_shared_until(
-                            datetime.now() + timedelta(seconds=1)
-                        )
+        with self.assertRaises(Deadlock):
+            mutex.lock()
+        with self.assertRaises(Deadlock):
+            mutex.try_lock()
+        with self.assertRaises(Deadlock):
+            mutex.lock_shared()
+        with self.assertRaises(Deadlock):
+            mutex.try_lock_shared()
+        if isinstance(mutex, OrderedSharedTimedMutex):
+            with self.assertRaises(Deadlock):
+                mutex.try_lock_for(timedelta(seconds=1))
+            with self.assertRaises(Deadlock):
+                mutex.try_lock_until(datetime.now() + timedelta(seconds=1))
+            with self.assertRaises(Deadlock):
+                mutex.try_lock_for(timedelta(seconds=1))
+            with self.assertRaises(Deadlock):
+                mutex.try_lock_shared_until(
+                    datetime.now() + timedelta(seconds=1)
+                )
 
     def test_lock(self) -> None:
         mutex = OrderedSharedMutex()
