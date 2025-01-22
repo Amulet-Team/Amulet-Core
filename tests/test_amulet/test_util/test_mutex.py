@@ -119,6 +119,7 @@ class MutexTestCase(unittest.TestCase):
         exec_order: list[str] = []
         end_times: list[float] = []
         thread_count = 0
+
         def increment_thread_count():
             nonlocal thread_count
             thread_count += 1
@@ -180,7 +181,21 @@ class MutexTestCase(unittest.TestCase):
         dt = max(end_times) - t
 
         # validate order
-        self.assertEqual(["shared", "shared", "shared", "shared", "shared", "shared", "shared", "shared", "unique", "unique"], exec_order)
+        self.assertEqual(
+            [
+                "shared",
+                "shared",
+                "shared",
+                "shared",
+                "shared",
+                "shared",
+                "shared",
+                "shared",
+                "unique",
+                "unique",
+            ],
+            exec_order,
+        )
 
         # Validate time
         expected_time = 2
@@ -197,6 +212,7 @@ class MutexTestCase(unittest.TestCase):
         exec_order: list[str] = []
         end_times: list[float] = []
         thread_count = 0
+
         def increment_thread_count():
             nonlocal thread_count
             thread_count += 1
@@ -271,7 +287,21 @@ class MutexTestCase(unittest.TestCase):
         dt = max(end_times) - t
 
         # Validate order
-        self.assertEqual(["shared", "shared", "shared", "shared", "unique", "unique", "shared", "shared", "shared", "shared"], exec_order)
+        self.assertEqual(
+            [
+                "shared",
+                "shared",
+                "shared",
+                "shared",
+                "unique",
+                "unique",
+                "shared",
+                "shared",
+                "shared",
+                "shared",
+            ],
+            exec_order,
+        )
 
         # Validate time
         expected_time = sleep_time * 3
@@ -288,6 +318,7 @@ class MutexTestCase(unittest.TestCase):
         exec_order: list[str] = []
         end_times: list[float] = []
         thread_count = 0
+
         def increment_thread_count():
             nonlocal thread_count
             thread_count += 1
@@ -350,7 +381,21 @@ class MutexTestCase(unittest.TestCase):
         dt = max(end_times) - t
 
         # Validate order
-        self.assertEqual(["unique", "unique", "shared", "shared", "shared", "shared", "shared", "shared", "shared", "shared"], exec_order)
+        self.assertEqual(
+            [
+                "unique",
+                "unique",
+                "shared",
+                "shared",
+                "shared",
+                "shared",
+                "shared",
+                "shared",
+                "shared",
+                "shared",
+            ],
+            exec_order,
+        )
 
         # Validate time
         expected_time = sleep_time * 2
@@ -364,6 +409,7 @@ class MutexTestCase(unittest.TestCase):
         condition = Condition()
         end_times: list[float] = []
         thread_count = 0
+
         def increment_thread_count():
             nonlocal thread_count
             thread_count += 1
@@ -522,6 +568,7 @@ class MutexTestCase(unittest.TestCase):
         exec_order: list = []
         end_times: list[float] = []
         thread_count = 0
+
         def increment_thread_count():
             nonlocal thread_count
             thread_count += 1
@@ -631,7 +678,9 @@ class MutexTestCase(unittest.TestCase):
         try_lock_shared_until_thread.join()
 
         dt = max(end_times) - t
-        self.assertEqual([1, 1, 2, 2, 3, 3, "shared", "shared", "shared", "shared"], exec_order)
+        self.assertEqual(
+            [1, 1, 2, 2, 3, 3, "shared", "shared", "shared", "shared"], exec_order
+        )
         expected_time = 4
         self.assertTrue(
             expected_time - 0.01 <= dt <= expected_time + 0.5,
