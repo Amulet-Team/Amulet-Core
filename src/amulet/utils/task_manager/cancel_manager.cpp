@@ -17,8 +17,8 @@ TaskCancelled::TaskCancelled()
     : TaskCancelled("Task Cancelled")
 {
 }
-TaskCancelled::~TaskCancelled() = default;
-const char* TaskCancelled::what() const { return msg.c_str(); }
+TaskCancelled::~TaskCancelled() noexcept = default;
+const char* TaskCancelled::what() const noexcept { return msg.c_str(); }
 
 // VoidCancelManager
 VoidCancelManager::VoidCancelManager() = default;

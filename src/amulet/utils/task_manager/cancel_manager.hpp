@@ -18,8 +18,8 @@ private:
 public:
     AMULET_CORE_DLLX TaskCancelled(std::string msg);
     AMULET_CORE_DLLX TaskCancelled();
-    AMULET_CORE_DLLX ~TaskCancelled() override;
-    AMULET_CORE_DLLX const char* what() const override;
+    AMULET_CORE_DLLX ~TaskCancelled() noexcept override;
+    AMULET_CORE_DLLX const char* what() const noexcept override;
 };
 
 using CancelCallback = std::function<void()>;

@@ -11,8 +11,8 @@ Deadlock::Deadlock()
     : Deadlock("Deadlock")
 {
 }
-Deadlock::~Deadlock() = default;
-const char* Deadlock::what() const { return std::runtime_error::what(); }
+Deadlock::~Deadlock() noexcept = default;
+const char* Deadlock::what() const noexcept { return std::runtime_error::what(); }
 
 // OrderedSharedMutex
 OrderedSharedMutex::OrderedSharedMutex() = default;
