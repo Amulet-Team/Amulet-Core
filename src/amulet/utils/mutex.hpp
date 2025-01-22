@@ -31,7 +31,7 @@ public:
     AMULET_CORE_DLLX explicit Deadlock(const std::string& msg);
     AMULET_CORE_DLLX Deadlock();
     AMULET_CORE_DLLX ~Deadlock() noexcept override;
-    AMULET_CORE_DLLX const char* what() const noexcept override;
+    AMULET_CORE_DLLX const char* what() const override;
 };
 
 // std::shared_timed_mutex does not have order priority meaning that an older lock call can be blocked by newer lock_shared calls.
@@ -238,8 +238,12 @@ protected:
 
 public:
     // Constructors
-    OrderedSharedMutex() = default;
+    AMULET_CORE_DLLX OrderedSharedMutex();
     OrderedSharedMutex(const OrderedSharedMutex&) = delete;
+    OrderedSharedMutex(OrderedSharedMutex&&) = delete;
+
+    // Destructor
+    AMULET_CORE_DLLX ~OrderedSharedMutex();
 
     // Unique
     AMULET_CORE_DLLX void lock(AbstractCancelManager& cancel_manager = global_VoidCancelManager);
@@ -255,8 +259,12 @@ public:
 class OrderedSharedTimedMutex : public OrderedSharedMutex {
 public:
     // Constructors
-    OrderedSharedTimedMutex() = default;
+    AMULET_CORE_DLLX OrderedSharedTimedMutex();
     OrderedSharedTimedMutex(const OrderedSharedTimedMutex&) = delete;
+    OrderedSharedTimedMutex(OrderedSharedTimedMutex&&) = delete;
+
+    // Destructor
+    AMULET_CORE_DLLX ~OrderedSharedTimedMutex();
 
     // Unique
     template <class Rep, class Period>
