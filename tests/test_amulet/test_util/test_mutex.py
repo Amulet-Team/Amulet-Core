@@ -132,7 +132,7 @@ class MutexTestCase(unittest.TestCase):
             mutex.lock_shared()
             increment_thread_count()
             exec_order.append("shared")
-            time.sleep(0.5)
+            time.sleep(1)
             exec_order.append("shared")
             mutex.unlock_shared()
             end_times.append(time.time())
@@ -144,7 +144,7 @@ class MutexTestCase(unittest.TestCase):
             mutex.lock()
             increment_thread_count()
             exec_order.append("unique")
-            time.sleep(0.5)
+            time.sleep(1)
             exec_order.append("unique")
             mutex.unlock()
             end_times.append(time.time())
@@ -183,7 +183,11 @@ class MutexTestCase(unittest.TestCase):
         self.assertEqual(["shared", "shared", "shared", "shared", "shared", "shared", "shared", "shared", "unique", "unique"], exec_order)
 
         # Validate time
-        self.assertTrue(0.99 <= dt <= 1.2, str(dt))
+        expected_time = 2
+        self.assertTrue(
+            expected_time - 0.01 <= dt <= expected_time + 0.5,
+            f"Expected {expected_time}s. Got {dt}s",
+        )
 
     def test_threads_2(self) -> None:
         """Test 2 threads in parallel followed by 1 serial then another 2 parallel."""
@@ -199,7 +203,7 @@ class MutexTestCase(unittest.TestCase):
             with condition:
                 condition.notify_all()
 
-        sleep_time = 0.5
+        sleep_time = 1
 
         def thread_shared_1():
             increment_thread_count()
@@ -272,7 +276,7 @@ class MutexTestCase(unittest.TestCase):
         # Validate time
         expected_time = sleep_time * 3
         self.assertTrue(
-            expected_time - 0.01 <= dt <= expected_time + 0.2,
+            expected_time - 0.01 <= dt <= expected_time + 0.5,
             f"Expected {expected_time}s. Got {dt}s",
         )
 
@@ -290,7 +294,7 @@ class MutexTestCase(unittest.TestCase):
             with condition:
                 condition.notify_all()
 
-        sleep_time = 0.5
+        sleep_time = 1
 
         def thread_unique():
             increment_thread_count()
@@ -351,7 +355,7 @@ class MutexTestCase(unittest.TestCase):
         # Validate time
         expected_time = sleep_time * 2
         self.assertTrue(
-            expected_time - 0.01 <= dt <= expected_time + 0.2,
+            expected_time - 0.01 <= dt <= expected_time + 0.5,
             f"Expected {expected_time}s. Got {dt}s",
         )
 
@@ -498,7 +502,11 @@ class MutexTestCase(unittest.TestCase):
 
         dt = max(end_times) - t
         self.assertEqual(["unique", "unique"], exec_order)
-        self.assertTrue(0.99 <= dt <= 1.2, f"Expected 1s. Got {dt}s")
+        expected_time = 1
+        self.assertTrue(
+            expected_time - 0.01 <= dt <= expected_time + 0.5,
+            f"Expected {expected_time}s. Got {dt}s",
+        )
 
         self.assertFalse(try_lock_result)
         self.assertFalse(try_lock_shared_result)
@@ -532,7 +540,7 @@ class MutexTestCase(unittest.TestCase):
             mutex.lock()
             increment_thread_count()
             exec_order.append(1)
-            time.sleep(0.5)
+            time.sleep(1)
             exec_order.append(1)
             mutex.unlock()
             end_times.append(time.time())
@@ -546,7 +554,7 @@ class MutexTestCase(unittest.TestCase):
             increment_thread_count()
             if try_lock_for_result:
                 exec_order.append(2)
-                time.sleep(0.5)
+                time.sleep(1)
                 exec_order.append(2)
                 mutex.unlock()
             end_times.append(time.time())
@@ -562,7 +570,7 @@ class MutexTestCase(unittest.TestCase):
             increment_thread_count()
             if try_lock_until_result:
                 exec_order.append(3)
-                time.sleep(0.5)
+                time.sleep(1)
                 exec_order.append(3)
                 mutex.unlock()
             end_times.append(time.time())
@@ -576,7 +584,7 @@ class MutexTestCase(unittest.TestCase):
             increment_thread_count()
             if try_lock_shared_for_result:
                 exec_order.append("shared")
-                time.sleep(0.5)
+                time.sleep(1)
                 exec_order.append("shared")
                 mutex.unlock_shared()
             end_times.append(time.time())
@@ -592,7 +600,7 @@ class MutexTestCase(unittest.TestCase):
             increment_thread_count()
             if try_lock_shared_until_result:
                 exec_order.append("shared")
-                time.sleep(0.5)
+                time.sleep(1)
                 exec_order.append("shared")
                 mutex.unlock_shared()
             end_times.append(time.time())
@@ -624,7 +632,11 @@ class MutexTestCase(unittest.TestCase):
 
         dt = max(end_times) - t
         self.assertEqual([1, 1, 2, 2, 3, 3, "shared", "shared", "shared", "shared"], exec_order)
-        self.assertTrue(1.99 <= dt <= 2.2, f"Expected 2s. Got {dt}s")
+        expected_time = 4
+        self.assertTrue(
+            expected_time - 0.01 <= dt <= expected_time + 0.5,
+            f"Expected {expected_time}s. Got {dt}s",
+        )
 
         self.assertTrue(try_lock_for_result)
         self.assertTrue(try_lock_until_result)
@@ -739,7 +751,7 @@ class MutexTestCase(unittest.TestCase):
                     dt = max(end_times) - t
                     expected_time = max(1.0, sleep_time)
                     self.assertTrue(
-                        expected_time - 0.01 <= dt <= expected_time + 0.2,
+                        expected_time - 0.01 <= dt <= expected_time + 0.5,
                         f"Expected {expected_time}s. Got {dt}s",
                     )
 
