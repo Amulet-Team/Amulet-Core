@@ -18,7 +18,8 @@ private:
 public:
     AMULET_CORE_DLLX TaskCancelled(std::string msg);
     AMULET_CORE_DLLX TaskCancelled();
-    const char* what() const noexcept override;
+    AMULET_CORE_DLLX ~TaskCancelled() override;
+    AMULET_CORE_DLLX const char* what() const override;
 };
 
 using CancelCallback = std::function<void()>;
@@ -44,12 +45,13 @@ public:
 
 class VoidCancelManager : public AbstractCancelManager {
 public:
-    AMULET_CORE_DLLX VoidCancelManager() = default;
-    AMULET_CORE_DLLX VoidCancelManager(const VoidCancelManager&) = default;
-    void cancel() override;
-    bool is_cancel_requested() override;
-    void register_cancel_callback(CancelCallback callback) override;
-    void unregister_cancel_callback(CancelCallback callback) override;
+    AMULET_CORE_DLLX VoidCancelManager();
+    AMULET_CORE_DLLX VoidCancelManager(const VoidCancelManager&);
+    AMULET_CORE_DLLX ~VoidCancelManager() override;
+    AMULET_CORE_DLLX void cancel() override;
+    AMULET_CORE_DLLX bool is_cancel_requested() override;
+    AMULET_CORE_DLLX void register_cancel_callback(CancelCallback callback) override;
+    AMULET_CORE_DLLX void unregister_cancel_callback(CancelCallback callback) override;
 };
 
 AMULET_CORE_DLLX extern VoidCancelManager global_VoidCancelManager;
@@ -70,10 +72,10 @@ public:
     AMULET_CORE_DLLX CancelManager();
     CancelManager(CancelManager&) = delete;
 
-    void cancel() override;
-    bool is_cancel_requested() override;
-    void register_cancel_callback(CancelCallback callback) override;
-    void unregister_cancel_callback(CancelCallback callback) override;
+    AMULET_CORE_DLLX void cancel() override;
+    AMULET_CORE_DLLX bool is_cancel_requested() override;
+    AMULET_CORE_DLLX void register_cancel_callback(CancelCallback callback) override;
+    AMULET_CORE_DLLX void unregister_cancel_callback(CancelCallback callback) override;
 };
 
 } // namespace Amulet
