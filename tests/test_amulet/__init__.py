@@ -4,7 +4,9 @@ def _init() -> None:
     # Import dependencies
     import amulet
 
-    from ._test_amulet import init
+    # This needs to be an absoulte path otherwise it may get called twice
+    # on different module objects and crash when the interpreter shuts down.
+    from tests.test_amulet._test_amulet import init
 
     init(sys.modules[__name__])
 
