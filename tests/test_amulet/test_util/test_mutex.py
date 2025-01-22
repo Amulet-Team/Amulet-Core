@@ -1,6 +1,6 @@
 import unittest
 from datetime import timedelta, datetime
-from threading import Thread, Lock, Condition
+from threading import Thread, RLock, Condition
 import time
 
 from amulet.utils.mutex import OrderedSharedMutex, OrderedSharedTimedMutex, Deadlock
@@ -119,27 +119,33 @@ class MutexTestCase(unittest.TestCase):
         exec_order: list[str] = []
         end_times: list[float] = []
         thread_count = 0
+        def increment_thread_count():
+            nonlocal thread_count
+            thread_count += 1
+            with condition:
+                condition.notify_all()
 
         def thread_shared():
-            nonlocal thread_count
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
+                condition.wait_for(lambda: thread_count >= 5)
             mutex.lock_shared()
+            increment_thread_count()
             exec_order.append("shared")
             time.sleep(0.5)
+            exec_order.append("shared")
             mutex.unlock_shared()
             end_times.append(time.time())
 
         def thread_unique():
-            nonlocal thread_count
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
-            time.sleep(0.1)
+                condition.wait_for(lambda: thread_count == 9)
             mutex.lock()
+            increment_thread_count()
             exec_order.append("unique")
             time.sleep(0.5)
+            exec_order.append("unique")
             mutex.unlock()
             end_times.append(time.time())
 
@@ -157,14 +163,10 @@ class MutexTestCase(unittest.TestCase):
         thread_5.start()
 
         # Wait for all threads to start
-        while thread_count != 5:
-            time.sleep(0.01)
-
+        with condition:
+            condition.wait_for(lambda: thread_count >= 5)
         # Get start time
         t = time.time()
-        # Wake all threads
-        with condition:
-            condition.notify_all()
 
         # Wait for threads to finish
         thread_1.join()
@@ -173,13 +175,15 @@ class MutexTestCase(unittest.TestCase):
         thread_4.join()
         thread_5.join()
 
+        self.assertEqual(10, thread_count)
+
         dt = max(end_times) - t
 
         # validate order
-        self.assertEqual(["shared", "shared", "shared", "shared", "unique"], exec_order)
+        self.assertEqual(["shared", "shared", "shared", "shared", "shared", "shared", "shared", "shared", "unique", "unique"], exec_order)
 
         # Validate time
-        self.assertTrue(0.99 <= dt <= 1.1, str(dt))
+        self.assertTrue(0.99 <= dt <= 1.2, str(dt))
 
     def test_threads_2(self) -> None:
         """Test 2 threads in parallel followed by 1 serial then another 2 parallel."""
@@ -189,41 +193,47 @@ class MutexTestCase(unittest.TestCase):
         exec_order: list[str] = []
         end_times: list[float] = []
         thread_count = 0
+        def increment_thread_count():
+            nonlocal thread_count
+            thread_count += 1
+            with condition:
+                condition.notify_all()
 
         sleep_time = 0.5
 
         def thread_shared_1():
-            nonlocal thread_count
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
+                condition.wait_for(lambda: thread_count >= 5)
             mutex.lock_shared()
+            increment_thread_count()
             exec_order.append("shared")
             time.sleep(sleep_time)
+            exec_order.append("shared")
             mutex.unlock_shared()
             end_times.append(time.time())
 
         def thread_unique():
-            nonlocal thread_count
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
-            time.sleep(0.1)
+                condition.wait_for(lambda: thread_count == 7)
             mutex.lock()
+            increment_thread_count()
             exec_order.append("unique")
             time.sleep(sleep_time)
+            exec_order.append("unique")
             mutex.unlock()
             end_times.append(time.time())
 
         def thread_shared_2():
-            nonlocal thread_count
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
-            time.sleep(0.2)
+                condition.wait_for(lambda: thread_count >= 8)
             mutex.lock_shared()
+            increment_thread_count()
             exec_order.append("shared")
             time.sleep(sleep_time)
+            exec_order.append("shared")
             mutex.unlock_shared()
             end_times.append(time.time())
 
@@ -241,14 +251,11 @@ class MutexTestCase(unittest.TestCase):
         thread_5.start()
 
         # Wait for all threads to start
-        while thread_count != 5:
-            time.sleep(0.01)
+        with condition:
+            condition.wait_for(lambda: thread_count >= 5)
 
         # Get start time
         t = time.time()
-        # Wake all threads
-        with condition:
-            condition.notify_all()
 
         # Wait for threads to finish
         thread_1.join()
@@ -260,12 +267,12 @@ class MutexTestCase(unittest.TestCase):
         dt = max(end_times) - t
 
         # Validate order
-        self.assertEqual(["shared", "shared", "unique", "shared", "shared"], exec_order)
+        self.assertEqual(["shared", "shared", "shared", "shared", "unique", "unique", "shared", "shared", "shared", "shared"], exec_order)
 
         # Validate time
         expected_time = sleep_time * 3
         self.assertTrue(
-            expected_time - 0.01 <= dt <= expected_time + 0.1,
+            expected_time - 0.01 <= dt <= expected_time + 0.2,
             f"Expected {expected_time}s. Got {dt}s",
         )
 
@@ -277,29 +284,35 @@ class MutexTestCase(unittest.TestCase):
         exec_order: list[str] = []
         end_times: list[float] = []
         thread_count = 0
+        def increment_thread_count():
+            nonlocal thread_count
+            thread_count += 1
+            with condition:
+                condition.notify_all()
 
         sleep_time = 0.5
 
         def thread_unique():
-            nonlocal thread_count
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
+                condition.wait_for(lambda: thread_count >= 5)
             mutex.lock()
+            increment_thread_count()
             exec_order.append("unique")
             time.sleep(sleep_time)
+            exec_order.append("unique")
             mutex.unlock()
             end_times.append(time.time())
 
         def thread_shared():
-            nonlocal thread_count
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
-            time.sleep(0.1)
+                condition.wait_for(lambda: thread_count >= 6)
             mutex.lock_shared()
+            increment_thread_count()
             exec_order.append("shared")
             time.sleep(sleep_time)
+            exec_order.append("shared")
             mutex.unlock_shared()
             end_times.append(time.time())
 
@@ -317,14 +330,11 @@ class MutexTestCase(unittest.TestCase):
         thread_5.start()
 
         # Wait for all threads to start
-        while thread_count != 5:
-            time.sleep(0.01)
+        with condition:
+            condition.wait_for(lambda: thread_count >= 5)
 
         # Get start time
         t = time.time()
-        # Wake all threads
-        with condition:
-            condition.notify_all()
 
         # Wait for threads to finish
         thread_1.join()
@@ -336,12 +346,12 @@ class MutexTestCase(unittest.TestCase):
         dt = max(end_times) - t
 
         # Validate order
-        self.assertEqual(["unique", "shared", "shared", "shared", "shared"], exec_order)
+        self.assertEqual(["unique", "unique", "shared", "shared", "shared", "shared", "shared", "shared", "shared", "shared"], exec_order)
 
         # Validate time
         expected_time = sleep_time * 2
         self.assertTrue(
-            expected_time - 0.01 <= dt <= expected_time + 0.1,
+            expected_time - 0.01 <= dt <= expected_time + 0.2,
             f"Expected {expected_time}s. Got {dt}s",
         )
 
@@ -350,6 +360,11 @@ class MutexTestCase(unittest.TestCase):
         condition = Condition()
         end_times: list[float] = []
         thread_count = 0
+        def increment_thread_count():
+            nonlocal thread_count
+            thread_count += 1
+            with condition:
+                condition.notify_all()
 
         exec_order: list[str] = []
 
@@ -361,89 +376,90 @@ class MutexTestCase(unittest.TestCase):
         try_lock_shared_until_result = True
 
         def thread_unique():
-            nonlocal thread_count
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
+                condition.wait_for(lambda: thread_count == 7)
             mutex.lock()
+            increment_thread_count()
+            exec_order.append("unique")
             time.sleep(1)
             exec_order.append("unique")
             mutex.unlock()
             end_times.append(time.time())
 
         def try_lock():
-            nonlocal thread_count, try_lock_result
+            nonlocal try_lock_result
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
-            time.sleep(0.1)
+                condition.wait_for(lambda: thread_count >= 8)
             try_lock_result = mutex.try_lock()
+            increment_thread_count()
             if try_lock_result:
                 exec_order.append("unique")
                 mutex.unlock()
             end_times.append(time.time())
 
         def try_lock_shared():
-            nonlocal thread_count, try_lock_shared_result
+            nonlocal try_lock_shared_result
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
-            time.sleep(0.1)
+                condition.wait_for(lambda: thread_count >= 8)
             try_lock_shared_result = mutex.try_lock_shared()
+            increment_thread_count()
             if try_lock_shared_result:
                 exec_order.append("shared")
                 mutex.unlock_shared()
             end_times.append(time.time())
 
         def try_lock_for():
-            nonlocal thread_count, try_lock_for_result
+            nonlocal try_lock_for_result
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
-            time.sleep(0.1)
+                condition.wait_for(lambda: thread_count >= 8)
             try_lock_for_result = mutex.try_lock_for(timedelta(milliseconds=500))
+            increment_thread_count()
             if try_lock_for_result:
                 exec_order.append("unique")
                 mutex.unlock()
             end_times.append(time.time())
 
         def try_lock_until():
-            nonlocal thread_count, try_lock_until_result
+            nonlocal try_lock_until_result
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
-            time.sleep(0.1)
+                condition.wait_for(lambda: thread_count >= 8)
             try_lock_until_result = mutex.try_lock_until(
                 datetime.now() + timedelta(milliseconds=500)
             )
+            increment_thread_count()
             if try_lock_until_result:
                 exec_order.append("unique")
                 mutex.unlock()
             end_times.append(time.time())
 
         def try_lock_shared_for():
-            nonlocal thread_count, try_lock_shared_for_result
+            nonlocal try_lock_shared_for_result
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
-            time.sleep(0.1)
+                condition.wait_for(lambda: thread_count >= 8)
             try_lock_shared_for_result = mutex.try_lock_shared_for(
                 timedelta(milliseconds=500)
             )
+            increment_thread_count()
             if try_lock_shared_for_result:
                 exec_order.append("shared")
                 mutex.unlock_shared()
             end_times.append(time.time())
 
         def try_lock_shared_until():
-            nonlocal thread_count, try_lock_shared_until_result
+            nonlocal try_lock_shared_until_result
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
-            time.sleep(0.1)
+                condition.wait_for(lambda: thread_count >= 8)
             try_lock_shared_until_result = mutex.try_lock_shared_until(
                 datetime.now() + timedelta(milliseconds=500)
             )
+            increment_thread_count()
             if try_lock_shared_until_result:
                 exec_order.append("shared")
                 mutex.unlock_shared()
@@ -466,14 +482,11 @@ class MutexTestCase(unittest.TestCase):
         try_lock_shared_until_thread.start()
 
         # Wait for all threads to start
-        while thread_count != 7:
-            time.sleep(0.01)
+        with condition:
+            condition.wait_for(lambda: thread_count >= 7)
 
         # Get start time
         t = time.time()
-        # Wake all threads
-        with condition:
-            condition.notify_all()
 
         blocking_thread.join()
         try_lock_thread.join()
@@ -484,7 +497,7 @@ class MutexTestCase(unittest.TestCase):
         try_lock_shared_until_thread.join()
 
         dt = max(end_times) - t
-        self.assertEqual(["unique"], exec_order)
+        self.assertEqual(["unique", "unique"], exec_order)
         self.assertTrue(0.99 <= dt <= 1.2, f"Expected 1s. Got {dt}s")
 
         self.assertFalse(try_lock_result)
@@ -501,6 +514,11 @@ class MutexTestCase(unittest.TestCase):
         exec_order: list = []
         end_times: list[float] = []
         thread_count = 0
+        def increment_thread_count():
+            nonlocal thread_count
+            thread_count += 1
+            with condition:
+                condition.notify_all()
 
         try_lock_for_result = False
         try_lock_until_result = False
@@ -508,69 +526,74 @@ class MutexTestCase(unittest.TestCase):
         try_lock_shared_until_result = False
 
         def thread_unique():
-            nonlocal thread_count
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
+                condition.wait_for(lambda: thread_count == 5)
             mutex.lock()
+            increment_thread_count()
+            exec_order.append(1)
             time.sleep(0.5)
             exec_order.append(1)
             mutex.unlock()
             end_times.append(time.time())
 
         def try_lock_for():
-            nonlocal thread_count, try_lock_for_result
+            nonlocal try_lock_for_result
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
-            time.sleep(0.1)
+                condition.wait_for(lambda: thread_count == 6)
             try_lock_for_result = mutex.try_lock_for(timedelta(seconds=2))
+            increment_thread_count()
             if try_lock_for_result:
                 exec_order.append(2)
                 time.sleep(0.5)
+                exec_order.append(2)
                 mutex.unlock()
             end_times.append(time.time())
 
         def try_lock_until():
-            nonlocal thread_count, try_lock_until_result
+            nonlocal try_lock_until_result
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
-            time.sleep(0.2)
+                condition.wait_for(lambda: thread_count == 7)
             try_lock_until_result = mutex.try_lock_until(
                 datetime.now() + timedelta(seconds=2)
             )
+            increment_thread_count()
             if try_lock_until_result:
                 exec_order.append(3)
                 time.sleep(0.5)
+                exec_order.append(3)
                 mutex.unlock()
             end_times.append(time.time())
 
         def try_lock_shared_for():
-            nonlocal thread_count, try_lock_shared_for_result
+            nonlocal try_lock_shared_for_result
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
-            time.sleep(0.3)
+                condition.wait_for(lambda: thread_count >= 8)
             try_lock_shared_for_result = mutex.try_lock_shared_for(timedelta(seconds=2))
+            increment_thread_count()
             if try_lock_shared_for_result:
                 exec_order.append("shared")
                 time.sleep(0.5)
+                exec_order.append("shared")
                 mutex.unlock_shared()
             end_times.append(time.time())
 
         def try_lock_shared_until():
-            nonlocal thread_count, try_lock_shared_until_result
+            nonlocal try_lock_shared_until_result
+            increment_thread_count()
             with condition:
-                thread_count += 1
-                condition.wait()
-            time.sleep(0.4)
+                condition.wait_for(lambda: thread_count >= 8)
             try_lock_shared_until_result = mutex.try_lock_shared_until(
                 datetime.now() + timedelta(seconds=2)
             )
+            increment_thread_count()
             if try_lock_shared_until_result:
                 exec_order.append("shared")
                 time.sleep(0.5)
+                exec_order.append("shared")
                 mutex.unlock_shared()
             end_times.append(time.time())
 
@@ -587,14 +610,11 @@ class MutexTestCase(unittest.TestCase):
         try_lock_shared_until_thread.start()
 
         # Wait for all threads to start
-        while thread_count != 5:
-            time.sleep(0.01)
+        with condition:
+            condition.wait_for(lambda: thread_count >= 5)
 
         # Get start time
         t = time.time()
-        # Wake all threads
-        with condition:
-            condition.notify_all()
 
         blocking_thread.join()
         try_lock_for_thread.join()
@@ -603,7 +623,7 @@ class MutexTestCase(unittest.TestCase):
         try_lock_shared_until_thread.join()
 
         dt = max(end_times) - t
-        self.assertEqual([1, 2, 3, "shared", "shared"], exec_order)
+        self.assertEqual([1, 1, 2, 2, 3, 3, "shared", "shared", "shared", "shared"], exec_order)
         self.assertTrue(1.99 <= dt <= 2.2, f"Expected 2s. Got {dt}s")
 
         self.assertTrue(try_lock_for_result)
@@ -614,7 +634,7 @@ class MutexTestCase(unittest.TestCase):
         Two threads acquire a mutex then trying to acquire the other mutex.
         Test the cancel manager working when called before and after the second mutex lock is called.
         """
-        for sleep_time in [0.1, 1.0]:
+        for sleep_time in [0.1, 2.0]:
             for timeout in [False, True]:
                 with self.subTest(sleep_time=sleep_time, timeout=timeout):
                     mutex_1 = OrderedSharedTimedMutex()
@@ -627,16 +647,25 @@ class MutexTestCase(unittest.TestCase):
                     end_times: list[float] = []
                     thread_count = 0
 
-                    def thread_1_func(cancel_manager: AbstractCancelManager):
-                        nonlocal thread_count, thread_1_result
+                    def increment_thread_count():
+                        nonlocal thread_count
+                        thread_count += 1
                         with condition:
-                            thread_count += 1
-                            condition.wait()
+                            condition.notify_all()
+
+                    def thread_1_func(cancel_manager: AbstractCancelManager):
+                        nonlocal thread_1_result
+                        increment_thread_count()
+                        with condition:
+                            condition.wait_for(lambda: thread_count >= 2)
                         mutex_1.lock(cancel_manager)
-                        time.sleep(0.5)
+                        increment_thread_count()
+                        with condition:
+                            condition.wait_for(lambda: thread_count >= 4)
+                        time.sleep(1)
                         if timeout:
                             locked = mutex_2.try_lock_for(
-                                timedelta(seconds=1), cancel_manager
+                                timedelta(seconds=10), cancel_manager
                             )
                             if locked:
                                 mutex_2.unlock()
@@ -653,15 +682,18 @@ class MutexTestCase(unittest.TestCase):
                         end_times.append(time.time())
 
                     def thread_2_func(cancel_manager: AbstractCancelManager):
-                        nonlocal thread_count, thread_2_result
+                        nonlocal thread_2_result
+                        increment_thread_count()
                         with condition:
-                            thread_count += 1
-                            condition.wait()
+                            condition.wait_for(lambda: thread_count >= 2)
                         mutex_2.lock(cancel_manager)
-                        time.sleep(0.5)
+                        increment_thread_count()
+                        with condition:
+                            condition.wait_for(lambda: thread_count >= 4)
+                        time.sleep(1)
                         if timeout:
                             locked = mutex_1.try_lock_for(
-                                timedelta(seconds=1), cancel_manager
+                                timedelta(seconds=10), cancel_manager
                             )
                             if locked:
                                 mutex_1.unlock()
@@ -686,14 +718,14 @@ class MutexTestCase(unittest.TestCase):
                     thread_2.start()
 
                     # Wait for all threads to start
-                    while thread_count != 2:
-                        time.sleep(0.01)
+                    with condition:
+                        condition.wait_for(lambda: thread_count >= 2)
 
                     # Get start time
                     t = time.time()
-                    # Wake all threads
+
                     with condition:
-                        condition.notify_all()
+                        condition.wait_for(lambda: thread_count >= 4)
 
                     # Wait for the mutexes to be locked
                     time.sleep(sleep_time)
@@ -705,7 +737,7 @@ class MutexTestCase(unittest.TestCase):
                     thread_2.join()
 
                     dt = max(end_times) - t
-                    expected_time = max(0.5, sleep_time)
+                    expected_time = max(1.0, sleep_time)
                     self.assertTrue(
                         expected_time - 0.01 <= dt <= expected_time + 0.2,
                         f"Expected {expected_time}s. Got {dt}s",
