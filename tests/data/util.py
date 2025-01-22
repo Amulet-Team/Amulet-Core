@@ -9,7 +9,7 @@ import json
 from tempfile import TemporaryDirectory
 import atexit
 
-import data
+import tests.data as data
 
 DATA_DIR = os.path.realpath(data.__path__[0])
 TEMP_DIR = TemporaryDirectory()
