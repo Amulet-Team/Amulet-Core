@@ -11,6 +11,8 @@ from amulet.utils.task_manager import (
     VoidProgressManager,
 )
 
+from tests.test_amulet.test_util.test_task_manager_ import cpp_test_task_cancelled
+
 
 class CancelManagerTestCase(TestCase):
     def test_task_cancelled(self) -> None:
@@ -18,6 +20,9 @@ class CancelManagerTestCase(TestCase):
             raise TaskCancelled()
         with self.assertRaises(TaskCancelled):
             raise TaskCancelled("Hello World")
+
+    def test_cpp_task_cancelled(self) -> None:
+        cpp_test_task_cancelled()
 
     def test_inheritance(self) -> None:
         self.assertIsInstance(CancelManager(), AbstractCancelManager)
