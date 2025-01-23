@@ -2,18 +2,6 @@
 
 namespace Amulet {
 
-// Deadlock
-Deadlock::Deadlock(const std::string& msg)
-    : std::runtime_error(msg)
-{
-}
-Deadlock::Deadlock()
-    : Deadlock("Deadlock")
-{
-}
-Deadlock::~Deadlock() noexcept = default;
-const char* Deadlock::what() const noexcept { return std::runtime_error::what(); }
-
 // OrderedSharedMutex
 OrderedSharedMutex::OrderedSharedMutex() = default;
 OrderedSharedMutex::~OrderedSharedMutex() = default;
