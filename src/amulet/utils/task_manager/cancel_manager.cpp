@@ -8,16 +8,22 @@
 
 namespace Amulet {
 
-AMULET_CORE_DLLX TaskCancelled::TaskCancelled(std::string msg)
+// TaskCancelled
+TaskCancelled::TaskCancelled(std::string msg)
     : msg(msg)
 {
 }
-AMULET_CORE_DLLX TaskCancelled::TaskCancelled()
+TaskCancelled::TaskCancelled()
     : TaskCancelled("Task Cancelled")
 {
 }
+TaskCancelled::~TaskCancelled() noexcept = default;
 const char* TaskCancelled::what() const noexcept { return msg.c_str(); }
 
+// VoidCancelManager
+VoidCancelManager::VoidCancelManager() = default;
+VoidCancelManager::VoidCancelManager(const VoidCancelManager&) = default;
+VoidCancelManager::~VoidCancelManager() = default;
 void VoidCancelManager::cancel() { }
 bool VoidCancelManager::is_cancel_requested() { return false; }
 void VoidCancelManager::register_cancel_callback(CancelCallback callback) { }
@@ -25,12 +31,14 @@ void VoidCancelManager::unregister_cancel_callback(CancelCallback callback) { }
 
 VoidCancelManager global_VoidCancelManager;
 
-AMULET_CORE_DLLX CancelManager::CancelManager(const std::shared_ptr<CancelManagerData>& data)
+
+// CancelManager
+CancelManager::CancelManager(const std::shared_ptr<CancelManagerData>& data)
     : data(data)
 {
 }
 
-AMULET_CORE_DLLX CancelManager::CancelManager()
+CancelManager::CancelManager()
     : CancelManager(std::make_shared<CancelManagerData>())
 {
 }
