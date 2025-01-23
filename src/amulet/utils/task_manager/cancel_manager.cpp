@@ -8,18 +8,6 @@
 
 namespace Amulet {
 
-// TaskCancelled
-TaskCancelled::TaskCancelled(std::string msg)
-    : msg(msg)
-{
-}
-TaskCancelled::TaskCancelled()
-    : TaskCancelled("Task Cancelled")
-{
-}
-TaskCancelled::~TaskCancelled() noexcept = default;
-const char* TaskCancelled::what() const noexcept { return msg.c_str(); }
-
 // VoidCancelManager
 VoidCancelManager::VoidCancelManager() = default;
 VoidCancelManager::VoidCancelManager(const VoidCancelManager&) = default;
@@ -30,7 +18,6 @@ void VoidCancelManager::register_cancel_callback(CancelCallback callback) { }
 void VoidCancelManager::unregister_cancel_callback(CancelCallback callback) { }
 
 VoidCancelManager global_VoidCancelManager;
-
 
 // CancelManager
 CancelManager::CancelManager(const std::shared_ptr<CancelManagerData>& data)
