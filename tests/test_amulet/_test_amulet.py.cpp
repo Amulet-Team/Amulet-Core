@@ -5,11 +5,10 @@
 #include <pybind11_extensions/py_module.hpp>
 namespace py = pybind11;
 
-void init_test_mutex(py::module);
+void init_test_util(py::module);
 
 void init_module(py::module m){
-    auto test_util = pybind11_extensions::def_subpackage(m, "test_util");
-    init_test_mutex(test_util);
+    init_test_util(m);
 }
 
 PYBIND11_MODULE(_test_amulet, m) {
