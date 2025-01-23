@@ -12,15 +12,21 @@ namespace Amulet {
 
 // Exception to be raised by the callee when a task is cancelled.
 class TaskCancelled : public std::exception {
+private:
+    std::string msg;
+
 public:
     // Constructors
     explicit TaskCancelled(const std::string& msg)
-        : std::exception(msg.c_str())
+        : msg(msg.c_str())
     {
     }
     TaskCancelled()
         : TaskCancelled("Task Cancelled")
     {
+    }
+    const char* what() const noexcept override {
+        return msg.c_str();
     }
 };
 
