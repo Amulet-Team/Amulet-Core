@@ -30,6 +30,9 @@ file(GLOB_RECURSE TEST_AMULET_SOURCES LIST_DIRECTORIES false ${SOURCE_PATH}/*.py
 
 pybind11_add_module(_test_amulet)
 target_compile_definitions(_test_amulet PRIVATE PYBIND11_DETAILED_ERROR_MESSAGES)
+target_compile_definitions(_test_amulet PRIVATE PYBIND11_VERSION="${pybind11_VERSION}")
+target_compile_definitions(_test_amulet PRIVATE COMPILER_ID="${CMAKE_CXX_COMPILER_ID}")
+target_compile_definitions(_test_amulet PRIVATE COMPILER_VERSION="${CMAKE_CXX_COMPILER_VERSION}")
 target_link_libraries(_test_amulet PRIVATE pybind11_extensions)
 target_link_libraries(_test_amulet PRIVATE amulet_nbt)
 target_link_libraries(_test_amulet PRIVATE leveldb_mcpe)
