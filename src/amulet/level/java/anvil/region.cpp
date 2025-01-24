@@ -446,7 +446,7 @@ AMULET_CORE_DLLX AmuletNBT::NamedTag AnvilRegion::get_value(std::int64_t cx, std
     read_file_header();
     auto it = _chunk_locations.find(std::make_pair(cx, cz));
     if (it == _chunk_locations.end()) {
-        throw ChunkDoesNotExist("Chunk " + std::to_string(cx) + ", " + std::to_string(cz) + "does not exist.");
+        throw ChunkDoesNotExist("Chunk " + std::to_string(cx) + ", " + std::to_string(cz) + " does not exist.");
     }
     create_open_region_file_if_closed();
     auto& regionf = _shared->regionf;

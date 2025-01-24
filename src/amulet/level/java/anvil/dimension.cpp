@@ -183,7 +183,7 @@ AMULET_CORE_DLLX AmuletNBT::NamedTag AnvilDimensionLayer::get_chunk_data(std::in
     try {
         return get_region(cx >> 5, cz >> 5)->get_value(cx, cz);
     } catch (RegionDoesNotExist) {
-        throw ChunkDoesNotExist("Chunk " + std::to_string(cx) + ", " + std::to_string(cz) + "does not exist.");
+        throw ChunkDoesNotExist("Chunk " + std::to_string(cx) + ", " + std::to_string(cz) + " does not exist.");
     }
 }
 AMULET_CORE_DLLX void AnvilDimensionLayer::set_chunk_data(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag)
