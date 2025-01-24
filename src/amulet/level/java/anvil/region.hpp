@@ -14,7 +14,7 @@
 #include <amulet/dll.hpp>
 #include <amulet_nbt/tag/named_tag.hpp>
 
-#include "_sector_manager.hpp"
+#include "sector_manager.hpp"
 
 namespace Amulet {
 

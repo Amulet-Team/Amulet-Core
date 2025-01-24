@@ -1,6 +1,6 @@
 #include <set>
 #include <vector>
-#include "_sector_manager.hpp"
+#include "sector_manager.hpp"
 
 namespace Amulet {
 

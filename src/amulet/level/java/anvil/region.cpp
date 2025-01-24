@@ -11,15 +11,15 @@
 #include <string_view>
 #include <vector>
 
-#include <zlib.h>
 #include <lz4.h>
+#include <zlib.h>
 
 #include <amulet_nbt/nbt_encoding/binary.hpp>
 
 #include <amulet/chunk.hpp>
 #include <amulet/dll.hpp>
 
-#include "_region.hpp"
+#include "region.hpp"
 
 namespace Amulet {
 
@@ -189,7 +189,7 @@ void AnvilRegion::read_file_header()
         std::vector<std::uint32_t> location_table(1024);
         regionf.read(reinterpret_cast<char*>(location_table.data()), 4096);
         // Convert from big endian to native endianness
-        for (auto& v : location_table) { 
+        for (auto& v : location_table) {
             big_endian_swap(v);
         }
         for (size_t cx = 0; cx < 32; cx++) {
