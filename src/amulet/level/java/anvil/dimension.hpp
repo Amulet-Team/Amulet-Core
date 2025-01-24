@@ -42,7 +42,7 @@ public:
     AMULET_CORE_DLLX AnvilRegionCoordIterator(const std::filesystem::path&);
     AMULET_CORE_DLLX const std::pair<std::int64_t, std::int64_t>& operator*() const;
     AMULET_CORE_DLLX AnvilRegionCoordIterator& operator++();
-    AMULET_CORE_DLLX AnvilRegionCoordIterator operator++(int);
+    AMULET_CORE_DLLX void operator++(int);
     friend AMULET_CORE_DLLX bool operator==(const AnvilRegionCoordIterator&, const AnvilRegionCoordIterator&);
 };
 
@@ -69,7 +69,7 @@ public:
     AMULET_CORE_DLLX AnvilChunkCoordIterator(std::shared_ptr<class AnvilDimensionLayer>);
     AMULET_CORE_DLLX std::pair<std::int64_t, std::int64_t> operator*() const;
     AMULET_CORE_DLLX AnvilChunkCoordIterator& operator++();
-    AMULET_CORE_DLLX AnvilChunkCoordIterator operator++(int);
+    AMULET_CORE_DLLX void operator++(int);
     friend AMULET_CORE_DLLX bool operator==(const AnvilChunkCoordIterator&, const AnvilChunkCoordIterator&);
 };
 
