@@ -7,6 +7,7 @@
 namespace py = pybind11;
 
 void init_test_util(py::module);
+void init_test_chunk(py::module);
 
 void init_module(py::module m){
     auto amulet = py::module::import("amulet");
@@ -15,6 +16,7 @@ void init_module(py::module m){
     pybind11_extensions::check_compatibility(amulet, m);
 
     init_test_util(m);
+    init_test_chunk(m);
 }
 
 PYBIND11_MODULE(_test_amulet, m) {
