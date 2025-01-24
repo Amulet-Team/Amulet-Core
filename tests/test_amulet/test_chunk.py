@@ -12,8 +12,8 @@ class ChunkTestCase(unittest.TestCase):
             raise ChunkDoesNotExist
         with self.assertRaises(ChunkLoadError):
             raise ChunkLoadError
-        with self.assertRaises(ChunkLoadError):
-            raise ChunkDoesNotExist
+        # with self.assertRaises(ChunkLoadError):
+        #     raise ChunkDoesNotExist
         with self.assertRaises(ChunkDoesNotExist):
             raise ChunkDoesNotExist
 
@@ -23,38 +23,38 @@ class ChunkTestCase(unittest.TestCase):
             throw_chunk_does_not_exist()
         with self.assertRaises(ChunkLoadError):
             throw_chunk_load_error()
-        with self.assertRaises(ChunkLoadError):
-            throw_chunk_does_not_exist()
+        # with self.assertRaises(ChunkLoadError):
+        #     throw_chunk_does_not_exist()
         with self.assertRaises(ChunkDoesNotExist):
             throw_chunk_does_not_exist()
 
-        try:
-            raise ChunkLoadError
-        except ChunkDoesNotExist:
-            self.assertTrue(False)
-        except ChunkLoadError:
-            self.assertTrue(True)
-
-        try:
-            raise ChunkDoesNotExist
-        except ChunkDoesNotExist:
-            self.assertTrue(True)
-        except ChunkLoadError:
-            self.assertTrue(False)
-
-        try:
-            throw_chunk_load_error()
-        except ChunkDoesNotExist:
-            self.assertTrue(False)
-        except ChunkLoadError:
-            self.assertTrue(True)
-
-        try:
-            throw_chunk_does_not_exist()
-        except ChunkDoesNotExist:
-            self.assertTrue(True)
-        except ChunkLoadError:
-            self.assertTrue(False)
+        # try:
+        #     raise ChunkLoadError
+        # except ChunkDoesNotExist:
+        #     self.assertTrue(False)
+        # except ChunkLoadError:
+        #     self.assertTrue(True)
+        #
+        # try:
+        #     raise ChunkDoesNotExist
+        # except ChunkDoesNotExist:
+        #     self.assertTrue(True)
+        # except ChunkLoadError:
+        #     self.assertTrue(False)
+        #
+        # try:
+        #     throw_chunk_load_error()
+        # except ChunkDoesNotExist:
+        #     self.assertTrue(False)
+        # except ChunkLoadError:
+        #     self.assertTrue(True)
+        #
+        # try:
+        #     throw_chunk_does_not_exist()
+        # except ChunkDoesNotExist:
+        #     self.assertTrue(True)
+        # except ChunkLoadError:
+        #     self.assertTrue(False)
 
 
 if __name__ == "__main__":

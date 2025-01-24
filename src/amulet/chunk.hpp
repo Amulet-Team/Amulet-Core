@@ -109,9 +109,9 @@ namespace Amulet {
 		}
 	};
 
-	class ChunkDoesNotExist : public ChunkLoadError {
+	class ChunkDoesNotExist : public std::runtime_error {
 	public:
-		using ChunkLoadError::ChunkLoadError;
+		using std::runtime_error::runtime_error;
 		ChunkDoesNotExist()
 			: ChunkDoesNotExist("ChunkDoesNotExist")
 		{

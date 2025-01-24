@@ -98,7 +98,7 @@ void init_chunk(py::module m_parent) {
                            ">>> except ChunkLoadError:\n"
                            ">>>     # will catch all chunks that have failed to load\n"
                            ">>>     # either because they do not exist or errored during loading.";
-    auto ChunkDoesNotExist = py::register_exception<Amulet::ChunkDoesNotExist>(m, "ChunkDoesNotExist", ChunkLoadError);
+    auto ChunkDoesNotExist = py::register_exception<Amulet::ChunkDoesNotExist>(m, "ChunkDoesNotExist", PyExc_RuntimeError);
     ChunkDoesNotExist.doc() = "An error thrown if a chunk does not exist and therefor cannot be loaded.\n"
                               "\n"
                               ">>> try:\n"
