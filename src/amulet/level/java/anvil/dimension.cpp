@@ -47,11 +47,9 @@ AMULET_CORE_DLLX AnvilRegionCoordIterator& AnvilRegionCoordIterator::operator++(
     seek_to_next_valid();
     return *this;
 }
-AMULET_CORE_DLLX AnvilRegionCoordIterator AnvilRegionCoordIterator::operator++(int)
+AMULET_CORE_DLLX void AnvilRegionCoordIterator::operator++(int)
 {
-    auto rv = *this;
     seek_to_next_valid();
-    return rv;
 }
 AMULET_CORE_DLLX bool operator==(const AnvilRegionCoordIterator& lhs, const AnvilRegionCoordIterator& rhs)
 {
@@ -113,11 +111,9 @@ AMULET_CORE_DLLX AnvilChunkCoordIterator& AnvilChunkCoordIterator::operator++()
     seek_to_next_valid();
     return *this;
 }
-AMULET_CORE_DLLX AnvilChunkCoordIterator AnvilChunkCoordIterator::operator++(int)
+AMULET_CORE_DLLX void AnvilChunkCoordIterator::operator++(int)
 {
-    auto rv = *this;
     seek_to_next_valid();
-    return rv;
 }
 AMULET_CORE_DLLX bool operator==(const AnvilChunkCoordIterator& lhs, const AnvilChunkCoordIterator& rhs)
 {
