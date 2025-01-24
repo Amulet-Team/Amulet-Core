@@ -572,7 +572,10 @@ AMULET_CORE_DLLX void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, c
     const std::string& bnbt = writer.getBuffer();
 
     // Get the size of the data
-    uLong source_length = bnbt.size();
+    if (std::numeric_limits<uLong>::max() < bnbt.size()) {
+        throw std::runtime_error("tag is too large to compress.");
+    }
+    uLong source_length = static_cast<uLong>(bnbt.size());
     uLongf compressed_size = compressBound(source_length);
 
     // Create the output string
