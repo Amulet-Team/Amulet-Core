@@ -1,11 +1,15 @@
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
 #include <string>
 #include <vector>
 #include <map>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
+
 #include <pybind11_extensions/py_module.hpp>
+
 #include "java_chunk_decode.py.hpp"
 #include "java_chunk_encode.py.hpp"
+
 namespace py = pybind11;
 
 void init_java_chunk_decode(py::module);

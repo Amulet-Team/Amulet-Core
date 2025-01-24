@@ -1,10 +1,10 @@
-#include <memory>
-#include <variant>
-#include <limits>
-
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
+
+#include <memory>
+#include <variant>
+#include <limits>
 
 #include <amulet/version.hpp>
 #include <amulet/chunk_components/block_component.hpp>

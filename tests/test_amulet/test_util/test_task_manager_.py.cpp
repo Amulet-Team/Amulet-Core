@@ -1,7 +1,8 @@
+#include <pybind11/pybind11.h>
+
 #include <stdexcept>
 #include <iostream>
 
-#include <pybind11/pybind11.h>
 #include <pybind11_extensions/py_module.hpp>
 
 #include <amulet/utils/task_manager/cancel_manager.hpp>

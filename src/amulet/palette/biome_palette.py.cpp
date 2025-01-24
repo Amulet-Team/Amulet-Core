@@ -1,11 +1,11 @@
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <pybind11/operators.h>
+
 #include <sstream>
 #include <string>
 #include <memory>
 #include <variant>
-
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-#include <pybind11/operators.h>
 
 #include <amulet/biome.hpp>
 #include <amulet/palette/biome_palette.hpp>

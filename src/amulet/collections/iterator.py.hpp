@@ -1,7 +1,8 @@
 #pragma once
-#include <stdexcept>
 
 #include <pybind11/pybind11.h>
+
+#include <stdexcept>
 
 namespace py = pybind11;
 

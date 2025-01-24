@@ -1,3 +1,7 @@
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <pybind11/numpy.h>
+
 #include <span>
 #include <cmath>
 #include <string>
@@ -5,9 +9,6 @@
 #include <algorithm>
 #include <bit>
 
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-#include <pybind11/numpy.h>
 #include <pybind11_extensions/numpy.hpp>
 
 #include "long_array.hpp"

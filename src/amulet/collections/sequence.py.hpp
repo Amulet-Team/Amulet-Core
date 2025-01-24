@@ -1,12 +1,14 @@
 #pragma once
 
+#include <pybind11/pybind11.h>
+
 #include <algorithm>
 #include <cstddef>
 #include <memory>
 
-#include <pybind11/pybind11.h>
-#include "iterator.py.hpp"
 #include <pybind11_extensions/collections.hpp>
+
+#include "iterator.py.hpp"
 
 namespace py = pybind11;
 

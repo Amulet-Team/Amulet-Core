@@ -1,9 +1,9 @@
-#include <memory>
-
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
 #include <pybind11/typing.h>
+
+#include <memory>
 
 #include <amulet/collections/hash.py.hpp>
 #include <amulet_nbt/tag/named_tag.hpp>

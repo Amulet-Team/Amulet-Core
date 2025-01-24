@@ -1,9 +1,11 @@
 #pragma once
+
+#include <pybind11/pybind11.h>
+
 #include <memory>
 #include <map>
 #include <cstdint>
 
-#include <pybind11/pybind11.h>
 #include <pybind11_extensions/builtins.hpp>
 
 #include <amulet_nbt/tag/named_tag.hpp>

@@ -3,11 +3,12 @@
 // In C++ code std::unique_lock and std::shared_lock should be used instead of this.
 // They aren't particuarly pythonic hence this class existing.
 
+#include <pybind11/pybind11.h>
+
 #include <chrono>
 #include <memory>
 #include <stdexcept>
 
-#include <pybind11/pybind11.h>
 #include <pybind11_extensions/py_module.hpp>
 
 #include "mutex.hpp"

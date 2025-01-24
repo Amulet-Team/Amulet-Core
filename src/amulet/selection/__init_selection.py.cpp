@@ -1,14 +1,15 @@
+#include <pybind11/pybind11.h>
+#include <pybind11/operators.h>
+#include <pybind11/stl.h>
+
 #include <concepts>
 #include <ranges>
 #include <type_traits>
 
-#include <pybind11/operators.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
+#include <pybind11_extensions/collections.hpp>
 
 #include <amulet/selection/box.hpp>
 #include <amulet/selection/group.hpp>
-#include <pybind11_extensions/collections.hpp>
 
 namespace py = pybind11;
 
