@@ -327,10 +327,10 @@ class LockTestCase(TestCase):
 
         dt = max(end_times) - t
 
+        self.assertTrue(result_1)
+        self.assertTrue(result_2)
+
         self.assertTrue(
             0.49 <= dt <= 1.0,
             f"Expected 0.5s. Got {dt}s",
         )
-
-        self.assertTrue(result_1)
-        self.assertTrue(result_2)
