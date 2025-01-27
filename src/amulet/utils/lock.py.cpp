@@ -154,7 +154,7 @@ bool OrderedSharedLock::acquire_unique(
         if (timeout > 0) {
             return _mutex.try_lock_for(std::chrono::duration<double>(timeout), cancel_manager);
         } else {
-            return _mutex.try_lock_for(std::chrono::duration<double>::max(), cancel_manager);
+            return _mutex.try_lock_for(std::chrono::years(1), cancel_manager);
         }
     } else {
         return _mutex.try_lock();
@@ -173,7 +173,7 @@ bool OrderedSharedLock::acquire_shared(
         if (timeout > 0) {
             return _mutex.try_lock_shared_for(std::chrono::duration<double>(timeout), cancel_manager);
         } else {
-            return _mutex.try_lock_shared_for(std::chrono::duration<double>::max(), cancel_manager);
+            return _mutex.try_lock_shared_for(std::chrono::years(1), cancel_manager);
         }
     } else {
         return _mutex.try_lock_shared();
