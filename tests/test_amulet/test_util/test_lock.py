@@ -283,7 +283,9 @@ class LockTestCase(TestCase):
                         increment_thread_count()
                         with condition:
                             condition.wait_for(lambda: thread_count >= 5)
-                        with lock_2.unique(cancel_manager=cancel_manager, timeout=timeout):
+                        with lock_2.unique(
+                            cancel_manager=cancel_manager, timeout=timeout
+                        ):
                             result_1 = True
                     end_times.append(time.time())
 
@@ -298,7 +300,9 @@ class LockTestCase(TestCase):
                             condition.wait_for(lambda: thread_count >= 5)
                         time.sleep(1)
                         try:
-                            with lock_1.unique(cancel_manager=cancel_manager, timeout=timeout):
+                            with lock_1.unique(
+                                cancel_manager=cancel_manager, timeout=timeout
+                            ):
                                 pass
                         except LockNotAcquired:
                             result_2 = True
