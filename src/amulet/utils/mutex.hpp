@@ -26,7 +26,7 @@ struct is_specialization_of<Template, Template<Args...>> : std::true_type { };
 
 namespace Amulet {
 
-class Deadlock : public std::runtime_error {
+class AMULET_CORE_EXPORT_EXCEPTION Deadlock : public std::runtime_error {
 public:
     using std::runtime_error::runtime_error;
     Deadlock()

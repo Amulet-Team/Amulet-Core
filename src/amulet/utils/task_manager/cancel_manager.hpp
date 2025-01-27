@@ -11,7 +11,7 @@
 namespace Amulet {
 
 // Exception to be raised by the callee when a task is cancelled.
-class TaskCancelled : public std::exception {
+class AMULET_CORE_EXPORT_EXCEPTION TaskCancelled : public std::exception {
 private:
     std::string msg;
 
