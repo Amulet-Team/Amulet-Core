@@ -1,7 +1,10 @@
+#include <pybind11/pybind11.h>
+
 #include <string>
 #include <vector>
-#include <pybind11/pybind11.h>
+
 #include <pybind11_extensions/py_module.hpp>
+
 namespace py = pybind11;
 
 void init_data_version_component(py::module);

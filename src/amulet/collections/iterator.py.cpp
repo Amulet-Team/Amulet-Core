@@ -1,9 +1,9 @@
-#include <memory>
-#include <stdexcept>
-
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
+
+#include <memory>
+#include <stdexcept>
 
 #include "iterator.py.hpp"
 

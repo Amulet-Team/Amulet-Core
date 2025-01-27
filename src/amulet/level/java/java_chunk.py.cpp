@@ -1,6 +1,6 @@
-#include <memory>
-
 #include <pybind11/pybind11.h>
+
+#include <memory>
 
 #include <amulet/block.hpp>
 #include <amulet/biome.hpp>

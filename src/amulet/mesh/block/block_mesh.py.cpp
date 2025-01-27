@@ -1,13 +1,14 @@
-#include <memory>
-
-#include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/operators.h>
 #include <pybind11/stl.h>
 #include <pybind11/typing.h>
 
-#include "block_mesh.hpp"
+#include <memory>
+
 #include <pybind11_extensions/collections.hpp>
 #include <pybind11_extensions/py_module.hpp>
+
+#include "block_mesh.hpp"
 
 namespace py = pybind11;
 

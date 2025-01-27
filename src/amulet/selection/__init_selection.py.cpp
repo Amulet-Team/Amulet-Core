@@ -1,10 +1,10 @@
+#include <pybind11/pybind11.h>
+#include <pybind11/operators.h>
+#include <pybind11/stl.h>
+
 #include <concepts>
 #include <ranges>
 #include <type_traits>
-
-#include <pybind11/operators.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
 
 #include <amulet/selection/box.hpp>
 #include <amulet/selection/group.hpp>

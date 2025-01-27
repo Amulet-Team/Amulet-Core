@@ -1,15 +1,15 @@
-#include <memory>
-
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
 #include <pybind11/typing.h>
 
-#include <amulet/collections/hash.py.hpp>
-#include <amulet_nbt/tag/named_tag.hpp>
-#include <amulet/version.hpp>
-#include <amulet/block_entity.hpp>
+#include <memory>
 
+#include <amulet_nbt/tag/named_tag.hpp>
+
+#include <amulet/block_entity.hpp>
+#include <amulet/collections/hash.py.hpp>
+#include <amulet/version.hpp>
 
 namespace py = pybind11;
 

@@ -1,9 +1,11 @@
+#include <pybind11/pybind11.h>
+
+#include <pybind11_extensions/compatibility.hpp>
+#include <pybind11_extensions/py_module.hpp>
+
 #include <stdexcept>
 #include <string>
 
-#include <pybind11/pybind11.h>
-#include <pybind11_extensions/compatibility.hpp>
-#include <pybind11_extensions/py_module.hpp>
 namespace py = pybind11;
 
 void init_test_util(py::module);
