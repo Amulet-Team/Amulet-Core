@@ -11,7 +11,10 @@ from amulet.utils.task_manager import (
     VoidProgressManager,
 )
 
-from tests.test_amulet.test_util.test_task_manager_ import throw_task_cancelled, cpp_test_task_cancelled
+from tests.test_amulet.test_util.test_task_manager_ import (
+    throw_task_cancelled,
+    cpp_test_task_cancelled,
+)
 
 
 class CancelManagerTestCase(TestCase):
