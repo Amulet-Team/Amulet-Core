@@ -256,82 +256,85 @@ class LockTestCase(TestCase):
         self.assertTrue(result_2)
 
     def test_cancel(self) -> None:
-        result_1 = False
-        result_2 = False
+        for timeout in [-1, 10]:
+            with self.subTest(timeout=timeout):
+                result_1 = False
+                result_2 = False
 
-        lock_1 = OrderedSharedLock()
-        lock_2 = OrderedSharedLock()
+                lock_1 = OrderedSharedLock()
+                lock_2 = OrderedSharedLock()
 
-        condition = Condition()
-        end_times: list[float] = []
-        thread_count = 0
+                condition = Condition()
+                end_times: list[float] = []
+                thread_count = 0
 
-        def increment_thread_count():
-            nonlocal thread_count
-            thread_count += 1
-            with condition:
-                condition.notify_all()
+                def increment_thread_count():
+                    nonlocal thread_count
+                    thread_count += 1
+                    with condition:
+                        condition.notify_all()
 
-        def func_1(cancel_manager: AbstractCancelManager):
-            nonlocal result_1
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count >= 3)
-            with lock_1.unique(blocking=False):
-                increment_thread_count()
+                def func_1(cancel_manager: AbstractCancelManager):
+                    nonlocal result_1
+                    increment_thread_count()
+                    with condition:
+                        condition.wait_for(lambda: thread_count >= 3)
+                    with lock_1.unique(blocking=False):
+                        increment_thread_count()
+                        with condition:
+                            condition.wait_for(lambda: thread_count >= 5)
+                        with lock_2.unique(cancel_manager=cancel_manager, timeout=timeout):
+                            result_1 = True
+                    end_times.append(time.time())
+
+                def func_2(cancel_manager: AbstractCancelManager):
+                    nonlocal result_2
+                    increment_thread_count()
+                    with condition:
+                        condition.wait_for(lambda: thread_count >= 3)
+                    with lock_2.unique(blocking=False):
+                        increment_thread_count()
+                        with condition:
+                            condition.wait_for(lambda: thread_count >= 5)
+                        time.sleep(1)
+                        try:
+                            with lock_1.unique(cancel_manager=cancel_manager, timeout=timeout):
+                                pass
+                        except LockNotAcquired:
+                            result_2 = True
+                    end_times.append(time.time())
+
+                cancel_manager_1 = CancelManager()
+                cancel_manager_2 = CancelManager()
+
+                thread_1 = Thread(target=func_1, args=(cancel_manager_1,))
+                thread_2 = Thread(target=func_2, args=(cancel_manager_2,))
+
+                # Start threads
+                thread_1.start()
+                thread_2.start()
+
+                # Wait for all threads to start
                 with condition:
-                    condition.wait_for(lambda: thread_count >= 5)
-                with lock_2.unique(cancel_manager=cancel_manager):
-                    result_1 = True
-            end_times.append(time.time())
-
-        def func_2(cancel_manager: AbstractCancelManager):
-            nonlocal result_2
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count >= 3)
-            with lock_2.unique(blocking=False):
+                    condition.wait_for(lambda: thread_count >= 2)
+                # Get start time
+                t = time.time()
                 increment_thread_count()
-                with condition:
-                    condition.wait_for(lambda: thread_count >= 5)
-                try:
-                    with lock_1.unique(cancel_manager=cancel_manager):
-                        pass
-                except LockNotAcquired:
-                    result_2 = True
-            end_times.append(time.time())
 
-        cancel_manager_1 = CancelManager()
-        cancel_manager_2 = CancelManager()
+                time.sleep(2)
 
-        thread_1 = Thread(target=func_1, args=(cancel_manager_1,))
-        thread_2 = Thread(target=func_2, args=(cancel_manager_2,))
+                cancel_manager_2.cancel()
 
-        # Start threads
-        thread_1.start()
-        thread_2.start()
+                # Wait for threads to finish
+                thread_1.join()
+                thread_2.join()
 
-        # Wait for all threads to start
-        with condition:
-            condition.wait_for(lambda: thread_count >= 2)
-        # Get start time
-        t = time.time()
-        increment_thread_count()
+                dt = max(end_times) - t
 
-        time.sleep(0.5)
+                self.assertTrue(result_1)
+                self.assertTrue(result_2)
 
-        cancel_manager_2.cancel()
-
-        # Wait for threads to finish
-        thread_1.join()
-        thread_2.join()
-
-        dt = max(end_times) - t
-
-        self.assertTrue(result_1)
-        self.assertTrue(result_2)
-
-        self.assertTrue(
-            0.49 <= dt <= 1.0,
-            f"Expected 0.5s. Got {dt}s",
-        )
+                self.assertTrue(
+                    1.99 <= dt <= 2.5,
+                    f"Expected 0.5s. Got {dt}s",
+                )
