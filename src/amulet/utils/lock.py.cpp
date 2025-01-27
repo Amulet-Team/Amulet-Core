@@ -37,7 +37,7 @@ public:
         double timeout,
         AbstractCancelManager& cancel_manager);
     void enter();
-    void exit(py::object, py::object, py::object);
+    void exit();
 };
 
 class SharedLockContextManager {
@@ -53,7 +53,7 @@ public:
         double timeout,
         AbstractCancelManager& cancel_manager);
     void enter();
-    void exit(py::object, py::object, py::object);
+    void exit();
 };
 
 class OrderedSharedLock {
@@ -102,7 +102,7 @@ void UniqueLockContextManager::enter()
         throw LockNotAcquired("Lock was not acquired.");
     }
 }
-void UniqueLockContextManager::exit(py::object, py::object, py::object)
+void UniqueLockContextManager::exit()
 {
     lock.release_unique();
 }
@@ -124,7 +124,7 @@ void SharedLockContextManager::enter()
         throw LockNotAcquired("Lock was not acquired.");
     }
 }
-void SharedLockContextManager::exit(py::object, py::object, py::object)
+void SharedLockContextManager::exit()
 {
     lock.release_shared();
 }
@@ -214,8 +214,10 @@ void init_lock(py::module m_parent)
         py::call_guard<py::gil_scoped_release>());
     UniqueLockContextManager.def(
         "__exit__",
-        &Amulet::UniqueLockContextManager::exit,
-        py::call_guard<py::gil_scoped_release>());
+        [](Amulet::UniqueLockContextManager& self, py::object, py::object, py::object) {
+            py::gil_scoped_release gil;
+            self.exit();
+        });
     py::class_<Amulet::SharedLockContextManager> SharedLockContextManager(m, "SharedLockContextManager");
     SharedLockContextManager.def(
         "__enter__",
@@ -223,8 +225,10 @@ void init_lock(py::module m_parent)
         py::call_guard<py::gil_scoped_release>());
     SharedLockContextManager.def(
         "__exit__",
-        &Amulet::SharedLockContextManager::exit,
-        py::call_guard<py::gil_scoped_release>());
+        [](Amulet::SharedLockContextManager& self, py::object, py::object, py::object) {
+            py::gil_scoped_release gil;
+            self.exit();
+        });
 
     py::class_<Amulet::OrderedSharedLock> OrderedSharedLock(m, "OrderedSharedLock",
         "This is a custom lock implementation that can be acquired in\n"
