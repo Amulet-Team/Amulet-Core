@@ -6,17 +6,13 @@
 #include <memory>
 
 #include <pybind11_extensions/collections.hpp>
-#include <pybind11_extensions/py_module.hpp>
 
 #include "block_mesh.hpp"
 
 namespace py = pybind11;
 
-void init_block_mesh(py::module m_parent)
+void init_block_mesh(py::module m)
 {
-    auto m_mesh = pybind11_extensions::def_subpackage(m_parent, "mesh");
-    auto m = pybind11_extensions::def_subpackage(m_mesh, "block");
-
     // FloatVec2
     py::class_<Amulet::FloatVec2> FloatVec2(m, "FloatVec2",
         "A 2D floating point vector");
