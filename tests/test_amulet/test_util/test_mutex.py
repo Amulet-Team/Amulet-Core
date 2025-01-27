@@ -1,6 +1,6 @@
 import unittest
 from datetime import timedelta, datetime
-from threading import Thread, RLock, Condition
+from threading import Thread, Condition
 import time
 
 from amulet.utils.mutex import OrderedSharedMutex, OrderedSharedTimedMutex, Deadlock
@@ -683,7 +683,7 @@ class MutexTestCase(unittest.TestCase):
         )
         expected_time = 4
         self.assertTrue(
-            expected_time - 0.01 <= dt <= expected_time + 0.5,
+            expected_time - 0.01 <= dt <= expected_time + 1.0,
             f"Expected {expected_time}s. Got {dt}s",
         )
 

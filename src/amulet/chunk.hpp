@@ -101,7 +101,7 @@ namespace Amulet {
 	};
 
 	
-	class ChunkDoesNotExist : public std::runtime_error {
+	class AMULET_CORE_EXPORT_EXCEPTION ChunkDoesNotExist : public std::runtime_error {
 		using std::runtime_error::runtime_error;
 	};
 }
