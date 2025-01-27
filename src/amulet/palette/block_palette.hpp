@@ -35,8 +35,8 @@ namespace Amulet {
 			_index_to_block(),
 			_block_to_index() {}
 
-		AMULET_CORE_DLLX void serialise(BinaryWriter&) const;
-		AMULET_CORE_DLLX static std::shared_ptr<BlockPalette> deserialise(BinaryReader&);
+		AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+		AMULET_CORE_EXPORT static std::shared_ptr<BlockPalette> deserialise(BinaryReader&);
 
 		bool operator==(const BlockPalette& other) const {
 			if (size() != other.size()) {

@@ -34,8 +34,8 @@ namespace Amulet {
 			std::shared_ptr<SectionArrayMap> sections
 		): _palette(palette), _sections(sections){}
 
-		AMULET_CORE_DLLX void serialise(BinaryWriter&) const;
-		AMULET_CORE_DLLX static std::shared_ptr<BlockComponentData> deserialise(BinaryReader&);
+		AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+		AMULET_CORE_EXPORT static std::shared_ptr<BlockComponentData> deserialise(BinaryReader&);
 
 		std::shared_ptr<BlockPalette> get_palette() const {
 			return _palette;
@@ -60,11 +60,11 @@ namespace Amulet {
 		) { _value = std::make_shared<BlockComponentData>(version_range, array_shape, default_block); }
 		
 		// Serialise the component data
-		AMULET_CORE_DLLX std::optional<std::string> serialise() const;
+		AMULET_CORE_EXPORT std::optional<std::string> serialise() const;
 		// Deserialise the component
-		AMULET_CORE_DLLX void deserialise(std::optional<std::string>);
+		AMULET_CORE_EXPORT void deserialise(std::optional<std::string>);
 	public:
-		AMULET_CORE_DLLX static const std::string ComponentID;
+		AMULET_CORE_EXPORT static const std::string ComponentID;
 		std::shared_ptr<BlockComponentData> get_block() {
 			if (_value) {
 				return *_value;

@@ -116,11 +116,11 @@ namespace Amulet {
 		}
 
 		// Serialise the component data
-		AMULET_CORE_DLLX std::optional<std::string> serialise() const;
+		AMULET_CORE_EXPORT std::optional<std::string> serialise() const;
 		// Deserialise the component
-		AMULET_CORE_DLLX void deserialise(std::optional<std::string>);
+		AMULET_CORE_EXPORT void deserialise(std::optional<std::string>);
 	public:
-		AMULET_CORE_DLLX static const std::string ComponentID;
+		AMULET_CORE_EXPORT static const std::string ComponentID;
 		std::shared_ptr<BlockEntityComponentData> get_block_entity() {
 			if (_value) {
 				return *_value;

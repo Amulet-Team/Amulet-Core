@@ -128,9 +128,9 @@ public:
     {
     }
 
-    AMULET_CORE_DLLX BlockMesh rotate(std::int8_t rotx, std::int8_t roty) const;
+    AMULET_CORE_EXPORT BlockMesh rotate(std::int8_t rotx, std::int8_t roty) const;
 };
 
-AMULET_CORE_DLLX BlockMesh merge_block_meshes(std::vector<std::reference_wrapper<const BlockMesh>>);
+AMULET_CORE_EXPORT BlockMesh merge_block_meshes(std::vector<std::reference_wrapper<const BlockMesh>>);
 
 }

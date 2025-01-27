@@ -24,15 +24,15 @@ namespace Amulet {
             VersionNumber(std::initializer_list<std::int64_t> vec) : vec(vec) {}
             VersionNumber(const std::vector<std::int64_t>& vec) : vec(vec) {}
 
-            AMULET_CORE_DLLX void serialise(BinaryWriter&) const;
-            AMULET_CORE_DLLX static std::shared_ptr<VersionNumber> deserialise(BinaryReader&);
+            AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+            AMULET_CORE_EXPORT static std::shared_ptr<VersionNumber> deserialise(BinaryReader&);
 
             std::vector<std::int64_t>::const_iterator begin() const { return vec.begin(); }
             std::vector<std::int64_t>::const_iterator end() const { return vec.end(); }
             std::vector<std::int64_t>::const_reverse_iterator rbegin() const { return vec.rbegin(); }
             std::vector<std::int64_t>::const_reverse_iterator rend() const { return vec.rend(); }
             size_t size() const { return vec.size(); }
-            AMULET_CORE_DLLX std::int64_t operator[](size_t index) const;
+            AMULET_CORE_EXPORT std::int64_t operator[](size_t index) const;
             auto operator<=>(const VersionNumber& other) const {
                 size_t max_len = std::max(vec.size(), other.size());
                 std::int64_t v1, v2;
@@ -54,9 +54,9 @@ namespace Amulet {
             bool operator==(const VersionNumber& other) const {
                 return (*this <=> other) == 0;
             }
-            AMULET_CORE_DLLX std::string toString() const;
-            AMULET_CORE_DLLX std::vector<std::int64_t> cropped_version() const;
-            AMULET_CORE_DLLX std::vector<std::int64_t> padded_version(size_t len) const;
+            AMULET_CORE_EXPORT std::string toString() const;
+            AMULET_CORE_EXPORT std::vector<std::int64_t> cropped_version() const;
+            AMULET_CORE_EXPORT std::vector<std::int64_t> padded_version(size_t len) const;
     };
 
     class PlatformVersionContainer {
@@ -84,8 +84,8 @@ namespace Amulet {
                 }())
             {}
 
-            AMULET_CORE_DLLX void serialise(BinaryWriter&) const;
-            AMULET_CORE_DLLX static std::shared_ptr<PlatformVersionContainer> deserialise(BinaryReader&);
+            AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+            AMULET_CORE_EXPORT static std::shared_ptr<PlatformVersionContainer> deserialise(BinaryReader&);
 
             auto operator<=>(const PlatformVersionContainer& other) const {
                 auto cmp = platform <=> other.platform;
@@ -121,10 +121,10 @@ namespace Amulet {
                 }
             }
 
-            AMULET_CORE_DLLX void serialise(BinaryWriter&) const;
-            AMULET_CORE_DLLX static std::shared_ptr<VersionRange> deserialise(BinaryReader&);
+            AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+            AMULET_CORE_EXPORT static std::shared_ptr<VersionRange> deserialise(BinaryReader&);
 
-            AMULET_CORE_DLLX bool contains(const PlatformType& platform_, const VersionNumber& version) const;
+            AMULET_CORE_EXPORT bool contains(const PlatformType& platform_, const VersionNumber& version) const;
     };
 
     class VersionRangeContainer {
@@ -137,7 +137,7 @@ namespace Amulet {
                 std::shared_ptr<VersionRange> version_range
             ): version_range(version_range) {}
 
-            AMULET_CORE_DLLX void serialise(BinaryWriter&) const;
-            AMULET_CORE_DLLX static std::shared_ptr<VersionRangeContainer> deserialise(BinaryReader&);
+            AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+            AMULET_CORE_EXPORT static std::shared_ptr<VersionRangeContainer> deserialise(BinaryReader&);
     };
 }

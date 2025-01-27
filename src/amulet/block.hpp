@@ -63,8 +63,8 @@ namespace Amulet {
                 base_name(base_name),
                 properties(properties) {}
 
-            AMULET_CORE_DLLX void serialise(BinaryWriter&) const;
-            AMULET_CORE_DLLX static std::shared_ptr<Block> deserialise(BinaryReader&);
+            AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+            AMULET_CORE_EXPORT static std::shared_ptr<Block> deserialise(BinaryReader&);
             
             auto operator<=>(const Block& other) const {
                 auto cmp = PlatformVersionContainer::operator<=>(other);
@@ -79,10 +79,10 @@ namespace Amulet {
                 return (*this <=> other) == 0;
             }
 
-            AMULET_CORE_DLLX std::string java_blockstate() const;
-            AMULET_CORE_DLLX std::string bedrock_blockstate() const;
-            AMULET_CORE_DLLX static std::shared_ptr<Block> from_java_blockstate(const PlatformType&, std::shared_ptr<VersionNumber>, const std::string&);
-            AMULET_CORE_DLLX static std::shared_ptr<Block> from_bedrock_blockstate(const PlatformType&, std::shared_ptr<VersionNumber>, const std::string&);
+            AMULET_CORE_EXPORT std::string java_blockstate() const;
+            AMULET_CORE_EXPORT std::string bedrock_blockstate() const;
+            AMULET_CORE_EXPORT static std::shared_ptr<Block> from_java_blockstate(const PlatformType&, std::shared_ptr<VersionNumber>, const std::string&);
+            AMULET_CORE_EXPORT static std::shared_ptr<Block> from_bedrock_blockstate(const PlatformType&, std::shared_ptr<VersionNumber>, const std::string&);
     };
 
     class BlockStack {
@@ -98,8 +98,8 @@ namespace Amulet {
                 }
             }
 
-            AMULET_CORE_DLLX void serialise(BinaryWriter&) const;
-            AMULET_CORE_DLLX static std::shared_ptr<BlockStack> deserialise(BinaryReader&);
+            AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+            AMULET_CORE_EXPORT static std::shared_ptr<BlockStack> deserialise(BinaryReader&);
 
             auto operator<=>(const BlockStack& other) const {
                 auto cmp = size() <=> other.size();

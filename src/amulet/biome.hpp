@@ -27,8 +27,8 @@ namespace Amulet {
                 namespace_(namespace_),
                 base_name(base_name) {}
 
-            AMULET_CORE_DLLX void serialise(BinaryWriter&) const;
-            AMULET_CORE_DLLX static std::shared_ptr<Biome> deserialise(BinaryReader&);
+            AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+            AMULET_CORE_EXPORT static std::shared_ptr<Biome> deserialise(BinaryReader&);
 
             auto operator<=>(const Biome& other) const {
                 auto cmp = PlatformVersionContainer::operator<=>(other);
