@@ -11,28 +11,17 @@ The level base classes are stored in here
 
 Each level implementation has its own package in amulet.level.
 
-### _load.py
+### amulet.level.loader
 
-_load.py implements logic to find the correct level class for the data and create an instance of it.
+loader implements logic to find the correct level class for the data and create an instance of it.
 
 This is implemented as a plugin system to allow third party code to implement their own level formats.
-
-```py
-from amulet.level import Level, register_level_class, get_level
-
-class MyLevelClass(Level):
-    ...
-
-register_level_class(MyLevelClass)
-
-level = get_level(...)
-# Amulet will consider MyLevelClass when getting a new level. 
-```
+See Amulet::LevelLoaderRegister for more information.
 
 ### Function convention
 
-Long running and potentially blocking functions must optionally take a TaskManager instance to support canceling the call
-and to relay the progress to the caller. CancelManager and ProgressManager also exist if only a subset is required.
+Long-running and potentially blocking functions must optionally take a CancelManager instance to support canceling the
+call and a ProgressManager instance to relay the progress to the caller.
 
 ### Signals
 

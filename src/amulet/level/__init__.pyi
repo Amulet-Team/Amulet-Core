@@ -1,23 +1,8 @@
 from __future__ import annotations
 
-from amulet.level._load import (
-    NoValidLevel,
-    get_level,
-    register_level_class,
-    unregister_level_class,
-)
-from amulet.level.abc._level._level import Level
-from amulet.level.java._level import JavaLevel
+from amulet.level.abc.level import Level
+from amulet.level.loader import NoValidLevelLoader, get_level
 
-from . import _load, abc, java
+from . import abc, java, loader
 
-__all__ = [
-    "JavaLevel",
-    "Level",
-    "NoValidLevel",
-    "abc",
-    "get_level",
-    "java",
-    "register_level_class",
-    "unregister_level_class",
-]
+__all__ = ["Level", "NoValidLevelLoader", "abc", "get_level", "java", "loader"]
