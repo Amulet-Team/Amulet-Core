@@ -1,10 +1,9 @@
-#include <amulet/chunk.hpp>
-
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
 #include <pybind11/typing.h>
 
+#include "chunk.hpp"
 
 namespace py = pybind11;
 
@@ -85,4 +84,30 @@ void init_chunk(py::module m_parent) {
         &Amulet::get_null_chunk,
         py::doc("This is a private function")
     );
+
+    auto ChunkLoadError = py::register_exception<Amulet::ChunkLoadError>(m, "ChunkLoadError", PyExc_RuntimeError);
+    ChunkLoadError.doc() = "An error thrown if a chunk failed to load for some reason.\n"
+                           "\n"
+                           "This may be due to a corrupt chunk, an unsupported chunk format or just because the chunk does not exist to be loaded.\n"
+                           "\n"
+                           "Catching this error will also catch :class:`ChunkDoesNotExist`\n"
+                           "\n"
+                           ">>> try:\n"
+                           ">>>     # get chunk\n"
+                           ">>>     chunk = world.get_chunk(cx, cz, dimension)\n"
+                           ">>> except ChunkLoadError:\n"
+                           ">>>     # will catch all chunks that have failed to load\n"
+                           ">>>     # either because they do not exist or errored during loading.";
+    auto ChunkDoesNotExist = py::register_exception<Amulet::ChunkDoesNotExist>(m, "ChunkDoesNotExist", ChunkLoadError);
+    ChunkDoesNotExist.doc() = "An error thrown if a chunk does not exist and therefor cannot be loaded.\n"
+                              "\n"
+                              ">>> try:\n"
+                              ">>>     # get chunk\n"
+                              ">>>     chunk = world.get_chunk(cx, cz, dimension)\n"
+                              ">>> except ChunkDoesNotExist:\n"
+                              ">>>     # will catch all chunks that do not exist\n"
+                              ">>>     # will not catch corrupt chunks\n"
+                              ">>> except ChunkLoadError:\n"
+                              ">>>     # will only catch chunks that errored during loading\n"
+                              ">>>     # chunks that do not exist were caught by the previous except section.";
 }

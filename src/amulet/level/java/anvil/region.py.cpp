@@ -1,14 +1,12 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include <pybind11_extensions/py_module.hpp>
-
-#include "_region.hpp"
+#include "region.hpp"
 namespace py = pybind11;
 
-void init_java_anvil(py::module m_parent)
+py::module init_anvil_region(py::module m_parent)
 {
-    auto m = pybind11_extensions::def_subpackage(m_parent, "anvil");
+    py::module m = m_parent.def_submodule("region");
 
     py::class_<Amulet::AnvilRegion, std::shared_ptr<Amulet::AnvilRegion>> AnvilRegion(m, "AnvilRegion");
     py::class_<Amulet::AnvilRegion::FileCloser, std::shared_ptr<Amulet::AnvilRegion::FileCloser>> FileCloser(AnvilRegion, "FileCloser");
@@ -55,7 +53,7 @@ void init_java_anvil(py::module m_parent)
     AnvilRegion.def("destroy", &Amulet::AnvilRegion::destroy, py::call_guard<py::gil_scoped_release>());
     AnvilRegion.def("get_file_closer", &Amulet::AnvilRegion::get_file_closer, py::call_guard<py::gil_scoped_release>());
 
-    m.attr("AnvilDimension") = py::module::import("amulet.level.java.anvil._dimension").attr("AnvilDimension");
-    m.attr("AnvilDimensionLayer") = py::module::import("amulet.level.java.anvil._dimension").attr("AnvilDimensionLayer");
-    m.attr("RawChunkType") = py::module::import("amulet.level.java.anvil._dimension").attr("RawChunkType");
+    py::register_exception<Amulet::RegionDoesNotExist>(m, "RegionDoesNotExist", PyExc_RuntimeError);
+
+    return m;
 }

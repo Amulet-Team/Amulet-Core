@@ -11,6 +11,10 @@ from amulet.utils.lock import OrderedSharedLock, LockNotAcquired
 class LockTestCase(TestCase):
     def test_lock_not_acquired(self) -> None:
         self.assertTrue(issubclass(LockNotAcquired, RuntimeError))
+        with self.assertRaises(RuntimeError):
+            raise LockNotAcquired
+        with self.assertRaises(LockNotAcquired):
+            raise LockNotAcquired
 
     def test_empty_constructor(self) -> None:
         lock = OrderedSharedLock()

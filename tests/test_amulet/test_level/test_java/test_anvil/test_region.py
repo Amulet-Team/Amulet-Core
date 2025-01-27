@@ -5,14 +5,28 @@ import shutil
 import glob
 from concurrent.futures import ThreadPoolExecutor
 
-from amulet_nbt import NamedTag, CompoundTag, StringTag, ListTag, ByteArrayTag
+from amulet_nbt import NamedTag, CompoundTag, StringTag, ListTag
 
-from amulet.level.java.anvil import AnvilRegion
+from amulet.chunk import ChunkDoesNotExist
+from amulet.level.java.anvil import AnvilRegion, RegionDoesNotExist
 import tests.data.worlds_src
 import tests.data.region
+from tests.test_amulet.test_level.test_java.test_anvil.test_region_ import (
+    throw_region_does_not_exist,
+)
 
 
-class JavaSectorManagerTestCase(unittest.TestCase):
+class AnvilRegionTestCase(unittest.TestCase):
+    def test_region_does_not_exist(self) -> None:
+        with self.assertRaises(RuntimeError):
+            raise RegionDoesNotExist
+        with self.assertRaises(RegionDoesNotExist):
+            raise RegionDoesNotExist
+        with self.assertRaises(RuntimeError):
+            throw_region_does_not_exist()
+        with self.assertRaises(RegionDoesNotExist):
+            throw_region_does_not_exist()
+
     def test_methods(self) -> None:
         with TemporaryDirectory() as tmpdir:
             region = AnvilRegion(tmpdir, 0, 0)
@@ -136,6 +150,42 @@ class JavaSectorManagerTestCase(unittest.TestCase):
                     recursive=True,
                 ):
                     executor.submit(compact, region_file_path)
+
+    def test_exceptions(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            region = AnvilRegion(tmpdir, 0, 0)
+
+            with self.assertRaises(ChunkDoesNotExist):
+                region.get_value(0, 0)
+
+            with self.assertRaises(ValueError):
+                region.has_value(-1, -1)
+            with self.assertRaises(ValueError):
+                region.has_value(32, 0)
+            with self.assertRaises(ChunkDoesNotExist):
+                region.get_value(0, 0)
+
+            value = NamedTag(CompoundTag(test=StringTag("test")), "test")
+            with self.assertRaises(ValueError):
+                region.set_value(-1, -1, value)
+            with self.assertRaises(ValueError):
+                region.set_value(32, 0, value)
+            with self.assertRaises(ValueError):
+                region.set_value(0, 32, value)
+
+            with self.assertRaises(ValueError):
+                region.delete_value(-1, -1)
+            with self.assertRaises(ValueError):
+                region.delete_value(32, 0)
+            with self.assertRaises(ValueError):
+                region.delete_value(0, 32)
+
+    def test_del(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            region = AnvilRegion(tmpdir, 0, 0)
+            value = NamedTag(CompoundTag(test=StringTag("test")), "test")
+            region.set_value(0, 0, value)
+            del region
 
 
 if __name__ == "__main__":

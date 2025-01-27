@@ -14,7 +14,7 @@
 #include <amulet/dll.hpp>
 #include <amulet_nbt/tag/named_tag.hpp>
 
-#include "_sector_manager.hpp"
+#include "sector_manager.hpp"
 
 namespace Amulet {
 
@@ -68,18 +68,28 @@ AMULET_CORE_DLLX std::pair<std::int64_t, std::int64_t> parse_region_filename(con
 
 // A class to read and write Minecraft Java Edition Region files.
 // Only one instance should exist per region file at any given time otherwise bad things may happen.
-class AnvilRegion : public std::enable_shared_from_this<AnvilRegion> {
+class AnvilRegion {
+private:
+    // Data shared between the region and closer.
+    class Shared {
+    public:
+        // The region file handle
+        std::fstream regionf;
+        // This mutex must be acquired to access the container data or the file.
+        std::recursive_mutex mutex;
+    };
+
 public:
     // A class to manage closing the region file.
     // When the instance is deleted the region file will be closed.
     // The region file can be manually closed before this is deleted.
     class FileCloser {
     private:
-        // A weak reference to the region
-        std::weak_ptr<AnvilRegion> _region;
+        // Data shared between the region and closer.
+        std::shared_ptr<Shared> _shared;
 
     public:
-        AMULET_CORE_DLLX FileCloser(std::weak_ptr<AnvilRegion> region);
+        AMULET_CORE_DLLX FileCloser(std::shared_ptr<Shared> shared);
         AMULET_CORE_DLLX ~FileCloser();
     };
 
@@ -104,17 +114,14 @@ private:
     // A map from the chunk coordinate to the location on disk
     std::map<std::pair<std::int64_t, std::int64_t>, Sector> _chunk_locations;
 
-    // The region file handle
-    std::fstream regionf;
-
     // Region file closer
     std::weak_ptr<FileCloser> _closer;
 
     // Has the region been marked as destroyed.
     bool destroyed = false;
 
-    // This mutex must be acquired to access the container data or the file.
-    std::recursive_mutex mutex;
+    // Data shared between the region and closer.
+    std::shared_ptr<Shared> _shared;
 
     AnvilRegion(const std::filesystem::path& directory, const std::string& file_name, const std::pair<std::int64_t, std::int64_t>& region_coordinate, bool mcc = false);
 
@@ -153,9 +160,19 @@ private:
 
 public:
     // Constructors.
+    AnvilRegion() = delete;
+    AnvilRegion(const AnvilRegion&) = delete;
+    AnvilRegion(AnvilRegion&&) = delete;
     AMULET_CORE_DLLX AnvilRegion(const std::filesystem::path& directory, const std::string& file_name, std::int64_t rx, std::int64_t rz, bool mcc = false);
     AMULET_CORE_DLLX AnvilRegion(const std::filesystem::path& directory, std::int64_t rx, std::int64_t rz, bool mcc = false);
     AMULET_CORE_DLLX AnvilRegion(std::filesystem::path path, bool mcc = false);
+
+    // Destructor
+    AMULET_CORE_DLLX ~AnvilRegion();
+
+    // Assignment operators
+    AnvilRegion& operator=(const AnvilRegion&) = delete;
+    AnvilRegion& operator=(AnvilRegion&&) = delete;
 
     // The path of the region file. Thread safe.
     AMULET_CORE_DLLX std::filesystem::path path() const;
@@ -223,6 +240,15 @@ public:
     // The region file may still be closed manually before this object is deleted.
     // Thread safe.
     AMULET_CORE_DLLX std::shared_ptr<FileCloser> get_file_closer();
+};
+
+class AMULET_CORE_EXPORT_EXCEPTION RegionDoesNotExist : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+    RegionDoesNotExist()
+        : RegionDoesNotExist("RegionDoesNotExist")
+    {
+    }
 };
 
 } // namespace Amulet

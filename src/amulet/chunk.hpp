@@ -100,8 +100,22 @@ namespace Amulet {
 		}
 	};
 
-	
-	class AMULET_CORE_EXPORT_EXCEPTION ChunkDoesNotExist : public std::runtime_error {
+	class AMULET_CORE_EXPORT_EXCEPTION ChunkLoadError : public std::runtime_error {
+	public:
 		using std::runtime_error::runtime_error;
+		ChunkLoadError()
+			: ChunkLoadError("ChunkLoadError")
+		{
+		}
 	};
-}
+
+	class AMULET_CORE_EXPORT_EXCEPTION ChunkDoesNotExist : public ChunkLoadError {
+	public:
+		using ChunkLoadError::ChunkLoadError;
+		ChunkDoesNotExist()
+			: ChunkDoesNotExist("ChunkDoesNotExist")
+		{
+		}
+	};
+
+} // namespace Amulet

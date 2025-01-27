@@ -3,8 +3,9 @@ import time
 
 from amulet.errors import ChunkLoadError
 from amulet import load_level
-from data.util import create_temp_world, clean_temp_world
-from data import worlds_src
+
+from tests.data import worlds_src
+from tests.data.world_utils import create_temp_world, clean_temp_world
 
 
 class WorldTestBaseCases:

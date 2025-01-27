@@ -1,31 +1,18 @@
-import sys
 import os
-import time
 import shutil
 from typing import Optional, Iterable
-from contextlib import contextmanager
 import re
 import json
-from tempfile import TemporaryDirectory
-import atexit
 
-import tests.data as data
-
-DATA_DIR = os.path.realpath(data.__path__[0])
-TEMP_DIR = TemporaryDirectory()
-atexit.register(TEMP_DIR.cleanup)
+from tests.data.utils import clean_path, get_data_dir, get_temp_dir
 
 
 def get_world_path(name: str) -> str:
-    return os.path.join(DATA_DIR, "worlds_src", name)
+    return os.path.join(get_data_dir(), "worlds_src", name)
 
 
 def get_temp_world_path(name: str) -> str:
-    return os.path.join(TEMP_DIR.name, name)
-
-
-def get_data_path(name: str) -> str:
-    return os.path.join(DATA_DIR, "", name)
+    return os.path.join(get_temp_dir(), name)
 
 
 class BaseWorldTest:
@@ -33,7 +20,7 @@ class BaseWorldTest:
 
 
 def for_each_world(globals_, worlds: Iterable[str]):
-    def wrap(cls: BaseWorldTest):
+    def wrap(cls: type[BaseWorldTest]):
         for world in worlds:
             world_identifier = re.sub(r"\W|^(?=\d)", "_", world)
             globals_[world_identifier] = type(
@@ -77,14 +64,6 @@ class WorldTemp:
         clean_path(self.temp_path)
 
 
-def clean_path(path: str):
-    """Clean a given path removing all data at that path."""
-    if os.path.isdir(path):
-        shutil.rmtree(path, ignore_errors=True)
-    elif os.path.isfile(path):
-        os.remove(path)
-
-
 def clean_temp_world(temp_world_name: str) -> str:
     """Remove the temporary world."""
     dst_path = get_temp_world_path(temp_world_name)
@@ -108,21 +87,3 @@ def create_temp_world(
 
     shutil.copytree(src_path, dst_path)
     return dst_path
-
-
-@contextmanager
-def timeout(test_instance, time_constraint: float, show_completion_time=False):
-    start = time.time()
-    yield
-
-    end = time.time()
-    delta = end - start
-    if delta > time_constraint:
-        test_instance.fail(
-            f"Test execution didn't meet desired run time of {time_constraint}, ran in {delta} instead"
-        )
-    elif show_completion_time:
-        print(
-            f"Test ran in {delta} seconds, was required to run in {time_constraint} seconds",
-            file=sys.stderr,
-        )
