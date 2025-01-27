@@ -1,6 +1,6 @@
 import unittest
 from datetime import timedelta, datetime
-from threading import Thread, RLock, Condition
+from threading import Thread, Condition
 import time
 
 from amulet.utils.mutex import OrderedSharedMutex, OrderedSharedTimedMutex, Deadlock
