@@ -2,7 +2,7 @@
 #include "block_palette.hpp"
 
 namespace Amulet {
-	AMULET_CORE_DLLX void BlockPalette::serialise(BinaryWriter& writer) const {
+	void BlockPalette::serialise(BinaryWriter& writer) const {
 		writer.writeNumeric<std::uint8_t>(1);
 		get_version_range()->serialise(writer);
 		const auto& blocks = get_blocks();
@@ -11,7 +11,7 @@ namespace Amulet {
 			block->serialise(writer);
 		}
 	}
-	AMULET_CORE_DLLX std::shared_ptr<BlockPalette> BlockPalette::deserialise(BinaryReader& reader) {
+	std::shared_ptr<BlockPalette> BlockPalette::deserialise(BinaryReader& reader) {
 		auto version = reader.readNumeric<std::uint8_t>();
 		switch (version) {
 		case 1:
