@@ -33,9 +33,9 @@ namespace Amulet {
 			throw std::invalid_argument("bits_per_entry must be between 1 and 64 inclusive. Got " + std::to_string(bits_per_entry));
 		}
 
-		size_t expected_len = std::ceil(
+		size_t expected_len = static_cast<size_t>(std::ceil(
 			dense ? static_cast<float>(decoded.size()) * bits_per_entry / 64 : static_cast<float>(decoded.size()) / (64 / bits_per_entry)
-		);
+		));
 
 		if (encoded.size() != expected_len) {
 			throw std::invalid_argument(

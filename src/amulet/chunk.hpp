@@ -100,7 +100,7 @@ namespace Amulet {
 		}
 	};
 
-	class ChunkLoadError : public std::runtime_error {
+	class AMULET_CORE_EXPORT_EXCEPTION ChunkLoadError : public std::runtime_error {
 	public:
 		using std::runtime_error::runtime_error;
 		ChunkLoadError()
