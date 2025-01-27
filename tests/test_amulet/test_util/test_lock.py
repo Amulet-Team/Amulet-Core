@@ -276,11 +276,11 @@ class LockTestCase(TestCase):
             nonlocal result_1
             increment_thread_count()
             with condition:
-                condition.wait_for(lambda: thread_count >= 2)
+                condition.wait_for(lambda: thread_count >= 3)
             with lock_1.unique(blocking=False):
                 increment_thread_count()
                 with condition:
-                    condition.wait_for(lambda: thread_count >= 4)
+                    condition.wait_for(lambda: thread_count >= 5)
                 with lock_2.unique(cancel_manager=cancel_manager):
                     result_1 = True
             end_times.append(time.time())
@@ -289,11 +289,11 @@ class LockTestCase(TestCase):
             nonlocal result_2
             increment_thread_count()
             with condition:
-                condition.wait_for(lambda: thread_count >= 2)
+                condition.wait_for(lambda: thread_count >= 3)
             with lock_2.unique(blocking=False):
                 increment_thread_count()
                 with condition:
-                    condition.wait_for(lambda: thread_count >= 4)
+                    condition.wait_for(lambda: thread_count >= 5)
                 try:
                     with lock_1.unique(cancel_manager=cancel_manager):
                         pass
@@ -316,6 +316,7 @@ class LockTestCase(TestCase):
             condition.wait_for(lambda: thread_count >= 2)
         # Get start time
         t = time.time()
+        increment_thread_count()
 
         time.sleep(0.5)
 
