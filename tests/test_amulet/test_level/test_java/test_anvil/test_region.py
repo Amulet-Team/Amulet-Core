@@ -8,12 +8,23 @@ from concurrent.futures import ThreadPoolExecutor
 from amulet_nbt import NamedTag, CompoundTag, StringTag, ListTag
 
 from amulet.chunk import ChunkDoesNotExist
-from amulet.level.java.anvil import AnvilRegion
+from amulet.level.java.anvil import AnvilRegion, RegionDoesNotExist
 import tests.data.worlds_src
 import tests.data.region
+from tests.test_amulet.test_level.test_java.test_anvil.test_region_ import throw_region_does_not_exist
 
 
 class AnvilRegionTestCase(unittest.TestCase):
+    def test_region_does_not_exist(self) -> None:
+        with self.assertRaises(RuntimeError):
+            raise RegionDoesNotExist
+        with self.assertRaises(RegionDoesNotExist):
+            raise RegionDoesNotExist
+        with self.assertRaises(RuntimeError):
+            throw_region_does_not_exist()
+        with self.assertRaises(RegionDoesNotExist):
+            throw_region_does_not_exist()
+
     def test_methods(self) -> None:
         with TemporaryDirectory() as tmpdir:
             region = AnvilRegion(tmpdir, 0, 0)
