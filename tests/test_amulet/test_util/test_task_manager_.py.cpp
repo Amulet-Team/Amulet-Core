@@ -11,6 +11,7 @@ namespace py = pybind11;
 void init_test_task_manager(py::module m_parent)
 {
     auto m = pybind11_extensions::def_subpackage(m_parent, "test_task_manager_");
+    m.def("throw_task_cancelled", [](){ throw Amulet::TaskCancelled(); });
     m.def("cpp_test_task_cancelled", []() {
         std::string hello_world = "Hello World";
         std::string task_cancelled = "Task Cancelled";
