@@ -2,11 +2,11 @@
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
-#include <amulet/utils/numpy.hpp>
 #include <pybind11_extensions/numpy.hpp>
 
-namespace py = pybind11;
+#include <amulet/utils/numpy.hpp>
 
+namespace py = pybind11;
 
 void init_utils_numpy(py::module m_parent) {
     auto m = m_parent.def_submodule("numpy");

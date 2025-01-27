@@ -1,13 +1,14 @@
-#include <span>
-#include <memory>
-
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
 #include <pybind11/typing.h>
 
-#include <amulet/collections/sequence.py.hpp>
+#include <span>
+#include <memory>
+
 #include <pybind11_extensions/types.hpp>
+
+#include <amulet/collections/sequence.py.hpp>
 #include <amulet/block.hpp>
 
 namespace py = pybind11;

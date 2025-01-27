@@ -1,7 +1,8 @@
+#include <pybind11/pybind11.h>
+#include <pybind11/chrono.h>
+
 #include <memory>
 
-#include <pybind11/chrono.h>
-#include <pybind11/pybind11.h>
 #include <pybind11_extensions/py_module.hpp>
 
 #include "mutex.hpp"

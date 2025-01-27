@@ -1,13 +1,14 @@
 #pragma once
 
-#include <memory>
-
 #include <pybind11/pybind11.h>
 #include <pybind11/typing.h>
+
+#include <memory>
 
 #include <pybind11_extensions/types.hpp>
 #include <pybind11_extensions/builtins.hpp>
 #include <pybind11_extensions/collections.hpp>
+
 #include "iterator.py.hpp"
 
 namespace py = pybind11;

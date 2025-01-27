@@ -1,6 +1,9 @@
-#include <string>
 #include <pybind11/pybind11.h>
+
+#include <string>
+
 #include <pybind11_extensions/py_module.hpp>
+
 namespace py = pybind11;
 
 py::module init_chunk_handle(py::module);
