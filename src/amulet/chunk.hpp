@@ -109,7 +109,7 @@ namespace Amulet {
 		}
 	};
 
-	class ChunkDoesNotExist : public ChunkLoadError {
+	class AMULET_CORE_EXPORT_EXCEPTION ChunkDoesNotExist : public ChunkLoadError {
 	public:
 		using ChunkLoadError::ChunkLoadError;
 		ChunkDoesNotExist()

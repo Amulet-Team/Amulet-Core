@@ -6,7 +6,7 @@
 
 namespace Amulet {
 
-class NoValidSector : public std::runtime_error {
+class AMULET_CORE_EXPORT_EXCEPTION NoValidSector : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };
 
