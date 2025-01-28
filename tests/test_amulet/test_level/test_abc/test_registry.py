@@ -86,8 +86,12 @@ class IdRegistryTestCase(TestCase):
         # Get
         self.assertEqual(("minecraft", "stone"), registry.get(0))
         self.assertIs(None, registry.get(2))
-        self.assertEqual(("minecraft", "stone"), registry.get(0, ("minecraft", "bedrock")))
-        self.assertEqual(("minecraft", "bedrock"), registry.get(2, ("minecraft", "bedrock")))
+        self.assertEqual(
+            ("minecraft", "stone"), registry.get(0, ("minecraft", "bedrock"))
+        )
+        self.assertEqual(
+            ("minecraft", "bedrock"), registry.get(2, ("minecraft", "bedrock"))
+        )
 
     def test_iter_lifespan(self) -> None:
         registry = IdRegistry()
