@@ -69,7 +69,7 @@ class SectionArrayMap:
         self, arg0: int, arg1: IndexArray3D | typing_extensions.Buffer
     ) -> None: ...
     def get(
-        self, arg0: int, arg1: numpy.typing.NDArray[numpy.uint32] | None
+        self, key: int, default: numpy.typing.NDArray[numpy.uint32] | None = None
     ) -> numpy.typing.NDArray[numpy.uint32] | None: ...
     def items(
         self,

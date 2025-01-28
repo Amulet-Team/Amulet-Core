@@ -96,7 +96,7 @@ namespace collections {
 			[](
 				py::object self, 
 				pybind11_extensions::PyObjectCpp<KT> key,
-				py::typing::Optional<VT> default_ = py::none()
+				py::typing::Optional<VT> default_
 			) -> py::typing::Optional<VT> {
 				try {
 					return self.attr("__getitem__")(key);
@@ -109,7 +109,9 @@ namespace collections {
 						throw;
 					}
 				}
-			}
+			},
+            py::arg("key"),
+            py::arg("default") = py::none()
 		);
 	}
 
