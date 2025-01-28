@@ -25,7 +25,8 @@ public:
         : TaskCancelled("Task Cancelled")
     {
     }
-    const char* what() const noexcept override {
+    const char* what() const noexcept override
+    {
         return msg.c_str();
     }
 };

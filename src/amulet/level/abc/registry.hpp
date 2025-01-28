@@ -1,9 +1,9 @@
 #pragma once
 
+#include <cstdint>
 #include <map>
 #include <string>
 #include <utility>
-#include <cstdint>
 
 #include <amulet/dll.hpp>
 

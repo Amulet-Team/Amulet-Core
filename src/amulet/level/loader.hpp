@@ -31,8 +31,6 @@ public:
 
 class LevelLoader {
 public:
-    
-
     // The name of the loader.
     std::string name;
     // The function to load the level.
@@ -50,7 +48,7 @@ struct std::hash<Amulet::LevelLoaderToken> {
     size_t operator()(const Amulet::LevelLoaderToken& token) const noexcept;
 };
 
-namespace Amulet{
+namespace Amulet {
 
 class LevelLoaderRegister {
 private:

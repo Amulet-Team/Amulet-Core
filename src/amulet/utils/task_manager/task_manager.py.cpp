@@ -1,5 +1,5 @@
-#include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
+#include <pybind11/pybind11.h>
 
 #include <pybind11_extensions/py_module.hpp>
 
@@ -13,9 +13,9 @@ static py::module init_cancel_manager(py::module m_parent)
     auto m = m_parent.def_submodule("cancel_manager");
 
     std::string module_name = m.attr("__name__").cast<std::string>();
-    
+
     py::register_exception<Amulet::TaskCancelled>(m, "TaskCancelled");
-    
+
     py::class_<Amulet::AbstractCancelManager> AbstractCancelManager(m, "AbstractCancelManager");
     AbstractCancelManager.def("cancel", &Amulet::AbstractCancelManager::cancel);
     AbstractCancelManager.def("is_cancel_requested", &Amulet::AbstractCancelManager::is_cancel_requested);
@@ -27,7 +27,7 @@ static py::module init_cancel_manager(py::module m_parent)
     VoidCancelManager.def(
         "__repr__",
         [module_name](const Amulet::VoidCancelManager&) { return module_name + ".VoidCancelManager()"; });
-    
+
     py::class_<Amulet::CancelManager, Amulet::AbstractCancelManager> CancelManager(m, "CancelManager");
     CancelManager.def(py::init<>());
     CancelManager.def(
@@ -77,7 +77,7 @@ void init_task_manager(py::module m_parent)
     m.attr("AbstractCancelManager") = m_cancel.attr("AbstractCancelManager");
     m.attr("VoidCancelManager") = m_cancel.attr("VoidCancelManager");
     m.attr("CancelManager") = m_cancel.attr("CancelManager");
-    
+
     m.attr("AbstractProgressManager") = m_progress.attr("AbstractProgressManager");
     m.attr("VoidProgressManager") = m_progress.attr("VoidProgressManager");
     m.attr("ProgressManager") = m_progress.attr("ProgressManager");

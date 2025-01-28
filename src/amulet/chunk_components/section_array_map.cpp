@@ -38,7 +38,8 @@ IndexArray3D::IndexArray3D(const IndexArray3D& other)
     std::memcpy(_buffer, other._buffer, sizeof(std::uint32_t) * other.get_size());
 }
 
-IndexArray3D::~IndexArray3D() {
+IndexArray3D::~IndexArray3D()
+{
     free(_buffer);
 }
 
