@@ -74,5 +74,12 @@ namespace collections {
         }
 	};
 
+	template <typename mapT>
+    py::object make_map_iterator(const mapT& map, py::object owner = py::none()) { 
+        return py::cast(static_cast<std::shared_ptr<Iterator>>(
+            std::make_shared<MapIterator<mapT>>(map, owner)
+		));
+	}
+
 }
 }

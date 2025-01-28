@@ -4,8 +4,6 @@ import collections.abc
 import types
 import typing
 
-import amulet.collections
-
 __all__ = ["IdRegistry"]
 
 class IdRegistry:
@@ -32,7 +30,7 @@ class IdRegistry:
 
     def __hash__(self) -> int: ...
     def __init__(self) -> None: ...
-    def __iter__(self) -> amulet.collections.Iterator:
+    def __iter__(self) -> collections.abc.Iterator[int]:
         """
         An iterable of the numerical ids registered.
         Not thread safe. External shared/unique lock must be held while calling and using this.

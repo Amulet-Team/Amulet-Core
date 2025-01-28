@@ -5,7 +5,6 @@ import types
 import typing
 
 import amulet.block
-import amulet.collections
 import amulet.palette.block_palette
 import amulet.version
 import numpy
@@ -63,7 +62,7 @@ class SectionArrayMap:
         array_shape: tuple[int, int, int],
         default_array: int | IndexArray3D | typing_extensions.Buffer,
     ) -> None: ...
-    def __iter__(self) -> amulet.collections.Iterator: ...
+    def __iter__(self) -> collections.abc.Iterator[int]: ...
     def __len__(self) -> int: ...
     def __setitem__(
         self, arg0: int, arg1: IndexArray3D | typing_extensions.Buffer
