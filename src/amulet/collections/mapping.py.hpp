@@ -2,8 +2,10 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/typing.h>
+#include <pybind11/stl.h>
 
 #include <memory>
+#include <variant>
 
 #include <pybind11_extensions/types.hpp>
 #include <pybind11_extensions/builtins.hpp>
