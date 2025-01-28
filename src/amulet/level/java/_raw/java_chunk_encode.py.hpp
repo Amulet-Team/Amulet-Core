@@ -2,9 +2,9 @@
 
 #include <pybind11/pybind11.h>
 
-#include <memory>
-#include <map>
 #include <cstdint>
+#include <map>
+#include <memory>
 
 #include <pybind11_extensions/builtins.hpp>
 
@@ -16,11 +16,10 @@
 namespace py = pybind11;
 
 namespace Amulet {
-	std::map<std::string, AmuletNBT::NamedTag> encode_java_chunk(
-		pybind11_extensions::PyObjectStr<"amulet.level.abc.Level"> raw_level,
-		pybind11_extensions::PyObjectStr<"amulet.level.abc.Dimension"> dimension,
-		std::shared_ptr<Amulet::JavaChunk> chunk,
-		std::int64_t cx,
-		std::int64_t cz
-	);
+std::map<std::string, AmuletNBT::NamedTag> encode_java_chunk(
+    pybind11_extensions::PyObjectStr<"amulet.level.abc.Level"> raw_level,
+    pybind11_extensions::PyObjectStr<"amulet.level.abc.Dimension"> dimension,
+    std::shared_ptr<Amulet::JavaChunk> chunk,
+    std::int64_t cx,
+    std::int64_t cz);
 }

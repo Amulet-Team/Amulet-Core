@@ -1,6 +1,6 @@
 #pragma once
-#include <cstdint>
 #include <array>
+#include <cstdint>
 
 #include <amulet/dll.hpp>
 #include <amulet/selection/group.hpp>

@@ -2,52 +2,49 @@
 
 #include <memory>
 
-#include <amulet/block.hpp>
 #include <amulet/biome.hpp>
+#include <amulet/block.hpp>
 #include <amulet/chunk.hpp>
 #include <amulet/chunk_components/block_component.hpp>
 
-#include "java_chunk.hpp"
-#include "chunk_components/java_raw_chunk_component.hpp"
 #include "chunk_components/data_version_component.hpp"
+#include "chunk_components/java_raw_chunk_component.hpp"
+#include "java_chunk.hpp"
 
 namespace py = pybind11;
 
-
-void init_java_chunk(py::module m_parent) {
+void init_java_chunk(py::module m_parent)
+{
     auto m = m_parent.def_submodule("chunk");
 
     py::class_<
         Amulet::JavaChunk,
         std::shared_ptr<Amulet::JavaChunk>,
-        Amulet::Chunk
-    >
+        Amulet::Chunk>
         JavaChunk(m, "JavaChunk");
 
     py::class_<
-        Amulet::JavaChunkNA, 
+        Amulet::JavaChunkNA,
         std::shared_ptr<Amulet::JavaChunkNA>,
         Amulet::JavaChunk,
         Amulet::JavaRawChunkComponent,
         Amulet::DataVersionComponent,
         // Amulet::LastUpdateComponent,
         // Amulet::JavaLegacyVersionComponent,
-        Amulet::BlockComponent//,
+        Amulet::BlockComponent //,
         // Amulet::BlockEntityComponent,
         // Amulet::EntityComponent,
         // Amulet::Biome2DComponent,
         // Amulet::Height2DComponent,
-    >
+        >
         JavaChunkNA(m, "JavaChunkNA");
 
     JavaChunkNA.def(
         py::init<
             std::shared_ptr<Amulet::BlockStack>,
-            std::shared_ptr<Amulet::Biome>
-        >(),
+            std::shared_ptr<Amulet::Biome>>(),
         py::arg("default_block"),
-        py::arg("default_biome")
-    );
+        py::arg("default_biome"));
 
     py::class_<
         Amulet::JavaChunk0,
@@ -58,24 +55,22 @@ void init_java_chunk(py::module m_parent) {
         // Amulet::LastUpdateComponent,
         // Amulet::TerrainPopulatedComponent,
         // Amulet::LightPopulatedComponent,
-        Amulet::BlockComponent//,
+        Amulet::BlockComponent //,
         // Amulet::BlockEntityComponent,
         // Amulet::EntityComponent,
         // Amulet::Biome2DComponent,
         // Amulet::Height2DComponent,
-    >
+        >
         JavaChunk0(m, "JavaChunk0");
 
     JavaChunk0.def(
         py::init<
             std::int64_t,
             std::shared_ptr<Amulet::BlockStack>,
-            std::shared_ptr<Amulet::Biome>
-        >(),
+            std::shared_ptr<Amulet::Biome>>(),
         py::arg("data_version"),
         py::arg("default_block"),
-        py::arg("default_biome")
-    );
+        py::arg("default_biome"));
 
     py::class_<
         Amulet::JavaChunk1444,
@@ -85,24 +80,22 @@ void init_java_chunk(py::module m_parent) {
         Amulet::DataVersionComponent,
         // Amulet::LastUpdateComponent,
         // Amulet::StatusStringComponent,
-        Amulet::BlockComponent//,
+        Amulet::BlockComponent //,
         // Amulet::BlockEntityComponent,
         // Amulet::EntityComponent,
         // Amulet::Biome2DComponent,
         // Amulet::Height2DComponent,
-    >
+        >
         JavaChunk1444(m, "JavaChunk1444");
 
     JavaChunk1444.def(
         py::init<
-        std::int64_t,
-        std::shared_ptr<Amulet::BlockStack>,
-        std::shared_ptr<Amulet::Biome>
-        >(),
+            std::int64_t,
+            std::shared_ptr<Amulet::BlockStack>,
+            std::shared_ptr<Amulet::Biome>>(),
         py::arg("data_version"),
         py::arg("default_block"),
-        py::arg("default_biome")
-    );
+        py::arg("default_biome"));
 
     py::class_<
         Amulet::JavaChunk1466,
@@ -112,24 +105,22 @@ void init_java_chunk(py::module m_parent) {
         Amulet::DataVersionComponent,
         // Amulet::LastUpdateComponent,
         // Amulet::StatusStringComponent,
-        Amulet::BlockComponent//,
+        Amulet::BlockComponent //,
         // Amulet::BlockEntityComponent,
         // Amulet::EntityComponent,
         // Amulet::Biome2DComponent,
         // Amulet::NamedHeight2DComponent,
-    >
+        >
         JavaChunk1466(m, "JavaChunk1466");
 
     JavaChunk1466.def(
         py::init<
-        std::int64_t,
-        std::shared_ptr<Amulet::BlockStack>,
-        std::shared_ptr<Amulet::Biome>
-        >(),
+            std::int64_t,
+            std::shared_ptr<Amulet::BlockStack>,
+            std::shared_ptr<Amulet::Biome>>(),
         py::arg("data_version"),
         py::arg("default_block"),
-        py::arg("default_biome")
-    );
+        py::arg("default_biome"));
 
     py::class_<
         Amulet::JavaChunk2203,
@@ -139,23 +130,20 @@ void init_java_chunk(py::module m_parent) {
         Amulet::DataVersionComponent,
         // Amulet::LastUpdateComponent,
         // Amulet::StatusStringComponent,
-        Amulet::BlockComponent//,
+        Amulet::BlockComponent //,
         // Amulet::BlockEntityComponent,
         // Amulet::EntityComponent,
         // Amulet::Biome3DComponent,
         // Amulet::NamedHeight2DComponent,
-    >
+        >
         JavaChunk2203(m, "JavaChunk2203");
 
     JavaChunk2203.def(
         py::init<
-        std::int64_t,
-        std::shared_ptr<Amulet::BlockStack>,
-        std::shared_ptr<Amulet::Biome>
-        >(),
+            std::int64_t,
+            std::shared_ptr<Amulet::BlockStack>,
+            std::shared_ptr<Amulet::Biome>>(),
         py::arg("data_version"),
         py::arg("default_block"),
-        py::arg("default_biome")
-    );
-
+        py::arg("default_biome"));
 }

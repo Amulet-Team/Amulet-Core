@@ -13,7 +13,8 @@ void init_java_chunk(py::module);
 void init_java_anvil(py::module);
 void init_java_raw(py::module);
 
-py::module init_java(py::module m_parent) {
+py::module init_java(py::module m_parent)
+{
     auto m = pybind11_extensions::def_subpackage(m_parent, "java");
 
     init_long_array(m);
@@ -22,7 +23,7 @@ py::module init_java(py::module m_parent) {
     init_java_anvil(m);
     init_java_raw(m);
 
-//    m.attr("JavaLevel") = py::module::import("amulet.level.java._level").attr("JavaLevel");
+    //    m.attr("JavaLevel") = py::module::import("amulet.level.java._level").attr("JavaLevel");
 
     return m;
 }

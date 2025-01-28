@@ -1,143 +1,138 @@
 #pragma once
 
-#include <string>
 #include <optional>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
-#include <amulet/dll.hpp>
-#include <amulet/block.hpp>
+#include "chunk_components/data_version_component.hpp"
+#include "chunk_components/java_raw_chunk_component.hpp"
 #include <amulet/biome.hpp>
+#include <amulet/block.hpp>
 #include <amulet/chunk.hpp>
 #include <amulet/chunk_components/block_component.hpp>
-#include "chunk_components/java_raw_chunk_component.hpp"
-#include "chunk_components/data_version_component.hpp"
+#include <amulet/dll.hpp>
 
 namespace Amulet {
-	class JavaChunk : public Chunk {};
+class JavaChunk : public Chunk { };
 
-	class JavaChunkNA : public ChunkComponentHelper<
-		JavaChunk,
-		JavaRawChunkComponent,
-		DataVersionComponent,
-		// LastUpdateComponent,
-		// JavaLegacyVersionComponent,
-		BlockComponent//,
-		// BlockEntityComponent,
-		// EntityComponent,
-		// Biome2DComponent,
-		// Height2DComponent,
-	> {
-	public:
-		AMULET_CORE_EXPORT static const std::string ChunkID;
+class JavaChunkNA : public ChunkComponentHelper<
+                        JavaChunk,
+                        JavaRawChunkComponent,
+                        DataVersionComponent,
+                        // LastUpdateComponent,
+                        // JavaLegacyVersionComponent,
+                        BlockComponent //,
+                        // BlockEntityComponent,
+                        // EntityComponent,
+                        // Biome2DComponent,
+                        // Height2DComponent,
+                        > {
+public:
+    AMULET_CORE_EXPORT static const std::string ChunkID;
 
-		std::string get_chunk_id() const override;
+    std::string get_chunk_id() const override;
 
-		using ChunkComponentHelper::ChunkComponentHelper;
-		AMULET_CORE_EXPORT JavaChunkNA(
-			std::shared_ptr<BlockStack> default_block,
-			std::shared_ptr<Biome> default_biome
-		);
-	};
+    using ChunkComponentHelper::ChunkComponentHelper;
+    AMULET_CORE_EXPORT JavaChunkNA(
+        std::shared_ptr<BlockStack> default_block,
+        std::shared_ptr<Biome> default_biome);
+};
 
-	class JavaChunk0 : public ChunkComponentHelper<
-		JavaChunk,
-		JavaRawChunkComponent,
-		DataVersionComponent,
-		// LastUpdateComponent,
-		// TerrainPopulatedComponent,
-		// LightPopulatedComponent,
-		BlockComponent//,
-		// BlockEntityComponent,
-		// EntityComponent,
-		// Biome2DComponent,
-		// Height2DComponent,
-	> {
-	public:
-		AMULET_CORE_EXPORT static const std::string ChunkID;
+class JavaChunk0 : public ChunkComponentHelper<
+                       JavaChunk,
+                       JavaRawChunkComponent,
+                       DataVersionComponent,
+                       // LastUpdateComponent,
+                       // TerrainPopulatedComponent,
+                       // LightPopulatedComponent,
+                       BlockComponent //,
+                       // BlockEntityComponent,
+                       // EntityComponent,
+                       // Biome2DComponent,
+                       // Height2DComponent,
+                       > {
+public:
+    AMULET_CORE_EXPORT static const std::string ChunkID;
 
-		std::string get_chunk_id() const override;
+    std::string get_chunk_id() const override;
 
-		using ChunkComponentHelper::ChunkComponentHelper;
-		AMULET_CORE_EXPORT JavaChunk0(
-			std::int64_t data_version,
-			std::shared_ptr<BlockStack> default_block,
-			std::shared_ptr<Biome> default_biome
-		);
-	};
+    using ChunkComponentHelper::ChunkComponentHelper;
+    AMULET_CORE_EXPORT JavaChunk0(
+        std::int64_t data_version,
+        std::shared_ptr<BlockStack> default_block,
+        std::shared_ptr<Biome> default_biome);
+};
 
-	class JavaChunk1444 : public ChunkComponentHelper<
-		JavaChunk,
-		JavaRawChunkComponent,
-		DataVersionComponent,
-		// LastUpdateComponent,
-		// StatusStringComponent,
-		BlockComponent//,
-		// BlockEntityComponent,
-		// EntityComponent,
-		// Biome2DComponent,
-		// Height2DComponent,
-	> {
-	public:
-		AMULET_CORE_EXPORT static const std::string ChunkID;
+class JavaChunk1444 : public ChunkComponentHelper<
+                          JavaChunk,
+                          JavaRawChunkComponent,
+                          DataVersionComponent,
+                          // LastUpdateComponent,
+                          // StatusStringComponent,
+                          BlockComponent //,
+                          // BlockEntityComponent,
+                          // EntityComponent,
+                          // Biome2DComponent,
+                          // Height2DComponent,
+                          > {
+public:
+    AMULET_CORE_EXPORT static const std::string ChunkID;
 
-		std::string get_chunk_id() const override;
+    std::string get_chunk_id() const override;
 
-		using ChunkComponentHelper::ChunkComponentHelper;
-		AMULET_CORE_EXPORT JavaChunk1444(
-			std::int64_t data_version,
-			std::shared_ptr<BlockStack> default_block,
-			std::shared_ptr<Biome> default_biome
-		);
-	};
+    using ChunkComponentHelper::ChunkComponentHelper;
+    AMULET_CORE_EXPORT JavaChunk1444(
+        std::int64_t data_version,
+        std::shared_ptr<BlockStack> default_block,
+        std::shared_ptr<Biome> default_biome);
+};
 
-	class JavaChunk1466 : public ChunkComponentHelper<
-		JavaChunk,
-		JavaRawChunkComponent,
-		DataVersionComponent,
-		// LastUpdateComponent,
-		// StatusStringComponent,
-		BlockComponent//,
-		// BlockEntityComponent,
-		// EntityComponent,
-		// Biome2DComponent,
-		// NamedHeight2DComponent,
-	> {
-	public:
-		AMULET_CORE_EXPORT static const std::string ChunkID;
+class JavaChunk1466 : public ChunkComponentHelper<
+                          JavaChunk,
+                          JavaRawChunkComponent,
+                          DataVersionComponent,
+                          // LastUpdateComponent,
+                          // StatusStringComponent,
+                          BlockComponent //,
+                          // BlockEntityComponent,
+                          // EntityComponent,
+                          // Biome2DComponent,
+                          // NamedHeight2DComponent,
+                          > {
+public:
+    AMULET_CORE_EXPORT static const std::string ChunkID;
 
-		std::string get_chunk_id() const override;
+    std::string get_chunk_id() const override;
 
-		using ChunkComponentHelper::ChunkComponentHelper;
-		AMULET_CORE_EXPORT JavaChunk1466(
-			std::int64_t data_version,
-			std::shared_ptr<BlockStack> default_block,
-			std::shared_ptr<Biome> default_biome
-		);
-	};
+    using ChunkComponentHelper::ChunkComponentHelper;
+    AMULET_CORE_EXPORT JavaChunk1466(
+        std::int64_t data_version,
+        std::shared_ptr<BlockStack> default_block,
+        std::shared_ptr<Biome> default_biome);
+};
 
-	class JavaChunk2203 : public ChunkComponentHelper<
-		JavaChunk,
-		JavaRawChunkComponent,
-		DataVersionComponent,
-		// LastUpdateComponent,
-		// StatusStringComponent,
-		BlockComponent//,
-		// BlockEntityComponent,
-		// EntityComponent,
-		// Biome3DComponent,
-		// NamedHeight2DComponent,
-	> {
-	public:
-		AMULET_CORE_EXPORT static const std::string ChunkID;
+class JavaChunk2203 : public ChunkComponentHelper<
+                          JavaChunk,
+                          JavaRawChunkComponent,
+                          DataVersionComponent,
+                          // LastUpdateComponent,
+                          // StatusStringComponent,
+                          BlockComponent //,
+                          // BlockEntityComponent,
+                          // EntityComponent,
+                          // Biome3DComponent,
+                          // NamedHeight2DComponent,
+                          > {
+public:
+    AMULET_CORE_EXPORT static const std::string ChunkID;
 
-		std::string get_chunk_id() const override;
+    std::string get_chunk_id() const override;
 
-		using ChunkComponentHelper::ChunkComponentHelper;
-		AMULET_CORE_EXPORT JavaChunk2203(
-			std::int64_t data_version,
-			std::shared_ptr<BlockStack> default_block,
-			std::shared_ptr<Biome> default_biome
-		);
-	};
+    using ChunkComponentHelper::ChunkComponentHelper;
+    AMULET_CORE_EXPORT JavaChunk2203(
+        std::int64_t data_version,
+        std::shared_ptr<BlockStack> default_block,
+        std::shared_ptr<Biome> default_biome);
+};
 }

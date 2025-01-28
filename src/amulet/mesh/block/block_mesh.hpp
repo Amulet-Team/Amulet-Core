@@ -2,13 +2,13 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <numbers>
 #include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <functional>
 
 #include <amulet/dll.hpp>
 #include <amulet/vector.hpp>
@@ -67,7 +67,11 @@ public:
     // The triangles in this mesh part.
     std::vector<Triangle> triangles;
 
-    BlockMeshPart(): verts(), triangles() {}
+    BlockMeshPart()
+        : verts()
+        , triangles()
+    {
+    }
     BlockMeshPart(
         const std::vector<Vertex>& verts,
         const std::vector<Triangle>& triangles)
@@ -103,7 +107,7 @@ typedef std::map<
 
 // For every combination of 90 degree rotations in y and x axis
 // gives the rotated cull direction.
-//extern const RotationCullMapType RotationCullMap;
+// extern const RotationCullMapType RotationCullMap;
 
 class BlockMesh {
 public:

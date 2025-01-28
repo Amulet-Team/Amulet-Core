@@ -1,45 +1,41 @@
+#include <pybind11/numpy.h>
+#include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <pybind11/operators.h>
-#include <pybind11/numpy.h>
 
+#include <limits>
 #include <memory>
 #include <span>
 #include <variant>
-#include <limits>
 
 #include <pybind11_extensions/numpy.hpp>
 
+#include <amulet/chunk_components/section_array_map.hpp>
 #include <amulet/collections/iterator.py.hpp>
 #include <amulet/collections/mapping.py.hpp>
 #include <amulet/collections/mutable_mapping.py.hpp>
-#include <amulet/chunk_components/section_array_map.hpp>
 
 namespace py = pybind11;
 
-void init_section_array_map(py::module section_array_map_module) {
+void init_section_array_map(py::module section_array_map_module)
+{
     // 3D index array
     py::class_<Amulet::IndexArray3D, std::shared_ptr<Amulet::IndexArray3D>>
         IndexArray3D(section_array_map_module, "IndexArray3D", py::buffer_protocol(),
-            "A 3D index array."
-        );
+            "A 3D index array.");
     // Constructors
     IndexArray3D.def(
         py::init<const Amulet::SectionShape&>(),
-        py::arg("shape")
-    );
+        py::arg("shape"));
     IndexArray3D.def(
         py::init<
             const Amulet::SectionShape&,
-            std::uint32_t
-        >(),
+            std::uint32_t>(),
         py::arg("shape"),
-        py::arg("value")
-    );
+        py::arg("value"));
     IndexArray3D.def(
         py::init<const Amulet::IndexArray3D&>(),
-        py::arg("other")
-    );
+        py::arg("other"));
     auto index_array_from_buffer = [](py::buffer other) {
         py::buffer_info info = other.request();
         if (!info.item_type_is_equivalent_to<std::uint32_t>()) {
@@ -58,21 +54,16 @@ void init_section_array_map(py::module section_array_map_module) {
         size_t z_dim = info.shape[2];
 
         if (
-            x_dim > std::numeric_limits<std::uint16_t>::max() ||
-            y_dim > std::numeric_limits<std::uint16_t>::max() ||
-            z_dim > std::numeric_limits<std::uint16_t>::max()
-        ) {
+            x_dim > std::numeric_limits<std::uint16_t>::max() || y_dim > std::numeric_limits<std::uint16_t>::max() || z_dim > std::numeric_limits<std::uint16_t>::max()) {
             throw std::invalid_argument("IndexArray3D has a maximum dimension of 65535.");
         }
 
         // Get the destination array
         auto self = std::make_shared<Amulet::IndexArray3D>(
             std::make_tuple(
-                static_cast<std::uint16_t>(x_dim), 
-                static_cast<std::uint16_t>(y_dim), 
-                static_cast<std::uint16_t>(z_dim)
-            )
-        );
+                static_cast<std::uint16_t>(x_dim),
+                static_cast<std::uint16_t>(y_dim),
+                static_cast<std::uint16_t>(z_dim)));
         auto dst = self->get_buffer();
 
         // Get the source strides
@@ -97,150 +88,125 @@ void init_section_array_map(py::module section_array_map_module) {
         return self;
     };
     IndexArray3D.def(
-        py::init(index_array_from_buffer)
-    );
+        py::init(index_array_from_buffer));
     IndexArray3D.def_property_readonly(
         "shape",
-        &Amulet::IndexArray3D::get_shape
-    );
+        &Amulet::IndexArray3D::get_shape);
     IndexArray3D.def_property_readonly(
         "size",
-        &Amulet::IndexArray3D::get_size
-    );
+        &Amulet::IndexArray3D::get_size);
     IndexArray3D.def_buffer([](Amulet::IndexArray3D& self) {
         return py::buffer_info(
             self.get_buffer(),
             sizeof(std::uint32_t),
             py::format_descriptor<std::uint32_t>::format(),
             3,
-            {
-                std::get<0>(self.get_shape()),
+            { std::get<0>(self.get_shape()),
                 std::get<1>(self.get_shape()),
-                std::get<2>(self.get_shape())
-            },
-            {
-                sizeof(std::uint32_t) * std::get<1>(self.get_shape()) * std::get<2>(self.get_shape()),
+                std::get<2>(self.get_shape()) },
+            { sizeof(std::uint32_t) * std::get<1>(self.get_shape()) * std::get<2>(self.get_shape()),
                 sizeof(std::uint32_t) * std::get<2>(self.get_shape()),
-                sizeof(std::uint32_t)
-            }
-        );
+                sizeof(std::uint32_t) });
     });
-    
+
     // Section Array Map
     py::class_<Amulet::SectionArrayMap, std::shared_ptr<Amulet::SectionArrayMap>>
-    SectionArrayMap(section_array_map_module, "SectionArrayMap",
-        "A container of sub-chunk arrays."
-    );
+        SectionArrayMap(section_array_map_module, "SectionArrayMap",
+            "A container of sub-chunk arrays.");
     SectionArrayMap.def(
         py::init(
             [&index_array_from_buffer](
                 const Amulet::SectionShape& array_shape,
                 std::variant<
-                    std::uint32_t, 
+                    std::uint32_t,
                     std::shared_ptr<Amulet::IndexArray3D>,
-                    py::buffer
-                > default_array
-            ) {
+                    py::buffer>
+                    default_array) {
                 return std::visit([&array_shape, &index_array_from_buffer](auto&& arg) {
                     using T = std::decay_t<decltype(arg)>;
-                    if constexpr (std::is_same_v<T, py::buffer>){
+                    if constexpr (std::is_same_v<T, py::buffer>) {
                         return std::make_shared<Amulet::SectionArrayMap>(array_shape, index_array_from_buffer(arg));
-                    }
-                    else {
+                    } else {
                         return std::make_shared<Amulet::SectionArrayMap>(array_shape, arg);
                     }
-                }, default_array);
-            }
-        ),
+                },
+                    default_array);
+            }),
         py::arg("array_shape"),
-        py::arg("default_array")
-    );
+        py::arg("default_array"));
     SectionArrayMap.def_property_readonly(
         "array_shape",
-        &Amulet::SectionArrayMap::get_array_shape
-    );
+        &Amulet::SectionArrayMap::get_array_shape);
     py::object asarray = py::module::import("numpy").attr("asarray");
     SectionArrayMap.def_property(
         "default_array",
-        [asarray](const Amulet::SectionArrayMap& self){
+        [asarray](const Amulet::SectionArrayMap& self) {
             return std::visit([asarray](auto&& arg) -> std::variant<std::uint32_t, py::array> {
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T, std::uint32_t>) {
                     return arg;
-                }
-                else {
+                } else {
                     return asarray(py::cast(arg));
                 }
-            }, self.get_default_array());
+            },
+                self.get_default_array());
         },
         [&index_array_from_buffer](
-            Amulet::SectionArrayMap& self, 
+            Amulet::SectionArrayMap& self,
             std::variant<
-                std::uint32_t, 
-                std::shared_ptr<Amulet::IndexArray3D>, 
-                py::buffer
-            > default_array
-        ) {
+                std::uint32_t,
+                std::shared_ptr<Amulet::IndexArray3D>,
+                py::buffer>
+                default_array) {
             std::visit([&self, &index_array_from_buffer](auto&& arg) {
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (
-                    std::is_same_v<T, std::uint32_t> ||
-                    std::is_same_v<T, std::shared_ptr<Amulet::IndexArray3D>>
-                ) {
+                    std::is_same_v<T, std::uint32_t> || std::is_same_v<T, std::shared_ptr<Amulet::IndexArray3D>>) {
                     self.set_default_array(arg);
-                }
-                else {
+                } else {
                     self.set_default_array(index_array_from_buffer(arg));
                 }
-            }, default_array);
-        }
-    );
+            },
+                default_array);
+        });
     SectionArrayMap.def(
         "populate",
-        &Amulet::SectionArrayMap::populate_section
-    );
+        &Amulet::SectionArrayMap::populate_section);
     SectionArrayMap.def(
         "__setitem__",
         [&index_array_from_buffer](
             Amulet::SectionArrayMap& self,
             std::int64_t cy,
             std::variant<
-                std::shared_ptr<Amulet::IndexArray3D>, 
-                py::buffer
-            > array_
-        ) {
+                std::shared_ptr<Amulet::IndexArray3D>,
+                py::buffer>
+                array_) {
             std::visit([&self, &index_array_from_buffer, &cy](auto&& arg) {
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (
-                    std::is_same_v<T, std::shared_ptr<Amulet::IndexArray3D>>
-                ) {
+                    std::is_same_v<T, std::shared_ptr<Amulet::IndexArray3D>>) {
                     self.set_section(cy, arg);
-                }
-                else {
+                } else {
                     self.set_section(cy, index_array_from_buffer(arg));
                 }
-            }, array_);
-        }
-    );
+            },
+                array_);
+        });
     SectionArrayMap.def(
         "__delitem__",
-        &Amulet::SectionArrayMap::del_section
-    );
+        &Amulet::SectionArrayMap::del_section);
     SectionArrayMap.def(
         "__getitem__",
         [asarray](const Amulet::SectionArrayMap& self, std::int64_t cy) -> pybind11_extensions::numpy::array_t<std::uint32_t> {
             try {
                 return asarray(py::cast(self.get_section(cy)));
-            }
-            catch (const std::out_of_range&) {
+            } catch (const std::out_of_range&) {
                 throw py::key_error(std::to_string(cy));
             }
-        }
-    );
+        });
     SectionArrayMap.def(
         "__len__",
-        &Amulet::SectionArrayMap::get_size
-    );
+        &Amulet::SectionArrayMap::get_size);
     SectionArrayMap.def(
         "__iter__",
         [](const Amulet::SectionArrayMap& self) -> pybind11_extensions::collections::abc::Iterator<std::int64_t> {
@@ -248,12 +214,10 @@ void init_section_array_map(py::module section_array_map_module) {
                 std::unordered_map<std::int64_t, std::shared_ptr<Amulet::IndexArray3D>>>(
                 self.get_arrays());
         },
-        py::keep_alive<0, 1>()
-    );
+        py::keep_alive<0, 1>());
     SectionArrayMap.def(
         "__contains__",
-        &Amulet::SectionArrayMap::contains_section
-    );
+        &Amulet::SectionArrayMap::contains_section);
     Amulet::collections::PyMapping_keys<std::int64_t>(SectionArrayMap);
     Amulet::collections::PyMapping_values<pybind11_extensions::numpy::array_t<std::uint32_t>>(SectionArrayMap);
     Amulet::collections::PyMapping_items<std::int64_t, pybind11_extensions::numpy::array_t<std::uint32_t>>(SectionArrayMap);
