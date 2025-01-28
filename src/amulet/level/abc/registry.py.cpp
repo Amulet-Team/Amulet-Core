@@ -19,20 +19,36 @@ py::module init_registry(py::module m_parent)
     IdRegistry.def(py::init<>());
     IdRegistry.def(
         "numerical_id_to_namespace_id",
-        &Amulet::IdRegistry::numerical_id_to_namespace_id,
+        [](const Amulet::IdRegistry& self, std::uint32_t index) {
+            try {
+                return self.numerical_id_to_namespace_id(index);
+            } catch (const std::out_of_range&) {
+                throw py::key_error(std::to_string(index));
+            }
+        },
         py::arg("index"),
         py::doc("Convert a numerical id to its namespaced id.\n"
                 "Not thread safe. External shared/unique lock must be held while calling this.\n"));
     IdRegistry.def(
         "namespace_id_to_numerical_id",
-        &Amulet::IdRegistry::namespace_id_to_numerical_id,
+        [](const Amulet::IdRegistry& self, const Amulet::NamespacedName& name) {
+            try {
+                return self.namespace_id_to_numerical_id(name);
+            } catch (const std::out_of_range&) {
+                throw py::key_error(name.first + ":" + name.second);
+            }
+        },
         py::arg("name"),
         py::doc("Convert a namespaced id to its numerical id.\n"
                 "Not thread safe. External shared/unique lock must be held while calling this.\n"));
     IdRegistry.def(
         "namespace_id_to_numerical_id",
         [](const Amulet::IdRegistry& self, std::string namespace_, std::string base_name) {
-            return self.namespace_id_to_numerical_id({ namespace_, base_name });
+            try {
+                return self.namespace_id_to_numerical_id({ namespace_, base_name });
+            } catch (const std::out_of_range&) {
+                throw py::key_error(namespace_ + ":" + base_name);
+            }
         },
         py::arg("namespace"),
         py::arg("base_name"),
@@ -64,13 +80,25 @@ py::module init_registry(py::module m_parent)
     );
     IdRegistry.def(
         "__getitem__",
-        &Amulet::IdRegistry::numerical_id_to_namespace_id,
+        [](const Amulet::IdRegistry& self, std::uint32_t index) {
+            try {
+                return self.numerical_id_to_namespace_id(index);
+            } catch (const std::out_of_range&) {
+                throw py::key_error(std::to_string(index));
+            }
+        },
         py::arg("index"),
         py::doc("Convert a numerical id to its namespaced id.\n"
                 "Not thread safe. External shared/unique lock must be held while calling this.\n"));
     IdRegistry.def(
         "__getitem__",
-        &Amulet::IdRegistry::namespace_id_to_numerical_id,
+        [](const Amulet::IdRegistry& self, const Amulet::NamespacedName& name) {
+            try {
+                return self.namespace_id_to_numerical_id(name);
+            } catch (const std::out_of_range&) {
+                throw py::key_error(name.first + ":" + name.second);
+            }
+        },
         py::arg("name"),
         py::doc("Convert a namespaced id to its numerical id.\n"
                 "Not thread safe. External shared/unique lock must be held while calling this.\n"));
