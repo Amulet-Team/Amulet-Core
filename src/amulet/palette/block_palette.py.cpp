@@ -65,8 +65,8 @@ void init_block_palette(py::module block_palette_module) {
 				return self.contains_block(item);
 			}
 		);
-		Amulet::collections::Sequence_iter(BlockPalette);
-		Amulet::collections::Sequence_reversed(BlockPalette);
+		Amulet::collections::Sequence_iter<Amulet::BlockStack>(BlockPalette);
+		Amulet::collections::Sequence_reversed<Amulet::BlockStack>(BlockPalette);
 		Amulet::collections::Sequence_index(BlockPalette);
 		Amulet::collections::Sequence_count(BlockPalette);
 		Amulet::collections::Sequence_register(BlockPalette);

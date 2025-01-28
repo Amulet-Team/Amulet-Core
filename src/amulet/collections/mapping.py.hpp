@@ -2,8 +2,10 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/typing.h>
+#include <pybind11/stl.h>
 
 #include <memory>
+#include <variant>
 
 #include <pybind11_extensions/types.hpp>
 #include <pybind11_extensions/builtins.hpp>
@@ -94,7 +96,7 @@ namespace collections {
 			[](
 				py::object self, 
 				pybind11_extensions::PyObjectCpp<KT> key,
-				py::typing::Optional<VT> default_ = py::none()
+				py::typing::Optional<VT> default_
 			) -> py::typing::Optional<VT> {
 				try {
 					return self.attr("__getitem__")(key);
@@ -107,7 +109,9 @@ namespace collections {
 						throw;
 					}
 				}
-			}
+			},
+            py::arg("key"),
+            py::arg("default") = py::none()
 		);
 	}
 

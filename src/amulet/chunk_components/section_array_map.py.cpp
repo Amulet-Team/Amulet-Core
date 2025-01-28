@@ -243,13 +243,12 @@ void init_section_array_map(py::module section_array_map_module) {
     );
     SectionArrayMap.def(
         "__iter__",
-        [](const Amulet::SectionArrayMap& self) -> std::shared_ptr<Amulet::collections::Iterator> {
-            return std::make_shared<
-                Amulet::collections::MapIterator<
-                    std::unordered_map<std::int64_t, std::shared_ptr<Amulet::IndexArray3D>>
-                >
-            >(self.get_arrays(), py::cast(self));
-        }
+        [](const Amulet::SectionArrayMap& self) -> pybind11_extensions::collections::abc::Iterator<std::int64_t> {
+            return Amulet::collections::make_map_iterator<
+                std::unordered_map<std::int64_t, std::shared_ptr<Amulet::IndexArray3D>>>(
+                self.get_arrays());
+        },
+        py::keep_alive<0, 1>()
     );
     SectionArrayMap.def(
         "__contains__",

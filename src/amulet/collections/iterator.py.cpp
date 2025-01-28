@@ -21,10 +21,7 @@ void init_collections_iterator(py::module m) {
 	Iterator.def(
 		"__next__",
 		[](Amulet::collections::Iterator& self) {
-			if (self.has_next()) {
-				return self.next();
-			}
-			throw py::stop_iteration("");
+			return self.next();
 		}
 	);
 	Iterator.def(
