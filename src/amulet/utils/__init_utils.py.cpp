@@ -9,7 +9,8 @@ void init_task_manager(py::module);
 void init_mutex(py::module);
 void init_lock(py::module);
 
-void init_utils(py::module m_parent){
+void init_utils(py::module m_parent)
+{
     auto m = pybind11_extensions::def_subpackage(m_parent, "utils");
 
     init_utils_numpy(m);

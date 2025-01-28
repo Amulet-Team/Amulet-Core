@@ -1,9 +1,9 @@
-#include <string>
 #include <array>
 #include <functional>
+#include <string>
 
-#include <amulet/dll.hpp>
 #include "block_mesh.hpp"
+#include <amulet/dll.hpp>
 
 namespace Amulet {
 
@@ -21,8 +21,8 @@ const RotationCullMapType RotationCullMap = []() {
         std::copy(roty_map.begin(), roty_map.begin() + split_y_point, roty_map_rotated.end() - split_y_point);
         // Create the X array
         const std::array<BlockMeshCullDirection, 4> rotx_map = { roty_map_rotated[0], BlockMeshCullDown, roty_map_rotated[2], BlockMeshCullUp };
-        
-        for (std::int8_t rotx = -3; rotx < 4; rotx++) { 
+
+        for (std::int8_t rotx = -3; rotx < 4; rotx++) {
             // Create the rotated X array
             std::array<BlockMeshCullDirection, 4> rotx_map_rotated;
             auto split_x_point = 0 <= rotx ? rotx : rotx + rotx_map.size();
@@ -43,7 +43,7 @@ const RotationCullMapType RotationCullMap = []() {
     return cull_map;
 }();
 
-AMULET_CORE_DLLX BlockMesh BlockMesh::rotate(std::int8_t rotx, std::int8_t roty) const
+BlockMesh BlockMesh::rotate(std::int8_t rotx, std::int8_t roty) const
 {
     if (rotx || roty) {
         auto rotation_key = std::make_pair(rotx, roty);
@@ -97,7 +97,8 @@ AMULET_CORE_DLLX BlockMesh BlockMesh::rotate(std::int8_t rotx, std::int8_t roty)
     return *this;
 }
 
-AMULET_CORE_DLLX BlockMesh merge_block_meshes(std::vector<std::reference_wrapper<const BlockMesh>> meshes) {
+BlockMesh merge_block_meshes(std::vector<std::reference_wrapper<const BlockMesh>> meshes)
+{
     BlockMesh new_mesh;
     new_mesh.transparency = BlockMeshTransparency::Partial;
     std::map<std::string, size_t> texture_index_map;
@@ -105,7 +106,7 @@ AMULET_CORE_DLLX BlockMesh merge_block_meshes(std::vector<std::reference_wrapper
         const auto& temp_mesh = wrapper.get();
         // Get the minimum transparency of the two meshes.
         new_mesh.transparency = std::min(new_mesh.transparency, temp_mesh.transparency);
-        
+
         // Copy over mesh parts
         for (std::uint8_t cull_direction = 0; cull_direction < 7; cull_direction++) {
             const auto& temp_mesh_part = temp_mesh.parts[cull_direction];
@@ -123,7 +124,7 @@ AMULET_CORE_DLLX BlockMesh merge_block_meshes(std::vector<std::reference_wrapper
                 auto& temp_verts = temp_mesh_part->verts;
                 auto& new_triangles = new_mesh_part->triangles;
                 auto& temp_triangles = temp_mesh_part->triangles;
-                
+
                 // Copy over vertices
                 new_verts.insert(
                     new_verts.end(),
@@ -134,7 +135,7 @@ AMULET_CORE_DLLX BlockMesh merge_block_meshes(std::vector<std::reference_wrapper
                     new_triangles.end(),
                     temp_triangles.begin(),
                     temp_triangles.end());
-                
+
                 for (size_t i = triangle_count; i < new_mesh_part->triangles.size(); i++) {
                     // Update the triangle indexes
                     auto& triangle = new_mesh_part->triangles[i];

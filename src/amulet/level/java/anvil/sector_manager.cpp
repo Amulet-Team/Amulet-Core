@@ -1,6 +1,6 @@
+#include "sector_manager.hpp"
 #include <set>
 #include <vector>
-#include "sector_manager.hpp"
 
 namespace Amulet {
 
@@ -45,7 +45,8 @@ std::vector<Sector> Sector::split(const Sector& other) const
     return sectors;
 }
 
-Sector SectorManager::reserve_space(size_t length) {
+Sector SectorManager::reserve_space(size_t length)
+{
     if (length == 0) {
         throw std::invalid_argument("Cannot reserve a sector with zero length.");
     }
@@ -76,7 +77,8 @@ Sector SectorManager::reserve_space(size_t length) {
     }
 };
 
-void SectorManager::reserve(const Sector& sector) {
+void SectorManager::reserve(const Sector& sector)
+{
     if (sector.length() == 0) {
         throw std::invalid_argument("Cannot reserve a sector with zero length.");
     }
@@ -129,7 +131,8 @@ void SectorManager::reserve(const Sector& sector) {
     _reserved.emplace(sector);
 };
 
-void SectorManager::free(const Sector& sector) {
+void SectorManager::free(const Sector& sector)
+{
     auto reserved_it = _reserved.find(sector);
     if (reserved_it == _reserved.end() || reserved_it->stop != sector.stop) {
         throw std::invalid_argument("Sector was not reserved");

@@ -49,7 +49,7 @@ static const std::regex region_regex(R"(r\.(\-?\d+)\.(\-?\d+)\.mca)");
 std::mutex region_file_cache_mutex;
 static LRICache<size_t, std::shared_ptr<AnvilRegion::FileCloser>> region_file_cache(64);
 
-AMULET_CORE_DLLX std::pair<std::int64_t, std::int64_t> parse_region_filename(const std::string& filename)
+std::pair<std::int64_t, std::int64_t> parse_region_filename(const std::string& filename)
 {
     std::smatch match;
     if (!std::regex_search(filename, match, region_regex)) {
@@ -59,7 +59,7 @@ AMULET_CORE_DLLX std::pair<std::int64_t, std::int64_t> parse_region_filename(con
 }
 
 // Constructors.
-AMULET_CORE_DLLX AnvilRegion::AnvilRegion(
+AnvilRegion::AnvilRegion(
     const std::filesystem::path& directory,
     const std::string& file_name,
     std::int64_t rx,
@@ -88,7 +88,7 @@ AnvilRegion::AnvilRegion(
 {
 }
 
-AMULET_CORE_DLLX AnvilRegion::AnvilRegion(
+AnvilRegion::AnvilRegion(
     const std::filesystem::path& directory,
     std::int64_t rx,
     std::int64_t rz,
@@ -100,7 +100,7 @@ AMULET_CORE_DLLX AnvilRegion::AnvilRegion(
 {
 }
 
-AMULET_CORE_DLLX AnvilRegion::AnvilRegion(std::filesystem::path path, bool mcc)
+AnvilRegion::AnvilRegion(std::filesystem::path path, bool mcc)
     : AnvilRegion(
           path.parent_path(),
           path.filename().string(),
@@ -109,19 +109,19 @@ AMULET_CORE_DLLX AnvilRegion::AnvilRegion(std::filesystem::path path, bool mcc)
 {
 }
 
-AMULET_CORE_DLLX AnvilRegion::~AnvilRegion()
+AnvilRegion::~AnvilRegion()
 {
     close();
 }
 
 // The path of the region file. Thread safe.
-AMULET_CORE_DLLX std::filesystem::path AnvilRegion::path() const { return _path; }
+std::filesystem::path AnvilRegion::path() const { return _path; }
 
 // The region x coordinate of the file. Thread safe.
-AMULET_CORE_DLLX std::int64_t AnvilRegion::rx() const { return _rx; }
+std::int64_t AnvilRegion::rx() const { return _rx; }
 
 // The region z coordinate of the file. Thread safe.
-AMULET_CORE_DLLX std::int64_t AnvilRegion::rz() const { return _rz; }
+std::int64_t AnvilRegion::rz() const { return _rz; }
 
 // Create the region file.
 // Lock must be acquired before calling this.
@@ -242,7 +242,7 @@ void AnvilRegion::_close_if_open()
 // Close the file object if open.
 // This is automatically called when the instance is destroyed but may be called earlier.
 // Thread safe.
-AMULET_CORE_DLLX void AnvilRegion::close()
+void AnvilRegion::close()
 {
     std::lock_guard lock(_shared->mutex);
     _close_if_open();
@@ -251,7 +251,7 @@ AMULET_CORE_DLLX void AnvilRegion::close()
 // Destroy the instance.
 // Calls made after this will fail.
 // Thread safe.
-AMULET_CORE_DLLX void AnvilRegion::destroy()
+void AnvilRegion::destroy()
 {
     std::lock_guard lock(_shared->mutex);
     _close_if_open();
@@ -263,7 +263,7 @@ AMULET_CORE_DLLX void AnvilRegion::destroy()
 // Get the coordinates of all values in the region file.
 // Coordinates are in world space.
 // Thread safe.
-AMULET_CORE_DLLX std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion::get_coords()
+std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion::get_coords()
 {
     std::lock_guard lock(_shared->mutex);
     auto closer = _get_file_closer();
@@ -280,7 +280,7 @@ AMULET_CORE_DLLX std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion:
 // This returns true even if there is no value for the coordinate.
 // Coordinates are in world space.
 // Thread safe.
-AMULET_CORE_DLLX bool AnvilRegion::contains(std::int64_t cx, std::int64_t cz)
+bool AnvilRegion::contains(std::int64_t cx, std::int64_t cz)
 {
     return _rx * 32 <= cx && cx < (_rx + 1) * 32 && _rz * 32 <= cz && cz < (_rz + 1) * 32;
 }
@@ -296,7 +296,7 @@ void AnvilRegion::validate_coord(std::int64_t cx, std::int64_t cz)
 // Is there a value stored for this coordinate.
 // Coordinates are in world space.
 // Thread safe.
-AMULET_CORE_DLLX bool AnvilRegion::has_value(std::int64_t cx, std::int64_t cz)
+bool AnvilRegion::has_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
     std::lock_guard lock(_shared->mutex);
@@ -438,7 +438,7 @@ static AmuletNBT::NamedTag decompress(char compression_type, const std::string_v
 // Get the value for this coordinate.
 // Coordinates are in world space.
 // Thread safe.
-AMULET_CORE_DLLX AmuletNBT::NamedTag AnvilRegion::get_value(std::int64_t cx, std::int64_t cz)
+AmuletNBT::NamedTag AnvilRegion::get_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
     std::lock_guard lock(_shared->mutex);
@@ -572,7 +572,7 @@ void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
 // Set the value for this coordinate.
 // Coordinates are in world space.
 // Thread safe.
-AMULET_CORE_DLLX void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag)
+void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag)
 {
     validate_coord(cx, cz);
     // Encode the tag
@@ -616,7 +616,7 @@ AMULET_CORE_DLLX void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, c
 // Delete the chunk data.
 // Coordinates are in world space.
 // Thread safe.
-AMULET_CORE_DLLX void AnvilRegion::delete_value(std::int64_t cx, std::int64_t cz)
+void AnvilRegion::delete_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
     std::lock_guard lock(_shared->mutex);
@@ -630,7 +630,7 @@ AMULET_CORE_DLLX void AnvilRegion::delete_value(std::int64_t cx, std::int64_t cz
     _set_data<std::nullopt_t>(cx, cz, std::nullopt);
 }
 
-AMULET_CORE_DLLX void AnvilRegion::delete_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords)
+void AnvilRegion::delete_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords)
 {
     std::lock_guard lock(_shared->mutex);
     if (!std::filesystem::is_regular_file(_path)) {
@@ -652,7 +652,7 @@ AMULET_CORE_DLLX void AnvilRegion::delete_batch(std::vector<std::pair<std::int64
 // Defragments the file and deletes unused space.
 // If there are no chunks remaining in the region file it will be deleted.
 // Thread safe.
-AMULET_CORE_DLLX void AnvilRegion::compact()
+void AnvilRegion::compact()
 {
     std::lock_guard lock(_shared->mutex);
     if (!std::filesystem::is_regular_file(_path)) {
@@ -761,17 +761,17 @@ std::shared_ptr<AnvilRegion::FileCloser> AnvilRegion::_get_file_closer()
     return closer;
 }
 
-AMULET_CORE_DLLX std::shared_ptr<AnvilRegion::FileCloser> AnvilRegion::get_file_closer()
+std::shared_ptr<AnvilRegion::FileCloser> AnvilRegion::get_file_closer()
 {
     std::lock_guard lock(_shared->mutex);
     return _get_file_closer();
 }
 
-AMULET_CORE_DLLX AnvilRegion::FileCloser::FileCloser(std::shared_ptr<Shared> shared)
+AnvilRegion::FileCloser::FileCloser(std::shared_ptr<Shared> shared)
     : _shared(shared)
 {
 }
-AMULET_CORE_DLLX AnvilRegion::FileCloser::~FileCloser()
+AnvilRegion::FileCloser::~FileCloser()
 {
     std::lock_guard lock(_shared->mutex);
     if (_shared->regionf.is_open()) {

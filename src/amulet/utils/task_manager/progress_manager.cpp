@@ -19,14 +19,14 @@ std::unique_ptr<AbstractProgressManager> VoidProgressManager::get_child(
     return std::make_unique<VoidProgressManager>(*this);
 }
 
-AMULET_CORE_DLLX ProgressManager::ProgressManager(const std::shared_ptr<ProgressManagerData>& data, float progress_min, float progress_max)
+ProgressManager::ProgressManager(const std::shared_ptr<ProgressManagerData>& data, float progress_min, float progress_max)
     : data(data)
     , _progress_min(progress_min)
     , _progress_max(progress_max)
 {
 }
 
-AMULET_CORE_DLLX ProgressManager::ProgressManager()
+ProgressManager::ProgressManager()
     : ProgressManager(std::make_shared<ProgressManagerData>(), 0.0, 1.0)
 {
 }

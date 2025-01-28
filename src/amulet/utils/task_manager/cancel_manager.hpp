@@ -25,7 +25,8 @@ public:
         : TaskCancelled("Task Cancelled")
     {
     }
-    const char* what() const noexcept override {
+    const char* what() const noexcept override
+    {
         return msg.c_str();
     }
 };
@@ -53,16 +54,16 @@ public:
 
 class VoidCancelManager : public AbstractCancelManager {
 public:
-    AMULET_CORE_DLLX VoidCancelManager();
-    AMULET_CORE_DLLX VoidCancelManager(const VoidCancelManager&);
-    AMULET_CORE_DLLX ~VoidCancelManager() override;
-    AMULET_CORE_DLLX void cancel() override;
-    AMULET_CORE_DLLX bool is_cancel_requested() override;
-    AMULET_CORE_DLLX void register_cancel_callback(CancelCallback callback) override;
-    AMULET_CORE_DLLX void unregister_cancel_callback(CancelCallback callback) override;
+    AMULET_CORE_EXPORT VoidCancelManager();
+    AMULET_CORE_EXPORT VoidCancelManager(const VoidCancelManager&);
+    AMULET_CORE_EXPORT ~VoidCancelManager() override;
+    AMULET_CORE_EXPORT void cancel() override;
+    AMULET_CORE_EXPORT bool is_cancel_requested() override;
+    AMULET_CORE_EXPORT void register_cancel_callback(CancelCallback callback) override;
+    AMULET_CORE_EXPORT void unregister_cancel_callback(CancelCallback callback) override;
 };
 
-AMULET_CORE_DLLX extern VoidCancelManager global_VoidCancelManager;
+AMULET_CORE_EXPORT extern VoidCancelManager global_VoidCancelManager;
 
 class CancelManagerData {
 public:
@@ -76,14 +77,14 @@ private:
     std::shared_ptr<CancelManagerData> data;
 
 public:
-    AMULET_CORE_DLLX CancelManager(const std::shared_ptr<CancelManagerData>& data);
-    AMULET_CORE_DLLX CancelManager();
+    AMULET_CORE_EXPORT CancelManager(const std::shared_ptr<CancelManagerData>& data);
+    AMULET_CORE_EXPORT CancelManager();
     CancelManager(CancelManager&) = delete;
 
-    AMULET_CORE_DLLX void cancel() override;
-    AMULET_CORE_DLLX bool is_cancel_requested() override;
-    AMULET_CORE_DLLX void register_cancel_callback(CancelCallback callback) override;
-    AMULET_CORE_DLLX void unregister_cancel_callback(CancelCallback callback) override;
+    AMULET_CORE_EXPORT void cancel() override;
+    AMULET_CORE_EXPORT bool is_cancel_requested() override;
+    AMULET_CORE_EXPORT void register_cancel_callback(CancelCallback callback) override;
+    AMULET_CORE_EXPORT void unregister_cancel_callback(CancelCallback callback) override;
 };
 
 } // namespace Amulet

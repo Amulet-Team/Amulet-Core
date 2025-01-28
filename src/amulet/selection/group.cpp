@@ -7,23 +7,23 @@
 namespace Amulet {
 
 // Constructors
-AMULET_CORE_DLLX SelectionGroup::SelectionGroup(const SelectionBox& box)
+SelectionGroup::SelectionGroup(const SelectionBox& box)
 {
     _boxes.insert(box);
 }
 
 // Accessors
-AMULET_CORE_DLLX const std::set<SelectionBox>& SelectionGroup::selection_boxes() const
+const std::set<SelectionBox>& SelectionGroup::selection_boxes() const
 {
     return _boxes;
 }
-AMULET_CORE_DLLX size_t SelectionGroup::size() const
+size_t SelectionGroup::size() const
 {
     return _boxes.size();
 }
 
 // Bounds
-AMULET_CORE_DLLX std::int64_t SelectionGroup::min_x() const
+std::int64_t SelectionGroup::min_x() const
 {
     if (_boxes.empty()) {
         throw std::runtime_error("Empty SelectionGroup has no minimum");
@@ -36,7 +36,7 @@ AMULET_CORE_DLLX std::int64_t SelectionGroup::min_x() const
     }
     return value;
 }
-AMULET_CORE_DLLX std::int64_t SelectionGroup::min_y() const
+std::int64_t SelectionGroup::min_y() const
 {
     if (_boxes.empty()) {
         throw std::runtime_error("Empty SelectionGroup has no minimum");
@@ -49,7 +49,7 @@ AMULET_CORE_DLLX std::int64_t SelectionGroup::min_y() const
     }
     return value;
 }
-AMULET_CORE_DLLX std::int64_t SelectionGroup::min_z() const
+std::int64_t SelectionGroup::min_z() const
 {
     if (_boxes.empty()) {
         throw std::runtime_error("Empty SelectionGroup has no minimum");
@@ -62,7 +62,7 @@ AMULET_CORE_DLLX std::int64_t SelectionGroup::min_z() const
     }
     return value;
 }
-AMULET_CORE_DLLX std::int64_t SelectionGroup::max_x() const
+std::int64_t SelectionGroup::max_x() const
 {
     if (_boxes.empty()) {
         throw std::runtime_error("Empty SelectionGroup has no maximum");
@@ -75,7 +75,7 @@ AMULET_CORE_DLLX std::int64_t SelectionGroup::max_x() const
     }
     return value;
 }
-AMULET_CORE_DLLX std::int64_t SelectionGroup::max_y() const
+std::int64_t SelectionGroup::max_y() const
 {
     if (_boxes.empty()) {
         throw std::runtime_error("Empty SelectionGroup has no maximum");
@@ -88,7 +88,7 @@ AMULET_CORE_DLLX std::int64_t SelectionGroup::max_y() const
     }
     return value;
 }
-AMULET_CORE_DLLX std::int64_t SelectionGroup::max_z() const
+std::int64_t SelectionGroup::max_z() const
 {
     if (_boxes.empty()) {
         throw std::runtime_error("Empty SelectionGroup has no maximum");
@@ -101,7 +101,7 @@ AMULET_CORE_DLLX std::int64_t SelectionGroup::max_z() const
     }
     return value;
 }
-AMULET_CORE_DLLX std::array<std::int64_t, 3> SelectionGroup::min() const
+std::array<std::int64_t, 3> SelectionGroup::min() const
 {
     if (_boxes.empty()) {
         throw std::runtime_error("Empty SelectionGroup has no minimum");
@@ -122,7 +122,7 @@ AMULET_CORE_DLLX std::array<std::int64_t, 3> SelectionGroup::min() const
     }
     return { x, y, z };
 }
-AMULET_CORE_DLLX std::array<std::int64_t, 3> SelectionGroup::max() const
+std::array<std::int64_t, 3> SelectionGroup::max() const
 {
     if (_boxes.empty()) {
         throw std::runtime_error("Empty SelectionGroup has no maximum");
@@ -143,7 +143,7 @@ AMULET_CORE_DLLX std::array<std::int64_t, 3> SelectionGroup::max() const
     }
     return { x, y, z };
 }
-AMULET_CORE_DLLX std::pair<
+std::pair<
     std::array<std::int64_t, 3>,
     std::array<std::int64_t, 3>>
 SelectionGroup::bounds() const
@@ -181,7 +181,7 @@ SelectionGroup::bounds() const
         std::array<std::int64_t, 3>({ x_min, y_min, z_min }),
         std::array<std::int64_t, 3>({ x_max, y_max, z_max }));
 }
-AMULET_CORE_DLLX SelectionBox SelectionGroup::bounding_box() const
+SelectionBox SelectionGroup::bounding_box() const
 {
     auto [min_point, max_point] = bounds();
     return SelectionBox(
@@ -194,7 +194,7 @@ AMULET_CORE_DLLX SelectionBox SelectionGroup::bounding_box() const
 }
 
 // Contains and intersects
-AMULET_CORE_DLLX bool SelectionGroup::contains_block(std::int64_t x, std::int64_t y, std::int64_t z) const
+bool SelectionGroup::contains_block(std::int64_t x, std::int64_t y, std::int64_t z) const
 {
     for (const auto& box : _boxes) {
         if (box.contains_block(x, y, z)) {
@@ -203,7 +203,7 @@ AMULET_CORE_DLLX bool SelectionGroup::contains_block(std::int64_t x, std::int64_
     }
     return false;
 }
-AMULET_CORE_DLLX bool SelectionGroup::contains_point(double x, double y, double z) const
+bool SelectionGroup::contains_point(double x, double y, double z) const
 {
     for (const auto& box : _boxes) {
         if (box.contains_point(x, y, z)) {
@@ -212,7 +212,7 @@ AMULET_CORE_DLLX bool SelectionGroup::contains_point(double x, double y, double 
     }
     return false;
 }
-AMULET_CORE_DLLX bool SelectionGroup::intersects(const SelectionBox& other) const
+bool SelectionGroup::intersects(const SelectionBox& other) const
 {
     for (const auto& box : _boxes) {
         if (box.intersects(other)) {
@@ -221,7 +221,7 @@ AMULET_CORE_DLLX bool SelectionGroup::intersects(const SelectionBox& other) cons
     }
     return false;
 }
-AMULET_CORE_DLLX bool SelectionGroup::intersects(const SelectionGroup& other) const
+bool SelectionGroup::intersects(const SelectionGroup& other) const
 {
     for (const auto& box_1 : _boxes) {
         for (const auto& box_2 : other._boxes) {
@@ -234,7 +234,7 @@ AMULET_CORE_DLLX bool SelectionGroup::intersects(const SelectionGroup& other) co
 }
 
 // Transform
-AMULET_CORE_DLLX SelectionGroup SelectionGroup::translate(std::int64_t dx, std::int64_t dy, std::int64_t dz) const
+SelectionGroup SelectionGroup::translate(std::int64_t dx, std::int64_t dy, std::int64_t dz) const
 {
     SelectionGroup group;
     for (const auto& box : _boxes) {
@@ -250,7 +250,7 @@ AMULET_CORE_DLLX SelectionGroup SelectionGroup::translate(std::int64_t dx, std::
 }
 
 // Operators
-AMULET_CORE_DLLX SelectionGroup::operator bool() const
+SelectionGroup::operator bool() const
 {
     return !_boxes.empty();
 }

@@ -18,10 +18,10 @@ py::module init_level_loader(py::module m_parent)
     LevelLoaderToken.def("__eq__", &Amulet::LevelLoaderToken::operator==);
 
     py::class_<
-        Amulet::LevelLoaderPathToken, 
+        Amulet::LevelLoaderPathToken,
         std::shared_ptr<Amulet::LevelLoaderPathToken>,
-        Amulet::LevelLoaderToken
-    > LevelLoaderPathToken(m, "LevelLoaderPathToken");
+        Amulet::LevelLoaderToken>
+        LevelLoaderPathToken(m, "LevelLoaderPathToken");
     LevelLoaderPathToken.def(py::init(
         [](std::string path) {
             return Amulet::LevelLoaderPathToken(path);

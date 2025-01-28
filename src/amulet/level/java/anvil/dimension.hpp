@@ -38,15 +38,15 @@ public:
     using difference_type = std::ptrdiff_t;
     using value_type = std::pair<std::int64_t, std::int64_t>;
 
-    AMULET_CORE_DLLX AnvilRegionCoordIterator();
-    AMULET_CORE_DLLX AnvilRegionCoordIterator(const std::filesystem::path&);
-    AMULET_CORE_DLLX const std::pair<std::int64_t, std::int64_t>& operator*() const;
-    AMULET_CORE_DLLX AnvilRegionCoordIterator& operator++();
-    AMULET_CORE_DLLX void operator++(int);
-    friend AMULET_CORE_DLLX bool operator==(const AnvilRegionCoordIterator&, const AnvilRegionCoordIterator&);
+    AMULET_CORE_EXPORT AnvilRegionCoordIterator();
+    AMULET_CORE_EXPORT AnvilRegionCoordIterator(const std::filesystem::path&);
+    AMULET_CORE_EXPORT const std::pair<std::int64_t, std::int64_t>& operator*() const;
+    AMULET_CORE_EXPORT AnvilRegionCoordIterator& operator++();
+    AMULET_CORE_EXPORT void operator++(int);
+    friend AMULET_CORE_EXPORT bool operator==(const AnvilRegionCoordIterator&, const AnvilRegionCoordIterator&);
 };
 
-AMULET_CORE_DLLX bool operator==(const AnvilRegionCoordIterator&, const AnvilRegionCoordIterator&);
+AMULET_CORE_EXPORT bool operator==(const AnvilRegionCoordIterator&, const AnvilRegionCoordIterator&);
 
 static_assert(std::input_iterator<AnvilRegionCoordIterator>);
 
@@ -65,15 +65,15 @@ public:
     using difference_type = std::ptrdiff_t;
     using value_type = std::pair<std::int64_t, std::int64_t>;
 
-    AMULET_CORE_DLLX AnvilChunkCoordIterator();
-    AMULET_CORE_DLLX AnvilChunkCoordIterator(std::shared_ptr<class AnvilDimensionLayer>);
-    AMULET_CORE_DLLX std::pair<std::int64_t, std::int64_t> operator*() const;
-    AMULET_CORE_DLLX AnvilChunkCoordIterator& operator++();
-    AMULET_CORE_DLLX void operator++(int);
-    friend AMULET_CORE_DLLX bool operator==(const AnvilChunkCoordIterator&, const AnvilChunkCoordIterator&);
+    AMULET_CORE_EXPORT AnvilChunkCoordIterator();
+    AMULET_CORE_EXPORT AnvilChunkCoordIterator(std::shared_ptr<class AnvilDimensionLayer>);
+    AMULET_CORE_EXPORT std::pair<std::int64_t, std::int64_t> operator*() const;
+    AMULET_CORE_EXPORT AnvilChunkCoordIterator& operator++();
+    AMULET_CORE_EXPORT void operator++(int);
+    friend AMULET_CORE_EXPORT bool operator==(const AnvilChunkCoordIterator&, const AnvilChunkCoordIterator&);
 };
 
-AMULET_CORE_DLLX bool operator==(const AnvilChunkCoordIterator&, const AnvilChunkCoordIterator&);
+AMULET_CORE_EXPORT bool operator==(const AnvilChunkCoordIterator&, const AnvilChunkCoordIterator&);
 
 static_assert(std::input_iterator<AnvilChunkCoordIterator>);
 
@@ -89,31 +89,31 @@ private:
 
 public:
     // Accessors
-    AMULET_CORE_DLLX const std::filesystem::path& directory() const;
-    AMULET_CORE_DLLX bool mcc() const;
+    AMULET_CORE_EXPORT const std::filesystem::path& directory() const;
+    AMULET_CORE_EXPORT bool mcc() const;
 
-    AMULET_CORE_DLLX AnvilDimensionLayer(std::filesystem::path directory, bool mcc = false);
+    AMULET_CORE_EXPORT AnvilDimensionLayer(std::filesystem::path directory, bool mcc = false);
     // Region
     // Get the path to the region file
     std::filesystem::path region_path(std::int64_t rx, std::int64_t rz) const;
     // An iterator of all region coordinates in this layer.
-    AMULET_CORE_DLLX AnvilRegionCoordIterator all_region_coords();
+    AMULET_CORE_EXPORT AnvilRegionCoordIterator all_region_coords();
     // Check if a region file exists in this layer.
-    AMULET_CORE_DLLX bool has_region(std::int64_t rx, std::int64_t rz) const;
+    AMULET_CORE_EXPORT bool has_region(std::int64_t rx, std::int64_t rz) const;
     // Get an AnvilRegion instance. This must not be stored long-term.
-    AMULET_CORE_DLLX std::shared_ptr<AnvilRegion> get_region(std::int64_t rx, std::int64_t rz, bool create = false);
+    AMULET_CORE_EXPORT std::shared_ptr<AnvilRegion> get_region(std::int64_t rx, std::int64_t rz, bool create = false);
 
     // Chunk
     // Check if the chunk has data in this layer.
-    AMULET_CORE_DLLX bool has_chunk(std::int64_t cx, std::int64_t cz);
+    AMULET_CORE_EXPORT bool has_chunk(std::int64_t cx, std::int64_t cz);
     // Get the chunk data for this layer.
-    AMULET_CORE_DLLX AmuletNBT::NamedTag get_chunk_data(std::int64_t cx, std::int64_t cz);
+    AMULET_CORE_EXPORT AmuletNBT::NamedTag get_chunk_data(std::int64_t cx, std::int64_t cz);
     // Set the chunk data for this layer.
-    AMULET_CORE_DLLX void set_chunk_data(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag&);
+    AMULET_CORE_EXPORT void set_chunk_data(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag&);
     // Delete the chunk data from this layer.
-    AMULET_CORE_DLLX void delete_chunk(std::int64_t cx, std::int64_t cz);
+    AMULET_CORE_EXPORT void delete_chunk(std::int64_t cx, std::int64_t cz);
     // Defragment the region files and remove unused region files.
-    AMULET_CORE_DLLX void compact();
+    AMULET_CORE_EXPORT void compact();
 };
 
 template <typename Range, typename T>
@@ -142,22 +142,22 @@ public:
         _default_layer = _layers[*layer_names.begin()];
     }
 
-    AMULET_CORE_DLLX const std::filesystem::path& directory() const;
-    AMULET_CORE_DLLX bool mcc() const;
+    AMULET_CORE_EXPORT const std::filesystem::path& directory() const;
+    AMULET_CORE_EXPORT bool mcc() const;
 
     // Get the layers defined in this dimension.
-    AMULET_CORE_DLLX std::vector<std::string> layer_names();
+    AMULET_CORE_EXPORT std::vector<std::string> layer_names();
     // Check if this dimension has the requested layer.
-    AMULET_CORE_DLLX bool has_layer(const std::string& layer_name);
+    AMULET_CORE_EXPORT bool has_layer(const std::string& layer_name);
     // Get the AnvilDimensionLayer for a specific layer. The returned value must not be stored long-term.
-    AMULET_CORE_DLLX std::shared_ptr<AnvilDimensionLayer> get_layer(const std::string& layer_name);
+    AMULET_CORE_EXPORT std::shared_ptr<AnvilDimensionLayer> get_layer(const std::string& layer_name);
 
     // Get an iterator for all the chunks that exist in this dimension.
-    AMULET_CORE_DLLX AnvilChunkCoordIterator all_chunk_coords() const;
+    AMULET_CORE_EXPORT AnvilChunkCoordIterator all_chunk_coords() const;
     // Check if a chunk exists.
-    AMULET_CORE_DLLX bool has_chunk(std::int64_t cx, std::int64_t cz) const;
+    AMULET_CORE_EXPORT bool has_chunk(std::int64_t cx, std::int64_t cz) const;
     // Get the data for a chunk
-    AMULET_CORE_DLLX std::map<std::string, AmuletNBT::NamedTag> get_chunk_data(std::int64_t cx, std::int64_t cz);
+    AMULET_CORE_EXPORT std::map<std::string, AmuletNBT::NamedTag> get_chunk_data(std::int64_t cx, std::int64_t cz);
     // Set the data for a chunk.
     // data_layers can be any object supporting std::ranges::input_range of [std::string, AmuletNBT::NamedTag || std::optional<AmuletNBT::NamedTag>]
     // If the second value is a nullopt optional, the value will be deleted.
@@ -206,9 +206,9 @@ public:
         }
     }
     // Delete all data for the given chunk.
-    AMULET_CORE_DLLX void delete_chunk(std::int64_t cx, std::int64_t cz);
+    AMULET_CORE_EXPORT void delete_chunk(std::int64_t cx, std::int64_t cz);
     // Defragment the region files and remove unused region files.
-    AMULET_CORE_DLLX void compact();
+    AMULET_CORE_EXPORT void compact();
 };
 
 } // namespace Amulet

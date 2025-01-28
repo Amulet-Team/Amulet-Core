@@ -64,7 +64,7 @@ public:
     }
 };
 
-AMULET_CORE_DLLX std::pair<std::int64_t, std::int64_t> parse_region_filename(const std::string& filename);
+AMULET_CORE_EXPORT std::pair<std::int64_t, std::int64_t> parse_region_filename(const std::string& filename);
 
 // A class to read and write Minecraft Java Edition Region files.
 // Only one instance should exist per region file at any given time otherwise bad things may happen.
@@ -89,8 +89,8 @@ public:
         std::shared_ptr<Shared> _shared;
 
     public:
-        AMULET_CORE_DLLX FileCloser(std::shared_ptr<Shared> shared);
-        AMULET_CORE_DLLX ~FileCloser();
+        AMULET_CORE_EXPORT FileCloser(std::shared_ptr<Shared> shared);
+        AMULET_CORE_EXPORT ~FileCloser();
     };
 
     friend FileCloser;
@@ -150,7 +150,7 @@ private:
     // This means that holding a reference to this will delay when the region file is closed.
     // The region file may still be closed manually before this object is deleted.
     // Lock must be acquired before calling this.
-    AMULET_CORE_DLLX std::shared_ptr<FileCloser> _get_file_closer();
+    AMULET_CORE_EXPORT std::shared_ptr<FileCloser> _get_file_closer();
 
     // Close the file object if open.
     // This is automatically called when the instance is destroyed but may be called earlier.
@@ -163,83 +163,83 @@ public:
     AnvilRegion() = delete;
     AnvilRegion(const AnvilRegion&) = delete;
     AnvilRegion(AnvilRegion&&) = delete;
-    AMULET_CORE_DLLX AnvilRegion(const std::filesystem::path& directory, const std::string& file_name, std::int64_t rx, std::int64_t rz, bool mcc = false);
-    AMULET_CORE_DLLX AnvilRegion(const std::filesystem::path& directory, std::int64_t rx, std::int64_t rz, bool mcc = false);
-    AMULET_CORE_DLLX AnvilRegion(std::filesystem::path path, bool mcc = false);
+    AMULET_CORE_EXPORT AnvilRegion(const std::filesystem::path& directory, const std::string& file_name, std::int64_t rx, std::int64_t rz, bool mcc = false);
+    AMULET_CORE_EXPORT AnvilRegion(const std::filesystem::path& directory, std::int64_t rx, std::int64_t rz, bool mcc = false);
+    AMULET_CORE_EXPORT AnvilRegion(std::filesystem::path path, bool mcc = false);
 
     // Destructor
-    AMULET_CORE_DLLX ~AnvilRegion();
+    AMULET_CORE_EXPORT ~AnvilRegion();
 
     // Assignment operators
     AnvilRegion& operator=(const AnvilRegion&) = delete;
     AnvilRegion& operator=(AnvilRegion&&) = delete;
 
     // The path of the region file. Thread safe.
-    AMULET_CORE_DLLX std::filesystem::path path() const;
+    AMULET_CORE_EXPORT std::filesystem::path path() const;
 
     // The region x coordinate of the file. Thread safe.
-    AMULET_CORE_DLLX std::int64_t rx() const;
+    AMULET_CORE_EXPORT std::int64_t rx() const;
 
     // The region z coordinate of the file. Thread safe.
-    AMULET_CORE_DLLX std::int64_t rz() const;
+    AMULET_CORE_EXPORT std::int64_t rz() const;
 
     // Get the coordinates of all values in the region file.
     // Coordinates are in world space.
     // Thread safe.
-    AMULET_CORE_DLLX std::vector<std::pair<std::int64_t, std::int64_t>> get_coords();
+    AMULET_CORE_EXPORT std::vector<std::pair<std::int64_t, std::int64_t>> get_coords();
 
     // Is the coordinate in the region.
     // This returns true even if there is no value for the coordinate.
     // Coordinates are in world space.
     // Thread safe.
-    AMULET_CORE_DLLX bool contains(std::int64_t cx, std::int64_t cz);
+    AMULET_CORE_EXPORT bool contains(std::int64_t cx, std::int64_t cz);
 
     // Is there a value stored for this coordinate.
     // Coordinates are in world space.
     // Thread safe.
-    AMULET_CORE_DLLX bool has_value(std::int64_t cx, std::int64_t cz);
+    AMULET_CORE_EXPORT bool has_value(std::int64_t cx, std::int64_t cz);
 
     // Get the value for this coordinate.
     // Coordinates are in world space.
     // Thread safe.
-    AMULET_CORE_DLLX AmuletNBT::NamedTag get_value(std::int64_t cx, std::int64_t cz);
-    // AMULET_CORE_DLLX std::vector<std::optional<AmuletNBT::NamedTag>> get_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords);
+    AMULET_CORE_EXPORT AmuletNBT::NamedTag get_value(std::int64_t cx, std::int64_t cz);
+    // AMULET_CORE_EXPORT std::vector<std::optional<AmuletNBT::NamedTag>> get_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords);
 
     // Set the value for this coordinate.
     // Coordinates are in world space.
     // Thread safe.
-    AMULET_CORE_DLLX void set_value(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag);
-    // AMULET_CORE_DLLX void set_batch(std::vector<std::tuple<std::int64_t, std::int64_t, AmuletNBT::NamedTag>>& batch);
+    AMULET_CORE_EXPORT void set_value(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag);
+    // AMULET_CORE_EXPORT void set_batch(std::vector<std::tuple<std::int64_t, std::int64_t, AmuletNBT::NamedTag>>& batch);
 
     // Delete the chunk data.
     // Coordinates are in world space.
     // Thread safe.
-    AMULET_CORE_DLLX void delete_value(std::int64_t cx, std::int64_t cz);
-    AMULET_CORE_DLLX void delete_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords);
+    AMULET_CORE_EXPORT void delete_value(std::int64_t cx, std::int64_t cz);
+    AMULET_CORE_EXPORT void delete_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords);
 
     // Compact the region file.
     // Defragments the file and deletes unused space.
     // If there are no chunks remaining in the region file it will be deleted.
     // Thread safe.
-    AMULET_CORE_DLLX void compact();
+    AMULET_CORE_EXPORT void compact();
 
     // Close the file object if open.
     // This is automatically called when the instance is destroyed but may be called earlier.
     // Thread safe.
-    AMULET_CORE_DLLX void close();
+    AMULET_CORE_EXPORT void close();
 
     // Destroy the instance.
     // Calls made after this will fail.
     // This may only be called by the owner of the instance.
     // Thread safe.
-    AMULET_CORE_DLLX void destroy();
+    AMULET_CORE_EXPORT void destroy();
 
     // Get the object responsible for closing the region file.
     // When this object is deleted it will close the region file
     // This means that holding a reference to this will delay when the region file is closed.
     // The region file may still be closed manually before this object is deleted.
     // Thread safe.
-    AMULET_CORE_DLLX std::shared_ptr<FileCloser> get_file_closer();
+    AMULET_CORE_EXPORT std::shared_ptr<FileCloser> get_file_closer();
 };
 
 class AMULET_CORE_EXPORT_EXCEPTION RegionDoesNotExist : public std::runtime_error {
