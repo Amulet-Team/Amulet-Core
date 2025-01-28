@@ -248,8 +248,9 @@ void init_section_array_map(py::module section_array_map_module) {
                 Amulet::collections::MapIterator<
                     std::unordered_map<std::int64_t, std::shared_ptr<Amulet::IndexArray3D>>
                 >
-            >(self.get_arrays(), py::cast(self));
-        }
+            >(self.get_arrays());
+        },
+        py::keep_alive<0, 1>()
     );
     SectionArrayMap.def(
         "__contains__",
