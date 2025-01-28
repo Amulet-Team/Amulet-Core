@@ -10,11 +10,11 @@
 #include <amulet/chunk_components/block_component.hpp>
 
 namespace Amulet {
-	AMULET_CORE_DLLX const std::string JavaChunkNA::ChunkID = "Amulet::JavaChunkNA";
-	AMULET_CORE_DLLX const std::string JavaChunk0::ChunkID = "Amulet::JavaChunk0";
-	AMULET_CORE_DLLX const std::string JavaChunk1444::ChunkID = "Amulet::JavaChunk1444";
-	AMULET_CORE_DLLX const std::string JavaChunk1466::ChunkID = "Amulet::JavaChunk1466";
-	AMULET_CORE_DLLX const std::string JavaChunk2203::ChunkID = "Amulet::JavaChunk2203";
+	const std::string JavaChunkNA::ChunkID = "Amulet::JavaChunkNA";
+	const std::string JavaChunk0::ChunkID = "Amulet::JavaChunk0";
+	const std::string JavaChunk1444::ChunkID = "Amulet::JavaChunk1444";
+	const std::string JavaChunk1466::ChunkID = "Amulet::JavaChunk1466";
+	const std::string JavaChunk2203::ChunkID = "Amulet::JavaChunk2203";
 	
 	std::string JavaChunkNA::get_chunk_id() const { return ChunkID; }
 	std::string JavaChunk0::get_chunk_id() const { return ChunkID; }
@@ -22,7 +22,7 @@ namespace Amulet {
 	std::string JavaChunk1466::get_chunk_id() const { return ChunkID; }
 	std::string JavaChunk2203::get_chunk_id() const { return ChunkID; }
 	
-	AMULET_CORE_DLLX JavaChunkNA::JavaChunkNA(
+	JavaChunkNA::JavaChunkNA(
 		std::shared_ptr<BlockStack> default_block,
 		std::shared_ptr<Biome> default_biome
 	) : ChunkComponentHelper() {
@@ -47,7 +47,7 @@ namespace Amulet {
 		);
 	}
 
-	AMULET_CORE_DLLX JavaChunk0::JavaChunk0(
+	JavaChunk0::JavaChunk0(
 		std::int64_t data_version,
 		std::shared_ptr<BlockStack> default_block,
 		std::shared_ptr<Biome> default_biome
@@ -76,7 +76,7 @@ namespace Amulet {
 		);
 	}
 
-	AMULET_CORE_DLLX JavaChunk1444::JavaChunk1444(
+	JavaChunk1444::JavaChunk1444(
 		std::int64_t data_version,
 		std::shared_ptr<BlockStack> default_block,
 		std::shared_ptr<Biome> default_biome
@@ -105,7 +105,7 @@ namespace Amulet {
 		);
 	}
 
-	AMULET_CORE_DLLX JavaChunk1466::JavaChunk1466(
+	JavaChunk1466::JavaChunk1466(
 		std::int64_t data_version,
 		std::shared_ptr<BlockStack> default_block,
 		std::shared_ptr<Biome> default_biome
@@ -134,7 +134,7 @@ namespace Amulet {
 		);
 	}
 
-	AMULET_CORE_DLLX JavaChunk2203::JavaChunk2203(
+	JavaChunk2203::JavaChunk2203(
 		std::int64_t data_version,
 		std::shared_ptr<BlockStack> default_block,
 		std::shared_ptr<Biome> default_biome

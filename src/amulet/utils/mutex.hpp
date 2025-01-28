@@ -239,33 +239,33 @@ protected:
 
 public:
     // Constructors
-    AMULET_CORE_DLLX OrderedSharedMutex();
+    AMULET_CORE_EXPORT OrderedSharedMutex();
     OrderedSharedMutex(const OrderedSharedMutex&) = delete;
     OrderedSharedMutex(OrderedSharedMutex&&) = delete;
 
     // Destructor
-    AMULET_CORE_DLLX ~OrderedSharedMutex();
+    AMULET_CORE_EXPORT ~OrderedSharedMutex();
 
     // Unique
-    AMULET_CORE_DLLX void lock(AbstractCancelManager& cancel_manager = global_VoidCancelManager);
-    AMULET_CORE_DLLX bool try_lock();
-    AMULET_CORE_DLLX void unlock();
+    AMULET_CORE_EXPORT void lock(AbstractCancelManager& cancel_manager = global_VoidCancelManager);
+    AMULET_CORE_EXPORT bool try_lock();
+    AMULET_CORE_EXPORT void unlock();
 
     // Shared
-    AMULET_CORE_DLLX void lock_shared(AbstractCancelManager& cancel_manager = global_VoidCancelManager);
-    AMULET_CORE_DLLX bool try_lock_shared();
-    AMULET_CORE_DLLX void unlock_shared();
+    AMULET_CORE_EXPORT void lock_shared(AbstractCancelManager& cancel_manager = global_VoidCancelManager);
+    AMULET_CORE_EXPORT bool try_lock_shared();
+    AMULET_CORE_EXPORT void unlock_shared();
 };
 
 class OrderedSharedTimedMutex : public OrderedSharedMutex {
 public:
     // Constructors
-    AMULET_CORE_DLLX OrderedSharedTimedMutex();
+    AMULET_CORE_EXPORT OrderedSharedTimedMutex();
     OrderedSharedTimedMutex(const OrderedSharedTimedMutex&) = delete;
     OrderedSharedTimedMutex(OrderedSharedTimedMutex&&) = delete;
 
     // Destructor
-    AMULET_CORE_DLLX ~OrderedSharedTimedMutex();
+    AMULET_CORE_EXPORT ~OrderedSharedTimedMutex();
 
     // Unique
     template <class Rep, class Period>

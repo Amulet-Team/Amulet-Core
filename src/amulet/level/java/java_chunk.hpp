@@ -29,12 +29,12 @@ namespace Amulet {
 		// Height2DComponent,
 	> {
 	public:
-		AMULET_CORE_DLLX static const std::string ChunkID;
+		AMULET_CORE_EXPORT static const std::string ChunkID;
 
 		std::string get_chunk_id() const override;
 
 		using ChunkComponentHelper::ChunkComponentHelper;
-		AMULET_CORE_DLLX JavaChunkNA(
+		AMULET_CORE_EXPORT JavaChunkNA(
 			std::shared_ptr<BlockStack> default_block,
 			std::shared_ptr<Biome> default_biome
 		);
@@ -54,12 +54,12 @@ namespace Amulet {
 		// Height2DComponent,
 	> {
 	public:
-		AMULET_CORE_DLLX static const std::string ChunkID;
+		AMULET_CORE_EXPORT static const std::string ChunkID;
 
 		std::string get_chunk_id() const override;
 
 		using ChunkComponentHelper::ChunkComponentHelper;
-		AMULET_CORE_DLLX JavaChunk0(
+		AMULET_CORE_EXPORT JavaChunk0(
 			std::int64_t data_version,
 			std::shared_ptr<BlockStack> default_block,
 			std::shared_ptr<Biome> default_biome
@@ -79,12 +79,12 @@ namespace Amulet {
 		// Height2DComponent,
 	> {
 	public:
-		AMULET_CORE_DLLX static const std::string ChunkID;
+		AMULET_CORE_EXPORT static const std::string ChunkID;
 
 		std::string get_chunk_id() const override;
 
 		using ChunkComponentHelper::ChunkComponentHelper;
-		AMULET_CORE_DLLX JavaChunk1444(
+		AMULET_CORE_EXPORT JavaChunk1444(
 			std::int64_t data_version,
 			std::shared_ptr<BlockStack> default_block,
 			std::shared_ptr<Biome> default_biome
@@ -104,12 +104,12 @@ namespace Amulet {
 		// NamedHeight2DComponent,
 	> {
 	public:
-		AMULET_CORE_DLLX static const std::string ChunkID;
+		AMULET_CORE_EXPORT static const std::string ChunkID;
 
 		std::string get_chunk_id() const override;
 
 		using ChunkComponentHelper::ChunkComponentHelper;
-		AMULET_CORE_DLLX JavaChunk1466(
+		AMULET_CORE_EXPORT JavaChunk1466(
 			std::int64_t data_version,
 			std::shared_ptr<BlockStack> default_block,
 			std::shared_ptr<Biome> default_biome
@@ -129,12 +129,12 @@ namespace Amulet {
 		// NamedHeight2DComponent,
 	> {
 	public:
-		AMULET_CORE_DLLX static const std::string ChunkID;
+		AMULET_CORE_EXPORT static const std::string ChunkID;
 
 		std::string get_chunk_id() const override;
 
 		using ChunkComponentHelper::ChunkComponentHelper;
-		AMULET_CORE_DLLX JavaChunk2203(
+		AMULET_CORE_EXPORT JavaChunk2203(
 			std::int64_t data_version,
 			std::shared_ptr<BlockStack> default_block,
 			std::shared_ptr<Biome> default_biome

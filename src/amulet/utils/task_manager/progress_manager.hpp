@@ -47,8 +47,8 @@ public:
 
 class VoidProgressManager : public AbstractProgressManager {
 public:
-    AMULET_CORE_DLLX VoidProgressManager() = default;
-    AMULET_CORE_DLLX VoidProgressManager(VoidProgressManager&) = default;
+    AMULET_CORE_EXPORT VoidProgressManager() = default;
+    AMULET_CORE_EXPORT VoidProgressManager(VoidProgressManager&) = default;
     void register_progress_callback(ProgressCallback callback) override;
     void unregister_progress_callback(ProgressCallback callback) override;
     void update_progress(float progress) override;
@@ -73,8 +73,8 @@ private:
     float _progress_max;
 
 public:
-    AMULET_CORE_DLLX ProgressManager(const std::shared_ptr<ProgressManagerData>& data, float progress_min, float progress_max);
-    AMULET_CORE_DLLX ProgressManager();
+    AMULET_CORE_EXPORT ProgressManager(const std::shared_ptr<ProgressManagerData>& data, float progress_min, float progress_max);
+    AMULET_CORE_EXPORT ProgressManager();
     ProgressManager(ProgressManager&) = delete;
 
     void register_progress_callback(ProgressCallback callback) override;

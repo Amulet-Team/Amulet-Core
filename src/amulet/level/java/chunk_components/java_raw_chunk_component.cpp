@@ -10,9 +10,9 @@
 #include <amulet/level/java/chunk_components/java_raw_chunk_component.hpp>
 
 namespace Amulet {
-	AMULET_CORE_DLLX const std::string JavaRawChunkComponent::ComponentID = "Amulet::JavaRawChunkComponent";
+	const std::string JavaRawChunkComponent::ComponentID = "Amulet::JavaRawChunkComponent";
 
-	AMULET_CORE_DLLX std::optional<std::string> JavaRawChunkComponent::serialise() const {
+	std::optional<std::string> JavaRawChunkComponent::serialise() const {
 		if (_raw_data) {
 			BinaryWriter writer;
 			writer.writeNumeric<std::uint8_t>(1);
@@ -28,7 +28,7 @@ namespace Amulet {
 			return std::nullopt;
 		}
 	}
-	AMULET_CORE_DLLX void JavaRawChunkComponent::deserialise(std::optional<std::string> data) {
+	void JavaRawChunkComponent::deserialise(std::optional<std::string> data) {
 		if (data) {
 			size_t position = 0;
 			BinaryReader reader(data.value(), position);

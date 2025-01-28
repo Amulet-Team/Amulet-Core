@@ -1,14 +1,14 @@
 #pragma once
 
-#ifndef AMULET_CORE_DLLX
+#ifndef AMULET_CORE_EXPORT
     #if defined(WIN32) || defined(_WIN32)
         #ifdef ExportAmuletCore
-            #define AMULET_CORE_DLLX __declspec(dllexport)
+            #define AMULET_CORE_EXPORT __declspec(dllexport)
         #else
-            #define AMULET_CORE_DLLX __declspec(dllimport)
+            #define AMULET_CORE_EXPORT __declspec(dllimport)
         #endif
     #else
-        #define AMULET_CORE_DLLX
+        #define AMULET_CORE_EXPORT
     #endif
 #endif
 

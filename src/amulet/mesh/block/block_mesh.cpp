@@ -43,7 +43,7 @@ const RotationCullMapType RotationCullMap = []() {
     return cull_map;
 }();
 
-AMULET_CORE_DLLX BlockMesh BlockMesh::rotate(std::int8_t rotx, std::int8_t roty) const
+BlockMesh BlockMesh::rotate(std::int8_t rotx, std::int8_t roty) const
 {
     if (rotx || roty) {
         auto rotation_key = std::make_pair(rotx, roty);
@@ -97,7 +97,7 @@ AMULET_CORE_DLLX BlockMesh BlockMesh::rotate(std::int8_t rotx, std::int8_t roty)
     return *this;
 }
 
-AMULET_CORE_DLLX BlockMesh merge_block_meshes(std::vector<std::reference_wrapper<const BlockMesh>> meshes) {
+BlockMesh merge_block_meshes(std::vector<std::reference_wrapper<const BlockMesh>> meshes) {
     BlockMesh new_mesh;
     new_mesh.transparency = BlockMeshTransparency::Partial;
     std::map<std::string, size_t> texture_index_map;

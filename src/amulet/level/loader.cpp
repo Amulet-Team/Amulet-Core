@@ -12,7 +12,7 @@ size_t std::hash<Amulet::LevelLoaderToken>::operator()(const Amulet::LevelLoader
 
 namespace Amulet {
 
-AMULET_CORE_DLLX LevelLoaderPathToken::LevelLoaderPathToken(
+LevelLoaderPathToken::LevelLoaderPathToken(
     std::filesystem::path path)
     : path(path)
 {
@@ -33,7 +33,7 @@ bool LevelLoaderPathToken::operator==(const LevelLoaderToken& token) const
     return false;
 }
 
-AMULET_CORE_DLLX LevelLoader::LevelLoader(
+LevelLoader::LevelLoader(
     const std::string& name,
     std::function<std::unique_ptr<Level>(const LevelLoaderToken&)> loader)
     : name(name)
@@ -45,13 +45,13 @@ AMULET_CORE_DLLX LevelLoader::LevelLoader(
 static std::set<std::shared_ptr<LevelLoader>> loaders;
 static std::shared_mutex loaders_mutex;
 
-AMULET_CORE_DLLX LevelLoaderRegister::LevelLoaderRegister(const std::shared_ptr<LevelLoader>& loader)
+LevelLoaderRegister::LevelLoaderRegister(const std::shared_ptr<LevelLoader>& loader)
     : loader(loader)
 {
     std::unique_lock lock(loaders_mutex);
     loaders.emplace(loader);
 }
-AMULET_CORE_DLLX LevelLoaderRegister::~LevelLoaderRegister()
+LevelLoaderRegister::~LevelLoaderRegister()
 {
     std::unique_lock lock(loaders_mutex);
     loaders.erase(loader);
@@ -97,7 +97,7 @@ static LevelData& get_level_data(const std::shared_ptr<LevelLoaderToken>& token)
     return levels[token];
 }
 
-AMULET_CORE_DLLX std::shared_ptr<Level> get_level(const std::shared_ptr<LevelLoaderToken>& token)
+std::shared_ptr<Level> get_level(const std::shared_ptr<LevelLoaderToken>& token)
 {
     // Get the level storage
     auto& level_data = get_level_data(token);

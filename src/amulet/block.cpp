@@ -11,7 +11,7 @@
 #include <amulet_nbt/nbt_encoding/string.hpp>
 
 namespace Amulet {
-    AMULET_CORE_DLLX void Block::serialise(BinaryWriter& writer) const {
+    void Block::serialise(BinaryWriter& writer) const {
         writer.writeNumeric<std::uint8_t>(1);
         writer.writeSizeAndBytes(get_platform());
         get_version()->serialise(writer);
@@ -26,7 +26,7 @@ namespace Amulet {
             }, val);
         }
     }
-    AMULET_CORE_DLLX std::shared_ptr<Block> Block::deserialise(BinaryReader& reader){
+    std::shared_ptr<Block> Block::deserialise(BinaryReader& reader){
         auto version_number = reader.readNumeric<std::uint8_t>();
         switch (version_number) {
         case 1:
@@ -75,7 +75,7 @@ namespace Amulet {
         return keys;
     }
 
-    AMULET_CORE_DLLX std::string Block::java_blockstate() const {
+    std::string Block::java_blockstate() const {
         std::string blockstate;
         blockstate += get_namespace();
         blockstate += ":";
@@ -109,7 +109,7 @@ namespace Amulet {
         }
         return blockstate;
     }
-    AMULET_CORE_DLLX std::string Block::bedrock_blockstate() const {
+    std::string Block::bedrock_blockstate() const {
         std::string blockstate;
         blockstate += get_namespace();
         blockstate += ":";
@@ -385,7 +385,7 @@ namespace Amulet {
         );
     }
 
-    AMULET_CORE_DLLX std::shared_ptr<Block> Block::from_java_blockstate(const PlatformType& platform, std::shared_ptr<VersionNumber> version, const std::string& blockstate) {
+    std::shared_ptr<Block> Block::from_java_blockstate(const PlatformType& platform, std::shared_ptr<VersionNumber> version, const std::string& blockstate) {
         return parse_blockstate<
             validate_java_namespace,
             validate_java_base_name,
@@ -397,7 +397,7 @@ namespace Amulet {
             blockstate
         );
     }
-    AMULET_CORE_DLLX std::shared_ptr<Block> Block::from_bedrock_blockstate(const PlatformType& platform, std::shared_ptr<VersionNumber> version, const std::string& blockstate) {
+    std::shared_ptr<Block> Block::from_bedrock_blockstate(const PlatformType& platform, std::shared_ptr<VersionNumber> version, const std::string& blockstate) {
         return parse_blockstate<
             validate_bedrock_namespace,
             validate_bedrock_base_name,
@@ -410,14 +410,14 @@ namespace Amulet {
         );
     }
 
-    AMULET_CORE_DLLX void BlockStack::serialise(BinaryWriter& writer) const {
+    void BlockStack::serialise(BinaryWriter& writer) const {
         writer.writeNumeric<std::uint8_t>(1);
         writer.writeNumeric<std::uint64_t>(get_blocks().size());
         for (const auto& block : get_blocks()) {
             block->serialise(writer);
         }
     }
-    AMULET_CORE_DLLX std::shared_ptr<BlockStack> BlockStack::deserialise(BinaryReader& reader) {
+    std::shared_ptr<BlockStack> BlockStack::deserialise(BinaryReader& reader) {
         auto version_number = reader.readNumeric<std::uint8_t>();
         switch (version_number) {
         case 1:
