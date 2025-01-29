@@ -33,6 +33,7 @@ private:
     }
 
 public:
+    std::mutex mutex;
     LRICache(size_t max_size)
         : _max_size(max_size) {};
     size_t max_size() const { return _max_size; };

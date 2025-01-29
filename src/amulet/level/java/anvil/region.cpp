@@ -46,7 +46,6 @@ static const std::uint64_t MaxRegionSize = SectorSize * 255; // The maximum size
 
 static const std::regex region_regex(R"(r\.(\-?\d+)\.(\-?\d+)\.mca)");
 
-std::mutex region_file_cache_mutex;
 static LRICache<size_t, std::shared_ptr<AnvilRegion::FileCloser>> region_file_cache(64);
 
 std::pair<std::int64_t, std::int64_t> parse_region_filename(const std::string& filename)
@@ -222,7 +221,7 @@ void AnvilRegion::read_file_header()
 void AnvilRegion::_close()
 {
     _shared->regionf.close();
-    std::lock_guard lock(region_file_cache_mutex);
+    std::lock_guard lock(region_file_cache.mutex);
     region_file_cache.remove(reinterpret_cast<size_t>(this));
 }
 
@@ -234,7 +233,7 @@ void AnvilRegion::_close_if_open()
     if (_shared->regionf.is_open()) {
         _close();
     } else {
-        std::lock_guard lock(region_file_cache_mutex);
+        std::lock_guard lock(region_file_cache.mutex);
         region_file_cache.remove(reinterpret_cast<size_t>(this));
     }
 }
@@ -756,7 +755,7 @@ std::shared_ptr<AnvilRegion::FileCloser> AnvilRegion::_get_file_closer()
         closer = std::make_shared<AnvilRegion::FileCloser>(_shared);
         _closer = closer;
     }
-    std::lock_guard lock(region_file_cache_mutex);
+    std::lock_guard lock(region_file_cache.mutex);
     region_file_cache.add(reinterpret_cast<size_t>(this), closer);
     return closer;
 }
