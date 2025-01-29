@@ -7,7 +7,6 @@ If you do not understand threading, you must stick to a single thread and unique
 lock the level to ensure no other threads are running in parallel.
 
 The following policies are used in docstrings to document how the function and return behave.
-If the prefix (`Call:` and `Return:`) is omitted the policy applies to both.
 
 ## Call policy
 
@@ -33,14 +32,26 @@ The caller must acquire the external lock before calling the function to ensure 
 These policies apply to the object returned by the function.
 If no return policy is given it is assumed to be independent.
 
-## Return: External [shared] lock optional.
+### [Return: ]External [shared] lock optional.
 
 The external lock may be used to ensure the state is not mutated.
 The returned object will remain valid without external locks but may be outdated if the state is changed.
 The lock must be held from before calling the function until the returned value is no longer needed.
 
-## Return: External [shared] lock required.
+### [Return: ]External [shared] lock required.
 
 The external lock must be used to ensure the state is not mutated.
 The returned object may be invalidated if the state is changed.
 The lock must be held from before calling the function until the returned value is no longer needed.
+
+## Call and Return policy
+
+If the call and return policy are the same it only needs to be written once.
+
+### External [shared] lock optional.
+
+Applies to both call and return policy.
+
+### External [shared] lock required.
+
+Applies to both call and return policy.
