@@ -74,6 +74,8 @@ AMULET_CORE_EXPORT std::pair<std::int64_t, std::int64_t> parse_region_filename(c
 // A class to read and write Minecraft Java Edition Region files.
 // Only one instance should exist per region file at any given time otherwise bad things may happen.
 class AnvilRegion {
+    // This class should be internally thread safe.
+    // A public shared mutex is provided to enable external synchronisation.
 private:
     // Data shared between the region and closer.
     class Shared {
@@ -131,19 +133,19 @@ private:
     AnvilRegion(const std::filesystem::path& directory, const std::string& file_name, const std::pair<std::int64_t, std::int64_t>& region_coordinate, bool mcc = false);
 
     // Load data from the region file if it exists.
-    // Lock must be acquired before calling this.
+    // Internal lock required.
     void read_file_header();
 
     // Create the region file.
-    // Lock must be acquired before calling this.
+    // Internal lock required.
     void create_region_file();
 
     // Open the region file and fix any size issues.
-    // Lock must be acquired before calling this.
+    // Internal lock required.
     void open_region_file();
 
     // Create or open the region file if it is closed.
-    // Lock must be acquired before calling this.
+    // Internal lock required.
     void create_open_region_file_if_closed();
 
     void validate_coord(std::int64_t cx, std::int64_t cz) const;
@@ -154,13 +156,16 @@ private:
     // When this object is deleted it will close the region file
     // This means that holding a reference to this will delay when the region file is closed.
     // The region file may still be closed manually before this object is deleted.
-    // Lock must be acquired before calling this.
+    // Call: Internal lock required.
     AMULET_CORE_EXPORT std::shared_ptr<FileCloser> _get_file_closer();
 
+    // Close the file object.
+    // This is automatically called when the instance is destroyed but may be called earlier.
+    // Internal lock required.
+    void _close();
     // Close the file object if open.
     // This is automatically called when the instance is destroyed but may be called earlier.
-    // Lock must be acquired before calling this.
-    void _close();
+    // Internal lock required.
     void _close_if_open();
 
 public:
@@ -179,18 +184,24 @@ public:
     AnvilRegion& operator=(const AnvilRegion&) = delete;
     AnvilRegion& operator=(AnvilRegion&&) = delete;
 
-    // The path of the region file. Thread safe.
+    // A mutex which can be used to synchronise calls.
+    AMULET_CORE_EXPORT std::recursive_mutex& mutex() const;
+
+    // The path of the region file.
+    // Thread safe.
     AMULET_CORE_EXPORT std::filesystem::path path() const;
 
-    // The region x coordinate of the file. Thread safe.
+    // The region x coordinate of the file.
+    // Thread safe.
     AMULET_CORE_EXPORT std::int64_t rx() const;
 
-    // The region z coordinate of the file. Thread safe.
+    // The region z coordinate of the file.
+    // Thread safe.
     AMULET_CORE_EXPORT std::int64_t rz() const;
 
     // Get the coordinates of all values in the region file.
     // Coordinates are in world space.
-    // Thread safe.
+    // External lock optional.
     AMULET_CORE_EXPORT std::vector<std::pair<std::int64_t, std::int64_t>> get_coords();
 
     // Is the coordinate in the region.
@@ -201,7 +212,7 @@ public:
 
     // Is there a value stored for this coordinate.
     // Coordinates are in world space.
-    // Thread safe.
+    // External lock optional.
     AMULET_CORE_EXPORT bool has_value(std::int64_t cx, std::int64_t cz);
 
     // Get the value for this coordinate.
