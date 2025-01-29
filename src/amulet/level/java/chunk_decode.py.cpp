@@ -17,9 +17,11 @@
 
 #include <amulet/block.hpp>
 #include <amulet/chunk.hpp>
-#include <amulet/level/java/java_chunk.hpp>
-#include <amulet/level/java/long_array.hpp>
 #include <amulet/version.hpp>
+
+#include "chunk.hpp"
+#include "long_array.hpp"
+
 
 namespace py = pybind11;
 using namespace AmuletNBT;

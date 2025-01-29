@@ -21,8 +21,11 @@ py::module init_java(py::module m_parent)
     init_java_chunk_components(m);
     init_java_chunk(m);
     init_java_anvil(m);
-    init_java_raw(m);
 
+    //    m.attr("JavaRawLevel") = py::module::import("amulet.level.java.raw._level").attr("JavaRawLevel");
+    //    m.attr("JavaCreateArgsV1") = py::module::import("amulet.level.java.raw._level").attr("JavaCreateArgsV1");
+    //    m.attr("JavaRawDimension") = py::module::import("amulet.level.java.raw._dimension").attr("JavaRawDimension");
+    //    m.attr("JavaInternalDimensionID") = py::module::import("amulet.level.java.raw._typing").attr("JavaInternalDimensionID");
     //    m.attr("JavaLevel") = py::module::import("amulet.level.java._level").attr("JavaLevel");
 
     return m;

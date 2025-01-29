@@ -10,7 +10,8 @@
 #include <amulet_nbt/tag/named_tag.hpp>
 
 #include <amulet/chunk.hpp>
-#include <amulet/level/java/java_chunk.hpp>
+
+#include "chunk.hpp"
 
 namespace py = pybind11;
 

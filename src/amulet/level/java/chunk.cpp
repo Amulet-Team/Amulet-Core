@@ -7,7 +7,8 @@
 #include <amulet/chunk.hpp>
 #include <amulet/chunk_components/block_component.hpp>
 #include <amulet/dll.hpp>
-#include <amulet/level/java/java_chunk.hpp>
+
+#include "chunk.hpp"
 
 namespace Amulet {
 const std::string JavaChunkNA::ChunkID = "Amulet::JavaChunkNA";
