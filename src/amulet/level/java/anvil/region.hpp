@@ -36,12 +36,15 @@ public:
     std::mutex mutex;
     LRICache(size_t max_size)
         : _max_size(max_size) {};
+    // The current max size value. mutex must be acquired while calling.
     size_t max_size() const { return _max_size; };
+    // Set the max size value. mutex must be acquired while calling.
     void set_max_size(size_t max_size)
     {
         _max_size = max_size;
         remove_extra();
     };
+    // Add an item. mutex must be acquired while calling.
     void add(const K& k, const V& v)
     {
         auto it = _map.find(k);
@@ -55,6 +58,7 @@ public:
             _values.splice(_values.end(), _values, it->second);
         }
     };
+    // Remove an item. mutex must be acquired while calling.
     void remove(const K& k)
     {
         auto it = _map.find(k);
