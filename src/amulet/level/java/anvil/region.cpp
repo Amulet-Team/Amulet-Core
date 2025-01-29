@@ -279,12 +279,12 @@ std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion::get_coords()
 // This returns true even if there is no value for the coordinate.
 // Coordinates are in world space.
 // Thread safe.
-bool AnvilRegion::contains(std::int64_t cx, std::int64_t cz)
+bool AnvilRegion::contains(std::int64_t cx, std::int64_t cz) const
 {
     return _rx * 32 <= cx && cx < (_rx + 1) * 32 && _rz * 32 <= cz && cz < (_rz + 1) * 32;
 }
 
-void AnvilRegion::validate_coord(std::int64_t cx, std::int64_t cz)
+void AnvilRegion::validate_coord(std::int64_t cx, std::int64_t cz) const
 {
     if (!contains(cx, cz)) {
         throw std::invalid_argument(

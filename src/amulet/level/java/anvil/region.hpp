@@ -146,7 +146,7 @@ private:
     // Lock must be acquired before calling this.
     void create_open_region_file_if_closed();
 
-    void validate_coord(std::int64_t cx, std::int64_t cz);
+    void validate_coord(std::int64_t cx, std::int64_t cz) const;
     template <typename T>
     void _set_data(std::int64_t cx, std::int64_t cz, T data);
 
@@ -197,7 +197,7 @@ public:
     // This returns true even if there is no value for the coordinate.
     // Coordinates are in world space.
     // Thread safe.
-    AMULET_CORE_EXPORT bool contains(std::int64_t cx, std::int64_t cz);
+    AMULET_CORE_EXPORT bool contains(std::int64_t cx, std::int64_t cz) const;
 
     // Is there a value stored for this coordinate.
     // Coordinates are in world space.
