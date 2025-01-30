@@ -149,11 +149,11 @@ class OrderedSharedLock:
 class SharedLockContextManager:
     def __enter__(self) -> None: ...
     def __exit__(
-        self, arg0: typing.Any, arg1: typing.Any, arg2: typing.Any
+        self, exc_type: typing.Any, exc_val: typing.Any, exc_tb: typing.Any
     ) -> None: ...
 
 class UniqueLockContextManager:
     def __enter__(self) -> None: ...
     def __exit__(
-        self, arg0: typing.Any, arg1: typing.Any, arg2: typing.Any
+        self, exc_type: typing.Any, exc_val: typing.Any, exc_tb: typing.Any
     ) -> None: ...

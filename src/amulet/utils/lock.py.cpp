@@ -218,7 +218,10 @@ void init_lock(py::module m_parent)
         [](Amulet::UniqueLockContextManager& self, py::object, py::object, py::object) {
             py::gil_scoped_release gil;
             self.exit();
-        });
+        },
+        py::arg("exc_type"),
+        py::arg("exc_val"),
+        py::arg("exc_tb"));
     py::class_<Amulet::SharedLockContextManager> SharedLockContextManager(m, "SharedLockContextManager");
     SharedLockContextManager.def(
         "__enter__",
@@ -229,7 +232,10 @@ void init_lock(py::module m_parent)
         [](Amulet::SharedLockContextManager& self, py::object, py::object, py::object) {
             py::gil_scoped_release gil;
             self.exit();
-        });
+        },
+        py::arg("exc_type"),
+        py::arg("exc_val"),
+        py::arg("exc_tb"));
 
     py::class_<Amulet::OrderedSharedLock> OrderedSharedLock(m, "OrderedSharedLock",
         "This is a custom lock implementation that can be acquired in\n"
