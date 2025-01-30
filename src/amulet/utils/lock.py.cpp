@@ -11,7 +11,9 @@
 #include <shared_mutex>
 #include <stdexcept>
 
+#include <pybind11_extensions/contextlib.hpp>
 #include <pybind11_extensions/py_module.hpp>
+#include <pybind11_extensions/pybind11.hpp>
 
 #include "mutex.hpp"
 #include "task_manager/cancel_manager.hpp"
@@ -453,6 +455,22 @@ void init_lock(py::module m_parent)
         &std::shared_mutex::unlock,
         py::call_guard<py::gil_scoped_release>());
     SharedLock.def(
+        "unique",
+        [](std::shared_mutex& self) {
+            return pybind11_extensions::contextlib::make_context_manager<void, std::optional<bool>>(
+                [&self]() -> void {
+                    py::gil_scoped_release nogil;
+                    self.lock();
+                },
+                [&self](py::object, py::object, py::object) -> std::optional<bool> {
+                    py::gil_scoped_release nogil;
+                    self.unlock();
+                    return false;
+                });
+        },
+        py::return_value_policy::reference,
+        py::keep_alive<0, 1>());
+    SharedLock.def(
         "acquire_shared",
         [](std::shared_mutex& self, bool blocking) {
             if (blocking) {
@@ -468,4 +486,20 @@ void init_lock(py::module m_parent)
         "release_shared",
         &std::shared_mutex::unlock_shared,
         py::call_guard<py::gil_scoped_release>());
+    SharedLock.def(
+        "shared",
+        [](std::shared_mutex& self) {
+            return pybind11_extensions::contextlib::make_context_manager<void, std::optional<bool>>(
+                [&self]() -> void {
+                    py::gil_scoped_release nogil;
+                    self.lock_shared();
+                },
+                [&self](py::object, py::object, py::object) -> std::optional<bool> {
+                    py::gil_scoped_release nogil;
+                    self.unlock_shared();
+                    return false;
+                });
+        },
+        py::return_value_policy::reference,
+        py::keep_alive<0, 1>());
 }
