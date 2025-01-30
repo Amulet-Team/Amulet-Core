@@ -6,11 +6,26 @@ import amulet.utils.mutex
 import amulet.utils.task_manager.cancel_manager
 
 __all__ = [
+    "Lock",
     "LockNotAcquired",
     "OrderedSharedLock",
+    "RLock",
     "SharedLockContextManager",
     "UniqueLockContextManager",
 ]
+
+class Lock:
+    """
+    A wrapper for std::mutex.
+    """
+
+    def __enter__(self) -> None: ...
+    def __exit__(
+        self, exc_type: typing.Any, exc_val: typing.Any, exc_tb: typing.Any
+    ) -> None: ...
+    def __init__(self) -> None: ...
+    def acquire(self) -> None: ...
+    def release(self) -> None: ...
 
 class LockNotAcquired(RuntimeError):
     """
@@ -145,6 +160,19 @@ class OrderedSharedLock:
         :return: None
         :raises: LockNotAcquired if the lock could not be acquired.
         """
+
+class RLock:
+    """
+    A wrapper for std::recursive_mutex.
+    """
+
+    def __enter__(self) -> None: ...
+    def __exit__(
+        self, exc_type: typing.Any, exc_val: typing.Any, exc_tb: typing.Any
+    ) -> None: ...
+    def __init__(self) -> None: ...
+    def acquire(self) -> None: ...
+    def release(self) -> None: ...
 
 class SharedLockContextManager:
     def __enter__(self) -> None: ...

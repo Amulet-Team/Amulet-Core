@@ -364,4 +364,54 @@ void init_lock(py::module m_parent)
             "    This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.\n"
             ":return: None\n"
             ":raises: LockNotAcquired if the lock could not be acquired."));
+
+    py::class_<std::mutex> Lock(m, "Lock", py::module_local(),
+        "A wrapper for std::mutex.");
+    Lock.def(py::init());
+    Lock.def(
+        "__enter__",
+        &std::recursive_mutex::lock,
+        py::call_guard<py::gil_scoped_release>());
+    Lock.def(
+        "__exit__",
+        [](std::mutex& self, py::object, py::object, py::object) {
+            py::gil_scoped_release nogil;
+            self.unlock();
+        },
+        py::arg("exc_type"),
+        py::arg("exc_val"),
+        py::arg("exc_tb"));
+    Lock.def(
+        "acquire",
+        &std::mutex::lock,
+        py::call_guard<py::gil_scoped_release>());
+    Lock.def(
+        "release",
+        &std::mutex::unlock,
+        py::call_guard<py::gil_scoped_release>());
+
+    py::class_<std::recursive_mutex> RLock(m, "RLock", py::module_local(),
+        "A wrapper for std::recursive_mutex.");
+    RLock.def(py::init());
+    RLock.def(
+        "__enter__",
+        &std::recursive_mutex::lock,
+        py::call_guard<py::gil_scoped_release>());
+    RLock.def(
+        "__exit__",
+        [](std::recursive_mutex& self, py::object, py::object, py::object) {
+            py::gil_scoped_release nogil;
+            self.unlock();
+        },
+        py::arg("exc_type"),
+        py::arg("exc_val"),
+        py::arg("exc_tb"));
+    RLock.def(
+        "acquire", 
+        &std::recursive_mutex::lock,
+        py::call_guard<py::gil_scoped_release>());
+    RLock.def(
+        "release", 
+        &std::recursive_mutex::unlock,
+        py::call_guard<py::gil_scoped_release>());
 }
