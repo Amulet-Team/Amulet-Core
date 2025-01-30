@@ -8,6 +8,13 @@ import amulet_nbt
 __all__ = ["AnvilRegion", "RegionDoesNotExist"]
 
 class AnvilRegion:
+    """
+    A class to read and write Minecraft Java Edition Region files.
+    Only one instance should exist per region file at any given time otherwise bad things may happen.
+    This class is internally thread safe but a public lock is provided to enable external synchronisation.
+    Upstream locks from the level must also be adhered to.
+    """
+
     class FileCloser:
         pass
 
