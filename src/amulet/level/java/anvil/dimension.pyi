@@ -4,6 +4,7 @@ import collections.abc
 import typing
 
 import amulet.level.java.anvil.region
+import amulet.utils.lock
 import amulet_nbt
 
 __all__ = ["AnvilDimension", "AnvilDimensionLayer", "RawChunkType"]
@@ -141,6 +142,14 @@ class AnvilDimensionLayer:
     def directory(self) -> str:
         """
         The directory this instance manages.
+        """
+
+    @property
+    def lock(self) -> amulet.utils.lock.SharedLock:
+        """
+        External lock.
+        This must be acquired in unique mode before mutating the layer.
+        This may be acquired in shared (or unique) mode before reading the layer.
         """
 
     @property

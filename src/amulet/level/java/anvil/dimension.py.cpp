@@ -21,6 +21,12 @@ py::module init_anvil_dimension(py::module m_parent)
         py::arg("directory"),
         py::arg("mcc") = false);
     AnvilDimensionLayer.def_property_readonly(
+        "lock",
+        &Amulet::AnvilDimensionLayer::mutex,
+        py::doc("External lock.\n"
+                "This must be acquired in unique mode before mutating the layer.\n"
+                "This may be acquired in shared (or unique) mode before reading the layer."));
+    AnvilDimensionLayer.def_property_readonly(
         "directory",
         [](const Amulet::AnvilDimensionLayer& self) {
             return self.directory().string();

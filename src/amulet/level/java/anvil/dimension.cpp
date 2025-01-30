@@ -132,6 +132,7 @@ AnvilDimensionLayer::AnvilDimensionLayer(
 }
 
 // Accessors
+std::shared_mutex& AnvilDimensionLayer::mutex() { return _public_mutex; }
 const std::filesystem::path& AnvilDimensionLayer::directory() const { return _directory; }
 bool AnvilDimensionLayer::mcc() const { return _mcc; }
 

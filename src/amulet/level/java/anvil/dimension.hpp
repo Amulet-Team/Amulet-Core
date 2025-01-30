@@ -83,12 +83,19 @@ static_assert(std::input_iterator<AnvilChunkCoordIterator>);
 class AnvilDimensionLayer {
 private:
     std::mutex _mutex;
+    std::shared_mutex _public_mutex;
     std::filesystem::path _directory;
     bool _mcc;
     std::map<std::pair<std::int64_t, std::int64_t>, std::shared_ptr<Amulet::AnvilRegion>> _regions;
 
 public:
     // Accessors
+
+    // External mutex.
+    // This must be acquired in unique mode before mutating the layer.
+    // This may be acquired in shared (or unique) mode before reading the layer.
+    AMULET_CORE_EXPORT std::shared_mutex& mutex();
+
     AMULET_CORE_EXPORT const std::filesystem::path& directory() const;
     AMULET_CORE_EXPORT bool mcc() const;
 
