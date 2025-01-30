@@ -8,6 +8,7 @@
 #include <chrono>
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <stdexcept>
 
 #include <pybind11_extensions/py_module.hpp>
@@ -430,5 +431,41 @@ void init_lock(py::module m_parent)
     RLock.def(
         "release",
         &std::recursive_mutex::unlock,
+        py::call_guard<py::gil_scoped_release>());
+
+    py::class_<std::shared_mutex> SharedLock(m, "SharedLock", py::module_local(),
+        "A wrapper for std::shared_mutex.");
+    SharedLock.def(py::init());
+    SharedLock.def(
+        "acquire_unique",
+        [](std::shared_mutex& self, bool blocking) {
+            if (blocking) {
+                self.lock();
+                return true;
+            } else {
+                return self.try_lock();
+            }
+        },
+        py::arg("blocking") = true,
+        py::call_guard<py::gil_scoped_release>());
+    SharedLock.def(
+        "release_unique",
+        &std::shared_mutex::unlock,
+        py::call_guard<py::gil_scoped_release>());
+    SharedLock.def(
+        "acquire_shared",
+        [](std::shared_mutex& self, bool blocking) {
+            if (blocking) {
+                self.lock_shared();
+                return true;
+            } else {
+                return self.try_lock_shared();
+            }
+        },
+        py::arg("blocking") = true,
+        py::call_guard<py::gil_scoped_release>());
+    SharedLock.def(
+        "release_shared",
+        &std::shared_mutex::unlock_shared,
         py::call_guard<py::gil_scoped_release>());
 }
