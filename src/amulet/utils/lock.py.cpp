@@ -7,6 +7,7 @@
 
 #include <chrono>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 
 #include <pybind11_extensions/py_module.hpp>
@@ -370,7 +371,7 @@ void init_lock(py::module m_parent)
     Lock.def(py::init());
     Lock.def(
         "__enter__",
-        &std::recursive_mutex::lock,
+        &std::mutex::lock,
         py::call_guard<py::gil_scoped_release>());
     Lock.def(
         "__exit__",
@@ -383,7 +384,15 @@ void init_lock(py::module m_parent)
         py::arg("exc_tb"));
     Lock.def(
         "acquire",
-        &std::mutex::lock,
+        [](std::mutex& self, bool blocking) {
+            if (blocking) {
+                self.lock();
+                return true;
+            } else {
+                return self.try_lock();
+            }
+        },
+        py::arg("blocking") = true,
         py::call_guard<py::gil_scoped_release>());
     Lock.def(
         "release",
@@ -407,11 +416,19 @@ void init_lock(py::module m_parent)
         py::arg("exc_val"),
         py::arg("exc_tb"));
     RLock.def(
-        "acquire", 
-        &std::recursive_mutex::lock,
+        "acquire",
+        [](std::recursive_mutex& self, bool blocking) {
+            if (blocking) {
+                self.lock();
+                return true;
+            } else {
+                return self.try_lock();
+            }
+        },
+        py::arg("blocking") = true,
         py::call_guard<py::gil_scoped_release>());
     RLock.def(
-        "release", 
+        "release",
         &std::recursive_mutex::unlock,
         py::call_guard<py::gil_scoped_release>());
 }
