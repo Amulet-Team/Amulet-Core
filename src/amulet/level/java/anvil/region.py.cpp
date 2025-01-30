@@ -38,6 +38,7 @@ py::module init_anvil_region(py::module m_parent)
         py::arg("path"),
         py::arg("mcc") = false);
 
+    AnvilRegion.def_property_readonly("lock", &Amulet::AnvilRegion::mutex);
     AnvilRegion.def_property_readonly("path", [](Amulet::AnvilRegion& self) -> std::string { return self.path().string(); });
     AnvilRegion.def_property_readonly("rx", &Amulet::AnvilRegion::rx);
     AnvilRegion.def_property_readonly("rz", &Amulet::AnvilRegion::rz);

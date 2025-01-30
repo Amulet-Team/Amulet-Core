@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import typing
 
+import amulet.utils.lock
 import amulet_nbt
 
 __all__ = ["AnvilRegion", "RegionDoesNotExist"]
@@ -29,6 +30,8 @@ class AnvilRegion:
     def get_value(self, cx: int, cz: int) -> amulet_nbt.NamedTag: ...
     def has_value(self, cx: int, cz: int) -> bool: ...
     def set_value(self, cx: int, cz: int, tag: amulet_nbt.NamedTag) -> None: ...
+    @property
+    def lock(self) -> amulet.utils.lock.RLock: ...
     @property
     def path(self) -> str: ...
     @property
