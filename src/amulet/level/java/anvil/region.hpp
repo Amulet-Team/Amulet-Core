@@ -73,9 +73,9 @@ AMULET_CORE_EXPORT std::pair<std::int64_t, std::int64_t> parse_region_filename(c
 
 // A class to read and write Minecraft Java Edition Region files.
 // Only one instance should exist per region file at any given time otherwise bad things may happen.
+// This class is internally thread safe but a public mutex is provided to enable external synchronisation.
+// Upstream locks from the level must also be adhered to.
 class AnvilRegion {
-    // This class should be internally thread safe.
-    // A public shared mutex is provided to enable external synchronisation.
 private:
     // Data shared between the region and closer.
     class Shared {
