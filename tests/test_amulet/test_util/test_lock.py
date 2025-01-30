@@ -5,7 +5,8 @@ from threading import Thread, Condition
 
 from amulet.utils.task_manager import AbstractCancelManager, CancelManager
 from amulet.utils.mutex import OrderedSharedTimedMutex, Deadlock
-from amulet.utils.lock import OrderedSharedLock, LockNotAcquired, Lock, RLock
+from amulet.utils.lock import OrderedSharedLock, LockNotAcquired, Lock, RLock, SharedLock
+
 
 class LockTestCase(TestCase):
     def test_lock(self) -> None:
@@ -254,6 +255,268 @@ class RLockTestCase(TestCase):
         self.assertTrue(
             1.99 <= dt <= 2.5,
             f"Expected 0.5s. Got {dt}s",
+        )
+
+class SharedLockTestCase(TestCase):
+    def test_shared_lock(self) -> None:
+        lock = SharedLock()
+        lock.acquire_unique()
+        lock.release_unique()
+        lock.acquire_shared()
+        lock.release_shared()
+        with lock.unique():
+            pass
+        with lock.shared():
+            pass
+
+    def test_unique_lifespan(self) -> None:
+        lock = SharedLock()
+        lock_ref = weakref.ref(lock)
+        unique = lock.unique()
+        del lock
+        self.assertIsNotNone(lock_ref())
+        del unique
+        self.assertIsNone(lock_ref())
+
+    def test_shared_lifespan(self) -> None:
+        lock = SharedLock()
+        lock_ref = weakref.ref(lock)
+        shared = lock.shared()
+        del lock
+        self.assertIsNotNone(lock_ref())
+        del shared
+        self.assertIsNone(lock_ref())
+
+    def test_unique(self) -> None:
+        condition = Condition()
+        lock = SharedLock()
+
+        exec_order: list[int] = []
+        end_times: list[float] = []
+        thread_count = 0
+
+        def increment_thread_count():
+            nonlocal thread_count
+            thread_count += 1
+            with condition:
+                condition.notify_all()
+
+        def f1():
+            increment_thread_count()
+            with condition:
+                condition.wait_for(lambda: thread_count == 3)
+            with lock.unique():
+                increment_thread_count() # 4
+                exec_order.append(1)
+                time.sleep(1)
+                exec_order.append(2)
+            end_times.append(time.time())
+
+        def f2():
+            increment_thread_count()
+            with condition:
+                condition.wait_for(lambda: thread_count >= 4)
+            lock.acquire_unique()
+            exec_order.append(3)
+            time.sleep(1)
+            exec_order.append(4)
+            lock.release_unique()
+            end_times.append(time.time())
+
+        thread_1 = Thread(target=f1)
+        thread_2 = Thread(target=f2)
+
+        thread_1.start()
+        thread_2.start()
+
+        with condition:
+            condition.wait_for(lambda: thread_count == 2)
+        t = time.time()
+        increment_thread_count()
+
+        thread_1.join()
+        thread_2.join()
+
+        self.assertEqual([1, 2, 3, 4], exec_order)
+
+        dt = max(end_times) - t
+        self.assertTrue(
+            1.99 <= dt <= 2.5,
+            f"Expected 2s. Got {dt}s",
+        )
+
+    def test_shared(self) -> None:
+        condition = Condition()
+        lock = SharedLock()
+
+        exec_order: list[int] = []
+        end_times: list[float] = []
+        thread_count = 0
+
+        def increment_thread_count():
+            nonlocal thread_count
+            thread_count += 1
+            with condition:
+                condition.notify_all()
+
+        def f1():
+            increment_thread_count()
+            with condition:
+                condition.wait_for(lambda: thread_count == 3)
+            with lock.shared():
+                increment_thread_count() # 4
+                exec_order.append(1)
+                time.sleep(1)
+                exec_order.append(2)
+            end_times.append(time.time())
+
+        def f2():
+            increment_thread_count()
+            with condition:
+                condition.wait_for(lambda: thread_count >= 4)
+            lock.acquire_shared()
+            exec_order.append(3)
+            time.sleep(1)
+            exec_order.append(4)
+            lock.release_shared()
+            end_times.append(time.time())
+
+        thread_1 = Thread(target=f1)
+        thread_2 = Thread(target=f2)
+
+        thread_1.start()
+        thread_2.start()
+
+        with condition:
+            condition.wait_for(lambda: thread_count == 2)
+        t = time.time()
+        increment_thread_count()
+
+        thread_1.join()
+        thread_2.join()
+
+        self.assertEqual({1, 2, 3, 4}, set(exec_order))
+
+        dt = max(end_times) - t
+        self.assertTrue(
+            0.99 <= dt <= 1.5,
+            f"Expected 1s. Got {dt}s",
+        )
+
+    def test_shared_unique(self) -> None:
+        condition = Condition()
+        lock = SharedLock()
+
+        exec_order: list[int] = []
+        end_times: list[float] = []
+        thread_count = 0
+
+        def increment_thread_count():
+            nonlocal thread_count
+            thread_count += 1
+            with condition:
+                condition.notify_all()
+
+        def f1():
+            increment_thread_count()
+            with condition:
+                condition.wait_for(lambda: thread_count == 3)
+            with lock.shared():
+                increment_thread_count() # 4
+                exec_order.append(1)
+                time.sleep(1)
+                exec_order.append(2)
+            end_times.append(time.time())
+
+        def f2():
+            increment_thread_count()
+            with condition:
+                condition.wait_for(lambda: thread_count >= 4)
+            lock.acquire_unique()
+            exec_order.append(3)
+            time.sleep(1)
+            exec_order.append(4)
+            lock.release_unique()
+            end_times.append(time.time())
+
+        thread_1 = Thread(target=f1)
+        thread_2 = Thread(target=f2)
+
+        thread_1.start()
+        thread_2.start()
+
+        with condition:
+            condition.wait_for(lambda: thread_count == 2)
+        t = time.time()
+        increment_thread_count()
+
+        thread_1.join()
+        thread_2.join()
+
+        self.assertEqual([1, 2, 3, 4], exec_order)
+
+        dt = max(end_times) - t
+        self.assertTrue(
+            1.99 <= dt <= 2.5,
+            f"Expected 2s. Got {dt}s",
+        )
+
+    def test_unique_shared(self) -> None:
+        condition = Condition()
+        lock = SharedLock()
+
+        exec_order: list[int] = []
+        end_times: list[float] = []
+        thread_count = 0
+
+        def increment_thread_count():
+            nonlocal thread_count
+            thread_count += 1
+            with condition:
+                condition.notify_all()
+
+        def f1():
+            increment_thread_count()
+            with condition:
+                condition.wait_for(lambda: thread_count == 3)
+            with lock.unique():
+                increment_thread_count() # 4
+                exec_order.append(1)
+                time.sleep(1)
+                exec_order.append(2)
+            end_times.append(time.time())
+
+        def f2():
+            increment_thread_count()
+            with condition:
+                condition.wait_for(lambda: thread_count >= 4)
+            lock.acquire_shared()
+            exec_order.append(3)
+            time.sleep(1)
+            exec_order.append(4)
+            lock.release_shared()
+            end_times.append(time.time())
+
+        thread_1 = Thread(target=f1)
+        thread_2 = Thread(target=f2)
+
+        thread_1.start()
+        thread_2.start()
+
+        with condition:
+            condition.wait_for(lambda: thread_count == 2)
+        t = time.time()
+        increment_thread_count()
+
+        thread_1.join()
+        thread_2.join()
+
+        self.assertEqual([1, 2, 3, 4], exec_order)
+
+        dt = max(end_times) - t
+        self.assertTrue(
+            1.99 <= dt <= 2.5,
+            f"Expected 2s. Got {dt}s",
         )
 
 class OrderedLockTestCase(TestCase):
