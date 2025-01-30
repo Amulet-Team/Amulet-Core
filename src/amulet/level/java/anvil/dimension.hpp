@@ -89,6 +89,12 @@ private:
     std::map<std::pair<std::int64_t, std::int64_t>, std::shared_ptr<Amulet::AnvilRegion>> _regions;
 
 public:
+    // Constructors
+    AnvilDimensionLayer() = delete;
+    AnvilDimensionLayer(const AnvilDimensionLayer&) = delete;
+    AnvilDimensionLayer(AnvilDimensionLayer&&) = delete;
+    AMULET_CORE_EXPORT AnvilDimensionLayer(std::filesystem::path directory, bool mcc = false);
+
     // Accessors
 
     // External mutex.
@@ -99,7 +105,6 @@ public:
     AMULET_CORE_EXPORT const std::filesystem::path& directory() const;
     AMULET_CORE_EXPORT bool mcc() const;
 
-    AMULET_CORE_EXPORT AnvilDimensionLayer(std::filesystem::path directory, bool mcc = false);
     // Region
     // Get the path to the region file
     std::filesystem::path region_path(std::int64_t rx, std::int64_t rz) const;
