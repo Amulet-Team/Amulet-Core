@@ -26,7 +26,9 @@ struct Ensure {
     static bool const value = condition;
 };
 
+// An input iterator over region coordinates in a directory.
 class AnvilRegionCoordIterator {
+    // Not thread safe.
 private:
     std::filesystem::directory_iterator it;
     std::pair<std::int64_t, std::int64_t> coord;
@@ -50,7 +52,9 @@ AMULET_CORE_EXPORT bool operator==(const AnvilRegionCoordIterator&, const AnvilR
 
 static_assert(std::input_iterator<AnvilRegionCoordIterator>);
 
+// An input iterator over chunk coordinates in a dimension layer.
 class AnvilChunkCoordIterator {
+    // Not thread safe.
 private:
     std::weak_ptr<class AnvilDimensionLayer> _layer;
     AnvilRegionCoordIterator _region_it;
@@ -80,6 +84,7 @@ static_assert(std::input_iterator<AnvilChunkCoordIterator>);
 // In the Anvil format chunk data is split into layers.
 // Historically there was only one layer but entity data was split into its own layer.
 
+// A class to manage a directory of region files.
 class AnvilDimensionLayer {
 private:
     std::mutex _mutex;
@@ -102,29 +107,54 @@ public:
     // This may be acquired in shared (or unique) mode before reading the layer.
     AMULET_CORE_EXPORT std::shared_mutex& mutex();
 
+    // The directory this instance manages.
+    // Thread safe.
     AMULET_CORE_EXPORT const std::filesystem::path& directory() const;
+
+    // Is mcc file support enabled for this instance.
+    // Thread safe.
     AMULET_CORE_EXPORT bool mcc() const;
 
     // Region
+
     // Get the path to the region file
+    // Thread safe.
     std::filesystem::path region_path(std::int64_t rx, std::int64_t rz) const;
+    
     // An iterator of all region coordinates in this layer.
+    // External shared lock optional.
     AMULET_CORE_EXPORT AnvilRegionCoordIterator all_region_coords();
+    
     // Check if a region file exists in this layer.
+    // External shared lock optional.
     AMULET_CORE_EXPORT bool has_region(std::int64_t rx, std::int64_t rz) const;
+    
     // Get an AnvilRegion instance. This must not be stored long-term.
+    // Will throw RegionDoesNotExist if create is false and the region does not exist.
+    // Thread safe.
     AMULET_CORE_EXPORT std::shared_ptr<AnvilRegion> get_region(std::int64_t rx, std::int64_t rz, bool create = false);
 
     // Chunk
+    
     // Check if the chunk has data in this layer.
+    // External shared lock optional.
     AMULET_CORE_EXPORT bool has_chunk(std::int64_t cx, std::int64_t cz);
+    
     // Get the chunk data for this layer.
+    // Will throw ChunkDoesNotExist if the chunk does not exist.
+    // External shared lock optional.
     AMULET_CORE_EXPORT AmuletNBT::NamedTag get_chunk_data(std::int64_t cx, std::int64_t cz);
+    
     // Set the chunk data for this layer.
+    // External unique lock required.
     AMULET_CORE_EXPORT void set_chunk_data(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag&);
+    
     // Delete the chunk data from this layer.
+    // External unique lock required.
     AMULET_CORE_EXPORT void delete_chunk(std::int64_t cx, std::int64_t cz);
+    
     // Defragment the region files and remove unused region files.
+    // External unique lock required.
     AMULET_CORE_EXPORT void compact();
 };
 
