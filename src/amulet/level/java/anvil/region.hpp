@@ -185,6 +185,7 @@ public:
     AnvilRegion& operator=(AnvilRegion&&) = delete;
 
     // A mutex which can be used to synchronise calls.
+    // Thread safe.
     AMULET_CORE_EXPORT std::recursive_mutex& mutex() const;
 
     // The path of the region file.
@@ -231,6 +232,10 @@ public:
     // Coordinates are in world space.
     // Thread safe.
     AMULET_CORE_EXPORT void delete_value(std::int64_t cx, std::int64_t cz);
+
+    // Delete multiple chunk's data.
+    // Coordinates are in world space.
+    // Thread safe.
     AMULET_CORE_EXPORT void delete_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords);
 
     // Compact the region file.
