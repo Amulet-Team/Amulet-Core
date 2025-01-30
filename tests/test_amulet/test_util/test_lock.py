@@ -30,7 +30,7 @@ class LockTestCase(TestCase):
         def f1():
             increment_thread_count()
             with condition:
-                condition.wait_for(lambda: thread_count == 2)
+                condition.wait_for(lambda: thread_count == 3)
             with lock:
                 increment_thread_count()
                 exec_order.append(1)
@@ -41,7 +41,7 @@ class LockTestCase(TestCase):
         def f2():
             increment_thread_count()
             with condition:
-                condition.wait_for(lambda: thread_count == 3)
+                condition.wait_for(lambda: thread_count == 4)
             with lock:
                 increment_thread_count()
                 exec_order.append(3)
@@ -58,6 +58,7 @@ class LockTestCase(TestCase):
         with condition:
             condition.wait_for(lambda: thread_count == 2)
         t = time.time()
+        increment_thread_count()
 
         thread_1.join()
         thread_2.join()
@@ -87,7 +88,7 @@ class LockTestCase(TestCase):
         def f1():
             increment_thread_count()
             with condition:
-                condition.wait_for(lambda: thread_count == 2)
+                condition.wait_for(lambda: thread_count == 3)
             lock.acquire()
             increment_thread_count()
             exec_order.append(1)
@@ -99,7 +100,7 @@ class LockTestCase(TestCase):
         def f2():
             increment_thread_count()
             with condition:
-                condition.wait_for(lambda: thread_count == 3)
+                condition.wait_for(lambda: thread_count == 4)
             lock.acquire()
             increment_thread_count()
             exec_order.append(3)
@@ -117,6 +118,7 @@ class LockTestCase(TestCase):
         with condition:
             condition.wait_for(lambda: thread_count == 2)
         t = time.time()
+        increment_thread_count()
 
         thread_1.join()
         thread_2.join()
@@ -153,7 +155,7 @@ class RLockTestCase(TestCase):
         def f1():
             increment_thread_count()
             with condition:
-                condition.wait_for(lambda: thread_count == 2)
+                condition.wait_for(lambda: thread_count == 3)
             with lock:
                 increment_thread_count()
                 exec_order.append(1)
@@ -164,7 +166,7 @@ class RLockTestCase(TestCase):
         def f2():
             increment_thread_count()
             with condition:
-                condition.wait_for(lambda: thread_count == 3)
+                condition.wait_for(lambda: thread_count == 4)
             with lock:
                 increment_thread_count()
                 exec_order.append(3)
@@ -181,6 +183,7 @@ class RLockTestCase(TestCase):
         with condition:
             condition.wait_for(lambda: thread_count == 2)
         t = time.time()
+        increment_thread_count()
 
         thread_1.join()
         thread_2.join()
@@ -210,7 +213,7 @@ class RLockTestCase(TestCase):
         def f1():
             increment_thread_count()
             with condition:
-                condition.wait_for(lambda: thread_count == 2)
+                condition.wait_for(lambda: thread_count == 3)
             lock.acquire()
             increment_thread_count()
             exec_order.append(1)
@@ -222,7 +225,7 @@ class RLockTestCase(TestCase):
         def f2():
             increment_thread_count()
             with condition:
-                condition.wait_for(lambda: thread_count == 3)
+                condition.wait_for(lambda: thread_count == 4)
             lock.acquire()
             increment_thread_count()
             exec_order.append(3)
@@ -240,6 +243,7 @@ class RLockTestCase(TestCase):
         with condition:
             condition.wait_for(lambda: thread_count == 2)
         t = time.time()
+        increment_thread_count()
 
         thread_1.join()
         thread_2.join()
@@ -350,7 +354,7 @@ class OrderedLockTestCase(TestCase):
         def parallel_func_1():
             increment_thread_count()
             with condition:
-                condition.wait_for(lambda: thread_count >= 5)
+                condition.wait_for(lambda: thread_count >= 6)
             with lock.shared(timeout=5):
                 increment_thread_count()
                 exec_order.append("shared")
@@ -361,7 +365,7 @@ class OrderedLockTestCase(TestCase):
         def serial_func():
             increment_thread_count()
             with condition:
-                condition.wait_for(lambda: thread_count >= 7)
+                condition.wait_for(lambda: thread_count >= 8)
             with lock.unique(timeout=5):
                 increment_thread_count()
                 exec_order.append("unique")
@@ -372,7 +376,7 @@ class OrderedLockTestCase(TestCase):
         def parallel_func_2():
             increment_thread_count()
             with condition:
-                condition.wait_for(lambda: thread_count >= 8)
+                condition.wait_for(lambda: thread_count >= 9)
             with lock.shared(timeout=5):
                 increment_thread_count()
                 exec_order.append("shared")
@@ -395,9 +399,10 @@ class OrderedLockTestCase(TestCase):
 
         # Wait for all threads to start
         with condition:
-            condition.wait_for(lambda: thread_count >= 5)
+            condition.wait_for(lambda: thread_count == 5)
         # Get start time
         t = time.time()
+        increment_thread_count()
 
         # Wait for threads to finish
         thread_1.join()
@@ -451,7 +456,7 @@ class OrderedLockTestCase(TestCase):
             nonlocal result_1
             increment_thread_count()
             with condition:
-                condition.wait_for(lambda: thread_count >= 2)
+                condition.wait_for(lambda: thread_count >= 3)
             try:
                 with lock.unique(blocking=False):
                     increment_thread_count()
@@ -466,7 +471,7 @@ class OrderedLockTestCase(TestCase):
             nonlocal result_2
             increment_thread_count()
             with condition:
-                condition.wait_for(lambda: thread_count >= 3)
+                condition.wait_for(lambda: thread_count >= 4)
             try:
                 with lock.unique(timeout=0.1):
                     time.sleep(1)
@@ -485,9 +490,10 @@ class OrderedLockTestCase(TestCase):
 
         # Wait for all threads to start
         with condition:
-            condition.wait_for(lambda: thread_count >= 2)
+            condition.wait_for(lambda: thread_count == 2)
         # Get start time
         t = time.time()
+        increment_thread_count()
 
         # Wait for threads to finish
         thread_1.join()
@@ -568,7 +574,7 @@ class OrderedLockTestCase(TestCase):
 
                 # Wait for all threads to start
                 with condition:
-                    condition.wait_for(lambda: thread_count >= 2)
+                    condition.wait_for(lambda: thread_count == 2)
                 # Get start time
                 t = time.time()
                 increment_thread_count()
