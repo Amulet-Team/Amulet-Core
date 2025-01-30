@@ -5,10 +5,254 @@ from threading import Thread, Condition
 
 from amulet.utils.task_manager import AbstractCancelManager, CancelManager
 from amulet.utils.mutex import OrderedSharedTimedMutex, Deadlock
-from amulet.utils.lock import OrderedSharedLock, LockNotAcquired
-
+from amulet.utils.lock import OrderedSharedLock, LockNotAcquired, Lock, RLock
 
 class LockTestCase(TestCase):
+    def test_lock(self) -> None:
+        lock = Lock()
+        with lock:
+            self.assertTrue(True)
+
+    def test_parallel_context_manager(self) -> None:
+        condition = Condition()
+        lock = Lock()
+
+        exec_order: list[int] = []
+        end_times: list[float] = []
+        thread_count = 0
+
+        def increment_thread_count():
+            nonlocal thread_count
+            thread_count += 1
+            with condition:
+                condition.notify_all()
+
+        def f1():
+            increment_thread_count()
+            with condition:
+                condition.wait_for(lambda: thread_count == 2)
+            with lock:
+                increment_thread_count()
+                exec_order.append(1)
+                time.sleep(1)
+                exec_order.append(2)
+            end_times.append(time.time())
+
+        def f2():
+            increment_thread_count()
+            with condition:
+                condition.wait_for(lambda: thread_count == 3)
+            with lock:
+                increment_thread_count()
+                exec_order.append(3)
+                time.sleep(1)
+                exec_order.append(4)
+            end_times.append(time.time())
+
+        thread_1 = Thread(target=f1)
+        thread_2 = Thread(target=f2)
+
+        thread_1.start()
+        thread_2.start()
+
+        with condition:
+            condition.wait_for(lambda: thread_count == 2)
+        t = time.time()
+
+        thread_1.join()
+        thread_2.join()
+
+        self.assertEqual([1, 2, 3, 4], exec_order)
+
+        dt = max(end_times) - t
+        self.assertTrue(
+            1.99 <= dt <= 2.5,
+            f"Expected 0.5s. Got {dt}s",
+        )
+
+    def test_parallel_methods(self) -> None:
+        condition = Condition()
+        lock = Lock()
+
+        exec_order: list[int] = []
+        end_times: list[float] = []
+        thread_count = 0
+
+        def increment_thread_count():
+            nonlocal thread_count
+            thread_count += 1
+            with condition:
+                condition.notify_all()
+
+        def f1():
+            increment_thread_count()
+            with condition:
+                condition.wait_for(lambda: thread_count == 2)
+            lock.acquire()
+            increment_thread_count()
+            exec_order.append(1)
+            time.sleep(1)
+            exec_order.append(2)
+            lock.release()
+            end_times.append(time.time())
+
+        def f2():
+            increment_thread_count()
+            with condition:
+                condition.wait_for(lambda: thread_count == 3)
+            lock.acquire()
+            increment_thread_count()
+            exec_order.append(3)
+            time.sleep(1)
+            exec_order.append(4)
+            lock.release()
+            end_times.append(time.time())
+
+        thread_1 = Thread(target=f1)
+        thread_2 = Thread(target=f2)
+
+        thread_1.start()
+        thread_2.start()
+
+        with condition:
+            condition.wait_for(lambda: thread_count == 2)
+        t = time.time()
+
+        thread_1.join()
+        thread_2.join()
+
+        self.assertEqual([1, 2, 3, 4], exec_order)
+
+        dt = max(end_times) - t
+        self.assertTrue(
+            1.99 <= dt <= 2.5,
+            f"Expected 0.5s. Got {dt}s",
+        )
+
+class RLockTestCase(TestCase):
+    def test_rlock(self) -> None:
+        lock = RLock()
+        with lock:
+            with lock:
+                self.assertTrue(True)
+
+    def test_parallel_context_manager(self) -> None:
+        condition = Condition()
+        lock = RLock()
+
+        exec_order: list[int] = []
+        end_times: list[float] = []
+        thread_count = 0
+
+        def increment_thread_count():
+            nonlocal thread_count
+            thread_count += 1
+            with condition:
+                condition.notify_all()
+
+        def f1():
+            increment_thread_count()
+            with condition:
+                condition.wait_for(lambda: thread_count == 2)
+            with lock:
+                increment_thread_count()
+                exec_order.append(1)
+                time.sleep(1)
+                exec_order.append(2)
+            end_times.append(time.time())
+
+        def f2():
+            increment_thread_count()
+            with condition:
+                condition.wait_for(lambda: thread_count == 3)
+            with lock:
+                increment_thread_count()
+                exec_order.append(3)
+                time.sleep(1)
+                exec_order.append(4)
+            end_times.append(time.time())
+
+        thread_1 = Thread(target=f1)
+        thread_2 = Thread(target=f2)
+
+        thread_1.start()
+        thread_2.start()
+
+        with condition:
+            condition.wait_for(lambda: thread_count == 2)
+        t = time.time()
+
+        thread_1.join()
+        thread_2.join()
+
+        self.assertEqual([1, 2, 3, 4], exec_order)
+
+        dt = max(end_times) - t
+        self.assertTrue(
+            1.99 <= dt <= 2.5,
+            f"Expected 0.5s. Got {dt}s",
+        )
+
+    def test_parallel_methods(self) -> None:
+        condition = Condition()
+        lock = RLock()
+
+        exec_order: list[int] = []
+        end_times: list[float] = []
+        thread_count = 0
+
+        def increment_thread_count():
+            nonlocal thread_count
+            thread_count += 1
+            with condition:
+                condition.notify_all()
+
+        def f1():
+            increment_thread_count()
+            with condition:
+                condition.wait_for(lambda: thread_count == 2)
+            lock.acquire()
+            increment_thread_count()
+            exec_order.append(1)
+            time.sleep(1)
+            exec_order.append(2)
+            lock.release()
+            end_times.append(time.time())
+
+        def f2():
+            increment_thread_count()
+            with condition:
+                condition.wait_for(lambda: thread_count == 3)
+            lock.acquire()
+            increment_thread_count()
+            exec_order.append(3)
+            time.sleep(1)
+            exec_order.append(4)
+            lock.release()
+            end_times.append(time.time())
+
+        thread_1 = Thread(target=f1)
+        thread_2 = Thread(target=f2)
+
+        thread_1.start()
+        thread_2.start()
+
+        with condition:
+            condition.wait_for(lambda: thread_count == 2)
+        t = time.time()
+
+        thread_1.join()
+        thread_2.join()
+
+        self.assertEqual([1, 2, 3, 4], exec_order)
+
+        dt = max(end_times) - t
+        self.assertTrue(
+            1.99 <= dt <= 2.5,
+            f"Expected 0.5s. Got {dt}s",
+        )
+
+class OrderedLockTestCase(TestCase):
     def test_lock_not_acquired(self) -> None:
         self.assertTrue(issubclass(LockNotAcquired, RuntimeError))
         with self.assertRaises(RuntimeError):
