@@ -3,18 +3,15 @@ from __future__ import annotations
 import contextlib
 import typing
 
-import amulet.utils.mutex
 import amulet.utils.task_manager.cancel_manager
 
-__all__ = [
-    "Lock",
-    "LockNotAcquired",
-    "OrderedSharedLock",
-    "RLock",
-    "SharedLock",
-    "SharedLockContextManager",
-    "UniqueLockContextManager",
-]
+__all__ = ["Deadlock", "Lock", "LockNotAcquired", "OrderedLock", "RLock", "SharedLock"]
+
+class Deadlock(RuntimeError):
+    """
+    This exception signals that a deadlock occurred when locking a lock.
+    Not all deadlock cases raise an exception.
+    """
 
 class Lock:
     """
@@ -34,7 +31,7 @@ class LockNotAcquired(RuntimeError):
     An exception raised if the lock was not acquired.
     """
 
-class OrderedSharedLock:
+class OrderedLock:
     """
     This is a custom lock implementation that can be acquired in
     1) unique mode.
@@ -48,9 +45,6 @@ class OrderedSharedLock:
     Tasks are prioritised in the order the call is made
     """
 
-    @typing.overload
-    def __init__(self, mutex: amulet.utils.mutex.OrderedSharedTimedMutex) -> None: ...
-    @typing.overload
     def __init__(self) -> None: ...
     def acquire_shared(
         self,
@@ -108,12 +102,12 @@ class OrderedSharedLock:
         blocking: bool = True,
         timeout: float = -1.0,
         cancel_manager: amulet.utils.task_manager.cancel_manager.AbstractCancelManager = ...,
-    ) -> SharedLockContextManager:
+    ) -> contextlib.AbstractContextManager[None, bool | None]:
         """
         Acquire the lock in shared mode.
         This is used as follows
 
-        >>> lock: OrderedSharedLock
+        >>> lock: OrderedLock
         >>> with lock.shared():
         >>>     # code with lock acquired
         >>> # the lock will automatically be released here
@@ -140,12 +134,12 @@ class OrderedSharedLock:
         blocking: bool = True,
         timeout: float = -1.0,
         cancel_manager: amulet.utils.task_manager.cancel_manager.AbstractCancelManager = ...,
-    ) -> UniqueLockContextManager:
+    ) -> contextlib.AbstractContextManager[None, bool | None]:
         """
         Acquire the lock in unique mode.
         This is used as follows
 
-        >>> lock: OrderedSharedLock
+        >>> lock: OrderedLock
         >>> with lock.unique():
         >>>     # code with lock acquired
         >>> # the lock will automatically be released here
@@ -188,15 +182,3 @@ class SharedLock:
     def release_unique(self) -> None: ...
     def shared(self) -> contextlib.AbstractContextManager[None, bool | None]: ...
     def unique(self) -> contextlib.AbstractContextManager[None, bool | None]: ...
-
-class SharedLockContextManager:
-    def __enter__(self) -> None: ...
-    def __exit__(
-        self, exc_type: typing.Any, exc_val: typing.Any, exc_tb: typing.Any
-    ) -> None: ...
-
-class UniqueLockContextManager:
-    def __enter__(self) -> None: ...
-    def __exit__(
-        self, exc_type: typing.Any, exc_val: typing.Any, exc_tb: typing.Any
-    ) -> None: ...

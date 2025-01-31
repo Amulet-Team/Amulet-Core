@@ -1,5 +1,5 @@
 // This is a lock class with a similar API to threading.Lock
-// It is built on top of Amulet::OrderedSharedTimedMutex
+// It is built on top of Amulet::OrderedMutex
 // In C++ code std::unique_lock and std::shared_lock should be used instead of this.
 // They aren't particuarly pythonic hence this class existing.
 
@@ -8,6 +8,7 @@
 #include <chrono>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <shared_mutex>
 #include <stdexcept>
 
@@ -26,222 +27,20 @@ class LockNotAcquired : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };
 
-class OrderedSharedLock;
-
-class UniqueLockContextManager {
-private:
-    OrderedSharedLock& lock;
-    bool blocking;
-    double timeout;
-    AbstractCancelManager& cancel_manager;
-
-public:
-    UniqueLockContextManager(
-        OrderedSharedLock& lock,
-        bool blocking,
-        double timeout,
-        AbstractCancelManager& cancel_manager);
-    void enter();
-    void exit();
-};
-
-class SharedLockContextManager {
-    OrderedSharedLock& lock;
-    bool blocking;
-    double timeout;
-    AbstractCancelManager& cancel_manager;
-
-public:
-    SharedLockContextManager(
-        OrderedSharedLock& lock,
-        bool blocking,
-        double timeout,
-        AbstractCancelManager& cancel_manager);
-    void enter();
-    void exit();
-};
-
-class OrderedSharedLock {
-    // Will be a nullptr if constructed from a reference
-    std::unique_ptr<OrderedSharedTimedMutex> _mutex_storage;
-    OrderedSharedTimedMutex& _mutex;
-
-public:
-    OrderedSharedLock(OrderedSharedTimedMutex& mutex);
-    OrderedSharedLock(std::unique_ptr<OrderedSharedTimedMutex> mutex);
-    OrderedSharedLock();
-    bool acquire_unique(
-        bool blocking = true,
-        double timeout = -1,
-        AbstractCancelManager& cancel_manager = global_VoidCancelManager);
-    void release_unique();
-    bool acquire_shared(
-        bool blocking = true,
-        double timeout = -1,
-        AbstractCancelManager& cancel_manager = global_VoidCancelManager);
-    void release_shared();
-    UniqueLockContextManager unique(
-        bool blocking = true,
-        double timeout = -1,
-        AbstractCancelManager& cancel_manager = global_VoidCancelManager);
-    SharedLockContextManager shared(
-        bool blocking = true,
-        double timeout = -1,
-        AbstractCancelManager& cancel_manager = global_VoidCancelManager);
-};
-
-UniqueLockContextManager::UniqueLockContextManager(
-    OrderedSharedLock& lock,
-    bool blocking,
-    double timeout,
-    AbstractCancelManager& cancel_manager)
-    : lock(lock)
-    , blocking(blocking)
-    , timeout(timeout)
-    , cancel_manager(cancel_manager)
-{
-}
-void UniqueLockContextManager::enter()
-{
-    if (!lock.acquire_unique(blocking, timeout, cancel_manager)) {
-        throw LockNotAcquired("Lock was not acquired.");
-    }
-}
-void UniqueLockContextManager::exit()
-{
-    lock.release_unique();
-}
-
-SharedLockContextManager::SharedLockContextManager(
-    OrderedSharedLock& lock,
-    bool blocking,
-    double timeout,
-    AbstractCancelManager& cancel_manager)
-    : lock(lock)
-    , blocking(blocking)
-    , timeout(timeout)
-    , cancel_manager(cancel_manager)
-{
-}
-void SharedLockContextManager::enter()
-{
-    if (!lock.acquire_shared(blocking, timeout, cancel_manager)) {
-        throw LockNotAcquired("Lock was not acquired.");
-    }
-}
-void SharedLockContextManager::exit()
-{
-    lock.release_shared();
-}
-
-// Construct from reference
-OrderedSharedLock::OrderedSharedLock(OrderedSharedTimedMutex& mutex)
-    : _mutex(mutex)
-{
-}
-// Construct from unique_ptr
-OrderedSharedLock::OrderedSharedLock(std::unique_ptr<OrderedSharedTimedMutex> mutex)
-    : _mutex_storage(std::move(mutex))
-    , _mutex(*_mutex_storage)
-{
-}
-// Default constructor
-OrderedSharedLock::OrderedSharedLock()
-    : OrderedSharedLock(std::make_unique<OrderedSharedTimedMutex>())
-{
-}
-bool OrderedSharedLock::acquire_unique(
-    bool blocking,
-    double timeout,
-    AbstractCancelManager& cancel_manager)
-{
-    if (blocking) {
-        if (timeout > 0) {
-            return _mutex.try_lock_for(std::chrono::duration<double>(timeout), cancel_manager);
-        } else {
-            return _mutex.try_lock_for(std::chrono::years(1), cancel_manager);
-        }
-    } else {
-        return _mutex.try_lock();
-    }
-}
-void OrderedSharedLock::release_unique()
-{
-    _mutex.unlock();
-}
-bool OrderedSharedLock::acquire_shared(
-    bool blocking,
-    double timeout,
-    AbstractCancelManager& cancel_manager)
-{
-    if (blocking) {
-        if (timeout > 0) {
-            return _mutex.try_lock_shared_for(std::chrono::duration<double>(timeout), cancel_manager);
-        } else {
-            return _mutex.try_lock_shared_for(std::chrono::years(1), cancel_manager);
-        }
-    } else {
-        return _mutex.try_lock_shared();
-    }
-}
-void OrderedSharedLock::release_shared()
-{
-    _mutex.unlock_shared();
-}
-UniqueLockContextManager OrderedSharedLock::unique(
-    bool blocking,
-    double timeout,
-    AbstractCancelManager& cancel_manager)
-{
-    return { *this, blocking, timeout, cancel_manager };
-}
-SharedLockContextManager OrderedSharedLock::shared(
-    bool blocking,
-    double timeout,
-    AbstractCancelManager& cancel_manager)
-{
-    return { *this, blocking, timeout, cancel_manager };
-}
-
 } // namespace Amulet
 
 void init_lock(py::module m_parent)
 {
     auto m = m_parent.def_submodule("lock");
 
+    auto Deadlock = py::register_exception<Amulet::Deadlock>(m, "Deadlock", PyExc_RuntimeError);
+    Deadlock.doc() = "This exception signals that a deadlock occurred when locking a lock.\n"
+                     "Not all deadlock cases raise an exception.";
+
     auto LockNotAcquired = py::register_exception<Amulet::LockNotAcquired>(m, "LockNotAcquired", PyExc_RuntimeError);
     LockNotAcquired.doc() = "An exception raised if the lock was not acquired.";
 
-    py::class_<Amulet::UniqueLockContextManager> UniqueLockContextManager(m, "UniqueLockContextManager");
-    UniqueLockContextManager.def(
-        "__enter__",
-        &Amulet::UniqueLockContextManager::enter,
-        py::call_guard<py::gil_scoped_release>());
-    UniqueLockContextManager.def(
-        "__exit__",
-        [](Amulet::UniqueLockContextManager& self, py::object, py::object, py::object) {
-            py::gil_scoped_release gil;
-            self.exit();
-        },
-        py::arg("exc_type"),
-        py::arg("exc_val"),
-        py::arg("exc_tb"));
-    py::class_<Amulet::SharedLockContextManager> SharedLockContextManager(m, "SharedLockContextManager");
-    SharedLockContextManager.def(
-        "__enter__",
-        &Amulet::SharedLockContextManager::enter,
-        py::call_guard<py::gil_scoped_release>());
-    SharedLockContextManager.def(
-        "__exit__",
-        [](Amulet::SharedLockContextManager& self, py::object, py::object, py::object) {
-            py::gil_scoped_release gil;
-            self.exit();
-        },
-        py::arg("exc_type"),
-        py::arg("exc_val"),
-        py::arg("exc_tb"));
-
-    py::class_<Amulet::OrderedSharedLock> OrderedSharedLock(m, "OrderedSharedLock",
+    py::class_<Amulet::OrderedMutex> OrderedLock(m, "OrderedLock",
         "This is a custom lock implementation that can be acquired in\n"
         "1) unique mode.\n"
         "    - This is the normal mode where only this thread can use the resource.\n"
@@ -252,14 +51,20 @@ void init_lock(py::module m_parent)
         "    - If the resource is locked in unique mode this will block.\n"
         "    - Once locked in shared mode it will block unique acquires until all shared threads release it.\n"
         "Tasks are prioritised in the order the call is made");
-    OrderedSharedLock.def(
-        py::init<Amulet::OrderedSharedTimedMutex&>(),
-        py::arg("mutex"),
-        py::keep_alive<1, 2>());
-    OrderedSharedLock.def(py::init<>());
-    OrderedSharedLock.def(
+    OrderedLock.def(py::init<>());
+    OrderedLock.def(
         "acquire_unique",
-        &Amulet::OrderedSharedLock::acquire_unique,
+        [](Amulet::OrderedMutex& self, bool blocking, double timeout, Amulet::AbstractCancelManager& cancel_manager) {
+            if (blocking) {
+                if (timeout > 0) {
+                    return self.try_lock_for(std::chrono::duration<double>(timeout), cancel_manager);
+                } else {
+                    return self.try_lock_for(std::chrono::years(1), cancel_manager);
+                }
+            } else {
+                return self.try_lock();
+            }
+        },
         py::arg("blocking") = true,
         py::arg("timeout") = -1.0,
         py::arg("cancel_manager") = Amulet::VoidCancelManager(),
@@ -275,17 +80,27 @@ void init_lock(py::module m_parent)
             "    This effectively manually triggers timeout.\n"
             "    This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.\n"
             ":return: True if the lock was acquired otherwise False."));
-    OrderedSharedLock.def(
+    OrderedLock.def(
         "release_unique",
-        &Amulet::OrderedSharedLock::release_unique,
+        &Amulet::OrderedMutex::unlock,
         py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Only use this if you know what you are doing. Consider using :meth:`unique` instead\n"
             "Release the unique hold on the lock. This must be called by the same thread that acquired it.\n"
             "This must be called exactly the same number of times as :meth:`acquire_unique` was called."));
-    OrderedSharedLock.def(
+    OrderedLock.def(
         "acquire_shared",
-        &Amulet::OrderedSharedLock::acquire_shared,
+        [](Amulet::OrderedMutex& self, bool blocking, double timeout, Amulet::AbstractCancelManager& cancel_manager) {
+            if (blocking) {
+                if (timeout > 0) {
+                    return self.try_lock_shared_for(std::chrono::duration<double>(timeout), cancel_manager);
+                } else {
+                    return self.try_lock_shared_for(std::chrono::years(1), cancel_manager);
+                }
+            } else {
+                return self.try_lock_shared();
+            }
+        },
         py::arg("blocking") = true,
         py::arg("timeout") = -1.0,
         py::arg("cancel_manager") = Amulet::VoidCancelManager(),
@@ -300,27 +115,51 @@ void init_lock(py::module m_parent)
             "    This effectively manually triggers timeout.\n"
             "    This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.\n"
             ":return: True if the lock was acquired otherwise False."));
-    OrderedSharedLock.def(
+    OrderedLock.def(
         "release_shared",
-        &Amulet::OrderedSharedLock::release_shared,
+        &Amulet::OrderedMutex::unlock_shared,
         py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Only use this if you know what you are doing. Consider using :meth:`shared` instead\n"
             "Release the shared hold on the lock. This must be called by the same thread that acquired it.\n"
             "This must be called exactly the same number of times as :meth:`acquire_shared` was called."));
-    OrderedSharedLock.def(
+    OrderedLock.def(
         "unique",
-        &Amulet::OrderedSharedLock::unique,
+        [](Amulet::OrderedMutex& self, bool blocking, double timeout, Amulet::AbstractCancelManager& cancel_manager) {
+            return pybind11_extensions::contextlib::make_context_manager<void, std::optional<bool>>(
+                [&self, blocking, timeout, &cancel_manager]() -> void {
+                    py::gil_scoped_release nogil;
+                    auto lock = [&]() {
+                        if (blocking) {
+                            if (timeout > 0) {
+                                return self.try_lock_for(std::chrono::duration<double>(timeout), cancel_manager);
+                            } else {
+                                return self.try_lock_for(std::chrono::years(1), cancel_manager);
+                            }
+                        } else {
+                            return self.try_lock();
+                        }
+                    };
+                    if (!lock()) {
+                        throw Amulet::LockNotAcquired("Lock was not acquired.");
+                    }
+                },
+                [&self](py::object, py::object, py::object) -> std::optional<bool> {
+                    py::gil_scoped_release nogil;
+                    self.unlock();
+                    return false;
+                });
+        },
         py::arg("blocking") = true,
         py::arg("timeout") = -1.0,
         py::arg("cancel_manager") = Amulet::VoidCancelManager(),
-        py::call_guard<py::gil_scoped_release>(),
         py::keep_alive<0, 1>(),
+        py::keep_alive<0, 4>(),
         py::doc(
             "Acquire the lock in unique mode.\n"
             "This is used as follows\n"
             "\n"
-            ">>> lock: OrderedSharedLock\n"
+            ">>> lock: OrderedLock\n"
             ">>> with lock.unique():\n"
             ">>>     # code with lock acquired\n"
             ">>> # the lock will automatically be released here\n"
@@ -336,19 +175,43 @@ void init_lock(py::module m_parent)
             "    This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.\n"
             ":return: None\n"
             ":raises: LockNotAcquired if the lock could not be acquired."));
-    OrderedSharedLock.def(
+    OrderedLock.def(
         "shared",
-        &Amulet::OrderedSharedLock::shared,
+        [](Amulet::OrderedMutex& self, bool blocking, double timeout, Amulet::AbstractCancelManager& cancel_manager) {
+            return pybind11_extensions::contextlib::make_context_manager<void, std::optional<bool>>(
+                [&self, blocking, timeout, &cancel_manager]() -> void {
+                    py::gil_scoped_release nogil;
+                    auto lock = [&]() {
+                        if (blocking) {
+                            if (timeout > 0) {
+                                return self.try_lock_shared_for(std::chrono::duration<double>(timeout), cancel_manager);
+                            } else {
+                                return self.try_lock_shared_for(std::chrono::years(1), cancel_manager);
+                            }
+                        } else {
+                            return self.try_lock_shared();
+                        }
+                    };
+                    if (!lock()) {
+                        throw Amulet::LockNotAcquired("Lock was not acquired.");
+                    }
+                },
+                [&self](py::object, py::object, py::object) -> std::optional<bool> {
+                    py::gil_scoped_release nogil;
+                    self.unlock_shared();
+                    return false;
+                });
+        },
         py::arg("blocking") = true,
         py::arg("timeout") = -1.0,
         py::arg("cancel_manager") = Amulet::VoidCancelManager(),
-        py::call_guard<py::gil_scoped_release>(),
         py::keep_alive<0, 1>(),
+        py::keep_alive<0, 4>(),
         py::doc(
             "Acquire the lock in shared mode.\n"
             "This is used as follows\n"
             "\n"
-            ">>> lock: OrderedSharedLock\n"
+            ">>> lock: OrderedLock\n"
             ">>> with lock.shared():\n"
             ">>>     # code with lock acquired\n"
             ">>> # the lock will automatically be released here\n"
@@ -468,7 +331,6 @@ void init_lock(py::module m_parent)
                     return false;
                 });
         },
-        py::return_value_policy::reference,
         py::keep_alive<0, 1>());
     SharedLock.def(
         "acquire_shared",
@@ -500,6 +362,5 @@ void init_lock(py::module m_parent)
                     return false;
                 });
         },
-        py::return_value_policy::reference,
         py::keep_alive<0, 1>());
 }
