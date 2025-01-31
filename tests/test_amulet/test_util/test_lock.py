@@ -4,8 +4,7 @@ import time
 from threading import Thread, Condition
 
 from amulet.utils.task_manager import AbstractCancelManager, CancelManager
-from amulet.utils.mutex import OrderedSharedTimedMutex, Deadlock
-from amulet.utils.lock import OrderedSharedLock, LockNotAcquired, Lock, RLock, SharedLock
+from amulet.utils.lock import Deadlock, OrderedLock, LockNotAcquired, Lock, RLock, SharedLock
 
 
 class LockTestCase(TestCase):
@@ -528,27 +527,12 @@ class OrderedLockTestCase(TestCase):
             raise LockNotAcquired
 
     def test_empty_constructor(self) -> None:
-        lock = OrderedSharedLock()
+        lock = OrderedLock()
         self.assertTrue(lock.acquire_unique(False))
         lock.release_unique()
-
-    def test_mutex_constructor(self) -> None:
-        mutex = OrderedSharedTimedMutex()
-        lock = OrderedSharedLock(mutex)
-        self.assertTrue(lock.acquire_unique(False))
-        lock.release_unique()
-
-    def test_mutex_lifespan(self) -> None:
-        mutex = OrderedSharedTimedMutex()
-        mutex_ref = weakref.ref(mutex)
-        lock = OrderedSharedLock(mutex)
-        del mutex
-        self.assertIsNotNone(mutex_ref())
-        del lock
-        self.assertIsNone(mutex_ref())
 
     def test_unique_lifespan(self) -> None:
-        lock = OrderedSharedLock()
+        lock = OrderedLock()
         lock_ref = weakref.ref(lock)
         unique = lock.unique()
         del lock
@@ -557,7 +541,7 @@ class OrderedLockTestCase(TestCase):
         self.assertIsNone(lock_ref())
 
     def test_shared_lifespan(self) -> None:
-        lock = OrderedSharedLock()
+        lock = OrderedLock()
         lock_ref = weakref.ref(lock)
         shared = lock.shared()
         del lock
@@ -566,7 +550,7 @@ class OrderedLockTestCase(TestCase):
         self.assertIsNone(lock_ref())
 
     def test_exceptions(self) -> None:
-        lock = OrderedSharedLock()
+        lock = OrderedLock()
         with lock.unique():
             with self.assertRaises(Deadlock):
                 with lock.unique():
@@ -599,7 +583,7 @@ class OrderedLockTestCase(TestCase):
                 lock.acquire_shared(False)
 
     def test_parallel(self) -> None:
-        lock = OrderedSharedLock()
+        lock = OrderedLock()
         condition = Condition()
 
         exec_order: list[str] = []
@@ -703,7 +687,7 @@ class OrderedLockTestCase(TestCase):
         result_1 = False
         result_2 = False
 
-        lock = OrderedSharedLock()
+        lock = OrderedLock()
         condition = Condition()
 
         end_times: list[float] = []
@@ -778,8 +762,8 @@ class OrderedLockTestCase(TestCase):
                 result_1 = False
                 result_2 = False
 
-                lock_1 = OrderedSharedLock()
-                lock_2 = OrderedSharedLock()
+                lock_1 = OrderedLock()
+                lock_2 = OrderedLock()
 
                 condition = Condition()
                 end_times: list[float] = []
