@@ -163,9 +163,9 @@ concept TypedInputRange = std::ranges::input_range<Range> && std::convertible_to
 
 class AnvilDimension {
 private:
-    std::shared_mutex _mutex;
     std::filesystem::path _directory;
     bool _mcc;
+    std::shared_mutex _layers_mutex;
     std::map<std::string, std::shared_ptr<AnvilDimensionLayer>> _layers;
     std::shared_ptr<AnvilDimensionLayer> _default_layer;
 
@@ -206,7 +206,7 @@ public:
     template <typename dataT>
     void set_chunk_data(std::int64_t cx, std::int64_t cz, const dataT& data_layers)
     {
-        std::shared_lock slock(_mutex);
+        std::shared_lock slock(_layers_mutex);
         for (const auto& [layer_name, data] : data_layers) {
             static_assert(Ensure<
                 std::is_same_v<decltype(layer_name), const std::string>,
@@ -228,7 +228,7 @@ public:
                 if (std::all_of(layer_name.begin(), layer_name.end(), [](char c) { return 0x61 <= c && c <= 0x7A; })) {
                     // Switch to a unique lock to mutate _layers
                     slock.unlock();
-                    std::unique_lock ulock(_mutex);
+                    std::unique_lock ulock(_layers_mutex);
                     // Create the layer.
                     it = _layers.emplace(layer_name, std::make_shared<AnvilDimensionLayer>(_directory / layer_name, _mcc)).first;
                     // Switch back to a shared lock

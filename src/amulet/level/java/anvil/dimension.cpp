@@ -213,7 +213,7 @@ bool AnvilDimension::mcc() const { return _mcc; }
 
 std::vector<std::string> AnvilDimension::layer_names()
 {
-    std::shared_lock lock(_mutex);
+    std::shared_lock lock(_layers_mutex);
     std::vector<std::string> layers;
     layers.reserve(_layers.size());
     for (const auto& node : _layers) {
@@ -223,12 +223,12 @@ std::vector<std::string> AnvilDimension::layer_names()
 }
 bool AnvilDimension::has_layer(const std::string& layer_name)
 {
-    std::shared_lock lock(_mutex);
+    std::shared_lock lock(_layers_mutex);
     return _layers.contains(layer_name);
 }
 std::shared_ptr<AnvilDimensionLayer> AnvilDimension::get_layer(const std::string& layer_name)
 {
-    std::shared_lock lock(_mutex);
+    std::shared_lock lock(_layers_mutex);
     auto it = _layers.find(layer_name);
     if (it == _layers.end()) {
         throw std::invalid_argument("No layer exists with name " + layer_name);
@@ -246,7 +246,7 @@ bool AnvilDimension::has_chunk(std::int64_t cx, std::int64_t cz) const
 }
 std::map<std::string, AmuletNBT::NamedTag> AnvilDimension::get_chunk_data(std::int64_t cx, std::int64_t cz)
 {
-    std::shared_lock lock(_mutex);
+    std::shared_lock lock(_layers_mutex);
     std::map<std::string, AmuletNBT::NamedTag> chunk_data;
     for (const auto& [layer_name, layer] : _layers) {
         try {
@@ -261,12 +261,14 @@ std::map<std::string, AmuletNBT::NamedTag> AnvilDimension::get_chunk_data(std::i
 }
 void AnvilDimension::delete_chunk(std::int64_t cx, std::int64_t cz)
 {
+    std::shared_lock lock(_layers_mutex);
     for (const auto& layer : _layers) {
         layer.second->delete_chunk(cx, cz);
     }
 }
 void AnvilDimension::compact()
 {
+    std::shared_lock lock(_layers_mutex);
     for (const auto& layer : _layers) {
         layer.second->compact();
     }
