@@ -35,9 +35,31 @@ public:
     }
 };
 
-// std::shared_timed_mutex does not have order priority meaning that an older lock call can be blocked by newer lock_shared calls.
-// This is a variant of std::shared_timed_mutex that prioritises call order.
+// This is a custom mutex implementation that can be acquired in:
+// 1) Unique mode.
+//     - Only one thread can use the resource.
+//     - Blocks until no thread holds the mutex
+//     - Stops all other threads acquiring the mutex until released.
+// 2) Shared read-only mode.
+//     - Multiple threads can read (but not write) the resource at the same time.
+//     - Can be acquired in parallel with read mode.
+//     - Blocks until no thread holds the mutex in unique or write mode.
+//     - Stops other threads acquiring in unique and write mode until released.
+// 3) Shared read mode.
+//     - This thread may only read but other threads may write in parallel.
+//     - Only thread-safe functions may be called in this mode.
+//     - Can be acquired in parallel with read-only mode or write mode (not at the same time)
+//     - Blocks until no thread holds the mutex in unique mode.
+//     - Stops other threads acquiring in unique mode until released.
+// 4) Shared read-write mode.
+//     - This thread may read and write in parallel with other reading and writing threads.
+//     - Only thread-safe functions may be called in this mode.
+//     - Can be acquired in parallel with read mode.
+//     - Blocks until no thread holds the mutex in unique or read-only mode.
+//     - Stops other threads acquiring in unique and read-only mode until released.
+// The mutex is ordered meaning it prioritises older acquires over newer ones.
 // It also supports cancelling waiting through a CancelManager instance.
+// The mutex is compatible with std::shared_timed_mutex and the std::*_lock classes
 class OrderedMutex {
 protected:
     enum class LockState {
@@ -287,7 +309,9 @@ public:
     // Destructor
     AMULET_CORE_EXPORT ~OrderedMutex();
 
-    // Locks the mutex in unique mode, blocks until the mutex is available.
+    // Locks the mutex in unique mode.
+    // Blocks until no thread holds the mutex.
+    // Stops all other threads acquiring the mutex until released.
     // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
     // Thread safe.
     AMULET_CORE_EXPORT void lock(AbstractCancelManager& cancel_manager = global_VoidCancelManager);
@@ -298,6 +322,7 @@ public:
     AMULET_CORE_EXPORT bool try_lock();
 
     // Like try_lock but with a timeout duration.
+    // Returns true if the mutex was locked, false if it wasn't.
     // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
     // Thread safe.
     template <class Rep, class Period>
@@ -307,6 +332,7 @@ public:
     }
 
     // Like try_lock but with a timeout time.
+    // Returns true if the mutex was locked, false if it wasn't.
     // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
     // Thread safe.
     template <class Clock, class Duration>
@@ -320,7 +346,9 @@ public:
     // Thread safe.
     AMULET_CORE_EXPORT void unlock();
 
-    // Locks the mutex in shared read-only mode, blocks until the mutex is available.
+    // Locks the mutex in shared read-only mode.
+    // Blocks until no thread holds the mutex in unique or write mode.
+    // Stops other threads acquiring in unique and write mode until released.
     // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
     // Thread safe.
     AMULET_CORE_EXPORT void lock_shared_read_only(AbstractCancelManager& cancel_manager = global_VoidCancelManager);
@@ -331,6 +359,7 @@ public:
     AMULET_CORE_EXPORT bool try_lock_shared_read_only();
 
     // Like lock_shared_read_only but with a timeout duration.
+    // Returns true if the mutex was locked, false if it wasn't.
     // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
     // Thread safe.
     template <class Rep, class Period>
@@ -340,6 +369,7 @@ public:
     }
 
     // Like lock_shared_read_only but with a timeout time.
+    // Returns true if the mutex was locked, false if it wasn't.
     // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
     // Thread safe.
     template <class Clock, class Duration>
@@ -348,7 +378,9 @@ public:
         return _lock<true, true, LockState::SharedReadOnly, const std::chrono::time_point<Clock, Duration>&>(timeout_time, cancel_manager);
     }
 
-    // Locks the mutex in shared read mode, blocks until the mutex is available.
+    // Locks the mutex in shared read mode.
+    // Blocks until no thread holds the mutex in unique mode.
+    // Stops other threads acquiring in unique mode until released.
     // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
     // Thread safe.
     AMULET_CORE_EXPORT void lock_shared_read(AbstractCancelManager& cancel_manager = global_VoidCancelManager);
@@ -359,6 +391,7 @@ public:
     AMULET_CORE_EXPORT bool try_lock_shared_read();
 
     // Like lock_shared_read but with a timeout duration.
+    // Returns true if the mutex was locked, false if it wasn't.
     // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
     // Thread safe.
     template <class Rep, class Period>
@@ -368,6 +401,7 @@ public:
     }
 
     // Like lock_shared_read but with a timeout time.
+    // Returns true if the mutex was locked, false if it wasn't.
     // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
     // Thread safe.
     template <class Clock, class Duration>
@@ -376,7 +410,9 @@ public:
         return _lock<true, true, LockState::SharedRead, const std::chrono::time_point<Clock, Duration>&>(timeout_time, cancel_manager);
     }
 
-    // Locks the mutex in shared read-write mode, blocks until the mutex is available.
+    // Locks the mutex in shared read-write mode.
+    // Blocks until no thread holds the mutex in unique or read-only mode.
+    // Stops other threads acquiring in unique and read-only mode until released.
     // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
     // Thread safe.
     AMULET_CORE_EXPORT void lock_shared_read_write(AbstractCancelManager& cancel_manager = global_VoidCancelManager);
@@ -387,6 +423,7 @@ public:
     AMULET_CORE_EXPORT bool try_lock_shared_read_write();
 
     // Like lock_shared_read_write but with a timeout duration.
+    // Returns true if the mutex was locked, false if it wasn't.
     // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
     // Thread safe.
     template <class Rep, class Period>
@@ -396,6 +433,7 @@ public:
     }
 
     // Like lock_shared_read_write but with a timeout time.
+    // Returns true if the mutex was locked, false if it wasn't.
     // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
     // Thread safe.
     template <class Clock, class Duration>
@@ -424,7 +462,7 @@ public:
         return try_lock_shared_read_only_until<Clock, Duration>(timeout_time, cancel_manager);
     }
 
-    // Unlock the mutex from shared mode.
+    // Unlock the mutex from any shared mode.
     // Must be called by the thread that locked it.
     // Thread safe.
     AMULET_CORE_EXPORT void unlock_shared();
