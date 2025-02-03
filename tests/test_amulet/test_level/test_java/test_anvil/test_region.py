@@ -90,13 +90,28 @@ class AnvilRegionTestCase(unittest.TestCase):
                 with region.lock:
                     increment_thread_count()
                     exec_order.append(1)
-                    region.set_value(0, 0, NamedTag(CompoundTag(val=StringTag("0")), ""))
-                    region.set_value(0, 1, NamedTag(CompoundTag(val=StringTag("1")), ""))
-                    region.set_value(0, 2, NamedTag(CompoundTag(val=StringTag("2")), ""))
+                    region.set_value(
+                        0, 0, NamedTag(CompoundTag(val=StringTag("0")), "")
+                    )
+                    region.set_value(
+                        0, 1, NamedTag(CompoundTag(val=StringTag("1")), "")
+                    )
+                    region.set_value(
+                        0, 2, NamedTag(CompoundTag(val=StringTag("2")), "")
+                    )
                     self.assertEqual({(0, 0), (0, 1), (0, 2)}, set(region.get_coords()))
-                    self.assertEqual(NamedTag(CompoundTag(val=StringTag("0")), ""), region.get_value(0, 0))
-                    self.assertEqual(NamedTag(CompoundTag(val=StringTag("1")), ""), region.get_value(0, 1))
-                    self.assertEqual(NamedTag(CompoundTag(val=StringTag("2")), ""), region.get_value(0, 2))
+                    self.assertEqual(
+                        NamedTag(CompoundTag(val=StringTag("0")), ""),
+                        region.get_value(0, 0),
+                    )
+                    self.assertEqual(
+                        NamedTag(CompoundTag(val=StringTag("1")), ""),
+                        region.get_value(0, 1),
+                    )
+                    self.assertEqual(
+                        NamedTag(CompoundTag(val=StringTag("2")), ""),
+                        region.get_value(0, 2),
+                    )
                     time.sleep(sleep_time)
                     exec_order.append(2)
                 end_times.append(time.time())
@@ -108,13 +123,31 @@ class AnvilRegionTestCase(unittest.TestCase):
                 with region.lock:
                     increment_thread_count()
                     exec_order.append(3)
-                    region.set_value(0, 2, NamedTag(CompoundTag(val=StringTag("3")), ""))
-                    region.set_value(0, 3, NamedTag(CompoundTag(val=StringTag("4")), ""))
-                    self.assertEqual({(0, 0), (0, 1), (0, 2), (0, 3)}, set(region.get_coords()))
-                    self.assertEqual(NamedTag(CompoundTag(val=StringTag("0")), ""), region.get_value(0, 0))
-                    self.assertEqual(NamedTag(CompoundTag(val=StringTag("1")), ""), region.get_value(0, 1))
-                    self.assertEqual(NamedTag(CompoundTag(val=StringTag("3")), ""), region.get_value(0, 2))
-                    self.assertEqual(NamedTag(CompoundTag(val=StringTag("4")), ""), region.get_value(0, 3))
+                    region.set_value(
+                        0, 2, NamedTag(CompoundTag(val=StringTag("3")), "")
+                    )
+                    region.set_value(
+                        0, 3, NamedTag(CompoundTag(val=StringTag("4")), "")
+                    )
+                    self.assertEqual(
+                        {(0, 0), (0, 1), (0, 2), (0, 3)}, set(region.get_coords())
+                    )
+                    self.assertEqual(
+                        NamedTag(CompoundTag(val=StringTag("0")), ""),
+                        region.get_value(0, 0),
+                    )
+                    self.assertEqual(
+                        NamedTag(CompoundTag(val=StringTag("1")), ""),
+                        region.get_value(0, 1),
+                    )
+                    self.assertEqual(
+                        NamedTag(CompoundTag(val=StringTag("3")), ""),
+                        region.get_value(0, 2),
+                    )
+                    self.assertEqual(
+                        NamedTag(CompoundTag(val=StringTag("4")), ""),
+                        region.get_value(0, 3),
+                    )
                     time.sleep(sleep_time)
                     exec_order.append(4)
                 end_times.append(time.time())

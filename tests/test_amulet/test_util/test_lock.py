@@ -9,7 +9,14 @@ import itertools
 import sys
 
 from amulet.utils.task_manager import AbstractCancelManager, CancelManager
-from amulet.utils.lock import Deadlock, OrderedLock, LockNotAcquired, Lock, RLock, SharedLock
+from amulet.utils.lock import (
+    Deadlock,
+    OrderedLock,
+    LockNotAcquired,
+    Lock,
+    RLock,
+    SharedLock,
+)
 
 
 class ThreadStepManager:
@@ -30,11 +37,11 @@ class ThreadStepManager:
 class Abstract:
     class LockTestCase(TestCase):
         def _ab_thread_test(
-                self,
-                a: Callable[[ThreadStepManager, list], None],
-                b: Callable[[ThreadStepManager, list], None],
-                expected_order: list,
-                expected_time: float,
+            self,
+            a: Callable[[ThreadStepManager, list], None],
+            b: Callable[[ThreadStepManager, list], None],
+            expected_order: list,
+            expected_time: float,
         ) -> None:
             step = ThreadStepManager()
             exec_order: list = []
@@ -94,7 +101,8 @@ class LockTestCase(Abstract.LockTestCase):
                     step.increment()
                     exec_order.append(v)
                     time.sleep(SLEEP_TIME)
-                    exec_order.append(v+1)
+                    exec_order.append(v + 1)
+
             return f
 
         def raw(blocking: bool, v: int):
@@ -105,6 +113,7 @@ class LockTestCase(Abstract.LockTestCase):
                     time.sleep(SLEEP_TIME)
                     exec_order.append(v + 1)
                     lock.release()
+
             return f
 
         with self.subTest():
@@ -118,13 +127,17 @@ class LockTestCase(Abstract.LockTestCase):
         with self.subTest():
             self._ab_thread_test(raw(False, 1), raw(False, 3), [1, 2], SLEEP_TIME)
         with self.subTest():
-            self._ab_thread_test(raw(False, 1), raw(True, 3), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                raw(False, 1), raw(True, 3), [1, 2, 3, 4], 2 * SLEEP_TIME
+            )
         with self.subTest():
             self._ab_thread_test(raw(True, 1), ctx(3), [1, 2, 3, 4], 2 * SLEEP_TIME)
         with self.subTest():
             self._ab_thread_test(raw(True, 1), raw(False, 3), [1, 2], SLEEP_TIME)
         with self.subTest():
-            self._ab_thread_test(raw(True, 1), raw(True, 3), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                raw(True, 1), raw(True, 3), [1, 2, 3, 4], 2 * SLEEP_TIME
+            )
 
 
 class RLockTestCase(Abstract.LockTestCase):
@@ -143,7 +156,8 @@ class RLockTestCase(Abstract.LockTestCase):
                     step.increment()
                     exec_order.append(v)
                     time.sleep(SLEEP_TIME)
-                    exec_order.append(v+1)
+                    exec_order.append(v + 1)
+
             return f
 
         def raw(blocking: bool, v: int):
@@ -154,6 +168,7 @@ class RLockTestCase(Abstract.LockTestCase):
                     time.sleep(SLEEP_TIME)
                     exec_order.append(v + 1)
                     lock.release()
+
             return f
 
         with self.subTest():
@@ -167,13 +182,17 @@ class RLockTestCase(Abstract.LockTestCase):
         with self.subTest():
             self._ab_thread_test(raw(False, 1), raw(False, 3), [1, 2], SLEEP_TIME)
         with self.subTest():
-            self._ab_thread_test(raw(False, 1), raw(True, 3), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                raw(False, 1), raw(True, 3), [1, 2, 3, 4], 2 * SLEEP_TIME
+            )
         with self.subTest():
             self._ab_thread_test(raw(True, 1), ctx(3), [1, 2, 3, 4], 2 * SLEEP_TIME)
         with self.subTest():
             self._ab_thread_test(raw(True, 1), raw(False, 3), [1, 2], SLEEP_TIME)
         with self.subTest():
-            self._ab_thread_test(raw(True, 1), raw(True, 3), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                raw(True, 1), raw(True, 3), [1, 2, 3, 4], 2 * SLEEP_TIME
+            )
 
 
 class SharedLockTestCase(Abstract.LockTestCase):
@@ -220,6 +239,7 @@ class SharedLockTestCase(Abstract.LockTestCase):
                     exec_order.append(v1)
                     time.sleep(SLEEP_TIME)
                     exec_order.append(v2)
+
             return f
 
         def raw(shared: bool, blocking: bool, v1: Any, v2: Any):
@@ -237,83 +257,174 @@ class SharedLockTestCase(Abstract.LockTestCase):
                         lock.release_shared()
                     else:
                         lock.release_unique()
+
             return f
 
         with self.subTest():
-            self._ab_thread_test(ctx(False, 1, 2), ctx(False, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                ctx(False, 1, 2), ctx(False, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(ctx(False, 1, 2), raw(False, False, 3, 4), [1, 2], SLEEP_TIME)
+            self._ab_thread_test(
+                ctx(False, 1, 2), raw(False, False, 3, 4), [1, 2], SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(ctx(False, 1, 2), raw(False, True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                ctx(False, 1, 2), raw(False, True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(False, False, 1, 2), ctx(False, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                raw(False, False, 1, 2), ctx(False, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(False, False, 1, 2), raw(False, False, 3, 4), [1, 2], SLEEP_TIME)
+            self._ab_thread_test(
+                raw(False, False, 1, 2), raw(False, False, 3, 4), [1, 2], SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(False, False, 1, 2), raw(False, True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                raw(False, False, 1, 2),
+                raw(False, True, 3, 4),
+                [1, 2, 3, 4],
+                2 * SLEEP_TIME,
+            )
         with self.subTest():
-            self._ab_thread_test(raw(False, True, 1, 2), ctx(False, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                raw(False, True, 1, 2), ctx(False, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(False, True, 1, 2), raw(False, False, 3, 4), [1, 2], SLEEP_TIME)
+            self._ab_thread_test(
+                raw(False, True, 1, 2), raw(False, False, 3, 4), [1, 2], SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(False, True, 1, 2), raw(False, True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                raw(False, True, 1, 2),
+                raw(False, True, 3, 4),
+                [1, 2, 3, 4],
+                2 * SLEEP_TIME,
+            )
 
         with self.subTest():
-            self._ab_thread_test(ctx(False, 1, 2), ctx(True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                ctx(False, 1, 2), ctx(True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(ctx(False, 1, 2), raw(True, False, 3, 4), [1, 2], SLEEP_TIME)
+            self._ab_thread_test(
+                ctx(False, 1, 2), raw(True, False, 3, 4), [1, 2], SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(ctx(False, 1, 2), raw(True, True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                ctx(False, 1, 2), raw(True, True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(False, False, 1, 2), ctx(True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                raw(False, False, 1, 2), ctx(True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(False, False, 1, 2), raw(True, False, 3, 4), [1, 2], SLEEP_TIME)
+            self._ab_thread_test(
+                raw(False, False, 1, 2), raw(True, False, 3, 4), [1, 2], SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(False, False, 1, 2), raw(True, True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                raw(False, False, 1, 2),
+                raw(True, True, 3, 4),
+                [1, 2, 3, 4],
+                2 * SLEEP_TIME,
+            )
         with self.subTest():
-            self._ab_thread_test(raw(False, True, 1, 2), ctx(True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                raw(False, True, 1, 2), ctx(True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(False, True, 1, 2), raw(True, False, 3, 4), [1, 2], SLEEP_TIME)
+            self._ab_thread_test(
+                raw(False, True, 1, 2), raw(True, False, 3, 4), [1, 2], SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(False, True, 1, 2), raw(True, True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                raw(False, True, 1, 2),
+                raw(True, True, 3, 4),
+                [1, 2, 3, 4],
+                2 * SLEEP_TIME,
+            )
 
         with self.subTest():
-            self._ab_thread_test(ctx(True, 1, 2), ctx(False, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                ctx(True, 1, 2), ctx(False, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(ctx(True, 1, 2), raw(False, False, 3, 4), [1, 2], SLEEP_TIME)
+            self._ab_thread_test(
+                ctx(True, 1, 2), raw(False, False, 3, 4), [1, 2], SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(ctx(True, 1, 2), raw(False, True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                ctx(True, 1, 2), raw(False, True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(True, False, 1, 2), ctx(False, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                raw(True, False, 1, 2), ctx(False, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(True, False, 1, 2), raw(False, False, 3, 4), [1, 2], SLEEP_TIME)
+            self._ab_thread_test(
+                raw(True, False, 1, 2), raw(False, False, 3, 4), [1, 2], SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(True, False, 1, 2), raw(False, True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                raw(True, False, 1, 2),
+                raw(False, True, 3, 4),
+                [1, 2, 3, 4],
+                2 * SLEEP_TIME,
+            )
         with self.subTest():
-            self._ab_thread_test(raw(True, True, 1, 2), ctx(False, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                raw(True, True, 1, 2), ctx(False, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(True, True, 1, 2), raw(False, False, 3, 4), [1, 2], SLEEP_TIME)
+            self._ab_thread_test(
+                raw(True, True, 1, 2), raw(False, False, 3, 4), [1, 2], SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(True, True, 1, 2), raw(False, True, 3, 4), [1, 2, 3, 4], 2 * SLEEP_TIME)
+            self._ab_thread_test(
+                raw(True, True, 1, 2),
+                raw(False, True, 3, 4),
+                [1, 2, 3, 4],
+                2 * SLEEP_TIME,
+            )
 
         with self.subTest():
-            self._ab_thread_test(ctx(True, 0, 0), ctx(True, 0, 0), [0, 0, 0, 0], SLEEP_TIME)
+            self._ab_thread_test(
+                ctx(True, 0, 0), ctx(True, 0, 0), [0, 0, 0, 0], SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(ctx(True, 0, 0), raw(True, False, 0, 0), [0, 0, 0, 0], SLEEP_TIME)
+            self._ab_thread_test(
+                ctx(True, 0, 0), raw(True, False, 0, 0), [0, 0, 0, 0], SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(ctx(True, 0, 0), raw(True, True, 0, 0), [0, 0, 0, 0], SLEEP_TIME)
+            self._ab_thread_test(
+                ctx(True, 0, 0), raw(True, True, 0, 0), [0, 0, 0, 0], SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(True, False, 0, 0), ctx(True, 0, 0), [0, 0, 0, 0], SLEEP_TIME)
+            self._ab_thread_test(
+                raw(True, False, 0, 0), ctx(True, 0, 0), [0, 0, 0, 0], SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(True, False, 0, 0), raw(True, False, 0, 0), [0, 0, 0, 0], SLEEP_TIME)
+            self._ab_thread_test(
+                raw(True, False, 0, 0), raw(True, False, 0, 0), [0, 0, 0, 0], SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(True, False, 0, 0), raw(True, True, 0, 0), [0, 0, 0, 0], SLEEP_TIME)
+            self._ab_thread_test(
+                raw(True, False, 0, 0), raw(True, True, 0, 0), [0, 0, 0, 0], SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(True, True, 0, 0), ctx(True, 0, 0), [0, 0, 0, 0], SLEEP_TIME)
+            self._ab_thread_test(
+                raw(True, True, 0, 0), ctx(True, 0, 0), [0, 0, 0, 0], SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(True, True, 0, 0), raw(True, False, 0, 0), [0, 0, 0, 0], SLEEP_TIME)
+            self._ab_thread_test(
+                raw(True, True, 0, 0), raw(True, False, 0, 0), [0, 0, 0, 0], SLEEP_TIME
+            )
         with self.subTest():
-            self._ab_thread_test(raw(True, True, 0, 0), raw(True, True, 0, 0), [0, 0, 0, 0], SLEEP_TIME)
+            self._ab_thread_test(
+                raw(True, True, 0, 0), raw(True, True, 0, 0), [0, 0, 0, 0], SLEEP_TIME
+            )
 
 
 class LockMode(Enum):
@@ -377,7 +488,10 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                         lock.acquire_shared_read,
                         lock.acquire_shared_read_write,
                     ):
-                        with self.subTest(blocking=blocking, timeout=timeout, func=f1), self.assertRaises(Deadlock):
+                        with (
+                            self.subTest(blocking=blocking, timeout=timeout, func=f1),
+                            self.assertRaises(Deadlock),
+                        ):
                             f1(blocking, timeout)
                     f2: Callable[[bool, float], AbstractContextManager[None]]
                     for f2 in (
@@ -386,7 +500,10 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                         lock.shared_read,
                         lock.shared_read_write,
                     ):
-                        with self.subTest(blocking=blocking, timeout=timeout, func=f2), self.assertRaises(Deadlock):
+                        with (
+                            self.subTest(blocking=blocking, timeout=timeout, func=f2),
+                            self.assertRaises(Deadlock),
+                        ):
                             with f2(blocking, timeout):
                                 pass
 
@@ -420,6 +537,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                     exec_order.append(v1)
                     time.sleep(SLEEP_TIME)
                     exec_order.append(v2)
+
             return f
 
         def raw(mode: LockMode, blocking: bool, v1: Any, v2: Any):
@@ -444,14 +562,22 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                         lock.release_unique()
                     else:
                         lock.release_shared()
+
             return f
 
         for mode_1, mode_2 in itertools.product(
-            (LockMode.Unique, LockMode.SharedReadOnly, LockMode.SharedRead, LockMode.SharedReadWrite),
-            repeat=2
+            (
+                LockMode.Unique,
+                LockMode.SharedReadOnly,
+                LockMode.SharedRead,
+                LockMode.SharedReadWrite,
+            ),
+            repeat=2,
         ):
             for f1, f2 in itertools.product((ctx, raw), repeat=2):
-                for blocking_1, blocking_2 in itertools.product((False, True), repeat=2):
+                for blocking_1, blocking_2 in itertools.product(
+                    (False, True), repeat=2
+                ):
                     with self.subTest(
                         mode_1=mode_1,
                         mode_2=mode_2,
@@ -461,16 +587,38 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                         blocking_2=blocking_2,
                     ):
                         if (
-                            (mode_1 == LockMode.SharedReadOnly and (mode_2 in [LockMode.SharedReadOnly, LockMode.SharedRead])) or
-                            (mode_1 == LockMode.SharedRead and (mode_2 in [LockMode.SharedReadOnly, LockMode.SharedRead, LockMode.SharedReadWrite])) or
-                            (mode_1 == LockMode.SharedReadWrite and (mode_2 in [LockMode.SharedRead, LockMode.SharedReadWrite]))
+                            (
+                                mode_1 == LockMode.SharedReadOnly
+                                and (
+                                    mode_2
+                                    in [LockMode.SharedReadOnly, LockMode.SharedRead]
+                                )
+                            )
+                            or (
+                                mode_1 == LockMode.SharedRead
+                                and (
+                                    mode_2
+                                    in [
+                                        LockMode.SharedReadOnly,
+                                        LockMode.SharedRead,
+                                        LockMode.SharedReadWrite,
+                                    ]
+                                )
+                            )
+                            or (
+                                mode_1 == LockMode.SharedReadWrite
+                                and (
+                                    mode_2
+                                    in [LockMode.SharedRead, LockMode.SharedReadWrite]
+                                )
+                            )
                         ):
                             # parallel
                             self._ab_thread_test(
                                 f1(mode_1, blocking_1, 0, 0),
                                 f2(mode_2, blocking_2, 0, 0),
                                 [0, 0, 0, 0],
-                                SLEEP_TIME
+                                SLEEP_TIME,
                             )
                         else:
                             # serial
@@ -479,14 +627,14 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                                     f1(mode_1, blocking_1, 1, 2),
                                     f2(mode_2, blocking_2, 3, 4),
                                     [1, 2, 3, 4],
-                                    2 * SLEEP_TIME
+                                    2 * SLEEP_TIME,
                                 )
                             else:
                                 self._ab_thread_test(
                                     f1(mode_1, blocking_1, 1, 2),
                                     f2(mode_2, blocking_2, 3, 4),
                                     [1, 2],
-                                    SLEEP_TIME
+                                    SLEEP_TIME,
                                 )
 
     def test_parallel_group(self) -> None:
@@ -581,7 +729,12 @@ class OrderedLockTestCase(Abstract.LockTestCase):
 
     def test_timeout(self) -> None:
         for raw in (False, True):
-            for mode in (LockMode.Unique, LockMode.SharedReadOnly, LockMode.SharedRead, LockMode.SharedReadWrite):
+            for mode in (
+                LockMode.Unique,
+                LockMode.SharedReadOnly,
+                LockMode.SharedRead,
+                LockMode.SharedReadWrite,
+            ):
                 with self.subTest(raw=raw, mode=mode):
                     result_1 = False
                     result_2 = False
@@ -676,7 +829,12 @@ class OrderedLockTestCase(Abstract.LockTestCase):
     def test_cancel(self) -> None:
         for timeout in [-1, 10]:
             for raw in (False, True):
-                for mode in (LockMode.Unique, LockMode.SharedReadOnly, LockMode.SharedRead, LockMode.SharedReadWrite):
+                for mode in (
+                    LockMode.Unique,
+                    LockMode.SharedReadOnly,
+                    LockMode.SharedRead,
+                    LockMode.SharedReadWrite,
+                ):
                     with self.subTest(timeout=timeout, raw=raw, mode=mode):
                         result_1 = False
                         result_2 = False
@@ -717,7 +875,9 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                                         f = lock_1.acquire_shared_read_write
                                     else:
                                         raise RuntimeError
-                                    if f(cancel_manager=cancel_manager, timeout=timeout):
+                                    if f(
+                                        cancel_manager=cancel_manager, timeout=timeout
+                                    ):
                                         if mode == LockMode.Unique:
                                             lock_1.release_unique()
                                         else:
@@ -737,7 +897,8 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                                         raise RuntimeError
                                     try:
                                         with mgr(
-                                            cancel_manager=cancel_manager, timeout=timeout
+                                            cancel_manager=cancel_manager,
+                                            timeout=timeout,
                                         ):
                                             pass
                                     except LockNotAcquired:
