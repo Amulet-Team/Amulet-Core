@@ -7,6 +7,21 @@ from amulet.utils.task_manager import AbstractCancelManager, CancelManager
 from amulet.utils.lock import Deadlock, OrderedLock, LockNotAcquired, Lock, RLock, SharedLock
 
 
+class ThreadStepManager:
+    def __init__(self):
+        self.condition = Condition()
+        self.step = 0
+
+    def increment(self) -> None:
+        with self.condition:
+            self.step += 1
+            self.condition.notify_all()
+
+    def wait(self, step_min: int) -> None:
+        with self.condition:
+            self.condition.wait_for(lambda: step_min <= self.step)
+
+
 class LockTestCase(TestCase):
     def test_lock(self) -> None:
         lock = Lock()
@@ -14,36 +29,27 @@ class LockTestCase(TestCase):
             self.assertTrue(True)
 
     def test_parallel_context_manager(self) -> None:
-        condition = Condition()
+        step = ThreadStepManager()
         lock = Lock()
 
         exec_order: list[int] = []
         end_times: list[float] = []
-        thread_count = 0
-
-        def increment_thread_count():
-            nonlocal thread_count
-            thread_count += 1
-            with condition:
-                condition.notify_all()
 
         def f1():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count == 3)
+            step.increment()
+            step.wait(3)
             with lock:
-                increment_thread_count()
+                step.increment()
                 exec_order.append(1)
                 time.sleep(1)
                 exec_order.append(2)
             end_times.append(time.time())
 
         def f2():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count == 4)
+            step.increment()
+            step.wait(4)
             with lock:
-                increment_thread_count()
+                step.increment()
                 exec_order.append(3)
                 time.sleep(1)
                 exec_order.append(4)
@@ -55,10 +61,9 @@ class LockTestCase(TestCase):
         thread_1.start()
         thread_2.start()
 
-        with condition:
-            condition.wait_for(lambda: thread_count == 2)
+        step.wait(2)
         t = time.time()
-        increment_thread_count()
+        step.increment()
 
         thread_1.join()
         thread_2.join()
@@ -72,25 +77,17 @@ class LockTestCase(TestCase):
         )
 
     def test_parallel_methods(self) -> None:
-        condition = Condition()
+        step = ThreadStepManager()
         lock = Lock()
 
         exec_order: list[int] = []
         end_times: list[float] = []
-        thread_count = 0
-
-        def increment_thread_count():
-            nonlocal thread_count
-            thread_count += 1
-            with condition:
-                condition.notify_all()
 
         def f1():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count == 3)
+            step.increment()
+            step.wait(3)
             lock.acquire()
-            increment_thread_count()
+            step.increment()
             exec_order.append(1)
             time.sleep(1)
             exec_order.append(2)
@@ -98,11 +95,10 @@ class LockTestCase(TestCase):
             end_times.append(time.time())
 
         def f2():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count == 4)
+            step.increment()
+            step.wait(4)
             lock.acquire()
-            increment_thread_count()
+            step.increment()
             exec_order.append(3)
             time.sleep(1)
             exec_order.append(4)
@@ -115,10 +111,9 @@ class LockTestCase(TestCase):
         thread_1.start()
         thread_2.start()
 
-        with condition:
-            condition.wait_for(lambda: thread_count == 2)
+        step.wait(2)
         t = time.time()
-        increment_thread_count()
+        step.increment()
 
         thread_1.join()
         thread_2.join()
@@ -139,36 +134,27 @@ class RLockTestCase(TestCase):
                 self.assertTrue(True)
 
     def test_parallel_context_manager(self) -> None:
-        condition = Condition()
+        step = ThreadStepManager()
         lock = RLock()
 
         exec_order: list[int] = []
         end_times: list[float] = []
-        thread_count = 0
-
-        def increment_thread_count():
-            nonlocal thread_count
-            thread_count += 1
-            with condition:
-                condition.notify_all()
 
         def f1():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count == 3)
+            step.increment()
+            step.wait(3)
             with lock:
-                increment_thread_count()
+                step.increment()
                 exec_order.append(1)
                 time.sleep(1)
                 exec_order.append(2)
             end_times.append(time.time())
 
         def f2():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count == 4)
+            step.increment()
+            step.wait(4)
             with lock:
-                increment_thread_count()
+                step.increment()
                 exec_order.append(3)
                 time.sleep(1)
                 exec_order.append(4)
@@ -180,10 +166,9 @@ class RLockTestCase(TestCase):
         thread_1.start()
         thread_2.start()
 
-        with condition:
-            condition.wait_for(lambda: thread_count == 2)
+        step.wait(2)
         t = time.time()
-        increment_thread_count()
+        step.increment()
 
         thread_1.join()
         thread_2.join()
@@ -197,25 +182,17 @@ class RLockTestCase(TestCase):
         )
 
     def test_parallel_methods(self) -> None:
-        condition = Condition()
+        step = ThreadStepManager()
         lock = RLock()
 
         exec_order: list[int] = []
         end_times: list[float] = []
-        thread_count = 0
-
-        def increment_thread_count():
-            nonlocal thread_count
-            thread_count += 1
-            with condition:
-                condition.notify_all()
 
         def f1():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count == 3)
+            step.increment()
+            step.wait(3)
             lock.acquire()
-            increment_thread_count()
+            step.increment()
             exec_order.append(1)
             time.sleep(1)
             exec_order.append(2)
@@ -223,11 +200,10 @@ class RLockTestCase(TestCase):
             end_times.append(time.time())
 
         def f2():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count == 4)
+            step.increment()
+            step.wait(4)
             lock.acquire()
-            increment_thread_count()
+            step.increment()
             exec_order.append(3)
             time.sleep(1)
             exec_order.append(4)
@@ -240,10 +216,9 @@ class RLockTestCase(TestCase):
         thread_1.start()
         thread_2.start()
 
-        with condition:
-            condition.wait_for(lambda: thread_count == 2)
+        step.wait(2)
         t = time.time()
-        increment_thread_count()
+        step.increment()
 
         thread_1.join()
         thread_2.join()
@@ -287,34 +262,25 @@ class SharedLockTestCase(TestCase):
         self.assertIsNone(lock_ref())
 
     def test_unique(self) -> None:
-        condition = Condition()
+        step = ThreadStepManager()
         lock = SharedLock()
 
         exec_order: list[int] = []
         end_times: list[float] = []
-        thread_count = 0
-
-        def increment_thread_count():
-            nonlocal thread_count
-            thread_count += 1
-            with condition:
-                condition.notify_all()
 
         def f1():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count == 3)
+            step.increment()
+            step.wait(3)
             with lock.unique():
-                increment_thread_count() # 4
+                step.increment() # 4
                 exec_order.append(1)
                 time.sleep(1)
                 exec_order.append(2)
             end_times.append(time.time())
 
         def f2():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count >= 4)
+            step.increment()
+            step.wait(4)
             lock.acquire_unique()
             exec_order.append(3)
             time.sleep(1)
@@ -328,10 +294,9 @@ class SharedLockTestCase(TestCase):
         thread_1.start()
         thread_2.start()
 
-        with condition:
-            condition.wait_for(lambda: thread_count == 2)
+        step.wait(2)
         t = time.time()
-        increment_thread_count()
+        step.increment()
 
         thread_1.join()
         thread_2.join()
@@ -345,34 +310,25 @@ class SharedLockTestCase(TestCase):
         )
 
     def test_shared(self) -> None:
-        condition = Condition()
+        step = ThreadStepManager()
         lock = SharedLock()
 
         exec_order: list[int] = []
         end_times: list[float] = []
-        thread_count = 0
-
-        def increment_thread_count():
-            nonlocal thread_count
-            thread_count += 1
-            with condition:
-                condition.notify_all()
 
         def f1():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count == 3)
+            step.increment()
+            step.wait(3)
             with lock.shared():
-                increment_thread_count() # 4
+                step.increment() # 4
                 exec_order.append(1)
                 time.sleep(1)
                 exec_order.append(2)
             end_times.append(time.time())
 
         def f2():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count >= 4)
+            step.increment()
+            step.wait(4)
             lock.acquire_shared()
             exec_order.append(3)
             time.sleep(1)
@@ -386,10 +342,9 @@ class SharedLockTestCase(TestCase):
         thread_1.start()
         thread_2.start()
 
-        with condition:
-            condition.wait_for(lambda: thread_count == 2)
+        step.wait(2)
         t = time.time()
-        increment_thread_count()
+        step.increment()
 
         thread_1.join()
         thread_2.join()
@@ -403,34 +358,25 @@ class SharedLockTestCase(TestCase):
         )
 
     def test_shared_unique(self) -> None:
-        condition = Condition()
+        step = ThreadStepManager()
         lock = SharedLock()
 
         exec_order: list[int] = []
         end_times: list[float] = []
-        thread_count = 0
-
-        def increment_thread_count():
-            nonlocal thread_count
-            thread_count += 1
-            with condition:
-                condition.notify_all()
 
         def f1():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count == 3)
+            step.increment()
+            step.wait(3)
             with lock.shared():
-                increment_thread_count() # 4
+                step.increment() # 4
                 exec_order.append(1)
                 time.sleep(1)
                 exec_order.append(2)
             end_times.append(time.time())
 
         def f2():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count >= 4)
+            step.increment()
+            step.wait(4)
             lock.acquire_unique()
             exec_order.append(3)
             time.sleep(1)
@@ -444,10 +390,9 @@ class SharedLockTestCase(TestCase):
         thread_1.start()
         thread_2.start()
 
-        with condition:
-            condition.wait_for(lambda: thread_count == 2)
+        step.wait(2)
         t = time.time()
-        increment_thread_count()
+        step.increment()
 
         thread_1.join()
         thread_2.join()
@@ -461,34 +406,25 @@ class SharedLockTestCase(TestCase):
         )
 
     def test_unique_shared(self) -> None:
-        condition = Condition()
+        step = ThreadStepManager()
         lock = SharedLock()
 
         exec_order: list[int] = []
         end_times: list[float] = []
-        thread_count = 0
-
-        def increment_thread_count():
-            nonlocal thread_count
-            thread_count += 1
-            with condition:
-                condition.notify_all()
 
         def f1():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count == 3)
+            step.increment()
+            step.wait(3)
             with lock.unique():
-                increment_thread_count() # 4
+                step.increment() # 4
                 exec_order.append(1)
                 time.sleep(1)
                 exec_order.append(2)
             end_times.append(time.time())
 
         def f2():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count >= 4)
+            step.increment()
+            step.wait(4)
             lock.acquire_shared()
             exec_order.append(3)
             time.sleep(1)
@@ -502,10 +438,9 @@ class SharedLockTestCase(TestCase):
         thread_1.start()
         thread_2.start()
 
-        with condition:
-            condition.wait_for(lambda: thread_count == 2)
+        step.wait(2)
         t = time.time()
-        increment_thread_count()
+        step.increment()
 
         thread_1.join()
         thread_2.join()
@@ -584,48 +519,38 @@ class OrderedLockTestCase(TestCase):
 
     def test_parallel(self) -> None:
         lock = OrderedLock()
-        condition = Condition()
+        step = ThreadStepManager()
 
         exec_order: list[str] = []
         end_times: list[float] = []
-        thread_count = 0
-
-        def increment_thread_count():
-            nonlocal thread_count
-            thread_count += 1
-            with condition:
-                condition.notify_all()
 
         sleep_time = 1
 
         def parallel_func_1():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count >= 6)
+            step.increment()
+            step.wait(6)
             with lock.shared(timeout=5):
-                increment_thread_count()
+                step.increment()
                 exec_order.append("shared")
                 time.sleep(sleep_time)
                 exec_order.append("shared")
             end_times.append(time.time())
 
         def serial_func():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count >= 8)
+            step.increment()
+            step.wait(8)
             with lock.unique(timeout=5):
-                increment_thread_count()
+                step.increment()
                 exec_order.append("unique")
                 time.sleep(sleep_time)
                 exec_order.append("unique")
             end_times.append(time.time())
 
         def parallel_func_2():
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count >= 9)
+            step.increment()
+            step.wait(9)
             with lock.shared(timeout=5):
-                increment_thread_count()
+                step.increment()
                 exec_order.append("shared")
                 time.sleep(sleep_time)
                 exec_order.append("shared")
@@ -645,11 +570,10 @@ class OrderedLockTestCase(TestCase):
         thread_5.start()
 
         # Wait for all threads to start
-        with condition:
-            condition.wait_for(lambda: thread_count == 5)
+        step.wait(5)
         # Get start time
         t = time.time()
-        increment_thread_count()
+        step.increment()
 
         # Wait for threads to finish
         thread_1.join()
@@ -688,25 +612,17 @@ class OrderedLockTestCase(TestCase):
         result_2 = False
 
         lock = OrderedLock()
-        condition = Condition()
+        step = ThreadStepManager()
 
         end_times: list[float] = []
-        thread_count = 0
-
-        def increment_thread_count():
-            nonlocal thread_count
-            thread_count += 1
-            with condition:
-                condition.notify_all()
 
         def func_1():
             nonlocal result_1
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count >= 3)
+            step.increment()
+            step.wait(3)
             try:
                 with lock.unique(blocking=False):
-                    increment_thread_count()
+                    step.increment()
                     time.sleep(1)
             except LockNotAcquired:
                 result_1 = False
@@ -716,9 +632,8 @@ class OrderedLockTestCase(TestCase):
 
         def func_2():
             nonlocal result_2
-            increment_thread_count()
-            with condition:
-                condition.wait_for(lambda: thread_count >= 4)
+            step.increment()
+            step.wait(4)
             try:
                 with lock.unique(timeout=0.1):
                     time.sleep(1)
@@ -736,11 +651,10 @@ class OrderedLockTestCase(TestCase):
         thread_2.start()
 
         # Wait for all threads to start
-        with condition:
-            condition.wait_for(lambda: thread_count == 2)
+        step.wait(2)
         # Get start time
         t = time.time()
-        increment_thread_count()
+        step.increment()
 
         # Wait for threads to finish
         thread_1.join()
@@ -765,25 +679,16 @@ class OrderedLockTestCase(TestCase):
                 lock_1 = OrderedLock()
                 lock_2 = OrderedLock()
 
-                condition = Condition()
+                step = ThreadStepManager()
                 end_times: list[float] = []
-                thread_count = 0
-
-                def increment_thread_count():
-                    nonlocal thread_count
-                    thread_count += 1
-                    with condition:
-                        condition.notify_all()
 
                 def func_1(cancel_manager: AbstractCancelManager):
                     nonlocal result_1
-                    increment_thread_count()
-                    with condition:
-                        condition.wait_for(lambda: thread_count >= 3)
+                    step.increment()
+                    step.wait(3)
                     with lock_1.unique(blocking=False):
-                        increment_thread_count()
-                        with condition:
-                            condition.wait_for(lambda: thread_count >= 5)
+                        step.increment()
+                        step.wait(5)
                         with lock_2.unique(
                             cancel_manager=cancel_manager, timeout=timeout
                         ):
@@ -792,13 +697,11 @@ class OrderedLockTestCase(TestCase):
 
                 def func_2(cancel_manager: AbstractCancelManager):
                     nonlocal result_2
-                    increment_thread_count()
-                    with condition:
-                        condition.wait_for(lambda: thread_count >= 3)
+                    step.increment()
+                    step.wait(3)
                     with lock_2.unique(blocking=False):
-                        increment_thread_count()
-                        with condition:
-                            condition.wait_for(lambda: thread_count >= 5)
+                        step.increment()
+                        step.wait(5)
                         time.sleep(1)
                         try:
                             with lock_1.unique(
@@ -820,11 +723,10 @@ class OrderedLockTestCase(TestCase):
                 thread_2.start()
 
                 # Wait for all threads to start
-                with condition:
-                    condition.wait_for(lambda: thread_count == 2)
+                step.wait(2)
                 # Get start time
                 t = time.time()
-                increment_thread_count()
+                step.increment()
 
                 time.sleep(2)
 
