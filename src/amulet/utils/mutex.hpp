@@ -270,10 +270,12 @@ protected:
             switch (it->second->state) {
             case LockState::SharedReadOnly:
                 read_only_count--;
+                break;
             case LockState::SharedRead:
                 break;
             case LockState::SharedReadWrite:
                 read_write_count--;
+                break;
             default:
                 throw std::runtime_error("This mutex is not locked in shared mode by this thread.");
             }
