@@ -18,6 +18,8 @@ from amulet.utils.lock import (
     SharedLock,
 )
 
+from tests.test_amulet.test_util.test_lock_ import throw_deadlock
+
 if sys.platform == "darwin":
     # macos runners seem to be slower
     # increase sleep time so delay is negligible
@@ -481,6 +483,9 @@ class OrderedLockTestCase(Abstract.LockTestCase):
 
     def test_deadlock(self) -> None:
         lock = OrderedLock()
+
+        with self.assertRaises(Deadlock):
+            throw_deadlock()
 
         def lock_all():
             for blocking in (True, False):
