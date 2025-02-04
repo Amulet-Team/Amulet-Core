@@ -139,7 +139,7 @@ def native_to_raw(
         else:
             chunk_key = struct.pack("b", cy)
 
-        chunk_data[b"\x2F" + chunk_key] = sub_chunk
+        chunk_data[b"\x2f" + chunk_key] = sub_chunk
 
     block_entity_component = chunk.get_component(BlockEntityComponent)
     block_entities_out = _encode_block_entities(block_entity_component)
@@ -201,7 +201,7 @@ def native_to_raw(
         biomes_array = numpy.asarray(biome_id_palette, dtype=numpy.uint8)[
             array
         ].T.tobytes()
-        chunk_data[b"\x2D"] = height + biomes_array
+        chunk_data[b"\x2d"] = height + biomes_array
 
     elif chunk.has_component(Biome3DComponent):
         biome_3d_component = chunk.get_component(Biome3DComponent)
@@ -250,7 +250,7 @@ def native_to_raw(
                 # Everything below the highest must be defined
                 d2d.append(get_default_biome_section())
             else:
-                d2d.append(b"\xFF")
+                d2d.append(b"\xff")
 
         chunk_data[b"+"] = b"".join(d2d)
     else:

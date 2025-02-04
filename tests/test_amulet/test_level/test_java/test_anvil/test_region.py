@@ -4,6 +4,9 @@ import os
 import shutil
 import glob
 from concurrent.futures import ThreadPoolExecutor
+from weakref import ref
+from threading import Thread, Condition, Lock
+import time
 
 from amulet_nbt import NamedTag, CompoundTag, StringTag, ListTag
 
@@ -63,6 +66,119 @@ class AnvilRegionTestCase(unittest.TestCase):
             self.assertEqual(10, region.rx)
             self.assertEqual(20, region.rz)
             self.assertEqual(os.path.join(tmpdir, "r.10.20.mca"), region.path)
+
+    def test_lock(self) -> None:
+        sleep_time = 1
+        with TemporaryDirectory() as tmpdir:
+            condition = Condition()
+            region = AnvilRegion(tmpdir, 0, 0)
+
+            exec_order: list[int] = []
+            end_times: list[float] = []
+            thread_count = 0
+
+            def increment_thread_count():
+                nonlocal thread_count
+                thread_count += 1
+                with condition:
+                    condition.notify_all()
+
+            def f1() -> None:
+                increment_thread_count()
+                with condition:
+                    condition.wait_for(lambda: thread_count == 3)
+                with region.lock.unique():
+                    increment_thread_count()
+                    exec_order.append(1)
+                    region.set_value(
+                        0, 0, NamedTag(CompoundTag(val=StringTag("0")), "")
+                    )
+                    region.set_value(
+                        0, 1, NamedTag(CompoundTag(val=StringTag("1")), "")
+                    )
+                    region.set_value(
+                        0, 2, NamedTag(CompoundTag(val=StringTag("2")), "")
+                    )
+                    self.assertEqual({(0, 0), (0, 1), (0, 2)}, set(region.get_coords()))
+                    self.assertEqual(
+                        NamedTag(CompoundTag(val=StringTag("0")), ""),
+                        region.get_value(0, 0),
+                    )
+                    self.assertEqual(
+                        NamedTag(CompoundTag(val=StringTag("1")), ""),
+                        region.get_value(0, 1),
+                    )
+                    self.assertEqual(
+                        NamedTag(CompoundTag(val=StringTag("2")), ""),
+                        region.get_value(0, 2),
+                    )
+                    time.sleep(sleep_time)
+                    exec_order.append(2)
+                end_times.append(time.time())
+
+            def f2() -> None:
+                increment_thread_count()
+                with condition:
+                    condition.wait_for(lambda: thread_count == 4)
+                with region.lock.unique():
+                    increment_thread_count()
+                    exec_order.append(3)
+                    region.set_value(
+                        0, 2, NamedTag(CompoundTag(val=StringTag("3")), "")
+                    )
+                    region.set_value(
+                        0, 3, NamedTag(CompoundTag(val=StringTag("4")), "")
+                    )
+                    self.assertEqual(
+                        {(0, 0), (0, 1), (0, 2), (0, 3)}, set(region.get_coords())
+                    )
+                    self.assertEqual(
+                        NamedTag(CompoundTag(val=StringTag("0")), ""),
+                        region.get_value(0, 0),
+                    )
+                    self.assertEqual(
+                        NamedTag(CompoundTag(val=StringTag("1")), ""),
+                        region.get_value(0, 1),
+                    )
+                    self.assertEqual(
+                        NamedTag(CompoundTag(val=StringTag("3")), ""),
+                        region.get_value(0, 2),
+                    )
+                    self.assertEqual(
+                        NamedTag(CompoundTag(val=StringTag("4")), ""),
+                        region.get_value(0, 3),
+                    )
+                    time.sleep(sleep_time)
+                    exec_order.append(4)
+                end_times.append(time.time())
+
+            thread_1 = Thread(target=f1)
+            thread_2 = Thread(target=f2)
+
+            thread_1.start()
+            thread_2.start()
+
+            with condition:
+                condition.wait_for(lambda: thread_count == 2)
+            t = time.time()
+            increment_thread_count()
+
+            thread_1.join()
+            thread_2.join()
+
+            self.assertEqual([1, 2, 3, 4], exec_order)
+
+            dt = max(end_times) - t
+            self.assertTrue(
+                sleep_time * 2 - 0.01 <= dt <= sleep_time * 2 + 0.5,
+                f"Expected {sleep_time * 2}s. Got {dt}s",
+            )
+            region_ref = ref(region)
+            lock = region.lock
+            del region
+            self.assertIsNotNone(region_ref())
+            del lock
+            self.assertIsNone(region_ref())
 
     def test_compression(self) -> None:
         with TemporaryDirectory() as tempdir:

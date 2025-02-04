@@ -35,15 +35,40 @@ public:
     }
 };
 
-// std::shared_timed_mutex does not have order priority meaning that an older lock call can be blocked by newer lock_shared calls.
-// This is a variant of std::shared_timed_mutex that prioritises call order.
+// This is a custom mutex implementation that can be acquired in:
+// 1) Unique mode.
+//     - Only one thread can use the resource.
+//     - Blocks until no thread holds the mutex
+//     - Stops all other threads acquiring the mutex until released.
+// 2) Shared read-only mode.
+//     - Multiple threads can read (but not write) the resource at the same time.
+//     - Can be acquired in parallel with read mode.
+//     - Blocks until no thread holds the mutex in unique or write mode.
+//     - Stops other threads acquiring in unique and write mode until released.
+// 3) Shared read mode.
+//     - This thread may only read but other threads may write in parallel.
+//     - Only thread-safe functions may be called in this mode.
+//     - Can be acquired in parallel with read-only mode or write mode (not at the same time)
+//     - Blocks until no thread holds the mutex in unique mode.
+//     - Stops other threads acquiring in unique mode until released.
+// 4) Shared read-write mode.
+//     - This thread may read and write in parallel with other reading and writing threads.
+//     - Only thread-safe functions may be called in this mode.
+//     - Can be acquired in parallel with read mode.
+//     - Blocks until no thread holds the mutex in unique or read-only mode.
+//     - Stops other threads acquiring in unique and read-only mode until released.
+// The mutex is ordered meaning it prioritises older acquires over newer ones.
 // It also supports cancelling waiting through a CancelManager instance.
-class OrderedSharedMutex {
+// The mutex is compatible with std::shared_timed_mutex and the std::*_lock classes
+class OrderedMutex {
 protected:
     enum class LockState {
         Unlocked,
+        Unique,
         Shared,
-        Unique
+        SharedReadOnly,
+        SharedRead,
+        SharedReadWrite
     };
     struct ThreadState {
         std::thread::id id;
@@ -55,6 +80,10 @@ protected:
     std::condition_variable condition;
     // The state the mutex is currently in.
     LockState state = LockState::Unlocked;
+    // The number of threads locked in read-only mode.
+    size_t read_only_count = 0;
+    // The number of threads locked in read-write mode.
+    size_t read_write_count = 0;
     // The threads that currently hold the lock.
     std::list<ThreadState> locked_threads;
     // The pending threads in the order the lock call was made.
@@ -63,7 +92,7 @@ protected:
     std::map<std::thread::id, std::list<ThreadState>::iterator> threads;
 
     template <bool ReturnBool, bool Blocking, LockState DesiredState, class... Args>
-        requires(DesiredState == LockState::Shared || DesiredState == LockState::Unique)
+        requires(DesiredState != LockState::Unlocked && DesiredState != LockState::Shared)
     std::conditional_t<ReturnBool, bool, void> _lock_imp(Args... args_pack)
     {
         // Lock the state.
@@ -79,17 +108,36 @@ protected:
 
         // Is mutex in a lockable state.
         auto is_needed_state = [&]() -> bool {
-            if constexpr (DesiredState == LockState::Shared) {
+            if constexpr (DesiredState == LockState::SharedReadOnly) {
+                return state == LockState::Unlocked || (state == LockState::Shared && read_write_count == 0);
+            } else if constexpr (DesiredState == LockState::SharedRead) {
                 return state != LockState::Unique;
+            } else if constexpr (DesiredState == LockState::SharedReadWrite) {
+                return state == LockState::Unlocked || (state == LockState::Shared && read_only_count == 0);
             } else {
                 static_assert(DesiredState == LockState::Unique);
                 return state == LockState::Unlocked;
             }
         };
 
+        auto set_state = [&]() {
+            if constexpr (DesiredState == LockState::SharedReadOnly) {
+                state = LockState::Shared;
+                read_only_count++;
+            } else if constexpr (DesiredState == LockState::SharedRead) {
+                state = LockState::Shared;
+            } else if constexpr (DesiredState == LockState::SharedReadWrite) {
+                state = LockState::Shared;
+                read_write_count++;
+            } else {
+                static_assert(DesiredState == LockState::Unique);
+                state = LockState::Unique;
+            }
+        };
+
         if (pending_threads.empty() && is_needed_state()) {
             // mutex can be locked without blocking. Lock it.
-            state = DesiredState;
+            set_state();
             auto it = locked_threads.insert(locked_threads.end(), { id, DesiredState, DesiredState });
             threads.emplace(id, it);
             if constexpr (ReturnBool) {
@@ -124,7 +172,7 @@ protected:
             // Function to lock the mutex.
             auto lock_state = [&]() -> void {
                 // Update the mutex state
-                state = DesiredState;
+                set_state();
 
                 // Move the thread state
                 locked_threads.splice(locked_threads.end(), pending_threads, pending_threads.begin());
@@ -209,12 +257,26 @@ protected:
         // Find the thread state
         auto it = threads.find(id);
 
-        // Ensure that the mutex is locked in unique mode by the thread.
-        if (it == threads.end() || it->second->state != required_state) {
-            if constexpr (required_state == LockState::Unique) {
+        // Ensure that the mutex is locked in the same mode by the thread.
+        if (it == threads.end()) {
+            throw std::runtime_error("This mutex is not locked by this thread.");
+        }
+        if constexpr (required_state == LockState::Unique) {
+            if (it->second->state != LockState::Unique) {
                 throw std::runtime_error("This mutex is not locked in unique mode by this thread.");
-            } else {
-                static_assert(required_state == LockState::Shared);
+            }
+        } else {
+            static_assert(required_state == LockState::Shared);
+            switch (it->second->state) {
+            case LockState::SharedReadOnly:
+                read_only_count--;
+                break;
+            case LockState::SharedRead:
+                break;
+            case LockState::SharedReadWrite:
+                read_write_count--;
+                break;
+            default:
                 throw std::runtime_error("This mutex is not locked in shared mode by this thread.");
             }
         }
@@ -230,6 +292,9 @@ protected:
             static_assert(required_state == LockState::Shared);
             if (locked_threads.empty()) {
                 state = LockState::Unlocked;
+                if (read_only_count != 0 || read_write_count != 0) {
+                    throw std::runtime_error("Shared thread counts are not zero.");
+                }
             }
         }
 
@@ -239,56 +304,169 @@ protected:
 
 public:
     // Constructors
-    AMULET_CORE_EXPORT OrderedSharedMutex();
-    OrderedSharedMutex(const OrderedSharedMutex&) = delete;
-    OrderedSharedMutex(OrderedSharedMutex&&) = delete;
+    AMULET_CORE_EXPORT OrderedMutex();
+    OrderedMutex(const OrderedMutex&) = delete;
+    OrderedMutex(OrderedMutex&&) = delete;
 
     // Destructor
-    AMULET_CORE_EXPORT ~OrderedSharedMutex();
+    AMULET_CORE_EXPORT ~OrderedMutex();
 
-    // Unique
+    // Locks the mutex in unique mode.
+    // Blocks until no thread holds the mutex.
+    // Stops all other threads acquiring the mutex until released.
+    // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
+    // Thread safe.
     AMULET_CORE_EXPORT void lock(AbstractCancelManager& cancel_manager = global_VoidCancelManager);
+
+    // Tries to lock the mutex in unique mode, non-blocking.
+    // Returns true if the mutex was locked, false if it wasn't.
+    // Thread safe
     AMULET_CORE_EXPORT bool try_lock();
-    AMULET_CORE_EXPORT void unlock();
 
-    // Shared
-    AMULET_CORE_EXPORT void lock_shared(AbstractCancelManager& cancel_manager = global_VoidCancelManager);
-    AMULET_CORE_EXPORT bool try_lock_shared();
-    AMULET_CORE_EXPORT void unlock_shared();
-};
-
-class OrderedSharedTimedMutex : public OrderedSharedMutex {
-public:
-    // Constructors
-    AMULET_CORE_EXPORT OrderedSharedTimedMutex();
-    OrderedSharedTimedMutex(const OrderedSharedTimedMutex&) = delete;
-    OrderedSharedTimedMutex(OrderedSharedTimedMutex&&) = delete;
-
-    // Destructor
-    AMULET_CORE_EXPORT ~OrderedSharedTimedMutex();
-
-    // Unique
+    // Like try_lock but with a timeout duration.
+    // Returns true if the mutex was locked, false if it wasn't.
+    // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
+    // Thread safe.
     template <class Rep, class Period>
     bool try_lock_for(const std::chrono::duration<Rep, Period>& timeout_duration, AbstractCancelManager& cancel_manager = global_VoidCancelManager)
     {
         return _lock<true, true, LockState::Unique, const std::chrono::duration<Rep, Period>&>(timeout_duration, cancel_manager);
     }
+
+    // Like try_lock but with a timeout time.
+    // Returns true if the mutex was locked, false if it wasn't.
+    // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
+    // Thread safe.
     template <class Clock, class Duration>
     bool try_lock_until(const std::chrono::time_point<Clock, Duration>& timeout_time, AbstractCancelManager& cancel_manager = global_VoidCancelManager)
     {
         return _lock<true, true, LockState::Unique, const std::chrono::time_point<Clock, Duration>&>(timeout_time, cancel_manager);
     }
 
-    // Shared
+    // Unlock the mutex from unique mode.
+    // Must be called by the thread that locked it.
+    // Thread safe.
+    AMULET_CORE_EXPORT void unlock();
+
+    // Locks the mutex in shared read-only mode.
+    // Blocks until no thread holds the mutex in unique or write mode.
+    // Stops other threads acquiring in unique and write mode until released.
+    // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
+    // Thread safe.
+    AMULET_CORE_EXPORT void lock_shared_read_only(AbstractCancelManager& cancel_manager = global_VoidCancelManager);
+
+    // Tries to lock the mutex in shared read-only mode, non-blocking.
+    // Returns true if the mutex was locked, false if it wasn't.
+    // Thread safe
+    AMULET_CORE_EXPORT bool try_lock_shared_read_only();
+
+    // Like lock_shared_read_only but with a timeout duration.
+    // Returns true if the mutex was locked, false if it wasn't.
+    // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
+    // Thread safe.
+    template <class Rep, class Period>
+    bool try_lock_shared_read_only_for(const std::chrono::duration<Rep, Period>& timeout_duration, AbstractCancelManager& cancel_manager = global_VoidCancelManager)
+    {
+        return _lock<true, true, LockState::SharedReadOnly, const std::chrono::duration<Rep, Period>&>(timeout_duration, cancel_manager);
+    }
+
+    // Like lock_shared_read_only but with a timeout time.
+    // Returns true if the mutex was locked, false if it wasn't.
+    // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
+    // Thread safe.
+    template <class Clock, class Duration>
+    bool try_lock_shared_read_only_until(const std::chrono::time_point<Clock, Duration>& timeout_time, AbstractCancelManager& cancel_manager = global_VoidCancelManager)
+    {
+        return _lock<true, true, LockState::SharedReadOnly, const std::chrono::time_point<Clock, Duration>&>(timeout_time, cancel_manager);
+    }
+
+    // Locks the mutex in shared read mode.
+    // Blocks until no thread holds the mutex in unique mode.
+    // Stops other threads acquiring in unique mode until released.
+    // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
+    // Thread safe.
+    AMULET_CORE_EXPORT void lock_shared_read(AbstractCancelManager& cancel_manager = global_VoidCancelManager);
+
+    // Tries to lock the mutex in shared read mode, non-blocking.
+    // Returns true if the mutex was locked, false if it wasn't.
+    // Thread safe
+    AMULET_CORE_EXPORT bool try_lock_shared_read();
+
+    // Like lock_shared_read but with a timeout duration.
+    // Returns true if the mutex was locked, false if it wasn't.
+    // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
+    // Thread safe.
+    template <class Rep, class Period>
+    bool try_lock_shared_read_for(const std::chrono::duration<Rep, Period>& timeout_duration, AbstractCancelManager& cancel_manager = global_VoidCancelManager)
+    {
+        return _lock<true, true, LockState::SharedRead, const std::chrono::duration<Rep, Period>&>(timeout_duration, cancel_manager);
+    }
+
+    // Like lock_shared_read but with a timeout time.
+    // Returns true if the mutex was locked, false if it wasn't.
+    // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
+    // Thread safe.
+    template <class Clock, class Duration>
+    bool try_lock_shared_read_until(const std::chrono::time_point<Clock, Duration>& timeout_time, AbstractCancelManager& cancel_manager = global_VoidCancelManager)
+    {
+        return _lock<true, true, LockState::SharedRead, const std::chrono::time_point<Clock, Duration>&>(timeout_time, cancel_manager);
+    }
+
+    // Locks the mutex in shared read-write mode.
+    // Blocks until no thread holds the mutex in unique or read-only mode.
+    // Stops other threads acquiring in unique and read-only mode until released.
+    // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
+    // Thread safe.
+    AMULET_CORE_EXPORT void lock_shared_read_write(AbstractCancelManager& cancel_manager = global_VoidCancelManager);
+
+    // Tries to lock the mutex in shared read-write mode, non-blocking.
+    // Returns true if the mutex was locked, false if it wasn't.
+    // Thread safe
+    AMULET_CORE_EXPORT bool try_lock_shared_read_write();
+
+    // Like lock_shared_read_write but with a timeout duration.
+    // Returns true if the mutex was locked, false if it wasn't.
+    // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
+    // Thread safe.
+    template <class Rep, class Period>
+    bool try_lock_shared_read_write_for(const std::chrono::duration<Rep, Period>& timeout_duration, AbstractCancelManager& cancel_manager = global_VoidCancelManager)
+    {
+        return _lock<true, true, LockState::SharedReadWrite, const std::chrono::duration<Rep, Period>&>(timeout_duration, cancel_manager);
+    }
+
+    // Like lock_shared_read_write but with a timeout time.
+    // Returns true if the mutex was locked, false if it wasn't.
+    // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
+    // Thread safe.
+    template <class Clock, class Duration>
+    bool try_lock_shared_read_write_until(const std::chrono::time_point<Clock, Duration>& timeout_time, AbstractCancelManager& cancel_manager = global_VoidCancelManager)
+    {
+        return _lock<true, true, LockState::SharedReadWrite, const std::chrono::time_point<Clock, Duration>&>(timeout_time, cancel_manager);
+    }
+
+    // Alias of lock_shared_read_only
+    AMULET_CORE_EXPORT void lock_shared(AbstractCancelManager& cancel_manager = global_VoidCancelManager);
+
+    // Alias of try_lock_shared_read_only
+    AMULET_CORE_EXPORT bool try_lock_shared();
+
+    // Alias of try_lock_shared_read_only_for
     template <class Rep, class Period>
     bool try_lock_shared_for(const std::chrono::duration<Rep, Period>& timeout_duration, AbstractCancelManager& cancel_manager = global_VoidCancelManager)
     {
-        return _lock<true, true, LockState::Shared, const std::chrono::duration<Rep, Period>&>(timeout_duration, cancel_manager);
+        return try_lock_shared_read_only_for<Rep, Period>(timeout_duration, cancel_manager);
     }
+
+    // Alias of try_lock_shared_read_only_until
     template <class Clock, class Duration>
     bool try_lock_shared_until(const std::chrono::time_point<Clock, Duration>& timeout_time, AbstractCancelManager& cancel_manager = global_VoidCancelManager)
     {
-        return _lock<true, true, LockState::Shared, const std::chrono::time_point<Clock, Duration>&>(timeout_time, cancel_manager);
+        return try_lock_shared_read_only_until<Clock, Duration>(timeout_time, cancel_manager);
     }
+
+    // Unlock the mutex from any shared mode.
+    // Must be called by the thread that locked it.
+    // Thread safe.
+    AMULET_CORE_EXPORT void unlock_shared();
 };
 } // namespace Amulet

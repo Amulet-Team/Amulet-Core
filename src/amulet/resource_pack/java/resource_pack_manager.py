@@ -518,7 +518,7 @@ class JavaResourcePackManager(BaseResourcePackManager[JavaResourcePack]):
                 transparency = BlockMeshTransparency.FullOpaque
 
         def create_part(
-            part: tuple[list[Vertex], list[Triangle]] | None
+            part: tuple[list[Vertex], list[Triangle]] | None,
         ) -> BlockMeshPart | None:
             return None if part is None else BlockMeshPart(*part)
 
