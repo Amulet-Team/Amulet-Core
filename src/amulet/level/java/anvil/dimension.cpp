@@ -132,7 +132,7 @@ AnvilDimensionLayer::AnvilDimensionLayer(
 }
 
 // Accessors
-std::shared_mutex& AnvilDimensionLayer::mutex() { return _public_mutex; }
+Amulet::OrderedMutex& AnvilDimensionLayer::mutex() { return _public_mutex; }
 const std::filesystem::path& AnvilDimensionLayer::directory() const { return _directory; }
 bool AnvilDimensionLayer::mcc() const { return _mcc; }
 
@@ -150,7 +150,8 @@ std::shared_ptr<AnvilRegion> AnvilDimensionLayer::get_region(
     std::int64_t rx, std::int64_t rz, bool create)
 {
     // Lock parallel modifications
-    std::lock_guard<std::mutex> guard(_mutex);
+    // TODO: Some of this could be done in parallel.
+    std::lock_guard<std::mutex> guard(_regions_mutex);
     // Get the region key
     auto key = std::make_pair(rx, rz);
     // Find the region
@@ -173,31 +174,50 @@ AnvilRegionCoordIterator AnvilDimensionLayer::all_region_coords()
 }
 bool AnvilDimensionLayer::has_chunk(std::int64_t cx, std::int64_t cz)
 {
+    std::shared_ptr<AnvilRegion> region;
     try {
-        return get_region(cx >> 5, cz >> 5)->has_value(cx, cz);
+        region = get_region(cx >> 5, cz >> 5);
     } catch (RegionDoesNotExist) {
         return false;
     }
+    auto& region_mutex = region->mutex();
+    region_mutex.lock_shared_read();
+    std::shared_lock region_lock(region_mutex, std::adopt_lock);
+    return region->has_value(cx, cz);
 }
 AmuletNBT::NamedTag AnvilDimensionLayer::get_chunk_data(std::int64_t cx, std::int64_t cz)
 {
+    std::shared_ptr<AnvilRegion> region;
     try {
-        return get_region(cx >> 5, cz >> 5)->get_value(cx, cz);
+        region = get_region(cx >> 5, cz >> 5);
     } catch (RegionDoesNotExist) {
         throw ChunkDoesNotExist("Chunk " + std::to_string(cx) + ", " + std::to_string(cz) + " does not exist.");
     }
+    auto& region_mutex = region->mutex();
+    region_mutex.lock_shared_read();
+    std::shared_lock region_lock(region_mutex, std::adopt_lock);
+    return region->get_value(cx, cz);
 }
 void AnvilDimensionLayer::set_chunk_data(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag)
 {
-    return get_region(cx >> 5, cz >> 5, true)->set_value(cx, cz, tag);
+    auto region = get_region(cx >> 5, cz >> 5, true);
+    auto& region_mutex = region->mutex();
+    region_mutex.lock_shared_read_write();
+    std::shared_lock region_lock(region_mutex, std::adopt_lock);
+    return region->set_value(cx, cz, tag);
 }
 void AnvilDimensionLayer::delete_chunk(std::int64_t cx, std::int64_t cz)
 {
+    std::shared_ptr<AnvilRegion> region;
     try {
-        get_region(cx >> 5, cz >> 5)->delete_value(cx, cz);
+        region = get_region(cx >> 5, cz >> 5);
     } catch (RegionDoesNotExist) {
         return;
     }
+    auto& region_mutex = region->mutex();
+    region_mutex.lock_shared_read_write();
+    std::shared_lock region_lock(region_mutex, std::adopt_lock);
+    region->delete_value(cx, cz);
 }
 void AnvilDimensionLayer::compact()
 {
@@ -208,6 +228,7 @@ void AnvilDimensionLayer::compact()
     }
 }
 
+Amulet::OrderedMutex& AnvilDimension::mutex() { return _public_mutex; }
 const std::filesystem::path& AnvilDimension::directory() const { return _directory; }
 bool AnvilDimension::mcc() const { return _mcc; }
 
@@ -242,6 +263,9 @@ AnvilChunkCoordIterator AnvilDimension::all_chunk_coords() const
 }
 bool AnvilDimension::has_chunk(std::int64_t cx, std::int64_t cz) const
 {
+    auto& layer_mutex = _default_layer->mutex();
+    layer_mutex.lock_shared_read();
+    std::shared_lock layer_lock(layer_mutex, std::adopt_lock);
     return _default_layer->has_chunk(cx, cz);
 }
 std::map<std::string, AmuletNBT::NamedTag> AnvilDimension::get_chunk_data(std::int64_t cx, std::int64_t cz)
@@ -249,6 +273,9 @@ std::map<std::string, AmuletNBT::NamedTag> AnvilDimension::get_chunk_data(std::i
     std::shared_lock lock(_layers_mutex);
     std::map<std::string, AmuletNBT::NamedTag> chunk_data;
     for (const auto& [layer_name, layer] : _layers) {
+        auto& layer_mutex = layer->mutex();
+        layer_mutex.lock_shared_read();
+        std::shared_lock layer_lock(layer_mutex, std::adopt_lock);
         try {
             chunk_data.emplace(layer_name, layer->get_chunk_data(cx, cz));
         } catch (ChunkDoesNotExist) {
@@ -262,15 +289,21 @@ std::map<std::string, AmuletNBT::NamedTag> AnvilDimension::get_chunk_data(std::i
 void AnvilDimension::delete_chunk(std::int64_t cx, std::int64_t cz)
 {
     std::shared_lock lock(_layers_mutex);
-    for (const auto& layer : _layers) {
-        layer.second->delete_chunk(cx, cz);
+    for (const auto& [_, layer] : _layers) {
+        auto& layer_mutex = layer->mutex();
+        layer_mutex.lock_shared_read_write();
+        std::shared_lock layer_lock(layer_mutex, std::adopt_lock);
+        layer->delete_chunk(cx, cz);
     }
 }
 void AnvilDimension::compact()
 {
     std::shared_lock lock(_layers_mutex);
-    for (const auto& layer : _layers) {
-        layer.second->compact();
+    for (const auto& [_, layer] : _layers) {
+        auto& layer_mutex = layer->mutex();
+        layer_mutex.lock();
+        std::unique_lock layer_lock(layer_mutex, std::adopt_lock);
+        layer->compact();
     }
 }
 
