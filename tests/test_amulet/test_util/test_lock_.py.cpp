@@ -6,7 +6,7 @@
 
 namespace py = pybind11;
 
-void init_test_mutex(py::module m_parent){
-    auto m = m_parent.def_submodule("test_mutex_");
+void init_test_lock(py::module m_parent){
+    auto m = m_parent.def_submodule("test_lock_");
     m.def("throw_deadlock", [](){ throw Amulet::Deadlock("Deadlock encountered."); });
 }
