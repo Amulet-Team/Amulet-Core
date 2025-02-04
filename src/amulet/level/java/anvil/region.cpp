@@ -114,7 +114,7 @@ AnvilRegion::~AnvilRegion()
 }
 
 // A mutex which can be used to synchronise calls.
-std::recursive_mutex& AnvilRegion::mutex() const { return _shared->mutex; }
+Amulet::OrderedMutex& AnvilRegion::mutex() const { return _shared->public_mutex; }
 
 // The path of the region file.
 // Thread safe.

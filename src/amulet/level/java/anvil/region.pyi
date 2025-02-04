@@ -109,7 +109,7 @@ class AnvilRegion:
         """
 
     @property
-    def lock(self) -> amulet.utils.lock.RLock:
+    def lock(self) -> amulet.utils.lock.OrderedLock:
         """
         A mutex which can be used to synchronise calls.
         Thread safe.

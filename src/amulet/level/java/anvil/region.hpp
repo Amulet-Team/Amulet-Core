@@ -13,6 +13,7 @@
 
 #include <amulet/dll.hpp>
 #include <amulet_nbt/tag/named_tag.hpp>
+#include <amulet/utils/mutex.hpp>
 
 #include "sector_manager.hpp"
 
@@ -84,6 +85,7 @@ private:
         std::fstream regionf;
         // This mutex must be acquired to access the container data or the file.
         std::recursive_mutex mutex;
+        Amulet::OrderedMutex public_mutex;
     };
 
 public:
@@ -186,7 +188,7 @@ public:
 
     // A mutex which can be used to synchronise calls.
     // Thread safe.
-    AMULET_CORE_EXPORT std::recursive_mutex& mutex() const;
+    AMULET_CORE_EXPORT Amulet::OrderedMutex& mutex() const;
 
     // The path of the region file.
     // Thread safe.
