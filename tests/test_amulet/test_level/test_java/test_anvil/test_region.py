@@ -87,7 +87,7 @@ class AnvilRegionTestCase(unittest.TestCase):
                 increment_thread_count()
                 with condition:
                     condition.wait_for(lambda: thread_count == 3)
-                with region.lock:
+                with region.lock.unique():
                     increment_thread_count()
                     exec_order.append(1)
                     region.set_value(
@@ -120,7 +120,7 @@ class AnvilRegionTestCase(unittest.TestCase):
                 increment_thread_count()
                 with condition:
                     condition.wait_for(lambda: thread_count == 4)
-                with region.lock:
+                with region.lock.unique():
                     increment_thread_count()
                     exec_order.append(3)
                     region.set_value(
