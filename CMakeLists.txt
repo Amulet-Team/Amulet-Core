@@ -67,6 +67,7 @@ list(REMOVE_ITEM AMULET_HEADERS ${AMULET_EXTENSION_HEADERS})
 
 # Add implementation
 add_library(amulet_core SHARED)
+target_link_libraries( amulet_core PRIVATE pybind11::module ) # TODO: remove this when it doesn't depend on pybind11
 target_link_libraries( amulet_core PRIVATE zlibstatic )
 target_link_libraries( amulet_core PRIVATE lz4_static )
 target_link_libraries( amulet_core PRIVATE amulet_nbt )
