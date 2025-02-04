@@ -18,6 +18,15 @@ from amulet.utils.lock import (
     SharedLock,
 )
 
+if sys.platform == "darwin":
+    # macos runners seem to be slower
+    # increase sleep time so delay is negligible
+    SLEEP_TIME = 1
+    TIME_TOLERANCE = 0.5
+else:
+    SLEEP_TIME = 0.1
+    TIME_TOLERANCE = 0.1
+
 
 class ThreadStepManager:
     def __init__(self):
@@ -76,14 +85,9 @@ class Abstract:
 
             dt = max(end_times) - t
             self.assertTrue(
-                expected_time - 0.01 <= dt <= expected_time + 0.5,
+                expected_time - 0.01 <= dt <= expected_time + TIME_TOLERANCE,
                 f"Expected {expected_time}s. Got {dt}s",
             )
-
-
-# MacOS runners
-# SLEEP_TIME = 0.5 if sys.platform == "darwin" else 0.1
-SLEEP_TIME = 0.1
 
 
 class LockTestCase(Abstract.LockTestCase):
@@ -723,7 +727,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
 
         expected_time = sleep_time * 3
         self.assertTrue(
-            expected_time - 0.01 <= dt <= expected_time + 0.5,
+            expected_time - 0.01 <= dt <= expected_time + TIME_TOLERANCE,
             f"Expected {expected_time}s. Got {dt}s",
         )
 
@@ -819,7 +823,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                     dt = max(end_times) - t
 
                     self.assertTrue(
-                        0.99 <= dt <= 1.5,
+                        0.99 <= dt <= 1 + TIME_TOLERANCE,
                         f"Expected 1s. Got {dt}s",
                     )
 
@@ -934,6 +938,6 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                         self.assertTrue(result_2)
 
                         self.assertTrue(
-                            1.99 <= dt <= 2.5,
+                            1.99 <= dt <= 2 + TIME_TOLERANCE,
                             f"Expected 2s. Got {dt}s",
                         )
