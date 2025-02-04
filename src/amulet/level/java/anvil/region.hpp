@@ -204,7 +204,7 @@ public:
 
     // Get the coordinates of all values in the region file.
     // Coordinates are in world space.
-    // External lock optional.
+    // External shared read-only lock optional.
     AMULET_CORE_EXPORT std::vector<std::pair<std::int64_t, std::int64_t>> get_coords();
 
     // Is the coordinate in the region.
@@ -215,29 +215,29 @@ public:
 
     // Is there a value stored for this coordinate.
     // Coordinates are in world space.
-    // External lock optional.
+    // External shared read-only lock optional.
     AMULET_CORE_EXPORT bool has_value(std::int64_t cx, std::int64_t cz);
 
     // Get the value for this coordinate.
     // Coordinates are in world space.
-    // Thread safe.
+    // External shared read lock optional.
     AMULET_CORE_EXPORT AmuletNBT::NamedTag get_value(std::int64_t cx, std::int64_t cz);
     // AMULET_CORE_EXPORT std::vector<std::optional<AmuletNBT::NamedTag>> get_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords);
 
     // Set the value for this coordinate.
     // Coordinates are in world space.
-    // Thread safe.
+    // External shared read-write lock required.
     AMULET_CORE_EXPORT void set_value(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag);
     // AMULET_CORE_EXPORT void set_batch(std::vector<std::tuple<std::int64_t, std::int64_t, AmuletNBT::NamedTag>>& batch);
 
     // Delete the chunk data.
     // Coordinates are in world space.
-    // Thread safe.
+    // External shared read-write lock required.
     AMULET_CORE_EXPORT void delete_value(std::int64_t cx, std::int64_t cz);
 
     // Delete multiple chunk's data.
     // Coordinates are in world space.
-    // Thread safe.
+    // External shared read-write lock required.
     AMULET_CORE_EXPORT void delete_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords);
 
     // Compact the region file.
@@ -254,7 +254,7 @@ public:
     // Destroy the instance.
     // Calls made after this will fail.
     // This may only be called by the owner of the instance.
-    // Thread safe.
+    // External unique lock required.
     AMULET_CORE_EXPORT void destroy();
 
     // Get the object responsible for closing the region file.

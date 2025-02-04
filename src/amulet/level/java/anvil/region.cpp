@@ -255,7 +255,8 @@ void AnvilRegion::close()
 
 // Destroy the instance.
 // Calls made after this will fail.
-// Thread safe.
+// This may only be called by the owner of the instance.
+// External unique lock required.
 void AnvilRegion::destroy()
 {
     std::lock_guard lock(_shared->mutex);
@@ -267,7 +268,7 @@ void AnvilRegion::destroy()
 
 // Get the coordinates of all values in the region file.
 // Coordinates are in world space.
-// External lock optional.
+// External shared read-only lock optional.
 std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion::get_coords()
 {
     std::lock_guard lock(_shared->mutex);
@@ -300,7 +301,7 @@ void AnvilRegion::validate_coord(std::int64_t cx, std::int64_t cz) const
 
 // Is there a value stored for this coordinate.
 // Coordinates are in world space.
-// External lock optional.
+// External shared read-only lock optional.
 bool AnvilRegion::has_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
@@ -442,7 +443,7 @@ static AmuletNBT::NamedTag decompress(char compression_type, const std::string_v
 
 // Get the value for this coordinate.
 // Coordinates are in world space.
-// Thread safe.
+// External shared read lock optional.
 AmuletNBT::NamedTag AnvilRegion::get_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
@@ -576,7 +577,7 @@ void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
 
 // Set the value for this coordinate.
 // Coordinates are in world space.
-// Thread safe.
+// External shared read-write lock required.
 void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag)
 {
     validate_coord(cx, cz);
@@ -620,7 +621,7 @@ void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, const AmuletNBT::N
 
 // Delete the chunk data.
 // Coordinates are in world space.
-// Thread safe.
+// External shared read-write lock required.
 void AnvilRegion::delete_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
@@ -635,6 +636,9 @@ void AnvilRegion::delete_value(std::int64_t cx, std::int64_t cz)
     _set_data<std::nullopt_t>(cx, cz, std::nullopt);
 }
 
+// Delete multiple chunk's data.
+// Coordinates are in world space.
+// External shared read-write lock required.
 void AnvilRegion::delete_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords)
 {
     std::lock_guard lock(_shared->mutex);

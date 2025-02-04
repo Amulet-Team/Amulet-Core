@@ -53,14 +53,14 @@ class AnvilRegion:
         """
         Delete multiple chunk's data.
         Coordinates are in world space.
-        Thread safe.
+        External shared read-write lock required.
         """
 
     def delete_value(self, cx: int, cz: int) -> None:
         """
         Delete the chunk data.
         Coordinates are in world space.
-        Thread safe.
+        External shared read-write lock required.
         """
 
     def destroy(self) -> None:
@@ -68,14 +68,14 @@ class AnvilRegion:
         Destroy the instance.
         Calls made after this will fail.
         This may only be called by the owner of the instance.
-        Thread safe.
+        External unique lock required.
         """
 
     def get_coords(self) -> list[tuple[int, int]]:
         """
         Get the coordinates of all values in the region file.
         Coordinates are in world space.
-        External lock optional.
+        External shared read-only lock optional.
         """
 
     def get_file_closer(self) -> AnvilRegion.FileCloser:
@@ -91,27 +91,27 @@ class AnvilRegion:
         """
         Get the value for this coordinate.
         Coordinates are in world space.
-        Thread safe.
+        External shared read lock optional.
         """
 
     def has_value(self, cx: int, cz: int) -> bool:
         """
         Is there a value stored for this coordinate.
         Coordinates are in world space.
-        External lock optional.
+        External shared read-only lock optional.
         """
 
     def set_value(self, cx: int, cz: int, tag: amulet_nbt.NamedTag) -> None:
         """
         Set the value for this coordinate.
         Coordinates are in world space.
-        Thread safe.
+        External shared read-write lock required.
         """
 
     @property
     def lock(self) -> amulet.utils.lock.OrderedLock:
         """
-        A mutex which can be used to synchronise calls.
+        A lock which can be used to synchronise calls.
         Thread safe.
         """
 
@@ -126,12 +126,14 @@ class AnvilRegion:
     def rx(self) -> int:
         """
         The region x coordinate of the file.
+        Thread safe.
         """
 
     @property
     def rz(self) -> int:
         """
         The region z coordinate of the file.
+        Thread safe.
         """
 
 class RegionDoesNotExist(RuntimeError):

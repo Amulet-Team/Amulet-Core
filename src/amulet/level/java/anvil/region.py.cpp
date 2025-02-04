@@ -45,7 +45,7 @@ py::module init_anvil_region(py::module m_parent)
     AnvilRegion.def_property_readonly(
         "lock",
         &Amulet::AnvilRegion::mutex,
-        py::doc("A mutex which can be used to synchronise calls.\n"
+        py::doc("A lock which can be used to synchronise calls.\n"
                 "Thread safe."));
     AnvilRegion.def_property_readonly(
         "path",
@@ -55,11 +55,13 @@ py::module init_anvil_region(py::module m_parent)
     AnvilRegion.def_property_readonly(
         "rx",
         &Amulet::AnvilRegion::rx,
-        py::doc("The region x coordinate of the file."));
+        py::doc("The region x coordinate of the file.\n"
+                "Thread safe."));
     AnvilRegion.def_property_readonly(
         "rz",
         &Amulet::AnvilRegion::rz,
-        py::doc("The region z coordinate of the file."));
+        py::doc("The region z coordinate of the file.\n"
+                "Thread safe."));
 
     AnvilRegion.def(
         "get_coords",
@@ -67,7 +69,7 @@ py::module init_anvil_region(py::module m_parent)
         py::call_guard<py::gil_scoped_release>(),
         py::doc("Get the coordinates of all values in the region file.\n"
                 "Coordinates are in world space.\n"
-                "External lock optional."));
+                "External shared read-only lock optional."));
     AnvilRegion.def(
         "contains",
         &Amulet::AnvilRegion::contains,
@@ -86,7 +88,7 @@ py::module init_anvil_region(py::module m_parent)
         py::call_guard<py::gil_scoped_release>(),
         py::doc("Is there a value stored for this coordinate.\n"
                 "Coordinates are in world space.\n"
-                "External lock optional."));
+                "External shared read-only lock optional."));
     AnvilRegion.def(
         "get_value",
         &Amulet::AnvilRegion::get_value,
@@ -95,7 +97,7 @@ py::module init_anvil_region(py::module m_parent)
         py::call_guard<py::gil_scoped_release>(),
         py::doc("Get the value for this coordinate.\n"
                 "Coordinates are in world space.\n"
-                "Thread safe."));
+                "External shared read lock optional."));
     AnvilRegion.def(
         "set_value",
         &Amulet::AnvilRegion::set_value,
@@ -105,7 +107,7 @@ py::module init_anvil_region(py::module m_parent)
         py::call_guard<py::gil_scoped_release>(),
         py::doc("Set the value for this coordinate.\n"
                 "Coordinates are in world space.\n"
-                "Thread safe."));
+                "External shared read-write lock required."));
     AnvilRegion.def(
         "delete_value",
         &Amulet::AnvilRegion::delete_value,
@@ -114,7 +116,7 @@ py::module init_anvil_region(py::module m_parent)
         py::call_guard<py::gil_scoped_release>(),
         py::doc("Delete the chunk data.\n"
                 "Coordinates are in world space.\n"
-                "Thread safe."));
+                "External shared read-write lock required."));
     AnvilRegion.def(
         "delete_batch",
         &Amulet::AnvilRegion::delete_batch,
@@ -122,7 +124,7 @@ py::module init_anvil_region(py::module m_parent)
         py::call_guard<py::gil_scoped_release>(),
         py::doc("Delete multiple chunk's data.\n"
                 "Coordinates are in world space.\n"
-                "Thread safe."));
+                "External shared read-write lock required."));
     AnvilRegion.def(
         "compact",
         &Amulet::AnvilRegion::compact,
@@ -145,7 +147,7 @@ py::module init_anvil_region(py::module m_parent)
         py::doc("Destroy the instance.\n"
                 "Calls made after this will fail.\n"
                 "This may only be called by the owner of the instance.\n"
-                "Thread safe."));
+                "External unique lock required."));
     AnvilRegion.def(
         "get_file_closer",
         &Amulet::AnvilRegion::get_file_closer,
