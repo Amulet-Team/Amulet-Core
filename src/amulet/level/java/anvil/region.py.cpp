@@ -69,6 +69,7 @@ py::module init_anvil_region(py::module m_parent)
         py::call_guard<py::gil_scoped_release>(),
         py::doc("Get the coordinates of all values in the region file.\n"
                 "Coordinates are in world space.\n"
+                "External shared read lock required.\n"
                 "External shared read-only lock optional."));
     AnvilRegion.def(
         "contains",
@@ -88,6 +89,7 @@ py::module init_anvil_region(py::module m_parent)
         py::call_guard<py::gil_scoped_release>(),
         py::doc("Is there a value stored for this coordinate.\n"
                 "Coordinates are in world space.\n"
+                "External shared read lock required.\n"
                 "External shared read-only lock optional."));
     AnvilRegion.def(
         "get_value",
@@ -97,7 +99,7 @@ py::module init_anvil_region(py::module m_parent)
         py::call_guard<py::gil_scoped_release>(),
         py::doc("Get the value for this coordinate.\n"
                 "Coordinates are in world space.\n"
-                "External shared read lock optional."));
+                "External shared read lock required."));
     AnvilRegion.def(
         "set_value",
         &Amulet::AnvilRegion::set_value,

@@ -268,6 +268,7 @@ void AnvilRegion::destroy()
 
 // Get the coordinates of all values in the region file.
 // Coordinates are in world space.
+// External shared read lock required.
 // External shared read-only lock optional.
 std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion::get_coords()
 {
@@ -301,6 +302,7 @@ void AnvilRegion::validate_coord(std::int64_t cx, std::int64_t cz) const
 
 // Is there a value stored for this coordinate.
 // Coordinates are in world space.
+// External shared read lock required.
 // External shared read-only lock optional.
 bool AnvilRegion::has_value(std::int64_t cx, std::int64_t cz)
 {
@@ -443,7 +445,7 @@ static AmuletNBT::NamedTag decompress(char compression_type, const std::string_v
 
 // Get the value for this coordinate.
 // Coordinates are in world space.
-// External shared read lock optional.
+// External shared read lock required.
 AmuletNBT::NamedTag AnvilRegion::get_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);

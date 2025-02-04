@@ -204,6 +204,7 @@ public:
 
     // Get the coordinates of all values in the region file.
     // Coordinates are in world space.
+    // External shared read lock required.
     // External shared read-only lock optional.
     AMULET_CORE_EXPORT std::vector<std::pair<std::int64_t, std::int64_t>> get_coords();
 
@@ -215,12 +216,13 @@ public:
 
     // Is there a value stored for this coordinate.
     // Coordinates are in world space.
+    // External shared read lock required.
     // External shared read-only lock optional.
     AMULET_CORE_EXPORT bool has_value(std::int64_t cx, std::int64_t cz);
 
     // Get the value for this coordinate.
     // Coordinates are in world space.
-    // External shared read lock optional.
+    // External shared read lock required.
     AMULET_CORE_EXPORT AmuletNBT::NamedTag get_value(std::int64_t cx, std::int64_t cz);
     // AMULET_CORE_EXPORT std::vector<std::optional<AmuletNBT::NamedTag>> get_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords);
 

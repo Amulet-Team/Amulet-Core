@@ -75,6 +75,7 @@ class AnvilRegion:
         """
         Get the coordinates of all values in the region file.
         Coordinates are in world space.
+        External shared read lock required.
         External shared read-only lock optional.
         """
 
@@ -91,13 +92,14 @@ class AnvilRegion:
         """
         Get the value for this coordinate.
         Coordinates are in world space.
-        External shared read lock optional.
+        External shared read lock required.
         """
 
     def has_value(self, cx: int, cz: int) -> bool:
         """
         Is there a value stored for this coordinate.
         Coordinates are in world space.
+        External shared read lock required.
         External shared read-only lock optional.
         """
 
