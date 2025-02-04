@@ -46,7 +46,6 @@ static const std::uint64_t MaxRegionSize = SectorSize * 255; // The maximum size
 
 static const std::regex region_regex(R"(r\.(\-?\d+)\.(\-?\d+)\.mca)");
 
-std::mutex region_file_cache_mutex;
 static LRICache<size_t, std::shared_ptr<AnvilRegion::FileCloser>> region_file_cache(64);
 
 std::pair<std::int64_t, std::int64_t> parse_region_filename(const std::string& filename)
@@ -114,17 +113,23 @@ AnvilRegion::~AnvilRegion()
     close();
 }
 
-// The path of the region file. Thread safe.
+// A mutex which can be used to synchronise calls.
+Amulet::OrderedMutex& AnvilRegion::mutex() const { return _shared->public_mutex; }
+
+// The path of the region file.
+// Thread safe.
 std::filesystem::path AnvilRegion::path() const { return _path; }
 
-// The region x coordinate of the file. Thread safe.
+// The region x coordinate of the file.
+// Thread safe.
 std::int64_t AnvilRegion::rx() const { return _rx; }
 
-// The region z coordinate of the file. Thread safe.
+// The region z coordinate of the file.
+// Thread safe.
 std::int64_t AnvilRegion::rz() const { return _rz; }
 
 // Create the region file.
-// Lock must be acquired before calling this.
+// Internal lock required.
 void AnvilRegion::create_region_file()
 {
     auto& regionf = _shared->regionf;
@@ -137,7 +142,7 @@ void AnvilRegion::create_region_file()
 }
 
 // Open the region file and fix any size issues.
-// Lock must be acquired before calling this.
+// Internal lock required.
 void AnvilRegion::open_region_file()
 {
     auto& regionf = _shared->regionf;
@@ -159,7 +164,7 @@ void AnvilRegion::open_region_file()
 }
 
 // Create or open the region file if it is closed.
-// Lock must be acquired before calling this.
+// Internal lock required.
 void AnvilRegion::create_open_region_file_if_closed()
 {
     if (!_shared->regionf.is_open()) {
@@ -172,7 +177,7 @@ void AnvilRegion::create_open_region_file_if_closed()
 }
 
 // Read the header data into memory.
-// Lock must be acquired before calling this.
+// Internal lock required.
 void AnvilRegion::read_file_header()
 {
     if (_sector_manager) {
@@ -216,25 +221,25 @@ void AnvilRegion::read_file_header()
     }
 }
 
-// Close the file object if open.
+// Close the file object.
 // This is automatically called when the instance is destroyed but may be called earlier.
-// Lock must be acquired before calling this.
+// Internal lock required.
 void AnvilRegion::_close()
 {
     _shared->regionf.close();
-    std::lock_guard lock(region_file_cache_mutex);
+    std::lock_guard lock(region_file_cache.mutex);
     region_file_cache.remove(reinterpret_cast<size_t>(this));
 }
 
 // Close the file object if open.
 // This is automatically called when the instance is destroyed but may be called earlier.
-// Lock must be acquired before calling this.
+// Internal lock required.
 void AnvilRegion::_close_if_open()
 {
     if (_shared->regionf.is_open()) {
         _close();
     } else {
-        std::lock_guard lock(region_file_cache_mutex);
+        std::lock_guard lock(region_file_cache.mutex);
         region_file_cache.remove(reinterpret_cast<size_t>(this));
     }
 }
@@ -250,7 +255,8 @@ void AnvilRegion::close()
 
 // Destroy the instance.
 // Calls made after this will fail.
-// Thread safe.
+// This may only be called by the owner of the instance.
+// External unique lock required.
 void AnvilRegion::destroy()
 {
     std::lock_guard lock(_shared->mutex);
@@ -262,7 +268,8 @@ void AnvilRegion::destroy()
 
 // Get the coordinates of all values in the region file.
 // Coordinates are in world space.
-// Thread safe.
+// External shared read lock required.
+// External shared read-only lock optional.
 std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion::get_coords()
 {
     std::lock_guard lock(_shared->mutex);
@@ -280,12 +287,12 @@ std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion::get_coords()
 // This returns true even if there is no value for the coordinate.
 // Coordinates are in world space.
 // Thread safe.
-bool AnvilRegion::contains(std::int64_t cx, std::int64_t cz)
+bool AnvilRegion::contains(std::int64_t cx, std::int64_t cz) const
 {
     return _rx * 32 <= cx && cx < (_rx + 1) * 32 && _rz * 32 <= cz && cz < (_rz + 1) * 32;
 }
 
-void AnvilRegion::validate_coord(std::int64_t cx, std::int64_t cz)
+void AnvilRegion::validate_coord(std::int64_t cx, std::int64_t cz) const
 {
     if (!contains(cx, cz)) {
         throw std::invalid_argument(
@@ -295,7 +302,8 @@ void AnvilRegion::validate_coord(std::int64_t cx, std::int64_t cz)
 
 // Is there a value stored for this coordinate.
 // Coordinates are in world space.
-// Thread safe.
+// External shared read lock required.
+// External shared read-only lock optional.
 bool AnvilRegion::has_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
@@ -437,7 +445,7 @@ static AmuletNBT::NamedTag decompress(char compression_type, const std::string_v
 
 // Get the value for this coordinate.
 // Coordinates are in world space.
-// Thread safe.
+// External shared read lock required.
 AmuletNBT::NamedTag AnvilRegion::get_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
@@ -483,7 +491,7 @@ AmuletNBT::NamedTag AnvilRegion::get_value(std::int64_t cx, std::int64_t cz)
 }
 
 // Set chunk data.
-// Lock must be acquired before calling this.
+// Internal lock required.
 // Caller must ensure the file is open.
 template <typename T>
 void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
@@ -571,7 +579,7 @@ void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
 
 // Set the value for this coordinate.
 // Coordinates are in world space.
-// Thread safe.
+// External shared read-write lock required.
 void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag)
 {
     validate_coord(cx, cz);
@@ -615,7 +623,7 @@ void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, const AmuletNBT::N
 
 // Delete the chunk data.
 // Coordinates are in world space.
-// Thread safe.
+// External shared read-write lock required.
 void AnvilRegion::delete_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
@@ -630,6 +638,9 @@ void AnvilRegion::delete_value(std::int64_t cx, std::int64_t cz)
     _set_data<std::nullopt_t>(cx, cz, std::nullopt);
 }
 
+// Delete multiple chunk's data.
+// Coordinates are in world space.
+// External shared read-write lock required.
 void AnvilRegion::delete_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords)
 {
     std::lock_guard lock(_shared->mutex);
@@ -756,7 +767,7 @@ std::shared_ptr<AnvilRegion::FileCloser> AnvilRegion::_get_file_closer()
         closer = std::make_shared<AnvilRegion::FileCloser>(_shared);
         _closer = closer;
     }
-    std::lock_guard lock(region_file_cache_mutex);
+    std::lock_guard lock(region_file_cache.mutex);
     region_file_cache.add(reinterpret_cast<size_t>(this), closer);
     return closer;
 }

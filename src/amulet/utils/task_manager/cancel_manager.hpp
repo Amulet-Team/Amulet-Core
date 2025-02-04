@@ -37,11 +37,11 @@ class AbstractCancelManager {
 public:
     virtual ~AbstractCancelManager() = default;
 
-    // Request the operation be canceled.
+    // Request the operation be cancelled.
     // It is down to the operation to implement support for this.
     virtual void cancel() = 0;
 
-    // Has cancel been called to signal that the operation should be canceled.
+    // Has cancel been called to signal that the operation should be cancelled.
     virtual bool is_cancel_requested() = 0;
 
     // Register a function to get called when cancel is called.

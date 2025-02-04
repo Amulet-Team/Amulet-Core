@@ -15,6 +15,7 @@ on:
 jobs:
   unittests:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -33,7 +34,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install --no-cache-dir -vv .
         pip install pybind11[global]==2.13.6
-        pip install Amulet_pybind11_extensions@git+https://github.com/Amulet-Team/Amulet-pybind11-extensions.git@f85ed8af51dad936d7245581206b166929ce8876
+        pip install Amulet_pybind11_extensions@git+https://github.com/Amulet-Team/Amulet-pybind11-extensions.git@f781177e52f352ea0c1750e9219a1a84f4ddd92f
         python tests/compile.py
     - name: Test with unittest
       run: python -m unittest discover -v -s tests

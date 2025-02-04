@@ -131,7 +131,7 @@ def get_fallback_signal_instance_constructor() -> SignalInstanceConstructor:
 
         @staticmethod
         def _wrap_slot(
-            slot: Callable[[*CallArgs], None] | SignalInstance[*CallArgs] | None
+            slot: Callable[[*CallArgs], None] | SignalInstance[*CallArgs] | None,
         ) -> (
             Callable[[*CallArgs], None]
             | WeakMethod[Callable[[*CallArgs], None]]
