@@ -268,10 +268,10 @@ bool AnvilDimension::has_chunk(std::int64_t cx, std::int64_t cz) const
     std::shared_lock layer_lock(layer_mutex, std::adopt_lock);
     return _default_layer->has_chunk(cx, cz);
 }
-std::map<std::string, AmuletNBT::NamedTag> AnvilDimension::get_chunk_data(std::int64_t cx, std::int64_t cz)
+JavaRawChunk AnvilDimension::get_chunk_data(std::int64_t cx, std::int64_t cz)
 {
     std::shared_lock lock(_layers_mutex);
-    std::map<std::string, AmuletNBT::NamedTag> chunk_data;
+    JavaRawChunk chunk_data;
     for (const auto& [layer_name, layer] : _layers) {
         auto& layer_mutex = layer->mutex();
         layer_mutex.lock_shared_read();
