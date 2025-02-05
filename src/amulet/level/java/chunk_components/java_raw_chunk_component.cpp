@@ -21,7 +21,7 @@ std::optional<std::string> JavaRawChunkComponent::serialise() const
         writer.writeNumeric<std::uint64_t>(raw_data->size());
         for (const auto& [k, v] : *raw_data) {
             writer.writeSizeAndBytes(k);
-            AmuletNBT::write_nbt(writer, *v);
+            AmuletNBT::encode_nbt(writer, *v);
         }
         return writer.getBuffer();
     } else {
@@ -40,7 +40,7 @@ void JavaRawChunkComponent::deserialise(std::optional<std::string> data)
             auto count = reader.readNumeric<std::uint64_t>();
             for (auto i = 0; i < count; i++) {
                 auto key = reader.readSizeAndBytes();
-                auto tag = std::make_shared<AmuletNBT::NamedTag>(AmuletNBT::read_nbt(reader));
+                auto tag = std::make_shared<AmuletNBT::NamedTag>(AmuletNBT::decode_nbt(reader));
                 raw_data->emplace(key, tag);
             }
             _raw_data = raw_data;

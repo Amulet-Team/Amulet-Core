@@ -428,15 +428,15 @@ static AmuletNBT::NamedTag decompress(char compression_type, const std::string_v
     {
         std::string dst;
         decompress_zlib(data, dst);
-        return AmuletNBT::read_nbt(dst, std::endian::big, AmuletNBT::mutf8_to_utf8);
+        return AmuletNBT::decode_nbt(dst, std::endian::big, AmuletNBT::mutf8_to_utf8);
     }
     case 3: // None
-        return AmuletNBT::read_nbt(data, std::endian::big, AmuletNBT::mutf8_to_utf8);
+        return AmuletNBT::decode_nbt(data, std::endian::big, AmuletNBT::mutf8_to_utf8);
     case 4: // LZ4
     {
         std::string dst;
         decompress_lz4(data, dst);
-        return AmuletNBT::read_nbt(dst, std::endian::big, AmuletNBT::mutf8_to_utf8);
+        return AmuletNBT::decode_nbt(dst, std::endian::big, AmuletNBT::mutf8_to_utf8);
     }
     default:
         throw std::runtime_error("Unknown chunk compression format " + std::to_string(static_cast<std::int16_t>(compression_type)));
@@ -587,7 +587,7 @@ void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, const AmuletNBT::N
     AmuletNBT::BinaryWriter writer(
         std::endian::big,
         &AmuletNBT::utf8_to_mutf8);
-    AmuletNBT::write_nbt(writer, tag);
+    AmuletNBT::encode_nbt(writer, tag);
     const std::string& bnbt = writer.getBuffer();
 
     // Get the size of the data
