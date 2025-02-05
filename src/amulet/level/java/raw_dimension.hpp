@@ -54,40 +54,29 @@ private:
     }
 
 public:
-    OrderedMutex& mutex()
-    {
-        return _public_mutex;
-    }
+    // The public mutex
+    // Thread safe.
+    AMULET_CORE_EXPORT OrderedMutex& mutex();
 
     // The identifier for this dimension. eg. "minecraft:overworld".
     // Thread safe.
-    AMULET_CORE_EXPORT const DimensionID& get_dimension_id() const {
-        return _dimension_id;
-    }
+    AMULET_CORE_EXPORT const DimensionID& get_dimension_id() const;
 
     // The relative path to the dimension. eg. "DIM1".
     // Thread safe.
-    AMULET_CORE_EXPORT const JavaInternalDimensionID& get_relative_path() const {
-        return _relative_path;
-    }
+    AMULET_CORE_EXPORT const JavaInternalDimensionID& get_relative_path() const;
 
     // The selection box that fills the whole world.
     // Thread safe.
-    AMULET_CORE_EXPORT const SelectionBox& get_bounds() const {
-        return _bounds;
-    }
+    AMULET_CORE_EXPORT const SelectionBox& get_bounds() const;
 
     // The default block for this dimension.
     // Thread safe.
-    AMULET_CORE_EXPORT const BlockStack& get_default_block() const {
-        return _default_block;
-    }
+    AMULET_CORE_EXPORT const BlockStack& get_default_block() const;
 
     // The default biome for this dimension.
     // Thread safe.
-    AMULET_CORE_EXPORT const Biome& get_default_biome() const {
-        return _default_biome;
-    }
+    AMULET_CORE_EXPORT const Biome& get_default_biome() const;
 
     // An iterator of all chunk coordinates in the dimension.
     // External shared read lock required.

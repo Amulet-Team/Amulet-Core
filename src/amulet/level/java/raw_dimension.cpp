@@ -5,6 +5,36 @@
 
 namespace Amulet {
 
+OrderedMutex& JavaRawDimension::mutex()
+{
+    return _public_mutex;
+}
+
+const DimensionID& JavaRawDimension::get_dimension_id() const
+{
+    return _dimension_id;
+}
+
+const JavaInternalDimensionID& JavaRawDimension::get_relative_path() const
+{
+    return _relative_path;
+}
+
+const SelectionBox& JavaRawDimension::get_bounds() const
+{
+    return _bounds;
+}
+
+const BlockStack& JavaRawDimension::get_default_block() const
+{
+    return _default_block;
+}
+
+const Biome& JavaRawDimension::get_default_biome() const
+{
+    return _default_biome;
+}
+
 AnvilChunkCoordIterator JavaRawDimension::all_chunk_coords()
 {
     return _anvil_dimension.all_chunk_coords();
