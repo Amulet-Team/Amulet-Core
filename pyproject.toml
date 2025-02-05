@@ -5,7 +5,7 @@ requires = [
     "versioneer",
     "pybind11[global] == 2.13.6",
     "Amulet_pybind11_extensions @ git+https://github.com/Amulet-Team/Amulet-pybind11-extensions.git@f781177e52f352ea0c1750e9219a1a84f4ddd92f",
-    "amulet_nbt == 4.0a10",
+    "amulet_nbt == 4.0a11",
     "amulet_leveldb == 2.0a3",
 ]
 build-backend = "setuptools.build_meta"
@@ -30,7 +30,7 @@ dependencies = [
     "pillow ~= 10.0",
     "amulet_runtime_final ~= 1.1",
     "amulet_compiler_target == 1.0",
-    "amulet_nbt == 4.0a10",
+    "amulet_nbt == 4.0a11",
     "amulet_leveldb ~= 2.0a3",
 ]
 
