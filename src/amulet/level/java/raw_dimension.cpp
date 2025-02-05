@@ -1,46 +1,47 @@
+#include <mutex>
+#include <shared_mutex>
+
 #include "raw_dimension.hpp"
 
 namespace Amulet {
 
-const DimensionID& JavaRawDimension::get_dimension_id() const
+AnvilChunkCoordIterator JavaRawDimension::all_chunk_coords()
 {
-    return _dimension_id;
+    return _anvil_dimension.all_chunk_coords();
 }
-const JavaInternalDimensionID& JavaRawDimension::get_relative_path() const
-{
-    return _relative_path;
-}
-const SelectionBox& JavaRawDimension::get_bounds() const
-{
-    return _bounds;
-}
-const BlockStack& JavaRawDimension::get_default_block() const
-{
-    return _default_block;
-}
-const Biome& JavaRawDimension::get_default_biome() const
-{
-    return _default_biome;
-}
+
 bool JavaRawDimension::has_chunk(std::int64_t cx, std::int64_t cz)
 {
+    auto& mutex = _anvil_dimension.mutex();
+    mutex.lock_shared_read();
+    std::unique_lock lock(mutex, std::adopt_lock);
     return _anvil_dimension.has_chunk(cx, cz);
 }
 void JavaRawDimension::delete_chunk(std::int64_t cx, std::int64_t cz)
 {
-    throw std::runtime_error("NotImplementedError");
+    auto& mutex = _anvil_dimension.mutex();
+    mutex.lock_shared_read_write();
+    std::unique_lock lock(mutex, std::adopt_lock);
+    _anvil_dimension.delete_chunk(cx, cz);
 }
 JavaRawChunk JavaRawDimension::get_raw_chunk(std::int64_t cx, std::int64_t cz)
 {
-    throw std::runtime_error("NotImplementedError");
+    auto& mutex = _anvil_dimension.mutex();
+    mutex.lock_shared_read();
+    std::unique_lock lock(mutex, std::adopt_lock);
+    return _anvil_dimension.get_chunk_data(cx, cz);
 }
 void JavaRawDimension::set_raw_chunk(std::int64_t cx, std::int64_t cz, const JavaRawChunk& chunk)
 {
-    throw std::runtime_error("NotImplementedError");
+    auto& mutex = _anvil_dimension.mutex();
+    mutex.lock_shared_read_write();
+    std::unique_lock lock(mutex, std::adopt_lock);
+    _anvil_dimension.set_chunk_data(cx, cz, chunk);
 }
 void JavaRawDimension::compact()
 {
-    throw std::runtime_error("NotImplementedError");
+    std::unique_lock lock(_anvil_dimension.mutex());
+    _anvil_dimension.compact();
 }
 
 } // namespace Amulet

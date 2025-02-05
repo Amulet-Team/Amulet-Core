@@ -54,39 +54,61 @@ private:
     }
 
 public:
+    OrderedMutex& mutex()
+    {
+        return _public_mutex;
+    }
+
     // The identifier for this dimension. eg. "minecraft:overworld".
     // Thread safe.
-    AMULET_CORE_EXPORT const DimensionID& get_dimension_id() const;
+    AMULET_CORE_EXPORT const DimensionID& get_dimension_id() const {
+        return _dimension_id;
+    }
 
     // The relative path to the dimension. eg. "DIM1".
     // Thread safe.
-    AMULET_CORE_EXPORT const JavaInternalDimensionID& get_relative_path() const;
+    AMULET_CORE_EXPORT const JavaInternalDimensionID& get_relative_path() const {
+        return _relative_path;
+    }
 
     // The selection box that fills the whole world.
     // Thread safe.
-    AMULET_CORE_EXPORT const SelectionBox& get_bounds() const;
+    AMULET_CORE_EXPORT const SelectionBox& get_bounds() const {
+        return _bounds;
+    }
 
     // The default block for this dimension.
     // Thread safe.
-    AMULET_CORE_EXPORT const BlockStack& get_default_block() const;
+    AMULET_CORE_EXPORT const BlockStack& get_default_block() const {
+        return _default_block;
+    }
 
     // The default biome for this dimension.
     // Thread safe.
-    AMULET_CORE_EXPORT const Biome& get_default_biome() const;
+    AMULET_CORE_EXPORT const Biome& get_default_biome() const {
+        return _default_biome;
+    }
 
     // An iterator of all chunk coordinates in the dimension.
-    // AMULET_CORE_EXPORT void all_chunk_coords();
+    // External shared read lock required.
+    // External shared read-only lock optional.
+    AMULET_CORE_EXPORT AnvilChunkCoordIterator all_chunk_coords();
 
     // Does the chunk exist in this dimension.
+    // External shared read lock required.
+    // External shared read-only lock optional.
     AMULET_CORE_EXPORT bool has_chunk(std::int64_t cx, std::int64_t cz);
 
     // Delete the chunk from this dimension.
+    // External shared read-write lock required.
     AMULET_CORE_EXPORT void delete_chunk(std::int64_t cx, std::int64_t cz);
 
     // Get the raw chunk from this dimension.
+    // External shared read lock required.
     AMULET_CORE_EXPORT JavaRawChunk get_raw_chunk(std::int64_t cx, std::int64_t cz);
 
     // Set the chunk in this dimension from raw data.
+    // External shared read-write lock required.
     AMULET_CORE_EXPORT void set_raw_chunk(std::int64_t cx, std::int64_t cz, const JavaRawChunk& chunk);
 
     // Decode a raw chunk to a chunk object.
@@ -96,6 +118,7 @@ public:
     AMULET_CORE_EXPORT JavaRawChunk encode_chunk(JavaChunk& chunk, std::int64_t cx, std::int64_t cz);
 
     // Compact the level.
+    // Thread safe.
     AMULET_CORE_EXPORT void compact();
 };
 
