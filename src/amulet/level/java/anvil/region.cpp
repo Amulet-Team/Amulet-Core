@@ -15,6 +15,7 @@
 #include <zlib.h>
 
 #include <amulet_nbt/nbt_encoding/binary.hpp>
+#include <amulet_nbt/zlib.hpp>
 
 #include <amulet/chunk.hpp>
 #include <amulet/dll.hpp>
@@ -315,60 +316,6 @@ bool AnvilRegion::has_value(std::int64_t cx, std::int64_t cz)
     return _chunk_locations.contains(std::make_pair(cx, cz));
 }
 
-// Decompress zlib or gzip compressed data from src into dst.
-static void decompress_zlib(const std::string_view src, std::string& dst)
-{
-    z_stream stream = {};
-    stream.next_in = reinterpret_cast<z_const Bytef*>(src.data());
-    stream.avail_in = static_cast<uInt>(src.size());
-
-    switch (inflateInit2(&stream, 32 + MAX_WBITS)) {
-    case Z_MEM_ERROR:
-        throw std::bad_alloc();
-    case Z_VERSION_ERROR:
-        throw std::runtime_error("Incompatible zlib library.");
-    case Z_STREAM_ERROR:
-        throw std::runtime_error("zlib stream is invalid.");
-    }
-
-    const size_t chunk_size = 65536;
-    int err;
-    do {
-        // allocate data after dst
-        size_t dst_size = dst.size();
-        dst.resize(dst_size + chunk_size);
-
-        // Assign the location to decompress into
-        stream.next_out = reinterpret_cast<Bytef*>(&dst[dst_size]);
-        stream.avail_out = chunk_size;
-
-        // Decompress
-        err = inflate(&stream, Z_NO_FLUSH);
-
-        // Continue until error or end of stream.
-    } while (err == Z_OK);
-
-    // Remove unused bytes
-    dst.resize(dst.size() - stream.avail_out);
-    // Clear stream data
-    inflateEnd(&stream);
-
-    switch (err) {
-    case Z_STREAM_END:
-        return;
-    case Z_DATA_ERROR:
-        throw std::invalid_argument("Cannot decompress corrupt zlib data.");
-    case Z_MEM_ERROR:
-        throw std::bad_alloc();
-    case Z_STREAM_ERROR:
-        throw std::runtime_error("zlib stream is invalid.");
-    case Z_BUF_ERROR:
-        throw std::runtime_error("Decompression requires a larger buffer than the one provided.");
-    default:
-        throw std::runtime_error("zlib decompression error.");
-    }
-}
-
 static const std::string LZ4_MAGIC = "LZ4Block";
 static const char COMPRESSION_METHOD_RAW = 0x10;
 static const char COMPRESSION_METHOD_LZ4 = 0x20;
@@ -429,7 +376,7 @@ static NamedTag decompress(char compression_type, const std::string_view& data)
     case 2: // Deflate
     {
         std::string dst;
-        decompress_zlib(data, dst);
+        decompress_zlib_gzip(data, dst);
         return decode_nbt(dst, std::endian::big, mutf8_to_utf8);
     }
     case 3: // None
@@ -592,22 +539,12 @@ void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, const NamedTag& ta
     encode_nbt(writer, tag);
     const std::string& bnbt = writer.getBuffer();
 
-    // Get the size of the data
-    if (std::numeric_limits<uLong>::max() < bnbt.size()) {
-        throw std::runtime_error("tag is too large to compress.");
-    }
-    uLong source_length = static_cast<uLong>(bnbt.size());
-    uLongf compressed_size = compressBound(source_length);
-
     // Create the output string
     std::string data;
-    data.resize(compressed_size + 1);
-    data[0] = 2;
-
-    if (compress(reinterpret_cast<Bytef*>(&data[1]), &compressed_size, reinterpret_cast<const Bytef*>(bnbt.data()), source_length) != Z_OK) {
-        throw std::runtime_error("Error compressing data.");
-    };
-    data.resize(compressed_size + 1);
+    // zlib compression
+    data.push_back(2);
+    // Compress
+    compress_zlib(bnbt, data);
 
     if (!_mcc && data.size() + 4 > MaxRegionSize) {
         // Skip saving large chunks if mcc files are not enabled.
