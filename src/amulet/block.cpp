@@ -23,7 +23,7 @@ void Block::serialise(BinaryWriter& writer) const
     for (auto const& [key, val] : properties) {
         writer.writeSizeAndBytes(key);
         std::visit([&writer](auto&& tag) {
-            AmuletNBT::write_nbt(writer, "", tag);
+            AmuletNBT::encode_nbt(writer, "", tag);
         },
             val);
     }
@@ -42,7 +42,7 @@ std::shared_ptr<Block> Block::deserialise(BinaryReader& reader)
         reader.readNumericInto<std::uint64_t>(property_count);
         for (std::uint64_t i = 0; i < property_count; i++) {
             std::string name = reader.readSizeAndBytes();
-            AmuletNBT::NamedTag named_tag = AmuletNBT::read_nbt(reader);
+            AmuletNBT::NamedTag named_tag = AmuletNBT::decode_nbt(reader);
             properties[name] = std::visit([](auto&& tag) -> PropertyValueType {
                 using T = std::decay_t<decltype(tag)>;
                 if constexpr (
@@ -136,14 +136,14 @@ std::string Block::bedrock_blockstate() const
                         } else if (tag == 1) {
                             blockstate += "true";
                         } else {
-                            blockstate += AmuletNBT::write_snbt(tag);
+                            blockstate += AmuletNBT::encode_snbt(tag);
                         }
                     } else if constexpr (std::is_same_v<T, AmuletNBT::StringTag>) {
                         blockstate += "\"";
                         blockstate += tag;
                         blockstate += "\"";
                     } else {
-                        blockstate += AmuletNBT::write_snbt(tag);
+                        blockstate += AmuletNBT::encode_snbt(tag);
                     }
                 },
                 it->second);
@@ -361,7 +361,7 @@ inline PropertyValueType capture_bedrock_blockstate_property_value(const std::st
     offset = value_end;
     AmuletNBT::TagNode node;
     try {
-        node = AmuletNBT::read_snbt(std::string(blockstate.begin() + value_start, blockstate.begin() + value_end));
+        node = AmuletNBT::decode_snbt(std::string(blockstate.begin() + value_start, blockstate.begin() + value_end));
     } catch (const std::exception& e) {
         throw std::invalid_argument("Failed parsing SNBT at position " + std::to_string(value_start) + ". " + e.what());
     }
