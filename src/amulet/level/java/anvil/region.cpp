@@ -21,6 +21,8 @@
 
 #include "region.hpp"
 
+using namespace AmuletNBT;
+
 namespace Amulet {
 
 template <typename T>
@@ -420,7 +422,7 @@ static void decompress_lz4(const std::string_view src, std::string& dst)
 }
 
 // Decompress the data according to the compression type
-static AmuletNBT::NamedTag decompress(char compression_type, const std::string_view& data)
+static NamedTag decompress(char compression_type, const std::string_view& data)
 {
     switch (compression_type) {
     case 1: // GZIP
@@ -428,15 +430,15 @@ static AmuletNBT::NamedTag decompress(char compression_type, const std::string_v
     {
         std::string dst;
         decompress_zlib(data, dst);
-        return AmuletNBT::decode_nbt(dst, std::endian::big, AmuletNBT::mutf8_to_utf8);
+        return decode_nbt(dst, std::endian::big, mutf8_to_utf8);
     }
     case 3: // None
-        return AmuletNBT::decode_nbt(data, std::endian::big, AmuletNBT::mutf8_to_utf8);
+        return decode_nbt(data, std::endian::big, mutf8_to_utf8);
     case 4: // LZ4
     {
         std::string dst;
         decompress_lz4(data, dst);
-        return AmuletNBT::decode_nbt(dst, std::endian::big, AmuletNBT::mutf8_to_utf8);
+        return decode_nbt(dst, std::endian::big, mutf8_to_utf8);
     }
     default:
         throw std::runtime_error("Unknown chunk compression format " + std::to_string(static_cast<std::int16_t>(compression_type)));
@@ -446,7 +448,7 @@ static AmuletNBT::NamedTag decompress(char compression_type, const std::string_v
 // Get the value for this coordinate.
 // Coordinates are in world space.
 // External shared read lock required.
-AmuletNBT::NamedTag AnvilRegion::get_value(std::int64_t cx, std::int64_t cz)
+NamedTag AnvilRegion::get_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
     std::lock_guard lock(_shared->mutex);
@@ -580,14 +582,14 @@ void AnvilRegion::_set_data(std::int64_t cx, std::int64_t cz, T data)
 // Set the value for this coordinate.
 // Coordinates are in world space.
 // External shared read-write lock required.
-void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag)
+void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, const NamedTag& tag)
 {
     validate_coord(cx, cz);
     // Encode the tag
-    AmuletNBT::BinaryWriter writer(
+    BinaryWriter writer(
         std::endian::big,
-        &AmuletNBT::utf8_to_mutf8);
-    AmuletNBT::encode_nbt(writer, tag);
+        &utf8_to_mutf8);
+    encode_nbt(writer, tag);
     const std::string& bnbt = writer.getBuffer();
 
     // Get the size of the data
