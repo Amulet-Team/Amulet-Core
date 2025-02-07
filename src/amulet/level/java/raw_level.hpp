@@ -118,12 +118,12 @@ public:
 
     // The game data version that the level was last opened in.
     // External shared read lock required.
-    const VersionNumber& get_data_version() const;
+    AMULET_CORE_EXPORT const VersionNumber& get_data_version() const;
 
     // Set the maximum game version.
     // If the game version is different this will close and re-open the level.
     // External unique lock required.
-    void set_data_version();
+    AMULET_CORE_EXPORT void set_data_version();
 
     // The time when the level was lasted edited.
     AMULET_CORE_EXPORT std::chrono::system_clock::time_point get_modified_time() const;
