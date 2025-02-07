@@ -31,7 +31,7 @@ class AnvilDimension:
     def compact(self) -> None:
         """
         Defragment the region files and remove unused region files.
-        External unique lock required.
+        External shared read lock required.
         """
 
     def delete_chunk(self, cx: int, cz: int) -> None:

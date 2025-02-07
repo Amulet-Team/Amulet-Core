@@ -149,7 +149,7 @@ public:
     AMULET_CORE_EXPORT std::shared_ptr<JavaRawDimension> get_dimension(const DimensionID&);
 
     // Compact the level.
-    // Thread safe.
+    // External shared read lock required.
     AMULET_CORE_EXPORT void compact();
 
     // Overridden block ids.

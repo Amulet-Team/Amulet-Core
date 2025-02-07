@@ -17,50 +17,74 @@ py::module init_java_raw_dimension(py::module m_parent)
         JavaRawDimension(m, "JavaRawDimension");
     JavaRawDimension.def_property_readonly(
         "lock",
-        &Amulet::JavaRawDimension::get_mutex);
+        &Amulet::JavaRawDimension::get_mutex,
+        py::doc("The public lock\n"
+                "Thread safe."));
     JavaRawDimension.def_property_readonly(
         "dimension_id",
-        &Amulet::JavaRawDimension::get_dimension_id);
+        &Amulet::JavaRawDimension::get_dimension_id,
+        py::doc("The identifier for this dimension. eg. \"minecraft:overworld\".\n"
+                "Thread safe."));
     JavaRawDimension.def_property_readonly(
         "relative_path",
-        &Amulet::JavaRawDimension::get_relative_path);
+        &Amulet::JavaRawDimension::get_relative_path,
+        py::doc("The relative path to the dimension. eg. \"DIM1\".\n"
+                "Thread safe."));
     JavaRawDimension.def_property_readonly(
         "bounds",
-        &Amulet::JavaRawDimension::get_bounds);
+        &Amulet::JavaRawDimension::get_bounds,
+        py::doc("The selection box that fills the whole world.\n"
+                "Thread safe."));
     JavaRawDimension.def_property_readonly(
         "default_block",
-        &Amulet::JavaRawDimension::get_default_block);
+        &Amulet::JavaRawDimension::get_default_block,
+        py::doc("The default block for this dimension.\n"
+                "Thread safe."));
     JavaRawDimension.def_property_readonly(
         "default_biome",
-        &Amulet::JavaRawDimension::get_default_biome);
+        &Amulet::JavaRawDimension::get_default_biome,
+        py::doc("The default biome for this dimension.\n"
+                "Thread safe."));
     JavaRawDimension.def_property_readonly(
         "all_chunk_coords",
         [](const Amulet::JavaRawDimension& self) {
             return py::make_iterator(
                 self.all_chunk_coords(),
                 Amulet::AnvilChunkCoordIterator());
-        });
+        },
+        py::doc("An iterator of all chunk coordinates in the dimension.\n"
+                "External shared read lock required.\n"
+                "External shared read-only lock optional."));
     JavaRawDimension.def(
         "has_chunk",
         &Amulet::JavaRawDimension::has_chunk,
         py::arg("cx"),
-        py::arg("cz"));
+        py::arg("cz"),
+        py::doc("Does the chunk exist in this dimension.\n"
+                "External shared read lock required.\n"
+                "External shared read-only lock optional."));
     JavaRawDimension.def(
         "delete_chunk",
         &Amulet::JavaRawDimension::delete_chunk,
         py::arg("cx"),
-        py::arg("cz"));
+        py::arg("cz"),
+        py::doc("Delete the chunk from this dimension.\n"
+                "External shared read-write lock required."));
     JavaRawDimension.def(
         "get_raw_chunk",
         &Amulet::JavaRawDimension::get_raw_chunk,
         py::arg("cx"),
-        py::arg("cz"));
+        py::arg("cz"),
+        py::doc("Get the raw chunk from this dimension.\n"
+                "External shared read lock required."));
     JavaRawDimension.def(
         "set_raw_chunk",
         &Amulet::JavaRawDimension::set_raw_chunk,
         py::arg("cx"),
         py::arg("cz"),
-        py::arg("chunk"));
+        py::arg("chunk"),
+        py::doc("Set the chunk in this dimension from raw data.\n"
+                "External shared read-write lock required."));
     JavaRawDimension.def(
         "decode_chunk",
         [](
@@ -72,16 +96,22 @@ py::module init_java_raw_dimension(py::module m_parent)
         },
         py::arg("raw_chunk"),
         py::arg("cx"),
-        py::arg("cz"));
+        py::arg("cz"),
+        py::doc("Decode a raw chunk to a chunk object.\n"
+                "TODO: thread safety"));
     JavaRawDimension.def(
         "encode_chunk",
         &Amulet::JavaRawDimension::encode_chunk,
         py::arg("chunk"),
         py::arg("cx"),
-        py::arg("cz"));
+        py::arg("cz"),
+        py::doc("Encode a chunk object to its raw data.\n"
+                "TODO: thread safety"));
     JavaRawDimension.def(
         "compact",
-        &Amulet::JavaRawDimension::compact);
+        &Amulet::JavaRawDimension::compact,
+        py::doc("Compact the level.\n"
+                "External shared read lock required."));
 
     return m;
 }
