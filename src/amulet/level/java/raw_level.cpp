@@ -70,7 +70,7 @@ void JavaRawLevel::reload_metadata()
     try {
         auto& root = std::get<AmuletNBT::CompoundTagPtr>(_level_dat.tag_node);
         auto& data = std::get<AmuletNBT::CompoundTagPtr>(root->at("Data"));
-        auto& data_version = std::get<AmuletNBT::IntTag>(root->at("DataVersion"));
+        auto& data_version = std::get<AmuletNBT::IntTag>(data->at("DataVersion"));
         _data_version = { data_version.value };
     } catch (...) {
         _data_version = { -1 };
