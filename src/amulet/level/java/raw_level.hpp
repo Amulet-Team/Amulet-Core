@@ -126,12 +126,15 @@ public:
     AMULET_CORE_EXPORT void set_data_version(const VersionNumber&);
 
     // The time when the level was lasted edited.
+    // External shared read lock required.
     AMULET_CORE_EXPORT std::chrono::system_clock::time_point get_modified_time() const;
 
     // The name of the level.
+    // External shared read lock required.
     AMULET_CORE_EXPORT std::string get_level_name() const;
 
     // Set the level name.
+    // External unique lock required.
     AMULET_CORE_EXPORT void set_level_name(const std::string&);
 
     // The identifiers for all dimensions in this level.
