@@ -125,7 +125,13 @@ std::chrono::system_clock::time_point JavaRawLevel::get_modified_time() const
 
 std::string JavaRawLevel::get_level_name() const
 {
-    throw std::runtime_error("NotImplementedError");
+    try {
+        auto& root = std::get<AmuletNBT::CompoundTagPtr>(_level_dat.tag_node);
+        auto& data = std::get<AmuletNBT::CompoundTagPtr>(root->at("Data"));
+        return std::get<AmuletNBT::StringTag>(data->at("LevelName"));
+    } catch (...) {
+        return "Undefined";
+    }
 }
 
 void JavaRawLevel::set_level_name(const std::string&)
