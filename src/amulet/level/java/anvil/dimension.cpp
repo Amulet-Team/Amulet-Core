@@ -221,6 +221,8 @@ void AnvilDimensionLayer::delete_chunk(std::int64_t cx, std::int64_t cz)
 }
 void AnvilDimensionLayer::compact()
 {
+    // TODO: Threads
+    // TODO: CancelManager
     for (auto it = all_region_coords(); it != AnvilRegionCoordIterator(); it++) {
         auto [cx, cz] = *it;
         auto region = get_region(cx, cz);

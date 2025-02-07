@@ -288,7 +288,7 @@ public:
     AMULET_CORE_EXPORT void delete_chunk(std::int64_t cx, std::int64_t cz);
     
     // Defragment the region files and remove unused region files.
-    // Thread safe.
+    // External shared read lock required.
     AMULET_CORE_EXPORT void compact();
 };
 

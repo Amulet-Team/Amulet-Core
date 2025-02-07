@@ -70,7 +70,9 @@ void JavaRawDimension::set_raw_chunk(std::int64_t cx, std::int64_t cz, const Jav
 }
 void JavaRawDimension::compact()
 {
-    std::unique_lock lock(_anvil_dimension.mutex());
+    auto& mutex = _anvil_dimension.mutex();
+    mutex.lock_shared_read();
+    std::shared_lock lock(mutex, std::adopt_lock);
     _anvil_dimension.compact();
 }
 
