@@ -44,14 +44,16 @@ py::module init_java_raw_level(py::module m_parent)
         JavaRawLevel(m, "JavaRawLevel");
     JavaRawLevel.def_static(
         "load",
-        [](const std::string& path) {
+        [](const std::string& path) -> std::shared_ptr<Amulet::JavaRawLevel> {
             return Amulet::JavaRawLevel::load(path);
         },
         py::arg("path"),
         py::call_guard<py::gil_scoped_release>());
     JavaRawLevel.def_static(
         "create",
-        &Amulet::JavaRawLevel::create,
+        [](const Amulet::JavaCreateArgsV1& args) -> std::shared_ptr<Amulet::JavaRawLevel> {
+            return Amulet::JavaRawLevel::create(args);
+        },
         py::arg("args"),
         py::call_guard<py::gil_scoped_release>());
     JavaRawLevel.def(
