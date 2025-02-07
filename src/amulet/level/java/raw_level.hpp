@@ -126,10 +126,10 @@ public:
     void set_data_version();
 
     // The time when the level was lasted edited.
-    AMULET_CORE_EXPORT std::chrono::system_clock::time_point modified_time() const;
+    AMULET_CORE_EXPORT std::chrono::system_clock::time_point get_modified_time() const;
 
     // The name of the level.
-    AMULET_CORE_EXPORT std::string level_name() const;
+    AMULET_CORE_EXPORT std::string get_level_name() const;
 
     // Set the level name.
     AMULET_CORE_EXPORT void set_level_name(const std::string&);

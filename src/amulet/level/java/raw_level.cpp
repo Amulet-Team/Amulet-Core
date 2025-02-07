@@ -117,13 +117,13 @@ void JavaRawLevel::set_data_version()
     throw std::runtime_error("NotImplementedError");
 }
 
-std::chrono::system_clock::time_point JavaRawLevel::modified_time() const
+std::chrono::system_clock::time_point JavaRawLevel::get_modified_time() const
 {
 
     throw std::runtime_error("NotImplementedError");
 }
 
-std::string JavaRawLevel::level_name() const
+std::string JavaRawLevel::get_level_name() const
 {
     throw std::runtime_error("NotImplementedError");
 }
