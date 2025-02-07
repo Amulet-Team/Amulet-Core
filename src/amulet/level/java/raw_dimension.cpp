@@ -5,7 +5,7 @@
 
 namespace Amulet {
 
-OrderedMutex& JavaRawDimension::mutex()
+OrderedMutex& JavaRawDimension::get_mutex()
 {
     return _public_mutex;
 }

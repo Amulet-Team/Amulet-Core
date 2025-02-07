@@ -56,7 +56,7 @@ private:
 public:
     // The public mutex
     // Thread safe.
-    AMULET_CORE_EXPORT OrderedMutex& mutex();
+    AMULET_CORE_EXPORT OrderedMutex& get_mutex();
 
     // The identifier for this dimension. eg. "minecraft:overworld".
     // Thread safe.

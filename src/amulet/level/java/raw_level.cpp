@@ -176,7 +176,7 @@ void JavaRawLevel::compact()
     auto& raw_open = _find_dimensions();
     std::shared_lock dimensions_lock(raw_open.dimensions_mutex);
     for (const auto& [dimension_id, dimension] : raw_open.dimensions) {
-        std::unique_lock dimesion_lock(dimension->mutex());
+        std::unique_lock dimesion_lock(dimension->get_mutex());
         dimension->compact();
     }
 }
