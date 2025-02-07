@@ -27,19 +27,23 @@ public:
     AMULET_CORE_EXPORT std::shared_mutex& mutex();
 
     // Convert a numerical id to its namespaced id.
-    // Not thread safe. External shared/unique lock must be held while calling this.
+    // External shared lock required.
     AMULET_CORE_EXPORT NamespacedName numerical_id_to_namespace_id(std::uint32_t index) const;
+
     // Convert a namespaced id to its numerical id.
-    // Not thread safe. External shared/unique lock must be held while calling this.
+    // External shared lock required.
     AMULET_CORE_EXPORT std::uint32_t namespace_id_to_numerical_id(const NamespacedName& name) const;
+
     // Register a namespaced id to its numerical id.
-    // Not thread safe. External unique lock must be held while calling this.
+    // External unique lock required.
     AMULET_CORE_EXPORT void register_id(std::uint32_t index, const NamespacedName& name);
+
     // The number of ids registered.
-    // Not thread safe. External shared/unique lock must be held while calling this.
+    // External shared lock required.
     AMULET_CORE_EXPORT size_t size() const;
+
     // A read-only view of ids registered.
-    // Not thread safe. External shared/unique lock must be held while calling and using this.
+    // External shared lock required.
     AMULET_CORE_EXPORT const std::map<std::uint32_t, NamespacedName>& ids() const;
 };
 

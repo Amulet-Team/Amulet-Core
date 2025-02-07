@@ -35,7 +35,7 @@ py::module init_registry(py::module m_parent)
         },
         py::arg("index"),
         py::doc("Convert a numerical id to its namespaced id.\n"
-                "Not thread safe. External shared/unique lock must be held while calling this.\n"));
+                "External shared lock required."));
     IdRegistry.def(
         "namespace_id_to_numerical_id",
         [](const Amulet::IdRegistry& self, const Amulet::NamespacedName& name) {
@@ -47,7 +47,7 @@ py::module init_registry(py::module m_parent)
         },
         py::arg("name"),
         py::doc("Convert a namespaced id to its numerical id.\n"
-                "Not thread safe. External shared/unique lock must be held while calling this.\n"));
+                "External shared lock required."));
     IdRegistry.def(
         "namespace_id_to_numerical_id",
         [](const Amulet::IdRegistry& self, std::string namespace_, std::string base_name) {
@@ -60,20 +60,20 @@ py::module init_registry(py::module m_parent)
         py::arg("namespace"),
         py::arg("base_name"),
         py::doc("Convert a namespaced id to its numerical id.\n"
-                "Not thread safe. External shared/unique lock must be held while calling this.\n"));
+                "External shared lock required."));
     IdRegistry.def(
         "register_id",
         &Amulet::IdRegistry::register_id,
         py::arg("index"),
         py::arg("name"),
         py::doc("Convert a namespaced id to its numerical id.\n"
-                "Not thread safe. External unique lock must be held while calling this.\n"));
+                "External unique lock required."));
     IdRegistry.def(
         "__len__",
         &Amulet::IdRegistry::size,
         py::doc(
             "The number of ids registered.\n"
-            "Not thread safe. External shared/unique lock must be held while calling this.\n"));
+            "External shared lock required."));
     IdRegistry.def(
         "__iter__",
         [](const Amulet::IdRegistry& self) -> pybind11_extensions::collections::abc::Iterator<std::uint32_t> {
@@ -83,7 +83,7 @@ py::module init_registry(py::module m_parent)
         },
         py::keep_alive<0, 1>(),
         py::doc("An iterable of the numerical ids registered.\n"
-                "Not thread safe. External shared/unique lock must be held while calling and using this.\n"));
+                "External shared lock required."));
     IdRegistry.def(
         "__getitem__",
         [](const Amulet::IdRegistry& self, std::uint32_t index) {
@@ -95,7 +95,7 @@ py::module init_registry(py::module m_parent)
         },
         py::arg("index"),
         py::doc("Convert a numerical id to its namespaced id.\n"
-                "Not thread safe. External shared/unique lock must be held while calling this.\n"));
+                "External shared lock required."));
     IdRegistry.def(
         "__getitem__",
         [](const Amulet::IdRegistry& self, const Amulet::NamespacedName& name) {
@@ -107,7 +107,7 @@ py::module init_registry(py::module m_parent)
         },
         py::arg("name"),
         py::doc("Convert a namespaced id to its numerical id.\n"
-                "Not thread safe. External shared/unique lock must be held while calling this.\n"));
+                "External shared lock required."));
 
     Amulet::collections::PyMapping_contains<std::uint32_t>(IdRegistry);
     Amulet::collections::PyMapping_keys<std::uint32_t>(IdRegistry);
