@@ -82,7 +82,7 @@ public:
 
     // External mutex
     // Thread safe.
-    AMULET_CORE_EXPORT OrderedMutex& mutex();
+    AMULET_CORE_EXPORT OrderedMutex& get_mutex();
 
     // Is the level open.
     // External shared read lock required.

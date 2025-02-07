@@ -30,7 +30,7 @@ std::unique_ptr<JavaRawLevel> JavaRawLevel::create(const JavaCreateArgsV1&)
     throw std::runtime_error("NotImplementedError");
 }
 
-OrderedMutex& JavaRawLevel::mutex()
+OrderedMutex& JavaRawLevel::get_mutex()
 {
     return _public_mutex;
 }

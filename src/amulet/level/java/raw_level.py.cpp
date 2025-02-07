@@ -58,7 +58,7 @@ py::module init_java_raw_level(py::module m_parent)
         py::call_guard<py::gil_scoped_release>());
     JavaRawLevel.def(
         "lock",
-        &Amulet::JavaRawLevel::mutex);
+        &Amulet::JavaRawLevel::get_mutex);
     JavaRawLevel.def(
         "is_open",
         &Amulet::JavaRawLevel::is_open,
