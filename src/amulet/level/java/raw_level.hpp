@@ -74,10 +74,12 @@ public:
     JavaRawLevel(const JavaRawLevel&) = delete;
     JavaRawLevel(JavaRawLevel&&) = default;
 
-    // Create a new JavaRawLevel instance from the data at the path.
+    // Load an existing Java level from the given directory.
+    // Thread safe.
     AMULET_CORE_EXPORT static std::unique_ptr<JavaRawLevel> load(const std::filesystem::path&);
 
-    // Create a new Java level and create a JavaRawLevel instance for it.
+    // Create a new Java level at the given directory.
+    // Thread safe.
     AMULET_CORE_EXPORT static std::unique_ptr<JavaRawLevel> create(const JavaCreateArgsV1&);
 
     // External mutex
