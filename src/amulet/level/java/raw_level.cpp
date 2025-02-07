@@ -107,12 +107,12 @@ std::string JavaRawLevel::get_platform() const
     return "java";
 }
 
-const VersionNumber& JavaRawLevel::get_data_version() const
+VersionNumber JavaRawLevel::get_data_version() const
 {
     return _data_version;
 }
 
-void JavaRawLevel::set_data_version()
+void JavaRawLevel::set_data_version(const VersionNumber&)
 {
     throw std::runtime_error("NotImplementedError");
 }
