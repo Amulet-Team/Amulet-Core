@@ -35,7 +35,7 @@ const Biome& JavaRawDimension::get_default_biome() const
     return _default_biome;
 }
 
-AnvilChunkCoordIterator JavaRawDimension::all_chunk_coords()
+AnvilChunkCoordIterator JavaRawDimension::all_chunk_coords() const
 {
     return _anvil_dimension.all_chunk_coords();
 }

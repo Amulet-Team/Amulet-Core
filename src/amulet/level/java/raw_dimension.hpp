@@ -81,7 +81,7 @@ public:
     // An iterator of all chunk coordinates in the dimension.
     // External shared read lock required.
     // External shared read-only lock optional.
-    AMULET_CORE_EXPORT AnvilChunkCoordIterator all_chunk_coords();
+    AMULET_CORE_EXPORT AnvilChunkCoordIterator all_chunk_coords() const;
 
     // Does the chunk exist in this dimension.
     // External shared read lock required.
