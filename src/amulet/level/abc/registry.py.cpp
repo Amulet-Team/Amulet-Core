@@ -19,6 +19,11 @@ py::module init_registry(py::module m_parent)
         "A registry for namespaced ids.\n"
         "External synchronisation is required with this class.");
     IdRegistry.def(py::init<>());
+    IdRegistry.def_property_readonly(
+        "lock",
+        &Amulet::IdRegistry::mutex,
+        py::doc("The public lock.\n"
+                "Thread safe."));
     IdRegistry.def(
         "numerical_id_to_namespace_id",
         [](const Amulet::IdRegistry& self, std::uint32_t index) {

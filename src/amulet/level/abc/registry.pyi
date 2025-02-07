@@ -4,6 +4,8 @@ import collections.abc
 import types
 import typing
 
+import amulet.utils.lock
+
 __all__ = ["IdRegistry"]
 
 class IdRegistry:
@@ -74,3 +76,9 @@ class IdRegistry:
         """
 
     def values(self) -> collections.abc.ValuesView[tuple[str, str]]: ...
+    @property
+    def lock(self) -> amulet.utils.lock.SharedLock:
+        """
+        The public lock.
+        Thread safe.
+        """
