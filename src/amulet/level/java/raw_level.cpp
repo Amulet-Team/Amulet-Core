@@ -19,7 +19,7 @@ std::unique_ptr<JavaRawLevel> JavaRawLevel::load(const std::filesystem::path& pa
     if (!std::filesystem::is_directory(path)) {
         throw std::invalid_argument("path must be a directory.");
     }
-    auto self = std::unique_ptr<JavaRawLevel>(new JavaRawLevel(path));
+    std::unique_ptr<JavaRawLevel> self(new JavaRawLevel(path));
     self->reload_metadata();
     return self;
 }
