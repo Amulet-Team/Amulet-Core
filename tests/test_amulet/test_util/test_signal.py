@@ -4,6 +4,7 @@ from typing import Any
 
 from tests.test_amulet.test_util.test_signal_ import SignalTest
 
+
 class SignalTestCase(TestCase):
     def test_signal(self) -> None:
         cls = SignalTest()
@@ -68,7 +69,7 @@ class SignalTestCase(TestCase):
         cls.signal_3.disconnect(token_3)
 
         cls.signal_0.emit()
-        cls.signal_1.emit(4, )
+        cls.signal_1.emit(4)
         cls.signal_2.emit(5, 5.5)
         cls.signal_3.emit(6, 6.5, "6")
         self.assertEqual((1, 1.5, "Hello World"), var)
@@ -87,6 +88,7 @@ class SignalTestCase(TestCase):
             nonlocal call_count
             call_count += 1
             raise Exception()
+
         cls.signal_0.connect(callback)
         cls.signal_0.emit()
         self.assertEqual(1, call_count)
