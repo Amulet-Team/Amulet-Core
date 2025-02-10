@@ -33,9 +33,9 @@ void init_test_signal(py::module m_parent)
 
     py::class_<AmuletTest::SignalTest> SignalTest(m, "SignalTest");
     SignalTest.def(py::init<>());
-    SignalTest.def_property_readonly("signal_0", [](AmuletTest::SignalTest& self) { return Amulet::make_signal(self.signal_0); });
-    SignalTest.def_property_readonly("signal_1", [](AmuletTest::SignalTest& self) { return Amulet::make_signal(self.signal_1); });
-    SignalTest.def_property_readonly("signal_2", [](AmuletTest::SignalTest& self) { return Amulet::make_signal(self.signal_2); });
-    SignalTest.def_property_readonly("signal_3", [](AmuletTest::SignalTest& self) { return Amulet::make_signal(self.signal_3); });
+    Amulet::def_signal(SignalTest, "signal_0", &AmuletTest::SignalTest::signal_0);
+    Amulet::def_signal(SignalTest, "signal_1", &AmuletTest::SignalTest::signal_1);
+    Amulet::def_signal(SignalTest, "signal_2", &AmuletTest::SignalTest::signal_2);
+    Amulet::def_signal(SignalTest, "signal_3", &AmuletTest::SignalTest::signal_3);
     SignalTest.def("emit", &AmuletTest::SignalTest::emit);
 }

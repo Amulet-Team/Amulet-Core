@@ -17,7 +17,7 @@ class PySignal : public py::object {
 };
 
 template <typename... Args>
-PySignal<Args...> make_signal(Signal<Args...>& signal)
+PySignal<Args...> make_signal(const Signal<Args...>& signal)
 {
     if (!pybind11::detail::get_type_info(typeid(Signal<Args...>), false)) {
         pybind11::class_<SignalToken<Args...>>(pybind11::handle(), "SignalToken", pybind11::module_local());
@@ -28,6 +28,16 @@ PySignal<Args...> make_signal(Signal<Args...>& signal)
             .def("emit", &Signal<Args...>::emit);
     }
     return pybind11::cast(signal, py::return_value_policy::reference);
+}
+
+template <typename PyCls, typename CppCls, typename SignalT>
+void def_signal(PyCls& cls, const char* name, const SignalT CppCls::*attr)
+{
+    cls.def_property_readonly(
+        name,
+        [attr](const typename PyCls::type& self) {
+            return make_signal(self.*attr);
+        });
 }
 
 };
