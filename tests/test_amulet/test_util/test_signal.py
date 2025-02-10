@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from typing import Any
 
-from tests.test_amulet.test_util.test_signal_ import SignalTest
+from test_amulet.test_util.test_signal_ import SignalTest
 
 
 class SignalTestCase(TestCase):

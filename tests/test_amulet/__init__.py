@@ -1,3 +1,7 @@
+if __name__ != "test_amulet":
+    raise RuntimeError(f"Module name is incorrect. Expected: 'test_amulet' got '{__name__}'")
+
+
 def _init() -> None:
     import sys
 
@@ -6,7 +10,7 @@ def _init() -> None:
 
     # This needs to be an absoulte path otherwise it may get called twice
     # on different module objects and crash when the interpreter shuts down.
-    from tests.test_amulet._test_amulet import init
+    from test_amulet._test_amulet import init
 
     init(sys.modules[__name__])
 
