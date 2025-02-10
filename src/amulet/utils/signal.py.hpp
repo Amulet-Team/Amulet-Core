@@ -27,7 +27,7 @@ PySignal<Args...> make_signal(Signal<Args...>& signal)
             .def("disconnect", &Signal<Args...>::disconnect)
             .def("emit", &Signal<Args...>::emit);
     }
-    return pybind11::cast(signal);
+    return pybind11::cast(signal, py::return_value_policy::reference);
 }
 
 };
