@@ -1,0 +1,24 @@
+from amulet.utils.signal import Signal
+
+class SignalTest:
+    def __init__(self) -> None:
+        ...
+
+    @property
+    def signal_0(self) -> Signal[()]:
+        ...
+
+    @property
+    def signal_1(self) -> Signal[int]:
+        ...
+
+    @property
+    def signal_2(self) -> Signal[int, float]:
+        ...
+
+    @property
+    def signal_3(self) -> Signal[int, float, str]:
+        ...
+
+    def emit(self) -> None:
+        ...
