@@ -30,7 +30,11 @@ void CancelManager::cancel()
     }
     cancelled = true;
     for (const auto& callback : callbacks) {
-        callback();
+        try {
+            callback();
+        } catch (...) {
+            // TODO: add a warning.
+        }
     }
 }
 bool CancelManager::is_cancel_requested()
