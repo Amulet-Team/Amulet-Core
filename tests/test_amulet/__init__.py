@@ -1,5 +1,7 @@
 if __name__ != "test_amulet":
-    raise RuntimeError(f"Module name is incorrect. Expected: 'test_amulet' got '{__name__}'")
+    raise RuntimeError(
+        f"Module name is incorrect. Expected: 'test_amulet' got '{__name__}'"
+    )
 
 
 def _init() -> None:
