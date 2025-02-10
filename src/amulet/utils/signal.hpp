@@ -44,7 +44,7 @@ class Signal {
 
 private:
     std::mutex _mutex;
-    std::list<std::weak_ptr<storageT>> _callbacks;
+    std::list<std::shared_ptr<storageT>> _callbacks;
 
 public:
     Signal() = default;
@@ -52,8 +52,7 @@ public:
     Signal(Signal&&) = delete;
 
     // Connect a callback to this signal and return a token.
-    // The token must be stored for the callback to run.
-    // The token returned is used to disconnect the callback.
+    // The token returned can be used to disconnect the callback.
     tokenT connect(callbackT callback)
     {
         std::unique_lock lock(_mutex);
@@ -68,11 +67,7 @@ public:
     {
         std::unique_lock lock(_mutex);
         _callbacks.remove_if(
-            [&token](std::weak_ptr<storageT> ptr) {
-                std::shared_ptr<storageT> storage = ptr.lock();
-                if (storage == nullptr) {
-                    return true;
-                }
+            [&token](std::shared_ptr<storageT> storage) {
                 if (storage == token.storage) {
                     std::unique_lock storage_lock(storage->mutex);
                     storage->disconnected = true;
@@ -84,26 +79,25 @@ public:
     // Call all callbacks with the given arguments.
     void emit(Args... args)
     {
-        std::list<std::weak_ptr<storageT>> temp_callbacks;
+        std::list<std::shared_ptr<storageT>> temp_callbacks;
         {
             // Copy callbacks
             std::unique_lock lock(_mutex);
             temp_callbacks = _callbacks;
         }
 
-        for (const auto& ptr : temp_callbacks) {
-            std::shared_ptr<storageT> storage = ptr.lock();
-            if (storage == nullptr) {
-                continue;
-            }
+        for (const auto& storage : temp_callbacks) {
             std::unique_lock storage_lock(storage->mutex);
             if (storage->disconnected) {
                 continue;
             }
             try {
                 storage->callback(args...);
+            } catch (const std::exception& e) {
+                // TODO: hook this up to a logging system.
+                std::cout << e.what() << std::endl;
             } catch (...) {
-                // TODO: add a warning.
+                std::cout << "Error in callback" << std::endl;
             }
         }
     }
@@ -111,12 +105,9 @@ public:
     ~Signal()
     {
         std::unique_lock lock(_mutex);
-        for (const auto& ptr : _callbacks) {
-            std::shared_ptr<storageT> storage = ptr.lock();
-            if (storage != nullptr) {
-                std::unique_lock storage_lock(storage->mutex);
-                storage->disconnected = true;
-            }
+        for (const auto& storage : _callbacks) {
+            std::unique_lock storage_lock(storage->mutex);
+            storage->disconnected = true;
         }
     }
 };
