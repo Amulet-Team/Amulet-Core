@@ -92,6 +92,7 @@ class SignalTestCase(TestCase):
         count_3 = 0
 
         step = 0
+
         def increment_step():
             nonlocal step
             with condition:
