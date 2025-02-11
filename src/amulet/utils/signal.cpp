@@ -19,12 +19,14 @@ namespace detail {
 
     void EventLoop::exit() {
         std::cout << "EventLoop::exit()" << std::endl;
-        std::unique_lock lock(_mutex);
-        if (_exit) {
-            return;
+        {
+            std::unique_lock lock(_mutex);
+            if (_exit) {
+                return;
+            }
+            _exit = true;
+            _condition.notify_one();
         }
-        _exit = true;
-        _condition.notify_one();
         _thread.join();
     }
 
