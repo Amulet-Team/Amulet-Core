@@ -18,7 +18,7 @@ from amulet.utils.lock import (
     SharedLock,
 )
 
-from tests.test_amulet.test_util.test_lock_ import throw_deadlock
+from test_amulet.test_util.test_lock_ import throw_deadlock
 
 if sys.platform == "darwin":
     # macos runners seem to be slower

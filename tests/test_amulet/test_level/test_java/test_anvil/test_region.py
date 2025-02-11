@@ -14,7 +14,7 @@ from amulet.chunk import ChunkDoesNotExist
 from amulet.level.java.anvil import AnvilRegion, RegionDoesNotExist
 import tests.data.worlds_src
 import tests.data.region
-from tests.test_amulet.test_level.test_java.test_anvil.test_region_ import (
+from test_amulet.test_level.test_java.test_anvil.test_region_ import (
     throw_region_does_not_exist,
 )
 

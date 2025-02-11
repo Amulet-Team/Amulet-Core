@@ -1,0 +1,68 @@
+#include <pybind11/functional.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/typing.h>
+
+#include <iostream>
+
+#include "signal.hpp"
+
+namespace py = pybind11;
+
+namespace Amulet {
+
+template <typename... Args>
+class PySignal : public py::object {
+    PYBIND11_OBJECT_DEFAULT(PySignal, object, PyObject_Type)
+    using object::object;
+};
+
+template <typename... Args>
+PySignal<Args...> make_signal(const Signal<Args...>& signal)
+{
+    if (!pybind11::detail::get_type_info(typeid(Signal<Args...>), false)) {
+        pybind11::class_<SignalToken<Args...>>(pybind11::handle(), "SignalToken", pybind11::module_local());
+
+        pybind11::class_<Signal<Args...>>(pybind11::handle(), "Signal", pybind11::module_local())
+            .def("connect", &Signal<Args...>::connect)
+            .def("disconnect", &Signal<Args...>::disconnect)
+            .def("emit", &Signal<Args...>::emit)
+            .def("emit_async", &Signal<Args...>::emit_async);
+    }
+    return pybind11::cast(signal, py::return_value_policy::reference);
+}
+
+template <typename PyCls, typename CppCls, typename SignalT>
+void def_signal(PyCls& cls, const char* name, const SignalT CppCls::*attr)
+{
+    cls.def_property_readonly(
+        name,
+        [attr](const typename PyCls::type& self) {
+            return make_signal(self.*attr);
+        });
+}
+
+};
+
+namespace pybind11 {
+namespace detail {
+    template <typename T, typename... Ts>
+    constexpr auto get_signal_type_hint()
+    {
+        if constexpr ((sizeof...(Ts)) == 0) {
+            return const_name("amulet.utils.signal.Signal[") + make_caster<T>::name + const_name("]");
+        } else {
+            return const_name("amulet.utils.signal.Signal[") + make_caster<T>::name + ((const_name(", ") + make_caster<Ts>::name) + ...) + const_name("]");
+        }
+    }
+
+    template <>
+    struct handle_type_name<Amulet::PySignal<>> {
+        static constexpr auto name = const_name("amulet.utils.signal.Signal[()]");
+    };
+
+    template <typename T, typename... Ts>
+    struct handle_type_name<Amulet::PySignal<T, Ts...>> {
+        static constexpr auto name = get_signal_type_hint<T, Ts...>();
+    };
+}
+}
