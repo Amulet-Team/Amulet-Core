@@ -13,10 +13,12 @@ namespace detail {
 
     EventLoop::~EventLoop()
     {
+        std::cout << "EventLoop::~EventLoop()" << std::endl;
         exit();
     }
 
     void EventLoop::exit() {
+        std::cout << "EventLoop::exit()" << std::endl;
         std::unique_lock lock(_mutex);
         if (_exit) {
             return;
