@@ -25,7 +25,8 @@ PySignal<Args...> make_signal(const Signal<Args...>& signal)
         pybind11::class_<Signal<Args...>>(pybind11::handle(), "Signal", pybind11::module_local())
             .def("connect", &Signal<Args...>::connect)
             .def("disconnect", &Signal<Args...>::disconnect)
-            .def("emit", &Signal<Args...>::emit);
+            .def("emit", &Signal<Args...>::emit)
+            .def("emit_async", &Signal<Args...>::emit_async);
     }
     return pybind11::cast(signal, py::return_value_policy::reference);
 }
