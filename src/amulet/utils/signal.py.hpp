@@ -16,28 +16,31 @@ class PySignal : public py::object {
     using object::object;
 };
 
-template <typename... Args>
-PySignal<Args...> make_signal(const Signal<Args...>& signal)
+// Create a python binding for the signal class.
+template <typename signalT>
+void create_signal_binding()
 {
-    if (!pybind11::detail::get_type_info(typeid(Signal<Args...>), false)) {
-        pybind11::class_<SignalToken<Args...>>(pybind11::handle(), "SignalToken", pybind11::module_local());
+    if (!pybind11::detail::get_type_info(typeid(signalT), false)) {
+        pybind11::class_<typename signalT::tokenT>(pybind11::handle(), "SignalToken", pybind11::module_local());
 
-        pybind11::class_<Signal<Args...>>(pybind11::handle(), "Signal", pybind11::module_local())
-            .def("connect", &Signal<Args...>::connect)
-            .def("disconnect", &Signal<Args...>::disconnect)
-            .def("emit", &Signal<Args...>::emit)
-            .def("emit_async", &Signal<Args...>::emit_async);
+        pybind11::class_<signalT>(pybind11::handle(), "Signal", pybind11::module_local())
+            .def("connect", &signalT::connect)
+            .def("disconnect", &signalT::disconnect)
+            .def("emit", &signalT::emit)
+            .def("emit_async", &signalT::emit_async);
     }
-    return pybind11::cast(signal, py::return_value_policy::reference);
 }
 
+// Define a signal getter on a class.
+// This automatically creates the binding class.
 template <typename PyCls, typename CppCls, typename SignalT>
 void def_signal(PyCls& cls, const char* name, const SignalT CppCls::*attr)
 {
+    create_signal_binding<SignalT>();
     cls.def_property_readonly(
         name,
         [attr](const typename PyCls::type& self) {
-            return make_signal(self.*attr);
+            return pybind11::cast(self.*attr, py::return_value_policy::reference);
         });
 }
 

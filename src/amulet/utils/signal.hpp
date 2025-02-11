@@ -65,15 +65,15 @@ public:
 
 template <typename... Args>
 class Signal {
-    using callbackT = std::function<void(Args...)>;
-    using storageT = detail::SignalCallbackStorage<Args...>;
-    using tokenT = SignalToken<Args...>;
-
 private:
+    using storageT = detail::SignalCallbackStorage<Args...>;
+
     std::mutex _mutex;
     std::list<std::shared_ptr<storageT>> _callbacks;
 
 public:
+    using callbackT = std::function<void(Args...)>;
+    using tokenT = SignalToken<Args...>;
     Signal() = default;
     Signal(const Signal&) = delete;
     Signal(Signal&&) = delete;
