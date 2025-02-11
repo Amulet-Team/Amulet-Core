@@ -5,6 +5,7 @@
 #include <iostream>
 #include <list>
 #include <mutex>
+#include <thread>
 
 #include <amulet/dll.hpp>
 
