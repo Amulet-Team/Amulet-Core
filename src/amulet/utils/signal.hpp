@@ -24,9 +24,10 @@ namespace detail {
         void _event_loop();
 
     public:
-        EventLoop();
-        ~EventLoop();
+        AMULET_CORE_EXPORT EventLoop();
+        AMULET_CORE_EXPORT ~EventLoop();
         AMULET_CORE_EXPORT void submit(std::function<void()> event);
+        AMULET_CORE_EXPORT void exit();
     };
 
     AMULET_CORE_EXPORT extern EventLoop global_event_loop;

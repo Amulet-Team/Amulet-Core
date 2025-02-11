@@ -1,3 +1,5 @@
+#include <cstdlib>
+
 #include "signal.hpp"
 
 namespace Amulet {
@@ -11,7 +13,14 @@ namespace detail {
 
     EventLoop::~EventLoop()
     {
+        exit();
+    }
+
+    void EventLoop::exit() {
         std::unique_lock lock(_mutex);
+        if (_exit) {
+            return;
+        }
         _exit = true;
         _condition.notify_one();
         _thread.join();
@@ -49,6 +58,7 @@ namespace detail {
     }
 
     EventLoop global_event_loop;
+    int global_event_loop_atexit_registered = std::atexit([] { global_event_loop.exit(); });
 
 } // namespace detail
 
