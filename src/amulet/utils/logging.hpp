@@ -7,7 +7,10 @@
 
 namespace Amulet {
 
+AMULET_CORE_EXPORT void register_default_log_handler();
 AMULET_CORE_EXPORT void unregister_default_log_handler();
+AMULET_CORE_EXPORT int get_default_log_level();
+AMULET_CORE_EXPORT void set_default_log_level(int);
 
 AMULET_CORE_EXPORT extern Signal<int, std::string> logger;
 
