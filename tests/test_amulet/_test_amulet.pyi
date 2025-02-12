@@ -1,0 +1,3 @@
+from types import ModuleType
+
+def init(module: ModuleType): ...

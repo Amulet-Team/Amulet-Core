@@ -20,10 +20,10 @@ from amulet.level.java.chunk_components import (
     DataVersionComponent,
 )
 
-from tests.test_amulet.test_chunk_components.test_block_component import (
+from test_amulet.test_chunk_components.test_block_component import (
     test_block_component,
 )
-from tests.test_amulet.test_chunk_components.test_component import test_component
+from test_amulet.test_chunk_components.test_component import test_component
 
 
 def test_data_version_component(self: TestCase, chunk: Chunk) -> None:

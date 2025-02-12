@@ -65,19 +65,13 @@ public:
 
 AMULET_CORE_EXPORT extern VoidCancelManager global_VoidCancelManager;
 
-class CancelManagerData {
-public:
+class CancelManager : public AbstractCancelManager {
+private:
     std::mutex mutex;
     bool cancelled = false;
     std::list<CancelCallback> callbacks;
-};
-
-class CancelManager : public AbstractCancelManager {
-private:
-    std::shared_ptr<CancelManagerData> data;
 
 public:
-    AMULET_CORE_EXPORT CancelManager(const std::shared_ptr<CancelManagerData>& data);
     AMULET_CORE_EXPORT CancelManager();
     CancelManager(CancelManager&) = delete;
 

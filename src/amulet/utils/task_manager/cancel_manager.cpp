@@ -5,6 +5,7 @@
 #include <stdexcept>
 
 #include "cancel_manager.hpp"
+#include <amulet/utils/logging.hpp>
 
 namespace Amulet {
 
@@ -20,42 +21,40 @@ void VoidCancelManager::unregister_cancel_callback(CancelCallback callback) { }
 VoidCancelManager global_VoidCancelManager;
 
 // CancelManager
-CancelManager::CancelManager(const std::shared_ptr<CancelManagerData>& data)
-    : data(data)
-{
-}
-
-CancelManager::CancelManager()
-    : CancelManager(std::make_shared<CancelManagerData>())
-{
-}
+CancelManager::CancelManager() {}
 
 void CancelManager::cancel()
 {
-    std::lock_guard<std::mutex> guard(data->mutex);
-    if (data->cancelled) {
+    std::lock_guard<std::mutex> guard(mutex);
+    if (cancelled) {
         return;
     }
-    data->cancelled = true;
-    for (const auto& callback : data->callbacks) {
-        callback();
+    cancelled = true;
+    for (const auto& callback : callbacks) {
+        try {
+            callback();
+        } catch (const std::exception& e){
+            Amulet::error(std::string("Error in CancelManager callback: ") + e.what());
+        } catch (...) {
+            Amulet::error(std::string("Error in CancelManager callback."));
+        }
     }
 }
 bool CancelManager::is_cancel_requested()
 {
-    return data->cancelled;
+    return cancelled;
 }
 void CancelManager::register_cancel_callback(CancelCallback callback)
 {
-    std::lock_guard<std::mutex> guard(data->mutex);
+    std::lock_guard<std::mutex> guard(mutex);
     // Add the callback to the end.
-    data->callbacks.push_back(callback);
+    callbacks.push_back(callback);
 }
 void CancelManager::unregister_cancel_callback(CancelCallback callback)
 {
-    std::lock_guard<std::mutex> guard(data->mutex);
+    std::lock_guard<std::mutex> guard(mutex);
     // Remove all callbacks matching the given callback.
-    data->callbacks.remove_if(
+    callbacks.remove_if(
         [&callback](CancelCallback callback_) { return callback_.target<void()>() == callback.target<void()>(); });
 }
 
