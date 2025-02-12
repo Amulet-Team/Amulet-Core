@@ -16,6 +16,12 @@ class PySignal : public py::object {
     using object::object;
 };
 
+template <typename... Args>
+class PySignalToken : public py::object {
+    PYBIND11_OBJECT_DEFAULT(PySignalToken, object, PyObject_Type)
+    using object::object;
+};
+
 // Create a python binding for the signal class.
 template <typename signalT>
 void create_signal_binding()
@@ -48,14 +54,18 @@ void def_signal(PyCls& cls, const char* name, const SignalT CppCls::*attr)
 
 namespace pybind11 {
 namespace detail {
-    template <typename T, typename... Ts>
-    constexpr auto get_signal_type_hint()
-    {
-        if constexpr ((sizeof...(Ts)) == 0) {
-            return const_name("amulet.utils.signal.Signal[") + make_caster<T>::name + const_name("]");
-        } else {
-            return const_name("amulet.utils.signal.Signal[") + make_caster<T>::name + ((const_name(", ") + make_caster<Ts>::name) + ...) + const_name("]");
+    namespace {
+
+        template <typename T, typename... Ts>
+        constexpr auto get_args_str()
+        {
+            if constexpr ((sizeof...(Ts)) == 0) {
+                return make_caster<T>::name;
+            } else {
+                return make_caster<T>::name + ((const_name(", ") + make_caster<Ts>::name) + ...);
+            }
         }
+
     }
 
     template <>
@@ -65,7 +75,17 @@ namespace detail {
 
     template <typename T, typename... Ts>
     struct handle_type_name<Amulet::PySignal<T, Ts...>> {
-        static constexpr auto name = get_signal_type_hint<T, Ts...>();
+        static constexpr auto name = const_name("amulet.utils.signal.Signal[") + get_args_str<T, Ts...>() + const_name("]");
+    };
+
+    template <>
+    struct handle_type_name<Amulet::PySignalToken<>> {
+        static constexpr auto name = const_name("amulet.utils.signal.SignalToken[()]");
+    };
+
+    template <typename T, typename... Ts>
+    struct handle_type_name<Amulet::PySignalToken<T, Ts...>> {
+        static constexpr auto name = const_name("amulet.utils.signal.SignalToken[") + get_args_str<T, Ts...>() + const_name("]");
     };
 }
 }
