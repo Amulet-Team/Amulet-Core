@@ -49,21 +49,20 @@ namespace detail {
 
 } // namespace detail
 
-// template <typename... Args>
-// class Signal;
+template <typename... Args>
+class Signal;
 
 template <typename... Args>
 class SignalToken {
-    // friend class Signal<Args...>;
-
-    // private:
-public:
+private:
     std::shared_ptr<detail::SignalCallbackStorage<Args...>> storage;
-    SignalToken() = default;
     SignalToken(std::shared_ptr<detail::SignalCallbackStorage<Args...>> storage)
         : storage(storage)
     {
     }
+    friend class Signal<Args...>;
+public:
+    SignalToken() = default;
 };
 
 template <typename... Args>
