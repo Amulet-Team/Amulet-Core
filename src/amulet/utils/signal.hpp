@@ -11,6 +11,8 @@
 
 namespace Amulet {
 
+AMULET_CORE_EXPORT void error(const std::string& msg);
+
 namespace detail {
 
     class EventLoop {
@@ -122,10 +124,9 @@ public:
             try {
                 storage->callback(args...);
             } catch (const std::exception& e) {
-                // TODO: hook this up to a logging system.
-                std::cout << e.what() << std::endl;
+                error(std::string("Error in callback: ") + e.what());
             } catch (...) {
-                std::cout << "Error in callback" << std::endl;
+                error(std::string("Error in callback."));
             }
         }
     }
@@ -154,10 +155,9 @@ public:
                 try {
                     std::apply(storage->callback, *args_);
                 } catch (const std::exception& e) {
-                    // TODO: hook this up to a logging system.
-                    std::cout << e.what() << std::endl;
+                    error(std::string("Error in callback: ") + e.what());
                 } catch (...) {
-                    std::cout << "Error in callback" << std::endl;
+                    error(std::string("Error in callback."));
                 }
             });
         }

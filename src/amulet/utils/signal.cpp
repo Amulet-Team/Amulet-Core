@@ -1,6 +1,7 @@
 #include <cstdlib>
 
 #include "signal.hpp"
+#include "logging.hpp"
 
 namespace Amulet {
 
@@ -13,12 +14,12 @@ namespace detail {
 
     EventLoop::~EventLoop()
     {
-        std::cout << "EventLoop::~EventLoop()" << std::endl;
+        Amulet::debug("EventLoop::~EventLoop() enter");
         exit();
     }
 
     void EventLoop::exit() {
-        std::cout << "EventLoop::exit()" << std::endl;
+        Amulet::debug("EventLoop::exit()");
         {
             std::unique_lock lock(_mutex);
             if (_exit) {
@@ -27,7 +28,9 @@ namespace detail {
             _exit = true;
             _condition.notify_one();
         }
+        Amulet::debug("EventLoop::exit() join");
         _thread.join();
+        Amulet::debug("EventLoop::exit() exit");
     }
 
     void EventLoop::_event_loop()
@@ -46,9 +49,9 @@ namespace detail {
             try {
                 event();
             } catch (const std::exception& e) {
-                std::cout << "Unhandled exception in event loop: " << e.what() << std::endl;
+                Amulet::error(std::string("Unhandled exception in event loop: ") + e.what());
             } catch (...) {
-                std::cout << "Unhandled exception in event loop." << std::endl;
+                Amulet::error("Unhandled exception in event loop.");
             }
             lock.lock();
         }
