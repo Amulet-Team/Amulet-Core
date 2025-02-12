@@ -71,7 +71,7 @@ private:
     using storageT = detail::SignalCallbackStorage<Args...>;
 
     std::mutex _mutex;
-    std::list<std::shared_ptr<storageT>> _callbacks;
+    std::list<std::weak_ptr<storageT>> _callbacks;
 
 public:
     using callbackT = std::function<void(Args...)>;
@@ -96,7 +96,11 @@ public:
     {
         std::unique_lock lock(_mutex);
         _callbacks.remove_if(
-            [&token](std::shared_ptr<storageT> storage) {
+            [&token](std::weak_ptr<storageT> ptr) {
+                auto storage = ptr.lock();
+                if (storage == nullptr) {
+                    return true;
+                }
                 if (storage == token.storage) {
                     std::unique_lock storage_lock(storage->mutex);
                     storage->disconnected = true;
@@ -110,14 +114,18 @@ public:
     // Blocks until all callbacks are processed.
     void emit(Args... args)
     {
-        std::list<std::shared_ptr<storageT>> temp_callbacks;
+        std::list<std::weak_ptr<storageT>> temp_callbacks;
         {
             // Copy callbacks
             std::unique_lock lock(_mutex);
             temp_callbacks = _callbacks;
         }
 
-        for (const auto& storage : temp_callbacks) {
+        for (const auto& ptr : temp_callbacks) {
+            auto storage = ptr.lock();
+            if (storage == nullptr) {
+                continue;
+            }
             std::unique_lock storage_lock(storage->mutex);
             if (storage->disconnected) {
                 continue;
@@ -137,7 +145,7 @@ public:
     // Note that args must remain valid until they are used.
     void emit_async(Args&&... args)
     {
-        std::list<std::shared_ptr<storageT>> temp_callbacks;
+        std::list<std::weak_ptr<storageT>> temp_callbacks;
         {
             // Copy callbacks
             std::unique_lock lock(_mutex);
@@ -147,8 +155,12 @@ public:
         // Copy the arguments once.
         auto args_ = std::make_shared<std::tuple<Args...>>(std::forward<Args>(args)...);
 
-        for (const auto& storage : temp_callbacks) {
-            detail::global_event_loop.submit([args_, storage]() {
+        for (const auto& ptr : temp_callbacks) {
+            detail::global_event_loop.submit([args_, ptr]() {
+                auto storage = ptr.lock();
+                if (storage == nullptr) {
+                    return;
+                }
                 std::unique_lock storage_lock(storage->mutex);
                 if (storage->disconnected) {
                     return;
@@ -167,7 +179,11 @@ public:
     ~Signal()
     {
         std::unique_lock lock(_mutex);
-        for (const auto& storage : _callbacks) {
+        for (const auto& ptr : _callbacks) {
+            auto storage = ptr.lock();
+            if (storage == nullptr) {
+                continue;
+            }
             std::unique_lock storage_lock(storage->mutex);
             storage->disconnected = true;
         }
