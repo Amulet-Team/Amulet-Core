@@ -188,9 +188,10 @@ class SignalTestCase(TestCase):
             call_count += 1
             raise Exception()
 
-        cls.signal_0.connect(callback)
+        token = cls.signal_0.connect(callback)
         cls.signal_0.emit()
         self.assertEqual(1, call_count)
+        cls.signal_0.disconnect(token)
 
     def test_time(self) -> None:
         cls = SignalTest()
@@ -202,7 +203,7 @@ class SignalTestCase(TestCase):
             time.sleep(1)
             count += 1
 
-        cls.signal_0.connect(callback)
+        token = cls.signal_0.connect(callback)
 
         # Synchronous
         t = time.time()
@@ -220,3 +221,5 @@ class SignalTestCase(TestCase):
         self.assertEqual(1, count)
         time.sleep(1.5)
         self.assertEqual(2, count)
+
+        cls.signal_0.disconnect(token)

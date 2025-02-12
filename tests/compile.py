@@ -2,13 +2,22 @@ import subprocess
 import sys
 import shutil
 import os
+import importlib.util
 
 import pybind11
-import pybind11_extensions
 
-import amulet_nbt
-import leveldb
-import amulet
+
+def get_package_path(name: str) -> str:
+    try:
+        module_path = importlib.util.find_spec(name).origin
+        if module_path is None:
+            raise RuntimeError(f"Could not find {name}")
+        if not module_path.endswith("__init__.py"):
+            raise RuntimeError(f"{name} is not a package.")
+        return os.path.dirname(module_path).replace(os.sep, "/")
+    except:
+        print(f"Failed finding {name}. Falling back to importing.")
+        return importlib.import_module(name).__path__[0].replace(os.sep, "/")
 
 
 def main():
@@ -32,10 +41,10 @@ def main():
             *platform_args,
             f"-DPYTHON_EXECUTABLE={sys.executable}",
             f"-Dpybind11_DIR={pybind11.get_cmake_dir().replace(os.sep, '/')}",
-            f"-Dpybind11_extensions_DIR={pybind11_extensions.__path__[0].replace(os.sep, '/')}",
-            f"-Damulet_nbt_DIR={amulet_nbt.__path__[0].replace(os.sep, '/')}",
-            f"-Dleveldb_mcpe_DIR={leveldb.__path__[0].replace(os.sep, '/')}",
-            f"-Damulet_core_DIR={amulet.__path__[0].replace(os.sep, '/')}",
+            f"-Dpybind11_extensions_DIR={get_package_path('pybind11_extensions')}",
+            f"-Damulet_nbt_DIR={get_package_path('amulet_nbt')}",
+            f"-Dleveldb_mcpe_DIR={get_package_path('leveldb')}",
+            f"-Damulet_core_DIR={get_package_path('amulet')}",
             f"-DCMAKE_INSTALL_PREFIX={os.path.join(os.path.dirname(__file__), 'test_amulet').replace(os.sep, '/')}",
             "-B",
             "build",

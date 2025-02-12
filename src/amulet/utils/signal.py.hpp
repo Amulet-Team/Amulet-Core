@@ -17,27 +17,36 @@ class PySignal : public py::object {
 };
 
 template <typename... Args>
-PySignal<Args...> make_signal(const Signal<Args...>& signal)
-{
-    if (!pybind11::detail::get_type_info(typeid(Signal<Args...>), false)) {
-        pybind11::class_<SignalToken<Args...>>(pybind11::handle(), "SignalToken", pybind11::module_local());
+class PySignalToken : public py::object {
+    PYBIND11_OBJECT_DEFAULT(PySignalToken, object, PyObject_Type)
+    using object::object;
+};
 
-        pybind11::class_<Signal<Args...>>(pybind11::handle(), "Signal", pybind11::module_local())
-            .def("connect", &Signal<Args...>::connect)
-            .def("disconnect", &Signal<Args...>::disconnect)
-            .def("emit", &Signal<Args...>::emit)
-            .def("emit_async", &Signal<Args...>::emit_async);
+// Create a python binding for the signal class.
+template <typename signalT>
+void create_signal_binding()
+{
+    if (!pybind11::detail::get_type_info(typeid(signalT), false)) {
+        pybind11::class_<typename signalT::tokenT>(pybind11::handle(), "SignalToken", pybind11::module_local());
+
+        pybind11::class_<signalT>(pybind11::handle(), "Signal", pybind11::module_local())
+            .def("connect", &signalT::connect)
+            .def("disconnect", &signalT::disconnect)
+            .def("emit", &signalT::emit)
+            .def("emit_async", &signalT::emit_async);
     }
-    return pybind11::cast(signal, py::return_value_policy::reference);
 }
 
+// Define a signal getter on a class.
+// This automatically creates the binding class.
 template <typename PyCls, typename CppCls, typename SignalT>
 void def_signal(PyCls& cls, const char* name, const SignalT CppCls::*attr)
 {
+    create_signal_binding<SignalT>();
     cls.def_property_readonly(
         name,
         [attr](const typename PyCls::type& self) {
-            return make_signal(self.*attr);
+            return pybind11::cast(self.*attr, py::return_value_policy::reference);
         });
 }
 
@@ -45,14 +54,18 @@ void def_signal(PyCls& cls, const char* name, const SignalT CppCls::*attr)
 
 namespace pybind11 {
 namespace detail {
-    template <typename T, typename... Ts>
-    constexpr auto get_signal_type_hint()
-    {
-        if constexpr ((sizeof...(Ts)) == 0) {
-            return const_name("amulet.utils.signal.Signal[") + make_caster<T>::name + const_name("]");
-        } else {
-            return const_name("amulet.utils.signal.Signal[") + make_caster<T>::name + ((const_name(", ") + make_caster<Ts>::name) + ...) + const_name("]");
+    namespace {
+
+        template <typename T, typename... Ts>
+        constexpr auto get_args_str()
+        {
+            if constexpr ((sizeof...(Ts)) == 0) {
+                return make_caster<T>::name;
+            } else {
+                return make_caster<T>::name + ((const_name(", ") + make_caster<Ts>::name) + ...);
+            }
         }
+
     }
 
     template <>
@@ -62,7 +75,17 @@ namespace detail {
 
     template <typename T, typename... Ts>
     struct handle_type_name<Amulet::PySignal<T, Ts...>> {
-        static constexpr auto name = get_signal_type_hint<T, Ts...>();
+        static constexpr auto name = const_name("amulet.utils.signal.Signal[") + get_args_str<T, Ts...>() + const_name("]");
+    };
+
+    template <>
+    struct handle_type_name<Amulet::PySignalToken<>> {
+        static constexpr auto name = const_name("amulet.utils.signal.SignalToken[()]");
+    };
+
+    template <typename T, typename... Ts>
+    struct handle_type_name<Amulet::PySignalToken<T, Ts...>> {
+        static constexpr auto name = const_name("amulet.utils.signal.SignalToken[") + get_args_str<T, Ts...>() + const_name("]");
     };
 }
 }

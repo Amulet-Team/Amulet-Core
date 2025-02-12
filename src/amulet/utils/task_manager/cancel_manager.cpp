@@ -5,6 +5,7 @@
 #include <stdexcept>
 
 #include "cancel_manager.hpp"
+#include <amulet/utils/logging.hpp>
 
 namespace Amulet {
 
@@ -32,8 +33,10 @@ void CancelManager::cancel()
     for (const auto& callback : callbacks) {
         try {
             callback();
+        } catch (const std::exception& e){
+            Amulet::error(std::string("Error in CancelManager callback: ") + e.what());
         } catch (...) {
-            // TODO: add a warning.
+            Amulet::error(std::string("Error in CancelManager callback."));
         }
     }
 }

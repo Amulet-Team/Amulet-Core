@@ -19,6 +19,7 @@
 
 #include <amulet/chunk.hpp>
 #include <amulet/dll.hpp>
+#include <amulet/utils/logging.hpp>
 
 #include "region.hpp"
 
@@ -548,8 +549,14 @@ void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, const NamedTag& ta
 
     if (!_mcc && data.size() + 4 > MaxRegionSize) {
         // Skip saving large chunks if mcc files are not enabled.
-        // TODO: add an error message.
-        // f"Could not save data {cx},{cz} in region file {self._path} because it was too large."
+        Amulet::warning(
+            "Could not save data to chunk "
+            + std::to_string(cx)
+            + ", "
+            + std::to_string(cz)
+            + " in region file "
+            + _path.string()
+            + " because it was too large.");
         return;
     }
 

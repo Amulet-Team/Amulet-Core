@@ -7,6 +7,7 @@ namespace py = pybind11;
 void init_utils_numpy(py::module);
 void init_task_manager(py::module);
 void init_lock(py::module);
+void init_logging(py::module);
 
 void init_utils(py::module m_parent)
 {
@@ -15,4 +16,5 @@ void init_utils(py::module m_parent)
     init_utils_numpy(m);
     init_task_manager(m);
     init_lock(m);
+    init_logging(m);
 }
