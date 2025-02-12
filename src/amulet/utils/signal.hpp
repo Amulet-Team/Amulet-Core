@@ -100,6 +100,7 @@ public:
                 if (storage == token.storage) {
                     std::unique_lock storage_lock(storage->mutex);
                     storage->disconnected = true;
+                    return true;
                 }
                 return false;
             });
