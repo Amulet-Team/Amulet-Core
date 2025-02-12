@@ -40,6 +40,18 @@ bool JavaRawLevel::is_open() const
     return bool(_raw_open_data);
 }
 
+VersionNumber JavaRawLevel::_get_data_version()
+{
+    try {
+        auto& root = std::get<AmuletNBT::CompoundTagPtr>(_level_dat.tag_node);
+        auto& data = std::get<AmuletNBT::CompoundTagPtr>(root->at("Data"));
+        auto& data_version = std::get<AmuletNBT::IntTag>(data->at("DataVersion"));
+        return { data_version.value };
+    } catch (...) {
+        return { -1 };
+    }
+}
+
 void JavaRawLevel::reload_metadata()
 {
     if (is_open()) {
@@ -51,7 +63,7 @@ void JavaRawLevel::reload_metadata()
     // Open the file
     std::ifstream level_dat_f(level_dat_path, std::ios::in | std::ios::binary);
     if (!level_dat_f) {
-        throw std::runtime_error("Could not open file " + level_dat_path.string());
+        throw std::runtime_error("Could not open file for reading " + level_dat_path.string());
     }
     // Find the file length
     level_dat_f.seekg(0, std::ios::end);
@@ -66,25 +78,55 @@ void JavaRawLevel::reload_metadata()
     // Decode the binary NBT.
     _level_dat = AmuletNBT::decode_nbt(decompressed_level_dat, std::endian::big, AmuletNBT::mutf8_to_utf8);
 
-    // Set the data version.
-    try {
-        auto& root = std::get<AmuletNBT::CompoundTagPtr>(_level_dat.tag_node);
-        auto& data = std::get<AmuletNBT::CompoundTagPtr>(root->at("Data"));
-        auto& data_version = std::get<AmuletNBT::IntTag>(data->at("DataVersion"));
-        _data_version = { data_version.value };
-    } catch (...) {
-        _data_version = { -1 };
-    }
+    // Load the data version.
+    _data_version = _get_data_version();
+}
+
+void JavaRawLevel::_open()
+{
+    // Reload the metadata to ensure it is up to date.
+    reload_metadata();
+
+    // TODO: data pack
+
+    _raw_open_data = std::make_unique<JavaRawLevelOpenData>();
 }
 
 void JavaRawLevel::open()
 {
-    throw std::runtime_error("NotImplementedError");
+    if (is_open()) {
+        return;
+    }
+
+    // TODO: acquire lock file
+    _open();
+    opened.emit_async();
+}
+
+void JavaRawLevel::_close()
+{
+    auto raw_open_data = std::move(_raw_open_data);
+    // TODO: destroy open data
 }
 
 void JavaRawLevel::close()
 {
-    throw std::runtime_error("NotImplementedError");
+    if (!is_open()) {
+        return;
+    }
+    _close();
+    // TODO: Unlock session.lock
+    closed.emit_async();
+}
+
+void JavaRawLevel::reload()
+{
+    if (!is_open()) {
+        throw std::runtime_error("Level can only be reloaded when it is open.");
+    }
+    _close();
+    _open();
+    reloaded.emit_async();
 }
 
 const std::filesystem::path& JavaRawLevel::get_path() const
@@ -97,9 +139,33 @@ AmuletNBT::NamedTag JavaRawLevel::get_level_dat() const
     return AmuletNBT::deep_copy(_level_dat);
 }
 
-void JavaRawLevel::set_level_dat(const AmuletNBT::NamedTag&)
+void JavaRawLevel::set_level_dat(const AmuletNBT::NamedTag& level_dat)
 {
-    throw std::runtime_error("NotImplementedError");
+    if (!is_open()) {
+        throw std::runtime_error("Level is not open.");
+    }
+    // Copy the level.dat to internal storage
+    _level_dat = AmuletNBT::deep_copy(level_dat);
+
+    // Save to level.dat
+    auto level_dat_path = _path / "level.dat";
+    // Encode
+    std::string encoded_level_dat = AmuletNBT::encode_nbt(_level_dat, std::endian::big, AmuletNBT::utf8_to_mutf8);
+    // Compress
+    std::string compressed_level_dat;
+    AmuletNBT::compress_gzip(encoded_level_dat, compressed_level_dat);
+    // Write to file
+    std::ofstream level_dat_f(level_dat_path, std::ios::out | std::ios::binary);
+    if (!level_dat_f) {
+        throw std::runtime_error("Could not open file for writing. " + level_dat_path.string());
+    }
+    level_dat_f << compressed_level_dat;
+    level_dat_f.close();
+
+    // Reload the level if the data version changed.
+    if (_data_version != _get_data_version()) {
+        reload();
+    }
 }
 
 std::string JavaRawLevel::get_platform() const
@@ -112,15 +178,53 @@ VersionNumber JavaRawLevel::get_data_version() const
     return _data_version;
 }
 
-void JavaRawLevel::set_data_version(const VersionNumber&)
+// Get the "Data" CompoundTag from a level.dat NamedTag.
+static AmuletNBT::CompoundTag& get_level_dat_data(AmuletNBT::NamedTag& level_dat)
 {
-    throw std::runtime_error("NotImplementedError");
+    if (!std::holds_alternative<AmuletNBT::CompoundTagPtr>(level_dat.tag_node)) {
+        throw std::runtime_error("Level.dat root is not a CompoundTag.");
+    }
+    auto& root = std::get<AmuletNBT::CompoundTagPtr>(level_dat.tag_node);
+    auto it = root->find("Data");
+    if (it == root->end()) {
+        throw std::runtime_error("Level.dat does not contain \"Data\" entry.");
+    }
+    if (!std::holds_alternative<AmuletNBT::CompoundTagPtr>(it->second)) {
+        throw std::runtime_error("Level.dat[\"Data\"] is not a CompoundTag.");
+    }
+    return *std::get<AmuletNBT::CompoundTagPtr>(it->second);
+}
+
+void JavaRawLevel::set_data_version(const VersionNumber& data_version)
+{
+    if (data_version.size() != 1) {
+        throw std::invalid_argument("Data version must have exactly one value.");
+    }
+    if (_data_version == data_version) {
+        // Data version did not change.
+        return;
+    }
+    auto level_dat = get_level_dat();
+    auto& data = get_level_dat_data(level_dat);
+    if (data_version[0] == -1) {
+        data.erase("DataVersion");
+    } else {
+        data.insert_or_assign("DataVersion", AmuletNBT::IntTag(static_cast<AmuletNBT::IntTagNative>(data_version[0])));
+    }
+    set_level_dat(level_dat);
 }
 
 std::chrono::system_clock::time_point JavaRawLevel::get_modified_time() const
 {
 
-    throw std::runtime_error("NotImplementedError");
+    try {
+        auto& root = std::get<AmuletNBT::CompoundTagPtr>(_level_dat.tag_node);
+        auto& data = std::get<AmuletNBT::CompoundTagPtr>(root->at("Data"));
+        return std::chrono::system_clock::time_point(std::chrono::milliseconds(
+            std::get<AmuletNBT::LongTag>(data->at("LastPlayed")).value));
+    } catch (...) {
+        return std::chrono::system_clock::time_point(std::chrono::milliseconds(0));
+    }
 }
 
 std::string JavaRawLevel::get_level_name() const
@@ -134,9 +238,12 @@ std::string JavaRawLevel::get_level_name() const
     }
 }
 
-void JavaRawLevel::set_level_name(const std::string&)
+void JavaRawLevel::set_level_name(const std::string& level_name)
 {
-    throw std::runtime_error("NotImplementedError");
+    auto level_dat = get_level_dat();
+    auto& data = get_level_dat_data(level_dat);
+    data.insert_or_assign("LevelName", AmuletNBT::StringTag(level_name));
+    set_level_dat(level_dat);
 }
 
 JavaRawLevelOpenData& JavaRawLevel::_find_dimensions()

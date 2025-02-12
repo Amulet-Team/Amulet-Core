@@ -4,6 +4,7 @@
 
 #include <memory>
 
+#include <amulet/utils/signal.py.hpp>
 #include <amulet/version.hpp>
 
 #include "raw_level.hpp"
@@ -77,17 +78,38 @@ py::module init_java_raw_level(py::module m_parent)
         py::call_guard<py::gil_scoped_release>(),
         py::doc("Reload the metadata. This can only be called when the level is closed.\n"
                 "External unique lock required."));
+    Amulet::def_signal(
+        JavaRawLevel,
+        "opened",
+        &Amulet::JavaRawLevel::opened);
     JavaRawLevel.def(
         "open",
         &Amulet::JavaRawLevel::open,
         py::call_guard<py::gil_scoped_release>(),
         py::doc("Open the level.\n"
+                "opened signal will be emitted when complete.\n"
                 "External unique lock required."));
+    Amulet::def_signal(
+        JavaRawLevel,
+        "closed",
+        &Amulet::JavaRawLevel::closed);
     JavaRawLevel.def(
         "close",
         &Amulet::JavaRawLevel::close,
         py::call_guard<py::gil_scoped_release>(),
         py::doc("Close the level.\n"
+                "closed signal will be emitted when complete.\n"
+                "External unique lock required."));
+    Amulet::def_signal(
+        JavaRawLevel,
+        "reloaded",
+        &Amulet::JavaRawLevel::reloaded);
+    JavaRawLevel.def(
+        "reload",
+        &Amulet::JavaRawLevel::reload,
+        py::call_guard<py::gil_scoped_release>(),
+        py::doc("Reload the level.\n"
+                "This is like closing and re-opening without releasing the session.lock file.\n"
                 "External unique lock required."));
     JavaRawLevel.def_property_readonly(
         "path",

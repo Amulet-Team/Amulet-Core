@@ -5,6 +5,7 @@ import datetime
 import amulet.level.abc.registry
 import amulet.level.java.raw_dimension
 import amulet.utils.lock
+import amulet.utils.signal
 import amulet.version
 import amulet_nbt
 
@@ -45,6 +46,7 @@ class JavaRawLevel:
     def close(self) -> None:
         """
         Close the level.
+        closed signal will be emitted when complete.
         External unique lock required.
         """
 
@@ -89,6 +91,14 @@ class JavaRawLevel:
     def open(self) -> None:
         """
         Open the level.
+        opened signal will be emitted when complete.
+        External unique lock required.
+        """
+
+    def reload(self) -> None:
+        """
+        Reload the level.
+        This is like closing and re-opening without releasing the session.lock file.
         External unique lock required.
         """
 
@@ -98,6 +108,8 @@ class JavaRawLevel:
         External unique lock required.
         """
 
+    @property
+    def closed(self) -> amulet.utils.signal.Signal[()]: ...
     @property
     def data_version(self) -> amulet.version.VersionNumber:
         """
@@ -157,6 +169,8 @@ class JavaRawLevel:
         """
 
     @property
+    def opened(self) -> amulet.utils.signal.Signal[()]: ...
+    @property
     def path(self) -> str:
         """
         The path to the level directory.
@@ -169,3 +183,6 @@ class JavaRawLevel:
         The platform identifier. "java"
         Thread safe.
         """
+
+    @property
+    def reloaded(self) -> amulet.utils.signal.Signal[()]: ...

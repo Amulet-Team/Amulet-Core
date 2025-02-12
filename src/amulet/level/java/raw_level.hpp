@@ -13,6 +13,7 @@
 #include <amulet/level/abc/registry.hpp>
 #include <amulet/utils/mutex.hpp>
 #include <amulet/version.hpp>
+#include <amulet/utils/signal.hpp>
 
 #include "dimension.hpp"
 #include "raw_dimension.hpp"
@@ -36,6 +37,8 @@ public:
     std::map<DimensionID, JavaInternalDimensionID> dimension_ids;
     std::shared_ptr<IdRegistry> block_id_override;
     std::shared_ptr<IdRegistry> biome_id_override;
+
+    JavaRawLevelOpenData() { }
 };
 
 class JavaRawLevel {
@@ -68,6 +71,9 @@ private:
     }
 
     JavaRawLevelOpenData& _find_dimensions();
+    void _open();
+    void _close();
+    VersionNumber _get_data_version();
 
 public:
     JavaRawLevel() = delete;
@@ -94,13 +100,29 @@ public:
     // External unique lock required.
     AMULET_CORE_EXPORT void reload_metadata();
 
+    // A signal emitted when the level is opened.
+    Signal<> opened;
+
     // Open the level.
+    // opened signal will be emitted when complete.
     // External unique lock required.
     AMULET_CORE_EXPORT void open();
 
+    // A signal emitted when the level is closed.
+    Signal<> closed;
+
     // Close the level.
+    // closed signal will be emitted when complete.
     // External unique lock required.
     AMULET_CORE_EXPORT void close();
+
+    // A signal emitted when the level is reloaded.
+    Signal<> reloaded;
+
+    // Reload the level.
+    // This is like closing and re-opening without releasing the session.lock file.
+    // External unique lock required.
+    AMULET_CORE_EXPORT void reload();
 
     // The path to the level directory.
     // Thread safe.
