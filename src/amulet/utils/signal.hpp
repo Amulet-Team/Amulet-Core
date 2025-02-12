@@ -59,6 +59,7 @@ class SignalToken {
     // private:
 public:
     std::shared_ptr<detail::SignalCallbackStorage<Args...>> storage;
+    SignalToken() = default;
     SignalToken(std::shared_ptr<detail::SignalCallbackStorage<Args...>> storage)
         : storage(storage)
     {
