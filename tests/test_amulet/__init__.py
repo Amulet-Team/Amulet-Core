@@ -10,6 +10,7 @@ def _init() -> None:
     # Import dependencies
     import amulet
     from amulet.utils.logging import set_default_log_level
+
     # Enable debug logging when running tests.
     set_default_log_level(0)
 
