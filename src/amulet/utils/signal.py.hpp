@@ -30,10 +30,10 @@ void create_signal_binding()
         pybind11::class_<typename signalT::tokenT>(pybind11::handle(), "SignalToken", pybind11::module_local());
 
         pybind11::class_<signalT>(pybind11::handle(), "Signal", pybind11::module_local())
-            .def("connect", &signalT::connect)
-            .def("disconnect", &signalT::disconnect)
-            .def("emit", &signalT::emit)
-            .def("emit_async", &signalT::emit_async);
+            .def("connect", &signalT::connect, py::call_guard<py::gil_scoped_release>())
+            .def("disconnect", &signalT::disconnect, py::call_guard<py::gil_scoped_release>())
+            .def("emit", &signalT::emit, py::call_guard<py::gil_scoped_release>())
+            .def("emit_async", &signalT::emit_async, py::call_guard<py::gil_scoped_release>());
     }
 }
 
