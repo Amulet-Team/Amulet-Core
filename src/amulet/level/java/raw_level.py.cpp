@@ -5,6 +5,7 @@
 #include <memory>
 
 #include <amulet/utils/signal.py.hpp>
+#include <amulet/utils/holder.py.hpp>
 #include <amulet/version.hpp>
 
 #include "raw_level.hpp"
@@ -41,11 +42,11 @@ py::module init_java_raw_level(py::module m_parent)
 
     py::class_<
         Amulet::JavaRawLevel,
-        std::shared_ptr<Amulet::JavaRawLevel>>
+        Amulet::nogil_shared_ptr<Amulet::JavaRawLevel>>
         JavaRawLevel(m, "JavaRawLevel");
     JavaRawLevel.def_static(
         "load",
-        [](const std::string& path) -> std::shared_ptr<Amulet::JavaRawLevel> {
+        [](const std::string& path) -> Amulet::nogil_shared_ptr<Amulet::JavaRawLevel> {
             return Amulet::JavaRawLevel::load(path);
         },
         py::arg("path"),
@@ -54,7 +55,7 @@ py::module init_java_raw_level(py::module m_parent)
                 "Thread safe."));
     JavaRawLevel.def_static(
         "create",
-        [](const Amulet::JavaCreateArgsV1& args) -> std::shared_ptr<Amulet::JavaRawLevel> {
+        [](const Amulet::JavaCreateArgsV1& args) -> Amulet::nogil_shared_ptr<Amulet::JavaRawLevel> {
             return Amulet::JavaRawLevel::create(args);
         },
         py::arg("args"),
