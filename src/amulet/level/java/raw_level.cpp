@@ -153,6 +153,7 @@ void JavaRawLevel::set_level_dat(const AmuletNBT::NamedTag& level_dat)
     _level_dat = AmuletNBT::deep_copy(level_dat);
 
     // Save to level.dat
+    auto level_dat_temp_path = _path / "level.dat.tmp";
     auto level_dat_path = _path / "level.dat";
     // Encode
     std::string encoded_level_dat = AmuletNBT::encode_nbt(_level_dat, std::endian::big, AmuletNBT::utf8_to_mutf8);
@@ -160,12 +161,14 @@ void JavaRawLevel::set_level_dat(const AmuletNBT::NamedTag& level_dat)
     std::string compressed_level_dat;
     AmuletNBT::compress_gzip(encoded_level_dat, compressed_level_dat);
     // Write to file
-    std::ofstream level_dat_f(level_dat_path, std::ios::out | std::ios::binary);
+    std::ofstream level_dat_f(level_dat_temp_path, std::ios::out | std::ios::binary);
     if (!level_dat_f) {
-        throw std::runtime_error("Could not open file for writing. " + level_dat_path.string());
+        throw std::runtime_error("Could not open file for writing. " + level_dat_temp_path.string());
     }
     level_dat_f << compressed_level_dat;
     level_dat_f.close();
+    level_dat_f.flush();
+    std::filesystem::rename(level_dat_temp_path, level_dat_path);
 
     // Reload the level if the data version changed.
     if (_data_version != _get_data_version()) {
