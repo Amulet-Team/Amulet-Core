@@ -14,6 +14,11 @@
 
 namespace Amulet {
 
+JavaRawLevel::~JavaRawLevel()
+{
+    close();
+}
+
 std::unique_ptr<JavaRawLevel> JavaRawLevel::load(const std::filesystem::path& path)
 {
     if (!std::filesystem::is_directory(path)) {

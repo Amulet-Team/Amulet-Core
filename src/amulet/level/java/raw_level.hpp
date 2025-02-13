@@ -79,6 +79,7 @@ public:
     JavaRawLevel() = delete;
     JavaRawLevel(const JavaRawLevel&) = delete;
     JavaRawLevel(JavaRawLevel&&) = default;
+    AMULET_CORE_EXPORT ~JavaRawLevel();
 
     // Load an existing Java level from the given directory.
     // Thread safe.
