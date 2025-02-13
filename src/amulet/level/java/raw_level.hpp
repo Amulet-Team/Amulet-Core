@@ -14,6 +14,7 @@
 #include <amulet/utils/mutex.hpp>
 #include <amulet/version.hpp>
 #include <amulet/utils/signal.hpp>
+#include <amulet/utils/lock_file.hpp>
 
 #include "dimension.hpp"
 #include "raw_dimension.hpp"
@@ -29,8 +30,7 @@ struct JavaCreateArgsV1 {
 
 class JavaRawLevelOpenData {
 public:
-    // TODO: lock_file
-    // TODO: lock_time
+    std::unique_ptr<LockFile> session_lock;
     // TODO: data_pack
     std::shared_mutex dimensions_mutex;
     std::map<JavaInternalDimensionID, std::shared_ptr<JavaRawDimension>> dimensions;
@@ -38,7 +38,9 @@ public:
     std::shared_ptr<IdRegistry> block_id_override;
     std::shared_ptr<IdRegistry> biome_id_override;
 
-    JavaRawLevelOpenData() { }
+    JavaRawLevelOpenData(
+        std::unique_ptr<LockFile> session_lock
+    ): session_lock(std::move(session_lock)) { }
 };
 
 class JavaRawLevel {
@@ -71,8 +73,8 @@ private:
     }
 
     JavaRawLevelOpenData& _find_dimensions();
-    void _open();
-    void _close();
+    void _open(std::unique_ptr<LockFile> session_lock);
+    std::unique_ptr<LockFile> _close();
     VersionNumber _get_data_version();
 
 public:

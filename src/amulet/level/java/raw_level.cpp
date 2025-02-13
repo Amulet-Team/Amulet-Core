@@ -10,6 +10,8 @@
 #include <amulet_nbt/tag/copy.hpp>
 #include <amulet_nbt/zlib.hpp>
 
+#include <amulet/utils/lock_file.hpp>
+
 #include "raw_level.hpp"
 
 namespace Amulet {
@@ -87,14 +89,15 @@ void JavaRawLevel::reload_metadata()
     _data_version = _get_data_version();
 }
 
-void JavaRawLevel::_open()
+void JavaRawLevel::_open(std::unique_ptr<LockFile> session_lock)
 {
     // Reload the metadata to ensure it is up to date.
     reload_metadata();
 
     // TODO: data pack
 
-    _raw_open_data = std::make_unique<JavaRawLevelOpenData>();
+    _raw_open_data = std::make_unique<JavaRawLevelOpenData>(
+        std::move(session_lock));
 }
 
 void JavaRawLevel::open()
@@ -103,15 +106,24 @@ void JavaRawLevel::open()
         return;
     }
 
-    // TODO: acquire lock file
-    _open();
+    // Acquire session.lock
+    auto session_lock = std::make_unique<LockFile>(_path / "session.lock");
+    session_lock->write_to_file("\xE2\x98\x83");
+
+    // Do the actual open
+    _open(std::move(session_lock));
+
+    // Notify listeners that the world is now open.
     opened.emit_async();
 }
 
-void JavaRawLevel::_close()
+std::unique_ptr<LockFile> JavaRawLevel::_close()
 {
     auto raw_open_data = std::move(_raw_open_data);
+    auto lock_file = std::move(raw_open_data->session_lock);
     // TODO: destroy open data
+
+    return lock_file;
 }
 
 void JavaRawLevel::close()
@@ -129,8 +141,7 @@ void JavaRawLevel::reload()
     if (!is_open()) {
         throw std::runtime_error("Level can only be reloaded when it is open.");
     }
-    _close();
-    _open();
+    _open(_close());
     reloaded.emit_async();
 }
 
