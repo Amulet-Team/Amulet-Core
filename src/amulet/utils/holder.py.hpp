@@ -13,20 +13,9 @@ private:
     std::shared_ptr<T> ptr;
 
 public:
-    nogil_shared_ptr() { }
-
-    nogil_shared_ptr(std::shared_ptr<T> ptr)
-        : ptr(std::move(ptr))
-    {
-    }
-
-    nogil_shared_ptr(std::unique_ptr<T> ptr)
-        : ptr(std::move(ptr))
-    {
-    }
-
-    nogil_shared_ptr(T* ptr)
-        : ptr(ptr)
+    template <typename... Args>
+    nogil_shared_ptr(Args&&... args)
+        : ptr(std::forward<Args>(args)...)
     {
     }
 
