@@ -191,11 +191,6 @@ std::string JavaRawLevel::get_platform() const
     return "java";
 }
 
-VersionNumber JavaRawLevel::get_data_version() const
-{
-    return _data_version;
-}
-
 // Get the "Data" CompoundTag from a level.dat NamedTag.
 static AmuletNBT::CompoundTag& get_level_dat_data(AmuletNBT::NamedTag& level_dat)
 {
@@ -211,6 +206,11 @@ static AmuletNBT::CompoundTag& get_level_dat_data(AmuletNBT::NamedTag& level_dat
         throw std::runtime_error("Level.dat[\"Data\"] is not a CompoundTag.");
     }
     return *std::get<AmuletNBT::CompoundTagPtr>(it->second);
+}
+
+VersionNumber JavaRawLevel::get_data_version() const
+{
+    return _data_version;
 }
 
 void JavaRawLevel::set_data_version(const VersionNumber& data_version)
