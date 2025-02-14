@@ -1,4 +1,5 @@
 #include <bit>
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -51,10 +52,44 @@ static void _write_level_dat(const std::filesystem::path& level_dat_path, const 
     std::filesystem::rename(level_dat_temp_path, level_dat_path);
 }
 
-// Create a new Java level and create a JavaRawLevel instance for it.
-std::unique_ptr<JavaRawLevel> JavaRawLevel::create(const JavaCreateArgsV1&)
+std::unique_ptr<JavaRawLevel> JavaRawLevel::create(const JavaCreateArgsV1& args)
 {
-    throw std::runtime_error("NotImplementedError");
+    // Create the directory
+    if (std::filesystem::exists(args.path)) {
+        if (args.overwrite) {
+            std::filesystem::remove_all(args.path);
+        } else {
+            throw std::runtime_error("Path already exists and overwrite is false. " + args.path.string());
+        }
+    }
+    std::filesystem::create_directories(args.path);
+
+    // Get the data version
+    AmuletNBT::IntTagNative data_version;
+    if (args.version.size() == 1) {
+        data_version = args.version[0];
+    } else {
+        throw std::runtime_error("NotImplementedError");
+        // data_version = get_game_version("java", version).max_version
+    }
+
+    // Get the current unix time in milliseconds
+    auto time_now = static_cast<AmuletNBT::LongTagNative>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch())
+            .count());
+
+    // Create the level.dat file
+    auto root = std::make_shared<AmuletNBT::CompoundTag>();
+    auto data = std::make_shared<AmuletNBT::CompoundTag>();
+    root->emplace("Data", data);
+    data->emplace("version", AmuletNBT::IntTag(19133));
+    data->emplace("DataVersion", AmuletNBT::IntTag(data_version));
+    data->emplace("LastPlayed", AmuletNBT::LongTag(time_now));
+    data->emplace("LevelName", AmuletNBT::StringTag(args.level_name));
+    _write_level_dat(args.path / "level.dat", { "", root });
+
+    return load(args.path);
 }
 
 OrderedMutex& JavaRawLevel::get_mutex()
