@@ -73,7 +73,7 @@ std::unique_ptr<JavaRawLevel> JavaRawLevel::create(const JavaCreateArgsV1& args)
     // Get the data version
     AmuletNBT::IntTagNative data_version;
     if (args.version.size() == 1) {
-        data_version = args.version[0];
+        data_version = static_cast<AmuletNBT::IntTagNative>(args.version[0]);
     } else {
         throw std::runtime_error("NotImplementedError");
         // data_version = get_game_version("java", version).max_version
