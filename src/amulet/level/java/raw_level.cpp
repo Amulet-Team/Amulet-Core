@@ -131,8 +131,7 @@ void JavaRawLevel::close()
     if (!is_open()) {
         return;
     }
-    _close();
-    // TODO: Unlock session.lock
+    _close()->unlock_file();
     closed.emit_async();
 }
 
