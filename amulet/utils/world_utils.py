@@ -333,7 +333,7 @@ def get_smallest_dtype(arr: ndarray, uint: bool = True) -> int:
 
 
 def entity_position_to_chunk_coordinates(
-    entity_coordinates: Tuple[float, float, float]
+    entity_coordinates: Tuple[float, float, float],
 ):
     return (
         int(math.floor(entity_coordinates[0])) >> 4,

@@ -577,7 +577,7 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
         """
         yield from (
             pid[7:].decode("utf-8")
-            for pid, _ in self._db.iterate(b"player_", b"player_\xFF")
+            for pid, _ in self._db.iterate(b"player_", b"player_\xff")
         )
         if self.has_player(LOCAL_PLAYER):
             yield LOCAL_PLAYER

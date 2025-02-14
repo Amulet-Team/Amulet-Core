@@ -133,7 +133,7 @@ class BaseLevelDBInterface(Interface):
         ):  # ["2farray", "2f1palette", "2fnpalette"]
             subchunks = {}
             for key in chunk_data.copy().keys():
-                if len(key) == 2 and key[0:1] == b"\x2F":
+                if len(key) == 2 and key[0:1] == b"\x2f":
                     cy = struct.unpack("b", key[1:2])[0]
                     subchunks[self._chunk_key_to_sub_chunk(cy, bounds[0] >> 4)] = (
                         chunk_data.pop(key)
@@ -188,8 +188,8 @@ class BaseLevelDBInterface(Interface):
             )
             chunk.misc["height"] = height
             chunk.biomes = biome
-        elif b"\x2D" in chunk_data:
-            d2d = chunk_data[b"\x2D"]
+        elif b"\x2d" in chunk_data:
+            d2d = chunk_data[b"\x2d"]
             height, biome = (
                 numpy.frombuffer(d2d[:512], "<i2").reshape((16, 16)),
                 d2d[512:],
@@ -274,7 +274,7 @@ class BaseLevelDBInterface(Interface):
         )
         min_y = bounds[0] // 16
         for cy, sub_chunk in terrain.items():
-            chunk_data[b"\x2F" + self._get_sub_chunk_storage_byte(cy, min_y)] = (
+            chunk_data[b"\x2f" + self._get_sub_chunk_storage_byte(cy, min_y)] = (
                 sub_chunk
             )
 
@@ -289,15 +289,15 @@ class BaseLevelDBInterface(Interface):
             d2d: List[bytes] = [self._encode_height(chunk)]
             chunk.biomes.convert_to_2d()
             d2d.append(chunk.biomes.astype("uint8").T.tobytes())
-            chunk_data[b"\x2D"] = b"".join(d2d)
+            chunk_data[b"\x2d"] = b"".join(d2d)
             if b"+" in chunk_data:
                 chunk_data[b"+"] = None
         elif self._features["data_2d"] == "height512|biome4096":
             chunk_data[b"+"] = self._encode_height_3d_biomes(
                 chunk, bounds[0] >> 4, bounds[1] >> 4
             )
-            if b"\x2D" in chunk_data:
-                chunk_data[b"\x2D"] = None
+            if b"\x2d" in chunk_data:
+                chunk_data[b"\x2d"] = None
 
         # pack block entities and entities
         if self._features["block_entities"] == "31list":
@@ -656,7 +656,7 @@ class BaseLevelDBInterface(Interface):
                     d2d.append(struct.pack("<I", len(palette)))
                 d2d.append(palette.astype("<i4").tobytes())
             else:
-                d2d.append(b"\xFF")
+                d2d.append(b"\xff")
 
         return b"".join(d2d)
 
