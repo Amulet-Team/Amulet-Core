@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <regex>
 #include <stdexcept>
 #include <variant>
 
@@ -16,6 +17,11 @@
 #include "raw_level.hpp"
 
 namespace Amulet {
+
+static const std::string OVERWORLD = "minecraft:overworld";
+static const std::string THE_NETHER = "minecraft:the_nether";
+static const std::string THE_END = "minecraft:the_end";
+static const std::regex number_regex(R"(^(\-?\d+)$)");
 
 JavaRawLevel::~JavaRawLevel()
 {
@@ -304,10 +310,81 @@ void JavaRawLevel::set_level_name(const std::string& level_name)
     set_level_dat(level_dat);
 }
 
+void JavaRawLevel::_register_dimension(const JavaInternalDimensionID&, const DimensionID&)
+{
+    throw std::runtime_error("NotImplementedError");
+}
+
 JavaRawLevelOpenData& JavaRawLevel::_find_dimensions()
 {
     auto& raw_open = _get_raw_open();
     std::unique_lock lock(raw_open.dimensions_mutex);
+
+    if (!raw_open.dimensions.empty()) {
+        return raw_open;
+    }
+
+    // Add hard coded dimensions
+    _register_dimension("", OVERWORLD);
+    _register_dimension("DIM-1", THE_NETHER);
+    _register_dimension("DIM1", THE_END);
+
+    // Find DIM style dimensions
+    for (const auto& dir_entry : std::filesystem::directory_iterator { _path }) {
+        if (!dir_entry.is_directory()) {
+            continue;
+        }
+        auto dir_name = dir_entry.path().filename().string();
+        if (dir_name.substr(0, 3) != "DIM") {
+            continue;
+        }
+        std::smatch match;
+        if (!std::regex_search(dir_name, match, number_regex)) {
+            continue;
+        }
+        _register_dimension(dir_name, dir_name);
+    }
+
+    // Find dimensions in "dimensions" directory
+    for (const auto& dir_entry : std::filesystem::recursive_directory_iterator { _path / "dimensions" }) {
+        if (!dir_entry.is_directory()) {
+            // Skip if it isn't a directory
+            continue;
+        }
+        auto& path = dir_entry.path();
+        if (path.filename().string() != "region") {
+            // Skip if it doesn't end with region
+            continue;
+        }
+        // Get the dimension path relative to the world
+        auto rel_dimension_path = std::filesystem::relative(path.parent_path(), _path);
+
+        std::string dimension_name;
+        auto it = rel_dimension_path.begin();
+
+        // Get the namespace
+        if (it == rel_dimension_path.end()) {
+            continue;
+        }
+        dimension_name += it->string();
+        dimension_name += ":";
+        it++;
+
+        // Get the base name
+        if (it == rel_dimension_path.end()) {
+            continue;
+        }
+        dimension_name += it->string();
+
+        // Get base name extension
+        for (; it == rel_dimension_path.end(); it++) {
+            dimension_name += "/";
+            dimension_name += it->string();
+        }
+
+        _register_dimension(rel_dimension_path.string(), dimension_name);
+    }
+
     return raw_open;
 }
 

@@ -76,6 +76,7 @@ private:
     void _open(std::unique_ptr<LockFile> session_lock);
     std::unique_ptr<LockFile> _close();
     VersionNumber _get_data_version();
+    void _register_dimension(const JavaInternalDimensionID&, const DimensionID&);
 
 public:
     JavaRawLevel() = delete;
