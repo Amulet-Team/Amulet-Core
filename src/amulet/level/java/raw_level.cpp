@@ -31,6 +31,26 @@ std::unique_ptr<JavaRawLevel> JavaRawLevel::load(const std::filesystem::path& pa
     return self;
 }
 
+static void _write_level_dat(const std::filesystem::path& level_dat_path, const AmuletNBT::NamedTag& level_dat)
+{
+    auto level_dat_temp_path = level_dat_path;
+    level_dat_temp_path += ".tmp";
+    // Encode
+    std::string encoded_level_dat = AmuletNBT::encode_nbt(level_dat, std::endian::big, AmuletNBT::utf8_to_mutf8);
+    // Compress
+    std::string compressed_level_dat;
+    AmuletNBT::compress_gzip(encoded_level_dat, compressed_level_dat);
+    // Write to file
+    std::ofstream level_dat_f(level_dat_temp_path, std::ios::out | std::ios::binary);
+    if (!level_dat_f) {
+        throw std::runtime_error("Could not open file for writing. " + level_dat_temp_path.string());
+    }
+    level_dat_f << compressed_level_dat;
+    level_dat_f.close();
+    level_dat_f.flush();
+    std::filesystem::rename(level_dat_temp_path, level_dat_path);
+}
+
 // Create a new Java level and create a JavaRawLevel instance for it.
 std::unique_ptr<JavaRawLevel> JavaRawLevel::create(const JavaCreateArgsV1&)
 {
@@ -163,22 +183,7 @@ void JavaRawLevel::set_level_dat(const AmuletNBT::NamedTag& level_dat)
     _level_dat = AmuletNBT::deep_copy(level_dat);
 
     // Save to level.dat
-    auto level_dat_temp_path = _path / "level.dat.tmp";
-    auto level_dat_path = _path / "level.dat";
-    // Encode
-    std::string encoded_level_dat = AmuletNBT::encode_nbt(_level_dat, std::endian::big, AmuletNBT::utf8_to_mutf8);
-    // Compress
-    std::string compressed_level_dat;
-    AmuletNBT::compress_gzip(encoded_level_dat, compressed_level_dat);
-    // Write to file
-    std::ofstream level_dat_f(level_dat_temp_path, std::ios::out | std::ios::binary);
-    if (!level_dat_f) {
-        throw std::runtime_error("Could not open file for writing. " + level_dat_temp_path.string());
-    }
-    level_dat_f << compressed_level_dat;
-    level_dat_f.close();
-    level_dat_f.flush();
-    std::filesystem::rename(level_dat_temp_path, level_dat_path);
+    _write_level_dat(_path / "level.dat", _level_dat);
 
     // Reload the level if the data version changed.
     if (_data_version != _get_data_version()) {
