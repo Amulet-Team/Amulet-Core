@@ -21,12 +21,9 @@ private:
 public:
     const std::vector<std::int64_t>& get_vector() const { return vec; }
 
-    VersionNumber(std::initializer_list<std::int64_t> vec)
-        : vec(vec)
-    {
-    }
-    VersionNumber(const std::vector<std::int64_t>& vec)
-        : vec(vec)
+    template <typename... Args>
+    VersionNumber(Args&&... args)
+        : vec(std::forward<Args>(args)...)
     {
     }
 
