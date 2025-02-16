@@ -38,9 +38,19 @@ IndexArray3D::IndexArray3D(const IndexArray3D& other)
     std::memcpy(_buffer, other._buffer, sizeof(std::uint32_t) * other.get_size());
 }
 
+IndexArray3D::IndexArray3D(IndexArray3D&& other)
+{
+    _shape = other._shape;
+    _size = other._size;
+    _buffer = other._buffer;
+    other._buffer = nullptr;
+}
+
 IndexArray3D::~IndexArray3D()
 {
-    free(_buffer);
+    if (_buffer != nullptr) {
+        free(_buffer);
+    }
 }
 
 void IndexArray3D::serialise(BinaryWriter& writer) const

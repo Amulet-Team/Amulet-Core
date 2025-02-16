@@ -29,6 +29,7 @@ public:
     AMULET_CORE_EXPORT IndexArray3D(const SectionShape& shape);
     AMULET_CORE_EXPORT IndexArray3D(const SectionShape& shape, std::uint32_t value);
     AMULET_CORE_EXPORT IndexArray3D(const IndexArray3D& other);
+    AMULET_CORE_EXPORT IndexArray3D(IndexArray3D&& other);
     AMULET_CORE_EXPORT ~IndexArray3D();
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
     AMULET_CORE_EXPORT static IndexArray3D deserialise(BinaryReader&);
