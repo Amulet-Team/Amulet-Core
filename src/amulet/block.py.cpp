@@ -58,7 +58,7 @@ void init_block(py::module m_parent)
     Block.def(
         py::init<
             const Amulet::PlatformType&,
-            std::shared_ptr<Amulet::VersionNumber>,
+            const Amulet::VersionNumber&,
             const std::string&,
             const std::string&,
             const std::map<std::string, Amulet::PropertyValueType>&>(),
@@ -111,7 +111,12 @@ void init_block(py::module m_parent)
     Block.def(
         "__repr__",
         [](const Amulet::Block& self) {
-            return "Block(" + py::repr(py::cast(self.get_platform())).cast<std::string>() + ", " + py::repr(py::cast(self.get_version())).cast<std::string>() + ", " + py::repr(py::cast(self.get_namespace())).cast<std::string>() + ", " + py::repr(py::cast(self.get_base_name())).cast<std::string>() + ", " + py::repr(py::cast(self.get_properties())).cast<std::string>() + ")";
+            return "Block(" 
+                + py::repr(py::cast(self.get_platform())).cast<std::string>() + ", " 
+                + py::repr(py::cast(self.get_version(), py::return_value_policy::reference)).cast<std::string>() + ", " 
+                + py::repr(py::cast(self.get_namespace())).cast<std::string>() + ", " 
+                + py::repr(py::cast(self.get_base_name())).cast<std::string>() + ", " 
+                + py::repr(py::cast(self.get_properties())).cast<std::string>() + ")";
         });
     Block.def(
         "__hash__",
@@ -119,7 +124,7 @@ void init_block(py::module m_parent)
             return py::hash(
                 py::make_tuple(
                     py::cast(self.get_platform()),
-                    py::cast(self.get_version()),
+                    py::cast(self.get_version(), py::return_value_policy::reference),
                     py::cast(self.get_namespace()),
                     py::cast(self.get_base_name()),
                     py::tuple(PySorted(py::cast(self.get_properties()).attr("items")()))));

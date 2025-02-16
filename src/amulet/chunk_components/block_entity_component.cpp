@@ -52,7 +52,7 @@ void BlockEntityComponentData::set(
     if (!(
             get_version_range()->contains(
                 block_entity->get_platform(),
-                *block_entity->get_version()))) {
+                block_entity->get_version()))) {
         throw std::invalid_argument(
             "BlockEntity is incompatible with VersionRange.");
     }

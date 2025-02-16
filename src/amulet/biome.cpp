@@ -15,7 +15,7 @@ void Biome::serialise(BinaryWriter& writer) const
 {
     writer.writeNumeric<std::uint8_t>(1);
     writer.writeSizeAndBytes(get_platform());
-    get_version()->serialise(writer);
+    get_version().serialise(writer);
     writer.writeSizeAndBytes(namespace_);
     writer.writeSizeAndBytes(base_name);
 }
@@ -25,7 +25,7 @@ Biome Biome::deserialise(BinaryReader& reader)
     switch (version_number) {
     case 1: {
         std::string platform = reader.readSizeAndBytes();
-        std::shared_ptr<VersionNumber> version = Amulet::deserialise_shared<VersionNumber>(reader);
+        VersionNumber version = VersionNumber::deserialise(reader);
         std::string namespace_ = reader.readSizeAndBytes();
         std::string base_name = reader.readSizeAndBytes();
         return { platform, version, namespace_, base_name };

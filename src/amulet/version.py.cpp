@@ -169,7 +169,7 @@ void init_version(py::module m_parent)
     PlatformVersionContainer.def(
         py::init<
             const Amulet::PlatformType&,
-            std::shared_ptr<Amulet::VersionNumber>>(),
+            const Amulet::VersionNumber&>(),
         py::arg("platform"),
         py::arg("version"));
     PlatformVersionContainer.def_property_readonly("platform", &Amulet::PlatformVersionContainer::get_platform);
@@ -177,7 +177,9 @@ void init_version(py::module m_parent)
     PlatformVersionContainer.def(
         "__repr__",
         [](const Amulet::PlatformVersionContainer& self) {
-            return "PlatformVersionContainer(" + py::repr(py::cast(self.get_platform())).cast<std::string>() + ", " + py::repr(py::cast(self.get_version())).cast<std::string>() + ")";
+            return "PlatformVersionContainer(" 
+                + py::repr(py::cast(self.get_platform())).cast<std::string>() + ", " 
+                + py::repr(py::cast(self.get_version(), py::return_value_policy::reference)).cast<std::string>() + ")";
         });
     PlatformVersionContainer.def(
         py::pickle(
@@ -192,8 +194,8 @@ void init_version(py::module m_parent)
     VersionRange.def(
         py::init<
             const Amulet::PlatformType&,
-            std::shared_ptr<Amulet::VersionNumber>,
-            std::shared_ptr<Amulet::VersionNumber>>(),
+            const Amulet::VersionNumber&,
+            const Amulet::VersionNumber&>(),
         py::arg("platform"),
         py::arg("min_version"),
         py::arg("max_version"));

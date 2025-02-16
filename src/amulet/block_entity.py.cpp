@@ -22,7 +22,7 @@ void init_block_entity(py::module m_parent)
     BlockEntity.def(
         py::init<
             const Amulet::PlatformType&,
-            std::shared_ptr<Amulet::VersionNumber>,
+            const Amulet::VersionNumber&,
             const std::string&,
             const std::string&,
             std::shared_ptr<AmuletNBT::NamedTag>>(),
@@ -78,7 +78,12 @@ void init_block_entity(py::module m_parent)
     BlockEntity.def(
         "__repr__",
         [](const Amulet::BlockEntity& self) {
-            return "Block(" + py::repr(py::cast(self.get_platform())).cast<std::string>() + ", " + py::repr(py::cast(self.get_version())).cast<std::string>() + ", " + py::repr(py::cast(self.get_namespace())).cast<std::string>() + ", " + py::repr(py::cast(self.get_base_name())).cast<std::string>() + ", " + py::repr(py::cast(self.get_nbt())).cast<std::string>() + ")";
+            return "Block(" 
+                + py::repr(py::cast(self.get_platform())).cast<std::string>() + ", " 
+                + py::repr(py::cast(self.get_version(), py::return_value_policy::reference)).cast<std::string>() + ", " 
+                + py::repr(py::cast(self.get_namespace())).cast<std::string>() + ", " 
+                + py::repr(py::cast(self.get_base_name())).cast<std::string>() + ", " 
+                + py::repr(py::cast(self.get_nbt())).cast<std::string>() + ")";
         });
     BlockEntity.def(
         py::pickle(

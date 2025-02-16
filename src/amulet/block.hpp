@@ -36,10 +36,9 @@ public:
         return properties;
     }
 
-    template <typename versionT>
     Block(
         const PlatformType& platform,
-        const versionT& version,
+        const VersionNumber& version,
         const std::string& namespace_,
         const std::string& base_name)
         : PlatformVersionContainer(platform, version)
@@ -49,12 +48,10 @@ public:
     {
     }
 
-    template <
-        typename versionT,
-        typename propertiesT>
+    template <typename propertiesT>
     Block(
         const PlatformType& platform,
-        const versionT& version,
+        const VersionNumber& version,
         const std::string& namespace_,
         const std::string& base_name,
         const propertiesT& properties)
@@ -91,8 +88,8 @@ public:
 
     AMULET_CORE_EXPORT std::string java_blockstate() const;
     AMULET_CORE_EXPORT std::string bedrock_blockstate() const;
-    AMULET_CORE_EXPORT static std::shared_ptr<Block> from_java_blockstate(const PlatformType&, std::shared_ptr<VersionNumber>, const std::string&);
-    AMULET_CORE_EXPORT static std::shared_ptr<Block> from_bedrock_blockstate(const PlatformType&, std::shared_ptr<VersionNumber>, const std::string&);
+    AMULET_CORE_EXPORT static std::shared_ptr<Block> from_java_blockstate(const PlatformType&, const VersionNumber&, const std::string&);
+    AMULET_CORE_EXPORT static std::shared_ptr<Block> from_bedrock_blockstate(const PlatformType&, const VersionNumber&, const std::string&);
 };
 
 class BlockStack {

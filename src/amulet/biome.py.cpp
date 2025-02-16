@@ -30,7 +30,7 @@ void init_biome(py::module m_parent)
     Biome.def(
         py::init<
             const Amulet::PlatformType&,
-            std::shared_ptr<Amulet::VersionNumber>,
+            const Amulet::VersionNumber&,
             const std::string&,
             const std::string&>(),
         py::arg("platform"),
@@ -72,7 +72,11 @@ void init_biome(py::module m_parent)
     Biome.def(
         "__repr__",
         [](const Amulet::Biome& self) {
-            return "Biome(" + py::repr(py::cast(self.get_platform())).cast<std::string>() + ", " + py::repr(py::cast(self.get_version())).cast<std::string>() + ", " + py::repr(py::cast(self.get_namespace())).cast<std::string>() + ", " + py::repr(py::cast(self.get_base_name())).cast<std::string>() + ")";
+            return "Biome(" 
+                + py::repr(py::cast(self.get_platform())).cast<std::string>() + ", " 
+                + py::repr(py::cast(self.get_version(), py::return_value_policy::reference)).cast<std::string>() + ", " 
+                + py::repr(py::cast(self.get_namespace())).cast<std::string>() + ", " 
+                + py::repr(py::cast(self.get_base_name())).cast<std::string>() + ")";
         });
     Biome.def(
         "__hash__",
@@ -80,7 +84,7 @@ void init_biome(py::module m_parent)
             return py::hash(
                 py::make_tuple(
                     py::cast(self.get_platform()),
-                    py::cast(self.get_version()),
+                    py::cast(self.get_version(), py::return_value_policy::reference),
                     py::cast(self.get_namespace()),
                     py::cast(self.get_base_name())));
         });

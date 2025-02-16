@@ -5,17 +5,18 @@
 #include <type_traits>
 #include <variant>
 
-#include <amulet/block.hpp>
 #include <amulet/dll.hpp>
 #include <amulet_nbt/nbt_encoding/binary.hpp>
 #include <amulet_nbt/nbt_encoding/string.hpp>
+
+#include "block.hpp"
 
 namespace Amulet {
 void Block::serialise(BinaryWriter& writer) const
 {
     writer.writeNumeric<std::uint8_t>(1);
     writer.writeSizeAndBytes(get_platform());
-    get_version()->serialise(writer);
+    get_version().serialise(writer);
     writer.writeSizeAndBytes(namespace_);
     writer.writeSizeAndBytes(base_name);
 
@@ -34,7 +35,7 @@ Block Block::deserialise(BinaryReader& reader)
     switch (version_number) {
     case 1: {
         std::string platform = reader.readSizeAndBytes();
-        std::shared_ptr<VersionNumber> version = Amulet::deserialise_shared<VersionNumber>(reader);
+        VersionNumber version = VersionNumber::deserialise(reader);
         std::string namespace_ = reader.readSizeAndBytes();
         std::string base_name = reader.readSizeAndBytes();
         std::uint64_t property_count;
@@ -160,7 +161,7 @@ template <
     PropertyValueType (*capture_value)(const std::string&, size_t&)>
 std::shared_ptr<Block> parse_blockstate(
     const PlatformType& platform,
-    std::shared_ptr<VersionNumber> version,
+    const VersionNumber& version,
     const std::string& blockstate)
 {
     // This is more lenient than the game parser.
@@ -378,7 +379,7 @@ inline PropertyValueType capture_bedrock_blockstate_property_value(const std::st
         node);
 }
 
-std::shared_ptr<Block> Block::from_java_blockstate(const PlatformType& platform, std::shared_ptr<VersionNumber> version, const std::string& blockstate)
+std::shared_ptr<Block> Block::from_java_blockstate(const PlatformType& platform, const VersionNumber& version, const std::string& blockstate)
 {
     return parse_blockstate<
         validate_java_namespace,
@@ -389,7 +390,7 @@ std::shared_ptr<Block> Block::from_java_blockstate(const PlatformType& platform,
         version,
         blockstate);
 }
-std::shared_ptr<Block> Block::from_bedrock_blockstate(const PlatformType& platform, std::shared_ptr<VersionNumber> version, const std::string& blockstate)
+std::shared_ptr<Block> Block::from_bedrock_blockstate(const PlatformType& platform, const VersionNumber& version, const std::string& blockstate)
 {
     return parse_blockstate<
         validate_bedrock_namespace,

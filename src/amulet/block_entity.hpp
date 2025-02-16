@@ -30,7 +30,7 @@ public:
 
     BlockEntity(
         const PlatformType& platform,
-        std::shared_ptr<VersionNumber> version,
+        const VersionNumber& version,
         const std::string& namespace_,
         const std::string& base_name,
         std::shared_ptr<AmuletNBT::NamedTag> nbt)
