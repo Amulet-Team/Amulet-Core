@@ -28,13 +28,13 @@ void Block::serialise(BinaryWriter& writer) const
             val);
     }
 }
-std::shared_ptr<Block> Block::deserialise(BinaryReader& reader)
+Block Block::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.readNumeric<std::uint8_t>();
     switch (version_number) {
     case 1: {
         std::string platform = reader.readSizeAndBytes();
-        std::shared_ptr<VersionNumber> version = VersionNumber::deserialise(reader);
+        std::shared_ptr<VersionNumber> version = Amulet::deserialise_shared<VersionNumber>(reader);
         std::string namespace_ = reader.readSizeAndBytes();
         std::string base_name = reader.readSizeAndBytes();
         std::uint64_t property_count;
@@ -54,7 +54,7 @@ std::shared_ptr<Block> Block::deserialise(BinaryReader& reader)
             },
                 named_tag.tag_node);
         }
-        return std::make_shared<Block>(platform, version, namespace_, base_name, properties);
+        return { platform, version, namespace_, base_name, properties };
     }
     default:
         throw std::invalid_argument("Unsupported Block version " + std::to_string(version_number));
@@ -409,7 +409,7 @@ void BlockStack::serialise(BinaryWriter& writer) const
         block->serialise(writer);
     }
 }
-std::shared_ptr<BlockStack> BlockStack::deserialise(BinaryReader& reader)
+BlockStack BlockStack::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.readNumeric<std::uint8_t>();
     switch (version_number) {
@@ -417,9 +417,9 @@ std::shared_ptr<BlockStack> BlockStack::deserialise(BinaryReader& reader)
         std::vector<std::shared_ptr<Block>> blocks;
         auto count = reader.readNumeric<std::uint64_t>();
         for (auto i = 0; i < count; i++) {
-            blocks.push_back(Block::deserialise(reader));
+            blocks.push_back(Amulet::deserialise_shared<Block>(reader));
         }
-        return std::make_shared<BlockStack>(blocks);
+        return blocks;
     }
     default:
         throw std::invalid_argument("Unsupported BlockStack version " + std::to_string(version_number));
