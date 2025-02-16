@@ -312,7 +312,8 @@ void init_block(py::module m_parent)
             ">>> waterlogged_stone.base_block\n"
             "Block(\"java\", VersionNumber(3578), \"minecraft\", \"stone\")\n"
             "\n"
-            ":return: A Block object"));
+            ":return: A Block object"),
+        py::return_value_policy::automatic);
     BlockStack.def_property_readonly(
         "extra_blocks",
         [](const Amulet::BlockStack& self) -> py::tuple {
@@ -333,5 +334,6 @@ void init_block(py::module m_parent)
             ">>> waterlogged_stone.extra_blocks\n"
             "(Block(\"java\", VersionNumber(3578), \"minecraft\", \"water\", {\"level\": StringTag(\"0\")}),)\n"
             "\n"
-            ":return: A tuple of :class:`Block` objects"));
+            ":return: A tuple of :class:`Block` objects"),
+        py::return_value_policy::automatic);
 }
