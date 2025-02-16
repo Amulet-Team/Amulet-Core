@@ -111,11 +111,11 @@ void init_block(py::module m_parent)
     Block.def(
         "__repr__",
         [](const Amulet::Block& self) {
-            return "Block(" 
-                + py::repr(py::cast(self.get_platform())).cast<std::string>() + ", " 
-                + py::repr(py::cast(self.get_version(), py::return_value_policy::reference)).cast<std::string>() + ", " 
-                + py::repr(py::cast(self.get_namespace())).cast<std::string>() + ", " 
-                + py::repr(py::cast(self.get_base_name())).cast<std::string>() + ", " 
+            return "Block("
+                + py::repr(py::cast(self.get_platform())).cast<std::string>() + ", "
+                + py::repr(py::cast(self.get_version(), py::return_value_policy::reference)).cast<std::string>() + ", "
+                + py::repr(py::cast(self.get_namespace())).cast<std::string>() + ", "
+                + py::repr(py::cast(self.get_base_name())).cast<std::string>() + ", "
                 + py::repr(py::cast(self.get_properties())).cast<std::string>() + ")";
         });
     Block.def(
