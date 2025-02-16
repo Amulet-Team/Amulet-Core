@@ -21,7 +21,7 @@ private:
 
 public:
     AMULET_CORE_EXPORT BlockComponentData(
-        std::shared_ptr<VersionRange> version_range,
+        const VersionRange& version_range,
         const SectionShape& array_shape,
         std::shared_ptr<BlockStack> default_block);
     AMULET_CORE_EXPORT BlockComponentData(
@@ -42,7 +42,7 @@ protected:
     AMULET_CORE_EXPORT BlockComponent() = default;
     // Default constructor
     AMULET_CORE_EXPORT void init(
-        std::shared_ptr<VersionRange> version_range,
+        const VersionRange& version_range,
         const SectionShape& array_shape,
         std::shared_ptr<BlockStack> default_block);
 

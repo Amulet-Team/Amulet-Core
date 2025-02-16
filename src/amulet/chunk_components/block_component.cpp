@@ -5,7 +5,7 @@ namespace Amulet {
 
 // BlockComponentData
 BlockComponentData::BlockComponentData(
-    std::shared_ptr<VersionRange> version_range,
+    const VersionRange& version_range,
     const SectionShape& array_shape,
     std::shared_ptr<BlockStack> default_block)
     : _palette(std::make_shared<BlockPalette>(version_range))
@@ -55,7 +55,7 @@ std::shared_ptr<SectionArrayMap> BlockComponentData::get_sections() const
 
 // BlockComponent
 void BlockComponent::init(
-    std::shared_ptr<VersionRange> version_range,
+    const VersionRange& version_range,
     const SectionShape& array_shape,
     std::shared_ptr<BlockStack> default_block)
 {

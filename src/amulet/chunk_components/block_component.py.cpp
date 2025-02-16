@@ -18,7 +18,7 @@ void init_block_component(py::module block_component_module)
 
     BlockComponentData.def(
         py::init<
-            std::shared_ptr<Amulet::VersionRange>,
+            const Amulet::VersionRange&,
             const Amulet::SectionShape&,
             std::shared_ptr<Amulet::BlockStack>>(),
         py::arg("version_range"),

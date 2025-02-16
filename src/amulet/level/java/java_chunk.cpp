@@ -28,10 +28,7 @@ JavaChunkNA::JavaChunkNA(
     : ChunkComponentHelper()
 {
     VersionNumber version_number(std::initializer_list<std::int64_t> { -1 });
-    auto version_range = std::make_shared<VersionRange>(
-        "java",
-        version_number,
-        version_number);
+    VersionRange version_range("java", version_number, version_number);
     JavaRawChunkComponent::init();
     DataVersionComponent::init(-1);
     BlockComponent::init(
@@ -53,10 +50,7 @@ JavaChunk0::JavaChunk0(
         throw std::invalid_argument("data version must be between 0 and 1443");
     }
     VersionNumber version_number(std::initializer_list<std::int64_t> { data_version });
-    auto version_range = std::make_shared<VersionRange>(
-        "java",
-        version_number,
-        version_number);
+    VersionRange version_range("java", version_number, version_number);
     JavaRawChunkComponent::init();
     DataVersionComponent::init(data_version);
     BlockComponent::init(
@@ -78,10 +72,7 @@ JavaChunk1444::JavaChunk1444(
         throw std::invalid_argument("data version must be between 1443 and 1465");
     }
     VersionNumber version_number(std::initializer_list<std::int64_t> { data_version });
-    auto version_range = std::make_shared<VersionRange>(
-        "java",
-        version_number,
-        version_number);
+    VersionRange version_range("java", version_number, version_number);
     JavaRawChunkComponent::init();
     DataVersionComponent::init(data_version);
     BlockComponent::init(
@@ -103,10 +94,7 @@ JavaChunk1466::JavaChunk1466(
         throw std::invalid_argument("data version must be between 1466 and 2202");
     }
     VersionNumber version_number(std::initializer_list<std::int64_t> { data_version });
-    auto version_range = std::make_shared<VersionRange>(
-        "java",
-        version_number,
-        version_number);
+    VersionRange version_range("java", version_number, version_number);
     JavaRawChunkComponent::init();
     DataVersionComponent::init(data_version);
     BlockComponent::init(
@@ -128,10 +116,7 @@ JavaChunk2203::JavaChunk2203(
         throw std::invalid_argument("data version must be at least 2203");
     }
     VersionNumber version_number(std::initializer_list<std::int64_t> { data_version });
-    auto version_range = std::make_shared<VersionRange>(
-        "java",
-        version_number,
-        version_number);
+    VersionRange version_range("java", version_number, version_number);
     JavaRawChunkComponent::init();
     DataVersionComponent::init(data_version);
     BlockComponent::init(

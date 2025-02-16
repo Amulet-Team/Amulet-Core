@@ -31,7 +31,7 @@ private:
 public:
     const std::vector<std::shared_ptr<BlockStack>>& get_blocks() const { return _index_to_block; }
 
-    BlockPalette(std::shared_ptr<VersionRange> version_range)
+    BlockPalette(const VersionRange& version_range)
         : VersionRangeContainer(version_range)
         , _index_to_block()
         , _block_to_index()
@@ -69,9 +69,9 @@ public:
         }
         auto version_range = get_version_range();
         for (const auto& block : block->get_blocks()) {
-            if (!version_range->contains(block->get_platform(), block->get_version())) {
+            if (!version_range.contains(block->get_platform(), block->get_version())) {
                 throw std::invalid_argument(
-                    "BlockStack(\"" + block->get_platform() + "\", " + block->get_version().toString() + ") is incompatible with VersionRange(\"" + version_range->get_platform() + "\", " + version_range->get_min_version().toString() + ", " + version_range->get_max_version().toString() + ").");
+                    "BlockStack(\"" + block->get_platform() + "\", " + block->get_version().toString() + ") is incompatible with VersionRange(\"" + version_range.get_platform() + "\", " + version_range.get_min_version().toString() + ", " + version_range.get_max_version().toString() + ").");
             }
         }
         size_t index = _index_to_block.size();

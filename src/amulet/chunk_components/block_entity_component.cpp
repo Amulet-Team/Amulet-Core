@@ -5,9 +5,9 @@ namespace Amulet {
 
 // BlockEntityComponentData
 BlockEntityComponentData::BlockEntityComponentData(
-    std::shared_ptr<VersionRange> version_range,
-    const std::uint16_t& x_size,
-    const std::uint16_t& z_size)
+    const VersionRange& version_range,
+    std::uint16_t x_size,
+    std::uint16_t z_size)
     : VersionRangeContainer(version_range)
     , _x_size(x_size)
     , _z_size(z_size)
@@ -50,7 +50,7 @@ void BlockEntityComponentData::set(
             "Coord must be 0 <= " + std::to_string(std::get<0>(coord)) + " < " + std::to_string(_x_size) + "and 0 <= " + std::to_string(std::get<1>(coord)) + " < " + std::to_string(_z_size));
     }
     if (!(
-            get_version_range()->contains(
+            get_version_range().contains(
                 block_entity->get_platform(),
                 block_entity->get_version()))) {
         throw std::invalid_argument(
@@ -67,9 +67,9 @@ void BlockEntityComponentData::del(
 
 // BlockEntityComponent
 AMULET_CORE_EXPORT void BlockEntityComponent::init(
-    std::shared_ptr<VersionRange> version_range,
-    const std::uint16_t& x_size,
-    const std::uint16_t& z_size)
+    const VersionRange& version_range,
+    std::uint16_t x_size,
+    std::uint16_t z_size)
 {
     _value = std::make_shared<BlockEntityComponentData>(version_range, x_size, z_size);
 }

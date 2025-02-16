@@ -131,13 +131,13 @@ public:
 
 class VersionRangeContainer {
 private:
-    std::shared_ptr<const VersionRange> version_range;
+    VersionRange version_range;
 
 public:
-    std::shared_ptr<const VersionRange> get_version_range() const { return version_range; }
+    const VersionRange& get_version_range() const { return version_range; }
 
     VersionRangeContainer(
-        std::shared_ptr<VersionRange> version_range)
+        const VersionRange& version_range)
         : version_range(version_range)
     {
     }

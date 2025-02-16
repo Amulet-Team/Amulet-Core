@@ -132,14 +132,14 @@ bool VersionRange::operator==(const VersionRange& other) const
 void VersionRangeContainer::serialise(BinaryWriter& writer) const
 {
     writer.writeNumeric<std::uint8_t>(1);
-    version_range->serialise(writer);
+    version_range.serialise(writer);
 }
 VersionRangeContainer VersionRangeContainer::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.readNumeric<std::uint8_t>();
     switch (version_number) {
     case 1: {
-        return Amulet::deserialise_shared<VersionRange>(reader);
+        return VersionRange::deserialise(reader);
     }
     default:
         throw std::invalid_argument("Unsupported version " + std::to_string(version_number));

@@ -20,7 +20,7 @@ private:
 
 public:
     AMULET_CORE_EXPORT Biome3DComponentData(
-        std::shared_ptr<VersionRange> version_range,
+        const VersionRange& version_range,
         const SectionShape& array_shape,
         std::shared_ptr<Biome> default_biome);
     AMULET_CORE_EXPORT std::shared_ptr<BiomePalette> get_palette();
@@ -36,7 +36,7 @@ protected:
     AMULET_CORE_EXPORT Biome3DComponent() = default;
     // Default constructor
     AMULET_CORE_EXPORT void init(
-        std::shared_ptr<VersionRange> version_range,
+        const VersionRange& version_range,
         const SectionShape& array_shape,
         std::shared_ptr<Biome> default_biome);
 

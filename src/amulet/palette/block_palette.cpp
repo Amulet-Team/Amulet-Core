@@ -5,7 +5,7 @@ namespace Amulet {
 void BlockPalette::serialise(BinaryWriter& writer) const
 {
     writer.writeNumeric<std::uint8_t>(1);
-    get_version_range()->serialise(writer);
+    get_version_range().serialise(writer);
     const auto& blocks = get_blocks();
     writer.writeNumeric<std::uint64_t>(blocks.size());
     for (const auto& block : blocks) {
@@ -17,7 +17,7 @@ BlockPalette BlockPalette::deserialise(BinaryReader& reader)
     auto version = reader.readNumeric<std::uint8_t>();
     switch (version) {
     case 1: {
-        auto version_range = Amulet::deserialise_shared<VersionRange>(reader);
+        auto version_range = VersionRange::deserialise(reader);
         auto count = reader.readNumeric<std::uint64_t>();
         BlockPalette palette(version_range);
         for (auto i = 0; i < count; i++) {
