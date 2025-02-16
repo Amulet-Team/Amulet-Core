@@ -159,7 +159,7 @@ template <
     void (*base_name_validator)(const size_t&, const std::string&),
     std::string (*capture_key)(const std::string&, size_t&),
     PropertyValueType (*capture_value)(const std::string&, size_t&)>
-std::shared_ptr<Block> parse_blockstate(
+Block parse_blockstate(
     const PlatformType& platform,
     const VersionNumber& version,
     const std::string& blockstate)
@@ -208,7 +208,7 @@ std::shared_ptr<Block> parse_blockstate(
             if (property_pos < blockstate.size()) {
                 throw std::invalid_argument("Extra data after ]");
             }
-            return std::make_shared<Block>(platform, version, namespace_, base_name, properties);
+            return { platform, version, namespace_, base_name, properties };
         }
         for (;;) {
             std::string key = capture_key(blockstate, property_pos);
@@ -231,7 +231,7 @@ std::shared_ptr<Block> parse_blockstate(
                 if (property_pos < blockstate.size()) {
                     throw std::invalid_argument("Extra data after ]");
                 }
-                return std::make_shared<Block>(platform, version, namespace_, base_name, properties);
+                return { platform, version, namespace_, base_name, properties };
             default:
                 throw std::invalid_argument("Expected , or ] at position " + std::to_string(property_pos));
             }
@@ -239,7 +239,7 @@ std::shared_ptr<Block> parse_blockstate(
         }
     } else {
         // does not have properties
-        return std::make_shared<Block>(platform, version, namespace_, base_name);
+        return { platform, version, namespace_, base_name };
     }
 }
 
@@ -379,7 +379,7 @@ inline PropertyValueType capture_bedrock_blockstate_property_value(const std::st
         node);
 }
 
-std::shared_ptr<Block> Block::from_java_blockstate(const PlatformType& platform, const VersionNumber& version, const std::string& blockstate)
+Block Block::from_java_blockstate(const PlatformType& platform, const VersionNumber& version, const std::string& blockstate)
 {
     return parse_blockstate<
         validate_java_namespace,
@@ -390,7 +390,7 @@ std::shared_ptr<Block> Block::from_java_blockstate(const PlatformType& platform,
         version,
         blockstate);
 }
-std::shared_ptr<Block> Block::from_bedrock_blockstate(const PlatformType& platform, const VersionNumber& version, const std::string& blockstate)
+Block Block::from_bedrock_blockstate(const PlatformType& platform, const VersionNumber& version, const std::string& blockstate)
 {
     return parse_blockstate<
         validate_bedrock_namespace,

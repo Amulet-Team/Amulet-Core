@@ -88,8 +88,8 @@ public:
 
     AMULET_CORE_EXPORT std::string java_blockstate() const;
     AMULET_CORE_EXPORT std::string bedrock_blockstate() const;
-    AMULET_CORE_EXPORT static std::shared_ptr<Block> from_java_blockstate(const PlatformType&, const VersionNumber&, const std::string&);
-    AMULET_CORE_EXPORT static std::shared_ptr<Block> from_bedrock_blockstate(const PlatformType&, const VersionNumber&, const std::string&);
+    AMULET_CORE_EXPORT static Block from_java_blockstate(const PlatformType&, const VersionNumber&, const std::string&);
+    AMULET_CORE_EXPORT static Block from_bedrock_blockstate(const PlatformType&, const VersionNumber&, const std::string&);
 };
 
 class BlockStack {
