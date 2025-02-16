@@ -300,7 +300,7 @@ void init_block(py::module m_parent)
     BlockStack.def_property_readonly(
         "base_block",
         [](const Amulet::BlockStack& self) {
-            return self.get_blocks()[0];
+            return self[0];
         },
         py::doc(
             "The first block in the stack.\n"
