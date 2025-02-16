@@ -19,16 +19,16 @@ void Biome::serialise(BinaryWriter& writer) const
     writer.writeSizeAndBytes(namespace_);
     writer.writeSizeAndBytes(base_name);
 }
-std::shared_ptr<Biome> Biome::deserialise(BinaryReader& reader)
+Biome Biome::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.readNumeric<std::uint8_t>();
     switch (version_number) {
     case 1: {
         std::string platform = reader.readSizeAndBytes();
-        std::shared_ptr<VersionNumber> version = VersionNumber::deserialise(reader);
+        std::shared_ptr<VersionNumber> version = Amulet::deserialise_shared<VersionNumber>(reader);
         std::string namespace_ = reader.readSizeAndBytes();
         std::string base_name = reader.readSizeAndBytes();
-        return std::make_shared<Biome>(platform, version, namespace_, base_name);
+        return { platform, version, namespace_, base_name };
     }
     default:
         throw std::invalid_argument("Unsupported version " + std::to_string(version_number));

@@ -31,7 +31,7 @@ public:
     AMULET_CORE_EXPORT IndexArray3D(const IndexArray3D& other);
     AMULET_CORE_EXPORT ~IndexArray3D();
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
-    AMULET_CORE_EXPORT static std::shared_ptr<IndexArray3D> deserialise(BinaryReader&);
+    AMULET_CORE_EXPORT static IndexArray3D deserialise(BinaryReader&);
 
     AMULET_CORE_EXPORT const SectionShape& get_shape() const;
     AMULET_CORE_EXPORT const size_t& get_size() const;
@@ -50,7 +50,7 @@ public:
         std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> default_array);
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
-    AMULET_CORE_EXPORT static std::shared_ptr<SectionArrayMap> deserialise(BinaryReader&);
+    AMULET_CORE_EXPORT static SectionArrayMap deserialise(BinaryReader&);
 
     AMULET_CORE_EXPORT const SectionShape& get_array_shape() const;
     AMULET_CORE_EXPORT std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> get_default_array() const;

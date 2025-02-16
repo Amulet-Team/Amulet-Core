@@ -66,7 +66,7 @@ public:
     }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
-    AMULET_CORE_EXPORT static std::shared_ptr<Block> deserialise(BinaryReader&);
+    AMULET_CORE_EXPORT static Block deserialise(BinaryReader&);
 
     auto operator<=>(const Block& other) const
     {
@@ -112,7 +112,7 @@ public:
     }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
-    AMULET_CORE_EXPORT static std::shared_ptr<BlockStack> deserialise(BinaryReader&);
+    AMULET_CORE_EXPORT static BlockStack deserialise(BinaryReader&);
 
     auto operator<=>(const BlockStack& other) const
     {

@@ -31,7 +31,7 @@ public:
     }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
-    AMULET_CORE_EXPORT static std::shared_ptr<VersionNumber> deserialise(BinaryReader&);
+    AMULET_CORE_EXPORT static VersionNumber deserialise(BinaryReader&);
 
     std::vector<std::int64_t>::const_iterator begin() const { return vec.begin(); }
     std::vector<std::int64_t>::const_iterator end() const { return vec.end(); }
@@ -95,7 +95,7 @@ public:
     }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
-    AMULET_CORE_EXPORT static std::shared_ptr<PlatformVersionContainer> deserialise(BinaryReader&);
+    AMULET_CORE_EXPORT static PlatformVersionContainer deserialise(BinaryReader&);
 
     auto operator<=>(const PlatformVersionContainer& other) const
     {
@@ -136,7 +136,7 @@ public:
     }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
-    AMULET_CORE_EXPORT static std::shared_ptr<VersionRange> deserialise(BinaryReader&);
+    AMULET_CORE_EXPORT static VersionRange deserialise(BinaryReader&);
 
     AMULET_CORE_EXPORT bool contains(const PlatformType& platform_, const VersionNumber& version) const;
 };
@@ -155,6 +155,6 @@ public:
     }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
-    AMULET_CORE_EXPORT static std::shared_ptr<VersionRangeContainer> deserialise(BinaryReader&);
+    AMULET_CORE_EXPORT static VersionRangeContainer deserialise(BinaryReader&);
 };
 }
