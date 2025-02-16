@@ -126,6 +126,7 @@ public:
     AMULET_CORE_EXPORT static VersionRange deserialise(BinaryReader&);
 
     AMULET_CORE_EXPORT bool contains(const PlatformType& platform_, const VersionNumber& version) const;
+    AMULET_CORE_EXPORT bool operator==(const VersionRange&) const;
 };
 
 class VersionRangeContainer {

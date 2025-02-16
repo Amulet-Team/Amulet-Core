@@ -124,6 +124,11 @@ bool VersionRange::contains(const PlatformType& platform_, const VersionNumber& 
     return platform == platform_ && min_version <= version && version <= max_version;
 }
 
+bool VersionRange::operator==(const VersionRange& other) const
+{
+    return platform == other.platform && min_version == other.min_version && max_version == other.max_version;
+}
+
 void VersionRangeContainer::serialise(BinaryWriter& writer) const
 {
     writer.writeNumeric<std::uint8_t>(1);

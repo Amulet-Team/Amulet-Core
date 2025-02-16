@@ -205,6 +205,7 @@ void init_version(py::module m_parent)
     VersionRange.def(
         "contains",
         &Amulet::VersionRange::contains);
+    VersionRange.def(pybind11::self == pybind11::self);
     VersionRange.def(
         "__repr__",
         [](const Amulet::VersionRange& self) {
