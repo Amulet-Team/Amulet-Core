@@ -94,10 +94,10 @@ public:
 
 class BlockStack {
 private:
-    std::vector<std::shared_ptr<Block>> _blocks;
+    std::vector<Block> _blocks;
 
 public:
-    const std::vector<std::shared_ptr<Block>>& get_blocks() const { return _blocks; }
+    const std::vector<Block>& get_blocks() const { return _blocks; }
 
     template <typename T>
     BlockStack(const T& blocks)
@@ -118,7 +118,7 @@ public:
             return cmp;
         }
         for (size_t i = 0; i < size(); i++) {
-            cmp = *(*this)[i] <=> *other[i];
+            cmp = (*this)[i] <=> other[i];
             if (cmp != 0) {
                 return cmp;
             }
@@ -131,6 +131,6 @@ public:
     }
 
     size_t size() const { return _blocks.size(); }
-    std::shared_ptr<Block> operator[](size_t index) const { return _blocks[index]; }
+    const Block& operator[](size_t index) const { return _blocks[index]; }
 };
 }

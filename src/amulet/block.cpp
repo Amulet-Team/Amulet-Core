@@ -407,7 +407,7 @@ void BlockStack::serialise(BinaryWriter& writer) const
     writer.writeNumeric<std::uint8_t>(1);
     writer.writeNumeric<std::uint64_t>(get_blocks().size());
     for (const auto& block : get_blocks()) {
-        block->serialise(writer);
+        block.serialise(writer);
     }
 }
 BlockStack BlockStack::deserialise(BinaryReader& reader)
@@ -415,10 +415,11 @@ BlockStack BlockStack::deserialise(BinaryReader& reader)
     auto version_number = reader.readNumeric<std::uint8_t>();
     switch (version_number) {
     case 1: {
-        std::vector<std::shared_ptr<Block>> blocks;
+        std::vector<Block> blocks;
         auto count = reader.readNumeric<std::uint64_t>();
+        blocks.reserve(count);
         for (auto i = 0; i < count; i++) {
-            blocks.push_back(Amulet::deserialise_shared<Block>(reader));
+            blocks.push_back(Block::deserialise(reader));
         }
         return blocks;
     }

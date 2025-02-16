@@ -239,10 +239,10 @@ void init_block(py::module m_parent)
     options.disable_function_signatures();
     BlockStack.def(
         py::init(
-            [](std::shared_ptr<Amulet::Block> block, py::args py_extra_blocks) {
-                std::vector<std::shared_ptr<Amulet::Block>> blocks;
+            [](const Amulet::Block& block, py::args py_extra_blocks) {
+                std::vector<Amulet::Block> blocks;
                 blocks.push_back(block);
-                auto extra_blocks = py_extra_blocks.cast<std::vector<std::shared_ptr<Amulet::Block>>>();
+                auto extra_blocks = py_extra_blocks.cast<std::vector<Amulet::Block>>();
                 blocks.insert(blocks.end(), extra_blocks.begin(), extra_blocks.end());
                 return Amulet::BlockStack(blocks);
             }),
@@ -299,7 +299,7 @@ void init_block(py::module m_parent)
 
     BlockStack.def_property_readonly(
         "base_block",
-        [](const Amulet::BlockStack& self) -> std::shared_ptr<Amulet::Block> {
+        [](const Amulet::BlockStack& self) {
             return self.get_blocks()[0];
         },
         py::doc(
