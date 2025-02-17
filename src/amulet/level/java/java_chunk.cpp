@@ -27,12 +27,8 @@ JavaChunkNA::JavaChunkNA(
     std::shared_ptr<Biome> default_biome)
     : ChunkComponentHelper()
 {
-    auto version_number = std::make_shared<VersionNumber>(
-        std::initializer_list<std::int64_t> { -1 });
-    auto version_range = std::make_shared<VersionRange>(
-        "java",
-        version_number,
-        version_number);
+    VersionNumber version_number(std::initializer_list<std::int64_t> { -1 });
+    VersionRange version_range("java", version_number, version_number);
     JavaRawChunkComponent::init();
     DataVersionComponent::init(-1);
     BlockComponent::init(
@@ -53,12 +49,8 @@ JavaChunk0::JavaChunk0(
     if (data_version < 0 || 1443 < data_version) {
         throw std::invalid_argument("data version must be between 0 and 1443");
     }
-    auto version_number = std::make_shared<VersionNumber>(
-        std::initializer_list<std::int64_t> { data_version });
-    auto version_range = std::make_shared<VersionRange>(
-        "java",
-        version_number,
-        version_number);
+    VersionNumber version_number(std::initializer_list<std::int64_t> { data_version });
+    VersionRange version_range("java", version_number, version_number);
     JavaRawChunkComponent::init();
     DataVersionComponent::init(data_version);
     BlockComponent::init(
@@ -79,12 +71,8 @@ JavaChunk1444::JavaChunk1444(
     if (data_version < 1444 || 1465 < data_version) {
         throw std::invalid_argument("data version must be between 1443 and 1465");
     }
-    auto version_number = std::make_shared<VersionNumber>(
-        std::initializer_list<std::int64_t> { data_version });
-    auto version_range = std::make_shared<VersionRange>(
-        "java",
-        version_number,
-        version_number);
+    VersionNumber version_number(std::initializer_list<std::int64_t> { data_version });
+    VersionRange version_range("java", version_number, version_number);
     JavaRawChunkComponent::init();
     DataVersionComponent::init(data_version);
     BlockComponent::init(
@@ -105,12 +93,8 @@ JavaChunk1466::JavaChunk1466(
     if (data_version < 1466 || 2202 < data_version) {
         throw std::invalid_argument("data version must be between 1466 and 2202");
     }
-    auto version_number = std::make_shared<VersionNumber>(
-        std::initializer_list<std::int64_t> { data_version });
-    auto version_range = std::make_shared<VersionRange>(
-        "java",
-        version_number,
-        version_number);
+    VersionNumber version_number(std::initializer_list<std::int64_t> { data_version });
+    VersionRange version_range("java", version_number, version_number);
     JavaRawChunkComponent::init();
     DataVersionComponent::init(data_version);
     BlockComponent::init(
@@ -131,12 +115,8 @@ JavaChunk2203::JavaChunk2203(
     if (data_version < 2203) {
         throw std::invalid_argument("data version must be at least 2203");
     }
-    auto version_number = std::make_shared<VersionNumber>(
-        std::initializer_list<std::int64_t> { data_version });
-    auto version_range = std::make_shared<VersionRange>(
-        "java",
-        version_number,
-        version_number);
+    VersionNumber version_number(std::initializer_list<std::int64_t> { data_version });
+    VersionRange version_range("java", version_number, version_number);
     JavaRawChunkComponent::init();
     DataVersionComponent::init(data_version);
     BlockComponent::init(

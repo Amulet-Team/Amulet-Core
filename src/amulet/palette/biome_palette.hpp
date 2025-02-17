@@ -28,7 +28,7 @@ private:
 public:
     const std::vector<std::shared_ptr<Biome>>& get_biomes() const { return _index_to_biome; }
 
-    BiomePalette(std::shared_ptr<VersionRange> version_range)
+    BiomePalette(const VersionRange& version_range)
         : VersionRangeContainer(version_range)
         , _index_to_biome()
         , _biome_to_index()
@@ -62,9 +62,9 @@ public:
             return it->second;
         }
         const auto& version_range = get_version_range();
-        if (!version_range->contains(biome->get_platform(), *biome->get_version())) {
+        if (!version_range.contains(biome->get_platform(), biome->get_version())) {
             throw std::invalid_argument(
-                "Biome(\"" + biome->get_platform() + "\", " + biome->get_version()->toString() + ") is incompatible with VersionRange(\"" + version_range->get_platform() + "\", " + version_range->get_min_version()->toString() + ", " + version_range->get_max_version()->toString() + ").");
+                "Biome(\"" + biome->get_platform() + "\", " + biome->get_version().toString() + ") is incompatible with VersionRange(\"" + version_range.get_platform() + "\", " + version_range.get_min_version().toString() + ", " + version_range.get_max_version().toString() + ").");
         }
         size_t index = _index_to_biome.size();
         _index_to_biome.push_back(biome);

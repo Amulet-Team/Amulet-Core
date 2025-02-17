@@ -30,7 +30,7 @@ void init_biome_palette(py::module biome_palette_module)
     py::object PyList = py::module::import("builtins").attr("list");
     py::class_<Amulet::BiomePalette, std::shared_ptr<Amulet::BiomePalette>, Amulet::VersionRangeContainer> BiomePalette(biome_palette_module, "BiomePalette");
     BiomePalette.def(
-        py::init<std::shared_ptr<Amulet::VersionRange>>());
+        py::init<const Amulet::VersionRange&>());
     BiomePalette.def(
         "__repr__",
         [PyList](const Amulet::BiomePalette& self) {

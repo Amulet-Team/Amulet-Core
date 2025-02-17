@@ -18,7 +18,7 @@ void init_block_component(py::module block_component_module)
 
     BlockComponentData.def(
         py::init<
-            std::shared_ptr<Amulet::VersionRange>,
+            const Amulet::VersionRange&,
             const Amulet::SectionShape&,
             std::shared_ptr<Amulet::BlockStack>>(),
         py::arg("version_range"),
@@ -33,11 +33,9 @@ void init_block_component(py::module block_component_module)
 
     py::class_<Amulet::BlockComponent, std::shared_ptr<Amulet::BlockComponent>>
         BlockComponent(block_component_module, "BlockComponent");
-    BlockComponent.def_property_readonly_static(
+    BlockComponent.def_readonly_static(
         "ComponentID",
-        [](py::object) {
-            return Amulet::BlockComponent::ComponentID;
-        });
+        &Amulet::BlockComponent::ComponentID);
     BlockComponent.def_property(
         "block",
         &Amulet::BlockComponent::get_block,

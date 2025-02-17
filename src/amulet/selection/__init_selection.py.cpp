@@ -336,9 +336,12 @@ void init_selection_group(py::class_<Amulet::SelectionGroup> SelectionGroup)
     // Accessors
     SelectionGroup.def_property_readonly(
         "selection_boxes",
-        &Amulet::SelectionGroup::selection_boxes,
-        py::doc(
-            "An iterable of the :class:`SelectionBox` instances stored for this group."));
+        py::cpp_function(
+            [](const Amulet::SelectionGroup& self) {
+                return py::make_iterator(self.selection_boxes().begin(), self.selection_boxes().end());
+            },
+            py::keep_alive<0, 1>()),
+        py::doc("An iterator of the :class:`SelectionBox` instances stored for this group."));
 
     // Bounds
     SelectionGroup.def_property_readonly(
