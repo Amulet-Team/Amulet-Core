@@ -316,7 +316,7 @@ void init_block(py::module m_parent)
         py::return_value_policy::automatic);
     BlockStack.def_property_readonly(
         "extra_blocks",
-        [](const Amulet::BlockStack& self) -> py::tuple {
+        [](const Amulet::BlockStack& self) -> py::typing::Tuple<Amulet::Block> {
             const auto& blocks = self.get_blocks();
             py::tuple py_blocks(blocks.size() - 1);
             for (size_t i = 1; i < blocks.size(); i++) {
