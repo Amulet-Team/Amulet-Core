@@ -310,9 +310,54 @@ void JavaRawLevel::set_level_name(const std::string& level_name)
     set_level_dat(level_dat);
 }
 
-void JavaRawLevel::_register_dimension(const JavaInternalDimensionID&, const DimensionID&)
+SelectionGroup JavaRawLevel::_get_dimension_bounds(const DimensionID&)
 {
     throw std::runtime_error("NotImplementedError");
+}
+
+void JavaRawLevel::_register_dimension(
+    JavaRawLevelOpenData& raw_open,
+    const JavaInternalDimensionID& relative_dimension_path,
+    const DimensionID& dimension_id)
+{
+    if (!raw_open.dimension_ids.contains(dimension_id) && !raw_open.dimensions.contains(relative_dimension_path)) {
+        // Get the dimension path
+        auto path = _path;
+        if (!relative_dimension_path.empty()) {
+            path = path / relative_dimension_path;
+        }
+
+        // Build the list of layer names
+        std::list<std::string> layers;
+        if (VersionNumber { 2681 } <= _data_version) {
+            layers = { "region", "entities" };
+        } else {
+            layers = { "region" };
+        }
+
+        // Create the raw dimension instance
+        auto raw_dimension = std::make_shared<JavaRawDimension>(
+            path,
+            get_data_version() > VersionNumber { 2203 },
+            layers,
+            relative_dimension_path,
+            dimension_id,
+            _get_dimension_bounds(dimension_id),
+            // TODO: Is this data stored somewhere?
+            BlockStack(Block("java", VersionNumber { 3700 }, "minecraft", "air")),
+            [&] {
+                if (dimension_id == THE_NETHER) {
+                    return Biome("java", VersionNumber { 3700 }, "minecraft", "nether_wastes");
+                } else if (dimension_id == THE_END) {
+                    return Biome("java", VersionNumber { 3700 }, "minecraft", "the_end");
+                } else {
+                    return Biome("java", VersionNumber { 3700 }, "minecraft", "plains");
+                }
+            }());
+
+        raw_open.dimension_ids.emplace(dimension_id, relative_dimension_path);
+        raw_open.dimensions.emplace(relative_dimension_path, raw_dimension);
+    }
 }
 
 JavaRawLevelOpenData& JavaRawLevel::_find_dimensions()
@@ -325,9 +370,9 @@ JavaRawLevelOpenData& JavaRawLevel::_find_dimensions()
     }
 
     // Add hard coded dimensions
-    _register_dimension("", OVERWORLD);
-    _register_dimension("DIM-1", THE_NETHER);
-    _register_dimension("DIM1", THE_END);
+    _register_dimension(raw_open, "", OVERWORLD);
+    _register_dimension(raw_open, "DIM-1", THE_NETHER);
+    _register_dimension(raw_open, "DIM1", THE_END);
 
     // Find DIM style dimensions
     for (const auto& dir_entry : std::filesystem::directory_iterator { _path }) {
@@ -342,7 +387,7 @@ JavaRawLevelOpenData& JavaRawLevel::_find_dimensions()
         if (!std::regex_search(dir_name, match, number_regex)) {
             continue;
         }
-        _register_dimension(dir_name, dir_name);
+        _register_dimension(raw_open, dir_name, dir_name);
     }
 
     // Find dimensions in "dimensions" directory
@@ -382,7 +427,7 @@ JavaRawLevelOpenData& JavaRawLevel::_find_dimensions()
             dimension_name += it->string();
         }
 
-        _register_dimension(rel_dimension_path.string(), dimension_name);
+        _register_dimension(raw_open, rel_dimension_path.string(), dimension_name);
     }
 
     return raw_open;

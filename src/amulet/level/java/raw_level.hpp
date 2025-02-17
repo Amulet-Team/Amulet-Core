@@ -76,7 +76,14 @@ private:
     void _open(std::unique_ptr<LockFile> session_lock);
     std::unique_ptr<LockFile> _close();
     VersionNumber _get_data_version();
-    void _register_dimension(const JavaInternalDimensionID&, const DimensionID&);
+
+    SelectionGroup _get_dimension_bounds(const DimensionID&);
+    
+    // Register a dimension
+    // Must be called with the dimension lock in unique mode.
+    void _register_dimension(JavaRawLevelOpenData&, const JavaInternalDimensionID&, const DimensionID&);
+
+
 
 public:
     JavaRawLevel() = delete;
