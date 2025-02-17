@@ -39,10 +39,29 @@ public:
 };
 
 template <class T>
-std::shared_ptr<T> deserialise(const std::string& data)
+T deserialise(BinaryReader& reader)
+{
+    return T::deserialise(reader);
+}
+
+template <class T>
+std::shared_ptr<T> deserialise_shared(BinaryReader& reader)
+{
+    return std::make_shared<T>(deserialise<T>(reader));
+}
+
+template <class T>
+T deserialise(const std::string& data)
 {
     size_t position = 0;
     BinaryReader reader(data, position);
-    return T::deserialise(reader);
+    return deserialise<T>(reader);
 }
+
+template <class T>
+std::shared_ptr<T> deserialise_shared(const std::string& data)
+{
+    return std::make_shared<T>(deserialise<T>(data));
+}
+
 }

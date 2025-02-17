@@ -93,6 +93,13 @@ class AnvilDimension:
         """
 
     @property
+    def lock(self) -> amulet.utils.lock.OrderedLock:
+        """
+        External lock.
+        Thread safe.
+        """
+
+    @property
     def mcc(self) -> bool:
         """
         Are mcc files enabled for this dimension.

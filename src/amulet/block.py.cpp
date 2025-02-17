@@ -58,7 +58,7 @@ void init_block(py::module m_parent)
     Block.def(
         py::init<
             const Amulet::PlatformType&,
-            std::shared_ptr<Amulet::VersionNumber>,
+            const Amulet::VersionNumber&,
             const std::string&,
             const std::string&,
             const std::map<std::string, Amulet::PropertyValueType>&>(),
@@ -111,7 +111,12 @@ void init_block(py::module m_parent)
     Block.def(
         "__repr__",
         [](const Amulet::Block& self) {
-            return "Block(" + py::repr(py::cast(self.get_platform())).cast<std::string>() + ", " + py::repr(py::cast(self.get_version())).cast<std::string>() + ", " + py::repr(py::cast(self.get_namespace())).cast<std::string>() + ", " + py::repr(py::cast(self.get_base_name())).cast<std::string>() + ", " + py::repr(py::cast(self.get_properties())).cast<std::string>() + ")";
+            return "Block("
+                + py::repr(py::cast(self.get_platform())).cast<std::string>() + ", "
+                + py::repr(py::cast(self.get_version(), py::return_value_policy::reference)).cast<std::string>() + ", "
+                + py::repr(py::cast(self.get_namespace())).cast<std::string>() + ", "
+                + py::repr(py::cast(self.get_base_name())).cast<std::string>() + ", "
+                + py::repr(py::cast(self.get_properties())).cast<std::string>() + ")";
         });
     Block.def(
         "__hash__",
@@ -119,7 +124,7 @@ void init_block(py::module m_parent)
             return py::hash(
                 py::make_tuple(
                     py::cast(self.get_platform()),
-                    py::cast(self.get_version()),
+                    py::cast(self.get_version(), py::return_value_policy::reference),
                     py::cast(self.get_namespace()),
                     py::cast(self.get_base_name()),
                     py::tuple(PySorted(py::cast(self.get_properties()).attr("items")()))));
@@ -234,10 +239,10 @@ void init_block(py::module m_parent)
     options.disable_function_signatures();
     BlockStack.def(
         py::init(
-            [](std::shared_ptr<Amulet::Block> block, py::args py_extra_blocks) {
-                std::vector<std::shared_ptr<Amulet::Block>> blocks;
+            [](const Amulet::Block& block, py::args py_extra_blocks) {
+                std::vector<Amulet::Block> blocks;
                 blocks.push_back(block);
-                auto extra_blocks = py_extra_blocks.cast<std::vector<std::shared_ptr<Amulet::Block>>>();
+                auto extra_blocks = py_extra_blocks.cast<std::vector<Amulet::Block>>();
                 blocks.insert(blocks.end(), extra_blocks.begin(), extra_blocks.end());
                 return Amulet::BlockStack(blocks);
             }),
@@ -294,8 +299,8 @@ void init_block(py::module m_parent)
 
     BlockStack.def_property_readonly(
         "base_block",
-        [](const Amulet::BlockStack& self) -> std::shared_ptr<Amulet::Block> {
-            return self.get_blocks()[0];
+        [](const Amulet::BlockStack& self) {
+            return self[0];
         },
         py::doc(
             "The first block in the stack.\n"
@@ -310,7 +315,7 @@ void init_block(py::module m_parent)
             ":return: A Block object"));
     BlockStack.def_property_readonly(
         "extra_blocks",
-        [](const Amulet::BlockStack& self) -> py::tuple {
+        [](const Amulet::BlockStack& self) -> py::typing::Tuple<Amulet::Block> {
             const auto& blocks = self.get_blocks();
             py::tuple py_blocks(blocks.size() - 1);
             for (size_t i = 1; i < blocks.size(); i++) {

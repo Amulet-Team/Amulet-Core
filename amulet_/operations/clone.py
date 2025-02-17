@@ -13,6 +13,6 @@ def clone(
     dst_location = (
         target.get("x", 0) + offset_x,
         target.get("y", 0) + offset_y,
-        target.get("z", 0) + offset_y,
+        target.get("z", 0) + offset_z,
     )
     world.paste(world, dimension, selection, dimension, dst_location)

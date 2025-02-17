@@ -14,7 +14,7 @@ void VersionNumber::serialise(BinaryWriter& writer) const
         writer.writeNumeric<std::int64_t>(v);
     }
 }
-std::shared_ptr<VersionNumber> VersionNumber::deserialise(BinaryReader& reader)
+VersionNumber VersionNumber::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.readNumeric<std::uint8_t>();
     switch (version_number) {
@@ -25,7 +25,7 @@ std::shared_ptr<VersionNumber> VersionNumber::deserialise(BinaryReader& reader)
         for (size_t i = 0; i < count; i++) {
             reader.readNumericInto<std::int64_t>(vec[i]);
         }
-        return std::make_shared<VersionNumber>(vec);
+        return vec;
     }
     default:
         throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
@@ -81,16 +81,16 @@ void PlatformVersionContainer::serialise(BinaryWriter& writer) const
 {
     writer.writeNumeric<std::uint8_t>(1);
     writer.writeSizeAndBytes(platform);
-    version->serialise(writer);
+    version.serialise(writer);
 }
-std::shared_ptr<PlatformVersionContainer> PlatformVersionContainer::deserialise(BinaryReader& reader)
+PlatformVersionContainer PlatformVersionContainer::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.readNumeric<std::uint8_t>();
     switch (version_number) {
     case 1: {
         std::string platform = reader.readSizeAndBytes();
         auto version = VersionNumber::deserialise(reader);
-        return std::make_shared<PlatformVersionContainer>(platform, version);
+        return { platform, version };
     }
     default:
         throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
@@ -101,10 +101,10 @@ void VersionRange::serialise(BinaryWriter& writer) const
 {
     writer.writeNumeric<std::uint8_t>(1);
     writer.writeSizeAndBytes(platform);
-    min_version->serialise(writer);
-    max_version->serialise(writer);
+    min_version.serialise(writer);
+    max_version.serialise(writer);
 }
-std::shared_ptr<VersionRange> VersionRange::deserialise(BinaryReader& reader)
+VersionRange VersionRange::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.readNumeric<std::uint8_t>();
     switch (version_number) {
@@ -112,7 +112,7 @@ std::shared_ptr<VersionRange> VersionRange::deserialise(BinaryReader& reader)
         std::string platform = reader.readSizeAndBytes();
         auto min_version = VersionNumber::deserialise(reader);
         auto max_version = VersionNumber::deserialise(reader);
-        return std::make_shared<VersionRange>(platform, min_version, max_version);
+        return { platform, min_version, max_version };
     }
     default:
         throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
@@ -121,21 +121,25 @@ std::shared_ptr<VersionRange> VersionRange::deserialise(BinaryReader& reader)
 
 bool VersionRange::contains(const PlatformType& platform_, const VersionNumber& version) const
 {
-    return platform == platform_ && *min_version <= version && version <= *max_version;
+    return platform == platform_ && min_version <= version && version <= max_version;
+}
+
+bool VersionRange::operator==(const VersionRange& other) const
+{
+    return platform == other.platform && min_version == other.min_version && max_version == other.max_version;
 }
 
 void VersionRangeContainer::serialise(BinaryWriter& writer) const
 {
     writer.writeNumeric<std::uint8_t>(1);
-    version_range->serialise(writer);
+    version_range.serialise(writer);
 }
-std::shared_ptr<VersionRangeContainer> VersionRangeContainer::deserialise(BinaryReader& reader)
+VersionRangeContainer VersionRangeContainer::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.readNumeric<std::uint8_t>();
     switch (version_number) {
     case 1: {
-        return std::make_shared<VersionRangeContainer>(
-            VersionRange::deserialise(reader));
+        return VersionRange::deserialise(reader);
     }
     default:
         throw std::invalid_argument("Unsupported version " + std::to_string(version_number));

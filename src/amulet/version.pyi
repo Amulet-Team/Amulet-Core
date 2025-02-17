@@ -67,6 +67,11 @@ class VersionNumber:
         """
 
 class VersionRange:
+    __hash__: typing.ClassVar[None] = None  # type: ignore
+    @typing.overload
+    def __eq__(self, arg0: VersionRange) -> bool: ...
+    @typing.overload
+    def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...
     def __init__(
         self, platform: str, min_version: VersionNumber, max_version: VersionNumber
     ) -> None: ...

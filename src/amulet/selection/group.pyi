@@ -205,7 +205,7 @@ class SelectionGroup:
         """
 
     @property
-    def selection_boxes(self) -> set[amulet.selection.box.SelectionBox]:
+    def selection_boxes(self) -> typing.Iterator[amulet.selection.box.SelectionBox]:
         """
-        An iterable of the :class:`SelectionBox` instances stored for this group.
+        An iterator of the :class:`SelectionBox` instances stored for this group.
         """

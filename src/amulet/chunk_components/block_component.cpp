@@ -5,7 +5,7 @@ namespace Amulet {
 
 // BlockComponentData
 BlockComponentData::BlockComponentData(
-    std::shared_ptr<VersionRange> version_range,
+    const VersionRange& version_range,
     const SectionShape& array_shape,
     std::shared_ptr<BlockStack> default_block)
     : _palette(std::make_shared<BlockPalette>(version_range))
@@ -29,14 +29,14 @@ void BlockComponentData::serialise(BinaryWriter& writer) const
     get_sections()->serialise(writer);
 }
 
-std::shared_ptr<BlockComponentData> BlockComponentData::deserialise(BinaryReader& reader)
+BlockComponentData BlockComponentData::deserialise(BinaryReader& reader)
 {
     auto version = reader.readNumeric<std::uint8_t>();
     switch (version) {
     case 1: {
-        auto palette = BlockPalette::deserialise(reader);
-        auto sections = SectionArrayMap::deserialise(reader);
-        return std::make_shared<BlockComponentData>(palette, sections);
+        auto palette = Amulet::deserialise_shared<BlockPalette>(reader);
+        auto sections = Amulet::deserialise_shared<SectionArrayMap>(reader);
+        return { palette, sections };
     }
     default:
         throw std::invalid_argument("Unsupported BlockComponentData version " + std::to_string(version));
@@ -55,7 +55,7 @@ std::shared_ptr<SectionArrayMap> BlockComponentData::get_sections() const
 
 // BlockComponent
 void BlockComponent::init(
-    std::shared_ptr<VersionRange> version_range,
+    const VersionRange& version_range,
     const SectionShape& array_shape,
     std::shared_ptr<BlockStack> default_block)
 {
@@ -74,7 +74,7 @@ std::optional<std::string> BlockComponent::serialise() const
 void BlockComponent::deserialise(std::optional<std::string> data)
 {
     if (data) {
-        _value = Amulet::deserialise<BlockComponentData>(*data);
+        _value = Amulet::deserialise_shared<BlockComponentData>(*data);
     } else {
         _value = std::nullopt;
     }

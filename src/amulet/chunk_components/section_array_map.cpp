@@ -38,9 +38,19 @@ IndexArray3D::IndexArray3D(const IndexArray3D& other)
     std::memcpy(_buffer, other._buffer, sizeof(std::uint32_t) * other.get_size());
 }
 
+IndexArray3D::IndexArray3D(IndexArray3D&& other)
+{
+    _shape = other._shape;
+    _size = other._size;
+    _buffer = other._buffer;
+    other._buffer = nullptr;
+}
+
 IndexArray3D::~IndexArray3D()
 {
-    free(_buffer);
+    if (_buffer != nullptr) {
+        free(_buffer);
+    }
 }
 
 void IndexArray3D::serialise(BinaryWriter& writer) const
@@ -60,7 +70,7 @@ void IndexArray3D::serialise(BinaryWriter& writer) const
         writer.writeNumeric<std::uint32_t>(buffer[i]);
     }
 }
-std::shared_ptr<IndexArray3D> IndexArray3D::deserialise(BinaryReader& reader)
+IndexArray3D IndexArray3D::deserialise(BinaryReader& reader)
 {
     auto version = reader.readNumeric<std::uint8_t>();
     switch (version) {
@@ -72,11 +82,11 @@ std::shared_ptr<IndexArray3D> IndexArray3D::deserialise(BinaryReader& reader)
             reader.readNumeric<std::uint16_t>());
 
         // Construct instance
-        auto self = std::make_shared<IndexArray3D>(array_shape);
+        IndexArray3D self(array_shape);
 
         // Read array
-        const auto& size = self->get_size();
-        auto* buffer = self->get_buffer();
+        const auto& size = self.get_size();
+        auto* buffer = self.get_buffer();
         for (auto i = 0; i < size; i++) {
             buffer[i] = reader.readNumeric<std::uint32_t>();
         }
@@ -156,7 +166,7 @@ void SectionArrayMap::serialise(BinaryWriter& writer) const
         arr->serialise(writer);
     }
 }
-std::shared_ptr<SectionArrayMap> SectionArrayMap::deserialise(BinaryReader& reader)
+SectionArrayMap SectionArrayMap::deserialise(BinaryReader& reader)
 {
     auto version = reader.readNumeric<std::uint8_t>();
     switch (version) {
@@ -175,20 +185,20 @@ std::shared_ptr<SectionArrayMap> SectionArrayMap::deserialise(BinaryReader& read
             default_array = reader.readNumeric<std::uint32_t>();
             break;
         case 1:
-            default_array = IndexArray3D::deserialise(reader);
+            default_array = Amulet::deserialise_shared<IndexArray3D>(reader);
             break;
         default:
             throw std::invalid_argument("Invalid default array state value " + std::to_string(default_array_state));
         }
 
         // Construct instance
-        auto self = std::make_shared<SectionArrayMap>(array_shape, default_array);
+        SectionArrayMap self(array_shape, default_array);
 
         // Populate arrays
         auto array_count = reader.readNumeric<std::uint64_t>();
         for (auto i = 0; i < array_count; i++) {
             auto cy = reader.readNumeric<std::int64_t>();
-            self->set_section(cy, IndexArray3D::deserialise(reader));
+            self.set_section(cy, Amulet::deserialise_shared<IndexArray3D>(reader));
         }
 
         return self;

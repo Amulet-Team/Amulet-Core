@@ -248,7 +248,7 @@ class BlockStack:
         """
 
     @property
-    def extra_blocks(self) -> tuple:
+    def extra_blocks(self) -> tuple[Block]:
         """
         The extra blocks in the stack.
 

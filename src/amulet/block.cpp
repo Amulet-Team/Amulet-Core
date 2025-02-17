@@ -5,17 +5,18 @@
 #include <type_traits>
 #include <variant>
 
-#include <amulet/block.hpp>
 #include <amulet/dll.hpp>
 #include <amulet_nbt/nbt_encoding/binary.hpp>
 #include <amulet_nbt/nbt_encoding/string.hpp>
+
+#include "block.hpp"
 
 namespace Amulet {
 void Block::serialise(BinaryWriter& writer) const
 {
     writer.writeNumeric<std::uint8_t>(1);
     writer.writeSizeAndBytes(get_platform());
-    get_version()->serialise(writer);
+    get_version().serialise(writer);
     writer.writeSizeAndBytes(namespace_);
     writer.writeSizeAndBytes(base_name);
 
@@ -28,13 +29,13 @@ void Block::serialise(BinaryWriter& writer) const
             val);
     }
 }
-std::shared_ptr<Block> Block::deserialise(BinaryReader& reader)
+Block Block::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.readNumeric<std::uint8_t>();
     switch (version_number) {
     case 1: {
         std::string platform = reader.readSizeAndBytes();
-        std::shared_ptr<VersionNumber> version = VersionNumber::deserialise(reader);
+        VersionNumber version = VersionNumber::deserialise(reader);
         std::string namespace_ = reader.readSizeAndBytes();
         std::string base_name = reader.readSizeAndBytes();
         std::uint64_t property_count;
@@ -54,7 +55,7 @@ std::shared_ptr<Block> Block::deserialise(BinaryReader& reader)
             },
                 named_tag.tag_node);
         }
-        return std::make_shared<Block>(platform, version, namespace_, base_name, properties);
+        return { platform, version, namespace_, base_name, properties };
     }
     default:
         throw std::invalid_argument("Unsupported Block version " + std::to_string(version_number));
@@ -158,9 +159,9 @@ template <
     void (*base_name_validator)(const size_t&, const std::string&),
     std::string (*capture_key)(const std::string&, size_t&),
     PropertyValueType (*capture_value)(const std::string&, size_t&)>
-std::shared_ptr<Block> parse_blockstate(
+Block parse_blockstate(
     const PlatformType& platform,
-    std::shared_ptr<VersionNumber> version,
+    const VersionNumber& version,
     const std::string& blockstate)
 {
     // This is more lenient than the game parser.
@@ -207,7 +208,7 @@ std::shared_ptr<Block> parse_blockstate(
             if (property_pos < blockstate.size()) {
                 throw std::invalid_argument("Extra data after ]");
             }
-            return std::make_shared<Block>(platform, version, namespace_, base_name, properties);
+            return { platform, version, namespace_, base_name, properties };
         }
         for (;;) {
             std::string key = capture_key(blockstate, property_pos);
@@ -230,7 +231,7 @@ std::shared_ptr<Block> parse_blockstate(
                 if (property_pos < blockstate.size()) {
                     throw std::invalid_argument("Extra data after ]");
                 }
-                return std::make_shared<Block>(platform, version, namespace_, base_name, properties);
+                return { platform, version, namespace_, base_name, properties };
             default:
                 throw std::invalid_argument("Expected , or ] at position " + std::to_string(property_pos));
             }
@@ -238,7 +239,7 @@ std::shared_ptr<Block> parse_blockstate(
         }
     } else {
         // does not have properties
-        return std::make_shared<Block>(platform, version, namespace_, base_name);
+        return { platform, version, namespace_, base_name };
     }
 }
 
@@ -378,7 +379,7 @@ inline PropertyValueType capture_bedrock_blockstate_property_value(const std::st
         node);
 }
 
-std::shared_ptr<Block> Block::from_java_blockstate(const PlatformType& platform, std::shared_ptr<VersionNumber> version, const std::string& blockstate)
+Block Block::from_java_blockstate(const PlatformType& platform, const VersionNumber& version, const std::string& blockstate)
 {
     return parse_blockstate<
         validate_java_namespace,
@@ -389,7 +390,7 @@ std::shared_ptr<Block> Block::from_java_blockstate(const PlatformType& platform,
         version,
         blockstate);
 }
-std::shared_ptr<Block> Block::from_bedrock_blockstate(const PlatformType& platform, std::shared_ptr<VersionNumber> version, const std::string& blockstate)
+Block Block::from_bedrock_blockstate(const PlatformType& platform, const VersionNumber& version, const std::string& blockstate)
 {
     return parse_blockstate<
         validate_bedrock_namespace,
@@ -406,20 +407,21 @@ void BlockStack::serialise(BinaryWriter& writer) const
     writer.writeNumeric<std::uint8_t>(1);
     writer.writeNumeric<std::uint64_t>(get_blocks().size());
     for (const auto& block : get_blocks()) {
-        block->serialise(writer);
+        block.serialise(writer);
     }
 }
-std::shared_ptr<BlockStack> BlockStack::deserialise(BinaryReader& reader)
+BlockStack BlockStack::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.readNumeric<std::uint8_t>();
     switch (version_number) {
     case 1: {
-        std::vector<std::shared_ptr<Block>> blocks;
+        std::vector<Block> blocks;
         auto count = reader.readNumeric<std::uint64_t>();
+        blocks.reserve(count);
         for (auto i = 0; i < count; i++) {
             blocks.push_back(Block::deserialise(reader));
         }
-        return std::make_shared<BlockStack>(blocks);
+        return blocks;
     }
     default:
         throw std::invalid_argument("Unsupported BlockStack version " + std::to_string(version_number));

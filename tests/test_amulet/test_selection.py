@@ -1,4 +1,7 @@
 import unittest
+import weakref
+import gc
+
 from amulet.selection import SelectionGroup, SelectionBox
 
 
@@ -156,7 +159,12 @@ class SelectionGroupTestCase(unittest.TestCase):
     def test_attrs(self) -> None:
         boxes = {SelectionBox(0, 1, 2, 3, 4, 5), SelectionBox(1, 2, 3, 4, 5, 6)}
         group = SelectionGroup(boxes)
-        self.assertEqual(boxes, group.selection_boxes)
+        it = group.selection_boxes
+        group_ref = weakref.ref(group)
+        del group
+        gc.collect()
+        self.assertIsNotNone(group_ref())
+        self.assertEqual(boxes, set(it))
 
     def test_equals(self) -> None:
         self.assertEqual(

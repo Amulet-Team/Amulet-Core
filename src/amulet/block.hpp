@@ -36,10 +36,9 @@ public:
         return properties;
     }
 
-    template <typename versionT>
     Block(
         const PlatformType& platform,
-        const versionT& version,
+        const VersionNumber& version,
         const std::string& namespace_,
         const std::string& base_name)
         : PlatformVersionContainer(platform, version)
@@ -49,12 +48,10 @@ public:
     {
     }
 
-    template <
-        typename versionT,
-        typename propertiesT>
+    template <typename propertiesT>
     Block(
         const PlatformType& platform,
-        const versionT& version,
+        const VersionNumber& version,
         const std::string& namespace_,
         const std::string& base_name,
         const propertiesT& properties)
@@ -66,7 +63,7 @@ public:
     }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
-    AMULET_CORE_EXPORT static std::shared_ptr<Block> deserialise(BinaryReader&);
+    AMULET_CORE_EXPORT static Block deserialise(BinaryReader&);
 
     auto operator<=>(const Block& other) const
     {
@@ -91,16 +88,16 @@ public:
 
     AMULET_CORE_EXPORT std::string java_blockstate() const;
     AMULET_CORE_EXPORT std::string bedrock_blockstate() const;
-    AMULET_CORE_EXPORT static std::shared_ptr<Block> from_java_blockstate(const PlatformType&, std::shared_ptr<VersionNumber>, const std::string&);
-    AMULET_CORE_EXPORT static std::shared_ptr<Block> from_bedrock_blockstate(const PlatformType&, std::shared_ptr<VersionNumber>, const std::string&);
+    AMULET_CORE_EXPORT static Block from_java_blockstate(const PlatformType&, const VersionNumber&, const std::string&);
+    AMULET_CORE_EXPORT static Block from_bedrock_blockstate(const PlatformType&, const VersionNumber&, const std::string&);
 };
 
 class BlockStack {
 private:
-    std::vector<std::shared_ptr<Block>> _blocks;
+    std::vector<Block> _blocks;
 
 public:
-    const std::vector<std::shared_ptr<Block>>& get_blocks() const { return _blocks; }
+    const std::vector<Block>& get_blocks() const { return _blocks; }
 
     template <typename T>
     BlockStack(const T& blocks)
@@ -112,7 +109,7 @@ public:
     }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
-    AMULET_CORE_EXPORT static std::shared_ptr<BlockStack> deserialise(BinaryReader&);
+    AMULET_CORE_EXPORT static BlockStack deserialise(BinaryReader&);
 
     auto operator<=>(const BlockStack& other) const
     {
@@ -121,7 +118,7 @@ public:
             return cmp;
         }
         for (size_t i = 0; i < size(); i++) {
-            cmp = *(*this)[i] <=> *other[i];
+            cmp = (*this)[i] <=> other[i];
             if (cmp != 0) {
                 return cmp;
             }
@@ -134,6 +131,6 @@ public:
     }
 
     size_t size() const { return _blocks.size(); }
-    std::shared_ptr<Block> operator[](size_t index) const { return _blocks[index]; }
+    const Block& operator[](size_t index) const { return _blocks[index]; }
 };
 }

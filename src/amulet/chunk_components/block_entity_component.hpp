@@ -23,9 +23,9 @@ private:
 
 public:
     AMULET_CORE_EXPORT BlockEntityComponentData(
-        std::shared_ptr<VersionRange> version_range,
-        const std::uint16_t& x_size,
-        const std::uint16_t& z_size);
+        const VersionRange& version_range,
+        std::uint16_t x_size,
+        std::uint16_t z_size);
 
     AMULET_CORE_EXPORT std::uint16_t get_x_size() const;
     AMULET_CORE_EXPORT std::uint16_t get_z_size() const;
@@ -60,9 +60,9 @@ protected:
     AMULET_CORE_EXPORT BlockEntityComponent() = default;
     // Default constructor
     AMULET_CORE_EXPORT void init(
-        std::shared_ptr<VersionRange> version_range,
-        const std::uint16_t& x_size,
-        const std::uint16_t& z_size);
+        const VersionRange& version_range,
+        std::uint16_t x_size,
+        std::uint16_t z_size);
 
     // Serialise the component data
     AMULET_CORE_EXPORT std::optional<std::string> serialise() const;

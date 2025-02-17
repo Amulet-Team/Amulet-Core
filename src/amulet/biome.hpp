@@ -19,7 +19,7 @@ public:
 
     Biome(
         const PlatformType& platform,
-        std::shared_ptr<VersionNumber> version,
+        const VersionNumber& version,
         const std::string& namespace_,
         const std::string& base_name)
         : PlatformVersionContainer(platform, version)
@@ -29,7 +29,7 @@ public:
     }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
-    AMULET_CORE_EXPORT static std::shared_ptr<Biome> deserialise(BinaryReader&);
+    AMULET_CORE_EXPORT static Biome deserialise(BinaryReader&);
 
     auto operator<=>(const Biome& other) const
     {

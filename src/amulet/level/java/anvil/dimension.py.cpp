@@ -126,6 +126,11 @@ py::module init_anvil_dimension(py::module m_parent)
         py::arg("layer_names"),
         py::arg("mcc") = false);
     AnvilDimension.def_property_readonly(
+        "lock",
+        &Amulet::AnvilDimension::mutex,
+        py::doc("External lock.\n"
+                "Thread safe."));
+    AnvilDimension.def_property_readonly(
         "directory",
         [](const Amulet::AnvilDimension& self) {
             return self.directory().string();

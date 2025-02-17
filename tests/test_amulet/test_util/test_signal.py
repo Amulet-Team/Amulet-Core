@@ -2,6 +2,8 @@ from unittest import TestCase
 from typing import Any
 from threading import Lock, Condition
 import time
+import weakref
+import gc
 
 from test_amulet.test_util.test_signal_ import SignalTest
 
@@ -223,3 +225,11 @@ class SignalTestCase(TestCase):
         self.assertEqual(2, count)
 
         cls.signal_0.disconnect(token)
+
+    def test_lifetime(self) -> None:
+        cls = SignalTest()
+        signal = cls.signal_0
+        cls_ref = weakref.ref(cls)
+        del cls
+        gc.collect()
+        self.assertIsNotNone(cls_ref())

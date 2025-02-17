@@ -21,14 +21,14 @@ private:
 
 public:
     AMULET_CORE_EXPORT BlockComponentData(
-        std::shared_ptr<VersionRange> version_range,
+        const VersionRange& version_range,
         const SectionShape& array_shape,
         std::shared_ptr<BlockStack> default_block);
     AMULET_CORE_EXPORT BlockComponentData(
         std::shared_ptr<BlockPalette> palette,
         std::shared_ptr<SectionArrayMap> sections);
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
-    AMULET_CORE_EXPORT static std::shared_ptr<BlockComponentData> deserialise(BinaryReader&);
+    AMULET_CORE_EXPORT static BlockComponentData deserialise(BinaryReader&);
     AMULET_CORE_EXPORT std::shared_ptr<BlockPalette> get_palette() const;
     AMULET_CORE_EXPORT std::shared_ptr<SectionArrayMap> get_sections() const;
 };
@@ -42,7 +42,7 @@ protected:
     AMULET_CORE_EXPORT BlockComponent() = default;
     // Default constructor
     AMULET_CORE_EXPORT void init(
-        std::shared_ptr<VersionRange> version_range,
+        const VersionRange& version_range,
         const SectionShape& array_shape,
         std::shared_ptr<BlockStack> default_block);
 

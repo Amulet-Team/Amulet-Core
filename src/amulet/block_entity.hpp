@@ -30,7 +30,7 @@ public:
 
     BlockEntity(
         const PlatformType& platform,
-        std::shared_ptr<VersionNumber> version,
+        const VersionNumber& version,
         const std::string& namespace_,
         const std::string& base_name,
         std::shared_ptr<AmuletNBT::NamedTag> nbt)
@@ -42,7 +42,7 @@ public:
     }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
-    AMULET_CORE_EXPORT static std::shared_ptr<BlockEntity> deserialise(BinaryReader&);
+    AMULET_CORE_EXPORT static BlockEntity deserialise(BinaryReader&);
 
     bool operator==(const BlockEntity& other) const
     {

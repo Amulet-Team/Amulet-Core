@@ -5,6 +5,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -144,11 +145,11 @@ std::unique_ptr<JavaChunk> _decode_java_chunk(
     CompoundTag& region,
     std::int64_t cx,
     std::int64_t cz,
-    std::shared_ptr<VersionNumber> version,
+    const VersionNumber& version,
     std::int64_t data_version,
     std::shared_ptr<BlockStack> default_block,
     std::shared_ptr<Biome> default_biome,
-    std::function<std::shared_ptr<Block>()> get_water)
+    std::function<const Block&()> get_water)
 {
     // Validate coordinates
     CompoundTagPtr level_ptr;
@@ -293,7 +294,7 @@ std::unique_ptr<JavaChunk> _decode_java_chunk(
                     },
                         v);
                 }
-                std::vector<std::shared_ptr<Block>> blocks;
+                std::vector<Block> blocks;
 
                 // TODO: convert this to C++
                 py::object waterloggable = game_version.attr("block").attr("waterloggable")(block_namespace, block_base_name);
@@ -311,7 +312,7 @@ std::unique_ptr<JavaChunk> _decode_java_chunk(
                 }
                 blocks.insert(
                     blocks.begin(),
-                    std::make_shared<Block>(
+                    Block(
                         "java",
                         version,
                         block_namespace,
@@ -374,20 +375,20 @@ static std::shared_ptr<BlockStack> _get_default_block(
     JavaRawDimension& dimension,
     const VersionRange& version_range)
 {
-    std::vector<std::shared_ptr<Block>> blocks;
+    std::vector<Block> blocks;
     for (const auto& block : dimension.get_default_block().get_blocks()) {
-        if (version_range.contains(block->get_platform(), *block->get_version())) {
+        if (version_range.contains(block.get_platform(), block.get_version())) {
             blocks.push_back(block);
         } else {
-            py::object block_ = py::module::import("amulet.game").attr("get_game_version")(py::cast(block->get_platform()), py::cast(block->get_version())).attr("block").attr("translate")("java", py::cast(version_range.get_max_version()), py::cast(block)).attr("__getitem__")(0);
+            py::object block_ = py::module::import("amulet.game").attr("get_game_version")(py::cast(block.get_platform()), py::cast(block.get_version(), py::return_value_policy::reference)).attr("block").attr("translate")("java", py::cast(version_range.get_max_version()), py::cast(block)).attr("__getitem__")(0);
             if (py::isinstance<Block>(block_)) {
-                blocks.push_back(block_.cast<std::shared_ptr<Block>>());
+                blocks.push_back(block_.cast<Block>());
             }
         }
     }
     if (blocks.empty()) {
-        blocks.push_back(
-            std::make_shared<Block>(
+        blocks.emplace_back(
+            Block(
                 version_range.get_platform(),
                 version_range.get_max_version(),
                 "minecraft",
@@ -400,11 +401,11 @@ static std::shared_ptr<Biome> _get_default_biome(
     JavaRawDimension& dimension,
     const VersionRange& version_range)
 {
-    auto biome = std::make_shared<Biome>(dimension.get_default_biome());
-    if (version_range.contains(biome->get_platform(), *biome->get_version())) {
-        return biome;
+    auto& biome = dimension.get_default_biome();
+    if (version_range.contains(biome.get_platform(), biome.get_version())) {
+        return std::make_shared<Biome>(biome);
     } else {
-        return py::module::import("amulet.game").attr("get_game_version")(py::cast(biome->get_platform()), py::cast(biome->get_version())).attr("biome").attr("translate")("java", py::cast(version_range.get_max_version()), py::cast(biome)).cast<std::shared_ptr<Biome>>();
+        return py::module::import("amulet.game").attr("get_game_version")(py::cast(biome.get_platform()), py::cast(biome.get_version(), py::return_value_policy::reference)).attr("biome").attr("translate")("java", py::cast(version_range.get_max_version()), py::cast(biome)).cast<std::shared_ptr<Biome>>();
     }
 }
 
@@ -421,22 +422,22 @@ std::unique_ptr<JavaChunk> JavaRawDimension::decode_chunk(
         "DataVersion",
         []() { return IntTag(-1); }).value;
 
-    auto version = std::make_shared<VersionNumber>(std::initializer_list<std::int64_t> { data_version });
+    VersionNumber version(std::initializer_list<std::int64_t> { data_version });
     auto version_range = std::make_shared<VersionRange>("java", version, version);
     auto default_block = _get_default_block(*this, *version_range);
     auto default_biome = _get_default_biome(*this, *version_range);
-    py::object game_version = py::module::import("amulet.game").attr("get_game_version")("java", py::cast(version));
+    py::object game_version = py::module::import("amulet.game").attr("get_game_version")("java", py::cast(version, py::return_value_policy::reference));
 
-    std::shared_ptr<Block> _water_block;
-    auto get_water = [&version, &_water_block]() {
+    std::optional<Block> _water_block;
+    auto get_water = [&version, &_water_block]() -> const Block& {
         if (!_water_block) {
             py::object block = py::module::import("amulet.game").attr("get_game_version")("java", VersionNumber({ 3837 })).attr("block").attr("translate")("java", version, Block("java", VersionNumber({ 3837 }), "minecraft", "water", std::initializer_list<BlockProperites::value_type> { { "level", StringTag("0") } })).attr("__getitem__")(0);
             if (!py::isinstance<Block>(block)) {
-                throw std::runtime_error("Water block did not convert to a block in version Java " + version->toString());
+                throw std::runtime_error("Water block did not convert to a block in version Java " + version.toString());
             }
-            _water_block = block.cast<std::shared_ptr<Block>>();
+            _water_block = block.cast<Block>();
         }
-        return _water_block;
+        return *_water_block;
     };
 
     if (data_version >= 2203) {
