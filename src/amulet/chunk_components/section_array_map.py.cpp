@@ -146,6 +146,7 @@ void init_section_array_map(py::module section_array_map_module)
                 if constexpr (std::is_same_v<T, std::uint32_t>) {
                     return arg;
                 } else {
+                    static_assert(std::is_same_v<T, std::shared_ptr<Amulet::IndexArray3D>>);
                     return asarray(py::cast(arg));
                 }
             },
