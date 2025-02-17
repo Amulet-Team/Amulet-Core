@@ -45,9 +45,11 @@ void def_signal(PyCls& cls, const char* name, const SignalT CppCls::*attr)
     create_signal_binding<SignalT>();
     cls.def_property_readonly(
         name,
-        [attr](const typename PyCls::type& self) {
-            return pybind11::cast(self.*attr, py::return_value_policy::reference);
-        });
+        py::cpp_function(
+            [attr](const typename PyCls::type& self) {
+                return pybind11::cast(self.*attr, py::return_value_policy::reference);
+            },
+            py::keep_alive<0, 1>()));
 }
 
 };
