@@ -24,7 +24,7 @@ py::module init_level_abc_level(py::module m_parent)
             ":return: True if the level is open otherwise False.\n"
             ":raises amulet.utils.task_manager.TaskCancelled: If the task is cancelled."));
     LevelMetadata.def_property_readonly("platform", &Amulet::LevelMetadata::platform);
-    LevelMetadata.def_property_readonly("max_game_version", &Amulet::LevelMetadata::max_game_version);
+    LevelMetadata.def_property_readonly("max_game_version", &Amulet::LevelMetadata::max_game_version, py::return_value_policy::automatic);
     LevelMetadata.def_property_readonly(
         "level_name",
         &Amulet::LevelMetadata::level_name,
