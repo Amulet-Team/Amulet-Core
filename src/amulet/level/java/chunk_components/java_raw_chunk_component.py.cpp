@@ -20,11 +20,9 @@ void init_java_raw_chunk_component(py::module m)
     py::class_<Amulet::JavaRawChunkComponent, std::shared_ptr<Amulet::JavaRawChunkComponent>>
         JavaRawChunkComponent(m, "JavaRawChunkComponent");
 
-    JavaRawChunkComponent.def_property_readonly_static(
+    JavaRawChunkComponent.def_readonly_static(
         "ComponentID",
-        [](py::object) {
-            return Amulet::JavaRawChunkComponent::ComponentID;
-        });
+        &Amulet::JavaRawChunkComponent::ComponentID);
     JavaRawChunkComponent.def_property(
         "raw_data",
         [](
