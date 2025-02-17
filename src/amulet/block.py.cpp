@@ -30,7 +30,7 @@ void init_block(py::module m_parent)
 
     m.attr("PropertyValueType") = ByteTag | ShortTag | IntTag | LongTag | StringTag;
 
-    py::class_<Amulet::Block, Amulet::PlatformVersionContainer> Block(m, "Block",
+    py::class_<Amulet::Block, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::Block>> Block(m, "Block",
         "A class to manage the state of a block.\n"
         "\n"
         "It is an immutable object that contains the platform, version, namespace, base name and properties.\n"
