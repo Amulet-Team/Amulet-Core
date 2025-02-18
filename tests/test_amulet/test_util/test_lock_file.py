@@ -13,9 +13,9 @@ from test_amulet.test_util.test_lock_file_ import (
 def write_file(path: str, queue: Queue):
     with open(path) as f:
         queue.put(f.read())
+
     try:
-        with open(path, "w") as f:
-            f.write("This should not get written")
+        create_test_file(path)
     except:
         queue.put(True)
     else:
