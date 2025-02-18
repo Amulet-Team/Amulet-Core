@@ -147,7 +147,7 @@ public:
         if (file_descriptor != -1) {
             throw std::runtime_error("File is already open.");
         }
-        file_descriptor = open(path.c_str(), O_RDWR | O_TRUNC, 0666);
+        file_descriptor = open(path.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
         if (file_descriptor == -1) {
             throw std::runtime_error("Could not open file. Code: " + std::to_string(errno) + ", Path: " + path.string());
         }
