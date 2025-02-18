@@ -27,8 +27,7 @@ public:
     {
     }
 
-    template <typename T>
-    VersionNumber(std::initializer_list<T> args)
+    VersionNumber(std::initializer_list<std::int64_t> args)
         : vec(args)
     {
     }
