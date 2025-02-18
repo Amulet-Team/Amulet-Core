@@ -9,10 +9,12 @@
 
 #include <amulet_nbt/nbt_encoding/binary.hpp>
 #include <amulet_nbt/string_encoding.hpp>
+#include <amulet_nbt/tag/compound.hpp>
 #include <amulet_nbt/tag/copy.hpp>
 #include <amulet_nbt/zlib.hpp>
 
 #include <amulet/utils/lock_file.hpp>
+#include <amulet/utils/logging.hpp>
 
 #include "raw_level.hpp"
 
@@ -310,9 +312,125 @@ void JavaRawLevel::set_level_name(const std::string& level_name)
     set_level_dat(level_dat);
 }
 
-SelectionBox JavaRawLevel::_get_dimension_bounds(const DimensionID&)
+static const SelectionBox DefaultSelection { -30'000'000, 0, -30'000'000, 60'000'000, 256, 60'000'000 };
+
+SelectionBox JavaRawLevel::_get_dimension_bounds(const DimensionID& dimension_id)
 {
-    throw std::runtime_error("NotImplementedError");
+    if (_data_version < VersionNumber { 2709 }) {
+        // Old versions were hard coded.
+        // This number might be smaller
+        return DefaultSelection;
+    }
+
+    // Look for a dimension configuration
+    AmuletNBT::CompoundTagPtr dimension_settings;
+    try {
+        auto& root = std::get<AmuletNBT::CompoundTagPtr>(_level_dat.tag_node);
+        auto& data = std::get<AmuletNBT::CompoundTagPtr>(root->at("Data"));
+        auto& world_gen_settings = std::get<AmuletNBT::CompoundTagPtr>(data->at("WorldGenSettings"));
+        auto& dimensions = std::get<AmuletNBT::CompoundTagPtr>(world_gen_settings->at("dimensions"));
+        dimension_settings = std::get<AmuletNBT::CompoundTagPtr>(dimensions->at(dimension_id));
+    } catch (...) {
+        return DefaultSelection;
+    }
+    // "type" can be a reference (string) or inline (compound) dimension-type data.
+    auto& dimension_type_node = dimension_settings->at("type");
+    return std::visit(
+        [&](auto&& dimension_type) {
+            using T = std::decay_t<decltype(dimension_type)>;
+            if constexpr (std::is_same_v<AmuletNBT::StringTag, T>) {
+                // Reference type. Load the dimension data
+                auto colon_index = dimension_type.find(':');
+                std::string namespace_;
+                std::string base_name;
+                if (colon_index == std::string::npos) {
+                    namespace_ = "minecraft";
+                    base_name = dimension_type;
+                } else {
+                    namespace_ = dimension_type.substr(0, colon_index);
+                    base_name = dimension_type.substr(colon_index + 1);
+                }
+                // TODO: implement the data pack
+                //     # First try and load the reference from the data pack and then from defaults
+                //     dimension_path = f"data/{namespace}/dimension_type/{base_name}.json"
+                //     if self._o.data_pack.has_file(dimension_path):
+                //         with self._o.data_pack.open(dimension_path) as d:
+                //             try:
+                //                 dimension_settings_json = json.load(d)
+                //             except json.JSONDecodeError:
+                //                 pass
+                //             else:
+                //                 if "min_y" in dimension_settings_json and isinstance(
+                //                     dimension_settings_json["min_y"], int
+                //                 ):
+                //                     min_y = dimension_settings_json["min_y"]
+                //                     if min_y % 16:
+                //                         min_y = 16 * (min_y // 16)
+                //                 else:
+                //                     min_y = 0
+                //                 if "height" in dimension_settings_json and isinstance(
+                //                     dimension_settings_json["height"], int
+                //                 ):
+                //                     height = dimension_settings_json["height"]
+                //                     if height % 16:
+                //                         height = -16 * (-height // 16)
+                //                 else:
+                //                     height = 256
+                //
+                //                 return SelectionGroup(
+                //                     SelectionBox(
+                //                         (-30_000_000, min_y, -30_000_000),
+                //                         (30_000_000, min_y + height, 30_000_000),
+                //                     )
+                //                 )
+                //
+                /*else*/ if (namespace_ == "minecraft") {
+                    if (base_name == "overworld" || base_name == "overworld_caves") {
+                        if (VersionNumber { 2825 } <= _data_version) {
+                            // If newer than the height change version
+                            return SelectionBox { -30'000'000, -64, -30'000'000, 60'000'000, 384, 60'000'000 };
+                        } else {
+                            return DefaultSelection;
+                        }
+                    } else if (base_name == "the_nether" || base_name == "the_end") {
+                        return DefaultSelection;
+                    } else {
+                        error("Could not find dimension_type minecraft:" + base_name);
+                    }
+                } else {
+                    error("Could not find dimension_type " + namespace_ + ":" + base_name);
+                }
+            } else if constexpr (std::is_same_v<AmuletNBT::CompoundTagPtr, T>) {
+                // Inline type
+                AmuletNBT::IntTagNative min_y = [&dimension_type] {
+                    auto it = dimension_type->find("min_y");
+                    if (it != dimension_type->end()) {
+                        auto* ptr = std::get_if<AmuletNBT::IntTag>(&it->second);
+                        if (ptr) {
+                            return ptr->value & ~15;
+                        }
+                    }
+                    return 0;
+                }();
+
+                AmuletNBT::IntTagNative height = [&dimension_type] {
+                    auto it = dimension_type->find("height");
+                    if (it != dimension_type->end()) {
+                        auto* ptr = std::get_if<AmuletNBT::IntTag>(&it->second);
+                        if (ptr) {
+                            return ptr->value & ~15;
+                        }
+                    }
+                    return 256;
+                }();
+
+                return SelectionBox { -30'000'000, min_y, -30'000'000, 60'000'000, static_cast<std::uint64_t>(std::max(0, height)), 60'000'000 };
+            } else {
+                error("level_dat[\"Data\"][\"WorldGenSettings\"][\"dimensions\"][\"" + dimension_id + "\"][\"type\"] was not a StringTag or CompoundTag.");
+            }
+            return DefaultSelection;
+        },
+        dimension_type_node);
 }
 
 void JavaRawLevel::_register_dimension(
