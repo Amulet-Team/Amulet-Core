@@ -27,6 +27,12 @@ public:
     {
     }
 
+    template <typename T>
+    VersionNumber(std::initializer_list<T> args)
+        : vec(args)
+    {
+    }
+
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
     AMULET_CORE_EXPORT static VersionNumber deserialise(BinaryReader&);
 
