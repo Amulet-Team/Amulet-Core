@@ -108,9 +108,9 @@ private:
 
 } // namespace Amulet
 
-#elif defined(__linux) || defined(__linux__)
+#elif defined(__unix__) || defined(__linux__) || defined(__APPLE__)
 
-#include <errorno.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <sys/file.h>
 #include <unistd.h>
