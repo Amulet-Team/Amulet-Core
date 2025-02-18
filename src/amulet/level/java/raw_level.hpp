@@ -11,21 +11,34 @@
 
 #include <amulet/dll.hpp>
 #include <amulet/level/abc/registry.hpp>
-#include <amulet/utils/mutex.hpp>
-#include <amulet/version.hpp>
-#include <amulet/utils/signal.hpp>
 #include <amulet/utils/lock_file.hpp>
+#include <amulet/utils/mutex.hpp>
+#include <amulet/utils/signal.hpp>
+#include <amulet/version.hpp>
 
 #include "dimension.hpp"
 #include "raw_dimension.hpp"
 
 namespace Amulet {
 
-struct JavaCreateArgsV1 {
+class JavaCreateArgsV1 {
+public:
     bool overwrite;
     std::filesystem::path path;
     VersionNumber version;
     std::string level_name;
+
+    JavaCreateArgsV1(
+        bool overwrite,
+        const std::filesystem::path path,
+        const VersionNumber& version,
+        const std::string& level_name)
+        : overwrite(overwrite)
+        , path(path)
+        , version(version)
+        , level_name(level_name)
+    {
+    }
 };
 
 class JavaRawLevelOpenData {
@@ -39,8 +52,10 @@ public:
     std::shared_ptr<IdRegistry> biome_id_override;
 
     JavaRawLevelOpenData(
-        std::unique_ptr<LockFile> session_lock
-    ): session_lock(std::move(session_lock)) { }
+        std::unique_ptr<LockFile> session_lock)
+        : session_lock(std::move(session_lock))
+    {
+    }
 };
 
 class JavaRawLevel {
@@ -77,13 +92,11 @@ private:
     std::unique_ptr<LockFile> _close();
     VersionNumber _get_data_version();
 
-    SelectionGroup _get_dimension_bounds(const DimensionID&);
-    
+    SelectionBox _get_dimension_bounds(const DimensionID&);
+
     // Register a dimension
     // Must be called with the dimension lock in unique mode.
     void _register_dimension(JavaRawLevelOpenData&, const JavaInternalDimensionID&, const DimensionID&);
-
-
 
 public:
     JavaRawLevel() = delete;

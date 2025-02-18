@@ -310,7 +310,7 @@ void JavaRawLevel::set_level_name(const std::string& level_name)
     set_level_dat(level_dat);
 }
 
-SelectionGroup JavaRawLevel::_get_dimension_bounds(const DimensionID&)
+SelectionBox JavaRawLevel::_get_dimension_bounds(const DimensionID&)
 {
     throw std::runtime_error("NotImplementedError");
 }
@@ -336,24 +336,25 @@ void JavaRawLevel::_register_dimension(
         }
 
         // Create the raw dimension instance
-        auto raw_dimension = std::make_shared<JavaRawDimension>(
-            path,
-            get_data_version() > VersionNumber { 2203 },
-            layers,
-            relative_dimension_path,
-            dimension_id,
-            _get_dimension_bounds(dimension_id),
-            // TODO: Is this data stored somewhere?
-            BlockStack(Block("java", VersionNumber { 3700 }, "minecraft", "air")),
-            [&] {
-                if (dimension_id == THE_NETHER) {
-                    return Biome("java", VersionNumber { 3700 }, "minecraft", "nether_wastes");
-                } else if (dimension_id == THE_END) {
-                    return Biome("java", VersionNumber { 3700 }, "minecraft", "the_end");
-                } else {
-                    return Biome("java", VersionNumber { 3700 }, "minecraft", "plains");
-                }
-            }());
+        auto raw_dimension = std::shared_ptr<JavaRawDimension>(
+            new JavaRawDimension(
+                path,
+                get_data_version() > VersionNumber { 2203 },
+                layers,
+                relative_dimension_path,
+                dimension_id,
+                _get_dimension_bounds(dimension_id),
+                // TODO: Is this data stored somewhere?
+                BlockStack { Block("java", VersionNumber { 3700 }, "minecraft", "air") },
+                [&] {
+                    if (dimension_id == THE_NETHER) {
+                        return Biome("java", VersionNumber { 3700 }, "minecraft", "nether_wastes");
+                    } else if (dimension_id == THE_END) {
+                        return Biome("java", VersionNumber { 3700 }, "minecraft", "the_end");
+                    } else {
+                        return Biome("java", VersionNumber { 3700 }, "minecraft", "plains");
+                    }
+                }()));
 
         raw_open.dimension_ids.emplace(dimension_id, relative_dimension_path);
         raw_open.dimensions.emplace(relative_dimension_path, raw_dimension);

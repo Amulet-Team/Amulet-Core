@@ -21,6 +21,8 @@ namespace Amulet {
 
 using JavaInternalDimensionID = std::string;
 
+class JavaRawLevel;
+
 class JavaRawDimension {
 private:
     OrderedMutex _public_mutex;
@@ -52,6 +54,8 @@ private:
             throw std::invalid_argument("path is not a directory.");
         }
     }
+
+    friend JavaRawLevel;
 
 public:
     // The public mutex

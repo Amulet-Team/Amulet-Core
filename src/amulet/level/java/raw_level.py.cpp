@@ -4,8 +4,8 @@
 
 #include <memory>
 
-#include <amulet/utils/signal.py.hpp>
 #include <amulet/utils/holder.py.hpp>
+#include <amulet/utils/signal.py.hpp>
 #include <amulet/version.hpp>
 
 #include "raw_level.hpp"
@@ -20,7 +20,7 @@ py::module init_java_raw_level(py::module m_parent)
         Amulet::JavaCreateArgsV1>
         JavaCreateArgsV1(m, "JavaCreateArgsV1");
     JavaCreateArgsV1.def(
-        py::init<bool, std::string, Amulet::VersionNumber, std::string>(),
+        py::init<bool, const std::string&, const Amulet::VersionNumber&, const std::string&>(),
         py::arg("overwrite"),
         py::arg("path"),
         py::arg("version"),
