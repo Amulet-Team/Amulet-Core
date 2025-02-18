@@ -57,7 +57,13 @@ public:
     }
 
     LockFile(const LockFile&) = delete;
-    LockFile(LockFile&&) = default;
+    LockFile(LockFile&& other)
+    {
+        path = std::move(other.path);
+        file_handle = other.file_handle;
+        other.file_handle = INVALID_HANDLE_VALUE;
+    };
+    LockFile& operator=(LockFile&&) = default;
 
     ~LockFile() noexcept
     {
@@ -66,6 +72,9 @@ public:
 
     void lock_file()
     {
+        if (file_handle != INVALID_HANDLE_VALUE) {
+            throw std::runtime_error("File is already open.");
+        }
         file_handle = CreateFileW(path.wstring().c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
         if (file_handle == INVALID_HANDLE_VALUE) {
             throw std::runtime_error("Could not open and lock file. Error: " + GetLastErrorAsString() + ", Path: " + path.string());
@@ -106,7 +115,6 @@ private:
 #include <sys/file.h>
 #include <unistd.h>
 
-
 namespace Amulet {
 
 class LockFile final {
@@ -121,7 +129,13 @@ public:
     };
 
     LockFile(const LockFile&) = delete;
-    LockFile(LockFile&&) = default;
+    LockFile(LockFile&& other)
+    {
+        path = std::move(other.path);
+        file_descriptor = other.file_descriptor;
+        other.file_descriptor = -1;
+    }
+    LockFile& operator=(LockFile&&) = default;
 
     ~LockFile() noexcept
     {
@@ -130,6 +144,9 @@ public:
 
     void lock_file()
     {
+        if (file_descriptor != -1) {
+            throw std::runtime_error("File is already open.");
+        }
         file_descriptor = open(path.c_str(), O_RDWR | O_TRUNC, 0666);
         if (file_descriptor == -1) {
             throw std::runtime_error("Could not open file. Code: " + std::to_string(errno) + ", Path: " + path.string());
