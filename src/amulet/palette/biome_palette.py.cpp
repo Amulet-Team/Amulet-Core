@@ -46,7 +46,6 @@ void init_biome_palette(py::module biome_palette_module)
             return self.index_to_biome(index);
         });
     Amulet::collections::Sequence_getitem_slice(BiomePalette);
-    // Amulet::collections::Sequence_contains(BiomePalette);
     BiomePalette.def(
         "__contains__",
         [](const Amulet::BiomePalette& self, Py_ssize_t index) {
@@ -54,9 +53,7 @@ void init_biome_palette(py::module biome_palette_module)
         });
     BiomePalette.def(
         "__contains__",
-        [](const Amulet::BiomePalette& self, std::shared_ptr<Amulet::Biome> item) {
-            return self.contains_biome(item);
-        });
+        &Amulet::BiomePalette::contains_biome);
     Amulet::collections::Sequence_iter(BiomePalette);
     Amulet::collections::Sequence_reversed(BiomePalette);
     Amulet::collections::Sequence_index(BiomePalette);
@@ -78,9 +75,7 @@ void init_biome_palette(py::module biome_palette_module)
 
     BiomePalette.def(
         "biome_to_index",
-        [](Amulet::BiomePalette& self, std::shared_ptr<Amulet::Biome> item) {
-            return self.biome_to_index(item);
-        },
+        &Amulet::BiomePalette::biome_to_index,
         py::doc(
             "Get the index of the biome in the palette.\n"
             "If it is not in the palette already it will be added first.\n"

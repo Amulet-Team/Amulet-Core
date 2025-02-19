@@ -148,7 +148,7 @@ std::unique_ptr<JavaChunk> _decode_java_chunk(
     const VersionNumber& version,
     std::int64_t data_version,
     std::shared_ptr<BlockStack> default_block,
-    std::shared_ptr<Biome> default_biome,
+    const Biome& default_biome,
     std::function<const Block&()> get_water)
 {
     // Validate coordinates
@@ -397,15 +397,15 @@ static std::shared_ptr<BlockStack> _get_default_block(
     return std::make_shared<BlockStack>(blocks);
 }
 
-static std::shared_ptr<Biome> _get_default_biome(
+static Biome _get_default_biome(
     JavaRawDimension& dimension,
     const VersionRange& version_range)
 {
     auto& biome = dimension.get_default_biome();
     if (version_range.contains(biome.get_platform(), biome.get_version())) {
-        return std::make_shared<Biome>(biome);
+        return biome;
     } else {
-        return py::module::import("amulet.game").attr("get_game_version")(py::cast(biome.get_platform()), py::cast(biome.get_version(), py::return_value_policy::reference)).attr("biome").attr("translate")("java", py::cast(version_range.get_max_version()), py::cast(biome)).cast<std::shared_ptr<Biome>>();
+        return py::module::import("amulet.game").attr("get_game_version")(py::cast(biome.get_platform()), py::cast(biome.get_version(), py::return_value_policy::reference)).attr("biome").attr("translate")("java", py::cast(version_range.get_max_version()), py::cast(biome)).cast<Biome>();
     }
 }
 

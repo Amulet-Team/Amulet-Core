@@ -22,7 +22,7 @@ public:
     AMULET_CORE_EXPORT Biome3DComponentData(
         const VersionRange& version_range,
         const SectionShape& array_shape,
-        std::shared_ptr<Biome> default_biome);
+        const Biome& default_biome);
     AMULET_CORE_EXPORT std::shared_ptr<BiomePalette> get_palette();
     AMULET_CORE_EXPORT std::shared_ptr<SectionArrayMap> get_sections();
 };
@@ -38,7 +38,7 @@ protected:
     AMULET_CORE_EXPORT void init(
         const VersionRange& version_range,
         const SectionShape& array_shape,
-        std::shared_ptr<Biome> default_biome);
+        const Biome& default_biome);
 
     // Serialise the component data
     AMULET_CORE_EXPORT std::optional<std::string> serialise() const;

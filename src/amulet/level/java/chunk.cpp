@@ -25,7 +25,7 @@ std::string JavaChunk2203::get_chunk_id() const { return ChunkID; }
 
 JavaChunkNA::JavaChunkNA(
     std::shared_ptr<BlockStack> default_block,
-    std::shared_ptr<Biome> default_biome)
+    const Biome& default_biome)
     : ChunkComponentHelper()
 {
     VersionNumber version_number(std::initializer_list<std::int64_t> { -1 });
@@ -44,7 +44,7 @@ JavaChunkNA::JavaChunkNA(
 JavaChunk0::JavaChunk0(
     std::int64_t data_version,
     std::shared_ptr<BlockStack> default_block,
-    std::shared_ptr<Biome> default_biome)
+    const Biome& default_biome)
     : ChunkComponentHelper()
 {
     if (data_version < 0 || 1443 < data_version) {
@@ -66,7 +66,7 @@ JavaChunk0::JavaChunk0(
 JavaChunk1444::JavaChunk1444(
     std::int64_t data_version,
     std::shared_ptr<BlockStack> default_block,
-    std::shared_ptr<Biome> default_biome)
+    const Biome& default_biome)
     : ChunkComponentHelper()
 {
     if (data_version < 1444 || 1465 < data_version) {
@@ -88,7 +88,7 @@ JavaChunk1444::JavaChunk1444(
 JavaChunk1466::JavaChunk1466(
     std::int64_t data_version,
     std::shared_ptr<BlockStack> default_block,
-    std::shared_ptr<Biome> default_biome)
+    const Biome& default_biome)
     : ChunkComponentHelper()
 {
     if (data_version < 1466 || 2202 < data_version) {
@@ -110,7 +110,7 @@ JavaChunk1466::JavaChunk1466(
 JavaChunk2203::JavaChunk2203(
     std::int64_t data_version,
     std::shared_ptr<BlockStack> default_block,
-    std::shared_ptr<Biome> default_biome)
+    const Biome& default_biome)
     : ChunkComponentHelper()
 {
     if (data_version < 2203) {
