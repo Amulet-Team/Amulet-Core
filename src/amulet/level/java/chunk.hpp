@@ -1,19 +1,25 @@
 #pragma once
 
+#include <map>
 #include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
-#include "chunk_components/data_version_component.hpp"
-#include "chunk_components/java_raw_chunk_component.hpp"
+#include <amulet_nbt/tag/named_tag.hpp>
+
 #include <amulet/biome.hpp>
 #include <amulet/block.hpp>
 #include <amulet/chunk.hpp>
 #include <amulet/chunk_components/block_component.hpp>
 #include <amulet/dll.hpp>
 
+#include "chunk_components/data_version_component.hpp"
+#include "chunk_components/java_raw_chunk_component.hpp"
+
 namespace Amulet {
+using JavaRawChunk = std::map<std::string, AmuletNBT::NamedTag>;
+
 class JavaChunk : public Chunk { };
 
 class JavaChunkNA : public ChunkComponentHelper<

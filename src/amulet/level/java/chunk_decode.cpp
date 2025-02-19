@@ -11,16 +11,16 @@
 #include <type_traits>
 #include <variant>
 
-#include <pybind11_extensions/builtins.hpp>
-
 #include <amulet_nbt/tag/compound.hpp>
 #include <amulet_nbt/tag/named_tag.hpp>
 
 #include <amulet/block.hpp>
 #include <amulet/chunk.hpp>
-#include <amulet/level/java/java_chunk.hpp>
-#include <amulet/level/java/long_array.hpp>
 #include <amulet/version.hpp>
+
+#include "chunk.hpp"
+#include "long_array.hpp"
+#include "raw_dimension.hpp"
 
 namespace py = pybind11;
 using namespace AmuletNBT;
@@ -48,7 +48,7 @@ tagT pop_tag(CompoundTag& compound, std::string name, std::function<tagT()> get_
     return get_default();
 }
 
-CompoundTagPtr get_region(const std::map<std::string, NamedTag>& raw_chunk)
+CompoundTagPtr get_region(const JavaRawChunk& raw_chunk)
 {
     const auto& it = raw_chunk.find("region");
     if (
@@ -139,9 +139,9 @@ void decode_heightmaps_compound(chunkT& chunk, CompoundTag& level)
 }
 
 template <int DataVersion>
-std::shared_ptr<JavaChunk> _decode_java_chunk(
+std::unique_ptr<JavaChunk> _decode_java_chunk(
     py::object game_version,
-    std::map<std::string, NamedTag>& raw_chunk,
+    const JavaRawChunk& raw_chunk,
     CompoundTag& region,
     std::int64_t cx,
     std::int64_t cz,
@@ -166,27 +166,27 @@ std::shared_ptr<JavaChunk> _decode_java_chunk(
     // Make the chunk
     auto chunk_ptr = [&]() {
         if constexpr (DataVersion >= 2203) {
-            return std::make_shared<JavaChunk2203>(
+            return std::make_unique<JavaChunk2203>(
                 data_version,
                 default_block,
                 default_biome);
         } else if constexpr (DataVersion >= 1466) {
-            return std::make_shared<JavaChunk1466>(
+            return std::make_unique<JavaChunk1466>(
                 data_version,
                 default_block,
                 default_biome);
         } else if constexpr (DataVersion >= 1444) {
-            return std::make_shared<JavaChunk1444>(
+            return std::make_unique<JavaChunk1444>(
                 data_version,
                 default_block,
                 default_biome);
         } else if constexpr (DataVersion >= 0) {
-            return std::make_shared<JavaChunk0>(
+            return std::make_unique<JavaChunk0>(
                 data_version,
                 default_block,
                 default_biome);
         } else {
-            return std::make_shared<JavaChunkNA>(
+            return std::make_unique<JavaChunkNA>(
                 default_block,
                 default_biome);
         }
@@ -371,13 +371,12 @@ std::shared_ptr<JavaChunk> _decode_java_chunk(
 }
 
 // Get the default block for this dimension and version via the python API.
-std::shared_ptr<BlockStack> get_default_block(
-    py::object dimension,
+static std::shared_ptr<BlockStack> _get_default_block(
+    JavaRawDimension& dimension,
     const VersionRange& version_range)
 {
-    auto default_block = dimension.attr("default_block")().cast<std::shared_ptr<BlockStack>>();
     std::vector<Block> blocks;
-    for (const auto& block : default_block->get_blocks()) {
+    for (const auto& block : dimension.get_default_block().get_blocks()) {
         if (version_range.contains(block.get_platform(), block.get_version())) {
             blocks.push_back(block);
         } else {
@@ -398,22 +397,20 @@ std::shared_ptr<BlockStack> get_default_block(
     return std::make_shared<BlockStack>(blocks);
 }
 
-std::shared_ptr<Biome> get_default_biome(
-    py::object dimension,
+static std::shared_ptr<Biome> _get_default_biome(
+    JavaRawDimension& dimension,
     const VersionRange& version_range)
 {
-    auto biome = dimension.attr("default_biome")().cast<std::shared_ptr<Biome>>();
-    if (version_range.contains(biome->get_platform(), biome->get_version())) {
-        return biome;
+    auto& biome = dimension.get_default_biome();
+    if (version_range.contains(biome.get_platform(), biome.get_version())) {
+        return std::make_shared<Biome>(biome);
     } else {
-        return py::module::import("amulet.game").attr("get_game_version")(py::cast(biome->get_platform()), py::cast(biome->get_version(), py::return_value_policy::reference)).attr("biome").attr("translate")("java", py::cast(version_range.get_max_version()), py::cast(biome)).cast<std::shared_ptr<Biome>>();
+        return py::module::import("amulet.game").attr("get_game_version")(py::cast(biome.get_platform()), py::cast(biome.get_version(), py::return_value_policy::reference)).attr("biome").attr("translate")("java", py::cast(version_range.get_max_version()), py::cast(biome)).cast<std::shared_ptr<Biome>>();
     }
 }
 
-std::shared_ptr<JavaChunk> decode_java_chunk(
-    pybind11_extensions::PyObjectStr<"amulet.level.abc.Level"> raw_level,
-    pybind11_extensions::PyObjectStr<"amulet.level.abc.Dimension"> dimension,
-    std::map<std::string, NamedTag>& raw_chunk,
+std::unique_ptr<JavaChunk> JavaRawDimension::decode_chunk(
+    const JavaRawChunk& raw_chunk,
     std::int64_t cx,
     std::int64_t cz)
 {
@@ -427,8 +424,8 @@ std::shared_ptr<JavaChunk> decode_java_chunk(
 
     VersionNumber version(std::initializer_list<std::int64_t> { data_version });
     auto version_range = std::make_shared<VersionRange>("java", version, version);
-    auto default_block = get_default_block(dimension, *version_range);
-    auto default_biome = get_default_biome(dimension, *version_range);
+    auto default_block = _get_default_block(*this, *version_range);
+    auto default_biome = _get_default_biome(*this, *version_range);
     py::object game_version = py::module::import("amulet.game").attr("get_game_version")("java", py::cast(version, py::return_value_policy::reference));
 
     std::optional<Block> _water_block;
@@ -455,4 +452,5 @@ std::shared_ptr<JavaChunk> decode_java_chunk(
         return _decode_java_chunk<-1>(game_version, raw_chunk, *region, cx, cz, version, data_version, default_block, default_biome, get_water);
     }
 }
-}
+
+} // namespace Amulet

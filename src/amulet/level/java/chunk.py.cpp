@@ -9,7 +9,7 @@
 
 #include "chunk_components/data_version_component.hpp"
 #include "chunk_components/java_raw_chunk_component.hpp"
-#include "java_chunk.hpp"
+#include "chunk.hpp"
 
 namespace py = pybind11;
 

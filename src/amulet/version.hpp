@@ -27,6 +27,11 @@ public:
     {
     }
 
+    VersionNumber(std::initializer_list<std::int64_t> args)
+        : vec(args)
+    {
+    }
+
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
     AMULET_CORE_EXPORT static VersionNumber deserialise(BinaryReader&);
 

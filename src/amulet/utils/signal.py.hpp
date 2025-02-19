@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "signal.hpp"
+#include <amulet/utils/holder.py.hpp>
 
 namespace py = pybind11;
 
@@ -29,24 +30,24 @@ void create_signal_binding()
     if (!pybind11::detail::get_type_info(typeid(signalT), false)) {
         pybind11::class_<typename signalT::tokenT>(pybind11::handle(), "SignalToken", pybind11::module_local());
 
-        pybind11::class_<signalT>(pybind11::handle(), "Signal", pybind11::module_local())
-            .def("connect", &signalT::connect)
-            .def("disconnect", &signalT::disconnect)
-            .def("emit", &signalT::emit)
-            .def("emit_async", &signalT::emit_async);
+        pybind11::class_<signalT, Amulet::nogil_shared_ptr<signalT>>(pybind11::handle(), "Signal", pybind11::module_local())
+            .def("connect", &signalT::connect, py::call_guard<py::gil_scoped_release>())
+            .def("disconnect", &signalT::disconnect, py::call_guard<py::gil_scoped_release>())
+            .def("emit", &signalT::emit, py::call_guard<py::gil_scoped_release>())
+            .def("emit_async", &signalT::emit_async, py::call_guard<py::gil_scoped_release>());
     }
 }
 
 // Define a signal getter on a class.
 // This automatically creates the binding class.
-template <typename PyCls, typename CppCls, typename SignalT>
-void def_signal(PyCls& cls, const char* name, const SignalT CppCls::*attr)
+template <typename PyCls, typename CppCls, typename... Args>
+void def_signal(PyCls& cls, const char* name, const Signal<Args...> CppCls::*attr)
 {
-    create_signal_binding<SignalT>();
+    create_signal_binding<Signal<Args...>>();
     cls.def_property_readonly(
         name,
         py::cpp_function(
-            [attr](const typename PyCls::type& self) {
+            [attr](const typename PyCls::type& self) -> PySignal<Args...> {
                 return pybind11::cast(self.*attr, py::return_value_policy::reference);
             },
             py::keep_alive<0, 1>()));

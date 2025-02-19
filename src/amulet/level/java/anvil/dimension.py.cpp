@@ -205,7 +205,7 @@ py::module init_anvil_dimension(py::module m_parent)
         "compact",
         &Amulet::AnvilDimension::compact,
         py::doc("Defragment the region files and remove unused region files.\n"
-                "External unique lock required."));
+                "External shared read lock required."));
 
     auto dict = py::module::import("builtins").attr("dict");
     auto str = py::module::import("builtins").attr("str");

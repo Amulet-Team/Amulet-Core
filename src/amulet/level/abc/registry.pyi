@@ -4,6 +4,8 @@ import collections.abc
 import types
 import typing
 
+import amulet.utils.lock
+
 __all__ = ["IdRegistry"]
 
 class IdRegistry:
@@ -18,14 +20,14 @@ class IdRegistry:
     def __getitem__(self, index: int) -> tuple[str, str]:
         """
         Convert a numerical id to its namespaced id.
-        Not thread safe. External shared/unique lock must be held while calling this.
+        External shared lock required.
         """
 
     @typing.overload
     def __getitem__(self, name: tuple[str, str]) -> int:
         """
         Convert a namespaced id to its numerical id.
-        Not thread safe. External shared/unique lock must be held while calling this.
+        External shared lock required.
         """
 
     def __hash__(self) -> int: ...
@@ -33,13 +35,13 @@ class IdRegistry:
     def __iter__(self) -> collections.abc.Iterator[int]:
         """
         An iterable of the numerical ids registered.
-        Not thread safe. External shared/unique lock must be held while calling and using this.
+        External shared lock required.
         """
 
     def __len__(self) -> int:
         """
         The number of ids registered.
-        Not thread safe. External shared/unique lock must be held while calling this.
+        External shared lock required.
         """
 
     def get(
@@ -51,26 +53,32 @@ class IdRegistry:
     def namespace_id_to_numerical_id(self, name: tuple[str, str]) -> int:
         """
         Convert a namespaced id to its numerical id.
-        Not thread safe. External shared/unique lock must be held while calling this.
+        External shared lock required.
         """
 
     @typing.overload
     def namespace_id_to_numerical_id(self, namespace: str, base_name: str) -> int:
         """
         Convert a namespaced id to its numerical id.
-        Not thread safe. External shared/unique lock must be held while calling this.
+        External shared lock required.
         """
 
     def numerical_id_to_namespace_id(self, index: int) -> tuple[str, str]:
         """
         Convert a numerical id to its namespaced id.
-        Not thread safe. External shared/unique lock must be held while calling this.
+        External shared lock required.
         """
 
     def register_id(self, index: int, name: tuple[str, str]) -> None:
         """
         Convert a namespaced id to its numerical id.
-        Not thread safe. External unique lock must be held while calling this.
+        External unique lock required.
         """
 
     def values(self) -> collections.abc.ValuesView[tuple[str, str]]: ...
+    @property
+    def lock(self) -> amulet.utils.lock.SharedLock:
+        """
+        The public lock.
+        Thread safe.
+        """

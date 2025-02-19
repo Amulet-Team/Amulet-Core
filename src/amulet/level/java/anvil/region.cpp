@@ -48,7 +48,7 @@ static void big_endian_swap(T& value)
 static const std::uint64_t SectorSize = 0x1000;
 static const std::uint64_t MaxRegionSize = SectorSize * 255; // The maximum size data in the region file can be
 
-static const std::regex region_regex(R"(r\.(\-?\d+)\.(\-?\d+)\.mca)");
+static const std::regex region_regex(R"(^r\.(\-?\d+)\.(\-?\d+)\.mca$)");
 
 static LRICache<size_t, std::shared_ptr<AnvilRegion::FileCloser>> region_file_cache(64);
 

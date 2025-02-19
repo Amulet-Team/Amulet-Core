@@ -164,6 +164,8 @@ public:
 template <typename Range, typename T>
 concept TypedInputRange = std::ranges::input_range<Range> && std::convertible_to<std::ranges::range_value_t<Range>, T>;
 
+using JavaRawChunk = std::map<std::string, AmuletNBT::NamedTag>;
+
 class AnvilDimension {
 private:
     Amulet::OrderedMutex _public_mutex;
@@ -226,7 +228,7 @@ public:
 
     // Get the data for a chunk
     // External shared read lock required.
-    AMULET_CORE_EXPORT std::map<std::string, AmuletNBT::NamedTag> get_chunk_data(std::int64_t cx, std::int64_t cz);
+    AMULET_CORE_EXPORT JavaRawChunk get_chunk_data(std::int64_t cx, std::int64_t cz);
     
     // Set the data for a chunk.
     // data_layers can be any object supporting std::ranges::input_range of [std::string, AmuletNBT::NamedTag || std::optional<AmuletNBT::NamedTag>]
@@ -286,7 +288,7 @@ public:
     AMULET_CORE_EXPORT void delete_chunk(std::int64_t cx, std::int64_t cz);
     
     // Defragment the region files and remove unused region files.
-    // External unique lock required.
+    // External shared read lock required.
     AMULET_CORE_EXPORT void compact();
 };
 

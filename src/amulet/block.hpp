@@ -99,13 +99,18 @@ private:
 public:
     const std::vector<Block>& get_blocks() const { return _blocks; }
 
-    template <typename T>
-    BlockStack(const T& blocks)
-        : _blocks(blocks)
+    template <typename... Args>
+    BlockStack(Args&&... args)
+        : _blocks(std::forward<Args>(args)...)
     {
         if (_blocks.empty()) {
             throw std::invalid_argument("A BlockStack must contain at least one block");
         }
+    }
+
+    BlockStack(std::initializer_list<Block> blocks)
+        : _blocks(blocks)
+    {
     }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;

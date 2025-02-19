@@ -1,9 +1,15 @@
+#include <shared_mutex>
 #include <stdexcept>
 #include <string>
 
 #include "registry.hpp"
 
 namespace Amulet {
+
+std::shared_mutex& IdRegistry::mutex()
+{
+    return _public_mutex;
+}
 
 NamespacedName IdRegistry::numerical_id_to_namespace_id(std::uint32_t index) const
 {
