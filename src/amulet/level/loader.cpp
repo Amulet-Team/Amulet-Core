@@ -45,8 +45,8 @@ LevelLoader::LevelLoader(
 static std::set<std::shared_ptr<LevelLoader>> loaders;
 static std::shared_mutex loaders_mutex;
 
-LevelLoaderRegister::LevelLoaderRegister(const std::shared_ptr<LevelLoader>& loader)
-    : loader(loader)
+LevelLoaderRegister::LevelLoaderRegister(std::shared_ptr<LevelLoader> loader)
+    : loader(std::move(loader))
 {
     std::unique_lock lock(loaders_mutex);
     loaders.emplace(loader);
@@ -97,7 +97,7 @@ static LevelData& get_level_data(const std::shared_ptr<LevelLoaderToken>& token)
     return levels[token];
 }
 
-std::shared_ptr<Level> get_level(const std::shared_ptr<LevelLoaderToken>& token)
+std::shared_ptr<Level> get_level(std::shared_ptr<LevelLoaderToken> token)
 {
     // Get the level storage
     auto& level_data = get_level_data(token);
