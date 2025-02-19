@@ -52,7 +52,7 @@ public:
     virtual void open() = 0;
 
     // Unload all loaded data.
-    virtual void purge() = 0;
+    //virtual void purge() = 0;
 
     // Save changes to the level.
     virtual void save() = 0;

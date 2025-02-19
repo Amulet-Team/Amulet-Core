@@ -54,14 +54,14 @@ py::module init_level_abc_level(py::module m_parent)
             "\n"
             ":param task_manager: The cancel manager through which cancel can be requested.\n"
             ":raises amulet.utils.task_manager.TaskCancelled: If the task is cancelled."));
-    Level.def(
-        "purge",
-        &Amulet::Level::purge,
-        py::doc(
-            "Unload all loaded data.\n"
-            "This is a nuclear function and must be used with :meth:`lock_unique`\n"
-            "\n"
-            "This is functionally the same as closing and reopening the level."));
+    //Level.def(
+    //    "purge",
+    //    &Amulet::Level::purge,
+    //    py::doc(
+    //        "Unload all loaded data.\n"
+    //        "This is a nuclear function and must be used with :meth:`lock_unique`\n"
+    //        "\n"
+    //        "This is functionally the same as closing and reopening the level."));
     Level.def(
         "save",
         &Amulet::Level::save,
