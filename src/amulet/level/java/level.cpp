@@ -7,6 +7,7 @@ namespace Amulet {
 JavaLevel::JavaLevel(std::unique_ptr<JavaRawLevel> raw_level)
     : _raw_level(std::move(raw_level))
 {
+
 }
 
 std::unique_ptr<JavaLevel> JavaLevel::load(const std::filesystem::path& path)
@@ -54,10 +55,10 @@ void JavaLevel::open()
     _raw_level->open();
 }
 
-void JavaLevel::purge()
-{
-    throw std::runtime_error("NotImplementedError");
-}
+//void JavaLevel::purge()
+//{
+//    throw std::runtime_error("NotImplementedError");
+//}
 
 void JavaLevel::save()
 {
@@ -88,7 +89,7 @@ std::shared_ptr<Dimension> JavaLevel::get_dimension(const std::string&)
 
 void JavaLevel::compact()
 {
-    throw std::runtime_error("NotImplementedError");
+    _raw_level->compact();
 }
 
 const std::filesystem::path& JavaLevel::get_path()
@@ -98,7 +99,12 @@ const std::filesystem::path& JavaLevel::get_path()
 
 void JavaLevel::reload_metadata()
 {
-    throw std::runtime_error("NotImplementedError");
+    _raw_level->reload_metadata();
+}
+
+void JavaLevel::reload()
+{
+    _raw_level->reload();
 }
 
 } // namespace Amulet

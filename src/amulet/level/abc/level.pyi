@@ -3,15 +3,25 @@ from __future__ import annotations
 import datetime
 
 import amulet.level.abc.dimension
+import amulet.utils.lock
+import amulet.utils.signal
 import amulet.version
 
 __all__ = ["CompactibleLevel", "DiskLevel", "Level", "LevelMetadata", "ReloadableLevel"]
 
 class CompactibleLevel:
-    def compact(self) -> None: ...
+    def compact(self) -> None:
+        """
+        Compact the level data to reduce file size.
+        External unique lock required.
+        """
 
 class DiskLevel:
-    def path(self) -> str: ...
+    def path(self) -> str:
+        """
+        The path to the level on disk.
+        External shared read lock required.
+        """
 
 class Level(LevelMetadata):
     def close(self) -> None:
@@ -20,35 +30,49 @@ class Level(LevelMetadata):
 
         If the level is not open, this does nothing.
 
-        :param task_manager: The cancel manager through which cancel can be requested.
         :raises amulet.utils.task_manager.TaskCancelled: If the task is cancelled.
         """
 
-    def dimension_ids(self) -> list[str]: ...
-    def get_dimension(
-        self, dimension_id: str
-    ) -> amulet.level.abc.dimension.Dimension: ...
+    def dimension_ids(self) -> list[str]:
+        """
+        The identifiers for all dimensions in the level.
+        External shared read lock required.
+        """
+
+    def get_dimension(self, dimension_id: str) -> amulet.level.abc.dimension.Dimension:
+        """
+        Get a dimension.
+        External shared read lock required.
+        """
+
     def open(self) -> None:
         """
         Open the level.
 
         If the level is already open, this does nothing.
+        External unique lock required.
 
-        :param task_manager: The cancel manager through which cancel can be requested.
         :raises amulet.utils.task_manager.TaskCancelled: If the task is cancelled.
-        """
-
-    def purge(self) -> None:
-        """
-        Unload all loaded data.
-        This is a nuclear function and must be used with :meth:`lock_unique`
-
-        This is functionally the same as closing and reopening the level.
         """
 
     def save(self) -> None:
         """
-        Save all changes to the level
+        Save all changes to the level.
+        External unique lock required.
+        """
+
+    @property
+    def closed(self) -> amulet.utils.signal.Signal[()]:
+        """
+        Signal emitted when the level is closed.
+        Thread safe.
+        """
+
+    @property
+    def opened(self) -> amulet.utils.signal.Signal[()]:
+        """
+        Signal emitted when the level is opened.
+        Thread safe.
         """
 
 class LevelMetadata:
@@ -56,32 +80,69 @@ class LevelMetadata:
         """
         Has the level been opened.
 
-        :param task_manager: The cancel manager through which cancel can be requested.
         :return: True if the level is open otherwise False.
-        :raises amulet.utils.task_manager.TaskCancelled: If the task is cancelled.
         """
 
     @property
     def level_name(self) -> str:
         """
-        The human-readable name of the level
+        The name of the level
+        External shared read lock required.
         """
 
     @property
-    def max_game_version(self) -> amulet.version.VersionNumber: ...
+    def lock(self) -> amulet.utils.lock.OrderedLock:
+        """
+        The external mutex for the level.
+        Thread safe.
+        """
+
+    @property
+    def max_game_version(self) -> amulet.version.VersionNumber:
+        """
+        The maximum game version the level has been opened with.
+        External shared read lock required.
+        """
+
     @property
     def modified_time(self) -> datetime.datetime:
         """
         The time when the level was last modified.
+        External shared read lock required.
         """
 
     @property
-    def platform(self) -> str: ...
+    def platform(self) -> str:
+        """
+        The platform string for the level.
+        External shared read lock required.
+        """
+
     @property
     def sub_chunk_size(self) -> int:
         """
-        The dimensions of a sub-chunk.
+        The size of the sub-chunk. Must be a cube.
+        External shared read lock required.
         """
 
 class ReloadableLevel:
-    def reload_metadata(self) -> None: ...
+    def reload(self) -> None:
+        """
+        Reload the level.
+        This is like closing and opening the level but does not release locks.
+        This can only be done when the level is open.External unique mutex required.
+        """
+
+    def reload_metadata(self) -> None:
+        """
+        Reload the level metadata.
+        This can only be done when the level is not open.
+        External unique mutex required.
+        """
+
+    @property
+    def reloaded(self) -> amulet.utils.signal.Signal[()]:
+        """
+        Signal emitted when the level is reloaded.
+        Thread safe.
+        """
