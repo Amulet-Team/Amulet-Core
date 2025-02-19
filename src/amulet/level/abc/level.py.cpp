@@ -1,3 +1,4 @@
+#include <pybind11/chrono.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -23,19 +24,19 @@ py::module init_level_abc_level(py::module m_parent)
             ":param task_manager: The cancel manager through which cancel can be requested.\n"
             ":return: True if the level is open otherwise False.\n"
             ":raises amulet.utils.task_manager.TaskCancelled: If the task is cancelled."));
-    LevelMetadata.def_property_readonly("platform", &Amulet::LevelMetadata::platform);
-    LevelMetadata.def_property_readonly("max_game_version", &Amulet::LevelMetadata::max_game_version, py::return_value_policy::automatic);
+    LevelMetadata.def_property_readonly("platform", &Amulet::LevelMetadata::get_platform);
+    LevelMetadata.def_property_readonly("max_game_version", &Amulet::LevelMetadata::get_max_game_version);
     LevelMetadata.def_property_readonly(
         "level_name",
-        &Amulet::LevelMetadata::level_name,
+        &Amulet::LevelMetadata::get_level_name,
         py::doc("The human-readable name of the level"));
     LevelMetadata.def_property_readonly(
         "modified_time",
-        &Amulet::LevelMetadata::modified_time,
-        py::doc("The unix float timestamp of when the level was last modified."));
+        &Amulet::LevelMetadata::get_modified_time,
+        py::doc("The time when the level was last modified."));
     LevelMetadata.def_property_readonly(
         "sub_chunk_size",
-        &Amulet::LevelMetadata::sub_chunk_size,
+        &Amulet::LevelMetadata::get_sub_chunk_size,
         py::doc("The dimensions of a sub-chunk."));
 
     py::class_<
@@ -78,7 +79,7 @@ py::module init_level_abc_level(py::module m_parent)
             ":raises amulet.utils.task_manager.TaskCancelled: If the task is cancelled."));
     Level.def(
         "dimension_ids",
-        &Amulet::Level::dimension_ids);
+        &Amulet::Level::get_dimension_ids);
     Level.def(
         "get_dimension",
         &Amulet::Level::get_dimension,
@@ -88,10 +89,10 @@ py::module init_level_abc_level(py::module m_parent)
     CompactibleLevel.def("compact", &Amulet::CompactibleLevel::compact);
 
     py::class_<Amulet::DiskLevel, std::shared_ptr<Amulet::DiskLevel>> DiskLevel(m, "DiskLevel");
-    DiskLevel.def("path", [](Amulet::DiskLevel& self) { return self.path().string(); });
+    DiskLevel.def("path", [](Amulet::DiskLevel& self) { return self.get_path().string(); });
 
     py::class_<Amulet::ReloadableLevel, std::shared_ptr<Amulet::ReloadableLevel>> ReloadableLevel(m, "ReloadableLevel");
-    ReloadableLevel.def("reload", &Amulet::ReloadableLevel::reload);
+    ReloadableLevel.def("reload_metadata", &Amulet::ReloadableLevel::reload_metadata);
 
     return m;
 }

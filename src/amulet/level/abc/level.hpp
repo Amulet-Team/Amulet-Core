@@ -36,7 +36,7 @@ public:
     // The name of the level.
     virtual const std::string get_level_name() = 0;
 
-    // The time the level was modified (Unix time in seconds) or 0 if unknown.
+    // The time when the level was last modified.
     virtual std::chrono::system_clock::time_point get_modified_time() = 0;
 
     // The size of the sub-chunk. Must be a cube.

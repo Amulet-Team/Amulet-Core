@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import datetime
+
 import amulet.level.abc.dimension
 import amulet.version
 
@@ -68,9 +70,9 @@ class LevelMetadata:
     @property
     def max_game_version(self) -> amulet.version.VersionNumber: ...
     @property
-    def modified_time(self) -> float:
+    def modified_time(self) -> datetime.datetime:
         """
-        The unix float timestamp of when the level was last modified.
+        The time when the level was last modified.
         """
 
     @property
@@ -82,4 +84,4 @@ class LevelMetadata:
         """
 
 class ReloadableLevel:
-    def reload(self) -> None: ...
+    def reload_metadata(self) -> None: ...
