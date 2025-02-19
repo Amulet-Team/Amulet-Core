@@ -101,7 +101,9 @@ private:
 public:
     JavaRawLevel() = delete;
     JavaRawLevel(const JavaRawLevel&) = delete;
-    JavaRawLevel(JavaRawLevel&&) = default;
+    JavaRawLevel& operator=(const JavaRawLevel&) = delete;
+    JavaRawLevel(JavaRawLevel&&) = delete;
+    JavaRawLevel& operator=(JavaRawLevel&&) = delete;
     AMULET_CORE_EXPORT ~JavaRawLevel();
 
     // Load an existing Java level from the given directory.

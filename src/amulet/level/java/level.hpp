@@ -20,6 +20,12 @@ private:
     JavaLevel(std::unique_ptr<JavaRawLevel>);
 
 public:
+    JavaLevel() = delete;
+    JavaLevel(const JavaLevel&) = delete;
+    JavaLevel& operator=(const JavaLevel&) = delete;
+    JavaLevel(JavaLevel&&) = delete;
+    JavaLevel& operator=(JavaLevel&&) = delete;
+
     // Load an existing Java level from the given directory.
     // Thread safe.
     AMULET_CORE_EXPORT static std::unique_ptr<JavaLevel> load(const std::filesystem::path&);
