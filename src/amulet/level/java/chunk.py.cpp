@@ -41,7 +41,7 @@ void init_java_chunk(py::module m_parent)
 
     JavaChunkNA.def(
         py::init<
-            std::shared_ptr<Amulet::BlockStack>,
+            const Amulet::BlockStack&,
             const Amulet::Biome&>(),
         py::arg("default_block"),
         py::arg("default_biome"));
@@ -66,7 +66,7 @@ void init_java_chunk(py::module m_parent)
     JavaChunk0.def(
         py::init<
             std::int64_t,
-            std::shared_ptr<Amulet::BlockStack>,
+            const Amulet::BlockStack&,
             const Amulet::Biome&>(),
         py::arg("data_version"),
         py::arg("default_block"),
@@ -91,7 +91,7 @@ void init_java_chunk(py::module m_parent)
     JavaChunk1444.def(
         py::init<
             std::int64_t,
-            std::shared_ptr<Amulet::BlockStack>,
+            const Amulet::BlockStack&,
             const Amulet::Biome&>(),
         py::arg("data_version"),
         py::arg("default_block"),
@@ -116,7 +116,7 @@ void init_java_chunk(py::module m_parent)
     JavaChunk1466.def(
         py::init<
             std::int64_t,
-            std::shared_ptr<Amulet::BlockStack>,
+            const Amulet::BlockStack&,
             const Amulet::Biome&>(),
         py::arg("data_version"),
         py::arg("default_block"),
@@ -141,7 +141,7 @@ void init_java_chunk(py::module m_parent)
     JavaChunk2203.def(
         py::init<
             std::int64_t,
-            std::shared_ptr<Amulet::BlockStack>,
+            const Amulet::BlockStack&,
             const Amulet::Biome&>(),
         py::arg("data_version"),
         py::arg("default_block"),

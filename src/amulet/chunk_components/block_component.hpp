@@ -23,7 +23,7 @@ public:
     AMULET_CORE_EXPORT BlockComponentData(
         const VersionRange& version_range,
         const SectionShape& array_shape,
-        std::shared_ptr<BlockStack> default_block);
+        const BlockStack& default_block);
     AMULET_CORE_EXPORT BlockComponentData(
         std::shared_ptr<BlockPalette> palette,
         std::shared_ptr<SectionArrayMap> sections);
@@ -44,7 +44,7 @@ protected:
     AMULET_CORE_EXPORT void init(
         const VersionRange& version_range,
         const SectionShape& array_shape,
-        std::shared_ptr<BlockStack> default_block);
+        const BlockStack& default_block);
 
     // Serialise the component data
     AMULET_CORE_EXPORT std::optional<std::string> serialise() const;

@@ -147,7 +147,7 @@ std::unique_ptr<JavaChunk> _decode_java_chunk(
     std::int64_t cz,
     const VersionNumber& version,
     std::int64_t data_version,
-    std::shared_ptr<BlockStack> default_block,
+    const BlockStack& default_block,
     const Biome& default_biome,
     std::function<const Block&()> get_water)
 {
@@ -319,9 +319,7 @@ std::unique_ptr<JavaChunk> _decode_java_chunk(
                         block_base_name,
                         block_properties));
 
-                lut.push_back(
-                    block_palette->block_stack_to_index(
-                        std::make_shared<BlockStack>(blocks)));
+                lut.push_back(block_palette->block_stack_to_index(blocks));
             }
 
             block_sections->set_section(
@@ -371,7 +369,7 @@ std::unique_ptr<JavaChunk> _decode_java_chunk(
 }
 
 // Get the default block for this dimension and version via the python API.
-static std::shared_ptr<BlockStack> _get_default_block(
+static BlockStack _get_default_block(
     JavaRawDimension& dimension,
     const VersionRange& version_range)
 {
@@ -394,7 +392,7 @@ static std::shared_ptr<BlockStack> _get_default_block(
                 "minecraft",
                 "air"));
     }
-    return std::make_shared<BlockStack>(blocks);
+    return blocks;
 }
 
 static Biome _get_default_biome(

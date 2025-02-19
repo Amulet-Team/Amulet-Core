@@ -24,7 +24,7 @@ std::string JavaChunk1466::get_chunk_id() const { return ChunkID; }
 std::string JavaChunk2203::get_chunk_id() const { return ChunkID; }
 
 JavaChunkNA::JavaChunkNA(
-    std::shared_ptr<BlockStack> default_block,
+    const BlockStack& default_block,
     const Biome& default_biome)
     : ChunkComponentHelper()
 {
@@ -43,7 +43,7 @@ JavaChunkNA::JavaChunkNA(
 
 JavaChunk0::JavaChunk0(
     std::int64_t data_version,
-    std::shared_ptr<BlockStack> default_block,
+    const BlockStack& default_block,
     const Biome& default_biome)
     : ChunkComponentHelper()
 {
@@ -65,7 +65,7 @@ JavaChunk0::JavaChunk0(
 
 JavaChunk1444::JavaChunk1444(
     std::int64_t data_version,
-    std::shared_ptr<BlockStack> default_block,
+    const BlockStack& default_block,
     const Biome& default_biome)
     : ChunkComponentHelper()
 {
@@ -87,7 +87,7 @@ JavaChunk1444::JavaChunk1444(
 
 JavaChunk1466::JavaChunk1466(
     std::int64_t data_version,
-    std::shared_ptr<BlockStack> default_block,
+    const BlockStack& default_block,
     const Biome& default_biome)
     : ChunkComponentHelper()
 {
@@ -109,7 +109,7 @@ JavaChunk1466::JavaChunk1466(
 
 JavaChunk2203::JavaChunk2203(
     std::int64_t data_version,
-    std::shared_ptr<BlockStack> default_block,
+    const BlockStack& default_block,
     const Biome& default_biome)
     : ChunkComponentHelper()
 {

@@ -9,7 +9,7 @@ void BlockPalette::serialise(BinaryWriter& writer) const
     const auto& blocks = get_blocks();
     writer.writeNumeric<std::uint64_t>(blocks.size());
     for (const auto& block : blocks) {
-        block->serialise(writer);
+        block.serialise(writer);
     }
 }
 BlockPalette BlockPalette::deserialise(BinaryReader& reader)
@@ -21,7 +21,7 @@ BlockPalette BlockPalette::deserialise(BinaryReader& reader)
         auto count = reader.readNumeric<std::uint64_t>();
         BlockPalette palette(version_range);
         for (auto i = 0; i < count; i++) {
-            if (palette.size() != palette.block_stack_to_index(Amulet::deserialise_shared<BlockStack>(reader))) {
+            if (palette.size() != palette.block_stack_to_index(BlockStack::deserialise(reader))) {
                 throw std::runtime_error("Error deserialising BlockPalette");
             }
         }

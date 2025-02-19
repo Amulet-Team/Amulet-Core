@@ -100,6 +100,7 @@ public:
     const std::vector<Block>& get_blocks() const { return _blocks; }
 
     template <typename... Args>
+        requires std::is_constructible_v<std::vector<Block>, Args...>
     BlockStack(Args&&... args)
         : _blocks(std::forward<Args>(args)...)
     {
@@ -111,6 +112,9 @@ public:
     BlockStack(std::initializer_list<Block> blocks)
         : _blocks(blocks)
     {
+        if (_blocks.empty()) {
+            throw std::invalid_argument("A BlockStack must contain at least one block");
+        }
     }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
