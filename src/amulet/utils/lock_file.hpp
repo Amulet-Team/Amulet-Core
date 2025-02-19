@@ -151,7 +151,7 @@ public:
         if (file_descriptor == -1) {
             throw std::runtime_error("Could not open file. Code: " + std::to_string(errno) + ", Path: " + path.string());
         }
-        if (flock(file_descriptor, LOCK_EX) == -1) {
+        if (flock(file_descriptor, LOCK_EX | LOCK_NB) == -1) {
             int error_code = errno;
             close(file_descriptor);
             file_descriptor = -1;
