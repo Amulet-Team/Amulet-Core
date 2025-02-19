@@ -45,8 +45,8 @@ void create_signal_binding()
 
 // Define a signal getter on a class.
 // This automatically creates the binding class.
-template <typename PyCls, typename CppCls, typename... Args>
-void def_signal(PyCls& cls, const char* name, const Signal<Args...> CppCls::*attr)
+template <typename PyCls, typename CppCls, typename... Args, typename... Extra>
+void def_signal(PyCls& cls, const char* name, const Signal<Args...> CppCls::*attr, const Extra&... extra)
 {
     create_signal_binding<Signal<Args...>>();
     cls.def_property_readonly(
@@ -55,7 +55,8 @@ void def_signal(PyCls& cls, const char* name, const Signal<Args...> CppCls::*att
             [attr](const typename PyCls::type& self) -> PySignal<Args...> {
                 return pybind11::cast(self.*attr, py::return_value_policy::reference);
             },
-            py::keep_alive<0, 1>()));
+            py::keep_alive<0, 1>()),
+        extra...);
 }
 
 };
