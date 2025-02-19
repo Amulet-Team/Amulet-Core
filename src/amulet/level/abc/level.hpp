@@ -1,10 +1,12 @@
 #pragma once
 
+#include <chrono>
 #include <memory>
 #include <shared_mutex>
 #include <string>
 #include <vector>
 
+#include <amulet/utils/mutex.hpp>
 #include <amulet/version.hpp>
 
 #include "dimension.hpp"
@@ -13,8 +15,8 @@ namespace Amulet {
 
 // Functions that can be accessed while the level is closed.
 class LevelMetadata {
-private:
-    std::shared_mutex _mutex;
+protected:
+    OrderedMutex _mutex;
 
 public:
     virtual ~LevelMetadata() = default;
@@ -23,24 +25,24 @@ public:
     virtual bool is_open() = 0;
 
     // The platform string for the level.
-    virtual const std::string& platform() = 0;
+    virtual const std::string get_platform() = 0;
 
     // The maximum game version the level has been opened with.
-    virtual const VersionNumber& max_game_version() = 0;
+    virtual const VersionNumber get_max_game_version() = 0;
 
     // The thumbnail for the level.
     // virtual void thumbnail() = 0;
 
     // The name of the level.
-    virtual const std::string& level_name() = 0;
+    virtual const std::string get_level_name() = 0;
 
     // The time the level was modified (Unix time in seconds) or 0 if unknown.
-    virtual double modified_time() = 0;
+    virtual std::chrono::system_clock::time_point get_modified_time() = 0;
 
     // The size of the sub-chunk. Must be a cube.
-    virtual size_t sub_chunk_size() = 0;
+    virtual size_t get_sub_chunk_size() = 0;
 
-    std::shared_mutex& mutex() { return _mutex; }
+    OrderedMutex& get_mutex() { return _mutex; }
 };
 
 class Level : public LevelMetadata {
@@ -66,7 +68,7 @@ public:
     // virtual void set_history_enabled(bool) = 0;
 
     // The identifiers for all dimensions in the level
-    virtual std::vector<std::string> dimension_ids() = 0;
+    virtual std::vector<std::string> get_dimension_ids() = 0;
 
     // Get a dimension.
     virtual std::shared_ptr<Dimension> get_dimension(const std::string&) = 0;
@@ -85,7 +87,7 @@ public:
     virtual ~DiskLevel() = default;
 
     // The path to the level on disk.
-    virtual const std::filesystem::path& path() = 0;
+    virtual const std::filesystem::path& get_path() = 0;
 };
 
 class ReloadableLevel {
@@ -94,7 +96,7 @@ public:
 
     // Reload the metadata in the existing instance.
     // This can only be done when the level is not open.
-    virtual void reload() = 0;
+    virtual void reload_metadata() = 0;
 };
 
 } // namespace Amulet
