@@ -106,10 +106,10 @@ const size_t& IndexArray3D::get_size() const { return _size; }
 std::uint32_t* IndexArray3D::get_buffer() const { return _buffer; }
 
 static inline void validate_array_shape(
-    const std::shared_ptr<IndexArray3D>& default_array,
+    const IndexArray3D& default_array,
     const SectionShape& array_shape)
 {
-    if (default_array->get_shape() != array_shape) {
+    if (default_array.get_shape() != array_shape) {
         throw std::invalid_argument("Array shape does not match required shape.");
     }
 }
@@ -118,9 +118,14 @@ static inline void validate_array_shape(
     const std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>>& default_array,
     const SectionShape& array_shape)
 {
-    if (std::holds_alternative<std::shared_ptr<IndexArray3D>>(default_array)) {
-        validate_array_shape(std::get<std::shared_ptr<IndexArray3D>>(default_array), array_shape);
-    }
+    std::visit(
+        [&](auto&& arr) {
+            using T = std::decay_t<decltype(arr)>;
+            if constexpr (std::is_same_v<T, std::shared_ptr<IndexArray3D>>) {
+                validate_array_shape(*arr, array_shape);
+            }
+        },
+        default_array);
 }
 
 // SectionArrayMap
