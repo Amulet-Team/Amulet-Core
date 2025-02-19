@@ -11,12 +11,12 @@ JavaLevel::JavaLevel(std::unique_ptr<JavaRawLevel> raw_level)
 
 std::unique_ptr<JavaLevel> JavaLevel::load(const std::filesystem::path& path)
 {
-    return std::make_unique<JavaLevel>(JavaRawLevel::load(path));
+    return std::unique_ptr<JavaLevel>(new JavaLevel(JavaRawLevel::load(path)));
 }
 
 std::unique_ptr<JavaLevel> JavaLevel::create(const JavaCreateArgsV1& args)
 {
-    return std::make_unique<JavaLevel>(JavaRawLevel::create(args));
+    return std::unique_ptr<JavaLevel>(new JavaLevel(JavaRawLevel::create(args)));
 }
 
 bool JavaLevel::is_open()
