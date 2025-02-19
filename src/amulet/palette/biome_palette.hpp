@@ -1,7 +1,6 @@
 #pragma once
 
 #include <map>
-#include <memory>
 #include <stdexcept>
 
 #include <amulet/biome.hpp>
