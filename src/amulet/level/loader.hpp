@@ -52,7 +52,7 @@ namespace Amulet {
 
 class LevelLoaderRegister {
 private:
-    std::shared_ptr<LevelLoader> loader;
+    std::shared_ptr<LevelLoader> _loader;
 
 public:
     AMULET_CORE_EXPORT LevelLoaderRegister(std::shared_ptr<LevelLoader>);

@@ -42,19 +42,27 @@ LevelLoader::LevelLoader(
 }
 
 // Level loader storage
-static std::set<std::shared_ptr<LevelLoader>> loaders;
-static std::shared_mutex loaders_mutex;
+static std::set<std::shared_ptr<LevelLoader>>& get_loaders()
+{
+    static std::set<std::shared_ptr<LevelLoader>> loaders;
+    return loaders;
+}
+static std::shared_mutex& get_loaders_mutex()
+{
+    static std::shared_mutex loaders_mutex;
+    return loaders_mutex;
+}
 
 LevelLoaderRegister::LevelLoaderRegister(std::shared_ptr<LevelLoader> loader)
-    : loader(std::move(loader))
+    : _loader(std::move(loader))
 {
-    std::unique_lock lock(loaders_mutex);
-    loaders.emplace(loader);
+    std::unique_lock lock(get_loaders_mutex());
+    get_loaders().emplace(_loader);
 }
 LevelLoaderRegister::~LevelLoaderRegister()
 {
-    std::unique_lock lock(loaders_mutex);
-    loaders.erase(loader);
+    std::unique_lock lock(get_loaders_mutex());
+    get_loaders().erase(_loader);
 }
 
 // Hash based on pointed value
@@ -109,8 +117,8 @@ std::shared_ptr<Level> get_level(std::shared_ptr<LevelLoaderToken> token)
         return level;
     }
     // If it doesn't exist then load it.
-    std::shared_lock lock(loaders_mutex);
-    for (const auto& loader : loaders) {
+    std::shared_lock lock(get_loaders_mutex());
+    for (const auto& loader : get_loaders()) {
         try {
             level = loader->loader(*token);
             level_data.level = level;
