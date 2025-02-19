@@ -22,6 +22,7 @@ public:
     const std::vector<std::int64_t>& get_vector() const { return vec; }
 
     template <typename... Args>
+        requires std::is_constructible_v<std::vector<std::int64_t>, Args...>
     VersionNumber(Args&&... args)
         : vec(std::forward<Args>(args)...)
     {

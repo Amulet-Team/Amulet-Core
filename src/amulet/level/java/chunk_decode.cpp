@@ -147,8 +147,8 @@ std::unique_ptr<JavaChunk> _decode_java_chunk(
     std::int64_t cz,
     const VersionNumber& version,
     std::int64_t data_version,
-    std::shared_ptr<BlockStack> default_block,
-    std::shared_ptr<Biome> default_biome,
+    const BlockStack& default_block,
+    const Biome& default_biome,
     std::function<const Block&()> get_water)
 {
     // Validate coordinates
@@ -319,9 +319,7 @@ std::unique_ptr<JavaChunk> _decode_java_chunk(
                         block_base_name,
                         block_properties));
 
-                lut.push_back(
-                    block_palette->block_stack_to_index(
-                        std::make_shared<BlockStack>(blocks)));
+                lut.push_back(block_palette->block_stack_to_index(blocks));
             }
 
             block_sections->set_section(
@@ -371,7 +369,7 @@ std::unique_ptr<JavaChunk> _decode_java_chunk(
 }
 
 // Get the default block for this dimension and version via the python API.
-static std::shared_ptr<BlockStack> _get_default_block(
+static BlockStack _get_default_block(
     JavaRawDimension& dimension,
     const VersionRange& version_range)
 {
@@ -394,18 +392,18 @@ static std::shared_ptr<BlockStack> _get_default_block(
                 "minecraft",
                 "air"));
     }
-    return std::make_shared<BlockStack>(blocks);
+    return blocks;
 }
 
-static std::shared_ptr<Biome> _get_default_biome(
+static Biome _get_default_biome(
     JavaRawDimension& dimension,
     const VersionRange& version_range)
 {
     auto& biome = dimension.get_default_biome();
     if (version_range.contains(biome.get_platform(), biome.get_version())) {
-        return std::make_shared<Biome>(biome);
+        return biome;
     } else {
-        return py::module::import("amulet.game").attr("get_game_version")(py::cast(biome.get_platform()), py::cast(biome.get_version(), py::return_value_policy::reference)).attr("biome").attr("translate")("java", py::cast(version_range.get_max_version()), py::cast(biome)).cast<std::shared_ptr<Biome>>();
+        return py::module::import("amulet.game").attr("get_game_version")(py::cast(biome.get_platform()), py::cast(biome.get_version(), py::return_value_policy::reference)).attr("biome").attr("translate")("java", py::cast(version_range.get_max_version()), py::cast(biome)).cast<Biome>();
     }
 }
 

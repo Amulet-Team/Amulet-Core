@@ -41,8 +41,8 @@ public:
 
     using ChunkComponentHelper::ChunkComponentHelper;
     AMULET_CORE_EXPORT JavaChunkNA(
-        std::shared_ptr<BlockStack> default_block,
-        std::shared_ptr<Biome> default_biome);
+        const BlockStack& default_block,
+        const Biome& default_biome);
 };
 
 class JavaChunk0 : public ChunkComponentHelper<
@@ -66,8 +66,8 @@ public:
     using ChunkComponentHelper::ChunkComponentHelper;
     AMULET_CORE_EXPORT JavaChunk0(
         std::int64_t data_version,
-        std::shared_ptr<BlockStack> default_block,
-        std::shared_ptr<Biome> default_biome);
+        const BlockStack& default_block,
+        const Biome& default_biome);
 };
 
 class JavaChunk1444 : public ChunkComponentHelper<
@@ -90,8 +90,8 @@ public:
     using ChunkComponentHelper::ChunkComponentHelper;
     AMULET_CORE_EXPORT JavaChunk1444(
         std::int64_t data_version,
-        std::shared_ptr<BlockStack> default_block,
-        std::shared_ptr<Biome> default_biome);
+        const BlockStack& default_block,
+        const Biome& default_biome);
 };
 
 class JavaChunk1466 : public ChunkComponentHelper<
@@ -114,8 +114,8 @@ public:
     using ChunkComponentHelper::ChunkComponentHelper;
     AMULET_CORE_EXPORT JavaChunk1466(
         std::int64_t data_version,
-        std::shared_ptr<BlockStack> default_block,
-        std::shared_ptr<Biome> default_biome);
+        const BlockStack& default_block,
+        const Biome& default_biome);
 };
 
 class JavaChunk2203 : public ChunkComponentHelper<
@@ -138,7 +138,7 @@ public:
     using ChunkComponentHelper::ChunkComponentHelper;
     AMULET_CORE_EXPORT JavaChunk2203(
         std::int64_t data_version,
-        std::shared_ptr<BlockStack> default_block,
-        std::shared_ptr<Biome> default_biome);
+        const BlockStack& default_block,
+        const Biome& default_biome);
 };
 }

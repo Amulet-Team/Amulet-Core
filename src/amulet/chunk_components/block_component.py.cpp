@@ -20,7 +20,7 @@ void init_block_component(py::module block_component_module)
         py::init<
             const Amulet::VersionRange&,
             const Amulet::SectionShape&,
-            std::shared_ptr<Amulet::BlockStack>>(),
+            const Amulet::BlockStack&>(),
         py::arg("version_range"),
         py::arg("array_shape"),
         py::arg("default_block"));

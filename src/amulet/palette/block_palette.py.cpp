@@ -46,7 +46,6 @@ void init_block_palette(py::module block_palette_module)
             return self.index_to_block_stack(index);
         });
     Amulet::collections::Sequence_getitem_slice(BlockPalette);
-    // Amulet::collections_abc::Sequence_contains(BlockPalette);
     BlockPalette.def(
         "__contains__",
         [](const Amulet::BlockPalette& self, Py_ssize_t index) {
@@ -54,9 +53,7 @@ void init_block_palette(py::module block_palette_module)
         });
     BlockPalette.def(
         "__contains__",
-        [](const Amulet::BlockPalette& self, std::shared_ptr<Amulet::BlockStack> item) {
-            return self.contains_block(item);
-        });
+        &Amulet::BlockPalette::contains_block);
     Amulet::collections::Sequence_iter<Amulet::BlockStack>(BlockPalette);
     Amulet::collections::Sequence_reversed<Amulet::BlockStack>(BlockPalette);
     Amulet::collections::Sequence_index(BlockPalette);
@@ -78,9 +75,7 @@ void init_block_palette(py::module block_palette_module)
 
     BlockPalette.def(
         "block_stack_to_index",
-        [](Amulet::BlockPalette& self, std::shared_ptr<Amulet::BlockStack> item) {
-            return self.block_stack_to_index(item);
-        },
+        &Amulet::BlockPalette::block_stack_to_index,
         py::doc(
             "Get the index of the block stack in the palette.\n"
             "If it is not in the palette already it will be added first.\n"

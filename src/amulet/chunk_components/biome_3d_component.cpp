@@ -7,7 +7,7 @@ namespace Amulet {
 Biome3DComponentData::Biome3DComponentData(
     const VersionRange& version_range,
     const SectionShape& array_shape,
-    std::shared_ptr<Biome> default_biome)
+    const Biome& default_biome)
     : _palette(std::make_shared<BiomePalette>(version_range))
     , _sections(std::make_shared<SectionArrayMap>(array_shape, static_cast<std::uint32_t>(0)))
 {
@@ -28,7 +28,7 @@ std::shared_ptr<SectionArrayMap> Biome3DComponentData::get_sections()
 void Biome3DComponent::init(
     const VersionRange& version_range,
     const SectionShape& array_shape,
-    std::shared_ptr<Biome> default_biome)
+    const Biome& default_biome)
 {
     _value = std::make_shared<Biome3DComponentData>(version_range, array_shape, default_biome);
 }
