@@ -7,7 +7,11 @@ namespace Amulet {
 JavaLevel::JavaLevel(std::unique_ptr<JavaRawLevel> raw_level)
     : _raw_level(std::move(raw_level))
 {
+}
 
+JavaLevel::~JavaLevel()
+{
+    close();
 }
 
 std::unique_ptr<JavaLevel> JavaLevel::load(const std::filesystem::path& path)
