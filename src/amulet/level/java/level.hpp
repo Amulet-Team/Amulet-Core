@@ -59,6 +59,11 @@ public:
     // The size of the sub-chunk. Must be a cube.
     AMULET_CORE_EXPORT size_t get_sub_chunk_size() override;
 
+    // DiskLevel
+
+    // The path to the level on disk.
+    AMULET_CORE_EXPORT const std::filesystem::path& get_path() override;
+
     // Level
 
     // Open the level for editing.
@@ -91,11 +96,6 @@ public:
 
     // Compact the level data to reduce file size.
     AMULET_CORE_EXPORT void compact() override;
-
-    // DiskLevel
-
-    // The path to the level on disk.
-    AMULET_CORE_EXPORT const std::filesystem::path& get_path() override;
 
     // ReloadableLevel
 

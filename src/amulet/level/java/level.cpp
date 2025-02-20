@@ -54,6 +54,11 @@ size_t JavaLevel::get_sub_chunk_size()
     return 16;
 }
 
+const std::filesystem::path& JavaLevel::get_path()
+{
+    return _raw_level->get_path();
+}
+
 void JavaLevel::open()
 {
     _raw_level->open();
@@ -94,11 +99,6 @@ std::shared_ptr<Dimension> JavaLevel::get_dimension(const std::string&)
 void JavaLevel::compact()
 {
     _raw_level->compact();
-}
-
-const std::filesystem::path& JavaLevel::get_path()
-{
-    return _raw_level->get_path();
 }
 
 void JavaLevel::reload_metadata()
