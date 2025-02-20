@@ -51,6 +51,17 @@ class ThreadStepManager:
             self.condition.wait_for(lambda: step_min <= self.step)
 
 
+class Timer:
+    def __init__(self) -> None:
+        self.time = 0.0
+
+    def __enter__(self) -> None:
+        self.time = time.time()
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        print(time.time() - self.time)
+
+
 class Abstract:
     class LockTestCase(TestCase):
         def _ab_thread_test(
@@ -1009,3 +1020,79 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                             1.99 <= dt <= 2 + TIME_TOLERANCE,
                             f"Expected 2s. Got {dt}s",
                         )
+
+    def test_shared_speed_1(self) -> None:
+        with Timer():
+            shared_mutex = SharedLock()
+            lock_shared_mutex(shared_mutex, 1_000_000)
+
+    def test_ordered_speed_1(self) -> None:
+        with Timer():
+            ordered_mutex = OrderedLock()
+            lock_ordered_mutex(ordered_mutex, 1_000_000)
+
+    def test_shared_speed_2(self) -> None:
+        with Timer():
+            shared_mutex = SharedLock()
+            shared_mutex.acquire_shared()
+
+            def f():
+                lock_shared_mutex(shared_mutex, 1_000_000)
+
+            t = Thread(target=f)
+            t.start()
+            t.join()
+
+            shared_mutex.release_shared()
+
+    def test_ordered_speed_2(self) -> None:
+        with Timer():
+            ordered_mutex = OrderedLock()
+            ordered_mutex.acquire(
+                thread_mode=(CurrentThreadMode.ReadWrite, OtherThreadMode.ReadWrite)
+            )
+
+            def f():
+                lock_ordered_mutex(ordered_mutex, 1_000_000)
+
+            t = Thread(target=f)
+            t.start()
+            t.join()
+
+            ordered_mutex.release()
+
+    def test_shared_speed_3(self) -> None:
+        with Timer():
+            shared_mutex = SharedLock()
+            shared_mutex.acquire_shared()
+
+            def f():
+                lock_shared_mutex(shared_mutex, 1_000_000)
+
+            t1 = Thread(target=f)
+            t2 = Thread(target=f)
+            t1.start()
+            t2.start()
+            t1.join()
+            t2.join()
+
+            shared_mutex.release_shared()
+
+    def test_ordered_speed_3(self) -> None:
+        with Timer():
+            ordered_mutex = OrderedLock()
+            ordered_mutex.acquire(
+                thread_mode=(CurrentThreadMode.ReadWrite, OtherThreadMode.ReadWrite)
+            )
+
+            def f():
+                lock_ordered_mutex(ordered_mutex, 1_000_000)
+
+            t1 = Thread(target=f)
+            t2 = Thread(target=f)
+            t1.start()
+            t2.start()
+            t1.join()
+            t2.join()
+
+            ordered_mutex.release()
