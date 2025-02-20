@@ -36,6 +36,7 @@ void OrderedMutex::unlock()
     case OtherThreadMode::Null:
         blocking_read_count--;
         blocking_write_count--;
+        break;
     case OtherThreadMode::Read:
         blocking_write_count--;
         break;

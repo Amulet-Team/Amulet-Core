@@ -70,6 +70,7 @@ static bool acquire_mutex(
                 return self.try_lock<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::ReadWrite>();
             }
         }
+        break;
     case Amulet::CurrentThreadMode::ReadWrite:
         switch (thread_mode.second) {
         case Amulet::OtherThreadMode::Null:
