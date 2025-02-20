@@ -107,6 +107,11 @@ public:
     // This is like closing and opening the level but does not release locks.
     // This can only be done when the level is open.
     AMULET_CORE_EXPORT void reload() override;
+
+    // Access the raw level instance.
+    // Before calling any mutating functions, the caller must call `purge` (optionally saving before)
+    // External unique lock required.
+    AMULET_CORE_EXPORT JavaRawLevel& get_raw_level();
 };
 
 } // namespace Amulet

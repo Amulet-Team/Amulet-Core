@@ -111,4 +111,9 @@ void JavaLevel::reload()
     _raw_level->reload();
 }
 
+JavaRawLevel& JavaLevel::get_raw_level()
+{
+    return *_raw_level;
+}
+
 } // namespace Amulet
