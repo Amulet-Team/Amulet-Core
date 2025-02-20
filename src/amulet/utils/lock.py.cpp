@@ -34,12 +34,11 @@ static bool acquire_mutex(
     bool blocking,
     double timeout,
     Amulet::AbstractCancelManager& cancel_manager,
-    Amulet::CurrentThreadMode self_thread_mode,
-    Amulet::OtherThreadMode other_thread_mode)
+    const std::pair<Amulet::CurrentThreadMode, Amulet::OtherThreadMode>& thread_mode)
 {
-    switch (self_thread_mode) {
+    switch (thread_mode.first) {
     case Amulet::CurrentThreadMode::Read:
-        switch (other_thread_mode) {
+        switch (thread_mode.second) {
         case Amulet::OtherThreadMode::Null:
             if (blocking) {
                 if (0 < timeout) {
@@ -72,7 +71,7 @@ static bool acquire_mutex(
             }
         }
     case Amulet::CurrentThreadMode::ReadWrite:
-        switch (other_thread_mode) {
+        switch (thread_mode.second) {
         case Amulet::OtherThreadMode::Null:
             if (blocking) {
                 if (0 < timeout) {
@@ -169,8 +168,7 @@ void init_lock(py::module m_parent)
         py::arg("blocking") = true,
         py::arg("timeout") = -1.0,
         py::arg("cancel_manager") = Amulet::VoidCancelManager(),
-        py::arg("self_thread_mode") = Amulet::CurrentThreadMode::ReadWrite,
-        py::arg("other_thread_mode") = Amulet::OtherThreadMode::Null,
+        py::arg("thread_mode") = std::make_pair(Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Null),
         py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Acquire the lock.\n"
@@ -185,8 +183,7 @@ void init_lock(py::module m_parent)
             ":param task_manager: A custom object through which acquiring can be cancelled.\n"
             "    This effectively manually triggers timeout.\n"
             "    This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.\n"
-            ":param self_thread_mode: The permissions the current thread requires.\n"
-            ":param other_thread_mode: The permissions other threads can use in parallel.\n"
+            ":param thread_mode: The permissions for the current and other parallel threads.\n"
             ":return: True if the lock was acquired otherwise False."));
     OrderedLock.def(
         "release",
@@ -204,12 +201,11 @@ void init_lock(py::module m_parent)
             bool blocking,
             double timeout,
             Amulet::AbstractCancelManager& cancel_manager,
-            Amulet::CurrentThreadMode self_thread_mode,
-            Amulet::OtherThreadMode other_thread_mode) {
+            const std::pair<Amulet::CurrentThreadMode, Amulet::OtherThreadMode>& thread_mode) {
             return pybind11_extensions::contextlib::make_context_manager<void, std::optional<bool>>(
-                [&self, blocking, timeout, &cancel_manager, self_thread_mode, other_thread_mode]() -> void {
+                [&self, blocking, timeout, &cancel_manager, thread_mode]() -> void {
                     py::gil_scoped_release nogil;
-                    if (!acquire_mutex(self, blocking, timeout, cancel_manager, self_thread_mode, other_thread_mode)) {
+                    if (!acquire_mutex(self, blocking, timeout, cancel_manager, thread_mode)) {
                         throw Amulet::LockNotAcquired("Lock was not acquired.");
                     }
                 },
@@ -222,8 +218,7 @@ void init_lock(py::module m_parent)
         py::arg("blocking") = true,
         py::arg("timeout") = -1.0,
         py::arg("cancel_manager") = Amulet::VoidCancelManager(),
-        py::arg("self_thread_mode") = Amulet::CurrentThreadMode::ReadWrite,
-        py::arg("other_thread_mode") = Amulet::OtherThreadMode::Null,
+        py::arg("thread_mode") = std::make_pair(Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Null),
         py::keep_alive<0, 1>(),
         py::keep_alive<0, 4>(),
         py::doc(
@@ -244,8 +239,7 @@ void init_lock(py::module m_parent)
             ":param task_manager: A custom object through which acquiring can be cancelled.\n"
             "    This effectively manually triggers timeout.\n"
             "    This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.\n"
-            ":param self_thread_mode: The permissions the current thread requires.\n"
-            ":param other_thread_mode: The permissions other threads can use in parallel.\n"
+            ":param thread_mode: The permissions for the current and other parallel threads.\n"
             ":return: contextlib.AbstractContextManager[None]\n"
             ":raises: LockNotAcquired if the lock could not be acquired."));
 

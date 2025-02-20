@@ -83,8 +83,7 @@ class OrderedLock:
         blocking: bool = True,
         timeout: float = -1.0,
         cancel_manager: amulet.utils.task_manager.cancel_manager.AbstractCancelManager = ...,
-        self_thread_mode: CurrentThreadMode = ...,
-        other_thread_mode: OtherThreadMode = ...,
+        thread_mode: tuple[CurrentThreadMode, OtherThreadMode] = ...,
     ) -> contextlib.AbstractContextManager[None, bool | None]:
         """
         A context manager to acquire and release the lock.
@@ -104,8 +103,7 @@ class OrderedLock:
         :param task_manager: A custom object through which acquiring can be cancelled.
             This effectively manually triggers timeout.
             This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.
-        :param self_thread_mode: The permissions the current thread requires.
-        :param other_thread_mode: The permissions other threads can use in parallel.
+        :param thread_mode: The permissions for the current and other parallel threads.
         :return: contextlib.AbstractContextManager[None]
         :raises: LockNotAcquired if the lock could not be acquired.
         """
@@ -116,8 +114,7 @@ class OrderedLock:
         blocking: bool = True,
         timeout: float = -1.0,
         cancel_manager: amulet.utils.task_manager.cancel_manager.AbstractCancelManager = ...,
-        self_thread_mode: CurrentThreadMode = ...,
-        other_thread_mode: OtherThreadMode = ...,
+        thread_mode: tuple[CurrentThreadMode, OtherThreadMode] = ...,
     ) -> bool:
         """
         Acquire the lock.
@@ -132,8 +129,7 @@ class OrderedLock:
         :param task_manager: A custom object through which acquiring can be cancelled.
             This effectively manually triggers timeout.
             This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.
-        :param self_thread_mode: The permissions the current thread requires.
-        :param other_thread_mode: The permissions other threads can use in parallel.
+        :param thread_mode: The permissions for the current and other parallel threads.
         :return: True if the lock was acquired otherwise False.
         """
 
