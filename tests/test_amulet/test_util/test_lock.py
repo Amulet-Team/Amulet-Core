@@ -37,7 +37,7 @@ else:
 
 
 class ThreadStepManager:
-    def __init__(self):
+    def __init__(self) -> None:
         self.condition = Condition()
         self.step = 0
 
@@ -75,13 +75,13 @@ class Abstract:
             exec_order: list = []
             end_times: list[float] = []
 
-            def f1():
+            def f1() -> None:
                 step.increment()
                 step.wait(3)
                 a(step, exec_order)
                 end_times.append(time.time())
 
-            def f2():
+            def f2() -> None:
                 step.increment()
                 step.wait(4)
                 b(step, exec_order)
@@ -118,7 +118,7 @@ class LockTestCase(Abstract.LockTestCase):
     def test_parallel(self) -> None:
         lock = Lock()
 
-        def ctx(v: int):
+        def ctx(v: int) -> Callable[[ThreadStepManager, list], None]:
             def f(step: ThreadStepManager, exec_order: list):
                 with lock:
                     step.increment()
@@ -128,7 +128,7 @@ class LockTestCase(Abstract.LockTestCase):
 
             return f
 
-        def raw(blocking: bool, v: int):
+        def raw(blocking: bool, v: int) -> Callable[[ThreadStepManager, list], None]:
             def f(step: ThreadStepManager, exec_order: list):
                 if lock.acquire(blocking):
                     step.increment()
@@ -173,8 +173,8 @@ class RLockTestCase(Abstract.LockTestCase):
     def test_parallel(self) -> None:
         lock = RLock()
 
-        def ctx(v: int):
-            def f(step: ThreadStepManager, exec_order: list):
+        def ctx(v: int) -> Callable[[ThreadStepManager, list], None]:
+            def f(step: ThreadStepManager, exec_order: list) -> None:
                 with lock:
                     step.increment()
                     exec_order.append(v)
@@ -183,8 +183,8 @@ class RLockTestCase(Abstract.LockTestCase):
 
             return f
 
-        def raw(blocking: bool, v: int):
-            def f(step: ThreadStepManager, exec_order: list):
+        def raw(blocking: bool, v: int) -> Callable[[ThreadStepManager, list], None]:
+            def f(step: ThreadStepManager, exec_order: list) -> None:
                 if lock.acquire(blocking):
                     step.increment()
                     exec_order.append(v)
@@ -251,8 +251,8 @@ class SharedLockTestCase(Abstract.LockTestCase):
     def test_parallel(self) -> None:
         lock = SharedLock()
 
-        def ctx(shared: bool, v1: Any, v2: Any):
-            def f(step: ThreadStepManager, exec_order: list):
+        def ctx(shared: bool, v1: Any, v2: Any) -> Callable[[ThreadStepManager, list], None]:
+            def f(step: ThreadStepManager, exec_order: list) -> None:
                 if shared:
                     mgr = lock.shared()
                 else:
@@ -265,8 +265,8 @@ class SharedLockTestCase(Abstract.LockTestCase):
 
             return f
 
-        def raw(shared: bool, blocking: bool, v1: Any, v2: Any):
-            def f(step: ThreadStepManager, exec_order: list):
+        def raw(shared: bool, blocking: bool, v1: Any, v2: Any) -> Callable[[ThreadStepManager, list], None]:
+            def f(step: ThreadStepManager, exec_order: list) -> None:
                 if shared:
                     locked = lock.acquire_shared(blocking)
                 else:
@@ -507,7 +507,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
         with self.assertRaises(Deadlock):
             throw_deadlock()
 
-        def lock_all():
+        def lock_all() -> None:
             for blocking in (True, False):
                 for timeout in (-1.0, 1.0):
                     for thread_mode in (
@@ -548,8 +548,8 @@ class OrderedLockTestCase(Abstract.LockTestCase):
     def test_parallel(self) -> None:
         lock = OrderedLock()
 
-        def ctx(mode: LockMode, blocking: bool, v1: Any, v2: Any):
-            def f(step: ThreadStepManager, exec_order: list):
+        def ctx(mode: LockMode, blocking: bool, v1: Any, v2: Any) -> Callable[[ThreadStepManager, list], None]:
+            def f(step: ThreadStepManager, exec_order: list) -> None:
                 if mode == LockMode.Unique:
                     mgr = lock(
                         blocking,
@@ -584,8 +584,8 @@ class OrderedLockTestCase(Abstract.LockTestCase):
 
             return f
 
-        def raw(mode: LockMode, blocking: bool, v1: Any, v2: Any):
-            def f(step: ThreadStepManager, exec_order: list):
+        def raw(mode: LockMode, blocking: bool, v1: Any, v2: Any) -> Callable[[ThreadStepManager, list], None]:
+            def f(step: ThreadStepManager, exec_order: list) -> None:
                 if mode == LockMode.Unique:
                     locked = lock.acquire(
                         blocking,
@@ -702,7 +702,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
 
         sleep_time = 1
 
-        def parallel_func_1():
+        def parallel_func_1() -> None:
             step.increment()
             step.wait(6)
             with lock(
@@ -714,7 +714,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                 exec_order.append("shared")
             end_times.append(time.time())
 
-        def serial_func():
+        def serial_func() -> None:
             step.increment()
             step.wait(8)
             with lock(
@@ -727,7 +727,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                 exec_order.append("unique")
             end_times.append(time.time())
 
-        def parallel_func_2():
+        def parallel_func_2() -> None:
             step.increment()
             step.wait(9)
             with lock(
@@ -807,7 +807,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
 
                     end_times: list[float] = []
 
-                    def func_1():
+                    def func_1() -> None:
                         nonlocal result_1
                         step.increment()
                         step.wait(3)
@@ -827,7 +827,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                             result_1 = True
                         end_times.append(time.time())
 
-                    def func_2():
+                    def func_2() -> None:
                         nonlocal result_2
                         step.increment()
                         step.wait(4)
@@ -911,7 +911,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                         step = ThreadStepManager()
                         end_times: list[float] = []
 
-                        def func_1():
+                        def func_1() -> None:
                             nonlocal result_1
                             step.increment()
                             step.wait(3)
@@ -932,7 +932,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                                     result_1 = True
                             end_times.append(time.time())
 
-                        def func_2(cancel_manager: AbstractCancelManager):
+                        def func_2(cancel_manager: AbstractCancelManager) -> None:
                             nonlocal result_2
                             step.increment()
                             step.wait(3)
@@ -1036,7 +1036,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
             shared_mutex = SharedLock()
             shared_mutex.acquire_shared()
 
-            def f():
+            def f() -> None:
                 lock_shared_mutex(shared_mutex, 1_000_000)
 
             t = Thread(target=f)
@@ -1052,7 +1052,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                 thread_mode=(CurrentThreadMode.ReadWrite, OtherThreadMode.ReadWrite)
             )
 
-            def f():
+            def f() -> None:
                 lock_ordered_mutex(ordered_mutex, 1_000_000)
 
             t = Thread(target=f)
@@ -1066,7 +1066,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
             shared_mutex = SharedLock()
             shared_mutex.acquire_shared()
 
-            def f():
+            def f() -> None:
                 lock_shared_mutex(shared_mutex, 1_000_000)
 
             t1 = Thread(target=f)
@@ -1085,7 +1085,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                 thread_mode=(CurrentThreadMode.ReadWrite, OtherThreadMode.ReadWrite)
             )
 
-            def f():
+            def f() -> None:
                 lock_ordered_mutex(ordered_mutex, 1_000_000)
 
             t1 = Thread(target=f)
