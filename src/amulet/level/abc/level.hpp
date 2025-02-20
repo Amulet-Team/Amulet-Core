@@ -85,6 +85,7 @@ public:
     // External unique lock required.
     virtual void close() = 0;
 
+    // Signal<> history_changed;
     // virtual size_t undo_count() = 0;
     // virtual void undo() = 0;
     // virtual size_t redo_count() = 0;
