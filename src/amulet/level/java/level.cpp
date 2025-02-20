@@ -70,10 +70,10 @@ void JavaLevel::open()
     opened.emit_async();
 }
 
-//void JavaLevel::purge()
+// void JavaLevel::purge()
 //{
-//    throw std::runtime_error("NotImplementedError");
-//}
+//     throw std::runtime_error("NotImplementedError");
+// }
 
 void JavaLevel::save()
 {
