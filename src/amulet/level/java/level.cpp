@@ -26,7 +26,7 @@ std::unique_ptr<JavaLevel> JavaLevel::create(const JavaCreateArgsV1& args)
 
 bool JavaLevel::is_open()
 {
-    return _raw_level->is_open();
+    return bool(_open_data);
 }
 
 const std::string JavaLevel::get_platform()
@@ -61,7 +61,13 @@ const std::filesystem::path& JavaLevel::get_path()
 
 void JavaLevel::open()
 {
+    if (_open_data) {
+        return;
+    }
     _raw_level->open();
+    _open_data = std::make_unique<JavaLevelOpenData>();
+    // self._open_data.history_manager.history_changed.connect(self.history_changed)
+    opened.emit_async();
 }
 
 //void JavaLevel::purge()
@@ -76,7 +82,12 @@ void JavaLevel::save()
 
 void JavaLevel::close()
 {
+    if (!_open_data) {
+        return;
+    }
+    _open_data = nullptr;
     _raw_level->close();
+    closed.emit_async();
 }
 
 // size_t JavaLevel::undo_count();
@@ -109,6 +120,7 @@ void JavaLevel::reload_metadata()
 void JavaLevel::reload()
 {
     _raw_level->reload();
+    reloaded.emit_async();
 }
 
 JavaRawLevel& JavaLevel::get_raw_level()

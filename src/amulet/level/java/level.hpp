@@ -17,6 +17,9 @@ class JavaLevel : public Level, public CompactibleLevel, public DiskLevel, publi
 private:
     std::unique_ptr<JavaRawLevel> _raw_level;
 
+    // Data that is only valid when the level is open.
+    std::unique_ptr<JavaLevelOpenData> _open_data;
+
     JavaLevel(std::unique_ptr<JavaRawLevel>);
 
 public:
