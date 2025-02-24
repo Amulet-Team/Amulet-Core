@@ -29,9 +29,90 @@ class LockNotAcquired : public std::runtime_error {
 
 } // namespace Amulet
 
+static bool acquire_mutex(
+    Amulet::OrderedMutex& self,
+    bool blocking,
+    double timeout,
+    Amulet::AbstractCancelManager& cancel_manager,
+    const std::pair<Amulet::CurrentThreadMode, Amulet::OtherThreadMode>& thread_mode)
+{
+    switch (thread_mode.first) {
+    case Amulet::CurrentThreadMode::Read:
+        switch (thread_mode.second) {
+        case Amulet::OtherThreadMode::Null:
+            if (blocking) {
+                if (0 < timeout) {
+                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::Null>(std::chrono::duration<double>(timeout), cancel_manager);
+                } else {
+                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::Null>(std::chrono::years(1), cancel_manager);
+                }
+            } else {
+                return self.try_lock<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::Null>();
+            }
+        case Amulet::OtherThreadMode::Read:
+            if (blocking) {
+                if (0 < timeout) {
+                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::Read>(std::chrono::duration<double>(timeout), cancel_manager);
+                } else {
+                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::Read>(std::chrono::years(1), cancel_manager);
+                }
+            } else {
+                return self.try_lock<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::Read>();
+            }
+        case Amulet::OtherThreadMode::ReadWrite:
+            if (blocking) {
+                if (0 < timeout) {
+                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::ReadWrite>(std::chrono::duration<double>(timeout), cancel_manager);
+                } else {
+                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::ReadWrite>(std::chrono::years(1), cancel_manager);
+                }
+            } else {
+                return self.try_lock<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::ReadWrite>();
+            }
+        }
+        break;
+    case Amulet::CurrentThreadMode::ReadWrite:
+        switch (thread_mode.second) {
+        case Amulet::OtherThreadMode::Null:
+            if (blocking) {
+                if (0 < timeout) {
+                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Null>(std::chrono::duration<double>(timeout), cancel_manager);
+                } else {
+                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Null>(std::chrono::years(1), cancel_manager);
+                }
+            } else {
+                return self.try_lock<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Null>();
+            }
+        case Amulet::OtherThreadMode::Read:
+            if (blocking) {
+                if (0 < timeout) {
+                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Read>(std::chrono::duration<double>(timeout), cancel_manager);
+                } else {
+                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Read>(std::chrono::years(1), cancel_manager);
+                }
+            } else {
+                return self.try_lock<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Read>();
+            }
+        case Amulet::OtherThreadMode::ReadWrite:
+            if (blocking) {
+                if (0 < timeout) {
+                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::ReadWrite>(std::chrono::duration<double>(timeout), cancel_manager);
+                } else {
+                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::ReadWrite>(std::chrono::years(1), cancel_manager);
+                }
+            } else {
+                return self.try_lock<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::ReadWrite>();
+            }
+        }
+    }
+    throw std::runtime_error("This should be unreachable.");
+}
+
 void init_lock(py::module m_parent)
 {
     auto m = m_parent.def_submodule("lock");
+
+    std::string module_name = m.attr("__name__").cast<std::string>();
 
     auto Deadlock = py::register_exception<Amulet::Deadlock>(m, "Deadlock", PyExc_RuntimeError);
     Deadlock.doc() = "This exception signals that a deadlock occurred when locking a lock.\n"
@@ -40,56 +121,62 @@ void init_lock(py::module m_parent)
     auto LockNotAcquired = py::register_exception<Amulet::LockNotAcquired>(m, "LockNotAcquired", PyExc_RuntimeError);
     LockNotAcquired.doc() = "An exception raised if the lock was not acquired.";
 
+    py::enum_<Amulet::CurrentThreadMode> CurrentThreadMode(m, "CurrentThreadMode");
+    CurrentThreadMode.value(
+        "Read",
+        Amulet::CurrentThreadMode::Read,
+        "This thread can only read.");
+    CurrentThreadMode.value(
+        "ReadWrite",
+        Amulet::CurrentThreadMode::ReadWrite,
+        "This thread can read and write.");
+    CurrentThreadMode.attr("__repr__") = py::cpp_function(
+        [module_name, CurrentThreadMode](const py::object& arg) -> py::str {
+            return py::str("{}.{}").format(module_name, CurrentThreadMode.attr("__str__")(arg));
+        },
+        py::name("__repr__"),
+        py::is_method(CurrentThreadMode));
+
+    py::enum_<Amulet::OtherThreadMode> OtherThreadMode(m, "OtherThreadMode");
+    OtherThreadMode.value(
+        "Null",
+        Amulet::OtherThreadMode::Null,
+        "Other threads can't do anything.");
+    OtherThreadMode.value(
+        "Read",
+        Amulet::OtherThreadMode::Read,
+        "Other threads can only read.");
+    OtherThreadMode.value(
+        "ReadWrite",
+        Amulet::OtherThreadMode::ReadWrite,
+        "Other threads can read and write.");
+    OtherThreadMode.attr("__repr__") = py::cpp_function(
+        [module_name, OtherThreadMode](const py::object& arg) -> py::str {
+            return py::str("{}.{}").format(module_name, OtherThreadMode.attr("__str__")(arg));
+        },
+        py::name("__repr__"),
+        py::is_method(OtherThreadMode));
+
     py::class_<Amulet::OrderedMutex> OrderedLock(m, "OrderedLock",
-        "This is a custom lock implementation that can be acquired in:\n"
-        "1) Unique mode.\n"
-        "    - Only one thread can use the resource.\n"
-        "    - Blocks until no thread holds the lock\n"
-        "    - Stops all other threads acquiring the lock until released.\n"
-        "2) Shared read-only mode.\n"
-        "    - Multiple threads can read (but not write) the resource at the same time.\n"
-        "    - Can be acquired in parallel with read mode.\n"
-        "    - Blocks until no thread holds the lock in unique or write mode.\n"
-        "    - Stops other threads acquiring in unique and write mode until released.\n"
-        "3) Shared read mode.\n"
-        "    - This thread may only read but other threads may write in parallel.\n"
-        "    - Only thread-safe functions may be called in this mode.\n"
-        "    - Can be acquired in parallel with read-only mode or write mode (not at the same time)\n"
-        "    - Blocks until no thread holds the lock in unique mode.\n"
-        "    - Stops other threads acquiring in unique mode until released.\n"
-        "4) Shared read-write mode.\n"
-        "    - This thread may read and write in parallel with other reading and writing threads.\n"
-        "    - Only thread-safe functions may be called in this mode.\n"
-        "    - Can be acquired in parallel with read mode.\n"
-        "    - Blocks until no thread holds the lock in unique or read-only mode.\n"
-        "    - Stops other threads acquiring in unique and read-only mode until released.\n"
-        "The lock is ordered meaning it prioritises older acquires over newer ones.\n"
+        "This is a custom mutex implementation that prioritises acquisition order and allows parallelism where possible.\n"
+        "The acquirer can define the required permissions for this thread and permissions for other parallel threads.\n"
         "It also supports cancelling waiting through a CancelManager instance.");
+
     OrderedLock.def(py::init<>());
     OrderedLock.def(
-        "acquire_unique",
-        [](Amulet::OrderedMutex& self, bool blocking, double timeout, Amulet::AbstractCancelManager& cancel_manager) {
-            if (blocking) {
-                if (timeout > 0) {
-                    return self.try_lock_for(std::chrono::duration<double>(timeout), cancel_manager);
-                } else {
-                    return self.try_lock_for(std::chrono::years(1), cancel_manager);
-                }
-            } else {
-                return self.try_lock();
-            }
-        },
+        "acquire",
+        &acquire_mutex,
         py::arg("blocking") = true,
         py::arg("timeout") = -1.0,
         py::arg("cancel_manager") = Amulet::VoidCancelManager(),
+        py::arg("thread_mode") = std::make_pair(Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Null),
         py::call_guard<py::gil_scoped_release>(),
         py::doc(
-            "Acquire the lock in unique mode.\n"
-            "Blocks until no thread holds the lock.\n"
+            "Acquire the lock.\n"
             "Stops all other threads acquiring the lock until released.\n"
             "\n"
             "With improper use this can lead to a deadlock.\n"
-            "Only use this if you know what you are doing. Consider using :meth:`unique` instead\n"
+            "Only use this if you know what you are doing. Consider using the context manager instead\n"
             "\n"
             ":param blocking: Should this block until the lock can be acquired. Default is True.\n"
             "    If false and the lock cannot be acquired on the first try, this returns False.\n"
@@ -97,34 +184,29 @@ void init_lock(py::module m_parent)
             ":param task_manager: A custom object through which acquiring can be cancelled.\n"
             "    This effectively manually triggers timeout.\n"
             "    This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.\n"
+            ":param thread_mode: The permissions for the current and other parallel threads.\n"
             ":return: True if the lock was acquired otherwise False."));
     OrderedLock.def(
-        "release_unique",
+        "release",
         &Amulet::OrderedMutex::unlock,
         py::call_guard<py::gil_scoped_release>(),
         py::doc(
-            "Release the lock from unique mode.\n"
+            "Release the lock.\n"
             "Must be called by the thread that locked it.\n"
             "\n"
-            "Only use this if you know what you are doing. Consider using :meth:`unique` instead\n"));
+            "Only use this if you know what you are doing. Consider using the context manager instead\n"));
     OrderedLock.def(
-        "unique",
-        [](Amulet::OrderedMutex& self, bool blocking, double timeout, Amulet::AbstractCancelManager& cancel_manager) {
+        "__call__",
+        [](
+            Amulet::OrderedMutex& self,
+            bool blocking,
+            double timeout,
+            Amulet::AbstractCancelManager& cancel_manager,
+            const std::pair<Amulet::CurrentThreadMode, Amulet::OtherThreadMode>& thread_mode) {
             return pybind11_extensions::contextlib::make_context_manager<void, std::optional<bool>>(
-                [&self, blocking, timeout, &cancel_manager]() -> void {
+                [&self, blocking, timeout, &cancel_manager, thread_mode]() -> void {
                     py::gil_scoped_release nogil;
-                    auto lock = [&]() {
-                        if (blocking) {
-                            if (timeout > 0) {
-                                return self.try_lock_for(std::chrono::duration<double>(timeout), cancel_manager);
-                            } else {
-                                return self.try_lock_for(std::chrono::years(1), cancel_manager);
-                            }
-                        } else {
-                            return self.try_lock();
-                        }
-                    };
-                    if (!lock()) {
+                    if (!acquire_mutex(self, blocking, timeout, cancel_manager, thread_mode)) {
                         throw Amulet::LockNotAcquired("Lock was not acquired.");
                     }
                 },
@@ -137,18 +219,19 @@ void init_lock(py::module m_parent)
         py::arg("blocking") = true,
         py::arg("timeout") = -1.0,
         py::arg("cancel_manager") = Amulet::VoidCancelManager(),
+        py::arg("thread_mode") = std::make_pair(Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Null),
         py::keep_alive<0, 1>(),
         py::keep_alive<0, 4>(),
         py::doc(
-            "A context manager to acquire and release the lock in unique mode.\n"
+            "A context manager to acquire and release the lock.\n"
             "\n"
             ">>> lock: OrderedLock\n"
-            ">>> with lock.unique():\n"
+            ">>> with lock():\n"
             ">>>     # code with lock acquired\n"
             ">>> # the lock will automatically be released here\n"
             "\n"
             "Blocks until no thread holds the lock when entering the context manager.\n"
-            "Once acquired stops all other threads acquiring the lock until released.\n"
+            "Once acquired, stops all other threads acquiring the lock until released.\n"
             "Exiting the context manager releases the lock.\n"
             "\n"
             ":param blocking: Should this block until the lock can be acquired. Default is True.\n"
@@ -157,276 +240,9 @@ void init_lock(py::module m_parent)
             ":param task_manager: A custom object through which acquiring can be cancelled.\n"
             "    This effectively manually triggers timeout.\n"
             "    This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.\n"
+            ":param thread_mode: The permissions for the current and other parallel threads.\n"
             ":return: contextlib.AbstractContextManager[None]\n"
             ":raises: LockNotAcquired if the lock could not be acquired."));
-
-    OrderedLock.def(
-        "acquire_shared_read_only",
-        [](Amulet::OrderedMutex& self, bool blocking, double timeout, Amulet::AbstractCancelManager& cancel_manager) {
-            if (blocking) {
-                if (timeout > 0) {
-                    return self.try_lock_shared_read_only_for(std::chrono::duration<double>(timeout), cancel_manager);
-                } else {
-                    return self.try_lock_shared_read_only_for(std::chrono::years(1), cancel_manager);
-                }
-            } else {
-                return self.try_lock_shared_read_only();
-            }
-        },
-        py::arg("blocking") = true,
-        py::arg("timeout") = -1.0,
-        py::arg("cancel_manager") = Amulet::VoidCancelManager(),
-        py::call_guard<py::gil_scoped_release>(),
-        py::doc(
-            "Acquires the lock in shared read-only mode.\n"
-            "Blocks until no thread holds the lock in unique or write mode.\n"
-            "Stops other threads acquiring in unique and write mode until released.\n"
-            "\n"
-            "With improper use this can lead to a deadlock.\n"
-            "Only use this if you know what you are doing. Consider using :meth:`shared_read_only` instead\n"
-            "\n"
-            ":param blocking: Should this block until the lock can be acquired. Default is True.\n"
-            "    If false and the lock cannot be acquired on the first try, this returns False.\n"
-            ":param timeout: The maximum number of seconds to block for. Has no effect is blocking is False. Default is forever.\n"
-            ":param task_manager: A custom object through which acquiring can be cancelled.\n"
-            "    This effectively manually triggers timeout.\n"
-            "    This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.\n"
-            ":return: True if the lock was acquired otherwise False."));
-    OrderedLock.def(
-        "shared_read_only",
-        [](Amulet::OrderedMutex& self, bool blocking, double timeout, Amulet::AbstractCancelManager& cancel_manager) {
-            return pybind11_extensions::contextlib::make_context_manager<void, std::optional<bool>>(
-                [&self, blocking, timeout, &cancel_manager]() -> void {
-                    py::gil_scoped_release nogil;
-                    auto lock = [&]() {
-                        if (blocking) {
-                            if (timeout > 0) {
-                                return self.try_lock_shared_read_only_for(std::chrono::duration<double>(timeout), cancel_manager);
-                            } else {
-                                return self.try_lock_shared_read_only_for(std::chrono::years(1), cancel_manager);
-                            }
-                        } else {
-                            return self.try_lock_shared_read_only();
-                        }
-                    };
-                    if (!lock()) {
-                        throw Amulet::LockNotAcquired("Lock was not acquired.");
-                    }
-                },
-                [&self](py::object, py::object, py::object) -> std::optional<bool> {
-                    py::gil_scoped_release nogil;
-                    self.unlock_shared();
-                    return false;
-                });
-        },
-        py::arg("blocking") = true,
-        py::arg("timeout") = -1.0,
-        py::arg("cancel_manager") = Amulet::VoidCancelManager(),
-        py::keep_alive<0, 1>(),
-        py::keep_alive<0, 4>(),
-        py::doc(
-            "A context manager to acquire and release the lock in shared read-only mode.\n"
-            "\n"
-            ">>> lock: OrderedLock\n"
-            ">>> with lock.shared_read_only():\n"
-            ">>>     # code with lock acquired\n"
-            ">>> # the lock will automatically be released here\n"
-            "\n"
-            "Blocks until no thread holds the lock in unique or write mode when entering the context manager.\n"
-            "Once acquired stops other threads acquiring in unique and write mode until released.\n"
-            "Exiting the context manager releases the lock.\n"
-            "\n"
-            "If another thread wants to acquire the lock in unique mode it will block until all threads have finished in\n"
-            "shared mode.\n"
-            "\n"
-            ":param blocking: Should this block until the lock can be acquired. Default is True.\n"
-            "    If false and the lock cannot be acquired on the first try, this raises :class:`LockNotAcquired`.\n"
-            ":param timeout: The maximum number of seconds to block for. Has no effect is blocking is False. Default is forever.\n"
-            ":param task_manager: A custom object through which acquiring can be cancelled.\n"
-            "    This effectively manually triggers timeout.\n"
-            "    This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.\n"
-            ":return: contextlib.AbstractContextManager[None]\n"
-            ":raises: LockNotAcquired if the lock could not be acquired."));
-
-    OrderedLock.def(
-        "acquire_shared_read",
-        [](Amulet::OrderedMutex& self, bool blocking, double timeout, Amulet::AbstractCancelManager& cancel_manager) {
-            if (blocking) {
-                if (timeout > 0) {
-                    return self.try_lock_shared_read_for(std::chrono::duration<double>(timeout), cancel_manager);
-                } else {
-                    return self.try_lock_shared_read_for(std::chrono::years(1), cancel_manager);
-                }
-            } else {
-                return self.try_lock_shared_read();
-            }
-        },
-        py::arg("blocking") = true,
-        py::arg("timeout") = -1.0,
-        py::arg("cancel_manager") = Amulet::VoidCancelManager(),
-        py::call_guard<py::gil_scoped_release>(),
-        py::doc(
-            "Acquires the lock in shared read mode.\n"
-            "Blocks until no thread holds the lock in unique mode.\n"
-            "Stops other threads acquiring in unique mode until released.\n"
-            "\n"
-            "With improper use this can lead to a deadlock.\n"
-            "Only use this if you know what you are doing. Consider using :meth:`shared_read` instead\n"
-            "\n"
-            ":param blocking: Should this block until the lock can be acquired. Default is True.\n"
-            "    If false and the lock cannot be acquired on the first try, this returns False.\n"
-            ":param timeout: The maximum number of seconds to block for. Has no effect is blocking is False. Default is forever.\n"
-            ":param task_manager: A custom object through which acquiring can be cancelled.\n"
-            "    This effectively manually triggers timeout.\n"
-            "    This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.\n"
-            ":return: True if the lock was acquired otherwise False."));
-    OrderedLock.def(
-        "shared_read",
-        [](Amulet::OrderedMutex& self, bool blocking, double timeout, Amulet::AbstractCancelManager& cancel_manager) {
-            return pybind11_extensions::contextlib::make_context_manager<void, std::optional<bool>>(
-                [&self, blocking, timeout, &cancel_manager]() -> void {
-                    py::gil_scoped_release nogil;
-                    auto lock = [&]() {
-                        if (blocking) {
-                            if (timeout > 0) {
-                                return self.try_lock_shared_read_for(std::chrono::duration<double>(timeout), cancel_manager);
-                            } else {
-                                return self.try_lock_shared_read_for(std::chrono::years(1), cancel_manager);
-                            }
-                        } else {
-                            return self.try_lock_shared_read();
-                        }
-                    };
-                    if (!lock()) {
-                        throw Amulet::LockNotAcquired("Lock was not acquired.");
-                    }
-                },
-                [&self](py::object, py::object, py::object) -> std::optional<bool> {
-                    py::gil_scoped_release nogil;
-                    self.unlock_shared();
-                    return false;
-                });
-        },
-        py::arg("blocking") = true,
-        py::arg("timeout") = -1.0,
-        py::arg("cancel_manager") = Amulet::VoidCancelManager(),
-        py::keep_alive<0, 1>(),
-        py::keep_alive<0, 4>(),
-        py::doc(
-            "A context manager to acquire and release the lock in shared read mode.\n"
-            "\n"
-            ">>> lock: OrderedLock\n"
-            ">>> with lock.shared():\n"
-            ">>>     # code with lock acquired\n"
-            ">>> # the lock will automatically be released here\n"
-            "\n"
-            "Blocks until no thread holds the lock in unique mode when entering the context manager.\n"
-            "Once acquired stops other threads acquiring in unique mode until released.\n"
-            "Exiting the context manager releases the lock.\n"
-            "\n"
-            ":param blocking: Should this block until the lock can be acquired. Default is True.\n"
-            "    If false and the lock cannot be acquired on the first try, this raises :class:`LockNotAcquired`.\n"
-            ":param timeout: The maximum number of seconds to block for. Has no effect is blocking is False. Default is forever.\n"
-            ":param task_manager: A custom object through which acquiring can be cancelled.\n"
-            "    This effectively manually triggers timeout.\n"
-            "    This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.\n"
-            ":return: contextlib.AbstractContextManager[None]\n"
-            ":raises: LockNotAcquired if the lock could not be acquired."));
-
-    OrderedLock.def(
-        "acquire_shared_read_write",
-        [](Amulet::OrderedMutex& self, bool blocking, double timeout, Amulet::AbstractCancelManager& cancel_manager) {
-            if (blocking) {
-                if (timeout > 0) {
-                    return self.try_lock_shared_read_write_for(std::chrono::duration<double>(timeout), cancel_manager);
-                } else {
-                    return self.try_lock_shared_read_write_for(std::chrono::years(1), cancel_manager);
-                }
-            } else {
-                return self.try_lock_shared_read_write();
-            }
-        },
-        py::arg("blocking") = true,
-        py::arg("timeout") = -1.0,
-        py::arg("cancel_manager") = Amulet::VoidCancelManager(),
-        py::call_guard<py::gil_scoped_release>(),
-        py::doc(
-            "Acquires the lock in shared read-write mode.\n"
-            "Blocks until no thread holds the lock in unique or read-only mode.\n"
-            "Stops other threads acquiring in unique and read-only mode until released.\n"
-            "\n"
-            "With improper use this can lead to a deadlock.\n"
-            "Only use this if you know what you are doing. Consider using :meth:`shared_read_write` instead\n"
-            "\n"
-            ":param blocking: Should this block until the lock can be acquired. Default is True.\n"
-            "    If false and the lock cannot be acquired on the first try, this returns False.\n"
-            ":param timeout: The maximum number of seconds to block for. Has no effect is blocking is False. Default is forever.\n"
-            ":param task_manager: A custom object through which acquiring can be cancelled.\n"
-            "    This effectively manually triggers timeout.\n"
-            "    This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.\n"
-            ":return: True if the lock was acquired otherwise False."));
-    OrderedLock.def(
-        "shared_read_write",
-        [](Amulet::OrderedMutex& self, bool blocking, double timeout, Amulet::AbstractCancelManager& cancel_manager) {
-            return pybind11_extensions::contextlib::make_context_manager<void, std::optional<bool>>(
-                [&self, blocking, timeout, &cancel_manager]() -> void {
-                    py::gil_scoped_release nogil;
-                    auto lock = [&]() {
-                        if (blocking) {
-                            if (timeout > 0) {
-                                return self.try_lock_shared_read_write_for(std::chrono::duration<double>(timeout), cancel_manager);
-                            } else {
-                                return self.try_lock_shared_read_write_for(std::chrono::years(1), cancel_manager);
-                            }
-                        } else {
-                            return self.try_lock_shared_read_write();
-                        }
-                    };
-                    if (!lock()) {
-                        throw Amulet::LockNotAcquired("Lock was not acquired.");
-                    }
-                },
-                [&self](py::object, py::object, py::object) -> std::optional<bool> {
-                    py::gil_scoped_release nogil;
-                    self.unlock_shared();
-                    return false;
-                });
-        },
-        py::arg("blocking") = true,
-        py::arg("timeout") = -1.0,
-        py::arg("cancel_manager") = Amulet::VoidCancelManager(),
-        py::keep_alive<0, 1>(),
-        py::keep_alive<0, 4>(),
-        py::doc(
-            "A context manager to acquire and release the lock in shared read-write mode.\n"
-            "\n"
-            ">>> lock: OrderedLock\n"
-            ">>> with lock.shared():\n"
-            ">>>     # code with lock acquired\n"
-            ">>> # the lock will automatically be released here\n"
-            "\n"
-            "Blocks until no thread holds the lock in unique or read-only mode when entering the context manager.\n"
-            "Once acquired stops other threads acquiring in unique and read-only mode until released.\n"
-            "Exiting the context manager releases the lock.\n"
-            "\n"
-            ":param blocking: Should this block until the lock can be acquired. Default is True.\n"
-            "    If false and the lock cannot be acquired on the first try, this raises :class:`LockNotAcquired`.\n"
-            ":param timeout: The maximum number of seconds to block for. Has no effect is blocking is False. Default is forever.\n"
-            ":param task_manager: A custom object through which acquiring can be cancelled.\n"
-            "    This effectively manually triggers timeout.\n"
-            "    This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.\n"
-            ":return: contextlib.AbstractContextManager[None]\n"
-            ":raises: LockNotAcquired if the lock could not be acquired."));
-
-    OrderedLock.def(
-        "release_shared",
-        &Amulet::OrderedMutex::unlock_shared,
-        py::call_guard<py::gil_scoped_release>(),
-        py::doc(
-            "Release the lock from any shared mode.\n"
-            "Must be called by the thread that locked it.\n"
-            "\n"
-            "Only use this if you know what you are doing. Consider using :meth:`unique` instead\n"));
 
     py::class_<std::mutex> Lock(m, "Lock", py::module_local(),
         "A wrapper for std::mutex.");

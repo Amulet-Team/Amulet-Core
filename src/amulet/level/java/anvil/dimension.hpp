@@ -269,8 +269,8 @@ public:
             }
             auto& layer = it->second;
             auto& layer_mutex = layer->mutex();
-            layer_mutex.lock_shared_read_write();
-            std::shared_lock layer_lock(layer_mutex, std::adopt_lock);
+            layer_mutex.lock<CurrentThreadMode::ReadWrite, OtherThreadMode::ReadWrite>();
+            std::lock_guard lock(layer_mutex, std::adopt_lock);
             if constexpr (std::is_same_v<decltype(data), const std::optional<AmuletNBT::NamedTag>>) {
                 if (data) {
                     layer->set_chunk_data(cx, cz, *data);

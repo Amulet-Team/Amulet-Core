@@ -583,8 +583,8 @@ void JavaRawLevel::compact()
     std::shared_lock dimensions_lock(raw_open.dimensions_mutex);
     for (const auto& [dimension_id, dimension] : raw_open.dimensions) {
         auto& mutex = dimension->get_mutex();
-        mutex.lock_shared_read();
-        std::shared_lock dimension_lock(mutex, std::adopt_lock);
+        mutex.lock<CurrentThreadMode::Read, OtherThreadMode::ReadWrite>();
+        std::lock_guard lock(mutex, std::adopt_lock);
         dimension->compact();
     }
 }
