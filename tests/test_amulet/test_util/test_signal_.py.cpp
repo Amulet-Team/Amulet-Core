@@ -23,14 +23,6 @@ public:
         signal_2.emit(1, 1.5);
         signal_3.emit(1, 1.5, "Hello World", 2);
     }
-
-    void emit_async()
-    {
-        signal_0.emit_async();
-        signal_1.emit_async(1);
-        signal_2.emit_async(1, 1.5);
-        signal_3.emit_async(1, 1.5, "Hello World", 2);
-    }
 };
 
 } // namespace AmuletTest
@@ -46,5 +38,4 @@ void init_test_signal(py::module m_parent)
     Amulet::def_signal(SignalTest, "signal_2", &AmuletTest::SignalTest::signal_2);
     Amulet::def_signal(SignalTest, "signal_3", &AmuletTest::SignalTest::signal_3);
     SignalTest.def("emit", &AmuletTest::SignalTest::emit);
-    SignalTest.def("emit_async", &AmuletTest::SignalTest::emit_async);
 }

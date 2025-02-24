@@ -1,7 +1,7 @@
 #include <cstdlib>
 
-#include "signal.hpp"
 #include "logging.hpp"
+#include "signal.hpp"
 
 namespace Amulet {
 
@@ -18,7 +18,8 @@ namespace detail {
         exit();
     }
 
-    void EventLoop::exit() {
+    void EventLoop::exit()
+    {
         Amulet::debug("EventLoop::exit()");
         {
             std::unique_lock lock(_mutex);

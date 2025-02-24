@@ -177,7 +177,7 @@ void JavaRawLevel::open()
     _open(std::move(session_lock));
 
     // Notify listeners that the world is now open.
-    opened.emit_async();
+    opened.emit();
 }
 
 std::unique_ptr<LockFile> JavaRawLevel::_close()
@@ -195,7 +195,7 @@ void JavaRawLevel::close()
         return;
     }
     _close()->unlock_file();
-    closed.emit_async();
+    closed.emit();
 }
 
 void JavaRawLevel::reload()
@@ -204,7 +204,7 @@ void JavaRawLevel::reload()
         throw std::runtime_error("Level can only be reloaded when it is open.");
     }
     _open(_close());
-    reloaded.emit_async();
+    reloaded.emit();
 }
 
 const std::filesystem::path& JavaRawLevel::get_path() const
