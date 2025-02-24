@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol, TypeVarTuple
 from collections.abc import Callable
+from ._signal import ConnectionMode
 
 Args = TypeVarTuple("Args")
 
@@ -11,7 +12,11 @@ class SignalToken(Protocol[*Args]):
 
 
 class Signal(Protocol[*Args]):
-    def connect(self, callback: Callable[[*Args], None]) -> SignalToken[*Args]:
+    def connect(
+        self,
+        callback: Callable[[*Args], None],
+        mode: ConnectionMode = ConnectionMode.Direct,
+    ) -> SignalToken[*Args]:
         """
         Connect a callback to this signal and return a token.
         The token returned can be used to disconnect the callback.
@@ -27,11 +32,4 @@ class Signal(Protocol[*Args]):
         """
         Call all callbacks with the given arguments from this thread.
         Blocks until all callbacks are processed.
-        """
-
-    def emit_async(self, *args: *Args) -> None:
-        """
-        Submits all callbacks to the event loop for processing.
-        Returns immediately. Callbacks are processed asynchronously.
-        Note that args must remain valid until they are used.
         """

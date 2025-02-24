@@ -13,6 +13,11 @@ namespace Amulet {
 
 AMULET_CORE_EXPORT void error(const std::string& msg);
 
+enum class ConnectionMode {
+    Direct, // Directly called by the emitter.
+    Async, // Called asynchronously.
+};
+
 namespace detail {
 
     class EventLoop {
@@ -39,10 +44,14 @@ namespace detail {
     public:
         std::mutex mutex;
         std::function<void(Args...)> callback;
+        ConnectionMode mode;
         bool disconnected = false;
 
-        SignalCallbackStorage(std::function<void(Args...)> callback)
+        SignalCallbackStorage(
+            std::function<void(Args...)> callback,
+            ConnectionMode mode)
             : callback(std::move(callback))
+            , mode(mode)
         {
         }
     };
@@ -61,6 +70,7 @@ private:
     {
     }
     friend class Signal<Args...>;
+
 public:
     SignalToken() = default;
 };
@@ -82,10 +92,10 @@ public:
 
     // Connect a callback to this signal and return a token.
     // The token returned can be used to disconnect the callback.
-    tokenT connect(callbackT callback)
+    tokenT connect(callbackT callback, ConnectionMode mode = ConnectionMode::Direct)
     {
         std::unique_lock lock(_mutex);
-        auto storage = std::make_shared<storageT>(std::move(callback));
+        auto storage = std::make_shared<storageT>(std::move(callback), mode);
         _callbacks.push_back(storage);
         return storage;
     }
@@ -121,58 +131,50 @@ public:
             temp_callbacks = _callbacks;
         }
 
+        std::shared_ptr<std::tuple<Args...>> async_args;
+
         for (const auto& ptr : temp_callbacks) {
             auto storage = ptr.lock();
             if (storage == nullptr) {
                 continue;
             }
-            std::unique_lock storage_lock(storage->mutex);
-            if (storage->disconnected) {
-                continue;
-            }
-            try {
-                storage->callback(args...);
-            } catch (const std::exception& e) {
-                error(std::string("Error in callback: ") + e.what());
-            } catch (...) {
-                error(std::string("Error in callback."));
-            }
-        }
-    }
-
-    // Submits all callbacks to the event loop for processing.
-    // Returns immediately. Callbacks are processed asynchronously.
-    // Note that args must remain valid until they are used.
-    void emit_async(Args&&... args)
-    {
-        std::list<std::weak_ptr<storageT>> temp_callbacks;
-        {
-            // Copy callbacks
-            std::unique_lock lock(_mutex);
-            temp_callbacks = _callbacks;
-        }
-
-        // Copy the arguments once.
-        auto args_ = std::make_shared<std::tuple<Args...>>(std::forward<Args>(args)...);
-
-        for (const auto& ptr : temp_callbacks) {
-            detail::global_event_loop.submit([args_, ptr]() {
-                auto storage = ptr.lock();
-                if (storage == nullptr) {
-                    return;
-                }
+            switch (storage->mode) {
+            case ConnectionMode::Direct: {
                 std::unique_lock storage_lock(storage->mutex);
                 if (storage->disconnected) {
-                    return;
+                    continue;
                 }
                 try {
-                    std::apply(storage->callback, *args_);
+                    storage->callback(args...);
                 } catch (const std::exception& e) {
                     error(std::string("Error in callback: ") + e.what());
                 } catch (...) {
                     error(std::string("Error in callback."));
                 }
-            });
+            } break;
+            case ConnectionMode::Async: {
+                if (async_args == nullptr) {
+                    async_args = std::make_shared<std::tuple<Args...>>(std::forward<Args>(args)...);
+                }
+                detail::global_event_loop.submit([async_args, ptr]() {
+                    auto storage = ptr.lock();
+                    if (storage == nullptr) {
+                        return;
+                    }
+                    std::unique_lock storage_lock(storage->mutex);
+                    if (storage->disconnected) {
+                        return;
+                    }
+                    try {
+                        std::apply(storage->callback, *async_args);
+                    } catch (const std::exception& e) {
+                        error(std::string("Error in callback: ") + e.what());
+                    } catch (...) {
+                        error(std::string("Error in callback."));
+                    }
+                });
+            } break;
+            }
         }
     }
 
