@@ -251,7 +251,9 @@ class SharedLockTestCase(Abstract.LockTestCase):
     def test_parallel(self) -> None:
         lock = SharedLock()
 
-        def ctx(shared: bool, v1: Any, v2: Any) -> Callable[[ThreadStepManager, list], None]:
+        def ctx(
+            shared: bool, v1: Any, v2: Any
+        ) -> Callable[[ThreadStepManager, list], None]:
             def f(step: ThreadStepManager, exec_order: list) -> None:
                 if shared:
                     mgr = lock.shared()
@@ -265,7 +267,9 @@ class SharedLockTestCase(Abstract.LockTestCase):
 
             return f
 
-        def raw(shared: bool, blocking: bool, v1: Any, v2: Any) -> Callable[[ThreadStepManager, list], None]:
+        def raw(
+            shared: bool, blocking: bool, v1: Any, v2: Any
+        ) -> Callable[[ThreadStepManager, list], None]:
             def f(step: ThreadStepManager, exec_order: list) -> None:
                 if shared:
                     locked = lock.acquire_shared(blocking)
@@ -548,7 +552,9 @@ class OrderedLockTestCase(Abstract.LockTestCase):
     def test_parallel(self) -> None:
         lock = OrderedLock()
 
-        def ctx(mode: LockMode, blocking: bool, v1: Any, v2: Any) -> Callable[[ThreadStepManager, list], None]:
+        def ctx(
+            mode: LockMode, blocking: bool, v1: Any, v2: Any
+        ) -> Callable[[ThreadStepManager, list], None]:
             def f(step: ThreadStepManager, exec_order: list) -> None:
                 if mode == LockMode.Unique:
                     mgr = lock(
@@ -584,7 +590,9 @@ class OrderedLockTestCase(Abstract.LockTestCase):
 
             return f
 
-        def raw(mode: LockMode, blocking: bool, v1: Any, v2: Any) -> Callable[[ThreadStepManager, list], None]:
+        def raw(
+            mode: LockMode, blocking: bool, v1: Any, v2: Any
+        ) -> Callable[[ThreadStepManager, list], None]:
             def f(step: ThreadStepManager, exec_order: list) -> None:
                 if mode == LockMode.Unique:
                     locked = lock.acquire(
