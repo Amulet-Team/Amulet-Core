@@ -5,6 +5,7 @@
 
 #include <filesystem>
 #include <string>
+#include <string_view>
 
 namespace py = pybind11;
 
@@ -47,6 +48,13 @@ namespace Image {
     inline Image open(std::filesystem::path path)
     {
         return py::module::import("PIL.Image").attr("open")(path.string());
+    }
+
+    inline Image load(std::string_view data)
+    {
+        py::bytes py_data(data);
+        auto f = py::module::import("io").attr("BytesIO")(py_data);
+        return py::module::import("PIL.Image").attr("open")(f);
     }
 
 } // namespace Image
