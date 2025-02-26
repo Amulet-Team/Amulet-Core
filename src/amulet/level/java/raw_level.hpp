@@ -170,15 +170,16 @@ public:
     // External shared read lock required.
     AMULET_CORE_EXPORT VersionNumber get_data_version() const;
 
+    // Set the maximum game version.
+    // If the game version is different this will close and re-open the level.
+    // External unique lock required.
+    AMULET_CORE_EXPORT void set_data_version(const VersionNumber&);
+
     // Is this level a supported version.
     // This is true for all versions we support and false for
     // snapshots and unsupported newer versions.
     AMULET_CORE_EXPORT bool is_supported() const;
 
-    // Set the maximum game version.
-    // If the game version is different this will close and re-open the level.
-    // External unique lock required.
-    AMULET_CORE_EXPORT void set_data_version(const VersionNumber&);
 
     // The time when the level was lasted edited.
     // External shared read lock required.

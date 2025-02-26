@@ -266,11 +266,6 @@ VersionNumber JavaRawLevel::get_data_version() const
     return _data_version;
 }
 
-bool JavaRawLevel::is_supported() const {
-    // TODO
-    return true;
-}
-
 void JavaRawLevel::set_data_version(const VersionNumber& data_version)
 {
     if (data_version.size() != 1) {
@@ -288,6 +283,11 @@ void JavaRawLevel::set_data_version(const VersionNumber& data_version)
         data.insert_or_assign("DataVersion", AmuletNBT::IntTag(static_cast<AmuletNBT::IntTagNative>(data_version[0])));
     }
     set_level_dat(level_dat);
+}
+
+bool JavaRawLevel::is_supported() const {
+    // TODO
+    return true;
 }
 
 std::chrono::system_clock::time_point JavaRawLevel::get_modified_time() const
