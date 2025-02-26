@@ -7,6 +7,8 @@
 #include <string>
 #include <string_view>
 
+#include <amulet/dll.hpp>
+
 namespace py = pybind11;
 
 inline bool is_image(py::handle obj)
@@ -89,8 +91,8 @@ namespace detail {
 
 namespace Amulet {
 
-PIL::Image::Image get_missing_no_icon();
-PIL::Image::Image get_missing_pack_icon();
-PIL::Image::Image get_missing_world_icon();
+AMULET_CORE_EXPORT PIL::Image::Image get_missing_no_icon();
+AMULET_CORE_EXPORT PIL::Image::Image get_missing_pack_icon();
+AMULET_CORE_EXPORT PIL::Image::Image get_missing_world_icon();
 
 } // namespace Amulet
