@@ -8,6 +8,7 @@ import amulet.utils.lock
 import amulet.utils.signal
 import amulet.version
 import amulet_nbt
+import PIL.Image
 
 __all__ = ["JavaCreateArgsV1", "JavaRawLevel"]
 
@@ -82,6 +83,12 @@ class JavaRawLevel:
         External shared read lock required.
         """
 
+    def is_supported(self) -> bool:
+        """
+        Is this level a supported version.
+        This is true for all versions we support and false for snapshots and unsupported newer versions.
+        """
+
     def lock(self) -> amulet.utils.lock.OrderedLock:
         """
         The public lock
@@ -131,6 +138,12 @@ class JavaRawLevel:
         The identifiers for all dimensions in this level.
         External shared read lock required.
         External shared read-only lock optional.
+        """
+
+    @property
+    def get_thumbnail(self) -> PIL.Image.Image:
+        """
+        Get the thumbnail for the level.
         """
 
     @property

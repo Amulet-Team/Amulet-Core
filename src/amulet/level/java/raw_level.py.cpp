@@ -153,6 +153,18 @@ py::module init_java_raw_level(py::module m_parent)
                 "Set the maximum game version.\n"
                 "If the game version is different this will close and re-open the level.\n"
                 "External unique lock required."));
+    JavaRawLevel.def(
+        "is_supported",
+        &Amulet::JavaRawLevel::is_supported,
+        py::doc(
+            "Is this level a supported version.\n"
+            "This is true for all versions we support and false for "
+            "snapshots and unsupported newer versions."
+        ));
+    JavaRawLevel.def_property_readonly(
+        "get_thumbnail",
+        &Amulet::JavaRawLevel::get_thumbnail,
+        py::doc("Get the thumbnail for the level."));
     JavaRawLevel.def_property_readonly(
         "modified_time",
         py::cpp_function(
