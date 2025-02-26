@@ -39,6 +39,11 @@ const VersionNumber JavaLevel::get_max_game_version()
     return _raw_level->get_data_version();
 }
 
+bool JavaLevel::is_supported()
+{
+    return _raw_level->is_supported();
+}
+
 const std::string JavaLevel::get_level_name()
 {
     return _raw_level->get_level_name();

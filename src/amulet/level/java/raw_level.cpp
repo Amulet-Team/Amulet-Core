@@ -266,6 +266,11 @@ VersionNumber JavaRawLevel::get_data_version() const
     return _data_version;
 }
 
+bool JavaRawLevel::is_supported() const {
+    // TODO
+    return true;
+}
+
 void JavaRawLevel::set_data_version(const VersionNumber& data_version)
 {
     if (data_version.size() != 1) {

@@ -50,6 +50,11 @@ public:
     // The maximum game version the level has been opened with.
     AMULET_CORE_EXPORT const VersionNumber get_max_game_version() override;
 
+    // Is this level a supported version.
+    // This is true for all versions we support and false for
+    // snapshots, betas and unsupported newer versions.
+    AMULET_CORE_EXPORT bool is_supported() override;
+
     // The thumbnail for the level.
     // void thumbnail() override;
 

@@ -38,6 +38,11 @@ public:
     // External shared read lock required.
     virtual const VersionNumber get_max_game_version() = 0;
 
+    // Is this level a supported version.
+    // This is true for all versions we support and false for
+    // snapshots, betas and unsupported newer versions.
+    virtual bool is_supported() = 0;
+
     // The thumbnail for the level.
     // virtual void thumbnail() = 0;
 
