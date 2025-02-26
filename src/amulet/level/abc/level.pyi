@@ -6,6 +6,7 @@ import amulet.level.abc.dimension
 import amulet.utils.lock
 import amulet.utils.signal
 import amulet.version
+import PIL.Image
 
 __all__ = ["CompactibleLevel", "DiskLevel", "Level", "LevelMetadata", "ReloadableLevel"]
 
@@ -83,6 +84,12 @@ class LevelMetadata:
         :return: True if the level is open otherwise False.
         """
 
+    def is_supported(self) -> bool:
+        """
+        Is this level a supported version.
+        This is true for all versions we support and false for snapshots, betas and unsupported newer versions.
+        """
+
     @property
     def level_name(self) -> str:
         """
@@ -123,6 +130,12 @@ class LevelMetadata:
         """
         The size of the sub-chunk. Must be a cube.
         External shared read lock required.
+        """
+
+    @property
+    def thumbnail(self) -> PIL.Image.Image:
+        """
+        The thumbnail for the level.
         """
 
 class ReloadableLevel:
