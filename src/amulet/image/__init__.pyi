@@ -1,0 +1,9 @@
+from __future__ import annotations
+
+import PIL.Image
+
+__all__ = ["get_missing_no_icon", "get_missing_pack_icon", "get_missing_world_icon"]
+
+def get_missing_no_icon() -> PIL.Image.Image: ...
+def get_missing_pack_icon() -> PIL.Image.Image: ...
+def get_missing_world_icon() -> PIL.Image.Image: ...
