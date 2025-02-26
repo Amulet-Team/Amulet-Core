@@ -76,7 +76,7 @@ void JavaLevel::open()
     _raw_level->open();
     _open_data = std::make_unique<JavaLevelOpenData>();
     // self._open_data.history_manager.history_changed.connect(self.history_changed)
-    opened.emit_async();
+    opened.emit();
 }
 
 // void JavaLevel::purge()
@@ -96,7 +96,7 @@ void JavaLevel::close()
     }
     _open_data = nullptr;
     _raw_level->close();
-    closed.emit_async();
+    closed.emit();
 }
 
 // size_t JavaLevel::undo_count();
@@ -129,7 +129,7 @@ void JavaLevel::reload_metadata()
 void JavaLevel::reload()
 {
     _raw_level->reload();
-    reloaded.emit_async();
+    reloaded.emit();
 }
 
 JavaRawLevel& JavaLevel::get_raw_level()
