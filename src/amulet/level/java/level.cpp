@@ -44,6 +44,10 @@ bool JavaLevel::is_supported()
     return _raw_level->is_supported();
 }
 
+PIL::Image::Image JavaLevel::get_thumbnail() {
+    return _raw_level->get_thumbnail();
+};
+
 const std::string JavaLevel::get_level_name()
 {
     return _raw_level->get_level_name();

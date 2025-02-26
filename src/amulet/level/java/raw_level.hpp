@@ -10,6 +10,7 @@
 #include <amulet_nbt/tag/named_tag.hpp>
 
 #include <amulet/dll.hpp>
+#include <amulet/image/image.hpp>
 #include <amulet/level/abc/registry.hpp>
 #include <amulet/utils/lock_file.hpp>
 #include <amulet/utils/mutex.hpp>
@@ -180,6 +181,9 @@ public:
     // snapshots and unsupported newer versions.
     AMULET_CORE_EXPORT bool is_supported() const;
 
+    // Get the thumbnail for the level.
+    // This depends upon python so the GIL must be held.
+    AMULET_CORE_EXPORT PIL::Image::Image get_thumbnail() const;
 
     // The time when the level was lasted edited.
     // External shared read lock required.

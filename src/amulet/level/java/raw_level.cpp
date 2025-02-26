@@ -285,9 +285,19 @@ void JavaRawLevel::set_data_version(const VersionNumber& data_version)
     set_level_dat(level_dat);
 }
 
-bool JavaRawLevel::is_supported() const {
+bool JavaRawLevel::is_supported() const
+{
     // TODO
     return true;
+}
+
+PIL::Image::Image JavaRawLevel::get_thumbnail() const
+{
+    try {
+        return PIL::Image::open(_path / "icon.png");
+    } catch (...) {
+        return get_missing_no_icon();
+    }
 }
 
 std::chrono::system_clock::time_point JavaRawLevel::get_modified_time() const

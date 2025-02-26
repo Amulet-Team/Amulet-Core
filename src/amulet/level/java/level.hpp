@@ -3,6 +3,7 @@
 #include <chrono>
 #include <filesystem>
 
+#include <amulet/image/image.hpp>
 #include <amulet/level/abc/level.hpp>
 
 #include "raw_level.hpp"
@@ -10,7 +11,6 @@
 namespace Amulet {
 
 class JavaLevelOpenData {
-
 };
 
 class JavaLevel : public Level, public CompactibleLevel, public DiskLevel, public ReloadableLevel {
@@ -56,7 +56,7 @@ public:
     AMULET_CORE_EXPORT bool is_supported() override;
 
     // The thumbnail for the level.
-    // void thumbnail() override;
+    PIL::Image::Image get_thumbnail() override;
 
     // The name of the level.
     AMULET_CORE_EXPORT const std::string get_level_name() override;
@@ -79,7 +79,7 @@ public:
     AMULET_CORE_EXPORT void open() override;
 
     // Unload all loaded data.
-    //AMULET_CORE_EXPORT void purge() override;
+    // AMULET_CORE_EXPORT void purge() override;
 
     // Save changes to the level.
     AMULET_CORE_EXPORT void save() override;
@@ -110,7 +110,7 @@ public:
     // Reload the level metadata.
     // This can only be done when the level is not open.
     AMULET_CORE_EXPORT void reload_metadata() override;
-    
+
     // Reload the level.
     // This is like closing and opening the level but does not release locks.
     // This can only be done when the level is open.

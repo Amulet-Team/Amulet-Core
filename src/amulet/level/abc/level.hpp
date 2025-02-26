@@ -6,9 +6,10 @@
 #include <string>
 #include <vector>
 
+#include <amulet/image/image.hpp>
 #include <amulet/utils/mutex.hpp>
-#include <amulet/version.hpp>
 #include <amulet/utils/signal.hpp>
+#include <amulet/version.hpp>
 
 #include "dimension.hpp"
 
@@ -44,7 +45,7 @@ public:
     virtual bool is_supported() = 0;
 
     // The thumbnail for the level.
-    // virtual void thumbnail() = 0;
+    virtual PIL::Image::Image get_thumbnail() = 0;
 
     // The name of the level.
     // External shared read lock required.
@@ -72,11 +73,11 @@ public:
 
     // Signal emitted when the level is purged
     // Thread safe.
-    //Signal<> purged;
+    // Signal<> purged;
 
     // Clear all unsaved changes.
     // External unique lock required.
-    //virtual void purge() = 0;
+    // virtual void purge() = 0;
 
     // Save all changes to the level.
     // External unique lock required.

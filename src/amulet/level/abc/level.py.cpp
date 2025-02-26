@@ -41,6 +41,10 @@ py::module init_level_abc_level(py::module m_parent)
                 "This is true for all versions we support and false for "
                 "snapshots, betas and unsupported newer versions."));
     LevelMetadata.def_property_readonly(
+        "thumbnail",
+        &Amulet::LevelMetadata::get_thumbnail,
+        py::doc("The thumbnail for the level."));
+    LevelMetadata.def_property_readonly(
         "level_name",
         &Amulet::LevelMetadata::get_level_name,
         py::doc("The name of the level\n"
