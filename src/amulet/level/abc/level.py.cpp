@@ -34,6 +34,12 @@ py::module init_level_abc_level(py::module m_parent)
         &Amulet::LevelMetadata::get_max_game_version,
         py::doc("The maximum game version the level has been opened with.\n"
                 "External shared read lock required."));
+    LevelMetadata.def(
+        "is_supported",
+        &Amulet::LevelMetadata::is_supported,
+        py::doc("Is this level a supported version.\n"
+                "This is true for all versions we support and false for "
+                "snapshots, betas and unsupported newer versions."));
     LevelMetadata.def_property_readonly(
         "level_name",
         &Amulet::LevelMetadata::get_level_name,
