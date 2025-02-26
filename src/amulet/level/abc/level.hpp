@@ -22,6 +22,10 @@ protected:
 public:
     virtual ~LevelMetadata() = default;
 
+    // The external mutex for the level.
+    // Thread safe.
+    OrderedMutex& get_mutex() { return _mutex; }
+
     // Is the level open.
     // External shared read lock required.
     virtual bool is_open() = 0;
@@ -48,10 +52,6 @@ public:
     // The size of the sub-chunk. Must be a cube.
     // External shared read lock required.
     virtual size_t get_sub_chunk_size() = 0;
-
-    // The external mutex for the level.
-    // Thread safe.
-    OrderedMutex& get_mutex() { return _mutex; }
 };
 
 class Level : public LevelMetadata {
