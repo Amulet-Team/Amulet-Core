@@ -86,3 +86,11 @@ namespace detail {
     };
 }
 } // namespace PYBIND11_NAMESPACE::detail
+
+namespace Amulet {
+
+PIL::Image::Image get_missing_no_icon();
+PIL::Image::Image get_missing_pack_icon();
+PIL::Image::Image get_missing_world_icon();
+
+} // namespace Amulet
