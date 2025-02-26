@@ -63,31 +63,14 @@ namespace Image {
 
 } // namespace PIL
 
-namespace PYBIND11_NAMESPACE {
+namespace pybind11 {
 namespace detail {
     template <>
-    struct type_caster<PIL::Image::Image> {
-    public:
-        PYBIND11_TYPE_CASTER(PIL::Image::Image, const_name("PIL.Image.Image"));
-
-        // Python->C++
-        bool load(handle src, bool)
-        {
-            if (!is_image(src)) {
-                return false;
-            }
-            value.ptr() = src.ptr();
-            return true;
-        }
-
-        // C++ -> Python
-        static handle cast(PIL::Image::Image src, return_value_policy /* policy */, handle /* parent */)
-        {
-            return src;
-        }
+    struct handle_type_name<PIL::Image::Image> {
+        static constexpr auto name = const_name("PIL.Image.Image");
     };
-}
-} // namespace PYBIND11_NAMESPACE::detail
+} // namespace detail
+} // namespace pybind11
 
 namespace Amulet {
 
