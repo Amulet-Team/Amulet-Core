@@ -23,6 +23,15 @@ struct HistoryResource {
 
     // The global history index the current state equates to.
     size_t global_index = 0;
+
+    // Emitted when index changes during undo and redo.
+    Signal<> history_changed;
+
+    // Has the resource been changed since last save.
+    bool has_changed()
+    {
+        return index != saved_index;
+    }
 };
 
 class AbstractHistoryManagerLayer;
@@ -39,7 +48,7 @@ namespace {
 
         // A container tracking which resources have changed in each bin.
         std::vector<std::set<std::shared_ptr<HistoryResource>>> history_bins;
-        
+
         // Which index is the current bin.
         size_t history_index = 0;
 
@@ -83,12 +92,16 @@ template <ResourceId ResourceIdT>
 class HistoryManagerLayer {
 private:
     std::shared_ptr<HistoryManagerPrivate> _h;
-    std::string _uuid;
-    std::map<ResourceIdT, HistoryResource> _resources;
+    LayerId _id;
+    std::map<ResourceIdT, std::shared_ptr<HistoryResource>> _resources;
 
     HistoryManagerLayer(
-        std::shared_ptr<HistoryManagerPrivate>,
-        LayerId id);
+        std::shared_ptr<HistoryManagerPrivate> h,
+        LayerId id)
+        : _h(h)
+        , _id(id)
+    {
+    }
 
     friend HistoryManager;
 
@@ -96,8 +109,8 @@ protected:
     void invalidate_future() override
     {
         for (auto& [_, resource] : _resources) {
-            if (resource.index < resource.saved_index) {
-                resource.saved_index = -1;
+            if (resource->index < resource->saved_index) {
+                resource->saved_index = -1;
             }
         }
     }
@@ -108,15 +121,22 @@ protected:
     void mark_saved() override
     {
         for (auto& [_, resource] : _resources) {
-            resource.saved_index = resource.index;
+            resource->saved_index = resource->index;
         }
     }
 
 public:
-    // const std::map<ResourceIdT, HistoryResource>& get_resources()
-    //{
-    //     return _resources
-    // }
+    // The public mutex.
+    // Note the mutex is shared with the HistoryManager class.
+    std::shared_mutex& mutex()
+    {
+        return _h->mutex;
+    }
+
+    const std::map<ResourceIdT, std::shared_ptr<const HistoryResource>>& get_resources()
+    {
+        return _resources
+    }
 
     // Check if a resource entry exists.
     // If this is false the caller must call set_initial_resource
@@ -125,27 +145,36 @@ public:
         return _resources.contains(resource_id);
     }
 
+    Signal<>& get_signal(ResourceIdT resource_id)
+    {
+        auto it = _resources.find(resource_id);
+        if (it == _resources.end()) {
+            throw std::invalid_argument("Unknown resource_id. Call set_initial_value first.");
+        }
+        return it->second->history_changed;
+    }
+
     // Get the current data for the resource.
-    std::string get_resource(ResourceIdT resource_id)
+    std::string get_value(ResourceIdT resource_id)
     {
         throw std::runtime_error("NotImplementedError");
     }
 
     // Set the initial state for the resource.
     // If has_resource return false this must be called.
-    void set_initial_resource(ResourceIdT resource_id, std::string data)
+    void set_initial_value(ResourceIdT resource_id, std::string data)
     {
         throw std::runtime_error("NotImplementedError");
     }
 
     // Set the data for the resource.
-    void set_resource(ResourceIdT resource_id, std::string data)
+    void set_value(ResourceIdT resource_id, std::string data)
     {
         throw std::runtime_error("NotImplementedError");
     }
 
     // Set the data for multiple resources.
-    void set_resources(std::input_range<const std::pair<ResourceIdT, std::string>> resources)
+    void set_values(std::input_range<const std::pair<ResourceIdT, std::string>> resources)
     {
         throw std::runtime_error("NotImplementedError");
     }
@@ -158,6 +187,12 @@ private:
 public:
     HistoryManager();
 
+    // The public mutex.
+    // Note the mutex is shared with the HistoryManagerLayer class.
+    std::shared_mutex& mutex();
+
+    // Get a new history layer.
+    // Unique lock required.
     template <ResourceId ResourceIdT>
     std::shared_ptr<HistoryManagerLayer<ResourceIdT>> new_layer()
     {
@@ -171,24 +206,31 @@ public:
     }
 
     // Reset all history data.
+    // Unique lock required.
     void reset();
 
     // Mark the current state as the saved state.
+    // Unique lock required.
     void mark_saved();
 
     // Create a new undo bin that new changes will be put in.
+    // Unique lock required.
     void create_undo_bin();
 
     // Get the number of times undo can be called.
+    // Shared lock required.
     size_t get_undo_count();
 
     // Undo the changes made in the current bin.
+    // Unique lock required.
     void undo();
 
     // Get the number of times redo can be called.
+    // Shared lock required.
     size_t get_redo_count();
 
     // Redo the changes in the next bin.
+    // Unique lock required.
     void redo();
 };
 

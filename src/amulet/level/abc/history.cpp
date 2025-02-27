@@ -29,6 +29,11 @@ bool HistoryManagerPrivate::has_redo()
 
 // HistoryManager
 
+std::shared_mutex& HistoryManager::mutex()
+{
+    return _h->mutex;
+}
+
 void HistoryManager::reset()
 {
     for (auto& ptr : _h->layers) {
