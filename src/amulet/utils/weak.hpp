@@ -2,6 +2,7 @@
 
 #include <list>
 #include <memory>
+#include <set>
 
 namespace Amulet {
 
@@ -29,6 +30,15 @@ template <typename T>
 void for_each(WeakList<T>& l, std::function<void(T&)> f)
 {
     detail::for_each(l, f);
+}
+
+template <typename T>
+using WeakSet = std::set<std::weak_ptr<T>, std::owner_less<std::weak_ptr<T>>>;
+
+template <typename T>
+void for_each(WeakSet<T>& s, std::function<void(T&)> f)
+{
+    detail::for_each(s, f);
 }
 
 } // namespace Amulet
