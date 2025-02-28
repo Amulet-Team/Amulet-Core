@@ -12,13 +12,12 @@ HistoryManagerPrivate::HistoryManagerPrivate()
 void HistoryManagerPrivate::invalidate_future()
 {
     if (has_redo()) {
+        // Destroy future bins
         history_bins.resize(history_index + 1);
-        for (auto& ptr : layers) {
-            auto layer = ptr.lock();
-            if (layer) {
-                layer->invalidate_future();
-            }
-        }
+        // Call invalidate_future for each layer
+        for_each<AbstractHistoryManagerLayer>(
+            layers,
+            [](AbstractHistoryManagerLayer& layer) { layer.invalidate_future(); });
     }
 }
 
@@ -36,12 +35,9 @@ std::shared_mutex& HistoryManager::mutex()
 
 void HistoryManager::reset()
 {
-    for (auto& ptr : _h->layers) {
-        auto layer = ptr.lock();
-        if (layer) {
-            layer->reset();
-        }
-    }
+    for_each<AbstractHistoryManagerLayer>(
+        _h->layers,
+        [](AbstractHistoryManagerLayer& layer) { layer.reset(); });
     _h->history_bins.clear();
     _h->history_bins.emplace_back();
     _h->history_index = 0;
@@ -49,12 +45,9 @@ void HistoryManager::reset()
 
 void HistoryManager::mark_saved()
 {
-    for (auto& ptr : _h->layers) {
-        auto layer = ptr.lock();
-        if (layer) {
-            layer->mark_saved();
-        }
-    }
+    for_each<AbstractHistoryManagerLayer>(
+        _h->layers,
+        [](AbstractHistoryManagerLayer& layer) { layer.mark_saved(); });
 }
 
 void HistoryManager::create_undo_bin()

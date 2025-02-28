@@ -62,7 +62,10 @@ namespace {
         std::shared_mutex mutex;
 
         // The history layers that are part of this manager.
-        std::vector<std::weak_ptr<AbstractHistoryManagerLayer>> layers;
+        WeakList<AbstractHistoryManagerLayer> layers;
+
+        // The number of layers that have been created. Used as the id.
+        size_t layer_count = 0;
 
         // A container tracking which resources have changed in each bin.
         std::vector<std::set<std::shared_ptr<HistoryResource>>> history_bins;
@@ -214,12 +217,13 @@ public:
     template <ResourceId ResourceIdT>
     std::shared_ptr<HistoryManagerLayer<ResourceIdT>> new_layer()
     {
-        auto layer_id = _h->layers.size();
+        auto& layer_id = _h->layer_count;
         if (std::numeric_limits<LayerId>::max() < layer_id) {
             throw std::runtime_error("Exceeded the maximum number of layers (2^16)");
         }
         auto layer = std::make_shared<HistoryManagerLayer<ResourceIdT>>(_h, layer_id);
         _h->layers.push_back(layer);
+        layer_id++;
         return layer;
     }
 
