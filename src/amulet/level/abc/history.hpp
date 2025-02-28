@@ -90,13 +90,21 @@ protected:
 template <typename T>
 concept ResourceId = std::totally_ordered<T> && std::convertible_to<T, std::string>;
 
+// The type of the layer identifier.
+// 2^16 should be large enough but this can be increased if needed.
 using LayerId = std::uint16_t;
 
+// A group of resources in the history system.
 template <ResourceId ResourceIdT>
 class HistoryManagerLayer {
 private:
+    // Shared state.
     std::shared_ptr<HistoryManagerPrivate> _h;
+
+    // A unique identifier for this layer.
     LayerId _id;
+
+    // The resources in this layer.
     std::map<ResourceIdT, std::shared_ptr<HistoryResource>> _resources;
 
     HistoryManagerLayer(
@@ -110,6 +118,8 @@ private:
     friend HistoryManager;
 
 protected:
+    // Invalidate all future data.
+    // Unique lock required.
     void invalidate_future() override
     {
         for (auto& [_, resource] : _resources) {
@@ -118,10 +128,16 @@ protected:
             }
         }
     }
+
+    // Destroy all resources in the layer.
+    // Unique lock required.
     void reset() override
     {
         _resources.clear();
     }
+
+    // Mark all resources as saved.
+    // Unique lock required.
     void mark_saved() override
     {
         for (auto& [_, resource] : _resources) {
@@ -132,11 +148,14 @@ protected:
 public:
     // The public mutex.
     // Note the mutex is shared with the HistoryManager class.
+    // Thread safe.
     std::shared_mutex& mutex()
     {
         return _h->mutex;
     }
 
+    // View the resource data.
+    // Shared or unique lock required while accessing the returned object.
     const std::map<ResourceIdT, std::shared_ptr<const HistoryResource>>& get_resources()
     {
         return _resources;
@@ -144,11 +163,15 @@ public:
 
     // Check if a resource entry exists.
     // If this is false the caller must call set_initial_resource
+    // Shared or unique lock required.
     bool has_resource(ResourceIdT resource_id)
     {
         return _resources.contains(resource_id);
     }
 
+    // Get the changed signal for the resource.
+    // This will error if the resource does not exist. Check has_resource first.
+    // Shared or unique lock required.
     Signal<>& get_signal(ResourceIdT resource_id)
     {
         auto it = _resources.find(resource_id);
@@ -159,6 +182,7 @@ public:
     }
 
     // Get the current data for the resource.
+    // Shared or unique lock required.
     std::string get_value(ResourceIdT resource_id)
     {
         throw std::runtime_error("NotImplementedError");
@@ -166,18 +190,21 @@ public:
 
     // Set the initial state for the resource.
     // If has_resource return false this must be called.
+    // Unique lock required.
     void set_initial_value(ResourceIdT resource_id, std::string data)
     {
         throw std::runtime_error("NotImplementedError");
     }
 
     // Set the data for the resource.
+    // Unique lock required.
     void set_value(ResourceIdT resource_id, std::string data)
     {
         throw std::runtime_error("NotImplementedError");
     }
 
     // Set the data for multiple resources.
+    // Unique lock required.
     template <typename T>
         requires std::ranges::input_range<T>
         && std::same_as<
@@ -189,8 +216,10 @@ public:
     }
 };
 
+// The root history manager class.
 class HistoryManager {
 private:
+    // Shared state.
     std::shared_ptr<HistoryManagerPrivate> _h;
 
 public:
@@ -198,6 +227,7 @@ public:
 
     // The public mutex.
     // Note the mutex is shared with the HistoryManagerLayer class.
+    // Thread safe.
     std::shared_mutex& mutex();
 
     // Get a new history layer.
@@ -228,7 +258,7 @@ public:
     void create_undo_bin();
 
     // Get the number of times undo can be called.
-    // Shared lock required.
+    // Shared or unique lock required.
     size_t get_undo_count();
 
     // Undo the changes made in the current bin.
@@ -236,7 +266,7 @@ public:
     void undo();
 
     // Get the number of times redo can be called.
-    // Shared lock required.
+    // Shared or unique lock required.
     size_t get_redo_count();
 
     // Redo the changes in the next bin.
