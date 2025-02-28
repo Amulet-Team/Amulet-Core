@@ -139,7 +139,7 @@ public:
 
     const std::map<ResourceIdT, std::shared_ptr<const HistoryResource>>& get_resources()
     {
-        return _resources
+        return _resources;
     }
 
     // Check if a resource entry exists.
@@ -178,7 +178,12 @@ public:
     }
 
     // Set the data for multiple resources.
-    void set_values(std::input_range<const std::pair<ResourceIdT, std::string>> resources)
+    template <typename T>
+        requires std::ranges::input_range<T>
+        && std::same_as<
+            std::ranges::range_value_t<T>,
+            std::pair<ResourceIdT, std::string>>
+    void set_values(T resources)
     {
         throw std::runtime_error("NotImplementedError");
     }
