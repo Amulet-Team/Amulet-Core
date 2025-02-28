@@ -6,11 +6,13 @@ namespace Amulet {
 
 HistoryManagerPrivate::HistoryManagerPrivate()
 {
+    // Add an initial bin.
     history_bins.emplace_back();
 }
 
 void HistoryManagerPrivate::invalidate_future()
 {
+    // If there are future bins to invalidate.
     if (has_redo()) {
         // Destroy future bins
         history_bins.resize(history_index + 1);
@@ -35,11 +37,15 @@ std::shared_mutex& HistoryManager::mutex()
 
 void HistoryManager::reset()
 {
+    // Reset each layer
     for_each<AbstractHistoryManagerLayer>(
         _h->layers,
         [](AbstractHistoryManagerLayer& layer) { layer.reset(); });
+    // Clear all history bins
     _h->history_bins.clear();
+    // Add the initial bin.
     _h->history_bins.emplace_back();
+    // Update the index to the initial bin.
     _h->history_index = 0;
 }
 
