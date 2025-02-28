@@ -27,7 +27,7 @@ struct HistoryResource {
     size_t global_index = 0;
 
     // Emitted when index changes during undo and redo.
-    Signal<> history_changed;
+    Signal<> changed;
 
     // Has the resource been changed since last save.
     bool has_changed()
@@ -155,7 +155,7 @@ public:
         if (it == _resources.end()) {
             throw std::invalid_argument("Unknown resource_id. Call set_initial_value first.");
         }
-        return it->second->history_changed;
+        return it->second->changed;
     }
 
     // Get the current data for the resource.
