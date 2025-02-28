@@ -51,7 +51,7 @@ namespace {
         size_t layer_count = 0;
 
         // A container tracking which resources have changed in each bin.
-        std::vector<std::set<std::shared_ptr<HistoryResource>>> history_bins;
+        std::vector<WeakSet<HistoryResource>> history_bins;
 
         // Which index is the current bin.
         size_t history_index = 0;
