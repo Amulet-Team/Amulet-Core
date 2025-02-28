@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <amulet/utils/signal.hpp>
+#include <amulet/utils/weak.hpp>
 
 namespace Amulet {
 
@@ -38,24 +39,6 @@ struct HistoryResource {
 class AbstractHistoryManagerLayer;
 
 namespace {
-    template <typename T>
-    using WeakList = std::list<std::weak_ptr<T>>;
-
-    template <typename T>
-    void for_each(WeakList<T>& l, std::function<void(T&)> f)
-    {
-        auto it = l.begin();
-        while (it != l.end()) {
-            auto ptr = it->lock();
-            if (ptr) {
-                f(*ptr);
-                it++;
-            } else {
-                it = l.erase(it);
-            }
-        }
-    }
-
     class HistoryManagerPrivate {
     public:
         // Mutex to lock the state across multiple threads
