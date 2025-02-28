@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <functional>
 #include <limits>
 #include <map>
 #include <memory>
@@ -37,6 +38,23 @@ struct HistoryResource {
 class AbstractHistoryManagerLayer;
 
 namespace {
+    template <typename T>
+    using WeakList = std::list<std::weak_ptr<T>>;
+
+    template <typename T>
+    void for_each(WeakList<T>& l, std::function<void(T&)> f)
+    {
+        auto it = l.begin();
+        while (it != l.end()) {
+            auto ptr = it->lock();
+            if (ptr) {
+                f(*ptr);
+                it++;
+            } else {
+                it = l.erase(it);
+            }
+        }
+    }
 
     class HistoryManagerPrivate {
     public:
