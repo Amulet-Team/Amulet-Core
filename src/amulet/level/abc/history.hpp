@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <filesystem>
 #include <functional>
 #include <limits>
 #include <map>
@@ -10,8 +11,11 @@
 #include <shared_mutex>
 #include <vector>
 
+#include <leveldb.hpp>
+
 #include <amulet/utils/signal.hpp>
 #include <amulet/utils/weak.hpp>
+#include <amulet/utils/temp.hpp>
 
 namespace Amulet {
 
@@ -55,6 +59,10 @@ namespace {
 
         // Which index is the current bin.
         size_t history_index = 0;
+
+        TempDir db_path;
+
+        std::unique_ptr<Amulet::LevelDB> db;
 
         HistoryManagerPrivate();
 

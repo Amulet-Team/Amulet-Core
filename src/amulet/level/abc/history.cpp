@@ -1,10 +1,64 @@
+#include <leveldb/cache.h>
+#include <leveldb/db.h>
+#include <leveldb/decompress_allocator.h>
+#include <leveldb/env.h>
+#include <leveldb/filter_policy.h>
+#include <leveldb/write_batch.h>
+#include <leveldb/zlib_compressor.h>
+
 #include "history.hpp"
+
+class NullLogger : public leveldb::Logger {
+public:
+    void Logv(const char*, va_list) override { }
+};
+
+class LevelDBOptions : public Amulet::LevelDBOptions {
+public:
+    NullLogger logger;
+    leveldb::ZlibCompressorRaw zlib_compressor_raw;
+    leveldb::ZlibCompressor zlib_compressor;
+    leveldb::DecompressAllocator decompress_allocator;
+};
+
+static std::unique_ptr<Amulet::LevelDB> create_leveldb(std::string path_str)
+{
+    // Expand dots and symbolic links
+    auto path = std::filesystem::absolute(path_str);
+    // If there is not a directory at the path
+    if (!std::filesystem::is_directory(path)) {
+        throw std::runtime_error("leveldb directory does not exist.");
+    }
+
+    auto options = std::make_unique<LevelDBOptions>();
+    options->options.create_if_missing = true;
+    options->options.filter_policy = leveldb::NewBloomFilterPolicy(10);
+    options->options.block_cache = leveldb::NewLRUCache(40 * 1024 * 1024);
+    options->options.write_buffer_size = 4 * 1024 * 1024;
+    options->options.info_log = &options->logger;
+    options->options.compressors[0] = &options->zlib_compressor_raw;
+    options->options.compressors[1] = &options->zlib_compressor;
+    options->options.block_size = 163840;
+
+    options->read_options.decompress_allocator = &options->decompress_allocator;
+
+    leveldb::DB* _db = NULL;
+    auto status = leveldb::DB::Open(options->options, path.string(), &_db);
+    if (status.code() == leveldb::Status::kOk) {
+        return std::make_unique<Amulet::LevelDB>(
+            std::unique_ptr<leveldb::DB>(_db),
+            std::move(options));
+    }
+    throw std::runtime_error("Could not create temporary leveldb database at \"" + path_str + "\" " + status.ToString());
+}
 
 namespace Amulet {
 
 // HistoryManagerPrivate
 
 HistoryManagerPrivate::HistoryManagerPrivate()
+    : db_path("level_data")
+    , db(create_leveldb(db_path.get_path().string()))
 {
     // Add an initial bin.
     history_bins.emplace_back();
