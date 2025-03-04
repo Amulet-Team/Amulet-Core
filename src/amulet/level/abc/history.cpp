@@ -77,7 +77,21 @@ size_t HistoryManager::get_undo_count()
 
 void HistoryManager::undo()
 {
-    throw std::runtime_error("NotImplementedError");
+    // Check if there is anything to undo.
+    if (_h->history_index == 0) {
+        throw std::runtime_error("There is nothing to undo.");
+    }
+    // For all resources in the bin.
+    for_each<HistoryResource>(
+        _h->history_bins.at(_h->history_index),
+        [](HistoryResource& resource) {
+            // Decrement the index
+            resource.index++;
+            // Notify listeners that it has changed.
+            resource.changed.emit();
+        });
+    // Decrement the history index.
+    _h->history_index--;
 }
 
 size_t HistoryManager::get_redo_count()
@@ -87,7 +101,21 @@ size_t HistoryManager::get_redo_count()
 
 void HistoryManager::redo()
 {
-    throw std::runtime_error("NotImplementedError");
+    // Check if there is anything to redo.
+    if (!_h->has_redo()) {
+        throw std::runtime_error("There is nothing to redo.");
+    }
+    // Increment the history index.
+    _h->history_index++;
+    // For all resources in the bin.
+    for_each<HistoryResource>(
+        _h->history_bins.at(_h->history_index),
+        [](HistoryResource& resource) {
+            // Increment the index
+            resource.index++;
+            // Notify listeners that it has changed.
+            resource.changed.emit();
+        });
 }
 
 } // namespace Amulet
