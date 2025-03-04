@@ -30,6 +30,11 @@ bool HistoryManagerPrivate::has_redo()
 
 // HistoryManager
 
+HistoryManager::HistoryManager()
+    : _h(std::make_shared<HistoryManagerPrivate>())
+{
+}
+
 std::shared_mutex& HistoryManager::mutex()
 {
     return _h->mutex;
