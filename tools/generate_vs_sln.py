@@ -10,7 +10,7 @@ import leveldb
 
 
 def fix_path(path: str) -> str:
-    return path.replace(os.sep, "/")
+    return os.path.realpath(path).replace(os.sep, "/")
 
 
 RootDir = fix_path(os.path.dirname(os.path.dirname(__file__)))
