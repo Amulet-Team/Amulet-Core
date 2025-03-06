@@ -13,6 +13,7 @@
 
 #include <leveldb.hpp>
 
+#include <amulet/dll.hpp>
 #include <amulet/utils/signal.hpp>
 #include <amulet/utils/temp.hpp>
 #include <amulet/utils/weak.hpp>
@@ -113,11 +114,12 @@ std::string get_resource_key(LayerId id, const ResourceIdT& resource_id, size_t 
 {
     std::string key;
     key.reserve(32);
-    key.append(reinterpret_cast<char*>(_id), sizeof(LayerId));
+    key.append(reinterpret_cast<char*>(id), sizeof(LayerId));
     key.push_back('/');
     key.append(resource_id);
     key.push_back('/');
     key.append(reinterpret_cast<char*>(index), sizeof(size_t));
+    return key;
 }
 
 // A group of resources in the history system.
@@ -300,12 +302,12 @@ private:
     std::shared_ptr<HistoryManagerPrivate> _h;
 
 public:
-    HistoryManager();
+    AMULET_CORE_EXPORT HistoryManager();
 
     // The public mutex.
     // Note the mutex is shared with the HistoryManagerLayer class.
     // Thread safe.
-    std::shared_mutex& mutex();
+    AMULET_CORE_EXPORT std::shared_mutex& mutex();
 
     // Get a new history layer.
     // Unique lock required.
@@ -316,7 +318,8 @@ public:
         if (std::numeric_limits<LayerId>::max() < layer_id) {
             throw std::runtime_error("Exceeded the maximum number of layers (2^16)");
         }
-        auto layer = std::make_shared<HistoryManagerLayer<ResourceIdT>>(_h, layer_id);
+        auto layer = std::shared_ptr<HistoryManagerLayer<ResourceIdT>>(
+            new HistoryManagerLayer<ResourceIdT>(_h, static_cast<LayerId>(layer_id)));
         _h->layers.push_back(layer);
         layer_id++;
         return layer;
@@ -324,31 +327,31 @@ public:
 
     // Reset all history data.
     // Unique lock required.
-    void reset();
+    AMULET_CORE_EXPORT void reset();
 
     // Mark the current state as the saved state.
     // Unique lock required.
-    void mark_saved();
+    AMULET_CORE_EXPORT void mark_saved();
 
     // Create a new undo bin that new changes will be put in.
     // Unique lock required.
-    void create_undo_bin();
+    AMULET_CORE_EXPORT void create_undo_bin();
 
     // Get the number of times undo can be called.
     // Shared or unique lock required.
-    size_t get_undo_count();
+    AMULET_CORE_EXPORT size_t get_undo_count();
 
     // Undo the changes made in the current bin.
     // Unique lock required.
-    void undo();
+    AMULET_CORE_EXPORT void undo();
 
     // Get the number of times redo can be called.
     // Shared or unique lock required.
-    size_t get_redo_count();
+    AMULET_CORE_EXPORT size_t get_redo_count();
 
     // Redo the changes in the next bin.
     // Unique lock required.
-    void redo();
+    AMULET_CORE_EXPORT void redo();
 };
 
 } // namespace Amulet
