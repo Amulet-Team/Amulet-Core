@@ -14,12 +14,13 @@
 #include <leveldb.hpp>
 
 #include <amulet/utils/signal.hpp>
-#include <amulet/utils/weak.hpp>
 #include <amulet/utils/temp.hpp>
+#include <amulet/utils/weak.hpp>
 
 namespace Amulet {
 
-struct HistoryResource {
+class HistoryResource {
+public:
     // The local index of the currently active revision.
     size_t index = 0;
 
@@ -31,12 +32,17 @@ struct HistoryResource {
     size_t global_index = 0;
 
     // Emitted when index changes during undo and redo.
-    Signal<> changed;
+    std::unique_ptr<Signal<>> changed;
 
     // Has the resource been changed since last save.
     bool has_changed()
     {
         return index != saved_index;
+    }
+
+    HistoryResource()
+        : changed(std::make_unique<Signal<>>())
+    {
     }
 };
 
@@ -177,16 +183,9 @@ public:
         return _resources.contains(resource_id);
     }
 
-    // Get the changed signal for the resource.
-    // This will error if the resource does not exist. Check has_resource first.
-    // Shared or unique lock required.
-    Signal<>& get_signal(ResourceIdT resource_id)
+    const HistoryResource& get_resource(ResourceIdT resource_id)
     {
-        auto it = _resources.find(resource_id);
-        if (it == _resources.end()) {
-            throw std::invalid_argument("Unknown resource_id. Call set_initial_value first.");
-        }
-        return it->second->changed;
+        return _resources.at(resource_id);
     }
 
     // Get the current data for the resource.

@@ -142,7 +142,7 @@ void HistoryManager::undo()
             // Decrement the index
             resource.index++;
             // Notify listeners that it has changed.
-            resource.changed.emit();
+            resource.changed->emit();
         });
     // Decrement the history index.
     _h->history_index--;
@@ -168,7 +168,7 @@ void HistoryManager::redo()
             // Increment the index
             resource.index++;
             // Notify listeners that it has changed.
-            resource.changed.emit();
+            resource.changed->emit();
         });
 }
 
