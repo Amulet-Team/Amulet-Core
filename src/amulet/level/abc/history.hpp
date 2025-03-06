@@ -110,7 +110,7 @@ using LayerId = std::uint16_t;
 
 // A group of resources in the history system.
 template <ResourceId ResourceIdT>
-class HistoryManagerLayer {
+class HistoryManagerLayer : public AbstractHistoryManagerLayer {
 private:
     // Shared state.
     std::shared_ptr<HistoryManagerPrivate> _h;
