@@ -108,6 +108,18 @@ concept ResourceId = std::totally_ordered<T> && std::convertible_to<T, std::stri
 // 2^16 should be large enough but this can be increased if needed.
 using LayerId = std::uint16_t;
 
+template <ResourceId ResourceIdT>
+std::string get_resource_key(LayerId id, const ResourceIdT& resource_id, size_t index)
+{
+    std::string key;
+    key.reserve(32);
+    key.append(reinterpret_cast<char*>(_id), sizeof(LayerId));
+    key.push_back('/');
+    key.append(resource_id);
+    key.push_back('/');
+    key.append(reinterpret_cast<char*>(index), sizeof(size_t));
+}
+
 // A group of resources in the history system.
 template <ResourceId ResourceIdT>
 class HistoryManagerLayer : public AbstractHistoryManagerLayer {
@@ -169,8 +181,9 @@ public:
     }
 
     // View the resource data.
+    // The caller must not modify the HistoryResource state.
     // Shared or unique lock required while accessing the returned object.
-    const std::map<ResourceIdT, std::shared_ptr<const HistoryResource>>& get_resources()
+    const std::map<ResourceIdT, std::shared_ptr<HistoryResource>>& get_resources()
     {
         return _resources;
     }
@@ -178,36 +191,93 @@ public:
     // Check if a resource entry exists.
     // If this is false the caller must call set_initial_resource
     // Shared or unique lock required.
-    bool has_resource(ResourceIdT resource_id)
+    bool has_resource(const ResourceIdT& resource_id) const
     {
         return _resources.contains(resource_id);
     }
 
-    const HistoryResource& get_resource(ResourceIdT resource_id)
+    const HistoryResource& get_resource(const ResourceIdT& resource_id) const
     {
-        return _resources.at(resource_id);
+        return *_resources.at(resource_id);
     }
 
     // Get the current data for the resource.
     // Shared or unique lock required.
-    std::string get_value(ResourceIdT resource_id)
+    std::string get_value(const ResourceIdT& resource_id) const
     {
-        throw std::runtime_error("NotImplementedError");
+        // Get the resource
+        const auto& resource = *_resources.at(resource_id);
+        // Get the value
+        std::string value;
+        auto& db = *_h->db;
+        auto status = db->Get(
+            db.get_read_options(),
+            get_resource_key(_id, resource_id, resource.index),
+            &value);
+        if (!status.ok()) {
+            throw std::runtime_error(status.ToString());
+        }
+        return value;
     }
 
     // Set the initial state for the resource.
-    // If has_resource return false this must be called.
+    // If has_resource returns false this must be called.
     // Unique lock required.
-    void set_initial_value(ResourceIdT resource_id, std::string data)
+    void set_initial_value(const ResourceIdT& resource_id, const std::string& value)
     {
-        throw std::runtime_error("NotImplementedError");
+        // Check that it doesn't already exist.
+        if (_resources.contains(resource_id)) {
+            throw std::runtime_error("Resource already exists. " + std::string(resource_id));
+        }
+        // Write the value to the database
+        auto& db = *_h->db;
+        auto status = db->Put(
+            db.get_write_options(),
+            get_resource_key(_id, resource_id, 0),
+            value);
+        if (!status.ok()) {
+            throw std::runtime_error(status.ToString());
+        }
+        // Create the resource
+        _resources.emplace(resource_id, std::make_shared<HistoryResource>());
     }
 
     // Set the data for the resource.
     // Unique lock required.
-    void set_value(ResourceIdT resource_id, std::string data)
+    void set_value(const ResourceIdT& resource_id, const std::string& value)
     {
-        throw std::runtime_error("NotImplementedError");
+        // A change has been made. Invalidate all future undo points.
+        _h->invalidate_future();
+
+        // Get the resource
+        auto resource_ptr = _resources.at(resource_id);
+        auto& resource = *resource_ptr;
+
+        // Update the resource state
+        if (resource.global_index != _h->history_index) {
+            // A new global bin has been created since this was last changed.
+            // Create a new local bin.
+            resource.index++;
+            resource.global_index = _h->history_index;
+        }
+        if (resource.index == resource.saved_index) {
+            // We are modifying the saved bin.
+            // The saved index is invalid.
+            resource.saved_index = -1;
+        }
+        // Write to the database.
+        auto& db = *_h->db;
+        auto status = db->Put(
+            db.get_write_options(),
+            get_resource_key(_id, resource_id, resource.index),
+            value);
+        if (!status.ok()) {
+            throw std::runtime_error(status.ToString());
+        }
+        if (_h->history_index != 0) {
+            // Add the resource to the global bin
+            _h->history_bins.at(_h->history_index).emplace(resource_ptr);
+        }
     }
 
     // Set the data for multiple resources.
