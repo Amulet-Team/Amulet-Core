@@ -52,7 +52,14 @@ const std::filesystem::path& TempDir::get_path() const {
 } // namespace Amulet
 
 static const bool cleared_temp_dirs = [] {
-    for (const auto& group : std::filesystem::directory_iterator(Amulet::get_temp_dir())) {
+    std::filesystem::path temp_dir;
+    try {
+        temp_dir = Amulet::get_temp_dir();
+    } catch (const std::runtime_error&) {
+        return true;
+    }
+    
+    for (const auto& group : std::filesystem::directory_iterator(temp_dir)) {
         if (!group.is_directory()) {
             continue;
         }
