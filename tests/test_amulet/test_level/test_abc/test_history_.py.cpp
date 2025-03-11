@@ -18,14 +18,6 @@ public:
     }
 };
 
-template <typename T>
-void assert_equal(const T& a, const T& b, size_t line)
-{
-    if (a != b) {
-        throw std::runtime_error("Values are not equal. Line: " + std::to_string(line));
-    }
-}
-
 #define ASSERT_EQUAL(CLS, A, B)                                                                                    \
     {                                                                                                              \
         CLS a;                                                                                                     \
