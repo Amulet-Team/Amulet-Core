@@ -21,7 +21,7 @@ public:
     leveldb::DecompressAllocator decompress_allocator;
 };
 
-static std::unique_ptr<Amulet::LevelDB> create_leveldb(std::string path_str)
+static std::unique_ptr<Amulet::LevelDB> create_leveldb(const std::string& path_str)
 {
     // Expand dots and symbolic links
     auto path = std::filesystem::absolute(path_str);
@@ -29,6 +29,10 @@ static std::unique_ptr<Amulet::LevelDB> create_leveldb(std::string path_str)
     if (!std::filesystem::is_directory(path)) {
         throw std::runtime_error("leveldb directory does not exist.");
     }
+
+    // Make a db directory in the directory
+    path /= "db";
+    std::filesystem::create_directory(path);
 
     auto options = std::make_unique<LevelDBOptions>();
     options->options.create_if_missing = true;

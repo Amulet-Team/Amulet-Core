@@ -114,11 +114,11 @@ std::string get_resource_key(LayerId id, const ResourceIdT& resource_id, size_t 
 {
     std::string key;
     key.reserve(32);
-    key.append(reinterpret_cast<char*>(id), sizeof(LayerId));
+    key.append(reinterpret_cast<char*>(&id), sizeof(LayerId));
     key.push_back('/');
     key.append(resource_id);
     key.push_back('/');
-    key.append(reinterpret_cast<char*>(index), sizeof(size_t));
+    key.append(reinterpret_cast<char*>(&index), sizeof(size_t));
     return key;
 }
 
