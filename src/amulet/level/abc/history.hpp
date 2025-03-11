@@ -36,7 +36,7 @@ public:
     std::unique_ptr<Signal<>> changed;
 
     // Has the resource been changed since last save.
-    bool has_changed()
+    bool has_changed() const
     {
         return index != saved_index;
     }
