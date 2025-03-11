@@ -60,36 +60,40 @@ namespace Amulet {
 
 // HistoryManagerPrivate
 
-HistoryManagerPrivate::HistoryManagerPrivate()
-    : db_path("level_data")
-    , db(create_leveldb(db_path.get_path().string()))
-{
-    // Add an initial bin.
-    history_bins.emplace_back();
-}
+namespace detail {
 
-void HistoryManagerPrivate::invalidate_future()
-{
-    // If there are future bins to invalidate.
-    if (has_redo()) {
-        // Destroy future bins
-        history_bins.resize(history_index + 1);
-        // Call invalidate_future for each layer
-        for_each<AbstractHistoryManagerLayer>(
-            layers,
-            [](AbstractHistoryManagerLayer& layer) { layer.invalidate_future(); });
+    HistoryManagerPrivate::HistoryManagerPrivate()
+        : db_path("level_data")
+        , db(create_leveldb(db_path.get_path().string()))
+    {
+        // Add an initial bin.
+        history_bins.emplace_back();
     }
-}
 
-bool HistoryManagerPrivate::has_redo()
-{
-    return history_index + 1 < history_bins.size();
-}
+    void HistoryManagerPrivate::invalidate_future()
+    {
+        // If there are future bins to invalidate.
+        if (has_redo()) {
+            // Destroy future bins
+            history_bins.resize(history_index + 1);
+            // Call invalidate_future for each layer
+            for_each<AbstractHistoryManagerLayer>(
+                layers,
+                [](AbstractHistoryManagerLayer& layer) { layer.invalidate_future(); });
+        }
+    }
+
+    bool HistoryManagerPrivate::has_redo()
+    {
+        return history_index + 1 < history_bins.size();
+    }
+
+} // namespace detail
 
 // HistoryManager
 
 HistoryManager::HistoryManager()
-    : _h(std::make_shared<HistoryManagerPrivate>())
+    : _h(std::make_shared<detail::HistoryManagerPrivate>())
 {
 }
 

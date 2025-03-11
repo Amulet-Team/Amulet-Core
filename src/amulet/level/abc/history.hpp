@@ -49,7 +49,7 @@ public:
 
 class AbstractHistoryManagerLayer;
 
-namespace {
+namespace detail {
     class HistoryManagerPrivate {
     public:
         // Mutex to lock the state across multiple threads
@@ -71,13 +71,13 @@ namespace {
 
         std::unique_ptr<Amulet::LevelDB> db;
 
-        HistoryManagerPrivate();
+        AMULET_CORE_EXPORT HistoryManagerPrivate();
 
         // Destroy all future redo bins.
-        void invalidate_future();
+        AMULET_CORE_EXPORT void invalidate_future();
 
         // Are there bins ahead of the history index.
-        bool has_redo();
+        AMULET_CORE_EXPORT bool has_redo();
     };
 
 } // namespace
@@ -98,7 +98,7 @@ protected:
     // Unique mutex required.
     virtual void mark_saved() = 0;
 
-    friend HistoryManagerPrivate;
+    friend detail::HistoryManagerPrivate;
     friend HistoryManager;
 };
 
@@ -127,7 +127,7 @@ template <ResourceId ResourceIdT>
 class HistoryManagerLayer : public AbstractHistoryManagerLayer {
 private:
     // Shared state.
-    std::shared_ptr<HistoryManagerPrivate> _h;
+    std::shared_ptr<detail::HistoryManagerPrivate> _h;
 
     // A unique identifier for this layer.
     LayerId _id;
@@ -136,7 +136,7 @@ private:
     std::map<ResourceIdT, std::shared_ptr<HistoryResource>> _resources;
 
     HistoryManagerLayer(
-        std::shared_ptr<HistoryManagerPrivate> h,
+        std::shared_ptr<detail::HistoryManagerPrivate> h,
         LayerId id)
         : _h(h)
         , _id(id)
@@ -299,7 +299,7 @@ public:
 class HistoryManager {
 private:
     // Shared state.
-    std::shared_ptr<HistoryManagerPrivate> _h;
+    std::shared_ptr<detail::HistoryManagerPrivate> _h;
 
 public:
     AMULET_CORE_EXPORT HistoryManager();
