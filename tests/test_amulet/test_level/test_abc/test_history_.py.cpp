@@ -59,13 +59,19 @@ void init_test_history(py::module m_parent)
         layer_2->set_initial_value(key_2, "value_2_2");
 
         // Get initial values.
-        ASSERT_EQUAL(std::string, "value_1_1", layer_1->get_value(key_1));
-        ASSERT_EQUAL(std::string, "value_1_2", layer_1->get_value(key_2));
-        ASSERT_EQUAL(std::string, "value_2_1", layer_2->get_value(key_1));
-        ASSERT_EQUAL(std::string, "value_2_2", layer_2->get_value(key_2));
+        ASSERT_EQUAL(std::string, "value_1_1", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2", layer_1->get_value(key_2))
+        ASSERT_EQUAL(std::string, "value_2_1", layer_2->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_2_2", layer_2->get_value(key_2))
+
+        ASSERT_EQUAL(size_t, 0, history_manager.get_undo_count())
+        ASSERT_EQUAL(size_t, 0, history_manager.get_redo_count())
 
         // Create a new undo point.
         history_manager.create_undo_bin();
+
+        ASSERT_EQUAL(size_t, 1, history_manager.get_undo_count())
+        ASSERT_EQUAL(size_t, 0, history_manager.get_redo_count())
 
         // Overwrite values
         layer_1->set_value(key_2, "value_1_2b");
@@ -77,37 +83,79 @@ void init_test_history(py::module m_parent)
         layer_2->set_initial_value(key_3, "value_2_3");
 
         // Validate
-        ASSERT_EQUAL(std::string, "value_1_1", layer_1->get_value(key_1));
-        ASSERT_EQUAL(std::string, "value_1_2b", layer_1->get_value(key_2));
-        ASSERT_EQUAL(std::string, "value_1_3", layer_1->get_value(key_3));
-        ASSERT_EQUAL(std::string, "value_2_1", layer_2->get_value(key_1));
-        ASSERT_EQUAL(std::string, "value_2_2b", layer_2->get_value(key_2));
-        ASSERT_EQUAL(std::string, "value_2_3", layer_2->get_value(key_3));
+        ASSERT_EQUAL(std::string, "value_1_1", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2b", layer_1->get_value(key_2))
+        ASSERT_EQUAL(std::string, "value_1_3", layer_1->get_value(key_3))
+        ASSERT_EQUAL(std::string, "value_2_1", layer_2->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_2_2b", layer_2->get_value(key_2))
+        ASSERT_EQUAL(std::string, "value_2_3", layer_2->get_value(key_3))
 
         // Undo and validate
         history_manager.undo();
-        ASSERT_EQUAL(std::string, "value_1_1", layer_1->get_value(key_1));
-        ASSERT_EQUAL(std::string, "value_1_2", layer_1->get_value(key_2));
-        ASSERT_EQUAL(std::string, "value_2_1", layer_2->get_value(key_1));
-        ASSERT_EQUAL(std::string, "value_2_2", layer_2->get_value(key_2));
+        ASSERT_EQUAL(std::string, "value_1_1", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2", layer_1->get_value(key_2))
+        ASSERT_EQUAL(std::string, "value_2_1", layer_2->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_2_2", layer_2->get_value(key_2))
+
+        ASSERT_EQUAL(size_t, 0, history_manager.get_undo_count())
+        ASSERT_EQUAL(size_t, 1, history_manager.get_redo_count())
 
         // Redo and validate
         history_manager.redo();
-        ASSERT_EQUAL(std::string, "value_1_1", layer_1->get_value(key_1));
-        ASSERT_EQUAL(std::string, "value_1_2b", layer_1->get_value(key_2));
-        ASSERT_EQUAL(std::string, "value_1_3", layer_1->get_value(key_3));
-        ASSERT_EQUAL(std::string, "value_2_1", layer_2->get_value(key_1));
-        ASSERT_EQUAL(std::string, "value_2_2b", layer_2->get_value(key_2));
-        ASSERT_EQUAL(std::string, "value_2_3", layer_2->get_value(key_3));
+        ASSERT_EQUAL(std::string, "value_1_1", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2b", layer_1->get_value(key_2))
+        ASSERT_EQUAL(std::string, "value_1_3", layer_1->get_value(key_3))
+        ASSERT_EQUAL(std::string, "value_2_1", layer_2->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_2_2b", layer_2->get_value(key_2))
+        ASSERT_EQUAL(std::string, "value_2_3", layer_2->get_value(key_3))
 
-        // Undo and create a new undo point
+        ASSERT_EQUAL(size_t, 1, history_manager.get_undo_count())
+        ASSERT_EQUAL(size_t, 0, history_manager.get_redo_count())
+
+        // Validate changed
+        ASSERT_EQUAL(bool, false, layer_1->get_resource(key_1).has_changed())
+        ASSERT_EQUAL(bool, true, layer_1->get_resource(key_2).has_changed())
+        ASSERT_EQUAL(bool, false, layer_1->get_resource(key_3).has_changed())
+        ASSERT_EQUAL(bool, false, layer_2->get_resource(key_1).has_changed())
+        ASSERT_EQUAL(bool, true, layer_2->get_resource(key_2).has_changed())
+        ASSERT_EQUAL(bool, false, layer_2->get_resource(key_3).has_changed())
+
+        // The owner would push the data to the level and call this to update the saved state.
+        history_manager.mark_saved();
+
+        // Validate changed
+        ASSERT_EQUAL(bool, false, layer_1->get_resource(key_1).has_changed())
+        ASSERT_EQUAL(bool, false, layer_1->get_resource(key_2).has_changed())
+        ASSERT_EQUAL(bool, false, layer_1->get_resource(key_3).has_changed())
+        ASSERT_EQUAL(bool, false, layer_2->get_resource(key_1).has_changed())
+        ASSERT_EQUAL(bool, false, layer_2->get_resource(key_2).has_changed())
+        ASSERT_EQUAL(bool, false, layer_2->get_resource(key_3).has_changed())
+
+        // Undo
         history_manager.undo();
+        // Validate changed
+        ASSERT_EQUAL(bool, false, layer_1->get_resource(key_1).has_changed())
+        ASSERT_EQUAL(bool, true, layer_1->get_resource(key_2).has_changed())
+        ASSERT_EQUAL(bool, false, layer_1->get_resource(key_3).has_changed())
+        ASSERT_EQUAL(bool, false, layer_2->get_resource(key_1).has_changed())
+        ASSERT_EQUAL(bool, true, layer_2->get_resource(key_2).has_changed())
+        ASSERT_EQUAL(bool, false, layer_2->get_resource(key_3).has_changed())
+
+        // create a new undo point
         history_manager.create_undo_bin();
 
+        ASSERT_EQUAL(size_t, 1, history_manager.get_undo_count())
+        ASSERT_EQUAL(size_t, 0, history_manager.get_redo_count())
+
         // Validate
-        ASSERT_EQUAL(std::string, "value_1_1", layer_1->get_value(key_1));
-        ASSERT_EQUAL(std::string, "value_1_2", layer_1->get_value(key_2));
-        ASSERT_EQUAL(std::string, "value_2_1", layer_2->get_value(key_1));
-        ASSERT_EQUAL(std::string, "value_2_2", layer_2->get_value(key_2));
+        ASSERT_EQUAL(std::string, "value_1_1", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2", layer_1->get_value(key_2))
+        ASSERT_EQUAL(std::string, "value_2_1", layer_2->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_2_2", layer_2->get_value(key_2))
+
+        // Test resetting
+        history_manager.reset();
+        ASSERT_EQUAL(size_t, 0, layer_1->get_resources().size())
+        ASSERT_EQUAL(size_t, 0, layer_2->get_resources().size())
     });
 }
