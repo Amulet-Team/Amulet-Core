@@ -148,7 +148,7 @@ void HistoryManager::undo()
         _h->history_bins.at(_h->history_index),
         [](HistoryResource& resource) {
             // Decrement the index
-            resource.index++;
+            resource.index--;
             // Notify listeners that it has changed.
             resource.changed->emit();
         });
