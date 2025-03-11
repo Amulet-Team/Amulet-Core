@@ -37,7 +37,7 @@ namespace detail {
         AMULET_CORE_EXPORT void exit();
     };
 
-    AMULET_CORE_EXPORT extern EventLoop global_event_loop;
+    AMULET_CORE_EXPORT EventLoop& get_global_event_loop();
 
     template <typename... Args>
     class SignalCallbackStorage {
@@ -156,7 +156,7 @@ public:
                 if (async_args == nullptr) {
                     async_args = std::make_shared<std::tuple<Args...>>(std::forward<Args>(args)...);
                 }
-                detail::global_event_loop.submit([async_args, ptr]() {
+                detail::get_global_event_loop().submit([async_args, ptr]() {
                     auto storage = ptr.lock();
                     if (storage == nullptr) {
                         return;
