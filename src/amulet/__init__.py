@@ -13,6 +13,8 @@ os.environ.setdefault(
     "CACHE_DIR", platformdirs.user_cache_dir("AmuletTeam", "AmuletTeam")
 )
 os.environ.setdefault("LOG_DIR", platformdirs.user_log_dir("AmuletTeam", "AmuletTeam"))
+os.makedirs(os.environ["CACHE_DIR"], exist_ok=True)
+os.makedirs(os.environ["LOG_DIR"], exist_ok=True)
 
 # init a default logger
 logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
