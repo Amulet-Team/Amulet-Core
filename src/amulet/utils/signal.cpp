@@ -65,8 +65,11 @@ namespace detail {
         _condition.notify_one();
     }
 
-    EventLoop global_event_loop;
-    int global_event_loop_atexit_registered = std::atexit([] { global_event_loop.exit(); });
+    EventLoop& get_global_event_loop() {
+        static EventLoop global_event_loop;
+        static int global_event_loop_atexit_registered = std::atexit([] { global_event_loop.exit(); });
+        return global_event_loop;
+    }
 
 } // namespace detail
 
