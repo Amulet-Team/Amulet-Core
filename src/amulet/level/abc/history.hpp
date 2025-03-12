@@ -261,7 +261,6 @@ public:
         _h->invalidate_future();
 
         // Get the resource
-        std::shared_ptr<HistoryResource> resource_ptr;
         auto it = _resources.find(resource_id);
         if (it == _resources.end()) {
             if (!init) {
