@@ -36,6 +36,7 @@ target_compile_definitions(_test_amulet PRIVATE COMPILER_VERSION="${CMAKE_CXX_CO
 target_link_libraries(_test_amulet PRIVATE pybind11_extensions)
 target_link_libraries(_test_amulet PRIVATE amulet_nbt)
 target_link_libraries(_test_amulet PRIVATE leveldb_mcpe)
+target_link_libraries(_test_amulet PRIVATE leveldb_mcpe_interface)
 target_link_libraries(_test_amulet PRIVATE amulet_core)
 target_sources(_test_amulet PRIVATE ${TEST_AMULET_SOURCES})
 install(TARGETS _test_amulet DESTINATION ".")

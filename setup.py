@@ -13,6 +13,10 @@ import amulet_nbt
 import leveldb
 
 
+def fix_path(path: str) -> str:
+    return os.path.realpath(path).replace(os.sep, "/")
+
+
 # https://github.com/pybind/cmake_example/blob/master/setup.py
 class CMakeExtension(Extension):
     def __init__(self, name: str, sourcedir: str = "") -> None:
@@ -43,9 +47,9 @@ class CMakeBuild(cmdclass.get("build_ext", build_ext)):
                 *platform_args,
                 f"-DPYTHON_EXECUTABLE={sys.executable}",
                 f"-Dpybind11_DIR={pybind11.get_cmake_dir().replace(os.sep, '/')}",
-                f"-Dpybind11_extensions_DIR={pybind11_extensions.__path__[0].replace(os.sep, '/')}",
-                f"-Damulet_nbt_DIR={amulet_nbt.__path__[0].replace(os.sep, '/')}",
-                f"-Dleveldb_mcpe_DIR={leveldb.__path__[0].replace(os.sep, '/')}",
+                f"-Dpybind11_extensions_DIR={fix_path(pybind11_extensions.__path__[0])}",
+                f"-Damulet_nbt_DIR={fix_path(amulet_nbt.__path__[0])}",
+                f"-Dleveldb_mcpe_DIR={fix_path(leveldb.__path__[0])}",
                 f"-DCMAKE_INSTALL_PREFIX=install",
                 f"-DSRC_INSTALL_DIR={src_dir}",
                 "-B",
