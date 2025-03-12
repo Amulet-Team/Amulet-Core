@@ -13,6 +13,7 @@ void init_java_chunk(py::module);
 void init_java_anvil(py::module);
 py::module init_java_raw_dimension(py::module);
 py::module init_java_raw_level(py::module);
+py::module init_java_level(py::module);
 
 py::module init_java(py::module m_parent)
 {
@@ -30,8 +31,10 @@ py::module init_java(py::module m_parent)
     m.attr("JavaCreateArgsV1") = raw_level.attr("JavaCreateArgsV1");
     m.attr("JavaRawLevel") = raw_level.attr("JavaRawLevel");
 
+    auto level = init_java_level(m);
+
     //    m.attr("JavaInternalDimensionID") = py::module::import("amulet.level.java.raw._typing").attr("JavaInternalDimensionID");
-    //    m.attr("JavaLevel") = py::module::import("amulet.level.java._level").attr("JavaLevel");
+    m.attr("JavaLevel") = level.attr("JavaLevel");
 
     return m;
 }
