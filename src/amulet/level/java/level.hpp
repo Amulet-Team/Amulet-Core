@@ -56,49 +56,60 @@ public:
     // LevelMetadata
 
     // Is the level open.
+    // External shared read lock required.
     AMULET_CORE_EXPORT bool is_open() override;
 
     // The platform string for the level.
+    // External shared read lock required.
     AMULET_CORE_EXPORT const std::string get_platform() override;
 
     // The maximum game version the level has been opened with.
+    // External shared read lock required.
     AMULET_CORE_EXPORT const VersionNumber get_max_game_version() override;
 
     // Is this level a supported version.
     // This is true for all versions we support and false for
-    // snapshots, betas and unsupported newer versions.
+    // snapshots and unsupported newer versions.
     AMULET_CORE_EXPORT bool is_supported() override;
 
     // The thumbnail for the level.
     PIL::Image::Image get_thumbnail() override;
 
     // The name of the level.
+    // External shared read lock required.
     AMULET_CORE_EXPORT const std::string get_level_name() override;
 
     // The time when the level was last modified.
+    // External shared read lock required.
     AMULET_CORE_EXPORT std::chrono::system_clock::time_point get_modified_time() override;
 
     // The size of the sub-chunk. Must be a cube.
+    // External shared read lock required.
     AMULET_CORE_EXPORT size_t get_sub_chunk_size() override;
 
     // DiskLevel
 
     // The path to the level on disk.
+    // External shared read lock required.
     AMULET_CORE_EXPORT const std::filesystem::path& get_path() override;
 
     // Level
 
     // Open the level for editing.
     // If the level is already open, this does nothing.
+    // External unique lock required.
     AMULET_CORE_EXPORT void open() override;
 
     // Unload all loaded data.
+    // External unique lock required.
     // AMULET_CORE_EXPORT void purge() override;
 
     // Save changes to the level.
+    // External unique lock required.
     AMULET_CORE_EXPORT void save() override;
 
     // Close the level.
+    // External unique lock required.
     AMULET_CORE_EXPORT void close() override;
 
     // Create a new history restore point.
