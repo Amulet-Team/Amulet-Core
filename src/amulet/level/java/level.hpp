@@ -100,9 +100,9 @@ public:
     // External unique lock required.
     AMULET_CORE_EXPORT void open() override;
 
-    // Unload all loaded data.
+    // Clear all unsaved changes and restore points.
     // External unique lock required.
-    // AMULET_CORE_EXPORT void purge() override;
+    AMULET_CORE_EXPORT void purge() override;
 
     // Save changes to the level.
     // External unique lock required.
@@ -114,7 +114,7 @@ public:
 
     // Create a new history restore point.
     // Any changes made after this point can be reverted by calling undo.
-    // Thread safe. 
+    // Thread safe.
     void create_restore_point() override;
 
     // Get the number of times undo can be called.

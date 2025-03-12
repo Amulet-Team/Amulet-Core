@@ -79,10 +79,12 @@ void JavaLevel::open()
     opened.emit();
 }
 
-// void JavaLevel::purge()
-//{
-//     throw std::runtime_error("NotImplementedError");
-// }
+void JavaLevel::purge()
+{
+    _get_open_data().history_manager.reset();
+    purged.emit();
+    history_changed.emit();
+}
 
 void JavaLevel::save()
 {

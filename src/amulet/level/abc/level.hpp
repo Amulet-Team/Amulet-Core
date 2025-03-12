@@ -73,11 +73,11 @@ public:
 
     // Signal emitted when the level is purged
     // Thread safe.
-    // Signal<> purged;
+    Signal<> purged;
 
-    // Clear all unsaved changes.
+    // Clear all unsaved changes and restore points.
     // External unique lock required.
-    // virtual void purge() = 0;
+    virtual void purge() = 0;
 
     // Save all changes to the level.
     // External unique lock required.
