@@ -243,5 +243,29 @@ void init_test_history(py::module m_parent)
         history_manager.redo();
         ASSERT_EQUAL(std::string, "value_1_1_map", layer_1->get_value(key_1))
         ASSERT_EQUAL(std::string, "value_1_2_map", layer_1->get_value(key_2))
+
+        // Test for ghosts
+        history_manager.reset();
+        layer_1->set_initial_value(key_1, "value_1_1");
+        history_manager.create_undo_bin();
+        ASSERT_EQUAL(std::string, "value_1_1", layer_1->get_value(key_1))
+
+        // Test default values
+        history_manager.reset();
+        layer_1->set_initial_value(key_1, "value_1_1");
+        // Second undo point
+        history_manager.create_undo_bin();
+        layer_1->set_value(key_1, "value_1_1b");
+        layer_1->set_initial_value(key_2, "value_1_2");
+        layer_1->set_value(key_2, "value_1_2b");
+        // Validate
+        ASSERT_EQUAL(std::string, "value_1_1b", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2b", layer_1->get_value(key_2))
+        history_manager.undo();
+        ASSERT_EQUAL(std::string, "value_1_1", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2", layer_1->get_value(key_2))
+        history_manager.redo();
+        ASSERT_EQUAL(std::string, "value_1_1b", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2b", layer_1->get_value(key_2))
     });
 }
