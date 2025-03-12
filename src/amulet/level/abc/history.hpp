@@ -223,15 +223,9 @@ public:
         return value;
     }
 
-    // Set the initial state for the resource.
-    // If has_resource returns false this must be called.
-    // Unique lock required.
-    void set_initial_value(const ResourceIdT& resource_id, const std::string& value)
+private:
+    std::map<ResourceIdT, std::shared_ptr<HistoryResource>>::iterator _set_initial_value(const ResourceIdT& resource_id, const std::string& value)
     {
-        // Check that it doesn't already exist.
-        if (_resources.contains(resource_id)) {
-            throw std::runtime_error("Resource already exists. " + std::string(resource_id));
-        }
         // Write the value to the database
         auto& db = *_h->db;
         auto status = db->Put(
@@ -242,18 +236,40 @@ public:
             throw std::runtime_error(status.ToString());
         }
         // Create the resource
-        _resources.emplace(resource_id, std::make_shared<HistoryResource>());
+        return _resources.emplace(resource_id, std::make_shared<HistoryResource>()).first;
+    }
+
+public:
+    // Set the initial state for the resource.
+    // If has_resource returns false this must be called.
+    // Unique lock required.
+    void set_initial_value(const ResourceIdT& resource_id, const std::string& value)
+    {
+        // Check that it doesn't already exist.
+        if (_resources.contains(resource_id)) {
+            throw std::runtime_error("Resource already exists. " + std::string(resource_id));
+        }
+        _set_initial_value(resource_id, value);
     }
 
     // Set the data for the resource.
+    // If init is true and the initial value has not been set, this will initialise it with an empty string.
     // Unique lock required.
-    void set_value(const ResourceIdT& resource_id, const std::string& value)
+    void set_value(const ResourceIdT& resource_id, const std::string& value, bool init = false)
     {
         // A change has been made. Invalidate all future undo points.
         _h->invalidate_future();
 
         // Get the resource
-        auto resource_ptr = _resources.at(resource_id);
+        std::shared_ptr<HistoryResource> resource_ptr;
+        auto it = _resources.find(resource_id);
+        if (it == _resources.end()) {
+            if (!init) {
+                throw std::runtime_error("Initial value has not been set for resource: " + std::string(resource_id));
+            }
+            it = _set_initial_value(resource_id, "");
+        }
+        auto resource_ptr = it->second;
         auto& resource = *resource_ptr;
 
         // Update the resource state
@@ -285,13 +301,14 @@ public:
 
     // Set the data for multiple resources.
     // Supports any range of pair-like elements. Elements must remain valid beyond the life of the iterator.
+    // If init is true and the initial value has not been set, this will initialise it with an empty string.
     // Unique lock required.
     template <typename T>
         requires std::ranges::forward_range<T>
         && std::convertible_to<
             std::ranges::range_value_t<T>,
             const std::pair<ResourceIdT, std::string>>
-    void set_values(const T& resources)
+    void set_values(const T& resources, bool init = false)
     {
         // A change has been made. Invalidate all future undo points.
         _h->invalidate_future();
@@ -300,7 +317,14 @@ public:
         // If a resource doesn't exist we should error before changing the state.
         std::list<std::tuple<const ResourceIdT&, const std::string&, std::shared_ptr<HistoryResource>>> resource_data;
         for (const auto& [resource_id, value] : resources) {
-            resource_data.emplace_back(resource_id, value, _resources.at(resource_id));
+            auto it = _resources.find(resource_id);
+            if (it == _resources.end()) {
+                if (!init) {
+                    throw std::runtime_error("Initial value has not been set for resource: " + std::string(resource_id));
+                }
+                it = _set_initial_value(resource_id, "");
+            }
+            resource_data.emplace_back(resource_id, value, it->second);
         }
 
         // Create the write batch
