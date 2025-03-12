@@ -144,6 +144,7 @@ public:
     void set_history_enabled(bool) override;
 
     // The identifiers for all dimensions in the level
+    // External shared read-only lock optional.
     AMULET_CORE_EXPORT std::vector<std::string> get_dimension_ids() override;
 
     // Get a dimension.
@@ -152,17 +153,20 @@ public:
     // CompactibleLevel
 
     // Compact the level data to reduce file size.
+    // External shared lock required.
     AMULET_CORE_EXPORT void compact() override;
 
     // ReloadableLevel
 
     // Reload the level metadata.
     // This can only be done when the level is not open.
+    // External unique lock required.
     AMULET_CORE_EXPORT void reload_metadata() override;
 
     // Reload the level.
     // This is like closing and opening the level but does not release locks.
     // This can only be done when the level is open.
+    // External unique lock required.
     AMULET_CORE_EXPORT void reload() override;
 
     // Access the raw level instance.

@@ -1,4 +1,6 @@
 #include <chrono>
+#include <mutex>
+#include <shared_mutex>
 
 #include "level.hpp"
 
@@ -36,6 +38,9 @@ const std::string JavaLevel::get_platform()
 
 const VersionNumber JavaLevel::get_max_game_version()
 {
+    auto& mutex = _raw_level->get_mutex();
+    mutex.lock<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::ReadWrite>();
+    std::lock_guard lock(mutex, std::adopt_lock);
     return _raw_level->get_data_version();
 }
 
@@ -51,11 +56,17 @@ PIL::Image::Image JavaLevel::get_thumbnail()
 
 const std::string JavaLevel::get_level_name()
 {
+    auto& mutex = _raw_level->get_mutex();
+    mutex.lock<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::ReadWrite>();
+    std::lock_guard lock(mutex, std::adopt_lock);
     return _raw_level->get_level_name();
 }
 
 std::chrono::system_clock::time_point JavaLevel::get_modified_time()
 {
+    auto& mutex = _raw_level->get_mutex();
+    mutex.lock<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::ReadWrite>();
+    std::lock_guard lock(mutex, std::adopt_lock);
     return _raw_level->get_modified_time();
 }
 
@@ -74,14 +85,23 @@ void JavaLevel::open()
     if (_open_data) {
         return;
     }
-    _raw_level->open();
+    {
+        auto& mutex = _raw_level->get_mutex();
+        mutex.lock<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Null>();
+        std::lock_guard lock(mutex, std::adopt_lock);
+        _raw_level->open();
+    }
     _open_data = std::make_unique<JavaLevelOpenData>();
     opened.emit();
 }
 
 void JavaLevel::purge()
 {
-    _get_open_data().history_manager.reset();
+    {
+        auto& open_data = _get_open_data();
+        std::lock_guard lock(open_data.history_manager.mutex());
+        open_data.history_manager.reset();
+    }
     purged.emit();
     history_changed.emit();
 }
@@ -97,35 +117,56 @@ void JavaLevel::close()
         return;
     }
     _open_data = nullptr;
-    _raw_level->close();
+    {
+        auto& mutex = _raw_level->get_mutex();
+        mutex.lock<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Null>();
+        std::lock_guard lock(mutex, std::adopt_lock);
+        _raw_level->close();
+    }
     closed.emit();
 }
 
 void JavaLevel::create_restore_point()
 {
-    _get_open_data().history_manager.create_undo_bin();
+    {
+        auto& open_data = _get_open_data();
+        std::lock_guard lock(open_data.history_manager.mutex());
+        open_data.history_manager.create_undo_bin();
+    }
     history_changed.emit();
 }
 
 size_t JavaLevel::get_undo_count()
 {
-    return _get_open_data().history_manager.get_undo_count();
+    auto& open_data = _get_open_data();
+    std::shared_lock lock(open_data.history_manager.mutex());
+    return open_data.history_manager.get_undo_count();
 }
 
 void JavaLevel::undo()
 {
-    _get_open_data().history_manager.undo();
+    {
+        auto& open_data = _get_open_data();
+        std::lock_guard lock(open_data.history_manager.mutex());
+        open_data.history_manager.undo();
+    }
     history_changed.emit();
 }
 
 size_t JavaLevel::get_redo_count()
 {
-    return _get_open_data().history_manager.get_redo_count();
+    auto& open_data = _get_open_data();
+    std::shared_lock lock(open_data.history_manager.mutex());
+    return open_data.history_manager.get_redo_count();
 }
 
 void JavaLevel::redo()
 {
-    _get_open_data().history_manager.redo();
+    {
+        auto& open_data = _get_open_data();
+        std::lock_guard lock(open_data.history_manager.mutex());
+        open_data.history_manager.redo();
+    }
     history_changed.emit();
 }
 
@@ -142,6 +183,9 @@ void JavaLevel::set_history_enabled(bool history_enabled)
 
 std::vector<std::string> JavaLevel::get_dimension_ids()
 {
+    auto& mutex = _raw_level->get_mutex();
+    mutex.lock<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::ReadWrite>();
+    std::lock_guard lock(mutex, std::adopt_lock);
     return _raw_level->get_dimension_ids();
 }
 
@@ -152,17 +196,24 @@ std::shared_ptr<Dimension> JavaLevel::get_dimension(const std::string&)
 
 void JavaLevel::compact()
 {
+    auto& mutex = _raw_level->get_mutex();
+    mutex.lock<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::ReadWrite>();
+    std::lock_guard lock(mutex, std::adopt_lock);
     _raw_level->compact();
 }
 
 void JavaLevel::reload_metadata()
 {
+    std::lock_guard lock(_raw_level->get_mutex());
     _raw_level->reload_metadata();
 }
 
 void JavaLevel::reload()
 {
-    _raw_level->reload();
+    {
+        std::lock_guard lock(_raw_level->get_mutex());
+        _raw_level->reload();
+    }
     reloaded.emit();
 }
 

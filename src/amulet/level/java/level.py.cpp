@@ -26,12 +26,14 @@ py::module init_java_level(py::module m_parent)
             return Amulet::JavaLevel::load(path);
         },
         py::arg("path"),
+        py::call_guard<py::gil_scoped_release>(),
         py::doc("Load an existing Java level from the given directory.\n"
                 "Thread safe."));
     JavaLevel.def_static(
         "create",
         &Amulet::JavaLevel::create,
         py::arg("args"),
+        py::call_guard<py::gil_scoped_release>(),
         py::doc("Create a new Java level at the given directory.\n"
                 "Thread safe."));
     JavaLevel.def_property_readonly(

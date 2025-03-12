@@ -38,6 +38,7 @@ py::module init_level_abc_level(py::module m_parent)
     LevelMetadata.def_property_readonly(
         "max_game_version",
         &Amulet::LevelMetadata::get_max_game_version,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc("The maximum game version the level has been opened with.\n"
                 "External shared read lock required."));
     LevelMetadata.def(
@@ -54,11 +55,13 @@ py::module init_level_abc_level(py::module m_parent)
     LevelMetadata.def_property_readonly(
         "level_name",
         &Amulet::LevelMetadata::get_level_name,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc("The name of the level\n"
                 "External shared read lock required."));
     LevelMetadata.def_property_readonly(
         "modified_time",
         &Amulet::LevelMetadata::get_modified_time,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc("The time when the level was last modified.\n"
                 "External shared read lock required."));
     LevelMetadata.def_property_readonly(
@@ -81,6 +84,7 @@ py::module init_level_abc_level(py::module m_parent)
     Level.def(
         "open",
         &Amulet::Level::open,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc("Open the level.\n"
                 "\n"
                 "If the level is already open, this does nothing.\n"
@@ -94,11 +98,13 @@ py::module init_level_abc_level(py::module m_parent)
     Level.def(
         "purge",
         &Amulet::Level::purge,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc("Clear all unsaved changes and restore points.\n"
                 "External unique lock required."));
     Level.def(
         "save",
         &Amulet::Level::save,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc("Save all changes to the level.\n"
                 "External unique lock required."));
     Amulet::def_signal(
@@ -110,6 +116,7 @@ py::module init_level_abc_level(py::module m_parent)
     Level.def(
         "close",
         &Amulet::Level::close,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc("Close the level.\n"
                 "\n"
                 "If the level is not open, this does nothing."));
@@ -122,6 +129,7 @@ py::module init_level_abc_level(py::module m_parent)
     Level.def(
         "create_restore_point",
         &Amulet::Level::create_restore_point,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Create a new history restore point.\n"
             "Any changes made after this point can be reverted by calling undo.\n"
@@ -129,24 +137,28 @@ py::module init_level_abc_level(py::module m_parent)
     Level.def(
         "get_undo_count",
         &Amulet::Level::get_undo_count,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Get the number of times undo can be called.\n"
             "External shared lock required."));
     Level.def(
         "undo",
         &Amulet::Level::undo,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Revert the changes made since the previous restore point.\n"
             "External unique lock required."));
     Level.def(
         "get_redo_count",
         &Amulet::Level::get_redo_count,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Get the number of times redo can be called.\n"
             "External shared lock required."));
     Level.def(
         "redo",
         &Amulet::Level::redo,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Redo changes that were previously reverted.\n"
             "External unique lock required."));
@@ -168,6 +180,7 @@ py::module init_level_abc_level(py::module m_parent)
     Level.def(
         "dimension_ids",
         &Amulet::Level::get_dimension_ids,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc("The identifiers for all dimensions in the level.\n"
                 "External shared read lock required."));
     Level.def(
@@ -181,6 +194,7 @@ py::module init_level_abc_level(py::module m_parent)
     CompactibleLevel.def(
         "compact",
         &Amulet::CompactibleLevel::compact,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc("Compact the level data to reduce file size.\n"
                 "External unique lock required."));
 
@@ -195,6 +209,7 @@ py::module init_level_abc_level(py::module m_parent)
     ReloadableLevel.def(
         "reload_metadata",
         &Amulet::ReloadableLevel::reload_metadata,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc("Reload the level metadata.\n"
                 "This can only be done when the level is not open.\n"
                 "External unique mutex required."));
@@ -207,6 +222,7 @@ py::module init_level_abc_level(py::module m_parent)
     ReloadableLevel.def(
         "reload",
         &Amulet::ReloadableLevel::reload,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc("Reload the level.\n"
                 "This is like closing and opening the level but does not release locks.\n"
                 "This can only be done when the level is open."
