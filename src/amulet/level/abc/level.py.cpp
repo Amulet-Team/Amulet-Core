@@ -17,11 +17,17 @@ py::module init_level_abc_level(py::module m_parent)
     auto m = m_parent.def_submodule("level");
 
     py::class_<Amulet::LevelMetadata, std::shared_ptr<Amulet::LevelMetadata>> LevelMetadata(m, "LevelMetadata");
+    LevelMetadata.def_property_readonly(
+        "lock",
+        &Amulet::LevelMetadata::get_mutex,
+        py::doc("The external mutex for the level.\n"
+                "Thread safe."));
     LevelMetadata.def(
         "is_open",
         &Amulet::LevelMetadata::is_open,
         py::doc(
             "Has the level been opened.\n"
+            "External shared read lock required.\n"
             "\n"
             ":return: True if the level is open otherwise False."));
     LevelMetadata.def_property_readonly(
@@ -43,7 +49,8 @@ py::module init_level_abc_level(py::module m_parent)
     LevelMetadata.def_property_readonly(
         "thumbnail",
         &Amulet::LevelMetadata::get_thumbnail,
-        py::doc("The thumbnail for the level."));
+        py::doc("The thumbnail for the level.\n"
+                "External shared read lock required."));
     LevelMetadata.def_property_readonly(
         "level_name",
         &Amulet::LevelMetadata::get_level_name,
@@ -59,11 +66,6 @@ py::module init_level_abc_level(py::module m_parent)
         &Amulet::LevelMetadata::get_sub_chunk_size,
         py::doc("The size of the sub-chunk. Must be a cube.\n"
                 "External shared read lock required."));
-    LevelMetadata.def_property_readonly(
-        "lock",
-        &Amulet::LevelMetadata::get_mutex,
-        py::doc("The external mutex for the level.\n"
-                "Thread safe."));
 
     py::class_<
         Amulet::Level,
@@ -82,20 +84,18 @@ py::module init_level_abc_level(py::module m_parent)
         py::doc("Open the level.\n"
                 "\n"
                 "If the level is already open, this does nothing.\n"
-                "External unique lock required.\n"
-                "\n"
-                ":raises amulet.utils.task_manager.TaskCancelled: If the task is cancelled."));
-    // Amulet::def_signal(
-    //     Level,
-    //     "purged",
-    //     &Amulet::Level::purged,
-    //     py::doc("Signal emitted when the level is purged\n"
-    //             "Thread safe."));
-    //  Level.def(
-    //      "purge",
-    //      &Amulet::Level::purge,
-    //      py::doc("Clear all unsaved changes.\n"
-    //              "External unique lock required."));
+                "External unique lock required."));
+    Amulet::def_signal(
+        Level,
+        "purged",
+        &Amulet::Level::purged,
+        py::doc("Signal emitted when the level is purged\n"
+                "Thread safe."));
+    Level.def(
+        "purge",
+        &Amulet::Level::purge,
+        py::doc("Clear all unsaved changes and restore points.\n"
+                "External unique lock required."));
     Level.def(
         "save",
         &Amulet::Level::save,
@@ -112,9 +112,59 @@ py::module init_level_abc_level(py::module m_parent)
         &Amulet::Level::close,
         py::doc("Close the level.\n"
                 "\n"
-                "If the level is not open, this does nothing.\n"
-                "\n"
-                ":raises amulet.utils.task_manager.TaskCancelled: If the task is cancelled."));
+                "If the level is not open, this does nothing."));
+    Amulet::def_signal(
+        Level,
+        "history_changed",
+        &Amulet::Level::history_changed,
+        py::doc("A signal emitted when the undo or redo count changes.\n"
+                "Thread safe."));
+    Level.def(
+        "create_restore_point",
+        &Amulet::Level::create_restore_point,
+        py::doc(
+            "Create a new history restore point.\n"
+            "Any changes made after this point can be reverted by calling undo.\n"
+            "External shared lock required."));
+    Level.def(
+        "get_undo_count",
+        &Amulet::Level::get_undo_count,
+        py::doc(
+            "Get the number of times undo can be called.\n"
+            "External shared lock required."));
+    Level.def(
+        "undo",
+        &Amulet::Level::undo,
+        py::doc(
+            "Revert the changes made since the previous restore point.\n"
+            "External unique lock required."));
+    Level.def(
+        "get_redo_count",
+        &Amulet::Level::get_redo_count,
+        py::doc(
+            "Get the number of times redo can be called.\n"
+            "External shared lock required."));
+    Level.def(
+        "redo",
+        &Amulet::Level::redo,
+        py::doc(
+            "Redo changes that were previously reverted.\n"
+            "External unique lock required."));
+    Amulet::def_signal(
+        Level,
+        "history_enabled_changed",
+        &Amulet::Level::history_enabled_changed,
+        py::doc("A signal emitted when set_history_enabled is called.\n"
+                "Thread safe."));
+    Level.def_property(
+        "history_enabled",
+        &Amulet::Level::get_history_enabled,
+        &Amulet::Level::set_history_enabled,
+        py::doc(
+            "A boolean tracking if the history system is enabled.\n"
+            "\n"
+            "If true, the caller must call :meth:`create_restore_point` before making changes.\n"
+            ":attr:`history_enabled_changed` is emitted when this is set."));
     Level.def(
         "dimension_ids",
         &Amulet::Level::get_dimension_ids,

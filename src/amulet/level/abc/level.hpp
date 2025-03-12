@@ -45,6 +45,7 @@ public:
     virtual bool is_supported() = 0;
 
     // The thumbnail for the level.
+    // External shared read lock required.
     virtual PIL::Image::Image get_thumbnail() = 0;
 
     // The name of the level.
@@ -66,7 +67,7 @@ public:
     // Thread safe.
     Signal<> opened;
 
-    // Open the level for editing.
+    // Open the level.
     // If the level is already open, this does nothing.
     // External unique lock required.
     virtual void open() = 0;
@@ -88,10 +89,12 @@ public:
     Signal<> closed;
 
     // Close the level.
+    // If the level is not open, this does nothing.
     // External unique lock required.
     virtual void close() = 0;
 
     // A signal emitted when the undo or redo count changes.
+    // Thread safe.
     Signal<> history_changed;
 
     // Create a new history restore point.
@@ -116,6 +119,7 @@ public:
     virtual void redo() = 0;
 
     // A signal emitted when set_history_enabled is called.
+    // Thread safe.
     Signal<> history_enabled_changed;
 
     // Get if the history system is enabled.

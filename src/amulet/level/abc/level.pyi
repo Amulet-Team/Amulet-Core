@@ -30,8 +30,13 @@ class Level(LevelMetadata):
         Close the level.
 
         If the level is not open, this does nothing.
+        """
 
-        :raises amulet.utils.task_manager.TaskCancelled: If the task is cancelled.
+    def create_restore_point(self) -> None:
+        """
+        Create a new history restore point.
+        Any changes made after this point can be reverted by calling undo.
+        External shared lock required.
         """
 
     def dimension_ids(self) -> list[str]:
@@ -46,19 +51,47 @@ class Level(LevelMetadata):
         External shared read lock required.
         """
 
+    def get_redo_count(self) -> int:
+        """
+        Get the number of times redo can be called.
+        External shared lock required.
+        """
+
+    def get_undo_count(self) -> int:
+        """
+        Get the number of times undo can be called.
+        External shared lock required.
+        """
+
     def open(self) -> None:
         """
         Open the level.
 
         If the level is already open, this does nothing.
         External unique lock required.
+        """
 
-        :raises amulet.utils.task_manager.TaskCancelled: If the task is cancelled.
+    def purge(self) -> None:
+        """
+        Clear all unsaved changes and restore points.
+        External unique lock required.
+        """
+
+    def redo(self) -> None:
+        """
+        Redo changes that were previously reverted.
+        External unique lock required.
         """
 
     def save(self) -> None:
         """
         Save all changes to the level.
+        External unique lock required.
+        """
+
+    def undo(self) -> None:
+        """
+        Revert the changes made since the previous restore point.
         External unique lock required.
         """
 
@@ -70,9 +103,41 @@ class Level(LevelMetadata):
         """
 
     @property
+    def history_changed(self) -> amulet.utils.signal.Signal[()]:
+        """
+        A signal emitted when the undo or redo count changes.
+        Thread safe.
+        """
+
+    @property
+    def history_enabled(self) -> bool:
+        """
+        A boolean tracking if the history system is enabled.
+
+        If true, the caller must call :meth:`create_restore_point` before making changes.
+        :attr:`history_enabled_changed` is emitted when this is set.
+        """
+
+    @history_enabled.setter
+    def history_enabled(self, arg1: bool) -> None: ...
+    @property
+    def history_enabled_changed(self) -> amulet.utils.signal.Signal[()]:
+        """
+        A signal emitted when set_history_enabled is called.
+        Thread safe.
+        """
+
+    @property
     def opened(self) -> amulet.utils.signal.Signal[()]:
         """
         Signal emitted when the level is opened.
+        Thread safe.
+        """
+
+    @property
+    def purged(self) -> amulet.utils.signal.Signal[()]:
+        """
+        Signal emitted when the level is purged
         Thread safe.
         """
 
@@ -80,6 +145,7 @@ class LevelMetadata:
     def is_open(self) -> bool:
         """
         Has the level been opened.
+        External shared read lock required.
 
         :return: True if the level is open otherwise False.
         """
@@ -136,6 +202,7 @@ class LevelMetadata:
     def thumbnail(self) -> PIL.Image.Image:
         """
         The thumbnail for the level.
+        External shared read lock required.
         """
 
 class ReloadableLevel:

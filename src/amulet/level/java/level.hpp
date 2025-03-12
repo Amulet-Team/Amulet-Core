@@ -95,7 +95,7 @@ public:
 
     // Level
 
-    // Open the level for editing.
+    // Open the level.
     // If the level is already open, this does nothing.
     // External unique lock required.
     AMULET_CORE_EXPORT void open() override;
@@ -109,6 +109,7 @@ public:
     AMULET_CORE_EXPORT void save() override;
 
     // Close the level.
+    // If the level is not open, this does nothing.
     // External unique lock required.
     AMULET_CORE_EXPORT void close() override;
 
