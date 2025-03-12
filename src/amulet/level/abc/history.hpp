@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <leveldb.hpp>
+#include <leveldb/write_batch.h>
 
 #include <amulet/dll.hpp>
 #include <amulet/utils/signal.hpp>
@@ -283,15 +284,65 @@ public:
     }
 
     // Set the data for multiple resources.
+    // Supports any range of pair-like elements. Elements must remain valid beyond the life of the iterator.
     // Unique lock required.
     template <typename T>
-        requires std::ranges::input_range<T>
-        && std::same_as<
+        requires std::ranges::forward_range<T>
+        && std::convertible_to<
             std::ranges::range_value_t<T>,
-            std::pair<ResourceIdT, std::string>>
-    void set_values(T resources)
+            const std::pair<ResourceIdT, std::string>>
+    void set_values(const T& resources)
     {
-        throw std::runtime_error("NotImplementedError");
+        // A change has been made. Invalidate all future undo points.
+        _h->invalidate_future();
+
+        // Get all resources.
+        // If a resource doesn't exist we should error before changing the state.
+        std::list<std::tuple<const ResourceIdT&, const std::string&, std::shared_ptr<HistoryResource>>> resource_data;
+        for (const auto& [resource_id, value] : resources) {
+            resource_data.emplace_back(resource_id, value, _resources.at(resource_id));
+        }
+
+        // Create the write batch
+        leveldb::WriteBatch batch;
+
+        for (const auto& [resource_id, value, resource_ptr] : resource_data) {
+            // Get the resource
+            auto& resource = *resource_ptr;
+
+            // Update the resource state
+            if (resource.global_index != _h->history_index) {
+                // A new global bin has been created since this was last changed.
+                // Create a new local bin.
+                resource.index++;
+                resource.global_index = _h->history_index;
+            }
+            if (resource.index == resource.saved_index) {
+                // We are modifying the saved bin.
+                // The saved index is invalid.
+                resource.saved_index = -1;
+            }
+
+            // Add to the batch
+            batch.Put(
+                get_resource_key(_id, resource_id, resource.index),
+                value);
+        }
+
+        // Write to the database.
+        auto& db = *_h->db;
+        auto status = db->Write(
+            db.get_write_options(),
+            &batch);
+        if (!status.ok()) {
+            throw std::runtime_error(status.ToString());
+        }
+        if (_h->history_index != 0) {
+            // Add the resources to the global bin
+            for (const auto& data : resource_data) {
+                _h->history_bins.at(_h->history_index).emplace(std::get<2>(data));
+            }
+        }
     }
 };
 

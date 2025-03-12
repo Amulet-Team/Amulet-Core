@@ -1,5 +1,10 @@
 #include <pybind11/pybind11.h>
 
+#include <initializer_list>
+#include <list>
+#include <map>
+#include <vector>
+
 #include <amulet/level/abc/history.hpp>
 
 namespace py = pybind11;
@@ -157,5 +162,86 @@ void init_test_history(py::module m_parent)
         history_manager.reset();
         ASSERT_EQUAL(size_t, 0, layer_1->get_resources().size())
         ASSERT_EQUAL(size_t, 0, layer_2->get_resources().size())
+
+        layer_1->set_initial_value(key_1, "value_1_1");
+        layer_1->set_initial_value(key_2, "value_1_2");
+        ASSERT_EQUAL(std::string, "value_1_1", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2", layer_1->get_value(key_2))
+
+        // Test batch writing with initializer_list
+        history_manager.create_undo_bin();
+        std::initializer_list<std::pair<TestResourceId, std::string>> initializer_list_batch {
+            { key_1, "value_1_1_initializer_list" },
+            { key_2, "value_1_2_initializer_list" },
+        };
+        layer_1->set_values<std::initializer_list<std::pair<TestResourceId, std::string>>>(initializer_list_batch);
+
+        ASSERT_EQUAL(std::string, "value_1_1_initializer_list", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2_initializer_list", layer_1->get_value(key_2))
+
+        // Test batch writing with list
+        history_manager.create_undo_bin();
+        std::list<std::pair<TestResourceId, std::string>> list_batch {
+            { key_1, "value_1_1_list" },
+            { key_2, "value_1_2_list" },
+        };
+        layer_1->set_values<std::list<std::pair<TestResourceId, std::string>>>(list_batch);
+
+        ASSERT_EQUAL(std::string, "value_1_1_list", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2_list", layer_1->get_value(key_2))
+
+        // Test batch writing with vector
+        history_manager.create_undo_bin();
+        std::vector<std::pair<TestResourceId, std::string>> vector_batch {
+            { key_1, "value_1_1_vector" },
+            { key_2, "value_1_2_vector" },
+        };
+        layer_1->set_values<std::vector<std::pair<TestResourceId, std::string>>>(vector_batch);
+
+        ASSERT_EQUAL(std::string, "value_1_1_vector", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2_vector", layer_1->get_value(key_2))
+
+        // Test batch writing with map
+        history_manager.create_undo_bin();
+        std::map<TestResourceId, std::string> map_batch {
+            { key_1, "value_1_1_map" },
+            { key_2, "value_1_2_map" },
+        };
+        layer_1->set_values<>(map_batch);
+
+        ASSERT_EQUAL(std::string, "value_1_1_map", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2_map", layer_1->get_value(key_2))
+
+        history_manager.undo();
+        ASSERT_EQUAL(std::string, "value_1_1_vector", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2_vector", layer_1->get_value(key_2))
+
+        history_manager.undo();
+        ASSERT_EQUAL(std::string, "value_1_1_list", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2_list", layer_1->get_value(key_2))
+
+        history_manager.undo();
+        ASSERT_EQUAL(std::string, "value_1_1_initializer_list", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2_initializer_list", layer_1->get_value(key_2))
+
+        history_manager.undo();
+        ASSERT_EQUAL(std::string, "value_1_1", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2", layer_1->get_value(key_2))
+
+        history_manager.redo();
+        ASSERT_EQUAL(std::string, "value_1_1_initializer_list", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2_initializer_list", layer_1->get_value(key_2))
+
+        history_manager.redo();
+        ASSERT_EQUAL(std::string, "value_1_1_list", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2_list", layer_1->get_value(key_2))
+
+        history_manager.redo();
+        ASSERT_EQUAL(std::string, "value_1_1_vector", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2_vector", layer_1->get_value(key_2))
+
+        history_manager.redo();
+        ASSERT_EQUAL(std::string, "value_1_1_map", layer_1->get_value(key_1))
+        ASSERT_EQUAL(std::string, "value_1_2_map", layer_1->get_value(key_2))
     });
 }
