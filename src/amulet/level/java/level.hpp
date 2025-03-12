@@ -4,6 +4,7 @@
 #include <filesystem>
 
 #include <amulet/image/image.hpp>
+#include <amulet/level/abc/history.hpp>
 #include <amulet/level/abc/level.hpp>
 
 #include "raw_level.hpp"
@@ -11,6 +12,9 @@
 namespace Amulet {
 
 class JavaLevelOpenData {
+public:
+    HistoryManager history_manager;
+    bool history_enabled = true;
 };
 
 class JavaLevel : public Level, public CompactibleLevel, public DiskLevel, public ReloadableLevel {
@@ -19,6 +23,16 @@ private:
 
     // Data that is only valid when the level is open.
     std::unique_ptr<JavaLevelOpenData> _open_data;
+
+    // Validate _open_data is valid and return a reference.
+    // External shared read lock required.
+    JavaLevelOpenData& _get_open_data()
+    {
+        if (!_open_data) {
+            throw std::runtime_error("The level is not open.");
+        }
+        return *_open_data;
+    }
 
     JavaLevel(std::unique_ptr<JavaRawLevel>);
 
@@ -87,12 +101,35 @@ public:
     // Close the level.
     AMULET_CORE_EXPORT void close() override;
 
-    // size_t undo_count() override;
-    // void undo() override;
-    // size_t redo_count() override;
-    // void redo() override;
-    // bool is_history_enabled() override;
-    // void set_history_enabled(bool) override;
+    // Create a new history restore point.
+    // Any changes made after this point can be reverted by calling undo.
+    // Thread safe. 
+    void create_restore_point() override;
+
+    // Get the number of times undo can be called.
+    // External shared or unique lock required.
+    size_t get_undo_count() override;
+
+    // Revert the changes made since the previous restore point.
+    // External unique lock required.
+    void undo() override;
+
+    // Get the number of times redo can be called.
+    // External shared lock required.
+    size_t get_redo_count() override;
+
+    // Redo changes that were previously reverted.
+    // External unique lock required.
+    void redo() override;
+
+    // Get if the history system is enabled.
+    // If this is true, the caller must call create_restore_point before making changes.
+    // External shared lock required.
+    bool get_history_enabled() override;
+
+    // Set if the history system is enabled.
+    // External unique lock required.
+    void set_history_enabled(bool) override;
 
     // The identifiers for all dimensions in the level
     AMULET_CORE_EXPORT std::vector<std::string> get_dimension_ids() override;

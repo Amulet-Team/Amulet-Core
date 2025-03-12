@@ -44,7 +44,8 @@ bool JavaLevel::is_supported()
     return _raw_level->is_supported();
 }
 
-PIL::Image::Image JavaLevel::get_thumbnail() {
+PIL::Image::Image JavaLevel::get_thumbnail()
+{
     return _raw_level->get_thumbnail();
 };
 
@@ -75,7 +76,6 @@ void JavaLevel::open()
     }
     _raw_level->open();
     _open_data = std::make_unique<JavaLevelOpenData>();
-    // self._open_data.history_manager.history_changed.connect(self.history_changed)
     opened.emit();
 }
 
@@ -99,12 +99,44 @@ void JavaLevel::close()
     closed.emit();
 }
 
-// size_t JavaLevel::undo_count();
-// void JavaLevel::undo();
-// size_t JavaLevel::redo_count();
-// void JavaLevel::redo();
-// bool JavaLevel::is_history_enabled();
-// void JavaLevel::set_history_enabled(bool);
+void JavaLevel::create_restore_point()
+{
+    _get_open_data().history_manager.create_undo_bin();
+    history_changed.emit();
+}
+
+size_t JavaLevel::get_undo_count()
+{
+    return _get_open_data().history_manager.get_undo_count();
+}
+
+void JavaLevel::undo()
+{
+    _get_open_data().history_manager.undo();
+    history_changed.emit();
+}
+
+size_t JavaLevel::get_redo_count()
+{
+    return _get_open_data().history_manager.get_redo_count();
+}
+
+void JavaLevel::redo()
+{
+    _get_open_data().history_manager.redo();
+    history_changed.emit();
+}
+
+bool JavaLevel::get_history_enabled()
+{
+    return _get_open_data().history_enabled;
+}
+
+void JavaLevel::set_history_enabled(bool history_enabled)
+{
+    _get_open_data().history_enabled = history_enabled;
+    history_enabled_changed.emit();
+}
 
 std::vector<std::string> JavaLevel::get_dimension_ids()
 {

@@ -91,13 +91,41 @@ public:
     // External unique lock required.
     virtual void close() = 0;
 
-    // Signal<> history_changed;
-    // virtual size_t undo_count() = 0;
-    // virtual void undo() = 0;
-    // virtual size_t redo_count() = 0;
-    // virtual void redo() = 0;
-    // virtual bool is_history_enabled() = 0;
-    // virtual void set_history_enabled(bool) = 0;
+    // A signal emitted when the undo or redo count changes.
+    Signal<> history_changed;
+
+    // Create a new history restore point.
+    // Any changes made after this point can be reverted by calling undo.
+    // External shared lock required.
+    virtual void create_restore_point() = 0;
+
+    // Get the number of times undo can be called.
+    // External shared lock required.
+    virtual size_t get_undo_count() = 0;
+
+    // Revert the changes made since the previous restore point.
+    // External unique lock required.
+    virtual void undo() = 0;
+
+    // Get the number of times redo can be called.
+    // External shared lock required.
+    virtual size_t get_redo_count() = 0;
+
+    // Redo changes that were previously reverted.
+    // External unique lock required.
+    virtual void redo() = 0;
+
+    // A signal emitted when set_history_enabled is called.
+    Signal<> history_enabled_changed;
+
+    // Get if the history system is enabled.
+    // If this is true, the caller must call create_restore_point before making changes.
+    // External shared lock required.
+    virtual bool get_history_enabled() = 0;
+
+    // Set if the history system is enabled.
+    // External unique lock required.
+    virtual void set_history_enabled(bool) = 0;
 
     // The identifiers for all dimensions in the level
     // External shared read lock required.
