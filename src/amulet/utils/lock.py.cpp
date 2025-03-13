@@ -34,74 +34,74 @@ static bool acquire_mutex(
     bool blocking,
     double timeout,
     Amulet::AbstractCancelManager& cancel_manager,
-    const std::pair<Amulet::CurrentThreadMode, Amulet::OtherThreadMode>& thread_mode)
+    const std::pair<Amulet::CurrentThreadMode, Amulet::ThreadShareMode>& thread_mode)
 {
     switch (thread_mode.first) {
     case Amulet::CurrentThreadMode::Read:
         switch (thread_mode.second) {
-        case Amulet::OtherThreadMode::Null:
+        case Amulet::ThreadShareMode::Unique:
             if (blocking) {
                 if (0 < timeout) {
-                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::Null>(std::chrono::duration<double>(timeout), cancel_manager);
+                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::ThreadShareMode::Unique>(std::chrono::duration<double>(timeout), cancel_manager);
                 } else {
-                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::Null>(std::chrono::years(1), cancel_manager);
+                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::ThreadShareMode::Unique>(std::chrono::years(1), cancel_manager);
                 }
             } else {
-                return self.try_lock<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::Null>();
+                return self.try_lock<Amulet::CurrentThreadMode::Read, Amulet::ThreadShareMode::Unique>();
             }
-        case Amulet::OtherThreadMode::Read:
+        case Amulet::ThreadShareMode::SharedReadOnly:
             if (blocking) {
                 if (0 < timeout) {
-                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::Read>(std::chrono::duration<double>(timeout), cancel_manager);
+                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::ThreadShareMode::SharedReadOnly>(std::chrono::duration<double>(timeout), cancel_manager);
                 } else {
-                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::Read>(std::chrono::years(1), cancel_manager);
+                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::ThreadShareMode::SharedReadOnly>(std::chrono::years(1), cancel_manager);
                 }
             } else {
-                return self.try_lock<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::Read>();
+                return self.try_lock<Amulet::CurrentThreadMode::Read, Amulet::ThreadShareMode::SharedReadOnly>();
             }
-        case Amulet::OtherThreadMode::ReadWrite:
+        case Amulet::ThreadShareMode::SharedReadWrite:
             if (blocking) {
                 if (0 < timeout) {
-                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::ReadWrite>(std::chrono::duration<double>(timeout), cancel_manager);
+                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::ThreadShareMode::SharedReadWrite>(std::chrono::duration<double>(timeout), cancel_manager);
                 } else {
-                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::ReadWrite>(std::chrono::years(1), cancel_manager);
+                    return self.try_lock_for<Amulet::CurrentThreadMode::Read, Amulet::ThreadShareMode::SharedReadWrite>(std::chrono::years(1), cancel_manager);
                 }
             } else {
-                return self.try_lock<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::ReadWrite>();
+                return self.try_lock<Amulet::CurrentThreadMode::Read, Amulet::ThreadShareMode::SharedReadWrite>();
             }
         }
         break;
     case Amulet::CurrentThreadMode::ReadWrite:
         switch (thread_mode.second) {
-        case Amulet::OtherThreadMode::Null:
+        case Amulet::ThreadShareMode::Unique:
             if (blocking) {
                 if (0 < timeout) {
-                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Null>(std::chrono::duration<double>(timeout), cancel_manager);
+                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::ThreadShareMode::Unique>(std::chrono::duration<double>(timeout), cancel_manager);
                 } else {
-                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Null>(std::chrono::years(1), cancel_manager);
+                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::ThreadShareMode::Unique>(std::chrono::years(1), cancel_manager);
                 }
             } else {
-                return self.try_lock<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Null>();
+                return self.try_lock<Amulet::CurrentThreadMode::ReadWrite, Amulet::ThreadShareMode::Unique>();
             }
-        case Amulet::OtherThreadMode::Read:
+        case Amulet::ThreadShareMode::SharedReadOnly:
             if (blocking) {
                 if (0 < timeout) {
-                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Read>(std::chrono::duration<double>(timeout), cancel_manager);
+                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::ThreadShareMode::SharedReadOnly>(std::chrono::duration<double>(timeout), cancel_manager);
                 } else {
-                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Read>(std::chrono::years(1), cancel_manager);
+                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::ThreadShareMode::SharedReadOnly>(std::chrono::years(1), cancel_manager);
                 }
             } else {
-                return self.try_lock<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Read>();
+                return self.try_lock<Amulet::CurrentThreadMode::ReadWrite, Amulet::ThreadShareMode::SharedReadOnly>();
             }
-        case Amulet::OtherThreadMode::ReadWrite:
+        case Amulet::ThreadShareMode::SharedReadWrite:
             if (blocking) {
                 if (0 < timeout) {
-                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::ReadWrite>(std::chrono::duration<double>(timeout), cancel_manager);
+                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::ThreadShareMode::SharedReadWrite>(std::chrono::duration<double>(timeout), cancel_manager);
                 } else {
-                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::ReadWrite>(std::chrono::years(1), cancel_manager);
+                    return self.try_lock_for<Amulet::CurrentThreadMode::ReadWrite, Amulet::ThreadShareMode::SharedReadWrite>(std::chrono::years(1), cancel_manager);
                 }
             } else {
-                return self.try_lock<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::ReadWrite>();
+                return self.try_lock<Amulet::CurrentThreadMode::ReadWrite, Amulet::ThreadShareMode::SharedReadWrite>();
             }
         }
     }
@@ -137,25 +137,25 @@ void init_lock(py::module m_parent)
         py::name("__repr__"),
         py::is_method(CurrentThreadMode));
 
-    py::enum_<Amulet::OtherThreadMode> OtherThreadMode(m, "OtherThreadMode");
-    OtherThreadMode.value(
-        "Null",
-        Amulet::OtherThreadMode::Null,
+    py::enum_<Amulet::ThreadShareMode> ThreadShareMode(m, "ThreadShareMode");
+    ThreadShareMode.value(
+        "Unique",
+        Amulet::ThreadShareMode::Unique,
         "Other threads can't do anything.");
-    OtherThreadMode.value(
-        "Read",
-        Amulet::OtherThreadMode::Read,
+    ThreadShareMode.value(
+        "SharedReadOnly",
+        Amulet::ThreadShareMode::SharedReadOnly,
         "Other threads can only read.");
-    OtherThreadMode.value(
-        "ReadWrite",
-        Amulet::OtherThreadMode::ReadWrite,
+    ThreadShareMode.value(
+        "SharedReadWrite",
+        Amulet::ThreadShareMode::SharedReadWrite,
         "Other threads can read and write.");
-    OtherThreadMode.attr("__repr__") = py::cpp_function(
-        [module_name, OtherThreadMode](const py::object& arg) -> py::str {
-            return py::str("{}.{}").format(module_name, OtherThreadMode.attr("__str__")(arg));
+    ThreadShareMode.attr("__repr__") = py::cpp_function(
+        [module_name, ThreadShareMode](const py::object& arg) -> py::str {
+            return py::str("{}.{}").format(module_name, ThreadShareMode.attr("__str__")(arg));
         },
         py::name("__repr__"),
-        py::is_method(OtherThreadMode));
+        py::is_method(ThreadShareMode));
 
     py::class_<Amulet::OrderedMutex> OrderedLock(m, "OrderedLock",
         "This is a custom mutex implementation that prioritises acquisition order and allows parallelism where possible.\n"
@@ -169,7 +169,7 @@ void init_lock(py::module m_parent)
         py::arg("blocking") = true,
         py::arg("timeout") = -1.0,
         py::arg("cancel_manager") = Amulet::VoidCancelManager(),
-        py::arg("thread_mode") = std::make_pair(Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Null),
+        py::arg("thread_mode") = std::make_pair(Amulet::CurrentThreadMode::ReadWrite, Amulet::ThreadShareMode::Unique),
         py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Acquire the lock.\n"
@@ -202,7 +202,7 @@ void init_lock(py::module m_parent)
             bool blocking,
             double timeout,
             Amulet::AbstractCancelManager& cancel_manager,
-            const std::pair<Amulet::CurrentThreadMode, Amulet::OtherThreadMode>& thread_mode) {
+            const std::pair<Amulet::CurrentThreadMode, Amulet::ThreadShareMode>& thread_mode) {
             return pybind11_extensions::contextlib::make_context_manager<void, std::optional<bool>>(
                 [&self, blocking, timeout, &cancel_manager, thread_mode]() -> void {
                     py::gil_scoped_release nogil;
@@ -219,7 +219,7 @@ void init_lock(py::module m_parent)
         py::arg("blocking") = true,
         py::arg("timeout") = -1.0,
         py::arg("cancel_manager") = Amulet::VoidCancelManager(),
-        py::arg("thread_mode") = std::make_pair(Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Null),
+        py::arg("thread_mode") = std::make_pair(Amulet::CurrentThreadMode::ReadWrite, Amulet::ThreadShareMode::Unique),
         py::keep_alive<0, 1>(),
         py::keep_alive<0, 4>(),
         py::doc(

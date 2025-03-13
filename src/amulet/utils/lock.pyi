@@ -11,9 +11,9 @@ __all__ = [
     "Lock",
     "LockNotAcquired",
     "OrderedLock",
-    "OtherThreadMode",
     "RLock",
     "SharedLock",
+    "ThreadShareMode",
 ]
 
 class CurrentThreadMode:
@@ -83,7 +83,7 @@ class OrderedLock:
         blocking: bool = True,
         timeout: float = -1.0,
         cancel_manager: amulet.utils.task_manager.cancel_manager.AbstractCancelManager = ...,
-        thread_mode: tuple[CurrentThreadMode, OtherThreadMode] = ...,
+        thread_mode: tuple[CurrentThreadMode, ThreadShareMode] = ...,
     ) -> contextlib.AbstractContextManager[None, bool | None]:
         """
         A context manager to acquire and release the lock.
@@ -114,7 +114,7 @@ class OrderedLock:
         blocking: bool = True,
         timeout: float = -1.0,
         cancel_manager: amulet.utils.task_manager.cancel_manager.AbstractCancelManager = ...,
-        thread_mode: tuple[CurrentThreadMode, OtherThreadMode] = ...,
+        thread_mode: tuple[CurrentThreadMode, ThreadShareMode] = ...,
     ) -> bool:
         """
         Acquire the lock.
@@ -141,42 +141,6 @@ class OrderedLock:
         Only use this if you know what you are doing. Consider using the context manager instead
         """
 
-class OtherThreadMode:
-    """
-    Members:
-
-      Null : Other threads can't do anything.
-
-      Read : Other threads can only read.
-
-      ReadWrite : Other threads can read and write.
-    """
-
-    Null: typing.ClassVar[
-        OtherThreadMode
-    ]  # value = amulet.utils.lock.OtherThreadMode.Null
-    Read: typing.ClassVar[
-        OtherThreadMode
-    ]  # value = amulet.utils.lock.OtherThreadMode.Read
-    ReadWrite: typing.ClassVar[
-        OtherThreadMode
-    ]  # value = amulet.utils.lock.OtherThreadMode.ReadWrite
-    __members__: typing.ClassVar[
-        dict[str, OtherThreadMode]
-    ]  # value = {'Null': amulet.utils.lock.OtherThreadMode.Null, 'Read': amulet.utils.lock.OtherThreadMode.Read, 'ReadWrite': amulet.utils.lock.OtherThreadMode.ReadWrite}
-    def __eq__(self, other: typing.Any) -> bool: ...
-    def __hash__(self) -> int: ...
-    def __index__(self) -> int: ...
-    def __init__(self, value: int) -> None: ...
-    def __int__(self) -> int: ...
-    def __ne__(self, other: typing.Any) -> bool: ...
-    def __repr__(self) -> str: ...
-    def __str__(self) -> str: ...
-    @property
-    def name(self) -> str: ...
-    @property
-    def value(self) -> int: ...
-
 class RLock:
     """
     A wrapper for std::recursive_mutex.
@@ -202,3 +166,39 @@ class SharedLock:
     def release_unique(self) -> None: ...
     def shared(self) -> contextlib.AbstractContextManager[None, bool | None]: ...
     def unique(self) -> contextlib.AbstractContextManager[None, bool | None]: ...
+
+class ThreadShareMode:
+    """
+    Members:
+
+      Unique : Other threads can't do anything.
+
+      SharedReadOnly : Other threads can only read.
+
+      SharedReadWrite : Other threads can read and write.
+    """
+
+    SharedReadOnly: typing.ClassVar[
+        ThreadShareMode
+    ]  # value = amulet.utils.lock.ThreadShareMode.SharedReadOnly
+    SharedReadWrite: typing.ClassVar[
+        ThreadShareMode
+    ]  # value = amulet.utils.lock.ThreadShareMode.SharedReadWrite
+    Unique: typing.ClassVar[
+        ThreadShareMode
+    ]  # value = amulet.utils.lock.ThreadShareMode.Unique
+    __members__: typing.ClassVar[
+        dict[str, ThreadShareMode]
+    ]  # value = {'Unique': amulet.utils.lock.ThreadShareMode.Unique, 'SharedReadOnly': amulet.utils.lock.ThreadShareMode.SharedReadOnly, 'SharedReadWrite': amulet.utils.lock.ThreadShareMode.SharedReadWrite}
+    def __eq__(self, other: typing.Any) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __index__(self) -> int: ...
+    def __init__(self, value: int) -> None: ...
+    def __int__(self) -> int: ...
+    def __ne__(self, other: typing.Any) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __str__(self) -> str: ...
+    @property
+    def name(self) -> str: ...
+    @property
+    def value(self) -> int: ...

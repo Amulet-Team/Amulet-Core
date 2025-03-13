@@ -14,7 +14,7 @@ void init_test_lock(py::module m_parent){
 
     m.def("lock_ordered_mutex", [](Amulet::OrderedMutex& mutex, size_t count) {
         for (size_t i = 0; i < count; i++) {
-            mutex.lock<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::ReadWrite>();
+            mutex.lock<Amulet::CurrentThreadMode::ReadWrite, Amulet::ThreadShareMode::SharedReadWrite>();
             mutex.unlock();
         }
     });

@@ -33,11 +33,11 @@ void OrderedMutex::unlock()
     }
 
     switch (it->second->state->second) {
-    case OtherThreadMode::Null:
+    case ThreadShareMode::Unique:
         blocking_read_count--;
         blocking_write_count--;
         break;
-    case OtherThreadMode::Read:
+    case ThreadShareMode::SharedReadOnly:
         blocking_write_count--;
         break;
     }
