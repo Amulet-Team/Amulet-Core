@@ -133,7 +133,7 @@ AnvilDimensionLayer::AnvilDimensionLayer(
 }
 
 // Accessors
-Amulet::OrderedMutex& AnvilDimensionLayer::mutex() { return _public_mutex; }
+Amulet::OrderedMutex& AnvilDimensionLayer::get_mutex() { return _public_mutex; }
 const std::filesystem::path& AnvilDimensionLayer::directory() const { return _directory; }
 bool AnvilDimensionLayer::mcc() const { return _mcc; }
 
@@ -181,8 +181,8 @@ bool AnvilDimensionLayer::has_chunk(std::int64_t cx, std::int64_t cz)
     } catch (RegionDoesNotExist) {
         return false;
     }
-    auto& region_mutex = region->mutex();
-    region_mutex.lock<CurrentThreadMode::Read, OtherThreadMode::ReadWrite>();
+    auto& region_mutex = region->get_mutex();
+    region_mutex.lock<ThreadAccessMode::Read, ThreadShareMode::SharedReadWrite>();
     std::lock_guard region_lock(region_mutex, std::adopt_lock);
     return region->has_value(cx, cz);
 }
@@ -194,16 +194,16 @@ AmuletNBT::NamedTag AnvilDimensionLayer::get_chunk_data(std::int64_t cx, std::in
     } catch (RegionDoesNotExist) {
         throw ChunkDoesNotExist("Chunk " + std::to_string(cx) + ", " + std::to_string(cz) + " does not exist.");
     }
-    auto& region_mutex = region->mutex();
-    region_mutex.lock<CurrentThreadMode::Read, OtherThreadMode::ReadWrite>();
+    auto& region_mutex = region->get_mutex();
+    region_mutex.lock<ThreadAccessMode::Read, ThreadShareMode::SharedReadWrite>();
     std::lock_guard region_lock(region_mutex, std::adopt_lock);
     return region->get_value(cx, cz);
 }
 void AnvilDimensionLayer::set_chunk_data(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag)
 {
     auto region = get_region(cx >> 5, cz >> 5, true);
-    auto& region_mutex = region->mutex();
-    region_mutex.lock<CurrentThreadMode::ReadWrite, OtherThreadMode::ReadWrite>();
+    auto& region_mutex = region->get_mutex();
+    region_mutex.lock<ThreadAccessMode::ReadWrite, ThreadShareMode::SharedReadWrite>();
     std::lock_guard region_lock(region_mutex, std::adopt_lock);
     return region->set_value(cx, cz, tag);
 }
@@ -215,8 +215,8 @@ void AnvilDimensionLayer::delete_chunk(std::int64_t cx, std::int64_t cz)
     } catch (RegionDoesNotExist) {
         return;
     }
-    auto& region_mutex = region->mutex();
-    region_mutex.lock<CurrentThreadMode::ReadWrite, OtherThreadMode::ReadWrite>();
+    auto& region_mutex = region->get_mutex();
+    region_mutex.lock<ThreadAccessMode::ReadWrite, ThreadShareMode::SharedReadWrite>();
     std::lock_guard region_lock(region_mutex, std::adopt_lock);
     region->delete_value(cx, cz);
 }
@@ -231,7 +231,7 @@ void AnvilDimensionLayer::compact()
     }
 }
 
-Amulet::OrderedMutex& AnvilDimension::mutex() { return _public_mutex; }
+Amulet::OrderedMutex& AnvilDimension::get_mutex() { return _public_mutex; }
 const std::filesystem::path& AnvilDimension::directory() const { return _directory; }
 bool AnvilDimension::mcc() const { return _mcc; }
 
@@ -266,8 +266,8 @@ AnvilChunkCoordIterator AnvilDimension::all_chunk_coords() const
 }
 bool AnvilDimension::has_chunk(std::int64_t cx, std::int64_t cz) const
 {
-    auto& layer_mutex = _default_layer->mutex();
-    layer_mutex.lock<CurrentThreadMode::Read, OtherThreadMode::ReadWrite>();
+    auto& layer_mutex = _default_layer->get_mutex();
+    layer_mutex.lock<ThreadAccessMode::Read, ThreadShareMode::SharedReadWrite>();
     std::lock_guard region_lock(layer_mutex, std::adopt_lock);
     return _default_layer->has_chunk(cx, cz);
 }
@@ -276,8 +276,8 @@ JavaRawChunk AnvilDimension::get_chunk_data(std::int64_t cx, std::int64_t cz)
     std::shared_lock lock(_layers_mutex);
     JavaRawChunk chunk_data;
     for (const auto& [layer_name, layer] : _layers) {
-        auto& layer_mutex = layer->mutex();
-        layer_mutex.lock<CurrentThreadMode::Read, OtherThreadMode::ReadWrite>();
+        auto& layer_mutex = layer->get_mutex();
+        layer_mutex.lock<ThreadAccessMode::Read, ThreadShareMode::SharedReadWrite>();
         std::lock_guard region_lock(layer_mutex, std::adopt_lock);
         try {
             chunk_data.emplace(layer_name, layer->get_chunk_data(cx, cz));
@@ -293,8 +293,8 @@ void AnvilDimension::delete_chunk(std::int64_t cx, std::int64_t cz)
 {
     std::shared_lock lock(_layers_mutex);
     for (const auto& [_, layer] : _layers) {
-        auto& layer_mutex = layer->mutex();
-        layer_mutex.lock<CurrentThreadMode::ReadWrite, OtherThreadMode::ReadWrite>();
+        auto& layer_mutex = layer->get_mutex();
+        layer_mutex.lock<ThreadAccessMode::ReadWrite, ThreadShareMode::SharedReadWrite>();
         std::lock_guard region_lock(layer_mutex, std::adopt_lock);
         layer->delete_chunk(cx, cz);
     }
@@ -303,7 +303,7 @@ void AnvilDimension::compact()
 {
     std::shared_lock lock(_layers_mutex);
     for (const auto& [_, layer] : _layers) {
-        auto& layer_mutex = layer->mutex();
+        auto& layer_mutex = layer->get_mutex();
         layer_mutex.lock();
         std::unique_lock layer_lock(layer_mutex, std::adopt_lock);
         layer->compact();

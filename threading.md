@@ -8,72 +8,83 @@ lock the level to ensure no other threads are running in parallel.
 
 The following policies are used in docstrings to document how the function and return behave.
 
-## Lock policy
+## Code policy
 
-### Unique mode.
+These policies are included in function docstrings to specify if and how the associated lock must be acquired.
+If no call policy is given it should be assumed the associated lock must be acquired in unique read-write mode.
 
-- Any function on the resource can be called in this mode.
-- Only the thread holding the lock can use the resource.
+### [[Call:|Return:]](#Code-policy-scope) Thread safe.
 
-### Shared read-only mode.
+The code can be executed from multiple threads without external locking.
 
-- Only read functions on the resource can be called in this mode.
-- Other threads can acquire the lock in read-only and read mode at the same time.
+### [[Call:|Return:]](#Code-policy-scope) Lock required. [(Read|ReadWrite)](#ThreadAccessMode):[(Unique|SharedReadOnly|SharedReadWrite)](#ThreadShareMode)
 
-### Shared read mode.
+The caller must acquire the associated lock in a compatible mode for the defined scope. 
+This ensures that the state is not corrupted by another thread.
 
-- Only thread-safe read functions on the resource can be called in this mode.
-- Other threads can acquire the lock in read-only mode or read-write mode (not at the same time)
+### [[Call:|Return:]](#Code-policy-scope) Lock optional. [(Read|ReadWrite)](#ThreadAccessMode):[(Unique|SharedReadOnly|SharedReadWrite)](#ThreadShareMode)
 
-### Shared read-write mode.
+This indicates that a more restrictive lock mode may be used.
+The caller may acquire the associated lock in a compatible mode to ensure the state is not mutated in another thread.
+This is used in cases where the state will not be corrupted but may become outdated if other threads mutate it.
 
-- Only thread-safe read or write functions on the resource can be called in this mode.
-- Other threads can acquire the lock in read mode or read-write mode.
+### Unique lock (required|optional).
 
-## Call policy
+Equivalent to ReadWrite:Unique
+This is the normal lock behaviour.
 
-These policies apply from the function's call to when it returns.
-If no call policy is given it is assumed to be not thread safe.
+### Shared lock (required|optional).
 
-### Call: Thread safe.
+Equivalent to Read:SharedReadOnly
+This is the normal shared lock behaviour.
 
-The function can be called from multiple threads without external locking.
+## Code policy scope
 
-### Call: External [unique|shared read-only|shared read|shared read-write] lock optional.
+The code policy can be optionally prefixed with a scope.
+If no scope is defined it defaults to the `Return` scope.
 
-The function can be called from multiple threads without external locking.
-The function must internally handle locking where needed.
-The caller may optionally acquire the external lock to ensure the state is not mutated in another thread.
+### Call
 
-### Call: External [unique|shared read-only|shared read|shared read-write] lock required.
+If the code policy is prefixed with `Call:`, the policy applies from when the function is called until when it returns.
 
-The caller must acquire the external lock before calling the function to ensure the state is not corrupted.
+### Return
 
-## Return policy
+If the code policy is prefixed with `Return:`, the policy applies from when the function is called until when the
+return is no longer used.
 
-These policies apply to the object returned by the function.
-If no return policy is given it is assumed to be independent.
+## ThreadAccessMode
 
-### [Return: ]External [unique|shared read-only|shared read|shared read-write] lock optional.
+Defines what a function and thread can do. 
 
-The external lock may be used to ensure the state is not mutated.
-The returned object will remain valid without external locks but may be outdated if the state is changed.
-The lock must be held from before calling the function until the returned value is no longer needed.
+### Read
 
-### [Return: ]External [unique|shared read-only|shared read|shared read-write] lock required.
+When used in relation to code, it means that the code only reads the associated state.
+The code's lock must be acquired in Read or ReadWrite mode to execute it.
 
-The external lock must be used to ensure the state is not mutated.
-The returned object may be invalidated if the state is changed.
-The lock must be held from before calling the function until the returned value is no longer needed.
+When a thread acquires a lock in Read mode it may only execute associated code that needs Read access.
 
-## Call and Return policy
+### ReadWrite
 
-If the call and return policy are the same it only needs to be written once.
+When used in relation to code, it means that the code can read and write the associated state.
+The code's lock must be acquired in ReadWrite mode to execute it.
 
-### External [unique|shared read-only|shared read|shared read-write] lock optional.
+When a thread acquires a lock in ReadWrite mode it may execute associated code that needs Read or ReadWrite access.
 
-Applies to both call and return policy.
+## ThreadShareMode
 
-### External [unique|shared read-only|shared read|shared read-write] lock required.
+Defines the access mode that other threads may use in parallel.
 
-Applies to both call and return policy.
+### Unique
+
+When used in relation to code, it means that it cannot be executed in parallel with associated code.
+The code's lock must be acquired in Unique mode.
+
+### SharedReadOnly
+
+When used in relation to code, it means that it can only be executed in parallel with associated code that needs Read mode.
+The code's lock must be acquired in Unique or SharedReadOnly mode.
+
+### SharedReadWrite
+
+When used in relation to code, it means that it can be executed in parallel with associated code that needs Read or ReadWrite mode.
+The code's lock must be acquired in Unique, SharedReadOnly or SharedReadWrite mode.

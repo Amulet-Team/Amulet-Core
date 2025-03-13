@@ -6,7 +6,7 @@
 
 namespace Amulet {
 
-std::shared_mutex& IdRegistry::mutex()
+std::shared_mutex& IdRegistry::get_mutex()
 {
     return _public_mutex;
 }

@@ -97,7 +97,7 @@ HistoryManager::HistoryManager()
 {
 }
 
-std::shared_mutex& HistoryManager::mutex()
+std::shared_mutex& HistoryManager::get_mutex()
 {
     return _h->mutex;
 }

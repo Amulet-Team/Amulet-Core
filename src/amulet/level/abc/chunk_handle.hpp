@@ -32,7 +32,7 @@ protected:
 public:
     virtual ~ChunkHandle() = default;
 
-    AMULET_CORE_EXPORT OrderedMutex& mutex() { return _public_mutex; };
+    AMULET_CORE_EXPORT OrderedMutex& get_mutex() { return _public_mutex; };
     AMULET_CORE_EXPORT const std::string& dimension_id() const { return _dimension_id; }
     AMULET_CORE_EXPORT ::int64_t cx() const { return _cx; }
     AMULET_CORE_EXPORT std::int64_t cz() const { return _cz; }
