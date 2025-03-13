@@ -70,17 +70,24 @@ namespace detail {
 template <typename... Args>
 class Signal;
 
+// A token returned when connecting a callback to a signal.
+// The token must be kept alive and used to disconnect the callback when it is no longer needed.
 template <typename... Args>
 class SignalToken {
 private:
     std::shared_ptr<detail::SignalCallbackStorage<Args...>> storage;
+
+    // Constructor.
     SignalToken(std::shared_ptr<detail::SignalCallbackStorage<Args...>> storage)
         : storage(storage)
     {
     }
+
+    // Allow Signal to construct SignalToken.
     friend class Signal<Args...>;
 
 public:
+    // Default constructor.
     SignalToken() = default;
 };
 
@@ -93,14 +100,21 @@ private:
     std::list<std::weak_ptr<storageT>> _callbacks;
 
 public:
+    // The callback type for this signal.
     using callbackT = std::function<void(Args...)>;
+    
+    // The token type for this signal.
     using tokenT = SignalToken<Args...>;
+    
+    // Constructors.
     Signal() = default;
     Signal(const Signal&) = delete;
     Signal(Signal&&) = delete;
 
     // Connect a callback to this signal and return a token.
-    // The token returned can be used to disconnect the callback.
+    // The token must be kept alive for the callback to work.
+    // The token is used to disconnect the callback when it is not needed.
+    // Thread safe.
     tokenT connect(callbackT callback, ConnectionMode mode = ConnectionMode::Direct)
     {
         std::unique_lock lock(_mutex);
@@ -111,6 +125,7 @@ public:
 
     // Disconnect a callback.
     // Token is the value returned by connect.
+    // Thread safe.
     void disconnect(tokenT token)
     {
         std::unique_lock lock(_mutex);
@@ -131,6 +146,7 @@ public:
 
     // Call all callbacks with the given arguments from this thread.
     // Blocks until all callbacks are processed.
+    // Thread safe.
     void emit(Args... args)
     {
         std::list<std::weak_ptr<storageT>> temp_callbacks;
@@ -187,6 +203,7 @@ public:
         }
     }
 
+    // Destructor.
     ~Signal()
     {
         std::unique_lock lock(_mutex);
