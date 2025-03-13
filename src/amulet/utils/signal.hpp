@@ -30,11 +30,20 @@ namespace detail {
 
         void _event_loop();
 
-    public:
+        // Construct a new event loop.
         AMULET_CORE_EXPORT EventLoop();
-        AMULET_CORE_EXPORT ~EventLoop();
+
+        // Exit out of the event loop.
+        void exit();
+
+        friend AMULET_CORE_EXPORT EventLoop& get_global_event_loop();
+
+    public:
+        // Destroy the event loop.
+        ~EventLoop();
+
+        // Submit a new job to the event loop.
         AMULET_CORE_EXPORT void submit(std::function<void()> event);
-        AMULET_CORE_EXPORT void exit();
     };
 
     AMULET_CORE_EXPORT EventLoop& get_global_event_loop();
