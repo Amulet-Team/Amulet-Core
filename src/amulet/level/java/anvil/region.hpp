@@ -188,7 +188,7 @@ public:
 
     // A mutex which can be used to synchronise calls.
     // Thread safe.
-    AMULET_CORE_EXPORT Amulet::OrderedMutex& mutex() const;
+    AMULET_CORE_EXPORT Amulet::OrderedMutex& get_mutex() const;
 
     // The path of the region file.
     // Thread safe.

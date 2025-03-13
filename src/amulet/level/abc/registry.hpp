@@ -24,7 +24,7 @@ public:
 
     // The public mutex.
     // Thread safe.
-    AMULET_CORE_EXPORT std::shared_mutex& mutex();
+    AMULET_CORE_EXPORT std::shared_mutex& get_mutex();
 
     // Convert a numerical id to its namespaced id.
     // External shared lock required.

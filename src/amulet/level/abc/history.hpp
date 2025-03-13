@@ -178,7 +178,7 @@ public:
     // The public mutex.
     // Note the mutex is shared with the HistoryManager class.
     // Thread safe.
-    std::shared_mutex& mutex()
+    std::shared_mutex& get_mutex()
     {
         return _h->mutex;
     }
@@ -381,7 +381,7 @@ public:
     // The public mutex.
     // Note the mutex is shared with the HistoryManagerLayer class.
     // Thread safe.
-    AMULET_CORE_EXPORT std::shared_mutex& mutex();
+    AMULET_CORE_EXPORT std::shared_mutex& get_mutex();
 
     // Get a new history layer.
     // Unique lock required.

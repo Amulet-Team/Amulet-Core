@@ -21,7 +21,7 @@ py::module init_registry(py::module m_parent)
     IdRegistry.def(py::init<>());
     IdRegistry.def_property_readonly(
         "lock",
-        &Amulet::IdRegistry::mutex,
+        &Amulet::IdRegistry::get_mutex,
         py::doc("The public lock.\n"
                 "Thread safe."));
     IdRegistry.def(

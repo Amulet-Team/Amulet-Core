@@ -105,7 +105,7 @@ public:
 
     // External mutex.
     // Thread safe.
-    AMULET_CORE_EXPORT Amulet::OrderedMutex& mutex();
+    AMULET_CORE_EXPORT Amulet::OrderedMutex& get_mutex();
 
     // The directory this instance manages.
     // Thread safe.
@@ -192,7 +192,7 @@ public:
 
     // External mutex.
     // Thread safe.
-    AMULET_CORE_EXPORT Amulet::OrderedMutex& mutex();
+    AMULET_CORE_EXPORT Amulet::OrderedMutex& get_mutex();
 
     // The directory this dimension is in.
     // Thread safe.
@@ -268,7 +268,7 @@ public:
                 }
             }
             auto& layer = it->second;
-            auto& layer_mutex = layer->mutex();
+            auto& layer_mutex = layer->get_mutex();
             layer_mutex.lock<CurrentThreadMode::ReadWrite, OtherThreadMode::ReadWrite>();
             std::lock_guard lock(layer_mutex, std::adopt_lock);
             if constexpr (std::is_same_v<decltype(data), const std::optional<AmuletNBT::NamedTag>>) {
