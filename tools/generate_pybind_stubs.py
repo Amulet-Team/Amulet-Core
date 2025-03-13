@@ -39,7 +39,7 @@ def eq_sub_func(match: re.Match) -> str:
     if match.string[: match.start()].endswith("@typing.overload\n"):
         # is overload
         if re.match(
-            f"\n{match.group('indent')}@typing.overload\n{match.group('indent')}def __eq__\(self, ",
+            f"\\n{match.group('indent')}@typing.overload\\n{match.group('indent')}def __eq__\\(self, ",
             match.string[match.end() :],
         ):
             # is not last overload
@@ -81,7 +81,7 @@ def get_module_path(name: str) -> str:
 
 
 def get_package_dir(name: str) -> str:
-    return os.path.dirname(get_module_path(name))
+    return os.path.realpath(os.path.dirname(get_module_path(name)))
 
 
 def patch_stubgen():
@@ -159,7 +159,7 @@ def main() -> None:
     # Remove all existing stub files
     print("Removing stub files...")
     for stub_path in glob.iglob(
-        os.path.join(glob.escape(src_path), "**", "*.pyi"), recursive=True
+        os.path.join(glob.escape(amulet_path), "**", "*.pyi"), recursive=True
     ):
         os.remove(stub_path)
 
@@ -184,16 +184,16 @@ def main() -> None:
     # print("Running stubgen...")
     # stubgen.main([
     #     *glob.glob(
-    #         os.path.join(glob.escape(src_path), "**", "*.py"), recursive=True
+    #         os.path.join(glob.escape(amulet_path), "**", "*.py"), recursive=True
     #     ),
     #     "-o",
-    #     src_path,
+    #     amulet_path,
     #     "--include-docstrings",
     # ])
 
     # Remove stub files generated for python modules
     for stub_path in glob.iglob(
-        os.path.join(glob.escape(src_path), "**", "*.pyi"), recursive=True
+        os.path.join(glob.escape(amulet_path), "**", "*.pyi"), recursive=True
     ):
         if os.path.isfile(stub_path[:-1]):
             os.remove(stub_path)
@@ -201,7 +201,7 @@ def main() -> None:
     print("Patching stub files...")
     # Fix some issues and reformat the stub files.
     stub_paths = glob.glob(
-        os.path.join(glob.escape(src_path), "**", "*.pyi"), recursive=True
+        os.path.join(glob.escape(amulet_path), "**", "*.pyi"), recursive=True
     )
     for stub_path in stub_paths:
         with open(stub_path, encoding="utf-8") as f:
@@ -239,7 +239,7 @@ def main() -> None:
         ]
     )
 
-    subprocess.run([sys.executable, "-m", "black", src_path])
+    subprocess.run([sys.executable, "-m", "black", amulet_path])
 
 
 if __name__ == "__main__":
