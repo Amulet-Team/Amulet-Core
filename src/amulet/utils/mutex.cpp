@@ -23,10 +23,10 @@ void OrderedMutex::unlock()
     }
 
     switch (it->second->state->first) {
-    case CurrentThreadMode::Read:
+    case ThreadAccessMode::Read:
         read_count--;
         break;
-    case CurrentThreadMode::ReadWrite:
+    case ThreadAccessMode::ReadWrite:
         read_count--;
         write_count--;
         break;

@@ -12,7 +12,7 @@ from amulet.utils.task_manager import AbstractCancelManager, CancelManager
 from amulet.utils.lock import (
     Deadlock,
     OrderedLock,
-    CurrentThreadMode,
+    ThreadAccessMode,
     ThreadShareMode,
     LockNotAcquired,
     Lock,
@@ -495,7 +495,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
         cancel_ref = weakref.ref(cancel)
         shared = lock(
             cancel_manager=cancel,
-            thread_mode=(CurrentThreadMode.Read, ThreadShareMode.SharedReadOnly),
+            thread_mode=(ThreadAccessMode.Read, ThreadShareMode.SharedReadOnly),
         )
         del lock
         del cancel
@@ -515,10 +515,10 @@ class OrderedLockTestCase(Abstract.LockTestCase):
             for blocking in (True, False):
                 for timeout in (-1.0, 1.0):
                     for thread_mode in (
-                        (CurrentThreadMode.ReadWrite, ThreadShareMode.Unique),
-                        (CurrentThreadMode.Read, ThreadShareMode.SharedReadOnly),
-                        (CurrentThreadMode.Read, ThreadShareMode.SharedReadWrite),
-                        (CurrentThreadMode.ReadWrite, ThreadShareMode.SharedReadWrite),
+                        (ThreadAccessMode.ReadWrite, ThreadShareMode.Unique),
+                        (ThreadAccessMode.Read, ThreadShareMode.SharedReadOnly),
+                        (ThreadAccessMode.Read, ThreadShareMode.SharedReadWrite),
+                        (ThreadAccessMode.ReadWrite, ThreadShareMode.SharedReadWrite),
                     ):
                         with (
                             self.subTest(
@@ -540,13 +540,13 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                             with lock(blocking, timeout, thread_mode=thread_mode):
                                 pass
 
-        with lock(thread_mode=(CurrentThreadMode.ReadWrite, ThreadShareMode.Unique)):
+        with lock(thread_mode=(ThreadAccessMode.ReadWrite, ThreadShareMode.Unique)):
             lock_all()
-        with lock(thread_mode=(CurrentThreadMode.Read, ThreadShareMode.SharedReadOnly)):
+        with lock(thread_mode=(ThreadAccessMode.Read, ThreadShareMode.SharedReadOnly)):
             lock_all()
-        with lock(thread_mode=(CurrentThreadMode.Read, ThreadShareMode.SharedReadWrite)):
+        with lock(thread_mode=(ThreadAccessMode.Read, ThreadShareMode.SharedReadWrite)):
             lock_all()
-        with lock(thread_mode=(CurrentThreadMode.ReadWrite, ThreadShareMode.SharedReadWrite)):
+        with lock(thread_mode=(ThreadAccessMode.ReadWrite, ThreadShareMode.SharedReadWrite)):
             lock_all()
 
     def test_parallel(self) -> None:
@@ -559,23 +559,23 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                 if mode == LockMode.Unique:
                     mgr = lock(
                         blocking,
-                        thread_mode=(CurrentThreadMode.ReadWrite, ThreadShareMode.Unique),
+                        thread_mode=(ThreadAccessMode.ReadWrite, ThreadShareMode.Unique),
                     )
                 elif mode == LockMode.SharedReadOnly:
                     mgr = lock(
                         blocking,
-                        thread_mode=(CurrentThreadMode.Read, ThreadShareMode.SharedReadOnly),
+                        thread_mode=(ThreadAccessMode.Read, ThreadShareMode.SharedReadOnly),
                     )
                 elif mode == LockMode.SharedRead:
                     mgr = lock(
                         blocking,
-                        thread_mode=(CurrentThreadMode.Read, ThreadShareMode.SharedReadWrite),
+                        thread_mode=(ThreadAccessMode.Read, ThreadShareMode.SharedReadWrite),
                     )
                 elif mode == LockMode.SharedReadWrite:
                     mgr = lock(
                         blocking,
                         thread_mode=(
-                            CurrentThreadMode.ReadWrite,
+                            ThreadAccessMode.ReadWrite,
                             ThreadShareMode.SharedReadWrite,
                         ),
                     )
@@ -597,23 +597,23 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                 if mode == LockMode.Unique:
                     locked = lock.acquire(
                         blocking,
-                        thread_mode=(CurrentThreadMode.ReadWrite, ThreadShareMode.Unique),
+                        thread_mode=(ThreadAccessMode.ReadWrite, ThreadShareMode.Unique),
                     )
                 elif mode == LockMode.SharedReadOnly:
                     locked = lock.acquire(
                         blocking,
-                        thread_mode=(CurrentThreadMode.Read, ThreadShareMode.SharedReadOnly),
+                        thread_mode=(ThreadAccessMode.Read, ThreadShareMode.SharedReadOnly),
                     )
                 elif mode == LockMode.SharedRead:
                     locked = lock.acquire(
                         blocking,
-                        thread_mode=(CurrentThreadMode.Read, ThreadShareMode.SharedReadWrite),
+                        thread_mode=(ThreadAccessMode.Read, ThreadShareMode.SharedReadWrite),
                     )
                 elif mode == LockMode.SharedReadWrite:
                     locked = lock.acquire(
                         blocking,
                         thread_mode=(
-                            CurrentThreadMode.ReadWrite,
+                            ThreadAccessMode.ReadWrite,
                             ThreadShareMode.SharedReadWrite,
                         ),
                     )
@@ -714,7 +714,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
             step.increment()
             step.wait(6)
             with lock(
-                timeout=5, thread_mode=(CurrentThreadMode.Read, ThreadShareMode.SharedReadOnly)
+                timeout=5, thread_mode=(ThreadAccessMode.Read, ThreadShareMode.SharedReadOnly)
             ):
                 step.increment()
                 exec_order.append("shared")
@@ -727,7 +727,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
             step.wait(8)
             with lock(
                 timeout=5,
-                thread_mode=(CurrentThreadMode.ReadWrite, ThreadShareMode.Unique),
+                thread_mode=(ThreadAccessMode.ReadWrite, ThreadShareMode.Unique),
             ):
                 step.increment()
                 exec_order.append("unique")
@@ -739,7 +739,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
             step.increment()
             step.wait(9)
             with lock(
-                timeout=5, thread_mode=(CurrentThreadMode.Read, ThreadShareMode.SharedReadOnly)
+                timeout=5, thread_mode=(ThreadAccessMode.Read, ThreadShareMode.SharedReadOnly)
             ):
                 step.increment()
                 exec_order.append("shared")
@@ -823,7 +823,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                             with lock(
                                 blocking=False,
                                 thread_mode=(
-                                    CurrentThreadMode.ReadWrite,
+                                    ThreadAccessMode.ReadWrite,
                                     ThreadShareMode.Unique,
                                 ),
                             ):
@@ -842,19 +842,19 @@ class OrderedLockTestCase(Abstract.LockTestCase):
 
                         if mode == LockMode.Unique:
                             thread_mode = (
-                                CurrentThreadMode.ReadWrite,
+                                ThreadAccessMode.ReadWrite,
                                 ThreadShareMode.Unique,
                             )
                         elif mode == LockMode.SharedReadOnly:
-                            thread_mode = (CurrentThreadMode.Read, ThreadShareMode.SharedReadOnly)
+                            thread_mode = (ThreadAccessMode.Read, ThreadShareMode.SharedReadOnly)
                         elif mode == LockMode.SharedRead:
                             thread_mode = (
-                                CurrentThreadMode.Read,
+                                ThreadAccessMode.Read,
                                 ThreadShareMode.SharedReadWrite,
                             )
                         elif mode == LockMode.SharedReadWrite:
                             thread_mode = (
-                                CurrentThreadMode.ReadWrite,
+                                ThreadAccessMode.ReadWrite,
                                 ThreadShareMode.SharedReadWrite,
                             )
                         else:
@@ -925,7 +925,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                             step.wait(3)
                             with lock_1(
                                 thread_mode=(
-                                    CurrentThreadMode.ReadWrite,
+                                    ThreadAccessMode.ReadWrite,
                                     ThreadShareMode.Unique,
                                 )
                             ):
@@ -933,7 +933,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                                 step.wait(5)
                                 with lock_2(
                                     thread_mode=(
-                                        CurrentThreadMode.ReadWrite,
+                                        ThreadAccessMode.ReadWrite,
                                         ThreadShareMode.Unique,
                                     )
                                 ):
@@ -946,7 +946,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                             step.wait(3)
                             with lock_2(
                                 thread_mode=(
-                                    CurrentThreadMode.ReadWrite,
+                                    ThreadAccessMode.ReadWrite,
                                     ThreadShareMode.Unique,
                                 )
                             ):
@@ -955,22 +955,22 @@ class OrderedLockTestCase(Abstract.LockTestCase):
                                 time.sleep(1)
                                 if mode == LockMode.Unique:
                                     thread_mode = (
-                                        CurrentThreadMode.ReadWrite,
+                                        ThreadAccessMode.ReadWrite,
                                         ThreadShareMode.Unique,
                                     )
                                 elif mode == LockMode.SharedReadOnly:
                                     thread_mode = (
-                                        CurrentThreadMode.Read,
+                                        ThreadAccessMode.Read,
                                         ThreadShareMode.SharedReadOnly,
                                     )
                                 elif mode == LockMode.SharedRead:
                                     thread_mode = (
-                                        CurrentThreadMode.Read,
+                                        ThreadAccessMode.Read,
                                         ThreadShareMode.SharedReadWrite,
                                     )
                                 elif mode == LockMode.SharedReadWrite:
                                     thread_mode = (
-                                        CurrentThreadMode.ReadWrite,
+                                        ThreadAccessMode.ReadWrite,
                                         ThreadShareMode.SharedReadWrite,
                                     )
                                 else:
@@ -1057,7 +1057,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
         with Timer():
             ordered_mutex = OrderedLock()
             ordered_mutex.acquire(
-                thread_mode=(CurrentThreadMode.ReadWrite, ThreadShareMode.SharedReadWrite)
+                thread_mode=(ThreadAccessMode.ReadWrite, ThreadShareMode.SharedReadWrite)
             )
 
             def f() -> None:
@@ -1090,7 +1090,7 @@ class OrderedLockTestCase(Abstract.LockTestCase):
         with Timer():
             ordered_mutex = OrderedLock()
             ordered_mutex.acquire(
-                thread_mode=(CurrentThreadMode.ReadWrite, ThreadShareMode.SharedReadWrite)
+                thread_mode=(ThreadAccessMode.ReadWrite, ThreadShareMode.SharedReadWrite)
             )
 
             def f() -> None:

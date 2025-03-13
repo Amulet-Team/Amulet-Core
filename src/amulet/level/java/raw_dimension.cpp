@@ -43,35 +43,35 @@ AnvilChunkCoordIterator JavaRawDimension::all_chunk_coords() const
 bool JavaRawDimension::has_chunk(std::int64_t cx, std::int64_t cz)
 {
     auto& mutex = _anvil_dimension.get_mutex();
-    mutex.lock<CurrentThreadMode::Read, ThreadShareMode::SharedReadWrite>();
+    mutex.lock<ThreadAccessMode::Read, ThreadShareMode::SharedReadWrite>();
     std::lock_guard lock(mutex, std::adopt_lock);
     return _anvil_dimension.has_chunk(cx, cz);
 }
 void JavaRawDimension::delete_chunk(std::int64_t cx, std::int64_t cz)
 {
     auto& mutex = _anvil_dimension.get_mutex();
-    mutex.lock<CurrentThreadMode::ReadWrite, ThreadShareMode::SharedReadWrite>();
+    mutex.lock<ThreadAccessMode::ReadWrite, ThreadShareMode::SharedReadWrite>();
     std::lock_guard lock(mutex, std::adopt_lock);
     _anvil_dimension.delete_chunk(cx, cz);
 }
 JavaRawChunk JavaRawDimension::get_raw_chunk(std::int64_t cx, std::int64_t cz)
 {
     auto& mutex = _anvil_dimension.get_mutex();
-    mutex.lock<CurrentThreadMode::Read, ThreadShareMode::SharedReadWrite>();
+    mutex.lock<ThreadAccessMode::Read, ThreadShareMode::SharedReadWrite>();
     std::lock_guard lock(mutex, std::adopt_lock);
     return _anvil_dimension.get_chunk_data(cx, cz);
 }
 void JavaRawDimension::set_raw_chunk(std::int64_t cx, std::int64_t cz, const JavaRawChunk& chunk)
 {
     auto& mutex = _anvil_dimension.get_mutex();
-    mutex.lock<CurrentThreadMode::ReadWrite, ThreadShareMode::SharedReadWrite>();
+    mutex.lock<ThreadAccessMode::ReadWrite, ThreadShareMode::SharedReadWrite>();
     std::lock_guard lock(mutex, std::adopt_lock);
     _anvil_dimension.set_chunk_data(cx, cz, chunk);
 }
 void JavaRawDimension::compact()
 {
     auto& mutex = _anvil_dimension.get_mutex();
-    mutex.lock<CurrentThreadMode::Read, ThreadShareMode::SharedReadWrite>();
+    mutex.lock<ThreadAccessMode::Read, ThreadShareMode::SharedReadWrite>();
     std::lock_guard lock(mutex, std::adopt_lock);
     _anvil_dimension.compact();
 }

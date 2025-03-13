@@ -269,7 +269,7 @@ public:
             }
             auto& layer = it->second;
             auto& layer_mutex = layer->get_mutex();
-            layer_mutex.lock<CurrentThreadMode::ReadWrite, ThreadShareMode::SharedReadWrite>();
+            layer_mutex.lock<ThreadAccessMode::ReadWrite, ThreadShareMode::SharedReadWrite>();
             std::lock_guard lock(layer_mutex, std::adopt_lock);
             if constexpr (std::is_same_v<decltype(data), const std::optional<AmuletNBT::NamedTag>>) {
                 if (data) {
