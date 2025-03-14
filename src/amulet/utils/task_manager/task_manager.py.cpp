@@ -60,13 +60,35 @@ static py::module init_progress_manager(py::module m_parent)
     std::string module_name = m.attr("__name__").cast<std::string>();
 
     py::class_<Amulet::AbstractProgressManager> AbstractProgressManager(m, "AbstractProgressManager");
-    AbstractProgressManager.def("register_progress_callback", &Amulet::AbstractProgressManager::register_progress_callback, py::arg("callback"));
-    AbstractProgressManager.def("unregister_progress_callback", &Amulet::AbstractProgressManager::unregister_progress_callback, py::arg("callback"));
-    AbstractProgressManager.def("update_progress", &Amulet::AbstractProgressManager::update_progress, py::arg("progress"));
-    AbstractProgressManager.def("register_progress_text_callback", &Amulet::AbstractProgressManager::register_progress_text_callback, py::arg("callback"));
-    AbstractProgressManager.def("unregister_progress_text_callback", &Amulet::AbstractProgressManager::unregister_progress_text_callback, py::arg("callback"));
-    AbstractProgressManager.def("update_progress_text", &Amulet::AbstractProgressManager::update_progress_text, py::arg("text"));
-    AbstractProgressManager.def("get_child", &Amulet::AbstractProgressManager::get_child, py::arg("progress_min"), py::arg("progress_max"));
+    AbstractProgressManager.def(
+        "register_progress_callback",
+        &Amulet::AbstractProgressManager::register_progress_callback,
+        py::arg("callback"));
+    AbstractProgressManager.def(
+        "unregister_progress_callback",
+        &Amulet::AbstractProgressManager::unregister_progress_callback,
+        py::arg("token"));
+    AbstractProgressManager.def(
+        "update_progress",
+        &Amulet::AbstractProgressManager::update_progress,
+        py::arg("progress"));
+    AbstractProgressManager.def(
+        "register_progress_text_callback",
+        &Amulet::AbstractProgressManager::register_progress_text_callback,
+        py::arg("callback"));
+    AbstractProgressManager.def(
+        "unregister_progress_text_callback",
+        &Amulet::AbstractProgressManager::unregister_progress_text_callback,
+        py::arg("token"));
+    AbstractProgressManager.def(
+        "update_progress_text",
+        &Amulet::AbstractProgressManager::update_progress_text,
+        py::arg("text"));
+    AbstractProgressManager.def(
+        "get_child",
+        &Amulet::AbstractProgressManager::get_child,
+        py::arg("progress_min"),
+        py::arg("progress_max"));
 
     py::class_<Amulet::VoidProgressManager, Amulet::AbstractProgressManager> VoidProgressManager(m, "VoidProgressManager");
     VoidProgressManager.def(py::init<>());
