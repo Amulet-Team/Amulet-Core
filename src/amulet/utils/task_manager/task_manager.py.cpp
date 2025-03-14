@@ -1,7 +1,11 @@
 #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
 
+#include <string>
+
 #include <pybind11_extensions/py_module.hpp>
+
+#include <amulet/utils/signal.py.hpp>
 
 #include "cancel_manager.hpp"
 #include "progress_manager.hpp"
@@ -16,6 +20,10 @@ static py::module init_cancel_manager(py::module m_parent)
 
     py::register_exception<Amulet::TaskCancelled>(m, "TaskCancelled");
 
+    Amulet::create_signal_binding<Amulet::Signal<>>();
+    Amulet::create_signal_binding<Amulet::Signal<float>>();
+    Amulet::create_signal_binding<Amulet::Signal<std::string>>();
+
     py::class_<Amulet::AbstractCancelManager> AbstractCancelManager(m, "AbstractCancelManager");
     AbstractCancelManager.def(
         "cancel",
@@ -28,13 +36,17 @@ static py::module init_cancel_manager(py::module m_parent)
         py::doc("Has :meth:`cancel` been called to signal that the operation should be cancelled."));
     AbstractCancelManager.def(
         "register_cancel_callback",
-        &Amulet::AbstractCancelManager::register_cancel_callback,
+        [](Amulet::AbstractCancelManager& self, Amulet::CancelCallback callback) -> Amulet::PySignalToken<> {
+            return py::cast(self.register_cancel_callback(std::move(callback)), py::return_value_policy::move);
+        },
         py::arg("callback"),
         py::doc("Register a function to get called when cancel is called.\n"
                 "The callback will be called from the thread `cancel` is called in."));
     AbstractCancelManager.def(
         "unregister_cancel_callback",
-        &Amulet::AbstractCancelManager::unregister_cancel_callback,
+        [](Amulet::AbstractCancelManager& self, Amulet::PySignalToken<> token) {
+            return self.unregister_cancel_callback(token.cast<Amulet::SignalToken<>>());
+        },
         py::arg("token"),
         py::doc("Unregister a registered function from being called when cancel is called."));
 
@@ -62,11 +74,15 @@ static py::module init_progress_manager(py::module m_parent)
     py::class_<Amulet::AbstractProgressManager> AbstractProgressManager(m, "AbstractProgressManager");
     AbstractProgressManager.def(
         "register_progress_callback",
-        &Amulet::AbstractProgressManager::register_progress_callback,
+        [](Amulet::AbstractProgressManager& self, Amulet::ProgressCallback callback) -> Amulet::PySignalToken<float> {
+            return py::cast(self.register_progress_callback(std::move(callback)), py::return_value_policy::move);
+        },
         py::arg("callback"));
     AbstractProgressManager.def(
         "unregister_progress_callback",
-        &Amulet::AbstractProgressManager::unregister_progress_callback,
+        [](Amulet::AbstractProgressManager& self, Amulet::PySignalToken<float> token) {
+            return self.unregister_progress_callback(token.cast<Amulet::SignalToken<float>>());
+        },
         py::arg("token"));
     AbstractProgressManager.def(
         "update_progress",
@@ -74,11 +90,15 @@ static py::module init_progress_manager(py::module m_parent)
         py::arg("progress"));
     AbstractProgressManager.def(
         "register_progress_text_callback",
-        &Amulet::AbstractProgressManager::register_progress_text_callback,
+        [](Amulet::AbstractProgressManager& self, Amulet::ProgressTextCallback callback) -> Amulet::PySignalToken<std::string> {
+            return py::cast(self.register_progress_text_callback(std::move(callback)), py::return_value_policy::move);
+        },
         py::arg("callback"));
     AbstractProgressManager.def(
         "unregister_progress_text_callback",
-        &Amulet::AbstractProgressManager::unregister_progress_text_callback,
+        [](Amulet::AbstractProgressManager& self, Amulet::PySignalToken<std::string> token) {
+            return self.unregister_progress_text_callback(token.cast<Amulet::SignalToken<std::string>>());
+        },
         py::arg("token"));
     AbstractProgressManager.def(
         "update_progress_text",
